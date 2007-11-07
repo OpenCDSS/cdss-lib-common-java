@@ -1,0 +1,76 @@
+// ---------------------------------------------------------------------------- 
+// UnknownProjection.java
+// ---------------------------------------------------------------------------- 
+// Copyright:  See the COPYRIGHT file.
+// ---------------------------------------------------------------------------- 
+// History:
+//
+// 2001 Steven A Malers, RTi	Add this projection to allow on-the-fly
+//				projections.
+// ---------------------------------------------------------------------------- 
+
+package RTi.GIS.GeoView;
+
+import RTi.GR.GRPoint;
+
+/**
+The unknown projection can be used as a place-holder when a projection is not
+know.  Many times for a GeoView project no projections will be defined so
+a place-holder is needed just to do comparisons.
+*/
+public class UnknownProjection extends GeoProjection {
+
+/**
+This projection does not do any conversions and acts as a place-holder for
+projections.
+*/
+public UnknownProjection() {
+	super ( "Unknown" );
+}
+
+/**
+Finalize and clean up.
+@exception Throwable if there is an error.
+*/
+protected void finalize()
+throws Throwable {
+	super.finalize();
+}
+
+/**
+This just returns the original coordinates.  If a comparison of projections is
+made, this method will likely never be called.
+@return the projected points.
+@param p Point to project from latitude and longitude. Assumes
+	point comes in format (lon, lat)
+@param reuse_point Indicates whether the point that 
+	is passed in should be re-used for the output 
+	(doing so saves memory).
+*/
+public GRPoint project ( GRPoint p, boolean reuse_point)
+{	if ( reuse_point ) {
+		return p;
+	}
+	// create a new point to return
+	else { return new GRPoint ( p );
+	}
+}
+
+/**
+Un-project coordinates back to latitude and longitude.  This returns the same
+coordinates.
+@return the un-projected points.
+@param p Point to un-project to latitude and longitude.
+@param reuse_point Indicates whether the point that 
+	is passed in should be
+	re-used for the output (doing so saves memory).
+*/
+public GRPoint unProject(GRPoint p, boolean reuse_point)
+{	if ( reuse_point ) {
+		return p;
+	}	
+	else {	return new GRPoint ( p );
+	}
+}
+	
+} // End UnknownProjection

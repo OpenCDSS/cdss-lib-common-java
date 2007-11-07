@@ -1,0 +1,2 @@
+tsid, startDate, endDate, timeZone
+
