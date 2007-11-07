@@ -2,5 +2,19 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="externals/activation.jar"/>
+	<classpathentry kind="lib" path="externals/Blowfish_142.jar"/>
+	<classpathentry kind="lib" path="externals/configSchema.jar"/>
+	<classpathentry kind="lib" path="externals/jsr173_1.0_api.jar"/>
+	<classpathentry kind="lib" path="externals/junit.jar"/>
+	<classpathentry kind="lib" path="externals/libDataServicesJava.jar"/>
+	<classpathentry kind="lib" path="externals/libXMLJava.jar"/>
+	<classpathentry kind="lib" path="externals/mail.jar"/>
+	<classpathentry kind="lib" path="externals/NDFDSchema.jar"/>
+	<classpathentry kind="lib" path="externals/resolver.jar"/>
+	<classpathentry kind="lib" path="externals/xbean_xpath.jar"/>
+	<classpathentry kind="lib" path="externals/xbean.jar"/>
+	<classpathentry kind="lib" path="externals/xerces.jar"/>
+	<classpathentry kind="lib" path="externals/xmlpublic.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
