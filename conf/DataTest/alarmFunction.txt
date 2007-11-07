@@ -1,0 +1,5 @@
+NUM,	TYPE,		INTERVAL,	WINDOW,		IDVAL,	MESS
+0,	TSDelta,	15minutes,	2months,	12,	TSDelta($TSID[$DATETIME])=$VALUE
+1,	constant,	15minutes,	2months,	15,	$VALUE
+2,	constant,	15minutes,	2months,	10,	$VALUE
+3,	constant,	15minutes,	2months,	-5,	$VALUE

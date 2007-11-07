@@ -1,0 +1,5 @@
+NUM,	TYPE,		LHTYPE,		LHNUM,	RHTYPE,		RHNUM
+0,	||,		expression,	1,	expression,	2
+1,	>,		expression,	3,	function,	1
+2,	<,		function,	0,	function,	3
+3,	+,		function,	0,	function,	2

@@ -1,0 +1,539 @@
+<!-- 
+================================================================================
+Ant build.xml file for creating the Alarm files.
+================================================================================
+2006-03-13	J. Thomas Sapienza, RTi	Initial Version
+================================================================================
+-->
+
+<project name="libAlarmJava" default="compile" basedir="..\..\..">
+
+<description>
+	Build file for the Alarm library.
+</description>
+
+<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+  <classpath>
+    <pathelement location="i:\develop\ant\lib\ant-contrib.jar"/>
+  </classpath>
+</taskdef>
+
+<!--
+================================================================================
+	Global Build Properties
+================================================================================
+-->
+<property name="package" value="RTi/DMI"/>
+<property name="src" location="src"/>
+<!-- the next property ("build") should not have a trailing / on the path.
+     ie, it can be "classes", but not "classes/".  Otherwise, alternate version
+     compilation won't work. -->
+<property name="build" location="classes"/>
+
+<property name="latest_version" value="JDK 1.4.2"/>
+
+<!--
+================================================================================
+INIT
+	Initialization of environment variables for using JDK 1.4.2
+================================================================================
+-->
+<target name="init_142"
+	description="Set-up of the environment variables for a JDK 1.4.2 build">
+	<property name="jdk_home" location="i:\develop\jdk_142"/>
+	<property name="build_subversion" value="_142"/>
+	<condition property="os_sep" value="/">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="os_sep" value="\\">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="jdk_home" value="/usr/java">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="jdk_home" value="i:\DEVELOP\jdk_142">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="executable" value="${jdk_home}/bin/javac">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="executable" value="${jdk_home}\bin\javac">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="jre_home" value="${jdk_home}/jre/jre_142">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="jre_home" value="\develop\jre_142">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="blessed_dir" value="/develop/bin">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="blessed_dir" value="\develop\bin">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="blessed_classes_dir" 
+		value="/develop/classes${build_subversion}">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="blessed_classes_dir" 
+		value="\develop\classes${build_subversion}">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<condition property="blessed_javadoc_dir" 
+		value="/develop/javadoc${build_subversion}">
+	<and>
+		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="blessed_javadoc_dir" 
+		value="\develop\javadoc${build_subversion}">
+	<and>
+		<os family="windows" />
+	</and>
+	</condition>
+
+	<property name="includes"
+		value="	
+			${package}${os_sep}ERDiagram_JFrame.java
+			${package}${os_sep}ERDiagram_JPanel.java
+			${package}${os_sep}ERDiagram_DrawingArea.java
+			${package}${os_sep}ERDiagram_Device.java
+			${package}${os_sep}ERDiagram_Table.java
+			${package}${os_sep}ERDiagram_Relationship.java
+			${package}${os_sep}ERDiagram_FindDialog.java,
+
+			${package}${os_sep}ERDiagram_Table_TableModel.java
+			${package}${os_sep}ERDiagram_Table_CellRenderer.java
+			${package}${os_sep}ERDiagram_Table_JFrame.java
+		
+			${package}${os_sep}DMI.java
+			${package}${os_sep}DMIDataObject.java
+			${package}${os_sep}DMIDeleteStatement.java
+			${package}${os_sep}DMISelectStatement.java,
+			${package}${os_sep}DMIStatement.java
+			${package}${os_sep}DMITableModel.java
+			${package}${os_sep}DMIUtil.java
+			${package}${os_sep}DMIWriteStatement.java
+			${package}${os_sep}GenericDMI.java
+
+			${package}${os_sep}DMIStoredProcedureData.java
+		"/>
+	<property name="compiler" value="modern"/>
+	
+	<property name="compiler" value="modern"/>
+	<property name="executable" value="${jdk_home}\bin\javac"/>
+	<property name="jre_home" location="\develop\JRE${build_subversion}"/>
+
+	<property name="blessed_dir" 
+		location="i:\develop\classes${build_subversion}"/>
+	<property name="blessed_javadoc_dir" 
+		location="i:\develop\javadoc${build_subversion}"/>
+	
+	<path id="classpath">
+		<pathelement location="${build}${build_subversion}"/>
+		<pathelement location="${jdk_home}\lib\classes.zip"/>
+		<pathelement location="${blessed_dir}"/>
+	</path>
+	<path id="classpath_swing">
+		<pathelement location="${blessed_dir}_swing"/>	
+		<pathelement location="I:\develop\bin\swingall.jar"/>	
+		<path refid="classpath"/>
+	</path>	
+</target>
+
+<!--
+================================================================================
+COMPILE
+	Generic routine to compile for a given version
+================================================================================
+-->
+<target name="compile_generic"
+	description="Generic target for compiling source code">
+
+	<tstamp/>
+	<mkdir dir="${build}${build_subversion}"/>
+	
+	<!-- Compile the java code from ${src} into ${build} -->
+	<javac srcdir="${src}"
+		fork="yes"
+		includes="${includes}"
+		destdir="${build}${build_subversion}"
+		verbose="false"
+		deprecation="true"
+		debug="on"
+		listfiles="true"
+		executable="${executable}"
+		compiler="${compiler}">
+		<classpath refid="classpath"/>
+	</javac>
+</target>
+
+<target name="check_generic">
+	<filelist dir="${src}" id="filelist" files="${includes}"/>
+
+	<foreach param="Filename" target="TestFileExists">
+		<path>   <filelist refid="filelist" /> </path>
+	</foreach>
+</target>
+
+<target 
+	name="TestFileExists"
+	description="Tests if param `Filename` does not exist.">
+	<if><not>
+		<available file="${Filename}"/>
+		</not>
+	<then>
+		<fail message="${Filename} does not exist!"/>
+	</then>
+	</if>
+</target>
+
+<target name="compile_generic_swing">
+	<tstamp/>
+	<mkdir dir="${build}${build_subversion}_swing"/>
+	
+	<!-- Compile the java code from ${src} into ${build} -->
+	<javac srcdir="${src}"
+		fork="yes"
+		includes="${includes_swing}"
+		destdir="${build}${build_subversion}_swing"
+		verbose="false"
+		deprecation="true"
+		debug="on"
+		listfiles="true"
+		executable="${executable}"
+		compiler="${compiler}">
+		<classpath refid="classpath_swing"/>
+	</javac>	
+</target>
+
+<!--
+================================================================================
+COMPILE
+	[Default Target]
+	This is the default target.  This is executed when ant is run without
+	any other arguments.  When a new JDk version is used and a target built
+	for it, the 'depends' argument in this target should be changed to point
+	to the new target.
+================================================================================
+-->
+<target name="compile"
+	depends="142"
+	description="Compile target for the latest java version"/>
+
+<!--
+================================================================================
+COMPILE
+	Version 1.4.2 Compile
+================================================================================
+-->
+<target name="142"
+	depends="init_142, compile_generic"
+	description="Compile target for JDK 1.4.2"/>
+
+<!--
+================================================================================
+JAVADOC
+	Generic target for handling javadocing for a given version
+================================================================================
+-->
+<target name="javadoc_generic"
+	description="Target for creating Javadocs">
+	<javadoc
+		destdir="${basedir}\javadoc${build_subversion}">
+		<classpath refid="classpath"/>
+		<fileset dir="${src}"
+			includes="${includes}"/>
+	</javadoc>
+</target>	
+<target name="javadoc_generic_swing"
+	description="Target for creating Javadocs">
+	<javadoc
+		destdir="${basedir}\javadoc${build_subversion}">
+		<classpath refid="classpath"/>
+		<fileset dir="${src}"
+			includes="${includes_swing}"/>
+	</javadoc>
+</target>
+<!-- 
+================================================================================
+JAVADOC
+	Latest version Javadoc.  When a new JDK is added, the 'depends' 
+	argument should be updated to point to the new target.
+================================================================================
+-->
+<target name="javadoc"
+	depends="javadoc_142"
+	description="Target for creating Javadocs for latest JDK"/>
+
+<!-- 
+================================================================================
+JAVADOC
+	Javadoc for JDK 1.4.2
+================================================================================
+-->
+<target name="javadoc_142"
+	depends="init_142, javadoc_generic"
+	description="Target for creating Javadocs for 1.4.2"/>
+
+<!-- 
+================================================================================
+CLEAN
+	Generic target for doing a clean for a given version
+================================================================================
+-->
+<target name="clean_generic"
+	description="Generic target for deleting class files">
+	<!-- Delete the ${build} tree -->
+	<delete dir="${build}${build_subversion}"/>
+	<delete dir="javadoc${build_subversion}"/>
+</target>
+<target name="clean_generic_swing"
+	description="Generic target for deleting class files">
+	<!-- Delete the ${build} tree -->
+	<delete dir="${build}${build_subversion}_swing"/>
+	<delete dir="javadoc${build_subversion}"/>
+</target>
+
+<!-- 
+================================================================================
+CLEAN
+	Latest version clean.  When a new JDk is added, the 'depends' argument
+	should be updated to point to the new target.
+================================================================================
+-->
+<target name="clean"
+	depends="clean_142"
+	description="Target for deleting the latest version's class files"/>
+
+<!-- 
+================================================================================
+CLEAN
+	Version 1.4.2 clean
+================================================================================
+-->
+<target name="clean_142" 
+	depends="init_142, clean_generic"	
+	description="Target for deleting JDK 1.4.2 class files"/>
+
+<!-- 
+================================================================================
+INSTALL
+	Generic target for doing an install for a given version
+================================================================================
+-->
+<target name="install_generic"
+	description="Generic target for installing class files">
+	
+	<delete>
+		<fileset 
+			dir="${blessed_dir}\${package}"
+			includes="**/*.class"/>
+	</delete>
+
+	<copy todir="${blessed_dir}\${package}"
+		overwrite="yes">
+		<fileset dir="${build}${build_subversion}\${package}">
+			<include name="*.class"/>
+		</fileset>
+	</copy>
+
+	<delete>
+		<fileset 
+			dir="${blessed_dir}\${package}/ExpressionParser"
+			includes="**/*.class"/>
+	</delete>
+
+	<copy todir="${blessed_dir}\${package}/ExpressionParser"
+		overwrite="yes">
+		<fileset dir="${build}${build_subversion}\${package}/ExpressionParser">
+			<include name="*.class"/>
+		</fileset>
+	</copy>	
+</target> 
+
+<!-- 
+================================================================================
+INSTALL
+	Latest version install.  When a new JDK version is used, the 'depends'
+	argument should be updated to point to the new target.
+================================================================================
+-->
+<target name="install"
+	depends="install_142"
+	description="Target for installing the latest version's classes"/>
+
+<!-- 
+================================================================================
+INSTALL
+	Version 1.4.2 install
+================================================================================
+-->
+<target name="install_142"
+	depends="init_142, install_generic"
+	description="Target for installing JDk 1.4.2 classes"/>
+
+<!-- 
+================================================================================
+INSTALL JAVADOC
+	Generic target for doing a Javadoc install for a given version
+================================================================================
+-->
+<target name="install_javadoc_generic"
+	description="Target for installing javadoc files">
+	<copy todir="${blessed_javadoc_dir}"
+		overwrite="yes">
+		<fileset dir="${basedir}\javadoc${build_subversion}">
+			<include name="RTi\**"/>
+		</fileset>
+	</copy>
+</target>
+
+<!-- 
+================================================================================
+INSTALL JAVADOC
+	Latest version Javadoc install.  When a new JDK is used, the 'depends'
+	arguments should be changed to point to the new target.
+================================================================================
+-->
+<target name="install_javadoc"
+	depends="install_javadoc_142"
+	description="Target for installing latest javadoc files"/>
+
+<!-- 
+================================================================================
+INSTALL JAVADOC
+	Target for installing JDK 1.4.2 Javadocs
+================================================================================
+-->
+<target name="install_javadoc_142"
+	depends="init_142, install_javadoc_generic"
+	description="Target for installing JDK 1.4.2 files"/>
+
+<!-- 
+================================================================================
+RUN
+	Generic target for handling runs for a given version
+================================================================================
+-->
+<target name="run_generic"
+	description="Generic target for running the class">
+	<java classname="RTi.DataTest.TestMain"
+		fork="true">
+		<jvmarg value="-mx128m"/>
+		<jvmarg value="-Djava.compiler=NONE"/>
+		<classpath refid="classpath"/>		
+		<arg value="GetTSValue([06753500.USGS.Streamflow.Month~HydroBase]) > 350"/>
+	</java>
+</target>
+
+<!-- 
+================================================================================
+RUN
+	Target for running the latest JDK version.  When a new JDK is used,
+	the 'depends' argument should be changed to point to the new target.
+================================================================================
+-->
+<target name="run"
+	depends="run_142"
+	description="Target for running with the latest classes"/>
+
+<!-- 
+================================================================================
+RUN
+	Target for running the program with JDK 1.4.2
+================================================================================
+-->
+<target name="run_142"
+	depends="init_142, run_generic"
+	description="Target for running with JDK 1.4.2 classes"/>
+
+<!-- 
+================================================================================
+FULL
+	Target for doing a full run for the latest JDK version.  When a new JDK
+	is used, the 'depends' argument should be changed to point to the new
+	target.
+================================================================================
+-->
+<target name="full"
+	depends="full_142"
+	description="Cleans, builds, javadocs and installs the latest JDK"/>
+
+<!-- 
+================================================================================
+FULL
+	Target for doing a full run for JDK 1.4.2
+================================================================================
+-->
+<target name="full_142"
+	depends="init_142, clean_142, 142, javadoc_142, install_142, 
+		install_javadoc_142"
+	description="Cleans, builds, javadocs and installs JDK 1.4.2"/>
+
+<target name="parser"
+	depends="init_142">
+	<jjtree 
+	    target="${src}/${package}/ExpressionParser/ExpressionGrammar.jj"
+		outputdirectory="${src}/${package}/ExpressionParser"
+	    javacchome="i:/develop/ant/javacc/"
+	/>
+	<javacc
+		target="${src}/${package}/ExpressionParser/ExpressionGrammar.jj.jj"
+	    javacchome="i:/develop/ant/javacc/"
+		outputdirectory="${src}/${package}/ExpressionParser"
+	/>
+</target>
+
+<!-- 
+================================================================================
+HELP
+	Help
+================================================================================
+-->
+<target name="help"
+	description="Help on the targets that can be run in this build file">
+<echo>
+Valid targets are:
+[default]           - compiles with ${latest_version}
+javadoc             - creates javadoc documentation for ${latest_version}
+install             - copies ${latest_version} classes to blessed dir
+install_javadoc     - installs the ${latest_version} javadocs
+clean               - deletes ${latest_version} classes directory
+run                 - runs ${latest_version} ...
+full                - cleans, builds, javadocs and installs ${latest_version}
+</echo>
+</target>
+
+</project>

@@ -1,0 +1,2 @@
+ACTIONNUM,	ACTIONTYPE,	SEVERITY,	NAME,	DESCRIPTION
+0,	console,	warning,	outline,	Prints to the console

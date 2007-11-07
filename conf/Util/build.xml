@@ -1,0 +1,327 @@
+<!-- Author  :  Kurt Tometich
+	 Date    :  10/19/2006
+	 Purpose :  provides functions to compile, test and
+	            run source code
+	 Targets :
+	 			clean
+	 			compile
+				compileTest
+				eclipsePostCompile
+				test
+	 			javadoc
+				jar
+	 			help			
+-->
+
+<project name="buildTemplate" basedir="../" default="compile">
+
+	<!-- Set file separator depending on OS -->
+	<condition property="sep" value="/">
+	<and>
+       		<os family="unix" />
+	</and>
+	</condition>
+	<condition property="sep" value="\">
+	<and>
+       		<os family="windows" />
+	</and>
+	</condition>
+	
+	<!-- set the javac location for OS type -->
+	<condition property="executable" value="/home/sharedLibs/j2sdk1.4.2_12/bin/javac">
+		<and>
+	       		<os family="unix" />
+		</and>
+	</condition>
+	<condition property="executable" value="S:\develop\jdk_142\bin\javac">
+		<and>
+	       		<os family="windows" />
+		</and>
+	</condition>
+	
+	<!-- set the jhome variable depending on OS type -->
+	<condition property="jhome" value="/home/sharedLibs/j2sdk1.4.2_12">
+		<and>
+		      <os family="unix" />
+		</and>
+	</condition>
+	<condition property="jhome" value="S:\develop\jdk_142">
+		<and>
+		      <os family="windows" />
+		</and>
+	</condition>
+
+	<!--============= General Properties =============-->
+	<property name="src.dir"	     location="src"         />
+	<property name="build.dir"	     location="build"       />
+	<property name="eclipse_bin.dir" location="bin" />
+	<property name="dist.dir"        location="dist" />
+	<property name="doc.dir"		 location="doc" />
+	<property name="buildwork.dir"   location="${build.dir}${sep}work"   />
+	<property name="buildtest.dir"   location="build${sep}test"      />
+	<property name="test.dir"	     location="test${sep}unit${sep}src"        />
+	<property name="testOp.dir"      location="test${sep}operational" />
+	<property name="jdoc.dir"	     location="doc${sep}javadoc" />
+	<property name="ext.dir"         location="externals"       />
+	<property name="graphics.dir"    location="graphics"        />
+	<property name="testSuite"  	 value="RTi.Util.UtilTestSuite" />
+	<property name="classname"   	 value="" />
+	<property name="jarfname"    	 value="Util.jar" />
+	<property name="junit"       	 value="${ext.dir}${sep}junit.jar" />
+	<property name="RTi_jars"		 location="../RTi_JARS" />
+	<property name="proj_name"		 value="Util" />
+	
+	<!--================ Dependencies ==================-->
+	<property name="TS_jar"			 value="${RTi_jars}${sep}TS.jar" />
+	<property name="junit_jar"		 value="${ext.dir}${sep}junit.jar" />
+	<property name="DMI_jar" 		 value="${RTi_jars}${sep}DMI.jar" />
+	<property name="GR_jar"	  		 value="${RTi_jars}${sep}GR.jar" />
+	<property name="blowfish_jar"	 value="${ext.dir}${sep}Blowfish_142.jar" />
+	<property name="xerces_jar"	 	 value="${ext.dir}${sep}xerces.jar" />
+	<property name="resolver_jar"	 value="${ext.dir}${sep}resolver.jar" />
+	<property name="xbean_jar"	 	 value="${ext.dir}${sep}xbean.jar" />
+	<property name="xbean_xpath_jar" value="${ext.dir}${sep}xbean_xpath.jar" />
+	<property name="xmlpublic_jar"	 value="${ext.dir}${sep}xmlpublic.jar" />
+	<property name="jsr_jar"	 	 value="${ext.dir}${sep}jsr173_1.0_api.jar" />
+	
+	<!-- =========== Compiler Properties ===============-->
+	<property name="compiler" value="modern" />
+	
+	<!-- set classpath -->
+	<path id="classpath">
+		<pathelement location="${buildwork.dir}"/>
+		<pathelement location="${buildtest.dir}" />
+		<pathelement location="${junit_jar}" />
+		<pathelement location="${DMI_jar}" />
+		<pathelement location="${TS_jar}" />
+		<pathelement location="${GR_jar}" />
+		<pathelement location="${blowfish_jar}" />
+		<pathelement location="${xerces_jar}" />
+		<pathelement location="${resolver_jar}" />
+		<pathelement location="${xbean_jar}" />
+		<pathelement location="${xbean_xpath_jar}" />
+		<pathelement location="${xmlpublic_jar}" />
+		<pathelement location="${jsr_jar}" />
+		<pathelement location="."/>
+	</path>
+	
+	<!-- current timestamp -->
+	<tstamp>
+	  <format property="TODAY" pattern="MM/dd/yyyy hh:mm" locale="en"/> 	
+  	  <format property="jarDate" pattern="yyyy-MM-dd hh:mm" locale="en" />
+	</tstamp>
+
+	
+<!--===================================================
+	Target:   clean
+	Function: cleans the build/work and build/test
+	          directories to ensure a clean compilation
+====================================================-->
+<target name="clean" description="remove compiled files">
+	
+	<!-- delete build stuff -->
+	<delete dir="${buildwork.dir}" />
+	<delete dir="${build.dir}" />
+	
+	<delete>
+		<fileset dir="test${sep}unit${sep}results" includes="**/*.xml"/>
+	</delete>
+
+</target>
+
+<!--===================================================
+	Target:   compile
+	Function: compiles code for this project and places
+			  the compiled code in the build/work dir
+====================================================-->
+<target name="compile" >
+
+	<mkdir dir="${buildwork.dir}" />
+	
+	<javac srcdir 		= "${src.dir}"
+           destdir 		= "${buildwork.dir}"
+		   classpathref = "classpath"
+           debug 		= "on"
+	       fork 		= "yes"
+	       listfiles 	= "true"
+	       deprecation 	= "true"
+	       executable 	= "${executable}"
+	       compiler 	= "${compiler}"
+	/>
+
+	
+	<!-- create jar and put in shared RTi_JARS folder
+	     so every other project that references this project
+	     will have the most current code -->
+	
+	 <jar jarfile="${RTi_jars}${sep}${jarfname}" basedir="${buildwork.dir}" >
+		<manifest >
+	    	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
+	      	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
+	      	<attribute name="Address2"  value="Fort Collins, CO 80525"/>
+	        <attribute name="Phone"     value="970-484-7573"/>
+			<attribute name="Web"       value="http://www.riverside.com"/>
+			<attribute name="BuildDate" value="${jarDate}"/>
+	        <attribute name="Contents"  value="Contains ${proj_name} Classes"/>
+	    </manifest>
+
+	 </jar>
+	
+</target>
+
+
+<!--============================================================
+	Target: eclipsePostCompile
+	Function: Runs after Eclipse compiles this project and
+	creates and copies a jar of files under bin to the RTi_JARS
+	folder.
+=============================================================-->
+<target name="eclipsePostCompile" >
+	
+	<jar jarfile="${RTi_jars}${sep}${jarfname}" basedir="${eclipse_bin.dir}" >
+		<manifest>
+		    <attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
+		    <attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
+		    <attribute name="Address2"  value="Fort Collins, CO 80525"/>
+		    <attribute name="Phone"     value="970-484-7573"/>
+			<attribute name="Web"       value="http://www.riverside.com"/>
+			<attribute name="BuildDate" value="${jarDate}"/>
+		    <attribute name="Contents"  value="Contains ${proj_name} Classes"/>
+		</manifest>
+	</jar>
+	
+</target>
+	
+	
+<!--========================================================
+	Target: compileTest
+	Function: to compile the code under test/src
+==========================================================-->
+<target name="compileTest" depends="compile">
+
+	<mkdir dir="${build.dir}${sep}test" />
+	
+	<javac srcdir 		= "${test.dir}"
+	       destdir 	    = "${build.dir}${sep}test"
+           classpathref = "classpath"
+           debug 		= "on"
+	       fork 		= "yes"
+	       listfiles 	= "true"
+	       deprecation 	= "true"
+	       executable 	= "${executable}"
+	       compiler 	= "${compiler}"
+	/>
+
+</target>
+
+
+<!--===================================================
+	Target:   test
+	Function: runs Junit tests and outputs results
+====================================================-->
+<target name="test" depends="compileTest">
+
+	<junit printsummary="yes" fork="yes" dir="conf">
+		<formatter type="xml"/>
+		<classpath refid="classpath" />
+		<test name="${testSuite}"
+		 outfile="test${sep}unit${sep}results${sep}${proj_name}" />
+	</junit>
+
+</target>
+
+	
+<!--===================================================
+	Target:   javadoc
+	Function: generates the javadocs for this product
+====================================================-->
+<target name="javadoc">
+
+	<!-- cleanup old javadocs -->
+	<delete dir="${jdoc.dir}" />
+
+	<!-- make dir jdocs --> 
+	<mkdir dir="${jdoc.dir}" />
+
+	<javadoc destdir="${jdoc.dir}" >
+		<classpath refid="classpath"/>
+		<fileset dir="${src.dir}" >
+			<include name="**${sep}*.java"/>	
+	  	</fileset>
+	</javadoc>	
+
+</target>
+
+
+<!--=====================================================
+	Target: jar 
+=======================================================-->
+<target name="jar" depends="compile, javadoc" >
+    
+	<!-- copy docs folder into build for the jar -->
+	<copy todir="${buildwork.dir}">
+	<fileset dir=".">
+	<include name="doc${sep}**${sep}*" />
+	<include name="graphics${sep}**${sep}*" />
+	</fileset>
+	</copy>
+	
+    <mkdir dir="${dist.dir}"/>
+    <jar jarfile="${dist.dir}${sep}${jarfname}" basedir="${buildwork.dir}" >
+	<manifest >
+    	<attribute name="Author"    value="Riverside Technology, inc. (RTi)"/>
+      	<attribute name="Address1"  value="2290 E. Prospect Road, Suite 1"/>
+      	<attribute name="Address2"  value="Fort Collins, CO 80525"/>
+        <attribute name="Phone"     value="970-484-7573"/>
+		<attribute name="Web"       value="http://www.riverside.com"/>
+		<attribute name="BuildDate" value="${jarDate}"/>
+        <attribute name="Contents"  value="Contains tstool Classes"/>
+      </manifest>
+
+    </jar>
+
+</target>
+	
+
+<!--===================================================
+	Target:   help
+	Function: prints out info on targets and properties
+====================================================-->
+<target name="help">
+	<echo>
+	------------- build.xml Help ---------------
+	VALID TARGETS:
+
+    compile      	uses properies $src and $build
+
+	compileTest  	compiles the test source
+                 	code from $test to the
+                 	$build/$test dir
+	
+	test         	runs the junit tests for
+                    this product 
+
+	clean        	cleans the build directories
+		
+	eclipsePostCompile  creates a jar file from compiled
+						files under bin and copies it to
+						the RTi_JARS folder
+
+	javadoc      	generates the javadocs using
+		            using $jdoc as dest dir and $src/$package
+		            as the source directory  
+
+	jar          	jars class files into $jarfname    
+		         	under $dist
+
+	help         	shows this message
+
+		
+	</echo>
+
+</target>
+
+
+</project>
+
+
