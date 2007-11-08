@@ -13,8 +13,8 @@ public class HTMLStatusAssembler
   private final StringBuffer TRAILER = new StringBuffer("</body></html>");
   private StringBuffer buf = new StringBuffer("<html><body>");
   private final StringBuffer TABLE_START= new StringBuffer(""
-          + "<table border=1><TR bgcolor=\"CCCCFF\"><th align=left>Phase</th><th align=left>Severity</th>"
-          + "<th align=left>Problem</th><th>Recommendation</th></TR>");
+          + "<table border=1 width=650><TR bgcolor=\"CCCCFF\"><th align=left>Phase</th><th align=left>Severity</th>"
+          + "<th align=left width=300>Problem</th><th>Recommendation</th></TR>");
   
   private final StringBuffer SUMMARY_TABLE_START = new StringBuffer(""
          + "<table border=1>"
@@ -55,12 +55,12 @@ public class HTMLStatusAssembler
           String recommendation)
   {
 
-    String bgcolor = "<td bgcolor=" + color + ">";
+    String bgcolor = "<td valign=top bgcolor=" + color + ">";
     
     buf.append("<tr><td valign=top>" + phase
             + bgcolor + severity
-            +"<td>" + problem + "</tr>"
-            +"<td>" + recommendation + "</tr>"
+            +"<td valign=top>" + problem + "</tr>"
+            +"<td valign=top>" + recommendation + "</tr>"
             );
   }
 
@@ -74,7 +74,7 @@ public class HTMLStatusAssembler
    */
   public void addCommand(String commandString)
   {
-    buf.append("<p><font bgcolor=\"CC99CC\">").append("<strong>Command: "+commandString).append("</strong></font>");
+    buf.append("<p><font bgcolor=white").append("<strong>Command: "+commandString).append("</strong></font>");
   }
   
   /**
