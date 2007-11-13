@@ -127,10 +127,16 @@ public class HTMLStatusAssembler
     return buf.toString();
   }
 /**
- * Adds a message to the HTML indicating no problems found .
+ * Adds a summary table indicating no issues found.
+ *
  */
   public void addNoProblems()
   {
-    buf.append("<strong> No issues were found for the selected commands</strong>");
+    String bgColor1 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(CommandStatusType.SUCCESS) + ">";
+    buf.append(SUMMARY_TABLE_START)
+    .append("<tr><td>INITIALIZATION").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append("<tr><td>DISCOVERY").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append("<tr><td>RUN").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append(TABLE_END);
   }
 } // eof class HTMLAssembler
