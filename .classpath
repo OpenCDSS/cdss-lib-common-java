@@ -16,5 +16,5 @@
 	<classpathentry kind="lib" path="externals/xbean.jar"/>
 	<classpathentry kind="lib" path="externals/xerces.jar"/>
 	<classpathentry kind="lib" path="externals/xmlpublic.jar"/>
-	<classpathentry kind="output" path="build"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
