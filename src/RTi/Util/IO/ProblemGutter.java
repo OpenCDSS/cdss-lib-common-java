@@ -198,6 +198,11 @@ implements AdjustmentListener
          */
         public void mouseMoved(MouseEvent e) 
           {
+            // Protect against empty list
+            if (_jList.getModel().getSize() < 1)
+              {
+                return;
+              }
             int index = findError(e.getPoint());
             ListModel dataModel = _jList.getModel();
             if( index > -1 && index < dataModel.getSize())
