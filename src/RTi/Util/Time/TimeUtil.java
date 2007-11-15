@@ -283,6 +283,54 @@ public static DateTime addIntervals ( 	DateTime t1, int base, int mult,
 }
 
 /**
+Indicate whether a DateTime's precision matches the specified TimeInterval string.
+This is useful, for example, in confirming that DateTime's for a time series are
+consistent with the time series data interval.
+@param dt DateTime to check.
+@param interval TimeInterval string to check.
+@return 0 if the percision of the DateTime is the same as the interval,
+-1 if the precision of the DateTime is less than the interval,
+1 if the precision of the DateTime is greater than the interval, and
+null if the input is invalid.
+*/
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String interval_string )
+{
+    TimeInterval ti = null;
+    try {
+        ti = TimeInterval.parseInterval(interval_string);
+    }
+    catch ( Exception e ) {
+        return null;
+    }
+    return compareDateTimePrecisionToTimeInterval(dt,ti.getBase());
+}
+
+/**
+Indicate whether a DateTime's precision matches the specified TimeInterval string.
+This is useful, for example, in confirming that DateTime's for a time series are
+consistent with the time series data interval.
+@param dt DateTime to check.
+@param interval TimeInterval integer to check.
+@return 0 if the percision of the DateTime is the same as the interval,
+-1 if the precision of the DateTime is less than the interval, and
+1 if the precision of the DateTime is greater than the interval, and
+null if the input is invalid.
+*/
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, int interval )
+{
+    int precision = dt.getPrecision();
+    if ( precision < interval ) {
+        return new Integer(-1);
+    }
+    else if ( precision > interval ) {
+        return new Integer(1);
+    }
+    else {
+        return new Integer(0);
+    }
+}
+
+/**
 Convert a calendar month (1=January,...,12=December) to a month in a special
 calendar.  For example, water years are Oct to Sep.  To determine the month
 number (1+) in a water year given a calendar year month, do the following:
