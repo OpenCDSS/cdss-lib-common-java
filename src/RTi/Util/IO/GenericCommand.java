@@ -14,6 +14,8 @@
 
 package RTi.Util.IO;
 
+import RTi.Util.Message.Message;
+
 import javax.swing.JFrame;	// For the editor
 
 /**
@@ -105,13 +107,16 @@ command could produce some results).
 @exception CommandException Thrown if fatal warnings occur (the command could
 not produce output).
 */
-public void runCommand ( )
+public void runCommand ( int command_number )
 throws InvalidCommandParameterException,
 CommandWarningException, CommandException
-{	// Does nothing.
+{	// Throw an exception because if something tries to run with this it needs
+    // to be made known that nothing is happening.
+    Message.printStatus ( 2, "GenericCommand.runCommand", "In runCommand().");
+    throw new CommandException ( getCommandName() + " run() method is not enabled.");
 }
 
-// REVISIT SAM 2005-05-31 If the editor is ever implemented with a tabular
+// TODO SAM 2005-05-31 If the editor is ever implemented with a tabular
 // display for parameters, will need to deal with the parsing.  For now, this
 // will at least allow unrecognized (and therefore unparsable) commands to be
 // edited.
