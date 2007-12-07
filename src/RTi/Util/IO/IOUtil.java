@@ -1665,7 +1665,7 @@ Windows 2000          x86        "Windows NT"     5.0
 Linux                 i386       "Linux"
 HP-UX                 PA-RISC
 </pre>
-@return true if a UNIX platform, including Linux, false if not (presumably
+@return true if a UNIX platform, including os.name of Linux, false if not (presumably
 Windows).
 */
 public static boolean isUNIXMachine ()
@@ -2121,6 +2121,7 @@ public static PrintWriter processFileHeaders (	String oldfile, String newfile,
 
 /**
 Checks whether the application is running in release mode or not.
+@deprecated Avoid using this method - deal with release issues as part of the build testing.
 @return true if in release mode, false if not.
 */
 public static boolean release() {
@@ -2443,6 +2444,7 @@ public static void setProp ( String key, Object prop )
 /**
 Sets whether the application is running in release mode.
 @param release if true, the application is in release mode.
+@deprecated Avoid using this method - deal with release issues as part of the build testing.
 */
 public static void setRelease(boolean release) {	
 	if (!_initialized) {
@@ -2734,6 +2736,28 @@ throws Exception {
 	}
 	
 	return relDir;
+}
+
+/**
+Verify that a path is appropriate for the operating system.
+This is a simple method that does the following:
+<ol>
+<li>    If on UNIX/LINUX, replace all "\" characters with "/".  WARNING - as implemented,
+        this will convert UNC paths to forward slashes.</li>
+<li>    If on Windows, do nothing.  Java automatically handles "/" in paths.</li>
+</ol>
+@return A path to the file that uses separators appropriate for the operating system.
+*/
+public static String verifyPathForOS ( String path )
+{   if ( path == null ) {
+        return path;
+    }
+    if ( isUNIXMachine() ) {
+        return ( path.replace ( '\\', '/' ) );
+    }
+    else {
+        return path;
+    }
 }
 
 /**
