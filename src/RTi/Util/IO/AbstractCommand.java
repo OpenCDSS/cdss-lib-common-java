@@ -140,7 +140,7 @@ edit was cancelled.
 @param parent Parent JFrame on which the model command editor dialog will be
 shown.
 */
-/* REVISIT SAM 2005-04-29 need to figure out a graceful way to do this...
+/* TODO SAM 2005-04-29 need to figure out a graceful way to do this...
 CommandFactory?
 public static Command editNewCommand ( JFrame parent )
 {	Command c = new Command();
@@ -165,7 +165,7 @@ Return the parameters being used by the command.  The Prop.getHowSet() method
 can be used to determine whether a property was defined in the original command
 string (Prop.SET_FROM_PERSISTENT) or is defaulted internally
 (Prop.SET_AS_RUNTIME_DEFAULT).
-REVISIT SAM 2005-04-29 Does this need a boolean parameter to allow dialogs to
+TODO SAM 2005-04-29 Does this need a boolean parameter to allow dialogs to
 see only the parameters in the command, so that defaults are not explicitly
 displayed?
 @return the parameters being used by the command.  A non-null list is
@@ -216,8 +216,7 @@ syntax of the command are bad.
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
-public void initializeCommand ( String command, CommandProcessor processor,
-				boolean full_initialization )
+public void initializeCommand ( String command, CommandProcessor processor,	boolean full_initialization )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
 {	// Save the processor...
 	__processor = processor;
@@ -228,7 +227,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException
 	}
 }
 
-// REVISIT SAM 2005-05-13 Might need to overload this to pass the routine
+// TODO SAM 2005-05-13 Might need to overload this to pass the routine
 // from the derived class, and then rely on the standard method.
 
 /**
