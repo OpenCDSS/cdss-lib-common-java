@@ -363,7 +363,7 @@ should have been set.
 */
 public int allocateDataSpace ( double value )
 {	String	routine = "DayTS.allocateDataSpace";
-	int	i, ndays_in_month, nmonths=0, nvals;
+	int	ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
 		Message.printWarning ( 2, routine,
@@ -372,16 +372,14 @@ public int allocateDataSpace ( double value )
 	}
 	if ( _data_interval_mult != 1 ) {
 		// Do not know how to handle N-day interval...
-		String message = "Only know how to handle 1-day data, not " +
-		_data_interval_mult + "-day";
+		String message = "Only know how to handle 1-day data, not " + _data_interval_mult + "Day";
 		Message.printWarning ( 3, routine, message );
 		return 1;
 	}
 	nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if( nmonths == 0 ){
-		Message.printWarning( 2, routine,
-		"TS has 0 months POR, maybe dates haven't been set yet" );
+		Message.printWarning( 2, routine, "TS has 0 months POR, maybe dates haven't been set yet" );
 		return 1;
 	}
 
@@ -390,13 +388,13 @@ public int allocateDataSpace ( double value )
 	if ( _has_data_flags ) {
 		_data_flags = new char[nmonths][][];
 		blanks = new char[_data_flag_length];
-		for ( i = 0; i < _data_flag_length; i++ ) {
-			blanks[i] = ' ';
+        // Initialize blank data flags
+		for ( int iflag = 0; iflag < _data_flag_length; iflag++ ) {
+			blanks[iflag] = ' ';
 		}
 	}
 
-	// Probably need to catch an exception here in case we run out of
-	// memory.
+	// May need to catch an exception here in case we run out of memory.
 
 	// Set the counter date to match the starting month.  This date is used
 	// to determine the number of days in each month.
@@ -406,29 +404,23 @@ public int allocateDataSpace ( double value )
 	date.setYear( _date1.getYear() );
 
 	int iday = 0;
-	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
+	for ( int imon = 0; imon < nmonths; imon++, date.addMonth(1) ) {
 		ndays_in_month = TimeUtil.numDaysInMonth ( date );
-		// Easy to handle 1-day data, otherwise an exception was
-		// thrown above...
-		// Here would change the number of values if N-day was
-		// supported.
+		// Handle 1-day data, otherwise an exception was thrown above.
+		// Here would change the number of values if N-day was supported.
 		nvals = ndays_in_month;
-		_data[i] = new double[nvals];
+		_data[imon] = new double[nvals];
 		if ( _has_data_flags ) {
-			_data_flags[i] = new char[nvals][];
+			_data_flags[imon] = new char[nvals][];
 		}
 
-		// Now fill with the missing data value...
+		// Now fill with the missing data value for each day in the month...
 
 		for ( iday = 0; iday < nvals; iday++ ) {
-			_data[i][iday] = value;
+			_data[imon][iday] = value;
 			if ( _has_data_flags ) {
-				_data_flags[i][iday] =
-					new char[_data_flag_length];
-					System.arraycopy ( blanks, 0,
-					_data_flags[i][iday], 0,
-					_data_flag_length );
-				
+				_data_flags[imon][iday] = new char[_data_flag_length];
+				System.arraycopy ( blanks, 0, _data_flags[imon][iday], 0, _data_flag_length );
 			}
 		}
 	}
@@ -437,8 +429,7 @@ public int allocateDataSpace ( double value )
 	setDataSize ( nactual );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, routine,
-		"Successfully allocated " + nmonths + " months of memory from "
+		Message.printDebug( 10, routine, "Allocated " + nmonths + " months of memory for daily data from "
 		+ _date1 + " to " + _date2 );
 	}
 
@@ -627,26 +618,24 @@ public Object clone ()
 	// Does not seem to work...
 	//ts._data = (double[][])_data.clone();
 	//ts._pos = (int[])_pos.clone();
-	ts._data = new double[_data.length][];
-	for ( int i = 0; i < _data.length; i++ ) {
-		ts._data[i] = new double[_data[i].length];
-		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
-	}
+    if ( _data != null ) {
+       ts._data = new double[_data.length][];
+	   for ( int imon = 0; imon < _data.length; imon++ ) {
+	       ts._data[imon] = new double[_data[imon].length];
+		   System.arraycopy ( _data[imon], 0, ts._data[imon], 0,_data[imon].length);
+	   }
+    }
 	int iday = 0;
-	if ( _has_data_flags ) {
+	if ( _has_data_flags && (_data_flags != null) ) {
 		// Allocate months...
 		ts._data_flags = new char[_data_flags.length][][];
 		for ( int imon = 0; imon < _data_flags.length; imon++ ) {
 			// Allocate days in month...
-			ts._data_flags[imon] =
-				new char[_data_flags[imon].length][];
+			ts._data_flags[imon] = new char[_data_flags[imon].length][];
+            // Loop through the number of days in the month...
 			for(iday = 0; iday < _data_flags[imon].length; iday++){
-				_data_flags[imon][iday] =
-					new char[_data_flag_length];
-					System.arraycopy (
-					ts._data_flags[imon][iday], 0,
-					_data_flags[imon][iday], 0,
-					_data_flag_length );
+				ts._data_flags[imon][iday] = new char[_data_flag_length];
+				System.arraycopy ( _data_flags[imon][iday], 0, ts._data_flags[imon][iday], 0,	_data_flag_length );
 			}
 		}
 	}
@@ -1654,15 +1643,13 @@ the next call or should be copied.
 public TSData getDataPoint ( DateTime date )
 {	// Initialize data to most of what we need...
 	if ( _tsdata == null ) {
-		// Allocate it (this is the only method that uses it and don't
-		// want to wast memory)...
+		// Allocate it (this is the only method that uses it and don't want to wast memory)...
 		_tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "DayTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 +
-			")" );
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		_tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return _tsdata;
@@ -1672,7 +1659,8 @@ public TSData getDataPoint ( DateTime date )
 		_tsdata.setValues ( date, getDataValue(date), _data_units,
 				new String(_data_flags[_row][_column]), 0 );
 	}
-	else {	_tsdata.setValues ( date, getDataValue(date), _data_units,"",0);
+	else {
+        _tsdata.setValues ( date, getDataValue(date), _data_units,"",0);
 	}
 	return _tsdata;
 }
