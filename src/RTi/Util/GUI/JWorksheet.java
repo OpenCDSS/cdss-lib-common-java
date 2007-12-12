@@ -2740,7 +2740,7 @@ private String determineName(String name, int minWidth, Graphics g) {
 	// if the largest string is still less than what the minimum width
 	// of the column is, create the column name and force it to pad out
 	// to the minimum width.
-	if (sizes[biggest] < minWidth) {
+	if ( (biggest >= 0) && (sizes[biggest] < minWidth) ) {
 		return determineNameHelper(name, minWidth, g);
 	}
 	// otherwise ...
@@ -2756,24 +2756,23 @@ private String determineName(String name, int minWidth, Graphics g) {
 			for (int i = 0; i < biggest; i++) {
 				pre += strings[i] + " ";
 			}
-			fullName += 
-				determineNameHelper(pre, sizes[biggest], g) 
-				+ "\n";
+			fullName += determineNameHelper(pre, sizes[biggest], g) + "\n";
 		}
 	
-		fullName += strings[biggest];
+        if ( biggest >= 0 ) {
+            fullName += strings[biggest];
+        }
 	
 		// if the largest token does not appear at the end of the
 		// string, gather all the rest of the tokens and create a 
 		// String that will be no larger than the longest token
-		if (biggest < (sizes.length - 1)) {
+		if ( (biggest >= 0) && (biggest < (sizes.length - 1)) ) {
 			fullName += "\n";
 			String post = "";
 			for (int i = biggest + 1; i < sizes.length; i++) {
 				post += strings[i] + " ";
 			}
-			fullName += 
-				determineNameHelper(post, sizes[biggest], g);
+			fullName += determineNameHelper(post, sizes[biggest], g);
 		}
 	
 		return fullName;
