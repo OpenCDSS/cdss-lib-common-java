@@ -29,7 +29,8 @@ import RTi.Util.String.StringUtil;
 The DataType class provides capabilities for reading and storing 
 data type information.  Data types are used to look up the dimension, default
 units, and SHEF (Standard Hydrologic Exchange Format) information.  Data types
-are maintained internally using a Vector of DataType (self-referencing).
+are maintained internally using a Vector of DataType (self-referencing).  Data types
+are typically read from a persistent source at application startup.
 */
 public class DataType
 {
@@ -41,45 +42,85 @@ public static final int SYSTEM_UNKNOWN	= 0;
 
 // Data members...
 
-private String	__abbreviation;		// The data type abbreviation
-					// (e.g., "MAP").
-private String	__description;		// The verbose description (e.g.,
-					// ("Mean Areal Precipitation").
-private DataDimension __dimension;	// The dimension (e.g., "L3").
-private String	__default_engl_units;	// Default English units (e.g., when
-					// creating a new time series in a
-					// system configured for English units).
-private double	__default_engl_max;	// Default maximum value for English
-					// units data - for initializing range
-					// checks.
-private double	__default_engl_min;	// Default minimum value for English
-					// units data - for initializing range
-					// checks.
-private String	__default_si_units;	// Default SI units (e.g., when
-					// creating a new time series in a
-					// system configured for SI units).
-private double	__default_si_max;	// Default maximum value for SI
-					// units data - for initializing range
-					// checks.
-private double	__default_si_min;	// Default minimum value for SI
-					// units data - for initializing range
-					// checks.
-private String	__meas_loc_type;	// Measurement location type
-					// See MeasLocType static data.
-private String	__meas_time_scale;	// Measurement time scale
-					// See MeasTimeScale static data.
-private String	__record_type;		// Either "OBS" for observed or "SIM"
-					// for simulated.
-private String	__SHEF_pe;		// SHEF (Standard Hydrologic Exchange
-					// Format) physical element data type
-					// (see SHEFType).
+/**
+The data type abbreviation (e.g., "MAP").  This is typically based on persistent
+data formats.
+*/
+private String	__abbreviation;
 
-// The following list can be modified  by the static functions...
+/**
+The verbose description (e.g., ("Mean Areal Precipitation").
+*/
+private String	__description;
 
+// TODO SAM 2007-12-11 Need a class for the dimension.
+/**
+The dimension (e.g., "L3").
+@see DataDimension
+*/
+private DataDimension __dimension;
+
+/**
+Default English units (e.g., when creating a new time series in a
+system configured for English units).
+*/
+private String	__default_engl_units;
+
+/**
+Default maximum value for English units data - for initializing range checks.
+*/
+private double	__default_engl_max;
+
+/**
+Default minimum value for English units data - for initializing range checks.
+*/
+private double	__default_engl_min;
+
+/**
+Default SI units (e.g., when creating a new time series in a system configured for SI units).
+*/
+private String	__default_si_units;
+
+/**
+Default maximum value for SI units data - for initializing range checks.
+*/
+private double	__default_si_max;
+
+/**
+Default minimum value for SI units data - for initializing range checks.
+*/
+private double	__default_si_min;
+
+/**
+Measurement location type See MeasLocType static data.
+*/
+private String	__meas_loc_type;
+
+/**
+Measurement time scale See MeasTimeScale static data.
+*/
+private String	__meas_time_scale;
+
+/**
+Either "OBS" for observed or "SIM" for simulated.  This is a hold-over from
+NWSRFS conventions, which limit some data types' use to only observed or simulated data.
+*/
+private String	__record_type;
+
+// TODO SAM 2007-12-11 Evaluate a more generic use of the lookup so the SHEF code
+// does not need to be stored in this class.
+/**
+SHEF (Standard Hydrologic Exchange Format) physical element data type.  The value is
+populated when SHEF data are read.
+@see SHEFType
+*/
+private String	__SHEF_pe;
+
+/**
+Vector of internally-maintained DataType instances.  The list can be modified by the static read methods.
+*/
 private static Vector __types_Vector = new Vector(20);
-					// Vector of internally-maintained
-					// available data types.
-
+					
 /**
 Construct and set all data members to empty strings and zeros.
 */
@@ -102,7 +143,7 @@ for the dimension.
 for the dimension.
 @see DataDimension
 */
-/* REVISIT
+/* TODO
 public DataUnits (	String dimension, int base_flag, String abbreviation,
 			String long_name, int output_precision,
 			double mult_factor, double add_factor )
@@ -129,7 +170,8 @@ public DataType ( DataType type )
 {	initialize();
 	__abbreviation = type.__abbreviation;
 	__description = type.__description;
-	try {	// Converts to integer, etc.
+	try {
+        // Converts to integer, etc.
 		setDimension ( type.__dimension.getAbbreviation() );	
 	}
 	catch ( Exception e ) {
@@ -161,10 +203,8 @@ public static void addDataType ( DataType type )
 		// Get the type for the loop index...
 		pt = (DataType)__types_Vector.elementAt(i);
 		// Now compare...
-		if (	type.getAbbreviation().equalsIgnoreCase(
-			pt.getAbbreviation() ) ) {
-			// The requested units match something that is
-			// already in the list.  Reset the list...
+		if ( type.getAbbreviation().equalsIgnoreCase(pt.getAbbreviation() ) ) {
+			// The requested units match something that is already in the list.  Reset the list...
 			__types_Vector.setElementAt ( type, i );
 			return;
 		}
@@ -316,7 +356,7 @@ equal to the paramter passed in.
 an empty Vector if none exist.
 @deprecated use lookupUnitsForDimension
 */
-/* REVISIT
+/* TODO
 public static Vector getUnitsForDimension ( String system, String dimension )
 {	return lookupUnitsForDimension ( system, dimension );
 }
@@ -368,12 +408,10 @@ throws Exception
 	for (	int i = 0; i < size; i++ ) {
 		pt = (DataType)__types_Vector.elementAt(i);
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 20, routine, "Comparing " + 
-			type_string + " and " + pt.getAbbreviation());
+			Message.printDebug ( 20, routine, "Comparing " + type_string + " and " + pt.getAbbreviation());
 		}
-		if (	type_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
-			// The requested data type match something that is
-			// in the list.  Return the matching DataType...
+		if ( type_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
+			// The requested data type match something that is in the list.  Return the matching DataType...
 			return ( pt );
 		}
 	}
@@ -390,7 +428,7 @@ equal to the paramter passed in.
 @return a Vector of all the DataUnits objects that match the dimension or
 an empty Vector if none exist.
 */
-/* REVISIT
+/* TODO
 public static Vector lookupUnitsForDimension ( String system, String dimension )
 {	String	routine = "DataUnits.lookupUnitsForDimension";
 
@@ -494,19 +532,18 @@ instance checks the dimension against defined dimensions.
 */
 public static void readNWSDataTypeFile(String dfile, boolean define_dimensions )
 throws IOException
-{	String		routine = "DataUnits.readNWSDataTypeFile", string;
+{	String routine = "DataUnits.readNWSDataTypeFile", string;
 	BufferedReader	fp = null;
 
 	try {	// Main try...
 	// Open the file (allow the data type file to be a normal file or a URL
 	// so web applications can also be supported)...
-	try {	fp = new BufferedReader(new InputStreamReader(
-			IOUtil.getInputStream(dfile)));
+	try {
+        fp = new BufferedReader(new InputStreamReader(IOUtil.getInputStream(dfile)));
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
-		throw new IOException ( "Error opening data type file \"" +dfile
-		+ "\"" );
+		throw new IOException ( "Error opening data type file \"" +dfile+ "\"" );
 	}
 	int linecount = 0;
 	DataType type = null;
@@ -603,8 +640,7 @@ throws IOException
 		}
 		// Now process the specific line...
 		if ( type_count == 1 ) {
-			StringUtil.fixedRead ( string, format_1, format_1w,
-						tokens );
+			StringUtil.fixedRead ( string, format_1, format_1w, tokens );
 			abbreviation = ((String)tokens.elementAt(0)).trim();
 			description = ((String)tokens.elementAt(1)).trim();
 			tmp = ((String)tokens.elementAt(2)).trim();
@@ -625,8 +661,7 @@ throws IOException
 			}
 		}
 		else if ( type_count == 2 ) {
-			StringUtil.fixedRead ( string, format_2, format_2w,
-						tokens );
+			StringUtil.fixedRead ( string, format_2, format_2w,	tokens );
 			dimension = ((String)tokens.elementAt(1)).trim();
 			meas_loc_type = ((String)tokens.elementAt(2)).trim();
 			meas_time_scale = ((String)tokens.elementAt(3)).trim();
@@ -644,8 +679,7 @@ throws IOException
 			// Can be NONE for RTi data.
 		}
 		else if ( string.substring(5).startsWith("FCST") ) {
-			StringUtil.fixedRead ( string, format_3, format_3w,
-						tokens );
+			StringUtil.fixedRead ( string, format_3, format_3w,	tokens );
 			default_units = ((String)tokens.elementAt(2)).trim();
 			read_fcst = true;
 		}
@@ -666,8 +700,7 @@ throws IOException
 			(in_fcst && read_fcst && !in_calb) ||
 			(in_fcst && read_fcst && in_calb && read_calb) ||
 			(!in_fcst && !in_calb && (type_count == 2)) ) {
-			// Have complete data for the type so add as a new data
-			// type...
+			// Have complete data for the type so add as a new data type...
 			type = new DataType();
 			type.setAbbreviation ( abbreviation );
 			type.setDescription ( description );
@@ -677,36 +710,28 @@ throws IOException
 				// below.  It is OK to define more than once
 				// because DataDimension will keep only one
 				// unique definition.
-				DataDimension.addDimension (
-					new DataDimension(dimension,dimension));
+				DataDimension.addDimension ( new DataDimension(dimension,dimension));
 			}
 			type.setDimension ( dimension );
 			// Determine if the data units are SI or English and
 			// then set as the default.
-			try {	units = DataUnits.lookupUnits ( default_units );
+			try {
+                units = DataUnits.lookupUnits ( default_units );
 				if ( units != null ) {
-					if (	(units.getSystem() ==
-						DataUnits.SYSTEM_ENGLISH) ||
-						(units.getSystem() ==
-						DataUnits.SYSTEM_ALL) ) {
-						type.setDefaultEnglishUnits (
-						default_units );
+					if ( (units.getSystem() == DataUnits.SYSTEM_ENGLISH) ||
+						(units.getSystem() == DataUnits.SYSTEM_ALL) ) {
+						type.setDefaultEnglishUnits ( default_units );
 					}
-					if (	(units.getSystem() ==
-						DataUnits.SYSTEM_SI) ||
-						(units.getSystem() ==
-						DataUnits.SYSTEM_ALL) ) {
-						type.setDefaultSIUnits (
-						default_units );
+					if ( (units.getSystem() == DataUnits.SYSTEM_SI) ||
+						(units.getSystem() == DataUnits.SYSTEM_ALL) ) {
+						type.setDefaultSIUnits ( default_units );
 					}
 				}
 			}
 			catch ( Exception e ) {
-				// Ignore for now - default units just will not
-				// be set.
+				// Ignore for now - default units just will not be set.
 			}
-			if (	(meas_loc_type.indexOf("A") >= 0) &&
-				(meas_loc_type.indexOf("P") >= 0) ) {
+			if ( (meas_loc_type.indexOf("A") >= 0) && (meas_loc_type.indexOf("P") >= 0) ) {
 				type.setMeasLocType (MeasLocType.AREA_OR_POINT);
 			}
 			else if ( meas_loc_type.indexOf("A") >= 0 ) {
@@ -721,8 +746,7 @@ throws IOException
 		}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error reading data type at line " + linecount +
+			Message.printWarning ( 2, routine, "Error reading data type at line " + linecount +
 			" of file \"" + dfile + "\"" );
 			Message.printWarning ( 2, routine, e );
 		}
@@ -732,24 +756,10 @@ throws IOException
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
 		// Global catch...
-		throw new IOException ( "Error reading data type file \"" +dfile
-		+ "\"" );
+		throw new IOException ( "Error reading data type file \"" +dfile + "\"" );
 	}
 	fp = null;
 }
-
-/**
-Read a file that is in RTi format.  See the fully loaded method for
-more information.  This version calls the other version with define_dimensions
-as true.
-@param dfile Units file to read (can be a URL).
-*/
-/* REVISIT - need to define format
-public static void readUnitsFile ( String dfile )
-throws IOException
-{	readUnitsFile ( dfile, true );
-}
-*/
 
 /**
 Read a file that is in RTi format.
@@ -775,7 +785,9 @@ for each dimension referenced in the data units, with the name and abbreviation
 being the same.  This is required in many cases because defining a data unit
 instance checks the dimension against defined dimensions.
 */
-/* REVISIT - need to define format
+/* TODO - need to define format - currently rely on NWS file on NWS systems,
+RiversideDB for RiverTrak systems and do not read on other systems.
+
 public static void readUnitsFile ( String dfile, boolean define_dimensions )
 throws IOException
 {	String	message, routine = "DataUnits.readUnitsFile";
@@ -947,8 +959,7 @@ public void setDescription ( String description )
 /**
 Set the dimension for the data type.
 @param dimension_string Dimension string (e.g., "L3/T").
-@exception Exception If the dimension string to be used is not
-recognized.
+@exception Exception If the dimension string to be used is not recognized.
 @see DataDimension
 */
 public void setDimension ( String dimension_string )
@@ -969,9 +980,7 @@ throws Exception
 	catch ( Exception e ) {
 		// Problem finding dimension.  Don't set...
 		String message;
-		message =
-		"Can't find dimension \"" + dimension_string +
-		"\".  Not setting.";
+		message = "Can't find dimension \"" + dimension_string + "\".  Not setting.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception(message);
 	}

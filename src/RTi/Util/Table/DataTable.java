@@ -143,38 +143,49 @@ try {	// First, create define the table by assembling a vector of TableField
 @see RTi.Util.Table.TableField
 @see RTi.Util.Table.TableRecord
 */
-public class DataTable {
-
-protected Vector 	_table_fields;		// Vector of TableField
-protected Vector	_table_records;		// Vector of TableRecord 
-protected int		_num_records = 0;	// Number of records in the
-						// table.
-
-protected boolean	_have_data = false;	// Indicates if data records
-						// have been read.  This should
-						// be reset by derived classes.
-
-protected boolean	_trim_strings = true;	// Indicates whether string data
-						// should be trimmed on
-						// retrieval.  In general, this
-						// should be true because older
-						// databases like Dbase pad
-						// data with spaces but seldom
-						// are spaces actually actual
-						// data values.
-
-protected boolean	_add_record_called = false;
-						// Indicates whether addRecord()
-						// has been called.  If so,
-						// assume that the data records
-						// are in memory for calls to
-						// getNumberOfRecords().
-						// Otherwise, just return the
-						// _num_records value.
+public class DataTable
+{
+/**
+The identifier for the table.
+*/
+private String __table_id = "";
 
 /**
-Construct a new table.  Use setTableFields() at a later time to define the
-table.
+Vector of TableField, that describe the columns.
+*/
+protected Vector _table_fields;
+
+/**
+Vector of TableRecord, that contains the table data.
+*/
+protected Vector _table_records;
+
+/**
+Number of records in the table.
+*/
+protected int _num_records = 0;
+
+/**
+Indicates if data records have been read.  This should be reset by derived classes.
+*/
+protected boolean _have_data = false;
+
+/**
+Indicates whether string data should be trimmed on retrieval.  In general, this
+should be true because older databases like Dbase pad data with spaces but seldom
+are spaces actually actual data values.
+*/
+protected boolean _trim_strings = true;
+
+/**
+Indicates whether addRecord() has been called.  If so, assume that the data records
+are in memory for calls to getNumberOfRecords(). Otherwise, just return the
+_num_records value.
+ */
+protected boolean _add_record_called = false;
+
+/**
+Construct a new table.  Use setTableFields() at a later time to define the table.
 */
 public DataTable ()
 {	// Estimate that 100 is a good increment for the data vector...
@@ -185,7 +196,7 @@ public DataTable ()
 Construct a new table.  The Vector of TableRecord will increment in size by 100.
 @param tableFieldsVector a vector of TableField objects defining table contents.
 */
-public DataTable ( Vector tableFieldsVector)
+public DataTable ( Vector tableFieldsVector )
 {	// Guess that 100 is a good increment for the data vector...
 	initialize ( tableFieldsVector, 10, 100 );
 }
@@ -198,8 +209,7 @@ can be used to optimize performance.
 @param Vector_increment Increment for the Vector holding records.  This
 can be used to optimize performance.
 */
-public DataTable (	Vector tableFieldsVector, int Vector_size,
-			int Vector_increment )
+public DataTable ( Vector tableFieldsVector, int Vector_size, int Vector_increment )
 {	initialize ( tableFieldsVector, Vector_size, Vector_increment );
 }
 
@@ -217,7 +227,8 @@ throws Exception
 	if ( num_new_record_fields == num_table_fields ) {
 		_table_records.addElement ( new_record );
 	}
-	else {	throw new Exception ( "Number of fields in the new record (" +
+	else {
+        throw new Exception ( "Number of fields in the new record (" +
 		num_new_record_fields + ") does not match current " +
 		"description of the table fields (" +
 		num_table_fields + ")." );
@@ -265,10 +276,10 @@ Deletes a field and all the field's data from the table.
 @param fieldNum the number of the field to delete.
 */
 public void deleteField(int fieldNum) 
-throws Exception {
+throws Exception
+{
 	if (fieldNum < 0 || fieldNum > (_table_fields.size() - 1)) {
-		throw new Exception ("Field number " + fieldNum + " out of "
-			+ "bounds.");
+		throw new Exception ("Field number " + fieldNum + " out of bounds.");
 	}
 	_table_fields.removeElementAt(fieldNum);
 
@@ -287,8 +298,7 @@ Deletes a record from the table.
 public void deleteRecord(int recordNum) 
 throws Exception {
 	if (recordNum < 0 || recordNum > (_table_records.size() - 1)) {
-		throw new Exception ("Record number " + recordNum + " out of "
-			+ "bounds.");
+		throw new Exception ("Record number " + recordNum + " out of bounds.");
 	}
 	
 	_table_records.removeElementAt(recordNum);
@@ -300,7 +310,8 @@ Dumps a table to Status level 1.
 @throws Exception if an error occurs.
 */
 public void dumpTable(String delimiter) 
-throws Exception {
+throws Exception
+{
 	String routine = "DataTable.dumpTable";
 	int cols = getNumberOfFields();
 	int rows = getNumberOfRecords();
@@ -316,8 +327,7 @@ throws Exception {
 		+ " and " + cols + " column" + colPlural + ".");
 		
 	if (cols == 0) {
-		Message.printWarning(1, routine, "Table has 0 columns!  "
-			+ "Nothing will be written.");
+		Message.printWarning(2, routine, "Table has 0 columns!  Nothing will be written.");
 		return;
 	}
 
@@ -337,7 +347,7 @@ throws Exception {
 		}
 		line += getFieldValue(row, (cols - 1));
 
-		Message.printStatus(1, "", line);
+		Message.printStatus(2, "", line);
 	}
 }
 
@@ -349,7 +359,8 @@ tables will have pointers to the same data.
 @return the new copy of the table.
 */
 public static DataTable duplicateDataTable(DataTable originalTable, 
-boolean cloneData) {
+boolean cloneData)
+{
 	String routine = "DataTable.duplicateDataTable";
 	
 	DataTable newTable = null;
@@ -412,8 +423,7 @@ boolean cloneData) {
 		newTable.addRecord(newRecord);
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, 
-				"Error adding record " + i + " to table.");
+			Message.printWarning(2, routine, "Error adding record " + i + " to table.");
 			Message.printWarning(2, routine, e);
 		}
 	}
@@ -492,13 +502,11 @@ public String getFieldFormat ( int index )
 {	int field_type = getFieldDataType(index);
 	if ( field_type == TableField.DATA_TYPE_STRING ) {
 		// Output left-justified and padded...
-		return "%-" + getFieldWidth(index) + "." +
-			getFieldWidth(index) + "s";
+		return "%-" + getFieldWidth(index) + "." + getFieldWidth(index) + "s";
 	}
-	else {	if (	(field_type == TableField.DATA_TYPE_FLOAT) ||
-			(field_type == TableField.DATA_TYPE_DOUBLE) ) {
-			return "%" + getFieldWidth(index) + "." +
-				getFieldPrecision(index) + "f";
+	else {
+        if ( (field_type == TableField.DATA_TYPE_FLOAT) || (field_type == TableField.DATA_TYPE_DOUBLE) ) {
+			return "%" + getFieldWidth(index) + "." + getFieldPrecision(index) + "f";
 		}
 		else {	return "%" + getFieldWidth(index) + "d";
 		}
@@ -529,14 +537,13 @@ public int getFieldIndex ( String field_name )
 throws Exception
 {	int num = _table_fields.size();
 	for ( int i=0; i<num; i++ ) {
-		if (((TableField)_table_fields.elementAt(i)).
-			getName().equalsIgnoreCase(field_name))
+		if (((TableField)_table_fields.elementAt(i)).getName().equalsIgnoreCase(field_name)) {
 			return i;
+        }
 	}
 
 	// if this line is reached, the given field was never found
-	throw new Exception( "Unable to find field with name \"" + 
-		field_name + "\"" );
+	throw new Exception( "Unable to find field with name \"" + field_name + "\"" );
 }
 
 /**
@@ -604,8 +611,7 @@ throws Exception
 
 	if ( num_recs <= record_index ) {
 		throw new Exception ( "Requested record index " + record_index +
-		" is not available (only " + num_recs + 
-		" are available)." );
+		" is not available (only " + num_recs + " are available)." );
 	}
 
 	if ( num_fields <= field_index ) {
@@ -614,8 +620,7 @@ throws Exception
 		" have been established." );
 	}
 
-	TableRecord tableRecord = (TableRecord)_table_records.
-		elementAt((int)record_index);
+	TableRecord tableRecord = (TableRecord)_table_records.elementAt((int)record_index);
 	Object o = tableRecord.getFieldValue(field_index);
 	tableRecord = null;
 	return o;
@@ -684,6 +689,15 @@ throws Exception
 		"].  Max value allowed is " + (_table_records.size() - 1) +".");
 	}
 	return ((TableRecord)_table_records.elementAt(record_index));
+}
+
+/**
+Return the table identifier.
+@return the table identifier.
+*/
+public String getTableID ()
+{
+    return __table_id;
 }
 
 /**
@@ -798,8 +812,7 @@ Initialize the data.
 @param Vector_size Initial Vector size for the Vector holding records.
 @param Vector_increment Increment for the Vector holding records.
 */
-private void initialize (	Vector tableFieldsVector, int Vector_size,
-				int Vector_increment )
+private void initialize ( Vector tableFieldsVector, int Vector_size, int Vector_increment )
 {	_table_fields = tableFieldsVector;
 	_table_records = new Vector ( 10, 100 );
 }
@@ -838,8 +851,7 @@ public static DataTable parseDelimitedFile (	String filename,
 						Vector tableFields,
 						int num_lines_header )
 throws Exception {
-	return parseDelimitedFile(filename, delimiter, tableFields,
-		num_lines_header, false);
+	return parseDelimitedFile(filename, delimiter, tableFields,	num_lines_header, false);
 }
 
 /**
@@ -955,33 +967,24 @@ throws Exception {
 				if (trim_spaces) {
 					col = col.trim();
 				}
-				if (	field_types[i] ==
-					TableField.DATA_TYPE_STRING ) {
+				if ( field_types[i] == TableField.DATA_TYPE_STRING ) {
 					contents.addFieldValue(col);
 					length = col.length();
 					if (length > stringLengths[i]) {
 						stringLengths[i] = length;
 					}
 				}
-				else if ( field_types[i] ==
-					TableField.DATA_TYPE_DOUBLE ){
-					contents.addFieldValue(
-						new Double(col));
+				else if ( field_types[i] ==	TableField.DATA_TYPE_DOUBLE ){
+					contents.addFieldValue(	new Double(col));
 				}
-				else if ( field_types[i] ==
-					TableField.DATA_TYPE_INT ) {
-					contents.addFieldValue(
-						new Integer(col));
+				else if ( field_types[i] ==	TableField.DATA_TYPE_INT ) {
+					contents.addFieldValue(	new Integer(col));
 				}
-				else if ( field_types[i] ==
-					TableField.DATA_TYPE_SHORT ) {
-					contents.addFieldValue(
-						new Short(col));
+				else if ( field_types[i] ==	TableField.DATA_TYPE_SHORT ) {
+					contents.addFieldValue(	new Short(col));
 				}
-				else if ( field_types[i] ==
-					TableField.DATA_TYPE_FLOAT ) {
-					contents.addFieldValue(
-						new Float(col));
+				else if ( field_types[i] ==	TableField.DATA_TYPE_FLOAT ) {
+					contents.addFieldValue(	new Float(col));
 				}
 			}
 			table.addRecord ( contents );
@@ -990,8 +993,7 @@ throws Exception {
 				if (IOUtil.testing()) {
 					e.printStackTrace();
 				}
-				Message.printWarning ( 2,
-				"DataTable.parseDelimitedFile", e );
+				Message.printWarning ( 2, "DataTable.parseDelimitedFile", e );
 			}
 		}
 		lineCount++;
@@ -1002,10 +1004,8 @@ throws Exception {
 			// of the longest strings within those fields
 			for (int i = 0; i < num_fields; i++) {
 				col = (String)columns.elementAt(i);
-				if (field_types[i] 
-					== TableField.DATA_TYPE_STRING) {
-					table.setFieldWidth(i, 
-						stringLengths[i]);
+				if (field_types[i] == TableField.DATA_TYPE_STRING) {
+					table.setFieldWidth(i, stringLengths[i]);
 				}
 			}
 							
@@ -1018,8 +1018,7 @@ throws Exception {
 }
 
 /**
-Reads the header of a comma-delimited file and return Vector of TableField
-objects.
+Reads the header of a comma-delimited file and return Vector of TableField ojects.
 @return vector of TableField objects (only field names will be set).
 @param filename name of file containing delimited data.
 */
@@ -1038,8 +1037,7 @@ data type will be string).
 @param delimiter string representing delimiter in data file.
 @exception Exception if there is an error reading the file.
 */
-public static Vector parseDelimitedFileHeader ( String filename, 
-						String delimiter )
+public static Vector parseDelimitedFileHeader ( String filename, String delimiter )
 throws Exception
 {	String iline;
 	Vector columns, tableFields = null;
@@ -1055,16 +1053,14 @@ throws Exception
 			continue;
 		}
 
-		columns = StringUtil.breakStringList ( iline,
-			delimiter, 0);
+		columns = StringUtil.breakStringList ( iline, delimiter, 0);
 //			StringUtil.DELIM_SKIP_BLANKS );
 
 		num_fields = columns.size();
 		tableFields = new Vector ( num_fields, 1 );
 		for ( int i=0; i<num_fields; i++ ) {
 			newTableField = new TableField ( );
-			newTableField.setName (
-				((String)columns.elementAt(i)).trim());
+			newTableField.setName (	((String)columns.elementAt(i)).trim());
 			newTableField.setDataType(TableField.DATA_TYPE_STRING);
 			tableFields.addElement ( newTableField );
 		}
@@ -1088,36 +1084,61 @@ will be padded with empty value columns on the right of the table.
 @param props a PropList with settings for how the file should be read and
 handled.<p>
 Properties and their effects:<br>
-<ul>
-<li><b>FixedFormat</b> - "True" or "False".  Currently ignored.</li>
-<li><b>Delimiter</b> - The character (s) that should be used to delimit fields
-in the file.  Fields are broken using the following
-StringUtil.breakStringList() call (the flag can be modified by
-MergeDelimiters):<br>
+<table width=100% cellpadding=10 cellspacing=0 border=2>
+<tr>
+<td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>CommentLineIndicator</b></td>
+<td>The characters with which comment lines begin.
+Lines starting with this character are skipped (TrimInput is applied after chhecking for comments).</td>
+<td>No default.</td>
+</tr>
+
+<tr>
+<td><b>Delimiter</b></td>
+<td>The character (s) that should be used to delimit fields in the file.  Fields are broken
+using the following StringUtil.breakStringList() call (the flag can be modified by MergeDelimiters):<br>
 <blockquote>
-	v = StringUtil.breakStringList(line, delimiters, 0);
-</blockquote><br>
-Defaults to ",".</li>
-<li><b>MergeDelimiters</b> - "True" or "False".  If true, then adjoining
-delimiter characters are treated as one by using
-StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</li>
-<li><b>CommentLineIndicator</b> - The characters with which comment lines begin.
-Lines starting with this character are skipped (TrimInput is applied after
-checking for comments).</li>
-<li><b>TrimInput</b> - "True" or "False".  Indicates input strings should
-be trimmed before parsing.  Defaults to false.</li>
-<li><b>TrimStrings</b> - "True" or "False".  Indicates whether strings should
-be trimmed before being placed in the data table (after parsing).  Defaults to
-false.</li>
-</ul>
+    v = StringUtil.breakStringList(line, delimiters, 0);
+</blockquote><br></td>
+<td>Comma (,).</td>
+</tr>
+
+<tr>
+<td><b>FixedFormat</b></td>
+<td>"True" or "False".  Currently ignored.</td>
+<td></td>
+</tr>
+
+<tr>
+<td><b>MergeDelimiters</b></td>
+<td>"True" or "False".  If true, then adjoining delimiter characters are treated as one by using
+StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
+<td>False (do not merge blank columns).</td>
+</tr>
+
+<tr>
+<td><b>TrimInput</b></td>
+<td>"True" or "False".  Indicates input strings should be trimmed before parsing.</td>
+<td>False</td>
+</tr>
+
+<tr>
+<td><b>TrimStrings</b></td>
+<td>"True" or "False".  Indicates whether strings should
+be trimmed before being placed in the data table (after parsing).</td>
+<td>False</td>
+</tr>
+
+</table>
 @return the DataTable that was created.
 @throws Exception if an error occurs
 */
 public static DataTable parseFile(String filename, PropList props) 
-throws Exception {
-	String delim = "";
-	String comment = null;
-	boolean trimString = false;
+throws Exception
+{
 	// TODO SAM 2005-11-16 why is FixedFormat included?  Future feature?
 	/*String propVal = props.getValue("FixedFormat");
 	if (propVal != null) {
@@ -1127,12 +1148,13 @@ throws Exception {
 	}
 	*/
 	
+    String Delimiter = "";
 	String propVal = props.getValue("Delimiter");
 	if (propVal != null) {		
-		delim = propVal;
+        Delimiter = propVal;
 	}
 	else {
-		delim = ",";
+        Delimiter = ",";
 	}
 
 	propVal = props.getValue("MergeDelimiters");
@@ -1141,23 +1163,22 @@ throws Exception {
 		parse_flag |= StringUtil.DELIM_SKIP_BLANKS;
 	}
 
+    String CommentLineIndicator = null;
 	propVal = props.getValue("CommentLineIndicator");
 	if (propVal != null) {
-		comment = propVal;
-	}
-	else {
-		comment = null;
+        CommentLineIndicator = propVal;
 	}
 
 	propVal = props.getValue("TrimInput");
-	boolean trimInput = false;	// Default
+	boolean TrimInput_Boolean = false;	// Default
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
-		trimInput = true;
+		TrimInput_Boolean = true;
 	}
 
+    boolean TrimStrings_boolean = false;
 	propVal = props.getValue("TrimStrings");
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
-		trimString = true;
+		TrimStrings_boolean = true;
 	}
 
 	Vector file = new Vector();
@@ -1168,15 +1189,13 @@ throws Exception {
 	BufferedReader in = new BufferedReader(new FileReader(filename));
 	String line = in.readLine();
 
-	// REVISIT (JTS - 2006-06-05)
+	// TODO JTS 2006-06-05
 	// Found a bug in DataTable.  If you attempt to call
 	// parseFile() on a file of size 0 (no lines, no characters)
-	// it will throw an exception.  This should be checked out in
-	// the future.
+	// it will throw an exception.  This should be checked out in the future.
 	
-	// skip any comments at the top of the file (most likely place for
-	// them to appear)
-	while (comment != null && line.startsWith(comment)) {
+	// Skip any comments at the top of the file (most likely place for them to appear.
+	while ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 		line = in.readLine();
 	}
 
@@ -1191,12 +1210,11 @@ throws Exception {
 	TableField tableField = null;
 	if (line.startsWith("\"")) {
 		Vector columns = null;
-		if ( trimInput ) {
-			columns = StringUtil.breakStringList(
-				line.trim(), delim, parse_flag );
+		if ( TrimInput_Boolean ) {
+			columns = StringUtil.breakStringList( line.trim(), Delimiter, parse_flag );
 		}
-		else {	columns = StringUtil.breakStringList(line, delim, 
-					parse_flag );
+		else {
+            columns = StringUtil.breakStringList(line, Delimiter, parse_flag );
 		}
 
 		numFields = columns.size();
@@ -1204,12 +1222,12 @@ throws Exception {
 		String temp = null;
 		for (int i = 0; i < numFields; i++) {
 			temp = ((String)columns.elementAt(i)).trim();
-			while (findPreviousFieldNameOccurances(tableFields,
-			    temp)) {
+			while (findPreviousFieldNameOccurances(tableFields, temp)) {
 				temp = temp + "_2";
 			}
 			tableField = new TableField();
 			tableField.setName(temp);
+            // All table fields by default are treated as strings.
 			tableField.setDataType(TableField.DATA_TYPE_STRING);
 			tableFields.addElement(tableField);
 		}
@@ -1220,22 +1238,21 @@ throws Exception {
 	// Now evaluate the data lines...
 	
 	while (line != null) {
-		if (comment != null && line.startsWith(comment)) {
+		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 			// skip
+            continue;
 		}
-		else {	if ( trimInput ) {
-				v = StringUtil.breakStringList(line.trim(),
-					delim, parse_flag );
-			}
-			else {	v = StringUtil.breakStringList(line, delim, 
-					parse_flag );
-			}
-			size = v.size();
-			if (size > maxColumns) {
-				maxColumns = size;
-			}
-			file.add(v);
+        if ( TrimInput_Boolean ) {
+			v = StringUtil.breakStringList(line.trim(), Delimiter, parse_flag );
 		}
+		else {
+            v = StringUtil.breakStringList(line, Delimiter, parse_flag );
+		}
+		size = v.size();
+		if (size > maxColumns) {
+			maxColumns = size;
+		}
+		file.add(v);
 		line = in.readLine();
 	}
 	in.close();
@@ -1248,14 +1265,12 @@ throws Exception {
 		}
 	}
 	else {
-		// add enough fields to account for the maximum number 
-		// of columns in the table.  
+		// Add enough fields to account for the maximum number of columns in the table.  
 		String temp = null;
 		for (int i = numFields; i < maxColumns; i++) {
 			tableField = new TableField();
 			temp = "Field_" + (i + 1);
-			while (findPreviousFieldNameOccurances(tableFields,
-			    temp)) {
+			while (findPreviousFieldNameOccurances(tableFields,temp)) {
 				temp = temp + "_2";
 			}
 			tableField.setName(temp);
@@ -1277,9 +1292,8 @@ throws Exception {
 		contents = new TableRecord(maxColumns);
 		cols = v.size();
 		for (j = 0; j < cols; j++) {
-			if (trimString) {
-				contents.addFieldValue(
-					((String)v.elementAt(j)).trim());
+			if (TrimStrings_boolean) {
+				contents.addFieldValue(	((String)v.elementAt(j)).trim());
 			}
 			else {
 				contents.addFieldValue((String)v.elementAt(j));
@@ -1305,7 +1319,8 @@ Sets the value of a specific field.
 @param value the value to set.
 */
 public void setFieldValue(int row, int col, Object value) 
-throws Exception {
+throws Exception
+{
 	TableRecord record = (TableRecord)_table_records.elementAt(row);
 	record.setFieldValue(col, value);
 }
@@ -1319,6 +1334,15 @@ public void setFieldWidth(int col, int width)
 throws Exception {
 	TableField field = (TableField)_table_fields.elementAt(col);
 	field.setWidth(width);
+}
+
+/**
+Set the table identifier.
+@param table_id Identifier for the table
+*/
+public void setTableID ( String table_id )
+{
+    __table_id = table_id;
 }
 
 /**
@@ -1418,10 +1442,9 @@ public boolean trimStrings ( )
 {	return _trim_strings;
 }
 
-// REVISIT SAM 2006-06-21
+// TODO SAM 2006-06-21
 // Need to check for delimiter in header and make this code consistent with
-// the RTi.Util.GUI.JWorksheet file saving code, or refactor to use the same
-// code.
+// the RTi.Util.GUI.JWorksheet file saving code, or refactor to use the same code.
 /**
 Writes a table to a delimited file.  If the data items contain the delimiter,
 they will be written surrounded by double quotes.
@@ -1439,16 +1462,13 @@ throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
 	if (filename == null) {
-		Message.printWarning(1, routine, "Cannot write to file '"
-			+ filename + "'");
+		Message.printWarning(1, routine, "Cannot write to file '" + filename + "'");
 		throw new Exception("Cannot write to file '" + filename + "'");
 	}
 		
-	PrintWriter out = new PrintWriter(
-		new BufferedWriter(new FileWriter(filename)));
+	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
 
-	// if any comments have been passed in, print them at the top of
-	// the file
+	// If any comments have been passed in, print them at the top of the file
 	if (comments != null && comments.size() > 0) {
 		int size = comments.size();
 		for (int i = 0; i < size; i++) {
@@ -1458,8 +1478,7 @@ throws Exception {
 
 	int cols = getNumberOfFields();
 	if (cols == 0) {
-		Message.printWarning(1, routine, "Table has 0 columns!  "
-			+ "Nothing will be written.");
+		Message.printWarning(1, routine, "Table has 0 columns!  Nothing will be written.");
 		return;
 	}
 

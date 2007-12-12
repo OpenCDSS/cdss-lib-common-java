@@ -288,16 +288,21 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	unitsorig_JTextField = null;
 
-	JCheckBox isselected_JCheckBox =
-		new JCheckBox ( "Is Selected", __ts.isSelected() );
+	JCheckBox isselected_JCheckBox = new JCheckBox ( "Is Selected", __ts.isSelected() );
 	isselected_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent ( general_JPanel, isselected_JCheckBox,
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isselected_JCheckBox = null;
+    
+    JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is Editable", __ts.isEditable() );
+    iseditable_JCheckBox.setEnabled ( false );
+    JGUIUtil.addComponent ( general_JPanel, iseditable_JCheckBox,
+            1, ++y, 1, 1, 1.0, 0.0,
+            insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+    iseditable_JCheckBox = null;
 
-	JCheckBox isdirty_JCheckBox =
-		new JCheckBox ( "Is Dirty", __ts.isDirty() );
+	JCheckBox isdirty_JCheckBox = new JCheckBox ( "Is Dirty (data edited without recomputing limits)", __ts.isDirty() );
 	isdirty_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent ( general_JPanel, isdirty_JCheckBox,
 			1, ++y, 1, 1, 1.0, 0.0,
@@ -310,8 +315,7 @@ private void openGUI ( boolean mode )
 
 	__comments_JPanel = new JPanel();
 	__comments_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "Comments", null, __comments_JPanel,
-		"Comments" );
+	__props_JTabbedPane.addTab ( "Comments", null, __comments_JPanel, "Comments" );
 
 	y = 0;
 	__comments_JTextArea = new JTextArea(

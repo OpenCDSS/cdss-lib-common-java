@@ -29,7 +29,8 @@ import RTi.Util.GUI.JGUIUtil;
 This class is the frame in which the panel displaying DataTable data in a
 worksheet is displayed.
 */
-public class DataTable_JFrame extends JFrame {
+public class DataTable_JFrame extends JFrame
+{
 
 /**
 The data table that was passed in.
@@ -37,7 +38,7 @@ The data table that was passed in.
 private DataTable __table = null;
 
 /**
-The panel containing the workshee that will be displayed in the frame.
+The panel containing the worksheet that will be displayed in the frame.
 */
 private DataTable_JPanel __dataTablePanel = null;
 
@@ -63,20 +64,19 @@ public DataTable_JFrame(String title, DataTable table)
 throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
-		if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Table" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - Table" );
+		else {
+            setTitle( JGUIUtil.getAppNameForWindows() +	" - Table" );
 		}
 	}
-	else {	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+	else {
+        if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( title );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - " + title );
+		else {
+            setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
 	__table = table;
@@ -94,20 +94,19 @@ public DataTable_JFrame(String title, String filename)
 throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
-		if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Table" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - Table" );
+		else {
+            setTitle( JGUIUtil.getAppNameForWindows() + " - Table" );
 		}
 	}
-	else {	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+	else {
+        if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( title );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - " + title );
+		else {
+            setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
 	__filename = filename;
@@ -181,8 +180,7 @@ throws Exception {
 		plural = "";
 	}
 
-	setMessageStatus("Displaying " + count + " record" + plural + ".", 
-		"Ready");
+	setMessageStatus("Displaying " + count + " record" + plural + ".", "Ready");
 
 	show();
 

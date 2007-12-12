@@ -18,7 +18,7 @@
 package RTi.Util.Table;
 
 /**
-This class is used to help define the fields in a table.  A DataTable is created
+This class is used to help define the fields (columns) in a table.  A DataTable is created
 by specifying a vector of TableField objects to pass into the DataTable
 constructor.  Note that the field types have been implemented in a generic
 sense; however, most application of this class has been with ESRI shapefiles,
@@ -62,12 +62,25 @@ Date.
 */
 public final static int DATA_TYPE_DATE		= 5;
 
-private int	_data_type;	// Data type - DATA_TYPE_* from above
-private String	_name;		// Field name (also used for a column heading)
-private int	_width;		// Field width (e.g., maximum characters for
-				// strings or number width in characters).
-private int	_precision;	// Precision applied to numbers (e.g., 3 in
-				// 11.3 numbers).
+/**
+Data type (DATA_TYPE_*) for the field (column).
+*/
+private int	_data_type;
+
+/**
+Field name (also used for a column heading).
+*/
+private String	_name;
+
+/**
+Field width (e.g., maximum characters for strings or number width in characters).
+*/
+private int	_width;
+
+/**
+Precision applied to numbers (e.g., 3 in 11.3 numbers).
+*/
+private int	_precision;	
 
 /**
 Construct a new table of default type String.

@@ -69,7 +69,8 @@ public static Vector getPEForTimeSeries ( Vector tslist )
 			v.addElement ( "" );
 			continue;
 		}
-		try {	datatype = DataType.lookupDataType ( ts.getDataType() );
+		try {
+            datatype = DataType.lookupDataType ( ts.getDataType() );
 			v.addElement ( datatype.getSHEFpe() );
 		}
 		catch ( Exception e ) {
@@ -96,7 +97,8 @@ recognized SHEF time zone.
 public static String getSHEFTimeZone ( String ts_tz )
 throws Exception
 {	// Important time zones known to be SHEF time zones...
-	String [] shef_tz = {	"N", "NS",
+	String [] shef_tz = {
+                "N", "NS",
 				"A", "AD", "AS",
 				"E", "ED", "ES",
 				"C", "CD", "CS",
@@ -267,15 +269,13 @@ throws Exception
 	// Check for a null time series list...
 
 	if ( tslist == null ) {
-		Message.printWarning ( 2, routine,
-		"Null time series list.  Not writing." );
+		Message.printWarning ( 2, routine, "Null time series list.  Not writing SHEFA file." );
 		return;
 	}
 
 	int size = tslist.size();
 	if ( size == 0 ) {
-		Message.printWarning ( 2, routine,
-		"No time series in list.  Not writing." );
+		Message.printWarning ( 2, routine, "No time series in list.  Not writing." );
 		return;
 	}
 
@@ -293,8 +293,7 @@ throws Exception
 		Hour24Flag = true;
 		hour_max_prop = prop_val;
 	}
-	String duration_prop = "";	// Set to null here because it is
-					// checked below
+	String duration_prop = "";
 	prop_val = props.getValue ( "Duration" );
 	if ( prop_val != null ) {
 		duration_prop = prop_val;
@@ -308,7 +307,7 @@ throws Exception
 	prop_val = props.getValue ( "TimeZone" );
 	if ( prop_val != null ) {
 		time_zone_prop = prop_val;
-	}	// After this point, no more changes to the duration.
+	}	// After this point, no more changes to the time zone.
 
 	// Use the requested output period if not null...
 
@@ -362,8 +361,7 @@ throws Exception
 	IOUtil.printCreatorHeader ( out, ":", 80, 0 );
 	out.println ( ":" );
 	out.println ( ": Time series and requested output are as follows." );
-	out.println (
-	": Blanks indicate that values will be determined automatically." );
+	out.println ( ": Blanks indicate that values will be determined automatically." );
 	out.println ( ":" );
 	String units, pe, dur, altid;
 	out.println ( ":Count Location        Units PE      Duration AltID" );
@@ -377,16 +375,16 @@ throws Exception
 		pe = "";
 		dur = "";
 		altid = "";
-		if (	(unitsList != null) && (unitsList.size() == size) ) {
+		if ( (unitsList != null) && (unitsList.size() == size) ) {
 			units = (String)unitsList.elementAt(i);
 		}
-		if (	(PE != null) && (PE.size() == size) ) {
+		if ( (PE != null) && (PE.size() == size) ) {
 			pe = (String)PE.elementAt(i);
 		}
-		if (	(DurList != null) && (DurList.size() == size) ) {
+		if ( (DurList != null) && (DurList.size() == size) ) {
 			dur = (String)DurList.elementAt(i);
 		}
-		if (	(AltID != null) && (AltID.size() == size) ) {
+		if ( (AltID != null) && (AltID.size() == size) ) {
 			altid = (String)AltID.elementAt(i);
 		}
 		out.println ( ": " +
@@ -403,23 +401,26 @@ throws Exception
 	if ( creation_date_prop.equals("") ) {
 		out.println ( ": CreationDate = default (not specified)" );
 	}
-	else {	out.println ( ": CreationDate = " + creation_date_prop );
+	else {
+        out.println ( ": CreationDate = " + creation_date_prop );
 	}
 	if ( duration_prop.equals("") ) {
-		out.println (
-		": Duration = default (determined from data interval)" );
+		out.println ( ": Duration = default (determined from data interval)" );
 	}
-	else {	out.println ( ": Duration = " + duration_prop );
+	else {
+        out.println ( ": Duration = " + duration_prop );
 	}
 	if ( hour_max_prop.equals("") ) {
 		out.println ( ": HourMax = default (23).  Hours are 0-23" );
 	}
-	else {	out.println ( ": HourMax = " + hour_max_prop );
+	else {
+        out.println ( ": HourMax = " + hour_max_prop );
 	}
 	if ( time_zone_prop.equals("") ) {
 		out.println ( ": TimeZone = default (Z)." );
 	}
-	else {	out.println ( ": TimeZone = " + time_zone_prop );
+	else {
+        out.println ( ": TimeZone = " + time_zone_prop );
 	}
 	out.println ( ":" );
 
@@ -472,18 +473,15 @@ throws Exception
 			timeZone_ts = ts.getDate1().getTimeZoneAbbreviation();
 			if ( timeZone_ts.length() != 0 ) {
 				// Time series has a time zone so use it...
-				try {	SHEFTimeZone_ts =
-					getSHEFTimeZone ( timeZone_ts );
+				try {
+                    SHEFTimeZone_ts = getSHEFTimeZone ( timeZone_ts );
 				}
 				catch ( Exception e ) {
 					// Unable to get a valid time zone...
-					message =
-					"Time zone from time series (\"" +
-					timeZone_ts + "\") not recognized." +
-					"Skipping output.";
+					message = "Time zone from time series (\"" +
+					timeZone_ts + "\") not recognized.  Skipping output.";
 					out.println ( ": " + message );
-					Message.printWarning ( 2, routine,
-						message );
+					Message.printWarning ( 2, routine, message );
 					continue;
 				}
 			}
@@ -506,9 +504,7 @@ throws Exception
 		// get the PE code
  		PhysicalElement = (String)PE.elementAt(i);
 		if ( PhysicalElement.equals("") ) {
-			message = "No PE code specified for \"" +
-				ts.getIdentifierString() +
-				"\"... skipping SHEF .A write.";
+			message = "No PE code specified for \"" + ts.getIdentifierString() + "\"... skipping SHEF .A write.";
 			out.println ( ": " + message );
 			Message.printWarning ( 2, routine, message );
 			continue;
@@ -521,8 +517,7 @@ throws Exception
 		// Get the original TS units
 		try {	tsUnits = DataUnits.lookupUnits( ts.getDataUnits());
 			system =  tsUnits.getSystem();
-			unitsFormat = DataUnits.getOutputFormatString( 
-						ts.getDataUnits(), 0, 0 );
+			unitsFormat = DataUnits.getOutputFormatString( ts.getDataUnits(), 0, 0 );
 		}
 		catch ( Exception e ) {
 			message = "Error getting units for " +
@@ -534,8 +529,7 @@ throws Exception
 			continue;
 		}
 
-		// Set the scale if the TS is accumulated or a mean.  If so,
-		// SHEF must have a duration
+		// Set the scale if the TS is accumulated or a mean.  If so, SHEF must have a duration
 		scale = false;
 		if ( durationDefined ) {
 			scaleType = (String)DurList.elementAt( i );
@@ -587,23 +581,18 @@ throws Exception
 		if ( newUnitsDefined ) {
 			units = (String)unitsList.elementAt( i );
 
-			if (	(units != null) && (units.length() != 0) &&
-				!units.equalsIgnoreCase(ts.getDataUnits()) ) {
-				try {	DataUnits newUnits = DataUnits.
-						lookupUnits( units );
+			if ( (units != null) && (units.length() != 0) && !units.equalsIgnoreCase(ts.getDataUnits()) ) {
+				try {
+                    DataUnits newUnits = DataUnits.lookupUnits( units );
 					newSystem = newUnits.getSystem();
-					conversion = DataUnits.getConversion (
-						ts.getDataUnits(), units );
+					conversion = DataUnits.getConversion ( ts.getDataUnits(), units );
 					mult = conversion.getMultFactor();
 					add = conversion.getAddFactor();
 					system = newSystem;
-					unitsFormat = DataUnits.
-						getOutputFormatString(
-						units, 0, 0);
+					unitsFormat = DataUnits.getOutputFormatString(units, 0, 0);
 				}
 				catch ( Exception e ) {
-					message =
-					"Unable to convert units to \"" +
+					message = "Unable to convert units to \"" +
 					units + "\" leaving units as \"" +
 					ts.getDataUnits() + "\"";
 					out.println (": " + message + " :");
@@ -617,13 +606,12 @@ throws Exception
 		if ( system == DataUnits.SYSTEM_SI ){
 			SHEFSystem = "/DUS";
 		}
-		else if((system == DataUnits.SYSTEM_ENGLISH) ||
-			(system == DataUnits.SYSTEM_ALL) ){
+		else if((system == DataUnits.SYSTEM_ENGLISH) || (system == DataUnits.SYSTEM_ALL) ){
 			// Units system does not matter.  Default to English...
 			SHEFSystem = "/DUE";
 		}
-		else {	message = "Cannot find valid units system. " +
-				"SHEF will default to ENGLISH.";
+		else {
+            message = "Cannot find valid units system.  SHEF will default to ENGLISH.";
 			Message.printWarning( 2, routine, message );
 
 			SHEFSystem = "/DUE";
@@ -651,32 +639,24 @@ throws Exception
 					}
 				}
 
-				dateString = t.toString(
-					DateTime.FORMAT_YYYYMMDDHHmm );
+				dateString = t.toString( DateTime.FORMAT_YYYYMMDDHHmm );
 				qualityFlag = "";
 
 				if( tsBase == TimeInterval.IRREGULAR ) {
 					if ( scale ) {
 						// The duration is in seconds.
-						duration =((IrregularTSIterator)
-							tsi).getDuration();
+						duration =((IrregularTSIterator)tsi).getDuration();
 
-						// REVISIT - this code is kind
-						// of ugly - maybe it can be
-						// done cleaner
+						// TODO - this code is kind of ugly - maybe it can be done cleaner
 						if ( duration > 0 ) {
 							mod = duration/60; 
 							if( mod > 0 ) {
-								// Duration in
-								// minutes
+								// Duration in minutes
 								duration = mod;
-								mod = duration/
-									60; 
-								durationCode =
-								"/DVN";
+								mod = duration/60; 
+								durationCode = "/DVN";
 								if( mod > 0 ) {
-									//duration in
-									//hours
+									//duration inhours
 									duration = mod;
 									mod = duration/24; 
 									durationCode = "/DVH";
@@ -696,35 +676,28 @@ throws Exception
 									}
 								}
 							}
-							else {	durationCode =
-								"/DVS";
+							else {
+                                durationCode = "/DVS";
 							}
 						}
 
-						durationCode = durationCode + 
-							StringUtil.formatString(
-							duration, "%02d" );
+						durationCode = durationCode + StringUtil.formatString( duration, "%02d" );
 					}
 					
 					qualityFlag = tsi.getDataFlag();
-					if (	(qualityFlag != null) &&
-						(qualityFlag.length() > 0) ) {
-						qualityFlag = "/DQ" +
-							qualityFlag;
+					if ( (qualityFlag != null) && (qualityFlag.length() > 0) ) {
+						qualityFlag = "/DQ" + qualityFlag;
 					}
 				}
 
-				// Override with the creation date if specified
-				// by the user...
+				// Override with the creation date if specified by the user...
 
 				if ( creation_date_prop.length() == 0 ) {
 					// Use the default...
-					creation_date = "DH" +
-					dateString.substring( 8 );
+					creation_date = "DH" + dateString.substring( 8 );
 				}
 
-				// Override the duration code determined above
-				// with the value specified by the user...
+				// Override the duration code determined above with the value specified by the user...
 
 				if ( duration_prop.length() != 0 ) {
 					durationCode = "/" + duration_prop;

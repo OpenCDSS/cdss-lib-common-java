@@ -1,19 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSStatistic - class to store a statistic value for a time series.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2005-09-09	Steven A. Malers, RTi	Initial version to explore new
-//					capabilities in TSTool and to clean up
-//					the TSAnalyst class.
-// 2005-09-28	SAM, RTi		* Add DayOfMax, DayOfMin statistics.
-//					* Add Max, Min statistics.
-//					* Add CountGE, CountGT, CountLE,
-//					  CountLT statistics.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.util.Vector;
@@ -22,7 +6,9 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 This class stores a time series statistic, which is a value or values determined
-from the sample given by the time series data points.
+from the sample given by the time series data points.  Some statistics are general in
+nature and could be applied outside of time series.  Some are specific to time series
+(e.g., day of year that some condition occurs).
 */
 public class TSStatistic
 {
@@ -45,6 +31,9 @@ public final static String
 	DayOfLastLT = "DayOfLastLT",	// Day of last value < test
 	DayOfMax = "DayOfMax",		// Day of maximum value
 	DayOfMin = "DayOfMin",		// Day of minimum value
+    ExceedanceProbabilityGE10 = "ExceedanceProbabilityGE10", // Probability of exceeding value is >= 10%
+    ExceedanceProbabilityGE50 = "ExceedanceProbabilityGE50", // Probability of exceeding value is >= 10%
+    ExceedanceProbabilityGE90 = "ExceedanceProbabilityGE90", // Probability of exceeding value is >= 10%
 	Max = "Max",			// Maximum value in the sample
 	Mean = "Mean",			// Mean value in the sample
 	Min = "Min";			// Minimum value in the sample
@@ -134,6 +123,9 @@ public static Vector getStatisticChoicesForSimpleSample ( int interval, String t
 {	Vector statistics = new Vector();
 	// TODO SAM 2007-11-05 Could add the CountLE, etc.
 	//statistics.addElement ( Max );
+    //statistics.addElement ( ExceedanceProbabilityGE10 );
+    //statistics.addElement ( ExceedanceProbabilityGE50 );
+    //statistics.addElement ( ExceedanceProbabilityGE90 );
 	statistics.addElement ( Mean );
 	//statistics.addElement ( Min );
 	return statistics;

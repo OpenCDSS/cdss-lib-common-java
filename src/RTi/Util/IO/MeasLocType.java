@@ -14,6 +14,7 @@
 
 package RTi.Util.IO;
 
+// TODO SAM 2007-12-11 Evaluate using an Enum in Java 1.5.
 /**
 The MeasLocType class currently defines static data for measurement location
 types, for use with the DataType class.

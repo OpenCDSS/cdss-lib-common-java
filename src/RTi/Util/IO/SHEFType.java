@@ -477,7 +477,7 @@ throws IOException
 		// Expanded SHEF code, parts of which are used to help assign
 		// data...
 		SHEF_pe_long = ((String)tokens.elementAt(1)).trim();
-		// REVISIT.
+		// TODO.
 		// Don't assign default units to SHEFType - take from the time
 		// series at output - for parsing input, these will need to be
 		// defined.
