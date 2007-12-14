@@ -347,7 +347,8 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 			v.addElement ( "06Hour" );
 			v.addElement ( "08Hour" );
 		}
-		else {	v.addElement ( "1Hour" );
+		else {
+            v.addElement ( "1Hour" );
 			v.addElement ( "2Hour" );
 			v.addElement ( "3Hour" );
 			v.addElement ( "4Hour" );
@@ -355,6 +356,8 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 			v.addElement ( "8Hour" );
 		}
 		v.addElement ( "12Hour" );
+        // Add this because often hourly data aggregate up to 24-hour data.
+        v.addElement ( "24Hour" );
 	}
 	if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
 		v.addElement ( "Day" );
