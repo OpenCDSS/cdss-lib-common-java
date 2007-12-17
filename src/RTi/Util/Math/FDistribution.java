@@ -1,15 +1,3 @@
-//------------------------------------------------------------------------------
-// FDistribution - interface to the F distribution
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 2002-05-22	Steven A. Malers, RTi	Initial version.  Implement basic
-//					framework.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-
 package RTi.Util.Math;
 
 /**
@@ -26,15 +14,13 @@ Determine the cumulative F distribution value.
 1 = 99% cumulative, 5 = 95% cumulative.  Currently only support 1 and 5.
 @exception Exception if the input parameters are not supported.
 */
-public static double getCumulativeFDistribution (	int v1, int v2,
-							int probability )
+public static double getCumulativeFDistribution ( int v1, int v2, int probability )
 throws Exception
 {	if ( v1 != 2 ) {
 		throw new Exception ( "v1 (" + v1 + ") must be 2" );
 	}
 	if ( (probability != 5) && (probability != 1) ) {
-		throw new Exception ( "probability (" + probability +
-		") must be 1 or 5" );
+		throw new Exception ( "probability (" + probability + ") must be 1 or 5" );
 	}
 
 	int col = 2;

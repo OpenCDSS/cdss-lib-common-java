@@ -1,15 +1,3 @@
-//------------------------------------------------------------------------------
-// StandardNormal - class to provide functionality related to the Standard
-//			Normal curve
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 2004-06-02	Steven A. Malers, RTi	Initial version to support standard
-//					normal probability plots.
-//------------------------------------------------------------------------------
-
 package RTi.Util.Math;
 
 import java.lang.Math;
@@ -22,8 +10,7 @@ This class provides features related to the standard normal curve.
 public class StandardNormal implements Function
 {
 
-// Values of the standard normal density function (left side - right side is
-// symmetrical
+// Values of the standard normal density function (left side - the right side is symmetrical)
 private static double [][] __zprob = {
 				{	-5.0,	.000001 },
 				{	-4.5,	.000004 }, 
@@ -100,8 +87,7 @@ throws Exception
 			// proper value, depending on the sign of the z-value...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 50, routine,
-				"Looking up " + z +
-				" - exactly matches zprob [" + i + "]" );
+				"Looking up " + z +	" - exactly matches zprob [" + i + "]" );
 			}
 			if ( z0 > 0.0 ) {
 				return ( 1.0 - __zprob[i][1] );
@@ -117,8 +103,7 @@ throws Exception
 			// already...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 50, routine,
-				"Looking up " + z +
-				" - \"left\" value is zprob [" + i + "]" );
+				"Looking up " + z +	" - \"left\" value is zprob [" + i + "]" );
 			}
 			--i;
 			break;
@@ -127,16 +112,14 @@ throws Exception
 
 	if ( i >= __zprob.length ) {
 		throw new Exception ( 
-		"Trying to access zprob[" + i +
-		"] looking up " + z0 + " (neg is " + z +
+		"Trying to access zprob[" + i +	"] looking up " + z0 + " (neg is " + z +
 		") - array size is " + __zprob.length );
 	}
 
 	// Integrate from the known point to the requested z value...
 
 	s = __zprob[i][1] + MathUtil.integrate (
-		MathUtil.INTEGRATE_GAUSSIAN_QUADRATURE, fp,
-		__zprob[i][0], z, nseg );
+		MathUtil.INTEGRATE_GAUSSIAN_QUADRATURE, fp,	__zprob[i][0], z, nseg );
 
 	// Recalculate if on the right side of the distribution...
 
@@ -172,16 +155,14 @@ throws Exception
 	String message;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 20, routine,
-		"Trying to find Z value for probability " + prob0 );
+		Message.printDebug ( 20, routine, "Trying to find Z value for probability " + prob0 );
 	}
 
 	// We can only work on probabilities that are between 0.0 and 1.0
 	// (actually not exactly zero or one but close)...
 
 	if ( (prob0 <= 0.0) || (prob0 >= 1.0) ) {
-		message = "Requested probability (" + prob0 +
-		") not in the range > 0.0 to < 1.0";
+		message = "Requested probability (" + prob0 + ") not in the range > 0.0 to < 1.0";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -217,8 +198,7 @@ throws Exception
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Starting solution for prob " + prob1 +
-		" using bounds " + a + " and " + b );
+		"Starting solution for prob " + prob1 + " using bounds " + a + " and " + b );
 	}
 
 	/*
@@ -248,9 +228,7 @@ throws Exception
 			// Both points are the same.  It has converged.  Exit
 			// the loop.
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"fa (" + fa + ") = fb at z = " + z +
-				".  Converged" );
+				Message.printDebug ( dl, routine, "fa (" + fa + ") = fb at z = " + z + ".  Converged" );
 			}
 			break;
 		}
@@ -264,8 +242,7 @@ throws Exception
 		if ( count > maxcount ) {
 			Message.printWarning ( 20, routine,
 			"Maximum iteration count (" + maxcount +
-			") reached.  Values for " + prob1 + " are f(" + a +
-			")=" + fa + " f(" + b + ")=" + fb );
+			") reached.  Values for " + prob1 + " are f(" + a +	")=" + fa + " f(" + b + ")=" + fb );
 			break;
 		}
 		a = b;
@@ -277,8 +254,7 @@ throws Exception
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Found solution for prob " + prob1 + " after " + count +
-		" iterations: " + z );
+		"Found solution for prob " + prob1 + " after " + count + " iterations: " + z );
 	}
 
 	if ( prob0 > .5 ) {

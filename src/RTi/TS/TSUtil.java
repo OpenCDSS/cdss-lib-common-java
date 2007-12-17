@@ -14793,7 +14793,9 @@ throws Exception
 }
 
 /**
-Create a new DateTime of a precision that matches the given time series.
+Create a new DateTime of a precision that matches the given time series.  Converting
+from a low precision to high precision DateTime is typically handled by using first of
+interval data (month=1, day=1, hour=0, minute=0, second=0).
 @return new DateTime of requested precision or null if the precision cannot
 be determined from the time series.
 @param ts Time series to check for date precision (date1 is checked).

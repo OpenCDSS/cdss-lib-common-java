@@ -483,7 +483,7 @@ are recognized:
 </table>
 @exception Exception if there is an error analyzing the time series.
 */
-public TS createStatisticTimeSeries (	TS ts,
+public TS createStatisticTimeSeries ( Object tsobject,
 					DateTime AnalysisStart_DateTime,
 					DateTime AnalysisEnd_DateTime,
 					DateTime OutputStart_DateTime,
@@ -493,11 +493,25 @@ throws Exception
 {	String message, routine = "TSAnalyst.createStatisticTimeSeries";
 	int dl = 10;
 
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to create statistic time series for \"" +
-		ts.getIdentifierString() + "\"" );
-	}
+    TS ts = null;
+    TSEnsemble tsensemble = null;
+    if ( tsobject instanceof TS ) {
+        ts = (TS)ts;
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( dl, routine, "Trying to create statistic time series using time series \"" +
+            ts.getIdentifierString() + "\" as input." );
+        }
+    }
+    else if ( tsobject instanceof TSEnsemble ) {
+        tsensemble = (TSEnsemble)tsobject;
+        // Use the first time series in the ensemble for period, copying for output etc.
+        ts = tsensemble.get(0);
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( dl, routine, "Trying to create statistic time series using ensemble \"" +
+            tsensemble.getEnsembleID() + "\" for input." );
+        }
+    }
+
 	if ( ts == null ) {
 		// Nothing to do...
 		message = "Null input time series";
@@ -519,14 +533,12 @@ throws Exception
 	// Get valid dates for the output time series because the ones passed in
 	// may have been null...
 
-	TSLimits valid_dates = TSUtil.getValidPeriod ( ts,
-				AnalysisStart_DateTime, AnalysisEnd_DateTime );
+	TSLimits valid_dates = TSUtil.getValidPeriod ( ts, AnalysisStart_DateTime, AnalysisEnd_DateTime );
 	DateTime analysis_start	= new DateTime ( valid_dates.getDate1() );
-	DateTime analysis_end	= new DateTime ( valid_dates.getDate2() );
+	DateTime analysis_end = new DateTime ( valid_dates.getDate2() );
 	
-	valid_dates = TSUtil.getValidPeriod ( ts,
-			OutputStart_DateTime, OutputEnd_DateTime );
-	DateTime output_start	= new DateTime ( valid_dates.getDate1() );
+	valid_dates = TSUtil.getValidPeriod ( ts, OutputStart_DateTime, OutputEnd_DateTime );
+	DateTime output_start = new DateTime ( valid_dates.getDate1() );
 	DateTime output_end	= new DateTime ( valid_dates.getDate2() );
 
 	// Create an output time series to be filled...
@@ -538,7 +550,8 @@ throws Exception
 	// Reset the identifier if the user has specified it...
 
 	String NewTSID = props.getValue ( "NewTSID" );
-	try {	if ( (NewTSID != null) && (NewTSID.length() > 0) ) {
+	try {
+        if ( (NewTSID != null) && (NewTSID.length() > 0) ) {
 			TSIdent tsident = new TSIdent ( NewTSID );
 			output_ts.setIdentifier ( tsident );
 		}
@@ -562,8 +575,18 @@ throws Exception
 
 	// Process the statistic of interest...
 
-	TS stat_ts = createStatisticTimeSeries_ComputeStatistic ( ts, analysis_start, analysis_end, Statistic );
-	createStatisticTimeSeries_FillOuput ( stat_ts, output_ts, output_start, output_end, Statistic );
+    TS stat_ts = null;
+    if ( tsensemble == null ) {
+        // Analyse the single time series...
+        stat_ts = createStatisticTimeSeries_ComputeStatistic ( ts, analysis_start, analysis_end, Statistic );
+        // Now use the statistic to repeat every year...
+        createStatisticTimeSeries_FillOuput ( stat_ts, output_ts, output_start, output_end, Statistic );
+    }
+    else {
+        // Analyse the ensemble...
+        createStatisticTimeSeries_ComputeStatisticFromEnsemble ( tsensemble, output_ts,
+                analysis_start, analysis_end, Statistic );
+    }
 
 	// Return the statistic result...
 	return output_ts;
@@ -670,6 +693,67 @@ throws Exception
 	}
 	// Return the result.
 	return stat_ts;
+}
+
+/**
+Create the statistic data from an ensemble of time series.  The results are saved in a time
+series having the interval of the input data.
+@param tsensemble Time series ensemble to be analyzed.
+@param stat_ts Statistic (output) time series to be created.
+@param analysis_start Start of period to analyze.
+@param analysis_end End of period to analyze.
+@param statistic Statistic to compute.
+@return The statistics in a single-year time series.
+*/
+private TS createStatisticTimeSeries_ComputeStatisticFromEnsemble ( TSEnsemble tsensemble, TS stat_ts,
+        DateTime analysis_start, DateTime analysis_end, String statistic )
+throws Exception
+{   // Initialize the iterators using the analysis period...
+    TSIterator tsi_stat = stat_ts.iterator ( analysis_start, analysis_end );
+    int size = tsensemble.size();
+    TS ts;
+    // To improve performance, initialize an array of time series...
+    TS [] ts_array = tsensemble.toArray();
+    // Now iterate through all of the traces and get data for each date/time...
+    DateTime date;
+    int i;  // Index for time series in loop.
+    double value;   // Value from the input time series
+    double sum_value = ts_array[0].getMissing();   // Value in the sum time series
+    int count;
+    while ( tsi_stat.next() != null ) {
+        date = tsi_stat.getDate();
+        // Loop through the time series...
+        count = 0;
+        for ( i = 0; i < size; i++ ) {
+            ts = ts_array[i];
+            if ( i == 0 ) {
+                sum_value = ts.getMissing();
+            }
+            value = ts.getDataValue(date);
+            if ( ts.isDataMissing(value) ) {
+                // Ignore missing data...
+                continue;
+            }
+            if ( ts.isDataMissing(sum_value) ) {
+                // Just assign the value
+                sum_value = value;
+                ++count;
+            }
+            else {
+                // Increment the total...
+                sum_value += value;
+                ++count;
+            }
+        }
+        // Now compute the statistic time series.  Currently this is always the mean.
+        // FIXME 
+        if ( count > 0 ) {
+            stat_ts.setDataValue ( date, sum_value/(double)count );
+        }
+    }
+
+    // Return the result.
+    return stat_ts;
 }
 
 /**

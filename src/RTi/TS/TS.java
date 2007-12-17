@@ -269,15 +269,14 @@ methods are just included here but are expected to be overridden - an interface
 has not been implemented to force this behavior because the methods are not
 "pure virtual").
 */
-public class TS
-implements Cloneable, Serializable, Transferable
+public class TS implements Cloneable, Serializable, Transferable
 {
 
+// FIXME SAM 2007-12-13 Need to move transfer objects to wrapper around this class.
 /**
 Data flavor for transferring this object.
 */
-public static DataFlavor tsFlavor = new DataFlavor(RTi.TS.TS.class, 
-	"RTi.TS.TS");
+public static DataFlavor tsFlavor = new DataFlavor(RTi.TS.TS.class,"RTi.TS.TS");
 
 /**
 General string to use for status of the time series (use as appropriate by
@@ -285,78 +284,80 @@ high-level code).  This value is volatile - do not assume its value will remain
 for long periods.  This value is not used much now that the GRTS package has
 been updated.
 */
-protected String	_status;
+protected String _status;
 
 /**
-Beginning date for data, at a precision appropriate for the data.
+Beginning date/time for data, at a precision appropriate for the data.
+Missing data may be included in the period.
 */
-protected DateTime	_date1;
+protected DateTime _date1;
 
 /**
-Ending date for data, at a precision appropriate for the data.
+Ending date/time for data, at a precision appropriate for the data.
+Missing data may be included in the period.
 */
-protected DateTime	_date2;
+protected DateTime _date2;
 
 /**
-Original starting date for data, at a precision appropriate for the data.
+Original starting date/time for data, at a precision appropriate for the data.
 For example, this may be used to indicate the period in a database, which is
 different than the period that was actually queried and saved in memory.
 */
-protected DateTime	_date1_original;
+protected DateTime _date1_original;
 
 /**
-Original ending date for data, at a precision appropriate for the data.
+Original ending date/time for data, at a precision appropriate for the data.
 For example, this may be used to indicate the period in a database, which is
 different than the period that was actually queried and saved in memory.
 */
-protected DateTime	_date2_original;
+protected DateTime _date2_original;
 
 /**
 The data interval base.  See TimeInterval.HOUR, etc.
 */
-protected int		_data_interval_base;	
+protected int _data_interval_base;	
 
 /**
 The base interval multiplier (what to multiply _interval_base by to get the
 real interval).  For example 15-minute data would have
 _interval_base = TimeInterval.MINUTE and _interval_mult = 15.
 */
-protected int		_data_interval_mult;
+protected int _data_interval_mult;
 
 /**
 The data interval in the original data source (for example, the source may be
 in days but the current time series is in months).
 */
-protected int		_data_interval_base_original;
+protected int _data_interval_base_original;
 
 /**
 The data interval multiplier in the original data source.
 */
-protected int		_data_interval_mult_original;
+protected int _data_interval_mult_original;
 
 /**
 Number of data values inclusive of _date1 and _date2.  Set in the
-allocateDataSpace() method.
+allocateDataSpace() method.  This is useful for general information.
 */
-protected int		_data_size;	
+protected int _data_size;	
 
 /**
 Data units.  A list of units and conversions is typically maintained in the
 DataUnits* classes.
 */
-protected String	_data_units;
+protected String _data_units;
 
 /**
 Units in the original data source (e.g., the current data may be in CFS and the
 original data were in CMS).
 */
-protected String	_data_units_original;
+protected String _data_units_original;
 
 /**
 The length of each data flag char[] (the maximum number of flag characters).
 This should be set in the hasDataFlags(boolean,int) method.
 */
-protected int		_data_flag_length = 0;
+protected int _data_flag_length = 0;
 
 /**
 Indicates whether data flags are being used with data.  If enabled, the derived
@@ -365,50 +366,57 @@ method to create a data array to track the data flags.  It is recommended to
 save space that the flags be treated as char[] data, padded with null
 characters.
 */
-protected boolean	_has_data_flags = false;
+protected boolean _has_data_flags = false;
 
+// FIXME SAM 2007-12-13 Need to phase this out in favor of handling in DAO code.
 /**
 Version of the data format (mainly for use with files).
 */
-protected String	_version;
+protected String _version;
 
+// FIXME SAM 2007-12-13 Need to evaluate renaming to avoid confusion with TSTIdent input name.
+// Implementing a DataSource concept for input/output may help (but also have data source in
+// TSIdent!).
 /**
 Input source information.  Filename if read from file or perhaps a database
 name and table (e.g., HydroBase.daily_flow).  This is the actual location read,
 which should not be confused with the TSIdent storage name (which may not be
 fully expanded).
 */
-protected String	_input_name;	
+protected String _input_name;	
 
 /**
-Time series identifier.
+Time series identifier, which provides a unique and absolute handle on the time series.
+An alias is provided within the TSIdent class.
 */
-protected TSIdent	_id;
+protected TSIdent _id;
 
 /**
 Indicates whether the time series data have been modified by calling
 setDataValue().  Call refresh() to update the limits.  This is not used with
 header data.
 */
-protected boolean	_dirty;
+protected boolean _dirty;
 
 /**
 Indicates whether the time series is editable.  This primarily applies to the
-data (not the header information).
+data (not the header information).  UI components can check to verify whether
+users should be able to edit the time series.  It is not intended to be checked
+by low-level code (manipulation is always granted).
 */
-protected boolean	_editable = false;
+protected boolean _editable = false;
 
 /**
 A short description (e.g, "XYZ gage at ABC river").
 */
-protected String	_description;
+protected String _description;
 
 /**
 Comments that describe the data.  This can be anything from an original data
 source.  Sometimes the comments are created on the fly to generate a standard
 header (e.g., describe drainage area).
 */
-protected Vector	_comments;
+protected Vector _comments;
 
 /**
 History of time series.  This is not the same as the comments but instead
@@ -416,59 +424,63 @@ chronicles how the time series is manipulated in memory.  For example the first
 genesis note may be about how the time series was read.  The second may
 indicate how it was filled.  Many TSUtil methods add to the genesis.
 */
-protected Vector	_genesis;
+protected Vector _genesis;
 
+// TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
 The missing data value.  Default is -999.0.
 */
-protected double	_missing;
+protected double _missing;
 
 /**
 Lower bound on the missing data value (for quick comparisons and when missing
 data ranges are used).
 */
-protected double	_missingl;
+protected double _missingl;
 
 /**
 Upper bound on the missing data value (for quick comparisons and when missing
 data ranges are used).
 */
-protected double	_missingu;
+protected double _missingu;
 
 /**
-Limits of the data.  This also contains the date limits other than the
-original dates.
+Limits of the data.  This also contains the date limits other than the original dates.
 */
-protected TSLimits	_data_limits;
+protected TSLimits _data_limits;
 
 /**
-Limits of the original data.  Currently only used by apps like tstool.
+Limits of the original data.  Currently only used by apps like TSTool.
 */
-protected TSLimits	_data_limits_original;
+protected TSLimits _data_limits_original;
 
+//TODO SAM 2007-12-13 Evaluate need now that GRTS is available.
 /**
 Legend to show when plotting or tabulating a time series.  This is generally a
 short legend.
 */
-protected String	_legend;
+protected String _legend;
 
+// TODO SAM 2007-12-13 Evaluate need now that GRTS is available.
 /**
 Legend to show when plotting or tabulating a time series.  This is usually a
 long legend.  This may be phased out now that the GRTS package has been phased
 in for visualization.
 */
-protected String	_extended_legend;
+protected String _extended_legend;
 
 /**
 Indicates whether time series is enabled (used to "comment" out of plots, etc).
 This may be phased out.
 */
-protected boolean	_enabled;
+protected boolean _enabled;
 
 /**
 Indicates whether time series is selected (e.g., as result of a query).
+Often time series might need to be programmatically selected (e.g., with TSTool
+selectTimeSeries() command) to simplify output by other commands.
 */
-protected boolean	_selected;
+protected boolean _selected;
 
 /**
 Construct a time series and initialize the member data.  Derived classes should
@@ -494,8 +506,7 @@ public TS ( TS ts )
 }
 
 /**
-Add a String to the comments associated with the time series (e.g., station
-remarks).
+Add a String to the comments associated with the time series (e.g., station remarks).
 @param comment Comment string to add.
 */
 public void addToComments( String comment )
