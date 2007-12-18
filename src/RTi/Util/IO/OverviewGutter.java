@@ -154,7 +154,7 @@ public class OverviewGutter extends JComponent
       }
       // Order is important to prevent integer math roundoff to zero.
       int y = (_gutterHeight*index)/_dataModel.getSize();
-      Message.printStatus ( 1,"findGutterPosition","index=" + index + " height="+ getHeight() + " size="+_dataModel.getSize() + " y="+y);
+      //Message.printStatus ( 1,"findGutterPosition","index=" + index + " height="+ getHeight() + " size="+_dataModel.getSize() + " y="+y);
       return y;
     }
 

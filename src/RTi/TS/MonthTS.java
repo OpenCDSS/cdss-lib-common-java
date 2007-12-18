@@ -422,9 +422,7 @@ throws TSException
 	// need to get the dates established...
 	if ( (date1 == null) && (date2 == null) ) {
 		// No dates.  Cannot change.
-		message =
-		"\"" + _id +
-		"\": period dates are null.  Cannot change the period.";
+		message = "\"" + _id + "\": period dates are null.  Cannot change the period.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -482,7 +480,8 @@ throws TSException
 		// Extending so use the old date...
 		transfer_date2 = new DateTime ( _date2 );
 	}
-	else {	// Shortening so use the new...
+	else {
+        // Shortening so use the new...
 		transfer_date2 = new DateTime ( new_date2 );
 	}
 
@@ -509,8 +508,7 @@ throws TSException
 		column = date.getMonth() - 1;	// Zero offset!
 		if ( _has_data_flags ) {
 			// Transfer the value and flag...
-			setDataValue ( date, data_save[row][column],
-				new String(data_flags_save[row][column]), 1 );
+			setDataValue ( date, data_save[row][column], new String(data_flags_save[row][column]), 1 );
 		}
 		else {	// Transfer the value...
 			setDataValue ( date, data_save[row][column] );

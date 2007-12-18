@@ -496,7 +496,7 @@ throws Exception
     TS ts = null;
     TSEnsemble tsensemble = null;
     if ( tsobject instanceof TS ) {
-        ts = (TS)ts;
+        ts = (TS)tsobject;
         if ( Message.isDebugOn ) {
             Message.printDebug ( dl, routine, "Trying to create statistic time series using time series \"" +
             ts.getIdentifierString() + "\" as input." );
@@ -528,15 +528,17 @@ throws Exception
 		throw new Exception ( "Only statistic Mean is currently recognized.");
 	}
 
-	try {	// Main try...
+	try {
+        // Main try...
 
-	// Get valid dates for the output time series because the ones passed in
-	// may have been null...
+	// Get valid dates for the output time series because the ones passed in may have been null...
 
+    // The period over which to analyze the time series (within a trace when dealing with an ensemble)...
 	TSLimits valid_dates = TSUtil.getValidPeriod ( ts, AnalysisStart_DateTime, AnalysisEnd_DateTime );
 	DateTime analysis_start	= new DateTime ( valid_dates.getDate1() );
 	DateTime analysis_end = new DateTime ( valid_dates.getDate2() );
 	
+    // The period to create the output statistic time series (within a trace when dealing with an ensemble)...
 	valid_dates = TSUtil.getValidPeriod ( ts, OutputStart_DateTime, OutputEnd_DateTime );
 	DateTime output_start = new DateTime ( valid_dates.getDate1() );
 	DateTime output_end	= new DateTime ( valid_dates.getDate2() );
@@ -577,13 +579,13 @@ throws Exception
 
     TS stat_ts = null;
     if ( tsensemble == null ) {
-        // Analyse the single time series...
+        // Analyze the single time series to get a statistic...
         stat_ts = createStatisticTimeSeries_ComputeStatistic ( ts, analysis_start, analysis_end, Statistic );
         // Now use the statistic to repeat every year...
         createStatisticTimeSeries_FillOuput ( stat_ts, output_ts, output_start, output_end, Statistic );
     }
     else {
-        // Analyse the ensemble...
+        // Analyse the ensemble to compute and assign the statistic to the output time series...
         createStatisticTimeSeries_ComputeStatisticFromEnsemble ( tsensemble, output_ts,
                 analysis_start, analysis_end, Statistic );
     }
