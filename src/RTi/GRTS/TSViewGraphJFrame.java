@@ -135,11 +135,14 @@ import java.io.File;
 
 import java.util.Vector;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 
 import RTi.DMI.DMI;
 
@@ -157,6 +160,7 @@ import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.GUI.SimpleJToggleButton;
 
 import RTi.Util.IO.PropList;
 
@@ -207,6 +211,17 @@ private JTextField __message_JTextField = null;
 					// Display messages.
 private JTextField __tracker_JTextField = null;
 					// Display mouse position.
+private JToolBar _toolbar;
+/** Controls whether in Edit mode */
+private SimpleJToggleButton _edit_JToogleButton;
+/** Controls whether in Zoom mode (default)*/
+private SimpleJToggleButton _zoom_JToogleButton;
+/** Use interpolation to adjust data points */
+private SimpleJButton _fillInterpolation_JButton = null;
+/** Encapsulates (most) editing functionality */
+private TSGraphEditor _tsGraphEditor;
+/** Controls whether auto-connect is used during editing*/
+private JCheckBox _autoConnect_JCheckBox;
 
 /**
 Construct a TSViewGraphJFrame.
@@ -243,7 +258,32 @@ Handle action events.
 */
 public void actionPerformed ( ActionEvent event )
 {	Object o = event.getSource();
-	if ( o == __left_tostart_JButton ) {
+  if (o == _edit_JToogleButton)
+    {
+      _ts_graph.setDisplayCursor(true);
+      _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_EDIT);
+      _fillInterpolation_JButton.setEnabled(true);
+      _autoConnect_JCheckBox.setEnabled(true);
+      _autoConnect_JCheckBox.setSelected(true);
+      _tsGraphEditor.setAutoConnect(true);
+    }
+  else if (o == _zoom_JToogleButton)
+    {
+      _ts_graph.setDisplayCursor(false);
+      _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_ZOOM);
+      _fillInterpolation_JButton.setEnabled(false);
+      _autoConnect_JCheckBox.setEnabled(false);
+    }
+  else if (o == _autoConnect_JCheckBox)
+    {
+      _tsGraphEditor.setAutoConnect(((JCheckBox)o).isSelected());
+    }
+  else if (o == _fillInterpolation_JButton)
+    {
+      _tsGraphEditor.doFillWithInterpolation();
+      _ts_graph.refresh(false);
+    }
+  else if ( o == __left_tostart_JButton ) {
 		_ts_graph.scrollToStart ( true );
 	}
 	else if ( o == __left_page_JButton ) {
@@ -499,6 +539,38 @@ private void openGUI ( boolean mode )
 	main_JPanel.setLayout ( new BorderLayout() );
 	getContentPane().add ( "Center", main_JPanel );
 
+	_toolbar = new JToolBar();
+	main_JPanel.add ( "North", _toolbar);
+	
+	_edit_JToogleButton = new SimpleJToggleButton("Edit Mode", this, false);
+	_edit_JToogleButton.setToolTipText("Edit graph mode");
+	_toolbar.add(_edit_JToogleButton);
+	_zoom_JToogleButton = new SimpleJToggleButton("Zoom Mode", this, true);
+	_zoom_JToogleButton.setToolTipText("Zoom graph mode");
+	_toolbar.add(_zoom_JToogleButton);
+	
+	ButtonGroup buttonGroup= new ButtonGroup();
+	buttonGroup.add(_edit_JToogleButton);
+	buttonGroup.add(_zoom_JToogleButton);
+	
+	_fillInterpolation_JButton = new SimpleJButton("FillInterpolate","FillInterpolate",this);
+	//_toolbar.add(__fillInterpolation);
+	
+	_autoConnect_JCheckBox= new JCheckBox("Auto-Connect");
+	_autoConnect_JCheckBox.setSelected(true);
+	_autoConnect_JCheckBox.setEnabled(false);
+	_autoConnect_JCheckBox.addActionListener(this);
+	_autoConnect_JCheckBox.setToolTipText("Automatically connect points");
+	_toolbar.add(_autoConnect_JCheckBox);
+
+	// Display toolbar only when there are editable time series
+	_toolbar.setVisible(TSUtil.areAnyTimeSeriesEditable(__tslist));
+	TS tmp = TSUtil.getFirstEditableTS(__tslist);
+	//TODO: dre tmp.setLegend("Editing:" + tmp.getLegend());
+	//tmp.setLegend("EditMe");
+
+	_tsGraphEditor = new TSGraphEditor(tmp);
+
 	// For the reference graph, pick the time series with the longest
 	// period of record for non-missing daa.  Indicate the time series to
 	// the main graph so a note can be made on the display (but not
@@ -547,7 +619,7 @@ private void openGUI ( boolean mode )
 		_ts_graph = new TSGraphJComponent ( this, __tsproduct,
 				additional_props );
 	}
-
+  _ts_graph.setEditor(_tsGraphEditor);
 	main_JPanel.add ( "Center", _ts_graph );
 	
 	// Panel to hold the reference graph and buttons (to maintain spatial

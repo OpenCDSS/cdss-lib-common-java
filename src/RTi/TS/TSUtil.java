@@ -1221,6 +1221,37 @@ throws Exception
 }
 
 /**
+ * Returns whether any Time Series is editable.
+ *  
+ * @param tslist Vector of time series 
+ * @return True if a time series is editable
+ */
+public static boolean areAnyTimeSeriesEditable(Vector tslist)
+{
+  int size =0;
+  if ( tslist != null )
+    {
+      size = tslist.size();
+    }
+  TS ts;
+
+  for ( int i = 0; i < size; i++ )
+    {
+      ts = (TS)tslist.elementAt(i);
+      if ( ts == null ) 
+        {
+          continue;
+        }
+      if (ts.isEditable())
+        {
+          return true;
+        }
+    }
+
+  return false;
+} // eof areAnyTimeSeriesEditable
+
+/**
 Determine whether the intervals for the time series are the same (the base and
 multiplier for the interval must agree).
 @return true if the intervals are the same.
@@ -16560,6 +16591,35 @@ months.
 public static double[] toArrayByMonth ( TS ts, 
 	DateTime start_date, DateTime end_date, int monthIndex )
 {	return toArray ( ts, start_date, end_date, monthIndex );
+}
+
+/** 
+ * Returns the first editable Time Series in a vector
+ * @param tslist A vector of TS (Time Series
+ * @return
+ */
+public static TS getFirstEditableTS(Vector tslist)
+{
+  int size =0;
+  if ( tslist != null )
+    {
+      size = tslist.size();
+    }
+  TS ts;
+
+  for ( int i = 0; i < size; i++ )
+    {
+      ts = (TS)tslist.elementAt(i);
+      if ( ts == null ) 
+        {
+          continue;
+        }
+      if (ts.isEditable())
+        {
+          return ts;
+        }
+    }
+  return null;
 }
 
 } // end TSUtil class

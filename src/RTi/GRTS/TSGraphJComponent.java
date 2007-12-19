@@ -196,6 +196,7 @@ import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 
 import RTi.TS.TS;
+import RTi.TS.TSUtil;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
@@ -257,6 +258,11 @@ implements KeyListener, MouseListener, MouseMotionListener,
 Printable, TSViewListener
 {
 /**
+Edit mode. Enables editing of points by clicking above or below a point
+to change the point's y value. (X value editing is not supported)
+*/
+public static final int INTERACTION_EDIT = 3;
+/**
 Interaction modes.
 No special interaction.
 */
@@ -291,6 +297,7 @@ Background color.
 */
 private GRColor _background_color = GRColor.white;
 
+private TSCursorDecorator _cursorDecorator;
 /**
 External image used when processing in batch mode.
 */
@@ -423,6 +430,10 @@ loaded and you don't want to see redraws between each one.
 */
 private boolean _waiting = false;
 
+private boolean _displayCrossHairCursor;
+
+private TSGraphEditor _tsGraphEditor;
+
 /**
 Construct a TSGraphJComponet and display the time series.
 @param parent Parent Frame object (often a TSViewGraphJFrame).
@@ -434,7 +445,7 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent ( JFrame parent, Vector tslist, PropList props )
+public TSGraphJComponent ( TSViewGraphJFrame parent, Vector tslist, PropList props )
 {	super ( "TSGraphJComponent" );
 	_force_redraw = true;
 	_parent = parent;
@@ -502,7 +513,7 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent (	JFrame parent, TSProduct tsproduct,
+public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct,
 				PropList display_props )
 {	super ( "TSGraphJComponent" );
 	String routine = "TSGraphJComponent";
@@ -564,6 +575,8 @@ public TSGraphJComponent (	JFrame parent, TSProduct tsproduct,
 	addMouseMotionListener ( this );
 	addKeyListener ( this );
 
+	// Install decorator for cross hair cursor
+	_cursorDecorator = new TSCursorDecorator(this, _rubber_band_color,_background_color);
 	// Force a paint on construction...
 	repaint();
 }
@@ -1900,13 +1913,53 @@ public static String lookupTSSymbol(int index) {
 }
 
 /**
-Handle mouse clicked event.  Do not do anything.
+Handle mouse clicked event.
 @param event MouseEvent.
 */
 public void mouseClicked ( MouseEvent event )
 {
+  if (getInteractionMode()!= INTERACTION_EDIT)
+    {
+      // Not editing, return
+      return;
+    }
+  else
+    {
+      TSGraph tsgraph = getEventTSGraph ( new GRPoint(event.getX(), event.getY()));
+      if ( tsgraph == null ) 
+        {
+          // Not in a graph
+          return;
+        }
+      editPoint(event, tsgraph);
+      refresh(false);
+    }
 }
 
+private void editPoint(MouseEvent event,TSGraph tsgraph)
+{
+  GRLimits daLimits = tsgraph.getGraphDrawingArea().getPlotLimits(
+      GRDrawingArea.COORD_DEVICE); 
+  if (isInside(event, daLimits))
+    {
+      GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY(
+          event.getX(), event.getY(), GRDrawingArea.COORD_DEVICE );
+      _tsGraphEditor.editPoint(datapt);
+    }
+}
+/** 
+ * Returns whether mouse is inside drawing area
+ * @return
+ */
+// TODO:dre refactor
+private final boolean isInside(MouseEvent event, GRLimits grLimits)
+{
+  return (event.getX() > (int)grLimits.getLeftX()
+      && event.getX() < (int)grLimits.getRightX()
+      && event.getY() > (int)grLimits.getTopY()
+      && event.getY() < (int)grLimits.getBottomY())
+    ?true:false;
+}
 /**
 Handle mouse drag event.  If in zoom mode, redraw the rubber-band line.
 If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
@@ -2023,6 +2076,14 @@ public void mouseMoved ( MouseEvent event )
 		// Mouse is not in a graph area so don't track...
 		return;
 	}
+	
+	// Update cross-hair cursor
+	if (getInteractionMode()== INTERACTION_EDIT)
+	  {
+	    _cursorDecorator.mouseMoved(event,tsgraph.getGraphDrawingArea().getPlotLimits(
+	        GRDrawingArea.COORD_DEVICE));
+	  //  refresh(false);
+	  }
 
 	// Get coordinates in data units...
 
@@ -2477,7 +2538,7 @@ public void paint ( Graphics g )
 		if (_double_buffering && _buffer != null) {
 			g.drawImage(_buffer, 0, 0, this);
 		}
-
+	
 		g.setColor ( _rubber_band_color );
 		g.setXORMode ( _background_color );
 		int xmin, xmax, ymin, ymax;
@@ -3903,7 +3964,9 @@ INTERACTION_ZOOM, or INTERACTION_NONE.
 public void setInteractionMode ( int mode )
 {	if (	(mode == INTERACTION_NONE) ||
 		(mode == INTERACTION_SELECT) ||
-		(mode == INTERACTION_ZOOM) ) {
+		(mode == INTERACTION_ZOOM) ||
+		(mode == INTERACTION_EDIT)) 
+ {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, _gtype +
 			"TSGraphJComponent.setInteractionMode",
@@ -4180,6 +4243,21 @@ public void zoomOut ( boolean re_draw )
 		// Refresh the component...
 		refresh();
 	}
+}
+
+/**
+ * Controls display of cross hair cursor on graph.
+ * @param display If true displays cross hair
+ */
+public void setDisplayCursor(boolean display)
+{
+  _displayCrossHairCursor = display ;
+}
+
+public void setEditor(TSGraphEditor tsGraphEditor)
+{
+_tsGraphEditor = tsGraphEditor;
+  
 }
 
 } // End TSGraphJComponent class
