@@ -6890,13 +6890,14 @@ private static Vector createMonthSummaryStats (	TS ts, double[][] data,
 
 /**
 Add each value over time to create a cumulative value.
+@deprecated Use TSUtil_CumulateTimeSeries
 @param ts Time series to process.
 @param carry_forward_missing If true, a missing value will be set to the
-previous cumulative value (carry forward).  If false, the result will be set
-to missing.
+previous cumulative value (carry forward).  If false, the result will be set to missing.
 @deprecated Use the fully-overloaded version with a PropList.
 */
 public static void cumulate ( TS ts, boolean carry_forward_missing )
+throws Exception
 {	String  routine = "TSUtil.cumulate";
 
 	if ( ts == null ) {
@@ -6908,35 +6909,37 @@ public static void cumulate ( TS ts, boolean carry_forward_missing )
 	if ( carry_forward_missing ) {
 		props.add ( "HandleMissingHow=CarryForwardIfMissing" );
 	}
-	else {	props.add ( "HandleMissingHow=SetMissingIfMissing" );
+	else {
+        props.add ( "HandleMissingHow=SetMissingIfMissing" );
 	}
 	cumulate ( ts, ts.getDate1(), ts.getDate2(), props );
 }
 
 /**
 Add each value over time to create a cumulative value.
+@deprecated Use TSUtil_CumulateTimeSeries
 @param ts Time series to process.
 @param start_date Date to start cumulating.
 @param end_date Date to stop cumulating.
 @param carry_forward_missing If true, a missing value will be set to the
-previous cumulative value (carry forward).  If false, the result will be set
-to missing.
+previous cumulative value (carry forward).  If false, the result will be set to missing.
 @deprecated Use the fully-overloaded version with a PropList.
 */
-public static void cumulate (	TS ts, DateTime start_date,
-				DateTime end_date,
-				boolean carry_forward_missing )
+public static void cumulate ( TS ts, DateTime start_date, DateTime end_date, boolean carry_forward_missing )
+throws Exception
 {	PropList props = new PropList ( "cumulate" );
 	if ( carry_forward_missing ) {
 		props.add ( "HandleMissingHow=CarryForwardIfMissing" );
 	}
-	else {	props.add ( "HandleMissingHow=SetMissingIfMissing" );
+	else {
+        props.add ( "HandleMissingHow=SetMissingIfMissing" );
 	}
 	cumulate ( ts, start_date, end_date, props );
 }
 
 /**
 Add each value over time to create a cumulative value.
+@deprecated Use TSUtil_CumulateTimeSeries
 @param ts Time series to process.
 @param start_date Date to start cumulating.
 @param end_date Date to stop cumulating.
@@ -6957,115 +6960,26 @@ case increment the last non-missing total.
 <td>SetMissingIfMissing
 </td>
 </tr>
+
+<tr>
+<td><b>Reset</b></td>
+<td>
+Indicate when to reset the cumulative value to zero.  Possible parameter values are:
+<ol>
+<li>    <code>Date MM-DD HH</code> for data interval of hour.</li>
+<li>    <code>Date MM-DD</code> for data interval of day.</li>
+</ol>
+</td>
+<td>SetMissingIfMissing
+</td>
+</tr>
+
 </table>
 */
-public static void cumulate (	TS ts, DateTime start_date,
-				DateTime end_date, PropList props )
-{	double	oldvalue;
-
-	// Get valid dates because the ones passed in may have been null...
-
-	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
-
-	int interval_base = ts.getDataIntervalBase();
-	int interval_mult = ts.getDataIntervalMult();
-
-	if ( props == null ) {
-		props = new PropList ( "cumulate" );
-	}
-	String HandleMissingHow = props.getValue ( "HandleMissingHow" );
-	boolean carry_forward_missing = false;	// Set to missing if missing.
-	if ( (HandleMissingHow != null) &&
-			HandleMissingHow.equalsIgnoreCase("CarryForwardIfMissing") ) {
-		carry_forward_missing = true;
-	}
-	double total = ts.getMissing();
-	boolean is_missing = false;
-	if ( interval_base == TimeInterval.IRREGULAR ) {
-		// Get the data and loop through the vector...
-		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
-		if ( alltsdata == null ) {
-			// No data for the time series...
-			return;
-		}
-		int nalltsdata = alltsdata.size();
-		TSData tsdata = null;
-		DateTime date = null;
-		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
-			date = tsdata.getDate();
-			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
-				break;
-			}
-			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
-				is_missing = ts.isDataMissing(oldvalue);
-				if ( !is_missing ) {
-					// Not missing.  Add to total and set
-					// value...
-					if ( ts.isDataMissing(total) ) {
-						total = oldvalue;
-					}
-					else {	total += oldvalue;
-					}
-					tsdata.setData(total);
-					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
-					ts.setDirty ( true );
-				}
-				else if ( carry_forward_missing ) {
-					// Missing but want to carry forward
-					// previous total...
-					tsdata.setData(total);
-					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
-					ts.setDirty ( true );
-				}
-				// Else, missing and don't want to carry
-				// forward so leave as is.
-			}
-		}
-	}
-	else {	// Loop using addInterval...
-		DateTime date = new DateTime ( start );
-		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
-			oldvalue = ts.getDataValue(date);
-			is_missing = ts.isDataMissing(oldvalue);
-			if ( !is_missing ) {
-				// Not missing.  Add to total and set
-				// value...
-				if ( ts.isDataMissing(total) ) {
-					total = oldvalue;
-				}
-				else {	total += oldvalue;
-				}
-				ts.setDataValue(date,total);
-			}
-			else if ( carry_forward_missing ) {
-				// Missing but want to carry forward
-				// previous total...
-				ts.setDataValue(date,total);
-			}
-			// Else, missing and don't want to carry
-			// forward so leave as is.
-		}
-	}
-
-	// Fill in the genesis information...
-
-	ts.addToGenesis ( "Cumulated " + start + " to " + end + "." );
-
-	ts.setDescription ( ts.getDescription() + ", cumulative" );
+public static void cumulate ( TS ts, DateTime start_date, DateTime end_date, PropList props )
+throws Exception
+{	TSUtil_CumulateTimeSeries u = new TSUtil_CumulateTimeSeries();
+    u.cumulate( ts, start_date, end_date, props );
 }
 
 /**
