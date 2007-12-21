@@ -1,5 +1,9 @@
 package RTi.GRTS;
 
+import java.beans.PropertyChangeListener;
+
+import javax.swing.event.SwingPropertyChangeSupport;
+
 import RTi.GR.GRPoint;
 import RTi.TS.TS;
 import RTi.TS.TSData;
@@ -25,9 +29,22 @@ public class TSGraphEditor
   /** Controls whether auto-connect will be applied */
   private boolean _autoConnect = true;
 
+  // property support
+  private SwingPropertyChangeSupport _propertyChangeSupport =
+             new SwingPropertyChangeSupport(this);
+  
+  /**
+   * Creates an instance of TSGraphEditor.
+   * <p>
+   * The TSGraphEditor receives new GRPoints & applies them to the
+   * TS. It is responsible for auto-connecting points.
+   * 
+   * @param ts
+   */
   public TSGraphEditor(TS ts)
   {
     _ts = ts;
+    
   }
 
   /**
@@ -47,6 +64,7 @@ public class TSGraphEditor
 //    System.out.println(">>> base: " + intervalBase + " X: " + intervalMult);
     if (intervalBase == TimeInterval.HOUR)
       {
+        //TODO: handle other time intervals
         if (intervalMult>0)
           {
             date.addHour(intervalMult/2);
@@ -55,6 +73,9 @@ public class TSGraphEditor
 //    System.out.println(">>> " + date + ": " + datapt.y);
     date.round(-1, intervalBase, intervalMult);
     _ts.setDataValue(date, datapt.y);
+    
+    // Notify listeners
+    _propertyChangeSupport.firePropertyChange("TS_DATA_VALUE_CHANGE", null, _ts);
 //    System.out.println(">r  " + date + ": " + datapt.y);
 
     // Save for potential operation
@@ -93,10 +114,11 @@ public class TSGraphEditor
       }
     if (_currentDate.lessThan(_prevDate))
       {
-        if (!_autoConnect)
-          {
-            swapPoints();
-          }
+        return; // 
+//        if (!_autoConnect)
+//          {
+//            swapPoints();
+//          }
       }
     try
     {
@@ -111,6 +133,9 @@ public class TSGraphEditor
 
           if (data.getDate().equals(_currentDate))
             {
+              // Notify listeners only once after all changes
+              _propertyChangeSupport.firePropertyChange("TS_DATA_VALUE_CHANGE", _ts, _ts);
+
               if (_swapFlag)
                 {
                   swapPoints();
@@ -167,5 +192,16 @@ public class TSGraphEditor
   public void setAutoConnect(boolean autoConnect)
   {
     _autoConnect = autoConnect; 
+  }
+  
+  /* - - - Property Change Support - - - */
+  public void addPropertyChangeListener(PropertyChangeListener l)
+  {
+     _propertyChangeSupport.addPropertyChangeListener(l);
+  }
+
+  public void removePropertyChangeListener(PropertyChangeListener l)
+  {
+     _propertyChangeSupport.removePropertyChangeListener(l);
   }
 }

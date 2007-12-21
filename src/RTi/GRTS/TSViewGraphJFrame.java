@@ -363,6 +363,8 @@ public void actionPerformed ( ActionEvent event )
 	else if ( o == __table_JButton ) {
 		// Display a table...
 		__tsview_JFrame.openGUI ( TSViewJFrame.TABLE );
+		TSViewTableJFrame tsViewTableJFrame = __tsview_JFrame.getTSViewTableJFrame();
+		_tsGraphEditor.addPropertyChangeListener(tsViewTableJFrame);
 	}
 	else if ( o == __zoom_out_JButton ) {
 		// Zoom out to original extents...

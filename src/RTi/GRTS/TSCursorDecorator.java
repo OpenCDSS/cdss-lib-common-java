@@ -8,8 +8,6 @@ import java.awt.event.MouseMotionAdapter;
 import javax.swing.JComponent;
 
 import RTi.GR.GRColor;
-import RTi.GR.GRDrawingArea;
-
 import RTi.GR.GRLimits;
 
 /**

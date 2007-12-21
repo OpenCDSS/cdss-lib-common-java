@@ -131,6 +131,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -192,7 +194,7 @@ the form, no such Checkbox will appear.
 */
 public class TSViewTableJFrame 
 extends JFrame
-implements ActionListener, ItemListener, MouseListener, WindowListener {
+implements ActionListener, ItemListener, MouseListener, PropertyChangeListener, WindowListener {
 
 /**
 The number of characters in the table double values.
@@ -1910,4 +1912,81 @@ String filename) {
 	}
 }
 
+/**
+ * Listens for property change events (from TSGraphEditor) &
+ * Notifies the model listeners (JTables/JWorksheet) that the
+ * table model has changed. 
+ */
+public void propertyChange(PropertyChangeEvent e)
+{
+  if (e.getPropertyName().equals("TS_DATA_VALUE_CHANGE"))
+    {
+      // Expecting modified TS object
+      TSViewTable_TableModel model =findModel(((TS)e.getNewValue()));
+      model.fireTableDataChanged();
+    }
+  
+}
+/**
+ * Returns the first model encountered that contains the specified TS.
+ * 
+ * @param ts
+ * @return model containing specified TS, or null
+ */
+private  TSViewTable_TableModel findModel(TS ts)
+{
+  // TODO: Order search so that most likely models are searched first!
+
+  TSViewTable_TableModel target = null;
+  
+  if ((target = findModel(__dayModels,ts)) != null)
+    {
+      return target;
+    }
+  else  if ((target = findModel(__hourModels,ts)) != null)
+    {
+      return target;
+    }
+  else  if ((target = findModel(__minuteModels,ts)) != null)
+    {
+      return target;
+    }
+  else  if ((target = findModel(__monthModels,ts)) != null)
+    {
+      return target;
+    }
+  else  if ((target = findModel(__yearModels,ts)) != null)
+    {
+      return target;
+    }
+  return target;
+} // eof findModel(TS ts)
+
+/**
+ * Returns the first model encountered that contains the specified TS.
+ * @param models
+ * @param ts
+ * @return model containing specified TS, or null
+ */
+private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
+{
+  if ( models != null)
+    {
+      int nModels = models.length;
+      for( int iModel = 0; iModel < nModels; iModel++)
+        {
+          TSViewTable_TableModel m = ((TSViewTable_TableModel)models[iModel]);
+          Vector tsVector = m.getTSList();
+          int nVec = tsVector.size();
+          for (int iVec = 0; iVec < nVec; iVec++)
+            {
+              if (tsVector.elementAt(iVec) == ts)
+                {
+                  return m;
+                }
+            }
+        }
+    }
+  return null;
+} // eof findModel()
 }

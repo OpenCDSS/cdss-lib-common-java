@@ -628,6 +628,15 @@ public TSViewGraphJFrame getViewGraphJFrame() {
 }
 
 /**
+ * Returns the table JFrame.
+ * @return table JFrame
+ */
+public TSViewTableJFrame getTSViewTableJFrame()
+{
+  return _table_gui;
+}
+
+/**
 Initialize the TSViewJFrame data.
 @param tslist Vector of TS to display.
 @param proplist Properties to control the display.

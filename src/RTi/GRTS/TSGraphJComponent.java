@@ -1935,7 +1935,12 @@ public void mouseClicked ( MouseEvent event )
       refresh(false);
     }
 }
-
+/**
+ * Notifies TSGraphEditor of point edit.
+ * 
+ * @param event
+ * @param tsgraph
+ */
 private void editPoint(MouseEvent event,TSGraph tsgraph)
 {
   GRLimits daLimits = tsgraph.getGraphDrawingArea().getPlotLimits(
