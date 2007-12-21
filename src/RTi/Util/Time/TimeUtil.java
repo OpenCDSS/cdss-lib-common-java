@@ -440,13 +440,13 @@ throws Exception
 	}
 
 	DateTime offset = new DateTime ( DateTime.DATE_ZERO );
-	offset.year = 0;
-	offset.month = 0;
-	offset.day = 0;
-	offset.hour = 0;
-	offset.minute = 0;
-	offset.second = 0;
-	offset.hsecond = 0;
+	offset.setYear ( 0 );
+	offset.setMonth ( 0 );
+	offset.setDay ( 0 );
+	offset.setHour ( 0 );
+	offset.setMinute ( 0 );
+	offset.setSecond ( 0 );
+	offset.setHSecond ( 0 );
 	DateTime datecopy = new DateTime ( date2 );
 
 	// First see if we need to add or subtract...
@@ -457,8 +457,8 @@ throws Exception
 		// month and day to zero instead month 1 and day 1 for a
 		// DateTime(DateTime.DATE_ZERO) object.
 
-		offset.month = 0;
-		offset.day = 0;
+		offset.setMonth ( 0 );
+		offset.setDay ( 0 );
 
 		// We are done...
 		datecopy = null;
@@ -471,13 +471,13 @@ throws Exception
 	if ( date1.getPrecision() == DateTime.PRECISION_DAY ) {
 		// If Day and month are the same, return the year as the
 		// offset...
-		if (	(date1.day == date2.day) &&
-			(date1.month == date2.month) ) {
-			offset.year = date1.year - date2.year;
+		if ( (date1.getDay() == date2.getDay()) && (date1.getMonth() == date2.getMonth()) ) {
+			offset.setYear ( date1.getYear() - date2.getYear() );
 		}
 	}
-	else {	// All other cases...
-		// For the moment, let's ignore the old logic and use floating
+	else {
+        // All other cases...
+		// For the moment, ignore the old logic and use floating
 		// point numbers to do the offset.  Test to see if it works...
 		double date_copy_double = datecopy.toDouble();
 		double this_double = date1.toDouble();
@@ -618,7 +618,8 @@ public static String formatDateTime ( DateTime d0, String format0 )
 	else if ( format0.length() == 0 ) {
 		format = default_format;
 	}
-	else {	format = format0;
+	else {
+        format = format0;
 	}
 
 	DateTime d;
@@ -626,7 +627,8 @@ public static String formatDateTime ( DateTime d0, String format0 )
 		// Get the current time...
 		d = new DateTime(DateTime.DATE_CURRENT);
 	}
-	else {	d = d0;
+	else {
+        d = d0;
 	}
 
 	if ( format.equals("datum_seconds") ) {
@@ -674,8 +676,7 @@ public static String formatDateTime ( DateTime d0, String format0 )
 			if ( c == 'a' ) {
 				// Abbreviated weekday name.
 				ifield = cal.get(Calendar.DAY_OF_WEEK);
-				formatted_string.append(
-					short_weekdays[ifield]);
+				formatted_string.append(short_weekdays[ifield]);
 			}
 			else if ( c == 'A' ) {
 				// Full weekday name.
@@ -697,58 +698,50 @@ public static String formatDateTime ( DateTime d0, String format0 )
 			}
 			else if ( c == 'd' ) {
 				// Day of month
-				formatted_string.append(
-				StringUtil.formatString(d.day,"%02d"));
+				formatted_string.append( StringUtil.formatString(d.getDay(),"%02d"));
 			}
 			else if ( c == 'H' ) {
 				// Hour of day...
-				formatted_string.append(
-				StringUtil.formatString(d.hour,"%02d"));
+				formatted_string.append( StringUtil.formatString(d.getHour(),"%02d"));
 			}
 			else if ( c == 'I' ) {
 				// Hour of day 1-12
-				if ( d.hour > 12 ) {
-					formatted_string.append(
-					StringUtil.formatString(
-					(d.hour - 12),"%02d"));
+				if ( d.getHour() > 12 ) {
+					formatted_string.append(StringUtil.formatString((d.getHour() - 12),"%02d"));
 				}
-				else {	formatted_string.append(
-					StringUtil.formatString(d.hour,"%02d"));
+				else {
+                    formatted_string.append(StringUtil.formatString(d.getHour(),"%02d"));
 				}
 			}
 			else if ( c == 'j' ) {
 				// Day of year...
-				formatted_string.append(
-				StringUtil.formatString(d.getYearDay(),"%03d"));
+				formatted_string.append( StringUtil.formatString(d.getYearDay(),"%03d"));
 			}
 			else if ( c == 'm' ) {
 				// Month of year...
-				formatted_string.append(
-				StringUtil.formatString( d.month,"%02d"));
+				formatted_string.append( StringUtil.formatString( d.getMonth(),"%02d"));
 			}
 			else if ( c == 'M' ) {
 				// Minute of hour...
-				formatted_string.append(
-				StringUtil.formatString( d.minute,"%02d"));
+				formatted_string.append( StringUtil.formatString( d.getMinute(),"%02d"));
 			}
 			else if ( c == 'p' ) {
 				// AM or PM...
-				if ( d.hour < 12 ) {
+				if ( d.getHour() < 12 ) {
 					formatted_string.append("AM");
 				}
-				else {	formatted_string.append("PM");
+				else {
+                    formatted_string.append("PM");
 				}
 			}
 			else if ( c == 'S' ) {
 				// Seconds of minute...
-				formatted_string.append(
-				StringUtil.formatString( d.second,"%02d"));
+				formatted_string.append(StringUtil.formatString( d.getSecond(),"%02d"));
 			}
 			else if ( (c == 'U') || (c == 'W')) {
 				// Week of year...
 				ifield = cal.get(Calendar.WEEK_OF_YEAR);
-				formatted_string.append(
-				StringUtil.formatString(ifield,"%02d"));
+				formatted_string.append( StringUtil.formatString(ifield,"%02d"));
 			}
 			else if ( c == 'x' ) {
 				formatted_string.append( "%x not supported" );
@@ -758,16 +751,13 @@ public static String formatDateTime ( DateTime d0, String format0 )
 			}
 			else if ( c == 'y' ) {
 				// Two digit year...
-				formatted_string.append(
-				StringUtil.formatString(
-				formatYear(d.year,2,true),"%02d"));
+				formatted_string.append(StringUtil.formatString(formatYear(d.getYear(),2,true),"%02d"));
 			}
 			else if ( c == 'Y' ) {
-				formatted_string.append(
-				StringUtil.formatString(d.year,"%04d"));
+				formatted_string.append( StringUtil.formatString(d.getYear(),"%04d"));
 			}
 			else if ( c == 'Z' ) {
-				formatted_string.append ( d.tz );
+				formatted_string.append ( d.getTimeZoneAbbreviation() );
 			}
 			else if ( c == '%' ) {
 				// Literal percent...

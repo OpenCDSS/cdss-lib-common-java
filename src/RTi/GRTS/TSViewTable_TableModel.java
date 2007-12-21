@@ -624,40 +624,34 @@ public Object getValueAt(int row, int col) {
 
 	// getValueAt is called row-by-row when a worksheet displays its
 	// data, so the current working date (with which data for the current
-	// row is read) only needs to be recalculated when a new row is moved
-	// to.
+	// row is read) only needs to be recalculated when a new row is moved to.
 	if (row != __lastRowRead) {
 		__lastRowRead = row;
 
 		// quicker than doing a 'new DateTime'
-		__workingDate.hsecond = __firstVisibleRowDate.hsecond;
-		__workingDate.second = __firstVisibleRowDate.second;
-		__workingDate.minute = __firstVisibleRowDate.minute;
-		__workingDate.hour = __firstVisibleRowDate.hour;
-		__workingDate.day = __firstVisibleRowDate.day;
-		__workingDate.month = __firstVisibleRowDate.month;
-		__workingDate.year = __firstVisibleRowDate.year;
+		__workingDate.setHSecond ( __firstVisibleRowDate.getHSecond() );
+		__workingDate.setSecond ( __firstVisibleRowDate.getSecond() );
+		__workingDate.setMinute ( __firstVisibleRowDate.getMinute() );
+		__workingDate.setHour ( __firstVisibleRowDate.getHour() );
+		__workingDate.setDay ( __firstVisibleRowDate.getDay() );
+		__workingDate.setMonth ( __firstVisibleRowDate.getMonth() );
+		__workingDate.setYear ( __firstVisibleRowDate.getYear() );
 
 		// calculate the date for the current row read
 		if (__intervalBase == TimeInterval.MINUTE) {
-			__workingDate.addMinute(((row - __firstVisibleRow) 
-				* __intervalMult));
+			__workingDate.addMinute(((row - __firstVisibleRow)* __intervalMult));
 		}	
 		else if (__intervalBase == TimeInterval.HOUR) {
-			__workingDate.addHour(((row - __firstVisibleRow) 
-				* __intervalMult));
+			__workingDate.addHour(((row - __firstVisibleRow)* __intervalMult));
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
-			__workingDate.addDay(((row - __firstVisibleRow) 
-				* __intervalMult));
+			__workingDate.addDay(((row - __firstVisibleRow)* __intervalMult));
 		}	
 		else if (__intervalBase == TimeInterval.MONTH) {
-			__workingDate.addMonth(((row - __firstVisibleRow) 
-				* __intervalMult));
+			__workingDate.addMonth(((row - __firstVisibleRow)* __intervalMult));
 		}
 		else if (__intervalBase == TimeInterval.YEAR) {
-			__workingDate.addYear(((row - __firstVisibleRow) 
-				* __intervalMult));
+			__workingDate.addYear(((row - __firstVisibleRow)* __intervalMult));
 		}
 	}
 	

@@ -328,37 +328,39 @@ in the TZChange data.
 private static int calculateDSOffsetMinutes ( TZ tz, DateTime date )
 throws Exception
 {	// Look up using the static data
-	if (	(date.year < TimeChangeData[0].year) ||
-		(date.year > TimeChangeData[TimeChangeData.length - 1].year) ) {
-		throw new Exception ( "Year " + date.year +
-		" is outside known time zone data." );
+    int year = date.getYear();
+    int month = date.getMonth();
+    int day = date.getDay();
+    int hour = date.getHour();
+	if ( (year < TimeChangeData[0].year) ||	(year > TimeChangeData[TimeChangeData.length - 1].year) ) {
+		throw new Exception ( "Year " + date.getYear() + " is outside known time zone data." );
 	}
-	int yearpos = date.year - TimeChangeData[0].year;
+	int yearpos = year - TimeChangeData[0].year;
 	// Else have data...
-	if ( (date.month < 4) || (date.month > 10) ) {
+	if ( (month < 4) || (month > 10) ) {
 		// Standard time (no offset)...
 		return 0;
 	}
-	else if ( date.month == 4 ) {
-		if (	(date.day == TimeChangeData[yearpos].apr_tods) &&
-			(date.hour >= 2) ) {
+	else if ( month == 4 ) {
+		if ( (day == TimeChangeData[yearpos].apr_tods) && (hour >= 2) ) {
 			return tz._ds_offset_minutes;
 		}
-		else if ( date.day > TimeChangeData[yearpos].apr_tods ) {
+		else if ( day > TimeChangeData[yearpos].apr_tods ) {
 			return tz._ds_offset_minutes;
 		}
-		else {	return 0;
+		else {
+            return 0;
 		}
 	}
-	else if ( date.month == 10 ) {
-		if (	(date.day == TimeChangeData[yearpos].oct_tost) &&
-			(date.hour >= 2) ) {
+	else if ( month == 10 ) {
+		if ( (day == TimeChangeData[yearpos].oct_tost) && (hour >= 2) ) {
 			return 0;
 		}
-		else if ( date.day > TimeChangeData[yearpos].oct_tost ) {
+		else if ( day > TimeChangeData[yearpos].oct_tost ) {
 			return 0;
 		}
-		else {	return tz._ds_offset_minutes;
+		else {
+            return tz._ds_offset_minutes;
 		}
 	}
 	else {	// Months in DS...
