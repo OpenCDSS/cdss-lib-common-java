@@ -622,9 +622,7 @@ throws Exception
 		}
 		ts.setIdentifier ( tsident_string );
 		ts.getIdentifier().setInputType("DateValue");
-		readTimeSeriesList (	ts, in,
-					date1, date2,
-					units, read_data );
+		readTimeSeriesList ( ts, in, date1, date2, units, read_data );
 	}
 	ts.setInputName ( full_fname );
 	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
@@ -686,20 +684,19 @@ throws Exception
 	// have an interval.  In this case, assume daily data.  This requires
 	// special treatment in the readTimeSeriesList() method in order to
 	// reset the time series to what is actually found in the file.
-	// REVISIT - clean this up, perhaps by moving the time series creation
+	// TODO - clean this up, perhaps by moving the time series creation
 	// into the readTimeSeriesList() method rather than doing it here.
 	if ( tsident_string.indexOf(".") >= 0 ) {
 		// Normal time series identifier...
 		ts = TSUtil.newTimeSeries ( tsident_string, true );
 	}
-	else {	// Assume an alias...
+	else {
+        // Assume an alias...
 		ts = new DayTS ();
 	}
 	if ( ts == null ) {
 		Message.printWarning( 2,
-		"DateValueTS.readTimeSeries(String,...)",
-		"Unable to create time series for \"" +
-		tsident_string + "\"" );
+		"DateValueTS.readTimeSeries(String,...)","Unable to create time series for \"" + tsident_string + "\"" );
 		return ts;
 	}
 	if ( tsident_string.indexOf(".") >= 0 ) {
@@ -1222,17 +1219,15 @@ throws Exception
 			// Have the file version...
 			//version = value; 
 		}
-		else {	Message.printWarning( 2, routine,
-			"Property \"" + variable +
-			"\" is not currently recognized." );
+		else {
+            Message.printWarning( 3, routine, "Property \"" + variable + "\" is not currently recognized." );
 		}
 	}
 	}
 	catch ( Exception e ) {
-		message = "Error processing line " + line_count + ": \"" +
-			string + "\"";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		message = "Error processing line " + line_count + ": \"" + string + "\"";
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new Exception ( message );
 	}
 
@@ -1250,9 +1245,7 @@ throws Exception
 
 	if ( identifier_v == null ) {
 		identifier_v = new Vector(numts);
-		Message.printWarning ( 2, routine,
-		"TSID property in file is missing.  " +
-		"Assigning default TS1, TS2, ..." );
+		Message.printWarning ( 2, routine, "TSID property in file is missing.  ssigning default TS1, TS2, ..." );
 		for ( int i = 0; i < numts; i++ ) {
 			identifier_v.addElement ( "TS" + (i + 1) );
 		}

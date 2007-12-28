@@ -2046,8 +2046,7 @@ should be defined in derived classes.
 @param duration Duration (seconds) for the data value.
 @see DateTime
 */
-public void setDataValue (	DateTime date, double val, String data_flag,
-				int duration )
+public void setDataValue ( DateTime date, double val, String data_flag,	int duration )
 {	Message.printWarning ( 1, "TS.setDataValue", "TS.setDataValue is " +
 	"virtual and should be redefined in derived classes" );
 }
