@@ -3286,15 +3286,15 @@ Set the day.
 @param d Day.
 */
 public void setDay ( int d )
-{	__day = d;
-
+{	
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-		if(	(__day > TimeUtil.numDaysInMonth( __month, __year )) || (__day < 1) ) {
+		if(	(d > TimeUtil.numDaysInMonth( __month, __year )) || (d < 1) ) {
             String message = "Trying to set invalid day (" + d + ") in DateTime for year " + __year;
             Message.printWarning( 10, "DateTime.setDay", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __day = d;
 	setYearDay();
 	// This has the flaw of not changing the flag when the value is set to 1!
 	if ( __day != 1 ) {
@@ -3307,14 +3307,15 @@ Set the hour.
 @param h Hour.
 */
 public void setHour( int h )
-{	__hour = h;
+{	
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-		if( (__hour > 23) || (__hour < 0) ) {
+		if( (h > 23) || (h < 0) ) {
 			String message = "Trying to set invalid hour (" + h + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setHour", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __hour = h;
 	// This has the flaw of not changing the flag when the value is set to 0!
 	if ( __hour != 0 ) {
 		__iszero = false;
@@ -3326,15 +3327,15 @@ Set the hundredths of seconds.
 @param hs Hundredths of seconds.
 */
 public void setHSecond( int hs)
-{	__hsecond = hs;
-
+{	
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( __hsecond > 99 || __hsecond < 0 ) {
+        if( hs > 99 || hs < 0 ) {
             String message = "Trying to set invalid hsecond (" + hs + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setHSecond", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __hsecond = hs;
 	// This has the flaw of not changing the flag when the value is set to 0!
 	if ( hs != 0 ) {
 		__iszero = false;
@@ -3346,15 +3347,15 @@ Set the minute.
 @param m Minute.
 */
 public void setMinute( int m)
-{	__minute = m;
-	
+{	
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( __minute > 59 || __minute < 0 ) {
+        if( m > 59 || m < 0 ) {
             String message = "Trying to set invalid minute (" + m + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setMinute", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __minute = m;
 	// This has the flaw of not changing the flag when the value is set to 0!
 	if ( m != 0 ) {
 		__iszero = false;
@@ -3366,14 +3367,15 @@ Set the month.
 @param m Month.
 */
 public void setMonth ( int m)
-{	__month = m;
+{
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( __month > 12 || __month < 1 ) {
+        if( m > 12 || m < 1 ) {
             String message = "Trying to set invalid month (" + m + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setMonth", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __month = m;
 	setYearDay();
 	setAbsoluteMonth();
 	// This has the flaw of not changing the flag when the value is set to 1!
@@ -3507,15 +3509,15 @@ Set the second.
 @param s Second.
 */
 public void setSecond( int s )
-{	__second = s;
-	
+{
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( __second > 59 || __second < 0 ) {
+        if( s > 59 || s < 0 ) {
             String message = "Trying to set invalid second (" + s + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setSecond", message );
             throw new IllegalArgumentException ( message );
         }
 	}
+    __second = s;
 	// This has the flaw of not changing the flag when the value is set to 0!
 	if ( s != 0 ) {
 		__iszero = false;
@@ -3668,16 +3670,17 @@ public void setToZero ( )
 Set the year.
 */
 public void setYear( int y )
-{	__year = y;
+{
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
         /* TODO SAM 2007-12-20 Evaluate whether negative year should be allowed.
-        if( __year < 0 ) {
+        if( y < 0 ) {
             String message = "Trying to set invalid year (" + y + ") in DateTime.";
             Message.printWarning( 2, "DateTime.setYear", message );
             throw new IllegalArgumentException ( message );
         }
         */
 	}
+    __year = y;
 	setYearDay();
 	setAbsoluteMonth();
     __isleap = TimeUtil.isLeapYear( __year );
