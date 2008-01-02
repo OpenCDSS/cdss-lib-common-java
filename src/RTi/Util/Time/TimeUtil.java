@@ -439,7 +439,7 @@ throws Exception
 		throw new Exception ( "Null date for diff" );
 	}
 
-	DateTime offset = new DateTime ( DateTime.DATE_ZERO );
+	DateTime offset = new DateTime ( DateTime.DATE_ZERO|DateTime.DATE_FAST );
 	offset.setYear ( 0 );
 	offset.setMonth ( 0 );
 	offset.setDay ( 0 );
@@ -469,8 +469,7 @@ throws Exception
 	// others generically...
 
 	if ( date1.getPrecision() == DateTime.PRECISION_DAY ) {
-		// If Day and month are the same, return the year as the
-		// offset...
+		// If Day and month are the same, return the year as the offset...
 		if ( (date1.getDay() == date2.getDay()) && (date1.getMonth() == date2.getMonth()) ) {
 			offset.setYear ( date1.getYear() - date2.getYear() );
 		}
