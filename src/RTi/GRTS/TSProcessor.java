@@ -95,17 +95,16 @@ import java.awt.image.BufferedImage;
 
 /**
 The TSProcessor class provides methods to query and process time series
-into output products (graphs, reports, etc.).  It uses the AWT GRTS and GR
-classes.  This class is under development.
+into output products (graphs, reports, etc.).
 An example of implementation is as follows:
 <pre>
-	try {	TSProcessor p = new TSProcessor ();
+	try {
+        TSProcessor p = new TSProcessor ();
 		p.addTSSupplier ( this );
 		p.processProduct ( "C:\\tmp\\Test.tsp", new PropList("x") );
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 1, "TSToolMainGUI.test",
-		"Error processing the product." );
+		Message.printWarning ( 1, "TSToolMainGUI.test", "Error processing the product." );
 	}
 </pre>
 */
@@ -148,8 +147,7 @@ public void addTSSupplier ( TSSupplier supplier )
 		}
 		else {	// Need to resize and transfer the list...
 			int size = _suppliers.length;
-			TSSupplier [] newsuppliers =
-				new TSSupplier[size + 1];
+			TSSupplier [] newsuppliers = new TSSupplier[size + 1];
 			for ( int i = 0; i < size; i++ ) {
 				newsuppliers[i] = _suppliers[i];
 			}
@@ -198,7 +196,6 @@ be created due to a lack of data).
 private void processGraphProduct ( TSProduct tsproduct )
 throws Exception
 {	
-
 	String routine = "TSProcessor.processGraphProduct";
 	Vector tslist = new Vector(10);
 	TS ts = null;
@@ -259,8 +256,7 @@ throws Exception
 					date2 = null;
 				}
 			}
-			// Make sure this is last since the TSID is used in the
-			// following readTimeSeries() call...
+			// Make sure this is last since the TSID is used in the following readTimeSeries() call...
 			if ( is_template ) {
 				tsid = tsproduct.getLayeredPropValue ( "TemplateTSID", isub, i, false );
 			}
@@ -277,14 +273,12 @@ throws Exception
 				date1 = null;
 				date2 = null;
 			}
-			// First try to read the time series using the
-			// "TSAlias".  This normally will only return non-null
-			// for something like TSTool where the time series may
-			// be in memory.
+			// First try to read the time series using the "TSAlias".  This normally will only return non-null
+			// for something like TSTool where the time series may be in memory.
 			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, i, false );
 			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
 				// Have the property so use the TSAlias instead of the TSID...
-				Message.printStatus ( 2, routine, "Reading TSAlias \"" + tsalias + "\" from TS suppliers." );
+				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
 				try {
                     ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
@@ -297,7 +291,7 @@ throws Exception
 			}
 			else {
                 // Don't have a "TSAlias" so try to read the time series using the full "TSID"...
-				Message.printStatus ( 2, routine, "Reading TSID \"" + tsid + "\" from TS suppliers.");
+				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using TSID \"" + tsid + "\".");
 				try {
                     ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
 				}
@@ -318,7 +312,8 @@ throws Exception
 		}
 	}
 
-	// Now add the time series to the TSProduct...
+	// Now add the time series to the TSProduct.  This simply provides the time series. They will be looked
+    // up as needed when the TSGraph is created.
 
 	tsproduct.setTSList ( tslist );
 
@@ -358,13 +353,11 @@ throws Exception
 		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen
 		// drawing with file to do one draw, if possible.
 		if ( (graph_file != null) && (graph_file.length() > 0) ){
-			// Create an in memory image and let the
-			// TSGraphJComponent draw to it.  Use properties since
+			// Create an in memory image and let the TSGraphJComponent draw to it.  Use properties since
 			// that was what was done before...
 			// Image image = f.createImage(width,height);
 			// Image ii = f.createImage(width, height);
-			// Make this the same size as the TSGraph defaults and
-			// then reset with the properties...
+			// Make this the same size as the TSGraph defaults and then reset with the properties...
 			int width = 400;
 			int height = 400;
 			prop_value = tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1 );
@@ -446,14 +439,12 @@ throws Exception
 	}
 	if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 		// Determine if a graph or report product is being generated...
-		prop_value =
-			tsproduct.getLayeredPropValue ( "ProductType", -1, -1 );
+		prop_value = tsproduct.getLayeredPropValue ( "ProductType", -1, -1 );
 
 		if ( prop_value.equalsIgnoreCase ( "Report" ) ) {
 			processReportProduct ( tsproduct );
 		}
-		else if ( (prop_value == null) ||	// Default
-			prop_value.equalsIgnoreCase("Graph") ) {
+		else if ( (prop_value == null) || prop_value.equalsIgnoreCase("Graph") ) { // Default if no product type
 			processGraphProduct ( tsproduct );
 		}
 	}
@@ -641,28 +632,30 @@ throws Exception
 	}
 	TS ts = null;
 	for ( int i = 0; i < size; i++ ) {
+        String supplier_name = _suppliers[i].getTSSupplierName();
 		Message.printStatus ( 2, routine, "Trying to get \"" + tsident +
-			"\" from TSSupplier \"" + _suppliers[i].getTSSupplierName() + "\"" );
+			"\" from TSSupplier \"" + supplier_name + "\"" );
 		try {
             ts = _suppliers[i].readTimeSeries (	tsident, date1, date2, (String)null, true );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, "Error reading time series.  Ignoring." );
+			Message.printWarning ( 2, routine, "Error reading time series for supplier \"" +
+                    supplier_name + ".  Ignoring and trying other suppliers (if available)." );
 			Message.printWarning ( 2, routine, e );
 			continue;
 		}
 		if ( ts == null ) {
 			Message.printStatus ( 2, routine, "Did not find TS \"" + tsident +
-			"\" using TSSupplier \"" + _suppliers[i].getTSSupplierName() + "\"" );
+			"\" using TSSupplier \"" + supplier_name + "\".  Ignoring and trying other suppliers (if available)." );
 		}
 		else {
             // Found a time series so assume it is the one that is needed...
-			Message.printStatus ( 2, routine, "Found TS \"" + tsident + "\" (period " + ts.getDate1()
-			+ " to " + ts.getDate2() + ")" );
+			Message.printStatus ( 2, routine, "Supplier \"" + supplier_name + "\": found TS \"" + tsident +
+                    "\" (alias \"" + ts.getAlias() + "\" period " + ts.getDate1() + " to " + ts.getDate2() + ")" );
 			return ts;
 		}
 	}
-	throw new Exception ( "Unable to get time series \"" + tsident + "\" from any TSSupplier.");
+	throw new Exception ( "Unable to get time series \"" + tsident + "\" from " + size + " TSSupplier(s).");
 }
 
 } // End TSProcessor

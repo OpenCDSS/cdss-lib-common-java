@@ -711,14 +711,11 @@ is added and it is saved as a JPEG.
 is Quality, which can be 0 (low quality, high compression) to 100 (high
 quality, no compression).  It might be useful at some point to enable an
 Interactive=true option to allow a pop-up dialog to specify JPEG information.
-REVISIT (JTS - 2003-05-05)
-should this be implemented?
-SAM:
-Sure as we get into it.
+TODO (JTS - 2003-05-05) Evaluate pop-up dialog to query for quality - not as important now that PNG is supported.
 */
 public void saveAsFile ( String filename, PropList props )
-throws IOException {
-try {
+throws IOException
+{
 	String routine = "GRJComponentDevice.saveAsFile";
 
 	if (_buffer == null) {
@@ -758,20 +755,16 @@ try {
 	if (jpeg) {
 		try {	
 			FileOutputStream os = new FileOutputStream(newfilename);
-			JpegEncoder jpg = new JpegEncoder(_buffer, 
-				image_quality, os);
+			JpegEncoder jpg = new JpegEncoder(_buffer, image_quality, os);
 			jpg.Compress();
 			os.flush();
 			os.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			Message.printWarning(2, routine,
-				"Error saving image file \"" 
-				+ newfilename + "\"");
+			Message.printWarning(2, routine, "Error saving image file \"" + newfilename + "\"");
 			Message.printWarning(2, routine, e);
-			throw new IOException("Writing JPEG file \"" 
-				+ newfilename + "\" failed." );
+			throw new IOException("Writing JPEG file \"" + newfilename + "\" failed." );
 		}
 	}
 	else {
@@ -780,37 +773,29 @@ try {
 			ImageIO.write(_buffer, "png", file);
 		}
 		catch (Exception e) {
-			throw new Exception (
-				"Error when writing png file: "
-				+ newfilename);
+			throw new IOException ( "Error writing png file: " + newfilename);
 		}
 	}
-}
-catch (Exception e) {
-	e.printStackTrace();
-}
 }
 
 /**
 Sets whether the device is drawing in anti-aliased mode or not.
 @param antiAlias whether the device is drawing in anti-aliased mode or not.
 */
-public void setAntiAlias(boolean antiAlias) {
+public void setAntiAlias(boolean antiAlias)
+{
 	if (antiAlias) {
-		_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-        		RenderingHints.VALUE_ANTIALIAS_ON);
+		_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 	}
 	else {
-		_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-        		RenderingHints.VALUE_ANTIALIAS_OFF);
+		_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 	__isAntiAliased = antiAlias;
 }
 
 /**
 Sets up clipping on the current device and clips all drawing calls to the
-rectangle specified in the GRLimits.  If GRLimits is null, clipping is turned
-off.
+rectangle specified in the GRLimits.  If GRLimits is null, clipping is turned off.
 @param clipLimits the limits to which to clip drawing.  Any values that lie
 outside of the rectangle specified by the GRLimits will not be drawn.  If
 clipLimits is null, clipping will be turned off.
@@ -896,16 +881,18 @@ the screen; they have a 0 alpha level.
 public void setupDoubleBuffer(int x1, int y1, int x2, int y2) {
 	int width = x2 - x1;
 	int height = y2 - y1;
+    
 	if (_buffer != null) {
 		_buffer = null;
+        /* FIXME SAM 2008-01-01 Evaluate why is this here - probably a performance hit
 		for (int i = 0; i < 10; i++) {
 			System.gc();
 		}
+         */
 	}
-//	Message.printStatus(1, "", "Setting up double buffer size: "
-//		+ width + "x" + height);
-	_buffer = new BufferedImage(width, height,
-		BufferedImage.TYPE_4BYTE_ABGR);
+
+	// Message.printStatus(2, "", "Setting up double buffer size: " + width + "x" + height);
+	_buffer = new BufferedImage(width, height,BufferedImage.TYPE_4BYTE_ABGR);
 	startDoubleBuffer();
 }	
 
@@ -948,8 +935,7 @@ public void stopDoubleBuffer() {
 }
 
 /**
-Translates the image a specified number of X and Y values.  Calls 
-_graphics.translate();
+Translates the image a specified number of X and Y values.  Calls _graphics.translate();
 @param x the x value to translate (can be negative).
 @param y the y value to translate (can be negative).  Note that increasing Y
 values of translation will move the image Down, as this is a java call and Y

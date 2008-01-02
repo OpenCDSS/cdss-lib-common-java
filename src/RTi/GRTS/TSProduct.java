@@ -1516,74 +1516,48 @@ public void checkDataProperties(int isub, int its) {
 		}
 		else {	
 			// Use colors for time series...
-			setPropValue("Color", 
-				TSGraphJComponent.lookupTSColor(its),
-				isub, its);
+			setPropValue("Color", TSGraphJComponent.lookupTSColor(its),	isub, its);
 		}
-
 	}
 
 	if (graph_type == GRAPH_TYPE_POINT) {
 		if (getLayeredPropValue("SymbolStyle",isub,its,false) == null) {
-			setPropValue("SymbolStyle",
-				TSGraphJComponent.lookupTSSymbol(its),
-				isub, its);
+			setPropValue("SymbolStyle",	TSGraphJComponent.lookupTSSymbol(its),isub, its);
 		}
 	}
 
 	// "DataLabelFormat"...
 
-	if (	getLayeredPropValue (
-		"DataLabelFormat", isub, its, false ) == null ){
-		setPropValue ( "DataLabelFormat",
-		getDefaultPropValue("DataLabelFormat",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ( "DataLabelFormat", isub, its, false ) == null ){
+		setPropValue ( "DataLabelFormat",getDefaultPropValue("DataLabelFormat",isub,its),isub, its);
 	}
 
 	// "DataLabelPosition"...
 
-	if (	getLayeredPropValue (
-		"DataLabelPosition", isub, its, false ) ==null){
-		setPropValue ( "DataLabelPosition",
-		getDefaultPropValue("DataLabelPosition",isub,
-		its), isub, its);
+	if ( getLayeredPropValue ( "DataLabelPosition", isub, its, false ) ==null){
+		setPropValue ( "DataLabelPosition",	getDefaultPropValue("DataLabelPosition",isub,its), isub, its);
 	}
 
 	// "Enabled"...
 
-	if (	getLayeredPropValue (
-		"Enabled", isub, its, false ) == null ) {
-		setPropValue ( "Enabled",
-		getDefaultPropValue("Enabled",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ("Enabled", isub, its, false ) == null ) {
+		setPropValue ( "Enabled", getDefaultPropValue("Enabled",isub,its), isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"GraphType", isub, its, false ) == null ) {
-		setPropValue ( "GraphType",
-		getDefaultPropValue("GraphType",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
+		setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"LegendFormat", isub, its, false ) == null ) {
-		setPropValue ( "LegendFormat",
-		getDefaultPropValue("LegendFormat",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ( "LegendFormat", isub, its, false ) == null ) {
+		setPropValue ( "LegendFormat",getDefaultPropValue("LegendFormat",isub,its),	isub, its);
 	}
 
 	if (getLayeredPropValue("LineStyle", isub, its, false) == null) {
-		setPropValue ( "LineStyle", 
-			getDefaultPropValue("LineStyle",isub, its, false, 
-				graph_type), 
-			isub, its);
+		setPropValue ( "LineStyle", getDefaultPropValue("LineStyle",isub, its, false, graph_type), isub, its);
 	}
 
 	if (getLayeredPropValue("LineWidth", isub, its, false) == null) {
-		setPropValue("LineWidth",
-			getDefaultPropValue("LineWidth",isub,its, false, 
-				graph_type),
-			isub, its);
+		setPropValue("LineWidth", getDefaultPropValue("LineWidth",isub,its, false, graph_type),	isub, its);
 	}
 
 	if (graph_type == GRAPH_TYPE_XY_SCATTER
@@ -1591,18 +1565,11 @@ public void checkDataProperties(int isub, int its) {
 	   || graph_type == GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
 		if (getLayeredPropValue("RegressionLineEnabled", 
 		    isub, its, false) == null ) {
-			setPropValue("RegressionLineEnabled",
-				getDefaultPropValue("RegressionLineEnabled",
-					isub,its), 
-				isub, its);
+			setPropValue("RegressionLineEnabled", getDefaultPropValue("RegressionLineEnabled", isub,its), isub, its);
 		}
-		if (getLayeredPropValue("XYScatterConfidenceInterval",
-		    isub, its, false) == null) {
+		if (getLayeredPropValue("XYScatterConfidenceInterval", isub, its, false) == null) {
 			setPropValue("XYScatterConfidenceInterval",
-				getDefaultPropValue(
-					"XYScatterConfidenceInterval",
-					isub,its), 
-				isub, its);
+                    getDefaultPropValue("XYScatterConfidenceInterval",	isub,its), isub, its);
 		}
 	}
 

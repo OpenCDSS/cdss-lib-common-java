@@ -254,8 +254,7 @@ The positioning of the graphs is by default top to bottom but features will be
 added to allow row/cell positioning.
 */
 public class TSGraphJComponent extends GRJComponentDevice
-implements KeyListener, MouseListener, MouseMotionListener,
-Printable, TSViewListener
+implements KeyListener, MouseListener, MouseMotionListener, Printable, TSViewListener
 {
 /**
 Edit mode. Enables editing of points by clicking above or below a point
@@ -1052,10 +1051,8 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 		// be reset whenever the component size changes.  The first
 		// graph is at the top of the page, then going down.
 		drawlim = new GRLimits ( drawlim_graphs.getLeftX(),
-					drawlim_graphs.getTopY() -
-					(isub + 1)*height,
-					drawlim_graphs.getRightX(),
-					drawlim_graphs.getTopY() - isub*height);
+					drawlim_graphs.getTopY() - (isub + 1)*height,
+					drawlim_graphs.getRightX(),	drawlim_graphs.getTopY() - isub*height);
 		/*
 		runningTotal += heights[isub];
 		drawlim = new GRLimits(
@@ -1074,22 +1071,17 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 						// the current graph, then the
 						// graph is NOT used for a
 						// reference graph.
-		int sequence_number = -1;	// Sequence number used with
-						// traces...
+		int sequence_number = -1;	// Sequence number used with traces...
 		for ( int jtsid = 0; ; jtsid++ ) {// Loop for TSIDs in graph
 			// First get the TSID...
-			TSID_prop_val = tsproduct.getLayeredPropValue (
-				"TSID", isub, jtsid, false );
-			TSAlias_prop_val = tsproduct.getLayeredPropValue (
-				"TSAlias", isub, jtsid, false );
-			// Allow one or the other (but not both) to be
-			// missing...
-			if (	(TSID_prop_val == null) &&
-				(TSAlias_prop_val == null) ) {
+			TSID_prop_val = tsproduct.getLayeredPropValue (	"TSID", isub, jtsid, false );
+			TSAlias_prop_val = tsproduct.getLayeredPropValue ( "TSAlias", isub, jtsid, false );
+			// Allow one or the other (but not both) to be missing...
+			if ( (TSID_prop_val == null) &&	(TSAlias_prop_val == null) ) {
 				// Done with data for the graph...
 				break;
 			}
-			// REVISIT - the following does not quite make sense...
+			// TODO - the following does not quite make sense...
 			if ( TSAlias_prop_val == null ) {
 				// Assign blank...
 				TSAlias_prop_val = "";
@@ -1099,17 +1091,12 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				TSID_prop_val = "";
 			}
 			if ( TSID_prop_val.indexOf("~") >= 0 ) {
-				// The TSID has input fields so need to compare
-				// when searching for time series.
+				// The TSID has input fields so need to compare when searching for time series.
 				check_input = true;
 			}
-			else {	check_input = false;
+			else {
+                check_input = false;
 			}
-			/*
-			Message.printStatus ( 2, routine, "TSID_prop_val=\"" +
-			TSID_prop_val +
-			"\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\"" );
-			*/
 			// If the SequenceNumber property is set, then assume
 			// that the TSProduct has been created from a PropList
 			// and Vector of TS.  In this case the
@@ -1117,18 +1104,18 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			// passed along the sequence number property because it
 			// is not necessarily a part of the ID.
 			//
-			// If a TSProduct was created from scratch, the
-			// SequenceNumber property should not be set so set
+			// If a TSProduct was created from scratch, the SequenceNumber property should not be set so set
 			// to the default value (-1)...
-			prop_val = tsproduct.getLayeredPropValue (
-				"SequenceNumber", isub, jtsid, false );
+			prop_val = tsproduct.getLayeredPropValue ( "SequenceNumber", isub, jtsid, false );
 			if ( prop_val != null ) {
 				sequence_number = StringUtil.atoi(prop_val);
 			}
-			else {	sequence_number = -1;
+			else {
+                sequence_number = -1;
 			}
-			// Now find a matching time series in the available
-			// data.  If a match is not found, set the time series
+            Message.printStatus ( 2, routine, "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
+                    "\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\" SequenceNumber=" + sequence_number );
+			// Now find a matching time series in the available data.  If a match is not found, set the time series
 			// to null so the properties line up.
 			tsfound = null;
 			for ( int kts = 0; kts < nts; kts++ ) {
@@ -1136,12 +1123,9 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				if ( ts == null ) {
 					continue;
 				}
-				/*
-				Message.printStatus ( 2, routine,
-				"Trying to find TS in available data.  " +
-				"TSID is \"" +
-				ts.getIdentifier().toString(true) + "\"" );
-				*/
+				Message.printStatus ( 2, routine, "Comparing to TS in available data: " +
+				"TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" +
+                " sequence number=" + ts.getSequenceNumber());
 				//if ( Message.isDebugOn ) {
 					//Message.printDebug ( 1, routine,
 					//_gtype+"Creating TSGraph, tsid is \""+
@@ -1149,50 +1133,36 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 					//"\" TSID prop is \"" + TSID_prop_val +
 					//"\"" );
 				//}
-				if (	// An alias is specified...
-					(!TSAlias_prop_val.equals("") &&
-					ts.getAlias().equalsIgnoreCase(
-					TSAlias_prop_val) &&
-					(sequence_number ==
-					ts.getSequenceNumber())
-					)
-					||
-					// No alias so use the full TSID with
-					// input type...
-					(TSAlias_prop_val.equals("") &&
-					ts.getIdentifier().equals(
-					TSID_prop_val,check_input)
-					&& (sequence_number ==
-					ts.getSequenceNumber())) ) {
-					tsfound = ts;
-					/*
-					Message.printStatus ( 2, routine,
-					"TSIDs or TSAliases are equal");
-					*/
-					if(	display_props_reference_ts_index
-						== kts ) {
-						// Set the TSID index within the
-						// graph's TS indicating which
-						// main graph TS is in the
-						// the reference graph.  If a
-						// main graph, the reference
-						// graph is indicated in the
-						// legend...
+                if ( !TSAlias_prop_val.equals("") ) {
+				    // If an alias is specified, just match the alias...
+				    if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
+                        //&&	(sequence_number ==	ts.getSequenceNumber())
+                        Message.printStatus ( 2, routine, "Time series aliases match.");
+					    tsfound = ts;         
+                    }
+                }
+                else {
+					// No alias so use the full TSID with input type and match the sequence number...
+					if ( ts.getIdentifier().equals( TSID_prop_val,check_input)
+					        && (sequence_number == ts.getSequenceNumber()) ) {
+                        Message.printStatus ( 2, routine, "Time series identifiers and sequence numbers match.");   
+                        tsfound = ts;
+                    }
+                }
+                if ( tsfound != null ) {        
+					if(	display_props_reference_ts_index == kts ) {
+						// Set the TSID index within the graph's TS indicating which main graph TS is in the
+						// the reference graph.  If a main graph, the reference graph is indicated in the legend...
 						reference_ts_index = jtsid;
 						_reference_sub = isub;
 					}
 					break;
 				}
 				else {	
-					/*
-					Message.printStatus ( 2, routine,
-					"TSIDs and TSAliases are " +
-					"not equal");
-					*/
+					Message.printStatus ( 2, routine, "TSIDs and TSAliases are not equal");
 				}
 			}
-			// Could put the following in the if statement in the
-			// loop but for now put here...
+			// Could put the following in the if statement in the loop but for now put here...
 			//
 			// If the "TSIndex" property is found, just use it to
 			// match up the time series.  This works well when a
@@ -1209,24 +1179,25 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			// matched with a TS (even if null) and that the order
 			// of the TSID in the product description file matches
 			// the order of the time series passed in.
-			prop_val = tsproduct.getLayeredPropValue (
-				"TSIndex", isub, jtsid, false );
-			if (	(nsubs == 1) && (prop_val != null) &&
-				StringUtil.isInteger(prop_val) ) {
-				tsfound = (TS)tsproduct_tslist.elementAt(
-					StringUtil.atoi(prop_val) );
+			prop_val = tsproduct.getLayeredPropValue ( "TSIndex", isub, jtsid, false );
+			if ( (nsubs == 1) && (prop_val != null) && StringUtil.isInteger(prop_val) ) {
+				tsfound = (TS)tsproduct_tslist.elementAt( StringUtil.atoi(prop_val) );
 			}
 			// Now add the time series or null reference...
+            if ( tsfound == null ) {
+                Message.printStatus(2, routine, "Could not find time series for graph." );
+            }
+            else {
+                Message.printStatus( 2, routine, "Found time series \"" + tsfound.getIdentifierString() + "\" alias=\"" +
+                        tsfound.getAlias() + "\" for graph." );
+            }
 			tslist.addElement ( tsfound );
 		}
-		// Supply the short time series list for the graph and add the
-		// traph to the main Vector to be managed.
-		tsgraph = new TSGraph ( this, drawlim, tsproduct,
-			display_props, isub, tslist, reference_ts_index );
+		// Supply the short time series list for the graph and add the graph to the main Vector to be managed.
+		tsgraph = new TSGraph ( this, drawlim, tsproduct, display_props, isub, tslist, reference_ts_index );
 		tsgraphs.addElement ( tsgraph );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Added graph "
-			+ isub + " reference_ts_index = " + reference_ts_index);
+			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
 		}
 	}
 	ts = null;
@@ -1252,12 +1223,10 @@ an empty TSProduct is created.  The checkTSProduct() method assigns appropriate
 default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
-private TSProduct createTSProductFromPropList ( PropList proplist,
-						Vector tslist )
+private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist )
 {	try {
 
-	//Message.printStatus ( 1, "",
-	//"Creating TSProduct from PropList and TS list" );
+	//Message.printStatus ( 2, "", "Creating TSProduct from PropList and TS list" );
 	// Create a new TSProduct...
 	TSProduct tsproduct = new TSProduct ();
 	tsproduct.setTSList ( tslist );
@@ -1283,7 +1252,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 
 	tsproduct.setPropValue ( "ProductType", "Graph", -1, -1 );
 
-/* REVISIT - obsolete properties?
+/* TODO - obsolete properties?
 	String prop_val = proplist.getValue ( "GraphWidth" );
 	if ( prop_val != null ) {
 		tsproduct.setPropValue ( "TotalWidth", prop_val, -1, -1 );
@@ -1350,21 +1319,18 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 	else {	// Older version...
 		prop_val = proplist.getValue ( "XAxisFormat" );
 		if ( prop_val != null ) {
-			tsproduct.setPropValue ( "BottomXAxisLabelFormat",
-				prop_val, 0, -1 );
+			tsproduct.setPropValue ( "BottomXAxisLabelFormat", prop_val, 0, -1 );
 		}
 	}
 
 	prop_val = proplist.getValue ( "XAxisLabelString" );
 	if ( prop_val != null ) {
-		tsproduct.setPropValue ( "LeftXAxisTitleString",
-		prop_val, 0, -1 );
+		tsproduct.setPropValue ( "LeftXAxisTitleString", prop_val, 0, -1 );
 	}
 
 	prop_val = proplist.getValue ( "YAxisPrecision" );
 	if ( prop_val != null ) {
-		tsproduct.setPropValue ( "LeftYAxisLabelPrecision",
-			prop_val, 0, -1 );
+		tsproduct.setPropValue ( "LeftYAxisLabelPrecision",	prop_val, 0, -1 );
 	}
 
 	prop_val = proplist.getValue ( "YAxisType" );
@@ -1376,15 +1342,13 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 	if ( prop_val != null ) {
 		// Convert to new values...
 		if ( prop_val.equalsIgnoreCase("BarsLeftOfDate") ) {
-			tsproduct.setPropValue ( "BarPosition",
-			"LeftOfDate", 0, -1 );
+			tsproduct.setPropValue ( "BarPosition", "LeftOfDate", 0, -1 );
 		}
 		else if ( prop_val.equalsIgnoreCase("BarsRightOfDate") ) {
-			tsproduct.setPropValue ( "BarPosition",
-			"RightOfDate", 0, -1 );
+			tsproduct.setPropValue ( "BarPosition",	"RightOfDate", 0, -1 );
 		}
-		else {	tsproduct.setPropValue ( "BarPosition",
-			"CenteredOnDate", 0, -1 );
+		else {
+            tsproduct.setPropValue ( "BarPosition",	"CenteredOnDate", 0, -1 );
 		}
 	}
 
@@ -1413,29 +1377,23 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 		if ( ts == null ) {
 			tsproduct.setPropValue ( "TSID", "", 0, i );
 		}
-		else {	tsproduct.setPropValue ( "TSID",
-				ts.getIdentifier().toString(true), 0, i );
+		else {
+            tsproduct.setPropValue ( "TSID", ts.getIdentifier().toString(true), 0, i );
 			// Set the alias if available...
 			if ( !ts.getAlias().equals("") ) {
-				tsproduct.setPropValue ( "TSAlias",
-				ts.getAlias(), 0, i );
+				tsproduct.setPropValue ( "TSAlias",	ts.getAlias(), 0, i );
 			}
-			// Internal trick to pass along the sequence number for
-			// traces.  To simplify comparisons later, always set
-			// the sequence number.  If it happens to be the
-			// initial value in all cases, so be it...
+			// Internal trick to pass along the sequence number for traces.  To simplify comparisons later,
+            // always set the sequence number.  If it happens to be the initial value in all cases, so be it...
 			// This needs to be an internal property...
-			tsproduct.getPropList().setHowSet (
-				Prop.SET_AS_RUNTIME_DEFAULT );
-			tsproduct.setPropValue ( "SequenceNumber",
-				"" + ts.getSequenceNumber(), 0, i );
+			tsproduct.getPropList().setHowSet (	Prop.SET_AS_RUNTIME_DEFAULT );
+			tsproduct.setPropValue ( "SequenceNumber","" + ts.getSequenceNumber(), 0, i );
 			// Set the index.  This is actually a more robust way
 			// to connect the time series with graphs when the time
 			// series come in from a Vector and PropList.
 			tsproduct.setPropValue ( "TSIndex", "" + i, 0, i );
 			tsproduct.getPropList().setHowSet ( how_set_prev2 );
-			//Message.printStatus ( 1, "", "Graph has TSID \"" +
-				//ts.getIdentifier().toString(true) + "\"" );
+			//Message.printStatus ( 2, "", "Graph has TSID \"" + ts.getIdentifier().toString(true) + "\"" );
 		}
 	}
 	ts = null;
@@ -1467,16 +1425,14 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 
 	_display_props = new PropList ( "display" );
 
-	// Double buffering is seldom specified.  The default is true (set in
-	// the base class)...
+	// Double buffering is seldom specified.  The default is true (set in the base class)...
 	_double_buffering = true;
 	prop_val = proplist.getValue ( "DoubleBuffer" );
 	if ( (prop_val != null) && prop_val.equalsIgnoreCase("false") ) {
 		_double_buffering = false;
 	}
 
-	// A reference graph is used for zooming and has few other features
-	// besides data...
+	// A reference graph is used for zooming and has few other features besides data...
 	prop_val = proplist.getValue ( "ReferenceGraph" );
 	if ( prop_val != null ) {
 		_display_props.set ( "ReferenceGraph=" + prop_val );
@@ -1491,8 +1447,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist,
 
 	_external_Image = (BufferedImage)proplist.getContents("Image");
 	if ( _external_Image != null ) {
-		Message.printDebug( 1, "", _gtype +
-		"Using external Image for drawing." );
+		Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
 		// Disable reference time series (don't want labels in legend).
 		_display_props.set ( "ReferenceTSIndex=" + -1 );
 	}
@@ -1516,12 +1471,10 @@ the entire window.
 */
 private void clearView ()
 {	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "TSGraphJComponent.clearView", _gtype +
-		"Clearing the graph." );
+		Message.printDebug ( 1, "TSGraphJComponent.clearView", _gtype +	"Clearing the graph." );
 	}
 	if ( !_printing && (_graphics != null) ) {
-		// Fill in the background color.  Need this because
-		// update() does not do (becaus of zooming)...
+		// Fill in the background color.  Need this because update() does not do (becaus of zooming)...
 		_graphics.setColor ( getBackground() );
 		_bounds = getBounds();
 		_graphics.fillRect ( 0, 0, _bounds.width, _bounds.height );
@@ -1582,29 +1535,21 @@ private void drawDrawingAreas ()
 {	_da_page.setColor ( GRColor.cyan );
 	// Reference and main...
 	GRDrawingAreaUtil.drawRectangle ( _da_graphs,
-				_datalim_graphs.getLeftX(),
-				_datalim_graphs.getBottomY(),
-				_datalim_graphs.getWidth(),
-				_datalim_graphs.getHeight() );
+				_datalim_graphs.getLeftX(),	_datalim_graphs.getBottomY(),
+				_datalim_graphs.getWidth(),	_datalim_graphs.getHeight() );
 	if ( _is_reference_graph ) {
 		// Don't need to draw anything else...
 		return;
 	}
 	GRDrawingAreaUtil.drawRectangle ( _da_page,
-				_datalim_page.getLeftX(),
-				_datalim_page.getBottomY(),
-				_datalim_page.getWidth(),
-				_datalim_page.getHeight() );
+				_datalim_page.getLeftX(), _datalim_page.getBottomY(),
+				_datalim_page.getWidth(), _datalim_page.getHeight() );
 	GRDrawingAreaUtil.drawRectangle ( _da_maintitle,
-				_datalim_maintitle.getLeftX(),
-				_datalim_maintitle.getBottomY(),
-				_datalim_maintitle.getWidth(),
-				_datalim_maintitle.getHeight());
+				_datalim_maintitle.getLeftX(), _datalim_maintitle.getBottomY(),
+				_datalim_maintitle.getWidth(),_datalim_maintitle.getHeight());
 	GRDrawingAreaUtil.drawRectangle ( _da_subtitle,
-				_datalim_subtitle.getLeftX(),
-				_datalim_subtitle.getBottomY(),
-				_datalim_subtitle.getWidth(),
-				_datalim_subtitle.getHeight() );
+				_datalim_subtitle.getLeftX(), _datalim_subtitle.getBottomY(),
+				_datalim_subtitle.getWidth(), _datalim_subtitle.getHeight() );
 }
 
 /**
@@ -1620,38 +1565,26 @@ private void drawTitles ()
 	// Main title.
 
 	_da_maintitle.setColor ( GRColor.black );
-	String maintitle_font = _tsproduct.getLayeredPropValue (
-				"MainTitleFontName", -1, -1, false );
-	String maintitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"MainTitleFontStyle", -1, -1, false );
-	String maintitle_fontsize = _tsproduct.getLayeredPropValue (
-				"MainTitleFontSize", -1, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font,
-			maintitle_fontstyle,
+	String maintitle_font = _tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
+	String maintitle_fontstyle = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
+	String maintitle_fontsize = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
+	GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font, maintitle_fontstyle,
 			StringUtil.atod(maintitle_fontsize) );
-	String maintitle_string = _tsproduct.getLayeredPropValue (
-				"MainTitleString", -1, -1, false );
+	String maintitle_string = _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
 	GRDrawingAreaUtil.drawText ( _da_maintitle, maintitle_string,
-			_datalim_maintitle.getCenterX(),
-			_datalim_maintitle.getCenterY(), 0.0,
+			_datalim_maintitle.getCenterX(), _datalim_maintitle.getCenterY(), 0.0,
 			GRText.CENTER_X|GRText.CENTER_Y );
 
 	// Sub title....
 
 	_da_subtitle.setColor ( GRColor.black );
-	String subtitle_font = _tsproduct.getLayeredPropValue (
-				"SubTitleFontName", -1, -1, false );
-	String subtitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"SubTitleFontStyle", -1, -1, false );
-	String subtitle_fontsize = _tsproduct.getLayeredPropValue (
-				"SubTitleFontSize", -1, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font,
-		subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
-	String subtitle_string = _tsproduct.getLayeredPropValue (
-				"SubTitleString", -1, -1, false );
+	String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
+	String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
+	String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
+	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font, subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
+	String subtitle_string = _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
 	GRDrawingAreaUtil.drawText ( _da_subtitle, subtitle_string,
-			_datalim_subtitle.getCenterX(),
-			_datalim_subtitle.getCenterY(), 0.0,
+			_datalim_subtitle.getCenterX(),	_datalim_subtitle.getCenterY(), 0.0,
 			GRText.CENTER_X|GRText.CENTER_Y );
 }
 
@@ -1935,6 +1868,7 @@ public void mouseClicked ( MouseEvent event )
       refresh(false);
     }
 }
+
 /**
  * Notifies TSGraphEditor of point edit.
  * 
@@ -1943,8 +1877,7 @@ public void mouseClicked ( MouseEvent event )
  */
 private void editPoint(MouseEvent event,TSGraph tsgraph)
 {
-  GRLimits daLimits = tsgraph.getGraphDrawingArea().getPlotLimits(
-      GRDrawingArea.COORD_DEVICE); 
+  GRLimits daLimits = tsgraph.getGraphDrawingArea().getPlotLimits( GRDrawingArea.COORD_DEVICE); 
   if (isInside(event, daLimits))
     {
       GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY(
@@ -1952,6 +1885,7 @@ private void editPoint(MouseEvent event,TSGraph tsgraph)
       _tsGraphEditor.editPoint(datapt);
     }
 }
+
 /** 
  * Returns whether mouse is inside drawing area
  * @return
@@ -1965,6 +1899,7 @@ private final boolean isInside(MouseEvent event, GRLimits grLimits)
       && event.getY() < (int)grLimits.getBottomY())
     ?true:false;
 }
+
 /**
 Handle mouse drag event.  If in zoom mode, redraw the rubber-band line.
 If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
@@ -1972,21 +1907,19 @@ If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
 */
 public void mouseDragged ( MouseEvent event )
 {	//event.consume();
-	if (	(_interaction_mode != INTERACTION_SELECT) &&
-		(_interaction_mode != INTERACTION_ZOOM) ) {
+	if ( (_interaction_mode != INTERACTION_SELECT) && (_interaction_mode != INTERACTION_ZOOM) ) {
 		return;
 	}
 
 	int mods = event.getModifiers();
-	if (	(mods & MouseEvent.BUTTON3_MASK) != 0 ) {
+	if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
 		// Don't want rubber band box...
 		return;
 	}
 
 	// Figure out which graph the event occurred in...
 
-	TSGraph tsgraph = getEventTSGraph (
-			new GRPoint(event.getX(),event.getY() ) );
+	TSGraph tsgraph = getEventTSGraph (	new GRPoint(event.getX(),event.getY() ) );
 	if ( tsgraph == null ) {
 		// User is dragging outside a graph.  If they started
 		// outside the graph, nothing would have been
@@ -1994,8 +1927,7 @@ public void mouseDragged ( MouseEvent event )
 	}
 
 	// Else dragging in a valid graph.  If they started in outside and are
-	// now crossing into a graph, initialize the coordinates similar to
-	// mousePressed()...
+	// now crossing into a graph, initialize the coordinates similar to mousePressed()...
 
 	if ( _mouse_x1 == -1 ) {
 		// Let the other method do the work...
@@ -2012,8 +1944,7 @@ public void mouseDragged ( MouseEvent event )
 	// Figure out which drawing area the event occurred in...
 
 	int graph_type = tsgraph.getGraphType();
-	if ((graph_type == TSProduct.GRAPH_TYPE_DURATION) 
-	    || (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER)) {
+	if ((graph_type == TSProduct.GRAPH_TYPE_DURATION) || (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER)) {
 		// Don't allow zoom.
 		_rubber_banding = false;
 		return;
@@ -2022,9 +1953,7 @@ public void mouseDragged ( MouseEvent event )
 	// Let listeners know so the tracker can be updated to help
 	// size the rubber band box...
 	// Data units...
-	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY (
-				_mouse_x2, _mouse_y2,
-				GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY ( _mouse_x2, _mouse_y2, GRDrawingArea.COORD_DEVICE );
 	if ( datapt == null ) {
 		// Generally only happens when the graph cannot be displayed.
 		return;
@@ -2040,8 +1969,7 @@ public void mouseDragged ( MouseEvent event )
 		devpt = null;
 	}
 	datapt = null;
-	// Force a redraw...  The _rubber_banding flag will be checked
-	// so a full redraw is not done.
+	// Force a redraw...  The _rubber_banding flag will be checked so a full redraw is not done.
 	repaint ();
 }
 
