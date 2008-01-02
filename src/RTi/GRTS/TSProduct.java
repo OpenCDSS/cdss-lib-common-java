@@ -3234,10 +3234,10 @@ public int getNumSubProducts ( boolean enabled_only )
 {	int nsubs = -1;
 	String prop_value = null;
 
-// REVISIT (JTS - 2005-05-06)
-// enabled_only isn't working properly -- it's checking for whether any 
-// TIME SERIES are enabled or not, and if not, marking the entire subproduct
-// as not enabled.  
+    // TODO (JTS - 2005-05-06)
+    // enabled_only isn't working properly -- it's checking for whether any 
+    // TIME SERIES are enabled or not, and if not, marking the entire subproduct
+    // as not enabled.  
 	
 	int count = 0;
 	// the following makes sure that data exists in the product.  If not,
@@ -3254,30 +3254,27 @@ public int getNumSubProducts ( boolean enabled_only )
 		if ( prop_value != null ) {
 			nsubs = i;
 			if ( enabled_only ) {
-				prop_value = getLayeredPropValue (
-					"Enabled", i, data, false );
-				if (	(prop_value == null) ||
-					prop_value.equalsIgnoreCase("true") ) {
+				prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+				if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 					++count;
 				}
 			}
-			else {	++count;
+			else {
+                ++count;
 			}
 			continue;
 		}
-		prop_value = getLayeredPropValue ( "TemplateTSID", i, data, 
-			false);
+		prop_value = getLayeredPropValue ( "TemplateTSID", i, data, false);
 		if ( prop_value != null ) {
 			nsubs = i;
 			if ( enabled_only ) {
-				prop_value = getLayeredPropValue (
-					"Enabled", i, data, false );
-				if (	(prop_value == null) ||
-					prop_value.equalsIgnoreCase("true") ) {
+				prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+				if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 					++count;
 				}
 			}
-			else {	++count;
+			else {
+                ++count;
 			}
 			continue;
 		}
@@ -3285,14 +3282,13 @@ public int getNumSubProducts ( boolean enabled_only )
 		if ( prop_value != null ) {
 			nsubs = i;
 			if ( enabled_only ) {
-				prop_value = getLayeredPropValue (
-					"Enabled", i, data, false );
-				if (	(prop_value == null) ||
-					prop_value.equalsIgnoreCase("true") ) {
+				prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+				if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 					++count;
 				}
 			}
-			else {	++count;
+			else {
+                ++count;
 			}
 			continue;
 		}
@@ -3300,30 +3296,27 @@ public int getNumSubProducts ( boolean enabled_only )
 		if ( prop_value != null ) {
 			nsubs = i;
 			if ( enabled_only ) {
-				prop_value = getLayeredPropValue (
-					"Enabled", i, data, false );
-				if (	(prop_value == null) ||
-					prop_value.equalsIgnoreCase("true") ) {
+				prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+				if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 					++count;
 				}
 			}
-			else {	++count;
+			else {
+                ++count;
 			}
 			continue;
 		}
-		prop_value = getLayeredPropValue (
-			"MainTitleString", i, data, false);
+		prop_value = getLayeredPropValue ( "MainTitleString", i, data, false);
 		if ( prop_value != null ) {
 			nsubs = i;
 			if ( enabled_only ) {
-				prop_value = getLayeredPropValue (
-					"Enabled", i, data, false );
-				if (	(prop_value == null) ||
-					prop_value.equalsIgnoreCase("true") ) {
+				prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+				if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
 					++count;
 				}
 			}
-			else {	++count;
+			else {
+                ++count;
 			}
 			continue;
 		}

@@ -5476,8 +5476,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		}
 	}
 	else if ((_xaxis_date_precision==DateTime.PRECISION_MONTH)||
-		((_end_date.getAbsoluteDay() -
-		_start_date.getAbsoluteDay() > 90)) ){
+		((_end_date.getAbsoluteDay() - _start_date.getAbsoluteDay() > 90)) ){
 		// Months less than 36 months or higher precision data
 		// more than 90 days...
 		//
@@ -5496,8 +5495,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		GRLimits text_limits;
 		label_width = 0;
 		for ( int ic = 0; ic <= 9; ic++ ) {
-			text_limits = GRDrawingAreaUtil.getTextExtents ( 
-			_da_bottomx_label, "" + ic + ic, GRUnits.DEVICE );
+			text_limits = GRDrawingAreaUtil.getTextExtents ( _da_bottomx_label, "" + ic + ic, GRUnits.DEVICE );
 			if ( (int)text_limits.getWidth() > label_width){
 				label_width=(int)text_limits.getWidth();
 			}
@@ -5509,21 +5507,18 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		boolean found = false;
 		for (	int itry = 0;
 			itry < month_increments.length; itry++ ) {
-			start = new DateTime ( _start_date );			
+			start = new DateTime ( _start_date, DateTime.DATE_FAST );			
 			start.setPrecision(DateTime.PRECISION_MONTH);
 			
 			month_increment = month_increments[itry];
-			start.setMonth((start.getMonth()/
-				month_increment)*month_increment );
+			start.setMonth((start.getMonth()/month_increment)*month_increment );
 			if ( start.getMonth() == 0 ) {
 				start.setMonth(1);
 			}
 			label_date = new DateTime ( start );
 			label_date.addMonth ( month_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData(
-				start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData(
-				label_date.toDouble());
+			label0_devx=(int)_da_bottomx_label.scaleXData( start.toDouble());
+			label1_devx=(int)_da_bottomx_label.scaleXData( label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -5555,10 +5550,9 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				xt[1] = x;
 				GRDrawingAreaUtil.drawLine (_da_graph, xt, yt );
 			}
-			else {	GRDrawingAreaUtil.drawText ( _da_bottomx_label,
-				"" + date.getMonth(),x,
-				_datalim_bottomx_label.getTopY(), 0.0,
-				GRText.CENTER_X|GRText.TOP );
+			else {
+                GRDrawingAreaUtil.drawText ( _da_bottomx_label,
+				"" + date.getMonth(),x, _datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
 				if ( date.getMonth() <= month_increment ) {
 					// Label the year...
 					GRDrawingAreaUtil.drawText (
@@ -5584,17 +5578,14 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				else if ( x > _data_limits.getMaxX() ) {
 					break;
 				}
-				GRDrawingAreaUtil.drawText ( _da_bottomx_label,
-					"" + date.getYear(), x,
-					_datalim_bottomx_label.getBottomY(),
-					0.0, GRText.CENTER_X|GRText.BOTTOM );
+				GRDrawingAreaUtil.drawText ( _da_bottomx_label, "" + date.getYear(), x,
+					_datalim_bottomx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
 					break;
 			}
 		}
 	}
 	else if ((_xaxis_date_precision == DateTime.PRECISION_DAY)||
-		(TSUtil.calculateDataSize(_start_date,_end_date,
-		TimeInterval.HOUR, 1) > 168) ) {
+		(TSUtil.calculateDataSize(_start_date,_end_date, TimeInterval.HOUR, 1) > 168) ) {
 		// Days less than 60 days or higher
 		// precision data more than 7 days (168 hours)...
 		//
@@ -5623,21 +5614,19 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		int day_increment = 1;
 		boolean found = false;
 		for ( int itry = 0; itry < day_increments.length; itry++ ) {
-			start = new DateTime ( _start_date );		
+            // The following may set the day to zero so use DATE_FAST
+			start = new DateTime ( _start_date, DateTime.DATE_FAST );		
 			start.setPrecision(DateTime.PRECISION_DAY);
 					
 			day_increment = day_increments[itry];
-			start.setDay((start.getDay()/
-				day_increment)*day_increment );
+			start.setDay((start.getDay()/day_increment)*day_increment );
 			if ( start.getDay() == 0 ) {
 				start.setDay(1);
 			}
 			label_date = new DateTime ( start );
 			label_date.addDay ( day_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData(
-				start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData(
-				label_date.toDouble());
+			label0_devx=(int)_da_bottomx_label.scaleXData(start.toDouble());
+			label1_devx=(int)_da_bottomx_label.scaleXData(label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -5669,14 +5658,12 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				xt[1] = x;
 				GRDrawingAreaUtil.drawLine (_da_graph, xt, yt );
 			}
-			else {	GRDrawingAreaUtil.drawText ( _da_bottomx_label,
-					"" + date.getDay(), x,
-					_datalim_bottomx_label.getTopY(), 0.0,
-					GRText.CENTER_X|GRText.TOP );
+			else {
+                GRDrawingAreaUtil.drawText ( _da_bottomx_label,	"" + date.getDay(), x,
+					_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
 				if ( date.getDay() <= day_increment ) {
 					// Label the year and month...
-					GRDrawingAreaUtil.drawText (
-					_da_bottomx_label,
+					GRDrawingAreaUtil.drawText ( _da_bottomx_label,
 					date.toString(DateTime.FORMAT_YYYY_MM),
 					x, _datalim_bottomx_label.getBottomY(),
 					0.0, GRText.CENTER_X|GRText.BOTTOM );
@@ -5689,8 +5676,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 			}
 		}
 		if ( !draw_grid && (nlabel2 == 0) ) {
-			// Need to draw a label at the first point to
-			// show the year...
+			// Need to draw a label at the first point to show the year...
 			date = new DateTime ( start );
 			for ( ; ; date.addDay ( day_increment ) ) {
 				x = date.toDouble();
@@ -5700,10 +5686,8 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				else if ( x > _data_limits.getMaxX() ) {
 					break;
 				}
-				GRDrawingAreaUtil.drawText ( _da_bottomx_label,
-				date.toString(DateTime.FORMAT_YYYY_MM), x,
-				_datalim_bottomx_label.getBottomY(),
-				0.0, GRText.CENTER_X|GRText.BOTTOM );
+				GRDrawingAreaUtil.drawText ( _da_bottomx_label,	date.toString(DateTime.FORMAT_YYYY_MM), x,
+				_datalim_bottomx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
 				break;
 			}
 		}
@@ -5740,7 +5724,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		int hour_increment = 1;
 		boolean found = false;
 		for ( int itry = 0; itry < hour_increments.length; itry++ ) {
-			start = new DateTime ( _start_date );
+			start = new DateTime ( _start_date, DateTime.DATE_FAST );
 			start.setPrecision(DateTime.PRECISION_HOUR);
 			
 			hour_increment = hour_increments[itry];
@@ -5748,10 +5732,8 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				hour_increment)*hour_increment );
 			label_date = new DateTime ( start );
 			label_date.addHour ( hour_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData(
-				start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData(
-				label_date.toDouble());
+			label0_devx=(int)_da_bottomx_label.scaleXData( start.toDouble());
+			label1_devx=(int)_da_bottomx_label.scaleXData( label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;

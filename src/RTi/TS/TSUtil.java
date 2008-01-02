@@ -13761,7 +13761,8 @@ throws TSException
 		// Let other routine handle...
 		return getPeriodFromTS ( (Vector)null, por_flag );
 	}
-	else {	// Put single TS into a vector...
+	else {
+        // Put single TS into a vector...
 		Vector v = new Vector (1);
 		v.addElement ( ts );
 		return getPeriodFromTS ( v, por_flag );
@@ -13786,7 +13787,8 @@ throws TSException
 		// Let other routine handle...
 		return getPeriodFromTS ( (Vector)null, por_flag );
 	}
-	else {	// Put single TS and other TS into a vector...
+	else {
+        // Put single TS and other TS into a vector...
 		Vector v = new Vector (1);
 		v.addElement ( ts );
 		int size = v.size();
@@ -13818,53 +13820,60 @@ series.
 public static TSLimits getPeriodFromTS ( Vector ts, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromTS";
-	TS 	tsPtr 	= null;
+	TS tsPtr = null;
 	int	dl = 10, i = 0;
-	DateTime	end = null, tsPtr_end, tsPtr_start, start = null;
+	DateTime end = null, tsPtr_end, tsPtr_start, start = null;
 
 	if( ts == null ) {
-		message = "TS Vector is null";
-		Message.printWarning(2, routine, message );
+		message = "Unable to get period for time series - time series list is null";
+		Message.printWarning(3, routine, message );
 		throw new TSException ( message );
 	}
 
 	int vectorSize = ts.size();
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Getting " + por_flag + "-flag limits for " + vectorSize +
-		" time series" );
+		"Getting " + por_flag + "-flag limits for " + vectorSize + " time series" );
 	}
 	if( vectorSize == 0 ) {
-		message="Zero TS vector size";
-		Message.printWarning(2, routine, message );
+		message="Unable to get period for time series - time series list is zero size";
+		Message.printWarning(3, routine, message );
 		throw new TSException ( message );
 	}
 	if ( (por_flag != MIN_POR) && (por_flag != MAX_POR) ) {
 		message = "Unknown option for TSUtil.getPeriodForTS" + por_flag;
-		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 3, routine, message );
 		throw new TSException ( message );
 	}
 
-	// Initialize the start and end dates to the first
-	// TS dates...
+	// Initialize the start and end dates to the first TS dates...
 
+    int nullcount = 0;
 	for ( int its = 0; its < vectorSize; its++ ) {
 		tsPtr = (TS)ts.elementAt(its);
 		if ( tsPtr != null ) {
-			start = tsPtr.getDate1();
-			end = tsPtr.getDate2();
+            if ( tsPtr.getDate1() != null ) {
+                start = tsPtr.getDate1();
+            }
+            if ( tsPtr.getDate2() != null ) {
+                end = tsPtr.getDate2();
+            }
 			if ( (start != null) && (end != null) ) {
+                // Done looking for starting date/times
 				break;
 			}
 		}
+        else {
+            ++nullcount;
+        }
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Starting comparison dates " + start + " " + end );
+		Message.printDebug ( dl, routine, "Starting comparison dates " + start + " " + end );
 	}
 
 	if ( (start == null) || (end == null) ) {
-		message = "Unable to get period for any time series.";
+		message = "Unable to get period (all null dates) from " + vectorSize + " time series (" + nullcount +
+        " null time series).";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -13882,8 +13891,7 @@ throws TSException
 		if ( (tsPtr_start == null) || (tsPtr_end == null) ) {
 			continue;
 		}
-		Message.printDebug ( dl, routine,
-			"Comparison dates " + tsPtr_start + " " + tsPtr_end );
+		Message.printDebug ( dl, routine, "Comparison dates " + tsPtr_start + " " + tsPtr_end );
 
 		if ( por_flag == MAX_POR ) {
 			if( tsPtr_start.lessThan(start) ) {
@@ -13905,25 +13913,21 @@ throws TSException
 	// If the time series do not overlap, then the limits may be
 	// reversed.  In this case, throw an exception...
 	if ( start.greaterThan(end) ) {
-		message =
-		"Periods do not overlap.  Can't determine minimum period.";
+		message = "Periods do not overlap.  Can't determine minimum period.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
 	if ( Message.isDebugOn ) {
 		if ( por_flag == MAX_POR ) {
-			Message.printDebug( dl, routine,
-			"Maximum POR limits are " + start + " to " + end );
+			Message.printDebug( dl, routine, "Maximum POR limits are " + start + " to " + end );
 		}
 		else if ( por_flag == MIN_POR ) {
-			Message.printDebug( dl, routine,
-			"Minimum POR limits are " + start + " to " + end );
+			Message.printDebug( dl, routine, "Minimum POR limits are " + start + " to " + end );
 		}
 	}
 
-	// Now return the dates as a new instance so we don't mess up what was
-	// in the time series...
+	// Now return the dates as a new instance so we don't mess up what was in the time series...
 
 	TSLimits limits = new TSLimits();
 	limits.setDate1 ( new DateTime(start) );

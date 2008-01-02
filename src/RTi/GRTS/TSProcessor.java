@@ -218,49 +218,42 @@ throws Exception
 		Message.printStatus ( 2, routine, "Processing template." );
 	}
 	for ( int isub = 0; isub < nsubs ;isub++ ) {
-		Message.printStatus ( 2, routine,
-		"Reading time series for subproduct [" + isub + "]" );
+		Message.printStatus ( 2, routine, "Reading time series for subproduct [" + isub + "]" );
 		// New...
-		prop_value =
-		tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
+		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old...
 		if ( prop_value == null ) {
-			prop_value =
-			tsproduct.getLayeredPropValue("Enabled", isub, -1 );
+			prop_value = tsproduct.getLayeredPropValue("Enabled", isub, -1 );
 		}
-		if (	(prop_value != null) &&
-			prop_value.equalsIgnoreCase("false") ) {
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 			continue;
 		}
 		// Loop through the time series in the subproduct
 		for ( int i = 0; ; i++ ) {
 			// New version...
-			prop_value = tsproduct.getLayeredPropValue (
-					"IsEnabled", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", isub, i );
 			// Old version...
 			if ( prop_value == null ) {
-				prop_value = tsproduct.getLayeredPropValue (
-					"Enabled", isub, i );
+				prop_value = tsproduct.getLayeredPropValue ( "Enabled", isub, i );
 			}
-			if (	(prop_value != null) &&
-				prop_value.equalsIgnoreCase("false") ) {
+			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 				// Add a null time series...
 				tslist.addElement ( (TS)null );
 				continue;
 			}
-			prop_value = tsproduct.getLayeredPropValue (
-					"PeriodStart", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
 			if ( prop_value != null ) {
-				try {	date1 = DateTime.parse ( prop_value );
+				try {
+                    date1 = DateTime.parse ( prop_value );
 				}
 				catch ( Exception e ) {
 					date1 = null;
 				}
 			}
-			prop_value = tsproduct.getLayeredPropValue (
-					"PeriodEnd", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "PeriodEnd", isub, i );
 			if ( prop_value != null ) {
-				try {	date2 = DateTime.parse ( prop_value );
+				try {
+                    date2 = DateTime.parse ( prop_value );
 				}
 				catch ( Exception e ) {
 					date2 = null;
@@ -269,12 +262,11 @@ throws Exception
 			// Make sure this is last since the TSID is used in the
 			// following readTimeSeries() call...
 			if ( is_template ) {
-				tsid = tsproduct.getLayeredPropValue (
-				"TemplateTSID", isub, i, false );
+				tsid = tsproduct.getLayeredPropValue ( "TemplateTSID", isub, i, false );
 			}
-			else {	// Just get the normal property...
-				tsid = tsproduct.getLayeredPropValue (
-				"TSID", isub, i, false );
+			else {
+                // Just get the normal property...
+				tsid = tsproduct.getLayeredPropValue ( "TSID", isub, i, false );
 			}
 			if ( tsid == null ) {
 				// No more time series...
@@ -289,61 +281,37 @@ throws Exception
 			// "TSAlias".  This normally will only return non-null
 			// for something like TSTool where the time series may
 			// be in memory.
-			tsalias = tsproduct.getLayeredPropValue (
-				"TSAlias", isub, i, false );
-			if (	!is_template &&
-				(tsalias != null) &&
-				!tsalias.trim().equals("") ) {
-				// Have the property so use the TSAlias instead
-				// of the TSID...
-				Message.printStatus ( 2, routine,
-				"Reading TSAlias \"" + tsalias +
-				"\" from TS suppliers." );
-				try {	ts = readTimeSeries (	tsalias.trim(),
-								date1, date2,
-								null, true );
+			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, i, false );
+			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
+				// Have the property so use the TSAlias instead of the TSID...
+				Message.printStatus ( 2, routine, "Reading TSAlias \"" + tsalias + "\" from TS suppliers." );
+				try {
+                    ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because
-					// visual properties are going to be
-					// tied to the position of the time
-					// series.
-					Message.printWarning ( 2, routine,
-					"Error getting time series \"" +
-					tsalias.trim() + "\"" );
+					// Always add a time series because visual properties are going to be
+					// tied to the position of the time series.
+					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\"" );
 					ts = null;
 				}
 			}
-			else {	// Don't have a "TSAlias" so try to read the
-				// time series using the full "TSID"...
-				Message.printStatus ( 2, routine,
-				"Reading TSID \"" + tsid +
-				"\" from TS suppliers.");
-				try {	ts = readTimeSeries (	tsid.trim(),
-								date1, date2,
-								null, true );
+			else {
+                // Don't have a "TSAlias" so try to read the time series using the full "TSID"...
+				Message.printStatus ( 2, routine, "Reading TSID \"" + tsid + "\" from TS suppliers.");
+				try {
+                    ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because
-					// visual properties are going to be
-					// tied to the position of the time
-					// series.
+					// Always add a time series because visual properties are going to be
+					// tied to the position of the time series.
 					ts = null;
 				}
 				if ( ts == null  ) {
-					Message.printWarning ( 2, routine,
-					"Error getting time series \"" +
-					tsid.trim() + "\".  Setting to null." );
+					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsid.trim() + "\".  Setting to null." );
 				}
 				else if ( is_template ) {
-					// Non-null TS.
-					// The TemplateTSID was requested but
-					// now the actual TSID needs to be
-					// set...
-					tsproduct.setPropValue(
-						"TSID",
-						ts.getIdentifier().toString(),
-						isub, i );
+					// Non-null TS.  The TemplateTSID was requested but now the actual TSID needs to be set...
+					tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(), isub, i );
 				}
 			}
 			tslist.addElement ( ts );
@@ -363,33 +331,28 @@ throws Exception
 
 	JFrame f = new JFrame();
 	f.addNotify();
-	String graph_file =
-		tsproduct.getLayeredPropValue ( "OutputFile", -1, -1 );
+	String graph_file =	tsproduct.getLayeredPropValue ( "OutputFile", -1, -1 );
 	if ( graph_file == null ) {
 		if ( IOUtil.isUNIXMachine() ) {
 			graph_file = "/tmp/tmp.png";
 		}
-		else {	graph_file = "C:\\TEMP\\tmp.png";
+		else {
+            graph_file = "C:\\TEMP\\tmp.png";
 		}
 	}
-	String preview_output =
-		tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
+	String preview_output = tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
 	try {
-		if (	(preview_output != null) &&
-			preview_output.equalsIgnoreCase("true") ) {
+		if ( (preview_output != null) && preview_output.equalsIgnoreCase("true") ) {
 			// Create a TSViewJFrame (an output file can still be created below)...
 			TSViewJFrame tsview = new TSViewJFrame ( tsproduct );
 			if ( tsview.needToCloseGraph() ) {
-				throw new Exception (
-					"Graph was automatically closed due to " +
-				"data problem." );
+				throw new Exception ( "Graph was automatically closed due to data problem." );
 			}
 			__lastTSViewJFrame = tsview;
 			// Put this in to test letting TSTool shut down when
 			// a single TSView closes (and no main GUI is visible)..
 			if ( _tsview_window_listener != null ) {
-				tsview.addWindowListener (
-						_tsview_window_listener );
+				tsview.addWindowListener ( _tsview_window_listener );
 			}
 		}
 		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen
@@ -404,32 +367,26 @@ throws Exception
 			// then reset with the properties...
 			int width = 400;
 			int height = 400;
-			prop_value = tsproduct.getLayeredPropValue (
-				"TotalWidth", -1, -1 );
+			prop_value = tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1 );
 			if ( prop_value != null ) {
 				width = StringUtil.atoi(prop_value);
 			}
-			prop_value = tsproduct.getLayeredPropValue (
-				"TotalHeight", -1, -1 );
+			prop_value = tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1 );
 			if ( prop_value != null ) {
 				height = StringUtil.atoi(prop_value);
 			}
-			BufferedImage image = new BufferedImage (width, 
-				height,	BufferedImage.TYPE_3BYTE_BGR);
+			BufferedImage image = new BufferedImage (width, height,	BufferedImage.TYPE_3BYTE_BGR);
 			if ( image == null ) {
 				Message.printStatus ( 2, routine, "Image is null" );
 			}
 			tsviewprops.set(new Prop("Image", image, "") );
-			TSGraphJComponent graph = 
-				new TSGraphJComponent (	null, tsproduct, tsviewprops );
+			TSGraphJComponent graph = new TSGraphJComponent ( null, tsproduct, tsviewprops );
 			if ( graph.needToClose() ) {
-				throw new Exception (
-				"Graph was automatically closed due to data problem." );
+				throw new Exception ( "Graph was automatically closed due to data problem." );
 			}
 			graph.paint ( image.getGraphics() );
 			// Figure out the output file name for the product...
-			Message.printStatus ( 2, routine, 
-				"Saving graph to image file \"" + graph_file + "\"" );
+			Message.printStatus ( 2, routine, "Saving graph to image file \"" + graph_file + "\"" );
 			graph.saveAsFile ( graph_file );
 			Message.printStatus ( 2, "", "Done" );
 			graph_file = null;
@@ -438,8 +395,7 @@ throws Exception
 		}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, "TSProcessor.processGraphProduct",
-		"Unable to create graph." );
+		Message.printWarning ( 2, "TSProcessor.processGraphProduct", "Unable to create graph." );
 		Message.printWarning ( 2, "TSProcessor.processGraphProduct", e);
 		// Throw a new error...
 		throw new Exception ( "Unable to create graph." );
@@ -536,26 +492,22 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 		  if ( IOUtil.isUNIXMachine() ) {
 			fname = "/tmp/tmp_report_" + isub;
 		  }
-		  else {fname = "C:\\TEMP\\tmp_report_" + isub;
+		  else {
+              fname = "C:\\TEMP\\tmp_report_" + isub;
 		  }	
 		}
 				
 		// Set report type for subproduct
-		report_type = tsproduct.getLayeredPropValue(
-			"ReportType", isub, -1);
+		report_type = tsproduct.getLayeredPropValue( "ReportType", isub, -1);
 
-		Message.printStatus ( 2, routine,
-		"Reading time series for subproduct [" + isub + "]" );
+		Message.printStatus ( 2, routine, "Reading time series for subproduct [" + isub + "]" );
 		// New...
-		prop_value =
-		tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
+		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old...
 		if ( prop_value == null ) {
-			prop_value =
-			tsproduct.getLayeredPropValue("Enabled", isub, -1 );
+			prop_value = tsproduct.getLayeredPropValue("Enabled", isub, -1 );
 		}
-		if (	(prop_value != null) &&
-			prop_value.equalsIgnoreCase("false") ) {
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 			continue;
 		}
 
@@ -564,46 +516,41 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 
 			TS ts = null;
 			// New version...
-			prop_value = tsproduct.getLayeredPropValue (
-					"IsEnabled", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", isub, i );
 			// Old version...
 			if ( prop_value == null ) {
-				prop_value = tsproduct.getLayeredPropValue (
-					"Enabled", isub, i );
+				prop_value = tsproduct.getLayeredPropValue ( "Enabled", isub, i );
 			}
-			if (	(prop_value != null) &&
-				prop_value.equalsIgnoreCase("false") ) {
+			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 				// Add a null time series...
 				tslist.addElement ( (TS)null );
 				continue;
 			}
-			prop_value = tsproduct.getLayeredPropValue (
-					"PeriodStart", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
 			if ( prop_value != null ) {
-				try {	date1 = DateTime.parse ( prop_value );
+				try {
+                    date1 = DateTime.parse ( prop_value );
 				}
 				catch ( Exception e ) {
 					date1 = null;
 				}
 			}
-			prop_value = tsproduct.getLayeredPropValue (
-					"PeriodEnd", isub, i );
+			prop_value = tsproduct.getLayeredPropValue ( "PeriodEnd", isub, i );
 			if ( prop_value != null ) {
-				try {	date2 = DateTime.parse ( prop_value );
+				try {
+                    date2 = DateTime.parse ( prop_value );
 				}
 				catch ( Exception e ) {
 					date2 = null;
 				}
 			}
-			// Make sure this is last since the TSID is used in the
-			// following readTimeSeries() call...
+			// Make sure this is last since the TSID is used in the following readTimeSeries() call...
 			if ( is_template ) {
-				tsid = tsproduct.getLayeredPropValue (
-				"TemplateTSID", isub, i, false );
+				tsid = tsproduct.getLayeredPropValue ( "TemplateTSID", isub, i, false );
 			}
-			else {	// Just get the normal property...
-				tsid = tsproduct.getLayeredPropValue (
-				"TSID", isub, i, false );
+			else {
+                // Just get the normal property...
+				tsid = tsproduct.getLayeredPropValue ( "TSID", isub, i, false );
 			}
 			if ( tsid == null ) {
 				// No more time series...
@@ -618,76 +565,51 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 			// "TSAlias".  This normally will only return non-null
 			// for something like TSTool where the time series may
 			// be in memory.
-			tsalias = tsproduct.getLayeredPropValue (
-				"TSAlias", isub, i, false );
-			if (	!is_template &&
-				(tsalias != null) &&
-				!tsalias.trim().equals("") ) {
-				// Have the property so use the TSAlias instead
-				// of the TSID...
-				Message.printStatus ( 2, routine,
-				"Reading TSAlias \"" + tsalias +
-				"\" from TS suppliers." );
-				try {	ts = readTimeSeries (	tsalias.trim(),
-								date1, date2,
-								null, true );
+			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, i, false );
+			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
+				// Have the property so use the TSAlias instead of the TSID...
+				Message.printStatus ( 2, routine, "Reading TSAlias \"" + tsalias + "\" from TS suppliers." );
+				try {
+                    ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because
-					// visual properties are going to be
-					// tied to the position of the time
-					// series.
-					Message.printWarning ( 2, routine,
-					"Error getting time series \"" +
-					tsalias.trim() + "\"" );
+					// Always add a time series because visual properties are going to be
+					// tied to the position of the time series.
+					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\"" );
 					ts = null;
 				}
 			}
-			else {	// Don't have a "TSAlias" so try to read the
-				// time series using the full "TSID"...
-				Message.printStatus ( 2, routine,
-				"Reading TSID \"" + tsid +
-				"\" from TS suppliers.");
-				try {	ts = readTimeSeries (	tsid.trim(),
-								date1, date2,
-								null, true );
+			else {
+                // Don't have a "TSAlias" so try to read the time series using the full "TSID"...
+				Message.printStatus ( 2, routine, "Reading TSID \"" + tsid + "\" from TS suppliers.");
+				try {
+                    ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because
-					// visual properties are going to be
-					// tied to the position of the time
-					// series.
+					// Always add a time series because visual properties are going to be
+					// tied to the position of the time series.
 					ts = null;
 				}
 				if ( ts == null  ) {
-					Message.printWarning ( 2, routine,
-					"Error getting time series \"" +
-					tsid.trim() + "\".  Setting to null." );
+					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsid.trim() + "\".  Setting to null." );
 				}
 				else if ( is_template ) {
-					// Non-null TS.
-					// The TemplateTSID was requested but
-					// now the actual TSID needs to be
-					// set...
-					tsproduct.setPropValue(
-						"TSID",
-						ts.getIdentifier().toString(),
-						isub, i );
+					// Non-null TS.  The TemplateTSID was requested but now the actual TSID needs to be set...
+					tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(),isub, i );
 				}
 			}
 			
 			tslist.addElement ( ts );
 		}
 
-		// done adding all time series for that subproduct
-		// write output for this subproduct to a file
+		// Done adding all time series for that subproduct write output for this subproduct to a file
 
 		if(report_type.equalsIgnoreCase("DateValue")) {
 
 			DateValueTS.writeTimeSeriesList(tslist, fname);
  		}
 
-		// REVISIT KAT 2006-09-11
+		// TODO KAT 2006-09-11
 		// May want to revisit this in the future to add
 		// capability for other reports, such as Jasper Reports,
 		// JFreeReports, HTML, delimited file, etc.
@@ -720,36 +642,27 @@ throws Exception
 	TS ts = null;
 	for ( int i = 0; i < size; i++ ) {
 		Message.printStatus ( 2, routine, "Trying to get \"" + tsident +
-			"\" from TSSupplier \"" +
-			_suppliers[i].getTSSupplierName() + "\"" );
-		try {	ts = _suppliers[i].readTimeSeries (	tsident,
-								date1,
-								date2,
-								(String)null,
-								true );
+			"\" from TSSupplier \"" + _suppliers[i].getTSSupplierName() + "\"" );
+		try {
+            ts = _suppliers[i].readTimeSeries (	tsident, date1, date2, (String)null, true );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error reading time series.  Ignoring." );
+			Message.printWarning ( 2, routine, "Error reading time series.  Ignoring." );
 			Message.printWarning ( 2, routine, e );
 			continue;
 		}
 		if ( ts == null ) {
-			Message.printStatus ( 2, routine,
-			"Did not find TS \"" + tsident +
-			"\" using TSSupplier \"" + 
-			_suppliers[i].getTSSupplierName() + "\"" );
+			Message.printStatus ( 2, routine, "Did not find TS \"" + tsident +
+			"\" using TSSupplier \"" + _suppliers[i].getTSSupplierName() + "\"" );
 		}
-		else {	// Found a time series so assume it is the one that is
-			// needed...
-			Message.printStatus ( 2, routine,
-			"Found TS \"" + tsident + "\" (period " + ts.getDate1()
+		else {
+            // Found a time series so assume it is the one that is needed...
+			Message.printStatus ( 2, routine, "Found TS \"" + tsident + "\" (period " + ts.getDate1()
 			+ " to " + ts.getDate2() + ")" );
 			return ts;
 		}
 	}
-	throw new Exception (
-	"Unable to get time series \"" + tsident + "\" from any TSSupplier.");
+	throw new Exception ( "Unable to get time series \"" + tsident + "\" from any TSSupplier.");
 }
 
 } // End TSProcessor

@@ -970,16 +970,14 @@ static GRLimits chooseLabels ( double minValue, double maxValue,
 		double tMax = Math.ceil( maxValue/tIncrement ) * tIncrement;
 		double tMin = Math.floor( minValue/tIncrement ) * tIncrement;
 
-		// Calculate the number of labels required
-		// for this new choice of increment
+		// Calculate the number of labels required for this new choice of increment
 
 		int tNumLabels = (int)((tMax - tMin) / tIncrement) + 1;
 		if( (tNumLabels < minLabels) || (tNumLabels > numLabels) ) {
 			break;
 		}
 
-		// Calculate the maximum error produced by these sets
-		// of values
+		// Calculate the maximum error produced by these sets of values
 
 		double error = Math.max( minValue - tMin, tMax - maxValue );
 
@@ -994,10 +992,9 @@ static GRLimits chooseLabels ( double minValue, double maxValue,
 	}
 
 	if ( curError == -1 ) {
-		Message.printWarning ( 2, "GRAxis.chooseLabels",
+		Message.printWarning ( 3, "GRAxis.chooseLabels",
 		"Can't meet constraints to get nice labels (min=" + minValue +
-		" max=" + maxValue + " minLabels=" + minLabels +
-		" maxLabels= " + maxLabels + ")" );
+		" max=" + maxValue + " minLabels=" + minLabels + " maxLabels= " + maxLabels + ")" );
 		newMin = minValue;
 		newMax = maxValue;
 		newIncrement = range / (maxLabels - 1);
