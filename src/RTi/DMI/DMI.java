@@ -393,6 +393,11 @@ Database engine corresponding to "SQL Server 2000" database engine.
 protected final int _DBENGINE_SQLSERVER2000 = 60;
 
 /**
+Database engine corresponding to "SQL Server 2005" database engine
+*/
+protected final int _DBENGINE_SQLSERVER_2005 = 61;
+
+/**
 Database engine corresponding to "PostgreSQL" database engine (no distinction
 about version?).
 */
@@ -858,6 +863,16 @@ throws Exception {
 		}
 		_database_engine = _DBENGINE_SQLSERVER2000;
 	}
+    else if (__database_engine_String.equalsIgnoreCase("SQLServer2005")) {
+        _left_id_delim = "[";
+		_right_id_delim = "]";	
+		_string_delim = "'";
+		// The port number for SQL server is typically not changed...
+		if ( port <= 0 ) {
+			__port = 1433;
+		}
+		_database_engine = _DBENGINE_SQLSERVER_2005;
+    }
 	else {	throw new Exception("Trying to use unknown database engine: "
 			+ __database_engine_String + " in DMI()");
 	}
@@ -2405,6 +2420,21 @@ throws SQLException, Exception {
 				+ __port + ";DatabaseName=" + __database_name;
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for SQLServer2000 "
+				+ "using \"" + connUrl + "\"");
+		} 
+        else if (_database_engine == _DBENGINE_SQLSERVER_2005 ) {
+			printStatusOrDebug(dl, routine, "Database engine is "
+				+ "type 'DBENGINE_SQLSERVER 2005'");
+			// Use the driver distributed by Microsoft...
+            // note the slight differences in class name...
+            // other than that, they behave the same?
+			Class.forName(
+				"com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			connUrl = "jdbc:sqlserver://"
+				+ __database_server + ":"
+				+ __port + ";DatabaseName=" + __database_name;
+			Message.printStatus(2, routine,
+				"Opening ODBC connection for SQLServer "
 				+ "using \"" + connUrl + "\"");
 		} 
 		else if (_database_engine == _DBENGINE_SQLSERVER7 ) {
