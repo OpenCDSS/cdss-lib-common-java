@@ -934,6 +934,25 @@ public void setDefaultEnglishUnits ( String default_engl_units )
 	__default_engl_units = default_engl_units;
 }
 
+
+/**
+Set the default max for English units.
+@param default_engl_units Default English units.
+*/
+public void setDefaultEnglishMax ( double default_engl_max )
+{	
+	__default_engl_max = default_engl_max;
+}
+
+/**
+Set the default min for English units.
+@param default_engl_units Default English units.
+*/
+public void setDefaultEnglishMin ( double default_engl_min )
+{	
+	__default_engl_min = default_engl_min;
+}
+
 /**
 Set the default units for SI units.
 @param default_si_units Default SI units.
@@ -943,6 +962,24 @@ public void setDefaultSIUnits ( String default_si_units )
 		return;
 	}
 	__default_si_units = default_si_units;
+}
+
+/**
+Set the default max for SI units.
+@param default_engl_units Default English units.
+*/
+public void setDefaultSIMax ( double default_si_max )
+{	
+	__default_si_max = default_si_max;
+}
+
+/**
+Set the default min for SI units.
+@param default_engl_units Default English units.
+*/
+public void setDefaultSIMin ( double default_si_max )
+{	
+	__default_si_min = default_si_max;
 }
 
 /**
