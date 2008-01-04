@@ -79,7 +79,7 @@ throws Exception
     String Reset = props.getValue ( "Reset" );
     DateTime Reset_DateTime = null;     // Reset date/time - will be modified during processing below
     DateTime Reset_DateTime0 = null;    // Copy of original reset
-    if ( Reset != null ) {
+    if ( (Reset != null) && !Reset.equals("") ) {
         Reset_DateTime = DateTime.parse( Reset );
         Reset_DateTime0 = new DateTime ( Reset_DateTime );
         if ( interval_base == TimeInterval.IRREGULAR ) {

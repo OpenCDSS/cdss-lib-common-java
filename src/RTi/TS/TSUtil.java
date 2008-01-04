@@ -605,11 +605,9 @@ throws TSException
 	// may want to overload to allow a period to be added.
 
 	try {
-	if (	!intervalsMatch(ts_to_add, ts.getDataIntervalBase(),
-		ts.getDataIntervalMult()) ) {
-		message =
-		"All time series in the list are not of interval " +
-		ts.getDataIntervalBase() + "," + ts.getDataIntervalMult();
+	if ( !intervalsMatch(ts_to_add, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
+		message = "All time series in the list are not of interval " +
+		TimeInterval.getName(ts.getDataIntervalBase()) + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
