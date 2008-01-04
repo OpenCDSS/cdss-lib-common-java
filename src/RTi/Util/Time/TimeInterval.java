@@ -147,6 +147,22 @@ public boolean equals ( TimeInterval interval )
 	}
 }
 
+/**
+Determine if two instances are equal.  The base and multipler are checked.  This
+method does not check for cases like 60Minute = 1Hour (false will be returned).
+Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
+Makes sure the object passed in is a TimeInterval and then calls 
+equals(TimeInterval).
+@param o an Object to compare with
+@return true if the object is a time interval and if the integer interval base 
+and multiplier are equal, false otherwise.
+*/
+public boolean equals(Object o) {
+    boolean eq = o instanceof TimeInterval;
+    if (eq) eq = equals( (TimeInterval) o);
+    return eq;
+}
+
 /*
 Determine if two instances are equivalent.  The intervals are equivalent if the
 interval information matches exactly and in cases like the following:
