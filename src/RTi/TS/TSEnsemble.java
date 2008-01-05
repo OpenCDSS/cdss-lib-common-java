@@ -3,6 +3,8 @@ package RTi.TS;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Time.DateTime;
+
 // TODO SAM 2007-12-13 Evaluate whether to implement or extend from List
 // For now just use a list internally for data and implement List methods as needed.
 /**
@@ -12,7 +14,7 @@ understands ensembles.  There are not currently hard constraints for ensembles b
 it is expected that they have similar time series charactersitics like period of record,
 data type, and interval.  More constraints may be added over time.
 */
-public class TSEnsemble
+public class TSEnsemble implements Cloneable
 {
 
 /**
@@ -55,6 +57,35 @@ Add a time series to the ensemble.
 */
 public void add ( TS ts )
 {   __tslist.add ( ts );
+}
+
+/**
+Clone the object.  The Object base class clone() method is called and then the
+TSEnsemble objects are cloned.  The result is a complete deep copy, including a copy
+of all the time series.
+*/
+public Object clone ()
+{   try {
+        // Clone the base class...
+        TSEnsemble ensemble = (TSEnsemble)super.clone();
+        // Now clone mutable objects...
+        int size = size();
+        TS ts;
+        for ( int i = 0; i < size; i++ ) {
+            ts = get(i);
+            if ( ts == null ) {
+                add ( null );
+            }
+            else {
+                add ( (TS)ts.clone() );
+            }
+        }
+        return ensemble;
+    }
+    catch ( CloneNotSupportedException e ) {
+        // Should not happen because everything is cloneable.
+        throw new InternalError();
+    }
 }
 
 /**
