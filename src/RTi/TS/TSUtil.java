@@ -7045,21 +7045,22 @@ Create a running average time series where the time series value is the
 average of 1 or more values from the original time series.  The description is
 appended with ", centered [N] running average" or ", N-year running average".
 @param ts Time series for which to create the period of record time series.
-@param n If 
+@param n N for N-year and bracket on each side for centered running average. 
 @param type Type of running average.  RUNNING_AVERAGE_CENTER will average n*2+1
 values, centered on each point.  RUNNING_AVERAGE_NYEAR will average n years of
 data, including the current point (one value per year).
+@return The new running average time series, which is a copy of the original metadata
+but with data being the running average.
 @exception RTi.TS.TSException if there is a problem creating and filling the
 new time series.
 */
 public static TS createRunningAverageTS ( TS ts, int n, int type )
-throws TSException
-{	String	genesis = "", message,
-		routine = "TSUtil.createRunningAverageTS";
+throws TSException, IrregularTimeSeriesNotSupportedException
+{	String	genesis = "", message, routine = "TSUtil.createRunningAverageTS";
 	TS	newts = null;
 
 	if ( ts == null ) {
-		message = "Input time series is null!";
+		message = "Input time series is null.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -7080,20 +7081,24 @@ throws TSException
 	}
 
 	// Get a new time series of the proper type...
+    
+    if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
+        message = "Converting irregular time series to running average is not supported.";
+        Message.printWarning ( 2, routine, message );
+        throw new IrregularTimeSeriesNotSupportedException ( message );
+    }
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
-	if ( interval_base == TimeInterval.DAY ) {
-		newts = new DayTS ();
-	}
-	else if ( interval_base == TimeInterval.MONTH ) {
-		newts = new MonthTS ();
-	}
-	else {	message = "Only daily and monthly time series can be converted"+
-		" to running average!";
-		Message.printWarning ( 2, routine, message );
-		throw new TSException ( message );
-	}
+    String newinterval = "" + interval_mult + TimeInterval.getName(interval_base);
+    try {
+        newts = newTimeSeries ( newinterval, false );
+    }
+    catch ( Exception e ) {
+        message = "Unable to create new time series of interval \"" + newinterval + "\"";
+        Message.printWarning ( 3, routine, message );
+        throw new TSException ( message );
+    }
 	newts.copyHeader ( ts );
 	newts.setDate1 ( ts.getDate1() );
 	newts.setDate2 ( ts.getDate2() );
@@ -7112,71 +7117,47 @@ throws TSException
 		needed_count = n*2 + 1;
 	}
 	else if ( type == RUNNING_AVERAGE_NYEAR ) {
-		// Offset is to the left but remember to include the time
-		// step itself...
+		// Offset is to the left but remember to include the time step itself...
 		offset1 = -1*(n - 1);
 		offset2 = 0;
 		needed_count = n;
 	}
 
 	double	sum;
-	DateTime	value_date = null;
-	if ( interval_base == TimeInterval.MONTH ) {
-		value_date = new DateTime (DateTime.DATE_FAST|
-				DateTime.PRECISION_MONTH );
-	}
-	else {	// Daily...
-		value_date = new DateTime (DateTime.DATE_FAST|
-				DateTime.PRECISION_DAY );
-	}
+	DateTime value_date = new DateTime(newts.getDate1());  // DateTime with precision of data
 	int	count, i;
 	double	value;
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ;	date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( !ts.isDataMissing(ts.getDataValue(date) ) ) {
-			// Initialize the date for looking up values to the
-			// initial offset from the loop date...
-			value_date.setMonth ( date.getMonth() );
-			value_date.setYear ( date.getYear() );
-			if ( interval_base == TimeInterval.DAY ) {
-				value_date.setDay ( date.getDay() );
-				if ( date.getDay() == 29 ) {
-					// For now skip over leap years.
-					continue;
-				}
-			}
+			// Initialize the date for looking up values to the initial offset from the loop date...
+			value_date.setDate ( date );
+            // Offset from the current date/time to the start of the bracket
 			if ( type == RUNNING_AVERAGE_CENTER ) {
-				value_date.addInterval ( interval_base,
-				offset1*interval_mult );
+				value_date.addInterval ( interval_base,	offset1*interval_mult );
 			}
-			else {	value_date.addInterval ( TimeInterval.YEAR,
-				offset1 );
+			else {
+                value_date.addInterval ( TimeInterval.YEAR, offset1 );
 			}
-			// Now loop through and get the right values to
-			// average...
+			// Now loop through the intervals in the bracket and get the right values to average...
 			count = 0;
 			sum = 0.0;
 			for ( i = offset1; i <= offset2; i++ ) {
 				value = ts.getDataValue ( value_date );
 				if ( ts.isDataMissing(value) ) {
-					// Break.  Below we detect whether we
-					// have the right count to do the
-					// average...
+					// Break.  Below we detect whether we have the right count to do the average...
 					break;
 				}
-				else {	// Add the value to the sum (which has
-					// been initialized to zero above...
+				else {
+                    // Add the value to the sum (which has been initialized to zero above...
 					sum += value;
 					++count;
 				}
 				// Reset the dates for the next loop...
 				if ( type == RUNNING_AVERAGE_CENTER ) {
-					value_date.addInterval ( interval_base,
-					interval_mult );
+					value_date.addInterval ( interval_base, interval_mult );
 				}
-				else {	value_date.addInterval (
-					TimeInterval.YEAR, 1 );
+				else {
+                    value_date.addInterval ( TimeInterval.YEAR, 1 );
 				}
 			}
 			// Now set the data value to the computed average...
@@ -7188,10 +7169,8 @@ throws TSException
 
 	// Add to the genesis...
 
-	newts.addToGenesis ( "Created " + genesis +
-		" running average TS from original data" );
-	newts.setDescription ( newts.getDescription() + ", " + genesis +
-		" run ave" );
+	newts.addToGenesis ( "Created " + genesis + " running average TS from original data" );
+	newts.setDescription ( newts.getDescription() + ", " + genesis + " run ave" );
 	return newts;
 }
 
@@ -14777,8 +14756,7 @@ throws Exception
 {	int interval_base = 0;
 	int interval_mult = 0;
 	if ( long_id ) {
-		// Create a TSIdent so that the type of time series can be
-		// determined...
+		// Create a TSIdent so that the type of time series can be determined...
 
 		TSIdent tsident = new TSIdent(id);
 
@@ -14787,8 +14765,8 @@ throws Exception
 		interval_base = tsident.getIntervalBase();
 		interval_mult = tsident.getIntervalMult();
 	}
-	else {	// Parse a TimeInterval so that the type of time series can be
-		// determined...
+	else {
+        // Parse a TimeInterval so that the type of time series can be determined...
 
 		TimeInterval tsinterval = TimeInterval.parseInterval(id);
 
@@ -14818,20 +14796,19 @@ throws Exception
 	else if ( interval_base == TimeInterval.IRREGULAR ) {
 		ts = new IrregularTS();
 	}
-	else {	String message =
-			"Cannot create a new time series for \"" + id + "\" (" +
-			"the interval is not recognized.)";
+	else {
+        String message = "Cannot create a new time series for \"" + id + "\" (the interval is not recognized.)";
 		Message.printWarning ( 3, "TSUtil.newTimeSeries", message );
 		throw new Exception ( message );
 	}
 
 	if ( ts == null ) {
-		String message =
-			"Cannot create new time series for \"" + id + "\"";
+		String message = "Cannot create new time series for \"" + id + "\"";
 		Message.printWarning ( 3, "TSUtil.newTimeSeries", message );
 		throw new Exception ( message );
 	}
-	else {	// Set the multiplier...
+	else {
+        // Set the multiplier...
 		ts.setDataInterval(interval_base,interval_mult);
 		ts.setDataIntervalOriginal(interval_base,interval_mult);
 	}
@@ -15713,9 +15690,7 @@ the data but perhaps not the date/time</b>
 </table>
 @exception Exception if an error occurs (usually null input).
 */
-public static void setFromTS (	TS dependentTS, TS independentTS,
-				DateTime start_date, DateTime end_date,
-				PropList props )
+public static void setFromTS ( TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  routine = "TSUtil.setFromTS";
 	String	message;
@@ -15726,12 +15701,10 @@ throws Exception
 
 	// Check the properties that influence this method...
 
-	boolean transfer_bydate = true;	// Default - make dates match in both
-					// time series.
+	boolean transfer_bydate = true;	// Default - make dates match in both time series.
 	if ( props != null ) {
 		String prop_val = props.getValue("TransferData");
-		if (	(prop_val != null) &&
-			prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
+		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
@@ -15741,13 +15714,12 @@ throws Exception
 
 	TSLimits valid_dates = getValidPeriod (dependentTS,start_date,end_date);
 	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = dependentTS.getDataIntervalBase();
 	int interval_mult = dependentTS.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		message = "Setting IrregularTS by using another time series " +
-			"is not supported";
+		message = "Setting IrregularTS by using another time series is not supported";
 		// Probably can just use the TSIterator between the two dates
 		// regardless of the transfer flag.
 		Message.printWarning ( 2, routine, message );
@@ -15765,13 +15737,12 @@ throws Exception
 		tsi = dependentTS.iterator(start,null);
 	}
 
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( transfer_bydate ) {
 			data_value = independentTS.getDataValue ( date );
 		}
-		else {	// Use the iterator...
+		else {
+            // Use the iterator...
 			tsi.next();
 			data_value = tsi.getDataValue ();
 		}
@@ -15780,18 +15751,14 @@ throws Exception
 	
 	// Fill in the genesis information...
 
-	dependentTS.setDescription ( dependentTS.getDescription() +
-		", setFromTS" );
+	dependentTS.setDescription ( dependentTS.getDescription() +	", setFromTS" );
 	dependentTS.addToGenesis ( "Set data " + start.toString() +
-		" to " + end.toString() + " by using values from " +
-		independentTS.getIdentifierString() );
+		" to " + end.toString() + " by using values from " + independentTS.getIdentifierString() );
 	if ( !transfer_bydate ) {
-		dependentTS.addToGenesis (
-			"Data values were transferred by date/time." );
+		dependentTS.addToGenesis ( "Data values were transferred by date/time." );
 	}
-	else {	dependentTS.addToGenesis (
-			"Data values were transferred sequentially from start" +
-			" date/time" );
+	else {
+        dependentTS.addToGenesis ( "Data values were transferred sequentially from start date/time" );
 	}
 }
 
