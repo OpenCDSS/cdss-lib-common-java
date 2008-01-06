@@ -64,8 +64,7 @@ returned via a response() call.  The following is sample code for using it:
 	...
 
 	// create a dialog and allow users to change the TSIdent:
-	TSIdent temp = (new TSIdent_JDialog(parentJFrame, true, tsident, null))
-		.response();
+	TSIdent temp = (new TSIdent_JDialog(parentJFrame, true, tsident, null)).response();
 
 	if (temp == null) {
 		// user cancelled the dialog
@@ -76,9 +75,8 @@ returned via a response() call.  The following is sample code for using it:
 	}
 </pre></code>
 */
-public class TSIdent_JDialog
-extends JDialog 
-implements ActionListener, KeyListener, WindowListener {
+public class TSIdent_JDialog extends JDialog implements ActionListener, KeyListener, WindowListener
+{
 
 /**
 Button labels.
@@ -113,12 +111,20 @@ private TSIdent
 	__response = null,	// TSIdent that is returned via response().
 	__tsident = null;	// TSIdent that is passed in.
 
-private boolean __first_time = true;	// Indicates if refresh() is being
-					// called the first time.
-private boolean __error_wait = false;	// Indicates if there is an error in
-					// input (true) from checkInput().
-private String __warning = "";		// Warnings generated in refresh() and
-					// displayed in checkInput().
+private boolean __first_time = true;	// Indicates if refresh() is being called the first time.
+private boolean __error_wait = false;	// Indicates if there is an error in input (true) from checkInput().
+private String __warning = "";		// Warnings generated in refresh() and displayed in checkInput().
+
+/**
+Indicators for which parts of the identifier should be enabled and verified (default is true for all).
+*/
+private boolean __EnableLocation_boolean = true;
+private boolean __EnableSource_boolean = true;
+private boolean __EnableType_boolean = true;
+private boolean __EnableInterval_boolean = true;
+private boolean __EnableScenario_boolean = true;
+private boolean __EnableInputType_boolean = true;
+private boolean __EnableInputName_boolean = true;
 
 /**
 Constructor.
@@ -132,13 +138,112 @@ be null.  If necessary, pass in an empty JFrame via:<p>
 </code> will return a new TSIdent filled with the values entered on the form.
 The original instance will not modified so use the returned value to access the
 updated version.
-@param props currently unused.
+@param props Properties to control the display and validation of the identifier, for example
+to allow editing of partial identifier information, as follows:
+<table width=100% cellpadding=10 cellspacing=0 border=2>
+<tr>
+<td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>EnableAll</b></td>
+<td><b>Indicates (True/False) whether all fields should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+<tr>
+<td><b>EnableLocation</b></td>
+<td><b>Indicates (True/False) whether the location data should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+<tr>
+<td><b>EnableSource</b></td>
+<td><b>Indicates (True/False) whether the data source should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+<tr>
+<td><b>EnableType</b></td>
+<td><b>Indicates (True/False) whether the data type should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+<tr>
+<td><b>EnableScenario</b></td>
+<td><b>Indicates (True/False) whether the scenario should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+</table>
 */
-public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, 
-PropList props)
+public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList props)
 {	super(parent, modal);
 
 	__tsident = tsident;
+    if ( props == null ) {
+        props = new PropList ("");
+    }
+    String enabled = props.getValue("EnableAll");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+        // All fields are to be disabled...
+        __EnableLocation_boolean = false;
+        __EnableSource_boolean = false;
+        __EnableType_boolean = false;
+        __EnableInterval_boolean = false;
+        __EnableScenario_boolean = false;
+        __EnableInputType_boolean = false;
+        __EnableInputName_boolean = false;
+    }
+    enabled = props.getValue("EnableLocation");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableLocation_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableLocation_boolean = true;
+    }
+    enabled = props.getValue("EnableSource");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableSource_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableSource_boolean = true;
+    }
+    enabled = props.getValue("EnableType");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableType_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableType_boolean = true;
+    }
+    enabled = props.getValue("EnableInterval");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableInterval_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableInterval_boolean = true;
+    }
+    enabled = props.getValue("EnableScenario");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableScenario_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableScenario_boolean = true;
+    }
+    enabled = props.getValue("EnableInputType");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableInputType_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableInputType_boolean = true;
+    }
+    enabled = props.getValue("EnableInputName");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableInputName_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableInputName_boolean = true;
+    }
 
 	setupGUI();
 }
@@ -160,7 +265,8 @@ public void actionPerformed(ActionEvent event)
 			response( true );
 		}
 	}
-	else {	// list...
+	else {
+        // list...
 		refresh();
 	}
 }
@@ -171,8 +277,7 @@ to true.  This should be called before response() is allowed to complete.
 */
 private void checkInput ()
 {	String routine = "TSIdent_JDialog.checkInput";
-	// Checks were done in refresh(), which should have been called before
-	// this method...
+	// Checks were done in refresh(), which should have been called before this method...
 	__error_wait = false;
 	if ( __warning.length() > 0 ) {
 		__error_wait = true;
@@ -248,15 +353,15 @@ private void refresh ()
 		__locationTextField.setText ( location );
 		__dataSourceTextField.setText ( datasource );
 		__dataTypeTextField.setText ( datatype );
-		if (	JGUIUtil.isSimpleJComboBoxItem(
-				__dataInterval_JComboBox,
-				interval, JGUIUtil.NONE, null, null ) ) {
-				__dataInterval_JComboBox.select ( interval );
-		}
-		else {	__warning += "Interval \"" + interval +
-				"\" is not recognized.";
-		}
-		/* REVISIT SAM 2005-08-26
+        if ( __EnableInterval_boolean ) {
+    		if ( JGUIUtil.isSimpleJComboBoxItem(__dataInterval_JComboBox,interval, JGUIUtil.NONE, null, null ) ) {
+    			__dataInterval_JComboBox.select ( interval );
+    		}
+    		else {
+                __warning += "Interval \"" + interval +	"\" is not recognized.";
+    		}
+        }
+		/* TODO SAM 2005-08-26
 		 Add this for regular expressions, etc.?
 		else {	// Automatically add to the list at the top...
 			__dataInterval_JComboBox.insertItemAt ( interval, 0 );
@@ -290,21 +395,25 @@ private void refresh ()
 	if ( location.length() == 0 ) {
 		__warning += "\nThe location must be specified.";
 	}
-	else {	__response.setLocation( location );
+	else {
+        __response.setLocation( location );
 	}
 	__response.setSource(datasource);
 	__response.setType(datatype);
 	// For now do not allow missing interval...
-	if ( interval.length() == 0 ) {
-		__warning += "\nA valid interval must be specified.";
-	}
-	else {	try {	__response.setInterval(interval);
-		}
-		catch (Exception e) {
-			__warning += "\nThe interval \"" + interval +
-				"\" is invalid.";
-		}
-	}
+    if ( __EnableInterval_boolean ) {
+    	if ( interval.length() == 0 ) {
+    		__warning += "\nA valid interval must be specified.";
+    	}
+    	else {
+            try {
+                __response.setInterval(interval);
+    		}
+    		catch (Exception e) {
+    			__warning += "\nThe interval \"" + interval + "\" is invalid.";
+    		}
+    	}
+    }
 	__response.setScenario(scenario);
 	__response.setInputType(inputtype);
 	__response.setInputName(inputname);
@@ -368,8 +477,7 @@ private void setupGUI()
 	__inputNameTextField.addKeyListener ( this );
 
 	JGUIUtil.addComponent(panel, 
-		new JLabel(" The time series identifier (TSID) uniquely " +
-		"identifies a time series, and conforms to the standard:"),
+		new JLabel(" The time series identifier (TSID) uniquely identifies a time series, and conforms to the standard:"),
 		0, y, 3, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
@@ -388,126 +496,119 @@ private void setupGUI()
 		0, ++y, 3, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel,
-		new JLabel(" The input type and name indicate the format and "+
-		"storage location of data."),
+		new JLabel(" The input type and name indicate the format and storage location of data."),
 		0, ++y, 3, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel,
-		new JLabel(" Specify TSID parts below and the full TSID will "+
-		"automatically be created."),
+		new JLabel(" Specify TSID parts below and the full TSID will automatically be created."),
 		0, ++y, 3, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" "),
 		0, ++y, 3, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Location: "),
-		0, ++y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    
+    JLabel location_JLabel = new JLabel("Location: ");
+	JGUIUtil.addComponent(panel, location_JLabel,
+		0, ++y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __locationTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel,
 		new JLabel(" For example, a station or sensor identifier."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableLocation_boolean) {
+        location_JLabel.setEnabled(false);
+        __locationTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Data source: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel source_JLabel = new JLabel("Data source: ");
+	JGUIUtil.addComponent(panel, source_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __dataSourceTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Optional.  The source of the data " +
-		"(e.g., agency abbreviation)."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional.  The source of the data (e.g., agency abbreviation)."),
+		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableSource_boolean) {
+        source_JLabel.setEnabled(false);
+        __dataSourceTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Data type: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel type_JLabel = new JLabel("Data type: ");
+	JGUIUtil.addComponent(panel, type_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __dataTypeTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Optional.  A data type abbreviation."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional.  A data type abbreviation."),
+		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableType_boolean) {
+        type_JLabel.setEnabled(false);
+        __dataTypeTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Data interval: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel interval_JLabel = new JLabel("Data interval: ");
+	JGUIUtil.addComponent(panel, interval_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dataInterval_JComboBox = new SimpleJComboBox(false);
 	Vector interval_Vector = TimeInterval.getTimeIntervalChoices(
 		TimeInterval.MINUTE, TimeInterval.YEAR, false, 1, true);
 	if ( (__tsident == null) || (__tsident.getInterval().length() == 0) ) {
-		// Add a blank at the beginning since nothing has been
-		// selected...
+		// Add a blank at the beginning since nothing has been selected...
 		interval_Vector.insertElementAt ( "", 0 );
 	}
 	__dataInterval_JComboBox.setData ( interval_Vector );
 	__dataInterval_JComboBox.addActionListener ( this );
 	JGUIUtil.addComponent(panel, __dataInterval_JComboBox,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Data interval."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Data interval."),
+		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableInterval_boolean) {
+        interval_JLabel.setEnabled(false);
+        __dataInterval_JComboBox.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Scenario: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel scenario_JLabel = new JLabel("Scenario: ");
+	JGUIUtil.addComponent(panel, scenario_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __scenarioTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Optional string (e.g., \"Hist\", \"Test1\")."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional string (e.g., \"Hist\", \"Test1\")."),
+		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableScenario_boolean) {
+        scenario_JLabel.setEnabled(false);
+        __scenarioTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Input type: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel inputtype_JLabel = new JLabel("Input type: ");
+	JGUIUtil.addComponent(panel, inputtype_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __inputTypeTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Optional input type (" +
-		"e.g., database, file format)."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional input type (e.g., database, file format)."),
+		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableInputType_boolean) {
+        inputtype_JLabel.setEnabled(false);
+        __inputTypeTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel("Input name: "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JLabel inputname_JLabel = new JLabel("Input name: ");
+	JGUIUtil.addComponent(panel, inputname_JLabel,
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __inputNameTextField,
-		1, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Optional file or database name, for input type."),
-		2, y++, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional file or database name, for input type."),
+		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableInputName_boolean) {
+        inputname_JLabel.setEnabled(false);
+        __inputNameTextField.setEnabled(false);
+    }
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel(" Time series identified (TSID): "),
-		0, y, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.EAST);
+	JGUIUtil.addComponent(panel, new JLabel(" Time series identified (TSID): "),
+		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JTextArea = new JTextArea ( 4, 55 );
 	__TSID_JTextArea.setLineWrap ( true );
 	__TSID_JTextArea.setWrapStyleWord ( true );
 	__TSID_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent(panel, new JScrollPane(__TSID_JTextArea),
-		1, y, 2, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 2, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	JPanel south = new JPanel();
 	south.setLayout(new FlowLayout(FlowLayout.RIGHT));

@@ -128,59 +128,61 @@ implements Cloneable, Serializable, Transferable
 {
 
 /**
-Flag indicating that no sub-location should be allowed (treat as
-part of the main location).
+Flag indicating that no sub-location should be allowed (treat as part of the main location).
 */
 public static final int NO_SUB_LOCATION	= 0x1;	// Mask for setLocation()
-						// Do not use a sub-location.
+
 /**
 Flag indicating that no sub-source should be allowed (treat as
 part of the main source).
 */
 public static final int NO_SUB_SOURCE = 0x2;	// Mask for setSource()
-						// Do not use a sub-source.
+
 /**
-Flag indicating that no sub-type should be allowed (treat as
-part of the main type).
+Flag indicating that no sub-type should be allowed (treat as part of the main type).
 */
 public static final int NO_SUB_TYPE = 0x4;	// Mask for setType()
-						// Do not use a sub-type.
+
+/**
+Flag indicating that no validation of data should occur.  This is useful for storing
+identifier parts during manipulation (e.g., use wildcards, or specify parts of identifiers).
+*/
+public static final int NO_VALIDATION = 0x8;
 
 /**
 Separator string for TSIdent string parts.
 */
-public static final String SEPARATOR = ".";	// Separator for identifier
-						// parts.
+public static final String SEPARATOR = ".";
+
 /**
 Separator string for TSIdent location parts.
 */
 public static final String LOCATION_SEPARATOR = "-";
-						// Separator character for the
-						// location information.
+
 /**
 Separator string for TSIdent source parts.
 */
 public static final String SOURCE_SEPARATOR = "-";
-						// Separator character for the
-						// source information.
+
 /**
 Separator string for TSIdent data type parts.
 */
 public static final String TYPE_SEPARATOR = "-";
-						// Separator character for the
-						// data type information.
 
-
+/**
+Start of sequence number.
+*/
 private static final String __SEQUENCE_NUMBER_LEFT = "[";
-						// Start of sequence number.
+
+/**
+End of sequence number.
+*/
 private static final String __SEQUENCE_NUMBER_RIGHT = "]";
-						// End of sequence number.
 
 /**
 The DataFlavor for transferring this specific class.
 */
-public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, 
-	"TSIdent");
+public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent");
 
 // Data members...
 
@@ -329,8 +331,7 @@ public TSIdent (	String full_location, String full_source,
 			String scenario, String input_type, String input_name )
 throws Exception
 {	init();
-	setIdentifier ( full_location, full_source, full_type, interval_string,
-			scenario, input_type, input_name );
+	setIdentifier ( full_location, full_source, full_type, interval_string,	scenario, input_type, input_name );
 }
 
 /**
@@ -1156,8 +1157,7 @@ Parse a TSIdent instance given a String representation of the identifier.
 @param behavior_flag Behavior mask to use when creating instance.
 @exception if an error occurs (usually a bad interval).
 */
-public static TSIdent parseIdentifier (	String identifier,
-					int behavior_flag )
+public static TSIdent parseIdentifier (	String identifier, int behavior_flag )
 throws Exception
 {	String	routine="TSIdent.parseIdentifier";
 	int	dl = 100;
@@ -1165,8 +1165,7 @@ throws Exception
 	// Declare a TSIdent which we will fill and return...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Declare TSIdent within this routine..." );
+		Message.printDebug ( dl, routine, "Declare TSIdent within this routine..." );
 	}
 	TSIdent	tsident = new TSIdent ( behavior_flag );
 	if ( Message.isDebugOn ) {
@@ -1196,8 +1195,7 @@ throws Exception
 				pos = sub.indexOf ( "~" );
 				if ( (pos >= 0) && (sub.length() > (pos + 1))) {
 					// The rest is the file...
-					tsident.setInputName (
-					sub.substring(pos + 1) );
+					tsident.setInputName ( sub.substring(pos + 1) );
 				}
 			}
 		}
@@ -1216,15 +1214,12 @@ throws Exception
 	nlist1 = list.size();
 	for ( i = 0; i < nlist1; i++ ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"TS ID list[" + i + "]:  \"" + list.elementAt(i) +
-			"\"" );
+			Message.printDebug ( dl, routine, "TS ID list[" + i + "]:  \"" + list.elementAt(i) + "\"" );
 		}
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Full TS ID:  \"" +
-		identifier +"\"");
+		Message.printDebug ( dl, routine, "Full TS ID:  \"" + identifier +"\"");
 	}
 
 	// Parse out location and split the rest of the ID...
@@ -1234,15 +1229,13 @@ throws Exception
 	// either ' or " to be used and bracket it.
 
 	if ( (identifier.charAt(0) == '\'') || (identifier.charAt(0) == '\"')) {
-		full_location = StringUtil.readToDelim (
-				identifier.substring(1), identifier.charAt(0) );
+		full_location = StringUtil.readToDelim ( identifier.substring(1), identifier.charAt(0) );
 		// Get the 2nd+ fields...
-		list =	StringUtil.breakStringList (
-			identifier.substring(full_location.length()+1),
-			".", 0 );
+		list =	StringUtil.breakStringList ( identifier.substring(full_location.length()+1), ".", 0 );
 		nlist1 = list.size();
 	}
-	else {	list =	StringUtil.breakStringList ( identifier, ".", 0 );
+	else {
+        list =	StringUtil.breakStringList ( identifier, ".", 0 );
 		nlist1 = list.size();
 		if ( nlist1 >= 1 ) {
 			full_location = (String)list.elementAt(0);
@@ -1267,25 +1260,18 @@ throws Exception
 		// Get the sequence number...
 		if ( index >= 0 ) {
 			if ( interval_string.endsWith(__SEQUENCE_NUMBER_RIGHT)){
-				// Should be a properly-formed sequence
-				// number, but need to remove the brackets...
-				String sequence_number_string =
-					interval_string.substring(
-					index + 1, interval_string.length() - 1)
-					.trim();
-				if (	StringUtil.isInteger(
-					sequence_number_string) ) {
-					sequence_number = StringUtil.atoi(
-						sequence_number_string );
+				// Should be a properly-formed sequence number, but need to remove the brackets...
+				String sequence_number_string =	interval_string.substring( index + 1, interval_string.length() - 1).trim();
+				if ( StringUtil.isInteger( sequence_number_string) ) {
+					sequence_number = StringUtil.atoi( sequence_number_string );
 				}
 			}
 			if ( index == 0 ) {
-				// There is no interval, just the sequence
-				// number (should not happen)...
+				// There is no interval, just the sequence number (should not happen)...
 				interval_string = "";
 			}
-			else {	interval_string =
-					interval_string.substring(0,index);
+			else {
+                interval_string = interval_string.substring(0,index);
 			}
 		}
 	}
@@ -1309,19 +1295,17 @@ throws Exception
 	if ( index >= 0 ) {
 		if ( scenario.endsWith(__SEQUENCE_NUMBER_RIGHT) ) {
 			// Should be a properly-formed sequence number...
-			String sequence_number_string =
-				scenario.substring ( index + 1,
-				scenario.length() - 1 ).trim();
+			String sequence_number_string =	scenario.substring ( index + 1,	scenario.length() - 1 ).trim();
 			if ( StringUtil.isInteger(sequence_number_string) ) {
-				sequence_number = StringUtil.atoi(
-					sequence_number_string );
+				sequence_number = StringUtil.atoi( sequence_number_string );
 			}
 		}
 		if ( index == 0 ) {
 			// There is no scenario, just the sequence number...
 			scenario = "";
 		}
-		else {	scenario = scenario.substring(0,index);
+		else {
+            scenario = scenario.substring(0,index);
 		}
 	}
 	if ( Message.isDebugOn ) {
@@ -1345,8 +1329,7 @@ throws Exception
 	// Return the TSIdent object for use elsewhere...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Returning local TSIdent..." );
+		Message.printDebug ( dl, routine, "Returning local TSIdent..." );
 	}
 	full_location = null;
 	full_source = null;
@@ -1486,8 +1469,7 @@ throws Exception
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to set identifier to \"" + identifier + "\"" );
+		Message.printDebug ( dl, routine, "Trying to set identifier to \"" + identifier + "\"" );
 	}
 
 	if ( identifier.length() == 0 ) {
@@ -1496,8 +1478,7 @@ throws Exception
 		// empty string, it is a mistake.  The initialization code will
 		// call setFullIdentifier() directly.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Identifier string is empty, not processing!" );
+			Message.printDebug ( dl, routine, "Identifier string is empty, not processing!" );
 		}
 		return;
 	}
@@ -1506,22 +1487,18 @@ throws Exception
 	// temporary identifier object...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Done declaring temp TSIdent." );
-		Message.printDebug ( dl, routine,
-		"Parsing identifier..." );
+		Message.printDebug ( dl, routine, "Done declaring temp TSIdent." );
+		Message.printDebug ( dl, routine, "Parsing identifier..." );
 	}
 	TSIdent tsident = parseIdentifier ( identifier, __behavior_mask );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"...back from parsing identifier" );
+		Message.printDebug ( dl, routine, "...back from parsing identifier" );
 	}
 
 	// Now copy the temporary copy into this instance...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Setting the individual parts..." );
+		Message.printDebug ( dl, routine, "Setting the individual parts..." );
 	}
 	setLocation( tsident.getLocation() );
 	setSource( tsident.getSource() );
@@ -1532,8 +1509,7 @@ throws Exception
 	setInputType ( tsident.getInputType() );
 	setInputName ( tsident.getInputName() );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"... done setting the individual parts" );
+		Message.printDebug ( dl, routine, "... done setting the individual parts" );
 	}
 
 	tsident = null;
@@ -1640,34 +1616,43 @@ Set the interval given the interval string.
 */
 public void setInterval ( String interval_string )
 throws Exception
-{	String		routine="TSIdent.setInterval(String)";
-	int		dl = 100;
-	TimeInterval	tsinterval;
+{	String routine="TSIdent.setInterval(String)";
+	int	dl = 100;
+	TimeInterval tsinterval = null;
 
 	if ( interval_string == null ) {
 		return;
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Setting interval to \"" +
-		interval_string + "\"" );
+		Message.printDebug ( dl, routine, "Setting interval to \"" + interval_string + "\"" );
 	}
 
-	if (	!interval_string.equals("*") &&
-		interval_string.length() > 0 ) {
+	if ( !interval_string.equals("*") && interval_string.length() > 0 ) {
 		// First split the string into its base and multiplier...
 
-		tsinterval = TimeInterval.parseInterval ( interval_string );
+        if ( (__behavior_mask & NO_VALIDATION) == 0 ) {
+            try {
+                tsinterval = TimeInterval.parseInterval ( interval_string );
+            }
+            catch ( Exception e ) {
+                // Not validating so let this pass...
+            }
+        }
+        else {
+            // Want to validate so let this throw an exception...
+            tsinterval = TimeInterval.parseInterval ( interval_string );
+        }
 
 		// Now set the base and multiplier...
-
-		__interval_base = tsinterval.getBase();
-		__interval_mult = tsinterval.getMultiplier();
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Setting interval base to " + __interval_base
-			+ " mult: " + __interval_mult );
-		}
+        if ( tsinterval != null ) {
+    		__interval_base = tsinterval.getBase();
+    		__interval_mult = tsinterval.getMultiplier();
+    		if ( Message.isDebugOn ) {
+    			Message.printDebug ( dl, routine, "Setting interval base to " + __interval_base	+ " mult: " +
+                        __interval_mult );
+    		}
+        }
 	}
 	// Else, don't do anything (leave as zero initialized values).
 
@@ -1687,9 +1672,8 @@ Set the interval given the interval integer values.
 */
 public void setInterval ( int interval_base, int interval_mult )
 {	if ( interval_mult <= 0 ) {
-		Message.printWarning ( 2, "TSIdent.setInterval",
-		"Interval multiplier (" + interval_mult +
-		" must be greater than zero" );
+		Message.printWarning ( 2, "TSIdent.setInterval", "Interval multiplier (" + interval_mult +
+                " must be greater than zero" );
 	}
 	if (	(interval_base != TimeInterval.SECOND) &&
 		(interval_base != TimeInterval.MINUTE) &&
@@ -1699,18 +1683,16 @@ public void setInterval ( int interval_base, int interval_mult )
 		(interval_base != TimeInterval.MONTH) &&
 		(interval_base != TimeInterval.YEAR) &&
 		(interval_base != TimeInterval.IRREGULAR) ) {
-		Message.printWarning ( 2, "TSIdent.setInterval",
-		"Base interval (" + interval_base + ") is not recognized" );
+		Message.printWarning ( 2, "TSIdent.setInterval", "Base interval (" + interval_base + ") is not recognized" );
 		return;
 	}
 	__interval_base = interval_base;
 	__interval_mult = interval_mult;
 
-	// Now we need to set the string representation of the interval...
+	// Now need to set the string representation of the interval...
 
 	StringBuffer interval_string = new StringBuffer ();
-	if (	(interval_base != TimeInterval.IRREGULAR) &&
-		(interval_mult != 1) ) {
+	if ( (interval_base != TimeInterval.IRREGULAR) && (interval_mult != 1) ) {
 		interval_string.append ( interval_mult );
 	}
 
@@ -1769,14 +1751,13 @@ public void setLocation ()
 	if ( (__behavior_mask & NO_SUB_LOCATION) != 0 ) {
 		// Just use the main location as the full location...
 		if ( __main_location != null ) {
-			// There should always be a main location after the
-			// object is initialized...
+			// There should always be a main location after the object is initialized...
 			setFullLocation ( __main_location );
 		}
 	}
-	else {	// Concatenate the main and sub-locations to get the full
-		// location.
-		StringBuffer	full_location = new StringBuffer ();
+	else {
+        // Concatenate the main and sub-locations to get the full location.
+		StringBuffer full_location = new StringBuffer ();
 		// We may want to check for __main_location[] also...
 		if ( __main_location != null ) {
 			// This should always be the case after the object is

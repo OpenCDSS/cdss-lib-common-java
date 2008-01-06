@@ -70,14 +70,16 @@ public Object clone ()
         TSEnsemble ensemble = (TSEnsemble)super.clone();
         // Now clone mutable objects...
         int size = size();
+        // Need a new vector...
+        ensemble.__tslist = new Vector(size);
         TS ts;
         for ( int i = 0; i < size; i++ ) {
             ts = get(i);
             if ( ts == null ) {
-                add ( null );
+                ensemble.add ( null );
             }
             else {
-                add ( (TS)ts.clone() );
+                ensemble.add ( (TS)ts.clone() );
             }
         }
         return ensemble;
