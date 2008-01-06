@@ -368,18 +368,31 @@ public final static int AVAILABLE_POR 	= 2;	// Operate on the original
 
 /**
 Used with createRunningAverageTS.
+Create a running average by averaging values from both sides of the time step, inclusive.
 */
-public final static int RUNNING_AVERAGE_CENTER 	= 1;
-						// Create a running average by
-						// averaging values from both
-						// sides of the time step.
-public final static int RUNNING_AVERAGE_NYEAR 	= 2;
-						// Create a running average by
-						// averaging values from the
-						// same time step for each of
-						// the previous N -1 years and
-						// the current year.
-
+public final static int RUNNING_AVERAGE_CENTER = 1;
+/**
+Create a running average by averaging values from the same time step for each of
+the previous N -1 years and the current year.
+*/
+public final static int RUNNING_AVERAGE_NYEAR = 2;
+/**
+Create a running average by averaging values prior to the current time step, not inclusive of the current point.
+*/
+public final static int RUNNING_AVERAGE_PREVIOUS = 3;
+/**
+Create a running average by averaging values prior to the current time step, inclusive of the current point.
+*/
+public final static int RUNNING_AVERAGE_PREVIOUS_INCLUSIVE = 4;
+/**
+Create a running average by averaging values after to the current time step, not inclusive of the current point.
+*/
+public final static int RUNNING_AVERAGE_FUTURE = 5;
+/**
+Create a running average by averaging values after to the current time step, inclusive of the current point.
+*/
+public final static int RUNNING_AVERAGE_FUTURE_INCLUSIVE = 6;
+						
 /**
 Ignore missing data when adding, subtracting, etc.
 */
@@ -7065,20 +7078,16 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 		throw new TSException ( message );
 	}
 
-	if ( type == RUNNING_AVERAGE_CENTER ) {
-		genesis = "bracket=" + n + " centered";
-		if ( n == 1 ) {
-			// Just return the original time series...
-			return ts;
-		}
-	}
-	if ( type == RUNNING_AVERAGE_NYEAR ) {
-		genesis = n + "-year";
+	if ( (type == RUNNING_AVERAGE_NYEAR) ) {
 		if ( n <= 1 ) {
 			// Just return the original time series...
 			return ts;
 		}
 	}
+    else if ( n == 0 ) {
+        // Just return the original time series...
+        return ts;
+    }
 
 	// Get a new time series of the proper type...
     
@@ -7111,17 +7120,47 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 
 	int needed_count = 0, offset1 = 0, offset2 = 0;
 	if ( type == RUNNING_AVERAGE_CENTER ) {
+        genesis = "bracket=" + n + " centered";
 		// Offset brackets the date...
 		offset1 = -1*n;
 		offset2 = n;
 		needed_count = n*2 + 1;
 	}
+    else if ( type == RUNNING_AVERAGE_FUTURE ) {
+        genesis = "bracket=" + n + " future (not inclusive)";
+        // Offset brackets the date...
+        offset1 = 1;
+        offset2 = n;
+        needed_count = n;
+    }
+    else if ( type == RUNNING_AVERAGE_FUTURE_INCLUSIVE ) {
+        genesis = "bracket=" + n + " future (inclusive)";
+        // Offset brackets the date...
+        offset1 = 0;
+        offset2 = n;
+        needed_count = n + 1;
+    }
 	else if ( type == RUNNING_AVERAGE_NYEAR ) {
+        genesis = n + "-year";
 		// Offset is to the left but remember to include the time step itself...
 		offset1 = -1*(n - 1);
 		offset2 = 0;
 		needed_count = n;
 	}
+    else if ( type == RUNNING_AVERAGE_PREVIOUS ) {
+        genesis = "bracket=" + n + " previous (not inclusive)";
+        // Offset brackets the date...
+        offset1 = -n;
+        offset2 = -1;
+        needed_count = n;
+    }
+    else if ( type == RUNNING_AVERAGE_PREVIOUS_INCLUSIVE ) {
+        genesis = "bracket=" + n + " previous (inclusive)";
+        // Offset brackets the date...
+        offset1 = -n;
+        offset2 = 0;
+        needed_count = n + 1;
+    }
 
 	double	sum;
 	DateTime value_date = new DateTime(newts.getDate1());  // DateTime with precision of data
@@ -7132,11 +7171,11 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 			// Initialize the date for looking up values to the initial offset from the loop date...
 			value_date.setDate ( date );
             // Offset from the current date/time to the start of the bracket
-			if ( type == RUNNING_AVERAGE_CENTER ) {
-				value_date.addInterval ( interval_base,	offset1*interval_mult );
-			}
-			else {
+			if ( type == RUNNING_AVERAGE_NYEAR ) {
                 value_date.addInterval ( TimeInterval.YEAR, offset1 );
+            }
+			else {
+                value_date.addInterval ( interval_base, offset1*interval_mult );
 			}
 			// Now loop through the intervals in the bracket and get the right values to average...
 			count = 0;
@@ -7153,11 +7192,11 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 					++count;
 				}
 				// Reset the dates for the next loop...
-				if ( type == RUNNING_AVERAGE_CENTER ) {
-					value_date.addInterval ( interval_base, interval_mult );
-				}
-				else {
+				if ( type == RUNNING_AVERAGE_NYEAR ) {
                     value_date.addInterval ( TimeInterval.YEAR, 1 );
+                }
+				else {
+                    value_date.addInterval ( interval_base, interval_mult );
 				}
 			}
 			// Now set the data value to the computed average...
