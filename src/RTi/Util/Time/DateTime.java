@@ -261,10 +261,15 @@ import RTi.Util.String.StringUtil;
 The DateTime class provides date/time storage and manipulation for general use.
 Unlike the Java Date and Calendar classes, this class allows date/time
 data fields to be easily set and manipulated.
+Note that some data members are public.  This is done to increase performance
+when accessing data.  However, data members should typically not be set
+directly or during iteration.
 Specific features of the DateTime class are:
 <ul>
-<li>	An optional bitmask flag can be used at construction to indicate the
-	precision (which matches the TimeInterval values), initialization
+<li>	DateTime has nearly the same features as the RTi.TS.TSDate class, which
+	it is replacing.</li>
+<li>	An optional bitmask flag is still used at construction to indicate the
+	precision (which now matches the TimeInterval values), initialization
 	(to zero or current date/time), and performance (fast or strict).
 	TimeInterval.YEAR is equal to DateTime.PRECISION_YEAR, etc.</li>
 <li>	The precision values are mutually exclusive; therefore, they can be
@@ -273,7 +278,13 @@ Specific features of the DateTime class are:
 	However, if the PRECISION_TIME_ZONE flag is set during creation or with
 	a call to setTimeZone(), then the time zone is intended to be used
 	throughout (comparison, output, etc.).</li>
-<li>	DateTime objects can be used in TimeUtil methods in a generic way.</li>
+<li>	Commonly retrieved data members (e.g., hour, minute) are public in
+	DateTime to increase performance.  These values should be accessed
+	directly for retrieval but add*() methods should be used when 
+	incrementing or iterating.  Values can be set directly but reset()
+	should be called if day, month, or year values are set.</li>
+<li>	DateTime objects can be used in TimeUtil methods in a generic way
+	(TSDate manipulation was confined to the TS package).</li>
 <li>	Call isZero() to see whether the DateTime has zero values.  A zero
 	DateTime means that the date is not the current time and values have
 	not been reset from the defaults.</li>
@@ -298,7 +309,8 @@ day of year<br>
 whether a leap year<br>
 
 <p>
-This results in slower processing of dates and is the default behaviour.  For
+This
+results in slower processing of dates and is the default behaviour.  For
 iterators, it is usually best to use the DATE_FAST behavior.
 */
 public static final int DATE_STRICT	= 0x1000;
@@ -518,95 +530,46 @@ public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ = 26;
 // Current maximum value for FORMAT* is 26.
 // !!!!!
 
-/**
-Hundredths of a second (0-99).
-*/
-private int __hsecond;
+// Data for the instance (only make public raw data - data that are computed
+// are still private in case they get updated when get() methods are called)...
 
-/**
-Seconds (0-59).
-*/
-private int __second;
+public int		hsecond;	// Hundredths of a second (0-99).
+public int		second;		// Seconds (0-59).
+public int		minute;		// Minutes past hour (0-59).
+public int		hour;		// Hours past midnight (0-23).
+public int		day;		// Day of month (1-31).
+public int		month;		// Month (1-12).
+public int		year;		// Year (4 digit)
+public String		tz;		// Time zone abbreviation.
 
-/**
-Minutes past hour (0-59).
-*/
-private int __minute;
+private boolean		_isleap;	// Is the year a leap year (1) or not
+					// (0)?
+private boolean		_iszero;	// Is the DateTime initialized to zero
+					// without further changes?
+private int		_weekday;	// Day of week (0=Sunday).
+private int		_yearday;	// Day of year (0-365).
+private int 		_abs_month;	// Absolute month (year*12 + month).
+private int		_precision;	// Precision of the DateTime (allows
+					// some optimization and automatic
+					// decisions when converting).
+					// This is the PRECISION_* value only
+					// (not a bit mask).
+					// _use_time_zone and _time_only control
+					// other precision information.
 
-/**
-Hours past midnight (0-23).  Important - hour 24 in data should be handled as
-hour 0 of the next day.
-*/
-private int __hour;
+private int		_behavior_flag;	// Flag for special behavior of dates.
+					// Internally this contains all the
+					// behavior flags but for the most part
+					// it is only used for ZERO/CURRENT and
+					// FAST/STRICT checks.
 
-/**
-Day of month (1-31).
-*/
-private int __day;
+private boolean		_use_time_zone = false;
+					// Indicates whether the time zone
+					// should be used when processing the
+					// DateTime
 
-/**
-Month (1-12).
-*/
-private int __month;
-
-/**
-Year (4 digit).
-*/
-private int __year;
-
-/**
-Time zone abbreviation.
-*/
-private String __tz;
-
-/**
-Indicate whether the year a leap year (true) or not (false).
-*/
-private boolean	__isleap;
-
-/**
-Is the DateTime initialized to zero without further changes?
-*/
-private boolean	__iszero;
-
-/**
-Day of week (0=Sunday).
-*/
-private int __weekday;
-
-/**
-Day of year (0-365).
-*/
-private int	__yearday;
-
-/**
-Absolute month (year*12 + month).
-*/
-private int __abs_month;
-
-/**
-Precision of the DateTime (allows some optimization and automatic
-decisions when converting). This is the PRECISION_* value only
-(not a bit mask).  _use_time_zone and _time_only control other precision information.
-*/
-private int __precision;
-
-/**
-Flag for special behavior of dates.  Internally this contains all the
-behavior flags but for the most part it is only used for ZERO/CURRENT and
-FAST/STRICT checks.
-*/
-private int __behavior_flag;
-
-/**
-Indicates whether the time zone should be used when processing the DateTime
-*/
-private boolean __use_time_zone = false;
-
-/**
-Use only times for the DateTime.
-*/
-private boolean	__time_only = false;
+private boolean		_time_only = false;
+					// Use only times for the DateTime
 
 /**
 Default constructor (set to zero time).
@@ -630,17 +593,19 @@ public DateTime ( int flag )
 		setToZero();
 	}
 
-	__behavior_flag = flag;
+	_behavior_flag = flag;
 	setPrecision ( flag );
 	reset();
 }
 
 /**
-Construct from a Java Date.  The time zone is not set - use the overloaded method if necessary.
+Construct from a Java Date.  The time zone is not set - use the overloaded
+method if necessary.
 @param d Java Date.
 */
 public DateTime ( Date d )
-{	// If a null date is passed in, behave like the default DateTime() constructor.
+{	// If a null date is passed in, behave like the default DateTime()
+	// constructor.
 	if (d == null) {
 		setToZero ();
 		reset();
@@ -648,7 +613,8 @@ public DateTime ( Date d )
 	}
 
 	// use_deprecated indicates whether to use the deprecated Date
-	// functions.  These should be fast (no strings) but are, of course, deprecated.
+	// functions.  These should be fast (no strings) but are, of course,
+	// deprecated.
 	boolean	use_deprecated = true;
 
 	if ( use_deprecated ) {
@@ -662,39 +628,38 @@ public DateTime ( Date d )
 		// Sometimes Dates are instantiated from data where hours, etc.
 		// are not available (e.g. from a database date/time).
 		// Therefore, catch exceptions at each step...
-		try {
-            // Returned hours are 0 to 23
+		try {	// Returned hours are 0 to 23
 			setHour ( d.getHours() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		try {
-            // Returned hours are 0 to 59 
+		try {	// Returned hours are 0 to 59 
 			setMinute ( d.getMinutes() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		try {
-            // Returned seconds are 0 to 59
+		try {	// Returned seconds are 0 to 59
 			setSecond ( d.getSeconds() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		__tz = "";
+		tz = "";
 	}
-	else {
-        // Date/Calendar are ugly to work with, let's get information by formatting strings...
+	else {	// Date/Calendar are ugly to work with, let's get our
+		// information by formatting strings...
 
 		// year month
-		// Use the formatTimeString routine instead of the following...
+		// We now use the formatTimeString routine instead of the
+		// following...
 		// String format = "yyyy M d H m s S";
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		Vector v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
+		Vector v = StringUtil.breakStringList ( time_date, " ",
+				StringUtil.DELIM_SKIP_BLANKS );
 		setYear ( Integer.parseInt((String)v.elementAt(0)) );
 		setMonth ( Integer.parseInt((String)v.elementAt(1)) );
 		setDay ( Integer.parseInt((String)v.elementAt(2)) );
@@ -707,12 +672,12 @@ public DateTime ( Date d )
 		// setTimeZone ( (String)v.elementAt(7) );
 		format = null;
 		time_date = null;
-		__tz = "";
+		tz = "";
 		v = null;
 	}
 
 	reset();
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -736,40 +701,38 @@ public DateTime ( Date d, int behavior_flag )
 		// Sometimes Dates are instantiated from data where hours, etc.
 		// are not available (e.g. from a database date/time).
 		// Therefore, catch exceptions at each step...
-		try {
-            // Returned hours are 0 to 23
+		try {	// Returned hours are 0 to 23
 			setHour ( d.getHours() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		try {
-            // Returned hours are 0 to 59 
+		try {	// Returned hours are 0 to 59 
 			setMinute ( d.getMinutes() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		try {
-            // Returned seconds are 0 to 59
+		try {	// Returned seconds are 0 to 59
 			setSecond ( d.getSeconds() );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
-		__tz = "";
+		tz = "";
 	}
-	else {
-        // Date/Calendar are ugly to work with, so get information by formatting strings...
+	else {	// Date/Calendar are ugly to work with, let's get our
+		// information by formatting strings...
 
 		// year month
-		// Use the formatTimeString routine instead of the
+		// We now use the formatTimeString routine instead of the
 		// following...
 		// String format = "yyyy M d H m s S";
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		Vector v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
+		Vector v = StringUtil.breakStringList ( time_date, " ",
+				StringUtil.DELIM_SKIP_BLANKS );
 		setYear ( Integer.parseInt((String)v.elementAt(0)) );
 		setMonth ( Integer.parseInt((String)v.elementAt(1)) );
 		setDay ( Integer.parseInt((String)v.elementAt(2)) );
@@ -782,32 +745,33 @@ public DateTime ( Date d, int behavior_flag )
 		// setTimeZone ( (String)v.elementAt(7) );
 		format = null;
 		time_date = null;
-		__tz = "";
+		tz = "";
 		v = null;
 	}
 
 	// Set the time zone.  Use TimeUtil directly to increase performance...
 
 	if ( (behavior_flag&PRECISION_TIME_ZONE) != 0 ) {
-		if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
+		if (	TimeUtil._time_zone_lookup_method ==
+			TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
 			if ( !TimeUtil._local_time_zone_retrieved ) {
 				// Need to initialize...
 				setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 			}
-			else {
-                // Use the existing data...
+			else {	// Use the existing data...
 				setTimeZone ( TimeUtil._local_time_zone_string);
 			}
 		}
-		else if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
+		else if ( TimeUtil._time_zone_lookup_method ==
+			TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
 			setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 		}
 	}
 	
-	__behavior_flag = behavior_flag;
+	_behavior_flag = behavior_flag;
 	setPrecision ( behavior_flag );
 	reset();
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -816,28 +780,28 @@ Copy constructor.
 */
 public DateTime ( DateTime t )
 {	if ( t != null ) {
-		__hsecond = t.__hsecond;
-		__second = t.__second;
-		__minute = t.__minute;
-		__hour = t.__hour;
-		__day = t.__day;
-		__month	= t.__month;
-		__year = t.__year;
-		__isleap = t.__isleap;
-		__weekday = t.__weekday;
-		__yearday = t.__yearday;
-		__abs_month	= t.__abs_month;
-		__behavior_flag	= t.__behavior_flag;
-		__precision	= t.__precision;
-		__use_time_zone	= t.__use_time_zone;
-		__time_only	= t.__time_only;
-		__iszero = t.__iszero;
-		__tz = t.__tz;
+		hsecond 	= t.hsecond;
+		second		= t.second;
+		minute		= t.minute;
+		hour 		= t.hour;
+		day 		= t.day;
+		month		= t.month;
+		year		= t.year;
+		_isleap		= t._isleap;
+		_weekday	= t._weekday;
+		_yearday	= t._yearday;
+		_abs_month	= t._abs_month;
+		_behavior_flag	= t._behavior_flag;
+		_precision	= t._precision;
+		_use_time_zone	= t._use_time_zone;
+		_time_only	= t._time_only;
+		_iszero		= t._iszero;
+		tz		= t.tz;
 	}
-	else {
-        // Constructing from null usually means that there is a code
+	else {	// Constructing from null usually means that there is a code
 		// logic problem with exception handling...
-		Message.printWarning ( 20, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		Message.printWarning ( 20, "DateTime",
+		"Constructing DateTime from null - will have zero date!" );
 		setToZero ();
 	}
 	reset();
@@ -852,29 +816,28 @@ public DateTime ( DateTime t, String newtz )
 {	if ( t != null ) {
 		// First copy...
 
-		__hsecond = t.__hsecond;
-		__second = t.__second;
-		__minute = t.__minute;
-		__hour = t.__hour;
-		__day = t.__day;
-		__month = t.__month;
-		__year = t.__year;
-		__isleap = t.__isleap;
-		__iszero = t.__iszero;
-		__weekday = t.__weekday;
-		__yearday = t.__yearday;
-		__abs_month	= t.__abs_month;
-		__behavior_flag	= t.__behavior_flag;
-		__precision	= t.__precision;
-		__use_time_zone	= t.__use_time_zone;
-		__time_only	= t.__time_only;
-		__tz = t.__tz;
+		hsecond 	= t.hsecond;
+		second		= t.second;
+		minute		= t.minute;
+		hour 		= t.hour;
+		day 		= t.day;
+		month		= t.month;
+		year		= t.year;
+		_isleap		= t._isleap;
+		_iszero		= t._iszero;
+		_weekday	= t._weekday;
+		_yearday	= t._yearday;
+		_abs_month	= t._abs_month;
+		_behavior_flag	= t._behavior_flag;
+		_precision	= t._precision;
+		_use_time_zone	= t._use_time_zone;
+		_time_only	= t._time_only;
+		tz		= t.tz;
 
 		// Now compute the time zone offset...
 
 		int offset = 0;
-		try {
-            TZ.calculateOffsetMinutes ( t.__tz, newtz, this );
+		try {	TZ.calculateOffsetMinutes ( t.tz, newtz, this );
 		}
 		catch ( Exception e ) {
 			// Should not happen if the system is set up correctly.
@@ -882,10 +845,10 @@ public DateTime ( DateTime t, String newtz )
 		addMinute ( offset );
 		setTimeZone( newtz );
 	}
-	else {
-        // Constructing from null usually means that there is a code
+	else {	// Constructing from null usually means that there is a code
 		// logic problem with exception handling...
-		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		Message.printWarning ( 2, "DateTime",
+		"Constructing DateTime from null - will have zero date!" );
 		setToZero ();
 	}
 	reset();
@@ -899,34 +862,34 @@ copy, it is ignored.
 */
 public DateTime ( DateTime t, int flag )
 {	if ( t != null ) {
-		__year = t.__year;
-		__month	= t.__month;
-		__day = t.__day;
-		__hour = t.__hour;
-		__minute = t.__minute;
-		__second = t.__second;
-		__hsecond = t.__hsecond;
-		__isleap = t.__isleap;
-		__weekday = t.__weekday;
-		__yearday = t.__yearday;
-		__abs_month	= t.__abs_month;
-		__behavior_flag	= flag;
-		__iszero = t.__iszero;
+		year		= t.year;
+		month		= t.month;
+		day 		= t.day;
+		hour 		= t.hour;
+		minute		= t.minute;
+		second		= t.second;
+		hsecond		= t.hsecond;
+		_isleap		= t._isleap;
+		_weekday	= t._weekday;
+		_yearday	= t._yearday;
+		_abs_month	= t._abs_month;
+		_behavior_flag	= flag;
+		_iszero		= t._iszero;
 		// Set the precision.  The call to setPrecision() will result
 		// in the final precision and, if necessary, will reset data
 		// values back to initial values to prevent remainder values
 		// from being used (e.g., for plot positions, offsets)...
-		__precision	= t.__precision;
-		__use_time_zone	= t.__use_time_zone;
-		__time_only	= t.__time_only;
+		_precision	= t._precision;
+		_use_time_zone	= t._use_time_zone;
+		_time_only	= t._time_only;
 		// May be overwridden here...
 		setPrecision ( flag );
-		__tz = t.__tz;
+		tz = t.tz;
 	}
-	else {
-        // Constructing from null usually means that there is a code
+	else {	// Constructing from null usually means that there is a code
 		// logic problem with exception handling...
-		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		Message.printWarning ( 2, "DateTime",
+		"Constructing DateTime from null - will have zero date!" );
 		setToZero ();
 	}
 	reset();
@@ -958,44 +921,46 @@ public DateTime ( double double_date, boolean use_month )
 	// .001 100th of a second as a percentage of the day is...
 	// 1/86400000;	// 1000*100*60*60*24
 
-	__year = (int)double_date;
-	double temp = double_date - (double)__year + .00000000011574074;
+	year = (int)double_date;
+	double temp = double_date - (double)year + .00000000011574074;
 
 	// Get the full number of days in the year...
 	
-	double	ydays = (double)TimeUtil.numDaysInYear(__year);
+	double	ydays = (double)TimeUtil.numDaysInYear(year);
 	temp *= ydays;
 
 	// The days is the remainder times the number of days in the year...
 
 	int monthdays;
-	boolean isleap = TimeUtil.isLeapYear ( __year );
+	boolean isleap = TimeUtil.isLeapYear ( year );
 	if ( use_month ) {
 		// Use the month and day as usual...
-		int [] v = TimeUtil.getMonthAndDayFromDayOfYear ( __year, (int)temp );
+		int [] v = TimeUtil.getMonthAndDayFromDayOfYear ( year,
+			(int)temp );
 		if ( v != null ) {
-			__month	= v[0];
-			__day	= v[1] + 1;	// Because the day is always at
-						// least one (always in a day
-						// even if it is a fractional day).
-			if ( (__month == 2) && isleap ) {
-				monthdays = TimeUtil.MONTH_DAYS[__month - 1] + 1;
+			month	= v[0];
+			day	= v[1] + 1;	// Because the day is always at
+						// least one (we are in a day
+						// even if it is a fractional
+						// day).
+			if ( (month == 2) && isleap ) {
+				monthdays = TimeUtil.MONTH_DAYS[month - 1] + 1;
 			}
-			else {
-                monthdays = TimeUtil.MONTH_DAYS[__month - 1];
+			else {	monthdays = TimeUtil.MONTH_DAYS[month - 1];
 			}
-			if ( __day > monthdays ) {
-				// Have gone into the next month by incrementing the day...
-				++__month;
-				__day = 1;
+			if ( day > monthdays ) {
+				// Have gone into the next month by incrementing
+				// the day...
+				++month;
+				day = 1;
 			}
 			v = null;
 		}
 	}
 	else {	// Set the month to zero and the days to the number of days in
 		// the year...
-		__month = 0;
-		__day = (int)temp;
+		month = 0;
+		day = (int)temp;
 	}
 
 	temp -= (double)((int)temp);
@@ -1004,31 +969,33 @@ public DateTime ( double double_date, boolean use_month )
 	// hour...
 
 	temp *= 24.0;
-	__hour	= (int)temp;
+	hour	= (int)temp;
 	temp -= (double)((int)temp);
 
 	// Now the remainder is the minutes, etc.  Multiply by 60 to get the
 	// minute...
 
 	temp *= 60.0;
-	__minute	= (int)temp;
+	minute	= (int)temp;
 	temp -= (double)((int)temp);
 
-	// Now the remainder is the seconds, etc.  Multiply by 60 to get the seconds...
+	// Now the remainder is the seconds, etc.  Multiply by 60 to get the
+	// seconds...
 
 	temp *= 60.0;
-	__second	= (int)temp;
+	second	= (int)temp;
 	temp -= (double)((int)temp);
 
-	// Now the remainder is the hseconds, etc.  Multiply by 100 to get the hseconds...
+	// Now the remainder is the hseconds, etc.  Multiply by 100 to get the
+	// hseconds...
 
 	temp *= 100.0;
-	__hsecond= (int)temp;
+	hsecond= (int)temp;
 
 	// Reset...
 
 	reset ();
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1054,29 +1021,30 @@ public void add ( DateTime offset )
 		return;
 	}
 
-	addHSecond ( offset.__hsecond );
-	addSecond ( offset.__second );
-	addMinute ( offset.__minute );
-	addHour ( offset.__hour );
-	addDay ( offset.__day );
-	addMonth ( offset.__month );
-	addYear ( offset.__year );
-	__iszero = false;
+	addHSecond ( offset.hsecond );
+	addSecond ( offset.second );
+	addMinute ( offset.minute );
+	addHour ( offset.hour );
+	addDay ( offset.day );
+	addMonth ( offset.month );
+	addYear ( offset.year );
+	_iszero = false;
 }
 
 /**
 Add day(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of days to add (can be a multiple and can be negative).
+@param add Indicates the number of days to add (can be a multiple and can be
+negative).
 */
 public void addDay ( int add )
 {	int i;
 
 	if ( add == 1 ) {
-		int num_days_in_month = TimeUtil.numDaysInMonth (__month, __year);
-		++__day;
-		if ( __day > num_days_in_month ) {
+		int num_days_in_month = TimeUtil.numDaysInMonth (month, year);
+		++day;
+		if ( day > num_days_in_month ) {
 			// Have gone into the next month...
-			__day -= num_days_in_month;
+			day -= num_days_in_month;
 			addMonth( 1 );
 		}
 		// Reset the private data members.
@@ -1091,13 +1059,14 @@ public void addDay ( int add )
 		}
 	}
 	else if ( add == -1 ) {
-		--__day;
-		if ( __day < 1 ) {
+		--day;
+		if ( day < 1 ) {
 			// Have gone into the previous month...
-			// Temporarily set day to 1, determine the day and year, and then set the day.
-			__day = 1;
+			// Temporarily set day to 1, determine the day 
+			// and year, and then set the day.
+			day = 1;
 			addMonth( -1 );
-			__day = TimeUtil.numDaysInMonth( __month, __year );
+			day = TimeUtil.numDaysInMonth( month, year );
 		}
 		// Reset the private data members.
 		setYearDay();
@@ -1107,12 +1076,13 @@ public void addDay ( int add )
 			addDay ( -1 );
 		}
 	}
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
 Add hour(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of hours to add (can be a multiple and can be negative).
+@param add Indicates the number of hours to add (can be a multiple and can be
+negative).
 */
 public void addHour ( int add )
 {	int	daystoadd;
@@ -1128,26 +1098,27 @@ public void addHour ( int add )
 	// Now add the remainder
 
 	if ( add > 0 ) {
-		__hour += (add%24);
-		if ( __hour > 23 ) {
+		hour += (add%24);
+		if ( hour > 23 ) {
 			// Have gone into the next day...
-			__hour -= 24;
+			hour -= 24;
 			addDay( 1 );
 		}
 	}
 	else if ( add < 0 ) {
-		__hour += (add%24);
-		if ( __hour < 0 ) {
+		hour += (add%24);
+		if ( hour < 0 ) {
 			// Have gone into the previous day...
-			__hour += 24;
+			hour += 24;
 			addDay( -1 );
 		}
 	}
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
-Add hundredth-second(s) to the DateTime.  Other fields will be adjusted if necessary.
+Add hundredth-second(s) to the DateTime.  Other fields will be adjusted if
+necessary.
 @param add Indicates the number of hundredth-seconds to add (can be a multiple
 and can be negative).
 */
@@ -1163,22 +1134,23 @@ public void addHSecond ( int add )
 	}
 
 	if ( add > 0 ) {
-		__hsecond += add % 100;
-		if ( __hsecond > 99 ) {
-			// Need to add a second and subtract the same from hsecond
-			__hsecond -= 100;
+		hsecond += add % 100;
+		if ( hsecond > 99 ) {
+			// Need to add a second and subtract the same from 
+			// hsecond
+			hsecond -= 100;
 			addSecond( 1 );
 		}
 	}
 	else if ( add < 0 ) {
-		__hsecond += add % 100;
-		if ( __hsecond < 0 ) {
+		hsecond += add % 100;
+		if ( hsecond < 0 ) {
 			// Need to subtract a second and add the same to second
-			__hsecond += 100;
+			hsecond += 100;
 			addSecond( -1 );
 		}
 	}
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1199,30 +1171,28 @@ public void addInterval ( int interval, int add )
 	}
 	else if( interval == TimeInterval.HOUR ) {
 		addHour( add );
-    }
-    else if ( interval == TimeInterval.DAY ) {
-        addDay( add);
-    }
-    else if ( interval == TimeInterval.WEEK ) {
+        }
+        else if ( interval == TimeInterval.DAY ) {
+                addDay( add);
+        }
+        else if ( interval == TimeInterval.WEEK ) {
 		addDay( 7*add);
-    }
+        }
 	else if ( interval == TimeInterval.MONTH ) {
 		addMonth( add);
-    }
-    else if ( interval == TimeInterval.YEAR ) {
+        }
+        else if ( interval == TimeInterval.YEAR ) {
 		addYear( add);
-    }
-    else if ( interval == TimeInterval.IRREGULAR ) {
+        }
+        else if ( interval == TimeInterval.IRREGULAR ) {
 		return;
-    }
-    else {
-        // Unsupported interval...
-        // TODO SAM 2007-12-20 Evaluate throwing InvalidTimeIntervalException
-        String message = "Interval " + interval + " is unsupported";
-		Message.printWarning ( 2, "DateTime.addInterval", message );
+        }
+        else {  // Unsupported interval...
+		Message.printWarning ( 2, "DateTime.addInterval",
+		"Interval " + interval + " is unsupported" );
 		return;
-    }
-	__iszero = false;
+        }
+	_iszero = false;
 }
 
 /**
@@ -1242,22 +1212,22 @@ public void addMinute ( int add )
 	}
 
 	if ( add > 0 ) {
-		__minute += add % 60;
-		if ( __minute > 59 ) {
+		minute += add % 60;
+		if ( minute > 59 ) {
 			// Need to add an hour and subtract the same from minute
-			__minute -= 60;
+			minute -= 60;
 			addHour( 1 );
 		}
 	}
 	else if ( add < 0 ) {
-		__minute += add % 60;
-		if ( __minute < 0 ) {
+		minute += add % 60;
+		if ( minute < 0 ) {
 			// Need to subtract an hour and add the same to minute
-			__minute += 60;
+			minute += 60;
 			addHour( -1 );
 		}
 	}
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1272,12 +1242,13 @@ public void addMonth ( int add )
 		return;
 	}
 	if ( add == 1 ) {
-		// Dealing with one month...
-		__month += add;
-		// Have added one month so check if went into the next year
-		if ( __month > 12 ) {
+		// We are dealing with one month...
+		month += add;
+		// We have added one month so check if we
+		// went into the next year
+		if ( month > 12 ) {
 			// Have gone into the next year...
-			__month = 1;
+			month = 1;
 			addYear( 1 );
 		}
 	}
@@ -1293,11 +1264,12 @@ public void addMonth ( int add )
 		return;
 	}
 	else if ( add == -1 ) {
-		--__month;
-		// Have subtracted the specified number so check if in the previous year
-		if ( __month < 1 ) {
+		--month;
+		// We have subtracted the specified number so check if
+		// we are in the previous year
+		if ( month < 1 ) {
 			// Have gone into the previous year...
-			__month = 12;
+			month = 12;
 			addYear( -1 );
 		}
 	}
@@ -1314,7 +1286,7 @@ public void addMonth ( int add )
 	// Reset time
 	setAbsoluteMonth();
 	setYearDay();
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1334,22 +1306,23 @@ public void addSecond ( int add )
 	}
 
 	if ( add > 0 ) {
-		__second += add % 60;
-		if ( __second > 59 ) {
-			// Need to add a minute and subtract the same from second
-			__second -= 60;
+		second += add % 60;
+		if ( second > 59 ) {
+			// Need to add a minute and subtract the same from 
+			// second
+			second -= 60;
 			addMinute( 1 );
 		}
 	}
 	else if ( add < 0 ) {
-		__second += add % 60;
-		if ( __second < 0 ) {
+		second += add % 60;
+		if ( second < 0 ) {
 			// Need to subtract a minute and add the same to second
-			__second += 60;
+			second += 60;
 			addMinute( -1 );
 		}
 	}
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1361,7 +1334,6 @@ public void addWeek ( int add )
 {	addDay ( add*7 );
 }
 
-// TODO SAM 2007-12-20 Evaluate what to do about adding a year if on Feb 29.
 /**
 Add year(s) to the DateTime.  The month and day are NOT adjusted if an
 inconsistency occurs with leap year information.
@@ -1369,9 +1341,9 @@ inconsistency occurs with leap year information.
 and can be negative).
 */
 public void addYear ( int add )
-{	__year += add;
+{	year += add;
 	reset ();
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -1380,8 +1352,7 @@ data are primitive).
 @return a complete deep copy.
 */
 public Object clone ()
-{	try {
-        DateTime d = (DateTime)super.clone();
+{	try {	DateTime d = (DateTime)super.clone();
 		return d;
 	}
 	catch ( CloneNotSupportedException e ) {
@@ -1391,7 +1362,26 @@ public Object clone ()
 }
 
 /**
-Deterine if this DateTime is less than, equal to, or greater than another
+ * Returns whether this date is within the specified date range.
+ * 
+ * @param startDate beginning of date range
+ * @param endDate end of date range
+ */
+public boolean between(DateTime startDate, DateTime endDate)
+{
+	if (this.greaterThanOrEqualTo(startDate)
+		&& this.lessThanOrEqualTo(endDate))
+		{
+			return true;
+		}
+	else 
+		{
+			return false;
+		}
+} // eof between()
+
+/**
+Determine if this DateTime is less than, equal to, or greater than another
 DateTime.
 @return -1 if this DateTime is less than "t", 0 if this DateTime is the same as
 "t", and 1 if this DateTime is greater than "t".
@@ -1437,8 +1427,8 @@ PRECISION_TIME_ZONE flag is set.
 @param t DateTime to compare.
 */
 public boolean equals ( DateTime t )
-{	return equals ( t, __precision );
-	// TODO SAM 2005-02-24 should the code from the overloaded method
+{	return equals ( t, _precision );
+	// REVISIT SAM 2005-02-24 should the code from the overloaded method
 	// be inlined here to improve performance?  It does not seem that
 	// equals is used in iterations quite as much as other methods.
 	// Don't inline the code for now.
@@ -1459,67 +1449,67 @@ public boolean equals ( DateTime t, int precision )
 	//if ( isZero() != t.isZero() ) {
 	//	return false;
 	//}
-	if ( !__time_only ) {
-		if ( __year != t.__year ) {
+	if ( !_time_only ) {
+		if ( year != t.year ) {
 			return false;
 		}
 		if ( precision == PRECISION_YEAR ) {
-			if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+			if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 				return false;
 			}
 			return true;
 		}
-		if ( __month != t.__month ) {
+		if ( month != t.month ) {
 			return false;
 		}
 		if ( precision == PRECISION_MONTH ) {
-			if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+			if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 				return false;
 			}
 			return true;
 		}
-		if ( __day != t.__day ) {
+		if ( day != t.day ) {
 			return false;
 		}
 		if ( precision == PRECISION_DAY ) {
-			if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+			if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 				return false;
 			}
 			return true;
 		}
 	}
-	if ( __hour != t.__hour ) {
+	if ( hour != t.hour ) {
 		return false;
 	}
 	if ( precision == PRECISION_HOUR ) {
-		if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+		if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 			return false;
 		}
 		return true;
 	}
-	if ( __minute != t.__minute ) {
+	if ( minute != t.minute ) {
 		return false;
 	}
 	if ( precision == PRECISION_MINUTE ) {
-		if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+		if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 			return false;
 		}
 		return true;
 	}
-	if ( __second != t.__second ) {
+	if ( second != t.second ) {
 		return false;
 	}
 	if ( precision == PRECISION_SECOND ) {
-		if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+		if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 			return false;
 		}
 		return true;
 	}
-	if ( __hsecond != t.__hsecond ) {
+	if ( hsecond != t.hsecond ) {
 		return false;
 	}
 	if ( precision == PRECISION_HSECOND ) {
-		if ( __use_time_zone && !__tz.equalsIgnoreCase(t.__tz) ) {
+		if ( _use_time_zone && !tz.equalsIgnoreCase(t.tz) ) {
 			return false;
 		}
 		return true;
@@ -1536,7 +1526,7 @@ Finalize before garbage collection.
 */
 protected void finalize ()
 throws Throwable
-{	__tz = null;
+{	tz = null;
 	super.finalize();
 }
 
@@ -1546,7 +1536,7 @@ Return the absolute day.
 @see RTi.Util.Time.TimeUtil#absoluteDay
 */
 public int getAbsoluteDay()
-{	return TimeUtil.absoluteDay ( __year, __month, __day );
+{	return TimeUtil.absoluteDay ( year, month, day );
 }
 
 /**
@@ -1555,7 +1545,7 @@ Return the absolute month.
 */
 public int getAbsoluteMonth( )
 {	// Since some data are public, recompute...
-	return (__year*12 + __month);
+	return (year*12 + month);
 }
 
 /**
@@ -1566,7 +1556,7 @@ exact value for the precision.
 @return The behavior flag (bit mask).
 */
 public long getBehaviorFlag ()
-{	return __behavior_flag;
+{	return _behavior_flag;
 }
 
 /**
@@ -1579,7 +1569,8 @@ public Date getDate ()
 
 /**
 Return the Java Date corresponding to the DateTime.
-@return Java Date corresponding to the DateTime or null if unable to determine conversion.
+@return Java Date corresponding to the DateTime or null if unable to determine
+conversion.
 @param flag Indicates whether time zone should be shifted from the DateTime to
 the Date time zone (GMT) (true).
 */
@@ -1589,63 +1580,64 @@ public Date getDate ( int flag )
 		// We do care what the time zone is.  Make the returned date
 		// exactly match the DateTime, but in GMT.
 		// For now, just do the same for both cases...
-		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+		c = new GregorianCalendar ( year,
+		(month - 1), day, hour, minute, second );
 		Date d = c.getTime();
 		c = null;
 		return d;
 	}
-	else {
-        // We don't care about the time zone.  Just use the other data fields...
-		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	else {	// We don't care about the time zone.  Just use the other
+		// data fields...
+		c = new GregorianCalendar ( year,
+		(month - 1), day, hour, minute, second );
 	}
 	if ( c != null ) {
 		Date d = c.getTime();
 		c = null;
 		return d;
 	}
-	else {
-        return null;
+	else {	return null;
 	}
 }
 
 /**
-Return the day.
+Return the day.  Access public data to increase performance.
 @return The day.
 */
 public int getDay( ) 
-{	return __day;
+{	return day;
 }
 
 /**
-Return the hour.
+Return the hour.  Access public data to increase performance.
 @return The hour.
 */
 public int getHour( )
-{	return __hour;
+{	return hour;
 }
 
 /**
-Return the 100-th second.
+Return the 100-th second.  Access public data to increase performance.
 @return The hundredth-second.
 */
 public int getHSecond( )
-{	return __hsecond;
+{	return hsecond;
 }
 
 /**
-Return the minute.
+Return the minute.  Access public data to increase performance.
 @return The minute.
 */
 public int getMinute( )
-{	return __minute;
+{	return minute;
 }
 
 /**
-Return the month.
+Return the month.  Access public data to increase performance.
 @return The month.
 */
 public int getMonth( )
-{	return __month;
+{	return month;
 }
 
 /**
@@ -1653,40 +1645,39 @@ Return the DateTime precision.
 @return The precision (see PRECISION*).
 */
 public int getPrecision ()
-{	return __precision;
+{	return _precision;
 }
 
 /**
-Return the second.
+Return the second.  Access public data to increase performance.
 @return The second.
 */
 public int getSecond( )
-{	return __second;
+{	return second;
 }
 
 /**
-Return the time zone abbreviation.
+Return the time zone abbreviation.  Access public data to increase performance.
 @return The time zone abbreviation.
 */
 public String getTimeZoneAbbreviation ( )
-{	return __tz;
+{	return tz;
 }
 
 /**
-Return the week day by returning getDate().getDay().
+Return the week day.  CURRENTLY THIS IS NOT COMPUTED.
 @return The week day (Sunday is 0).
 */
 public int getWeekDay ( )
-{	//return _weekday;
-    return getDate().getDay();
+{	return _weekday;
 }
 
 /**
-Return the year.
+Return the year.  Access public data to increase performance.
 @return The year.
 */
 public int getYear( )
-{	return __year;
+{	return year;
 }
 
 /**
@@ -1698,7 +1689,7 @@ not automatically recomputed.
 public int getYearDay()
 {	// Need to set it...
 	setYearDay();
-	return __yearday;
+	return _yearday;
 }
 
 /**
@@ -1709,49 +1700,46 @@ made at the precision of the instance.
 @param t DateTime to compare.
 */
 public boolean greaterThan ( DateTime t )
-{	if ( !__time_only ) {
-		if ( __year < t.__year) {
+{	if ( !_time_only ) {
+		if ( year < t.year) {
 			return false;
 		}
-		else {
-            if(__year > t.__year) {
+		else {	if(year > t.year) {
 				return true;
 			}
 		}
 	
-		if ( __precision == PRECISION_YEAR ) {
+		if ( _precision == PRECISION_YEAR ) {
 			// Equal so return false...
 			return false;
 		}
 
 		// otherwise years are equal so check months
 	
-		if(__month < t.__month) {
+		if(month < t.month) {
 			return false;
 		}
-		else {
-            if(__month > t.__month) {
+		else {	if(month > t.month) {
 				return true;
 			}
 		}
 
-		if ( __precision == PRECISION_MONTH ) {
+		if ( _precision == PRECISION_MONTH ) {
 			// Equal so return false...
 			return false;
 		}
 
 		// months must be equal so check day
 
-		if (__day < t.__day) {
+		if (day < t.day) {
 			return false;
 		}
-		else {
-            if(__day > t.__day) {
+		else {	if(day > t.day) {
 				return true;
 			}
 		}
 
-		if ( __precision == PRECISION_DAY ) {
+		if ( _precision == PRECISION_DAY ) {
 			// Equal so return false...
 			return false;
 		}
@@ -1759,59 +1747,55 @@ public boolean greaterThan ( DateTime t )
 
 	// days are equal so check hour
 
-	if (__hour < t.__hour) {
+	if (hour < t.hour) {
 		return false;
 	}
-	else {
-        if(__hour > t.__hour) {
+	else {	if(hour > t.hour) {
 			return true;
 		}
 	}
 
-	if ( __precision == PRECISION_HOUR ) {
+	if ( _precision == PRECISION_HOUR ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// means that hours match - so check minute
 
-	if( __minute < t.__minute ) {
+	if( minute < t.minute ) {
 		return false;
 	}
-	else {
-        if( __minute > t.__minute ) {
+	else {	if( minute > t.minute ) {
 			return true;
 		}
 	}
 
-	if ( __precision == PRECISION_MINUTE ) {
+	if ( _precision == PRECISION_MINUTE ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// means that minutes match - so check second
 
-	if( __second < t.__second ) {
+	if( second < t.second ) {
 		return false;
 	}
-	else {
-        if( __second > t.__second ) {
+	else {	if( second > t.second ) {
 			return true;
 		}
 	}
 
-	if ( __precision == PRECISION_SECOND ) {
+	if ( _precision == PRECISION_SECOND ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// means that seconds match - so check hundredths of seconds
 
-	if( __hsecond < t.__hsecond ) {
+	if( hsecond < t.hsecond ) {
 		return false;
 	}
-	else {
-        if( __hsecond > t.__hsecond ) {
+	else {	if( hsecond > t.hsecond ) {
 			return true;
 		}
 	}
@@ -1830,12 +1814,11 @@ made at the specified precision.
 */
 public boolean greaterThan ( DateTime t, int precision )
 {	// Inline the code to increase performance
-	if ( !__time_only ) {
-		if ( __year < t.__year) {
+	if ( !_time_only ) {
+		if ( year < t.year) {
 			return false;
 		}
-		else {
-            if(__year > t.__year) {
+		else {	if(year > t.year) {
 				return true;
 			}
 		}
@@ -1847,11 +1830,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 		// otherwise years are equal so check months
 	
-		if(__month < t.__month) {
+		if(month < t.month) {
 			return false;
 		}
-		else {
-            if(__month > t.__month) {
+		else {	if(month > t.month) {
 				return true;
 			}
 		}
@@ -1863,11 +1845,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 		// months must be equal so check day
 
-		if (__day < t.__day) {
+		if (day < t.day) {
 			return false;
 		}
-		else {
-            if(__day > t.__day) {
+		else {	if(day > t.day) {
 				return true;
 			}
 		}
@@ -1880,11 +1861,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 	// days are equal so check hour
 
-	if (__hour < t.__hour) {
+	if (hour < t.hour) {
 		return false;
 	}
-	else {
-        if(__hour > t.__hour) {
+	else {	if(hour > t.hour) {
 			return true;
 		}
 	}
@@ -1896,11 +1876,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 	// means that hours match - so check minute
 
-	if( __minute < t.__minute ) {
+	if( minute < t.minute ) {
 		return false;
 	}
-	else {
-        if( __minute > t.__minute ) {
+	else {	if( minute > t.minute ) {
 			return true;
 		}
 	}
@@ -1912,11 +1891,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 	// means that minutes match - so check second
 
-	if( __second < t.__second ) {
+	if( second < t.second ) {
 		return false;
 	}
-	else {
-        if( __second > t.__second ) {
+	else {	if( second > t.second ) {
 			return true;
 		}
 	}
@@ -1928,11 +1906,10 @@ public boolean greaterThan ( DateTime t, int precision )
 
 	// means that seconds match - so check hundredths of seconds
 
-	if( __hsecond < t.__hsecond ) {
+	if( hsecond < t.hsecond ) {
 		return false;
 	}
-	else {
-        if( __hsecond > t.__hsecond ) {
+	else {	if( hsecond > t.hsecond ) {
 			return true;
 		}
 	}
@@ -1951,8 +1928,7 @@ public boolean greaterThanOrEqualTo ( DateTime d )
 {	if ( !lessThan(d) ) {
 		return true;
 	}
-	else {
-        return false;
+	else {	return false;
 	}
 }
 
@@ -1967,8 +1943,7 @@ public boolean greaterThanOrEqualTo ( DateTime d, int precision )
 {	if ( !lessThan(d, precision) ) {
 		return true;
 	}
-	else {
-        return false;
+	else {	return false;
 	}
 }
 
@@ -1977,35 +1952,37 @@ Indicate whether a leap year.
 @return true if a leap year.
 */
 public boolean isLeapYear ( )
-{	// Reset to make sure...
-	__isleap = TimeUtil.isLeapYear( __year );
-    return __isleap;
+{	// Reset to make sure, since data are public.
+	_isleap = TimeUtil.isLeapYear( year );
+        return _isleap;
 }
 
 /**
 Indicate whether a zero DateTime, meaning a DateTime that was created as a
-zero date and never modified.
+zero date and never modified.  Public data members are checked, if necessary,
+to verify that the date is non-zero.
 @return true if data are initialized to zero values, without further changes.
 */
 public boolean isZero ( )
-{	if ( !__iszero ) {
+{	if ( !_iszero ) {
 		// Something has been modified...
-		return __iszero;
+		return _iszero;
 	}
-	else {
-        // Check here whether anything is different from the default.  This will
-		// only be a performance hit if the DateTime never has anything changed.
-		if ( (__year != 0) ||
-			(__month != 1) ||
-			(__day != 1) ||
-			(__hour != 0) ||
-			(__minute != 0) ||
-			(__second != 0) ||
-			(__hsecond != 0) ) {
-			__iszero = false;
+	else {	// Public data members may have been set directly so check here
+		// whether anything is different from the default.  This will
+		// only be a performance hit if the DateTime never has anything
+		// changed.
+		if (	(year != 0) ||
+			(month != 1) ||
+			(day != 1) ||
+			(hour != 0) ||
+			(minute != 0) ||
+			(second != 0) ||
+			(hsecond != 0) ) {
+			_iszero = false;
 		}
 	}
-	return __iszero;
+	return _iszero;
 }
 
 /**
@@ -2017,50 +1994,48 @@ instance is used for the comparison.
 */
 public boolean lessThan ( DateTime t )
 {	// Inline the comparisons here even though we could call other methods
-	// because we'd have to call greaterThan() and equals() to know for sure.
-	if ( !__time_only ) {
-		if( __year < t.__year) {
+	// because we'd have to call greaterThan() and equals() to know for
+	// sure.
+	if ( !_time_only ) {
+		if( year < t.year) {
 			return true;
 		}
-		else {
-            if(__year > t.__year) {
+		else {	if(year > t.year) {
 				return false;
 			}
 		}
 	
-		if ( __precision == PRECISION_YEAR ) {
+		if ( _precision == PRECISION_YEAR ) {
 			// Equal so return false...
 			return false;
 		}
 
 		// otherwise years are equal so check months
 	
-		if(__month < t.__month) {
+		if(month < t.month) {
 			return true;
 		}
-		else {
-            if(__month > t.__month) {
+		else {	if(month > t.month) {
 				return false;
 			}
 		}
 	
-		if ( __precision == PRECISION_MONTH ) {
+		if ( _precision == PRECISION_MONTH ) {
 			// Equal so return false...
 			return false;
 		}
 
 		// months must be equal so check day
 	
-		if (__day < t.__day) {
+		if (day < t.day) {
 			return true;
 		}
-		else {
-            if(__day > t.__day) {
+		else {	if(day > t.day) {
 				return false;
 			}
 		}
 
-		if ( __precision == PRECISION_DAY ) {
+		if ( _precision == PRECISION_DAY ) {
 			// Equal so return false...
 			return false;
 		}
@@ -2068,59 +2043,55 @@ public boolean lessThan ( DateTime t )
 
 	// days are equal so check hour
 
-	if (__hour < t.__hour) {
+	if (hour < t.hour) {
 		return true;
 	}
-	else {
-        if(__hour > t.__hour) {
+	else {	if(hour > t.hour) {
 			return false;
 		}
 	}
 
-	if ( __precision == PRECISION_HOUR ) {
+	if ( _precision == PRECISION_HOUR ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// hours are equal so check minutes
 
-	if( __minute < t.__minute ) {
+	if( minute < t.minute ) {
 		return true;
 	}
-	else {
-        if( __minute > t.__minute ) {
+	else {	if( minute > t.minute ) {
 			return false;
 		}
 	}
 
-	if ( __precision == PRECISION_MINUTE ) {
+	if ( _precision == PRECISION_MINUTE ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// means that minutes match - so check second
 
-	if( __second < t.__second ) {
+	if( second < t.second ) {
 		return true;
 	}
-	else {
-        if( __second > t.__second ) {
+	else {	if( second > t.second ) {
 			return false;
 		}
 	}
 
-	if ( __precision == PRECISION_SECOND ) {
+	if ( _precision == PRECISION_SECOND ) {
 		// Equal so return false...
 		return false;
 	}
 
 	// means that seconds match - so check hundredths of seconds
 
-	if( __hsecond < t.__hsecond ) {
+	if( hsecond < t.hsecond ) {
 		return true;
 	}
-	else {
-        if( __hsecond > t.__hsecond ) {
+	else {	if( hsecond > t.hsecond ) {
 			return false;
 		}
 	}
@@ -2142,12 +2113,11 @@ public boolean lessThan ( DateTime t, int precision )
 {	// Inline the overall code and comparisons here even though we could
 	// call other methods because we'd have to call greaterThan() and
 	// equals() to know for sure.
-	if ( !__time_only ) {
-		if( __year < t.__year) {
+	if ( !_time_only ) {
+		if( year < t.year) {
 			return true;
 		}
-		else {
-            if(__year > t.__year) {
+		else {	if(year > t.year) {
 				return false;
 			}
 		}
@@ -2159,11 +2129,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 		// otherwise years are equal so check months
 	
-		if(__month < t.__month) {
+		if(month < t.month) {
 			return true;
 		}
-		else {
-            if(__month > t.__month) {
+		else {	if(month > t.month) {
 				return false;
 			}
 		}
@@ -2175,11 +2144,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 		// months must be equal so check day
 	
-		if (__day < t.__day) {
+		if (day < t.day) {
 			return true;
 		}
-		else {
-            if(__day > t.__day) {
+		else {	if(day > t.day) {
 				return false;
 			}
 		}
@@ -2192,11 +2160,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 	// days are equal so check hour
 
-	if (__hour < t.__hour) {
+	if (hour < t.hour) {
 		return true;
 	}
-	else {
-        if(__hour > t.__hour) {
+	else {	if(hour > t.hour) {
 			return false;
 		}
 	}
@@ -2208,11 +2175,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 	// hours are equal so check minutes
 
-	if( __minute < t.__minute ) {
+	if( minute < t.minute ) {
 		return true;
 	}
-	else {
-        if( __minute > t.__minute ) {
+	else {	if( minute > t.minute ) {
 			return false;
 		}
 	}
@@ -2224,11 +2190,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 	// means that minutes match - so check second
 
-	if( __second < t.__second ) {
+	if( second < t.second ) {
 		return true;
 	}
-	else {
-        if( __second > t.__second ) {
+	else {	if( second > t.second ) {
 			return false;
 		}
 	}
@@ -2240,11 +2205,10 @@ public boolean lessThan ( DateTime t, int precision )
 
 	// means that seconds match - so check hundredths of seconds
 
-	if( __hsecond < t.__hsecond ) {
+	if( hsecond < t.hsecond ) {
 		return true;
 	}
-	else {
-        if( __hsecond > t.__hsecond ) {
+	else {	if( hsecond > t.hsecond ) {
 			return false;
 		}
 	}
@@ -2264,8 +2228,7 @@ public boolean lessThanOrEqualTo ( DateTime d )
 {	if ( !greaterThan(d) ) {
 		return true;
 	}
-	else {
-        return false;
+	else {	return false;
 	}
 }
 
@@ -2280,8 +2243,7 @@ public boolean lessThanOrEqualTo ( DateTime d, int precision )
 {	if ( !greaterThan(d,precision) ) {
 		return true;
 	}
-	else {
-        return false;
+	else {	return false;
 	}
 }
 
@@ -2340,14 +2302,16 @@ interval string or a missing named date/time.
 public static DateTime parse ( String date_string, PropList datetime_props )
 throws Exception {
 	if (date_string == null) {
-		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from null string.");
+		Message.printWarning(3, "DateTime.parse",
+			"Cannot get DateTime from null string.");
 		throw new Exception("Null DateTime string to parse");
 	} 
 
 	String str = date_string.trim();
 
 	if (str.length() == 0) {
-		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from empty string.");
+		Message.printWarning(3, "DateTime.parse",
+			"Cannot get DateTime from empty string.");
 		throw new Exception("Empty DateTime string to parse");
 	}		
 
@@ -2363,7 +2327,8 @@ throws Exception {
 	// tokens[0] = the date represented by the first part of the string to
 	//	be parsed (e.g., CurrentToMinute, "DateProperty", etc)
 	// tokens[1] = the operator ("+" or "-").  Null if no operators.
-	// tokens[2] = the interval to adjust be (e.g., "15Minute").  Null if no operator.
+	// tokens[2] = the interval to adjust be (e.g., "15Minute").  Null if
+	//	no operator.
 	
 	if (str.indexOf("-") > -1) {
 		int index = str.indexOf("-");
@@ -2378,7 +2343,8 @@ throws Exception {
 		tokens[2] = str.substring(index + 1).trim();
 	}
 	else {
-		// If neither a plus or minus was found, assume a single Date Variable to be parsed. 
+		// If neither a plus or minus was found, assume a single
+		// Date Variable to be parsed. 
 		tokens[0] = str;
 		tokens[1] = null;
 		tokens[2] = null;
@@ -2412,11 +2378,14 @@ throws Exception {
 	if (matched) {
 		if (value == null) {
 			Message.printWarning(3, "DateTime.parse",
-                    "Named date/time '" + tokens[0] + "' to be parsed, but its value is null.");
-			throw new Exception("Null value for named date/time property '" + tokens[0] + "'");
+				"Named date/time '" + tokens[0] + "' to be "
+				+ "parsed, but its value is null.");
+			throw new Exception("Null value for named date/time "
+				+ "property '" + tokens[0] + "'");
 		}
 		else {
-			// Parse the named date/time string. Allow an exception to be thrown.
+			// Parse the named date/time string. Allow an exception 
+			// to be thrown.
 			token0DateTime = DateTime.parse(value);
 		}
 	}
@@ -2424,7 +2393,8 @@ throws Exception {
 		// Baseline DateTime is the current DateTime.
 		token0DateTime = new DateTime(DateTime.DATE_CURRENT);
 	
-		// Try to parse as one of the hard-coded values ( CurrentToMinute, etc).
+		// Try to parse as one of the hard-coded values (
+		// CurrentToMinute, etc).
 		if (tokens[0].equalsIgnoreCase("CurrentToMinute")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_MINUTE);
 		}
@@ -2441,8 +2411,11 @@ throws Exception {
 			token0DateTime.setPrecision(DateTime.PRECISION_YEAR);
 		}
 		else {	
-			Message.printWarning(3, "DateTime.parse","Could not find the named date/time'" + tokens[0] + "'");
-			throw new Exception("Named date/time'" + tokens[0] + "' not found.  Cannot parse.");
+			Message.printWarning(3, "DateTime.parse",
+				"Could not find the named date/time'" 
+				+ tokens[0] + "'");
+			throw new Exception("Named date/time'" + tokens[0] 
+				+ "' not found.  Cannot parse.");
 		}
 	}
 
@@ -2456,7 +2429,8 @@ throws Exception {
 
 	if (tokens[1].equals("-")) {
 		// Subtract an interval
-		token0DateTime.addInterval(ti.getBase(), -1 * ti.getMultiplier());
+		token0DateTime.addInterval(ti.getBase(), 
+			-1 * ti.getMultiplier());
 	}
 	else {
 		// Add an interval.  Already checked above for "+" or "-" 
@@ -2484,16 +2458,19 @@ throws Exception
 
 	// First check to make sure we have something...
 	if( date_string == null ) {
-		Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from null string." );
+		Message.printWarning( 2, "DateTime.parse",
+		"Cannot get DateTime from null string." );
 		throw new Exception ( "Null DateTime string to parse" );
 	} 
 	length = date_string.length();
 	if( length == 0 ) {
-		Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from zero-length string." );
+		Message.printWarning( 2, "DateTime.parse",
+		"Cannot get DateTime from zero-length string." );
 		throw new Exception ( "Empty DateTime string to parse" );
 	}
 
-	// This if-elseif structure is used to determine the format of the date represented by date_string.
+	// This if-elseif structure is used to determine the format of the date
+	// represented by date_string.
 	if( length == 4 ){
 		//
 		// the date is YYYY 
@@ -2513,9 +2490,10 @@ throws Exception
 			// The following will work for both...
 			return( parse( date_string, FORMAT_MM_SLASH_DD, 0 ) );
 		}
-		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+		else {	Message.printWarning( 2, "DateTime.parse",
+			"Cannot get DateTime from \"" + date_string + "\"" );
+			throw new Exception ( "Invalid DateTime string \"" +
+			date_string + "\"" );
 		}
 	}
 	else if( length == 6 ){
@@ -2525,8 +2503,10 @@ throws Exception
 		if ( date_string.charAt(1) == '/') {
 			return(parse(" "+ date_string, FORMAT_MM_SLASH_YYYY,0));
 		}
-		else {	Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+		else {	Message.printWarning( 2, "DateTime.parse",
+			"Cannot get DateTime from \"" + date_string + "\"" );
+			throw new Exception ( "Invalid DateTime string \"" +
+			date_string + "\"" );
 		}
 	}
 	else if( length == 7 ){
@@ -2536,44 +2516,53 @@ throws Exception
 		if( date_string.charAt(2) == '/' ) {
 			return( parse( date_string, FORMAT_MM_SLASH_YYYY, 0 ) );
 		}
-		else {
-            return( parse( date_string, FORMAT_YYYY_MM, 0 ) );
+		else {	return( parse( date_string, FORMAT_YYYY_MM, 0 ) );
 		}
 	}
 	else if ( length == 8 ) {
-		if ( (date_string.charAt(2) == '/') && (date_string.charAt(5) == '/') ) {
+		if (	(date_string.charAt(2) == '/') &&
+			(date_string.charAt(5) == '/') ) {
 			//
 			// the date is MM/DD/YY
 			//
-			return( parse(date_string, FORMAT_MM_SLASH_DD_SLASH_YY, 0 ) );
+			return( parse(date_string,
+				FORMAT_MM_SLASH_DD_SLASH_YY, 0 ) );
 		}
-		else if((date_string.charAt(1) == '/') && (date_string.charAt(3) == '/') ) {
+		else if((date_string.charAt(1) == '/') &&
+			(date_string.charAt(3) == '/') ) {
 			//
 			// the date is M/D/YYYY
 			//
-			return( parse(date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 ) );
+			return( parse(date_string,
+				FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 ) );
 		}
-		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+		else {	Message.printWarning( 2, "DateTime.parse",
+			"Cannot get DateTime from \"" + date_string + "\"" );
+			throw new Exception ( "Invalid DateTime string \"" +
+			date_string + "\"" );
 		}
 	}
 	else if ( length == 9 ) {
-		if ( (date_string.charAt(2) == '/') && (date_string.charAt(4) == '/') ) {
+		if (	(date_string.charAt(2) == '/') &&
+			(date_string.charAt(4) == '/') ) {
 			//
 			// the date is MM/D/YYYY
 			//
-			return( parse(date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY, 9 ) );
+			return( parse(date_string,
+				FORMAT_MM_SLASH_DD_SLASH_YYYY, 9 ) );
 		}
-		else if((date_string.charAt(1) == '/') && (date_string.charAt(4) == '/') ) {
+		else if((date_string.charAt(1) == '/') &&
+			(date_string.charAt(4) == '/') ) {
 			//
 			// the date is M/DD/YYYY
 			//
-			return( parse(date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY, -9 ) );
+			return( parse(date_string,
+				FORMAT_MM_SLASH_DD_SLASH_YYYY, -9 ) );
 		}
-		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+		else {	Message.printWarning( 2, "DateTime.parse",
+			"Cannot get DateTime from \"" + date_string + "\"" );
+			throw new Exception ( "Invalid DateTime string \"" +
+			date_string + "\"" );
 		}
 	}
 	else if( length == 10 ){
@@ -2581,10 +2570,10 @@ throws Exception
 		// the date is MM/DD/YYYY or YYYY-MM-DD 
 		//
 		if( date_string.charAt(2) == '/' ) {
-			return( parse( date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY, 0 ) );
+			return( parse( date_string, 
+				FORMAT_MM_SLASH_DD_SLASH_YYYY, 0 ) );
 		}
-		else {
-            return( parse( date_string, FORMAT_YYYY_MM_DD, 0 ) );
+		else {	return( parse( date_string, FORMAT_YYYY_MM_DD, 0 ) );
 		}
 	}
 	else if( length == 12 ){
@@ -2600,13 +2589,13 @@ throws Exception
 		// or          MM-DD-YYYY HH
 		//
 		if ( date_string.charAt(2) == '/' ) {
-			return( parse( date_string,	FORMAT_MM_SLASH_DD_SLASH_YYYY_HH, 0 ) );
+			return( parse( date_string,
+			FORMAT_MM_SLASH_DD_SLASH_YYYY_HH, 0 ) );
 		}
 		else if ( date_string.charAt(2) == '-' ) {
 			return( parse( date_string, FORMAT_MM_DD_YYYY_HH, 0 ) );
 		}
-		else {
-            return( parse( date_string, FORMAT_YYYY_MM_DD_HH, 0 ) );
+		else {	return( parse( date_string, FORMAT_YYYY_MM_DD_HH, 0 ) );
 		}
 	}
 	else if ( (length > 14) && Character.isLetter(date_string.charAt(14))){
@@ -2626,10 +2615,10 @@ throws Exception
 		// the date is YYYY-MM-DD HH:mm or MM/DD/YYYY HH:mm
 		//
 		if( date_string.charAt(2) == '/' ) {
-			return( parse( date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm, 0 ) );
+			return( parse( date_string, 
+				FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm, 0 ) );
 		}
-		else {
-            return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm,0));
+		else {	return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm,0));
 		}
 	}
 	else if ( (length > 17) && Character.isLetter(date_string.charAt(17))){
@@ -2657,7 +2646,8 @@ throws Exception
 		return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ, 0));
 	}
 	else {	// Unknown length so throw an exception...
-		throw new Exception ( "Date/time string \"" + date_string +	"\" format is not recognized." );
+		throw new Exception ( "Date/time string \"" + date_string +
+				"\" format is not recognized." );
 	}
 }
 
@@ -2711,7 +2701,9 @@ throws Exception
 	// date/time fields...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug(dl,routine, "Trying to parse string \"" + date_string + "\" using format " + format );
+		Message.printDebug(dl,routine,
+		"Trying to parse string \"" +
+		date_string + "\" using format " + format );
 	}
 
 	if ( format == FORMAT_DD_SLASH_MM_SLASH_YYYY ) {
@@ -2731,36 +2723,36 @@ throws Exception
 		else if ( flag == -9 ) {
 			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
 		}
-		date.__day = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.day = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(2)).intValue();
 	}
 	else if ( format == FORMAT_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
-		date.__hour = ((Integer)v.elementAt(0)).intValue();
-		date.__minute = ((Integer)v.elementAt(1)).intValue();
+		date.hour = ((Integer)v.elementAt(0)).intValue();
+		date.minute = ((Integer)v.elementAt(1)).intValue();
 	}
 	else if ( format == FORMAT_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i2i2" );
-		date.__hour = ((Integer)v.elementAt(0)).intValue();
-		date.__minute = ((Integer)v.elementAt(1)).intValue();
+		date.hour = ((Integer)v.elementAt(0)).intValue();
+		date.minute = ((Integer)v.elementAt(1)).intValue();
 	}
 	else if ( format == FORMAT_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
 		v = StringUtil.fixedRead ( date_string, "i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
 	}
 	else if ( (format == FORMAT_MM_DD) || (format == FORMAT_MM_SLASH_DD) ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.day = ((Integer)v.elementAt(1)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_DAY );
@@ -2779,37 +2771,37 @@ throws Exception
 		else if ( flag == -9 ) {
 			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
 		}
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.day = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(2)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YY ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.day = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(2)).intValue();
 	}
 	else if ( (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH) ||
 		(format == FORMAT_MM_DD_YYYY_HH) ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.day = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.day = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_MONTH );
@@ -2820,205 +2812,221 @@ throws Exception
 		else {	// Expect a length of 7...
 			v = StringUtil.fixedRead ( date_string, "i2x1i4" );
 		}
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__year = ((Integer)v.elementAt(1)).intValue();
+		date.month = ((Integer)v.elementAt(0)).intValue();
+		date.year = ((Integer)v.elementAt(1)).intValue();
 	}
 	else if ( format == FORMAT_YYYY ) {
 		date = new DateTime ( PRECISION_YEAR );
 		is_year = true;
 		v = StringUtil.fixedRead ( date_string, "i4" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		date = new DateTime ( PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
 		date.setTimeZone ( ((String)v.elementAt(4)).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYYMMDDHHmm ) {
 		date = new DateTime (PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4i2i2i2i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS ) {
 		date = new DateTime ( PRECISION_SECOND );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
+		v = StringUtil.fixedRead ( date_string,
+		"i4x1i2x1i2x1i2x1i2x1i2" );
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
+		date.second = ((Integer)v.elementAt(5)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh ) {
 		date = new DateTime (PRECISION_HSECOND );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
-		date.__hsecond = ((Integer)v.elementAt(6)).intValue();
+		v = StringUtil.fixedRead ( date_string,
+		"i4x1i2x1i2x1i2x1i2x1i2x1i2" );
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
+		date.second = ((Integer)v.elementAt(5)).intValue();
+		date.hsecond = ((Integer)v.elementAt(6)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		date = new DateTime ( PRECISION_HOUR );
 		v = StringUtil.fixedRead ( date_string,
 		"i4x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
 		date.setTimeZone ( (String)v.elementAt(4) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_ZZZ ) {
 		date = new DateTime ( PRECISION_MINUTE );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		v = StringUtil.fixedRead ( date_string,
+		"i4x1i2x1i2x1i2x1i2x1s3" );
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
 		date.setTimeZone ( (String)v.elementAt(5) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ ) {
 		date = new DateTime ( PRECISION_SECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
+		v = StringUtil.fixedRead ( date_string,
+		"i4x1i2x1i2x1i2x1i2x1i2x1s3" );
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
+		date.second = ((Integer)v.elementAt(5)).intValue();
 		date.setTimeZone ( (String)v.elementAt(6) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ ) {
 		date = new DateTime ( PRECISION_HSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
-		date.__hsecond = ((Integer)v.elementAt(6)).intValue();
+		v = StringUtil.fixedRead ( date_string,
+		"i4x1i2x1i2x1i2x1i2x1i2x1i2x1s3" );
+		date.year = ((Integer)v.elementAt(0)).intValue();
+		date.month = ((Integer)v.elementAt(1)).intValue();
+		date.day = ((Integer)v.elementAt(2)).intValue();
+		date.hour = ((Integer)v.elementAt(3)).intValue();
+		date.minute = ((Integer)v.elementAt(4)).intValue();
+		date.second = ((Integer)v.elementAt(5)).intValue();
+		date.hsecond = ((Integer)v.elementAt(6)).intValue();
 		date.setTimeZone ( (String)v.elementAt(7) );
 	}
-	else {
-        v = null;
+	else {	v = null;
 		routine = null;
-		throw new Exception ( "Date format " + format +	" is not recognized." );
+		throw new Exception ( "Date format " + format +
+				" is not recognized." );
 	}
 	// Cleanup...
 	v = null;
 	routine = null;
 	// Check for hour 24...
-	if ( date.__hour == 24 ) {
-		// Assume the date that was parsed uses a 1-24 hour system. Change to hour 0 of the next day...
-		date.__hour = 0;
+	if ( date.hour == 24 ) {
+		// Assume the date that was parsed uses a 1-24 hour system.
+		// Change to hour 0 of the next day...
+		date.hour = 0;
 		date.addDay(1);
 	}
 	// Verify that the date components are valid.  If not, throw an
 	// exception.  This degrades performance some but not much since all
 	// checks are integer based.
 	// Limit year to a reasonable value...
-	if ( (date.__year < -1000) || (date.__year > 10000) ) {
-		throw new Exception ( "Invalid year " + date.__year + " in \"" + date_string + "\"" );
+	if ( (date.year < -1000) || (date.year > 10000) ) {
+		throw new Exception ( "Invalid year " + date.year +
+		" in \"" + date_string + "\"" );
 	}
 	if ( is_year ) {
 		date.reset();
 		return date;
 	}
-	if ( (date.__month < 1) || (date.__month > 12) ) {
-		throw new Exception ( "Invalid month " + date.__month + " in \"" + date_string + "\"" );
+	if ( (date.month < 1) || (date.month > 12) ) {
+		throw new Exception ( "Invalid month " + date.month +
+		" in \"" + date_string + "\"" );
 	}
 	if ( is_month ) {
 		date.reset();
 		return date;
 	}
 	// Split out checks to improve performance...
-	if ( date.__month == 2 ) {
-		if ( TimeUtil.isLeapYear ( date.__year ) ) {
-			if ( (date.__day < 1) || (date.__day > 29) ) {
-				throw new Exception ( "Invalid day " + date.__day +	" in \"" + date_string + "\"" );
+	if ( date.month == 2 ) {
+		if ( TimeUtil.isLeapYear ( date.year ) ) {
+			if ( (date.day < 1) || (date.day > 29) ) {
+				throw new Exception (
+				"Invalid day " + date.day +
+				" in \"" + date_string + "\"" );
 			}
 		}
-		else {	if ( (date.__day < 1) || (date.__day > 28) ) {
-				throw new Exception ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+		else {	if ( (date.day < 1) || (date.day > 28) ) {
+				throw new Exception (
+				"Invalid day " + date.day +
+				" in \"" + date_string + "\"" );
 			}
 		}
 	}
 	else {	// Not a leap year...
-		if (	(date.__day < 1) || (date.__day > TimeUtil.MONTH_DAYS[date.__month - 1]) ) {
-			throw new Exception ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+		if (	(date.day < 1) ||
+			(date.day > TimeUtil.MONTH_DAYS[date.month - 1]) ) {
+			throw new Exception ( "Invalid day " + date.day +
+			" in \"" + date_string + "\"" );
 		}
 	}
 	if ( is_day ) {
 		date.reset();
 		return date;
 	}
-	if ( (date.__hour < 0) || (date.__hour > 23) ) {
-		throw new Exception ( "Invalid hour " + date.__hour + " in \"" + date_string + "\"" );
+	if ( (date.hour < 0) || (date.hour > 23) ) {
+		throw new Exception ( "Invalid hour " + date.hour +
+		" in \"" + date_string + "\"" );
 	}
 	if ( is_hour ) {
 		date.reset();
 		return date;
 	}
-	if ( (date.__minute < 0) || (date.__minute > 59) ) {
-		throw new Exception ( "Invalid minute " + date.__minute + " in \"" + date_string + "\"" );
+	if ( (date.minute < 0) || (date.minute > 59) ) {
+		throw new Exception ( "Invalid minute " + date.minute +
+		" in \"" + date_string + "\"" );
 	}
 	if ( is_minute ) {
 		date.reset();
@@ -3036,12 +3044,12 @@ data are set manually.
 public void reset ()
 {	// Always reset the absolute month since it is cheap...
 	setAbsoluteMonth();
-	if ( (__behavior_flag & DATE_FAST) != 0 ) {
+	if ( (_behavior_flag & DATE_FAST) != 0 ) {
 		// Want to run fast so don't check...
 		return;
 	}
 	setYearDay();
-    __isleap = TimeUtil.isLeapYear( __year );
+       	_isleap = TimeUtil.isLeapYear( year );
 }
 
 /**
@@ -3061,147 +3069,155 @@ additional meaning.
 */
 public void round ( int direction, int interval_base, int interval_mult )
 {	if( interval_base == TimeInterval.SECOND ) {
-		__hsecond = 0;
+		hsecond = 0;
 	}
 	else if( interval_base == TimeInterval.MINUTE ) {
-		__second = 0;
-		__hsecond = 0;
+		second = 0;
+		hsecond = 0;
 		if ( direction > 0 ) {
-			// Rounding up (if the minute is already 0 then don't need to do anything)...
+			// Rounding up (if the minute is already 0 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __minute != 0 ) {
+				if ( minute != 0 ) {
 					// Want an even hour and minute is not
 					// zero.  Increase the hour.  Do so by
 					// incrementing the minutes...
-					addMinute ( 60 - __minute );
+					addMinute ( 60 - minute );
 				}
-				// Else.  Do nothing since minute is already zero.
+				// Else.  Do nothing since minute is already
+				// zero.
 			}
 			else {	// Want to increment to an even interval...
-				if ( (__minute%interval_mult) != 0 ) {
+				if ( (minute%interval_mult) != 0 ) {
 					// Not exactly on interval time
-					addMinute ( interval_mult -	__minute%interval_mult );
+					addMinute ( interval_mult -
+						minute%interval_mult );
 				}
 			}
 		}
-		else {
-            // Rounding down (if the _minute is already 0 then don't need to do anything)...
+		else {	// Rounding down (if the _minute is already 0 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __minute != 0 ) {
+				if ( minute != 0 ) {
 					// Want an even hour and minute is not
 					// zero.  Decrease the hour.  Do so by
 					// decrementing the minutes...
-					addMinute ( -1*__minute );
+					addMinute ( -1*minute );
 				}
-				// Else.  Do nothing since minute is already zero.
+				// Else.  Do nothing since minute is already
+				// zero.
 			}
 			else {	// Want to decrement to an even interval...
-				if ( (__minute%interval_mult) != 0 ) {
+				if ( (minute%interval_mult) != 0 ) {
 					// Not exactly on interval time
-					addMinute ( -1*__minute%interval_mult );
+					addMinute ( -1*minute%interval_mult );
 				}
 			}
 		}
 	}
 	else if ( interval_base == TimeInterval.HOUR ) {
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
 		if ( direction > 0 ) {
-			// Rounding up (if the hour is already 0 then don't need to do anything)...
+			// Rounding up (if the hour is already 0 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __hour != 0 ) {
+				if ( hour != 0 ) {
 					// Want an even day and hour is not
 					// zero.  Increase the day.  Do so by
 					// incrementing the hours...
-					addHour ( 24 - __hour );
+					addHour ( 24 - hour );
 				}
-				// Else.  Do nothing since hour is already zero.
+				// Else.  Do nothing since hour is already
+				// zero.
 			}
-			else {
-                // Want to increment to an even interval...
-				addHour ( interval_mult - __hour%interval_mult );
+			else {	// Want to increment to an even interval...
+				addHour ( interval_mult - hour%interval_mult );
 			}
 		}
-		else {
-            // Rounding down (if the _hour is already 0 then don't need to do anything)...
+		else {	// Rounding down (if the _hour is already 0 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __hour != 0 ) {
+				if ( hour != 0 ) {
 					// Want an even day and hour is not
 					// zero.  Decrease the day.  Do so by
 					// decrementing the hour...
-					addHour ( -1*__hour );
+					addHour ( -1*hour );
 				}
-				// Else.  Do nothing since hour is already zero.
+				// Else.  Do nothing since hour is already
+				// zero.
 			}
-			else {
-                // Want to decrement to an even interval...
-				addHour ( -1*__hour%interval_mult );
+			else {	// Want to decrement to an even interval...
+				addHour ( -1*hour%interval_mult );
 			}
 		}
-    }
-    else if ( interval_base == TimeInterval.DAY ) {
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
+        }
+        else if ( interval_base == TimeInterval.DAY ) {
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
 		if ( direction > 0 ) {
-			// Rounding up (if the _day is already 1 then don't need to do anything)...
+			// Rounding up (if the _day is already 1 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __hour != 0 ) {
+				if ( hour != 0 ) {
 					// Want an even day and hour is not
 					// zero.  Increase the day.  Do so by
 					// incrementing the hours...
-					addHour ( 24 - __hour );
+					addHour ( 24 - hour );
 				}
-				// Else.  Do nothing since hour is already zero.
+				// Else.  Do nothing since hour is already
+				// zero.
 			}
-			else {
-                // Want to increment to an even interval...
-				addHour ( interval_mult - __hour%interval_mult );
+			else {	// Want to increment to an even interval...
+				addHour ( interval_mult - hour%interval_mult );
 			}
 		}
-		else {
-            // Rounding down (if the _hour is already 0 then don't need to do anything)...
+		else {	// Rounding down (if the _hour is already 0 then
+			// don't need to do anything)...
 			if ( interval_mult == 0 ) {
-				if ( __hour != 0 ) {
+				if ( hour != 0 ) {
 					// Want an even day and hour is not
 					// zero.  Decrease the day.  Do so by
 					// decrementing the hour...
-					addHour ( -1*__hour );
+					addHour ( -1*hour );
 				}
-				// Else.  Do nothing since hour is already zero.
+				// Else.  Do nothing since hour is already
+				// zero.
 			}
-			else {
-                // Want to decrement to an even interval...
-				addHour ( -1*__hour%interval_mult );
+			else {	// Want to decrement to an even interval...
+				addHour ( -1*hour%interval_mult );
 			}
 		}
-    }
-    else if ( interval_base == TimeInterval.WEEK ) {
-        Message.printWarning( 2, "DateTime.round", "Rounding to week not implemented yet." );
-    }
-    else if ( interval_base == TimeInterval.MONTH ) {
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-    }
-    else if ( interval_base == TimeInterval.YEAR ) {
-		__month = 1;
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-    }
-    else if ( interval_base == TimeInterval.IRREGULAR ) {
+        }
+        else if ( interval_base == TimeInterval.WEEK ) {
+		Message.printWarning( 2, "DateTime.round",
+		"Rounding to week not implemented yet." );
+        }
+        else if ( interval_base == TimeInterval.MONTH ) {
+		day = 1;
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+        }
+        else if ( interval_base == TimeInterval.YEAR ) {
+		month = 1;
+		day = 1;
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+        }
+        else if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Do nothing to the date.
 	}
-    else {  // Unsupported interval...
-		Message.printWarning ( 2, "DateTime.round",	"Interval base " + interval_base + " is unsupported.");
-    }
+        else {  // Unsupported interval...
+		Message.printWarning ( 2, "DateTime.round",
+		"Interval base " + interval_base + " is unsupported.");
+        }
 	reset();
 }
 
@@ -3209,7 +3225,7 @@ public void round ( int direction, int interval_base, int interval_mult )
 Set the absolute month from the month and year.  This is called internally.
 */
 private void setAbsoluteMonth()
-{	__abs_month = (__year * 12) + __month;
+{	_abs_month = (year * 12) + month;
 }
 
 /**
@@ -3221,23 +3237,23 @@ public void setDate ( DateTime t )
 {	if ( t == null ) {
 		return;
 	}
-	__hsecond = t.__hsecond;
-	__second = t.__second;
-	__minute = t.__minute;
-	__hour = t.__hour;
-	__day = t.__day;
-	__month = t.__month;
-	__year = t.__year;
-	__isleap = t.__isleap;
-	__iszero = t.__iszero;
-	__weekday = t.__weekday;
-	__yearday = t.__yearday;
-	__abs_month	= t.__abs_month;
-	__behavior_flag	= t.__behavior_flag;
-	__precision	= t.__precision;
-	__use_time_zone	= t.__use_time_zone;
-	__time_only	= t.__time_only;
-	setTimeZone( t.__tz );
+	hsecond 	= t.hsecond;
+	second		= t.second;
+	minute		= t.minute;
+	hour 		= t.hour;
+	day 		= t.day;
+	month		= t.month;
+	year		= t.year;
+	_isleap		= t._isleap;
+	_iszero		= t._iszero;
+	_weekday	= t._weekday;
+	_yearday	= t._yearday;
+	_abs_month	= t._abs_month;
+	_behavior_flag	= t._behavior_flag;
+	_precision	= t._precision;
+	_use_time_zone	= t._use_time_zone;
+	_time_only	= t._time_only;
+	setTimeZone( t.tz );
 	reset();
 }
 
@@ -3254,27 +3270,27 @@ public void setDate ( Date d )
 	}
 	// Returns the number of years since 1900!
 	setYear ( d.getYear() + 1900 );
-	if ( __precision == PRECISION_YEAR ) {
+	if ( _precision == PRECISION_YEAR ) {
 		return;
 	}
 	// Returned month is 0 to 11!
 	setMonth ( d.getMonth() + 1 );
-	if ( __precision == PRECISION_MONTH ) {
+	if ( _precision == PRECISION_MONTH ) {
 		return;
 	}
 	// Returned day is 1 to 31
 	setDay ( d.getDate() );
-	if ( __precision == PRECISION_DAY ) {
+	if ( _precision == PRECISION_DAY ) {
 		return;
 	}
 	// Returned hours are 0 to 23
 	setHour ( d.getHours() );
-	if ( __precision == PRECISION_HOUR ) {
+	if ( _precision == PRECISION_HOUR ) {
 		return;
 	}
 	// Returned hours are 0 to 59 
 	setMinute ( d.getMinutes() );
-	if ( __precision == PRECISION_MINUTE ) {
+	if ( _precision == PRECISION_MINUTE ) {
 		return;
 	}
 	setSecond ( d.getSeconds() );
@@ -3282,105 +3298,106 @@ public void setDate ( Date d )
 }
 
 /**
-Set the day.
+Set the day.  Access public data to increase performance (but call reset()
+afterwards).
 @param d Day.
 */
 public void setDay ( int d )
-{	
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-		if(	(d > TimeUtil.numDaysInMonth( __month, __year )) || (d < 1) ) {
-            String message = "Trying to set invalid day (" + d + ") in DateTime for year " + __year;
-            Message.printWarning( 10, "DateTime.setDay", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	day = d;
+
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+		if(	(day > TimeUtil.numDaysInMonth( month, year )) ||
+			(day < 1) ) {
+                        Message.printWarning( 2, "DateTime.setDay",
+                        "day has been set to " + day + " for year " + year );
+                }
 	}
-    __day = d;
 	setYearDay();
-	// This has the flaw of not changing the flag when the value is set to 1!
-	if ( __day != 1 ) {
-		__iszero = false;
+	// This has the flaw of not changing the flag when the value is set
+	// to 1!
+	if ( day != 1 ) {
+		_iszero = false;
 	}
 }
 
 /**
-Set the hour.
+Set the hour.  Access public data to increase performance.
 @param h Hour.
 */
 public void setHour( int h )
-{	
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-		if( (h > 23) || (h < 0) ) {
-			String message = "Trying to set invalid hour (" + h + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setHour", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	hour = h;
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+		if( (hour > 23) || (hour < 0) ) {
+			Message.printWarning( 2, "DateTime.setHour",
+                        "hour has been set to " + hour );
+                }
 	}
-    __hour = h;
-	// This has the flaw of not changing the flag when the value is set to 0!
-	if ( __hour != 0 ) {
-		__iszero = false;
+	// This has the flaw of not changing the flag when the value is set
+	// to 0!
+	if ( hour != 0 ) {
+		_iszero = false;
 	}
 }
 
 /**
-Set the hundredths of seconds.
+Set the hundredths of seconds.  Access public data to increase performance.
 @param hs Hundredths of seconds.
 */
 public void setHSecond( int hs)
-{	
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( hs > 99 || hs < 0 ) {
-            String message = "Trying to set invalid hsecond (" + hs + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setHSecond", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	hsecond = hs;
+
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+                if( hsecond > 99 || hsecond < 0 ) {
+                        Message.printWarning( 2, "DateTime.setHSecond",
+                        "hsecond has been set to " + hsecond );
+                }
 	}
-    __hsecond = hs;
-	// This has the flaw of not changing the flag when the value is set to 0!
+	// This has the flaw of not changing the flag when the value is set
+	// to 0!
 	if ( hs != 0 ) {
-		__iszero = false;
+		_iszero = false;
 	}
 }
 
 /**
-Set the minute.
+Set the minute.  Access public data to increase performance.
 @param m Minute.
 */
 public void setMinute( int m)
-{	
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( m > 59 || m < 0 ) {
-            String message = "Trying to set invalid minute (" + m + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setMinute", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	minute = m;
+	
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+                if( minute > 59 || minute < 0 ) {
+			Message.printWarning( 2, "DateTime.setMinute",
+                        "minute has been set to " + minute );
+                }
 	}
-    __minute = m;
-	// This has the flaw of not changing the flag when the value is set to 0!
+	// This has the flaw of not changing the flag when the value is set
+	// to 0!
 	if ( m != 0 ) {
-		__iszero = false;
+		_iszero = false;
 	}
 }
 
 /**
-Set the month.
+Set the month.  Access public data to increase performance (but call reset()
+afterwards).
 @param m Month.
 */
 public void setMonth ( int m)
-{
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( m > 12 || m < 1 ) {
-            String message = "Trying to set invalid month (" + m + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setMonth", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	month = m;
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+                if( month > 12 || month < 1 ) {
+			Message.printWarning( 2, "DateTime.setMonth",
+                        "month has been set to " + month );
+                }
 	}
-    __month = m;
 	setYearDay();
 	setAbsoluteMonth();
-	// This has the flaw of not changing the flag when the value is set to 1!
+	// This has the flaw of not changing the flag when the value is set
+	// to 1!
 	if ( m != 1 ) {
-		__iszero = false;
+		_iszero = false;
 	}
 }
 
@@ -3444,43 +3461,43 @@ public void setPrecision ( int behavior_flag, boolean cumulative )
 	}
 	// Now the precision should be what is left...
 	if ( precision == PRECISION_YEAR ) {
-		__month = 1;
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-		__precision = precision;
+		month = 1;
+		day = 1;
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+		_precision = precision;
 	}
 	else if ( precision == PRECISION_MONTH ) {
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-		__precision = precision;
+		day = 1;
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+		_precision = precision;
 	}
 	else if ( precision == PRECISION_DAY ) {
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-		__precision = precision;
+		hour = 0;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+		_precision = precision;
 	}
 	else if ( precision == PRECISION_HOUR ) {
-		__minute = 0;
-		__second = 0;
-		__hsecond = 0;
-		__precision = precision;
+		minute = 0;
+		second = 0;
+		hsecond = 0;
+		_precision = precision;
 	}
 	else if ( precision == PRECISION_MINUTE ) {
-		__second = 0;
-		__hsecond = 0;
-		__precision = precision;
+		second = 0;
+		hsecond = 0;
+		_precision = precision;
 	}
 	else if ( precision == PRECISION_SECOND ) {
-		__hsecond = 0;
-		__precision = precision;
+		hsecond = 0;
+		_precision = precision;
 	}
 	// Else do not set _precision - assume that it was set previously (e.g.,
 	// in a copy constructor).
@@ -3488,39 +3505,39 @@ public void setPrecision ( int behavior_flag, boolean cumulative )
 	// Time zone is separate and always gets set...
 
 	if ( (behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
-		__use_time_zone = true;
+		_use_time_zone = true;
 	}
 	else if ( !cumulative ) {
-		__use_time_zone = false;
+		_use_time_zone = false;
 	}
 
 	// Time only is separate and always gets set...
 
 	if ( (behavior_flag & TIME_ONLY) != 0 ) {
-		__time_only = true;
+		_time_only = true;
 	}
 	else if ( !cumulative ) {
-		__time_only = false;
+		_time_only = false;
 	}
 }
 
 /**
-Set the second.
+Set the second.  Access public data to increase performance.
 @param s Second.
 */
 public void setSecond( int s )
-{
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        if( s > 59 || s < 0 ) {
-            String message = "Trying to set invalid second (" + s + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setSecond", message );
-            throw new IllegalArgumentException ( message );
-        }
+{	second = s;
+	
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+                if( second > 59 || second < 0 ) {
+			Message.printWarning( 2, "DateTime.setSecond",
+                        "second has been set to " + second );
+                }
 	}
-    __second = s;
-	// This has the flaw of not changing the flag when the value is set to 0!
+	// This has the flaw of not changing the flag when the value is set
+	// to 0!
 	if ( s != 0 ) {
-		__iszero = false;
+		_iszero = false;
 	}
 }
 
@@ -3533,12 +3550,11 @@ If null or blank, PRECISION_TIME_ZONE is off.
 */
 public void setTimeZone( String zone ) 
 {	if ( (zone == null) || (zone.length() == 0) ) {
-		__tz = "";
-		__use_time_zone = false;
+		tz = "";
+		_use_time_zone = false;
 	}
-	else {
-        __use_time_zone = true;
-		__tz = zone;
+	else {	_use_time_zone = true;
+		tz = zone;
 	}
 }
 
@@ -3559,40 +3575,41 @@ public void setToCurrent ()
 
 	// Now set...
 
-	__hsecond = now.__hsecond;
-	__second = now.__second;
-	__minute = now.__minute;
-	__hour = now.__hour;
-	__day = now.__day;
-	__month = now.__month;
-	__year = now.__year;
-	__isleap = now.isLeapYear();
-	__weekday = now.getWeekDay();
-	__yearday = now.getYearDay();
-	__abs_month	= now.getAbsoluteMonth();
-	__tz = now.__tz;
-	__behavior_flag	= DATE_STRICT;
-	__precision = PRECISION_SECOND;
-	__use_time_zone = false;
-	__time_only = false;
+	hsecond 	= now.hsecond;
+	second		= now.second;
+	minute		= now.minute;
+	hour		= now.hour;
+	day		= now.day;
+	month		= now.month;
+	year		= now.year;
+	_isleap		= now.isLeapYear();
+	_weekday	= now.getWeekDay();
+	_yearday	= now.getYearDay();
+	_abs_month	= now.getAbsoluteMonth();
+	tz		= now.tz;
+	_behavior_flag	= DATE_STRICT;
+	_precision = PRECISION_SECOND;
+	_use_time_zone = false;
+	_time_only = false;
 
 	// Set the time zone.  Use TimeUtil directly to increase performance...
 
-	if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
+	if (	TimeUtil._time_zone_lookup_method ==
+		TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
 		if ( !TimeUtil._local_time_zone_retrieved ) {
 			// Need to initialize...
 			shiftTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 		}
-		else {
-            // Use the existing data...
+		else {	// Use the existing data...
 			shiftTimeZone ( TimeUtil._local_time_zone_string );
 		}
 	}
-	else if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
+	else if ( TimeUtil._time_zone_lookup_method ==
+		TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
 		shiftTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 	}
 
-	__iszero = false;
+	_iszero = false;
 }
 
 /**
@@ -3601,38 +3618,40 @@ Set the date using the year and a Julian day.
 @param julday Julian day since start of year where 1 = Jan 1).
 */
 public void setToJulianDay ( int y, int julday )
-{	__year = y;
+{	year = y;
 	// Loop through the static Julian day data...
 	int offset = 0;
 	for ( int i = 1; i < 12; i++ ) {
 		if ( i > 1 ) {
-			// Since counts are for days prior to month, this only kicks in after February...
-			if ( __isleap ) {
+			// Since counts are for days prior to month, this only
+			// kicks in after February...
+			if ( _isleap ) {
 				offset = 1;
 			}
 		}
 		if ( julday <= (TimeUtil.MONTH_YEARDAYS[i] + offset) ) {
 			// Month is previous (but use i since zero-index)...
-			__month = i;
+			month = i;
 			if ( i > 2 ) {
-				// Need to subtract the offset to get the right day...
-				__day = julday - (TimeUtil.MONTH_YEARDAYS[i - 1] + offset);
+				// Need to subtract the offset to get the right
+				// day...
+				day = julday - (TimeUtil.MONTH_YEARDAYS[i - 1]
+					+ offset);
 			}
-			else {
-                // Don't consider the offset...
-				__day = julday - TimeUtil.MONTH_YEARDAYS[i - 1];
+			else {	// Don't consider the offset...
+				day = julday - TimeUtil.MONTH_YEARDAYS[i - 1];
 			}
 			reset();
 			return;
 		}
 	}
 	// If here then the month is December...
-	__month = 12;
+	month = 12;
 	int d = julday - (TimeUtil.MONTH_YEARDAYS[11] + offset);
 	if ( d > 31 ) {
 		d = 31;
 	}
-	__day = d;
+	day = d;
 	reset();
 }
 
@@ -3644,76 +3663,75 @@ method is usually only called internally to initialize dates.  If called
 externally, the precision should be set separately.
 */
 public void setToZero ( ) 
-{	__hsecond = 0;
-	__second = 0;
-	__minute = 0;
-	__hour = 0;
-	__day = 1;
-	__month = 1;
-	__year = 0;
-	__isleap = false;
-	__weekday = 0;
-	__yearday = 0;
-	__abs_month	= 0;
-	__tz = "";
-	__behavior_flag	= DATE_STRICT;
-	__precision = PRECISION_SECOND;
-	__use_time_zone = false;
-	__time_only = false;
+{	hsecond 	= 0;
+	second		= 0;
+	minute		= 0;
+	hour		= 0;
+	day		= 1;
+	month		= 1;
+	year		= 0;
+	_isleap		= false;
+	_weekday	= 0;
+	_yearday	= 0;
+	_abs_month	= 0;
+	tz		= "";
+	_behavior_flag	= DATE_STRICT;
+	_precision = PRECISION_SECOND;
+	_use_time_zone = false;
+	_time_only = false;
 
 	// Indicate that the date/time has been zero to zeros...
 
-	__iszero = true;
+	_iszero = true;
 }
 
 /**
-Set the year.
+Set the year.  Access public data to increase performance (but call reset()
+afterwards).
+@param y Year.
 */
 public void setYear( int y )
-{
-	if( (__behavior_flag & DATE_STRICT) != 0 ){
-        /* TODO SAM 2007-12-20 Evaluate whether negative year should be allowed.
-        if( y < 0 ) {
-            String message = "Trying to set invalid year (" + y + ") in DateTime.";
-            Message.printWarning( 2, "DateTime.setYear", message );
-            throw new IllegalArgumentException ( message );
-        }
-        */
+{	year = y;
+	if( (_behavior_flag & DATE_STRICT) != 0 ){
+                if( year < 0 ) {
+			Message.printWarning( 20, "DateTime.setYear",
+                        "year has been set to " + year );
+                }
 	}
-    __year = y;
 	setYearDay();
 	setAbsoluteMonth();
-    __isleap = TimeUtil.isLeapYear( __year );
+        _isleap = TimeUtil.isLeapYear( year );
 	if ( y != 0 ) {
-		__iszero = false;
+		_iszero = false;
 	}
 }
 
 /**
 Set the year day from other data.
-The information is set ONLY if the DATE_FAST bit is not set in the behavior mask.
+The information is set ONLY if the DATE_FAST bit is not set in the behavior
+mask.
 */
 private void setYearDay()
-{	if ( (__behavior_flag & DATE_FAST) != 0 ) {
+{	if ( (_behavior_flag & DATE_FAST) != 0 ) {
 		// Want to run fast so don't check...
 		return;
 	}
 
 	int i;
 
-   	// Calculate the year day...
+       	// Calculate the year day...
 
-   	__yearday = 0;
+       	_yearday = 0;
 
-   	// Get the days from the previous months...
+       	// Get the days from the previous months...
 
-   	for( i = 1; i < __month; i++ ) {
-       	__yearday += TimeUtil.numDaysInMonth( i, __year );
-   	}
+       	for( i = 1; i < month; i++ ) {
+               	_yearday += TimeUtil.numDaysInMonth( i, year );
+       	}
 
-   	// Add the days from the current month...
+       	// Add the days from the current month>...
 
-   	__yearday += __day;
+       	_yearday += day;
 }
 
 /**
@@ -3724,13 +3742,13 @@ then sets the time zone for the instance to the requested time zone.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
 */
 public void shiftTimeZone ( String zone )
-{	try {
-        int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
+{	try {	int offset = TZ.calculateOffsetMinutes ( tz, zone, this );
 		addMinute ( offset );
 		setTimeZone ( zone );
 	}
 	catch ( Exception e ) {
-		// Nothing for now - should not happen if system is set up correctly
+		// Nothing for now - should not happen if system is set up
+		// correctly
 	}
 }
 
@@ -3751,7 +3769,7 @@ the TIME_ONLY flag is in effect during construction.
 @return true if only time fields are considered.
 */
 public boolean timeOnly ()
-{	return __time_only;
+{	return _time_only;
 }
 
 /**
@@ -3763,40 +3781,40 @@ will be zero.
 */
 public double toDouble ( )
 {	double	dt = 0.0, d = 0;
-	double	ydays = (double)TimeUtil.numDaysInYear(__year);
+	double	ydays = (double)TimeUtil.numDaysInYear(year);
 
-	if ( !__time_only ) {
-		dt = (double)__year;
-		if ( __precision == PRECISION_YEAR ) {
+	if ( !_time_only ) {
+		dt = (double)year;
+		if ( _precision == PRECISION_YEAR ) {
 			return dt;
 		}
 	
-		d = ((double)(TimeUtil.numDaysInMonths(1, __year, (__month-1))));
-		if ( __precision == PRECISION_MONTH ) {
+		d = ((double)(TimeUtil.numDaysInMonths(1, year, (month-1))));
+		if ( _precision == PRECISION_MONTH ) {
 			return (dt + d/ydays);
 		}
 
-		d	+= (double)(__day - 1);
-		if ( __precision == PRECISION_DAY ) {
+		d	+= (double)(day - 1);
+		if ( _precision == PRECISION_DAY ) {
 			return (dt + d/ydays);
 		}
 	}
 
 	// Normalize to day for hours, minutes, seconds, etc.
 
-	d	+= ((double)(__hour))/24.0;
-	if ( __precision == PRECISION_HOUR ) {
+	d	+= ((double)(hour))/24.0;
+	if ( _precision == PRECISION_HOUR ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__minute))/1440.0;		// 60*24
-	if ( __precision == PRECISION_MINUTE ) {
+	d	+= ((double)(minute))/1440.0;		// 60*24
+	if ( _precision == PRECISION_MINUTE ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__second))/86400.0;		// 60*60*24
-	if ( __precision == PRECISION_SECOND ) {
+	d	+= ((double)(second))/86400.0;		// 60*60*24
+	if ( _precision == PRECISION_SECOND ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__hsecond))/8640000;	// 100*60*60*24
+	d	+= ((double)(hsecond))/8640000;	// 100*60*60*24
 	return (dt + d/ydays);
 }
 
@@ -3808,59 +3826,53 @@ output formats are Y2K strings like YYYY-MM-DD or YYYY-MM-DD HH:mm.
 */
 public String toString ()
 {	// Arrange these in probable order of use...
-	if ( __precision == PRECISION_MONTH ) {
+	if ( _precision == PRECISION_MONTH ) {
 		return toString ( FORMAT_YYYY_MM );
 	}
-	else if ( __precision == PRECISION_DAY ) {
+	else if ( _precision == PRECISION_DAY ) {
 		return toString ( FORMAT_YYYY_MM_DD );
 	}
-	else if ( __precision == PRECISION_HOUR ) {
-		if ( __use_time_zone && (__tz.length() > 0) ) {
+	else if ( _precision == PRECISION_HOUR ) {
+		if ( _use_time_zone && (tz.length() > 0) ) {
 			return toString ( FORMAT_YYYY_MM_DD_HH_ZZZ );
 		}
-		else {
-            return toString ( FORMAT_YYYY_MM_DD_HH );
+		else {	return toString ( FORMAT_YYYY_MM_DD_HH );
 		}
 	}
-	else if ( __precision == PRECISION_YEAR ) {
+	else if ( _precision == PRECISION_YEAR ) {
 		return toString ( FORMAT_YYYY );
 	}
-	else if ( __precision == PRECISION_MINUTE ) {
-		if ( __time_only ) {
+	else if ( _precision == PRECISION_MINUTE ) {
+		if ( _time_only ) {
 			return toString ( FORMAT_HH_mm );
 		}
-		else {
-            if ( __use_time_zone && (__tz.length() > 0) ) {
+		else {	if ( _use_time_zone && (tz.length() > 0) ) {
 				return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
 			}
-			else {
-                return toString ( FORMAT_YYYY_MM_DD_HH_mm );
+			else {	return toString ( FORMAT_YYYY_MM_DD_HH_mm );
 			}
 		}
 	}
-	else if ( __precision == PRECISION_SECOND ) {
-		if ( __use_time_zone && (__tz.length() > 0) ) {
+	else if ( _precision == PRECISION_SECOND ) {
+		if ( _use_time_zone && (tz.length() > 0) ) {
 			return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ );
 		}
-		else {
-            return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS );
+		else {	return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS );
 		}
 	}
-	else if ( __precision == PRECISION_HSECOND ) {
-		if ( __use_time_zone && (__tz.length() > 0) ) {
+	else if ( _precision == PRECISION_HSECOND ) {
+		if ( _use_time_zone && (tz.length() > 0) ) {
 			return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
 		}
-		else {
-            return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh );
+		else {	return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh );
 		}
 	}
-	else {
-        // Assume that hours and minutes but NOT time zone are desired...
-		if ( __use_time_zone && (__tz.length() > 0) ) {
+	else {	// Assume that hours and minutes but NOT time zone are
+		// desired...
+		if ( _use_time_zone && (tz.length() > 0) ) {
 			return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
 		}
-		else {
-            return toString ( FORMAT_YYYY_MM_DD_HH_mm );
+		else {	return toString ( FORMAT_YYYY_MM_DD_HH_mm );
 		}
 	}
 }
@@ -3883,170 +3895,171 @@ public String toString ( int format )
 	}
 	else if ( format == FORMAT_DD_SLASH_MM_SLASH_YYYY ) {
 		return
-		StringUtil.formatString(__day,"%02d") + "/" +
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__year,"%04d");
+		StringUtil.formatString(day,"%02d") + "/" +
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(year,"%04d");
 	}	
 	else if ( format == FORMAT_HH_mm ) {
 		return 
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_HHmm ) {
-		// This format is NOT parsed automatically (the 4-digit year parse is done instead).
+		// This format is NOT parsed automatically (the 4-digit year
+		// parse is done instead).
 		return 
-		StringUtil.formatString(__hour,"%02d") +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(hour,"%02d") +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_MM ) {
-		return StringUtil.formatString(__month,"%02d");
+		return StringUtil.formatString(month,"%02d");
 	}
 	else if ( format == FORMAT_MM_DD ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d");
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_DD ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__day,"%02d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(day,"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__day,"%02d") + "/" +
-		StringUtil.formatString(__year,"%04d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(day,"%02d") + "/" +
+		StringUtil.formatString(year,"%04d");
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YY ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__day,"%02d") + "/" +
-		StringUtil.formatString(TimeUtil.formatYear( __year,2),"%02d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(day,"%02d") + "/" +
+		StringUtil.formatString(TimeUtil.formatYear( year,2),"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__day,"%02d") + "/" +
-		StringUtil.formatString(__year,"%04d") + " " +
-		StringUtil.formatString(__hour,"%02d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(day,"%02d") + "/" +
+		StringUtil.formatString(year,"%04d") + " " +
+		StringUtil.formatString(hour,"%02d");
 	}
 	else if ( format == FORMAT_MM_DD_YYYY_HH ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + "-" +
-		StringUtil.formatString(__year,"%04d") + " " +
-		StringUtil.formatString(__hour,"%02d");
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + "-" +
+		StringUtil.formatString(year,"%04d") + " " +
+		StringUtil.formatString(hour,"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__day,"%02d") + "/" +
-		StringUtil.formatString(__year,"%04d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(day,"%02d") + "/" +
+		StringUtil.formatString(year,"%04d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		return
-		StringUtil.formatString(__month,"%02d") + "/" +
-		StringUtil.formatString(__year,"%04d");
+		StringUtil.formatString(month,"%02d") + "/" +
+		StringUtil.formatString(year,"%04d");
 	}
 	else if ( format == FORMAT_YYYY ) {
-		return StringUtil.formatString(__year,"%04d");
+		return StringUtil.formatString(year,"%04d");
 	}
 	else if ( format == FORMAT_YYYY_MM ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + " " + __tz;
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + " " + tz;
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_YYYYMMDDHHmm ) {
 		return
-		StringUtil.formatString(__year,"%04d") +
-		StringUtil.formatString(__month,"%02d") +
-		StringUtil.formatString(__day,"%02d") +
-		StringUtil.formatString(__hour,"%02d") +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(year,"%04d") +
+		StringUtil.formatString(month,"%02d") +
+		StringUtil.formatString(day,"%02d") +
+		StringUtil.formatString(hour,"%02d") +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HHmm ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") +
-		StringUtil.formatString(__minute,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") +
+		StringUtil.formatString(minute,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_ZZZ ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d" + " " + __tz );
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d" + " " + tz );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d") + ":" +
-		StringUtil.formatString(__second,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d") + ":" +
+		StringUtil.formatString(second,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d") + ":" +
-		StringUtil.formatString(__second,"%02d") + ":" +
-		StringUtil.formatString(__hsecond,"%02d");
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d") + ":" +
+		StringUtil.formatString(second,"%02d") + ":" +
+		StringUtil.formatString(hsecond,"%02d");
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d") + ":" +
-		StringUtil.formatString(__second,"%02d") + " " + __tz;
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d") + ":" +
+		StringUtil.formatString(second,"%02d") + " " + tz;
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ ) {
 		return
-		StringUtil.formatString(__year,"%04d") + "-" +
-		StringUtil.formatString(__month,"%02d") + "-" +
-		StringUtil.formatString(__day,"%02d") + " " +
-		StringUtil.formatString(__hour,"%02d") + ":" +
-		StringUtil.formatString(__minute,"%02d") + ":" +
-		StringUtil.formatString(__second,"%02d") + ":" +
-		StringUtil.formatString(__hsecond,"%02d") + " " + __tz;
+		StringUtil.formatString(year,"%04d") + "-" +
+		StringUtil.formatString(month,"%02d") + "-" +
+		StringUtil.formatString(day,"%02d") + " " +
+		StringUtil.formatString(hour,"%02d") + ":" +
+		StringUtil.formatString(minute,"%02d") + ":" +
+		StringUtil.formatString(second,"%02d") + ":" +
+		StringUtil.formatString(hsecond,"%02d") + " " + tz;
 	}
 	else {	return toString( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
 	}
@@ -4059,7 +4072,7 @@ during construction or if the setPrecision() method is called.
 @return true if the time zone should be considered when processing the date.
 */
 public boolean useTimeZone()
-{	return __use_time_zone;
+{	return _use_time_zone;
 }
 
-}
+} // End of DateTime class definition
