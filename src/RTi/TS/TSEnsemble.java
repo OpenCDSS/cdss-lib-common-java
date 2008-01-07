@@ -132,6 +132,24 @@ public void setEnsembleName ( String name )
 }
 
 /**
+Set the time series in the ensemble.  If the list is too small, null time series will
+be added.
+@param index Index (0+) at which to set the ensemble.
+@param ts Time series to set.
+*/
+public void set ( int index, TS ts )
+{
+    int size = size();
+    if ( index >= size ) {
+        for ( int i = size; i <= index; i++ ) {
+            __tslist.set ( index, null );
+        }
+    }
+    // Set the time series...
+    __tslist.set( index, ts);
+}
+
+/**
 Get the number of time series in the ensemble.
 @return The number of time series in the ensemble.
 */
