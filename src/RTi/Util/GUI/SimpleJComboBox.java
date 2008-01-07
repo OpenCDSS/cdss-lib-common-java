@@ -46,6 +46,7 @@ package RTi.Util.GUI;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.text.JTextComponent;
@@ -135,6 +136,15 @@ public SimpleJComboBox() {
 	super();
 	initialize(-1, false);
 }
+
+/**
+ * Creates a JComboBox that takes it's items from an existing ComboBoxModel.
+ */
+public SimpleJComboBox(ComboBoxModel aModel)
+	{
+		super(aModel);
+		initialize(-1, false);
+	}
 
 /**
 Constructor.
