@@ -86,6 +86,7 @@ public XMRGViewerJFrame(String xmrgDir, String xmrgFilename) {
 	setupGUI();
 }
 
+// FIXME SAM 2008-01-08 Need to pass a File parameter and handle automatically.
 /**
 Constructor.
 @param xmrgStr if the 'dir' param is true, this is the directory in which
