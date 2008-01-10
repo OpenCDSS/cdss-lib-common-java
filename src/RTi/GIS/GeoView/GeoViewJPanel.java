@@ -262,6 +262,11 @@ Example of usage?
 public class GeoViewJPanel 
 extends JPanel
 implements ActionListener, ComponentListener, GeoViewListener, ItemListener {
+	
+/**
+Home of graphics.
+*/
+private final String __resource_home = "/RTi/GIS/GeoView";
 
 private GeoViewJComponent __mainGeoView = null;	// For drawing.
 private GeoViewJComponent	__refGeoView = null;	// Reference GeoView
@@ -3475,8 +3480,8 @@ will be generated
 @param field2 textfield to use for the right status textfield.  if null, one
 will be generated
 */
-private void setupGUI(JToolBar toolBar, PropList display_props,
-JTextField field1, JTextField field2) {
+private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1, JTextField field2)
+{	String routine = getClass().getName() + ".setupGUI";
 	GridBagLayout gbl = new GridBagLayout();
 
 	Insets insetsTLBR = new Insets ( 2, 2, 0, 0 );	 // space around canvas
@@ -3550,7 +3555,6 @@ JTextField field1, JTextField field2) {
 
 	// Add the main map...
 
-
 	__mainGeoView = new GeoViewJComponent ( __parentJFrame, display_props );
 	__mainGeoView.addRemindedRepainter(__refGeoView);
 	__mainGeoView.setInteractionMode ( GeoViewJComponent.INTERACTION_ZOOM );
@@ -3613,57 +3617,46 @@ JTextField field1, JTextField field2) {
 */	
 
 	URL url = null;
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_print.gif");
-	if (url != null) {
+	String url_string = __resource_home + "/icon_print.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__printJButton = new SimpleJButton(
-			new ImageIcon(url),
-			PRINT, "Print Map", none, false, this);	
+				new ImageIcon(url),
+				PRINT, "Print Map", none, false, this);	
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_print.gif");
-
-			__printJButton = new SimpleJButton(
-				i,
-				PRINT, "Print Map", none, false, this);	
-		}
-		catch (Exception e) {
-			__printJButton = new SimpleJButton(
-				"Print",
-				PRINT, "Print Map", none, false, this);	
-		}
+	catch ( Exception e ) {
+		// Not able to find graphic...
+		Message.printWarning( 3, routine, e );
+		url = null;
+	}
+	if (url == null) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__printJButton = new SimpleJButton(
+			"Print",
+			PRINT, "Print Map", none, false, this);	
 	}
 	__toolBar.add(__printJButton);
 
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_saveAsJpeg.gif");
-	if (url != null) {
+	url_string = __resource_home + "/icon_saveAsImage.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__saveAsImageJButton = new SimpleJButton(
 			new ImageIcon(url),
 			SAVE_AS_IMAGE, "Save Map as Image", none, false, this);	
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_saveAsJpeg.gif");
-	
-			__saveAsImageJButton = new SimpleJButton(
-				i,
-				SAVE_AS_IMAGE, "Save Map as Image", 
-				none, false, this);	
-		}
-		catch (Exception e) {
-			__saveAsImageJButton = new SimpleJButton(
-				"Save",
-				SAVE_AS_IMAGE, "Save Map as Image", none, 
-				false, this);	
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__saveAsImageJButton = new SimpleJButton(
+			"Save",
+			SAVE_AS_IMAGE, "Save Map as Image", none, 
+			false, this);
 	}	
 	__toolBar.add(__saveAsImageJButton);
 	
@@ -3715,152 +3708,116 @@ JTextField field1, JTextField field2) {
 */
 	__toolBar.addSeparator();
 
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_refresh.gif");
-	if (url != null) {
+	url_string = __resource_home + "/icon_refresh.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__refreshJButton = new SimpleJButton(
 			new ImageIcon(url),
 			REFRESH, "Refresh Map", none, false, this);		
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_refresh.gif");
-	
-			__refreshJButton = new SimpleJButton(
-				i,
-				REFRESH, "Refresh Map", none, false, this);
-		}
-		catch (Exception e) {
-			__refreshJButton = new SimpleJButton(
-				"Refresh",
-				REFRESH, "Refresh Map", none, false, this);
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__refreshJButton = new SimpleJButton(
+			"Refresh",
+			REFRESH, "Refresh Map", none, false, this);
 	}		
 	__refreshJButton.setActionCommand(REFRESH);
 	__toolBar.add(__refreshJButton);
 	
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_zoomToFullExtents.gif");
-	if (url != null) {
+	url_string = __resource_home + "/icon_zoomToFullExtents.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__zoomOutJButton = new SimpleJButton(
 			new ImageIcon(url),
 			GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", none, 
 			false, 	this);
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_zoomToFullExtents.gif");
-		
-			__zoomOutJButton = new SimpleJButton(
-				i,
-				GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", 
-				none, 
-				false, 	this);
-		}
-		catch (Exception e) {
-			__zoomOutJButton = new SimpleJButton(
-				"Zoom to Full Extent",
-				GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", 
-				none, 
-				false, 	this);
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__zoomOutJButton = new SimpleJButton(
+			"Zoom to Full Extent",
+			GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", 
+			none, 
+			false, 	this);
 	}
 	__zoomOutJButton.setActionCommand(GEOVIEW_ZOOM_OUT);	
 	__toolBar.add(__zoomOutJButton);	
 
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_zoomMode.gif");
-	if (url != null) {
+	url_string = __resource_home + "/icon_zoomMode.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__zoomJButton = new SimpleJToggleButton(
 			new ImageIcon(url),
 			MODE_ZOOM, "Enter Zoom Mode", none, false, this, true);
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_zoomMode.gif");
-		
-			__zoomJButton = new SimpleJToggleButton(
-				i,
-				MODE_ZOOM, "Enter Zoom Mode", none, false, 
-				this, true);
-		}
-		catch (Exception e) {
-			__zoomJButton = new SimpleJToggleButton(
-				"Zoom Mode",
-				MODE_ZOOM, "Enter Zoom Mode", none, false, 
-				this, true);
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__zoomJButton = new SimpleJToggleButton(
+			"Zoom Mode",
+			MODE_ZOOM, "Enter Zoom Mode", none, false, 
+			this, true);
 	}	
 	__zoomJButton.setActionCommand(MODE_ZOOM);
 	__toolBar.add(__zoomJButton);	
-	
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_infoMode.gif");
-	if (url != null) {
+
+	url_string = __resource_home + "/icon_infoMode.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__infoJButton = new SimpleJToggleButton(
 			new ImageIcon(url),
 			MODE_INFO, "Enter Info Mode", none, false, this, false);
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_infoMode.gif");
-		
-			__infoJButton = new SimpleJToggleButton(
-				i,
-				MODE_INFO, "Enter Info Mode", none, false, 
-				this, false);
-		}
-		catch (Exception e) {
-			__infoJButton = new SimpleJToggleButton(
-				"Info Mode",
-				MODE_INFO, "Enter Info Mode", none, false, 
-				this, false);
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__infoJButton = new SimpleJToggleButton(
+			"Info Mode",
+			MODE_INFO, "Enter Info Mode", none, false, 
+			this, false);
 	}	
 	__infoJButton.setActionCommand(MODE_INFO);
 	__infoJButton.setEnabled(false);
 	__toolBar.add(__infoJButton);	
 	
-	url = this.getClass().getResource(
-		"/RTi/graphics/GIS/GeoView/icon_selectMode.gif");
-	if (url != null) {
+	url_string = __resource_home + "/icon_selectMode.gif";
+	try {
+		url = this.getClass().getResource( url_string );
 		__selectJButton = new SimpleJToggleButton(
 			new ImageIcon(url),
 			MODE_SELECT, "Enter Select Mode", none, false, this, 
 			false);
 	}
-	else {
-		try {
-			ImageIcon i = JGUIUtil.loadIconImage(
-				"i:\\develop\\gis\\libGeoViewJava\\graphics"
-				+ "\\RTi\\graphics\\"
-				+ "GIS\\GeoView\\icon_selectMode.gif");
-
-			__selectJButton = new SimpleJToggleButton(
-				i,
-				MODE_SELECT, "Enter Select Mode", none, 
-				false, this, 
-				false);
-		}
-		catch (Exception e) {
-			__selectJButton = new SimpleJToggleButton(
-				"Select Mode",
-				MODE_SELECT, "Enter Select Mode", none, 
-				false, this, 			
-				false);
-		}
+	catch ( Exception e ) {
+		url = null;
+	}
+	if ( url == null ) {
+		// Add a button with only strings...
+		Message.printWarning( 3, routine,
+				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+		__selectJButton = new SimpleJToggleButton(
+			"Select Mode",
+			MODE_SELECT, "Enter Select Mode", none, 
+			false, this, 			
+			false);
 	}	
 	__selectJButton.setActionCommand(MODE_SELECT);
 	__selectJButton.setEnabled(false);
