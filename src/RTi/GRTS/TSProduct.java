@@ -1637,9 +1637,14 @@ public void checkProperties ()
 	//---------------------------------------------------------------------
 	// Product properties
 	//---------------------------------------------------------------------
-
-	// CurrentDateTime - set at run time
-	// CurrentDateTimeColor - could try to parse.
+	
+    if (getLayeredPropValue("CurrentDateTime", -1, -1, false) == null) {
+        setPropValue("CurrentDateTime", getDefaultPropValue("CurrentDateTime",-1,-1), -1, -1);
+    }
+    
+    if (getLayeredPropValue("CurrentDateTimeColor", -1, -1, false) == null) {
+        setPropValue("CurrentDateTimeColor", getDefaultPropValue("CurrentDateTimeColor",-1,-1), -1, -1);
+    }
 
 	if (getLayeredPropValue("Enabled", -1, -1, false) == null) {
 		setPropValue("Enabled",
@@ -2514,8 +2519,10 @@ boolean isAnnotation, int graphType) {
 
 	if ( subproduct < 0 ) {
 		// Product property...
-		// "CurrentDateTime" set at run-time
-		if ( param.equalsIgnoreCase("CurrentDateTimeColor") ) {
+        if ( param.equalsIgnoreCase("CurrentDateTime") ) {
+            return "None";
+        }
+        else if ( param.equalsIgnoreCase("CurrentDateTimeColor") ) {
 			return "Green";
 		}
 		else if ( param.equalsIgnoreCase("Enabled") ) {

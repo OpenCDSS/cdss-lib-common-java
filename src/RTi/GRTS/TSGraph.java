@@ -2894,11 +2894,9 @@ private void drawCurrentDateTime ()
 		(_graph_type == TSProduct.GRAPH_TYPE_DURATION) ) {
 		return;
 	}
-	// Allow layere properties because the current time could be specified
-	// once for all graphs...
-	String prop_value = _tsproduct.getLayeredPropValue(
-		"CurrentDateTime", _subproduct, -1, true );
-	if ( (prop_value == null) || (prop_value.trim().length() == 0) ) {
+	// Allow layered properties because the current time could be specified once for all graphs...
+	String prop_value = _tsproduct.getLayeredPropValue(	"CurrentDateTime", _subproduct, -1, true );
+	if ( (prop_value == null) || (prop_value.trim().length() == 0) || prop_value.equalsIgnoreCase("None")) {
 		return;
 	}
 	try {	DateTime current_time = null;
@@ -2906,12 +2904,15 @@ private void drawCurrentDateTime ()
 			// Use the current time from the system.
 			current_time = new DateTime ( DateTime.DATE_CURRENT );
 		}
-		else {	// Parse the date/time from the property...
+		else {
+		    // Parse the date/time from the property...
 			current_time = DateTime.parse ( prop_value );
 		}
-		prop_value = _tsproduct.getPropValue ( "CurrentDateTimeColor" );
-		try {	GRDrawingAreaUtil.setColor(_da_graph,
-				GRColor.parseColor( prop_value) );
+		prop_value = _tsproduct.getLayeredPropValue( "CurrentDateTimeColor", _subproduct, -1, true );
+		// FIXME SAM 2008-01-10 Remove when done.
+		//Message.printStatus(2, "", "Color for CurrentDateTimeColor is " + prop_value );
+		try {
+		    GRDrawingAreaUtil.setColor(_da_graph, GRColor.parseColor( prop_value) );
 		}
 		catch ( Exception e2 ) {
 			GRDrawingAreaUtil.setColor ( _da_graph, GRColor.green );
@@ -2925,8 +2926,7 @@ private void drawCurrentDateTime ()
 		GRLimits data_limits = _da_graph.getDataLimits();
 		yp[0] = data_limits.getMinY();
 		yp[1] = data_limits.getMaxY();
-		if (	(xp[0] >= data_limits.getMinX()) &&
-			(xp[0] <= data_limits.getMaxX()) ) { 
+		if ( (xp[0] >= data_limits.getMinX()) && (xp[0] <= data_limits.getMaxX()) ) { 
 			GRDrawingAreaUtil.drawLine ( _da_graph, xp, yp );
 		}
 		current_time = null;
@@ -2934,10 +2934,8 @@ private void drawCurrentDateTime ()
 		yp = null;
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, "TSGraph.drawCurrentDateTime",
-		"Unable to draw current date/time." );
-		Message.printWarning ( 2, "TSGraph.drawCurrentDateTime",
-		e );
+		Message.printWarning ( 3, "TSGraph.drawCurrentDateTime", "Unable to draw current date/time." );
+		Message.printWarning ( 3, "TSGraph.drawCurrentDateTime", e );
 	}
 }
 
