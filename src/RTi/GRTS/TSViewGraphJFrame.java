@@ -179,14 +179,32 @@ public class TSViewGraphJFrame extends JFrame
 implements ActionListener, WindowListener, TSViewListener
 {
 
-// Private data...
+/**
+TSViewJFrame parent.
+TODO SAM 2008-01-11 Describe whether new JFrame() can be used as parent for batch processing.
+*/
+private TSViewJFrame __tsview_JFrame;
 
-private TSViewJFrame __tsview_JFrame;	// TSViewJFrame parent.
-private Vector __tslist;		// List of time series to graph.
-private PropList __props;		// Property list (old-style).
-private TSProduct __tsproduct = null;	// TSProduct defining the graph(s).
+/**
+List of time series to graph.
+*/
+private Vector __tslist;
+
+// TODO SAM 2008-01-11 Need to describe the properties.
+/**
+Property list (old-style).  See also the TSViewJFrame constructor properties.
+*/
+private PropList __props;
+
+/**
+TSProduct defining the graph(s).
+*/
+private TSProduct __tsproduct = null;
+
+/**
+GUI for detail information.
+*/
 private ReportJFrame __detail_JFrame = null;
-					// GUI for detail information.
 
 protected TSGraphJComponent _ts_graph = null;
 protected TSGraphJComponent _ref_graph = null;
@@ -194,6 +212,7 @@ protected TSGraphJComponent _ref_graph = null;
 private SimpleJButton __close_JButton = null;
 private SimpleJButton __help_JButton = null;
 private SimpleJButton __save_JButton = null;
+private SimpleJButton __save_edits_JButton = null;
 private SimpleJButton __summary_JButton = null;
 private SimpleJButton __print_JButton = null;
 private SimpleJButton __table_JButton = null;
@@ -207,10 +226,16 @@ private SimpleJButton __right_toend_JButton = null;
 private SimpleJButton __right_page_JButton = null;
 private SimpleJButton __right_halfpage_JButton = null;
 
+/**
+Display for status messages.
+*/
 private JTextField __message_JTextField = null;
-					// Display messages.
+
+/**
+Display mouse position.
+*/
 private JTextField __tracker_JTextField = null;
-					// Display mouse position.
+
 private JToolBar _toolbar;
 /** Controls whether in Edit mode */
 private SimpleJToggleButton _edit_JToogleButton;
@@ -231,8 +256,7 @@ Construct a TSViewGraphJFrame.
 defined in the TSViewJFrame constructor documentation.
 @exception Exception if there is an error displaying the view.
 */
-public TSViewGraphJFrame (	TSViewJFrame tsview_gui, Vector tslist,
-				PropList props )
+public TSViewGraphJFrame ( TSViewJFrame tsview_gui, Vector tslist, PropList props )
 throws Exception
 {	super ( "Time Series - Graph View" );
 	initialize ( tsview_gui, tslist, props );
@@ -345,16 +369,16 @@ public void actionPerformed ( ActionEvent event )
 			try {	_ts_graph.printGraph ();
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1,
-				"TSViewGraphJFrame.actionPerformed",
-				"Error printing graph." );
-				Message.printWarning ( 2,
-				"TSViewGraphJFrame.actionPerformed", e );
+				Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );
+				Message.printWarning ( 2, "TSViewGraphJFrame.actionPerformed", e );
 			}
 		}
 	}
 	else if ( o == __save_JButton ) {
 		saveGraph();
+	}
+	else if ( o == __save_edits_JButton ) {
+	    saveEdits();
 	}
 	else if ( o == __summary_JButton ) {
 		// Display a summary...
@@ -439,6 +463,22 @@ public TSGraphJComponent getMainJComponent ()
 }
 
 /**
+Get a controlling property value for the display.
+This method handles whether properties come from the TSProduct or other property list.
+@param propname property name (e.g., "EnableReferenceGraph").
+@return String value of the property.
+*/
+private String getPropValue ( String propname )
+{
+    if ( __tsproduct == null ) {
+        return __props.getValue(propname);
+    }
+    else {
+        return __tsproduct.getPropValue(propname);
+    }
+}
+
+/**
 Returns the reference graph.
 @return the reference graph.
 */
@@ -477,20 +517,19 @@ private void initialize (TSViewJFrame tsview_gui,Vector tslist, PropList props )
 	}
 
 	if ( prop_value == null ) {
-		if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Time Series - Graph" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - Time Series - Graph" );
+		else {
+		    setTitle( JGUIUtil.getAppNameForWindows() +	" - Time Series - Graph" );
 		}
 	}
-	else {	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+	else {
+	    if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( prop_value + " - Graph" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() + " - " +
-			prop_value + " - Graph" );
+		else {
+		    setTitle( JGUIUtil.getAppNameForWindows() + " - " +	prop_value + " - Graph" );
 		}
 	}
 
@@ -591,13 +630,11 @@ private void openGUI ( boolean mode )
 		}
 		limits = ts_i.getDataLimits ();
 		if ( limits.areLimitsFound() ) {
-			nmonths=
-			limits.getNonMissingDataDate2().getAbsoluteMonth() -
+			nmonths=limits.getNonMissingDataDate2().getAbsoluteMonth() -
 			limits.getNonMissingDataDate1().getAbsoluteMonth();
 		}
 		else {	
-			nmonths=ts_i.getDate2().getAbsoluteMonth() -
-				ts_i.getDate1().getAbsoluteMonth();
+			nmonths=ts_i.getDate2().getAbsoluteMonth() - ts_i.getDate1().getAbsoluteMonth();
 		}
 		if ( nmonths > max_period_months ) {
 			max_period_months = nmonths;
@@ -618,10 +655,9 @@ private void openGUI ( boolean mode )
 		PropList additional_props = new PropList ( "TSViewGraphJFrame");
 		additional_props.set ( "ReferenceTSIndex=" + max_period_index );
 		__tsproduct.setTSList ( __tslist );
-		_ts_graph = new TSGraphJComponent ( this, __tsproduct,
-				additional_props );
+		_ts_graph = new TSGraphJComponent ( this, __tsproduct, additional_props );
 	}
-  _ts_graph.setEditor(_tsGraphEditor);
+    _ts_graph.setEditor(_tsGraphEditor);
 	main_JPanel.add ( "Center", _ts_graph );
 	
 	// Panel to hold the reference graph and buttons (to maintain spatial
@@ -635,7 +671,8 @@ private void openGUI ( boolean mode )
 	if ( __tsproduct == null ) {
 		prop_value = __props.getValue("EnableReferenceGraph");
 	}
-	else {	prop_value = __tsproduct.getPropValue("EnableReferenceGraph");
+	else {
+	    prop_value = __tsproduct.getPropValue("EnableReferenceGraph");
 	}
 
 	// See if any of the graphs can use a reference graph.  If not, turn
@@ -643,8 +680,7 @@ private void openGUI ( boolean mode )
 	if ( !_ts_graph.canUseReferenceGraph() ) {
 		prop_value = "false";
 	}
-	if (	!needToClose() &&
-		((prop_value == null)|| !prop_value.equalsIgnoreCase("false"))){
+	if ( !needToClose() && ((prop_value == null)|| !prop_value.equalsIgnoreCase("false"))){
 		// Want a reference graph...
 		JPanel reference_JPanel = new JPanel ();
 		reference_JPanel.setLayout ( gbl );
@@ -656,13 +692,12 @@ private void openGUI ( boolean mode )
 		ref_props.set ( "ReferenceTSIndex=" + max_period_index );
 		if ( __tsproduct == null ) {
 			// Old style...
-			_ref_graph = new TSGraphJComponent ( this, __tslist,
-				ref_props );
+			_ref_graph = new TSGraphJComponent ( this, __tslist, ref_props );
 		}
-		else {	// New style...
+		else {
+		    // New style...
 			__tsproduct.setTSList ( __tslist );
-			_ref_graph = new TSGraphJComponent ( this,
-					__tsproduct, ref_props );
+			_ref_graph = new TSGraphJComponent ( this, __tsproduct, ref_props );
 		}
 		// Width is the same as the main graph, height is hard-coded...
 		Dimension graph_size = _ts_graph.getSize();
@@ -720,58 +755,49 @@ private void openGUI ( boolean mode )
 	if ( __tsproduct == null ) {
 		prop_value=__props.getValue("EnableSummary");
 	}
-	else {	prop_value=__tsproduct.getPropValue("EnableSummary");
+	else {
+	    prop_value=__tsproduct.getPropValue("EnableSummary");
 	}
-	if (	(prop_value == null) ||
-		((prop_value != null) &&!prop_value.equalsIgnoreCase("false"))){
+	if ( (prop_value == null) || ((prop_value != null) &&!prop_value.equalsIgnoreCase("false"))){
 		// Add the button...
-		__summary_JButton = new SimpleJButton("Summary",
-			"TSViewGraphJFrame.Summary", this );
+		__summary_JButton = new SimpleJButton("Summary", "TSViewGraphJFrame.Summary", this );
 		button_bottom_JPanel.add ( __summary_JButton );
 	}
 
 	if ( __tsproduct == null ) {
 		prop_value=__props.getValue("EnableTable");
 	}
-	else {	prop_value=__tsproduct.getPropValue("EnableTable");
+	else {
+	    prop_value=__tsproduct.getPropValue("EnableTable");
 	}
-	if (	(prop_value == null) ||
-		((prop_value != null) &&!prop_value.equalsIgnoreCase("false"))){
-		__table_JButton = new SimpleJButton("Table",
-			"TSViewGraphJFrame.Table", this);
+	if ( (prop_value == null) || ((prop_value != null) &&!prop_value.equalsIgnoreCase("false"))){
+		__table_JButton = new SimpleJButton("Table", "TSViewGraphJFrame.Table", this);
 		button_bottom_JPanel.add ( __table_JButton );
 	}
 
 	// Buttons to allow paging left and right...
 
-	__left_tostart_JButton = new SimpleJButton("|<",
-		"TSViewGraphJFrame.Left3", this);
+	__left_tostart_JButton = new SimpleJButton("|<", "TSViewGraphJFrame.Left3", this);
 	button_top_JPanel.add ( __left_tostart_JButton );
 
-	__left_page_JButton = new SimpleJButton("<<",
-		"TSViewGraphJFrame.Left2", this);
+	__left_page_JButton = new SimpleJButton("<<", "TSViewGraphJFrame.Left2", this);
 	button_top_JPanel.add ( __left_page_JButton );
 
-	__left_halfpage_JButton = new SimpleJButton("<",
-		"TSViewGraphJFrame.Left1", this);
+	__left_halfpage_JButton = new SimpleJButton("<", "TSViewGraphJFrame.Left1", this);
 	button_top_JPanel.add ( __left_halfpage_JButton );
 
-	__right_halfpage_JButton = new SimpleJButton(">",
-		"TSViewGraphJFrame.Right1", this);
+	__right_halfpage_JButton = new SimpleJButton(">", "TSViewGraphJFrame.Right1", this);
 	button_top_JPanel.add ( __right_halfpage_JButton );
 
-	__right_page_JButton = new SimpleJButton(">>",
-		"TSViewGraphJFrame.Right2", this);
+	__right_page_JButton = new SimpleJButton(">>", "TSViewGraphJFrame.Right2", this);
 	button_top_JPanel.add ( __right_page_JButton );
 
-	__right_toend_JButton = new SimpleJButton(">|",
-		"TSViewGraphJFrame.Right3", this);
+	__right_toend_JButton = new SimpleJButton(">|", "TSViewGraphJFrame.Right3", this);
 	button_top_JPanel.add ( __right_toend_JButton );
 
 	// Zoom out button to restore original zoom...
 
-	__zoom_out_JButton = new SimpleJButton("ZoomOut",
-		"TSViewGraphJFrame.ZoomOut", this);
+	__zoom_out_JButton = new SimpleJButton("ZoomOut", "TSViewGraphJFrame.ZoomOut", this);
 	button_top_JPanel.add ( __zoom_out_JButton );
 	__zoom_out_JButton.setEnabled ( true );
 
@@ -787,8 +813,7 @@ private void openGUI ( boolean mode )
 		__right_toend_JButton.setEnabled(false);
 	}
 
-	// Default the mode to select initially (so user can change to zoom
-	// mode if they want)...
+	// Default the mode to select initially (so user can change to zoom mode if they want)...
 
 /* Comment out for now since we need the space...
 	__mode_JButton = new SimpleJButton("Change to Select Mode",
@@ -811,7 +836,7 @@ private void openGUI ( boolean mode )
 	}
 */
 
-/* SAMX - add later when actually in use
+/* TODO - add later when actually in use
 	__annotate_JButton = new SimpleJButton("Annotate",
 		"TSViewGraphJFrame.Annotate", this);
 	button_top_JPanel.add ( __annotate_JButton );
@@ -819,19 +844,25 @@ private void openGUI ( boolean mode )
 */
 
 	__help_JButton =new SimpleJButton("Help","TSViewGraphJFrame.Help",this);
-	// REVISIT - add later if better help system is enabled.
+	// TODO - add later if better help system is enabled.
 	//button_bottom_JPanel.add ( __help_JButton );
 
-	__print_JButton = new SimpleJButton(
-		"Print","TSViewGraphJFrame.Print",this);
+	__print_JButton = new SimpleJButton( "Print","TSViewGraphJFrame.Print",this);
 	button_bottom_JPanel.add ( __print_JButton );
 
-	__save_JButton = new SimpleJButton(
-		"Save","TSViewGraphJFrame.Save",this);
+	__save_JButton = new SimpleJButton( "Save","TSViewGraphJFrame.Save",this);
 	button_bottom_JPanel.add ( __save_JButton );
+	
+	if ( TSUtil.areAnyTimeSeriesEditable(__tslist) ) {
+	    __save_edits_JButton = new SimpleJButton( "Save Edits","TSViewGraphJFrame.SaveEdits",this);
+	    button_bottom_JPanel.add ( __save_edits_JButton );
+	    String DefaultSaveFile = getPropValue ( "DefaultSaveFile");
+	    if ( DefaultSaveFile != null ) {
+	        __save_edits_JButton.setToolTipText ( "Save editable time series to: \"" + DefaultSaveFile + "\"");
+	    }
+	}
 
-	__close_JButton = new SimpleJButton(
-		"Close","TSViewGraphJFrame.Close",this);
+	__close_JButton = new SimpleJButton( "Close","TSViewGraphJFrame.Close",this);
 	button_bottom_JPanel.add ( __close_JButton );
 
 	//add ( "South", button_JPanel );
@@ -858,7 +889,8 @@ private void openGUI ( boolean mode )
 	if ( _ts_graph.canUseZoom() ) {
 		__message_JTextField.setText ( "Zoom Mode");
 	}
-	else {	__message_JTextField.setText ( "Zoom Mode Disabled");
+	else {
+	    __message_JTextField.setText ( "Zoom Mode Disabled");
 	}
 	JGUIUtil.addComponent ( control_JPanel, __message_JTextField,
 			0, 0, 1, 1, 1, 1,
@@ -914,6 +946,42 @@ public void refresh ()
 }
 
 /**
+Save the editable time series.  This is generally configured programatically
+to allow users access to time series that can actually be edited (default is nothing
+editable).  The button will only be available if time series are editable.
+*/
+private void saveEdits ()
+{   String routine = "TSViewGraph.saveEdits";
+    // FIXME SAM 2008-01-11 Need to enable a file chooser if the default is not specified
+    // FIXME SAM 2008-01-11 Need to check the file extension to determine what format to write
+    String DefaultSaveFile = getPropValue ( "DefaultSaveFile");
+    if ( DefaultSaveFile == null ) {
+        Message.printWarning ( 1, routine, "DefaultSaveFile property is not specified.  File chooser is not enabled.");
+        return;
+    }
+    Vector editable_tslist = new Vector();
+    try {
+        int size = 0;
+        if ( __tslist != null ) {
+            size = __tslist.size();
+        }
+        TS ts = null;
+        for ( int i = 0; i < size; i++ ) {
+            ts = (TS)__tslist.elementAt(i);
+            if ( ts.isEditable()) {
+                editable_tslist.addElement ( ts );
+            }
+        }
+        DateValueTS.writeTimeSeriesList(editable_tslist, DefaultSaveFile );
+    }
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error saving " + editable_tslist.size() +
+                " editable time series to \"" + DefaultSaveFile + "\".");
+        
+    }
+}
+
+/**
 Save the graph in standard formats.  First prompt for the format and then
 save.  The save can be cancelled.
 */
@@ -927,20 +995,15 @@ private void saveGraph() {
 	JFileChooser fc =JFileChooserFactory.createJFileChooser(last_directory);
 	fc.setDialogTitle ( "Save Graph" );
 	fc.setAcceptAllFileFilterUsed ( false );
-	SimpleFileFilter dv_sff = new SimpleFileFilter("dv",
-		"DateValue Time Series File" );
+	SimpleFileFilter dv_sff = new SimpleFileFilter("dv", "DateValue Time Series File" );
 	fc.addChoosableFileFilter ( dv_sff );
-	SimpleFileFilter txt_sff = new SimpleFileFilter ( "txt",
-		"DateValue Time Series File" );
+	SimpleFileFilter txt_sff = new SimpleFileFilter ( "txt", "DateValue Time Series File" );
 	fc.addChoosableFileFilter ( txt_sff );
-	SimpleFileFilter jpg_sff = new SimpleFileFilter("jpg",
-		"JPEG Image File" );
+	SimpleFileFilter jpg_sff = new SimpleFileFilter("jpg", "JPEG Image File" );
 	fc.addChoosableFileFilter ( jpg_sff );
-	SimpleFileFilter png_sff = new SimpleFileFilter("png",
-		"PNG Image File" );
+	SimpleFileFilter png_sff = new SimpleFileFilter("png", "PNG Image File" );
 	fc.addChoosableFileFilter ( png_sff );	
-	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp",
-		"Time Series Product File" );
+	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
 	Vector tsProductDMIs = __tsview_JFrame.getTSProductDMIs();
@@ -952,20 +1015,17 @@ private void saveGraph() {
 	 	TSProductDMI dmi = null;
 		for (int i = 0; i < size; i++) {
 			dmi = (TSProductDMI)tsProductDMIs.elementAt(i);
-			s = "Time Series Product saved to " 
-				+ dmi.getDMIName();
+			s = "Time Series Product saved to " + dmi.getDMIName();
 			if (dmi instanceof DMI) {
 				if (!((DMI)dmi).getInputName().equals("")) {
-					s += " (" + ((DMI)dmi).getInputName() 
-						+ ")";
+					s += " (" + ((DMI)dmi).getInputName() + ")";
 				}
 			}
 			dmiff[i] = new SimpleFileFilter(SimpleFileFilter.NA, s);
 			fc.addChoosableFileFilter(dmiff[i]);
 		}
 
-		File file = new File(__tsproduct.getLayeredPropValue(
-			"ProductID", -1, -1, false));
+		File file = new File(__tsproduct.getLayeredPropValue( "ProductID", -1, -1, false));
 		fc.setSelectedFile(file);
 		fc.setFileFilter(dmiff[0]);
 	}
@@ -985,8 +1045,7 @@ private void saveGraph() {
 	last_directory = fc.getSelectedFile().getParent();
 	String path = fc.getSelectedFile().getPath();
 	JGUIUtil.setLastFileDialogDirectory(last_directory);
-	if (	(fc.getFileFilter() == dv_sff) ||
-		(fc.getFileFilter() == txt_sff) ) {
+	if ( (fc.getFileFilter() == dv_sff) || (fc.getFileFilter() == txt_sff) ) {
 		if ( !TSUtil.intervalsMatch(__tslist) ) {
 			Message.printWarning ( 1, routine, "Unable to write " +
 			"DateValue time series of different intervals." );
@@ -994,14 +1053,12 @@ private void saveGraph() {
 		}
 		try {	
 			if (fc.getFileFilter() == dv_sff) {
-				if (!StringUtil.endsWithIgnoreCase(
-				    path, ".dv")) {
+				if (!StringUtil.endsWithIgnoreCase( path, ".dv")) {
 					path += ".dv";
 				}
 			}
 			else if (fc.getFileFilter() == txt_sff) {
-				if (!StringUtil.endsWithIgnoreCase(
-				    path, ".txt")) {
+				if (!StringUtil.endsWithIgnoreCase( path, ".txt")) {
 					path += ".txt";
 				}
 			}
@@ -1011,14 +1068,12 @@ private void saveGraph() {
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error saving DateValue file \"" + path + "\"");
+			Message.printWarning ( 1, routine, "Error saving DateValue file \"" + path + "\"");
 			Message.printWarning ( 2, routine, e );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 	}
-	else if (fc.getFileFilter() == jpg_sff 
-		|| fc.getFileFilter() == png_sff) {
+	else if (fc.getFileFilter() == jpg_sff || fc.getFileFilter() == png_sff) {
 		try {	
 			__tsview_JFrame.setWaitCursor(true);
 			if (fc.getFileFilter() == png_sff) {
@@ -1033,8 +1088,7 @@ private void saveGraph() {
 			__tsview_JFrame.setWaitCursor(false);
 		}
 		catch (Exception e) {
-			Message.printWarning(1, routine,
-				"Error saving image file \"" + path + "\"");
+			Message.printWarning(1, routine, "Error saving image file \"" + path + "\"");
 			Message.printWarning(2, routine, e);
 			__tsview_JFrame.setWaitCursor(false);
 		}
@@ -1050,9 +1104,7 @@ private void saveGraph() {
 //			__tsproduct.setPropsHowSet(Prop.SET_FROM_PERSISTENT);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error saving time series product file:\n" +
-			"\"" + path + "\"");
+			Message.printWarning ( 1, routine, "Error saving time series product file:\n" + "\"" + path + "\"");
 			Message.printWarning ( 2, routine, e );
 		}
 	}
@@ -1060,8 +1112,7 @@ private void saveGraph() {
 		if (dmiff != null) {
 			for (int i = 0; i < size; i++) {
 				if (fc.getFileFilter() == dmiff[i]) {
-					TSProductDMI dmi = (TSProductDMI) 
-						tsProductDMIs.elementAt(i);
+					TSProductDMI dmi = (TSProductDMI)tsProductDMIs.elementAt(i);
 					dmi.writeTSProduct(__tsproduct);
 				}
 			}
@@ -1083,8 +1134,7 @@ public void setInteractionMode ( int mode )
 	}
 	// Reference graph is always in zoom mode...
 	if ( _ref_graph != null ) {
-		_ref_graph.setInteractionMode(
-		TSGraphJComponent.INTERACTION_ZOOM );
+		_ref_graph.setInteractionMode( TSGraphJComponent.INTERACTION_ZOOM );
 	}
 }
 
@@ -1112,7 +1162,8 @@ protected boolean shouldClose() {
 		// Close without saving
 		return true;
 	}
-	else {	// Save the changes as if the Save button had been pressed and
+	else {
+	    // Save the changes as if the Save button had been pressed and
 		// indicate that close is OK...
 		saveGraph();
 		return true;
@@ -1120,8 +1171,7 @@ protected boolean shouldClose() {
 }
 
 /**
-Handle mouse motion events and display the mouse coordinates in the status
-TextField.
+Handle mouse motion events and display the mouse coordinates in the status TextField.
 @param devpt Mouse point in GR device coordinates.
 @param datapt Mouse point in data coordinates.
 */
