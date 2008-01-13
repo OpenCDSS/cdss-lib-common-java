@@ -831,6 +831,33 @@ public static String charToHex(char c)
 }
 
 /**
+Indicate whether the string contains any of the specified characters.  This
+can be used to check for restricted characters in input.
+@param s String to check.
+@param chars Characters to check for in string.
+@param ignore_case Specify to true if case should be ignored.
+@return true if the checked string contains any of the specified characters.
+*/
+public static boolean containsAny ( String s, String chars, boolean ignore_case )
+{
+    if ( (s == null) || (chars == null) ) {
+        return false;
+    }
+    // Convert the case here once rather than in indexOfIgnoreCase()
+    if ( ignore_case ) {
+        s = s.toUpperCase();
+        chars = chars.toUpperCase();
+    }
+    int size = chars.length();
+    for ( int i = 0; i < size; i++ ) {
+        if ( s.indexOf(chars.charAt(i)) >= 0 ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
 Count the number of unique (non-overlapping) instances of a pattern in a
 string.
 @param s String to search.
