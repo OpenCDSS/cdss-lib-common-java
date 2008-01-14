@@ -162,6 +162,7 @@ import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJToggleButton;
 
+import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
 import RTi.Util.Help.URLHelp;
@@ -960,6 +961,7 @@ private void saveEdits ()
         return;
     }
     Vector editable_tslist = new Vector();
+    String DefaultSaveFile_full = DefaultSaveFile;
     try {
         int size = 0;
         if ( __tslist != null ) {
@@ -968,16 +970,23 @@ private void saveEdits ()
         TS ts = null;
         for ( int i = 0; i < size; i++ ) {
             ts = (TS)__tslist.elementAt(i);
+            if ( ts == null ) {
+                // Might have null time series in list.
+                continue;
+            }
             if ( ts.isEditable()) {
                 editable_tslist.addElement ( ts );
             }
         }
-        DateValueTS.writeTimeSeriesList(editable_tslist, DefaultSaveFile );
+        DefaultSaveFile_full = IOUtil.getPathUsingWorkingDir ( DefaultSaveFile );
+        Message.printStatus ( 2, routine, "Saving " + editable_tslist.size() +
+                " editable time series to DateValue file \"" + DefaultSaveFile_full );
+        DateValueTS.writeTimeSeriesList(editable_tslist, DefaultSaveFile_full );
     }
     catch ( Exception e ) {
         Message.printWarning ( 1, routine, "Error saving " + editable_tslist.size() +
-                " editable time series to \"" + DefaultSaveFile + "\".");
-        
+                " editable time series to \"" + DefaultSaveFile_full + "\".");
+        Message.printWarning( 2, routine, e );
     }
 }
 

@@ -1591,10 +1591,10 @@ This sets _datalim_graph.
 limits - whatever the graph is supposed to display).  <b>This is time series
 data so for scatter plots, etc., it does not contain all that is needed.
 */
-private void computeLabels ( TSLimits limits ) {
+private void computeLabels ( TSLimits limits )
+{   String routine = "TSGraph.computeLabels";
 	if ( (_da_graph == null) || (limits == null) ) {
-		// Have not initialized the drawing areas yet or bad graph
-		// data...
+		// Have not initialized the drawing areas yet or bad graph data...
 		// JTS
 		// otherwise exceptions thrown when drawing an empty graph
 		_ylabels = new double[1];
@@ -1607,21 +1607,17 @@ private void computeLabels ( TSLimits limits ) {
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "TSGraph.computeLabels",
-		_gtype + "Computing labels using TS limits: " +
-		limits.toString() );
+		Message.printDebug ( 1, routine, _gtype + "Computing labels using TS limits: " +	limits.toString() );
 	}
 
 	boolean log_y = false;
 	boolean log_xy_scatter = false;
-	String prop_value = _tsproduct.getLayeredPropValue(
-			"LeftYAxisType", _subproduct, -1, false);
+	String prop_value = _tsproduct.getLayeredPropValue(	"LeftYAxisType", _subproduct, -1, false);
 	if ((prop_value != null) && prop_value.equalsIgnoreCase("Log")) {
 		log_y = true;
 	}
 
-	prop_value = _tsproduct.getLayeredPropValue (
-		"XYScatterTransformation", _subproduct, -1, false );
+	prop_value = _tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false );
 	if ((prop_value != null) && prop_value.equalsIgnoreCase("Log")) {
 		log_y = false;
 		log_xy_scatter = true;
@@ -1635,16 +1631,11 @@ private void computeLabels ( TSLimits limits ) {
 	double height, width;
 	// Format a label based on the font for the Y axis...
 
-	String fontname = _tsproduct.getLayeredPropValue (
-			"LeftYAxisLabelFontName", _subproduct, -1, false );
-	String fontsize = _tsproduct.getLayeredPropValue (
-			"LeftYAxisLabelFontSize", _subproduct, -1, false );
-	String fontstyle = _tsproduct.getLayeredPropValue (
-			"LeftYAxisLabelFontStyle", _subproduct, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_lefty_label, fontname, fontstyle,
-			StringUtil.atod(fontsize) );
-	GRLimits label_extents = GRDrawingAreaUtil.getTextExtents(
-				_da_lefty_label, "astring", GRUnits.DEVICE );
+	String fontname = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontName", _subproduct, -1, false );
+	String fontsize = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontSize", _subproduct, -1, false );
+	String fontstyle = _tsproduct.getLayeredPropValue (	"LeftYAxisLabelFontStyle", _subproduct, -1, false );
+	GRDrawingAreaUtil.setFont ( _da_lefty_label, fontname, fontstyle, StringUtil.atod(fontsize) );
+	GRLimits label_extents = GRDrawingAreaUtil.getTextExtents( _da_lefty_label, "astring", GRUnits.DEVICE );
 	height = label_extents.getHeight();
 	width = label_extents.getWidth();
 	int minlabels = (int)(_drawlim_graph.getHeight()/(height*6.0));
@@ -1656,41 +1647,30 @@ private void computeLabels ( TSLimits limits ) {
 		maxlabels = minlabels*2;
 	}
 
-	// REVISIT (JTS - 2004-03-03)
+	// TODO (JTS - 2004-03-03)
 	// logic for determining max and min number of labels is screwy when
-	// creating new graphs sometimes.  Puts fewer labels in than look
-	// like should be in there.
+	// creating new graphs sometimes.  Puts fewer labels in than look like should be in there.
 	
 	if (log_y) {
-		if (	(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) &&
-			(_regression_data != null) ) {
+		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
 			// Old used data from the regression...
-			//_ylabels = GRAxis.findLogLabels (
-			//_regression_data.getMin2(),
-			//_regression_data.getMax2() );
+			//_ylabels = GRAxis.findLogLabels (_regression_data.getMin2(),_regression_data.getMax2() );
 			// New consider all regression data...
-			_ylabels = GRAxis.findLogLabels (
-				_data_limits.getMinY(),
-				_data_limits.getMaxY() );
+			_ylabels = GRAxis.findLogLabels (_data_limits.getMinY(),_data_limits.getMaxY() );
 		}
-		else {	_ylabels = GRAxis.findLogLabels ( limits.getMinValue(),
-				limits.getMaxValue() );
+		else {
+		    _ylabels = GRAxis.findLogLabels ( limits.getMinValue(),	limits.getMaxValue() );
 		}
 	}
 	else if (log_xy_scatter) {
-		if (	(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) &&
-			(_regression_data != null) ) {
+		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
 			// Old used data from the regression...
-			//_ylabels = GRAxis.findLogLabels (
-			//_regression_data.getMin2(),
-			//_regression_data.getMax2() );
+			//_ylabels = GRAxis.findLogLabels (_regression_data.getMin2(),_regression_data.getMax2() );
 			// New consider all regression data...
-			_ylabels = GRAxis.findLogLabels (
-				_data_limits.getMinY(),
-				_data_limits.getMaxY() );
+			_ylabels = GRAxis.findLogLabels ( _data_limits.getMinY(), _data_limits.getMaxY() );
 		}
-		else {	_ylabels = GRAxis.findLogLabels ( limits.getMinValue(),
-				limits.getMaxValue() );
+		else {
+		    _ylabels = GRAxis.findLogLabels ( limits.getMinValue(),	limits.getMaxValue() );
 		}
 	}
 	else if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
@@ -1700,21 +1680,15 @@ private void computeLabels ( TSLimits limits ) {
 			_ylabels[i] = i + 1;
 		}
 	}
-	else {	// Linear.  Minimum and maximum number of labels as computed
-		// above...
-		if (	(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) &&
-			(_regression_data != null) ) {
+	else {
+	    // Linear.  Minimum and maximum number of labels as computed above...
+		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
 			while ( minlabels >= 3 ) {
-				// Make sure the max values properly account
-				// for the other axis...
+				// Make sure the max values properly account for the other axis...
 				// Old...
-				//_ylabels = GRAxis.findNLabels (
-					//_regression_data.getMin2(), 
-					//_regression_data.getMax2(),
+				//_ylabels = GRAxis.findNLabels ( _regression_data.getMin2(), _regression_data.getMax2(),
 					//false, minlabels, maxlabels );
-				_ylabels = GRAxis.findNLabels (
-					_data_limits.getMinY(), 
-					_data_limits.getMaxY(),
+				_ylabels = GRAxis.findNLabels (	_data_limits.getMinY(), _data_limits.getMaxY(),
 					false, minlabels, maxlabels );
 				if ( _ylabels != null ) {
 					break;
@@ -1723,10 +1697,8 @@ private void computeLabels ( TSLimits limits ) {
 			}
 		}
 		else {	
-		while ( minlabels >= 3 ) {
-				_ylabels = GRAxis.findNLabels (
-					limits.getMinValue(),
-					limits.getMaxValue(),
+		    while ( minlabels >= 3 ) {
+				_ylabels = GRAxis.findNLabels (	limits.getMinValue(),limits.getMaxValue(),
 					false, minlabels, maxlabels );
 				if ( _ylabels != null ) {
 					break;
@@ -1738,51 +1710,39 @@ private void computeLabels ( TSLimits limits ) {
 
 	if ( _ylabels == null ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "Unable to find labels using " +
-			minlabels + " to " + maxlabels +
-			" labels.  Using end-point data values." );
+			Message.printDebug ( 1, routine, _gtype + "Unable to find labels using " +
+			minlabels + " to " + maxlabels + " labels.  Using end-point data values." );
 		}
 		_ylabels = new double [2];
 		if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
 			_ylabels[0] = _data_limits.getMinY();
 			_ylabels[1] = _data_limits.getMaxY();
-			_data_limits = new GRLimits (
-				_max_data_limits.getMinX(), _ylabels[0],
+			_data_limits = new GRLimits ( _max_data_limits.getMinX(), _ylabels[0],
 				_max_data_limits.getMaxX(), _ylabels[1] );
 		}
 		else {	_ylabels[0] = limits.getMinValue();
 			_ylabels[1] = limits.getMaxValue();
-			_data_limits = new GRLimits (
-					_start_date.toDouble(), _ylabels[0],
+			_data_limits = new GRLimits ( _start_date.toDouble(), _ylabels[0],
 					_end_date.toDouble(), _ylabels[1] );
 		}
 	}
 	else {	
 		if (_graph_type == TSProduct.GRAPH_TYPE_PERIOD) {
-			_data_limits = new GRLimits (
-				_start_date.toDouble(), 
-				(getEnabledTSList().size() + 1),
+			_data_limits = new GRLimits ( _start_date.toDouble(), (getEnabledTSList().size() + 1),
 				_end_date.toDouble(), 0.0);
 		}
 		else if (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
-			_data_limits = new GRLimits (
-				_max_data_limits.getMinX(), _ylabels[0],
-				_max_data_limits.getMaxX(),
-				_ylabels[_ylabels.length - 1]);
+			_data_limits = new GRLimits ( _max_data_limits.getMinX(), _ylabels[0],
+				_max_data_limits.getMaxX(),	_ylabels[_ylabels.length - 1]);
 		}
 		else {	
-			_data_limits = new GRLimits (
-				_start_date.toDouble(), _ylabels[0],
-				_end_date.toDouble(),
-				_ylabels[_ylabels.length - 1]);
+			_data_limits = new GRLimits ( _start_date.toDouble(), _ylabels[0],
+				_end_date.toDouble(), _ylabels[_ylabels.length - 1]);
 		}
 		
 		if (Message.isDebugOn) {
-			Message.printDebug(1, "TSGraph.computeLabels",
-				_gtype + "Found " + _ylabels.length 
-				+ " labels requesting " + minlabels + " to " 
-				+ maxlabels);
+			Message.printDebug(1, routine, _gtype + "Found " + _ylabels.length 
+				+ " labels requesting " + minlabels + " to " + maxlabels);
 		}
 	}
 	if ( !_is_reference_graph ) {
@@ -1792,8 +1752,7 @@ private void computeLabels ( TSLimits limits ) {
 	int i = 0;
 	if ( Message.isDebugOn ) {
 		for ( i = 0; i < size; i++ ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "_ylabel[" + i + "]=" + _ylabels[i] );
+			Message.printDebug ( 1, routine, _gtype + "_ylabel[" + i + "]=" + _ylabels[i] );
 		}
 	}
 
@@ -1803,21 +1762,15 @@ private void computeLabels ( TSLimits limits ) {
 	// If a scatter plot, based on data limits.
 	// If a duration plot, based on 0 - 100 percent.
 
-	fontname = _tsproduct.getLayeredPropValue (
-			"BottomXAxisLabelFontName", _subproduct, -1, false );
-	fontsize = _tsproduct.getLayeredPropValue (
-			"BottomXAxisLabelFontSize", _subproduct, -1, false );
-	fontstyle = _tsproduct.getLayeredPropValue (
-			"BottomXAxisLabelFontStyle", _subproduct, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,
-			StringUtil.atod(fontsize) );
+	fontname = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontName", _subproduct, -1, false );
+	fontsize = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontSize", _subproduct, -1, false );
+	fontstyle = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontStyle", _subproduct, -1, false );
+	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
 
 	if ( _graph_type == TSProduct.GRAPH_TYPE_DURATION ) {
 		// Limits are 0 to 100.0..
-		String maxstring = StringUtil.formatString(
-				(double)100.0, "%.0f");
-		label_extents = GRDrawingAreaUtil.getTextExtents(
-				_da_lefty_label, maxstring, GRUnits.DEVICE );
+		String maxstring = StringUtil.formatString(	(double)100.0, "%.0f");
+		label_extents = GRDrawingAreaUtil.getTextExtents( _da_lefty_label, maxstring, GRUnits.DEVICE );
 		width = label_extents.getWidth();
 		minlabels = (int)(_drawlim_graph.getWidth()/(width*3.0));
 		if ( minlabels < 3 ) {
@@ -1828,8 +1781,7 @@ private void computeLabels ( TSLimits limits ) {
 			maxlabels = minlabels*2;
 		}
 		while ( minlabels >= 3 ) {
-			_xlabels = GRAxis.findNLabels ( 0.0,
-			100.0, false, minlabels, maxlabels );
+			_xlabels = GRAxis.findNLabels ( 0.0, 100.0, false, minlabels, maxlabels );
 			if ( _xlabels != null ) {
 				break;
 			}
@@ -1837,20 +1789,15 @@ private void computeLabels ( TSLimits limits ) {
 		}
 		if ( _xlabels == null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1,
-				"TSGraph.computeLabels",
-				_gtype + "Unable to find X labels using " +
-				minlabels + " to " + maxlabels +
-				" labels.  Using data values." );
+				Message.printDebug ( 1,	routine, _gtype + "Unable to find X labels using " +
+				minlabels + " to " + maxlabels + " labels.  Using data values." );
 			}
 			_xlabels = new double [2];
 			_xlabels[0] = _data_limits.getMinX();
 			_xlabels[1] = _data_limits.getMaxX();
 		}
-		_data_limits = new GRLimits (
-					_xlabels[0], _ylabels[0],
-					_xlabels[_xlabels.length - 1],
-					_ylabels[_ylabels.length - 1] );
+		_data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
+					_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
 		if ( !_is_reference_graph ) {
 			_da_graph.setDataLimits ( _data_limits );
 		}
@@ -1860,11 +1807,8 @@ private void computeLabels ( TSLimits limits ) {
 	else if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
 		// Labels are based on the _data_limits...
 		// Need to check precision for units but assume .1 for now...
-		String maxstring = StringUtil.formatString(
-				_data_limits.getMaxX(), "%." +
-				_xaxis_precision + "f");
-		label_extents = GRDrawingAreaUtil.getTextExtents(
-				_da_lefty_label, maxstring, GRUnits.DEVICE );
+		String maxstring = StringUtil.formatString(	_data_limits.getMaxX(), "%." + _xaxis_precision + "f");
+		label_extents = GRDrawingAreaUtil.getTextExtents( _da_lefty_label, maxstring, GRUnits.DEVICE );
 		width = label_extents.getWidth();
 		minlabels = (int)(_drawlim_graph.getWidth()/(width*3.0));
 		if ( minlabels < 3 ) {
@@ -1872,8 +1816,7 @@ private void computeLabels ( TSLimits limits ) {
 		}
 		maxlabels = (int)(_drawlim_graph.getHeight()/(width*1.5));
 
-		prop_value = _tsproduct.getLayeredPropValue (
-			"XYScatterTransformation", _subproduct, -1, false );
+		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false );
 		boolean asLog = false;
 		if ((prop_value != null) && prop_value.equalsIgnoreCase("Log")){
 			asLog = true;
@@ -1885,29 +1828,21 @@ private void computeLabels ( TSLimits limits ) {
 		while ( minlabels >= 3 ) {
 			if ( _regression_data != null ) {
 				// Old...
-				//_xlabels = GRAxis.findNLabels (
-					//_regression_data.getMin1(),
-					//_regression_data.getMax1(),
-					//false, minlabels, maxlabels );
+				//_xlabels = GRAxis.findNLabels ( _regression_data.getMin1(),
+					//_regression_data.getMax1(), false, minlabels, maxlabels );
 				if (asLog) {
-				_xlabels = GRAxis.findNLabels (
-//					Math.pow(10, _data_limits.getMinX()),
-//					Math.pow(10, _data_limits.getMaxX()),
-					_data_limits.getMinX(),
-					_data_limits.getMaxX(),
-					false, minlabels, maxlabels );
+				    _xlabels = GRAxis.findNLabels (
+//					    Math.pow(10, _data_limits.getMinX()), Math.pow(10, _data_limits.getMaxX()),
+				        _data_limits.getMinX(),	_data_limits.getMaxX(),	false, minlabels, maxlabels );
 				}
 				else {
-				_xlabels = GRAxis.findNLabels (
-					_data_limits.getMinX(),
-					_data_limits.getMaxX(),
-					false, minlabels, maxlabels );
+				    _xlabels = GRAxis.findNLabels (	_data_limits.getMinX(),
+					_data_limits.getMaxX(),	false, minlabels, maxlabels );
 				}
 			}
-			else {	// Use the limits of the time series data...
-				_xlabels = GRAxis.findNLabels (
-					limits.getMinValue(),
-					limits.getMaxValue(),
+			else {
+			    // Use the limits of the time series data...
+				_xlabels = GRAxis.findNLabels (	limits.getMinValue(),limits.getMaxValue(),
 					false, minlabels, maxlabels );
 			}
 			if ( _xlabels != null ) {
@@ -1917,20 +1852,15 @@ private void computeLabels ( TSLimits limits ) {
 		}
 		if ( _xlabels == null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1,
-				"TSGraph.computeLabels",
-				_gtype + "Unable to find X labels using " +
-				minlabels + " to " + maxlabels +
-				" labels.  Using data values." );
+				Message.printDebug ( 1,	routine, _gtype + "Unable to find X labels using " +
+				minlabels + " to " + maxlabels + " labels.  Using data values." );
 			}
 			_xlabels = new double [2];
 			_xlabels[0] = limits.getMinValue();
 			_xlabels[1] = limits.getMaxValue();
 		}
-		_data_limits = new GRLimits (
-					_xlabels[0], _ylabels[0],
-					_xlabels[_xlabels.length - 1],
-					_ylabels[_ylabels.length - 1] );
+		_data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
+					_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
 		if ( !_is_reference_graph ) {
 			_da_graph.setDataLimits ( _data_limits );
 		}
@@ -1940,56 +1870,47 @@ private void computeLabels ( TSLimits limits ) {
 
 	// Remainder is x-axis with dates...
 
-	// First get the extents of a typical label, based on graphics and
-	// precision of label...
+	// First get the extents of a typical label, based on graphics and precision of label...
 
 	DateTime date = new DateTime ( 2000.5, true );
 	date.setPrecision ( _xaxis_date_precision );
-	// Font for _grda was set above.
-	// Get limits - we are interested in horizontal
+	// Font for _grda was set above.  Get limits - we are interested in horizontal
 	// positioning based on dates...
-	label_extents = GRDrawingAreaUtil.getTextExtents(
-			_da_bottomx_label, date.toString(), GRUnits.DEVICE );
+	label_extents = GRDrawingAreaUtil.getTextExtents( _da_bottomx_label, date.toString(), GRUnits.DEVICE );
 	width = label_extents.getWidth();
 	// Maintain spacing of at least one label width...
 	int nlabels = (int)(_drawlim_graph.getWidth()/(width*2.0));
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "TSGraph.computeLabels",
-		_gtype + "Number of X labels is " + nlabels );
+		Message.printDebug ( 1, routine, _gtype + "Number of X labels is " + nlabels );
 	}
 
 	// Number of months in data...
 
-	int nmonths = _end_date.getAbsoluteMonth() -
-			_start_date.getAbsoluteMonth() + 1;
+	int nmonths = _end_date.getAbsoluteMonth() - _start_date.getAbsoluteMonth() + 1;
 	Vector x_axis_labels_temp = new Vector (10,10);
 
 	int delta = 0;
 	if ( _xaxis_date_precision == DateTime.PRECISION_YEAR ) {
 		// Yearly data...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "Determining Year labels" );
+			Message.printDebug ( 1, routine, _gtype + "Determining Year labels" );
 		}
 		if ( nlabels != 0 ) {
-			delta = (_end_date.getYear() -
-				_start_date.getYear() + 1)/nlabels;
+			delta = (_end_date.getYear() - _start_date.getYear() + 1)/nlabels;
 		}
 		if ( delta == 0 ) {
 			delta = 1;
 		}
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement (
-				new Double(date.toDouble() ) );
+			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
 			date.addYear ( delta );
 		}
 	}
 	else if ( _xaxis_date_precision == DateTime.PRECISION_MONTH ) {
 		// Monthly data...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "Determining month labels" );
+			Message.printDebug ( 1, routine, _gtype + "Determining month labels" );
 		}
 		if ( nlabels != 0 ) {
 			delta = nmonths/nlabels;
@@ -2000,24 +1921,18 @@ private void computeLabels ( TSLimits limits ) {
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1,
-				"TSGraph.computeLabels",
-				_gtype + "Label is for " + date.toString() );
+				Message.printDebug ( 1,	routine, _gtype + "Label is for " + date.toString() );
 			}
-			x_axis_labels_temp.addElement (
-				new Double(date.toDouble() ) );
+			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
 			date.addMonth ( delta );
 		}
 	}
 	else if ( _xaxis_date_precision == DateTime.PRECISION_DAY ) {
 		// Daily data...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1,
-			"TSGraph.computeLabels",
-			_gtype + "Determining day labels" );
+			Message.printDebug ( 1,	routine, _gtype + "Determining day labels" );
 		}
-		int ndays = _end_date.getAbsoluteDay() -
-			_start_date.getAbsoluteDay() + 1;
+		int ndays = _end_date.getAbsoluteDay() - _start_date.getAbsoluteDay() + 1;
 		if ( nlabels != 0 ) {
 			delta = ndays/nlabels;
 		}
@@ -2026,54 +1941,60 @@ private void computeLabels ( TSLimits limits ) {
 		}
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement (
-				new Double(date.toDouble() ) );
+			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
 			date.addDay ( delta );
 		}
 	}
 	else if ( _xaxis_date_precision == DateTime.PRECISION_HOUR ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "Determining hour labels" );
+			Message.printDebug ( 1, routine, _gtype + "Determining hour labels" );
 		}
 		
 		// Could be irregular data...
 		int nhours = 0;
 
 		TS ts = getFirstEnabledTS();
+		// Try to find first non-null time series
+		int nts = 0;
+		if ( __tslist != null ) {
+		    nts = __tslist.size();
+		}
+		Object o = null;
+		for ( int its = 0; its < nts; ++its ) {
+		        o = __tslist.elementAt(its);
+		        if ( o != null ) {
+		               ts = (TS)o;
+		               break;
+		        }
+		}
 		if (ts == null) {
-			ts = (TS)__tslist.elementAt(0);
+		    // FIXME SAM 2008-01-13 What do do in this situation?
+		    // Unable to get time series to evaluate
+		    // Hopefully a check is occurring prior to this to detect all null data.
+		    if ( Message.isDebugOn ) {
+		        Message.printDebug ( 10, routine, "No time series are non-null.");
+		    }
+		    return;
 		}
 		int dataIntervalBase = ts.getDataIntervalBase();
 		
 		if (dataIntervalBase == TimeInterval.IRREGULAR) {
 			nhours = (int)(
-				TimeUtil.absoluteMinute(
-					_end_date.getYear(),
-					_end_date.getMonth(),
-					_end_date.getDay(),
-					_end_date.getHour(),
-					_end_date.getMinute() ) 
-				- TimeUtil.absoluteMinute(
-					_start_date.getYear(),
-					_start_date.getMonth(),
-					_start_date.getDay(),
-					_start_date.getHour(),
-					_start_date.getMinute())) / 60;
+				TimeUtil.absoluteMinute(_end_date.getYear(),_end_date.getMonth(),
+					_end_date.getDay(),	_end_date.getHour(),_end_date.getMinute() ) 
+				- TimeUtil.absoluteMinute(_start_date.getYear(),_start_date.getMonth(),
+					_start_date.getDay(),_start_date.getHour(),	_start_date.getMinute())) / 60;
 		}
 		else if (dataIntervalBase == TimeInterval.HOUR) {
 			// Not likely but could happen
-			nhours = HourTS.calculateDataSize(
-				_start_date, _end_date, 1);
+			nhours = HourTS.calculateDataSize( _start_date, _end_date, 1);
 		}
 		else if (dataIntervalBase == TimeInterval.DAY) {
 			// Not likely but could happen
-			nhours = DayTS.calculateDataSize(
-				_start_date, _end_date, 1) * 24;
+			nhours = DayTS.calculateDataSize(_start_date, _end_date, 1) * 24;
 		}
 		else { 
-			nhours = HourTS.calculateDataSize(
-				_start_date, _end_date, 1);
+			nhours = HourTS.calculateDataSize( _start_date, _end_date, 1);
 		}
 
 		if (nlabels != 0) {
@@ -2087,8 +2008,7 @@ private void computeLabels ( TSLimits limits ) {
 		date = new DateTime(_start_date);
 
 		for (i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement(
-				new Double(date.toDouble()));
+			x_axis_labels_temp.addElement( new Double(date.toDouble()));
 			date.addHour(delta);
 		}
 	}
@@ -2104,37 +2024,25 @@ private void computeLabels ( TSLimits limits ) {
 		
 		if (dataIntervalBase == TimeInterval.IRREGULAR) {
 			nminutes = (int)(
-				TimeUtil.absoluteMinute(
-					_end_date.getYear(),
-					_end_date.getMonth(),
-					_end_date.getDay(),
-					_end_date.getHour(),
-					_end_date.getMinute())
-				- TimeUtil.absoluteMinute(
-					_start_date.getYear(),
-					_start_date.getMonth(),
-					_start_date.getDay(),
-					_start_date.getHour(),
-					_start_date.getMinute()));
+				TimeUtil.absoluteMinute(_end_date.getYear(),_end_date.getMonth(),
+					_end_date.getDay(),	_end_date.getHour(), _end_date.getMinute())
+				- TimeUtil.absoluteMinute( _start_date.getYear(), _start_date.getMonth(),
+					_start_date.getDay(), _start_date.getHour(), _start_date.getMinute()));
 		}
 		else if (dataIntervalBase == TimeInterval.HOUR) {
 			// Not likely but could happen
-			nminutes = HourTS.calculateDataSize(
-				_start_date, _end_date, 1) * 60;
+			nminutes = HourTS.calculateDataSize(_start_date, _end_date, 1) * 60;
 		}
 		else if (dataIntervalBase == TimeInterval.DAY) {
 			// Not likely but could happen
-			nminutes = DayTS.calculateDataSize(
-				_start_date, _end_date, 1) * 1440;
+			nminutes = DayTS.calculateDataSize(	_start_date, _end_date, 1) * 1440;
 		}
 		else if (dataIntervalBase == TimeInterval.MONTH) {
 			// Not likely but could happen
-			nminutes = MonthTS.calculateDataSize(
-				_start_date, _end_date, 1) * 1440 * 31;
+			nminutes = MonthTS.calculateDataSize( _start_date, _end_date, 1) * 1440 * 31;
 		}
 		else {	
-			nminutes = MinuteTS.calculateDataSize(
-				_start_date, _end_date, 1);
+			nminutes = MinuteTS.calculateDataSize( _start_date, _end_date, 1);
 		}
 
 		if (nlabels != 0) {
@@ -2156,8 +2064,7 @@ private void computeLabels ( TSLimits limits ) {
 		
 		date = new DateTime(_start_date);
 		for (i = 0; date.lessThanOrEqualTo(_end_date); i++) {
-			x_axis_labels_temp.addElement(
-				new Double(date.toDouble()));
+			x_axis_labels_temp.addElement( new Double(date.toDouble()));
 			date.addMinute(delta);
 		}
 	}
@@ -2167,11 +2074,9 @@ private void computeLabels ( TSLimits limits ) {
 	size = x_axis_labels_temp.size();
 	_xlabels = new double[size];
 	for ( i = 0; i < size; i++ ) {
-		_xlabels[i] = ((Double)
-			x_axis_labels_temp.elementAt(i)).doubleValue();
+		_xlabels[i] = ((Double)x_axis_labels_temp.elementAt(i)).doubleValue();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.computeLabels",
-			_gtype + "_xlabel[" + i + "]=" + _xlabels[i] );
+			Message.printDebug ( 1, routine,_gtype + "_xlabel[" + i + "]=" + _xlabels[i] );
 		}
 	}
 
@@ -7039,15 +6944,12 @@ public void paint ( Graphics g )
 	// which is used to set other data labels...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine,
-		_gtype + "Computing labels..." );
+		Message.printDebug ( 1, routine, _gtype + "Computing labels..." );
 	}
 	if ( !_is_reference_graph ) {
 		computeLabels ( _tslimits );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			_gtype + "Set initial data limits to " +
-			_data_limits );
+			Message.printDebug ( 1, routine, _gtype + "Set initial data limits to " + _data_limits );
 		}
 	}
 
@@ -7062,9 +6964,7 @@ public void paint ( Graphics g )
 		// Highlight current data (zoom) limits in white...
 		_da_graph.setColor ( GRColor.white );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			_gtype + "Data limits for reference box are " +
-			_data_limits.toString() );
+			Message.printDebug ( 1, routine, _gtype + "Data limits for reference box are " + _data_limits.toString() );
 		}
 		// Get the Y-dimension from the maximum values...
 		GRDrawingAreaUtil.fillRectangle ( _da_graph,
@@ -7144,19 +7044,18 @@ public void setDataLimits ( GRLimits datalim_graph )
 	// JTS
 	if ( Message.isDebugOn ) {
 		Message.printDebug(1, "setDataLimits",
-			_gtype + "Setting [" +_subproduct 
-			+ "] _data_limits to " + datalim_graph.toString());
+			_gtype + "Setting [" +_subproduct + "] _data_limits to " + datalim_graph.toString());
 	}
 
 	if ( _is_reference_graph ) {
 		// Save the new data limits for drawing but do not reset the
-		// actual GRDrawingArea.  Also make sure the Y limits are the
-		// maximum...
+		// actual GRDrawingArea.  Also make sure the Y limits are the maximum...
 		_data_limits = new GRLimits ( datalim_graph );
 		_data_limits.setTopY ( _max_data_limits.getTopY() );
 		_data_limits.setBottomY ( _max_data_limits.getBottomY() );
 	}
-	else {	// Do the full recalculation and zoom...
+	else {
+	    // Do the full recalculation and zoom...
 		// Need to recompute new start and end dates...
 		// Make sure to keep the same date precision.
 
@@ -7168,20 +7067,16 @@ public void setDataLimits ( GRLimits datalim_graph )
 
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, "TSGraph.setDataLimits",
-			_gtype + "Set _start_date to " + _start_date +
-			" _end_date to " + _end_date );
+			_gtype + "Set _start_date to " + _start_date + " _end_date to " + _end_date );
 		}
-		try {	// Recompute the limits, based on the period and data
-			// values...
+		try {
+		    // Recompute the limits, based on the period and data values...
 			if (getEnabledTSList().size() == 0) {
 				_tslimits = null;
 				return;
 			}
 			else {
-				_tslimits = TSUtil.getDataLimits(
-					getEnabledTSList(),
-					_start_date, _end_date, "", false, 
-					_ignore_units);
+				_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
 
 				if (_graph_type == TSProduct.GRAPH_TYPE_PERIOD){
 					// Set the minimum value to 0 and 
@@ -7190,36 +7085,30 @@ public void setDataLimits ( GRLimits datalim_graph )
 					// the limits to number the same as 
 					// the legend...
 					_tslimits.setMaxValue(0.0);
-					_tslimits.setMinValue(
-						getEnabledTSList().size() + 1);
+					_tslimits.setMinValue( getEnabledTSList().size() + 1);
 				}
 				if (!_zoom_keep_y_limits) {
 					// Keep the y limits to the maximum...
-					_tslimits.setMinValue (
-						_max_tslimits.getMinValue() );
-					_tslimits.setMaxValue (
-						_max_tslimits.getMaxValue() );
+					_tslimits.setMinValue (	_max_tslimits.getMinValue() );
+					_tslimits.setMaxValue (	_max_tslimits.getMaxValue() );
 				}
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, _gtype + "TSGraph",
-			"Error getting dates for plot." );
+			Message.printWarning ( 2, _gtype + "TSGraph", "Error getting dates for plot." );
 			Message.printWarning ( 2, _gtype + "TSGraph", e );
 			return;
 		}
 		// This will set _datalim_graph.  The Y limits are computed from
-		// the max data limits.  The X limits are computed from
-		// _start_date and _end_date...
+		// the max data limits.  The X limits are computed from _start_date and _end_date...
 		if (getEnabledTSList().size() > 0) {
 			computeLabels ( _tslimits );
 			_da_graph.setDataLimits ( _data_limits );
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug(1, "setDataLimits",
-			_gtype + "After reset, [" +_subproduct 
-			+ "] _data_limits are " + datalim_graph.toString());
+		Message.printDebug(1, "setDataLimits", _gtype + "After reset, [" +_subproduct 
+			+ "] _data_limits are " + datalim_graph );
 	}
 }
 
