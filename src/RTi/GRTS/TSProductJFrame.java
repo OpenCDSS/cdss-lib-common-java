@@ -562,8 +562,7 @@ protected JTextField _numberRowsJTextField = null;
 /**
 Combo boxes for choosing the annotation providers for the graphs.
 */
-private SimpleJComboBox 
-	__graphAnnotationProvider = null;
+private SimpleJComboBox __graphAnnotationProvider = null;
 
 /**
 The annotation providers that are available to be used in the product.
@@ -1342,8 +1341,9 @@ private void clearSubProductProperties() {
 		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontSize",
 		1, -1));
 
-	__graphAnnotationProvider.select(
-		_tsproduct.getDefaultPropValue("AnnotationProvider", 1, -1));
+	if ( __graphAnnotationProvider != null ) {
+	    __graphAnnotationProvider.select( _tsproduct.getDefaultPropValue("AnnotationProvider", 1, -1));
+	}
 
 	_graph_lefty_label_fontname_JComboBox.select(
 		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontName",
@@ -1609,14 +1609,10 @@ private JPanel createAnnotationJPanel() {
 
 	y++;
 	__graphAnnotationProvider = new SimpleJComboBox(__annotationProviders);
-	__graphAnnotationProvider.setPrototypeDisplayValue(
-		"XXXXXXXXXXXXXXXXXXXX");
-	JGUIUtil.addComponent(annotationJPanel,
-		new JLabel("Annotation Provider: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);	
-	JGUIUtil.addComponent(annotationJPanel,
-		__graphAnnotationProvider,
+	__graphAnnotationProvider.setPrototypeDisplayValue(	"XXXXXXXXXXXXXXXXXXXX");
+	JGUIUtil.addComponent(annotationJPanel,	new JLabel("Annotation Provider: "),
+		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,	GridBagConstraints.WEST);	
+	JGUIUtil.addComponent(annotationJPanel,	__graphAnnotationProvider,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
 	
@@ -2254,8 +2250,7 @@ private JPanel createDataJPanel ()
 	for ( int i = 0; i < formats.length; i++ ) {
 		_ts_legendformat_JComboBox.addItem ( formats[i] );
 	}
-	_ts_legendformat_JComboBox.setMaximumRowCount(
-		_ts_legendformat_JComboBox.getItemCount());
+	_ts_legendformat_JComboBox.setMaximumRowCount( _ts_legendformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( legend_JPanel, _ts_legendformat_JComboBox,
 			2, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE,
@@ -4507,25 +4502,23 @@ private void displaySubproductProperties ( int isub )
 	}
 
 	// AnnotationProvider
-	prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider",
-		isub, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider",	isub, -1, false);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("AnnotationProvider",
-			isub, -1);
+		prop_val = _tsproduct.getDefaultPropValue("AnnotationProvider",	isub, -1);
 	}
 
-	__graphAnnotationProvider.select(prop_val);
+	if ( __graphAnnotationProvider != null ) {
+	    __graphAnnotationProvider.select(prop_val);
+	}
 
 	// "LeftYAxisTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LeftYAxisTitleFontName", isub, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_graph_lefty_title_fontname_JComboBox,
-			prop_val);
+	prop_val = _tsproduct.getLayeredPropValue (	"LeftYAxisTitleFontName", isub, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_graph_lefty_title_fontname_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "LeftYAxisTitleFontName \"" +
-		prop_val + "\" is not recognized" );
+		Message.printWarning ( 2, routine, "LeftYAxisTitleFontName \"" + prop_val + "\" is not recognized" );
 		_graph_lefty_title_fontname_JComboBox.select(
 		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontName",
 		isub,-1) );
@@ -4574,38 +4567,31 @@ private void displaySubproductProperties ( int isub )
 
 	// "LeftYAxisUnits"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LeftYAxisUnits", isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue (	"LeftYAxisUnits", isub, -1, false );
 	_graph_lefty_units_JTextField.setText(prop_val);
 
 	// "LegendEnabled"
 
 	// "LegendFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LegendFontName", isub, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_graph_legendfontname_JComboBox,
-			prop_val);
+	prop_val = _tsproduct.getLayeredPropValue (	"LegendFontName", isub, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_graph_legendfontname_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "LegendFontName \"" +
-		prop_val + "\" is not recognized" );
-		_graph_legendfontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LegendFontName",isub,-1) );
+		Message.printWarning ( 2, routine, "LegendFontName \"" + prop_val + "\" is not recognized" );
+		_graph_legendfontname_JComboBox.select(	_tsproduct.getDefaultPropValue("LegendFontName",isub,-1) );
 	}
 
 	// "LegendFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LegendFontStyle", isub, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_graph_legendfontstyle_JComboBox,
-			prop_val);
+	prop_val = _tsproduct.getLayeredPropValue (	"LegendFontStyle", isub, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_graph_legendfontstyle_JComboBox,	prop_val);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "LegendFontStyle \"" +
-		prop_val + "\" is not recognized" );
-		_graph_legendfontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LegendFontStyle",isub,-1) );
+		Message.printWarning ( 2, routine, "LegendFontStyle \"" + prop_val + "\" is not recognized" );
+		_graph_legendfontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("LegendFontStyle",isub,-1) );
 	}
 
 	// "LegendFontSize"
@@ -6804,14 +6790,13 @@ protected int updateTSProduct (int howSet) {
 		}
 	}
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"AnnotationProvider", _selected_subproduct,
-		-1, false);
-	gui_val = __graphAnnotationProvider.getSelected().trim();
-	if (!gui_val.equals(prop_val)) {	
-		_tsproduct.setPropValue("AnnotationProvider", gui_val,
-		_selected_subproduct, -1);
-		ndirty++;
+	prop_val = _tsproduct.getLayeredPropValue( "AnnotationProvider", _selected_subproduct,-1, false);
+	if ( __graphAnnotationProvider != null ) {
+    	gui_val = __graphAnnotationProvider.getSelected().trim();
+    	if (!gui_val.equals(prop_val)) {	
+    		_tsproduct.setPropValue("AnnotationProvider", gui_val, _selected_subproduct, -1);
+    		ndirty++;
+    	}
 	}
 
 	// "BottomXAxisLabelFontName"

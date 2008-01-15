@@ -646,6 +646,7 @@ as follows:
 <li>	%F = full time series identifier (e.g.,
 	<font size=-2>"XX_FREE.HydroBase_USGS.QME.24HOUR.Trace1</font>)</li>
 <li>	%I = Full interval part of the identifier (e.g., "24Hour").</li>
+<li>    %i = input name part of the identifier (e.g., filename).</li>
 <li>	%b = base part of the interval (e.g., "24").</li>
 <li>	%m = multiplier part of the interval (e.g., "Hour").</li>
 <li>	%L = full location part of the identifier (e.g., "XX_FREE").</li>

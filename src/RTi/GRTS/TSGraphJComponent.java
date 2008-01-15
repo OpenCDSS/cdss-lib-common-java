@@ -974,8 +974,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 						GRLimits drawlim_graphs )
 {	String routine = "TSGraphJComponent.createTSGraphsFromTSProduct";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype +
-		"Creating graphs from TSProduct" );
+		Message.printDebug ( 1, routine, _gtype + "Creating graphs from TSProduct" );
 	}
 	// XJTSX
 	// change the false parameter from "true"
@@ -984,8 +983,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 		// Return an empty Vector (should not happen)
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			_gtype + "Created 0 graphs from TSProduct (no " +
-			"enabled subproducts " + "defined)" );
+			_gtype + "Created 0 graphs from TSProduct (no enabled subproducts " + "defined)" );
 		}
 		return new Vector ( 1 );
 	}
@@ -1113,8 +1111,10 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			else {
                 sequence_number = -1;
 			}
-            Message.printStatus ( 2, routine, "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
+			if ( Message.isDebugOn ) {
+			    Message.printDebug ( 2, routine, "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
                     "\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\" SequenceNumber=" + sequence_number );
+			}
 			// Now find a matching time series in the available data.  If a match is not found, set the time series
 			// to null so the properties line up.
 			tsfound = null;
@@ -1123,9 +1123,11 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				if ( ts == null ) {
 					continue;
 				}
-				Message.printStatus ( 2, routine, "Comparing to TS in available data: " +
-				"TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" +
-                " sequence number=" + ts.getSequenceNumber());
+				if ( Message.isDebugOn ) {
+				    Message.printDebug ( 2, routine, "Comparing to TS in available data: " +
+				            "TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" +
+				            " sequence number=" + ts.getSequenceNumber());
+				}
 				//if ( Message.isDebugOn ) {
 					//Message.printDebug ( 1, routine,
 					//_gtype+"Creating TSGraph, tsid is \""+
@@ -1137,7 +1139,9 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				    // If an alias is specified, just match the alias...
 				    if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
                         //&&	(sequence_number ==	ts.getSequenceNumber())
-                        Message.printStatus ( 2, routine, "Time series aliases match.");
+				        if ( Message.isDebugOn ) {
+				            Message.printStatus ( 2, routine, "Time series aliases match.");
+				        }
 					    tsfound = ts;         
                     }
                 }
@@ -1145,7 +1149,9 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 					// No alias so use the full TSID with input type and match the sequence number...
 					if ( ts.getIdentifier().equals( TSID_prop_val,check_input)
 					        && (sequence_number == ts.getSequenceNumber()) ) {
-                        Message.printStatus ( 2, routine, "Time series identifiers and sequence numbers match.");   
+					    if ( Message.isDebugOn ) {
+					        Message.printDebug ( 2, routine, "Time series identifiers and sequence numbers match.");
+					    }
                         tsfound = ts;
                     }
                 }
@@ -1158,8 +1164,10 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 					}
 					break;
 				}
-				else {	
-					Message.printStatus ( 2, routine, "TSIDs and TSAliases are not equal");
+				else {
+				    if ( Message.isDebugOn ) {
+				        Message.printDebug ( 2, routine, "TSIDs and TSAliases are not equal");
+				    }
 				}
 			}
 			// Could put the following in the if statement in the loop but for now put here...
@@ -1185,11 +1193,15 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			}
 			// Now add the time series or null reference...
             if ( tsfound == null ) {
-                Message.printStatus(2, routine, "Could not find time series for graph." );
+                if ( Message.isDebugOn ) {
+                    Message.printDebug(2, routine, "Could not find time series for graph." );
+                }
             }
             else {
-                Message.printStatus( 2, routine, "Found time series \"" + tsfound.getIdentifierString() + "\" alias=\"" +
-                        tsfound.getAlias() + "\" for graph." );
+                if ( Message.isDebugOn ) {
+                    Message.printDebug( 2, routine, "Found time series \"" + tsfound.getIdentifierString() +
+                            "\" alias=\"" + tsfound.getAlias() + "\" for graph." );
+                }
             }
 			tslist.addElement ( tsfound );
 		}
