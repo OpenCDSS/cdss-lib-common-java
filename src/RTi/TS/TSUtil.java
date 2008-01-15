@@ -13997,45 +13997,48 @@ for building graphical interfaces.
 True, the description is also returned.
 */
 public static String[] getTSFormatSpecifiers(boolean include_description )
-{	String [] formats = new String[18];
+{	String [] formats = new String[19];
 	if ( include_description ) {
 		formats[0] = "%A - Abbreviation";
 		formats[1] = "%b - Interval, base";
 		formats[2] = "%D - Description";
 		formats[3] = "%F - Identifier";
 		formats[4] = "%I - Interval";
-		formats[5] = "%L - Location";
-		formats[6] = "%l - Location, main";
-		formats[7] = "%m - Interval, mult";
-		formats[8] = "%S - Source";
-		formats[9] = "%s - Source, main";
-		formats[10] = "%U - Units";
-		formats[11] = "%T - Data type";
-		formats[12] = "%t - Data type, main";
-		formats[13] = "%k - Data type, sub";
-		formats[14] = "%w - Location, sub";
-		formats[15] = "%x - Source, sub";
-		formats[16] = "%Z - Scenario";
-		formats[17] = "%z - Sequence #";
+		formats[5] = "%i - Input name";
+		formats[6] = "%L - Location";
+		formats[7] = "%l - Location, main";
+		formats[8] = "%m - Interval, mult";
+		formats[9] = "%S - Source";
+		formats[10] = "%s - Source, main";
+		formats[11] = "%U - Units";
+		formats[12] = "%T - Data type";
+		formats[13] = "%t - Data type, main";
+		formats[14] = "%k - Data type, sub";
+		formats[15] = "%w - Location, sub";
+		formats[16] = "%x - Source, sub";
+		formats[17] = "%Z - Scenario";
+		formats[18] = "%z - Sequence #";
 	}
-	else {	formats[0] = "%A";
+	else {
+	    formats[0] = "%A";
 		formats[1] = "%b";
 		formats[2] = "%D";
 		formats[3] = "%F";
 		formats[4] = "%I";
-		formats[5] = "%L";
-		formats[6] = "%l";
-		formats[7] = "%m";
-		formats[8] = "%S";
-		formats[9] = "%s";
-		formats[10] = "%U";
-		formats[11] = "%T";
-		formats[12] = "%k";
-		formats[13] = "%u";
-		formats[14] = "%w";
-		formats[15] = "%x";
-		formats[16] = "%Z";
-		formats[17] = "%z";
+		formats[5] = "%i";
+		formats[6] = "%L";
+		formats[7] = "%l";
+		formats[8] = "%m";
+		formats[9] = "%S";
+		formats[10] = "%s";
+		formats[11] = "%U";
+		formats[12] = "%T";
+		formats[13] = "%k";
+		formats[14] = "%u";
+		formats[15] = "%w";
+		formats[16] = "%x";
+		formats[17] = "%Z";
+		formats[18] = "%z";
 	}
 	return formats;
 }
@@ -16048,11 +16051,9 @@ throws TSException
 	}
 
 	if ( interval_offsets.length != weights.length ) {
-		message =
-		"Interval offsets and weights array lengths are different.";
+		message = "Interval offsets and weights array lengths are different.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException( message );
-		
 	}
 	int npairs = interval_offsets.length;
 
@@ -16072,18 +16073,35 @@ throws TSException
 	double data_value, total;
 	int i = 0;
 	double missing = oldts.getMissing();
-	DateTime shifted_date = new DateTime(date1);
-	for (	DateTime date = new DateTime(date1);
-		date.lessThanOrEqualTo(date2);
+	// Will use an array of DateTimes.  Set the initial offsets and then iterate by one
+	// interval with the other loop.  This is much faster than the old code that repositioned
+	// the date each time.
+	DateTime [] shifted_date = new DateTime[npairs];
+	boolean first_time = true; // Indicates to setup in first loop
+	// Loop through each date/time in the time series that is being modified (oldts).
+	for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
 		date.addInterval(interval_base,interval_mult) ) {
+	    if ( first_time ) {
+	        // First time through the loop.  Create and initialize the DateTimes.
+	        for ( i = 0; i < npairs; i++ ) {
+	            // Initialize to the start of the loop
+	            shifted_date[i] = new DateTime (date);
+	            // Now shift the date...
+	            shifted_date[i].addInterval ( interval_base,interval_mult*interval_offsets[i] );
+	        }
+	        first_time = false;
+	    }
+	    else {
+	        // Increment all of the dates by the interval.  This will track parallel with the
+	        // original data and its iterated date.
+	        for ( i = 0; i < npairs; i++ ) {
+	            shifted_date[i].addInterval(interval_base,interval_mult);
+	        }
+	    }
+	    // Initialize the new value to missing.
 		total = missing;
 		for ( i = 0; i < npairs; i++ ) {
-			// Reset to the current date...
-			shifted_date.setDate ( date );
-			// Now shift the date...
-			shifted_date.addInterval ( interval_base,
-				interval_mult*interval_offsets[i] );
-			data_value = tscopy.getDataValue ( shifted_date );
+			data_value = tscopy.getDataValue ( shifted_date[i] );
 			// If missing, set the lagged data missing...
 			if ( oldts.isDataMissing(data_value) ) {
 				oldts.setDataValue ( date, missing );
@@ -16092,7 +16110,8 @@ throws TSException
 			if ( oldts.isDataMissing(total) ) {
 				total = data_value*weights[i];
 			}
-			else {	total += data_value*weights[i];
+			else {
+			    total += data_value*weights[i];
 			}
 		}
 		oldts.setDataValue ( date, total );
@@ -16101,12 +16120,10 @@ throws TSException
 	// Now return the modified original time series...
 
 	oldts.setDescription ( oldts.getDescription() + ",shift time" );
-	oldts.addToGenesis ( "Shifted time using data[i]=" +
-	"sum(data[i + offset[i]]*wt[i]) where offset/wts: ");
+	oldts.addToGenesis ( "Shifted time using data[i]=sum(data[i + offset[i]]*wt[i]) where offset/wts: ");
 	for ( i = 0; i < npairs; i++ ) {
 		oldts.addToGenesis (
-			"    " + interval_offsets[i] + "," +
-			StringUtil.formatString(weights[i], "%.6f") );
+			"    " + interval_offsets[i] + "," + StringUtil.formatString(weights[i], "%.6f") );
 	}
 	return oldts;
 }

@@ -1053,6 +1053,7 @@ public String formatLegend ( String format )
 {	return formatLegend ( format, false );
 }
 
+// FIXME SAM This code seems redundant with similar code in TSUti.  Need to refactor and consolidate.
 /**
 Return a formatted legend string, optionally changing the legend in memory.
 @return A formatted legend string for the time series but do not update the
@@ -1095,6 +1096,12 @@ in categories):
 <td>The full data interval part of the identifier (e.g., "24Hour").<p>
 Interval multiplier part of the identifier (e.g., "24").<p>
 Base data interval part of the identifier (e.g., "Hour").</td>
+</tr>
+
+<tr>
+<td><b>%i</b><br><p></td>
+<td>The input name part of the identifier (e.g., the file name or database table
+from which the time series was read.</td>
 </tr>
 
 <tr>
@@ -1181,13 +1188,12 @@ public String formatLegend ( String format, boolean update_ts )
 				buffer.append ( c );
 			}
 			else if ( c == 'A' ) {
-				// Abbreviation from TSIdent...
+				// Alias from TSIdent...
 				buffer.append ( _id.getAlias() );
 			}
 			else if ( c == 'b' ) {
 				// Data interval base...
-				buffer.append ( TimeInterval.getName(
-					_id.getIntervalBase()) );
+				buffer.append ( TimeInterval.getName( _id.getIntervalBase()) );
 			}
 			else if ( c == 'D' ) {
 				// Description...
@@ -1203,6 +1209,10 @@ public String formatLegend ( String format, boolean update_ts )
 				// Full interval...
 				buffer.append ( _id.getInterval() );
 			}
+	        else if ( c == 'i' ) {
+	            // Input name...
+	            buffer.append ( _id.getInputName() );
+	        }
 			else if ( c == 'L' ) {
 				// Full location...
 				buffer.append ( _id.getLocation() );
