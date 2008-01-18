@@ -386,8 +386,7 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 
 	// Get a print job...
 
-	PrintJob pjob = parent.getToolkit().getPrintJob(parent, "CWRAT output",
-				(Properties)null);
+	PrintJob pjob = parent.getToolkit().getPrintJob(parent, "CWRAT output",	(Properties)null);
 	if (pjob == null) {
 		/* For now, ignore because the user can cancel...
 		Message.printWarning ( 1, routine,
@@ -762,8 +761,15 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 	frame.setVisible(true);
 	RTi.Util.GUI.JGUIUtil.center(frame);
 	frame.setVisible(false);
-	PrintJob pjob = parent.getToolkit().getPrintJob(frame, "CWRAT output",
-				(Properties)null);
+	String program_name = IOUtil.getProgramName();
+	String jobname = "";
+	if ( (program_name == null) || program_name.equals("") ) {
+	    jobname = IOUtil.getProgramUser() + " print job";
+	}
+	else {
+	    jobname = IOUtil.getProgramUser() + " " + program_name + " print job.";
+	}
+	PrintJob pjob = parent.getToolkit().getPrintJob(frame, jobname,	(Properties)null);
 	frame.dispose();
 	if (pjob == null) {
 		/* For now, ignore because the user can cancel...

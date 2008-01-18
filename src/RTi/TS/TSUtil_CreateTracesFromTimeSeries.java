@@ -180,12 +180,14 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         // Create a new time series using the old header as input...
         TS tracets = TSUtil.newTimeSeries ( ts.getIdentifierString(), true);
         tracets.copyHeader ( ts );
+        tracets.setSequenceNumber ( date1_in.getYear() );
+        tracets.setAlias( ts.getLocation() + "_" + tracets.getSequenceNumber() );
         tracets.setDescription ( date1_in.getYear() + " trace: " + tracets.getDescription() );
         tracets.addToGenesis ( "Split trace out of time series for input: " + date1_in + " to " + date2_in +
                 ", output: " + date1_out + " to " + date2_out );
         tracets.setDate1 ( date1_out );
         tracets.setDate2 ( date2_out );
-        tracets.setSequenceNumber ( date1_in.getYear() );
+        
         //if ( Message.isDebugOn ) {
             Message.printStatus ( 2, "",
             "Created new trace for year " + date1_in + " allocated for input: " + date1_in + " to " + date2_in +
