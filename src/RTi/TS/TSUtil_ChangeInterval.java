@@ -157,6 +157,12 @@ public class TSUtil_ChangeInterval {
      * <td>This property forces the code to keep all missing independently of the actual HandleMissingInputHow.</td>
      * <td>Default is to keep the HandleMissingInputHow as is.</td>
      * </tr>
+     *
+     * <tr>
+     * <td><b>NewUnits</b></td>
+     * <td>Units for the new time series.</td>
+     * <td>Use the units from the original time series.</td>
+     * </tr>
      * 
      * <tr>
      * <td><b>OutputFillMethod</b></td>
@@ -223,6 +229,10 @@ public class TSUtil_ChangeInterval {
         if (NewDataType == null) {
             NewDataType = oldTS.getDataType();
         }
+        
+        // Get the new units.
+        String NewUnits = proplist.getValue("NewUnits");
+        // Will check below when creating the time series.
 
         // OutputFillMethod - Used when moving from INST to MEAN time
         // series going from larger to smaller Time interval.
@@ -403,6 +413,11 @@ public class TSUtil_ChangeInterval {
         newTS.setDate2(newts_date[1]);
         newTS.setDate1Original(oldTS.getDate1());
         newTS.setDate2Original(oldTS.getDate2());
+        
+        // Set the units if specified...
+        if ( (NewUnits != null) && !NewUnits.equals("") ) {
+            newTS.setDataUnits( NewUnits );
+        }
 
         // Finally allocate data space.
         newTS.allocateDataSpace();
@@ -415,7 +430,7 @@ public class TSUtil_ChangeInterval {
             throw new TSException(warning);
         }
 
-        // Debuging messages.
+        // Debugging messages.
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if (Message.isDebugOn) {
             status = "oldTS Identifier = " + oldTS.getIdentifier().toString();
