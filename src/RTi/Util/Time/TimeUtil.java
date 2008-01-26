@@ -124,6 +124,18 @@ number of days in a period).
 public final static int ABSOLUTE_DAY_DATUM = 657071;
 
 /**
+Blank values for DateTime parts, used to "mask out" unused information.
+If these are used as data values, then DateTime.DATE_FAST should be used to
+prevent exceptions for invalid values.
+*/
+public final static int BLANK_YEAR = 9999;
+public final static int BLANK_MONTH = 99;
+public final static int BLANK_DAY = 99;
+public final static int BLANK_HOUR = 99;
+public final static int BLANK_MINUTE = 99;
+public final static int BLANK_SECOND = 99;
+
+/**
 The following indicates how time zones are handled when getLocalTimeZone() is
 called (which is used when DateTime instances are created).  The default is
 LOOKUP_TIME_ZONE_ONCE, which results in the best performance when the time
@@ -1685,7 +1697,7 @@ Determine the highest precision (smallest interval) for two DateTime instances.
 @param datetime1 A DateTime instance to compare.
 @param datetime2 Another DateTime instance to compare.
 @exception Exception if either of the dates are null or have an imprecise
-precsision (UNKNOWN or IRREGULAR).
+precision (UNKNOWN or IRREGULAR).
 */
 public static int highestPrecision ( DateTime datetime1, DateTime datetime2 )
 throws Exception
@@ -1696,14 +1708,12 @@ throws Exception
 		throw new Exception ( "Second DateTime is null" );
 	}
 	int precision1 = datetime1.getPrecision();
-	if (	(precision1 < TimeInterval.HSECOND) ||
-		(precision1 > TimeInterval.YEAR) ) {
+	if ( (precision1 < TimeInterval.HSECOND) || (precision1 > TimeInterval.YEAR) ) {
 		throw new Exception ( "Precision for first DateTime is not " +
 		"between hsecond and year." );
 	}
 	int precision2 = datetime2.getPrecision();
-	if (	(precision2 < TimeInterval.HSECOND) ||
-		(precision2 > TimeInterval.YEAR) ) {
+	if ( (precision2 < TimeInterval.HSECOND) || (precision2 > TimeInterval.YEAR) ) {
 		throw new Exception ( "Precision for second DateTime is not " +
 		"between hsecond and year." );
 	}
@@ -1725,11 +1735,12 @@ public static int irrigationMonthFromCalendar ( int month )
 {	if ( month >= 11 ) {
 		return (month - 10);
 	}
-	else {	return (month + 2);
+	else {
+	    return (month + 2);
 	}
 }
 
-// REVISIT SAM 2005-11-16
+// TODO SAM 2005-11-16
 // Should this be deprecated in favor of the convert*Month methods?
 /**
 Get the irrigation year given a calendar month and year.  The irrigation year
@@ -1741,7 +1752,8 @@ public static int irrigationYearFromCalendar ( int month, int year )
 {	if ( month >= 11 ) {
 		return (year - 1);
 	}
-	else {	return year;
+	else {
+	    return year;
 	}
 }
 
@@ -1754,7 +1766,8 @@ date/time formats recognized by DateTime are recognized.
 @param format Format to use for parsing (see FORMAT_*).
 */
 public static boolean isDateTime ( String date_string, int format )
-{	try {	DateTime.parse ( date_string, format );
+{	try {
+        DateTime.parse ( date_string, format );
 		return true;
 	} catch (Exception e) { 
 		return false;
@@ -1785,11 +1798,11 @@ years unless they are also evenly divisible by 400.
 @param year 4-digit year to check.
 */
 public static boolean isLeapYear ( int year )
-{	if (	(((year%4) == 0) && ((year%100) != 0)) ||
-		(((year%100) == 0) && ((year%400) == 0)) ) {
+{	if ((((year%4) == 0) && ((year%100) != 0)) || (((year%100) == 0) && ((year%400) == 0)) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1802,7 +1815,8 @@ public static boolean isValidDay ( int day )
 {	if ( (day >= 0) && (day <= 31) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1812,7 +1826,8 @@ Determine whether the day is valid.
 @param day Day to check (an integer as a String).
 */
 public static boolean isValidDay ( String day )
-{	try {	int iday = Integer.parseInt ( day );
+{	try {
+        int iday = Integer.parseInt ( day );
 		return isValidDay ( iday );
 	}
 	catch ( Exception e ) {
@@ -1846,7 +1861,8 @@ public static boolean isValidDay ( int day, int month, int year )
 	if ( (day > 0) && (day <= daysinmonth) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1860,17 +1876,20 @@ Determine whether a day is valid.
 public static boolean isValidDay ( String day, String month, String year )
 {	int iday, imonth, iyear;
 
-	try {	iday = Integer.parseInt ( day );
+	try {
+	    iday = Integer.parseInt ( day );
 	}
 	catch ( Exception e ) {
 		return false;
 	}
-	try {	imonth = Integer.parseInt ( month );
+	try {
+	    imonth = Integer.parseInt ( month );
 	}
 	catch ( Exception e ) {
 		return false;
 	}
-	try {	iyear = Integer.parseInt ( year );
+	try {
+	    iyear = Integer.parseInt ( year );
 	}
 	catch ( Exception e ) {
 		return false;
@@ -1887,7 +1906,8 @@ public static boolean isValidHour ( int hour )
 {	if ( (hour >= 0) && (hour < 24) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1897,7 +1917,8 @@ Determine whether an hour is valid.
 @param hour Hour to check, an integer as a String.
 */
 public static boolean isValidHour ( String hour )
-{	try {	int ihour = Integer.parseInt ( hour );
+{	try {
+        int ihour = Integer.parseInt ( hour );
 		return isValidHour ( ihour );
 	}
 	catch ( Exception e ) {
@@ -1914,7 +1935,8 @@ public static boolean isValidMinute ( int minute )
 {	if ( (minute >= 0) && (minute <= 59) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1924,7 +1946,8 @@ Determine whether a minute is valid.
 @param minute Minute to check, an integer as a String.
 */
 public static boolean isValidMinute ( String minute )
-{	try {	int iminute = Integer.parseInt ( minute );
+{	try {
+        int iminute = Integer.parseInt ( minute );
 		return isValidMinute ( iminute );
 	}
 	catch ( Exception e ) {
@@ -1941,7 +1964,8 @@ public static boolean isValidMonth ( int month )
 {	if ( (month > 0) && (month < 13) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1951,7 +1975,8 @@ Determine whether a month is valid.
 @param month Month to check, an integer as a String.
 */
 public static boolean isValidMonth ( String month )
-{	try {	int imonth = Integer.parseInt ( month );
+{	try {
+        int imonth = Integer.parseInt ( month );
 		return isValidMonth ( imonth );
 	}
 	catch ( Exception e ) {
@@ -1961,14 +1986,15 @@ public static boolean isValidMonth ( String month )
 
 /**
 Determine whether a year is valid.
-@return true if the year is valid (in the range 1-12), false if not.
+@return true if the year is valid (> 100 and not 9999), false if not.
 @param year Year to check.
 */
 public static boolean isValidYear ( int year )
-{	if ( year < 100 ) {
+{	if ( (year < 100) || (year == 9999) ) {
 		return false;
 	}
-	else {	return true;
+	else {
+	    return true;
 	}
 }
 
@@ -1978,7 +2004,8 @@ Determine whether a year is valid.
 @param year Year to check, an integer as a String.
 */
 public static boolean isValidYear ( String year )
-{	try {	int iyear = Integer.parseInt ( year );
+{	try {
+    int iyear = Integer.parseInt ( year );
 		return isValidYear ( iyear );
 	}
 	catch ( Exception e ) {

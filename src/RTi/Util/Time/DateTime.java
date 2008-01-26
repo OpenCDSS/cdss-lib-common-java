@@ -3047,6 +3047,11 @@ throws Exception
 }
 
 /**
+Parse an ISO standard string with no year.  Recognized formats are therefore 
+"MM", "MM-DD", "MM-DD HH", and "MMDD HH:mm".
+*/
+
+/**
 Reset the derived data (year day, absolute month, and leap year).  This is
 normally called by other DateTime functions but can be called externally if
 data are set manually.

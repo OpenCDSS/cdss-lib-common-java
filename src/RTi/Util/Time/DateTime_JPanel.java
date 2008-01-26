@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -45,9 +46,19 @@ Day choices.
 SimpleJComboBox __day_JComboBox = null;
 
 /**
+Day choices label.
+*/
+JLabel __day_JLabel = null;
+
+/**
 Hour choices.
 */
 SimpleJComboBox __hour_JComboBox = null;
+
+/**
+Hour choices label.
+*/
+JLabel __hour_JLabel = null;
 
 /**
 Minute choices.
@@ -55,9 +66,19 @@ Minute choices.
 SimpleJComboBox __minute_JComboBox = null;
 
 /**
+Minute choices label.
+*/
+JLabel __minute_JLabel = null;
+
+/**
 Month choices.
 */
 SimpleJComboBox __month_JComboBox = null;
+
+/**
+Month choices label.
+*/
+JLabel __month_JLabel = null;
 
 /**
 Title of the panel.  If specified, use a border to draw around the panel.
@@ -68,6 +89,11 @@ private String __title = "";
 Year choices.
 */
 SimpleJComboBox __year_JComboBox = null;
+
+/**
+Year choices label.
+*/
+JLabel __year_JLabel = null;
 
 // FIXME SAM 2008-01-23 Change intervals from integers to enumeration when
 // code base has moved to Java 1.5
@@ -112,8 +138,8 @@ Any values that are 99, etc. are assumed to not be displayed
 */
 public void setDateTime ( DateTime dt )
 {
-    if ( __year_JComboBox != null &&
-            (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    Message.printStatus ( 1, "", "Setting panel DateTime to " + dt );
+    if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
         int year = dt.getYear();
         if ( TimeUtil.isValidYear(year) ) {
             __year_JComboBox.select ( "" + year );
@@ -123,8 +149,7 @@ public void setDateTime ( DateTime dt )
             __year_JComboBox.select ( "" );
         }
     }
-    if ( __month_JComboBox != null &&
-            (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
         int month = dt.getMonth();
         if ( TimeUtil.isValidMonth(month) ) {
             __month_JComboBox.select ( "" + month );
@@ -134,8 +159,7 @@ public void setDateTime ( DateTime dt )
                __month_JComboBox.select ( "" );
          }
     }
-    if ( __day_JComboBox != null &&
-            (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
         int day = dt.getDay();
         if ( TimeUtil.isValidDay(day) ) {
             __day_JComboBox.select ( "" + day );
@@ -145,22 +169,20 @@ public void setDateTime ( DateTime dt )
             __day_JComboBox.select ( "" );
         }
     }
-    if ( __hour_JComboBox != null &&
-            (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
         int hour = dt.getHour();
         if ( TimeUtil.isValidHour(hour) ) {
-            __hour_JComboBox.select ( "" + hour );
+            __hour_JComboBox.select ( StringUtil.formatString(hour,"%02d") );
         }
         else {
             // Select blank
             __hour_JComboBox.select ( "" );
         }       
     }
-    if ( __minute_JComboBox != null &&
-            (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.MINUTE <= __interval_max) && (TimeInterval.MINUTE >= __interval_min) ) {
         int minute = dt.getMinute();
         if ( TimeUtil.isValidMinute(minute) ) {
-            __minute_JComboBox.select ( "" + minute );
+            __minute_JComboBox.select ( StringUtil.formatString(minute,"%02d") );
         }
         else {
             // Select blank
@@ -245,6 +267,8 @@ private void setupUI ()
     }
 
     // Use SimpleJComboBox instances in the layout.
+    // Create instances for all interval parts but only set visible what is requested.
+    // If setDateTime() is called later, all necessary components can be set visible.
     
     Insets insetsTLBR = new Insets(2,2,2,2);
     setLayout ( new GridBagLayout() );
@@ -252,74 +276,109 @@ private void setupUI ()
     int x = 0;  // X position in grid bag layout
     int y_label = 0;    // Positions of labels and entry fields.
     int y_entry = 1;
+    // Add the year...
+    Vector year_Vector = new Vector();
+    year_Vector.addElement ( "" );
+    for ( int i = 1900; i <= 2100; i++ ) {
+        year_Vector.addElement ( "" + i );
+    }
+    // Allow edits because may not have all years of interest in the list
+    __year_JComboBox = new SimpleJComboBox ( year_Vector, true );
+    __year_JLabel = new JLabel("Year:");
+    JGUIUtil.addComponent(this, __year_JLabel,
+        x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this, __year_JComboBox,
+        x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
-        // Add the year...
-        Vector year_Vector = new Vector();
-        year_Vector.addElement ( "" );
-        for ( int i = 1900; i <= 2100; i++ ) {
-            year_Vector.addElement ( "" + i );
-        }
-        // Allow edits because may not have all years of interest in the list
-        __year_JComboBox = new SimpleJComboBox ( year_Vector, true );
-        JGUIUtil.addComponent(this, new JLabel("Year:"),
-            x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(this, __year_JComboBox,
-            x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        __year_JComboBox.setVisible ( true );
+        __year_JLabel.setVisible ( true );
     }
+    else {
+        __year_JComboBox.setVisible ( false );
+        __year_JLabel.setVisible ( false );
+    }
+    // Add the month...
+    Vector month_Vector = new Vector();
+    month_Vector.addElement ( "" );    // Select to ignore this information
+    for ( int i = 1; i <= 12; i++ ) {
+        month_Vector.addElement ( "" + i );
+    }
+    __month_JComboBox = new SimpleJComboBox ( month_Vector, false );
+    __month_JLabel = new JLabel("Month:");
+    JGUIUtil.addComponent(this, __month_JLabel,
+        x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this, __month_JComboBox,
+        x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
-        // Add the month...
-        Vector month_Vector = new Vector();
-        month_Vector.addElement ( "" );    // Select to ignore this information
-        for ( int i = 1; i <= 12; i++ ) {
-            month_Vector.addElement ( "" + i );
-        }
-        __month_JComboBox = new SimpleJComboBox ( month_Vector, false );
-        JGUIUtil.addComponent(this, new JLabel("Month:"),
-            x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(this, __month_JComboBox,
-            x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        __month_JComboBox.setVisible(true);
+        __month_JLabel.setVisible(true);
     }
+    else {
+        __month_JComboBox.setVisible(false);
+        __month_JLabel.setVisible(false);
+    }
+    // Add the day...
+    Vector day_Vector = new Vector();
+    day_Vector.addElement ( "" );    // Select to ignore this information
+    for ( int i = 1; i <= 31; i++ ) {
+        day_Vector.addElement ( "" + i );
+    }
+    __day_JComboBox = new SimpleJComboBox ( day_Vector, false ); // Not editable
+    __day_JLabel = new JLabel("Day:");
+    JGUIUtil.addComponent(this, __day_JLabel,
+        x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this, __day_JComboBox,
+        x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
-        // Add the day...
-        Vector day_Vector = new Vector();
-        day_Vector.addElement ( "" );    // Select to ignore this information
-        for ( int i = 1; i <= 31; i++ ) {
-            day_Vector.addElement ( "" + i );
-        }
-        __day_JComboBox = new SimpleJComboBox ( day_Vector, false ); // Not editable
-        JGUIUtil.addComponent(this, new JLabel("Day:"),
-            x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(this, __day_JComboBox,
-            x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        __day_JComboBox.setVisible(true);
+        __day_JLabel.setVisible(true);
     }
+    else {
+        __day_JComboBox.setVisible(false);
+        __day_JLabel.setVisible(false);
+    }
+    // Add the hour...
+    Vector hour_Vector = new Vector();
+    hour_Vector.addElement ( "" );    // Select to ignore this information
+    for ( int i = 0; i <= 23; i++ ) {
+        hour_Vector.addElement ( "" + StringUtil.formatString(i,"%02d") );
+    }
+    __hour_JComboBox = new SimpleJComboBox ( hour_Vector, false ); // Not editable
+    __hour_JLabel = new JLabel("Hour:");
+    JGUIUtil.addComponent(this, __hour_JLabel,
+        x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this, __hour_JComboBox,
+        x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
-        // Add the hour...
-        Vector hour_Vector = new Vector();
-        hour_Vector.addElement ( "" );    // Select to ignore this information
-        for ( int i = 0; i <= 23; i++ ) {
-            hour_Vector.addElement ( "" + StringUtil.formatString(i,"%02d") );
-        }
-        __hour_JComboBox = new SimpleJComboBox ( hour_Vector, false ); // Not editable
-        JGUIUtil.addComponent(this, new JLabel("Hour:"),
-            x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(this, __hour_JComboBox,
-            x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        __hour_JComboBox.setVisible ( true );
+        __hour_JLabel.setVisible ( true );
     }
+    else {
+        __hour_JComboBox.setVisible ( false );
+        __hour_JLabel.setVisible ( false );
+    }
+    // Add the minute...
+    Vector minute_Vector = new Vector();
+    minute_Vector.addElement ( "" );    // Select to ignore this information
+    for ( int i = 0; i <= 59; i++ ) {
+        minute_Vector.addElement ( "" + StringUtil.formatString(i,"%02d") );
+    }
+    __minute_JComboBox = new SimpleJComboBox ( minute_Vector, true );
+    __minute_JLabel = new JLabel("Minute:");
+    JGUIUtil.addComponent(this, __minute_JLabel,
+        x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this, __minute_JComboBox,
+        x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( (TimeInterval.MINUTE <= __interval_max) && (TimeInterval.MINUTE >= __interval_min) ) {
-        // Add the minute...
-        Vector minute_Vector = new Vector();
-        minute_Vector.addElement ( "" );    // Select to ignore this information
-        for ( int i = 0; i <= 59; i++ ) {
-            minute_Vector.addElement ( "" + StringUtil.formatString(i,"%02d") );
-        }
-        __minute_JComboBox = new SimpleJComboBox ( minute_Vector, true );
-        JGUIUtil.addComponent(this, new JLabel("Minute:"),
-            x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(this, __minute_JComboBox,
-            x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        __minute_JComboBox.setVisible ( true );
+        __minute_JLabel.setVisible ( true );
+    }
+    else {
+        __minute_JComboBox.setVisible ( false );
+        __minute_JLabel.setVisible ( false );
     }
     if ( __initial_DateTime != null ) {
-        // FIXME SAM 2008-01-23 Need to select the values.
+        setDateTime ( __initial_DateTime );
     }
 }
 
@@ -336,31 +395,31 @@ public String toString()
     d.setDay ( TimeUtil.BLANK_DAY );
     d.setHour ( TimeUtil.BLANK_HOUR );
     d.setMinute ( TimeUtil.BLANK_MINUTE );
-    if ( __year_JComboBox != null ) {
+    if ( __year_JComboBox.isVisible() ) {
         String year = __year_JComboBox.getSelected();
         if ( TimeUtil.isValidYear(year)) {
             d.setYear ( StringUtil.atoi(year) );
         }
     }
-    if ( __month_JComboBox != null ) {
+    if ( __month_JComboBox.isVisible() ) {
         String month = __month_JComboBox.getSelected();
         if ( TimeUtil.isValidMonth(month)) {
             d.setMonth ( StringUtil.atoi(month) );
         }
     }
-    if ( __day_JComboBox != null ) {
+    if ( __day_JComboBox.isVisible() ) {
         String day = __day_JComboBox.getSelected();
         if ( TimeUtil.isValidDay(day)) {
             d.setDay ( StringUtil.atoi(day) );
         }
     }
-    if ( __hour_JComboBox != null ) {
+    if ( __hour_JComboBox.isVisible() ) {
         String hour = __hour_JComboBox.getSelected();
         if ( TimeUtil.isValidHour(hour)) {
             d.setHour ( StringUtil.atoi(hour) );
         }
     }
-    if ( __minute_JComboBox != null ) {
+    if ( __minute_JComboBox.isVisible() ) {
         String minute = __minute_JComboBox.getSelected();
         if ( TimeUtil.isValidMinute(minute)) {
             d.setMinute ( StringUtil.atoi(minute) );

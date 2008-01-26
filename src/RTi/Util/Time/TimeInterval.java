@@ -77,8 +77,7 @@ public static final int WEEK = 50;
 public static final int MONTH = 60;
 public static final int YEAR = 70;
 
-private String	_interval_base_string;	// The string associated with the base
-					// interval.
+private String	_interval_base_string;	// The string associated with the base interval.
 private String	_interval_mult_string;	// The string associated with the
 					// interval multiplier (may be "" if
 					// not specified in string used with
