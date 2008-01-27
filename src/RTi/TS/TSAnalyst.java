@@ -804,6 +804,35 @@ If null, the entire period will be analyzed.
 original data.
 The year time series will have an end date with the year matching this date.
 If null, the entire period will be analyzed.
+@param props Properties to consider when analyzing (see overloaded version for details).
+@exception TSException if there is an error analyzing the time series.
+*/
+public YearTS createStatisticYearTS ( TS ts,
+                    DateTime AnalysisStart_DateTime,
+                    DateTime AnalysisEnd_DateTime,
+                    PropList props )
+throws TSException
+{
+    return createStatisticYearTS ( ts, AnalysisStart_DateTime, AnalysisEnd_DateTime, null, null, props );
+}
+
+/**
+Create a year time series that contains statistics in each data value (e.g.,
+percent missing, percent not missing).
+@return The statistics time series.
+@param ts Time series to analyze (can be any interval).
+@param AnalysisStart_DateTime Starting date for analysis, in precision of the
+original data.
+The year time series will have a start date with the year matching this date.
+If null, the entire period will be analyzed.
+@param AnalysisEnd_DateTime Ending date for analysis, in precision of the
+original data.  If null, the entire period will be analyzed.
+The year time series will have an end date with the year matching this date.
+If null, the entire period will be analyzed.
+@param AnalysisWindowStart_DateTime Starting date/time for analysis within the year, in precision of the
+original data.  If null, the entire year of data will be analyzed.
+@param AnalysisWindowEnd_DateTime Ending date for analysis within the year, in precision of the
+original data.  If null, the entire year of data will be analyzed.
 @param props Properties to consider when analyzing.  The following properties
 are recognized:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -840,14 +869,15 @@ when no data are found.
 public YearTS createStatisticYearTS (	TS ts,
 					DateTime AnalysisStart_DateTime,
 					DateTime AnalysisEnd_DateTime,
+					DateTime AnalysisWindowStart_DateTime,
+                    DateTime AnalysisWindowEnd_DateTime,
 					PropList props )
 throws TSException
 {	String message, routine = "TSAnalyst.createStatisticYearTS";
 	int dl = 10;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to create statistic year TS for \"" +
+		Message.printDebug ( dl, routine, "Trying to create statistic year TS for \"" +
 		ts.getIdentifierString() + "\"" );
 	}
 	if ( ts == null ) {
@@ -870,21 +900,21 @@ throws TSException
 
 	TSLimits valid_dates = TSUtil.getValidPeriod ( ts,
 				AnalysisStart_DateTime, AnalysisEnd_DateTime );
-	DateTime start	= new DateTime ( valid_dates.getDate1() );
-	DateTime end	= new DateTime ( valid_dates.getDate2() );
+	DateTime start = new DateTime ( valid_dates.getDate1() );
+	DateTime end = new DateTime ( valid_dates.getDate2() );
 	valid_dates = null;
 
 	// Create a year time series to be filled...
 
 	YearTS yearts = new YearTS();
-	yearts.addToGenesis ( "Initialized statistic year TS from \"" +
-		ts.getIdentifierString() + "\"" );
+	yearts.addToGenesis ( "Initialized statistic year TS from \"" +	ts.getIdentifierString() + "\"" );
 	yearts.copyHeader ( ts );
 
 	// Reset the identifier if the user has specified it...
 
 	String NewTSID = props.getValue ( "NewTSID" );
-	try {	if ( (NewTSID != null) && (NewTSID.length() > 0) ) {
+	try {
+	    if ( (NewTSID != null) && (NewTSID.length() > 0) ) {
 			TSIdent tsident = new TSIdent ( NewTSID );
 			yearts.setIdentifier ( tsident );
 		}
@@ -894,8 +924,7 @@ throws TSException
 		}
 	}
 	catch ( Exception e ) {
-		message = "Unable to set new time series identifier \""+
-			NewTSID + "\".";
+		message = "Unable to set new time series identifier \"" + NewTSID + "\".";
 		Message.printWarning ( 3, routine,message );
 		throw (e);
 	}
@@ -929,13 +958,14 @@ throws TSException
 		Statistic.equals(TSStatistic.DayOfMin) ||
 		Statistic.equals(TSStatistic.Max) ||
 		Statistic.equals(TSStatistic.Min) ) {
-		processStatistic ( ts, yearts, props, start, end );
+		processStatistic ( ts, yearts, props, start, end,
+		        AnalysisWindowStart_DateTime, AnalysisWindowEnd_DateTime  );
 	}
-	else {	// REVISIT SAM 2005-09-12
+	else {
+	    // TODO SAM 2005-09-12
 		// The following is for the data coverage report and needs to
 		// be migrated to a method.  This currently the default.
-		processStatisticDataCoveragePercent (
-			ts, yearts, props, start, end );
+		processStatisticDataCoveragePercent ( ts, yearts, props, start, end );
 	}
 
 	// Return the statistic result...
@@ -1316,10 +1346,17 @@ Process a time series to create the the following statistics:
 @param props Properties to control the analysis, as follows:
 @param start Start of the analysis (precision matching ts).
 @param end End of the analysis (precision matching ts).
+@param window_start If not null, specify the start of the window within
+the year for data, for example to specify a season.
+Currently only Month... to precision are evaluated (not day... etc.).
+@param window_end If not null, specify the end of the window within
+the year for data, for example to specify a season.
+Currently only Month... to precision are evaluated (not day... etc.).
 */
 private void processStatistic (	TS ts, YearTS yearts,
 				PropList props,
-				DateTime start, DateTime end )
+				DateTime start, DateTime end,
+				DateTime window_start, DateTime window_end )
 throws Exception
 {	String routine = "TSAnalyst.processStatistic", message;
 	DateTime year_date = new DateTime ( end, DateTime.PRECISION_YEAR );
@@ -1339,7 +1376,7 @@ throws Exception
 	}
 	boolean is_regular = TimeInterval.isRegularInterval(interval_base);
 
-	// REVISIT SAM 2005-09-22
+	// TODO SAM 2005-09-22
 	// Currently this is used below in setting the description.  However,
 	// some statistics may not need a test value.
 
@@ -1351,7 +1388,8 @@ throws Exception
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
-		else {	TestValue_double = StringUtil.atod ( TestValue );
+		else {
+		    TestValue_double = StringUtil.atod ( TestValue );
 		}
 	}
 
@@ -1427,67 +1465,59 @@ throws Exception
 		iterate_forward = true;
 		Statistic_int = Statistic_DayOfFirstGE;
 		Test_int = Test_GE;
-		yearts.setDescription ( "Day of year for first value >= " +
-			TestValue );
+		yearts.setDescription ( "Day of year for first value >= " +	TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfFirstGT ) ) {
 		iterate_forward = true;
 		Statistic_int = Statistic_DayOfFirstGT;
 		Test_int = Test_GT;
-		yearts.setDescription ( "Day of year for first value > " +
-			TestValue );
+		yearts.setDescription ( "Day of year for first value > " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfFirstLE ) ) {
 		iterate_forward = true;
 		Statistic_int = Statistic_DayOfFirstLE;
 		Test_int = Test_LE;
-		yearts.setDescription ( "Day of year for first value <= " +
-			TestValue );
+		yearts.setDescription ( "Day of year for first value <= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfFirstLT ) ) {
 		iterate_forward = true;
 		Statistic_int = Statistic_DayOfFirstLT;
 		Test_int = Test_LT;
-		yearts.setDescription ( "Day of year for first value < " +
-			TestValue );
+		yearts.setDescription ( "Day of year for first value < " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfLastGE) ) {
 		iterate_forward = false;
 		Statistic_int = Statistic_DayOfLastGE;
 		Test_int = Test_GE;
-		yearts.setDescription ( "Day of year for last value >= " +
-			TestValue );
+		yearts.setDescription ( "Day of year for last value >= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfLastGT) ) {
 		iterate_forward = false;
 		Statistic_int = Statistic_DayOfLastGT;
 		Test_int = Test_GT;
-		yearts.setDescription ( "Day of year for last value > " +
-			TestValue );
+		yearts.setDescription ( "Day of year for last value > " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfLastLE) ) {
 		iterate_forward = false;
 		Statistic_int = Statistic_DayOfLastLE;
 		Test_int = Test_LE;
-		yearts.setDescription ( "Day of year for last value <= " +
-			TestValue );
+		yearts.setDescription ( "Day of year for last value <= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
 	else if ( Statistic.equals(TSStatistic.DayOfLastLT) ) {
 		iterate_forward = false;
 		Statistic_int = Statistic_DayOfLastLT;
 		Test_int = Test_LT;
-		yearts.setDescription ( "Day of year for last value < " +
-			TestValue );
+		yearts.setDescription ( "Day of year for last value < " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	// REVISIT SAM 2005-09-28
+	// TODO SAM 2005-09-28
 	// Need to decide if iteration direction and SearchStart should be a
 	// parameter for max and min
 	else if ( Statistic.equals(TSStatistic.DayOfMax) ) {
@@ -1531,8 +1561,7 @@ throws Exception
 	int AllowMissingCount_int = 0;
 	if ( (AllowMissingCount != null) && !AllowMissingCount.equals("") ) {
 		if ( !StringUtil.isInteger(AllowMissingCount) ) {
-			message = "AllowMissingCount (" + AllowMissingCount +
-				") is not an integer.";
+			message = "AllowMissingCount (" + AllowMissingCount + ") is not an integer.";
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
@@ -1544,17 +1573,18 @@ throws Exception
 
 	DateTime SearchStart_DateTime = null;
 	if ( (SearchStart != null) && (SearchStart.length() > 0) ) {
-		try {	SearchStart_DateTime = DateTime.parse ( SearchStart );
+		try {
+		    SearchStart_DateTime = DateTime.parse ( SearchStart );
 		}
 		catch ( Exception e )
 		{
-			message = "SearchStart (" + SearchStart +
-				") is not a date.";
+			message = "SearchStart (" + SearchStart + ") is not a date.";
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
 	}
-	else {	// Set to space for message below.
+	else {
+	    // Set to space for message below.
 		SearchStart = "";
 	}
 
@@ -1565,14 +1595,14 @@ throws Exception
 	if ( iterate_forward ) {
 		date = new DateTime ( start );
 	}
-	else {	date = new DateTime ( end );
+	else {
+	    date = new DateTime ( end );
 	}
 	int year_prev = date.getYear();
 	int year = 0;
 	TSIterator tsi = ts.iterator();
 	TSData data = null;
-	boolean need_to_analyze = true;	// Need to analyze value for current
-					// year
+	boolean need_to_analyze = true;	// Need to analyze value for current year
 	boolean first_interval = true;
 	int missing_count = 0;
 	int gap = 0;			// Number of missing values in a gap
@@ -1582,17 +1612,19 @@ throws Exception
 					// can't be done with SearchStart logic.
 	while ( true ) {
 		if ( iterate_forward ) {
-			data = tsi.next();	// First call will initialize
-						// and return first point.
+		    // First call will initialize and return first point.
+			data = tsi.next();	
 		}
-		else {	data = tsi.previous();	// First call will initialize
-						// and return last point.
+		else {
+		    // First call will initialize and return last point.
+		    data = tsi.previous();	
 		}
 		if ( data != null ) {
 			date = tsi.getDate();
 			year = date.getYear();
 		}
-		else {	end_of_data = true;
+		else {
+		    end_of_data = true;
 		}
 		if (	(year != year_prev) ||	// New year so save previous
 						// year's data value.
@@ -1604,28 +1636,21 @@ throws Exception
 			// the previous interval analysis...
 			if ( !first_interval ) {
 				year_date.setYear ( year_prev );
-				if (	Statistic_isCount &&
+				if ( Statistic_isCount &&
 					yearts.isDataMissing(year_value) &&
-					(missing_count <=
-					AllowMissingCount_int) ) {
+					(missing_count <= AllowMissingCount_int) ) {
 					// Never assigned a count but missing
 					// data were not an issue so assign the
 					// value to 0.
 					year_value = 0.0;
 				}
-				// Now recheck to see if the value should be
-				// set...
+				// Now recheck to see if the value should be set...
 				if ( !yearts.isDataMissing(year_value) ) {
-					// Have a value to assign to the
-					// statistic...
-					yearts.setDataValue ( year_date,
-						year_value );
+					// Have a value to assign to the statistic...
+					yearts.setDataValue ( year_date, year_value );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Setting value for "+
-						year_prev + " to " +
-						year_value );
+						Message.printDebug ( dl, routine,
+						"Setting value for "+ year_prev + " to " + year_value );
 					}
 				}
 			}
@@ -1647,10 +1672,8 @@ throws Exception
 			// start...
 			if ( SearchStart_DateTime != null ) {
 				date_search = new DateTime ( date );
-				date_search.setMonth(
-					SearchStart_DateTime.getMonth());
-				date_search.setDay (
-					SearchStart_DateTime.getDay());
+				date_search.setMonth( SearchStart_DateTime.getMonth());
+				date_search.setDay ( SearchStart_DateTime.getDay());
 				data = tsi.goTo ( date_search, false );
 				if ( data == null ) {
 					// Did not find the requested starting
@@ -1660,10 +1683,7 @@ throws Exception
 					// missing data if a regular time
 					// series...
 					if (Message.isDebugOn) {
-						Message.printDebug ( dl,
-						routine,
-						"Did not find search start " +
-						"using " + date_search );
+						Message.printDebug ( dl, routine, "Did not find search start using " + date_search );
 					}
 					if ( is_regular ) {
 						// Need to skip over the end
@@ -1671,91 +1691,56 @@ throws Exception
 						// period, keeping track of
 						// the missing count...
 						if ( iterate_forward ) {
-							if (	date_search.
-								greaterThan(
-								date) ) {
-								// Ran out of
-								// data at
-								// end...
+							if ( date_search.greaterThan( date) ) {
+								// Ran out of data at end...
 								gap = -1;
 							}
-							else {	// Not enough
-								// data before
-								// search
-								// start...
-								gap = TimeUtil.
-								getNumIntervals(
-								TimeUtil.min(
-								date_search,
-								start),
-								TimeUtil.max(
-								date_search,
-								start),
-								interval_base,
-								interval_mult );
+							else {
+							    // Not enough data before search start...
+								gap = TimeUtil.getNumIntervals(	TimeUtil.min(date_search,start),
+								TimeUtil.max( date_search, start),
+								interval_base, interval_mult );
 							}
 						}
-						else {	// Iterate backward
-							if (	date_search.
-								lessThan(
-								start) ) {
-								// Ran out of
-								// data at
-								// end...
+						else {
+						    // Iterate backward
+							if ( date_search.
+								lessThan( start) ) {
+								// Ran out of data at end...
 								gap = -1;
 							}
-							else {	// Not enough
-								// data before
-								// search
-								// start...
-								gap = TimeUtil.
-								getNumIntervals(
-								TimeUtil.min(
-								end,
-								date_search),
-								TimeUtil.max(
-								end,
-								date_search),
-								interval_base,
-								interval_mult );
+							else {
+							    // Not enough data before search start...
+								gap = TimeUtil.getNumIntervals(	TimeUtil.min( end, date_search),
+								TimeUtil.max( end, date_search),
+								interval_base, interval_mult );
 							}
 						}
 						if ( gap >= 0 ) {
 							if (Message.isDebugOn) {
-								Message.
-								printDebug (
-								dl, routine,
-								"Found " + gap +
-								" missing " +
-								"values " +
-								"between search"
-								+ " start and "+
-								" data." );
+								Message.printDebug ( dl, routine,
+								"Found " + gap + " missing values between search start and data." );
 							}
 							missing_count += gap;
 						}
-						else {	// Don't have enough
-							// data...
+						else {
+						    // Don't have enough data...
 							need_to_analyze = false;
 							end_of_data = true;
 							if (Message.isDebugOn) {
-								Message.
-								printDebug (
-								dl, routine,
-								"Don't have "+
-								"data at end " +
-								"of period to "+
-								"analyze." );
+								Message.printDebug ( dl, routine,
+								"Don't have data at end of period to analyze." );
 							}
 						}
 					}
 					// Irregular...
 					// just process what is available.
-					// REVISIT SAM 2005-09-27
+					// TODO SAM 2005-09-27
 					// Need to review this when other than
 					// Day interval data are supported.
 				}
-				else {	// Able to position the iterator so
+				else {
+				    // Able to position the iterator so
 					// reset the date of the iterator
 					// and process below...
 					date = data.getDate();
@@ -1766,7 +1751,7 @@ throws Exception
 		// If need_to_analyze is false, then the data can be skipped.
 		// This will occur either if the value is found or too much
 		// missing data have been found and the result cannot be used.
-		// REVISIT SAM 2005-09-22
+		// TODO SAM 2005-09-22
 		// Some of the following is in place because a TSIterator is
 		// being used to accomodate regular and irregular data.  It
 		// should be possible to jump over data but for now the brute
@@ -1774,14 +1759,12 @@ throws Exception
 		if ( need_to_analyze && !end_of_data ) {
 			value = tsi.getDataValue ();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Processing " + date + " value=" + value );
+				Message.printDebug ( dl, routine, "Processing " + date + " value=" + value );
 			}
 			// Put an initial check because the missing data count
 			// could have been set while setting the SearchStart...
 			if ( missing_count > AllowMissingCount_int ) {
-				// Have too much missing data to
-				// generate the statistic...
+				// Have too much missing data to generate the statistic...
 				need_to_analyze = false;
 				Message.printDebug ( dl, "",
 				"Will not analyze year because more" +
@@ -1795,130 +1778,104 @@ throws Exception
 			if ( ts.isDataMissing ( value ) ) {
 				++missing_count;
 				if ( missing_count > AllowMissingCount_int ) {
-					// Have too much missing data to
-					// generate the statistic...
+					// Have too much missing data to generate the statistic...
 					need_to_analyze = false;
 					Message.printDebug ( dl, "",
-					"Will not analyze year because more" +
-					" than " + AllowMissingCount_int +
+					"Will not analyze year because more than " + AllowMissingCount_int +
 					" missing values were found." );
 				}
 			}
-			else {	// Data value is not missing so evaluate the
-				// test...
-				if (	(Test_int == Test_GE) &&
-					(value >= TestValue_double) ) {
+			else {
+			    // Data value is not missing so evaluate the test...
+				if ( (Test_int == Test_GE) && (value >= TestValue_double) ) {
 					if (Statistic_int == Statistic_CountGE){
-						if(yearts.isDataMissing(
-							year_value) ) {
+						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
-						else {	year_value += 1.0;
+						else {
+						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int ==
-						Statistic_DayOfFirstGE) ||
-						(Statistic_int ==
-						Statistic_DayOfLastGE) ){
-						year_value =
-						TimeUtil.dayOfYear(date);
+					else if ((Statistic_int == Statistic_DayOfFirstGE) ||
+						(Statistic_int == Statistic_DayOfLastGE) ){
+						year_value = TimeUtil.dayOfYear(date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
-				else if((Test_int == Test_GT) &&
-					(value > TestValue_double) ) {
+				else if((Test_int == Test_GT) && (value > TestValue_double) ) {
 					if (Statistic_int == Statistic_CountGT){
-						if(yearts.isDataMissing(
-							year_value) ) {
+						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
-						else {	year_value += 1.0;
+						else {
+						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int ==
-						Statistic_DayOfFirstGT) ||
-						(Statistic_int ==
-						Statistic_DayOfLastGT) ){
-						year_value = TimeUtil.dayOfYear(
-							date);
+					else if ((Statistic_int == Statistic_DayOfFirstGT) ||
+						(Statistic_int == Statistic_DayOfLastGT) ){
+						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
-				else if((Test_int == Test_LE) &&
-					(value <= TestValue_double) ) {
+				else if((Test_int == Test_LE) && (value <= TestValue_double) ) {
 					if (Statistic_int == Statistic_CountLE){
-						if(yearts.isDataMissing(
-							year_value) ) {
+						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
-						else {	year_value += 1.0;
+						else {
+						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int ==
-						Statistic_DayOfFirstLE) ||
-						(Statistic_int ==
-						Statistic_DayOfLastLE) ){
-						year_value = TimeUtil.dayOfYear(
-							date);
+					else if ((Statistic_int == Statistic_DayOfFirstLE) ||
+						(Statistic_int == Statistic_DayOfLastLE) ){
+						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
-				else if((Test_int == Test_LT) &&
-					(value < TestValue_double) ) {
+				else if((Test_int == Test_LT) && (value < TestValue_double) ) {
 					if (Statistic_int == Statistic_CountLT){
-						if(yearts.isDataMissing(
-							year_value) ) {
+						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
-						else {	year_value += 1.0;
+						else {
+						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int ==
-						Statistic_DayOfFirstLT) ||
-						(Statistic_int ==
-						Statistic_DayOfLastLT) ){
-						year_value = TimeUtil.dayOfYear(
-							date);
+					else if ((Statistic_int == Statistic_DayOfFirstLT) ||
+						(Statistic_int == Statistic_DayOfLastLT) ){
+						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
 				else if ( Test_int == Test_Max ) {
-					if(yearts.isDataMissing(extreme_value)||
-						(value > extreme_value) ) {
+					if(yearts.isDataMissing(extreme_value)||(value > extreme_value) ) {
 						// Set the max...
-						if (	Statistic_int ==
-							Statistic_DayOfMax ) {
-							year_value =
-							TimeUtil.dayOfYear(
-							date);
+						if ( Statistic_int == Statistic_DayOfMax ) {
+							year_value = TimeUtil.dayOfYear( date);
 						}
-						else {	year_value = value;
+						else {
+						    year_value = value;
 						}
 						extreme_value = value;
 					}
-					// Need to continue analyzing period so
-					// do not set need_to_analyze to false.
+					// Need to continue analyzing period so do not set need_to_analyze to false.
 				}
 				else if ( Test_int == Test_Min ) {
-					if(yearts.isDataMissing(extreme_value)||
-						(value < extreme_value) ) {
+					if(yearts.isDataMissing(extreme_value)||(value < extreme_value) ) {
 						// Set the min...
-						if (	Statistic_int ==
-							Statistic_DayOfMin ) {
-							year_value =
-							TimeUtil.dayOfYear(
-							date);
+						if ( Statistic_int == Statistic_DayOfMin ) {
+							year_value = TimeUtil.dayOfYear( date);
 						}
-						else {	year_value = value;
+						else {
+						    year_value = value;
 						}
 						extreme_value = value;
 					}
-					// Need to continue analyzing period so
-					// do not set need_to_analyze to false.
+					// Need to continue analyzing period so do not set need_to_analyze to false.
 				}
 			}
 		}
@@ -1930,7 +1887,8 @@ throws Exception
 			",AllowMissingCount=" + AllowMissingCount +
 			") from input: " + ts.getAlias() );
 	}
-	else {	yearts.addToGenesis ( "Created " + Statistic +
+	else {
+	    yearts.addToGenesis ( "Created " + Statistic +
 			" statistic time series (TestValue=" + TestValue +
 			",SearchStart=" + SearchStart +
 			",AllowMissingCount=" + AllowMissingCount +
