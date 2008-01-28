@@ -119,6 +119,8 @@
 package RTi.GRTS;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -141,6 +143,7 @@ import java.io.FileOutputStream;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -148,6 +151,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import javax.swing.border.Border;
 
@@ -281,6 +285,7 @@ the proper JScrollPane border after a worksheet was clicked on and selected.
 private JScrollPane[] 
 	__dayScrollPanes,
 	__hourScrollPanes,
+	__irregularScrollPanes,
 	__minuteScrollPanes,
 	__monthScrollPanes,
 	__yearScrollPanes;
@@ -302,6 +307,7 @@ for each different TS.
 private JWorksheet[]
 	__dayWorksheets,
 	__hourWorksheets,
+	__irregularWorksheets,
 	__minuteWorksheets,
 	__monthWorksheets,
 	__yearWorksheets;
@@ -337,6 +343,7 @@ for each different TS.
 private TSViewTable_TableModel[]
 	__dayModels,
 	__hourModels,
+	__irregularModels,
 	__minuteModels,
 	__monthModels,
 	__yearModels;
@@ -349,6 +356,7 @@ clicked on after a mouse press on the JScrollPane associated with a worksheet.
 private Vector[]
 	__dayMouseListeners,
 	__hourMouseListeners,
+	__irregularMouseListeners,
 	__minuteMouseListeners,
 	__monthMouseListeners,
 	__yearMouseListeners;
@@ -541,7 +549,8 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
 		+ " Interval"));
       	JGUIUtil.addComponent(panel, subPanel,
 		0, __panelCount++, 1, 1, 1, 1, 
-		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 	
+		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
+     Container parent = panel.getParent();
 }
 
 /**
@@ -582,12 +591,20 @@ private int calculateNumberOfPanels() {
 	if (__yearWorksheets != null && __yearWorksheets.length > 0) {
 		size++;
 	}
-	if (__irregular != null && __irregular.size() > 0) {
+	if (__irregularWorksheets != null && __irregularWorksheets.length > 0) {
 		size++;
 	}
 	return size;
 }
 
+private static int MINUTE_PANEL_WORKSHEET_COUNT_INDEX = 0;
+private static int HOUR_PANEL_WORKSHEET_COUNT_INDEX = 1;
+private static int DAY_PANEL_WORKSHEET_COUNT_INDEX = 2;
+private static int MONTH_PANEL_WORKSHEET_COUNT_INDEX = 3;
+private static int YEAR_PANEL_WORKSHEET_COUNT_INDEX = 4;
+private static int IRREGULAR_PANEL_WORKSHEET_COUNT_INDEX =7;
+private static int TOTAL_VISIBLE_WORKSHEETS_INDEX = 5;
+private static int TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX = 6;
 /**
 Calculates the number of worksheets in each panel and return an integer array
 that can tell exactly how many worksheets are in each panel.
@@ -601,57 +618,66 @@ that can tell exactly how many worksheets are in each panel.
 [6] - the total number of panels with visible worksheets
 */
 private int[] calculateVisibleWorksheetsByPanel() {
-	int[] array = new int[7];
+
+	int[] array = new int[8];
 
 	if (__minuteWorksheets == null || !__minuteJCheckBox.isSelected()) {
-		array[0] = 0;
+		array[MINUTE_PANEL_WORKSHEET_COUNT_INDEX] = 0;
 	}
 	else {
-		array[0] = __minuteWorksheets.length;
+		array[MINUTE_PANEL_WORKSHEET_COUNT_INDEX] = __minuteWorksheets.length;
 	}
 	if (__hourWorksheets == null || !__hourJCheckBox.isSelected()) {
-		array[1] = 0;
+		array[HOUR_PANEL_WORKSHEET_COUNT_INDEX] = 0;
 	}
 	else {
-		array[1] = __hourWorksheets.length;
+		array[HOUR_PANEL_WORKSHEET_COUNT_INDEX] = __hourWorksheets.length;
 	}
 	if (__dayWorksheets == null || !__dayJCheckBox.isSelected()) {
-		array[2] = 0;
+		array[DAY_PANEL_WORKSHEET_COUNT_INDEX] = 0;
 	}
 	else {
-		array[2] = __dayWorksheets.length;
+		array[DAY_PANEL_WORKSHEET_COUNT_INDEX] = __dayWorksheets.length;
 	}
 	if (__monthWorksheets == null || !__monthJCheckBox.isSelected()) {
-		array[3] = 0;
+		array[MONTH_PANEL_WORKSHEET_COUNT_INDEX] = 0;
 	}
 	else {
-		array[3] = __monthWorksheets.length;
+		array[MONTH_PANEL_WORKSHEET_COUNT_INDEX] = __monthWorksheets.length;
 	}
 	if (__yearWorksheets == null || !__yearJCheckBox.isSelected()) {
-		array[4] = 0;
+		array[YEAR_PANEL_WORKSHEET_COUNT_INDEX] = 0;
 	}
 	else {
-		array[4] = __yearWorksheets.length;
+		array[YEAR_PANEL_WORKSHEET_COUNT_INDEX] = __yearWorksheets.length;
 	}
 
-	array[5] = array[4] + array[3] + array[2] + array[1] + array[0];
+	array[TOTAL_VISIBLE_WORKSHEETS_INDEX] = array[YEAR_PANEL_WORKSHEET_COUNT_INDEX] 
+	                                      + array[MONTH_PANEL_WORKSHEET_COUNT_INDEX] 
+	                                      + array[DAY_PANEL_WORKSHEET_COUNT_INDEX] 
+	                                      + array[HOUR_PANEL_WORKSHEET_COUNT_INDEX] 
+	                                      + array[MINUTE_PANEL_WORKSHEET_COUNT_INDEX]
+	                                      + array[IRREGULAR_PANEL_WORKSHEET_COUNT_INDEX];
 
-	array[6] = 0;
-	if (array[0] > 0) {
-		array[6]++;
+	array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX] = 0;
+	if (array[MINUTE_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+		array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
 	}
-	if (array[1] > 0) {
-		array[6]++;
+	if (array[HOUR_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+		array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
 	}
-	if (array[2] > 0) {
-		array[6]++;
+	if (array[DAY_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+		array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
 	}
-	if (array[3] > 0) {
-		array[6]++;
+	if (array[MONTH_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+		array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
 	}
-	if (array[4] > 0) {
-		array[6]++;
+	if (array[YEAR_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+		array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
 	}
+	 if (array[IRREGULAR_PANEL_WORKSHEET_COUNT_INDEX] > 0) {
+	    array[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX]++;
+	  }
 
 	return array;
 }
@@ -682,6 +708,12 @@ private void checkForSingleWorksheet() {
 			count++;
 			worksheet = __hourWorksheets[i];
 		}
+	}
+	if (__irregularWorksheets != null) {
+	  for (int i = 0; i < __irregularWorksheets.length; i++) {
+	    count++;
+	    worksheet = __irregularWorksheets[i];
+	  }
 	}
 	if (__monthWorksheets != null) {
 		for (int i = 0; i < __monthWorksheets.length; i++) {
@@ -884,19 +916,19 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 
 	// loop through all of the different interval multipliers
 	for (int i = 0; i < count; i++) {
-		Vector data = new Vector();
+		Vector tsList_sameIntervalMultiplier = new Vector();
 
 		// add all the time series with the same interval multiplier
 		// to the Vector
 		for (int j = 0; j < numts; j++) {
 			if (matches[j] == i) {
-				data.add(tslist.elementAt(j));
+				tsList_sameIntervalMultiplier.add(tslist.elementAt(j));
 			}
 		}
 
 		// get all the format precision strings for the TS that were
 		// found in the previous loop 
-		String[] formats = new String[data.size()];		
+		String[] formats = new String[tsList_sameIntervalMultiplier.size()];		
 		int formatCount = 0;
 		for (int j = 0; j < numts; j++) {
 			if (matches[j] == i) {
@@ -905,23 +937,23 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		}		
 
 		// now get the starting date of data ...
-		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
+		TSLimits limits = TSUtil.getPeriodFromTS(tsList_sameIntervalMultiplier, TSUtil.MAX_POR);
 		DateTime start = limits.getDate1();	
 
 		// ... and the interval multiplier ...
-		if (data == null || data.size() == 0) {
+		if (tsList_sameIntervalMultiplier == null || tsList_sameIntervalMultiplier.size() == 0) {
 			// (in this case, use a representative TS)
 			tempTS = (TS)tslist.elementAt(i);
 			multi = tempTS.getDataIntervalMult();		
 		}
 		else {
-			tempTS = (TS)data.elementAt(0);
+			tempTS = (TS)tsList_sameIntervalMultiplier.elementAt(i);//dre was elementAt(0)
 			multi = tempTS.getDataIntervalMult();
 		}
 
 		// ... and create the table model to display all the time 
 		// series with the same interval base and interval multiplier
-		models[i] = new TSViewTable_TableModel(data, start, 
+		models[i] = new TSViewTable_TableModel(tsList_sameIntervalMultiplier, start, 
 			interval, multi, dateFormat, formats,
 			useExtendedLegend);
 	}	
@@ -957,7 +989,7 @@ PropList p) {
 		TSViewTable_CellRenderer cr = 
 			new TSViewTable_CellRenderer(model);
 		worksheet = new JWorksheet(cr, model, p);
-		worksheet.setPreferredScrollableViewportSize(null);
+	//TODO:dredre	worksheet.setPreferredScrollableViewportSize(null);
 		worksheet.setHourglassJFrame(this);
 		worksheets[i] = worksheet;
 		model.setWorksheet(worksheets[i]);
@@ -1155,6 +1187,13 @@ public JScrollPane findWorksheetsScrollPane(JWorksheet worksheet) {
 			}
 		}
 	}
+	 if (__irregularWorksheets != null) {
+	    for (int i = 0; i < __irregularWorksheets.length; i++) {
+	      if (__irregularWorksheets[i] == worksheet) {
+	        return __irregularScrollPanes[i];
+	      }
+	    }
+	  }
 	if (__monthWorksheets != null) {
 		for (int i = 0; i < __monthWorksheets.length; i++) {
 			if (__monthWorksheets[i] == worksheet) {
@@ -1232,7 +1271,7 @@ public void itemStateChanged(ItemEvent evt) {
 
 	int[] arr = calculateVisibleWorksheetsByPanel();
 
-	if (arr[6] == 0) {		
+	if (arr[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX] == 0) {		
 		__mainJPanelNorth = true;
 		getContentPane().remove(__mainJPanel);
 		getContentPane().add(__mainJPanel, "North");
@@ -1245,7 +1284,7 @@ public void itemStateChanged(ItemEvent evt) {
 		}
 	}
 
-	if (arr[5] == 1) {
+	if (arr[TOTAL_VISIBLE_WORKSHEETS_INDEX] == 1) {
 		if (__lastSelectedScrollPane != null) {
 			// reset the border to its original state
 			__lastSelectedScrollPane.setBorder(
@@ -1254,12 +1293,13 @@ public void itemStateChanged(ItemEvent evt) {
 
 		setPanelsBorder(false);
 	}	
-	else if (arr[6] > 1 && panel != null && panel.isVisible()) {
+	else if (arr[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX] > 1 
+	        && panel != null && panel.isVisible()) {
 		__lastSelectedScrollPane.setBorder(
 			BorderFactory.createLineBorder(Color.blue, 2));
 		setPanelsBorder(true);
 	}
-	else if (arr[6] > 1) {
+	else if (arr[TOTAL_PANELS_WITH_VISIBLE_WORKSHEETS_INDEX] > 1) {
 		setPanelsBorder(true);
 	}
 }
@@ -1427,7 +1467,7 @@ JWorksheet lastWorksheet) {
 	__originalScrollPaneBorder = __lastSelectedScrollPane.getBorder();
 	// ... and change the scroll pane's border to represent that 
 	// its worksheet is selected.
-	if (arr[5] > 1) {
+	if (arr[TOTAL_VISIBLE_WORKSHEETS_INDEX] > 1) {
 		__lastSelectedScrollPane.setBorder(
 			BorderFactory.createLineBorder(Color.blue, 2));
 	}
@@ -1441,6 +1481,7 @@ JWorksheet lastWorksheet) {
 		case TimeInterval.DAY:		base = "Day";	break;
 		case TimeInterval.MONTH:	base = "Month";	break;
 		case TimeInterval.YEAR:		base = "Year";	break;
+		case TimeInterval.IRREGULAR: base = "Irregular"; break;
 		default:			base = "???";	break;
 	}
 
@@ -1596,6 +1637,10 @@ private void setupGUI(boolean mode) {
 	__hourWorksheets = createWorksheets(__hourModels, p);
 	JWorksheet[] hourHeaders = createWorksheets(__hourModels, p2);
 
+	 __irregularModels = createTableModels(__irregular);
+	  __irregularWorksheets = createWorksheets(__irregularModels, p);
+	  JWorksheet[] irregularHeaders = createWorksheets(__irregularModels, p2);
+
 	__monthModels = createTableModels(__month);
 	__monthWorksheets = createWorksheets(__monthModels, p);
 	JWorksheet[] monthHeaders = createWorksheets(__monthModels, p2);
@@ -1622,6 +1667,9 @@ private void setupGUI(boolean mode) {
 	if (__hourWorksheets != null) {
 		__hourScrollPanes = new JScrollPane[__hourWorksheets.length];
 	}
+	 if (__irregularWorksheets != null) {
+	    __irregularScrollPanes = new JScrollPane[__irregularWorksheets.length];
+	  }
 	if (__monthWorksheets != null) {
 		__monthScrollPanes = new JScrollPane[__monthWorksheets.length];
 	}
@@ -1652,6 +1700,12 @@ private void setupGUI(boolean mode) {
 			dayHeaders, __dayScrollPanes,
 			__dayMouseListeners);
 		
+	  __irregularMouseListeners = buildMouseListeners(__irregularWorksheets);
+    addWorksheetsToPanel(__irregularJPanel, "Irregular", __irregularJPanel, 
+      __irregularJCheckBox, __irregularWorksheets, 
+      irregularHeaders, __irregularScrollPanes,
+      __irregularMouseListeners);
+    
 		__monthMouseListeners = buildMouseListeners(__monthWorksheets);
 		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, 
 			__monthJCheckBox, __monthWorksheets, 
@@ -1663,7 +1717,7 @@ private void setupGUI(boolean mode) {
 			__yearJCheckBox, __yearWorksheets, 
 			yearHeaders, __yearScrollPanes,
 			__yearMouseListeners);
-
+/**
 		if (__irregular != null && __irregular.size() > 0) {
 		__irregularJPanel.setLayout(new GridBagLayout());
 		JGUIUtil.addComponent(__irregularJPanel,
@@ -1675,6 +1729,7 @@ private void setupGUI(boolean mode) {
 			0, __panelCount++, 1, 1, 1, 1, 
 			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
 		}
+		*/
 	}
 	else {
 		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
@@ -1688,6 +1743,12 @@ private void setupGUI(boolean mode) {
 			__monthJCheckBox, __monthWorksheets, 
 			monthHeaders, __monthScrollPanes,
 			__monthMouseListeners);
+		
+	  __irregularMouseListeners = buildMouseListeners(__irregularWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular", __irregularJPanel, 
+      __irregularJCheckBox, __irregularWorksheets, 
+      irregularHeaders, __irregularScrollPanes,
+      __irregularMouseListeners);
 
 		__dayMouseListeners = buildMouseListeners(__dayWorksheets);
 		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, 
@@ -1709,6 +1770,7 @@ private void setupGUI(boolean mode) {
 			minuteHeaders,
 			__minuteScrollPanes, __minuteMouseListeners);		
 
+		/*
 		if (__irregular != null && __irregular.size() > 0) {
 		__irregularJPanel.setLayout(new GridBagLayout());
 		JGUIUtil.addComponent(__irregularJPanel,
@@ -1720,6 +1782,7 @@ private void setupGUI(boolean mode) {
 			0, __panelCount++, 1, 1, 1, 1, 
 			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 		}
+		*/
 	}
 
 	JPanel bottomJPanel = new JPanel();
@@ -1758,7 +1821,7 @@ private void setupGUI(boolean mode) {
 	button_JPanel.add(__closeJButton);
 	// REVISIT - add later
 	//button_JPanel.add(__helpJButton);
-
+	
 	JGUIUtil.addComponent(bottomJPanel, button_JPanel,
 		0, 0, 8, 1, 1, 1,
 		GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
@@ -1783,6 +1846,8 @@ private void setupGUI(boolean mode) {
 	setColumnWidths(__minuteWorksheets, DateTime.PRECISION_MINUTE);
 	setColumnWidths(__hourWorksheets, DateTime.PRECISION_HOUR);
 	setColumnWidths(__dayWorksheets, DateTime.PRECISION_DAY);
+	//TODO:dre verif irregular worksheet precision
+	setColumnWidths(__irregularWorksheets, DateTime.PRECISION_HOUR);
 	setColumnWidths(__monthWorksheets, DateTime.PRECISION_MONTH);
 	setColumnWidths(__yearWorksheets, DateTime.PRECISION_YEAR);
 

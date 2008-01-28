@@ -285,6 +285,14 @@ throws Exception {
 			__cachedDates[i].addYear(__cacheInterval
 				* __intervalMult);
 		}
+		else if (__intervalBase == TimeInterval.IRREGULAR)
+		  {
+		    // TODO: dre will precision always be hour for irregular?
+		    int prec =start.getPrecision();
+		    __cachedDates[i].addHour(__cacheInterval
+		            * __intervalMult);
+		  }
+		  
 	}
 }
 
@@ -405,7 +413,12 @@ public Object getConsecutiveValueAt(int row, int col) {
 		else if (__intervalBase == TimeInterval.DAY) {
 			temp.addDay((row % __cacheInterval) 
 				* __intervalMult);
-		}	
+		}
+		//TODO:dre TimeInterval.IRREGULAR hour ??
+	  else if (__intervalBase == TimeInterval.IRREGULAR) {
+      temp.addHour((row % __cacheInterval) 
+        * __intervalMult);
+    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			temp.addMonth((row % __cacheInterval) 
 				* __intervalMult);
@@ -428,6 +441,10 @@ public Object getConsecutiveValueAt(int row, int col) {
 		else if (__intervalBase == TimeInterval.DAY) {
 			__priorDateTime.addDay(1 * __intervalMult);
 		}	
+		//TODO:dre TimeInterval.IRREGULAR hour?
+		else if (__intervalBase == TimeInterval.IRREGULAR) {
+      __priorDateTime.addHour(1 * __intervalMult);
+    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			__priorDateTime.addMonth(1 * __intervalMult);
 		}
@@ -595,7 +612,14 @@ public Object getValueAt(int row, int col) {
 			__firstVisibleRowDate.addDay(
 				(__firstVisibleRow % __cacheInterval) 
 				* __intervalMult);
-		}	
+		}
+		// TODO: dre TimeInterval.IRREGULAR hour??
+	  else if (__intervalBase == TimeInterval.IRREGULAR) {
+      precision = DateTime.PRECISION_HOUR;
+      __firstVisibleRowDate.addHour(
+        (__firstVisibleRow % __cacheInterval) 
+        * __intervalMult);
+    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			precision = DateTime.PRECISION_MONTH;
 			__firstVisibleRowDate.addMonth(
@@ -646,7 +670,11 @@ public Object getValueAt(int row, int col) {
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
 			__workingDate.addDay(((row - __firstVisibleRow)* __intervalMult));
-		}	
+		}
+		//TODO:dre TimeInterval.IRREGULAR hour ??
+		else if (__intervalBase == TimeInterval.IRREGULAR) {
+      __workingDate.addHour(((row - __firstVisibleRow)* __intervalMult));
+    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			__workingDate.addMonth(((row - __firstVisibleRow)* __intervalMult));
 		}
