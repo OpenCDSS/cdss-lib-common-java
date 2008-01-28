@@ -805,14 +805,13 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		return null;
 	}
 
-	int numts = tslist.size();
+	int nTS = tslist.size();
 
 	// the following arrays are used to match up time series with 
 	// the same interval multipliers.  The arrays are sized to the 
 	// maximum size necessary and won't necessarily be filled completely.
-	int[] mults = new int[numts];
-	int[] matches = new int[numts];
-	String[] tsFormatString = new String[numts];
+	int[] matches = new int[nTS];
+	String[] tsFormatString = new String[nTS];
 	
 	int count = 0;
 	boolean hit = false;
@@ -822,86 +821,30 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 	TS ts = (TS)tslist.elementAt(0);	
 	int interval = ts.getDataIntervalBase();
 
-	int dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	// get the proper date format
-	if (interval == TimeInterval.HOUR) {
-		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
-	}
-	else if (interval == TimeInterval.DAY) {
-		dateFormat = DateTime.FORMAT_YYYY_MM_DD;
-	}
-	else if (interval == TimeInterval.IRREGULAR) {
-		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	}
-	else if (interval == TimeInterval.MONTH) {
-		dateFormat = DateTime.FORMAT_YYYY_MM;
-	}
-	else if (interval == TimeInterval.YEAR) {
-		dateFormat = DateTime.FORMAT_YYYY;
-	}
-	else if (interval == TimeInterval.MINUTE) {
-		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	}
+	// Get the date format for the TS
+	int dateFormat = dateFormat(interval);
 
 	try {
 	int tsPrecision = 2;	// default.
-	DataUnits units = null;
+	
 	String propValue = __props.getValue("OutputPrecision");
 	int multi = 0;
 
 	// Go through the time series and see how many of them have different
 	// intervals.  All of the TS with the same intervals need to be
 	// placed in the same worksheet.
-	for (int i = 0; i < numts; i++) {
-		ts = (TS)tslist.elementAt(i);
+	count = findIntervals(tslist, matches, tsFormatString,  propValue);
 
-		// get the interval multiplier for the current TS
-		multi = ts.getDataIntervalMult();
-		hit = false;
-
-		// look through the array of previously-found interval
-		// multipliers (mults[]) and see if the multiplier has 
-		// already been encounted.
-		for (int j = 0; j < count; j++) {
-			if (mults[j] == multi) {
-				// if it has, list this TS element #j as 
-				// a match for interval multiplier #i
-				hit = true;
-				matches[i] = j;
-			}
-		}
-
-		// if the interval multiplier was not found, add it to the
-		// list of found multipliers and increment the count of
-		// different interval multipliers that have been found
-		if (!hit) {
-			mults[count] = multi;
-			matches[i] = count;
-			count++;
-		}
-
-		// calculate the output precision of the current TS's
-		// data
-		tsPrecision = 2;
-		if (propValue != null) {
-			tsPrecision = StringUtil.atoi(propValue);
-		}
-		else {	
-			try {	
-				units = DataUnits.lookupUnits(
-				ts.getDataUnits());
-				tsPrecision = units.getOutputPrecision();
-			}
-			catch (Exception e) {
-				// Use the default...
-				tsPrecision = 2;
-			}
-		}
-		tsFormatString[i] = "%" + __OUTPUT_WIDTH + "."
-			+ tsPrecision + "f";
-
-	}
-
+   // Calculate the output precision for Time Series
+	for (int i = 0; i < nTS; i++)
+	  {
+    ts = (TS)tslist.elementAt(i);
+ 
+    tsPrecision = calcOutputPrecision(ts, propValue);
+    tsFormatString[i] = "%" + __OUTPUT_WIDTH + "."
+      + tsPrecision + "f";
+	  }
+	
 	// create an array of table models big enough to hold one table
 	// model for every different interval multiplier
 	TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
@@ -920,7 +863,7 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 
 		// add all the time series with the same interval multiplier
 		// to the Vector
-		for (int j = 0; j < numts; j++) {
+		for (int j = 0; j < nTS; j++) {
 			if (matches[j] == i) {
 				tsList_sameIntervalMultiplier.add(tslist.elementAt(j));
 			}
@@ -930,7 +873,7 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		// found in the previous loop 
 		String[] formats = new String[tsList_sameIntervalMultiplier.size()];		
 		int formatCount = 0;
-		for (int j = 0; j < numts; j++) {
+		for (int j = 0; j < nTS; j++) {
 			if (matches[j] == i) {
 				formats[formatCount++] = tsFormatString[j];
 			}
@@ -965,6 +908,114 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		Message.printWarning(2, routine, e);
 		return null;
 	}
+}
+/**
+ * Returns the number of differend intervals in the tslist.
+ * 
+ * @param tslist List of Time Series.
+ * @param matching
+ */
+private int findIntervals(Vector tslist, int[] matches,
+        String[] tsFormatString, String propValue)
+{
+  int nTS = tslist.size();
+  int count = 0;
+  //the following array is used to match up time series with 
+  // the same interval multipliers.  The array issized to the 
+  // maximum size necessary and won't necessarily be filled completely.
+  
+  int[] mults = new int[nTS];
+  boolean hit;
+  TS ts;
+  int multi;
+  for (int i = 0; i < nTS; i++) {
+		ts = (TS)tslist.elementAt(i);
+
+		// get the interval multiplier for the current TS
+		multi = ts.getDataIntervalMult();
+		hit = false;
+
+		// look through the array of previously-found interval
+		// multipliers (mults[]) and see if the multiplier has 
+		// already been encountered.
+		for (int j = 0; j < count; j++) {
+			if (mults[j] == multi) {
+				// if it has, list this TS element #j as 
+				// a match for interval multiplier #i
+				hit = true;
+				matches[i] = j;
+			}
+		}
+
+		// if the interval multiplier was not found, add it to the
+		// list of found multipliers and increment the count of
+		// different interval multipliers that have been found
+		if (!hit) {
+			mults[count] = multi;
+			matches[i] = count;
+			count++;
+		}
+	}
+  return count;
+}
+
+/**
+ * Returns the output precision of the current TS's data.
+ * 
+ * @param ts
+ * @param propValue
+ * @return output precision
+ */
+private int calcOutputPrecision(TS ts, String propValue)
+{
+  int tsPrecision;
+  tsPrecision = 2;
+  if (propValue != null) {
+  	tsPrecision = StringUtil.atoi(propValue);
+  }
+  else {	
+  	try {	
+  	  DataUnits units = DataUnits.lookupUnits(
+  		ts.getDataUnits());
+  		tsPrecision = units.getOutputPrecision();
+  	}
+  	catch (Exception e) {
+  		// Use the default...
+  		tsPrecision = 2;
+  	}
+  }
+  return tsPrecision;
+}
+
+/**
+ * Returns the date format.
+ * 
+ * @param interval
+ * @return
+ */
+private int dateFormat(int interval)
+{
+  int dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
+	// get the proper date format
+	if (interval == TimeInterval.HOUR) {
+		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
+	}
+	else if (interval == TimeInterval.DAY) {
+		dateFormat = DateTime.FORMAT_YYYY_MM_DD;
+	}
+	else if (interval == TimeInterval.IRREGULAR) {
+		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
+	}
+	else if (interval == TimeInterval.MONTH) {
+		dateFormat = DateTime.FORMAT_YYYY_MM;
+	}
+	else if (interval == TimeInterval.YEAR) {
+		dateFormat = DateTime.FORMAT_YYYY;
+	}
+	else if (interval == TimeInterval.MINUTE) {
+		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
+	}
+  return dateFormat;
 }
 
 /**
