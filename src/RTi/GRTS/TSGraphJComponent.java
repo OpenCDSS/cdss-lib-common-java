@@ -1069,7 +1069,6 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 						// the current graph, then the
 						// graph is NOT used for a
 						// reference graph.
-		int sequence_number = -1;	// Sequence number used with traces...
 		for ( int jtsid = 0; ; jtsid++ ) {// Loop for TSIDs in graph
 			// First get the TSID...
 			TSID_prop_val = tsproduct.getLayeredPropValue (	"TSID", isub, jtsid, false );
@@ -1079,14 +1078,13 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				// Done with data for the graph...
 				break;
 			}
-			// TODO - the following does not quite make sense...
-			if ( TSAlias_prop_val == null ) {
+			if ( TSID_prop_val == null ) {
 				// Assign blank...
-				TSAlias_prop_val = "";
+				TSID_prop_val = "";
 			}
 			if ( TSAlias_prop_val == null ) {
 				// Assign blank...
-				TSID_prop_val = "";
+				TSAlias_prop_val = "";
 			}
 			if ( TSID_prop_val.indexOf("~") >= 0 ) {
 				// The TSID has input fields so need to compare when searching for time series.
@@ -1095,25 +1093,9 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			else {
                 check_input = false;
 			}
-			// If the SequenceNumber property is set, then assume
-			// that the TSProduct has been created from a PropList
-			// and Vector of TS.  In this case the
-			// createTSProductFromPropList() method has internally
-			// passed along the sequence number property because it
-			// is not necessarily a part of the ID.
-			//
-			// If a TSProduct was created from scratch, the SequenceNumber property should not be set so set
-			// to the default value (-1)...
-			prop_val = tsproduct.getLayeredPropValue ( "SequenceNumber", isub, jtsid, false );
-			if ( prop_val != null ) {
-				sequence_number = StringUtil.atoi(prop_val);
-			}
-			else {
-                sequence_number = -1;
-			}
 			if ( Message.isDebugOn ) {
 			    Message.printDebug ( 2, routine, "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
-                    "\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\" SequenceNumber=" + sequence_number );
+                    "\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\"." );
 			}
 			// Now find a matching time series in the available data.  If a match is not found, set the time series
 			// to null so the properties line up.
@@ -1125,8 +1107,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 				}
 				if ( Message.isDebugOn ) {
 				    Message.printDebug ( 2, routine, "Comparing to TS in available data: " +
-				            "TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" +
-				            " sequence number=" + ts.getSequenceNumber());
+				            "TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" );
 				}
 				//if ( Message.isDebugOn ) {
 					//Message.printDebug ( 1, routine,
@@ -1138,7 +1119,6 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
                 if ( !TSAlias_prop_val.equals("") ) {
 				    // If an alias is specified, just match the alias...
 				    if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
-                        //&&	(sequence_number ==	ts.getSequenceNumber())
 				        if ( Message.isDebugOn ) {
 				            Message.printStatus ( 2, routine, "Time series aliases match.");
 				        }
@@ -1146,11 +1126,10 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
                     }
                 }
                 else {
-					// No alias so use the full TSID with input type and match the sequence number...
-					if ( ts.getIdentifier().equals( TSID_prop_val,check_input)
-					        && (sequence_number == ts.getSequenceNumber()) ) {
+					// No alias so use the full TSID with input type...
+					if ( ts.getIdentifier().equals( TSID_prop_val,check_input) ) {
 					    if ( Message.isDebugOn ) {
-					        Message.printDebug ( 2, routine, "Time series identifiers and sequence numbers match.");
+					        Message.printDebug ( 2, routine, "Time series identifiers match.");
 					    }
                         tsfound = ts;
                     }
@@ -1236,7 +1215,9 @@ default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
 private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist )
-{	try {
+{	String routine = "TSGraphJComponent.createTSProductFromPropList";
+
+    try {
 
 	//Message.printStatus ( 2, "", "Creating TSProduct from PropList and TS list" );
 	// Create a new TSProduct...
@@ -1395,11 +1376,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 			if ( !ts.getAlias().equals("") ) {
 				tsproduct.setPropValue ( "TSAlias",	ts.getAlias(), 0, i );
 			}
-			// Internal trick to pass along the sequence number for traces.  To simplify comparisons later,
-            // always set the sequence number.  If it happens to be the initial value in all cases, so be it...
-			// This needs to be an internal property...
 			tsproduct.getPropList().setHowSet (	Prop.SET_AS_RUNTIME_DEFAULT );
-			tsproduct.setPropValue ( "SequenceNumber","" + ts.getSequenceNumber(), 0, i );
 			// Set the index.  This is actually a more robust way
 			// to connect the time series with graphs when the time
 			// series come in from a Vector and PropList.

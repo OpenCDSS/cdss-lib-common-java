@@ -1590,18 +1590,12 @@ public void checkDataProperties(int isub, int its) {
 			isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"TSAlias", isub, its, false ) == null ) {
-		setPropValue ( "TSAlias",
-		getDefaultPropValue("TSAlias",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ( "TSAlias", isub, its, false ) == null ) {
+		setPropValue ( "TSAlias", getDefaultPropValue("TSAlias",isub,its), isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"TSID", isub, its, false ) == null ) {
-		setPropValue ( "TSID",
-		getDefaultPropValue("TSID",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ( "TSID", isub, its, false ) == null ) {
+		setPropValue ( "TSID", getDefaultPropValue("TSID",isub,its), isub, its);
 	}
 
 	if (	getLayeredPropValue (
@@ -3153,8 +3147,7 @@ public int getNumAnnotations(int subproduct) {
 /**
 Return the number of data items that are defined for a subproduct.  This is
 determined by checking the properties for "Data S.N.XXXX", where S is the
-subproduct number (minus 1, starting at 0) and XXXX is "TSID"
-and "TS".
+subproduct number (minus 1, starting at 0) and XXXX is "TSID", "TS", and "TSAlias".
 The largest N that returns a value is assumed to be the number of data sets.
 @param subproduct The subproduct to check (zero or greater).
 @return the number of data sets for a subproduct or zero if none are defined.
@@ -3169,13 +3162,17 @@ public int getNumData ( int subproduct )
 			ndata = i;
 			continue;
 		}
+	    prop_value = getLayeredPropValue ("TSAlias", subproduct, i, false);
+        if ( prop_value != null ) {
+            ndata = i;
+            continue;
+        }
 		prop_value = getLayeredPropValue ( "TS", subproduct, i, false );
 		if ( prop_value != null ) {
 			ndata = i;
 			continue;
 		}
-		prop_value = getLayeredPropValue ("GraphType", subproduct, i,
-					false);
+		prop_value = getLayeredPropValue ("GraphType", subproduct, i, false);
 		if ( prop_value != null ) {
 			ndata = i;
 			continue;
@@ -3199,7 +3196,7 @@ public int getNumSubProducts ()
 
 /**
 Return the number of enabled subproducts that are defined.  This is determined
-by checking the properties for "Data N.1.XXXX", where XXXX is "TSID", "TS",
+by checking the properties for "Data N.1.XXXX", where XXXX is "TSID", "TSAlias", "TS",
 "GraphType", "TemplateTSID", and "MainTitleString" .  The largest N
 that returns a value is assumed to be the number of subproducts.
 @return the number of subproducts or zero if none are defined.
@@ -3239,6 +3236,20 @@ public int getNumSubProducts ( boolean enabled_only )
 			}
 			continue;
 		}
+	    prop_value = getLayeredPropValue ( "TSAlias", i, data, false );
+        if ( prop_value != null ) {
+            nsubs = i;
+            if ( enabled_only ) {
+                prop_value = getLayeredPropValue ( "Enabled", i, data, false );
+                if ( (prop_value == null) || prop_value.equalsIgnoreCase("true") ) {
+                    ++count;
+                }
+            }
+            else {
+                ++count;
+            }
+            continue;
+        }
 		prop_value = getLayeredPropValue ( "TemplateTSID", i, data, false);
 		if ( prop_value != null ) {
 			nsubs = i;
@@ -3573,12 +3584,12 @@ protected void removeSubProduct(int sp) {
 	__dirty = true;
 
 	// remove the time series that are in this subproduct
+	// FIXME SAM 2008-01-29 Evaluate how TSAlias is handled.
 	int numData = getNumData(sp);
 	String id = null;
 	TS ts = null;
 	for (int i = 0; i < numData; i++) {
-		id = getPropValue("Data " + (sp + 1) + "." + (i + 1)
-			+ ".TSID");
+		id = getPropValue("Data " + (sp + 1) + "." + (i + 1) + ".TSID");
 		for (int j = 0; j < __tslist.size(); j++) {
 			ts = (TS)__tslist.elementAt(j);
 			if (ts.getIdentifierString().equals(id)) {
@@ -3588,8 +3599,7 @@ protected void removeSubProduct(int sp) {
 		}
 	}
 
-	// loop through the main proplist and unset all the appropriate
-	// properties
+	// Loop through the main proplist and unset all the appropriate properties
 	for (int i = 0; i < __proplist.size(); i++) {
 		p = (Prop)__proplist.elementAt(i);
 		key = p.getKey();

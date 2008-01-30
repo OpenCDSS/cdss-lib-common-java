@@ -694,7 +694,10 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 
 	//if (Message.isDebugOn) {
 		// Might need to use this when we try to process all null time series...
-		int ssize = __tslist.size();
+		int ssize = 0;
+		if ( __tslist != null ) {
+		    ssize = __tslist.size();
+		}
         Message.printStatus(2, routine, "Have " + ssize + " time series for graph." );
 		TS sts;
 		for (int ii = 0; ii < ssize; ii++) {
@@ -703,7 +706,8 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is null");
 			}
 			else {	
-				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is " + sts.getIdentifierString());
+				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is " + sts.getIdentifierString() +
+				        "period " + sts.getDate1() + " to " + sts.getDate2() );
 			}
 		}
 	//}

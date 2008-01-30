@@ -614,7 +614,7 @@ private void openGUI ( boolean mode )
 	_tsGraphEditor = new TSGraphEditor(tmp);
 
 	// For the reference graph, pick the time series with the longest
-	// period of record for non-missing daa.  Indicate the time series to
+	// period of record for non-missing data.  Indicate the time series to
 	// the main graph so a note can be made on the display (but not
 	// printed)...
 	int size = __tslist.size();
@@ -915,8 +915,7 @@ private void openGUI ( boolean mode )
 	// Clean up...
 
 	if ( __tsproduct == null ) {
-		// Should now have a TSProduct generated in
-		// TSGraphJComponent...
+		// Should now have a TSProduct generated in TSGraphJComponent...
 		__tsproduct = _ts_graph.getTSProduct();
 	}
 

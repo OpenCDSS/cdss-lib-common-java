@@ -188,7 +188,10 @@ public TSViewJFrame getLastTSViewJFrame() {
 }
 
 /**
-Process a graph product.
+Process a graph product.  Time series that are indicated in the time series
+product are collected by matching in memory or reading time series.  This is
+done here so that low-level graph code can get a list of time series and not
+need to do any collecting itself.
 @param tsproduct Time series product definition.
 @exception Exception if the product cannot be processed (e.g., the graph cannot
 be created due to a lack of data).
@@ -199,8 +202,8 @@ throws Exception
 	String routine = "TSProcessor.processGraphProduct";
 	Vector tslist = new Vector(10);
 	TS ts = null;
-	// Loop through the sub-products (graphs on page).  Currently only
-	// support one graph per page but this will change in the future...
+	// Loop through the sub-products (graphs on page) and get the time series to
+	// support the graph.
 	String tsid;
 	String tsalias;
 	String prop_value = null;
@@ -264,10 +267,6 @@ throws Exception
                 // Just get the normal property...
 				tsid = tsproduct.getLayeredPropValue ( "TSID", isub, i, false );
 			}
-			if ( tsid == null ) {
-				// No more time series...
-				break;
-			}
 			// Make sure we have both or none...
 			if ( (date1 == null) || (date2 == null) ) {
 				date1 = null;
@@ -276,8 +275,12 @@ throws Exception
 			// First try to read the time series using the "TSAlias".  This normally will only return non-null
 			// for something like TSTool where the time series may be in memory.
 			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, i, false );
+	        if ( (tsid == null) && (tsalias == null) ) {
+	            // No more time series in the product file...
+	            break;
+	        }
 			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
-				// Have the property so use the TSAlias instead of the TSID...
+				// Have the "TSAlias" property so use it instead of the TSID...
 				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
 				try {
                     ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
@@ -298,15 +301,25 @@ throws Exception
 				catch ( Exception e ) {
 					// Always add a time series because visual properties are going to be
 					// tied to the position of the time series.
+				    Message.printWarning ( 2, routine,
+				        "Error getting time series \"" + tsid.trim() + "\".  Setting to null." );
 					ts = null;
 				}
 				if ( ts == null  ) {
-					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsid.trim() + "\".  Setting to null." );
+					// Logic place-holder
 				}
 				else if ( is_template ) {
 					// Non-null TS.  The TemplateTSID was requested but now the actual TSID needs to be set...
 					tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(), isub, i );
 				}
+			}
+			// In any case add the time series, even if null.
+			if ( ts == null ) {
+			    Message.printStatus(2, routine, "Adding null time series for graph." );
+			}
+			else {
+			    Message.printStatus(2, routine, "Adding time series for graph:  " + ts.getIdentifier() + " period " +
+			            ts.getDate1() + " to " + ts.getDate2() );
 			}
 			tslist.addElement ( ts );
 		}
@@ -337,19 +350,9 @@ throws Exception
 	}
 	String preview_output = tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
 	try {
-		if ( (preview_output != null) && preview_output.equalsIgnoreCase("true") ) {
-			// Create a TSViewJFrame (an output file can still be created below)...
-			TSViewJFrame tsview = new TSViewJFrame ( tsproduct );
-			if ( tsview.needToCloseGraph() ) {
-				throw new Exception ( "Graph was automatically closed due to data problem." );
-			}
-			__lastTSViewJFrame = tsview;
-			// Put this in to test letting TSTool shut down when
-			// a single TSView closes (and no main GUI is visible)..
-			if ( _tsview_window_listener != null ) {
-				tsview.addWindowListener ( _tsview_window_listener );
-			}
-		}
+	    // Draw to the image file first in case because the on-screen display throws
+	    // an exception for missing data and for troubleshooting it would be good to
+	    // see the image.
 		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen
 		// drawing with file to do one draw, if possible.
 		if ( (graph_file != null) && (graph_file.length() > 0) ){
@@ -386,6 +389,21 @@ throws Exception
 			graph = null;
 			image = null;
 		}
+		// Put the on-screen graph second so that above image can be
+		// created first for troubleshooting
+        if ( (preview_output != null) && preview_output.equalsIgnoreCase("true") ) {
+            // Create a TSViewJFrame (an output file can still be created below)...
+            TSViewJFrame tsview = new TSViewJFrame ( tsproduct );
+            if ( tsview.needToCloseGraph() ) {
+                throw new Exception ( "Graph was automatically closed due to data problem." );
+            }
+            __lastTSViewJFrame = tsview;
+            // Put this in to test letting TSTool shut down when
+            // a single TSView closes (and no main GUI is visible)..
+            if ( _tsview_window_listener != null ) {
+                tsview.addWindowListener ( _tsview_window_listener );
+            }
+        }
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, "TSProcessor.processGraphProduct", "Unable to create graph." );
