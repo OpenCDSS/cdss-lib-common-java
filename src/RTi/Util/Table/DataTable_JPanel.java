@@ -205,6 +205,17 @@ throws Throwable {
 }
 
 /**
+Returns the number of columns in the worksheet.
+@return the number of columns in the worksheet.
+*/
+public int getWorksheetColumnCount() {
+    if (__worksheet == null) {
+        return 0;
+    }
+    return __worksheet.getColumnCount();
+}
+
+/**
 Returns the number of rows in the worksheet.
 @return the number of rows in the worksheet.
 */

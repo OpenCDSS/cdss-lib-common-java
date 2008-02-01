@@ -179,8 +179,14 @@ throws Exception {
 	if (count == 1) {
 		plural = "";
 	}
+	int count_col = __dataTablePanel.getWorksheetColumnCount();
+	String plural_col = "s";
+    if (count_col == 1) {
+        plural_col = "";
+    }
 
-	setMessageStatus("Displaying " + count + " record" + plural + ".", "Ready");
+	setMessageStatus("Displaying " + count + " row" + plural +
+	        ", " + count_col + " column" + plural_col + ".", "Ready");
 
 	show();
 

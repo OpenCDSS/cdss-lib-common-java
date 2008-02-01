@@ -88,6 +88,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -882,6 +883,8 @@ throws Exception {
 Given a definition of what data to expect, read a simple delimited file and
 store the data in a table.  Comment lines start with # and are not considered
 part of the header.
+This method may not be maintained in the future.
+The parseFile() method is more flexible.
 @return new DataTable containing data.
 @param filename name of file containing delimited data.
 @param delimiter string representing delimiter in data file (typically a comma).
@@ -921,7 +924,7 @@ throws Exception {
 
 	String col = null;
 
-	// create an array to use for determining the maximum size of all the
+	// Create an array to use for determining the maximum size of all the
 	// fields that are Strings.  This will be used to set the width of
 	// the data values for those fields so that the width of the field is
 	// equal to the width of the longest string.  This is mostly important
@@ -940,18 +943,13 @@ throws Exception {
 			continue;
 		}
 
-		columns = StringUtil.breakStringList ( iline,
-			delimiter, 
-//			StringUtil.DELIM_SKIP_BLANKS |
-			StringUtil.DELIM_ALLOW_STRINGS);
+		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_ALLOW_STRINGS);
 
 		// line is part of header ... 
 		if ( !processed_header ) {
 			num_fields = columns.size();
 			if ( num_fields < tableFields.size() ) {
-				throw new IOException ( 
-				"Table fields specifications do not " +
-				"match data found in file." );
+				throw new IOException ( "Table fields specifications do not match data found in file." );
 			}
 			
 			num_lines_header_read++;
@@ -959,7 +957,8 @@ throws Exception {
 				processed_header = true;
 			}
 		}
-		else {	// line contains data - store in table as record
+		else {
+		    // line contains data - store in table as record
 			TableRecord contents = new TableRecord(num_fields);
 			try {						
 			for ( int i=0; i<num_fields; i++ ) {
@@ -1076,7 +1075,8 @@ throws Exception
 
 /**
 Parses a file and returns the DataTable for the file.  Currently only does
-delimited files.  The lines in delimited files do not need to all have the same
+delimited files, and the data type for a column must be consistent.
+The lines in delimited files do not need to all have the same
 number of columns: the number of columns in the returned DataTable will be 
 the same as the line in the file with the most delimited columns, all others
 will be padded with empty value columns on the right of the table.
@@ -1087,6 +1087,15 @@ Properties and their effects:<br>
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
 <td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>ColumnDataTypes</b></td>
+<td>The data types for the column, either "Auto" (determine from column contents,
+"AllStrings" (all are strings, the default from historical behavior), or a list of
+data types (to be implemented in the future).
+Lines starting with this character are skipped (TrimInput is applied after chhecking for comments).</td>
+<td>No default.</td>
 </tr>
 
 <tr>
@@ -1112,11 +1121,27 @@ using the following StringUtil.breakStringList() call (the flag can be modified 
 <td></td>
 </tr>
 
+
+<tr>
+<td><b>HeaderRows</b></td>
+<td>The rows containing the header information, specified as single number or a range (e.g., 2-3).
+Multiple rows will be separated with a newline when displayed, or Auto to automatically treat the
+first non-comment row as a header if the value is double-quoted.</td>
+<td>Auto</td>
+</tr>
+
 <tr>
 <td><b>MergeDelimiters</b></td>
 <td>"True" or "False".  If true, then adjoining delimiter characters are treated as one by using
 StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
 <td>False (do not merge blank columns).</td>
+</tr>
+
+<tr>
+<td><b>SkipRows</b></td>
+<td>Rows to skip (0+), as list of individual row or ranges.  Skipped rows are generally
+non-parsable information.</td>
+<td>Don't skip any rows.</td>
 </tr>
 
 <tr>
@@ -1138,7 +1163,7 @@ be trimmed before being placed in the data table (after parsing).</td>
 */
 public static DataTable parseFile(String filename, PropList props) 
 throws Exception
-{
+{   String routine = "DataTable.parseFile";
 	// TODO SAM 2005-11-16 why is FixedFormat included?  Future feature?
 	/*String propVal = props.getValue("FixedFormat");
 	if (propVal != null) {
@@ -1147,15 +1172,87 @@ throws Exception
 		}
 	}
 	*/
-	
+   
+    // FIXME SAM 2008-01-27 Using other than the default of strings does not seem to work
+    // The JWorksheet does not display correctly.
+    boolean ColumnDataTypes_Auto_boolean = false;   // To improve performance below
+    String ColumnDataTypes = "AllStrings";  // Default for historical reasons
+    String propVal = props.getValue("ColumnDataTypes");
+    if ( (propVal != null) && (propVal.equalsIgnoreCase("Auto"))) {      
+        ColumnDataTypes = "Auto";
+        ColumnDataTypes_Auto_boolean = true;
+    }
+
     String Delimiter = "";
-	String propVal = props.getValue("Delimiter");
+	propVal = props.getValue("Delimiter");
 	if (propVal != null) {		
         Delimiter = propVal;
 	}
 	else {
         Delimiter = ",";
 	}
+	
+    propVal = props.getValue("HeaderRows");
+    Vector HeaderRows_Vector = new Vector();
+    int HeaderRows_Vector_maxval = -1;  // Used to optimize code below
+    boolean HeaderRows_Auto_boolean = false;    // Are header rows to be determined automatically?
+    if ( (propVal == null) || (propVal.length() == 0) ) {
+        // Default...
+        HeaderRows_Auto_boolean = true;
+    }
+    else {
+        // Interpret the property.
+        Message.printStatus ( 2, routine, "HeaderRows=\"" + propVal + "\"" );
+        if ( propVal.equalsIgnoreCase("Auto")) {
+            HeaderRows_Auto_boolean = true;
+        }
+        else {
+            // Determine the list of rows to skip.
+            Vector v = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
+            int vsize = 0;
+            if ( v != null ) {
+                vsize = v.size();
+            }
+            // FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings.  For now only handle first
+            if ( vsize > 1 ) {
+                Message.printWarning ( 2, routine,
+                   "Only know how to handle single-row headings.  Ignoring other heading rows." );
+                vsize = 1;
+            }
+            for ( int i = 0; i < vsize; i++ ) {
+                String vi = (String)v.elementAt(i);
+                if ( StringUtil.isInteger(vi)) {
+                    int row = Integer.parseInt(vi);
+                    Message.printStatus ( 2, routine, "Header row is [" + row + "]");
+                    HeaderRows_Vector.addElement(new Integer(row));
+                    HeaderRows_Vector_maxval = Math.max(HeaderRows_Vector_maxval, row);
+                }
+                else {
+                    int pos = vi.indexOf("-");
+                    if ( pos >= 0 ) {
+                        // Specifying a range of values...
+                        int first_to_skip = -1;
+                        int last_to_skip = -1;
+                        if ( pos == 0 ) {
+                            // First index is 0...
+                            first_to_skip = 0;
+                        }
+                        else {
+                            // Get first to skip...
+                            first_to_skip = Integer.parseInt(vi.substring(0,pos).trim());
+                        }
+                        last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
+                        for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
+                            HeaderRows_Vector.addElement(new Integer(is));
+                            HeaderRows_Vector_maxval = Math.max(HeaderRows_Vector_maxval, is);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Use to speed up code below.
+    int HeaderRows_Vector_size = HeaderRows_Vector.size();
 
 	propVal = props.getValue("MergeDelimiters");
 	int parse_flag = StringUtil.DELIM_ALLOW_STRINGS;
@@ -1169,6 +1266,49 @@ throws Exception
         CommentLineIndicator = propVal;
 	}
 
+    propVal = props.getValue("SkipRows");
+    Vector SkipRows_Vector = new Vector();
+    int SkipRows_Vector_maxval = - 1;
+    if ( (propVal != null) && (propVal.length() > 0) ) {
+        // Determine the list of rows to skip.
+        Vector v = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
+        int vsize = 0;
+        if ( v != null ) {
+            vsize = v.size();
+        }
+        for ( int i = 0; i < vsize; i++ ) {
+            String vi = (String)v.elementAt(i);
+            if ( StringUtil.isInteger(vi)) {
+                int row = Integer.parseInt(vi);
+                SkipRows_Vector.addElement(new Integer(row));
+                SkipRows_Vector_maxval = Math.max(SkipRows_Vector_maxval, row);
+            }
+            else {
+                int pos = vi.indexOf("-");
+                if ( pos >= 0 ) {
+                    // Specifying a range of values...
+                    int first_to_skip = -1;
+                    int last_to_skip = -1;
+                    if ( pos == 0 ) {
+                        // First index is 0...
+                        first_to_skip = 0;
+                    }
+                    else {
+                        // Get first to skip...
+                        first_to_skip = Integer.parseInt(vi.substring(0,pos).trim());
+                    }
+                    last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
+                    for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
+                        SkipRows_Vector.addElement(new Integer(is));
+                        SkipRows_Vector_maxval = Math.max(SkipRows_Vector_maxval, is);
+                    }
+                }
+            }
+        }
+    }
+    // Use to speed up code below.
+    int SkipRows_Vector_size = SkipRows_Vector.size();
+	
 	propVal = props.getValue("TrimInput");
 	boolean TrimInput_Boolean = false;	// Default
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
@@ -1181,67 +1321,99 @@ throws Exception
 		TrimStrings_boolean = true;
 	}
 
-	Vector file = new Vector();
+	Vector data_record_tokens = new Vector();
 	Vector v = null;
 	int maxColumns = 0;
 	int size = 0;
 
 	BufferedReader in = new BufferedReader(new FileReader(filename));
-	String line = in.readLine();
+	String line;
 
 	// TODO JTS 2006-06-05
 	// Found a bug in DataTable.  If you attempt to call
 	// parseFile() on a file of size 0 (no lines, no characters)
 	// it will throw an exception.  This should be checked out in the future.
 	
-	// Skip any comments at the top of the file (most likely place for them to appear.
-	while ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
+	// Read until the end of the file...
+	
+	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
+	int linecount0;    // linecount - 1 (zero index), for code perspective.
+	boolean headers_found = false; // Indicates whether the headers have been found
+	Vector tableFields = null; // Table fields as controlled by header or examination of data records
+	int numFields = -1;    // Number of table fields.
+	TableField tableField = null;  // Table field added below
+	while ( true ) {
 		line = in.readLine();
-	}
-
-	// "line" now contains the latest non-comment line so evaluate whether
-	// the line contains the column names.
+		if ( line == null ) {
+		    // End of file...
+		    break;
+		}
+		++linecount;
+		linecount0 = linecount - 1;
 		
-	// If a quote is detected, then this line is assumed to contain
-	// the name of the fields.  
-	
-	int numFields = -1;
-	Vector tableFields = null;
-	TableField tableField = null;
-	if (line.startsWith("\"")) {
-		Vector columns = null;
-		if ( TrimInput_Boolean ) {
-			columns = StringUtil.breakStringList( line.trim(), Delimiter, parse_flag );
-		}
-		else {
-            columns = StringUtil.breakStringList(line, Delimiter, parse_flag );
-		}
-
-		numFields = columns.size();
-		tableFields = new Vector();
-		String temp = null;
-		for (int i = 0; i < numFields; i++) {
-			temp = ((String)columns.elementAt(i)).trim();
-			while (findPreviousFieldNameOccurances(tableFields, temp)) {
-				temp = temp + "_2";
-			}
-			tableField = new TableField();
-			tableField.setName(temp);
-            // All table fields by default are treated as strings.
-			tableField.setDataType(TableField.DATA_TYPE_STRING);
-			tableFields.addElement(tableField);
-		}
-		// Read another line, as expected below...
-		line = in.readLine();
-	}
-
-	// Now evaluate the data lines...
-	
-	while (line != null) {
+		Message.printStatus ( 2, routine, "Line [" + linecount0 + "]: " + line );
+		
+		// Skip any comments at the top of the file (most likely place for them to appear.
 		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
-			// skip
-            continue;
+		    continue;
 		}
+		
+		// Also skip the requested lines to skip
+		// linecount is 1+ while rows to skip are 0+
+		
+		if ( linecount0 <= SkipRows_Vector_maxval ) {
+		    // Need to check it...
+		    if ( parseFile_LineMatchesLineFromList(linecount0,SkipRows_Vector, SkipRows_Vector_size)) {
+		        // Skip the line as requested
+                continue;
+		    }
+		}
+		
+		// "line" now contains the latest non-comment line so evaluate whether
+	    // the line contains the column names.
+	    
+		if ( !headers_found && (HeaderRows_Auto_boolean ||
+		        ((HeaderRows_Vector != null) && linecount0 <= HeaderRows_Vector_maxval)) ) {
+		    if ( HeaderRows_Auto_boolean ) {
+		        // If a quote is detected, then this line is assumed to contain the name of the fields.
+        	    if (line.startsWith("\"")) {
+        	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
+        	        numFields = tableFields.size();
+        	        // Read another line of data to be used below
+        	        headers_found = true;
+        	        continue;
+        	    }
+		    }
+		    else if ( HeaderRows_Vector != null ) {
+		        // Calling code has specified the header rows.  Check to see if this is a row.
+		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderRows_Vector, HeaderRows_Vector_size)) {
+		            // This row has been specified as a header row so process it.
+		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
+		            numFields = tableFields.size();
+		                
+                    //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings
+                    // What is the column name?
+		            // If the maximum header row has been processed, indicate that headers have been found.
+		            //if ( linecount0 == HeaderRows_Vector_maxval ) {
+		                headers_found = true;
+		            //}
+		            // Now read another line of data to be used below.
+		            continue;
+		        }
+		    }
+		}
+		
+		if ( linecount0 <= HeaderRows_Vector_maxval ) {
+		    // Currently only allow one header row so need to ignore other rows that are found
+		    // (don't want them considered as data).
+		    if ( parseFile_LineMatchesLineFromList(linecount0,HeaderRows_Vector, HeaderRows_Vector_size)) {
+		        continue;
+		    }
+		}
+
+    	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of
+		// columns below.
+    	
         if ( TrimInput_Boolean ) {
 			v = StringUtil.breakStringList(line.trim(), Delimiter, parse_flag );
 		}
@@ -1252,10 +1424,14 @@ throws Exception
 		if (size > maxColumns) {
 			maxColumns = size;
 		}
-		file.add(v);
-		line = in.readLine();
+		// Save the file tokens
+		data_record_tokens.add(v);
 	}
+	// Close the file...
 	in.close();
+	
+	// Make sure that the table fields are in place for the maximum number of
+	// columns.
 
 	if (tableFields == null) {
 		tableFields = new Vector();
@@ -1278,38 +1454,222 @@ throws Exception
 			tableFields.addElement(tableField);
 		}
 	}
+	
+	// Loop through the data and determine what type of data are in each column.
+	// Do this in any case because the length of the string columns needs to be determined.
+	
+	numFields = tableFields.size();
+	size = data_record_tokens.size();
+	int [] count_int = new int[maxColumns];
+    int [] count_double = new int[maxColumns];
+    int [] count_string = new int[maxColumns];
+    int [] lenmax_string = new int[maxColumns];
+    for ( int icol = 0; icol < maxColumns; icol++ ) {
+        count_int[icol] = 0;
+        count_double[icol] = 0;
+        count_string[icol] = 0;
+        lenmax_string[icol] = 0;
+    }
+    // Loop through all rows of data that were read
+    int vsize;
+    String cell;
+    String cell_trimmed;    // Must have when checking for types.
+	for ( int irow = 0; irow < size; irow++ ) {
+	    v = (Vector)data_record_tokens.elementAt(irow);
+	    vsize = v.size();
+	    // Loop through all columns in the row.
+	    for ( int icol = 0; icol < vsize; icol++ ) {
+	        cell = ((String)v.elementAt(icol));
+	        cell_trimmed = cell.trim();
+	        if ( StringUtil.isInteger(cell_trimmed)) {
+	            ++count_int[icol];
+	        }
+            if ( StringUtil.isDouble(cell_trimmed)) {
+                ++count_double[icol];
+            }
+            // TODO SAM 2008-01-27 Need to handle date/time?
+            else {
+                ++count_string[icol];
+                if ( TrimStrings_boolean ) {
+                    lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
+                }
+                else {
+                    lenmax_string[icol] = Math.max(lenmax_string[icol], cell.length());
+                }
+            }
+	    }
+	}
+	
+	// Loop through the table fields and based on the examination of data above,
+	// set the table field type and if a string, max width.
+	
+	int [] tableFieldType = new int[maxColumns];
+	if ( ColumnDataTypes_Auto_boolean ) {
+    	for ( int icol = 0; icol < maxColumns; icol++ ) {
+    	    tableField = (TableField)tableFields.elementAt(icol);
+    	    if ( (count_int[icol] > 0) && (count_double[icol] == 0) && (count_string[icol] == 0) ) {
+    	        // All data are integers so assume column type is integer
+    	        tableField.setDataType(TableField.DATA_TYPE_INT);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
+    	    }
+    	    else if ( (count_double[icol] > 0) && (count_int[icol] == 0) && (count_string[icol] == 0) ) {
+    	        // All data are double so assume column type is double
+                tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
+                tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
+            }
+    	    else {
+    	        // Based on what is known, can only treat column as containing strings.
+    	        tableField.setDataType(TableField.DATA_TYPE_STRING);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
+    	        tableField.setWidth (lenmax_string[icol] );
+    	    }
+    	    Message.printStatus ( 2, routine,"Column [" + icol + "] type is " + tableField.getDataType() );
+    	}
+	}
+	else {
+	    // All are strings (from above but reset just in case)...
+	    for ( int icol = 0; icol < maxColumns; icol++ ) {
+	        tableField = (TableField)tableFields.elementAt(icol);
+	        //tableField.setDataType(TableField.DATA_TYPE_STRING);
+	        //tableField.setWidth (lenmax_string[icol] );
+	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
+	    }
+	}
+	
+	// Create the table from the field information.
 
 	DataTable table = new DataTable(tableFields);
 	table._have_data = true;
-	TableRecord contents = null;
-
-	size = file.size();
+	TableRecord tablerec = null;
+	
+	// Now transfer the data records to table records.
+	
 	int cols = 0;
-	int j = 0;
+	int icol = 0;
 	for (int i = 0; i < size; i++) {
-		v = (Vector)file.elementAt(i);
+		v = (Vector)data_record_tokens.elementAt(i);
 
-		contents = new TableRecord(maxColumns);
+		tablerec = new TableRecord(maxColumns);
 		cols = v.size();
-		for (j = 0; j < cols; j++) {
+		for (icol = 0; icol < cols; icol++) {
 			if (TrimStrings_boolean) {
-				contents.addFieldValue(	((String)v.elementAt(j)).trim());
+			    cell = ((String)v.elementAt(icol)).trim();
 			}
 			else {
-				contents.addFieldValue((String)v.elementAt(j));
+				cell = (String)v.elementAt(icol);
+			}
+			if ( ColumnDataTypes_Auto_boolean ) {
+			    // Set the data as an object of the column type.
+			    if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
+			        tablerec.addFieldValue( Integer.valueOf(cell.trim()) );
+			    }
+			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
+	                tablerec.addFieldValue( Double.valueOf(cell.trim()) );
+	            }
+			    else {
+			        // Add as string
+	                tablerec.addFieldValue( cell );
+	            }
+			}
+			else {
+			    // Set as the string value.
+			    tablerec.addFieldValue( cell );
+	        }
+		}
+		
+		// If the specific record does not have enough columns, pad the columns at the end with blanks,
+		// using blank strings or NaN for number fields.
+		
+		if (icol < maxColumns) {
+			for (; icol < maxColumns; icol++) {
+			    if ( ColumnDataTypes_Auto_boolean ) {
+			        // Add values based on the column type.
+			        if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
+	                    tablerec.addFieldValue( null );
+	                }
+	                else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
+	                    tablerec.addFieldValue( null );
+	                }
+	                else {
+	                    // Add as string
+	                    tablerec.addFieldValue( "" );
+	                }
+			    }
+			    else {
+			        // Add a blank string.
+			        tablerec.addFieldValue("");
+			    }
 			}
 		}
 		
-		if (j < maxColumns) {
-			for (; j < maxColumns; j++) {
-				contents.addFieldValue("");
-			}
-		}
-		
-		table.addRecord(contents);
+		table.addRecord(tablerec);
 	}
 
 	return table;		
+}
+
+/**
+Determine whether a line from the file matches the list of rows that are of interest.
+@param linecount0
+@param rows_List list of Integet objects that are row numbers (0+) of interest.
+@param rows_List_size Size of rows_List - used to speed up performance.
+@return true if the line matches an item in the list.
+*/
+private static boolean parseFile_LineMatchesLineFromList( int linecount0, List rows_List, int rows_List_size )
+{
+    Integer int_object;
+    if ( rows_List != null ) {
+        rows_List_size = rows_List.size();
+    }
+    for ( int is = 0; is < rows_List_size; is++ ) {
+        int_object = (Integer)rows_List.get(is);
+        if ( linecount0 == int_object.intValue() ) {
+            // Skip the line as requested
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+Parse a line that is known to be a header line to initialize the table fields.
+All fields are set to type String, although this will be reset when data records are processed.
+@param line Line to parse.
+@param linecount0 Line number (0+).
+@param TrimInput_Boolean Indicates whether input rows should be trimmed before parsing.
+@param Delimiter The delimiter characters for parsing the line into tokens.
+@param parse_flag the flag to be passed to StringUtil.breakStringList() when parsing the line.
+@return A list of TableField describing the table columns.
+*/
+private static Vector parseFile_ParseHeaderLine (
+        String line, int linecount0, boolean TrimInput_Boolean, String Delimiter,
+        int parse_flag )
+{   String routine = "DataTable.parseFile_ParseHeaderLine";
+    Message.printStatus ( 2, routine, "Adding column headers from line [" + linecount0 + "]: " + line );
+    Vector columns = null;
+    if ( TrimInput_Boolean ) {
+        columns = StringUtil.breakStringList( line.trim(), Delimiter, parse_flag );
+    }
+    else {
+        columns = StringUtil.breakStringList(line, Delimiter, parse_flag );
+    }
+    
+    int numFields = columns.size();
+    Vector tableFields = new Vector();
+    TableField tableField = null;
+    String temp = null;
+    for (int i = 0; i < numFields; i++) {
+        temp = ((String)columns.elementAt(i)).trim();
+        while (findPreviousFieldNameOccurances(tableFields, temp)) {
+            temp = temp + "_2";
+        }
+        tableField = new TableField();
+        tableField.setName(temp);
+        // All table fields by default are treated as strings.
+        tableField.setDataType(TableField.DATA_TYPE_STRING);
+        tableFields.addElement(tableField);
+    }
+    return tableFields;
 }
 
 /**
