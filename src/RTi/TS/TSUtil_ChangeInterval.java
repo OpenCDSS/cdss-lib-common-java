@@ -804,7 +804,7 @@ public class TSUtil_ChangeInterval {
             int missingValueFlag, boolean timeStampedAtEnd) throws Exception {
         String routine = "TSUtil.changeIntervalFromInstByInterpolation", warning;
 
-        Message.printWarning(2, routine, " Running ...");
+        //Message.printStatus(2, routine, " Running ...");
 
         // Make sure the required conversion is supported
         if (!(OldTimeScale.equalsIgnoreCase(MeasTimeScale.INST) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST))
@@ -1055,7 +1055,7 @@ public class TSUtil_ChangeInterval {
             throws Exception {
         String routine = "TSUtil.changeInterval_fromIRREGULAR", mssg, warning;
 
-        Message.printWarning(2, routine, " Running ...");
+        //Message.printStatus(2, routine, " Running ...");
 
         // Allowed TimeScale to convert to.
         final int ACCM = 1;
@@ -1586,7 +1586,7 @@ public class TSUtil_ChangeInterval {
             int missingValueFlag, int maxMissingPerInterval, String OutputFillMethod) throws Exception {
         String routine = "TSUtil.changeInterval_toMEANorACCM", warning;
 
-        Message.printWarning(2, routine, " Running ...");
+        //Message.printStatus(2, routine, " Running ...");
 
         // Allowed TimeScale to convert to.
         final int ACCM = 1;
