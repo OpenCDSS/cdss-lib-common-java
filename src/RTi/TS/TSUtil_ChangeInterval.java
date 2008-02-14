@@ -385,7 +385,11 @@ public class TSUtil_ChangeInterval {
         // From the old time series identifier create the new time series
         // identifier.
         TSIdent newtsIdent = new TSIdent(oldTS.getIdentifier());
-        newtsIdent.setInterval(newtsBase, newtsMultiplier);
+        // Set with the string here so that the interval is an exact match with what
+        // was requested (e.g., "1Hour" remains and does not get converted to "hour").
+        // Otherwise, the time series identifiers won't match.
+        //newtsIdent.setInterval(newtsBase, newtsMultiplier);
+        newtsIdent.setInterval(new_interval);
 
         // Create the new time series using the new identifier.
         TS newTS = TSUtil.newTimeSeries(newtsIdent.getIdentifier(), true);
