@@ -36,7 +36,8 @@ public final static String
     ExceedanceProbabilityGE90 = "ExceedanceProbabilityGE90", // Probability of exceeding value is >= 10%
 	Max = "Max",			// Maximum value in the sample
 	Mean = "Mean",			// Mean value in the sample
-	Min = "Min";			// Minimum value in the sample
+	Min = "Min",			// Minimum value in the sample
+	Total = "Total";       // Total value in the sample
 
 // TODO SAM 2005-09-30
 // Need to add:
@@ -84,8 +85,7 @@ expected on accumulated, mean, instantaneous data.  Pass null to get all choices
 */
 public static Vector getStatisticChoicesForInterval ( int interval, String timescale )
 {	Vector statistics = new Vector();
-	if (	(interval >= TimeInterval.MONTH) ||
-		(interval == TimeInterval.UNKNOWN) ) {
+	if ( (interval >= TimeInterval.MONTH) || (interval == TimeInterval.UNKNOWN) ) {
 		statistics.addElement ( CountGE );
 		statistics.addElement ( CountGT );
 		statistics.addElement ( CountLE );
@@ -101,7 +101,9 @@ public static Vector getStatisticChoicesForInterval ( int interval, String times
 		statistics.addElement ( DayOfMax );
 		statistics.addElement ( DayOfMin );
 		statistics.addElement ( Max );
+		statistics.addElement ( Mean );
 		statistics.addElement ( Min );
+		statistics.addElement ( Total );
 	}
 	return statistics;
 }

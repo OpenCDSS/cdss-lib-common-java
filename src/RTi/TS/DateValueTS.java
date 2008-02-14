@@ -233,6 +233,7 @@ import java.util.Vector;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -892,7 +893,8 @@ throws Exception
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Processing header..." );
 	}
-	String	alias = "", dataflag = "", datatype = "", delimiter = " \t",
+	String delimiter_default = " ";
+	String	alias = "", dataflag = "", datatype = "", delimiter = delimiter_default,
 		description = "", identifier = "", missing = "", seqnum = "",
 		units = "";
 	Vector	alias_v = null;
@@ -912,23 +914,18 @@ throws Exception
 	try {
 	while( (string = in.readLine()) != null ) {
 		++line_count;
-		// Unpad the line so that we can better deal with blank lines...
+		// Trim the line to better deal with blank lines...
 		string = string.trim();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing: \"" + string + "\"" );
+			Message.printDebug ( dl, routine,"Processing: \"" + string + "\"" );
 		}
-		if (	!read_data &&
-			string.regionMatches(true,0,"# Time series histories",
-			0,23) ) {
+		if ( !read_data && string.regionMatches(true,0,"# Time series histories",0,23) ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine,
-			 	"Detected end of header." );
+				Message.printDebug( 10, routine, "Detected end of header." );
 			}
 			break;
 		}
-		if (	(string.equals("")) ||
-			((string.length() > 0) && (string.charAt(0) == '#')) ) {
+		if ( (string.equals("")) ||	((string.length() > 0) && (string.charAt(0) == '#')) ) {
 			// Skip comments and blank lines for now...
 			continue;
 		}
@@ -937,8 +934,7 @@ throws Exception
 			// Assume this not a header definition variable and that
 			// we are done with the header...
 			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine,
-				"Detected end of header." );
+				Message.printDebug( 10, routine, "Detected end of header." );
 			}
 			break;
 		}
@@ -951,8 +947,7 @@ throws Exception
 
 		if ( equal_pos == 0 ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine,
-				"Bad = expression for \"" + string + "\"." );
+				Message.printDebug( 10, routine, "Bad = expression for \"" + string + "\"." );
 			}
 			continue;
 		}
@@ -964,7 +959,8 @@ throws Exception
 		if ( equal_pos == (string.length() - 1) ) {
 			value = "";
 		}
-		else {	value = string.substring(equal_pos + 1).trim();
+		else {
+		    value = string.substring(equal_pos + 1).trim();
 		}
 
 		// Deal with the tokens...
@@ -972,7 +968,7 @@ throws Exception
 			// Have the alias...
 			alias = value;
 			alias_v = StringUtil.breakStringList (
-				alias, " \t",
+				value, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -994,7 +990,7 @@ throws Exception
 			// be surrounded by quotes...
 			dataflag = value;
 			dataflag_v = StringUtil.breakStringList (
-				dataflag, " \t",
+				dataflag, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1017,10 +1013,8 @@ throws Exception
 			ts_has_data_flag = new boolean[numts];
 			ts_data_flag_length = new int[numts];
 			for ( int ia = 0; ia < numts; ia++ ) {
-				dataflag = ((String)dataflag_v.elementAt(ia)
-					).trim();
-				Vector v = StringUtil.breakStringList (
-					dataflag,",",0);
+				dataflag = ((String)dataflag_v.elementAt(ia)).trim();
+				Vector v = StringUtil.breakStringList (	dataflag,",",0);
 				size = 0;
 				if ( v != null ) {
 					size = v.size();
@@ -1032,11 +1026,11 @@ throws Exception
 				}
 				// If the first value is "true", assume that the
 				// data flag is used...
-				if (	((String)v.elementAt(0)
-					).trim().equalsIgnoreCase("true") ) {
+				if ( ((String)v.elementAt(0)).trim().equalsIgnoreCase("true") ) {
 					ts_has_data_flag[ia] = true;
 				}
-				else {	ts_has_data_flag[ia] = false;
+				else {
+				    ts_has_data_flag[ia] = false;
 				}
 				// Now set the length...
 				ts_data_flag_length[ia] = 2; // Default
@@ -1051,7 +1045,7 @@ throws Exception
 			// Have the data type...
 			datatype = value;
 			datatype_v = StringUtil.breakStringList (
-				datatype, " \t",
+				datatype, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1069,23 +1063,21 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("Delimiter") ) {
-			// Have the delimiter.  This value is probably quoted
-			// so parse it out by treating as a quoted string...
-			Vector v = StringUtil.breakStringList (
-				value, " \t",
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
-			delimiter = " ";
-			if ( (v != null) && (v.size() > 0) ) {
-				delimiter = (String)v.elementAt(0);
+			// Have the delimiter.  This value is probably quoted so remove quotes.
+		    delimiter = StringUtil.remove(value, "\"");
+		    delimiter = StringUtil.remove(delimiter, "\'");
+			if ( value.length() == 0 ) {
+			    delimiter = delimiter_default;
 			}
+			Message.printStatus( 2, routine, "Delimiter is \"" + delimiter +
+			        "\" for remaining properties and data columns.");
 		}
 		else if ( variable.equalsIgnoreCase("Description") ) {
 			// Have the description.  The description may contain
 			// "=" so get the second token manually...
 			description = value;
 			description_v = StringUtil.breakStringList (
-				description, " \t",
+				description, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1112,7 +1104,8 @@ throws Exception
 			if ( value.equalsIgnoreCase("true") ) {
 				include_count = true;
 			}
-			else {	include_count = false;
+			else {
+			    include_count = false;
 			}
 		}
 		else if ( variable.equalsIgnoreCase("IncludeTotalTime") ) {
@@ -1120,14 +1113,15 @@ throws Exception
 			if ( value.equalsIgnoreCase("true") ) {
 				include_total_time = true;
 			}
-			else {	include_total_time = false;
+			else {
+			    include_total_time = false;
 			}
 		}
 		else if ( variable.equalsIgnoreCase("MissingVal") ) {
 			// Have the missing data value...
 			missing = value;
 			missing_v = StringUtil.breakStringList (
-				missing, " \t",
+				missing, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1152,7 +1146,7 @@ throws Exception
 			// Have sequence numbers...
 			seqnum = value;
 			seqnum_v = StringUtil.breakStringList (
-				seqnum, " \t",
+				seqnum, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1178,7 +1172,7 @@ throws Exception
 			// Have the TSIdent...
 			identifier = value;
 			identifier_v = StringUtil.breakStringList (
-				identifier, " \t",
+				identifier, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
@@ -1199,7 +1193,7 @@ throws Exception
 			// Have the data units...
 			units = value;
 			units_v = StringUtil.breakStringList (
-				units, " \t",
+				units, delimiter,
 				StringUtil.DELIM_SKIP_BLANKS|
 				StringUtil.DELIM_ALLOW_STRINGS );
 			if ( units_v != null ) {
@@ -1924,6 +1918,53 @@ throws Exception
 }
 
 /**
+Write a time series to the specified file.
+The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
+@param ts Time series to write.
+@param fname Name of file to write.
+@param date1 First date to write (if NULL write the entire time series).
+@param date2 Last date to write (if NULL write the entire time series).
+@param units Units to write.  If different than the current units the units
+will be converted on output.
+@param write_data Indicates whether data should be written (as opposed to only
+writing the header).
+@exception Exception if there is an error writing the file.
+*/
+public static void writeTimeSeries (    TS ts, String fname, DateTime date1,
+                    DateTime date2, String units,
+                    boolean write_data )
+throws Exception
+{   String  routine = "DateValueTS.writeTimeSeries";
+
+    String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
+    try {   FileOutputStream fos = new FileOutputStream( full_fname );
+        PrintWriter fout = new PrintWriter ( fos );
+
+        writeTimeSeries ( ts, fout, date1, date2, units, write_data );
+
+        fout.flush();
+        fout.close();
+    }
+    catch ( Exception e ) {
+        String message = "Error opening \"" + full_fname +
+        "\" for writing.";
+        Message.printWarning( 2, routine, message );
+        throw new Exception (message);
+    }
+}
+
+/**
+Write a single time series to the specified file.  The entire period is written.
+@param ts Time series to write.
+@param fname Name of file to write.
+@exception Exception if there is an error writing the file.
+*/
+public static void writeTimeSeries ( TS ts, String fname )
+throws Exception
+{   writeTimeSeries ( ts, fname, null, null, null, true );
+}
+
+/**
 Write a Vector of time series to a DateValue format file.
 Currently there is no way to indicate that the count or total time should be
 printed.
@@ -1939,9 +1980,34 @@ writing the header).
 data).
 */
 public static void writeTimeSeriesList (Vector tslist, PrintWriter out,
+                    DateTime date1,
+                    DateTime date2, String units,
+                    boolean write_data )
+throws Exception
+{
+    writeTimeSeriesList ( tslist, out, date1, date2, units, write_data, null );
+}
+
+/**
+Write a Vector of time series to a DateValue format file.
+Currently there is no way to indicate that the count or total time should be
+printed.
+@param tslist Vector of pointers to time series to write.
+@param out PrintWrite to write to.
+@param date1 First date to write (if NULL write the entire time series).
+@param date2 Last date to write (if NULL write the entire time series).
+@param units Units to write.  If different than the current units the units
+will be converted on output.
+@param write_data Indicates whether data should be written (as opposed to only
+writing the header).
+@param props Properties to control output (see overloaded method for description).
+@exception Exception if there is an error writing the file (I/O error or invalid
+data).
+*/
+public static void writeTimeSeriesList (Vector tslist, PrintWriter out,
 					DateTime date1,
 					DateTime date2, String units,
-					boolean write_data )
+					boolean write_data, PropList props )
 throws Exception
 {	String	message, routine = "DateValueTS.writeTimeSeriesList";
 	DateTime ts_start, ts_end, t = new DateTime( DateTime.DATE_FAST );
@@ -1960,6 +2026,11 @@ throws Exception
 		message = "No time series in list.  Not writing.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
+	}
+	
+	// Make sure that a non-null properties list is available
+	if ( props == null ) {
+	    props = new PropList ( "DateValueTS" );
 	}
 
 	// Set the parameters for output..
@@ -2051,9 +2122,13 @@ throws Exception
 		throw new Exception ( message );
 	}
 
-        // Write header.  See the printSample() method for an example string...
+    // Write header.  See the printSample() method for an example string...
 
 	String delim = " ";
+	String propval = props.getValue ( "Delimiter" );
+	if ( propval != null ) {
+	    delim = propval;
+	}
 	String nodata_string = "?";
 	StringBuffer alias_buffer = new StringBuffer();
 	boolean has_seqnum = false;
@@ -2103,7 +2178,9 @@ throws Exception
 			tsid_buffer.append ( "\"" + nodata_string + "\"" );
 			units_buffer.append ( nodata_string );
 		}
-		else {	alias_buffer.append ( "\"" + ts.getAlias() + "\"" );
+		else {
+		    String alias = ts.getAlias();
+		    alias_buffer.append ( "\"" + alias + "\"" );
 			if ( ts.getSequenceNumber() >= 0 ) {
 				// At least one time series has the sequence
 				// number so it will be output below.
@@ -2112,12 +2189,23 @@ throws Exception
 			seqnum_buffer.append ( ts.getSequenceNumber() );
 			if ( !ts.getDataUnits().trim().equals("") ) {
 				// Has units so display in column heading...
-				columns_buffer.append ( "\"" +
-				ts.getIdentifier().toString() + ", " +
-				ts.getDataUnits() + "\"" );
+			    if ( alias.length() > 0 ) {
+			        // Use the alias.
+    				columns_buffer.append ( "\"" + alias + ", " + ts.getDataUnits() + "\"" );
+			    }
+			    else {
+	                 columns_buffer.append ( "\"" +
+	                         ts.getIdentifier().toString() + ", " +
+	                         ts.getDataUnits() + "\"" );
+			    }
 			}
-			else {	columns_buffer.append ( "\"" +
-				ts.getIdentifier().toString() );
+			else {
+			    if ( alias.length() > 0 ) {
+			        columns_buffer.append ( "\"" + alias + "\"" );
+			    }
+			    else {
+			        columns_buffer.append ( "\"" + ts.getIdentifier().toString() + "\"" );
+			    }
 			}
 			if ( ts.hasDataFlags() ) {
 				has_data_flags = true;
@@ -2226,7 +2314,7 @@ throws Exception
 			print_genesis.equalsIgnoreCase("true") ) {
 			out.println ( "#" );
 			out.println ( "# Creation history for time series " +
-			(i + 1) + " TSID=" + ts.getIdentifier().toString() +
+			(i + 1) + " (TSID=" + ts.getIdentifier().toString() +
 			" Alias=" + ts.getAlias() + "):" );
 			out.println ( "#" );
 			jsize = genesis.size();
@@ -2399,17 +2487,6 @@ throws Exception
 }
 
 /**
-Write a single time series to the specified file.  The entire period is written.
-@param ts Time series to write.
-@param fname Name of file to write.
-@exception Exception if there is an error writing the file.
-*/
-public static void writeTimeSeries ( TS ts, String fname )
-throws Exception
-{	writeTimeSeries ( ts, fname, null, null, null, true );
-}
-
-/**
 Write a Vector of time series to the specified file.
 @param tslist Vector of time series to write.
 @param fname Name of file to write.
@@ -2423,8 +2500,41 @@ writing the header).
 @exception Exception if there is an error writing the file.
 */
 public static void writeTimeSeriesList (Vector tslist, String fname,
+                    DateTime date1, DateTime date2,
+                    String units, boolean write_data )
+throws Exception
+{
+    writeTimeSeriesList ( tslist, fname, date1, date2, units, write_data, null );
+}
+
+/**
+Write a Vector of time series to the specified file.
+@param tslist Vector of time series to write.
+@param fname Name of file to write.
+The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
+@param date1 First date to write (if NULL write the entire time series).
+@param date2 Last date to write (if NULL write the entire time series).
+@param units Units to write.  If different than the current units the units
+will be converted on output.
+@param write_data Indicates whether data should be written (as opposed to only
+writing the header).
+@param props Properties to control output, as follows:
+<table width=100% cellpadding=10 cellspacing=0 border=2>
+<tr>
+<td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>Delimiter</b></td>
+<td><b>The delimiter to use in output.</b>
+<td>Space</td>
+</tr>
+</table>
+@exception Exception if there is an error writing the file.
+*/
+public static void writeTimeSeriesList (Vector tslist, String fname,
 					DateTime date1, DateTime date2,
-					String units, boolean write_data )
+					String units, boolean write_data, PropList props )
 throws Exception
 {	String	routine = "DateValueTS.writeTimeSeriesList";
 
@@ -2433,7 +2543,7 @@ throws Exception
 		PrintWriter fout = new PrintWriter ( fos );
 
 		writeTimeSeriesList (	tslist, fout, date1, date2,
-					units, write_data );
+					units, write_data, props );
 
 		fout.flush();
 		fout.close();
@@ -2442,42 +2552,6 @@ throws Exception
 		String message = "Error writing \"" + full_fname + "\".";
 		Message.printWarning( 2, routine, message );
 		Message.printWarning( 2, routine, e );
-		throw new Exception (message);
-	}
-}
-
-/**
-Write a time series to the specified file.
-The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@param ts Time series to write.
-@param fname Name of file to write.
-@param date1 First date to write (if NULL write the entire time series).
-@param date2 Last date to write (if NULL write the entire time series).
-@param units Units to write.  If different than the current units the units
-will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
-@exception Exception if there is an error writing the file.
-*/
-public static void writeTimeSeries (	TS ts, String fname, DateTime date1,
-					DateTime date2, String units,
-					boolean write_data )
-throws Exception
-{	String	routine = "DateValueTS.writeTimeSeries";
-
-	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
-	try {	FileOutputStream fos = new FileOutputStream( full_fname );
-		PrintWriter fout = new PrintWriter ( fos );
-
-		writeTimeSeries ( ts, fout, date1, date2, units, write_data );
-
-		fout.flush();
-		fout.close();
-	}
-	catch ( Exception e ) {
-		String message = "Error opening \"" + full_fname +
-		"\" for writing.";
-		Message.printWarning( 2, routine, message );
 		throw new Exception (message);
 	}
 }

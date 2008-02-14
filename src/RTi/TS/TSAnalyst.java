@@ -898,8 +898,7 @@ throws TSException
 	// Get valid dates for the output time series because the ones passed in
 	// may have been null...
 
-	TSLimits valid_dates = TSUtil.getValidPeriod ( ts,
-				AnalysisStart_DateTime, AnalysisEnd_DateTime );
+	TSLimits valid_dates = TSUtil.getValidPeriod ( ts, AnalysisStart_DateTime, AnalysisEnd_DateTime );
 	DateTime start = new DateTime ( valid_dates.getDate1() );
 	DateTime end = new DateTime ( valid_dates.getDate2() );
 	valid_dates = null;
@@ -957,7 +956,9 @@ throws TSException
 		Statistic.equals(TSStatistic.DayOfMax) ||
 		Statistic.equals(TSStatistic.DayOfMin) ||
 		Statistic.equals(TSStatistic.Max) ||
-		Statistic.equals(TSStatistic.Min) ) {
+		Statistic.equals(TSStatistic.Mean) ||
+		Statistic.equals(TSStatistic.Min) ||
+		Statistic.equals(TSStatistic.Total) ) {
 		processStatistic ( ts, yearts, props, start, end,
 		        AnalysisWindowStart_DateTime, AnalysisWindowEnd_DateTime  );
 	}
@@ -1346,17 +1347,17 @@ Process a time series to create the the following statistics:
 @param props Properties to control the analysis, as follows:
 @param start Start of the analysis (precision matching ts).
 @param end End of the analysis (precision matching ts).
-@param window_start If not null, specify the start of the window within
+@param AnalysisWindowStart_DateTime If not null, specify the start of the window within
 the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
-@param window_end If not null, specify the end of the window within
+@param AnalysisWindowEnd_DateTime If not null, specify the end of the window within
 the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
 */
 private void processStatistic (	TS ts, YearTS yearts,
 				PropList props,
 				DateTime start, DateTime end,
-				DateTime window_start, DateTime window_end )
+				DateTime AnalysisWindowStart_DateTime, DateTime AnalysisWindowEnd_DateTime )
 throws Exception
 {	String routine = "TSAnalyst.processStatistic", message;
 	DateTime year_date = new DateTime ( end, DateTime.PRECISION_YEAR );
@@ -1413,7 +1414,9 @@ throws Exception
 	int Statistic_DayOfMax = 12;
 	int Statistic_DayOfMin = 13;
 	int Statistic_Max = 14;
-	int Statistic_Min = 15;
+	int Statistic_Mean = 15;
+	int Statistic_Min = 16;
+	int Statistic_Total = 17;
 	int Statistic_int = -1;	
 	int Test_GE = 0;	// Tests to perform >=
 	int Test_GT = 1;	// >
@@ -1421,6 +1424,7 @@ throws Exception
 	int Test_LT = 3;	// <
 	int Test_Max = 4;	// max()
 	int Test_Min = 5;	// min()
+	int Test_Accumulate = 6;   // Accumulate values instead of testing
 	int Test_int = -1;	
 	boolean Statistic_isCount = false;	// Indicates if the statistic is
 						// one that keeps a count of
@@ -1544,6 +1548,15 @@ throws Exception
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( ts.getDataUnits() );
 	}
+    else if ( Statistic.equals(TSStatistic.Mean) ) {
+        iterate_forward = true;
+        Statistic_int = Statistic_Mean;
+        Test_int = Test_Accumulate;
+        yearts.setDescription ( "Mean value" );
+        SearchStart = "01-01";  // Always default to first of year
+        yearts.setDataUnits ( ts.getDataUnits() );
+        //Statistic_isCount = true;   // Needed for computations
+    }
 	else if ( Statistic.equals(TSStatistic.Min) ) {
 		iterate_forward = true;
 		Statistic_int = Statistic_Min;
@@ -1552,6 +1565,15 @@ throws Exception
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( ts.getDataUnits() );
 	}
+    else if ( Statistic.equals(TSStatistic.Total) ) {
+        iterate_forward = true;
+        Statistic_int = Statistic_Total;
+        Test_int = Test_Accumulate;
+        yearts.setDescription ( "Total value" );
+        SearchStart = "01-01";  // Always default to first of year
+        yearts.setDataUnits ( ts.getDataUnits() );
+        //Statistic_isCount = true;   // Needed for computation checks
+    }
 	else { 	message = "Unknown statistic (" + Statistic + ").";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
@@ -1602,9 +1624,11 @@ throws Exception
 	int year = 0;
 	TSIterator tsi = ts.iterator();
 	TSData data = null;
+	DateTime AnalysisWindowEndInYear_DateTime = null;    // End of analysis window in a year
 	boolean need_to_analyze = true;	// Need to analyze value for current year
 	boolean first_interval = true;
-	int missing_count = 0;
+	int missing_count = 0;     // missing count in a year
+	int nonmissing_count = 0;  // nonmissing count in a year
 	int gap = 0;			// Number of missing values in a gap
 					// at the end of the period.
 	boolean end_of_data = false;	// Use to indicate end of data because
@@ -1626,14 +1650,10 @@ throws Exception
 		else {
 		    end_of_data = true;
 		}
-		if (	(year != year_prev) ||	// New year so save previous
-						// year's data value.
-			(end_of_data) ||	// End of data so save previous
-						// year's data value.
-			first_interval ) {	// First interval so initialize
-						// (but do not save).
-			// New year or last interval so save the results from
-			// the previous interval analysis...
+		if ( (year != year_prev) ||	// New year so save previous year's data value.
+			(end_of_data) ||	// End of data so save previous year's data value.
+			first_interval ) {	// First interval so initialize (but do not save).
+			// New year or last interval so save the results from the previous interval analysis...
 			if ( !first_interval ) {
 				year_date.setYear ( year_prev );
 				if ( Statistic_isCount &&
@@ -1644,14 +1664,35 @@ throws Exception
 					// value to 0.
 					year_value = 0.0;
 				}
-				// Now recheck to see if the value should be set...
+				// Now recheck to see if the value should be set (not missing)...
 				if ( !yearts.isDataMissing(year_value) ) {
 					// Have a value to assign to the statistic...
-					yearts.setDataValue ( year_date, year_value );
-					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl, routine,
-						"Setting value for "+ year_prev + " to " + year_value );
-					}
+				    if ( Statistic_int == Statistic_Total ) {
+				        if ( (missing_count <= AllowMissingCount_int) && !yearts.isDataMissing(year_value) ) {
+				            if ( Message.isDebugOn ) {
+				                Message.printDebug ( dl, routine, "Setting " + date + " year value=" + year_value );
+				            }
+				            yearts.setDataValue ( year_date, year_value );
+				        }
+				    }
+				    else if ( Statistic_int == Statistic_Mean ) {
+                        if ( (missing_count <= AllowMissingCount_int) && (nonmissing_count > 0) &&
+                                !yearts.isDataMissing(year_value) ) {
+                            year_value = year_value/(double)nonmissing_count;
+                            if ( Message.isDebugOn ) {
+                                Message.printDebug ( dl, routine, "Setting " + date + " year value=" + year_value );
+                            }
+                            yearts.setDataValue ( year_date, year_value );
+                        }
+                    }
+				    else {
+				        // Simple assignment of a statitic.
+	                    yearts.setDataValue ( year_date, year_value );
+	                    if ( Message.isDebugOn ) {
+	                        Message.printDebug ( dl, routine,
+	                        "Setting value for "+ year_prev + " to " + year_value );
+	                    }
+				    }
 				}
 			}
 			if ( end_of_data ) {
@@ -1665,31 +1706,49 @@ throws Exception
 			year_value = yearts.getMissing();
 			extreme_value = yearts.getMissing();
 			missing_count = 0;
+			nonmissing_count = 0;
 			year_prev = year;
 			need_to_analyze = true;
 			// Adjust the starting point if necessary.  Find the
-			// nearest value later than or equal to the search
-			// start...
-			if ( SearchStart_DateTime != null ) {
+			// nearest value later than or equal to the search start...
+			// FIXME SAM 2008-02-05 Need to phase out SearchStart and just use the analysis window.
+			// For now use the search start to be the start of the search.
+			if ( (SearchStart_DateTime != null) || (AnalysisWindowStart_DateTime != null) ) {
 				date_search = new DateTime ( date );
-				date_search.setMonth( SearchStart_DateTime.getMonth());
-				date_search.setDay ( SearchStart_DateTime.getDay());
+				if ( SearchStart_DateTime != null ) {
+				    date_search.setMonth( SearchStart_DateTime.getMonth());
+				    date_search.setDay ( SearchStart_DateTime.getDay());
+                    if (Message.isDebugOn) {
+                        Message.printDebug ( dl, routine,
+                        "Will start processing in year on SearchStart: " + date_search );
+                    }
+				}
+				if ( AnalysisWindowStart_DateTime != null ) {
+				    // The AnalysisWindow takes precendence.
+                    date_search.setMonth( AnalysisWindowStart_DateTime.getMonth());
+                    date_search.setDay ( AnalysisWindowStart_DateTime.getDay());
+                    // Also set the end date in the year to include.
+                    AnalysisWindowEndInYear_DateTime = new DateTime(date_search);
+                    AnalysisWindowEndInYear_DateTime.setMonth( AnalysisWindowEnd_DateTime.getMonth());
+                    AnalysisWindowEndInYear_DateTime.setDay ( AnalysisWindowEnd_DateTime.getDay());
+                    if (Message.isDebugOn) {
+                        Message.printDebug ( dl, routine,
+                        "Will start processing in year on AnalysisWindowStart: " + date_search );
+                        Message.printDebug ( dl, routine,
+                        "Will end processing in year on AnalysisWindowEnd: " + AnalysisWindowEndInYear_DateTime );
+                    }
+				}
 				data = tsi.goTo ( date_search, false );
 				if ( data == null ) {
-					// Did not find the requested starting
-					// date so must have run out of data.
-					// The original date still applies in
-					// some cases.  Also evaluate for
-					// missing data if a regular time
-					// series...
+					// Did not find the requested starting date so must have run out of data.
+					// The original date still applies in some cases.
+				    // Also evaluate for missing data if a regular time series.
 					if (Message.isDebugOn) {
 						Message.printDebug ( dl, routine, "Did not find search start using " + date_search );
 					}
 					if ( is_regular ) {
-						// Need to skip over the end
-						// period to a date in the
-						// period, keeping track of
-						// the missing count...
+						// Need to skip over the end period to a date in the period,
+					    // keeping track of the missing count...
 						if ( iterate_forward ) {
 							if ( date_search.greaterThan( date) ) {
 								// Ran out of data at end...
@@ -1704,8 +1763,7 @@ throws Exception
 						}
 						else {
 						    // Iterate backward
-							if ( date_search.
-								lessThan( start) ) {
+							if ( date_search.lessThan( start) ) {
 								// Ran out of data at end...
 								gap = -1;
 							}
@@ -1757,9 +1815,14 @@ throws Exception
 		// should be possible to jump over data but for now the brute
 		// force search is performed.
 		if ( need_to_analyze && !end_of_data ) {
+		    if ( (AnalysisWindowEndInYear_DateTime != null) && date.greaterThan(AnalysisWindowEndInYear_DateTime) ) {
+		        // Just skip the data.
+		        continue;
+		    }
 			value = tsi.getDataValue ();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Processing " + date + " value=" + value );
+				Message.printDebug ( dl, routine, "Processing " + date + " value=" + value +
+				        " year value (before this value)=" + year_value );
 			}
 			// Put an initial check because the missing data count
 			// could have been set while setting the SearchStart...
@@ -1773,8 +1836,7 @@ throws Exception
 				")." );
 				continue;
 			}
-			// If missing data have not been a problem so far,
-			// continue with the check...
+			// If missing data have not been a problem so far, continue with the check...
 			if ( ts.isDataMissing ( value ) ) {
 				++missing_count;
 				if ( missing_count > AllowMissingCount_int ) {
@@ -1787,6 +1849,7 @@ throws Exception
 			}
 			else {
 			    // Data value is not missing so evaluate the test...
+			    ++nonmissing_count;
 				if ( (Test_int == Test_GE) && (value >= TestValue_double) ) {
 					if (Statistic_int == Statistic_CountGE){
 						if(yearts.isDataMissing( year_value) ) {
@@ -1877,6 +1940,16 @@ throws Exception
 					}
 					// Need to continue analyzing period so do not set need_to_analyze to false.
 				}
+                else if( Test_int == Test_Accumulate ) {
+                    // Need to accumulate the value (for Mean or Total)
+                    // Accumulate into the year_value
+                    if(yearts.isDataMissing( year_value) ) {
+                        year_value = value;
+                    }
+                    else {
+                        year_value += value;
+                    }
+                }
 			}
 		}
 	}

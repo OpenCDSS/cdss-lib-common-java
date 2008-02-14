@@ -14,7 +14,6 @@ import java.util.Vector;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
-import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -22,11 +21,6 @@ A JPanel to edit a DateTime.
 */
 public class DateTime_JPanel extends JPanel
 {
-    
-/**
-Initial DateTime to be displayed.
-*/
-private DateTime __initial_DateTime = null;
 
 /**
 Maximum interval shown in the panel.  For example, specifying TimeInterval.MONTH
@@ -99,14 +93,21 @@ JLabel __year_JLabel = null;
 // code base has moved to Java 1.5
 /**
 Constructor.
+@param title Title for the panel, shown in a border title.
+@param interval_max The maximum interval shown in choices (use TimeInterva.YEAR, etc.).
+@param interval_min The minimum interval shown in choices (use TimeInterva.HOUR, etc.).
+@param initial Initial DateTime to be displayed.  The precision will override interval_min.
 */
 public DateTime_JPanel ( String title, int interval_max, int interval_min, DateTime initial )
 {   super ();
     setTitle ( title );
     setIntervalMax ( interval_max );
     setIntervalMin ( interval_min );
-    setInitialDateTime ( initial );
     setupUI ();
+    // Set the date time after setting the interval_min because the DateTime may override.
+    if ( initial != null ) {
+        setDateTime ( initial );
+    }
 }
 
 /**
@@ -138,7 +139,10 @@ Any values that are 99, etc. are assumed to not be displayed
 */
 public void setDateTime ( DateTime dt )
 {
-    Message.printStatus ( 1, "", "Setting panel DateTime to " + dt );
+    //Message.printStatus ( 2, "", "Setting panel DateTime to " + dt );
+    setIntervalMin ( dt.getPrecision() );
+    // Update the visibility of components.
+    setVisibility();
     if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
         int year = dt.getYear();
         if ( TimeUtil.isValidYear(year) ) {
@@ -215,22 +219,6 @@ public void setEnabled ( boolean enabled )
 }
 
 /**
-Set the initial DateTime displayed in the panel.  If specified
-and the maximum and minimum intervals are not specified, the maximum and
-minimum intervals will be determined by the DateTime precision.
-If the maximum and minimum intervals are specified at construction, they will
-be used to restrict what is displayed from the DateTime instance.
-@param interval_max see TimeInterval definitions.
-*/
-private void setInitialDateTime ( DateTime initial_DateTime )
-{
-    // Make a copy.
-    if ( initial_DateTime != null ) {
-        __initial_DateTime = new DateTime ( initial_DateTime );
-    }
-}
-
-/**
 Set the maximum interval displayed in the panel.
 @param interval_max see TimeInterval definitions.
 */
@@ -289,14 +277,7 @@ private void setupUI ()
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(this, __year_JComboBox,
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
-        __year_JComboBox.setVisible ( true );
-        __year_JLabel.setVisible ( true );
-    }
-    else {
-        __year_JComboBox.setVisible ( false );
-        __year_JLabel.setVisible ( false );
-    }
+
     // Add the month...
     Vector month_Vector = new Vector();
     month_Vector.addElement ( "" );    // Select to ignore this information
@@ -309,14 +290,7 @@ private void setupUI ()
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(this, __month_JComboBox,
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
-        __month_JComboBox.setVisible(true);
-        __month_JLabel.setVisible(true);
-    }
-    else {
-        __month_JComboBox.setVisible(false);
-        __month_JLabel.setVisible(false);
-    }
+
     // Add the day...
     Vector day_Vector = new Vector();
     day_Vector.addElement ( "" );    // Select to ignore this information
@@ -329,14 +303,7 @@ private void setupUI ()
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(this, __day_JComboBox,
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
-        __day_JComboBox.setVisible(true);
-        __day_JLabel.setVisible(true);
-    }
-    else {
-        __day_JComboBox.setVisible(false);
-        __day_JLabel.setVisible(false);
-    }
+
     // Add the hour...
     Vector hour_Vector = new Vector();
     hour_Vector.addElement ( "" );    // Select to ignore this information
@@ -349,14 +316,7 @@ private void setupUI ()
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(this, __hour_JComboBox,
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
-        __hour_JComboBox.setVisible ( true );
-        __hour_JLabel.setVisible ( true );
-    }
-    else {
-        __hour_JComboBox.setVisible ( false );
-        __hour_JLabel.setVisible ( false );
-    }
+
     // Add the minute...
     Vector minute_Vector = new Vector();
     minute_Vector.addElement ( "" );    // Select to ignore this information
@@ -369,6 +329,47 @@ private void setupUI ()
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(this, __minute_JComboBox,
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    // Set the visibility on the choices consistent with the min/max interval to display.
+    setVisibility();
+}
+
+/**
+Set the visibility on the choices consistent with the min/max interval to display.
+ */
+private void setVisibility()
+{
+    if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+        __year_JComboBox.setVisible ( true );
+        __year_JLabel.setVisible ( true );
+    }
+    else {
+        __year_JComboBox.setVisible ( false );
+        __year_JLabel.setVisible ( false );
+    }
+    if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
+        __month_JComboBox.setVisible(true);
+        __month_JLabel.setVisible(true);
+    }
+    else {
+        __month_JComboBox.setVisible(false);
+        __month_JLabel.setVisible(false);
+    }
+    if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
+        __day_JComboBox.setVisible(true);
+        __day_JLabel.setVisible(true);
+    }
+    else {
+        __day_JComboBox.setVisible(false);
+        __day_JLabel.setVisible(false);
+    }
+    if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
+        __hour_JComboBox.setVisible ( true );
+        __hour_JLabel.setVisible ( true );
+    }
+    else {
+        __hour_JComboBox.setVisible ( false );
+        __hour_JLabel.setVisible ( false );
+    }
     if ( (TimeInterval.MINUTE <= __interval_max) && (TimeInterval.MINUTE >= __interval_min) ) {
         __minute_JComboBox.setVisible ( true );
         __minute_JLabel.setVisible ( true );
@@ -376,9 +377,6 @@ private void setupUI ()
     else {
         __minute_JComboBox.setVisible ( false );
         __minute_JLabel.setVisible ( false );
-    }
-    if ( __initial_DateTime != null ) {
-        setDateTime ( __initial_DateTime );
     }
 }
 
@@ -423,6 +421,39 @@ public String toString()
         String minute = __minute_JComboBox.getSelected();
         if ( TimeUtil.isValidMinute(minute)) {
             d.setMinute ( StringUtil.atoi(minute) );
+        }
+    }
+    // Set the precision to ignore blank input, starting from most precise.
+    // This will minimize showing invalid inputs like 99 for hour.
+    
+    int [] intervals = {
+            TimeInterval.MINUTE,
+            TimeInterval.HOUR,
+            TimeInterval.DAY,
+            TimeInterval.MONTH,
+            TimeInterval.YEAR
+    };
+    SimpleJComboBox cb = null;
+    for ( int i = 0; i < intervals.length; i++ ) {
+        if ( intervals[i] == TimeInterval.MINUTE ) {
+            cb = __minute_JComboBox;
+        }
+        else if ( intervals[i] == TimeInterval.HOUR ) {
+            cb = __hour_JComboBox;
+        }
+        else if ( intervals[i] == TimeInterval.DAY ) {
+            cb = __day_JComboBox;
+        }
+        else if ( intervals[i] == TimeInterval.MONTH ) {
+            cb = __month_JComboBox;
+        }
+        if ( cb.isVisible() ) {
+            String val = cb.getSelected();
+            if ( val.length() != 0 ) {
+                // Value is specified so assume precision
+                d.setPrecision ( intervals[i] );
+                break;
+            }
         }
     }
     return d.toString();
