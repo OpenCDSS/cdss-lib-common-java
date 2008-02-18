@@ -1317,6 +1317,17 @@ public String toString ( String delim )
 /**
 Unset a value (remove from the list).
 Remove the property from the property list.
+@param pos index (0+) for property to remove.
+*/
+public void unset ( int pos )
+{   if ( pos >= 0 ) {
+        _list.removeElementAt(pos);
+    }
+}
+
+/**
+Unset a value (remove from the list).
+Remove the property from the property list.
 @param key String key for property to remove.
 */
 public void unSet ( String key )
@@ -1335,6 +1346,19 @@ public void unSetAll ( String key )
 	for (int i = 0; i < count; i++) {
 		unSet(key);
 	}
+}
+
+/*
+Checks all the property names in the PropList to make sure only valid and 
+deprecated ones are in the list, and returns a Vector with warning messages
+about deprecated and invalid properties.  Invalid properties ARE NOT removed.
+See the overloaded method for more information.
+*/
+public Vector validatePropNames(Vector validProps, Vector deprecatedProps,
+        Vector deprecatedNotes, String target ) 
+        throws Exception
+{
+    return validatePropNames( validProps, deprecatedProps, deprecatedNotes, target, false );
 }
 
 /**
@@ -1385,6 +1409,8 @@ For example, if a PropList stores worksheet properties, this value could be set
 to "JWorksheet property" so that the error messages would be:<p>
 <pre>	PropertyName is no longer recognized as a valid JWorksheet property.
 	PropertyName is not a valid JWorksheet property.</pre><p>
+@param remove_invalid indicates whether invalid properties should be removed
+from the list.
 @return null or a Vector containing Strings, each of which is a warning about 
 an invalid or deprecated property in the PropList.  The order of the returned
 Vector is that invalid properties are returned first, and deprecated properties
@@ -1395,7 +1421,7 @@ deprecatedNotes are non-null and the size of the Vectors is different, an
 Exception will be thrown warning of the error.
 */
 public Vector validatePropNames(Vector validProps, Vector deprecatedProps,
-Vector deprecatedNotes, String target) 
+Vector deprecatedNotes, String target, boolean remove_invalid ) 
 throws Exception {
 	// Get the sizes of the Vectors that will be iterated through, handling
 	// null Vectors gracefully.
@@ -1447,6 +1473,11 @@ throws Exception {
 	Vector invalids = new Vector();
 	Vector deprecateds = new Vector();
 	
+	String remove_invalid_string = "";
+	if ( remove_invalid ) {
+	    remove_invalid_string = "  Removing invalid property.";
+	}
+	
 	for (int i = 0; i < size; i++) {
 		p = propAt(i);
 		key = p.getKey();
@@ -1473,12 +1504,9 @@ throws Exception {
 			for (int j = 0; j < deprecatedPropsSize; j++) {
 				val = (String)deprecatedProps.elementAt(j);
 				if (val.equalsIgnoreCase(key)) {
-					msg = key + " is no longer recognized "
-						+ "as a valid " + target + ".";
+					msg = key + " is no longer recognized as a valid " + target + "." + remove_invalid_string;
 					if (hasNotes) {
-						msg += "  " 
-							+(String)deprecatedNotes
-							.elementAt(j);
+						msg += "  " +(String)deprecatedNotes.elementAt(j);
 					}
 					deprecateds.add(msg);
 
@@ -1500,7 +1528,11 @@ throws Exception {
 		// Add the error message for invalid properties.  
 
 		if (!valid) {
-			invalids.add(key + " is not a valid " + target + ".");
+			invalids.add(key + " is not a valid " + target + "." + remove_invalid_string );
+		}
+		
+		if ( !valid && remove_invalid ) {
+		    this.unset(i);
 		}
 	}
 
