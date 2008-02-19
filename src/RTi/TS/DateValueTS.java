@@ -2047,18 +2047,19 @@ throws Exception
 		// Use the maximum period in the time series list...
 		ts_start = new DateTime ( limits.getDate1() );
 	}
-	else {	ts_start = new DateTime ( date1 );
+	else {
+	    ts_start = new DateTime ( date1 );
 	}
 
 	if ( date2 == null ) {
 		// Use the time series value...
 		ts_end = new DateTime ( limits.getDate2() );
 	}
-	else {	ts_end = new DateTime ( date2 );
+	else {
+	    ts_end = new DateTime ( date2 );
 	}
 
-	// Loop through the time series and make sure they have the same
-	// interval...
+	// Loop through the time series and make sure they have the same interval...
 
  	int data_interval_base = 0;
 	int data_interval_mult = 0;
@@ -2088,8 +2089,7 @@ throws Exception
 			(data_interval_mult != data_interval_mult_i) ) {
 			mult = null;
 			add = null;
-			message = "Time series do not"+
-			" have the same interval.  Can't write";
+			message = "Time series do not have the same interval.  Can't write";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
 		}
@@ -2099,23 +2099,20 @@ throws Exception
 		if (	(ts != null) && (units != null) &&
 			(units.length() != 0) &&
 			!units.equalsIgnoreCase(ts.getDataUnits()) ) {
-			try {	conversion = DataUnits.getConversion (
-				ts.getDataUnits(), units );
+			try {
+			    conversion = DataUnits.getConversion ( ts.getDataUnits(), units );
 				mult[i] = conversion.getMultFactor();
 				add[i] = conversion.getAddFactor();
 			}
 			catch ( Exception e ) {
 				Message.printWarning( 2, routine,
-				"Unable to convert units to \"" +
-				units + "\" leaving units as \"" +
-				ts.getDataUnits() + "\"" );
+				"Unable to convert units to \"" + units + "\" leaving units as \"" + ts.getDataUnits() + "\"" );
 			}
 		}
 	}
 
 	if ( (data_interval_base == TimeInterval.IRREGULAR) && (size > 1) ) {
-		message =
-		"Currently, only one irregular TS can be written to a file.";
+		message = "Currently, only one irregular TS can be written to a file.";
 		Message.printWarning ( 2, routine, message );
 		mult = null;
 		add = null;
@@ -2146,11 +2143,11 @@ throws Exception
 		(data_interval_base == TimeInterval.HOUR) ) {
 		columns_buffer.append ( "Date" + delim + "Time" + delim );
 	}
-	else {	columns_buffer.append ( "Date" + delim );
+	else {
+	    columns_buffer.append ( "Date" + delim );
 	}
 	boolean has_data_flags = false;	// Only include data flags in output if
-					// at least one time series actually
-					// has the flag.
+					// at least one time series actually has the flag.
 	for ( i = 0; i < size; i++ ) {
 		ts = (TS)tslist.elementAt(i);
 		if ( i != 0 ) {
@@ -2172,8 +2169,7 @@ throws Exception
 			columns_buffer.append ( nodata_string );
 			dataflag_buffer.append ( "\"" + nodata_string + "\"" );
 			datatype_buffer.append ( nodata_string );
-			description_buffer.append (
-				"\"" + nodata_string + "\"" );
+			description_buffer.append (	"\"" + nodata_string + "\"" );
 			missingval_buffer.append ( nodata_string );
 			tsid_buffer.append ( "\"" + nodata_string + "\"" );
 			units_buffer.append ( nodata_string );
@@ -2194,9 +2190,7 @@ throws Exception
     				columns_buffer.append ( "\"" + alias + ", " + ts.getDataUnits() + "\"" );
 			    }
 			    else {
-	                 columns_buffer.append ( "\"" +
-	                         ts.getIdentifier().toString() + ", " +
-	                         ts.getDataUnits() + "\"" );
+	                 columns_buffer.append ( "\"" + ts.getIdentifier().toString() + ", " + ts.getDataUnits() + "\"" );
 			    }
 			}
 			else {
@@ -2209,36 +2203,31 @@ throws Exception
 			}
 			if ( ts.hasDataFlags() ) {
 				has_data_flags = true;
-				dataflag_buffer.append ( "true," +
-				ts.getDataFlagLength() );
+				dataflag_buffer.append ( "true," + ts.getDataFlagLength() );
 				columns_buffer.append ( delim );
 				columns_buffer.append ( "DataFlag" );
 			}
-			else {	dataflag_buffer.append ( "false" );
+			else {
+			    dataflag_buffer.append ( "false" );
 			}
 			if ( ts.getDataType().trim().equals("") ) {
-				datatype_buffer.append("\"" +
-				ts.getIdentifier().getType() + "\"" );
+				datatype_buffer.append("\"" + ts.getIdentifier().getType() + "\"" );
 			}
-			else {	datatype_buffer.append("\"" +
-				ts.getDataType() + "\"" );
+			else {
+			    datatype_buffer.append("\"" + ts.getDataType() + "\"" );
 			}
-			description_buffer.append (
-				"\"" + ts.getDescription() + "\"" );
+			description_buffer.append (	"\"" + ts.getDescription() + "\"" );
 			// If the missing value is NaN, just print NaN.
 			// Otherwise the %.4f results in NaN.000...
 			// The following is a trick to check for NaN...
 			if ( ts.getMissing() != ts.getMissing() ) {
 				missingval_buffer.append ("NaN" );
 			}
-			else {	// Assume that missing is indicated by a
-				// number...
-				missingval_buffer.append (
-				StringUtil.formatString(
-				ts.getMissing(),"%.4f"));
+			else {
+			    // Assume that missing is indicated by a number...
+				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),"%.4f"));
 			}
-			tsid_buffer.append ( "\"" +
-				ts.getIdentifier().toString() + "\"" );
+			tsid_buffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
 			units_buffer.append ( "\"" + ts.getDataUnits() + "\"" );
 		}
 	}
@@ -2261,8 +2250,7 @@ throws Exception
 	out.println ( "MissingVal  = " + missingval_buffer.toString() );
 	if ( has_data_flags ) {
 		// At least one of the time series in the list has data flags
-		// so output the data flags information for all the time
-		// series...
+		// so output the data flags information for all the time series...
 		out.println ( "DataFlags   = " + dataflag_buffer.toString() );
 	}
 	out.println ( "Start       = " + ts_start.toString() );
@@ -2288,8 +2276,7 @@ throws Exception
 		}
 		comments = ts.getComments();
 		genesis = ts.getGenesis();
-		if (	((comments == null) || (comments.size() == 0)) &&
-			((genesis == null) || (genesis.size() == 0)) ) {
+		if ( ((comments == null) || (comments.size() == 0)) && ((genesis == null) || (genesis.size() == 0)) ) {
 			out.println ( "#" );
 			out.println ( "# Time series " + (i + 1) + " (TSID=" +
 			ts.getIdentifier().toString() +
@@ -2306,8 +2293,7 @@ throws Exception
 			out.println ( "#" );
 			jsize = comments.size();
 			for ( j = 0; j < jsize; j++ ) {
-				out.println ( "#   " +
-				(String)comments.elementAt(j) );
+				out.println ( "#   " + (String)comments.elementAt(j) );
 			}
 		}
 		if (	(genesis != null) && (genesis.size() > 0) &&
@@ -2319,8 +2305,7 @@ throws Exception
 			out.println ( "#" );
 			jsize = genesis.size();
 			for ( j = 0; j < jsize; j++ ) {
-				out.println ( "#   " +
-				(String)genesis.elementAt(j) );
+				out.println ( "#   " + (String)genesis.elementAt(j) );
 			}
 		}
 	}
@@ -2383,13 +2368,12 @@ throws Exception
 					// missing data are indicated by NaN...
 					string_value = "NaN";
 				}
-				else {	string_value = StringUtil.formatString(
-					tsdata.getData(), "%.4f" );
+				else {
+				    string_value = StringUtil.formatString( tsdata.getData(), "%.4f" );
 				}
 			}
 			else {	// Convert the units...
-				string_value = StringUtil.formatString(
-				(tsdata.getData()*mult[0] + add[0]), "%.4f" );
+				string_value = StringUtil.formatString( (tsdata.getData()*mult[0] + add[0]), "%.4f" );
 			}
 			// Don't think @ is needed given new DateValueTS
 			// capabilities...
@@ -2406,9 +2390,7 @@ throws Exception
 		t = new DateTime ( ts_start);
 		// Make sure no time zone is set to minimize output...
 		t.setTimeZone ("");
-		for (	;
-			t.lessThanOrEqualTo(ts_end);
-			t.addInterval(data_interval_base, data_interval_mult)) {
+		for ( ;	t.lessThanOrEqualTo(ts_end); t.addInterval(data_interval_base, data_interval_mult)) {
 			buffer.setLength(0);
 			//buffer.append( t.toString().replace(' ','@') + delim);
 			buffer.append( t.toString() + delim );
@@ -2427,18 +2409,18 @@ throws Exception
 						// indicated by NaN...
 						string_value = "NaN";
 					}
-					else {	string_value =
-						StringUtil.formatString(
-						value, "%.4f");
+					else {
+					    string_value = StringUtil.formatString( value, "%.4f");
 					}
 				}
-				else {	string_value = StringUtil.formatString(
-					(value*mult[i] + add[i]),"%.4f" );
+				else {
+				    string_value = StringUtil.formatString(	(value*mult[i] + add[i]),"%.4f" );
 				}
 				if ( i == 0 ) {
 					buffer.append ( string_value );
 				}
-				else {	buffer.append ( delim + string_value );
+				else {
+				    buffer.append ( delim + string_value );
 				}
 				// Now print the data flag...
 				if ( ts.hasDataFlags() ) {
@@ -2446,8 +2428,7 @@ throws Exception
 					dataflag = datapoint.getDataFlag();
 					// Always enclose the dataflag in quotes
 					// because it may contain white space...
-					buffer.append ( delim +
-					"\""+ dataflag + "\"");
+					buffer.append ( delim +	"\""+ dataflag + "\"");
 				}
 			}
 			out.println ( buffer.toString () );
