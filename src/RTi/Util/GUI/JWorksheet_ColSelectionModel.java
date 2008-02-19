@@ -23,14 +23,15 @@ import javax.swing.DefaultListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import RTi.Util.Message.Message;
+
 /**
 This class, in conjunction with the JWorksheet_RowSelectionModel, allows a 
 JTable to have
 a selection model that is like that of Microsoft Excel.  This class shares
 data with the JWorksheet_RowSelectionModel that is in the same JTable, and 
 JWorksheet_RowSelectionModel shares its data with this one.  The two need 
-to interoperate
-very closely in order to get the desired effect.
+to interoperate very closely in order to get the desired effect.
 
 JTables by default have two selection models:<ol>
 <li>The main one is a row selection model that keeps track of which rows 
@@ -121,8 +122,12 @@ series of cells as selected.
 @param col0 the first col of the selection interval
 @param col1 the last col of the selection interval.
 */
-public void addSelectionInterval(int col0, int col1) {
-//System.out.println("COL: addSelectionInterval(" + col0 + ", " + col1 + ")");
+public void addSelectionInterval(int col0, int col1)
+{   String routine = "JWorksheet_ColSelectionModel.addSelectionInterval";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "COL: addSelectionInterval(" + col0 + ", " + col1 + ")");
+    }
 	if (col0 == 0) {
 //		System.out.println("   ZEROCOL = TRUE");
 		_zeroCol = true;
@@ -202,8 +207,12 @@ Returns whether the given col is selected or not.
 @param col the column to check whether it is selected or not.
 @return true.
 */
-public boolean isSelectedIndex(int col) {
-//System.out.println("COL: isSelectedIndex(" + col + ")");
+public boolean isSelectedIndex(int col)
+{   String routine = "JWorksheet_ColSelectionModel.isSelectedIndex";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "COL: isSelectedIndex(" + col + ")");
+    }
 	__rCurrRow = __rowsm._currRow;
 
 	// First check to see if the selected value has been drawn to the 
@@ -211,9 +220,11 @@ public boolean isSelectedIndex(int col) {
 	// to cellsSelected (i.e., the user dragged a new selected and released
 	// the mouse button).
 
-//System.out.println("  __rCurrRow: " + __rCurrRow);
-//System.out.println("  _rCols: " + _rCols);
-//System.out.println("  col: " + col);
+	if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "  __rCurrRow: " + __rCurrRow);
+        Message.printDebug ( dl, routine,"  _rCols: " + _rCols);
+        Message.printDebug ( dl, routine,"  col: " + col);
+	}
 	if (__rowsm._drawnToBuffer) {
 		if (_reset) {
 			_reset = false;
@@ -224,8 +235,7 @@ public boolean isSelectedIndex(int col) {
 		// working, and having worked, perfectly on Windows for over
 		// 2 years).
 		int index = ((__rCurrRow * _rCols) + col);
-		if (__buffer.length == 0 
-		    || index < 0 || index > __buffer.length) {
+		if ( (__buffer.length == 0) || index < 0 || index > __buffer.length) {
 			return false;
 		}
 		else if (__buffer[index]) {
@@ -245,14 +255,15 @@ public boolean isSelectedIndex(int col) {
 		// working, and having worked, perfectly on Windows for over
 		// 2 years).		
 		int index = ((__rCurrRow * _rCols) + col);
-		if (__cellsSelected.length == 0 
-		    || index < 0 || index > __cellsSelected.length) {
+		if ( (__cellsSelected.length == 0) || index < 0 || index > __cellsSelected.length) {
 			return false;
 		}
 		else if (__cellsSelected[index]) {
 			return true;
 		}
-//System.out.println("  __cellsSelected size: " + __cellsSelected.length);
+		if ( Message.isDebugOn ) {
+	        Message.printDebug ( dl, routine, "  __cellsSelected size: " + __cellsSelected.length);
+		}
 	}
 	return false;
 }
@@ -271,8 +282,12 @@ Removes a selection interval from those already selected.
 @param col0 the first col to remove
 @param col1 the last col to remove.
 */
-public void removeSelectionInterval(int col0, int col1) {
-//System.out.println("COL: removeSelectionInterval(" + col0 + ", "+col1 + ")");
+public void removeSelectionInterval(int col0, int col1)
+{   String routine = "JWorksheet_ColSelectionModel.removeSelectionInterval";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "COL: removeSelectionInterval(" + col0 + ", "+col1 + ")");
+    }
 	__rowsm._currCol = col0;
 	if (col0 < _min) {
 		_min = col0;
@@ -297,15 +312,27 @@ Sets the anchor's selection col.  Currently does nothing.
 @param anchorCol the col of the anchor position, the initial point clicked
 when the user is dragging the mouse.
 */
-public void setAnchorSelectionIndex(int anchorCol) {}
+public void setAnchorSelectionIndex(int anchorCol)
+{
+    String routine = "JWorksheet_ColSelectionModel.setAnchorSelectionIndex";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "COL: setLeadSelectionIndex(" + anchorCol + ")");
+    }
+}
 
 /**
 Overrides the method in DefaultListSelectionModel.  
 Sets the lead selection col.  
 @param leadCol the lead col.
 */
-public void setLeadSelectionIndex(int leadCol) {
-//System.out.println("COL: setLeadSelectionIndex(" + leadCol + ")");
+public void setLeadSelectionIndex(int leadCol)
+{
+    String routine = "JWorksheet_ColSelectionModel.setLeadSelectionIndex";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "COL: setLeadSelectionIndex(" + leadCol + ")");
+    }
 	__rowsm._currCol = leadCol;
 }
 
@@ -323,8 +350,12 @@ From DefaultListSelectionModel.  Sets the setlection interval.
 @param col0 the first selection interval.
 @param col1 the last selection interval.
 */
-public void setSelectionInterval(int col0, int col1) {
-//System.out.println("COL: setSelectionInterval(" + col0 + ", " + col1 + ")");
+public void setSelectionInterval(int col0, int col1)
+{   String routine = "JWorksheet_ColSelectionModel.setSelectionInterval";
+    int dl = 10;
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine,"COL: setSelectionInterval(" + col0 + ", " + col1 + ")");
+    }
 	_zeroCol = false;
 	if (col0 == 0) {
 		_zeroCol = true;
