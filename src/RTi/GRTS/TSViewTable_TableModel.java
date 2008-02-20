@@ -43,6 +43,7 @@ import RTi.Util.GUI.JWorksheet;
 import java.util.Vector;
 
 import RTi.TS.TS;
+import RTi.TS.TSException;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
 
@@ -54,7 +55,11 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
 /**
-This class is a table model for displaying regular TS data.  It is more 
+This class is a table model for displaying regular TS data.
+<p>
+Use TSViewTable_Irregular_TableModel for irregular TS data.
+<p>
+It is more 
 complicated than most table models, primarily in order to achieve performance
 gains with getting values out of a time series.  The following is a brief 
 description of some of the performance gain efforts made in this class.  
@@ -68,8 +73,10 @@ This is because adding many intervals at once to a date/time is an expensive
 operation.  Using a day time series as an example, adding X days to a date/time
 takes X times as long as adding 1 day.  Thus, by caching dates along the 
 entire span of the time series, it can be ensured that __cacheInterval will be
-the greatest number of intervals ever added to a single date/time at once.<p>
-<b>Caching of the Top-Most Visible Row Number After Each Scroll Event</b><p>
+the greatest number of intervals ever added to a single date/time at once.
+<p>
+<b>Caching of the Top-Most Visible Row Number After Each Scroll Event</b>
+<p>
 Caching is also done of the top-most visible row every time the worksheet is
 scrolled, and involves the __firstVisibleRowDate and __previousTopmostVisibleY
 member variables.  Each time getValueAt() is called, it checks to see if the 
@@ -78,7 +85,8 @@ last called.  If so, then the worksheet has been scrolled.  Each time the
 worksheet is scrolled, the date/time of the top-most visible row is calculated
 using date cachine.  Then, the date of each row that is drawn for the 
 current scroll position is calculated from the date of the top-most visible 
-row.<p>
+row.
+<p>
 <b>Notes</b>
 These caching steps may seem overkill, but JTS found during extensive testing
 that they increase the speed of browsing through a table of time series 
@@ -99,7 +107,7 @@ An array of DateTime values that are pre-calculated in order to speed up
 calculation of DateTimes in the middle of the dataset.  Each element in this
 array contains the DateTime for the row at N*(__cacheInterval)
 */
-private DateTime[] __cachedDates;
+protected DateTime[] __cachedDates;
 
 /**
 The date/time of the first row visible on the JWorksheet.
@@ -114,7 +122,7 @@ private DateTime __priorDateTime = null;
 /**
 The first date/time in the table model.
 */
-private DateTime __start;
+protected DateTime __start;
 
 /**
 The working date time from which dates and times for data read from the
@@ -134,7 +142,7 @@ The interval of date times that will be cached in __cachedDates.  Every Xth
 DateTime from the entire table, where X == __cacheInterval, will be 
 pre-calculated and cached.
 */
-private int __cacheInterval;
+protected int __cacheInterval;
 
 /**
 Number of columns in the table model.
@@ -246,18 +254,37 @@ throws Exception {
 	__dataFormats = dataFormats;
 	__useExtendedLegend = useExtendedLegend;
 	__start = start;
+	__firstVisibleRow = 0;
+  __firstVisibleRowDate = __start;
+  __workingDate = new DateTime(__start);
+  
+	calcRowCount(data);
 	
-	if (__columns > 1) {		
+	initializeCacheDates();
+}
+
+/**
+ * Determine the number of rows for the table model.
+ * 
+ * @param data 
+ * @throws TSException
+ */
+protected void calcRowCount(Vector data) throws TSException
+{
+  if (__columns > 1) {		
 		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
 		DateTime end = limits.getDate2();
 		_rows = TSUtil.calculateDataSize((TS)data.elementAt(0),
 			__start, end);
 	}
-	
-	__firstVisibleRow = 0;
-	__firstVisibleRowDate = __start;
-	__workingDate = new DateTime(__start);
-	__cachedDates = new DateTime[(_rows / __cacheInterval) + 1];
+}
+
+/**
+ * Initialize the dates for cache.
+ */
+protected void initializeCacheDates()
+{
+  __cachedDates = new DateTime[(_rows / __cacheInterval) + 1];
 
 	// Cache the dates of each __cacheInterval row through the time series.
 
@@ -288,7 +315,7 @@ throws Exception {
 		else if (__intervalBase == TimeInterval.IRREGULAR)
 		  {
 		    // TODO: dre will precision always be hour for irregular?
-		    int prec =start.getPrecision();
+		    int prec =__start.getPrecision();
 		    __cachedDates[i].addHour(__cacheInterval
 		            * __intervalMult);
 		  }
@@ -414,11 +441,12 @@ public Object getConsecutiveValueAt(int row, int col) {
 			temp.addDay((row % __cacheInterval) 
 				* __intervalMult);
 		}
-		//TODO:dre TimeInterval.IRREGULAR hour ??
-	  else if (__intervalBase == TimeInterval.IRREGULAR) {
-      temp.addHour((row % __cacheInterval) 
-        * __intervalMult);
-    }
+		// Irregular TS shouldn't call this method, as data can't be accessed
+		// by row!
+//	  else if (__intervalBase == TimeInterval.IRREGULAR) {
+//      temp.addHour((row % __cacheInterval) 
+//        * __intervalMult);
+//    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			temp.addMonth((row % __cacheInterval) 
 				* __intervalMult);
@@ -441,10 +469,11 @@ public Object getConsecutiveValueAt(int row, int col) {
 		else if (__intervalBase == TimeInterval.DAY) {
 			__priorDateTime.addDay(1 * __intervalMult);
 		}	
-		//TODO:dre TimeInterval.IRREGULAR hour?
-		else if (__intervalBase == TimeInterval.IRREGULAR) {
-      __priorDateTime.addHour(1 * __intervalMult);
-    }
+    // Irregular TS shouldn't call this method, as data can't be accessed
+    // by row!
+//		else if (__intervalBase == TimeInterval.IRREGULAR) {
+//      __priorDateTime.addHour(1 * __intervalMult);
+//    }
 		else if (__intervalBase == TimeInterval.MONTH) {
 			__priorDateTime.addMonth(1 * __intervalMult);
 		}

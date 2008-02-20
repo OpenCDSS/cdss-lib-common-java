@@ -118,15 +118,22 @@
 
 package RTi.GRTS;
 
+import java.awt.Adjustable;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
@@ -135,27 +142,41 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 
 import javax.swing.border.Border;
 
+import RTi.Collections.MultiValueHash;
 import RTi.TS.DateValueTS;
+import RTi.TS.IrregularTS;
 import RTi.TS.TS;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
@@ -375,6 +396,11 @@ private Vector
 	__tslist,
 	__year;
 
+/** Controls whether irregular TS scroll synchronously */
+private JCheckBox __synchronizeCheckBox;
+/** Flag whether irregular TS are to scroll synchronously */
+private boolean __scrollIrregularSychnonously = false;
+
 /**
 Constructor.
 @param tsviewJFrame Parent TSViewJFrame.
@@ -473,6 +499,13 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
 	}
 	
 	int numWorksheets = worksheets.length;
+  
+  AdjustmentListener irregularAdjustmentListener = null;
+	boolean isIrregular = (intervalDescription.equals("Irregular"));
+	if (isIrregular)
+	  {
+      irregularAdjustmentListener = new IrregularAdjustmentListener();
+	  }
 
 	// Create the panel into which these worksheets will be placed, and
 	// give it a GridBagLayout.
@@ -520,11 +553,19 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
 			worksheets[i]);
 		v.add(scrollPanes[i].getHorizontalScrollBar());
 
+		if (isIrregular)
+		  {
+		    scrollPanes[i].getVerticalScrollBar().setName("vScroll_" + i);
+		    scrollPanes[i].getVerticalScrollBar().putClientProperty("Worksheet", worksheets[i]);
+		    // Irregular worksheets scroll synchronously
+//dre		    scrollPanes[i].getVerticalScrollBar().addAdjustmentListener(irregularAdjustmentListener);
+		  }
+		
 		scrollPanes[i].getHorizontalScrollBar().addMouseListener(
 			worksheets[i]);
         	JGUIUtil.addComponent(subPanel, scrollPanes[i],
-			i, 0, 1, 1, 1, 1, 
-			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 
+        	        i, 0, 1, 1, 1, 1, 
+        	        GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 
 
 		// this next line looks weird, but is done because somewhere
 		// the pointer to the worksheet that the models have is getting
@@ -539,18 +580,47 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
 	// (and each GUI panel contains the data for a specific Interval base)
 	// then it's not necessary to include the checkbox for selecting and
 	// deselecting specific interval bases.
-	if (calculateNumberOfPanels() > 1) {
-		JGUIUtil.addComponent(panel, checkBox,
-			0,__panelCount++, 1, 1, 1, 0,
-			GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
-	}
+	
 
+	if (isIrregular)
+	  {
+	    JPanel jPanel = new JPanel();
+	    if (calculateNumberOfPanels() > 1)
+	      {
+	        jPanel.add(checkBox);
+	      }
+	    __synchronizeCheckBox = new JCheckBox("Synchronized scrolling");
+	    __synchronizeCheckBox.setName("Synchronized scrolling");
+	    __synchronizeCheckBox.setSelected(__scrollIrregularSychnonously);
+	    __synchronizeCheckBox.addItemListener(
+	            new ItemListener()
+	            {
+	              public void itemStateChanged(ItemEvent e)
+	              {
+	                __scrollIrregularSychnonously =
+	                  (e.getStateChange() == ItemEvent.SELECTED)?true:false;
+	              }
+	            });
+
+	    jPanel.add(__synchronizeCheckBox);
+	    JGUIUtil.addComponent(panel, jPanel,
+	            0,__panelCount, 1, 1, 1, 0,
+	            GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
+	  }
+	else if (calculateNumberOfPanels() > 1)
+	  {
+	    JGUIUtil.addComponent(panel, checkBox,
+            0,__panelCount, 1, 1, 1, 0,
+            GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
+	  }
+	  
+	__panelCount++;
+	
 	subPanel.setBorder(BorderFactory.createTitledBorder(intervalDescription
 		+ " Interval"));
       	JGUIUtil.addComponent(panel, subPanel,
 		0, __panelCount++, 1, 1, 1, 1, 
 		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
-     Container parent = panel.getParent();
 }
 
 /**
@@ -811,6 +881,7 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 	// the same interval multipliers.  The arrays are sized to the 
 	// maximum size necessary and won't necessarily be filled completely.
 	int[] matches = new int[nTS];
+	// Display format for time series
 	String[] tsFormatString = new String[nTS];
 	
 	int count = 0;
@@ -832,9 +903,12 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 
 	// Go through the time series and see how many of them have different
 	// intervals.  All of the TS with the same intervals need to be
-	// placed in the same worksheet.
+	// placed in the same worksheet. (Excludes irregular TS)
 	count = findIntervals(tslist, matches, tsFormatString,  propValue);
 
+	// Find the # of irregular TS
+	//int nIregTS = findIrregularTS(tslist);
+	
    // Calculate the output precision for Time Series
 	for (int i = 0; i < nTS; i++)
 	  {
@@ -846,62 +920,84 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 	  }
 	
 	// create an array of table models big enough to hold one table
-	// model for every different interval multiplier
-	TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
-
+	// model for every different interval multiplier & each Irregular TS
+	//TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
+	
 	boolean useExtendedLegend = false;	
 	propValue = __props.getValue("Table.UseExtendedLegend");
 	if ((propValue != null) && (propValue.equalsIgnoreCase("true"))) {
 		useExtendedLegend = true;
 	}	
 
-	TS tempTS = null;
+	Vector tableModels = new Vector();
+	// Separate time series into groups. Each group having the same base & multiplier
+	MultiValueHash mvh = new MultiValueHash();
+	  nTS = tslist.size();
+	  for (int i = 0; i < nTS; i++)
+	    {
+	    ts = (TS)tslist.elementAt(i);
 
-	// loop through all of the different interval multipliers
-	for (int i = 0; i < count; i++) {
-		Vector tsList_sameIntervalMultiplier = new Vector();
+	    mvh.put(new Integer(ts.getDataIntervalBase()),ts);	
+	    }
+	  
+	  Set set = mvh.keySet();
+	  Object key;
+    
+    Iterator it = set.iterator();
+    while (it.hasNext())
+           {
+             key =  it.next();
+             List listByIntervalBase = (List) mvh.get(key); // list w/ same base
 
-		// add all the time series with the same interval multiplier
-		// to the Vector
-		for (int j = 0; j < nTS; j++) {
-			if (matches[j] == i) {
-				tsList_sameIntervalMultiplier.add(tslist.elementAt(j));
-			}
-		}
+             // now group by save Interval Multipier
+             MultiValueHash mvhByIntervalMult = new MultiValueHash();
+             int nList = listByIntervalBase.size();
+             for (int i = 0; i < nList; i++)
+               {
+                 ts = (TS)listByIntervalBase.get(i);
+                 mvhByIntervalMult.put(new Integer(ts.getDataIntervalMult()), ts);
+               }
 
-		// get all the format precision strings for the TS that were
-		// found in the previous loop 
-		String[] formats = new String[tsList_sameIntervalMultiplier.size()];		
-		int formatCount = 0;
-		for (int j = 0; j < nTS; j++) {
-			if (matches[j] == i) {
-				formats[formatCount++] = tsFormatString[j];
-			}
-		}		
-
-		// now get the starting date of data ...
-		TSLimits limits = TSUtil.getPeriodFromTS(tsList_sameIntervalMultiplier, TSUtil.MAX_POR);
-		DateTime start = limits.getDate1();	
-
-		// ... and the interval multiplier ...
-		if (tsList_sameIntervalMultiplier == null || tsList_sameIntervalMultiplier.size() == 0) {
-			// (in this case, use a representative TS)
-			tempTS = (TS)tslist.elementAt(i);
-			multi = tempTS.getDataIntervalMult();		
-		}
-		else {
-			tempTS = (TS)tsList_sameIntervalMultiplier.elementAt(i);//dre was elementAt(0)
-			multi = tempTS.getDataIntervalMult();
-		}
-
-		// ... and create the table model to display all the time 
-		// series with the same interval base and interval multiplier
-		models[i] = new TSViewTable_TableModel(tsList_sameIntervalMultiplier, start, 
-			interval, multi, dateFormat, formats,
-			useExtendedLegend);
-	}	
-
-	return models;
+             Set set2 = mvh.keySet();
+             Object key2;
+             Iterator it2 = set2.iterator();
+             Vector tempVector = new Vector();
+             while (it2.hasNext())
+               {
+                 key2 =  it2.next();
+                 List listByIntervalMult = (List) mvh.get(key); // list w/ same base & mult
+                 String[] formats = findFormats(listByIntervalMult, propValue);
+              // now get the starting date of data ...
+                 TSLimits limits = TSUtil.getPeriodFromTS(new Vector(listByIntervalMult), TSUtil.MAX_POR);
+                 DateTime start = limits.getDate1();
+               
+                 if (listByIntervalMult.get(0) instanceof IrregularTS)
+                   {
+                     Iterator temp = listByIntervalMult.iterator();
+                     while (temp.hasNext())
+                       {
+                         tempVector.clear();
+                         tempVector.add(temp.next());
+                         // create models for each ts separately
+                         tableModels.add ( new TSViewTable_Irregular_TableModel(tempVector, start, 
+                                 interval, multi, dateFormat, formats,
+                                 useExtendedLegend));
+                       }
+                   }
+                 else
+                   {
+                     // create model
+                     tableModels.add (
+                             new TSViewTable_TableModel(new Vector(listByIntervalMult), 
+                                     start, interval, multi, dateFormat, formats,
+                                     useExtendedLegend));
+                   }
+               }
+           }
+ 
+    TSViewTable_TableModel models[] = 
+      (TSViewTable_TableModel[])tableModels.toArray(new TSViewTable_TableModel[tableModels.size()]);
+    return models;
 	}
 	catch (Exception e) {
 		Message.printWarning(2, routine, "Error generating worksheets");
@@ -909,11 +1005,59 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		return null;
 	}
 }
+
 /**
- * Returns the number of differend intervals in the tslist.
+ * Returns the display formats for the specified list of time series.
+ * 
+ * @param tsList list of time series
+ * @param propValue
+ * @return list of display formats
+ */
+private String[] findFormats(List tsList, String propValue)
+{
+  String[] formats = new String[tsList.size()];  
+
+  int nTS = tsList.size();
+  TS ts;
+  for (int i = 0; i < nTS; i++)
+    {
+      ts = (TS)tsList.get(i);
+      //Calculate the output precision for Time Series
+      int tsPrecision = calcOutputPrecision(ts, propValue);
+      formats[i] = "%" + __OUTPUT_WIDTH + "."
+      + tsPrecision + "f";
+    }
+  return formats;
+}
+/**
+ * Returns the Irregular TS contained in the specified TS list.
+ * @param tslist
+ * @return
+ */
+private Vector findIrregularTS(Vector tslist)
+{
+  TS ts;
+  Vector v = new Vector();
+  for (int i = 0; i< tslist.size(); i++)
+    {
+      ts = (TS)tslist.elementAt(i);
+  
+      if (ts.getDataIntervalBase() == TimeInterval.IRREGULAR)
+        {
+          v.add(ts);
+        }
+    }
+  return v;
+}
+
+/**
+ * Returns the number of different intervals in the tslist.
  * 
  * @param tslist List of Time Series.
  * @param matching
+ * 
+ * @return number of different intervals (number of models needed)
+ * 
  */
 private int findIntervals(Vector tslist, int[] matches,
         String[] tsFormatString, String propValue)
@@ -921,7 +1065,7 @@ private int findIntervals(Vector tslist, int[] matches,
   int nTS = tslist.size();
   int count = 0;
   //the following array is used to match up time series with 
-  // the same interval multipliers.  The array issized to the 
+  // the same interval multipliers.  The array is sized to the 
   // maximum size necessary and won't necessarily be filled completely.
   
   int[] mults = new int[nTS];
@@ -930,7 +1074,12 @@ private int findIntervals(Vector tslist, int[] matches,
   int multi;
   for (int i = 0; i < nTS; i++) {
 		ts = (TS)tslist.elementAt(i);
-
+	
+		// Skip irregular TS because each must get it's own
+		if (ts.getDataIntervalBase() == TimeInterval.IRREGULAR)
+		  {
+		    continue;
+		  }
 		// get the interval multiplier for the current TS
 		multi = ts.getDataIntervalMult();
 		hit = false;
@@ -1041,13 +1190,25 @@ PropList p) {
 			new TSViewTable_CellRenderer(model);
 		worksheet = new JWorksheet(cr, model, p);
 	//TODO:dredre	worksheet.setPreferredScrollableViewportSize(null);
+		setVisibleRowCount(worksheet,20);
+
 		worksheet.setHourglassJFrame(this);
 		worksheets[i] = worksheet;
 		model.setWorksheet(worksheets[i]);
 	}
 	return worksheets;
 }
-
+/** 
+Sets the visible row count for the specified table.
+<p>
+Assumes fixed row heights
+*/
+public static void setVisibleRowCount(JTable table, int rows){ 
+  table.setPreferredScrollableViewportSize(new Dimension( 
+    table.getPreferredScrollableViewportSize().width, 
+    rows*table.getRowHeight() 
+  )); 
+} 
 /**
 Clean up before garbage collection.
 */
@@ -1641,7 +1802,7 @@ private void setupGUI(boolean mode) {
 	// Add a panel to hold the tables...
 	__mainJPanel = new JPanel();
 	__mainJPanel.setLayout(gbl);
-	getContentPane().add(__mainJPanel);
+	getContentPane().add(__mainJPanel, BorderLayout.CENTER);
 
 	// Create all the JCheckboxes
 	__minuteJCheckBox = new JCheckBox("Minute Time Series", true);
@@ -1702,9 +1863,13 @@ private void setupGUI(boolean mode) {
 	
 	// create the panels for the interval bases
 	__minuteJPanel = new JPanel();
+  __minuteJPanel.setName("minuteJPanel");
 	__hourJPanel = new JPanel();
+  __hourJPanel.setName("hourJPanel");
 	__dayJPanel = new JPanel();
 	__irregularJPanel = new JPanel();
+	__irregularJPanel.setName("irregularJPanel");
+
 	__monthJPanel = new JPanel();
 	__yearJPanel = new JPanel();
 
@@ -1768,19 +1933,7 @@ private void setupGUI(boolean mode) {
 			__yearJCheckBox, __yearWorksheets, 
 			yearHeaders, __yearScrollPanes,
 			__yearMouseListeners);
-/**
-		if (__irregular != null && __irregular.size() > 0) {
-		__irregularJPanel.setLayout(new GridBagLayout());
-		JGUIUtil.addComponent(__irregularJPanel,
-			new JLabel("Table view for irregular data is not "
-			+ "currently enabled.  Use the summary view."),
-			0, 0, 1, 1, 1, 1, 
-			GridBagConstraints.NONE, GridBagConstraints.WEST);
-	      	JGUIUtil.addComponent(__mainJPanel, __irregularJPanel,
-			0, __panelCount++, 1, 1, 1, 1, 
-			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
-		}
-		*/
+
 	}
 	else {
 		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
@@ -1820,23 +1973,10 @@ private void setupGUI(boolean mode) {
 			__minuteJCheckBox, __minuteWorksheets, 
 			minuteHeaders,
 			__minuteScrollPanes, __minuteMouseListeners);		
-
-		/*
-		if (__irregular != null && __irregular.size() > 0) {
-		__irregularJPanel.setLayout(new GridBagLayout());
-		JGUIUtil.addComponent(__irregularJPanel,
-			new JLabel("Table view for irregular data is not "
-			+ "currently enabled.  Use the summary view."),
-			0, 0, 1, 1, 1, 1, 
-			GridBagConstraints.NONE, GridBagConstraints.WEST);
-	      	JGUIUtil.addComponent(__mainJPanel, __irregularJPanel,
-			0, __panelCount++, 1, 1, 1, 1, 
-			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
-		}
-		*/
 	}
 
 	JPanel bottomJPanel = new JPanel();
+  bottomJPanel.setName("bottomJPanel");
 	bottomJPanel.setLayout (gbl);
 	__messageJTextField = new JTextField();
 	__messageJTextField.setEditable(false);
@@ -1846,6 +1986,7 @@ private void setupGUI(boolean mode) {
 
 	// Put the buttons on the bottom of the window...
 	JPanel button_JPanel = new JPanel();
+	 bottomJPanel.setName("button_JPanel");
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
 	__graphJButton = new SimpleJButton(__BUTTON_GRAPH, this);
@@ -1861,7 +2002,7 @@ private void setupGUI(boolean mode) {
 	}
 
 	__closeJButton = new SimpleJButton(__BUTTON_CLOSE,this);
-
+	__closeJButton.setName(__BUTTON_CLOSE);
 	__saveJButton = new SimpleJButton(__BUTTON_SAVE, this);
 	__saveJButton.setEnabled(false);
 
@@ -1876,16 +2017,30 @@ private void setupGUI(boolean mode) {
 	JGUIUtil.addComponent(bottomJPanel, button_JPanel,
 		0, 0, 8, 1, 1, 1,
 		GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
-
-	getContentPane().add("South", bottomJPanel);
+	getContentPane().setName("ContentPane");
+	getContentPane().add(bottomJPanel,BorderLayout.SOUTH);
 
 	__messageJTextField.setText("Currently-selected worksheet: (none)");	
 
-	pack();
-	setSize(555,500);
+	//TODO: dre set size BEFORE pack! - but causes layout issues...
+  pack();
+  setSize(555,500);
+
+	
 	JGUIUtil.center(this);
 	setVisible(mode);
 
+	// avoid sych events during initialization by delay of adding listeners
+	if (__irregularScrollPanes != null && __irregularScrollPanes.length > 0)
+	  {
+	    AdjustmentListener irregularAdjustmentListener = new IrregularAdjustmentListener();
+	    int nPanes = __irregularScrollPanes.length;
+	    for (int iPane = 0; iPane < nPanes; iPane++)
+	      {
+	        // Irregular worksheets scroll synchronously
+	        __irregularScrollPanes[iPane].getVerticalScrollBar().addAdjustmentListener(irregularAdjustmentListener);
+	      }
+	  }
 	} // end of try
 	catch (Exception e) {
 		Message.printWarning(2, routine, e);
@@ -2105,4 +2260,356 @@ private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
     }
   return null;
 } // eof findModel()
+
+
+/**
+ * Provides synchronization for scrolling of work sheets displaying
+ * irregular time series.
+ * <p>
+ * Notes: 
+ * <ul>
+ * <li>getAdjustmentType will ALWAYS return track so can't use it to
+ *     determine search direction.
+ * <li>All of the irregularTS worksheets use this AdjustmentListener,
+ *     so be careful to remove listeners for worksheets being manipulated. 
+ * </ul>
+ * @author dre
+ */
+class IrregularAdjustmentListener implements AdjustmentListener
+{
+  private  boolean _debug = false;
+  private  boolean _isAdjusting = false;
+  private  AdjustmentListener savedAdjustmentListeners[];
+ 
+  /**
+   * Provides synchronized scrolling for irregular worksheets by
+   * responding to their respective vertical scroll bar adjustment
+   * events.
+   * <p>
+   * Irregular TS may have dates at irregular date/times, therefore
+   * the date/time of a row in one table may not line up horizontally
+   * with the same row number in another table.
+   * <p> 
+   * Synchronized scrolling attempts to keep the top row of the worksheets
+   * at the same date for all worksheets provided the date/time exists.
+   * Otherwise it tries to align them as closely as possible.
+   */  
+  public void adjustmentValueChanged(AdjustmentEvent e) 
+  {
+    if (_isAdjusting) return;
+    if (!__scrollIrregularSychnonously) return;
+    Object source = e.getSource();
+
+    if (source instanceof JComponent)
+      {
+        JComponent jComp = (JComponent)source;
+        if (_debug) System.out.println(">>> " + jComp.getName());
+        JWorksheet jWorksheet= (JWorksheet)jComp.getClientProperty("Worksheet");
+        Rectangle vis=jWorksheet.getVisibleRect(); // get the current viewport
+
+        Point upperLeft=vis.getLocation();
+        int row=jWorksheet.rowAtPoint(upperLeft);
+        int col=jWorksheet.columnAtPoint(upperLeft);
+
+        if (_debug) System.out.println("Row/Col :" + row +","+ col);
+        Object valueNew =  jWorksheet.getModel().getValueAt(row, 0);
+        if (_debug) System.out.println("  type --> " + valueNew.getClass().getName());
+
+
+        if (valueNew instanceof DateTime)
+          {
+            if (_debug) System.out.println("Adj true");
+
+            _isAdjusting = true;
+            DateTime dateTime = (DateTime)valueNew;
+            if (_debug) System.out.println("Row/Col  date:" + row +","+ col + "  "+ dateTime);
+            // send msg to all observers except self!
+            // to notify listeners just call
+            int nWS = __irregularWorksheets.length;
+
+            for (int iWS =0; iWS < nWS; iWS++)
+              {
+                if (__irregularWorksheets[iWS] ==jWorksheet)
+                  continue;                        
+                if (_debug) System.out.println(" ... scroll worksheet: " + iWS);
+                /*
+                 * remove adjustmentListeners, so events won't propagate to
+                 * other irregularScrollPanes - add them back afterwards
+                 */ 
+                JScrollBar sBar = __irregularScrollPanes[iWS].getVerticalScrollBar();
+                savedAdjustmentListeners = sBar.getAdjustmentListeners();
+                for (int iListener = 0; iListener < savedAdjustmentListeners.length; iListener++)
+                  {
+                    sBar.removeAdjustmentListener(savedAdjustmentListeners[iListener]);
+                  }
+                /* Use top row of worksheet to start search 
+                 * - if already sychronized scrolling it should be close
+                 * - ensures row exists
+                 */
+                JWorksheet tmpWorksheet =__irregularWorksheets[iWS];
+                vis=tmpWorksheet.getVisibleRect(); // get the current viewport
+                upperLeft=vis.getLocation();
+                row=tmpWorksheet.rowAtPoint(upperLeft);
+                
+                int r = JTableUtil.find(tmpWorksheet,dateTime, 0, row);
+                if (r > -1)
+                  {
+                    DateTime dt = ((DateTime)((tmpWorksheet.getModel().getValueAt(r, 0))));
+                    if (_debug) System.out.println("   --> iWS: "+ iWS + " r: " + r + "  @ " + dt);
+
+                    JTableUtil.scrollRowToTop(tmpWorksheet, r);
+                  }
+                else
+                  {
+                    // System.out.println("   --> " + r);
+                  }
+                // restore listeners
+                for (int iListener = 0; iListener < savedAdjustmentListeners.length; iListener++)
+                  {
+                    sBar.addAdjustmentListener(savedAdjustmentListeners[iListener]);
+                  }
+              }
+            if (_debug) System.out.println("Adj false");
+            _isAdjusting= false;
+          }
+      }
+  }
+  
+
+  
+ 
+} // eof class IrregularAdjustmentListener
+} // eof class TSViewTableJFrame
+
+
+ /**
+  * Provides useful utility methods for JTable.
+  * 
+  * @author dre
+  */
+class JTableUtil
+{
+  /**
+   * Returns the row containing the closest match to the specified 
+   * value in the specified column.
+   * <p>
+   * The specified column must be ordered in ascending order.
+   * <p>
+   * The direction of search is determined by the relationship of the 
+   * target value and startingRow.
+   * <br>
+   * If the startingRow value is greater than the specified value, 
+   * the search will be upwards, and the match will be for the first
+   * value that is equal to or less than the target value.
+   * <br>
+   * Conversely, if the startingRow is less than the specified value, 
+   * the search will be downwards, and the match will be the first value
+   * that is equal to or greater than the target value. 
+   * 
+   * @param worksheet
+   * @param value
+   * @param column
+   * @param startingRow
+   * @return
+   */
+  public static int find(JWorksheet worksheet, DateTime value, 
+          int column, int startingRow)
+  {
+
+    // TODO: dre make sure specified column holds DateTime
+    // Strangely, class is reported as string... maybe because it is most general super class
+//if (!(c == DateTime.class)) {
+//return -1;
+//}
+    // 
+    int flags = JWorksheet.FIND_WRAPAROUND 
+    | JWorksheet.FIND_EQUAL_TO
+    | JWorksheet.FIND_GREATER_THAN;
+
+    DateTime rowVal = ((DateTime)((worksheet.getModel().getValueAt(startingRow,
+            column))));
+
+    int result = rowVal.compareTo(value);
+    
+    if (result == 0)
+      {
+        return startingRow;
+      }
+    else if(result < 0)
+      {
+        flags = JWorksheet.FIND_WRAPAROUND 
+        | JWorksheet.FIND_EQUAL_TO
+        | JWorksheet.FIND_GREATER_THAN;
+      }
+    else 
+      {
+       flags =  JWorksheet.FIND_WRAPAROUND 
+       | JWorksheet.FIND_EQUAL_TO
+       | JWorksheet.FIND_LESS_THAN
+       | JWorksheet.FIND_REVERSE;
+      }
+    return JTableUtil.find(worksheet, value, 0, startingRow, flags);
+  }
+  
+  /**
+  Finds the first row containing the specified value in the specified column
+  @param value the value to match
+  @param absoluteColumn the <b>absolute</b> column number to search.  Columns are 
+  numbered starting at 0, and 0 is usually the row count column.
+  @param startingRow the row to start searching from
+  @param flags a bit-mask of flags specifying how to search
+  @return the index of the row containing the value, or -1 if not found (also
+  -1 if the column class is not Date).
+  */
+  public static int find(JWorksheet worksheet, DateTime value, int absoluteColumn, int startingRow, int flags) { 
+    if (flags == 0) {
+      flags = JWorksheet.FIND_EQUAL_TO;
+    }
+
+    boolean wrap = false;
+    if ((flags & JWorksheet.FIND_WRAPAROUND) == JWorksheet.FIND_WRAPAROUND) {
+      wrap = true;
+    } 
+    
+    // check if the starting row is out of bounds
+    if (startingRow < 0) {
+          return -1;
+    }
+    if (startingRow > (worksheet.getRowCount() - 1)) {
+      if (wrap) {
+        startingRow = 0;
+      }
+    }
+
+    // check if the column is out of bounds
+    if ((absoluteColumn < 0) ||
+       // (absoluteColumn > (__columnNames.length - 1))) {
+            (absoluteColumn >  worksheet.getColumnCount()-1)){
+          return -1;
+    }
+
+    int visibleColumn = worksheet.getVisibleColumn(absoluteColumn);
+
+    int endingRow = worksheet.getRowCount();
+    boolean reverse = false;
+
+    if ((flags & JWorksheet.FIND_REVERSE) == JWorksheet.FIND_REVERSE) {
+      reverse = true;
+      endingRow = 0;
+    }
+    boolean equalTo = false;
+    if ((flags & JWorksheet.FIND_EQUAL_TO) == JWorksheet.FIND_EQUAL_TO) {
+      equalTo = true;
+    }
+    boolean lessThan = false;
+    if ((flags & JWorksheet.FIND_LESS_THAN) == JWorksheet.FIND_LESS_THAN) {
+      lessThan = true;
+    }
+    boolean greaterThan = false;
+    if ((flags & JWorksheet.FIND_GREATER_THAN) == JWorksheet.FIND_GREATER_THAN) {
+      greaterThan = true;
+    }
+    
+    boolean done = false;
+    DateTime rowVal;
+    int row = startingRow;
+    int result;
+    while (!done) {
+      rowVal = ((DateTime)((worksheet.getModel().getValueAt(row, visibleColumn))));
+
+      result = rowVal.compareTo(value);
+
+      if (equalTo) {
+        if (result == 0) {
+          return row;
+        }
+      }
+      if (lessThan) {
+        if (result == -1) {
+          return row;
+        }
+      }
+      if (greaterThan) {
+        if (result == 1) {
+          return row;
+        }
+      }
+
+      if (reverse) {
+        row--;
+        if (row < endingRow) {
+          if (wrap) {
+            wrap = false;
+            row = worksheet.getRowCount() - 1;  
+            endingRow = startingRow;
+            if (row < endingRow) {
+              done = true;
+            }
+          }
+          else {
+            done = true;
+          }     
+        }
+      }
+      else {
+        row++;
+        if (row > endingRow) {
+          if (wrap) {
+            wrap = false;
+            row = 0;
+            endingRow = startingRow;
+            if (row > endingRow) {
+              done = true;
+            }
+          }
+          else { 
+            done = true;
+          }     
+        }
+      }
+    }
+    return -1;
+  }
+  /**
+   * Scrolls the specified row of a JTable to the top of the view.
+   * <p>
+   * The table must be contained in a JViewport/JScrollPane.
+   * 
+   * @param table JTable containing row
+   * @param row row to be displayed at the top.
+   */
+  public static void scrollRowToTop(JTable table, int row)
+  {
+    boolean debug = false;
+    if (!(table.getParent() instanceof JViewport))
+      {
+        return;
+      }
+    if (debug) System.out.println("scroll2Top: scroll to row: " + row);
+
+ // Rectangle visibleRect = viewport.getVisibleRect();
+    Rectangle visibleRect = table.getVisibleRect();
+    int topY = visibleRect.y;
+    if (debug)  System.out.println( "   currently Top at: " + table.rowAtPoint(new Point(1,topY)));
+    Rectangle cellRectangle = table.getCellRect(row, 0, true);
+    if (debug)  System.out.println("   row @ " + cellRectangle );
+    if (debug) System.out.println("   visibleRect : " + visibleRect );
+
+    if (topY > cellRectangle.y)
+      {
+        //need to scroll UP
+        if (debug) System.out.println("   scroll UP");
+        //  cellRectangle.y = cellRectangle.y - visibleRect.y + topY;
+        cellRectangle.y = cellRectangle.y - visibleRect.y + topY;
+      }
+    else
+      {
+        //need to scroll DOWN
+        if (debug) System.out.println("   scroll DOWN");
+        cellRectangle.y = cellRectangle.y + visibleRect.height- cellRectangle.height;
+      }
+    // Scroll the area into view
+    if (debug) System.out.println("   scrolling 2: " +  cellRectangle);
+    table.scrollRectToVisible(cellRectangle);
+  }
 }
