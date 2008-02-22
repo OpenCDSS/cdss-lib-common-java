@@ -403,6 +403,11 @@ about version?).
 */
 protected final int _DBENGINE_POSTGRESQL = 70;
 
+/**
+Database engine corresponding to "H2" database engine
+ */
+protected final int _DBENGINE_H2 = 80;
+
 ///////////////////////////////////////////////////////////
 //  Commit / Rollback constants
 ///////////////////////////////////////////////////////////
@@ -872,6 +877,12 @@ throws Exception {
 			__port = 1433;
 		}
 		_database_engine = _DBENGINE_SQLSERVER_2005;
+    }
+    else if (__database_engine_String.equalsIgnoreCase("H2")) {
+        _left_id_delim = "";
+		_right_id_delim = "";	
+		_string_delim = "'";
+		_database_engine = _DBENGINE_H2;
     }
 	else {	throw new Exception("Trying to use unknown database engine: "
 			+ __database_engine_String + " in DMI()");
@@ -2461,6 +2472,16 @@ throws SQLException, Exception {
 				"Opening ODBC connection for SQLServer7 "
 				+ "using \"" + connUrl + "\"" );
 		}
+        else if (_database_engine == _DBENGINE_H2 ) {
+			printStatusOrDebug(dl, routine, "Database engine is "
+				+ "type 'DBENGINE_H2'");
+			Class.forName( "org.h2.Driver");
+			connUrl = "jdbc:h2:file:/" 
+				+ __database_server;
+			Message.printStatus(2, routine,
+				"Opening JDBC connection for H2 "
+				+ "using \"" + connUrl + "\"" );
+		}
 		else {	
 			printStatusOrDebug(dl, routine, "Unknown database "
 				+ "engine, throwing exception.");
@@ -2681,6 +2702,9 @@ throws Exception {
 		// The port number for SQL server is typically not changed...
 		//__port = 1433;
 		_database_engine = _DBENGINE_SQLSERVER2000;
+	}
+    else if (__database_engine_String.equalsIgnoreCase("H2")) {
+		_database_engine = _DBENGINE_H2;
 	}
 	else {	throw new Exception("Trying to use unknown database engine: "
 			+ __database_engine_String + " in DMI()");
