@@ -2310,7 +2310,8 @@ throws Exception
 	}
 	if ( prop_value == null ) {
 		// Try to get units information for default...
-		try {	DataUnits u = DataUnits.lookupUnits ( req_units );
+		try {
+		    DataUnits u = DataUnits.lookupUnits ( req_units );
 			data_format = "%9." + u.getOutputPrecision() + "f";
 		}
 		catch ( Exception e ) {
@@ -2318,7 +2319,8 @@ throws Exception
 			data_format = "%9.1f";
 		}
 	}
-	else {	// Set to requested precision...
+	else {
+	    // Set to requested precision...
 		data_format = "%9." + prop_value + "f";
 	}
 
@@ -2330,7 +2332,8 @@ throws Exception
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
-	else {	// Set to requested format...
+	else {
+	    // Set to requested format...
 		calendar = prop_value;
 	}
 
@@ -2440,7 +2443,7 @@ throws Exception
 	// precision of the data to get a full month and calculate the number
 	// of needed values...
 
-	// REVISIT SAM 2004-09-07 The start appears to be the interval-ending
+	// TODO SAM 2004-09-07 The start appears to be the interval-ending
 	// date/time for the first interval in the month...
 
 	int nvalues_in_day_needed = 0;
@@ -2448,8 +2451,7 @@ throws Exception
 		start_date.setPrecision ( DateTime.PRECISION_DAY );
 		start_date.setDay ( 1 );
 		end_date.setPrecision ( DateTime.PRECISION_DAY );
-		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(),
-			end_date.getYear()) );
+		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(), end_date.getYear()) );
 		nvalues_in_day_needed = 1;
 	}
 	else if ( data_interval_base == TimeInterval.HOUR ) {
@@ -2460,24 +2462,23 @@ throws Exception
 			start_date.setDay ( 2 );
 			nvalues_in_day_needed = 1;
 		}
-		else {	start_date.setHour ( data_interval_mult );
+		else {
+		    start_date.setHour ( data_interval_mult );
 			nvalues_in_day_needed = 24/data_interval_mult;
 		}
 		end_date.setPrecision ( DateTime.PRECISION_HOUR );
-		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(),
-			end_date.getYear()) );
+		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(), end_date.getYear()) );
 		// First interval of next day..
 		end_date.setHour ( 0 );
 		end_date.addDay ( 1 );
 	}
 	else if ( data_interval_base == TimeInterval.MINUTE ) {
-		/* REVISIT SAM 2004-09-07 Why do anything?  Why take such
+		/* TODO SAM 2004-09-07 Why do anything?  Why take such
 		special care above?
 		start_date.setPrecision ( DateTime.PRECISION_MINUTE );
 		start_date.setMinute ( data_interval_mult );
 		end_date.setPrecision ( DateTime.PRECISION_MINUTE );
-		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(),
-			end_date.getYear()) );
+		end_date.setDay ( TimeUtil.numDaysInMonth(end_date.getMonth(), end_date.getYear()) );
 		// First interval of next day..
 		end_date.setMinute ( 0 );
 		end_date.setHour ( 0 );
@@ -2485,12 +2486,10 @@ throws Exception
 		*/
 		nvalues_in_day_needed = 24*60/data_interval_mult;
 	}
-	Message.printStatus ( 1, routine, "Generating monthly summary for " +
-		start_date + " to " + end_date );
+	Message.printStatus ( 1, routine, "Generating monthly summary for " + start_date + " to " + end_date );
 
 	// Calculate the number of years...
-	int num_years = (end_date.getAbsoluteMonth() -
-			start_date.getAbsoluteMonth() + 1)/12;
+	int num_years = (end_date.getAbsoluteMonth() - start_date.getAbsoluteMonth() + 1)/12;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
 		"Printing " + num_years + " years of summary for " +
@@ -2499,10 +2498,8 @@ throws Exception
 	}
 	// Allow for total column...
 	double data[][] = new double[num_years][13];	// Monthly values
-	double data_max[][] = new double[num_years][13];// Max daily value in a
-							// month.
-	double data_min[][] = new double[num_years][13];// Min daily value in a
-							// month.
+	double data_max[][] = new double[num_years][13];// Max daily value in a month.
+	double data_min[][] = new double[num_years][13];// Min daily value in a month.
 
 	// Initialize...
 	double missing = ts.getMissing();
@@ -2517,14 +2514,13 @@ throws Exception
 
 	// Now loop through the time series and transfer to the proper
 	// location in the matrix...
-	double		day_total = missing, year_total = missing;
-	double		day_value = missing, month_value = missing,
-			month_total = missing;
-	double		value = missing;
-	int		nvalues_in_day = 0;
-	DateTime	date = new DateTime(start_date,DateTime.DATE_FAST);
-	StringBuffer	buffer = null;
-	int		non_missing_in_row = 0;
+	double day_total = missing, year_total = missing;
+	double day_value = missing, month_value = missing, month_total = missing;
+	double value = missing;
+	int nvalues_in_day = 0;
+	DateTime date = new DateTime(start_date,DateTime.DATE_FAST);
+	StringBuffer buffer = null;
+	int non_missing_in_row = 0;
 	// We have adjusted the dates above, so we always start in
 	// column 0 (first month in year)...
 	column = 0;
@@ -2532,14 +2528,12 @@ throws Exception
 	// Set the previous to the current so that we don't force processing
 	// the first time through the loop (it will occur for daily data because
 	// of a check below.
-	int day = date.getDay(), day_prev = day, month = date.getMonth(),
-		month_prev = month;
+	int day = date.getDay(), day_prev = day, month = date.getMonth(), month_prev = month;
 	boolean need_to_process_day = false;
 	boolean need_to_process_month = false;
 	int nvalues_in_month = 0;
 	int nvalues_in_month_needed = 0;
-	// The loop goes through each value.  Accumulate to days and then to
-	// month, as needed...
+	// The loop goes through each value.  Accumulate to days and then to month, as needed...
 	for (	;
 		date.lessThanOrEqualTo(end_date);
 		date.addInterval(data_interval_base, data_interval_mult) ) {
@@ -2556,12 +2550,12 @@ throws Exception
 			if ( ts.isDataMissing(day_total) ) {
 				day_total = value;
 			}
-			else {	day_total += value;
+			else {
+			    day_total += value;
 			}
 			++nvalues_in_day;
 		}
-		// Check to see if the day is complete.  If so, compute the
-		// daily value.
+		// Check to see if the day is complete.  If so, compute the daily value.
 		day = date.getDay();
 		need_to_process_day = false;
 		if ( data_interval_base == TimeInterval.DAY ) {
@@ -2593,14 +2587,15 @@ throws Exception
 			if ( day_is_average ) {
 				if ( !ts.isDataMissing(day_total) ) {
 					if ( nvalues_in_day > 0 ) {
-						day_value = day_total/
-							(double)nvalues_in_day;
+						day_value = day_total/(double)nvalues_in_day;
 					}
-					else {	day_value = missing;
+					else {
+					    day_value = missing;
 					}
 				}
 			}
-			else {	day_value = day_total;
+			else {
+			    day_value = day_total;
 			}
 		}
 /*
@@ -2609,17 +2604,16 @@ throws Exception
 			" nvalues_needed:" + nvalues_in_day_needed );
 */
 		// Check the minimum and maximum daily values...
-		data_max[row][column] = MathUtil.max (
-			data_max[row][column], day_value, missing );
-		data_min[row][column] = MathUtil.min (
-			data_min[row][column], day_value, missing );
+		data_max[row][column] = MathUtil.max ( data_max[row][column], day_value, missing );
+		data_min[row][column] = MathUtil.min ( data_min[row][column], day_value, missing );
 		// Add the daily value to the month.  Below will check to see if
 		// it is time to process the month...
 		if ( !ts.isDataMissing(day_value) ) {
 			if ( ts.isDataMissing(month_total) ) {
 				month_total = day_value;
 			}
-			else {	month_total += day_value;
+			else {
+			    month_total += day_value;
 			}
 			++nvalues_in_month;
 		}
@@ -2631,15 +2625,12 @@ throws Exception
 		month = date.getMonth();
 		need_to_process_month = false;
 		if ( data_interval_base == TimeInterval.DAY ) {
-			if (	(day ==
-				TimeUtil.numDaysInMonth(month,date.getYear()))){
+			if ( (day == TimeUtil.numDaysInMonth(month,date.getYear()))){
 				// Daily interval so month is complete when last
 				// day of the month is encountered...
 				need_to_process_month = true;
 				// Use the current month...
-				nvalues_in_month_needed =
-					TimeUtil.numDaysInMonth(
-					month, date.getYear() );
+				nvalues_in_month_needed = TimeUtil.numDaysInMonth( month, date.getYear() );
 			}
 		}
 		else if ( month != month_prev ) {
@@ -2650,18 +2641,14 @@ throws Exception
 			need_to_process_month = true;
 			// Need to use the previous month...
 			if ( month_prev == 12 ) {
-				nvalues_in_month_needed =
-					TimeUtil.numDaysInMonth(
-					month_prev, (date.getYear() - 1) );
+				nvalues_in_month_needed = TimeUtil.numDaysInMonth( month_prev, (date.getYear() - 1) );
 			}
-			else {	nvalues_in_month_needed =
-					TimeUtil.numDaysInMonth(
-					month_prev, date.getYear() );
+			else {
+			    nvalues_in_month_needed = TimeUtil.numDaysInMonth( month_prev, date.getYear() );
 			}
 		}
 		if ( !need_to_process_month ) {
-			// Don't yet need to add the monthly value to the
-			// array (still accumulating days)...
+			// Don't yet need to add the monthly value to the array (still accumulating days)...
 			month_prev = month;
 			continue;
 		}
@@ -2669,22 +2656,22 @@ throws Exception
 		// The number of values needed in the month is the days since
 		// the data are always accumulated to days...
 		if ( nvalues_in_month != nvalues_in_month_needed ) {
-			// Don't have the right number of values so set to
-			// missing...
+			// Don't have the right number of values so set to missing...
 			month_value = missing;
 		}
 		else {	// Compute the month value...
 			if ( day_is_average ) {
 				if ( !ts.isDataMissing(month_total) ) {
 					if ( nvalues_in_month > 0 ) {
-						month_value = month_total/
-						(double)nvalues_in_month;
+						month_value = month_total/(double)nvalues_in_month;
 					}
-					else {	month_value = missing;
+					else {
+					    month_value = missing;
 					}
 				}
 			}
-			else {	month_value = month_total;
+			else {
+			    month_value = month_total;
 			}
 		}
 /*
@@ -2702,8 +2689,7 @@ throws Exception
 		if ( column == 0 ) {
 			// Allocate a new buffer and print the year...
 			buffer = new StringBuffer();
-			buffer.append ( StringUtil.formatString(
-			(date.getYear() + year_offset), "%04d") + " " );
+			buffer.append ( StringUtil.formatString( (date.getYear() + year_offset), "%04d") + " " );
 			non_missing_in_row = 0;
 		}
 		// Do not use an else here because if we are on column 0 we
@@ -2732,18 +2718,14 @@ throws Exception
 				buffer.append ( "    NC    " );
 				data[row][12] = missing;
 			}
-			else {	if ( year_column.equals("Total") ) {
-					buffer.append (
-					StringUtil.formatString(
-					year_total, data_format) );
+			else {
+			    if ( year_column.equals("Total") ) {
+					buffer.append ( StringUtil.formatString( year_total, data_format) );
 					data[row][12] = year_total;
 				}
 				else {	buffer.append (
-					StringUtil.formatString(
-					year_total/(double)non_missing_in_row,
-					data_format) );
-					data[row][12] = year_total/
-					(double)non_missing_in_row;
+					StringUtil.formatString( year_total/(double)non_missing_in_row, data_format) );
+					data[row][12] = year_total/(double)non_missing_in_row;
 				}
 			}
 			// Add the row...
@@ -2772,11 +2754,9 @@ throws Exception
 	strings = StringUtil.addListToStringList (strings,
 		createMonthSummaryStats(ts,data,num_years,"SDev", data_format));
 	strings = StringUtil.addListToStringList (strings,
-		createMonthSummaryStats(ts,data_max,num_years,"MMxD",
-		data_format));
+		createMonthSummaryStats(ts,data_max,num_years,"MMxD", data_format));
 	strings = StringUtil.addListToStringList (strings,
-		createMonthSummaryStats(ts,data_min,num_years,"MMnD",
-		data_format));
+		createMonthSummaryStats(ts,data_min,num_years,"MMnD", data_format));
 
 	// Now do the notes...
 
