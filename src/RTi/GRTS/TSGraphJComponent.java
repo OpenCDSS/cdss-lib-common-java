@@ -178,6 +178,11 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -208,6 +213,15 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+
+// Needed to support writing SVG...
+import org.apache.batik.svggen.SVGGraphics2D;
+import org.apache.batik.dom.GenericDOMImplementation;
+import org.apache.batik.svggen.SVGGeneratorContext;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.DOMImplementation;
+
 
 /**
 The TSGraphJComponent class provides a component for displaying one or more time
@@ -382,11 +396,11 @@ private GRLimits _datalim_graphs = null;	// Limits for graphs drawing
 private GRLimits _drawlim_graphs = null;	// area
 private GRLimits _datalim_leftfoot = null;	// Limits for left footer
 // TODO SAM 2007-05-09 Enable handling of the following
-private GRLimits _drawlim_leftfoot = null;	// drawing area
+//private GRLimits _drawlim_leftfoot = null;	// drawing area
 private GRLimits _datalim_centerfoot = null;	// Limits for center footer
-private GRLimits _drawlim_centerfoot = null;	// drawing area
+//private GRLimits _drawlim_centerfoot = null;	// drawing area
 private GRLimits _datalim_rightfoot = null;	// Limits for right footer
-private GRLimits _drawlim_rightfoot = null;	// drawing area
+//private GRLimits _drawlim_rightfoot = null;	// drawing area
 
 private Rectangle _bounds = null;		// Set with update.  Useful for
 						// clearing the component.
@@ -429,7 +443,17 @@ loaded and you don't want to see redraws between each one.
 */
 private boolean _waiting = false;
 
-private boolean _displayCrossHairCursor;
+// TODO SAM 2008-02-21 Need to enable
+/**
+Indicate whether to display cross-hairs on the graph to the edges
+*/
+private boolean _displayCrossHairCursor = false;
+
+/**
+Indicate whether the paint is to an SVG file.
+See the saveAsSVG() method.
+*/
+private boolean __paintForSVG = false;
 
 private TSGraphEditor _tsGraphEditor;
 
@@ -1215,7 +1239,7 @@ default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
 private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist )
-{	String routine = "TSGraphJComponent.createTSProductFromPropList";
+{	//String routine = "TSGraphJComponent.createTSProductFromPropList";
 
     try {
 
@@ -1612,11 +1636,11 @@ throws Throwable {
 	_datalim_graphs = null;	
 	_drawlim_graphs = null;	
 	_datalim_leftfoot = null;	
-	_drawlim_leftfoot = null;	
+	//_drawlim_leftfoot = null;	
 	_datalim_centerfoot = null;	
-	_drawlim_centerfoot = null;	
+	//_drawlim_centerfoot = null;	
 	_datalim_rightfoot = null;	
-	_drawlim_rightfoot = null;	
+	//_drawlim_rightfoot = null;	
 	_bounds = null;		
 	_printBounds = null;		
 	_parent = null;			
@@ -2388,7 +2412,8 @@ private void openDrawingAreas ()
 }
 
 /**
-Update the TSGraphJComponent visible image.
+Update the TSGraphJComponent visible image, render to printer (set _printing=true before calling),
+or render to SVG file (set __printForSVG=true before calling).
 @param g Graphics instance either from the component event handling or from an
 explicit printView() call.
 */
@@ -2408,15 +2433,16 @@ public void paint ( Graphics g )
 
 	if ( Message.isDebugOn ) {
 		if (_printing ) {
-			Message.printDebug ( 1, routine, _gtype +
-			"Printing graph(s)..." );
+			Message.printDebug ( 1, routine, _gtype + "Printing graph(s)..." );
 		}
+		else if ( __paintForSVG ) {
+	         Message.printDebug ( 1, routine, _gtype + "Saving graph(s) to SVG file..." );
+	    }
 		else if ( _is_reference_graph ) {
-			Message.printDebug ( 1, routine, _gtype +
-			"Painting reference graph..." );
+			Message.printDebug ( 1, routine, _gtype + "Painting reference graph..." );
 		}
-		else {	Message.printDebug ( 1, routine, _gtype +
-			"Painting main graph..." );
+		else {
+		    Message.printDebug ( 1, routine, _gtype + "Painting main graph..." );
 		}
 	}
 
@@ -2435,18 +2461,15 @@ public void paint ( Graphics g )
 		// can be determined.
 		_graphics = (Graphics2D)g;
 		// Now set the drawing limits these are necessary to compute
-		// the labels and are for the most part independent of data
-		// limits...
+		// the labels and are for the most part independent of data limits...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			_gtype + "Set drawing limits..." );
+			Message.printDebug ( 1, routine, _gtype + "Set drawing limits..." );
 		}
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			_gtype + "Set initial graph drawing limits to " +
-			_drawlim_graphs.toString() );
+			_gtype + "Set initial graph drawing limits to " + _drawlim_graphs.toString() );
 		}
 	}
 
@@ -2466,25 +2489,25 @@ public void paint ( Graphics g )
 		int xmin, xmax, ymin, ymax;
 		// Now draw the new rectangle (still in XOR mode)...
 		// If _mouse_x2 = -1, the code is getting called from
-		// mouseReleased() and only the previous rectangle needs to
-		// be cleared...
+		// mouseReleased() and only the previous rectangle needs to be cleared...
 		if ( _mouse_x2 != -1 ) {
 			if ( _mouse_x1 < _mouse_x2 ) {
 				xmin = _mouse_x1;
 				xmax = _mouse_x2;
 			}
-			else {	xmin = _mouse_x2;
+			else {
+			    xmin = _mouse_x2;
 				xmax = _mouse_x1;
 			}
 			if ( _mouse_y1 < _mouse_y2 ) {
 				ymin = _mouse_y1;
 				ymax = _mouse_y2;
 			}
-			else {	ymin = _mouse_y2;
+			else {
+			    ymin = _mouse_y2;
 				ymax = _mouse_y1;
 			}
-			g.drawRect ( xmin, ymin, (xmax - xmin),
-				(ymax - ymin) );
+			g.drawRect ( xmin, ymin, (xmax - xmin),(ymax - ymin) );
 			// Save the previous coordinates...
 			_mouse_xprev = _mouse_x2;
 			_mouse_yprev = _mouse_y2;
@@ -2496,8 +2519,7 @@ public void paint ( Graphics g )
 	}
 
 	// See if the graphics is for printing or screen and make a few
-	// adjustments accordingly.  Set the base class _printing flag if
-	// necessary...
+	// adjustments accordingly.  Set the base class _printing flag if necessary...
 
 	GRLimits new_draw_limits = null;
 	if ( _printing ) {
@@ -2505,7 +2527,9 @@ public void paint ( Graphics g )
 		// Bounds will have been set in printView...
 		new_draw_limits = new GRLimits();
 						// Gets the page size...
-		Message.printDebug(1, "", "PB: " + _printBounds);
+		if ( Message.isDebugOn ) {
+		    Message.printDebug(1, "", "PB: " + _printBounds);
+		}
 
 		// get the drawing limits from the bounds set by the
 		// print job.  These limits are the valid extents on the
@@ -2522,7 +2546,9 @@ public void paint ( Graphics g )
 		new_draw_limits.setTopY(_printBounds.getTopY());
 		new_draw_limits.setRightX( _printBounds.getRightX());
 		new_draw_limits.setBottomY(_printBounds.getBottomY());
-		Message.printDebug(1, "", "NL: " + new_draw_limits);
+		if ( Message.isDebugOn ) {
+		    Message.printDebug(1, "", "NL: " + new_draw_limits);
+		}
 
 		// set the limits for drawing to the printed page --
 		// the old limits will be reset after the print() call
@@ -2530,13 +2556,14 @@ public void paint ( Graphics g )
 		setLimits(new_draw_limits);
 
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype +
-			"Using print graphics." );
+			Message.printDebug ( 1, routine, _gtype + "Using print graphics." );
 		}
 		_graphics = (Graphics2D)g;
 		// Base class...
 	}
-	else {	// Gets the component size...
+	else {
+	    // Drawing to screen or SVG file.
+	    // Gets the component size...
 		// GR handles this...
 		new_draw_limits = getLimits(true);
 		// Need the full device limits elsewhere...
@@ -2548,10 +2575,14 @@ public void paint ( Graphics g )
 		new_draw_limits.setTopY ( new_draw_limits.getTopY() );
 		// Need the full device limits elsewhere...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype +
-			"Using display graphics." );
+		    if ( __paintForSVG ) {
+		        Message.printDebug ( 1, routine, _gtype + "Using SVG graphics." );
+		    }
+		    else {
+		        Message.printDebug ( 1, routine, _gtype + "Using display graphics." );
+		    }
 		}
-		if ( !_double_buffering ) {
+		if ( !_double_buffering || __paintForSVG ) {
 			// Use this graphics...
 			_graphics = (Graphics2D)g;
 		}
@@ -2568,7 +2599,7 @@ public void paint ( Graphics g )
 		//setDrawingLimits ();
 		resizing = true;
 		// If double buffering, create a new image...
-		if ( ((_buffer == null) || _double_buffering) && !_printing ) {
+		if ( ((_buffer == null) || _double_buffering) && !_printing && !__paintForSVG) {
 			// This needs to be the size of the full component, NOT
 			// the drawing limits!
 			// Clean up since images can take a lot of memory...
@@ -2577,28 +2608,25 @@ public void paint ( Graphics g )
 			if ( _external_Image != null ) {
 				// Image was created external to this class...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine, "Using"
-					+" external Image from properties." );
+					Message.printDebug ( 1, routine, "Using external Image from properties." );
 				}
 				System.out.flush();
 				_buffer = _external_Image;
 			}
-			else {	// Image is maintained in this class...
+			else {
+			    // Image is maintained in this class...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine,
-					_gtype + "Creating new image because " +
-					"of resize." );
+					Message.printDebug ( 1, routine, _gtype + "Creating new image because of resize." );
 				}
 				// Base class method...
-				setupDoubleBuffer(0, 0, _bounds.width,
-					_bounds.height);
+				setupDoubleBuffer(0, 0, _bounds.width, _bounds.height);
 			}
 		}
 	}
-	else {	// component size has not changed...
+	else {
+	    // component size has not changed...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			_gtype + "Device size has not changed." );
+			Message.printDebug ( dl, routine, _gtype + "Device size has not changed." );
 		}
 		resizing = false;	// All that needs to be done is to
 					// copy the image to the current
@@ -2606,11 +2634,10 @@ public void paint ( Graphics g )
 					// first time, need to execute the
 					// following draw code at least once...
 	}
-	if ( _double_buffering && !_printing) {
+	if ( _double_buffering && !_printing && !__paintForSVG) {
 		// Use the image graphics...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype +
-			"Using image graphics." );
+			Message.printDebug ( 1, routine, _gtype + "Using image graphics." );
 		}
 		_graphics = (Graphics2D)(_buffer.getGraphics());
 	}
@@ -2620,18 +2647,15 @@ public void paint ( Graphics g )
 
 	if ( _first_paint || resizing ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, _gtype +
-			"Device size has changed." );
+			Message.printDebug ( dl, routine, _gtype + "Device size has changed." );
 		}
 		// Resize the drawing area by setting its drawing limits...
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, _gtype + routine,
-			"Setting graph drawing limits to: " + _da_graphs );
+			Message.printDebug ( dl, _gtype + routine, "Setting graph drawing limits to: " + _da_graphs );
 		}
-		// Now clear the view so that drawing occurs on a clean
-		// background...
+		// Now clear the view so that drawing occurs on a clean background...
 		clearView ();
 	}
 
@@ -2643,22 +2667,21 @@ public void paint ( Graphics g )
 	//   extents, etc.)
 	// * double-buffering is on and a resize has occurred.
 
-	if ( _force_redraw || _printing || !_double_buffering || resizing ) {
+	if ( _force_redraw || _printing || __paintForSVG || !_double_buffering || resizing ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
 			_gtype + "Drawing graph (_force_redraw=" +
 			_force_redraw + " resizing=" + resizing + ")..." );
 		}
-		try {	JGUIUtil.setWaitCursor(_parent, true );
+		try {
+		    JGUIUtil.setWaitCursor(_parent, true );
 			// If the first time, force a zoom out to synchronize
 			// the data limits on all the graphs that are at the
 			// same zoom level (tried this above but seems to work
 			// when called from here)...
 			if ( _first_paint ) {
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, "", _gtype +
-					"Zooming out the first time to sync" +
-					" graphs." );
+					Message.printDebug ( 1, "", _gtype + "Zooming out the first time to sync graphs." );
 				}
 				zoomOut ( false );
 			}
@@ -2678,17 +2701,14 @@ public void paint ( Graphics g )
 			for ( int isub = 0; isub < size; isub++ ) {
 				// If the graph is disabled, do not even
 				// draw...
-				prop_val = _tsproduct.getLayeredPropValue (
-					"Enabled", isub, -1, false );
+				prop_val = _tsproduct.getLayeredPropValue ( "Enabled", isub, -1, false );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, "", _gtype +
-					"Graph ["+ isub + "] is " + prop_val );
+					Message.printDebug ( 1, "", _gtype + "Graph ["+ isub + "] is " + prop_val );
 				}
 				if ( prop_val.equalsIgnoreCase("false") ) {
 					continue;
 				}
-				if (	_is_reference_graph &&
-					(isub != _reference_sub) ) {
+				if ( _is_reference_graph &&	(isub != _reference_sub) ) {
 					continue;
 				}
 				tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
@@ -2709,8 +2729,7 @@ public void paint ( Graphics g )
 		}
 		catch ( Exception e ) {
 			JGUIUtil.setWaitCursor(_parent, false );
-			Message.printWarning ( 1, routine,
-			"Error drawing graph(s)." );
+			Message.printWarning ( 1, routine, "Error drawing graph(s)." );
 			Message.printWarning ( 2, routine, e );
 		}
 		_force_redraw = false;
@@ -2719,12 +2738,11 @@ public void paint ( Graphics g )
 	// Finally, if double buffering and not printing, copy the image from
 	// the buffer to the component...
 
-	if ( _double_buffering && !_printing ) {
+	if ( _double_buffering && !_printing && !__paintForSVG ) {
 		// The graphics is for the display...
 		// Draw to the screen...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			_gtype + "Copying internal image to display." );
+			Message.printDebug ( 1, routine, _gtype + "Copying internal image to display." );
 		}
 		g.drawImage ( _buffer , 0, 0,  this );
 		// Only do this if double buffering to screen because that is
@@ -2738,14 +2756,16 @@ public void paint ( Graphics g )
 		Message.printWarning ( 2, _gtype + routine, e );
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype +
-		"...done painting TSGraphJComponent." );
+		Message.printDebug ( 1, routine, _gtype + "...done painting TSGraphJComponent." );
 	}
 	// Should always get to here the first time...
 	_first_paint = false;
 	routine = null;
 	if (_printing) {
 		_printing = false;
+	}
+	if (__paintForSVG) {
+	    __paintForSVG = false;
 	}
 	/*
 	if (IOUtil.testing()) {
@@ -3200,6 +3220,45 @@ private void resetGraphDataLimits(Vector v) {
 			}
 		}
 	}
+}
+
+/**
+Save the graph to an SVG file.  This is essentially equivalent to printing,
+but use an SVG graphics driver instead.
+@param path Path to SVG file to save.  The path is not adjusted and therefore
+should generally be specified as absolute and with the *.svg extension.
+*/
+public void saveAsSVG ( String path )
+throws FileNotFoundException, IOException
+{
+    // Get a DOMImplementation.
+    DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
+
+    // Create an instance of org.w3c.dom.Document.
+    String svgNS = "http://www.w3.org/2000/svg";
+    Document document = domImpl.createDocument(svgNS, "svg", null);
+    
+    // Tell SVG to embed the fonts
+    SVGGeneratorContext ctx = SVGGeneratorContext.createDefault(document);
+    ctx.setComment("Generated by " + IOUtil.getProgramName() + " with Batik SVG Generator");
+    // Seems like the fonts are pretty ugly, at least when viewed in Internet Explorer Adobe plugin
+    ctx.setEmbeddedFontsOn(true);
+
+    // Create an instance of the SVG Generator.
+    SVGGraphics2D svgGenerator = new SVGGraphics2D(ctx, false);
+
+    // Render into the SVG Graphics2D implementation.
+    __paintForSVG = true;
+    paint(svgGenerator);
+    __paintForSVG = false;
+
+    // Finally, stream out SVG to the standard output using UTF-8 encoding.
+    boolean useCSS = true; // we want to use CSS style attributes
+    FileOutputStream outf = new FileOutputStream ( path );
+    Writer out = new OutputStreamWriter(outf, "UTF-8");
+    svgGenerator.stream(out, useCSS);
+    outf.flush();
+    outf.close();
 }
 
 /**
@@ -4173,7 +4232,7 @@ public void zoomOut ( boolean re_draw )
  */
 public void setDisplayCursor(boolean display)
 {
-  _displayCrossHairCursor = display ;
+  _displayCrossHairCursor = display;
 }
 
 public void setEditor(TSGraphEditor tsGraphEditor)

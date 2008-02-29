@@ -283,7 +283,7 @@ Handle action events.
 */
 public void actionPerformed ( ActionEvent event )
 {	Object o = event.getSource();
-  if (o == _edit_JToogleButton)
+    if (o == _edit_JToogleButton)
     {
       _ts_graph.setDisplayCursor(true);
       _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_EDIT);
@@ -292,23 +292,23 @@ public void actionPerformed ( ActionEvent event )
       _autoConnect_JCheckBox.setSelected(true);
       _tsGraphEditor.setAutoConnect(true);
     }
-  else if (o == _zoom_JToogleButton)
+    else if (o == _zoom_JToogleButton)
     {
       _ts_graph.setDisplayCursor(false);
       _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_ZOOM);
       _fillInterpolation_JButton.setEnabled(false);
       _autoConnect_JCheckBox.setEnabled(false);
     }
-  else if (o == _autoConnect_JCheckBox)
+    else if (o == _autoConnect_JCheckBox)
     {
       _tsGraphEditor.setAutoConnect(((JCheckBox)o).isSelected());
     }
-  else if (o == _fillInterpolation_JButton)
+    else if (o == _fillInterpolation_JButton)
     {
       _tsGraphEditor.doFillWithInterpolation();
       _ts_graph.refresh(false);
     }
-  else if ( o == __left_tostart_JButton ) {
+    else if ( o == __left_tostart_JButton ) {
 		_ts_graph.scrollToStart ( true );
 	}
 	else if ( o == __left_page_JButton ) {
@@ -341,14 +341,13 @@ public void actionPerformed ( ActionEvent event )
 		if ( __mode_JButton.getText().equals("Change to Select Mode")) {
 			// In zoom mode so toggle to select...
 			__mode_JButton.setText( "Change to Zoom Mode" );
-			setInteractionMode (
-				TSGraphJComponent.INTERACTION_SELECT );
+			setInteractionMode ( TSGraphJComponent.INTERACTION_SELECT );
 			__message_JTextField.setText ( "Select Mode");
 		}
 		else {	// In select mode so toggle to zoom...
 			__mode_JButton.setText( "Change to Select Mode" );
 			setInteractionMode (TSGraphJComponent.INTERACTION_ZOOM);
-/*SAMX
+/* FIXME SAM 2008-02-21
 			if (	(_ts_graph.getGraphType() ==
 				TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
 				(_ts_graph.getGraphType() ==
@@ -367,7 +366,8 @@ public void actionPerformed ( ActionEvent event )
 	else if ( o == __print_JButton ) {
 		// Print the graph...
 		if ( _ts_graph != null ) {
-			try {	_ts_graph.printGraph ();
+			try {
+			    _ts_graph.printGraph ();
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );
@@ -1010,7 +1010,9 @@ private void saveGraph() {
 	SimpleFileFilter jpg_sff = new SimpleFileFilter("jpg", "JPEG Image File" );
 	fc.addChoosableFileFilter ( jpg_sff );
 	SimpleFileFilter png_sff = new SimpleFileFilter("png", "PNG Image File" );
-	fc.addChoosableFileFilter ( png_sff );	
+	fc.addChoosableFileFilter ( png_sff );
+	SimpleFileFilter svg_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File" );
+    fc.addChoosableFileFilter ( svg_sff );  
 	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
@@ -1061,16 +1063,11 @@ private void saveGraph() {
 		}
 		try {	
 			if (fc.getFileFilter() == dv_sff) {
-				if (!StringUtil.endsWithIgnoreCase( path, ".dv")) {
-					path += ".dv";
-				}
+			    path = IOUtil.enforceFileExtension ( path, "dv" );
 			}
 			else if (fc.getFileFilter() == txt_sff) {
-				if (!StringUtil.endsWithIgnoreCase( path, ".txt")) {
-					path += ".txt";
-				}
+			    path = IOUtil.enforceFileExtension ( path, "txt" );
 			}
-		
 			__tsview_JFrame.setWaitCursor ( true );
 			DateValueTS.writeTimeSeriesList ( __tslist, path );
 			__tsview_JFrame.setWaitCursor ( false );
@@ -1082,30 +1079,51 @@ private void saveGraph() {
 		}
 	}
 	else if (fc.getFileFilter() == jpg_sff || fc.getFileFilter() == png_sff) {
+	    String type = "PNG";   // For message below
 		try {	
 			__tsview_JFrame.setWaitCursor(true);
 			if (fc.getFileFilter() == png_sff) {
-				if (!StringUtil.endsWithIgnoreCase(
-				    path, ".png")) {
-					path += ".png";
-				}
+			    path = IOUtil.enforceFileExtension ( path, "png" );
 			}
-					
-			_ts_graph.saveAsFile(path);
+			// Leave *.jpeg alone but by default enforce *.jpg
+			else if ( (fc.getFileFilter() == jpg_sff) && !StringUtil.endsWithIgnoreCase(path,"jpeg")) {
+	            path = IOUtil.enforceFileExtension ( path, "jpg" );
+	            type = "JPG";
+	        }
+			// The following will examine the extension and save as PNG or JPG accordingly
+     		_ts_graph.saveAsFile(path);
 			__tsproduct.setDirty(false);
 			__tsview_JFrame.setWaitCursor(false);
 		}
 		catch (Exception e) {
-			Message.printWarning(1, routine, "Error saving image file \"" + path + "\"");
+			Message.printWarning(1, routine, "Error saving " + type + " image file \"" + path + "\"");
 			Message.printWarning(2, routine, e);
 			__tsview_JFrame.setWaitCursor(false);
 		}
 	}
+    else if ( fc.getFileFilter() == svg_sff ) {
+        try {   
+            __tsview_JFrame.setWaitCursor(true);
+            path = IOUtil.enforceFileExtension ( path, "svg" );
+            try {
+                _ts_graph.saveAsSVG(path);
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );
+                Message.printWarning ( 2, "TSViewGraphJFrame.actionPerformed", e );
+            }
+            
+            __tsview_JFrame.setWaitCursor(false);
+        }
+        catch (Exception e) {
+            Message.printWarning(1, routine, "Error saving SVG file \"" + path + "\"");
+            Message.printWarning(2, routine, e);
+            __tsview_JFrame.setWaitCursor(false);
+        }
+    }
 	else if ( fc.getFileFilter() == tsp_sff ) {
-		try {	
-			if (!StringUtil.endsWithIgnoreCase(path, ".tsp")) {
-				path += ".tsp";
-			}		
+		try {
+		    path = IOUtil.enforceFileExtension ( path, "tsp" );		
 			__tsproduct.writeFile ( path, false );
 			__tsproduct.setDirty(false);
 			__tsproduct.propsSaved();
@@ -1117,6 +1135,7 @@ private void saveGraph() {
 		}
 	}
 	else {
+	    // Save to a DMI (database, etc.) via the interface.
 		if (dmiff != null) {
 			for (int i = 0; i < size; i++) {
 				if (fc.getFileFilter() == dmiff[i]) {
