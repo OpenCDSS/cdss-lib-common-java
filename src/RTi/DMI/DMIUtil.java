@@ -2285,9 +2285,13 @@ throws SQLException, Exception {
 		throw new SQLException ("Database not connected, cannot call "
 			+ "DMIUtil.databaseTableHasColumn()");
 	}	
-	
-	return databaseTableHasColumn ( dmi.getConnection().getMetaData(),
+    boolean columnExists = databaseTableHasColumn ( dmi.getConnection().getMetaData(),
 					table_name, column_name);	
+    if (!columnExists) {
+        columnExists = databaseTableHasColumn( dmi.getConnection().getMetaData(),
+                table_name.toUpperCase(), column_name.toUpperCase());
+    }
+    return columnExists;
 }
 
 /**
