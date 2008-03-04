@@ -2476,8 +2476,9 @@ throws SQLException, Exception {
 			printStatusOrDebug(dl, routine, "Database engine is "
 				+ "type 'DBENGINE_H2'");
 			Class.forName( "org.h2.Driver");
-			connUrl = "jdbc:h2:file:/" 
-				+ __database_server;
+            java.io.File f = new java.io.File(__database_server);
+			connUrl = "jdbc:h2:file:" 
+				+ f.getAbsolutePath();
 			Message.printStatus(2, routine,
 				"Opening JDBC connection for H2 "
 				+ "using \"" + connUrl + "\"" );
