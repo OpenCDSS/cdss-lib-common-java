@@ -76,6 +76,21 @@ If a column is selected in one row, it is selected in ALL rows.<p>
 
 The JWorksheet_ColSelectionModel and JWorksheet_RowSelectionModel overcome 
 these limitations.
+
+Under 1.5, some selection method calls changed. 
+1.4 actions and methods:
+click - setSelectionInterval
+ctrl-click - addSelectionInterval
+shift-click - setLeadSelectionIndex
+click-drag - setLeadSelectionIndex
+
+1.5 actions and methods
+click - setSelectionInterval
+ctrl-click - addSelectionInterval
+shift-click - setSelectionInterval
+click-drag - setSelectionInterval
+  
+The partial fix is to reroute the method calls to the 1.4 behavior.
 */
 public class JWorksheet_RowSelectionModel 
 extends DefaultListSelectionModel {
@@ -197,7 +212,7 @@ Indicate whether the Java Runtime Environment is 1.5 or greater.  This is used b
 some JTable code originally developed with Java 1.4 does not work with 1.5 plus and
 special checks are needed.
 */
-private boolean __is_java15 = false;
+private static final boolean is15 = JWorksheet_ColSelectionModel.is15;
 
 /**
 Constructor.  Sets up the buffers and other internal variables.
@@ -208,12 +223,6 @@ public JWorksheet_RowSelectionModel(int tRows, int tCols) {
 	_rows = tRows;
 	_cols = tCols;
 	_size = _rows * _cols;
-	// Check the Java version for internal checks.
-    String version = System.getProperty("java.version");
-    version = version.substring ( 0, 2 );
-    if ( StringUtil.atof(version) >= 1.5 ) {
-        __is_java15 = true;
-    }
 
 	_cellsSelected = new boolean [_size];
 	_buffer = new boolean [_size];
@@ -230,6 +239,14 @@ Adds a selection interval to the list of selected intervals.
 public void addSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.addSelectionInterval";
     int dl = 10;
+    
+//    System.out.println("ROW.addSelectionInterval " + row0+","+row1);
+    
+    // iws - partial fix for 1.5 selection issues, see class javadoc
+    if (is15 && row0 != row1) {
+        setLeadSelectionIndex(row1);
+        return;
+    }
 	if (__oneClickRowSelection && __partner != null) {	
 		if (__partner.allCellsInRowSelected(row0)) {
 			__partner.forceDeselectRow(row0);
@@ -562,7 +579,9 @@ those already selected.  Does nothing.
 @param row0 the first row.
 @param row1 the last row.
 */
-public void removeIndexInterval(int row0, int row1) {}
+public void removeIndexInterval(int row0, int row1) {
+    throw new RuntimeException("Developer thinks method not called");
+}
 
 /**
 Overrides method in DefaultListSelectionModel.  Removes a selection 
@@ -761,8 +780,9 @@ Overrides method in DefaultListSelectionModel.  Sets the anchor's selection row.
 Currently does nothing.
 @param anchorIndex the row of the anchor position.
 */
-public void setAnchorSelectionIndex(int anchorIndex)
-{   int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
+public void setAnchorSelectionIndex(int anchorIndex) {
+    // called when ctrl-shift-click
+    int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
     String routine = "JWorksheet_RowSelectModel.setAnchorSelectionIndex";
     
     if ( Message.isDebugOn ) {
@@ -778,6 +798,8 @@ public void setLeadSelectionIndex(int leadIndex)
 {
     int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
     String routine = "JWorksheet_RowSelectModel.setLeadSelectionIndex";
+//    System.out.println("ROW.setLeadSelectionIndex " + leadIndex);
+    debug();
 	if (__oneClickRowSelection && __partner != null) {
 		return;
 	}
@@ -881,6 +903,13 @@ Overrides method in DefaultListSelectionModel.  Sets the setlection interval.
 public void setSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.setSelectionInterval";
     int dl = 10;
+//    System.out.println("ROW.setSelectionInterval " + row0+","+row1);
+    
+    // iws - partial fix for 1.5 selection issues, see class javadoc
+    if (is15 && row0 != row1) {
+        setLeadSelectionIndex(row1);
+        return;
+    }
 	if (__oneClickRowSelection && __partner != null) {
 		__partner.clearSelection();
 		__partner.forceSelectAllCellsInRow(row0);
@@ -946,6 +975,7 @@ public void setSelectionInterval(int row0, int row1)
 	}
 	_buffer[((_currRow * _cols) + _startCol)] = true;
 	notifyAllListeners(_startRow, _startRow);
+    
 }
 
 /**
@@ -967,6 +997,20 @@ private void zeroArray(boolean[] array) {
 	for (int i = 0; i < _size; i++) {
 		array[i] = false;
 	}
+}
+
+public void moveLeadSelectionIndex(int leadIndex) {
+    throw new RuntimeException("Developer thinks method not called");
+}
+
+private void debug() {
+//    System.out.println(_anchor);
+//    System.out.println(_lead);
+//    System.out.println(_startRow);
+//    System.out.println(_startCol);
+//    System.out.println(_min);
+//    System.out.println(_max);
+//    System.out.println(_currRow);
 }
 
 }

@@ -110,6 +110,9 @@ Whether the zeroth column was clicked in or not.
 */
 protected boolean _zeroCol = false;
 
+static final boolean is15 = 
+        System.getProperty("java.vm.version").indexOf("1.5") >= 0;
+
 /**
 Constructor.  Initializes to no columns selected.
 */
@@ -127,6 +130,12 @@ public void addSelectionInterval(int col0, int col1)
     int dl = 10;
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "COL: addSelectionInterval(" + col0 + ", " + col1 + ")");
+    }
+    
+    // iws - partial fix for 1.5 selection issues, see RowSelectionModel class javadoc
+    if (is15 && col0 != col1) {
+        setLeadSelectionIndex(col1);
+        return;
     }
 	if (col0 == 0) {
 //		System.out.println("   ZEROCOL = TRUE");
@@ -355,6 +364,12 @@ public void setSelectionInterval(int col0, int col1)
     int dl = 10;
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine,"COL: setSelectionInterval(" + col0 + ", " + col1 + ")");
+    }
+    
+    // iws - partial fix for 1.5 selection issues, see RowSelectionModel class javadoc
+    if (is15 && col0 != col1) {
+        setLeadSelectionIndex(col1);
+        return;
     }
 	_zeroCol = false;
 	if (col0 == 0) {
