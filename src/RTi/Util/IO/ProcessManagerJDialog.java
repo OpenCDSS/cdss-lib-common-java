@@ -85,6 +85,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
@@ -92,13 +93,15 @@ import RTi.Util.Help.URLHelp;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Time.StopWatch;
 
 /**
 This class executes a command using the ProcessManager class.  The
 ProcessManager instance is managed as a thread.  Therefore, using the
 ProcessManagerJDialog will NOT pause the calling application until the process
 is complete.  This design may change in the future.
-The results are displayed in a text area.
+The results are displayed in a list that gets updated as new messages are generated
+by the called program.
 The following is an example of how to utilize this class.
 <p>
 
@@ -115,7 +118,7 @@ implements ActionListener, ProcessListener
 
 private ProcessManager 	__process_manager;// manager to run process (see doc)
 private JList 		__output_JList;	// List to display process output
-private int 		__historySize;	// # lines of process output to display
+private int __historyMaxSize = 500;	// # lines of process output to display
 private SimpleJButton 	__cancel_JButton;
 private SimpleJButton 	__close_JButton;
 private SimpleJButton 	__help_JButton;
@@ -127,28 +130,42 @@ private JTextField	__command_JTextField = null;
 private JLabel		__status0_JLabel = null;
 					// Label before __status_JLabel - need
 					// so color can be changed.
-private JLabel 		__status_JLabel;// process status: "Killed", 
-					// "Done" or "Active"
+private JLabel 		__status_JLabel;// process status: "Canceled", "Done" or "Active"
 
 private Thread 		__thread;	// runs process
-private PropList	__props=null;
-private DefaultListModel __output_ListModel;
-					// This holds the Vector of strings from
-					// the process output.
-private int		__exit_status = -1;
-					// The exit status from the process.
+
+/**
+ * Help key used with on-line help.
+ */
+private String __helpKey = null;
+
+/**
+ * Indicate whether all process output should be logged (default is only filtered output).
+ */
+private boolean __logAllOutput = false;
+
+/**
+ * StopWatch to time execution.
+ */
+private StopWatch __stopWatch = new StopWatch();
+
+private DefaultListModel __output_ListModel; // This holds the Vector of strings from the process output.
+private int __exit_status = -1; // The exit status from the process.
+/**
+ * Filter to control how much output is displayed or ignored.
+ */
+private ProcessManagerOutputFilter __outputFilter = null;
 
 /**  
 Create a ProcessManagerJDialog that executes the specified command.
 The process is created immediately upon instantiation of this class.
-The default maximum number of lines to be displayed in the output area is 100.
+The default maximum number of lines to be displayed in the output area is 500.
 @param parent Parent JFrame.
 @param title Title for the dialog.
 @param process_manager ProcessManager instance that contains information about
 the command to run.
 */
-public ProcessManagerJDialog (	JFrame parent, String title,
-				ProcessManager process_manager )
+public ProcessManagerJDialog (	JFrame parent, String title, ProcessManager process_manager )
 {	super ( parent, title, true );
 	initialize ( process_manager );
 }
@@ -167,11 +184,45 @@ number of lines to display in the output.  The default is 500.  Using a value
 of zero will not limit the size.  If "HelpKey" is not set in the proplist, the
 help button will not appear on the GUI.
 */
-public ProcessManagerJDialog (	JFrame parent, String title,
-				ProcessManager process_manager,
-				PropList props )
+public ProcessManagerJDialog ( JFrame parent, String title, ProcessManager process_manager, PropList props )
+{	this ( parent, title, process_manager, null, props );
+}
+
+/**  
+Create a ProcessManagerJDialog that executes the specified command and allows filtering of output.
+The process is created immediately upon instantiation of this class.
+The default maximum number of lines to be displayed in the output area is 100.
+@param parent Parent JFrame.
+@param title Title for the dialog.
+@param process_manager ProcessManager instance that contains information about
+the command to run.
+@param props The property list to control the output appearance.  Currently,
+"HelpKey" can be set to a help system key. If "HelpKey" is not set in the proplist, the
+help button will not appear on the GUI.  "BufferSize" can be set to the
+number of lines to display in the output.  The default is 500.  Using a value
+of zero will not limit the size.  Setting "LogOutput=False" will log the process output
+(the default is true).
+*/
+public ProcessManagerJDialog ( JFrame parent, String title, ProcessManager process_manager,
+		ProcessManagerOutputFilter outputFilter, PropList props )
 {	super ( parent, title, true );
-	__props = props;
+	__outputFilter = outputFilter;
+	// Transfer properties to local data.
+	if ( props == null ) {
+		props = new PropList ( "ProcessManagerJDialog" );
+	}
+	String propValue = props.getValue ( "HelpKey" );
+	if ( propValue != null ) {
+		setHelpKey ( propValue );
+	}
+	propValue = props.getValue ( "BufferSize" );
+	if ( (propValue != null) && StringUtil.isInteger(propValue) ) {
+		setHistoryMaxSize ( StringUtil.atoi(propValue) );
+	}
+	propValue = props.getValue ( "LogAllOutput" );
+	if ( (propValue != null) && propValue.equalsIgnoreCase("True") ) {
+		setLogAllOutput ( true );
+	}
 	initialize ( process_manager );
 }
 
@@ -181,12 +232,9 @@ Handle action events.
 */
 public void actionPerformed ( ActionEvent e )
 {	if ( e.getSource() == __help_JButton ) {
-		String propValue = null;
-		propValue = __props.getValue ( "HelpKey" );
-		if ( propValue == null ) {
-			propValue = "ProcessManager";
+		if ( getHelpKey() != null ) {
+			URLHelp.showHelpForKey ( getHelpKey() );
 		}
-		URLHelp.showHelpForKey ( propValue );
 	}
 	else if ( e.getSource() == __close_JButton ) {
 		close();
@@ -195,14 +243,14 @@ public void actionPerformed ( ActionEvent e )
 		__process_manager.cancel();
 		__cancel_JButton.setEnabled(false);
 		__status_JLabel.setText ( "Cancelled" );
-		// This does not call close because the user may want to look
-		// at the output.
+		JGUIUtil.setWaitCursor ( this, false );
+		// This does not call close because the user may want to look at the output.
 	}
 }
 
 /**
 Clean up the thread by destroying the process and the thread that is monitoring
-the thread's proces.  This method should only be called by close().
+the thread's process.  This method should only be called by close().
 */
 private void cleanup()
 {	// Destroy the process manager...
@@ -244,9 +292,7 @@ throws Throwable
 	__command_JTextField = null;
 	__status0_JLabel = null;
 	__status_JLabel = null;
-
 	__thread = null;
-	__props=null;
 	super.finalize();
 }
 
@@ -264,6 +310,30 @@ public int getExitStatus ()
 }
 
 /**
+ * Return the help key associated with this component.
+ */
+private String getHelpKey ()
+{
+	return __helpKey;
+}
+
+/**
+ * Return the maximum size of the output list.
+ */
+private int getHistoryMaxSize ()
+{
+	return __historyMaxSize;
+}
+
+/**
+ * Return whether output should be logged.
+ */
+private boolean getLogAllOutput ()
+{
+	return __logAllOutput;
+}
+
+/**
 Return the ProcessManager associated with this dialog.
 @return the ProcessManager associated with this dialog.
 */
@@ -278,22 +348,11 @@ the command to run.
 */
 private void initialize ( ProcessManager process_manager )
 {	String rtn = "ProcessManagerJDialog.initialize";
-	setBackground ( Color.lightGray );
-
-	if ( __props == null ) {
-		__props = new PropList ( "ProcessManagerJDialog.props" );
-	}
-	String prop_val;
 
 	// initialize members
 	__process_manager = process_manager;
-	prop_val = __props.getValue ( "BufferSize" );
-	__historySize = 500;
-	if ( (prop_val != null) && StringUtil.isInteger(prop_val) ) {
-		__historySize = StringUtil.atoi ( prop_val );
-	}
-	__status_JLabel = new JLabel ( "Active" );
-	__output_ListModel = new DefaultListModel ();
+	__status_JLabel = new JLabel ( "Active (there may be a delay in displaying program output)" );
+	__output_ListModel = new DefaultListModel ();  // Basically a Vector
 	__output_JList = new JList ( __output_ListModel );
 	__output_JList.setVisibleRowCount ( 10 );
 	// The following will return the DefaultListModel which is OK to use...
@@ -307,8 +366,7 @@ private void initialize ( ProcessManager process_manager )
 	__command_JLabel = new JLabel ( "Command:  " );
 	JGUIUtil.addComponent ( __top_JPanel, __command_JLabel, 
 		0, 0, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__command_JTextField = new JTextField ( __process_manager.getCommand(),
-		50 );
+	__command_JTextField = new JTextField ( __process_manager.getCommand(), 50 );
 	__command_JTextField.setEditable( false );
 	JGUIUtil.addComponent ( __top_JPanel, __command_JTextField, 
 		1, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
@@ -326,8 +384,7 @@ private void initialize ( ProcessManager process_manager )
 	__south_JPanel.add ( __cancel_JButton );
 	__south_JPanel.add ( __close_JButton );
 
-	String propValue = __props.getValue ( "HelpKey" );
-	if ( propValue != null ) {
+	if ( getHelpKey() != null ) {
 		__south_JPanel.add ( __help_JButton );
 	}
 	getContentPane().add ( "South", __south_JPanel );
@@ -337,14 +394,13 @@ private void initialize ( ProcessManager process_manager )
 	JGUIUtil.center ( this );
 
 	// start process
-	Message.printStatus ( 1, rtn, "Creating ProcessManager " +
-		__process_manager.getCommand() );
-	__process_manager.addProcessListener ( this );
-					// initializes a ProcessManager
+	JGUIUtil.setWaitCursor ( this, true );
+	Message.printStatus ( 1, rtn, "Creating ProcessManager " + __process_manager.getCommand() );
+	__process_manager.addProcessListener ( this ); // initializes a ProcessManager
 	Message.printStatus ( 1, rtn, "Creating thread from process." );
-	__thread = new Thread ( __process_manager );
-					// create a new thread from process
+	__thread = new Thread ( __process_manager ); // create a new thread from process
 	Message.printStatus ( 1, rtn, "Running thread." );
+	__stopWatch.start();
 	__thread.start();		// executes the run() member of the 
 					// ProcessManager class (overloads 
 					// the run member of the Thread class)
@@ -369,20 +425,45 @@ Handle output from the process.
 @param output Line of output from the process.
 */
 public void processOutput ( String output )
-{	// Delete the first item and to the end of the list...
-	// Message.printStatus ( 1, "", "Output from process is: \"" + output +
-	// "\"" );
-	if ( __historySize > 0 ) {
-		int size = __historySize - 1;
-		while ( __output_ListModel.size() > size ) {
-			__output_ListModel.removeElementAt(0);
-		}
+{
+	// Use the output filter if specified to limit the amount of output to display.
+	final String filteredoutput;
+	if ( __outputFilter != null ) {
+		filteredoutput = __outputFilter.filterOutput ( output );
 	}
-	__output_ListModel.addElement ( output );
-	// Force the last row to be visible.  If the total output size larger
-	// than the buffer, the above check condition should allow the following
-	// to add up to the buffer.
-	__output_JList.ensureIndexIsVisible ( __output_ListModel.size() - 1 );
+	else {
+		filteredoutput = output;
+	}
+	if ( filteredoutput == null ) {
+		return;
+	}
+	if ( getLogAllOutput() ) {
+		// Want to log all output
+		Message.printStatus ( 2, "processOutput", "Output from process is: \"" + output + "\"" );
+	}
+	else {
+		// Only log the filtered output.
+		Message.printStatus ( 2,
+				"processOutput", "Filtered output from process is: \"" + filteredoutput + "\"" );
+	}
+	Runnable r = new Runnable() {
+		public void run() {
+			int historyMaxSize = getHistoryMaxSize();
+			if ( historyMaxSize > 0 ) {
+				// Delete the first item(s) to get to the requested size minus one...
+				while ( __output_ListModel.size() >= historyMaxSize ) {
+					__output_ListModel.removeElementAt(0);
+				}
+			}
+			// Now add the new output line.
+			__output_ListModel.addElement ( filteredoutput );
+			// Force the last row to be visible.  If the total output size larger
+			// than the buffer, the above check condition should allow the following
+			// to add up to the buffer.
+			__output_JList.ensureIndexIsVisible ( __output_ListModel.size() - 1 );
+		}
+	};
+	SwingUtilities.invokeLater ( r );
 }
 
 /**
@@ -390,17 +471,22 @@ Handle a change in status for the process.
 */
 public void processStatus ( int status, String message )
 {	__exit_status = status;
+	__stopWatch.stop();
 	if ( status == 0 ) {
 		// Successful completion of process...
-		__status_JLabel.setText ( "Complete - success" );
+		__status_JLabel.setText ( "Complete - success (run time=" + __stopWatch.getSeconds() + " seconds)");
+		JGUIUtil.setWaitCursor ( this, false );
 	}
-	else {	// Unsuccessful completion of process...
+	else {
+		// Unsuccessful completion of process...
 		__cancel_JButton.setEnabled(false);
 		if ( message.equals("") ) {
-			__status_JLabel.setText ("Complete - error: "+ status );
+			__status_JLabel.setText ("Complete - error: "+ status +
+					" (run time=" + __stopWatch.getSeconds() + " seconds)");
 		}
-		else {	__status_JLabel.setText ("Complete - error:" + status +
-			" (" + message + ")" );
+		else {
+			__status_JLabel.setText ("Complete - error:" + status + " (" + message + ") (run time=" +
+					__stopWatch.getSeconds() + " seconds)" );
 		}
 		// Color the interface to make it obvious that there was an
 		// error...
@@ -414,9 +500,10 @@ public void processStatus ( int status, String message )
 		//_statusHistory.setBackground(Color.red);
 		__status0_JLabel.setBackground(Color.red);
 		__status_JLabel.setBackground(Color.red);
+		JGUIUtil.setWaitCursor ( this, false );
 		repaint();
 	}
-	// Either way, disable the Cancel button...
+	// Either way, disable the Cancel button because not needed...
 	__cancel_JButton.setEnabled(false);
 }
 
@@ -429,8 +516,33 @@ protected void processWindowEvent ( WindowEvent e)
 		super.processWindowEvent(e);
 		close();
 	}
-	else {	super.processWindowEvent(e);
+	else {
+		super.processWindowEvent(e);
 	}
+}
+
+/**
+ * Set the help key used with on-line help for this component.
+ */
+private void setHelpKey ( String helpKey )
+{
+	__helpKey = helpKey;
+}
+
+/**
+ * Set the maximum number of lines to display, or 0 to display all.
+ */
+private void setHistoryMaxSize ( int bufferSize )
+{
+	__historyMaxSize = bufferSize;
+}
+
+/**
+ * Set whether the process output should be logged.
+ */
+private void setLogAllOutput ( boolean logAllOutput )
+{
+	__logAllOutput = logAllOutput;
 }
 
 } // End ProcessManagerJDialog
