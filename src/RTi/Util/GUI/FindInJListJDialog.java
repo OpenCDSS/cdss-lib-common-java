@@ -439,7 +439,7 @@ private void refresh()
 	int [] find_index = new int[size];
 	JGUIUtil.setWaitCursor ( this, true );
 	for ( int i = 0; i < size; i++ ) {
-		item = (String)__original_JList.getModel().getElementAt(i);
+		item = "" + __original_JList.getModel().getElementAt(i);
 		item_up = item.toUpperCase();
 		if ( item_up.indexOf(find_text) >= 0 ) {
 			((DefaultListModel)
