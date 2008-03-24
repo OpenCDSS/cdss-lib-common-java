@@ -78,6 +78,7 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.event.ListDataListener;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -450,9 +451,19 @@ public void processOutput ( String output )
 		public void run() {
 			int historyMaxSize = getHistoryMaxSize();
 			if ( historyMaxSize > 0 ) {
-				// Delete the first item(s) to get to the requested size minus one...
+				// To avoid "blinking", remove the listeners and then add before adding items.
+				// This should keep the list focus on the end of the list.
+				ListDataListener [] listeners = __output_ListModel.getListDataListeners();
+				for ( int i = listeners.length - 1; i >= 0 ; i-- ) {
+					__output_ListModel.removeListDataListener(listeners[i]);
+				}
+				// Delete the first item(s) to get to the requested size minus one.
 				while ( __output_ListModel.size() >= historyMaxSize ) {
 					__output_ListModel.removeElementAt(0);
+				}
+				// Now add the listeners again.
+				for ( int i = 0; i < listeners.length; i++ ) {
+					__output_ListModel.addListDataListener(listeners[i]);
 				}
 			}
 			// Now add the new output line.
