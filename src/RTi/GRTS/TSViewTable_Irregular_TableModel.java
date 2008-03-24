@@ -88,6 +88,7 @@ public class TSViewTable_Irregular_TableModel extends
   /**
    * Initialize the dates for cache.
    */
+  /* FIXME SAM 2008-03-24 Need to enable irregular time series viewing
   protected void initializeCacheDates()
   {
     if(true) return;
@@ -106,5 +107,6 @@ public class TSViewTable_Irregular_TableModel extends
         d.getDate();
         __cachedDates[i] = new DateTime(d.getDate());
       }
-  } 
+  }
+  */
 } // eof class TSViewTable_Irregular_TableModel
