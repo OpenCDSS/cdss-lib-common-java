@@ -2940,10 +2940,9 @@ public static String removeNewline ( StringBuffer string )
 }
 
 /**
-Replaces every instance of a given character string in a string with
-another string.  The replacement is not recursive.  This method can be used
-instead of the newer String.replace*() methods when using older versions of
-Java.
+Replaces every instance of a given substring in one string with
+another substring.  The replacement is not recursive.  This method can be used
+instead of the newer String.replace*() methods when using older versions of Java.
 @param strOrig the String in which the string replacement should occur.
 @param s1 the String to be replaced.
 @param s2 the String to replace s1.
