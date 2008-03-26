@@ -1011,8 +1011,11 @@ private void saveGraph() {
 	fc.addChoosableFileFilter ( jpg_sff );
 	SimpleFileFilter png_sff = new SimpleFileFilter("png", "PNG Image File" );
 	fc.addChoosableFileFilter ( png_sff );
-	SimpleFileFilter svg_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File" );
-    fc.addChoosableFileFilter ( svg_sff );  
+    SimpleFileFilter svg_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File" );
+    // only enabled if batik jars on classpath
+    if (TSGraphJComponent.svgEnabled) {
+        fc.addChoosableFileFilter ( svg_sff );  
+    }
 	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
