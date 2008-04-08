@@ -1,4 +1,4 @@
-<project name="RTi_COMMON" default="compile" basedir="../">
+<project name="RTi_Common" default="compile" basedir="../">
     
     <import file="../../rtibuild/common-build.xml"/>
     
