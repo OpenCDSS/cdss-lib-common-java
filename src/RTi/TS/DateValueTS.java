@@ -250,154 +250,80 @@ sample files in the future.
 */
 public static Vector getSample ()
 {	Vector	s = new Vector ( 50 );
-	s.addElement (
-"# DateValueTS 1.3 file" );
-	s.addElement (
-"#" );
-	s.addElement (
-"# This is a sample of a typical DateValue minute time series.  This format");
-	s.addElement (
-"# was developed by Riverside Technology, inc. to store time series data.  An");
-	s.addElement (
-"# example file is as follows and conforms to the following guidelines:");
-	s.addElement (
-"#" );
-	s.addElement (
-"# * Comments are lines that start with #." );
-	s.addElement (
-"# * Applications often add a comments section at the top indicating how the");
-	s.addElement (
-"#   file was created" );
-	s.addElement (
-"# * Any line that starts with a number is assumed to be a data line." );
-	s.addElement (
-"# * Date hours should be in the range 0 to 23 (an hour of 24 will be" );
-	s.addElement (
-"#   converted to hour 0 of the next day)." );
-	s.addElement (
-"# * If a time is necessary, the date/time may be separated by a space, T, : or @.");
-	s.addElement (
-"#   If a space is used, use a date and time column heading,");
-	s.addElement (
-"#   if headings are used.");
-	s.addElement (
-"# * The same general format is used for year, month, day, hour, and minute" );
-	s.addElement (
-"#   data, except the format of the date is adjusted accordingly." );
-	s.addElement (
-"# * If multiple time series are written, header variables are delimited with");
-	s.addElement (
-"#   space or tab characters.  Data are delimited by tab or space (or use the");
-	s.addElement (
-"#   Delimiter property to set the delimiters used for data lines)" );
-	s.addElement (
-"# * Internally, the time series identifier is initially set using the file");
-	s.addElement (
-"#   name.  For example, a file name of XXX.USGS.Streamflow.MONTH will result");
-	s.addElement (
-"#   in the location being set to \"XXX\", the data source to \"USGS\", the data");
-	s.addElement (
-"#   type to \"Streamflow\", and the interval to 1 month.  The identifier");
-	s.addElement (
-"#   information is reset if individual properties are specified in the file.");
-	s.addElement (
-"# * This format is free-format and additional information may be added in");
-	s.addElement (
-"#   future (e.g., data quality strings)." );
-	s.addElement (
-"# * For portability, data in a DateValue file should have compatible intervals.");
-	s.addElement (
-"# * Header variables and column headers can be enclosed in double quotes if");
-	s.addElement (
-"#   the data contain spaces.");
-	s.addElement (
-"# * Missing data can either be coded as the missing data value or no value");
-	s.addElement (
-"# * Missing records will result in missing data being used when read.");
-	s.addElement (
-"#" );
-	s.addElement (
-"# The following header variables are recognized.  This information can be");
-	s.addElement (
-"# used by software." );
-	s.addElement (
-"Version = 1.4                # Optional.  File format version (to handle format changes)");
-	s.addElement (
-"Delimiter = \" \"              # Optional.  Delimiter for data lines (default is space and tab)");
-	s.addElement (
-"NumTS = 2                    # Optional.  Number of time series in file (default is 1)");
-	s.addElement (
-"TSID = XXX.USGS.Streamflow.15MINUTE YYY.USGS.Streamflow.15Minute" );
-	s.addElement (
-"                             # Required.");
-	s.addElement (
-"                             # List of time series identifiers in file");
-	s.addElement (
-"                             # Location.Source.DataType.Interval.Scenario");
-	s.addElement (
-"                             # Do not include input type and name in identifier.");
-	s.addElement (
-"Alias = X Y" );
-	s.addElement (
-"                             # Optional.  Alias used internally instead of TSID.");
-	s.addElement (
-"SequenceNum = -1 0           # Optional.  Used with traces when the TSID by" );
-	s.addElement (
-"                             # itself does not uniquely identify the TS." );
-	s.addElement (
-"Description = \"Flow at XXX\" \"Flow at Y\"");
-	s.addElement (
-"                             # Optional.  Description for each time series." );
-	s.addElement (
-"DataFlags = true,1 false" );
-	s.addElement (
-"                             # Optional.  Indicates whether each value has a");
-	s.addElement (
-"                             # a data flag.  If true, specify max flag characters.");
-	s.addElement (
-"DataType = \"Streamflow\" \"Streamflow\"" );
-	s.addElement (
-"                             # Optional.  Data types for each time series" );
-	s.addElement (
-"                             # (consistent with TSID if specified).");
-	s.addElement (
-"                             # The default is to use the data type in the TSID");
-	s.addElement (
-"                             # Supplied to simplify use by other programs.");
-	s.addElement (
-"Units = \"CFS\" \"CFS\"          # Optional.  Units for each time series (default is no units).");
-	s.addElement (
-"MissingVal = -999 -999       # Optional.  Missing data value for each time series (default is -999)");
-	s.addElement (
-"IncludeCount = true          # Optional.  If true, column after date/time" );
-	s.addElement (
-"                             # is record count (1...) (default is false).");
-	s.addElement (
-"IncludeTotalTime = true      # Optional.  If true, column after date is cumulative time (0...) (default is false).");
-	s.addElement (
-"# Both of above can be true, and both columns will be added after the date");
-	s.addElement (
-"Start = 1996-10-18:00:00     # Required.  Start date for time series");
-	s.addElement (
-"End = 1997-06-14:00:00       # Required.  End date for time series");
-	s.addElement (
-"                             # Period dates should be of a precision consistent" );
-	s.addElement (
-"                             # with the dates used in the data section below." );
-	s.addElement (
-"# Optional.  The following line can be read into a spreadsheet or database for");
-	s.addElement (
-"# headers.  The lines above this line can be ignored in a spreadsheet import.");
-	s.addElement (
-"# The number of headings should agree with the number of columns.");
-	s.addElement (
-"Date \"Count\" \"TotalTime\" \"Description 1\" \"Description 2\"");
-	s.addElement (
-"1996-10-18:00:00 1 0 110.74" );
-	s.addElement (
-"1996-10-18:00:15 2 15 110.74" );
-	s.addElement (
-"..." );
+	s.addElement ("# DateValueTS 1.3 file" );
+	s.addElement ("#" );
+	s.addElement ("# This is a sample of a typical DateValue minute time series.  This format");
+	s.addElement ("# was developed by Riverside Technology, inc. to store time series data.  An");
+	s.addElement ("# example file is as follows and conforms to the following guidelines:");
+	s.addElement ("#" );
+	s.addElement ("# * Comments are lines that start with #." );
+	s.addElement ("# * Applications often add a comments section at the top indicating how the");
+	s.addElement ("#   file was created" );
+	s.addElement ("# * Any line that starts with a number is assumed to be a data line." );
+	s.addElement ("# * Date hours should be in the range 0 to 23 (an hour of 24 will be" );
+	s.addElement ("#   converted to hour 0 of the next day)." );
+	s.addElement ("# * If a time is necessary, the date/time may be separated by a space, T, : or @.");
+	s.addElement ("#   If a space is used, use a date and time column heading,");
+	s.addElement ("#   if headings are used.");
+	s.addElement ("# * The same general format is used for year, month, day, hour, and minute" );
+	s.addElement ("#   data, except the format of the date is adjusted accordingly." );
+	s.addElement ("# * If multiple time series are written, header variables are delimited with");
+	s.addElement ("#   space or tab characters.  Data are delimited by tab or space (or use the");
+	s.addElement ("#   Delimiter property to set the delimiters used for data lines)" );
+	s.addElement ("# * Internally, the time series identifier is initially set using the file");
+	s.addElement ("#   name.  For example, a file name of XXX.USGS.Streamflow.MONTH will result");
+	s.addElement ("#   in the location being set to \"XXX\", the data source to \"USGS\", the data");
+	s.addElement ("#   type to \"Streamflow\", and the interval to 1 month.  The identifier");
+	s.addElement ("#   information is reset if individual properties are specified in the file.");
+	s.addElement ("# * This format is free-format and additional information may be added in");
+	s.addElement ("#   future (e.g., data quality strings)." );
+	s.addElement ("# * For portability, data in a DateValue file should have compatible intervals.");
+	s.addElement ("# * Header variables and column headers can be enclosed in double quotes if");
+	s.addElement ("#   the data contain spaces.");
+	s.addElement ("# * Missing data can either be coded as the missing data value or no value");
+	s.addElement ("# * Missing records will result in missing data being used when read.");
+	s.addElement ("#" );
+	s.addElement ("# The following header variables are recognized.  This information can be");
+	s.addElement ("# used by software." );
+	s.addElement ("Version = 1.4                # Optional.  File format version (to handle format changes)");
+	s.addElement ("Delimiter = \" \"              # Optional.  Delimiter for data lines (default is space and tab)");
+	s.addElement ("NumTS = 2                    # Optional.  Number of time series in file (default is 1)");
+	s.addElement ("TSID = XXX.USGS.Streamflow.15MINUTE YYY.USGS.Streamflow.15Minute" );
+	s.addElement ("                             # Required.");
+	s.addElement ("                             # List of time series identifiers in file");
+	s.addElement ("                             # Location.Source.DataType.Interval.Scenario");
+	s.addElement ("                             # Do not include input type and name in identifier.");
+	s.addElement ("Alias = X Y" );
+	s.addElement ("                             # Optional.  Alias used internally instead of TSID.");
+	s.addElement ("SequenceNum = -1 0           # Optional.  Used with traces when the TSID by" );
+	s.addElement ("                             # itself does not uniquely identify the TS." );
+	s.addElement ("Description = \"Flow at XXX\" \"Flow at Y\"");
+	s.addElement ("                             # Optional.  Description for each time series." );
+	s.addElement ("DataFlags = true,1 false" );
+	s.addElement ("                             # Optional.  Indicates whether each value has a");
+	s.addElement ("                             # a data flag.  If true, specify max flag characters.");
+	s.addElement ("DataType = \"Streamflow\" \"Streamflow\"" );
+	s.addElement ("                             # Optional.  Data types for each time series" );
+	s.addElement ("                             # (consistent with TSID if specified).");
+	s.addElement ("                             # The default is to use the data type in the TSID");
+	s.addElement ("                             # Supplied to simplify use by other programs.");
+	s.addElement ("Units = \"CFS\" \"CFS\"          # Optional.  Units for each time series (default is no units).");
+	s.addElement ("MissingVal = -999 -999       # Optional.  Missing data value for each time series (default is -999)");
+	s.addElement ("IncludeCount = true          # Optional.  If true, column after date/time" );
+	s.addElement ("                             # is record count (1...) (default is false).");
+	s.addElement ("IncludeTotalTime = true      # Optional.  If true, column after date is cumulative time (0...) (default is false).");
+	s.addElement ("# Both of above can be true, and both columns will be added after the date");
+	s.addElement ("Start = 1996-10-18:00:00     # Required.  Start date for time series");
+	s.addElement ("End = 1997-06-14:00:00       # Required.  End date for time series");
+	s.addElement ("                             # Period dates should be of a precision consistent" );
+	s.addElement ("                             # with the dates used in the data section below." );
+	s.addElement ("# Optional.  The following line can be read into a spreadsheet or database for");
+	s.addElement ("# headers.  The lines above this line can be ignored in a spreadsheet import.");
+	s.addElement ("# The number of headings should agree with the number of columns.");
+	s.addElement ("Date \"Count\" \"TotalTime\" \"Description 1\" \"Description 2\"");
+	s.addElement ("1996-10-18:00:00 1 0 110.74" );
+	s.addElement ("1996-10-18:00:15 2 15 110.74" );
+	s.addElement ("..." );
 	return s;
 }
 
@@ -415,20 +341,17 @@ IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 public static boolean isDateValueFile ( String filename )
 {	BufferedReader in = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
-		// Read lines and check for common strings that
-		// indicate a DateValue file.
+	try {
+	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+		// Read lines and check for common strings that indicate a DateValue file.
 		String string = null;
 		boolean	is_datevalue = false;
 		while( (string = in.readLine()) != null ) {
-			if (	string.startsWith("# DateValue") ||
-				string.startsWith("#DateValue") ) {
+			if ( string.startsWith("# DateValue") || string.startsWith("#DateValue") ) {
 				is_datevalue = true;
 				break;
 			}
-			if (	string.regionMatches(true,0,"TSID",0,4) &&
-				(string.indexOf("=") >= 0) ) {
+			if ( string.regionMatches(true,0,"TSID",0,4) && (string.indexOf("=") >= 0) ) {
 				is_datevalue = true;
 				break;
 			}
@@ -476,8 +399,7 @@ throws Exception
 	pw.close ();
 	pw = null;
 	// Create a DateValueTS from the temporary file...
-	TS ts = readTimeSeries ( temp, req_date1, req_date2, req_units,
-			read_data );
+	TS ts = readTimeSeries ( temp, req_date1, req_date2, req_units, read_data );
 	// Remove the temporary file...
 	File tempf = new File ( temp );
 	tempf.delete();
@@ -530,8 +452,7 @@ public static TS readTimeSeries (	BufferedReader in,
 					String req_units, boolean read_data )
 throws Exception
 {	// Call the generic method...
-	return readTimeSeries ( (TS)null, in, req_date1, req_date2, req_units,
-				read_data );
+	return readTimeSeries ( (TS)null, in, req_date1, req_date2, req_units, read_data );
 }
 
 /**
@@ -543,13 +464,11 @@ NULL pointer if not.  The units are taken from the file and all data are read
 read (where the scenario is the file name) or 2) the name of a file to read
 (in which case it is assumed that only one time series exists in the
 file - otherwise use the readTimeSeriesList() method).
-@param date1 Starting date to initialize period (or null to read entire time
-series).
+@param date1 Starting date to initialize period (or null to read entire time series).
 @param date2 Ending date to initialize period (or null to read entire time
 series).
 */
-public static TS readTimeSeries (	String tsident_string,
-					DateTime date1, DateTime date2 )
+public static TS readTimeSeries ( String tsident_string, DateTime date1, DateTime date2 )
 throws Exception
 {	return readTimeSeries ( tsident_string, date1, date2, "", true );
 }
@@ -557,16 +476,13 @@ throws Exception
 /**
 Read a time series from a DateValue format file.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a pointer to a newly-allocated time series if successful, a NULL pointer if not.
 @param tsident_string The full identifier for the time series to
 read with the file name in the ~DateValue~InputName part of the identifier or
 2) the name of a file to read (in which case it is assumed that only one time
 series exists in the file - otherwise use the readTimeSeriesList() method).
-@param date1 Starting date to initialize period (null to read the entire time
-series).
-@param date2 Ending date to initialize period (null to read the entire time
-series).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
@@ -574,8 +490,7 @@ public static TS readTimeSeries ( String tsident_string, DateTime date1,
 			DateTime date2, String units, boolean read_data )
 throws Exception
 {	TS	ts = null;
-	boolean	is_file = true;	// Is tsident_string a file?
-				// Assume and check below
+	boolean	is_file = true;	// Is tsident_string a file?  Assume and check below
 
 	String input_name = tsident_string;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( tsident_string );
@@ -583,42 +498,35 @@ throws Exception
 		is_file = false;
 		// Try the input name...
 		TSIdent tsident = new TSIdent (tsident_string);
-		full_fname = IOUtil.getPathUsingWorkingDir (
-				tsident.getInputName() );
+		full_fname = IOUtil.getPathUsingWorkingDir ( tsident.getInputName() );
 		input_name = full_fname;
 		if ( !IOUtil.fileReadable(full_fname) ) {
-			Message.printWarning( 2,
-			"DateValueTS.readTimeSeries",
-			"Unable to determine file for \"" + tsident_string +
-			"\"" );
+			Message.printWarning( 2, "DateValueTS.readTimeSeries",
+			"Unable to determine file for \"" + tsident_string + "\"" );
 			return ts;
 		}
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2,
-		"DateValueTS.readTimeSeries(String,...)",
+		Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
 	// Call the fully-loaded method...
 	if ( is_file ) {
-		// Expect that the time series file has one time series and
-		// should read it...
-		ts = readTimeSeries (	(TS)null, in, date1, date2,
-					units, read_data );
+		// Expect that the time series file has one time series and should read it...
+		ts = readTimeSeries ( (TS)null, in, date1, date2, units, read_data );
 	}
-	else {	// Pass the file pointer and an empty time series, which
+	else {
+	    // Pass the file pointer and an empty time series, which
 		// will be used to locate the time series in the file.
 		ts = TSUtil.newTimeSeries ( tsident_string, true );
 		if ( ts == null ) {
-			Message.printWarning( 2,
-			"DateValueTS.readTimeSeries(String,...)",
-			"Unable to create time series for \"" +
-			tsident_string + "\"" );
+			Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
+			"Unable to create time series for \"" + tsident_string + "\"" );
 			return ts;
 		}
 		ts.setIdentifier ( tsident_string );
@@ -637,44 +545,36 @@ Read a time series from a DateValue format file.  The TSID string is specified
 in addition to the path to the file.  It is expected that a TSID in the file
 matches the TSID (and the path to the file, if included in the TSID would not
 properly allow the TSID to be specified).  This method can be used with newer
-code where the I/O path is separate from the TSID that is used to identify the
-time series.
+code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a pointer to a newly-allocated time series if successful, a NULL pointer if not.
 @param tsident_string The full identifier for the time series to
 read.  This string can also be the alias for the time series in the file.
 @param filename The name of a file to read
-(in which case the tsident_string must match one of the TSID strings in the
-file).
-@param date1 Starting date to initialize period (null to read the entire time
-series).
-@param date2 Ending date to initialize period (null to read the entire time
-series).
+(in which case the tsident_string must match one of the TSID strings in the file).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries (	String tsident_string, String filename,
-					DateTime date1, DateTime date2,
-					String units, boolean read_data )
+public static TS readTimeSeries ( String tsident_string, String filename,
+					DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
 {	TS	ts = null;
 
 	String input_name = filename;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 2,
-		"DateValueTS.readTimeSeries",
+		Message.printWarning( 2, "DateValueTS.readTimeSeries",
 		"Unable to determine file for \"" + filename + "\"" );
 		return ts;
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2,
-		"DateValueTS.readTimeSeries(String,...)",
+		Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
@@ -703,11 +603,10 @@ throws Exception
 	if ( tsident_string.indexOf(".") >= 0 ) {
 		ts.setIdentifier ( tsident_string );
 	}
-	else {	ts.setAlias ( tsident_string );
+	else {
+	    ts.setAlias ( tsident_string );
 	}
-	Vector v = readTimeSeriesList (	ts, in,
-				date1, date2,
-				units, read_data );
+	Vector v = readTimeSeriesList (	ts, in,	date1, date2, units, read_data );
 	if ( tsident_string.indexOf(".") < 0 ) {
 		// The time series was specified with an alias so it needs
 		// to be replaced with what was read.  The alias will have been
@@ -733,8 +632,7 @@ identifier, which is assumed to have been set in the calling code.
 @param date1 Starting date to initialize period to.
 @param date2 Ending date to initialize period to.
 */
-public static TS readTimeSeries (	TS req_ts, String fname,
-					DateTime date1, DateTime date2 )
+public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2 )
 throws Exception
 {	return readTimeSeries ( req_ts, fname, date1, date2, "", true );
 }
@@ -752,8 +650,7 @@ is assumed to have been set in the calling code.
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries (	TS req_ts, String fname,
-					DateTime date1, DateTime date2,
+public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2,
 					String units, boolean read_data )
 throws Exception
 {	String	routine = "DateValueTS.readTimeSeries(TS *,...)";
@@ -762,12 +659,11 @@ throws Exception
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2, routine,
-		"Unable to open file \"" + full_fname + "\"" );
+		Message.printWarning( 2, routine, "Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
 	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
@@ -794,13 +690,10 @@ the entire time series).
 @param read_data Indicates whether data should be read.
 @exception Exception if there is an error reading the time series.
 */
-public static TS readTimeSeries (	TS req_ts, BufferedReader in,
-					DateTime req_date1, DateTime req_date2,
+public static TS readTimeSeries ( TS req_ts, BufferedReader in,	DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	Vector tslist = readTimeSeriesList (	req_ts, in,
-						req_date1, req_date2,
-						req_units, read_data );
+{	Vector tslist = readTimeSeriesList ( req_ts, in, req_date1, req_date2, req_units, read_data );
 	if ( (tslist == null) || (tslist.size() != 1) ) {
 		tslist = null;
 		return null;
@@ -824,8 +717,7 @@ series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read.
 */
-public static Vector readTimeSeriesList (	String fname,
-						DateTime date1, DateTime date2,
+public static Vector readTimeSeriesList ( String fname, DateTime date1, DateTime date2,
 						String units, boolean read_data)
 throws Exception
 {	Vector	tslist = null;
@@ -833,8 +725,8 @@ throws Exception
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 2, "DateValueTS.readTimeSeriesList",
@@ -851,8 +743,7 @@ throws Exception
 		ts = (TS)tslist.elementAt(i);
 		if ( ts != null ) {
 			ts.setInputName ( full_fname );
-			ts.addToGenesis ( "Read time series from \"" +
-					full_fname + "\"" );
+			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
 			ts.getIdentifier().setInputName ( input_name );
 		}
 	}
@@ -876,11 +767,8 @@ the entire time series).
 @param read_data Indicates whether data should be read.
 @exception Exception if there is an error reading the time series.
 */
-private static Vector readTimeSeriesList (	TS req_ts, BufferedReader in,
-						DateTime req_date1,
-						DateTime req_date2,
-						String req_units,
-						boolean read_data )
+private static Vector readTimeSeriesList ( TS req_ts, BufferedReader in, DateTime req_date1,
+						DateTime req_date2,	String req_units, boolean read_data )
 throws Exception
 {	String	date_str, message = null, string = "", value, variable;
 	String	routine = "DateValueTS.readTimeSeriesList";
@@ -911,6 +799,7 @@ throws Exception
 	boolean	include_total_time = false;
 	int	size = 0;
 	int	equal_pos = 0;	// Position of first '=' in line.
+	int warning_count = 0;
 	try {
 	while( (string = in.readLine()) != null ) {
 		++line_count;
@@ -931,8 +820,7 @@ throws Exception
 		}
 
 		if ( (equal_pos = string.indexOf('=')) == -1 ) {
-			// Assume this not a header definition variable and that
-			// we are done with the header...
+			// Assume this not a header definition variable and that we are done with the header...
 			if ( Message.isDebugOn ) {
 				Message.printDebug( 10, routine, "Detected end of header." );
 			}
@@ -947,13 +835,13 @@ throws Exception
 
 		if ( equal_pos == 0 ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine, "Bad = expression for \"" + string + "\"." );
+				Message.printDebug( 10, routine, "Bad property for \"" + string + "\"." );
+				++warning_count;
 			}
 			continue;
 		}
 
-		// Now the first token is the left side and the second token
-		// is the right side...
+		// Now the first token is the left side and the second token is the right side...
 
 		variable = string.substring(0,equal_pos).trim();
 		if ( equal_pos == (string.length() - 1) ) {
@@ -968,48 +856,39 @@ throws Exception
 			// Have the alias...
 			alias = value;
 			alias_v = StringUtil.breakStringList (
-				value, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				value, delimiter, StringUtil.DELIM_SKIP_BLANKS|	StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( alias_v != null ) {
 				size = alias_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of Alias values (" + size +
-				") is != NumTS (" + numts +
-				").  Read errors may occur." );
+				Message.printWarning ( 3, routine, "Number of Alias values using delimiter \"" + delimiter +
+				        "\" (" + size +	") is != NumTS (" +	numts +	").  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					alias_v.addElement ( "" );
 				}
 			}
 		}
 		else if ( variable.equalsIgnoreCase("DataFlags") ) {
-			// Have the data flags indicator which may or may not
-			// be surrounded by quotes...
+			// Have the data flags indicator which may or may not be surrounded by quotes...
 			dataflag = value;
 			dataflag_v = StringUtil.breakStringList (
-				dataflag, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				dataflag, delimiter,StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( dataflag_v != null ) {
 				size = dataflag_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of DataFlag values (" + size +
-				") is != NumTS (" + numts + "). Assuming no " +
-				"data flags.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of DataFlag values using delimiter \"" + delimiter +
+				        "\" (" + size +	") is != NumTS (" + numts + "). Assuming no data flags.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					dataflag_v.addElement ( "false" );
 				}
 			}
-			// Now further process the data flag indicators.  Need a
-			// boolean for each time series to indicate whether
-			// data flags are used and need a width for the data
-			// flags
+			// Now further process the data flag indicators.  Need a boolean for each time series to indicate whether
+			// data flags are used and need a width for the data flags
 			ts_has_data_flag = new boolean[numts];
 			ts_data_flag_length = new int[numts];
 			for ( int ia = 0; ia < numts; ia++ ) {
@@ -1024,8 +903,7 @@ throws Exception
 					ts_has_data_flag[ia] = false;
 					continue;
 				}
-				// If the first value is "true", assume that the
-				// data flag is used...
+				// If the first value is "true", assume that the data flag is used...
 				if ( ((String)v.elementAt(0)).trim().equalsIgnoreCase("true") ) {
 					ts_has_data_flag[ia] = true;
 				}
@@ -1035,9 +913,7 @@ throws Exception
 				// Now set the length...
 				ts_data_flag_length[ia] = 2; // Default
 				if ( size > 1 ) {
-					ts_data_flag_length[ia] =
-					StringUtil.atoi(((String)
-					v.elementAt(1)).trim());
+					ts_data_flag_length[ia] = StringUtil.atoi(((String)v.elementAt(1)).trim());
 				}
 			}
 		}
@@ -1045,18 +921,15 @@ throws Exception
 			// Have the data type...
 			datatype = value;
 			datatype_v = StringUtil.breakStringList (
-				datatype, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				datatype, delimiter,StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( datatype_v != null ) {
 				size = datatype_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of DataType values (" + size +
-				") is != NumTS (" + numts +
-				"). Assuming blank.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of DataType values using delimiter \"" + delimiter +
+				        "\" (" + size + ") is != NumTS (" + numts + "). Assuming blank.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					datatype_v.addElement ( "" );
 				}
@@ -1064,39 +937,35 @@ throws Exception
 		}
 		else if ( variable.equalsIgnoreCase("Delimiter") ) {
 			// Have the delimiter.  This value is probably quoted so remove quotes.
+		    String delimiter_previous = delimiter;
 		    delimiter = StringUtil.remove(value, "\"");
 		    delimiter = StringUtil.remove(delimiter, "\'");
 			if ( value.length() == 0 ) {
 			    delimiter = delimiter_default;
 			}
 			Message.printStatus( 2, routine, "Delimiter is \"" + delimiter +
-			        "\" for remaining properties and data columns.");
+			        "\" for remaining properties and data columns (previously was \"" + delimiter_previous + "\").");
 		}
 		else if ( variable.equalsIgnoreCase("Description") ) {
-			// Have the description.  The description may contain
-			// "=" so get the second token manually...
+			// Have the description.  The description may contain "=" so get the second token manually...
 			description = value;
 			description_v = StringUtil.breakStringList (
-				description, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				description, delimiter,	StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( description_v != null ) {
 				size = description_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of Description values (" + size +
-				") is != NumTS (" + numts +
-				").  Assuming blank.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of Description values using delimiter \"" + delimiter +
+				        "\" (" + size +	") is != NumTS (" + numts + ").  Assuming blank.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					description_v.addElement ( "" );
 				}
 			}
 		}
 		else if ( variable.equalsIgnoreCase("End") ) {
-			// Have the ending date.  This may be reset below by
-			// the requested end date..
+			// Have the ending date.  This may be reset below by the requested end date..
 			date2 = DateTime.parse ( value );
 		}
 		else if ( variable.equalsIgnoreCase("IncludeCount") ) {
@@ -1121,18 +990,15 @@ throws Exception
 			// Have the missing data value...
 			missing = value;
 			missing_v = StringUtil.breakStringList (
-				missing, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				missing, delimiter,	StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( missing_v != null ) {
 				size = missing_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of Missing values (" + size +
-				") is != NumTS (" + numts +
-				").  Assuming -999.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of Missing values using delimiter \"" + delimiter +
+				        "\" (" + size + ") is != NumTS (" + numts + ").  Assuming -999.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					missing_v.addElement ( "" );
 				}
@@ -1146,44 +1012,37 @@ throws Exception
 			// Have sequence numbers...
 			seqnum = value;
 			seqnum_v = StringUtil.breakStringList (
-				seqnum, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				seqnum, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( seqnum_v != null ) {
 				size = seqnum_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of SequenceNum values (" + size +
-				") is != NumTS (" + numts +
-				").  Assuming -1.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of SequenceNum values using delimiter \"" + delimiter +
+				        "\" (" + size + ") is != NumTS (" + numts + ").  Assuming -1.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					seqnum_v.addElement ( "-1" );
 				}
 			}
 		}
 		else if ( variable.equalsIgnoreCase("Start") ) {
-			// Have the starting date.  This may be reset below by
-			// the requested start date....
+			// Have the starting date.  This may be reset below by the requested start date....
 			date1 = DateTime.parse ( value );
 		}
 		else if ( variable.equalsIgnoreCase("TSID") ) {
 			// Have the TSIdent...
 			identifier = value;
 			identifier_v = StringUtil.breakStringList (
-				identifier, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				identifier, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( identifier_v != null ) {
 				 size = identifier_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of TSID values (" + size +
-				") is != NumTS (" + numts +
-				"). Assuming blank.  Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of TSID values using delimiter \"" + delimiter +
+				        "\" (" + size + ") is != NumTS (" + numts + "). Assuming blank.  Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					identifier_v.addElement ( "" );
 				}
@@ -1193,23 +1052,21 @@ throws Exception
 			// Have the data units...
 			units = value;
 			units_v = StringUtil.breakStringList (
-				units, delimiter,
-				StringUtil.DELIM_SKIP_BLANKS|
-				StringUtil.DELIM_ALLOW_STRINGS );
+				units, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 			if ( units_v != null ) {
 				size = units_v.size();
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine,
-				"Number of Units values (" + size +
-				") is != NumTS (" + numts +
-				"). Assuming blank. Read errors may occur." );
+				Message.printWarning ( 2, routine, "Number of Units values using delimiter \"" + delimiter +
+				        "\" (" + size + ") is != NumTS (" + numts + "). Assuming blank. Read errors may occur." );
+				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
 					units_v.addElement ( "" );
 				}
 			}
 		}
 		else if ( variable.equalsIgnoreCase("Version") ) {
+		    // TODO SAM 2008-04-14 Evaluate using version
 			// Have the file version...
 			//version = value; 
 		}
@@ -1219,14 +1076,22 @@ throws Exception
 	}
 	}
 	catch ( Exception e ) {
-		message = "Error processing line " + line_count + ": \"" + string + "\"";
+		message = "Unexpected error processing line " + line_count + ": \"" + string + "\"";
 		Message.printWarning ( 3, routine, message );
 		Message.printWarning ( 3, routine, e );
 		throw new Exception ( message );
 	}
+	if ( warning_count > 0 ) {
+	    // Print a warning and throw an exception about the header not being properly
+	    message = "" + warning_count + " errors existing in file header.  Not reading data.";
+        Message.printWarning ( 3, routine, message );
+        // FIXME SAM 2008-04-14 Throw a more specific exception
+        throw new Exception ( message );
+	}
+	// Reset for below.
+	warning_count = 0;
 
-	// Make sure the data flag boolean array is allocated.  This simplifies
-	// the logic below...
+	// Make sure the data flag boolean array is allocated.  This simplifies the logic below...
 
 	if ( ts_has_data_flag == null ) {
 		ts_has_data_flag = new boolean[numts];
@@ -1239,7 +1104,8 @@ throws Exception
 
 	if ( identifier_v == null ) {
 		identifier_v = new Vector(numts);
-		Message.printWarning ( 2, routine, "TSID property in file is missing.  ssigning default TS1, TS2, ..." );
+		// TODO SAM 2008-04-14 Evaluate tightening this constraint - throw exception?
+		Message.printWarning ( 2, routine, "TSID property in file is missing.  Assigning default TS1, TS2, ..." );
 		for ( int i = 0; i < numts; i++ ) {
 			identifier_v.addElement ( "TS" + (i + 1) );
 		}
@@ -1251,104 +1117,73 @@ throws Exception
 	TSIdent ident = null;
 	int data_interval_base = 0;
 
-	int req_ts_i = -1;	// Which time series corresponds to the
-				// requested time series.
-	int req_ts_column = -1;	// Which column of data corresponds to the
-				// requested time series.
+	int req_ts_i = -1;	// Which time series corresponds to the requested time series.
+	int req_ts_column = -1;	// Which column of data corresponds to the requested time series.
 	int req_ts_column2 = -1;// Which column of data corresponds to the
-				// requested time series, after adjustment for
-				// possible additional time column in date.
+				// requested time series, after adjustment for possible additional time column in date.
 	TS ts = null;
 	Vector tslist = null;
-	TS ts_array[] = null;	// Use this to speed processing so we don't have
-				// to search through tslist all the time
+	TS ts_array[] = null;	// Use this to speed processing so we don't have to search through tslist all the time
 	// Set the time series pointer to either the requested time series
 	// or a newly-created time series.  If a requested time series is
 	// given but only its alias is available, create a new time series
 	// using the matching TSID, which will contain the interval, etc.
 	if ( req_ts != null ) {
 		req_ts_i = -1;	// Index of found time series...
-		// If there is only one time series in the file, assume it
-		// should be used, regardless...
+		// If there is only one time series in the file, assume it should be used, regardless...
 		if ( numts == 1 ) {
-			//Message.printStatus ( 1, "",
-			//"Using only TS because only one TS in file." );
+			//Message.printStatus ( 1, "", "Using only TS because only one TS in file." );
 			req_ts_i = 0;
 		}
 		if ( req_ts_i < 0 ) {
-			// Need to keep searching.  Loop through all the time
-			// series identifiers and compare exactly.  That way
-			// if only the scenarios are different we will find the
-			// correct time series.
+			// Need to keep searching.  Loop through all the time series identifiers and compare exactly.
+		    // That way if only the scenarios are different we will find the correct time series.
 			for ( int i = 0; i < numts; i++ ) {
-				// Check the alias for a match.  This takes
-				// precedence over the identifier.
+				// Check the alias for a match.  This takes precedence over the identifier.
 				if ( alias_v != null ) {
-					alias = ((String)
-						alias_v.elementAt(i)).trim();
-					if (	!alias.equals("") &&
-						req_ts.getAlias().
-						equalsIgnoreCase( alias) ) {
-						// Found a matching time
-						// series...
+					alias = ((String)alias_v.elementAt(i)).trim();
+					if ( !alias.equals("") && req_ts.getAlias().equalsIgnoreCase( alias) ) {
+						// Found a matching time series...
 						req_ts_i = i;
-						//Message.printStatus ( 1, "",
-						//"Found matching TS "+req_ts_i+
-						//" based on alias." );
+						//Message.printStatus ( 1, "", "Found matching TS "+req_ts_i+ " based on alias." );
 						break;
 					}
 				}
 				// Now check the identifier...
-				identifier = ((String)
-					identifier_v.elementAt(i)).trim();
-				if (	req_ts.getIdentifierString(
-					).equalsIgnoreCase( identifier) ) {
+				identifier = ((String)identifier_v.elementAt(i)).trim();
+				if ( req_ts.getIdentifierString().equalsIgnoreCase( identifier) ) {
 					// Found a matching time series...
 					req_ts_i = i;
-					//Message.printStatus ( 1, "",
-					//"SAMX Found matching TS " + req_ts_i +
-					//" based on full TSID." );
+					//Message.printStatus ( 1, "", "SAMX Found matching TS " + req_ts_i + " based on full TSID." );
 					break;
 				}
 			}
 		}
 		if ( req_ts_i < 0 ) {
 			// Did not find the requested time series...
-			Message.printWarning ( 2, routine,
-			"Did not find the requested time series \"" +
-			req_ts.getIdentifierString() + "\" Alias \"" +
-			req_ts.getAlias() + "\"" );
-			throw new Exception ( 
-			"Did not find the requested time series \"" +
-			req_ts.getIdentifierString() + "\" Alias \"" +
-			req_ts.getAlias() + "\"" );
+		    message = "Did not find the requested time series \"" + req_ts.getIdentifierString() + "\" Alias \"" +
+                req_ts.getAlias() + "\"";
+			Message.printWarning ( 2, routine, message );
+			throw new Exception ( message );
 		}
-		// If here a requested time series was found.  However, if the
-		// requested TSID used the alias only, need to create a time
-		// series of the correct type using the header information...
-		if (	req_ts.getLocation().equals("") &&
-			!req_ts.getAlias().equals("") ) {
-			// The requested time series is only identified by the
-			// alias and needs to be recreated for the full
-			// identifier.  This case is configured in the calling
-			// public readTimeSeries() method.
-			identifier = ((String)identifier_v.elementAt(
-						req_ts_i)).trim();
-			//Message.printStatus ( 1, routine,
-			//"SAMX creating new req_ts for \"" +
+		// If here a requested time series was found.  However, if the requested TSID used the
+		// alias only, need to create a time series of the correct type using the header information...
+		if ( req_ts.getLocation().equals("") && !req_ts.getAlias().equals("") ) {
+			// The requested time series is only identified by the alias and needs to be recreated for the full
+			// identifier.  This case is configured in the calling public readTimeSeries() method.
+			identifier = ((String)identifier_v.elementAt( req_ts_i)).trim();
+			//Message.printStatus ( 1, routine,"SAMX creating new req_ts for \"" +
 			//identifier + "\" alias \"" + req_ts.getAlias() +"\"");
 			ts = TSUtil.newTimeSeries ( identifier, true );
 			ts.setIdentifier ( identifier );
-			// Reset the requested time series to the new one
-			// because req_ts is checked below...
+			// Reset the requested time series to the new one because req_ts is checked below...
 			ts.setAlias ( req_ts.getAlias() );
 			req_ts = ts;
 		}
-		else {	// A full TSID was passed in for the requested time
-			// series and there is no need to reassign the requested
+		else {
+		    // A full TSID was passed in for the requested time series and there is no need to reassign the requested
 			// time series...
-			//Message.printStatus ( 1, routine,
-			//"SAMX using existing ts for \"" +
+			//Message.printStatus ( 1, routine, "SAMX using existing ts for \"" +
 			//identifier + "\" alias \"" + req_ts.getAlias() +"\"");
 			ts = req_ts;
 			// Identifier is assumed to have been set previously.
@@ -1359,8 +1194,7 @@ throws Exception
 		ts_array = new TS[1];
 		ts_array[0] = ts;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Adding requested time series to list." );
+			Message.printDebug ( 1, routine, "Adding requested time series to list." );
 		}
 		ident = new TSIdent ( ts.getIdentifier() );
 		data_interval_base = ident.getIntervalBase();
@@ -1368,9 +1202,8 @@ throws Exception
 		// Make sure to set the interval for use below...
 		identifier = ((String)identifier_v.elementAt( req_ts_i)).trim();
 		ident = new TSIdent( identifier );
-		// Set the data type in the TS header using the
-		// information in the identifier.  It may be overwritten
-		// below if the DataType property is specifed...
+		// Set the data type in the TS header using the information in the identifier.
+		// It may be overwritten below if the DataType property is specifed...
 		ts.setDataType ( ident.getType() );
 		// Reset the column to account for the date...
 		req_ts_column = req_ts_i + 1;	// 1 is date.
@@ -1381,10 +1214,8 @@ throws Exception
 			++req_ts_column;
 		}
 		if ( dataflag_v != null ) {
-			// At least one of the time series in the file
-			// uses data flags so adjust the column for
-			// time series that may be before the requested
-			// time series...
+			// At least one of the time series in the file uses data flags so adjust the column for
+			// time series that may be before the requested time series...
 			for ( int ia = 0; ia < req_ts_i; ia++ ) {
 				if ( ts_has_data_flag[ia] ) {
 					++req_ts_column;
@@ -1392,44 +1223,35 @@ throws Exception
 			}
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Time series \"" + req_ts.getIdentifierString() +
-			"\" will be read from data column " + req_ts_column +
-			" (date column = 0)" );
+			Message.printDebug ( 1, routine, "Time series \"" + req_ts.getIdentifierString() +
+			"\" will be read from data column " + req_ts_column + " (date column = 0)" );
 		}
 	}
-	else {	// Allocate here as many time series as indicated by numts...
+	else {
+	    // Allocate here as many time series as indicated by numts...
 		tslist = new Vector(numts);
 		ts_array = new TS[numts];
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Allocated space for " + numts +
-			" time series in list." );
+			Message.printDebug ( 1, routine, "Allocated space for " + numts + " time series in list." );
 		}
 		for ( int i = 0; i < numts; i++ ) {
 			identifier = ((String)identifier_v.elementAt(i)).trim();
 			ident = new TSIdent( identifier );
-			// Need this to check whether time may be specified on
-			// data line...
+			// Need this to check whether time may be specified on data line...
 			data_interval_base = ident.getIntervalBase();
 			ts = TSUtil.newTimeSeries ( (String)identifier, true );
 			if ( ts == null ) {
-				Message.printWarning ( 2, routine,
-				"Unable to create new time series for \"" +
-				identifier + "\"" );
+				Message.printWarning ( 2, routine, "Unable to create new time series for \"" + identifier + "\"" );
 				return null;
 			}
 			// Only set the identifier if a new time series.
-			// Otherwise assume the the existing identifier is to be
-			// used (e.g., from a file name).
+			// Otherwise assume the the existing identifier is to be used (e.g., from a file name).
 			ts.setIdentifier ( identifier );
 			ts.getIdentifier().setInputType("DateValue");
 			tslist.addElement ( ts );
 			ts_array[i] = ts;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1, routine,
-				"Created memory for \"" +
-				ts.getIdentifierString() + "\"" );
+				Message.printDebug ( 1, routine, "Created memory for \"" + ts.getIdentifierString() + "\"" );
 			}
 		}
 	}
@@ -1444,9 +1266,8 @@ throws Exception
 		date2 = req_date2;
 	}
 	if ( (date1 != null) && (date2 != null) && date1.greaterThan(date2) ) {
-		Message.printWarning ( 2, routine,
-		"Date2 (" + date2 + ") is > Date1 (" + date1 +
-		").  Errors are likely." );
+		Message.printWarning ( 2, routine, "Date2 (" + date2 + ") is > Date1 (" + date1 + ").  Errors are likely." );
+		++warning_count;
 	}
 	try {
 	for ( int i = 0; i < numts; i++ ) {
@@ -1464,9 +1285,7 @@ throws Exception
 			ts = ts_array[i];
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Setting properties for \"" + ts.getIdentifierString() +
-			"\"" );
+			Message.printDebug ( 1, routine, "Setting properties for \"" + ts.getIdentifierString() + "\"" );
 		}
 		if ( alias_v != null ) {
 			alias = ((String)alias_v.elementAt(i)).trim();
@@ -1515,16 +1334,24 @@ throws Exception
 	}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, e );
+	    message = "Unexpected error initializing time series.";
+	    Message.printWarning(3, routine, message);
+		Message.printWarning ( 3, routine, e );
+		++warning_count;
 	}
-
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine, "Read TS header" );
+	if ( warning_count > 0 ) {
+	    message = "" + warning_count + " errors occurred initializing time series.  Not reading data.";
+	    Message.printWarning(3, routine, message);
+	    // FIXME SAM 2008-04-14 Evaluate throwing more specific exception.
+	    throw new Exception ( message );
 	}
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( 10, routine, "Read TS header" );
+    }
+	warning_count = 0; // Reset for reading data section below.
 
 	// Check the header information.  If the data type has not been
-	// specified but is included in the time series identifier, set in the
-	// data type...
+	// specified but is included in the time series identifier, set in the data type...
 
 	size = 0;
 	if ( tslist != null ) {
@@ -1548,31 +1375,23 @@ throws Exception
 	if ( req_ts != null ) {
 		ts = ts_array[0];
 		if ( ts.allocateDataSpace() != 0 ) {
-			Message.printWarning( 2, routine,
-			"Error allocating data space..." );
-			// Clean up memory...
-			ts = null;
-			ts_array = null;
-			tslist = null;
-			return null;
+		    message = "Error allocating data space for time series.";
+			Message.printWarning( 3, routine, message );
+			throw new Exception ( message );
 		}
 	}
 	else {	for ( int i = 0; i < numts; i++ ) {
 			ts = ts_array[i];
 			if ( ts.allocateDataSpace() != 0 ) {
-				Message.printWarning( 2, routine,
-				"Error allocating data space..." );
-				// Clean up memory...
-				ts = null;
-				ts_array = null;
-				tslist = null;
-				return null;
+			    message = "Error allocating data space for time series.";
+				Message.printWarning( 3, routine, message );
+	            throw new Exception ( message );
 			}
 		}
 	}
 
-	// Now read the data.  Need to monitor if this is a real hog and
-	// optimize if so...
+	// Now read the data.  Need to monitor if this is a real hog and optimize if so...
+	warning_count = 0;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Reading data..." );
@@ -1585,12 +1404,10 @@ throws Exception
 	boolean		first = true;
 	int		nstrings = 0;
 	boolean		use_time = false;
-	if (	(data_interval_base == TimeInterval.HOUR) ||
-		(data_interval_base == TimeInterval.MINUTE) ||
+	if ( (data_interval_base == TimeInterval.HOUR) || (data_interval_base == TimeInterval.MINUTE) ||
 		(data_interval_base == TimeInterval.IRREGULAR) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "Expect time to be" +
-			" given with dates - may be separate column." );
+			Message.printDebug ( dl, routine, "Expect time to be given with dates - may be separate column." );
 		}
 		use_time = true;
 	}
@@ -1635,18 +1452,17 @@ throws Exception
 			// first characters are checked...
 			first = false;
 			if ( string.regionMatches(true,0,"date",0,4) ) {
-				// Can ignore because it is the header line
-				// for columns...
+				// Can ignore because it is the header line for columns...
 				continue;
 			}
 		}
-		else {	// Need to read a line...
+		else {
+		    // Need to read a line...
 			string = in.readLine();
 			++line_count;
 			if ( string == null ) {
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Detected end of file." );
+					Message.printDebug ( dl, routine, "Detected end of file." );
 				}
 				break;
 			}
@@ -1654,46 +1470,38 @@ throws Exception
 		// Remove whitespace at front and back...
 		string = string.trim();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl2, routine,
-			"Processing: \"" + string + "\"" );
+			Message.printDebug ( dl2, routine, "Processing: \"" + string + "\"" );
 		}
-		if (	(string.length() == 0) ||
-			((string.length() > 0) && (string.charAt(0) == '#')) ) {
+		if ( (string.length() == 0) || ((string.length() > 0) && (string.charAt(0) == '#')) ) {
 			// Skip comments and blank lines for now...
 			continue;
 		}
 		if ( !Character.isDigit(string.charAt(0)) ) {
 			// Not a data line...
 			Message.printWarning ( 2, routine,
-			"Error in data format for line " + line_count
-			+ ". Expecting number at start: \"" + string + "\"" );
+			"Error in data format for line " + line_count + ". Expecting number at start: \"" + string + "\"" );
+			++warning_count;
 			continue;
 		}
 		// Now parse the string...
-		// If hour, or minute data, expect data line to be YYYY-MM-DD
-		// HH:MM Value
-		// If there is a space between date and time, assume that the
-		// first two need to be concatenated.
+		// If hour, or minute data, expect data line to be YYYY-MM-DD HH:MM Value
+		// If there is a space between date and time, assume that the first two need to be concatenated.
 		string = string.trim();
 		if ( dataflag_v == null ) {
-			// No data flags so parse without handling quoted
-			// strings.  This will in general be faster...
-			strings = StringUtil.breakStringList ( string,
-			delimiter, StringUtil.DELIM_SKIP_BLANKS );
+			// No data flags so parse without handling quoted strings.  This will in general be faster...
+			strings = StringUtil.breakStringList ( string, delimiter, StringUtil.DELIM_SKIP_BLANKS );
 		}
-		else {	// Expect to have data flags so parse WITH handling
-			// quoted strings.  This will generally be slower...
+		else {
+		    // Expect to have data flags so parse WITH handling quoted strings.  This will generally be slower...
 			strings = StringUtil.breakStringList ( string,
-			delimiter, StringUtil.DELIM_SKIP_BLANKS|
-			StringUtil.DELIM_ALLOW_STRINGS );
+			delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 		}
 		nstrings = 0;
 		if ( strings != null ) {
 			nstrings = strings.size();
 		}
 		if ( nstrings == num_expected_columns ) {
-			// Assume that there is NO space between date and
-			// time or that time field is not used...
+			// Assume that there is NO space between date and time or that time field is not used...
 			date_str = ((String)strings.elementAt(0)).trim();	
 			// Date + extra columns...
 			first_data_column = 1 + num_extra_columns;
@@ -1701,33 +1509,28 @@ throws Exception
 		}
 		else if ( use_time && (nstrings == num_expected_columns_p1) ) {
 			// Assume that there IS a space between the date and
-			// time.  Concatenate together so that the
-			// DateTime.parse will work.
-			date_str = ((String)strings.elementAt(0)).trim() + " " +
-				((String)strings.elementAt(1)).trim();	
+			// time.  Concatenate together so that the DateTime.parse will work.
+			date_str = ((String)strings.elementAt(0)).trim() + " " + ((String)strings.elementAt(1)).trim();	
 			// Date + time + extra column...
 			first_data_column = 2 + num_extra_columns;
 			// Adusted requested time series column...
 			req_ts_column2 = req_ts_column + 1;
 		}
-		else {	Message.printWarning ( 2, routine,
-			"Error in data format for line " + line_count +
-			". Have " + nstrings + " fields but expecting " +
-			num_expected_columns + ": \"" + string + "\":\n" +
-			strings );
-			//Message.printStatus ( 1, routine,
-			//"use_time=" + use_time + " num_expected_columns_p1=" +
+		else {
+		    Message.printWarning ( 2, routine, "Error in data format for line " + line_count + ". Have " +
+		            nstrings + " fields using delimiter \"" + delimiter + "\" but expecting " +
+		            num_expected_columns + ": \"" + string );
+		    ++warning_count;
+			//Message.printStatus ( 1, routine, "use_time=" + use_time + " num_expected_columns_p1=" +
 			//num_expected_columns_p1 );
 			// Ignore the line...
 			strings = null;
 			continue;
 		}
-		// Allow all common date formats, even if not the right
-		// precision...
+		// Allow all common date formats, even if not the right precision...
 		date = DateTime.parse(date_str);
 		// The input line date may not have the proper resolution, so
-		// set to the precision of the time series defined in the
-		// header.
+		// set to the precision of the time series defined in the header.
 		if ( data_interval_base == TimeInterval.MINUTE ) {
 			date.setPrecision ( DateTime.PRECISION_MINUTE );
 		}
@@ -1747,8 +1550,7 @@ throws Exception
 			// No data of interest yet...
 			strings = null;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1, routine,
-				"Ignoring data - before start date" );
+				Message.printDebug ( 1, routine, "Ignoring data - before start date" );
 			}
 			continue;
 		}
@@ -1756,8 +1558,7 @@ throws Exception
 			// No need to keep reading...
 			strings = null;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1, routine,
-				"Stop reading data - after start date" );
+				Message.printDebug ( 1, routine, "Stop reading data - after start date" );
 			}
 			break;
 		}
@@ -1766,81 +1567,63 @@ throws Exception
 
 		if ( req_ts != null ) {
 			// Just have to process one column...
-			svalue = ((String)strings.elementAt(
-					req_ts_column2)).trim();
-			// This introduces a performance hit - maybe need to
-			// add a boolean array for each time series to be able
-			// to check whether NaN is the missing - then can avoid
-			// the check.  For now just check the string.
+			svalue = ((String)strings.elementAt(req_ts_column2)).trim();
+			// This introduces a performance hit - maybe need to add a boolean array for each time series
+			// to be able to check whether NaN is the missing - then can avoid the check.
+			// For now just check the string.
 			if ( svalue.equals("NaN") ) {
 				dvalue = ts_array[0].getMissing();
 			}
-			else {	dvalue = StringUtil.atod ( svalue );
+			else {
+			    dvalue = StringUtil.atod ( svalue );
 			}
 			if ( ts_has_data_flag[req_ts_i] ) {
 				// Has a data flag...
-				dataflag = ((String)strings.elementAt(
-					req_ts_column2 + 1)).trim();
-				ts_array[0].setDataValue ( date, dvalue,
-						dataflag, 1 );
+				dataflag = ((String)strings.elementAt( req_ts_column2 + 1)).trim();
+				ts_array[0].setDataValue ( date, dvalue, dataflag, 1 );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl2, routine,
-					"For date " + date.toString() +
-					", value=" + dvalue + ", flag=\"" +
-					dataflag + "\"" );
+					Message.printDebug ( dl2, routine, "For date " + date.toString() +
+					", value=" + dvalue + ", flag=\"" +	dataflag + "\"" );
 				}
 			}
 			else {	// No data flag...
 				ts_array[0].setDataValue ( date, dvalue );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl2, routine,
-					"For date " + date.toString() +
-					", value=" + dvalue );
+					Message.printDebug ( dl2, routine, "For date " + date.toString() + ", value=" + dvalue );
 				}
 			}
 		}
-		else {	// Loop through all the columns...
-			for (	i = first_data_column, its = 0;
-				i < nstrings; i++, its++ ) {
-				// Set the data value in the requested
-				// time series.  If a requested time series is
-				// being used, the array will only contain one
-				// time series, which is the requested time
-				// series (SAMX 2002-09-05 so why the code
-				// above???)...
+		else {
+		    // Loop through all the columns...
+			for ( i = first_data_column, its = 0; i < nstrings; i++, its++ ) {
+				// Set the data value in the requested time series.  If a requested time series is
+				// being used, the array will only contain one time series, which is the requested time
+				// series (SAMX 2002-09-05 so why the code above???)...
 				//
-				// This introduces a performance hit - maybe
-				// need to add a boolean array for each time
-				// series to be able to check whether NaN is
-				// the missing - then can avoid the check.  For
+				// This introduces a performance hit - maybe need to add a boolean array for each time
+				// series to be able to check whether NaN is the missing - then can avoid the check.  For
 				// now just check the string.
 				svalue = ((String)strings.elementAt(i)).trim();
 				if ( svalue.equals("NaN") ) {
 					dvalue = ts_array[its].getMissing();
 				}
-				else {	dvalue = StringUtil.atod ( svalue );
+				else {
+				    dvalue = StringUtil.atod ( svalue );
 				}
 				if ( ts_has_data_flag[its] ) {
 					dataflag = ((String)
 					strings.elementAt(++i)).trim();
-					ts_array[its].setDataValue ( date,
-						dvalue, dataflag, 1 );
+					ts_array[its].setDataValue ( date, dvalue, dataflag, 1 );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl2,
-						routine,
-						"For date " + date.toString() +
-						", value=" + dvalue +
-						", flag=\"" + dataflag + "\"" );
+						Message.printDebug ( dl2, routine, "For date " + date.toString() +
+						", value=" + dvalue + ", flag=\"" + dataflag + "\"" );
 					}
 				}
-				else {	// No data flag...
-					ts_array[its].setDataValue ( date,
-						dvalue );
+				else {
+				    // No data flag...
+					ts_array[its].setDataValue ( date, dvalue );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl2,
-						routine,
-						"For date " + date.toString() +
-						", value=" + dvalue );
+						Message.printDebug ( dl2, routine, "For date " + date.toString() + ", value=" + dvalue );
 					}
 				}
 			}
@@ -1851,11 +1634,18 @@ throws Exception
 		strings = null;
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error processing line " + line_count
-			+ ": \"" + string + "\"" );
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 2, routine, "Unexpected error processing line " + line_count + ": \"" +
+			        string + "\"" );
+			Message.printWarning ( 3, routine, e );
+			++warning_count;
 		}
+	}
+	
+	if ( warning_count > 0 ) {
+	    message = "" + warning_count + " errors were detected reading data in file.";
+	    Message.printWarning (2, routine, message);
+	    // FIXME SAM 2008-04-14 Evaluate throwing a more specific exception
+	    throw new Exception ( message );
 	}
 
 	//if ( Message::isDebugOn ) {
@@ -1866,15 +1656,11 @@ throws Exception
 	//	String::valueOf(address) + " to " + ts->getDate2().toString());
 	//}
 	if ( req_ts != null ) {
-		req_ts.addToGenesis ( "Read DateValue time series from " +
-			ts.getDate1().toString() + " to " +
-			ts.getDate2().toString() );
+		req_ts.addToGenesis ( "Read DateValue time series from " + ts.getDate1() + " to " + ts.getDate2() );
 	}
-	else {	for ( i = 0; i < numts; i++ ) {
-			ts_array[i].addToGenesis (
-			"Read DateValue time series from " +
-			ts.getDate1().toString() + " to " +
-			ts.getDate2().toString() );
+	else {
+	    for ( i = 0; i < numts; i++ ) {
+			ts_array[i].addToGenesis ( "Read DateValue time series from " + ts.getDate1() + " to " + ts.getDate2() );
 		}
 	}
 	ts = null;
