@@ -1693,10 +1693,8 @@ will be converted on output.
 writing the header).
 @exception Exception if an error occurs.
 */
-public static void writeTimeSeries (	TS ts, PrintWriter out,
-					DateTime date1,
-					DateTime date2, String units,
-					boolean write_data )
+public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1,
+					DateTime date2, String units, boolean write_data )
 throws Exception
 {	Vector v = new Vector ( 1 );
 	v.addElement ( ts );
@@ -1712,8 +1710,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units
 will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
+@param write_data Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if there is an error writing the file.
 */
 public static void writeTimeSeries (    TS ts, String fname, DateTime date1,
@@ -1723,7 +1720,8 @@ throws Exception
 {   String  routine = "DateValueTS.writeTimeSeries";
 
     String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
-    try {   FileOutputStream fos = new FileOutputStream( full_fname );
+    try {
+        FileOutputStream fos = new FileOutputStream( full_fname );
         PrintWriter fout = new PrintWriter ( fos );
 
         writeTimeSeries ( ts, fout, date1, date2, units, write_data );
@@ -1732,8 +1730,7 @@ throws Exception
         fout.close();
     }
     catch ( Exception e ) {
-        String message = "Error opening \"" + full_fname +
-        "\" for writing.";
+        String message = "Error opening \"" + full_fname + "\" for writing.";
         Message.printWarning( 2, routine, message );
         throw new Exception (message);
     }
@@ -1752,23 +1749,18 @@ throws Exception
 
 /**
 Write a Vector of time series to a DateValue format file.
-Currently there is no way to indicate that the count or total time should be
-printed.
+Currently there is no way to indicate that the count or total time should be printed.
 @param tslist Vector of pointers to time series to write.
 @param out PrintWrite to write to.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units
 will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
-@exception Exception if there is an error writing the file (I/O error or invalid
-data).
+@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@exception Exception if there is an error writing the file (I/O error or invalid data).
 */
 public static void writeTimeSeriesList (Vector tslist, PrintWriter out,
-                    DateTime date1,
-                    DateTime date2, String units,
-                    boolean write_data )
+                    DateTime date1, DateTime date2, String units, boolean write_data )
 throws Exception
 {
     writeTimeSeriesList ( tslist, out, date1, date2, units, write_data, null );
@@ -1776,24 +1768,20 @@ throws Exception
 
 /**
 Write a Vector of time series to a DateValue format file.
-Currently there is no way to indicate that the count or total time should be
-printed.
+Currently there is no way to indicate that the count or total time should be printed.
 @param tslist Vector of pointers to time series to write.
 @param out PrintWrite to write to.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units
 will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
+@param write_data Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output (see overloaded method for description).
 @exception Exception if there is an error writing the file (I/O error or invalid
 data).
 */
-public static void writeTimeSeriesList (Vector tslist, PrintWriter out,
-					DateTime date1,
-					DateTime date2, String units,
-					boolean write_data, PropList props )
+public static void writeTimeSeriesList (Vector tslist, PrintWriter out,	DateTime date1,
+					DateTime date2, String units, boolean write_data, PropList props )
 throws Exception
 {	String	message, routine = "DateValueTS.writeTimeSeriesList";
 	DateTime ts_start, ts_end, t = new DateTime( DateTime.DATE_FAST );
@@ -1824,8 +1812,8 @@ throws Exception
 	TSLimits limits = new TSLimits ();
 	if ( (date1 == null) || (date2 == null) ) {
 		// Get the limits...
-		try {	limits = TSUtil.getPeriodFromTS (
-				tslist, TSUtil.MAX_POR );
+		try {
+		    limits = TSUtil.getPeriodFromTS ( tslist, TSUtil.MAX_POR );
 		}
 		catch ( Exception e ) {}
 	}
@@ -1854,8 +1842,7 @@ throws Exception
 
 	TS ts = null;
 	// Set up conversion factors for units (apparently some compilers don't
-	// like allocating one slot so always make it more and ignore the extra
-	// value)...
+	// like allocating one slot so always make it more and ignore the extra value)...
 	double mult[] = new double[size + 1];
 	double add[] = new double[size + 1];
 	DataUnitsConversion conversion;
@@ -1871,8 +1858,7 @@ throws Exception
 			data_interval_base = data_interval_base_i;
 			data_interval_mult = data_interval_mult_i;
 		}
-		else if ( (data_interval_base != data_interval_base_i) ||
-			(data_interval_mult != data_interval_mult_i) ) {
+		else if ( (data_interval_base != data_interval_base_i) || (data_interval_mult != data_interval_mult_i) ) {
 			mult = null;
 			add = null;
 			message = "Time series do not have the same interval.  Can't write";
@@ -1880,10 +1866,8 @@ throws Exception
 			throw new Exception ( message );
 		}
 		// Get the conversion factors to use for output.  Don't call
-		// TSUtil.convertUnits because we don't want to alter the time
-		// series itself...
-		if (	(ts != null) && (units != null) &&
-			(units.length() != 0) &&
+		// TSUtil.convertUnits because we don't want to alter the time series itself...
+		if ( (ts != null) && (units != null) && (units.length() != 0) &&
 			!units.equalsIgnoreCase(ts.getDataUnits()) ) {
 			try {
 			    conversion = DataUnits.getConversion ( ts.getDataUnits(), units );
@@ -1924,7 +1908,7 @@ throws Exception
 	StringBuffer tsid_buffer = new StringBuffer();
 	StringBuffer units_buffer = new StringBuffer();
 
-	if (	(data_interval_base == TimeInterval.IRREGULAR) ||
+	if ( (data_interval_base == TimeInterval.IRREGULAR) ||
 		(data_interval_base == TimeInterval.MINUTE) ||
 		(data_interval_base == TimeInterval.HOUR) ) {
 		columns_buffer.append ( "Date" + delim + "Time" + delim );
@@ -1964,8 +1948,7 @@ throws Exception
 		    String alias = ts.getAlias();
 		    alias_buffer.append ( "\"" + alias + "\"" );
 			if ( ts.getSequenceNumber() >= 0 ) {
-				// At least one time series has the sequence
-				// number so it will be output below.
+				// At least one time series has the sequence number so it will be output below.
 				has_seqnum = true;
 			}
 			seqnum_buffer.append ( ts.getSequenceNumber() );
@@ -2003,8 +1986,7 @@ throws Exception
 			    datatype_buffer.append("\"" + ts.getDataType() + "\"" );
 			}
 			description_buffer.append (	"\"" + ts.getDescription() + "\"" );
-			// If the missing value is NaN, just print NaN.
-			// Otherwise the %.4f results in NaN.000...
+			// If the missing value is NaN, just print NaN.  Otherwise the %.4f results in NaN.000...
 			// The following is a trick to check for NaN...
 			if ( ts.getMissing() != ts.getMissing() ) {
 				missingval_buffer.append ("NaN" );
@@ -2065,9 +2047,7 @@ throws Exception
 		if ( ((comments == null) || (comments.size() == 0)) && ((genesis == null) || (genesis.size() == 0)) ) {
 			out.println ( "#" );
 			out.println ( "# Time series " + (i + 1) + " (TSID=" +
-			ts.getIdentifier().toString() +
-			" Alias=" + ts.getAlias() +
-			") has no comments or history" );
+			ts.getIdentifier().toString() + " Alias=" + ts.getAlias() + ") has no comments or history" );
 			out.println ( "#" );
 			continue;
 		}
@@ -2082,12 +2062,10 @@ throws Exception
 				out.println ( "#   " + (String)comments.elementAt(j) );
 			}
 		}
-		if (	(genesis != null) && (genesis.size() > 0) &&
-			print_genesis.equalsIgnoreCase("true") ) {
+		if ( (genesis != null) && (genesis.size() > 0) && print_genesis.equalsIgnoreCase("true") ) {
 			out.println ( "#" );
 			out.println ( "# Creation history for time series " +
-			(i + 1) + " (TSID=" + ts.getIdentifier().toString() +
-			" Alias=" + ts.getAlias() + "):" );
+			(i + 1) + " (TSID=" + ts.getIdentifier().toString() + " Alias=" + ts.getAlias() + "):" );
 			out.println ( "#" );
 			jsize = genesis.size();
 			for ( j = 0; j < jsize; j++ ) {
@@ -2112,8 +2090,7 @@ throws Exception
 	double value = 0.0;
 	String string_value;
 
-	// Need to add iterator at some point - could use this to test
-	// performace...
+	// Need to add iterator at some point - could use this to test performance...
 	StringBuffer buffer = new StringBuffer();
 	TSData datapoint;	// Data point associated with a date.
 	String dataflag;	// Data flag associated with a data point.
@@ -2150,29 +2127,25 @@ throws Exception
 			value = tsdata.getData();
 			if ( ts.isDataMissing(value) ) {
 				if ( value != value ) {
-					// This trick is used to figure out if
-					// missing data are indicated by NaN...
+					// This trick is used to figure out if missing data are indicated by NaN...
 					string_value = "NaN";
 				}
 				else {
 				    string_value = StringUtil.formatString( tsdata.getData(), "%.4f" );
 				}
 			}
-			else {	// Convert the units...
+			else {
+			    // Convert the units...
 				string_value = StringUtil.formatString( (tsdata.getData()*mult[0] + add[0]), "%.4f" );
 			}
-			// Don't think @ is needed given new DateValueTS
-			// capabilities...
-			//out.println (
-			//date.toString(
-			//DateTime.FORMAT_YYYY_MM_DD_HH_mm).replace(' ','@') +
-			//" " + string_value );
-			// Use the precision of the dates in the data - ISO
-			// formats will be used by default...
+			// Don't think @ is needed given new DateValueTS capabilities...
+			//out.println ( date.toString( DateTime.FORMAT_YYYY_MM_DD_HH_mm).replace(' ','@') + " " + string_value );
+			// Use the precision of the dates in the data - ISO formats will be used by default...
 			out.println ( date.toString() + " " + string_value );
 		}
 	}
-	else {	// Regular interval...
+	else {
+	    // Regular interval...
 		t = new DateTime ( ts_start);
 		// Make sure no time zone is set to minimize output...
 		t.setTimeZone ("");
@@ -2182,17 +2155,14 @@ throws Exception
 			buffer.append( t.toString() + delim );
 			for ( i = 0; i < size; i++ ) {
 				ts = (TS)tslist.elementAt(i);
-				// Need to work on formatting number to a
-				// better precision.  For now just get to
+				// Need to work on formatting number to a better precision.  For now just get to
 				// output without major loss in precision...
 				if ( ts != null ) {
 					value = ts.getDataValue(t);
 				}
 				if ( (ts == null) || ts.isDataMissing(value) ) {
 					if ( value != value ) {
-						// This trick is used to figure
-						// out if missing data are
-						// indicated by NaN...
+						// This trick is used to figure out if missing data are indicated by NaN...
 						string_value = "NaN";
 					}
 					else {
@@ -2212,8 +2182,7 @@ throws Exception
 				if ( ts.hasDataFlags() ) {
 					datapoint = ts.getDataPoint ( t );
 					dataflag = datapoint.getDataFlag();
-					// Always enclose the dataflag in quotes
-					// because it may contain white space...
+					// Always enclose the data flag in quotes because it may contain white space...
 					buffer.append ( delim +	"\""+ dataflag + "\"");
 				}
 			}
@@ -2249,8 +2218,7 @@ NumTS = #
 */
 public static void writeTimeSeriesList ( Vector tslist, String fname )
 throws Exception
-{	writeTimeSeriesList ( tslist, fname, (DateTime)null, (DateTime)null,
-			null, true );
+{	writeTimeSeriesList ( tslist, fname, (DateTime)null, (DateTime)null, null, true );
 }
 
 /**
@@ -2267,8 +2235,7 @@ writing the header).
 @exception Exception if there is an error writing the file.
 */
 public static void writeTimeSeriesList (Vector tslist, String fname,
-                    DateTime date1, DateTime date2,
-                    String units, boolean write_data )
+                    DateTime date1, DateTime date2, String units, boolean write_data )
 throws Exception
 {
     writeTimeSeriesList ( tslist, fname, date1, date2, units, write_data, null );
@@ -2300,17 +2267,16 @@ writing the header).
 @exception Exception if there is an error writing the file.
 */
 public static void writeTimeSeriesList (Vector tslist, String fname,
-					DateTime date1, DateTime date2,
-					String units, boolean write_data, PropList props )
+					DateTime date1, DateTime date2, String units, boolean write_data, PropList props )
 throws Exception
 {	String	routine = "DateValueTS.writeTimeSeriesList";
 
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
-	try {	FileOutputStream fos = new FileOutputStream ( full_fname );
+	try {
+	    FileOutputStream fos = new FileOutputStream ( full_fname );
 		PrintWriter fout = new PrintWriter ( fos );
 
-		writeTimeSeriesList (	tslist, fout, date1, date2,
-					units, write_data, props );
+		writeTimeSeriesList ( tslist, fout, date1, date2, units, write_data, props );
 
 		fout.flush();
 		fout.close();
