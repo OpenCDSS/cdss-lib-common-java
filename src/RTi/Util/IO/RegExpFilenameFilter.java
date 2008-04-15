@@ -48,8 +48,7 @@ public RegExpFilenameFilter ( String regexp )
 }
 
 /**
-@return true if the name matches the regular expression passed in during
-construction.
+@return true if the name matches the regular expression passed in during construction.
 @param dir Directory of file being evaluated.
 @param name File being evaluated (without leading directory path).
 */

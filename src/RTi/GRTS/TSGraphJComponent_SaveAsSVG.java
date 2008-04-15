@@ -2,7 +2,6 @@ package RTi.GRTS;
 
 import RTi.Util.IO.IOUtil;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;

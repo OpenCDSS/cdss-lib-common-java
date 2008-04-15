@@ -621,7 +621,7 @@ JTS 16/04/02 -- This is in here so that panels that use the DMI without
 the use of statement objects (ie, the SQL Analyzer-type program) can 
 requery after a write or delete.
 */
-private String __lastQueryString;
+//private String __lastQueryString;
 
 /**
 the last SQL statement that was executed
@@ -791,7 +791,6 @@ throws Exception {
 	__user_password		= null;
 	__lastSQL		= null;
 	__lastQuery		= null;
-	__lastQueryString 	= null;
 	__connection 		= null;
 
 	__database_version	= 0;
@@ -1400,7 +1399,8 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 		sql = sql.toUpperCase();
 	}	
 	
-	__lastQueryString = sql;
+	// FIXME SAM 2008-04-15 Evaluate if needed
+	//__lastQueryString = sql;
 
 	try {
 		rs = s.executeQuery(sql);
@@ -1834,7 +1834,6 @@ throws Throwable {
 	__user_password		= null;
 	__lastSQL		= null;
 	__lastQuery		= null;
-	__lastQueryString 	= null;
 	__connection 		= null;
 
 	super.finalize();

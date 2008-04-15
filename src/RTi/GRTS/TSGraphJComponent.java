@@ -179,10 +179,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -201,7 +198,6 @@ import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 
 import RTi.TS.TS;
-import RTi.TS.TSUtil;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
@@ -213,15 +209,6 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
-
-// Needed to support writing SVG...
-import org.apache.batik.svggen.SVGGraphics2D;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGeneratorContext;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMImplementation;
-
 
 /**
 The TSGraphJComponent class provides a component for displaying one or more time
@@ -444,7 +431,6 @@ loaded and you don't want to see redraws between each one.
 */
 private boolean _waiting = false;
 
-// TODO SAM 2008-02-21 Need to enable
 /**
 Indicate whether to display cross-hairs on the graph to the edges
 */
@@ -1561,9 +1547,9 @@ private Vector determineDataLimits() {
 }
 
 /**
-Draw the drawing areas.  This is used for testing only.
+Draw the drawing area boundaries, for troubleshooting.
 */
-private void drawDrawingAreas ()
+public void drawDrawingAreas ()
 {	_da_page.setColor ( GRColor.cyan );
 	// Reference and main...
 	GRDrawingAreaUtil.drawRectangle ( _da_graphs,
@@ -3959,13 +3945,12 @@ public void setInteractionMode ( int mode )
 
 // TODO SAM 2007-05-09 Need to evaluate whether to implement
 /**
-Show an information dialog indicating the closest time series and value to
-the click.
+Show an information dialog indicating the closest time series and value to the click.
 @param tsgraph TSGraph where the select occurred.
 @param x X-coordinate of mouse click, from event handler.
 @param y Y-coordinate of mouse click, from event handler.
 */
-private void showInfoDialog ( TSGraph tsgraph, int x, int y )
+public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 {	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY (
 			x, y, GRDrawingArea.COORD_DEVICE );
 	if ( datapt == null ) {
@@ -4007,10 +3992,8 @@ private void showInfoDialog ( TSGraph tsgraph, int x, int y )
 		}
 	}
 	if ( mints == null ) {
-		new ResponseJDialog ( _parent,
-		"Time Series Information",
-		"Unable to find nearest time series.",
-		ResponseJDialog.OK );
+		new ResponseJDialog ( _parent, "Time Series Information",
+		"Unable to find nearest time series.", ResponseJDialog.OK );
 	}
 	else {	d.setPrecision ( mints.getDataIntervalBase() );
 		new ResponseJDialog ( _parent,

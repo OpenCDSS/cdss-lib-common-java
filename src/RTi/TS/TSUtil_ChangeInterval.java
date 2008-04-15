@@ -806,7 +806,7 @@ public class TSUtil_ChangeInterval {
      */
     private boolean changeIntervalFromInstByInterpolation(TSIterator oldTSi, TSIterator newTSi, int intervalRelation, String OldTimeScale, String NewTimeScale,
             int missingValueFlag, boolean timeStampedAtEnd) throws Exception {
-        String routine = "TSUtil.changeIntervalFromInstByInterpolation", warning;
+        String warning;
 
         //Message.printStatus(2, routine, " Running ...");
 
@@ -2196,6 +2196,7 @@ public class TSUtil_ChangeInterval {
 
     // 12 Jul 1998 SAM, RTi Change so that the dates are nicely
     // rounded.
+    /* FIXME SAM 2008-04-15 Evaluate whether old code is needed.
     private HourTS OLDchangeToHourTS(IrregularTS oldts, int newmult, PropList proplist) {
         String routine = "TSUtil.changeToHourTS(IrregularTS)";
         HourTS newts = null;
@@ -2322,6 +2323,7 @@ public class TSUtil_ChangeInterval {
         return newts;
 
     }
+    */
 
     /*
      * REVISIT SAM private static HourTS changeToHourTS( MonthTS oldts, int newmult, PropList proplist ) { String routine = "TSUtil.changeToHourTS(MonthTS)"; HourTS newts =

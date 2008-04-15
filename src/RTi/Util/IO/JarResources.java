@@ -209,6 +209,7 @@ deflated_size: if the file is deflated, the compressed size of the file<br>
 @param ze a ZipEntry
 @return the string describing the entry in the jar file
 */
+/*
 private String dumpZipEntry(ZipEntry ze) {
 	StringBuffer sb = new StringBuffer();
 	if (ze.isDirectory()) {
@@ -234,6 +235,7 @@ private String dumpZipEntry(ZipEntry ze) {
 	}
 	return sb.toString();
 }
+*/
 
 /**
 Cleans up member variables.

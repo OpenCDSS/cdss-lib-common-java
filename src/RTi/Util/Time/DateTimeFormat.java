@@ -1988,7 +1988,6 @@ private int[] getSortedFormatSpecifierTypes() {
 	}
 }
 
-// TODO SAM 2007-05-09 Evaluate whether needed
 /**
 Returns whether the format includes the given date/time piece.  This can be 
 used to determine easily whether a format will display years, for instance, 
@@ -2003,12 +2002,14 @@ by:<p>
 @param datePiece one of __YEAR, __MONTH, __DAY, etc.
 @return whether the format includes the given date/time piece.
 */
+/* FIXME SAM 2007-05-09 Evaluate whether needed
 private boolean hasFormatSpecifier(int datePiece) {
 	if (datePiece < 0 || datePiece > __NUM_PIECES) {
 		return false;
 	}
 	return __datePieces[datePiece];
 }
+*/
 
 /**
 Returns whether the format in this Object is absolute or not.  See

@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.MouseEvent;
 
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -20,10 +19,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-
-import RTi.Util.IO.CommandStatusProvider;
 
 /**
  * Provides a JList with line numbers and visual problem markers.
@@ -225,8 +220,8 @@ class HorzScrollListCellRenderer extends JPanel implements ListCellRenderer
   public void paintComponent(Graphics g)
   {
     // draw text
-    int stringLen = g.getFontMetrics().stringWidth(_currentValue.toString());
-    int ht = _currentList.getFixedCellHeight();
+    //int stringLen = g.getFontMetrics().stringWidth(_currentValue.toString());
+    //int ht = _currentList.getFixedCellHeight();
 
     // g.setColor(currentList.getBackground());
     g.setColor(_isSelected?_currentList.getSelectionBackground():

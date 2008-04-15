@@ -1,8 +1,5 @@
 package RTi.Util.IO;
 
-import java.util.Vector;
-
-
 // TODO SAM 2007-06-25 Can a link to full logging be implemented somehow to allow
 // drill-down to the log file (with an appropriate filter/navigation)?
 /**

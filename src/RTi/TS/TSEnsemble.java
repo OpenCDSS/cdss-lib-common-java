@@ -3,15 +3,13 @@ package RTi.TS;
 import java.util.List;
 import java.util.Vector;
 
-import RTi.Util.Time.DateTime;
-
 // TODO SAM 2007-12-13 Evaluate whether to implement or extend from List
 // For now just use a list internally for data and implement List methods as needed.
 /**
 A collection for time series, to be represented as an ensemble.  At this time, it
 is expected that each time series has been created or read using code that
 understands ensembles.  There are not currently hard constraints for ensembles but
-it is expected that they have similar time series charactersitics like period of record,
+it is expected that they have similar time series characteristics like period of record,
 data type, and interval.  More constraints may be added over time.
 */
 public class TSEnsemble implements Cloneable

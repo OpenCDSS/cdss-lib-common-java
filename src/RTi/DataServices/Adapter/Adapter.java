@@ -14,7 +14,6 @@
 package RTi.DataServices.Adapter;
 
 import java.lang.Exception;
-import java.net.URL;
 import java.util.Vector;
 
 import RTi.TS.TS;

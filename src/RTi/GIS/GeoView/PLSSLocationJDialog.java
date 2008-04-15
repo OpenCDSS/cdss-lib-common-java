@@ -89,9 +89,9 @@ private JTextField __tsJTextField;
 
 // TODO SAM 2007-05-09 Evaluate how used
 /**
-The location object that stores the data intially passed into this dialog.
+The location object that stores the data initially passed into this dialog.
 */
-private PLSSLocation __location = null;
+//private PLSSLocation __location = null;
 
 /**
 Combo box for holding the half section.
@@ -142,7 +142,7 @@ throws Exception {
 		__wildcard = "*";
 	}
 
-	__location = new PLSSLocation();
+	//__location = new PLSSLocation();
 
 	setupGUI();
 
@@ -166,7 +166,7 @@ throws Exception {
 		__wildcard = "*";
 	}
 
-	__location = location;
+	//__location = location;
 
 	setupGUI();
 
@@ -426,7 +426,7 @@ throws Throwable {
 	__rangeJTextField = null;
 	__sectionJTextField = null;
 	__tsJTextField = null;
-	__location = null;
+	//__location = null;
 	__halfSectionJComboBox = null;
 	__pmJComboBox = null;
 	__q10JComboBox = null;

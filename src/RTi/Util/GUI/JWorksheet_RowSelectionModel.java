@@ -45,7 +45,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import RTi.Util.Message.Message;
-import RTi.Util.String.StringUtil;
 
 /**
 This class, in conjunction with the JWorksheet_ColSelectionModel, allows a 

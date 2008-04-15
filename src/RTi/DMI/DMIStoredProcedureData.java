@@ -149,7 +149,8 @@ private String __returnTypeString = null;
 /**
 Constructor.  Private so it cannot be called.
 */
-private DMIStoredProcedureData() {}
+// FIXME SAM 2008-04-15 Evaluate if this is by design or not needed.
+//private DMIStoredProcedureData() {}
 
 /**
 Constructor.

@@ -3,7 +3,7 @@ package RTi.GRTS;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+//import java.awt.event.MouseMotionAdapter;
 
 import javax.swing.JComponent;
 
@@ -155,6 +155,7 @@ public class TSCursorDecorator
    * 
    * @author dre
    */
+  /* FIXME SAM 2008-04-15 Evalue whether using
   private class MouseMotionHandler extends MouseMotionAdapter
   {
     public void mouseMoved(MouseEvent e) 
@@ -166,5 +167,6 @@ public class TSCursorDecorator
       draw();
     }
   } // eof class MouseMotionHandler
+  */
 
 } // eof class TSGraphCursor

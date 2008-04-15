@@ -18,7 +18,6 @@ import java.util.Vector;
 import javax.swing.JFrame;	// For the editor
 
 import RTi.Util.Message.Message;
-import RTi.Util.Message.MessageUtil;
 import RTi.Util.String.StringUtil;
 
 /**

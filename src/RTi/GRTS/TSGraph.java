@@ -2849,9 +2849,10 @@ private void drawCurrentDateTime ()
 }
 
 /**
-Draw the drawing areas, for test purposes.
+Draw the drawing areas, for troubleshooting.  Drawing areas boundaries are drawn
+in magenta.
 */
-private void drawDrawingAreas ()
+public void drawDrawingAreas ()
 {	//boolean do_names = false;
 	boolean do_names = true;
 	_da_page.setColor ( GRColor.magenta );	// actually sets for all

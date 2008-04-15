@@ -15,8 +15,6 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.ListModel;
 
-import RTi.Util.Message.Message;
-
 /**
  * Provides an overview of Problems associated with the
  * MessageModel. 

@@ -437,74 +437,6 @@ public static int indexOf (	JList list, String item,
 }
 
 /**
-Determine if the specified compare String exists within a SimpleJChoice.
-This is a port of the GUIUtil method for Choice.
-<ul>
-<li>	Can compare the compare String against substrings for each item
-	in the comboBox object if FLAG is set to CHECK_SUBSTRINGS.</li>
-<li>	To not compare against substrings, set FLAG to NONE.</li>
-</ul>
-@param comboBox SimpleJChoice object.
-@param compare String to compare comboBox items against.
-@param FLAG compare criteria (i.e, CHECK_SUBSTRINGS, NONE).
-@param delimiter String containing delimiter to parse for CHECK_SUBSTRINGS,
-may be null if using FLAG == NONE.
-@param index Index location where the compare String was located at index[0]
-@return returns true if compare exist in the comboBox items list,
-false otherwise.  This is filled in unless it is passed as null.
-*/
-public static boolean isChoiceItem( SimpleJChoice comboBox, String compare, 
-	int FLAG, String delimiter, int[] index )
-{	int             size;           // number of items in the 
-                                        // Choice object
-        int             curIndex,       // current character position
-                        length;         // length of curItem
-        String          curItem;        // current Choice item
-        String          curChar;        // current character
- 
-        // initialize variables
-        compare = compare.trim();
-        size = comboBox.getItemCount();
-
-        for( int i=0; i<size; i++ ) {
-                curItem = comboBox.getItem( i ).trim(); 
-                String sub = curItem;
-
-                // check substring where substrings are delineated by spaces
-                if ( FLAG == CHECK_SUBSTRINGS ) {
-                        // Jump over all characters until the delimiter is
-			// reached.  Break the remaining String into a SubString
-			// and compare to the compare String.
-                        length = sub.length();
-                        for ( curIndex = 0; curIndex < length; curIndex++ ) {
-                                curChar = String.valueOf( 
-				curItem.charAt( curIndex ) ).trim();
-                                if ( curChar.equals(delimiter) ) {
-                                        sub = sub.substring( curIndex+1).trim();
-                                }
-                        }
-                        // Compare the remaining String, sub, to the compare
-			// String.  If a match occurs, return true and the index
-			// in the list in which the match was found.
-                        if ( compare.equals( sub ) ) {
-                                index[0] = i;
-                                return true;
-                        }
-                }
-		else if ( FLAG == NONE ) {
-			// Compare to the curItem String directly
-                        if ( curItem.equals(compare) ) {
-				if ( index != null ) {
-                                	index[0] = i;
-				}
-                                return true;
-                        }
-                }
-        }
-        return false;
-}
-
-/**
 Determine if the specified compare String exists within a SimpleJComboBox.
 This is a port of the GUIUtil method for Choice.
 <ul>
@@ -624,19 +556,6 @@ public static SimpleJComboBox newFontNameJComboBox ()
 }
 
 /**
-Return a new SimpleJChoice that contains a list of standard fonts.
-@return a new SimpleJChoice that contains a list of standard fonts.
-@deprecated Use the SimpleJComboBox version.
-*/
-public static SimpleJChoice newFontNameJChoice ()
-{	SimpleJChoice fonts = new SimpleJChoice();
-	fonts.addItem ( "Arial" );
-	fonts.addItem ( "Courier" );
-	fonts.addItem ( "Helvetica" );
-	return fonts;
-}
-
-/**
 Return a new SimpleJComboBox that contains a list of standard font styles.
 @return a new SimpleJComboBox that contains a list of standard font styles.
 */
@@ -646,20 +565,6 @@ public static SimpleJComboBox newFontStyleJComboBox ()
 	styles.add( "PlainItalic" );
 	styles.add( "Bold" );
 	styles.add( "BoldItalic" );
-	return styles;
-}
-
-/**
-Return a new SimpleJChoice that contains a list of standard font styles.
-@return a new SimpleJChoice that contains a list of standard font styles.
-@deprecated Use the SimpleJComboBox version.
-*/
-public static SimpleJChoice newFontStyleJChoice ()
-{	SimpleJChoice styles = new SimpleJChoice();
-	styles.addItem ( "Plain" );
-	styles.addItem ( "PlainItalic" );
-	styles.addItem ( "Bold" );
-	styles.addItem ( "BoldItalic" );
 	return styles;
 }
 
@@ -819,33 +724,6 @@ throws Exception
 }
 
 /**
-Select an item in a SimpleJChoice, ignoring the case.  This is useful when the 
-SimpleJChoice
-shows a valid property by the property may not always exactly match in case when
-read from a file or hand-edited.
-@param c SimpleJChoice to select from.
-@param item SimpleJChoice item to select as a string.
-@exception Exception if the string is not found in the SimpleJChoice.
-@deprecated Use the method for SimpleJComboBox because SimpleJChoice is being
-phased out.
-*/
-public static void selectIgnoreCase ( SimpleJChoice c, String item )
-throws Exception
-{	// Does not look like SimpleJChoice.select(String) throws an exception
-	// if the item is not found so go through the list every time...
-	// Get the list size...
-	int size = c.getItemCount();
-	for ( int i = 0; i < size; i++ ) {
-		if ( c.getItem(i).equalsIgnoreCase(item) ) {
-			c.select ( i );
-			return;
-		}
-	}
-	throw new Exception ( "String \"" + item +
-		"\" not found in SimpleJChoice" );
-}
-
-/**
 Select an item in a JComboBox, comparing a specific token in the choices.  This
 is useful when the combo box shows an extended value (e.g., 
 "Value - Description").
@@ -867,8 +745,7 @@ public static void selectTokenMatches (	JComboBox c, boolean ignore_case,
 					int token, String item,
 					String default_item )
 throws Exception
-{	selectTokenMatches ( c, ignore_case, delimiter, flags, token, item,
-				default_item, false );
+{	selectTokenMatches ( c, ignore_case, delimiter, flags, token, item,	default_item, false );
 }
 
 /**

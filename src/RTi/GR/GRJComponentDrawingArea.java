@@ -162,8 +162,7 @@ Private so it can't be used.
 */
 private GRJComponentDrawingArea() {
 	super();
-	Message.printWarning(2, "GRJComponentDrawingArea",
-		"Should not use void constructor");
+	Message.printWarning(2, "GRJComponentDrawingArea", "Should not use void constructor");
 	initialize(null);
 }
 

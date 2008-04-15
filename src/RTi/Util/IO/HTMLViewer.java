@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -200,6 +199,7 @@ public class HTMLViewer extends JFrame implements ActionListener
    * @param filename name of the file to be displayed
    * @param pane JTextComponent to receive the text
    */
+  /* TODO SAM Evaluate whether needed
   private void readFile(String filename, JTextComponent textpane)
   {
     try
@@ -213,6 +213,7 @@ public class HTMLViewer extends JFrame implements ActionListener
         System.err.println(e);
       }
   }
+  */
 
   /**
    * Saves the contents of the HTMLViewer to a file.
@@ -292,7 +293,7 @@ public class HTMLViewer extends JFrame implements ActionListener
                     String msg = (jfc.getCurrentDirectory()).toString()
                     + "is not write-able"
                     + "\nCheck the directory permissions!";
-                    int result = JOptionPane.showConfirmDialog(null, msg, 
+                    JOptionPane.showConfirmDialog(null, msg, 
                         "Directory not write-able", JOptionPane.ERROR_MESSAGE);
                   }
               }

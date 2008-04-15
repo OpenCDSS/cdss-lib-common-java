@@ -16,8 +16,6 @@ package RTi.DataServices.Adapter;
 import java.net.URL;
 import java.util.Hashtable;
 
-import RTi.Util.XML.ParseXML;
-
 /**
  * Interface for all configuration files used by adapter code. It implements 
  * the RTi.Util.XML.ParseXML interface.

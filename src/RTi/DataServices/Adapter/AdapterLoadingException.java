@@ -18,7 +18,6 @@
 package RTi.DataServices.Adapter;
 
 import java.io.IOException;
-import java.lang.Throwable;
 
 import RTi.DataServices.Adapter.Adapter;
 

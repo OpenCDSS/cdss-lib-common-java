@@ -723,9 +723,8 @@ throws Exception {
 		// do not show black horizontal lines between each line in
 		// the table
 	__worksheet.setTableHeader(null);
-	__worksheet.setNoHeader();
-		// turn off the table header, which typically holds the name
-		// of the column.
+	__worksheet.removeColumnHeader();
+		// turn off the table header, which typically holds the name of the column.
 	__worksheet.setModel(model);	
 	__worksheet.setColumnWidths(cr.getColumnWidths());
 	sw.stop();
@@ -735,8 +734,7 @@ throws Exception {
 		plural = "";
 	}
 	setBorder(BorderFactory.createTitledBorder(
-		"Log File Contents - " + __filePath + " - " + __logFileLines
-		+ " line" + plural));
+		"Log File Contents - " + __filePath + " - " + __logFileLines + " line" + plural));
 	filterSummaryList();
 }
 

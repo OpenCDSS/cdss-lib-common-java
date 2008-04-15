@@ -1176,10 +1176,11 @@ throws Exception
     // FIXME SAM 2008-01-27 Using other than the default of strings does not seem to work
     // The JWorksheet does not display correctly.
     boolean ColumnDataTypes_Auto_boolean = false;   // To improve performance below
-    String ColumnDataTypes = "AllStrings";  // Default for historical reasons
+    // TODO SAM 2008-04-15 Evaluate whether the following should be used
+    //String ColumnDataTypes = "AllStrings";  // Default for historical reasons
     String propVal = props.getValue("ColumnDataTypes");
     if ( (propVal != null) && (propVal.equalsIgnoreCase("Auto"))) {      
-        ColumnDataTypes = "Auto";
+        //ColumnDataTypes = "Auto";
         ColumnDataTypes_Auto_boolean = true;
     }
 

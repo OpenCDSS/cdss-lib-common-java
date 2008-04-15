@@ -13,12 +13,8 @@
 
 package RTi.DataServices.Adapter;
 
-import java.net.URL;
-
 import RTi.DataServices.Adapter.Adapter;
-import RTi.DataServices.Adapter.AdapterLoadingException;
 import RTi.DataServices.Adapter.ConfigurationFile;
-import RTi.DataServices.Adapter.InvalidConfigurationException;
 
 /**
  * Interface of a Factory for instantiating specific adapters determined from a

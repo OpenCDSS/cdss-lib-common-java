@@ -18,7 +18,6 @@
 package RTi.DataServices.Adapter;
 
 import java.lang.Exception;
-import java.lang.Throwable;
 
 import RTi.DataServices.Adapter.ConfigurationFile;
 

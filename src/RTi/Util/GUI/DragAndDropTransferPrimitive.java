@@ -115,8 +115,7 @@ String data that can be stored in this class.
 private String __s;
 
 /**
-Private constructor so this class can never be instantiated with no 
-parameters.
+Private constructor so this class can never be instantiated with no parameters.
 */
 private DragAndDropTransferPrimitive() {}
 
