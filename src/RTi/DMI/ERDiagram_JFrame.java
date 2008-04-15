@@ -184,11 +184,11 @@ private void setupGUI() {
 }
 
 /**
-Overrides the default JFrame show() -- calls setInitialViewportPosition on the 
+Overrides the default JFrame setVisible(true) -- calls setInitialViewportPosition on the 
 ERDiagram_JPanel to position the ER Diagram within its scroll pane.
 */
 public void show() {
-	super.show();
+	super.setVisible(true);
 	__panel.setInitialViewportPosition();
 }
 

@@ -6532,7 +6532,7 @@ public void setColumnsToolTipText(String[] tips) {
 Set the widths of the columns in the worksheet. <b>NOTE!</b> This method
 will not work until the GUI on which the JWorksheet is located is visible, 
 because otherwise the calls to getGraphics() will return null values.  For
-that reason, show() must have been shown -- or the other version of the
+that reason, setVisible(true) must have been called -- or the other version of the
 method should be used and a valid Graphics object should be passed in.
 @param widths an integer array of widths, one for each column in the table.
 The widths are measured in terms of how many characters a column 

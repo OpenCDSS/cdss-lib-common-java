@@ -149,7 +149,7 @@ private void setupGUI() {
 
 	pack();
 	JGUIUtil.center(this);
-	show();
+	setVisible(true);
 }
 
 /**

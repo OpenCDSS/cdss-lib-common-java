@@ -155,10 +155,9 @@ throws Exception
 		plural = "";
 	}
 
-	setMessageStatus("Displaying " + count + " record" + plural + ".", 
-		"Ready");
+	setMessageStatus("Displaying " + count + " record" + plural + ".", "Ready");
 
-	show();
+	setVisible(true);
 
 	__tm_JPanel.setWorksheetColumnWidths();
 }

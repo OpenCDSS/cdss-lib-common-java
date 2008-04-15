@@ -73,7 +73,7 @@ public ERDiagram_FindDialog(JFrame parent, ActionListener al) {
 
 	getContentPane().add("Center", panel);
 	pack();
-	show();
+	setVisible(true);
 	JGUIUtil.center(this);
 }
 

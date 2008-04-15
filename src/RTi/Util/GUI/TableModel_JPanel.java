@@ -175,7 +175,7 @@ throws Exception
 
 /**
 Sets the worksheet's column widths.  This should be called after the frame
-in which the panel is found has called show().
+in which the panel is found has called setVisible(true).
 */
 public void setWorksheetColumnWidths() {
 	if (__worksheet != null && __widths != null) {

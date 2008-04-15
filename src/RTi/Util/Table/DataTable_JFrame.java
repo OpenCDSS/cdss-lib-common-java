@@ -188,7 +188,7 @@ throws Exception {
 	setMessageStatus("Displaying " + count + " row" + plural +
 	        ", " + count_col + " column" + plural_col + ".", "Ready");
 
-	show();
+	setVisible(true);
 
 	__dataTablePanel.setWorksheetColumnWidths();
 }

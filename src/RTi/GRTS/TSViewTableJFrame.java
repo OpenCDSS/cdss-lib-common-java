@@ -1778,8 +1778,7 @@ private void setupGUI(boolean mode) {
 	}
 
 	// these calls are here because they require a valid graphics 
-	// context to work properly (i.e., show() must have already been
-	// called)
+	// context to work properly (i.e., setVisible(true) must have already been called)
 	setColumnWidths(__minuteWorksheets, DateTime.PRECISION_MINUTE);
 	setColumnWidths(__hourWorksheets, DateTime.PRECISION_HOUR);
 	setColumnWidths(__dayWorksheets, DateTime.PRECISION_DAY);

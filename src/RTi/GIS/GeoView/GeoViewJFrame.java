@@ -249,15 +249,14 @@ public static void main(String args[]) {
 		Message.printStatus(1, "", "Using logfile: '" + logFile + "'");
 	}
 	catch (Exception e) {
-		Message.printWarning(2, "", 
-			"Unable to open log file \"" + logFile + "\"");
+		Message.printWarning(2, "", "Unable to open log file \"" + logFile + "\"");
 	}
 
 
 	JFrame jframe = new JFrame();
 	GeoViewJFrame g = new GeoViewJFrame(jframe, new PropList("blah"));
 	JGUIUtil.center(g);
-	g.show();
+	g.setVisible(true);
 }
 
 } // End GeoViewJFrame class

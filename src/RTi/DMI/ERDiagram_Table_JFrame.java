@@ -128,7 +128,7 @@ private void setupGUI(Vector tables) {
 
 	setSize(400, 400);
 	pack();
-	show();
+	setVisible(true);
 
 	// AML:
 	// because setting the column widths requires a valid graphics context

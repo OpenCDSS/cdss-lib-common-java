@@ -212,7 +212,7 @@ public void actionPerformed(ActionEvent e) {
 
 		int count = 1;
 
-		progressDialog.show();
+		progressDialog.setVisible(true);
 
 		__worksheet.startNewConsecutiveRead();
 		
@@ -330,7 +330,7 @@ public void actionPerformed(ActionEvent e) {
 
 		int count = 1;
 
-		progressDialog.show();
+		progressDialog.setVisible(true);
 
 		__worksheet.startNewConsecutiveRead();
 		

@@ -519,7 +519,7 @@ public void windowClosed( WindowEvent e ) { ; }
 public void windowDeactivated( WindowEvent e ) { 
 /*
 	//NOT WORK...
-	//show();
+	//setVisible(true);
 	//toFront(); 
 	//getContentPane().requestFocus(); 
 	JDialog source = (JDialog)e.getSource();
