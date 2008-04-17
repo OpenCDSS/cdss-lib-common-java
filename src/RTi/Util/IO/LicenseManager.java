@@ -20,7 +20,7 @@
 package RTi.Util.IO;
 
 import RTi.Util.Message.Message;
-
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
@@ -129,8 +129,7 @@ into a license key, as used by a license key generator.
 */
 public LicenseManager(String product, String licenseOwner, String licenseType,
 	String licenseCount, String licenseExpires) {
-	initialize(product, licenseOwner, licenseType, licenseCount, 
-		licenseExpires, null);
+	initialize(product, licenseOwner, licenseType, licenseCount, licenseExpires, null);
 }
 
 /**
@@ -145,16 +144,14 @@ key to the provided information and see if they match.
 */
 public LicenseManager(String product, String licenseOwner, String licenseType,
 	String licenseCount, String licenseExpires, String licenseKey) {
-	initialize(product, licenseOwner, licenseType, licenseCount, 
-		licenseExpires, licenseKey);
+	initialize(product, licenseOwner, licenseType, licenseCount, licenseExpires, licenseKey);
 }
 
 /**
 Encrypts the license info (product, type, count, owner, expires) into a 
 license key, stores the value in the object, and returns the value.
 <p>
-This version of the encrypt() method is used for the encryption of the 
-license key.
+This version of the encrypt() method is used for the encryption of the license key.
 @param prefix the two-character prefix that specifies the encryption type.
 @return the encrypted license key.
 */
@@ -173,8 +170,7 @@ parameter of 'false' when the 'isLicenseValid' method is used.
 This version of the encrypt() method is used more for the validation of 
 license keys.
 @param prefix the two-character prefix that specifies the encryption type.
-@param overwriteLicenseKey whether to save the generated license key value in 
-the object.
+@param overwriteLicenseKey whether to save the generated license key value in the object.
 @return the encrypted license key.
 */
 public String encrypt(String prefix, boolean overwriteLicenseKey) 
@@ -184,7 +180,7 @@ throws Exception {
 		// This takes the two words in the RiverTrak product line
 		// names (RiverTrak/Assistant, RiverTrak/Viewer, etc) and
 		// takes the first letter of each name and concatenates them.
-		// Ths is done to shorten the length of the encrypted string.
+		// This is done to shorten the length of the encrypted string.
 		product = "R" + __product.substring(9, 10);
 	} 
 	else if (__product.regionMatches(false, 0, "NWSRFS", 0, 6)) {
@@ -339,6 +335,18 @@ private void initialize(String product, String licenseOwner,
 }
 
 /**
+Indicate whether the license is a demo license.  This simply checks whether the
+string "Demo" is in the license type.
+@return true if the license type is a demo license.
+*/
+public boolean isLicenseDemo() 
+{   if ( StringUtil.indexOfIgnoreCase(getLicenseType(),"Demo",0) >= 0 ) {
+        return true;
+    }
+    return false;
+}
+
+/**
 Determine whether a license is expired.  A license has expired if the date
 specified in the LicenseExpires property is later than the current date.
 Note that this is a secondary check.  'isLicenseValid()' should always be
@@ -356,8 +364,7 @@ public boolean isLicenseExpired() {
 	}
 
 	// Get the current date.
-	DateTime now = new DateTime(
-		DateTime.PRECISION_DAY | DateTime.DATE_CURRENT);
+	DateTime now = new DateTime( DateTime.PRECISION_DAY | DateTime.DATE_CURRENT);
 	// Need a new DateTime format to parse YYYYMMDD!...
 	if (__licenseExpires.length() != 8) {
 		return true;
@@ -375,7 +382,7 @@ public boolean isLicenseExpired() {
 		// Assume bad date format - expired ...
 		return true;
 	}
-	Message.printStatus(1, "", "Now: " + now + " expires: " + expires);
+	Message.printStatus(2, "", "Now: " + now + ", license expires: " + expires);
 	if (now.greaterThan(expires)) {
 		return true;
 	}
