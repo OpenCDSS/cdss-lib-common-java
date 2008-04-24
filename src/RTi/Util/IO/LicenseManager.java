@@ -22,6 +22,7 @@ package RTi.Util.IO;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.TimeUtil;
 
 /**
 Class to handle encryption, decryption, checking and validation of RTi licenses.
@@ -227,6 +228,48 @@ throws Throwable {
 	__licenseKey = null;
 
 	super.finalize();
+}
+
+/**
+Get the number of days until the license expires.  A license has expired if the date
+specified in the LicenseExpires property is later than the current date.
+Note that this is a secondary check.  'isLicenseValid()' should always be
+called first to make sure that the license itself is valid before checking
+for an expired license.
+@return The number of days until the license expires.  If license expires date is today,
+the license won't technically expire until tomorrow and zero is returned.  If the license
+never expires, return 10000.  If the license is expired, a negative number will be
+returned.
+*/
+public int getDaysToExpiration() {
+    // Check special cases.
+    if (__licenseExpires.equalsIgnoreCase("Never")) {
+        return 10000;
+    }
+
+    // Get the current date.
+    DateTime now = new DateTime( DateTime.PRECISION_DAY | DateTime.DATE_CURRENT);
+    // Need a new DateTime format to parse YYYYMMDD!...
+    if (__licenseExpires.length() != 8) {
+        return -1;
+    }
+    
+    String expiresString = __licenseExpires.substring(0, 4) + "-"
+        + __licenseExpires.substring(4, 6) + "-"
+        + __licenseExpires.substring(6, 8);
+    Message.printStatus(1, "", "Expires string=\"" + expiresString + "\"");
+    DateTime expires = null;
+    try {
+        expires = DateTime.parse(expiresString);
+    }
+    catch (Exception e) {
+        // Assume bad date format - expired ...
+        return -1;
+    }
+    Message.printStatus(2, "", "Now: " + now + ", license expires: " + expires );
+    int now_days = TimeUtil.absoluteDay(now.getYear(), now.getMonth(), now.getDay() );
+    int expires_days = TimeUtil.absoluteDay(expires.getYear(), expires.getMonth(), expires.getDay() );
+    return expires_days - now_days;
 }
 
 /**
