@@ -6378,46 +6378,23 @@ private String getLegendString ( TS ts, int i )
 {	String legend = "";
 	if ( (ts == null) || !ts.getEnabled() ) {
 		// Null and disabled time series are not shown in the legend.
-		// This is consistent with how the legend drawing area was set
-		// up.
+		// This is consistent with how the legend drawing area was set up.
 		return null;
 	}
-	// If there is a reference time series, indicate so in the
-	// legend, but only if not printing...
-	String reference_string = " (REF TS)";
-	if (	(_graph_type == TSProduct.GRAPH_TYPE_DOUBLE_MASS) ||
-		(_graph_type == TSProduct.GRAPH_TYPE_DURATION) ||
-		(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) ||
-		_dev.isPrinting() ||
-		(getEnabledTSList().size() == 1) ) {
-		// No reason to indicate reference time series in legend...
-		reference_string = "";
-	}
-
-	// REVISIT (JTS - 2005-07-18)
-	// in the above there should also be a check to see if the graph
-	// is being saved to a file.  If so, the reference string should also
-	// be ""
 	
-	// Subproduct legend format, which will provide a default if the time
-	// series legend format is "Auto"...
-	String subproduct_legend_format = _tsproduct.getLayeredPropValue(
-					"LegendFormat", _subproduct, -1, false);
+	// Subproduct legend format, which will provide a default if the time series legend format is "Auto"...
+	String subproduct_legend_format = _tsproduct.getLayeredPropValue( "LegendFormat", _subproduct, -1, false);
 	// Determine the legend format for the specific time series.  If the
 	// label is "Auto", define using the default (however, if Auto and the
-	// subproduct is not auto, use the subproduct format).  If blank, don't
-	// draw the legend...
-	String legend_format = _tsproduct.getLayeredPropValue("LegendFormat",
-		_subproduct, i, false );
+	// subproduct is not auto, use the subproduct format).  If blank, don't draw the legend...
+	String legend_format = _tsproduct.getLayeredPropValue("LegendFormat", _subproduct, i, false );
 	if ( legend_format == null ) {
 		// Try the legend format for the subproduct...
 		legend_format = subproduct_legend_format;
 	}
-	if (	(legend_format == null) ||
-		(legend_format.length() == 0) ) {
+	if ( (legend_format == null) || (legend_format.length() == 0) ) {
 		// Do not draw a legend.  Later might add a LegendEnabled, which
-		// would totally turn off the legend (LegendFormat is really
-		// more for the string label).
+		// would totally turn off the legend (LegendFormat is really more for the string label).
 		return null;
 	}
 	else if ( !legend_format.equalsIgnoreCase("Auto") ) {
@@ -6426,22 +6403,19 @@ private String getLegendString ( TS ts, int i )
 	}
 	// Below here "Auto" is in effect...
 	else if ( (ts.getLegend() != null) && (ts.getLegend().length() != 0) ) {
-		// The time series data itself has legend information so use
-		// it...
-		// SAMX
-		// Should this even be allowed any more now that properties are
-		// being used? - probably for applications that want more
-		// control.
+		// The time series data itself has legend information so use it...
+		// TODO SAM 2008-04-28 Should this even be allowed any more now that properties are used? -
+	    // probably for applications that want more control.
 		legend = ts.formatLegend ( ts.getLegend() );
 	}
 	else if ( !subproduct_legend_format.equalsIgnoreCase("Auto") ) {
 		// Use the subproduct legend...
 		legend = ts.formatLegend ( subproduct_legend_format );
 	}
-	else {	// "Auto", format the legend manually...
+	else {
+	    // "Auto", format the legend manually...
 		if ( _ignore_units && !ts.getDataUnits().equals("") ) {
-			// Add units to legend because they won't be on the axis
-			// label...
+			// Add units to legend because they won't be on the axis label...
 			if ( ts.getAlias().equals("") ) {
 				legend = ts.getDescription() + ", " +
 					ts.getIdentifierString() + ", " +
@@ -6449,7 +6423,8 @@ private String getLegendString ( TS ts, int i )
 					ts.getDate1() + " to " +
 					ts.getDate2() + ")";
 			}
-			else {	legend = ts.getAlias() + " - " +
+			else {
+			    legend = ts.getAlias() + " - " +
 					ts.getDescription() + ", " +
 					ts.getIdentifierString() + ", " +
 					ts.getDataUnits() + " (" +
@@ -6457,23 +6432,22 @@ private String getLegendString ( TS ts, int i )
 					ts.getDate2() + ")";
 			}
 		}
-		else {	// Don't put units in legend...
+		else {
+		    // Don't put units in legend...
 			if ( ts.getAlias().equals("") ) {
 				legend = ts.getDescription() + ", " +
 					ts.getIdentifierString() + " (" +
 					ts.getDate1() + " to " +
 					ts.getDate2() + ")";
 			}
-			else {	legend = ts.getAlias() + " - " +
+			else {
+			    legend = ts.getAlias() + " - " +
 					ts.getDescription() + ", " +
 					ts.getIdentifierString() + " (" +
 					ts.getDate1() + " to " +
 					ts.getDate2() + ")";
 			}
 		}
-	}
-	if ( i == _reference_ts_index ) {
-		legend += reference_string;
 	}
 	if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
 		if ( i == 0 ) {
@@ -6511,8 +6485,7 @@ protected DateTime getMaxStartDate() {
 
 /**
 Return the number of time series.
-@return the number of time series (useful for automated selection of colors,
-symbols, etc.)
+@return the number of time series (useful for automated selection of colors, symbols, etc.)
 */
 public int getNumTS ()
 {	return __tslist.size();
