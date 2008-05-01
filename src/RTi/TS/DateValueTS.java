@@ -239,7 +239,19 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
-public class DateValueTS {
+/**
+Class to read/write RTi DateValue time series files, using static methods.
+The file consists of header information as Property=Value strings and a data
+section that is column based.  Time series must have the same interval.
+Date/times for each record are parsed so records can be missing.
+*/
+public class DateValueTS
+{
+    
+/**
+Latest file version.
+*/
+private static String __VERSION_CURRENT = "1.4";
 
 /**
 Return a sample so that a user/developer knows what a file looks like.
@@ -250,7 +262,10 @@ sample files in the future.
 */
 public static Vector getSample ()
 {	Vector	s = new Vector ( 50 );
-	s.addElement ("# DateValueTS 1.3 file" );
+	s.addElement ("# DateValueTS 1.4 file" );
+	s.addElement ("#" );
+	s.addElement ("# Version 1.4 treats consecutive delimiters as blank data fields." );
+	s.addElement ("# Version 1.3 treats consecutive delimiters as one." );
 	s.addElement ("#" );
 	s.addElement ("# This is a sample of a typical DateValue minute time series.  This format");
 	s.addElement ("# was developed by Riverside Technology, inc. to store time series data.  An");
@@ -774,6 +789,10 @@ throws Exception
 	String	routine = "DateValueTS.readTimeSeriesList";
 	int	dl = 10, dl2 = 30, numts = 1;
 	DateTime	date1 = new DateTime(), date2 = new DateTime();
+	// Do not allow consecutive delimiters in header or data values.  For example:
+	// 1,,2 will return
+	// 2 values for version 1.3 and 3 values for version 1.4 (middle value is missing).
+	int delimParseFlag = 0;
 
 	// Always read the header.  Optional is whether the data are read...
 
@@ -814,9 +833,27 @@ throws Exception
 			}
 			break;
 		}
-		if ( (string.equals("")) ||	((string.length() > 0) && (string.charAt(0) == '#')) ) {
+		if ( (string.equals(""))  ) {
 			// Skip comments and blank lines for now...
 			continue;
+		}
+		else if ( string.charAt(0) == '#' ) {
+		    String version = "# DateValueTS 1.4";
+	        if ( string.regionMatches(0,version,0,version.length()) ) {
+	            // Have the file version so use to indicate how file is processed.
+	            // This property should be used at the top because it impacts how other data are parsed.
+	            double version_double =
+	                StringUtil.atod ( StringUtil.getToken(version," ",StringUtil.DELIM_SKIP_BLANKS, 2) );
+	            if ( version_double < 1.4) {
+	                // Older settings...
+	                delimParseFlag = StringUtil.DELIM_SKIP_BLANKS;
+	            }
+	            else {
+	                // Default and new settings.
+	                delimParseFlag = 0;
+	            }
+	        }
+	        continue;
 		}
 
 		if ( (equal_pos = string.indexOf('=')) == -1 ) {
@@ -848,6 +885,7 @@ throws Exception
 			value = "";
 		}
 		else {
+		    // Trim the value so no whitespace on either end.
 		    value = string.substring(equal_pos + 1).trim();
 		}
 
@@ -856,7 +894,7 @@ throws Exception
 			// Have the alias...
 			alias = value;
 			alias_v = StringUtil.breakStringList (
-				value, delimiter, StringUtil.DELIM_SKIP_BLANKS|	StringUtil.DELIM_ALLOW_STRINGS );
+			        value, delimiter, delimParseFlag | StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( alias_v != null ) {
 				size = alias_v.size();
@@ -874,7 +912,7 @@ throws Exception
 			// Have the data flags indicator which may or may not be surrounded by quotes...
 			dataflag = value;
 			dataflag_v = StringUtil.breakStringList (
-				dataflag, delimiter,StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+			        dataflag, delimiter,delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( dataflag_v != null ) {
 				size = dataflag_v.size();
@@ -921,7 +959,7 @@ throws Exception
 			// Have the data type...
 			datatype = value;
 			datatype_v = StringUtil.breakStringList (
-				datatype, delimiter,StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+			        datatype, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( datatype_v != null ) {
 				size = datatype_v.size();
@@ -950,7 +988,7 @@ throws Exception
 			// Have the description.  The description may contain "=" so get the second token manually...
 			description = value;
 			description_v = StringUtil.breakStringList (
-				description, delimiter,	StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+			        description, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( description_v != null ) {
 				size = description_v.size();
@@ -990,7 +1028,7 @@ throws Exception
 			// Have the missing data value...
 			missing = value;
 			missing_v = StringUtil.breakStringList (
-				missing, delimiter,	StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+				missing, delimiter,	delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( missing_v != null ) {
 				size = missing_v.size();
@@ -1012,7 +1050,7 @@ throws Exception
 			// Have sequence numbers...
 			seqnum = value;
 			seqnum_v = StringUtil.breakStringList (
-				seqnum, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+				seqnum, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( seqnum_v != null ) {
 				size = seqnum_v.size();
@@ -1034,7 +1072,7 @@ throws Exception
 			// Have the TSIdent...
 			identifier = value;
 			identifier_v = StringUtil.breakStringList (
-				identifier, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+				identifier, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( identifier_v != null ) {
 				 size = identifier_v.size();
@@ -1052,7 +1090,7 @@ throws Exception
 			// Have the data units...
 			units = value;
 			units_v = StringUtil.breakStringList (
-				units, delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+				units, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 			if ( units_v != null ) {
 				size = units_v.size();
 			}
@@ -1064,11 +1102,6 @@ throws Exception
 					units_v.addElement ( "" );
 				}
 			}
-		}
-		else if ( variable.equalsIgnoreCase("Version") ) {
-		    // TODO SAM 2008-04-14 Evaluate using version
-			// Have the file version...
-			//version = value; 
 		}
 		else {
             Message.printWarning( 3, routine, "Property \"" + variable + "\" is not currently recognized." );
@@ -1489,12 +1522,12 @@ throws Exception
 		string = string.trim();
 		if ( dataflag_v == null ) {
 			// No data flags so parse without handling quoted strings.  This will in general be faster...
-			strings = StringUtil.breakStringList ( string, delimiter, StringUtil.DELIM_SKIP_BLANKS );
+			strings = StringUtil.breakStringList ( string, delimiter, delimParseFlag );
 		}
 		else {
 		    // Expect to have data flags so parse WITH handling quoted strings.  This will generally be slower...
 			strings = StringUtil.breakStringList ( string,
-			delimiter, StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
+			delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 		}
 		nstrings = 0;
 		if ( strings != null ) {
@@ -1513,7 +1546,7 @@ throws Exception
 			date_str = ((String)strings.elementAt(0)).trim() + " " + ((String)strings.elementAt(1)).trim();	
 			// Date + time + extra column...
 			first_data_column = 2 + num_extra_columns;
-			// Adusted requested time series column...
+			// Adjusted requested time series column...
 			req_ts_column2 = req_ts_column + 1;
 		}
 		else {
@@ -1571,10 +1604,12 @@ throws Exception
 			// This introduces a performance hit - maybe need to add a boolean array for each time series
 			// to be able to check whether NaN is the missing - then can avoid the check.
 			// For now just check the string.
-			if ( svalue.equals("NaN") ) {
+			if ( svalue.equals("NaN") || (svalue == null) || (svalue.length() == 0)) {
+			    // Treat the data value as missing.
 				dvalue = ts_array[0].getMissing();
 			}
 			else {
+			    // A numerical missing value like -999 will just get assigned.
 			    dvalue = StringUtil.atod ( svalue );
 			}
 			if ( ts_has_data_flag[req_ts_i] ) {
@@ -2002,7 +2037,7 @@ throws Exception
 
 	// Print the standard header...
 
-	out.println ( "# DateValueTS 1.3 file" );
+	out.println ( "# DateValueTS " + __VERSION_CURRENT + " file" );
 	IOUtil.printCreatorHeader ( out, "#", 80, 0 );
 	out.println ( "#" );
 	out.println ( "Delimiter   = \"" + delim + "\"" );
