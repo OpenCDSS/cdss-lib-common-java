@@ -1053,7 +1053,7 @@ public String formatLegend ( String format )
 {	return formatLegend ( format, false );
 }
 
-// FIXME SAM This code seems redundant with similar code in TSUti.  Need to refactor and consolidate.
+// FIXME SAM This code seems redundant with similar code in TSUtil.  Need to refactor and consolidate.
 /**
 Return a formatted legend string, optionally changing the legend in memory.
 @return A formatted legend string for the time series but do not update the
@@ -1201,8 +1201,7 @@ public String formatLegend ( String format, boolean update_ts )
 			}
 			else if ( c == 'F' ) {
 				// Full identifier...
-				//buffer.append (
-				//_id.getIdentifier() );
+				//buffer.append ( _id.getIdentifier() );
 				buffer.append ( _id.toString() );
 			}
 			else if ( c == 'I' ) {
@@ -1213,6 +1212,10 @@ public String formatLegend ( String format, boolean update_ts )
 	            // Input name...
 	            buffer.append ( _id.getInputName() );
 	        }
+	        else if ( c == 'k' ) {
+                // Sub source...
+                buffer.append ( _id.getSubSource() );
+            }
 			else if ( c == 'L' ) {
 				// Full location...
 				buffer.append ( _id.getLocation() );
@@ -1236,10 +1239,6 @@ public String formatLegend ( String format, boolean update_ts )
 			else if ( c == 's' ) {
 				// Main source...
 				buffer.append ( _id.getMainSource() );
-			}
-			else if ( c == 'l' ) {
-				// Main location...
-				buffer.append ( _id.getMainLocation() );
 			}
 			else if ( c == 'U' ) {
 				// Units...

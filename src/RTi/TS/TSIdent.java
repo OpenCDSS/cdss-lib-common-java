@@ -186,53 +186,104 @@ public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent"
 
 // Data members...
 
-private String	__identifier;		// The whole identifier, including the
-					// input type.
-private String	__alias;		// A short alias for the time series
-					// identifier.
-
-private String	__full_location;	// The location (combining the main
-					// location and the sub-location).
-private String	__main_location;	// The main location.
-private String	__sub_location;		// The sub-location (2nd+ parts of the
-					// location, using the
-					// LOCATION_SEPARATOR.
-
-private String	__full_source;		// The time series data source
-					// (combining the main source and the
-					// sub-source).
-private String	__main_source;		// The main source.
-private String	__sub_source;		// The sub-source.
-
-private String	__full_type;		// The time series data type (combining
-					// the main and sub types).
-private String	__main_type;		// The main data type.
-private String	__sub_type;		// The sub data type.
-
-private String	__interval_string;	// The time series interval as a
-					// string.
-private int	__interval_base;	// The base data interval.
-private int	__interval_mult;	// The data interval multiplier.
-
-private String	__scenario;		// The time series scenario.
-
-private int	__sequence_number;	// Number used when more than one time
-					// series has the same identifier
-					// (e.g., if a Vector of time series is
-					// grouped as a set of traces, the
-					// sequence number can be the year that
-					// the trace starts).
-
-private String	__input_type;		// Type of input (e.g., "DateValue",
-					// "RiversideDB")
-private String	__input_name;		// Name of input (e.g., a file name or
-					// database connection name)
-private int	__behavior_mask;	// Mask that controls behavior (e.g.,
-					// how sub-fields are handled).
+/**
+The whole identifier, including the input type.
+*/
+private String	__identifier;
 
 /**
-Construct and initialize each part to empty strings.  Do handle sub-location
-and sub-source.
+A short alias for the time series identifier.
+*/
+private String	__alias;
+
+/**
+The location (combining the main location and the sub-location).
+*/
+private String	__full_location;
+
+/**
+The main location.
+*/
+private String	__main_location;
+
+/**
+The sub-location (2nd+ parts of the location, using the LOCATION_SEPARATOR.
+*/
+private String	__sub_location;
+
+/**
+The time series data source (combining the main source and the sub-source).
+*/
+private String	__full_source;
+
+/**
+The main source.
+*/
+private String	__main_source;
+
+/**
+The sub-source.
+*/
+private String	__sub_source;
+
+/**
+The time series data type (combining the main and sub types).
+*/
+private String	__full_type;
+
+/**
+The main data type.
+*/
+private String	__main_type;
+
+/**
+The sub data type.
+*/
+private String	__sub_type;
+
+/**
+The time series interval as a string.
+*/
+private String	__interval_string;
+
+/**
+The base data interval.
+*/
+private int	__interval_base;
+
+/**
+The data interval multiplier.
+*/
+private int	__interval_mult;
+
+/**
+The time series scenario.
+*/
+private String	__scenario;
+
+/**
+Number used when more than one time series has the same identifier (e.g., if a Vector of time series is
+grouped as a set of traces in an ensemble, the sequence number can be the year that the trace starts).
+*/
+private int	__sequence_number;
+
+/**
+Type of input (e.g., "DateValue", "RiversideDB")
+*/
+private String	__input_type;
+
+/**
+Name of input (e.g., a file name or database connection name).
+*/
+private String	__input_name;
+
+/**
+Mask that controls behavior (e.g., how sub-fields are handled).
+*/
+private int	__behavior_mask;
+
+/**
+Construct and initialize each part to empty strings.  Do handle sub-location and sub-source.
 */
 public TSIdent ()
 {	init();
@@ -752,8 +803,7 @@ public String getSource()
 }
 
 /**
-Return the sub-location, which will be an empty string if __behavior_mask has
-NO_SUB_LOCATION set.
+Return the sub-location, which will be an empty string if __behavior_mask has NO_SUB_LOCATION set.
 @return The sub-location string.
 */
 public String getSubLocation()
@@ -761,8 +811,7 @@ public String getSubLocation()
 }
 
 /**
-Return the sub-source, which will be an empty string if __behavior_mask has
-NO_SUB_SOURCE set.
+Return the sub-source, which will be an empty string if __behavior_mask has NO_SUB_SOURCE set.
 @return The sub-source string.
 */
 public String getSubSource( )
@@ -770,20 +819,19 @@ public String getSubSource( )
 }
 
 /**
-Return the sub-data-type, which will be an empty string if __behavior_mask has
-NO_SUB_TYPE set.
+Return the sub-data-type, which will be an empty string if __behavior_mask has NO_SUB_TYPE set.
 @return The data sub-type string.
 */
 public String getSubType( )
 {	return __sub_type;
 }
 
+// FIXME SAM 2008-04-28 Need to move data transfer out of this class.
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor
 exists.  From the Transferable interface.
 @param flavor the flavor in which to return the data.
-@return the data in the specified DataFlavor, or null if no matching flavor
-exists.
+@return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
 public Object getTransferData(DataFlavor flavor) {
 	if (flavor.equals(tsIdentFlavor)) {
@@ -1224,6 +1272,8 @@ throws Exception
 
 	// Parse out location and split the rest of the ID...
 	//
+	// FIXME SAM 2008-04-28 Don't think quotes are valid anymore given command parameter
+	// use.  Evaluate removing quote handling.
 	// This field is allowed to be surrounded by quotes since some
 	// locations cannot be identified by a simple string.  Allow
 	// either ' or " to be used and bracket it.
@@ -1768,10 +1818,8 @@ public void setLocation ()
 				// not an empty string (it will be an empty
 				// string after the object is initialized).
 				if ( __sub_location.length() > 0 ) {
-					// We have a sub_location so append it
-					// to the main location...
-					full_location.append (
-					LOCATION_SEPARATOR );
+					// Have a sub_location so append it to the main location...
+					full_location.append ( LOCATION_SEPARATOR );
 					full_location.append ( __sub_location );
 				}
 			}
@@ -1816,12 +1864,12 @@ public void setLocation( String full_location )
 		// The entire string passed in is used for the main location...
 		setMainLocation ( full_location );
 	}
-	else {	// Need to split the location into main and sub-location...
-		Vector		list;
-		StringBuffer	sub_location = new StringBuffer ();
-		int		nlist;
-		list =	StringUtil.breakStringList ( full_location,
-			LOCATION_SEPARATOR, 0 );
+	else {
+	    // Need to split the location into main and sub-location...
+		Vector list;
+		StringBuffer sub_location = new StringBuffer ();
+		int nlist;
+		list = StringUtil.breakStringList ( full_location, LOCATION_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
 			// Set the main location...
@@ -1829,20 +1877,18 @@ public void setLocation( String full_location )
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-location.  This allows for multiple
-			// delimited parts (everything after the first
-			// delimiter is treated as the sublocation).
+			// delimited parts (everything after the first delimiter is treated as the sublocation).
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
 				if ( i != 1 ) {
-					sub_location.append (
-					LOCATION_SEPARATOR );
+					sub_location.append ( LOCATION_SEPARATOR );
 				}
 				sub_location.append ((String)list.elementAt(i));
 			}
 			setSubLocation ( sub_location.toString() );
 		}
-		else {	// Since we are only setting the main location we
-			// need to set the sub-location to an empty string...
+		else {
+		    // Since only setting the main location need to set the sub-location to an empty string...
 			setSubLocation ( "" );
 		}
 		list = null;
