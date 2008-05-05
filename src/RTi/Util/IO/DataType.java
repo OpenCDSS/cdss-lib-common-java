@@ -62,7 +62,7 @@ private DataDimension __dimension;
 
 /**
 Default English units (e.g., when creating a new time series in a
-system configured for English units).
+system configured for English units. "DEGF" for NWSRFS temperature).
 */
 private String	__default_engl_units;
 
@@ -77,7 +77,8 @@ Default minimum value for English units data - for initializing range checks.
 private double	__default_engl_min;
 
 /**
-Default SI units (e.g., when creating a new time series in a system configured for SI units).
+Default SI units (e.g., when creating a new time series in a system configured for SI units.
+"DEGC" for NWSRFS temperature).
 */
 private String	__default_si_units;
 
@@ -131,16 +132,13 @@ public DataType ( )
 /**
 Construct using the individual data items.
 @param dimension Units dimension (see DataDimension).
-@param base_flag 1 if the units are the base units for conversion purposes,
-for the dimension.
+@param base_flag 1 if the units are the base units for conversion purposes, for the dimension.
 @param abbreviation Abbreviation for the units.
 @param long_name Long name for the units.
 @param output_precision The output precision for the units (the number of
 digits output after the decimal point).
-@param mult_factor Multiplication factor used when converting to the base units
-for the dimension.
-@param add_factor Addition factor used when converting to the base units
-for the dimension.
+@param mult_factor Multiplication factor used when converting to the base units for the dimension.
+@param add_factor Addition factor used when converting to the base units for the dimension.
 @see DataDimension
 */
 /* TODO
@@ -189,6 +187,7 @@ public DataType ( DataType type )
 	__SHEF_pe = type.__SHEF_pe;
 }
 
+// FIXME SAM 2008-05-03 Need to have the option to sort
 /**
 Add a data type to the internal list of data types.  After adding, the data type
 can be used throughout an application.
@@ -390,12 +389,10 @@ private void initialize ()
 }
 
 /**
-Return the matching global DataType instance, given the data type abbreviation.
-A copy is not made.
+Return the matching global DataType instance, given the data type abbreviation.  A copy is not made.
 @return A DataType instance, given the data type abbreviation.
 @param type_string The data type abbreviation to look up.
-@exception Exception If there is a problem looking up the data type
-abbreviation.
+@exception Exception If there is a problem looking up the data type abbreviation.
 */
 public static DataType lookupDataType ( String type_string )
 throws Exception
@@ -420,13 +417,11 @@ throws Exception
 }
 
 /**
-Return all the DataUnits objects that have the Dimension abbreviation
-equal to the paramter passed in.
+Return all the DataUnits objects that have the Dimension abbreviation equal to the paramter passed in.
 @param system Requested units system.  Pass null or "" to get all systems,
 "ENGL" for english, or "SI" for SI units.
 @param dimension the dimension abbreviation to return units for.
-@return a Vector of all the DataUnits objects that match the dimension or
-an empty Vector if none exist.
+@return a Vector of all the DataUnits objects that match the dimension or an empty Vector if none exist.
 */
 /* TODO
 public static Vector lookupUnitsForDimension ( String system, String dimension )
@@ -464,8 +459,7 @@ public static Vector lookupUnitsForDimension ( String system, String dimension )
 
 /**
 Read a file that is in NWS DATATYPE format.  See the fully loaded method for
-more information.  This version calls the other version with define_dimensions
-as true.
+more information.  This version calls the other version with define_dimensions as true.
 @param dfile Units file to read (can be a URL).
 */
 public static void readNWSDataTypeFile ( String dfile )
@@ -550,20 +544,20 @@ throws IOException
 	String type_prev = "";	// Previous type, to keep track of how many
 				// lines are read for the same type.
 	int type_count = 0;	// Count of how many times the type has been
-				// read, to keep track of multiple lines of
-				// input.
+				// read, to keep track of multiple lines of input.
 	Vector tokens = new Vector(7);
-				// Tokens from data lines - share the Vector
-				// between multiple reads.
+				// Tokens from data lines - share the Vector between multiple reads.
 	// Format to read the first data line per data type...
-	int format_1[] = {	StringUtil.TYPE_STRING,
+	int format_1[] = {
+	            StringUtil.TYPE_STRING,
 				StringUtil.TYPE_SPACE,
 				StringUtil.TYPE_STRING,
 				StringUtil.TYPE_STRING,
 				StringUtil.TYPE_STRING };
 	int format_1w[] = {	4, 1, 20, 20, 20 };
 	// Format to read the 2nd data line per data type...
-	int format_2[] = {	StringUtil.TYPE_STRING,
+	int format_2[] = {
+	            StringUtil.TYPE_STRING,
 				StringUtil.TYPE_SPACE,
 				StringUtil.TYPE_STRING,
 				StringUtil.TYPE_SPACE,
@@ -578,7 +572,8 @@ throws IOException
 				StringUtil.TYPE_STRING };
 	int format_2w[] = {	4, 1, 4, 1, 3, 2, 4, 1, 4, 1, 2, 1, 4 };
 	// Format to read the third data line per data type...
-	int format_3[] = {	StringUtil.TYPE_STRING,
+	int format_3[] = {
+	            StringUtil.TYPE_STRING,
 				StringUtil.TYPE_SPACE,
 				StringUtil.TYPE_STRING,
 				StringUtil.TYPE_SPACE,
@@ -595,18 +590,14 @@ throws IOException
 	String meas_loc_type = null;	// Measurement location type
 	String meas_time_scale = null;	// Measurement time scale.
 	boolean in_fcst = false;	// Indicates whether the data type is
-	boolean read_fcst = false;	// used in the forecast system, and
-					// whether a data line has been read.
+	boolean read_fcst = false;	// used in the forecast system, and whether a data line has been read.
 	boolean in_calb = false;	// Indicates whether the data type is
-	boolean read_calb = false;	// used in the calibration system, and
-					// whether a data line has been read.
+	boolean read_calb = false;	// used in the calibration system, and whether a data line has been read.
 	String where_used = null;	// Indicates whether the data type is
-					// used in the calibration and/or
-					// forecast system.
+					// used in the calibration and/or forecast system.
 	while ( true ) {
 		// Read a line...
-		type_prev = abbreviation;	// Save the previous data type
-						// that was read.
+		type_prev = abbreviation;	// Save the previous data type that was read.
 		string = fp.readLine();
 		++linecount;
 		if ( string == null ) {
@@ -628,13 +619,13 @@ throws IOException
 			// Else ignore...
 			continue;
 		}
-		// A line with data.  First process to verify continuation of
-		// previous lines of data...
+		// A line with data.  First process to verify continuation of previous lines of data...
 		if ( string.startsWith(type_prev + " ") ) {
 			// Continuation...
 			++type_count;
 		}
-		else {	// Reset...
+		else {
+		    // Reset...
 			type_count = 1;
 			in_fcst = read_fcst = in_calb = read_calb = false;
 		}
@@ -645,8 +636,7 @@ throws IOException
 			description = ((String)tokens.elementAt(1)).trim();
 			tmp = ((String)tokens.elementAt(2)).trim();
 			// The description is comprised of the Level 1, 2, 3
-			// descriptions.  Sometimes these have a "  ." at the
-			// end so remove...
+			// descriptions.  Sometimes these have a "  ." at the end so remove...
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
@@ -654,10 +644,8 @@ throws IOException
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
-			while ( (description.length() > 1) &&
-				description.endsWith(" .") ) {
-				description = description.substring(0,
-						description.length()-2).trim();
+			while ( (description.length() > 1) && description.endsWith(" .") ) {
+				description = description.substring(0, description.length()-2).trim();
 			}
 		}
 		else if ( type_count == 2 ) {
@@ -688,42 +676,31 @@ throws IOException
 			read_calb = true;
 		}
 		// Add a new line if:
-		// * the data type is for FCST only and the FCST line has been
-		//   read
-		// * the data type is for CALB only and the CALB line has been
-		//   read
-		// * the data type is for FCST and CALB and both lines have been
-		//   read
-		// * the data type is neither FCST or CALB and two lines have
-		//   been read
-		if (	(!in_fcst && in_calb && read_calb) ||
-			(in_fcst && read_fcst && !in_calb) ||
-			(in_fcst && read_fcst && in_calb && read_calb) ||
-			(!in_fcst && !in_calb && (type_count == 2)) ) {
+		// * the data type is for FCST only and the FCST line has been read
+		// * the data type is for CALB only and the CALB line has been read
+		// * the data type is for FCST and CALB and both lines have been read
+		// * the data type is neither FCST or CALB and two lines have been read
+		if ( (!in_fcst && in_calb && read_calb) || (in_fcst && read_fcst && !in_calb) ||
+			(in_fcst && read_fcst && in_calb && read_calb) || (!in_fcst && !in_calb && (type_count == 2)) ) {
 			// Have complete data for the type so add as a new data type...
 			type = new DataType();
 			type.setAbbreviation ( abbreviation );
 			type.setDescription ( description );
 			if ( define_dimensions ) {
-				// Define the dimension in the DataDimension
-				// global data so that it can be referenced
-				// below.  It is OK to define more than once
-				// because DataDimension will keep only one
+				// Define the dimension in the DataDimension global data so that it can be referenced
+				// below.  It is OK to define more than once because DataDimension will keep only one
 				// unique definition.
 				DataDimension.addDimension ( new DataDimension(dimension,dimension));
 			}
 			type.setDimension ( dimension );
-			// Determine if the data units are SI or English and
-			// then set as the default.
+			// Determine if the data units are SI or English and then set as the default.
 			try {
                 units = DataUnits.lookupUnits ( default_units );
 				if ( units != null ) {
-					if ( (units.getSystem() == DataUnits.SYSTEM_ENGLISH) ||
-						(units.getSystem() == DataUnits.SYSTEM_ALL) ) {
+					if ( (units.getSystem() == DataUnits.SYSTEM_ENGLISH) ||	(units.getSystem() == DataUnits.SYSTEM_ALL) ) {
 						type.setDefaultEnglishUnits ( default_units );
 					}
-					if ( (units.getSystem() == DataUnits.SYSTEM_SI) ||
-						(units.getSystem() == DataUnits.SYSTEM_ALL) ) {
+					if ( (units.getSystem() == DataUnits.SYSTEM_SI) || (units.getSystem() == DataUnits.SYSTEM_ALL) ) {
 						type.setDefaultSIUnits ( default_units );
 					}
 				}
@@ -752,6 +729,17 @@ throws IOException
 		}
 	}
 	fp.close();
+	// Add FMAP as a data type.  This is not in the DATAUNIT file because it is considered the
+    // future part of MAP.  However, it has special meaning in the database files so treat as a
+    // special case.
+    // FIXME SAM  2008-05-03 Need constructor for DataType that takes all parameters and make DataType immutable
+    DataType fmap = new DataType();
+    fmap.setAbbreviation("FMAP");
+    fmap.setDescription ( "Future Mean Areal Precipitation" );
+    fmap.setDefaultEnglishUnits( "DEGF" );
+    fmap.setDefaultSIUnits( "DEGC" );
+    fmap.setDimension ( "TEMP" );
+    addDataType( fmap );
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
