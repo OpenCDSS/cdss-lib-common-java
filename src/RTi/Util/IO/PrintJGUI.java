@@ -160,8 +160,7 @@ not supported at this time because the standard print dialog is used).
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print (	JFrame parent, Vector export, String helpkey,
-				int fontsize )
+public static void print (	JFrame parent, Vector export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -212,7 +211,7 @@ the page height by the number of lines.</b></td>
 public static void print ( JFrame parent, Vector export, PropList proplist )
 {	String	routine="PrintJGUI.export";
 
-	_export 	= export;
+	_export = export;
 	// Do some checks.  It is possible that the Vector has one string that
 	// itself needs to be parsed...
 	if ( (export != null) && (export.size() == 1) ) {
@@ -386,24 +385,21 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 
 	// Get a print job...
 
-	PrintJob pjob = parent.getToolkit().getPrintJob(parent, "CWRAT output",	(Properties)null);
+	PrintJob pjob = parent.getToolkit().getPrintJob(parent, "Printing...", (Properties)null);
 	if (pjob == null) {
 		/* For now, ignore because the user can cancel...
-		Message.printWarning ( 1, routine,
-		"Unable to start print job" );
+		Message.printWarning ( 1, routine, "Unable to start print job" );
 		throw ( new IOException ( "Security violation" ) );
 		*/
 		return; // Just return as if we did it.
 	}
         Graphics pg = pjob.getGraphics();
         if ( pg == null ) {
-		Message.printWarning ( 1, routine,
-		"Unable to get graphics handle for print job" );
+		Message.printWarning ( 1, routine, "Unable to get graphics handle for print job" );
 		throw ( new IOException ( "Security violation" ) );
 	}
 
-	// Print strings to graphics via printjob.  Does not deal with word
-	// wrap or tabs
+	// Print strings to graphics via printjob.  Does not deal with word wrap or tabs
 
 	int pageNum = 1;
 	int linesForThisPage = 0;
@@ -414,15 +410,11 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 	// Get the printable page height...
 
 	int pageHeight = pjob.getPageDimension().height;
-	int printable_pageHeight = pageHeight - TOP_BORDER;
-					// Maximum coordinate (NOT PRINTABLE
-					// HEIGHT)
+	int printable_pageHeight = pageHeight - TOP_BORDER; // Maximum coordinate (NOT PRINTABLE HEIGHT)
 	int pageWidth = pjob.getPageDimension().width;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Page dimensions are: width=" + pageWidth + " height=" +
-		pageHeight );
+		Message.printDebug ( dl, routine, "Page dimensions are: width=" + pageWidth + " height=" + pageHeight );
 	}
 
 	// Have to set the font to get any output.  For now use a fixed-width
@@ -448,38 +440,30 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 	// Print the lines.  Remember that y=0 at the top of the page.
 
 	int size = _export.size();
-	try {	for ( int i=0; i < size; i++ ) {
-			// Don't do a trim() here because it may shift the line
-			// if there are leading spaces...
-			nextLine = StringUtil.removeNewline (
-				(String)_export.elementAt(i) );
+	try {
+	    for ( int i=0; i < size; i++ ) {
+			// Don't do a trim() here because it may shift the line if there are leading spaces...
+			nextLine = StringUtil.removeNewline ( (String)_export.elementAt(i) );
 			if ((curHeight + fontHeight) > printable_pageHeight) {
 				// New Page
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 30, routine,
-					"" + linesForThisPage +
-					" lines printed for page " + pageNum);
+					Message.printDebug ( 30, routine, "" + linesForThisPage + " lines printed for page " + pageNum);
 				}
 				pageNum++;
 				linesForThisPage = 0;
 				pg.dispose();
 				pg = pjob.getGraphics();
         			if ( pg == null ) {
-					Message.printWarning ( 1, routine,
-					"Unable to get graphics handle for " +
-					"print job" );
-					throw ( new IOException (
-					"Security violation" ) );
+					Message.printWarning ( 1, routine, "Unable to get graphics handle for print job" );
+					throw ( new IOException ( "Security violation" ) );
 				}
 				pg.setFont (font);
 				curHeight = TOP_BORDER;
 			}
 			curHeight += fontHeight;
 			// Printing does not seem to like empty strings...
-			if (	(nextLine != null) &&
-				(nextLine.length() > 0) ) {
-				pg.drawString (nextLine, LEFT_BORDER,
-				(curHeight - fontDescent));
+			if ( (nextLine != null) && (nextLine.length() > 0) ) {
+				pg.drawString (nextLine, LEFT_BORDER, (curHeight - fontDescent));
 			}
 			linesForThisPage++;
 			linesForThisJob++;
@@ -492,7 +476,7 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 	// Now get rid of the graphics and end the job...
 
 	pg.dispose();
-        pjob.end();
+    pjob.end();
 }
 
 /**
@@ -528,8 +512,7 @@ not supported at this time because the standard print dialog is used).
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print (	JDialog parent, Vector export, String helpkey,
-				int fontsize )
+public static void print ( JDialog parent, Vector export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -674,9 +657,7 @@ print, and a status JTextField.
 @param status_TextField JTextField to receive status messages.
 @param textArea JTextArea to print.
 */
-public static void printJTextAreaObject(JDialog parent,
-					JTextField status_TextField,
-					JTextArea textArea )
+public static void printJTextAreaObject(JDialog parent, JTextField status_TextField, JTextArea textArea )
 {	String 	statusString;		// contains status information
 	String	routine = "PrintJGUI.printTextAreaObject()";
 			
@@ -701,8 +682,7 @@ public static void printJTextAreaObject(JDialog parent,
 	** So use the following instead...
 	*/
 
-	Vector export_Vector = StringUtil.breakStringList ( textArea.getText(),
-					"\n", 0 );
+	Vector export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	print ( parent, export_Vector, 8 );	// Use small font
 	export_Vector = null;
@@ -773,21 +753,18 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 	frame.dispose();
 	if (pjob == null) {
 		/* For now, ignore because the user can cancel...
-		Message.printWarning ( 1, routine,
-		"Unable to start print job" );
+		Message.printWarning ( 1, routine, "Unable to start print job" );
 		throw ( new IOException ( "Security violation" ) );
 		*/
 		return; // Just return as if we did it.
 	}
         Graphics pg = pjob.getGraphics();
         if ( pg == null ) {
-		Message.printWarning ( 1, routine,
-		"Unable to get graphics handle for print job" );
+		Message.printWarning ( 1, routine, "Unable to get graphics handle for print job" );
 		throw ( new IOException ( "Security violation" ) );
 	}
 
-	// Print strings to graphics via printjob.  Does not deal with word
-	// wrap or tabs
+	// Print strings to graphics via printjob.  Does not deal with word wrap or tabs
 
 	int pageNum = 1;
 	int linesForThisPage = 0;
@@ -798,15 +775,11 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 	// Get the printable page height...
 
 	int pageHeight = pjob.getPageDimension().height;
-	int printable_pageHeight = pageHeight - TOP_BORDER;
-					// Maximum coordinate (NOT PRINTABLE
-					// HEIGHT)
+	int printable_pageHeight = pageHeight - TOP_BORDER; // Maximum coordinate (NOT PRINTABLE HEIGHT)
 	int pageWidth = pjob.getPageDimension().width;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Page dimensions are: width=" + pageWidth + " height=" +
-		pageHeight );
+		Message.printDebug ( dl, routine, "Page dimensions are: width=" + pageWidth + " height=" + pageHeight );
 	}
 
 	// Have to set the font to get any output.  For now use a fixed-width
@@ -832,38 +805,30 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 	// Print the lines.  Remember that y=0 at the top of the page.
 
 	int size = _export.size();
-	try {	for ( int i=0; i < size; i++ ) {
-			// Don't do a trim() here because it may shift the line
-			// if there are leading spaces...
-			nextLine = StringUtil.removeNewline (
-				(String)_export.elementAt(i) );
+	try {
+	    for ( int i=0; i < size; i++ ) {
+			// Don't do a trim() here because it may shift the line if there are leading spaces...
+			nextLine = StringUtil.removeNewline ( (String)_export.elementAt(i) );
 			if ((curHeight + fontHeight) > printable_pageHeight) {
 				// New Page
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 30, routine,
-					"" + linesForThisPage +
-					" lines printed for page " + pageNum);
+					Message.printDebug ( 30, routine, "" + linesForThisPage + " lines printed for page " + pageNum);
 				}
 				pageNum++;
 				linesForThisPage = 0;
 				pg.dispose();
 				pg = pjob.getGraphics();
         			if ( pg == null ) {
-					Message.printWarning ( 1, routine,
-					"Unable to get graphics handle for " +
-					"print job" );
-					throw ( new IOException (
-					"Security violation" ) );
+					Message.printWarning ( 1, routine, "Unable to get graphics handle for print job" );
+					throw ( new IOException ( "Security violation" ) );
 				}
 				pg.setFont (font);
 				curHeight = TOP_BORDER;
 			}
 			curHeight += fontHeight;
 			// Printing does not seem to like empty strings...
-			if (	(nextLine != null) &&
-				(nextLine.length() > 0) ) {
-				pg.drawString (nextLine, LEFT_BORDER,
-				(curHeight - fontDescent));
+			if ( (nextLine != null) && (nextLine.length() > 0) ) {
+				pg.drawString (nextLine, LEFT_BORDER,(curHeight - fontDescent));
 			}
 			linesForThisPage++;
 			linesForThisJob++;
