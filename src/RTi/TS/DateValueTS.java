@@ -225,7 +225,9 @@ package RTi.TS;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Vector;
@@ -456,14 +458,12 @@ Read a time series from a DateValue format file.
 @param in Reference to open BufferedReader.
 @param req_date1 Requested starting date to initialize period (or null to
 read the entire period).
-@param req_date2 Requested ending date to initialize period (or null to read the
-entire period).
+@param req_date2 Requested ending date to initialize period (or null to read the entire period).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
 */
-public static TS readTimeSeries (	BufferedReader in,
-					DateTime req_date1, DateTime req_date2,
+public static TS readTimeSeries ( BufferedReader in, DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
 {	// Call the generic method...
@@ -515,21 +515,15 @@ throws Exception
 		TSIdent tsident = new TSIdent (tsident_string);
 		full_fname = IOUtil.getPathUsingWorkingDir ( tsident.getInputName() );
 		input_name = full_fname;
-		if ( !IOUtil.fileReadable(full_fname) ) {
-			Message.printWarning( 2, "DateValueTS.readTimeSeries",
-			"Unable to determine file for \"" + tsident_string + "\"" );
-			return ts;
-		}
+	    if ( !IOUtil.fileExists(full_fname) ) {
+	        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + full_fname + "\"" );
+	    }
+	    if ( !IOUtil.fileReadable(full_fname) ) {
+	        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + full_fname + "\"" );
+	    }
 	}
 	BufferedReader in = null;
-	try {
-	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
-	}
-	catch ( Exception e ) {
-		Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
-		return ts;
-	}
+    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	// Call the fully-loaded method...
 	if ( is_file ) {
 		// Expect that the time series file has one time series and should read it...
@@ -540,9 +534,9 @@ throws Exception
 		// will be used to locate the time series in the file.
 		ts = TSUtil.newTimeSeries ( tsident_string, true );
 		if ( ts == null ) {
-			Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
-			"Unable to create time series for \"" + tsident_string + "\"" );
-			return ts;
+		    String message = "Unable to create time series for \"" + tsident_string + "\"";
+			Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)", message );
+			throw new Exception ( message );
 		}
 		ts.setIdentifier ( tsident_string );
 		ts.getIdentifier().setInputType("DateValue");
@@ -579,20 +573,14 @@ throws Exception
 
 	String input_name = filename;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
+    if ( !IOUtil.fileExists(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + filename + "\"" );
+    }
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 2, "DateValueTS.readTimeSeries",
-		"Unable to determine file for \"" + filename + "\"" );
-		return ts;
+		Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + filename + "\"" );
 	}
 	BufferedReader in = null;
-	try {
-	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
-	}
-	catch ( Exception e ) {
-		Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
-		return ts;
-	}
+    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	// Pass the file pointer and an empty time series, which
 	// will be used to locate the time series in the file.
 	// The following is somewhat ugly because if we are using an alias we
@@ -668,19 +656,18 @@ is assumed to have been set in the calling code.
 public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2,
 					String units, boolean read_data )
 throws Exception
-{	String	routine = "DateValueTS.readTimeSeries(TS *,...)";
-	TS	ts = null;
+{	TS	ts = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
+    if ( !IOUtil.fileExists(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + fname + "\"" );
+    }
+    if ( !IOUtil.fileReadable(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + fname + "\"" );
+    }
 	BufferedReader in = null;
-	try {
-	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
-	}
-	catch ( Exception e ) {
-		Message.printWarning( 2, routine, "Unable to open file \"" + full_fname + "\"" );
-		return ts;
-	}
+    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
 	ts.setInputName ( full_fname );
 	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
@@ -713,7 +700,8 @@ throws Exception
 		tslist = null;
 		return null;
 	}
-	else {	TS ts = (TS)tslist.elementAt(0);
+	else {
+	    TS ts = (TS)tslist.elementAt(0);
 		tslist = null;
 		return ts;
 	}
@@ -725,29 +713,28 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @return a pointer to a newly-allocated Vector of time series if successful,
 a NULL pointer if not.
 @param fname Name of file to read.
-@param date1 Starting date to initialize period (null to read the entire time
-series).
-@param date2 Ending date to initialize period (null to read the entire time
-series).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read.
+@exception FileNotFoundException if the file is not found.
+@exception IOException if there is an error reading the file.
+@exception 
 */
 public static Vector readTimeSeriesList ( String fname, DateTime date1, DateTime date2,
 						String units, boolean read_data)
-throws Exception
+throws Exception, IOException, FileNotFoundException
 {	Vector	tslist = null;
-
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
+    if ( !IOUtil.fileExists(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + fname + "\"" );
+    }
+    if ( !IOUtil.fileReadable(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + fname + "\"" );
+    }
 	BufferedReader in = null;
-	try {
-	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
-	}
-	catch ( Exception e ) {
-		Message.printWarning( 2, "DateValueTS.readTimeSeriesList",
-		"Unable to open file \"" + full_fname + "\"" );
-		return null;
-	}
+    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	tslist = readTimeSeriesList ( null, in, date1, date2, units, read_data);
 	TS ts;
 	int nts = 0;
@@ -766,6 +753,7 @@ throws Exception
 	return tslist;
 }
 
+// TODO SAM 2008-05-09 Evaluate types of exceptiosn that are thrown
 /**
 Read a time series from a DateValue format file.
 @return a Vector of time series if successful, null if not.  The calling code
