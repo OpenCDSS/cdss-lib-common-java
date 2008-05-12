@@ -917,6 +917,15 @@ public void actionPerformed(ActionEvent event)
 			if (r == null) {
 				continue;
 			}
+			// Split by newlines so that report has separate lines of information...
+			Vector lines = StringUtil.breakStringList ( r.toString(), "\n", 0 );
+			int size2 = 0;
+			if ( lines != null ) {
+			    size2 = lines.size();
+			    for ( int i2 = 0; i2 < size2; i2++ ) {
+			        v.addElement ( lines.get(i2) );
+			    }
+			}
 			v.addElement(r.toString ());
 			v.addElement("");
 			v.addElement("");
