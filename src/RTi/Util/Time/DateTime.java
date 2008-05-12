@@ -2668,13 +2668,20 @@ throws Exception
 		//
 		return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS_hh, 0 ));
 	}
-	else if( length == 23 ){
+	else if( length >= 23 && date_string.charAt(19) == ' ' ){
 		//
-		// the date is YYYY-MM-DD HH:mm:SS ZZZ
+		// the date is YYYY-MM-DD HH:mm:SS ZZZ...
 		//
 		return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ, 0));
 	}
-	else {	// Unknown length so throw an exception...
+    else if( length > 23 && date_string.charAt(19) == ':' && date_string.charAt(22) == ' ' ){
+        //
+        // the date is YYYY-MM-DD HH:mm:SS:hh ZZZ...
+        //
+        return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ, 0 ));
+    }
+	else {
+	    // Unknown length so throw an exception...
 		throw new Exception ( "Date/time string \"" + date_string +	"\" format is not recognized." );
 	}
 }
@@ -4071,7 +4078,8 @@ public String toString ( int format )
 		StringUtil.formatString(__second,"%02d") + ":" +
 		StringUtil.formatString(__hsecond,"%02d") + " " + __tz;
 	}
-	else {	return toString( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
+	else {
+	    return toString( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
 	}
 }
 
