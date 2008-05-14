@@ -509,20 +509,25 @@ throws Exception
 
 	String input_name = tsident_string;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( tsident_string );
-	if ( !IOUtil.fileReadable(full_fname) ) {
+	Message.printStatus(2, "", "Reading \"" + tsident_string + "\"" );
+	if ( !IOUtil.fileReadable(full_fname) && (tsident_string.indexOf("~") > 0) ) {
+	    // The string is a TSID string (implicit read command) with the file name in the
+	    // input type.
 		is_file = false;
-		// Try the input name...
+		// Try the input name to get the file...
 		TSIdent tsident = new TSIdent (tsident_string);
 		full_fname = IOUtil.getPathUsingWorkingDir ( tsident.getInputName() );
 		input_name = full_fname;
-	    if ( !IOUtil.fileExists(full_fname) ) {
-	        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + full_fname + "\"" );
-	    }
-	    if ( !IOUtil.fileReadable(full_fname) ) {
-	        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + full_fname + "\"" );
-	    }
 	}
+	// By here the file name is set.
+    if ( !IOUtil.fileExists(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File does not exist: \"" + full_fname + "\"" );
+    }
+    if ( !IOUtil.fileReadable(full_fname) ) {
+        Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + full_fname + "\"" );
+    }
 	BufferedReader in = null;
+	// The following will throw an exception that is appropriate (like no file found).
     in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	// Call the fully-loaded method...
 	if ( is_file ) {
@@ -826,13 +831,13 @@ throws Exception
 			continue;
 		}
 		else if ( string.charAt(0) == '#' ) {
-		    String version = "# DateValueTS 1.4";
+		    String version = "# DateValueTS";
 	        if ( string.regionMatches(0,version,0,version.length()) ) {
 	            // Have the file version so use to indicate how file is processed.
 	            // This property should be used at the top because it impacts how other data are parsed.
 	            double version_double =
-	                StringUtil.atod ( StringUtil.getToken(version," ",StringUtil.DELIM_SKIP_BLANKS, 2) );
-	            if ( version_double < 1.4) {
+	                StringUtil.atod ( StringUtil.getToken(string," ",StringUtil.DELIM_SKIP_BLANKS, 2) );
+	            if ( (version_double > 0.0) && (version_double < 1.4) ) {
 	                // Older settings...
 	                delimParseFlag = StringUtil.DELIM_SKIP_BLANKS;
 	            }
@@ -1800,8 +1805,7 @@ Currently there is no way to indicate that the count or total time should be pri
 will be converted on output.
 @param write_data Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output (see overloaded method for description).
-@exception Exception if there is an error writing the file (I/O error or invalid
-data).
+@exception Exception if there is an error writing the file (I/O error or invalid data).
 */
 public static void writeTimeSeriesList (Vector tslist, PrintWriter out,	DateTime date1,
 					DateTime date2, String units, boolean write_data, PropList props )

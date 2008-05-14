@@ -2558,42 +2558,34 @@ throws TSException
 
 /**
 Return The number of points N1 used in the analysis for the two time series.
-The number is by month.  The base class has a getN1 when only one relationship
-is used.
+The number is by month.  The base class has a getN1 when only one relationship is used.
 @return the number of data points N1 used in an analysis.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if the month index is out of range.
 @see RTi.Util.Math.Regression#getRMSE
 */
 public int getN1 ( int monthIndex )
 throws TSException
-{	// Always return because the number of points may illustrate a data
-	// problem.
+{	// Always return because the number of points may illustrate a data problem.
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex	+ " out of range 1-12." );
 	}
 	return _n1_monthly[monthIndex-1];
 }
 
 /**
 Return The number of points N2 used in the analysis for the two time series.
-The number is by month.  The base class has a getN1 when only one relationship
-is used.
+The number is by month.  The base class has a getN1 when only one relationship is used.
 @return the number of data points N2 used in an analysis.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if the month index is out of range.
 @see RTi.Util.Math.Regression#getRMSE
 */
 public int getN2 ( int monthIndex )
 throws TSException
-{	// Always return because the number of points may illustrate a data
-	// problem.
+{	// Always return because the number of points may illustrate a data problem.
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _n2_monthly[monthIndex-1];
 }

@@ -10,6 +10,12 @@ public class CommandStatusType {
      * UNKNOWN indicates that the command could not be executed (no results). 
      */
     public static CommandStatusType UNKNOWN = new CommandStatusType(-1, "UNKNOWN");
+    
+    /**
+     * When used with Command processing, INFO indicates information relevant to a command, perhaps
+     * to explain a warning that might come up later.
+     */
+    public static CommandStatusType INFO = new CommandStatusType(-2, "INFO");
 	
 	/**
 	 * When used with Command processing, SUCCESS indicates that results could be generated, with no warnings.
