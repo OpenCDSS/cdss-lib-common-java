@@ -510,7 +510,7 @@ throws Exception
 			Message.printWarning (2,"DbaseDataTable.readFieldValue",
 			"Field [" + field_index + "] Record [" + record_index +
 			"] Invalid data string for number: \"" +
-			_field_buffer[field_index].toString() + "\"" );
+			new String(_field_buffer[field_index]) + "\"" );
 		}
 	}
 	else {	// Not yet implemented.  Problem!
