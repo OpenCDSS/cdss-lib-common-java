@@ -858,21 +858,7 @@ public static boolean containsAny ( String s, String chars, boolean ignore_case 
 }
 
 /**
-Count the number of unique (non-overlapping) instances of a pattern in a
-string.
-@param s String to search.
-@param pattern Pattern to search for.  Currently this can only be a
-one-character string.
-@return The count of the unique instances.
-@deprecated Use patternCount().
-*/
-public static int count ( String s, String pattern )
-{	return patternCount ( s, pattern );
-}
-
-/**
-Determine whether one strings ends with the specified substring, ignoring
-case.
+Determine whether one strings ends with the specified substring, ignoring case.
 @param s String to evaluate.
 @param pattern End-string to compare.
 @return true if the String "s" ends with "pattern", ignoring case.  If the
@@ -892,21 +878,6 @@ public static boolean endsWithIgnoreCase ( String s, String pattern )
 }
 
 /**
-Return the first token in a string or null if no token.  This method calls
-breakStringList() and returns the first token.
-@param string The string to break.
-@param delim A String containing characters to treat as delimiters.
-@param flag Bitmask indicating how to break the string.  Specify
-DELIM_SKIP_BLANKS to skip blank fields and
-DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
-@return the first token or null.
-@deprecated Use getToken().
-*/
-public static String firstToken ( String string, String delim, int flag )
-{	return getToken ( string, delim, flag, 0 );	
-}
-
-/**
 Return a token in a string or null if no token.  This method calls
 breakStringList() and returns the requested token or null if out of range.
 @param string The string to break.
@@ -917,8 +888,7 @@ DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @param token Token to return (starting with 0).
 @return the requested token or null.
 */
-public static String getToken ( String string, String delim, int flag,
-				int token )
+public static String getToken ( String string, String delim, int flag, int token )
 {	if ( token < 0 ) {
 		return null;
 	}
@@ -2406,7 +2376,7 @@ false, strings will be compared literally.
 @deprecated Use the standard String.matches() method or
 StringUtil.matchesIgnoreCase().
 */
-public static boolean matchesRegExp (	boolean ignore_case,
+public static boolean matchesRegExp ( boolean ignore_case,
 					String candidate_string,
 					String regexp_string )
 {	String	okchars = "", routine = "StringUtil.mtchesRegExp";
@@ -3124,18 +3094,6 @@ Sort a vector of strings into ascending order, considering case.
 @param list The original Vector of String.
 */
 public static Vector sortStringList ( Vector list )
-{	return sortStringList ( list, SORT_ASCENDING, null, false, false );
-}
-
-/**
-Sort a vector of strings into ascending order, considering case.
-@return The sorted vector (a new Vector is returned).
-@param list The original Vector of String.
-@param flag Currently unused.  In the future will be used to indicate
-ascending/descending and ignore case.
-@deprecated Use version with no flags or fully-overloaded version.
-*/
-public static Vector sortStringList ( Vector list, int flag )
 {	return sortStringList ( list, SORT_ASCENDING, null, false, false );
 }
 
