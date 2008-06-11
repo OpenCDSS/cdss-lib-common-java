@@ -805,14 +805,14 @@ throws Exception {
 	__lastSQLType		= NONE;
 
 	// Check the database engine type and set appropriate defaults...
-	if (__database_engine_String.equalsIgnoreCase("Access")) {
+	if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Access")) {
 		_left_id_delim = "[";
 		_right_id_delim = "]";	
 		_string_delim = "'";
 		__database_server = "Local";
 		_database_engine = _DBENGINE_ACCESS;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("Informix")) {
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Informix")) {
 		_left_id_delim = "\"";
 		_right_id_delim = "\"";	
 		_string_delim = "'";
@@ -822,31 +822,30 @@ throws Exception {
 		}
 		_database_engine = _DBENGINE_INFORMIX;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("MySQL")) {
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("MySQL")) {
 		_left_id_delim = "\"";
 		_right_id_delim = "\"";	
 		_string_delim = "'";
 		_database_engine = _DBENGINE_MYSQL;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("Oracle")) {
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Oracle")) {
 		_left_id_delim = "\"";
 		_right_id_delim = "\"";	
 		_string_delim = "'";
 		_database_engine = _DBENGINE_ORACLE;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
 		_left_id_delim = "\"";
 		_right_id_delim = "\"";	
 		_string_delim = "'";
-		// Default port number for postgresql is 5432
-		// and is not typically changed
+		// Default port number for postgresql is 5432 and is not typically changed
 		if ( port <= 0 ) {
 			__port = 5432;
 		}
 		_database_engine = _DBENGINE_POSTGRESQL;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("SQL_Server") ||
-		__database_engine_String.equalsIgnoreCase("SQLServer7")) {
+	else if ((__database_engine_String != null) && (__database_engine_String.equalsIgnoreCase("SQL_Server") ||
+		__database_engine_String.equalsIgnoreCase("SQLServer7") ) ) {
 		_left_id_delim = "[";
 		_right_id_delim = "]";		
 		_string_delim = "'";
@@ -857,7 +856,7 @@ throws Exception {
 		}
 		_database_engine = _DBENGINE_SQLSERVER7;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("SQLServer2000")) {
+	else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("SQLServer2000")) {
 		_left_id_delim = "[";
 		_right_id_delim = "]";	
 		_string_delim = "'";
@@ -867,7 +866,7 @@ throws Exception {
 		}
 		_database_engine = _DBENGINE_SQLSERVER2000;
 	}
-    else if (__database_engine_String.equalsIgnoreCase("SQLServer2005")) {
+    else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("SQLServer2005")) {
         _left_id_delim = "[";
 		_right_id_delim = "]";	
 		_string_delim = "'";
@@ -877,14 +876,14 @@ throws Exception {
 		}
 		_database_engine = _DBENGINE_SQLSERVER_2005;
     }
-    else if (__database_engine_String.equalsIgnoreCase("H2")) {
+    else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("H2")) {
         _left_id_delim = "";
 		_right_id_delim = "";	
 		_string_delim = "'";
 		_database_engine = _DBENGINE_H2;
     }
-	else {	throw new Exception("Trying to use unknown database engine: "
-			+ __database_engine_String + " in DMI()");
+	else {
+	    throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
 	}
 
 	__statementsVector = new Vector();
@@ -899,8 +898,7 @@ any problems doing a Connection.close()
 public void close() throws SQLException{
 	// let the JDBC handle the close
 	if (!__connected) {
-		throw new SQLException ("Database not connected, cannot call "
-			+ "DMI.close()");	
+		throw new SQLException ("Database not connected, cannot call DMI.close()");	
 	}	
 	
 	__connection.close();
@@ -927,11 +925,9 @@ throws SQLException {
 
 
 /**
-Closes a result set from a stored procedure and frees the resources associated 
-with it.
+Closes a result set from a stored procedure and frees the resources associated with it.
 @param rs the ResultSet to close.
-@param select the select statement that was set up to execute the stored
-procedure.
+@param select the select statement that was set up to execute the stored procedure.
 */
 public static void closeResultSet(ResultSet rs, DMIStatement select) 
 throws SQLException {
@@ -2252,8 +2248,7 @@ throws Exception, SQLException {
 }
 
 /**
-Open a connection to the database with information that was previously
-specified.
+Open a connection to the database with information that was previously specified.
 @throws SQLException if the dmi is already connected.
 @throws Exception if some other error happens while connecting to the database.
 */
@@ -2265,24 +2260,19 @@ throws Exception, SQLException {
 	printStatusOrDebug(10, routine, "Checking for existing connection ...");
 
 	if (__connected) {
-		printStatusOrDebug(10, routine, "Already connected!  Throwing "
-			+ "exception.");
-		throw new SQLException ("Must close the first DMI connection "
-			+ "before opening a new one.");	
+		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
+		throw new SQLException ("Must close the first DMI connection before opening a new one.");	
 	}
 
 	printStatusOrDebug(10, routine, "         ... no connection found.");
 
 	open (__system_login, __system_password );
 	
-	// Determine the database version (the derived class method will be
-	// called if defined)...
-	printStatusOrDebug(10, routine, "Determining database version ... "
-		+ " (abstract method, outside of DMI class)");
+	// Determine the database version (the derived class method will be called if defined)...
+	printStatusOrDebug(10, routine, "Determining database version ... (abstract method, outside of DMI class)");
 	determineDatabaseVersion();
 
-	printStatusOrDebug(10, routine, "Reading global data ..."
-		+ " (abstract method, outside of DMI class)");
+	printStatusOrDebug(10, routine, "Reading global data ... (abstract method, outside of DMI class)");
 	readGlobalData();
 	__lastQuery = null;
 	__lastSQL = null;
@@ -2330,7 +2320,7 @@ All other connection parameters must have been set previously.
 @param system_password System password.
 @throws SQLException thrown by DriverManger.getConnection() or 
 Connection.setAutoCommit()
-@throws Exception thrown when attempting to connectng to a database
+@throws Exception thrown when attempting to connecting to a database
 for which no JDBC information is known.
 */
 public void open ( String system_login, String system_password ) 
@@ -2338,10 +2328,8 @@ throws SQLException, Exception {
 	String routine = CLASS + ".open(String, String)";
 	printStatusOrDebug(10, routine, "Checking for existing connection ...");
 	if (__connected) {
-		printStatusOrDebug(10, routine, "Already connected!  Throwing "
-			+ "exception.");
-		throw new SQLException ("Must close the first DMI connection "
-			+ "before opening a new one.");	
+		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
+		throw new SQLException ("Must close the first DMI connection before opening a new one.");	
 	}
 	
 	printStatusOrDebug(10, routine, "         ... no connection found.");
@@ -2361,8 +2349,7 @@ throws SQLException, Exception {
 		printStatusOrDebug(dl, routine, "Using JDBC ODBC connection.");
 		// The URL is formed using several pieces of information...
 		if (_database_engine == _DBENGINE_ACCESS ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_ACCESS'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_ACCESS'");
 			// Always require an ODBC DSN (although this may be
 			// a problem with some config files and software where
 			// an MDB file is allowed for the database name).  This
@@ -2370,17 +2357,14 @@ throws SQLException, Exception {
 			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 			connUrl = "jdbc:odbc:" + __database_name;
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for Microsoft Access"
-				+ " JDBC/ODBC and \"" + connUrl + "\"");
+				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
 		} 
 		else if (_database_engine == _DBENGINE_INFORMIX ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_INFORMIX'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_INFORMIX'");
 			// Use the free driver that comes from Informix...
 			// If Informix is ever enabled, also need to add a
 			// property to the configuration which is the "online
-			// server", like "ol_hydrobase".  For now just dummy
-			// in...
+			// server", like "ol_hydrobase".  For now just dummy in...
 			String server = "ol_hydrobase";
 			Class.forName("com.informix.jdbc.IfxDriver");
 			connUrl = "jdbc:informix-sqli://" 
@@ -2391,26 +2375,22 @@ throws SQLException, Exception {
 			// +";user=" + login +
 			//";password=" + password;
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for Informix using \""
-				+ connUrl + "\"");
+				"Opening ODBC connection for Informix using \""	+ connUrl + "\"");
 		}
 		else if (_database_engine == _DBENGINE_MYSQL ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_MYSQL'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_MYSQL'");
 			// Use the public domain driver that comes with MySQL...
 			Class.forName("org.gjt.mm.mysql.Driver");
 			connUrl = "jdbc:MySQL://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for MySQL using \""
-				+ connUrl + "\"" );
+				"Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
 		}
 		else if (_database_engine == _DBENGINE_POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is "
 				+ "type 'DBENGINE_POSTGRESQL'");
-			// Use the public domain driver that comes with 
-			// PostgreSQL...
+			// Use the public domain driver that comes with PostgreSQL...
 			Class.forName("org.postgresql.Driver");
 			connUrl = "jdbc:postgresql://" 
 				+ __database_server + ":" 
@@ -2420,36 +2400,28 @@ throws SQLException, Exception {
 				+ "using \"" + connUrl + "\"" );
 		}
 		else if (_database_engine == _DBENGINE_SQLSERVER2000 ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_SQLSERVER2000'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER2000'");
 			// Use the driver distributed by Microsoft...
-			Class.forName(
-				"com.microsoft.jdbc.sqlserver.SQLServerDriver");
+			Class.forName( "com.microsoft.jdbc.sqlserver.SQLServerDriver");
 			connUrl = "jdbc:microsoft:sqlserver://"
 				+ __database_server + ":"
 				+ __port + ";DatabaseName=" + __database_name;
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for SQLServer2000 "
-				+ "using \"" + connUrl + "\"");
+				"Opening ODBC connection for SQLServer2000 using \"" + connUrl + "\"");
 		} 
         else if (_database_engine == _DBENGINE_SQLSERVER_2005 ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_SQLSERVER 2005'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER 2005'");
 			// Use the driver distributed by Microsoft...
             // note the slight differences in class name...
             // other than that, they behave the same?
-			Class.forName(
-				"com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			connUrl = "jdbc:sqlserver://"
 				+ __database_server + ":"
 				+ __port + ";DatabaseName=" + __database_name;
-			Message.printStatus(2, routine,
-				"Opening ODBC connection for SQLServer "
-				+ "using \"" + connUrl + "\"");
+			Message.printStatus(2, routine, "Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
 		} 
 		else if (_database_engine == _DBENGINE_SQLSERVER7 ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_SQLSERVER7'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER7'");
 			// This is the older UNA2000 driver...
 
 			// NOTE:
@@ -2458,8 +2430,8 @@ throws SQLException, Exception {
 			// is not something RTi is free to distribute to 
 			// customers.  Other customers may need a different
 			// driver coded in here or -- better yet -- they should
-			// switch to MS SQL Server 2000, which is freely 
-			// available as MSDE.  
+			// switch to MS SQL Server 2000, which is freely available as SQL Server Express
+			// (and older MSDE).  
 
 			Class.forName( "com.inet.tds.TdsDriver");
 			connUrl = "jdbc:inetdae7:" 
@@ -2468,56 +2440,43 @@ throws SQLException, Exception {
 			// This will turn off support for < SQL Server 7...
 			// "?sql7=true";
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for SQLServer7 "
-				+ "using \"" + connUrl + "\"" );
+				"Opening ODBC connection for SQLServer7 using \"" + connUrl + "\"" );
 		}
         else if (_database_engine == _DBENGINE_H2 ) {
-			printStatusOrDebug(dl, routine, "Database engine is "
-				+ "type 'DBENGINE_H2'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_H2'");
 			Class.forName( "org.h2.Driver");
             java.io.File f = new java.io.File(__database_server);
-			connUrl = "jdbc:h2:file:" 
-				+ f.getAbsolutePath();
-			Message.printStatus(2, routine,
-				"Opening JDBC connection for H2 "
-				+ "using \"" + connUrl + "\"" );
+			connUrl = "jdbc:h2:file:" + f.getAbsolutePath();
+			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
 		else {	
-			printStatusOrDebug(dl, routine, "Unknown database "
-				+ "engine, throwing exception.");
-			throw new Exception("Don't know what JDBC driver to "
-				+ "use for database type " 
+			printStatusOrDebug(dl, routine, "Unknown database engine, throwing exception.");
+			throw new Exception("Don't know what JDBC driver to use for database type " 
 				+ __database_engine_String);
 		}
 	}
 	else {	
 		// The URL uses a standard JDBC ODBC connections, regardless of
 		// the database engine (this should not normally be used for
-		// Java appplications - or need to figure out how to use the
+		// Java applications - or need to figure out how to use the
 		// ODBC protocol URL knowing only the ODBC DSN for each engine).
-		printStatusOrDebug(dl, routine, "Using default Java connection "
-			+ "method.");
+		printStatusOrDebug(dl, routine, "Using default Java connection method.");
 		Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 		connUrl = "jdbc:odbc:" + __odbc_name;
-		Message.printStatus (2, routine,
-			"Opening ODBC connection using JDBC/ODBC and \""
-			+ connUrl + "\"" );
+		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
 		
 	if ( __secure ) {
 		printStatusOrDebug(dl, routine, "Calling getConnection(" 
-		+ connUrl + ", " + system_login + ", " + system_password
-		+ ") via the Java DriverManager.");
+		+ connUrl + ", " + system_login + ", " + system_password + ") via the Java DriverManager.");
 	}
-	else {	printStatusOrDebug(dl, routine, "Calling getConnection(" 
-		+ connUrl + ", " + system_login + ", " + "password-not-shown" 
-		+ ") via the Java DriverManager.");
+	else {
+	    printStatusOrDebug(dl, routine, "Calling getConnection(" 
+		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
 	}
-	__connection = DriverManager.getConnection(connUrl, system_login, 
-		system_password );
+	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
 
-	printStatusOrDebug(dl, routine, "Setting autoCommit to: " 
-		+ __autoCommit);
+	printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
 	__connection.setAutoCommit(__autoCommit);
 	
 	printStatusOrDebug(dl, routine, "Connected!");
@@ -2882,8 +2841,7 @@ public void setPort(int port) {
 	int dl = 25;
 	
 	if (Message.isDebugOn) {
-		Message.printDebug(dl, routine,
-			"Port: " + port);
+		Message.printDebug(dl, routine, "Port: " + port);
 	}
 	__port = port;
 }
@@ -2897,8 +2855,7 @@ public void setSecure(boolean secure) {
 	int dl = 25;
 	
 	if (Message.isDebugOn) {
-		Message.printDebug(dl, routine, 
-			"Secure: " + secure);
+		Message.printDebug(dl, routine, "Secure: " + secure);
 	}
 	__secure = secure;
 }
