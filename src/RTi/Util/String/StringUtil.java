@@ -2221,7 +2221,11 @@ Determine whether a string is a double precision value.
 @param s String to convert.
 */
 public static boolean isDouble( String s )
-{	try {	new Double( s.trim() ).doubleValue();
+{	if ( s == null ) {
+        return false;
+    }
+    try {
+        new Double( s.trim() ).doubleValue();
 		return true;
 	}
 	catch( NumberFormatException e ){
@@ -2235,7 +2239,11 @@ Determine whether a string can be converted to an integer.
 @param s String to convert.
 */
 public static boolean isInteger( String s )
-{	try {	Integer.parseInt( s.trim() );
+{	if ( s == null ) {
+        return false;
+    }
+    try {
+        Integer.parseInt( s.trim() );
 		return true;
 	}
 	catch( NumberFormatException e ){
@@ -2248,7 +2256,10 @@ Determine whether a string can be converted to a long.
 @return true if the string can be converted to a long.
 @param s String to convert.
 */
-public static boolean isLong(String s) {
+public static boolean isLong(String s)
+{   if ( s == null ) {
+        return false;
+    }
 	try {
 		new Long(s).longValue();
 		return true;
