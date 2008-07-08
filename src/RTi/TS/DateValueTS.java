@@ -360,22 +360,27 @@ public static boolean isDateValueFile ( String filename )
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	try {
 	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
-		// Read lines and check for common strings that indicate a DateValue file.
-		String string = null;
-		boolean	is_datevalue = false;
-		while( (string = in.readLine()) != null ) {
-			if ( string.startsWith("# DateValue") || string.startsWith("#DateValue") ) {
-				is_datevalue = true;
-				break;
-			}
-			if ( string.regionMatches(true,0,"TSID",0,4) && (string.indexOf("=") >= 0) ) {
-				is_datevalue = true;
-				break;
-			}
-		}
-		in.close();
+	    boolean is_datevalue = false;
+	    try {
+    		// Read lines and check for common strings that indicate a DateValue file.
+    		String string = null;
+    		while( (string = in.readLine()) != null ) {
+    			if ( string.startsWith("# DateValue") || string.startsWith("#DateValue") ) {
+    				is_datevalue = true;
+    				break;
+    			}
+    			if ( string.regionMatches(true,0,"TSID",0,4) && (string.indexOf("=") >= 0) ) {
+    				is_datevalue = true;
+    				break;
+    			}
+    		}
+	    }
+	    finally {
+	        if ( in != null ) {
+	            in.close();
+	        }
+	    }
 		in = null;
-		string = null;
 		return is_datevalue;
 	}
 	catch ( Exception e ) {
@@ -529,28 +534,35 @@ throws Exception
 	BufferedReader in = null;
 	// The following will throw an exception that is appropriate (like no file found).
     in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
-	// Call the fully-loaded method...
-	if ( is_file ) {
-		// Expect that the time series file has one time series and should read it...
-		ts = readTimeSeries ( (TS)null, in, date1, date2, units, read_data );
-	}
-	else {
-	    // Pass the file pointer and an empty time series, which
-		// will be used to locate the time series in the file.
-		ts = TSUtil.newTimeSeries ( tsident_string, true );
-		if ( ts == null ) {
-		    String message = "Unable to create time series for \"" + tsident_string + "\"";
-			Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)", message );
-			throw new Exception ( message );
-		}
-		ts.setIdentifier ( tsident_string );
-		ts.getIdentifier().setInputType("DateValue");
-		readTimeSeriesList ( ts, in, date1, date2, units, read_data );
-	}
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+    try {
+    	// Call the fully-loaded method...
+    	if ( is_file ) {
+    		// Expect that the time series file has one time series and should read it...
+    		ts = readTimeSeries ( (TS)null, in, date1, date2, units, read_data );
+    	}
+    	else {
+    	    // Pass the file pointer and an empty time series, which
+    		// will be used to locate the time series in the file.
+    		ts = TSUtil.newTimeSeries ( tsident_string, true );
+    		if ( ts == null ) {
+    		    String message = "Unable to create time series for \"" + tsident_string + "\"";
+    			Message.printWarning( 2, "DateValueTS.readTimeSeries(String,...)", message );
+    			throw new Exception ( message );
+    		}
+    		ts.setIdentifier ( tsident_string );
+    		ts.getIdentifier().setInputType("DateValue");
+    		readTimeSeriesList ( ts, in, date1, date2, units, read_data );
+    	}
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
+    	
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return ts;
 }
 
@@ -595,37 +607,43 @@ throws Exception
 	// reset the time series to what is actually found in the file.
 	// TODO - clean this up, perhaps by moving the time series creation
 	// into the readTimeSeriesList() method rather than doing it here.
-	if ( tsident_string.indexOf(".") >= 0 ) {
-		// Normal time series identifier...
-		ts = TSUtil.newTimeSeries ( tsident_string, true );
-	}
-	else {
-        // Assume an alias...
-		ts = new DayTS ();
-	}
-	if ( ts == null ) {
-		Message.printWarning( 2,
-		"DateValueTS.readTimeSeries(String,...)","Unable to create time series for \"" + tsident_string + "\"" );
-		return ts;
-	}
-	if ( tsident_string.indexOf(".") >= 0 ) {
-		ts.setIdentifier ( tsident_string );
-	}
-	else {
-	    ts.setAlias ( tsident_string );
-	}
-	Vector v = readTimeSeriesList (	ts, in,	date1, date2, units, read_data );
-	if ( tsident_string.indexOf(".") < 0 ) {
-		// The time series was specified with an alias so it needs
-		// to be replaced with what was read.  The alias will have been
-		// assigned in the readTimeSeriesList() method.
-		ts = (TS)v.elementAt(0);
-	}
-	ts.getIdentifier().setInputType("DateValue");
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+    try {
+    	if ( tsident_string.indexOf(".") >= 0 ) {
+    		// Normal time series identifier...
+    		ts = TSUtil.newTimeSeries ( tsident_string, true );
+    	}
+    	else {
+            // Assume an alias...
+    		ts = new DayTS ();
+    	}
+    	if ( ts == null ) {
+    		Message.printWarning( 2,
+    		"DateValueTS.readTimeSeries(String,...)","Unable to create time series for \"" + tsident_string + "\"" );
+    		return ts;
+    	}
+    	if ( tsident_string.indexOf(".") >= 0 ) {
+    		ts.setIdentifier ( tsident_string );
+    	}
+    	else {
+    	    ts.setAlias ( tsident_string );
+    	}
+    	Vector v = readTimeSeriesList (	ts, in,	date1, date2, units, read_data );
+    	if ( tsident_string.indexOf(".") < 0 ) {
+    		// The time series was specified with an alias so it needs
+    		// to be replaced with what was read.  The alias will have been
+    		// assigned in the readTimeSeriesList() method.
+    		ts = (TS)v.elementAt(0);
+    	}
+    	ts.getIdentifier().setInputType("DateValue");
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return ts;
 }
 
@@ -673,11 +691,17 @@ throws Exception
     }
 	BufferedReader in = null;
     in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
-	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+    try {
+    	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return ts;
 }
 
@@ -739,22 +763,28 @@ throws Exception, IOException, FileNotFoundException
         Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + fname + "\"" );
     }
 	BufferedReader in = null;
-    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
-	tslist = readTimeSeriesList ( null, in, date1, date2, units, read_data);
-	TS ts;
-	int nts = 0;
-	if ( tslist != null ) {
-		nts = tslist.size();
+	try {
+        in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+    	tslist = readTimeSeriesList ( null, in, date1, date2, units, read_data);
+    	TS ts;
+    	int nts = 0;
+    	if ( tslist != null ) {
+    		nts = tslist.size();
+    	}
+    	for ( int i = 0; i < nts; i++ ) {
+    		ts = (TS)tslist.elementAt(i);
+    		if ( ts != null ) {
+    			ts.setInputName ( full_fname );
+    			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    			ts.getIdentifier().setInputName ( input_name );
+    		}
+    	}
 	}
-	for ( int i = 0; i < nts; i++ ) {
-		ts = (TS)tslist.elementAt(i);
-		if ( ts != null ) {
-			ts.setInputName ( full_fname );
-			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-			ts.getIdentifier().setInputName ( input_name );
-		}
+	finally {
+	    if ( in != null ) {
+	        in.close();
+	    }
 	}
-	in.close();
 	return tslist;
 }
 
@@ -1752,10 +1782,12 @@ throws Exception
         FileOutputStream fos = new FileOutputStream( full_fname );
         PrintWriter fout = new PrintWriter ( fos );
 
-        writeTimeSeries ( ts, fout, date1, date2, units, write_data );
-
-        fout.flush();
-        fout.close();
+        try {
+            writeTimeSeries ( ts, fout, date1, date2, units, write_data );
+        }
+        finally {
+            fout.close();
+        }
     }
     catch ( Exception e ) {
         String message = "Error opening \"" + full_fname + "\" for writing.";
@@ -2303,10 +2335,12 @@ throws Exception
 	    FileOutputStream fos = new FileOutputStream ( full_fname );
 		PrintWriter fout = new PrintWriter ( fos );
 
-		writeTimeSeriesList ( tslist, fout, date1, date2, units, write_data, props );
-
-		fout.flush();
-		fout.close();
+		try {
+		    writeTimeSeriesList ( tslist, fout, date1, date2, units, write_data, props );
+		}
+		finally {
+		    fout.close();
+		}
 	}
 	catch ( Exception e ) {
 		String message = "Error writing \"" + full_fname + "\".";
