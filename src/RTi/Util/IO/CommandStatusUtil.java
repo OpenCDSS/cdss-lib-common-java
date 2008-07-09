@@ -1,6 +1,7 @@
 package RTi.Util.IO;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.CommandPhaseType;
@@ -168,6 +169,48 @@ public class CommandStatusUtil
 ////	  }
 //      
 //    }
+  
+  /**
+   * Append log records from a list of commands to a status.  For example, this is used
+   * when running a list of commands with a "runner" command.
+   * @param status a CommandStatus instance to which log records should be appended.
+   * @param commandList a list of CommandStatusProviders (such as Command instances) that
+   * have log records to be appended to the first parameter.
+   */
+  public static void appendLogRecords ( CommandStatus status, List commandList )
+  {
+      if ( status == null ) {
+          return;
+      }
+      if ( commandList == null ) {
+          return;
+      }
+      // Loop through the commands
+      int size = commandList.size();
+      CommandStatusProvider csp;
+      for ( int i = 0; i < size; i++ ) {
+          if ( ! (commandList.get(i) instanceof CommandStatusProvider) ) {
+              // No need to process.
+              continue;
+          }
+          // Transfer the command log records to the status...
+          csp = (CommandStatusProvider)commandList.get(i);
+          CommandStatus status2 = csp.getCommandStatus();
+          // Get the logs for the initialization...
+          Vector logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          for ( int il = 0; il < logs.size(); il++ ) {
+              status.addToLog(CommandPhaseType.INITIALIZATION, (CommandLogRecord)logs.elementAt(il) );
+          }
+          logs = status2.getCommandLog(CommandPhaseType.DISCOVERY);
+          for ( int il = 0; il < logs.size(); il++ ) {
+              status.addToLog(CommandPhaseType.DISCOVERY, (CommandLogRecord)logs.elementAt(il) );
+          }
+          logs = status2.getCommandLog(CommandPhaseType.RUN);
+          for ( int il = 0; il < logs.size(); il++ ) {
+              status.addToLog(CommandPhaseType.RUN, (CommandLogRecord)logs.elementAt(il) );
+          }
+      }
+  }
   
   /**
 	 * TODO SAM 2007-08-15 Need to doc.

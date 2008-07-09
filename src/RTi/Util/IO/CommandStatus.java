@@ -107,7 +107,8 @@ public void clearLog ( CommandPhaseType phase )
 Clone the instance.  All command data are cloned, including the log records.
 */
 public Object clone ()
-{	try {	CommandStatus status = (CommandStatus)super.clone();
+{	try {
+        CommandStatus status = (CommandStatus)super.clone();
 		// Copy the status information...
 		status.__initialization_status = __initialization_status;
 		status.__discovery_status = __discovery_status;
