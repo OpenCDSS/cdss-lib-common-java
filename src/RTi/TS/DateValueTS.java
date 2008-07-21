@@ -1955,6 +1955,12 @@ throws Exception
 	if ( propval != null ) {
 	    delim = propval;
 	}
+    int precision = 4;
+    propval = props.getValue ( "Precision" );
+    if ( (propval != null) && StringUtil.isInteger(propval) ) {
+        precision = Integer.parseInt(propval);
+    }
+    String outputFormat = "%." + precision + "f";
 	String nodata_string = "?";
 	StringBuffer alias_buffer = new StringBuffer();
 	boolean has_seqnum = false;
@@ -2045,14 +2051,14 @@ throws Exception
 			    datatype_buffer.append("\"" + ts.getDataType() + "\"" );
 			}
 			description_buffer.append (	"\"" + ts.getDescription() + "\"" );
-			// If the missing value is NaN, just print NaN.  Otherwise the %.4f results in NaN.000...
+			// If the missing value is NaN, just print NaN.  Otherwise the %.Nf results in NaN.000...
 			// The following is a trick to check for NaN...
 			if ( ts.getMissing() != ts.getMissing() ) {
 				missingval_buffer.append ("NaN" );
 			}
 			else {
 			    // Assume that missing is indicated by a number...
-				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),"%.4f"));
+				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
 			}
 			tsid_buffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
 			units_buffer.append ( "\"" + ts.getDataUnits() + "\"" );
@@ -2190,12 +2196,12 @@ throws Exception
 					string_value = "NaN";
 				}
 				else {
-				    string_value = StringUtil.formatString( tsdata.getData(), "%.4f" );
+				    string_value = StringUtil.formatString( tsdata.getData(), outputFormat );
 				}
 			}
 			else {
 			    // Convert the units...
-				string_value = StringUtil.formatString( (tsdata.getData()*mult[0] + add[0]), "%.4f" );
+				string_value = StringUtil.formatString( (tsdata.getData()*mult[0] + add[0]), outputFormat );
 			}
 			// Don't think @ is needed given new DateValueTS capabilities...
 			//out.println ( date.toString( DateTime.FORMAT_YYYY_MM_DD_HH_mm).replace(' ','@') + " " + string_value );
@@ -2225,11 +2231,11 @@ throws Exception
 						string_value = "NaN";
 					}
 					else {
-					    string_value = StringUtil.formatString( value, "%.4f");
+					    string_value = StringUtil.formatString( value, outputFormat);
 					}
 				}
 				else {
-				    string_value = StringUtil.formatString(	(value*mult[i] + add[i]),"%.4f" );
+				    string_value = StringUtil.formatString(	(value*mult[i] + add[i]),outputFormat );
 				}
 				if ( i == 0 ) {
 					buffer.append ( string_value );
@@ -2321,6 +2327,12 @@ writing the header).
 <td><b>Delimiter</b></td>
 <td><b>The delimiter to use in output.</b>
 <td>Space</td>
+</tr>
+
+<tr>
+<td><b>Precision</b></td>
+<td><b>The precision (number of digits after the decimal) to use for numerical values.</b>
+<td>4</td>
 </tr>
 </table>
 @exception Exception if there is an error writing the file.
