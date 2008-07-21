@@ -726,37 +726,41 @@ Create a PropList by parsing a string of the form prop="val",prop="val".
 @param how_set Indicate the "how set" value that should be set for all
 properties that are parsed (see Prop.SET_*).
 @param string String to parse.
-@param list_name the name to assing to the new PropList.
-@param delim the delimiter to use when parsing the proplist ("," in the above
+@param list_name the name to assign to the new PropList.
+@param delim the delimiter to use when parsing the PropList ("," in the above
 example).  Quoted strings are assumed to be allowed.
 @return a PropList with the expanded properties.  A non-null value is
 guaranteed; however, the list may contain zero items.
 @see Prop
 */
-public static PropList parse (	int how_set, String string, String list_name,
-				String delim )
+public static PropList parse ( int how_set, String string, String list_name, String delim )
 {	PropList props = new PropList ( list_name );
 	props.setHowSet ( how_set );
 	if ( string == null ) {
 		return props;
 	}
-	Vector tokens = StringUtil.breakStringList ( string, delim,
-			StringUtil.DELIM_ALLOW_STRINGS );
-						// Necessary because a comma
-						// could be in a string
+	// Allowing quoted strings is necessary because a comma or = could be in a string
+	Vector tokens = StringUtil.breakStringList ( string, delim,	StringUtil.DELIM_ALLOW_STRINGS );
+						
 	int size = 0;
 	if ( tokens != null ) {
 		size = tokens.size();
 	}
-	Vector tokens2;
 	for ( int i = 0; i < size; i++ ) {
-		tokens2 = StringUtil.breakStringList (
-			(String)tokens.elementAt(i), "=",
-				StringUtil.DELIM_SKIP_BLANKS |
-				StringUtil.DELIM_ALLOW_STRINGS );
-		if ( (tokens2 != null) && (tokens2.size() > 1) ) {
-			props.set ( ((String)tokens2.elementAt(0)).trim(),
-			((String)tokens2.elementAt(1)).trim() );
+	    //Message.printStatus ( 2, "PropList.parse", "Parsing parameter string \"" + (String)tokens.elementAt(i));
+		// The above call to breakStringList() may have stripped quotes that would protected "=" in the
+	    // properties.  Therefore just find the first "=" and take the left and right sides.
+	    String token = (String)tokens.elementAt(i);
+	    int pos = token.indexOf('=');
+	    if ( pos > 0 ) {
+		    String prop = token.substring(0,pos);
+		    String value = "";
+		    if ( token.length() > (pos + 1) ) {
+		        // Right side is NOT empty
+		        value = token.substring((pos + 1),token.length());
+		    }
+		    //Message.printStatus ( 2, "PropList.parse", "Setting property \"" + prop + "\"=\"" + value + "\"" );
+			props.set ( prop, value );
 		}
 	}
 	return props;
