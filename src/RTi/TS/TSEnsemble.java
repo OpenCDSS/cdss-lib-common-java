@@ -114,6 +114,16 @@ public String getEnsembleName ()
 }
 
 /**
+Remove the time series object from the ensemble.
+@param ts Object (time series) to remove.
+@return true if the object was found and removed, false if not in the list.
+*/
+public boolean remove ( Object ts )
+{
+    return __tslist.remove ( ts );
+}
+
+/**
 Set the ensemble identifier.
 @param id The ensemble identifier.
 */
