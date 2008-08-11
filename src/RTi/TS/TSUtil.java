@@ -485,7 +485,7 @@ The IGNORE_MISSING flag is used for missing data.
 @exception TSException if there is an error adding the time series.
 */
 public static TS add ( TS ts, TS ts_to_add )
-throws TSException
+throws TSException, Exception
 {	String message, routine = "TSUtil.add";
 
 	if ( ts == null ) {
@@ -523,7 +523,7 @@ The IGNORE_MISSING flag is used for missing data.
 @exception TSException if an error occurs adding the time series.
 */
 public static TS add ( TS ts, Vector ts_to_add )
-throws TSException
+throws Exception
 {	return add ( ts, ts_to_add, IGNORE_MISSING );
 }
 
@@ -537,7 +537,7 @@ genesis information are updated to reflect the addition.
 @exception TSException if an error occurs adding the time series.
 */
 public static TS add ( TS ts, Vector ts_to_add, int missing_flag )
-throws TSException
+throws Exception
 {	String message, routine = "TSUtil.add";
 
 	// Call the main overload routine...
@@ -580,9 +580,8 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 </pre>
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static TS add (	TS ts, Vector ts_to_add, double factor[],
-			int missing_flag )
-throws TSException
+public static TS add ( TS ts, Vector ts_to_add, double factor[], int missing_flag )
+throws TSException, Exception
 {	String	message, routine = "TSUtil.add(TS,Vector,double[])";
 	int	dl = 20, nmissing = 0;
 	double	add = 0.0, mult = 1.0;
@@ -675,26 +674,24 @@ throws TSException
 		nmissing	= 0;
 		tspt		= (TS)ts_to_add.elementAt(i);
 		if ( tspt == null ) {
-			message =
-			"Trouble getting [" + i + "]-th time series in list";
+			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 3, routine, message );
 			throw new TSException ( message );
 		}
 		// Get the units conversions to convert to the final TS...
-		try {	conversion = DataUnits.getConversion(
-				tspt.getDataUnits(), req_units );
+		try {
+		    conversion = DataUnits.getConversion( tspt.getDataUnits(), req_units );
 			mult = conversion.getMultFactor();
 			add = conversion.getAddFactor();
 		}
 		catch ( Exception e ) {
 			// Can't get conversion.  This may not be a fatal
-			// error, but we don't want to allow different units
-			// to be summed so return...
-			message = "Cannot get conversion from \"" +
-				tspt.getDataUnits() + "\" to \"" +
+			// error, but we don't want to allow different units to be summed so return...
+			message = "Cannot get conversion from \"" + tspt.getIdentifier().toString() + "\" data units \"" +
+				tspt.getDataUnits() + "\" to \"" + ts.getIdentifier().toString() + "\" data units \"" +
 				req_units + "\"";
 			Message.printWarning ( 3, routine, message );
-			throw e;
+			throw new TSException ( message );
 		}
 		// Work on the one time series...
 
@@ -865,7 +862,9 @@ throws TSException
 		message = "Error adding time series.";
 		Message.printWarning ( 3, routine, message );
 		Message.printWarning ( 3, routine, e );
-		throw new TSException ( message );
+		// Log and rethrow the original exception so detail is not lost
+		throw e;
+		//throw new TSException ( message );
 	}
 }
 
@@ -12081,7 +12080,7 @@ public static TS subtract ( TS ts, TS ts_to_subtract )
 	factor[0] = -1.0;
 	try {	return add ( ts, v, factor, IGNORE_MISSING );
 	}
-	catch ( TSException e ) {;}
+	catch ( Exception e ) {;}
 	return ts;
 }
 
@@ -12094,6 +12093,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_subtract List of time series to subtract from "ts".
 */
 public static TS subtract ( TS ts, Vector ts_to_subtract )
+throws Exception
 {	return subtract ( ts, ts_to_subtract, IGNORE_MISSING );
 }
 
@@ -12107,6 +12107,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param missing_flag See documentation for add().
 */
 public static TS subtract ( TS ts, Vector ts_to_subtract, int missing_flag )
+throws Exception
 {	// Call the main overload routine...
 	if ( ts_to_subtract == null ) {
 		return ts;
@@ -12116,10 +12117,7 @@ public static TS subtract ( TS ts, Vector ts_to_subtract, int missing_flag )
 	for ( int i = 0; i < size; i++ ) {
 		factor[i] = -1.0;
 	}
-	try {	return add ( ts, ts_to_subtract, factor, missing_flag );
-	}
-	catch ( TSException e ) {;}
-	return ts;
+	return add ( ts, ts_to_subtract, factor, missing_flag );
 }
 
 /**
