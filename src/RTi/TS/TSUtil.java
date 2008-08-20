@@ -11494,6 +11494,14 @@ series).
 </tr>
 
 <tr>
+<td><b>HandleMissingHow</b></td>
+<td><b>Indicates how missing data should be handled when encountered in the independent
+time series.  If "SetMissing" then even the missing values will be transferred.  If
+"IgnoreMissing", then missing values will be transferred.</b>
+<td>SetMissing</td>
+</tr>
+
+<tr>
 <td><b>TransferData</b></td>
 <td><b>Indicates how data should be transferred from one time series to
 another.  Using "ByDateTime" will cause the dates in both time series to match,
@@ -11518,12 +11526,18 @@ throws Exception
 	// Check the properties that influence this method...
 
 	boolean transfer_bydate = true;	// Default - make dates match in both time series.
+	boolean setMissing = true;  // Default - either this or IgnoreMissing, which is setMissing=false
 	if ( props != null ) {
 		String prop_val = props.getValue("TransferData");
 		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
+        prop_val = props.getValue("HandleMissingHow");
+        if ( (prop_val != null) && prop_val.equalsIgnoreCase("IgnoreMissing") ) {
+            // Ignore missing data (don't transfer)...
+            setMissing = false;
+        }
 	}
 
 	// Get valid dates because the ones passed in may have been null...
@@ -11562,19 +11576,27 @@ throws Exception
 			tsi.next();
 			data_value = tsi.getDataValue ();
 		}
+		if ( independentTS.isDataMissing(data_value) && !setMissing ) {
+		    continue;
+		}
 		dependentTS.setDataValue ( date, data_value );
 	}
 	
 	// Fill in the genesis information...
 
-	dependentTS.setDescription ( dependentTS.getDescription() +	", setFromTS" );
+	dependentTS.setDescription ( dependentTS.getDescription() +	", SetFromTS" );
 	dependentTS.addToGenesis ( "Set data " + start.toString() +
 		" to " + end.toString() + " by using values from " + independentTS.getIdentifierString() );
+	String handleMissingHowString = ", HandleMissingHow=SetMissing";
+	if ( !setMissing ) {
+	    handleMissingHowString = ", HandleMissingHow=IgnoreMissing";
+	}
 	if ( !transfer_bydate ) {
-		dependentTS.addToGenesis ( "Data values were transferred by date/time." );
+		dependentTS.addToGenesis ( "Data values were transferred by date/time" + handleMissingHowString + "." );
 	}
 	else {
-        dependentTS.addToGenesis ( "Data values were transferred sequentially from start date/time" );
+        dependentTS.addToGenesis ( "Data values were transferred sequentially from start date/time" +
+            handleMissingHowString + "." );
 	}
 }
 
