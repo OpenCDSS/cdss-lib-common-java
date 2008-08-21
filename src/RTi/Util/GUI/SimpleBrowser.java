@@ -102,10 +102,19 @@ public class SimpleBrowser extends JFrame implements ActionListener {
 	 */
 public SimpleBrowser(String startingUrl ) throws IOException
 {	
-	// set the title as the starting URL
+	// Set the title as the starting URL (reset below)
 	super( startingUrl );
-	// check the url given
-	startingUrl = checkURL( startingUrl );
+	// Check the url given
+    startingUrl = checkURL( startingUrl );
+	// Set the title bar information
+    JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+    if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
+        setTitle ( "HTML Viewer - " + startingUrl );
+    }
+    else {
+        setTitle( JGUIUtil.getAppNameForWindows() + " - HTML Viewer - " + startingUrl );
+    }
+
 	__top_url = startingUrl;
 	__prev_url = startingUrl;
 	
@@ -135,19 +144,22 @@ public SimpleBrowser(String startingUrl ) throws IOException
 	__back_JButton.setEnabled(false);
 	__back_JButton.setActionCommand("back");
 	__back_JButton.addActionListener(this);
+	__back_JButton.setToolTipText("Go to previous location in file.");
 	// top button to navigate to the top of the page
 	__top_JButton = new JButton("Top");
 	__top_JButton.setActionCommand("top");
 	__top_JButton.addActionListener(this);
+	__top_JButton.setToolTipText("Go to top of file.");
 	// used to print contents of the JEditorPane
 	__print_JButton = new JButton("Print");
 	__print_JButton.setActionCommand("print");
 	__print_JButton.addActionListener(this);
+	__print_JButton.setToolTipText("Print file.");
 	//	 launches the default browser to current url
 	__browser_JButton = new JButton("Browser");
 	__browser_JButton.setActionCommand("browser");
 	__browser_JButton.addActionListener(this);
-	
+	__browser_JButton.setToolTipText("View content in external default web browser.");
 	
 	// add buttons to button panel
 	buttonPanel.add( __browser_JButton );
