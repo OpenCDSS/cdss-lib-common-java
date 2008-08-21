@@ -56,19 +56,20 @@ Start consuming the stream.  Data will be read until a null is read, at which
 time the thread will expire.
 */
 public void run ()
-{	try {	BufferedReader br = new BufferedReader(
-						new InputStreamReader (__is) );
+{	try {
+        BufferedReader br = new BufferedReader(	new InputStreamReader (__is) );
 		while ( br.readLine() != null ) {
 			// TODO SAM 2007-05-09 - this is where output could be passed
 			// to listening code.
 		}
 	}
 	catch ( Exception e ) {
-		// Should not happen but print until code tests out...
-		String routine = "StreamConsumer.run";
-		Message.printWarning ( 2, routine,
-		"Exception processing stream." );
-		Message.printWarning ( 2, routine, e );
+		// Should not happen - uncomment if troubleshooting
+	    // Exceptions may be thrown if the system is busy and there is a delay in closing
+	    // the file and the next pending read
+		//String routine = "StreamConsumer.run";
+		//Message.printWarning ( 2, routine, "Exception processing stream." );
+		//Message.printWarning ( 2, routine, e );
 	}
 }
 
