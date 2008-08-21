@@ -435,8 +435,7 @@ private void writeTableOfContents( HTMLWriter html )  throws Exception
 		tableStart.add("bordercolor=black");
 		tableStart.add("cellspacing=1");
 		tableStart.add("cellpadding=1");
-		String [] data_table_header = {"Component", "Type of Check", 
-			"# Problems", "# Total Checks"};
+		String [] data_table_header = {"Component", "Type of Check", "# Problems", "# Total Checks"};
 		//html follows ...
 		html.headerStart( 4, __title_prop );	// <h3> tag
 		html.addText( tcontents );
@@ -445,8 +444,7 @@ private void writeTableOfContents( HTMLWriter html )  throws Exception
 		html.breakLine();
 		html.link( "#command_file", "Command File" );
 		html.breakLine();
-		html.link( "#run_msgs", "Runtime Messages (" +
-			__run_msgs.size() + ")" );
+		html.link( "#run_msgs", "Runtime Messages (" + __run_msgs.size() + ")" );
 		html.breakLine();
 		// Table of contents data records (there may be many of these)
 		// this is written as a table of components and there
