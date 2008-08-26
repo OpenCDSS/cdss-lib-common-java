@@ -608,8 +608,8 @@ public int allocateDataSpace ( DateTime date1, DateTime date2 )
 	if ( allocateDataSpace() != 0 ) {
 		Message.printWarning ( 2,
 		"TS.allocateDataSpace(DateTime,DateTime)",
-		"Error allocating data space for " + date1.toString() + " to " +
-		date2.toString() );
+		"Error allocating data space for " + date1 + " to " +
+		date2 );
 		return 1;
 	}
 	return 0;
