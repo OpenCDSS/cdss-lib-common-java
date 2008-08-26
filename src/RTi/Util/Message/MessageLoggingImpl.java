@@ -34,35 +34,19 @@ public class MessageLoggingImpl extends MessageImpl {
         // do nothing
     }
     
-    protected void printWarning(int l, String routine, Throwable e) {
-        log(warning,l,routine,e);
+    private Level translateWarningLevel(int level) {
+        Level l;
+        if (level <= 1) {
+            l = Level.SEVERE;
+        } else if (level <= 10) {
+            l = Level.WARNING;
+        } else {
+            l = Level.FINE;
+        }
+        return l;
     }
     
-    protected void printDebug(int l, String routine, Throwable e) {
-        log(debug,l,routine,e);
-    }
-    
-    protected void printWarning(int l, String routine, String message, JFrame top_level) {
-        printWarning(l,routine,message);
-    }
-    
-    protected void printWarning(int l, String routine, String message) {
-        log(warning,l,routine,message);
-    }
-    
-    protected void printStatus(int l, String routine, String message) {
-        log(status,l,routine,message);
-    }
-    
-    protected void printWarning(int l, String tag, String routine, String message) {
-        log(warning,l,routine,message);
-    }
-    
-    protected void printDebug(int l, String routine, String message) {
-        log(debug,l,routine,message);
-    }
-    
-    private Level calcLevel(int level) {
+    private Level translateDebugLevel(int level) {
         Level l;
         if (level <= 1) {
             l = Level.FINE;
@@ -74,14 +58,40 @@ public class MessageLoggingImpl extends MessageImpl {
         return l;
     }
     
+    protected void printWarning(int l, String routine, Throwable e) {
+        log(warning,translateWarningLevel(l),routine,e);
+    }
+    
+    protected void printDebug(int l, String routine, Throwable e) {
+        log(debug,translateDebugLevel(l),routine,e);
+    }
+    
+    protected void printWarning(int l, String routine, String message, JFrame top_level) {
+        printWarning(l,routine,message);
+    }
+    
+    protected void printWarning(int l, String routine, String message) {
+        log(warning,translateWarningLevel(l),routine,message);
+    }
+    
+    protected void printStatus(int l, String routine, String message) {
+        log(status,translateDebugLevel(l),routine,message);
+    }
+    
+    protected void printWarning(int l, String tag, String routine, String message) {
+        log(warning,translateWarningLevel(l),routine,message);
+    }
+    
+    protected void printDebug(int l, String routine, String message) {
+        log(debug,translateDebugLevel(l),routine,message);
+    }
     
     protected void initStreams() {
         
     }
     
-    private void log(Logger logger,int level,String routine, String message) {
-        Level l = calcLevel(level);
-        if (logger.isLoggable(l)) {
+    private void log(Logger logger,Level level,String routine, String message) {
+        if (logger.isLoggable(level)) {
             int idx = routine.indexOf('.');
             String clazz = null;
             String method = null;
@@ -91,13 +101,12 @@ public class MessageLoggingImpl extends MessageImpl {
             } else {
                 clazz = routine;
             }
-            logger.logp(l,clazz,method,message);
+            logger.logp(level,clazz,method,message);
         }
     }
     
-    private void log(Logger logger,int level,String routine, Throwable e) {
-        Level l = calcLevel(level);
-        if (logger.isLoggable(l)) {
+    private void log(Logger logger,Level level,String routine, Throwable e) {
+        if (logger.isLoggable(level)) {
             int idx = routine.indexOf('.');
             String clazz = null;
             String method = null;
@@ -107,7 +116,7 @@ public class MessageLoggingImpl extends MessageImpl {
             } else {
                 clazz = routine;
             }
-            logger.logp(l,clazz,method,e.getMessage(),e);
+            logger.logp(level,clazz,method,e.getMessage(),e);
         }
     }
 
