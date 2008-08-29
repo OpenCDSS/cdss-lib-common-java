@@ -543,7 +543,7 @@ public static void setBehaviorFlag( int flag )
 }
 
 /**
-Set the flag indicating whether debug is on or off.  This is called by the
+Set the flag indicating whether debug is on or off.  This is NOT called by the
 setDebugLevel method if the debug level is greater than zero for any output
 receiver.  If debug is turned off, then debug messages that check this flag
 will run much faster.
