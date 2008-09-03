@@ -51,8 +51,7 @@ public class RiverWareTS
 
 /**
 Private method to create a time series given the proper heading information
-@param req_ts If non-null, an existing time series is expected to be passed
-in.
+@param req_ts If non-null, an existing time series is expected to be passed in.
 @param filename name of file being read.  The location and data type are
 taken from the file name.
 @param timestep RiverWare timestep as string (essentially the same as TS except
@@ -64,20 +63,16 @@ there is a space between the multiplier and base).
 @param date2_file End date in the file.
 @exception Exception if an error occurs.
 */
-private static TS createTimeSeries (	TS req_ts, String filename,
-					String timestep,
-					String units,
-					DateTime date1, DateTime date2,
-					DateTime date1_file,
-					DateTime date2_file )
+private static TS createTimeSeries ( TS req_ts, String filename, String timestep,
+					String units, DateTime date1, DateTime date2,
+					DateTime date1_file, DateTime date2_file )
 throws Exception
 {	String routine = "RiverWareTS.createTimeSeries";
 
 	// Declare the time series of the proper type based on the interval.
 	// Use a TSIdent to parse out the interval information...
 
-	String timestep2 = StringUtil.unpad(timestep, " ",
-		StringUtil.PAD_FRONT_MIDDLE_BACK );
+	String timestep2 = StringUtil.unpad(timestep, " ", StringUtil.PAD_FRONT_MIDDLE_BACK );
 	String location = "";
 	String datatype = "";
 	Vector tokens = StringUtil.breakStringList ( filename, ".", 0 );
@@ -98,12 +93,11 @@ throws Exception
 		ts = req_ts;
 		// Identifier is assumed to have been set previously.
 	}
-	else {	ts = TSUtil.newTimeSeries ( ident.toString(), true );
+	else {
+	    ts = TSUtil.newTimeSeries ( ident.toString(), true );
 	}
 	if ( ts == null ) {
-		Message.printWarning ( 2, routine,
-		"Unable to create new time series for \"" +
-		ident.toString() + "\"" );
+		Message.printWarning ( 2, routine, "Unable to create new time series for \"" + ident + "\"" );
 		return (TS)null;
 	}
 
@@ -135,10 +129,7 @@ throws Exception
 	ts.setMissing ( Double.NaN );
 	
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine, 
-			"Period to read is " +
-			date1.toString() + " to " +
-			date2.toString() );
+		Message.printDebug ( 10, routine, "Period to read is " + date1 + " to " + date2 );
 		Message.printDebug ( 10, routine, "Read TS header" );
 	}
 	return ts;
@@ -158,8 +149,7 @@ public static Vector getSample ()
 	s.addElement ( "# Comments are only allowed at the top of the file." );
 	s.addElement ( "# UNITS are AFTER the scale is applied." );
 	s.addElement ( "# SCALE*data = values for specified units." );
-	s.addElement (
-	"# SET_UNITS and SET_SCALE are used by RiverWare during read." );
+	s.addElement ( "# SET_UNITS and SET_SCALE are used by RiverWare during read." );
 	s.addElement ( "START_DATE: 1996-11-14 24:00" );
 	s.addElement ( "END_DATE: 1996-12-31 24:00" );
 	s.addElement ( "TIMESTEP: 24 Hour" );
@@ -185,10 +175,9 @@ IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 public static boolean isRiverWareFile ( String filename )
 {	BufferedReader in = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
-		// Read lines and check for common strings that
-		// indicate a DateValue file.
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+		// Read lines and check for common strings that indicate a DateValue file.
 		String string = null;
 		boolean	is_riverware = false;
 		while( (string = in.readLine()) != null ) {
@@ -201,21 +190,30 @@ public static boolean isRiverWareFile ( String filename )
 				break;
 			}
 		}
-		in.close();
-		in = null;
+
 		string = null;
 		return is_riverware;
 	}
 	catch ( Exception e ) {
 		return false;
 	}
+	finally {
+	    if ( in != null ) {
+	        try {
+	            in.close();
+	        }
+	        catch ( Exception e ) {
+	            // Absorb - should not happen
+	        }
+	        in = null;
+	    }
+	}
 }
 
 /**
 Read the time series from a RiverWare file.
 @param filename Name of file to read.
-@return TS for data in the file or null if there is an error reading the
-time series.
+@return TS for data in the file or null if there is an error reading the time series.
 */
 public static TS readTimeSeries ( String filename )
 {	return readTimeSeries ( filename, null, null, null, true );
@@ -226,13 +224,10 @@ Read a time series from a RiverWare format file.  Currently only daily surface
 water files are recognized.  The resulting time series will have an identifier
 like STATIONID.RiverWare.Streamflow.1Day.
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL
-pointer if not.
+@return a pointer to a newly-allocated time series if successful, or null if not.
 @param filename Name of file to read.
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+@param date1 Starting date to initialize period (NULL to read the entire time series).
+@param date2 Ending date to initialize period (NULL to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
@@ -241,26 +236,32 @@ public static TS readTimeSeries ( String filename, DateTime date1,
 {	TS	ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	try {	BufferedReader in = new BufferedReader (
-			 new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	BufferedReader in = null;
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 		// Don't have a requested time series but need the filename
 		// to infer location and data type...
-		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2,
-			units, read_data );
+		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2, units, read_data );
 		ts.setInputName ( full_fname );
 		ts.getIdentifier().setInputType("RiverWare");
 		ts.getIdentifier().setInputName(full_fname);
 		ts.addToGenesis ( "Read data from \"" + full_fname +
-			"\" for period " + ts.getDate1() + " to " +
-			ts.getDate2() );
-		in.close();
-		in = null;
+			"\" for period " + ts.getDate1() + " to " + ts.getDate2() );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2,
-		"RiverWareTS.readTimeSeries(String,...)",
+		Message.printWarning( 2, "RiverWareTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
+	}
+	finally {
+	    if ( in != null ) {
+	        try {
+	            in.close();
+	        }
+	        catch ( Exception e ) {
+	            // Absorb - should not happen
+	        }
+	        in = null;
+	    }
 	}
 	return ts;
 }
@@ -270,20 +271,15 @@ Read a time series from a RiverWare format file.  The TSID string is specified
 in addition to the path to the file.  It is expected that a TSID in the file
 matches the TSID (and the path to the file, if included in the TSID would not
 propertly allow the TSID to be specified).  This method can be used with newer
-code where the I/O path is separate from the TSID that is used to identify the
-time series.
+code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a pointer to a newly-allocated time series if successful, or null if not.
 @param tsident_string The full identifier for the time series to
 read (where the scenario is NOT the file name).
 @param filename The name of a file to read
-(in which case the tsident_string must match one of the TSID strings in the
-file).
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+(in which case the tsident_string must match one of the TSID strings in the file).
+@param date1 Starting date to initialize period (NULL to read the entire time series).
+@param date2 Ending date to initialize period (NULL to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
@@ -301,8 +297,8 @@ throws Exception
 		return ts;
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 1,
@@ -310,28 +306,34 @@ throws Exception
 		"Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
-	// Call the fully-loaded method...
-	// Pass the file pointer and an empty time series, which
-	// will be used to locate the time series in the file.
-	ts = TSUtil.newTimeSeries ( tsident_string, true );
-	if ( ts == null ) {
-		Message.printWarning( 1,
-		"RiverWareTS.readTimeSeries(String,...)",
-		"Unable to create time series for \"" + tsident_string + "\"" );
-		return ts;
+	try {
+    	// Call the fully-loaded method...
+    	// Pass the file pointer and an empty time series, which
+    	// will be used to locate the time series in the file.
+    	ts = TSUtil.newTimeSeries ( tsident_string, true );
+    	if ( ts == null ) {
+    		Message.printWarning( 1,
+    		"RiverWareTS.readTimeSeries(String,...)",
+    		"Unable to create time series for \"" + tsident_string + "\"" );
+    		return ts;
+    	}
+    	ts.setIdentifier ( tsident_string );
+    	readTimeSeries ( ts, in, full_fname, date1, date2, units, read_data );
+    	ts.setInputName ( full_fname );
+    	ts.getIdentifier().setInputType ( "RiverWare" );
+    	ts.getIdentifier().setInputName ( filename );
+    	ts.addToGenesis ( "Read data from \"" + full_fname +
+    		"\" for period " + ts.getDate1() + " to " + ts.getDate2() );
 	}
-	ts.setIdentifier ( tsident_string );
-	readTimeSeries (	ts, in,
-				full_fname,
-				date1, date2,
-				units, read_data );
-	ts.setInputName ( full_fname );
-	ts.getIdentifier().setInputType ( "RiverWare" );
-	ts.getIdentifier().setInputName ( filename );
-	ts.addToGenesis ( "Read data from \"" + full_fname +
-		"\" for period " + ts.getDate1() + " to " +
-		ts.getDate2() );
-	in.close();
+	catch ( Exception e ) {
+	    // Just rethrow
+	    throw e;
+	}
+	finally {
+	    if ( in != null ) {
+	        in.close();
+	    }
+	}
 	return ts;
 }
 
@@ -343,109 +345,120 @@ is responsible for freeing the memory for the time series.
 return a new time series.  All data are reset, except for the identifier, which
 is assumed to have been set in the calling code.
 @param in Reference to open input stream.
-@param filename Name of file that is being read (use to get the location and
-data type).
-@param req_date1 Requested starting date to initialize period (or NULL to read
-the entire time series).
-@param req_date2 Requested ending date to initialize period (or NULL to read
-the entire time series).
+@param filename Name of file that is being read (use to get the location and data type).
+@param req_date1 Requested starting date to initialize period (or NULL to read the entire time series).
+@param req_date2 Requested ending date to initialize period (or NULL to read the entire time series).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
 */
-public static TS readTimeSeries (	TS req_ts, BufferedReader in,
-					String filename,
-					DateTime req_date1, DateTime req_date2,
+public static TS readTimeSeries ( TS req_ts, BufferedReader in,
+					String filename, DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
 {	String	routine = "RiverWareTS.readTimeSeries";
 	String	string = null, timestep_string = "", end_date_string = "",
 		start_date_string = "", scale_string = "";
 	int	dl = 10;
-	DateTime	date1_file = null, date2_file = null;
+	DateTime date1_file = null, date2_file = null;
 
 	// Always read the header.  Optional is whether the data are read...
 
 	int line_count = 0;
 
-	String	units = "";
-	String	token0, token1;
-	DateTime	date1 = null, date2 = null;
-	Vector	tokens = null;
-	TS	ts = null;
+	String units = "";
+	String token0, token1;
+	DateTime date1 = null, date2 = null;
+	Vector tokens = null;
+	TS ts = null;
 	try {
-	while ( true ) {
-		string = in.readLine();
-		if ( string == null ) {
-			break;
-		}
-		++line_count;
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing: \"" + string + "\"" );
-		}
-		string = string.trim();
-		if (	(string.length() == 0) ||
-			(string.charAt(0) == '#') ) {
-			// Skip comments and blank lines...
-			continue;
-		}
-		if ( string.indexOf(':') < 0 ) {
-			// No more header information so break out and read
-			// data...
-			break;
-		}
-
-		// Break the tokens using ':' as the delimiter...
-
-		tokens = StringUtil.breakStringList( string, ":",
-			StringUtil.DELIM_SKIP_BLANKS );
-
-		token0 = (String)tokens.elementAt(0);
-		token1 = (String)tokens.elementAt(1);
-		if ( token0.equalsIgnoreCase("start_date") ) {
-			start_date_string = token1.trim();
-			date1_file = DateTime.parse ( start_date_string );
-		}
-		else if ( token0.equalsIgnoreCase("end_date") ) {
-			end_date_string = token1.trim();
-			date2_file = DateTime.parse ( end_date_string );
-		}
-		else if ( token0.equalsIgnoreCase("timestep") ) {
-			timestep_string = token1.trim();
-		}
-		else if ( token0.equalsIgnoreCase("units") ) {
-			units = token1.trim();
-		}
-		else if ( token0.equalsIgnoreCase("scale") ) {
-			scale_string = token1.trim();
-		}
-		// Don't care about "set_scale" or "set_units" because they are
-		// only significant to RiverWare (not used by TS package).
-	}
+    	while ( true ) {
+    		string = in.readLine();
+    		if ( string == null ) {
+    			break;
+    		}
+    		++line_count;
+    		if ( Message.isDebugOn ) {
+    			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
+    		}
+    		string = string.trim();
+    		if ( (string.length() == 0) || (string.charAt(0) == '#') ) {
+    			// Skip comments and blank lines...
+    			continue;
+    		}
+    		int pos = string.indexOf(":"); 
+    		if ( pos < 0 ) {
+    			// No more header information so break out and read data...
+    			break;
+    		}
+    
+    		// Break the tokens using ':' as the delimiter.  However, because dates typically
+    		// use 24:00, have to take more care to get the correct token.
+    
+    		token0 = string.substring(0,pos).trim();
+    		token1 = string.substring(pos+1).trim();
+    		if ( token0.equalsIgnoreCase("start_date") ) {
+    			start_date_string = token1.trim();
+    		}
+    		else if ( token0.equalsIgnoreCase("end_date") ) {
+    			end_date_string = token1.trim();
+    		}
+    		else if ( token0.equalsIgnoreCase("timestep") ) {
+    			timestep_string = token1.trim();
+    		}
+    		else if ( token0.equalsIgnoreCase("units") ) {
+    			units = token1.trim();
+    		}
+    		else if ( token0.equalsIgnoreCase("scale") ) {
+    			scale_string = token1.trim();
+    		}
+    		// Don't care about "set_scale" or "set_units" because they are
+    		// only significant to RiverWare (not used by TS package).
+    	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		Message.printWarning ( 2, routine, e );
 	}
+	
+	// Process the dates.  RiverWare files always have 24:00 in the dates, even if the interval
+	// is >= daily.  This causes problems with the general DateTime.parse() method in that the
+	// dates may roll over to the following month.  Therefore, strip the 24:00 off the date strings
+	// before parsing.
+	
+	if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Day", 0) >= 0) ||
+	        (StringUtil.indexOfIgnoreCase(timestep_string, "Month", 0) >= 0) ||
+	        (StringUtil.indexOfIgnoreCase(timestep_string, "Year", 0) >= 0) ||
+	        (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
+	    // Remove the trailing 24:00 from start and end because it cases a problem
+	    // parsing (rolls over to next month).
+	    int pos = start_date_string.indexOf("24:00");
+	    if ( pos > 0 ) {
+	        start_date_string = start_date_string.substring(0,pos).trim();
+	    }
+        pos = end_date_string.indexOf("24:00");
+        if ( pos > 0 ) {
+            end_date_string = end_date_string.substring(0,pos).trim();
+        }
+	}
+	date1_file = DateTime.parse ( start_date_string );
+    date2_file = DateTime.parse ( end_date_string );
 
 	// Create an in-memory time series and set header information...
 
 	if ( req_date1 != null ) {
 		date1 = req_date1;
 	}
-	else {	date1 = date1_file;
+	else {
+	    date1 = date1_file;
 	}
 	if ( req_date2 != null ) {
 		date2 = req_date2;
 	}
-	else {	date2 = date2_file;
+	else {
+	    date2 = date2_file;
 	}
-	ts = createTimeSeries (	req_ts, filename,
-				timestep_string,
-				units,
-				date1, date2,
-				date1_file, date2_file );
+	ts = createTimeSeries (	req_ts, filename, timestep_string, units,
+				date1, date2, date1_file, date2_file );
 	if ( !read_data ) {
 		return ts;
 	}
@@ -457,8 +470,7 @@ throws Exception
 	// Allocate the memory for the data array...
 
 	if ( ts.allocateDataSpace() == 1 ) {
-		Message.printWarning( 2, routine,
-		"Error allocating data space..." );
+		Message.printWarning( 2, routine, "Error allocating data space..." );
 		// Clean up memory...
 		throw new Exception ( "Error allocating time series memory." );
 	}
@@ -470,59 +482,56 @@ throws Exception
 	// data line so make sure not to skip it...
 
 	try {
-	boolean first_data = true;
-	// Dates are not specified in the file so iterate with date...
-	DateTime date = new DateTime ( date1_file );
-	double scale = 1.0;
-	if ( StringUtil.isDouble(scale_string) ) {
-		scale = StringUtil.atod ( scale_string );
-	}
-	for (	; date.lessThanOrEqualTo(date2_file);
-		date.addInterval (data_interval_base, data_interval_mult ) ) {
-		if ( first_data ) {
-			first_data = false;
-		}
-		else {	string = in.readLine();
-			++line_count;
-			if ( string == null ) {
-				break;
-			}
-		}
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing: \"" + string + "\"" );
-		}
-		string = string.trim();
-		if (	(string.length() == 0) ||
-			(string.charAt(0) == '#') ) {
-			// Skip comments and blank lines...
-			continue;
-		}
-
-		// String will contain a data value or "NaN".  If "NaN", just
-		// skip because the time series is initialized to missing data.
-
-		if ( date.lessThan(date1) ) {
-			// No need to do...
-			continue;
-		}
-		else if ( date.greaterThan(date2) ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug (
-				dl, routine, "Finished reading data"+
-				" at: " + date.toString() );
-			}
-			// Will return below...
-			break;
-		}
-		// Else set the data value...
-		if ( !string.equalsIgnoreCase("NaN") ) {
-			ts.setDataValue ( date, scale*StringUtil.atod(string) );
-		}
-	}
+    	boolean first_data = true;
+    	// Dates are not specified in the file so iterate with date...
+    	DateTime date = new DateTime ( date1_file );
+    	double scale = 1.0;
+    	if ( StringUtil.isDouble(scale_string) ) {
+    		scale = StringUtil.atod ( scale_string );
+    	}
+    	for ( ; date.lessThanOrEqualTo(date2_file);
+    		date.addInterval (data_interval_base, data_interval_mult ) ) {
+    		if ( first_data ) {
+    			first_data = false;
+    		}
+    		else {
+    		    string = in.readLine();
+    			++line_count;
+    			if ( string == null ) {
+    				break;
+    			}
+    		}
+    		if ( Message.isDebugOn ) {
+    			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
+    		}
+    		string = string.trim();
+    		if ( (string.length() == 0) || (string.charAt(0) == '#') ) {
+    			// Skip comments and blank lines...
+    			continue;
+    		}
+    
+    		// String will contain a data value or "NaN".  If "NaN", just
+    		// skip because the time series is initialized to missing data.
+    
+    		if ( date.lessThan(date1) ) {
+    			// No need to do...
+    			continue;
+    		}
+    		else if ( date.greaterThan(date2) ) {
+    			if ( Message.isDebugOn ) {
+    				Message.printDebug (
+    				dl, routine, "Finished reading data at: " + date.toString() );
+    			}
+    			// Will return below...
+    			break;
+    		}
+    		// Else set the data value...
+    		if ( !string.equalsIgnoreCase("NaN") ) {
+    			ts.setDataValue ( date, scale*StringUtil.atod(string) );
+    		}
+    	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		Message.printWarning ( 2, routine, e );
 		ts = null;
 	}
@@ -546,8 +555,7 @@ Write a RiverWare time series to the open PrintWriter.
 */
 private static void writeTimeSeries ( TS ts, PrintWriter fp )
 throws IOException
-{	writeTimeSeries ( ts, fp, (DateTime)null, (DateTime)null,
-			(PropList)null, true );
+{	writeTimeSeries ( ts, fp, (DateTime)null, (DateTime)null, (PropList)null, true );
 }
 
 /**
@@ -561,24 +569,30 @@ throws IOException
 {	PrintWriter	out = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
-	try {	out = new PrintWriter (new FileWriter(full_fname));
+	try {
+	    out = new PrintWriter (new FileWriter(full_fname));
 	}
 	catch ( Exception e ) {
-		String message =
-		"Error opening \"" + full_fname + "\" for writing.";
-		Message.printWarning ( 2,
-		"RiverWareTS.writePersistent(TS,String)", message );
+		String message = "Error opening \"" + full_fname + "\" for writing.";
+		Message.printWarning ( 2, "RiverWareTS.writePersistent(TS,String)", message );
 		out = null;
 		throw new IOException ( message );
 	}
-	writeTimeSeries ( ts, out );
-	out.close ();
-	out = null;
+	try {
+	    writeTimeSeries ( ts, out );
+	}
+	catch ( IOException e ) {
+	    // Rethrow
+	    throw e;
+	}
+	finally {
+	    out.close ();
+	    out = null;
+	}
 }
 
 /**
-Write a time series to a RiverWare format file using a default format based on
-the time series units.
+Write a time series to a RiverWare format file using a default format based on the time series units.
 @param ts Vector of pointers to time series to write.
 @param fname Name of file to write.
 @param req_date1 First date to write (if NULL write the entire time series).
@@ -586,19 +600,14 @@ the time series units.
 @param req_units Units to write.  If different than the current units the units
 will be converted on output.
 @param scale Scale to divide values by for output.  Ignored if <= 0.0.
-@param set_units RiverWare "set_units" parameter.  If empty or null will not be
-written.
-@param set_scale RiverWare "set_scale" parameter.  If zero or negative will not
-be written.
+@param set_units RiverWare "set_units" parameter.  If empty or null will not be written.
+@param set_scale RiverWare "set_scale" parameter.  If zero or negative will not be written.
 @param write_data Indicates whether data should be written (as opposed to only
 writing the header) (<b>currently not used</b>).
 @exception IOException if there is an error writing the file.
 */
-public static void writeTimeSeries (	TS ts, String fname,
-					DateTime req_date1, DateTime req_date2,
-					String req_units, double scale,
-					String set_units, double set_scale,
-					boolean write_data )
+public static void writeTimeSeries ( TS ts, String fname, DateTime req_date1, DateTime req_date2,
+			String req_units, double scale, String set_units, double set_scale,	boolean write_data )
 throws IOException
 {	PropList props = new PropList ( "RiverWare" );
 	if ( req_units != null ) {
@@ -617,8 +626,7 @@ throws IOException
 }
 
 /**
-Write a time series to a RiverWare format file using a default format based on
-the time series units.
+Write a time series to a RiverWare format file using a default format based on the time series units.
 @param ts Vector of pointers to time series to write.
 @param fname Name of file to write.
 @param req_date1 First date to write (if NULL write the entire time series).
@@ -672,18 +680,17 @@ values.
 writing the header) (<b>currently not used</b>).
 @exception IOException if there is an error writing the file.
 */
-public static void writeTimeSeries (	TS ts, String fname,
-					DateTime req_date1, DateTime req_date2,
-					PropList props, boolean write_data )
+public static void writeTimeSeries ( TS ts, String fname, DateTime req_date1, DateTime req_date2,
+		PropList props, boolean write_data )
 throws IOException
 {	PrintWriter	out = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
-	try {	out = new PrintWriter (new FileWriter(full_fname));
+	try {
+	    out = new PrintWriter (new FileWriter(full_fname));
 	}
 	catch ( Exception e ) {
-		String message =
-		"Error opening \"" + full_fname + "\" for writing.";
+		String message = "Error opening \"" + full_fname + "\" for writing.";
 		Message.printWarning ( 2,"RiverWareTS.writeTimeSeries",message);
 		out = null;
 		throw new IOException ( message );
@@ -694,8 +701,7 @@ throws IOException
 }
 
 /**
-Write a time series to a RiverWare format file using a default format based on
-the data units.
+Write a time series to a RiverWare format file using a default format based on the data units.
 @param ts Time series to write.
 @param fp PrintWriter to write to.
 @param req_date1 First date to write (if NULL write the entire time series).
@@ -703,16 +709,13 @@ the data units.
 @param req_units Units to write.  If different than the current units the units
 will be converted on output.  This method does not support set_units.
 @param scale Scale to divide values by for output.
-@param set_units RiverWare "set_units" parameter.  If empty or null will not be
-written.
-@param set_scale RiverWare "set_scale" parameter.  If zero or negative will not
-be written.
+@param set_units RiverWare "set_units" parameter.  If empty or null will not be written.
+@param set_scale RiverWare "set_scale" parameter.  If zero or negative will not be written.
 @param write_data Indicates whether data should be written (if false only the
 header is written).
 @exception IOException if there is an error writing the file.
 */
-private static void writeTimeSeries (	TS ts, PrintWriter fp,
-					DateTime req_date1, DateTime req_date2,
+private static void writeTimeSeries ( TS ts, PrintWriter fp, DateTime req_date1, DateTime req_date2,
 					PropList props, boolean write_data )
 throws IOException
 {	String	message, routine="RiverWareTS.writePersistent";
@@ -740,7 +743,8 @@ throws IOException
 	if ( req_date1 == null ) {
 		date1 = new DateTime ( ts.getDate1() );
 	}
-	else {	date1 = new DateTime ( req_date1 );
+	else {
+	    date1 = new DateTime ( req_date1 );
 		// Make sure the precision is that of the data...
 		date1.setPrecision ( data_interval_base );
 	}
@@ -748,7 +752,8 @@ throws IOException
 	if ( req_date2 == null ) {
 		date2 = new DateTime ( ts.getDate2() );
 	}
-	else {	date2 = new DateTime ( req_date2 );
+	else {
+	    date2 = new DateTime ( req_date2 );
 		// Make sure the precision is that of the data...
 		date2.setPrecision ( data_interval_base );
 	}
@@ -773,8 +778,8 @@ throws IOException
 			fp.println ( "start_date: " + d.toString(
 			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 		}
-		else {	// OK to write the date/time as is with hour and
-			// minute...
+		else {
+		    // OK to write the date/time as is with hour and minute...
 			fp.println ( "start_date: " + date1.toString(
 			DateTime.FORMAT_YYYY_MM_DD_HH_mm ) );
 		}
@@ -785,18 +790,16 @@ throws IOException
 			fp.println ( "end_date: " + d.toString(
 			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 		}
-		else {	// OK to write the date/time as is with hour and
-			// minute...
+		else {
+		    // OK to write the date/time as is with hour and minute...
 			fp.println ( "end_date: " + date2.toString(
 			DateTime.FORMAT_YYYY_MM_DD_HH_mm ) );
 		}
 	}
 	else if ( data_interval_base == TimeInterval.DAY ) {
 		// Use the in-memory day but always add 24:00 at the end...
-		fp.println ( "start_date: " + date1.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
-		fp.println ( "end_date: " + date2.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "start_date: " + date1.toString(DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "end_date: " + date2.toString(	DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 	}
 	else if ( data_interval_base == TimeInterval.MONTH ) {
 		// Use the in-memory day but always add 24:00 at the end...
@@ -804,11 +807,9 @@ throws IOException
 		// will be ignored below during iteration because the precision
 		// was set above to month.
 		date1.setDay ( TimeUtil.numDaysInMonth(date1) );
-		fp.println ( "start_date: " + date1.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "start_date: " + date1.toString(DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 		date2.setDay ( TimeUtil.numDaysInMonth(date2) );
-		fp.println ( "end_date: " + date2.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "end_date: " + date2.toString(DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 	}
 	else if ( data_interval_base == TimeInterval.YEAR ) {
 		// Use the in-memory day but always add 24:00 at the end...
@@ -817,28 +818,23 @@ throws IOException
 		// precision was set above to month.
 		date1.setMonth ( 12 );
 		date1.setDay ( 31 );
-		fp.println ( "start_date: " + date1.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "start_date: " + date1.toString( DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 		date2.setMonth ( 12 );
 		date2.setDay ( 31 );
-		fp.println ( "end_date: " + date2.toString(
-			DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
+		fp.println ( "end_date: " + date2.toString(	DateTime.FORMAT_YYYY_MM_DD) + " 24:00" );
 	}
-	else {	// Interval is not supported...
-		throw new IOException ( "Interval for \"" +
-			ts.getIdentifier().toString() +
-			"\" is not supported for RiverWare.");
+	else {
+	    // Interval is not supported...
+		throw new IOException ( "Interval for \"" +	ts.getIdentifier() + "\" is not supported for RiverWare.");
 	}
 	// Print the interval, with multiplier, if provided...
-	try {	TimeInterval interval = TimeInterval.parseInterval (
-			ts.getIdentifier().getInterval() );
+	try {
+	    TimeInterval interval = TimeInterval.parseInterval ( ts.getIdentifier().getInterval() );
 		if ( interval.getMultiplierString().equals("") ) {
-			fp.println ( "timestep: 1 " +
-			interval.getBaseString() );
+			fp.println ( "timestep: 1 " + interval.getBaseString() );
 		}
-		else {	fp.println ( "timestep: " +
-			interval.getMultiplierString() +" "+
-			interval.getBaseString() );
+		else {
+		    fp.println ( "timestep: " + interval.getMultiplierString() + " " + interval.getBaseString() );
 		}
 	}
 	catch ( Exception e ) {
@@ -848,7 +844,8 @@ throws IOException
 	if ( (Units != null) && (Units.length() > 0) ) {
 		fp.println ( "units: " + Units );
 	}
-	else {	fp.println ( "units: " + ts.getDataUnits() );
+	else {
+	    fp.println ( "units: " + ts.getDataUnits() );
 	}
 	String Scale = props.getValue ( "Scale" );
 	double Scale_double = 1.0;
@@ -873,9 +870,6 @@ throws IOException
 	}
 	String format = "%." + Precision + "f";
 
-	// What format to use for data?  For now use .4 until all the data
-	// units are integrated...
-
 	DateTime date = new DateTime ( date1 );
 	double value;
 	for ( ; date.lessThanOrEqualTo(date2);
@@ -884,8 +878,8 @@ throws IOException
 		if ( ts.isDataMissing(value) ) {
 			fp.println ( "NaN" );
 		}
-		else {	fp.println (StringUtil.formatString(
-				value/Scale_double, format) );
+		else {
+		    fp.println (StringUtil.formatString( value/Scale_double, format) );
 		}
 	}
 	routine = null;
