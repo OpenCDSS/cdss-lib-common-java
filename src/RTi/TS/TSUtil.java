@@ -5599,12 +5599,19 @@ one-character string is specified.
 </td>
 </tr>
 
+<tr>
+<td><b>MaxIntervals</b></td>
+<td>
+The maximum number of missing values in a contiguous gap to fill or zero to fill all.
+</td>
+<td>Fill over any size gap.
+</td>
+</tr>
+
 </table>
 @exception TSException if there is an error filling the time series.
 */
-public static void fillInterpolate (	TS ts, DateTime start_date,
-					DateTime end_date,
-					PropList props )
+public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  message, routine = "TSUtil.fillInterpolate";
 
