@@ -713,6 +713,19 @@ will be converted on output.  This method does not support set_units.
 @param set_scale RiverWare "set_scale" parameter.  If zero or negative will not be written.
 @param write_data Indicates whether data should be written (if false only the
 header is written).
+@param props Properties to control output, as follows:
+<table width=100% cellpadding=10 cellspacing=0 border=2>
+<tr>
+<td><b>Property</b></td> <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>OutputComments</b></td>
+<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
+lines are not added to in any way.</b>
+<td>No additional comments.</td>
+</tr>
+</table>
 @exception IOException if there is an error writing the file.
 */
 private static void writeTimeSeries ( TS ts, PrintWriter fp, DateTime req_date1, DateTime req_date2,
@@ -766,6 +779,17 @@ throws IOException
 
 	fp.println ( "#" );
 	IOUtil.printCreatorHeader ( fp, "#", 80, 0 );
+    Object o = props.getContents("OutputComments");
+    if ( o != null ) {
+        // Write additional comments that were passed in
+        Vector comments = (Vector)o;
+        int commentSize = comments.size();
+        if ( commentSize > 0 ) {
+            for ( int iComment = 0; iComment < commentSize; iComment++ ) {
+                fp.println ( "# " + (String)comments.get(iComment) );
+            }
+        }
+    }
 	fp.println ( "#" );
 	fp.println ( "# RiverWare Time Series File" );
 	fp.println ( "#" );

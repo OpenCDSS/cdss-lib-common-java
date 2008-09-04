@@ -2069,6 +2069,17 @@ throws Exception
 
 	out.println ( "# DateValueTS " + __VERSION_CURRENT + " file" );
 	IOUtil.printCreatorHeader ( out, "#", 80, 0 );
+	Object o = props.getContents("OutputComments");
+	if ( o != null ) {
+	    // Write additional comments that were passed in
+	    Vector comments = (Vector)o;
+	    int commentSize = comments.size();
+	    if ( commentSize > 0 ) {
+    	    for ( int iComment = 0; iComment < commentSize; iComment++ ) {
+    	        out.println ( "# " + (String)comments.get(iComment) );
+    	    }
+	    }
+	}
 	out.println ( "#" );
 	out.println ( "Delimiter   = \"" + delim + "\"" );
 	out.println ( "NumTS       = " + size );
@@ -2320,13 +2331,20 @@ writing the header).
 @param props Properties to control output, as follows:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
-<td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+<td><b>Property</b></td> <td><b>Description</b></td> <td><b>Default</b></td>
 </tr>
 
 <tr>
 <td><b>Delimiter</b></td>
 <td><b>The delimiter to use in output.</b>
 <td>Space</td>
+</tr>
+
+<tr>
+<td><b>OutputComments</b></td>
+<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
+lines are not added to in any way.</b>
+<td>No additional comments.</td>
 </tr>
 
 <tr>
