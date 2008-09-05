@@ -226,13 +226,10 @@ Read a time series from a USGS NWIS format file.  Currently only daily surface
 water files are recognized.  The resulting time series will have an identifier
 like STATIONID.USGS.Streamflow.1Day.
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL
-pointer if not.
+@return a pointer to a newly-allocated time series if successful, a NULL pointer if not.
 @param filename Name of file to read.
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+@param date1 Starting date to initialize period (NULL to read the entire time series).
+@param date2 Ending date to initialize period (NULL to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
@@ -241,25 +238,32 @@ public static TS readTimeSeries ( String filename, DateTime date1,
 {	TS	ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	try {	BufferedReader in = new BufferedReader (
-			 new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	BufferedReader in = null;
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 		// Don't have a requested time series...
-		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2,
-			units, read_data );
+		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2, units, read_data );
 		ts.setInputName ( full_fname );
 		ts.getIdentifier().setInputType("USGSNWIS");
 		ts.getIdentifier().setInputName(full_fname);
 		ts.addToGenesis ( "Read data from \"" + full_fname +
-			"\" for period " + ts.getDate1() + " to " +
-			ts.getDate2() );
+			"\" for period " + ts.getDate1() + " to " +	ts.getDate2() );
 		in.close();
 		in = null;
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 2,
-		"UsgsNwisTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
+		"UsgsNwisTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
+	}
+	finally {
+	    if ( in != null ) {
+	        try {
+	            in.close();
+	        }
+	        catch ( Exception e ) {
+	            // Should not happen
+	        }
+	    }
 	}
 	return ts;
 }
@@ -269,68 +273,59 @@ Read a time series from a USGS NWIS format file.  The TSID string is specified
 in addition to the path to the file.  It is expected that a TSID in the file
 matches the TSID (and the path to the file, if included in the TSID would not
 propertly allow the TSID to be specified).  This method can be used with newer
-code where the I/O path is separate from the TSID that is used to identify the
-time series.
+code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a pointer to a newly-allocated time series if successful, a NULL pointer if not.
 @param tsident_string The full identifier for the time series to
 read (where the scenario is NOT the file name).
 @param filename The name of a file to read
-(in which case the tsident_string must match one of the TSID strings in the
-file).
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+(in which case the tsident_string must match one of the TSID strings in the file).
+@param date1 Starting date to initialize period (NULL to read the entire time series).
+@param date2 Ending date to initialize period (NULL to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries (	String tsident_string, String filename,
-					DateTime date1, DateTime date2,
-					String units, boolean read_data )
+public static TS readTimeSeries ( String tsident_string, String filename,
+					DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
 {	TS	ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 1,
-		"UsgsNwisTS.readTimeSeries",
-		"Unable to determine file for \"" + filename + "\"" );
+		Message.printWarning( 2,
+		"UsgsNwisTS.readTimeSeries", "File is not readable: \"" + filename + "\"" );
 		return ts;
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 1,
-		"UsgsNwisTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
+		Message.printWarning( 2,
+		"UsgsNwisTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
 		return ts;
+	}
+	finally {
+       if ( in != null ) {
+           in.close();
+        }
 	}
 	// Call the fully-loaded method...
 	// Pass the file pointer and an empty time series, which
 	// will be used to locate the time series in the file.
 	ts = TSUtil.newTimeSeries ( tsident_string, true );
 	if ( ts == null ) {
-		Message.printWarning( 1,
-		"UsgsNwisTS.readTimeSeries(String,...)",
-		"Unable to create time series for \"" +
-		tsident_string + "\"" );
+		Message.printWarning( 2, "UsgsNwisTS.readTimeSeries(String,...)",
+		"Unable to create time series for \"" + tsident_string + "\"" );
+		in.close();
 		return ts;
 	}
 	ts.setIdentifier ( tsident_string );
-	//readTimeSeriesList (	ts, in,
-	readTimeSeries (	ts, in,
-				full_fname,
-				date1, date2,
-				units, read_data );
+	readTimeSeries ( ts, in, full_fname, date1, date2, units, read_data );
 	ts.setInputName ( full_fname );
 	ts.getIdentifier().setInputType ( "USGSNWIS" );
 	ts.getIdentifier().setInputName ( filename );
-	ts.addToGenesis ( "Read data from \"" + full_fname +
-		"\" for period " + ts.getDate1() + " to " +
+	ts.addToGenesis ( "Read data from \"" + full_fname + "\" for period " + ts.getDate1() + " to " +
 		ts.getDate2() );
 	in.close();
 	return ts;
@@ -354,8 +349,7 @@ the entire time series).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
 */
-public static TS readTimeSeries (	TS req_ts, BufferedReader in,
-					String filename,
+public static TS readTimeSeries ( TS req_ts, BufferedReader in,	String filename,
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
@@ -382,8 +376,7 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	Vector v = StringUtil.breakStringList ( bs, "\n\r",
-		StringUtil.DELIM_SKIP_BLANKS );
+	Vector v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// Loop through and figure out the last date.  Start at the second
 	// record because it is likely that a complete record was not found...
 	int size = v.size();
@@ -391,13 +384,10 @@ throws Exception
 	Vector	tokens = null;
 	for ( int i = 1; i < size; i++ ) {
 		string = ((String)v.elementAt(i)).trim();
-		if (	(string.length() == 0) ||
-			(string.charAt(0) == '#') ||
-			(string.charAt(0) == '<') ) {
+		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
 			continue;
 		}
-		tokens = StringUtil.breakStringList( string, " \t",
-			StringUtil.DELIM_SKIP_BLANKS );
+		tokens = StringUtil.breakStringList( string, " \t", StringUtil.DELIM_SKIP_BLANKS );
 		date2_string = (String)tokens.elementAt(2);
 	}
 	v = null;
@@ -411,10 +401,10 @@ throws Exception
 		Message.printDebug ( dl, routine, "Processing header..." );
 	}
 
-	String	datatype = "", description = "", units = "";
-	String	token0;
+	String datatype = "", description = "", units = "";
+	String token0;
 	boolean	header1_found = false, header2_found = false;
-	DateTime	date1 = null, date2 = null;
+	DateTime date1 = null, date2 = null;
 	try {
 	while ( true ) {
 		string = in.readLine();
@@ -423,39 +413,31 @@ throws Exception
 		}
 		++line_count;
 		// Although it appears that the file is supposed to be be fixed
-		// format, the column widths also seem to use tabs to make up
-		// some of the width...
+		// format, the column widths also seem to use tabs to make up some of the width...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing: \"" + string + "\"" );
+			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
 		}
 		string = string.trim();
-		if (	(string.length() == 0) ||
-			(string.charAt(0) == '#') ||
-			(string.charAt(0) == '<') ) {
-			// Skip comments, blank lines, and HTML lines that
-			// start with <...
+		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
+			// Skip comments, blank lines, and HTML lines that start with <...
 			if ( header1_found ) {
 				continue;
 			}
 		}
-		tokens = StringUtil.breakStringList( string, " \t",
-			StringUtil.DELIM_SKIP_BLANKS );
+		tokens = StringUtil.breakStringList( string, " \t",	StringUtil.DELIM_SKIP_BLANKS );
 
 		// Try to optimize the code by not processing tokens unless we
-		// need to.  Will probably need to add more error handling
-		// later.
+		// need to.  Will probably need to add more error handling later.
 			
 		if ( !header1_found ) {
 			token0 = (String)tokens.elementAt(0);
 			if ( token0.equalsIgnoreCase("agency_cd") ) {
-       				// NWIS Header Format: Line 1
+       			// NWIS Header Format: Line 1
 				//
 				// agency_cd site_no dv_dt dv_va dv_cd
 				header1_found = true;
 			}
-			else if ( string.regionMatches(
-				true,0,"# Sites in this file include:",0,29) ) {
+			else if ( string.regionMatches(true,0,"# Sites in this file include:",0,29) ) {
 				// Get the description from the next line...
 				description = in.readLine().trim();
 				// Remove leading #...
@@ -474,8 +456,7 @@ throws Exception
 		}	
 	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		Message.printWarning ( 2, routine, e );
 	}
 
@@ -496,25 +477,20 @@ throws Exception
 		++line_count;
 		// Don't trim the line because data are fixed-format.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing: \"" + string + "\"" );
+			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
 		}
 		string = string.trim();
-		if (	(string.length() == 0) ||
-			(string.charAt(0) == '#') ||
-			(string.charAt(0) == '<') ) {
+		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
 			// Skip comments and blank lines for now...
 			continue;
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Processing data string: \"" + string + "\"" );
+			Message.printDebug ( dl, routine, "Processing data string: \"" + string + "\"" );
 		}
 
 		// Have to parse every line because free format...
 
-		tokens = StringUtil.breakStringList ( string, " \t",
-				StringUtil.DELIM_SKIP_BLANKS );
+		tokens = StringUtil.breakStringList ( string, " \t", StringUtil.DELIM_SKIP_BLANKS );
 		size = 0;
 		if ( tokens != null ) {
 			size = tokens.size();
@@ -531,23 +507,23 @@ throws Exception
 			if ( req_date1 != null ) {
 				date1 = req_date1;
 			}
-			else {	date1 = date1_file;
+			else {
+			    date1 = date1_file;
 			}
 			if ( req_date2 != null ) {		
 				date2 = req_date2;
 			}
-			else {	date2 = date2_file;
+			else {
+			    date2 = date2_file;
 			}
 
 			data_interval_base = TimeInterval.DAY;
 			data_interval_mult = 1;
 			ts = createTimeSeries ( req_ts,
 				data_interval_base, data_interval_mult,
-				(String)tokens.elementAt(0),
-				(String)tokens.elementAt(1),
+				(String)tokens.elementAt(0), (String)tokens.elementAt(1),
 				datatype, description, units,
-				date1, date2,
-				date1_file, date2_file );
+				date1, date2, date1_file, date2_file );
 
 			if ( !read_data ) {
 				// Don't need to allocate the data space...
@@ -557,21 +533,17 @@ throws Exception
 			// Allocate the memory for the data array...
 
 			if ( ts.allocateDataSpace() == 1 ) {
-				Message.printWarning( 2, routine,
-				"Error allocating data space..." );
+				Message.printWarning( 2, routine, "Error allocating data space..." );
 				// Clean up memory...
 				break;
 			}
 
-			// Turn on data flags (use one-character flag until
-			// more is known about the format)...
-			// SAMX 2002-09-05 Disable for now until we figure out
-			// how to handle in TSTool.
+			// Turn on data flags (use one-character flag until more is known about the format)...
+			// TODO 2002-09-05 Disable for now until we figure out how to handle in TSTool.
 			//ts.hasDataFlags ( true, 1 );
 		}
 
-		// Increment to prevent above allocation from occurring more
-		// than once...
+		// Increment to prevent above allocation from occurring more than once...
 
 		++data_count;
 
@@ -581,8 +553,7 @@ throws Exception
 			// Can't continue because not enough fields.
 			// Allow the agency, ID, and date (but no data).
 			Message.printWarning ( 2, routine,
-				"Error reading data at line " + 
-				line_count + ".  File is corrupt." );
+				"Error reading data at line " + line_count + ".  File is corrupt." );
 			ts = null;
 			break;
 		}
@@ -591,11 +562,9 @@ throws Exception
 		// where there are gaps in the USGS files)...
 		idate = DateTime.parse ( (String)tokens.elementAt(2) );
 		//Message.printStatus(2, routine, (String)tokens.elementAt(2) );
-		if (	(req_date1 == null) ||
-			idate.greaterThanOrEqualTo(date1)) {
+		if ( (req_date1 == null) ||	idate.greaterThanOrEqualTo(date1)) {
 			// In the requested period so set the data...
-			// TODO SAM 2007-05-09 Need to handle quality
-			// quality_flag = "";
+			// TODO SAM 2007-05-09 Need to handle quality quality_flag = "";
 			if ( size > 4 ) {
 				//quality_flag = (String)tokens.elementAt(4);
 			}
@@ -607,24 +576,19 @@ throws Exception
 				// SAMX 2002-09-05 Disable quality flag until
 				// figure out how to handle consistently in
 				// TSTool.
-				ts.setDataValue ( idate, StringUtil.atod(
-					(String)tokens.elementAt(3)) );
+				ts.setDataValue ( idate, StringUtil.atod((String)tokens.elementAt(3)) );
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"Value found at " +
-					idate.toString() + ": "+
-					StringUtil.atod((String)
+					"Value found at " + idate.toString() + ": "+ StringUtil.atod((String)
 					tokens.elementAt(3)));
 				}
 			}
 			if ( (req_date2 == null) || idate.lessThan(date2) ) {
-				idate.addInterval (
-				data_interval_base, data_interval_mult);
+				idate.addInterval ( data_interval_base, data_interval_mult);
 			}
-			else {	if ( Message.isDebugOn ) {
-					Message.printDebug (
-					dl, routine, "Finished reading data"+
-					" at: " + idate.toString() );
+			else {
+			    if ( Message.isDebugOn ) {
+					Message.printDebug ( dl, routine, "Finished reading data at: " + idate.toString() );
 				}
 				// Will return below...
 				break;
@@ -632,8 +596,7 @@ throws Exception
 		}
 	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		ts = null;
 	}
 	
@@ -673,24 +636,30 @@ public static void writeTimeSeries ( TS ts, String fname )
 throws IOException
 {	PrintWriter	out = null;
 
-	try {	out = new PrintWriter (new FileWriter(fname));
+	try {
+	    out = new PrintWriter (new FileWriter(fname));
 	}
 	catch ( Exception e ) {
-		String message =
-		"Error opening \"" + fname + "%s\" for writing.";
-		Message.printWarning ( 2,
-		"UsgsNwisTS.writePersistent(TS,String)", message );
+		String message = "Error opening \"" + fname + "\" for writing.";
+		Message.printWarning ( 2, "UsgsNwisTS.writePersistent(TS,String)", message );
 		out = null;
 		throw new IOException ( message );
 	}
-	writeTimeSeries ( ts, out );
-	out.close ();
-	out = null;
+	try {
+	    writeTimeSeries ( ts, out );
+	}
+    catch ( IOException e ) {
+        // Just rethrow but handle graceful file close in finally below
+        throw e;
+    }
+    finally {
+        out.close();
+        out = null;
+    }
 }
 
 /**
-Write a time series to a USGS NWIS format file using a default format based on
-the time series units.
+Write a time series to a USGS NWIS format file using a default format based on the time series units.
 @param ts Vector of pointers to time series to write.
 @param fname Name of file to write.
 @param req_date1 First date to write (if NULL write the entire time series).
@@ -707,23 +676,30 @@ public static void writeTimeSeries (	TS ts, String fname,
 throws IOException
 {	PrintWriter	out = null;
 
-	try {	out = new PrintWriter (new FileWriter(fname));
+	try {
+	    out = new PrintWriter (new FileWriter(fname));
 	}
 	catch ( Exception e ) {
-		String message =
-		"Error opening \"" + fname + "%s\" for writing.";
+		String message = "Error opening \"" + fname + "\" for writing.";
 		Message.printWarning ( 2, "UsgsNwisTS.writeTimeSeries",message);
 		out = null;
 		throw new IOException ( message );
 	}
-	writeTimeSeries ( ts, out, req_date1, req_date2, req_units, write_data);
-	out.close ();
-	out = null;
+	try {
+	    writeTimeSeries ( ts, out, req_date1, req_date2, req_units, write_data);
+	}
+	catch ( IOException e ) {
+	    // Just rethrow but handle graceful file close in finally below
+	    throw e;
+	}
+	finally {
+	    out.close();
+	    out = null;
+	}
 }
 
 /**
-Write a time series to a USGS NWIS format file using a default format based on
-the data units.
+Write a time series to a USGS NWIS format file using a default format based on the data units.
 @param ts Time series to write.
 @param fp PrintWriter to write to.
 @param req_date1 First date to write (if NULL write the entire time series).
@@ -733,7 +709,7 @@ will be converted on output.
 @param write_data Indicates whether data should be written.
 @exception IOException if there is an error writing the file.
 */
-public static void writeTimeSeries (	TS ts, PrintWriter fp,
+public static void writeTimeSeries ( TS ts, PrintWriter fp,
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean write_data )
 throws IOException
