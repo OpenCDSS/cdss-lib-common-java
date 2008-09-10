@@ -34,8 +34,7 @@ import RTi.Util.Time.TimeInterval;
 public class ModsimTS {
 
 /**
-Return an array of strings indicating the available data types for a MODSIM
-file.
+Return an array of strings indicating the available data types for a MODSIM file.
 @return an array of strings indicating the available data types for a MODSIM
 file or null if the data types cannot be determined.
 @param file Name of file.
@@ -111,84 +110,45 @@ sample files in the future.
 */
 public static Vector getSample ()
 {	Vector	s = new Vector ( 50 );
-	s.addElement (
-"#" );
-	s.addElement (
-"# This is a sample of a typical MODSIM output file.");
-	s.addElement (
-"# * Comments shown in this output are for illustration only." );
-	s.addElement (
-"# * Node/Link numbers are used internally and should not be used." );
-	s.addElement (
-"# * Dates are for the last MODSIM run." );
-	s.addElement (
-"# * Dates always include day.  The day is set to mid-month for monthly data.");
-	s.addElement (
-"# * Data units are determined from MODSIM configuration.");
-	s.addElement (
-"# * Daily data have data lines that start with NODE/LINK, NAME, WEEK, DAY," );
-	s.addElement (
-"#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
-	s.addElement (
-"# * Monthly data have data lines that start with NODE/LINK, NAME, YEAR, MONTH," );
-	s.addElement (
-"#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
-	s.addElement (
-"# * Data for one YEAR of data for all nodes/link are grouped, followed by");
-	s.addElement (
-"#   the next YEAR.");
-	s.addElement (
-"\"NODE\", \"NAME\", \"YEAR\", \"MONTH\", \"CALENDAR_YEAR\", \"CALENDAR_MONTH\", \"CALENDAR_DATE\", \"DEMAND\", \"SURF_IN\", \"GW_IN\", \"DEM_SHT\"" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 1, 1989, 11, 15, 1487, 0, 0, 1487" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 2, 1989, 12, 15, 1537, 0, 0, 1537" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 3, 1990, 1, 15, 1537, 0, 0, 1537" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 4, 1990, 2, 14, 1388, 0, 0, 1388" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 5, 1990, 3, 15, 1537, 0, 0, 1537" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 6, 1990, 4, 15, 2201, 0, 0, 2201" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 7, 1990, 5, 15, 6824, 0, 0, 6824" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 8, 1990, 6, 15, 7436, 0, 0, 7436" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 9, 1990, 7, 15, 7684, 0, 0, 7684" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 10, 1990, 8, 15, 7684, 0, 0, 7684" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 11, 1990, 9, 15, 3688, 0, 0, 3688" );
-	s.addElement (
-"69, \"MINFLO\", 1990, 12, 1990, 10, 15, 3074, 0, 0, 3074" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 1, 1989, 11, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 2, 1989, 12, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 3, 1990, 1, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 4, 1990, 2, 14, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 5, 1990, 3, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 6, 1990, 4, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 7, 1990, 5, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 8, 1990, 6, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 9, 1990, 7, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 10, 1990, 8, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 11, 1990, 9, 15, 0, 0, 0, 0" );
-	s.addElement (
-"70, \"WARNOK\", 1990, 12, 1990, 10, 15, 0, 0, 0, 0" );
-	s.addElement (
-"..." );
+	s.addElement ( "#" );
+	s.addElement ( "# This is a sample of a typical MODSIM output file.");
+	s.addElement ( "# * Comments shown in this output are for illustration only." );
+	s.addElement ( "# * Node/Link numbers are used internally and should not be used." );
+	s.addElement ( "# * Dates are for the last MODSIM run." );
+	s.addElement ( "# * Dates always include day.  The day is set to mid-month for monthly data.");
+	s.addElement ( "# * Data units are determined from MODSIM configuration.");
+	s.addElement ( "# * Daily data have data lines that start with NODE/LINK, NAME, WEEK, DAY," );
+	s.addElement ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
+	s.addElement ( "# * Monthly data have data lines that start with NODE/LINK, NAME, YEAR, MONTH," );
+	s.addElement ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
+	s.addElement ( "# * Data for one YEAR of data for all nodes/link are grouped, followed by");
+	s.addElement ( "#   the next YEAR.");
+	s.addElement ( "\"NODE\", \"NAME\", \"YEAR\", \"MONTH\", \"CALENDAR_YEAR\", \"CALENDAR_MONTH\", \"CALENDAR_DATE\", \"DEMAND\", \"SURF_IN\", \"GW_IN\", \"DEM_SHT\"" );
+	s.addElement ( "69, \"MINFLO\", 1990, 1, 1989, 11, 15, 1487, 0, 0, 1487" );
+	s.addElement ( "69, \"MINFLO\", 1990, 2, 1989, 12, 15, 1537, 0, 0, 1537" );
+	s.addElement ( "69, \"MINFLO\", 1990, 3, 1990, 1, 15, 1537, 0, 0, 1537" );
+	s.addElement ( "69, \"MINFLO\", 1990, 4, 1990, 2, 14, 1388, 0, 0, 1388" );
+	s.addElement ( "69, \"MINFLO\", 1990, 5, 1990, 3, 15, 1537, 0, 0, 1537" );
+	s.addElement ( "69, \"MINFLO\", 1990, 6, 1990, 4, 15, 2201, 0, 0, 2201" );
+	s.addElement ( "69, \"MINFLO\", 1990, 7, 1990, 5, 15, 6824, 0, 0, 6824" );
+	s.addElement ( "69, \"MINFLO\", 1990, 8, 1990, 6, 15, 7436, 0, 0, 7436" );
+	s.addElement ( "69, \"MINFLO\", 1990, 9, 1990, 7, 15, 7684, 0, 0, 7684" );
+	s.addElement ( "69, \"MINFLO\", 1990, 10, 1990, 8, 15, 7684, 0, 0, 7684" );
+	s.addElement ( "69, \"MINFLO\", 1990, 11, 1990, 9, 15, 3688, 0, 0, 3688" );
+	s.addElement ( "69, \"MINFLO\", 1990, 12, 1990, 10, 15, 3074, 0, 0, 3074" );
+	s.addElement ( "70, \"WARNOK\", 1990, 1, 1989, 11, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 2, 1989, 12, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 3, 1990, 1, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 4, 1990, 2, 14, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 5, 1990, 3, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 6, 1990, 4, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 7, 1990, 5, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 8, 1990, 6, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 9, 1990, 7, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 10, 1990, 8, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 11, 1990, 9, 15, 0, 0, 0, 0" );
+	s.addElement ( "70, \"WARNOK\", 1990, 12, 1990, 10, 15, 0, 0, 0, 0" );
+	s.addElement ( "..." );
 	return s;
 }
 
@@ -205,14 +165,13 @@ IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 public static boolean isMODSIMFile ( String filename )
 {	BufferedReader in = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
-		// Read lines and check for common strings that
-		// indicate a MODSIM file.
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+		// Read lines and check for common strings that indicate a MODSIM file.
 		String string = null;
 		boolean	is_modsim = false;
 		while( (string = in.readLine()) != null ) {
-			if (	string.regionMatches(true,0,"\"NODE",0,5) ||
+			if ( string.regionMatches(true,0,"\"NODE",0,5) ||
 				string.regionMatches(true,0,"\"LINK",0,5) ) {
 				is_modsim = true;
 				break;
@@ -226,12 +185,21 @@ public static boolean isMODSIMFile ( String filename )
 	catch ( Exception e ) {
 		return false;
 	}
+	finally {
+	    if ( in != null ) {
+	        try {
+	            in.close();
+	        }
+	        catch ( Exception e ) {
+	            // Should not happen.
+	        }
+	    }
+	}
 }
 
 /**
 Read a time series from a MODSIM format file.
-@return a pointer to a newly-allocated time series if successful, a NULL
-pointer if not.  The pointer should be deleted when no longer needed.
+@return a time series if successful, or null if not.
 @param tsident_string One of the following:  1) the time series identifier to
 read (where the scenario is the file name) or 2) the name of a file to read
 (in which case it is assumed that only one time series exists in the
@@ -245,7 +213,7 @@ throws Exception
 
 /**
 Read a time series from a MODSIM format file.  The entire file is read.
-@return 0 if successful, 1 if not.
+@return a time series if successful, or null if not.
 @param in Reference to open BufferedReader.
 @param filename File being read.
 @exception TSException if there is an error reading the time series.
@@ -257,42 +225,34 @@ throws Exception
 
 /**
 Read a time series from a MODSIM format file.
-@return a pointer to a newly-allocated time series if successful, null if not.
+@return a time series if successful, or null if not.
 @param in Reference to open BufferedReader.
 @param filename File to read.
-@param req_date1 Requested starting date to initialize period (or NULL to
-read the entire period).
-@param req_date2 Requested ending date to initialize period (or NULL to read the
-entire period).
+@param req_date1 Requested starting date to initialize period (or null to read the entire period).
+@param req_date2 Requested ending date to initialize period (or null to read the entire period).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
 */
-public static TS readTimeSeries (	BufferedReader in, String filename,
+public static TS readTimeSeries ( BufferedReader in, String filename,
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
 {	// Call the generic method...
-	return readTimeSeries ( (TS)null, in, filename, req_date1, req_date2,
-			req_units, read_data );
+	return readTimeSeries ( (TS)null, in, filename, req_date1, req_date2, req_units, read_data );
 }
 
 /**
 Read a time series from a MODSIM format file.
-@return a pointer to a newly-allocated time series if successful, a
-NULL pointer if not.  The units are taken from the file and all data are read
-(not just the header).
+@return a time series if successful, or null if not.
 @param tsident_string One of the following:  1) the time series identifier to
 read (where the scenario is the file name) or 2) the name of a file to read
 (in which case it is assumed that only one time series exists in the
 file - otherwise use the readTimeSeriesList() method).
-@param date1 Starting date to initialize period (or NULL to read entire time
-series).
-@param date2 Ending date to initialize period (or NULL to read entire time
-series).
+@param date1 Starting date to initialize period (or null to read entire time series).
+@param date2 Ending date to initialize period (or null to read entire time series).
 */
-public static TS readTimeSeries (	String tsident_string,
-					DateTime date1, DateTime date2 )
+public static TS readTimeSeries ( String tsident_string, DateTime date1, DateTime date2 )
 throws Exception
 {	return readTimeSeries ( tsident_string, date1, date2, "", true );
 }
@@ -300,101 +260,99 @@ throws Exception
 /**
 Read a time series from a MODSIM format file.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a time series if successful, or null if not.
 @param tsident_string The full identifier for the time series to
 read (where the scenario is the file name) or 2) the name of a file to read
 (in which case it is assumed that only one time series exists in the
 file - otherwise use the readTimeSeriesList() method).
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
 public static TS readTimeSeries ( String tsident_string, DateTime date1,
 			DateTime date2, String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
-	boolean	is_file = true;	// Is tsident_string a file?
-				// Assume and check below
+{	TS ts = null;
+	boolean	is_file = true;	// Is tsident_string a file? Assume and check below
 
 	String input_name = tsident_string;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( tsident_string );
 	if ( !IOUtil.fileReadable(full_fname) ) {
 		is_file = false;
-		// Try the scenario (SAMX this is old-style TSID support and
-		// should be phased out??)...
+		// Try the scenario (SAMX this is old-style TSID support and should be phased out??)...
 		TSIdent tsident = new TSIdent (tsident_string);
-		full_fname = IOUtil.getPathUsingWorkingDir (
-				tsident.getScenario() );
+		full_fname = IOUtil.getPathUsingWorkingDir ( tsident.getScenario() );
 		input_name = full_fname;
 		if ( !IOUtil.fileReadable(full_fname) ) {
 			Message.printWarning( 2,
-			"ModsimTS.readTimeSeries",
-			"Unable to determine file for \"" + tsident_string +
-			"\"" );
+			"ModsimTS.readTimeSeries", "Unable to determine file for \"" + tsident_string + "\"" );
 			return ts;
 		}
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 2,
-		"ModsimTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
+		"ModsimTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
 	// Call the fully-loaded method...
-	if ( is_file ) {
-		// Expect that the time series file has one time series and
-		// should read it...
-		ts = readTimeSeries (	(TS)null, in, full_fname, date1, date2,
-					units, read_data );
+	try {
+    	if ( is_file ) {
+    		// Expect that the time series file has one time series and should read it...
+    		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2, units, read_data );
+    	}
+    	else {
+    	    // Pass the file pointer and an empty time series, which
+    		// will be used to locate the time series in the file.
+    		TSIdent ident = new TSIdent ( tsident_string );
+    		if ( ident.getInterval().equals("") ) {
+    			// Figure out if the file is monthly or daily data...
+    			in.mark(256);
+    			String string = in.readLine();
+    			boolean isdaily = false;
+    			if(StringUtil.indexOfIgnoreCase(string,"WEEK",0) >= 0){
+    				isdaily = true;
+    			}
+    			in.reset();
+    			// Need to set the data interval...
+    			if ( isdaily ) {
+    				ident.setInterval("Day");
+    			}
+    			else {
+    			    ident.setInterval("Month");
+    			}
+    			ts = TSUtil.newTimeSeries ( ident.toString(), true );
+    		}
+    		else {
+    		    // Trust the identifier that was passed in...
+    			ts = TSUtil.newTimeSeries ( tsident_string, true );
+    		}
+    		if ( ts == null ) {
+    			Message.printWarning( 2, "ModsimTS.readTimeSeries(String,...)",
+    			"Unable to create time series for \"" +	tsident_string + "\"" );
+    			return ts;
+    		}
+    		ts.setIdentifier ( tsident_string );
+    		ts.getIdentifier().setInputType("MODSIM");
+    		readTimeSeriesList ( ts, in, full_fname, date1, date2, units, read_data );
+    	}
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
 	}
-	else {	// Pass the file pointer and an empty time series, which
-		// will be used to locate the time series in the file.
-		TSIdent ident = new TSIdent ( tsident_string );
-		if ( ident.getInterval().equals("") ) {
-			// Figure out if the file is monthly or daily data...
-			in.mark(256);
-			String string = in.readLine();
-			boolean isdaily = false;
-			if(StringUtil.indexOfIgnoreCase(string,"WEEK",0) >= 0){
-				isdaily = true;
-			}
-			in.reset();
-			// Need to set the data interval...
-			if ( isdaily ) {
-				ident.setInterval("Day");
-			}
-			else {	ident.setInterval("Month");
-			}
-			ts = TSUtil.newTimeSeries ( ident.toString(), true );
-		}
-		else {	// Trust the identifier that was passed in...
-			ts = TSUtil.newTimeSeries ( tsident_string, true );
-		}
-		if ( ts == null ) {
-			Message.printWarning( 2,
-			"ModsimTS.readTimeSeries(String,...)",
-			"Unable to create time series for \"" +
-			tsident_string + "\"" );
-			return ts;
-		}
-		ts.setIdentifier ( tsident_string );
-		ts.getIdentifier().setInputType("MODSIM");
-		readTimeSeriesList (	ts, in, full_fname,
-					date1, date2,
-					units, read_data );
+	catch ( Exception e ) {
+	    // Just rethrow but handle file close below
+	    throw ( e );
 	}
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+	finally {
+	    if ( in != null ) {
+	        in.close();
+	    }
+	}
 	return ts;
 }
 
@@ -402,88 +360,87 @@ throws Exception
 Read a time series from a MODSIM format file.  The TSID string is specified
 in addition to the path to the file.  It is expected that a TSID in the file
 matches the TSID (and the path to the file, if included in the TSID would not
-propertly allow the TSID to be specified).  This method can be used with newer
-code where the I/O path is separate from the TSID that is used to identify the
-time series.
+properly allow the TSID to be specified).  This method can be used with newer
+code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated time series if successful, a NULL pointer
-if not.
+@return a time series if successful, or null if not.
 @param tsident_string The full identifier for the time series to
 read (where the scenario is NOT the file name).
 @param filename The name of a file to read
-(in which case the tsident_string must match one of the TSID strings in the
-file).
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+(in which case the tsident_string must match one of the TSID strings in the file).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (0=no, 1=yes).
 */
-public static TS readTimeSeries (	String tsident_string, String filename,
-					DateTime date1, DateTime date2,
-					String units, boolean read_data )
+public static TS readTimeSeries ( String tsident_string, String filename,
+					DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
 {	TS	ts = null;
 
 	String input_name = filename;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 2,
-		"ModsimTS.readTimeSeries",
+		Message.printWarning( 2, "ModsimTS.readTimeSeries",
 		"Unable to determine file for \"" + filename + "\"" );
 		return ts;
 	}
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2,
-		"ModsimTS.readTimeSeries(String,...)",
+		Message.printWarning( 2, "ModsimTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
-	// Call the fully-loaded method...
-	// Pass the file pointer and an empty time series, which
-	// will be used to locate the time series in the file.
-	TSIdent ident = new TSIdent ( tsident_string );
-	if ( ident.getInterval().equals("") ) {
-		// Figure out if the file is monthly or daily data...
-		in.mark(256);
-		String string = in.readLine();
-		boolean isdaily = false;
-		if ( StringUtil.indexOfIgnoreCase(string,"WEEK",0) >= 0 ) {
-			isdaily = true;
-		}
-		in.reset();
-		// Need to set the data interval...
-		if ( isdaily ) {
-			ident.setInterval("Day");
-		}
-		else {	ident.setInterval("Month");
-		}
-		ts = TSUtil.newTimeSeries ( ident.toString(), true );
+	try {
+    	// Call the fully-loaded method...
+    	// Pass the file pointer and an empty time series, which
+    	// will be used to locate the time series in the file.
+    	TSIdent ident = new TSIdent ( tsident_string );
+    	if ( ident.getInterval().equals("") ) {
+    		// Figure out if the file is monthly or daily data...
+    		in.mark(256);
+    		String string = in.readLine();
+    		boolean isdaily = false;
+    		if ( StringUtil.indexOfIgnoreCase(string,"WEEK",0) >= 0 ) {
+    			isdaily = true;
+    		}
+    		in.reset();
+    		// Need to set the data interval...
+    		if ( isdaily ) {
+    			ident.setInterval("Day");
+    		}
+    		else {	ident.setInterval("Month");
+    		}
+    		ts = TSUtil.newTimeSeries ( ident.toString(), true );
+    	}
+    	else {
+    	    // Trust the identifier that was passed in...
+    		ts = TSUtil.newTimeSeries ( tsident_string, true );
+    	}
+    	if ( ts == null ) {
+    		Message.printWarning( 2, "ModsimTS.readTimeSeries(String,...)",
+    		"Unable to create time series for \"" +	tsident_string + "\"" );
+    		return ts;
+    	}
+    	ts.setIdentifier ( tsident_string );
+    	ts.getIdentifier().setInputType("MODSIM");
+    	readTimeSeriesList ( ts, in, full_fname, date1, date2, units, read_data );
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
 	}
-	else {	// Trust the identifier that was passed in...
-		ts = TSUtil.newTimeSeries ( tsident_string, true );
-	}
-	if ( ts == null ) {
-		Message.printWarning( 2,
-		"ModsimTS.readTimeSeries(String,...)",
-		"Unable to create time series for \"" +
-		tsident_string + "\"" );
-		return ts;
-	}
-	ts.setIdentifier ( tsident_string );
-	ts.getIdentifier().setInputType("MODSIM");
-	readTimeSeriesList (	ts, in, full_fname,
-				date1, date2,
-				units, read_data );
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+    catch ( Exception e ) {
+        // Just rethrow but handle file close below
+        throw ( e );
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return ts;
 }
 
@@ -498,8 +455,7 @@ identifier, which is assumed to have been set in the calling code.
 @param date1 Starting date to initialize period to.
 @param date2 Ending date to initialize period to.
 */
-public static TS readTimeSeries (	TS req_ts, String fname,
-					DateTime date1, DateTime date2 )
+public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2 )
 throws Exception
 {	return readTimeSeries ( req_ts, fname, date1, date2, "", true );
 }
@@ -517,63 +473,68 @@ is assumed to have been set in the calling code.
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries (	TS req_ts, String fname,
-					DateTime date1, DateTime date2,
+public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2,
 					String units, boolean read_data )
 throws Exception
-{	String	routine = "MODSIMTS.readTimeSeries(TS *,...)";
-	TS	ts = null;
+{	String routine = "MODSIMTS.readTimeSeries(TS *,...)";
+	TS ts = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2, routine,
-		"Unable to open file \"" + full_fname + "\"" );
+		Message.printWarning( 2, routine, "Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
-	ts = readTimeSeries ( req_ts, in, full_fname, date1, date2, units,
-				read_data );
-	ts.setInputName ( full_fname );
-	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
-	ts.getIdentifier().setInputName ( input_name );
-	in.close();
+	try {
+    	ts = readTimeSeries ( req_ts, in, full_fname, date1, date2, units, read_data );
+    	ts.setInputName ( full_fname );
+    	ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    	ts.getIdentifier().setInputName ( input_name );
+	}
+    catch ( Exception e ) {
+        // Just rethrow but handle file close below
+        throw ( e );
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return ts;
 }
 
 /**
 Read a time series from a MODSIM format file.
-@return a pointer to time series if successful, null if not.  The calling code
-is responsible for freeing the memory for the time series.
-@param req_ts Pointer to time series to fill.  If null,
+@return time series if successful, null if not.
+@param req_ts time series to fill.  If null,
 return a new time series.  All data are reset, except for the identifier, which
 is assumed to have been set in the calling code.
 @param in Reference to open input stream.
 @param full_fname Path to file name.
-@param req_date1 Requested starting date to initialize period (or NULL to read
+@param req_date1 Requested starting date to initialize period (or null to read
 the entire time series).
-@param req_date2 Requested ending date to initialize period (or NULL to read
+@param req_date2 Requested ending date to initialize period (or null to read
 the entire time series).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read.
 @exception TSException if there is an error reading the time series.
 */
-public static TS readTimeSeries (	TS req_ts, BufferedReader in,
-					String full_fname,
+public static TS readTimeSeries ( TS req_ts, BufferedReader in, String full_fname,
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	Vector tslist = readTimeSeriesList (	req_ts, in, full_fname,
-						req_date1, req_date2,
-						req_units, read_data );
+{	Vector tslist = readTimeSeriesList ( req_ts, in, full_fname,
+						req_date1, req_date2, req_units, read_data );
 	if ( (tslist == null) || (tslist.size() != 1) ) {
 		tslist = null;
 		return null;
 	}
-	else {	TS ts = (TS)tslist.elementAt(0);
+	else {
+	    TS ts = (TS)tslist.elementAt(0);
 		tslist = null;
 		return ts;
 	}
@@ -582,57 +543,59 @@ throws Exception
 /**
 Read all the time series from a MODSIM format file.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
-@return a pointer to a newly-allocated Vector of time series if successful,
-a NULL pointer if not.
+@return Vector of time series if successful, or null if not.
 @param fname Name of file to read.
-@param date1 Starting date to initialize period (NULL to read the entire time
-series).
-@param date2 Ending date to initialize period (NULL to read the entire time
-series).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read.
 */
-public static Vector readTimeSeriesList (	String fname,
-						DateTime date1, DateTime date2,
-						String units, boolean read_data)
+public static Vector readTimeSeriesList ( String fname,
+						DateTime date1, DateTime date2, String units, boolean read_data)
 throws Exception
 {	Vector	tslist = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
 	BufferedReader in = null;
-	try {	in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( full_fname )) );
+	try {
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 2,
-		"ModsimTS.readTimeSeries(String,...)",
-		"Unable to open file \"" + full_fname + "\"" );
+		"ModsimTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
 	}
-	tslist = readTimeSeriesList ( null, in, full_fname, date1, date2,
-			units, read_data);
-	TS ts;
-	int nts = 0;
-	if ( tslist != null ) {
-		nts = tslist.size();
+	try {
+    	tslist = readTimeSeriesList ( null, in, full_fname, date1, date2, units, read_data);
+    	TS ts;
+    	int nts = 0;
+    	if ( tslist != null ) {
+    		nts = tslist.size();
+    	}
+    	for ( int i = 0; i < nts; i++ ) {
+    		ts = (TS)tslist.elementAt(i);
+    		if ( ts != null ) {
+    			ts.setInputName ( full_fname );
+    			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
+    			ts.getIdentifier().setInputName ( input_name );
+    		}
+    	}
 	}
-	for ( int i = 0; i < nts; i++ ) {
-		ts = (TS)tslist.elementAt(i);
-		if ( ts != null ) {
-			ts.setInputName ( full_fname );
-			ts.addToGenesis ( "Read time series from \"" +
-					full_fname + "\"" );
-			ts.getIdentifier().setInputName ( input_name );
-		}
-	}
-	in.close();
+	catch ( Exception e ) {
+	    // Just rethrow and handle close below
+	    throw e;
+    }
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	return tslist;
 }
 
 /**
 Read a time series from a MODSIM format file.
-@return a Vector of time series if successful, null if not.  The calling code
-is responsible for freeing the memory for the time series.
+@return a Vector of time series if successful, null if not.
 @param req_ts Pointer to time series to fill.  If null,
 return all new time series in the vector.  All data are reset, except for the
 identifier, which is assumed to have been set in the calling code.
@@ -640,28 +603,24 @@ identifier, which is assumed to have been set in the calling code.
 @param filename Name of the input file.  This is required because the period of
 record is not saved at the top of the MODSIM file.  Therefore the file is opened
 and the last line is read to determine the end date.
-@param req_date1 Requested starting date to initialize period (or NULL to read
+@param req_date1 Requested starting date to initialize period (or null to read
 the entire time series).
-@param req_date2 Requested ending date to initialize period (or NULL to read
+@param req_date2 Requested ending date to initialize period (or null to read
 the entire time series).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read.
 @exception TSException if there is an error reading the time series.
 */
-public static Vector readTimeSeriesList (	TS req_ts, BufferedReader in,
-						String filename,
-						DateTime req_date1,
-						DateTime req_date2,
-						String req_units,
-						boolean read_data )
+public static Vector readTimeSeriesList ( TS req_ts, BufferedReader in, String filename,
+						DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
-{	String	string = "";
-	String	routine = "ModsimTS.readTimeSeries";
+{	String string = "";
+	String routine = "ModsimTS.readTimeSeriesList";
 	int	dl = 10, dl2 = 30, num_param = 1;
 	int	numts_read = 0;
 	int	node_in_model_year = 0;
-	DateTime	date1 = null, date2 = null;
-	DateTime	date1_file = null, date2_file = null;
+	DateTime date1 = null, date2 = null;
+	DateTime date1_file = null, date2_file = null;
 	TSIdent ident = null;
 	boolean	file_has_nodes = true;
 
@@ -683,13 +642,11 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	Vector v = StringUtil.breakStringList ( bs, "\n\r",
-		StringUtil.DELIM_SKIP_BLANKS );
+	Vector v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// The last item will contain the last line from the file...
 	Vector endstrings = StringUtil.breakStringList (
 		(String)v.elementAt(v.size() - 1), " \t,",
-		StringUtil.DELIM_SKIP_BLANKS|
-		StringUtil.DELIM_ALLOW_STRINGS );
+		StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 
 	// Because of the organization of the file, the entire file needs
 	// to be read whether the data are read or not.
@@ -708,19 +665,16 @@ throws Exception
 	int	day, month, year = -1;	// Date fields.
 	int	model_year = -1, model_year_prev = -1;
 					// Years for model (e.g., water years),
-					// which is what the file is broken
-					// organized by
+					// which is what the file is organized by
 	int	model_year1 = 0;	// First model year in file.
 	int	nstrings;		// Number of tokens per data line.
 	int	its;			// Counter for time series.
 	int	icol;			// Counter for columns.
-	int	ts_pos = 0;		// Position in tslist for first time
-					// series for a node.
+	int	ts_pos = 0;		// Position in tslist for first time series for a node.
 
 	String name = "";	// Name of the node.
 	String name2 = "";	// Name of the node.
-	String node = "";	// Node number as string - used for the name if
-				// the name is blank.
+	String node = "";	// Node number as string - used for the name if the name is blank.
 	String node_prev = "";	// Node number from previous row of data.
 	String name_prev = "";	// Name of the node from the previous line that
 	String name_prev2 = "";	// was read - initial to blank so it can be
@@ -747,12 +701,9 @@ throws Exception
 		// Unpad the line so that we can better deal with blank lines...
 		string = string.trim();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			//Message.printStatus ( 1, routine,
-			"Processing: \"" + string + "\"" );
+			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
 		}
-		if (	(string.equals("")) ||
-			((string.length() > 0) && (string.charAt(0) == '#')) ) {
+		if ( (string.equals("")) || ((string.length() > 0) && (string.charAt(0) == '#')) ) {
 			// Skip comments and blank lines for now...
 			continue;
 		}
@@ -760,14 +711,13 @@ throws Exception
 		// Always parse the line...
 
 		strings = StringUtil.breakStringList ( string, " \t,",
-			StringUtil.DELIM_SKIP_BLANKS|
-			StringUtil.DELIM_ALLOW_STRINGS );
+			StringUtil.DELIM_SKIP_BLANKS| StringUtil.DELIM_ALLOW_STRINGS );
 		if ( strings == null ) {
 			continue;
 		}
 		nstrings = strings.size();
 
-		if (	need_header &&
+		if ( need_header &&
 			(string.regionMatches(true,0,"\"Node",0,5) ||
 			string.regionMatches(true,0,"\"Link",0,5)) ) {
 			// First header line...
@@ -787,7 +737,8 @@ throws Exception
 				in.mark ( 2920000 );
 				date = new DateTime ( DateTime.PRECISION_DAY );
 			}
-			else {	// Assume monthly data...
+			else {
+			    // Assume monthly data...
 				data_interval_base = TimeInterval.MONTH;
 				in.mark ( 96000 );
 				date = new DateTime( DateTime.PRECISION_MONTH );
@@ -796,32 +747,25 @@ throws Exception
 			// If a requested time series is given, find the data
 			// column using the header...
 
-			num_param = nstrings - first_data_col;
-						// Number of parameters in the
-						// file for each node.
-			Message.printStatus ( 1, routine,
-			"There are " + num_param + " data columns." );
+			num_param = nstrings - first_data_col; // Number of parameters in the file for each node.
+			Message.printStatus ( 2, routine, "There are " + num_param + " data columns." );
 			if ( req_ts != null ) {
 				tslist = new Vector(1);
-				String datatype_req_ts =
-					req_ts.getIdentifier().getType();
-				for (	icol = first_data_col; icol < nstrings;
+				String datatype_req_ts = req_ts.getIdentifier().getType();
+				for ( icol = first_data_col; icol < nstrings;
 					icol++ ) {
-					if ( datatype_req_ts.equalsIgnoreCase(
-						(String)
-						strings.elementAt(icol)) ) {
+					if ( datatype_req_ts.equalsIgnoreCase( (String)strings.elementAt(icol)) ) {
 						req_ts_column = icol;
 						break;
 					}
 				}
 			}
-			else {	// Just guess.  The true number will be
-				// num_param* the number of nodes.
+			else {
+			    // Just guess.  The true number will be num_param* the number of nodes.
 				tslist = new Vector ( num_param*100 );
 			}
 
-			// No need to run the code below and can avoid a long
-			// indented section so continue...
+			// No need to run the code below and can avoid a long indented section so continue...
 			need_header = false;
 			continue;
 		}
@@ -846,49 +790,46 @@ throws Exception
 			if ( file_has_nodes ) {
 				name2 = "Node_" + node;
 			}
-			else {	name2 = "Link_" + node;
+			else {
+			    name2 = "Link_" + node;
 			}
 		}
-		else {	name2 = name;
+		else {
+		    name2 = name;
 		}
 		if ( (name_prev.indexOf('.') >= 0) || name_prev.equals("") ) {
 			name_prev = "";
 			if ( file_has_nodes ) {
 				name_prev2 = "Node_" + node_prev;
 			}
-			else {	name_prev2 = "Link_" + node_prev;
+			else {
+			    name_prev2 = "Link_" + node_prev;
 			}
 		}
-		else {	name_prev2 = name_prev;
+		else {
+		    name_prev2 = name_prev;
 		}
 
-		//Message.printStatus ( 1, routine, "SAMX name=\"" + name +
+		//Message.printStatus ( 2, routine, "SAMX name=\"" + name +
 		//"\" name2=\"" + name2 + "\" name_prev=\"" + name_prev +
 		//"\" name_prev2=\"" + name_prev2 + "\"" );
-		//Message.printStatus ( 1, routine, "SAMX node=\"" + node +
+		//Message.printStatus ( 2, routine, "SAMX node=\"" + node +
 		//"\" node_prev=\"" + node_prev + "\"" );
 
 		if ( getting_period ) {
 			// Process a line of output to get the starting date...
 			year = StringUtil.atoi((String)strings.elementAt(4));
-			model_year =
-				StringUtil.atoi((String)strings.elementAt(2));
+			model_year = StringUtil.atoi((String)strings.elementAt(2));
 			model_year1 = model_year;
 			month = StringUtil.atoi((String)strings.elementAt(5));
 			day = StringUtil.atoi((String)strings.elementAt(6));
-			// Use from the data that was read with the random
-			// access file...
-			int year2 = StringUtil.atoi((String)
-					endstrings.elementAt(4));
-			int month2 = StringUtil.atoi((String)
-					endstrings.elementAt(5));
-			int day2 = StringUtil.atoi((String)
-					endstrings.elementAt(6));
+			// Use from the data that was read with the random access file...
+			int year2 = StringUtil.atoi((String)endstrings.elementAt(4));
+			int month2 = StringUtil.atoi((String)endstrings.elementAt(5));
+			int day2 = StringUtil.atoi((String)endstrings.elementAt(6));
 			if ( data_interval_base == TimeInterval.DAY ) {
-				date1_file = new DateTime (
-					DateTime.PRECISION_DAY );
-				date2_file = new DateTime (
-					DateTime.PRECISION_DAY );
+				date1_file = new DateTime ( DateTime.PRECISION_DAY );
+				date2_file = new DateTime ( DateTime.PRECISION_DAY );
 				date1_file.setYear ( year );
 				date1_file.setMonth ( month );
 				date1_file.setDay ( day );
@@ -897,10 +838,8 @@ throws Exception
 				date2_file.setDay ( day2 );
 			}
 			else if ( data_interval_base == TimeInterval.MONTH ) {
-				date1_file = new DateTime (
-					DateTime.PRECISION_MONTH );
-				date2_file = new DateTime (
-					DateTime.PRECISION_MONTH );
+				date1_file = new DateTime ( DateTime.PRECISION_MONTH );
+				date2_file = new DateTime ( DateTime.PRECISION_MONTH );
 				date1_file.setYear ( year );
 				date1_file.setMonth ( month );
 				date2_file.setYear ( year2 );
@@ -913,15 +852,16 @@ throws Exception
 			if ( req_date1 != null ) {
 				date1 = req_date1;
 			}
-			else {	date1 = date1_file;
+			else {
+			    date1 = date1_file;
 			}
 			if ( req_date2 != null ) {
 				date2 = req_date2;
 			}
-			else {	date2 = date2_file;
+			else {
+			    date2 = date2_file;
 			}
-			Message.printStatus ( 1, routine,
-			"Period of file determined to be " +
+			Message.printStatus ( 2, routine, "Period of file determined to be " +
 			date1_file + " to " + date2_file );
 
 			// No need to execute code below...
@@ -943,15 +883,14 @@ throws Exception
 
 		if ( (req_ts != null) && !name2.equalsIgnoreCase(name_req_ts) ){
 			// A specific time series has been requested but it
-			// does not match this line of data so don't need to
-			// process...
-			if (	!read_data &&
-				name_prev2.equalsIgnoreCase(name_req_ts) ) {
+			// does not match this line of data so don't need to process...
+			if ( !read_data && name_prev2.equalsIgnoreCase(name_req_ts) ) {
 				// Have already processed the requested time
 				// series and don't need data so can break...
 				break;
 			}
-			else {	// Still looking...
+			else {
+			    // Still looking...
 				continue;
 			}
 		}
@@ -964,30 +903,19 @@ throws Exception
 		if ( !name2.equalsIgnoreCase(name_prev2) ) {
 			// A new node is encountered.
 			if ( model_year == model_year1 ) {
-				// First time through so declare and initialize
-				// time series...
-				//Message.printStatus ( 1, routine,
-				//"SAMX - defining new time series for " +
-				//name2 );
+				// First time through so declare and initialize time series...
+				//Message.printStatus ( 2, routine, "Defining new time series for " + name2 );
 				if ( req_ts != null ) {
 					numts_read = 1;
 					ts = req_ts;
-					// Identifier is assumed to have been
-					// set previously.
+					// Identifier is assumed to have been set previously.
 					tslist.addElement ( ts );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, routine,
-						"Adding existing requested " +
-						"time series to list." );
+						Message.printDebug ( 1, routine, "Adding existing requested time series to list." );
 					}
-					// Set the data type in the TS header
-					// using the information in the
-					// identifier.
-					ts.setDataType (
-						(String)header.elementAt(
-						req_ts_column) );
-					ts.setDescription ( name2 + ", " +
-						ts.getDataType() );
+					// Set the data type in the TS header using the information in the identifier.
+					ts.setDataType ( (String)header.elementAt( req_ts_column) );
+					ts.setDescription ( name2 + ", " + ts.getDataType() );
 	
 					ts.setDate1 ( date1 );
 					ts.setDate1Original ( date1_file );
@@ -995,12 +923,8 @@ throws Exception
 					ts.setDate2Original ( date2_file );
 	
 					if ( read_data ) {
-						if (	ts.allocateDataSpace()
-							!= 0 ) {
-							Message.printWarning( 2,
-							routine,
-							"Error allocating " +
-							"data space..." );
+						if ( ts.allocateDataSpace() != 0 ) {
+							Message.printWarning( 2, routine, "Error allocating data space..." );
 							// Clean up memory...
 							ts = null;
 							tslist = null;
@@ -1008,126 +932,80 @@ throws Exception
 						}
 					}
 				}
-				else {	// Allocate a new time series for each
-					// data column...
+				else {
+				    // Allocate a new time series for each data column...
 					for ( its = 0; its < num_param; its++ ){
-						if (	data_interval_base ==
-							TimeInterval.DAY ) {
-							identifier = name2 +
-							".." + (String)
-							header.elementAt(
-							first_data_col + its) +
-							".DAY";
+						if ( data_interval_base == TimeInterval.DAY ) {
+							identifier = name2 + ".." + (String)header.elementAt(first_data_col + its) + ".DAY";
 						}
-						else if(data_interval_base ==
-							TimeInterval.MONTH ) {
-							identifier = name2 +
-							".." + (String)
-							header.elementAt(
-							first_data_col + its) +
-							".MONTH";
+						else if(data_interval_base == TimeInterval.MONTH ) {
+							identifier = name2 + ".." + (String)header.elementAt(first_data_col + its) + ".MONTH";
 						}
 						ident = new TSIdent(identifier);
-						ts = TSUtil.newTimeSeries (
-							(String)identifier,
-							true );
+						ts = TSUtil.newTimeSeries ( (String)identifier, true );
 						if ( ts == null ) {
 							Message.printWarning (
-							2, routine,
-							"Unable to create " +
-							"new time series for" +
-							" \""+identifier+"\"" );
+							2, routine,	"Unable to create new time series for \""+identifier+"\"" );
 							return null;
 						}
-						// Only set the identifier if a
-						// new time series.  Otherwise
-						// assume the the existing
-						// identifier is to be used
+						// Only set the identifier if a new time series.  Otherwise
+						// assume the the existing identifier is to be used
 						// (e.g., from a file name).
 						ts.setIdentifier ( identifier );
-						ts.getIdentifier().setInputType(
-						"MODSIM");
-						// Java TS carries around
-						// separate variable for the
-						// data type...
-						ts.setDataType (
-							ident.getType() );
-						ts.setDescription ( name2 +", " +
-							ts.getDataType() );
+						ts.getIdentifier().setInputType( "MODSIM");
+						ts.setDataType ( ident.getType() );
+						ts.setDescription ( name2 +", " + ts.getDataType() );
 						tslist.addElement ( ts );
 						if ( Message.isDebugOn ) {
 							Message.printDebug ( 1,
-							routine, "Created " +
-							"memory for \"" +
-							ts.getIdentifierString()
-							+ "\"" );
+							routine, "Created memory for \"" + ts.getIdentifierString() + "\"" );
 						}
 						ts.setDate1 ( date1 );
 						ts.setDate1Original(date1_file);
 						ts.setDate2 ( date2 );
 						ts.setDate2Original(date2_file);
 						if ( read_data ) {
-							if (
-							ts.allocateDataSpace()
-							!= 0 ) {
-							Message.printWarning( 2,
-								routine,
-								"Error " +
-								"allocating " +
-								"data " +
-								"space..." );
-								// Clean up
-								// memory...
+							if ( ts.allocateDataSpace() != 0 ) {
+							    Message.printWarning( 2, routine, "Error allocating data space..." );
+								// Clean up memory...
 								ts = null;
 								tslist = null;
 								return null;
 							}
 						}
-						// Increment the number of time
-						// series that are read.
+						// Increment the number of time series that are read.
 						++numts_read;
 					}
 				}
 			}
-			else {	// Year not equal to first year...
+			else {
+			    // Year not equal to first year...
 				if ( !read_data ) {
 					// Don't need to read any more...
 					break;
 				}
 			}
 			if ( model_year != model_year_prev ) {
-				//Message.printStatus ( 1, routine,
-				//"Starting new year of model data for " +
-				//model_year + " line " + line_count );
-				if (	(req_ts == null) && read_data &&
-					(model_year == (model_year1 + 1)) ) {
-					// Second year of data.  To optimize
-					// reading data below, define an array
+				//Message.printStatus ( 2, routine,
+				//"Starting new year of model data for model_year + " line " + line_count );
+				if ( (req_ts == null) && read_data && (model_year == (model_year1 + 1)) ) {
+					// Second year of data.  To optimize reading data below, define an array
 					// to look up array positions.
-					//Message.printStatus ( 1, "",
-					//"SAMX - allocating array to increase"+
-					//" performance model_year =" +
-					//model_year );
 					size = numts_read;
 					ts_array = new TS[size];
 					for ( its = 0; its < size; its++ ) {
-						ts_array[its] =
-						(TS)tslist.elementAt(its);
+						ts_array[its] = (TS)tslist.elementAt(its);
 					}
 				}
-				// The model year has changed so the list of
-				// nodes is starting at the beginning again.
+				// The model year has changed so the list of nodes is starting at the beginning again.
 				// Reset count of nodes with time series...
 				node_in_model_year = 0;
 			}
 			// ts_pos is the position of the first time series for
-			// the node.  It is used below when reading data to
-			// locate the time series to populate...
+			// the node.  It is used below when reading data to locate the time series to populate...
 			ts_pos = node_in_model_year*num_param;
-			//Message.printStatus ( 1, "",
-			//"SAMX node_in_model_year="+
-			//node_in_model_year + " ts_pos=" + ts_pos +
-			//" tslist.size()=" + tslist.size() );
+			//Message.printStatus ( 2, "", "node_in_model_year="+
+			//node_in_model_year + " ts_pos=" + ts_pos + " tslist.size()=" + tslist.size() );
 			++node_in_model_year;
 		}
 
@@ -1151,8 +1029,7 @@ throws Exception
 			// No data of interest yet...
 			strings = null;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1, routine,
-				"Ignoring data - before start date" );
+				Message.printDebug ( 1, routine, "Ignoring data - before start date" );
 			}
 			continue;
 		}
@@ -1160,77 +1037,63 @@ throws Exception
 			// No need to save data but may need to keep reading...
 			strings = null;
 			if ( req_ts != null ) {
-				// If here then a specific time series has been
-				// requested and we are in the section for that
-				// data.  Since only one can be requested, it is
-				// OK to break out...
+				// If here then a specific time series has been requested and we are in the section for that
+				// data.  Since only one can be requested, it is OK to break out...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine,
-					"Stop reading data - after start date");
+					Message.printDebug ( 1, routine, "Stop reading data - after start date");
 				}
 				break;
 			}
-			else {	// Need to keep processing time series...
+			else {
+			    // Need to keep processing time series...
 				continue;
 			}
 		}
 
 		if ( req_ts != null ) {
-			// A requested time series has been specified so only
-			// transfer the single value
-			dvalue = StringUtil.atod( ((String)
-				strings.elementAt(req_ts_column)).trim());
+			// A requested time series has been specified so only transfer the single value
+			dvalue = StringUtil.atod( ((String)strings.elementAt(req_ts_column)).trim());
 			ts.setDataValue ( date, dvalue );
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl2, routine,
-				"For date " + date.toString() +
-				", value=" + dvalue );
+				Message.printDebug ( dl2, routine, "For date " + date + ", value=" + dvalue );
 			}
 		}
-		else {	// Loop through all the columns...
-			for (	icol = first_data_col, its = ts_pos;
+		else {
+		    // Loop through all the columns...
+			for ( icol = first_data_col, its = ts_pos;
 				icol < nstrings; icol++, its++ ){
 				if ( ts_array != null ) {
 					// Should be the case after one year...
 					ts = ts_array[its];
 				}
-				else {	// First year will be slower...
+				else {
+				    // First year will be slower...
 					ts = (TS)tslist.elementAt( its );
 				}
-				dvalue = StringUtil.atod( ((String)
-					strings.elementAt(icol)).trim());
-				// Set the data value in the requested
-				// time series.  If a requested time series is
-				// being used, the array will only contain one
-				// time series, which is the requested time
+				dvalue = StringUtil.atod( ((String)strings.elementAt(icol)).trim());
+				// Set the data value in the requested time series.  If a requested time series is
+				// being used, the array will only contain one time series, which is the requested time
 				// series...
 				ts.setDataValue ( date, dvalue );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl2, routine,
-					"For date " + date.toString() +
-					", value=" + dvalue );
+					Message.printDebug ( dl2, routine, "For date " + date + ", value=" + dvalue );
 				}
 			}
 		}
 	}
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine,
-		"Error processing line " + line_count
-		+ ": \"" + string + "\"" );
+		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"" );
 		Message.printWarning ( 2, routine, e );
 	}
 
 	if ( req_ts != null ) {
-		req_ts.addToGenesis ( "Read MODSIM time series from " +
-			ts.getDate1().toString() + " to " +
-			ts.getDate2().toString() );
+		req_ts.addToGenesis ( "Read MODSIM time series from " + ts.getDate1() + " to " + ts.getDate2() );
 	}
-	else {	for ( its = 0; its < num_param; its++ ) {
+	else {
+	    for ( its = 0; its < num_param; its++ ) {
 			ts = (TS)tslist.elementAt(its);
-			ts.addToGenesis ( "Read MODSIM time series from " +
-			ts.getDate1().toString() + " to " +
-			ts.getDate2().toString() );
+			ts.addToGenesis ( "Read MODSIM time series from " + ts.getDate1() + " to " + ts.getDate2() );
 		}
 	}
 	ts = null;
@@ -1238,4 +1101,4 @@ throws Exception
 	return tslist;
 }
 
-} // End ModsimTS
+}
