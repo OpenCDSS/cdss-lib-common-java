@@ -97,7 +97,7 @@ throws Exception
 	    ts = TSUtil.newTimeSeries ( ident.toString(), true );
 	}
 	if ( ts == null ) {
-		Message.printWarning ( 2, routine, "Unable to create new time series for \"" + ident + "\"" );
+		Message.printWarning ( 3, routine, "Unable to create new time series for \"" + ident + "\"" );
 		return (TS)null;
 	}
 
@@ -249,7 +249,7 @@ public static TS readTimeSeries ( String filename, DateTime date1,
 			"\" for period " + ts.getDate1() + " to " + ts.getDate2() );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2, "RiverWareTS.readTimeSeries(String,...)",
+		Message.printWarning( 3, "RiverWareTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
 	}
 	finally {
@@ -291,8 +291,7 @@ throws Exception
 	
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 1,
-		"RiverWareTS.readTimeSeries",
+		Message.printWarning( 3, "RiverWareTS.readTimeSeries",
 		"Unable to determine file for \"" + filename + "\"" );
 		return ts;
 	}
@@ -301,8 +300,7 @@ throws Exception
 	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 1,
-		"RiverWareTS.readTimeSeries(String,...)",
+		Message.printWarning( 3, "RiverWareTS.readTimeSeries(String,...)",
 		"Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
@@ -312,7 +310,7 @@ throws Exception
     	// will be used to locate the time series in the file.
     	ts = TSUtil.newTimeSeries ( tsident_string, true );
     	if ( ts == null ) {
-    		Message.printWarning( 1,
+    		Message.printWarning( 3,
     		"RiverWareTS.readTimeSeries(String,...)",
     		"Unable to create time series for \"" + tsident_string + "\"" );
     		return ts;
@@ -369,7 +367,6 @@ throws Exception
 	String units = "";
 	String token0, token1;
 	DateTime date1 = null, date2 = null;
-	Vector tokens = null;
 	TS ts = null;
 	try {
     	while ( true ) {
@@ -416,8 +413,8 @@ throws Exception
     		// only significant to RiverWare (not used by TS package).
     	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 3, routine, e );
 	}
 	
 	// Process the dates.  RiverWare files always have 24:00 in the dates, even if the interval
@@ -442,20 +439,34 @@ throws Exception
 	}
 	date1_file = DateTime.parse ( start_date_string );
     date2_file = DateTime.parse ( end_date_string );
+    int datePrecision = date1_file.getPrecision();
+    // Further set the precision based on the data interval
+    if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Day", 0) >= 0) ) {
+        datePrecision = DateTime.PRECISION_DAY;
+    }
+    else if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Month", 0) >= 0) ) {
+        datePrecision = DateTime.PRECISION_MONTH;
+    }
+    else if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Year", 0) >= 0) ||
+            (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
+        datePrecision = DateTime.PRECISION_YEAR;
+    }
+    date1_file.setPrecision(datePrecision);
+    date2_file.setPrecision(datePrecision);
 
 	// Create an in-memory time series and set header information...
 
 	if ( req_date1 != null ) {
-		date1 = req_date1;
+		date1 = new DateTime(req_date1,datePrecision);
 	}
 	else {
 	    date1 = date1_file;
 	}
 	if ( req_date2 != null ) {
-		date2 = req_date2;
+		date2 = new DateTime(req_date2,datePrecision);
 	}
 	else {
-	    date2 = date2_file;
+	    date2 = new DateTime(date2_file);
 	}
 	ts = createTimeSeries (	req_ts, filename, timestep_string, units,
 				date1, date2, date1_file, date2_file );
@@ -470,7 +481,7 @@ throws Exception
 	// Allocate the memory for the data array...
 
 	if ( ts.allocateDataSpace() == 1 ) {
-		Message.printWarning( 2, routine, "Error allocating data space..." );
+		Message.printWarning( 3, routine, "Error allocating data space..." );
 		// Clean up memory...
 		throw new Exception ( "Error allocating time series memory." );
 	}
@@ -527,12 +538,20 @@ throws Exception
     		}
     		// Else set the data value...
     		if ( !string.equalsIgnoreCase("NaN") ) {
+    		    if ( Message.isDebugOn ) {
+    		        Message.printDebug(dl, routine, "Line " + line_count +
+    		                " setting value " + string + "*scale at " + date );
+    		    }
     			ts.setDataValue ( date, scale*StringUtil.atod(string) );
+    		}
+    		else if ( Message.isDebugOn ) {
+    		    Message.printDebug(dl, routine, "Line " + line_count +
+    		            " setting value " + string + " at " + date );
     		}
     	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "Error processing line " + line_count + ": \"" + string + "\"");
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 3, routine, e );
 		ts = null;
 	}
 	
@@ -541,7 +560,6 @@ throws Exception
 	date1_file = null;
 	date2_file = null;
 	units = null;
-	tokens = null;
 	date1 = null;
 	date2 = null;
 	return ts;
@@ -574,7 +592,7 @@ throws IOException
 	}
 	catch ( Exception e ) {
 		String message = "Error opening \"" + full_fname + "\" for writing.";
-		Message.printWarning ( 2, "RiverWareTS.writePersistent(TS,String)", message );
+		Message.printWarning ( 3, "RiverWareTS.writePersistent(TS,String)", message );
 		out = null;
 		throw new IOException ( message );
 	}
@@ -691,7 +709,7 @@ throws IOException
 	}
 	catch ( Exception e ) {
 		String message = "Error opening \"" + full_fname + "\" for writing.";
-		Message.printWarning ( 2,"RiverWareTS.writeTimeSeries",message);
+		Message.printWarning ( 3,"RiverWareTS.writeTimeSeries",message);
 		out = null;
 		throw new IOException ( message );
 	}
@@ -735,13 +753,13 @@ throws IOException
 
 	if ( ts == null ) {
 		message = "Time series is NULL, cannot continue.";
-		Message.printWarning( 2, routine, message );
+		Message.printWarning( 3, routine, message );
 		throw new IOException ( message );
 	}
 
 	if ( fp == null ) {
 		message = "Output stream is NULL, cannot continue.";
-		Message.printWarning( 2, routine, message );
+		Message.printWarning( 3, routine, message );
 		throw new IOException ( message );
 	}
 
