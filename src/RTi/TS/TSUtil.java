@@ -1020,69 +1020,58 @@ public static void addConstant(	TS ts, DateTime start_date,
 }
 
 /**
-Adjust extreme values in a time series by maintaining "mass" and adjusting
-nearby values.
+Adjust extreme values in a time series by maintaining "mass" and adjusting nearby values.
 @param ts time series to adjust.
-@param adjust_method If "Average", then values on each side of the extreme are
+@param adjustMethod If "Average", then values on each side of the extreme are
 added until the average does not exceed the extreme value.  Then each
 non-missing value is set to the average.  If "WeightedAverage" (currently not
 implemented), a similar
 approach is used except that the adjustment is distributed according to the
-orginal data values, with values that exceed the extreme being set to the
-extreme.
-@param extreme_flag AdjustMinimum or AdjustMaximum, indicating whether low or
+orginal data values, with values that exceed the extreme being set to the extreme.
+@param extremeToAdjust AdjustMinimum or AdjustMaximum, indicating whether low or
 high extremes are being adjusted.
-@param extreme_value The extreme value that when exceeded will be adjusted.  For
-example, specify zero to adjust negative values.
-@param max_intervals The maximum number of intervals on each side of the extreme
+@param extremeValue The extreme value that when exceeded will be adjusted.  For
+example, specify zero and extremeToAdjust="AdjustMinimum" to adjust negative values.
+@param maxIntervals The maximum number of intervals on each side of the extreme
 that can be used to computed an adjusted value.  If the value is exceeded
 without reaching a satisfactory adjustment, do not adjust.  Specify zero to
 allow any number of intervals.
-@param analysis_period_start Start of the analysis period or null for the full
-period.
-@param analysis_period_end End of the analysis period or null for the full
-period.
+@param analysisStart Start of the analysis period or null for the full period.
+@param analysisEnd End of the analysis period or null for the full period.
 @exception Exception if there is an input error.
 */
-public static void adjustExtremes (	TS ts, String adjust_method,
-					String extreme_flag,
-					double extreme_value,
-					int max_intervals,
-					DateTime analysis_period_start,
-					DateTime analysis_period_end )
+public static void adjustExtremes (	TS ts, String adjustMethod,	String extremeToAdjust,	double extremeValue,
+					int maxIntervals, DateTime analysisStart,	DateTime analysisEnd )
 throws Exception
 {	String  routine = "TSUtil.adjustExtremes";
 	double	oldvalue;
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod ( ts, analysis_period_start,
-						analysis_period_end );
+	TSLimits valid_dates = getValidPeriod ( ts, analysisStart, analysisEnd );
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
 
 	// Booleans to eliminate string compares in the loop below...
-	boolean adjust_low = true;
-	if ( extreme_flag.equalsIgnoreCase("AdjustMaximum") ) {
-		adjust_low = false;
+	boolean adjust_low = true; // Whether adjusting the low values
+	if ( extremeToAdjust.equalsIgnoreCase("AdjustMaximum") ) {
+		adjust_low = false;   // Now adjusting the high values
 	}
 	boolean adjust_average = true;
-	if ( adjust_method.equalsIgnoreCase("WeightedAverage") ) {
+	if ( adjustMethod.equalsIgnoreCase("WeightedAverage") ) {
 		adjust_average = false;
 	}
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		throw new Exception ( routine +
-		" cannot process irregular time series." );
+		throw new Exception ( routine + " cannot process irregular time series." );
 	}
 
 	// Loop using addInterval...
 	DateTime date = new DateTime ( start );
 	DateTime left_date, right_date;
-	double total = 0.0;	// Total of extreme and surrounding points,
-				// relative to the extreme value.
+	double total = 0.0;	// Total of extreme and surrounding points, relative to the extreme value.
 	double average = 0.0;	// Average of extreme and surrounding points.
 	int count = 0;		// Number of points considered in the average.
 	int nintervals = 0;	// Number of intervals on each side.
@@ -1092,62 +1081,48 @@ throws Exception
 	boolean do_adjust;	// Indicates whether adjustment should be made.
 	double total_values=0.0;// Total of values being adjusted.
 		
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		oldvalue = ts.getDataValue(date);
 		if ( ts.isDataMissing(oldvalue) ) {
 			continue;
 		}
-		if (	(adjust_low && (oldvalue < extreme_value)) ||
-			(!adjust_low && (oldvalue > extreme_value)) ) {
+		if ( (adjust_low && (oldvalue < extremeValue)) || (!adjust_low && (oldvalue > extremeValue)) ) {
 			// First find adjacent values...
 			left_date = new DateTime ( date );
 			right_date = new DateTime ( date );
-			total = oldvalue - extreme_value;
+			total = oldvalue - extremeValue;
 			total_values = oldvalue;
 			count = 1;
 			nintervals = 0;
-			do_adjust = true;	// Assume we can adjust until
-						// find out otherwise.
-			for (	iint = 0; ; iint++ ) {
-				left_date.addInterval ( interval_base,
-				-interval_mult );
+			do_adjust = true;	// Assume we can adjust until find out otherwise.
+			for ( iint = 0; ; iint++ ) {
+				left_date.addInterval ( interval_base, -interval_mult );
 				++nintervals;
-				if (	(max_intervals != 0) &&
-					(nintervals > max_intervals) ) {
-					ts.addToGenesis (
-					"adjustExtremes:  maximum intervals ("+
-					max_intervals + ") exceeded " +
-					"trying to adjust value at " + date +
-					" - not adjusting." );
+				if ( (maxIntervals != 0) && (nintervals > maxIntervals) ) {
+					ts.addToGenesis ( "AdjustExtremes:  maximum intervals ("+
+					maxIntervals + ") exceeded trying to adjust value at " + date + " - not adjusting." );
 					do_adjust = false;
 					break;
 				}
 				if ( left_date.lessThan(start) ) {
-					ts.addToGenesis (
-					"adjustExtremes:  reached period start "
-					+ "trying to adjust value at " + date +
-					" - not adjusting." );
+					ts.addToGenesis ( "AdjustExtremes:  reached period start trying to adjust value at " +
+					        date + " - not adjusting." );
 					do_adjust = false;
 					break;
 				}
 				left_value = ts.getDataValue(left_date);
 				if ( ts.isDataMissing(left_value) ) {
-					ts.addToGenesis (
-					"adjustExtremes:  found missing data" +
-					" at " + left_date + " - skipping it.");
+					ts.addToGenesis ( "AdjustExtremes:  found missing data at " + left_date + " - skipping it.");
 				}
-				else {	total += (left_value - extreme_value);
+				else {
+				    total += (left_value - extremeValue);
 					total_values += left_value;
 					++count;
 				}
-				right_date.addInterval ( interval_base,
-				interval_mult );
+				right_date.addInterval ( interval_base, interval_mult );
 				if ( right_date.greaterThan(end) ) {
 					ts.addToGenesis (
-					"adjustExtremes:  reached period end " +
-					"trying to adjust value at " + date +
+					"AdjustExtremes:  reached period end trying to adjust value at " + date +
 					" - not adjusting." );
 					do_adjust = false;
 					break;
@@ -1155,18 +1130,17 @@ throws Exception
 				right_value = ts.getDataValue(right_date);
 				if ( ts.isDataMissing(right_value) ) {
 					ts.addToGenesis (
-					"adjustExtremes:  found missing data" +
-					" at " + right_date +" - skipping it.");
+					"AdjustExtremes:  found missing data at " + right_date +" - skipping it.");
 				}
-				else {	total += (right_value - extreme_value);
+				else {
+				    total += (right_value - extremeValue);
 					total_values += right_value;
 					++count;
 				}
-				average = extreme_value + total/(double)count;
-				if (	(adjust_low &&
-					(average >= extreme_value)) ||
-					(!adjust_low &&
-					(average <= extreme_value)) ) {
+				average = extremeValue + total/(double)count;
+				// If adjusting minimum values, the average can be >= the extreme value
+				// If adjusting maximum values, the average can be <= the extreme value
+				if ( (adjust_low && (average >= extremeValue)) || (!adjust_low && (average <= extremeValue)) ) {
 					// OK to do the adjustment...
 					do_adjust = true;
 					break;
@@ -1177,35 +1151,25 @@ throws Exception
 				continue;
 			}
 			// Use the average value for all adjusted points...
-			for (	; left_date.lessThanOrEqualTo( right_date);
-				left_date.addInterval(
-				interval_base, interval_mult)){
+			for ( ; left_date.lessThanOrEqualTo( right_date);
+			    left_date.addInterval( interval_base, interval_mult)){
 				oldvalue =ts.getDataValue( left_date);
 				if(ts.isDataMissing(oldvalue)) {
 					continue;
 				}
 				if ( adjust_average ) {
-					// All adjusted values have the
-					// same value...
-					ts.addToGenesis (
-					"adjustExtremes:  adjusted " +
-					StringUtil.formatString(
-					oldvalue, "%.6f") + " to " +
-					StringUtil.formatString(
-					average, "%.6f") + " at " + left_date );
+					// All adjusted values have the same value...
+					ts.addToGenesis ( "AdjustExtremes:  adjusted " +
+					StringUtil.formatString( oldvalue, "%.6f") + " to " +
+					StringUtil.formatString( average, "%.6f") + " at " + left_date );
 					ts.setDataValue(left_date, average);
 				}
-				else {	// Use the weighted average value for
-					// all adjusted points...
-					left_value = oldvalue - total*
-						oldvalue/total_values;
-					ts.addToGenesis (
-					"adjustExtremes:  adjusted " +
-					StringUtil.formatString(
-					oldvalue, "%.6f") + " to " +
-					StringUtil.formatString(
-					left_value, "%.6f") +
-					" at " + left_date );
+				else {
+				    // Use the weighted average value for all adjusted points...
+					left_value = oldvalue - total*oldvalue/total_values;
+					ts.addToGenesis ( "AdjustExtremes:  adjusted " +
+					StringUtil.formatString( oldvalue, "%.6f") + " to " +
+					StringUtil.formatString( left_value, "%.6f") + " at " + left_date );
 					ts.setDataValue(left_date, left_value);
 				}
 			}
@@ -1214,10 +1178,12 @@ throws Exception
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "adjustExtremes:  Adjusted extremes " +
-		start + " to " + end + "." );
+	ts.addToGenesis ( "AdjustExtremes:  Adjusted extremes " + start + " to " + end +
+	        " AdjustMethod=" + adjustMethod + " ExtremeToAdjust=" + extremeToAdjust +
+	        " ExtremeValue=" + StringUtil.formatString(extremeValue,"%.6f") +
+	        " MaxIntervals=" + maxIntervals + "." );
 
-	ts.setDescription ( ts.getDescription() + ", adjustExtremes" );
+	ts.setDescription ( ts.getDescription() + ", AdjustExtremes" );
 }
 
 /**
