@@ -1262,19 +1262,16 @@ public static boolean areIntervalsSame ( Vector tslist )
 }
 
 /**
-Shift and attenuate the time series using the ARMA (AutoRegressive Moving
-Average) approach.
+Shift and attenuate the time series using the ARMA (AutoRegressive Moving Average) approach.
 The time series is copied internally and is then updated where the output
 time series is computed with:
-O[t] = a1*O[t-1] + a2*O[t-2] + ... + ap*O[t-p] + b0*I[t] + b1*I[t-1] + ... +
-bq*I[t-q]
+O[t] = a1*O[t-1] + a2*O[t-2] + ... + ap*O[t-p] + b0*I[t] + b1*I[t-1] + ... + bq*I[t-q]
 Startup values that are missing in O are set to I.
 @param oldts Time series to shift.
 @param a Array of a coefficients.
 @param b Array of b coefficients.
 @param ARMA_interval The interval used to develop ARMA coefficients.  The
-interval must be <= that of the time series.  Use an interval like "1Day",
-"6Hour", etc.
+interval must be <= that of the time series.  Use an interval like "1Day", "6Hour", etc.
 @return new time series.
 @exception Exception if there is a problem with input
 */
@@ -1289,11 +1286,9 @@ throws Exception
 		throw new TSException( message );
 	}
 
-	// Always need b but a is optional.  A single b value of 1 would be a
-	// "unity" operation.
+	// Always need b but a is optional.  A single b value of 1 would be a "unity" operation.
 	if ( (b == null) || (b.length == 0) ) {
-		message =
-		"Array of b-coefficients is zero-length.";
+		message = "Array of b-coefficients is zero-length.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException( message );
 		
@@ -1318,35 +1313,26 @@ throws Exception
 		// seconds and compare.  For longer, don't currently support.
 		int seconds_data = interval_data.toSeconds();
 		if ( seconds_data < 0 ) {
-			message = "Cannot currently use ARMA with data " +
-			"interval > daily when ARMA interval is > daily";
+			message = "Cannot currently use ARMA with data interval > daily when ARMA interval is > daily";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
 		int seconds_ARMA = interval_ARMA.toSeconds();
 		if ( seconds_ARMA < 0 ) {
-			message =
-			"Cannot currently use ARMA with ARMA interval > daily";
+			message = "Cannot currently use ARMA with ARMA interval > daily";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
 		int [] seconds_values = new int[2];
 		seconds_values[0] = seconds_data;
 		seconds_values[1] = seconds_ARMA;
-		int [] common_denoms = MathUtil.commonDenominators (
-			seconds_values, 0 );
+		int [] common_denoms = MathUtil.commonDenominators ( seconds_values, 0 );
 		if ( common_denoms == null ) {
-			message = "Cannot currently use ARMA when ARMA " +
-			"interval and data interval do not\n" +
+			message = "Cannot currently use ARMA when ARMA interval and data interval do not\n" +
 			"have a common denominator.";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
-		//for ( int i = 0; i < common_denoms.length; i++ ) {
-		//	Message.printStatus ( 1, routine,
-		//	"SAMX - common denominator is " +
-		//	common_denoms[i] );
-		//}
 		// The interval ratio is the factor by which the original time
 		// series needs to be expanded.  For example, if the time series
 		// is 6 hour and the ARMA interval is 2 hours, seconds_data
@@ -1369,14 +1355,12 @@ throws Exception
 	// at a different time step than the time series that is being analyzed
 	// here, convert the time series to an array.
 
-	double [] oldts_data0 = TSUtil.toArray ( oldts, oldts.getDate1(),
-				oldts.getDate2() );
+	double [] oldts_data0 = TSUtil.toArray ( oldts, oldts.getDate1(), oldts.getDate2() );
 
 	// Now expand the time series because of the interval_ratio.
 
 	double [] oldts_data = null;	// Old data in base interval (interval
-					// that divides into data and ARMA
-					// interval).
+					// that divides into data and ARMA interval).
 	double [] newts_data = null;	// Routed data in base interval.
 	double missing = oldts.getMissing();
 	if ( interval_ratio == 1 ) {
@@ -1390,16 +1374,15 @@ throws Exception
 			}
 		}
 	}
-	else {	// Allocate a new data array in the base interval.  Carry
-		// forward each original value as necessary to fill out the
-		// base interval data...
+	else {
+	    // Allocate a new data array in the base interval.  Carry
+		// forward each original value as necessary to fill out the base interval data...
 		oldts_data = new double[oldts_data0.length*interval_ratio];
 		newts_data = new double[oldts_data.length];
 		int j = 0;
 		for ( int i = 0; i < oldts_data0.length; i++ ) {
 			for ( j = 0; j < interval_ratio; j++ ) {
-				oldts_data[i*interval_ratio + j] =
-				oldts_data0[i];
+				oldts_data[i*interval_ratio + j] = oldts_data0[i];
 				newts_data[i*interval_ratio + j] = missing;
 			}
 		}
@@ -1432,41 +1415,32 @@ throws Exception
 			// Get previous outflow value...
 			data_value = newts_data[jpos];
 			if ( oldts.isDataMissing(data_value) ) {
-				// Previous outflow value is missing so try
-				// using the input time series value...
+				// Previous outflow value is missing so try using the input time series value...
 				data_value = oldts_data[jpos];
 				//Message.printStatus ( 1, routine,
-				//"O missing I for " + shifted_date + " is " +
-				//data_value );
+				//"O missing I for " + shifted_date + " is " + data_value );
 				if ( oldts.isDataMissing(data_value) ) {
 					newts_data[j] = missing;
-					//Message.printStatus ( 1, routine,
-					//"Setting O at " + date + " to " +
-					//data_value );
-					//oldts.addToGenesis(
-					//"ARMA:  Using missing (" +
-					//StringUtil.formatString(
-					// data_value,"%.6f") +
-					//") at " + date +
-					//" because input and output for a" +
-					// (i + 1) + " are missing.");
+					//Message.printStatus ( 1, routine, "Setting O at " + date + " to " + data_value );
+					//oldts.addToGenesis( "ARMA:  Using missing (" + StringUtil.formatString(
+					// data_value,"%.6f") + ") at " + date +
+					//" because input and output for a" + (i + 1) + " are missing.");
 					value_set = true;
 					break;
 				}
 			}
-			// If get to here, have data so can increment another
-			// term in the total...
+			// If get to here, have data so can increment another term in the total...
 			if ( oldts.isDataMissing(total) ) {
 				// Assign the value...
 				total = data_value*a[ia];
 			}
-			else {	// Sum the value...
+			else {
+			    // Sum the value...
 				total += data_value*a[ia];
 			}
 		}
 		if ( value_set ) {
-			// Set to missing above so no reason to continue
-			// processing the time step...
+			// Set to missing above so no reason to continue processing the time step...
 			continue;
 		}
 		// Want the values to be for offset of 0, t - 1 (one ARMA
@@ -1477,15 +1451,10 @@ throws Exception
 			jpos = j - ib*ARMA_ratio;
 			if ( jpos < 0 ) {
 				newts_data[j] = missing;
-				//Message.printStatus ( 1, routine,
-				//"Setting O at " + date + " to " +
-				//data_value );
-				//oldts.addToGenesis(
-				//"ARMA:  Using missing (" +
-				//StringUtil.formatString(data_value,"%.6f") +
-				//") at " + date +
-				//" because input and output for a" + (i + 1) +
-				//" are missing.");
+				//Message.printStatus ( 1, routine, "Setting O at " + date + " to " + data_value );
+				//oldts.addToGenesis( "ARMA:  Using missing (" +
+				//StringUtil.formatString(data_value,"%.6f") + ") at " + date +
+				//" because input and output for a" + (i + 1) + " are missing.");
 				value_set = true;
 				break;
 			}
@@ -1500,7 +1469,8 @@ throws Exception
 				// Assign the value...
 				total = data_value*b[ib];
 			}
-			else {	// Sum the value...
+			else {
+			    // Sum the value...
 				total += data_value*b[ib];
 			}
 		}
@@ -1527,11 +1497,10 @@ throws Exception
 			}
 			else {	// Have non-missing data...
 				if ( oldts.isDataMissing(oldts_data0[i]) ) {
-					oldts_data0[i] =
-					newts_data[i*interval_ratio + j];
+					oldts_data0[i] = newts_data[i*interval_ratio + j];
 				}
-				else {	oldts_data0[i] +=
-					newts_data[i*interval_ratio + j];
+				else {
+				    oldts_data0[i] += newts_data[i*interval_ratio + j];
 				}
 			}
 		}
@@ -1545,8 +1514,7 @@ throws Exception
 	int i = 0;
 	int interval_base = oldts.getDataIntervalBase();
 	int interval_mult = oldts.getDataIntervalMult();
-	for (	DateTime date = new DateTime(date1);
-		date.lessThanOrEqualTo(date2);
+	for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
 		date.addInterval(interval_base,interval_mult), i++ ) {
 		oldts.setDataValue ( date, oldts_data0[i] );
 	}
@@ -1556,18 +1524,14 @@ throws Exception
 	Vector genesis = oldts.getGenesis();
 	oldts.setDescription ( oldts.getDescription() + ",ARMA" );
 	genesis.insertElementAt("Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) +
-	 ") using ARMA interval " + ARMA_interval +
-	" and coefficients:", genesis_length );
+	 ") using ARMA interval " + ARMA_interval +	" and coefficients:", genesis_length );
 	for ( i = 0; i < n_a; i++ ) {
 		genesis.insertElementAt(
-		"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f"),
-		(genesis_length + 1 + i) );
+		"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f"), (genesis_length + 1 + i) );
 	}
 	for ( i = 0; i < n_b; i++ ) {
-		genesis.insertElementAt (
-			"    b" + i + " = " +
-			StringUtil.formatString(b[i], "%.6f"),
-			(genesis_length + n_a + 1 + i) );
+		genesis.insertElementAt ( "    b" + i + " = " +
+			StringUtil.formatString(b[i], "%.6f"), (genesis_length + n_a + 1 + i) );
 	}
 	genesis.insertElementAt (
 	"ARMA: The original number of data points were expanded by a factor ",
@@ -1577,11 +1541,11 @@ throws Exception
 		(genesis_length + n_a + n_b + 2) );
 	if ( ARMA_ratio == 1 ) {
 		genesis.insertElementAt (
-		"ARMA:  All points were then used as the final result.",
+		"ARMA: All points were then used as the final result.",
 		(genesis_length + n_a + n_b + 3) );
 	}
 	else {	genesis.insertElementAt (
-		"ARMA:  1/" + ARMA_ratio +
+		"ARMA: 1/" + ARMA_ratio +
 		" points were then used to compute the averaged final result.",
 		(genesis_length + n_a + n_b + 3) );
 	}
