@@ -10617,8 +10617,7 @@ zero.
 @param newmin New minimum value (generally specify 0.0).
 @param newmax New maximum value (generally specify 1.0).
 */
-public static void normalize (	TS ts, boolean minfromdata, double newmin,
-				double newmax )
+public static void normalize ( TS ts, boolean minfromdata, double newmin, double newmax )
 {	// Get the data limits...
 	TSLimits limits = ts.getDataLimits ();
 	double max = limits.getMaxValue ();
@@ -10648,34 +10647,27 @@ public static void normalize (	TS ts, boolean minfromdata, double newmin,
 			tsdata = (TSData)alltsdata.elementAt(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				oldvalue = tsdata.getData();
 				if ( !ts.isDataMissing(oldvalue) ) {
-					tsdata.setData(
-					MathUtil.interpolate(oldvalue,min,max,
-					newmin,newmax) );
+					tsdata.setData(	MathUtil.interpolate(oldvalue,min,max,newmin,newmax) );
 					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
+					// are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		date = new DateTime ( ts.getDate1() );
-		for (	;
-			date.lessThanOrEqualTo ( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ;	date.lessThanOrEqualTo ( end );	date.addInterval(interval_base, interval_mult) ) {
 			oldvalue = ts.getDataValue(date);
 			if ( !ts.isDataMissing(oldvalue) ) {
-				ts.setDataValue(date,
-				MathUtil.interpolate(oldvalue,min,max,
-				newmin,newmax));
+				ts.setDataValue(date, MathUtil.interpolate(oldvalue,min,max, newmin,newmax));
 			}
 		}
 	}
