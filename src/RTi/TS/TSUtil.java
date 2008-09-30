@@ -6250,7 +6250,7 @@ compute the ratio.
 <td><b>AnalysisEnd</b></td>
 <td>
 The end of the analysis period as a date/time string,
-used when "CalculateFactorHow" is "AnalyzeAverage".
+used when "FactorMethod" is "AnalyzeAverage".
 </td>
 <td>
 Analyze the full period.
@@ -6261,7 +6261,7 @@ Analyze the full period.
 <td><b>AnalysisStart</b></td>
 <td>
 The start of the analysis period as a date/time string,
-used when "CalculateFactorHow" is "AnalyzeAverage".
+used when "FactorMethod" is "AnalyzeAverage".
 </td>
 <td>
 Analyze the full period.
@@ -6269,7 +6269,7 @@ Analyze the full period.
 </tr>
 
 <tr>
-<td><b>CalculateFactorHow</b></td>
+<td><b>FactorMethod</b> or <b>CalculateFactorHow</b> (deprecated)</td>
 <td>
 Indicate how to calculate the factor.
 <ol>
@@ -6291,12 +6291,12 @@ Indicate how to calculate the factor.
 </tr>
 
 <tr>
-<td><b>Direction</b></td>
+<td><b>FillDirection</b> or <b>Direction</b> (deprecated).</td>
 <td>
 Direction to fill data, "Backward" or "Forward".  If specified, the
 "InitialValue" parameter will be used to substitute for missing data in the
 filled time series to compute the initial factor.  This property is only used
-when CalculateFactorHow=NearestPoint
+when FactorMethod=NearestPoint
 </td>
 <td>"Forward".
 </td>
@@ -6306,7 +6306,7 @@ when CalculateFactorHow=NearestPoint
 <td><b>Divisor</b></td>
 <td>
 Indicate which time series should be used as the divisor (bottom) when computing
-the ratio, used with CalculateFactorHow=AnalyzeAverage, either "TS" or
+the ratio, used with FactorMethod=AnalyzeAverage, either "TS" or
 "IndependentTS".
 </td>
 <td>IndependentTS.
@@ -6327,7 +6327,7 @@ Single character to flag filled data.
 <td>
 Initial value of the time series to fill, used to compute the factor at the ends
 of the period when observations may not be availble.  This property is only used
-when CalculateFactorHow=NearestPoint.  Possible values are:
+when FactorMethod=NearestPoint.  Possible values are:
 <ol>
 <li>	NearestBackward - search backward in time from the first value being
 	processed to find a value.</li>
@@ -6345,9 +6345,7 @@ when CalculateFactorHow=NearestPoint.  Possible values are:
 </table>
 @exception RTi.TS.Exception if there is a problem filling data.
 */
-public static void fillProrate(	TS ts, TS independent_ts,
-				DateTime start_date, DateTime end_date,
-				PropList props )
+public static void fillProrate(	TS ts, TS independent_ts, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  routine = "TSUtil.fillProrate";
 	String	message;
@@ -6366,22 +6364,29 @@ throws Exception
 	boolean AnalyzeAverage_boolean = false;
 	// TODO SAM 2007-03-01 Evalaute use
 	//boolean NearestPoint_boolean = true;	// default
-	String prop = props.getValue ( "CalculateFactorHow" );
+	String prop = props.getValue ( "FactorMethod" );
+	if ( prop == null ) {
+	    // Try old name
+	    prop = props.getValue ( "CalculateFactorHow" );
+	}
 	if ( (prop != null) && prop.equalsIgnoreCase("AnalyzeAverage") ) {
 		// TODO SAM 2007-03-01 Evaluate use
 		//NearestPoint_boolean = false;
 		AnalyzeAverage_boolean = true;
 	}
 
-	boolean DivisorIndependentTS_boolean = true;	
-						// Divisior is IndependentTS
+	boolean DivisorIndependentTS_boolean = true; // Divisior is IndependentTS
 	prop = props.getValue ( "Divisor" );
 	if ( (prop != null) && prop.equalsIgnoreCase("TS") ) {
 		DivisorIndependentTS_boolean = false;	// Divisior is TS
 	}
 
 	boolean Forward_boolean = true;	// default
-	prop = props.getValue ( "Direction" );
+	prop = props.getValue ( "FillDirection" );
+	if ( prop == null) {
+	    // Old
+	    props.getValue ( "Direction" );
+	}
 	if ( (prop != null) && prop.equalsIgnoreCase("Backward") ) {
 		Forward_boolean = false;
 	}
@@ -6396,8 +6401,7 @@ throws Exception
 
 	String FillFlag = props.getValue ( "FillFlag" );
 	if ( (FillFlag != null) && (FillFlag.length() > 1) ) {
-		message = "The fill flag \"" + FillFlag +
-			"\" should be a single character.";
+		message = "The fill flag \"" + FillFlag + "\" should be a single character.";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
@@ -6414,8 +6418,7 @@ throws Exception
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		message =
-		"Filling IrregularTS by prorating is not supported";
+		message = "Filling IrregularTS by prorating is not supported";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -6423,8 +6426,7 @@ throws Exception
 	DateTime date = null;
 	double data_value = 0.0, independent_data_value = 0.0;
 	boolean ratio_found = false;
-	double ratio = 0.0;	// The ratio of data_value/
-				// independent_data_value.
+	double ratio = 0.0;	// The ratio of data_value/independent_data_value.
 	int fill_count = 0;	// Counter for data points that are filled.
 
 	if ( AnalyzeAverage_boolean ) {
@@ -6435,13 +6437,15 @@ throws Exception
 		if ( prop == null ) {
 			AnalysisStart_DateTime = new DateTime ( ts.getDate1() );
 		}
-		else {	AnalysisStart_DateTime = DateTime.parse(prop);
+		else {
+		    AnalysisStart_DateTime = DateTime.parse(prop);
 		}
 		prop = props.getValue ( "AnalysisEnd" );
 		if ( prop == null ) {
 			AnalysisEnd_DateTime = new DateTime ( ts.getDate2() );
 		}
-		else {	AnalysisEnd_DateTime = DateTime.parse(prop);
+		else {
+		    AnalysisEnd_DateTime = DateTime.parse(prop);
 		}
 		// Find the average...
 		double ratio_total = 0.0;
@@ -6450,22 +6454,15 @@ throws Exception
 			date.lessThanOrEqualTo(AnalysisEnd_DateTime);
 			date.addInterval ( interval_base, interval_mult) ) {
 			data_value = ts.getDataValue ( date );
-			independent_data_value =
-				independent_ts.getDataValue ( date );
-			if (	!ts.isDataMissing(data_value) &&
-				!independent_ts.isDataMissing(
-				independent_data_value) ) {
-				if (	DivisorIndependentTS_boolean &&
-					(independent_data_value != 0.0) ) {
-					ratio = data_value/
-						independent_data_value;
+			independent_data_value = independent_ts.getDataValue ( date );
+			if ( !ts.isDataMissing(data_value) && !independent_ts.isDataMissing( independent_data_value) ) {
+				if ( DivisorIndependentTS_boolean && (independent_data_value != 0.0) ) {
+					ratio = data_value/independent_data_value;
 					ratio_total += ratio;
 					++ratio_count;
 				}
-				else if(!DivisorIndependentTS_boolean &&
-					(data_value != 0.0) ) {
-					ratio = independent_data_value/
-						data_value;
+				else if(!DivisorIndependentTS_boolean && (data_value != 0.0) ) {
+					ratio = independent_data_value/data_value;
 					ratio_total += ratio;
 					++ratio_count;
 				}
@@ -6474,416 +6471,299 @@ throws Exception
 		if ( ratio_count > 0 ) {
 			// Average ratio...
 			ratio = ratio_total/ratio_count;
-			// Loop and fill the data.  No need to worry about
-			// direction so process forward.
-			for (	date = new DateTime(FillStart_DateTime);
+			// Loop and fill the data.  No need to worry about direction so process forward.
+			for ( date = new DateTime(FillStart_DateTime);
 				date.lessThanOrEqualTo(FillEnd_DateTime);
 				date.addInterval(interval_base, interval_mult)){
 				data_value = ts.getDataValue ( date );
-				independent_data_value =
-					independent_ts.getDataValue ( date );
-				if (	ts.isDataMissing(data_value) &&
-					!ts.isDataMissing(
-					independent_data_value) ) {
+				independent_data_value = independent_ts.getDataValue ( date );
+				if ( ts.isDataMissing(data_value) && !ts.isDataMissing( independent_data_value) ) {
 					if ( DivisorIndependentTS_boolean ) {
-						data_value =
-						independent_data_value*ratio;
+						data_value = independent_data_value*ratio;
 					}
-					else {	data_value =
-						independent_data_value/ratio;
+					else {
+					    data_value = independent_data_value/ratio;
 					}
 					if ( FillFlag_boolean ) {
 						// Set the flag...
-						ts.setDataValue ( date, 
-						data_value, FillFlag, 1 );
+						ts.setDataValue ( date, data_value, FillFlag, 1 );
 					}
-					else {	ts.setDataValue ( date,
-						data_value );
+					else {
+					    ts.setDataValue ( date, data_value );
 					}
 					++fill_count;
 				}
 			}
 			if ( fill_count > 0 ) {
-				ts.setDescription ( ts.getDescription() +
-				", fill prorate" );
+				ts.setDescription ( ts.getDescription() + ", fill prorate" );
 				String note = "";
 				if ( DivisorIndependentTS_boolean ) {
 					note = "*";
 				}
-				else {	note = "/";
+				else {
+				    note = "/";
 				}
 				ts.addToGenesis (
-				"Filled " + fill_count + " missing data points "
-				+ FillStart_DateTime + " to " +
-				FillEnd_DateTime +
-				" by prorating known values from \"" +
-				independent_ts.getIdentifierString() + "\" " +
-				note + " average factor " + ratio );
+				"Filled " + fill_count + " missing data points " + FillStart_DateTime + " to " +
+				FillEnd_DateTime + " by prorating known values from \"" +
+				independent_ts.getIdentifierString() + "\" " + note + " average factor " + ratio );
 			}
 		}
 	}
-	else {	// NearestPoint...
+	else {
+	    // NearestPoint...
 				
-	String loc = ts.getLocation();
-	String dt = ts.getDataType();
-	if ( Forward_boolean ) {
-		// Iterate forward.
-		// Determine whether an initial ratio is available to fill the
-		// end points...
-		if (	(InitialValue != null) &&
-			InitialValue.equalsIgnoreCase("NearestForward") ) {
-			for (	date = new DateTime(FillStart_DateTime);
-				date.lessThanOrEqualTo( FillEnd_DateTime );
-				date.addInterval(interval_base, interval_mult)){
-				independent_data_value =
-					independent_ts.getDataValue(date);
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// First check to see if there is an
-					// actual value in ts...
-					data_value = ts.getDataValue(date);
-					if ( !ts.isDataMissing(data_value) ){
-						ratio=data_value/
-						independent_data_value;
-						ratio_found = true;
-						Message.printStatus ( 2,
-						routine,
-						loc + " " + dt +
-						" Ratio ts/indepts computed on "
-						+ date + " " +
-						StringUtil.formatString(
-						data_value,"%.6f") + "/" +
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						break;
-					}
-					// Next, if an initial value is given
-					// for ts, use it...
-					if ( InitialValueDouble_boolean ) {
-						ratio = InitialValue_double/
-							independent_data_value;
-						ratio_found = true;
-						Message.printStatus ( 2,routine,
-						loc + " " + dt +
-						" Ratio ts/indepts computed on "
-						+ date + " " +
-						StringUtil.formatString(
-						InitialValue_double,"%.6f")+"/"+
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						break;
-					}
-					// Else, keep searching...
-				}
-			}
-		}
-		else if((InitialValue != null) &&
-			InitialValue.equalsIgnoreCase("NearestBackward") ) {
-			// Search backward from the fill start to the start of
-			// the time series...
-			DateTime date1 = ts.getDate1();
-			for (	date = new DateTime(FillStart_DateTime);
-				date.greaterThanOrEqualTo( date1 );
-				date.addInterval(interval_base,-interval_mult)){
-				independent_data_value =
-					independent_ts.getDataValue(date);
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// First check to see if there is an
-					// actual value in ts...
-					data_value = ts.getDataValue(date);
-					if ( !ts.isDataMissing(data_value) ){
-						ratio=data_value/
-						independent_data_value;
-						// For development...
-						Message.printStatus ( 2,routine,
-						loc + " " + dt +
-						" Ratio ts/indepts computed on "
-						+ date + " " +
-						StringUtil.formatString(
-						data_value,"%.6f") + "/" +
-						StringUtil.formatString(
-						independent_data_value,"%.6f") +
-						"=" + StringUtil.formatString(
-						ratio,"%.6f"));
-						ratio_found = true;
-						break;
-					}
-					// Next, if an initial value is given
-					// for ts, use it...
-					if ( InitialValueDouble_boolean ) {
-						ratio = InitialValue_double/
-							independent_data_value;
-						// For development...
-						Message.printStatus ( 2,routine,
-						loc + " " + dt +
-						" Ratio ts/indepts computed on "
-						+ date + " " +
-						StringUtil.formatString(
-						InitialValue_double,"%.6f")+"/"+
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						ratio_found = true;
-						break;
-					}
-					// Else, keep searching...
-				}
-			}
-		}
-		// Now fill the data...
-		for (	date = new DateTime(FillStart_DateTime);
-			date.lessThanOrEqualTo( FillEnd_DateTime );
-			date.addInterval(interval_base, interval_mult) ) {
-			data_value = ts.getDataValue ( date );
-			if ( ts.isDataMissing ( data_value ) ) {
-				independent_data_value =
-					independent_ts.getDataValue ( date );
-				if (	ratio_found &&
-					!independent_ts.isDataMissing(
-					independent_data_value) ) {
-					// Use the ratio to fill.  If no ratio
-					// has been found, leave missing...
-					if ( FillFlag_boolean ) {
-						// Set the flag...
-						ts.setDataValue ( date, 
-						independent_data_value*ratio,
-						FillFlag, 1 );
-					}
-					else {	ts.setDataValue ( date,
-						independent_data_value*ratio );
-					}
-					// For development...
-					Message.printStatus ( 2, routine,
-					"Filling " + date + " with val*ratio "+
-					StringUtil.formatString(
-					independent_data_value,"%.6f") + "*" +
-					StringUtil.formatString(ratio,"%.6f") +
-					"=" + StringUtil.formatString(
-					independent_data_value*ratio,"%.6f") );
-					++fill_count;
-				}
-			}
-			else {	// Have a data value.  See if the independent
-				// time series also has a value that can be
-				// used to recalculate the ratio.
-				independent_data_value =
-					independent_ts.getDataValue ( date );
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// Recalculate the ratio...
-					ratio = data_value/
-						independent_data_value;
-					// For development...
-					Message.printStatus ( 2, routine,
-					loc + " " + dt +
-					" Ratio ts/indepts computed on " + date+
-					" " + StringUtil.formatString(
-					data_value,"%.6f") + "/" +
-					StringUtil.formatString(
-					independent_data_value,"%.6f") + "=" +
-					StringUtil.formatString(ratio,"%.6f"));
-					ratio_found = true;
-				}
-			}
-		}
-	}
-	else {	// Iterate backward...
-		// Make sure that an initial ratio is available to fill the
-		// end points...
-		if (	(InitialValue != null) &&
-			InitialValue.equalsIgnoreCase("NearestBackward") ) {
-			for (	date = new DateTime(FillEnd_DateTime);
-				date.greaterThanOrEqualTo( FillStart_DateTime );
-				date.addInterval(interval_base,-interval_mult)){
-				independent_data_value =
-					independent_ts.getDataValue(date);
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// First check to see if there is an
-					// actual value in ts...
-					data_value = ts.getDataValue(date);
-					if ( !ts.isDataMissing(data_value) ){
-						ratio=data_value/
-						independent_data_value;
-						// For development...
-						Message.printStatus ( 2,routine,
-						"Ratio ts/indepts computed on "+
-						date + " " +
-						StringUtil.formatString(
-						data_value,"%.6f") + "/" +
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f"));
-						ratio_found = true;
-						break;
-					}
-					// Next, if an initial value is given
-					// for ts, use it...
-					if ( InitialValueDouble_boolean ){
-						ratio = InitialValue_double/
-							independent_data_value;
-						// For development...
-						Message.printStatus ( 2,routine,
-						"Ratio ts/indepts computed on "+
-						date + " " +
-						StringUtil.formatString(
-						InitialValue_double,"%.6f")+"/"+
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						ratio_found = true;
-						break;
-					}
-					// Else, keep searching...
-				}
-			}
-		}
-		else if((InitialValue != null) &&
-			InitialValue.equalsIgnoreCase("NearestForward") ) {
-			// Search foreward from the fill end to the end of the
-			// time series...
-			DateTime date2 = ts.getDate2();
-			for (	date = new DateTime(FillEnd_DateTime);
-				date.lessThanOrEqualTo( date2 );
-				date.addInterval(interval_base, interval_mult)){
-				independent_data_value =
-					independent_ts.getDataValue(date);
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// First check to see if there is an
-					// actual value in ts...
-					data_value = ts.getDataValue(date);
-					if ( !ts.isDataMissing(data_value) ){
-						ratio=data_value/
-						independent_data_value;
-						ratio_found = true;
-						Message.printStatus ( 2,
-						routine,
-						"Ratio ts/indepts computed on "+
-						date + " " +
-						StringUtil.formatString(
-						data_value,"%.6f") + "/" +
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						break;
-					}
-					// Next, if an initial value is given
-					// for ts, use it...
-					if ( InitialValueDouble_boolean ) {
-						ratio = InitialValue_double/
-							independent_data_value;
-						ratio_found = true;
-						Message.printStatus ( 2,routine,
-						"Ratio ts/indepts computed on "+
-						date + " " +
-						StringUtil.formatString(
-						InitialValue_double,"%.6f")+"/"+
-						StringUtil.formatString(
-						independent_data_value,"%.6f")+
-						"=" + StringUtil.formatString(
-						ratio,"%.6f") );
-						break;
-					}
-					// Else, keep searching...
-				}
-			}
-		}
-
-		// Now do the filling...
-		for (	date = new DateTime(FillEnd_DateTime);
-			date.greaterThanOrEqualTo( FillStart_DateTime );
-			date.addInterval(interval_base, -interval_mult) ) {
-			data_value = ts.getDataValue ( date );
-			if ( ts.isDataMissing ( data_value ) ) {
-				independent_data_value =
-					independent_ts.getDataValue ( date );
-				if (	ratio_found &&
-					!independent_ts.isDataMissing(
-					independent_data_value) ) {
-					// Use the ratio to fill.  If no ratio
-					// has been found, leave missing...
-					if ( FillFlag_boolean ) {
-						// Set the flag...
-						ts.setDataValue ( date, 
-						independent_data_value*ratio,
-						FillFlag, 1 );
-					}
-					else {	ts.setDataValue ( date,
-						independent_data_value*ratio );
-					}
-					// For development...
-					Message.printStatus ( 2, routine,
-					"Filling " + date + " with val*ratio "+
-					StringUtil.formatString(
-					independent_data_value,"%.6f") + "*" +
-					StringUtil.formatString(ratio,"%.6f")
-					+ "=" + StringUtil.formatString(
-					independent_data_value*ratio,"%.6f") );
-					++fill_count;
-				}
-			}
-			else {	// Have a data value.  See if the independent
-				// time series also has a value that can be
-				// used to recalculate the ratio.
-				independent_data_value =
-					independent_ts.getDataValue ( date );
-				if (	!independent_ts.isDataMissing(
-					independent_data_value) &&
-					(independent_data_value != 0.0) ) {
-					// Recalculate the ratio...
-					ratio = data_value/
-						independent_data_value;
-					// For development...
-					Message.printStatus ( 2, routine,
-					"Ratio ts/indepts computed on " + date +
-					" " +
-					StringUtil.formatString(
-					data_value,"%.6f") + "/" +
-					StringUtil.formatString(
-					independent_data_value,"%.6f") + "=" +
-					StringUtil.formatString(ratio,"%.6f"));
-					ratio_found = true;
-				}
-			}
-		}
-	}
-
-	// Fill in the genesis information...
-
-	if ( fill_count > 0 ) {
-		if ( Forward_boolean ) {
-			ts.setDescription ( ts.getDescription() +
-			", fill prorate forward" );
-			ts.addToGenesis ( "Filled " + fill_count +
-			" missing data points " +
-			FillStart_DateTime + " to " + FillEnd_DateTime +
-			" by prorating known values (forward) from \"" +
-			independent_ts.getIdentifierString() + "\"" );
-		}
-		else {	ts.setDescription ( ts.getDescription() +
-			", fill prorate backward" );
-			ts.addToGenesis ( "Filled " + fill_count +
-			" missing data points " +
-			FillStart_DateTime + " to " + FillEnd_DateTime +
-			" by prorating known values (backward) from \"" +
-			independent_ts.getIdentifierString() + "\"" );
-		}
-	}
+    	String loc = ts.getLocation();
+    	String dt = ts.getDataType();
+    	if ( Forward_boolean ) {
+    		// Iterate forward.
+    		// Determine whether an initial ratio is available to fill the end points...
+    		if ( (InitialValue != null) && InitialValue.equalsIgnoreCase("NearestForward") ) {
+    			for (	date = new DateTime(FillStart_DateTime);
+    				date.lessThanOrEqualTo( FillEnd_DateTime );
+    				date.addInterval(interval_base, interval_mult)){
+    				independent_data_value = independent_ts.getDataValue(date);
+    				if ( !independent_ts.isDataMissing(
+    					independent_data_value) && (independent_data_value != 0.0) ) {
+    					// First check to see if there is an actual value in ts...
+    					data_value = ts.getDataValue(date);
+    					if ( !ts.isDataMissing(data_value) ) {
+    						ratio=data_value/independent_data_value;
+    						ratio_found = true;
+    						Message.printStatus ( 2, routine,
+    						loc + " " + dt + " Ratio ts/indepts computed on "
+    						+ date + " " + StringUtil.formatString(
+    						data_value,"%.6f") + "/" + StringUtil.formatString(
+    						independent_data_value,"%.6f")+	"=" + StringUtil.formatString(ratio,"%.6f") );
+    						break;
+    					}
+    					// Next, if an initial value is given for ts, use it...
+    					if ( InitialValueDouble_boolean ) {
+    						ratio = InitialValue_double/independent_data_value;
+    						ratio_found = true;
+    						Message.printStatus ( 2,routine, loc + " " + dt +
+    						" Ratio ts/indepts computed on " + date + " " +
+    						StringUtil.formatString(InitialValue_double,"%.6f")+"/"+
+    						StringUtil.formatString(
+    						independent_data_value,"%.6f")+	"=" + StringUtil.formatString(ratio,"%.6f") );
+    						break;
+    					}
+    					// Else, keep searching...
+    				}
+    			}
+    		}
+    		else if((InitialValue != null) &&
+    			InitialValue.equalsIgnoreCase("NearestBackward") ) {
+    			// Search backward from the fill start to the start of the time series...
+    			DateTime date1 = ts.getDate1();
+    			for ( date = new DateTime(FillStart_DateTime);
+    				date.greaterThanOrEqualTo( date1 );
+    				date.addInterval(interval_base,-interval_mult)){
+    				independent_data_value = independent_ts.getDataValue(date);
+    				if ( !independent_ts.isDataMissing(
+    					independent_data_value) && (independent_data_value != 0.0) ) {
+    					// First check to see if there is an actual value in ts...
+    					data_value = ts.getDataValue(date);
+    					if ( !ts.isDataMissing(data_value) ){
+    						ratio=data_value/independent_data_value;
+    						// For development...
+    						Message.printStatus ( 2,routine, loc + " " + dt +
+    						" Ratio ts/indepts computed on " + date + " " +
+    						StringUtil.formatString( data_value,"%.6f") + "/" +
+    						StringUtil.formatString(independent_data_value,"%.6f") +
+    						"=" + StringUtil.formatString(ratio,"%.6f"));
+    						ratio_found = true;
+    						break;
+    					}
+    					// Next, if an initial value is given for ts, use it...
+    					if ( InitialValueDouble_boolean ) {
+    						ratio = InitialValue_double/independent_data_value;
+    						// For development...
+    						Message.printStatus ( 2,routine, loc + " " + dt +
+    						" Ratio ts/indepts computed on " + date + " " +
+    						StringUtil.formatString(InitialValue_double,"%.6f")+"/"+
+    						StringUtil.formatString(independent_data_value,"%.6f")+
+    						"=" + StringUtil.formatString(ratio,"%.6f") );
+    						ratio_found = true;
+    						break;
+    					}
+    					// Else, keep searching...
+    				}
+    			}
+    		}
+    		// Now fill the data...
+    		for ( date = new DateTime(FillStart_DateTime);
+    			date.lessThanOrEqualTo( FillEnd_DateTime );
+    			date.addInterval(interval_base, interval_mult) ) {
+    			data_value = ts.getDataValue ( date );
+    			if ( ts.isDataMissing ( data_value ) ) {
+    				independent_data_value = independent_ts.getDataValue ( date );
+    				if ( ratio_found &&	!independent_ts.isDataMissing(independent_data_value) ) {
+    					// Use the ratio to fill.  If no ratio has been found, leave missing...
+    					if ( FillFlag_boolean ) {
+    						// Set the flag...
+    						ts.setDataValue ( date, independent_data_value*ratio, FillFlag, 1 );
+    					}
+    					else {
+    					    ts.setDataValue ( date,	independent_data_value*ratio );
+    					}
+    					// For development...
+    					Message.printStatus ( 2, routine, "Filling " + date + " with val*ratio "+
+    					StringUtil.formatString(independent_data_value,"%.6f") + "*" +
+    					StringUtil.formatString(ratio,"%.6f") +
+    					"=" + StringUtil.formatString(independent_data_value*ratio,"%.6f") );
+    					++fill_count;
+    				}
+    			}
+    			else {
+    			    // Have a data value.  See if the independent time series also has a value that can be
+    				// used to recalculate the ratio.
+    				independent_data_value = independent_ts.getDataValue ( date );
+    				if ( !independent_ts.isDataMissing(
+    					independent_data_value) && (independent_data_value != 0.0) ) {
+    					// Recalculate the ratio...
+    					ratio = data_value/independent_data_value;
+    					// For development...
+    					Message.printStatus ( 2, routine, loc + " " + dt +
+    					" Ratio ts/indepts computed on " + date+ " " + StringUtil.formatString(
+    					data_value,"%.6f") + "/" + StringUtil.formatString(
+    					independent_data_value,"%.6f") + "=" + StringUtil.formatString(ratio,"%.6f"));
+    					ratio_found = true;
+    				}
+    			}
+    		}
+    	}
+    	else {
+    	    // Iterate backward...
+    		// Make sure that an initial ratio is available to fill the end points...
+    		if ( (InitialValue != null) && InitialValue.equalsIgnoreCase("NearestBackward") ) {
+    			for ( date = new DateTime(FillEnd_DateTime);
+    				date.greaterThanOrEqualTo( FillStart_DateTime );
+    				date.addInterval(interval_base,-interval_mult)){
+    				independent_data_value = independent_ts.getDataValue(date);
+    				if ( !independent_ts.isDataMissing(
+    					independent_data_value) && (independent_data_value != 0.0) ) {
+    					// First check to see if there is an actual value in ts...
+    					data_value = ts.getDataValue(date);
+    					if ( !ts.isDataMissing(data_value) ){
+    						ratio=data_value/independent_data_value;
+    						// For development...
+    						Message.printStatus ( 2,routine, "Ratio ts/indepts computed on "+
+    						date + " " + StringUtil.formatString(data_value,"%.6f") + "/" +
+    						StringUtil.formatString(independent_data_value,"%.6f")+
+    						"=" + StringUtil.formatString(ratio,"%.6f"));
+    						ratio_found = true;
+    						break;
+    					}
+    					// Next, if an initial value is given for ts, use it...
+    					if ( InitialValueDouble_boolean ){
+    						ratio = InitialValue_double/independent_data_value;
+    						// For development...
+    						Message.printStatus ( 2,routine, "Ratio ts/indepts computed on "+
+    						date + " " + StringUtil.formatString(InitialValue_double,"%.6f")+"/"+
+    						StringUtil.formatString( independent_data_value,"%.6f")+
+    						"=" + StringUtil.formatString(ratio,"%.6f") );
+    						ratio_found = true;
+    						break;
+    					}
+    					// Else, keep searching...
+    				}
+    			}
+    		}
+    		else if((InitialValue != null) && InitialValue.equalsIgnoreCase("NearestForward") ) {
+    			// Search foreward from the fill end to the end of the time series...
+    			DateTime date2 = ts.getDate2();
+    			for ( date = new DateTime(FillEnd_DateTime);
+    				date.lessThanOrEqualTo( date2 );
+    				date.addInterval(interval_base, interval_mult)){
+    				independent_data_value = independent_ts.getDataValue(date);
+    				if ( !independent_ts.isDataMissing(
+    					independent_data_value) && (independent_data_value != 0.0) ) {
+    					// First check to see if there is an actual value in ts...
+    					data_value = ts.getDataValue(date);
+    					if ( !ts.isDataMissing(data_value) ){
+    						ratio=data_value/independent_data_value;
+    						ratio_found = true;
+    						Message.printStatus ( 2, routine, "Ratio ts/indepts computed on "+
+    						date + " " + StringUtil.formatString(data_value,"%.6f") + "/" +
+    						StringUtil.formatString(independent_data_value,"%.6f")+
+    						"=" + StringUtil.formatString(ratio,"%.6f") );
+    						break;
+    					}
+    					// Next, if an initial value is given for ts, use it...
+    					if ( InitialValueDouble_boolean ) {
+    						ratio = InitialValue_double/independent_data_value;
+    						ratio_found = true;
+    						Message.printStatus ( 2, routine, "Ratio ts/indepts computed on "+ date + " " +
+    						StringUtil.formatString(InitialValue_double,"%.6f")+"/"+
+    						StringUtil.formatString(independent_data_value,"%.6f")+
+    						"=" + StringUtil.formatString(ratio,"%.6f") );
+    						break;
+    					}
+    					// Else, keep searching...
+    				}
+    			}
+    		}
+    
+    		// Now do the filling...
+    		for ( date = new DateTime(FillEnd_DateTime);
+    			date.greaterThanOrEqualTo( FillStart_DateTime );
+    			date.addInterval(interval_base, -interval_mult) ) {
+    			data_value = ts.getDataValue ( date );
+    			if ( ts.isDataMissing ( data_value ) ) {
+    				independent_data_value = independent_ts.getDataValue ( date );
+    				if ( ratio_found &&	!independent_ts.isDataMissing(independent_data_value) ) {
+    					// Use the ratio to fill.  If no ratio has been found, leave missing...
+    					if ( FillFlag_boolean ) {
+    						// Set the flag...
+    						ts.setDataValue ( date, independent_data_value*ratio, FillFlag, 1 );
+    					}
+    					else {
+    					    ts.setDataValue ( date, independent_data_value*ratio );
+    					}
+    					// For development...
+    					Message.printStatus ( 2, routine, "Filling " + date + " with val*ratio "+
+    					StringUtil.formatString( independent_data_value,"%.6f") + "*" +
+    					StringUtil.formatString(ratio,"%.6f") + "=" + StringUtil.formatString(
+    					independent_data_value*ratio,"%.6f") );
+    					++fill_count;
+    				}
+    			}
+    			else {
+    			    // Have a data value.  See if the independent time series also has a value that can be
+    				// used to recalculate the ratio.
+    				independent_data_value = independent_ts.getDataValue ( date );
+    				if ( !independent_ts.isDataMissing( independent_data_value) && (independent_data_value != 0.0) ) {
+    					// Recalculate the ratio...
+    					ratio = data_value/independent_data_value;
+    					// For development...
+    					Message.printStatus ( 2, routine, "Ratio ts/indepts computed on " + date + " " +
+    					StringUtil.formatString(data_value,"%.6f") + "/" + StringUtil.formatString(
+    					independent_data_value,"%.6f") + "=" + StringUtil.formatString(ratio,"%.6f"));
+    					ratio_found = true;
+    				}
+    			}
+    		}
+    	}
+    
+    	// Fill in the genesis information...
+    
+    	if ( fill_count > 0 ) {
+    		if ( Forward_boolean ) {
+    			ts.setDescription ( ts.getDescription() + ", fill prorate forward" );
+    			ts.addToGenesis ( "Filled " + fill_count + " missing data points " +
+    			FillStart_DateTime + " to " + FillEnd_DateTime +
+    			" by prorating known values (forward) from \"" +
+    			independent_ts.getIdentifierString() + "\"" );
+    		}
+    		else {
+    		    ts.setDescription ( ts.getDescription() + ", fill prorate backward" );
+    			ts.addToGenesis ( "Filled " + fill_count + " missing data points " +
+    			FillStart_DateTime + " to " + FillEnd_DateTime +
+    			" by prorating known values (backward) from \"" +
+    			independent_ts.getIdentifierString() + "\"" );
+    		}
+    	}
 	} // NearestPoint
 }
 
