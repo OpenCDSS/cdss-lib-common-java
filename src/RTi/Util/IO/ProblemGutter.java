@@ -400,9 +400,14 @@ implements AdjustmentListener
    */
   private void hideBar()
   {
-    _isComponentExpanded = false;
-    _jScrollPane.setRowHeaderView(this);
+      // TODO SAM 2008-10-01 For now disable the hiding because it causes usability problems.
+      boolean barIsHideable = false;
+      if ( barIsHideable ) {
+          _isComponentExpanded = false;
+          _jScrollPane.setRowHeaderView(this);
+      }
   }
+  
   private boolean inBounds(int x, int y)
   {
     //    if (showing)
@@ -530,8 +535,10 @@ implements AdjustmentListener
      */
   private void showBar()
   {
-    _isComponentExpanded = true;
-    _jScrollPane.setRowHeaderView(this);
+      if ( !_isComponentExpanded ) {
+          _isComponentExpanded = true;
+          _jScrollPane.setRowHeaderView(this);
+      }
   }
   
   /**
