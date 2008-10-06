@@ -42,7 +42,7 @@ import RTi.Util.Time.TZ;
 
 /**
 This ShefATS class provides static methods for reading and writing .A format
-SHEF (Standard Hydrologicical Exchange Format) time series.  Currently, only
+SHEF (Standard Hydrological Exchange Format) time series.  Currently, only
 write methods are available.
 */
 public class ShefATS
