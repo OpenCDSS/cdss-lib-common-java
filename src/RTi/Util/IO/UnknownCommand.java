@@ -95,21 +95,26 @@ CommandWarningException, CommandException
     int warning_level = 2;
     String command_tag = "" + command_number;
 
-    Message.printStatus ( 2, "UnknownCommand.runCommand", "In runCommand().");
-    CommandStatus status = getCommandStatus();
-    status.clearLog(CommandPhaseType.RUN);
-    
-    String message = "Do not know how to run unknown command.";
-    Message.printWarning(warning_level,
-        MessageUtil.formatMessageTag( command_tag, ++warning_count), routine, message );
-    status.addToLog ( CommandPhaseType.RUN,
-        new CommandLogRecord(CommandStatusType.FAILURE, message,
-            "Verify command spelling and if necessary report the problem to software support." ) );
-    
-    // Throw an exception because if something tries to run with this it needs
-    // to be made known that nothing is happening.
-    
-    throw new CommandException ( getCommandName() + " run() method is not enabled.");
+    if ( getCommandString().trim().equals("") ) {
+        // Empty line so don't do anything
+    }
+    else {
+        Message.printStatus ( 2, "UnknownCommand.runCommand", "In runCommand().");
+        CommandStatus status = getCommandStatus();
+        status.clearLog(CommandPhaseType.RUN);
+        
+        String message = "Do not know how to run unknown command \"" + toString() + "\"";
+        Message.printWarning(warning_level,
+            MessageUtil.formatMessageTag( command_tag, ++warning_count), routine, message );
+        status.addToLog ( CommandPhaseType.RUN,
+            new CommandLogRecord(CommandStatusType.FAILURE, message,
+                "Verify command spelling and if necessary report the problem to software support." ) );
+        
+        // Throw an exception because if something tries to run with this it needs
+        // to be made known that nothing is happening.
+        
+        throw new CommandException ( getCommandName() + " run() method is not enabled.");
+    }
 }
 
 // TODO SAM 2005-05-31 If the editor is ever implemented with a tabular
