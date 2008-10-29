@@ -1840,7 +1840,7 @@ public static int printCreatorHeader (	PrintWriter ofp, String comment0,
 	ofp.println ( comment + " date:         " + now );
 	ofp.println ( comment + " host:         " + _host );
 	ofp.println ( comment + " directory:    " + _working_dir );
-	ofp.print (   comment + " command line: " + _progname + " " );
+	ofp.print (   comment + " command line: " + _progname );
 	int column0	= commentlen + left_border + _progname.length() + 1;
 	int column	= column0;	// Column position, starting at 1
 	if ( _argv != null ) {
@@ -1850,12 +1850,12 @@ public static int printCreatorHeader (	PrintWriter ofp, String comment0,
 			if ( (column + 1 + len) > maxwidth ) {
 				// Put the argument on a new line...
 				ofp.println ();
-				ofp.print ( comment_space + _argv[i] + " " );
-				column = column0 + len + 1;
+				ofp.print ( comment_space + _argv[i] );
+				column = column0 + len;
 			}
 			else {
 			    // Put the argument on the same line...
-				ofp.print ( _argv[i] + " " );
+				ofp.print ( " " + _argv[i] );
 				column += (len + 1);
 			}
 		}
