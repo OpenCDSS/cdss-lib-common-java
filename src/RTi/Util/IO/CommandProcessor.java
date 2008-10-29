@@ -63,8 +63,7 @@ Process a request.  This provides a generalized way for commands
 to call specialized methods in the command processor.
 This version allows properties to be passed as name/value pairs
 in a PropList.  It also allows multiple results to be returned.
-The parameter and result names/contents should be well documented
-by specific processors.
+The parameter and result names/contents should be well documented by specific processors.
 @return a CommandProcessorRequestResultsBean containing the results of a request
 and other useful information.
 @param request A request keyword.
