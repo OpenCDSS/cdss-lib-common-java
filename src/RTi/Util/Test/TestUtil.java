@@ -481,42 +481,30 @@ public static Test suite(String packageName) {
 	// searching through the classes directories.
 	
 	if (tests != null) {
-		// Only add the test classes in the TestsToRun file to the
-		// Test Suite.
+		// Only add the test classes in the TestsToRun file to the Test Suite.
 		for (int i = 0; i < tests.size(); i++) {
 			try {
 				// Instantiate the class
-				o = Class.forName(packageName + "." 
-					+ tests.elementAt(i)).newInstance();
+				o = Class.forName(packageName + "." + tests.elementAt(i)).newInstance();
 				c = o.getClass();
 
-				// Try to get the suite() method from
-				// the class.  If there is no suite()
-				// method, a NoSuchMethodException 
-				// will be thrown.
+				// Try to get the suite() method from the class.  If there is no suite()
+				// method, a NoSuchMethodException will be thrown.
 				m = c.getMethod("suite", null);
 
-				// Execute the suite() method on the 
-				// instantiated class.
+				// Execute the suite() method on the instantiated class.
 				suite.addTest((Test)(m.invoke(o, null)));
 			}
 			catch (NoSuchMethodException e) {
-				// The given class did not have a 
-				// suite() method.  The class will 
-				// simply be skipped.
-				System.out.println("TestUtil.suite(): "
-					+ "Class '" + packageName + "."
-					+ tests.elementAt(i) + "' does not "
-					+ "contain a suite() method.");
+				// The given class did not have a suite() method.  The class will simply be skipped.
+				System.out.println("TestUtil.suite(): Class '" + packageName + "."
+					+ tests.elementAt(i) + "' does not contain a suite() method.");
 			}						
 			catch (Exception e) {
-				// An error occurred creating this test and
-				// adding it to the suite.  Skip it and go
+				// An error occurred creating this test and adding it to the suite.  Skip it and go
 				// to the next one.
-				System.out.println("TestUtil.suite(): "
-					+ "Class '" + packageName + "."
-					+ tests.elementAt(i) + "' could not "
-					+ "be instantiated.");
+				System.out.println("TestUtil.suite(): Class '" + packageName + "."
+					+ tests.elementAt(i) + "' could not be instantiated.");
 				e.printStackTrace();
 			}			
 		}
@@ -527,93 +515,66 @@ public static Test suite(String packageName) {
 		// directory.  Only those classes that end with "Test.class"
 		// and have a "suite()" method will be added.
 
-			// Turn the package into a directory (e.g., 
-			// "RTi.Util.GUI" becomes "RTi\Util\GUI").
-			String packageDir = StringUtil.replaceString(
-				packageName, ".", File.separator);		
+		// Turn the package into a directory (e.g., "RTi.Util.GUI" becomes "RTi\Util\GUI").
+		String packageDir = StringUtil.replaceString(packageName, ".", File.separator);		
 		try {
 				
-			// Get a list of all the class files in that 
-			// directory.
-			File dir = new File(__BUILD_DIRECTORY_NAME 
-				+ packageDir);
-	    		String[] children = dir.list();
+			// Get a list of all the class files in that directory.
+			File dir = new File(__BUILD_DIRECTORY_NAME + packageDir);
+	    	String[] children = dir.list();
 			
 			Vector v = new Vector();
 			if (children == null) {
-				// Either the directory does not exist or is not
-				// a directory.  Neither should occur.
-				throw new Exception(dir.toString() 
-					+ " is not a valid directory.");
+				// Either the directory does not exist or is not a directory.  Neither should occur.
+				throw new Exception(dir.toString() + " is not a valid directory.");
 			} 
 			else {
 				int index = 0;
 				for (int i = 0; i < children.length; i++) {
-					// Find the classes in the directory 
-					// that end with "Test.class".
+					// Find the classes in the directory that end with "Test.class".
 					String filename = children[i];
 					if (filename.endsWith("Test.class")) {
-						// Trim ".class" from the 
-						// filename.
+						// Trim ".class" from the filename.
 						index = filename.indexOf(".");
-						v.add(filename.substring(0, 
-							index));
+						v.add(filename.substring(0, index));
 					}
 				}
 			}
 		
-			// Iterate through all the "XXXTest.class" files found
-			// in the directory.
+			// Iterate through all the "XXXTest.class" files found in the directory.
 			int size = v.size();
 
 			for (int i = 0; i < size; i++) {
 				try {
 					// Instantiate the class
-					o = Class.forName(packageName + "." 
-						+ v.elementAt(i)).newInstance();
+					o = Class.forName(packageName + "." + v.elementAt(i)).newInstance();
 					c = o.getClass();
 
-					// Try to get the suite() method from
-					// the class.  If there is no suite()
-					// method, a NoSuchMethodException 
-					// will be thrown.
+					// Try to get the suite() method from the class.  If there is no suite()
+					// method, a NoSuchMethodException will be thrown.
 					m = c.getMethod("suite", null);
 
-					// Execute the suite() method on the 
-					// instantiated class.
-					suite.addTest(
-						(Test)(m.invoke(o, null)));
+					// Execute the suite() method on the instantiated class.
+					suite.addTest( (Test)(m.invoke(o, null)));
 				}
 				catch (NoSuchMethodException e) {
-					// The given class did not have a 
-					// suite() method.  The class will 
-					// simply be skipped.
-					System.out.println("TestUtil.suite(): "
-						+ "Class '" + packageName + "."
-						+ tests.elementAt(i) + "' does "
-						+ "not contain a suite() "
-						+ "method.");
+					// The given class did not have a suite() method.  The class will simply be skipped.
+					System.out.println("TestUtil.suite(): Class '" + packageName + "."
+						+ v.elementAt(i) + "' does not contain a suite() method.");
 				}				
 				catch (Exception e) {
-					// An error occurred creating this test 
-					// and adding it to the suite.  Skip it 
+					// An error occurred creating this test and adding it to the suite.  Skip it 
 					// and go to the next one.
-					System.out.println("TestUtil.suite(): "
-						+ "Class '" + packageName + "."
-						+ tests.elementAt(i) + "' "
-						+ "could not be instantiated.");
+					System.out.println("TestUtil.suite(): Class '" + packageName + "."
+						+ v.elementAt(i) + "' could not be instantiated.");
 					e.printStackTrace();
 				}
 			}
 		}
 		catch (Exception e) {
-			// The directory containing the class files could
-			// not be found or was specified incorrectly.
-			System.out.println("TestUtil.suite(): " 
-				+ "The directory containing the class files "
-				+ "(" + __BUILD_DIRECTORY_NAME + packageDir
-				+ ") could not be found or was specified "
-				+ "incorrectly.");
+			// The directory containing the class files could not be found or was specified incorrectly.
+			System.out.println("TestUtil.suite(): The directory containing the class files "
+				+ "(" + __BUILD_DIRECTORY_NAME + packageDir + ") could not be found or was specified incorrectly.");
 			e.printStackTrace();
 		}
 	}

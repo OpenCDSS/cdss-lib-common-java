@@ -546,12 +546,11 @@ throws IOException
 {	// Make RandomAccessFile to write out data...
 
 	EndianRandomAccessFile raf_DBF_stream = null;
-	if ( (dbf_file.length() > 4) && dbf_file.regionMatches(true,
-			(dbf_file.length() - 4),".dbf",0,4) ) {
+	if ( (dbf_file.length() > 4) && dbf_file.regionMatches(true,(dbf_file.length() - 4),".dbf",0,4) ) {
 		raf_DBF_stream = new EndianRandomAccessFile(dbf_file, "rw");
 	}
-	else {	raf_DBF_stream = new EndianRandomAccessFile(dbf_file +
-				".dbf", "rw");
+	else {
+	    raf_DBF_stream = new EndianRandomAccessFile(dbf_file + ".dbf", "rw");
 	}
 
 	// Write the DBF header 
@@ -591,7 +590,7 @@ throws IOException
 
 	// 8-9 #bytes in header
 	// There are 32 bytes in first part of header and then an additional 32
-	// bytes per FIELD descripter array.  Finally, the record header is
+	// bytes per FIELD descriptor array.  Finally, the record header is
 	// closed with an additional terminating byte.
 	// So if have only 1 field, the #bytes in header is:
 	// 32+32+1 = 65
@@ -640,7 +639,7 @@ throws IOException
 	raf_DBF_stream.writeByte(0x00);
 
 	// 29 language driver ID: 0x00 ignored
-	// 0x01 437 DOS USA, 0x02 850 DOS Multi ling, 
+	// 0x01 437 DOS USA, 0x02 850 DOS Multi-line, 
 	// 0X03 1251 Windows ANSI, 0xC8 1250 Windows EE
 	raf_DBF_stream.writeByte(0x01);
 
@@ -653,8 +652,7 @@ throws IOException
 	//start FIELD DESCPRIPTOR ARRAY
 
 	StringBuffer b = new StringBuffer();
-	// Put together the format specifier for each field as the fields are
-	// procesed...
+	// Put together the format specifier for each field as the fields are processed...
 	for ( int ifield = 0; ifield < nfields; ifield++ ) {
 		//32-42 field descriptor name (11 bytes, null-terminated)
 		b.setLength(0);
@@ -664,7 +662,8 @@ throws IOException
 			b.setLength(10);
 			b.append('\0');
 		}
-		else {	for ( int i = b.length(); i < 11; i++ ) {
+		else {
+		    for ( int i = b.length(); i < 11; i++ ) {
 				b.append ( '\0' );
 			}
 		}
@@ -675,7 +674,8 @@ throws IOException
 		if ( field_type == TableField.DATA_TYPE_STRING ) {
 			raf_DBF_stream.writeLittleEndianChar1 ('C');
 		}
-		else {	raf_DBF_stream.writeLittleEndianChar1 ('N');
+		else {
+		    raf_DBF_stream.writeLittleEndianChar1 ('N');
 		}
 
 		// 44-47 reserved
@@ -685,13 +685,11 @@ throws IOException
 		raf_DBF_stream.writeByte(0);
 
 		// 48 field length
-		//raf_DBF_stream.writeUnsignedByte(
-		//table.getFieldWidth(ifield));
+		//raf_DBF_stream.writeUnsignedByte(table.getFieldWidth(ifield));
 		raf_DBF_stream.writeByte( table.getFieldWidth(ifield));
 
 		// 49 field decimal count in binary 
-		//raf_DBF_stream.writeUnsignedByte(
-		//table.getFieldPrecision(ifield));
+		//raf_DBF_stream.writeUnsignedByte(table.getFieldPrecision(ifield));
 		raf_DBF_stream.writeByte( table.getFieldPrecision(ifield));
 
 		// 50-51 reserved
@@ -713,21 +711,18 @@ throws IOException
 		raf_DBF_stream.writeByte(0);
 		raf_DBF_stream.writeByte(0);
 
-		// 63 production MDX field flag- 01H if has index tag in MDX
-		// file, 00H if not.
+		// 63 production MDX field flag- 01H if has index tag in MDX file, 00H if not.
 		raf_DBF_stream.writeLittleEndianChar1 ( '\0' );
 	}
 	b = null;
 
-	// Last byte before data records is the header Record terminator,
-	// which is ODH == 13 in decimal.
+	// Last byte before data records is the header Record terminator, which is ODH == 13 in decimal.
 	raf_DBF_stream.writeLittleEndianChar1 ('\013');
 
 	// Now start with the data records.
-	// Each record preceeded by 1 space==20h=32 decimal.
+	// Each record preceded by 1 space==20h=32 decimal.
 
-	// Get the floats out of the vector that is storing them
-	// they are in same order as polygon cells are...
+	// Get the floats out of the vector that is storing them...
 	String outstring = null;
 	String [] format_spec = table.getFieldFormats();
 	int ifield = 0;
@@ -735,29 +730,23 @@ throws IOException
 		if ( (write_record != null) && !write_record[i] ) {
 			continue;
 		}
-		// Write delete flag that preceeds each record
-		// (0x20=space is not deleted, 0x2A=* if deleted)
+		// Write delete flag that precedes each record (0x20=space is not deleted, 0x2A=* if deleted)
 		raf_DBF_stream.writeLittleEndianChar1(' ');
 		for ( ifield = 0; ifield < nfields; ifield++ ) {
-			// Write the field data value using the format
-			// specification assigned above.  The formatString()
+			// Write the field data value using the format specification assigned above.  The formatString()
 			// method cannot just take an Object so need to cast.
-			try {	outstring = StringUtil.formatString(
-				table.getFieldValue(i,ifield),
-				format_spec[ifield]);
+			try {
+			    outstring = StringUtil.formatString(table.getFieldValue(i,ifield),format_spec[ifield]);
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 2, "", e );
 				raf_DBF_stream.close();
 				raf_DBF_stream = null;
 				outstring = null;
-				format_spec = null;
 				throw new IOException (
-				"Error writing record " + i + " field " +
-				ifield + " using " + format_spec[ifield]);
+				"Error writing record " + i + " field " + ifield + " using " + format_spec[ifield]);
 			}
-			// The string will be the exact length so can just write
-			// the whole thing...
+			// The string will be the exact length so can just write the whole thing...
 			raf_DBF_stream.writeLittleEndianChar1(outstring);
 		}
 	}

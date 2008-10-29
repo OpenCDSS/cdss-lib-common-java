@@ -1688,24 +1688,20 @@ String [] referenceTables, Vector notIncluded) {
 		try {	
 			rs = metadata.getColumns(null, null, tableName, null);
 			if (rs == null) {
-				Message.printWarning(2, routine,
-				"Error getting columns for \""
-					+ tableName + "\" table.");
-				rs.close();
+				Message.printWarning(2, routine, "Error getting columns for \"" + tableName + "\" table.");
 				continue;
 			} 
 			html.anchor("ReferenceTable:" + tableName);
 			html.headingStart(3);
 			html.addText(tableName + "  ");
-			html.link("#Table:" + tableName,
-				"(View Definition)");
+			html.link("#Table:" + tableName, "(View Definition)");
 			html.headingEnd(3);
 			html.blockquoteStart();
 
 			Vector columnNames = new Vector();
 			more = rs.next();
 			while (more) {
-			    	columnNames.add(rs.getString(4).trim());
+			    columnNames.add(rs.getString(4).trim());
 				more = rs.next();
 			}
 			DMI.closeResultSet(rs);
