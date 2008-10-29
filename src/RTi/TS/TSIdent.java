@@ -960,11 +960,11 @@ public boolean matches ( String id_regexp )
 }
 
 /**
-Compare the string time series identifier to a regular expression.  Because time
-series identifiers use the "." character, the regular expression should only
-contain the "*" wildcard, as needed.  If the
-regular expression does not include a ".", then the full string is compared
-using normal Java conventions.  if the regular expression does contain ".",
+Compare the string time series identifier to a limited regular expression, where only * is
+recognized.  Because time series identifiers use the "." character, the regular expression should only
+contain the "*" wildcard, as needed.  The full string is first compared
+using normal Java conventions and treating dots as literals.  If the previous check does not produce
+a match and if the regular expression does contain ".",
 then the regular expression is split into time series identifier parts and
 a string comparison of the major parts is done (so that the
 number of "." does not cause a problem).  This version <b>does not</b> compare
@@ -972,19 +972,31 @@ the input type and name (use the overloaded version to do so).
 See the overloaded version for more information.
 @return true if the identifier string matches the instance (if the string does
 not match, the individual five main parts are also compared and if they match
-true is returned).  Wildcards are allowed in the identifier.
-Coparisons are done case-independent by converting strings to uppercase.
-@param id_regexp String identifier to compare, with identifier fields containing
-regular expressions.
+true is returned).  Wild-cards are allowed in the identifier.
+Comparisons are done case-independent by converting strings to upper-case.
+@param id_regexp String identifier to compare, with identifier fields containing regular expressions.
 @param check_alias If true, check the alias first for a match.  If not matched,
 the identifier is checked.  If false, the alias is not checked and only the
 identifier string is checked.
 */
-public boolean matches ( String id_regexp, boolean check_alias,
-			boolean include_input )
-{	if ( id_regexp.indexOf(".") >= 0 ) {
-		// Regular expression contains parts so compare the parts...
-		try {	TSIdent tsident = new TSIdent ( id_regexp );
+public boolean matches ( String id_regexp, boolean check_alias, boolean include_input )
+{	
+    // Do a comparison on the whole string.  The user may or may not have defined an alias with periods.
+    // Only allow * wildcards when matching the whole string so replace . with literal
+    String java_regexp=StringUtil.replaceString(id_regexp,".","\\.").toUpperCase();
+    // Now replace * with .* so java string comparison works...
+    java_regexp=StringUtil.replaceString(java_regexp,"*",".*").toUpperCase();
+    if ( check_alias && (__alias != null) && (__alias.length() > 0) && __alias.toUpperCase().matches(java_regexp) ) {
+        return true;
+    }
+    if ( __identifier.toUpperCase().matches(java_regexp) ) {
+        return true;
+    }
+    // If here, check to see if the string contains periods that that indicate that identifier parts need checked.
+    if ( id_regexp.indexOf(".") >= 0 ) {
+		// Regular expression to match contains parts so compare the parts...
+		try {
+		    TSIdent tsident = new TSIdent ( id_regexp );
 			return matches ( tsident.getLocation(),
 					tsident.getSource(),
 					tsident.getType(),
@@ -999,21 +1011,7 @@ public boolean matches ( String id_regexp, boolean check_alias,
 			return false;
 		}
 	}
-	else {	// The regular expression does not contain parts so do a
-		// comparison on the whole string...
-		// First replace * with .* so java string comparison works...
-		String java_regexp=StringUtil.replaceString(id_regexp,"*",".*").
-			toUpperCase();
-		if (	check_alias && (__alias != null) &&
-			(__alias.length() > 0) &&
-			__alias.toUpperCase().matches(java_regexp) ) {
-			return true;
-		}
-		if ( __identifier.toUpperCase().matches(java_regexp) ) {
-			return true;
-		}
-		return false;
-	}
+    return false; // fall-through
 }
 
 /**
@@ -1022,7 +1020,7 @@ including the input type and name.
 See the overloaded version for more information.
 @return true if the identifier string matches the instance (if the string does
 not match, the individual five main parts are also compared and if they match
-true is returned).  Wildcards are allowed in the identifier.
+true is returned).  Wild-cards are allowed in the identifier.
 @param id_regexp String identifier to compare, with identifier fields containing
 regular expressions.
 @param include_input If true, the input type and name are included in the
@@ -1030,7 +1028,8 @@ comparison.  If false, only the 5-part TSID are checked.
 @deprecated Use the overloaded method that takes an option for the alias.
 */
 public boolean matches ( String id_regexp, boolean include_input )
-{	try {	TSIdent tsident = new TSIdent ( id_regexp );
+{	try {
+        TSIdent tsident = new TSIdent ( id_regexp );
 		return matches ( tsident.getLocation(), tsident.getSource(),
 				tsident.getType(), tsident.getInterval(),
 				tsident.getScenario(),
@@ -1116,8 +1115,7 @@ public boolean matches (	String location_regexp, String source_regexp,
 				String input_name_regexp,
 				boolean include_input )
 {	// Do the comparison by comparing each part.  Check for mismatches and
-	// if any occur return false.  Then if at the end, the TSIdent must
-	// match.
+	// if any occur return false.  Then if at the end, the TSIdent must match.
 	String routine = "TSIdent.matches";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 5, routine,
@@ -1132,16 +1130,11 @@ public boolean matches (	String location_regexp, String source_regexp,
 	}
 	// Replace "*" in the regular expressions with ".*", which is necessary
 	// to utilize the Java matches() method...
-	String location_regexp_Java = StringUtil.replaceString(
-		location_regexp,"*",".*").toUpperCase();
-	String source_regexp_Java = StringUtil.replaceString(
-		source_regexp,"*",".*").toUpperCase();
-	String data_type_regexp_Java = StringUtil.replaceString(
-		data_type_regexp,"*",".*").toUpperCase();
-	String interval_regexp_Java = StringUtil.replaceString(
-		interval_regexp,"*",".*").toUpperCase();
-	String scenario_regexp_Java = StringUtil.replaceString(
-		scenario_regexp,"*",".*").toUpperCase();
+	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*").toUpperCase();
+	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*").toUpperCase();
+	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").toUpperCase();
+	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*").toUpperCase();
+	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*").toUpperCase();
 	// Compare the 5-part identifier first...
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {
 		return false;
@@ -1162,23 +1155,17 @@ public boolean matches (	String location_regexp, String source_regexp,
 		return false;
 	}
 	if ( include_input ) {
-		String input_type_regexp_Java = StringUtil.replaceString(
-			input_type_regexp,"*",".*").toUpperCase();
-		String input_name_regexp_Java = StringUtil.replaceString(
-			input_name_regexp,"*",".*").toUpperCase();
-		// Sometimes input_type_regexp is blank.  In this case do not
-		// use to compare
+		String input_type_regexp_Java = StringUtil.replaceString( input_type_regexp,"*",".*").toUpperCase();
+		String input_name_regexp_Java = StringUtil.replaceString( input_name_regexp,"*",".*").toUpperCase();
+		// Sometimes input_type_regexp is blank.  In this case do not use to compare
 		// TODO SAM 2007-06-22 Not sure why regexp would not be OK here and below?
-		if ( (input_type_regexp.length() > 0) &&
-				!__input_type.toUpperCase().matches(input_type_regexp_Java) ) {
+		if ( (input_type_regexp.length() > 0) && !__input_type.toUpperCase().matches(input_type_regexp_Java) ) {
 			return false;
 		}
-		// Typical that input_name_regexp is blank.  In this case do not
-		// use to compare.
-		if ( (input_name_regexp.length() > 0) &&
-			!__input_name.toUpperCase().matches(input_name_regexp_Java) ) {
-				return false;
-			}
+		// Typical that input_name_regexp is blank.  In this case do not use to compare.
+		if ( (input_name_regexp.length() > 0) && !__input_name.toUpperCase().matches(input_name_regexp_Java) ) {
+			return false;
+		}
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 5, routine, "TSIdent matches" );
