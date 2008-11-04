@@ -37,11 +37,11 @@ public class MessageLoggingImpl extends MessageImpl {
     private Level translateWarningLevel(int level) {
         Level l;
         if (level <= 1) {
-            l = Level.SEVERE;
-        } else if (level <= 10) {
             l = Level.WARNING;
-        } else {
+        } else if (level <= 10) {
             l = Level.FINE;
+        } else {
+            l = Level.FINER;
         }
         return l;
     }
