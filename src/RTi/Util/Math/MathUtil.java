@@ -66,8 +66,12 @@ package RTi.Util.Math;
 import	RTi.Util.Message.Message;
 
 import java.lang.Math;
+import java.util.Arrays;
 import java.util.Vector;
 
+/**
+Static methods for processing statistics.
+*/
 public class MathUtil
 {
 /**
@@ -144,8 +148,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 		return null;
 	}
 	else if ( return_num == -1 ) {
-		j = ((Integer)common_denominators.elementAt(
-			common_denominators.size() - 1)).intValue();
+		j = ((Integer)common_denominators.elementAt(common_denominators.size() - 1)).intValue();
 		int [] iarray = new int[1];
 		iarray[0] = j;
 		return iarray;
@@ -160,8 +163,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 	int size = common_denominators.size();
 	int [] iarray = new int[size];
 	for ( int i = 0; i < size; i++ ) {
-		iarray[i] = ((Integer)
-			common_denominators.elementAt(i)).intValue();
+		iarray[i] = ((Integer)common_denominators.elementAt(i)).intValue();
 	}
 	return iarray;
 }
@@ -169,8 +171,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 /**
 Converts a decimal number in the range 0-255 into a 2-character hex string.
 @param num the number to convert to hexadecimal.
-@return the two-digit hex string, or null if the number couldn't be 
-converted.
+@return the two-digit hex string, or null if the number couldn't be converted.
 */
 public static String decimalToHex(int num) {
 	if (num < 0 || num > 255) {
@@ -213,12 +214,10 @@ Perform integration for a function.
 @param func Function to integrate (using Function interface).
 @param a0 Left end point for entire interval.
 @param b0 Right end point for entire interval.
-@param nseg Number of segments to divide interval (use higher number for
-functions that are not smooth).
+@param nseg Number of segments to divide interval (use higher number for functions that are not smooth).
 @exception Exception if the function cannot be integrated.
 */
-public static double integrate (	int method, Function func,
-					double a0, double b0, int nseg )
+public static double integrate ( int method, Function func, double a0, double b0, int nseg )
 throws Exception
 {	double a, b;	// End-points used for integration
 	double dx;	// increment to map "gx" values to real values
@@ -230,12 +229,14 @@ throws Exception
 	int i;		// counter for integration points
 	int j;		// counter for segments
 	int ng = 5;	// number of integration points
-	double	gx[] = {	0.1488743389,	// unit-interval points to
+	double	gx[] = {
+	            0.1488743389,	// unit-interval points to
 				0.4333953941,	// evaluate function
 				0.6794095682,
 				0.8650633666,
 				0.9739065285 },
-		gw[] = {	0.2955242247, // Gauss weights
+		gw[] = {
+	            0.2955242247, // Gauss weights
 				0.2692667193, // corresponding to "gx"
 				0.2190863625,
 				0.1494513491,
@@ -264,8 +265,7 @@ throws Exception
 			dx = xr*gx[i];
 			func_input1[0] = xm + dx; 
 			func_input2[0] = xm - dx; 
-			s += gw[i]*(func.evaluate(func_input1) +
-				func.evaluate(func_input2));
+			s += gw[i]*(func.evaluate(func_input1) + func.evaluate(func_input2));
 		}
 		s	*= xr;
 		stot	+= s;
@@ -286,15 +286,14 @@ Do a linear interpolation/extrapolation.
 @param ymin "Left" value on "Y" axis.
 @param ymax "Right" value on "Y" axis.
 */
-public static double interpolate (	double x,
-					double xmin, double xmax,
-					double ymin, double ymax )
+public static double interpolate ( double x, double xmin, double xmax, double ymin, double ymax )
 {	double	y;
 
 	if ( (xmax - xmin) == 0.0 ) {
 		y = ymin;
 	}
-	else {	y = ymin + (ymax - ymin)*(x - xmin)/(xmax - xmin);
+	else {
+	    y = ymin + (ymax - ymin)*(x - xmin)/(xmax - xmin);
 	}
 	return y;
 }
@@ -321,7 +320,8 @@ public static double max ( double x, double y )
 	if ( x >= y ) {
 		return x;
 	}
-	else {	return y;
+	else {
+	    return y;
 	}
 }
 
@@ -358,7 +358,8 @@ Find the maximum in an array.
 public static double max ( double x[] )
 throws Exception
 {
-	try {	return max ( x.length, x );
+	try {
+	    return max ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -400,7 +401,8 @@ throws Exception
 	int [] a = new int[2];
 	a[0] = x;
 	a[1] = y;
-	try {	int m = max ( a );
+	try {
+	    int m = max ( a );
 		a = null;
 		return m;
 	}
@@ -413,7 +415,8 @@ throws Exception
 public static int max ( int x[] )
 throws Exception
 {
-	try {	return max ( x.length, x );
+	try {
+	    return max ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -467,10 +470,10 @@ throws Exception
 ** x		I	Data values.
 **------------------------------------------------------------------------------
 */
-
 public static double mean ( double x[] )
 throws Exception
-{	try {	return mean ( x.length, x );
+{	try {
+        return mean ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -494,7 +497,8 @@ throws Exception
 		Message.printWarning ( 10, routine, message );
 		throw new Exception ( message );
 	}
-	try {	thesum = sum ( n, x );
+	try {
+	    thesum = sum ( n, x );
 	}
 	catch (	Exception e ) {
 		throw e;
@@ -522,7 +526,8 @@ throws Exception
 		throw new Exception ( message );
 	}
 	int n2 = 0;
-	try {	for ( int i = 0; i < n; i++ ) {
+	try {
+	    for ( int i = 0; i < n; i++ ) {
 			if ( x[i] != missing ) { 
 				thesum += x[i];
 				++n2;
@@ -566,6 +571,29 @@ public static double min ( double x, double y, double missing )
 }
 
 /**
+Find the median value in an array.  If the number of values is even, the average of the middle two values is returned.
+@param n Number of values from x to evaluate.
+@param x The array to evaluate.
+@return the median value from x
+*/
+public static double median(int n, double x[])
+{
+    double[] b = new double[n];
+    System.arraycopy(x, 0, b, 0, n);
+    Arrays.sort(b);
+
+    if ( (n % 2) == 0) {
+        // Even number in the sample so return the average of the middle two values.
+        return (b[(b.length / 2) - 1] + b[b.length / 2]) / 2.0;
+    }
+    else {
+        // Return the value in the middle of the array.  Since integer math is used for the index,
+        // the roundoff will result in the correct position.
+        return b[b.length/2];
+    }
+}
+
+/**
 Find the minimum of two values.
 @return minimum of two values.
 @param x First value to check.
@@ -576,7 +604,8 @@ public static double min ( double x, double y )
 	if ( x <= y ) {
 		return x;
 	}
-	else {	return y;
+	else {
+	    return y;
 	}
 }
 
@@ -588,7 +617,8 @@ Find the minimum value in an array.
 public static double min ( double x[] )
 throws Exception
 {
-	try {	return min ( x.length, x );
+	try {
+	    return min ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -629,7 +659,8 @@ throws Exception
 	int [] a = new int[2];
 	a[0] = x;
 	a[1] = y;
-	try {	int m = min ( a );
+	try {
+	    int m = min ( a );
 		a = null;
 		return m;
 	}
@@ -642,7 +673,8 @@ throws Exception
 public static int min ( int x[] )
 throws Exception
 {
-	try {	return min ( x.length, x );
+	try {
+	    return min ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -700,14 +732,10 @@ parameter.  Note that currently the intercept must be zero.
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
-public static Regression regress (	double [] xArray, double [] yArray, 
-					boolean useMissing, double missingx,
-					double missingy,
-					boolean force_intercept,
-					double intercept )
+public static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
+					double missingy, boolean force_intercept, double intercept )
 throws Exception
-{	return regress (xArray, yArray, useMissing, missingx, missingy, false,
-			force_intercept, intercept );
+{	return regress (xArray, yArray, useMissing, missingx, missingy, false, force_intercept, intercept );
 }
 
 /**
@@ -728,8 +756,7 @@ strip out missing data values.
 @param missingx Missing data value indicator for "xArray".
 @param missingy Missing data value indicator for "yArray".
 @param data_transformed Indicates whether the data being passed in have been
-transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE
-data member.
+transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE data member.
 @param forceIntercept If true, use the "intercept" parameter to specify a forced
 intercept (A value).  If false, calculate the intercept.
 @param intercept If "forceIntercept" is true, use this parameter to specify the
@@ -737,12 +764,8 @@ parameter.  Note that currently the intercept must be zero.
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
-private static Regression regress (	double [] xArray, double [] yArray, 
-					boolean useMissing, double missingx,
-					double missingy,
-					boolean data_transformed,
-					boolean forceIntercept,
-					double intercept )
+private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
+					double missingy, boolean data_transformed, boolean forceIntercept, double intercept )
 throws Exception
 {	String rtn = "MathUtil.regress";
 	if ( xArray.length != yArray.length ) {
@@ -765,8 +788,7 @@ throws Exception
 	double rmse = 0;
 	double r = 1;
 
-	double	maxY1 = missingy, maxX1 = missingx, minY1 = missingy,
-		minX1 = missingx;
+	double	maxY1 = missingy, maxX1 = missingx, minY1 = missingy, minX1 = missingx;
 	boolean limits_found = false;
 
 	// To analyze the data, non-missing data are required for both X and
@@ -814,7 +836,8 @@ throws Exception
 			}
 		}
 	}
-	else {	// Use the original arrays...
+	else {
+	    // Use the original arrays...
 		X1 = xArray;
 		Y1 = yArray;
 		n1 = xArray.length;
@@ -837,8 +860,7 @@ throws Exception
 		totalY1 += Y1[i];
 		totalY1_sq += (Y1[i] * Y1[i]);
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, rtn,
-			"X1: " + X1[i] + ", Y1: " + Y1[i] );
+			Message.printDebug ( 50, rtn, "X1: " + X1[i] + ", Y1: " + Y1[i] );
 		}
 		if ( !limits_found ) {
 			// Initialize
@@ -846,7 +868,8 @@ throws Exception
 			minY1 = maxY1 = Y1[i];
 			limits_found = true;
 		}
-		else {	maxX1 = max ( maxX1, X1[i] );
+		else {
+		    maxX1 = max ( maxX1, X1[i] );
 			minX1 = min ( minX1, X1[i] );
 			maxY1 = max ( maxY1, Y1[i] );
 			minY1 = min ( minY1, Y1[i] );
@@ -879,18 +902,17 @@ throws Exception
 	//	sqrt([N*x^2 - sum(x)^2] * [N*y^2 - sum(y)^2])
 
 	double denom = Math.sqrt ((((double)n1 * totalX1_sq) -
-		(totalX1*totalX1)) *
-		(((double)n1 * totalY1_sq) - (totalY1*totalY1)));
+		(totalX1*totalX1)) * (((double)n1 * totalY1_sq) - (totalY1*totalY1)));
 		
 	if ( denom > 0 ) {
 		r = (((double)n1 * totalX1Y1) - (totalX1 * totalY1))/denom;
 	}
-	else {	r = -999.0;
+	else {
+	    r = -999.0;
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, rtn,
-		"Data leading to regression analysis: ");
+		Message.printDebug ( 10, rtn, "Data leading to regression analysis: ");
 		Message.printDebug ( 10, rtn, "n1: " + n1 );
 		Message.printDebug ( 10, rtn, "totalX1_sq: " + totalX1_sq );
 		Message.printDebug ( 10, rtn, "totalX1: " + totalX1 );
@@ -910,17 +932,19 @@ throws Exception
 
 	if ( forceIntercept ) {
 		if ( totalX1_sq == 0.0 ) {
-			// REVISIT - should this throw an exception?
+			// TODO - should this throw an exception?
 			b = -999.0;
 		}
-		else {	b = totalX1Y1/totalX1_sq;
+		else {
+		    b = totalX1Y1/totalX1_sq;
 		}
 	}
 	else {	denom = ((double)n1*totalX1_sq) - (totalX1*totalX1);
 		if ( denom > 0 ) {
 			b = (((double)n1*totalX1Y1) - (totalX1*totalY1))/denom;
 		}
-		else {	// REVISIT - should this throw an exception?
+		else {
+		    // TODO - should this throw an exception?
 			b = -999.0;
 		}
 	}
@@ -935,22 +959,18 @@ throws Exception
 
 	if ( forceIntercept ) {
 		if ( intercept != 0.0 ) {
-			throw new Exception (
-			"Only zero intercept is supported (specified as " +
-			intercept + ")." );
+			throw new Exception ( "Only zero intercept is supported (specified as " + intercept + ")." );
 		}
 		a = intercept;
 	}
-	else {	// Compute...
+	else {
+	    // Compute...
 		a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
 	}
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, rtn, "Regression analysis results: " +
-		"a: " + a + ", " +
-		"b: " + b + ", " +
-		"rmsError: " + rmse + ", " +
-		"R: " + r );
+		"a: " + a + ", " + "b: " + b + ", " + "rmsError: " + rmse + ", " + "R: " + r );
 	}
 
 	// Save in Regression object...
@@ -961,7 +981,8 @@ throws Exception
 	if ( data_transformed ) {
 		rd.setTransformedRMSE ( rmse );
 	}
-	else {	rd.setRMSE ( rmse );
+	else {
+	    rd.setRMSE ( rmse );
 	}
 	rd.forceIntercept ( forceIntercept );
 	rd.setN1 ( n1 );
@@ -986,32 +1007,29 @@ throws Exception
 
 	if ( useMissing ) {
 		rd.setMeanX ( mean(xArray.length, xArray, missingx) );
-		rd.setStandardDeviationX ( standardDeviation(xArray.length,
-			xArray, missingx) );
-		rd.setStandardDeviationX1 ( standardDeviation(X1.length,
-			X1, missingx) );
+		rd.setStandardDeviationX ( standardDeviation(xArray.length, xArray, missingx) );
+		rd.setStandardDeviationX1 ( standardDeviation(X1.length, X1, missingx) );
 		if ( n2 == 0 ) {
 			rd.setMeanX2 ( -999.0 );
 			rd.setStandardDeviationX2 ( -999.0 );
 		}
-		else {	rd.setMeanX2 ( mean(X2.length, X2, missingx) );
-			rd.setStandardDeviationX2 (
-				standardDeviation(X2.length, X2, missingx) );
+		else {
+		    rd.setMeanX2 ( mean(X2.length, X2, missingx) );
+			rd.setStandardDeviationX2 (	standardDeviation(X2.length, X2, missingx) );
 		}
-		rd.setStandardDeviationY1 ( standardDeviation(Y1.length, Y1,
-			missingy) );
+		rd.setStandardDeviationY1 ( standardDeviation(Y1.length, Y1, missingy) );
 	}
-	else {	rd.setMeanX ( mean(xArray.length, xArray) );
-		rd.setStandardDeviationX ( standardDeviation(xArray.length,
-			xArray) );
+	else {
+	    rd.setMeanX ( mean(xArray.length, xArray) );
+		rd.setStandardDeviationX ( standardDeviation(xArray.length, xArray) );
 		rd.setStandardDeviationX1 ( standardDeviation(X1.length, X1) );
 		if ( n2 == 0 ) {
 			rd.setMeanX2 ( -999.0 );
 			rd.setStandardDeviationX2 ( -999.0 );
 		}
-		else {	rd.setMeanX2 ( mean(X2.length, X2) );
-			rd.setStandardDeviationX2 (
-				standardDeviation(X2.length, X2 ) );
+		else {
+		    rd.setMeanX2 ( mean(X2.length, X2) );
+			rd.setStandardDeviationX2 ( standardDeviation(X2.length, X2 ) );
 		}
 		rd.setStandardDeviationY1 ( standardDeviation(Y1.length, Y1 ) );
 	}
@@ -1030,13 +1048,11 @@ performed, the limits are set to the missing data value indicator.
 @param missingx Missing data value indicator for "xArray".
 @param missingy Missing data value indicator for "yArray".
 @param useMissing true indicates to use "missingx" and "missingy" in
-calculations (if false the values are not checked against "missingx" and
-"missingy").
+calculations (if false the values are not checked against "missingx" and "missingy").
 @exception java.lang.Exception If the length of the two arrays differ.
 */
-public static Regression regressLog (	double [] xArray, double [] yArray, 
-					boolean useMissing, double missingx,
-					double missingy )
+public static Regression regressLog ( double [] xArray, double [] yArray, 
+					boolean useMissing, double missingx, double missingy )
 throws Exception
 {	String rtn = "MathUtil.regressLog";
 	if ( xArray.length != yArray.length ) {
@@ -1055,10 +1071,12 @@ throws Exception
 		if ( useMissing && (xArray[i] == missingx) ) {
 			logArrayX[i] = missingx;
 		}
-		else {	if ( xArray[i] > 0 ) {
+		else {
+		    if ( xArray[i] > 0 ) {
 				logArrayX[i] = log10(xArray[i]);
 			}
-			else {	logArrayX[i] = .001;
+			else {
+			    logArrayX[i] = .001;
 			}
 		}
 	}
@@ -1068,22 +1086,21 @@ throws Exception
 		if ( useMissing && (yArray[i] == missingy) ) {
 			logArrayY[i] = missingy;
 		}
-		else {	if ( yArray[i] > 0 ) {
+		else {
+		    if ( yArray[i] > 0 ) {
 				logArrayY[i] = log10(yArray[i]);
 			}
-			else  {	logArrayY[i] = .001;
+			else {
+			    logArrayY[i] = .001;
 			}
 		}
 	}
 
-	// Do the regression on the transformed data.  The RMSE will be saved in
-	// the transformed data member...
+	// Do the regression on the transformed data.  The RMSE will be saved in the transformed data member...
 
-	Regression rd = regress ( logArrayX, logArrayY, useMissing, missingx,
-					missingy, true, false, 0 );
+	Regression rd = regress ( logArrayX, logArrayY, useMissing, missingx, missingy, true, false, 0 );
 	// Also compute the RMSE for the untransformed data...
-	rd.setRMSE ( RMSError(xArray.length, xArray, yArray, useMissing,
-		missingx, missingy) );
+	rd.setRMSE ( RMSError(xArray.length, xArray, yArray, useMissing, missingx, missingy) );
 
 	// Reset with the actual limits (not the log values)...
 
@@ -1148,24 +1165,21 @@ public static int reverseArray(	double[] data )
 		return ( 1 );
 	}
 
-	half	= ndata / 2;
-	j	= ndata - 1;
+	half = ndata / 2;
+	j = ndata - 1;
 
 	for ( i = 0; i < half; i++ ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving data[" + i + "] (" + data[i] + ") to tempf." );
+			Message.printDebug ( 50, routine, "Moving data[" + i + "] (" + data[i] + ") to tempf." );
 		}
-		tempf	= data[i];
+		tempf = data[i];
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving data[" +j+ "] (" +data[j]+ ") to data["+i+"].");
+			Message.printDebug ( 50, routine, "Moving data[" +j+ "] (" +data[j]+ ") to data["+i+"].");
 		}
 
 		data[i]	= data[j];
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving tempf (" +tempf+ ") to data[" +j+ "]." );
+			Message.printDebug ( 50, routine, "Moving tempf (" +tempf+ ") to data[" +j+ "]." );
 		}
 		data[j]	= tempf;
 		j--;
@@ -1181,31 +1195,28 @@ Reverse an array of integers.
 public static int reverseArray(	int[] data )
 {	int	i, j, half, ndata = data.length;
 	int	tempi;
-	String	routine="MathUtil.reverseArray";
+	String routine="MathUtil.reverseArray";
 
 	if ( data == null ) {
 		Message.printWarning ( 2, routine, "No array to reverse!" );
 		return ( 1 );
 	}
 
-	half	= ndata / 2;
-	j	= ndata - 1;
+	half = ndata / 2;
+	j = ndata - 1;
 
 	for ( i = 0; i < half; i++ ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving data[" + i + "] (" + data[i] + ") to tempi." );
+			Message.printDebug ( 50, routine, "Moving data[" + i + "] (" + data[i] + ") to tempi." );
 		}
-		tempi	= data[i];
+		tempi = data[i];
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving data[" +j+ "] (" +data[j]+ ") to data["+i+"].");
+			Message.printDebug ( 50, routine, "Moving data[" +j+ "] (" +data[j]+ ") to data["+i+"].");
 		}
 
 		data[i]	= data[j];
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Moving tempi (" +tempi+ ") to data[" +j+ "]." );
+			Message.printDebug ( 50, routine, "Moving tempi (" +tempi+ ") to data[" +j+ "]." );
 		}
 		data[j]	= tempi;
 		j--;
@@ -1228,8 +1239,7 @@ considered is 0.
 @exception Exception if there is an error computing the RMS error.
 */
 public static double RMSError ( int n, double x[], double y[],
-				boolean use_missing,
-				double xmissing, double ymissing )
+				boolean use_missing, double xmissing, double ymissing )
 throws Exception
 {	int n2 = 0;
 	double sume2 = 0.0;
@@ -1282,8 +1292,7 @@ throws Exception
 ** ----------------------------------------------------------------------------
 */
 
-public static double roundToPercent (	double x, double interval, int mflag,
-					int rflag )
+public static double roundToPercent ( double x, double interval, int mflag, int rflag )
 throws Exception
 {	String	message, routine = "MathUtil.roundToPercent";
 	double	fact, interval100, xhigh, xhighdif, xlow, xlowdif, xr, xs;
@@ -1292,32 +1301,30 @@ throws Exception
 	// Figure out factors, etc. to convert everything to 100.0 scale...
 	if ( mflag > 0 ) {
 		if ( (x < 0.0) || (x > 1.0) ) {
-			message =
-			"" + x +
-			" cannot be rounded because it is not > 0.0, < 1.0";
+			message = "" + x + " cannot be rounded because it is not > 0.0, < 1.0";
 			Message.printWarning ( 1, routine, message );
 			throw new Exception ( message );
 		}
-		fact		= 1.0;
+		fact = 1.0;
 		interval100	= interval;
-		xs		= x;
+		xs = x;
 		
 	}
-	else {	if ( (x < 0.0) || (x > 100.0) ) {
-			message = "" + x +
-			" cannot be rounded because it is not > 0.0, < 100.0";
+	else {
+	    if ( (x < 0.0) || (x > 100.0) ) {
+			message = "" + x + " cannot be rounded because it is not > 0.0, < 100.0";
 			Message.printWarning ( 1, routine, message );
 			throw new Exception ( message );
 		}
-		fact		= 100.0;
+		fact = 100.0;
 		interval100	= interval*fact;
-		xs		= x*fact;
+		xs = x*fact;
 	}
 	// Adjust so that the scale for the data is one unit per "interval100".
-	xs	/= interval100;
-	xhigh	= Math.ceil ( xs );
-	xhighdif= Math.abs ( xhigh - xs );
-	xlow	= Math.floor ( xs );
+	xs /= interval100;
+	xhigh = Math.ceil ( xs );
+	xhighdif = Math.abs ( xhigh - xs );
+	xlow = Math.floor ( xs );
 	xlowdif	= Math.abs ( xlow - xs );
 	if ( (xhighdif < xlowdif) || (rflag < 0) ) {
 		xr = xhigh*interval100/fact;
@@ -1327,8 +1334,7 @@ throws Exception
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 5, routine,
-		"Rounded value for " + x + " (interval=" + interval +
-		", # units=" + xs + ") is " + xr );
+		"Rounded value for " + x + " (interval=" + interval + ", # units=" + xs + ") is " + xr );
 	}
 	return xr;
 }
@@ -1345,25 +1351,21 @@ sort associated data by using new_other_data[i] = old_other_data[sort_order[i]];
 Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sort(double[] data, int method, int order, int[] sort_order,
-			boolean sflag )
+public static int sort(double[] data, int method, int order, int[] sort_order, boolean sflag )
 {	String	routine="MathUtil.sort(double[]...)";
 	int	i=0, ndata=data.length;
 
 	if ( data == null ) {
-		Message.printWarning( 2, routine,
-		"Incoming data array is NULL, cannot sort." );
+		Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
 		return 1;
 	}
 	if ( sflag && (sort_order == null) ) {
-		Message.printWarning( 2, routine,
-		"Incoming sort_order array is NULL, cannot sort." );
+		Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
 		return 1;
 	}
 
 	if ( sflag && (sort_order.length < data.length) ) {
-		Message.printWarning( 2, routine,
-		"sort_order array length (" + sort_order.length +
+		Message.printWarning( 2, routine, "sort_order array length (" + sort_order.length +
 		" is smaller than data array length (" + data.length + ")" );
 		return 1;
 	}
@@ -1379,30 +1381,32 @@ public static int sort(double[] data, int method, int order, int[] sort_order,
 	// Now sort into ascending order...
 
 	if ( method == SORT_QUICK ) {
-		if ( sortDQuick(data, sort_order, sflag) == 1 )
+		if ( sortDQuick(data, sort_order, sflag) == 1 ) {
 			return ( 1 );
+		}
 	}
 	else if ( method == SORT_BUBBLE ) {
-		Message.printWarning ( 2, routine, 
-		"Bubble sort not supported yet" );
+		Message.printWarning ( 2, routine, "Bubble sort not supported yet" );
 		return 1;
 	}
-	else {	// Quick sort is default...
-		Message.printWarning ( 2, routine,
-		"Sort method " + method + " not supported.  Using quick sort" );
-		if ( sortDQuick(data, sort_order, sflag) == 1 )
+	else {
+	    // Quick sort is default...
+		Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
+		if ( sortDQuick(data, sort_order, sflag) == 1 ) {
 			return 1;
+		}
 	}
 
-	// Now check to see if the arrays need to be reversed for descending
-	// order...
+	// Now check to see if the arrays need to be reversed for descending order...
 
 	if ( order == SORT_DESCENDING ) {
-		if ( reverseArray(data ) == 1 )
+		if ( reverseArray(data ) == 1 ) {
 			return 1;
+		}
 		if ( sflag ) {
-			if ( reverseArray(sort_order ) == 1 )
+			if ( reverseArray(sort_order ) == 1 ) {
 				return 1;
+			}
 		}
 	}
 
@@ -1415,30 +1419,25 @@ Sort an array of integers.
 @param data Array of integers to sort.
 @param method Method to use for sorting (see SORT_*).
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
-@param sort_order Original locations of data after sort (array needs to be
-allocated before calling routine).
+@param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sort (int[] data, int method, int order, int[] sort_order,
-			boolean sflag )
+public static int sort (int[] data, int method, int order, int[] sort_order, boolean sflag )
 {	String	routine="MathUtil.sort(int[]...)";
 	int	i=0, ndata=data.length;
 
 	if ( data == null ) {
-		Message.printWarning( 2, routine,
-		"Incoming data array is NULL, cannot sort." );
+		Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
 		return 1;
 	}
 
 	if ( sflag && (sort_order == null) ) {
-		Message.printWarning( 2, routine,
-		"Incoming sort_order array is NULL, cannot sort." );
+		Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
 		return 1;
 	}
 
 	if ( sflag && (sort_order.length < data.length) ){
-		Message.printWarning( 2, routine,
-		"sort_order array length (" + sort_order.length +
+		Message.printWarning( 2, routine, "sort_order array length (" + sort_order.length +
 		") is smaller than data array length (" + data.length + ")." );
 		return 1;
 	}
@@ -1446,50 +1445,44 @@ public static int sort (int[] data, int method, int order, int[] sort_order,
 	// Initialize "sort_order" to sequential numbers...
 	
 	if ( sflag ) {
-		for ( i = 0; i < ndata; i++ )
+		for ( i = 0; i < ndata; i++ ) {
 			sort_order[i] = i;
+		}
 	}
 
 	// Now sort into ascending order...
 
 	if ( method == SORT_QUICK ) {
-		if ( sortIQuick(data, sort_order, sflag) == 1 )
+		if ( sortIQuick(data, sort_order, sflag) == 1 ) {
 			return 1;
+		}
 	}
 	else if ( method == SORT_BUBBLE ) {
-		Message.printWarning ( 2, routine, 
-		"Bubble sort not supported yet" );
+		Message.printWarning ( 2, routine, "Bubble sort not supported yet" );
 		return 1;
 	}
-	else {	// Quick sort is default...
-		Message.printWarning ( 2, routine,
-		"Sort method " + method + " not supported.  Using quick sort" );
-		if ( sortIQuick(data, sort_order, sflag) == 1 )
+	else {
+	    // Quick sort is default...
+		Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
+		if ( sortIQuick(data, sort_order, sflag) == 1 ) {
 			return 1;
+		}
 	}
 
-	// Now check to see if the arrays need to be reversed for descending
-	// order...
+	// Now check to see if the arrays need to be reversed for descending order...
 
 	if ( order == SORT_DESCENDING ) {
-		if ( reverseArray(data ) == 1 )
+		if ( reverseArray(data ) == 1 ) {
 			return 1;
+		}
 		if ( sflag ) {
-			if ( reverseArray(sort_order ) == 1 )
+			if ( reverseArray(sort_order ) == 1 ) {
 				return 1;
+			}
 		}
 	}
 
 	return 0;
-}
-
-/**
-@deprecated Use sort.
-*/
-public static int sortD(double[] data, int method, int order, int[] sort_order,
-			boolean sflag )
-{
-	return sort ( data, method, order, sort_order, sflag );
 }
 
 /* ----------------------------------------------------------------------------
@@ -1517,8 +1510,7 @@ public static int sortD(double[] data, int method, int order, int[] sort_order,
 Sort an array of doubles into ascending order using the quick sort method.
 @return Zero if successful and 1 if not successful.
 @param data Array of doubles to sort.
-@param sort_order Original locations of data after sort (array needs to be
-allocated before calling routine).
+@param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
 public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
@@ -1538,23 +1530,27 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 					ia	= sort_order[j];
 				}
 				for ( i = (j - 1); i >= 0; i-- ) {
-					if ( data[i] <= a )
+					if ( data[i] <= a ) {
 						break;
+					}
 					data[i + 1] = data[i];
 					if ( sflag ) {
 						sort_order[i+1]	= sort_order[i];
 					}
 				}
 				data[i + 1] = a;
-				if ( sflag )
+				if ( sflag ) {
 					sort_order[i + 1] = ia;
+				}
 			}
-			if ( jstack == 0 )
+			if ( jstack == 0 ) {
 				break;
+			}
 			ir	= istack[jstack--];
 			l	= istack[jstack--];
 		}
-		else {	k = (l + ir)/2;
+		else {
+		    k = (l + ir)/2;
 			temp		= data[k];
 			data[k]		= data[l + 1];
 			data[l + 1]	= temp;
@@ -1600,12 +1596,15 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 				ia	= sort_order[l];
 			}
 			while ( true ) {
-				do {	i++;
+				do {
+				    i++;
 				} while ( data[i] < a );
-				do {	j--;
+				do {
+				    j--;
 				} while ( data[j] > a );
-				if ( j < i )
+				if ( j < i ) {
 					break;
+				}
 				temp		= data[i];
 				data[i]		= data[j];
 				data[j]		= temp;
@@ -1623,8 +1622,7 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 			}
 			jstack	+= 2;
 			if ( jstack > (NSTACK - 1) ) {
-				Message.printWarning ( 2, routine,
-				"NSTACK (" + NSTACK + ") too small in sort" );
+				Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
 				// Free memory...
 				istack = null;
 				return 1;
@@ -1634,7 +1632,8 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 				istack[jstack - 1]	= i;
 				ir			= j - 1;
 			}
-			else {	istack[jstack]		= j - 1;
+			else {
+			    istack[jstack]		= j - 1;
 				istack[jstack - 1]	= l;
 				l			= i;
 			}
@@ -1642,73 +1641,6 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 	}
 	istack = null;
 	return 0;
-}
-
-/**
-@deprecated Use sort ( int[], ... ).
-*/
-public static int sortI(int[] data, int method, int order, int[] sort_order,
-			boolean sflag )
-{	String	routine="MathUtil.sortI";
-	int	i=0, ndata=data.length;
-
-	if( data == null || sort_order == null ){
-		Message.printWarning( 2, routine,
-		"Incoming array is NULL, cannot continue." );
-		return( 1 );
-	}
-
-	if( sort_order.length < data.length ){
-		Message.printWarning( 2, routine,
-		"sort_order array is smaller than data array." );
-		return( 1 );
-	}
-	/*
-	** Initialize "sort_order" to sequential numbers...
-	*/
-	
-	if ( sflag ) {
-		for ( i = 0; i < ndata; i++ )
-			sort_order[i] = i;
-	}
-
-	/*
-	** Now sort into ascending order...
-	*/
-
-	if ( method == SORT_QUICK ) {
-		if ( sortIQuick(data, sort_order, sflag) == 1 )
-			return ( 1 );
-	}
-	else if ( method == SORT_BUBBLE ) {
-		Message.printWarning ( 2, routine, 
-		"Bubble sort not supported yet" );
-		return ( 1 );
-	}
-	else {	/*
-		** Quick sort is default...
-		*/
-		Message.printWarning ( 2, routine,
-		"Sort method " + method + " not supported.  Using quick sort" );
-		if ( sortIQuick(data, sort_order, sflag) == 1 )
-			return ( 1 );
-	}
-
-	/*
-	** Now check to see if the arrays need to be reversed for descending
-	** order...
-	*/
-
-	if ( order == SORT_DESCENDING ) {
-		if ( reverseArray(data ) == 1 )
-			return ( 1 );
-		if ( sflag ) {
-			if ( reverseArray(sort_order ) == 1 )
-				return ( 1 );
-		}
-	}
-
-	return ( 0 );
 }
 
 /* ----------------------------------------------------------------------------
@@ -1757,23 +1689,27 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 					ia	= sort_order[j];
 				}
 				for ( i = (j - 1); i >= 0; i-- ) {
-					if ( data[i] <= a )
+					if ( data[i] <= a ) {
 						break;
+					}
 					data[i + 1] = data[i];
 					if ( sflag ) {
 						sort_order[i+1]	= sort_order[i];
 					}
 				}
 				data[i + 1] = a;
-				if ( sflag )
+				if ( sflag ) {
 					sort_order[i + 1] = ia;
+				}
 			}
-			if ( jstack == 0 )
+			if ( jstack == 0 ) {
 				break;
+			}
 			ir	= istack[jstack--];
 			l	= istack[jstack--];
 		}
-		else {	k = (l + ir)/2;
+		else {
+		    k = (l + ir)/2;
 			temp		= data[k];
 			data[k]		= data[l + 1];
 			data[l + 1]	= temp;
@@ -1819,12 +1755,15 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 				ia	= sort_order[l];
 			}
 			while ( true ) {
-				do {	i++;
+				do {
+				    i++;
 				} while ( data[i] < a );
-				do {	j--;
+				do {
+				    j--;
 				} while ( data[j] > a );
-				if ( j < i )
+				if ( j < i ) {
 					break;
+				}
 				temp		= data[i];
 				data[i]		= data[j];
 				data[j]		= temp;
@@ -1842,8 +1781,7 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 			}
 			jstack	+= 2;
 			if ( jstack > (NSTACK - 1) ) {
-				Message.printWarning ( 2, routine,
-				"NSTACK (" + NSTACK + ") too small in sort" );
+				Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
 				istack = null;
 				return 1;
 			}
@@ -1852,7 +1790,8 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 				istack[jstack - 1]	= i;
 				ir			= j - 1;
 			}
-			else {	istack[jstack]		= j - 1;
+			else {
+			    istack[jstack]		= j - 1;
 				istack[jstack - 1]	= l;
 				l			= i;
 			}
@@ -1887,7 +1826,8 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 public static double standardDeviation ( double x[] )
 throws Exception
 {
-	try {	return standardDeviation ( x.length, x );
+	try {
+	    return standardDeviation ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -1900,7 +1840,8 @@ throws Exception
 	double	s, var;
 
 	s = 0.0;
-	try {	var = variance ( n, x );
+	try {
+	    var = variance ( n, x );
 	}
 	catch ( Exception e ) {
 		message = "Trouble calculating variance";
@@ -1908,8 +1849,7 @@ throws Exception
 		throw new Exception ( message );
 	}
 	if ( var <= 0.0 ) {
-		message = "Variance (" + var +
-		") <= 0.  Cannot compute standard deviation.";
+		message = "Variance (" + var + ") <= 0.  Cannot compute standard deviation.";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
@@ -1923,7 +1863,8 @@ throws Exception
 	double	s, var;
 
 	s = 0.0;
-	try {	var = variance ( n, x, missing );
+	try {
+	    var = variance ( n, x, missing );
 	}
 	catch ( Exception e ) {
 		message = "Trouble calculating variance";
@@ -2005,7 +1946,8 @@ public static double sum ( int n, double x[], double missing )
 
 public static double variance ( double x[] )
 throws Exception
-{	try {	return variance ( x.length, x );
+{	try {
+    return variance ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -2024,7 +1966,8 @@ throws Exception
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
-	try {	meanx = mean(n, x);
+	try {
+	    meanx = mean(n, x);
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 50, routine, "Error calculating mean" );
@@ -2050,7 +1993,8 @@ throws Exception
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
-	try {	meanx = mean(n, x, missing);
+	try {
+	    meanx = mean(n, x, missing);
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 50, routine, "Error calculating mean" );
