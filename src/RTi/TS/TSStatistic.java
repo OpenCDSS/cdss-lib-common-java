@@ -35,6 +35,7 @@ public final static String
     ExceedanceProbabilityGE50 = "ExceedanceProbabilityGE50", // Probability of exceeding value is >= 10%
     ExceedanceProbabilityGE90 = "ExceedanceProbabilityGE90", // Probability of exceeding value is >= 10%
 	Max = "Max",			// Maximum value in the sample
+	Median = "Median", // Median value in the sample
 	Mean = "Mean",			// Mean value in the sample
 	Min = "Min",			// Minimum value in the sample
 	Total = "Total";       // Total value in the sample
@@ -60,8 +61,7 @@ These strings are suitable for listing in a user interface.  The statistics are
 listed in ascending alphabetical order.  Parameters can be used to limit the
 choices (these features will be phased in over time as statistics are added).
 @param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get
-all choices.
+statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
 @param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
 @deprecated Use getStatisticChoicesForInterval
@@ -78,8 +78,7 @@ These strings are suitable for listing in a user interface.  The statistics are
 listed in ascending alphabetical order.  Parameters can be used to limit the
 choices (these features will be phased in over time as statistics are added).
 @param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get
-all choices.
+statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
 @param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
 */
@@ -101,6 +100,7 @@ public static Vector getStatisticChoicesForInterval ( int interval, String times
 		statistics.addElement ( DayOfMax );
 		statistics.addElement ( DayOfMin );
 		statistics.addElement ( Max );
+		statistics.addElement ( Median );
 		statistics.addElement ( Mean );
 		statistics.addElement ( Min );
 		statistics.addElement ( Total );
@@ -116,8 +116,7 @@ These strings are suitable for listing in a user interface.  The statistics are
 listed in ascending alphabetical order.  Parameters can be used to limit the
 choices (these features will be phased in over time as statistics are added).
 @param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get
-all choices.
+statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
 @param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
 */
@@ -128,7 +127,8 @@ public static Vector getStatisticChoicesForSimpleSample ( int interval, String t
     //statistics.addElement ( ExceedanceProbabilityGE10 );
     //statistics.addElement ( ExceedanceProbabilityGE50 );
     //statistics.addElement ( ExceedanceProbabilityGE90 );
-	statistics.addElement ( Mean );
+    statistics.addElement ( Mean );
+    statistics.addElement ( Median );
 	//statistics.addElement ( Min );
 	return statistics;
 }

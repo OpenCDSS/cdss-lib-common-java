@@ -47,6 +47,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -524,9 +525,6 @@ throws Exception
 	}
 	
 	String Statistic = props.getValue ( "Statistic" );
-	if ( !Statistic.equalsIgnoreCase(TSStatistic.Mean)) {
-		throw new Exception ( "Only statistic Mean is currently recognized.");
-	}
 
 	try {
         // Main try...
@@ -604,9 +602,9 @@ throws Exception
 
 /**
 Create the statistic data from another time series.  The results are saved in a time
-series having the interval of the input data, from Jan 1, 00 to Dec 31 (one interval from
+series having the interval of the input data, from January 1, 00 to December 31 (one interval from
 the start of the next year).  Year 2000 is used because it was a leap year.  This allows
-Feb 29 data to be computed as a statistic, although it may no be used in the final output.
+February 29 data to be computed as a statistic, although it may not be used in the final output.
 @param ts Time series to be analyzed.
 @param analysis_start Start of period to analyze.
 @param analysis_end End of period to analyze.
@@ -615,7 +613,25 @@ Feb 29 data to be computed as a statistic, although it may no be used in the fin
 */
 private TS createStatisticTimeSeries_ComputeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end, String statistic )
 throws Exception
-{	// Get the dates for the one-year statistic time series...
+{	
+ // Initialize statistic integer to speed processing
+    // TODO SAM 2008-10-30 Need to enable global enumeration for statistics
+    int MEAN = 0;
+    int MEDIAN = 1;
+    int statisticInt = 0;
+    if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
+        statisticInt = MEAN;
+    }
+    /*
+    else if ( statistic.equalsIgnoreCase(TSStatistic.Median) ) {
+        statisticInt = MEDIAN;
+    }
+    */
+    else {
+        throw new Exception ( "Only know how to generate mean and median statistics.");
+    }
+    
+    // Get the dates for the one-year statistic time series...
 	DateTime date1 = new DateTime ( analysis_start );	// To get precision
 	date1.setYear( 2000 );
 	date1.setMonth ( 1 );
@@ -650,8 +666,7 @@ throws Exception
 	sum_ts.allocateDataSpace();
 	count_ts.allocateDataSpace();
 	stat_ts.allocateDataSpace();
-	// Iterate through the raw data and increment the statistic time series.  For now,
-	// only handle a few statistics.
+	// Iterate through the raw data and increment the statistic time series.  For now, only handle a few statistics.
 	TSIterator tsi = ts.iterator();
 	DateTime date;
 	double value;	// Value from the input time series
@@ -685,12 +700,22 @@ throws Exception
 	// Now loop through the sum time series and compute the final one-year statistic time series...
 	tsi = count_ts.iterator();
 	// TODO SAM 2007-11-05 Fix this if statistics other than Mean are added
-	double count_value;
+	double countNonMissingDouble;
+	int countNonMissing = 0;
 	while ( tsi.next() != null ) {
 		date = tsi.getDate();
-		count_value = tsi.getDataValue();
-		if ( count_value > 0.0 ) {
-			stat_ts.setDataValue ( date, sum_ts.getDataValue(date)/count_value);
+		countNonMissingDouble = tsi.getDataValue();
+        countNonMissing = (int)(countNonMissingDouble + .01);
+        if ( countNonMissing == 0 ) {
+            // No data values so keep the initial missing value
+            continue;
+        }
+		if ( statisticInt == MEAN ) {
+   			stat_ts.setDataValue ( date, sum_ts.getDataValue(date)/countNonMissingDouble);
+		}
+		else if ( statisticInt == MEDIAN ) {
+		    // FIXME SAM 2008-10-30 Need to finish
+		    //stat_ts.setDataValue ( date, MathUtil.median(countNonMissing, x));
 		}
 	}
 	// Return the result.
@@ -710,7 +735,21 @@ series having the interval of the input data.
 private TS createStatisticTimeSeries_ComputeStatisticFromEnsemble ( TSEnsemble tsensemble, TS stat_ts,
         DateTime analysis_start, DateTime analysis_end, String statistic )
 throws Exception
-{   // Initialize the iterators using the analysis period...
+{   // Initialize statistic integer to speed processing
+    // TODO SAM 2008-10-30 Need to enable global enumeration for statistics
+    int MEAN = 0;
+    int MEDIAN = 1;
+    int statisticInt = 0;
+    if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
+        statisticInt = MEAN;
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.Median) ) {
+        statisticInt = MEDIAN;
+    }
+    else {
+        throw new Exception ( "Only know how to generate mean and median statistics.");
+    }
+    // Initialize the iterators using the analysis period...
     TSIterator tsi_stat = stat_ts.iterator ( analysis_start, analysis_end );
     int size = tsensemble.size();
     TS ts;
@@ -721,11 +760,12 @@ throws Exception
     int i;  // Index for time series in loop.
     double value;   // Value from the input time series
     double sum_value = ts_array[0].getMissing();   // Value in the sum time series
-    int count;
+    double [] sampleData = new double[size]; // One value from each ensemble
+    int countNonMissing; // Count of sampleData that are non-missing
     while ( tsi_stat.next() != null ) {
         date = tsi_stat.getDate();
         // Loop through the time series...
-        count = 0;
+        countNonMissing = 0;
         for ( i = 0; i < size; i++ ) {
             ts = ts_array[i];
             if ( i == 0 ) {
@@ -739,18 +779,26 @@ throws Exception
             if ( ts.isDataMissing(sum_value) ) {
                 // Just assign the value
                 sum_value = value;
-                ++count;
+                ++countNonMissing;
             }
             else {
                 // Increment the total...
                 sum_value += value;
-                ++count;
+                // Save each value from the sample...
+                sampleData[countNonMissing] = value;
+                ++countNonMissing;
             }
         }
-        // Now compute the statistic time series.  Currently this is always the mean.
-        // FIXME 
-        if ( count > 0 ) {
-            stat_ts.setDataValue ( date, sum_value/(double)count );
+        // Now compute the statistic time series.
+        // FIXME SAM 2008-10-30 Need to add more statistics
+        if ( statisticInt == MEAN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, sum_value/(double)countNonMissing );
+            }
+        }
+        else if ( statisticInt == MEDIAN ) {
+            // Remove the missing values and analyze only non-missing values
+            stat_ts.setDataValue ( date, MathUtil.median(countNonMissing,sampleData) );
         }
     }
 
@@ -956,7 +1004,8 @@ throws TSException
 		Statistic.equals(TSStatistic.DayOfMax) ||
 		Statistic.equals(TSStatistic.DayOfMin) ||
 		Statistic.equals(TSStatistic.Max) ||
-		Statistic.equals(TSStatistic.Mean) ||
+	    Statistic.equals(TSStatistic.Mean) ||
+		Statistic.equals(TSStatistic.Median) ||
 		Statistic.equals(TSStatistic.Min) ||
 		Statistic.equals(TSStatistic.Total) ) {
 		processStatistic ( ts, yearts, props, start, end,
@@ -1415,8 +1464,9 @@ throws Exception
 	int Statistic_DayOfMin = 13;
 	int Statistic_Max = 14;
 	int Statistic_Mean = 15;
-	int Statistic_Min = 16;
-	int Statistic_Total = 17;
+	int Statistic_Median = 16;
+	int Statistic_Min = 17;
+	int Statistic_Total = 18;
 	int Statistic_int = -1;	
 	int Test_GE = 0;	// Tests to perform >=
 	int Test_GT = 1;	// >
@@ -1557,6 +1607,15 @@ throws Exception
         yearts.setDataUnits ( ts.getDataUnits() );
         //Statistic_isCount = true;   // Needed for computations
     }
+    else if ( Statistic.equals(TSStatistic.Median) ) {
+        iterate_forward = true;
+        Statistic_int = Statistic_Median;
+        Test_int = Test_Accumulate;
+        yearts.setDescription ( "Median value" );
+        SearchStart = "01-01";  // Always default to first of year
+        yearts.setDataUnits ( ts.getDataUnits() );
+        //Statistic_isCount = true;   // Needed for computations
+    }
 	else if ( Statistic.equals(TSStatistic.Min) ) {
 		iterate_forward = true;
 		Statistic_int = Statistic_Min;
@@ -1659,9 +1718,7 @@ throws Exception
 				if ( Statistic_isCount &&
 					yearts.isDataMissing(year_value) &&
 					(missing_count <= AllowMissingCount_int) ) {
-					// Never assigned a count but missing
-					// data were not an issue so assign the
-					// value to 0.
+					// Never assigned a count but missing data were not an issue so assign the value to 0.
 					year_value = 0.0;
 				}
 				// Now recheck to see if the value should be set (not missing)...
@@ -1699,8 +1756,7 @@ throws Exception
 				// All data have been processed.
 				break;
 			}
-			// Do the following for the first interval or if a new
-			// year has started...
+			// Do the following for the first interval or if a new year has started...
 			// Initialize for next processing interval...
 			first_interval = false;	// Other checks will now control
 			year_value = yearts.getMissing();
@@ -1719,8 +1775,7 @@ throws Exception
 				    date_search.setMonth( SearchStart_DateTime.getMonth());
 				    date_search.setDay ( SearchStart_DateTime.getDay());
                     if (Message.isDebugOn) {
-                        Message.printDebug ( dl, routine,
-                        "Will start processing in year on SearchStart: " + date_search );
+                        Message.printDebug ( dl, routine, "Will start processing in year on SearchStart: " + date_search );
                     }
 				}
 				if ( AnalysisWindowStart_DateTime != null ) {
@@ -1786,21 +1841,16 @@ throws Exception
 							need_to_analyze = false;
 							end_of_data = true;
 							if (Message.isDebugOn) {
-								Message.printDebug ( dl, routine,
-								"Don't have data at end of period to analyze." );
+								Message.printDebug ( dl, routine, "Don't have data at end of period to analyze." );
 							}
 						}
 					}
 					// Irregular...
 					// just process what is available.
-					// TODO SAM 2005-09-27
-					// Need to review this when other than
-					// Day interval data are supported.
+					// TODO SAM 2005-09-27 Need to review this when other than Day interval data are supported.
 				}
 				else {
-				    // Able to position the iterator so
-					// reset the date of the iterator
-					// and process below...
+				    // Able to position the iterator so reset the date of the iterator and process below...
 					date = data.getDate();
 				}
 			}
