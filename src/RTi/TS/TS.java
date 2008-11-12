@@ -2280,13 +2280,10 @@ public void setMissing ( double missing )
 	    _missingl = missing - .001;
         _missingu = missing;
 	}
-	else if ( missing < 0 ) {
-		_missingl = missing + .001;
-		_missingu = missing - .001;
-	}
 	else {
-	    _missingl = missing - 0.001;
-		_missingu = missing + 0.001;
+	    // Set a range on the missing value check that is slightly on each side of the value
+        _missingl = missing - .001;
+        _missingu = missing + .001;
 	}
 }
 
@@ -2308,7 +2305,8 @@ public void setMissingRange ( double [] missing )
 		_missingl = missing[0];
 		_missingu = missing[1];
 	}
-	else {	_missingl = missing[1];
+	else {
+	    _missingl = missing[1];
 		_missingu = missing[0];
 	}
 }
