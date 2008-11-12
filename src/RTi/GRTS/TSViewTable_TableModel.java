@@ -76,13 +76,13 @@ member variables.  Each time getValueAt() is called, it checks to see if the
 top Y value of the worksheet is different from it was when getValueAt() was
 last called.  If so, then the worksheet has been scrolled.  Each time the 
 worksheet is scrolled, the date/time of the top-most visible row is calculated
-using date cachine.  Then, the date of each row that is drawn for the 
+using date caching.  Then, the date of each row that is drawn for the 
 current scroll position is calculated from the date of the top-most visible 
 row.<p>
 <b>Notes</b>
 These caching steps may seem overkill, but JTS found during extensive testing
 that they increase the speed of browsing through a table of time series 
-dramatically.  Without the cachine, scrolling to the end of a long time series
+dramatically.  Without the caching, scrolling to the end of a long time series
 can take many seconds, whereas it is nearly instant with the steps taken here.
 */
 public class TSViewTable_TableModel 
@@ -234,8 +234,7 @@ int intervalBase, int intervalMult, int dateFormat, String[] dataFormats,
 boolean useExtendedLegend, int cacheInterval)
 throws Exception {
 	if (data == null) {
-		throw new Exception ("Null data Vector passed to " 
-			+ "TSViewTable_TableModel constructor.");
+		throw new Exception ("Null data Vector passed to TSViewTable_TableModel constructor.");
 	}	
 	_data = data;
 	__cacheInterval = cacheInterval;
@@ -250,8 +249,7 @@ throws Exception {
 	if (__columns > 1) {		
 		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
 		DateTime end = limits.getDate2();
-		_rows = TSUtil.calculateDataSize((TS)data.elementAt(0),
-			__start, end);
+		_rows = TSUtil.calculateDataSize((TS)data.elementAt(0),	__start, end);
 	}
 	
 	__firstVisibleRow = 0;
@@ -266,24 +264,19 @@ throws Exception {
 		__cachedDates[i] = new DateTime(__cachedDates[i - 1]);
 
 		if (__intervalBase == TimeInterval.MINUTE) {
-			__cachedDates[i].addMinute(__cacheInterval
-				* __intervalMult);
+			__cachedDates[i].addMinute(__cacheInterval * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.HOUR) {
-			__cachedDates[i].addHour(__cacheInterval 
-				* __intervalMult);
+			__cachedDates[i].addHour(__cacheInterval * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
-			__cachedDates[i].addDay(__cacheInterval
-				* __intervalMult);
+			__cachedDates[i].addDay(__cacheInterval * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.MONTH) {
-			__cachedDates[i].addMonth(__cacheInterval
-				* __intervalMult);
+			__cachedDates[i].addMonth(__cacheInterval * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.YEAR) {
-			__cachedDates[i].addYear(__cacheInterval
-				* __intervalMult);
+			__cachedDates[i].addYear(__cacheInterval * __intervalMult);
 		}
 	}
 }
@@ -329,8 +322,7 @@ Returns the name of the column at the given position.
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
 		case  0:	
-			if ((__intervalBase == TimeInterval.HOUR) 
-				|| (__intervalBase == TimeInterval.MINUTE)) {
+			if ((__intervalBase == TimeInterval.HOUR) || (__intervalBase == TimeInterval.MINUTE)) {
 				return "DATE/TIME";
 			}
 			return "DATE";
@@ -356,24 +348,19 @@ public String getColumnName(int columnIndex) {
 			unitsString = ", " + ts.getDataUnits();
 		}
 		if (ts.getDataType().length() == 0) {
-			datatypeString = ", " +
-			ts.getIdentifier().getType();
+			datatypeString = ", " + ts.getIdentifier().getType();
 		}
 		else {
-			datatypeString = ", " +
-			ts.getDataType();
+			datatypeString = ", " + ts.getDataType();
 		}
 		if (ts.getSequenceNumber() >= 0) {
-			sequenceString = " [" + ts.getSequenceNumber()
-				+ "]";
+			sequenceString = " [" + ts.getSequenceNumber() + "]";
 		}
 		if (ts.getAlias().equals("")) {
-			return ts.getLocation() + sequenceString
-				+ datatypeString + unitsString;
+			return ts.getLocation() + sequenceString + datatypeString + unitsString;
 		}
 		else {
-			return ts.getAlias() + sequenceString
-				+ datatypeString + unitsString;
+			return ts.getAlias() + sequenceString + datatypeString + unitsString;
 		}
 	}
 }
@@ -392,28 +379,21 @@ public Object getConsecutiveValueAt(int row, int col) {
 	}
 
 	if (__priorRow == -1) {
-		DateTime temp = new DateTime(
-			__cachedDates[row / __cacheInterval]);
+		DateTime temp = new DateTime( __cachedDates[row / __cacheInterval]);
 		if (__intervalBase == TimeInterval.MINUTE) {
-			temp.addMinute((row % __cacheInterval) 
-				* __intervalMult);
+			temp.addMinute((row % __cacheInterval) * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.HOUR) {
-			temp.addHour((row % __cacheInterval) 
-				* __intervalMult);
+			temp.addHour((row % __cacheInterval) * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
-			temp.addDay((row % __cacheInterval) 
-				* __intervalMult);
+			temp.addDay((row % __cacheInterval) * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.MONTH) {
-			temp.addMonth((row % __cacheInterval) 
-				* __intervalMult);
+			temp.addMonth((row % __cacheInterval) * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.YEAR) {
-
-			temp.addYear((row % __cacheInterval) 
-				* __intervalMult);
+			temp.addYear((row % __cacheInterval) * __intervalMult);
 		}
 		__priorDateTime = temp;
 		__priorRow = row;
@@ -447,14 +427,11 @@ public Object getConsecutiveValueAt(int row, int col) {
 }
 
 /**
-Returns the total number of characters in a DateTime object formatted with
-__dateFormat.
-@return the total number of characters in a DateTime object formatted with
-__dateFormat.
+Returns the total number of characters in a DateTime object formatted with __dateFormat.
+@return the total number of characters in a DateTime object formatted with __dateFormat.
 */
 private int getDateFormatLength() {
-// REVISIT (SAM - 2003-07-21)
-// might add something similar to DateTime.
+// TODO (SAM - 2003-07-21) might add something similar to DateTime.
 	switch (__dateFormat) {
 		case DateTime.FORMAT_MM:
 			return 2;
@@ -507,8 +484,7 @@ private int getDateFormatLength() {
 Returns the format that the specified column should be displayed in when
 the table is being displayed in the given table format. 
 @param column column for which to return the format.
-@return the format (as used by StringUtil.formatString() in which to display the
-column.
+@return the format (as used by StringUtil.formatString() in which to display the column.
 */
 public String getFormat(int column) {
 	switch (column) {
@@ -550,16 +526,14 @@ public Vector getTSList() {
 }
 
 /**
-Returns the data that should be placed in the JTable at the given row and 
-column.
+Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
 */
 public Object getValueAt(int row, int col) {
 	if (shouldDoGetConsecutiveValueAt()) {
-		// do a consecutive get value at rather than this sequential 
-		// one.
+		// do a consecutive get value at rather than this sequential one.
 		return getConsecutiveValueAt(row, col);
 	}
 
@@ -575,46 +549,33 @@ public Object getValueAt(int row, int col) {
 
 		// calculate its date time by looking up the nearest 
 		// cached one and adding the remainder of intervals to it
-		__firstVisibleRowDate = new DateTime(
-			__cachedDates[__firstVisibleRow / __cacheInterval]);
+		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
 		int precision = 0;
 		if (__intervalBase == TimeInterval.MINUTE) {
 			precision = DateTime.PRECISION_MINUTE;
-			__firstVisibleRowDate.addMinute(
-				(__firstVisibleRow % __cacheInterval) 
-				* __intervalMult);
+			__firstVisibleRowDate.addMinute( (__firstVisibleRow % __cacheInterval) * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.HOUR) {
 			precision = DateTime.PRECISION_HOUR;
-			__firstVisibleRowDate.addHour(
-				(__firstVisibleRow % __cacheInterval) 
-				* __intervalMult);
+			__firstVisibleRowDate.addHour( (__firstVisibleRow % __cacheInterval) * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
 			precision = DateTime.PRECISION_DAY;
-			__firstVisibleRowDate.addDay(
-				(__firstVisibleRow % __cacheInterval) 
-				* __intervalMult);
+			__firstVisibleRowDate.addDay( (__firstVisibleRow % __cacheInterval) * __intervalMult);
 		}	
 		else if (__intervalBase == TimeInterval.MONTH) {
 			precision = DateTime.PRECISION_MONTH;
-			__firstVisibleRowDate.addMonth(
-				(__firstVisibleRow % __cacheInterval) 
-				* __intervalMult);
+			__firstVisibleRowDate.addMonth( (__firstVisibleRow % __cacheInterval) * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.YEAR) {
 			precision = DateTime.PRECISION_YEAR;
-			__firstVisibleRowDate.addYear(
-				(__firstVisibleRow % __cacheInterval) 
-				* __intervalMult);
+			__firstVisibleRowDate.addYear( (__firstVisibleRow % __cacheInterval) * __intervalMult);
 		}
 
-		__workingDate = new DateTime(__firstVisibleRowDate,
-			DateTime.DATE_FAST | precision);
+		__workingDate = new DateTime(__firstVisibleRowDate, DateTime.DATE_FAST | precision);
 
 		// reset this so that on a scroll event none of the rows are
-		// drawn incorrectly.  Removing this line will result in a 
-		// "scrambled"-looking JTable.
+		// drawn incorrectly.  Removing this line will result in a "scrambled"-looking JTable.
 		__lastRowRead = -1;
 	}
 
@@ -659,11 +620,10 @@ public Object getValueAt(int row, int col) {
 		return __workingDate.toString();
 	}
 
-	// REVISIT (JTS - 2006-05-24)
+	// TODO (JTS - 2006-05-24)
 	// It's possible that a VERY slight performance gain could be made
 	// by using an array to access the time series, rather than doing a 
-	// cast out of a Vector.  JTS has found that given these two 
-	// statements:
+	// cast out of a Vector.  JTS has found that given these two statements:
 	// 	- ts = (TS) vector.elementAt(i);
 	//	- ts = array[i];
 	// the array statement is about 4 times faster.
