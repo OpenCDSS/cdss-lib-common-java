@@ -298,7 +298,7 @@ day of year<br>
 whether a leap year<br>
 
 <p>
-This results in slower processing of dates and is the default behaviour.  For
+This results in slower processing of dates and is the default behavior.  For
 iterators, it is usually best to use the DATE_FAST behavior.
 */
 public static final int DATE_STRICT	= 0x1000;
@@ -320,8 +320,7 @@ Create a DateTime with the current date and time.
 public static final int DATE_CURRENT	= 0x8000;
 
 /**
-Create a DateTime and only use the time fields.  This works in conjuction with
-the precision flag.
+Create a DateTime and only use the time fields.  This works in conjunction with the precision flag.
 */
 public static final int TIME_ONLY	= 0x10000;
 
@@ -403,8 +402,7 @@ indicate automatic formatting in other code.
 public static final int FORMAT_AUTOMATIC = 2;
 /**
 The following formats a date as follows:  "DD/MM/YYYY".  This date format
-cannot be parsed properly by parse(); FORMAT_MM_SLASH_DD_SLASH_YYYY will be
-returned instead.
+cannot be parsed properly by parse(); FORMAT_MM_SLASH_DD_SLASH_YYYY will be returned instead.
 */
 public static final int FORMAT_DD_SLASH_MM_SLASH_YYYY = 27;
 /**
@@ -417,7 +415,7 @@ The following formats a date as follows (military time):  "HHmm".
 public static final int FORMAT_HHmm = 4;
 /**
 The following formats a date as follows:  "MM".  Parsing of this date format
-without sepcifying the format is NOT supported because it is ambiguous.
+without specifying the format is NOT supported because it is ambiguous.
 */
 public static final int FORMAT_MM = 5;
 /**
@@ -445,7 +443,8 @@ The following formats a date as follows:  "MM-DD-YYYY HH".
 */
 public static final int FORMAT_MM_DD_YYYY_HH = 11;
 /**
-The following formats a date as follows:  "MM/DD/YYYY HH:mm".
+The following formats a date as follows:  "MM/DD/YYYY HH:mm".  For the parse() method,
+months, days, and hours that are not padded with zeros will also be parsed properly.
 */
 public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm = 12;
 /**
@@ -593,8 +592,7 @@ private int __precision;
 
 /**
 Flag for special behavior of dates.  Internally this contains all the
-behavior flags but for the most part it is only used for ZERO/CURRENT and
-FAST/STRICT checks.
+behavior flags but for the most part it is only used for ZERO/CURRENT and FAST/STRICT checks.
 */
 private int __behavior_flag;
 
@@ -919,7 +917,7 @@ public DateTime ( DateTime t, int flag )
 		__precision	= t.__precision;
 		__use_time_zone	= t.__use_time_zone;
 		__time_only	= t.__time_only;
-		// May be overwridden here...
+		// May be reset here...
 		setPrecision ( flag );
 		__tz = t.__tz;
 	}
@@ -992,32 +990,30 @@ public DateTime ( double double_date, boolean use_month )
 			v = null;
 		}
 	}
-	else {	// Set the month to zero and the days to the number of days in
-		// the year...
+	else {
+	    // Set the month to zero and the days to the number of days in the year...
 		__month = 0;
 		__day = (int)temp;
 	}
 
 	temp -= (double)((int)temp);
 
-	// Now the remainder is the hours, etc.  Multiply by 24 to get the
-	// hour...
+	// Now the remainder is the hours, etc.  Multiply by 24 to get the hour...
 
 	temp *= 24.0;
-	__hour	= (int)temp;
+	__hour = (int)temp;
 	temp -= (double)((int)temp);
 
-	// Now the remainder is the minutes, etc.  Multiply by 60 to get the
-	// minute...
+	// Now the remainder is the minutes, etc.  Multiply by 60 to get the minute...
 
 	temp *= 60.0;
-	__minute	= (int)temp;
+	__minute = (int)temp;
 	temp -= (double)((int)temp);
 
 	// Now the remainder is the seconds, etc.  Multiply by 60 to get the seconds...
 
 	temp *= 60.0;
-	__second	= (int)temp;
+	__second = (int)temp;
 	temp -= (double)((int)temp);
 
 	// Now the remainder is the hseconds, etc.  Multiply by 100 to get the hseconds...
@@ -1040,8 +1036,7 @@ offsets are allowed.  It may be desirable to overload this method to use the
 date precision or automatically process the precision (enhancement for later).
 Also, although the month value will be added if non-zero, it is recommended that
 only days be specified (and days > 31 is allowed).  The output from subtract()
-will default to setting month to zero and is therefore compatible with this
-method.
+will default to setting month to zero and is therefore compatible with this method.
 <b>Currently the precision of the instance is not considered.  Therefore, the
 offset fields should be set to zero if not used.</b>
 @param offset Date offset to add.
@@ -1148,8 +1143,7 @@ public void addHour ( int add )
 
 /**
 Add hundredth-second(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of hundredth-seconds to add (can be a multiple
-and can be negative).
+@param add Indicates the number of hundredth-seconds to add (can be a multiple and can be negative).
 */
 public void addHSecond ( int add )
 {	int	secs;
@@ -1182,8 +1176,7 @@ public void addHSecond ( int add )
 }
 
 /**
-Add a time series interval to the DateTime (see TimeInterval).  This is useful
-when iterating a date.
+Add a time series interval to the DateTime (see TimeInterval).  This is useful when iterating a date.
 An irregular interval is ignored (the date is not changed).
 @param interval Time series base interval.
 @param add Multiplier for base interval.
@@ -1227,8 +1220,7 @@ public void addInterval ( int interval, int add )
 
 /**
 Add minute(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of minutes to add (can be a multiple
-and can be negative).
+@param add Indicates the number of minutes to add (can be a multiple and can be negative).
 */
 public void addMinute ( int add )
 {	int	hrs;
@@ -1262,8 +1254,7 @@ public void addMinute ( int add )
 
 /**
 Add month(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of months to add (can be a multiple
-and can be negative).
+@param add Indicates the number of months to add (can be a multiple and can be negative).
 */
 public void addMonth ( int add )
 {	int	i;
@@ -1308,7 +1299,8 @@ public void addMonth ( int add )
 		// No need to reset because it was done int the previous call.
 		return;
 	}
-	else {	// Zero...
+	else {
+	    // Zero...
 		return;
 	}
 	// Reset time
@@ -1319,8 +1311,7 @@ public void addMonth ( int add )
 
 /**
 Add second(s) to the DateTime.  Other fields will be adjusted if necessary.
-@param add Indicates the number of seconds to add (can be a multiple
-and can be negative).
+@param add Indicates the number of seconds to add (can be a multiple and can be negative).
 */
 public void addSecond ( int add )
 {	int	mins;
@@ -1354,8 +1345,7 @@ public void addSecond ( int add )
 
 /**
 Add week(s) to the DateTime.
-@param add Indicates the number of weeks to add (can be a multiple
-and can be negative).
+@param add Indicates the number of weeks to add (can be a multiple and can be negative).
 */
 public void addWeek ( int add )
 {	addDay ( add*7 );
@@ -1365,8 +1355,7 @@ public void addWeek ( int add )
 /**
 Add year(s) to the DateTime.  The month and day are NOT adjusted if an
 inconsistency occurs with leap year information.
-@param add Indicates the number of years to add (can be a multiple
-and can be negative).
+@param add Indicates the number of years to add (can be a multiple and can be negative).
 */
 public void addYear ( int add )
 {	__year += add;
@@ -1375,27 +1364,23 @@ public void addYear ( int add )
 }
 
 /**
- * Returns whether this date is within the specified date range, inclusive
- * of the end-points.
+ * Returns whether this date is within the specified date range, inclusive of the end-points.
  * 
  * @param startDate beginning of date range
  * @param endDate end of date range
  */
 public boolean between(DateTime startDate, DateTime endDate)
 {
-    if (this.greaterThanOrEqualTo(startDate) && this.lessThanOrEqualTo(endDate))
-        {
-            return true;
-        }
-    else 
-        {
-            return false;
-        }
+    if (this.greaterThanOrEqualTo(startDate) && this.lessThanOrEqualTo(endDate)) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 /**
-Clone the object.  The TS base class clone() method is called (all DateTime
-data are primitive).
+Clone the object.  The TS base class clone() method is called (all DateTime data are primitive).
 @return a complete deep copy.
 */
 public Object clone ()
@@ -1404,7 +1389,7 @@ public Object clone ()
 		return d;
 	}
 	catch ( CloneNotSupportedException e ) {
-		// Should not happen because everything is cloneable.
+		// Should not happen because everything is clone-able.
 		throw new InternalError();
 	}
 }
@@ -1427,8 +1412,7 @@ public int compareTo ( DateTime t )
 }
 
 /**
-Deterine if this DateTime is less than, equal to, or greater than another
-DateTime.
+Determine if this DateTime is less than, equal to, or greater than another DateTime.
 @return -1 if this DateTime is less than "t", 0 if this DateTime is the same as
 "t", and 1 if this DateTime is greater than "t".
 @param t Date to compare.
@@ -1444,11 +1428,9 @@ public int compareTo ( Object t )
 }
 
 /**
-Determine if a DateTime is equal to this instance, considering date, and time
-to the hundredth of a second.  The date precisions are
-considered in the comparison.
-<b>If the instance is a time only (no date), the
-ony the time data are compared.</b>
+Determine if a DateTime is equal to this instance, considering date, and time to the hundredth of a second.
+The date precisions are considered in the comparison.
+<b>If the instance is a time only (no date), then only the time data are compared.</b>
 Time zone is not currently checked but may be checked in the future if the
 PRECISION_TIME_ZONE flag is set.
 @return true if the date is the same as the instance.
@@ -1464,13 +1446,11 @@ public boolean equals ( DateTime t )
 
 /**
 Determine if a DateTimes is equal to this instance.
-<b>If the instance is a time only (no date), the
-ony the time data are compared.</b>
+<b>If the instance is a time only (no date), then only the time data are compared.</b>
 @return true if the date is equivalent to the given precision.
 @param precision Indicates the precision to use for the comparison.
 Time zone is not currently checked but may be checked in the future if the
-PRECISION_TIME_ZONE flag is set.
-Use the PRECISION_* flags.
+PRECISION_TIME_ZONE flag is set.  Use the PRECISION_* flags.
 */
 public boolean equals ( DateTime t, int precision )
 {	// Maybe can't do this because we are more concerned with precision?
@@ -1604,8 +1584,7 @@ the Date time zone (GMT) (true).
 public Date getDate ( int flag )
 {	GregorianCalendar c = null;
 	if ( (flag & DATE_STRICT) != 0 ) {
-		// We do care what the time zone is.  Make the returned date
-		// exactly match the DateTime, but in GMT.
+		// Do care what the time zone is.  Make the returned date exactly match the DateTime, but in GMT.
 		// For now, just do the same for both cases...
 		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
 		Date d = c.getTime();
@@ -1613,7 +1592,7 @@ public Date getDate ( int flag )
 		return d;
 	}
 	else {
-        // We don't care about the time zone.  Just use the other data fields...
+        // Don't care about the time zone.  Just use the other data fields...
 		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
 	}
 	if ( c != null ) {
@@ -2143,7 +2122,7 @@ public boolean lessThan ( DateTime t )
 		}
 	}
 
-	// everthing must be equal so not less than
+	// everything must be equal so not less than
 
 	return false;
 }
@@ -2267,7 +2246,7 @@ public boolean lessThan ( DateTime t, int precision )
 		}
 	}
 
-	// everthing must be equal so not less than
+	// everything must be equal so not less than
 
 	return false;
 }
@@ -2346,10 +2325,8 @@ NamedDateTime + Interval (e.g., "CurrentToHour + 6Hour")
 @param datetime_props Named DateTime instances that are to be recognized when
 parsing the string.  For example, an application may internally have a parameter
 called InputStart, which is referenced in the string.  If parsing only for
-syntax (where the value of the parsed result is not important), specify any
-instance of DateTime.<p>
-The String value for the named DateTime is parsed, even though contents may be
-available. <p>
+syntax (where the value of the parsed result is not important), specify any instance of DateTime.<p>
+The String value for the named DateTime is parsed, even though contents may be available. <p>
 The named <u>cannot</u> contain "+" or "-" characters.
 @exception Exception If the string is not understood due to a bad date/time,
 interval string or a missing named date/time.
@@ -2498,7 +2475,7 @@ This routine is the inverse of toString().
 public static DateTime parse ( String date_string )
 throws Exception
 {	int	length = 0;
-	char	c;	// Use to optimize code below
+	char c;	// Use to optimize code below
 
 	// First check to make sure we have something...
 	if( date_string == null ) {
@@ -2721,19 +2698,18 @@ MM/D/YYYY, M/DD/YYYY, M/D/YYYY are all variations on the same format.
 */
 private static DateTime parse ( String date_string, int format, int flag )
 throws Exception
-{	int		dl = 50;
-	boolean		is_year = false,	// Use to improve performance
+{	int dl = 50;
+	boolean is_year = false,	// Use to improve performance
 			is_month = false,	// of checks at end of the
 			is_day = false,		// method - use booleans rather
 			is_hour = false,	// than doing repeated bit mask
 			is_minute = false;	// checks
-	DateTime	date = null;
-	String		routine = "DateTime.parse";
-	Vector		v = null;
+	DateTime date = null;
+	String routine = "DateTime.parse";
+	Vector v = null;
 
 	// Note that if the fixedRead routine has problems, it will just return
-	// zeros for the integers.  This allows defaults for the smaller
-	// date/time fields...
+	// zeros for the integers.  This allows defaults for the smaller date/time fields...
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug(dl,routine, "Trying to parse string \"" + date_string + "\" using format " + format );
@@ -2829,6 +2805,30 @@ throws Exception
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
+		if ( date_string.length() < 16 ) {
+		    // The date string is not padded with zeros.  Parse the string
+		    // into its parts and then reform to a zero-padded string.  Use primitive
+		    // formatting to increase performance.
+		    String [] sarray = date_string.split("[/ :]" );
+		    String monthPad= "", dayPad = "", hourPad = "", minutePad = "";
+		    if ( (sarray != null) && (sarray.length > 4) ) {
+		        // Assume that have all the needed parts
+		        if ( sarray[0].length() == 1 ) {
+		            monthPad = "0";
+		        }
+                if ( sarray[1].length() == 1 ) {
+                    dayPad = "0";
+                }
+                if ( sarray[3].length() == 1 ) {
+                    hourPad = "0";
+                }
+                if ( sarray[4].length() == 1 ) {
+                    minutePad = "0";
+                }
+                date_string = monthPad + sarray[0] + "/" + dayPad + sarray[1] + "/" +
+                    sarray[2] + " " + hourPad + sarray[3] + ":" + minutePad + sarray[4];
+		    }
+		}
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2" );
 		date.__month = ((Integer)v.elementAt(0)).intValue();
 		date.__day = ((Integer)v.elementAt(1)).intValue();
@@ -2997,8 +2997,7 @@ throws Exception
 		date.addDay(1);
 	}
 	// Verify that the date components are valid.  If not, throw an
-	// exception.  This degrades performance some but not much since all
-	// checks are integer based.
+	// exception.  This degrades performance some but not much since all checks are integer based.
 	// Limit year to a reasonable value...
 	if ( (date.__year < -1000) || (date.__year > 10000) ) {
 		throw new Exception ( "Invalid year " + date.__year + " in \"" + date_string + "\"" );
@@ -3026,7 +3025,8 @@ throws Exception
 			}
 		}
 	}
-	else {	// Not a leap year...
+	else {
+	    // Not a leap year...
 		if (	(date.__day < 1) || (date.__day > TimeUtil.MONTH_DAYS[date.__month - 1]) ) {
 			throw new Exception ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
 		}
@@ -3084,8 +3084,7 @@ may be unexpected.  Time components smaller than the base are set to appropriate
 zero values (e.g., rounding minutes results in seconds being set to zero).
 The irregular interval results in no change to the date.
 @param direction Specify 1 to round by incrementing the date.  Specify -1 to
-round by decrementing the date.  This flag may be modified in the future to have
-additional meaning.
+round by decrementing the date.  This flag may be modified in the future to have additional meaning.
 @param interval_base See TimeInterval.
 @param interval_mult Multiplier for the interval base.
 */
@@ -3100,14 +3099,14 @@ public void round ( int direction, int interval_base, int interval_mult )
 			// Rounding up (if the minute is already 0 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __minute != 0 ) {
-					// Want an even hour and minute is not
-					// zero.  Increase the hour.  Do so by
+					// Want an even hour and minute is not zero.  Increase the hour.  Do so by
 					// incrementing the minutes...
 					addMinute ( 60 - __minute );
 				}
 				// Else.  Do nothing since minute is already zero.
 			}
-			else {	// Want to increment to an even interval...
+			else {
+			    // Want to increment to an even interval...
 				if ( (__minute%interval_mult) != 0 ) {
 					// Not exactly on interval time
 					addMinute ( interval_mult -	__minute%interval_mult );
@@ -3118,14 +3117,14 @@ public void round ( int direction, int interval_base, int interval_mult )
             // Rounding down (if the _minute is already 0 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __minute != 0 ) {
-					// Want an even hour and minute is not
-					// zero.  Decrease the hour.  Do so by
+					// Want an even hour and minute is not zero.  Decrease the hour.  Do so by
 					// decrementing the minutes...
 					addMinute ( -1*__minute );
 				}
 				// Else.  Do nothing since minute is already zero.
 			}
-			else {	// Want to decrement to an even interval...
+			else {
+			    // Want to decrement to an even interval...
 				if ( (__minute%interval_mult) != 0 ) {
 					// Not exactly on interval time
 					addMinute ( -1*__minute%interval_mult );
@@ -3141,8 +3140,7 @@ public void round ( int direction, int interval_base, int interval_mult )
 			// Rounding up (if the hour is already 0 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __hour != 0 ) {
-					// Want an even day and hour is not
-					// zero.  Increase the day.  Do so by
+					// Want an even day and hour is not zero.  Increase the day.  Do so by
 					// incrementing the hours...
 					addHour ( 24 - __hour );
 				}
@@ -3157,8 +3155,7 @@ public void round ( int direction, int interval_base, int interval_mult )
             // Rounding down (if the _hour is already 0 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __hour != 0 ) {
-					// Want an even day and hour is not
-					// zero.  Decrease the day.  Do so by
+					// Want an even day and hour is not zero.  Decrease the day.  Do so by
 					// decrementing the hour...
 					addHour ( -1*__hour );
 				}
@@ -3179,8 +3176,7 @@ public void round ( int direction, int interval_base, int interval_mult )
 			// Rounding up (if the _day is already 1 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __hour != 0 ) {
-					// Want an even day and hour is not
-					// zero.  Increase the day.  Do so by
+					// Want an even day and hour is not zero.  Increase the day.  Do so by
 					// incrementing the hours...
 					addHour ( 24 - __hour );
 				}
@@ -3195,8 +3191,7 @@ public void round ( int direction, int interval_base, int interval_mult )
             // Rounding down (if the _hour is already 0 then don't need to do anything)...
 			if ( interval_mult == 0 ) {
 				if ( __hour != 0 ) {
-					// Want an even day and hour is not
-					// zero.  Decrease the day.  Do so by
+					// Want an even day and hour is not zero.  Decrease the day.  Do so by
 					// decrementing the hour...
 					addHour ( -1*__hour );
 				}
@@ -3274,8 +3269,7 @@ public void setDate ( DateTime t )
 /**
 Set value of the date/time using a Date as input.
 A new instance is not allocated.  This is useful when iterating through
-database records that use Date.  Only fields appropriate for the DateTime
-precision are set.
+database records that use Date.  Only fields appropriate for the DateTime precision are set.
 @param d A Date to assign from.
 */
 public void setDate ( Date d )
@@ -3431,8 +3425,7 @@ Set the precision using a bit mask.  The precision can be used to optimize code
 (avoid performing unnecessary checks) and set more intelligent dates.  This
 call automatically truncates unused date fields (sets them to initial values
 as appropriate).  Subsequent calls to getPrecision(), timeOnly(), and
-useTimeZone() will return the separate field values (don't need to handle as a
-bit mask upon retrieval).
+useTimeZone() will return the separate field values (don't need to handle as a bit mask upon retrieval).
 @param behavior_flag Full behavior mask containing precision bit (see
 PRECISION_*).  The precision is set when the first valid precision bit
 is found (starting with PRECISION_YEAR).
@@ -3512,8 +3505,7 @@ public void setPrecision ( int behavior_flag, boolean cumulative )
 		__hsecond = 0;
 		__precision = precision;
 	}
-	// Else do not set _precision - assume that it was set previously (e.g.,
-	// in a copy constructor).
+	// Else do not set _precision - assume that it was set previously (e.g., in a copy constructor).
 
 	// Time zone is separate and always gets set...
 
@@ -3555,8 +3547,7 @@ public void setSecond( int s )
 }
 
 /**
-Set the string time zone.  No check is made to verify that it is a valid time
-zone abbreviation.
+Set the string time zone.  No check is made to verify that it is a valid time zone abbreviation.
 @param zone Time zone abbreviation.  If non-null and non-blank, the
 DateTime precision is automatically set so that PRECISION_TIME_ZONE is on.
 If null or blank, PRECISION_TIME_ZONE is off.
@@ -3667,8 +3658,7 @@ public void setToJulianDay ( int y, int julday )
 }
 
 /**
-Set the date/time to all zeros, except day and month are 1.
-The time zone is set to "".
+Set the date/time to all zeros, except day and month are 1.  The time zone is set to "".
 The default precision is PRECISION_SECOND and the time zone is not used.  This
 method is usually only called internally to initialize dates.  If called
 externally, the precision should be set separately.
@@ -3747,8 +3737,7 @@ private void setYearDay()
 }
 
 /**
-Shift the data to the specified time zone, resulting in the hours and possibly
-minutes being changed.
+Shift the data to the specified time zone, resulting in the hours and possibly minutes being changed.
 @param zone Time zone to switch to.  This method shifts the hour/minutes and
 then sets the time zone for the instance to the requested time zone.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
@@ -3768,8 +3757,7 @@ public void shiftTimeZone ( String zone )
 Subtract a time series interval from the DateTime (see TimeInterval).  
 An irregular interval is ignored (the date is not changed).
 @param interval Time series base interval.
-@param subtract Multiplier for base interval.  This should be a positive 
-number.
+@param subtract Multiplier for base interval.  This should be a positive number.
 */
 public void subtractInterval(int interval, int subtract) {
 	addInterval(interval, -1 * subtract);
@@ -3787,8 +3775,7 @@ public boolean timeOnly ()
 /**
 Convert to a double, with the whole number being the year.  This is useful for
 graphics.  The precision is checked and remainder fields are ignored.
-If the instance is only storing time, then the whole number part of the value
-will be zero.
+If the instance is only storing time, then the whole number part of the value will be zero.
 @return Date/time representation as a double.
 */
 public double toDouble ( )
@@ -3806,7 +3793,7 @@ public double toDouble ( )
 			return (dt + d/ydays);
 		}
 
-		d	+= (double)(__day - 1);
+		d += (double)(__day - 1);
 		if ( __precision == PRECISION_DAY ) {
 			return (dt + d/ydays);
 		}
@@ -3814,19 +3801,19 @@ public double toDouble ( )
 
 	// Normalize to day for hours, minutes, seconds, etc.
 
-	d	+= ((double)(__hour))/24.0;
+	d += ((double)(__hour))/24.0;
 	if ( __precision == PRECISION_HOUR ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__minute))/1440.0;		// 60*24
+	d += ((double)(__minute))/1440.0;		// 60*24
 	if ( __precision == PRECISION_MINUTE ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__second))/86400.0;		// 60*60*24
+	d += ((double)(__second))/86400.0;		// 60*60*24
 	if ( __precision == PRECISION_SECOND ) {
 		return (dt + d/ydays);
 	}
-	d	+= ((double)(__hsecond))/8640000;	// 100*60*60*24
+	d += ((double)(__hsecond))/8640000;	// 100*60*60*24
 	return (dt + d/ydays);
 }
 
