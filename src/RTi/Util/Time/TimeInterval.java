@@ -52,8 +52,7 @@ import RTi.Util.Message.Message;
 The TimeInterval class provide methods to convert intervals from
 integer to string representations.  Common usage is to call the parseInterval()
 method to parse a string and then use the integer values to increase
-performace.  The TimeInterval data members can be used when creating
-DateTime instances.
+performance.  The TimeInterval data members can be used when creating DateTime instances.
 A lookup of string interval names from the integer values may not return
 exactly the string that is allowed in a parse (due to case being ignored, etc.).
 */
@@ -99,10 +98,10 @@ Copy constructor.
 */
 public TimeInterval ( TimeInterval interval )
 {	init();
-	_interval_base		= interval.getBase ();
-	_interval_mult		= interval.getMultiplier ();
-	_interval_base_string	= interval.getBaseString ();
-	_interval_mult_string	= interval.getMultiplierString ();
+	_interval_base = interval.getBase ();
+	_interval_mult = interval.getMultiplier ();
+	_interval_base_string = interval.getBaseString ();
+	_interval_mult_string = interval.getMultiplierString ();
 }
 
 /**
@@ -110,8 +109,7 @@ Constructor from the integer base and multiplier.  The string base name is
 set to defaults.  The multiplier is not relevant if the base is IRREGULAR.
 @param base Interval base.
 @param mult Interval multiplier.  If set to <= 0, the multiplier string returned
-from getMultiplierString() will be set to "" and the integer multiplier will be
-set to 1.
+from getMultiplierString() will be set to "" and the integer multiplier will be set to 1.
 */
 public TimeInterval ( int base, int mult )
 {	init();
@@ -125,33 +123,32 @@ public TimeInterval ( int base, int mult )
 		_interval_mult_string = "";
 		_interval_mult = 1;
 	}
-	else {	_interval_mult_string = "" + mult;
+	else {
+	    _interval_mult_string = "" + mult;
 	}
 }
 
 /**
-Determine if two instances are equal.  The base and multipler are checked.  This
+Determine if two instances are equal.  The base and multiplier are checked.  This
 method does not check for cases like 60Minute = 1Hour (false will be returned).
 Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 @param interval TimeInterval to compare.
-@return true if the integer interval base and multiplier are equal, false
-otherwise.
+@return true if the integer interval base and multiplier are equal, false otherwise.
 */
 public boolean equals ( TimeInterval interval )
-{	if (	(_interval_base == interval.getBase () ) &&
-		(_interval_mult	== interval.getMultiplier ()) ) {
+{	if ( (_interval_base == interval.getBase () ) && (_interval_mult	== interval.getMultiplier ()) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
 /**
-Determine if two instances are equal.  The base and multipler are checked.  This
+Determine if two instances are equal.  The base and multiplier are checked.  This
 method does not check for cases like 60Minute = 1Hour (false will be returned).
 Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
-Makes sure the object passed in is a TimeInterval and then calls 
-equals(TimeInterval).
+Makes sure the object passed in is a TimeInterval and then calls equals(TimeInterval).
 @param o an Object to compare with
 @return true if the object is a time interval and if the integer interval base 
 and multiplier are equal, false otherwise.
@@ -170,7 +167,7 @@ interval information matches exactly and in cases like the following:
 @return true if the integer interval base and multiplier are equivalent, false
 otherwise.
 */
-/* REVISIT SAM 2005-03-03 Need to implement when there is time
+/* TODO SAM 2005-03-03 Need to implement when there is time
 public boolean equivalent ( TimeInterval interval )
 {	// Do simple check...
 	if ( equals(interval) ) {
@@ -225,7 +222,7 @@ public String getMultiplierString ( )
 
 /**
 Look up an interval name as a string (e.g., "MONTH").  Note that the string is
-uppercase.  Convert the 2nd+ characters to lowercase if necessary.
+upper-case.  Convert the 2nd+ characters to lower-case if necessary.
 @return The interval string, or an empty string if not found.
 @param interval Time series interval to look up).
 */
@@ -271,12 +268,8 @@ day).  This version does NOT include the Irregular time step.
 do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
 */
-public static Vector getTimeIntervalChoices (	int start_interval,
-						int end_interval,
-						boolean pad_zeros,
-						int sort_order )
-{	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros,
-						sort_order, false );
+public static Vector getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
+{	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
 }
 
 /**
@@ -292,11 +285,8 @@ do not pad (e.g., "6Hour").
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
-public static Vector getTimeIntervalChoices (	int start_interval,
-						int end_interval,
-						boolean pad_zeros,
-						int sort_order,
-						boolean include_irregular )
+public static Vector getTimeIntervalChoices ( int start_interval, int end_interval,
+						boolean pad_zeros, int sort_order, boolean include_irregular )
 {	// Add in ascending order and sort to descending later if requested...
 	Vector v = new Vector();
 	if ( start_interval > end_interval ) {
@@ -306,8 +296,7 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 		start_interval = temp;
 	}
 	if ( (HSECOND >= start_interval) && (HSECOND <= end_interval) ) {
-		// REVISIT SAM 2005-02-16 We probably don't need to support
-		// this at all.
+		// TODO SAM 2005-02-16 We probably don't need to support this at all.
 	}
 	if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
 		if ( pad_zeros ) {
@@ -318,7 +307,8 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 			v.addElement ( "05Second" );
 			v.addElement ( "06Second" );
 		}
-		else {	v.addElement ( "1Second" );
+		else {
+		    v.addElement ( "1Second" );
 			v.addElement ( "2Second" );
 			v.addElement ( "3Second" );
 			v.addElement ( "4Second" );
@@ -340,7 +330,8 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 			v.addElement ( "05Minute" );
 			v.addElement ( "06Minute" );
 		}
-		else {	v.addElement ( "1Minute" );
+		else {
+		    v.addElement ( "1Minute" );
 			v.addElement ( "2Minute" );
 			v.addElement ( "3Minute" );
 			v.addElement ( "4Minute" );
@@ -377,7 +368,7 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 	if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
 		v.addElement ( "Day" );
 	}
-	// REVISIT SAM 2005-02-16 Week is not yet supported
+	// TODO SAM 2005-02-16 Week is not yet supported
 	//if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
 	//}
 	if ( (MONTH >= start_interval) && (MONTH <= end_interval) ) {
@@ -392,7 +383,8 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 		}
 		return v;
 	}
-	else {	// Change to descending order...
+	else {
+	    // Change to descending order...
 		int size = v.size();
 		Vector v2 = new Vector ( size );
 		for ( int i = size -1; i >= 0; i-- ) {
@@ -408,22 +400,21 @@ public static Vector getTimeIntervalChoices (	int start_interval,
 /*
 Determine whether the given TimeInterval is greater than the instance based on
 a comparison of the length of the interval.
-Only intervals that can be explicitly compared should be evaluated with this
-method.
+Only intervals that can be explicitly compared should be evaluated with this method.
 @return true if the instance is greater than the given TimeInterval.
 @param interval The TimeInterval to compare to the instance.
 */
-/* REVISIT 2005-03-03 SAM do later no time.
+/* TODO 2005-03-03 SAM do later no time.
 public boolean greaterThan ( TimeInterval interval )
 {	int seconds1 = toSeconds();
 	int seconds2 = interval.toSeconds();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
-		// Intervals are less than month so a simple comparison can be
-		// made...
+		// Intervals are less than month so a simple comparison can be made...
 		if ( seconds1 > seconds2 ) {
 			return true;
 		}
-		else {	return false;
+		else {
+		    return false;
 		}
 	}
 }
@@ -440,12 +431,11 @@ public static boolean isRegularInterval ( int interval_base )
 	return false;
 }
 
-// REVISIT need to put in lessThanOrEquivalent()
+// TODO need to put in lessThanOrEquivalent()
 
 /*
 Determine whether the given TimeInterval is less than the instance based on
-a comparison of the length of the interval, for intervals with base Second to
-Year.
+a comparison of the length of the interval, for intervals with base Second to Year.
 For the sake of comparing largely different intervals, months are assumed to
 have 30 days.  Time intervals of 28Day, 29Day, and 31Day will explicitly be
 treated as 1Month.  Comparisons for intervals < Month are done using the number
@@ -453,17 +443,17 @@ of seconds in the interval.  Comparisons
 @return true if the instance is less than the given TimeInterval.
 @param interval The TimeInterval to compare to the instance.
 */
-/* REVISIT SAM 2005-03-03 No time - do later.
+/* TODO SAM 2005-03-03 No time - do later.
 public boolean lessThan ( TimeInterval interval )
 {	int seconds1 = toSecondsApproximate();
 	int seconds2 = interval.toSecondsApproximate();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
-		// Intervals are less than month so a simple comparison can be
-		// made...
+		// Intervals are less than month so a simple comparison can be made...
 		if ( seconds1 < seconds2 ) {
 			return true;
 		}
-		else {	return false;
+		else {
+		    return false;
 		}
 	}
 	// Check comparison between intervals involving only month and year...
@@ -474,7 +464,7 @@ public boolean lessThan ( TimeInterval interval )
 }
 */
 
-// REVISIT need to put in lessThanOrEquivalent()
+// TODO need to put in lessThanOrEquivalent()
 
 /**
 Initialize the data.
@@ -498,19 +488,17 @@ same as the maximum value for a date/time component.  For example, the maximum
 multiplier for an hourly interval is 24 whereas the maximum hour value is 23.
 @return an array of multipliers for for the interval string, or null if the
 interval_base string is not recognized.
-@param interval_base An interval base string that is recognized by
-parseInterval().
+@param interval_base An interval base string that is recognized by parseInterval().
 @param divisible If true, the interval multipliers that are returned will result
 in intervals that divide evenly into the next interval base.  If false, then all
 valid multipliers for the base are returned.
 @param include_zero If true, then a zero multiplier is included with all
 returned output.  Normally zero is not included.
 */
-public static int [] multipliersForIntervalBase (	String interval_base,
-							boolean divisible,
-							boolean include_zero )
+public static int [] multipliersForIntervalBase ( String interval_base, boolean divisible, boolean include_zero )
 {	TimeInterval interval = null;
-	try {	interval = parseInterval ( interval_base );
+	try {
+	    interval = parseInterval ( interval_base );
 	}
 	catch ( Exception e ) {
 		return null;
@@ -542,7 +530,8 @@ public static int [] multipliersForIntervalBase (	String interval_base,
 			mult[4 + offset] = 6;
 			mult[5 + offset] = 12;
 		}
-		else {	size = 12 + offset;
+		else {
+		    size = 12 + offset;
 			mult = new int[size];
 			if ( include_zero ) {
 				mult[0] = 0;
@@ -585,7 +574,8 @@ public static int [] multipliersForIntervalBase (	String interval_base,
 			mult[6 + offset] = 12;
 			mult[7 + offset] = 24;
 		}
-		else {	size = 24 + offset;
+		else {
+		    size = 24 + offset;
 			mult = new int[size];
 			if ( include_zero ) {
 				mult[0] = 0;
@@ -615,7 +605,8 @@ public static int [] multipliersForIntervalBase (	String interval_base,
 			mult[10 + offset] = 30;
 			mult[11 + offset] = 60;
 		}
-		else {	size = 60 + offset;
+		else {
+		    size = 60 + offset;
 			mult = new int[size];
 			if ( include_zero ) {
 				mult[0] = 0;
@@ -641,7 +632,8 @@ public static int [] multipliersForIntervalBase (	String interval_base,
 			mult[6 + offset] = 50;
 			mult[7 + offset] = 100;
 		}
-		else {	size = 100 + offset;
+		else {
+		    size = 100 + offset;
 			mult = new int[size];
 			if ( include_zero ) {
 				mult[0] = 0;
@@ -683,8 +675,8 @@ throws InvalidTimeIntervalException
 			digit_count++;
 			i++;
 		}
-		else {	// We have reached the end of the digit part
-			// of the string.
+		else {
+		    // We have reached the end of the digit part of the string.
 			break;
 		}
 	}
@@ -702,121 +694,98 @@ throws InvalidTimeIntervalException
 		interval.setBase ( HOUR );
 		interval.setMultiplier ( Integer.parseInt( interval_string ));
 		if ( Message.isDebugOn ) {
-			Message.printDebug( dl, routine,
-			interval.getMultiplier() + " Hourly" );
+			Message.printDebug( dl, routine, interval.getMultiplier() + " Hourly" );
 		}
 		return interval;
 	}
-	else {	String interval_mult_string =
-		interval_string.substring(0,digit_count);
-		interval.setMultiplier (
-			Integer.parseInt((interval_mult_string)) );
+	else {
+	    String interval_mult_string = interval_string.substring(0,digit_count);
+		interval.setMultiplier ( Integer.parseInt((interval_mult_string)) );
 		interval.setMultiplierString ( interval_mult_string );
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Multiplier: " + interval.getMultiplier() );
+		Message.printDebug ( dl, routine, "Multiplier: " + interval.getMultiplier() );
 	}
 
 	// Now parse out the Base interval
 
 	if(	interval_string.regionMatches(true,digit_count,"minute",0,6) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 6)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 6)));
 		interval.setBase ( MINUTE );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"min",0,3) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 3)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 3)));
 		interval.setBase ( MINUTE );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"hour",0,4) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 4)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 4)));
 		interval.setBase ( HOUR );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"hr",0,2) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 2)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
 		interval.setBase ( HOUR );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"day",0,3) ||
 		interval_string.regionMatches(true,digit_count,"dai",0,3) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 3)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 3)));
 		interval.setBase ( DAY );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"sec",0,2) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 2)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
 		interval.setBase ( SECOND );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"week",0,4) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 4)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 4)));
 		interval.setBase ( WEEK );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"wk",0,2) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 2)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
 		interval.setBase ( WEEK );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"month",0,5) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 5)));
+		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 5)));
 		interval.setBase ( MONTH );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"mon",0,3) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 3)));
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 3)));
 		interval.setBase ( MONTH );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"year",0,4) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 4)));
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 4)));
 		interval.setBase ( YEAR );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"yr",0,2) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 2)));
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 2)));
 		interval.setBase ( YEAR );
 	}
-	else if(interval_string.regionMatches(true,digit_count,
-		"irregular",0,9)) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 9)));
+	else if(interval_string.regionMatches(true,digit_count,"irregular",0,9)) {
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 9)));
 		interval.setBase ( IRREGULAR );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"irreg",0,5)) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 5)));
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 5)));
 		interval.setBase ( IRREGULAR );
 	}
 	else if(interval_string.regionMatches(true,digit_count,"irr",0,3) ) {
-		interval.setBaseString (
-		interval_string.substring(digit_count,(digit_count + 3)));
+		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 3)));
 		interval.setBase ( IRREGULAR );
 	}
-	else {	if ( interval_string.length() == 0 ) {
-			Message.printWarning( 2, routine,
-			"No interval specified." );
+	else {
+	    if ( interval_string.length() == 0 ) {
+			Message.printWarning( 2, routine, "No interval specified." );
 		}
-		else {	Message.printWarning( 2, routine,
-			"Unrecognized interval \"" +
+		else {
+		    Message.printWarning( 2, routine, "Unrecognized interval \"" +
 			interval_string.substring(digit_count) + "\"" );
 		}
 		routine = null;
-		throw new InvalidTimeIntervalException (
-			"Unrecognized time interval \"" +
-			interval_string + "\"" );
+		throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + interval_string + "\"" );
 	}
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug( dl, routine, "Base: " +
-		interval.getBase() +
-		" (" + interval.getBaseString() + "), Mult: " +
-		interval.getMultiplier() );
+		interval.getBase() + " (" + interval.getBaseString() + "), Mult: " + interval.getMultiplier() );
 	}
 
 	routine = null;
@@ -868,8 +837,7 @@ Return the number of seconds in an interval, accounting for the base interval
 and multiplier.  Only regular intervals with a base less than or equal to a week
 can be processed because of the different number of days in a month.  See
 toSecondsApproximate() for a version that will handle all intervals.
-@return Number of seconds in an interval, or -1 if the interval cannot be
-processed.
+@return Number of seconds in an interval, or -1 if the interval cannot be processed.
 */
 public int toSeconds ()
 {	if ( _interval_base == SECOND ) {
@@ -887,7 +855,8 @@ public int toSeconds ()
 	else if ( _interval_base == WEEK ) {
 		return 604800*_interval_mult;
 	}
-	else {	return -1;
+	else {
+	    return -1;
 	}
 }
 
@@ -941,4 +910,4 @@ public String toString ()
 {	return _interval_mult_string + _interval_base_string;
 }
 
-} // End of TimeInterval
+}
