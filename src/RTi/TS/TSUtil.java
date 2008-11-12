@@ -3118,19 +3118,15 @@ starting for interval-ending 06, 12, 18, and 00 hours.
 @return a new time series that is the disaggregated result.
 @param ts Time series to disaggregate.
 @param method Method to disaggregate.  If "Ormsbee", use the procedure given
-by TVA.  If "Transfer", do a simple transfer of values (currently not
-implemented).
+by TVA.  If "Transfer", do a simple transfer of values (currently not implemented).
 @param new_datatype If "" or "*", transfer the datatype from the original
 time series.  Otherwise, use the new data type in the disaggregated time series
 (including the identifier).
 @param new_units If "" or "*", transfer the units from the original
 time series.  Otherwise, use the new units in the disaggregated time series.
-@param req_interval_base Interval base to disaggregate to (as per TimeInterval
-class).
-@param req_interval_mult Interval multiplier to disaggregate to (as per
-TimeInterval class).
-@exception Exception if an error occurs (e.g., improper disaggregation
-parameters).
+@param req_interval_base Interval base to disaggregate to (as per TimeInterval class).
+@param req_interval_mult Interval multiplier to disaggregate to (as per TimeInterval class).
+@exception Exception if an error occurs (e.g., improper disaggregation parameters).
 */
 public static TS disaggregate (	TS ts, String method, String new_datatype,
 				String new_units, int req_interval_base,
@@ -3140,16 +3136,12 @@ throws Exception
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
-		throw new Exception (
-		"Cannot disaggregate irregular time series" );
+		throw new Exception ( "Cannot disaggregate irregular time series" );
 	}
 	if ( method.equalsIgnoreCase("Ormsbee") ) {
-		if (	!((ts.getDataIntervalBase() == TimeInterval.DAY) &&
-			(ts.getDataIntervalMult() == 1)) ) {
-			Message.printWarning ( 2, routine,
-			"Cannot disaggregate other than 1Day time series." );
-			throw new Exception (
-			"Cannot disaggregate other than 1Day time series." );
+		if ( !((ts.getDataIntervalBase() == TimeInterval.DAY) && (ts.getDataIntervalMult() == 1)) ) {
+			Message.printWarning ( 2, routine, "Cannot disaggregate other than 1Day time series." );
+			throw new Exception ( "Cannot disaggregate other than 1Day time series." );
 		}
 
 		// Create a 6-hour time series using as much header information
@@ -3162,18 +3154,15 @@ throws Exception
 		tsident.setInterval ( "6Hour" );
 		newts.setIdentifier ( tsident );
 		// Set the time series properties...
-		if (	(new_units != null) && !new_units.equals("") &&
-			!new_units.equals("*") ) {
+		if ( (new_units != null) && !new_units.equals("") && !new_units.equals("*") ) {
 			newts.setDataUnits ( new_units );
 		}
-		if (	(new_datatype != null) && !new_datatype.equals("") &&
-			!new_datatype.equals("*") ) {
+		if ( (new_datatype != null) && !new_datatype.equals("") && !new_datatype.equals("*") ) {
 			newts.setDataUnits ( new_datatype );
 		}
 
 		// Set the dates.  Going from daily data will result in a start
-		// on hour 6 (interval-ending value) to hour 0 of the day after
-		// the last)...
+		// on hour 6 (interval-ending value) to hour 0 of the day after the last)...
 	
 		DateTime newdate1 = new DateTime ( ts.getDate1() );
 		newdate1.setPrecision ( DateTime.PRECISION_HOUR );
@@ -3195,12 +3184,11 @@ throws Exception
 		DateTime newdate = new DateTime ( newdate1 );
 		double missing = newts.getMissing();
 		int j = 0;
-      		double [] f = new double[3];
+      	double [] f = new double[3];
 		double tx, vx, wt, wt1, tol, t, abs1, abs2;
 		boolean iflag1, iflag2;
 
-		// Iterate through the original time series, creating 4 6-hour
-		// values in the new time series...
+		// Iterate through the original time series, creating 4 6-hour values in the new time series...
 
 		for (	;
 			date.lessThanOrEqualTo ( end );
@@ -3209,8 +3197,7 @@ throws Exception
 			// Get the initial values.  If necessary, offset the
 			// date used in the iterator to get previous/next
 			// values, taking care to reset to the "current" value
-			// so that it can be incremented correctly at the end
-			// of the loop...
+			// so that it can be incremented correctly at the end of the loop...
 			if ( nprocessed == 0 ) {
 				// First day value...
 				f[0] = ts.getDataValue ( date );
@@ -3229,7 +3216,8 @@ throws Exception
 				f[1] = ts.getDataValue ( date );
 				f[2] = f[1];
 			}
-			else {	// Previous day...
+			else {
+			    // Previous day...
 				date.addDay ( -1 );
 				f[0] = ts.getDataValue ( date );
 				date.addDay ( 1 );
@@ -3242,16 +3230,11 @@ throws Exception
 			}
 			if ( Message.isDebugOn ) {
 				Message.printStatus ( 1, routine, "Day data:  "+
-				date + " f[0]=" + f[0] + " f[1]=" + f[1] +
-				" f[2]=" + f[2] );
+				date + " f[0]=" + f[0] + " f[1]=" + f[1] + " f[2]=" + f[2] );
 			}
-			// If any of the input values are missing, set the
-			// result to missing...
-			if (	ts.isDataMissing ( f[0] ) ||
-				ts.isDataMissing ( f[1] ) ||
-				ts.isDataMissing ( f[2] ) ) {
-				for (	j = 0; j < 4;
-					j++, newdate.addHour ( 6 ) ) {
+			// If any of the input values are missing, set the result to missing...
+			if ( ts.isDataMissing ( f[0] ) || ts.isDataMissing ( f[1] ) || ts.isDataMissing ( f[2] ) ) {
+				for ( j = 0; j < 4; j++, newdate.addHour ( 6 ) ) {
 					newts.setDataValue ( newdate, missing );
 				}
 				continue;
@@ -3259,8 +3242,7 @@ throws Exception
 			// If all of the input values are zero, set the
 			// result to zero (any precision problems with this?)...
 			if ( (f[0] == 0.0) && (f[1] == 0.0) && (f[2] == 0.0) ) {
-				for (	j = 0; j < 4;
-					j++, newdate.addHour ( 6 ) ) {
+				for ( j = 0; j < 4; j++, newdate.addHour ( 6 ) ) {
 					newts.setDataValue ( newdate, 0.0 );
 				}
 				continue;
@@ -3282,29 +3264,26 @@ throws Exception
 			else if ( iflag1 || iflag2 ) {
 				tx = 24.0*(f[0] - f[1])/(f[0] - f[2]);
 			}
-			else {	tx = 24.0*(f[0] - f[1])/(f[0] - 2.0*f[1] +f[2]);
+			else {
+			    tx = 24.0*(f[0] - f[1])/(f[0] - 2.0*f[1] +f[2]);
 			}
 			vx = 12.0 * (f[1] + f[2]) - 0.5*tx*(f[2] - f[0]);
 			wt1 = 0.0;
 			if ( Message.isDebugOn ) {
-				Message.printStatus ( 1, routine,
-				"abs1=" + abs1 + " abs2=" + abs2 +
-				" tx=" + tx + " vx=" + vx );
+				Message.printStatus ( 1, routine, "abs1=" + abs1 + " abs2=" + abs2 + " tx=" + tx + " vx=" + vx );
 			}
 			for ( j = 1; j <= 4; j++, newdate.addHour ( 6 ) ) {
 				t = 6.0*j;
 				if ( t <= tx ) {
-					wt = f[0]*t/vx -
-						(f[0]-f[1])*t*t/(2.0*vx*tx);
+					wt = f[0]*t/vx - (f[0]-f[1])*t*t/(2.0*vx*tx);
 				}
-				else {	wt = (f[1]+f[0])*tx/(2.0*vx) +
-						f[1]*(t-tx)/vx -
-						(f[1]-f[2])*(t-tx)*(t-tx)/
-						(2.0*vx*(24.0-tx));
+				else {
+				    wt = (f[1]+f[0])*tx/(2.0*vx) +
+						f[1]*(t-tx)/vx - (f[1]-f[2])*(t-tx)*(t-tx)/(2.0*vx*(24.0-tx));
 				}
-            			new_value = 4.0*(f[1] * (wt - wt1));
+            	new_value = 4.0*(f[1] * (wt - wt1));
 				newts.setDataValue ( newdate, new_value );
-            			wt1 = wt;
+            	wt1 = wt;
 			}
 		}
 		newts.addToGenesis ( 
@@ -3318,15 +3297,14 @@ throws Exception
 	else if ( method.equalsIgnoreCase("SameValue") ) {
 		TS newts = null;
 		TSIdent tsident = null;
-		if (	(interval_base == TimeInterval.YEAR) &&
+		if ( (interval_base == TimeInterval.YEAR) &&
 			(interval_mult == 1) &&
 			(req_interval_base == TimeInterval.MONTH) &&
 			(req_interval_mult == 1) ) {
 			// Year -> Month
 
 			// Create a 1Month time series using as much header
-			// information from the original time series as
-			// possible....
+			// information from the original time series as possible....
 
 			newts = new MonthTS ();
 			newts.copyHeader ( ts );
@@ -3374,8 +3352,7 @@ throws Exception
 			// Month -> Day
 
 			// Create a 1Day time series using as much header
-			// information from the original time series as
-			// possible....
+			// information from the original time series as possible....
 
 			newts = new DayTS ();
 			newts.copyHeader ( ts );
@@ -3391,8 +3368,7 @@ throws Exception
 			newts.setDate1 ( newdate1 );
 			DateTime newdate2 = new DateTime ( ts.getDate2() );
 			newdate2.setPrecision ( DateTime.PRECISION_DAY );
-			newdate2.setDay ( TimeUtil.numDaysInMonth(
-				newdate2.getMonth(), newdate2.getYear()) );
+			newdate2.setDay ( TimeUtil.numDaysInMonth( newdate2.getMonth(), newdate2.getYear()) );
 			newts.setDate2 ( newdate2 );
 			newts.allocateDataSpace ();
 
@@ -3429,22 +3405,21 @@ throws Exception
 
 			newts = new HourTS ();
 			newts.copyHeader ( ts );
-			newts.setDataInterval ( TimeInterval.HOUR,
-					req_interval_mult );
+			newts.setDataInterval ( TimeInterval.HOUR, req_interval_mult );
 			tsident = newts.getIdentifier();
 			tsident.setInterval ( "" + req_interval_mult + "Hour" );
 
 			// Set the dates.
 	
-			// Start date will be shifted to hour zero of the next
-			// day if hourly data...
+			// Start date will be shifted to hour zero of the next day if hourly data...
 			DateTime newdate1 = new DateTime ( ts.getDate1() );
 			newdate1.setPrecision ( DateTime.PRECISION_HOUR );
 			if ( req_interval_mult == 24 ) {
 				newdate1.setHour ( 23 );
 				newdate1.addHour ( 1 );
 			}
-			else {	newdate1.setHour ( req_interval_mult );
+			else {
+			    newdate1.setHour ( req_interval_mult );
 			}
 			newts.setDate1 ( newdate1 );
 			// End date is always hour zero of the next day...
@@ -3480,15 +3455,14 @@ throws Exception
 					newts.setDataValue (newdate, new_value);
 					date.addDay ( 1 );
 				}
-				else {	if (	newdate.getHour() ==
-						req_interval_mult ) {
+				else {
+				    if ( newdate.getHour() == req_interval_mult ) {
 						// The zero hour will use the
 						// previous day's value but
 						// others need to use the
 						// current day's value...
 						date.addDay ( 1 );
-						new_value = ts.getDataValue (
-							date );
+						new_value = ts.getDataValue ( date );
 					}
 					newts.setDataValue (newdate, new_value);
 				}
@@ -3500,16 +3474,13 @@ throws Exception
 			// Hour -> Nminute
 
 			// Create an minute time series using as much header
-			// information from the original time series as
-			// possible....
+			// information from the original time series as possible....
 
 			newts = new MinuteTS ();
 			newts.copyHeader ( ts );
-			newts.setDataInterval ( TimeInterval.MINUTE,
-					req_interval_mult );
+			newts.setDataInterval ( TimeInterval.MINUTE, req_interval_mult );
 			tsident = newts.getIdentifier();
-			tsident.setInterval ( "" + req_interval_mult +
-					"Minute" );
+			tsident.setInterval ( "" + req_interval_mult + "Minute" );
 
 			// Set the dates.
 	
@@ -3521,7 +3492,8 @@ throws Exception
 				newdate1.setMinute ( 59 );
 				newdate1.addMinute ( 1 );
 			}
-			else {	newdate1.setMinute ( req_interval_mult );
+			else {
+			    newdate1.setMinute ( req_interval_mult );
 			}
 			newts.setDate1 ( newdate1 );
 			// End date is always hour zero of the next day...
@@ -3571,15 +3543,14 @@ throws Exception
 				}
 			}
 		}
-		else {	throw new Exception (
-			"disaggregate() intervals are not supported." );
+		else {
+		    throw new Exception ( "disaggregate() intervals are not supported." );
 		}
 		if ( newts != null ) {
 			// General actions...
 			newts.setIdentifier ( tsident );
 			// Set the time series properties...
-			if (	(new_units != null) && !new_units.equals("") &&
-				!new_units.equals("*") ) {
+			if ( (new_units != null) && !new_units.equals("") && !new_units.equals("*") ) {
 				newts.setDataUnits ( new_units );
 			}
 			if (	(new_datatype != null) &&
@@ -3592,13 +3563,11 @@ throws Exception
 			tsident.getInterval() + " time series from " +
 			ts.getIdentifier().getInterval()+
 			" time series " + ts.getIdentifierString() + "," );
-			newts.addToGenesis ( "disaggregate:   " +
-				ts.getDescription() );
+			newts.addToGenesis ( "disaggregate:   " + ts.getDescription() );
 		}
 		return newts;
 	}
-	throw new Exception ( "Disaggregation method \"" + method + 
-		"\" is not recognized for disaggregate()." );
+	throw new Exception ( "Disaggregation method \"" + method + "\" is not recognized for disaggregate()." );
 }
 
 /**
@@ -10409,15 +10378,14 @@ multiplier are set (the memory allocation must occur elsewhere).
 @param id time series identifier as a string.
 @param long_id If true, then the string is a full identifier.  Otherwise,
 the string is only the interval (e.g., "10min").
-@return A pointer to the time series, or null if the time series type cannot
-be determined.
-@exception if the identifier is not valid (e..g, if the interval is not
-recognized).
+@return A pointer to the time series, or null if the time series type cannot be determined.
+@exception if the identifier is not valid (e..g, if the interval is not recognized).
 */
 public static TS newTimeSeries ( String id, boolean long_id )
 throws Exception
-{	int interval_base = 0;
-	int interval_mult = 0;
+{	int intervalBase = 0;
+	int intervalMult = 0;
+	String intervalString = "";
 	if ( long_id ) {
 		// Create a TSIdent so that the type of time series can be determined...
 
@@ -10425,42 +10393,45 @@ throws Exception
 
 		// Get the interval and base...
 
-		interval_base = tsident.getIntervalBase();
-		interval_mult = tsident.getIntervalMult();
+		intervalString = tsident.getInterval();
+		intervalBase = tsident.getIntervalBase();
+		intervalMult = tsident.getIntervalMult();
 	}
 	else {
         // Parse a TimeInterval so that the type of time series can be determined...
 
-		TimeInterval tsinterval = TimeInterval.parseInterval(id);
+	    intervalString = id;
+		TimeInterval tsinterval = TimeInterval.parseInterval(intervalString);
 
 		// Get the interval and base...
 
-		interval_base = tsinterval.getBase();
-		interval_mult = tsinterval.getMultiplier();
+		intervalBase = tsinterval.getBase();
+		intervalMult = tsinterval.getMultiplier();
 	}
 	// Now interpret the results and declare the time series...
 
 	TS ts = null;
-	if ( interval_base == TimeInterval.MINUTE ) {
+	if ( intervalBase == TimeInterval.MINUTE ) {
 		ts = new MinuteTS();
 	}
-	else if ( interval_base == TimeInterval.HOUR ) {
+	else if ( intervalBase == TimeInterval.HOUR ) {
 		ts = new HourTS();
 	}
-	else if ( interval_base == TimeInterval.DAY ) {
+	else if ( intervalBase == TimeInterval.DAY ) {
 		ts = new DayTS();
 	}
-	else if ( interval_base == TimeInterval.MONTH ) {
+	else if ( intervalBase == TimeInterval.MONTH ) {
 		ts = new MonthTS();
 	}
-	else if ( interval_base == TimeInterval.YEAR ) {
+	else if ( intervalBase == TimeInterval.YEAR ) {
 		ts = new YearTS();
 	}
-	else if ( interval_base == TimeInterval.IRREGULAR ) {
+	else if ( intervalBase == TimeInterval.IRREGULAR ) {
 		ts = new IrregularTS();
 	}
 	else {
-        String message = "Cannot create a new time series for \"" + id + "\" (the interval is not recognized.)";
+        String message = "Cannot create a new time series for \"" + id + "\" (the interval \"" +
+            intervalString + "\" [" + intervalBase + "] is not recognized).";
 		Message.printWarning ( 3, "TSUtil.newTimeSeries", message );
 		throw new Exception ( message );
 	}
@@ -10472,8 +10443,8 @@ throws Exception
 	}
 	else {
         // Set the multiplier...
-		ts.setDataInterval(interval_base,interval_mult);
-		ts.setDataIntervalOriginal(interval_base,interval_mult);
+		ts.setDataInterval(intervalBase,intervalMult);
+		ts.setDataIntervalOriginal(intervalBase,intervalMult);
 	}
 
 	// Return whatever was created...
