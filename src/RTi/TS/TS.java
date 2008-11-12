@@ -1861,8 +1861,7 @@ public boolean isDataMissing ( double value )
 		// Check for NaN...
 		return true;
 	}
-	if ( 	(value >= _missingl) &&
-		(value <= _missingu) ) {
+	if ( (value >= _missingl) && (value <= _missingu) ) {
 		return true;
 	}
 	return false;
@@ -2266,8 +2265,8 @@ public void setLocation ( String location )
 
 /**
 Set the missing data value for the time series.  The upper and lower bounds
-of missing data are set to this value *1.001 and *.999, to allow for
-precision truncation.
+of missing data are set to this value +.001 and -.001, to allow for precision truncation.
+The value is constrained to Double.MAX and Double.Min.
 @param missing Missing data value for time series.
 */
 public void setMissing ( double missing )
@@ -2277,12 +2276,17 @@ public void setMissing ( double missing )
 		// isDataMissing() method has a similar check.
 		return;
 	}
-	if ( missing < 0 ) {
-		_missingl = missing * 1.001;
-		_missingu = missing * 0.999;
+	if ( missing == Double.MAX_VALUE ) {
+	    _missingl = missing - .001;
+        _missingu = missing;
 	}
-	else {	_missingl = missing * 0.999;
-		_missingu = missing * 1.001;
+	else if ( missing < 0 ) {
+		_missingl = missing + .001;
+		_missingu = missing - .001;
+	}
+	else {
+	    _missingl = missing - 0.001;
+		_missingu = missing + 0.001;
 	}
 }
 
