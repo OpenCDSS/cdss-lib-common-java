@@ -304,21 +304,18 @@ public int allocateDataSpace( )
 	int	dl = 10, i, ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		Message.printWarning ( 2, routine,
-		"No dates set for memory allocation" );
+		Message.printWarning ( 2, routine, "No dates set for memory allocation" );
 		return 1;
 	}
 	if ( (_data_interval_mult < 1) || (_data_interval_mult > 60) ) {
 		Message.printWarning ( 2, routine,
-		"Only know how to handle 1-60 minute data, not " +
-		_data_interval_mult + "-minute" );
+		"Only know how to handle 1-60 minute data, not " + _data_interval_mult + "-minute" );
 		return 1;
 	}
 	nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if( nmonths == 0 ){
-		Message.printWarning( 2, routine,
-		"TS has 0 months POR, maybe Dates haven't been set yet" );
+		Message.printWarning( 2, routine, "TS has 0 months POR, maybe Dates haven't been set yet" );
 		return 1;
 	}
 
@@ -332,8 +329,7 @@ public int allocateDataSpace( )
 		}
 	}
 
-	// Probably need to catch an exception here in case we run out of
-	// memory.
+	// Probably need to catch an exception here in case we run out of memory.
 
 	// Set the counter date to match the starting month.  This date is used
 	// to determine the number of days in each month.
@@ -369,17 +365,14 @@ public int allocateDataSpace( )
 				}
 			}
 			else if ( (i + 1) == nmonths ) {
-				// In the last month.  If the day is greater
-				// than the last day in the period, do not use
-				// up memory.  The position will never be
-				// accessed.
+				// In the last month.  If the day is greater than the last day in the period, do not use
+				// up memory.  The position will never be accessed.
 				day = j + 1;
 				if ( day > _date2.getDay() ) {
 					continue;
 				}
 			}
-			// Else we do allocate memory for some data during the
-			// day...
+			// Else we do allocate memory for some data during the day...
 			// Easy to handle 1-60 minute data...
 			// 24 = number of hours in the day...
 			nvals = 24*(60/_data_interval_mult);
@@ -388,18 +381,13 @@ public int allocateDataSpace( )
 				_data_flags[i][j] = new char[nvals][];
 			}
 
-			// Now fill the entire month with the missing data
-			// value...
+			// Now fill the entire month with the missing data value...
 
 			for ( k = 0; k < nvals; k++ ) {
 				_data[i][j][k] = _missing;
 				if ( _has_data_flags ) {
-					_data_flags[i][j][k] =
-						new char[_data_flag_length];
-						System.arraycopy ( blanks, 0,
-						_data_flags[i][j], 0,
-						_data_flag_length );
-					
+					_data_flags[i][j][k] = new char[_data_flag_length];
+					System.arraycopy ( blanks, 0, _data_flags[i][j][k], 0,	_data_flag_length );
 				}
 			}
 		}
@@ -1381,9 +1369,9 @@ Minute data are stored in a three-dimensional array:
 @param date Date of interest.
 */
 public double getDataValue( DateTime date )
-{	// Do not define routine here to increase peformance.
+{	// Do not define routine here to increase performance.
 
-	if ( date == null ) {
+	if ( (date == null) || (_data == null) ) {
 		return _missing;
 	}
 
