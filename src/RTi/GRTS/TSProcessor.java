@@ -340,6 +340,7 @@ throws Exception
 	JFrame f = new JFrame();
 	f.addNotify();
 	String graph_file =	tsproduct.getLayeredPropValue ( "OutputFile", -1, -1 );
+	/* TODO SAM 2008-11-19 Don't think this is needed
 	if ( graph_file == null ) {
 		if ( IOUtil.isUNIXMachine() ) {
 			graph_file = "/tmp/tmp.png";
@@ -348,6 +349,7 @@ throws Exception
             graph_file = "C:\\TEMP\\tmp.png";
 		}
 	}
+	*/
 	String preview_output = tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
 	try {
 	    // Draw to the image file first in case because the on-screen display throws
