@@ -788,7 +788,7 @@ throws Exception, IOException, FileNotFoundException
 	return tslist;
 }
 
-// TODO SAM 2008-05-09 Evaluate types of exceptiosn that are thrown
+// TODO SAM 2008-05-09 Evaluate types of exceptions that are thrown
 /**
 Read a time series from a DateValue format file.
 @return a Vector of time series if successful, null if not.  The calling code
@@ -797,10 +797,8 @@ is responsible for freeing the memory for the time series.
 return all new time series in the vector.  All data are reset, except for the
 identifier, which is assumed to have been set in the calling code.
 @param in Reference to open input stream.
-@param req_date1 Requested starting date to initialize period (or null to read
-the entire time series).
-@param req_date2 Requested ending date to initialize period (or null to read
-the entire time series).
+@param req_date1 Requested starting date to initialize period (or null to read the entire time series).
+@param req_date2 Requested ending date to initialize period (or null to read the entire time series).
 @param units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read.
 @exception Exception if there is an error reading the time series.
@@ -1745,10 +1743,8 @@ Write a Vector of time series to a DateValue format file.
 @param out PrintWrite to write to.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
-@param units Units to write.  If different than the current units the units
-will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
+@param units Units to write.  If different than the current units the units will be converted on output.
+@param write_data Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if an error occurs.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1,
@@ -1766,8 +1762,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param fname Name of file to write.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
-@param units Units to write.  If different than the current units the units
-will be converted on output.
+@param units Units to write.  If different than the current units the units will be converted on output.
 @param write_data Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if there is an error writing the file.
 */
@@ -1814,8 +1809,7 @@ Currently there is no way to indicate that the count or total time should be pri
 @param out PrintWrite to write to.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
-@param units Units to write.  If different than the current units the units
-will be converted on output.
+@param units Units to write.  If different than the current units the units will be converted on output.
 @param write_data Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if there is an error writing the file (I/O error or invalid data).
 */
@@ -1833,8 +1827,7 @@ Currently there is no way to indicate that the count or total time should be pri
 @param out PrintWrite to write to.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
-@param units Units to write.  If different than the current units the units
-will be converted on output.
+@param units Units to write.  If different than the current units the units will be converted on output.
 @param write_data Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output (see overloaded method for description).
 @exception Exception if there is an error writing the file (I/O error or invalid data).
@@ -1922,7 +1915,7 @@ throws Exception
 			add = null;
 			message = "Time series do not have the same interval.  Can't write";
 			Message.printWarning ( 2, routine, message );
-			throw new Exception ( message );
+			throw new UnequalTimeIntervalException ( message );
 		}
 		// Get the conversion factors to use for output.  Don't call
 		// TSUtil.convertUnits because we don't want to alter the time series itself...
@@ -1959,6 +1952,13 @@ throws Exception
     propval = props.getValue ( "Precision" );
     if ( (propval != null) && StringUtil.isInteger(propval) ) {
         precision = Integer.parseInt(propval);
+    }
+    // Override of missing value in the time series
+    String missingValue_String = props.getValue ( "MissingValue" );
+    if ( !StringUtil.isDouble(missingValue_String) ) {
+        Message.printWarning ( 3, routine,
+            "Specified missing value \"" + missingValue_String + "\" is not a number - ignoring." );
+        missingValue_String = null;
     }
     String outputFormat = "%." + precision + "f";
 	String nodata_string = "?";
@@ -2053,12 +2053,18 @@ throws Exception
 			description_buffer.append (	"\"" + ts.getDescription() + "\"" );
 			// If the missing value is NaN, just print NaN.  Otherwise the %.Nf results in NaN.000...
 			// The following is a trick to check for NaN...
-			if ( ts.getMissing() != ts.getMissing() ) {
-				missingval_buffer.append ("NaN" );
+			if ( missingValue_String != null ) {
+			    // Property has specified the missing value to use
+			    missingval_buffer.append ( missingValue_String );
 			}
 			else {
-			    // Assume that missing is indicated by a number...
-				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
+    			if ( ts.getMissing() != ts.getMissing() ) {
+    				missingval_buffer.append ("NaN" );
+    			}
+    			else {
+    			    // Assume that missing is indicated by a number...
+    				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
+    			}
 			}
 			tsid_buffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
 			units_buffer.append ( "\"" + ts.getDataUnits() + "\"" );
@@ -2202,13 +2208,19 @@ throws Exception
 			// Else print the record...
 			value = tsdata.getData();
 			if ( ts.isDataMissing(value) ) {
-				if ( value != value ) {
-					// This trick is used to figure out if missing data are indicated by NaN...
-					string_value = "NaN";
-				}
-				else {
-				    string_value = StringUtil.formatString( tsdata.getData(), outputFormat );
-				}
+		         if ( missingValue_String != null ) {
+		                // Property has specified the missing value to use
+		                string_value = missingValue_String;
+		         }
+		         else {
+    				if ( value != value ) {
+    					// This trick is used to figure out if missing data are indicated by NaN...
+    					string_value = "NaN";
+    				}
+    				else {
+    				    string_value = StringUtil.formatString( tsdata.getData(), outputFormat );
+    				}
+		        }
 			}
 			else {
 			    // Convert the units...
@@ -2237,13 +2249,19 @@ throws Exception
 					value = ts.getDataValue(t);
 				}
 				if ( (ts == null) || ts.isDataMissing(value) ) {
-					if ( value != value ) {
-						// This trick is used to figure out if missing data are indicated by NaN...
-						string_value = "NaN";
-					}
-					else {
-					    string_value = StringUtil.formatString( value, outputFormat);
-					}
+		            if ( missingValue_String != null ) {
+		                // Property has specified the missing value to use
+		                string_value = missingValue_String;
+		            }
+		            else {
+    					if ( value != value ) {
+    						// This trick is used to figure out if missing data are indicated by NaN...
+    						string_value = "NaN";
+    					}
+    					else {
+    					    string_value = StringUtil.formatString( value, outputFormat);
+    					}
+		            }
 				}
 				else {
 				    string_value = StringUtil.formatString(	(value*mult[i] + add[i]),outputFormat );
@@ -2348,6 +2366,12 @@ lines are not added to in any way.</b>
 </tr>
 
 <tr>
+<td><b>MissingValue</b></td>
+<td><b>The missing value to be output for numerical values.</b>
+<td>4</td>
+</tr>
+
+<tr>
 <td><b>Precision</b></td>
 <td><b>The precision (number of digits after the decimal) to use for numerical values.</b>
 <td>4</td>
@@ -2372,10 +2396,14 @@ throws Exception
 		    fout.close();
 		}
 	}
+	catch ( UnequalTimeIntervalException e ) {
+	    // Just rethrow because message will be specific
+	    throw e;
+	}
 	catch ( Exception e ) {
 		String message = "Error writing \"" + full_fname + "\".";
 		Message.printWarning( 2, routine, message );
-		Message.printWarning( 2, routine, e );
+		Message.printWarning( 3, routine, e );
 		throw new Exception (message);
 	}
 }
