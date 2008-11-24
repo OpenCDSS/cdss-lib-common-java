@@ -89,7 +89,8 @@ ctrl-click - addSelectionInterval
 shift-click - setSelectionInterval
 click-drag - setSelectionInterval
   
-The partial fix is to reroute the method calls to the 1.4 behavior.
+The partial fix is to reroute the method calls to the 1.4 behavior.  Additionally, current row/column needed to be set
+in some instances such as selecting or deselection cells.
 */
 public class JWorksheet_RowSelectionModel 
 extends DefaultListSelectionModel {
@@ -239,25 +240,26 @@ public void addSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.addSelectionInterval";
     int dl = 10;
     
-//    System.out.println("ROW.addSelectionInterval " + row0+","+row1);
-    
-    // iws - partial fix for 1.5 selection issues, see class javadoc
-    if (is15 && row0 != row1) {
-        setLeadSelectionIndex(row1);
-        return;
+    // iws - fix for 1.5 selection issues, see class javadoc
+    if ( is15 ) {
+        _currRow = row1;
+        if (row0 != row1) {
+            setLeadSelectionIndex(row1);
+            return;
+        }
     }
-	if (__oneClickRowSelection && __partner != null) {	
-		if (__partner.allCellsInRowSelected(row0)) {
-			__partner.forceDeselectRow(row0);
-		}
-		else {
-			__partner.forceSelectAllCellsInRow(row0);
-		}
-	}
-	
-	if (!__selectable) {
-		return;
-	}
+    if (__oneClickRowSelection && __partner != null) {
+            if (__partner.allCellsInRowSelected(row0)) {
+                    __partner.forceDeselectRow(row0);
+            }
+            else {
+                    __partner.forceSelectAllCellsInRow(row0);
+            }
+    }
+
+    if (!__selectable) {
+            return;
+    }
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "ROW: addSelectionInterval(" + row0 + ", " + row1 + ")");
     }
@@ -282,7 +284,7 @@ public void addSelectionInterval(int row0, int row1)
 	    Message.printDebug ( dl, routine,"  _anchor: " + _anchor);
 	    Message.printDebug ( dl, routine,"  _lead: " + _lead);
 	    Message.printDebug ( dl, routine,"  _startRow: " + _startRow);
-        Message.printDebug ( dl, routine,"  _currRow: " + _currRow);
+            Message.printDebug ( dl, routine,"  _currRow: " + _currRow);
 	    Message.printDebug ( dl, routine,"  _cols: " + _cols);
 	    Message.printDebug ( dl, routine,"  _startCol: " + _startCol);
 	}
@@ -542,9 +544,9 @@ row is selected or not.  Always returns true.
 public boolean isSelectedIndex(int row)
 {   String routine = "JWorksheet_RowSelectionModel.isSelectedIndex";
     int dl = 10;
-    if ( Message.isDebugOn ) {
-        Message.printDebug ( dl, routine, "ROW: isSelectedIndex(" + row + ")");
-    }
+    /*if ( Message.isDebugOn ) {
+    Message.printDebug ( dl, routine, "ROW: isSelectedIndex(" + row + ")");
+    }*/
 	_currRow = row;
 	return true;
 }
@@ -614,7 +616,8 @@ public void removeSelectionInterval(int row0, int row1)
 	if (row1 > _max) {
 		_max = row1;
 	}
-
+        if ( is15 )
+            _currRow = row1;
 	_anchor = row0;
 	_lead = row1;
 
@@ -705,6 +708,11 @@ as if setSelectionInterval were called.
 @param row the row to select.
 */
 public void selectRow(int row) {
+        int dl = 10;
+        String routine = "selectRow";
+        if ( Message.isDebugOn ) {
+            Message.printDebug(dl,routine,"ROW: selectRow(" + row + ")");
+        }
 	__colsm._reset = true;
 	_drawnToBuffer = true;
 	System.arraycopy(_cellsSelected, 0, _buffer, 0, _size);
@@ -797,7 +805,7 @@ public void setLeadSelectionIndex(int leadIndex)
 {
     int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
     String routine = "JWorksheet_RowSelectModel.setLeadSelectionIndex";
-//    System.out.println("ROW.setLeadSelectionIndex " + leadIndex);
+    System.out.println("ROW.setLeadSelectionIndex " + leadIndex);
     debug();
 	if (__oneClickRowSelection && __partner != null) {
 		return;
@@ -902,21 +910,24 @@ Overrides method in DefaultListSelectionModel.  Sets the setlection interval.
 public void setSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.setSelectionInterval";
     int dl = 10;
-//    System.out.println("ROW.setSelectionInterval " + row0+","+row1);
+    System.out.println("ROW.setSelectionInterval " + row0+","+row1);
     
-    // iws - partial fix for 1.5 selection issues, see class javadoc
-    if (is15 && row0 != row1) {
-        setLeadSelectionIndex(row1);
-        return;
+    // iws -  fix for 1.5 selection issues, see class javadoc
+    if ( is15 ) {
+        _currRow = row1;
+        if ( row0 != row1) {
+            setLeadSelectionIndex(row1);
+            return;
+        }
     }
-	if (__oneClickRowSelection && __partner != null) {
-		__partner.clearSelection();
-		__partner.forceSelectAllCellsInRow(row0);
-	}
+    if (__oneClickRowSelection && __partner != null) {
+            __partner.clearSelection();
+            __partner.forceSelectAllCellsInRow(row0);
+    }
 
-	if (!__selectable) {
-		return;
-	}
+    if (!__selectable) {
+            return;
+    }
 	
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "ROW: setSelectionInterval(" + row0 + ", " + row1 + ")");
@@ -936,6 +947,7 @@ public void setSelectionInterval(int row0, int row1)
 		_max = row1;
 	}	
 
+        
 	_anchor = row0;
 	_lead = row1;
 	__colsm._reset = true;
