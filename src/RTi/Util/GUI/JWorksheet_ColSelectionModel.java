@@ -24,6 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
 
 /**
 This class, in conjunction with the JWorksheet_RowSelectionModel, allows a 
@@ -110,13 +111,21 @@ Whether the zeroth column was clicked in or not.
 */
 protected boolean _zeroCol = false;
 
-static final boolean is15 = 
-        System.getProperty("java.vm.version").indexOf("1.5") >= 0;
+static final boolean is15 = isVersion15OrGreater ();
+        
 
 /**
 Constructor.  Initializes to no columns selected.
 */
 public JWorksheet_ColSelectionModel() {}	
+
+private static boolean isVersion15OrGreater ()
+{
+    String version = System.getProperty("java.vm.version");
+    version = version.substring (0,3);
+    // System.out.println("returning to is15: " +(StringUtil.atof(version) >= 1.5));
+    return (StringUtil.atof(version) >= 1.5);
+}
 
 /**
 Overrised the method in DefaultListSelectionModel.  
@@ -132,31 +141,34 @@ public void addSelectionInterval(int col0, int col1)
         Message.printDebug ( dl, routine, "COL: addSelectionInterval(" + col0 + ", " + col1 + ")");
     }
     
-    // iws - partial fix for 1.5 selection issues, see RowSelectionModel class javadoc
+    // iws - fix for 1.5 selection issues, see RowSelectionModel class javadoc
     if (is15 && col0 != col1) {
-        setLeadSelectionIndex(col1);
-        return;
+    setLeadSelectionIndex(col1);
+    return;
     }
-	if (col0 == 0) {
-//		System.out.println("   ZEROCOL = TRUE");
-		_zeroCol = true;
-	}
-	__rowsm._currCol = col0;
-	if (col0 < _min) {
-		_min = col0;
-	}
-	if (col1 < _min) {
-		_min = col1;
-	}
-	if (col0 > _max) {
-		_max = col0;
-	}
-	if (col1 > _max) {
-		_max = col1;
-	}
-	_anchor = col0;
-	_lead = col1;
-	__rowsm._startCol = col0;
+    if (col0 == 0) {
+            // System.out.println("   ZEROCOL = TRUE");
+            _zeroCol = true;
+    }
+    if ( is15 )
+        __rowsm._currCol = col1;
+    else
+        __rowsm._currCol = col0;
+    if (col0 < _min) {
+            _min = col0;
+    }
+    if (col1 < _min) {
+            _min = col1;
+    }
+    if (col0 > _max) {
+            _max = col0;
+    }
+    if (col1 > _max) {
+            _max = col1;
+    }
+    _anchor = col0;
+    _lead = col1;
+    __rowsm._startCol = col0;
 }
 
 /**
@@ -219,9 +231,9 @@ Returns whether the given col is selected or not.
 public boolean isSelectedIndex(int col)
 {   String routine = "JWorksheet_ColSelectionModel.isSelectedIndex";
     int dl = 10;
-    if ( Message.isDebugOn ) {
-        Message.printDebug ( dl, routine, "COL: isSelectedIndex(" + col + ")");
-    }
+    /*if ( Message.isDebugOn ) {
+    Message.printDebug ( dl, routine, "COL: isSelectedIndex(" + col + ")");
+    }*/
 	__rCurrRow = __rowsm._currRow;
 
 	// First check to see if the selected value has been drawn to the 
@@ -229,11 +241,11 @@ public boolean isSelectedIndex(int col)
 	// to cellsSelected (i.e., the user dragged a new selected and released
 	// the mouse button).
 
-	if ( Message.isDebugOn ) {
-        Message.printDebug ( dl, routine, "  __rCurrRow: " + __rCurrRow);
-        Message.printDebug ( dl, routine,"  _rCols: " + _rCols);
-        Message.printDebug ( dl, routine,"  col: " + col);
-	}
+	   /*if ( Message.isDebugOn ) {
+    Message.printDebug ( dl, routine, "  __rCurrRow: " + __rCurrRow);
+    Message.printDebug ( dl, routine,"  _rCols: " + _rCols);
+    Message.printDebug ( dl, routine,"  col: " + col);
+    }*/
 	if (__rowsm._drawnToBuffer) {
 		if (_reset) {
 			_reset = false;
@@ -270,9 +282,9 @@ public boolean isSelectedIndex(int col)
 		else if (__cellsSelected[index]) {
 			return true;
 		}
-		if ( Message.isDebugOn ) {
-	        Message.printDebug ( dl, routine, "  __cellsSelected size: " + __cellsSelected.length);
-		}
+		          /*if ( Message.isDebugOn ) {
+            Message.printDebug ( dl, routine, "  __cellsSelected size: " + __cellsSelected.length);
+            }*/
 	}
 	return false;
 }
@@ -297,7 +309,10 @@ public void removeSelectionInterval(int col0, int col1)
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "COL: removeSelectionInterval(" + col0 + ", "+col1 + ")");
     }
-	__rowsm._currCol = col0;
+        if ( is15 )
+            __rowsm._currCol = col1;
+        else
+            __rowsm._currCol = col0;
 	if (col0 < _min) {
 		_min = col0;
 	}
@@ -326,7 +341,7 @@ public void setAnchorSelectionIndex(int anchorCol)
     String routine = "JWorksheet_ColSelectionModel.setAnchorSelectionIndex";
     int dl = 10;
     if ( Message.isDebugOn ) {
-        Message.printDebug ( dl, routine, "COL: setLeadSelectionIndex(" + anchorCol + ")");
+        Message.printDebug ( dl, routine, "COL: setAnchorSelectionIndex(" + anchorCol + ")");
     }
 }
 
@@ -366,17 +381,20 @@ public void setSelectionInterval(int col0, int col1)
         Message.printDebug ( dl, routine,"COL: setSelectionInterval(" + col0 + ", " + col1 + ")");
     }
     
-    // iws - partial fix for 1.5 selection issues, see RowSelectionModel class javadoc
+    // iws - fix for 1.5 selection issues, see RowSelectionModel class javadoc
     if (is15 && col0 != col1) {
-        setLeadSelectionIndex(col1);
-        return;
+    setLeadSelectionIndex(col1);
+    return;
     }
 	_zeroCol = false;
 	if (col0 == 0) {
 		_zeroCol = true;
 //		System.out.println("   ZEROCOL = TRUE");
 	}
-	__rowsm._currCol = col0;
+        if ( is15 )
+            __rowsm._currCol = col1;
+        else
+            __rowsm._currCol = col0;
 	_max = -1;
 	_min = Integer.MAX_VALUE;
 	if (col0 < _min) {
