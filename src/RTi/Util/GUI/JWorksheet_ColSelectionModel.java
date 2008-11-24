@@ -27,8 +27,7 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-This class, in conjunction with the JWorksheet_RowSelectionModel, allows a 
-JTable to have
+This class, in conjunction with the JWorksheet_RowSelectionModel, allows a JTable to have
 a selection model that is like that of Microsoft Excel.  This class shares
 data with the JWorksheet_RowSelectionModel that is in the same JTable, and 
 JWorksheet_RowSelectionModel shares its data with this one.  The two need 
@@ -48,21 +47,18 @@ The row selection model tells the JTable which rows are selected, and the
 column selection model tells which columns are selected.  
 The interesting thing about how these are implemented by default is that 
 there is no mechanism to say something like:
-"Column 1 is selected in row 1, 2 and 4, but columns 2 and 3 are selected in
-row 3"
+"Column 1 is selected in row 1, 2 and 4, but columns 2 and 3 are selected in row 3"
 
 If a column is selected in one row, it is selected in ALL rows.
 
-The JWorksheet_ColSelectionModel and JWorksheet_RowSelectionModel overcome 
-these limitations.
+The JWorksheet_ColSelectionModel and JWorksheet_RowSelectionModel overcome these limitations.
 */
 public class JWorksheet_ColSelectionModel extends DefaultListSelectionModel 
 implements ListSelectionListener {
 
 /**
 The JWorksheet_RowSelectionModel that is used in conjunction with this 
-JWorksheet_ColSelectionModel
-in a JTable.
+JWorksheet_ColSelectionModel in a JTable.
 */
 private JWorksheet_RowSelectionModel __rowsm = null;
 
@@ -75,8 +71,7 @@ A local reference to the _cellsSelected in the JWorksheet_RowSelectionModel.
 */
 private boolean[] __cellsSelected = null;
 /**
-Whether to re-read the _buffer and _cellsSelected from the 
-JWorksheet_RowSelectionModel.
+Whether to re-read the _buffer and _cellsSelected from the JWorksheet_RowSelectionModel.
 */
 protected boolean _reset = true;
 
@@ -111,14 +106,21 @@ Whether the zeroth column was clicked in or not.
 */
 protected boolean _zeroCol = false;
 
+/**
+Indicate whether Java 1.5+ is being used.
+*/
 static final boolean is15 = isVersion15OrGreater ();
-        
 
 /**
 Constructor.  Initializes to no columns selected.
 */
 public JWorksheet_ColSelectionModel() {}	
 
+/**
+Determine whether Java 1.5+ is being used, necessary to handle the difference between
+the JTable selection behavior.
+@return true if the JRE is version 1.5+, false if not.
+*/
 private static boolean isVersion15OrGreater ()
 {
     String version = System.getProperty("java.vm.version");
@@ -128,9 +130,8 @@ private static boolean isVersion15OrGreater ()
 }
 
 /**
-Overrised the method in DefaultListSelectionModel.  
-Adds a selection interval to the list of selected intervals.  It marks a new
-series of cells as selected.
+Override the method in DefaultListSelectionModel.  
+Adds a selection interval to the list of selected intervals.  It marks a new series of cells as selected.
 @param col0 the first col of the selection interval
 @param col1 the last col of the selection interval.
 */
@@ -141,30 +142,31 @@ public void addSelectionInterval(int col0, int col1)
         Message.printDebug ( dl, routine, "COL: addSelectionInterval(" + col0 + ", " + col1 + ")");
     }
     
-    // iws - fix for 1.5 selection issues, see RowSelectionModel class javadoc
     if (is15 && col0 != col1) {
-    setLeadSelectionIndex(col1);
-    return;
+        setLeadSelectionIndex(col1);
+        return;
     }
     if (col0 == 0) {
-            // System.out.println("   ZEROCOL = TRUE");
-            _zeroCol = true;
+        // System.out.println("   ZEROCOL = TRUE");
+        _zeroCol = true;
     }
-    if ( is15 )
+    if ( is15 ) {
         __rowsm._currCol = col1;
-    else
+    }
+    else {
         __rowsm._currCol = col0;
+    }
     if (col0 < _min) {
-            _min = col0;
+        _min = col0;
     }
     if (col1 < _min) {
-            _min = col1;
+        _min = col1;
     }
     if (col0 > _max) {
-            _max = col0;
+        _max = col0;
     }
     if (col1 > _max) {
-            _max = col1;
+        _max = col1;
     }
     _anchor = col0;
     _lead = col1;
@@ -229,32 +231,29 @@ Returns whether the given col is selected or not.
 @return true.
 */
 public boolean isSelectedIndex(int col)
-{   String routine = "JWorksheet_ColSelectionModel.isSelectedIndex";
+{   /*
+    String routine = "JWorksheet_ColSelectionModel.isSelectedIndex";
     int dl = 10;
-    /*if ( Message.isDebugOn ) {
+    if ( Message.isDebugOn ) {
     Message.printDebug ( dl, routine, "COL: isSelectedIndex(" + col + ")");
     }*/
 	__rCurrRow = __rowsm._currRow;
 
 	// First check to see if the selected value has been drawn to the 
 	// buffer (i.e., it is a new drag-selection) or if it is drawn 
-	// to cellsSelected (i.e., the user dragged a new selected and released
-	// the mouse button).
+	// to cellsSelected (i.e., the user dragged a new selected and released the mouse button).
 
-	   /*if ( Message.isDebugOn ) {
-    Message.printDebug ( dl, routine, "  __rCurrRow: " + __rCurrRow);
-    Message.printDebug ( dl, routine,"  _rCols: " + _rCols);
-    Message.printDebug ( dl, routine,"  col: " + col);
+	/*if ( Message.isDebugOn ) {
+        Message.printDebug ( dl, routine, "  __rCurrRow: " + __rCurrRow);
+        Message.printDebug ( dl, routine,"  _rCols: " + _rCols);
+        Message.printDebug ( dl, routine,"  col: " + col);
     }*/
 	if (__rowsm._drawnToBuffer) {
 		if (_reset) {
 			_reset = false;
 			__buffer = __rowsm._buffer;
 		}
-		// The following was added because in 1.5 invalid array
-		// indices were being generated sometimes (despite the code
-		// working, and having worked, perfectly on Windows for over
-		// 2 years).
+		// The following was added because in 1.5 invalid array indices were being generated sometimes.
 		int index = ((__rCurrRow * _rCols) + col);
 		if ( (__buffer.length == 0) || index < 0 || index > __buffer.length) {
 			return false;
@@ -271,10 +270,7 @@ public boolean isSelectedIndex(int col)
 		if (__cellsSelected == null || __cellsSelected.length == 0) {
 			return false;
 		}
-		// The following was added because in 1.5 invalid array
-		// indices were being generated sometimes (despite the code
-		// working, and having worked, perfectly on Windows for over
-		// 2 years).		
+		// The following was added because in 1.5 invalid array indices were being generated sometimes.		
 		int index = ((__rCurrRow * _rCols) + col);
 		if ( (__cellsSelected.length == 0) || index < 0 || index > __cellsSelected.length) {
 			return false;
@@ -282,9 +278,9 @@ public boolean isSelectedIndex(int col)
 		else if (__cellsSelected[index]) {
 			return true;
 		}
-		          /*if ( Message.isDebugOn ) {
+		/*if ( Message.isDebugOn ) {
             Message.printDebug ( dl, routine, "  __cellsSelected size: " + __cellsSelected.length);
-            }*/
+        }*/
 	}
 	return false;
 }
@@ -309,10 +305,12 @@ public void removeSelectionInterval(int col0, int col1)
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "COL: removeSelectionInterval(" + col0 + ", "+col1 + ")");
     }
-        if ( is15 )
-            __rowsm._currCol = col1;
-        else
-            __rowsm._currCol = col0;
+    if ( is15 ) {
+        __rowsm._currCol = col1;
+    }
+    else {
+        __rowsm._currCol = col0;
+    }
 	if (col0 < _min) {
 		_min = col0;
 	}
@@ -370,7 +368,7 @@ JWorksheet_RowSelectionModel rsm) {
 }
 
 /**
-From DefaultListSelectionModel.  Sets the setlection interval.
+From DefaultListSelectionModel.  Sets the selection interval.
 @param col0 the first selection interval.
 @param col1 the last selection interval.
 */
@@ -381,20 +379,21 @@ public void setSelectionInterval(int col0, int col1)
         Message.printDebug ( dl, routine,"COL: setSelectionInterval(" + col0 + ", " + col1 + ")");
     }
     
-    // iws - fix for 1.5 selection issues, see RowSelectionModel class javadoc
     if (is15 && col0 != col1) {
-    setLeadSelectionIndex(col1);
-    return;
+        setLeadSelectionIndex(col1);
+        return;
     }
 	_zeroCol = false;
 	if (col0 == 0) {
 		_zeroCol = true;
-//		System.out.println("   ZEROCOL = TRUE");
+		//System.out.println("   ZEROCOL = TRUE");
 	}
-        if ( is15 )
-            __rowsm._currCol = col1;
-        else
-            __rowsm._currCol = col0;
+    if ( is15 ) {
+        __rowsm._currCol = col1;
+    }
+    else {
+        __rowsm._currCol = col0;
+    }
 	_max = -1;
 	_min = Integer.MAX_VALUE;
 	if (col0 < _min) {
@@ -415,16 +414,13 @@ public void setSelectionInterval(int col0, int col1)
 }
 
 /**
-From ListSelectionListener.  This is notified if any changes have been made
-to the selection model (by the JWorksheet_RowSelectionModel) and the 
-JTable rendered needs
-to check which ones need highlighted again.
+From ListSelectionListener.  This is notified if any changes have been made to the selection model
+(by the JWorksheet_RowSelectionModel) and the JTable rendered needs to check which ones need highlighted again.
 @param e the ListSelectionEvent that happened.
 */
 public void valueChanged(ListSelectionEvent e) {
 	if (!(e.getValueIsAdjusting())) {
-		System.arraycopy(__rowsm._buffer, 0, 
-			__rowsm._cellsSelected, 0, __rowsm._size);
+		System.arraycopy(__rowsm._buffer, 0, __rowsm._cellsSelected, 0, __rowsm._size);
 	}
 }
 
