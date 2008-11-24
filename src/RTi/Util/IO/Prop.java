@@ -47,7 +47,6 @@ be used similar to Java properties, environment variables, etc.  The main
 difference is that it allows the contents of a property to be an Object, which
 allows flexibility to use the property for anything in Java.
 <p>
-
 A property essentially consists of a string key and an associated object.
 The functions that deal with property "contents" return the literal object.
 The functions that deal with property "value" return a string representation of
@@ -55,7 +54,11 @@ the value.  In many cases, the Object will actually be a String and therefore
 the contents and value will be the same (there is currently no constructor to
 take contents only - if it is added, then the value will be set to
 contents.toString() at construction).
-
+<p>
+A property can also hold a literal string.  This will be the case when a configuration
+file is read and a literal comment or blank line is to be retained, to allow outputting
+the properties with very close to the original formatting.  In this case, the
+isLiteral() call will return true.
 @see PropList
 @see PropListManager
 */
@@ -100,27 +103,39 @@ public static final int SET_AT_RUNTIME_FOR_USER = 4;
 /**
 Indicates that the property was set behind the scenes in a way that should be
 invisible to the user.  Users cannot edit hidden properties, will never see
-hidden properties, and should never be able to save hidden properties to a
-persistent source.
+hidden properties, and should never be able to save hidden properties to a persistent source.
 */
 public static final int SET_HIDDEN = 5;
 
-private int	_how_set;	// Indicates whether property is read from a
-				// persistent source, set internally as a
-				// run-time default, or is set at runtime by the
-				// user.
-private int	_intkey;	// Integer key for faster lookups.
-private String	_key;		// String to look up property.
-private Object	_contents;	// Contents of property (anything derived from
-				// Object).  This may be a string or another
-				// object.  If a string, it contains the value
-				// before expanding wildcards, etc.
-private String	_value;		// Value of the object as a string.  In most
-				// cases, the object will be a string.  The
-				// value is the fully-expanded string (wildcards
-				// and other variables are expanded).  If not
-				// a string, this may contain the toString()
-				// representation.
+/**
+Indicates whether property is read from a persistent source, set internally as a
+run-time default, or is set at runtime by the user.
+*/
+private int	__howSet;
+/**
+Integer key for faster lookups.
+*/
+private int	__intKey;
+/**
+Indicate whether the property is a literal string.
+By default the property is a normal property.
+*/
+private boolean __isLiteral = false;
+/**
+String to look up property.
+*/
+private String __key;
+/**
+Contents of property (anything derived from Object).  This may be a string or another
+object.  If a string, it contains the value before expanding wildcards, etc.
+*/
+private Object __contents;
+/**
+Value of the object as a string.  In most cases, the object will be a string.  The
+value is the fully-expanded string (wildcards and other variables are expanded).  If not
+a string, this may contain the toString() representation.
+ */
+private String __value;
 
 /**
 Construct a property having no key and no object (not very useful!).
@@ -132,8 +147,7 @@ public Prop ()
 /**
 Construct using a string key and a string.
 @param key String to use as key to look up property.
-@param contents The contents of the property (in this case the same as the
-value.
+@param contents The contents of the property (in this case the same as the value.
 */
 public Prop ( String key, String contents )
 {	// Contents and value are the same.
@@ -156,11 +170,11 @@ Construct using a string key, and both contents and string value.
 @param key String to use as key to look up property.
 @param contents The contents of the property (in this case the same as the
 @param value The value of the property as a string.
-@param how_set Indicates how the property is being set.
+@param howSet Indicates how the property is being set.
 */
-public Prop ( String key, Object contents, String value, int how_set )
+public Prop ( String key, Object contents, String value, int howSet )
 {	// Contents and string are different...
-	initialize ( how_set, 0, key, contents, value );
+	initialize ( howSet, 0, key, contents, value );
 }
 
 /**
@@ -177,60 +191,55 @@ public Prop ( String key, int intkey, String contents )
 /**
 Construct using a string key, an integer key, and both contents and value.
 @param key String to use as key to look up property.
-@param intkey Integer to use to look up the property (integer keys can be used
-in place of strings for lookups).
+@param intKey Integer to use to look up the property (integer keys can be used in place of strings for lookups).
 @param contents The contents of the property.
 @param value The string value of the property.
 */
-public Prop ( String key, int intkey, Object contents, String value )
-{	initialize ( SET_UNKNOWN, intkey, key, contents, value );
+public Prop ( String key, int intKey, Object contents, String value )
+{	initialize ( SET_UNKNOWN, intKey, key, contents, value );
 }
 
 /**
 Construct using a string key, an integer key, and both contents and value.
 @param key String to use as key to look up property.
-@param intkey Integer to use to look up the property (integer keys can be used
-in place of strings for lookups).
+@param intKey Integer to use to look up the property (integer keys can be used in place of strings for lookups).
 @param contents The contents of the property.
 @param value The string value of the property.
-@param how_set Indicates how the property is being set.
+@param howSet Indicates how the property is being set.
 */
-public Prop ( String key, int intkey, Object contents, String value,int how_set)
-{	initialize ( how_set, intkey, key, contents, value );
+public Prop ( String key, int intKey, Object contents, String value,int howSet)
+{	initialize ( howSet, intKey, key, contents, value );
 }
 
 /**
-Construct using a string key, an integer key, string contents, and specify
-modifier flags.
+Construct using a string key, an integer key, string contents, and specify modifier flags.
 @param key String to use as key to look up property.
-@param intkey Integer to use to look up the property (integer keys can be used
-in place of strings for lookups).
-@param contents The contents of the property (in this case the same as the
-value.
-@param how_set Indicates how the property is being set (see SET_*).
+@param intKey Integer to use to look up the property (integer keys can be used in place of strings for lookups).
+@param contents The contents of the property (in this case the same as the value.
+@param howSet Indicates how the property is being set (see SET_*).
 */
-public Prop ( String key, int intkey, String contents, int how_set )
-{	initialize ( how_set, intkey, key, contents, contents );
+public Prop ( String key, int intKey, String contents, int howSet )
+{	initialize ( howSet, intKey, key, contents, contents );
 }
 
 /**
-Used to compare this Prop to another Prop in order to sort them.  Inherited
-from Comparable interface.
+Used to compare this Prop to another Prop in order to sort them.  Inherited from Comparable interface.
 @param o the Prop to compare against.
 @return 0 if the Props' keys and values are the same, or -1 if this Prop sorts
 earlier than the other Prop, or 1 if this Prop sorts higher than the other Prop.
 */
-public int compareTo(Object o) {
+public int compareTo(Object o)
+{
 	Prop p = (Prop)o;
 
 	int result = 0;
 
-	result = _key.compareTo(p.getKey());
+	result = __key.compareTo(p.getKey());
 	if (result != 0) {
 		return result;
 	}
 
-	result = _value.compareTo(p.getValue());
+	result = __value.compareTo(p.getValue());
 	return result;
 }
 
@@ -240,19 +249,18 @@ Finalize before garbage collection.
 */
 protected void finalize ()
 throws Throwable
-{	_key = null;
-	_contents = null;
-	_value = null;
+{	__key = null;
+	__contents = null;
+	__value = null;
 	super.finalize();
 }
 
 /**
 Return the contents (Object) for the property.
-@return The contents (Object) for the property (note: the original is returned,
-not a copy).
+@return The contents (Object) for the property (note: the original is returned, not a copy).
 */
 public Object getContents ()
-{	return _contents;
+{	return __contents;
 }
 
 /**
@@ -260,7 +268,7 @@ Return the way that the property was set (see SET_*).
 @return the way that the property was set.
 */
 public int getHowSet ()
-{	return _how_set;
+{	return __howSet;
 }
 
 /**
@@ -268,7 +276,18 @@ Return the integer key for the property.
 @return The integer key for the property.
 */
 public int getIntKey ()
-{	return _intkey;
+{	return __intKey;
+}
+
+/**
+Return whether the property is a literal string.  If true the string contents can be
+output as is to represent the persistent format of the data, without the key.  For example, the
+property might be Literal1 = "# Some comment in the file.".
+@return true if the property is a literal string, false if not.
+*/
+public boolean getIsLiteral ()
+{
+    return __isLiteral;
 }
 
 /**
@@ -276,7 +295,7 @@ Return the string key for the property.
 @return The string key for the property.
 */
 public String getKey ()
-{	return _key;
+{	return __key;
 }
 
 /**
@@ -284,7 +303,7 @@ Return the string value for the property.
 @return The string value for the property.
 */
 public String getValue ()
-{	return _value;
+{	return __value;
 }
 
 /**
@@ -295,26 +314,27 @@ Return the string value for the property expanding the contents if necessary.
 public String getValue ( PropList props )
 {	// This will expand contents if necessary...
 	refresh ( props );
-	return _value;
+	return __value;
 }
 
 /**
 Initialize member data.
 */
-private void initialize (	int how_set, int intkey, String key,
-				Object contents, String value )
-{	_how_set = how_set;
-	_intkey	= intkey;
+private void initialize ( int howSet, int intKey, String key, Object contents, String value )
+{	__howSet = howSet;
+	__intKey = intKey;
 	if ( key == null ) {
-		_key = ""; 
+		__key = ""; 
 	}
-	else {	_key = key;
+	else {
+	    __key = key;
 	}
-	_contents = contents;
+	__contents = contents;
 	if ( value == null ) {
-		_value = "";
+		__value = "";
 	}
-	else {	_value = value;
+	else {
+	    __value = value;
 	}
 }
 
@@ -325,13 +345,12 @@ Refresh the contents by resetting the value by expanding the contents.
 */
 public void refresh ( PropList props )
 {	int persistent_format = props.getPersistentFormat();
- 	if (	(persistent_format == PropList.FORMAT_MAKEFILE) ||
+ 	if ( (persistent_format == PropList.FORMAT_MAKEFILE) ||
 		(persistent_format == PropList.FORMAT_NWSRFS) ||
 		(persistent_format == PropList.FORMAT_PROPERTIES) ) {
 		// Try to expand the contents...
-		if ( _contents instanceof String ) {
-			_value = PropListManager.resolveContentsValue(
-			props,(String)_contents);
+		if ( __contents instanceof String ) {
+			__value = PropListManager.resolveContentsValue(props,(String)__contents);
 		}
 	}
 }
@@ -344,7 +363,7 @@ public void setContents ( Object contents )
 {	// Use a reference here (do we need a copy?)...
 
 	if ( contents != null ) {
-		_contents = contents;
+		__contents = contents;
 	}
 }
 
@@ -353,17 +372,25 @@ Set how the property is being set (see SET_*).
 Set how the property is being set.
 */
 public void setHowSet ( int how_set )
-{	_how_set = how_set;
+{	__howSet = how_set;
 }
 
 /**
-Set the integer key for the property.  This is usually maintained by
-PropList.
+Set the integer key for the property.  This is usually maintained by PropList.
 @param intkey Integer key for the property.
 @see PropList
 */
 public void setIntKey ( int intkey )
-{	_intkey = intkey;
+{	__intKey = intkey;
+}
+
+/**
+Indicate whether the property is a literal string.
+@param isLiteral true if the property is a literal string, false if a normal property.
+*/
+public void setIsLiteral ( boolean isLiteral )
+{
+    __isLiteral = isLiteral;
 }
 
 /**
@@ -372,7 +399,7 @@ Set the string key for the property.
 */
 public void setKey ( String key )
 {	if ( key != null ) {
-		_key = key;
+		__key = key;
 	}
 }
 
@@ -382,7 +409,7 @@ Set the string value for the property.
 */
 public void setValue ( String value )
 {	if ( value != null ) {
-		_value = value;
+		__value = value;
 	}
 }
 
@@ -391,8 +418,12 @@ Return a string representation of the property (a verbose output).
 @return a string representation of the property.
 */
 public String toString ()
-{	return "Key=\"" + _key + "\" (" + _intkey + "), value = \"" + _value +
-		"\" _how_set= " + _how_set;
+{	if ( getIsLiteral() ) {
+        return __value;
+    }
+    else {
+        return "Key=\"" + __key + "\" (" + __intKey + "), value = \"" + __value + "\" _how_set= " + __howSet;
+    }
 }
 
-} // End Prop
+}

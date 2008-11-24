@@ -134,7 +134,7 @@ directly by casting after retrieving from the PropList.
 <p>
 
 An additional feature of PropList is the use of variables in strings.  If a
-PropList is created using a persisent format of FORMAT_NWSRFS or
+PropList is created using a persistent format of FORMAT_NWSRFS or
 FORMAT_MAKEFILE, variables are encoded using $(varname).  If FORMAT_PROPERTIES,
 the notation is ${varname}.  For example, two properties may be defined as:
 <p>
@@ -216,36 +216,35 @@ public static final int	FORMAT_PROPERTIES = 4;
 /**
 Name of this PropList.
 */
-private String _list_name;
+private String __listName;
 /**
 Vector of Prop.
 */
-private Vector _list;
+private Vector __list;
 /**
 File to save in.
 */
-private String	_persistent_name;
+private String __persistentName;
 /**
 Format of file to read.
 */
-private int	_persistent_format;
+private int	__persistentFormat;
 /**
 Last line read from the property file.
 */
-private int	_last_line_number_read;
+private int	__lastLineNumberRead;
 /**
 Indicates if quotes should be treated literally when setting Prop values.
 */
-private boolean	_literal_quotes = true;
+private boolean	__literalQuotes = true;
 /**
 The "how set" value to use when properties are being set.
 */
-private int	_how_set = Prop.SET_UNKNOWN;
+private int	__howSet = Prop.SET_UNKNOWN;
 
 /**
-Copy constructor for a PropList.  Currently only works with PropLists that store String key/value pairs.  <p>
-TODO (JTS - 2003-10-27) <br>
-Later, add in support for cloning of props that have data objects in the value section.
+Copy constructor for a PropList.  Currently only works with PropLists that store String key/value pairs.<p>
+TODO (JTS - 2003-10-27) Later, add in support for cloning of props that have data objects in the value section.
 @param props the PropList to duplicate.
 */
 public PropList(PropList props) {
@@ -253,7 +252,7 @@ public PropList(PropList props) {
 	
 	setPropListName(new String(props.getPropListName()));
 
-	_list = new Vector(100, 10);
+	__list = new Vector(100, 10);
 	// duplicate all the props
 	int size = props.size();
 	Prop prop = null;
@@ -264,7 +263,7 @@ public PropList(PropList props) {
 
 	setPersistentName(new String(props.getPersistentName()));
 	setPersistentFormat(props.getPersistentFormat());
-	// _last_line_number_read is ignored (that var probably doesn't need to be private)
+	// __lastLineNumberRead is ignored (that var probably doesn't need to be private)
 	setLiteralQuotes(props.getLiteralQuotes());
 	setHowSet(props.getHowSet());
 }
@@ -272,33 +271,31 @@ public PropList(PropList props) {
 /**
 Construct given the name of the list (the list name should be unique if
 multiple lists are being used in a PropListManager.  The persistent format defaults to FORMAT_UNKNOWN.
-@param list_name The name of the property list.
+@param listName The name of the property list.
 @see PropListManager
 */
-public PropList ( String list_name )
-{	initialize ( list_name, "", FORMAT_UNKNOWN );
+public PropList ( String listName )
+{	initialize ( listName, "", FORMAT_UNKNOWN );
 }
 
 /**
 Construct using a list name and a configuration file format type.
-@param list_name The name of the property list.
-@param persistent_format The format of the list when written to a
-configuration file (see FORMAT_*).
+@param listName The name of the property list.
+@param persistentFormat The format of the list when written to a configuration file (see FORMAT_*).
 */
-public PropList ( String list_name, int persistent_format )
-{	initialize ( list_name, "", persistent_format );
+public PropList ( String listName, int persistentFormat )
+{	initialize ( listName, "", persistentFormat );
 }
 
 /**
 Construct using a list name, a configuration file name,
 and a configuration file format type.  The file is not actually read (call readPersistent() to do so).
-@param list_name The name of the property list.
-@param persistent_name The name of the configuration file.
-@param persistent_format The format of the list when written to a
-configuration file (see FORMAT_*).
+@param listName The name of the property list.
+@param persistentName The name of the configuration file.
+@param persistentFormat The format of the list when written to a configuration file (see FORMAT_*).
 */
-public PropList ( String list_name, String persistent_name, int persistent_format )
-{	initialize ( list_name, persistent_name, persistent_format );
+public PropList ( String listName, String persistentName, int persistentFormat )
+{	initialize ( listName, persistentName, persistentFormat );
 }
 
 /**
@@ -315,23 +312,13 @@ Append a property to the list using a string key.
 @param key String key for the property.
 @param contents Contents for the property.
 */
-private void append ( String key, Object contents )
-{	Prop prop = new Prop ( key, contents, contents.toString(), _how_set );
+private void append ( String key, Object contents, boolean isLiteral )
+{	Prop prop = new Prop ( key, contents, contents.toString(), __howSet );
+    prop.setIsLiteral ( isLiteral );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 100, "PropList.append",
-		    "Setting property \"" + key + "\" to: \"" + contents.toString() + "\"" );
+		Message.printDebug ( 100, "PropList.append", "Setting property \"" + key + "\" to: \"" + contents.toString() + "\"" );
 	}
-	_list.addElement ( prop );
-}
-
-/**
-Append a property to the list using an integer key.
-@param intkey Integer key for the property.
-@param contents Contents for the property.
-*/
-private void append ( int intkey, Object contents )
-{	Prop prop = new Prop ( "", intkey, contents, "", _how_set );
-	_list.addElement ( prop );
+	__list.addElement ( prop );
 }
 
 /**
@@ -341,28 +328,29 @@ Append a property to the list using a string key, the contents, and value.
 @param value String value for the property.
 */
 private void append ( String key, Object contents, String value )
-{	Prop prop = new Prop ( key, contents, value, _how_set );
+{	Prop prop = new Prop ( key, contents, value, __howSet );
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.append", "Setting property \"" + key + "\" to: \"" + value + "\"" );
 	}
-	_list.addElement ( prop );
+	__list.addElement ( prop );
 }
 
 /**
 Remove all items from the PropList.
 */
 public void clear()
-{	_list.removeAllElements();
-	_list = new Vector (100,10);
+{	__list.removeAllElements();
+	__list = new Vector (100,10);
 	
 }
 
 /**
 Return the Prop instance at the requested position.  Use size() to determine the size of the PropList.
+@param pos the position of the property to return (0+).
 @return the Prop at the specified position.
 */
 public Prop elementAt(int pos)
-{	return (Prop)_list.elementAt(pos);
+{	return (Prop)__list.elementAt(pos);
 }
 
 /**
@@ -371,9 +359,9 @@ Finalize before garbage collection.
 */
 protected void finalize()
 throws Throwable
-{	_list_name = null;
-	_list = null;
-	_persistent_name = null;
+{	__listName = null;
+	__list = null;
+	__persistentName = null;
 	super.finalize();
 }
 
@@ -383,24 +371,24 @@ Find a property in the list.
 @param key The string key used to look up the property.
 */
 public int findProp ( String key )
-{	int	size = _list.size();
+{	int	size = __list.size();
 	Prop prop_i;
-	String	prop_key;
+	String propKey;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)_list.elementAt(i);
-		prop_key = (String)prop_i.getKey();
-		if ( key.equalsIgnoreCase(prop_key) ) {
+		prop_i = (Prop)__list.elementAt(i);
+		propKey = (String)prop_i.getKey();
+		if ( key.equalsIgnoreCase(propKey) ) {
 			// Have a match.  Return the position...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 100, "PropList.findProp", "Found property \"" + key + "\" at index " + i);
 			}
 			prop_i = null;
-			prop_key = null;
+			propKey = null;
 			return i;
 		}
 	}
 	prop_i = null;
-	prop_key = null;
+	propKey = null;
 	return -1;
 }
 
@@ -408,7 +396,7 @@ public int findProp ( String key )
 Find a property in the list.
 @return The index position of the property corresponding to the string key, or -1 if not found.
 @param key The string key used to look up the property.
-@param inst Instance number of property. If inst is one, then
+@param inst Instance number of property (0+). If inst is one, then
 the second property with that name is returned, etc.
 */
 public int findProp ( String key, int inst )
@@ -427,15 +415,15 @@ public int findProp ( String key, int inst )
 /**
 Find a property in the list.
 @return The index position of the property corresponding to the integer key, or -1 if not found.
-@param intkey The integer key used to look up the property.
+@param intKey The integer key used to look up the property.
 */
-public int findProp ( int intkey )
-{	int	prop_intkey, size = _list.size();
+public int findProp ( int intKey )
+{	int	prop_intKey, size = __list.size();
 	Prop prop_i;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)_list.elementAt(i);
-		prop_intkey = prop_i.getIntKey();
-		if ( intkey == prop_intkey ) {
+		prop_i = (Prop)__list.elementAt(i);
+		prop_intKey = prop_i.getIntKey();
+		if ( intKey == prop_intKey ) {
 			// Have a match.  Return the position...
 			prop_i = null;
 			return i;
@@ -454,7 +442,7 @@ public Object getContents ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the contents...
-		return ((Prop)_list.elementAt(pos)).getContents();
+		return ((Prop)__list.elementAt(pos)).getContents();
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.getContents", "Did not find property \"" + key + "\"" );
@@ -467,7 +455,7 @@ Return the "how set" value that is in effect when setting properties.
 @return the "how set" value that is in effect when setting properties.
 */
 public int getHowSet ()
-{	return _how_set;
+{	return __howSet;
 }
 
 /**
@@ -475,7 +463,7 @@ Returns the Vector of Props.
 @return the Vector of Props.
 */
 public Vector getList() {
-	return _list;
+	return __list;
 }
 
 /**
@@ -484,7 +472,7 @@ Indicate whether quotes in the contents should be handled literally.
 when contents are converted to the string value.
 */
 public boolean getLiteralQuotes ()
-{	return _literal_quotes;
+{	return __literalQuotes;
 }
 
 /**
@@ -492,7 +480,7 @@ Return the name of the property list.
 @return The name of the property list.
 */
 public String getPropListName ( )
-{	return _list_name;
+{	return __listName;
 }
 
 /**
@@ -517,20 +505,20 @@ public int getPropCount ( String key )
 /**
 Return a Vector of Prop that have a key that matches a regular expression.
 This is useful when writing a PropList to a file in a well-defined order.
-@param reg_exp Regular expression recognized by StringUtil.matchesRegExp().
+@param regExp Regular expression recognized by StringUtil.matchesRegExp().
 @return a Vector of Prop, or null if no matching properties are found.
 */
-public Vector getPropsMatchingRegExp ( String reg_exp )
-{	if ( (_list == null) || (reg_exp == null) ) {
+public Vector getPropsMatchingRegExp ( String regExp )
+{	if ( (__list == null) || (regExp == null) ) {
 		return null;
 	}
-	int size = _list.size();
+	int size = __list.size();
 	Vector props = new Vector ();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)_list.elementAt(i);
+		prop = (Prop)__list.elementAt(i);
 		// Do a case-independent comparison...
-		if ( StringUtil.matchesRegExp(true, prop.getKey(), reg_exp)) {
+		if ( StringUtil.matchesRegExp(true, prop.getKey(), regExp)) {
 			props.addElement ( prop );
 		}
 	}
@@ -545,7 +533,7 @@ Return the name of the property list file.
 @return The name of the property list file.
 */
 public String getPersistentName ( )
-{	return _persistent_name;
+{	return __persistentName;
 }
 
 /**
@@ -553,7 +541,7 @@ Return the format of the property list file.
 @return The format of the property list file.
 */
 public int getPersistentFormat ( )
-{	return _persistent_format;
+{	return __persistentFormat;
 }
 
 /**
@@ -564,7 +552,7 @@ Search the list using the string key.
 public Prop getProp ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
-		Prop prop = (Prop)_list.elementAt(pos);
+		Prop prop = (Prop)__list.elementAt(pos);
 		prop.refresh(this);
 		return prop;
 	}
@@ -572,10 +560,10 @@ public Prop getProp ( String key )
 }
 
 /**
-Return the property corresponding to the stirng key or null if not found.
+Return the property corresponding to the string key or null if not found.
 @return The property corresponding to the string key, or <CODE>null</CODE> if not found.
 @param key The string key used to look up the property.
-@param inst Instance number of property. If inst is one, then
+@param inst Instance number of property (0+). If inst is one, then
 the second property with that name is returned, etc.
 */
 public Prop getProp ( String key, int inst )
@@ -590,12 +578,12 @@ public Prop getProp ( String key, int inst )
 Search the list using the integer key.  This should not be confused with
 elementAt(), which returns the property at a position in the list.
 @return The property corresponding to the string key.
-@param intkey The integer key used to look up the property.
+@param intKey The integer key used to look up the property.
 */
-public Prop getProp ( int intkey )
-{	int pos = findProp ( intkey );
+public Prop getProp ( int intKey )
+{	int pos = findProp ( intKey );
 	if ( pos >= 0 ) {
-		return (Prop)_list.elementAt(pos);
+		return (Prop)__list.elementAt(pos);
 	}
 	return null;
 }
@@ -607,19 +595,19 @@ PropList will be created given the supplied name.  This is useful for routines
 that need a valid PropList for local processing (rather than checking for a
 null list that may have been passed as input).
 @param props PropList to check.  Will be returned if not null.
-@param newname Name of new PropList if "props" is null.
+@param newName Name of new PropList if "props" is null.
 */
-public static PropList getValidPropList ( PropList props, String newname )
+public static PropList getValidPropList ( PropList props, String newName )
 {	if ( props != null ) {
 		// List is not null, so return...
 		return props;
 	}
 	else {
 	    // List is null, so create a new and return...
-		if ( newname == null ) {
+		if ( newName == null ) {
 			return new PropList ( "PropList.getValidPropList" );
 		}
-		return new PropList ( newname );
+		return new PropList ( newName );
 	}
 }
 
@@ -632,7 +620,7 @@ public String getValue ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the value...
-		String value = ((Prop)_list.elementAt(pos)).getValue(this);
+		String value = ((Prop)__list.elementAt(pos)).getValue(this);
 		if ( Message.isDebugOn ) {
 			Message.printDebug(100,"PropList.getValue", "Found value of \"" + key + "\" to be \"" + value + "\"" );
 		}
@@ -649,7 +637,7 @@ Return the string value of the property given the instance number (allows
 storage of duplicate keys), or null if not found.
 @return The string value of the property corresponding to the string key, or <CODE>null</CODE> if not found.
 @param key The string key used to look up the property.
-@param inst Instance number of property. If inst is one, then
+@param inst Instance number of property (0+). If inst is one, then
 the second property with that name is returned, etc.
 */
 public String getValue ( String key, int inst )
@@ -665,71 +653,71 @@ public String getValue ( String key, int inst )
 /**
 Return the string value of the property corresponding to the integer key, or null if not a valid integer key.
 @return The string value of the property corresponding to the integer key.
-@param intkey The integer key used to look up the property.
+@param intKey The integer key used to look up the property.
 */
-public String getValue ( int intkey )
-{	int	pos = findProp ( intkey );
+public String getValue ( int intKey )
+{	int	pos = findProp ( intKey );
 	if ( pos >= 0 ) {
-		// We have a match.  Get the value...
-		return ((Prop)_list.elementAt(pos)).getValue( this );
+		// Have a match.  Get the value...
+		return ((Prop)__list.elementAt(pos)).getValue( this );
 	}
 	return null;
 }
 
 /**
 Initialize the object.
-@param list_name Name for the PropList.
-@param persistent_name Persistent name for the PropList (used only when reading from a file).
-@param persistent_format Format for properties file.
+@param listName Name for the PropList.
+@param persistentName Persistent name for the PropList (used only when reading from a file).
+@param persistentFormat Format for properties file.
 */
-private void initialize ( String list_name, String persistent_name, int persistent_format )
-{	if ( list_name == null ) {
-		_list_name = "";
+private void initialize ( String listName, String persistentName, int persistentFormat )
+{	if ( listName == null ) {
+		__listName = "";
 	}
 	else {
-	    _list_name = list_name;
+	    __listName = listName;
 	}
-	if ( persistent_name == null ) {
-		_persistent_name = "";
+	if ( persistentName == null ) {
+		__persistentName = "";
 	}
 	else {
-	    _persistent_name = persistent_name;
+	    __persistentName = persistentName;
 	}
-	_persistent_format = persistent_format;
-	_list = new Vector (20,10);	// A vector of Prop
-	_last_line_number_read = 0;
+	__persistentFormat = persistentFormat;
+	__list = new Vector (20,10);	// A vector of Prop
+	__lastLineNumberRead = 0;
 }
 
 /**
 Create a PropList by parsing a string of the form prop="val",prop="val".
 The "how set" value for each property is set to Prop.SET_UNKNOWN.
 @param string String to parse.
-@param list_name the name to assign to the new PropList.
+@param listName the name to assign to the new PropList.
 @param delim the delimiter to use when parsing the proplist ("," in the above
 example).  Quoted strings are assumed to be allowed.
 @return a PropList with the expanded properties.  A non-null value is
 guaranteed; however, the list may contain zero items.
 */
-public static PropList parse ( String string, String list_name, String delim )
-{	return parse ( Prop.SET_UNKNOWN, string, list_name, delim );
+public static PropList parse ( String string, String listName, String delim )
+{	return parse ( Prop.SET_UNKNOWN, string, listName, delim );
 }
 
 /**
 Create a PropList by parsing a string of the form: prop="val",prop="val".  There
 may be spaces embedded between tokens.
-@param how_set Indicate the "how set" value that should be set for all
+@param howSet Indicate the "how set" value that should be set for all
 properties that are parsed (see Prop.SET_*).
 @param string String to parse.
-@param list_name the name to assign to the new PropList.
+@param listName the name to assign to the new PropList.
 @param delim the delimiter to use when parsing the PropList ("," in the above
 example).  Quoted strings are assumed to be allowed.
 @return a PropList with the expanded properties.  A non-null value is
 guaranteed; however, the list may contain zero items.
 @see Prop
 */
-public static PropList parse ( int how_set, String string, String list_name, String delim )
-{	PropList props = new PropList ( list_name );
-	props.setHowSet ( how_set );
+public static PropList parse ( int howSet, String string, String listName, String delim )
+{	PropList props = new PropList ( listName );
+	props.setHowSet ( howSet );
 	if ( string == null ) {
 		return props;
 	}
@@ -769,19 +757,32 @@ Return null if the index is invalid.
 @param i The index position used to look up the property.
 */
 public Prop propAt ( int i )
-{	if ( (i < 0) || (i > (_list.size() - 1)) ) {
+{	if ( (i < 0) || (i > (__list.size() - 1)) ) {
 		return null;
 	}
-	return (Prop)_list.elementAt ( i );
+	return (Prop)__list.elementAt ( i );
 }
 
 /**
 Read a property list from a persistent source, appending new properties to current list.
+The properties will be appended to the current list and non-property literals like comments will be ignored.
 @exception IOException if there is an error reading the file.
 */
 public void readPersistent ()
 throws IOException
 {	readPersistent ( true );
+}
+
+/**
+Read a property list from a persistent source, appending new properties to current list.
+Non-property literals like comments will be ignored.
+@param append If true, properties from the file will be appended to the current list.
+@exception IOException if there is an error reading the file.
+*/
+public void readPersistent ( boolean append )
+throws IOException
+{
+    readPersistent ( true, false );
 }
 
 /**
@@ -822,14 +823,15 @@ variable = 'hello `date`'
 variable = "hello ${world}"
 variable = "hello `date`"
 
-# Duplicate variables will be read in.  However, to lookup, use
-# getPropValue(
+# Duplicate variables will be read in.  However, to lookup, use getPropValue()
 </pre>
-@param append Append to current property list (true) or clear out current list
-(false).
+@param append Append to current property list (true) or clear out current list (false).
+@param includeLiterals if true, comments and other non-property lines will be included as literals
+in the property list using key "Literal1", "Literal2", etc.  This is useful if reading a property file,
+updating its values, and then writing out again, trying to retain the original comments.
 @exception IOException if there is an error reading the file.
 */
-public void readPersistent ( boolean append )
+public void readPersistent ( boolean append, boolean includeLiterals )
 throws IOException
 {	String	routine = "PropList.readPersistent";
 
@@ -837,10 +839,11 @@ throws IOException
 	String prefix = "";
 	int idx;
 	boolean continuation = false;
-	String line_save = null;
+	String lineSave = null;
 	String name, value;
 	Vector v = null;
-	boolean in_comment = false;
+	boolean inComment = false;
+	int literalCount = 0;
 
 	if ( ! append ) {
 		clear();
@@ -848,133 +851,165 @@ throws IOException
 
 	BufferedReader in = null;
 	try {
-	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream(_persistent_name) ) );
+	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream(__persistentName) ) );
 	} catch ( Exception e ) {
-		String message = "Unable to open \"" + _persistent_name + "\" to read properties.";
+		String message = "Unable to open \"" + __persistentName + "\" to read properties.";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
 
-	int how_set_prev = _how_set;
-	_how_set = Prop.SET_FROM_PERSISTENT;
+	int howSetPrev = __howSet;
+	__howSet = Prop.SET_FROM_PERSISTENT;
 	try {
-	_last_line_number_read = 0;	
-	int length = 0;
-	while ((line = in.readLine()) != null ) {
-		line = line.trim();
-		++_last_line_number_read;
-		if ( continuation ) {
-			// Take this line and add it to the previous.  Add a space to separate tokens...
-			line = line_save + " " + line;
-		}
-		// Handle line continuation with \ at end...
-		if ( line.endsWith("\\")) {
-			continuation = true;
-			// Add a space at the end because when continuing lines the next line likely has separation tokens.
-			line_save = line.substring(0,line.length()-1);
-			continue;
-		}
-		continuation = false;
-		line_save = null;
-		if ( (idx = line.indexOf( '#' )) != -1 ) {
-			line = line.substring( 0, idx );
-		}
-		if ( in_comment && line.startsWith("*/") ) {
-			in_comment = false;
-			// For now the end of comment must be at the start of the line so ignore the rest of the line...
-			continue;
-		}
-		if ( !in_comment && line.startsWith("/*") ) {
-			in_comment = true;
-			// For now the end of comment must be at the start of the line so ignore the rest of the line...
-			continue;
-		}
-		if ( in_comment ) {
-			// Did not detect an end to the comment above so skip the line...
-			continue;
-		}
-		if ( line.length() == 0 ) {
-			continue;
-		}
-		if ( line.charAt( 0 ) == '[') {
-			if ( line.indexOf(']') == -1 ) {
-				Message.printWarning ( 2, routine, "Missing ] on line " + _last_line_number_read + " of " +
-				     _persistent_name );
-				continue;
-			}
-			prefix = line.substring ( 1, line.indexOf(']')) + ".";
-			continue;
-		}
-
-/* Old way prior to 2001-11-08
-		v = StringUtil.breakStringList ( line, "=", 
-			StringUtil.DELIM_SKIP_BLANKS|
-			StringUtil.DELIM_ALLOW_STRINGS );
-*/
-		// New way from UNIX...
-		int pos = line.indexOf('=');
-		if ( pos < 0 ) {
-			Message.printWarning ( 2, routine, "Missing equal sign on line " +
-			_last_line_number_read + " of " + _persistent_name + " (" + line + ")" );
-			continue;
-		}
-		v = new Vector(2);
-		v.addElement ( line.substring(0,pos) );
-		v.addElement ( line.substring(pos + 1) );
-
-		if ( v.size() == 2 ) {
-			name = prefix + ((String)v.elementAt(0)).trim();
-			value = ((String)v.elementAt(1)).trim();
-			length = value.length();
-			if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
-				(value.charAt(0) == value.charAt(length-1))) ) {
-				// Get rid of bounding quotes because they are not needed...
-				value = value.substring(1,(length - 1));
-			}
-			// Now set in the PropList...
-			if ( name.length() > 0 ) {
-				append ( name, value );
-			}
-		}
-		else {
-		    Message.printWarning ( 2, routine, "Missing or too many equal signs on line " + 
-			_last_line_number_read + " of " + _persistent_name + " (" + line + ")");
-		}
-	}
-
-	in.close();
+        __lastLineNumberRead = 0;	
+        int length = 0;
+        while ((line = in.readLine()) != null ) {
+        	line = line.trim();
+        	++__lastLineNumberRead;
+        	if ( continuation ) {
+        		// Take this line and add it to the previous.  Add a space to separate tokens.
+        	    // Should not normally be a comment.
+        		line = lineSave + " " + line;
+        	}
+        	// Handle line continuation with \ at end...
+        	if ( line.endsWith("\\")) {
+        		continuation = true;
+        		// Add a space at the end because when continuing lines the next line likely has separation tokens.
+        		lineSave = line.substring(0,line.length()-1);
+        		continue;
+        	}
+        	continuation = false;
+        	lineSave = null;
+        	if ( (line.length() > 0) && (line.charAt(0) == '#') ) {
+        	    // Comment line
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        	    continue;
+        	}
+        	if ( (idx = line.indexOf( '#' )) != -1 ) {
+        	    // Remove # comments from the ends of lines
+        		line = line.substring( 0, idx );
+        	}
+        	if ( inComment && line.startsWith("*/") ) {
+        		inComment = false;
+        		// For now the end of comment must be at the start of the line so ignore the rest of the line...
+        		if ( includeLiterals ) {
+        		    ++literalCount;
+        		    append ( "Literal" + literalCount, line, true );
+        		}
+        		continue;
+        	}
+        	if ( !inComment && line.startsWith("/*") ) {
+        		inComment = true;
+        		// For now the end of comment must be at the start of the line so ignore the rest of the line...
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        		continue;
+        	}
+        	if ( inComment ) {
+        		// Did not detect an end to the comment above so skip the line...
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        		continue;
+        	}
+        	if ( line.length() == 0 ) {
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        		continue;
+        	}
+        	if ( line.charAt( 0 ) == '[') {
+        	    // Block indicator - contents of [] will be prepended to property names
+        		if ( line.indexOf(']') == -1 ) {
+        			Message.printWarning ( 2, routine, "Missing ] on line " + __lastLineNumberRead + " of " +
+        			     __persistentName );
+        			continue;
+        		}
+        		prefix = line.substring ( 1, line.indexOf(']')) + ".";
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        		continue;
+        	}
+        
+        	int pos = line.indexOf('=');
+        	if ( pos < 0 ) {
+        		Message.printWarning ( 2, routine, "Missing equal sign on line " +
+        		__lastLineNumberRead + " of " + __persistentName + " (" + line + ")" );
+                if ( includeLiterals ) {
+                    ++literalCount;
+                    append ( "Literal" + literalCount, line, true );
+                }
+        		continue;
+        	}
+        	v = new Vector(2);
+        	v.addElement ( line.substring(0,pos) );
+        	v.addElement ( line.substring(pos + 1) );
+        
+        	if ( v.size() == 2 ) {
+        		name = prefix + ((String)v.elementAt(0)).trim();
+        		value = ((String)v.elementAt(1)).trim();
+        		length = value.length();
+        		if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
+        			(value.charAt(0) == value.charAt(length-1))) ) {
+        			// Get rid of bounding quotes because they are not needed...
+        			value = value.substring(1,(length - 1));
+        		}
+        		// Now set in the PropList...
+        		if ( name.length() > 0 ) {
+        			append ( name, value, false );
+        		}
+        	}
+        	else {
+        	    Message.printWarning ( 2, routine, "Missing or too many equal signs on line " + 
+        		__lastLineNumberRead + " of " + __persistentName + " (" + line + ")");
+        	}
+        }
+        
+        in.close();
 	} catch ( Exception e ) {
-		String message = "Exception caught while reading line " + 
-		_last_line_number_read + " of " +  _persistent_name + ".";
+		String message = "Exception caught while reading line " + __lastLineNumberRead + " of " +  __persistentName + ".";
 		Message.printWarning ( 3, routine, message );
 		throw new IOException ( message );
 	}
+    finally {
+        if ( in != null ) {
+            in.close();
+        }
+    }
 	// Clean up...
 	in = null;
 	routine = null;
 	line = null; 
 	prefix = null;
-	line_save = null;
+	lineSave = null;
 	name = null;
 	value = null;
 	v = null;
-	_how_set = how_set_prev;
+	__howSet = howSetPrev;
 }
 
 /**
 Set the property given a string like "prop=propcontents" where "propcontents"
-can be a string containing wildcards.  This feature is used with configuration files.
+can be a string containing wild-cards.  This feature is used with configuration files.
 If the property key exists, reset the property to the new information.
 @see PropListManager
-@param prop_string A property string like prop=contents.
+@param propString A property string like prop=contents.
 */
-public void set ( String prop_string )
-{	Prop prop = PropListManager.parsePropString(this,prop_string);
+public void set ( String propString )
+{	Prop prop = PropListManager.parsePropString(this,propString);
 	if ( prop == null ) {
 		return;
 	}
-	set ( prop.getKey(), (String)prop.getContents(),
-		prop.getValue(this) );
+	set ( prop.getKey(), (String)prop.getContents(), prop.getValue(this) );
 }
 
 /**
@@ -989,8 +1024,7 @@ public void set ( String key, String value )
 
 /**
 Set the property given a string key and string value.  If the key already exists
-it will be replaced if the replace parameter is true.  Otherwise, a duplicate
-property will be added to the list.
+it will be replaced if the replace parameter is true.  Otherwise, a duplicate property will be added to the list.
 @param key The property string key.
 @param value The string value of the property (will also be used for the contents.
 @param replace if true, if the key already exists in the PropList, its value
@@ -1005,11 +1039,11 @@ public void set ( String key, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)_list.elementAt ( index );
+		Prop prop = (Prop)__list.elementAt ( index );
 		prop.setKey ( key );
 		prop.setContents ( value );
 		prop.setValue ( value );
-		prop.setHowSet ( _how_set );
+		prop.setHowSet ( __howSet );
 	}
 }
 
@@ -1043,17 +1077,16 @@ public void set ( String key, String contents, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)_list.elementAt ( index );
+		Prop prop = (Prop)__list.elementAt ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
-		prop.setHowSet ( _how_set );
+		prop.setHowSet ( __howSet );
 	}
 }
 
 /**
-Set the property given a Prop. 
-If the property key exists, reset the property to the new information.
+Set the property given a Prop.  If the property key exists, reset the property to the new information.
 @param prop The contents of the property.
 */
 public void set ( Prop prop )
@@ -1078,8 +1111,8 @@ public void set ( Prop prop, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		prop.setHowSet ( _how_set );
-		_list.setElementAt ( prop, index );
+		prop.setHowSet ( __howSet );
+		__list.setElementAt ( prop, index );
 	}
 }
 
@@ -1088,7 +1121,7 @@ Set the "how set" flag, which indicates how properties are being set.
 @param how_set For properties that are being set, indicates how they are being set (see Prop.SET_*).
 */
 public void setHowSet ( int how_set ) {
-	_how_set = how_set;
+	__howSet = how_set;
 }
 
 /**
@@ -1100,7 +1133,7 @@ literally to the value.  If set to false, the quotes will be discarded when
 contents are converted to a string value.
 */
 public void setLiteralQuotes ( boolean literal_quotes )
-{	_literal_quotes = literal_quotes;
+{	__literalQuotes = literal_quotes;
 }
 
 /**
@@ -1109,7 +1142,7 @@ Set the property list name.
 */
 public int setPropListName ( String list_name )
 {	if ( list_name != null ) {
-		_list_name = list_name;
+		__listName = list_name;
 	}
 	return 0;
 }
@@ -1120,7 +1153,7 @@ Set the configuration file name.
 */
 public void setPersistentName ( String persistent_name )
 {	if ( persistent_name != null ) {
-		_persistent_name = persistent_name;
+		__persistentName = persistent_name;
 	}
 }
 
@@ -1129,7 +1162,7 @@ Set the configuration file format.
 @param persistent_format The configuration file format.
 */
 public void setPersistentFormat ( int persistent_format )
-{	_persistent_format = persistent_format;
+{	__persistentFormat = persistent_format;
 }
 
 /**
@@ -1161,11 +1194,11 @@ public void setUsingObject ( String key, Object contents )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)_list.elementAt ( index );
+		Prop prop = (Prop)__list.elementAt ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
-		prop.setHowSet ( _how_set );
+		prop.setHowSet ( __howSet );
 	}
 	value = null;
 }
@@ -1183,31 +1216,12 @@ public void setValue ( String key, String value )
 {	int pos = findProp(key);
 	if ( pos >= 0 ) {
 		// Have a match.  Reset the value in the corresponding Prop...
-		Prop prop = (Prop)_list.elementAt(pos);
+		Prop prop = (Prop)__list.elementAt(pos);
 		prop.setValue(value);
 		return;
 	}
 	// If we get to here we did not find a match and need to add a new item to the list...
-	append ( key, value );
-}
-
-/**
-Set the contents of a property after finding in the list (warning:  if the
-key is not found, a new property will be added).
-@deprecated Use setContents().
-@param intkey Integer key for property.
-@param contents Contents for property.
-*/
-public void setValue ( int intkey, Object contents )
-{	int pos = findProp(intkey);
-	if ( pos >= 0 ) {
-		// We have a match.  Reset the value...
-		Prop prop = (Prop)_list.elementAt(pos);
-		prop.setContents(contents);
-		return;
-	}
-	// If we get to here we did not find a match and need to add a new item to the list...
-	append ( intkey, contents );
+	append ( key, value, false );
 }
 
 /**
@@ -1215,19 +1229,20 @@ Return the size of the property list.
 @return The size of the property list.
 */
 public int size ()
-{	if ( _list == null ) {
+{	if ( __list == null ) {
 		return 0;
 	}
 	else {
-	    return _list.size();
+	    return __list.size();
 	}
 }
 
 /**
 Does a simple sort of the items in the PropList, using java.util.Collections().
 */
-public void sortList() {
-	java.util.Collections.sort(_list);
+public void sortList()
+{
+	java.util.Collections.sort(__list);
 }
 
 /**
@@ -1246,10 +1261,10 @@ The properties are formatted as follows:  prop="value",prop="value"
 */
 public String toString ( String delim )
 {	StringBuffer b = new StringBuffer();
-	int size = _list.size();
+	int size = __list.size();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)_list.elementAt(i);
+		prop = (Prop)__list.elementAt(i);
 		if ( i > 0 ) {
 			b.append ( delim );
 		}
@@ -1270,7 +1285,7 @@ Remove the property from the property list.
 */
 public void unset ( int pos )
 {   if ( pos >= 0 ) {
-        _list.removeElementAt(pos);
+        __list.removeElementAt(pos);
     }
 }
 
@@ -1282,7 +1297,7 @@ Remove the property from the property list.
 public void unSet ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
-		_list.removeElementAt(pos);
+		__list.removeElementAt(pos);
 	}
 }
 
@@ -1304,7 +1319,7 @@ about deprecated and invalid properties.  Invalid properties ARE NOT removed.
 See the overloaded method for more information.
 */
 public Vector validatePropNames(Vector validProps, Vector deprecatedProps, Vector deprecatedNotes, String target ) 
-        throws Exception
+throws Exception
 {
     return validatePropNames( validProps, deprecatedProps, deprecatedNotes, target, false );
 }
@@ -1324,7 +1339,7 @@ Where [name] is the name of the property and [target] is the target (see the
 If this parameter is null it will be considered the same as a zero-size
 Vector.  In both cases, all properties in the PropList will be flagged as invalid properties.
 @param deprecatedProps an optional Vector of the names of properties that are
-deprecated (ie, in a transitional state between property names).  If any 
+deprecated (i.e., in a transitional state between property names).  If any 
 property names in this Vector are found in the PropList, the returned Vector
 will contain a line in the format: <p>
 <pre>	[name] is no longer recognized as a valid [target].  [note]</pre><p>
@@ -1352,7 +1367,7 @@ For example, if a PropList stores worksheet properties, this value could be set
 to "JWorksheet property" so that the error messages would be:<p>
 <pre>	PropertyName is no longer recognized as a valid JWorksheet property.
 	PropertyName is not a valid JWorksheet property.</pre><p>
-@param remove_invalid indicates whether invalid properties should be removed from the list.
+@param removeInvalid indicates whether invalid properties should be removed from the list.
 @return null or a Vector containing Strings, each of which is a warning about 
 an invalid or deprecated property in the PropList.  The order of the returned
 Vector is that invalid properties are returned first, and deprecated properties
@@ -1362,7 +1377,7 @@ deprecatedNotes are non-null and the size of the Vectors is different, an
 Exception will be thrown warning of the error.
 */
 public Vector validatePropNames(Vector validProps, Vector deprecatedProps,
-Vector deprecatedNotes, String target, boolean remove_invalid ) 
+Vector deprecatedNotes, String target, boolean removeInvalid ) 
 throws Exception {
 	// Get the sizes of the Vectors that will be iterated through, handling null Vectors gracefully.
 
@@ -1411,9 +1426,9 @@ throws Exception {
 	Vector invalids = new Vector();
 	Vector deprecateds = new Vector();
 	
-	String remove_invalid_string = "";
-	if ( remove_invalid ) {
-	    remove_invalid_string = "  Removing invalid property.";
+	String removeInvalidString = "";
+	if ( removeInvalid ) {
+	    removeInvalidString = "  Removing invalid property.";
 	}
 	
 	for (int i = 0; i < size; i++) {
@@ -1440,7 +1455,7 @@ throws Exception {
 			for (int j = 0; j < deprecatedPropsSize; j++) {
 				val = (String)deprecatedProps.elementAt(j);
 				if (val.equalsIgnoreCase(key)) {
-					msg = "\"" + key + "\" is no longer recognized as a valid " + target + "." + remove_invalid_string;
+					msg = "\"" + key + "\" is no longer recognized as a valid " + target + "." + removeInvalidString;
 					if (hasNotes) {
 						msg += "  " +(String)deprecatedNotes.elementAt(j);
 					}
@@ -1460,10 +1475,10 @@ throws Exception {
 		// Add the error message for invalid properties.  
 
 		if (!valid) {
-			invalids.add( "\"" + key + "\" is not a valid " + target + "." + remove_invalid_string );
+			invalids.add( "\"" + key + "\" is not a valid " + target + "." + removeInvalidString );
 		}
 		
-		if ( !valid && remove_invalid ) {
+		if ( !valid && removeInvalid ) {
 		    this.unset(i);
 		}
 	}
@@ -1486,16 +1501,23 @@ throws Exception {
 
 /**
 Write the property list to a persistent medium (e.g., configuration file).
-The original persistent name is used.
+The original persistent name is used for the filename.
+If the properties contain literals, then blocks will be determined from the literals and properties
+with starting values that match the literal will be stripped of the leading literal.  For example,
+App.Property = X will be written:
+<pre>
+[Block]
+Property = X
+</pre>
 @exception IOException if there is an error writing the file.
 */
 public void writePersistent ()
 throws IOException
 {	PrintWriter out;
 	try {
-	    out = new PrintWriter(new FileOutputStream (_persistent_name ));
+	    out = new PrintWriter(new FileOutputStream (__persistentName ));
 	} catch ( Exception e ) {
-		String message = "Unable to open \"" + _persistent_name + "\" to write PropList.";
+		String message = "Unable to open \"" + __persistentName + "\" to write PropList.";
 		Message.printWarning ( 3, "PropList.writePersistent", message );
 		throw new IOException ( message );
 	}
@@ -1506,26 +1528,45 @@ throws IOException
 	char c;
 	int size = size();
 	int length = 0;
+	String blockName = null;
 	for ( int i=0; i<size; i++ ) {
 		p = propAt(i);
-		key = p.getKey();
 		value = p.getValue(this);
-
-		// Do any special character encoding
-		gotSpace = false;
-		length = value.length();
-		for ( int j=0; j<length; j++ ) {
-			c = value.charAt(j);		
-			if ( c == ' ' ) {
-				gotSpace = true;
-			}
-		}
-
-		if ( gotSpace ) {
-			out.println( key + " = \"" + value.toString() + "\"" );
+		if ( p.getIsLiteral() ) {
+		    // TODO SAM 2008-11-21 Decide if there needs to be a parameter to control whether these
+		    // are written.  Presumably if they are read from a file they will typically be rewritten to the file.
+		    // A literal string.  Just print it.
+		    out.println( value.toString() );
+		    // See if inside a block
+		    if ( value.startsWith("[") ) {
+		        // Have a [Block] in the properties so keep track of it
+		        value = value.trim();
+		        blockName = value.trim().substring(1,value.length() - 1);
+		    }
 		}
 		else {
-		    out.println( key + " = " + value.toString());
+		    // A normal property.  Format it as Property = Value
+    		key = p.getKey();
+    		if ( (blockName != null) && key.startsWith(blockName + ".") ) {
+    		    // A block name has been detected.  Strip from the key so that the block name is not redundant.
+    		    key = key.substring(blockName.length() + 1); // +1 is for "."
+    		}
+    		// Do any special character encoding
+    		gotSpace = false;
+    		length = value.length();
+    		for ( int j=0; j<length; j++ ) {
+    			c = value.charAt(j);		
+    			if ( c == ' ' ) {
+    				gotSpace = true;
+    			}
+    		}
+    
+    		if ( gotSpace ) {
+    			out.println( key + " = \"" + value.toString() + "\"" );
+    		}
+    		else {
+    		    out.println( key + " = " + value.toString());
+    		}
 		}
 	}
 	out.close();
