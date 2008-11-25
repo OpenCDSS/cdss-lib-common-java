@@ -162,8 +162,7 @@ public Object clone ()
 /**
 Edit a command instance.  The instance may be a newly created command or one
 that has been created previously and is now being re-edited.
-@return the Command instance that is created and edited, or null if the
-edit was cancelled.
+@return the Command instance that is created and edited, or null if the edit was cancelled.
 @param parent Parent JFrame on which the model command editor dialog will be shown.
 */
 public boolean editCommand ( JFrame parent )
