@@ -114,7 +114,7 @@ public class TSUtil_ChangeInterval {
      * 
      * <tr>
      * <td><b>AllowMissingPercent</b></td>
-     * <td> THIS PROPERTY IS CURRENTLY DISABLED Indicate the percent of missing values that can be missing in the input data and still allow computation of the result.
+     * <td> Indicate the percent of missing values that can be missing in the input data and still allow computation of the result.
      * For example, if daily data are being converted to monthly, a value of 25 would allow <= 25% missing values to be present in a month's daily data, and still
      * generate a monthly value. The missing values are evaluated for the block of input needed to compute the result. Because months have different numbers of days,
      * using a percentage may result in a different threshold for different months. This argument is not used for conversion from irregular time series or conversions
@@ -325,24 +325,20 @@ public class TSUtil_ChangeInterval {
             }
         }
 
-        // REVISIT [LT] 2005-02-18 - The AllowMissingPercent will not be used
-        // at this time. SAM decided to remove this property
-        // because of the way the AllowMissingCount_int was computed,
-        // using the intervalRelation. For instance going from monthly to
-        // daily, intervalRelation will always consider 30 days months and
-        // this may be a issue.
-        // ??????????????????????????????????????????????????????????????????????
         // AllowMissingCount or AllowMissingPercent properties.
         // Only one of these properties is expected.
-        /*
-         * String AllowMissingCount = proplist.getValue( "AllowMissingCount" ); String AllowMissingPercent = proplist.getValue( "AllowMissingPercent" ); // If both are
-         * given, throw an exception. if( allowMissingCount != null && allowMissingPercent != null ) { warning = "Only one of these properties should be set: " +
-         * "AllowMissingCount or AllowMissingPercent."; throw new TSException ( warning ); }
-         */
-        // ??????????????????????????????????????????????????????????????????????
-
+        
+        String AllowMissingCount = proplist.getValue( "AllowMissingCount" );
+        String AllowMissingPercent = proplist.getValue( "AllowMissingPercent" );
+        // If both are given, throw an exception.
+        if( AllowMissingCount != null && AllowMissingPercent != null ) {
+            warning = "Only one of these properties should be set: " +
+                "AllowMissingCount or AllowMissingPercent.";
+            throw new TSException ( warning );
+        }
+        
         // AllowMissingCount
-        String AllowMissingCount = proplist.getValue("AllowMissingCount");
+        // String AllowMissingCount = proplist.getValue("AllowMissingCount");
         int AllowMissingCount_int = 0; // Default is don't allow missing
 
         if (AllowMissingCount != null) {
@@ -361,25 +357,30 @@ public class TSUtil_ChangeInterval {
             }
         }
 
-        // REVISIT [LT] 2005-02-18 - The AllowMissingPercent will not be used
-        // at this time. SAM decided to remove this property from the
-        // because of the way the AllowMissingCount_int was computed,
-        // using the intervalRelation. For instance going from monthly to
-        // daily, intervalRelation will always consider 30 days months and
-        // this may be a issue.
-        // ??????????????????????????????????????????????????????????????????????
         // AllowMissingPercent
-        /*
-         * boolean AllowMissingPercent_boolean = false; int AllowMissingPercent_double = 0.0;// Default is don't allow missing
-         * 
-         * if( AllowMissingPercent != null ) { if ( !StringUtil.isDouble( AllowMissingPercent ) ) { warning = "AllowMissingPercent (" + AllowMissingPercent + ") is not a
-         * double."; throw new TSException ( warning ); } else { // Get the value AllowMissingPercent_double = StringUtil.atof( AllowMissingPercent );
-         *  // If the given value is < 0, or > 100 throw and // exception. if ( AllowMissingPercent_double < 0.0 ) { warning = "AllowMissingPercent (" +
-         * AllowMissingPercent_double + ") is negative."; throw new TSException ( warning ); } else if ( AllowMissingPercent_double > 100.0 ) { warning =
-         * "AllowMissingPercent (" + AllowMissingPercent_double + ") is greater than 100.0."; throw new TSException ( warning ); }
-         * 
-         * AllowMissingPercent_boolean = true; }
-         */
+        
+         boolean AllowMissingPercent_boolean = false; 
+         double AllowMissingPercent_double = 0.0;         // Default is don't allow missing
+
+         if( AllowMissingPercent != null ) {
+             if ( !StringUtil.isDouble( AllowMissingPercent ) ) {
+                 warning = "AllowMissingPercent (" + AllowMissingPercent + ") is not a double.";
+                 throw new TSException ( warning );
+             } else { // Get the value
+                 AllowMissingPercent_double = StringUtil.atof( AllowMissingPercent );
+                // If the given value is < 0, or > 100 throw and // exception.
+                 if ( AllowMissingPercent_double < 0.0 ) {
+                     warning = "AllowMissingPercent (" + AllowMissingPercent_double + ") is negative.";
+                     throw new TSException ( warning );
+                 } else if ( AllowMissingPercent_double > 100.0 ) {
+                     warning = "AllowMissingPercent (" + AllowMissingPercent_double + ") is greater than 100.0.";
+                     throw new TSException ( warning );
+                 }
+          
+                AllowMissingPercent_boolean = true;
+             }
+         }
+         
         // ??????????????????????????????????????????????????????????????????????
         // Create the new time series
         // From the old time series identifier create the new time series
@@ -479,25 +480,21 @@ public class TSUtil_ChangeInterval {
         }
 
         // Using AllowMissingPercent to get allowMissingCount_int
-        // REVISIT [LT] 2005-02-18 - The AllowMissingPercent will not be used
-        // at this time. SAM decided to remove this property from the
-        // because of the way the AllowMissingCount_int was computed,
-        // using the intervalRelation. For instance going from monthly to
-        // daily, intervalRelation wil always consider 30 days months and
-        // this may be a issue.
-        // ??????????????????????????????????????????????????????????????????????
         // If the AllowMissingPercent property was given, get the its value.
         // Indicate the percent of missing values that can
         // be missing in the input data and still allow computation
         // of the result.
-        /*
-         * if ( AllowMissingPercent_boolean ) {
-         *  // Compute the number of missing datapoints allowed per interval // based // on the AllowMissingPercent property value. // Notice: Because the
-         * intervalRelation can be negative to indicate // that the old interval is less than the new interval, // we need to use the abs(intervalRelation) to properly
-         * get // a positive number of allowed missing values. allowMissingCount_int = Math.abs(intervalRelation) * allowMissingPercent_double / 100.0; }
-         */
-        // ??????????????????????????????????????????????????????????????????????
-
+        
+         if ( AllowMissingPercent_boolean ) {
+             // Compute the number of missing datapoints allowed per interval
+             // based on the AllowMissingPercent property value.
+             // Notice: Because the intervalRelation can be negative to indicate
+             // that the old interval is less than the new interval,
+             // we need to use the abs(intervalRelation) to properly get
+             // a positive number of allowed missing values.
+             AllowMissingCount_int = (int) (Math.abs(intervalRelation) * AllowMissingPercent_double / 100.0);
+         }
+         
         // Define the OldTS Iterator
         TSIterator oldTSi = null;
         oldTSi = oldTS.iterator(oldTS.getDate1(), oldTS.getDate2());
