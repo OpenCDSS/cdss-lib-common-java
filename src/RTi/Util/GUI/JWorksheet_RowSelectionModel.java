@@ -786,7 +786,7 @@ public void setLeadSelectionIndex(int leadIndex)
 {
     int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
     String routine = "JWorksheet_RowSelectModel.setLeadSelectionIndex";
-    System.out.println("ROW.setLeadSelectionIndex " + leadIndex);
+    //System.out.println("ROW.setLeadSelectionIndex " + leadIndex);
     debug();
 	if (__oneClickRowSelection && __partner != null) {
 		return;
@@ -889,7 +889,7 @@ Overrides method in DefaultListSelectionModel.  Sets the selection interval.
 public void setSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.setSelectionInterval";
     int dl = 10;
-    System.out.println("ROW.setSelectionInterval " + row0+","+row1);
+    //System.out.println("ROW.setSelectionInterval " + row0+","+row1);
     
     if ( is15 ) {
         _currRow = row1;
