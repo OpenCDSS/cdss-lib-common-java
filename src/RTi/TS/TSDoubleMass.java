@@ -15,7 +15,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -51,7 +51,7 @@ period available from the data.  Use accessor functions to retrieve the data.
 @param ts Vector of TS to analyze.
 @exception TSException if an error occurs.
 */
-public TSDoubleMass ( Vector ts )
+public TSDoubleMass ( List ts )
 throws TSException
 {
 	// Find the maximum period for all the time series involved in the
@@ -80,7 +80,7 @@ Perform the double mass analysis.
 @param date2 End of analysis.
 @exception TSException if an error occurs during the analysis.
 */
-private void initialize ( Vector ts, DateTime date1, DateTime date2 )
+private void initialize ( List ts, DateTime date1, DateTime date2 )
 throws TSException
 {	String	message, routine = "TSDoubleMass.initialize";
 	int	i;
@@ -115,17 +115,16 @@ throws TSException
 
 	// Get the data size...
 
-	TS ts_i = (TS)ts.elementAt ( 0 );
+	TS ts_i = (TS)ts.get ( 0 );
 	int interval_base = ts_i.getDataIntervalBase();
 	int interval_mult = ts_i.getDataIntervalMult();
-	int data_size = TSUtil.calculateDataSize ( date1, date2, interval_base,
-						interval_mult );
+	int data_size = TSUtil.calculateDataSize ( date1, date2, interval_base, interval_mult );
 
 	_accum_values = new double[size][];
 	_accum_missing_flag = new boolean[size][];
 	double [] last_accum = new double[size];
 	for ( i = 0; i < size; i++ ) {
-		ts_i = (TS)ts.elementAt(i);
+		ts_i = (TS)ts.get(i);
 		_accum_values[i] = new double[data_size];
 		_accum_missing_flag[i] = new boolean[data_size];
 		last_accum[i] = ts_i.getMissing();
@@ -141,7 +140,7 @@ throws TSException
 		date.addInterval(interval_base, interval_mult), datapos++ ) {
 		for ( i = 0; i < size; i++ ) {
 			// First get the data value...
-			ts_i = (TS)ts.elementAt(i);
+			ts_i = (TS)ts.get(i);
 			value = ts_i.getDataValue ( date );
 			// Now accumulate...
 			if ( ts_i.isDataMissing(value) ) {
@@ -157,8 +156,7 @@ throws TSException
 					_accum_values[i][datapos] = value;
 				}
 				else {	// Add to the accumulation...
-					_accum_values[i][datapos] +=
-					last_accum[i] + value;
+					_accum_values[i][datapos] += last_accum[i] + value;
 				}
 				_accum_missing_flag[i][datapos] = false;
 			}

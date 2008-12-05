@@ -15,7 +15,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
@@ -48,7 +48,7 @@ patterns and the columns being the number of months (12).
 @param indicators Vector of indicator strings (e.g., "WET", "DRY", "AVG").
 @param ts Time series to analyze.
 */
-public TSPatternStats ( Vector indicators, TS ts )
+public TSPatternStats ( List indicators, TS ts )
 {	initialize ( indicators, ts, null );
 }
 
@@ -60,7 +60,7 @@ the number of months (12).
 @param ts Time series to analyze.
 @param pattern_ts Existing pattern time series.
 */
-public TSPatternStats ( Vector indicators, TS ts, TS pattern_ts )
+public TSPatternStats ( List indicators, TS ts, TS pattern_ts )
 {	initialize ( indicators, ts, pattern_ts );
 }
 
@@ -140,7 +140,7 @@ Initialize the data.
 @param ts Time series to analyze.
 @param pattern_ts Existing pattern time series.
 */
-private void initialize ( Vector indicators, TS ts, TS pattern_ts )
+private void initialize ( List indicators, TS ts, TS pattern_ts )
 {	_num_indicators = indicators.size();
 	_average = new double[_num_indicators][12];
 	_sum = new double[_num_indicators][12];
@@ -156,7 +156,7 @@ private void initialize ( Vector indicators, TS ts, TS pattern_ts )
 			_average[i][j] = missing;
 			_count[i][j] = 0;
 		}
-		_indicator[i] = (String)indicators.elementAt(i);
+		_indicator[i] = (String)indicators.get(i);
 	} 
 }
 
@@ -169,10 +169,8 @@ public void refresh ()
 	}
 	for ( int i = 0; i < _num_indicators; i++ ) {
 		for ( int j = 0; j < 12; j++ ) {
-			if (	(_count[i][j] > 0) &&
-				!_ts.isDataMissing(_sum[i][j]) ) {
-				_average[i][j] = _sum[i][j]/
-					(double)_count[i][j];
+			if ( (_count[i][j] > 0) && !_ts.isDataMissing(_sum[i][j]) ) {
+				_average[i][j] = _sum[i][j]/(double)_count[i][j];
 			}
 		}
 	}

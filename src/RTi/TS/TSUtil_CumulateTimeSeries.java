@@ -1,6 +1,6 @@
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.PropList;
 import RTi.Util.Time.DateTime;
@@ -92,7 +92,7 @@ throws Exception
     if ( interval_base == TimeInterval.IRREGULAR ) {
         // Get the data and loop through the vector...
         IrregularTS irrts = (IrregularTS)ts;
-        Vector alltsdata = irrts.getData();
+        List alltsdata = irrts.getData();
         if ( alltsdata == null ) {
             // No data for the time series...
             return;
@@ -101,7 +101,7 @@ throws Exception
         TSData tsdata = null;
         DateTime date = null;
         for ( int i = 0; i < nalltsdata; i++ ) {
-            tsdata = (TSData)alltsdata.elementAt(i);
+            tsdata = (TSData)alltsdata.get(i);
             date = tsdata.getDate();
             if ( date.greaterThan(end) ) {
                 // Past the end of where we want to go so quit...

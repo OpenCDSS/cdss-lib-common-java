@@ -22,6 +22,7 @@ package RTi.TS;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.TS.TSException;
@@ -108,47 +109,47 @@ the programmer knows what sample is supported.  Perhaps they could be stored in
 sample files in the future.  
 @return Sample file contents.
 */
-public static Vector getSample ()
-{	Vector	s = new Vector ( 50 );
-	s.addElement ( "#" );
-	s.addElement ( "# This is a sample of a typical MODSIM output file.");
-	s.addElement ( "# * Comments shown in this output are for illustration only." );
-	s.addElement ( "# * Node/Link numbers are used internally and should not be used." );
-	s.addElement ( "# * Dates are for the last MODSIM run." );
-	s.addElement ( "# * Dates always include day.  The day is set to mid-month for monthly data.");
-	s.addElement ( "# * Data units are determined from MODSIM configuration.");
-	s.addElement ( "# * Daily data have data lines that start with NODE/LINK, NAME, WEEK, DAY," );
-	s.addElement ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
-	s.addElement ( "# * Monthly data have data lines that start with NODE/LINK, NAME, YEAR, MONTH," );
-	s.addElement ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
-	s.addElement ( "# * Data for one YEAR of data for all nodes/link are grouped, followed by");
-	s.addElement ( "#   the next YEAR.");
-	s.addElement ( "\"NODE\", \"NAME\", \"YEAR\", \"MONTH\", \"CALENDAR_YEAR\", \"CALENDAR_MONTH\", \"CALENDAR_DATE\", \"DEMAND\", \"SURF_IN\", \"GW_IN\", \"DEM_SHT\"" );
-	s.addElement ( "69, \"MINFLO\", 1990, 1, 1989, 11, 15, 1487, 0, 0, 1487" );
-	s.addElement ( "69, \"MINFLO\", 1990, 2, 1989, 12, 15, 1537, 0, 0, 1537" );
-	s.addElement ( "69, \"MINFLO\", 1990, 3, 1990, 1, 15, 1537, 0, 0, 1537" );
-	s.addElement ( "69, \"MINFLO\", 1990, 4, 1990, 2, 14, 1388, 0, 0, 1388" );
-	s.addElement ( "69, \"MINFLO\", 1990, 5, 1990, 3, 15, 1537, 0, 0, 1537" );
-	s.addElement ( "69, \"MINFLO\", 1990, 6, 1990, 4, 15, 2201, 0, 0, 2201" );
-	s.addElement ( "69, \"MINFLO\", 1990, 7, 1990, 5, 15, 6824, 0, 0, 6824" );
-	s.addElement ( "69, \"MINFLO\", 1990, 8, 1990, 6, 15, 7436, 0, 0, 7436" );
-	s.addElement ( "69, \"MINFLO\", 1990, 9, 1990, 7, 15, 7684, 0, 0, 7684" );
-	s.addElement ( "69, \"MINFLO\", 1990, 10, 1990, 8, 15, 7684, 0, 0, 7684" );
-	s.addElement ( "69, \"MINFLO\", 1990, 11, 1990, 9, 15, 3688, 0, 0, 3688" );
-	s.addElement ( "69, \"MINFLO\", 1990, 12, 1990, 10, 15, 3074, 0, 0, 3074" );
-	s.addElement ( "70, \"WARNOK\", 1990, 1, 1989, 11, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 2, 1989, 12, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 3, 1990, 1, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 4, 1990, 2, 14, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 5, 1990, 3, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 6, 1990, 4, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 7, 1990, 5, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 8, 1990, 6, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 9, 1990, 7, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 10, 1990, 8, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 11, 1990, 9, 15, 0, 0, 0, 0" );
-	s.addElement ( "70, \"WARNOK\", 1990, 12, 1990, 10, 15, 0, 0, 0, 0" );
-	s.addElement ( "..." );
+public static List getSample ()
+{	List s = new Vector ( 50 );
+	s.add ( "#" );
+	s.add ( "# This is a sample of a typical MODSIM output file.");
+	s.add ( "# * Comments shown in this output are for illustration only." );
+	s.add ( "# * Node/Link numbers are used internally and should not be used." );
+	s.add ( "# * Dates are for the last MODSIM run." );
+	s.add ( "# * Dates always include day.  The day is set to mid-month for monthly data.");
+	s.add ( "# * Data units are determined from MODSIM configuration.");
+	s.add ( "# * Daily data have data lines that start with NODE/LINK, NAME, WEEK, DAY," );
+	s.add ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
+	s.add ( "# * Monthly data have data lines that start with NODE/LINK, NAME, YEAR, MONTH," );
+	s.add ( "#   CALENDAR_YEAR, CALENDAR_MONTH, CALENDAR_DATE" );
+	s.add ( "# * Data for one YEAR of data for all nodes/link are grouped, followed by");
+	s.add ( "#   the next YEAR.");
+	s.add ( "\"NODE\", \"NAME\", \"YEAR\", \"MONTH\", \"CALENDAR_YEAR\", \"CALENDAR_MONTH\", \"CALENDAR_DATE\", \"DEMAND\", \"SURF_IN\", \"GW_IN\", \"DEM_SHT\"" );
+	s.add ( "69, \"MINFLO\", 1990, 1, 1989, 11, 15, 1487, 0, 0, 1487" );
+	s.add ( "69, \"MINFLO\", 1990, 2, 1989, 12, 15, 1537, 0, 0, 1537" );
+	s.add ( "69, \"MINFLO\", 1990, 3, 1990, 1, 15, 1537, 0, 0, 1537" );
+	s.add ( "69, \"MINFLO\", 1990, 4, 1990, 2, 14, 1388, 0, 0, 1388" );
+	s.add ( "69, \"MINFLO\", 1990, 5, 1990, 3, 15, 1537, 0, 0, 1537" );
+	s.add ( "69, \"MINFLO\", 1990, 6, 1990, 4, 15, 2201, 0, 0, 2201" );
+	s.add ( "69, \"MINFLO\", 1990, 7, 1990, 5, 15, 6824, 0, 0, 6824" );
+	s.add ( "69, \"MINFLO\", 1990, 8, 1990, 6, 15, 7436, 0, 0, 7436" );
+	s.add ( "69, \"MINFLO\", 1990, 9, 1990, 7, 15, 7684, 0, 0, 7684" );
+	s.add ( "69, \"MINFLO\", 1990, 10, 1990, 8, 15, 7684, 0, 0, 7684" );
+	s.add ( "69, \"MINFLO\", 1990, 11, 1990, 9, 15, 3688, 0, 0, 3688" );
+	s.add ( "69, \"MINFLO\", 1990, 12, 1990, 10, 15, 3074, 0, 0, 3074" );
+	s.add ( "70, \"WARNOK\", 1990, 1, 1989, 11, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 2, 1989, 12, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 3, 1990, 1, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 4, 1990, 2, 14, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 5, 1990, 3, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 6, 1990, 4, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 7, 1990, 5, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 8, 1990, 6, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 9, 1990, 7, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 10, 1990, 8, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 11, 1990, 9, 15, 0, 0, 0, 0" );
+	s.add ( "70, \"WARNOK\", 1990, 12, 1990, 10, 15, 0, 0, 0, 0" );
+	s.add ( "..." );
 	return s;
 }
 
@@ -527,14 +528,14 @@ public static TS readTimeSeries ( TS req_ts, BufferedReader in, String full_fnam
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	Vector tslist = readTimeSeriesList ( req_ts, in, full_fname,
+{	List tslist = readTimeSeriesList ( req_ts, in, full_fname,
 						req_date1, req_date2, req_units, read_data );
 	if ( (tslist == null) || (tslist.size() != 1) ) {
 		tslist = null;
 		return null;
 	}
 	else {
-	    TS ts = (TS)tslist.elementAt(0);
+	    TS ts = (TS)tslist.get(0);
 		tslist = null;
 		return ts;
 	}
@@ -550,10 +551,10 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param units Units to convert to.
 @param read_data Indicates whether data should be read.
 */
-public static Vector readTimeSeriesList ( String fname,
+public static List readTimeSeriesList ( String fname,
 						DateTime date1, DateTime date2, String units, boolean read_data)
 throws Exception
-{	Vector	tslist = null;
+{	List	tslist = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
@@ -573,7 +574,7 @@ throws Exception
     		nts = tslist.size();
     	}
     	for ( int i = 0; i < nts; i++ ) {
-    		ts = (TS)tslist.elementAt(i);
+    		ts = (TS)tslist.get(i);
     		if ( ts != null ) {
     			ts.setInputName ( full_fname );
     			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
@@ -611,7 +612,7 @@ the entire time series).
 @param read_data Indicates whether data should be read.
 @exception TSException if there is an error reading the time series.
 */
-public static Vector readTimeSeriesList ( TS req_ts, BufferedReader in, String filename,
+public static List readTimeSeriesList ( TS req_ts, BufferedReader in, String filename,
 						DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
 {	String string = "";
@@ -642,10 +643,10 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	Vector v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
+	List v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// The last item will contain the last line from the file...
-	Vector endstrings = StringUtil.breakStringList (
-		(String)v.elementAt(v.size() - 1), " \t,",
+	List endstrings = StringUtil.breakStringList (
+		(String)v.get(v.size() - 1), " \t,",
 		StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 
 	// Because of the organization of the file, the entire file needs
@@ -689,8 +690,8 @@ throws Exception
 
 	TS ts = null;
 	TS [] ts_array = null;	// Use to speed time series processing.
-	Vector tslist = null;
-	Vector header = null, strings = null;
+	List tslist = null;
+	List header = null, strings = null;
 	double dvalue = 0.0;	// Data value.
 
 	try {
@@ -754,7 +755,7 @@ throws Exception
 				String datatype_req_ts = req_ts.getIdentifier().getType();
 				for ( icol = first_data_col; icol < nstrings;
 					icol++ ) {
-					if ( datatype_req_ts.equalsIgnoreCase( (String)strings.elementAt(icol)) ) {
+					if ( datatype_req_ts.equalsIgnoreCase( (String)strings.get(icol)) ) {
 						req_ts_column = icol;
 						break;
 					}
@@ -773,10 +774,10 @@ throws Exception
 		// The remainder of the lines are for data.
 
 		node_prev = node;
-		node = (String)strings.elementAt(0);
+		node = (String)strings.get(0);
 
 		name_prev = name;
-		name = (String)strings.elementAt(1);
+		name = (String)strings.get(1);
 
 		// Because sometime the name is blank, use the node number if
 		// necessary to give a unique identifier..
@@ -818,15 +819,15 @@ throws Exception
 
 		if ( getting_period ) {
 			// Process a line of output to get the starting date...
-			year = StringUtil.atoi((String)strings.elementAt(4));
-			model_year = StringUtil.atoi((String)strings.elementAt(2));
+			year = StringUtil.atoi((String)strings.get(4));
+			model_year = StringUtil.atoi((String)strings.get(2));
 			model_year1 = model_year;
-			month = StringUtil.atoi((String)strings.elementAt(5));
-			day = StringUtil.atoi((String)strings.elementAt(6));
+			month = StringUtil.atoi((String)strings.get(5));
+			day = StringUtil.atoi((String)strings.get(6));
 			// Use from the data that was read with the random access file...
-			int year2 = StringUtil.atoi((String)endstrings.elementAt(4));
-			int month2 = StringUtil.atoi((String)endstrings.elementAt(5));
-			int day2 = StringUtil.atoi((String)endstrings.elementAt(6));
+			int year2 = StringUtil.atoi((String)endstrings.get(4));
+			int month2 = StringUtil.atoi((String)endstrings.get(5));
+			int day2 = StringUtil.atoi((String)endstrings.get(6));
 			if ( data_interval_base == TimeInterval.DAY ) {
 				date1_file = new DateTime ( DateTime.PRECISION_DAY );
 				date2_file = new DateTime ( DateTime.PRECISION_DAY );
@@ -898,8 +899,8 @@ throws Exception
 		// Below here filling in the time series data...
 
 		model_year_prev = model_year;
-		model_year = StringUtil.atoi((String)strings.elementAt(2));
-		year = StringUtil.atoi((String)strings.elementAt(4));
+		model_year = StringUtil.atoi((String)strings.get(2));
+		year = StringUtil.atoi((String)strings.get(4));
 		if ( !name2.equalsIgnoreCase(name_prev2) ) {
 			// A new node is encountered.
 			if ( model_year == model_year1 ) {
@@ -909,12 +910,12 @@ throws Exception
 					numts_read = 1;
 					ts = req_ts;
 					// Identifier is assumed to have been set previously.
-					tslist.addElement ( ts );
+					tslist.add ( ts );
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( 1, routine, "Adding existing requested time series to list." );
 					}
 					// Set the data type in the TS header using the information in the identifier.
-					ts.setDataType ( (String)header.elementAt( req_ts_column) );
+					ts.setDataType ( (String)header.get( req_ts_column) );
 					ts.setDescription ( name2 + ", " + ts.getDataType() );
 	
 					ts.setDate1 ( date1 );
@@ -936,10 +937,10 @@ throws Exception
 				    // Allocate a new time series for each data column...
 					for ( its = 0; its < num_param; its++ ){
 						if ( data_interval_base == TimeInterval.DAY ) {
-							identifier = name2 + ".." + (String)header.elementAt(first_data_col + its) + ".DAY";
+							identifier = name2 + ".." + (String)header.get(first_data_col + its) + ".DAY";
 						}
 						else if(data_interval_base == TimeInterval.MONTH ) {
-							identifier = name2 + ".." + (String)header.elementAt(first_data_col + its) + ".MONTH";
+							identifier = name2 + ".." + (String)header.get(first_data_col + its) + ".MONTH";
 						}
 						ident = new TSIdent(identifier);
 						ts = TSUtil.newTimeSeries ( (String)identifier, true );
@@ -955,7 +956,7 @@ throws Exception
 						ts.getIdentifier().setInputType( "MODSIM");
 						ts.setDataType ( ident.getType() );
 						ts.setDescription ( name2 +", " + ts.getDataType() );
-						tslist.addElement ( ts );
+						tslist.add ( ts );
 						if ( Message.isDebugOn ) {
 							Message.printDebug ( 1,
 							routine, "Created memory for \"" + ts.getIdentifierString() + "\"" );
@@ -994,7 +995,7 @@ throws Exception
 					size = numts_read;
 					ts_array = new TS[size];
 					for ( its = 0; its < size; its++ ) {
-						ts_array[its] = (TS)tslist.elementAt(its);
+						ts_array[its] = (TS)tslist.get(its);
 					}
 				}
 				// The model year has changed so the list of nodes is starting at the beginning again.
@@ -1015,11 +1016,11 @@ throws Exception
 			continue;
 		}
 		
-		month = StringUtil.atoi((String)strings.elementAt(5));
+		month = StringUtil.atoi((String)strings.get(5));
 		date.setYear ( year );
 		date.setMonth ( month );
 		if ( data_interval_base == TimeInterval.DAY ) {
-			day = StringUtil.atoi((String)strings.elementAt(6));
+			day = StringUtil.atoi((String)strings.get(6));
 			date.setDay ( day );
 		}
 
@@ -1052,7 +1053,7 @@ throws Exception
 
 		if ( req_ts != null ) {
 			// A requested time series has been specified so only transfer the single value
-			dvalue = StringUtil.atod( ((String)strings.elementAt(req_ts_column)).trim());
+			dvalue = StringUtil.atod( ((String)strings.get(req_ts_column)).trim());
 			ts.setDataValue ( date, dvalue );
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl2, routine, "For date " + date + ", value=" + dvalue );
@@ -1068,9 +1069,9 @@ throws Exception
 				}
 				else {
 				    // First year will be slower...
-					ts = (TS)tslist.elementAt( its );
+					ts = (TS)tslist.get( its );
 				}
-				dvalue = StringUtil.atod( ((String)strings.elementAt(icol)).trim());
+				dvalue = StringUtil.atod( ((String)strings.get(icol)).trim());
 				// Set the data value in the requested time series.  If a requested time series is
 				// being used, the array will only contain one time series, which is the requested time
 				// series...
@@ -1092,7 +1093,7 @@ throws Exception
 	}
 	else {
 	    for ( its = 0; its < num_param; its++ ) {
-			ts = (TS)tslist.elementAt(its);
+			ts = (TS)tslist.get(its);
 			ts.addToGenesis ( "Read MODSIM time series from " + ts.getDate1() + " to " + ts.getDate2() );
 		}
 	}

@@ -42,6 +42,7 @@ import java.awt.datatransfer.Transferable;
 
 import java.lang.String;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -86,7 +87,7 @@ public static DataFlavor stringMonthTSFlavor = new DataFlavor(
 	RTi.TS.StringMonthTS.class, "RTi.TS.StringMonthTS");
 
 private String	_data[][] = null;	// Array to hold data.
-private Vector	_unique_data = new Vector ( 10,5);
+private List _unique_data = new Vector ( 10,5);
 					// Unique strings in data.  Used when
 					// processing TSPatternStats.
 private String __missing_string = "";	// Default for missing data
@@ -311,7 +312,7 @@ public int getNumUniqueData ()
 Return the unique data values.
 @return The unique data values.
 */
-public Vector getUniqueData ()
+public List getUniqueData ()
 {	refresh ();
 	return _unique_data;
 }
@@ -497,7 +498,7 @@ public void refresh ()
 		size = _unique_data.size();
 		found = false;
 		for ( j = 0; j < size; j++ ) {
-			string_j = (String)_unique_data.elementAt(j);
+			string_j = (String)_unique_data.get(j);
 			if ( string_j.equals(value) ) {
 				// Same string.  Go to next string to compare...
 				found = true;
@@ -506,7 +507,7 @@ public void refresh ()
 		}
 		if ( !found ) {
 			// A new string.  Add and break...
-			_unique_data.addElement(value);
+			_unique_data.add(value);
 			if ( Message.isDebugOn ) {
 				Message.printStatus ( 1, routine,
 				"Adding unique string to list: \"" +

@@ -104,7 +104,7 @@ import java.io.Serializable;
 
 import java.lang.StringBuffer;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -1210,17 +1210,17 @@ throws Exception
 	// First parse the input information...
 
 	String identifier0 = identifier;
-	Vector list = StringUtil.breakStringList ( identifier, "~", 0 );
+	List list = StringUtil.breakStringList ( identifier, "~", 0 );
 	int	i, nlist1;
 	if ( list != null ) {
 		nlist1 = list.size();
 		// Reset to first part for checks below...
-		identifier = (String)list.elementAt(0);
+		identifier = (String)list.get(0);
 		if ( nlist1 == 2 ) {
-			tsident.setInputType ( (String)list.elementAt(1) );
+			tsident.setInputType ( (String)list.get(1) );
 		}
 		else if ( nlist1 >= 3 ) {
-			tsident.setInputType ( (String)list.elementAt(1) );
+			tsident.setInputType ( (String)list.get(1) );
 			// File name may have a ~ so find the second instance
 			// of ~ and use the remaining string...
 			int pos = identifier0.indexOf ( "~" );
@@ -1249,7 +1249,7 @@ throws Exception
 	nlist1 = list.size();
 	for ( i = 0; i < nlist1; i++ ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "TS ID list[" + i + "]:  \"" + list.elementAt(i) + "\"" );
+			Message.printDebug ( dl, routine, "TS ID list[" + i + "]:  \"" + list.get(i) + "\"" );
 		}
 	}
 
@@ -1275,21 +1275,21 @@ throws Exception
         list =	StringUtil.breakStringList ( identifier, ".", 0 );
 		nlist1 = list.size();
 		if ( nlist1 >= 1 ) {
-			full_location = (String)list.elementAt(0);
+			full_location = (String)list.get(0);
 		}
 	}
 	// Data source...
 	if ( nlist1 >= 2 ) {
-		full_source = (String)list.elementAt(1);
+		full_source = (String)list.get(1);
 	}
 	// Data type...
 	if ( nlist1 >= 3 ) {
-		full_type = (String)list.elementAt(2);
+		full_type = (String)list.get(2);
 	}
 	// Data interval...
 	int sequence_number = -1;
 	if ( nlist1 >= 4 ) {
-		interval_string = (String)list.elementAt(3);
+		interval_string = (String)list.get(3);
 		// If no scenario is used, the interval string may have the
 		// sequence number on the end, so search for the [ and split the
 		// sequence number out of the interval string...
@@ -1317,10 +1317,10 @@ throws Exception
 	// fields to compose the complete scenario...
 	if ( nlist1 >= 5 ) {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append ( list.elementAt(4) );
+		buffer.append ( list.get(4) );
 		for ( i = 5; i < nlist1; i++ ) {
 			buffer.append ( "." );
-			buffer.append ( list.elementAt(i) );
+			buffer.append ( list.get(i) );
 		}
 		scenario = buffer.toString ();
 		buffer = null;
@@ -1853,14 +1853,14 @@ public void setLocation( String full_location )
 	}
 	else {
 	    // Need to split the location into main and sub-location...
-		Vector list;
+		List list;
 		StringBuffer sub_location = new StringBuffer ();
 		int nlist;
 		list = StringUtil.breakStringList ( full_location, LOCATION_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
 			// Set the main location...
-			setMainLocation ( (String)list.elementAt(0) );
+			setMainLocation ( (String)list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-location.  This allows for multiple
@@ -1870,7 +1870,7 @@ public void setLocation( String full_location )
 				if ( i != 1 ) {
 					sub_location.append ( LOCATION_SEPARATOR );
 				}
-				sub_location.append ((String)list.elementAt(i));
+				sub_location.append ((String)list.get(i));
 			}
 			setSubLocation ( sub_location.toString() );
 		}
@@ -2008,7 +2008,7 @@ public void setSource( String source )
 		setMainSource ( source );
 	}
 	else {	// Need to split the source into main and sub-source...
-		Vector		list;
+		List list;
 		StringBuffer	sub_source = new StringBuffer ();
 		int		nlist;
 		list =	StringUtil.breakStringList ( source,
@@ -2016,13 +2016,13 @@ public void setSource( String source )
 		nlist = list.size();
 		if ( nlist >= 1 )  {
 			// Set the main source...
-			setMainSource ( (String)list.elementAt(0) );
+			setMainSource ( (String)list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-source...
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
-				sub_source.append ((String)list.elementAt(i) );
+				sub_source.append ((String)list.get(i) );
 				if ( i != iend ) {
 					sub_source.append ( SOURCE_SEPARATOR );
 				}
@@ -2141,8 +2141,9 @@ public void setType ( String type )
 		// The entire string passed in is used for the main data type...
 		setMainType ( type );
 	}
-	else {	// Need to split the data type into main and sub-location...
-		Vector		list;
+	else {
+		// Need to split the data type into main and sub-location...
+		List list;
 		StringBuffer	sub_type = new StringBuffer ();
 		int		nlist;
 		list =	StringUtil.breakStringList ( type,
@@ -2150,16 +2151,15 @@ public void setType ( String type )
 		nlist = list.size();
 		if ( nlist >= 1 ) {
 			// Set the main type...
-			setMainType ( (String)list.elementAt(0) );
+			setMainType ( (String)list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-type...
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
-				sub_type.append ((String)list.elementAt(i));
+				sub_type.append ((String)list.get(i));
 				if ( i != iend ) {
-					sub_type.append (
-					TYPE_SEPARATOR );
+					sub_type.append ( TYPE_SEPARATOR );
 				}
 			}
 			setSubType ( sub_type.toString() );

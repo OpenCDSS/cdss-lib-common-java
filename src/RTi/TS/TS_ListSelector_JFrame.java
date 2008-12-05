@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -89,13 +90,12 @@ After a proplist is processed this contains the order of the buttons that
 should appear on the GUI.  Once the GUI is set up, this contains the 
 instantiated buttons so that they can be enabled or disable as appropriate.
 */
-private Vector __buttons = null;
+private List __buttons = null;
 
 /**
-The TS_ListSelector_Listeners that have been registered to be informed when OK 
-is pressed.
+The TS_ListSelector_Listeners that have been registered to be informed when OK is pressed.
 */
-private Vector __listeners = null;
+private List __listeners = null;
 
 /**
 Constructor.  
@@ -131,7 +131,7 @@ REVISIT (JTS - 2005-04-05)
 Perhaps later add a "CloseButtons=OK" property that specifies the button that, 
 when pressed, will cause the GUI to be closed.
 */
-public TS_ListSelector_JFrame(Vector data, PropList props) {
+public TS_ListSelector_JFrame(List data, PropList props) {
 	super();
 	
 	processPropList(props);
@@ -189,18 +189,18 @@ private void enableButtons(boolean enabled) {
 	int size = __buttons.size();
 	SimpleJButton button = null;
 	for (int i = 0; i < size; i++) {
-		button = (SimpleJButton)__buttons.elementAt(i);
+		button = (SimpleJButton)__buttons.get(i);
 		button.setEnabled(enabled);
 	}
 }
 
 /**
 Gets the rows that are currently selected in the worksheet and returns them as
-a non-null Vector.  If 0 rows are selected, an empy Vector will be returned.
+a non-null Vector.  If 0 rows are selected, an empty Vector will be returned.
 @return the rows selected in the worksheet.
 */
-private Vector getSelectedRows() {
-	Vector v = new Vector();
+private List getSelectedRows() {
+	List v = new Vector();
 	int[] rows = __worksheet.getSelectedRows();
 	for (int i = 0; i < rows.length; i++) {
 		v.add(__worksheet.getRowData(rows[i]));
@@ -213,7 +213,7 @@ private Vector getSelectedRows() {
 Returns the Vector of registered TS_ListSelector_Listeners.
 @return the Vector of registered TS_ListSelector_Listeners.
 */
-public Vector getTSListSelectorListeners() {
+public List getTSListSelectorListeners() {
 	return __listeners;
 }
 
@@ -255,11 +255,11 @@ public void mouseReleased(MouseEvent event) {
 Notifies listeners that data have been selected.  
 @param data the Vector of time series that were selected from the worksheet.
 */
-private void notifyListeners(Vector data, String action) {
+private void notifyListeners(List data, String action) {
 	int size = __listeners.size();
 	TS_ListSelector_Listener l = null;
 	for (int i = 0; i < size; i++) {
-		l = (TS_ListSelector_Listener)__listeners.elementAt(i);
+		l = (TS_ListSelector_Listener)__listeners.get(i);
 		l.timeSeriesSelected(this, data, action);
 	}
 }
@@ -274,10 +274,10 @@ private void processPropList(PropList props) {
 	String s = __props.getValue("ActionButtons");
 	__buttons = new Vector();
 	if (s != null) {
-		Vector v = StringUtil.breakStringList(s, ",", 0);
+		List v = StringUtil.breakStringList(s, ",", 0);
 		int size = v.size();
 		for (int i = 0; i < size; i++) {
-			s = (String)v.elementAt(i);
+			s = (String)v.get(i);
 			__buttons.add(s.trim());
 		}
 	}
@@ -297,9 +297,9 @@ public void removeTSListSelectorListener(TS_ListSelector_Listener listener) {
 	int size = __listeners.size();
 	TS_ListSelector_Listener l = null;
 	for (int i = (size - 1); i >= 0; i--) {
-		l = (TS_ListSelector_Listener)__listeners.elementAt(i);
+		l = (TS_ListSelector_Listener)__listeners.get(i);
 		if (l == listener) {
-			__listeners.removeElementAt(i);
+			__listeners.remove(i);
 		}
 	}
 }
@@ -308,7 +308,7 @@ public void removeTSListSelectorListener(TS_ListSelector_Listener listener) {
 Sets up the GUI.
 @param data the Vector of TS to display in the worksheet.
 */
-private void setupGUI(Vector data) {
+private void setupGUI(List data) {
 	TS_List_TableModel tableModel = new TS_List_TableModel(data);
 	TS_List_CellRenderer cr = new TS_List_CellRenderer(tableModel);
 
@@ -348,9 +348,9 @@ private void setupGUI(Vector data) {
 	int size = __buttons.size();
 	SimpleJButton button = null;
 	String s = null;
-	Vector v = new Vector();
+	List v = new Vector();
 	for (int i = 0; i < size; i++) {
-		s = (String)__buttons.elementAt(i);
+		s = (String)__buttons.get(i);
 		button = new SimpleJButton(s, this);
 		button.setEnabled(false);
 		v.add(button);

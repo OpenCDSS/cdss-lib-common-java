@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Time.TimeInterval;
@@ -55,21 +56,6 @@ public final static String
 //
 // Need to store in time series history as analyzing?
 
-/**
-Return a list of statistic choices for the requested interval and scale.
-These strings are suitable for listing in a user interface.  The statistics are
-listed in ascending alphabetical order.  Parameters can be used to limit the
-choices (these features will be phased in over time as statistics are added).
-@param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
-@param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
-expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
-@deprecated Use getStatisticChoicesForInterval
-*/
-public static Vector getStatisticChoices ( int interval, String timescale )
-{	return getStatisticChoicesForInterval ( interval, timescale );
-}
-
 // TODO SAM 2005-09-12
 // Need to figure out how to handle irregular data.
 /**
@@ -82,28 +68,28 @@ statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get 
 @param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
 */
-public static Vector getStatisticChoicesForInterval ( int interval, String timescale )
-{	Vector statistics = new Vector();
+public static List getStatisticChoicesForInterval ( int interval, String timescale )
+{	List statistics = new Vector();
 	if ( (interval >= TimeInterval.MONTH) || (interval == TimeInterval.UNKNOWN) ) {
-		statistics.addElement ( CountGE );
-		statistics.addElement ( CountGT );
-		statistics.addElement ( CountLE );
-		statistics.addElement ( CountLT );
-		statistics.addElement ( DayOfFirstGE );
-		statistics.addElement ( DayOfFirstGT );
-		statistics.addElement ( DayOfFirstLE );
-		statistics.addElement ( DayOfFirstLT );
-		statistics.addElement ( DayOfLastGE );
-		statistics.addElement ( DayOfLastGT );
-		statistics.addElement ( DayOfLastLE );
-		statistics.addElement ( DayOfLastLT );
-		statistics.addElement ( DayOfMax );
-		statistics.addElement ( DayOfMin );
-		statistics.addElement ( Max );
-		statistics.addElement ( Median );
-		statistics.addElement ( Mean );
-		statistics.addElement ( Min );
-		statistics.addElement ( Total );
+		statistics.add ( CountGE );
+		statistics.add ( CountGT );
+		statistics.add ( CountLE );
+		statistics.add ( CountLT );
+		statistics.add ( DayOfFirstGE );
+		statistics.add ( DayOfFirstGT );
+		statistics.add ( DayOfFirstLE );
+		statistics.add ( DayOfFirstLT );
+		statistics.add ( DayOfLastGE );
+		statistics.add ( DayOfLastGT );
+		statistics.add ( DayOfLastLE );
+		statistics.add ( DayOfLastLT );
+		statistics.add ( DayOfMax );
+		statistics.add ( DayOfMin );
+		statistics.add ( Max );
+		statistics.add ( Median );
+		statistics.add ( Mean );
+		statistics.add ( Min );
+		statistics.add ( Total );
 	}
 	return statistics;
 }
@@ -120,15 +106,15 @@ statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get 
 @param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
 */
-public static Vector getStatisticChoicesForSimpleSample ( int interval, String timescale )
-{	Vector statistics = new Vector();
+public static List getStatisticChoicesForSimpleSample ( int interval, String timescale )
+{	List statistics = new Vector();
 	// TODO SAM 2007-11-05 Could add the CountLE, etc.
 	//statistics.addElement ( Max );
     //statistics.addElement ( ExceedanceProbabilityGE10 );
     //statistics.addElement ( ExceedanceProbabilityGE50 );
     //statistics.addElement ( ExceedanceProbabilityGE90 );
-    statistics.addElement ( Mean );
-    statistics.addElement ( Median );
+    statistics.add ( Mean );
+    statistics.add ( Median );
 	//statistics.addElement ( Min );
 	return statistics;
 }

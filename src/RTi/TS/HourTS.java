@@ -107,6 +107,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
@@ -730,13 +731,12 @@ information.  This can be used when the entire header is formatted elsewhere.
 </tr>
 
 </table>
-@exception RTi.TS.TSException Throws if there is a problem formatting the
-output.
+@exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public Vector formatOutput( PropList proplist )
+public List formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "HourTS.formatOutput", year_column = "";
-	Vector strings = new Vector (20,10);
+List strings = new Vector (20,10);
 	PropList props = null;
 	String calendar = "WaterYear", data_format = "%9.1f", prop_value = null;
 
@@ -873,8 +873,8 @@ throws TSException
 	if ( print_header.equalsIgnoreCase("true") ) {
 		if ( !use_comments_for_header.equalsIgnoreCase("true") || (_comments.size() == 0) ){
 			// Format the header from data (not comments)...
-			strings.addElement ( "" );
-			Vector strings2 = formatHeader();
+			strings.add ( "" );
+			List strings2 = formatHeader();
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
@@ -891,23 +891,23 @@ throws TSException
 	    print_comments = prop_value;
 	}
 	if ( print_comments.equalsIgnoreCase("true") || use_comments_for_header.equalsIgnoreCase("true")){
-		strings.addElement ( "" );
+		strings.add ( "" );
 		if ( _comments != null ) {
 			int ncomments = _comments.size();
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
-				strings.addElement ( "Comments:" );
+				strings.add ( "Comments:" );
 			}
 			if ( ncomments > 0 ) {
 				for ( int i = 0; i < ncomments; i++ ) {
-					strings.addElement( (String)_comments.elementAt(i));
+					strings.add( (String)_comments.get(i));
 				}
 			}
 			else {
-			    strings.addElement( "No comments available.");
+			    strings.add( "No comments available.");
 			}
 		}
 		else {
-		    strings.addElement( "No comments available.");
+		    strings.add( "No comments available.");
 		}
 	}
 	
@@ -925,8 +925,8 @@ throws TSException
 	if ( (_genesis != null) && print_genesis.equalsIgnoreCase("true") ) {
 		int size = _genesis.size();
 		if ( size > 0 ) {
-			strings.addElement ( "" );
-			strings.addElement ( "Time series creation history:" );
+			strings.add ( "" );
+			strings.add ( "Time series creation history:" );
 			strings = StringUtil.addListToStringList( strings, _genesis );
 		}
 	}
@@ -961,9 +961,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( PrintWriter fp, PropList props )
+public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	Vector	formatted_output = null;
+{	List	formatted_output = null;
 	String	routine = "HourTS.formatOutput";
 	int	dl = 20;
 	String	message;
@@ -988,7 +988,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.elementAt(i) + newline );
+				fp.print ( (String)formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -1012,10 +1012,10 @@ Format the time series for output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( String fname, PropList props )
+public List formatOutput ( String fname, PropList props )
 throws TSException
 {	String message = null, routine = "HourTS.formatOutput";
-	Vector formatted_output = null;
+List formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1062,12 +1062,12 @@ Format the body of the report for 24-hour data.
 @param req_units Requested units for output.
 @param total_column indicates whether total column is total or average.
 */
-private void formatOutput24Hour ( Vector strings, PropList props, String calendar, String data_format,
+private void formatOutput24Hour ( List strings, PropList props, String calendar, String data_format,
 					DateTime start_date, DateTime end_date, String req_units, String total_column )
 {	String	prop_value = null, routine = "HourTS.formatOutput24Hour";
 	int	column = 0, dl = 20, row = 0;
 
-	strings.addElement ( "" );
+	strings.add ( "" );
 
 	// Now transfer the monthly data into a summary matrix, that looks like:
 	//
@@ -1193,43 +1193,43 @@ private void formatOutput24Hour ( Vector strings, PropList props, String calenda
 				Message.printDebug ( dl, routine,
 				    "Printing output for summary year " + (date.getYear() + year_offset) );
 			}
-			strings.addElement ( "" );
+			strings.add ( "" );
 			// "date" will be at the end of the year...
 			if ( calendar.equalsIgnoreCase("WaterYear") ) {
-				strings.addElement (
+				strings.add (
 "                                                Water Year " +
 				date.getYear() + " (Oct " + (date.getYear() - 1) + " to Sep " + date.getYear() + ")" );
 			}
 			else if ( calendar.equalsIgnoreCase("IrrigationYear") ){
-				strings.addElement ( 
+				strings.add ( 
 "                                                 Irrigation Year " +
 				date.getYear() + " (Nov " + (date.getYear() - 1) + " to Oct " + date.getYear() + ")" );
 			}
 			else {
-			    strings.addElement ( 
+			    strings.add ( 
 "                                                                    Calendar Year " +
 				date.getYear() );
 			}
-			strings.addElement ( "" );
+			strings.add ( "" );
 			if ( calendar.equalsIgnoreCase("WaterYear") ) {
 				// Water year...
-				strings.addElement (
+				strings.add (
 "Day     Oct       Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       " );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			}
 			else if ( calendar.equalsIgnoreCase("IrrigationYear") ){
 				// Irrigation year...
-				strings.addElement (
+				strings.add (
 "Day     Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct       " );
-					strings.addElement (
+					strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			}
 			else {
 			    // Calendar year...
-				strings.addElement (
+				strings.add (
 "Day     Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       Oct       Nov       Dec       " );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			}
 			// Now print the summary for the year...
@@ -1267,11 +1267,11 @@ private void formatOutput24Hour ( Vector strings, PropList props, String calenda
 					}
 					if ( icolumn == 11 ) {
 						// Have processed the last month in the year print the row...
-						strings.addElement( buffer.toString() );
+						strings.add( buffer.toString() );
 					}
 				}
 			}
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			// Now to do the statistics.  Loop through each column..
 			// First check to see if all stats should be printed (can be dangerous if we add new statistics)..
@@ -1345,23 +1345,23 @@ private void formatOutput24Hour ( Vector strings, PropList props, String calenda
 	    print_notes = prop_value;
 	}
 	if ( print_notes.equalsIgnoreCase("true") ) {
-		strings.addElement ( "" );
-		strings.addElement ( "Notes:" );
+		strings.add ( "" );
+		strings.add ( "Notes:" );
 		if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
-			strings.addElement ( "  Years shown are water years." );
-			strings.addElement ( "  A water year spans Oct of the previous calendar year to Sep of the current " +
+			strings.add ( "  Years shown are water years." );
+			strings.add ( "  A water year spans Oct of the previous calendar year to Sep of the current " +
 			"calendar year (all within the indicated water year).");
 		}
 		else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
-			strings.addElement ( "  Years shown are irrigation years." );
-			strings.addElement ( "  An irrigation year spans Nov of the previous calendar year to Oct of the current " +
+			strings.add ( "  Years shown are irrigation years." );
+			strings.add ( "  An irrigation year spans Nov of the previous calendar year to Oct of the current " +
 			"calendar year (all within the indicated irrigation year)." );
 		}
 		else {
-		    strings.addElement("  Years shown are calendar years.");
+		    strings.add("  Years shown are calendar years.");
 		}
-		strings.addElement ( "  Annual values and statistics are computed only on non-missing data." );
-		strings.addElement ( "  NC indicates that a value is not " +
+		strings.add ( "  Annual values and statistics are computed only on non-missing data." );
+		strings.add ( "  NC indicates that a value is not " +
 		"computed because of missing data or the data value itself is missing." );
 	}
 	// Clean up...
@@ -1388,7 +1388,7 @@ values are always a maximum of 9 characters.
 @param req_units Requested units for output.
 @param total_column indicates whether total column is total or average.
 */
-private void formatOutputNHour ( Vector strings, PropList props, String calendar, String data_format,
+private void formatOutputNHour ( List strings, PropList props, String calendar, String data_format,
 					DateTime start_date, DateTime end_date, String req_units, String total_column )
 {	StringBuffer b = new StringBuffer();
 	// Loop through the data starting at the appropriate first hour for the period...
@@ -1413,7 +1413,7 @@ private void formatOutputNHour ( Vector strings, PropList props, String calendar
 		// Print a header if the first time or the day is 1...
 		if ( first_header || ((date.getDay() == 1) && (date.getHour() == 0)) ) {
 			first_header = false;
-			strings.addElement ( "" );
+			strings.add ( "" );
 			b.setLength(0);
 			b.append ( "   Date   " );
 			for ( int i = 0; i < numcol; i++ ) {
@@ -1426,14 +1426,14 @@ private void formatOutputNHour ( Vector strings, PropList props, String calendar
 				}
 			}
 			b.append ( " " + total_column );
-			strings.addElement ( b.toString() );
+			strings.add ( b.toString() );
 			// Now add the underlines for the headings...
 			b.setLength(0);
 			b.append ( "----------" );
 			for ( int i = 0; i < (numcol + 1); i++ ) {
 				b.append ( " ---------" );
 			}
-			strings.addElement ( b.toString() );
+			strings.add ( b.toString() );
 		}
 		// Now do the data...
 		if ( col == 0 ) {
@@ -1466,7 +1466,7 @@ private void formatOutputNHour ( Vector strings, PropList props, String calendar
 			if ( (_data_interval_mult == 1) && (row == 1) ) {
 				// Need to start a new row...
 				row = 2;
-				strings.addElement ( b.toString() );
+				strings.add ( b.toString() );
 			}
 			else {
 			    // Need to output the row and the total...
@@ -1476,7 +1476,7 @@ private void formatOutputNHour ( Vector strings, PropList props, String calendar
 				else {
 				    b.append(" " + StringUtil.formatString(total/count, data_format) );
 				}
-				strings.addElement ( b.toString() );
+				strings.add ( b.toString() );
 				row = 1;
 				total = 0.0;
 				count = 0;
@@ -1496,8 +1496,8 @@ Format the output statistics row given the data array.
 @param data_format Format to use for floating point data.
 @return strings to be added to the output.
 */
-private Vector formatOutputStats ( double[][] data, String label, String data_format )
-{	Vector strings = new Vector (2,1);
+private List formatOutputStats ( double[][] data, String label, String data_format )
+{	List strings = new Vector (2,1);
 	double stat = 0.0;
 	StringBuffer buffer = null;
 	double [] array = new double[31];
@@ -1546,8 +1546,8 @@ private Vector formatOutputStats ( double[][] data, String label, String data_fo
 		    buffer.append ( "    NC    " );
 		}
 	}
-	strings.addElement(buffer.toString() );
-	strings.addElement (
+	strings.add(buffer.toString() );
+	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	buffer = null;
 	array = null;

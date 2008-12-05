@@ -47,6 +47,7 @@ import java.awt.datatransfer.Transferable;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -76,10 +77,10 @@ public static DataFlavor frostDatesYearTSFlavor = new DataFlavor(
 // the frost dates.  This class will make sure that there is consistency in the
 // data.  Individual set/gets are required to handle the different data.
 
-protected Vector _last_28F_spring;	// of DateTime
-protected Vector _last_32F_spring;	// of DateTime
-protected Vector _first_32F_fall;	// of DateTime
-protected Vector _first_28F_fall;	// of DateTime
+protected List _last_28F_spring;	// of DateTime
+protected List _last_32F_spring;	// of DateTime
+protected List _first_32F_fall;	// of DateTime
+protected List _first_28F_fall;	// of DateTime
 
 /**
 Constructor.  Use allocateDataSpace() and setDataValue() to set data.
@@ -116,8 +117,9 @@ throws TSException
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	try {	Vector v = new Vector ( 1, 1 );
-		v.addElement ( ts_to_add );
+	try {
+		List v = new Vector ( 1, 1 );
+		v.add ( ts_to_add );
 		double [] factor = new double[1];
 		factor[0] = 1.0;
 		FrostDatesYearTS ts2 = add ( ts, v, factor, TSUtil.MAX_POR );
@@ -146,8 +148,7 @@ time series will have the maximum overlapping period.
 overlapping period or 0 to use the period of the first time series.
 @exception TSException if an error occurs adding the time series.
 */
-public static FrostDatesYearTS add (	FrostDatesYearTS ts, Vector ts_to_add,
-					int flag )
+public static FrostDatesYearTS add ( FrostDatesYearTS ts, List ts_to_add, int flag )
 throws TSException
 {	String message, routine = "FrostDatesYearTS.add";
 
@@ -190,8 +191,7 @@ to have a period encompassing all the time series, or zero to use the
 original period of the first time series.
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static FrostDatesYearTS add (	FrostDatesYearTS ts, Vector ts_to_add,
-					double factor[], int flag )
+public static FrostDatesYearTS add ( FrostDatesYearTS ts, List ts_to_add, double factor[], int flag )
 throws TSException
 {	String	message, routine = "FrostDatesYearTS.add(TS,Vector,double[])";
 	int	dl = 20;
@@ -281,7 +281,7 @@ throws TSException
 	DateTime	date = null;
 	int	year = 0;
 	for ( int i = 0; i < ntslist; i++ ) {
-		tspt = (FrostDatesYearTS)ts_to_add.elementAt(i);
+		tspt = (FrostDatesYearTS)ts_to_add.get(i);
 		if ( tspt == null ) {
 			message =
 			"Trouble getting [" + i + "]-th time series in list";
@@ -443,10 +443,10 @@ public int allocateDataSpace ()
 	_first_28F_fall = new Vector ( nyears, 5 );
 
 	for ( int i = 0; i < nyears; i++ ) {
-		_last_28F_spring.addElement ( (DateTime)null );
-		_last_32F_spring.addElement ( (DateTime)null );
-		_first_32F_fall.addElement ( (DateTime)null );
-		_first_28F_fall.addElement ( (DateTime)null );
+		_last_28F_spring.add ( (DateTime)null );
+		_last_32F_spring.add ( (DateTime)null );
+		_first_32F_fall.add ( (DateTime)null );
+		_first_28F_fall.add ( (DateTime)null );
 	}
 
 	routine = null;
@@ -503,10 +503,10 @@ throws TSException
 	// in the new position.  To get the right data position, declare new
 	// Vectors and save references to the old data...
 
-	Vector save_last_28F_spring = _last_28F_spring;
-	Vector save_last_32F_spring = _last_32F_spring;
-	Vector save_first_32F_fall = _first_32F_fall;
-	Vector save_first_28F_fall = _first_28F_fall;
+	List save_last_28F_spring = _last_28F_spring;
+	List save_last_32F_spring = _last_32F_spring;
+	List save_first_32F_fall = _first_32F_fall;
+	List save_first_28F_fall = _first_28F_fall;
 	DateTime save_date1 = new DateTime ( _date1 );
 
 	// Optimize the transfer dates to speed performance and so we only
@@ -553,22 +553,22 @@ throws TSException
 		// Position in old lists...
 		oldpos = year - old_year1; 
 		// Now transfer each the values...
-		date = (DateTime)save_last_28F_spring.elementAt(oldpos);
+		date = (DateTime)save_last_28F_spring.get(oldpos);
 		if ( date != null ) {
 			setLast28Spring ( year, new DateTime ( date ) );
 		}
 
-		date = (DateTime)save_last_32F_spring.elementAt(oldpos);
+		date = (DateTime)save_last_32F_spring.get(oldpos);
 		if ( date != null ) {
 			setLast32Spring ( year, new DateTime ( date ) );
 		}
 
-		date = (DateTime)save_first_32F_fall.elementAt(oldpos);
+		date = (DateTime)save_first_32F_fall.get(oldpos);
 		if ( date != null ) {
 			setFirst32Fall ( year, new DateTime ( date ) );
 		}
 
-		date = (DateTime)save_first_28F_fall.elementAt(oldpos);
+		date = (DateTime)save_first_28F_fall.get(oldpos);
 		if ( date != null ) {
 			setFirst28Fall ( year, new DateTime ( date ) );
 		}
@@ -843,7 +843,7 @@ public DateTime getFirst28Fall ( int year )
 			return null;
 		}
 		int pos = year - year1;
-		return (DateTime)_first_28F_fall.elementAt(pos);
+		return (DateTime)_first_28F_fall.get(pos);
 	}
 	catch ( Exception e ) {
 		return null;
@@ -867,7 +867,7 @@ public DateTime getFirst32Fall ( int year )
 			return null;
 		}
 		int pos = year - year1;
-		return (DateTime)_first_32F_fall.elementAt(pos);
+		return (DateTime)_first_32F_fall.get(pos);
 	}
 	catch ( Exception e ) {
 		return null;
@@ -891,7 +891,7 @@ public DateTime getLast28Spring ( int year )
 			return null;
 		}
 		int pos = year - year1;
-		return (DateTime)_last_28F_spring.elementAt(pos);
+		return (DateTime)_last_28F_spring.get(pos);
 	}
 	catch ( Exception e ) {
 		return null;
@@ -915,7 +915,7 @@ public DateTime getLast32Spring ( int year )
 			return null;
 		}
 		int pos = year - year1;
-		return (DateTime)_last_32F_spring.elementAt(pos);
+		return (DateTime)_last_32F_spring.get(pos);
 	}
 	catch ( Exception e ) {
 		return null;
@@ -930,14 +930,13 @@ to a standard StateMod time series, but for the dates in the data.
 @param date2_req Requested ending date.
 @return a Vector of String that can be displayed or output to a file.
 */
-public static Vector formatOutput (	Vector ts_list, 
-					DateTime date1_req, DateTime date2_req )
+public static List formatOutput ( List ts_list, DateTime date1_req, DateTime date2_req )
 throws IOException
 {	String	cmnt = "#>";	// Non-permanent comment for header.
 	String	message = null;
 	String	rtn="FrostDatesYearTS.formatOutput";
-	Vector	strings = new Vector ( 50, 50 );
-	Vector	v = new Vector ( 50 );
+	List	strings = new Vector ( 50, 50 );
+	List	v = new Vector ( 50 );
 
 	try {
 
@@ -971,20 +970,20 @@ throws IOException
 		// and later dates
 		earliest_year = 
 			((FrostDatesYearTS)
-			ts_list.elementAt(0)).getDate1().getYear();
+			ts_list.get(0)).getDate1().getYear();
 		latest_year = 
 			((FrostDatesYearTS)
-			ts_list.elementAt(0)).getDate2().getYear();
+			ts_list.get(0)).getDate2().getYear();
 
 		for ( i=1; i<nseries; i++ )
 		{
 			year = ((FrostDatesYearTS)
-				ts_list.elementAt(i)).getDate1().getYear();
+				ts_list.get(i)).getDate1().getYear();
 			if (( year < earliest_year ) && ( year != 0)) {
 				earliest_year = year;
 			}
 			year = ((FrostDatesYearTS)
-				ts_list.elementAt(i)).getDate2().getYear();
+				ts_list.get(i)).getDate2().getYear();
 			if ( year > latest_year ) {
 				latest_year = year;
 			}
@@ -1000,27 +999,27 @@ throws IOException
 
 	// Print comments at the top of the file 
 
-	strings.addElement ( cmnt );
-	strings.addElement ( cmnt );
-	strings.addElement ( cmnt + " Frost dates time series" );
-	strings.addElement ( cmnt + " ***********************" );
-	strings.addElement ( cmnt );
-	strings.addElement ( cmnt );
+	strings.add ( cmnt );
+	strings.add ( cmnt );
+	strings.add ( cmnt + " Frost dates time series" );
+	strings.add ( cmnt + " ***********************" );
+	strings.add ( cmnt );
+	strings.add ( cmnt );
 
 	// Always do calendar year...
 
-	strings.addElement ( cmnt + " Years Shown = Calendar Years" );
-	strings.addElement ( cmnt + 
+	strings.add ( cmnt + " Years Shown = Calendar Years" );
+	strings.add ( cmnt + 
 		"(requested period of record for time series data may be" );
-	strings.addElement( cmnt + 
+	strings.add( cmnt + 
 		"different from each station's recorded period of record" );
-	strings.addElement ( cmnt + 
+	strings.add ( cmnt + 
 		"as shown in the following table)" );
-	strings.addElement ( cmnt );
+	strings.add ( cmnt );
 
 	// print each time series id, description, and type
 
-	strings.addElement ( cmnt + "     TS ID                    Type" +
+	strings.add ( cmnt + "     TS ID                    Type" +
 	"   Source   Units  Period of Record    Location    Description");
 
 	String			empty_string = "-", tmpdesc, tmpid, tmplocation,
@@ -1028,7 +1027,7 @@ throws IOException
 	FrostDatesYearTS	tsptr = null;
 	String			format;
 	for ( i=0; i < nseries; i++ ) {
-		tsptr = (FrostDatesYearTS)ts_list.elementAt(i);
+		tsptr = (FrostDatesYearTS)ts_list.get(i);
 
 		tmpid = tsptr.getIdentifierString();
 		if (tmpid.length() == 0 ) {
@@ -1062,43 +1061,43 @@ throws IOException
 
 		format= "%s %3d %-24.24s %-6.6s %-8.8s %-6.6s %3.3s/%d - "
 			+ "%3.3s/%d %-12.12s%-24.24s";
-		v.removeAllElements();
-		v.addElement ( cmnt );
-		v.addElement ( new Integer ( i+1 ));
-		v.addElement ( tmpid );
-		v.addElement ( tmptype );
-		v.addElement ( tmpsource );
-		v.addElement ( tmpunits );
-		v.addElement ( 
+		v.clear();
+		v.add ( cmnt );
+		v.add ( new Integer ( i+1 ));
+		v.add ( tmpid );
+		v.add ( tmptype );
+		v.add ( tmpsource );
+		v.add ( tmpunits );
+		v.add ( 
 			TimeUtil.monthAbbreviation(
 			tsptr.getDate1().getMonth()));
-		v.addElement ( new Integer (
+		v.add ( new Integer (
 			tsptr.getDate1().getYear()));
-		v.addElement ( 
+		v.add ( 
 			TimeUtil.monthAbbreviation(
 			tsptr.getDate2().getMonth()));
-		v.addElement ( new Integer (
+		v.add ( new Integer (
 			tsptr.getDate2().getYear()));
-		v.addElement ( tmplocation );
-		v.addElement ( tmpdesc );
+		v.add ( tmplocation );
+		v.add ( tmpdesc );
 
 		iline = StringUtil.formatString ( v, format );
-		strings.addElement ( iline );
+		strings.add ( iline );
 	}
-	strings.addElement ( cmnt );
-	strings.addElement ( cmnt );
-	strings.addElement ( cmnt );
+	strings.add ( cmnt );
+	strings.add ( cmnt );
+	strings.add ( cmnt );
 
 	// Ready to print table
 	//
 	// check a few conditions which would end this routine...
 	if ( nseries == 0 ) {
-		strings.addElement ( "No time series data." );
+		strings.add ( "No time series data." );
 		return strings;
 	}
 	for (i=0; i<nseries; i++ )
 	{
-		tsptr = (FrostDatesYearTS)ts_list.elementAt(i);
+		tsptr = (FrostDatesYearTS)ts_list.get(i);
 		if ( tsptr.getDataIntervalBase() != TimeInterval.YEAR ) {
 			message = "A TS interval other than year detected:" +
 		   	tsptr.getDataIntervalBase();		
@@ -1107,19 +1106,19 @@ throws IOException
 		}
 	}
 
-	strings.addElement( cmnt + "Temperatures are degrees F" );
-	strings.addElement( cmnt );
-	strings.addElement( cmnt +
+	strings.add( cmnt + "Temperatures are degrees F" );
+	strings.add( cmnt );
+	strings.add( cmnt +
 	"               Last    Last    First   First" );
-	strings.addElement( cmnt +
+	strings.add( cmnt +
 	" Yr ID         Spr 28  Spr 32  Fall 32 Fall 28" );
 
-	strings.addElement ( 
+	strings.add ( 
 		cmnt + "-e-b----------eb------eb------eb------eb------e" );
 
 	// For now, always output in calendar year...
 
-	strings.addElement ( new String ("    1/" +
+	strings.add ( new String ("    1/" +
 	StringUtil.formatString(year1,"%4d") + "  -     12/" +
 	StringUtil.formatString(year2,"%4d") + " DATE  CYR" ));
 
@@ -1127,7 +1126,7 @@ throws IOException
 		ts_date28spring = null, ts_date32spring = null;
 	
 	num_years = year2 - year1 + 1;
-	Vector iline_v = new Vector(30);
+	List iline_v = new Vector(30);
 	Integer missing_Integer = new Integer ( -999 );
 	for ( i = 0; i < num_years; i++ ) {
 		year = year1 + i;
@@ -1135,13 +1134,12 @@ throws IOException
 			// first, clear this string out, then append to it
 			iline = new String();	
 			iline_format = new String();	
-			iline_v.removeAllElements();
-			tsptr = (FrostDatesYearTS)ts_list.elementAt(j);
+			iline_v.clear();
+			tsptr = (FrostDatesYearTS)ts_list.get(j);
 
 			iline_format = "%4d %-12.12s";
-			iline_v.addElement ( new Integer (year));
-			iline_v.addElement ( 
-				tsptr.getIdentifier().getLocation());
+			iline_v.add ( new Integer (year));
+			iline_v.add ( tsptr.getIdentifier().getLocation());
 
 			// Get the data from the time series (null if not
 			// found)...
@@ -1156,44 +1154,40 @@ throws IOException
 			if ( ts_date28spring == null ) {
 				iline_format += "%8d";
 				// No date...
-				iline_v.addElement ( missing_Integer );
+				iline_v.add ( missing_Integer );
 			}
 			else {	iline_format += "%8.8s";
-				iline_v.addElement (
+				iline_v.add (
 				ts_date28spring.toString(
 				DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date32spring == null ) {
 				iline_format += "%8d";
 				// No date...
-				iline_v.addElement ( missing_Integer );
+				iline_v.add ( missing_Integer );
 			}
 			else {	iline_format += "%8.8s";
-				iline_v.addElement (
+				iline_v.add (
 				ts_date32spring.toString(
 				DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date32fall == null ) {
 				iline_format += "%8d";
 				// No date...
-				iline_v.addElement ( missing_Integer );
+				iline_v.add ( missing_Integer );
 			}
 			else {	iline_format += "%8.8s";
-				iline_v.addElement (
-				ts_date32fall.toString(
-				DateTime.FORMAT_MM_SLASH_DD));
+				iline_v.add ( ts_date32fall.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date28fall == null ) {
 				iline_format += "%8d";
 				// No date...
-				iline_v.addElement ( missing_Integer );
+				iline_v.add ( missing_Integer );
 			}
 			else {	iline_format += "%8.8s";
-				iline_v.addElement (
-				ts_date28fall.toString(
-				DateTime.FORMAT_MM_SLASH_DD));
+				iline_v.add (ts_date28fall.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
-			strings.addElement ( StringUtil.formatString(
+			strings.add ( StringUtil.formatString(
 				iline_v, iline_format) );
 		}
 	}
@@ -1359,7 +1353,7 @@ public void setFirst28Fall ( int year, DateTime date )
 		return;
 	}
 	int pos = year - year1;
-	_first_28F_fall.setElementAt(date,pos);
+	_first_28F_fall.set(pos,date);
 }
 
 /**
@@ -1379,7 +1373,7 @@ public void setFirst32Fall ( int year, DateTime date )
 		return;
 	}
 	int pos = year - year1;
-	_first_32F_fall.setElementAt( date, pos);
+	_first_32F_fall.set( pos, date);
 }
 
 /**
@@ -1399,7 +1393,7 @@ public void setLast28Spring ( int year, DateTime date )
 		return;
 	}
 	int pos = year - year1;
-	_last_28F_spring.setElementAt(date,pos);
+	_last_28F_spring.set(pos,date);
 }
 
 /**
@@ -1419,7 +1413,7 @@ public void setLast32Spring ( int year, DateTime date )
 		return;
 	}
 	int pos = year - year1;
-	_last_32F_spring.setElementAt(date,pos);
+	_last_32F_spring.set(pos,date);
 }
 
 } // End FrostDatesYearTS

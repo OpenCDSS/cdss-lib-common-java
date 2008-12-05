@@ -35,7 +35,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -187,14 +187,14 @@ public TSData next ( )
 		//_tsdata = _ts.getDataPoint(_current_date); 
 		//theData  = _tsdata;
 		// instead, loop the first time...
-		Vector v = ((IrregularTS)_ts).getData();
+		List v = ((IrregularTS)_ts).getData();
 		if ( (v == null) || (v.size() == 0) ) {
 			return null;
 		}
 		int size = v.size();
 		TSData ptr = null;
 		for (	int i = 0; i < size; i++ ) {
-			ptr = (TSData)v.elementAt(i);
+			ptr = (TSData)v.get(i);
 			if  ( ptr.getDate().equals(_current_date) ) {
 				theData = ptr;
 				break;

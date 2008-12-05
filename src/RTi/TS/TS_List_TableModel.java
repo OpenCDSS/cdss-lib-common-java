@@ -16,7 +16,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TS;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
@@ -54,27 +54,25 @@ public final int COL_INPUT_NAME	= 12;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is
-allowed).
+@param data the Vector of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TS_List_TableModel ( Vector data ) {
+public TS_List_TableModel ( List data ) {
 	this ( data, false );
 }
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is
-allowed).
+@param data the Vector of TS that will be displayed in the table (null is allowed).
 @param include_alias If true, an alias column will be included after the
-location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be
-called.
+location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 */
-public TS_List_TableModel ( Vector data, boolean include_alias ) {
+public TS_List_TableModel ( List data, boolean include_alias ) {
 	if ( data == null ) {
 		_rows = 0;
 	}
-	else {	_rows = data.size();
+	else {
+		_rows = data.size();
 	}
 	_data = data;
 }
@@ -216,7 +214,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	TS ts = (TS)_data.elementAt(row);
+	TS ts = (TS)_data.get(row);
 	switch (col) {
 		case COL_ID:		return ts.getIdentifier().getLocation();
 		case COL_ALIAS:		return ts.getAlias();

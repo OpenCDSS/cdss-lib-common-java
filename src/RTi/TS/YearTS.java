@@ -85,6 +85,7 @@ import java.lang.String;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
@@ -652,14 +653,13 @@ information.  This can be used when the entire header is formatted elsewhere.
 </tr>
 
 </table>
-@exception RTi.TS.TSException Throws if there is a problem formatting the
-output.
+@exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public Vector formatOutput( PropList proplist )
+public List formatOutput( PropList proplist )
 throws TSException
 {	String 		message = "", routine = "YearTS.formatOutput",
 			year_column = "";
-	Vector		strings = new Vector (20,10);
+	List		strings = new Vector (20,10);
 	PropList	props = null;
 	String		calendar = "WaterYear", data_format = "%13.1f",
 			prop_value = null;
@@ -786,10 +786,9 @@ throws TSException
 		if ( !use_comments_for_header.equalsIgnoreCase("true") ||
 			(_comments.size() == 0) ){
 			// Format the header from data (not comments)...
-			strings.addElement ( "" );
-			Vector strings2 = formatHeader();
-			StringUtil.addListToStringList ( strings,
-				strings2 );
+			strings.add ( "" );
+			List strings2 = formatHeader();
+			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
 		
@@ -805,22 +804,22 @@ throws TSException
 	}
 	if ( print_comments.equalsIgnoreCase("true") ||
 		use_comments_for_header.equalsIgnoreCase("true")){
-		strings.addElement ( "" );
+		strings.add ( "" );
 		if ( _comments != null ) {
 			int ncomments = _comments.size();
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
-				strings.addElement ( "Comments:" );
+				strings.add ( "Comments:" );
 			}
 			if ( ncomments > 0 ) {
 				for ( int i = 0; i < ncomments; i++ ) {
-					strings.addElement(
-					(String)_comments.elementAt(i));
+					strings.add(
+					(String)_comments.get(i));
 				}
 			}
-			else {	strings.addElement( "No comments available.");
+			else {	strings.add( "No comments available.");
 			}
 		}
-		else {	strings.addElement( "No comments available.");
+		else {	strings.add( "No comments available.");
 		}
 	}
 	
@@ -838,10 +837,9 @@ throws TSException
 		print_genesis.equalsIgnoreCase("true") ) {
 		int size = _genesis.size();
 		if ( size > 0 ) {
-			strings.addElement ( "" );
-			strings.addElement ( "Time series creation history:" );
-			strings = StringUtil.addListToStringList(
-					strings, _genesis );
+			strings.add ( "" );
+			strings.add ( "Time series creation history:" );
+			strings = StringUtil.addListToStringList( strings, _genesis );
 		}
 	}
 	// Currently only one output format but in the future may add others...
@@ -871,9 +869,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( PrintWriter fp, PropList props )
+public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	Vector	formatted_output = null;
+{	List formatted_output = null;
 	String	routine = "YearTS.formatOutput";
 	int	dl = 20;
 	String	message;
@@ -899,7 +897,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.elementAt(i)
+				fp.print ( (String)formatted_output.get(i)
 				+ newline );
 			}
 			newline = null;
@@ -924,11 +922,11 @@ Format the time series for output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( String fname, PropList props )
+public List formatOutput ( String fname, PropList props )
 throws TSException
 {	String		message = null,
 			routine = "YearTS.formatOutput";
-	Vector		formatted_output = null;
+	List formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -975,19 +973,19 @@ filling out the row.  The data values are always a maximum of 13 characters.
 @param req_units Requested units for output.
 @param total_column indicates whether total column is total or average.
 */
-private void formatOutputNYear (	Vector strings, PropList props,
+private void formatOutputNYear ( List strings, PropList props,
 					String calendar, String data_format,
 					DateTime start_date, DateTime end_date,
 					String req_units, String total_column )
 {	DateTime date = new DateTime ( start_date );
 	DateTime end = new DateTime ( end_date );
-	strings.addElement ( "" );
+	strings.add ( "" );
 	if ( _has_data_flags ) {
-		strings.addElement ( "Year     Value     Flag" );
-		strings.addElement ( "---- ------------- ----" );
+		strings.add ( "Year     Value     Flag" );
+		strings.add ( "---- ------------- ----" );
 	}
-	else {	strings.addElement ( "Year     Value    " );
-		strings.addElement ( "---- -------------" );
+	else {	strings.add ( "Year     Value    " );
+		strings.add ( "---- -------------" );
 	}
 	double value = 0.0;
 	for (	;
@@ -996,13 +994,13 @@ private void formatOutputNYear (	Vector strings, PropList props,
 		value = getDataValue ( date );
 		if ( _has_data_flags ) {
 			if ( isDataMissing(value) ) {
-				strings.addElement(
+				strings.add(
 				date.toString(DateTime.FORMAT_YYYY)+
 				"               " +
 				StringUtil.formatString(
 				getDataPoint(date).getDataFlag(),"%4.4s") );
 			}
-			else {	strings.addElement(
+			else {	strings.add(
 				date.toString(DateTime.FORMAT_YYYY)+
 				" " + StringUtil.formatString(
 				value,data_format) + " " +
@@ -1011,11 +1009,11 @@ private void formatOutputNYear (	Vector strings, PropList props,
 			}
 		}
 		else {	if ( isDataMissing(value) ) {
-				strings.addElement(
+				strings.add(
 				date.toString(DateTime.FORMAT_YYYY)+
 				"               " );
 			}
-			else {	strings.addElement(
+			else {	strings.add(
 				date.toString(DateTime.FORMAT_YYYY)+
 				" " + StringUtil.formatString(
 				value,data_format) );

@@ -69,7 +69,7 @@ package RTi.TS;
 
 import java.io.Serializable;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -387,7 +387,7 @@ throws TSException
 
 		IrregularTS its = (IrregularTS)ts;
 
-		Vector data_array = its.getData ();
+		List data_array = its.getData ();
 		if ( data_array == null ) {
 			message = "Null data for " + ts;
 			Message.printWarning ( 3, routine, message );
@@ -396,7 +396,7 @@ throws TSException
 		int size = data_array.size();
 		TSData ptr = null;
 		for ( int i = 0; i < size; i++ ) {
-			ptr = (TSData)data_array.elementAt(i);
+			ptr = (TSData)data_array.get(i);
 			date = ptr.getDate();
 	
 			if ( date.lessThan( ts_date1 ) ) {
@@ -457,7 +457,7 @@ throws TSException
 		// Now search backwards to find the first non-missing date...
 		if ( found ) {
 			for ( int i = (size - 1); i >= 0; i-- ){
-				ptr = (TSData)data_array.elementAt(i);
+				ptr = (TSData)data_array.get(i);
 				date = ptr.getDate();
 				value = ptr.getData();
 				if ( date.greaterThan(end) ) {

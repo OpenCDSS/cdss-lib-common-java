@@ -315,6 +315,7 @@ import	RTi.Util.Time.TZ;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -501,11 +502,12 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	Vector v = new Vector ( 1, 1 );
-	v.addElement ( ts_to_add );
+	List v = new Vector ( 1, 1 );
+	v.add ( ts_to_add );
 	double [] factor = new double[1];
 	factor[0] = 1.0;
-	try {	return add ( ts, v, factor, IGNORE_MISSING );
+	try {
+		return add ( ts, v, factor, IGNORE_MISSING );
 	}
 	catch ( TSException e ) {
 		// Just rethrow...
@@ -522,7 +524,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_add List of time series to add to "ts".
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, Vector ts_to_add )
+public static TS add ( TS ts, List ts_to_add )
 throws Exception
 {	return add ( ts, ts_to_add, IGNORE_MISSING );
 }
@@ -536,7 +538,7 @@ genesis information are updated to reflect the addition.
 @param missing_flag See overloaded version for description.
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, Vector ts_to_add, int missing_flag )
+public static TS add ( TS ts, List ts_to_add, int missing_flag )
 throws Exception
 {	String message, routine = "TSUtil.add";
 
@@ -551,7 +553,8 @@ throws Exception
 	for ( int i = 0; i < size; i++ ) {
 		factor[i] = 1.0;
 	}
-	try {	return add ( ts, ts_to_add, factor, missing_flag );
+	try {
+		return add ( ts, ts_to_add, factor, missing_flag );
 	}
 	catch ( TSException e ) {
 		// Just rethrow...
@@ -566,8 +569,7 @@ genesis information are updated to reflect the addition.
 @param ts Time series to be added to.
 @param ts_to_add List of time series to add to "ts".
 @param factor Used by subtract() or directly.  Specifies the factors to multiply
-each time series by before adding.  The factors are applied after units
-conversion.
+each time series by before adding.  The factors are applied after units conversion.
 @param missing_flag Handle missing data as follows:
 <pre>
 IGNORE_MISSING               Missing data are ignored and have no effect on
@@ -580,7 +582,7 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 </pre>
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static TS add ( TS ts, Vector ts_to_add, double factor[], int missing_flag )
+public static TS add ( TS ts, List ts_to_add, double factor[], int missing_flag )
 throws TSException, Exception
 {	String	message, routine = "TSUtil.add(TS,Vector,double[])";
 	int	dl = 20, nmissing = 0;
@@ -671,8 +673,8 @@ throws TSException, Exception
 	}
 	int timestep_index = 0;	 // Used with set_to_missing
 	for ( int i = 0; i < ntslist; i++ ) {
-		nmissing	= 0;
-		tspt		= (TS)ts_to_add.elementAt(i);
+		nmissing = 0;
+		tspt = (TS)ts_to_add.get(i);
 		if ( tspt == null ) {
 			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 3, routine, message );
@@ -944,7 +946,7 @@ public static void addConstant(	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -953,7 +955,7 @@ public static void addConstant(	TS ts, DateTime start_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( (month >= 0) && (date.getMonth() != month) ) {
 				continue;
@@ -1192,7 +1194,7 @@ throws Exception
  * @param tslist Vector of time series 
  * @return True if a time series is editable
  */
-public static boolean areAnyTimeSeriesEditable(Vector tslist)
+public static boolean areAnyTimeSeriesEditable(List tslist)
 {
   int size =0;
   if ( tslist != null )
@@ -1203,7 +1205,7 @@ public static boolean areAnyTimeSeriesEditable(Vector tslist)
 
   for ( int i = 0; i < size; i++ )
     {
-      ts = (TS)tslist.elementAt(i);
+      ts = (TS)tslist.get(i);
       if ( ts == null ) 
         {
           continue;
@@ -1221,9 +1223,9 @@ public static boolean areAnyTimeSeriesEditable(Vector tslist)
 Determine whether the intervals for the time series are the same (the base and
 multiplier for the interval must agree).
 @return true if the intervals are the same.
-@param tslist Vector of time series.
+@param tslist list of time series.
 */
-public static boolean areIntervalsSame ( Vector tslist )
+public static boolean areIntervalsSame ( List tslist )
 {
 	if ( tslist == null ) {
 		// No units.  Decide later whether to throw an exception.
@@ -1240,7 +1242,7 @@ public static boolean areIntervalsSame ( Vector tslist )
 	int interval_mult, interval_mult0 = 0;
 	boolean first_found = false;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -1521,33 +1523,29 @@ throws Exception
 
 	// Now return the modified original time series...
 
-	Vector genesis = oldts.getGenesis();
+	List genesis = oldts.getGenesis();
 	oldts.setDescription ( oldts.getDescription() + ",ARMA" );
-	genesis.insertElementAt("Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) +
-	 ") using ARMA interval " + ARMA_interval +	" and coefficients:", genesis_length );
+	genesis.add(genesis_length, "Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) +
+	 ") using ARMA interval " + ARMA_interval +	" and coefficients:" );
 	for ( i = 0; i < n_a; i++ ) {
-		genesis.insertElementAt(
-		"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f"), (genesis_length + 1 + i) );
+		genesis.add((genesis_length + 1 + i),
+		"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f") );
 	}
 	for ( i = 0; i < n_b; i++ ) {
-		genesis.insertElementAt ( "    b" + i + " = " +
-			StringUtil.formatString(b[i], "%.6f"), (genesis_length + n_a + 1 + i) );
+		genesis.add ( (genesis_length + n_a + 1 + i), "    b" + i + " = " +
+			StringUtil.formatString(b[i], "%.6f") );
 	}
-	genesis.insertElementAt (
-	"ARMA: The original number of data points were expanded by a factor ",
-		(genesis_length + n_a + n_b + 1) );
-	genesis.insertElementAt (
-	"ARMA: of " + interval_ratio + " before applying ARMA.",
-		(genesis_length + n_a + n_b + 2) );
+	genesis.add ((genesis_length + n_a + n_b + 1),
+	"ARMA: The original number of data points were expanded by a factor " );
+	genesis.add ((genesis_length + n_a + n_b + 2),
+	"ARMA: of " + interval_ratio + " before applying ARMA." );
 	if ( ARMA_ratio == 1 ) {
-		genesis.insertElementAt (
-		"ARMA: All points were then used as the final result.",
-		(genesis_length + n_a + n_b + 3) );
+		genesis.add ((genesis_length + n_a + n_b + 3),
+		"ARMA: All points were then used as the final result." );
 	}
-	else {	genesis.insertElementAt (
+	else {	genesis.add ((genesis_length + n_a + n_b + 3),
 		"ARMA: 1/" + ARMA_ratio +
-		" points were then used to compute the averaged final result.",
-		(genesis_length + n_a + n_b + 3) );
+		" points were then used to compute the averaged final result." );
 	}
 	oldts.setGenesis ( genesis );
 	return oldts;
@@ -1562,7 +1560,7 @@ version of this method that takes the boolean flag.
 @return true if the units in the time series are compatible.
 @param tslist Vector of time series.
 */
-public static boolean areUnitsCompatible ( Vector tslist )
+public static boolean areUnitsCompatible ( List tslist )
 {	return areUnitsCompatible ( tslist, false );
 }
 
@@ -1570,16 +1568,13 @@ public static boolean areUnitsCompatible ( Vector tslist )
 Determine whether the units for a list of time series are compatible.
 The units are allowed to be different as long as they are within the same
 dimension (e.g., each is a length).
-@return true if the units in the time series are compatible, according to the
-"require_same" flag.
+@return true if the units in the time series are compatible, according to the "require_same" flag.
 @param tslist Vector of time series.
 @param require_same Flag indicating whether the units must exactly match (no
 conversion necessary).  If true, the units must be the same.  If false, the
-units must only be in the same dimension (e.g., "CFS" and "GPM" would be
-compatible).
+units must only be in the same dimension (e.g., "CFS" and "GPM" would be compatible).
 */
-public static boolean areUnitsCompatible (	Vector tslist,
-						boolean require_same )
+public static boolean areUnitsCompatible ( List tslist, boolean require_same )
 {	if ( tslist == null ) {
 		// No units.  Decide later whether to throw an exception.
 		return true;
@@ -1590,11 +1585,11 @@ public static boolean areUnitsCompatible (	Vector tslist,
 		return true;
 	}
 	// Loop through the time series and get the units...
-	Vector units = new Vector ( 10, 5 );
+	List units = new Vector ( 10, 5 );
 	TS ts = null;
 	String units_string = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -1602,11 +1597,10 @@ public static boolean areUnitsCompatible (	Vector tslist,
 		if ( units_string == null ) {
 			continue;
 		}
-		units.addElement ( units_string );
+		units.add ( units_string );
 	}
 	units_string = null;
-	boolean result = DataUnits.areUnitsStringsCompatible(units,
-				require_same);
+	boolean result = DataUnits.areUnitsStringsCompatible(units, require_same);
 	units = null;
 	ts = null;
 	return result;
@@ -1645,9 +1639,7 @@ the data but perhaps not the date/time.</b>
 </table>
 @exception Exception if an error occurs (usually null input).
 */
-public static TS average (	Vector tslist,
-				DateTime start_date, DateTime end_date,
-				PropList props )
+public static TS average ( List tslist, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  message, routine = "TSUtil.average";
 
@@ -1695,7 +1687,7 @@ throws Exception
 	// Create a new time series to be returned, using the first time series
 	// in the list as a template...
 
-	ts = (TS)tslist.elementAt(0);
+	ts = (TS)tslist.get(0);
 	TS newts = newTimeSeries ( ts.getIdentifierString(), true );
 	// Only transfer generic fields, not scenario, etc...
 	TSIdent tsident = new TSIdent();
@@ -1730,7 +1722,7 @@ throws Exception
 	tsarray = new TS[size];
 	// Assign the time series to an array to increase performance...
 	for ( its = 0; its < size; its++ ) {
-		tsarray[its] = (TS)tslist.elementAt(its);
+		tsarray[its] = (TS)tslist.get(its);
 	}
 	// Create an iterator for each time series, if needed...
 	if ( !transfer_bydate ) {
@@ -2080,7 +2072,7 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -2088,7 +2080,7 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			data_value = tsdata.getData();
 			if ( !ts.isDataMissing(data_value) ) {
 				// Not missing, so do the conversion...
@@ -2192,12 +2184,10 @@ look up the precision.  If that fails, a default of 1 will be used.
 </tr>
 
 </table>
-@return a Vector of String containing the report.
+@return a list of String containing the report.
 @exception Exception if there is an error generating the report.
 */
-public static Vector createMonthSummary (	TS ts,
-						DateTime date1, DateTime date2,
-						PropList props )
+public static List createMonthSummary ( TS ts, DateTime date1, DateTime date2, PropList props )
 throws Exception
 {	// Pull much of the code from the MonthTS.formatOutput() method.  This
 	// method creates a similar report but does not track data as
@@ -2217,7 +2207,7 @@ throws Exception
 		throw new Exception ( message );
 	}
 
-	Vector strings = new Vector(20,10);
+	List strings = new Vector(20,10);
 	StringUtil.addListToStringList ( strings, ts.formatHeader() );
 
 	// Determine the units to output.  For now use what is in the time
@@ -2280,7 +2270,7 @@ throws Exception
 	// Need to check the data type to determine if it is an average
 	// or a total.  For now, make some guesses based on the units...
 
-	strings.addElement ( "" );
+	strings.add ( "" );
 		
 	prop_value = props.getValue ( "DayType" );
 	String year_column = "Average";
@@ -2293,22 +2283,22 @@ throws Exception
 
 	if ( calendar.equalsIgnoreCase("WaterYear") ) {
 		// Water year...
-		strings.addElement (
+		strings.add (
 "Year    Oct       Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep     " + year_column );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
 	else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
 		// Irrigation year...
-		strings.addElement (
+		strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
-		strings.addElement (
+		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
 	else {	// Calendar year...
-		strings.addElement (
+		strings.add (
 "Year    Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       Oct       Nov       Dec     " + year_column );
-		strings.addElement (
+		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
 
@@ -2658,14 +2648,14 @@ throws Exception
 				}
 			}
 			// Add the row...
-			strings.addElement(buffer.toString() );
+			strings.add(buffer.toString() );
 			column = -1;	// Incremented at end of loop.
 			year_total = missing;
 			++row;
 		}
 		++column;
 	}
-	strings.addElement (
+	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	// Now need to do the statistics.  Loop through each column...
 	if ( !day_is_average ) {
@@ -2689,31 +2679,31 @@ throws Exception
 
 	// Now do the notes...
 
-	strings.addElement ( "" );
-	strings.addElement ( "Notes:" );
+	strings.add ( "" );
+	strings.add ( "Notes:" );
 	if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
-		strings.addElement ( "  Years shown are water years." );
-		strings.addElement (
+		strings.add ( "  Years shown are water years." );
+		strings.add (
 		"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 	}
 	else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
-		strings.addElement (
+		strings.add (
 		"  Years shown are irrigation years." );
-		strings.addElement (
+		strings.add (
 		"  An irrigation year spans Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
 	}
-	else {	strings.addElement (
+	else {	strings.add (
 		"  Years shown are calendar years." );
 	}
-	strings.addElement (
+	strings.add (
 	"  Annual values and statistics are computed only on non-missing data." );
-	strings.addElement (
+	strings.add (
 	"  NC indicates that a value is not computed because of missing data or the data value itself is missing." );
-	strings.addElement (
+	strings.add (
 	"  Statistics are for values shown in the main table except:" );
-	strings.addElement (
+	strings.add (
 	"    MMxD are the means of the maximum daily values in a month." );
-	strings.addElement (
+	strings.add (
 	"    MMnD are the means of the minimum daily values in a month." );
 	return strings;
 }
@@ -2727,11 +2717,11 @@ data array.
 @param label Label for the statistics row.
 @param data_format Format like "%9.1f" to format values.
 */
-private static Vector createMonthSummaryStats (	TS ts, double[][] data,
+private static List createMonthSummaryStats (	TS ts, double[][] data,
 						int num_years, String label,
 						String data_format )
-{	Vector		strings = new Vector (20,10);
-	double		stat;
+{	List strings = new Vector (20,10);
+	double stat;
 	StringBuffer	buffer = null;
 	double[]	array = new double[num_years];
 	int		column, row;
@@ -2787,8 +2777,8 @@ private static Vector createMonthSummaryStats (	TS ts, double[][] data,
 		else {	buffer.append ( "     NC   " );
 		}
 	}
-	strings.addElement( buffer.toString() );
-	strings.addElement (
+	strings.add( buffer.toString() );
+	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 
 	buffer = null;
@@ -3671,8 +3661,7 @@ date/limit pairs are in effect from the date until the next date encountered.
 @param props See the overloaded version for a description.
 @exception RTi.TS.TSException if there is a problem with input.
 */
-public static int enforceLimits ( TS ts, Vector dates, double [] max_values,
-				PropList props )
+public static int enforceLimits ( TS ts, List dates, double [] max_values, PropList props )
 throws TSException, Exception
 {	String routine = "TSUtil.enforceLimits";
 
@@ -3683,8 +3672,8 @@ throws TSException, Exception
 
 	// Else, use the overall start and end dates for filling...
 
-	try {	return enforceLimits ( ts, ts.getDate1(), ts.getDate2(), dates,
-		max_values, props );
+	try {
+		return enforceLimits ( ts, ts.getDate1(), ts.getDate2(), dates, max_values, props );
 	}
 	catch ( TSException e ) {
 		throw e;
@@ -3741,11 +3730,8 @@ recommended.  The flag will be appended to existing flags.
 </table>
 @exception RTi.TS.TSException if there is a problem with input.
 */
-public static int enforceLimits (	TS ts, DateTime start_date,
-					DateTime end_date,
-					Vector limit_dates_given,
-					double [] max_values_given,
-					PropList props )
+public static int enforceLimits ( TS ts, DateTime start_date, DateTime end_date, List limit_dates_given,
+					double [] max_values_given, PropList props )
 throws TSException, Exception
 {	String  routine = "TSUtil.enforceLimits";
 	String	message;
@@ -3758,8 +3744,7 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 	if ( max_values_given == null ) {
-		message =
-		"No limiting values have been specified for enforcement.";
+		message = "No limiting values have been specified for enforcement.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -3804,7 +3789,7 @@ throws TSException, Exception
 	int [] sort_order = new int [num_limit_dates];
 	DateTime	limit_date = null;
 	for ( int i = 0; i < num_limit_dates; i++ ) {
-		limit_date = (DateTime)limit_dates_given.elementAt(i);
+		limit_date = (DateTime)limit_dates_given.get(i);
 		double_dates[i] = limit_date.toDouble();
 	}
 
@@ -3815,24 +3800,23 @@ throws TSException, Exception
 
 	// Now reset the dates again...
 
-	Vector limit_dates = new Vector(num_limit_dates);
+	List limit_dates = new Vector(num_limit_dates);
 	double [] max_values = new double[num_limit_dates];
 	if ( Message.isDebugOn ) {
 		for ( int i = 0; i < num_limit_dates; i++ ) {
-			limit_date = (DateTime)limit_dates_given.elementAt(i);
+			limit_date = (DateTime)limit_dates_given.get(i);
 			Message.printDebug ( dl, routine,
 			"Before sort by dates, limits[" + i + "] = " +
 			max_values_given[i] + " on " + limit_date );
 		}
 	}
 	for ( int i = 0; i < num_limit_dates; i++ ) {
-		limit_dates.addElement (
-			limit_dates_given.elementAt(sort_order[i]) );
+		limit_dates.add ( limit_dates_given.get(sort_order[i]) );
 		max_values[i] = max_values_given[sort_order[i]];
 	}
 	if ( Message.isDebugOn ) {
 		for ( int i = 0; i < num_limit_dates; i++ ) {
-			limit_date = (DateTime)limit_dates.elementAt(i);
+			limit_date = (DateTime)limit_dates.get(i);
 			Message.printDebug ( dl, routine,
 			"After sort by dates, limits[" + i + "] = " +
 			max_values[i] + " on " + limit_date );
@@ -3849,16 +3833,17 @@ throws TSException, Exception
 	int interval_mult = ts.getDataIntervalMult();
 
 	int	limit_pos = 0;
-	limit_date = (DateTime)limit_dates.elementAt(limit_pos);
+	limit_date = (DateTime)limit_dates.get(limit_pos);
 	DateTime	next_limit_date = null;
 
 	// Enhancement:  Need to pick limiting date that is nearest the
 	// starting date...
 
 	if ( (limit_pos + 1) != num_limit_dates ) {
-		next_limit_date = (DateTime)limit_dates.elementAt(limit_pos +1);
+		next_limit_date = (DateTime)limit_dates.get(limit_pos +1);
 	}
-	else {	next_limit_date = null;
+	else {
+		next_limit_date = null;
 	}
 	double	limit_value0 = max_values[limit_pos];
 	double	limit_value;
@@ -3873,7 +3858,7 @@ throws TSException, Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return 0;
@@ -3881,11 +3866,10 @@ throws TSException, Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -3896,31 +3880,26 @@ throws TSException, Exception
 							// loop...
 							break;
 						}
-					if ( next_limit_date.lessThanOrEqualTo(
-						date) ) {
+					if ( next_limit_date.lessThanOrEqualTo(date) ) {
 						// Need to update the dates...
 						++limit_pos;
 						limit_date = next_limit_date;
 						limit_value0 =
 							max_values[limit_pos];
-						if (	(limit_pos+1) !=
-							num_limit_dates){
-							next_limit_date =
-							(DateTime)
-							limit_dates.elementAt(
-							limit_pos + 1 );
+						if ( (limit_pos+1) != num_limit_dates){
+							next_limit_date = (DateTime)limit_dates.get(limit_pos + 1 );
 						}
-						else {	next_limit_date = null;
+						else {
+							next_limit_date = null;
 						}
 					}
-					else {	// Check again in the next
-						// iteration...
+					else {
+						// Check again in the next iteration...
 						break;
 					}
 					} // end while
 				}
-				// Check to see that the value is less than the
-				// max...
+				// Check to see that the value is less than the max...
 				if ( scale_by_days ) {
 					limit_value = limit_value0*
 					TimeUtil.numDaysInMonth(
@@ -3973,10 +3952,7 @@ throws TSException, Exception
 							max_values[limit_pos];
 						if (	(limit_pos+1) !=
 							num_limit_dates){
-							next_limit_date =
-							(DateTime)
-							limit_dates.elementAt(
-							limit_pos + 1 );
+							next_limit_date = (DateTime)limit_dates.get(limit_pos + 1 );
 						}
 						else {	next_limit_date = null;
 						}
@@ -4162,7 +4138,7 @@ series data interval).
 @exception RTi.TS.TSException If there is a problem filling the time series
 (generally an input problem).
 */
-public static TS fill (	TS ts, Vector needed_ts, PropList props )
+public static TS fill (	TS ts, List needed_ts, PropList props )
 // At some point need to pass in a TSLookupTable also?? - talking to Dan Weiler
 throws TSException
 {	String 			message, routine = "TSUtil.fill";
@@ -4249,7 +4225,7 @@ throws TSException
 
 	// Now split out the fill methods into a vector of strings...
 
-	Vector fill_methods_strings = StringUtil.breakStringList (
+	List fill_methods_strings = StringUtil.breakStringList (
 		fill_methods_string,
 		",", StringUtil.DELIM_SKIP_BLANKS );
 	if ( fill_methods_strings == null ) {
@@ -4271,7 +4247,7 @@ throws TSException
 	int nfill_methods0 = nfill_methods;
 	nfill_methods = 0;
 	for ( i = 0; i < nfill_methods0; i++ ) {
-		fill_method = (String)fill_methods_strings.elementAt(i);
+		fill_method = (String)fill_methods_strings.get(i);
 		if ( fill_method.equalsIgnoreCase("FillCarryForward") ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
@@ -4337,14 +4313,11 @@ throws TSException
 			prop_value =proplist.getValue("FillHistMonthAveValues");
 			if ( prop_value != null ) {
 				// Parse into a list.
-				Vector values = StringUtil.breakStringList (
-				prop_value, ",", 0 );
+				List values = StringUtil.breakStringList ( prop_value, ",", 0 );
 				if ( values != null ) {
 					if ( values.size() == 12 ) {
 						for ( j = 0; j < 12; j++ ) {
-						fill_hist_month_ave_values[j] =
-						StringUtil.atod(
-						(String)values.elementAt(j) );
+							fill_hist_month_ave_values[j] = StringUtil.atod((String)values.get(j) );
 						}
 						values_set = true;
 					}
@@ -4453,27 +4426,24 @@ throws TSException
 				Message.printDebug ( 10, routine, 
 				"In fill - using FillRegressLinear." );
 			}
-			simTS = (TS)needed_ts.elementAt(0);
+			simTS = (TS)needed_ts.get(0);
 			try { rd = new TSRegression ( simTS, ts, null);
 			} catch ( Exception e ) {
 			}
 		}
 		else if ( fill_method.equalsIgnoreCase("FillRegressLinear12") ||
-			fill_method.equalsIgnoreCase(
-			"FillRegressLinearMonthly")){
+			fill_method.equalsIgnoreCase( "FillRegressLinearMonthly")){
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillRegressLinear12 fill method" );
+				Message.printDebug ( dl, routine, "Detected FillRegressLinear12 fill method" );
 			}
 			fill_methods[nfill_methods] =
 				FILL_METHOD_REGRESS_LINEAR_12;
 			++nfill_methods;
-			simTS = (TS)needed_ts.elementAt(0);
-			try {	PropList regprops = new PropList("regression");
-				regprops.set(
-				"NumberOfEquations=MonthlyEquations");
-				rdMonthly = new TSRegression (
-					simTS, ts, regprops );
+			simTS = (TS)needed_ts.get(0);
+			try {
+				PropList regprops = new PropList("regression");
+				regprops.set( "NumberOfEquations=MonthlyEquations");
+				rdMonthly = new TSRegression ( simTS, ts, regprops );
 			} catch ( Exception e ) {
 				rdMonthly = null;
 			}
@@ -4892,7 +4862,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -4900,7 +4870,7 @@ throws Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so
@@ -5119,7 +5089,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -5127,7 +5097,7 @@ throws Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so
@@ -5140,16 +5110,11 @@ throws Exception
 					tsdata.setData(
 						values[date.getMonth() - 1]);
 					if ( FillFlag_boolean ) {
-						// Set the flag, appending to
-						// the old value...
-						tsdata.setDataFlag (
-							tsdata.
-							getDataFlag().trim() +
-							FillFlag );
+						// Set the flag, appending to the old value...
+						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
 					}
 					++nfilled[date.getMonth() - 1];
-					// Have to do this manually since TSData
-					// are being modified directly to
+					// Have to do this manually since TSData are being modified directly to
 					// improve performance...
 					irrts.setDirty ( true );
 				}
@@ -5719,7 +5684,7 @@ public static void fillMonthly(	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -5728,19 +5693,17 @@ public static void fillMonthly(	TS ts, DateTime start_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				if ( ts.isDataMissing ( 
 				ts.getDataValue ( date )))
 				tsdata.setData(values[date.getMonth() - 1]);
-				// Have to do this manually since TSData
-				// are being modified directly to
+				// Have to do this manually since TSData are being modified directly to
 				// improve performance...
 				ts.setDirty ( true );
 			}
@@ -6004,7 +5967,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -6012,7 +5975,7 @@ throws Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so
@@ -6997,21 +6960,19 @@ throws TSException, Exception
 	// The following comes back as multiple strings but to handle genesis
 	// information nicely, break into separate strings...
 
-	Vector strings = StringUtil.breakStringList ( rd.toString(),
-		System.getProperty("line.separator"),
-		StringUtil.DELIM_SKIP_BLANKS );
+	List strings = StringUtil.breakStringList ( rd.toString(),
+		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
 	if ( strings != null ) {
 		int size = strings.size();
 		for ( int j = 0; j < size; j++ ) {
-			ts_to_fill.addToGenesis( (String)strings.elementAt(j) );
+			ts_to_fill.addToGenesis( (String)strings.get(j) );
 		}
 	}
 
 	prop_value = props.getValue ( "DescriptionString" );
 	if ( prop_value != null ) {
 		// Description has been specified...
-		ts_to_fill.setDescription ( ts_to_fill.getDescription() +
-			prop_value );
+		ts_to_fill.setDescription ( ts_to_fill.getDescription() + prop_value );
 	}
 	else {	// Automatically add to the description...
 		prop_value = props.getValue ( "AnalysisMethod" );
@@ -7194,13 +7155,12 @@ throws TSException, Exception
 	// The following comes back as multiple strings but to handle genesis
 	// information nicely, break into separate strings...
 
-	Vector strings = StringUtil.breakStringList ( rd.toString(),
-		System.getProperty("line.separator"),
-		StringUtil.DELIM_SKIP_BLANKS );
+	List strings = StringUtil.breakStringList ( rd.toString(),
+		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
 	if ( strings != null ) {
 		int size = strings.size();
 		for ( int j = 0; j < size; j++ ) {
-			ts_to_fill.addToGenesis ((String)strings.elementAt(j) );
+			ts_to_fill.addToGenesis ((String)strings.get(j) );
 		}
 	}
 
@@ -7552,7 +7512,7 @@ public static TSData findNearestDataPoint(TS inputTS, DateTime date1,
 public static String findTSFile ( String tsid_string0, String tsdatapath0 )
 {	String	routine = "TSUtil.findTSFile(String,String)", tsdatapath = ".",
 		tsid_string;
-	Vector	tsdatadirs = null;
+	List tsdatadirs = null;
 	int	i, ntsdatadirs = 0;
 
 	// Make sure we have a non-NULL identifier...
@@ -7587,8 +7547,7 @@ public static String findTSFile ( String tsid_string0, String tsdatapath0 )
 		" for ID \"" + tsid_string + "\"" );
 	}
 
-	tsdatadirs = StringUtil.breakStringList ( tsdatapath, "\t; ",
-			StringUtil.DELIM_SKIP_BLANKS );
+	tsdatadirs = StringUtil.breakStringList ( tsdatapath, "\t; ", StringUtil.DELIM_SKIP_BLANKS );
 	if ( tsdatadirs == null ) {
 		// Trouble, use the default...
 		Message.printWarning ( 10, routine,
@@ -7607,7 +7566,7 @@ public static String findTSFile ( String tsid_string0, String tsdatapath0 )
 			for ( i = 0; i < ntsdatadirs; i++ ) {
 				Message.printDebug ( 10, routine,
 				"tsdatadir[" + i + "] = \"" +
-				(String)tsdatadirs.elementAt(i) );
+				(String)tsdatadirs.get(i) );
 			}
 		}
 	}
@@ -7617,13 +7576,12 @@ public static String findTSFile ( String tsid_string0, String tsdatapath0 )
 	return findTSFile ( tsid_string, tsdatadirs );
 }
 
-// SAM REVISIT
-// Is this code even used for anything?
+// SAM TODO Is this code even used for anything?
 // Overload to take a string list...
-public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
+public static String findTSFile ( String tsid_string0, List tsdatadirs0 )
 {	String		routine = "TSUtil.findTSFile(String,Vector)",
 			scenario, string, tsid_string, tsfile;
-	Vector		tsdatadirs = null;
+	List tsdatadirs = null;
 	int		i, nfulltsdatadirs = 0;
 	int		ntsdatadirs = 0;
 
@@ -7644,26 +7602,24 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 	// Make sure that the path is non-NULL...
 
 	if ( tsdatadirs0 == null ) {
-		Message.printWarning ( 1, routine,
-		"Time series directory list is NULL.  Using \".\"" );
+		Message.printWarning ( 1, routine, "Time series directory list is NULL.  Using \".\"" );
 		tsdatadirs = new Vector ( 5, 5 );
 		tsdatadirs = StringUtil.addToStringList ( tsdatadirs, "." );
 	}
 	else {	ntsdatadirs = tsdatadirs0.size();
  		if ( ntsdatadirs < 1 ) {
-			Message.printWarning ( 1, routine,
-			"Time series directory list is empty.  Using \".\"" );
+			Message.printWarning ( 1, routine, "Time series directory list is empty.  Using \".\"" );
 			tsdatadirs = new Vector ( 5, 5 );
 			tsdatadirs = StringUtil.addToStringList(tsdatadirs,".");
 		}
-		else {	// Use what was passed in...
+		else {
+			// Use what was passed in...
 			tsdatadirs = tsdatadirs0;
 		}
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine,
-		"Trying to find time series for ID \"" + tsid_string + "\"" );
+		Message.printDebug ( 1, routine, "Trying to find time series for ID \"" + tsid_string + "\"" );
 	}
 
 	// Now we have a list of directories to search.  Initialize a TSIdent
@@ -7698,8 +7654,7 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 		}
 		// If we have gotten to here, then we could not get the file
 		// directly and we need to check the path...
-		Vector	fulltsdatadirs = IOUtil.getFilesFromPathList (
-			tsdatadirs, scenario );
+		List fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, scenario );
 		if ( fulltsdatadirs == null ) {
 			nfulltsdatadirs = 0;
 		}
@@ -7709,12 +7664,11 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 10, routine,
 				"Trying TS file from path:  \"" +
-				(String)fulltsdatadirs.elementAt(i) + "\"" );
+				(String)fulltsdatadirs.get(i) + "\"" );
 			}
-			if (	IOUtil.fileReadable((String)
-				fulltsdatadirs.elementAt(i)) ) {
+			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ) {
 				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.elementAt(i);
+				tsfile = (String)fulltsdatadirs.get(i);
 				return tsfile;
 			}
 		}
@@ -7725,8 +7679,7 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 
 	// First try the full time series identifier...
 
-	Vector	fulltsdatadirs = IOUtil.getFilesFromPathList (
-		tsdatadirs, tsid_string );
+	List fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, tsid_string );
 
 	if ( fulltsdatadirs == null ) {
 		nfulltsdatadirs = 0;
@@ -7736,12 +7689,11 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 	for ( i = 0; i < nfulltsdatadirs; i++ ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 10, routine,
-			"Trying TS file from path:  \"" +
-			(String)fulltsdatadirs.elementAt(i) + "\"" );
+			"Trying TS file from path:  \"" + (String)fulltsdatadirs.get(i) + "\"" );
 		}
-		if ( IOUtil.fileReadable((String)fulltsdatadirs.elementAt(i)) ){
+		if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ){
 			// Found a match, use it...
-			tsfile = (String)fulltsdatadirs.elementAt(i);
+			tsfile = (String)fulltsdatadirs.get(i);
 			return tsfile;
 		}
 	}
@@ -7753,8 +7705,7 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 		tsid_string = 
 		tsident.getLocation() + "." + tsident.getSource() + "." +
 		tsident.getType() + "." + tsident.getInterval();
-		fulltsdatadirs = IOUtil.getFilesFromPathList (
-		tsdatadirs, tsid_string );
+		fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, tsid_string );
 
 		if ( fulltsdatadirs == null ) {
 			nfulltsdatadirs = 0;
@@ -7765,12 +7716,11 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 10, routine,
 				"Trying TS file from path:  \"" +
-				(String)fulltsdatadirs.elementAt(i) + "\"" );
+				(String)fulltsdatadirs.get(i) + "\"" );
 			}
-			if (	IOUtil.fileReadable((String)
-				fulltsdatadirs.elementAt(i)) ) {
+			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ) {
 				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.elementAt(i);
+				tsfile = (String)fulltsdatadirs.get(i);
 				return tsfile;
 			}
 		}
@@ -7790,13 +7740,11 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 		for ( i = 0; i < nfulltsdatadirs; i++ ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 10, routine,
-				"Trying TS file from path:  \"" +
-				(String)fulltsdatadirs.elementAt(i) + "\"" );
+				"Trying TS file from path:  \"" + (String)fulltsdatadirs.get(i) + "\"" );
 			}
-			if ( IOUtil.fileReadable((String)
-				fulltsdatadirs.elementAt(i) ) ) {
+			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i) ) ) {
 				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.elementAt(i);
+				tsfile = (String)fulltsdatadirs.get(i);
 				return tsfile;
 			}
 		}
@@ -7813,15 +7761,14 @@ public static String findTSFile ( String tsid_string0, Vector tsdatadirs0 )
 	return null;
 }
 
-// SAM REVISIT - when is this ever used?
+// TODO SAM - when is this ever used?
 /**
 Returns the index of the time series within the vector of time series
 whose location or full id (depending upon the PropList) matches the
 key passed in the parameter list.  Matching just the location is the default.
 PropList values can be "MatchLocation=true" or "MatchFullID=true"
 */
-public static int findTSIndex ( Vector tsVector, String key, 
-	PropList prop_list )
+public static int findTSIndex ( List tsVector, String key, PropList prop_list )
 {
 	PropList props;
 	if ( prop_list == null ) {
@@ -7857,7 +7804,7 @@ public static int findTSIndex ( Vector tsVector, String key,
 
 	int size = tsVector.size();
 	for ( int i=0; i<size; i++ ) {
-		TS ts = (TS)tsVector.elementAt(i);
+		TS ts = (TS)tsVector.get(i);
 		if ( matchFullID ) {
 			if (ts.getIdentifierString().equalsIgnoreCase(token)) {
 				return i;
@@ -7914,16 +7861,14 @@ DateTime.parse().
 @see HourTS#formatOutput
 @see YearTS#formatOutput
 @see IrregularTS#formatOutput
-@exception RTi.TS.TSException Thrown if a lower-level routine throws an
-exception.
+@exception RTi.TS.TSException Thrown if a lower-level routine throws an exception.
 */
-public static Vector formatOutput ( Vector tslist, PropList proplist )
+public static List formatOutput ( List tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
 
-	return formatOutput (	(PrintWriter)null, (String)null, tslist,
-				proplist );
+	return formatOutput ( (PrintWriter)null, (String)null, tslist, proplist );
 }
 
 /**
@@ -7932,15 +7877,14 @@ Version to take a single time series.
 @param proplist Property list to control formatting.
 @exception TSException if there is a problem formatting output.
 */
-public static Vector formatOutput ( TS ts, PropList proplist )
+public static List formatOutput ( TS ts, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
 
-	Vector tslist = new Vector ();
-	tslist.addElement ( ts );
-	return formatOutput (	(PrintWriter)null, (String)null, tslist,
-				proplist );
+	List tslist = new Vector ();
+	tslist.add ( ts );
+	return formatOutput ( (PrintWriter)null, (String)null, tslist, proplist );
 }
 
 /**
@@ -7949,17 +7893,14 @@ Version to write output to a file.
 @param fname Name of file to receive output.  File is closed at output.
 @param tslist Vector of time series to process.
 @param proplist Properties to modify output.
-@exception RTi.TS.TSException Thrown if there is an exception in the low-level
-code.
+@exception RTi.TS.TSException Thrown if there is an exception in the low-level code.
 */
-public static Vector formatOutput ( String fname, Vector tslist,
-					PropList proplist )
+public static List formatOutput ( String fname, List tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
 
-	return formatOutput (	(PrintWriter)null, fname, tslist,
-				proplist );
+	return formatOutput ( (PrintWriter)null, fname, tslist, proplist );
 }
 
 /**
@@ -7968,17 +7909,14 @@ Version to write output to a Writer.
 @param fp PrintWrither to receive output.
 @param tslist Vector of time series to process.
 @param proplist Properties to modify output.
-@exception RTi.TS.TSException Thrown if there is an exception in the low-level
-code.
+@exception RTi.TS.TSException Thrown if there is an exception in the low-level code.
 */
-public static Vector formatOutput ( PrintWriter fp, Vector tslist,
-					PropList proplist )
+public static List formatOutput ( PrintWriter fp, List tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
 
-	return formatOutput (	fp, (String)null, tslist,
-				proplist );
+	return formatOutput ( fp, (String)null, tslist, proplist );
 }
 
 /**
@@ -7990,14 +7928,12 @@ generate the strings.  This should give a enough flexibility.
 @param fname File name to write.
 @param tslist List of time series to output.
 @param proplist Properties to format the output.
-@exception RTi.TS.TSException Thrown if there is an exception in the low-level
-routines.
+@exception RTi.TS.TSException Thrown if there is an exception in the low-level routines.
 */
-private static Vector formatOutput (	PrintWriter fp, String fname,
-					Vector tslist, PropList proplist )
+private static List formatOutput ( PrintWriter fp, String fname, List tslist, PropList proplist )
 throws TSException
 {	String	routine = "TSUtil.formatOutput(private)";
-	Vector	formatted_output = null;
+	List formatted_output = null;
 	int	dl = 20;
 	// Get the full path to the file...
 	String full_fname = null;
@@ -8027,13 +7963,12 @@ throws TSException
 	int	size = tslist.size();
 	TS	ts = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
-		try {	formatted_output = StringUtil.addListToStringList (
-			formatted_output,
-			ts.formatOutput(props) );
+		try {
+			formatted_output = StringUtil.addListToStringList ( formatted_output, ts.formatOutput(props) );
 		}
 		catch ( TSException e ) {
 			throw e;
@@ -8074,8 +8009,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.elementAt(i)
-				+ newline );
+				fp.print ( (String)formatted_output.get(i) + newline );
 			}
 		}
 		// If we opened the Writer here, close it...
@@ -8228,16 +8162,15 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 
 		IrregularTS its = (IrregularTS)ts;
 
-		Vector data_array = its.getData ();
+		List data_array = its.getData ();
 		if ( data_array == null ) {
-			Message.printWarning(2,routine,
-			"Null data for " + ts );
+			Message.printWarning(2,routine,	"Null data for " + ts );
 			return new TSLimits();
 		}
 		int size = data_array.size();
 		TSData ptr = null;
 		for ( int i = 0; i < size; i++ ) {
-			ptr = (TSData)data_array.elementAt(i);
+			ptr = (TSData)data_array.get(i);
 			date = ptr.getDate();
 			if ( date.lessThan( start ) ) {
 				// Still looking for data...
@@ -8295,7 +8228,7 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 		// Now search backward to find the first non-missing date...
 		if ( found ) {
 			for ( int i = (size - 1); i >= 0; i-- ){
-				ptr = (TSData)data_array.elementAt(i);
+				ptr = (TSData)data_array.get(i);
 				date = ptr.getDate();
 				value = ptr.getData();
 				if ( date.greaterThan(end) ) {
@@ -8436,17 +8369,14 @@ The dates in the limits will be for the data, not the dates that are passed in.
 first time series will be used.
 @param refresh_flag Indicates whether the time series should be refreshed first
 (in general this is used only within the TS package and the version of this
-routine without the flag should be called).  Specifying true will result in
-slower execution.
+routine without the flag should be called).  Specifying true will result in slower execution.
 @exception Exception If the data limits cannot be found.
 @see TSLimits
 */
-public static TSLimits getDataLimits (	Vector tslist, DateTime start,
-					DateTime end, String req_units,
-					boolean refresh_flag )
+public static TSLimits getDataLimits ( List tslist, DateTime start,
+					DateTime end, String req_units, boolean refresh_flag )
 throws Exception
-{	return getDataLimits (	tslist, start, end, req_units, refresh_flag,
-				false );
+{	return getDataLimits (	tslist, start, end, req_units, refresh_flag, false );
 }
 
 /**
@@ -8469,7 +8399,7 @@ for getting the overall data limits for graphs where units can be ignored.
 @exception Exception If the data limits cannot be found.
 @see TSLimits
 */
-public static TSLimits getDataLimits (	Vector tslist, DateTime start,
+public static TSLimits getDataLimits ( List tslist, DateTime start,
 					DateTime end,
 					String req_units, boolean refresh_flag,
 					boolean ignore_units )
@@ -8529,7 +8459,7 @@ throws Exception
 	if ( !ignore_units ) {
 		if ( (req_units == null) || req_units.equals("") ) {
 			for ( int i = 0; i < size; i++ ) {
-				ts = (TS)tslist.elementAt(i);
+				ts = (TS)tslist.get(i);
 				if ( ts == null ) {
 					continue;
 				}
@@ -8550,7 +8480,7 @@ throws Exception
 	DateTime tslimits_date;
 	double add = 0.0, tslimits_value = 0.0, mult = 1.0, value = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -8650,8 +8580,7 @@ The dates in the limits will be for the data, not the dates that are passed in.
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits (	Vector tslist, DateTime start,
-					DateTime end, String units )
+public static TSLimits getDataLimits ( List tslist, DateTime start, DateTime end, String units )
 throws Exception
 {	return getDataLimits ( tslist, start, end, units, false );
 }
@@ -8662,12 +8591,11 @@ Determine the overall data limits for a list of time series.
 @param tslist List of time series of interest.
 @param refresh_flag Indicates whether the time series should be refreshed first
 (in general this is used only within the TS package and the version of this
-routine without the flag should be called).  Specifying true will result in
-slower execution.
+routine without the flag should be called).  Specifying true will result in slower execution.
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( Vector tslist, boolean refresh_flag )
+public static TSLimits getDataLimits ( List tslist, boolean refresh_flag )
 throws Exception
 {	return getDataLimits ( tslist, null, null, null, refresh_flag );
 }
@@ -8679,7 +8607,7 @@ Determine the overall data limits for a list of time series.
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( Vector tslist )
+public static TSLimits getDataLimits ( List tslist )
 throws Exception
 {	return getDataLimits ( tslist, null, null, null, false );
 }
@@ -9049,10 +8977,9 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 		return null;
 	}
 
-	// The number of indicators will have been determined in the time
-	// series...
+	// The number of indicators will have been determined in the time series...
 
-	Vector indicators = pattern_ts.getUniqueData ();
+	List indicators = pattern_ts.getUniqueData ();
 
 	// Size the arrays in our statistics...
 
@@ -9068,7 +8995,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return null;
@@ -9076,16 +9003,13 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			data_value = tsdata.getData();
 			date = tsdata.getDate();
-			if (	(!ignore_lezero &&
-				!ts.isDataMissing(data_value)) ||
-				(ignore_lezero && ((data_value > 0.0) &&
-				!ts.isDataMissing(data_value))) ) {
+			if ( (!ignore_lezero && !ts.isDataMissing(data_value)) ||
+				(ignore_lezero && ((data_value > 0.0) && !ts.isDataMissing(data_value))) ) {
 				// Not missing, so add to stats...
-				indicator = pattern_ts.getDataValueAsString (
-					date );
+				indicator = pattern_ts.getDataValueAsString ( date );
 				stats.add(indicator,data_value,date.getMonth());
 			}
 		}
@@ -9225,7 +9149,7 @@ Exaple of POR calculation:
 @exception RTi.TS.TSException If the period cannot be determined from the
 limits (e.g., requesting minimum and there is no overlap).
 */
-public static TSLimits getPeriodFromLimits ( Vector limits, int por_flag )
+public static TSLimits getPeriodFromLimits ( List limits, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromLimits";
 	int	vectorSize;
@@ -9248,7 +9172,7 @@ throws TSException
 	// Initialize the start and end dates to the first
 	// TS dates...
 
-	TSLimits limits_pointer = (TSLimits)limits.elementAt(0);
+	TSLimits limits_pointer = (TSLimits)limits.get(0);
 	start	= limits_pointer.getDate1();
 	end	= limits_pointer.getDate2();
 
@@ -9257,7 +9181,7 @@ throws TSException
 	DateTime limits_start;
 	DateTime limits_end;
 	for( i = 1; i < vectorSize; i++ ) {
-		limits_pointer	= (TSLimits)limits.elementAt(i);
+		limits_pointer	= (TSLimits)limits.get(i);
 		if( limits_pointer == null ) {
 			// Ignore the TSLimits...
 			continue;
@@ -9365,12 +9289,12 @@ public static TSLimits getPeriodFromTS ( TS ts, int por_flag )
 throws TSException
 {	if ( ts == null ) {
 		// Let other routine handle...
-		return getPeriodFromTS ( (Vector)null, por_flag );
+		return getPeriodFromTS ( (List)null, por_flag );
 	}
 	else {
         // Put single TS into a vector...
-		Vector v = new Vector (1);
-		v.addElement ( ts );
+		List v = new Vector (1);
+		v.add ( ts );
 		return getPeriodFromTS ( v, por_flag );
 	}
 }
@@ -9382,24 +9306,24 @@ dependent.  This is a utility routine to
 overload the version that accepts a vector of time series.
 @return The TSLimits for all the time series (recomputed).
 @param ts The time series of interest.
-@param tslist A vector of time series of interest.
+@param tslist A list of time series of interest.
 @param por_flag Use a *_POR flag.
 @exception RTi.TS.TSException If the period cannot be determined from the time
 series (e.g., requesting minimum and there is no overlap).
 */
-public static TSLimits getPeriodFromTS ( TS ts, Vector tslist, int por_flag )
+public static TSLimits getPeriodFromTS ( TS ts, List tslist, int por_flag )
 throws TSException
 {	if ( (ts == null) || (tslist == null) ) {
 		// Let other routine handle...
-		return getPeriodFromTS ( (Vector)null, por_flag );
+		return getPeriodFromTS ( (List)null, por_flag );
 	}
 	else {
         // Put single TS and other TS into a vector...
-		Vector v = new Vector (1);
-		v.addElement ( ts );
+		List v = new Vector (1);
+		v.add ( ts );
 		int size = v.size();
 		for ( int i = 0; i < size; i++ ) {
-			v.addElement ( tslist.elementAt(i) );
+			v.add ( tslist.get(i) );
 		}
 		return getPeriodFromTS ( v, por_flag );
 	}
@@ -9423,7 +9347,7 @@ do not overlap, return the maximum.
 @exception RTi.TS.TSException If the period cannot be determined from the time
 series.
 */
-public static TSLimits getPeriodFromTS ( Vector ts, int por_flag )
+public static TSLimits getPeriodFromTS ( List ts, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromTS";
 	TS tsPtr = null;
@@ -9456,7 +9380,7 @@ throws TSException
 
     int nullcount = 0;
 	for ( int its = 0; its < vectorSize; its++ ) {
-		tsPtr = (TS)ts.elementAt(its);
+		tsPtr = (TS)ts.get(its);
 		if ( tsPtr != null ) {
             if ( tsPtr.getDate1() != null ) {
                 start = tsPtr.getDate1();
@@ -9487,7 +9411,7 @@ throws TSException
 	// Now loop through the remaining time series...
 
 	for( i = 1; i < vectorSize; i++ ) {
-		tsPtr = (TS)ts.elementAt(i);
+		tsPtr = (TS)ts.get(i);
 		if( tsPtr == null ) {
 			// Ignore the time series...
 			continue;
@@ -9540,41 +9464,6 @@ throws TSException
 	limits.setDate2 ( new DateTime(end) );
 	limits.setLimitsFound ( true );
 	return limits;
-}
-
-/**
-Break a time series into a vector of annual traces.  The description is
-altered to indicate the year of the trace (e.g., "1995 trace: ...") and the
-time series sequence number is set to the year for the start of the trace.
-@return A Vector of the trace time series or null if an error.
-@param ts Time series to break.  The time series is not changed.
-@param interval_string The length of each trace.  Specify as an interval string
-like "1Year".  The interval can be longer than one year.  If blank, "1Year" is
-used as the default.
-@param reference_date Date on which each time series trace is to start.
-If the reference_date is null, the default is Jan 1 for daily data, Jan for
-monthly data.  If specified, the precision of the reference date should match
-that of the time series being examined.
-@param shift_type If "NoShift", then the traces are not shifted.  If annual
-traces are requested.  The total list of time series when plotted should match
-the original time series.
-If "ShiftToReference", then the start of each time
-series is shifted to the reference date.  Consequently, when plotted, the time
-series traces will overlay.
-@param start_date First allowed date (use to constrain how many years of the
-time series are processed).
-@param end_date Last allowed date (use to constrain how many years of the time
-series are processed).
-@exception Exception if there is an error processing the time series
-@deprecated Use TSUtil_CreateTracesFromTimeSeries
-*/
-public static Vector getTracesFromTS (	TS ts, String interval_string,
-					DateTime reference_date,
-					String shift_type, DateTime start_date,
-					DateTime end_date )
-throws Exception
-{   TSUtil_CreateTracesFromTimeSeries u = new TSUtil_CreateTracesFromTimeSeries();
-    return u.getTracesFromTS ( ts, interval_string, reference_date, shift_type, start_date, end_date );
 }
 
 /**
@@ -9685,28 +9574,23 @@ case-insensitive query is made.  The sequence number is not used in the search.
 @param id String identifier to match.
 @param field Field to match (currently can only be "Alias" or "Location").
 @param direction If >= 0, search forward.  If < 0, search backward.
-@return the Vectorposition of the match or -1 if no match or the field is not
-recognized.
+@return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	Vector tslist, String id, String field,
-				int direction )
+public static int indexOf (	List tslist, String id, String field, int direction )
 {	return indexOf ( tslist, id, field, -1, direction );
 }
 
 /**
-Find a time series in a Vector.  The indicated field is searched and a
-case-insensitive query is made.
+Find a time series in a Vector.  The indicated field is searched and a case-insensitive query is made.
 @param tslist List of time series to search.
 @param id String identifier to match.
 @param field Field to match (currently can only be "Alias" or "Location").
 @param sequence_number If >= 0, the sequence number is also checked to make a
 match.  This is used for traces.
 @param direction If >= 0, search forward.  If < 0, search backward.
-@return the Vectorposition of the match or -1 if no match or the field is not
-recognized.
+@return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	Vector tslist, String id, String field,
-				int sequence_number, int direction )
+public static int indexOf (	List tslist, String id, String field, int sequence_number, int direction )
 {	if ( tslist == null ) {
 		return -1;
 	}
@@ -9725,7 +9609,7 @@ public static int indexOf (	Vector tslist, String id, String field,
 	if ( direction >= 0 ) {
 		// Search forward...
 		for ( int i = 0; i < size; i++ ) {
-			ts = (TS)tslist.elementAt(i);
+			ts = (TS)tslist.get(i);
 			if ( ts == null ) {
 				continue;
 			}
@@ -9757,7 +9641,7 @@ public static int indexOf (	Vector tslist, String id, String field,
 	}
 	else {	// Search backward...
 		for ( int i = (size - 1); i >= 0; i-- ) {
-			ts = (TS)tslist.elementAt(i);
+			ts = (TS)tslist.get(i);
 			if ( ts == null ) {
 				continue;
 			}
@@ -9852,7 +9736,7 @@ public static boolean isSmallerInterval ( TS ts, TS comparets )
 the first time series in the list, false if not.
 @param ts List of time series to check.
 */
-public static boolean intervalsMatch ( Vector ts )
+public static boolean intervalsMatch ( List ts )
 {	if ( ts == null ) {
 		return false;
 	}
@@ -9863,7 +9747,7 @@ public static boolean intervalsMatch ( Vector ts )
 	int size = ts.size();
 	TS tspt = null;
 	for ( int i = 0; i < size; i++ ) {
-		tspt = (TS)ts.elementAt(i);
+		tspt = (TS)ts.get(i);
 		if ( tspt != null ) {
 			break;
 		}
@@ -9884,8 +9768,7 @@ specified, false if not.
 @param interval_base Data interval base (e.g., TimeInterval.HOUR).
 @param interval_mult Data interval multiplier.
 */
-public static boolean intervalsMatch (	Vector ts, int interval_base,
-					int interval_mult )
+public static boolean intervalsMatch ( List ts, int interval_base, int interval_mult )
 {	TS	tspt = null;
 
 	if ( ts == null ) {
@@ -9893,13 +9776,12 @@ public static boolean intervalsMatch (	Vector ts, int interval_base,
 	}
 	int nseries = ts.size();
 	for ( int i = 0; i < nseries; i++ ) {
-		tspt = (TS)ts.elementAt ( i );
+		tspt = (TS)ts.get ( i );
 		if ( tspt == null ) {
-			Message.printWarning ( 2, "TSUtil.intervalsMatch",
-			"TS [" + i + "] is null" );
+			Message.printWarning ( 2, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
 			return false;
 		}
-		if (	(tspt.getDataIntervalBase() != interval_base) ||
+		if ( (tspt.getDataIntervalBase() != interval_base) ||
 			(tspt.getDataIntervalMult() != interval_mult) ) {
 			return false;
 		}
@@ -9931,8 +9813,8 @@ throws TSException
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	Vector v = new Vector ( 1, 1 );
-	v.addElement ( ts_to_check );
+	List v = new Vector ( 1, 1 );
+	v.add ( ts_to_check );
 	TS ts2 = max ( ts, v );
 	v = null;
 	return ts2;
@@ -9946,7 +9828,7 @@ series description and genesis information are updated to reflect the addition.
 @param ts_to_check List of time series to check against "ts".
 @exception RTi.TS.TSException if there is an error processing the time series.
 */
-public static TS max (	TS ts, Vector ts_to_check )
+public static TS max (	TS ts, List ts_to_check )
 throws TSException
 {	String	message, routine = "TSUtil.max(TS,Vector)";
 	int	dl = 20, nmissing = 0;
@@ -9974,8 +9856,7 @@ throws TSException
 	try {
 	if (	!intervalsMatch(ts_to_check, ts.getDataIntervalBase(),
 		ts.getDataIntervalMult()) ) {
-		message =
-		"All time series in the list are not of interval " +
+		message = "All time series in the list are not of interval " +
 		ts.getDataIntervalBase() + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
@@ -9998,7 +9879,7 @@ throws TSException
 	for ( int i = 0; i < ntslist; i++ ) {
 		nmissing	= 0;
 		set_count = 0;
-		tspt		= (TS)ts_to_check.elementAt(i);
+		tspt		= (TS)ts_to_check.get(i);
 		if ( tspt == null ) {
 			message =
 			"Trouble getting [" + i + "]-th time series in list";
@@ -10108,8 +9989,8 @@ throws TSException
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	Vector v = new Vector ( 1, 1 );
-	v.addElement ( ts_to_check );
+	List v = new Vector ( 1, 1 );
+	v.add ( ts_to_check );
 	TS ts2 = min ( ts, v );
 	v = null;
 	return ts2;
@@ -10123,7 +10004,7 @@ series description and genesis information are updated to reflect the processing
 @param ts_to_check List of time series to check against "ts".
 @exception RTi.TS.TSException if there is an error processing the time series.
 */
-public static TS min ( TS ts, Vector ts_to_check )
+public static TS min ( TS ts, List ts_to_check )
 throws TSException
 {	String	message, routine = "TSUtil.min(TS,Vector)";
 	int	dl = 20, nmissing = 0;
@@ -10175,16 +10056,15 @@ throws TSException
 	for ( int i = 0; i < ntslist; i++ ) {
 		nmissing	= 0;
 		set_count = 0;
-		tspt		= (TS)ts_to_check.elementAt(i);
+		tspt		= (TS)ts_to_check.get(i);
 		if ( tspt == null ) {
-			message =
-			"Trouble getting [" + i + "]-th time series in list";
+			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
 		// Get the units conversions to convert to the final TS...
-		try {	conversion = DataUnits.getConversion(
-					tspt.getDataUnits(), req_units );
+		try {
+			conversion = DataUnits.getConversion( tspt.getDataUnits(), req_units );
 			mult = conversion.getMultFactor();
 			add = conversion.getAddFactor();
 		}
@@ -10486,7 +10366,7 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -10495,7 +10375,7 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 		TSData tsdata = null;
 		date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -10723,7 +10603,7 @@ public static void replaceValue (	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -10732,7 +10612,7 @@ public static void replaceValue (	TS ts, DateTime start_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so
@@ -10882,7 +10762,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -10891,7 +10771,7 @@ throws Exception
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( (month >= 0) && (date.getMonth() != month) ) {
 				continue;
@@ -11016,13 +10896,11 @@ input type and name are checked.
 @param tsids a Vector of time series identifier strings.  The comparison is made
 by creating a TSIdent for each string and then calling
 TSIdent.matches(TSIdentstring-from-TS,true,true), therefore the alias and input
-name are checked for a match.  Each matching time series is
-returned in the list.
+name are checked for a match.  Each matching time series is returned in the list.
 @param PropList props Properties to control processing, not currently used.
 */
-public static Vector selectTimeSeries ( Vector tslist, Vector tsids,
-					PropList props )
-{	Vector v = new Vector();
+public static List selectTimeSeries ( List tslist, List tsids, PropList props )
+{	List v = new Vector();
 	int tsids_size = 0;
 	if ( tsids != null ) {
 		tsids_size = tsids.size();
@@ -11037,10 +10915,10 @@ public static Vector selectTimeSeries ( Vector tslist, Vector tsids,
 	boolean check_input = true;
 	for ( int i = 0; i < tsids_size; i++ ) {
 		Message.printStatus ( 2, "",
-		"Checking TSID \"" + (String)tsids.elementAt(i) + "\"" );
-		try {	tsident = new TSIdent ( (String)tsids.elementAt(i) );
-			if (	(tsident.getInputType().length() == 0) &&
-				(tsident.getInputName().length() == 0) ) {
+		"Checking TSID \"" + (String)tsids.get(i) + "\"" );
+		try {
+			tsident = new TSIdent ( (String)tsids.get(i) );
+			if ( (tsident.getInputType().length() == 0) && (tsident.getInputName().length() == 0) ) {
 				check_input = false;
 			}
 		}
@@ -11048,19 +10926,13 @@ public static Vector selectTimeSeries ( Vector tslist, Vector tsids,
 			// Ignore.  Just don't return a match.
 		}
 		for ( j = 0; j < tslist_size; j++ ) {
-			ts = (TS)tslist.elementAt(j);
-			if (	tsident.matches(
-				ts.getIdentifier().toString(true), true,
-				check_input) ){
-				v.addElement ( ts );
-				Message.printStatus ( 2, "",
-				"Match: \"" +
-				ts.getIdentifier().toString(true)+ "\"" );
+			ts = (TS)tslist.get(j);
+			if ( tsident.matches( ts.getIdentifier().toString(true), true, check_input) ){
+				v.add ( ts );
+				Message.printStatus ( 2, "", "Match: \"" + ts.getIdentifier().toString(true)+ "\"" );
 			}
 			else {
-				Message.printStatus ( 2, "",
-				"No match: \"" +
-				ts.getIdentifier().toString(true)+ "\"" );
+				Message.printStatus ( 2, "", "No match: \"" + ts.getIdentifier().toString(true)+ "\"" );
 			}
 		}
 	}
@@ -11105,7 +10977,7 @@ public static void setConstant (	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -11114,18 +10986,15 @@ public static void setConstant (	TS ts, DateTime start_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				tsdata.setData(value);
-				// Have to do this manually since TSData
-				// are being modified directly to
-				// improve performance...
+				// Have to do this manually since TSData are being modified directly to improve performance...
 				irrts.setDirty ( true );
 			}
 		}
@@ -11191,7 +11060,7 @@ public static void setConstantByMonth (	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -11200,11 +11069,10 @@ public static void setConstantByMonth (	TS ts, DateTime start_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -11824,26 +11692,26 @@ the original Vector is returned.  Otherwise, a new Vector instance is returned.
 The original TS data are included in the Vector (not copies of the original
 data).
 */
-public static Vector sort ( Vector tslist )
+public static List sort ( List tslist )
 {	if ( (tslist == null) || (tslist.size() == 0) ) {
 		return tslist;
 	}
 	// Since TS does not implement Comparable, sort the TSIdent strings...
 	int size = tslist.size();
-	Vector strings = new Vector(size);
+	List strings = new Vector(size);
 	TSIdent tsid;
 	for ( int i = 0; i < size; i++ ) {
-		if ( tslist.elementAt(i) == null ) {
-			strings.addElement ( "" );
+		if ( tslist.get(i) == null ) {
+			strings.add ( "" );
 			continue;
 		}
-		tsid = ((TS)tslist.elementAt(i)).getIdentifier();
+		tsid = ((TS)tslist.get(i)).getIdentifier();
 		if ( tsid == null ) {
-			strings.addElement ( "" );
+			strings.add ( "" );
 			continue;
 		}
 		// Use the full identifier...
-		strings.addElement ( tsid.toString( true ) );
+		strings.add ( tsid.toString( true ) );
 	}
 	int [] sort_order = new int[size];
 	// Get the sorted order...
@@ -11851,9 +11719,9 @@ public static Vector sort ( Vector tslist )
 					sort_order, true,// Use sort array
 					true );		// Ignore case.
 	// Now sort the time series...
-	Vector tslist_sorted = new Vector ( size );
+	List tslist_sorted = new Vector ( size );
 	for ( int i = 0; i < size; i++ ) {
-		tslist_sorted.addElement( tslist.elementAt ( sort_order[i] ) );
+		tslist_sorted.add( tslist.get ( sort_order[i] ) );
 	}
 	return tslist_sorted;
 }
@@ -11876,8 +11744,8 @@ public static TS subtract ( TS ts, TS ts_to_subtract )
 		return ts;
 	}
 	// Else, set up a vector and call the overload routine...
-	Vector v = new Vector ( 1, 1 );
-	v.addElement ( ts_to_subtract );
+	List v = new Vector ( 1, 1 );
+	v.add ( ts_to_subtract );
 	double [] factor = new double[1];
 	factor[0] = -1.0;
 	try {	return add ( ts, v, factor, IGNORE_MISSING );
@@ -11894,7 +11762,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts Time series to be subtracted from.
 @param ts_to_subtract List of time series to subtract from "ts".
 */
-public static TS subtract ( TS ts, Vector ts_to_subtract )
+public static TS subtract ( TS ts, List ts_to_subtract )
 throws Exception
 {	return subtract ( ts, ts_to_subtract, IGNORE_MISSING );
 }
@@ -11908,7 +11776,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_subtract List of time series to subtract from "ts".
 @param missing_flag See documentation for add().
 */
-public static TS subtract ( TS ts, Vector ts_to_subtract, int missing_flag )
+public static TS subtract ( TS ts, List ts_to_subtract, int missing_flag )
 throws Exception
 {	// Call the main overload routine...
 	if ( ts_to_subtract == null ) {
@@ -12014,7 +11882,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return null;
@@ -12023,7 +11891,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.elementAt(i);
+			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so
@@ -12109,10 +11977,10 @@ public static double[] toArrayByMonth ( TS ts,
 
 /** 
  * Returns the first editable Time Series in a vector
- * @param tslist A vector of TS (Time Series
+ * @param tslist A list of TS (Time Series
  * @return
  */
-public static TS getFirstEditableTS(Vector tslist)
+public static TS getFirstEditableTS(List tslist)
 {
   int size =0;
   if ( tslist != null )
@@ -12123,7 +11991,7 @@ public static TS getFirstEditableTS(Vector tslist)
 
   for ( int i = 0; i < size; i++ )
     {
-      ts = (TS)tslist.elementAt(i);
+      ts = (TS)tslist.get(i);
       if ( ts == null ) 
         {
           continue;

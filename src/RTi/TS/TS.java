@@ -253,6 +253,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
@@ -416,7 +417,7 @@ Comments that describe the data.  This can be anything from an original data
 source.  Sometimes the comments are created on the fly to generate a standard
 header (e.g., describe drainage area).
 */
-protected Vector _comments;
+protected List _comments;
 
 /**
 History of time series.  This is not the same as the comments but instead
@@ -424,7 +425,7 @@ chronicles how the time series is manipulated in memory.  For example the first
 genesis note may be about how the time series was read.  The second may
 indicate how it was filled.  Many TSUtil methods add to the genesis.
 */
-protected Vector _genesis;
+protected List _genesis;
 
 // TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
@@ -511,25 +512,24 @@ Add a String to the comments associated with the time series (e.g., station rema
 */
 public void addToComments( String comment )
 {	if ( comment != null ) {
-		_comments.addElement ( comment );
+		_comments.add ( comment );
 	}
 }
 
 /**
-Add Vector of String to the comments associated with the time series (e.g.,
-station remarks).
+Add Vector of String to the comments associated with the time series (e.g., station remarks).
 @param comments Comments strings to add.
 */
-public void addToComments( Vector comments )
+public void addToComments( List comments )
 {	if ( comments == null ) {
 		return;
 	}
 	String comment = null;
 	int size = comments.size();
 	for ( int i = 0; i < size; i++ ) {
-		comment = (String)comments.elementAt(i);
+		comment = (String)comments.get(i);
 		if ( comment != null ) {
-			_comments.addElement ( comment );
+			_comments.add ( comment );
 		}
 	}
 	comment = null;
@@ -543,7 +543,7 @@ should be added by methods that, for example, fill data and change the period.
 */
 public void addToGenesis ( String genesis )
 {	if ( genesis != null ) {
-		_genesis.addElement ( genesis );
+		_genesis.add ( genesis );
 	}
 }
 
@@ -678,23 +678,20 @@ public Object clone ()
 		int size = 0;
 		int i = 0;
 		if ( _comments != null ) {
-			ts._comments = (Vector)_comments.clone();
+			ts._comments = new Vector(_comments.size());
 			size = _comments.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._comments.setElementAt(
-					(String)_comments.elementAt(i),i);
+				ts._comments.set( i, new String((String)_comments.get(i)));
 			}
 		}
 		if ( _genesis != null ) {
-			ts._genesis = (Vector)_genesis.clone();
+			ts._genesis = new Vector(_genesis.size());
 			size = _genesis.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._genesis.setElementAt(
-					(String)_genesis.elementAt(i),i);
+				ts._genesis.set(i, new String((String)_genesis.get(i)));
 			}
 			ts.addToGenesis (
-			"Made a copy of time series (previous history " +
-			"information is for original)" );
+			"Made a copy of time series (previous history information is for original)" );
 		}
 		if ( _data_limits != null ) {
 			ts._data_limits = (TSLimits)_data_limits.clone();
@@ -910,12 +907,10 @@ public void copyHeader ( TS ts )
 
 	setDescription( ts.getDescription() );
 
-	_comments	= new Vector (2,1);
-	_comments = StringUtil.addListToStringList ( _comments,
-				ts.getComments() );
-	_genesis	= new Vector (2,1);
-	_genesis = StringUtil.addListToStringList ( _genesis,
-				ts.getGenesis() );
+	_comments = new Vector (2,1);
+	_comments = StringUtil.addListToStringList ( _comments, ts.getComments() );
+	_genesis = new Vector (2,1);
+	_genesis = StringUtil.addListToStringList ( _genesis, ts.getGenesis() );
 
 	setDataUnits( ts.getDataUnits() );
 	setDataUnitsOriginal( ts.getDataUnitsOriginal() );
@@ -1001,32 +996,32 @@ Format a standard time series header, for use with formatOutput.
 @return A Vector of strings containing the header.  Blank lines at the start
 and end of the header are not included.
 */
-public Vector formatHeader ()
-{	Vector header = new Vector ( 10, 5 );
+public List formatHeader ()
+{	List header = new Vector ( 10, 5 );
 
-	header.addElement ( "Time Series Identifier  = " +
+	header.add ( "Time Series Identifier  = " +
 		getIdentifier().toString() );
-	header.addElement ( "Description             = " + getDescription() );
-	header.addElement ( "Data source             = " +
+	header.add ( "Description             = " + getDescription() );
+	header.add ( "Data source             = " +
 		getIdentifier().getSource() );
-	header.addElement ( "Data type               = "
+	header.add ( "Data type               = "
 		+ getIdentifier().getType() );
-	header.addElement ( "Data interval           = "
+	header.add ( "Data interval           = "
 		+ getIdentifier().getInterval() );
-	header.addElement ( "Data units              = " + _data_units );
+	header.add ( "Data units              = " + _data_units );
 	if ( (_date1 != null) && (_date2 != null) ) {
-		header.addElement ( "Period                  = " +
+		header.add ( "Period                  = " +
 			_date1 + " to " + _date2 );
 		//StringUtil.formatString(_date1.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(_date1.getMonth(), "%02d") + " to " +
 		//StringUtil.formatString(_date2.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(_date2.getMonth(), "%02d") ) );
 	}
-	else {	header.addElement ( "Period                  = N/A" );
+	else {	header.add ( "Period                  = N/A" );
 	}
 	if (	(_date1_original != null) &&
 		(_date2_original != null)) {
-		header.addElement ( "Orig./Avail. period     = " +
+		header.add ( "Orig./Avail. period     = " +
 			_date1_original + " to " + _date2_original );
 		//StringUtil.formatString(
 		//_date1_original.getYear(), "%04d") + "-" +
@@ -1037,7 +1032,7 @@ public Vector formatHeader ()
 		//StringUtil.formatString(
 		//_date2_original.getMonth(), "%02d") ) );
 	}
-	else {	header.addElement ( "Orig./Avail. period     = N/A" );
+	else {	header.add ( "Orig./Avail. period     = N/A" );
 	}
 	return header;
 }
@@ -1292,14 +1287,12 @@ Format the time series into a general output format.  This method should be
 overridden in the derived class.  For example, all MonthTS should be have a
 general text report format.  The properties can be used to customize the
 output.  This method is meant as a general output format.  Specific formats
-should be implemented as classes with static readTimeSeries()/writeTimeSeries()
-methods.
+should be implemented as classes with static readTimeSeries()/writeTimeSeries() methods.
 @return Vector of strings containing formatted output.
 @param props Modifiers for output.
-@exception RTi.TS.TSException If low-level formatting code throws
-an exception.
+@exception RTi.TS.TSException If low-level formatting code throws an exception.
 */
-public Vector formatOutput ( PropList props )
+public List formatOutput ( PropList props )
 throws TSException
 {	Message.printWarning( 1, "TS.formatOutput",
 	"TS.formatOutput(PropList) is virtual, redefine in derived classes." );
@@ -1312,10 +1305,9 @@ This method should be overridden in the derived class.
 @return Formatted output in a Vector, or null.
 @param out PrintWriter to receive output.
 @param props Modifiers for output.
-@exception RTi.TS.TSException Thrown if low-level formatting code throws
-an exception.
+@exception RTi.TS.TSException Thrown if low-level formatting code throws an exception.
 */
-public Vector formatOutput ( PrintWriter out, PropList props )
+public List formatOutput ( PrintWriter out, PropList props )
 throws TSException
 {	Message.printWarning( 1, "TS.formatOutput", "TS.formatOutput(" +
 	"PrintWriter,PropList) is virtual, redefine in derived classes" );
@@ -1328,10 +1320,9 @@ overridden in the derived class.
 @return Vector containing formatted output, or null.
 @param out Name of the output file.
 @param props Modifiers for output.
-@exception RTi.TS.TSException Thrown if low-level formatting code throws
-an exception.
+@exception RTi.TS.TSException Thrown if low-level formatting code throws an exception.
 */
-public Vector formatOutput ( String out, PropList props )
+public List formatOutput ( String out, PropList props )
 throws TSException
 {	String	routine="TS.formatOutput(string,int,long)";
 	Message.printWarning( 1, routine, "TS.formatOutput(String,PropList)" +
@@ -1351,7 +1342,7 @@ public String getAlias( )
 Return the time series comments.
 @return The comments Vector.
 */
-public Vector getComments ()
+public List getComments ()
 {	return _comments;
 }
 
@@ -1583,7 +1574,7 @@ public String getExtendedLegend()
 Return the genesis information.
 @return The genesis comments.
 */
-public Vector getGenesis ()
+public List getGenesis ()
 {	return _genesis;
 }
 
@@ -1942,7 +1933,7 @@ public void setAlias ( String alias )
 Set the comments string vector.
 @param comments Comments to set.
 */
-public void setComments ( Vector comments )
+public void setComments ( List comments )
 {	if ( comments != null ) {
 		_comments = comments;
 	}
@@ -2165,7 +2156,7 @@ public void setExtendedLegend ( String extended_legend )
 Set the genesis information.  The original is lost.
 @param genesis Genesis comments.
 */
-public void setGenesis ( Vector genesis )
+public void setGenesis ( List genesis )
 {	setGenesis ( genesis, false );
 }
 
@@ -2174,7 +2165,7 @@ Set the genesis information.
 @param genesis Genesis comments.
 @param append Indicates whether genesis information should be appended.
 */
-public void setGenesis ( Vector genesis, boolean append )
+public void setGenesis ( List genesis, boolean append )
 {	if ( !append ) {
 		// Don't call removeAllElements() because the genesis may have
 		// been retrieved and then reset using the same Vector!

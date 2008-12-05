@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -30,7 +31,7 @@ supported.
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an
 irregular time series.
 */
-public TS computeErrorTimeSeries (  TS observed_ts, TS simulated_ts, String error_measure )
+public TS computeErrorTimeSeries ( TS observed_ts, TS simulated_ts, String error_measure )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getName() + ".computeErrorTimeSeries";
     String message;
@@ -61,7 +62,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     
     // Time series must have the same interval. Put in a list to get the period also.
 
-    Vector tslist = new Vector(2);
+    List tslist = new Vector(2);
     tslist.add ( observed_ts );
     tslist.add ( simulated_ts );
     if ( !TSUtil.intervalsMatch(tslist) ) {

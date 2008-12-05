@@ -26,6 +26,7 @@ package RTi.TS;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataType;
@@ -54,9 +55,9 @@ series, using the time series data types.  These values can be used when calling
 writeTimeSeriesList().  A blank PE code will be assigned if
 it is not found, which will cause the time series to not be written.
 */
-public static Vector getPEForTimeSeries ( Vector tslist )
+public static List getPEForTimeSeries ( List tslist )
 {	String routine = "ShefATS.getPEForTimeSeries";
-	Vector v = new Vector();
+	List v = new Vector();
 	int size = 0;
 	if ( tslist != null ) {
 		size = tslist.size();
@@ -64,21 +65,21 @@ public static Vector getPEForTimeSeries ( Vector tslist )
 	TS ts;
 	DataType datatype;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
-			v.addElement ( "" );
+			v.add ( "" );
 			continue;
 		}
 		try {
             datatype = DataType.lookupDataType ( ts.getDataType() );
-			v.addElement ( datatype.getSHEFpe() );
+			v.add ( datatype.getSHEFpe() );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine,
 			"Unable to look up data type for \"" +
 			ts.getIdentifierString() + "\" (" + ts.getDataType() +
 			").  Setting SHEF PE to blank." );
-			v.addElement ( "" );
+			v.add ( "" );
 			continue;
 		}
 	}
@@ -120,7 +121,7 @@ throws Exception
 		}
 	}
 	// Get time zones with the same characteristics...
-	Vector matching_tz = TZ.getMatchingDefinedTZ ( ts_tz, false );
+	List matching_tz = TZ.getMatchingDefinedTZ ( ts_tz, false );
 	int size = 0;
 	if ( matching_tz != null ) {
 		size = matching_tz.size();
@@ -130,7 +131,7 @@ throws Exception
 	// zone...
 	String tz_abbrev;
 	for ( int j = 0; j < size; j++ ) {
-		tz_abbrev = ((TZ)matching_tz.elementAt(j)).getAbbreviation();
+		tz_abbrev = ((TZ)matching_tz.get(j)).getAbbreviation();
 		for ( int i = 0; i < shef_tz.length; i++ ) {
 			if ( tz_abbrev.equalsIgnoreCase(shef_tz[i]) ) {
 				return shef_tz[i];
@@ -171,29 +172,28 @@ public static void writeTimeSeries (	TS ts, String fname,
 					PropList props )
 throws Exception
 {	// Call the fully-loaded method...
-	Vector v = new Vector(1);
-	v.addElement ( ts );
-	Vector PEList = null, UnitsList = null, DurationList = null,
+	List v = new Vector(1);
+	v.add ( ts );
+	List PEList = null, UnitsList = null, DurationList = null,
 		AltIDList = null;
 	if ( (PE != null) && !PE.equals("") ) {
 		PEList = new Vector ( 1 );
-		PEList.addElement ( PE );
+		PEList.add ( PE );
 	}
 	if ( (units != null) && !units.equals("") ) {
 		UnitsList = new Vector ( 1 );
-		UnitsList.addElement ( units );
+		UnitsList.add ( units );
 	}
 	if ( (alt_id != null) && !alt_id.equals("") ) {
 		AltIDList = new Vector ( 1 );
-		AltIDList.addElement ( alt_id );
+		AltIDList.add ( alt_id );
 	}
 	if ( (duration != null) && !duration.equals("") ) {
 		DurationList = new Vector ( 1 );
-		DurationList.addElement ( duration );
+		DurationList.add ( duration );
 	}
 
-	writeTimeSeriesList ( v, fname, date1, date2,
-		UnitsList, PEList, DurationList, AltIDList, props );
+	writeTimeSeriesList ( v, fname, date1, date2, UnitsList, PEList, DurationList, AltIDList, props );
 }
 
 /**
@@ -255,12 +255,12 @@ in the same hour as originally read).</TD>
 
 </table>
 */
-public static void writeTimeSeriesList (Vector tslist, PrintWriter out,
+public static void writeTimeSeriesList (List tslist, PrintWriter out,
 					DateTime date1, DateTime date2,
-					Vector unitsList,
-					Vector PE,
-					Vector DurList,
-					Vector AltID,
+					List unitsList,
+					List PE,
+					List DurList,
+					List AltID,
 					PropList props )
 throws Exception
 {	String message, routine = "ShefATS.writeTimeSeriesList";
@@ -367,7 +367,7 @@ throws Exception
 	out.println ( ":Count Location        Units PE      Duration AltID" );
 	out.println ( ":" );
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -376,16 +376,16 @@ throws Exception
 		dur = "";
 		altid = "";
 		if ( (unitsList != null) && (unitsList.size() == size) ) {
-			units = (String)unitsList.elementAt(i);
+			units = (String)unitsList.get(i);
 		}
 		if ( (PE != null) && (PE.size() == size) ) {
-			pe = (String)PE.elementAt(i);
+			pe = (String)PE.get(i);
 		}
 		if ( (DurList != null) && (DurList.size() == size) ) {
-			dur = (String)DurList.elementAt(i);
+			dur = (String)DurList.get(i);
 		}
 		if ( (AltID != null) && (AltID.size() == size) ) {
-			altid = (String)AltID.elementAt(i);
+			altid = (String)AltID.get(i);
 		}
 		out.println ( ": " +
 			StringUtil.formatString((i + 1),"%4d" ) + " " +
@@ -443,7 +443,7 @@ throws Exception
 	String creation_date=creation_date_prop;// Used to indicate when the
 						// data record was created.
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -496,13 +496,13 @@ throws Exception
 
 		SHEFID = ts.getLocation();
 		if ( alternativeIDDefined ) {
-			if ( ((String)AltID.elementAt(i)).length() > 0 ) {
-				SHEFID = (String)AltID.elementAt(i);
+			if ( ((String)AltID.get(i)).length() > 0 ) {
+				SHEFID = (String)AltID.get(i);
 			}
 		}
 
 		// get the PE code
- 		PhysicalElement = (String)PE.elementAt(i);
+ 		PhysicalElement = (String)PE.get(i);
 		if ( PhysicalElement.equals("") ) {
 			message = "No PE code specified for \"" + ts.getIdentifierString() + "\"... skipping SHEF .A write.";
 			out.println ( ": " + message );
@@ -532,7 +532,7 @@ throws Exception
 		// Set the scale if the TS is accumulated or a mean.  If so, SHEF must have a duration
 		scale = false;
 		if ( durationDefined ) {
-			scaleType = (String)DurList.elementAt( i );
+			scaleType = (String)DurList.get( i );
 
 			if (	scaleType.equalsIgnoreCase(MeasTimeScale.ACCM)||
 				scaleType.equalsIgnoreCase(MeasTimeScale.MEAN)){
@@ -579,7 +579,7 @@ throws Exception
 		mult = 1.0;
 		add = 0.0;				
 		if ( newUnitsDefined ) {
-			units = (String)unitsList.elementAt( i );
+			units = (String)unitsList.get( i );
 
 			if ( (units != null) && (units.length() != 0) && !units.equalsIgnoreCase(ts.getDataUnits()) ) {
 				try {
@@ -734,11 +734,11 @@ Handbook).  This information must be supplied.
 @param props See the overloaded method for a description.
 @exception IOException if there is an error writing the file.
 */
-public static void writeTimeSeriesList(	Vector tslist, String fname,
+public static void writeTimeSeriesList(	List tslist, String fname,
 					DateTime date1, DateTime date2,
-					Vector units,
-					Vector PEList, Vector DurList,
-					Vector AltIDList, PropList props )
+					List units,
+					List PEList, List DurList,
+					List AltIDList, PropList props )
 throws Exception
 {	String routine = "ShefATS.writeTimeSeriesList";
 

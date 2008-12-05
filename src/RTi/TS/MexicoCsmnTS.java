@@ -18,6 +18,7 @@ package RTi.TS;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -39,16 +40,15 @@ public class MexicoCsmnTS
 
 /**
 Vector of TS that are read from the catalog file.   Save the list here rather
-than in an application like TSTool because only one catalog file is read
-during a session.
+than in an application like TSTool because only one catalog file is read during a session.
 */
-private static Vector __catalog_Vector = null;
+private static List __catalog_Vector = null;
 
 /**
 Return the Vector of TS header read from the catalog file.
 @return the Vector of TS header read from the catalog file.
 */
-public static Vector getCatalogTSList ()
+public static List getCatalogTSList ()
 {	return __catalog_Vector;
 }
 
@@ -58,54 +58,54 @@ now, the samples are compiled into the code to make absolutely sure that the
 programmer knows what sample is supported.
 @return Sample file contents.
 */
-public static Vector getSample ()
-{	Vector	s = new Vector ( 50 );
-	s.addElement ( "#" );
-	s.addElement ("# The Mexico CSMN data use a catalog file for stations");
-	s.addElement (
+public static List getSample ()
+{	List s = new Vector ( 50 );
+	s.add ( "#" );
+	s.add ("# The Mexico CSMN data use a catalog file for stations");
+	s.add (
 	"# and time series files for each state/data type combination." );
-	s.addElement ( "#" );
-	s.addElement ("# The catalog file is as follows:" );
-	s.addElement ( "" );
-	s.addElement (
+	s.add ( "#" );
+	s.add ("# The catalog file is as follows:" );
+	s.add ( "" );
+	s.add (
 "===============================================================================================" );
-	s.addElement (
+	s.add (
 	" Station-         STN-NAME            DRAINAGE-BASIN    LAT- LAT- LAT- LON- LON- LON- ELEVATI" );
-	s.addElement (
+	s.add (
 	"    ID                                                  DEGR MINU SECO DEGR MINU SECO   ON" );
-	s.addElement (
+	s.add (
 	"                                                        EES  TES  NDS  EES  TES  NDS" );
-	s.addElement (
+	s.add (
 	"-----------------------------------------------------------------------------------------------" );
-	s.addElement (
+	s.add (
 	" 00001001 AGUASCALIENTES, AGS.     LERMA SANTIAGO       21   52   00   102  18   00   1,908.0" );
-	s.addElement (
+	s.add (
 	" 00001003 CALVILLO, CALVILLO       LERMA SANTIAGO       21   53   00   102  43   00   1,702.0" );
-	s.addElement (
+	s.add (
 	" 00001004 CAÑADA, HONDA, AGS.      LERMA SANTIAGO       22   00   00   102  11   00   1,185.0" );
-	s.addElement (
+	s.add (
 	" 00001005 EL NIAGARA, AGS.         LERMA SANTIAGO       21   48   00   102  22   00   1,805.0" );
-	s.addElement (
+	s.add (
 	" 00001006 EL TULE, ASIENTOS        LERMA SANTIAGO       22   05   00   102  06   00   1,970.0" );
-	s.addElement ( "..." );
-	s.addElement ( "" );
-	s.addElement ("# The time series file is as follows:" );
-	s.addElement ( "" );
-	s.addElement (
+	s.add ( "..." );
+	s.add ( "" );
+	s.add ("# The time series file is as follows:" );
+	s.add ( "" );
+	s.add (
 "	Station-ID,ELEMENT-CODE,YEAR-MONTH,VALUE-1,VALUE-2,VALUE-3,VALUE-4,VALUE-5,VALUE-6,VALUE-7,VALUE-8,VALUE-9,VALUE-10,VALUE-11,VALUE-12,VALUE-13,VALUE-14,VALUE-15,VALUE-16,VALUE-17,VALUE-18,VALUE-19,VALUE-20,VALUE-21,VALUE-22,VALUE-23,VALUE-24,VALUE-25,VALUE-26,VALUE-27,VALUE-28,VALUE-29,VALUE-30,VALUE-31" );
-	s.addElement (
+	s.add (
 	"00001001,005,1980-07,0,0,0,0,5.4,0,0,0,0,0,4.5,0,0,0,0,0,0,0,9,9.4,19,0,10,28,0.5,0,2.2,0.3,13,0.5,0" );
-	s.addElement (
+	s.add (
 	"00001001,005,1980-10,0,0,0,0,0,0,0,0,0,0,6.8,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0.2,0,9.5,12.5,16.3,8" );
-	s.addElement (
+	s.add (
 	"00001003,005,1932-01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" );
-	s.addElement (
+	s.add (
 	"00001003,005,1932-08,8.3,0,0,0,0,0,10.7,8.1,0,0,0,0,0,0,0,0,0,0,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999,-99999" );
-	s.addElement (
+	s.add (
 	"00001003,005,1932-10,0,5,9.5,0.3,0,0,0,0,1.8,0.5,0,0,0,5,0,0,0,0,0,0,0,0,27,0,0,0,0,0,0,0,0" );
-	s.addElement (
+	s.add (
 	"00001003,005,1932-11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-99999" );
-	s.addElement ( "..." );
+	s.add ( "..." );
 	return s;
 }
 
@@ -156,10 +156,10 @@ public static String getStateAbbreviations ()
 @return a Vector with the state abbreviations, sorted alphabetically.
 @param format Currently ignored.
 */
-public static Vector getStateAbbreviations ( int format )
-{	Vector v = new Vector(32);
+public static List getStateAbbreviations ( int format )
+{	List v = new Vector(32);
 	for ( int i = 0; i < 32; i++ ) {
-		v.addElement ( getStateAbbreviation ( (i + 1) ) );
+		v.add ( getStateAbbreviation ( (i + 1) ) );
 	}
 	return StringUtil.sortStringList ( v );
 }
@@ -171,9 +171,9 @@ which can be returned using getCatalogTSList().
 @param filename Name of file to read.
 @return Vector of DayTS for time series listed in the file.
 */
-public static Vector readCatalogFile ( String filename )
+public static List readCatalogFile ( String filename )
 {	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
-	Vector tslist = null;
+List tslist = null;
 	try {	BufferedReader in = new BufferedReader (
 			 new InputStreamReader(
 				IOUtil.getInputStream ( full_fname )) );
@@ -185,7 +185,7 @@ public static Vector readCatalogFile ( String filename )
 		int format_w[] = {	9,
 					26,
 					20 };
-		Vector tokens = new Vector(3);
+		List tokens = new Vector(3);
 		TS ts;
 		String line;
 		while ( true ) {
@@ -201,19 +201,19 @@ public static Vector readCatalogFile ( String filename )
 			// Create a new time series...
 			ts = new DayTS();
 			// Break the fixed-format lines of input...
-			tokens.removeAllElements();
+			tokens.clear();
 			StringUtil.fixedRead ( line, format, format_w, tokens);
 			// Set the data values.
 			ts.setInputName ( full_fname );
-			ts.setIdentifier ( ((String)tokens.elementAt(0)).trim(),
+			ts.setIdentifier ( ((String)tokens.get(0)).trim(),
 				"MexicoCSMN", "", "Day", "" );
-			ts.setDescription(((String)tokens.elementAt(1)).trim());
+			ts.setDescription(((String)tokens.get(1)).trim());
 			ts.setDataUnits("MM");
 			ts.getIdentifier().setInputType("MexicoCSMN");
 			ts.getIdentifier().setInputName(full_fname);
 			//Message.printStatus ( 1, "", "SAMX catalog TS \"" +
 				//ts.getIdentifierString() + "\"" );
-			tslist.addElement ( ts );
+			tslist.add ( ts );
 		}
 		in.close();
 		in = null;
@@ -380,7 +380,7 @@ throws Exception
 	// requested time series are first read into memory and are then parsed
 	// to determine the period and get data.
 
-	Vector input_lines = new Vector();
+	List input_lines = new Vector();
 	String line;
 	String location = req_ts.getLocation();
 	int linecount = 0;
@@ -391,7 +391,7 @@ throws Exception
 		}
 		++linecount;
 		if ( line.startsWith(location) ) {
-			input_lines.addElement ( line );
+			input_lines.add ( line );
 		}
 		else if ( (linecount > 1) && (input_lines.size() > 0) ) {
 			// Header has been read and all the grouped time series
@@ -411,14 +411,14 @@ throws Exception
 	// Now have the data lines.  Figure out the period and allocate
 	// memory...
 
-	line = (String)input_lines.elementAt(0);
-	Vector tokens = StringUtil.breakStringList(line,",",0);
-	date1_file = DateTime.parse ( (String)tokens.elementAt(2) );
+	line = (String)input_lines.get(0);
+	List tokens = StringUtil.breakStringList(line,",",0);
+	date1_file = DateTime.parse ( (String)tokens.get(2) );
 	date1_file.setPrecision ( DateTime.PRECISION_DAY );
 	date1_file.setDay ( 1 );
-	line = (String)input_lines.elementAt(input_lines.size() - 1);
+	line = (String)input_lines.get(input_lines.size() - 1);
 	tokens = StringUtil.breakStringList(line,",",0);
-	date2_file = DateTime.parse ( (String)tokens.elementAt(2) );
+	date2_file = DateTime.parse ( (String)tokens.get(2) );
 	date2_file.setPrecision ( DateTime.PRECISION_DAY );
 	date2_file.setDay ( TimeUtil.numDaysInMonth(date2_file.getMonth(),
 						date2_file.getYear()) );
@@ -445,7 +445,7 @@ throws Exception
 	// read previously.  If it was not (e.g., because running an existing
 	// TSTool commands file), assume that it needs to be read now...
 
-	Vector tslist = getCatalogTSList();
+	List tslist = getCatalogTSList();
 	if ( tslist == null ) {
 		// Read the catalog file, assuming that it is in the same
 		// directory as the time series file...
@@ -460,7 +460,7 @@ throws Exception
 	}
 	TS cts;
 	for ( int i = 0; i < size; i++ ) {
-		cts = (TS)tslist.elementAt(i);
+		cts = (TS)tslist.get(i);
 		if ( cts.getLocation().equalsIgnoreCase(location) ) {
 			ts.setDescription ( cts.getDescription() );
 			break;
@@ -485,7 +485,7 @@ throws Exception
 	int iday, ndays, ntokens;
 	try {
 	for ( int i = 0; i < size; i++ ) {
-		string = (String)input_lines.elementAt(i);
+		string = (String)input_lines.get(i);
 		if ( string == null ) {
 			continue;
 		}
@@ -504,7 +504,7 @@ throws Exception
 
 		// This will be to monthly precision...
 
-		idate = DateTime.parse((String)tokens.elementAt(2));
+		idate = DateTime.parse((String)tokens.get(2));
 		idate.setPrecision ( DateTime.PRECISION_DAY );
 		idate.setDay ( 1 );
 		// For now don't check to see if in the requested period - can
@@ -517,12 +517,12 @@ throws Exception
 		}
 		for ( iday = 1; iday <= ndays; iday++, idate.addDay(1) ) {
 			ts.setDataValue ( idate, StringUtil.atod(
-					(String)tokens.elementAt(iday + 2)) );
+					(String)tokens.get(iday + 2)) );
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
 				"Value found at " +
 				idate.toString() + ": " +
-				(String)tokens.elementAt(iday + 2) );
+				(String)tokens.get(iday + 2) );
 			}
 		}
 	}

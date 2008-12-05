@@ -135,7 +135,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
@@ -2169,8 +2169,7 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 	}
 	if (	(prop_value != null) && !prop_value.equals("*") &&
 		!prop_value.equals("") ) {
-		Vector tokens = StringUtil.breakStringList ( prop_value,
-		" ,\t", StringUtil.DELIM_SKIP_BLANKS );
+		List tokens = StringUtil.breakStringList ( prop_value, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
 		int size = 0;
 		if ( tokens != null ) {
 			size = tokens.size();
@@ -2185,10 +2184,8 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		}
 		int imon;
 		for ( int i = 0; i < size; i++ ) {
-			imon = StringUtil.atoi((String)tokens.elementAt(i) );
-			// SAMX
-			// what to do with list if not right?  Allow exception
-			// to be thrown
+			imon = StringUtil.atoi((String)tokens.get(i) );
+			// TODO SAM what to do with list if not right?  Allow exception to be thrown
 			//if ( (imon >= 1) && (imon <= 12) ) {
 				_analyze_month[imon - 1] = true;
 			//}

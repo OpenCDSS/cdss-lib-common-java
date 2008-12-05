@@ -26,7 +26,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -548,11 +548,11 @@ private void setupGUI()
 	JGUIUtil.addComponent(panel, interval_JLabel,
 		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dataInterval_JComboBox = new SimpleJComboBox(false);
-	Vector interval_Vector = TimeInterval.getTimeIntervalChoices(
+	List interval_Vector = TimeInterval.getTimeIntervalChoices(
 		TimeInterval.MINUTE, TimeInterval.YEAR, false, 1, true);
 	if ( (__tsident == null) || (__tsident.getInterval().length() == 0) ) {
 		// Add a blank at the beginning since nothing has been selected...
-		interval_Vector.insertElementAt ( "", 0 );
+		interval_Vector.add ( 0, "" );
 	}
 	__dataInterval_JComboBox.setData ( interval_Vector );
 	__dataInterval_JComboBox.addActionListener ( this );

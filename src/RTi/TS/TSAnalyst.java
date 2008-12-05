@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
@@ -106,7 +107,7 @@ private TS	_ts;		// Time series of interest.
 //private int	_query_field = QUERY_VALUE;
 				// Data field from TS to query (default is data
 				// value.
-protected Vector _data_coverage_report_Vector = null;
+protected List _data_coverage_report_Vector = null;
 protected DateTime _data_coverage_report_date1 = null;
 protected DateTime _data_coverage_report_date2 = null;
 protected PropList _data_coverage_report_props = null;
@@ -195,7 +196,7 @@ public void appendToDataCoverageSummaryReport ( MonthTS monthts )
 		}
 	}
 	// Now add the whole line...
-	_data_coverage_report_Vector.addElement (
+	_data_coverage_report_Vector.add (
 		StringUtil.formatString(monthts.getLocation(),"%-20.20s") +
 		delim +
 		StringUtil.formatString(monthts.getDescription(),"%-40.40s") +
@@ -1050,7 +1051,7 @@ Return the contents of the data coverage report as a Vector of String.
 @return the results of the data coverage report.  This returns the report
 contents (not a copy).
 */
-public Vector getDataCoverageReport ()
+public List getDataCoverageReport ()
 {	return _data_coverage_report_Vector;
 }
 
@@ -2286,15 +2287,15 @@ public static void runShell ( TS ts )
 		else if ( string.regionMatches(true,0,"summary",0, 7) ) {
 			PropList props = new PropList ( "summary" );
 			props.set ( "PrintAllStats=true" );
-			try {	Vector v = TSUtil.formatOutput ( ts, props );
+			try {
+				List v = TSUtil.formatOutput ( ts, props );
 				if ( v == null ) {
 					continue;
 				}
 				int size = v.size();
 				for ( i = 0; i < size; i++ ) {
-					Message.printStatus ( 2, routine,
-					(String)v.elementAt(i) );
-					out.println ( (String)v.elementAt(i) );
+					Message.printStatus ( 2, routine, (String)v.get(i) );
+					out.println ( (String)v.get(i) );
 				}
 			}
 			catch ( Exception e ) {
@@ -2384,23 +2385,23 @@ throws TSException
 	_data_coverage_report_date1 = new DateTime ( limits.getDate1() );
 	_data_coverage_report_date2 = new DateTime ( limits.getDate2() );
 	_data_coverage_report_Vector = new Vector ( 100, 100 );
-	_data_coverage_report_Vector.addElement ( "" );
-	_data_coverage_report_Vector.addElement ( "Data Coverage Report" );
-	_data_coverage_report_Vector.addElement ( "" );
-	_data_coverage_report_Vector.addElement (
+	_data_coverage_report_Vector.add ( "" );
+	_data_coverage_report_Vector.add ( "Data Coverage Report" );
+	_data_coverage_report_Vector.add ( "" );
+	_data_coverage_report_Vector.add (
 	"Years shown in the report are for calendar type:  " + year_type );
-	_data_coverage_report_Vector.addElement ( "Start:  " +
+	_data_coverage_report_Vector.add ( "Start:  " +
 		_data_coverage_report_date1.toString (DateTime.FORMAT_YYYY_MM));
-	_data_coverage_report_Vector.addElement ( "End:    " +
+	_data_coverage_report_Vector.add ( "End:    " +
 		_data_coverage_report_date2.toString (DateTime.FORMAT_YYYY_MM));
-	_data_coverage_report_Vector.addElement ( "" );
-	_data_coverage_report_Vector.addElement ( "## indicates 100% coverage");
-	_data_coverage_report_Vector.addElement("** indicates >= 75% coverage");
-	_data_coverage_report_Vector.addElement("++ indicates >= 50% coverage");
-	_data_coverage_report_Vector.addElement("-- indicates >= 25% coverage");
-	_data_coverage_report_Vector.addElement(".. indicates > 0% coverage");
-	_data_coverage_report_Vector.addElement ("spaces indicate 0% coverage");
-	_data_coverage_report_Vector.addElement ( "" );
+	_data_coverage_report_Vector.add ( "" );
+	_data_coverage_report_Vector.add ( "## indicates 100% coverage");
+	_data_coverage_report_Vector.add("** indicates >= 75% coverage");
+	_data_coverage_report_Vector.add("++ indicates >= 50% coverage");
+	_data_coverage_report_Vector.add("-- indicates >= 25% coverage");
+	_data_coverage_report_Vector.add(".. indicates > 0% coverage");
+	_data_coverage_report_Vector.add ("spaces indicate 0% coverage");
+	_data_coverage_report_Vector.add ( "" );
 
 	// Add a header...
 
@@ -2417,7 +2418,7 @@ throws TSException
 			date.getYear(),"%04d").substring(2) + delim );
 		}
 	}
-	_data_coverage_report_Vector.addElement (
+	_data_coverage_report_Vector.add (
 		StringUtil.formatString("Station","%-20.20s") +
 		delim +
 		StringUtil.formatString("Name","%-40.40s") +

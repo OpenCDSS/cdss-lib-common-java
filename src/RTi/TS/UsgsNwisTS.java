@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -139,36 +140,33 @@ now, the samples are compiled into the code to make absolutely sure that the
 programmer knows what sample is supported.
 @return Sample file contents.
 */
-public static Vector getSample ()
-{	Vector	s = new Vector ( 50 );
-	s.addElement ( "#" );
-	s.addElement ( "# U.S. Geological Survey" );
-	s.addElement ( "# National Water Information System" );
-	s.addElement ( "# Retrieved: 2002-01-28 13:35:25 EST" );
-	s.addElement ( "#" );
-	s.addElement (
-	"# This file contains published daily mean streamflow data." );
-	s.addElement ( "#" );
-	s.addElement ( "# This information includes the following fields:" );
-	s.addElement ( "#" );
-	s.addElement ( "#  agency_cd   Agency Code" );
-	s.addElement ( "#  site_no     USGS station number" );
-	s.addElement ( "#  dv_dt       date of daily mean streamflow" );
-	s.addElement (
-	"#  dv_va       daily mean streamflow value, in cubic-feet per-second");
-	s.addElement (
-	"#  dv_cd       daily mean streamflow value qualification code" );
-	s.addElement ( "#" );
-	s.addElement ( "# Sites in this file include:" );
-	s.addElement ( "#  USGS 03451500 FRENCH BROAD RIVER AT ASHEVILLE, NC" );
-	s.addElement ( "#" );
-	s.addElement ( "#" );
-	s.addElement ( "agency_cd	site_no	dv_dt	dv_va	dv_cd" );
-	s.addElement ( "5s	15s	10d	12n	3s" );
-	s.addElement ( "USGS	03451500	1895-10-01	740	" );
-	s.addElement ( "USGS	03451500	1895-10-02	740	" );
-	s.addElement ( "USGS	03451500	1895-10-03	740	" );
-	s.addElement ( "..." );
+public static List getSample ()
+{	List s = new Vector ( 50 );
+	s.add ( "#" );
+	s.add ( "# U.S. Geological Survey" );
+	s.add ( "# National Water Information System" );
+	s.add ( "# Retrieved: 2002-01-28 13:35:25 EST" );
+	s.add ( "#" );
+	s.add (	"# This file contains published daily mean streamflow data." );
+	s.add ( "#" );
+	s.add ( "# This information includes the following fields:" );
+	s.add ( "#" );
+	s.add ( "#  agency_cd   Agency Code" );
+	s.add ( "#  site_no     USGS station number" );
+	s.add ( "#  dv_dt       date of daily mean streamflow" );
+	s.add (	"#  dv_va       daily mean streamflow value, in cubic-feet per-second");
+	s.add (	"#  dv_cd       daily mean streamflow value qualification code" );
+	s.add ( "#" );
+	s.add ( "# Sites in this file include:" );
+	s.add ( "#  USGS 03451500 FRENCH BROAD RIVER AT ASHEVILLE, NC" );
+	s.add ( "#" );
+	s.add ( "#" );
+	s.add ( "agency_cd	site_no	dv_dt	dv_va	dv_cd" );
+	s.add ( "5s	15s	10d	12n	3s" );
+	s.add ( "USGS	03451500	1895-10-01	740	" );
+	s.add ( "USGS	03451500	1895-10-02	740	" );
+	s.add ( "USGS	03451500	1895-10-03	740	" );
+	s.add ( "..." );
 	return s;
 }
 
@@ -376,19 +374,19 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	Vector v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
+	List v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// Loop through and figure out the last date.  Start at the second
 	// record because it is likely that a complete record was not found...
 	int size = v.size();
 	String date2_string = null;
-	Vector	tokens = null;
+	List tokens = null;
 	for ( int i = 1; i < size; i++ ) {
-		string = ((String)v.elementAt(i)).trim();
+		string = ((String)v.get(i)).trim();
 		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
 			continue;
 		}
 		tokens = StringUtil.breakStringList( string, " \t", StringUtil.DELIM_SKIP_BLANKS );
-		date2_string = (String)tokens.elementAt(2);
+		date2_string = (String)tokens.get(2);
 	}
 	v = null;
 	bs = null;
@@ -430,7 +428,7 @@ throws Exception
 		// need to.  Will probably need to add more error handling later.
 			
 		if ( !header1_found ) {
-			token0 = (String)tokens.elementAt(0);
+			token0 = (String)tokens.get(0);
 			if ( token0.equalsIgnoreCase("agency_cd") ) {
        			// NWIS Header Format: Line 1
 				//
@@ -503,7 +501,7 @@ throws Exception
 			units = "CFS";
 			datatype = "Streamflow";
 			// Now set dates to read...
-			date1_file =DateTime.parse((String)tokens.elementAt(2));
+			date1_file =DateTime.parse((String)tokens.get(2));
 			if ( req_date1 != null ) {
 				date1 = req_date1;
 			}
@@ -521,7 +519,7 @@ throws Exception
 			data_interval_mult = 1;
 			ts = createTimeSeries ( req_ts,
 				data_interval_base, data_interval_mult,
-				(String)tokens.elementAt(0), (String)tokens.elementAt(1),
+				(String)tokens.get(0), (String)tokens.get(1),
 				datatype, description, units,
 				date1, date2, date1_file, date2_file );
 
@@ -560,7 +558,7 @@ throws Exception
 		// We always parse to make absolutely sure the data go into the
 		// correct place.  This is slower but safe (there are cases
 		// where there are gaps in the USGS files)...
-		idate = DateTime.parse ( (String)tokens.elementAt(2) );
+		idate = DateTime.parse ( (String)tokens.get(2) );
 		//Message.printStatus(2, routine, (String)tokens.elementAt(2) );
 		if ( (req_date1 == null) ||	idate.greaterThanOrEqualTo(date1)) {
 			// In the requested period so set the data...
@@ -576,11 +574,11 @@ throws Exception
 				// SAMX 2002-09-05 Disable quality flag until
 				// figure out how to handle consistently in
 				// TSTool.
-				ts.setDataValue ( idate, StringUtil.atod((String)tokens.elementAt(3)) );
+				ts.setDataValue ( idate, StringUtil.atod((String)tokens.get(3)) );
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
 					"Value found at " + idate.toString() + ": "+ StringUtil.atod((String)
-					tokens.elementAt(3)));
+					tokens.get(3)));
 				}
 			}
 			if ( (req_date2 == null) || idate.lessThan(date2) ) {

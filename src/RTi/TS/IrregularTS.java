@@ -83,6 +83,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
@@ -108,7 +109,7 @@ The DataFlavor for transferring this specific class.
 public static DataFlavor irregularTSFlavor = new DataFlavor(
 	RTi.TS.IrregularTS.class, "RTi.TS.IrregularTS");
 
-private	Vector __ts_data_head;	// Vector of data points.
+private	List __ts_data_head;	// list of data points.
 protected int	__data_index;	// Index used when traversing the data array.
 				// This is the element in _ts_data_head
 				// (zero-reference) that was last accessed.
@@ -131,7 +132,7 @@ public IrregularTS ( IrregularTS ts )
 	}
 	copyHeader ( ts );
 	// Get the data and loop through the vector...
-	Vector all_tsdata = ts.getData();
+	List all_tsdata = ts.getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
 		__data_index = ts.__data_index;
@@ -145,7 +146,7 @@ public IrregularTS ( IrregularTS ts )
 		// fouled up.
 		//__ts_data_head.addElement (
 		//	new TSData((TSData)tsdata.elementAt(i)) );
-		tsdata = (TSData)all_tsdata.elementAt(i);
+		tsdata = (TSData)all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
 			setDataValue ( tsdata.getDate(), tsdata.getData() );
@@ -222,7 +223,7 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 	TSData	ptr = null;
 	int	size = __ts_data_head.size();
 	for (	int i = 0; i < size; i++ ) {
-		ptr = (TSData)__ts_data_head.elementAt(i);
+		ptr = (TSData)__ts_data_head.get(i);
 		date = ptr.getDate();
 
 		if ( date.lessThan(start_date) ) {
@@ -250,7 +251,7 @@ public Object clone() {
 
 	ts.copyHeader ( this );
 	// Get the data and loop through the vector...
-	Vector all_tsdata = getData();
+	List all_tsdata = getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
 		ts.__data_index = __data_index;
@@ -259,7 +260,7 @@ public Object clone() {
 	int nalltsdata = all_tsdata.size();
 	TSData tsdata = null;
 	for ( int i = 0; i < nalltsdata; i++ ) {
-		tsdata = (TSData)all_tsdata.elementAt(i);
+		tsdata = (TSData)all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
 			ts.setDataValue ( tsdata.getDate(), tsdata.getData() );
@@ -531,12 +532,12 @@ information.  This can be used when the entire header is formatted elsewhere.
 @exception RTi.TS.TSException Throws if there is a problem formatting the
 output.
 */
-public Vector formatOutput( PropList proplist )
+public List formatOutput( PropList proplist )
 throws TSException
 {	String 		message = "",
 			routine = "Irregular.formatOutput";	
 	int		dl = 20;
-	Vector		strings = new Vector (20,10);
+	List		strings = new Vector (20,10);
 	PropList	props = null;
 	String		format = "", prop_value = null;
 	String		data_format = "%9.1f";
@@ -645,8 +646,8 @@ throws TSException
 		if ( print_header.equalsIgnoreCase("true") ) {
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
 				// Format the header...
-				strings.addElement ( "" );
-				Vector strings2 = formatHeader();
+				strings.add ( "" );
+				List strings2 = formatHeader();
 				StringUtil.addListToStringList ( strings,
 					strings2 );
 			}
@@ -664,24 +665,23 @@ throws TSException
 		}
 		if (	print_comments.equalsIgnoreCase("true") ||
 			use_comments_for_header.equalsIgnoreCase("true")){
-			strings.addElement ( "" );
+			strings.add ( "" );
 			if ( _comments != null ) {
 				int ncomments = _comments.size();
 				if ( !use_comments_for_header.equalsIgnoreCase(
 					"true")){
-					strings.addElement ( "Comments:" );
+					strings.add ( "Comments:" );
 				}
 				if ( ncomments > 0 ) {
 					for ( int i = 0; i < ncomments; i++ ) {
-						strings.addElement( (String)
-						_comments.elementAt(i));
+						strings.add( (String)_comments.get(i));
 					}
 				}
-				else {	strings.addElement(
-					"No comments available.");
+				else {
+					strings.add("No comments available.");
 				}
 			}
-			else {	strings.addElement( "No comments available.");
+			else {	strings.add( "No comments available.");
 			}
 		}
 		print_comments = null;
@@ -701,8 +701,8 @@ throws TSException
 			print_genesis.equalsIgnoreCase("true") ) {
 			int size = _genesis.size();
 			if ( size > 0 ) {
-				strings.addElement ( "" );
-				strings.addElement ( "Time series " +
+				strings.add ( "" );
+				strings.add ( "Time series " +
 				"creation history:" );
 				strings = StringUtil.addListToStringList(
 					strings, _genesis );
@@ -715,17 +715,17 @@ throws TSException
 		// Need to check the data type to determine if it is an average
 		// or a total.  For now, make some guesses based on the units...
 
-		strings.addElement ( "" );
+		strings.add ( "" );
 		
 		if ( __ts_data_head == null ) {
 			// No data for the time series...
-			strings.addElement ( "No data available." );
+			strings.add ( "No data available." );
 			return strings;
 		}
 
-		strings.addElement (
+		strings.add (
 "Date                          Value" );
-		strings.addElement (
+		strings.add (
 "--------------------------------------------" );
 
 		// Now loop through the time series and transfer to the proper
@@ -735,7 +735,7 @@ throws TSException
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)__ts_data_head.elementAt(i);
+			tsdata = (TSData)__ts_data_head.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end_date) ) {
 				// Past the end of where we want to go so
@@ -747,7 +747,7 @@ throws TSException
 				// Format the date according to the active
 				// date precision but allow room for full
 				// date, to line up with headers...
-				strings.addElement (
+				strings.add (
 				StringUtil.formatString(date.toString(),
 				"%-26.26s") + "  " +
 				StringUtil.formatString(data_value,
@@ -757,7 +757,7 @@ throws TSException
 		tsdata = null;
 		date = null;
 
-		strings.addElement (
+		strings.add (
 "--------------------------------------------" );
 		// Now need to do the statistics.  Loop through each column...
 		// First check to see if all stats should be printed (can be
@@ -790,9 +790,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( PrintWriter fp, PropList props )
+public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	Vector	formatted_output = null;
+{	List	formatted_output = null;
 	String	routine = "MonthTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String	message;
@@ -818,8 +818,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.elementAt(i)
-				+ newline );
+				fp.print ( (String)formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -843,11 +842,11 @@ Format the time series for output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( String fname, PropList props )
+public List formatOutput ( String fname, PropList props )
 throws TSException
 {	String		message = null,
 			routine = "MonthTS.formatOutput(char*,int,long)";
-	Vector		formatted_output = null;
+	List formatted_output = null;
 	PrintWriter	stream = null;
 
 	// First open the output file...
@@ -892,7 +891,7 @@ public void freeDataSpace(  )
 Return the data array Vector.
 @return The reference to the data array.  Use caution when manipulating.
 */
-public Vector getData()
+public List getData()
 {	return __ts_data_head;
 }
 
@@ -964,7 +963,7 @@ public TSData getDataPoint ( DateTime date )
 	if( 	Math.abs( date_double - date1_double ) < 
 		Math.abs( date_double - date2_double ) ){
 		for( 	i=0; i < size; i++ ){
-			ptr = (TSData)__ts_data_head.elementAt(i); 
+			ptr = (TSData)__ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -972,7 +971,7 @@ public TSData getDataPoint ( DateTime date )
 		}
 	}
 	else {	for(	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.elementAt(i); 
+			ptr = (TSData)__ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1094,7 +1093,7 @@ public double getDataValue( DateTime date )
 	if( 	Math.abs( date_double - date1_double ) < 
 		Math.abs( date_double - date2_double ) ){
 		for( 	i=0; i < size; i++ ){
-			ptr = (TSData)__ts_data_head.elementAt(i); 
+			ptr = (TSData)__ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1102,7 +1101,7 @@ public double getDataValue( DateTime date )
 		}
 	}
 	else {	for(	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.elementAt(i); 
+			ptr = (TSData)__ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1146,7 +1145,7 @@ public DateTime getDate1()
 {	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
 		return super.getDate1();
 	}
-	else {	return ((TSData)__ts_data_head.elementAt(0)).getDate();
+	else {	return ((TSData)__ts_data_head.get(0)).getDate();
 	}
 }
 
@@ -1159,7 +1158,7 @@ public DateTime getDate2()
 {	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
 		return super.getDate2();
 	}
-	else {	return ((TSData)__ts_data_head.elementAt(
+	else {	return ((TSData)__ts_data_head.get(
 			__ts_data_head.size() - 1)).getDate();
 	}
 }
@@ -1197,7 +1196,7 @@ public TSData getNextElement()
 
 	// Now return the next data value as a copy...
 
-	tsdata = (TSData)__ts_data_head.elementAt( __data_index + 1 );
+	tsdata = (TSData)__ts_data_head.get( __data_index + 1 );
 
 	return( (TSData)tsdata.clone() );
 }
@@ -1382,7 +1381,7 @@ instantaneous depending on data type).
 */
 public void setDataValue (	DateTime date, double value, String data_flag,
 				int duration )
-{	// Do not define routine here to increase peformance.
+{	// Do not define routine here to increase performance.
 	boolean	found;
 	int	i;
 	TSData	ptr=null, tsdata=null;
@@ -1398,7 +1397,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 
 		__ts_data_head = new Vector();
 
-		__ts_data_head.addElement( tsdata );
+		__ts_data_head.add( tsdata );
 
 		_date1 = new DateTime( tsdata.getDate() );
 		_date2 = new DateTime( tsdata.getDate() );
@@ -1449,7 +1448,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		//}
 	
 		for( i=0; i< size; i++ ){
-			ptr = (TSData)__ts_data_head.elementAt(i); 
+			ptr = (TSData)__ts_data_head.get(i); 
 			
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50,
@@ -1494,7 +1493,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		//}
 
 		for( 	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.elementAt(i);
+			ptr = (TSData)__ts_data_head.get(i);
 
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50,
@@ -1564,25 +1563,24 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 	// If we have determined the insert position from above, then do it!...
 
 	if ( insert_position >= 0 ) {
-		__ts_data_head.insertElementAt ( tsdata, insert_position );
+		__ts_data_head.add ( insert_position, tsdata );
 		// Set the next/previous pointers (note this is done after
 		// the insert so compute positions accordingly...
 		if ( insert_position == 0 ) {
-			ptr = (TSData)__ts_data_head.elementAt(1);
+			ptr = (TSData)__ts_data_head.get(1);
 			tsdata.setNext ( ptr );
 			ptr.setPrevious ( tsdata );
 		}
 		else if ( insert_position == (__ts_data_head.size() - 1) ) {
 			ptr = (TSData)
-			__ts_data_head.elementAt(insert_position - 1);
+			__ts_data_head.get(insert_position - 1);
 			tsdata.setPrevious ( ptr );
 			ptr.setNext ( tsdata );
 		}
-		else {	ptr=(TSData)__ts_data_head.elementAt(insert_position-1);
+		else {	ptr=(TSData)__ts_data_head.get(insert_position-1);
 			tsdata.setPrevious ( ptr );
 			ptr.setNext ( tsdata );
-			ptr = (TSData)__ts_data_head.elementAt(
-				insert_position + 1);
+			ptr = (TSData)__ts_data_head.get(insert_position + 1);
 			tsdata.setNext ( ptr );
 			ptr.setPrevious ( tsdata );
 		}

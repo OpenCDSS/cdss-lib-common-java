@@ -108,6 +108,7 @@ import java.lang.String;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
@@ -844,7 +845,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 @exception RTi.TS.TSException Throws if there is a problem formatting the
 output.
 */
-public Vector formatOutput( PropList proplist )
+public List formatOutput( PropList proplist )
 throws TSException
 {	String message = null, routine = "MonthTS.formatOutput";
 	if ( _data_interval_mult != 1 ) {
@@ -853,7 +854,7 @@ throws TSException
 		throw new TSException ( message );
 	}
 	int		column, dl = 20, row;
-	Vector		strings = new Vector (20,10);
+	List		strings = new Vector (20,10);
 	PropList	props = null;
 	String		calendar = "WaterYear", 
 			format = "", prop_value = null, year_column = "";
@@ -1002,10 +1003,9 @@ throws TSException
 		if ( print_header.equalsIgnoreCase("true") ) {
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
 				// Format the header...
-				strings.addElement ( "" );
-				Vector strings2 = formatHeader();
-				StringUtil.addListToStringList ( strings,
-					strings2 );
+				strings.add ( "" );
+				List strings2 = formatHeader();
+				StringUtil.addListToStringList ( strings, strings2 );
 			}
 		}
 		print_header = null;
@@ -1022,24 +1022,22 @@ throws TSException
 		}
 		if ( print_comments.equalsIgnoreCase("true") ||
 			use_comments_for_header.equalsIgnoreCase("true")){
-			strings.addElement ( "" );
+			strings.add ( "" );
 			if ( _comments != null ) {
 				int ncomments = _comments.size();
-				if ( !use_comments_for_header.equalsIgnoreCase(
-					"true")){
-					strings.addElement ( "Comments:" );
+				if ( !use_comments_for_header.equalsIgnoreCase( "true")){
+					strings.add ( "Comments:" );
 				}
 				if ( ncomments > 0 ) {
 					for ( int i = 0; i < ncomments; i++ ) {
-						strings.addElement(
-						(String)_comments.elementAt(i));
+						strings.add( (String)_comments.get(i));
 					}
 				}
-				else {	strings.addElement(
-					"No comments available.");
+				else {
+					strings.add( "No comments available.");
 				}
 			}
-			else {	strings.addElement( "No comments available.");
+			else {	strings.add( "No comments available.");
 			}
 		}
 		print_comments = null;
@@ -1059,11 +1057,9 @@ throws TSException
 			print_genesis.equalsIgnoreCase("true") ) {
 			int size = _genesis.size();
 			if ( size > 0 ) {
-				strings.addElement ( "" );
-				strings.addElement ( "Time series " +
-				"creation history:" );
-				strings = StringUtil.addListToStringList(
-					strings, _genesis );
+				strings.add ( "" );
+				strings.add ( "Time series creation history:" );
+				strings = StringUtil.addListToStringList( strings, _genesis );
 			}
 		}
 		print_genesis = null;
@@ -1073,7 +1069,7 @@ throws TSException
 		// Need to check the data type to determine if it is an average
 		// or a total.  For now, make some guesses based on the units...
 
-		strings.addElement ( "" );
+		strings.add ( "" );
 		
 		if (	_id.getType().equalsIgnoreCase("ResEOM") ) {
 			// Special cases hard-coded in the short term.
@@ -1095,22 +1091,22 @@ throws TSException
 
 		if ( calendar.equalsIgnoreCase("WaterYear") ) {
 			// Water year...
-			strings.addElement (
+			strings.add (
 "Year    Oct       Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep     " + year_column );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
 		else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
 			// Irrigation year...
-			strings.addElement (
+			strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
 		else {	// Calendar year...
-			strings.addElement (
+			strings.add (
 "Year    Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       Oct       Nov       Dec     " + year_column );
-			strings.addElement (
+			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
 
@@ -1261,14 +1257,14 @@ throws TSException
 					}
 				}
 				// Add the row...
-				strings.addElement(buffer.toString() );
+				strings.add(buffer.toString() );
 				column = -1;	// Incremented at end of loop.
 				year_total = getMissing();
 				++row;
 			}
 			++column;
 		}
-		strings.addElement (
+		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		// Now need to do the statistics.  Loop through each column...
 		// First check to see if all stats should be printed (can be
@@ -1292,9 +1288,7 @@ throws TSException
 		}
 		if (	print_min.equalsIgnoreCase("true") ||
 			print_all_stats.equalsIgnoreCase("true") ) {
-			strings = StringUtil.addListToStringList (strings,
-				formatOutputStats(data,num_years,"Min ",
-				data_format) );
+			strings = StringUtil.addListToStringList (strings, formatOutputStats(data,num_years,"Min ", data_format) );
 		}
 		print_min = null;
 		prop_value = props.getValue ( "PrintMaxStats" );
@@ -1307,9 +1301,7 @@ throws TSException
 		}
 		if (	print_max.equalsIgnoreCase("true") ||
 			print_all_stats.equalsIgnoreCase("true") ) {
-			strings = StringUtil.addListToStringList (strings,
-				formatOutputStats(data,num_years,"Max ",
-				data_format) );
+			strings = StringUtil.addListToStringList (strings, formatOutputStats(data,num_years,"Max ", data_format) );
 		}
 		print_max = null;
 		prop_value = props.getValue ( "PrintMeanStats" );
@@ -1340,26 +1332,26 @@ throws TSException
 		else {	print_notes = prop_value;
 		}
 		if ( print_notes.equalsIgnoreCase("true") ) {
-			strings.addElement ( "" );
-			strings.addElement ( "Notes:" );
+			strings.add ( "" );
+			strings.add ( "Notes:" );
 			if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
-				strings.addElement (
+				strings.add (
 				"  Years shown are water years." );
-				strings.addElement (
+				strings.add (
 				"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 			}
 			else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
-				strings.addElement (
+				strings.add (
 				"  Years shown are irrigation years." );
-				strings.addElement (
+				strings.add (
 				"  An irrigation year spans Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
 			}
-			else {	strings.addElement (
+			else {	strings.add (
 				"  Years shown are calendar years." );
 			}
-			strings.addElement (
+			strings.add (
 			"  Annual values and statistics are computed only on non-missing data." );
-			strings.addElement (
+			strings.add (
 			"  NC indicates that a value is not computed because of missing data or the data value itself is missing." );
 		}
 		print_notes = null;
@@ -1393,9 +1385,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( PrintWriter fp, PropList props )
+public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	Vector	formatted_output = null;
+{	List	formatted_output = null;
 	String	routine = "MonthTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String	message;
@@ -1421,8 +1413,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.elementAt(i)
-				+ newline );
+				fp.print ( (String)formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -1446,11 +1437,11 @@ Format the time series for output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public Vector formatOutput ( String fname, PropList props )
+public List formatOutput ( String fname, PropList props )
 throws TSException
 {	String		message = null,
 			routine = "MonthTS.formatOutput(char*,int,long)";
-	Vector		formatted_output = null;
+	List formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1468,7 +1459,8 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	try {	formatted_output = formatOutput ( stream, props );
+	try {
+		formatted_output = formatOutput ( stream, props );
 		stream.close();
 		stream = null;
 	}
@@ -1488,9 +1480,8 @@ throws TSException
 Format the output statistics row given the data array.  May use the TSUtil
 version in the future.
 */
-private Vector formatOutputStats (	double[][] data, int num_years,
-					String label, String data_format )
-{	Vector		strings = new Vector (20,10);
+private List formatOutputStats ( double[][] data, int num_years, String label, String data_format )
+{	List		strings = new Vector (20,10);
 	double		stat;
 	StringBuffer	buffer = null;
 	double[]	array = new double[num_years];
@@ -1539,8 +1530,8 @@ private Vector formatOutputStats (	double[][] data, int num_years,
 		else {	buffer.append ( "     NC   " );
 		}
 	}
-	strings.addElement( buffer.toString() );
-	strings.addElement (
+	strings.add( buffer.toString() );
+	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 
 	buffer = null;

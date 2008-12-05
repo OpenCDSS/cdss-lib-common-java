@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -82,7 +83,7 @@ series are processed).
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an
 irregular time series.
 */
-public Vector getTracesFromTS (  TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
+public List getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
                     String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getName() + ".getTracesFromTS";
@@ -141,7 +142,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     // Allocate the Vector for traces...
 
-    Vector tslist = new Vector ();
+    List tslist = new Vector ();
     
     // Allocate start dates for the input and output time series by copying the reference date.
     // The precision and position within the year will therefore be correct.  Set the year below
@@ -209,7 +210,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             }
         }
         // Add the trace to the list of time series...
-        tslist.addElement ( tracets );
+        tslist.add ( tracets );
     }
     return tslist;
 }

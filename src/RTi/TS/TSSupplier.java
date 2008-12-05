@@ -14,7 +14,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Time.DateTime;
 
@@ -96,10 +96,10 @@ be read.
 empty string the units will not be converted.
 @param read_data if true, the data will be read.  If false, only the time series
 header will be read.
-@return Vector of time series of appropriate type (e.g., MonthTS, HourTS).
+@return List of time series of appropriate type (e.g., MonthTS, HourTS).
 @exception Exception if an error occurs during the read.
 */
-public abstract Vector readTimeSeriesList (	String fname,
+public abstract List readTimeSeriesList ( String fname,
 						DateTime date1, DateTime date2,
 						String req_units,
 						boolean read_data )
@@ -124,13 +124,13 @@ be read.
 empty string the units will not be converted.
 @param read_data if true, the data will be read.  If false, only the time series
 header will be read.
-@return Vector of time series of appropriate type (e.g., MonthTS, HourTS).
+@return List of time series of appropriate type (e.g., MonthTS, HourTS).
 @exception Exception if an error occurs during the read.
 */
-public abstract Vector readTimeSeriesList (	TSIdent tsident, String fname,
+public abstract List readTimeSeriesList ( TSIdent tsident, String fname,
 						DateTime date1, DateTime date2,
 						String req_units,
 						boolean read_data )
 throws Exception;
 
-} // End TSSupplier
+}

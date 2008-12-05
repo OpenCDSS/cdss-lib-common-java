@@ -12,7 +12,7 @@
 
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 This interface is for classes that want to be notified when time series
@@ -24,7 +24,7 @@ public interface TS_ListSelector_Listener {
 Called when time series are selected from a TS_ListSelector_JFrame.
 @param sender the instance of TS_ListSelector_JFrame that is sending the 
 notification.
-@param tsVector the Vector of time series that were selected.  The Vector
+@param tsList the list of time series that were selected.  The list
 will never be null, though it could be empty.
 @param action the action performed by the button the user pushed which caused
 this listener to be notified.  Possible values are:<p>
@@ -37,7 +37,6 @@ instantiated with a different value for the NotifyButtonLabel property.</li>
 <li>Table -- when a time series is to be displayed in a tabular format.</li>
 </ul>
 */
-public void timeSeriesSelected(TS_ListSelector_JFrame sender, Vector tsVector,
-String action);
+public void timeSeriesSelected(TS_ListSelector_JFrame sender, List tsList, String action);
 
 }

@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -75,13 +76,13 @@ throws Exception
 	String timestep2 = StringUtil.unpad(timestep, " ", StringUtil.PAD_FRONT_MIDDLE_BACK );
 	String location = "";
 	String datatype = "";
-	Vector tokens = StringUtil.breakStringList ( filename, ".", 0 );
+	List tokens = StringUtil.breakStringList ( filename, ".", 0 );
 	if ( (tokens != null) && (tokens.size() == 2) ) {
-		location = ((String)tokens.elementAt(0)).trim();
+		location = ((String)tokens.get(0)).trim();
 		// Only want the relative part...
 		File f = new File ( location );
 		location = f.getName();
-		datatype = ((String)tokens.elementAt(1)).trim();
+		datatype = ((String)tokens.get(1)).trim();
 	}
 	TSIdent ident = new TSIdent ( location, "", datatype, timestep2, "");
 
@@ -141,25 +142,25 @@ now, the samples are compiled into the code to make absolutely sure that the
 programmer knows what sample is supported.
 @return Sample file contents.
 */
-public static Vector getSample ()
-{	Vector	s = new Vector ( 50 );
-	s.addElement ( "#" );
-	s.addElement ( "# RiverWare time series format" );
-	s.addElement ( "#" );
-	s.addElement ( "# Comments are only allowed at the top of the file." );
-	s.addElement ( "# UNITS are AFTER the scale is applied." );
-	s.addElement ( "# SCALE*data = values for specified units." );
-	s.addElement ( "# SET_UNITS and SET_SCALE are used by RiverWare during read." );
-	s.addElement ( "START_DATE: 1996-11-14 24:00" );
-	s.addElement ( "END_DATE: 1996-12-31 24:00" );
-	s.addElement ( "TIMESTEP: 24 Hour" );
-	s.addElement ( "UNITS: CFS" );
-	s.addElement ( "SCALE: 1000" );
-	s.addElement ( "SET_UNITS: CMS" );
-	s.addElement ( "SET_SCALE: 10" );
-	s.addElement ( "0.00" );
-	s.addElement ( "130.00" );
-	s.addElement ( "..." );
+public static List getSample ()
+{	List	s = new Vector ( 50 );
+	s.add ( "#" );
+	s.add ( "# RiverWare time series format" );
+	s.add ( "#" );
+	s.add ( "# Comments are only allowed at the top of the file." );
+	s.add ( "# UNITS are AFTER the scale is applied." );
+	s.add ( "# SCALE*data = values for specified units." );
+	s.add ( "# SET_UNITS and SET_SCALE are used by RiverWare during read." );
+	s.add ( "START_DATE: 1996-11-14 24:00" );
+	s.add ( "END_DATE: 1996-12-31 24:00" );
+	s.add ( "TIMESTEP: 24 Hour" );
+	s.add ( "UNITS: CFS" );
+	s.add ( "SCALE: 1000" );
+	s.add ( "SET_UNITS: CMS" );
+	s.add ( "SET_SCALE: 10" );
+	s.add ( "0.00" );
+	s.add ( "130.00" );
+	s.add ( "..." );
 	return s;
 }
 
@@ -800,7 +801,7 @@ throws IOException
     Object o = props.getContents("OutputComments");
     if ( o != null ) {
         // Write additional comments that were passed in
-        Vector comments = (Vector)o;
+        List comments = (List)o;
         int commentSize = comments.size();
         if ( commentSize > 0 ) {
             for ( int iComment = 0; iComment < commentSize; iComment++ ) {
