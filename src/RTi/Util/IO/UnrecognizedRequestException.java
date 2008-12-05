@@ -15,8 +15,7 @@ package RTi.Util.IO;
 
 /**
 The UnrecognizedRequestException should be thrown when running 
-CommandProcessor.processRequest() and the request to be performed is not
-recognized.
+CommandProcessor.processRequest() and the request to be performed is not recognized.
 */
 public class UnrecognizedRequestException extends Exception
 {

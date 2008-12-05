@@ -1,8 +1,6 @@
 package RTi.Util.IO;
 
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandStatus;
@@ -63,23 +61,23 @@ public class CommandStatusProviderUtil
 
         if (cs != null)
           {
-            Vector v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
-            Enumeration e = v.elements();
-            while (e.hasMoreElements())
+            List v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
+            int size = v.size();
+            for ( int i = 0; i < size; i++ )
               {
-                markerText = markerText + e.nextElement().toString();
+                markerText = markerText + v.get(i).toString();
               }
             v = cs.getCommandLog(CommandPhaseType.DISCOVERY);
-            e = v.elements();
-            while (e.hasMoreElements())
+            size = v.size();
+            for ( int i = 0; i < size; i++ )
               {
-                markerText = markerText + e.nextElement().toString();
+                markerText = markerText + v.get(i).toString();
               }
             v = cs.getCommandLog(CommandPhaseType.RUN);
-            e = v.elements();
-            while (e.hasMoreElements())
+            size = v.size();
+            for ( int i = 0; i < size; i++ )
               {
-                markerText = markerText + e.nextElement().toString();
+                markerText = markerText + v.get(i).toString();
               }
           }
 

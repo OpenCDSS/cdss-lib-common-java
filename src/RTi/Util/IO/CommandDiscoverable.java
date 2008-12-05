@@ -2,8 +2,7 @@ package RTi.Util.IO;
 
 /**
 Implementation of this interface indicates that a command can be run in discovery
-mode, in which case a partial read of data will occur during the initialization()
-call.
+mode, in which case a partial read of data will occur during the initializeCommand() call.
 */
 public interface CommandDiscoverable
 {

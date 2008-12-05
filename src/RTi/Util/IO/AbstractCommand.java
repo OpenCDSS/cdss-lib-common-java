@@ -14,7 +14,7 @@
 
 package RTi.Util.IO;
 
-import java.util.Vector;
+import java.util.List;
 import javax.swing.JFrame;	// For the editor
 
 import RTi.Util.Message.Message;
@@ -288,7 +288,7 @@ parameters are determined to be invalid.
 public void parseCommand ( String command )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
 {	String routine = "SkeletonCommand.parseCommand", message;
-	Vector tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
+	List tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
 	if ( (tokens == null) ) {
 		message = "Invalid syntax for \"" + command + "\".  Not enough tokens.";
 		Message.printWarning ( 2, routine, message);
@@ -298,7 +298,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException
 	if ( tokens.size() > 1 ) {
 		// Parameters are available to parse...
 		try {
-		    __parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, (String)tokens.elementAt(1), routine,"," );
+		    __parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, (String)tokens.get(1), routine,"," );
 		}
 		catch ( Exception e ) {
 			message = "Syntax error in \"" + command + "\".  Not enough tokens.";
@@ -394,12 +394,12 @@ public String toString ( PropList parameters )
 		return __command_name + "()";
 	}
 	StringBuffer b = new StringBuffer ();
-	Vector v = parameters.getList();
+	List v = parameters.getList();
 	int size = v.size();
 	String value;
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.elementAt(i);
+		prop = (Prop)v.get(i);
 		value = prop.getValue();
 		if ( (value != null) && (value.length() > 0) ) {
 			if ( b.length() > 0 ) {

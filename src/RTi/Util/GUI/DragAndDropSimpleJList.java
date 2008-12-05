@@ -29,7 +29,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -68,11 +68,11 @@ public DragAndDropSimpleJList(Object array[], int dragAction, int dropAction) {
 
 /**
 Constructor.
-@param vector a vector of objects that will be used to populate the list.
+@param vector a list of objects that will be used to populate the list.
 @param dragAction the action to be taken when something is dragged from the list
 @param dropAction the action to be taken when something is dropped on the list
 */
-public DragAndDropSimpleJList(Vector vector, int dragAction, int dropAction) {
+public DragAndDropSimpleJList(List vector, int dragAction, int dropAction) {
 	super(vector);
 	initialize(dragAction, dropAction);
 }

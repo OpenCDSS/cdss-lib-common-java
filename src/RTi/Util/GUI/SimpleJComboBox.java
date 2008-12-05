@@ -51,6 +51,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.text.JTextComponent;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -165,8 +166,8 @@ width of the widest String in the Vector.
 <tt>getSelected()</tt> should be used instead of <tt>getSelectedItem()</tt>.
 @param v a Vector of Strings to be placed in the SimpleJComboBox.
 */
-public SimpleJComboBox(Vector v) {
-	super(v);
+public SimpleJComboBox(List v) {
+	super(new Vector(v));
 	initialize(-1, false);
 }
 
@@ -179,8 +180,8 @@ width of the widest String in the Vector.
 @param v a Vector of Strings to be placed in the SimpleJComboBox.
 @param editable if true, then the values in the combo box can be edited.
 */
-public SimpleJComboBox(Vector v, boolean editable) {
-	super(v);
+public SimpleJComboBox(List v, boolean editable) {
+	super(new Vector(v));
 	initialize(-1, editable);
 }
 
@@ -207,8 +208,8 @@ the combo box is editable.
 @param defaultSize the default field width of the SimpleJComboBox.
 @param editable whether the SimpleJComboBox should be editable (true) or not.
 */
-public SimpleJComboBox(Vector v, int defaultSize, boolean editable) {
-	super(v);
+public SimpleJComboBox(List v, int defaultSize, boolean editable) {
+	super(new Vector(v));
 	initialize(defaultSize, editable);
 }
 
@@ -589,9 +590,9 @@ public void selectIgnoreCase(String str) {
 Sets the data stored in the combo box all at once.
 @param v a Vector of Strings, each of which will be an item in the combo box.
 */
-public void setData(Vector v) {
-	Vector v2 = (Vector)v.clone();
-	setModel(new DefaultComboBoxModel(v2));
+public void setData(List v)
+{
+	setModel(new DefaultComboBoxModel(new Vector(v)));
 	repaint();
 }
 

@@ -16,8 +16,7 @@ package RTi.Util.IO;
 /**
 The CommandException should be thrown when running a Command results
 in non-recoverable warnings that will likely result in inaccurate or
-no results.  The CommandProcessor can then report that warnings
-occurred and continue.
+no results.  The CommandProcessor can then report that warnings occurred and continue.
 */
 public class CommandException extends Exception
 {

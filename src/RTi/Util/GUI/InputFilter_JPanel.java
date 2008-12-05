@@ -66,6 +66,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JComponent;
@@ -106,7 +107,7 @@ private int __num_filter_groups = 0;		// Number of filter groups to
 						// display.  One filter group
 						// will list all filters.
 
-private Vector [] __input_filter_Vector = null;	// Vector of InputFilter to
+private List [] __input_filter_Vector = null;	// List of InputFilter to
 						// display.  The original input
 						// filter that is supplied is
 						// copied for as many input
@@ -116,7 +117,7 @@ private Vector [] __input_filter_Vector = null;	// Vector of InputFilter to
 						// field components for the
 						// specific filter.
 	
-private Vector __where_component_Vector = new Vector();
+private List __where_component_Vector = new Vector();
 						// Vector of JComponent that
 						// display the "where" label
 						// for each filter group that
@@ -128,7 +129,7 @@ private Vector __where_component_Vector = new Vector();
 						// corresponds to a different
 						// input filter group.
 
-private Vector __operator_component_Vector = null;
+private List __operator_component_Vector = null;
 						// Vector of the operator
 						// components between the where
 						// an input components, one
@@ -154,10 +155,9 @@ public InputFilter_JPanel ()
 /**
 Construct an input filter panel.
 @param input_filters A Vector of InputFilter, to be displayed.
-@param props Properties to control the input filter panel, as described in the
-setInputFilters() method.
+@param props Properties to control the input filter panel, as described in the setInputFilters() method.
 */
-public InputFilter_JPanel ( Vector input_filters, PropList props )
+public InputFilter_JPanel ( List input_filters, PropList props )
 {	GridBagLayout gbl = new GridBagLayout();
 	setLayout ( gbl );
 	if ( props == null ) {
@@ -188,15 +188,12 @@ public void addEventListeners ( Component component )
 	for ( int ifg = 0; ifg < __num_filter_groups; ifg++ ) {
 		// The where...
 		if ( is_ItemListener ) {
-			if (	__where_component_Vector.elementAt(ifg)
-				instanceof SimpleJComboBox ) {
-				cb = (SimpleJComboBox)
-					__where_component_Vector.elementAt(ifg);
+			if ( __where_component_Vector.get(ifg) instanceof SimpleJComboBox ) {
+				cb = (SimpleJComboBox)__where_component_Vector.get(ifg);
 				cb.addItemListener ( (ItemListener)component );
 			}
 			// The operator...
-			cb = (SimpleJComboBox)
-				__operator_component_Vector.elementAt(ifg);
+			cb = (SimpleJComboBox)__operator_component_Vector.get(ifg);
 			cb.addItemListener ( (ItemListener)component );
 		}
 		// The input...
@@ -208,8 +205,7 @@ public void addEventListeners ( Component component )
 		JComponent input_component;
 		JTextField tf;
 		for ( int ifilter = 0; ifilter < num_filters; ifilter++ ) {
-			filter = (InputFilter)
-				__input_filter_Vector[ifg].elementAt(ifilter);
+			filter = (InputFilter)__input_filter_Vector[ifg].get(ifilter);
 			input_component = filter.getInputComponent();
 			if ( input_component instanceof JTextField ) {
 				if ( is_KeyListener ) {
@@ -290,10 +286,9 @@ Clears all the selections the user has made to the combo boxes in the panel.
 public void clearInput() {
 	SimpleJComboBox cb = null;
 	for ( int ifg = 0; ifg < __num_filter_groups; ifg++ ) {
-		if (__where_component_Vector.elementAt(ifg)
+		if (__where_component_Vector.get(ifg)
 			instanceof SimpleJComboBox) {
-			cb = (SimpleJComboBox)
-				__where_component_Vector.elementAt(ifg);
+			cb = (SimpleJComboBox)__where_component_Vector.get(ifg);
 			cb.select(0);
 		}
 	}
@@ -307,8 +302,7 @@ The previous contents are first removed.
 @param constraintsToRemove the constraints that should NOT appear in the 
 combo box.  Can be null, if all the appropriate constraints should be shown.
 */
-private void fillOperatorJComboBox ( SimpleJComboBox cb, int type,
-Vector constraintsToRemove)
+private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List constraintsToRemove)
 {	if ( cb == null ) {
 		return;
 	}
@@ -340,7 +334,7 @@ Vector constraintsToRemove)
 	if (constraintsToRemove != null) {
 		int size = constraintsToRemove.size();
 		for (int i = 0; i < size; i++) {
-			cb.remove((String)constraintsToRemove.elementAt(i));
+			cb.remove((String)constraintsToRemove.get(i));
 		}
 	}
 	
@@ -378,8 +372,8 @@ toString() method (e.g., "contains;inputvalue").
 @param delim Delimiter character to use if use_wildcards=false.  See the
 toString() method.  If null, use ";".
 */
-public Vector getInput ( String where_label, boolean use_wildcards,String delim)
-{	Vector input_Vector = new Vector();
+public List getInput ( String where_label, boolean use_wildcards,String delim)
+{	List input_Vector = new Vector();
 	if ( delim == null ) {
 		delim = ";";
 	}
@@ -399,28 +393,24 @@ public Vector getInput ( String where_label, boolean use_wildcards,String delim)
 		input_type = filter.getInputType();
 		if ( input_type == StringUtil.TYPE_STRING ) {
 			if ( use_wildcards ) {
-				if ( getOperator(ifg).equals(
-					InputFilter.INPUT_MATCHES) ) {
-					input_Vector.addElement( input );
+				if ( getOperator(ifg).equals( InputFilter.INPUT_MATCHES) ) {
+					input_Vector.add( input );
 				}
-				else if ( getOperator(ifg).equals(
-					InputFilter.INPUT_CONTAINS) ) {
-					input_Vector.addElement("*" +input+"*");
+				else if ( getOperator(ifg).equals(InputFilter.INPUT_CONTAINS) ) {
+					input_Vector.add("*" +input+"*");
 				}
-				else if ( getOperator(ifg).equals(
-					InputFilter.INPUT_STARTS_WITH) ) {
-					input_Vector.addElement( input + "*" );
+				else if ( getOperator(ifg).equals(InputFilter.INPUT_STARTS_WITH) ) {
+					input_Vector.add( input + "*" );
 				}
-				else if ( getOperator(ifg).equals(
-					InputFilter.INPUT_ENDS_WITH) ) {
-					input_Vector.addElement( "*" + input );
+				else if ( getOperator(ifg).equals(InputFilter.INPUT_ENDS_WITH) ) {
+					input_Vector.add( "*" + input );
 				}
 			}
-			else {	input_Vector.addElement (
-					getOperator(ifg) + delim + input );
+			else {
+				input_Vector.add (getOperator(ifg) + delim + input );
 			}
 		}
-		/* REVISIT SAM 2004-09-10 Need to enable at some point
+		/* TODO SAM 2004-09-10 Need to enable at some point
 		else if ( (input_type == StringUtil.TYPE_DOUBLE) ||
 			(input_type == StringUtil.TYPE_FLOAT) ) {
 		}
@@ -438,17 +428,16 @@ Return the current filter for a filter group.
 */
 public InputFilter getInputFilter ( int ifg )
 {	int filter_pos = 0;
-	if (__where_component_Vector.elementAt(ifg) instanceof SimpleJComboBox){
+	if (__where_component_Vector.get(ifg) instanceof SimpleJComboBox){
 		// The where lists all the filter where labels so the current
 		// filter is given by the position in the combo box...
-		SimpleJComboBox cb = (SimpleJComboBox)
-			__where_component_Vector.elementAt(ifg);
+		SimpleJComboBox cb = (SimpleJComboBox)__where_component_Vector.get(ifg);
 		filter_pos = cb.getSelectedIndex();
 	}
 	else {	// A simple JLabel so there is only one item in the filter...
 		filter_pos = 0;
 	}
-	return (InputFilter)__input_filter_Vector[ifg].elementAt(filter_pos);
+	return (InputFilter)__input_filter_Vector[ifg].get(filter_pos);
 }
 
 /**
@@ -465,8 +454,7 @@ Return the operator for a filter group (one of InputFilter.INPUT_*).
 @param ifg Filter group.
 */
 public String getOperator ( int ifg )
-{	SimpleJComboBox cb =
-		(SimpleJComboBox)__operator_component_Vector.elementAt(ifg);
+{	SimpleJComboBox cb = (SimpleJComboBox)__operator_component_Vector.get(ifg);
 	return cb.getSelected();
 }
 
@@ -492,7 +480,7 @@ public void itemStateChanged ( ItemEvent event )
 	JComponent component = null;
 				
 	for ( int ifg = 0; ifg < __num_filter_groups; ifg++ ) {
-		component = (JComponent)__where_component_Vector.elementAt(ifg);
+		component = (JComponent)__where_component_Vector.get(ifg);
 		if (component instanceof SimpleJComboBox) {
 			where_JComboBox = (SimpleJComboBox)component;
 		}
@@ -500,8 +488,7 @@ public void itemStateChanged ( ItemEvent event )
 			where_JComboBox = null;
 		}
 
-		operator_JComboBox = (SimpleJComboBox)
-			__operator_component_Vector.elementAt(ifg);
+		operator_JComboBox = (SimpleJComboBox)__operator_component_Vector.get(ifg);
 		if (where_JComboBox != null && o == where_JComboBox ) {
 			// Found the component, which indicates which filter
 			// group was changed.  Update the operator list.
@@ -516,12 +503,10 @@ public void itemStateChanged ( ItemEvent event )
 			// filters, the absolute position will be the same in
 			// all the lists.
 			filter_pos = where_JComboBox.getSelectedIndex();
-			filter =(InputFilter)__input_filter_Vector[ifg].
-					elementAt( filter_pos);
+			filter =(InputFilter)__input_filter_Vector[ifg].get( filter_pos);
 			//Message.printStatus ( 1, "", "Where changed." );
 			fillOperatorJComboBox ( (SimpleJComboBox)
-				__operator_component_Vector.
-				elementAt(ifg), filter.getInputType(),
+				__operator_component_Vector.get(ifg), filter.getInputType(),
 				filter.getConstraintsToRemove());
 			// Set the appropriate component visible and all others
 			// not visible.  There is an input component for each
@@ -569,8 +554,7 @@ private void removeInputFilters()
 		// Each group contains the same filter information, but using
 		// distinct components...
 		for ( int ifilter = 0; ifilter < size; ifilter++ ) {
-			filter = (InputFilter)
-				__input_filter_Vector[ifg].elementAt(ifilter);
+			filter = (InputFilter)__input_filter_Vector[ifg].get(ifilter);
 			// Remove the input components for the filter...
 			filter.setInputComponent(null);
 		}
@@ -595,20 +579,20 @@ information in the input filters:
 */
 public void setInputFilter ( int ifg, String input_filter_string, String delim )
 throws Exception
-{	Vector v = StringUtil.breakStringList ( input_filter_string, delim, 0 );
-	String where = ((String)v.elementAt(0)).trim();
-	String operator = ((String)v.elementAt(1)).trim();
+{	List v = StringUtil.breakStringList ( input_filter_string, delim, 0 );
+	String where = ((String)v.get(0)).trim();
+	String operator = ((String)v.get(1)).trim();
 	// Sometimes during initialization an ending token may not be provided
 	// (e.g., ";Matches;") so handle below...
 	String input = "";
 	if ( v.size() > 2 ) {
-		input = ((String)v.elementAt(2)).trim();
+		input = ((String)v.get(2)).trim();
 	}
 
 	// Set the where...
 
 	JComponent component;
-	component = (JComponent)__where_component_Vector.elementAt ( ifg );
+	component = (JComponent)__where_component_Vector.get ( ifg );
 	SimpleJComboBox cb;
 	JTextField tf;
 	JLabel label;
@@ -623,8 +607,7 @@ throws Exception
 
 	// Set the operator...
 
-	cb = (SimpleJComboBox)
-		__operator_component_Vector.elementAt ( ifg );
+	cb = (SimpleJComboBox)__operator_component_Vector.get ( ifg );
 	JGUIUtil.selectIgnoreCase ( cb, operator );
 
 	// Set the input...
@@ -675,7 +658,7 @@ one of the combo boxes that lists the fields for a filter.
 
 </table>
 */
-public void setInputFilters ( Vector input_filters, PropList props )
+public void setInputFilters ( List input_filters, PropList props )
 {	// Make sure non-null properties are available internally...
 	if ( props == null ) {
 		__props = new PropList ( "InputFilter_JPanel" );
@@ -711,14 +694,13 @@ public void setInputFilters ( Vector input_filters, PropList props )
 			// Assign the original...
 			__input_filter_Vector[0] = input_filters;
 		}
-		else {	// Copy the original...
+		else {
+			// Copy the original...
 			__input_filter_Vector[ifg] = new Vector(num_filters);
 			for (	int ifilter = 0;
 				ifilter < num_filters; ifilter++ ) {
-				filter = (InputFilter)
-					input_filters.elementAt(ifilter);
-				__input_filter_Vector[ifg].addElement (
-					filter.clone() );
+				filter = (InputFilter)input_filters.get(ifilter);
+				__input_filter_Vector[ifg].add ( filter.clone() );
 			}
 		}
 	}
@@ -753,14 +735,13 @@ public void setInputFilters ( Vector input_filters, PropList props )
 		x = 0;
 		if ( num_filters == 1 ) {
 			// Just use a label since the user cannot pick...
-			filter = (InputFilter)
-				__input_filter_Vector[ifg].elementAt(0);
+			filter = (InputFilter)__input_filter_Vector[ifg].get(0);
 			JLabel where_JLabel = new JLabel (
 				"Where " + filter.getWhereLabel() + ":" );
         		JGUIUtil.addComponent(this, where_JLabel,
 				x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
 				GridBagConstraints.NONE, GridBagConstraints.EAST);
-			__where_component_Vector.addElement ( where_JLabel );
+			__where_component_Vector.add ( where_JLabel );
 		}
 		else {	// Put the labels in a combo box so the user can pick...
         		JGUIUtil.addComponent(this, new JLabel("Where:"),
@@ -768,63 +749,51 @@ public void setInputFilters ( Vector input_filters, PropList props )
 				GridBagConstraints.NONE, GridBagConstraints.EAST);
 			SimpleJComboBox where_JComboBox =
 				new SimpleJComboBox ( false );
-			Vector where_Vector = new Vector(num_filters);
-			for (	int ifilter = 0; ifilter < num_filters;
-				ifilter++ ) {
-				filter = (InputFilter)
-					__input_filter_Vector[ifg].elementAt(
-					ifilter);
-				where_Vector.addElement(filter.getWhereLabel());
+			List where_Vector = new Vector(num_filters);
+			for ( int ifilter = 0; ifilter < num_filters; ifilter++ ) {
+				filter = (InputFilter)__input_filter_Vector[ifg].get(ifilter);
+				where_Vector.add(filter.getWhereLabel());
 			}
 			where_JComboBox.setData ( where_Vector );
 			where_JComboBox.addItemListener ( this );
 
 			if (numRowsToDisplay > -1) {
-				where_JComboBox.setMaximumRowCount(
-					numRowsToDisplay);
+				where_JComboBox.setMaximumRowCount(numRowsToDisplay);
 			}
 				
-        		JGUIUtil.addComponent(this, where_JComboBox,
-				x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
-				GridBagConstraints.NONE, GridBagConstraints.EAST);
-			__where_component_Vector.addElement (where_JComboBox);
+    		JGUIUtil.addComponent(this, where_JComboBox,
+			x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
+			GridBagConstraints.NONE, GridBagConstraints.EAST);
+			__where_component_Vector.add (where_JComboBox);
 		}
-		// The operators are reused in the filter group.  Initialize to
-		// the first filter...
-		filter = (InputFilter)__input_filter_Vector[ifg].elementAt(0);
+		// The operators are reused in the filter group.  Initialize to the first filter...
+		filter = (InputFilter)__input_filter_Vector[ifg].get(0);
 		// Initialize operators to the first filter.
-		// This is reused because it is a simple list
-		// based on the current input type.
+		// This is reused because it is a simple list based on the current input type.
 		SimpleJComboBox operator_JComboBox = new SimpleJComboBox(false);
 		fillOperatorJComboBox(operator_JComboBox, filter.getInputType(),
 			filter.getConstraintsToRemove());
 		operator_JComboBox.addItemListener ( this );
-		__operator_component_Vector.addElement ( operator_JComboBox );
+		__operator_component_Vector.add ( operator_JComboBox );
 		JGUIUtil.addComponent(this, operator_JComboBox,
 			x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
 			GridBagConstraints.NONE, GridBagConstraints.EAST);
 		// Now initialize the components used for input, one component
 		// per filter in the group...
 		for ( int ifilter = 0; ifilter < num_filters; ifilter++ ) {
-			filter =(InputFilter)
-				__input_filter_Vector[ifg].elementAt(ifilter);
+			filter =(InputFilter)__input_filter_Vector[ifg].get(ifilter);
 			if ( filter.getChoiceLabels() == null ) {
-				// No choices are provided so use a text
-				// field...
+				// No choices are provided so use a text field...
 				num = filter.getInputJTextFieldWidth();
 				JTextField input_JTextField=new JTextField(num);
         			JGUIUtil.addComponent(this, input_JTextField,
 					x, y, 1, 1, 0.0, 0.0, insetsNNNN,
 					GridBagConstraints.NONE, GridBagConstraints.WEST);
-				Vector listeners = 
-				       filter.getInputComponentMouseListeners();
+				List listeners = filter.getInputComponentMouseListeners();
 				if (listeners != null) {
 					int lsize = listeners.size();
 					for (int l = 0; l < lsize; l++) {
-						input_JTextField
-						 	.addMouseListener(
-							(MouseListener)
-							listeners.elementAt(l));
+						input_JTextField.addMouseListener((MouseListener)listeners.get(l));
 					}
 				}
 				// REVISIT - need to be distinct for each
@@ -870,15 +839,11 @@ public void setInputFilters ( Vector input_filters, PropList props )
 				if ( ifilter != 0 ) {
 					input_JComboBox.setVisible ( false );
 				}
-				Vector listeners = 
-				       filter.getInputComponentMouseListeners();
+				List listeners = filter.getInputComponentMouseListeners();
 				if (listeners != null) {
 					int lsize = listeners.size();
 					for (int l = 0; l < lsize; l++) {
-						input_JComboBox
-						 	.addMouseListener(
-							(MouseListener)
-							listeners.elementAt(l));
+						input_JComboBox.addMouseListener((MouseListener)listeners.get(l));
 					}
 				}				
 			}
@@ -908,21 +873,18 @@ private void showInputFilterComponent ( int ifg, int filter_pos,
 {	int nfilters = __input_filter_Vector[0].size();
 	InputFilter filter;		// Input filter to check
 	for ( int ifilter = 0; ifilter < nfilters; ifilter++) {
-		filter = (InputFilter)
-			__input_filter_Vector[ifg].elementAt(ifilter);
+		filter = (InputFilter)__input_filter_Vector[ifg].get(ifilter);
 		if ( ifilter == filter_pos ) {
 			// The input component for the selected
 			// filter needs to be visible...
 			//Message.printStatus ( 1, "",
 			//"SAMX enabling input component " + ifilter );
-			((JComponent)
-				filter.getInputComponent()).setVisible(true);
+			((JComponent)filter.getInputComponent()).setVisible(true);
 		}
 		else {	// All other input components should not be visible...
 			//Message.printStatus ( 1, "",
 			//"SAMX disabling input component " + ifilter );
-			((JComponent)
-				filter.getInputComponent()).setVisible(false);
+			((JComponent)filter.getInputComponent()).setVisible(false);
 		}
 	}
 }

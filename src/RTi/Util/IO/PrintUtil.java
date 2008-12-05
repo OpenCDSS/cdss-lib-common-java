@@ -17,9 +17,7 @@ import java.awt.print.PrinterJob;
 
 import RTi.Util.Message.Message;
 
-// REVISIT (JTS - 2004-03-30)
-// make it so that paper sizes can be specified for plotter with .X 
-// precision
+// TODO (JTS - 2004-03-30) make it so that paper sizes can be specified for plotter with .X precision
 
 /**
 This is a utility class for setting up paper for printing.  An example of use:

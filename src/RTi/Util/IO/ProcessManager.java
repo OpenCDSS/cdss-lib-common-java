@@ -144,6 +144,7 @@ import java.io.InputStreamReader;
 import java.lang.Runtime;
 import java.lang.Exception;
 import java.lang.StringBuffer;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.GUI.EventTimer;
@@ -354,14 +355,9 @@ private StopWatch	__stopwatch = null;	// To track the actual time
 private boolean		__save_output = false;	// Indicates whether output
 						// from the command should be
 						// saved.
-private Vector		__out_Vector = null;	// Vector containing process
-						// output, used if __save_output
-						// is true.
-private Vector		__error_Vector = null;	// Vector containing process
-						// errors, used if __save_output
-						// is true.
-private ProcessListener [] __listeners = null;	// Listeners to receive process
-						// output.
+private List __out_Vector = null;	// List containing process output, used if __save_output is true.
+private List __error_Vector = null;	// List containing process errors, used if __save_output is true.
+private ProcessListener [] __listeners = null;	// Listeners to receive process output.
 private String	__exit_status_token = null;	// If not null, indicate a token
 						// that if found at the
 						// beginning of the line will
@@ -688,28 +684,26 @@ public int getExitStatus ()
 }
 
 /**
-Return the standard error of the process as a Vector of String.
-@return the standard error of the process as a Vector of String.
-If saveOutput(true) is called, this will be non-null.  Otherwise, it wil be
-null.
+Return the standard error of the process as a list of String.
+@return the standard error of the process as a list of String.
+If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
-public Vector getErrorVector ()
+public List getErrorList ()
 {	return __error_Vector;
 }
 
 /**
-Return the standard output of the process as a Vector of String.
-@return the standard output of the process as a Vector of String.
-If saveOutput(true) is called, this will be non-null.  Otherwise, it wil be
-null.
+Return the standard output of the process as a list of String.
+@return the standard output of the process as a list of String.
+If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
-public Vector getOutputVector ()
+public List getOutputList ()
 {	return __out_Vector;
 }
 
 /**
 Returns the Process instance.  Use this call when processing I/O externally to
-retrive the streams for the process.
+retrieve the streams for the process.
 @return the Process instance.
 */
 public Process getProcess()
@@ -942,15 +936,13 @@ public void run ()
 				}
 			}
 			else {	if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, rtn,
-					"stdout line: \"" + out_line+ "\""  );
+					Message.printDebug ( 1, rtn, "stdout line: \"" + out_line+ "\""  );
 				}
 				if ( __save_output ) {
-					__out_Vector.addElement ( out_line );
+					__out_Vector.add ( out_line );
 				}
 				if ( __exit_status_token != null ) {
-					// Check the output for a line that
-					// starts with the token.
+					// Check the output for a line that starts with the token.
 					if ( StringUtil.startsWithIgnoreCase(
 						out_line, __exit_status_token)){
 						// Save the exit status line to
@@ -1015,15 +1007,9 @@ public void run ()
 		if ( __out_done ) {
 			try {	if (	(__exit_status_token != null) &&
 					(exit_status_line != null) ) {
-					// Get the exit status from the exit
-					// line...
-					Vector v = StringUtil.breakStringList(
-						exit_status_line, " ", 0);
-					if (	(v == null) ||
-						(v.size() < 2) ||
-						!StringUtil.isInteger(
-						((String)v.elementAt(1)
-						).trim()) ) {
+					// Get the exit status from the exit line...
+					List v = StringUtil.breakStringList(exit_status_line, " ", 0);
+					if ( (v == null) || (v.size() < 2) || !StringUtil.isInteger( ((String)v.get(1)).trim()) ) {
 						// Get the exit status from the
 						// process...
 						exit_value=
@@ -1035,9 +1021,8 @@ public void run ()
 							exit_value );
 						}
 					}
-					else {	exit_value=
-						StringUtil.atoi (((String)
-						v.elementAt(1)).trim() );
+					else {
+						exit_value= StringUtil.atoi (((String)v.get(1)).trim() );
 						if ( Message.isDebugOn ) {
 							Message.printDebug (1,
 							rtn, "Exit status "+

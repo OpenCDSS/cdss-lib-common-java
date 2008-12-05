@@ -30,6 +30,7 @@
 
 package RTi.Util.GUI;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
@@ -40,7 +41,7 @@ TableModels in a JWorksheet should be used.  It implements a few core
 data members that all those classes should have, including some 
 sorting support. 
 <p>
-REVISIT (JTS - 2006-05-25)
+TODO (JTS - 2006-05-25)
 If I could do this over, I would combine this table model with 
 AbstractRowTableModel, in order to simplify things.  I don't see a very 
 good reason to require both of these, honestly.
@@ -87,7 +88,7 @@ protected Vector _cellEditOverride = new Vector();
 /**
 The data that will be shown in the table.
 */
-protected Vector _data = new Vector();
+protected List _data = new Vector();
 
 /**
 The Vector of table model listeners.
@@ -210,7 +211,7 @@ public Object getConsecutiveValueAt(int row, int column) {
 Returns the data stored in the table model.
 @return the data stored in the table model.
 */
-public Vector getData() {
+public List getData() {
 	return _data;
 }
 
@@ -232,7 +233,7 @@ public void insertRowAt(Object o, int pos) {
 		_data.add(o);
 	}
 	else {
-		_data.insertElementAt(o, pos);
+		_data.add(pos, o);
 	}
 	_rows++;
 }
@@ -284,11 +285,10 @@ public void removeTableModelListener(JWorksheet_TableModelListener listener) {
 }
 
 /**
-Sets new data into the table model (used if many rows change at once or all-new
-data is to be shown.
+Sets new data into the table model (used if many rows change at once or all-new data is to be shown.
 @param data the Vector of data.
 */
-public void setNewData(Vector data) {
+public void setNewData(List data) {
 	_data = data;
 	if (data == null) {
 		_rows = 0;
@@ -309,7 +309,7 @@ public void setRowData(Object o, int pos) {
 		_data.add(o);
 	}
 	else {
-		_data.setElementAt(o, pos);
+		_data.set(pos,o);
 	}
 }
 

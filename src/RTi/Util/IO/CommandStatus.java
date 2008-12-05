@@ -1,5 +1,6 @@
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -35,28 +36,28 @@ private CommandStatusType __run_status = CommandStatusType.UNKNOWN;
  * @uml.property  name="__initialization_log_Vector"
  * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private Vector __initialization_log_Vector = new Vector();
+private List __initialization_log_Vector = new Vector();
 
 /**
  * A list of CommandLogRecord instances, indicating problems with running the discovery phase of a command, guaranteed to be non-null.
  * @uml.property  name="__discovery_log_Vector"
  * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private Vector __discovery_log_Vector = new Vector();
+private List __discovery_log_Vector = new Vector();
 
 /**
  * A list of CommandLogRecord instances, indicating problems with running the command, guaranteed to be non-null.
  * @uml.property  name="__run_log_Vector"
  * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private Vector __run_log_Vector = new Vector();
+private List __run_log_Vector = new Vector();
 
 /**
-Constructor that initiliazes the status for each phase to UNKNOWN.
+Constructor that initializes the status for each phase to UNKNOWN.
 */
 public CommandStatus ()
 {
-	// Default status is intialized above.
+	// Default status is initialized above.
 }
 
 /**
@@ -67,19 +68,16 @@ to the most serious based on the log messages for the phase.
 */
 public void addToLog ( CommandPhaseType phase, CommandLogRecord record )
 {	if ( phase == CommandPhaseType.INITIALIZATION ) {
-		__initialization_status = CommandStatusType.maxSeverity (
-				__initialization_status, record.getSeverity() );
-		__initialization_log_Vector.addElement ( record );
+		__initialization_status = CommandStatusType.maxSeverity ( __initialization_status, record.getSeverity() );
+		__initialization_log_Vector.add ( record );
 	}
 	else if ( phase == CommandPhaseType.DISCOVERY ) {
-		__discovery_status = CommandStatusType.maxSeverity (
-				__discovery_status, record.getSeverity());
-		__discovery_log_Vector.addElement ( record );
+		__discovery_status = CommandStatusType.maxSeverity ( __discovery_status, record.getSeverity());
+		__discovery_log_Vector.add ( record );
 	}
 	else if ( phase == CommandPhaseType.RUN ) {
-		__run_status = CommandStatusType.maxSeverity (
-				__run_status, record.getSeverity() );
-		__run_log_Vector.addElement ( record );
+		__run_status = CommandStatusType.maxSeverity ( __run_status, record.getSeverity() );
+		__run_log_Vector.add ( record );
 	}
 }
 
@@ -90,15 +88,15 @@ public void addToLog ( CommandPhaseType phase, CommandLogRecord record )
 public void clearLog ( CommandPhaseType phase )
 {
 	if ( (phase == CommandPhaseType.INITIALIZATION) || (phase == null)) {
-		__initialization_log_Vector.removeAllElements ();
+		__initialization_log_Vector.clear ();
 		__initialization_status = CommandStatusType.UNKNOWN;
 	}
 	else if ( (phase == CommandPhaseType.DISCOVERY) || (phase == null)) {
-		__discovery_log_Vector.removeAllElements ();
+		__discovery_log_Vector.clear ();
 		__discovery_status = CommandStatusType.UNKNOWN;
 	}
 	else if ( (phase == CommandPhaseType.RUN) || (phase == null)) {
-		__run_log_Vector.removeAllElements ();
+		__run_log_Vector.clear ();
 		__run_status = CommandStatusType.UNKNOWN;
 	}
 }
@@ -117,20 +115,18 @@ public Object clone ()
 		status.__initialization_log_Vector = new Vector();
 		int size = __initialization_log_Vector.size();
 		for ( int i = 0; i < size; i++ ) {
-			status.__initialization_log_Vector.addElement (
-					((CommandLogRecord)__initialization_log_Vector.elementAt(i)).clone() );
+			status.__initialization_log_Vector.add (
+					((CommandLogRecord)__initialization_log_Vector.get(i)).clone() );
 		}
 		status.__discovery_log_Vector = new Vector();
 		size = __discovery_log_Vector.size();
 		for ( int i = 0; i < size; i++ ) {
-			status.__discovery_log_Vector.addElement (
-					((CommandLogRecord)__discovery_log_Vector.elementAt(i)).clone() );
+			status.__discovery_log_Vector.add ( ((CommandLogRecord)__discovery_log_Vector.get(i)).clone() );
 		}
 		status.__run_log_Vector = new Vector();
 		size = __run_log_Vector.size();
 		for ( int i = 0; i < size; i++ ) {
-			status.__run_log_Vector.addElement (
-					((CommandLogRecord)__run_log_Vector.elementAt(i)).clone() );
+			status.__run_log_Vector.add ( ((CommandLogRecord)__run_log_Vector.get(i)).clone() );
 		}
 		return status;
 	}
@@ -164,9 +160,9 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
  * @param phase - see CommandPhaseType.
  * @return command log as a Vector of CommandLogRecord
  */
-public Vector getCommandLog(CommandPhaseType phase)
+public List getCommandLog(CommandPhaseType phase)
   {
-    Vector v = null;
+    List v = null;
     if ( phase == CommandPhaseType.INITIALIZATION ) {
         v =  __initialization_log_Vector;
     }

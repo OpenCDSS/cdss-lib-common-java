@@ -145,6 +145,7 @@ import java.lang.String;
 import java.lang.StringBuffer;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -218,72 +219,76 @@ For use with padding routines.  Pad/unpad front, back, and middle of string.
 public static final int PAD_FRONT_MIDDLE_BACK = PAD_FRONT | PAD_MIDDLE|PAD_BACK;
 
 /**
-Add a Vector of Strings to another Vector of Strings.  If the first Vector is
-null, the second Vector will be returned. If the second Vector is null, the
-first Vector will be returned.  If both are null, null will be returned.
-@return Combined vector.
-@param v Vector of Strings.
-@param newv Vector of Strings to add.
+Add a list of Strings to another list of Strings.  If the first list is
+null, the second list will be returned.  If the second list is null, the
+first list will be returned.  If both are null, null will be returned.
+@return Combined list.
+@param v list of Strings - will be modified if not null when passed in.
+@param newv list of Strings to add.
 */
-public static Vector addListToStringList ( Vector v, Vector newv )
+public static List addListToStringList ( List v, List newv )
 {	if ( newv == null ) {
 		return v;
 	}
-	Vector vmain = null;
+	List vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
 	}
-	else {	vmain = v;
+	else {
+		// Modify the old list
+		vmain = v;
 	}
 	int length = newv.size ();
 	for ( int i = 0; i < length; i++ ) {
-		vmain.addElement ( newv.elementAt(i) );
+		vmain.add ( newv.get(i) );
 	}
 	return vmain;
 }
 
 /**
-Add a String to a Vector of String.  If the Vector is null, a new Vector
+Add a String to a list of String.  If the list is null, a new list
 will be returned, containing the string.  The String will always be added
-to the Vector, even if the String is null.
-@return Vector after String is added.
-@param v Vector of Strings.
-@param string String to add to Vector.
+to the list, even if the String is null.
+@return list after String is added.
+@param v list of Strings.
+@param string String to add to the list.
 */
-public static Vector addToStringList ( Vector v, String string )
-{	Vector vmain = null;
+public static List addToStringList ( List v, String string )
+{	List vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
 	}
-	else {	vmain = v;
+	else {
+		vmain = v;
 	}
-	vmain.addElement ( string );
+	vmain.add ( string );
 	return vmain;
 }
 
 /**
-Add an array of String to a Vector of String.  If the Vector is null, a new
-Vector will be returned, containing the strings.  The Strings will always be
-added to the Vector, even if they are null.
-@return Vector after String is added.
-@param v Vector of Strings.
-@param strings Array of String to add to Vector.
+Add an array of String to a list of String.  If the list is null, a new
+list will be returned, containing the strings.  The Strings will always be
+added to the list, even if they are null.
+@return list after String is added.
+@param v list of Strings.
+@param strings Array of String to add to list.
 */
-public static Vector addToStringList ( Vector v, String [] strings )
-{	Vector vmain = null;
+public static List addToStringList ( List v, String [] strings )
+{	List vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
 	}
-	else {	vmain = v;
+	else {
+		vmain = v;
 	}
 	if ( strings == null ) {
 		return vmain;
 	}
 	for ( int i = 0; i < strings.length; i++ ) {
-		vmain.addElement ( strings[i] );
+		vmain.add ( strings[i] );
 	}
 	return vmain;
 }
@@ -297,12 +302,12 @@ public static int atoi( String s )
 {	if ( s == null ) {
 		return 0;
 	}
-	int 	value=0;
-	try {	value = Integer.parseInt( s.trim() );
+	int value=0;
+	try {
+		value = Integer.parseInt( s.trim() );
 	}
 	catch( NumberFormatException e ){
-		Message.printWarning( 50, "StringUtil.atoi",
-		"Unable to convert \"" + s + "\" to int." );
+		Message.printWarning( 50, "StringUtil.atoi", "Unable to convert \"" + s + "\" to int." );
 		value = 0;
 	}
 	return value;
@@ -311,19 +316,18 @@ public static int atoi( String s )
 /**
 Convert a String to a float, similar to C language atof() function.
 @param s String to convert.
-@return A float as converted from the String, or 0.0 if there is a conversion
-error.
+@return A float as converted from the String, or 0.0 if there is a conversion error.
 */
 public static float atof( String s )
 {	if ( s == null ) {
 		return (float)0.0;
 	}
-	float 	value=(float)0.0;
-	try {	value = new Float( s.trim() ).floatValue();
+	float value=(float)0.0;
+	try {
+		value = new Float( s.trim() ).floatValue();
 	}
 	catch( NumberFormatException e ){
-		Message.printWarning ( 50, "StringUtil.atof",
-		"Unable to convert \"" + s + "\" to float." );
+		Message.printWarning ( 50, "StringUtil.atof", "Unable to convert \"" + s + "\" to float." );
 		value = (float)0.0;
 	}
 	return value;
@@ -338,12 +342,12 @@ public static double atod( String s )
 {	if ( s == null ) {
 		return 0.0;
 	}
-	double 	value=0.0;
-	try {	value = new Double( s.trim() ).doubleValue();
+	double value=0.0;
+	try {
+		value = new Double( s.trim() ).doubleValue();
 	}
 	catch( NumberFormatException e ){
-		Message.printWarning( 50, "StringUtil.atod",
-		"Unable to convert \"" + s + "\" to double." );
+		Message.printWarning( 50, "StringUtil.atod", "Unable to convert \"" + s + "\" to double." );
 		value = 0.0;
 	}
 	return value;
@@ -358,12 +362,12 @@ public static long atol( String s )
 {	if ( s == null ) {
 		return 0;
 	}
-	long 	value=0;
-	try {	value = new Long( s.trim() ).longValue();
+	long value=0;
+	try {
+		value = new Long( s.trim() ).longValue();
 	}
 	catch( NumberFormatException e ){
-		Message.printWarning( 50, "StringUtil.atol",
-		"Unable to convert \"" + s + "\" to long." );
+		Message.printWarning( 50, "StringUtil.atol", "Unable to convert \"" + s + "\" to long." );
 		value = 0;
 	}
 	return value;
@@ -431,13 +435,13 @@ public static long atol( String s )
 */
 
 /**
-Break a delimited string into a Vector of Strings.  The end of the string is
+Break a delimited string into a list of Strings.  The end of the string is
 considered as a delimiter so "xxxx,xxxx" returns two strings if the comma is a
 delimiter and "xxxxx" returns one string if the comma is the delimiter.  If a
 delimiter character is actually the last character, no null field is returned at
 the end.  If multiple delimiters are at the front and skip blanks is specified,
 all the delimiters will be skipped.
-@return A Vector of Strings.
+@return A list of Strings.
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.  Each
 character in the string is checked (the complete string is not used as a
@@ -448,12 +452,11 @@ are treated as one delimiter - delimiters at the front are ignored) and
 DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.  Note that when allowing
-quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening
-delimiter is present.
+quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
 */
-public static Vector breakStringList( String string, String delim, int flag )
+public static List breakStringList( String string, String delim, int flag )
 {	String routine = "StringUtil.breakStringList";
-	Vector	list = new Vector(2,1);
+	List list = new Vector(2,1);
 	
 	if ( string == null ) {
 	 	return list;
@@ -469,8 +472,8 @@ public static Vector breakStringList( String string, String delim, int flag )
 	int	length_string = string.length();
 	boolean	instring = false;
 	int	istring = 0;
-	char	cstring;
-	char	quote = '\"';
+	char cstring;
+	char quote = '\"';
 	StringBuffer tempstr = new StringBuffer ();
 	boolean allow_strings = false, skip_blanks = false;
 	if ( (flag & DELIM_ALLOW_STRINGS) != 0 ) {
@@ -482,8 +485,7 @@ public static Vector breakStringList( String string, String delim, int flag )
 	// Loop through the characters in the string.  If in the main loop or
 	// the inner "while" the end of the string is reached, the last
 	// characters will be added to the last string that is broken out...
-	boolean at_start = true;	// If only delimiters are at the front
-					// this will be true.
+	boolean at_start = true;	// If only delimiters are at the front this will be true.
 	for ( istring = 0; istring < length_string; ) {
 		cstring = string.charAt(istring);
 		// Start the next string in the list.  Move characters to the
@@ -497,80 +499,60 @@ public static Vector breakStringList( String string, String delim, int flag )
 			//Message.printStatus ( 1, routine,
 			// "SAMX Processing character " + cstring );
 			if ( allow_strings ) {
-				// Allowing quoted strings so do check for the
-				// start and end of quotes...
-				if (	!instring &&
-					((cstring == '"')||(cstring == '\'')) ){
+				// Allowing quoted strings so do check for the start and end of quotes...
+				if ( !instring && ((cstring == '"')||(cstring == '\'')) ){
 					// The start of a quoted string...
 					instring = true;
 					at_start = false;
 					quote = cstring;
-					// Skip over the quote since we don't
-					// want to /store or process again...
+					// Skip over the quote since we don't want to /store or process again...
 					++istring;
 					// cstring set at top of while...
-					//Message.printStatus ( 1, routine,
-					//"SAMX start of quoted string " +
-					//cstring );
+					//Message.printStatus ( 1, routine, "SAMX start of quoted string " + cstring );
 					continue;
 				}
 				// Check for the end of the quote...
 				else if ( instring && (cstring == quote) ) {
-					// In a quoted string and have found the
-					// closing quote.  Need to skip over it.
+					// In a quoted string and have found the closing quote.  Need to skip over it.
 					instring = false;
-					//Message.printStatus ( 1, routine,
-					//"SAMX end of quoted string" +
-					//cstring );
+					//Message.printStatus ( 1, routine, "SAMX end of quoted string" + cstring );
 					++istring;
 					if ( istring < length_string ) {
 						cstring =string.charAt(istring);
-						// If the current string is now
-						// another quote, just continue
-						// so it can be processed again
-						// as the start of another
-						// string (but don't add the
-						// quote character)...
-						if (	(cstring == '\'') ||
-							(cstring == '"') ) {
+						// If the current string is now another quote, just continue so it can be processed
+						// again as the start of another string (but don't add the quote character)...
+						if ( (cstring == '\'') || (cstring == '"') ) {
 							continue;
 						}
 					}
-					else {	// The quote was the last
-						// character in the original
-						// string.  Break out so the
+					else {
+						// The quote was the last character in the original string.  Break out so the
 						// last string can be added...
 						break;
 					}
-					// If here, the closing quote has been
-					// skipped but don't want to break here
-					// in case the final quote isn't the
-					// last character in the sub-string
+					// If here, the closing quote has been skipped but don't want to break here
+					// in case the final quote isn't the last character in the sub-string
 					// (e.g, might be ""xxx).
 				}
 			}
 			// Now check for a delimiter to break the string...
 			if ( delim.indexOf(cstring) != -1 ) {
-				// Have a delimiter character that could be in
-				// a string or not...
+				// Have a delimiter character that could be in a string or not...
 				if ( !instring ) {
 					// Not in a string so OK to break...
-					//Message.printStatus ( 1, routine,
-					//"SAMX have delimiter outside string" +
-					//cstring );
+					//Message.printStatus ( 1, routine, "SAMX have delimiter outside string" + cstring );
 					break;
 				}
 			}
-			else {	// Else, treat as a character that needs to be
-				// part of the token and add below...
+			else {
+				// Else, treat as a character that needs to be part of the token and add below...
 				at_start = false;
 			}
 			// It is OK to add the character...
 			tempstr.append ( cstring );
 			// Now increment to the next character...
 			++istring;
-			// Go to the top of the "while" and evaluate the current
-			// character that was just set.
+			// Go to the top of the "while" and evaluate the current character that was just set.
 			// cstring is set at top of while...
 		}
 		// Now have a sub-string and the last character read is a
@@ -579,200 +561,42 @@ public static Vector breakStringList( String string, String delim, int flag )
 		// See if we are at the end of the string...
 		if ( instring ) {
 			if ( Message.isDebugOn ) {
-				Message.printWarning ( 10, routine,
-				"Quoted string \"" + tempstr +
-				"\" is not closed" );
+				Message.printWarning ( 10, routine, "Quoted string \"" + tempstr + "\" is not closed" );
 			}
 			// No further action is required...
 		}
-		// Check for and skip any additional delimiters that may be
-		// present in a sequence...
+		// Check for and skip any additional delimiters that may be present in a sequence...
 		else if ( skip_blanks ) {
 			while ( (istring < length_string) &&
 				(delim.indexOf(cstring) != -1) ) {
-				//Message.printStatus ( 1, routine,
-				//"SAMX skipping delimiter" + cstring );
+				//Message.printStatus ( 1, routine, "SAMX skipping delimiter" + cstring );
 				++istring;
 				if ( istring < length_string ) {
 					cstring = string.charAt ( istring );
 				}
 			}
 			if ( at_start ) {
-				// Just want to skip the initial delimiters
-				// without adding a string to the returned
-				// list...
+				// Just want to skip the initial delimiters without adding a string to the returned list...
 				at_start = false;
 				continue;
 			}
-			// After this the current character will be that which
-			// needs to be evaluated.  "cstring" is reset at the top
-			// of the main "for" loop but it needs to be assigned
-			// here also because of the check in the above while
-			// loop
+			// After this the current character will be that which needs to be evaluated.  "cstring" is reset
+			// at the top of the main "for" loop but it needs to be assigned here also because of the check
+			// in the above while loop
 		}
-		else {	// Not skipping multiple delimiters so advance over
-			// the character that triggered the break in the main
-			// while loop...
+		else {
+			// Not skipping multiple delimiters so advance over the character that triggered the break in
+			// the main while loop...
 			++istring;
 			// cstring will be assigned in the main "for" loop
 		}
 		// Now add the string token to the list...
-		list.addElement ( tempstr.toString() );
+		list.add ( tempstr.toString() );
 		//if ( Message.isDebugOn ) {
 			//Message.printDebug ( 50, routine,
 			//Message.printStatus ( 1, routine,
-			//"SAMX Broke out list[" + (list.size() - 1) + "]=\"" +
-			//tempstr + "\"" );
+			//"SAMX Broke out list[" + (list.size() - 1) + "]=\"" + tempstr + "\"" );
 		//}
-	}
-	tempstr = null;
-	routine = null;
-	return list;
-}
-
-/**
-OLD VERSION THAT IS BEING REPLACED - RETAIN FOR COMPARISON IN CASE NEW VERSION
-DOES NOT SEEM TO WORK.
-Break a delimited string into a Vector of Strings.
-@return A Vector of Strings.
-@param string The string to break.
-@param delim A String containing characters to treat as delimiters.  Each
-character in the string is checked (the complete string is not used as a
-multi-character delimiter).
-@param flag Bitmask indicating how to break the string.  Specify
-DELIM_SKIP_BLANKS to skip blank fields and
-DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
-Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
-merged and quoted strings are not handled as one token.
-*/
-public static Vector breakStringListOld( String string, String delim, int flag )
-{	String routine = "StringUtil.breakStringListOld";
-	Vector	list = new Vector(2,1);
-	
-	if ( string == null ) {
-	 	return list;
-	}
-	if ( string.length() == 0 ) {
-	 	return list;
-	}
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, routine,
-		"Breaking \"" + string + "\" using \"" + delim + "\"" );
-	}
-	int	length_string = string.length();
-	boolean	instring = false;
-	int	istring = 0;
-	char	cstring;
-	char	quote = '\"';
-	boolean	add_char = true;
-	StringBuffer tempstr = new StringBuffer ();
-	for ( istring = 0; istring < length_string; ) {
-		cstring = string.charAt(istring);
-		// Start the next string in the list.  Move characters to the
-		// temp string until a delimiter is found.  If inside a string
-		// then go until a closing delimiter is found.
-		instring = false;
-		tempstr.setLength ( 0 );	// Clear memory.
-		while ( istring < length_string ) {
-			add_char = true;
-			// Process this string...
-			if (	((flag & DELIM_ALLOW_STRINGS) != 0) &&
-				!instring &&
-				((cstring == '"') || (cstring == '\'')) ) {
-				// We have found the start of a quote...
-				instring	= true;
-				quote		= cstring;
-				// Skip over the quote since we don't want to 
-				// store or process again...
-				++istring;
-				if ( istring < length_string ) {
-					cstring = string.charAt ( istring );
-				}
-			}
-			// If a quoted string is allowed and the string is "",
-			// then the following will be immediately executed...
-			if ( instring && (cstring == quote) ) {
-				// We are in a string and have found the closing
-				// quote.  Need to skip over it.
-				//
-				// If the tempstr is zero length, add an empty
-				// string here because the following logic will
-				// not do so...
-				if ( tempstr.length() == 0 ) {
-					list.addElement ( "" );
-				}
-				instring = false;
-				++istring;
-				if ( istring < length_string ) {
-					cstring = string.charAt ( istring );
-				}
-				else {	// The quote was the last thing and we
-					// are unable to advance the string
-					// but we want to make sure that we
-					// don't add the character!
-					add_char = false;
-				}
-				// We don't want to break here in case the
-				// final quote isn't the last character in
-				// the string.
-				// break;
-			}
-			if ( delim.indexOf(cstring) != -1 ) {
-				// We have a delimiter character...  We could
-				// be in a string or not...
-				if ( !instring ) {
-					// Not in a string so OK to break...
-					break;
-				}
-				// Else, treat as a character that needs to be
-				// part of the token...
-			}
-			if ( add_char ) {
-				// It is OK to add the character...
-				tempstr.append ( cstring );
-			}
-			++istring;
-			if ( istring < length_string ) {
-				cstring = string.charAt ( istring );
-			}
-		}
-		// Now skip any additional delimiters that may be present in a
-		// sequence...
-		if ( (flag & DELIM_SKIP_BLANKS) != 0 ) {
-			while ( (istring < length_string) &&
-				(delim.indexOf(cstring) != -1) ) {
-				++istring;
-				if ( istring < length_string ) {
-					cstring = string.charAt ( istring );
-				}
-			}
-			if ( tempstr.length() == 0 ) {
-				// The string is empty (e.g., at start of
-				// original string.  Skip it.  This causes
-				// problems with empty quoted strings but
-				// we handle above so OK.
-				continue;
-			}
-		}
-		if (	((flag & DELIM_ALLOW_STRINGS) != 0) && instring ) {
-			if ( Message.isDebugOn ) {
-				Message.printWarning ( 10, routine,
-				"Quoted string \"" + tempstr +
-				"\" is not closed" );
-			}
-		}
-		list.addElement ( tempstr.toString() );
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, routine,
-			"Broke out list[" + (list.size() - 1) + "]=\"" +
-			tempstr + "\"" );
-		}
-		if ( delim.indexOf(cstring) != -1 ) {
-			++istring;
-			if ( istring < length_string ) {
-				cstring = string.charAt ( istring );
-			}
-		}
 	}
 	tempstr = null;
 	routine = null;
@@ -892,7 +716,7 @@ public static String getToken ( String string, String delim, int flag, int token
 {	if ( token < 0 ) {
 		return null;
 	}
-	Vector v = breakStringList ( string, delim, flag );
+	List v = breakStringList ( string, delim, flag );
 	if ( v == null ) {
 		return null;
 	}
@@ -900,7 +724,7 @@ public static String getToken ( String string, String delim, int flag, int token
 		v = null;
 		return null;
 	}
-	String s = (String)v.elementAt(token);
+	String s = (String)v.get(token);
 	v = null;
 	return s;
 }
@@ -909,17 +733,17 @@ public static String getToken ( String string, String delim, int flag, int token
 Return index of string in string list.  If string is not in string list,
 -1 is returned.  A case-insensitive compare is used.
 @return Index of string in stringlist (or -1).
-@param stringlist Vector of strings to search.
+@param stringlist List of strings to search.
 @param searchString String to return index of.
 */
-public static int indexOf ( Vector stringlist, String searchString )
+public static int indexOf ( List stringlist, String searchString )
 {	if ( stringlist == null || searchString == null )
 		return -1;
 
 	int num_strings = stringlist.size();
 	String currentString;
 	for ( int i=0; i<num_strings; i++ ) {
-		currentString = (String)stringlist.elementAt(i);
+		currentString = (String)stringlist.get(i);
 		if (currentString == null) {
 			// skip
 		}
@@ -937,8 +761,7 @@ Determine whether a string exists in another string, ignoring case.
 @param fromIndex The index where the search should begin.
 @return position of substring or -1 if not found.
 */
-public static int indexOfIgnoreCase (	String full, String substring,
-					int fromIndex )
+public static int indexOfIgnoreCase ( String full, String substring, int fromIndex )
 {	// Convert both strings to uppercase and then do the comparison.
 	String full_up = full.toUpperCase();
 	String substring_up = substring.toUpperCase();
@@ -955,7 +778,7 @@ commands.  Requesting more fields than there are data results in default (zero
 or blank) data being returned.</b>
 This method can be used to read integers and floating point numbers from a
 string containing fixed-format information.
-@return A Vector of objects that are read from the string according to the
+@return A List of objects that are read from the string according to the
 specified format described below.  Integers are returned as Integers, doubles
 as Doubles, etc.  Blank "x" fields are not returned.
 @param string String to parse.
@@ -1008,13 +831,11 @@ NO WHITESPACE OR DELIMITERS IN THE FORMAT!
 </tr>
 </table>
 */
-public static final Vector fixedRead ( String string, String format )
+public static final List fixedRead ( String string, String format )
 {	// Determine the format types and widths...
-	// THIS CODE INLINED FROM THE METHOD BELOW.  MODIFY THE OTHER METHOD
-	// AND THEN MAKE THIS CODE AGREE....
+	// THIS CODE INLINED FROM THE METHOD BELOW.  MODIFY THE OTHER METHOD AND THEN MAKE THIS CODE AGREE....
 
-	// First loop through the format string and count the number of valid
-	// format specifier characters...
+	// First loop through the format string and count the number of valid format specifier characters...
 	int format_length = 0;
 	if ( format != null ) {
 		format_length = format.length();
@@ -1023,7 +844,7 @@ public static final Vector fixedRead ( String string, String format )
 	char cformat;
 	for ( int i = 0; i < format_length; i++ ) {
 		cformat = format.charAt(i);
-		if (	(cformat == 'a') || (cformat == 'A') ||
+		if ( (cformat == 'a') || (cformat == 'A') ||
 			(cformat == 'c') || (cformat == 'C') ||
 			(cformat == 'd') || (cformat == 'D') ||
 			(cformat == 'f') || (cformat == 'F') ||
@@ -1064,7 +885,8 @@ public static final Vector fixedRead ( String string, String format )
 		else if ( (cformat == 'x') || (cformat == 'X') ) {
 			field_types[field_count] = TYPE_SPACE;
 		}
-		else {	// Problem!!!
+		else {
+			// Problem!!!
 			continue;
 		}
 		// Determine the field width...
@@ -1085,7 +907,7 @@ public static final Vector fixedRead ( String string, String format )
 	width_string = null;
 	// ...END OF INLINED CODE
 	// Now do the read...	
-	Vector v = fixedRead ( string, field_types, field_widths, null );
+	List v = fixedRead ( string, field_types, field_widths, null );
 	field_types = null;
 	field_widths = null;
 	return v;
@@ -1093,19 +915,17 @@ public static final Vector fixedRead ( String string, String format )
 
 /**
 Parse a fixed string.
-@return A Vector of objects that are read from the string according to the
+@return A list of objects that are read from the string according to the
 specified format.  Integers are returned as Integers, doubles as Doubles, etc.
 Blank TYPE_SPACE fields are not returned.
 @param string String to parse.
 @param format Format of string (see overloaded method for explanation).
-@param results If specified and not null, the Vector will be used to save the
-results.  This allows a single Vector to be reused in repetitive reads.
-Vector.removeAllElements() is called to clear the Vector before reading.
+@param results If specified and not null, the list will be used to save the
+results.  This allows a single list to be reused in repetitive reads.
+The list is cleared before reading.
 */
-public static final Vector fixedRead (	String string, String format,
-					Vector results )
-{	// First loop through the format string and count the number of valid
-	// format specifier characters...
+public static final List fixedRead ( String string, String format, List results )
+{	// First loop through the format string and count the number of valid format specifier characters...
 	int format_length = 0;
 	if ( format != null ) {
 		format_length = format.length();
@@ -1114,7 +934,7 @@ public static final Vector fixedRead (	String string, String format,
 	char cformat;
 	for ( int i = 0; i < format_length; i++ ) {
 		cformat = string.charAt(i);
-		if (	(cformat == 'a') || (cformat == 'A') ||
+		if ( (cformat == 'a') || (cformat == 'A') ||
 			(cformat == 'c') || (cformat == 'C') ||
 			(cformat == 'd') || (cformat == 'D') ||
 			(cformat == 'f') || (cformat == 'F') ||
@@ -1155,7 +975,8 @@ public static final Vector fixedRead (	String string, String format,
 		else if ( (cformat == 'x') || (cformat == 'X') ) {
 			field_types[field_count] = TYPE_SPACE;
 		}
-		else {	// Problem!!!
+		else {
+			// Problem!!!
 			continue;
 		}
 		// Determine the field width...
@@ -1174,7 +995,7 @@ public static final Vector fixedRead (	String string, String format,
 		++field_count;
 	}
 	width_string = null;
-	Vector v = fixedRead ( string, field_types, field_widths, results );
+	List v = fixedRead ( string, field_types, field_widths, results );
 	field_types = null;
 	field_widths = null;
 	return v;
@@ -1186,19 +1007,17 @@ Requesting more fields than there are data results in default (zero
 or blank) data being returned.</b>
 This method can be used to read integers and floating point numbers from a
 string containing fixed-format information.
-@return A Vector of objects that are read from the string according to the
+@return A List of objects that are read from the string according to the
 specified format.  Integers are returned as Integers, doubles as Doubles, etc.
 Blank TYPE_SPACE fields are not returned.
 @param string String to parse.
 @param field_types Field types to use for parsing 
 @param field_widths Array of fields widths.
-@param results If specified and not null, the Vector will be used to save the
-results.  This allows a single Vector to be reused in repetitive reads.
-Vector.removeAllElements() is called to clear the Vector before reading.
+@param results If specified and not null, the list will be used to save the
+results.  This allows a single list to be reused in repetitive reads.
+The list is cleared before reading.
 */
-public static final Vector fixedRead (	String string,
-					int[] field_types, int [] field_widths,
-					Vector results )
+public static final List fixedRead ( String string, int[] field_types, int [] field_widths, List results )
 {	int	dtype = 0,	// Indicates type of variable (from "format").
 		isize,		// Number of characters in a data value
 				// (as integer).
@@ -1210,12 +1029,13 @@ public static final Vector fixedRead (	String string,
 
 	int size = field_types.length;
 	int string_length = string.length();
-	Vector tokens = null;
+	List tokens = null;
 	if ( results != null ) {
 		tokens = results;
-		tokens.removeAllElements();
+		tokens.clear();
 	}
-	else {	tokens = new Vector(size);
+	else {
+		tokens = new Vector(size);
 	}
 
 	StringBuffer var = new StringBuffer();
@@ -1225,21 +1045,20 @@ public static final Vector fixedRead (	String string,
 		// Read the variable...
 		var.setLength ( 0 );
 		if ( eflag ) {
-			// End of the line has been reached before the
-			// processing has finished...
+			// End of the line has been reached before the processing has finished...
 		}
-		else {	//System.out.println ( "Variable size=" + size);
+		else {
+			//System.out.println ( "Variable size=" + size);
 			isize = field_widths[i];
 			for ( j = 0; j < isize; j++, istring++ ) {
 				if ( istring >= string_length ) {
-					// End of the string.
-					// Process the rest of the
-					// variables so that they are
+					// End of the string.  Process the rest of the variables so that they are
 					// given a value of zero...
 					eflag = true;
 					break;
 				}
-				else {	var.append ( string.charAt(istring) );
+				else {
+					var.append ( string.charAt(istring) );
 				}
 			}
 		}
@@ -1247,41 +1066,43 @@ public static final Vector fixedRead (	String string,
 		//    string to the proper representation.  Apparently
 		//    most atomic objects can be instantiated from a
 		//    String but not a StringBuffer.
-		// 2. Add to the vector.
+		// 2. Add to the list.
 		if ( dtype == StringUtil.TYPE_CHARACTER ) {
-			tokens.addElement ( new Character(var.charAt(0)) );
+			tokens.add ( new Character(var.charAt(0)) );
 		}
 		else if ( dtype == StringUtil.TYPE_DOUBLE ) {
 			String sdouble = var.toString().trim();
 			if ( sdouble.length() == 0 ) {
-				tokens.addElement ( new Double ( "0.0" ) );
+				tokens.add ( new Double ( "0.0" ) );
 			}
-			else {	tokens.addElement ( new Double ( sdouble ) );
+			else {
+				tokens.add ( new Double ( sdouble ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_FLOAT ) {
 			String sfloat = var.toString().trim();
 			if ( sfloat.length() == 0 ) {
-				tokens.addElement ( new Float ( "0.0" ) );
+				tokens.add ( new Float ( "0.0" ) );
 			}
-			else {	tokens.addElement ( new Float ( sfloat ) );
+			else {
+				tokens.add ( new Float ( sfloat ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_INTEGER ) {
 			String sinteger = var.toString().trim();
 			if ( sinteger.length() == 0 ) {
-				tokens.addElement ( new Integer ( "0" ) );
+				tokens.add ( new Integer ( "0" ) );
 			}
-			else {	// check for "+"
+			else {
+				// check for "+"
 				if ( sinteger.startsWith("+")) {
-					sinteger =
-					sinteger.substring(1);
+					sinteger = sinteger.substring(1);
 				}
-				tokens.addElement ( new Integer ( sinteger ) );
+				tokens.add ( new Integer ( sinteger ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_STRING ) {
-			tokens.addElement ( var.toString() );
+			tokens.add ( var.toString() );
 		}
 		++nread;
 	}
@@ -1303,8 +1124,7 @@ public static final Vector fixedRead (	String string,
 /**
 Format a string like the C sprintf function.
 @return The formatted string.
-@param v The vector of objects to format.  Floating point numbers
-must be Double, etc. because
+@param v The list of objects to format.  Floating point numbers must be Double, etc. because
 the toString function is called for each object (actually, a number can be
 passed in as a String since toString work work in that case too).
 @param format The format to use for formatting, containing normal characters
@@ -1356,9 +1176,9 @@ To force strings to be a certain width use a format like %20.20s.  To force
 floating point numbers to always use a decimal point use the #.
 Additional capabilities may be added later.
 */
-public static final String formatString ( Vector v, String format )
-{	StringBuffer	buffer = new StringBuffer ( "" );
-	int		dl = 75;
+public static final String formatString ( List v, String format )
+{	StringBuffer buffer = new StringBuffer ( "" );
+	int dl = 75;
 
 	if ( v == null ) {
 		return buffer.toString();
@@ -1384,10 +1204,10 @@ public static final String formatString ( Vector v, String format )
 	int	sign;
 	int	width = 0;
 	int	vindex = 0;
-	char	cformat;
-	char	cvalue;
-	char	sprecision[] = new char[20]; // should be enough
-	char	swidth[] = new char[20];
+	char cformat;
+	char cvalue;
+	char sprecision[] = new char[20]; // should be enough
+	char swidth[] = new char[20];
 	boolean	dot_found, first, left_shift, pound_format, zero_format;
 	int	vsizem1 = v.size() - 1;
 
@@ -1395,8 +1215,7 @@ public static final String formatString ( Vector v, String format )
 		cformat = format.charAt ( iformat );
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, "StringUtil.formatString",
-			"Format character :\"" +
-			cformat + "\", vindex = " + vindex );
+			"Format character :\"" + cformat + "\", vindex = " + vindex );
 		}
 		if ( cformat == '%' ) {
 			// We have the start of a format field.  Get the rest
@@ -1417,15 +1236,12 @@ public static final String formatString ( Vector v, String format )
 			for ( ; iformat < length_format; iformat++ ) {
 				cformat = format.charAt ( iformat );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl,
-					"StringUtil.formatString",
-					"Format character :\"" + cformat +
-					"\" vindex =" + vindex );
+					Message.printDebug ( dl, "StringUtil.formatString",
+					"Format character :\"" + cformat + "\" vindex =" + vindex );
 				}
 				if ( first ) {
 					// First character after the %...
-					// Need to update so that some of the
-					// following can be combined.
+					// Need to update so that some of the following can be combined.
 					if ( cformat == '%' ) {
 						// Literal percent...
 						buffer.append ( '%' );
@@ -1433,15 +1249,11 @@ public static final String formatString ( Vector v, String format )
 						break;
 					}
 					else if ( cformat == 'c' ) {
-						// Append a Character from the
-						// vector...
-						buffer.append (
-						v.elementAt(vindex).toString());
+						// Append a Character from the list...
+						buffer.append (	v.get(vindex).toString());
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString",
-							"Processed Vector[" +
-							vindex + "], a char" );
+							Message.printDebug ( dl, "StringUtil.formatString",
+							"Processed list[" + vindex + "], a char" );
 						}
 						++vindex;
 						first = false;
@@ -1462,10 +1274,9 @@ public static final String formatString ( Vector v, String format )
 						zero_format = true;
 						continue;
 					}
-					else {	// Not a recognized formatting
-						// character so we will just go
-						// to the next checks outside
-						// this loop...
+					else {
+						// Not a recognized formatting character so we will just go
+						// to the next checks outside this loop...
 						first = false;
 					}
 				}
@@ -1479,107 +1290,74 @@ public static final String formatString ( Vector v, String format )
 					}
 					if ( dot_found ) {
 						// part of the precision...
-						sprecision[iprecision] =
-						cformat;
+						sprecision[iprecision] = cformat;
 						++iprecision;
 					}
-					else {	// part of the width...
+					else {
+						// part of the width...
 						swidth[iwidth] = cformat;
 						++iwidth;
 					}
 					continue;
 				}
-				if (	(cformat != 'd') &&
-					(cformat != 'f') &&
-					(cformat != 'F') &&
-					(cformat != 's') ) {
-					Message.printWarning ( 2,
-					"StringUtil.formatString",
-					"Invalid format string" );
+				if ( (cformat != 'd') && (cformat != 'f') && (cformat != 'F') && (cformat != 's') ) {
+					Message.printWarning ( 3, "StringUtil.formatString", "Invalid format string" );
 					break;
 				}
-				// If we are here, we have a valid format string
-				// and need to process...
+				// If we are here, we have a valid format string and need to process...
 
-				// First get the width and precision on the
-				// format...
+				// First get the width and precision on the format...
 
-				// Get the desired output width and
-				// precision (already initialize to zeros
-				// above)...
+				// Get the desired output width and precision (already initialize to zeros above)...
 
 				if ( iwidth > 0 ) {
-					width = Integer.parseInt (
-					(new String(swidth)).substring(0,
-					iwidth));
+					width = Integer.parseInt ((new String(swidth)).substring(0,iwidth));
 				}
 
 				if ( iprecision > 0 ) {
-					precision = Integer.parseInt (
-					(new String(sprecision)).substring(0,
-					iprecision));
+					precision = Integer.parseInt ((new String(sprecision)).substring(0,iprecision));
 				}
 
-				// Check to see if the number of formats is
-				// greater than the input vector.  If so, this
-				// is likely a programming error so print a
-				// warning so the developer can fix.
+				// Check to see if the number of formats is greater than the input list.  If so, this
+				// is likely a programming error so print a warning so the developer can fix.
 
 				if ( vindex > vsizem1 ) {
-					Message.printWarning ( 2,
-					"StringUtil.formatString",
-					"The number of format strings \"" +
-					format + "\" is > the"+
-					" number of data.  Check code." );
+					Message.printWarning ( 3, "StringUtil.formatString",
+					"The number of format strings \"" + format + "\" is > the number of data.  Check code." );
 					return buffer.toString();
 				}
 
-				// Now do things specific to the different data
-				// types...
+				// Now do things specific to the different data types...
 
 				if ( cformat == 'd' ) {
-					// If NULL or an empty string, just add
-					// a blank string of the desired
-					// width...
-					if ( v.elementAt(vindex) == null ) {
+					// If NULL or an empty string, just add a blank string of the desired width...
+					if ( v.get(vindex) == null ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString",
-							"NULL integer" );
+							Message.printDebug ( dl, "StringUtil.formatString", "NULL integer" );
 						}
-						// NULL string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0; i < width; i++ ){
+						// NULL string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < width; i++ ){
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
-					StringBuffer temp =
-					new StringBuffer (
-					v.elementAt(vindex).toString());
+					StringBuffer temp = new StringBuffer (v.get(vindex).toString());
 					if ( temp.length() == 0 ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString",
-							"Zero length string for integer" );
+							Message.printDebug ( dl, "StringUtil.formatString",
+								"Zero length string for integer" );
 						}
-						// Empty string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0; i < width; i++ ){
+						// Empty string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < width; i++ ){
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						"StringUtil.formatString",
-						"Processing Vector[" +
-						vindex + "], an integer \"" +
-						temp + "\"" );
+						Message.printDebug ( dl, "StringUtil.formatString",
+						"Processing list[" + vindex + "], an integer \"" + temp + "\"" );
 					}
 					++vindex;
 					cvalue = temp.charAt ( 0 );
@@ -1588,59 +1366,48 @@ public static final String formatString ( Vector v, String format )
 					}
 					else {	sign = 0;
 					}
-					// String will be left-justified so we
-					// need to see if we need to shift
-					// right.  Allow overflow.  "temp"
-					// already has the sign in it.
+					// String will be left-justified so we need to see if we need to shift
+					// right.  Allow overflow.  "temp" already has the sign in it.
 					length_temp = temp.length();
 					diff =	width - length_temp;
 					if ( diff > 0 ){
 						if ( left_shift ) {
 							if ( zero_format ) {
-								// Need to add
-								// zeros in the
-								// front...
+								// Need to add zeros in the front...
 								if ( sign == 1 ) {
 									offset = 1;
 								}
-								else {	offset = 0;
+								else {
+									offset = 0;
 								}
-								for (	j = 0;
-									j < diff; j++){
-									temp.insert(offset,
-									'0');
+								for ( j = 0; j < diff; j++) {
+									temp.insert(offset, '0');
 								}
 							}
-							else {	// Add spaces
-								// at the
-								// end...
-								for (	j = 0;
-									j < diff; j++){
-									temp.insert(
-									length_temp,
-									' ');
+							else {
+								// Add spaces at the end...
+								for ( j = 0; j < diff; j++){
+									temp.insert( length_temp,' ');
 								}
 							}
 						}
-						else {	// Add spaces at the
-							// beginning...
+						else {
+							// Add spaces at the beginning...
 							if ( sign == 1 ) {
 								offset = 1;
 							}
-							else {	offset = 0;
+							else {
+								offset = 0;
 							}
 							if ( zero_format ) {
 								// Add zeros...
-								for (	j = 0;
-									j < diff; j++){
-									temp.insert(offset,
-									'0');
+								for ( j = 0; j < diff; j++) {
+									temp.insert(offset,'0');
 								}
 							}
-							else {	for (	j = 0;
-									j < diff; j++){
-									temp.insert(0,
-									' ');
+							else {
+								for ( j = 0; j < diff; j++) {
+									temp.insert(0, ' ');
 								}
 							}
 						}
@@ -1648,436 +1415,290 @@ public static final String formatString ( Vector v, String format )
 					buffer.append ( temp );
 				}
 				else if	( (cformat == 'f') || (cformat == 'F')){
-					// First, get the whole number as a
-					// string...
-					// If NULL, just add a blank string of
-					// the desired width...
-					if ( v.elementAt(vindex) == null ) {
+					// First, get the whole number as a string...
+					// If NULL, just add a blank string of the desired width...
+					if ( v.get(vindex) == null ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString", "NULL float" );
+							Message.printDebug ( dl, "StringUtil.formatString", "NULL float" );
 						}
-						// NULL string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0; i < width; i++ ){
+						// NULL string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < width; i++ ){
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
 					StringBuffer temp = new StringBuffer();
-					String	whole_number_string;
-					String	remainder_string;
-					String	number_as_string = "";
+					String whole_number_string;
+					String remainder_string;
+					String number_as_string = "";
 					int	point_pos;
 					if ( cformat == 'f' ) {
-						number_as_string =
-						v.elementAt(vindex).toString();
+						number_as_string = v.get(vindex).toString();
 					}
 					else if ( cformat == 'F' ) {
-						number_as_string =
-						v.elementAt(vindex).toString();
+						number_as_string = v.get(vindex).toString();
 					}
 					if ( number_as_string.length() == 0 ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString",
-							"Zero length string for float" );
+							Message.printDebug ( dl, "StringUtil.formatString", "Zero length string for float" );
 						}
-						// Empty string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0; i < width; i++ ){
+						// Empty string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < width; i++ ){
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
-					// Need to check here as to whether the
-					// number is less than 10^-3 or greater
-					// than 10^7, in which case the string
-					// comes back in exponential notation
-					// and fouls up the rest of the
-					// process...
-					int E_pos = number_as_string.indexOf(
-							'E');
+					// Need to check here as to whether the number is less than 10^-3 or greater
+					// than 10^7, in which case the string comes back in exponential notation
+					// and fouls up the rest of the process...
+					int E_pos = number_as_string.indexOf('E');
 					if ( E_pos >= 0 ) {
-						// Scientific notation.  Get the
-						// parts to the number and then
-						// put back together.  According
-						// to the documentation, the
-						// format is -X.YYYE-ZZZ
-						// where the first sign is
-						// optional, the first digit (X)
-						// is manditory (and non-zero),
-						// the YYYY are variable length,
-						// the sign after the E is
-						// manditory, and the exponent
-						// is variable length.  The sign
-						// after the E appears to be
+						// Scientific notation.  Get the parts to the number and then
+						// put back together.  According to the documentation, the
+						// format is -X.YYYE-ZZZ where the first sign is optional, the first digit (X)
+						// is manditory (and non-zero), the YYYY are variable length, the sign after the E is
+						// manditory, and the exponent is variable length.  The sign after the E appears to be
 						// optional.
 						if ( Message.isDebugOn ) {
-							Message.printDebug(dl,
-							"StringUtil.formatString",
-							"Detected scientific notation for Double: " +
-							number_as_string );
+							Message.printDebug(dl, "StringUtil.formatString",
+							"Detected scientific notation for Double: " + number_as_string );
 						}
-						StringBuffer expanded_string =
-						new StringBuffer ();
+						StringBuffer expanded_string = new StringBuffer ();
 						int sign_offset = 0;
-						if ( number_as_string.charAt(0)
-							== '-' ) {
-							expanded_string.append(
-							"-");
+						if ( number_as_string.charAt(0) == '-' ) {
+							expanded_string.append("-");
 							sign_offset = 1;
 						}
 						// Position of dot in float...
-						int dot_pos =
-						number_as_string.indexOf('.');
+						int dot_pos = number_as_string.indexOf('.');
 						// Sign of the exponent...
-						char E_sign =
-						number_as_string.charAt(
-						E_pos+1);
+						char E_sign = number_as_string.charAt( E_pos+1);
 						// Exponent as an integer...
 						int exponent = 0;
-						if (	(E_sign == '-') ||
-							(E_sign == '+') ) {
-							exponent = atoi(
-							number_as_string.substring(
-							E_pos + 2) );
+						if ( (E_sign == '-') || (E_sign == '+') ) {
+							exponent = atoi( number_as_string.substring( E_pos + 2) );
 						}
-						else {	// No sign on exponent.
-							exponent = atoi(
-							number_as_string.substring(
-							E_pos + 1) );
+						else {
+							// No sign on exponent.
+							exponent = atoi( number_as_string.substring( E_pos + 1) );
 						}
 						// Left side of number...
-						String left =
-						number_as_string.substring(
-						sign_offset, dot_pos);
+						String left = number_as_string.substring(sign_offset, dot_pos);
 						// Right side of number...
-						String right =
-						number_as_string.substring(
-						(dot_pos + 1), E_pos );
-						// Add to the buffer on the left
-						// side of the number...
+						String right = number_as_string.substring( (dot_pos + 1), E_pos );
+						// Add to the buffer on the left side of the number...
 						if ( E_sign == '-' ) {
-							// Add zeros on the
-							// left...
-							int dot_shift =
-							exponent - 1;
-							expanded_string.append(
-							"." );
-							for ( int ishift = 0;
-								ishift < dot_shift;
-								ishift++ ) {
+							// Add zeros on the left...
+							int dot_shift =	exponent - 1;
+							expanded_string.append(	"." );
+							for ( int ishift = 0; ishift < dot_shift; ishift++ ) {
 								expanded_string.append("0");
 							}
-							expanded_string.append(
-							left);
-							expanded_string.append(
-							right);
+							expanded_string.append(left);
+							expanded_string.append(right);
 						}
-						else {	// Shift the decimal to
-							// the right...
-							expanded_string.append(
-							left );
-							// Now transfer as many
-							// digits as available.
-							int len_right =
-							right.length();
-							for ( int ishift = 0;
-								ishift <
-								exponent;
-								ishift++ ) {
-								if ( ishift <=
-									(len_right - 1) ) {
-									expanded_string.append(
-									right.charAt(ishift) );
+						else {
+							// Shift the decimal to the right...
+							expanded_string.append( left );
+							// Now transfer as many digits as available.
+							int len_right = right.length();
+							for ( int ishift = 0; ishift < exponent; ishift++ ) {
+								if ( ishift <= (len_right - 1) ) {
+									expanded_string.append( right.charAt(ishift) );
 								}
-								else {	expanded_string.append("0");
+								else {
+									expanded_string.append("0");
 								}
 							}
-							expanded_string.append(
-							"." );
-							// If we did not shift
-							// through all the
-							// original right-side
-							// digits, add them
-							// now...
-							if ( exponent <
-								len_right ) {
-								expanded_string.append(
-								right.substring(
-								exponent ) );
+							expanded_string.append( "." );
+							// If we did not shift through all the original right-side digits, add them now...
+							if ( exponent < len_right ) {
+								expanded_string.append( right.substring( exponent ) );
 							}
 						}
 						// Now reset the string...
-						number_as_string =
-						expanded_string.toString();
+						number_as_string = expanded_string.toString();
 						if ( Message.isDebugOn ) {
-							Message.printDebug(dl,
-							"StringUtil.formatString",
-							"Expanded number: \"" +
-							number_as_string +
-							"\"" );
+							Message.printDebug(dl, "StringUtil.formatString",
+							"Expanded number: \"" + number_as_string + "\"" );
 						}
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						"StringUtil.formatString",
-						"Processing Vector[" +
-						vindex + "], a float or double \""
-						+ number_as_string + "\"" );
+						Message.printDebug ( dl, "StringUtil.formatString",
+						"Processing list[" + vindex + "], a float or double \"" + number_as_string + "\"" );
 					}
 					++vindex;
 					// Figure out if negative...
 					if ( number_as_string.charAt(0) == '-'){
 						sign = 1;
 					}
-					else {	sign = 0;
+					else {
+						sign = 0;
 					}
-					// Find the position of the decimal
-					// point...
-					point_pos =
-					number_as_string.indexOf ( '.' );
+					// Find the position of the decimal point...
+					point_pos = number_as_string.indexOf ( '.' );
 					if ( point_pos == -1 ) {
 						// No decimal point.
-						whole_number_string =
-						number_as_string;
+						whole_number_string = number_as_string;
 						remainder_string = "";
 					}
-					else {	// has decimal point
-						whole_number_string =
-						number_as_string.substring(
-						0,point_pos);
-						remainder_string =
-						number_as_string.substring(
-						point_pos + 1);
+					else {
+						// has decimal point
+						whole_number_string = number_as_string.substring(0,point_pos);
+						remainder_string = number_as_string.substring(point_pos + 1);
 					}
-					// Round the number so that the number
-					// of precision digits exactly matches
-					// what we want...
-					if (	precision <
-						remainder_string.length() ) {
-						number_as_string =
-						StringUtil.round(
-						number_as_string, precision );
-						// We may need to recompute the
-						// parts of the string.  Just
-						// do it for now...
-					// Figure out if negative...
-					if ( number_as_string.charAt(0) == '-'){
-						sign = 1;
+					// Round the number so that the number of precision digits exactly matches what we want...
+					if ( precision < remainder_string.length() ) {
+						number_as_string = StringUtil.round( number_as_string, precision );
+						// We may need to recompute the parts of the string.  Just do it for now...
+						// Figure out if negative...
+						if ( number_as_string.charAt(0) == '-'){
+							sign = 1;
+						}
+						else {
+							sign = 0;
+						}
+						// Find the position of the decimal point...
+						point_pos = number_as_string.indexOf ( '.' );
+						if ( point_pos == -1 ) {
+							// No decimal point.
+							whole_number_string = number_as_string;
+							remainder_string = "";
+						}
+						else {
+							// has decimal point
+							whole_number_string = number_as_string.substring(0,point_pos);
+							remainder_string = number_as_string.substring(point_pos + 1);
+						}
 					}
-					else {	sign = 0;
-					}
-					// Find the position of the decimal
-					// point...
-					point_pos =
-					number_as_string.indexOf ( '.' );
-					if ( point_pos == -1 ) {
-						// No decimal point.
-						whole_number_string =
-						number_as_string;
-						remainder_string = "";
-					}
-					else {	// has decimal point
-						whole_number_string =
-						number_as_string.substring(
-						0,point_pos);
-						remainder_string =
-						number_as_string.substring(
-						point_pos + 1);
-					}
-					}
-					// Now start at the back of the string
-					// and start adding parts...
+					// Now start at the back of the string and start adding parts...
 					if ( precision > 0 ) {
 						int iprec;
-						// First fill with zeros for
-						// the precision amount...
-						for (	iprec = 0;
-							iprec < precision;
-							iprec++ ) {
+						// First fill with zeros for the precision amount...
+						for ( iprec = 0; iprec < precision; iprec++ ) {
 							temp.insert ( 0, '0' );
-							
 						}
-						// Now overwrite with the
-						// actual numbers...
+						// Now overwrite with the actual numbers...
 						iend = remainder_string.length();
 						if ( iend > precision ) {
 							iend = precision;
 						}
-						for (	iprec = 0;
-							iprec < iend;
-							iprec++ ) {
-							temp.setCharAt ( iprec,
-							remainder_string.charAt(iprec) );
+						for ( iprec = 0; iprec < iend; iprec++ ) {
+							temp.setCharAt ( iprec, remainder_string.charAt(iprec) );
 						}
-						// Round off the last one if
-						// there is truncation.  Deal
-						// with this later...
-						if (	precision <
-							remainder_string.length() ) {
-							// SAM working on doing
-							// the round above...
+						// Round off the last one if there is truncation.  Deal with this later...
+						if ( precision < remainder_string.length() ) {
+							// TODO - old comment: working on doing the round above...
 						}
 						// Now add the decimal point...
 						temp.insert ( 0, '.' );
-							
 					}
-					else if ( (precision == 0) &&
-						pound_format ) {
+					else if ( (precision == 0) && pound_format ) {
 						// Always add a decimal point...
 						temp.insert ( 0, '.' );
 					}
-					// Now add the whole number.  If it
-					// overflows, that is OK.  If it is
-					// less than the width we will deal with
-					// it in the next step.
+					// Now add the whole number.  If it overflows, that is OK.  If it is
+					// less than the width we will deal with it in the next step.
 					temp.insert ( 0,
 					whole_number_string );
-					// If the number that we have now is
-					// less than the desired width, we need
-					// to add spaces.  Depending on the
-					// sign in the format, we add them at
-					// the left or right.
+					// If the number that we have now is less than the desired width, we need
+					// to add spaces.  Depending on the sign in the format, we add them at the left or right.
 					if ( temp.length() < width ) {
 						int ishift;
 						iend = width - temp.length();
 						if ( left_shift ) {
-							// Add at the
-							// end...
-							for (	ishift = 0;
-								ishift < iend;
-								ishift++ ) {
-								temp.insert (
-								temp.length(),
-								' ' );
+							// Add at the end...
+							for ( ishift = 0; ishift < iend; ishift++ ) {
+								temp.insert ( temp.length(), ' ' );
 							}
 						}
-						else {	// Add at the end..
-							for (	ishift = 0;
-								ishift < iend;
-								ishift++ ) {
-								temp.insert ( 0,
-								' ' );
+						else {
+							// Add at the end..
+							for ( ishift = 0; ishift < iend; ishift++ ) {
+								temp.insert ( 0, ' ' );
 							}
 						}
 					}
 				
 					// Append to our main string...
-						buffer.append ( temp );
+					buffer.append ( temp );
 				}
 				else if ( cformat == 's' ) {
-					// First set the string the requested
-					// size, which is the precision.  If the
-					// precision is zero, do the whole
-					// thing.
-					// String will be left-justified so we
-					// need to see if we need to shift
-					// right.  Allow overflow...
-					// If NULL, just add a blank string of
-					// the desired width...
-					if ( v.elementAt(vindex) == null ) {
+					// First set the string the requested size, which is the precision.  If the
+					// precision is zero, do the whole thing.  String will be left-justified so we
+					// need to see if we need to shift right.  Allow overflow...
+					// If NULL, just add a blank string of the desired width...
+					if ( v.get(vindex) == null ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString", "NULL string");
+							Message.printDebug ( dl, "StringUtil.formatString", "NULL string");
 						}
-						// NULL string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0;
-							i < precision; i++ ){
+						// NULL string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < precision; i++ ) {
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
-					StringBuffer temp = new StringBuffer (
-					v.elementAt(vindex).toString());
+					StringBuffer temp = new StringBuffer ( v.get(vindex).toString());
 					if ( temp.length() == 0 ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							"StringUtil.formatString",
-							"Zero length string" );
+							Message.printDebug ( dl, "StringUtil.formatString", "Zero length string" );
 						}
-						// Empty string.  Set it to be
-						// spaces for the width
-						// requested.
-						for (	i = 0; i < width; i++ ){
+						// Empty string.  Set it to be spaces for the width requested.
+						for ( i = 0; i < width; i++ ){
 							buffer.append ( ' ' );
 						}
 						++vindex;
 						break;
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						"StringUtil.formatString",
-						"Processing Vector[" +
-						vindex + "], a string \"" +
-						temp + "\"" );
+						Message.printDebug ( dl, "StringUtil.formatString",
+						"Processing list[" + vindex + "], a string \"" + temp + "\"" );
 					}
 					++vindex;
 					if ( iprecision > 0 ) {
-						// Now figure out whether we
-						// need to right-justify...
-						diff =	precision -
-							temp.length();
+						// Now figure out whether we need to right-justify...
+						diff = precision - temp.length();
 						if ( !left_shift ) {
 							// Right justify...
 							if ( diff > 0 ) {
-								for (	j = 0;
-									j < diff; j++){
-									temp.insert(0,
-									' ');
+								for ( j = 0; j < diff; j++) {
+									temp.insert(0, ' ');
 								}
 							}
 						}
-						else {	// Left justify.
-							// Set the buffer to the
-							// precision...
-							temp.setLength (
-							precision );
-							// Now fill the end
-							// with spaces
-							// instead of NULLs...
-							for (	j = (precision -
-								diff);
-								j < precision;
-								j++ ){
-								temp.setCharAt(
-								j, ' ');
+						else {
+							// Left justify.  Set the buffer to the precision...
+							temp.setLength ( precision );
+							// Now fill the end with spaces instead of NULLs...
+							for ( j = (precision - diff); j < precision; j++ ){
+								temp.setCharAt( j, ' ');
 							}
 						}
-						// If our string length is
-						// longer than the string,
-						// append a substring...
-						if ( temp.length() >
-							precision ) {
-							buffer.append (
-							temp.toString().substring(0,precision));
+						// If our string length is longer than the string, append a substring...
+						if ( temp.length() > precision ) {
+							buffer.append ( temp.toString().substring(0,precision));
 						}
-						else {	// Do the whole
-							// string...
-							buffer.append (
-							temp.toString());
+						else {
+							// Do the whole string...
+							buffer.append ( temp.toString());
 						}
 					}
-					else {	// Write the whole string...
+					else {
+						// Write the whole string...
 						if ( temp != null ) {
 							buffer.append ( temp );
 						}
 					}
 				}
-				// End of a format string.  Break out and look
-				// for the next one...
+				// End of a format string.  Break out and look for the next one...
 				break;
 			}
 		}
-		else {	// A normal character so just add to the buffer...
+		else {
+			// A normal character so just add to the buffer...
 			buffer.append ( cformat );
 		}
 	}
@@ -2094,8 +1715,8 @@ Format a double as a string.
 @param format Format to use.
 */
 public static final String formatString ( double d, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( new Double(d) );
+{	List v = new Vector ( 1, 1 );
+	v.add ( new Double(d) );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2108,8 +1729,8 @@ Format a Double as a string.
 @param format Format to use.
 */
 public static final String formatString ( Double d, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( d );
+{	List v = new Vector ( 1, 1 );
+	v.add ( d );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2122,8 +1743,8 @@ Format a float as a string.
 @param format Format to use.
 */
 public static final String formatString ( float f, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( new Float(f) );
+{	List v = new Vector ( 1, 1 );
+	v.add ( new Float(f) );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2136,8 +1757,8 @@ Format an int as a string.
 @param format Format to use.
 */
 public static final String formatString ( int i, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( new Integer(i) );
+{	List v = new Vector ( 1, 1 );
+	v.add ( new Integer(i) );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2150,8 +1771,8 @@ Format an Integer as a string.
 @param format Format to use.
 */
 public static final String formatString ( Integer i, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( i );
+{	List v = new Vector ( 1, 1 );
+	v.add ( i );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2164,8 +1785,8 @@ Format a long as a string.
 @param format Format to use.
 */
 public static final String formatString ( long l, String format )
-{	Vector v = new Vector ( 1, 1 );
-	v.addElement ( new Long(l) );
+{	List v = new Vector ( 1, 1 );
+	v.add ( new Long(l) );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2178,8 +1799,8 @@ Format an object as a string.
 @param format Format to use.
 */
 public static final String formatString ( Object o, String format )
-{	Vector	v = new Vector ( 1, 1 );
-	v.addElement ( o );
+{	List v = new Vector ( 1, 1 );
+	v.add ( o );
 	String s = formatString ( v, format );
 	v = null;
 	return s;
@@ -2195,15 +1816,15 @@ public static boolean isASCII( String s )
 	char [] c = new char[sLength];
 
 	// Get character array
-	try {	s.getChars(0,sLength,c,0);
+	try {
+		s.getChars(0,sLength,c,0);
 	} catch(StringIndexOutOfBoundsException SIOOBe) {
 		return false;
 	}
 
 	// Loop through character array checking to make sure it is ASCII
 	for(int i=0;i<sLength;i++) {
-		if((!Character.isLetterOrDigit(c[i]) &&
-			!Character.isWhitespace(c[i]) &&
+		if((!Character.isLetterOrDigit(c[i]) && !Character.isWhitespace(c[i]) &&
 			c[i] != '.' && c[i] != '-' && c[i] != '_') ||
 			(charToHex(c[i])).compareTo("007F") > 0)
 		{
@@ -2270,8 +1891,7 @@ public static boolean isLong(String s)
 }	
 
 /**
-Wrap text by breaking a string into lines that are less than or equal to a
-desired length.
+Wrap text by breaking a string into lines that are less than or equal to a desired length.
 @return the text as a new string delimited by the line break characters.
 @param string String to wrap.
 @param maxlength Maximum length of the string.
@@ -2295,7 +1915,7 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	// forward.
 	//
 	// Also need to consider Tom's code.
-	Vector v = breakStringList ( string, " \t\n", 0 );
+	List v = breakStringList ( string, " \t\n", 0 );
 	int size = 0; 
 	if ( v != null ) {
 		size = v.size();
@@ -2304,14 +1924,15 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	StringBuffer sub_buffer = new StringBuffer();
 	String token = null;
 	for ( int i = 0; i < size; i++ ) {
-		token = (String)v.elementAt(i);
+		token = (String)v.get(i);
 		if ((sub_buffer.length() + 1 + token.length()) > maxlength ){
 			// Add the sub_buffer to the buffer...
 			main_buffer.append ( sub_buffer.toString() + linebreak);
 			sub_buffer.setLength(0);
 			sub_buffer.append ( token );
 		}
-		else {	// Add the token to the sub_buffer...
+		else {
+			// Add the token to the sub_buffer...
 			sub_buffer.append( " " + token );
 		}
 	}
@@ -2322,12 +1943,12 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 }
 
 /**
-Determine the maximum size of the String in a Vector.
-@param v Vector of objects to check the size.  The toString() method is called
+Determine the maximum size of the String in a list.
+@param v list of objects to check the size.  The toString() method is called
 to get a String representation of the object for the check.
 @return the maximum size or -1 if it cannot be determined.
 */
-public static int maxSize ( Vector v )
+public static int maxSize ( List v )
 {	int size = 0;
 	int maxsize = -1;
 	int len = 0;
@@ -2336,7 +1957,7 @@ public static int maxSize ( Vector v )
 	}
 	Object o;
 	for ( int i = 0; i < len; i++ ) {
-		o = v.elementAt(i);
+		o = v.get(i);
 		if ( o == null ) {
 			continue;
 		}
@@ -2412,8 +2033,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 	// working but need to get something delivered for regular expressions
 	// that end in *...
 
-	if (	regexp_string.endsWith("*") &&
-		(StringUtil.patternCount(regexp_string,"*") == 1) ) {
+	if ( regexp_string.endsWith("*") && (StringUtil.patternCount(regexp_string,"*") == 1) ) {
 		// The regular expression is xxx* so do a quick check...
 		int endpos = regexp_string.indexOf("*");
 		if ( endpos == 0 ) {
@@ -2421,8 +2041,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 		}
 		if ( candidate_string.length() < endpos ) {
 			// Candidate string is not long enough to compare
-			// needs to be as long as the regular expression without
-			// the *)...
+			// needs to be as long as the regular expression without the *)...
 			return false;
 		}
 		if ( ignore_case ) {
@@ -2447,8 +2066,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 	while ( true ) {
 		// Start new segment in the regular expression...
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Start new segment section" );
+			Message.printDebug ( dl, routine, "Start new segment section" );
 		}
 		if ( !jumptotest ) {
 			asterisk = false;
@@ -2674,25 +2292,20 @@ public static boolean matchesRegExp ( boolean ignore_case,
 }
 
 /**
-Check to see if a String matches a regular expression, considering case
-explicitly.
+Check to see if a String matches a regular expression, considering case explicitly.
 @param candidate_string String to evaluate.
 @param regexp_string Regular expression string to match.
 @return true if the candidate string matches the regular expression.
-@deprecated Use the standard String.matches() method or
-StringUtil.matchesIgnoreCase().
+@deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
-public static boolean matchesRegExp (	String candidate_string,
-					String regexp_string )
+public static boolean matchesRegExp ( String candidate_string, String regexp_string )
 {	return matchesRegExp ( false, candidate_string, regexp_string );
 }
 
 /**
-Count the number of unique (non-overlapping) instances of a pattern in a
-string.
+Count the number of unique (non-overlapping) instances of a pattern in a string.
 @param s String to search.
-@param pattern Pattern to search for.  Currently this can only be a
-one-character string.
+@param pattern Pattern to search for.  Currently this can only be a one-character string.
 @return The count of the unique instances.
 */
 public static int patternCount ( String s, String pattern )
@@ -2789,38 +2402,37 @@ public static String remove ( String s, String r )
 }
 
 /**
-Remove the duplicates from a Vector of String.  The input Vector is modified so
+Remove the duplicates from a list of String.  The input list is modified so
 make a copy before calling this method if necessary.
-@param strings Vector of String to evaluate.
+@param strings list of String to evaluate.
 @param ignore_case If true, case is ignored in making string comparisons.
-@param sorted If true, the input Vector is assumed to be sorted - this
+@param sorted If true, the input list is assumed to be sorted - this
 increases processing speed.  TRUE IS CURRENTLY THE ONLY VALUE THAT IS SUPPORTED.
-@return the Vector with duplicate values rememoved.
+@return the list with duplicate values rememoved.
 */
-public static Vector removeDuplicates (	Vector strings, boolean ignore_case,
-					boolean sorted )
+public static List removeDuplicates ( List strings, boolean ignore_case, boolean sorted )
 {	if ( sorted ) {
 		// Loop through and compare each string with the previous string
-		// in the Vector, removing the current string if a duplicate.
+		// in the list, removing the current string if a duplicate.
 		int size = 0;
 		if ( strings != null ) {
 			size = strings.size();
 		}
 		String string, string0 = null;
 		if ( size > 0 ) {
-			string0 = (String)strings.elementAt(0);
+			string0 = (String)strings.get(0);
 		}
 		for ( int i = 1; i < size; i++ ) {
-			string = (String)strings.elementAt(i);
+			string = (String)strings.get(i);
 			if ( ignore_case ) {
 				if ( string.equalsIgnoreCase(string0) ) {
-					strings.removeElementAt(i);
+					strings.remove(i);
 					--i;
 					--size;
 				}
 			}
 			else if ( string.equals(string0) ) {
-				strings.removeElementAt(i);
+				strings.remove(i);
 				--i;
 				--size;
 			}
@@ -2967,8 +2579,7 @@ public static String replaceString ( String strOrig, String s1, String s2 ) {
 /**
 Given a string representation of a floating point number, round to the
 desired precision.  Currently this operates on a string (and not a double)
-because the method is called from the formatString() method that operates on
-strings.
+because the method is called from the formatString() method that operates on strings.
 @return String representation of the rounded floating point number.
 @param string String containing a floating point number.
 @param precision Number of digits after the decimal point to round the number.
@@ -2982,19 +2593,16 @@ public static String round ( String string, int precision )
 		// No decimal.
 		return string;
 	}
-	// If we get to here there is a decimal.  Figure out the size of the
-	// integer and the remainder...
+	// If we get to here there is a decimal.  Figure out the size of the integer and the remainder...
 	int integer_length = dot_pos;
 	int remainder_length = string.length() - integer_length - 1;
 	if ( remainder_length == precision ) {
-		// Then our precision matches the remainder length and we can
-		// return the original string...
+		// Then our precision matches the remainder length and we can return the original string...
 		return string;
 	}
 	else if ( remainder_length < precision ) {
 		// If the remainder length is less than the precision, then we
-		// can just add zeros on the end of the original string until
-		// we get to the precision length...
+		// can just add zeros on the end of the original string until we get to the precision length...
 	}
 	// If we get to here we need to do the more complicated roundoff 
 	// stuff.  First check if the precision is zero.  If so, we can round
@@ -3004,10 +2612,8 @@ public static String round ( String string, int precision )
 		return ( new Long(ltemp).toString() );
 	}
 	// If we get to here, we have more than a zero precision and need to
-	// jump through some hoops.  First, create a new string that has the
-	// remainder...
-	StringBuffer remainder_string = new StringBuffer (
-					string.substring(dot_pos + 1) );
+	// jump through some hoops.  First, create a new string that has the remainder...
+	StringBuffer remainder_string = new StringBuffer ( string.substring(dot_pos + 1) );
 	// Next insert a decimal point after the precision digits.
 	remainder_string.insert(precision,'.');
 	// Now convert the string to a Double...
@@ -3032,15 +2638,15 @@ public static String round ( String string, int precision )
 		// We have, during rounding, had to carry over into the next
 		// larger ten's spot (for example, 99.6 has been rounded to
 		// 100.  Therefore, we need to use all but the first digit of
-		// the rounded remainder and we need to increment our original
-		// number (or decrement if negative!).
+		// the rounded remainder and we need to increment our original number (or decrement if negative!).
 		char first_char = string.charAt(0);
 		long new_long = new Long(integer_string).longValue();
 		if ( first_char == '-' ) {
 			// Negative...
 			--new_long;
 		}
-		else {	// Positive...
+		else {
+			// Positive...
 			++new_long;
 		}
 		new_string = new_long + "." + rounded_remainder.substring(1);
@@ -3064,12 +2670,11 @@ public static String round ( String string, int precision )
 //			understanding the language better.
 /**
 This is mainly used for Java debugging and testing.
-@return A Vector of strings, each of which is the expanded character for a
-character in the original string.
+@return A list of strings, each of which is the expanded character for a character in the original string.
 @param string String to print cotrol characters for.
 */
-public static Vector showControl ( String string )
-{	Vector v = new Vector ( 10, 5 );
+public static List showControl ( String string )
+{	List v = new Vector ( 10, 5 );
 
 	int		length = string.length();
 	char		c;
@@ -3086,32 +2691,33 @@ public static Vector showControl ( String string )
 			}
 			else {	control = "Ctrl-unknown(" + c + ")";
 			}
-			v.addElement ( "Letter [" + i + "]: " + control );
+			v.add ( "Letter [" + i + "]: " + control );
 		}
 		else if ( Character.isLetterOrDigit(c) ) {
 			// Print it...
-			v.addElement ( "Letter [" + i + "]: " + c );
+			v.add ( "Letter [" + i + "]: " + c );
 		}
-		else {	// We don't handle...
-			v.addElement ( "Letter [" + i + "]: unknown(" + c +")");
+		else {
+			// Don't handle...
+			v.add ( "Letter [" + i + "]: unknown(" + c +")");
 		}
 	}
 	return v;
 }
 
 /**
-Sort a vector of strings into ascending order, considering case.
-@return The sorted vector (a new Vector is returned).
-@param list The original Vector of String.
+Sort a list of strings into ascending order, considering case.
+@return The sorted list (a new list is returned).
+@param list The original list of String.
 */
-public static Vector sortStringList ( Vector list )
+public static List sortStringList ( List list )
 {	return sortStringList ( list, SORT_ASCENDING, null, false, false );
 }
 
 /**
-Sort a vector of strings.
-@return The sorted vector (a new Vector is returned).
-@param list The original Vector of String.
+Sort a list of strings.
+@return The sorted vector (a new list is returned).
+@param list The original list of String.
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
 @param sort_order Original locations of data after sort (array needs to be
 allocated before calling routine).  For example, first sort String data and then
@@ -3120,12 +2726,10 @@ Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 @param ignore_case If true, then case is ignored when comparing the strings.
 */
-public static Vector sortStringList (	Vector list, int order,
-					int sort_order[], boolean sflag,
-					boolean ignore_case )
+public static List sortStringList ( List list, int order, int sort_order[], boolean sflag, boolean ignore_case )
 {	int	i, ismallest;
-	int[]	itmp=null;
-	String	routine="StringUtil.sortStringList", smallest="";
+	int[] itmp=null;
+	String routine="StringUtil.sortStringList", smallest="";
 
 	if ( (list == null) || (list.size() == 0) ){
 		Message.printWarning ( 50, routine, "NULL string list" );
@@ -3133,24 +2737,24 @@ public static Vector sortStringList (	Vector list, int order,
 	}
 	int size = list.size();
 
-	Vector list_tosort = list;
+	List list_tosort = list;
 	if ( ignore_case ) {
 		// Create a new list that is all upper case...
 		list_tosort = new Vector ( size );
 		String string = null;
 		for ( int j = 0; j < size; j++ ) {
-			string = (String)list.elementAt(j);
+			string = (String)list.get(j);
 			if ( string == null ) {
-				list_tosort.addElement ( string );
+				list_tosort.add ( string );
 			}
-			else {	list_tosort.addElement ( string.toUpperCase() );
+			else {
+				list_tosort.add ( string.toUpperCase() );
 			}
 		}
 	}
-	Vector newlist = new Vector(size);
+	List newlist = new Vector(size);
 
-	// Allocate memory for the temporary int array used to keep
-	// track of the sort order...
+	// Allocate memory for the temporary int array used to keep track of the sort order...
 
 	itmp = new int [size];
 
@@ -3171,16 +2775,11 @@ public static Vector sortStringList (	Vector list, int order,
 				continue;
 			}
 			// Save the "smallest" string.  If this is the first
-			// string encountered this iteration, initialize with
-			// the first string...
-			if( 	(ismallest == -1) || 
-				((order == SORT_ASCENDING) &&
-				(((String)list_tosort.elementAt(i)).compareTo(
-				smallest) < 0) ) ||
-				((order == SORT_DESCENDING) &&
-				(((String)list_tosort.elementAt(i)).compareTo(
-				smallest) > 0)) ) {
-				smallest = (String)list_tosort.elementAt(i);
+			// string encountered this iteration, initialize with the first string...
+			if( (ismallest == -1) || 
+				((order == SORT_ASCENDING) && (((String)list_tosort.get(i)).compareTo(smallest) < 0) ) ||
+				((order == SORT_DESCENDING) && (((String)list_tosort.get(i)).compareTo(smallest) > 0)) ) {
+				smallest = (String)list_tosort.get(i);
 				ismallest = i;
 			}
 		}
@@ -3188,9 +2787,8 @@ public static Vector sortStringList (	Vector list, int order,
 			// We have exhausted the search so break out...
 			break;
 		}
-		// Put in the original item (which will have the original
-		// case)...
-		newlist.addElement( list.elementAt(ismallest) );
+		// Put in the original item (which will have the original case)...
+		newlist.add( list.get(ismallest) );
 		if ( sflag ) {
 			sort_order[count++] = ismallest;
 		}
@@ -3207,8 +2805,7 @@ public static Vector sortStringList (	Vector list, int order,
 /**
 Checks to see if one String starts with another, ignoring case.
 @param s the String to check if it begins with the other
-@param pattern the String that is being checked if it is the start of
-the other string.
+@param pattern the String that is being checked if it is the start of the other string.
 @return true if the second String is the starting String in the first.
 */
 public static boolean startsWithIgnoreCase ( String s, String pattern )
@@ -3244,18 +2841,18 @@ public static boolean stringsAreEqual(String s1, String s2) {
 }
 
 /**
-Convert a Vector of strings to an array of strings.
+Convert a list of strings to an array of strings.
 @return An array containing the strings.
-@param v Vector of strings to convert.
+@param v list of strings to convert.
 */
-public static String[] toArray ( Vector v )
+public static String[] toArray ( List v )
 {	if ( v == null ) {
 		return null;
 	}
 	int vector_size = v.size();
 	String [] array = new String [vector_size];
 	for ( int i = 0; i < vector_size; i++ ) {
-		array[i] = (String)v.elementAt(i);
+		array[i] = (String)v.get(i);
 	}
 	return array;
 }
@@ -3271,7 +2868,7 @@ DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @return the first token or null.
 */
 public static int tokenCount ( String string, String delim, int flag )
-{	Vector v = breakStringList ( string, delim, flag );
+{	List v = breakStringList ( string, delim, flag );
 	if ( v == null ) {
 		return 0;
 	}
@@ -3281,13 +2878,30 @@ public static int tokenCount ( String string, String delim, int flag )
 }
 
 /**
-Convert a Vector of strings into one long string that is delimited by the
-given string (usually the system line separator).  Null strings are treated
-as empty strings.  This is useful for converting Vectors to something that
-a TextArea can display.
-@return the combined string, or null if the original vector is null.
+Convert an array of strings to a List of strings.
+@return A List containing the strings.
+@param array Array of strings to convert.
 */
-public static String toString ( Vector strings, String delimiter )
+public static List toList ( String [] array )
+{
+	if ( array == null ) {
+		return null;
+	}
+	int array_size = array.length;
+	List v = new Vector ( array_size, 50 );
+	for ( int i = 0; i < array_size; i++ ) {
+		v.add ( array[i] );
+	}
+	return v;
+}
+
+/**
+Convert a list of strings into one long string that is delimited by the
+given string (usually the system line separator).  Null strings are treated
+as empty strings.  This is useful for converting lists to something that a TextArea can display.
+@return the combined string, or null if the original list is null.
+*/
+public static String toString ( List strings, String delimiter )
 {
 	if ( strings == null ) {
 		return null;
@@ -3296,44 +2910,25 @@ public static String toString ( Vector strings, String delimiter )
 	int size = strings.size();
 	String string = null;
 	for ( int i = 0; i < size; i++ ) {
-		string = (String)strings.elementAt(i);
+		string = (String)strings.get(i);
 		buffer.append ( string + delimiter );
 	}
 	return buffer.toString();
 }
 
 /**
-Convert an array of strings to a Vector of strings.
-@return A Vector containing the strings.
-@param array Array of strings to convert.
-*/
-public static Vector toVector ( String [] array )
-{
-	if ( array == null ) {
-		return null;
-	}
-	int array_size = array.length;
-	Vector	v = new Vector ( array_size, 50 );
-	for ( int i = 0; i < array_size; i++ ) {
-		v.addElement ( array[i] );
-	}
-	return v;
-}
-
-/**
-Convert an enumeration of strings to a Vector of strings.  This is necesary
-for some methods that take a Vector parameter.
-@return A Vector containing the strings.
+Convert an enumeration of strings to a list of strings.
+@return A list containing the strings.
 @param e Enumeration of strings to convert.
 */
-public static Vector toVector ( Enumeration e )
+public static List toList ( Enumeration e )
 {
 	if ( e == null ) {
 		return null;
 	}
-	Vector	v = new Vector ( 50 );
+	List v = new Vector ( 50 );
 	while ( e.hasMoreElements() ) {
-		v.addElement ( e.nextElement() );
+		v.add ( e.nextElement() );
 	}
 	return v;
 }
@@ -3378,8 +2973,7 @@ public static Vector toVector ( Enumeration e )
 
 /**
 Remove characters from string.
-@return A string that has been unpadded (whitespace removed from front, back
-and/or middle).
+@return A string that has been unpadded (whitespace removed from front, back and/or middle).
 @param string String to unpad.
 @param white0 Whitespace characters to remove.
 @param flag Bitmask indicating how to unpad.  Can be
@@ -3508,8 +3102,7 @@ public static String unpad ( String string )
 /**
 This is the same as the String version, but allows a StringBuffer as input.
 */
-public static String unpad (	StringBuffer string, String white0,
-					int flag )
+public static String unpad ( StringBuffer string, String white0, int flag )
 {	return unpad ( string.toString(), white0, flag );
 }
 
@@ -3523,11 +3116,11 @@ spaces, tabs, backslashes and forward slashes.
 @return a wrapped that will fit on lines of the given length.
 */
 public static String wrap(String s, int lineLength) {
-	Vector v = StringUtil.breakStringList(s, "\n", 0);
+	List v = StringUtil.breakStringList(s, "\n", 0);
 	StringBuffer sb = new StringBuffer("");
 	
 	for (int i = 0; i < v.size(); i++) {
-		sb.append(wrapHelper((String)v.elementAt(i), lineLength));
+		sb.append(wrapHelper((String)v.get(i), lineLength));
 	}
 	return sb.toString();
 }
@@ -3546,17 +3139,14 @@ public static String wrapHelper(String s, int lineLength) {
 		return "";
 	}
 
-	// the most-recently-located index of a point in the text at 
-	// which a wrap can occur
+	// the most-recently-located index of a point in the text at which a wrap can occur
 	int next = -1;
-	// the previously-located index of a point in the text at which 
-	// a wrap could occur
+	// the previously-located index of a point in the text at which a wrap could occur
 	int last = -1;
 	String trim = null;
 	StringBuffer sb = new StringBuffer("");
 
-	// first check for the trivial case -- a String that's shorter than
-	// the maximum allowed line length
+	// first check for the trivial case -- a String that's shorter than the maximum allowed line length
 	if (s.length() <= lineLength) {
 		sb.append(s + "\n");
 		return sb.toString();
@@ -3565,12 +3155,10 @@ public static String wrapHelper(String s, int lineLength) {
 	while (true) {
 		last = next;
 
-		// find the next point from which a line wrap can possibly
-		// occur.
+		// find the next point from which a line wrap can possibly occur.
 		next = wrapFindFirstWrappableIndex(s, next + 1);
 
-		// if the next point for a valid wordwrap is beyond the maximum
-		// allowable line length ...
+		// if the next point for a valid wordwrap is beyond the maximum allowable line length ...
 		if (next > lineLength) {
 			// ... and no previous word wrap point was found ...
 			if (last == -1) {
@@ -3671,12 +3259,10 @@ public static String wrapHelper(String s, int lineLength) {
 }
 
 /**
-A helper function used by wrap() to locate a the point at which a line of
-text can be wrapped.
+A helper function used by wrap() to locate a the point at which a line of text can be wrapped.
 @param s the text to check.
 @param from the point from which to check the text.
-@return the location of the next immediate wrap point, or -1 if none can be
-found.
+@return the location of the next immediate wrap point, or -1 if none can be found.
 */
 private static int wrapFindFirstWrappableIndex(String s, int from) {
 	// there are two batches of characters to be checked and each batch
@@ -3696,8 +3282,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 	index1 = wrapFindFirstWrappableIndexHelper(s, "/", from, index1);
 	index1 = wrapFindFirstWrappableIndexHelper(s, "\\", from, index1);
 
-	// in the second case are characters that denote that the line 
-	// must be wrapped BEFORE.
+	// in the second case are characters that denote that the line must be wrapped BEFORE.
 	int index2 = wrapFindFirstWrappableIndexHelper(s, "(", from, -1);
 	index2 = wrapFindFirstWrappableIndexHelper(s, "{", from, index2);
 	index2 = wrapFindFirstWrappableIndexHelper(s, "[", from, index2);
@@ -3812,6 +3397,4 @@ int from, int index) {
 	}
 }
 
-
-
-} // End class StringUtil
+}

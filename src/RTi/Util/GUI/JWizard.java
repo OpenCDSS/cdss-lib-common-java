@@ -33,7 +33,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -423,7 +423,7 @@ This function sets the information string.
 @param info string to display path icon file path
 */
 protected void setInfoString(String info) {
-	Vector vec = StringUtil.breakStringList(info, "\n", 0);
+	List vec = StringUtil.breakStringList(info, "\n", 0);
 
         Insets NLNR_Insets = new Insets(0,7,0,7);
 
@@ -440,7 +440,7 @@ protected void setInfoString(String info) {
 		//__infoJPanel.setLayout(new GridLayout(size, 1));
 
 		for(int i = 0; i < size; i++) {
-			label = new JLabel("          " + vec.elementAt(i)+
+			label = new JLabel("          " + vec.get(i)+
 			  "          ");
 			label.setFont(font);
 

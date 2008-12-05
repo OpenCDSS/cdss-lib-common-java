@@ -42,7 +42,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -105,7 +105,7 @@ HelpJDialog constructor
 
 </table>
 */
-public HelpJDialog ( JFrame parent, Vector helpInfo, PropList props )
+public HelpJDialog ( JFrame parent, List helpInfo, PropList props )
 {	super ( parent );
 	_props = props;
 	setGUI ( );
@@ -116,8 +116,7 @@ public HelpJDialog ( JFrame parent, Vector helpInfo, PropList props )
 
 		int size = helpInfo.size();
 		for ( int i=0; i<size; i++ ) {
-			contents.append ( (String)helpInfo.elementAt(i) +
-				newLine );
+			contents.append ( (String)helpInfo.get(i) + newLine );
 			_help_JTextArea.setText ( contents.toString() );
 		}
 		contents = null;

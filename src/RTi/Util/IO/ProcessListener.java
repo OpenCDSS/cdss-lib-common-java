@@ -12,7 +12,7 @@ package RTi.Util.IO;
 This ProcessListener interface can be implemented by classes that need to
 listen for output from an external process, as controlled by the ProcessManager.
 This interface is used by the ProcessManagerJDialog to retrieve process output
-as it is geneated. 
+as it is generated. 
 */
 public abstract interface ProcessListener
 {

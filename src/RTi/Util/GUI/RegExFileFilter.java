@@ -17,6 +17,7 @@
 package RTi.Util.GUI;
 
 import java.io.File;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.filechooser.FileFilter;
@@ -94,14 +95,13 @@ See showRegExListInDescription() for more information.
 /**
 A list of all the regular expressions in the filter.
 */
-private Vector __filters = null;
+private List __filters = null;
 
 /**
 Creates a RegExFileFilter that will filter for the given regular expression,
 and which has the given description.
 @param regex a regular expression to filter files for
-@param description a concise description of the filter (e.g., "Shockwave
-Media Files").
+@param description a concise description of the filter (e.g., "Shockwave Media Files").
 */
 public RegExFileFilter(String regex, String description) {
 	__filters = new Vector();
@@ -121,14 +121,13 @@ Creates a RegExFileFilter that will filter for each regular expression in the
 Vector of Strings, and will use the given description.
 @param filters a Vector of Strings, each of which is a regular 
 expression to be used as a filter.
-@param description a concise description of the filter. (e.g., "Shockwave
-Media Files").
+@param description a concise description of the filter. (e.g., "Shockwave Media Files").
 */
-public RegExFileFilter(Vector filters, String description) {
+public RegExFileFilter(List filters, String description) {
 	__filters = new Vector();
 
 	for (int i = 0; i < filters.size(); i++) {
-		__filters.add((String)filters.elementAt(i));
+		__filters.add((String)filters.get(i));
 	}
 	__description = description;
 	//__fullDescription = getDescription();
@@ -152,7 +151,7 @@ public boolean accept(File f) {
 		}
 		String filename = f.getName();
 		for (int i = 0; i < __filters.size(); i++) {
-			if (filename.matches((String)__filters.elementAt(i))) {
+			if (filename.matches((String)__filters.get(i))) {
 				return true;
 			}
 		}
@@ -200,7 +199,7 @@ public String getDescription() {
 			if (i > 0) {
 				fullDescription += ", ";
 			}
-			fullDescription += (String) __filters.elementAt(i);
+			fullDescription += (String) __filters.get(i);
 		}
 		fullDescription += ")";
 	} else {

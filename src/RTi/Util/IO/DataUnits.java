@@ -79,6 +79,7 @@ package RTi.Util.IO;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -126,14 +127,12 @@ private double	__mult_factor;		// Multiplier for conversion (relative
 					// to base).
 private double	__add_factor;		// Add factor for conversion (relative
 					// to base).
-private int	__behavior_mask;	// Behavior flag (e.g., whether to
-					// output in uppercase).
+private int	__behavior_mask;	// Behavior flag (e.g., whether to output in uppercase).
 
 // The following list can be modified  by the static functions...
 
-private static Vector __units_Vector = new Vector(20);
-					// Vector of internally-maintained
-					// available units.
+private static List __units_Vector = new Vector(20);
+					// Vector of internally-maintained available units.
 
 /**
 Construct and set all data members to empty strings and zeros.
@@ -208,18 +207,18 @@ public static void addUnits ( DataUnits units )
 	DataUnits pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the units for the loop index...
-		pt = (DataUnits)__units_Vector.elementAt(i);
+		pt = (DataUnits)__units_Vector.get(i);
 		// Now compare...
 		if (	units.getAbbreviation().equalsIgnoreCase(
 			pt.getAbbreviation() ) ) {
 			// The requested units match something that is
 			// already in the list.  Reset the list...
-			__units_Vector.setElementAt ( units, i );
+			__units_Vector.set ( i, units );
 			return;
 		}
 	}
 	// Need to add the units to the list...
-	__units_Vector.addElement ( units );
+	__units_Vector.add ( units );
 	pt = null;
 }
 
@@ -231,7 +230,7 @@ If it is necessary to guarantee that the units are exactly the same, call the
 version of this method that takes the boolean flag.
 @param units_strings Vector of units strings.
 */
-public static boolean areUnitsStringsCompatible ( Vector units_strings )
+public static boolean areUnitsStringsCompatible ( List units_strings )
 {	return areUnitsStringsCompatible ( units_strings, false );
 }
 
@@ -243,15 +242,12 @@ dimension (e.g., each is a length).
 @param units_string2 Second units strings.
 @param require_same Flag indicating whether the units must exactly match (no
 conversion necessary).  If true, the units must be the same.  If false, the
-units must only be in the same dimension (e.g., "CFS" and "GPM" would be
-compatible).
+units must only be in the same dimension (e.g., "CFS" and "GPM" would be compatible).
 */
-public static boolean areUnitsStringsCompatible (	String units_string1,
-							String units_string2,
-							boolean require_same )
-{	Vector units_strings = new Vector(2);
-	units_strings.addElement ( units_string1 );
-	units_strings.addElement ( units_string2 );
+public static boolean areUnitsStringsCompatible ( String units_string1, String units_string2, boolean require_same )
+{	List units_strings = new Vector(2);
+	units_strings.add ( units_string1 );
+	units_strings.add ( units_string2 );
 	boolean result = areUnitsStringsCompatible ( units_strings,
 		require_same);
 	units_strings = null;
@@ -264,11 +260,9 @@ Determine whether a list of units strings are compatible.
 @param require_same Flag indicating whether the units must exactly match (no
 conversion necessary).  If true, the units must be the same, either in
 spelling or have the a conversion factor of unity.  If false, the
-units must only be in the same dimension (e.g., "CFS" and "GPM" would be
-compatible).
+units must only be in the same dimension (e.g., "CFS" and "GPM" would be compatible).
 */
-public static boolean areUnitsStringsCompatible (	Vector units_strings,
-							boolean require_same )
+public static boolean areUnitsStringsCompatible ( List units_strings, boolean require_same )
 {	if ( units_strings == null ) {
 		// No units.  Decide later whether to throw an exception.
 		return true;
@@ -278,7 +272,7 @@ public static boolean areUnitsStringsCompatible (	Vector units_strings,
 		// No need to compare...
 		return true;
 	}
-	String units1 = (String)units_strings.elementAt(0);
+	String units1 = (String)units_strings.get(0);
 	if ( units1 == null ) {
 		return true;
 	}
@@ -287,7 +281,7 @@ public static boolean areUnitsStringsCompatible (	Vector units_strings,
 	// result in an ignored conversion...
 	DataUnitsConversion conversion = null;
 	for ( int i = 1; i < size; i++ ) {
-		units2 = (String)units_strings.elementAt(i);
+		units2 = (String)units_strings.get(i);
 		if ( units2 == null ) {
 			continue;
 		}
@@ -730,26 +724,12 @@ throws Exception
 }
 
 /**
-Return the Vector of units data.
-@return the Vector of units data (useful for debugging and GUI displays).
+Return the list of units data.
+@return the list of units data (useful for debugging and GUI displays).
 Perhaps later overload to request by dimension, system, etc.
 */
-public static Vector getUnitsData()
+public static List getUnitsData()
 {	return __units_Vector;
-}
-
-/**
-Return all the DataUnits objects that have the Dimension abbreviation
-equal to the paramter passed in.
-@param system Requested units system.  Pass null or "" to get all systems,
-"ENGL" for english, or "SI" for SI units.
-@param dimension the dimension abbreviation to return units for.
-@return a Vector of all the DataUnits objects that match the dimension or
-an empty Vector if none exist.
-@deprecated use lookupUnitsForDimension
-*/
-public static Vector getUnitsForDimension ( String system, String dimension )
-{	return lookupUnitsForDimension ( system, dimension );
 }
 
 /**
@@ -785,10 +765,9 @@ throws Exception
 	int size = __units_Vector.size();
 	DataUnits pt = null;
 	for (	int i = 0; i < size; i++ ) {
-		pt = (DataUnits)__units_Vector.elementAt(i);
+		pt = (DataUnits)__units_Vector.get(i);
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 20, routine, "Comparing " + 
-			units_string + " and " + pt.getAbbreviation());
+			Message.printDebug ( 20, routine, "Comparing " + units_string + " and " + pt.getAbbreviation());
 		}
 		if (	units_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
 			// The requested units match something that is
@@ -802,15 +781,15 @@ throws Exception
 
 /**
 Return all the DataUnits objects that have the Dimension abbreviation
-equal to the paramter passed in.
+equal to the parameter passed in.
 @param system Requested units system.  Pass null or "" to get all systems,
-"ENGL" for english, or "SI" for SI units.
+"ENGL" for English, or "SI" for SI units.
 @param dimension the dimension abbreviation to return units for.
 @return a Vector of all the DataUnits objects that match the dimension or
 an empty Vector if none exist.
 */
-public static Vector lookupUnitsForDimension ( String system, String dimension )
-{	Vector v = new Vector();
+public static List lookupUnitsForDimension ( String system, String dimension )
+{	List v = new Vector();
 
 	// First see if the units are already in the list...
 
@@ -820,7 +799,7 @@ public static Vector lookupUnitsForDimension ( String system, String dimension )
 	String dudDim;
 
 	for ( int i = 0; i < size; i++ ) {
-		pt = (DataUnits)__units_Vector.elementAt(i);
+		pt = (DataUnits)__units_Vector.get(i);
 		if (	(system != null) && !system.equals("") &&
 			!pt.getSystemString().equals("") &&
 			!pt.getSystemString().equalsIgnoreCase(system) ) {
@@ -832,7 +811,7 @@ public static Vector lookupUnitsForDimension ( String system, String dimension )
 		dud = (DataDimension)pt.getDimension();
 		dudDim = dud.getAbbreviation();
 		if ( dimension.equalsIgnoreCase(dudDim) ) {
-			v.addElement(pt);
+			v.add(pt);
 		}
 	}
 
@@ -1074,13 +1053,14 @@ instance checks the dimension against defined dimensions.
 public static void readUnitsFile ( String dfile, boolean define_dimensions )
 throws IOException
 {	String	message, routine = "DataUnits.readUnitsFile";
-	Vector	units_file = null;
+	List units_file = null;
 
 	try {	// Main try...
 
 	// Read the file into a list...
 
-	try {	units_file = IOUtil.fileToStringList ( dfile );
+	try {
+		units_file = IOUtil.fileToStringList ( dfile );
 	}
 	catch ( Exception e ) {
 		message = "Unable to read units file \"" + dfile + "\"";
@@ -1102,13 +1082,13 @@ throws IOException
 	// For each line, if not a comment, break apart and add units to the
 	// global list...
 
-	DataUnits	units;
-	String		string, token;
-	Vector		tokens = null;
-	char		first;
+	DataUnits units;
+	String string, token;
+	List tokens = null;
+	char first;
 	for ( int i = 0; i < nstrings; i++ ) {
 		try {
-		string = (String)units_file.elementAt(i);
+		string = (String)units_file.get(i);
 		if ( string == null ) {
 			continue;
 		}
@@ -1141,26 +1121,23 @@ throws IOException
 			// keep only one unique definition.
 			DataDimension.addDimension (
 				new DataDimension(
-					((String)tokens.elementAt(0)).trim(),
-					((String)tokens.elementAt(0)).trim()));
+					((String)tokens.get(0)).trim(),
+					((String)tokens.get(0)).trim()));
 		}
-		units.setDimension ( ((String)tokens.elementAt(0)).trim() );
-		token = (String)tokens.elementAt(1);
+		units.setDimension ( ((String)tokens.get(0)).trim() );
+		token = (String)tokens.get(1);
 		if ( token.equalsIgnoreCase("BASE") ) {
 			// Base units for the dimension...
 			units.setBaseFlag ( 1 );
 		}
 		else {	units.setBaseFlag ( 0 );
 		}
-		units.setAbbreviation ( ((String)tokens.elementAt(2)).trim() );
-		units.setSystem ( ((String)tokens.elementAt(3)).trim() );
-		units.setLongName ( ((String)tokens.elementAt(4)).trim() );
-		units.setOutputPrecision ( StringUtil.atoi(
-			((String)tokens.elementAt(5)).trim()) );
-		units.setMultFactor ( StringUtil.atod(
-			((String)tokens.elementAt(6)).trim()) );
-		units.setAddFactor ( StringUtil.atod(
-			((String)tokens.elementAt(7)).trim()) );
+		units.setAbbreviation ( ((String)tokens.get(2)).trim() );
+		units.setSystem ( ((String)tokens.get(3)).trim() );
+		units.setLongName ( ((String)tokens.get(4)).trim() );
+		units.setOutputPrecision ( StringUtil.atoi( ((String)tokens.get(5)).trim()) );
+		units.setMultFactor ( StringUtil.atod( ((String)tokens.get(6)).trim()) );
+		units.setAddFactor ( StringUtil.atod( ((String)tokens.get(7)).trim()) );
 
 		// Add the units to the list...
 

@@ -75,7 +75,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Help.URLHelp;
 
@@ -101,7 +101,7 @@ public class ReportJFrame extends JFrame implements ActionListener, HyperlinkLis
 private JTextField	_status_JTextField;	// status TextField
 private JTextArea	_info_JTextArea;	// Report TextArea
 private JEditorPane	_info_JEditorPane;	// Report TextArea
-private Vector		_info_Vector;		// Contains String elements to display in the _info_TextArea object
+private List _info_Vector;		// Contains String elements to display in the _info_TextArea object
                                                 
 private PropList	_prop;			// PropList object
 private String		_help_key;              // Help Keyword
@@ -215,7 +215,7 @@ but it can display HTML</li>
 
 </table>
 */
-public ReportJFrame ( Vector info, PropList prop )
+public ReportJFrame ( List info, PropList prop )
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	_info_Vector = info;
 	_prop = prop;
@@ -340,7 +340,7 @@ private void displayContents()
     			Message.printDebug ( 1, routine, "Text report is " + size + " lines." );
     		}
     		for ( int i=from; i<to; i++ ) {
-    			contents.append ( (String)_info_Vector.elementAt( i ) + newLine );
+    			contents.append ( (String)_info_Vector.get( i ) + newLine );
     		}
     		if (__textComponent.equals("JTextArea")) {
     			_info_JTextArea.setText(contents.toString());

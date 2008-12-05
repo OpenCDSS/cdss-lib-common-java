@@ -93,11 +93,12 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import java.util.List;
 import java.util.Vector;
 import java.lang.reflect.Method;
 
 /**
-The TreePanel class displays a tree data structres like heirarchical
+The TreePanel class displays a tree data structures like heirarchical
 file systems.
 */
 public class TreePanel extends Panel
@@ -117,16 +118,16 @@ public class TreePanel extends Panel
     public static final int TRIGGERMARGIN = 10;
     public static final int TRIGGERSIZE = CELLSIZE-(2 *TRIGGERMARGIN);
 
-    /** the vector to store the whole tree node */
-    Vector treeVector;
+    /** the list to store the whole tree node */
+    List treeVector;
 
-    /** the vector to hold the displayed tree node */
-    public Vector displayedVector;
+    /** the list to hold the displayed tree node */
+    public List displayedVector;
 
     /** the current selected tree node */
     public TreeNode selectedNode;
 
-    /** the maxium width of the panel */
+    /** the maximum width of the panel */
     int treeWidth = -1;
 
     // Scrolling related stuff.
@@ -134,7 +135,7 @@ public class TreePanel extends Panel
 	public int treeHOffset=0;
     Scrollbar treeVScrollbar, treeHScrollbar;
 
-    // variables for duble-buffer
+    // variables for double-buffer
     Image offScreenImage = null;
     Graphics offGraphics;
 
@@ -154,7 +155,7 @@ public class TreePanel extends Panel
         displayedVector = new Vector();
         selectedNode = null;
 
-        // add vertical & horizintal scrollbar
+        // add vertical & horizontal scroll bar
         addScrollbar();
         addMouseListener(this);
     }
@@ -176,7 +177,7 @@ public class TreePanel extends Panel
      */
     public  void addTreeNode(TreeNode node)
     {
-        treeVector.addElement(node);
+        treeVector.add(node);
         node.added();
     }
 
@@ -200,16 +201,16 @@ public class TreePanel extends Panel
 
         // find the position to add the node
         for (i = pos + 1; i < lCount; i++) {
-            lNode = (TreeNode) treeVector.elementAt(i);
+            lNode = (TreeNode) treeVector.get(i);
             if (lLevel == lNode.getLevel())
                 break; // the same level
         }
 
         // the last node
         if (i == lCount)
-            treeVector.addElement(node);
+            treeVector.add(node);
         else
-            treeVector.insertElementAt(node, i);
+            treeVector.add(i, node);
 
         node.added();
     }
@@ -227,7 +228,7 @@ public class TreePanel extends Panel
         // remove the whole subtree
         removeSubTreeNodes(node);
 
-        treeVector.removeElementAt(pos);
+        treeVector.remove(pos);
         node.deleted();
 
         if (selectedNode == node)
@@ -240,7 +241,7 @@ public class TreePanel extends Panel
         int count=treeVector.size();
 
         if (count != 0)
-           treeVector.removeAllElements();
+           treeVector.clear();
 
         treeHOffset = 0;
         treeVOffset = 0;
@@ -265,7 +266,7 @@ public class TreePanel extends Panel
         // for the rest node
         for (i = pos + 1; i < treeVector.size();)
         {
-            lNode = (TreeNode) treeVector.elementAt(i);
+            lNode = (TreeNode) treeVector.get(i);
             lNodeLevel = lNode.getLevel();
 
             if (lLevel == lNodeLevel) break;
@@ -273,7 +274,7 @@ public class TreePanel extends Panel
             if (lLevel < lNodeLevel)
             {
                 // remove the subnode of the tree
-                treeVector.removeElementAt(i);
+                treeVector.remove(i);
                 lNode.deleted();
 
                 if (selectedNode == lNode) selectedNode = null;
@@ -311,18 +312,18 @@ public class TreePanel extends Panel
         int lDepth = 0;
 
         /* initialize the displayed vector */
-        displayedVector.removeAllElements();
+        displayedVector.clear();
 
         lCount = treeVector.size();
         for (int i = 0; i < lCount; i++)
         {
-            lNode = (TreeNode) treeVector.elementAt(i);
+            lNode = (TreeNode) treeVector.get(i);
             lLevel = lNode.getLevel();
 
             // get the displayed node
             if (lLevel <= lDepth) {
                 // add one node
-                displayedVector.addElement(lNode);
+                displayedVector.add(lNode);
                 lDepth = lLevel;
 
                 if (lNode.isExpandable() && lNode.isExpanded())
@@ -390,7 +391,7 @@ public class TreePanel extends Panel
 
         if (lIndex >= displayedVector.size()) return;
 
-        TreeNode lNode = (TreeNode) displayedVector.elementAt(lIndex);
+        TreeNode lNode = (TreeNode) displayedVector.get(lIndex);
         selectedNode   = lNode;
         int lLevel = lNode.getLevel();
         Rectangle lRect  = new Rectangle((lLevel * CELLSIZE) + TRIGGERMARGIN,
@@ -512,7 +513,7 @@ public class TreePanel extends Panel
         for (int ii = 0; ii < lCount; ii++)
         {
             i = ii - treeVOffset;
-            lNode = (TreeNode) displayedVector.elementAt(ii);
+            lNode = (TreeNode) displayedVector.get(ii);
             lLevel = lNode.getLevel();
 
             if (lNode == selectedNode)
@@ -534,11 +535,11 @@ public class TreePanel extends Panel
             if (ii + 1 < lCount)
             {
                 // not the last node to be displayed        
-                if (((TreeNode) displayedVector.elementAt(ii + 1)).getLevel()>=lLevel)
+                if (((TreeNode) displayedVector.get(ii + 1)).getLevel()>=lLevel)
                 {
                     // if the level of the next node is not same as the current, 
                     // change to next level
-                    if (((TreeNode) displayedVector.elementAt(ii+1)).getLevel()>lLevel)
+                    if (((TreeNode) displayedVector.get(ii+1)).getLevel()>lLevel)
                     {
                         // draw the vertical line
                         gc.drawLine(((lLevel + 1) * CELLSIZE) + (CELLSIZE/2)
@@ -550,12 +551,12 @@ public class TreePanel extends Panel
                     for (j = ii + 1, k = -1; j < lCount; j++)
                     {
                         // same level
-                        if (((TreeNode) displayedVector.elementAt(j)).getLevel()==lLevel)
+                        if (((TreeNode) displayedVector.get(j)).getLevel()==lLevel)
                         {
                             k = j;
                             break;
                         }
-                        if (((TreeNode) displayedVector.elementAt(j)).getLevel()<lLevel)
+                        if (((TreeNode) displayedVector.get(j)).getLevel()<lLevel)
                             break;
                     }
 

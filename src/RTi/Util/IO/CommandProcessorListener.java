@@ -3,7 +3,7 @@ package RTi.Util.IO;
 /**
 This interface defines behavior for listening to a command processor.
 This is implemented, for example, when a GUI is displaying the progress of
-a command processor.  Ini practice the display of messages may be more
+a command processor.  In practice the display of messages may be more
 appropriate for tool-tip popup than a status window, due to flashing.  If
 command processing allows pause, then the individual messages will be
 important to indicate the current state of processing.
@@ -59,8 +59,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command,
 /**
 Indicate the progress that is occurring within a command.  This may be a chained call
 from a CommandProcessor that implements CommandListener to listen to a command.  This
-level of monitoring is useful if more than one progress indicator is present in an
-application UI.
+level of monitoring is useful if more than one progress indicator is present in an application UI.
 @param istep The number of steps being executed in a command (0+).
 @param nstep The total number of steps to process within a command.
 @param command The reference to the command that is starting to run,

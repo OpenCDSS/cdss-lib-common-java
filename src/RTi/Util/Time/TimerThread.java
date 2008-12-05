@@ -3,13 +3,14 @@
 package RTi.Util.Time;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Vector;
 
 public class TimerThread implements Runnable, Serializable {
   protected int increment = 1000;
   protected int elapsed = 0;
   protected int alarm;
-  protected Vector timerListeners = new Vector ();
+  protected List timerListeners = new Vector ();
   transient protected Thread runner;
 
   public TimerThread () {
@@ -73,11 +74,11 @@ public class TimerThread implements Runnable, Serializable {
   }
 
   public void addTimerListener (TimerListener listener) {
-    timerListeners.addElement (listener);
+    timerListeners.add (listener);
   }
 
   public void removeTimerListener (TimerListener listener) {
-    timerListeners.removeElement (listener);
+    timerListeners.remove (listener);
   }
 
   protected void incrementUpdate () {
@@ -85,7 +86,7 @@ public class TimerThread implements Runnable, Serializable {
     //Vector timerListeners = (Vector) this.timerListeners.clone ();
     
     for (int i = 0; i < timerListeners.size (); ++ i) {
-      ((TimerListener) timerListeners.elementAt (i)).incrementUpdate (event);
+      ((TimerListener) timerListeners.get (i)).incrementUpdate (event);
     }
   }
 
@@ -94,6 +95,6 @@ public class TimerThread implements Runnable, Serializable {
     //Vector timerListeners = (Vector) this.timerListeners.clone ();
     
     for (int i = 0; i < timerListeners.size (); ++ i)
-      ((TimerListener) timerListeners.elementAt (i)).alarmUpdate (event);
+      ((TimerListener) timerListeners.get (i)).alarmUpdate (event);
   }
 }   

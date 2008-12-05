@@ -52,4 +52,4 @@ public TZChange ( int y, int a_tods, int o_tost )
 	oct_tost = o_tost;
 }
 
-} // End of TZChange
+}

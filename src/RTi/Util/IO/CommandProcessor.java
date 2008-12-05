@@ -31,8 +31,7 @@ public interface CommandProcessor
 {
 
 /**
-Return a property given the property name (request).
-Return null if not found.
+Return a property given the property name (request).  Return null if not found.
 @param prop Name of property being requested.
 @return the Property contents as a Prop instance.
 @exception Exception if the property is not recognized.
@@ -40,8 +39,7 @@ Return null if not found.
 public Prop getProp ( String prop ) throws Exception;
 
 /**
-Return a property's contents given the property name.
-Return null if not found.
+Return a property's contents given the property name.  Return null if not found.
 @param prop Name of property being requested.
 @return the Property contents as the data object.
 @exception Exception if the property is not recognized.
@@ -85,8 +83,7 @@ public void setProp ( Prop prop ) throws Exception;
 Set a property's contents given the property name.
 @param prop Property name.
 @param contents Property contents.
-@exception Exception if the property is not recognized or cannot
-be set.
+@exception Exception if the property is not recognized or cannot be set.
 */
 public void setPropContents ( String prop, Object contents )
 throws Exception;

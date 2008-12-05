@@ -56,6 +56,7 @@ import java.awt.event.WindowEvent;
 
 import java.io.File;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -400,7 +401,7 @@ private void openGUI ( int mode )
 				0, y, 8, 1, 1, 0, TLNR,
 				GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	
-	Vector data = URLHelp.getData();
+	List data = URLHelp.getData();
 	// We create the list no matter what here so there is a list to work
 	// with later.  The "refresh" is used to reset the list...
 	if ( (data == null) || (mode != JGUIUtil.GUI_VISIBLE) ) {
@@ -428,10 +429,8 @@ private void openGUI ( int mode )
 	__topicJList.addMouseListener ( this );
 
 	__helpJPopupMenu = new JPopupMenu ( "" );
-	__helpJPopupMenu.add ( new SimpleJMenuItem ("Search for...",
-				__SEARCH, this ) );
-	__helpJPopupMenu.add ( new SimpleJMenuItem ("Show Help",
-				__HELP, this ) );
+	__helpJPopupMenu.add ( new SimpleJMenuItem ("Search for...", __SEARCH, this ) );
+	__helpJPopupMenu.add ( new SimpleJMenuItem ("Show Help", __HELP, this ) );
 	getContentPane().add ( __helpJPopupMenu );
 
 	// Add a panel that displays index file and browser and allows user to
@@ -562,7 +561,7 @@ private void refresh ( boolean flag )
 		}
 		// Now reset the list.  By this point, there will be something
 		// in the list so we just clear all and add again...
-		Vector data = URLHelp.getData();
+		List data = URLHelp.getData();
 		if ( data != null ) {
 			__topicJList.removeAll();
 			__getHelpButton.setEnabled ( false );
@@ -573,8 +572,8 @@ private void refresh ( boolean flag )
 			}
 			else {	URLHelpData idata = null;
 				Vector v = new Vector();
-				for (	int i = 0; i < data.size(); i++ ) {
-					idata = (URLHelpData)data.elementAt(i);
+				for ( int i = 0; i < data.size(); i++ ) {
+					idata = (URLHelpData)data.get(i);
 					// At some point we may want to allow
 					// display of things other than the
 					// topic, sort the topics, etc.

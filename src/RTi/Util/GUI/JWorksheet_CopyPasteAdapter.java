@@ -60,7 +60,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame; 
@@ -407,9 +407,8 @@ public void actionPerformed(ActionEvent e) {
 		int totalCells = numCols * numRows;
 		int relCol = 0;
 		try {
-			String trstring = (String)(__system.getContents(this).
-				getTransferData(DataFlavor.stringFlavor));
-			Vector v1 = StringUtil.breakStringList(trstring,"\n",0);
+			String trstring = (String)(__system.getContents(this).getTransferData(DataFlavor.stringFlavor));
+			List v1 = StringUtil.breakStringList(trstring,"\n",0);
 			
 			int size1 = v1.size();
 			int size2 = -1;
@@ -420,24 +419,21 @@ public void actionPerformed(ActionEvent e) {
 			String rowString = "";
 			String value = "";
 			for (int i = 0; i < size1; i++) {
-				rowString = ((String)v1.elementAt(i));
+				rowString = ((String)v1.get(i));
 				if (rowString.equals("")) {
 					rowString = " ";
 				}
-				Vector v2 = StringUtil.breakStringList(
-					rowString, "\t", 0);
+				List v2 = StringUtil.breakStringList( rowString, "\t", 0);
 				size2 = v2.size();
 				if (columnPasteCheck 
 					&& size2 == 1
 					&& totalCells > 1) {
-					fillCells((String)v2.elementAt(0),
-						selectedRows, selectedCols);
+					fillCells((String)v2.get(0), selectedRows, selectedCols);
 				}
 				columnPasteCheck = false;
 				for (int j = 0; j < size2; j++) {
-					value = (String)v2.elementAt(j);
-					relCol = __worksheet.getVisibleColumn(
-						startCol + j);
+					value = (String)v2.get(j);
+					relCol = __worksheet.getVisibleColumn( startCol + j);
 					if (startRow + i < 
 						__worksheet.getRowCount()
 						&& relCol <

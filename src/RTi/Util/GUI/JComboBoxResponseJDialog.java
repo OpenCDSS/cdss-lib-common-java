@@ -36,13 +36,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
 /**
-Class that provides a dialog from which the user can select a response in a
-combo box.
+Class that provides a dialog from which the user can select a response in a combo box.
 */
 public class JComboBoxResponseJDialog 
 extends JDialog
@@ -80,39 +79,14 @@ private static String __frameTitle;
 /**
 JComboBoxResponseJDialog constructor
 @param parent JFrame class instantiating this class.
-@param label Label to display in the GUI.
-@param choices the choices to populate the combo box with.
-@deprecated too many constructors, trimming
-*/
-public JComboBoxResponseJDialog(JFrame parent, String label, Vector choices) {
-	this(parent, label, choices, ResponseJDialog.OK);
-}
-
-/**
-JComboBoxResponseJDialog constructor
-@param parent JFrame class instantiating this class.
-@param label Label to display in the GUI.
-@param choices the choices to populate the combo box with.
-@param mode mode in which this gui is to be used(i.e., OK, OK | CANCEL)
-process different types of yes reponses from the calling form.
-@deprecated too many constructors, trimming
-*/
-public JComboBoxResponseJDialog(JFrame parent, String label, Vector choices,
-int mode) {
-	this(parent, null, label, choices, mode);
-}
-
-/**
-JComboBoxResponseJDialog constructor
-@param parent JFrame class instantiating this class.
 @param title Dialog title
 @param label Label to display in the GUI.
 @param choices the choices to populate the combo box with.
 @param mode mode in which this gui is to be used(i.e., OK, OK | CANCEL)
-process different types of yes reponses from the calling form.
+process different types of yes responses from the calling form.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-Vector choices, int mode) {	
+List choices, int mode) {	
 	this(parent, title, label, choices, mode, false);
 }
 
@@ -127,7 +101,7 @@ process different types of yes reponses from the calling form.
 @param editable whether the combo box is editable or not.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-Vector choices, int mode, boolean editable) {	
+List choices, int mode, boolean editable) {	
 	this(parent, title, label, choices, mode, editable, -1);
 }
 
@@ -145,7 +119,7 @@ when the user clicks the combo box to select something.  If less than or
 equal to 0, will not be considered and the default will be used.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-Vector choices, int mode, boolean editable, int numRowsVisible) {	
+List choices, int mode, boolean editable, int numRowsVisible) {	
 	super(parent, true);
 	__editable = editable;
 	initialize(parent, title, label, choices, mode, numRowsVisible);
@@ -190,7 +164,7 @@ when the user clicks the combo box to select something.  If less than or
 equal to 0, will not be considered and the default will be used.
 */
 private void initialize(JFrame parent, String title, String label, 
-Vector choices, int mode, int numRowsVisible) {
+List choices, int mode, int numRowsVisible) {
 	__mode = mode;
 
 	addWindowListener(this);
@@ -201,13 +175,12 @@ Vector choices, int mode, int numRowsVisible) {
 	// Split the text based on the new-line delimiter(we use \n, not the
 	// platform's separator!
 
-	Vector vec = StringUtil.breakStringList(label, "\n", 0);
+	List vec = StringUtil.breakStringList(label, "\n", 0);
 
 	if (vec != null) {
 		// Add each string...
 		for(int i = 0; i < vec.size(); i++) {
-        		north_Panel.add(new JLabel("    " + vec.elementAt(i)
-				+ "     "));
+        		north_Panel.add(new JLabel("    " + vec.get(i) + "     "));
 		}
 	}
 	__comboBox = new SimpleJComboBox(choices, __editable);

@@ -6,8 +6,7 @@ Revisions
 *****************************************************************************/
 package RTi.Util.IO;
 /**
- * A Validator determines whether some state is valid or not by returning
- * a Status object.
+ * A Validator determines whether some state is valid or not by returning a Status object.
  */
 public interface Validator {
   

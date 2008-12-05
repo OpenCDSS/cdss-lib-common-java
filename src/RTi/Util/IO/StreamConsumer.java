@@ -20,8 +20,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import RTi.Util.Message.Message;
-
 /**
 The StreamConsumer class is a thread that will read all the output from a
 stream and then expire.  This is used, for example, to read the standard error

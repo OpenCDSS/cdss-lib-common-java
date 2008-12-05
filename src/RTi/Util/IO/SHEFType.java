@@ -23,6 +23,7 @@ package RTi.Util.IO;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -64,9 +65,8 @@ private String	__meas_time_scale;	// Measurement time scale, from the
 
 // The following list can be modified  by the static functions...
 
-private static Vector __types_Vector = new Vector(20);
-					// Vector of internally-maintained
-					// available SHEF data types.
+private static List __types_Vector = new Vector(20);
+					// Vector of internally-maintained available SHEF data types.
 
 /**
 Construct and set all data members to empty strings and zeros.
@@ -136,17 +136,17 @@ public static void addSHEFType ( SHEFType type )
 	SHEFType pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the type for the loop index...
-		pt = (SHEFType)__types_Vector.elementAt(i);
+		pt = (SHEFType)__types_Vector.get(i);
 		// Now compare...
 		if (	type.getSHEFpe().equalsIgnoreCase( pt.getSHEFpe() ) ) {
 			// The requested units match something that is
 			// already in the list.  Reset the list...
-			__types_Vector.setElementAt ( type, i );
+			__types_Vector.set ( i, type );
 			return;
 		}
 	}
 	// Need to add the units to the list...
-	__types_Vector.addElement ( type );
+	__types_Vector.add ( type );
 	pt = null;
 }
 
@@ -170,7 +170,7 @@ Return the Vector of SHEF data types data.
 @return the Vector of SHEF data types (useful for debugging and GUI displays).
 Perhaps later overload to request by dimension, system, etc.
 */
-public static Vector getSHEFTypesData ()
+public static List getSHEFTypesData ()
 {	return __types_Vector;
 }
 
@@ -259,7 +259,7 @@ throws Exception
 	int size = __types_Vector.size();
 	SHEFType pt = null;
 	for (	int i = 0; i < size; i++ ) {
-		pt = (SHEFType)__types_Vector.elementAt(i);
+		pt = (SHEFType)__types_Vector.get(i);
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 20, routine, "Comparing " + 
 			type_string + " and " + pt.getSHEFpe());
@@ -424,7 +424,7 @@ throws IOException
 	}
 	int linecount = 0;
 	SHEFType type = null;
-	Vector tokens = new Vector(8);
+	List tokens = new Vector(8);
 				// Tokens from data lines - share the Vector
 				// between multiple reads.
 	// Format to read the first data line per data type...
@@ -473,10 +473,10 @@ throws IOException
 		// Add as a new SHEF type...
 		type = new SHEFType();
 		StringUtil.fixedRead ( string, format, format_w, tokens );
-		datatype = ((String)tokens.elementAt(0)).trim();
+		datatype = ((String)tokens.get(0)).trim();
 		// Expanded SHEF code, parts of which are used to help assign
 		// data...
-		SHEF_pe_long = ((String)tokens.elementAt(1)).trim();
+		SHEF_pe_long = ((String)tokens.get(1)).trim();
 		// TODO.
 		// Don't assign default units to SHEFType - take from the time
 		// series at output - for parsing input, these will need to be
@@ -490,7 +490,7 @@ throws IOException
 		//	not quite work with temperatures - this is just a
 		//	default and the DataType entries should take precedence
 		// 
-		duration = ((String)tokens.elementAt(3)).trim();
+		duration = ((String)tokens.get(3)).trim();
 		if ( duration.equals("-1") ) {
 			type.setDefaultIntervalBase("DAY");
 			type.setDefaultIntervalMult(1);

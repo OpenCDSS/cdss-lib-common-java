@@ -59,7 +59,7 @@ Renders a cell for the worksheet.
 @param hasFocus whether the cell has the input focus or not.
 @param row the row in the worksheet where the cell is located.
 @param column the column in the worksheet where the cell is located.
-@return the renderered cell.
+@return the rendered cell.
 */
 public Component getTableCellRendererComponent(JTable table, Object value,
 boolean isSelected, boolean hasFocus, int row, int column) {

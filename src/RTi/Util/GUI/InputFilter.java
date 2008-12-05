@@ -41,6 +41,7 @@ package RTi.Util.GUI;
 
 import java.awt.event.MouseListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JComponent;
@@ -149,14 +150,13 @@ private int __input_type = 0;	// A value from
 				// the expected input value.  The type is used
 				// to check the validity of the input with 
 				// checkInput().
-private Vector __choice_label_Vector = null;
+private List __choice_label_Vector = null;
 				// A Vector of String choices to choose from.
 				// If not null a JComboBox will be displayed
 				// to let the user choose from.
-private Vector __choice_internal_Vector = null;
+private List __choice_internal_Vector = null;
 				// The internal values (e.g., database table
-				// and column) corresponding to the visible
-				// choices.
+				// and column) corresponding to the visible choices.
 private String __choice_delimiter = null;
 				// Used when the choices are not simple strings
 				// but contain informational notes - indicates
@@ -196,10 +196,10 @@ private String __inputComponentToolTipText = null;
 				// InputFilter, it is stored here.  Otherwise,
 				// this value is null.
 
-private Vector __inputComponentMouseListeners = null;
+private List __inputComponentMouseListeners = null;
 				// the listeners that want to listen to mouse
 				// events on the input component.
-private Vector __removedConstraints = null;
+private List __removedConstraints = null;
 				// if not null, contains all the constraints
 				// that should NOT appear in the constraint
 				// combo box for this InputFilter.
@@ -223,8 +223,8 @@ the choices will also be editable (an editable JTextField part of the JComboBox
 will be shown).
 */
 public InputFilter (	String where_label, String where_internal,
-			int input_type, Vector choice_labels,
-			Vector choices_internal, boolean are_choices_editable )
+			int input_type, List choice_labels,
+			List choices_internal, boolean are_choices_editable )
 {
 	this(where_label, where_internal, "", input_type, choice_labels,
 		choices_internal, are_choices_editable);
@@ -249,12 +249,11 @@ displayed to the user.  If null, the user will not be shown a list of choices.
 @param choices_internal A Vector of String containing choice values (e.g.,
 database column values).
 @param are_choices_editable If true, and a non-null list of choices is provided,
-the choices will also be editable (an editable JTextField part of the JComboBox
-will be shown).
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
 public InputFilter (	String where_label, String where_internal,
 			String where_internal_2, int input_type, 
-			Vector choice_labels, Vector choices_internal, 
+			List choice_labels, List choices_internal, 
 			boolean are_choices_editable )
 {	__where_label = where_label;
 	__where_internal = where_internal;
@@ -317,16 +316,14 @@ public Object clone()
 			int size = __choice_label_Vector.size();
 			filter.__choice_label_Vector = new Vector ( size );
 			for ( int i = 0; i < size; i++ ) {
-				filter.__choice_label_Vector.addElement (
-					__choice_label_Vector.elementAt(i) );
+				filter.__choice_label_Vector.add ( __choice_label_Vector.get(i) );
 			}
 		}
 		if ( __choice_internal_Vector != null ) {
 			int size = __choice_internal_Vector.size();
 			filter.__choice_internal_Vector = new Vector ( size );
 			for ( int i = 0; i < size; i++ ) {
-				filter.__choice_internal_Vector.addElement (
-					__choice_internal_Vector.elementAt(i) );
+				filter.__choice_internal_Vector.add ( __choice_internal_Vector.get(i) );
 			}
 		}
 		return filter;
@@ -359,7 +356,7 @@ throws Throwable {
 Return the choices that are visible to the user. 
 @return the choices that are visible to the user. 
 */
-public Vector getChoiceLabels()
+public List getChoiceLabels()
 {	return __choice_label_Vector;
 }
 
@@ -382,12 +379,10 @@ public int getChoiceToken ()
 }
 
 /**
-Returns the constraints that should not appear in the constraint combo box
-for this InputFilter.
-@return the constraints that should not appear in the constraint combo box
-for this InputFilter.
+Returns the constraints that should not appear in the constraint combo box for this InputFilter.
+@return the constraints that should not appear in the constraint combo box for this InputFilter.
 */
-protected Vector getConstraintsToRemove() {
+protected List getConstraintsToRemove() {
 	return __removedConstraints;
 }
 
@@ -434,11 +429,10 @@ public JComponent getInputComponent()
 }
 
 /**
-Returns the Vector of mouse listeners for the input component.  May be null if
-none have been set.
+Returns the Vector of mouse listeners for the input component.  May be null if none have been set.
 @return the Vector of mouse listeners for the input component.
 */
-public Vector getInputComponentMouseListeners() {
+public List getInputComponentMouseListeners() {
 	return __inputComponentMouseListeners;
 }
 
@@ -464,7 +458,7 @@ public String getInputInternal ()
 			return cb.getFieldText();
 		}
 		else {
-			return (String)__choice_internal_Vector.elementAt(pos);
+			return (String)__choice_internal_Vector.get(pos);
 		}
 	}
 	else {	//JTextField...

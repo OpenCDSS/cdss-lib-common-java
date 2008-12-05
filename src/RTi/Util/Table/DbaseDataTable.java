@@ -29,6 +29,7 @@
 package RTi.Util.Table;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.EndianRandomAccessFile;
@@ -71,8 +72,7 @@ private int _record_bytes = 0;			// Size of a record.
 /**
 Construct a new data table from the Dbase file.  This version is meant to be
 used when reading from an existing Dbase file (currently it is not envisioned
-that the file would be updated, although this enhancement may be added in the
-future).
+that the file would be updated, although this enhancement may be added in the future).
 @param filename Name of Dbase file to read.
 @param read_data Indicates whether the data should be read.  The header is
 always read.  If true, all the data will be read and stored in memory.  If
@@ -155,8 +155,7 @@ throws Exception
 			" are in data." );
 		}
 
-		TableRecord tableRecord = (TableRecord)_table_records.
-			elementAt((int)record_index);
+		TableRecord tableRecord = (TableRecord)_table_records.get((int)record_index);
 		Object o = tableRecord.getFieldValue(field_index);
 		tableRecord = null;
 		return o;
@@ -244,7 +243,7 @@ throws IOException
 	_field_type = new char[nfields];
 	int tmp_field_type=0;
 	byte [] buffer14 = new byte[14];
-	Vector tableFields = new Vector(nfields);
+	List tableFields = new Vector(nfields);
 
 	// Read the field name...
         int rowSize = 0; // IWS
@@ -274,8 +273,7 @@ throws IOException
 
 		_field_type[i] = _raf.readLittleEndianChar1();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Field type is \"" + _field_type[i] + "\"" );
+			Message.printDebug ( dl, routine, "Field type is \"" + _field_type[i] + "\"" );
 		}
 
 		// Skip the field address..
@@ -328,7 +326,7 @@ throws IOException
 				_field_type[i] = 'C';
 			}
 		}
-		tableFields.addElement ( new TableField ( 
+		tableFields.add ( new TableField ( 
 			tmp_field_type, field_name[i],
 			_field_size[i], _field_precision[i]) );
 	}

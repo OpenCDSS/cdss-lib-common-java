@@ -29,6 +29,7 @@
 
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -60,15 +61,14 @@ public class DataDimension
 
 // Private static data members for object house-keeping...
 
-private static Vector __dimension_Vector = new Vector(20);
+private static List __dimension_Vector = new Vector(20);
 
 // Data members...
 
 private String	__abbreviation;		// Abbreviation for dimension.  This is
 					// used in data units files to group
 					// units by dimension.  Example: "L"
-private String 	__long_name;		// Long name for dimension (e.g.,
-					// "LENGTH).
+private String 	__long_name;		// Long name for dimension (e.g., "LENGTH).
 
 /**
 Construct using primitive data.
@@ -100,19 +100,18 @@ public static void addDimension ( DataDimension dim )
 	DataDimension pt = null;
 	for ( int i = 0; i < size; i++ ) {
 		// Get the dimension for the loop index...
-		pt = (DataDimension)__dimension_Vector.elementAt(i);
+		pt = (DataDimension)__dimension_Vector.get(i);
 		// Now compare...
 		if (	dim.getAbbreviation().equalsIgnoreCase(
 			pt.getAbbreviation() ) ) {
 			// The requested dimension matches something that is
 			// already in the list.  Reset the list...
-			__dimension_Vector.setElementAt (
-			new DataDimension (dim), i );
+			__dimension_Vector.set ( i, new DataDimension (dim) );
 			return;
 		}
 	}
 	// Need to add the units to the list...
-	__dimension_Vector.addElement ( new DataDimension(dim) );
+	__dimension_Vector.add ( new DataDimension(dim) );
 	pt = null;
 }
 
@@ -136,10 +135,10 @@ public String getAbbreviation ( )
 }
 
 /**
-Return a Vector of DataDimension containing the static shared dimension data.
-@return a Vector of DataDimension containing the static shared dimension data.
+Return a list of DataDimension containing the static shared dimension data.
+@return a list of DataDimension containing the static shared dimension data.
 */
-public static Vector getDimensionData ()
+public static List getDimensionData ()
 {	return __dimension_Vector;
 }
 
@@ -181,15 +180,14 @@ throws Exception
 	int size = __dimension_Vector.size();
 	DataDimension dim = null;
 	for ( int i = 0; i < size; i++ ) {
-		dim = (DataDimension)__dimension_Vector.elementAt(i);
+		dim = (DataDimension)__dimension_Vector.get(i);
 		if ( dimension_string.equalsIgnoreCase( dim.getAbbreviation())){
 			// Have a match...
 			return dim;
 		}
 	}
 	// Unable to find...
-	String message = "Unable to look up dimension \"" + dimension_string +
-	"\"";
+	String message = "Unable to look up dimension \"" + dimension_string + "\"";
 	Message.printWarning ( 2, "DataDimension.lookupDimension", message );
 	throw new Exception ( message );
 }
@@ -224,4 +222,4 @@ public String toString ()
 {	return "Dimension:  \"" + __abbreviation + "\", \"" + __long_name +"\"";
 }
 
-} // End of DataDimension
+}

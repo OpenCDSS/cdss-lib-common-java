@@ -183,6 +183,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
+import java.util.List;
 import java.util.Vector;
 
 import java.util.jar.Attributes;
@@ -255,7 +256,7 @@ private static URL _document_base = null;
 					// Document base for the applet.
 
 private static String _command_file ="";// Program command file
-private static Vector _command_list=null;// Program command list
+private static List _command_list=null;// Program command list
 private static String _host = "";	// Host running the program.
 private static String _progname = "";	// Program name.
 private static String _progver = "";	// Program version.
@@ -537,10 +538,10 @@ Read in a file and store it in a string list (Vector of String).
 @return the file as a string list.
 @exception IOException if there is an error.
 */
-public static Vector fileToStringList (	String filename )
+public static List fileToStringList ( String filename )
 throws IOException
-{	Vector	list = null;
-	String	message, routine = "IOUtil.fileToStringList", tempstr;
+{	List list = null;
+	String message, routine = "IOUtil.fileToStringList", tempstr;
 	
 	if ( filename == null ) {
 		message = "Filename is NULL";
@@ -576,7 +577,7 @@ throws IOException
 			break;
 		}
 		tempstr = StringUtil.removeNewline ( tempstr );
-		list.addElement (tempstr );
+		list.add (tempstr );
 	}
 	fp.close ();
 	fp = null;
@@ -665,11 +666,11 @@ Determine the file extension.
 ".".
 */
 public static String getFileExtension ( String file )
-{	Vector v = StringUtil.breakStringList ( file, ".", 0 );
+{	List v = StringUtil.breakStringList ( file, ".", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
-	return (String)v.elementAt(v.size() - 1);
+	return (String)v.get(v.size() - 1);
 }
 
 // NEED TO CLEAN UP JAVADOC AND OPTIMIZE FOR GC...
@@ -935,9 +936,9 @@ The files do not need to exist.  Return null if there is a problem with input.
 @param paths Paths to prefix the file with.
 @param file Name of file to append to paths.
 */
-public static Vector getFilesFromPathList ( Vector paths, String file )
-{	String	fullfile, routine = "IOUtil.getFilesFromPathList";
-	Vector	newlist = null;
+public static List getFilesFromPathList ( List paths, String file )
+{	String fullfile, routine = "IOUtil.getFilesFromPathList";
+	List newlist = null;
 	int	i, npaths;
 
 	// Check for NULL list, and file...
@@ -960,8 +961,8 @@ public static Vector getFilesFromPathList ( Vector paths, String file )
 	String dirsep = System.getProperty ( "file.separator");
 	for ( i = 0; i < npaths; i++ ) {
 		// Add each string to the list...
-		fullfile = (String)paths.elementAt(i) + dirsep + file;
-		newlist.addElement ( fullfile );
+		fullfile = (String)paths.get(i) + dirsep + file;
+		newlist.add ( fullfile );
 	}
 	return newlist;
 }
@@ -1038,7 +1039,7 @@ do not return the data in any given order.  For this reason, the manifest data
 are sorted alphabetically in the list.
 @return the contents of the manifests of the Jar files in a Vector of Strings.
 */
-public static Vector getJarFilesManifests() {
+public static List getJarFilesManifests() {
 	String routine = "IOUtil.getJarFilesManifests";
 
 	// Get the Classpath and split it into a String array.  The order
@@ -1055,8 +1056,8 @@ public static Vector getJarFilesManifests() {
 	Object[] o = null;
 	Set set = null;
 	String tab = "    ";
-	Vector sort = null;
-	Vector v = new Vector();
+	List sort = null;
+	List v = new Vector();
 	
 	for (int i = 0; i < jars.length; i++) {
 		if (!StringUtil.endsWithIgnoreCase(jars[i], ".jar")) {
@@ -1088,16 +1089,14 @@ public static Vector getJarFilesManifests() {
 			Collections.sort(sort);
 			size = sort.size();
 			for (j = 0; j < size; j++) {
-				v.add(sort.elementAt(j));
+				v.add(sort.get(j));
 			}			
 		}
 		catch (Exception e) {
 			Message.printWarning(2, routine,
-				"An error occurred while reading the manifest "
-				+ "for: '" + jars[i] + "'.");
+				"An error occurred while reading the manifest for: '" + jars[i] + "'.");
 			Message.printWarning(3, routine, e);
-			v.add(tab + "An error occurred while reading the "
-				+ "manifest.");
+			v.add(tab + "An error occurred while reading the manifest.");
 		}
 
 		v.add("");
@@ -1208,7 +1207,7 @@ used and the list takes precedence.
 @return The command list used with the program, as set by setProgramCommandList.
 @see #setProgramCommandList
 */
-public static Vector getProgramCommandList ()
+public static List getProgramCommandList ()
 {	if ( !_initialized ) {
 		initialize ();
 	}
@@ -1367,10 +1366,10 @@ Returns a Vector of Strings containing information about the system on which
 the Java application is currently running.
 @return a Vector of Strings.
 */
-public static Vector getSystemProperties() {
+public static List getSystemProperties() {
 	String tab = "    ";
 	
-	Vector v = new Vector();
+	List v = new Vector();
 
 	v.add("System Properties Generated for: ");
 	v.add(tab + " Program Name: " + _progname + " " + _progver);
@@ -1879,7 +1878,7 @@ public static int printCreatorHeader (	PrintWriter ofp, String comment0,
 		ofp.println ( comment );
 		int size = _command_list.size();
 		for ( i = 0; i < size; i++ ) {
-			ofp.println ( comment + " " + (String)_command_list.elementAt(i) );
+			ofp.println ( comment + " " + (String)_command_list.get(i) );
 		}
 	}
 	else if ( fileReadable(_command_file) ) {
@@ -1931,7 +1930,7 @@ public static int printCreatorHeader (	PrintWriter ofp, String comment0,
 /**
 Print a Vector of strings to a file.  The file is created, opened, and closed.
 */
-public static void printStringList ( String file, Vector strings )
+public static void printStringList ( String file, List strings )
 throws IOException
 {	String		message, routine = "IOUtil.printStringList";
 	PrintWriter	ofp;
@@ -1962,14 +1961,14 @@ Print a Vector of strings to an opened file.
 @param ofp PrintWrite to write to.
 @param strings Vector of strings to write.
 */
-public static void printStringList ( PrintWriter ofp, Vector strings )
+public static void printStringList ( PrintWriter ofp, List strings )
 throws IOException
 {	if ( strings == null ) {
 		return;
 	}
 	int size = strings.size();
 	for ( int i = 0; i < size; i++ ) {
-		ofp.println ( (String)strings.elementAt(i) );
+		ofp.println ( (String)strings.get(i) );
 	}
 }
 
@@ -2148,7 +2147,7 @@ throws IOException
 	if ( !(extension.startsWith(".")) ) {
 		extension = "." + extension;
 	}
-	Vector v = StringUtil.breakStringList ( file, ".", 0 );
+	List v = StringUtil.breakStringList ( file, ".", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
 		// didn't have an extension so add one and return it
 		if ( file != null && file.length() > 0 ) {
@@ -2157,7 +2156,7 @@ throws IOException
 	}
 	String file_new = "";
 	for( int i = 0; i < v.size() - 1; i++ ) {
-		file_new += ( String )v.elementAt( i );
+		file_new += ( String )v.get( i );
 	}
 	// add the new extension
 	file_new += extension;
@@ -2282,20 +2281,6 @@ public static void setProgramCommandFile ( String command_file )
 	if ( command_file != null ) {
 		_command_file = command_file;
 	}
-}
-
-/**
-Set the program command list.  This is generally only called from graphical
-user interfaces, immediately before processing commands.
-@param command_list Command list to use with the program (can be null).
-@see #getProgramCommandList
-@deprecated utilize command processors to get comments suitable for files
-*/
-public static void setProgramCommandList ( Vector command_list )
-{	if ( !_initialized ) {
-		initialize ();
-	}
-	_command_list = command_list;
 }
 
 /**

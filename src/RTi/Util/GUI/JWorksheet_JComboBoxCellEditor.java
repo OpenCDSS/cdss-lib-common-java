@@ -26,6 +26,7 @@ import java.awt.event.MouseEvent;
 import java.lang.reflect.Constructor;
 
 import java.util.EventObject;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractCellEditor;
@@ -121,16 +122,15 @@ Borrowed from JTable code.  Used to refer back to the data value being edited.
 private Object __value;
 
 /**
-This Vector contains all the different data models being used in the
-table column.
+This list contains all the different data models being used in the table column.
 */
-private Vector __models = null;
+private List __models = null;
 /**
-This Vector maps row numbers to the data model number that they are using.
+This list maps row numbers to the data model number that they are using.
 More than row can use the same data model.  There should be one entry
 in this Vector for every row in the table.
 */
-private Vector __rowToModel = null;
+private List __rowToModel = null;
 
 /**
 Constructor.
@@ -186,7 +186,7 @@ private int countModelUse(int modelNum) {
 	int count = 0;
 	int j = -1;
 	for (int i = 0; i < size; i++) {
-		j = ((Integer)__rowToModel.elementAt(i)).intValue();
+		j = ((Integer)__rowToModel.get(i)).intValue();
 		if (modelNum == j) {
 			count++;
 		}
@@ -218,11 +218,11 @@ present in the __models Vector.
 @return -1 if the model cannot be found, or the model number of the model in
 the __models Vector if it matched.
 */
-private int findModelInModels(Vector v) {
+private int findModelInModels(List v) {
 	int size = __models.size();
 
 	for (int i = 0; i < size; i++) {
-		if (v.equals((Vector)__models.elementAt(i))) {
+		if (v.equals((List)__models.get(i))) {
 			return i;
 		}
 	}
@@ -264,12 +264,12 @@ Returns the combox box data model stored at the specific row.
 @return null if the row doesn't use a combo box, or the Vector of values stored
 in the combo box if it does.
 */
-public Vector getJComboBoxModel(int row) {
-	Integer I = (Integer)__rowToModel.elementAt(row);
+public List getJComboBoxModel(int row) {
+	Integer I = (Integer)__rowToModel.get(row);
 	if (I.intValue() == -1) {
 		return null;
 	}
-	return (Vector)(__models.elementAt(I.intValue()));
+	return (List)(__models.get(I.intValue()));
 }
 
 /**
@@ -309,7 +309,7 @@ boolean isSelected, int row, int column) {
 	// with a JTextField.
 	int modelNum = -1;
 	if (row < __size) {
-		modelNum = ((Integer)__rowToModel.elementAt(row)).intValue();
+		modelNum = ((Integer)__rowToModel.get(row)).intValue();
 	}
 
 	// set the current value of the editor component to the value passed-in.
@@ -338,7 +338,7 @@ boolean isSelected, int row, int column) {
 	// Do different things depending on whether a JTextField or a 
 	// SimpleJComboBox will be returned.
 	if (modelNum != -1 && modelNum < __models.size()) {	
-		Vector v = (Vector)__models.elementAt(modelNum);
+		List v = (List)__models.get(modelNum);
 		SimpleJComboBox jcb = new SimpleJComboBox(v, __editable);
 		jcb.addActionListener(this);
 		jcb.setSelectedItem(value);
@@ -389,24 +389,24 @@ Sets a data model to be be used for a specific row in the JWorksheet.
 @param v a Vector of values (Doules, Integers, Strings, Dates) that will be
 used to populate the values in the SimpleJComboBox to use at the given row.
 */
-public void setJComboBoxModel(int row, Vector v) {
+public void setJComboBoxModel(int row, List v) {
 	// check to see if the row already has a model assigned to it, and
 	// if so, remove it from __models if it is the only instance.
-	int modelNum = ((Integer)__rowToModel.elementAt(row)).intValue();
+	int modelNum = ((Integer)__rowToModel.get(row)).intValue();
 	if (modelNum > -1) {
 		int matches = countModelUse(modelNum);
 		if (matches == 1) {
-			__models.removeElementAt(modelNum);
+			__models.remove(modelNum);
 		}
 	}
 	
 	int i = findModelInModels(v);
 	if (i == -1) {
 		__models.add(v);
-		__rowToModel.setElementAt(new Integer(__models.size()-1), row);
+		__rowToModel.set(row, new Integer(__models.size()-1));
 	}
 	else {
-		__rowToModel.setElementAt(new Integer(i), row);
+		__rowToModel.set(row, new Integer(i));
 	}
 }
 
@@ -512,11 +512,11 @@ of its own internal bookkeeping.
 public void worksheetRowAdded(int row) {
 	__size++;
 	if (__previousRowCopy && (row != 0)) {
-		Integer prevRowModel = (Integer)__rowToModel.elementAt(row - 1);
-		__rowToModel.insertElementAt(prevRowModel, row);
+		Integer prevRowModel = (Integer)__rowToModel.get(row - 1);
+		__rowToModel.add(row, prevRowModel);
 	}
 	else {
-		__rowToModel.insertElementAt(new Integer(-1), row);
+		__rowToModel.add(row, new Integer(-1));
 	}
 }
 
@@ -533,13 +533,13 @@ public void worksheetRowDeleted(int row) {
 		return;
 	}
 
-	int modelNum = ((Integer)__rowToModel.elementAt(row)).intValue();
+	int modelNum = ((Integer)__rowToModel.get(row)).intValue();
 
 	if (modelNum > -1) {
 		int matches = countModelUse(modelNum);
 		if (matches <= 1 && modelNum != -1 
 			&& modelNum < __models.size()) {
-			__models.removeElementAt(modelNum);
+			__models.remove(modelNum);
 		}
 		else if (modelNum >= __models.size()) {
 			// REVISIT (JTS - 2003-12-01)
@@ -551,7 +551,7 @@ public void worksheetRowDeleted(int row) {
 		}
 	}
 
-	__rowToModel.removeElementAt(row);
+	__rowToModel.remove(row);
 }
 
 /**

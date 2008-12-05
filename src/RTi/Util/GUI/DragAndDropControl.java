@@ -20,6 +20,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DropTarget;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -65,15 +66,13 @@ private int __dropAction = DragAndDropUtil.ACTION_NONE;
 
 /**
 The drag source.  DragSource objects are Java objects that contain information
-about where drags can and cannot occur and relay that to the JVM running the
-GUI.
+about where drags can and cannot occur and relay that to the JVM running the GUI.
 */
 private DragSource __dragSource = null;
 
 /**
 The drop target.  DropTarget objects are Java objects that contain information
-about where drops can and cannot occur and relay that to the JVM running the
-GUI.
+about where drops can and cannot occur and relay that to the JVM running the GUI.
 */
 private DropTarget __dropTarget = null;
 
@@ -87,8 +86,7 @@ object to which the text refers.  The combo box may have lists of time series
 identifiers, but when the drag occurs, the listener (notified by 
 dragAboutToStart from the DragAndDropListener class) can put the time series
 to be transferred in the DragAndDrop as the alternate transferable and then
-the time series, not the time series identifier, will be what is dragged and
-dropped.
+the time series, not the time series identifier, will be what is dragged and dropped.
 
 */
 private Transferable __alternateTransferable;
@@ -96,9 +94,9 @@ private Transferable __alternateTransferable;
 /**
 The Vector of DragAndDropListeners registered for this drag and drop 
 component.  This is used so that other classes can be informed of events 
-occuring during the drag and drop process.
+occurring during the drag and drop process.
 */
-private Vector __listeners = null;
+private List __listeners = null;
 
 /**
 Constructor.  Sets up whether drags and drops are possible as well as the 
@@ -106,7 +104,7 @@ appropriate drag and drop actions.
 @param dragAction the action that drags perform (see DragAndDropUtil.ACTION_*) 
 when data is dragged from the component.
 @param dropAction the action that drops perform (see DragAndDropUtil.ACTION_*) 
-when data is droppped on the component.
+when data is dropped on the component.
 */
 public DragAndDropControl(int dragAction, int dropAction) {
 	__listeners = new Vector();
@@ -122,7 +120,7 @@ If the listener is already registered, it will not be registered again.
 public void addDragAndDropListener(DragAndDropListener d) {
 	DragAndDropListener listener;
 	for (int i = 0; i < __listeners.size(); i++) {
-		listener = (DragAndDropListener)__listeners.elementAt(i);
+		listener = (DragAndDropListener)__listeners.get(i);
 		if (listener == d) {
 			return;
 		}
@@ -225,8 +223,7 @@ veto the drag.
 public boolean notifyListenersDragAboutToStart() {
 	boolean successful = true;
 	for (int i = 0; i < __listeners.size(); i++) {	
-		if (!((DragAndDropListener)__listeners.elementAt(i))
-		    .dragAboutToStart()) {
+		if (!((DragAndDropListener)__listeners.get(i)).dragAboutToStart()) {
 			successful = false;
 		}
 	}
@@ -240,34 +237,29 @@ currently under the mouse cursor and being dragged to another component.
 */
 public void notifyListenersDragStarted() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i)).dragStarted();
+		((DragAndDropListener)__listeners.get(i)).dragStarted();
 	}
 }
 
 /**
 Notifies DragAndDropListeners registered on the drag component to which this
-data belongs that data dragged out of this component was successfully dropped 
-elsewhere.
-@param action the action performed by the component that received the
-dropped data.
+data belongs that data dragged out of this component was successfully dropped elsewhere.
+@param action the action performed by the component that received the dropped data.
 */
 public void notifyListenersDragSuccessful(int action) {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i))
-			.dragSuccessful(action);
+		((DragAndDropListener)__listeners.get(i)).dragSuccessful(action);
 	}
 }
 
 /**
 Notifies DragAndDropListeners registered on the drag component to which this
-data belongs that data dragged out of this component was unsuccessfully dropped 
-elsewhere.  
-@param action the action attempted by the component that tried to receive the
-dropped data.
+data belongs that data dragged out of this component was unsuccessfully dropped elsewhere.  
+@param action the action attempted by the component that tried to receive the dropped data.
 */
 public void notifyListenersDragUnsuccessful(int action) {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i))
+		((DragAndDropListener)__listeners.get(i))
 			.dragUnsuccessful(action);
 	}
 }
@@ -280,7 +272,7 @@ as Colors or information in status bars.
 */
 public void notifyListenersDropAllowed() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i)).dropAllowed();
+		((DragAndDropListener)__listeners.get(i)).dropAllowed();
 	}
 }
 
@@ -292,7 +284,7 @@ mouse cursor moved into a drop area.
 */
 public void notifyListenersDropExited() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i)).dropExited();
+		((DragAndDropListener)__listeners.get(i)).dropExited();
 	}
 }
 
@@ -304,8 +296,7 @@ as Colors, or to put information in status bars.
 */
 public void notifyListenersDropNotAllowed() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i))
-			.dropNotAllowed();
+		((DragAndDropListener)__listeners.get(i)).dropNotAllowed();
 	}
 }
 
@@ -315,8 +306,7 @@ data belongs that a data drop was performed successfully.
 */
 public void notifyListenersDropSuccessful() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i))
-			.dropSuccessful();
+		((DragAndDropListener)__listeners.get(i)).dropSuccessful();
 	}
 }
 
@@ -326,8 +316,7 @@ data belongs that a data drop was performed but it was not successful.
 */
 public void notifyListenersDropUnsuccessful() {
 	for (int i = 0; i < __listeners.size(); i++) {	
-		((DragAndDropListener)__listeners.elementAt(i))
-			.dropUnsuccessful();
+		((DragAndDropListener)__listeners.get(i)).dropUnsuccessful();
 	}
 }
 
@@ -338,9 +327,9 @@ Unregisters a DragAndDropListener on the component to which this data belongs.
 public void removeDragAndDropListener(DragAndDropListener d) {
 	DragAndDropListener listener;
 	for (int i = 0; i < __listeners.size(); i++) {
-		listener = (DragAndDropListener)__listeners.elementAt(i);
+		listener = (DragAndDropListener)__listeners.get(i);
 		if (listener == d) {
-			__listeners.removeElement(listener);
+			__listeners.remove(listener);
 			return;
 		}
 	}

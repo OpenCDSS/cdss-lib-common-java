@@ -18,8 +18,7 @@
 
 package RTi.Util.GUI;
 
-// REVISIT (JTS - 2004-01-20)
-// needs renamed to JWorksheet_ColumnHeaderCellRenderer
+// TODO (JTS - 2004-01-20) needs renamed to JWorksheet_ColumnHeaderCellRenderer
 // need to be able to center text in the column header
 
 import java.awt.Color;
@@ -199,8 +198,7 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
 		list.setFont(new Font(__fontName, __fontStyle, __fontSize));
 		list.setOpaque(true);
-		list.setForeground(UIManager.getColor(
-			"TableHeader.foreground"));
+		list.setForeground(UIManager.getColor( "TableHeader.foreground"));
 		list.setBackground(__color);
 		list.setBorder(new LineBorder(Color.darkGray));
 	

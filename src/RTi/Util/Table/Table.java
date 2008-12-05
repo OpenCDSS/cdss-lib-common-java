@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -75,18 +76,18 @@ try {
 */
 public class Table {
 
-private Vector 	_table_fields;	// vector of data types - DATA_TYPE_*
-private Vector	_table_records;	// vector of records 
+private List _table_fields;	// vector of data types - DATA_TYPE_*
+private List _table_records;	// vector of records 
 
 /**
 Construct a new table.
 @param tableFieldsVector a vector of TableField objects defining table contents
 */
-public Table ( Vector tableFieldsVector) {
+public Table ( List tableFieldsVector) {
 	initialize ( tableFieldsVector );
 }
 
-private void initialize ( Vector tableFieldsVector )
+private void initialize ( List tableFieldsVector )
 {
 	_table_fields = tableFieldsVector;
 	_table_records = new Vector ( 10, 10 );
@@ -103,7 +104,7 @@ throws Exception
 	int num_table_fields = _table_fields.size();
 	int num_new_record_fields = new_record.getNumberOfFields();
 	if ( num_new_record_fields == num_table_fields )
-		_table_records.addElement ( new_record );
+		_table_records.add ( new_record );
 	else 
 		throw new Exception ( "Number of records in the new record (" +
 		num_new_record_fields + ") does not match current " +
@@ -116,13 +117,13 @@ Add a field to the TableField and each entry in TableRecord
 */
 public void addField ( TableField tableField )
 {
-	_table_fields.addElement ( tableField );
+	_table_fields.add ( tableField );
 
 	// add field to each record
 	int num = _table_records.size();
 	TableRecord tableRecord;
 	for ( int i=0; i<num; i++ ) {
-		tableRecord = (TableRecord)_table_records.elementAt(i);
+		tableRecord = (TableRecord)_table_records.get(i);
 
 		// add element and set default to 0 or ""
 		// these are ordered in the most likely types to optimize
@@ -159,7 +160,7 @@ throws Exception
 {
 	int num = _table_fields.size();
 	for ( int i=0; i<num; i++ ) {
-		if (((TableField)_table_fields.elementAt(i)).
+		if (((TableField)_table_fields.get(i)).
 			getName().equalsIgnoreCase(heading))
 			return i;
 	}
@@ -193,7 +194,7 @@ Returns the TableFeld object for the specified zero-based index.
 */
 public TableField getTableField ( int index )
 {
-	return ((TableField)_table_fields.elementAt( index ));
+	return ((TableField)_table_fields.get( index ));
 }
 
 /**
@@ -240,7 +241,7 @@ throws Exception
 	Message.printStatus ( 10, rtn, "Getting table record " + record_index +
 		" from " + num_recs + " available records." );
 	TableRecord tableRecord = (TableRecord)_table_records.
-		elementAt(record_index);
+		get(record_index);
 	Message.printStatus ( 10, rtn, "Getting table record field." );
 	return tableRecord.getFieldValue(field_index);
 }
@@ -251,7 +252,7 @@ Returns the header title for an index.
 */
 public String getHeadingForIndex ( int index )
 {
-	return ((TableField)_table_fields.elementAt ( index )).getName();
+	return ((TableField)_table_fields.get ( index )).getName();
 }
 
 /**
@@ -264,14 +265,14 @@ throws Exception
 	 if ( _table_records.size() <= record_index )
 	 	throw new Exception ( 
 		"Unable to return TableRecord at index " + record_index );
-	 return ((TableRecord)_table_records.elementAt(record_index));
+	 return ((TableRecord)_table_records.get(record_index));
 }
 
 /**
 Returns all the table records.
 @return vector of TableRecord
 */
-public Vector getTableRecords ( )
+public List getTableRecords ( )
 {
 	return _table_records;
 }
@@ -286,7 +287,7 @@ throws Exception
 {
 	if ( _table_fields.size() <= index )
 		throw new Exception ( "Index " + index + " is not valid." );
-	TableField tableField = (TableField)_table_fields.elementAt(index);
+	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setName ( header );
 }
 
@@ -300,7 +301,7 @@ throws Exception
 {
 	if ( _table_fields.size() <= index )
 		throw new Exception ( "Index " + index + " is not valid." );
-	TableField tableField = (TableField)_table_fields.elementAt(index);
+	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setDataType ( data_type );
 }
 
@@ -315,7 +316,7 @@ throws Exception
 {
 	if ( _table_fields.size() <= index )
 		throw new Exception ( "Index " + index + " is not valid." );
-	TableField tableField = (TableField)_table_fields.elementAt(index);
+	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setDataType ( data_type );
 	tableField.setName ( header );
 }
@@ -329,13 +330,13 @@ Given a clear definition of what data to expect, reads and stores data in table
 @param num_lines_header number of lines in header (typically 1)
 */
 public static Table parseDelimitedFile ( String filename, String delimiter,
-	Vector tableFields, int num_lines_header )
+	List tableFields, int num_lines_header )
 throws Exception
 {
 	String rtn = "Table.parseDelimitedFile";	
 	String iline;
 	boolean processed_header = false;
-	Vector columns;
+	List columns;
 	int num_fields=0, type, num_lines_header_read=0;
 	Table table;
 
@@ -371,11 +372,11 @@ throws Exception
 			TableRecord contents = new TableRecord(num_fields);
 			try {
 			for ( int i=0; i<num_fields; i++ ) {
-				type = ((TableField)tableFields.elementAt(i)).
+				type = ((TableField)tableFields.get(i)).
 					getDataType();
 				if ( type == TableField.DATA_TYPE_STRING ) {
 					contents.addFieldValue ( 
-						(String)columns.elementAt(i));
+						(String)columns.get(i));
 					/*
 					currentString = 
 						(String)columns.elementAt(i);
@@ -387,16 +388,16 @@ throws Exception
 				}
 				else if ( type == TableField.DATA_TYPE_DOUBLE )
 					contents.addFieldValue ( new Double (
-					(String)columns.elementAt(i)));
+					(String)columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_INT )
 					contents.addFieldValue( new Integer ( 
-					(String)columns.elementAt(i)));
+					(String)columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_SHORT )
 					contents.addFieldValue( new Short (
-					(String)columns.elementAt(i)));
+					(String)columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_FLOAT )
 					contents.addFieldValue( new Float ( 
-					(String)columns.elementAt(i)));
+					(String)columns.get(i)));
 			}
 			table.addRecord ( contents );
 			} catch ( Exception e ) {
@@ -412,7 +413,7 @@ Reads header of delimited file and return vector of TableField objects
 @return vector of TableField objects (only header titles will be set)
 @param filename name of file containing delimited data
 */
-public static Vector parseDelimitedFileHeader ( String filename )
+public static List parseDelimitedFileHeader ( String filename )
 throws Exception
 {
 	return parseDelimitedFileHeader ( filename, "," );
@@ -426,11 +427,10 @@ to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
 @param filename name of file containing delimited data
 @param delimiter string representing delimiter in data file 
 */
-public static Vector parseDelimitedFileHeader ( String filename, 
-	String delimiter )
+public static List parseDelimitedFileHeader ( String filename, String delimiter )
 throws Exception
 {	String iline;
-	Vector columns, tableFields = null;
+	List columns, tableFields = null;
 	int num_fields=0;
 	TableField newTableField = null;
 
@@ -449,9 +449,9 @@ throws Exception
 		tableFields = new Vector ( num_fields, 1 );
 		for ( int i=0; i<num_fields; i++ ) {
 			newTableField = new TableField ( );
-			newTableField.setName((String)columns.elementAt(i));
+			newTableField.setName((String)columns.get(i));
 			newTableField.setDataType(TableField.DATA_TYPE_STRING);
-			tableFields.addElement ( newTableField );
+			tableFields.add ( newTableField );
 		}
 		return tableFields;
 	}

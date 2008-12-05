@@ -14,8 +14,7 @@ package RTi.Util.IO;
 
 /**
 The RequestParameterNotFoundException should be thrown when running 
-CommandProcessor.processRequest() and a needed parameter is not
-provided.
+CommandProcessor.processRequest() and a needed parameter is not provided.
 */
 public class RequestParameterNotFoundException extends Exception
 {

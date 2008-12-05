@@ -15,6 +15,7 @@
 
 package RTi.Util.Time;
 
+import java.util.List;
 import java.util.Vector;
 
 import java.util.regex.Matcher;
@@ -719,12 +720,11 @@ given character position.  This is much more efficient.
 */
 private void createSortedArrays() {
 	// these Vector are temporary, and are used to move information from
-	// the __formatSpecifierLocations arrays into the separate ordered 
-	// arrays.
-	Vector lengths = new Vector();
-	Vector locs = new Vector();
-	Vector regExs = new Vector();
-	Vector types = new Vector();
+	// the __formatSpecifierLocations arrays into the separate ordered arrays.
+	List lengths = new Vector();
+	List locs = new Vector();
+	List regExs = new Vector();
+	List types = new Vector();
 
 	// Move the data from the __formatSpecifierLocations arrays into the 
 	// above Vectors.  
@@ -754,8 +754,7 @@ private void createSortedArrays() {
 	__sortedFormatSpecifierLocations = new int[size];
 	int[] order = new int[size];
 	for (int i = 0; i < size; i++) {
-		__sortedFormatSpecifierLocations[i] 
-			= ((Integer)locs.elementAt(i)).intValue();
+		__sortedFormatSpecifierLocations[i] = ((Integer)locs.get(i)).intValue();
 	}
 
 	// sort the array, but maintain a link to the prior sort order.
@@ -776,12 +775,9 @@ private void createSortedArrays() {
 	// Vectors "types", "lengths", and "regExs" with their respective arrays
 
 	for (int i = 0; i < size; i++) {
-		__sortedFormatSpecifierTypes[i] = ((Integer)types.elementAt(
-			order[i])).intValue();
-		__sortedFormatSpecifierLengths[i] = ((Integer)lengths.elementAt(
-			order[i])).intValue();
-		__sortedFormatSpecifierRegExs[i] = (String)regExs.elementAt(
-			order[i]);
+		__sortedFormatSpecifierTypes[i] = ((Integer)types.get(order[i])).intValue();
+		__sortedFormatSpecifierLengths[i] = ((Integer)lengths.get(order[i])).intValue();
+		__sortedFormatSpecifierRegExs[i] = (String)regExs.get(order[i]);
 	}
 }
 
@@ -1086,9 +1082,9 @@ public String[] explainParseFailure(String inputString) {
 		Pattern pattern = null;
 		String etc = "";
 		String s = "";
-		Vector patterns = new Vector();
+		List patterns = new Vector();
 			// holds the Pattern objects that are created
-		Vector patternStrings = new Vector();
+		List patternStrings = new Vector();
 			// holds the regular expressions used to create the
 			// Patterns in the patterns Vector.
 
@@ -1162,9 +1158,8 @@ public String[] explainParseFailure(String inputString) {
 		__failurePatternStrings = new String[size];
 	
 		for (int i = 0; i < size; i++) {
-			__failurePatterns[i] = (Pattern)patterns.elementAt(i);
-			__failurePatternStrings[i]
-				= (String)patternStrings.elementAt(i);
+			__failurePatterns[i] = (Pattern)patterns.get(i);
+			__failurePatternStrings[i] = (String)patternStrings.get(i);
 		}
 	}		
 
@@ -1522,10 +1517,9 @@ int formatSpecifierNum) {
 		// the string
 	int length = formatSpecifier.length();
 		// the length of the formatSpecifier
-	Vector locs = new Vector();
+	List locs = new Vector();
 		// holds the locations (in Integer format) of the points within
-		// the date/time format String where the formatSpecifier can
-		// be found
+		// the date/time format String where the formatSpecifier can be found
 
 	// Loop through the format String ...
 
@@ -1606,8 +1600,7 @@ int formatSpecifierNum) {
 	int size = locs.size();
 	for (int i = 0; i < size; i++) {
 		__formatSpecifierLocations[formatSpecifierType]
-			[formatSpecifierNum][i] 
-			= ((Integer)locs.elementAt(i)).intValue();
+			[formatSpecifierNum][i] = ((Integer)locs.get(i)).intValue();
 	}
 }
 
@@ -1766,9 +1759,9 @@ DateTime.PRECISION_YEAR.
 followed by an example date formatted with the given format.
 @return a Vector of choices suitable for use in a JComboBox.
 */
-public static Vector getFormatChoices(int maxInterval, int minInterval,
+public static List getFormatChoices(int maxInterval, int minInterval,
 boolean includeTZ, boolean showExample) {
-	Vector choices = new Vector();
+	List choices = new Vector();
 	if (maxInterval == DateTime.PRECISION_YEAR) {	
 		if (minInterval == DateTime.PRECISION_YEAR) {
 			choices.add("yyyy");
@@ -1918,11 +1911,11 @@ boolean includeTZ, boolean showExample) {
 	}
 
 	if (includeTZ) {
-		Vector v = new Vector();
+		List v = new Vector();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			s = (String)choices.elementAt(i);
+			s = (String)choices.get(i);
 			s += " tz";
 			v.add(s);
 		}
@@ -1932,11 +1925,11 @@ boolean includeTZ, boolean showExample) {
 	if (showExample) {
 		DateTime dt = new DateTime(DateTime.DATE_CURRENT);
 		DateTimeFormat dtf = null;
-		Vector v = new Vector();
+		List v = new Vector();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			s = (String)choices.elementAt(i);
+			s = (String)choices.get(i);
 			dtf = new DateTimeFormat(s);
 			v.add(s + " (" + dtf.format(dt) + ")");
 		}
@@ -1974,10 +1967,8 @@ public static String getSampleDateString(DateTime dt, String format) {
 }
 
 /**
-Returns a copy of the __sortedFormatSpecifierTypes array for use in 
-isAbsolute().
-@return a copy of the __sortedFormatSpecifierTypes array for use in 
-isAbsolute().
+Returns a copy of the __sortedFormatSpecifierTypes array for use in isAbsolute().
+@return a copy of the __sortedFormatSpecifierTypes array for use in isAbsolute().
 */
 private int[] getSortedFormatSpecifierTypes() {
 	if (__sortedFormatSpecifierTypes == null) {

@@ -13,6 +13,7 @@
 
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRDrawingArea;
@@ -70,12 +71,12 @@ Properties associated with the feature.
 /**
 Upstream features.
 */
-protected Vector _upstream_feature_Vector;
+protected List _upstream_feature_Vector;
 
 /**
 Downstream features.
 */
-protected Vector _downstream_feature_Vector;
+protected List _downstream_feature_Vector;
 
 /**
 Object that is associated with the node (e.g., external data object).
@@ -287,7 +288,7 @@ public NetworkFeature getDownstreamFeature ( int index )
 {	if ( (index < 0) || (index >= _downstream_feature_Vector.size() ) ) {
 		return null;
 	}
-	return (NetworkFeature)_downstream_feature_Vector.elementAt(index);
+	return (NetworkFeature)_downstream_feature_Vector.get(index);
 }
 
 /**
@@ -323,7 +324,7 @@ public NetworkFeature getUpstreamFeature ( int index )
 {	if ( (index < 0) || (index >= _upstream_feature_Vector.size() ) ) {
 		return null;
 	}
-	return (NetworkFeature)_upstream_feature_Vector.elementAt(index);
+	return (NetworkFeature)_upstream_feature_Vector.get(index);
 }
 
 /**

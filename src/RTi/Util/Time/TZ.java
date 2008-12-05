@@ -47,6 +47,7 @@
 package	RTi.Util.Time;
 
 import RTi.Util.Message.Message;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -61,95 +62,93 @@ because it would conflict with the Java class name.  Currently recognized time
 zones are the standard character zones used in the United States.
 <b>Note that calls to getDefined*() methods have a performance penalty because
 the time zone data needs to be searched.  Code should be optimized to re-use
-time zone shift data as much as possible while detecting the need to use the
-shifts.</b>
+time zone shift data as much as possible while detecting the need to use the shifts.</b>
 */
 public class TZ
 {
 
 // Time zone data for common time zones.  If anything more than basic
 // information is needed, will need to add code to read from some type of time
-// zone database.  Use a Vector so that new time zones can be added on the
-// fly.
-private static Vector TZData = new Vector(66);
+// zone database.  Use a Vector so that new time zones can be added on the fly.
+private static List TZData = new Vector(66);
 static {
-	TZData.addElement ( new TZ( "", "", 0, 0, 0 ) );
-	TZData.addElement ( new TZ( "GMT", "Greenwich Mean Time", 0, 0, 0 ));
-	TZData.addElement ( new TZ("UTC","Coordinated Universal Time",0,0,0 ));
-	TZData.addElement ( new TZ( "Z", "Zulu Time", 0, 0, 0 ));
+	TZData.add ( new TZ( "", "", 0, 0, 0 ) );
+	TZData.add ( new TZ( "GMT", "Greenwich Mean Time", 0, 0, 0 ));
+	TZData.add ( new TZ("UTC","Coordinated Universal Time",0,0,0 ));
+	TZData.add ( new TZ( "Z", "Zulu Time", 0, 0, 0 ));
 
-	TZData.addElement ( new TZ("A", "Atlantic Local Time", -240, -1, 60 ));
-	TZData.addElement ( new TZ("AS","Atlantic Standard Time",-240, 0, 0 ));
-	TZData.addElement ( new TZ("AST","Atlantic Standard Time",-240,0, 0 ));
-	TZData.addElement ( new TZ("AD","Atlantic Daylight Time",-240,1, 60 ));
+	TZData.add ( new TZ("A", "Atlantic Local Time", -240, -1, 60 ));
+	TZData.add ( new TZ("AS","Atlantic Standard Time",-240, 0, 0 ));
+	TZData.add ( new TZ("AST","Atlantic Standard Time",-240,0, 0 ));
+	TZData.add ( new TZ("AD","Atlantic Daylight Time",-240,1, 60 ));
 
-	TZData.addElement ( new TZ( "E", "Eastern Local Time", -300, -1, 60 ));
-	TZData.addElement ( new TZ("ES","Eastern Standard Time", -300, 0, 0 ));
-	TZData.addElement ( new TZ("EST","Eastern Standard Time",-300, 0, 0 ));
-	TZData.addElement ( new TZ("ED","Eastern Daylight Time",-300, 1, 60 ));
-	TZData.addElement ( new TZ("EDT","Eastern Daylight Time",-300,1, 60 ));
+	TZData.add ( new TZ( "E", "Eastern Local Time", -300, -1, 60 ));
+	TZData.add ( new TZ("ES","Eastern Standard Time", -300, 0, 0 ));
+	TZData.add ( new TZ("EST","Eastern Standard Time",-300, 0, 0 ));
+	TZData.add ( new TZ("ED","Eastern Daylight Time",-300, 1, 60 ));
+	TZData.add ( new TZ("EDT","Eastern Daylight Time",-300,1, 60 ));
 
-	TZData.addElement ( new TZ( "C", "Central Local Time", -360, -1, 60 ));
-	TZData.addElement ( new TZ("CS", "Central Standard Time", -360, 0, 0));
-	TZData.addElement ( new TZ("CST","Central Standard Time", -360, 0, 0));
-	TZData.addElement ( new TZ("CD","Central Daylight Time",-360, 1, 60 ));
-	TZData.addElement ( new TZ("CDT","Central Daylight Time",-360,1, 60 ));
+	TZData.add ( new TZ( "C", "Central Local Time", -360, -1, 60 ));
+	TZData.add ( new TZ("CS", "Central Standard Time", -360, 0, 0));
+	TZData.add ( new TZ("CST","Central Standard Time", -360, 0, 0));
+	TZData.add ( new TZ("CD","Central Daylight Time",-360, 1, 60 ));
+	TZData.add ( new TZ("CDT","Central Daylight Time",-360,1, 60 ));
 
-	TZData.addElement ( new TZ("M", "Mountain Local Time", -420, -1, 60 ));
-	TZData.addElement ( new TZ("MS","Mountain Standard Time",-420, 0, 0 ));
-	TZData.addElement ( new TZ("MST","Mountain Standard Time",-420,0, 0 ));
-	TZData.addElement ( new TZ("MD","Mountain Daylight Time",-420,1, 60 ));
-	TZData.addElement ( new TZ("MDT","Mountain Daylight Time",-420,1,60 ));
+	TZData.add ( new TZ("M", "Mountain Local Time", -420, -1, 60 ));
+	TZData.add ( new TZ("MS","Mountain Standard Time",-420, 0, 0 ));
+	TZData.add ( new TZ("MST","Mountain Standard Time",-420,0, 0 ));
+	TZData.add ( new TZ("MD","Mountain Daylight Time",-420,1, 60 ));
+	TZData.add ( new TZ("MDT","Mountain Daylight Time",-420,1,60 ));
 
-	TZData.addElement ( new TZ("P", "Pacific Local Time", -480, -1, 60 ));
-	TZData.addElement ( new TZ("PS","Pacific Standard Time",-480, 0, 0 ));
-	TZData.addElement ( new TZ("PST","Pacific Standard Time",-480,0, 0 ));
-	TZData.addElement ( new TZ("PD","Pacific Daylight Time",-480,1, 60 ));
-	TZData.addElement ( new TZ("PDT","Pacific Daylight Time",-480,1,60 ));
+	TZData.add ( new TZ("P", "Pacific Local Time", -480, -1, 60 ));
+	TZData.add ( new TZ("PS","Pacific Standard Time",-480, 0, 0 ));
+	TZData.add ( new TZ("PST","Pacific Standard Time",-480,0, 0 ));
+	TZData.add ( new TZ("PD","Pacific Daylight Time",-480,1, 60 ));
+	TZData.add ( new TZ("PDT","Pacific Daylight Time",-480,1,60 ));
 
-	TZData.addElement ( new TZ( "Y", "Yukon Local Time", -540, -1, 60 ));
-	TZData.addElement ( new TZ("YS", "Yukon Standard Time", -540, 0, 0 ));
-	TZData.addElement ( new TZ("YST","Yukon Standard Time", -540, 0, 0 ));
-	TZData.addElement ( new TZ("YD","Yukon Daylight Time", -540, 1, 60 ));
-	TZData.addElement ( new TZ("YDT","Yukon Daylight Time",-540, 1, 60 ));
+	TZData.add ( new TZ( "Y", "Yukon Local Time", -540, -1, 60 ));
+	TZData.add ( new TZ("YS", "Yukon Standard Time", -540, 0, 0 ));
+	TZData.add ( new TZ("YST","Yukon Standard Time", -540, 0, 0 ));
+	TZData.add ( new TZ("YD","Yukon Daylight Time", -540, 1, 60 ));
+	TZData.add ( new TZ("YDT","Yukon Daylight Time",-540, 1, 60 ));
 
 	// L, LS, LD are SHEF
-	TZData.addElement ( new TZ( "L", "Alaska Local Time", -540, -1, 60 ));
-	TZData.addElement ( new TZ("LS","Alaska Standard Time",-540, 0, 0 ));
-	TZData.addElement ( new TZ("AKST","Alaska Standard Time",-540,0, 0 ));
-	TZData.addElement ( new TZ("LD","Alaska Daylight Time",-540,1, 60 ));
-	TZData.addElement ( new TZ("AKDT","Alaska Daylight Time",-540,1,60 ));
+	TZData.add ( new TZ( "L", "Alaska Local Time", -540, -1, 60 ));
+	TZData.add ( new TZ("LS","Alaska Standard Time",-540, 0, 0 ));
+	TZData.add ( new TZ("AKST","Alaska Standard Time",-540,0, 0 ));
+	TZData.add ( new TZ("LD","Alaska Daylight Time",-540,1, 60 ));
+	TZData.add ( new TZ("AKDT","Alaska Daylight Time",-540,1,60 ));
 
 	// All are SHEF
-	TZData.addElement ( new TZ( "B", "Bering Local Time", -660, -1, 60 ));
-	TZData.addElement ( new TZ("BS","Bering Standard Time", -660, 0, 0 ));
-	TZData.addElement ( new TZ("BD","Bering Daylight Time",-660, 1, 60 ));
+	TZData.add ( new TZ( "B", "Bering Local Time", -660, -1, 60 ));
+	TZData.add ( new TZ("BS","Bering Standard Time", -660, 0, 0 ));
+	TZData.add ( new TZ("BD","Bering Daylight Time",-660, 1, 60 ));
 
-	TZData.addElement ( new TZ( "Z0", "Z0", 0, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+1", "Z+1", 60, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+2", "Z+2", 120, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+3", "Z+3", 180, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+4", "Z+4", 240, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+5", "Z+5", 300, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+6", "Z+6", 360, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+7", "Z+7", 420, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+8", "Z+8", 480, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+9", "Z+9", 540, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+10", "Z+10", 600, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+11", "Z+11", 660, 0, 0 ));
-	TZData.addElement ( new TZ( "Z+12", "Z+12", 720, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-1", "Z-1", -60, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-2", "Z-2", -120, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-3", "Z-3", -180, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-4", "Z-4", -240, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-5", "Z-5", -300, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-6", "Z-6", -360, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-7", "Z-7", -420, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-8", "Z-8", -480, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-9", "Z-9", -540, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-10", "Z-10", -600, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-11", "Z-11", -660, 0, 0 ));
-	TZData.addElement ( new TZ( "Z-12", "Z-12", -720, 0, 0 ));
+	TZData.add ( new TZ( "Z0", "Z0", 0, 0, 0 ));
+	TZData.add ( new TZ( "Z+1", "Z+1", 60, 0, 0 ));
+	TZData.add ( new TZ( "Z+2", "Z+2", 120, 0, 0 ));
+	TZData.add ( new TZ( "Z+3", "Z+3", 180, 0, 0 ));
+	TZData.add ( new TZ( "Z+4", "Z+4", 240, 0, 0 ));
+	TZData.add ( new TZ( "Z+5", "Z+5", 300, 0, 0 ));
+	TZData.add ( new TZ( "Z+6", "Z+6", 360, 0, 0 ));
+	TZData.add ( new TZ( "Z+7", "Z+7", 420, 0, 0 ));
+	TZData.add ( new TZ( "Z+8", "Z+8", 480, 0, 0 ));
+	TZData.add ( new TZ( "Z+9", "Z+9", 540, 0, 0 ));
+	TZData.add ( new TZ( "Z+10", "Z+10", 600, 0, 0 ));
+	TZData.add ( new TZ( "Z+11", "Z+11", 660, 0, 0 ));
+	TZData.add ( new TZ( "Z+12", "Z+12", 720, 0, 0 ));
+	TZData.add ( new TZ( "Z-1", "Z-1", -60, 0, 0 ));
+	TZData.add ( new TZ( "Z-2", "Z-2", -120, 0, 0 ));
+	TZData.add ( new TZ( "Z-3", "Z-3", -180, 0, 0 ));
+	TZData.add ( new TZ( "Z-4", "Z-4", -240, 0, 0 ));
+	TZData.add ( new TZ( "Z-5", "Z-5", -300, 0, 0 ));
+	TZData.add ( new TZ( "Z-6", "Z-6", -360, 0, 0 ));
+	TZData.add ( new TZ( "Z-7", "Z-7", -420, 0, 0 ));
+	TZData.add ( new TZ( "Z-8", "Z-8", -480, 0, 0 ));
+	TZData.add ( new TZ( "Z-9", "Z-9", -540, 0, 0 ));
+	TZData.add ( new TZ( "Z-10", "Z-10", -600, 0, 0 ));
+	TZData.add ( new TZ( "Z-11", "Z-11", -660, 0, 0 ));
+	TZData.add ( new TZ( "Z-12", "Z-12", -720, 0, 0 ));
 }
 
 // Data to check a local time zone to see whether it is daylight savings or
@@ -277,7 +276,7 @@ throws Exception
 		throw new Exception ( "Data for time zone \"" + abbreviation +
 		"could not be found" );
 	}
-	TZ tz = (TZ)TZData.elementAt(pos);
+	TZ tz = (TZ)TZData.get(pos);
 	_zulu_offset_minutes = tz._zulu_offset_minutes;
 	_description = tz._description;
 	_dsflag = tz._dsflag;
@@ -311,7 +310,7 @@ the same abbreviation), the second time zone will not be found.
 REVISIT JAVADOC: see RTi.Util.Time.TZ.insertTimeZoneAt
 */
 public static void addTimeZone ( TZ tz )
-{	TZData.addElement ( tz );
+{	TZData.add ( tz );
 }
 
 /**
@@ -418,8 +417,8 @@ throws Exception
 
 	// Now work with the raw data...
 
-	TZ from_tz = (TZ)TZData.elementAt(from_pos);
-	TZ to_tz = (TZ)TZData.elementAt(to_pos);
+	TZ from_tz = (TZ)TZData.get(from_pos);
+	TZ to_tz = (TZ)TZData.get(to_pos);
 	int from_offset = from_tz._zulu_offset_minutes;
 	int to_offset = to_tz._zulu_offset_minutes;
 
@@ -522,7 +521,7 @@ private static int getDefinedDataPosition ( String abbr )
 	TZ tz = null;
 	int size = TZData.size();
 	for ( int i = 0; i < size; i++ ) {
-		tz = (TZ)TZData.elementAt(i);
+		tz = (TZ)TZData.get(i);
 		if( abbr.equalsIgnoreCase( tz._abbreviation ) ){
 			tz = null;
 			return i;
@@ -560,7 +559,7 @@ throws Exception
 		"Unable to look up time zone description for \"" +
 		abbr + "\"" );
 	}
-	return ((TZ)TZData.elementAt(pos))._description;
+	return ((TZ)TZData.get(pos))._description;
 }
 
 /**
@@ -590,7 +589,7 @@ throws Exception
 		"Unable to look up daylight savings flag for \"" +
 		abbr + "\"" );
 	}
-	return ((TZ)TZData.elementAt(pos))._dsflag;
+	return ((TZ)TZData.get(pos))._dsflag;
 }
 
 /**
@@ -620,14 +619,14 @@ throws Exception
 		"Unable to look up daylight savings offset for \"" +
 		abbr + "\"" );
 	}
-	return ((TZ)TZData.elementAt(pos))._ds_offset_minutes;
+	return ((TZ)TZData.get(pos))._ds_offset_minutes;
 }
 
 /**
 Return the Vector of defined time zones as TZ.
 @return The Vector of defined time zone data.
 */
-public static Vector getDefinedTimeZones()
+public static List getDefinedTimeZones()
 {	return TZData;
 }
 
@@ -657,7 +656,7 @@ throws Exception
 		throw new Exception (
 		"Unable to look up time zone for \"" + abbr + "\"" );
 	}
-	return (TZ)TZData.elementAt(pos);
+	return (TZ)TZData.get(pos);
 }
 
 /**
@@ -688,7 +687,7 @@ throws Exception
 		"Unable to look up time zone number for \"" +
 		abbr + "\"" );
 	}
-	return ((TZ)TZData.elementAt(pos))._zulu_offset_minutes;
+	return ((TZ)TZData.get(pos))._zulu_offset_minutes;
 }
 
 /**
@@ -716,7 +715,7 @@ public int getDSOffsetMinutes()
 }
 
 /**
-Return a Vector of defined time zone data that match the time zone for
+Return a list of defined time zone data that match the time zone for
 the specified offset and daylight savings flag.
 @return Matching time zones, or null if none are found.
 @param zulu_offset_minutes Offset in minutes between zulu time and the standard
@@ -731,18 +730,17 @@ recommended to use this value unless specifically looking for generic
 time zones, for example to display as a list of choices).
 @exception Exception if the time zone cannot be determined.
 */
-public static Vector getMatchingDefinedTZ (	int zulu_offset_minutes,
-						int dsflag )
+public static List getMatchingDefinedTZ ( int zulu_offset_minutes, int dsflag )
 throws Exception
-{	Vector matches = new Vector();
+{	List matches = new Vector();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
-		tz2 = (TZ)TZData.elementAt(i);
+		tz2 = (TZ)TZData.get(i);
 		if (	(tz2._zulu_offset_minutes == zulu_offset_minutes) &&
 			(tz2._dsflag == dsflag) ) {
 			// Time zones match...
-			matches.addElement ( tz2 );
+			matches.add ( tz2 );
 		}
 	}
 	if ( matches.size() == 0 ) {
@@ -752,29 +750,28 @@ throws Exception
 }
 
 /**
-Return a Vector of defined time zone data that match the time zone for
+Return a list of defined time zone data that match the time zone for
 the specified abbreviation.  The comparison is done on the data for the given
 time zone, not just the string.
 @return Matching time zones, or null if none are found.
 @param abbr Time zone abbreviation.
-@param include_self If true, include the original time zone.  If false, do not
-include.
+@param include_self If true, include the original time zone.  If false, do not include.
 @exception Exception if the time zone cannot be determined.
 */
-public static Vector getMatchingDefinedTZ ( String abbr, boolean include_self )
+public static List getMatchingDefinedTZ ( String abbr, boolean include_self )
 throws Exception
 {	TZ tz = getDefinedTZ ( abbr );
-	Vector matches = new Vector();
+	List matches = new Vector();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
-		tz2 = (TZ)TZData.elementAt(i);
+		tz2 = (TZ)TZData.get(i);
 		// Comparison is done on data, not the abbreviation...
 		if ( tz2.equals(tz) ) {
 			if (	include_self ||
 				!tz.getAbbreviation().equalsIgnoreCase(
 				tz2.getAbbreviation()) ) {
-				matches.addElement ( tz2 );
+				matches.add ( tz2 );
 			}
 		}
 	}
@@ -811,7 +808,7 @@ the same abbreviation), the first time zone found will be used.
 @param tz Fully-defined TZ to add to the list of defined time zones.
 */
 public static void insertTimeZoneAt ( TZ tz, int index )
-{	TZData.insertElementAt ( tz, index );
+{	TZData.add ( index, tz );
 }
 
 /**

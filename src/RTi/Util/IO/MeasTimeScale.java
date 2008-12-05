@@ -16,6 +16,7 @@
 
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -41,23 +42,23 @@ Indicates that a measurement is an instantaneous reading.
 public static final String INST = "INST";
 
 /**
-Return a Vector of String containing available time scale choices.  This is
+Return a list of String containing available time scale choices.  This is
 useful for presenting in displays.
 @return a Vector of String containing available time scale choices.
 @param include_note If true, the returned string will be of the form
-"ACCM - Accumulated".  If false, the returned string will be of the form
-"ACCM".
+"ACCM - Accumulated".  If false, the returned string will be of the form "ACCM".
 */
-public static Vector getTimeScaleChoices ( boolean include_note )
-{	Vector v = new Vector ( 3 );
+public static List getTimeScaleChoices ( boolean include_note )
+{	List v = new Vector ( 3 );
 	if ( include_note ) {
-		v.addElement ( ACCM + " - Accumulated" );
-		v.addElement ( INST + " - Instantaneous" );
-		v.addElement ( MEAN + " - Mean" );
+		v.add ( ACCM + " - Accumulated" );
+		v.add ( INST + " - Instantaneous" );
+		v.add ( MEAN + " - Mean" );
 	}
-	else {	v.addElement ( "ACCM" );
-		v.addElement ( "INST" );
-		v.addElement ( "MEAN" );
+	else {
+		v.add ( "ACCM" );
+		v.add ( "INST" );
+		v.add ( "MEAN" );
 	}
 	return v;
 }

@@ -17,7 +17,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.String.StringUtil;
@@ -40,14 +40,13 @@ public static String getFilePath(URL URLToFile) throws IOException {
 	int bufLen = 0;
 	String FilePath = IOUtil.getPathUsingWorkingDir((String)null),
 		parseURL = null;
-	Vector URLFileString = new Vector();
 
 	// Parse the URL.getFile() String to get the filename without
 	// the path. Add the file to the path from IOUtil to get
 	// the local file path to download the file.
 	parseURL = URLToFile.getFile();
-	URLFileString = StringUtil.breakStringList(parseURL,"/",0);
-	FilePath += (String)URLFileString.lastElement();
+	List URLFileString = StringUtil.breakStringList(parseURL,"/",0);
+	FilePath += (String)URLFileString.get(URLFileString.size() - 1);
 
 	// Download the file at the URL
 	ISR = new InputStreamReader(URLToFile.openStream());

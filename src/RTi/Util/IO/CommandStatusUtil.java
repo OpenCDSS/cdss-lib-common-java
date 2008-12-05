@@ -1,8 +1,6 @@
 package RTi.Util.IO;
 
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandStatus;
@@ -114,14 +112,13 @@ public class CommandStatusUtil
   {
     CommandStatusType status = cs.getCommandStatus(commandPhaseType);
       
-      Vector v = cs.getCommandLog(commandPhaseType);
+      List v = cs.getCommandLog(commandPhaseType);
       if ( v.size() > 0 )
         {
-          Enumeration e = v.elements();
-          int i = 0;
-          while (e.hasMoreElements())
+          int size = v.size();
+          for ( int i = 0; i < size; i++ )
               {
-                CommandLogRecord clr = (CommandLogRecord)e.nextElement();
+                CommandLogRecord clr = (CommandLogRecord)v.get(i);
 
                 assembler.addPhase(commandPhaseType.toString(),
                         status.toString(),
@@ -197,17 +194,17 @@ public class CommandStatusUtil
           csp = (CommandStatusProvider)commandList.get(i);
           CommandStatus status2 = csp.getCommandStatus();
           // Get the logs for the initialization...
-          Vector logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          List logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.INITIALIZATION, (CommandLogRecord)logs.elementAt(il) );
+              status.addToLog(CommandPhaseType.INITIALIZATION, (CommandLogRecord)logs.get(il) );
           }
           logs = status2.getCommandLog(CommandPhaseType.DISCOVERY);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.DISCOVERY, (CommandLogRecord)logs.elementAt(il) );
+              status.addToLog(CommandPhaseType.DISCOVERY, (CommandLogRecord)logs.get(il) );
           }
           logs = status2.getCommandLog(CommandPhaseType.RUN);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.RUN, (CommandLogRecord)logs.elementAt(il) );
+              status.addToLog(CommandPhaseType.RUN, (CommandLogRecord)logs.get(il) );
           }
       }
   }
@@ -248,19 +245,17 @@ public class CommandStatusUtil
       //b.append( nl + "Command:  " + "would be nice to have here.")
       //b.append( nl + thick_line );
       b.append ( nl + "Initialization status: " + cs.getCommandStatus(CommandPhaseType.INITIALIZATION));
-      Vector v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
+      List v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
       if ( v.size() > 0 ){
     	  b.append ( nl + thin_line );
     	  b.append ( nl + "Initialization log:");
-          Enumeration e = v.elements();
-          int i = 0;
-          while (e.hasMoreElements())
+          int size = v.size();
+          for ( int i = 0; i < size; i++ )
               {
         	  	if ( i > 0 ) {
         	  		b.append ( nl + dash_line );
         	  	}
-                b.append ( nl + e.nextElement().toString() );
-                ++i;
+                b.append ( nl + v.get(i).toString() );
               }
       }
       b.append ( nl + thick_line );
@@ -269,15 +264,13 @@ public class CommandStatusUtil
       if ( v.size() > 0 ) {
     	  b.append ( nl + thin_line );
     	  b.append ( nl + "Discovery log:");
-          Enumeration e = v.elements();
-          int i = 0;
-          while (e.hasMoreElements())
+          int size = v.size();
+          for ( int i = 0; i < size; i++ )
               {
       	  		if ( i > 0 ) {
       	  			b.append ( nl + dash_line );
       	  		}
-                b.append ( nl + e.nextElement().toString() );
-                ++i;
+                b.append ( nl + v.get(i).toString() );
               }
       }
       b.append ( nl + thick_line );
@@ -286,16 +279,14 @@ public class CommandStatusUtil
       if ( v.size() > 0 ) {
     	  b.append ( nl + thin_line );
     	  b.append ( nl + "Run log:");
-          Enumeration e = v.elements();
-          int i = 0;
-          while (e.hasMoreElements())
+    	  int size = v.size();
+          for ( int i = 0; i < size; i++ )
               {
         	  	if ( i > 0 ) {
         		  b.append ( nl + dash_line );
     	  		}
-                b.append ( nl + e.nextElement().toString() );
+                b.append ( nl + v.get(i).toString() );
               }
-          ++i;
       }
 
       return b.toString();
@@ -376,7 +367,7 @@ public class CommandStatusUtil
    * @param commands
    * @return HTML status report
    */
-  public static String getHTMLStatusReport(Vector commands)
+  public static String getHTMLStatusReport(List commands)
   {
     HTMLStatusAssembler assembler = new HTMLStatusAssembler();
     Command command;
@@ -384,7 +375,7 @@ public class CommandStatusUtil
     
     for ( int i = 0; i < commands.size(); i++ ) 
       {
-        command = (Command)commands.elementAt(i);
+        command = (Command)commands.get(i);
         count = count + addCommandHTML(command, assembler);
        }
     if (count == 0)

@@ -24,6 +24,7 @@
 
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -110,7 +111,7 @@ private DataSet __dataset = null;
 				// even if only a partial data set (e.g., one
 				// group).
 
-private Vector __data_check_results = null;
+private List __data_check_results = null;
 				// A Vector of String used to store data check
 				// results, suitable for printing to an output
 				// file header, etc.  See the __is_output flag
@@ -186,21 +187,18 @@ public void addComponent ( DataSetComponent component )
 throws Exception
 {	String routine = "DataSetComponent.addComponent";
 	if ( !isGroup() ) {
-		Message.printWarning ( 2, routine,
-		"Trying to add component to non-group component." );
+		Message.printWarning ( 2, routine, "Trying to add component to non-group component." );
 		return;
 	}
 	if ( __data == null ) {
 		// Allocate memory for the components.
 		__data = new Vector ();
 	}
-	((Vector)__data).addElement ( component );
+	((List)__data).add ( component );
 	// Set so the component knows who its parent is...
 	component.__parent = this;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine,
-		"Added " + component.getComponentName() + " to " +
-		getComponentName() );
+		Message.printDebug ( 1, routine, "Added " + component.getComponentName() + " to " + getComponentName() );
 	}
 }
 
@@ -265,7 +263,7 @@ public Object getData ()
 Return the data check results, as a Vector of String.
 @return the data check results.
 */
-public Vector getDataCheckResults ()
+public List getDataCheckResults ()
 {	return __data_check_results;
 }
 
@@ -303,8 +301,8 @@ public boolean hasData() {
 	if (__data == null) {
 		return false;
 	}
-	if (__data instanceof Vector) {
-		if (((Vector)__data).size() == 0) {
+	if (__data instanceof List) {
+		if (((List)__data).size() == 0) {
 			return false;
 		}
 	}
@@ -374,7 +372,7 @@ public void setData ( Object data )
 Set the data check results, as a Vector of String.
 @param data_check_results The data check results.
 */
-public void setDataCheckResults ( Vector data_check_results )
+public void setDataCheckResults ( List data_check_results )
 {	__data_check_results = data_check_results;
 }
 

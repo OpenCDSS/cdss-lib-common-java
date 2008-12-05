@@ -38,6 +38,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -158,15 +159,15 @@ public void actionPerformed(ActionEvent event) {
 		dispose();	
 	}
 	else if (s.equals(__BUTTON_JAR)) {
-		Vector v1 = IOUtil.getSystemProperties();
-		Vector v2 = IOUtil.getJarFilesManifests();
+		List v1 = IOUtil.getSystemProperties();
+		List v2 = IOUtil.getJarFilesManifests();
 
-		Vector v3 = new Vector();
+		List v3 = new Vector();
 		for (int i = 0; i < v1.size(); i++) {
-			v3.add(v1.elementAt(i));
+			v3.add(v1.get(i));
 		}
 		for (int i = 0; i < v2.size(); i++) {
-			v3.add(v2.elementAt(i));
+			v3.add(v2.get(i));
 		}
 		PropList props = new PropList("HelpAboutJDialog");
 		props.set("Title=System Information");
@@ -193,9 +194,8 @@ Instantiate the dialog components
 private void initialize(String title, String label) {
 	addWindowListener(this);
 
-	// Split the text based on the new-line delimiter (we use \n, not the
-	// platform's separator!
-	Vector vec = StringUtil.breakStringList(label, "\n", 0);
+	// Split the text based on the new-line delimiter (we use \n, not the platform's separator!
+	List vec = StringUtil.breakStringList(label, "\n", 0);
 	int size = vec.size();
 	
         // North Panel
@@ -207,9 +207,14 @@ private void initialize(String title, String label) {
 		// used by the HelpAboutDialog)...
        		north_JPanel.setLayout(new GridBagLayout());
 		if (size > 20) {
-			//add message String to a JList
-			//that is within a JScrollPane
-			JList list = new JList(vec);
+			//add message String to a JListthat is within a JScrollPane
+			JList list = null;
+			if ( vec instanceof Vector ) {
+				list = new JList((Vector)vec);
+			}
+			else {
+				list = new JList(new Vector(vec));
+			}
 			list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane(list);
 			Dimension d = new Dimension(400, 200);
@@ -227,7 +232,7 @@ private void initialize(String title, String label) {
 			// Add each string as a JLabel...
 			for (int i = 0; i < size; i++) {
        				JGUIUtil.addComponent(north_JPanel,
-					new JLabel((String)vec.elementAt(i)),
+					new JLabel((String)vec.get(i)),
 					0, i, 1, 1, 0, 0, insets,
 					GridBagConstraints.NONE, 
 					GridBagConstraints.CENTER);

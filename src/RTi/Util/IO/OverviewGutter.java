@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JComponent;
@@ -40,7 +41,7 @@ public class OverviewGutter extends JComponent
   /** Height of gutter used for marker positioning (it is MARKER_HEIGHT shorter*/
   int _gutterHeight;
   /** Maintains the list of markers */
-  private Vector _markerInstances = new Vector();
+  private List _markerInstances = new Vector();
   /** JList associated with OverviewGutter */
   private final JList        _list;
 

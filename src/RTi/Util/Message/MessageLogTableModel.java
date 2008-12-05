@@ -10,6 +10,7 @@
 
 package RTi.Util.Message;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
@@ -39,7 +40,7 @@ Constructor.
 @param messages the messages that will be displayed in the table.  Each element
 in the Vector is a line in the log file, and must be a String.
 */
-public MessageLogTableModel(Vector messages) {
+public MessageLogTableModel(List messages) {
 	if (messages == null) {
 		messages = new Vector();
 	}
@@ -120,7 +121,7 @@ Returns the data that should be placed in the JTable at the given row and column
 @return the data that should be placed in the JTable at the given row and col.
 */
 public Object getValueAt(int row, int col) {
-	return _data.elementAt(row);
+	return _data.get(row);
 }
 
 }

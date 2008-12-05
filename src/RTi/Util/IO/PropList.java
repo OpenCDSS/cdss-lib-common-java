@@ -103,6 +103,7 @@ package RTi.Util.IO;
 
 import java.lang.Object;
 import java.lang.String;
+import java.util.List;
 import java.util.Vector;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -218,9 +219,9 @@ Name of this PropList.
 */
 private String __listName;
 /**
-Vector of Prop.
+List of Prop.
 */
-private Vector __list;
+private List __list;
 /**
 File to save in.
 */
@@ -318,7 +319,7 @@ private void append ( String key, Object contents, boolean isLiteral )
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.append", "Setting property \"" + key + "\" to: \"" + contents.toString() + "\"" );
 	}
-	__list.addElement ( prop );
+	__list.add ( prop );
 }
 
 /**
@@ -332,16 +333,14 @@ private void append ( String key, Object contents, String value )
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.append", "Setting property \"" + key + "\" to: \"" + value + "\"" );
 	}
-	__list.addElement ( prop );
+	__list.add ( prop );
 }
 
 /**
 Remove all items from the PropList.
 */
 public void clear()
-{	__list.removeAllElements();
-	__list = new Vector (100,10);
-	
+{	__list.clear();
 }
 
 /**
@@ -350,7 +349,7 @@ Return the Prop instance at the requested position.  Use size() to determine the
 @return the Prop at the specified position.
 */
 public Prop elementAt(int pos)
-{	return (Prop)__list.elementAt(pos);
+{	return (Prop)__list.get(pos);
 }
 
 /**
@@ -375,7 +374,7 @@ public int findProp ( String key )
 	Prop prop_i;
 	String propKey;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)__list.elementAt(i);
+		prop_i = (Prop)__list.get(i);
 		propKey = (String)prop_i.getKey();
 		if ( key.equalsIgnoreCase(propKey) ) {
 			// Have a match.  Return the position...
@@ -421,7 +420,7 @@ public int findProp ( int intKey )
 {	int	prop_intKey, size = __list.size();
 	Prop prop_i;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)__list.elementAt(i);
+		prop_i = (Prop)__list.get(i);
 		prop_intKey = prop_i.getIntKey();
 		if ( intKey == prop_intKey ) {
 			// Have a match.  Return the position...
@@ -442,7 +441,7 @@ public Object getContents ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the contents...
-		return ((Prop)__list.elementAt(pos)).getContents();
+		return ((Prop)__list.get(pos)).getContents();
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.getContents", "Did not find property \"" + key + "\"" );
@@ -459,10 +458,10 @@ public int getHowSet ()
 }
 
 /**
-Returns the Vector of Props.
-@return the Vector of Props.
+Returns the list of Props.
+@return the list of Props.
 */
-public Vector getList() {
+public List getList() {
 	return __list;
 }
 
@@ -508,18 +507,18 @@ This is useful when writing a PropList to a file in a well-defined order.
 @param regExp Regular expression recognized by StringUtil.matchesRegExp().
 @return a Vector of Prop, or null if no matching properties are found.
 */
-public Vector getPropsMatchingRegExp ( String regExp )
+public List getPropsMatchingRegExp ( String regExp )
 {	if ( (__list == null) || (regExp == null) ) {
 		return null;
 	}
 	int size = __list.size();
-	Vector props = new Vector ();
+	List props = new Vector ();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)__list.elementAt(i);
+		prop = (Prop)__list.get(i);
 		// Do a case-independent comparison...
 		if ( StringUtil.matchesRegExp(true, prop.getKey(), regExp)) {
-			props.addElement ( prop );
+			props.add ( prop );
 		}
 	}
 	if ( props.size() == 0 ) {
@@ -552,7 +551,7 @@ Search the list using the string key.
 public Prop getProp ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
-		Prop prop = (Prop)__list.elementAt(pos);
+		Prop prop = (Prop)__list.get(pos);
 		prop.refresh(this);
 		return prop;
 	}
@@ -583,7 +582,7 @@ elementAt(), which returns the property at a position in the list.
 public Prop getProp ( int intKey )
 {	int pos = findProp ( intKey );
 	if ( pos >= 0 ) {
-		return (Prop)__list.elementAt(pos);
+		return (Prop)__list.get(pos);
 	}
 	return null;
 }
@@ -620,7 +619,7 @@ public String getValue ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the value...
-		String value = ((Prop)__list.elementAt(pos)).getValue(this);
+		String value = ((Prop)__list.get(pos)).getValue(this);
 		if ( Message.isDebugOn ) {
 			Message.printDebug(100,"PropList.getValue", "Found value of \"" + key + "\" to be \"" + value + "\"" );
 		}
@@ -659,7 +658,7 @@ public String getValue ( int intKey )
 {	int	pos = findProp ( intKey );
 	if ( pos >= 0 ) {
 		// Have a match.  Get the value...
-		return ((Prop)__list.elementAt(pos)).getValue( this );
+		return ((Prop)__list.get(pos)).getValue( this );
 	}
 	return null;
 }
@@ -722,7 +721,7 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 		return props;
 	}
 	// Allowing quoted strings is necessary because a comma or = could be in a string
-	Vector tokens = StringUtil.breakStringList ( string, delim,	StringUtil.DELIM_ALLOW_STRINGS );
+	List tokens = StringUtil.breakStringList ( string, delim,	StringUtil.DELIM_ALLOW_STRINGS );
 						
 	int size = 0;
 	if ( tokens != null ) {
@@ -732,7 +731,7 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 	    //Message.printStatus ( 2, "PropList.parse", "Parsing parameter string \"" + (String)tokens.elementAt(i));
 		// The above call to breakStringList() may have stripped quotes that would protected "=" in the
 	    // properties.  Therefore just find the first "=" and take the left and right sides.
-	    String token = (String)tokens.elementAt(i);
+	    String token = (String)tokens.get(i);
 	    int pos = token.indexOf('=');
 	    if ( pos > 0 ) {
 	        // Don't want property names to have spaces
@@ -760,7 +759,7 @@ public Prop propAt ( int i )
 {	if ( (i < 0) || (i > (__list.size() - 1)) ) {
 		return null;
 	}
-	return (Prop)__list.elementAt ( i );
+	return (Prop)__list.get ( i );
 }
 
 /**
@@ -841,7 +840,7 @@ throws IOException
 	boolean continuation = false;
 	String lineSave = null;
 	String name, value;
-	Vector v = null;
+	List v = null;
 	boolean inComment = false;
 	int literalCount = 0;
 
@@ -951,12 +950,12 @@ throws IOException
         		continue;
         	}
         	v = new Vector(2);
-        	v.addElement ( line.substring(0,pos) );
-        	v.addElement ( line.substring(pos + 1) );
+        	v.add ( line.substring(0,pos) );
+        	v.add ( line.substring(pos + 1) );
         
         	if ( v.size() == 2 ) {
-        		name = prefix + ((String)v.elementAt(0)).trim();
-        		value = ((String)v.elementAt(1)).trim();
+        		name = prefix + ((String)v.get(0)).trim();
+        		value = ((String)v.get(1)).trim();
         		length = value.length();
         		if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
         			(value.charAt(0) == value.charAt(length-1))) ) {
@@ -1039,7 +1038,7 @@ public void set ( String key, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.elementAt ( index );
+		Prop prop = (Prop)__list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( value );
 		prop.setValue ( value );
@@ -1077,7 +1076,7 @@ public void set ( String key, String contents, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.elementAt ( index );
+		Prop prop = (Prop)__list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
@@ -1112,7 +1111,7 @@ public void set ( Prop prop, boolean replace )
 	else {
 	    // Already in the list so change it...
 		prop.setHowSet ( __howSet );
-		__list.setElementAt ( prop, index );
+		__list.set ( index, prop );
 	}
 }
 
@@ -1194,7 +1193,7 @@ public void setUsingObject ( String key, Object contents )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.elementAt ( index );
+		Prop prop = (Prop)__list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
@@ -1216,7 +1215,7 @@ public void setValue ( String key, String value )
 {	int pos = findProp(key);
 	if ( pos >= 0 ) {
 		// Have a match.  Reset the value in the corresponding Prop...
-		Prop prop = (Prop)__list.elementAt(pos);
+		Prop prop = (Prop)__list.get(pos);
 		prop.setValue(value);
 		return;
 	}
@@ -1264,7 +1263,7 @@ public String toString ( String delim )
 	int size = __list.size();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)__list.elementAt(i);
+		prop = (Prop)__list.get(i);
 		if ( i > 0 ) {
 			b.append ( delim );
 		}
@@ -1285,7 +1284,7 @@ Remove the property from the property list.
 */
 public void unset ( int pos )
 {   if ( pos >= 0 ) {
-        __list.removeElementAt(pos);
+        __list.remove(pos);
     }
 }
 
@@ -1297,7 +1296,7 @@ Remove the property from the property list.
 public void unSet ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
-		__list.removeElementAt(pos);
+		__list.remove(pos);
 	}
 }
 
@@ -1318,7 +1317,7 @@ deprecated ones are in the list, and returns a Vector with warning messages
 about deprecated and invalid properties.  Invalid properties ARE NOT removed.
 See the overloaded method for more information.
 */
-public Vector validatePropNames(Vector validProps, Vector deprecatedProps, Vector deprecatedNotes, String target ) 
+public List validatePropNames(List validProps, List deprecatedProps, List deprecatedNotes, String target ) 
 throws Exception
 {
     return validatePropNames( validProps, deprecatedProps, deprecatedNotes, target, false );
@@ -1376,8 +1375,8 @@ returned second.  If null is returned, no invalid or deprecated properties were 
 deprecatedNotes are non-null and the size of the Vectors is different, an 
 Exception will be thrown warning of the error.
 */
-public Vector validatePropNames(Vector validProps, Vector deprecatedProps,
-Vector deprecatedNotes, String target, boolean removeInvalid ) 
+public List validatePropNames(List validProps, List deprecatedProps,
+List deprecatedNotes, String target, boolean removeInvalid ) 
 throws Exception {
 	// Get the sizes of the Vectors that will be iterated through, handling null Vectors gracefully.
 
@@ -1418,13 +1417,13 @@ throws Exception {
 	String key = null;
 	String msg = null;
 	String val = null;
-	Vector warnings = new Vector();
+	List warnings = new Vector();
 	
 	// Iterate through all the properties in the PropList and check for
 	// whether they are valid, invalid, or deprecated.
 
-	Vector invalids = new Vector();
-	Vector deprecateds = new Vector();
+	List invalids = new Vector();
+	List deprecateds = new Vector();
 	
 	String removeInvalidString = "";
 	if ( removeInvalid ) {
@@ -1441,7 +1440,7 @@ throws Exception {
 		// Properties will only be checked for whether they are deprecated if they are not valid.
 
 		for (int j = 0; j < validPropsSize; j++) {
-			val = (String)validProps.elementAt(j);
+			val = (String)validProps.get(j);
 			if (val.equalsIgnoreCase(key)) {
 				valid = true;
 				break;
@@ -1453,11 +1452,11 @@ throws Exception {
 			// the valid properties Vector.
 
 			for (int j = 0; j < deprecatedPropsSize; j++) {
-				val = (String)deprecatedProps.elementAt(j);
+				val = (String)deprecatedProps.get(j);
 				if (val.equalsIgnoreCase(key)) {
 					msg = "\"" + key + "\" is no longer recognized as a valid " + target + "." + removeInvalidString;
 					if (hasNotes) {
-						msg += "  " +(String)deprecatedNotes.elementAt(j);
+						msg += "  " +(String)deprecatedNotes.get(j);
 					}
 					deprecateds.add(msg);
 
@@ -1484,11 +1483,11 @@ throws Exception {
 	}
 
 	for (int i = 0; i < invalids.size(); i++) {
-		warnings.add(invalids.elementAt(i));
+		warnings.add(invalids.get(i));
 	}
 
 	for (int i = 0; i < deprecateds.size(); i++) {
-		warnings.add(deprecateds.elementAt(i));
+		warnings.add(deprecateds.get(i));
 	}
 
 	if (warnings.size() == 0) {

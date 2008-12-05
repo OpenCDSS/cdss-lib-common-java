@@ -32,6 +32,7 @@ import java.awt.print.PrinterException;
 
 import javax.swing.JTextArea;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -126,18 +127,16 @@ The text to appear at the top of each page.
 private String __header = null;
 
 /**
-The Vector of text to be printed out.
+The list of text to be printed out.
 */
-private Vector __linesVector;
+private List __linesVector;
 
 /**
 Constructor.  Creates a ReportPrinter that will print the text in the
 given JTextArea with the given number of lines per page.
 @param ta the JTextArea with the text to be printed.
-@param linesPerPageP the number of lines to print on a single page in Portrait
-orientation.
-@param linesPerPageL the number of lines to print on a single page in Landscape
-orientation.
+@param linesPerPageP the number of lines to print on a single page in Portrait orientation.
+@param linesPerPageL the number of lines to print on a single page in Landscape orientation.
 @param header the text that will appear at the top of each page as a header.
 If null, no header will be shown.
 @param testPage whether this is just printing a testPage or will actually
@@ -150,7 +149,7 @@ printer, whatever that is.
 */
 private ReportPrinter (JTextArea ta, int linesPerPageP, int linesPerPageL, 
 String header, boolean testPage, boolean batch) {
-	__linesVector = taToStringVector(ta);
+	__linesVector = taToStringList(ta);
 	__printTestPage = testPage;
 	__batch = batch;
 
@@ -170,10 +169,8 @@ String header, boolean testPage, boolean batch) {
 Constructor.  Creates a ReportPrinter that will print the text in the
 given Vector with the given number of lines per page.
 @param text the Vector of text to print.
-@param linesPerPageP the number of lines to print on a single page in Portrait
-orientation.
-@param linesPerPageL the number of lines to print on a single page in Landscape
-orientation.
+@param linesPerPageP the number of lines to print on a single page in Portrait orientation.
+@param linesPerPageL the number of lines to print on a single page in Landscape orientation.
 @param header the text that will appear at the top of each page as a header.
 If null, no header will be shown.
 @param testPage whether this is just printing a testPage or will actually
@@ -184,7 +181,7 @@ the print, the printer to which the job will go to, and other print job
 information.  If false, the print job will just be sent to the default
 printer, whatever that is.
 */
-private ReportPrinter (Vector text, int linesPerPageP, int linesPerPageL,
+private ReportPrinter (List text, int linesPerPageP, int linesPerPageL,
 String header, boolean testPage, boolean batch) {
 	__linesVector = text;
 	__printTestPage = testPage;
@@ -578,7 +575,7 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 				i = __linesPerPage + 1;
 			} else {
 				g2.drawString(
-					(String)__linesVector.elementAt(
+					(String)__linesVector.get(
 					(pageIndex * __linesPerPage) + i),
 					0, __as + (i * (__as + __ds) + slop +15)
 				);
@@ -683,16 +680,14 @@ int linesPerPageL, String header, boolean batch, PageFormat pf) {
 Print the text in the Vector with the given number of lines per page,
 possibly in batch mode, and use the given PageFormat.
 @param v a Vector of text to print.
-@param linesPerPageP the number of lines of text per printed page in portrait
-orientation.
-@param linesPerPageL the number of lines of text per printed page in landscape
-orientation.
+@param linesPerPageP the number of lines of text per printed page in portrait orientation.
+@param linesPerPageL the number of lines of text per printed page in landscape orientation.
 @param batch if true, no dialog will pop up asking the user for print 
 job information like page range and number of copies.
 @param pf the PageFormat to use for this print job.
 @return the PageFormat set up or used for this print job.
 */
-public static PageFormat printText(Vector v, int linesPerPageP, 
+public static PageFormat printText(List v, int linesPerPageP, 
 int linesPerPageL, String header, boolean batch, PageFormat pf) {
 	ReportPrinter r = new ReportPrinter(v, linesPerPageP, linesPerPageL,
 		header, false, batch);
@@ -712,25 +707,23 @@ public void setPageFormat(PageFormat pf) {
 }
 
 /**
-Take a JTextArea and turn it into a Vector of Strings, with the default
-tabstop size of 8.
+Take a JTextArea and turn it into a Vector of Strings, with the default tabstop size of 8.
 @param ta the JTextArea to turn into a Vector of Strings.
 @return a Vector of Strings.
 */
-private Vector taToStringVector(JTextArea ta) {
-	return taToStringVector(ta, 8);
+private List taToStringList(JTextArea ta) {
+	return taToStringList(ta, 8);
 }
 
 /**
 Take a JTextArea and turn it into a Vector of Strings, with the given
 tabstop size.  Each Vector element will be a line in the JTextArea, broken
-at a newline. Tabs are translated into spaces based on the size of the 
-tabstop.
+at a newline. Tabs are translated into spaces based on the size of the tabstop.
 @param ta the JTextArea to turn into a Vector of Strings.
 @param tabStop the number of spaces to replace each tab with.
 @return A Vector of Strings representing the lines in the JTextArea.
 */
-private Vector taToStringVector(JTextArea ta, int tabStop) {
+private List taToStringList(JTextArea ta, int tabStop) {
 	if (ta == null) {
 		return null;
 	}

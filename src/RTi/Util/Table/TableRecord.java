@@ -46,7 +46,8 @@ Whether the data has been changed or not.
 private boolean __dirty = false;
 
 /**
-Vector of data values corresponding to the different fields.
+List of data values corresponding to the different fields.  Currently no Vector
+methods are exposed but if this is needed, expose as a List.
 */
 private Vector __record;
 
@@ -88,18 +89,9 @@ private void initialize(int num) {
 /**
 Add a field data value to the record.
 @param new_element Data object to add to record.
-@deprecated Use addFieldValue().
-*/
-public void addField(Object new_element) {
-	addFieldValue(new_element);
-}
-
-/**
-Add a field data value to the record.
-@param new_element Data object to add to record.
 */
 public void addFieldValue(Object new_element) {
-	__record.addElement(new_element);
+	__record.add(new_element);
 }
 
 /**
@@ -112,7 +104,7 @@ throws Exception {
 		throw new Exception ("Field num " + fieldNum + " out of "
 			+ "bounds.");
 	}
-	__record.removeElementAt(fieldNum);
+	__record.remove(fieldNum);
 }
 
 /**
@@ -131,7 +123,7 @@ throws Exception {
 		throw new Exception ("Index " + index + 
 		" of field not valid (" + __record.size() + ")");
 	}
-	return __record.elementAt(index);
+	return __record.get(index);
 }
 
 /**
@@ -152,21 +144,18 @@ public boolean isDirty() {
 
 /**
 Sets the field contents of the record at the specified zero-based index.
-The number of available fields should be set in the constructor or use 
-setNumberFields().
+The number of available fields should be set in the constructor or use setNumberOfFields().
 @param index Field position to set.
 @param contents Field contents to set.
-@exception if the index exceeds the available number of fields within this
-record.
+@exception if the index exceeds the available number of fields within this record.
 */
 public void setFieldValue(int index, Object contents)
 throws Exception {
 	if (index < __record.size()) {
-		__record.setElementAt(contents, index);
+		__record.set(index,contents);
 	}
 	else {	
-		throw new Exception("Specified index " + index + 
-		" does not exist.");
+		throw new Exception("Specified index " + index + " does not exist.");
 	}
 }
 
@@ -180,12 +169,11 @@ public void setDirty(boolean dirty) {
 
 /**
 Sets the number of fields within this record.  If the previous number of
-fields is larger than the new number, those fields after the new number of
-fields will be lost.
+fields is larger than the new number, those fields after the new number of fields will be lost.
 @param num Number of fields to include in the record.
 */
-public void setNumberOfFields(int num) {
-	__record.setSize(num);
+public void setNumberOfFields(int num)
+{	__record.setSize(num);
 }
 
 }

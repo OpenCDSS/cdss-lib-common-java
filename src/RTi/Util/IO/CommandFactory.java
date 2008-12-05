@@ -16,8 +16,7 @@
 package RTi.Util.IO;
 
 /**
-This interface is implemented by classes that will be a factory for Command
-instances.
+This interface is implemented by classes that will be a factory for Command instances.
 */
 public interface CommandFactory
 {

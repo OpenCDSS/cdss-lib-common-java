@@ -10,6 +10,7 @@
 
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -19,7 +20,7 @@ integers indicating the first and last revisions in the header.
 */
 public class FileHeader {
 
-private Vector	_header;
+private List	_header;
 private int	_header_first;
 private int	_header_last;
 
@@ -39,7 +40,7 @@ Add a string to the header.
 */
 public int addElement ( Object o )
 {
-	_header.addElement ( o );
+	_header.add ( o );
 	return 0;
 }
 
@@ -49,7 +50,7 @@ Return the string at index "i" (zero-referenced).
 */
 public Object elementAt ( int i )
 {
-	return _header.elementAt ( i );
+	return _header.get ( i );
 }
 
 /**

@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -130,9 +131,9 @@ JPEG images, however, if there are any "jpg" or "jpeg" elements in the array,
 they are both places in the same SimpleFileFilter.  The returned Vector will
 never be null, but it may be empty.
 */
-private Vector createFileFilters(String[] imageTypes) {
-	Vector v = new Vector();
-	Vector jpeg = new Vector();
+private List createFileFilters(String[] imageTypes) {
+	List v = new Vector();
+	List jpeg = new Vector();
 	String s = null;
 	SimpleFileFilter sff = null;
 	
@@ -197,11 +198,10 @@ private void displayFileChooser(String title) {
 	// HIGHLY unlikely, that there will be no writable file types, in 
 	// which case the user will get a mostly unusable file chooser.
 	String[] imageTypes = getListOfWritableImageTypes();
-	Vector filters = createFileFilters(imageTypes);
+	List filters = createFileFilters(imageTypes);
 	
 	for (int i = 0; i < filters.size(); i++) {
-		fc.addChoosableFileFilter(
-			(SimpleFileFilter)filters.elementAt(i));
+		fc.addChoosableFileFilter((SimpleFileFilter)filters.get(i));
 	}
 
 	// do not let the user choose a file type of "*.* All Files"
@@ -215,7 +215,7 @@ private void displayFileChooser(String title) {
 	}
 
 	if (filters.size() > 0) {
-		fc.setFileFilter((SimpleFileFilter)filters.elementAt(0));
+		fc.setFileFilter((SimpleFileFilter)filters.get(0));
 	}
 
 	fc.setDialogType(JFileChooser.SAVE_DIALOG); 		
@@ -317,15 +317,14 @@ Must not be null.
 null.
 */
 private void saveImage(File file, SimpleFileFilter filter) {
-	Vector filters = filter.getFilters();
+	List filters = filter.getFilters();
 
 	if (filters.size() == 0) {
-		setReturnStatus("(ERROR) There was no selected file "
-			+ "extension.");
+		setReturnStatus("(ERROR) There was no selected file extension.");
 		return;
 	}
 
-	String s = (String)filters.elementAt(0);
+	String s = (String)filters.get(0);
 
 	String name = null;
 	try {

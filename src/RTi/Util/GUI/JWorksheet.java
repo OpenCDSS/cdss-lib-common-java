@@ -329,6 +329,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
@@ -371,22 +372,18 @@ import RTi.Util.String.StringUtil;
 
 import RTi.Util.Time.StopWatch;
 
-// REVISIT (2004-01-20)
-// need to add main javadocs for dealing with the new row headers.
+// TODO (2004-01-20) need to add main javadocs for dealing with the new row headers.
 
 /**
-This class extends the Swing JTable to create a Worksheet that mimics Excel's 
-behavior.<p>
+This class extends the Swing JTable to create a Worksheet that mimics Excel's behavior.<p>
 <b>Import note:</b><br>
 Because of their reliance on underlying JTable code, JWorksheets do <b>NOT</b>
 do well with multiple columns that have the exact same name.  Unexpected
 results can occur.  This is an issue that may be REVISITed in the future, 
-but in the meantime developers should not hope to have worksheets with two
-columns of the same name.
+but in the meantime developers should not hope to have worksheets with two columns of the same name.
 <p>
 <b>Important note:</b><br>
-In the documentation below, mention is made to <b>absolute</b> 
-and <b>visible</b>
+In the documentation below, mention is made to <b>absolute</b> and <b>visible</b>
 columns.  <b>Absolute</b> column numbers never change.  The seventh
 <b>absolute</b> column is always the seventh <b>absolute</b> column, because
 it is listed in the table model as being column seven.<p>
@@ -439,12 +436,9 @@ a subclassed table renderer and table model data).<p><pre>
 	int[] widths = null;
 	try {
 		// custom table model
-		StateMod_Diversion_TableModel tmd = new
-			StateMod_Diversion_TableModel(__diversionsVector, 
-			__readOnly);
+		StateMod_Diversion_TableModel tmd = new StateMod_Diversion_TableModel(__diversionsVector, __readOnly);
 		// custom cell renderer
-		StateMod_Diversion_CellRenderer crd = new
-			StateMod_Diversion_CellRenderer(tmd);
+		StateMod_Diversion_CellRenderer crd = new StateMod_Diversion_CellRenderer(tmd);
 	
 		// create the table
 		__worksheet = new JWorksheet(crd, tmd, p);
@@ -453,8 +447,7 @@ a subclassed table renderer and table model data).<p><pre>
 		widths = crd.getColumnWidths();
 	}
 	catch (Exception e) {
-		// if there was a problem, simply create an empty 
-		// JWorksheet.
+		// if there was a problem, simply create an empty JWorksheet.
 		Message.printWarning(2, routine, e);
 		__worksheet = new JWorksheet(0, 0, p);
 		e.printStackTrace();
@@ -480,7 +473,7 @@ a subclassed table renderer and table model data).<p><pre>
 <b>Cell Attributes</b><p>
 The above example sets up the font the JWorksheet will use for rendering 
 the cells in the JWorksheet and in the JWorksheet's header.  Different cell
-attributes can still be appled to individual cells to override the JWorksheet
+attributes can still be applied to individual cells to override the JWorksheet
 defaults.  The following code will change every other cell in the 3rd column
 to have different attributes:<p><pre>
 	JWorksheet_CellAttributes ca = new JWorksheet_CellAttributes();
@@ -513,7 +506,7 @@ As opposed to putting a single combo box with the same values on a column,
 individual cells within a column can be set to use combo boxes, and each 
 combo box can have a different list of values.  If a column is set up to 
 allow cell-specific placement of combo boxes, all the cells in which a 
-combo box was NOT explicity set will use the same text field data entry as 
+combo box was NOT explicitly set will use the same text field data entry as 
 normal data entry cells.  The following code demonstrates
 placing different combo boxes on cells within a column:<p><pre>
 	__worksheet.setCellSpecificJComboBoxColumn(3, true);
@@ -550,8 +543,7 @@ has a cell-specific combobox set up in column 3, the same combo box should be
 set up in column 3 of the new row, too, with all the same values.<p>
 
 <b>Class Descriptions</b><p>
-The following is a brief list of all the related JWorksheet_* classes and
-their purposes:<p>
+The following is a brief list of all the related JWorksheet_* classes and their purposes:<p>
 <ul>
 <li><b>JWorksheet_AbstractExcelCellRenderer</b> - This class is the cell
 renderer used by most applications, as it provides the capability to properly
@@ -572,8 +564,7 @@ be set and applied to individual cells within the table.</li>
 These classes provide the JWorksheet with the ability to do Microsoft Excel-like
 cell selection.  Programmers should not need to work with these classes.</li>
 <li><b>JWorksheet_CopyPasteAdapter</b> - This class provides support for copying
-and pasting to JWorksheets.  Programs should not need to work directly with
-this class.</li>
+and pasting to JWorksheets.  Programs should not need to work directly with this class.</li>
 <li><b>JWorksheet_DefaultTableCellEditor</b> - This class overrides the normal
 editor used for editing cell values.  Programs should not need to work directly
 with this class.</li>
@@ -588,49 +579,42 @@ the JWorksheet's header.  Programmers probably won't need to subclass this.</li>
 <li><b>JWorksheet_JComboBoxCellEditor</b> - This class provides columns with
 the ability to have combo boxes as data entry editors.</li>
 <li><b>JWorksheet_Listener</b> - This class is an interface for other classes
-that want to be informed whenver the table performs some actions such as 
+that want to be informed whenever the table performs some actions such as 
 adding or removing rows.</li>
 <li><b>JWorksheet_RowCountCellRenderer</b> - This class is a cell renderer
-for the optional first column of worksheet cells that display the number of
-the row.</li>
+for the optional first column of worksheet cells that display the number of the row.</li>
 </ul>
 */
 public class JWorksheet 
 extends JTable 
 implements ActionListener, KeyListener, MouseListener, AdjustmentListener {
 
-// REVISIT TODO
-// add setColumnEditable()
+// TODO TODO add setColumnEditable()
 
 /**
-JWorksheet selection model in which cells can be non-contiguously selected 
-like in an Excel worksheet.
+JWorksheet selection model in which cells can be non-contiguously selected like in an Excel worksheet.
 */
 private static final int __EXCEL_SELECTION = 1000;
 
 /**
 JTable Selection mode in which only a single cell can be selected at a time. 
 */
-private static final int __SINGLE_CELL_SELECTION = 
-	ListSelectionModel.SINGLE_SELECTION + 100;
+private static final int __SINGLE_CELL_SELECTION = ListSelectionModel.SINGLE_SELECTION + 100;
 
 /**
 Selection mode in which only a single row can be selected at a time.
 */
-private static final int __SINGLE_ROW_SELECTION = 
-	ListSelectionModel.SINGLE_SELECTION;
+private static final int __SINGLE_ROW_SELECTION = ListSelectionModel.SINGLE_SELECTION;
 
 /**
 Selection mode in which multiple contiguous rows can be selected.
 */
-private static final int __MULTIPLE_ROW_SELECTION = 
-	ListSelectionModel.SINGLE_INTERVAL_SELECTION;
+private static final int __MULTIPLE_ROW_SELECTION = ListSelectionModel.SINGLE_INTERVAL_SELECTION;
 
 /**
 Selection mode in which multiple discontinuous rows can be selected.
 */
-private static final int __MULTIPLE_DISCONTINUOUS_ROW_SELECTION = 
-	ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
+private static final int __MULTIPLE_DISCONTINUOUS_ROW_SELECTION = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
 
 public static final int PRE_SELECTION_CHANGE = 0;
 public static final int POST_SELECTION_CHANGE = 1;
@@ -644,8 +628,7 @@ if a value is equal to another value.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_EQUAL_TO = 1;
 
@@ -655,8 +638,7 @@ specified value.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_LESS_THAN = 2;
 
@@ -667,20 +649,17 @@ specified value.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_GREATER_THAN = 4;
 
 /**
-Bit-mask parameter for String find()s that turns off case sensitivity.  
-By default, 
+Bit-mask parameter for String find()s that turns off case sensitivity.  By default, 
 String searches are case-sensitive.  There is no default specifying how 
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_CASE_INSENSITIVE = 16;
 
@@ -690,8 +669,7 @@ starts another string.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_STARTS_WITH = 32;
 
@@ -701,8 +679,7 @@ ends another string.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_ENDS_WITH = 64;
 
@@ -712,8 +689,7 @@ is contained within another string.  There is no default specifying how
 searches must be done, so parameters must be specified for searches.  For 
 numeric and date searches, one of FIND_EQUAL_TO, FIND_LESS_THAN or 
 FIND_GREATER_THAN must be specified.  For String searches, one of 
-FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must 
-be specified.
+FIND_EQUAL_TO, FIND_CONTAINS, FIND_STARTS_WITH, or FIND_ENDS_WITH must be specified.
 */
 public static final int FIND_CONTAINS = 128;
 
@@ -726,7 +702,7 @@ when getValueAt() is called.
 public static final int FIND_REVERSE = 256;
 
 /**
-Bit-mask paremter for all find()s so that a search can start in the middle 
+Bit-mask parameter for all find()s so that a search can start in the middle 
 of a worksheet's data and wrap around and start again at the beginning.  
 By default, searches start at the beginning of the table's data.
 */
@@ -756,15 +732,13 @@ private final int
 
 /**
 Used with notifyAllWorksheetListeners to let JWorksheet_Listeners know that a 
-row has been added.  Also used with adjustCellAttributesAndText() to inform that
-a row has been inserted.
+row has been added.  Also used with adjustCellAttributesAndText() to inform that a row has been inserted.
 */
 private final int __ROW_ADDED = 0;
 
 /**
 Used with notifyAllWorksheetListeners to let JWorksheet_Listeners know that a 
-row has been deleted.  Also used with adjustCellAttributesAndText() to inform 
-that a row has been deleted.
+row has been deleted.  Also used with adjustCellAttributesAndText() to inform that a row has been deleted.
 */
 private final int __ROW_DELETED = 1;
 
@@ -775,8 +749,7 @@ row data has been changed with setData().
 private final int __DATA_RESET = 2;
 
 /**
-Used with adjustCellAttributesAndText() to inform that a column has been removed
-from the table.
+Used with adjustCellAttributesAndText() to inform that a column has been removed from the table.
 */
 private final int __COL_DELETED = 3;
 
@@ -843,15 +816,13 @@ Whether pasting from the table has been enabled or not.
 private boolean __pasteEnabled = false;
 
 /**
-Whether to select an entire column (with the Excel selection mode only) when the
-column header is clicked on.
+Whether to select an entire column (with the Excel selection mode only) when the column header is clicked on.
 */
 private boolean __oneClickColumnSelection = false;
 
 /**
 Whether to select an entire row when the row header is clicked on.
-REVISIT (JTS - 2004-11-19)
-with the new row headers, it's very likely this won't work anymore.
+TODO (JTS - 2004-11-19) with the new row headers, it's very likely this won't work anymore.
 */
 private boolean __oneClickRowSelection = false;
 
@@ -861,8 +832,7 @@ Whether this worksheet's cells can be selected or not.
 private boolean __selectable = true;
 
 /**
-Whether to show the sorting popup menu.  Defaults to true unless another value
-is provided by the proplist.
+Whether to show the sorting popup menu.  Defaults to true unless another value is provided by the proplist.
 */
 private boolean __showPopup = true;
 
@@ -877,14 +847,12 @@ Whether worksheet code is currently running any test version of the code.
 private boolean __testing = false;
 
 /**
-Whether to use the row headers that work similarly to the standard JTable 
-column headers.
+Whether to use the row headers that work similarly to the standard JTable column headers.
 */
 private boolean __useRowHeaders = false;
 
 /**
-Whether the worksheet should handle displaying the regular popup menu or 
-something external will.
+Whether the worksheet should handle displaying the regular popup menu or something external will.
 */
 private boolean __worksheetHandlePopup = true;
 
@@ -907,8 +875,7 @@ The background color for the row header.  Defaults to the system standard color.
 private Color __rowHeaderColor = null;
 
 /**
-Used to hold the 'compiled' version of the cell font, for quick retrieval by
-the cell renderers.
+Used to hold the 'compiled' version of the cell font, for quick retrieval by the cell renderers.
 */
 private Font __cellFont = null;
 
@@ -943,8 +910,7 @@ Count of all the cells with alternate text.
 private int __altTextCount = 0;
 
 /**
-The size of the font in which the table data should be displayed.  By
-default is 11.
+The size of the font in which the table data should be displayed.  By default is 11.
 */
 private int __cellFontSize = -1;
 
@@ -954,8 +920,7 @@ The style of the cell font.  By default is Font.PLAIN.
 private int __cellFontStyle = -1;
 
 /**
-The size of the font in which the header should be displayed.  By default, 
-is 12.
+The size of the font in which the header should be displayed.  By default, is 12.
 */
 private int __columnHeaderFontSize = -1;
 
@@ -965,8 +930,7 @@ The style of the header font.  By default, is Font.BOLD.
 private int __columnHeaderFontStyle = -1;
 
 /**
-The size of the font in which the header should be displayed.  By default, 
-is 12.
+The size of the font in which the header should be displayed.  By default, is 12.
 */
 private int __rowHeaderFontSize = -1;
 
@@ -996,8 +960,7 @@ The row of the cell that was last edited.
 private int __editRow = -1;
 
 /**
-The first row number that appears in the row header.  All other row numbers
-are determined from this one.
+The first row number that appears in the row header.  All other row numbers are determined from this one.
 */
 private int __firstRowNum = 1;
 
@@ -1007,8 +970,7 @@ The last row selected by clicking on the row header.
 private int __lastRowSelected = -1;
 
 /**
-The <b>visible</b> column on which the popup menu was last opened, used to 
-keep track of which column to sort. 
+The <b>visible</b> column on which the popup menu was last opened, used to keep track of which column to sort. 
 */
 private int __popupColumn = -1;
 
@@ -1019,14 +981,12 @@ the JWorksheet mode, as opposed to one of the JTable modes, is in effect.
 private int __selectionMode = __EXCEL_SELECTION;
 
 /**
-The dialog in which the hourglass will be shown for sorting.  If null, the
-hourglass won't be shown.
+The dialog in which the hourglass will be shown for sorting.  If null, the hourglass won't be shown.
 */
 private JDialog __hourglassJDialog = null;
 
 /**
-The frame in which the hourglass will be shown for sorting.  If null, the
-hourglass won't be shown.
+The frame in which the hourglass will be shown for sorting.  If null, the hourglass won't be shown.
 */
 private JFrame __hourglassJFrame = null;
 
@@ -1066,14 +1026,12 @@ The JPopupMenu that will appear when the table header is right-clicked on.
 private JPopupMenu __popup;
 
 /**
-The header of the table -- used in case the user turns off the header and then
-wants to turn it back on later.
+The header of the table -- used in case the user turns off the header and then wants to turn it back on later.
 */
 private JViewport __columnHeaderView = null;
 
 /**
-If this worksheet uses another worksheet as its row header, this is the
-reference to it.
+If this worksheet uses another worksheet as its row header, this is the reference to it.
 */
 private JWorksheet __worksheetRowHeader = null;
 
@@ -1083,8 +1041,7 @@ Array of the cell attributes for the cells with attributes.
 private JWorksheet_CellAttributes[] __cellAttrs;
 
 /**
-The attributes for the cells that compromise the "row count column" (in other
-words, column 0).
+The attributes for the cells that compromise the "row count column" (in other words, column 0).
 */
 private JWorksheet_CellAttributes __rowCountColumnAttributes;
 
@@ -1141,22 +1098,21 @@ The font name for use in the table header.  By default, is "Arial".
 private String __rowHeaderFontName = null;
 
 /**
-A Vector of registered sort listeners.
+A list of registered sort listeners.
 */
-private Vector __sortListeners = null;
+private List __sortListeners = null;
 
 /**
 A Vector of registered JWorksheet_Listeners.
 */
-private Vector __worksheetListeners = null;
+private List __worksheetListeners = null;
 
 /**
-In testing -- will probably be moved into a property, but maybe not, so it can
-be turned on and off.
+In testing -- will probably be moved into a property, but maybe not, so it can be turned on and off.
 This specifies whether when doing any sort of internal processing of numeric
 data (eg, copying to clipboard, writing to a file, etc), missing values (-999)
 will be output as -999 or as empty strings ("").
-REVISIT (JTS - 2005-11-15)
+TODO (JTS - 2005-11-15)
 */
 public boolean COPY_MISSING_AS_EMPTY_STRING = true;
 
@@ -1165,8 +1121,7 @@ Constructor.
 @param cellRenderer a JWorksheet_DefaultTableCellRenderer object 
 (or a class derived from JWorksheet_DefaultTableCellRenderer) that will be 
 used for rendering cells holding Integers, Strings, Dates and Doubles.
-@param tableModel the TableModel that will be used to fill the worksheet 
-with data.
+@param tableModel the TableModel that will be used to fill the worksheet with data.
 @param props the properties to configure the JWorksheet:
 <table width=80% cellpadding=2 cellspacing=0 border=2>
 <tr>
@@ -1337,15 +1292,14 @@ smaller from the first row number by increments of 1.</td>
 </table>
 </ul>
 
-REVISIT (JTS - 2004-11-19)
-alphabetize the above
+TODO (JTS - 2004-11-19) alphabetize the above
 */
 public JWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
 JWorksheet_AbstractTableModel tableModel, PropList props) {
 	setTableHeader(new JWorksheet_Header());
 	__rowCountColumnAttributes = new JWorksheet_CellAttributes();
 
-	// REVISIT (JTS - 2005-01-25)
+	// TODO (JTS - 2005-01-25)
 	// reading the proplist is done twice in this constructor.  which 
 	// one can be removed -- make sure it doesn't break existing worksheets!
 	readPropList(props);
@@ -1356,7 +1310,7 @@ JWorksheet_AbstractTableModel tableModel, PropList props) {
 	__hourglassJFrame = new JFrame();
 
 	__columnHeaderColor = null;
-	// SAM 2007-05-09 Evaluate whether used
+	// TODO SAM 2007-05-09 Evaluate whether used
 	//__rowCountColumnColor = Color.LIGHT_GRAY;
 
 	// create the arrays to hold cell attribute information
@@ -1388,8 +1342,7 @@ JWorksheet_AbstractTableModel tableModel, PropList props) {
 	}
 
 	__cellFont = new Font(__cellFontName, __cellFontStyle, __cellFontSize);
-	// added as its own key listener here so that it is only intentionally
-	// done once	
+	// added as its own key listener here so that it is only intentionally done once	
 	addKeyListener(this);
 	if (getTableHeader() != null) {
 		getTableHeader().addKeyListener(this);
@@ -1399,12 +1352,10 @@ JWorksheet_AbstractTableModel tableModel, PropList props) {
 /**
 Constructor.  Builds a JWorksheet with all empty cells with the given number
 of rows and columns.  This version is mostly used to create a blank JWorksheet
-object (0 rows, 0 cols) with the specified properties, before data are 
-populated.
+object (0 rows, 0 cols) with the specified properties, before data are populated.
 @param rows the number of rows in the empty worksheet.
 @param cols the number of columns in the empty worksheet.
-@param props PropList defining table characteristics.  See the first 
-constructor.
+@param props PropList defining table characteristics.  See the first constructor.
 */
 public JWorksheet(int rows, int cols, PropList props) {
 	super(rows, cols);
@@ -1436,15 +1387,14 @@ public JWorksheet(int rows, int cols, PropList props) {
 	__worksheetListeners = new Vector();
 
 	__columnHeaderColor = null;
-	// 2007-05-09 Evaluate whether used
+	// TODO 2007-05-09 Evaluate whether used
 	//__rowCountColumnColor = Color.LIGHT_GRAY;	
 
 	__rowCountColumnAttributes = new JWorksheet_CellAttributes();
 	readPropList(props);
 	initialize(rows, cols);
 	__cellFont = new Font(__cellFontName, __cellFontStyle, __cellFontSize);
-	// added as its own key listener here so that it is only intentionally
-	// done once
+	// added as its own key listener here so that it is only intentionally done once
 	addKeyListener(this);
 	if (getTableHeader() != null) {
 		getTableHeader().addKeyListener(this);
@@ -1476,10 +1426,8 @@ public void actionPerformed(ActionEvent event) {
 	else if (command.equals(__MENU_ORIGINAL_ORDER)) {
 		setWaitCursor(true);
 		notifySortListenersSortAboutToChange(-1);
-		((JWorksheet_AbstractTableModel)getModel())
-			.setSortedOrder(null);
-		((JWorksheet_AbstractTableModel)getModel())
-			.fireTableDataChanged();
+		((JWorksheet_AbstractTableModel)getModel()).setSortedOrder(null);
+		((JWorksheet_AbstractTableModel)getModel()).fireTableDataChanged();
 		__cancelMenuItem.setEnabled(false);
 		notifySortListenersSortChanged(-1);
 		setWaitCursor(false);
@@ -1539,8 +1487,7 @@ public void addMouseListener(MouseListener l) {
 
 /**
 Adds a new row of data after all the existing rows.  The data object passed
-in must be valid for the current table model -- but this method will not do 
-any checking to verify that.
+in must be valid for the current table model -- but this method will not do any checking to verify that.
 @param o the object to add to the table model.
 */
 public void addRow(Object o) {
@@ -1551,18 +1498,15 @@ public void addRow(Object o) {
 	int rows = getRowCount();
 	if (__selectionMode == __EXCEL_SELECTION) {
 		int cols = getColumnCount();
-		setSelectionMode(
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		setCellSelectionEnabled(true);			
-		JWorksheet_RowSelectionModel r = 
-			new JWorksheet_RowSelectionModel(rows, cols);
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(rows, cols);
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
 
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -1590,11 +1534,9 @@ public void addSortListener(JWorksheet_SortListener listener) {
 /**
 Adjusts the cell attributes and alternate texts following a row being deleted,
 a row being inserted within the table, or a column being deleted.  This is
-so that all rows maintain the same attributes even when a new row is inserted
-or a row is deleted.  <p>
+so that all rows maintain the same attributes even when a new row is inserted or a row is deleted.  <p>
 For example, consider a table had three rows and row 2 had cell attributes so 
-that all of its cells were red, and rows 1 and 3 had no attributes and their
-cells appear normal.<p>
+that all of its cells were red, and rows 1 and 3 had no attributes and their cells appear normal.<p>
 If a new row is inserted after the first row, this method makes sure that the
 cell attributes that were previously on the second row now appear on the third 
 row.  If the first row is deleted, this makes sure that the second row's 
@@ -1694,7 +1636,8 @@ private void adjustListRowHeaderSize(int adjustment) {
 	else if (adjustment == __DATA_RESET) {
 		__listRowHeader.removeAll();
 		int rows = getRowCount();
-		Vector v = new Vector();
+		// Simple row header is just the number of the row
+		List v = new Vector();
 		for (int i = 0; i < rows; i++) {
 			v.add("" + (i + 1));
 		}
@@ -1702,11 +1645,8 @@ private void adjustListRowHeaderSize(int adjustment) {
 		__listRowHeader.addKeyListener(this);
 		__listRowHeader.setFixedCellWidth(50);
 		__listRowHeader.setFixedCellHeight(getRowHeight());
-		Font font = new Font(__rowHeaderFontName,
-			__rowHeaderFontStyle, __rowHeaderFontSize);
-		__listRowHeader.setCellRenderer(
-			new JWorksheet_RowHeader(this,
-			font, __rowHeaderColor));
+		Font font = new Font(__rowHeaderFontName, __rowHeaderFontStyle, __rowHeaderFontSize);
+		__listRowHeader.setCellRenderer( new JWorksheet_RowHeader(this, font, __rowHeaderColor));
 		__listRowHeader.addMouseListener(this);
 		__worksheetRowHeader = null;		
 		Container p = getParent();
@@ -1714,8 +1654,7 @@ private void adjustListRowHeaderSize(int adjustment) {
 			Container gp = p.getParent();
 			if (gp instanceof JScrollPane) {			
 				JScrollPane jsp = (JScrollPane)gp;
-				__listRowHeader.setBackground(
-					jsp.getBackground());
+				__listRowHeader.setBackground(jsp.getBackground());
 				jsp.setRowHeaderView(__listRowHeader);		
 			}
 		}
@@ -1741,8 +1680,7 @@ public void adjustmentValueChanged(AdjustmentEvent event) {
 /**
 Applies cell attributes to the specified cell.
 @param cell the cell to which to apply attributes
-@param ca the attributes to apply.  If null, then the default JTable settings
-will be used.
+@param ca the attributes to apply.  If null, then the default JTable settings will be used.
 @param selected whether this cell is selected or not.
 */
 private Component applyCellAttributes(Component cell,
@@ -1765,8 +1703,7 @@ JWorksheet_CellAttributes ca, boolean selected) {
 //		cell.setFont(UIManager.getFont("Table.font"));
 		cell.setFont(__cellFont);
 		if (cell instanceof JLabel) {
-			((JLabel)cell).setVerticalAlignment(
-				SwingConstants.CENTER);
+			((JLabel)cell).setVerticalAlignment( SwingConstants.CENTER);
 		}		
 		return cell;		
 	}
@@ -1777,10 +1714,8 @@ JWorksheet_CellAttributes ca, boolean selected) {
 			cell.setFont(ca.font);
 		}
 		else {
-			if (ca.fontName != null && ca.fontSize != -1
-				&& ca.fontStyle != -1) {
-				cell.setFont(new Font(ca.fontName, ca.fontSize,
-					ca.fontStyle));
+			if (ca.fontName != null && ca.fontSize != -1 && ca.fontStyle != -1) {
+				cell.setFont(new Font(ca.fontName, ca.fontSize, ca.fontStyle));
 			}
 			else {
 				cell.setFont(UIManager.getFont("Table.font"));
@@ -1791,16 +1726,14 @@ JWorksheet_CellAttributes ca, boolean selected) {
 				cell.setBackground(ca.backgroundColor);
 			}
 			else {
-				cell.setBackground(UIManager.getColor(
-					"Table.background"));
+				cell.setBackground(UIManager.getColor( "Table.background"));
 			}
 			
 			if (ca.foregroundColor != null) {
 				cell.setForeground(ca.foregroundColor);
 			}
 			else {
-				cell.setForeground(UIManager.getColor(
-					"Table.foreground"));
+				cell.setForeground(UIManager.getColor( "Table.foreground"));
 			}
 		}
 		else {
@@ -1808,23 +1741,20 @@ JWorksheet_CellAttributes ca, boolean selected) {
 				cell.setBackground(ca.backgroundSelectedColor);
 			}
 			else {
-				cell.setBackground(UIManager.getColor(
-					"Table.selectionBackground"));
+				cell.setBackground(UIManager.getColor( "Table.selectionBackground"));
 			}
 			
 			if (ca.foregroundSelectedColor != null) {
 				cell.setForeground(ca.foregroundSelectedColor);
 			}
 			else {
-				cell.setForeground(UIManager.getColor(
-					"Table.selectionForeground"));
+				cell.setForeground(UIManager.getColor( "Table.selectionForeground"));
 			}
 		}
 
 		if (cell instanceof JComponent) {
 			if (ca.borderColor != null) {
-				((JComponent)cell).setBorder(
-					new LineBorder(ca.borderColor));	
+				((JComponent)cell).setBorder( new LineBorder(ca.borderColor));	
 			}
 			else {
 				((JComponent)cell).setBorder(null);
@@ -1832,16 +1762,13 @@ JWorksheet_CellAttributes ca, boolean selected) {
 		}
 		if (cell instanceof JLabel) {
 			if (ca.horizontalAlignment != -1) {
-				((JLabel)cell).setHorizontalAlignment(
-					ca.horizontalAlignment);
+				((JLabel)cell).setHorizontalAlignment(ca.horizontalAlignment);
 			}
 			if (ca.verticalAlignment != -1) {
-				((JLabel)cell).setVerticalAlignment(
-					ca.verticalAlignment);
+				((JLabel)cell).setVerticalAlignment(ca.verticalAlignment);
 			}
 			else {
-				((JLabel)cell).setVerticalAlignment(
-					SwingConstants.CENTER);
+				((JLabel)cell).setVerticalAlignment(SwingConstants.CENTER);
 			}
 		}
 
@@ -1854,8 +1781,7 @@ JWorksheet_CellAttributes ca, boolean selected) {
 /**
 Checks to see whether any columns have been removed
 @return true if any columns have been removed, false if not.
-REVISIT (JTS - 2004-11-19)
-I really dislike this method name.  But what's better to fit the style:
+TODO (JTS - 2004-11-19) I really dislike this method name.  But what's better to fit the style:
 	
 	if (worksheet.XXXXX())
 
@@ -1937,8 +1863,7 @@ in the column name, then it will be used.
 @param minWidth the mininimum number of pixels wide the column should be.
 @param rows the number of rows to look through and check data for widths.  
 <b>Caution:</b> while checking the data to determine a column width can be
-effective for properly sizing a column, it can also be very inefficient and
-performance will be slow.
+effective for properly sizing a column, it can also be very inefficient and performance will be slow.
 @param g a Graphics context to use for determining the width of certain 
 Strings in pixels.  If the worksheet is on a visible gui, 
 worksheet.getGraphics() should be passed in.
@@ -1958,8 +1883,7 @@ Graphics g) {
 	String[] names = new String[count];
 
 	// first loop through all the columns, building a nicely-sized
-	// column name and counting the number of lines the biggest column
-	// name will occupy.
+	// column name and counting the number of lines the biggest column name will occupy.
 	for (int i = 0; i < count; i++) {
 		if (!__columnRemoved[i]) {
 			name = getColumnName(getVisibleColumn(i));
@@ -1974,11 +1898,9 @@ Graphics g) {
 		}
 	}
 
-	boolean shouldDo = ((JWorksheet_AbstractTableModel)getModel())
-		.shouldDoGetConsecutiveValueAt();
+	boolean shouldDo = ((JWorksheet_AbstractTableModel)getModel()).shouldDoGetConsecutiveValueAt();
 
-	((JWorksheet_AbstractTableModel)getModel())
-		.shouldDoGetConsecutiveValueAt(true);
+	((JWorksheet_AbstractTableModel)getModel()).shouldDoGetConsecutiveValueAt(true);
 
 	// then loop through all the columns, making sure that there are an 
 	// equal number of lines in every column name (and if not, pad out
@@ -1999,8 +1921,7 @@ Graphics g) {
 			StopWatch sw = new StopWatch();
 			sw.clear();
 			sw.start();
-			((JWorksheet_AbstractTableModel)getModel())
-				.shouldResetGetConsecutiveValueAt(true);
+			((JWorksheet_AbstractTableModel)getModel()).shouldResetGetConsecutiveValueAt(true);
 
 			name = names[i];
 			lineCount = countLines(name);
@@ -2019,25 +1940,21 @@ Graphics g) {
 					size = dataWidth;
 				}
 			}
-			tc = getColumnModel().getColumn(
-				getVisibleColumn(i));		
+			tc = getColumnModel().getColumn(getVisibleColumn(i));		
 			tc.setPreferredWidth(size);			
 			sw.stop();
 		}
 	}
 
-	((JWorksheet_AbstractTableModel)getModel())
-		.shouldDoGetConsecutiveValueAt(shouldDo);	
-	((JWorksheet_AbstractTableModel)getModel())
-		.shouldResetGetConsecutiveValueAt(true);		
+	((JWorksheet_AbstractTableModel)getModel()).shouldDoGetConsecutiveValueAt(shouldDo);	
+	((JWorksheet_AbstractTableModel)getModel()).shouldResetGetConsecutiveValueAt(true);		
 }
 
 /**
 Programmatically stops any cell editing that is taking place.  Cell editing
 happens when a user double-clicks in a cell or begins typing in a cell.  
 This method will stop the editing and will NOT accept the data the user has
-entered up to this method call.  To accept the data the user has already 
-entered, use stopEditing().
+entered up to this method call.  To accept the data the user has already entered, use stopEditing().
 */
 public void cancelEditing() {
 	if (getCellEditor() != null) {
@@ -2065,8 +1982,7 @@ public void clear() {
 	__lastRowSelected = -1;
 	if (getRowCount() > 0) {
 		((JWorksheet_AbstractTableModel)getModel()).clear();
-		((JWorksheet_AbstractTableModel)getModel())
-			.fireTableDataChanged();
+		((JWorksheet_AbstractTableModel)getModel()).fireTableDataChanged();
 		if (__listRowHeader != null) {
 			adjustListRowHeaderSize(__DATA_RESET);
 		}
@@ -2074,23 +1990,9 @@ public void clear() {
 }
 
 /**
-Overrides the JTable's clearSelection() method -- which cannot be used
-with Excel selection models.  This has been deprecated so that if a person 
-tries to compile with this method they will get the warning to use the other 
-method.  Never remove this method, as it's only here so that a user will see
-the deprecation notice when they compile.
-@deprecated use deselectAll() instead.
-*/
-public void clearSelection() {
-	super.clearSelection();
-}
-
-/**
-Returns the <b>absolute</b> column at the specified point, or -1 if none are
-at that point.
+Returns the <b>absolute</b> column at the specified point, or -1 if none are at that point.
 @param point the Point at which to return the column.
-@return the <b>absolute</b> column at the specified point, or -1 if none are
-at that point.
+@return the <b>absolute</b> column at the specified point, or -1 if none are at that point.
 */
 public int columnAtPoint(Point point) {
 	return super.columnAtPoint(point);
@@ -2177,8 +2079,7 @@ returned.  Otherwise, false is returned.
 @param o the object that should be compared to the objects stored in the table.
 Null is an acceptable value to pass in, in which case the worksheet will search
 for whether the table contains any null values.
-@return true if the object could be found in the worksheet.  False if it could
-not.
+@return true if the object could be found in the worksheet.  False if it could not.
 */
 public boolean contains(Object o) {
 	if (!(getModel() instanceof JWorksheet_AbstractRowTableModel)) {
@@ -2250,8 +2151,7 @@ in the first line of copied information.
 */
 public void copyAllToClipboard(boolean includeHeader) {
 	if (__copyPasteAdapter == null) {
-		__copyPasteAdapter 
-			= new JWorksheet_CopyPasteAdapter(this);
+		__copyPasteAdapter = new JWorksheet_CopyPasteAdapter(this);
 	}
 	__copyPasteAdapter.copyAll(includeHeader);
 }	
@@ -2269,24 +2169,19 @@ Copies the currently selected cells to the clipboard.
 in the first line of copied information. 
 */
 public void copyToClipboard(boolean includeHeader) {
-//	if (!IOUtil.isRunningApplet()) {
-		if (__copyPasteAdapter == null) {
-			__copyPasteAdapter 
-				= new JWorksheet_CopyPasteAdapter(this);
-		}
-		__copyPasteAdapter.copy(includeHeader);
-//	}
+	if (__copyPasteAdapter == null) {
+		__copyPasteAdapter = new JWorksheet_CopyPasteAdapter(this);
+	}
+	__copyPasteAdapter.copy(includeHeader);
 }	
 
 /**
-Used by calculateColumnWidths as a utility method for counting the number of 
-lines in a String.
+Used by calculateColumnWidths as a utility method for counting the number of lines in a String.
 @param name a column name.
-@return the number of lines high the name is (ie, how many lines it will
-occupy in the header).
+@return the number of lines high the name is (ie, how many lines it will occupy in the header).
 */
 private int countLines(String name) {
-	Vector v = StringUtil.breakStringList(name, "\n", 0);
+	List v = StringUtil.breakStringList(name, "\n", 0);
 	return v.size();
 }
 
@@ -2295,8 +2190,7 @@ This is used to make removing columns nicer.  In the original JTable code, if
 there are 3 columns ("a", "b" and "c") and the user removes column 2, then 
 they have to know that "c" is now column 2, not column 3.  Hassles for the
 programmer.  This way, if the programmer says to remove column 18, it ALWAYS
-refers to the column that was #18 in the table model when the table was first
-built.
+refers to the column that was #18 in the table model when the table was first built.
 */
 private void createColumnList() {
 	int columnCount = getColumnCount();
@@ -2328,8 +2222,7 @@ takes precedence and HTML will be written there.
 the htmlWriter parameter is null, the HTML will be generated in memory and 
 returned as a String.  If both the htmlWriter and the filename parameters 
 are not null, the htmlWriter takes precedence and HTML will be written there.
-@param firstRow the first row of the table from which to begin turning data
-into HTML.
+@param firstRow the first row of the table from which to begin turning data into HTML.
 @param lastRow the last row of the table to be written to HTML.
 @return a String representation of the table, if both the htmlWriter and 
 filename parameters are null.  If either are not null, null is returned.
@@ -2344,8 +2237,7 @@ throws Exception {
 	// to methods for formatting and aligning the row data.
 	TableModel model = getModel();
 	if (!(model instanceof JWorksheet_AbstractTableModel)) {
-		throw new Exception("Table model not derived from "
-			+ "JWorksheet_AbstractTableModel");
+		throw new Exception("Table model not derived from JWorksheet_AbstractTableModel");
 	}
 
 	if (firstRow < 0) {
@@ -2357,24 +2249,19 @@ throws Exception {
 			plural = "";
 		}
 		throw new Exception("Last row out of bounds: " + lastRow 
-			+ "  (" + getRowCount() + " row" + plural 
-			+ " in table)");
+			+ "  (" + getRowCount() + " row" + plural + " in table)");
 	}
 	if (lastRow < firstRow) {
-		throw new Exception("Last row (" + lastRow + ") less than "
-			+ " first row (" + firstRow + ")");
+		throw new Exception("Last row (" + lastRow + ") less than first row (" + firstRow + ")");
 	}
 	
-	JWorksheet_AbstractTableModel tableModel = 
-		(JWorksheet_AbstractTableModel)model;
-	JWorksheet_AbstractExcelCellRenderer renderer = 
-		(JWorksheet_AbstractExcelCellRenderer)getCellRenderer();
+	JWorksheet_AbstractTableModel tableModel = (JWorksheet_AbstractTableModel)model;
+	JWorksheet_AbstractExcelCellRenderer renderer = (JWorksheet_AbstractExcelCellRenderer)getCellRenderer();
 
 	HTMLWriter html = null;
 	if (htmlWriter == null) {
 		// only create an HTML header if a filename was specified.  If
-		// no filename was specified, then this is just creating a 
-		// snippet of HTML code.
+		// no filename was specified, then this is just creating a snippet of HTML code.
 		boolean createHeader = false;
 		if (filename != null) { 
 			createHeader = true;
@@ -2391,8 +2278,7 @@ throws Exception {
 	int curCol = 0;
 	String s;
 	
-	// prints out the first row -- which is the name of all the 
-	// visible columns in the table.
+	// prints out the first row -- which is the name of all the visible columns in the table.
 	html.tableRowStart();
 	for (curCol = 0; curCol < getColumnCount(); curCol++) {
 		s = getColumnName(curCol, true);
@@ -2425,8 +2311,7 @@ throws Exception {
 			alignCode = "";
 
 			// if the current cell has any attributes set, get them
-			// and store the settings for the background color and
-			// the foreground color.
+			// and store the settings for the background color and the foreground color.
 			ca=getCellAttributes(curRow, getAbsoluteColumn(curCol));
 			if (ca != null) {
 				bg = ca.backgroundColor;
@@ -2439,33 +2324,26 @@ throws Exception {
 
 			// retrieve all the important data about this cell, such
 			// as the data in it, the kind of data in it, the
-			// way the data should be formatted, and whether there
-			// is any alternate text specified.
-			colClass = tableModel.getColumnClass(
-				getAbsoluteColumn(curCol));
+			// way the data should be formatted, and whether there is any alternate text specified.
+			colClass = tableModel.getColumnClass(getAbsoluteColumn(curCol));
 			Object o = getValueAt(curRow, curCol);
 			format= renderer.getFormat(getAbsoluteColumn(curCol));
 			align = getColumnAlignment(getAbsoluteColumn(curCol));
-			altText = getCellAlternateText(curRow, 
-				getAbsoluteColumn(curCol));
-//			Message.printStatus(1, "", "[" + curRow + "][" 
-//				+ curCol + "]: " + "class: " + colClass 
-//				+ "  o: " + o + "  format: " + format 
-//				+ "  align: " + align + "  alt: " + altText);
+			altText = getCellAlternateText(curRow, getAbsoluteColumn(curCol));
+//			Message.printStatus(1, "", "[" + curRow + "][" + curCol + "]: " + "class: " + colClass 
+//				+ "  o: " + o + "  format: " + format + "  align: " + align + "  alt: " + altText);
 
-			// o should probably never be null, but just in case
-			// set its cell's data to be equivalent to a 
+			// o should probably never be null, but just in case set its cell's data to be equivalent to a 
 			// blank string
 			if (o == null) {
 				s = " ";
 			}
-			// if there is any alternate text in the cell, that 
-			// overrides whatever data is stored in the cell
+			// if there is any alternate text in the cell, that overrides whatever data is stored in the cell
 			else if (altText != null) {
 				s = altText;
 			}
-			// integer cells will have formatting information and
-			// should be aligned differently from other cells.
+			// integer cells will have formatting information and should be aligned differently from
+			// other cells.
 			else if (colClass == Integer.class) {
 				right = true;			
 				i = (new Integer(o.toString())).intValue();
@@ -2473,8 +2351,7 @@ throws Exception {
 					s = " ";
 				}
 				else {
-					s= StringUtil.formatString(o.toString(),
-						format);
+					s= StringUtil.formatString(o.toString(), format);
 				}
 			}
 			// double cells will have formatting information and
@@ -2486,34 +2363,29 @@ throws Exception {
 					s = " ";
 				}
 				else {
-					s= StringUtil.formatString(o.toString(),
-						format);
+					s= StringUtil.formatString(o.toString(), format);
 				}
 			}
 			// string cells will have formatting information.
 			else if (colClass == String.class) {
 				s=StringUtil.formatString(o.toString(), format);
 			}
-			// all other cell data should just be turned into a 
-			// string.
+			// all other cell data should just be turned into a string.
 			else {
 				s = o.toString();
 			}
 
 			s = s.trim();
 
-			// if the cell's data was blank, pad it out to at least
-			// two spaces, so that the cell actually shows up in 
-			// the HTML version of the table.  HTML table cells
-			// with only " " or "" stored in them are not even
-			// rendered in most HTML tables!
+			// if the cell's data was blank, pad it out to at least two spaces, so that the cell actually
+			// shows up in the HTML version of the table.  HTML table cells with only " " or "" stored in
+			// them are not even rendered in most HTML tables!
 			if (s.equals("")) {
 				s = "  ";
 			}
 
-			// if no special alignment information has been set
-			// for this cell, determine the align code for the 
-			// cell from the cell data type specified above.
+			// if no special alignment information has been set for this cell, determine the align code for
+			// the cell from the cell data type specified above.
 			if (align == DEFAULT) {
 				if (right == false) {
 					alignCode = "align=left";
@@ -2522,8 +2394,7 @@ throws Exception {
 					alignCode = "align=right";
 				}
 			}
-			// otherwise, if special alignment information has
-			// been set, that overrides all other alignment 
+			// otherwise, if special alignment information has been set, that overrides all other alignment 
 			// information and should be used.
 			else {
 				if (align == LEFT) {
@@ -2537,41 +2408,30 @@ throws Exception {
 				}
 			}
 
-			// if the cell has a background color, then specify
-			// it in the cell opening tag.
+			// if the cell has a background color, then specify it in the cell opening tag.
 			if (bg != null) {
-				html.tableCellStart(alignCode + " "
-					+ "bgcolor=#"
-					+ MathUtil.decimalToHex(
-						bg.getRed()) + ""
-					+ MathUtil.decimalToHex(
-						bg.getGreen()) + ""
-					+ MathUtil.decimalToHex(
-						bg.getBlue()));
+				html.tableCellStart(alignCode + " " + "bgcolor=#"
+					+ MathUtil.decimalToHex(bg.getRed()) + ""
+					+ MathUtil.decimalToHex(bg.getGreen()) + ""
+					+ MathUtil.decimalToHex(bg.getBlue()));
 			}
 			else {
 				html.tableCellStart(alignCode);
 			}
 
-			// if the cell has a foreground color, then open 
-			// a font tag that changes the font color to the 
+			// if the cell has a foreground color, then open a font tag that changes the font color to the 
 			// specified color
 			if (fg != null) {
 				html.fontStart("color=#"
-					+ MathUtil.decimalToHex(
-						fg.getRed()) + ""
-					+ MathUtil.decimalToHex(
-						fg.getGreen()) + ""
-					+ MathUtil.decimalToHex(
-						fg.getBlue()));
+					+ MathUtil.decimalToHex(fg.getRed()) + ""
+					+ MathUtil.decimalToHex(fg.getGreen()) + ""
+					+ MathUtil.decimalToHex(fg.getBlue()));
 			}
 
-			// finally, put the text that should appear in the
-			// cell into the cell
+			// finally, put the text that should appear in the cell into the cell
 			html.addText(s);
 
-			// and if a font tag was set because of a foreground
-			// color, turn it off
+			// and if a font tag was set because of a foreground color, turn it off
 			if (fg != null) {
 				html.fontEnd();
 			}
@@ -2611,8 +2471,7 @@ will work:<br><pre>
 	worksheet.deleteRow(5);
 	worksheet.deleteRow(5);
 </pre>
-@param row the row to delete from the table model.  Rows are numbered starting
-at 0.
+@param row the row to delete from the table model.  Rows are numbered starting at 0.
 */
 public void deleteRow(int row) {
 	__lastRowSelected = -1;
@@ -2622,18 +2481,15 @@ public void deleteRow(int row) {
 	if (__selectionMode == __EXCEL_SELECTION) {
 		int rows = getRowCount();
 		int cols = getColumnCount();
-		setSelectionMode(
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		setCellSelectionEnabled(true);			
-		JWorksheet_RowSelectionModel r = 
-			new JWorksheet_RowSelectionModel(rows, cols);
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(rows, cols);
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
 
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -2666,8 +2522,7 @@ Deselects all selected cells.
 public void deselectAll() {
 	notifyAllWorksheetListeners(__DESELECT_ALL, PRE_SELECTION_CHANGE);
 	if (__selectionMode == __EXCEL_SELECTION) {
-		((JWorksheet_RowSelectionModel)getSelectionModel())
-			.clearSelection();
+		((JWorksheet_RowSelectionModel)getSelectionModel()).clearSelection();
 		refresh();
 	}
 	else {
@@ -2692,18 +2547,15 @@ public void deselectRow(int row) {
 		}
 	}
 	else {
-		((DefaultListSelectionModel)getSelectionModel())
-			.removeSelectionInterval(row, row);
+		((DefaultListSelectionModel)getSelectionModel()).removeSelectionInterval(row, row);
 	}
 }
 
 /**
-Used by calculateColumnWidths to determine a column's name, as it should fit
-within certain constraints.
+Used by calculateColumnWidths to determine a column's name, as it should fit within certain constraints.
 @param the name of the column.
 @param minWidth the minimum width (in pixels) that the column name should be
-tailored to fit.  Only used if the single largest token in the column name
-is smaller than the minimum width.
+tailored to fit.  Only used if the single largest token in the column name is smaller than the minimum width.
 @param g the Graphics used to determine the width of Strings in certain fonts.
 */
 private String determineName(String name, int minWidth, Graphics g) {
@@ -2711,19 +2563,17 @@ private String determineName(String name, int minWidth, Graphics g) {
 	// them out to all be "comma-space" ...
 	String temp = StringUtil.replaceString(name, ",", ", ");
 	// ... and then split the string based on newlines and spaces.
-	Vector v = StringUtil.breakStringList(temp, " \n", 
-		StringUtil.DELIM_SKIP_BLANKS);	
+	List v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);	
 		
 	int[] sizes = new int[v.size()];
 	String[] strings = new String[sizes.length];		
 	FontMetrics fh = g.getFontMetrics(
-		new Font(__columnHeaderFontName, __columnHeaderFontStyle, 
-		__columnHeaderFontSize));	
+		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));	
 
 	// go through all the strings that were broken out and determine 
 	// the size each will take up in pixels when drawn on the screen
 	for (int i = 0; i < sizes.length; i++) {
-		strings[i] = ((String)v.elementAt(i)).trim();
+		strings[i] = ((String)v.get(i)).trim();
 		sizes[i] = fh.stringWidth(strings[i]);
 	}
 
@@ -2738,8 +2588,7 @@ private String determineName(String name, int minWidth, Graphics g) {
 	}
 
 	// if the largest string is still less than what the minimum width
-	// of the column is, create the column name and force it to pad out
-	// to the minimum width.
+	// of the column is, create the column name and force it to pad out to the minimum width.
 	if ( (biggest >= 0) && (sizes[biggest] < minWidth) ) {
 		return determineNameHelper(name, minWidth, g);
 	}
@@ -2749,8 +2598,7 @@ private String determineName(String name, int minWidth, Graphics g) {
 	
 		// if the largest token does not appear at the beginning of
 		// the string, gather all the tokens that appear before it 
-		// and create a String that will be no larger than the 
-		// largest token
+		// and create a String that will be no larger than the largest token
 		if (biggest > 0) {
 			String pre = "";
 			for (int i = 0; i < biggest; i++) {
@@ -2763,9 +2611,8 @@ private String determineName(String name, int minWidth, Graphics g) {
             fullName += strings[biggest];
         }
 	
-		// if the largest token does not appear at the end of the
-		// string, gather all the rest of the tokens and create a 
-		// String that will be no larger than the longest token
+		// if the largest token does not appear at the end of the string, gather all the rest of the tokens
+        // and create a String that will be no larger than the longest token
 		if ( (biggest >= 0) && (biggest < (sizes.length - 1)) ) {
 			fullName += "\n";
 			String post = "";
@@ -2786,8 +2633,7 @@ separating out words into separate lines, to return a multiple-line
 column name.  Words are separated by commas, spaces and newlines.
 @param name the column name to constrain to fit certain proportions.
 @param maxWidth the point at which text should be wrapped to a new line.
-@param g the Graphics context to use for determining how wide certain 
-Strings are.
+@param g the Graphics context to use for determining how wide certain Strings are.
 @return the column name with newlines that will fit in the desired space.
 */
 private String determineNameHelper(String name, int maxWidth, Graphics g) {
@@ -2795,21 +2641,19 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 	// them out to all be "comma-space" ...
 	String temp = StringUtil.replaceString(name, ",", ", ");
 	// ... and then split the string based on newlines and spaces.
-	Vector v = StringUtil.breakStringList(temp, " \n", 
-		StringUtil.DELIM_SKIP_BLANKS);
+	List v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);
 	FontMetrics fh = g.getFontMetrics(
-		new Font(__columnHeaderFontName, __columnHeaderFontStyle, 
-		__columnHeaderFontSize));
+		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));
 
 	// determine the sizes of all the split-out tokens
 	int[] sizes = new int[v.size()];
 	String[] strings = new String[sizes.length];
 	for (int i = 0; i < sizes.length; i++) {
-		strings[i] = ((String)v.elementAt(i)).trim();
+		strings[i] = ((String)v.get(i)).trim();
 		sizes[i] = fh.stringWidth(strings[i]);
 	}
 
-	Vector lines = new Vector();
+	List lines = new Vector();
 	boolean done = false;
 	boolean invalid = false;
 	int curr = 0;
@@ -2819,9 +2663,8 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 
 	while (!done) {
 		s = "";
-		// if on the very last one (so the previous string was added
-		// already), or the size of the current one is too big, just
-		// add it straight to the list and set to done
+		// if on the very last one (so the previous string was added already), or the size of the current
+		// one is too big, just add it straight to the list and set to done
 		if (sizes[curr] > maxWidth || curr == max) {
 			lines.add(strings[curr]);
 			curr++;
@@ -2831,23 +2674,18 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 		}
 		else {
 			invalid = false;
-			// the curr string is at least a valid size.  
-			// try adding the next ones on until the size is 
-			// too large for the width.  Guaranteed to have at
-			// least one more after curr.
+			// The curr string is at least a valid size.  Try adding the next ones on until the size is 
+			// too large for the width.  Guaranteed to have at least one more after curr.
 			s = strings[curr];
 			size = sizes[curr];
 			curr++;
 			while (!invalid) {
-				// if adding the next one would result in a 
-				// string too long, set the loop to invalid.
-				// wait for another time through the main 
-				// loop.  
+				// If adding the next one would result in a string too long, set the loop to invalid.
+				// wait for another time through the main loop.  
 				if ((size + sizes[curr] + 1) > maxWidth) {
 					invalid = true;
 				}
-				// otherwise, append the string and set up
-				// for another loop through this one.
+				// Otherwise, append the string and set up for another loop through this one.
 				else {
 					size += sizes[curr] + 1;
 					s += " " + strings[curr];
@@ -2863,14 +2701,13 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 		}
 	}
 
-	// concatenate all the strings back together, putting in newlines
-	// as appropriate
+	// Concatenate all the strings back together, putting in newlines as appropriate
 	s = "";
 	size = lines.size();
 	for (int i = 0; i < size - 1; i++) {
-		s += ((String)lines.elementAt(i)).trim() + "\n";
+		s += ((String)lines.get(i)).trim() + "\n";
 	}
-	s += ((String)lines.elementAt(size - 1)).trim();
+	s += ((String)lines.get(size - 1)).trim();
 
 	return s;
 }
@@ -2885,7 +2722,7 @@ protected void enableRowHeader() {
 	if (p instanceof JViewport) {
 		Container gp = p.getParent();
 		if (gp instanceof JScrollPane) {			
-			Vector v = new Vector();
+			List v = new Vector();
 			JScrollPane jsp = (JScrollPane)gp;
 			int rows = getRowCount();
 			if (__incrementRowNumbers) {
@@ -2903,11 +2740,8 @@ protected void enableRowHeader() {
 			__listRowHeader.setBackground(jsp.getBackground());
 			__listRowHeader.setFixedCellWidth(50);
 			__listRowHeader.setFixedCellHeight(getRowHeight());
-			Font font = new Font(__rowHeaderFontName,
-				__rowHeaderFontStyle, __rowHeaderFontSize);
-			__listRowHeader.setCellRenderer(
-				new JWorksheet_RowHeader(this,
-				font, __rowHeaderColor));
+			Font font = new Font(__rowHeaderFontName, __rowHeaderFontStyle, __rowHeaderFontSize);
+			__listRowHeader.setCellRenderer( new JWorksheet_RowHeader(this, font, __rowHeaderColor));
 			jsp.setRowHeaderView(__listRowHeader);
 			__listRowHeader.addMouseListener(this);
 			__worksheetRowHeader = null;
@@ -3017,8 +2851,7 @@ public int find(int value, int absoluteColumn, int startingRow, int flags) {
 	}
 
 	// check if the column is out of bounds
-	if ((absoluteColumn < 0) ||
-	    (absoluteColumn > (__columnNames.length - 1))) {
+	if ((absoluteColumn < 0) || (absoluteColumn > (__columnNames.length - 1))) {
 	    	return -1;
 	}
 
@@ -3048,8 +2881,7 @@ public int find(int value, int absoluteColumn, int startingRow, int flags) {
 	int rowVal;
 	int row = startingRow;
 	while (!done) {
-		rowVal = ((Integer)((getModel().getValueAt(row, 
-			visibleColumn)))).intValue();
+		rowVal = ((Integer)((getModel().getValueAt(row, visibleColumn)))).intValue();
 	
 		if (equalTo) {
 			if (value == rowVal) {
@@ -3140,8 +2972,7 @@ public int find(double value, int absoluteColumn, int startingRow, int flags) {
 	}
 
 	// check if the column is out of bounds
-	if ((absoluteColumn < 0) ||
-	    (absoluteColumn > (__columnNames.length - 1))) {
+	if ((absoluteColumn < 0) || (absoluteColumn > (__columnNames.length - 1))) {
 	    	return -1;
 	}
 
@@ -3171,8 +3002,7 @@ public int find(double value, int absoluteColumn, int startingRow, int flags) {
 	double rowVal;
 	int row = startingRow;
 	while (!done) {
-		rowVal = ((Double)((getModel().getValueAt(row, 
-			visibleColumn)))).doubleValue();
+		rowVal = ((Double)((getModel().getValueAt(row, visibleColumn)))).doubleValue();
 	
 		if (equalTo) {
 			if (value == rowVal) {
@@ -3351,7 +3181,6 @@ public int find(Date value, int absoluteColumn, int startingRow, int flags) {
 	return -1;
 }
 
-
 /**
 Finds the first row containing the specified object.  This method can only
 be used with worksheets that store a single object in a single row.  The find
@@ -3448,8 +3277,7 @@ numbered starting at 0, and 0 is usually the row count column.
 @return the index of the row containing the value, or -1 if not found (also
 -1 if the column class is not String).
 */
-public int find(String findValue, int absoluteColumn, int startingRow, 
-int flags) {	
+public int find(String findValue, int absoluteColumn, int startingRow, int flags) {	
 	Class c = getModel().getColumnClass(absoluteColumn);
 	// make sure this column holds integers
 	if (!(c == String.class)) {
@@ -3472,8 +3300,7 @@ int flags) {
 	}
 
 	// check if the column is out of bounds
-	if ((absoluteColumn < 0) ||
-	    (absoluteColumn > (__columnNames.length - 1))) {
+	if ((absoluteColumn < 0) || (absoluteColumn > (__columnNames.length - 1))) {
 	    	return -1;
 	}
 
@@ -3512,8 +3339,7 @@ int flags) {
 	}
 
 	while (!done) {
-		rowVal =((String)((getModel().getValueAt(row, 
-			absoluteColumn)))).trim();
+		rowVal =((String)((getModel().getValueAt(row, absoluteColumn)))).trim();
 
 		if (equals) {
 			if (caseSensitive) {
@@ -3533,8 +3359,7 @@ int flags) {
 				result = rowVal.indexOf(value);
 			}
 			else {
-				result = StringUtil.indexOfIgnoreCase(
-					rowVal, value, 0);
+				result = StringUtil.indexOfIgnoreCase( rowVal, value, 0);
 			}
 
 			if (result != -1) {
@@ -3549,8 +3374,7 @@ int flags) {
 				}			
 			}
 			else {
-				if (StringUtil.startsWithIgnoreCase(
-					rowVal, value)) {
+				if (StringUtil.startsWithIgnoreCase( rowVal, value)) {
 					return row;
 				}			
 			}
@@ -3563,8 +3387,7 @@ int flags) {
 				}			
 			}
 			else {
-				if (StringUtil.endsWithIgnoreCase(
-					rowVal, value)) {
+				if (StringUtil.endsWithIgnoreCase( rowVal, value)) {
 					return row;
 				}			
 			}
@@ -3644,10 +3467,8 @@ public int getAbsoluteColumn(int visibleColumn) {
 }
 
 /**
-Returns the total count of all columns in the worksheet, not just those that
-are visible.
-@return the total count of all columns in the worksheet, not just those that
-are visible.
+Returns the total count of all columns in the worksheet, not just those that are visible.
+@return the total count of all columns in the worksheet, not just those that are visible.
 */
 public int getAbsoluteColumnCount() {
 	return __columnRemoved.length;
@@ -3655,11 +3476,10 @@ public int getAbsoluteColumnCount() {
 
 /**
 Returns all the data objects in the table as a single Vector.  Use only 
-if the table model for the worksheet stores each row as a separate data
-object.
+if the table model for the worksheet stores each row as a separate data object.
 @return a Vector of all data objects in the table.
 */
-public Vector getAllData() {
+public List getAllData() {
 	if (!(getModel() instanceof JWorksheet_AbstractTableModel)) {	
 		return getRowData(0, getRowCount() - 1);
 	}
@@ -3669,8 +3489,7 @@ public Vector getAllData() {
 }
 
 /**
-Finds alternate text for the specified cell in the alternate text arrays
-and returns the text.
+Finds alternate text for the specified cell in the alternate text arrays and returns the text.
 @param row the row of the cell.  Rows are numbered starting at 0.
 @param absoluteColumn the <b>absolute</b> column of the cell.  Columns are 
 numbered starting at 0, and column 0 is usually the row count column.
@@ -3710,8 +3529,7 @@ public int[] getCellAtClick(MouseEvent event) {
 }
 
 /**
-Finds cell attributes for the specified cell in the cell attribute arrays
-and returns the attributes.
+Finds cell attributes for the specified cell in the cell attribute arrays and returns the attributes.
 @param row the row of the cell.  Rows are numbered starting at 0.
 @param absoluteColumn the <b>absolute</b> column of the cell.  Columns are 
 numbered starting at 0, and column 0 is usually the row count column.
@@ -3759,9 +3577,8 @@ Returns the Vector of values stored in a cell-specific JComboBox.
 @return the Vector of values stored in a cell-specific JComboBox, or null
 if the cell does not use a combo box.
 */
-public Vector getCellSpecificJComboBoxValues(int row, int absoluteColumn) {
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+public List getCellSpecificJComboBoxValues(int row, int absoluteColumn) {
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn(absoluteColumn));
 	TableCellEditor editor = col.getCellEditor();
 
 	if (editor == null) {
@@ -3772,20 +3589,8 @@ public Vector getCellSpecificJComboBoxValues(int row, int absoluteColumn) {
 }
 
 /**
-Returns the specified column.  This method is only deprecated so that developers
-will know to use the other method instead.  This method is used internally for
-the JTable, but for anyone outside the table who needs to return a column, 
-getColumnModel().getColumnIndex() should be used instead.
-@deprecated don't use.  Use getColumnModel().getColumnIndex() instead.
-*/
-public TableColumn getColumn(Object o) {
-	return super.getColumn(o);
-}
-
-/**
 Returns the user-specified alignment for a column.
-@param absoluteColumn the <b>absolute</b> column for which to return the 
-alignment.
+@param absoluteColumn the <b>absolute</b> column for which to return the alignment.
 @return the alignment that has been set with setColumnAlignment(), or DEFAULT
 if the column has not had an alignment set yet.
 */
@@ -3798,8 +3603,7 @@ public int getColumnAlignment(int absoluteColumn) {
 
 /**
 Returns the class of data stored in the table at the specified column.
-@param absoluteColumn the <b>absolute</b> column for which to return the 
-class.
+@param absoluteColumn the <b>absolute</b> column for which to return the class.
 @return the class of data stored in the table at the specified column.  Compare
 to other classes with code like:
 <pre>
@@ -3812,10 +3616,9 @@ public Class getColumnClass(int absoluteColumn) {
 }
 
 /**
-Returns the format for the data in the specified column.  REVISIT -- only 
+Returns the format for the data in the specified column.  TOD -- only 
 works for AbstractExcelCellRenderers
-@param absoluteColumn the <b>absolute</b> column for which to return the 
-column format.
+@param absoluteColumn the <b>absolute</b> column for which to return the column format.
 @return the format for the data in the specified column.
 */
 public String getColumnFormat(int absoluteColumn) {
@@ -3864,16 +3667,15 @@ other lines in order to fit the space allotted.
 Strings in pixels.
 */
 private int getColumnNameFitSize(String name, Graphics g) {
-	Vector v = StringUtil.breakStringList(name, "\n", 0);
+	List v = StringUtil.breakStringList(name, "\n", 0);
 	FontMetrics fh = g.getFontMetrics(
-		new Font(__columnHeaderFontName, __columnHeaderFontStyle, 
-		__columnHeaderFontSize));
+		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));
 
 	int size = v.size();
 	int maxSize = 0;
 	int width = 0;
 	for (int i = 0; i < size; i++) {
-		width = fh.stringWidth((String)v.elementAt(i));
+		width = fh.stringWidth((String)v.get(i));
 		if (width > maxSize) {
 			maxSize = width;
 		}
@@ -3883,8 +3685,7 @@ private int getColumnNameFitSize(String name, Graphics g) {
 
 /**
 For a column with the given name, returns the <i>visible</i> column number. 
-If the table contains more than one column with the same name, the number of the
-first one will be returned.
+If the table contains more than one column with the same name, the number of the first one will be returned.
 @return the <i>visible</i> column number.
 */
 public int getColumnNumber(String columnName) {
@@ -3924,8 +3725,7 @@ public String getColumnPrefix(int columnNum) {
 }
 
 /**
-Gets a value from the table at the specified row and column, using a 
-consecutive read policy.<p>
+Gets a value from the table at the specified row and column, using a consecutive read policy.<p>
 Some table models may store data (e.g., time series dates), in which 
 data values are calculated based on the previous row's data.  In this case,
 this method can be used and they would know that a consecutive read of the table
@@ -3935,15 +3735,12 @@ time getValueAt() was called (if the column is different), or 1 more than
 the previous row.
 */
 public Object getConsecutiveValueAt(int row, int visibleColumn) {
-	return((JWorksheet_AbstractTableModel)getModel()).getConsecutiveValueAt(
-		row, visibleColumn);
+	return((JWorksheet_AbstractTableModel)getModel()).getConsecutiveValueAt(row, visibleColumn);
 }
 
 /**
-Returns the <b>visible</b> column of the cell being edited, or -1 if no cell
-is being edited.
-@return the <b>visible</b> column of the cell being edited, or -1 if no cell
-is being edited.
+Returns the <b>visible</b> column of the cell being edited, or -1 if no cell is being edited.
+@return the <b>visible</b> column of the cell being edited, or -1 if no cell is being edited.
 */
 public int getEditColumn() {
 	return __editCol;
@@ -3958,8 +3755,7 @@ public int getEditRow() {
 }
 
 /**
-Returns the JDialog being used as the Hourglass display dialog.  Will never
-return null.
+Returns the JDialog being used as the Hourglass display dialog.  Will never return null.
 @return the JDialog being used as the Hourglass display dialog.
 */
 public JDialog getHourglassJDialog() {
@@ -3967,8 +3763,7 @@ public JDialog getHourglassJDialog() {
 }
 
 /**
-Returns the JFrame being used as the Hourglass display frame.  Will never
-return null.
+Returns the JFrame being used as the Hourglass display frame.  Will never return null.
 @return the JFrame being used as the Hourglass display frame.
 */
 public JFrame getHourglassJFrame() {
@@ -3985,8 +3780,7 @@ public Object getLastRowData() {
 }
 
 /**
-Returns the maximum width of the data in the specified column in the 
-given rows, in pixels.
+Returns the maximum width of the data in the specified column in the given rows, in pixels.
 @param absoluteColumn the column in which to check the data.
 @param rows the number of rows (from 0) to check the data in.  If greater 
 than getRowCount() will be set equal to getRowCount().
@@ -3997,8 +3791,7 @@ private int getDataMaxWidth(int absoluteColumn, int rows, Graphics g) {
 	if (rows > getRowCount()) {
 		rows = getRowCount();
 	}
-	FontMetrics fc = g.getFontMetrics(
-		new Font(__cellFontName, __cellFontStyle, __cellFontSize));
+	FontMetrics fc = g.getFontMetrics( new Font(__cellFontName, __cellFontStyle, __cellFontSize));
 
 	int widest = 0;
 	int width = 0;
@@ -4075,13 +3868,11 @@ Returns whether the user can select an entire row by clicking on the first (0th)
 column.  One click row selection is not possible if the worksheet was built
 with the JWorksheet.SelectionMode property set to: SingleCellSelection,
 SingleRowSelection, MultipleRowSelection, or MultipleDiscontinuousRowSelection.
-@return whether the user can select an entire row by clicking on the first (0th)
-column.
+@return whether the user can select an entire row by clicking on the first (0th) column.
 */
 public boolean getOneClickRowSelection() {
 	if (__selectionMode == __EXCEL_SELECTION) {
-		return ((JWorksheet_RowSelectionModel)getSelectionModel()).
-			getOneClickRowSelection();
+		return ((JWorksheet_RowSelectionModel)getSelectionModel()).getOneClickRowSelection();
 	}
 	else {
 		return false;
@@ -4089,25 +3880,12 @@ public boolean getOneClickRowSelection() {
 }
 
 /**
-Gets the original row number a row had, given its current position in the 
-sorted rows.
-@param sortedRow the sorted row number of the row.
-@return the original, unsorted row number.
-@deprecated use getOriginalRowNumber()
-*/
-public int getOriginalRow(int sortedRow) {
-	return getOriginalRowNumber(sortedRow);
-}
-
-/**
-Gets the original row number a row had, given its current position in the 
-sorted rows.
+Gets the original row number a row had, given its current position in the sorted rows.
 @param sortedRow the sorted row number of the row.
 @return the original, unsorted row number.
 */
 public int getOriginalRowNumber(int sortedRow) {
-	int[] sortedOrder = 
-		((JWorksheet_AbstractTableModel)getModel())._sortOrder;
+	int[] sortedOrder = ((JWorksheet_AbstractTableModel)getModel())._sortOrder;
 	if (sortedOrder == null) {
 		return sortedRow;
 	}
@@ -4120,23 +3898,20 @@ public int getOriginalRowNumber(int sortedRow) {
 /**
 Returns the data element at the given row.  The data must be cast
 to the proper data type; the table has no idea what it is.  Row 0 is the 
-first row.   If the row is out of the range of rows in the table, or less
-than 0, null will be returned.
+first row.   If the row is out of the range of rows in the table, or less than 0, null will be returned.
 This only works with JWorksheet_AbstractRowTableModels.
-@param row the row for which to return the data.  Rows are numbered starting
-at 0.
+@param row the row for which to return the data.  Rows are numbered starting at 0.
 @return the object stored at the given row, or null if the row was invalid. 
-Returns null if the table model is not derived from 
-JWorksheet_AbstractRowTableModel.
+Returns null if the table model is not derived from JWorksheet_AbstractRowTableModel.
 */
 public Object getRowData(int row) {
 	if (!(getModel() instanceof JWorksheet_AbstractRowTableModel)) {
 		return null;
 	}
 
-	Vector v = getRowData(row, row);
+	List v = getRowData(row, row);
 	if (v != null && v.size() > 0) {
-		return (getRowData(row, row)).elementAt(0);
+		return (getRowData(row, row)).get(0);
 	}
 	return null;
 }
@@ -4144,18 +3919,15 @@ public Object getRowData(int row) {
 /**
 Returns the data elements from the given rows.  Row 0 is the first row.  If
 the range of rows goes out of range of the number of rows in the table, or 
-goes less than 0, a null value will be returned for each row for which the
-row number is out of range.
+goes less than 0, a null value will be returned for each row for which the row number is out of range.
 This only works with JWorksheet_AbstractRowTableModels.
-@param row1 the first row for which to return data.  Rows are numbered starting
-at 0.
-@param row2 the last row for which to return data.  Rows are numbered starting
-at 0.
+@param row1 the first row for which to return data.  Rows are numbered starting at 0.
+@param row2 the last row for which to return data.  Rows are numbered starting at 0.
 @return a Vector of the objects stored in the given rows.
 Returns null if the table model is not derived from 
 JWorksheet_AbstractRowTableModel, or if the range of row numbers was invalid.
 */
-public Vector getRowData(int row1, int row2) {
+public List getRowData(int row1, int row2) {
 	if (!(getModel() instanceof JWorksheet_AbstractRowTableModel)) {
 		return null;
 	}
@@ -4177,10 +3949,9 @@ public Vector getRowData(int row1, int row2) {
 		return null;
 	}
 		
-	Vector v = new Vector();
+	List v = new Vector();
 	for (int i = row1; i <= row2; i++) {
-		v.addElement(((JWorksheet_AbstractRowTableModel)getModel())
-			.getRowData(i));
+		v.add(((JWorksheet_AbstractRowTableModel)getModel()).getRowData(i));
 	}	
 	return v;
 }
@@ -4188,11 +3959,10 @@ public Vector getRowData(int row1, int row2) {
 /**
 Returns the row data for the rows specified in the parameter array.
 @param rows the integer array containing the row numbers for which to return
-data.  Cannot be null.  Data will be returned in the order of the row numbers
-in this array.
+data.  Cannot be null.  Data will be returned in the order of the row numbers in this array.
 */
-public Vector getRowData(int[] rows) {
-	Vector v = new Vector();
+public List getRowData(int[] rows) {
+	List v = new Vector();
 	for (int i = 0; i < rows.length; i++) {
 		v.add(getRowData(rows[i]));
 	}
@@ -4213,13 +3983,12 @@ the rows of the selected cells, and the second of which contains the matching
 columns for the rows in order to determine which cells are selected.
 For a given cell I, the row of the cell is the first array's element at 
 position I and the column of the cell is the second array's element at
-position I.  The arrays are guaranteed to be non-null.  The Vector will never
-be null.
+position I.  The arrays are guaranteed to be non-null.  The Vector will never be null.
 @return a Vector containing two integer arrays.
 */
-public Vector getSelectedCells() {
-	Vector rows = new Vector();
-	Vector cols = new Vector();
+public List getSelectedCells() {
+	List rows = new Vector();
+	List cols = new Vector();
 
 	for (int i = 0; i < getRowCount(); i++) {
 		for (int j = 0; j < getColumnCount(); j++) {
@@ -4236,11 +4005,11 @@ public Vector getSelectedCells() {
 	int[] colCells = new int[size];
 
 	for (int i = 0; i < size; i++) {
-		rowCells[i] = ((Integer)rows.elementAt(i)).intValue();
-		colCells[i] = ((Integer)cols.elementAt(i)).intValue();
+		rowCells[i] = ((Integer)rows.get(i)).intValue();
+		colCells[i] = ((Integer)cols.get(i)).intValue();
 	}
 	
-	Vector v = new Vector();
+	List v = new Vector();
 	v.add(rowCells);
 	v.add(colCells);
 	return v;
@@ -4248,19 +4017,15 @@ public Vector getSelectedCells() {
 
 /**
 Returns the first <b>absolute</b> selected column number, or -1 if none 
-are selected.  A column is considered to be selected if any of its cells
-have are selected.  
+are selected.  A column is considered to be selected if any of its cells have are selected.  
 @return the first selected column number, or -1 if none are selected.
 */
 public int getSelectedColumn() {
 	if (__selectionMode == __EXCEL_SELECTION) {
-		return getAbsoluteColumn(
-			((JWorksheet_RowSelectionModel)getSelectionModel())
-			.getSelectedColumn());
+		return getAbsoluteColumn( ((JWorksheet_RowSelectionModel)getSelectionModel()).getSelectedColumn());
 	}
 	else {	
-		// necessary because of how the normal selection models have
-		// been mistreated by JWorksheet.
+		// necessary because of how the normal selection models have been mistreated by JWorksheet.
 		for (int i = 0; i < getColumnCount(); i++) {
 			for (int j = 0; j < getRowCount(); j++) {
 				if (isCellSelected(j, i)) {
@@ -4289,11 +4054,9 @@ columns will be in order from the lowest selected column to the highest.
 */
 public int[] getSelectedColumns() {
 	if (__selectionMode == __EXCEL_SELECTION) {
-		int[] selected = ((JWorksheet_RowSelectionModel)
-			getSelectionModel()).getSelectedColumns();
+		int[] selected = ((JWorksheet_RowSelectionModel)getSelectionModel()).getSelectedColumns();
 		for (int i = 0; i < selected.length; i++) {
-//			Message.printStatus(1, "", "" + selected[i]
-//				+ " --> " + getAbsoluteColumn(selected[i]));
+//			Message.printStatus(1, "", "" + selected[i] + " --> " + getAbsoluteColumn(selected[i]));
 			selected[i] = getAbsoluteColumn(selected[i]);
 		}
 		return selected;
@@ -4301,15 +4064,13 @@ public int[] getSelectedColumns() {
 	else {	
 		int[] selectedCols = new int[getColumnCount()];
 		int count = 0;
-		// necessary because of how the normal selection models have
-		// been mistreated by JWorksheet.
+		// necessary because of how the normal selection models have been mistreated by JWorksheet.
 		int rows = getRowCount();
 		int cols = getColumnCount();
 		for (int i = 0; i < cols; i++) {
 			for (int j = 0; j < rows; j++) {
 				if (isCellSelected(j, i)) {
-					selectedCols[count] = 
-						getAbsoluteColumn(i);
+					selectedCols[count] = getAbsoluteColumn(i);
 					count++;
 					j = rows + 1;
 				}
@@ -4326,19 +4087,15 @@ public int[] getSelectedColumns() {
 
 /**
 Returns an integer of the first row in the table that is selected or -1 if
-none are selected.  Rows are considered to be selected if any of their cells
-are selected.
-@return an integer of the first row in the table that is selected or -1 if
-none are selected.
+none are selected.  Rows are considered to be selected if any of their cells are selected.
+@return an integer of the first row in the table that is selected or -1 if none are selected.
 */
 public int getSelectedRow() {
 	if (__selectionMode == __EXCEL_SELECTION) {
-		return ((JWorksheet_RowSelectionModel)getSelectionModel()).
-			getSelectedRow();
+		return ((JWorksheet_RowSelectionModel)getSelectionModel()).getSelectedRow();
 	}
 	else {	
-		// necessary because of how the normal selection models have
-		// been mistreated by JWorksheet.
+		// necessary because of how the normal selection models have been mistreated by JWorksheet.
 		for (int i = 0; i < getRowCount(); i++) {
 			for (int j = 0; j < getColumnCount(); j++) {
 				if (isCellSelected(i, j)) {
@@ -4368,14 +4125,12 @@ array results will be in order from lowest row to highest row.
 */
 public int[] getSelectedRows() {
 	if (__selectionMode == __EXCEL_SELECTION) {
-		return ((JWorksheet_RowSelectionModel)getSelectionModel()).
-			getSelectedRows();
+		return ((JWorksheet_RowSelectionModel)getSelectionModel()).getSelectedRows();
 	}
 	else {	
 		int[] selectedRows = new int[getRowCount()];
 		int count = 0;
-		// necessary because of how the normal selection models have
-		// been mistreated by JWorksheet.
+		// necessary because of how the normal selection models have been mistreated by JWorksheet.
 		int rows = getRowCount();
 		int cols = getColumnCount();
 		for (int i = 0; i < rows; i++) {
@@ -4397,20 +4152,12 @@ public int[] getSelectedRows() {
 }
 
 /**
-Returns the sorted row number of a row in the JWorksheet, given its original
-unsorted row number.
+Returns the sorted row number of a row in the JWorksheet, given its original unsorted row number.
 @param unsortedRow the unsorted row number of a row in the worksheet.
-@return the sorted row number of the row.  If the table is not sorted, the
-passed-in row is returned.
-@deprecated use getSortedRowNumber
+@return the sorted row number of the row.  If the table is not sorted, the passed-in row is returned.
 */
-public int getSortedRow(int unsortedRow) {
-	return getSortedRowNumber(unsortedRow);
-}
-
 public int getSortedRowNumber(int unsortedRow) {
-	int[] sortedOrder = 
-		((JWorksheet_AbstractTableModel)getModel())._sortOrder;
+	int[] sortedOrder = ((JWorksheet_AbstractTableModel)getModel())._sortOrder;
 	if (sortedOrder == null) {
 		return unsortedRow;
 	}
@@ -4426,46 +4173,44 @@ public int getSortedRowNumber(int unsortedRow) {
 For a number format (e.g., "%9d"), this returns an equivalent format that can
 be used to parse the number as a string.
 @param numberFormat the number format to process.
-@return a string format code (e.g., "%9s") that can be used to read a value
-in as a String.
+@return a string format code (e.g., "%9s") that can be used to read a value in as a String.
 */
 public String getStringFormat(String numberFormat) {
 	if (numberFormat == null) {
 		return "%s";
 	}
 	try {
-	String format = numberFormat.trim();
-	int len = format.length();
-	if (StringUtil.endsWithIgnoreCase(format, "d")) {
-		format = format.substring(1, (len - 1));
-		int n = StringUtil.atoi(format);
-		return "%" + n + "." + n + "s";
-	}
-	else if (StringUtil.endsWithIgnoreCase(format, "f")) {
-		format = format.substring(1, (len - 1));
-		if (format.startsWith("#")) {
-			format = format.substring(1);
+		String format = numberFormat.trim();
+		int len = format.length();
+		if (StringUtil.endsWithIgnoreCase(format, "d")) {
+			format = format.substring(1, (len - 1));
+			int n = StringUtil.atoi(format);
+			return "%" + n + "." + n + "s";
 		}
-		int index = format.indexOf(".");
-		if (index > -1) {
-			format = format.substring(0, index);
+		else if (StringUtil.endsWithIgnoreCase(format, "f")) {
+			format = format.substring(1, (len - 1));
+			if (format.startsWith("#")) {
+				format = format.substring(1);
+			}
+			int index = format.indexOf(".");
+			if (index > -1) {
+				format = format.substring(0, index);
+			}
+			int n = StringUtil.atoi(format);
+			return "%" + n + "." + n + "s";
 		}
-		int n = StringUtil.atoi(format);
-		return "%" + n + "." + n + "s";
-	}
-	else if (StringUtil.endsWithIgnoreCase(format, "s")) {
-		format = format.substring(1, (len - 1));
-		return numberFormat;
-	}
-	else {
-	 	return "%s";
-	}
+		else if (StringUtil.endsWithIgnoreCase(format, "s")) {
+			format = format.substring(1, (len - 1));
+			return numberFormat;
+		}
+		else {
+		 	return "%s";
+		}
 	}
 	catch (Exception e) {
 		String routine = "JWorksheet.getStringFormat()";
 		Message.printWarning(2, routine, e);
-		Message.printWarning(2, routine, "Could not parse format: '"
-			+ numberFormat + "'");
+		Message.printWarning(2, routine, "Could not parse format: '" + numberFormat + "'");
 	}
 	return "%s";
 }
@@ -4488,21 +4233,18 @@ public Object getValueAt(int row, int column) {
 }
 
 /**
-Returns the value at the specified position formatted as a String with 
-the format stored in the table model.
+Returns the value at the specified position formatted as a String with the format stored in the table model.
 @param row the row of the value to return.
 @param column the <b>visible</b> column from which to return the value.
 @return the value formatted as a String.
 */
 public String getValueAtAsString(int row, int column) {
-	// REVISIT (JTS - 2005-11-07)
-	// this could probably be sped up significantly if we weren't getting
+	// TODO (JTS - 2005-11-07) this could probably be sped up significantly if we weren't getting
 	// the renderer every time for every cell
 	JWorksheet_AbstractTableCellRenderer renderer = getCellRenderer();
 	if (renderer instanceof JWorksheet_AbstractExcelCellRenderer) {
 		return getValueAtAsString(row, column, 
-			((JWorksheet_AbstractExcelCellRenderer)renderer)
-			.getFormat(getAbsoluteColumn(column)));
+			((JWorksheet_AbstractExcelCellRenderer)renderer).getFormat(getAbsoluteColumn(column)));
 	}
 	else {
 		return "" + getValueAt(row, column);
@@ -4510,8 +4252,7 @@ public String getValueAtAsString(int row, int column) {
 }
 
 /**
-Returns the value at the specified position formatted as a String with the
-specified format.
+Returns the value at the specified position formatted as a String with the specified format.
 @param row the row of the value to return.
 @param column the <b>visible</b> column from which to return the value.
 @param format the format to use for formatting the value as a String.
@@ -4524,15 +4265,13 @@ public String getValueAtAsString(int row, int column, String format) {
 
 	if (c == Integer.class) {
 		Integer I = (Integer)o;
-		if (COPY_MISSING_AS_EMPTY_STRING 
-		    && DMIUtil.isMissing(I.intValue())) {
+		if (COPY_MISSING_AS_EMPTY_STRING && DMIUtil.isMissing(I.intValue())) {
 			format = getStringFormat(format);
 			return StringUtil.formatString("", format);
 		}
 		else {
 			if (format != null) {
-				return StringUtil.formatString(I.intValue(),
-					format);
+				return StringUtil.formatString(I.intValue(), format);
 			}
 			else {
 				return "" + I.intValue();
@@ -4541,15 +4280,13 @@ public String getValueAtAsString(int row, int column, String format) {
 	}
 	else if (c == Double.class) {
 		Double d = (Double)o;
-		if (COPY_MISSING_AS_EMPTY_STRING 
-		    && DMIUtil.isMissing(d.doubleValue())) {
+		if (COPY_MISSING_AS_EMPTY_STRING && DMIUtil.isMissing(d.doubleValue())) {
 			format = getStringFormat(format);
 			return StringUtil.formatString("", format);
 		}
 		else {
 			if (format != null) {
-				return StringUtil.formatString(d.doubleValue(),
-					format);
+				return StringUtil.formatString(d.doubleValue(), format);
 			}
 			else {
 				return "" + d.doubleValue();
@@ -4576,8 +4313,7 @@ public String getValueAtAsString(int row, int column, String format) {
 	}
 	else if (c == Float.class) {
 		Float F = (Float)o;
-		if (COPY_MISSING_AS_EMPTY_STRING 
-		    && DMIUtil.isMissing(F.floatValue())) {
+		if (COPY_MISSING_AS_EMPTY_STRING && DMIUtil.isMissing(F.floatValue())) {
 			return "";
 		}
 		else {
@@ -4592,8 +4328,7 @@ public String getValueAtAsString(int row, int column, String format) {
 		String routine = "JWorksheet.getValueAtAsString()";
 		Message.printWarning(2, routine, e);
 		Message.printWarning(2, "", "getValueAsString(" + row + ", " 
-			+ column + ", " + format + "): class(" 
-			+ getAbsoluteColumn(column) + ": " + c + "  data: " 
+			+ column + ", " + format + "): class(" + getAbsoluteColumn(column) + ": " + c + "  data: " 
 			+ o + "  data class: " + o.getClass());
 	}
 	return o.toString();
@@ -4664,18 +4399,15 @@ private void initialize(int rows, int cols) {
 	}
 
 	if (__selectionMode == __EXCEL_SELECTION) {
-		setSelectionMode(
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		setCellSelectionEnabled(true);			
-		JWorksheet_RowSelectionModel r = 
-			new JWorksheet_RowSelectionModel(rows, cols);
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(rows, cols);
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
 
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -4712,15 +4444,13 @@ private void initialize(int rows, int cols) {
 
 	__hcr = new JWorksheet_HeaderCellRenderer(
 		__columnHeaderFontName, __columnHeaderFontStyle, 
-		__columnHeaderFontSize,
-		SwingConstants.CENTER, __columnHeaderColor);
+		__columnHeaderFontSize,	SwingConstants.CENTER, __columnHeaderColor);
 
 	TableColumn tc = null;
 	for (int i = 0; i < getColumnCount(); i++) {
 		if (Message.isDebugOn) {
 			Message.printDebug(10, routine, "Setting column header "
-				+ "for column #" + i + ", '" + getColumnName(i) 
-				+ "'");
+				+ "for column #" + i + ", '" + getColumnName(i) + "'");
 		}
 		tc = getColumnModel().getColumn(i);
 //		tc = getColumn(getColumnName(i));
@@ -4744,8 +4474,7 @@ public void insertRowAt(Object o, int pos) {
 	String routine = CLASS + ".insertRowAt(Object, int)";
 	
 	if (pos < 0) {
-		Message.printWarning(2, routine, "Attempting to insert at "
-			+ "a negative position, not inserting.");
+		Message.printWarning(2, routine, "Attempting to insert at a negative position, not inserting.");
 		return;
 	}
 	
@@ -4760,18 +4489,15 @@ public void insertRowAt(Object o, int pos) {
 	if (__selectionMode == __EXCEL_SELECTION) {
 		int rows = getRowCount();
 		int cols = getColumnCount();
-		setSelectionMode(
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		setCellSelectionEnabled(true);			
-		JWorksheet_RowSelectionModel r = 
-			new JWorksheet_RowSelectionModel(rows, cols);
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(rows, cols);
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
 
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -4790,21 +4516,17 @@ public void insertRowAt(Object o, int pos) {
 /**
 Determines whether a cell is editable or not by checking cell attributes and
 the normal JTable isCellEditable().  Overrides JTable.isCellEditable().  
-This method first checks to see if the 
-cell in question has any attributes assigned to it.  
-If the cell has attributes and the value
-of 'editable' is set to false, the cell is returned as uneditable (false).  
-If there are no attributes set on the cell, a call is made to the default
+This method first checks to see if the ell in question has any attributes assigned to it.  
+If the cell has attributes and the value of 'editable' is set to false, the cell is returned as
+uneditable (false).  If there are no attributes set on the cell, a call is made to the default
 JTable isCelEditable() to return the value.
 @param row the row of the cell in question.  Rows are numbered starting at 0.
 @param visibleColumn the <b>visible</b> column of the cell in question.  
-Columns are numbered starting at 0, though column 0 is usually the row count 
-column.
+Columns are numbered starting at 0, though column 0 is usually the row count column.
 @return whether the cell is editable or not
 */
 public boolean isCellEditable(int row, int visibleColumn) {
-	JWorksheet_CellAttributes ca = 
-		getCellAttributes(row, getAbsoluteColumn(visibleColumn));
+	JWorksheet_CellAttributes ca = getCellAttributes(row, getAbsoluteColumn(visibleColumn));
 	if (ca == null) {
 		return super.isCellEditable(row, visibleColumn);
 	}
@@ -4825,8 +4547,7 @@ Checks to see whether a cell is selected.
 @return true if the cell is selected, false if not.
 */
 public boolean isCellSelected(int row, int col) {
-//	Message.printStatus(1, "", "Checking cell selected: " + row 
-//		+ ", " + col);
+//	Message.printStatus(1, "", "Checking cell selected: " + row + ", " + col);
 	return super.isCellSelected(row, col);
 }
 
@@ -4861,16 +4582,6 @@ public boolean isEmpty() {
 }
 
 /**
-DO NOT USE!  Due to how the selection modes were changed between JWorksheet
-and JTable, this method can be used internally, but should NOT be used 
-outside of this class.  Use rowIsSelected() instead.
-@deprecated use rowIsSelected() instead.
-*/
-public boolean isRowSelected(int row) {
-	return super.isRowSelected(row);
-}
-
-/**
 Returns whether this worksheet's cells can be selected or not.
 @return whether this worksheet's cells can be selected or not.
 */
@@ -4879,8 +4590,7 @@ public boolean isSelectable() {
 }
 
 /**
-Returns whether the table is using the row headers that work similarly to the
-JTable column headers.
+Returns whether the table is using the row headers that work similarly to the JTable column headers.
 @return whether the table is using row headers.
 */
 protected boolean isUsingRowHeaders() {
@@ -4889,16 +4599,12 @@ protected boolean isUsingRowHeaders() {
 
 /**
 Responds to key press events.  <br>
-REVISIT (JTS - 2003-11-17)<br>
-What's this doing?
-(JTS - 2004-01-20)
-Still no clue.
+TODO (JTS - 2003-11-17) What's this doing? (JTS - 2004-01-20) Still no clue.
 @param event the KeyEvent that happened.
 */
 public void keyPressed(KeyEvent event) {
 	/*
-	REVISIT (JTS - 2004-11-22)
-	commented out, see if anything misbehaves (I don't think we'll see
+	TODO (JTS - 2004-11-22) commented out, see if anything misbehaves (I don't think we'll see
 	any problems.
 
 	// do nothing if a cell is being edited
@@ -4950,10 +4656,8 @@ Shows the popup menu if the mouse was pressed on the table header.
 private void maybeShowHeaderPopup(MouseEvent event) {
 	if (__showPopup) {
 		if (__popup.isPopupTrigger(event)) {
-			__popupColumn = columnAtPoint(new Point(event.getX(), 
-				event.getY()));
-			__popup.show(event.getComponent(), event.getX(), 
-				event.getY());
+			__popupColumn = columnAtPoint(new Point(event.getX(), event.getY()));
+			__popup.show(event.getComponent(), event.getX(), event.getY());
 		}
 	}
 }
@@ -4979,8 +4683,7 @@ private void maybeShowPopup(MouseEvent event) {
 				__deselectAllMenuItem.setEnabled(false);
 				__selectAllMenuItem.setEnabled(true);
 			}
-			__mainPopup.show(event.getComponent(), event.getX(), 
-				event.getY());
+			__mainPopup.show(event.getComponent(), event.getX(), event.getY());
 		}
 	}
 }
@@ -5025,8 +4728,7 @@ public void mousePressed(MouseEvent event) {
 				return;
 			}
 
-			if ((!__isControlDown && !__isShiftDown)
-				|| (__lastRowSelected == -1)) {
+			if ((!__isControlDown && !__isShiftDown) || (__lastRowSelected == -1)) {
 				selectRow(row, true);
 			}
 			else {
@@ -5039,10 +4741,8 @@ public void mousePressed(MouseEvent event) {
 					}				
 				}
 				else {
-					int low = (row < __lastRowSelected 
-						? row : __lastRowSelected);
-					int high = (row > __lastRowSelected
-						? row : __lastRowSelected);
+					int low = (row < __lastRowSelected ? row : __lastRowSelected);
+					int high = (row > __lastRowSelected ? row : __lastRowSelected);
 					if(__isShiftDown && !__isControlDown) {
 						deselectAll();
 					}
@@ -5081,8 +4781,7 @@ public void mouseReleased(MouseEvent event) {
 
 /**
 Notifies all listeners of a specific message.  Listeners will have their 
-appropriate worksheetRowAdded(), worksheetRowDeleted(), 
-or worksheetSetRowCount() methods called.
+appropriate worksheetRowAdded(), worksheetRowDeleted(), or worksheetSetRowCount() methods called.
 @param message the message being sent.
 @param row the row to which the message is referring.
 */
@@ -5091,8 +4790,7 @@ public void notifyAllWorksheetListeners(int message, int row) {
 		return;
 	}
 	for (int i = 0; i < __worksheetListeners.size(); i++) {
-		JWorksheet_Listener l = 
-			(JWorksheet_Listener)__worksheetListeners.elementAt(i);
+		JWorksheet_Listener l = (JWorksheet_Listener)__worksheetListeners.get(i);
 		switch(message) {
 			case __ROW_ADDED:
 				l.worksheetRowAdded(row);
@@ -5127,7 +4825,7 @@ private void notifySortListenersSortAboutToChange(int sort) {
 	JWorksheet_SortListener listener = null;
 	int size = __sortListeners.size();
 	for (int i = 0; i < size; i++) {
-		listener= (JWorksheet_SortListener)__sortListeners.elementAt(i);
+		listener= (JWorksheet_SortListener)__sortListeners.get(i);
 		listener.worksheetSortAboutToChange(this, sort);
 	}
 }
@@ -5145,7 +4843,7 @@ private void notifySortListenersSortChanged(int sort) {
 	JWorksheet_SortListener listener = null;
 	int size = __sortListeners.size();
 	for (int i = 0; i < size; i++) {
-		listener= (JWorksheet_SortListener)__sortListeners.elementAt(i);
+		listener= (JWorksheet_SortListener)__sortListeners.get(i);
 		listener.worksheetSortChanged(this, sort);
 	}
 }
@@ -5154,13 +4852,10 @@ private void notifySortListenersSortChanged(int sort) {
 Attempts to paste the values in the clipboard into the worksheet.
 */
 public void pasteFromClipboard() {
-//	if (!IOUtil.isRunningApplet()) {
-		if (__copyPasteAdapter == null) {
-			__copyPasteAdapter = 
-				new JWorksheet_CopyPasteAdapter(this);
-		}
-		__copyPasteAdapter.paste();
-//	}
+	if (__copyPasteAdapter == null) {
+		__copyPasteAdapter = new JWorksheet_CopyPasteAdapter(this);
+	}
+	__copyPasteAdapter.paste();
 }
 
 /**
@@ -5179,8 +4874,7 @@ public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 	// only set the default row count column attributes for the 0th 
 	// column if the row count is present.  Otherwise, the 0th column
 	// attributes need to be set manually
-	if (column == 0 && __showRowCountColumn
-		&& !__useRowHeaders) {
+	if (column == 0 && __showRowCountColumn && !__useRowHeaders) {
 		ca = __rowCountColumnAttributes;	
 	}
 	else {
@@ -5190,8 +4884,7 @@ public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 	Component cell = super.prepareRenderer(tcr, row, column);
 	if (__altTextCount > 0) {
 		if (cell instanceof JLabel) {
-			String text = getCellAlternateText(row, 
-				getAbsoluteColumn(column));
+			String text = getCellAlternateText(row, getAbsoluteColumn(column));
 			if (text != null) {
 				((JLabel)cell).setText(text);
 			}
@@ -5224,8 +4917,7 @@ private void readPropList(PropList p) {
 	// SAM 2007-05-09 Evaluate use
 	//Color cellBackground = (Color)(getClientProperty("Table.background"));
 	//Color cellForeground = (Color)(getClientProperty("Table.foreground"));
-	Color headerBackground = (Color)(header.getClientProperty(
-		"TableHeader.background"));
+	Color headerBackground = (Color)(header.getClientProperty( "TableHeader.background"));
 	//Color headerForeground = (Color)(header.getClientProperty(
 		//"TableHeader.foreground"));
 
@@ -5414,8 +5106,7 @@ private void readPropList(PropList p) {
 		else if (s.equalsIgnoreCase("MultipleRowSelection")) {
 			__selectionMode = __MULTIPLE_ROW_SELECTION;
 		}
-		else if (s.equalsIgnoreCase(
-			"MultipleDiscontinuousRowSelection")) {
+		else if (s.equalsIgnoreCase("MultipleDiscontinuousRowSelection")) {
 			__selectionMode =__MULTIPLE_DISCONTINUOUS_ROW_SELECTION;
 		}
 		else if (s.equalsIgnoreCase("SingleCellSelection")) {
@@ -5425,8 +5116,7 @@ private void readPropList(PropList p) {
 			__selectionMode = __EXCEL_SELECTION;
 		}
 		else {
-			Message.printWarning(2, routine, 
-				"Unrecognized selection mode: " + s);
+			Message.printWarning(2, routine, "Unrecognized selection mode: " + s);
 			__selectionMode = __EXCEL_SELECTION;
 		}
 	}
@@ -5465,9 +5155,7 @@ private void readPropList(PropList p) {
 		if (s.equalsIgnoreCase("true")) {
 			setSelectable(false);
 		}
-		Message.printWarning(2, routine,
-			"Unselectable is being phased out.  Use property "
-			+ "'Selectable' instead.");
+		Message.printWarning(2, routine, "Unselectable is being phased out.  Use property 'Selectable' instead.");
 	}
 
 	s = p.getValue("JWorksheet.Selectable");
@@ -5504,71 +5192,61 @@ private void readPropList(PropList p) {
 	s = p.getValue("JWorksheet.HeaderFont");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderFont) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontName instead.");
+			+ "HeaderFont) is no longer supported.  Use JWorksheet.ColumnHeaderFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderFontName");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderFontName) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontName instead.");
+			+ "HeaderFontName) is no longer supported.  Use JWorksheet.ColumnHeaderFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderFontStyle");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderFontStyle) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontStyle instead.");
+			+ "HeaderFontStyle) is no longer supported.  Use JWorksheet.ColumnHeaderFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderSize");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderSize) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontSize instead.");
+			+ "HeaderSize) is no longer supported.  Use JWorksheet.ColumnHeaderFontSize instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderBackground");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderBackground) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderBackground instead.");
+			+ "HeaderBackground) is no longer supported.  Use JWorksheet.ColumnHeaderBackground instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderStyle");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderStyle) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontStyle instead.");
+			+ "HeaderStyle) is no longer supported.  Use JWorksheet.ColumnHeaderFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderSize");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "HeaderSize) is no longer supported.  Use "
-			+ "JWorksheet.ColumnHeaderFontSize instead.");
+			+ "HeaderSize) is no longer supported.  Use JWorksheet.ColumnHeaderFontSize instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellFont");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "CellFont) is no longer supported.  Use "
-			+ "JWorksheet.CellFontName instead.");
+			+ "CellFont) is no longer supported.  Use JWorksheet.CellFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellStyle");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "CellStyle) is no longer supported.  Use "
-			+ "JWorksheet.CellFontStyle instead.");
+			+ "CellStyle) is no longer supported.  Use JWorksheet.CellFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellSize");
 	if (s != null) {
 		Message.printWarning(2, routine, "This property (JWorksheet."
-			+ "CellSize) is no longer supported.  Use "
-			+ "JWorksheet.CellFontSize instead.");
+			+ "CellSize) is no longer supported.  Use JWorksheet.CellFontSize instead.");
 	}	
 
 	s = p.getValue("JWorksheet.ColumnNumbering");
@@ -5606,8 +5284,8 @@ private void readPropList(PropList p) {
 Refreshes the table, repainting all the visible cells.<p>
 <b>IMPORTANT!</b>  This method currently will NOT redraw the currently
 selected cell in certain cases (such as when SingleCellSelection is turned on),
-so do not rely on this 100% to repaint the selected cells.  JTS to REVISIT
-as soon as possible.
+so do not rely on this 100% to repaint the selected cells.
+TODO JTS to REVISIT as soon as possible.
 */
 public void refresh() {
 	((JWorksheet_AbstractTableModel)getModel()).fireTableDataChanged();
@@ -5615,9 +5293,8 @@ public void refresh() {
 
 /**
 Removes a column from the table so that it doesn't appear any more.
-@param absoluteColumn the <b>absolute</b> column number of the column to 
-prevent from displaying.  Columns are numbered starting at 0, though column
-0 is usually the row count column.
+@param absoluteColumn the <b>absolute</b> column number of the column to prevent from displaying.
+Columns are numbered starting at 0, though column 0 is usually the row count column.
 */
 public void removeColumn(int absoluteColumn) {
 	int vis = getVisibleColumn(absoluteColumn);
@@ -5632,15 +5309,12 @@ public void removeColumn(int absoluteColumn) {
 	removeColumn(tc);
 	
 	if (__selectionMode == __EXCEL_SELECTION) {	
-		JWorksheet_RowSelectionModel r = 
-		new JWorksheet_RowSelectionModel(getRowCount(), 
-			getColumnCount());
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(getRowCount(), getColumnCount());
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -5662,15 +5336,13 @@ public void removeColumnHeader() {
 }
 
 /**
-Sets a column to use the default cell editor if it has been to set to use
-a SimpleJComboBox as an editor.
+Sets a column to use the default cell editor if it has been to set to use a SimpleJComboBox as an editor.
 @param absoluteColumn the <b>absolute</b> column number of the column for 
 which to remove a SimpleJComboBox as an editor.  Columns are numbered starting
 at 0, though column 0 is usually the row count column.
 */
 public void removeColumnJComboBox(int absoluteColumn) {
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn(absoluteColumn));
 	col.setCellEditor(null);
 }
 
@@ -5680,9 +5352,8 @@ Removes a JWorksheet_Listener from the list of registered listeners.
 */
 public void removeJWorksheetListener(JWorksheet_Listener l) {
 	for (int i = 0; i < __worksheetListeners.size(); i++) {
-		if (l == (JWorksheet_Listener)__worksheetListeners
-			.elementAt(i)) {
-			__worksheetListeners.removeElementAt(i);
+		if (l == (JWorksheet_Listener)__worksheetListeners.get(i)) {
+			__worksheetListeners.remove(i);
 		}
 	}	
 }
@@ -5709,8 +5380,8 @@ public void removeSortListener(JWorksheet_SortListener listener) {
 		
 	int size = __sortListeners.size();
 	for (int i = (size - 1); i <= 0; i--) {
-		if (__sortListeners.elementAt(i) == listener) {
-			__sortListeners.removeElementAt(i);
+		if (__sortListeners.get(i) == listener) {
+			__sortListeners.remove(i);
 		}
 	}
 }
@@ -5736,18 +5407,13 @@ out all data from the table to that file with that delimiter.
 */
 public void saveToFile() {
 	JGUIUtil.setWaitCursor(this, true);
-	JFileChooser jfc = JFileChooserFactory.createJFileChooser(
-		JGUIUtil.getLastFileDialogDirectory());
+	JFileChooser jfc = JFileChooserFactory.createJFileChooser(JGUIUtil.getLastFileDialogDirectory());
 		
 	jfc.setDialogTitle("Save Worksheet to File");
-	SimpleFileFilter comma = new SimpleFileFilter("csv", 
-		"Comma-delimited text file");
-	SimpleFileFilter commatxt = new SimpleFileFilter("txt", 
-		"Comma-delimited text file");
-	SimpleFileFilter tab = new SimpleFileFilter("txt",
-		"Tab-delimited text file");
-	SimpleFileFilter semicolon = new SimpleFileFilter("txt",
-		"Semicolon-delimited text file");
+	SimpleFileFilter comma = new SimpleFileFilter("csv", "Comma-delimited text file");
+	SimpleFileFilter commatxt = new SimpleFileFilter("txt", "Comma-delimited text file");
+	SimpleFileFilter tab = new SimpleFileFilter("txt", "Tab-delimited text file");
+	SimpleFileFilter semicolon = new SimpleFileFilter("txt", "Semicolon-delimited text file");
 	jfc.addChoosableFileFilter(comma);
 	jfc.addChoosableFileFilter(commatxt);
 	jfc.addChoosableFileFilter(tab);
@@ -5803,7 +5469,7 @@ Saves the contents of the worksheet (in all visible columns) to a file.
 public void saveToFile(String filename, String delimiter) {
 	String routine = "saveToFile";
 
-	Vector lines = new Vector();
+	List lines = new Vector();
 	
 	int numRows = getRowCount();
 	int numCols = getColumnCount();
@@ -5857,19 +5523,16 @@ public void saveToFile(String filename, String delimiter) {
 		lines.add(line.toString());
 	}
 
-	// Create a new FileOutputStream wrapped with a DataOutputStream
-	// for writing to a file.
+	// Create a new FileOutputStream wrapped with a DataOutputStream for writing to a file.
 	try {
-		PrintWriter oStream = new PrintWriter( 
-			new FileWriter(filename));
+		PrintWriter oStream = new PrintWriter( new FileWriter(filename));
 
 		// Write each element of the lines Vector to a file.
 		// For some reason, when just using println in an
-		// applet, the cr-nl pair is not output like it should
-		// be on Windows95.  Java Bug???
+		// applet, the cr-nl pair is not output like it should be on Windows95.  Java Bug???
 		String linesep = System.getProperty("line.separator");
 		for (int i = 0; i < lines.size(); i++) {
-			oStream.print(lines.elementAt(i).toString() + linesep);
+			oStream.print(lines.get(i).toString() + linesep);
 		}
 		oStream.flush(); 
 		oStream.close(); 
@@ -5912,20 +5575,10 @@ public void scrollToRow(int row) {
 		return;
 	}
 	if (row < 0) {
-		Message.printWarning(2, routine, "Will not scroll to negative "
-			+ "row");
+		Message.printWarning(2, routine, "Will not scroll to negative row");
 		return;
 	}
 	scrollToCell(row, 0);
-}
-
-/**
-Overrides the default JTable implementation of selectAll().  Do not use,
-use selectAllRows(), instead.
-@deprecated use selectAllRows() instead.
-*/
-public void selectAll() {
-	selectAllRows();
 }
 
 /**
@@ -5940,12 +5593,10 @@ public void selectAllRows() {
 	}
 
 	if (__selectionMode == __EXCEL_SELECTION) {
-		((JWorksheet_RowSelectionModel)getSelectionModel())
-			.selectAllRows();
+		((JWorksheet_RowSelectionModel)getSelectionModel()).selectAllRows();
 	}
 	else {
-		((DefaultListSelectionModel)getSelectionModel())
-			.setSelectionInterval(0, size);
+		((DefaultListSelectionModel)getSelectionModel()).setSelectionInterval(0, size);
 	}
 	notifyAllWorksheetListeners(__SELECT_ALL, POST_SELECTION_CHANGE);
 }
@@ -5961,8 +5612,7 @@ public void selectCell(int row, int visibleColumn) {
 	}
 
 	if (__selectionMode == __EXCEL_SELECTION) {	
-		((JWorksheet_RowSelectionModel)
-			getSelectionModel()).selectCell(row, visibleColumn);
+		((JWorksheet_RowSelectionModel)getSelectionModel()).selectCell(row, visibleColumn);
 	}
 	else {
 		setRowSelectionInterval(row, row);
@@ -5976,8 +5626,7 @@ Selects a column.
 */
 public void selectColumn(int visibleColumn) {
 	if (__selectionMode == __EXCEL_SELECTION) {	
-		((JWorksheet_RowSelectionModel)
-			getSelectionModel()).selectColumn(visibleColumn);
+		((JWorksheet_RowSelectionModel)getSelectionModel()).selectColumn(visibleColumn);
 	}
 	else {
 		setColumnSelectionInterval(visibleColumn, visibleColumn);
@@ -5993,8 +5642,7 @@ public void selectLastRow() {
 
 /**
 Programmatically selects the specified row -- but does not scroll to the row.
-Call scrollToRow(row) for that.  Deselects all the rows prior to selecting the
-new row.
+Call scrollToRow(row) for that.  Deselects all the rows prior to selecting the new row.
 @param row the row to select.  Rows are numbered starting at 0.
 */
 public void selectRow(int row) {
@@ -6002,8 +5650,7 @@ public void selectRow(int row) {
 }
 
 /**
-Programmatically selects the specified row -- but does not scroll to the row.
-Call scrollToRow(row) for that.  
+Programmatically selects the specified row -- but does not scroll to the row.  Call scrollToRow(row) for that.  
 @param row the row to select.  Rows are numbered starting at 0.
 @param deselectFirst if true, then all other selected rows will be deselected
 prior to the row being selected.  Otherwise, this row and all the currently-
@@ -6014,13 +5661,11 @@ public void selectRow(int row, boolean deselectFirst) {
 	
 	if (row >= getRowCount()) {
 		Message.printWarning(2, routine, "Cannot select row " + row 
-			+ ", there are only " + getRowCount() + " rows in the "
-			+ "worksheet.");
+			+ ", there are only " + getRowCount() + " rows in the worksheet.");
 		return;
 	}
 	if (row < 0) {
-		Message.printWarning(2, routine, "Cannot select a negative "
-			+ "row.");
+		Message.printWarning(2, routine, "Cannot select a negative row.");
 		return;
 	}
 
@@ -6030,22 +5675,18 @@ public void selectRow(int row, boolean deselectFirst) {
 
 	if (deselectFirst) {
 		if (__selectionMode == __EXCEL_SELECTION) {
-			((JWorksheet_RowSelectionModel)getSelectionModel())
-				.selectRow(row);
+			((JWorksheet_RowSelectionModel)getSelectionModel()).selectRow(row);
 		}
 		else {
-			((DefaultListSelectionModel)getSelectionModel())
-				.setSelectionInterval(row, row);
+			((DefaultListSelectionModel)getSelectionModel()).setSelectionInterval(row, row);
 		}
 	}
 	else {
 		if (__selectionMode == __EXCEL_SELECTION) {
-			((JWorksheet_RowSelectionModel)getSelectionModel())
-				.selectRowWithoutDeselecting(row);
+			((JWorksheet_RowSelectionModel)getSelectionModel()).selectRowWithoutDeselecting(row);
 		}
 		else {
-			((DefaultListSelectionModel)getSelectionModel())
-				.addSelectionInterval(row, row);
+			((DefaultListSelectionModel)getSelectionModel()).addSelectionInterval(row, row);
 		}
 	}		
 }
@@ -6069,26 +5710,21 @@ public void setCellAlternateText(int row, int absoluteColumn, String text) {
 	String routine = CLASS + ".setCellAlternateText";
 	
 	if (row < 0 || absoluteColumn < 0) {
-		Message.printWarning(2, routine, "Row " + row + " or column "
-			+ absoluteColumn + " is out of bounds.");
+		Message.printWarning(2, routine, "Row " + row + " or column " + absoluteColumn + " is out of bounds.");
 		return;
 	}
 	
-	// passing in null alt text removes the alt text 
-	// for the specified cell
+	// passing in null alt text removes the alt text for the specified cell
 	if (text == null) {
 		int visCol = getVisibleColumn(absoluteColumn);
 		if (__altTextCount > 0 && absoluteColumn > -1) {
 			for (int i = 0; i < __altTextCols.length; i++) {
-				if (__altTextCols[i] == visCol 
-					&& __altTextRows[i] == row) {
+				if (__altTextCols[i] == visCol && __altTextRows[i] == row) {
 					__altTextCols[i] = -1;
 					__altTextRows[i] = -1;
 					__altText[i] = null;
 					__altTextCount--;
-//					Message.printStatus(1, "", 
-//						"Cell alt text removed for: " 
-//						+ row + ", " + visCol);
+//					Message.printStatus(1, "", "Cell alt text removed for: " + row + ", " + visCol);
 					compactAltTextArrays();
 					refresh();
 					return;	
@@ -6099,28 +5735,22 @@ public void setCellAlternateText(int row, int absoluteColumn, String text) {
 	}
 
 	int visCol = getVisibleColumn(absoluteColumn);
-	// search to see if the cell already has alt text, and if
-	// so, reset it to the new alt text 
+	// search to see if the cell already has alt text, and if so, reset it to the new alt text 
 	if (__altTextCount > 0) {
 		for (int i = 0; i < __altTextCols.length; i++) {
-			if (__altTextCols[i] == visCol 
-				&& __altTextRows[i] == row) {
+			if (__altTextCols[i] == visCol && __altTextRows[i] == row) {
 				__altText[i] = text;
 				refresh();
 //				Message.printStatus(1, "", 
-//					"Cell alt text replaced old cell "
-//					+ "alt text at: "
-//					+ row + ", " + visCol);
+//					"Cell alt text replaced old cell alt text at: " + row + ", " + visCol);
 				return;
 			}
 		}
 	}
 
-	// otherwise, add a new alt text to the array.  Check the
-	// array sizes and resize if necessary
+	// otherwise, add a new alt text to the array.  Check the array sizes and resize if necessary
 	if (((__altTextCount + 1) % __ARRAY_SIZE) == 0) {
-//		Message.printStatus(1, "", "Need to resize data arrays to: " 
-//			+ (__altTextCount + __ARRAY_SIZE));
+//		Message.printStatus(1, "", "Need to resize data arrays to: " + (__altTextCount + __ARRAY_SIZE));
 		int[] temp = new int[(__altTextCount + 1) + __ARRAY_SIZE];
 		for (int i = 0; i < temp.length; i++) {
 			temp[i] = -1;
@@ -6143,8 +5773,7 @@ public void setCellAlternateText(int row, int absoluteColumn, String text) {
 	// the arrays are always compacted when alt text is removed,
 	// so the __altTextCount var can be used safely for putting a new 
 	// alt text at the very end of the array
-//	Message.printStatus(1, "", "Alt text set at the very end for "
-//		+ row + ", " + visCol);
+//	Message.printStatus(1, "", "Alt text set at the very end for " + row + ", " + visCol);
 	__altTextCols[__altTextCount] = getVisibleColumn(absoluteColumn);
 	__altTextRows[__altTextCount] = row;
 	__altText[__altTextCount] = text;
@@ -6162,8 +5791,7 @@ null, the attributes are removed from the cell.
 numbered starting at 0, though column 0 is usually the row count column.
 @param ca the cell attributes to set
 */
-public void setCellAttributes(int row, int absoluteColumn, 
-JWorksheet_CellAttributes ca) {
+public void setCellAttributes(int row, int absoluteColumn, JWorksheet_CellAttributes ca) {
 	String routine = CLASS + ".setCellAttributes";
 
 	if (row < 0 || absoluteColumn < 0) {
@@ -6172,21 +5800,17 @@ JWorksheet_CellAttributes ca) {
 		return;
 	}
 	
-	// passing in null cell attributes removes the cell attributes
-	// for the specified cell
+	// passing in null cell attributes removes the cell attributes for the specified cell
 	if (ca == null) {
 		int visCol = getVisibleColumn(absoluteColumn);
 		if (__attrCount > 0 && absoluteColumn > -1) {
 			for (int i = 0; i < __attrCols.length; i++) {
-				if (__attrCols[i] == visCol 
-					&& __attrRows[i] == row) {
+				if (__attrCols[i] == visCol && __attrRows[i] == row) {
 					__attrCols[i] = -1;
 					__attrRows[i] = -1;
 					__cellAttrs[i] = null;
 					__attrCount--;
-//					Message.printStatus(1, "", 
-//						"Cell attributes removed for: " 
-//						+ row + ", " + visCol);
+//					Message.printStatus(1, "", "Cell attributes removed for: " + row + ", " + visCol);
 					compactAttrArrays();
 					refresh();
 					return;	
@@ -6202,23 +5826,17 @@ JWorksheet_CellAttributes ca) {
 	if (__attrCount > 0) {
 		for (int i = 0; i < __attrCols.length; i++) {
 			if (__attrCols[i] == visCol && __attrRows[i] == row) {
-				__cellAttrs[i] = (JWorksheet_CellAttributes)
-					ca.clone();
+				__cellAttrs[i] = (JWorksheet_CellAttributes)ca.clone();
 				refresh();
-//				Message.printStatus(1, "", 
-//					"Cell attributes replaced old cell "
-//					+ "attributes at: "
-//					+ row + ", " + visCol);
+//				Message.printStatus(1, "", "Cell attributes replaced old cell attributes at: " + row + ", " + visCol);
 				return;
 			}
 		}
 	}
 
-	// otherwise, add a new attribute to the array.  Check the
-	// array sizes and resize if necessary
+	// otherwise, add a new attribute to the array.  Check the array sizes and resize if necessary
 	if (((__attrCount + 1) % __ARRAY_SIZE) == 0) {
-//		Message.printStatus(1, "", "Need to resize data arrays to: " 
-//			+ (__attrCount + __ARRAY_SIZE));
+//		Message.printStatus(1, "", "Need to resize data arrays to: " + (__attrCount + __ARRAY_SIZE));
 		int[] temp = new int[(__attrCount + 1) + __ARRAY_SIZE];
 		for (int i = 0; i < temp.length; i++) {
 			temp[i] = -1;
@@ -6233,9 +5851,7 @@ JWorksheet_CellAttributes ca) {
 		System.arraycopy(__attrRows, 0, temp, 0, __attrCount);
 		__attrRows = temp;
 		
-		JWorksheet_CellAttributes[] tempca = new 
-			JWorksheet_CellAttributes[(__attrCount + 1) 
-			+ __ARRAY_SIZE];
+		JWorksheet_CellAttributes[] tempca = new JWorksheet_CellAttributes[(__attrCount + 1) + __ARRAY_SIZE];
 		System.arraycopy(__cellAttrs, 0, tempca, 0, __attrCount);
 		__cellAttrs = tempca;
 	}
@@ -6243,8 +5859,7 @@ JWorksheet_CellAttributes ca) {
 	// the arrays are always compacted when cell attributes are removed,
 	// so the __attrCount var can be used safely for putting a new attribute
 	// at the very end of the array
-//	Message.printStatus(1, "", "Cell attribute set at the very end for "
-//		+ row + ", " + visCol);
+//	Message.printStatus(1, "", "Cell attribute set at the very end for " + row + ", " + visCol);
 	__attrCols[__attrCount] = getVisibleColumn(absoluteColumn);
 	__attrRows[__attrCount] = row;
 	__cellAttrs[__attrCount] = ca;
@@ -6258,13 +5873,11 @@ Overrides the specified cell's default editability and sets whether the value
 in the cell may be edited or not.
 @param row the row of the cell.  Rows are numbered starting at 0.
 @param column the column of the cell
-REVISIT (JTS - 2003-07-23)
-absolute or visible?
+TODO (JTS - 2003-07-23)absolute or visible?
 @param state whether the cell should be editable or not.
 */
 public void setCellEditable(int row, int column, boolean state) {
-	((JWorksheet_AbstractTableModel)getModel()).overrideCellEdit(
-		row, column, state);
+	((JWorksheet_AbstractTableModel)getModel()).overrideCellEdit( row, column, state);
 }
 
 /**
@@ -6279,21 +5892,18 @@ public void setCellFontName(String cellFontName) {
 }
 
 /**
-Sets the font size in which items in the table should be displayed.  
-While individual cell
+Sets the font size in which items in the table should be displayed.  While individual cell
 attributes can be used to change the font in different cells, getCellFont()
 and setCellFont*() are quicker for changing and returning the font used 
 everywhere in the table where a specific cell font attribute has not been set.
-@param size the size of the font (in points) in which table items should
-be displayed.
+@param size the size of the font (in points) in which table items should be displayed.
 */
 public void setCellFontSize(int size) {
 	__cellFontSize = size;
 }
 
 /**
-Sets the font style in which items in the table should be displayed.  
-While individual cell
+Sets the font style in which items in the table should be displayed.  While individual cell
 attributes can be used to change the font in different cells, getCellFont()
 and setCellFont*() are quicker for changing and returning the font used 
 everywhere in the table where a specific cell font attribute has not been set.
@@ -6351,43 +5961,35 @@ can be used with setJComboBoxEditorPreviousRowCopy().
 cell-specific editor.  Columns are numbered starting at 0, though column 0 is
 usually the row count column.
 @param editable whether the ComboBoxes in the column should allow the user to
-enter a new value (true), or if the user can only select what is already in 
-the list (false)
+enter a new value (true), or if the user can only select what is already in the list (false)
 */
 public void setCellSpecificJComboBoxColumn(int absoluteColumn, 
 boolean editable) {
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn( absoluteColumn));
 	int rows = getRowCount();
-	JWorksheet_JComboBoxCellEditor editor = 
-		new JWorksheet_JComboBoxCellEditor(this, rows, editable);
+	JWorksheet_JComboBoxCellEditor editor = new JWorksheet_JComboBoxCellEditor(this, rows, editable);
 	addJWorksheetListener(editor);
 	col.setCellEditor(editor);
 }
 
 /**
 Sets the values to be used in a JComboBox cell editor for a specific cell.
-@param row the row in which the cell is located.  Rows are numbered starting at
-0.
+@param row the row in which the cell is located.  Rows are numbered starting at 0.
 @param absoluteColumn the <b>absolute</b> column in which the cell is located.  
 A call must have already been made to 
 setCellSpecificJComboBoxColumn(absoluteColumn) for this to work.
-Columns are numbered starting at 0, though column 0 is usually the row count 
-column.
+Columns are numbered starting at 0, though column 0 is usually the row count column.
 @param v a Vector of values to populate the JComboBox editor with.
 */
-public void setCellSpecificJComboBoxValues(int row, int absoluteColumn, 
-Vector v) {
+public void setCellSpecificJComboBoxValues(int row, int absoluteColumn, List v) {
 	String routine = CLASS + ".setCellSpecificJComboBoxValues";
 	
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn( absoluteColumn));
 	TableCellEditor editor = col.getCellEditor();
 
 	if (editor == null) {
 		Message.printStatus(1, routine, "No combo box editor set "
-			+ "up for column " + absoluteColumn + ", not setting "
-			+ "values.");
+			+ "up for column " + absoluteColumn + ", not setting values.");
 		return;
 	}
 	
@@ -6399,23 +6001,19 @@ Sets whether when adding a row to a column that has been set to use
 JComboBox editors (via setCellSpecificJComboBoxColumn) should use the same
 data model for the JComboBox as the cell immediately above it.  
 @param absoluteColumn the <b>absolute</b> absoluteColumn to set previous copy.
-Columns are numbered starting at 0, though column 0 is usually the row count
-column.
+Columns are numbered starting at 0, though column 0 is usually the row count column.
 @param copy whether or not to copy the previous data model
 @see RTi.Util.GUI.JWorksheet_JComboBoxCellEditor#setPreviousRowCopy(boolean)
 */
-public void setCellSpecificJComboBoxEditorPreviousRowCopy(int absoluteColumn, 
-boolean copy) {
+public void setCellSpecificJComboBoxEditorPreviousRowCopy(int absoluteColumn, boolean copy) {
 	String routine = CLASS+".setCellSpecificJComboBoxEditorPreviousRowCopy";
 
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn(absoluteColumn));
 	TableCellEditor editor = col.getCellEditor();
 
 	if (editor == null) {
 		Message.printStatus(1, routine, "No combo box editor set "
-			+ "up for column " + absoluteColumn + ", not setting "
-			+ "values.");	
+			+ "up for column " + absoluteColumn + ", not setting values.");	
 		return;
 	}
 	
@@ -6425,8 +6023,7 @@ boolean copy) {
 /**
 Sets the alignment that a column should display its data with.  This overrides
 any column alignment code in the cell renderer.  
-@param absoluteColumn the <b>absolute</b> column of the column for which to
-set an alignment.
+@param absoluteColumn the <b>absolute</b> column of the column for which to set an alignment.
 @param alignment one of DEFAULT (allows the cell renderer to determine the 
 alignment), CENTER, LEFT, or RIGHT.
 */
@@ -6452,7 +6049,7 @@ which to use a SimpleJComboBo as the editor.  Columns are numbered starting at
 @param v a Vector of Strings with which to populate the 
 SimpleJComboBox.  If null, then the Combo box will be removed from the column.
 */
-public void setColumnJComboBoxValues(int absoluteColumn, Vector v) {
+public void setColumnJComboBoxValues(int absoluteColumn, List v) {
 	setColumnJComboBoxValues(absoluteColumn, v, false);
 }
 
@@ -6469,13 +6066,10 @@ which to use a SimpleJComboBo as the editor.  Columns are numbered starting at
 0, though column 0 is usually the row count column.
 @param v a Vector of Strings with which to populate the SimpleJComboBox.  If 
 null, then the combo box will be removed from the column.
-@param editable if true, the SimpleJComboBox values can be selected and also
-edited by the user.
+@param editable if true, the SimpleJComboBox values can be selected and also edited by the user.
 */
-public void setColumnJComboBoxValues(int absoluteColumn, Vector v, 
-boolean editable) {
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+public void setColumnJComboBoxValues(int absoluteColumn, List v, boolean editable) {
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn(absoluteColumn));
 	if (v == null) {
 		col.setCellEditor(null);
 	}
@@ -6491,8 +6085,7 @@ Sets a new value for a Table column name.
 @param name the new column name.
 */
 public void setColumnName(int absoluteColumn, String name) {
-	TableColumn col = getColumnModel().getColumn(getVisibleColumn(
-		absoluteColumn));
+	TableColumn col = getColumnModel().getColumn(getVisibleColumn(absoluteColumn));
 	col.setHeaderValue(name);
 	__columnNames[absoluteColumn] = name;
 	if (getTableHeader() != null) {
@@ -6519,8 +6112,7 @@ public void setColumnToolTipText(int absoluteColumn, String tip) {
 
 /**
 Sets tooltips for all the columns in the worksheet.
-@param tips array of Strings, each one of which is a tooltip for an absolute
-column.
+@param tips array of Strings, each one of which is a tooltip for an absolute column.
 */
 public void setColumnsToolTipText(String[] tips) {
 	for (int i = 0; i < tips.length; i++) {
@@ -6540,8 +6132,7 @@ should be able to accomodate, not in pixels or font sizes.  <p>
 For example, A column 
 that needs to be able to display "2003-03" would have a width of 7.
 The character "X" is used as the sizing character for calculating how large 
-(in screen pixel terms) the column will be to accomodate the given number 
-of characters.
+(in screen pixel terms) the column will be to accomodate the given number of characters.
 */
 public void setColumnWidths(int[] widths) {
 	setColumnWidths(widths, getGraphics());
@@ -6555,8 +6146,7 @@ The widths are actually measured in terms of how many characters a column
 should be able to accomodate, not in pixels or font sizes.  e.g., A column 
 that needs to be able to display "2003-03" would have a width of 7.
 The character "X" is used as the sizing character for calculating how large 
-(in screen pixel terms) the column will be to accomodate the given number 
-of characters.
+(in screen pixel terms) the column will be to accomodate the given number of characters.
 @param g a Graphics object that can be used to determine how many pixels
 a certain font takes up in a given graphics context.
 */
@@ -6564,18 +6154,15 @@ public void setColumnWidths(int[] widths, Graphics g) {
 	String routine = CLASS + ".setColumnWidths";
 
 	if (g == null) {
-		Message.printWarning(2, routine, "Graphics are null, not "
-			+ "setting column widths.");
+		Message.printWarning(2, routine, "Graphics are null, not setting column widths.");
 		return;
 	}
 	if (widths == null) {
-		Message.printWarning(2, routine, "Widths are null, not setting "
-			+ "column widths.");
+		Message.printWarning(2, routine, "Widths are null, not setting column widths.");
 		return;
 	}
 	if (__columnNames == null) {
-		Message.printWarning(2, routine, "Column names are null, not "
-			+ "setting column widths.");			
+		Message.printWarning(2, routine, "Column names are null, not setting column widths.");			
 		return;
 	}
 	if (widths.length != __columnNames.length) {
@@ -6588,13 +6175,10 @@ public void setColumnWidths(int[] widths, Graphics g) {
 	// test if the graphics have been 
 
 	// Get the font metrics for each of the main fonts used in the
-	// worksheet (the font used for the header and the font used for
-	// the cells).
+	// worksheet (the font used for the header and the font used for the cells).
 	FontMetrics fh = g.getFontMetrics(
-		new Font(__columnHeaderFontName, __columnHeaderFontStyle, 
-		__columnHeaderFontSize));
-	FontMetrics fc = g.getFontMetrics(
-		new Font(__cellFontName, __cellFontStyle, __cellFontSize));
+		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));
+	FontMetrics fc = g.getFontMetrics( new Font(__cellFontName, __cellFontStyle, __cellFontSize));
 		
 	String s = "";
 	int i = 0;
@@ -6611,8 +6195,7 @@ public void setColumnWidths(int[] widths, Graphics g) {
 	for (i = 0; i < count; i++) {
 		s = "";
 		if (!__columnRemoved[i]) {
-			TableColumn tc = getColumnModel().getColumn(
-				getVisibleColumn(i));		
+			TableColumn tc = getColumnModel().getColumn( getVisibleColumn(i));		
 			for (int j = 0; j < widths[i]; j++) {
 				s += "X";
 			}
@@ -6636,8 +6219,7 @@ Sets whether copying and pasting is enabled in the JWorksheet.
 protected void setCopyPasteEnabled(boolean copySetting, boolean pasteSetting) {
 //	if (!IOUtil.isRunningApplet()) {
 		if (__copyPasteAdapter == null) {
-			__copyPasteAdapter = 
-				new JWorksheet_CopyPasteAdapter(this);
+			__copyPasteAdapter = new JWorksheet_CopyPasteAdapter(this);
 		}
 	
 		__copyPasteAdapter.setCopyEnabled(copySetting);
@@ -6659,7 +6241,7 @@ definition of the table model doesn't change, but the data in the table
 model changes extensively.  Otherwise, just call addRow()
 @param data that will be set in the existing table model.
 */
-public void setData(Vector data) {
+public void setData(List data) {
 	__lastRowSelected = -1;
 	((JWorksheet_AbstractTableModel)getModel()).setNewData(data);
 	((JWorksheet_AbstractTableModel)getModel()).fireTableDataChanged();
@@ -6667,18 +6249,15 @@ public void setData(Vector data) {
 	if (__selectionMode == __EXCEL_SELECTION) {
 		int rows = getRowCount();
 		int cols = getColumnCount();
-		setSelectionMode(
-			ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		setSelectionMode( ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		setCellSelectionEnabled(true);			
-		JWorksheet_RowSelectionModel r = 
-			new JWorksheet_RowSelectionModel(rows, cols);
+		JWorksheet_RowSelectionModel r = new JWorksheet_RowSelectionModel(rows, cols);
 		r.setPartner(__partner);
 		if (!__selectable) {
 			r.setSelectable(false);
 		}
 
-		JWorksheet_ColSelectionModel c = 
-			new JWorksheet_ColSelectionModel();
+		JWorksheet_ColSelectionModel c = new JWorksheet_ColSelectionModel();
 		r.setColSelectionModel(c);
 		c.setRowSelectionModel(r);
 		setSelectionModel(r);
@@ -6701,8 +6280,7 @@ public void setDirty(boolean dirty) {
 }
 
 /**
-Called by the JWorksheet_DefaultTableCellEditor to set the cell which is 
-being edited.
+Called by the JWorksheet_DefaultTableCellEditor to set the cell which is being edited.
 @param row the row of the cell being edited
 @param visibleColumn the <b>visible</b> column of the cell being editedd
 */
@@ -6725,14 +6303,6 @@ public void setFirstRowNumber(int firstRowNumber) {
 }
 
 /**
-Turns the hourglass on the worksheet on or off.
-@deprecated use setWaitCursor().  (2006-01-31)
-*/
-public void setHourglass(boolean hourglassEnabled) {
-	setWaitCursor(hourglassEnabled);
-}
-
-/**
 Sets the frame in which the hourglass will be displayed when sorting.
 */
 public void setHourglassJDialog(JDialog dialog) {
@@ -6748,8 +6318,7 @@ public void setHourglassJFrame(JFrame frame) {
 
 /**
 Sets whether the worksheet's header should support displaying multiple lines.
-If this is turned on, linebreaks ('\n') in the column names will result in 
-line breaks in the header.
+If this is turned on, linebreaks ('\n') in the column names will result in line breaks in the header.
 @param multiline whether to support multiple line headers.
 */
 private void setMultipleLineHeaderEnabled(boolean multiline) {
@@ -6757,8 +6326,7 @@ private void setMultipleLineHeaderEnabled(boolean multiline) {
 }
 
 /**
-Sets a new table model into the worksheet and populates the worksheet with
-the data in the table model.
+Sets a new table model into the worksheet and populates the worksheet with the data in the table model.
 @param tm the TableModel with which to populate the worksheet.
 */
 public void setModel(JWorksheet_AbstractTableModel tm) {
@@ -6785,25 +6353,15 @@ public void setModel(JWorksheet_AbstractTableModel tm) {
 }
 
 /**
-Sets the worksheet to not use a header.
-@deprecated Use removeColumnHeader() instead.  (2006-01-31)
-*/
-public void setNoHeader() {
-	removeColumnHeader();
-}
-
-/**
 Sets whether the user should be able to select an entire row just by clicking
 on the first (0th) column.  Not usable with default JTable selection models.
-@param oneClick if true, the user can select an entire row by clicking on the
-first (0th) column.
+@param oneClick if true, the user can select an entire row by clicking on the first (0th) column.
 */
 public void setOneClickRowSelection(boolean oneClick) {
 	__oneClickRowSelection = oneClick;
 	if (__selectionMode == __EXCEL_SELECTION) {
 		if (__listRowHeader == null) {
-			((JWorksheet_RowSelectionModel)getSelectionModel()).
-				setOneClickRowSelection(oneClick);
+			((JWorksheet_RowSelectionModel)getSelectionModel()).setOneClickRowSelection(oneClick);
 		}
 	}
 	else {
@@ -6821,31 +6379,19 @@ public void setPopupMenu(JPopupMenu popup, boolean worksheetHandlePopup) {
 }
 
 /**
-Sets the popup menu to display if the table is right-clicked on.
-@param popup the popup menu to display.
-@deprecated use the other one
-*/
-public void setPopupMenu(JPopupMenu popup) {
-	setupPopupMenu(popup, true);
-	__mainPopup = popup;
-}
-
-/**
 Sets the partner row selection model used when this table is the row header 
 of another in a JScrollWorksheet.
 @param partner the JWorksheet_RowSelectionModel of the main table, the one 
 for which another this table is its row header.
 */
 public void setRowSelectionModelPartner(JWorksheet_RowSelectionModel partner) {
-	((JWorksheet_RowSelectionModel)getSelectionModel()).setPartner(
-		partner);
+	((JWorksheet_RowSelectionModel)getSelectionModel()).setPartner(partner);
 	__partner = partner;
 }
 
 /**
 Sets a data object in a row.  Only works with table models that store 
-each rows as a separate data object (are descended from 
-JWorksheet_AbstractRowTableModel).
+each rows as a separate data object (are descended from JWorksheet_AbstractRowTableModel).
 @param o the data object to replace the object at the specified row with.
 @param pos the row at which to replace the object.
 */
@@ -6914,8 +6460,7 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 		menu.add(__pasteMenuItem);
 	}
 	if (1 == 1) {	
-		// REVISIT (JTS - 2004-10-21)
-		// activate with a property later.
+		// TODO (JTS - 2004-10-21) activate with a property later.
 		menu.addSeparator();
 		JMenuItem saveMenuItem = new JMenuItem(__MENU_SAVE_TO_FILE);
 		saveMenuItem.addActionListener(this);
@@ -6937,8 +6482,7 @@ public void setValueAt(Object o, int row, int col) {
 
 /**
 Turns a wait cursor on or off on the worksheet.
-@param hourglassEnabled if true, the wait cursor will be displayed.  If false,
-it will be hidden.
+@param hourglassEnabled if true, the wait cursor will be displayed.  If false, it will be hidden.
 */
 public void setWaitCursor(boolean hourglassEnabled) {
 	if (__hourglassJDialog == null && __hourglassJFrame == null) {
@@ -6953,20 +6497,12 @@ public void setWaitCursor(boolean hourglassEnabled) {
 }
 
 /**
-@deprecated use showColumnHeader(boolean)
-*/
-public void showHeader(boolean show) {
-	showColumnHeader(show);
-}
-
-/**
 Selects whether to show the header on the JWorksheet or not.  This method
 currently only works if the JWorksheet is in a JScrollPane.
 @param show whether to show the header or not.  If the header is already showing
 and it is set to be shown, nothing changes.  Otherwise, it is hidden and
 no longer shows.  If the header is hidden and then showColumnHeader(true) is 
-called, the header (which is stored internally when hidden) will be put back 
-in place.
+called, the header (which is stored internally when hidden) will be put back in place.
 */
 public void showColumnHeader(boolean show) {
 	Container p = getParent();
@@ -6975,14 +6511,12 @@ public void showColumnHeader(boolean show) {
 		if (gp instanceof JScrollPane) {			
 			JScrollPane scrollPane = (JScrollPane)gp;
 			if (!show) {
-				__columnHeaderView = 
-					scrollPane.getColumnHeader();
+				__columnHeaderView = scrollPane.getColumnHeader();
 				scrollPane.setColumnHeader(null);
 			}
 			else {
 				if (__columnHeaderView != null) {
-					scrollPane.setColumnHeader(
-						__columnHeaderView);
+					scrollPane.setColumnHeader(	__columnHeaderView);
 					__columnHeaderView = null;
 				}
 			}
@@ -7023,8 +6557,7 @@ private void sortColumn(int order) {
 				unsorted[i] = DMIUtil.MISSING_INT;
 			}
 		}
-		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder,
-			true);
+		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);
 	}
 	// Sort numbers with MathUtil.sort()
 	else if (getColumnClass(absColumn) == Double.class) {	
@@ -7039,21 +6572,19 @@ private void sortColumn(int order) {
 				unsorted[i] = DMIUtil.MISSING_DOUBLE;
 			}
 		}
-		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder,
-			true);		
+		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);		
 	} 
-	// Sort Dates by turning them into Strings first and sorting with
-	// StringUtil.sort()
+	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort()
 	else if (getColumnClass(absColumn) == Date.class) {		
-		Vector v = new Vector(size);
+		List v = new Vector(size);
 		Date d = null;
 		for (int i = 0; i < size; i++) {
 			d = (Date)getValueAt(i, __popupColumn);
 			if (d == null) {
-				v.addElement("");
+				v.add("");
 			}
 			else {
-				v.addElement(d.toString());
+				v.add(d.toString());
 			}
 		}
 		StringUtil.sortStringList(v, order, sortOrder, true, true);
@@ -7078,20 +6609,19 @@ private void sortColumn(int order) {
 				unsorted[i] = DMIUtil.MISSING_INT;
 			}
 		}
-		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder,
-			true);		
+		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);		
 	}		
 	// Sort Strings with StringUtil.sort()
 	else {
-		Vector v = new Vector(size);
+		List v = new Vector(size);
 		String s = null;		
 		for (int i = 0; i < size; i++) {
 			s = (String)getValueAt(i, __popupColumn);
 			if (s == null) {
-				v.addElement("");
+				v.add("");
 			} 
 			else {
-				v.addElement(s.toString());
+				v.add(s);
 			}
 		}
 		StringUtil.sortStringList(v, order, sortOrder, true, true);
@@ -7111,8 +6641,7 @@ data values are calculated based on the previous row's data.  In this case,
 this method can be used to let them know that a consecutive read of the table
 data will be done, and that everytime a call is made to getValueAt() in the 
 table model, the row parameter is guaranteed to be the same row as the last 
-time getValueAt() was called (if the column is different), or 1 more than
-the previous row.
+time getValueAt() was called (if the column is different), or 1 more than the previous row.
 */
 public void startNewConsecutiveRead() {
 	((JWorksheet_AbstractTableModel)getModel()).startNewConsecutiveRead();
@@ -7122,10 +6651,8 @@ public void startNewConsecutiveRead() {
 Programmatically stops any cell editing that is taking place.  Cell editing
 happens when a user double-clicks in a cell or begins typing in a cell.  
 This method will stop the editing and WILL accept the data the user has
-entered up to this method call.  To abort saving the data the user has already 
-entered, use cancelEditing().
-@return true if the editing was stopped, false if it wasn't (because there 
-were errors in the data).
+entered up to this method call.  To abort saving the data the user has already entered, use cancelEditing().
+@return true if the editing was stopped, false if it wasn't (because there were errors in the data).
 */
 public boolean stopEditing() {
 	if (getCellEditor() != null) {
@@ -7182,8 +6709,7 @@ throws Exception {
 
 /**
 Writes the table out as HTML to an already-created HTMLWriter.  If the 
-HTMLWriter is writing to a file, the file is not closed after the table is
-written.
+HTMLWriter is writing to a file, the file is not closed after the table is written.
 @param htmlWriter the HTMLWriter object to which to write the table.
 @throws Exception if an error occurs.
 */
@@ -7194,8 +6720,7 @@ throws Exception {
 
 /**
 Writes the specified rows as HTML out to an already-created HTMLWriter.  If the
-HTMLWriter is writing to a file, the file is not closed after the table is
-written.
+HTMLWriter is writing to a file, the file is not closed after the table is written.
 @param htmlWriter the HTMLWriter object to which to write the table.
 @param firstRow the first row to start writing.
 @param lastRow the last row to be written.
@@ -7208,9 +6733,7 @@ throws Exception {
 
 }
 
-// REVISIT (JTS - 2004-02-12
-// something to set cell background colors on the table as a whole?
-// document getColumnCount() -- abs or vis?
+// TODO (JTS - 2004-02-12 something to set cell background colors on the table as a whole?
+// TODO document getColumnCount() -- abs or vis?
 
-// (JTS - 2005-10-19)
-// something so that if the row header is clicked on, the entire row is selected
+// TODO (JTS - 2005-10-19) something so that if the row header is clicked on, the entire row is selected

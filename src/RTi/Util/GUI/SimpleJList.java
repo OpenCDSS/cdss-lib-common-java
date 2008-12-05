@@ -20,6 +20,7 @@
 
 package RTi.Util.GUI;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JList;
@@ -90,14 +91,14 @@ public SimpleJList(Object array[]) {
 
 /**
 Constructor.
-@param vector a vector of objects that will be used to populate the list.
+@param vector a list of objects that will be used to populate the list.
 */
-public SimpleJList(Vector vector) {
+public SimpleJList(List vector) {
 	super();
 	__dlm = new DefaultListModel();
 	int size = vector.size();
 	for (int i = 0; i < size; i++) {
-		__dlm.addElement(vector.elementAt(i));
+		__dlm.addElement(vector.get(i));
 	}
 	initialize();
 	setModel(__dlm);
@@ -186,8 +187,8 @@ public int getItemCount() {
 Returns all the items in the list.
 @return all the items in the list.
 */
-public Vector getItems() {
-	Vector v = new Vector(__dlm.size());
+public List getItems() {
+	List v = new Vector(__dlm.size());
 	for (int i = 0; i < __dlm.size(); i++) {
 		v.add(__dlm.get(i));
 	}
@@ -213,12 +214,11 @@ public Object getSelectedItem() {
 }
 
 /**
-Returns only the selected items in the list.  The returned Vector is guaranteed
-to be non-null.
+Returns only the selected items in the list.  The returned Vector is guaranteed to be non-null.
 @return only the selected items in the list.
 */
-public Vector getSelectedItems() {
-	Vector v = new Vector(getSelectedSize());
+public List getSelectedItems() {
+	List v = new Vector(getSelectedSize());
 	int[] indices = getSelectedIndices();	
 	for (int i = 0; i < indices.length; i++) {
 		v.add(__dlm.get(indices[i]));
@@ -395,11 +395,11 @@ Sets the data in the list from a Vector of Objects.  Any data already in the
 list will be lost.  Overloads the method in JList.
 @param vector the Vector of Objects to populate the list with.
 */
-public void setListData(Vector vector) {
+public void setListData(List vector) {
 	__dlm = new DefaultListModel();
 	int size = vector.size();
 	for (int i = 0; i < size; i++) {
-		__dlm.addElement(vector.elementAt(i));
+		__dlm.addElement(vector.get(i));
 	}
 	setModel(__dlm);
 }

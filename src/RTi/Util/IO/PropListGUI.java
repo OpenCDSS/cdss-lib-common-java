@@ -4,8 +4,9 @@
 
 package	RTi.Util.IO;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
 This class implements a GUI for the PropList class.

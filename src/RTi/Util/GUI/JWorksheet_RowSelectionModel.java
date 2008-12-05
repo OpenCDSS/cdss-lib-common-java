@@ -37,6 +37,7 @@
 
 package RTi.Util.GUI;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListSelectionModel;
@@ -431,7 +432,7 @@ Returns an integer array of the columns that have had some of their cells select
 @return an integer array of the columns that have had some of their cells selected.
 */
 public int[] getSelectedColumns() {
-	Vector v = new Vector();
+	List v = new Vector();
 
 	for (int i = 0; i < _cols; i++) {
 		for (int j = 0; j < _rows; j++) {
@@ -445,7 +446,7 @@ public int[] getSelectedColumns() {
 	int[] arr = new int[v.size()];
 //	Message.printStatus(1, "", "" + v.size() + " columns selected");
 	for (int i = 0; i < arr.length; i++) {
-		arr[i] = ((Integer)v.elementAt(i)).intValue();
+		arr[i] = ((Integer)v.get(i)).intValue();
 //		Message.printStatus(1, "", "column: " + arr[i]);
 	}
 	return arr;
@@ -472,7 +473,7 @@ Returns an integer array of the rows that have had some of their cells selected.
 @return an integer array of the rows that have had some of their cells selected.
 */
 public int[] getSelectedRows() {
-	Vector v = new Vector();
+	List v = new Vector();
 
 	for (int i = 0; i < _rows; i++) {
 		for (int j = 0; j < _cols; j++) {
@@ -485,7 +486,7 @@ public int[] getSelectedRows() {
 
 	int[] arr = new int[v.size()];
 	for (int i = 0; i < arr.length; i++) {
-		arr[i] = ((Integer)v.elementAt(i)).intValue();
+		arr[i] = ((Integer)v.get(i)).intValue();
 	}
 	return arr;
 }

@@ -44,6 +44,7 @@
 
 package RTi.Util.Time;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -258,25 +259,24 @@ public static String getName ( int interval )
 }
 
 /**
-Return a Vector of interval strings (e.g., "Year", "6Hour").  Only evenly
+Return a list of interval strings (e.g., "Year", "6Hour").  Only evenly
 divisible choices are returned (no "5Hour" because it does not divide into the
 day).  This version does NOT include the Irregular time step.
-@return a Vector of interval strings.
+@return a list of interval strings.
 @param start_interval The starting (smallest) interval base to return.
 @param end_interval The ending (largest) interval base to return.
-@param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false
-do not pad (e.g., "6Hour").
+@param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
 */
-public static Vector getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
+public static List getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
 {	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
 }
 
 /**
-Return a Vector of interval strings (e.g., "Year", "6Hour"), optionally
+Return a list of interval strings (e.g., "Year", "6Hour"), optionally
 including the Irregular time step.  Only evenly divisible choices are returned
 (no "5Hour" because it does not divide into the day).
-@return a Vector of interval strings.
+@return a list of interval strings.
 @param start_interval The starting (smallest) interval base to return.
 @param end_interval The ending (largest) interval base to return.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false
@@ -285,10 +285,10 @@ do not pad (e.g., "6Hour").
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
-public static Vector getTimeIntervalChoices ( int start_interval, int end_interval,
+public static List getTimeIntervalChoices ( int start_interval, int end_interval,
 						boolean pad_zeros, int sort_order, boolean include_irregular )
 {	// Add in ascending order and sort to descending later if requested...
-	Vector v = new Vector();
+	List v = new Vector();
 	if ( start_interval > end_interval ) {
 		// Swap (only rely on sort_order for ordering)...
 		int temp = end_interval;
@@ -300,98 +300,98 @@ public static Vector getTimeIntervalChoices ( int start_interval, int end_interv
 	}
 	if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
 		if ( pad_zeros ) {
-			v.addElement ( "01Second" );
-			v.addElement ( "02Second" );
-			v.addElement ( "03Second" );
-			v.addElement ( "04Second" );
-			v.addElement ( "05Second" );
-			v.addElement ( "06Second" );
+			v.add ( "01Second" );
+			v.add ( "02Second" );
+			v.add ( "03Second" );
+			v.add ( "04Second" );
+			v.add ( "05Second" );
+			v.add ( "06Second" );
 		}
 		else {
-		    v.addElement ( "1Second" );
-			v.addElement ( "2Second" );
-			v.addElement ( "3Second" );
-			v.addElement ( "4Second" );
-			v.addElement ( "5Second" );
-			v.addElement ( "6Second" );
+		    v.add ( "1Second" );
+			v.add ( "2Second" );
+			v.add ( "3Second" );
+			v.add ( "4Second" );
+			v.add ( "5Second" );
+			v.add ( "6Second" );
 		}
-		v.addElement ( "10Second" );
-		v.addElement ( "15Second" );
-		v.addElement ( "20Second" );
-		v.addElement ( "30Second" );
-		v.addElement ( "60Second" );
+		v.add ( "10Second" );
+		v.add ( "15Second" );
+		v.add ( "20Second" );
+		v.add ( "30Second" );
+		v.add ( "60Second" );
 	}
 	if ( (MINUTE >= start_interval) && (MINUTE <= end_interval) ) {
 		if ( pad_zeros ) {
-			v.addElement ( "01Minute" );
-			v.addElement ( "02Minute" );
-			v.addElement ( "03Minute" );
-			v.addElement ( "04Minute" );
-			v.addElement ( "05Minute" );
-			v.addElement ( "06Minute" );
+			v.add ( "01Minute" );
+			v.add ( "02Minute" );
+			v.add ( "03Minute" );
+			v.add ( "04Minute" );
+			v.add ( "05Minute" );
+			v.add ( "06Minute" );
 		}
 		else {
-		    v.addElement ( "1Minute" );
-			v.addElement ( "2Minute" );
-			v.addElement ( "3Minute" );
-			v.addElement ( "4Minute" );
-			v.addElement ( "5Minute" );
-			v.addElement ( "6Minute" );
+		    v.add ( "1Minute" );
+			v.add ( "2Minute" );
+			v.add ( "3Minute" );
+			v.add ( "4Minute" );
+			v.add ( "5Minute" );
+			v.add ( "6Minute" );
 		}
-		v.addElement ( "10Minute" );
-		v.addElement ( "15Minute" );
-		v.addElement ( "20Minute" );
-		v.addElement ( "30Minute" );
-		v.addElement ( "60Minute" );
+		v.add ( "10Minute" );
+		v.add ( "15Minute" );
+		v.add ( "20Minute" );
+		v.add ( "30Minute" );
+		v.add ( "60Minute" );
 	}
 	if ( (HOUR >= start_interval) && (HOUR <= end_interval) ) {
 		if ( pad_zeros ) {
-			v.addElement ( "01Hour" );
-			v.addElement ( "02Hour" );
-			v.addElement ( "03Hour" );
-			v.addElement ( "04Hour" );
-			v.addElement ( "06Hour" );
-			v.addElement ( "08Hour" );
+			v.add ( "01Hour" );
+			v.add ( "02Hour" );
+			v.add ( "03Hour" );
+			v.add ( "04Hour" );
+			v.add ( "06Hour" );
+			v.add ( "08Hour" );
 		}
 		else {
-            v.addElement ( "1Hour" );
-			v.addElement ( "2Hour" );
-			v.addElement ( "3Hour" );
-			v.addElement ( "4Hour" );
-			v.addElement ( "6Hour" );
-			v.addElement ( "8Hour" );
+            v.add ( "1Hour" );
+			v.add ( "2Hour" );
+			v.add ( "3Hour" );
+			v.add ( "4Hour" );
+			v.add ( "6Hour" );
+			v.add ( "8Hour" );
 		}
-		v.addElement ( "12Hour" );
+		v.add ( "12Hour" );
         // Add this because often hourly data aggregate up to 24-hour data.
-        v.addElement ( "24Hour" );
+        v.add ( "24Hour" );
 	}
 	if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
-		v.addElement ( "Day" );
+		v.add ( "Day" );
 	}
 	// TODO SAM 2005-02-16 Week is not yet supported
 	//if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
 	//}
 	if ( (MONTH >= start_interval) && (MONTH <= end_interval) ) {
-		v.addElement ( "Month" );
+		v.add ( "Month" );
 	}
 	if ( (YEAR >= start_interval) && (YEAR <= end_interval) ) {
-		v.addElement ( "Year" );
+		v.add ( "Year" );
 	}
 	if ( sort_order >= 0 ) {
 		if ( include_irregular ) {
-			v.addElement ( "Irregular" );
+			v.add ( "Irregular" );
 		}
 		return v;
 	}
 	else {
 	    // Change to descending order...
 		int size = v.size();
-		Vector v2 = new Vector ( size );
+		List v2 = new Vector ( size );
 		for ( int i = size -1; i >= 0; i-- ) {
-			v2.addElement ( v.elementAt(i) );
+			v2.add ( v.get(i) );
 		}
 		if ( include_irregular ) {
-			v2.addElement ( "Irregular" );
+			v2.add ( "Irregular" );
 		}
 		return v2;
 	}

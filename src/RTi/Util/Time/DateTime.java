@@ -246,7 +246,7 @@ import java.io.Serializable;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
@@ -692,13 +692,13 @@ public DateTime ( Date d )
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		Vector v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
-		setYear ( Integer.parseInt((String)v.elementAt(0)) );
-		setMonth ( Integer.parseInt((String)v.elementAt(1)) );
-		setDay ( Integer.parseInt((String)v.elementAt(2)) );
-		setHour ( Integer.parseInt((String)v.elementAt(3)) );
-		setMinute ( Integer.parseInt((String)v.elementAt(4)) );
-		setSecond ( Integer.parseInt((String)v.elementAt(5)) );
+		List v = StringUtil.breakStringList ( time_date, " ", StringUtil.DELIM_SKIP_BLANKS );
+		setYear ( Integer.parseInt((String)v.get(0)) );
+		setMonth ( Integer.parseInt((String)v.get(1)) );
+		setDay ( Integer.parseInt((String)v.get(2)) );
+		setHour ( Integer.parseInt((String)v.get(3)) );
+		setMinute ( Integer.parseInt((String)v.get(4)) );
+		setSecond ( Integer.parseInt((String)v.get(5)) );
 		// milliseconds not supported in formatTimeString...
 		// Convert from milliseconds to 100ths of a second...
 		// setHSecond ( Integer.parseInt((String)v.elementAt(6))/10 );
@@ -767,13 +767,13 @@ public DateTime ( Date d, int behavior_flag )
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		Vector v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
-		setYear ( Integer.parseInt((String)v.elementAt(0)) );
-		setMonth ( Integer.parseInt((String)v.elementAt(1)) );
-		setDay ( Integer.parseInt((String)v.elementAt(2)) );
-		setHour ( Integer.parseInt((String)v.elementAt(3)) );
-		setMinute ( Integer.parseInt((String)v.elementAt(4)) );
-		setSecond ( Integer.parseInt((String)v.elementAt(5)) );
+		List v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
+		setYear ( Integer.parseInt((String)v.get(0)) );
+		setMonth ( Integer.parseInt((String)v.get(1)) );
+		setDay ( Integer.parseInt((String)v.get(2)) );
+		setHour ( Integer.parseInt((String)v.get(3)) );
+		setMinute ( Integer.parseInt((String)v.get(4)) );
+		setSecond ( Integer.parseInt((String)v.get(5)) );
 		// milliseconds not supported in formatTimeString...
 		// Convert from milliseconds to 100ths of a second...
 		// setHSecond ( Integer.parseInt((String)v.elementAt(6))/10 );
@@ -2706,7 +2706,7 @@ throws Exception
 			is_minute = false;	// checks
 	DateTime date = null;
 	String routine = "DateTime.parse";
-	Vector v = null;
+	List v = null;
 
 	// Note that if the fixedRead routine has problems, it will just return
 	// zeros for the integers.  This allows defaults for the smaller date/time fields...
@@ -2732,36 +2732,36 @@ throws Exception
 		else if ( flag == -9 ) {
 			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
 		}
-		date.__day = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.__day = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
 	}
 	else if ( format == FORMAT_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
-		date.__hour = ((Integer)v.elementAt(0)).intValue();
-		date.__minute = ((Integer)v.elementAt(1)).intValue();
+		date.__hour = ((Integer)v.get(0)).intValue();
+		date.__minute = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i2i2" );
-		date.__hour = ((Integer)v.elementAt(0)).intValue();
-		date.__minute = ((Integer)v.elementAt(1)).intValue();
+		date.__hour = ((Integer)v.get(0)).intValue();
+		date.__minute = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
 		v = StringUtil.fixedRead ( date_string, "i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
 	}
 	else if ( (format == FORMAT_MM_DD) || (format == FORMAT_MM_SLASH_DD) ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_DAY );
@@ -2780,27 +2780,27 @@ throws Exception
 		else if ( flag == -9 ) {
 			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
 		}
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YY ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
 	}
 	else if ( (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH) ||
 		(format == FORMAT_MM_DD_YYYY_HH) ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
@@ -2830,11 +2830,11 @@ throws Exception
 		    }
 		}
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2" );
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__day = ((Integer)v.elementAt(1)).intValue();
-		date.__year = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_MONTH );
@@ -2845,142 +2845,142 @@ throws Exception
 		else {	// Expect a length of 7...
 			v = StringUtil.fixedRead ( date_string, "i2x1i4" );
 		}
-		date.__month = ((Integer)v.elementAt(0)).intValue();
-		date.__year = ((Integer)v.elementAt(1)).intValue();
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__year = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_YYYY ) {
 		date = new DateTime ( PRECISION_YEAR );
 		is_year = true;
 		v = StringUtil.fixedRead ( date_string, "i4" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		date = new DateTime ( PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.setTimeZone ( ((String)v.elementAt(4)).trim() );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.setTimeZone ( ((String)v.get(4)).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYYMMDDHHmm ) {
 		date = new DateTime (PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4i2i2i2i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS ) {
 		date = new DateTime ( PRECISION_SECOND );
 		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.__second = ((Integer)v.get(5)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh ) {
 		date = new DateTime (PRECISION_HSECOND );
 		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2x1i2" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
-		date.__hsecond = ((Integer)v.elementAt(6)).intValue();
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.__second = ((Integer)v.get(5)).intValue();
+		date.__hsecond = ((Integer)v.get(6)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		date = new DateTime ( PRECISION_HOUR );
 		v = StringUtil.fixedRead ( date_string,
 		"i4x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.setTimeZone ( (String)v.elementAt(4) );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.setTimeZone ( (String)v.get(4) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_ZZZ ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.setTimeZone ( (String)v.elementAt(5) );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.setTimeZone ( (String)v.get(5) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ ) {
 		date = new DateTime ( PRECISION_SECOND );
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
-		date.setTimeZone ( (String)v.elementAt(6) );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.__second = ((Integer)v.get(5)).intValue();
+		date.setTimeZone ( (String)v.get(6) );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ ) {
 		date = new DateTime ( PRECISION_HSECOND );
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i2x1s3" );
-		date.__year = ((Integer)v.elementAt(0)).intValue();
-		date.__month = ((Integer)v.elementAt(1)).intValue();
-		date.__day = ((Integer)v.elementAt(2)).intValue();
-		date.__hour = ((Integer)v.elementAt(3)).intValue();
-		date.__minute = ((Integer)v.elementAt(4)).intValue();
-		date.__second = ((Integer)v.elementAt(5)).intValue();
-		date.__hsecond = ((Integer)v.elementAt(6)).intValue();
-		date.setTimeZone ( (String)v.elementAt(7) );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.__second = ((Integer)v.get(5)).intValue();
+		date.__hsecond = ((Integer)v.get(6)).intValue();
+		date.setTimeZone ( (String)v.get(7) );
 	}
 	else {
         v = null;

@@ -31,6 +31,7 @@ import javax.swing.ListSelectionModel;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.GUI.JFileChooserFactory;
@@ -222,40 +223,38 @@ populate the search dialog.
 private String __lastSearch = null;
 
 /**
-This Vector holds a subset of the values in the __posVector, and is regenerated
+This list holds a subset of the values in the __posVector, and is regenerated
 every time a new range of values is selected from the combo boxes at the
 top of the GUI.  The subset of values will be the positions in the __posVector
-Vector of only those messages with warning levels between the selected combo 
-box values.
+Vector of only those messages with warning levels between the selected combo box values.
 */
-private Vector __filteredPosVector = null;
+private List __filteredPosVector = null;
 
 /**
-This Vector holds a subset of the values in the __summaryData Vector, and is
+This list holds a subset of the values in the __summaryData Vector, and is
 generated every time a new range of values is selected from the combo boxes
 at the top of the GUI.  The subset of values will be the messages that are
 currently visible in the summary list.
 */
-private Vector __filteredSummaryListData = null;
+private List __filteredSummaryListData = null;
 
 /**
 The MessageLogListeners that are registered to be notified from this
-class.  The listeners are redefined from Message everytime a new log file 
-is processed.
+class.  The listeners are redefined from Message every time a new log file is processed.
 */
-private Vector __listeners = null;
+private List __listeners = null;
 
 /**
 The Vector of values that will be displayed in the worksheet.  Each element
 is a single line of log file text.
 */
-private Vector __logFileText = null;
+private List __logFileText = null;
 
 /**
 This Vector holds the lines that should be put into the summary list, in the
 order they were encountered in the log file.
 */
-private Vector __messageVector = null;
+private List __messageVector = null;
 
 /**
 The Vector is tied to the __messageVector -- it holds the positions within the
@@ -263,13 +262,12 @@ file at which the corresponding element in the __messageVector were found.  Thus
 if __messageVector.elementAt(10) is "Warning[2]: An error was found.", 
 __posVector.elementAt(10) is the line at which that warning was found.
 */
-private Vector __posVector = null;
+private List __posVector = null;
 
 /**
-The data that should go in the summary list if all warning levels should be 
-visible.
+The data that should go in the summary list if all warning levels should be visible.
 */
-private Vector __summaryListData = null;
+private List __summaryListData = null;
 
 /**
 Constructor.  Reads the log file information from the log file written to 
@@ -446,13 +444,13 @@ private void filterSummaryList() {
 	__filteredPosVector = new Vector();
 	__filteredSummaryListData = new Vector();
 	for (int i = 0; i < size; i++) {
-		s = (String)__summaryListData.elementAt(i);
+		s = (String)__summaryListData.get(i);
 		index1 = s.indexOf("[");
 		index2 = s.indexOf("]");
 		num = StringUtil.atoi(s.substring(index1 + 1, index2));
 		if (num >= num1 && num <= num2) {
 			__filteredSummaryListData.add(s);
-			__filteredPosVector.add(__posVector.elementAt(i));
+			__filteredPosVector.add(__posVector.get(i));
 		}
 	}
 
@@ -590,8 +588,7 @@ private void moveToLogMessage() {
 		return;
 	}
 
-	Integer I = (Integer)__filteredPosVector.elementAt(
-		__summaryList.getSelectedIndex());
+	Integer I = (Integer)__filteredPosVector.get(__summaryList.getSelectedIndex());
 	__worksheet.selectRow(I.intValue());
 	__worksheet.scrollToRow(__logFileLines - 1);
 	__worksheet.scrollToRow(I.intValue());
@@ -617,8 +614,7 @@ private void moveToOriginalCommand() {
 
 	int size = __listeners.size();
 	for (int i = 0; i < size; i++) {
-		((MessageLogListener)__listeners.elementAt(i)).goToMessageTag(
-			item);
+		((MessageLogListener)__listeners.get(i)).goToMessageTag(item);
 	}
 }
 
@@ -676,10 +672,8 @@ private void printLogFile() {
 		66, 		// number of lines on the page in portrait mode
 		44,		// number of lines on the page in landscape
 		"" + __filePath, 	// the title on the page
-		false, 		// not printing in batch mode (ie, a dialog
-				// will appear for user interaction)
-		null);		// do not use a pre-defined PageFormat for
-				// this print job
+		false, 		// not printing in batch mode (ie, a dialog will appear for user interaction)
+		null);		// do not use a pre-defined PageFormat for this print job
 }
 
 /**
@@ -690,8 +684,7 @@ private void printSummary() {
 		66, 		// number of lines on the page in portrait mode
 		44,		// number of lines on the page in landscape
 		"Message Log Summary", // the title on the page
-		false, 		// not printing in batch mode (ie, a dialog
-				// will appear for user interaction)
+		false, 		// not printing in batch mode (ie, a dialog will appear for user interaction)
 		null);		// do not use a pre-defined PageFormat for
 }
 
@@ -715,8 +708,7 @@ throws Exception {
 	}
 	StopWatch sw = new StopWatch();
 	sw.start();
-	MessageLogTableModel model = new MessageLogTableModel(
-		__logFileText);
+	MessageLogTableModel model = new MessageLogTableModel( __logFileText);
 	MessageLogCellRenderer cr = new MessageLogCellRenderer(model);
 	__worksheet.setCellRenderer(cr);
 	__worksheet.setShowHorizontalLines(false);
@@ -953,7 +945,7 @@ list will be constructed.
 @param initialSetup if true then this is the first time the summary is being 
 set up for a log file.  
 */
-private void setupSummaryJPanel(Vector data, boolean initialSetup) {
+private void setupSummaryJPanel(List data, boolean initialSetup) {
 	StopWatch sw = new StopWatch();
 	sw.start();
 	if (__summaryJPanel != null) {
@@ -992,10 +984,9 @@ private void setupSummaryJPanel(Vector data, boolean initialSetup) {
 		__summaryList = new SimpleJList();
 	}
 	else {
-		__summaryList = new SimpleJList(data);
+		__summaryList = new SimpleJList(new Vector(data));
 	}
-	__summaryList.setFont(new java.awt.Font("Courier", java.awt.Font.PLAIN,
-		11));
+	__summaryList.setFont(new java.awt.Font("Courier", java.awt.Font.PLAIN,	11));
 
 	if (initialSetup) {
 		__summaryListData = data;
@@ -1018,7 +1009,7 @@ private void setupSummaryJPanel(Vector data, boolean initialSetup) {
 	int num = 0;
 	String s = null;
 	for (int i = 0; i < size; i++) {
-		s = (String)data.elementAt(i);
+		s = (String)data.get(i);
 		index1 = s.indexOf("[");
 		index2 = s.indexOf("]");
 		num = StringUtil.atoi(s.substring(index1 + 1, index2));

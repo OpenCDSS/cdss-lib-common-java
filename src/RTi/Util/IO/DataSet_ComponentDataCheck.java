@@ -9,7 +9,7 @@
 ******************************************************************************/
 package RTi.Util.IO;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 * Base class for checking data on components.  Only shared components methods 
@@ -36,7 +36,7 @@ public DataSet_ComponentDataCheck( int component, CheckFile file )
 Performs checks for Time Series data.
 @param Vector ts - Vector of time series objects.
  */
-public void checkTSData( Vector ts ) 
+public void checkTSData( List ts ) 
 {
 	// TODO KAT 2007-04-02
 	// add ts data checks here

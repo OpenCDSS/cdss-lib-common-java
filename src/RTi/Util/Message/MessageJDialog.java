@@ -79,6 +79,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JDialog;
@@ -147,19 +148,17 @@ public MessageJDialog( JFrame parent, String message )
 
 	message = StringUtil.wrap(message, 100);
 
-	Vector vec = StringUtil.breakStringList( message, "\n", 
-			StringUtil.DELIM_SKIP_BLANKS );
+	List vec = StringUtil.breakStringList( message, "\n", StringUtil.DELIM_SKIP_BLANKS );
 	JPanel pan = new JPanel();
 	int size = vec.size();
 
-	String prop_value = Message.getPropValue ( 
-	"WarningDialogScrollCutoff" );
+	String prop_value = Message.getPropValue ( "WarningDialogScrollCutoff" );
 	if ( (prop_value != null) && (prop_value.equalsIgnoreCase("true")) ||
 	( size > 20 ) ) { 
 		pan.setLayout( new GridLayout( 1, 1 ) );
 		//use a JList within a JScrollPane to display text
 		//instead of just making JLabels 
-		JList list = new JList( vec );
+		JList list = new JList( new Vector(vec) );
 		list.setBackground( Color.LIGHT_GRAY );
 		JScrollPane pane = new JScrollPane( list );
 		Dimension d = new Dimension ( 600, 200 );
@@ -172,7 +171,7 @@ public MessageJDialog( JFrame parent, String message )
 		pan.setLayout( new GridLayout( size, 1 ) );
 		for( int i=0; i < size; i++ ){
 			pan.add( new JLabel( "     " + 
-			vec.elementAt(i) + "     " ) );
+			vec.get(i) + "     " ) );
 		}
 	}
 	getContentPane().add( "Center", pan );

@@ -5,6 +5,7 @@ package RTi.Util.IO;
  */
 import java.io.File;
 import java.io.FileFilter;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -29,7 +30,7 @@ public class FileCollector
   private boolean _recursive = false;
  
   // TODO jdk1.6 private Vector<String> _files = new Vector<String>();
-  private Vector _files = new Vector();
+  private List _files = new Vector();
   
   /**
    * Constructor
@@ -124,7 +125,7 @@ if (_recursive)
    *  
    * @return
    */
-  public Vector getFiles()
+  public List getFiles()
   {
     return _files;
   }
@@ -135,9 +136,9 @@ if (_recursive)
    * @param root
    * @return abbreviated file names
    */
-  public static Vector getAbbrNames(Vector fileNames, String root, String ext)
+  public static List getAbbrNames(List fileNames, String root, String ext)
   {
-    Vector _filesAbbr = new Vector(fileNames.size());
+    List _filesAbbr = new Vector(fileNames.size());
 
     File f = new File(root);
     int beginIndex = f.getAbsolutePath().length() + 1; // for following sep.
@@ -169,4 +170,3 @@ if (_recursive)
     new FileCollector(folderPath, mask, true);
   }
 }
-

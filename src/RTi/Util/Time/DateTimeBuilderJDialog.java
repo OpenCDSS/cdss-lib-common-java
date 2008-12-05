@@ -44,6 +44,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JDialog;
@@ -159,14 +160,14 @@ Responds to ActionEvents
 */
 public void actionPerformed(ActionEvent evt) {
 	String s = evt.getActionCommand().trim();
-        if (s.equals(__OK)) {
+    if (s.equals(__OK)) {
 		__isCancel = false;
-                getLimits();
-        }
-        else if (s.equals(__CANCEL)) {
+        getLimits();
+    }
+    else if (s.equals(__CANCEL)) {
 		__isCancel = true;
-                getLimits();
-        }
+        getLimits();
+    }
 }
 
 /**
@@ -257,13 +258,14 @@ throws Throwable {
 }
 
 /**
-Returns a Vector of the first and last dates in this dialog, which can be
+Returns a list of the first and last dates in this dialog, which can be
 used to calculate time series limits. 
 @return a Vector with the first element containing the first date, the second
 element containing the second date.
 */
-public Vector getLimits() {
-	Vector limits = null;
+public List getLimits()
+{
+	List limits = null;
 
 	if (!__isCancel) {
 		if (!checkDates()) {

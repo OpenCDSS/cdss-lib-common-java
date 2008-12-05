@@ -25,13 +25,12 @@ This is the class from which all the classes that will be used as RowTableModels
 in a JWorksheet, and which will have individual data objects in each row should
 be built.It implements a method to return the data stored at a given row.
 <P>
-REVISIT (JTS - 2006-05-25)
+TODO (JTS - 2006-05-25)
 If I could do this over, I would combine this table model with 
 AbstractTableModel, in order to simplify things.  I don't see a very good reason
 to require both of these, honestly.
 */
-public abstract class JWorksheet_AbstractRowTableModel
-extends JWorksheet_AbstractTableModel {
+public abstract class JWorksheet_AbstractRowTableModel extends JWorksheet_AbstractTableModel {
 
 /**
 Returns the Object stored in the Table Model data at the given position, or
@@ -45,11 +44,11 @@ public Object getRowData(int row) {
 	}
 
 	if (_sortOrder == null) {
-		return _data.elementAt(row);
+		return _data.get(row);
 	}
 	else {
 		int realRow = _sortOrder[row];
-		return _data.elementAt(realRow);
+		return _data.get(realRow);
 	}
 }
 

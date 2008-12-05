@@ -25,13 +25,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Vector;
 import javax.swing.JFrame;
 
 /**
 This class is an implementation of the Message design for logging.  This
 implementation matches the legacy implementation.  Use the MessageLoggingImpl
-implemetation to use the Java logging approach.
+implementation to use the Java logging approach.
 */
 class MessageImpl
 {
@@ -98,7 +99,7 @@ protected boolean		_show_warning_dialog;	// Use to increase
 							// performance rather
 							// than hit proplist.
 
-protected Vector		_messageLogListeners;
+protected List _messageLogListeners;
 
 /**
 Adds a listener to the list of listeners that can respond to actions from
@@ -165,11 +166,11 @@ protected String getLogFile ()
 }
 
 /**
-Returns the Vector of listeners that are set to respond to actions from the
+Returns the list of listeners that are set to respond to actions from the
 MessageLogJFrame.  The returned Vector will never be null.
-@return the Vector of listeners for the MessageLogJFrame.
+@return the list of listeners for the MessageLogJFrame.
 */
-protected Vector getMessageLogListeners() {
+protected List getMessageLogListeners() {
 	if (!_initialized) {
 		initialize();
 	}
@@ -901,10 +902,10 @@ protected void removeMessageLogListener(MessageLogListener listener) {
 	int size = _messageLogListeners.size();
 	MessageLogListener temp = null;
 	for (int i = (size - 1); i >= 0; i--) {
-		temp = (MessageLogListener)_messageLogListeners.elementAt(i);
+		temp = (MessageLogListener)_messageLogListeners.get(i);
 
 		if (temp == listener) {
-			_messageLogListeners.removeElementAt(i);
+			_messageLogListeners.remove(i);
 		}
 	}
 }
@@ -989,7 +990,7 @@ protected void setDebugLevel ( String debug_level )
 
 	// Split the argument...
 
-	Vector list = null;
+	List list = null;
 	int nlist = 0;
 	if ( debug_level.length() > 0 ) {
 		list = StringUtil.breakStringList (debug_level, ",", 0);
@@ -1003,7 +1004,7 @@ protected void setDebugLevel ( String debug_level )
 		//
 		// #
 		//
-		level0 = StringUtil.atoi(list.elementAt(0).toString() );
+		level0 = StringUtil.atoi(list.get(0).toString() );
 		level1 = level0;
 		setDebugLevel ( Message.TERM_OUTPUT, level0 );
 		setDebugLevel ( Message.LOG_OUTPUT, level1 );
@@ -1011,13 +1012,13 @@ protected void setDebugLevel ( String debug_level )
 	else {	//
 		// ,# or #,#
 		//
-		String tmp = list.elementAt(0).toString();
+		String tmp = list.get(0).toString();
 
 		if( tmp.length() > 0 ){
 			level0 = StringUtil.atoi ( tmp );
 			setDebugLevel ( Message.TERM_OUTPUT, level0 );
 		}
-		tmp = list.elementAt(1).toString();
+		tmp = list.get(1).toString();
 
 		if ( tmp.length() > 0 ) {
 			level1 = StringUtil.atoi ( tmp );

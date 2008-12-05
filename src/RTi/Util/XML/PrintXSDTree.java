@@ -87,14 +87,13 @@ public  static void DownloadXSDFile(URL URLToXSD) throws IOException {
 	int bufLen = 0;
 	String XSDFilePath = IOUtil.getPathUsingWorkingDir((String)null), 
 		parseURL = null;
-	Vector URLFileString = new Vector();
 		
 	// Parse the URL.getFile() String to get the filename without
 	// the path. Add the file to the path from IOUtil to get
 	// the local XSD file path to download the file.
 	parseURL = URLToXSD.getFile();
-	URLFileString = StringUtil.breakStringList(parseURL,"/",0);
-	XSDFilePath += (String)URLFileString.lastElement();
+	List URLFileString = StringUtil.breakStringList(parseURL,"/",0);
+	XSDFilePath += (String)URLFileString.get(URLFileString.size() - 1);
 
 	// Download the file at the URL
 	ISR = new InputStreamReader(URLToXSD.openStream());
@@ -122,13 +121,13 @@ public  static void DownloadXSDFile(URL URLToXSD) throws IOException {
  * File object and thus has already been downloaded.</p>
  * 
  * @param XSDFile a File object holding the XML schema file to print.
- * @return Vector holding a String for each line of the "Printed" schema .
+ * @return list holding a String for each line of the "Printed" schema .
  * @throws IOException
  */
-public 	static Vector PrintSchemaTree(File XSDFile) throws IOException {
+public static List PrintSchemaTree(File XSDFile) throws IOException {
 	// Local variables
 	String printLineString = null;
-	Vector returnVector = new Vector();
+	List returnVector = new Vector();
 	
 	// Set up the dynamic compile for the schema
 	SchemaTypeLoader linkTo = null;
@@ -142,20 +141,16 @@ public 	static Vector PrintSchemaTree(File XSDFile) throws IOException {
 	try
 	{
 		List sdocs = new ArrayList();
-		sdocs.add(SchemaDocument.Factory.parse(XSDFile,
-			(new XmlOptions()).setLoadLineNumbers()));
+		sdocs.add(SchemaDocument.Factory.parse(XSDFile, (new XmlOptions()).setLoadLineNumbers()));
 
-		XmlObject[] schemas = (XmlObject[])sdocs.
-			toArray(new XmlObject[0]);
+		XmlObject[] schemas = (XmlObject[])sdocs.toArray(new XmlObject[0]);
 
 		// Dynamically compile the schema file
-		typeSystem = XmlBeans.compileXsd(schemas, linkTo, 
-			schemaOptions);
+		typeSystem = XmlBeans.compileXsd(schemas, linkTo, schemaOptions);
 	}
 	catch (XmlException e)
 	{
-		printLineString = "Schema invalid:" + 
-			" couldn't recover from errors";
+		printLineString = "Schema invalid: couldn't recover from errors";
 		if (compErrors.isEmpty())
 			printLineString += e.getMessage();
 		else for (Iterator i = compErrors.iterator(); i.hasNext(); )
@@ -255,7 +250,7 @@ public 	static Vector PrintSchemaTree(File XSDFile) throws IOException {
 	}
 
 	// Return the Vector
-	return(returnVector);
+	return returnVector;
 
 } // End of method void PrintSchemaTree()
 

@@ -34,7 +34,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
@@ -500,7 +500,7 @@ throws Exception {
 	String translated_right_str = null;
 	String left_of_equals_str = null;
 	String right_of_equals_str = null;
-	Vector v=null;
+	List v=null;
 	while ( true ) {
 		s = br.readLine();
 		if ( s == null ) {
@@ -523,13 +523,10 @@ throws Exception {
 			continue;
 		}
 		else {	// should be valid.  Break up line by the "="
-			v = StringUtil.breakStringList( s, "=", 
-					StringUtil.DELIM_ALLOW_STRINGS);
+			v = StringUtil.breakStringList( s, "=", StringUtil.DELIM_ALLOW_STRINGS);
 			if (( v!=null ) && ( v.size() == 2 )) {
-				left_of_equals_str =
-				((String)v.elementAt(0)).trim();
-				right_of_equals_str =
-				((String)v.elementAt(1)).trim();
+				left_of_equals_str = ((String)v.get(0)).trim();
+				right_of_equals_str = ((String)v.get(1)).trim();
 			}
 
 			// Process the right hand side of string, which

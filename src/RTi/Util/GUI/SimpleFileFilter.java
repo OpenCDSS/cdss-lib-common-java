@@ -39,6 +39,7 @@ package RTi.Util.GUI;
 
 import java.io.File;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -121,7 +122,7 @@ filtered and the description of the list.
 /**
 A list of all the filtered extensions in the filter.
 */
-private Vector __filters = null;
+private List __filters = null;
 
 /**
 Creates a SimpleFileFilter that will filter for the given extension with 
@@ -159,10 +160,10 @@ Vector of Strings, using the given description.
 be filtered for.  For example, "jpg, jpeg" or "htm, html".
 @param description a couple words describing the filter.
 */
-public SimpleFileFilter(Vector filters, String description) {
+public SimpleFileFilter(List filters, String description) {
 	initialize();
 	for (int i = 0; i < filters.size(); i++) {
-		__filters.add((String)filters.elementAt(i));
+		__filters.add((String)filters.get(i));
 	}
 	__description = description;
 	//__fullDescription = getDescription();
@@ -194,14 +195,12 @@ public boolean accept(File f) {
 			int size = __filters.size();
 			for (int i = 0; i < size; i++) {
 				if (IOUtil.isUNIXMachine()) {
-					if (extension.equals(
-					      (String)__filters.elementAt(i))) {
+					if (extension.equals( (String)__filters.get(i))) {
 					      return true;
 					}
 				}
 				else {
-					if (extension.equalsIgnoreCase(
-					      (String)__filters.elementAt(i))) {
+					if (extension.equalsIgnoreCase( (String)__filters.get(i))) {
 					      return true;
 					}
 				}
@@ -249,8 +248,7 @@ public String getDescription() {
 				if (i > 0) {
 					fullDescription += ", ";
 				}
-				fullDescription += 
-					"." + (String) __filters.elementAt(i);
+				fullDescription += "." + (String) __filters.get(i);
 			}
 			fullDescription += ")";
 		}
@@ -279,7 +277,7 @@ public String getExtension(File f) {
 Returns the Vector of extensions for which this file filter filters.
 @return the Vector of extensions for which this file filter filters.
 */
-public Vector getFilters() {
+public List getFilters() {
 	return __filters;
 }
 

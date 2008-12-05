@@ -279,9 +279,9 @@ collapsing or expanding the tree.
 private SimpleJTree_TreeWillExpandListener __collapseExpandListener = null;
 
 /**
-Vector of SimpleJTree_Listeners that will listen for tree events.
+List of SimpleJTree_Listeners that will listen for tree events.
 */
-private Vector __listeners = null;
+private List __listeners = null;
 
 /**
 Constructor.
@@ -329,13 +329,11 @@ operations.  But as far as programmers need be concerned, it doesn't actually
 exist and it will never be visible.  They can work with the tree as normal, 
 but they cannot have total control over the root node.  They can use it to 
 store date by calling getRoot() and working with the node, but renaming the
-node or assigning a new node to be the root node could cause problems with the
-tree's operation.
-@param values a Vector of values with which to populate the root of the 
-tree.  See above for notes.
+node or assigning a new node to be the root node could cause problems with the tree's operation.
+@param values a Vector of values with which to populate the root of the tree.  See above for notes.
 @throws Exception if an error occurs inserting values in the tree
 */
-public SimpleJTree(Vector values) 
+public SimpleJTree(List values) 
 throws Exception {
 	SimpleJTree_Node root = new SimpleJTree_Node("JTree.rootNode");
 	DefaultTreeModel model = new DefaultTreeModel(root);
@@ -351,7 +349,7 @@ throws Exception {
 
 	int size = values.size();
 	for (int i = 0; i < size; i++) {
-		Object o = values.elementAt(i);
+		Object o = values.get(i);
 
 		SimpleJTree_Node node = null;
 		// A Vector of Strings is placed in the Tree in the
@@ -363,18 +361,18 @@ throws Exception {
 		// Vectors of Vectors are assumed to be either 
 		// Vectors of [0 - Component, 1 - String] or 
 		// [0 - String, 1 - Icon, 2 - String]
-		else if (o instanceof Vector) {
-			Vector v = (Vector)o;
+		else if (o instanceof List) {
+			List v = (List)o;
 
 			if (v.size() == 2) {
-				Component c = (Component)v.elementAt(0);
-				String name = (String)v.elementAt(1);
+				Component c = (Component)v.get(0);
+				String name = (String)v.get(1);
 				node = new SimpleJTree_Node(c, name);
 			}
 			else if (v.size() == 3) {
-				String text = (String)v.elementAt(0);
-				Icon icon = (Icon)v.elementAt(1);
-				String name = (String)v.elementAt(2);
+				String text = (String)v.get(0);
+				Icon icon = (Icon)v.get(1);
+				String name = (String)v.get(2);
 				node = new SimpleJTree_Node(text, icon, name);
 			}
 		}
@@ -898,33 +896,32 @@ children of their children, so on and so on.
 @return an array of all the children nodes of the given node.
 */
 public Object[] getAllChildrenArray(SimpleJTree_Node node) {
-	Vector v = getAllChildrenVector(node);
+	List v = getAllChildrenList(node);
 	int size = v.size();
 	Object[] array = new Object[size];
 	for (int i = 0; i < size; i++) {
-		array[i] = v.elementAt(i);
+		array[i] = v.get(i);
 	}
 	return array;
 }
 
 /**
-Returns a Vector of all the children nodes of the given node, and all the 
+Returns a list of all the children nodes of the given node, and all the 
 children of their children, so on and so on.
 @param name the name of the node to return the children of.
-@return a Vector of all the children nodes of the given node.
+@return a list of all the children nodes of the given node.
 */
-public Vector getAllChildrenVector(String name) {
-	return getAllChildrenVector(findNodeByName(name));
+public List getAllChildrenList(String name) {
+	return getAllChildrenList(findNodeByName(name));
 }
 
 /**
-Returns a Vector of all the children nodes of the given node, and all the 
+Returns a list of all the children nodes of the given node, and all the 
 children of their children, so on and so on.
 @param node the node to get the children of
-@return a Vector of all the children nodes of the given node, guaranteed to
-be non-null.
+@return a list of all the children nodes of the given node, guaranteed to be non-null.
 */
-public Vector getAllChildrenVector(SimpleJTree_Node node) {
+public List getAllChildrenList(SimpleJTree_Node node) {
 	Enumeration e = getChildren(node);
 	if (e == null) {
 		return new Vector();
@@ -932,15 +929,15 @@ public Vector getAllChildrenVector(SimpleJTree_Node node) {
 
 	int size = 0;
 	SimpleJTree_Node tempNode = null;
-	Vector v = new Vector();
-	Vector temp = null;
+	List v = new Vector();
+	List temp = null;
 	while (e.hasMoreElements()) {
 		tempNode = (SimpleJTree_Node)e.nextElement();
 		v.add(tempNode);
-		temp = getAllChildrenVector(tempNode);
+		temp = getAllChildrenList(tempNode);
 		size = temp.size();
 		for (int i = 0; i < size; i++) {
-			v.add(temp.elementAt(i));
+			v.add(temp.get(i));
 		}
 	}
 	return v;
@@ -982,32 +979,32 @@ Returns an array of all the children nodes of the given node.
 @return an array of all the children nodes of the given node.
 */
 public Object[] getChildrenArray(SimpleJTree_Node node) {
-	Vector v = getChildrenVector(node);
+	List v = getChildrenList(node);
 	int size = v.size();
 	Object[] array = new Object[size];
 	for (int i = 0; i < size; i++) {
-		array[i] = v.elementAt(i);
+		array[i] = v.get(i);
 	}
 	return array;
 }
 
 /**
-Returns a Vector of all the children nodes of the given node.
+Returns a list of all the children nodes of the given node.
 @param name the name of the node to return the children of.
-@return a Vector of all the children nodes of the given node.
+@return a list of all the children nodes of the given node.
 */
-public Vector getChildrenVector(String name) {
-	return getChildrenVector(findNodeByName(name));
+public List getChildrenList(String name) {
+	return getChildrenList(findNodeByName(name));
 }
 
 /**
-Returns a Vector of all the children nodes of the given node.
+Returns a list of all the children nodes of the given node.
 @param node the node to get the children of
-@return a Vector of all the children nodes of the given node.
+@return a list of all the children nodes of the given node.
 */
-public Vector getChildrenVector(SimpleJTree_Node node) {
+public List getChildrenList(SimpleJTree_Node node) {
 	Enumeration e = getChildren(node);
-	Vector v = new Vector();
+	List v = new Vector();
 	while (e.hasMoreElements()) {
 		v.add(e.nextElement());
 	}
@@ -1083,7 +1080,7 @@ public Icon getLeafIcon() {
 Returns the Vector of listeners.
 @return the Vector of listeners.
 */
-protected Vector getListeners() {	
+protected List getListeners() {	
 	return __listeners;
 }
 
@@ -1161,23 +1158,21 @@ Returns the first node selected in the tree or null if nothing is selected.
 @return the first node selected in the tree or null if nothing is selected.
 */
 public SimpleJTree_Node getSelectedNode() {
-	Vector v =  getSelectedNodes();
+	List v = getSelectedNodes();
 	if (v.size() == 0) {
 		return null;
 	}
-	return ((SimpleJTree_Node)v.elementAt(0));
+	return ((SimpleJTree_Node)v.get(0));
 }
 
 /**
-Returns a Vector of all the nodes selected in the tree, or an empty Vector if
-none are selected.
-@return a Vector of all the nodes selected in the tree, or an empty Vector if
-none are selected.
+Returns a Vector of all the nodes selected in the tree, or an empty Vector if none are selected.
+@return a Vector of all the nodes selected in the tree, or an empty Vector if none are selected.
 */
-public Vector getSelectedNodes() {
+public List getSelectedNodes() {
 	TreePath[] tps = getSelectionPaths();
 
-	Vector v = new Vector();
+	List v = new Vector();
 	if (tps == null) {
 		return v;
 	}
@@ -1715,13 +1710,13 @@ throws Exception {
 				+ "deleted.");
 		}
 		Enumeration e = node.children();
-		Vector v = new Vector();
+		List v = new Vector();
 		for (; e.hasMoreElements();) {
 			v.add(e.nextElement());
 		}
 
 		for (int i = 0; i < v.size(); i++) {
-			SimpleJTree_Node n = (SimpleJTree_Node)v.elementAt(i);
+			SimpleJTree_Node n = (SimpleJTree_Node)v.get(i);
 			if (Message.isDebugOn) {
 				Message.printDebug(dl, CLASS +".removeChildren",
 					"  Removing child '" + n.getName()+"'");
@@ -1844,9 +1839,9 @@ public void removeSimpleJTreeListener(SimpleJTree_Listener listener) {
 	}
 	int size = __listeners.size();
 	for (int i = 0; i < size; i++) {
-		if (((SimpleJTree_Listener)__listeners.elementAt(i))
+		if (((SimpleJTree_Listener)__listeners.get(i))
 			== listener) {
-			__listeners.removeElementAt(i);
+			__listeners.remove(i);
 			return;
 		}
 	}

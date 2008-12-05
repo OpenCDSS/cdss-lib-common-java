@@ -22,10 +22,8 @@ import javax.swing.JPanel;
 The BorderJPanel class draws a black line around the edge of a standard JPanel.
 All other functionality is inherited from the JPanel parent class.
 Instances of BorderJPanel are useful for use with TabbedPane because the
-TabbedPane itself does not draw a line around the body of the tabs (only the
-top).<p>
-REVISIT (JTS - 2003-11-14)<br>
-This class can probably be eliminated in favor of using Swing's BorderFactory.
+TabbedPane itself does not draw a line around the body of the tabs (only the top).<p>
+TODO (JTS - 2003-11-14) this class can probably be eliminated in favor of using Swing's BorderFactory.
 */
 public class BorderJPanel extends JPanel 
 {

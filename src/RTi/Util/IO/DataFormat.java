@@ -22,8 +22,7 @@ import RTi.Util.String.StringUtil;
 
 /**
 The DataFormat is a simple class used to hold information about data
-formatting (e.g., precision for output).  It is primarily used by the DataUnits
-class.
+formatting (e.g., precision for output).  It is primarily used by the DataUnits class.
 @see DataUnits
 */
 public class DataFormat

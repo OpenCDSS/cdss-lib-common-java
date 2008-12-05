@@ -52,7 +52,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
@@ -167,12 +167,12 @@ String text ) {
 	// Split the text based on the new-line delimiter (we use \n, not the
 	// platform's separator!
 
-	Vector vec = StringUtil.breakStringList ( label, "\n", 0 );
+	List vec = StringUtil.breakStringList ( label, "\n", 0 );
 
 	if ( vec != null ) {
 		// Add each string...
 		for ( int i = 0; i < vec.size(); i++ ) {
-        		north_Panel.add( new JLabel( "    " + vec.elementAt(i) +
+        		north_Panel.add( new JLabel( "    " + vec.get(i) +
 			"     " ) );
 		}
 	}

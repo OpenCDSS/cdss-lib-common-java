@@ -15,7 +15,7 @@
 package RTi.Util.GUI;
 
 import java.util.Date;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.DMI.DMIUtil;
 
@@ -175,21 +175,20 @@ Sets up a table model and determines the number of columns from the first
 value in the data Vector.  If the data Vector is empty or null, 
 an exception is thrown because the number of columns cannot be determined.<p>
 The class type for each field is determined from the Classes of the data in 
-the first element of the Vector, so the first element of the data Vector cannot
-have any null values.  
+the first element of the Vector, so the first element of the data Vector cannot have any null values.  
 @param data the Vector of GenericWorksheetData values to start the worksheet
 with.  Must have a size &gt;0 and be non-null.  The first element cannot have
 any null values.
 @throws Exception if a null or 0-size data Vector is passed in, or if the
 first element of the Vector has any null values.
 */
-public Generic_TableModel(Vector data) 
+public Generic_TableModel(List data) 
 throws Exception {
 	if (data == null || data.size() == 0) {
 		throw new Exception ("Cannot determine number of columns.");
 	}
 	else {
-		GenericWorksheetData d =(GenericWorksheetData)data.elementAt(0);
+		GenericWorksheetData d =(GenericWorksheetData)data.get(0);
 		__COLUMNS = d.getColumnCount();
 		_data = data;
 		_rows = data.size();
@@ -209,14 +208,13 @@ public void determineColumnClasses() {
 		return;
 	}
 
-	determineColumnClasses((GenericWorksheetData)_data.elementAt(0));
+	determineColumnClasses((GenericWorksheetData)_data.get(0));
 }
 
 /**
 Determines the kinds of classes for each column of data from the specified
 GenericWorksheetData object.  It cannot contain any null values.
-@param data the GenericWorksheetData object from which to determine the column
-classes.
+@param data the GenericWorksheetData object from which to determine the column classes.
 */
 public void determineColumnClasses(GenericWorksheetData data) {
 	for (int i = 0; i < __COLUMNS; i++) {
@@ -291,8 +289,7 @@ public int[] getColumnWidths() {
 Returns the format that the specified column should be displayed in when
 the table is being displayed in the given table format. 
 @param column column for which to return the format.
-@return the format (as used by StringUtil.formatString() in which to display the
-column.
+@return the format (as used by StringUtil.formatString() in which to display the column.
 */
 public String getFormat(int column) {
 	return __formats[column];
@@ -306,19 +303,17 @@ public int getRowCount() {
 }
 
 /**
-Returns the data that should be placed in the worksheet at the given row and 
-column.
+Returns the data that should be placed in the worksheet at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the worksheet at the given row and 
-column.
+@return the data that should be placed in the worksheet at the given row and column.
 */
 public Object getValueAt(int row, int col) {
 	if (_sortOrder != null) {
 		row = _sortOrder[row];
 	}
 
-	GenericWorksheetData d = (GenericWorksheetData)_data.elementAt(row);
+	GenericWorksheetData d = (GenericWorksheetData)_data.get(row);
 	return d.getValueAt(col);
 }
 
@@ -496,7 +491,7 @@ public void setValueAt(Object value, int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	GenericWorksheetData d = (GenericWorksheetData)_data.elementAt(row);
+	GenericWorksheetData d = (GenericWorksheetData)_data.get(row);
 	
 	if (value == null) {
 		Class c = __classes[col];

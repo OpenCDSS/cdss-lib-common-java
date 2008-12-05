@@ -25,8 +25,7 @@ sense; however, most application of this class has been with ESRI shapefiles,
 which use Dbase data tables.  In Dbase files, it is somewhat ambiguous to know
 when a numeric field is a floating point or integer.  It can be assumed that
 a precision of zero for a numeric field indicates an integer.  However, at this
-time, the DATA_TYPE_DOUBLE and DATA_TYPE_STRING types are used nearly
-exclusively.
+time, the DATA_TYPE_DOUBLE and DATA_TYPE_STRING types are used nearly exclusively.
 @see RTi.Util.Table.Table
 @see RTi.Util.Table.TableRecord
 */
@@ -119,7 +118,6 @@ data).
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
 @param width Field width in characters.
-data.
 */
 public TableField ( int type, String name, int width )
 {	initialize ( type, name, width, 0 );
@@ -131,8 +129,7 @@ Construct a new table field for the specified type and name.
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
 @param width Field width in characters.
-@param precision Field precision in characters.  Used only for floating point
-data.
+@param precision Field precision in characters.  Used only for floating point data.
 */
 public TableField ( int type, String name, int width, int precision )
 {	initialize ( type, name, width, precision );
@@ -168,15 +165,6 @@ public int getDataType ( )
 }
 
 /**
-Get heading assigned to this field.
-@return heading title for data field.
-@deprecated Use getName();
-*/
-public String getHeading ()
-{	return getName();
-}
-
-/**
 Get field name.
 @return field name.
 */
@@ -209,15 +197,6 @@ public void setDataType ( int data_type )
 }
 
 /**
-Set the heading for the field.
-@param heading title value.
-@deprecated Use setName().
-*/
-public void setHeading ( String heading )
-{	setName ( heading );
-}
-
-/**
 Set the field name.
 @param name field name.
 */
@@ -243,4 +222,4 @@ public void setWidth ( int width )
 {	_width = width;
 }
 
-} // End of TableField class
+}

@@ -37,7 +37,7 @@ import java.awt.TextField;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.List;
 
 /**
 This class provides a generic way to export a vector of strings to a file.  The
@@ -55,8 +55,7 @@ public class ExportGUI {
 
 private static Frame            _parent;	// Frame class making the call
 						// to HBExportGUI
-private static Vector           _export;	// Vector containing the
-						// formatted data to export
+private static List           _export;	// Vector containing the formatted data to export
 
 /* support later... 
 These are now in IOUtil so take out of here when ready
@@ -86,9 +85,9 @@ private static URL              _documentBase;	// complete URL of the HTML
 /**
 Export a vector of strings given the parent frame.
 @param parent Frame that calls this routine.
-@param export Vector of strings to export.
+@param export list of strings to export.
 */
-public static void export ( Frame parent, Vector export )
+public static void export ( Frame parent, List export )
 {
 	export ( parent, export, "" );
 }
@@ -97,12 +96,12 @@ public static void export ( Frame parent, Vector export )
 Export a vector of strings given the parent frame and a help key for a help
 button.
 @param parent Frame that calls this routine.
-@param export Vector of strings to export.
+@param export list of strings to export.
 @param helpkey Help key string for use with RTi.Util.Help.URLHelp (this is
 reserved for future use.
 @see RTi.Util.Help.URLHelp
 */
-public static void export( Frame parent, Vector export, String helpkey )
+public static void export( Frame parent, List export, String helpkey )
 {	String	routine="ExportGUI.export";
 
 	_parent 	= parent;
@@ -201,8 +200,7 @@ public static void exportTextAreaObject(	Frame parent,
 	** So use the following instead...
 	*/
 
-	Vector export_Vector = StringUtil.breakStringList ( textArea.getText(),
-	"\n", 0 );
+	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	// export to file/browser page     
 	export( parent, export_Vector );
@@ -297,14 +295,11 @@ private static void exportToLocalDrive() throws IOException
 			}
 			*/
 			for (int i=0; i<_export.size(); i++) {
-				oStream.print(
-				_export.elementAt(i).toString() + linesep );
+				oStream.print( _export.get(i).toString() + linesep );
 				/* For debugging...
-				v = StringUtil.showControl(
-					_export.elementAt(i).toString() );
+				v = StringUtil.showControl(	_export.elementAt(i).toString() );
 				for ( int j = 0; j < v.size(); j++ ) {
-					oStream.print ((String)v.elementAt(j) +
-					linesep );
+					oStream.print ((String)v.elementAt(j) + linesep );
 				}
 				*/
 			}

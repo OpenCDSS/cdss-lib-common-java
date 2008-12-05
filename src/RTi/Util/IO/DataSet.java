@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// DataSet - basea class to manage a set of DataSetComponent
+// DataSet - base class to manage a set of DataSetComponent
 //-----------------------------------------------------------------------------
 // History:
 //
@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -34,8 +35,7 @@ import RTi.Util.String.StringUtil;
 /**
 This DataSet class manages a list of DataSetComponent, typically for use with
 a model where each component corresponds to a file or section of data within
-a file.  This class should be extended to provide specific functionality for
-a data set.
+a file.  This class should be extended to provide specific functionality for a data set.
 */
 public abstract class DataSet
 {
@@ -44,7 +44,7 @@ private String __basename = "";		// Base name for data set, used to
 					// provide default file names when
 					// creating new files.
 
-private Vector __components = null;	// Vector of data components.
+private List __components = null;	// Vector of data components.
 
 protected String [] _component_names = null;
 					// Array of component names, used in
@@ -72,17 +72,15 @@ private String __dataset_dir = "";	// Directory for data set.
 
 private String __dataset_filename = "";	// Name of the data set file (XML file).
 
-// REVISIT - evaluate switching this to a String - it is not checked as often
+// TODO - evaluate switching this to a String - it is not checked as often
 // as the component types are
 private int __type = -1;		// Data set type.  The derived class can
 					// use this to define specific data set
-					// types.  The value is initialized to
-					// -1.
+					// types.  The value is initialized to -1.
 
 /**
 Construct a blank data set.  It is expected that other information will be set
-during further processing.  Component groups are not initialized until a data
-set type is set.
+during further processing.  Component groups are not initialized until a data set type is set.
 */
 public DataSet ()
 {	__components = new Vector ();
@@ -93,7 +91,7 @@ Construct a blank data set.  It is expected that other information will be set
 during further processing.
 @param component_types Array of sequential integers (0...N) that are used to
 identify components.  Integers are used to optimize processing in classes that
-use the data set.  Componenets can be groups or individual components.
+use the data set.  Components can be groups or individual components.
 @param component_names Array of String component names, suitable for use in
 displays and messages.
 @param component_groups A subset of the component_types array, in the same order
@@ -139,7 +137,7 @@ Add a component to the data set.
 @param comp Component to add.
 */
 public void addComponent ( DataSetComponent comp )
-{	__components.addElement ( comp );	
+{	__components.add ( comp );	
 }
 
 /**
@@ -196,11 +194,11 @@ for iteration through the components.
 @param pos Index position in the component vector.
 */
 public DataSetComponent getComponentAt ( int pos )
-{	return (DataSetComponent)__components.elementAt(pos);
+{	return (DataSetComponent)__components.get(pos);
 }
 
 /**
-Return the full path to the component data file.  If the origional file name
+Return the full path to the component data file.  If the original file name
 was set as absolute, then it is returned.  Otherwise, the data set directory
 and component data file name are joined.
 @return the full path to the component data file or null if it cannot be
@@ -240,25 +238,24 @@ component is not in the data set.
 public DataSetComponent getComponentForComponentName ( String name )
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	Vector v;
+	List v;
 	int size2;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.elementAt(i);
+		comp = (DataSetComponent)__components.get(i);
 		if ( comp.getComponentName().equalsIgnoreCase(name) ) {
 			return comp;
 		}
 		// If the component is a group and did not match the type, check
-		// the subtypes in the component...
+		// the sub-types in the component...
 		if ( comp.isGroup() ) {
-			v = (Vector)comp.getData();
+			v = (List)comp.getData();
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.elementAt(j);
-				if (	comp.getComponentName().
-					equalsIgnoreCase( name) ) {
+				comp = (DataSetComponent)v.get(j);
+				if ( comp.getComponentName().equalsIgnoreCase( name) ) {
 					return comp;
 				}
 			}
@@ -276,11 +273,11 @@ component is not in the data set.
 public DataSetComponent getComponentForComponentType ( int type )
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	Vector v;
+	List v;
 	int size2;
 	//Message.printStatus ( 2, "", "looking up component " + type );
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.elementAt(i);
+		comp = (DataSetComponent)__components.get(i);
 		//Message.printStatus ( 2, "", "Checking " +
 			//comp.getComponentType() );
 		if ( comp.getComponentType() == type ) {
@@ -289,15 +286,14 @@ public DataSetComponent getComponentForComponentType ( int type )
 		// If the component is a group and did not match the type, check
 		// the subtypes in the component...
 		if ( comp.isGroup() ) {
-			v = (Vector)comp.getData();
+			v = (List)comp.getData();
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				//Message.printStatus ( 2, "", "Checking " +
-					//comp.getComponentType() );
-				comp = (DataSetComponent)v.elementAt(j);
+				//Message.printStatus ( 2, "", "Checking " + comp.getComponentType() );
+				comp = (DataSetComponent)v.get(j);
 				if ( comp.getComponentType() == type ) {
 					return comp;
 				}
@@ -311,7 +307,7 @@ public DataSetComponent getComponentForComponentType ( int type )
 Return the data components Vector.
 @return the data components Vector.
 */
-public Vector getComponents ()
+public List getComponents ()
 {	return __components;
 }
 
@@ -319,14 +315,14 @@ public Vector getComponents ()
 Return the data components Vector for component that are groups.
 @return the data components Vector for component that are groups.
 */
-public Vector getComponentGroups ()
+public List getComponentGroups ()
 {	int size = __components.size();
-	Vector v = new Vector();
+	List v = new Vector();
 	DataSetComponent comp = null;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.elementAt(i);
+		comp = (DataSetComponent)__components.get(i);
 		if ( comp.isGroup() ) {
-			v.addElement ( comp );
+			v.add ( comp );
 		}
 	}
 	return v;
@@ -471,28 +467,26 @@ modified in memory).
 public boolean isDirty ()
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	Vector v;
+	List v;
 	int size2;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.elementAt(i);
+		comp = (DataSetComponent)__components.get(i);
 		if ( comp.isDirty() ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 1, "",
-				"Component [" + i + "] " +
-				comp.getComponentName()+ " is dirty." );
+				Message.printDebug ( 1, "", "Component [" + i + "] " + comp.getComponentName()+ " is dirty." );
 			}
 			return true;
 		}
 		// If the component is a group and it was not dirty (above),
 		// check the sub-components...
 		if ( comp.isGroup() ) {
-			v = (Vector)comp.getData();
+			v = (List)comp.getData();
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.elementAt(j);
+				comp = (DataSetComponent)v.get(j);
 				if ( comp.isDirty() ) {
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( 1, "",
@@ -822,7 +816,7 @@ public void setDataSetType ( int type, boolean initialize_components )
 throws Exception
 {	__type = type;
 	if ( initialize_components ) {
-		__components.removeAllElements ();
+		__components.clear ();
 	}
 	//initializeDataSet ();
 }
@@ -853,11 +847,11 @@ Return a string representation of the data set (e.g., for debugging).
 public String toString ()
 { 	int size = __components.size();
 	DataSetComponent comp = null;
-	Vector v;
+	List v;
 	int size2;
 	StringBuffer buffer = new StringBuffer ();
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.elementAt(i);
+		comp = (DataSetComponent)__components.get(i);
 		buffer.append ( "\nDataSetComponent:  " );
 		if ( comp == null ) {
 			buffer.append ( "null\n" );
@@ -870,13 +864,13 @@ public String toString ()
 			buffer.append ( "    Is visible: "+comp.isDirty()+"\n");
 		}
 		if ( comp.isGroup() ) {
-			v = (Vector)comp.getData();
+			v = (List)comp.getData();
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.elementAt(j);
+				comp = (DataSetComponent)v.get(j);
 				buffer.append ( "    SubComponent:  " );
 				if ( comp == null ) {
 					buffer.append ( "null\n" );

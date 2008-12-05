@@ -58,7 +58,7 @@ import java.awt.PrintJob;
 import java.io.IOException;
 
 import java.util.Properties;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -98,8 +98,7 @@ private static int	TOP_BORDER = 15;	// Top border in points
 //private static int	BOTTOM_BORDER = 15;	// Bottom border in points
 
 private static JDialog		_parentJDialog;
-private static Vector           _export;	// Vector containing the
-						// formatted data to print
+private static List _export;	// List containing the formatted data to print
 private static int		_default_fontsize = 10;
 						// Default font size.
 private static int		_default_lines_per_page = 60;
@@ -131,9 +130,9 @@ throws Throwable
 Print to the local printer given the calling Frame and a vector of String's to
 print.  The default 10-point font is used.
 @param parent JFrame from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String's to print.
 */
-public static void print ( JFrame parent, Vector export )
+public static void print ( JFrame parent, List export )
 {	print ( parent, export, null );
 }
 
@@ -141,10 +140,10 @@ public static void print ( JFrame parent, Vector export )
 Print to the local printer given the calling Frame, a vector of String's to
 print, and the font size.
 @param parent JFrame from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String's to print.
 @param fontsize Font size to use (points).
 */
-public static void print ( JFrame parent, Vector export, int fontsize )
+public static void print ( JFrame parent, List export, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "FontSize", "" + fontsize );
 	print ( parent, export, props );
@@ -155,12 +154,12 @@ Print to the local printer given the calling Frame, a vector of String's to
 print, and a help key to be used with RTi.Util.Help.URLHelp (however, help is
 not supported at this time because the standard print dialog is used).
 @param parent JFrame from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String's to print.
 @param helpkey Help key to use with URLHelp.
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print (	JFrame parent, Vector export, String helpkey, int fontsize )
+public static void print (	JFrame parent, List export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -173,7 +172,7 @@ print, and a PropList containing modifiers.
 The help key to be used with RTi.Util.Help.URLHelp (however, help is
 not supported at this time because the standard print dialog is used).
 @param parent JFrame from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String's to print.
 @param proplist PropList of properties to modify output.  Valid properties are
 as shown below:
 <p>
@@ -208,15 +207,13 @@ the page height by the number of lines.</b></td>
 
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JFrame parent, Vector export, PropList proplist )
+public static void print ( JFrame parent, List export, PropList proplist )
 {	String	routine="PrintJGUI.export";
 
 	_export = export;
-	// Do some checks.  It is possible that the Vector has one string that
-	// itself needs to be parsed...
+	// Do some checks.  It is possible that the Vector has one string that itself needs to be parsed...
 	if ( (export != null) && (export.size() == 1) ) {
-		_export = StringUtil.breakStringList (
-				(String)export.elementAt(0), "\n", 0 );
+		_export = StringUtil.breakStringList ( (String)export.get(0), "\n", 0 );
 	}
 /* support later.
 	_isApplet 	= isApplet;               
@@ -331,8 +328,7 @@ public static void printJTextAreaObject(JFrame parent,
 	** So use the following instead...
 	*/
 
-	Vector export_Vector = StringUtil.breakStringList ( textArea.getText(),
-					"\n", 0 );
+	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	print ( parent, export_Vector, 8 );	// Use small font
 	export_Vector = null;
@@ -443,7 +439,7 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 	try {
 	    for ( int i=0; i < size; i++ ) {
 			// Don't do a trim() here because it may shift the line if there are leading spaces...
-			nextLine = StringUtil.removeNewline ( (String)_export.elementAt(i) );
+			nextLine = StringUtil.removeNewline ( (String)_export.get(i) );
 			if ((curHeight + fontHeight) > printable_pageHeight) {
 				// New Page
 				if ( Message.isDebugOn ) {
@@ -483,20 +479,19 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 Print to the local printer given the calling Frame and a vector of String's to
 print.  The default 10-point font is used.
 @param parent JDialog from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String to print.
 */
-public static void print ( JDialog parent, Vector export )
+public static void print ( JDialog parent, List export )
 {	print ( parent, export, null );
 }
 
 /**
-Print to the local printer given the calling Frame, a vector of String's to
-print, and the font size.
+Print to the local printer given the calling Frame, a vector of String's to print, and the font size.
 @param parent JDialog from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String to print.
 @param fontsize Font size to use (points).
 */
-public static void print ( JDialog parent, Vector export, int fontsize )
+public static void print ( JDialog parent, List export, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "FontSize", "" + fontsize );
 	print ( parent, export, props );
@@ -507,12 +502,12 @@ Print to the local printer given the calling Frame, a vector of String's to
 print, and a help key to be used with RTi.Util.Help.URLHelp (however, help is
 not supported at this time because the standard print dialog is used).
 @param parent JDialog from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String to print.
 @param helpkey Help key to use with URLHelp.
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JDialog parent, Vector export, String helpkey, int fontsize )
+public static void print ( JDialog parent, List export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -525,7 +520,7 @@ print, and a PropList containing modifiers.
 The help key to be used with RTi.Util.Help.URLHelp (however, help is
 not supported at this time because the standard print dialog is used).
 @param parent JDialog from which printing occurs.
-@param export Vector of String's to print.
+@param export list of String's to print.
 @param proplist PropList of properties to modify output.  Valid properties are
 as shown below:
 <p>
@@ -560,7 +555,7 @@ the page height by the number of lines.</b></td>
 
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JDialog parent, Vector export, PropList proplist )
+public static void print ( JDialog parent, List export, PropList proplist )
 {	String	routine="PrintJGUI.export";
 
 	_parentJDialog 	= parent;
@@ -568,8 +563,7 @@ public static void print ( JDialog parent, Vector export, PropList proplist )
 	// Do some checks.  It is possible that the Vector has one string that
 	// itself needs to be parsed...
 	if ( (export != null) && (export.size() == 1) ) {
-		_export = StringUtil.breakStringList (
-				(String)export.elementAt(0), "\n", 0 );
+		_export = StringUtil.breakStringList ( (String)export.get(0), "\n", 0 );
 	}
 /* support later.
 	_isApplet 	= isApplet;               
@@ -682,7 +676,7 @@ public static void printJTextAreaObject(JDialog parent, JTextField status_TextFi
 	** So use the following instead...
 	*/
 
-	Vector export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	print ( parent, export_Vector, 8 );	// Use small font
 	export_Vector = null;
@@ -808,7 +802,7 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 	try {
 	    for ( int i=0; i < size; i++ ) {
 			// Don't do a trim() here because it may shift the line if there are leading spaces...
-			nextLine = StringUtil.removeNewline ( (String)_export.elementAt(i) );
+			nextLine = StringUtil.removeNewline ( (String)_export.get(i) );
 			if ((curHeight + fontHeight) > printable_pageHeight) {
 				// New Page
 				if ( Message.isDebugOn ) {

@@ -19,6 +19,7 @@ package RTi.Util.IO;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
@@ -118,9 +119,9 @@ populated when SHEF data are read.
 private String	__SHEF_pe;
 
 /**
-Vector of internally-maintained DataType instances.  The list can be modified by the static read methods.
+List of internally-maintained DataType instances.  The list can be modified by the static read methods.
 */
-private static Vector __types_Vector = new Vector(20);
+private static List __types_Vector = new Vector(20);
 					
 /**
 Construct and set all data members to empty strings and zeros.
@@ -200,16 +201,16 @@ public static void addDataType ( DataType type )
 	DataType pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the type for the loop index...
-		pt = (DataType)__types_Vector.elementAt(i);
+		pt = (DataType)__types_Vector.get(i);
 		// Now compare...
 		if ( type.getAbbreviation().equalsIgnoreCase(pt.getAbbreviation() ) ) {
 			// The requested units match something that is already in the list.  Reset the list...
-			__types_Vector.setElementAt ( type, i );
+			__types_Vector.set ( i, type );
 			return;
 		}
 	}
 	// Need to add the units to the list...
-	__types_Vector.addElement ( type );
+	__types_Vector.add ( type );
 	pt = null;
 }
 
@@ -240,11 +241,11 @@ public String getAbbreviation ( )
 }
 
 /**
-Return the Vector of data types data.
-@return the Vector of data types (useful for debugging and GUI displays).
+Return the list of data types data.
+@return the list of data types (useful for debugging and GUI displays).
 Perhaps later overload to request by dimension, system, etc.
 */
-public static Vector getDataTypesData ()
+public static List getDataTypesData ()
 {	return __types_Vector;
 }
 
@@ -403,7 +404,7 @@ throws Exception
 	int size = __types_Vector.size();
 	DataType pt = null;
 	for (	int i = 0; i < size; i++ ) {
-		pt = (DataType)__types_Vector.elementAt(i);
+		pt = (DataType)__types_Vector.get(i);
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 20, routine, "Comparing " + type_string + " and " + pt.getAbbreviation());
 		}
@@ -545,7 +546,7 @@ throws IOException
 				// lines are read for the same type.
 	int type_count = 0;	// Count of how many times the type has been
 				// read, to keep track of multiple lines of input.
-	Vector tokens = new Vector(7);
+	List tokens = new Vector(7);
 				// Tokens from data lines - share the Vector between multiple reads.
 	// Format to read the first data line per data type...
 	int format_1[] = {
@@ -632,15 +633,15 @@ throws IOException
 		// Now process the specific line...
 		if ( type_count == 1 ) {
 			StringUtil.fixedRead ( string, format_1, format_1w, tokens );
-			abbreviation = ((String)tokens.elementAt(0)).trim();
-			description = ((String)tokens.elementAt(1)).trim();
-			tmp = ((String)tokens.elementAt(2)).trim();
+			abbreviation = ((String)tokens.get(0)).trim();
+			description = ((String)tokens.get(1)).trim();
+			tmp = ((String)tokens.get(2)).trim();
 			// The description is comprised of the Level 1, 2, 3
 			// descriptions.  Sometimes these have a "  ." at the end so remove...
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
-			tmp = ((String)tokens.elementAt(3)).trim();
+			tmp = ((String)tokens.get(3)).trim();
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
@@ -650,10 +651,10 @@ throws IOException
 		}
 		else if ( type_count == 2 ) {
 			StringUtil.fixedRead ( string, format_2, format_2w,	tokens );
-			dimension = ((String)tokens.elementAt(1)).trim();
-			meas_loc_type = ((String)tokens.elementAt(2)).trim();
-			meas_time_scale = ((String)tokens.elementAt(3)).trim();
-			where_used = ((String)tokens.elementAt(4)).trim();
+			dimension = ((String)tokens.get(1)).trim();
+			meas_loc_type = ((String)tokens.get(2)).trim();
+			meas_time_scale = ((String)tokens.get(3)).trim();
+			where_used = ((String)tokens.get(4)).trim();
 			if ( where_used.equalsIgnoreCase("CALB") ) {
 				in_calb = true;
 			}
@@ -668,7 +669,7 @@ throws IOException
 		}
 		else if ( string.substring(5).startsWith("FCST") ) {
 			StringUtil.fixedRead ( string, format_3, format_3w,	tokens );
-			default_units = ((String)tokens.elementAt(2)).trim();
+			default_units = ((String)tokens.get(2)).trim();
 			read_fcst = true;
 		}
 		else if ( string.substring(5).startsWith("CALB") ) {

@@ -86,6 +86,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.String.StringUtil;
@@ -119,7 +120,7 @@ private SimpleJButton	__yes_JButton,	// Yes Button
 			__ok_JButton;	// Ok Button
 private int		__mode,		// mode in which class was
 					// instantiated
-			__response;	// user selected reponse as
+			__response;	// user selected response as
 					// identified by the return status
 					// public final statics below
 
@@ -365,7 +366,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 
 	// Split the text based on the new-line delimiter (we use \n, not the
 	// platform's separator!
-	Vector vec = StringUtil.breakStringList ( label, "\n", 0 );
+	List vec = StringUtil.breakStringList ( label, "\n", 0 );
 	int size = vec.size();
         // North Panel
 	JPanel north_JPanel = new JPanel();
@@ -376,9 +377,14 @@ private void initialize ( String title, String label, int mode, int alignment )
 			// used by the HelpAboutDialog)...
         		north_JPanel.setLayout(new GridBagLayout () );
 			if ( size > 20 ) {
-				//add message String to a JList
-				//that is within a JScrollPane
-				JList list = new JList( vec );
+				//add message String to a JList that is within a JScrollPane
+				JList list = null;
+				if ( vec instanceof Vector ) {
+					list = new JList( (Vector)vec );
+				}
+				else {
+					list = new JList(new Vector(vec) );
+				}
 				list.setBackground(Color.LIGHT_GRAY);
 				JScrollPane pane = new JScrollPane( list );
 				Dimension d = new Dimension ( 400, 200 );
@@ -395,7 +401,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 				// Add each string as a JLabel...
 				for ( int i = 0; i < size; i++ ) {
         				JGUIUtil.addComponent(north_JPanel,
-					new JLabel( (String)vec.elementAt(i)),
+					new JLabel( (String)vec.get(i)),
 					0,i,1,1,0,0,insets,
 					GridBagConstraints.NONE, alignment );
 				}
@@ -410,7 +416,13 @@ private void initialize ( String title, String label, int mode, int alignment )
         			north_JPanel.setLayout(new GridLayout( 1, 1));
 				//add message String to a JList
 				//that is within a JScrollPane
-				JList list = new JList( vec );
+				JList list = null;
+				if ( vec instanceof Vector ) {
+					list = new JList( (Vector)vec );
+				}
+				else {
+					list = new JList(new Vector(vec) );
+				}
 				list.setBackground(Color.LIGHT_GRAY);
 				JScrollPane pane = new JScrollPane( list );
 				Dimension d = new Dimension ( 600, 200 );
@@ -427,7 +439,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 				// Add each string...
 				for ( int i = 0; i < size; i++ ) {
         				north_JPanel.add( new JLabel( "    " +
-					vec.elementAt(i) + "     " ) );
+					vec.get(i) + "     " ) );
 				}
 			}
 		}

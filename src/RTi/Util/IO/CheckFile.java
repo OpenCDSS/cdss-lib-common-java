@@ -11,6 +11,7 @@
 ******************************************************************************/
 package RTi.Util.IO;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -26,7 +27,7 @@ public class CheckFile
 	private String __check_file;	// File for data check info
 	private String __commands;		// Command file name
 	
-	private Vector __header;		// Header text for the check file.
+	private List __header;		// Header text for the check file.
 									// This contains text about the
 									// current program such as version
 									// and other program specific
@@ -36,7 +37,7 @@ public class CheckFile
 									// program and its state.  If empty then the
 									// header section will be blank.
 	
-	private Vector __run_msgs;		// Vector of runtime messages
+	private List __run_msgs;		// Vector of runtime messages
 									// Runtime messages are problems that
 									// have occurred during processing checks
 									// on the data.
@@ -50,9 +51,9 @@ public class CheckFile
 	private PropList __title_prop = new PropList("html_id");
 	private PropList __td_prop = new PropList("html_td_tag");
 	// stores invalid data for specific data checks	
-	private Vector __spec_data;	
+	private List __spec_data;	
 	// stores invalid data for general data checks
-	private Vector __gen_data;
+	private List __gen_data;
 	
 /**
 Constructor that initializes the check file.
@@ -102,8 +103,7 @@ public void addData( CheckFile_DataModel data, CheckFile_DataModel gen_data )
 		}
 		// if no general data exists create a blank object for it
 		else {
-			__gen_data.add(new CheckFile_DataModel(
-				new Vector(), new String[]{}, "", "", 0, 0 ) );
+			__gen_data.add(new CheckFile_DataModel(new Vector(), new String[]{}, "", "", 0, 0 ) );
 		}
 	}
 }
@@ -186,7 +186,7 @@ private String getHeaderString()
 	String header = "";
 	if ( __header != null && __header.size() > 0 ) {
 		for( int i = 0; i < __header.size(); i++ ) {
-			String tmp = (String)__header.elementAt(i) ;
+			String tmp = (String)__header.get(i) ;
 			if( !tmp.endsWith("\n") && !tmp.endsWith("\r")) {
 				header += (tmp + "\n" );
 			}
@@ -273,11 +273,9 @@ private void writeDataChecks( HTMLWriter html )  throws Exception
 		tableStart.add("cellpadding=1");
 		// write out all component data checks
 		for ( int i = 0; i < __spec_data.size(); i++ ) {
-			writeGenericDataChecks( html, tableStart, 
-				( CheckFile_DataModel )__gen_data.elementAt(i), i );
+			writeGenericDataChecks( html, tableStart, ( CheckFile_DataModel )__gen_data.get(i), i );
 			html.breakLine();
-			writeOtherData( html, tableStart, 
-				( CheckFile_DataModel )__spec_data.elementAt(i), i );
+			writeOtherData( html, tableStart, ( CheckFile_DataModel )__spec_data.get(i), i );
 		}
 	}
 }
@@ -295,7 +293,7 @@ int index ) throws Exception
 {
 	if ( html != null ) {
 		// grab the data from the model
-		Vector gen_data = new Vector(); 
+		List gen_data = new Vector(); 
 		gen_data = gen_data_model.getData();
 		// proplist provides an anchor link for this section used
 		// from the table of contents
@@ -312,7 +310,7 @@ int index ) throws Exception
 			html.tableRowEnd();
 			// loop through the actual data and add table cells
 			for ( int j = 0; j < gen_data.size(); j++ ) {
-				String [] tds = ((String [])gen_data.elementAt(j));
+				String [] tds = ((String [])gen_data.get(j));
 				if ( tds != null && tds.length > 0 ) {
 					html.tableRowStart();
 					html.tableCells( tds, __td_prop );
@@ -356,7 +354,7 @@ CheckFile_DataModel data_model, int index ) throws Exception
 {
 	if ( html != null ) {
 		// Get the data from the model
-		Vector data = data_model.getData();
+		List data = data_model.getData();
 		// proplist provides an anchor link for this section used
 		// from the table of contents
 		PropList data_prop = new PropList( "Data " + index );
@@ -373,7 +371,7 @@ CheckFile_DataModel data_model, int index ) throws Exception
 			html.tableRowEnd();
 			// loop through the data
 			for ( int j = 0; j < data.size(); j++ ) {
-				String [] tds = ((String [])data.elementAt(j));
+				String [] tds = ((String [])data.get(j));
 				if ( tds != null && tds.length > 0 ) {
 					html.tableRowStart();
 					html.tableCells( tds, __td_prop );
@@ -407,7 +405,7 @@ private void writeRuntimeMessages( HTMLWriter html )  throws Exception
 		}
 		// loop through all the run messages and print them out
 		for ( int i = 0; i < __run_msgs.size(); i++ ) {
-			String msg = (String)__run_msgs.elementAt(i);
+			String msg = (String)__run_msgs.get(i);
 			if ( isValidStr ( msg )) {
 				if( !msg.endsWith("\n") && !msg.endsWith("\r")) {
 					message += ( msg + "\n" );
@@ -457,10 +455,8 @@ private void writeTableOfContents( HTMLWriter html )  throws Exception
 		// as a table with links to missing and specific data checks
 		for ( int i = 0; i < __spec_data.size(); i++ ) {
 			// get the data models
-			CheckFile_DataModel dm = ( CheckFile_DataModel )
-			__spec_data.elementAt(i);
-			CheckFile_DataModel dm_gen = ( CheckFile_DataModel )
-			__gen_data.elementAt(i);
+			CheckFile_DataModel dm = ( CheckFile_DataModel )__spec_data.get(i);
+			CheckFile_DataModel dm_gen = ( CheckFile_DataModel )__gen_data.get(i);
 			// get the data needed for the TOC from the data models
 			//String data_size = new Integer( 
 			//		dm_gen.getDataSize() ).toString();

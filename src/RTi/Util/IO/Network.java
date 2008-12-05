@@ -20,6 +20,7 @@ package RTi.Util.IO;
 //import java.lang.Math;
 //import java.lang.String;
 //import java.lang.Long;
+import java.util.List;
 import java.util.Vector;
 
 //import RTi.GR.GR;
@@ -83,7 +84,7 @@ public static final int POSITION_DOWNSTREAM	= 2;	// to output the
 The list of features in the network.  This is all features.  The connectivity
 of the features is maintained by references in each feature.
 */
-protected Vector _feature_Vector;
+protected List _feature_Vector;
 
 // Data for graphics...
 
@@ -116,7 +117,7 @@ enforced elsewhere.
 */
 public void addFeature ( NetworkFeature feature )
 {	if ( feature != null ) {
-		_feature_Vector.addElement ( feature );
+		_feature_Vector.add ( feature );
 	}
 }
 
@@ -976,7 +977,7 @@ public static HBNode getDownstreamNode ( HBNode node, int flag )
 Return the list of features in the Network.
 @return the list of features in the Network.
 */
-public Vector getFeatures()
+public List getFeatures()
 {	return _feature_Vector;
 }
 
@@ -1397,15 +1398,14 @@ throws Throwable
 
 /**
 Set the "processed" flag for each NetworkFeature in the Network.  This can be
-used, for example, to clear the flag before processing the nodes in the
-network.
+used, for example, to clear the flag before processing the nodes in the network.
 @param processed Processed flag to set for every feature.
 */
 public void setProcessed ( boolean processed )
 {	int size = _feature_Vector.size();
 	NetworkFeature feature = null;
 	for ( int i = 0; i < size; i++ ) {
-		feature = (NetworkFeature)_feature_Vector.elementAt(i);
+		feature = (NetworkFeature)_feature_Vector.get(i);
 		feature.setProcessed ( processed );
 	}
 }

@@ -5,16 +5,17 @@ Revisions
 2007-03-27	Kurt Tometich, RTi		Initial version.
 *****************************************************************************/
 package RTi.Util.IO;
+import java.util.List;
 import java.util.Vector;
 
 /**
 DataModel class to store data objects for the CheckFile.
 Each DataModel has a title, header, info, total number
-of checks and a Vector of data.
+of checks and a list of data.
 */
 public class CheckFile_DataModel 
 {
-	private Vector __data;				// stores data from running checks
+	private List __data;				// stores data from running checks
 	private String __info;				// stores information and suggestions
 										// about the latest data check run
 	
@@ -33,7 +34,7 @@ public class CheckFile_DataModel
 	@param __table_header The column headers for the data.
 	@param title The title or name of the data being checked.
 	*/
-	public CheckFile_DataModel( Vector data, String[] table_header,
+	public CheckFile_DataModel( List data, String[] table_header,
 	String title, String info, int num_problems, int total )
 	{
 		// store data from checks
@@ -73,7 +74,7 @@ public class CheckFile_DataModel
 	Returns the data list for this model.
 	@return Vector of invalid data.
 	*/
-	public Vector getData()
+	public List getData()
 	{
 		return __data;
 	}

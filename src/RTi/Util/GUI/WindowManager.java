@@ -16,6 +16,7 @@
 
 package RTi.Util.GUI;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -25,8 +26,7 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 
 /**
-The WindowManager class allows applications to more easily manage their 
-windows.  This
+The WindowManager class allows applications to more easily manage their windows.  This
 class handles opening 2 kinds of windows:<br><ul>
 <li>Windows where only instance can be opened at a time.  These are referred
 to simply as Windows.</li>
@@ -310,10 +310,10 @@ the statuses of the windows at given array index positions.  Since each window
 type could possibly be made to handle window instances, and since it isn't 
 possible to determine how many window instances could open at one time, Vectors
 are used.  
-REVISIT - maybe something to set in future to limit the number of instance 
+TODO - maybe something to set in future to limit the number of instance 
 windows that can be open at one time?
 */
-protected Vector[] _windowInstanceInformation;
+protected List[] _windowInstanceInformation;
 
 /**
 Constructor.
@@ -344,7 +344,7 @@ public boolean areWindowsOpen() {
 		}
 	}
 
-	Vector v;
+	List v;
 	WindowManagerData data;
 	int size = 0;
 	for (int i = 0; i < _windowInstanceInformation.length; i++) {
@@ -352,7 +352,7 @@ public boolean areWindowsOpen() {
 			v = _windowInstanceInformation[i];
 			size = v.size();
 			for (int j = 0; j < size; j++) {
-				data = (WindowManagerData)v.elementAt(j);
+				data = (WindowManagerData)v.get(j);
 				if (data.getStatus() == STATUS_OPEN) {
 					return true;
 				}
@@ -373,7 +373,7 @@ public void closeAllWindows() {
 		}
 	}
 
-	Vector v;
+	List v;
 	WindowManagerData data;
 	int size = 0;
 	for (int i = 0; i < _windowInstanceInformation.length; i++) {
@@ -381,7 +381,7 @@ public void closeAllWindows() {
 			v = _windowInstanceInformation[i];
 			size = v.size();
 			for (int j = 0; j < size; j++) {
-				data = (WindowManagerData)v.elementAt(j);
+				data = (WindowManagerData)v.get(j);
 				if (data.getStatus() == STATUS_OPEN) {
 					closeWindowInstance(i, data.getID());
 				}
@@ -473,8 +473,7 @@ private int findWindowInstancePosition(int windowType, Object id) {
 	WindowManagerData data;
 	int size = _windowInstanceInformation[windowType].size();
 	for (int i = 0; i < size; i++){
-		data = (WindowManagerData)
-			_windowInstanceInformation[windowType].elementAt(i);
+		data = (WindowManagerData)_windowInstanceInformation[windowType].get(i);
 		if (data.getID().equals(id)) {
 			return i;
 		}
@@ -498,8 +497,7 @@ public int getWindowInstanceStatus(int windowType, Object id) {
 	WindowManagerData data;
 	int size = _windowInstanceInformation[windowType].size();
 	for (int i = 0; i < size; i++){
-		data = (WindowManagerData)
-			_windowInstanceInformation[windowType].elementAt(i);
+		data = (WindowManagerData)_windowInstanceInformation[windowType].get(i);
 		if (data.getID().equals(id)) {
 			return data.getStatus();
 		}
@@ -519,8 +517,7 @@ public JFrame getWindowInstanceWindow(int windowType, Object id) {
 	WindowManagerData data;
 	int size = _windowInstanceInformation[windowType].size();
 	for (int i = 0; i < size; i++){
-		data = (WindowManagerData)
-			_windowInstanceInformation[windowType].elementAt(i);
+		data = (WindowManagerData)_windowInstanceInformation[windowType].get(i);
 		if (data.getID().equals(id)) {
 			return data.getWindow();
 		}
@@ -591,10 +588,9 @@ private void removeWindowInstance(int windowType, Object id) {
 	WindowManagerData data;
 	for (int i = 0; i < _windowInstanceInformation[windowType].size(); i++){
 		data = (WindowManagerData)
-			_windowInstanceInformation[windowType].elementAt(i);
+			_windowInstanceInformation[windowType].get(i);
 		if (data.getID().equals(id)) {
-			_windowInstanceInformation[windowType]
-				.removeElementAt(i);
+			_windowInstanceInformation[windowType].remove(i);
 			// because the Vector is being resized within a loop,
 			// decrement the counter here when a removeElemenAt
 			// is done, otherwise the element that now takes
@@ -674,14 +670,10 @@ public void setWindowInstanceStatus(int windowType, Object id, int status) {
 			_windowInstanceInformation[windowType].add(data);
 		}
 		else {
-			WindowManagerData updateData = (WindowManagerData)
-				_windowInstanceInformation[windowType]
-				.elementAt(i);
-			Message.printStatus(2, routine, 
-				"  Instance found, updating status.");
+			WindowManagerData updateData = (WindowManagerData)_windowInstanceInformation[windowType].get(i);
+			Message.printStatus(2, routine, "  Instance found, updating status.");
 			updateData.setStatus(status);
-			_windowInstanceInformation[windowType].setElementAt(
-				updateData,i);
+			_windowInstanceInformation[windowType].set(i,updateData);
 		}
 	}
 }
@@ -707,19 +699,14 @@ public void setWindowInstanceWindow(int windowType, JFrame window, Object id) {
 	else {
 		int i = findWindowInstancePosition(windowType, id);
 		if (i == -1) {
-			Message.printStatus(2, routine, 
-				"  Instance not found!  Adding as a new one.");
+			Message.printStatus(2, routine, "  Instance not found!  Adding as a new one.");
 			_windowInstanceInformation[windowType].add(data);
 		}
 		else {
-			WindowManagerData updateData = (WindowManagerData)
-				_windowInstanceInformation[windowType]
-				.elementAt(i);
-			Message.printStatus(2, routine, 
-				"  Instance found, updating window.");
+			WindowManagerData updateData = (WindowManagerData)_windowInstanceInformation[windowType].get(i);
+			Message.printStatus(2, routine, "  Instance found, updating window.");
 			updateData.setWindow(window);
-			_windowInstanceInformation[windowType].setElementAt(
-				updateData,i);
+			_windowInstanceInformation[windowType].set(i,updateData);
 		}
 	}
 }
@@ -734,8 +721,7 @@ windows (so that only one copy of a data set group window is open at a time).
 public void setWindowOpen(int windowType, JFrame window) {
 	setWindow(windowType, window);
 	setWindowStatus(windowType, STATUS_OPEN);
-	Message.printStatus(2, "setWindowOpen", "Window set open: " +
-		windowType);
+	Message.printStatus(2, "setWindowOpen", "Window set open: " + windowType);
 }
 
 /**

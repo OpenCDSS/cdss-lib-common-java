@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import java.util.zip.ZipEntry;
@@ -261,12 +262,12 @@ public Hashtable getResourcesHashtable() {
 Returns a String Vector of the names of all the resources in the jar file 
 @return a String Vector of the names of all the resources in the jar file
 */
-public Vector getResourcesVector() {
+public List getResourcesList() {
 	Enumeration e = __sizes_Hashtable.keys();
-	Vector v = new Vector(__sizes_Hashtable.size());
+	List v = new Vector(__sizes_Hashtable.size());
 	while (e.hasMoreElements()) {
 		String key = (String)e.nextElement();
-		v.addElement(key);
+		v.add(key);
 	}
 
 	return v;					

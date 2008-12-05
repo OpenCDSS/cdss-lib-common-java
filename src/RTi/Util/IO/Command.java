@@ -30,8 +30,7 @@ package RTi.Util.IO;
 import javax.swing.JFrame;
 
 /**
-This interface is implemented by classes that are commands that can be parsed
-and run.
+This interface is implemented by classes that are commands that can be parsed and run.
 */
 public interface Command extends Cloneable
 {
@@ -43,11 +42,9 @@ This is normally called by the command editor dialog.
 @param command_tag an indicator to be used when printing messages, to allow a
 cross-reference to the original commands.
 @param warning_level The warning level to use when printing parse warnings
-(recommended is 2 for initialization, and 1 for interactive command editor
-dialogs).
+(recommended is 2 for initialization, and 1 for interactive command editor dialogs).
 */
-public void checkCommandParameters (	PropList parameters, String command_tag,
-					int warning_level )
+public void checkCommandParameters ( PropList parameters, String command_tag, int warning_level )
 throws InvalidCommandParameterException;
 
 /**
@@ -81,32 +78,25 @@ Return the parameters being used by the command.  The Prop.getHowSet() method
 can be used to determine whether a property was defined in the original command
 string (Prop.SET_FROM_PERSISTENT) or is defaulted internally
 (Prop.SET_AS_RUNTIME_DEFAULT).
-REVISIT SAM 2005-04-29 Does this need a boolean parameter to allow dialogs to
-see only the parameters in the command, so that defaults are not explicitly
-displayed?
-@return the parameters being used by the command.  A non-null list is
-guaranteed.
+TODO SAM 2005-04-29 Does this need a boolean parameter to allow dialogs to
+see only the parameters in the command, so that defaults are not explicitly displayed?
+@return the parameters being used by the command.  A non-null list is guaranteed.
 */
 public PropList getCommandParameters ();
 
 // REVISIT SAM 2005-05-05 Evaluate whether something like
 // getDefaultParameterValue is needed.  The problem is that for some low-level
-// code a value of null is the default.  Should null be provided as a default
-// parameter?
+// code a value of null is the default.  Should null be provided as a default parameter?
 
 /**
-Initialize the command by parsing the command and indicating warnings.
-This is essentially validation.
+Initialize the command by parsing the command and indicating warnings.  This is essentially validation.
 @param command_string A string command to parse.
 @param processor The CommandProcessor that is executing the command, which will
 provide necessary data inputs and receive output(s).
 @param full_initialization If true, the command string will be parsed and
 checked for errors.  If false, a blank command will be initialized (e.g.,
-suitable for creating a new command instance before editing in the command
-editor).
-@exception InvalidCommandSyntaxException if during parsing the command is
-determined to have invalid syntax.
-syntax of the command are bad.
+suitable for creating a new command instance before editing in the command editor).
+@exception InvalidCommandSyntaxException if during parsing the command is determined to have invalid syntax.
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
@@ -116,12 +106,9 @@ public void initializeCommand (	String command_string,
 throws InvalidCommandSyntaxException, InvalidCommandParameterException;
 
 /**
-Parse the command string into a PropList of parameters, which are then stored
-in the command.
+Parse the command string into a PropList of parameters, which are then stored in the command.
 @param command_string A string command to parse.
-@exception InvalidCommandSyntaxException if during parsing the command is
-determined to have invalid syntax.
-syntax of the command are bad.
+@exception InvalidCommandSyntaxException if during parsing the command is determined to have invalid syntax.
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
@@ -145,8 +132,7 @@ CommandWarningException, CommandException;
 
 /**
 Set a command parameter.  This is used, for example, by a command editor dialog,
-and results in command parameter PropList being updated and the command
-string being regenerated.
+and results in command parameter PropList being updated and the command string being regenerated.
 @param parameter Name of parameter to set.
 @param value Value of parameter to set.  Passing a value of null will
 effectively unset the parameter (null will be returned when retrieving the
@@ -156,8 +142,7 @@ public void setCommandParameter ( String parameter, String value );
 
 /**
 Set the command string.  This is currently used only by the generic command
-editor (GenericCommand_JDialog) and should only be implemented in the
-SkeletonCommand base class.
+editor (GenericCommand_JDialog) and should only be implemented in the AbstractCommand base class.
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string );
@@ -175,8 +160,7 @@ public String toString ();
 Return the standard string representation of the command, which can be parsed
 by parseCommand().  The given list of properties is used to format the
 command.  This version is suitable for formatting a representation of a command
-for use in a command editor, where the parameters have not been committed to
-the Command's memory.
+for use in a command editor, where the parameters have not been committed to the Command's memory.
 */
 public String toString ( PropList props );
 

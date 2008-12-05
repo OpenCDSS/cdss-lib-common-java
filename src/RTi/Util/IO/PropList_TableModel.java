@@ -16,7 +16,7 @@
 
 package RTi.Util.IO;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_TableModelListener;
@@ -100,8 +100,7 @@ displayed in the table model.  Cannot be null.
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
 */
-public PropList_TableModel(PropList props, Vector ignores, 
-boolean keyEditable, boolean valEditable)
+public PropList_TableModel(PropList props, List ignores, boolean keyEditable, boolean valEditable)
 throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to " 
@@ -111,7 +110,7 @@ throws Exception {
 
 	int size = ignores.size();
 	for (int i = 0; i < size; i++) {
-		__props.unSet((String)ignores.elementAt(i));
+		__props.unSet((String)ignores.get(i));
 	}
 	
 	_rows = __props.size();
@@ -148,7 +147,7 @@ public void deleteRow(int row) {
 	}
 
 	_rows--;
-	__props.getList().removeElementAt(row);
+	__props.getList().remove(row);
 }
 
 /**
@@ -294,7 +293,7 @@ public void insertRowAt(Object o, int row) {
 		return;
 	}
 	_rows++;
-	__props.getList().insertElementAt(o, row);
+	__props.getList().add(row, o);
 }
 
 /**

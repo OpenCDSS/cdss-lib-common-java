@@ -93,6 +93,7 @@ import java.io.PrintWriter;
 
 import java.net.URL;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -188,13 +189,13 @@ called, so even non-String items can be added.
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox comboBox, Vector items )
+public static void addToJComboBox ( JComboBox comboBox, List items )
 {	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
 	int size = items.size();
 	for ( int i = 0; i < size; i++ ) {
-		comboBox.addItem ( items.elementAt(i).toString() );
+		comboBox.addItem ( items.get(i).toString() );
 	}
 }
 
@@ -777,12 +778,11 @@ throws Exception
 	// item is not found so go through the list every time...
 	// Get the list size...
 	int size = c.getItemCount();
-	Vector tokens = null;
+	List tokens = null;
 	int ntokens = 0;
 	String choice_token;
 	for ( int i = 0; i < size; i++ ) {
-		tokens = StringUtil.breakStringList (
-				c.getItemAt(i).toString(), delimiter, flags );
+		tokens = StringUtil.breakStringList ( c.getItemAt(i).toString(), delimiter, flags );
 		ntokens = 0;
 		if ( tokens != null ) {
 			ntokens = tokens.size();
@@ -790,9 +790,8 @@ throws Exception
 		if ( ntokens <= token ) {
 			continue;
 		}
-		// Now compare.  Do not use region matches because we want
-		// an exact match on the token...
-		choice_token = (String)tokens.elementAt(token);
+		// Now compare.  Do not use region matches because we want an exact match on the token...
+		choice_token = (String)tokens.get(token);
 		if ( trim_tokens ) {
 			choice_token = choice_token.trim();
 		}
@@ -1058,17 +1057,17 @@ isolate to this routine.
 @return A vector of strings containing the text from the text area or a 
 Vector with no elements if a null TextArea.
 */
-public static Vector toVector (JTextArea ta) {
+public static List toList (JTextArea ta) {
 	if ( ta == null ) {
 		return new Vector();
 	}
-	Vector v = StringUtil.breakStringList ( ta.getText(), "\n", 0 );
+	List v = StringUtil.breakStringList ( ta.getText(), "\n", 0 );
 	// Just to be sure, remove any trailing carriage-return characters from
 	// the end...
 	String string;
 	for ( int i = 0; i < v.size(); i++ ) {
-		string = (String)v.elementAt(i);
-		v.setElementAt(StringUtil.removeNewline(string),i);
+		string = (String)v.get(i);
+		v.set(i,StringUtil.removeNewline(string));
 	}
 	string = null;
 	return v;
@@ -1083,14 +1082,14 @@ that is displayed in a JTextArea.
 */
 public static void writeFile ( JTextArea ta, String filename )
 throws Exception
-{	Vector v = toVector ( ta );
+{	List v = toList ( ta );
 	PrintWriter out = new PrintWriter( new FileWriter( filename ) );
 	//
 	// Write each element of the _export Vector to a file.
 	//
 	int size = v.size();
 	for ( int i = 0; i < size; i++ ) {
-		out.println ( (String)v.elementAt(i) );
+		out.println ( (String)v.get(i) );
 	}
 	//
 	// close the PrintStream Object

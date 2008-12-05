@@ -17,7 +17,7 @@
 
 package RTi.Util.GUI;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
@@ -127,7 +127,7 @@ throws ExpandVetoException {
 		throw new ExpandVetoException(event, 
 			"Cannot expand this tree");
 	}		
-	Vector v = __tree.getListeners();
+	List v = __tree.getListeners();
 	if (v == null) {
 		return;
 	}
@@ -137,7 +137,7 @@ throws ExpandVetoException {
 	
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
-		((SimpleJTree_Listener)v.elementAt(i)).nodeExpanding(node);
+		((SimpleJTree_Listener)v.get(i)).nodeExpanding(node);
 	}
 }
 

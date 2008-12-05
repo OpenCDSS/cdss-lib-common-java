@@ -37,7 +37,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.accessibility.Accessible;
 
@@ -49,17 +49,14 @@ import javax.swing.text.JTextComponent;
 
 /**
 This class implements a SimpleJComboBox that supports dragging and dropping
-text.  Currently only supports drags and drops of DragAndDropTransferPrimitive 
-data.  
+text.  Currently only supports drags and drops of DragAndDropTransferPrimitive data.  
 */
-public class DragAndDropSimpleJComboBox 
-extends SimpleJComboBox
+public class DragAndDropSimpleJComboBox extends SimpleJComboBox
 implements DragGestureListener, DragSourceListener, DropTargetListener, 
 DragAndDrop {
 
 /**
-The DragAndDropControl object that holds information about how this object works
-with DragAndDrop.
+The DragAndDropControl object that holds information about how this object works with DragAndDrop.
 */
 private DragAndDropControl __data = null;
 
@@ -70,8 +67,7 @@ private int __selectedIndex = -1;
 
 /**
 The text of the item that was last-selected from the list that appears when the
-combo box is clicked on.  This is so that items from the middle of the list can
-be dragged.
+combo box is clicked on.  This is so that items from the middle of the list can be dragged.
 */
 private String __lastSelectedItem = null;
 
@@ -80,14 +76,11 @@ Creates a SimpleJComboBox that supports drag and drop.
 @param editable whether the text in this object is editable.  SimpleJComboBoxes
 with editable text cannot support drag operations.
 @param dragAction the action to take when dragging data.  
-See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box
-is NON editable.
+See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
-See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box
-is editable.
+See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
-public DragAndDropSimpleJComboBox(boolean editable, int dragAction, 
-int dropAction) {
+public DragAndDropSimpleJComboBox(boolean editable, int dragAction, int dropAction) {
 	super(editable);
 	initialize(dragAction, dropAction);
 }
@@ -96,13 +89,11 @@ int dropAction) {
 Creates a SimpleJComboBox that supports drag and drop.
 @param v a Vector of values to initialize the combo box with.
 @param dragAction the action to take when dragging data.  
-See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box
-is NON editable.
+See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
-See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box
-is editable.
+See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
-public DragAndDropSimpleJComboBox(Vector v, int dragAction, int dropAction) {
+public DragAndDropSimpleJComboBox(List v, int dragAction, int dropAction) {
 	super(v);
 	initialize(dragAction, dropAction);
 }
@@ -113,13 +104,11 @@ Creates a SimpleJComboBox that supports drag and drop.
 @param editable whether the text in this object is editable.  SimpleJComboBoxes
 with editable text cannot support drag operations.
 @param dragAction the action to take when dragging data.  
-See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box
-is NON editable.
+See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
-See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box
-is editable.
+See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
-public DragAndDropSimpleJComboBox(Vector v, boolean editable, int dragAction, 
+public DragAndDropSimpleJComboBox(List v, boolean editable, int dragAction, 
 int dropAction) {
 	super(v, editable);
 	initialize(dragAction, dropAction);
@@ -150,14 +139,11 @@ Creates a SimpleJComboBox that supports drag and drop.
 @param editable whether the text in this object is editable.  SimpleJComboBoxes
 with editable text cannot support drag operations.
 @param dragAction the action to take when dragging data.  
-See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box
-is NON editable.
+See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
-See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box
-is editable.
+See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
-public DragAndDropSimpleJComboBox(Vector v, int size, boolean editable, 
-int dragAction, int dropAction) {
+public DragAndDropSimpleJComboBox(List v, int size, boolean editable, int dragAction, int dropAction) {
 	super(v, size, editable);
 	initialize(dragAction, dropAction);
 }

@@ -72,7 +72,7 @@ package RTi.Util.Message;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.List;
 import javax.swing.JFrame;
 
 /**
@@ -301,11 +301,11 @@ public static String getLogFile ()
 }
 
 /**
-Returns the Vector of listeners that are set to respond to actions from the
+Returns the list of listeners that are set to respond to actions from the
 MessageLogJFrame.  The returned Vector will never be null.
-@return the Vector of listeners for the MessageLogJFrame.
+@return the list of listeners for the MessageLogJFrame.
 */
-public static Vector getMessageLogListeners() {
+public static List getMessageLogListeners() {
 	return impl.getMessageLogListeners();
 }
 

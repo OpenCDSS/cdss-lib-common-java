@@ -436,19 +436,19 @@ public static void addToChoice ( Choice choice, String[] items )
 }
 
 /**
-Add a Vector of strings to a list.  This is useful when a standard set of
+Add a list of strings to a list.  This is useful when a standard set of
 choices are available.  The toString() method of each object in the Vector is
 called, so even non-String items can be added.
 @param choice Choice to add items to.
 @param items Items to add.
 */
-public static void addToChoice ( Choice choice, Vector items )
+public static void addToChoice ( Choice choice, java.util.List items )
 {	if ( (choice == null) || (items == null) ) {
 		return;
 	}
 	int size = items.size();
 	for ( int i = 0; i < size; i++ ) {
-		choice.add ( items.elementAt(i).toString() );
+		choice.add ( items.get(i).toString() );
 	}
 }
 
@@ -598,20 +598,6 @@ have the directory separator at the end of the string.
 */
 public static String getLastFileDialogDirectory()
 {	return _last_file_dialog_directory;
-}
-
-/**
-Return the text from a TextArea as a Vector of strings, each of which has had
-the newline removed.  This is useful for exporting the text to a file or for
-printing.  At some point Sun may change the delimiter returned but we can
-isolate to this routine.
-@param a TextArea of interest.
-@return A vector of strings containing the text from the text area or a Vector
-with no elements if a null TextArea.
-@deprecated Use toVector().
-*/
-public static Vector getTextAreaAsVector ( TextArea a )
-{	return toVector ( a );
 }
 
 /**
@@ -980,12 +966,11 @@ throws Exception
 	// item is not found so go through the list every time...
 	// Get the list size...
 	int size = c.getItemCount();
-	Vector tokens = null;
+	java.util.List tokens = null;
 	int ntokens = 0;
 	String choice_token;
 	for ( int i = 0; i < size; i++ ) {
-		tokens = StringUtil.breakStringList (
-				c.getItem(i), delimiter, flags );
+		tokens = StringUtil.breakStringList ( c.getItem(i), delimiter, flags );
 		ntokens = 0;
 		if ( tokens != null ) {
 			ntokens = tokens.size();
@@ -995,7 +980,7 @@ throws Exception
 		}
 		// Now compare.  Do not use region matches because we want
 		// an exact match on the token...
-		choice_token = (String)tokens.elementAt(token);
+		choice_token = (String)tokens.get(token);
 		if ( ignore_case ) {
 			if (	choice_token.equalsIgnoreCase(item) ) {
 				c.select ( i );
@@ -1140,25 +1125,25 @@ public static boolean shiftDown ()
 }
 
 /**
-Return the text from a TextArea as a Vector of strings, each of which has had
+Return the text from a TextArea as a list of strings, each of which has had
 the newline removed.  This is useful for exporting the text to a file or for
 printing.  At some point Sun may change the delimiter returned but we can
 isolate to this routine.
 @param a TextArea of interest.
-@return A vector of strings containing the text from the text area or a Vector
+@return A list of strings containing the text from the text area or a Vector
 with no elements if a null TextArea.
 */
-public static Vector toVector ( TextArea a )
+public static java.util.List toList ( TextArea a )
 {	if ( a == null ) {
 		return new Vector();
 	}
-	Vector v = StringUtil.breakStringList ( a.getText(), "\n", 0 );
+	java.util.List v = StringUtil.breakStringList ( a.getText(), "\n", 0 );
 	// Just to be sure, remove any trailing carriage-return characters from
 	// the end...
 	String string;
 	for ( int i = 0; i < v.size(); i++ ) {
-		string = (String)v.elementAt(i);
-		v.setElementAt(StringUtil.removeNewline(string),i);
+		string = (String)v.get(i);
+		v.set(i,StringUtil.removeNewline(string));
 	}
 	string = null;
 	return v;
