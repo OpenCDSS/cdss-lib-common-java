@@ -13,6 +13,7 @@ package RTi.DataTest;
 
 import java.io.ByteArrayInputStream;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.DataTest.ExpressionParser.ASTDouble;
@@ -119,7 +120,7 @@ throws Exception {
 	dummyAction.setActionNum(DMIUtil.MISSING_INT);
 
 	// Connect the data test to the dummy action.
-	Vector actions = new Vector();
+	List actions = new Vector();
 	actions.add(dummyAction);
 	test.connectActions(actions);
 	
@@ -285,7 +286,7 @@ throws Exception {
 	}
 
 	String[] ids = null;
-	Vector params = null;
+	List params = null;
 
 	switch (id) {
 		case DataTestExpressionParser.JJTINTEGER:
@@ -336,7 +337,7 @@ throws Exception {
 			if (params != null) {
 				ids = new String[params.size()];
 				for (int k = 0; k < ids.length; k++) {
-					ids[k] = (String)params.elementAt(k);
+					ids[k] = (String)params.get(k);
 				}
 			}
 			func.setInputDataIDs(ids);
@@ -458,19 +459,19 @@ throws Exception {
 Returns all the data tests in the system.
 @return all the data tests in the system.
 */
-public static Vector getAllDataTests() 
+public static List getAllDataTests() 
 throws Exception {
 	DataTestDataModel model = null;
-	Vector models = __ioInterface.readAllDataTestDataModels();
+	List models = __ioInterface.readAllDataTestDataModels();
 	int size = models.size();
 
 	DataTest test = null;
 	DataTestSide mainExpr = null;
 
-	Vector tests = new Vector();
+	List tests = new Vector();
 	
 	for (int i = 0; i < size; i++) {
-		model = (DataTestDataModel) models.elementAt(i);
+		model = (DataTestDataModel) models.get(i);
 		if (model == null) {
 			continue;
 		}

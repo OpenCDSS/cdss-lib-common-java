@@ -13,7 +13,7 @@
 
 package RTi.DMI;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
@@ -45,12 +45,11 @@ private final int
 	__COL_Y = 2;
 
 /**
-Constructor.  This builds the Model for displaying the given ERDiagram_Table
-objects' information.
+Constructor.  This builds the Model for displaying the given ERDiagram_Table objects' information.
 @param data Vector of ERDiagram_Table objects for which to display data.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public ERDiagram_Table_TableModel(Vector data) 
+public ERDiagram_Table_TableModel(List data) 
 throws Exception {
 	if (data == null) {
 		throw new Exception ("Null data Vector passed to " 
@@ -79,8 +78,7 @@ cell renderer base class, so that we know if a cell should be right-justified
 (numbers) or left-justified (strings and dates). 
 
 Also, make sure the class type returned from this method matches the kind of
-object you return in the call to getValueAt(), otherwise an exception will 
-get thrown.
+object you return in the call to getValueAt(), otherwise an exception will get thrown.
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
@@ -132,15 +130,13 @@ Returns the format that the specified column should be displayed in when
 the table is being displayed in the given table format.  This method is
 required for JWorksheet table models.
 @param column column for which to return the format.
-@return the format (as used by StringUtil.formatString() in which to display the
-column.
+@return the format (as used by StringUtil.formatString() in which to display the column.
 
 AML:
 you'll see that in all these methods that use a switch() statement to switch
 between columns that I have a 'default:' tag.  Really, strictly-speaking,
 this isn't completely necessary, since if you set the __columns variable 
-correctly up top then the switch() will never be out of bounds ... but it's
-just a good idea ... 
+correctly up top then the switch() will never be out of bounds ... but it's just a good idea ... 
 */
 public String getFormat(int column) {
 	switch (column) {
@@ -162,8 +158,7 @@ public int getRowCount() {
 
 /**
 Returns the data that should be placed in the JTable at the given row and 
-column.  This method is inherited from the very base-most Java TableModel
-class and is required.
+column.  This method is inherited from the very base-most Java TableModel class and is required.
 @param row the row for which to return data.
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
@@ -182,7 +177,7 @@ public Object getValueAt(int row, int col) {
 	// for each column.  You can do a lot in here, I've done some really
 	// complicated stuff for some tables.  But for the most part,
 	// something simple like below will work
-	ERDiagram_Table table = (ERDiagram_Table)_data.elementAt(row);
+	ERDiagram_Table table = (ERDiagram_Table)_data.get(row);
 
 	switch (col) {
 		case __COL_NAME:	return table.getName();

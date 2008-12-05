@@ -17,6 +17,7 @@
 
 package RTi.DataTest;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -54,17 +55,17 @@ throws Exception {
 
 /**
 Builds all the Actions in the system.
-@return a Vector of Actions.
+@return a list of Actions.
 */
-public static Vector getAllActions() 
+public static List getAllActions() 
 throws Exception {
 	ActionDataModel model = null;
-	Vector models = __ioInterface.readAllActionDataModels();
+	List models = __ioInterface.readAllActionDataModels();
 	int size = models.size();
-	Vector actions = new Vector();
+	List actions = new Vector();
 
 	for (int i = 0; i < size; i++) {
-		model = (ActionDataModel)models.elementAt(i);
+		model = (ActionDataModel)models.get(i);
 		actions.add(getAction(model));
 	}
 	return actions;
@@ -128,6 +129,6 @@ public static void setIOInterface(AlertIOInterface ioInterface) {
 	__ioInterface = ioInterface;
 }
 
-private static Vector __severityVector = null;
+private static List __severityVector = null;
 
 }

@@ -11,7 +11,7 @@
 
 package RTi.GIS.GeoView;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GR.GRSymbol;
 
@@ -91,7 +91,7 @@ private String __layerName = null;
 /**
 The app layer types to search through for matches.
 */
-private Vector __availAppLayerTypes = null;
+private List __availAppLayerTypes = null;
 
 /**
 Constructor.
@@ -120,7 +120,7 @@ null.
 */
 public GeoViewAnimationLayerData(DataTable table, String layerName, 
 int symbolType, String[] idFields, String[] dataFields, 
-Vector availAppLayerTypes, boolean equalizeMax, PropList props) 
+List availAppLayerTypes, boolean equalizeMax, PropList props) 
 throws Exception {
 	if (table == null || layerName == null || idFields == null
 		|| availAppLayerTypes == null) {
@@ -193,7 +193,7 @@ throws Throwable {
 Returns the available app layer types.
 @return the available app layer types.
 */
-public Vector getAvailAppLayerTypes() {
+public List getAvailAppLayerTypes() {
 	return __availAppLayerTypes;
 }
 

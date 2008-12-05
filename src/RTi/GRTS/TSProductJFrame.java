@@ -178,6 +178,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.event.ChangeEvent;
@@ -567,7 +568,7 @@ private SimpleJComboBox __graphAnnotationProvider = null;
 /**
 The annotation providers that are available to be used in the product.
 */
-private Vector __annotationProviders = null;
+private List __annotationProviders = null;
 
 public final static String NO_GRAPHS_DEFINED = "No Graphs Defined";
 
@@ -2888,7 +2889,7 @@ private JPanel createSubproductJPanel ()
 			4, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE,
 			GridBagConstraints.EAST );
-	Vector values = getPropertyChoices("LeftYAxisMin");
+	List values = getPropertyChoices("LeftYAxisMin");
 	String value = getPropertyChoiceDefault("LeftYAxisMin");
 	_graph_lefty_min_JComboBox = new SimpleJComboBox(values, true);
 	_graph_lefty_min_JComboBox.select(value);
@@ -3568,7 +3569,7 @@ private void displayAnnotationProperties(int isub, int iann) {
 	if (prop_val == null) {	
 		prop_val = "";
 	}
-	Vector v = StringUtil.breakStringList(prop_val, ",", 0);
+	List v = StringUtil.breakStringList(prop_val, ",", 0);
 	if (v.size() != 4) {
 		__annotation_line_PointX1_JTextField.setText("0");
 		__annotation_line_PointY1_JTextField.setText("0");
@@ -3576,31 +3577,23 @@ private void displayAnnotationProperties(int isub, int iann) {
 		__annotation_line_PointY2_JTextField.setText("1");
 	}
 	else {
-		__annotation_line_PointX1_JTextField.setText(
-			("" + v.elementAt(0)).trim());
-		__annotation_line_PointY1_JTextField.setText(
-			("" + v.elementAt(1)).trim());
-		__annotation_line_PointX2_JTextField.setText(
-			("" + v.elementAt(2)).trim());
-		__annotation_line_PointY2_JTextField.setText(
-			("" + v.elementAt(3)).trim());
+		__annotation_line_PointX1_JTextField.setText(("" + v.get(0)).trim());
+		__annotation_line_PointY1_JTextField.setText(("" + v.get(1)).trim());
+		__annotation_line_PointX2_JTextField.setText(("" + v.get(2)).trim());
+		__annotation_line_PointY2_JTextField.setText(("" + v.get(3)).trim());
 	}
 
 	// LineWidth
-	prop_val = _tsproduct.getLayeredPropValue("LineWidth",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("LineWidth", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("LineWidth",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("LineWidth", isub, iann, true);
 	}
 	__annotation_line_LineWidth_JTextField.setText(prop_val);
 
 	// LineStyle
-	prop_val = _tsproduct.getLayeredPropValue("LineStyle",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("LineStyle", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("LineStyle",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("LineStyle", isub, iann, true);
 	}
 	__lineStyleJComboBox.select(prop_val);
 
@@ -3646,13 +3639,13 @@ private void displayAnnotationProperties(int isub, int iann) {
 	}
 	else {
 		__annotation_text_PointX_JTextField.setText(("" 
-			+ v.elementAt(0)).trim());
+			+ v.get(0)).trim());
 		__annotation_text_PointY_JTextField.setText(("" 
-			+ v.elementAt(1)).trim());
+			+ v.get(1)).trim());
 		__annotation_symbol_PointX_JTextField.setText(("" 
-			+ v.elementAt(0)).trim());
+			+ v.get(0)).trim());
 		__annotation_symbol_PointY_JTextField.setText(("" 
-			+ v.elementAt(1)).trim());
+			+ v.get(1)).trim());
 	}
 		
 	// Text
@@ -5340,11 +5333,11 @@ throws Throwable {
 }
 
 /**
-Returns a Vector of the values in the graph selection combo box.
-@return a Vector of the values in the graph selection combo box.
+Returns a list of the values in the graph selection combo box.
+@return a list of the values in the graph selection combo box.
 */
-protected Vector getGraphList() {
-	Vector v = new Vector();
+protected List getGraphList() {
+	List v = new Vector();
 	for (int i = 0; i < _graph_JComboBox.getItemCount(); i++) {
 		v.add(_graph_JComboBox.getItemAt(i));
 	}
@@ -5376,16 +5369,16 @@ LeftYAxisMin.
 @param property the property for which to return a Vector of combo box choices.
 @return a Vector of combo box choices, or null if the property is unrecognized.
 */
-private Vector getPropertyChoices(String property) {
+private List getPropertyChoices(String property) {
 	if (property.equalsIgnoreCase("LeftYAxisMax")) {
-		Vector v = new Vector();
+		List v = new Vector();
 		v.add("Auto");
 //	Reserved for future use		
 //		v.add("AutoCrop");
 		return v;
 	}
 	else if (property.equalsIgnoreCase("LeftYAxisMin")) {
-		Vector v = new Vector();
+		List v = new Vector();
 		v.add("Auto");
 //	Reserved for future use		
 //		v.add("AutoCrop");
@@ -5457,23 +5450,21 @@ TSGraphJComponent tsgraphcanvas, boolean visible) {
 
 	__annotationProviders.add("");
 
-	Vector v = tsview_gui.getTSProductAnnotationProviders();
+	List v = tsview_gui.getTSProductAnnotationProviders();
 	if (v != null) {
 		int size = v.size();
 		int size2 = 0;
-		Vector v2 = null;
+		List v2 = null;
 		TSProductAnnotationProvider tsap = null;
 		for (int i = 0; i < size; i++) {
-			tsap = (TSProductAnnotationProvider)v.elementAt(i);
+			tsap = (TSProductAnnotationProvider)v.get(i);
 			v2 = tsap.getAnnotationProviderChoices();
 
 			if (v2 != null) {
 				size2 = v2.size();
 				
 				for (int j = 0; j < size2; j++) {
-					__annotationProviders.add(
-						((String)v2.elementAt(j))
-						.trim());
+					__annotationProviders.add( ((String)v2.get(j)).trim());
 				}
 			}
 		}
@@ -5678,11 +5669,11 @@ public void itemStateChanged ( ItemEvent evt ) {
 		// time series to be looked up (the rest of the string is
 		// ignored.
 		selected = __ts_JComboBox.getSelected ();
-		Vector list = StringUtil.breakStringList ( selected, " ", 0 );
+		List list = StringUtil.breakStringList ( selected, " ", 0 );
 		if ( list == null ) {
 			return;
 		}
-		selected = (String)list.elementAt(0);
+		selected = (String)list.get(0);
 		if ( !StringUtil.isInteger(selected) ) {
 			return;
 		}
@@ -6441,12 +6432,12 @@ values and does not call updateTSProduct first.
 @param selected Selected subproduct (item from _graph_Choice).
 */
 private void setSubproduct2 ( String selected ) {
-	Vector list = StringUtil.breakStringList ( selected, " ", 0 );
+	List list = StringUtil.breakStringList ( selected, " ", 0 );
 	if ( list == null ) {
 		return;
 	}
 	// Else, get the selected product from the first token...
-	selected = (String)list.elementAt(0);
+	selected = (String)list.get(0);
 	if ( !StringUtil.isInteger(selected) ) {
 		return;
 	}

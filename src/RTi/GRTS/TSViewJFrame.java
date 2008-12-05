@@ -91,6 +91,7 @@ package RTi.GRTS;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -140,7 +141,7 @@ public static final int PROPERTIES_HIDDEN = -4;
 
 // Private data related to TSView...
 
-private Vector _tslist = null;		// List of time series to display.
+private List _tslist = null;		// List of time series to display.
 private PropList _props = null;		// Property list used for displays.
 private TSProduct _tsproduct = null;	// TSProduct (used instead of old-style)
 					// PropList.
@@ -170,12 +171,12 @@ protected TSProductJFrame _tsproduct_gui = null;
 Vector of TSProductAnnotationProvider objects available for use with any of 
 the sub guis.  Used in TSProductJFrame properties display.
 */
-private Vector __tsProductAnnotationProviders = null;
+private List __tsProductAnnotationProviders = null;
 
 /**
 Vector of TSProductDMI objects available for use with any of the sub guis.
 */
-private Vector __tsProductDMIs = null;
+private List __tsProductDMIs = null;
 
 
 /**
@@ -405,7 +406,7 @@ column headings.  Specify as "true" or "false".
 </table>
 @exception Exception if there is an error opening the view.
 */
-public TSViewJFrame ( Vector tslist, PropList proplist )
+public TSViewJFrame ( List tslist, PropList proplist )
 throws Exception
 {	super ( "Time Series View" );
 	initialize ( tslist, proplist );
@@ -599,7 +600,7 @@ public String getPropValue ( String key )
 Returns the Vector of TSProductAnnotationProviders that were added to this class
 @return the Vector of TSProductAnnotationProviders that were added to this class
 */
-public Vector getTSProductAnnotationProviders() {
+public List getTSProductAnnotationProviders() {
 	return __tsProductAnnotationProviders;
 }
 
@@ -607,7 +608,7 @@ public Vector getTSProductAnnotationProviders() {
 Returns the Vector of TSProductDMIs that were added to this class.
 @return the Vector of TSProductDMIs that were added to this class.
 */
-public Vector getTSProductDMIs() {
+public List getTSProductDMIs() {
 	return __tsProductDMIs;
 }
 
@@ -642,7 +643,7 @@ Initialize the TSViewJFrame data.
 @param proplist Properties to control the display.
 @exception Exception if an error occurs.
 */
-private void initialize ( Vector tslist, PropList proplist )
+private void initialize ( List tslist, PropList proplist )
 throws Exception
 {	String message, routine = "TSViewJFrame.initialize";
 
@@ -833,8 +834,7 @@ protected void openGUI ( int type )
 		if ( _summary_gui == null ) {
 			// OK to open new GUI...
 			setWaitCursor ( true );
-			_summary_gui = new TSViewSummaryJFrame (
-				this, _tslist, _props );
+			_summary_gui = new TSViewSummaryJFrame ( this, _tslist, _props );
 			setWaitCursor ( false );
 		}
 		else {	// The GUI is already open, pop to the front
@@ -846,8 +846,7 @@ protected void openGUI ( int type )
 		if ( _table_gui == null ) {
 			// OK to open new GUI...
 			setWaitCursor ( true );
-			_table_gui = new TSViewTableJFrame ( this, _tslist,
-					_props );
+			_table_gui = new TSViewTableJFrame ( this, _tslist,	_props );
 			// The following gracefully handles shut-down of a
 			// graph.  An attempt to close the graph GUI from 
 			// itself will fail because _graph_gui will still be
@@ -912,9 +911,9 @@ TSProductAnnotationProvider provider) {
 	TSProductAnnotationProvider tsProductAnnotationProvider = null;
 	for (int i = (size - 1); i <= 0; i--) {
 		tsProductAnnotationProvider = (TSProductAnnotationProvider)
-			__tsProductAnnotationProviders.elementAt(i);
+			__tsProductAnnotationProviders.get(i);
 		if (tsProductAnnotationProvider == provider) {
-			__tsProductAnnotationProviders.removeElementAt(i);
+			__tsProductAnnotationProviders.remove(i);
 		}
 	}
 }
@@ -928,9 +927,9 @@ public void removeTSProductDMI(TSProductDMI productDMI) {
 
 	TSProductDMI tsProductDMI = null;
 	for (int i = (size - 1); i <= 0; i--) {
-		tsProductDMI = (TSProductDMI)__tsProductDMIs.elementAt(i);
+		tsProductDMI = (TSProductDMI)__tsProductDMIs.get(i);
 		if (tsProductDMI == productDMI) {
-			__tsProductDMIs.removeElementAt(i);
+			__tsProductDMIs.remove(i);
 		}
 	}
 }

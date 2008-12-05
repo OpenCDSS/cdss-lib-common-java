@@ -53,16 +53,16 @@ public String toString() {
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.elementAt(0) );
+		statement.append ( (String)_table_Vector.get(0) );
 	}
 
 	size = _where_Vector.size();
 	if ( size > 0 ) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.elementAt(0) );
+		statement.append ( (String)_where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
 			statement.append ( " AND " +
-				(String)_where_Vector.elementAt(i) );
+				(String)_where_Vector.get(i) );
 		}
 	}
 	return statement.toString();

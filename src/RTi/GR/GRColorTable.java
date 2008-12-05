@@ -21,8 +21,7 @@ import java.util.Vector;
 Class to store a color table.  This can be used, for example, to organize
 colors for a legend for a map layer.  This class uses a Vector of GRColor and
 internal arrays to associate the colors with numbers and data values.
-REVISIT (JTS - 2006-05-23)
-Examples of use
+TODO (JTS - 2006-05-23) Examples of use
 */
 public class GRColorTable 
 extends Vector
@@ -107,7 +106,7 @@ set to zero.
 @param color Color to add to the color table.
 */
 public void addColor ( GRColor color )
-{	addElement ( color );
+{	add ( color );
 }
 
 /**

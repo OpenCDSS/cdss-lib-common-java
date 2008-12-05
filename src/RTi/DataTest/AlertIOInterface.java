@@ -22,7 +22,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 This interface defines methods that IO classes will use to read and write data
@@ -50,10 +50,10 @@ Reads all the action data models from the data source.
 @return a Vector of data models for all the actions in the system.
 @throws Exception if there is an error reading the action data models.
 */
-public Vector readAllActionDataModels()
+public List readAllActionDataModels()
 throws Exception;
 
-public Vector readAllDataTestDataModels()
+public List readAllDataTestDataModels()
 throws Exception;
 
 /**
@@ -106,7 +106,7 @@ model.
 public DataTestFunctionDataModel readDataTestFunctionDataModel(int functionNum)
 throws Exception;
 
-public Vector readSeverityTypes()
+public List readSeverityTypes()
 throws Exception;
 
 /**

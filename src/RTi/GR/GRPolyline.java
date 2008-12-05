@@ -23,7 +23,7 @@ import RTi.Util.Message.Message;
 /**
 This class stores a sequence of non-closing points.  Data are public to
 increase performance during draws but the set methods should be used to set
-data.  Currently, the number of points cannot be dymanically extended.
+data.  Currently, the number of points cannot be dynamically extended.
 */
 public class GRPolyline extends GRShape
 {

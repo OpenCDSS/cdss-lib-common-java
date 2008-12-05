@@ -1,6 +1,6 @@
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TSSupplier;
 
@@ -34,13 +34,13 @@ throws Exception {
 	return __ts;
 }
 
-public Vector readTimeSeriesList(String fname, DateTime date1, DateTime date2,
+public List readTimeSeriesList(String fname, DateTime date1, DateTime date2,
 String req_units, boolean read_data)
 throws Exception {
 	return null;
 }
 
-public Vector readTimeSeriesList(TSIdent tsident, String fname,
+public List readTimeSeriesList(TSIdent tsident, String fname,
 DateTime date1, DateTime date2, String req_units, boolean read_data)
 throws Exception {
 	return null;

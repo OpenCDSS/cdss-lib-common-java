@@ -17,7 +17,7 @@ import java.awt.GridBagLayout;
 
 import java.awt.print.PageFormat;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -66,8 +66,7 @@ Y position of the tables in the ER Diagram.
 */
 public ERDiagram_JFrame(DMI dmi, String tablesTableName, String tableNameField,
 String erdXField, String erdYField, PageFormat pageFormat) {
-	this (dmi, tablesTableName, tableNameField, erdXField, erdYField, 
-		null, pageFormat, false);
+	this (dmi, tablesTableName, tableNameField, erdXField, erdYField, null, pageFormat, false);
 }
 
 /**
@@ -87,7 +86,7 @@ tables.
 @param pageFormat the pageFormat with which the page will be printed.
 */
 public ERDiagram_JFrame(DMI dmi, String tablesTableName, String tableNameField,
-String erdXField, String erdYField, Vector referenceTables, 
+String erdXField, String erdYField, List referenceTables, 
 PageFormat pageFormat) {
 	this (dmi, tablesTableName, tableNameField, erdXField, erdYField, 
 		referenceTables, pageFormat, false);
@@ -131,7 +130,7 @@ Y position of the tables in the ER Diagram.
 @param debug whether to turn on debugging options in the popup menu.  
 */
 public ERDiagram_JFrame(DMI dmi, String tablesTableName, String tableNameField,
-String erdXField, String erdYField, Vector referenceTables, 
+String erdXField, String erdYField, List referenceTables, 
 PageFormat pageFormat, boolean debug) {
 	super(dmi.getDatabaseName());
 

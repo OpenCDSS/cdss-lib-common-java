@@ -141,6 +141,7 @@ import java.io.PrintWriter;
 
 import java.lang.Math;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.TS.TS;
@@ -1158,10 +1159,8 @@ public static final String GRAPH_TYPE_NAMES[] = {
 						};
 
 private PropList __proplist = null;		// Main PropList
-private PropList __override_proplist = null;	// Properties to override those
-						// in the file.
-private Vector __tslist = null;			// Time series associated with
-						// the product.
+private PropList __override_proplist = null;	// Properties to override those in the file.
+private List __tslist = null; // Time series associated with the product.
 
 /**
 The number of zoom groups among all the different graphs.
@@ -1186,20 +1185,20 @@ The annotation providers that will be used to generate annotations on a
 graph.  An element in this Vector at position X corresponds to the
 element in the __annotationsProvidersPropLists Vector at position X.
 */
-private Vector __annotationProviders = null;
+private List __annotationProviders = null;
 
 /**
-Control properties that determine how the annotation providers put annotaitons
+Control properties that determine how the annotation providers put annotations
 on a graph.  An element in this Vector at position X corresponds to the
 element in the __annotationsProviders Vector at position X.
 */
-private Vector __annotationProviderPropLists = null;
+private List __annotationProviderPropLists = null;
 
 /**
 Checks for the annotation providers that were already used on this product,
 so that they can be checked and not used twice.
 */
-private Vector __usedProviders = new Vector();
+private List __usedProviders = new Vector();
 
 /**
 Construct a blank TSProduct.  It is assumed that properties will be added by
@@ -1296,16 +1295,14 @@ private void addAnnotations() {
 	TSProductAnnotationProvider provider = null;
 	
 	for (int i = 0; i < size; i++) {
-		provider = (TSProductAnnotationProvider)__annotationProviders
-			.elementAt(i);
+		provider = (TSProductAnnotationProvider)__annotationProviders.get(i);
 		if (alreadyUsed(provider)) {	
 			continue;
 		}
 		else {
 			__usedProviders.add(provider);
 		}
-		controlProps = (PropList)__annotationProviderPropLists
-			.elementAt(i);
+		controlProps = (PropList)__annotationProviderPropLists.get(i);
 
 		try {
 			provider.addAnnotations(this, controlProps);
@@ -1329,7 +1326,7 @@ private boolean alreadyUsed(TSProductAnnotationProvider provider) {
 	int size = __usedProviders.size();
 	TSProductAnnotationProvider p = null;
 	for (int i = 0; i < size; i++) {
-		 p = (TSProductAnnotationProvider)__usedProviders.elementAt(i);
+		 p = (TSProductAnnotationProvider)__usedProviders.get(i);
 		 if (p == provider) {
 		 	return true;
 		}
@@ -2364,8 +2361,8 @@ Returns all the properties in the TSProduct (from both the regular and the
 override proplist) as a sorted Vector.
 @return a sorted Vector of all the properties in the TSProduct.
 */
-public Vector getAllProps() {
-	Vector v = new Vector();
+public List getAllProps() {
+	List v = new Vector();
 	
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
@@ -3384,7 +3381,7 @@ public String getPropValue ( String property )
 Return the list of time series associated with the TSProduct.
 @return the list of time series associated with the TSProduct.
 */
-public Vector getTSList ()
+public List getTSList ()
 {	return __tslist;
 }
 
@@ -3591,9 +3588,9 @@ protected void removeSubProduct(int sp) {
 	for (int i = 0; i < numData; i++) {
 		id = getPropValue("Data " + (sp + 1) + "." + (i + 1) + ".TSID");
 		for (int j = 0; j < __tslist.size(); j++) {
-			ts = (TS)__tslist.elementAt(j);
+			ts = (TS)__tslist.get(j);
 			if (ts.getIdentifierString().equals(id)) {
-				__tslist.removeElementAt(j);
+				__tslist.remove(j);
 				break;
 			}
 		}
@@ -3656,7 +3653,7 @@ String newSub, String newAnn) {
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	Vector v = new Vector();
+	List v = new Vector();
 	__dirty = true;
 
 	// loop through the proplist
@@ -3695,7 +3692,7 @@ String newSub, String newAnn) {
 		}
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.elementAt(i);
+		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -3735,7 +3732,7 @@ String newSub, String newAnn) {
 		}	
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.elementAt(i);
+		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__override_proplist.setHowSet(
 				Prop.SET_AT_RUNTIME_BY_USER);
@@ -3769,7 +3766,7 @@ String newData) {
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	Vector v = new Vector();
+	List v = new Vector();
 	__dirty = true;
 
 	// loop through the proplist
@@ -3807,7 +3804,7 @@ String newData) {
 		}
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.elementAt(i);
+		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -3847,7 +3844,7 @@ String newData) {
 		}	
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.elementAt(i);
+		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__override_proplist.setHowSet(
 				Prop.SET_AT_RUNTIME_BY_USER);
@@ -4085,9 +4082,9 @@ public void setPropValue (	String property, String value, int subproduct,
 Set the list of time series associated with the TSProduct.  If any 
 annotation providers have been added with addTSProductAnnotationProvider(),
 the annotations from those providers will be set on the graph at this point.
-@param tslist Vector of TS associated with the TSProduct.
+@param tslist list of TS associated with the TSProduct.
 */
-public void setTSList ( Vector tslist )
+public void setTSList ( List tslist )
 {	__tslist = tslist;
 
 	if (__annotationProviders != null) {
@@ -4259,7 +4256,7 @@ throws Exception
 	// each subproduct the data properties.  Use the prefix notation and
 	// shave the prefix off each property as it is written...
 
-	Vector v = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	List v = __proplist.getPropsMatchingRegExp ( "Product.*" );
 	Prop prop = null;
 	int how_set = 0;
 	out.println ( "[Product]" );
@@ -4312,7 +4309,7 @@ throws Exception
 	
 	for (int i = 0; i < size; i++) {
 		save = false;
-		prop = (Prop)v.elementAt(i);
+		prop = (Prop)v.get(i);
 		how_set = prop.getHowSet();
 		
 		if (how_set == Prop.SET_HIDDEN) {
@@ -4343,7 +4340,7 @@ throws Exception
 	// Loop through the subproducts...
 
 	int nsubs = getNumSubProducts();
-	Vector vdata = null;
+	List vdata = null;
 	int dsize = 0;
 	String sub_prefix;
 	int sub_prefix_length = 0;
@@ -4369,7 +4366,7 @@ throws Exception
 		
 		for ( int i = 0; i < size; i++ ) {
 			save = false;
-			prop = (Prop)v.elementAt(i);
+			prop = (Prop)v.get(i);
 			key = prop.getKey();
 			how_set = prop.getHowSet();
 
@@ -4428,7 +4425,7 @@ throws Exception
 			
 			for ( int j = 0; j < dsize; j++ ) {
 				save = false;
-				prop = (Prop)vdata.elementAt(j);
+				prop = (Prop)vdata.get(j);
 				how_set = prop.getHowSet();
 				key = prop.getKey().substring(
 					data_prefix_length - 1);
@@ -4493,7 +4490,7 @@ throws Exception
 ////////////////////////////////////////////
 // 2 LEVELS OF INDENTION REMOVED
 		save = false;
-		prop = (Prop)vdata.elementAt(j);
+		prop = (Prop)vdata.get(j);
 		how_set = prop.getHowSet();
 	
 		if (how_set == Prop.SET_HIDDEN) {

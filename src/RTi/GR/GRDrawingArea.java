@@ -66,7 +66,7 @@ package RTi.GR;
 import java.awt.Graphics;
 import java.awt.Shape;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.PropList;
 
@@ -378,15 +378,14 @@ public abstract void drawArc(double x, double y, double rx, double ry,double a1,
 
 /**
 Draw compound text.
-@param text Vector of text to draw.
+@param text list of text to draw.
 @param color the color to draw the text in.
 @param x the x coordinate from which to start drawing the text
 @param y the y coordinate from which to start drawing the text
 @param angle the angle at which to draw the text
 @param flag GRText.* value denoting where to draw the text
 */
-public abstract void drawCompoundText (	Vector text, GRColor color, double x, 
-double y, double angle, int flag );
+public abstract void drawCompoundText (	List text, GRColor color, double x, double y, double angle, int flag );
 
 /**
 Draw a line.

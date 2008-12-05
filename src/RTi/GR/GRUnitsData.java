@@ -17,8 +17,7 @@ package RTi.GR;
 
 /**
 Table for converting between data units.
-REVISIT (SAM - 2003-05-08)
-What is the base unit?  Code is rarely if ever used.
+TODO (SAM - 2003-05-08) What is the base unit?  Code is rarely if ever used.
 */
 public class GRUnitsData
 {

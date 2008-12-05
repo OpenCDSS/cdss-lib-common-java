@@ -1,6 +1,6 @@
 package RTi.GRTS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.IrregularTS;
 import RTi.TS.TSData;
@@ -17,10 +17,10 @@ public class TSViewTable_Irregular_TableModel extends
         TSViewTable_TableModel
 {
 
-  Vector dataPoints;
+  List dataPoints;
   IrregularTS irrTS = null;
   
-  public TSViewTable_Irregular_TableModel(Vector data, DateTime start,
+  public TSViewTable_Irregular_TableModel(List data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend)
           throws Exception
@@ -30,7 +30,7 @@ public class TSViewTable_Irregular_TableModel extends
       // TODO Auto-generated constructor stub
     }
 
-  public TSViewTable_Irregular_TableModel(Vector data, DateTime start,
+  public TSViewTable_Irregular_TableModel(List data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend,
           int cacheInterval) throws Exception
@@ -45,17 +45,16 @@ public class TSViewTable_Irregular_TableModel extends
    * @param data 
    * @throws TSException
    */
-  protected void calcRowCount(Vector data) throws TSException
+  protected void calcRowCount(List data) throws TSException
   {
     String routine = "calcRowCount";
-    if (data.elementAt(0) instanceof IrregularTS)
+    if (data.get(0) instanceof IrregularTS)
       {
-        irrTS = (IrregularTS)data.elementAt(0);
+        irrTS = (IrregularTS)data.get(0);
       }
     else
       {       
-        Message.printWarning(3, routine,
-                "Not a irregularTS: " + irrTS.getIdentifierString() );
+        Message.printWarning(3, routine, "Not a irregularTS: " + irrTS.getIdentifierString() );
       }
     dataPoints = irrTS.getData();
    //TODO: dre verify right start & end dates
@@ -64,15 +63,14 @@ public class TSViewTable_Irregular_TableModel extends
   }
   
   /**
-  Returns the data that should be placed in the JTable at the given row and 
-  column.
+  Returns the data that should be placed in the JTable at the given row and column.
   @param row the row for which to return data.
   @param col the column for which to return data.
   @return the data that should be placed in the JTable at the given row and col.
   */
   public Object getValueAt(int row, int col) 
   {
-    TSData d = (TSData)dataPoints.elementAt(row);
+    TSData d = (TSData)dataPoints.get(row);
     
     if (col == 0)
       {

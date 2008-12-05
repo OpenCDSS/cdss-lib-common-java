@@ -24,6 +24,7 @@
 
 package RTi.DataTest;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.DMI.DMIUtil;
@@ -140,7 +141,7 @@ private TimeInterval __evaluationWindow = null;
 A Vector of the data test results from positive tests.  This Vector will never
 be null.  This is a Vector of Vectors of DataTestResults.
 */
-private Vector __positiveResults = new Vector();
+private List __positiveResults = new Vector();
 
 /**
 Empty constructor.  Data members must be set before this action can be used.
@@ -170,14 +171,14 @@ Adds positive test results to the internal Vector of positive test results.
 test results in this Vector that have a result level equal to or less than
 the internal __resultLevel member variable will be added.
 */
-public void addResults(Vector results) {
+public void addResults(List results) {
 	boolean missing = DMIUtil.isMissing(__resultLevel);
 	DataTestResult result = null;
 	int size = results.size();
-	Vector v = new Vector();
+	List v = new Vector();
 	
 	for (int i = 0; i < size; i++) {
-		result = (DataTestResult) results.elementAt(i);
+		result = (DataTestResult) results.get(i);
 		if (missing || result.getLevel() <= __resultLevel) {
 			v.add(result);
 		}
@@ -393,7 +394,7 @@ public DateTime getNextActionDateTime() {
 Returns the positive test results.
 @return the positive test results.
 */
-public Vector getPositiveResults() {
+public List getPositiveResults() {
 	return getPositiveResults(null);
 }
 
@@ -404,7 +405,7 @@ used in the runAction() method of classes that extend Action.
 for all DataTests will be returned.
 @return the positive test results.  This Vector will never be null.
 */
-public Vector getPositiveResults(DataTest test) {
+public List getPositiveResults(DataTest test) {
 	if (test == null) {
 		return __positiveResults;
 	}
@@ -412,14 +413,14 @@ public Vector getPositiveResults(DataTest test) {
 	DataTestResult result = null;
 	int size = getPositiveResultsCount();
 	int size2 = 0;
-	Vector ret = new Vector();
-	Vector v = null;
+	List ret = new Vector();
+	List v = null;
 
 	for (int i = 0; i < size; i++) {
-		v = (Vector) __positiveResults.elementAt(i);
+		v = (List) __positiveResults.get(i);
 		size2 = v.size();
 		for (int j = 0; j < size2; j++) {
-			result = (DataTestResult) v.elementAt(j);
+			result = (DataTestResult) v.get(j);
 			if (result.getDataTest() == test) {
 				ret.add(v);
 			}
@@ -549,15 +550,15 @@ public void removeOldResults(DateTime dateTime) {
 	
 	DataTestResult result = null;
 	int size1 = __positiveResults.size();
-	Vector v = null;
+	List v = null;
 
 	for (int i = (size1 - 1); i >= 0; i--) {
-		v = (Vector) __positiveResults.elementAt(i);
+		v = (List) __positiveResults.get(i);
 		for (int j = 0; j < 1; j++) {
 			// check just the first element in the Vector.
-			result = (DataTestResult) v.elementAt(j);
+			result = (DataTestResult) v.get(j);
 			if (dt.greaterThanOrEqualTo(result.getTestTime())) {
-				__positiveResults.removeElementAt(i);
+				__positiveResults.remove(i);
 			}
 		}
 	}
@@ -780,7 +781,7 @@ public void setSeverity(Severity severity) {
 	__severity = severity;
 }
 
-public void connectSeverity(Vector severityVector) {
+public void connectSeverity(List severityVector) {
 	if (severityVector == null) {
 		return;
 	}
@@ -789,7 +790,7 @@ public void connectSeverity(Vector severityVector) {
 	Severity s = null;
 
 	for (int i = 0; i < size; i++) {
-		s = (Severity)severityVector.elementAt(i);
+		s = (Severity)severityVector.get(i);
 		if (s.getSeverityType() == __severityType) {
 			__severity = s;
 			return;

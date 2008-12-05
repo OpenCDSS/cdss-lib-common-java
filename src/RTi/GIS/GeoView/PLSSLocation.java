@@ -25,7 +25,7 @@
 
 package RTi.GIS.GeoView;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
@@ -265,7 +265,7 @@ is a problem filling data in the location object.
 */
 public static PLSSLocation parse(String locationString, boolean cdssFormat) 
 throws Exception {
-	Vector v = StringUtil.breakStringList(locationString, ",", 0);
+	List v = StringUtil.breakStringList(locationString, ",", 0);
 
 	if (cdssFormat) {
 		return parseCDSSLocation(locationString);
@@ -282,7 +282,7 @@ throws Exception {
 	String temp = null;
 
 	for (int i = 0; i < v.size(); i++) {
-		s = ((String)v.elementAt(i)).trim();
+		s = ((String)v.get(i)).trim();
 		index = s.indexOf("=");
 
 		if (index == -1) {
@@ -367,7 +367,7 @@ is a problem filling data in the location object.
 */
 public static PLSSLocation parseCDSSLocation(String locationString) 
 throws Exception {
-	Vector v = StringUtil.breakStringList(locationString, ",", 0);
+	List v = StringUtil.breakStringList(locationString, ",", 0);
 
 	if (v.size() == 7) {
 		return parseOldCDSSLocation(locationString);
@@ -384,7 +384,7 @@ throws Exception {
 
 	PLSSLocation location = new PLSSLocation();
 
-	s = ((String)v.elementAt(0)).trim();
+	s = ((String)v.get(0)).trim();
 	if (s.equals("*")) {
 		location.setPM(null);
 	}
@@ -392,7 +392,7 @@ throws Exception {
 		location.setPM(s);
 	}
 
-	s = ((String)v.elementAt(1)).trim();
+	s = ((String)v.get(1)).trim();
 	if (s.equals("*")) {
 		location.setTownship(UNSET);
 	}
@@ -402,7 +402,7 @@ throws Exception {
 
 	// half-township (2) is ignored
 
-	s = ((String)v.elementAt(3)).trim();
+	s = ((String)v.get(3)).trim();
 	if (s.equals("*")) {
 		location.setTownshipDirection(null);
 	}
@@ -410,7 +410,7 @@ throws Exception {
 		location.setTownshipDirection(s);
 	}
 
-	s = ((String)v.elementAt(4)).trim();
+	s = ((String)v.get(4)).trim();
 	if (s.equals("*")) {
 		location.setRange(UNSET);
 	}
@@ -420,7 +420,7 @@ throws Exception {
 
 	// half-range (5) is ignored
 
-	s = ((String)v.elementAt(6)).trim();
+	s = ((String)v.get(6)).trim();
 	if (s.equals("*")) {
 		location.setRangeDirection(null);
 	}
@@ -428,7 +428,7 @@ throws Exception {
 		location.setRangeDirection(s);
 	}
 
-	s = ((String)v.elementAt(7)).trim();
+	s = ((String)v.get(7)).trim();
 	if (s.equals("*")) {
 		location.setSection(UNSET);
 	}
@@ -436,7 +436,7 @@ throws Exception {
 		location.setSection(StringUtil.atoi(s));
 	}
 
-	s = ((String)v.elementAt(8)).trim();
+	s = ((String)v.get(8)).trim();
 	if (s.equals("*")) {
 		location.setHalfSection(null);
 	}
@@ -444,7 +444,7 @@ throws Exception {
 		location.setHalfSection(s);
 	}
 
-	s = ((String)v.elementAt(9)).trim();
+	s = ((String)v.get(9)).trim();
 	if (s.equals("*")) {
 		location.setQ(null);
 	}
@@ -452,7 +452,7 @@ throws Exception {
 		location.setQ(s);
 	}
 	
-	s = ((String)v.elementAt(10)).trim();
+	s = ((String)v.get(10)).trim();
 	if (s.equals("*")) {
 		location.setQQ(null);
 	}
@@ -460,7 +460,7 @@ throws Exception {
 		location.setQQ(s);
 	}
 
-	s = ((String)v.elementAt(11)).trim();
+	s = ((String)v.get(11)).trim();
 	if (s.equals("*")) {
 		location.setQQQ(null);
 	}
@@ -484,12 +484,12 @@ is a problem filling data in the location object.
 */
 public static PLSSLocation parseOldCDSSLocation(String locationString) 
 throws Exception {
-	Vector v = StringUtil.breakStringList(locationString, ",", 0);
+	List v = StringUtil.breakStringList(locationString, ",", 0);
 	String s = null;
 
 	PLSSLocation location = new PLSSLocation();
 
-	s = ((String)v.elementAt(0)).trim();
+	s = ((String)v.get(0)).trim();
 	if (s.equals("*")) {
 		location.setPM(null);
 	}
@@ -497,7 +497,7 @@ throws Exception {
 		location.setPM(s);
 	}
 
-	s = ((String)v.elementAt(1)).trim();
+	s = ((String)v.get(1)).trim();
 	int index = -1;
 	if (s.equals("*")) {
 		location.setTownship(UNSET);
@@ -522,7 +522,7 @@ throws Exception {
 		}
 	}
 
-	s = ((String)v.elementAt(2)).trim();
+	s = ((String)v.get(2)).trim();
 	if (s.equals("*")) {
 		location.setRange(UNSET);
 		location.setRangeDirection(null);
@@ -546,7 +546,7 @@ throws Exception {
 		}
 	}
 
-	s = ((String)v.elementAt(3)).trim();
+	s = ((String)v.get(3)).trim();
 	if (s.equals("*")) {
 		location.setSection(UNSET);
 		location.setHalfSection(null);
@@ -570,7 +570,7 @@ throws Exception {
 		}
 	}
 
-	s = ((String)v.elementAt(4)).trim();
+	s = ((String)v.get(4)).trim();
 	if (s.equals("*")) {
 		location.setQ(null);
 	}
@@ -578,7 +578,7 @@ throws Exception {
 		location.setQ(s);
 	}
 	
-	s = ((String)v.elementAt(5)).trim();
+	s = ((String)v.get(5)).trim();
 	if (s.equals("*")) {
 		location.setQQ(null);
 	}
@@ -586,7 +586,7 @@ throws Exception {
 		location.setQQ(s);
 	}
 
-	s = ((String)v.elementAt(6)).trim();
+	s = ((String)v.get(6)).trim();
 	if (s.equals("*")) {
 		location.setQQQ(null);
 	}

@@ -138,6 +138,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -342,11 +343,11 @@ private TSViewTable_TableModel[]
 	__yearModels;
 
 /**
-Vectors of the mouse listeners that have been set up for all of the different
+Lists of the mouse listeners that have been set up for all of the different
 kinds of worksheets.  These are used in order to find which worksheet was 
 clicked on after a mouse press on the JScrollPane associated with a worksheet.
 */
-private Vector[]
+private List[]
 	__dayMouseListeners,
 	__hourMouseListeners,
 	__minuteMouseListeners,
@@ -354,11 +355,11 @@ private Vector[]
 	__yearMouseListeners;
 
 /**
-Vectors of Time Series to be displayed in the GUI.  __tslist is set from a 
-Vector passed in to this GUI at construction, and then the other Vectors are
+List of Time Series to be displayed in the GUI.  __tslist is set from a 
+list passed in to this GUI at construction, and then the other lists are
 formed from the TS split out of __tslist.
 */
-private Vector	
+private List	
 	__day,
 	__hour,
 	__minute,
@@ -371,10 +372,9 @@ private Vector
 Constructor.
 @param tsviewJFrame Parent TSViewJFrame.
 @param tslist List of time series to view.
-@param props Properties for display (currently same list passed in to
-TSViewJFrame).
+@param props Properties for display (currently same list passed in to TSViewJFrame).
 */
-public TSViewTableJFrame(TSViewJFrame tsviewJFrame, Vector tslist, 
+public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List tslist, 
 PropList props)
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 
@@ -457,7 +457,7 @@ worksheets' scrollpanes so that the last selected worksheet can be tracked.
 */
 private void addWorksheetsToPanel(JPanel panel, String intervalDescription, 
 JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets, 
-JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
+JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners) {
 	if (worksheets == null || worksheets.length == 0) {
 		// There are no worksheets for the current interval type.
 		checkBox.setSelected(false);
@@ -502,7 +502,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, Vector[] mouseListeners) {
 
 		worksheets[i].addHeaderMouseListener(this);
 
-		Vector v = new Vector();
+		List v = new Vector();
 		v.add(scrollPanes[i]);
 
 		scrollPanes[i].addMouseListener(worksheets[i]);
@@ -550,13 +550,13 @@ is not populated.
 @param worksheets the array for which to build the mouse listener array
 @return the mouse listener array.
 */
-private Vector[] buildMouseListeners(JWorksheet[] worksheets) {
+private List[] buildMouseListeners(JWorksheet[] worksheets) {
 	if (worksheets == null) {
 		return null;
 	}
 	
 	int numWorksheets = worksheets.length;
-	Vector[] v = new Vector[numWorksheets];
+	List[] v = new List[numWorksheets];
 	return v;
 }
 
@@ -729,42 +729,41 @@ private void createSeparateTimeSeries() {
 
 	size = __tslist.size();
 	for (int i = 0; i < size; i++) {
-		ts = (TS)__tslist.elementAt(i);
+		ts = (TS)__tslist.get(i);
 		if (ts == null) {
 			continue;
 		}
 		interval = ts.getDataIntervalBase();
 
 		if (interval == TimeInterval.MINUTE) {
-			__minute.addElement(ts);
+			__minute.add(ts);
 		}
 		else if (interval == TimeInterval.HOUR) {
-			__hour.addElement(ts);
+			__hour.add(ts);
 		}
 		else if (interval == TimeInterval.DAY) {
-			__day.addElement(ts);
+			__day.add(ts);
 		}
 		else if (interval == TimeInterval.IRREGULAR) {
-			__irregular.addElement(ts);
+			__irregular.add(ts);
 		}
 		else if (interval == TimeInterval.MONTH) {
-			__month.addElement(ts);
+			__month.add(ts);
 		}
 		else if (interval == TimeInterval.YEAR) {
-			__year.addElement(ts);
+			__year.add(ts);
 		}		
 	}	
 }
 
 /**
 Create the table models wth the same interval base for all of the worksheets 
-for the given Vector of time series.
-@param tslist Vector of time series for which to create table models.
+for the given list of time series.
+@param tslist list of time series for which to create table models.
 @return an array of TSViewTable_TableModel object, one for each worksheet
-that needs to be created, or null if no worksheets need be created for the
-ts type.
+that needs to be created, or null if no worksheets need be created for the ts type.
 */
-private TSViewTable_TableModel[] createTableModels(Vector tslist) {
+private TSViewTable_TableModel[] createTableModels(List tslist) {
 	String routine = "createTableModels";
 
 	// if there is no data in the ts vector, there is no need to
@@ -787,7 +786,7 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 	
 	// get the first TS in the Vector and get the interval base.  All other
 	// TS in the Vector must have the same interval base
-	TS ts = (TS)tslist.elementAt(0);	
+	TS ts = (TS)tslist.get(0);	
 	int interval = ts.getDataIntervalBase();
 
 	int dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
@@ -821,7 +820,7 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 	// intervals.  All of the TS with the same intervals need to be
 	// placed in the same worksheet.
 	for (int i = 0; i < numts; i++) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 
 		// get the interval multiplier for the current TS
 		multi = ts.getDataIntervalMult();
@@ -884,13 +883,13 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 
 	// loop through all of the different interval multipliers
 	for (int i = 0; i < count; i++) {
-		Vector data = new Vector();
+		List data = new Vector();
 
 		// add all the time series with the same interval multiplier
 		// to the Vector
 		for (int j = 0; j < numts; j++) {
 			if (matches[j] == i) {
-				data.add(tslist.elementAt(j));
+				data.add(tslist.get(j));
 			}
 		}
 
@@ -911,11 +910,11 @@ private TSViewTable_TableModel[] createTableModels(Vector tslist) {
 		// ... and the interval multiplier ...
 		if (data == null || data.size() == 0) {
 			// (in this case, use a representative TS)
-			tempTS = (TS)tslist.elementAt(i);
+			tempTS = (TS)tslist.get(i);
 			multi = tempTS.getDataIntervalMult();		
 		}
 		else {
-			tempTS = (TS)data.elementAt(0);
+			tempTS = (TS)data.get(0);
 			multi = tempTS.getDataIntervalMult();
 		}
 
@@ -1352,8 +1351,7 @@ private void saveClicked() {
 	String filename = directory + File.separator
 		+ fc.getName(fc.getSelectedFile());
 
-	Vector tslist = ((TSViewTable_TableModel)
-		__lastSelectedWorksheet.getModel()).getTSList();
+	List tslist = ((TSViewTable_TableModel)__lastSelectedWorksheet.getModel()).getTSList();
 
 	if (fc.getFileFilter() == dff) {
 		try {	
@@ -1383,7 +1381,7 @@ scrollbars used to scroll around the worksheets in the above array
 @param source the object on which a MouseEvent was triggered.
 @return the JWorksheet that was clicked on, or null if it could not be found
 */
-private JWorksheet searchListeners(JWorksheet[] worksheets, Vector[] listeners,
+private JWorksheet searchListeners(JWorksheet[] worksheets, List[] listeners,
 Object source) {
 	if (listeners == null || source == null) {
 		return null;
@@ -1392,10 +1390,10 @@ Object source) {
 	int size = listeners.length;
 
 	for (int i = 0; i < size; i++) {
-		Vector v = listeners[i];
+		List v = listeners[i];
 
 		for (int j = 0; j < v.size(); j++) {
-			if (v.elementAt(j) == source) {
+			if (v.get(j) == source) {
 				return worksheets[i];
 			}
 		}
@@ -1975,11 +1973,11 @@ private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
       for( int iModel = 0; iModel < nModels; iModel++)
         {
           TSViewTable_TableModel m = ((TSViewTable_TableModel)models[iModel]);
-          Vector tsVector = m.getTSList();
+          List tsVector = m.getTSList();
           int nVec = tsVector.size();
           for (int iVec = 0; iVec < nVec; iVec++)
             {
-              if (tsVector.elementAt(iVec) == ts)
+              if (tsVector.get(iVec) == ts)
                 {
                   return m;
                 }

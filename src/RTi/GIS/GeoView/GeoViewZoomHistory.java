@@ -14,6 +14,7 @@
 
 package RTi.GIS.GeoView;
 
+import java.util.List;
 import java.util.Vector;
 import RTi.GR.GRLimits;
 
@@ -41,8 +42,8 @@ Its reference window does not have a zoom history.</b>
 public class GeoViewZoomHistory 
 {
 
-private Vector _dataLimitsHistory;
-private Vector _devLimitsHistory;
+private List _dataLimitsHistory;
+private List _devLimitsHistory;
 private int _currentIndex;
 
 /**
@@ -76,15 +77,15 @@ public void addHistory ( GRLimits devLimits, GRLimits dataLimits )
 {	_currentIndex++;
 
 	if ( _currentIndex == _dataLimitsHistory.size()) {
-		_dataLimitsHistory.addElement ( dataLimits );
+		_dataLimitsHistory.add ( dataLimits );
 	}
-	else {	_dataLimitsHistory.insertElementAt( dataLimits, _currentIndex );
+	else {	_dataLimitsHistory.add( _currentIndex, dataLimits );
 	}
 
 	if ( _currentIndex == _devLimitsHistory.size()) {
-		_devLimitsHistory.addElement ( devLimits );
+		_devLimitsHistory.add ( devLimits );
 	}
-	else {	_devLimitsHistory.insertElementAt ( devLimits, _currentIndex );
+	else {	_devLimitsHistory.add ( _currentIndex, devLimits );
 	}
 }
 
@@ -93,8 +94,8 @@ Reset the members, which is useful if a new map is being read.
 */
 public void clear ()
 {	_currentIndex = -1;
-	_dataLimitsHistory.removeAllElements();
-	_devLimitsHistory.removeAllElements();
+	_dataLimitsHistory.clear();
+	_devLimitsHistory.clear();
 }
 
 /**
@@ -126,7 +127,7 @@ throws Exception
 		throw new Exception ( "Index " + index + " out of bounds (" + 
 		_dataLimitsHistory.size() + ")");
 	}
-	return ((GRLimits)_dataLimitsHistory.elementAt(index));
+	return ((GRLimits)_dataLimitsHistory.get(index));
 }
 
 /**

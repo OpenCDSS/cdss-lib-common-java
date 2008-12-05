@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -180,7 +181,7 @@ private SimpleJComboBox
 Vector to hold all the layers that were added to the GeoView, so that they 
 can be removed when the GUI is closed, if desired.
 */
-private Vector __layers = null;
+private List __layers = null;
 
 /**
 Constructor.
@@ -194,7 +195,7 @@ how the GUI should be set up.
 @throws Exception if the data Vector is empty
 */
 public GeoViewAnimationJFrame(JFrame parent, GeoViewJPanel geoViewJPanel,
-Vector dataVector, DateTime start, DateTime end) 
+List dataVector, DateTime start, DateTime end) 
 throws Exception {
 	super();
 
@@ -220,7 +221,7 @@ throws Exception {
 	__numData = dataVector.size();
 	__data = new GeoViewAnimationData[__numData];
 	for (int i = 0; i < __numData; i++) {
-		__data[i] = (GeoViewAnimationData)dataVector.elementAt(i);
+		__data[i] = (GeoViewAnimationData)dataVector.get(i);
 	}
 
 	dataVector = null;
@@ -261,7 +262,7 @@ public void actionPerformed(ActionEvent event) {
 		}
 
 		// Diable all the setup parts of the GUI
-		Vector groupNames = getGroupNames();
+		List groupNames = getGroupNames();
 		int groupSize = groupNames.size();		
 		for (int i = 0; i < groupSize; i++) {
 			__layerNameTextField[i].setEditable(false);
@@ -432,8 +433,7 @@ protected void animationDone() {
 }
 
 /**
-Builds layers in the GeoView display as desired by the choices the user
-made in the GUI.
+Builds layers in the GeoView display as desired by the choices the user made in the GUI.
 */
 private void buildLayers() 
 throws Exception {
@@ -447,14 +447,14 @@ throws Exception {
 	int dataSize = -1;
 	int size = -1;
 	String layerName = null;
-	Vector animationFieldsV = null;
-	Vector dataV = null;
-	Vector groupDataV = null;
-	Vector maxValuesV = null;
+	List animationFieldsV = null;
+	List dataV = null;
+	List groupDataV = null;
+	List maxValuesV = null;
 
 	__layers = new Vector();
 
-	Vector groupNames = getGroupNames();
+	List groupNames = getGroupNames();
 	int groupSize = groupNames.size();		
 	for (int i = 0; i < groupSize; i++) {
 		processStatus(1, "Building map layer #" + (i + 1) + " of " + 
@@ -464,7 +464,7 @@ throws Exception {
 		// least one item selected, a layer will be built and placed
 		// on the GeoView display.
 		
-		groupDataV = getGroupData((String)groupNames.elementAt(i));
+		groupDataV = getGroupData((String)groupNames.get(i));
 
 		// mark all group data items as not visible so they will not
 		// be taken into account when filling data fields.  Later,
@@ -472,7 +472,7 @@ throws Exception {
 		// map will be marked as visible.
 		size = groupDataV.size();
 		for (int j = 0; j < size; j++) {
-			data = (GeoViewAnimationData)groupDataV.elementAt(j);
+			data = (GeoViewAnimationData)groupDataV.get(j);
 			data.setVisible(false);
 		}
 		
@@ -493,18 +493,16 @@ throws Exception {
 		// need to be passed in to addSummaryView for this layer.
 
 		for (int j = 0; j < dataSize; j++) {
-			data = (GeoViewAnimationData)dataV.elementAt(j);
+			data = (GeoViewAnimationData)dataV.get(j);
 			data.setVisible(true);
-			animationFieldsV.add(
-				new Integer(data.getAttributeField()));
+			animationFieldsV.add( new Integer(data.getAttributeField()));
 			maxValuesV.add(new Double(data.getAnimationFieldMax()));
 		}
 
 		// get the GeoViewAnimationLayerData object that tells much
 		// about how this layer should be built
 
-		layerData = ((GeoViewAnimationData)dataV.elementAt(0))		
-			.getGeoViewAnimationLayerData();
+		layerData = ((GeoViewAnimationData)dataV.get(0)).getGeoViewAnimationLayerData();
 
 		// build the animation fields array from the fields in the
 		// data that are set as being animation fields
@@ -512,8 +510,7 @@ throws Exception {
 		size = animationFieldsV.size();
 		animationFields = new int[size];
 		for (int j = 0; j < size; j++) {
-			animationFields[j] = ((Integer)animationFieldsV
-				.elementAt(j)).intValue();
+			animationFields[j] = ((Integer)animationFieldsV.get(j)).intValue();
 		}
 
 		temp = layerData.getDataFields();
@@ -556,16 +553,13 @@ throws Exception {
 		size = maxValuesV.size();
 		maxValues = new double[size];
 		for (int j = 0; j < size; j++) {
-			maxValues[j] = ((Double)maxValuesV.elementAt(j))
-				.doubleValue();
+			maxValues[j] = ((Double)maxValuesV.get(j)).doubleValue();
 		}
 
 		// if the user has set up an alternate layer name in the GUI
-		// use it instead of the default one defined in 
-		// GeoViewAnimationLayerData
+		// use it instead of the default one defined in GeoViewAnimationLayerData
 		
-		layerName = ((GeoViewAnimationData)dataV.elementAt(0))		
-			.getLayerNameTextField().getText().trim();
+		layerName = ((GeoViewAnimationData)dataV.get(0)).getLayerNameTextField().getText().trim();
 
 		if (layerName.equals("")) {
 			layerName = layerData.getLayerName();
@@ -615,12 +609,12 @@ turned on or off in the animation layer.
 */
 private void buildTimeSeriesPanel(JPanel panel) {
 	String groupName = null;
-	Vector dataNums = null;
-	Vector groupNames = getGroupNames();
+	List dataNums = null;
+	List groupNames = getGroupNames();
 	int size = groupNames.size();
 	__layerNameTextField = new JTextField[size];
 	for (int i = 0; i < size; i++) {
-		groupName = (String)groupNames.elementAt(i);
+		groupName = (String)groupNames.get(i);
 		dataNums = getGroupDataNums(groupName);
 		processGroup(panel, (i + 1), groupName, dataNums);
 	}
@@ -662,7 +656,7 @@ private void fillComboBoxes() {
 	// support for doing different intervals right now
 
 	DateTime d = new DateTime(__startDate);
-	Vector v = new Vector();
+	List v = new Vector();
 
 	v.add(__startDate.toString(DateTime.FORMAT_YYYY_MM));
 	
@@ -730,24 +724,22 @@ a Vector of all the data objects that have their radio button or check box
 selected.
 @param dataV a Vector of GeoViewAnimationData objects.  Can be null.
 @return a Vector of all the GeoViewAnimationData objects in the passed-in 
-Vector that have their radio button or check box selected.  Guaranteed to be
-non-null.
+Vector that have their radio button or check box selected.  Guaranteed to be non-null.
 */
-private Vector findSelectedData(Vector dataV) {
+private List findSelectedData(List dataV) {
 	if (dataV == null || dataV.size() == 0) {
 		return new Vector();
 	}
 
 	GeoViewAnimationData data = null;
 	int size = dataV.size();
-	Vector v = new Vector();
+	List v = new Vector();
 
 	for (int i = 0; i < size; i++) {
-		data = (GeoViewAnimationData)dataV.elementAt(i);
+		data = (GeoViewAnimationData)dataV.get(i);
 
 		// data objects can either use a checkbox for selection
-		// or a radio button, but not both.  If one is null, the
-		// other must be non-null.
+		// or a radio button, but not both.  If one is null, the other must be non-null.
 
 		if (data.getJCheckBox() != null 
 			&& data.getJCheckBox().isSelected()) {
@@ -765,11 +757,10 @@ private Vector findSelectedData(Vector dataV) {
 Returns all the GeoViewAnimationData objects that have the given group name.
 @param groupName the name of the group for which to return data.
 @return a Vector of GeoViewAnimationData objects which have the given group
-name.  This Vector may be empty if the group name is not matched, but it will
-never be null.
+name.  This Vector may be empty if the group name is not matched, but it will never be null.
 */
-private Vector getGroupData(String groupName) {
-	Vector found = new Vector();
+private List getGroupData(String groupName) {
+	List found = new Vector();
 	for (int i = 0; i < __numData; i++) {
 		if (groupName.equalsIgnoreCase(__data[i].getGroupName())) {
 			found.add(__data[i]);
@@ -785,8 +776,8 @@ is compared without case sensitivity.
 @return a Vector of the data objects that match the group name.  Guaranteed
 to be non-null.
 */
-private Vector getGroupDataNums(String groupName) {
-	Vector found = new Vector();
+private List getGroupDataNums(String groupName) {
+	List found = new Vector();
 	for (int i = 0; i < __numData; i++) {
 		if (groupName.equalsIgnoreCase(__data[i].getGroupName())) {
 			found.add(new Integer(i));
@@ -798,16 +789,16 @@ private Vector getGroupDataNums(String groupName) {
 /**
 Gets the names of all the data object groups.  Data group names are compared
 case-insensitively.
-@return a Vector of all the unique data object group names.
+@return a list of all the unique data object group names.
 */
-private Vector getGroupNames() {
+private List getGroupNames() {
 	boolean found = false;
 	String s;
-	Vector foundV = new Vector();
+	List foundV = new Vector();
 	for (int i = 0; i < __numData; i++) {
 		found = false;
 		for (int j = 0; j < foundV.size(); j++) {
-			s = (String)foundV.elementAt(j);
+			s = (String)foundV.get(j);
 			if (s.equalsIgnoreCase(__data[i].getGroupName())) {
 				found = true;
 			}
@@ -830,8 +821,7 @@ section will be placed.
 @param dataNums a Vector of Integers, each of which is the index within the
 __data array of one of the members of the group to add to the panel.
 */
-private void processGroup(JPanel panel, int panelY, String groupName, 
-Vector dataNums) {
+private void processGroup(JPanel panel, int panelY, String groupName, List dataNums) {
 	// TODO SAM 2007-05-09 Evaluate if needed
 	//boolean visible = false;
 	ButtonGroup buttonGroup = new ButtonGroup();
@@ -857,7 +847,7 @@ Vector dataNums) {
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
 	for (int i = 0; i < size; i++) {
-		dataNum = ((Integer)dataNums.elementAt(i)).intValue();
+		dataNum = ((Integer)dataNums.get(i)).intValue();
 
 		// take the type of selection (CheckBox or RadioButton)
 		// from the very first data object for this group
@@ -1249,7 +1239,7 @@ public void windowClosing(WindowEvent event) {
 	GeoLayerView layerView = null;
 	int size = __layers.size();
 	for (int i = 0; i < size; i++) {
-		layerView = (GeoLayerView)__layers.elementAt(i);
+		layerView = (GeoLayerView)__layers.get(i);
 
 		if (i == (size - 1)) {
 			redraw = true;

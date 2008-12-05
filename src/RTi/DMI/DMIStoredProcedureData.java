@@ -19,7 +19,7 @@ import java.sql.CallableStatement;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 A class that stores information on how in particular a stored procedure will
@@ -164,7 +164,7 @@ throws Exception {
 	ResultSet rs = dmi.getConnection().getMetaData().getProcedureColumns(
 		dmi.getDatabaseName(), null, procedureName, null);
 	__dmi = dmi;
-	Vector v = DMIUtil.processResultSet(rs);
+	List v = DMIUtil.processResultSet(rs);
 //	DMIUtil.printResults(v);
 	rs.close();
 
@@ -216,10 +216,9 @@ private String createStoredProcedureCallString() {
 }
 
 /**
-Pulls out information from the Vector of procedure data and populates the
-member variables.
+Pulls out information from the Vector of procedure data and populates the member variables.
 */
-private void fillProcedureData(Vector v) {
+private void fillProcedureData(List v) {
 	__hasReturnValue = hasReturnValue(v);
 
 	int size = v.size();
@@ -235,24 +234,22 @@ private void fillProcedureData(Vector v) {
 
 	Integer I = null;
 	int count = 0;
-	Vector row = null;
+	List row = null;
 	for (int i = 0; i < size; i++) {
-		row = (Vector)v.elementAt(i);
+		row = (List)v.get(i);
 
-		I = (Integer)row.elementAt(4);
+		I = (Integer)row.get(4);
 		if (I.intValue() == DatabaseMetaData.procedureColumnReturn) {
 			// this is a return value row
-			__returnName = (String)row.elementAt(3);
-			__returnType = ((Integer)row.elementAt(5)).intValue();
-			__returnTypeString = (String)row.elementAt(6);
+			__returnName = (String)row.get(3);
+			__returnType = ((Integer)row.get(5)).intValue();
+			__returnTypeString = (String)row.get(6);
 		}
 		else {
-			__parameterNames[count] = (String)row.elementAt(3);
-			__parameterTypes[count] = 
-				((Integer)row.elementAt(5)).intValue();
-			__parameterTypeStrings[count]= (String)row.elementAt(6);
-			if (((Integer)row.elementAt(11)).intValue() 
-				== DatabaseMetaData.procedureNullable) {
+			__parameterNames[count] = (String)row.get(3);
+			__parameterTypes[count] = ((Integer)row.get(5)).intValue();
+			__parameterTypeStrings[count]= (String)row.get(6);
+			if (((Integer)row.get(11)).intValue() == DatabaseMetaData.procedureNullable) {
 				__parameterNullable[count] = true;
 			}
 			else {
@@ -364,15 +361,15 @@ public boolean hasReturnValue() {
 Checks procedure data to see if there are any return values.
 @return true if any return values are present, false otherwise.
 */
-private boolean hasReturnValue(Vector v) {
+private boolean hasReturnValue(List v) {
 	int size = v.size();
 
 	Integer I = null;
-	Vector row = null;
+	List row = null;
 	for (int i = 0; i < size; i++) {
-		row = (Vector)v.elementAt(i);
+		row = (List)v.get(i);
 
-		I = (Integer)row.elementAt(4);
+		I = (Integer)row.get(4);
 		if (I.intValue() == DatabaseMetaData.procedureColumnReturn) {
 			return true;
 		}

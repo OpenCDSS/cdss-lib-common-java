@@ -151,6 +151,7 @@ import java.awt.print.Printable;
 
 import java.io.IOException;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JComponent;
@@ -241,8 +242,7 @@ private static final double __BORDER = 0.0;	// Border for view.
 /**
 GeoLayerViews that have been added to this GeoView for display.
 */
-private Vector __layerViews = null;		// Initialized later to always
-						// be non-null
+private List __layerViews = null;		// Initialized later to always be non-null
 /**
 PropList for storing GeoView properties.
 */
@@ -318,7 +318,7 @@ private int __interactionMode = INTERACTION_NONE;
 /**
 Vector to process labels.  This is re-used throughout drawing.
 */
-private Vector __labelFieldVector = new Vector ( 5 );
+private List __labelFieldVector = new Vector ( 5 );
 
 /**
 Indicates if drawing should wait.  Use this if multiple layers are being
@@ -393,10 +393,9 @@ Whether a page is currently being printed or not.
 private boolean __inPrinting = false;
 
 /**
-The Vector of other objects that need to know to repaint themselves when this
-object is repainted.
+The list of other objects that need to know to repaint themselves when this object is repainted.
 */
-private Vector __remindedRepainters = null;
+private List __remindedRepainters = null;
 
 /**
 The number of other objects that must repaint themselves when this object
@@ -541,7 +540,7 @@ public void addLayerView ( GeoLayerView layer_view, boolean reset_limits )
 		return;
 	}
 	layer_view.setView ( this );
-	__layerViews.addElement ( layer_view );
+	__layerViews.add ( layer_view );
 
 	// Do most of the following so we know the maximum limits...
 
@@ -585,19 +584,13 @@ public void addLayerView ( GeoLayerView layer_view, boolean reset_limits )
 			String prop_val = __project.getPropList().getValue (
 						"GeoView.MaximumExtent" );
 			if ( prop_val != null ) {
-				Vector tokens = StringUtil.breakStringList (
-						prop_val, " \t,",
-						StringUtil.DELIM_SKIP_BLANKS );
+				List tokens = StringUtil.breakStringList ( prop_val, " \t,", StringUtil.DELIM_SKIP_BLANKS );
 				if ( (tokens != null) && (tokens.size() == 4) ){
 					__maxDataLimits = new GRLimits (
-					StringUtil.atod(
-					(String)tokens.elementAt(0)),
-					StringUtil.atod(
-					(String)tokens.elementAt(1)),
-					StringUtil.atod(
-					(String)tokens.elementAt(2)),
-					StringUtil.atod(
-					(String)tokens.elementAt(3)) );
+					StringUtil.atod((String)tokens.get(0)),
+					StringUtil.atod((String)tokens.get(1)),
+					StringUtil.atod((String)tokens.get(2)),
+					StringUtil.atod((String)tokens.get(3)) );
 					max_set = true;
 				}
 			}
@@ -711,7 +704,7 @@ public void deleteLayerViews ()
 {	int size = __layerViews.size();
 	GeoLayerView view = null;
 	for ( int i = 0; i < size; i++ ) {
-		view = (GeoLayerView)__layerViews.elementAt(i);
+		view = (GeoLayerView)__layerViews.get(i);
 		try {
 			// be explicit about cleaning up this memory in 
 			// order to help the garbage collector.
@@ -719,9 +712,9 @@ public void deleteLayerViews ()
 		}
 		catch (Throwable t) {}
 		view = null;
-		__layerViews.setElementAt(null, i);
+		__layerViews.set(i,null);
 	}
-	__layerViews.removeAllElements();
+	__layerViews.clear();
 	__layerViews = null;
 	__layerViews = new Vector();
 	System.gc();
@@ -747,7 +740,7 @@ public void deleteLayerViewUsingFileName ( String filename )
 	GeoLayerView layer_view = null;
 	String layer_filename = null;
 	for ( int i = 0; i < size; i++ ) {
-		layer_view = (GeoLayerView)__layerViews.elementAt(i);
+		layer_view = (GeoLayerView)__layerViews.get(i);
 		if ( layer_view == null ) {
 			continue;
 		}
@@ -761,7 +754,7 @@ public void deleteLayerViewUsingFileName ( String filename )
 		}
 		if ( layer_filename.equalsIgnoreCase(filename) ) {
 			found = true;
-			__layerViews.removeElementAt(i);
+			__layerViews.remove(i);
 			i--;
 			size--;
 		}
@@ -793,7 +786,7 @@ public void deselectAllShapes ()
 	GeoLayerView layer_view = null;
 	GeoLayer layer = null;
 	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)__layerViews.elementAt(i);
+		layer_view = (GeoLayerView)__layerViews.get(i);
 		layer = (GeoLayer)layer_view.getLayer();
 		layer.deselectAllShapes();
 	}
@@ -908,7 +901,7 @@ private void drawBigPictureLayerView ( GeoLayerView layer_view)
 		" big picture records." );	
 	for ( int z=0; z<numAssociatedLayers; z++ ) {
 	// ... coordinates for layer that is being searched
-	Vector shapes = layer.getShapes(z);
+	List shapes = layer.getShapes(z);
 	// ... table which allows us to tie together coordinates with bigpice );
 	DataTable attributeTable = layer.getAttributeTable(z);
 	// Vector tableRecords = attributeTable.getTableRecords();
@@ -956,7 +949,7 @@ private void drawBigPictureLayerView ( GeoLayerView layer_view)
 		// left of the point.  This allows labels to be
 		// put to the right.
 
-		shape = (GRShape)shapes.elementAt(att_index);
+		shape = (GRShape)shapes.get(att_index);
 		if ( shape.type == GRShape.POINT ) {
 			// Draw a black line across the 
 			// bottom of all the rectangles.
@@ -1078,7 +1071,7 @@ private void drawGridLayerView ( GeoLayerView layer_view )
 		xmax = __dataLimits.getMaxX(),	// to increase performance
 		ymin = __dataLimits.getMinY(),
 		ymax = __dataLimits.getMaxY();
-	GeoGrid grid = (GeoGrid)(layer.getShapes().elementAt(0));
+	GeoGrid grid = (GeoGrid)(layer.getShapes().get(0));
 	int rmin = grid.getMinRow();
 	int rmax = grid.getMaxRow();
 	int cmin = grid.getMinColumn();
@@ -1089,11 +1082,11 @@ private void drawGridLayerView ( GeoLayerView layer_view )
 	String prop_value = layer_view.getPropList().getValue(
 				"IgnoreDataOutside");
 	if ( prop_value != null ) {
-		Vector v = StringUtil.breakStringList ( prop_value,",",0);
+		List v = StringUtil.breakStringList ( prop_value,",",0);
 		if ( (v != null) && (v.size() == 2) ) {
 			have__dataLimits = true;
-			min_to_draw = StringUtil.atod((String)v.elementAt(0));
-			max_to_draw = StringUtil.atod((String)v.elementAt(1));
+			min_to_draw = StringUtil.atod((String)v.get(0));
+			max_to_draw = StringUtil.atod((String)v.get(1));
 			v = null;
 		}
 	}
@@ -1102,8 +1095,7 @@ private void drawGridLayerView ( GeoLayerView layer_view )
 	GRPolygon shape = null;
 	boolean dodraw = true;
 	GeoProjection layer_projection = layer.getProjection();
-	boolean do_project = GeoProjection.needToProject ( layer_projection,
-				__projection );
+	boolean do_project = GeoProjection.needToProject ( layer_projection, __projection );
 	double data_value;	// Data value in grid.
 	for ( r = rmin; r <= rmax; r++ ) {
 		for ( c = cmin; c <= cmax; c++ ) {
@@ -1265,7 +1257,7 @@ private void drawLayerView (	GeoLayerView layer_view,
 	GRColor single_color = null;	// Color for single symbol
 					// classification
 	GRShape shape = null;
-	Vector shapes = null;
+	List shapes = null;
 	GRPoint pt = null;
 	double symbol_max = 0.0;	// When using a scaled symbol, the
 					// maximum attribute value.
@@ -1461,7 +1453,7 @@ private void drawLayerView (	GeoLayerView layer_view,
 						// label_format will be getting
 						// added to
 		// Get the individual label fields...
-		Vector v = StringUtil.breakStringList ( label_field, ",", 0 );
+		List v = StringUtil.breakStringList ( label_field, ",", 0 );
 		int vsize = 0;
 		if ( v != null ) {
 			vsize = v.size();
@@ -1477,14 +1469,13 @@ private void drawLayerView (	GeoLayerView layer_view,
 			// if one was not specified...
 			for ( int iv = 0; iv < vsize; iv++ ) {
 				try {	field[iv] =
-					attribute_table.getFieldIndex(
-					((String)v.elementAt(iv)).trim() );
+					attribute_table.getFieldIndex( ((String)v.get(iv)).trim() );
 				}
 				catch ( Exception e ) {
 					// This should not happen!
 					Message.printWarning ( 2, routine,
 					"Can't get table field index for \"" +
-					((String)v.elementAt(iv)).trim() +"\"");
+					((String)v.get(iv)).trim() +"\"");
 					continue;
 				}
 				if (	(prop_value == null) ||
@@ -1604,7 +1595,7 @@ REVISIT
 				System.gc();
 			}
 		}
-		shape = (GRShape)shapes.elementAt(ishape);
+		shape = (GRShape)shapes.get(ishape);
 		if ( shape == null ) {
 			// Null shape...
 			continue;
@@ -1970,7 +1961,7 @@ Message.printStatus(1, "", "Size: " + symbol_size_x);
 		if ( (color != null) && !color.isTransparent() ) {
 			__grda.setColor ( color );
 			for ( ishape = 0; ishape < nshapes; ishape++ ) {
-				shape = (GRShape)shapes.elementAt(ishape);
+				shape = (GRShape)shapes.get(ishape);
 				if ( shape == null ) {
 					continue;
 				}
@@ -2015,8 +2006,7 @@ Message.printStatus(1, "", "Size: " + symbol_size_x);
 	if (drawingWaterDistricts) {
 		if (__remindedRepaintersCount > 0) {
 			for (int i = 0; i < __remindedRepaintersCount; i++) {
-				GeoViewJComponent c = (GeoViewJComponent)
-					__remindedRepainters.elementAt(i);
+				GeoViewJComponent c = (GeoViewJComponent)__remindedRepainters.get(i);
 				c.redraw();
 			}
 		}
@@ -2145,10 +2135,9 @@ public int getNumLayerViews ()
 /**
 Return the Vector of GeoLayerView used for the display.
 @return the GeoLayerView vector that is used for the display.  This vector
-can be manipulated (reordered, etc.).  Call isVisible() on the layer view to
-turn off and on.
+can be manipulated (reordered, etc.).  Call isVisible() on the layer view to turn off and on.
 */
-public Vector getLayerViews ()
+public List getLayerViews ()
 {	return __layerViews;
 }
 
@@ -2184,15 +2173,13 @@ private String getShapeLabel (	GRShape shape, int label_source, int field[],
 		// Get the label from the attribute table...
 		try {	
 			if ( field_format != null ) {
-				__labelFieldVector.removeAllElements();
+				__labelFieldVector.clear();
 				for ( int i = 0; i < field.length; i++ ) {
 					//Message.printStatus ( 1, "",
 					//"Printing \"" +
 					//attribute_table.getFieldValue(
 					//shape.index, field[i]) + "\"" );
-					__labelFieldVector.addElement (
-					attribute_table.getFieldValue(
-					shape.index, field[i]) );
+					__labelFieldVector.add (attribute_table.getFieldValue(shape.index, field[i]) );
 				}
 				//Message.printStatus ( 1, "",
 				//"Formatting using \"" + field_format+"\"");
@@ -2259,7 +2246,7 @@ Currently this does nothing.
 @param datapt Coordinates of mouse in data coordinates.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo ( GRPoint devpt, GRPoint datapt, Vector selected )
+public void geoViewInfo ( GRPoint devpt, GRPoint datapt, List selected )
 {
 }
 
@@ -2270,8 +2257,7 @@ Currently this does nothing.
 @param datalimits Limits of select in data coordinates.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo (	GRLimits devlimits, GRLimits datalimits,
-				Vector selected )
+public void geoViewInfo ( GRLimits devlimits, GRLimits datalimits, List selected )
 {
 }
 
@@ -2282,7 +2268,7 @@ Currently this does nothing.
 @param datashape shape of select in data coordinates.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo(GRShape devshape, GRShape datashape, Vector selected) {
+public void geoViewInfo(GRShape devshape, GRShape datashape, List selected) {
 }
 
 /**
@@ -2303,8 +2289,7 @@ Currently this does nothing.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect (	GRPoint devpt, GRPoint datapt, Vector selected,
-				boolean append )
+public void geoViewSelect (	GRPoint devpt, GRPoint datapt, List selected, boolean append )
 {
 }
 
@@ -2316,8 +2301,7 @@ Currently this does nothing.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect (	GRLimits devlimits, GRLimits datalimits,
-				Vector selected, boolean append )
+public void geoViewSelect (	GRLimits devlimits, GRLimits datalimits, List selected, boolean append )
 {
 }
 
@@ -2329,8 +2313,7 @@ Currently this does nothing.
 @param selected Vector of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect(GRShape devshape, GRShape datashape, Vector selected, 
-boolean append) {}
+public void geoViewSelect(GRShape devshape, GRShape datashape, List selected, boolean append) {}
 
 /**
 Handle the zoom event from another GeoView (likely a reference GeoView).
@@ -2710,10 +2693,9 @@ public void mouseReleased ( MouseEvent event )
 		GeoLayerView layer_view = null;
 		GeoLayer layer = null;
 		for ( int i = 0; i < numlayerviews; i++ ) {
-			layer_view = (GeoLayerView)__layerViews.elementAt(i);
+			layer_view = (GeoLayerView)__layerViews.get(i);
 			layer = (GeoLayer)layer_view.getLayer();
-			// Only deselect if the user has not pressed the Ctrl
-			// key...
+			// Only deselect if the user has not pressed the Ctrl key...
 			if ( !event.isControlDown() ) {
 				layer.deselectAllShapes();
 			}
@@ -2734,39 +2716,25 @@ public void mouseReleased ( MouseEvent event )
 			deltay *= -1;
 		}
 		if ( (deltax <= 5) && (deltay <= 5) ) {
-			if (	(__interactionMode == INTERACTION_SELECT) ||
-				(__interactionMode == INTERACTION_INFO) ) {
+			if ( (__interactionMode == INTERACTION_SELECT) || (__interactionMode == INTERACTION_INFO) ) {
 				// Selecting a point.
 				// Assume they want the original point...
-				GRPoint devpt = new GRPoint (
-					(double)__mouseX1, (double)__mouseY1 );
-				GRPoint datapt = __grda.getDataXY (
-					__mouseX1, __mouseY1,
-					GRDrawingArea.COORD_DEVICE );
-				Vector records = null;
+				GRPoint devpt = new GRPoint ( (double)__mouseX1, (double)__mouseY1 );
+				GRPoint datapt = __grda.getDataXY ( __mouseX1, __mouseY1, GRDrawingArea.COORD_DEVICE );
+				List records = null;
 				if ( __listeners != null ) {
 					if ( __selectGeoRecords ) {
-						records = selectGeoRecords (
-							datapt, null,
-							__interactionMode,
-							event.isControlDown() );
+						records = selectGeoRecords ( datapt, null, __interactionMode, event.isControlDown() );
 					}
 					int size = __listeners.length;
-					if (	__interactionMode ==
-						INTERACTION_SELECT ) {
+					if ( __interactionMode == INTERACTION_SELECT ) {
 						for ( int i = 0; i < size; i++){
-							__listeners[i
-							].geoViewSelect (
-							devpt, datapt, records,
-							event.isControlDown() );
+							__listeners[i].geoViewSelect ( devpt, datapt, records, event.isControlDown() );
 						}
 					}
-					else if (__interactionMode ==
-						INTERACTION_INFO ) {
+					else if (__interactionMode == INTERACTION_INFO ) {
 						for ( int i = 0; i < size; i++){
-							__listeners[i
-							].geoViewInfo (
-							devpt, datapt, records);
+							__listeners[i].geoViewInfo ( devpt, datapt, records);
 						}
 					}
 				}
@@ -2849,7 +2817,7 @@ public void mouseReleased ( MouseEvent event )
 		if (	(__interactionMode == INTERACTION_SELECT) ||
 			(__interactionMode == INTERACTION_INFO) ) {
 			// Just return the select information..
-			Vector records = null;
+			List records = null;
 			if ( __listeners != null ) {
 				try {	if ( __selectGeoRecords ) {
 						records = selectGeoRecords (
@@ -2866,15 +2834,12 @@ public void mouseReleased ( MouseEvent event )
 				}
 				int size = __listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					if (	__interactionMode ==
-						INTERACTION_SELECT ) {
+					if ( __interactionMode == INTERACTION_SELECT ) {
 						__listeners[i].geoViewSelect (
-						mouse_limits, newdata_limits,
-						records, event.isControlDown());
+						mouse_limits, newdata_limits, records, event.isControlDown());
 					}
-					else {	__listeners[i].geoViewInfo (
-						mouse_limits, newdata_limits,
-						records );
+					else {
+						__listeners[i].geoViewInfo ( mouse_limits, newdata_limits, records );
 					}
 				}
 			}
@@ -3190,8 +3155,7 @@ public void paint(Graphics g) {
 		int i = 0;
 		try {	
 			for ( i = 0; i < size; i++ ) {
-				layer_view = (GeoLayerView)
-					__layerViews.elementAt(i);
+				layer_view = (GeoLayerView)__layerViews.get(i);
 				if ( layer_view != null ) {
 					drawLayerView ( layer_view );
 				}
@@ -3466,7 +3430,7 @@ public void removeLayerView (	GeoLayerView layer_view,
 	}
 	// Rely on the binary reference value to locate the layer_view...
 
-	__layerViews.removeElement ( layer_view );
+	__layerViews.remove ( layer_view );
 
 	// Do most of the following so we know the maximum limits...
 
@@ -3560,15 +3524,15 @@ if append is true, then the shape will be selected if it is not already
 selected.  If it is already selected, it will be de-selected (e.g., user has
 previously selected and is now deselecting).
 */
-public Vector selectGeoRecords (	GRShape select_shape,
-					Vector app_layer_types,
+public List selectGeoRecords (	GRShape select_shape,
+					List app_layer_types,
 					int interaction_mode,
 					boolean append )
-{	Vector records = new Vector ( 10, 10 );
+{	List records = new Vector ( 10, 10 );
 	int nlayerviews = __layerViews.size();
 	GeoLayerView layer_view = null;
 	GeoLayer layer = null;
-	Vector shapes = null;
+	List shapes = null;
 	int nshapes = 0;
 	double delta, deltamin = -1.0, deltax, deltay;
 	GeoRecord record = new GeoRecord();	// Fill below...
@@ -3584,8 +3548,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 		GRPoint datapt = (GRPoint)select_shape;
 //		Message.printStatus ( 1, "",
 //			"Selecting features at " + datapt.x + "," + datapt.y );
-		showStatus ( "Selecting features at " + datapt.x + "," +
-			datapt.y );
+		showStatus ( "Selecting features at " + datapt.x + "," + datapt.y );
 		// Search for shape nearest the point for all the layers...
 		if ( __layerViews == null ) {
 			return records;
@@ -3594,8 +3557,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 		for ( int i = 0; i < nlayerviews; i++ ) {
 			//Message.printStatus ( 1, "",
 			//"SAM: Searching layer view [" + i + "]" );
-			layer_view = (GeoLayerView)
-				__layerViews.elementAt(i);
+			layer_view = (GeoLayerView)__layerViews.get(i);
 			if ( layer_view == null ) {
 				continue;
 			}
@@ -3611,8 +3573,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 			if ( app_layer_types != null ) {
 				int asize = app_layer_types.size();
 				for ( int ia = 0; ia < asize; ia++ ) {
-					app_layer_type = (String)
-						app_layer_types.elementAt(ia);
+					app_layer_type = (String)app_layer_types.get(ia);
 					if ( !app_layer_type.equalsIgnoreCase(
 						layer.getAppLayerType()) ) {
 						// Requested app layer type does
@@ -3659,7 +3620,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 			//Message.printStatus ( 1, "", "SAM: searching " +
 			//nshapes + " shapes" );
 			for ( j = 0; j < nshapes; j++ ) {
-				shape = (GRShape)shapes.elementAt(j);
+				shape = (GRShape)shapes.get(j);
 				if ( !shape.is_visible ) {
 					// Don't search shapes unless visible.
 					continue;
@@ -3701,7 +3662,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 		}
 		if ( deltamin >= 0.0 ) {
 			// Have a record so add to the Vector...
-			records.addElement ( record );
+			records.add ( record );
 			if ( interaction_mode == INTERACTION_SELECT ) {
 				shape = record.getShape();
 				layer = record.getLayer();
@@ -3759,8 +3720,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 		for ( int i = 0; i < nlayerviews; i++ ) {		
 			//Message.printStatus ( 1, "",
 			//"Searching layer view " + i + " for shapes" );
-			layer_view = (GeoLayerView)
-				__layerViews.elementAt(i);
+			layer_view = (GeoLayerView)__layerViews.get(i);
 			if ( layer_view == null ) {
 				continue;
 			}
@@ -3776,7 +3736,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 				int asize = app_layer_types.size();
 				for ( int ia = 0; ia < asize; ia++ ) {
 					app_layer_type = (String)
-						app_layer_types.elementAt(ia);
+						app_layer_types.get(ia);
 					if ( !app_layer_type.equalsIgnoreCase(
 						layer.getAppLayerType()) ) {
 						// Requested app layer type does
@@ -3810,7 +3770,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 			}
 			nshapes = shapes.size();
 			for ( j = 0; j < nshapes; j++ ) {
-				shape = (GRShape)shapes.elementAt(j);
+				shape = (GRShape)shapes.get(j);
 				// Use the shape limits and return shapes that 
 				// intersect (but may not be totally within the
 				// region).  If the shape is a point, the flag
@@ -3825,7 +3785,7 @@ public Vector selectGeoRecords (	GRShape select_shape,
 				// null will be returned.  Other code may need
 				// to go through the attribute table via
 				// GeoLayer to get to specific data values.
-				records.addElement (
+				records.add (
 					new GeoRecord( shape,
 					layer.getTableRecord(
 					(int)shape.index),
@@ -3894,14 +3854,12 @@ private void showStatus ( String status )
 
 /**
 Select (and redraw in the select color) the shapes corresponding to the objects
-passed in.  The search is done based on memory address for the objects, not the
-contents of the objects.
+passed in.  The search is done based on memory address for the objects, not the contents of the objects.
 @param objects Objects to search for in shapes used by all layers.
 @param selected_layers_only Indicates that only shapes in the currently selected
 layers should be searched (currently not active).
 */
-public void selectShapesUsingObjects (	Vector objects,
-					boolean selected_layers_only )
+public void selectShapesUsingObjects ( List objects, boolean selected_layers_only )
 {	String routine = "selectShapesUsingObjects";
 	GeoLayerView  layer_view;
 	Object object;
@@ -3920,11 +3878,11 @@ public void selectShapesUsingObjects (	Vector objects,
 	if ( size == 0 ) {
 		return;
 	}
-	Vector shapes = null;
+	List shapes = null;
 	int ishape, nshapes, nobject = objects.size();
 	GRShape shape;
 	for ( int i = 0; i < size; i++ ) {
-		layer_view = (GeoLayerView)__layerViews.elementAt(i);
+		layer_view = (GeoLayerView)__layerViews.get(i);
 		if ( layer_view == null ) {
 			continue;
 		}
@@ -3935,7 +3893,7 @@ public void selectShapesUsingObjects (	Vector objects,
 		}
 		nshapes = shapes.size();
 		for ( ishape = 0; ishape < nshapes; ishape++ ) {
-			shape = (GRShape)shapes.elementAt(ishape);
+			shape = (GRShape)shapes.get(ishape);
 			if ( shape == null ) {
 				// Null shape...
 				continue;
@@ -3946,12 +3904,11 @@ public void selectShapesUsingObjects (	Vector objects,
 			}
 			// Now loop through the objects...
 			for ( int iobject = 0; iobject < nobject; iobject++ ) {
-				object = (Object)objects.elementAt(iobject);
+				object = (Object)objects.get(iobject);
 				if ( object == null ) {
 					continue;
 				}
-				if (	object.equals((Object)
-					shape.associated_object) ) {
+				if ( object.equals((Object)shape.associated_object) ) {
 					// Have a match.  Need to draw the
 					// shape in the select color.  Need
 					// to put in a drawShape method
@@ -4317,7 +4274,7 @@ public void drawLegend() {
 		__legendDataLimits.getHeight());
 	GRDrawingAreaUtil.setLineWidth(__grda, 1);
 
-	Vector nodes = __legendJTree.getAllNodes();
+	List nodes = __legendJTree.getAllNodes();
 	int size = nodes.size();
 
 	// keeps track of the nodes that can be skipped in doing the 
@@ -4336,7 +4293,7 @@ public void drawLegend() {
 	// first get the size of the largest symbol so the offset for
 	// text can be determined
 	for (int i = 0; i < size; i++) {
-		node = (SimpleJTree_Node)nodes.elementAt(i);
+		node = (SimpleJTree_Node)nodes.get(i);
 		if (__layout.findNode(node) > -1) {
 			// if the node is found in the layout, check to see
 			// whether it should be skipped or not.
@@ -4393,10 +4350,10 @@ public void drawLegend() {
 	String[] legendLines = new String[textLines + 1];
 	// a Vector that holds all the heights of the rows, used to know how
 	// to finally draw the legend
-	Vector rowHeightsV = new Vector();
+	List rowHeightsV = new Vector();
 
 	for (int i = 0; i < size; i++) {
-		node = (SimpleJTree_Node)nodes.elementAt(i);
+		node = (SimpleJTree_Node)nodes.get(i);
 		if (node instanceof GeoViewLegendJTree_Node) {
 			keepSkipping = false;
 			if (skippedNodes[i]) {
@@ -4488,7 +4445,7 @@ public void drawLegend() {
 	int rowHeightsVSize = rowHeightsV.size();
 	double[] rowHeights = new double[rowHeightsVSize];
 	for (int i = 0; i < rowHeightsVSize; i++) {
-		rowHeights[i] =((Double)rowHeightsV.elementAt(i)).doubleValue();
+		rowHeights[i] =((Double)rowHeightsV.get(i)).doubleValue();
 	}
 
 	// now add spaces.  Spaces go between every line, between the symbols
@@ -4591,7 +4548,7 @@ public void drawLegend() {
 	int count = 0;
 
 	for (int i = 0; i < size; i++) {
-		node = (SimpleJTree_Node)nodes.elementAt(i);
+		node = (SimpleJTree_Node)nodes.get(i);
 		if (node instanceof GeoViewLegendJTree_Node) {
 			keepSkipping = false;
 			if (skippedNodes[i]) {

@@ -30,6 +30,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -352,7 +353,7 @@ public void actionPerformed(ActionEvent event) {
 		repaint();
 	}
 	else if (action.equals(__MENU_DISPLAY_TABLES_TABLE)) {
-		Vector v = new Vector();
+		List v = new Vector();
 		for (int i = 0; i < __tables.length; i++) {
 			v.add(__tables[i]);
 		}

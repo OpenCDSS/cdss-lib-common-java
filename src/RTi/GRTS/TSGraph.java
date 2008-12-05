@@ -220,6 +220,7 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JPopupMenu;
@@ -346,7 +347,7 @@ private String
 /**
 If the graph type is Duration, this holds the results of the duration data for each time series.
 */
-private Vector _duration_data = null;
+private List _duration_data = null;
 
 /**
 The following reference is used internally so that the _graphics does not need
@@ -391,12 +392,12 @@ private int _last_graph_type = -1;
 /**
 Vector of all time series to plot (this is used for the legend).
 */
-private Vector __tslist = null;
+private List __tslist = null;
 
 /**
 Vector of time series to plot using left axis (currently the default).
 */
-private Vector __left_tslist = null;	
+private List __left_tslist = null;	
 
 /**
 Precision for left y-axis labels.
@@ -697,7 +698,7 @@ private boolean _zoom_keep_y_limits = false;
 /**
 Regression data used by scatter plot.
 */
-private Vector _regression_data = null;
+private List _regression_data = null;
 
 // TODO SAM Evaluate adding double mass plot
 //private TSDoubleMass _double_mass_data = null;// Used by double mass plot.
@@ -763,7 +764,7 @@ This may be different from the "ReferenceTSIndex" property in display_props,
 which was for the original time series list (not the subset used just for this graph).
 */
 public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsproduct, PropList display_props,
-			int subproduct, Vector tslist, int reference_ts_index )
+			int subproduct, List tslist, int reference_ts_index )
 {
 	String routine = "TSGraph";
 
@@ -808,7 +809,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
         Message.printStatus(2, routine, "Have " + ssize + " time series for graph." );
 		TS sts;
 		for (int ii = 0; ii < ssize; ii++) {
-			sts = (TS)__tslist.elementAt(ii);
+			sts = (TS)__tslist.get(ii);
 			if (sts == null) {
 				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is null");
 			}
@@ -862,7 +863,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	if ( __left_tslist != null ) {
 		TS ts = null;
 		for ( int i = 0; i < size; i++ ) {
-			ts = (TS)__left_tslist.elementAt(i);
+			ts = (TS)__left_tslist.get(i);
 			if ( (ts == null) || !ts.getEnabled() ) {
 				continue;
 			}
@@ -911,24 +912,24 @@ public void actionPerformed(ActionEvent event)
 			size = _regression_data.size();
 		}
 		TSRegression r = null;
-		Vector v = new Vector();	
+		List v = new Vector();	
 		for (int i = 0; i < size; i++) {
-			r = (TSRegression)_regression_data.elementAt(i);
+			r = (TSRegression)_regression_data.get(i);
 			if (r == null) {
 				continue;
 			}
 			// Split by newlines so that report has separate lines of information...
-			Vector lines = StringUtil.breakStringList ( r.toString(), "\n", 0 );
+			List lines = StringUtil.breakStringList ( r.toString(), "\n", 0 );
 			int size2 = 0;
 			if ( lines != null ) {
 			    size2 = lines.size();
 			    for ( int i2 = 0; i2 < size2; i2++ ) {
-			        v.addElement ( lines.get(i2) );
+			        v.add ( lines.get(i2) );
 			    }
 			}
-			v.addElement(r.toString ());
-			v.addElement("");
-			v.addElement("");
+			v.add(r.toString ());
+			v.add("");
+			v.add("");
 		}
 		
 		if (v.size() == 0) {
@@ -959,19 +960,19 @@ public void actionPerformed(ActionEvent event)
 		pframe.setSubproduct(_subproduct);
 		TSLimits limits = null;
 
-		Vector tslist = null;
+		List tslist = null;
 		if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
 	    	int nreg = 0;
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
 			}
-			Vector v = new Vector();
+			List v = new Vector();
 			TSRegression regressionData = null;
 			for (int i = 0; i < nreg; i++) {
 				if (!isTSEnabled(i + 1)) {
 					continue;
 				}
-				regressionData = (TSRegression)_regression_data.elementAt(i);
+				regressionData = (TSRegression)_regression_data.get(i);
 				v.add(regressionData.getResidualTS());
 			}
 			tslist = v;
@@ -981,16 +982,16 @@ public void actionPerformed(ActionEvent event)
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
 			}
-			Vector v = new Vector();
+			List v = new Vector();
 			TSRegression regressionData = null;
 			if (isTSEnabled(0)) {
-				v.add(__tslist.elementAt(0));
+				v.add(__tslist.get(0));
 			}
 			for (int i = 0; i < nreg; i++) {
 				if (!isTSEnabled(i + 1)) {
 					continue;
 				}
-				regressionData = (TSRegression)_regression_data.elementAt(i);
+				regressionData = (TSRegression)_regression_data.get(i);
 				if (isTSEnabled(i + 1)) {
 					v.add(regressionData.getDependentTS());
 					v.add(regressionData.getPredictedTS());
@@ -1036,13 +1037,13 @@ public void actionPerformed(ActionEvent event)
 		if (__tslist != null) {
 			nreg = __tslist.size() - 1;
 		}
-		Vector v = new Vector();
+		List v = new Vector();
 		TSRegression regressionData = null;
 		for (int i = 0; i < nreg; i++) {
 			if (!isTSEnabled(i + 1)) {
 				continue;
 			}
-			regressionData = (TSRegression)_regression_data.elementAt(i);
+			regressionData = (TSRegression)_regression_data.get(i);
 			v.add(regressionData.getResidualTS());
 		}
 		
@@ -1238,13 +1239,13 @@ protected void computeDataLimits (boolean max)
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
 			}
-			Vector v = new Vector();
+			List v = new Vector();
 			TSRegression regressionData = null;
 			for (int i = 0; i < nreg; i++) {
 				if (!isTSEnabled(i + 1)) {
 					continue;
 				}
-				regressionData = (TSRegression)_regression_data.elementAt(i);
+				regressionData = (TSRegression)_regression_data.get(i);
 				v.add(regressionData.getResidualTS());
 			}
 
@@ -1339,7 +1340,7 @@ protected void computeDataLimits (boolean max)
                 			nreg = __tslist.size() - 1;
                 		}
                 	
-                		Vector v = new Vector();
+                		List v = new Vector();
                 		TSRegression regressionData = null;
                 		TSLimits tempLimits = null;
                 		double maxValue = 0;
@@ -1348,7 +1349,7 @@ protected void computeDataLimits (boolean max)
                 			if (!isTSEnabled(i + 1)) {
                 				continue;
                 			}
-                			regressionData = (TSRegression)_regression_data.elementAt(i);
+                			regressionData = (TSRegression)_regression_data.get(i);
                 			v.add(regressionData.getResidualTS());
                 			tempLimits = TSUtil.getDataLimits(v, _start_date, _end_date, "", false, _ignore_units );
                 			if (tempLimits.getMaxValue() > maxValue) {
@@ -1391,8 +1392,8 @@ protected void computeDataLimits (boolean max)
 		}
 		if (_is_reference_graph && (_reference_ts_index >= 0)) {
 			// Reset the coordinates based only on the reference time series but use the full period for dates...
-			Vector ref_tslist = new Vector(1,1);
-			ref_tslist.addElement((TS)__tslist.elementAt(_reference_ts_index));
+			List ref_tslist = new Vector(1,1);
+			ref_tslist.add((TS)__tslist.get(_reference_ts_index));
 			TSLimits reflimits = TSUtil.getDataLimits (	ref_tslist, _start_date, _end_date, "", false,_ignore_units );
 			_max_tslimits.setMinValue ( reflimits.getMinValue() );
 			_max_tslimits.setMaxValue ( reflimits.getMaxValue() );
@@ -1425,7 +1426,7 @@ protected void computeDataLimits (boolean max)
             			nreg = __tslist.size() - 1;
             		}
             	
-            		Vector v = new Vector();
+            		List v = new Vector();
             		TSRegression regressionData = null;
             		double minValue = 0;
             		double maxValue = 0;
@@ -1434,7 +1435,7 @@ protected void computeDataLimits (boolean max)
             			if (!isTSEnabled(i + 1)) {
             				continue;
             			}
-            			regressionData = (TSRegression)_regression_data.elementAt(i);
+            			regressionData = (TSRegression)_regression_data.get(i);
             			v.add(regressionData.getResidualTS());
             			tempLimits = TSUtil.getDataLimits(v, _max_start_date,_max_end_date, "", false, _ignore_units );
             			if (tempLimits.getMaxValue() > maxValue) {
@@ -1477,7 +1478,7 @@ protected void computeDataLimits (boolean max)
 			}
 			double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
 			for ( int ir = 0; ir < nregression; ir++ ) {
-				regressionData = (TSRegression)_regression_data.elementAt(ir);
+				regressionData = (TSRegression)_regression_data.get(ir);
 				if ( (regressionData != null) && !regressionData.isMonthlyAnalysis() ) {
 					// One equation...
 					if ( regressionData.isAnalyzed() ) {
@@ -1581,7 +1582,7 @@ protected void computeDataLimits (boolean max)
 
 			if (!xlimits_found) {
 				// Use the full limits...
-				TS ts0 = (TS)__tslist.elementAt(0);
+				TS ts0 = (TS)__tslist.get(0);
 				TSLimits limits0 = ts0.getDataLimits();
 				xmin = limits0.getMinValue();
 				xmax = limits0.getMaxValue();
@@ -1594,7 +1595,7 @@ protected void computeDataLimits (boolean max)
 				TS ts = null;
 				TSLimits ylimits = null;
 				for ( int its = 1; its <= nregression; its++ ) {
-					ts = (TS)__tslist.elementAt(its);
+					ts = (TS)__tslist.get(its);
 					if (ts == null || !isTSEnabled(its)) {
 						continue;
 					}
@@ -1633,9 +1634,9 @@ protected void computeDataLimits (boolean max)
 			TSLimits tsLimits = null;
 			double maxValue = 0;
 			double minValue = 0;
-			Vector tempV = null;
+			List tempV = null;
 			for (int ir = 0; ir < nregression; ir++) {
-				regressionData = (TSRegression)_regression_data.elementAt(ir);
+				regressionData = (TSRegression)_regression_data.get(ir);
 				tempV = new Vector();
 				tsLimits = null;
 				if (regressionData != null) {
@@ -1999,7 +2000,7 @@ private void computeLabels ( TSLimits limits )
 	// Number of months in data...
 
 	int nmonths = _end_date.getAbsoluteMonth() - _start_date.getAbsoluteMonth() + 1;
-	Vector x_axis_labels_temp = new Vector (10,10);
+	List x_axis_labels_temp = new Vector (10,10);
 
 	int delta = 0;
 	if ( _xaxis_date_precision == DateTime.PRECISION_YEAR ) {
@@ -2015,7 +2016,7 @@ private void computeLabels ( TSLimits limits )
 		}
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
+			x_axis_labels_temp.add (	new Double(date.toDouble() ) );
 			date.addYear ( delta );
 		}
 	}
@@ -2035,7 +2036,7 @@ private void computeLabels ( TSLimits limits )
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1,	routine, _gtype + "Label is for " + date.toString() );
 			}
-			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
+			x_axis_labels_temp.add (	new Double(date.toDouble() ) );
 			date.addMonth ( delta );
 		}
 	}
@@ -2053,7 +2054,7 @@ private void computeLabels ( TSLimits limits )
 		}
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement (	new Double(date.toDouble() ) );
+			x_axis_labels_temp.add (	new Double(date.toDouble() ) );
 			date.addDay ( delta );
 		}
 	}
@@ -2073,7 +2074,7 @@ private void computeLabels ( TSLimits limits )
 		}
 		Object o = null;
 		for ( int its = 0; its < nts; ++its ) {
-		        o = __tslist.elementAt(its);
+		        o = __tslist.get(its);
 		        if ( o != null ) {
 		               ts = (TS)o;
 		               break;
@@ -2120,7 +2121,7 @@ private void computeLabels ( TSLimits limits )
 		date = new DateTime(_start_date);
 
 		for (i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.addElement( new Double(date.toDouble()));
+			x_axis_labels_temp.add( new Double(date.toDouble()));
 			date.addHour(delta);
 		}
 	}
@@ -2130,7 +2131,7 @@ private void computeLabels ( TSLimits limits )
 
 		TS ts = getFirstEnabledTS();
 		if (ts == null) {
-			ts = (TS)__tslist.elementAt(0);
+			ts = (TS)__tslist.get(0);
 		}
 		int dataIntervalBase = ts.getDataIntervalBase();
 		
@@ -2175,7 +2176,7 @@ private void computeLabels ( TSLimits limits )
 		
 		date = new DateTime(_start_date);
 		for (i = 0; date.lessThanOrEqualTo(_end_date); i++) {
-			x_axis_labels_temp.addElement( new Double(date.toDouble()));
+			x_axis_labels_temp.add( new Double(date.toDouble()));
 			date.addMinute(delta);
 		}
 	}
@@ -2185,7 +2186,7 @@ private void computeLabels ( TSLimits limits )
 	size = x_axis_labels_temp.size();
 	_xlabels = new double[size];
 	for ( i = 0; i < size; i++ ) {
-		_xlabels[i] = ((Double)x_axis_labels_temp.elementAt(i)).doubleValue();
+		_xlabels[i] = ((Double)x_axis_labels_temp.get(i)).doubleValue();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,_gtype + "_xlabel[" + i + "]=" + _xlabels[i] );
 		}
@@ -2216,7 +2217,7 @@ private void computeXAxisDatePrecision ()
 	int interval = 0;
 	DateTime date = null;
 	for (int i = 0; i < size; i++) {
-		ts = (TS)__tslist.elementAt(i);
+		ts = (TS)__tslist.get(i);
 		if ((ts == null) || !ts.getEnabled() || !isTSEnabled(i)) {
 			continue;
 		}
@@ -2356,8 +2357,8 @@ private void doAnalysis ()
 		for ( int i = 1; i <= nreg; i++ ) {
 			// The first time series [0] is always the dependent
 			// time series and time series [1+] are the independent for each relationship...
-			ts0 = (TS)__tslist.elementAt(0);
-			ts = (TS)__tslist.elementAt(i);
+			ts0 = (TS)__tslist.get(0);
+			ts = (TS)__tslist.get(i);
 			try {
 			    regressionData = new TSRegression ( ts, ts0, rprops );
 			}
@@ -2367,7 +2368,7 @@ private void doAnalysis ()
 				regressionData = null;
 			}
 			// Always add something...
-			_regression_data.addElement ( regressionData );
+			_regression_data.add ( regressionData );
 		}
 		ts0 = null;
 		ts = null;
@@ -2403,11 +2404,11 @@ private void doAnalysis ()
 		TSDurationAnalysis da = null;
 		for ( int i = 0; i < size; i++ ) {
 			try {
-			    da = new TSDurationAnalysis ( (TS)__tslist.elementAt(i) );
-				_duration_data.addElement ( da );
+			    da = new TSDurationAnalysis ( (TS)__tslist.get(i) );
+				_duration_data.add ( da );
 			}
 			catch ( Exception e ) {
-				_duration_data.addElement ( null );
+				_duration_data.add ( null );
 			}
 		}
 		da = null;
@@ -2441,8 +2442,8 @@ private void doAnalysis ()
 		for (int i = 1; i <= nreg; i++) {
 			// The first time series [0] is always the independent
 			// time series and time series [1+] are the dependent for each relationship...
-			ts0 = (TS)__tslist.elementAt(0);
-			ts = (TS)__tslist.elementAt(i);
+			ts0 = (TS)__tslist.get(0);
+			ts = (TS)__tslist.get(i);
 			try {	
 				regressionData = new TSRegression( ts0, ts, rprops);
 				regressionData.createPredictedTS();
@@ -2454,7 +2455,7 @@ private void doAnalysis ()
 			}
 
 			// Always add something...
-			_regression_data.addElement(regressionData);
+			_regression_data.add(regressionData);
 		}
 		ts0 = null;
 		ts = null;
@@ -2479,9 +2480,9 @@ private void drawAnnotations(boolean overGraph) {
 	String s = null;
 	String type = null;
 	String points = null;
-	Vector pointsV = null;
+	List pointsV = null;
 	String point = null;
-	Vector pointV = null;
+	List pointV = null;
 	boolean valid = false;
 	boolean niceSymbols = true;
 	boolean isSymbol = false;
@@ -2966,13 +2967,13 @@ private void drawDurationPlot ()
 	}
 
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)__tslist.elementAt(i);
+		ts = (TS)__tslist.get(i);
 		if ((ts == null) || !ts.getEnabled() || !isTSEnabled(i)) {
 			Message.printWarning ( 2, routine, "Null time series to graph [" + i + "]" );
 			return;
 		}
 		
-		da = (TSDurationAnalysis)_duration_data.elementAt(i);
+		da = (TSDurationAnalysis)_duration_data.get(i);
 
 		if (da == null) {
 			Message.printWarning(2, routine, "Null TSDurationAnalysis to graph [" + i + "]");
@@ -3088,7 +3089,7 @@ private void drawGraph () {
 		TS predicted = null;
 
 		for (int ir = 0; ir < nregression; ir++) {
-			regressionData = (TSRegression)_regression_data.elementAt(ir);
+			regressionData = (TSRegression)_regression_data.get(ir);
 			if (regressionData != null) {
 			    	if (residual) {
 					if (isTSEnabled(ir + 1)) {
@@ -3119,7 +3120,7 @@ private void drawGraph () {
 	else {	
 		// "Normal" graph that can be handled in general code...
 		for (int i = 0; i < size; i++) {
-			ts = (TS)__tslist.elementAt(i);
+			ts = (TS)__tslist.get(i);
 			if ((ts == null) || (!_is_reference_graph && !ts.getEnabled())
 			    || (!_is_reference_graph && !isTSEnabled(i))) {
 				continue;
@@ -3271,12 +3272,12 @@ private void drawLegend () {
 
 			if (predicted) {
 				// predicted ones have to be retrieved from the regression data.
-				regressionData = (TSRegression)_regression_data.elementAt(tsNum - 1);
+				regressionData = (TSRegression)_regression_data.get(tsNum - 1);
 				ts = regressionData.getPredictedTS();
 
 			}
 			else {
-				ts = (TS)__tslist.elementAt(tsNum);
+				ts = (TS)__tslist.get(tsNum);
 			}
 
 			legend = getLegendString(ts, tsNum);
@@ -3312,7 +3313,7 @@ private void drawLegend () {
 				continue;
 			}
 
-			regressionData = (TSRegression)_regression_data.elementAt(i);
+			regressionData = (TSRegression)_regression_data.get(i);
 			ts = regressionData.getResidualTS();
 
 			legend = getLegendString(ts, i + 1) + " (Residual)";
@@ -3334,7 +3335,7 @@ private void drawLegend () {
 			if (!isTSEnabled(i)) {
 				continue;
 			}
-			ts = (TS)__tslist.elementAt(i);
+			ts = (TS)__tslist.get(i);
 			legend = getLegendString(ts, i);
 			if (legend == null) {
 				continue;
@@ -3940,7 +3941,7 @@ possibly consider something like the following...
 		// not been performed.  Need to do so before deciding which
 		// approach is faster.
 		IrregularTS irrts = (IrregularTS)ts;
-		Vector alltsdata = irrts.getData();
+		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -3954,7 +3955,7 @@ possibly consider something like the following...
 // Two indents have been removed from the following to make it more legible
 // at the right margin of the page.
 		
-	tsdata = (TSData)alltsdata.elementAt(i);
+	tsdata = (TSData)alltsdata.get(i);
 	date = tsdata.getDate();
 	if (date.greaterThan(end)) {
 		// Past the end of where want to go so
@@ -5156,7 +5157,7 @@ private void drawXYScatterPlot ()
 	if ( __tslist == null ) {
 		return;
 	}
-	TS ts0 = (TS)__tslist.elementAt(0);
+	TS ts0 = (TS)__tslist.get(0);
 	if ( ts0 == null) {
 		return;
 	}
@@ -5213,14 +5214,14 @@ private void drawXYScatterPlot ()
 
 	
 	for (int i = 0, its = 1; i < nreg; i++, its++) {
-		ts = (TS)__tslist.elementAt(its);
+		ts = (TS)__tslist.get(its);
 		if (ts == null || !isTSEnabled(i)) {
 			continue;
 		}
 		// Draw a the line of best fit (if can't do this can still draw the data below)...
 	
 		draw_line = true;
-		regressionData = (TSRegression)_regression_data.elementAt(i);
+		regressionData = (TSRegression)_regression_data.get(i);
 		if ( regressionData == null ) {
 			Message.printWarning ( 2, routine, "Regression data for TS [" + i + "] is null." );
 			draw_line = false;
@@ -5675,23 +5676,23 @@ public GRLimits getDataLimits()
 /**
 Returns a Vector of all the time series that are enabled.  This will never 
 return null.  If no time series are enabled, a new Vector will be returned.
-@return a Vector of all the time series that are enabled.
+@return a list of all the time series that are enabled.
 */
-public Vector getEnabledTSList() {
+public List getEnabledTSList() {
 	if (__tslist == null || __tslist.size() == 0) {
 		return new Vector();
 	}
 
 	int size = __tslist.size();
 	String propValue = null;
-	Vector v = new Vector();
+	List v = new Vector();
 	for (int i = 0; i < size; i++) {
 		propValue = _tsproduct.getLayeredPropValue("Enabled", _subproduct, i, false);
 		if (propValue != null && propValue.equalsIgnoreCase("False")) {
 			// skip it
 		}
 		else {
-			v.add(__tslist.elementAt(i));
+			v.add(__tslist.get(i));
 		}
 	}
 	return v;
@@ -5710,11 +5711,11 @@ Returns the first time series in the time series list that is enabled.
 @return the first time series in the time series list that is enabled.
 */
 public TS getFirstEnabledTS() {
-	Vector v = getEnabledTSList();
+	List v = getEnabledTSList();
 	if (v.size() == 0) {
 		return null;
 	}
-	return (TS)v.elementAt(0);
+	return (TS)v.get(0);
 }
 
 /**
@@ -5948,7 +5949,7 @@ Return the Vector of TSRegression data that applies to the graph, if available.
 This can be displayed in a details window for the graph.
 @return TSRegression data for graph (use with scatter plot) or null if no analysis has been performed.
 */
-public Vector getRegressionData ()
+public List getRegressionData ()
 {	return _regression_data;
 }
 
@@ -5972,7 +5973,7 @@ public int getSubProductNumber ()
 /**
 Return the time series list used for graphing.  Currently only the full list is returned.
 */
-public Vector getTSList()
+public List getTSList()
 {	return __tslist;
 }
 
@@ -6226,7 +6227,7 @@ public void paint ( Graphics g )
 		// properties for the first regression apply to all regression data...
 		
 		if ((_regression_data != null) && (_regression_data.size()>0)) {
-			PropList old_props = ((TSRegression)_regression_data.elementAt(0)).getPropList();
+			PropList old_props = ((TSRegression)_regression_data.get(0)).getPropList();
 			if (!_tsproduct.getLayeredPropValue( "XYScatterMethod", _subproduct, -1, false).equalsIgnoreCase(
 			        old_props.getValue("AnalysisMethod")) 
 			  || !_tsproduct.getLayeredPropValue ( "XYScatterMonth", _subproduct, -1, false).equalsIgnoreCase(
@@ -6565,7 +6566,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		String legend = null;
 
         for ( int i = 0; i < size; i++ ) {
-        	ts = (TS)__tslist.elementAt(i);
+        	ts = (TS)__tslist.get(i);
         	if (ts == null || !isTSEnabled(i)) {
         		continue;
         	}

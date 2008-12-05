@@ -18,7 +18,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.DMI.DMIUtil;
 
@@ -181,7 +181,7 @@ a positive result occurs.  See DataTest.run().
 @param level the level of the results that will be generated.  The top level
 of results are at level 0.
 */
-public void evaluatePositiveResult(DataTest test, Vector results, 
+public void evaluatePositiveResult(DataTest test, List results, 
 DateTime testTime, int level) {
 	DataTestResult result = buildDataTestResult(test, testTime, level);
 	

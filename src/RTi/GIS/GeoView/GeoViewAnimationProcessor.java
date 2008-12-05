@@ -14,6 +14,7 @@
 
 package RTi.GIS.GeoView;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.ProcessListener;
@@ -67,9 +68,9 @@ The amount of time to pause between animation steps.
 private int __pause;
 
 /**
-Vector of listeners to be notified during a process.
+List of listeners to be notified during a process.
 */
-private Vector __listeners;
+private List __listeners;
 
 /**
 Constructor.
@@ -149,7 +150,7 @@ public void notifyListenersStatus(int code, String message) {
 	int size = __listeners.size();
 	ProcessListener p = null;
 	for (int i = 0; i < size; i++) {
-		p = (ProcessListener)__listeners.elementAt(i);
+		p = (ProcessListener)__listeners.get(i);
 		p.processStatus(code, message);
 	}
 }

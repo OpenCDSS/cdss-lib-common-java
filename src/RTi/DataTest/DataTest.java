@@ -21,6 +21,7 @@
 
 package RTi.DataTest;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.DMI.DMIUtil;
@@ -191,12 +192,12 @@ If this test is a Master test (e.g., created dynamically in TSTool and
 containing wildcard time series), this Vector contains the data tests under
 the main test.
 */
-private Vector __dataTests = null;
+private List __dataTests = null;
 
 /**
 A Vector of the DataTestResults that were generated during a test run.  
 */
-private Vector __results = new Vector();
+private List __results = new Vector();
 
 /**
 Constructor.  This constructor doesn't set up any internal data members, so
@@ -353,7 +354,7 @@ will not be available to check.
 multiplier, true if they do.
 */
 public boolean checkTimeSeriesForSameIntervals() {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 
 	DataTestFunction func = null;
 	DataTestSide side = null;
@@ -366,7 +367,7 @@ public boolean checkTimeSeriesForSameIntervals() {
 	TS ts = null;
 
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -476,17 +477,17 @@ of all the actions that this data test uses, this method stores a
 reference to each of the actions used in this test.
 @param actions the list of all actions in the system.
 */
-public void connectActions(Vector actions) {
+public void connectActions(List actions) {
 	if (__actionNums == null) {
 		return;
 	}
 
 	Action action = null;
 	int size = actions.size();
-	Vector v = new Vector();
+	List v = new Vector();
 
 	for (int i = 0; i < size; i++) {
-		action = (Action) actions.elementAt(i);
+		action = (Action) actions.get(i);
 		for (int j = 0; j < __actionNums.length; j++) {
 			if (action.getActionNum() == __actionNums[j]) {
 				v.add(action);
@@ -498,7 +499,7 @@ public void connectActions(Vector actions) {
 	__actions = new Action[size];
 	
 	for (int i = 0; i < size; i++) {
-		__actions[i] = (Action) v.elementAt(i);
+		__actions[i] = (Action) v.get(i);
 	}
 
 	v.clear();
@@ -514,9 +515,9 @@ nodes (by simply returning them in traversal order in a Vector).
 @return a Vector of DataTesSide objects representing the nodes in the 
 expression tree in the order they were traversed.
 */
-private Vector expressionTreeToVector() {
+private List expressionTreeToVector() {
 	DataTestExpression expr = (DataTestExpression)getDataTestExpression();
-	Vector v = new Vector();
+	List v = new Vector();
 	v.add(expr);
 	expressionTreeToVectorHelper(v, expr);
 	return v;
@@ -530,7 +531,7 @@ order that the expression tree nodes are traversed.
 @param a DataTestExpression from which to traverse the tree.  Its left side
 nodes are traversed before its right side nodes.
 */
-private void expressionTreeToVectorHelper(Vector v, DataTestExpression expr) {
+private void expressionTreeToVectorHelper(List v, DataTestExpression expr) {
 	v.add(expr.getLeftSide());
 	if (expr.getLeftSide().isExpression()) {
 		expressionTreeToVectorHelper(v, 
@@ -633,7 +634,7 @@ public DateTime getActiveSeasonStart() {
 Returns the data tests that are under this DataTest, if this test is a master.
 @return the data tests that are under this DataTest, if this test is a master.
 */
-public Vector getDataTests() {
+public List getDataTests() {
 	return __dataTests;
 }
 
@@ -678,7 +679,7 @@ the DataTest contains no time series.  This date/time is a copy of the latest
 date, so it can be modified without affecting anything else.
 */
 public DateTime getEndDate() {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 	
 	DataTestFunction func = null;
 	DataTestSide side = null;
@@ -688,7 +689,7 @@ public DateTime getEndDate() {
 	TS ts = null;
 
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -783,7 +784,7 @@ if the DataTest contains no time series.  This date/time is a copy of the
 earliest date, so it can be modified without affecting anything else.
 */
 public DateTime getStartDate() {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 	
 	DataTestFunction func = null;
 	DataTestSide side = null;
@@ -793,7 +794,7 @@ public DateTime getStartDate() {
 	TS ts = null;
 	
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions that have time series.
 			continue;
@@ -912,7 +913,7 @@ the same base or multiplier.
 DataTest has no time series in its equation.
 */
 public TimeInterval getTimeSeriesIntervalData() {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 	
 	DataTestFunction func = null;
 	DataTestSide side = null;
@@ -923,7 +924,7 @@ public TimeInterval getTimeSeriesIntervalData() {
 	TS ts = null;
 	
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions that have time series.
 			continue;
@@ -965,18 +966,18 @@ used in conjunction with hasWildcards().
 @return a Vector of all the wildcarded TSIDs in the DataTest.  This Vector will
 never be null, even if no wildcarded TSIDs were found.
 */
-public Vector getWildcardTSIDs() {
-	Vector v = expressionTreeToVector();
+public List getWildcardTSIDs() {
+	List v = expressionTreeToVector();
 
 	DataTestFunction func = null;
 	DataTestSide side = null;
 	int[] tsidPositions = null;
 	int numTS = -1;
 	int size = v.size();
-	Vector tsids = new Vector();
+	List tsids = new Vector();
 	
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -1014,14 +1015,14 @@ wildcards.  This should be called before any test data are set in the test.
 @return true if any wildcards were found, false if not.
 */
 public boolean hasWildcards() {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 	DataTestSide side = null;
 	DataTestFunction func = null;
 	int[] tsidPositions = null;
 	int numTS = -1;
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide)v.elementAt(i);
+		side = (DataTestSide)v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -1152,7 +1153,7 @@ run, such as:
 */
 public void postTestRun() {
 	if (__positiveCount > 1 && __results.size() < __positiveCount) {
-		__results.removeAllElements();
+		__results.clear();
 	}
 	
 	if (__results != null) {
@@ -1166,8 +1167,8 @@ public void postTestRun() {
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < __actions.length; j++) {
 					__actions[j].addResults(
-						(Vector) 
-						__results.elementAt(i));
+						(List) 
+						__results.get(i));
 				}
 			}
 		}
@@ -1185,7 +1186,7 @@ such as:
 - setting __wasLastTestPositive to false
 */
 public void preTestRun() {
-	__results.removeAllElements();
+	__results.clear();
 	__wasLastTestPositive = false;
 }
 
@@ -1196,7 +1197,7 @@ that executes a DataTest.
 @return true if the test returned a positive result, false if not.
 */
 public boolean run(DateTime dt) {
-	Vector results = new Vector();
+	List results = new Vector();
 	if (__expression.evaluate(dt) != FALSE) {
 		// By comparing to != FALSE, it is checking for a non-zero 
 		// value.  Anything == 0 is considered FALSE, anything 
@@ -1306,7 +1307,7 @@ public void setActiveSeasonStart(DateTime activeSeasonStart) {
 Sets the data tests that are under this DataTest, if this data test is a master.
 @param dataTests the tests to set.
 */
-public void setDataTests(Vector dataTests) {
+public void setDataTests(List dataTests) {
 	__dataTests = dataTests;
 }
 
@@ -1490,14 +1491,14 @@ Calls setTestData on every function in the DataTest.  This method is necessary
 when DataTests are created on the fly.  
 */
 public void setTestData(DateTime startDate, DateTime endDate) {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 
 	DataTestFunction func = null;
 	DataTestSide side = null;
 	int size = v.size();
 
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -1539,7 +1540,7 @@ TSIDs in it, they are all the same.  There is no support for an expression like:
 @param tsid the tsid to change the wildcards to.  
 */
 public void setWildcards(String tsid) {
-	Vector v = expressionTreeToVector();
+	List v = expressionTreeToVector();
 
 	DataTestFunction func = null;
 	DataTestSide side = null;
@@ -1548,7 +1549,7 @@ public void setWildcards(String tsid) {
 	int size = v.size();
 	
 	for (int i = 0; i < size; i++) {
-		side = (DataTestSide) v.elementAt(i);
+		side = (DataTestSide) v.get(i);
 		if (side.isExpression()) {
 			// only have to check Functions
 			continue;
@@ -1832,23 +1833,23 @@ throws Exception {
 	}	
 	ts.setDataInterval(base, interval.getMultiplier());
 
-	Vector v1 = (Vector) __results.elementAt(0);
-	Vector v2 = (Vector) __results.elementAt(size - 1);
+	List v1 = (List) __results.get(0);
+	List v2 = (List) __results.get(size - 1);
 
-	DataTestResult r1 = (DataTestResult) v1.elementAt(0);
+	DataTestResult r1 = (DataTestResult) v1.get(0);
 	DateTime dt1 = r1.getTestTime();
-	DataTestResult r2 = (DataTestResult) v2.elementAt(0);
+	DataTestResult r2 = (DataTestResult) v2.get(0);
 	DateTime dt2 = r2.getTestTime();
 	
 	ts.setDate1(dt1);
 	ts.setDate2(dt2);
 	ts.allocateDataSpace();
 
-	Vector v = null;
+	List v = null;
 	DataTestResult r = null;
 	for (int i = 0; i < size; i++) {
-		v = (Vector) __results.elementAt(i);
-		r = (DataTestResult) v.elementAt(0);
+		v = (List) __results.get(i);
+		r = (DataTestResult) v.get(0);
 		ts.setDataValue(r.getTestTime(), 1);
 	}
 	

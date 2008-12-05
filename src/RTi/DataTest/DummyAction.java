@@ -10,7 +10,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 
@@ -46,13 +46,13 @@ Prints the top-level data result information to the console.
 */
 public boolean runAction(DateTime runDateTime, DataTest test) {
 	removeOldResults(runDateTime);
-	Vector results = getPositiveResults(test);
+	List results = getPositiveResults(test);
 	int size = results.size();
-	Vector v = null;
+	List v = null;
 	for (int i = 0; i < size; i++) {
 		print("----------------------------------------");
-		v = (Vector)results.elementAt(i);
-		DataTestResult res = (DataTestResult)v.elementAt(0);
+		v = (List)results.get(i);
+		DataTestResult res = (DataTestResult)v.get(0);
 		print("" + runDateTime);
 		print("" + res.getTestTime());
 		print("   " + res.getMessage());

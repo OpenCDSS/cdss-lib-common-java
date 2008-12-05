@@ -55,7 +55,7 @@ ALGORITHM REFERENCES
 package RTi.GIS.GeoView;
 
 import java.lang.Math;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GR.GRPoint;
 import RTi.Util.Message.Message;
@@ -97,7 +97,7 @@ Empty strings are allowed and result in appropriate defaults.
 */
 public static UTMProjection parse ( String projection_string )
 throws Exception
-{	Vector tokens = StringUtil.breakStringList ( projection_string, ",", 0);
+{	List tokens = StringUtil.breakStringList ( projection_string, ",", 0);
 	int size = 0;
 	if ( tokens != null ) {
 		size = tokens.size();
@@ -109,9 +109,8 @@ throws Exception
 	UTMProjection projection = new UTMProjection ();
 	// 0 is the "UTM"
 	// 1 is the zone
-	projection._zone = StringUtil.atoi((String)tokens.elementAt(1));
-	if (	(Math.abs(projection._zone) < 1) ||
-		(Math.abs(projection._zone) > 60)) {
+	projection._zone = StringUtil.atoi((String)tokens.get(1));
+	if ( (Math.abs(projection._zone) < 1) || (Math.abs(projection._zone) > 60)) {
 		throw new Exception ( "Illegal UTM zone number " +
 			projection._zone);
 	}
@@ -119,7 +118,7 @@ throws Exception
 	// 2 is the datum for spheroid (this sets _datum, _r_major and
 	// _r_minor)...
 	if ( size >= 3 ) {
-		projection.setSpheroid ( (String)tokens.elementAt(2) );
+		projection.setSpheroid ( (String)tokens.get(2) );
 	}
 	else {	// Will use default...
 		projection.setSpheroid ( "NAD83" );
@@ -137,41 +136,41 @@ throws Exception
 
 	if ( size >= 4 ) {
 		// Input string may have easting...
-		if ( StringUtil.isDouble((String)tokens.elementAt(3)) ) {
+		if ( StringUtil.isDouble((String)tokens.get(3)) ) {
 			projection._false_easting = StringUtil.atod(
-					(String)tokens.elementAt(3) );
+					(String)tokens.get(3) );
 		}
 	}
 	if ( size >= 5 ) {
 		// Input string may have northing...
-		if ( StringUtil.isDouble((String)tokens.elementAt(4)) ) {
+		if ( StringUtil.isDouble((String)tokens.get(4)) ) {
 			projection._false_northing = StringUtil.atod(
-					(String)tokens.elementAt(4) );
+					(String)tokens.get(4) );
 		}
 	}
 
 	double D2R = 1.745329251994328e-2;
 	projection._lon_center = ((6 * Math.abs(projection._zone)) - 183) * D2R;
 	if ( size >= 6 ) {
-		if ( StringUtil.isDouble((String)tokens.elementAt(5)) ) {
+		if ( StringUtil.isDouble((String)tokens.get(5)) ) {
 			projection._lon_center = StringUtil.atod(
-					(String)tokens.elementAt(5) )*D2R;
+					(String)tokens.get(5) )*D2R;
 		}
 	}
 
 	projection._lat_origin = 0.0;
 	if ( size >= 7 ) {
-		if ( StringUtil.isDouble((String)tokens.elementAt(6)) ) {
+		if ( StringUtil.isDouble((String)tokens.get(6)) ) {
 			projection._lat_origin = StringUtil.atod(
-					(String)tokens.elementAt(6) )*D2R;
+					(String)tokens.get(6) )*D2R;
 		}
 	}
 
 	projection._scale_factor = .9996;
 	if ( size >= 8 ) {
-		if ( StringUtil.isDouble((String)tokens.elementAt(7)) ) {
+		if ( StringUtil.isDouble((String)tokens.get(7)) ) {
 			projection._scale_factor = StringUtil.atod(
-					(String)tokens.elementAt(7) );
+					(String)tokens.get(7) );
 		}
 	}
 

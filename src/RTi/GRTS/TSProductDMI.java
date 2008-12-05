@@ -11,7 +11,7 @@
 
 package RTi.GRTS;
 
-import java.util.Vector;
+import java.util.List;
 
 /**
 This interface controls the behavior or classes that need to save TSProducts to
@@ -29,7 +29,7 @@ public String getDMIName();
 Returns a list of all the records from the TSProduct table (defined differently
 for each database) that the user has access to.
 */
-public Vector readTSProductDMITSProductList(boolean newProduct);
+public List readTSProductDMITSProductList(boolean newProduct);
 
 /**
 Writes the specified TSProduct.  The classes that implements this interface is

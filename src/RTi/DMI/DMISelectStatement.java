@@ -113,20 +113,18 @@ private String toAccessString() {
 	
 	int size = _field_Vector.size();
 	if (size > 0) {
-		statement.append ( (String)_field_Vector.elementAt(0) );
+		statement.append ( (String)_field_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_field_Vector.elementAt(i) );
+			statement.append ( ", " + (String)_field_Vector.get(i) );
 		}
 	}
 	
 	size = _table_Vector.size();
 	if (size > 0 && _join_Vector.size() == 0) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.elementAt(0) );
+		statement.append ( (String)_table_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_table_Vector.elementAt(i) );
+			statement.append ( ", " + (String)_table_Vector.get(i) );
 		}
 	}
 	
@@ -140,11 +138,10 @@ private String toAccessString() {
 			statement.append("(");
 		}
 		
-		statement.append((String)_table_Vector.elementAt(0));
+		statement.append((String)_table_Vector.get(0));
 
 		for (int i = 0; i < size; i++) {
-			type = ((Integer)_join_type_Vector.elementAt(i))
-				.intValue();
+			type = ((Integer)_join_type_Vector.get(i)).intValue();
 			if (type == _JOIN_INNER) {
 				statement.append(" INNER JOIN ");
 			}
@@ -154,9 +151,9 @@ private String toAccessString() {
 			else if (type == _JOIN_RIGHT) {
 				statement.append(" RIGHT JOIN ");
 			}
-			s = (String)_join_Vector.elementAt(i);
+			s = (String)_join_Vector.get(i);
 			statement.append(s + " ON ");
-			s = (String)_on_Vector.elementAt(i);
+			s = (String)_on_Vector.get(i);
 			statement.append(s);
 			
 			if (size > 1 && i < (size - 1)) {
@@ -171,10 +168,9 @@ private String toAccessString() {
 	size = _where_Vector.size();
 	if (size > 0) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.elementAt(0) );
+		statement.append ( (String)_where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( " AND (" +
-				(String)_where_Vector.elementAt(i) + ")");
+			statement.append ( " AND (" + (String)_where_Vector.get(i) + ")");
 		}
 	}
 	
@@ -185,10 +181,9 @@ private String toAccessString() {
 		} else {
 			statement.append ( " ORDER BY " );
 		}
-		statement.append ( (String)_order_by_Vector.elementAt(0) );
+		statement.append ( (String)_order_by_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_order_by_Vector.elementAt(i));
+			statement.append ( ", " + (String)_order_by_Vector.get(i));
 		}
 	}
 	return statement.toString();
@@ -211,20 +206,18 @@ public String toString() {
 	
 	int size = _field_Vector.size();
 	if (size > 0) {
-		statement.append ( (String)_field_Vector.elementAt(0) );
+		statement.append ( (String)_field_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_field_Vector.elementAt(i) );
+			statement.append ( ", " + (String)_field_Vector.get(i) );
 		}
 	}
 	
 	size = _table_Vector.size();
 	if (size > 0) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.elementAt(0) );
+		statement.append ( (String)_table_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_table_Vector.elementAt(i) );
+			statement.append ( ", " + (String)_table_Vector.get(i) );
 		}
 	}
 	
@@ -233,8 +226,7 @@ public String toString() {
 		int type = -1;
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			type = ((Integer)_join_type_Vector.elementAt(i))
-				.intValue();
+			type = ((Integer)_join_type_Vector.get(i)).intValue();
 			if (type == _JOIN_INNER) {
 				statement.append(" INNER JOIN ");
 			}
@@ -244,9 +236,9 @@ public String toString() {
 			else if (type == _JOIN_RIGHT) {
 				statement.append(" RIGHT JOIN ");
 			}
-			s = (String)_join_Vector.elementAt(i);
+			s = (String)_join_Vector.get(i);
 			statement.append(s + " ON ");
-			s = (String)_on_Vector.elementAt(i);
+			s = (String)_on_Vector.get(i);
 			statement.append(s);
 		}
 	}
@@ -254,10 +246,9 @@ public String toString() {
 	size = _where_Vector.size();
 	if (size > 0) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.elementAt(0) );
+		statement.append ( (String)_where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( " AND (" +
-				(String)_where_Vector.elementAt(i) + ")");
+			statement.append ( " AND (" + (String)_where_Vector.get(i) + ")");
 		}
 	}
 	
@@ -268,10 +259,9 @@ public String toString() {
 		} else {
 			statement.append ( " ORDER BY " );
 		}
-		statement.append ( (String)_order_by_Vector.elementAt(0) );
+		statement.append ( (String)_order_by_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " +
-				(String)_order_by_Vector.elementAt(i));
+			statement.append ( ", " + (String)_order_by_Vector.get(i));
 		}
 	}
 	return statement.toString();

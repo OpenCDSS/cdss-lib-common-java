@@ -42,6 +42,7 @@ package RTi.GR;
 
 import java.awt.Shape;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -2150,7 +2151,7 @@ public static void drawText (	GRDrawingArea da, String text, double x,
 	}
 
 	// separate out each line
-	Vector v = new Vector();
+	List v = new Vector();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();
@@ -2169,7 +2170,7 @@ public static void drawText (	GRDrawingArea da, String text, double x,
 	int size = v.size();
 	String[] lines = new String[size];
 	for (int i = 0; i < size; i++) {
-		lines[i] = (String)v.elementAt(i);
+		lines[i] = (String)v.get(i);
 	}
 
 	// calculate the limits of each individual lines and put it in an
@@ -2653,7 +2654,7 @@ int flag) {
 
 	// Now calculate the extents for multiple lines of text.
 
-	Vector v = new Vector();
+	List v = new Vector();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();
@@ -2671,7 +2672,7 @@ int flag) {
 	int size = v.size();
 	String[] lines = new String[size];
 	for (int i = 0; i < size; i++) {
-		lines[i] = (String)v.elementAt(i);
+		lines[i] = (String)v.get(i);
 	}
 
 	double widest = 0;

@@ -41,6 +41,7 @@
 package RTi.GIS.GeoView;
 
 import java.lang.Math;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRArc;
@@ -362,8 +363,7 @@ protected static double e2fn ( double x )
 }
 
 /**
-Compute the constant e3, which is used in a series for calculating the distance
-along a meridian.
+Compute the constant e3, which is used in a series for calculating the distance along a meridian.
 @return value of e3.
 @param x the eccentricity squared.
 */
@@ -372,8 +372,7 @@ protected static double e3fn ( double x )
 }
 
 /**
-Determine if projections are equal.  Currently, the name, datum, and zone are
-the only items checked.
+Determine if projections are equal.  Currently, the name, datum, and zone are the only items checked.
 @param other Other projection to compare to.
 @return true if the projections are equal.
 */
@@ -401,8 +400,7 @@ Get the number of kilometers for a unit of the projection grid.  The
 point that is used can be reused if necessary to increase performance.
 This method should be defined in derived classes.  The version in this base
 class always returns the original point.
-@param p As input, specifies the location (in projected units) at which to
-determine the scale.
+@param p As input, specifies the location (in projected units) at which to determine the scale.
 @param reuse_point Indicates whether the point that is passed in should be
 re-used for the output (doing so saves memory).
 */
@@ -419,27 +417,25 @@ public String getProjectionName ()
 }
 
 /**
-Get the list of available projections or null if no projections have been
-defined.
+Get the list of available projections or null if no projections have been defined.
 @param type If 0, lists the available projections known to the GeoView package.
-If 1, lists the defined projections (projections that have been intantiated
-during processing).
+If 1, lists the defined projections (projections that have been instantiated during processing).
 */
-public static Vector getProjectionNames ( int type )
+public static List getProjectionNames ( int type )
 {	if ( type == 0 ) {
-		Vector v = new Vector ( 4 );
-		v.addElement ( "Geographic" );
-		v.addElement ( "HRAP" );
-		v.addElement ( "UTM" );
-		v.addElement ( "Unknown" );
+		List v = new Vector ( 4 );
+		v.add ( "Geographic" );
+		v.add ( "HRAP" );
+		v.add ( "UTM" );
+		v.add ( "Unknown" );
 	}
 	else if ( type == 1 ) {
 		if ( _defined_projections == null ) {
 			return null;
 		}
-		Vector v = new Vector ( _defined_projections.length );
+		List v = new Vector ( _defined_projections.length );
 		for ( int i = 0; i < _defined_projections.length; i++ ) {
-			v.addElement ( _defined_projections[i] );
+			v.add ( _defined_projections[i] );
 		}
 		return v;
 	}

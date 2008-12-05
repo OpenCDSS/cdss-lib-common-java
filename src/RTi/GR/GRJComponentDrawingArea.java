@@ -92,6 +92,7 @@ import java.awt.image.BufferedImage;
 import java.lang.Math;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
@@ -407,7 +408,7 @@ public void drawAnnotation(PropList p) {
 			return;
 		}
 
-		Vector points = StringUtil.breakStringList(propVal, ",", 0);
+		List points = StringUtil.breakStringList(propVal, ",", 0);
 		if (points.size() != 4) {
 			Message.printWarning(2, "drawAnnotation", 
 				"Invalid points declaration:"
@@ -472,25 +473,23 @@ public void drawAnnotation(PropList p) {
 			// always been defined, as a set of Data or Percent 
 			// points.
 			try {
-				__xs[0] = new Double(
-					((String)points.elementAt(0)))
-					.doubleValue();
+				__xs[0] = new Double(((String)points.get(0))).doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid X1 value: " 
-					+ points.elementAt(0));
+					+ points.get(0));
 				return;
 			}
 			try {
 				__xs[1] = new Double(
-					((String)points.elementAt(2)))
+					((String)points.get(2)))
 					.doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid X2 value: " 
-					+ points.elementAt(2));
+					+ points.get(2));
 				return;
 			}
 		}
@@ -521,27 +520,27 @@ public void drawAnnotation(PropList p) {
 			}
 		
 			try {
-				dtf.parse((String)points.elementAt(0));
+				dtf.parse((String)points.get(0));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid X1 value: " 
-					+ points.elementAt(0));
+					+ points.get(0));
 				Message.printWarning(3, "drawAnnotation", e);
 				return;
 			}
 			try {
-				dtf.parse((String)points.elementAt(2));
+				dtf.parse((String)points.get(2));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid X2 value: " 
-					+ points.elementAt(2));
+					+ points.get(2));
 				Message.printWarning(3, "drawAnnotation", e);
 				return;
 			}			
-			formatXPts[0] = (String)points.elementAt(0);
-			formatXPts[1] = (String)points.elementAt(2);
+			formatXPts[0] = (String)points.get(0);
+			formatXPts[1] = (String)points.get(2);
 		}
 
 		if (yFormat == null
@@ -601,24 +600,24 @@ public void drawAnnotation(PropList p) {
 			// points.
 			try {
 				__ys[0] = new Double(
-					((String)points.elementAt(1)))
+					((String)points.get(1)))
 					.doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid Y1 value: " 
-					+ points.elementAt(1));
+					+ points.get(1));
 				return;
 			}
 			try {
 				__ys[1] = new Double(
-					((String)points.elementAt(3)))
+					((String)points.get(3)))
 					.doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid Y2 value: " 
-					+ points.elementAt(3));
+					+ points.get(3));
 				return;
 			}
 		}
@@ -649,26 +648,26 @@ public void drawAnnotation(PropList p) {
 			}
 			
 			try {
-				dtf.parse((String)points.elementAt(1));
+				dtf.parse((String)points.get(1));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid Y1 value: " 
-					+ points.elementAt(1));
+					+ points.get(1));
 				Message.printWarning(3, "drawAnnotation", e);
 			}
 			try {
-				dtf.parse((String)points.elementAt(3));
+				dtf.parse((String)points.get(3));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid Y2 value: " 
-					+ points.elementAt(3));
+					+ points.get(3));
 				Message.printWarning(3, "drawAnnotation", e);
 			}			
 
-			formatYPts[0] = (String)points.elementAt(1);
-			formatYPts[1] = (String)points.elementAt(3);
+			formatYPts[0] = (String)points.get(1);
+			formatYPts[1] = (String)points.get(3);
 		}		
 	}
 	else if (shapeType.equalsIgnoreCase("Text") 
@@ -693,7 +692,7 @@ public void drawAnnotation(PropList p) {
 			return;
 		}
 
-		Vector point = StringUtil.breakStringList(propVal, ",", 0);
+		List point = StringUtil.breakStringList(propVal, ",", 0);
 		if (point.size() != 2) {
 			Message.printWarning(2, "drawAnnotation", 
 				"Invalid point declaration:"
@@ -759,13 +758,13 @@ public void drawAnnotation(PropList p) {
 			// points.
 			try {
 				__xs[0] = new Double(
-					((String)point.elementAt(0)))
+					((String)point.get(0)))
 					.doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid X1 value: " 
-					+ point.elementAt(0));
+					+ point.get(0));
 				return;
 			}
 		}
@@ -794,15 +793,15 @@ public void drawAnnotation(PropList p) {
 				__dateFormatHashtable.put(format, dtf);
 			}
 			try {
-				dtf.parse((String)point.elementAt(0));
+				dtf.parse((String)point.get(0));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid X1 value: " 
-					+ point.elementAt(0));
+					+ point.get(0));
 				Message.printWarning(3, routine, e);
 			}
-			formatXPts[0] = (String)point.elementAt(0);
+			formatXPts[0] = (String)point.get(0);
 		}
 		
 		if (yFormat == null
@@ -862,13 +861,13 @@ public void drawAnnotation(PropList p) {
 			// points.
 			try {
 				__ys[0] = new Double(
-					((String)point.elementAt(1)))
+					((String)point.get(1)))
 					.doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", 
 					"Invalid Y1 value: " 
-					+ point.elementAt(1));
+					+ point.get(1));
 				return;
 			}
 		}		
@@ -897,15 +896,15 @@ public void drawAnnotation(PropList p) {
 				__dateFormatHashtable.put(format, dtf);
 			}
 			try {
-				dtf.parse((String)point.elementAt(1));
+				dtf.parse((String)point.get(1));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation",
 					"Invalid Y1 value: " 
-					+ point.elementAt(1));
+					+ point.get(1));
 				Message.printWarning(2, "drawAnnotation", e);
 			}
-			formatYPts[0] = (String)point.elementAt(1);
+			formatYPts[0] = (String)point.get(1);
 		}		
 	}
 	else {
@@ -1448,13 +1447,13 @@ double a2) {
 /**
 Not implemented.
 */
-public void drawCompoundText (Vector text, GRColor color, double x, 
+public void drawCompoundText (List text, GRColor color, double x, 
 double y, double angle, int flag) {}
 	
 /**
 Not implemented.
 */
-public void drawCompoundText(Vector text, Color color, double x, double y,
+public void drawCompoundText(List text, Color color, double x, double y,
 double angle, int flag) {}
 
 /**
@@ -2473,7 +2472,7 @@ int totalPoints, int minNumPoints) {
 			}
 
 			boolean done = false;
-			Vector v = new Vector();
+			List v = new Vector();
 			int count = 0;
 			while (!done) {
 				v.add(new Double(dt1.toDouble()));
@@ -2505,7 +2504,7 @@ int totalPoints, int minNumPoints) {
 			int size = v.size();
 			calcPoints = new double[v.size()];
 			for (int i = 0; i < size; i++) {
-				calcPoints[i] = ((Double)v.elementAt(i))
+				calcPoints[i] = ((Double)v.get(i))
 					.doubleValue();
 			}
 		}
@@ -2522,7 +2521,7 @@ int totalPoints, int minNumPoints) {
 		double mod = StringUtil.atod(format);
 		
 		boolean done = false;
-		Vector v = new Vector();
+		List v = new Vector();
 		double temp = points[pointNum];
 		if (pos) {
 			double highBound = 0;
@@ -2584,7 +2583,7 @@ int totalPoints, int minNumPoints) {
 		int size = v.size();
 		calcPoints = new double[size];
 		for (int i = 0; i < size; i++) {
-			calcPoints[i] = ((Double)v.elementAt(i)).doubleValue();
+			calcPoints[i] = ((Double)v.get(i)).doubleValue();
 		}
 	}
 	else {

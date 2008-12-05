@@ -18,6 +18,7 @@
 package RTi.GIS.GeoView;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Table.DataTable;
@@ -27,7 +28,7 @@ import RTi.Util.Table.TableRecord;
 /**
 The GeoGridLayer class extends GeoLayer and stores GeoGrid data using a Vector
 of GRGrid.  Although it is possible that a Vector of GRGrid could be saved,
-currenty only a single GRGrid shape is typically stored in the shape list (e.g.,
+currently only a single GRGrid shape is typically stored in the shape list (e.g.,
 for use by XmrgGridLayer).  This class implements methods that can be used for
 any grid-based layer, such as saving the cells with > 0 data values as a
 shapefile.
@@ -109,13 +110,10 @@ throws IOException
 	// carry around.  This may change if we allow the attribute table to
 	// be viewed in a GUI, etc.
 
-	Vector fields = new Vector ( 3 );
-	fields.addElement ( new TableField(TableField.DATA_TYPE_INT,
-		"COLUMN", 10, 0 ) );
-	fields.addElement ( new TableField(TableField.DATA_TYPE_INT,
-		"ROW", 10, 0 ) );
-	fields.addElement ( new TableField(TableField.DATA_TYPE_DOUBLE,
-		"VALUE", 10, 4 ) );
+	List fields = new Vector ( 3 );
+	fields.add ( new TableField(TableField.DATA_TYPE_INT, "COLUMN", 10, 0 ) );
+	fields.add ( new TableField(TableField.DATA_TYPE_INT, "ROW", 10, 0 ) );
+	fields.add ( new TableField(TableField.DATA_TYPE_DOUBLE, "VALUE", 10, 4 ) );
 	DataTable table = new DataTable ( fields );
 	fields = null;
 
@@ -124,7 +122,7 @@ throws IOException
 	// the GRID shape but for now create a Vector of GRPolygon that can
 	// be written in ESRIShapefile.
 
-	Vector shapes = new Vector ( 100, 100 );	// could optimize more
+	List shapes = new Vector ( 100, 100 );	// could optimize more
 	int c = 0;
 	double value = 0.0;
 	TableRecord record = null;
@@ -144,7 +142,7 @@ throws IOException
 				continue;
 			}
 			// Create the shape...
-			shapes.addElement ( _grid.getCellPolygon ( c, r ) );
+			shapes.add ( _grid.getCellPolygon ( c, r ) );
 			// Create the attribute record...
 			record = new TableRecord(3);
 			record.addFieldValue ( new Integer(c) );

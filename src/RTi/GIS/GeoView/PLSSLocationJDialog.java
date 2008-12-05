@@ -46,8 +46,7 @@ import RTi.Util.String.StringUtil;
 
 /**
 Class that assists various forms in building a location query.
-REVISIT (JTS - 2006-05-23)
-Example of using this.
+TODO (JTS - 2006-05-23) Example of using this.
 */
 public class PLSSLocationJDialog 
 extends JDialog 

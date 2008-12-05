@@ -23,14 +23,13 @@
 
 package RTi.GRTS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GR.GRShape;
 import RTi.GR.GRPoint;
 
 /**
-This interface should be used to capture events from a TSView object (currently
-only for TSGraphJComponent).
+This interface should be used to capture events from a TSView object (currently only for TSGraphJComponent).
 TSView classes will handle any needed state changes (like zooming, etc.).
 This interface works in conjunction with the
 TSGraphJComponent.setInteractionMode() settings.
@@ -40,13 +39,10 @@ public abstract interface TSViewListener
 /**
 TSView will call this method if the TSGraphJComponent mouse tracker is enabled.
 @param g TSGraph where the event occurred.
-@param devpt Mouse position in device coordinates (in the native device
-coordinates).
+@param devpt Mouse position in device coordinates (in the native device coordinates).
 @param datapt Mouse position in data coordinates.
 */
-public abstract void tsViewMouseMotion (	TSGraph g,
-						GRPoint devpt,
-						GRPoint datapt );
+public abstract void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt );
 
 /**
 TSGraphJComponent will call this method if the TSGraphJComponent is in
@@ -56,23 +52,19 @@ GRLimits or GRArc can be returned.  <b>This method definition will be better
 defined when selects actually do something (e.g., are data points selected or
 are time series selected).</b>
 @param g TSGraph where the event occurred.
-@param dev_shape Mouse limits in device coordinates (in the native device
-coordinates).
+@param dev_shape Mouse limits in device coordinates (in the native device coordinates).
 @param data_shape Mouse limits in data coordinates.
-@param selected Vector of selected data (TSGraphJComponent uses Vector of TS).
+@param selected list of selected data (TSGraphJComponent uses list of TS).
 */
-public abstract void tsViewSelect (	TSGraph g, GRShape dev_shape,
-					GRShape data_shape, Vector selected );
+public abstract void tsViewSelect (	TSGraph g, GRShape dev_shape, GRShape data_shape, List selected );
 
 /**
 TSGraphJComponent will call this method if the TSGraphJComponent is in
 INTERACTION_ZOOM mode and the mouse is pressed, dragged, and released.
 @param g TSGraph where the event occurred.
-@param dev_shape Mouse limits in device coordinates (in the native device
-coordinates).
+@param dev_shape Mouse limits in device coordinates (in the native device coordinates).
 @param data_shape Mouse limits in data coordinates.
 */
-public abstract void tsViewZoom (	TSGraph g, GRShape dev_shape,
-					GRShape data_shape );
+public abstract void tsViewZoom ( TSGraph g, GRShape dev_shape, GRShape data_shape );
 
-} // End TSViewListener
+}

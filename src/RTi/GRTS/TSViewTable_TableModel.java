@@ -40,7 +40,7 @@ import java.awt.Point;
 
 import RTi.Util.GUI.JWorksheet;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TS;
 import RTi.TS.TSLimits;
@@ -197,7 +197,7 @@ title, or the normal legend.  This is determined by the value of the propvalue
 "Table.UseExtendedLegend" passed into the TSViewJFrame.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(Vector data, DateTime start, 
+public TSViewTable_TableModel(List data, DateTime start, 
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
 boolean useExtendedLegend)
 throws Exception {
@@ -229,7 +229,7 @@ JTS recommends that if a table will display at most X rows at once, that
 the cacheInterval be no less than X*2.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(Vector data, DateTime start, 
+public TSViewTable_TableModel(List data, DateTime start, 
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
 boolean useExtendedLegend, int cacheInterval)
 throws Exception {
@@ -249,7 +249,7 @@ throws Exception {
 	if (__columns > 1) {		
 		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
 		DateTime end = limits.getDate2();
-		_rows = TSUtil.calculateDataSize((TS)data.elementAt(0),	__start, end);
+		_rows = TSUtil.calculateDataSize((TS)data.get(0), __start, end);
 	}
 	
 	__firstVisibleRow = 0;
@@ -328,7 +328,7 @@ public String getColumnName(int columnIndex) {
 			return "DATE";
 	}
 
-	TS ts = (TS)_data.elementAt(columnIndex - 1);
+	TS ts = (TS)_data.get(columnIndex - 1);
 
 	// The following are expensive String operations (concats, etc), but
 	// this method is not called very often (just once when the table is
@@ -418,7 +418,7 @@ public Object getConsecutiveValueAt(int row, int col) {
 	}
 	
 	if (col > 0) {
-		TS ts = (TS)_data.elementAt(col-1);
+		TS ts = (TS)_data.get(col-1);
 		return new Double(ts.getDataValue(__priorDateTime));
 	}
 	else {
@@ -521,7 +521,7 @@ public int getRowCount() {
 Returns the time series.
 @return the Vector of time series.
 */
-public Vector getTSList() {	
+public List getTSList() {	
 	return _data;
 }
 
@@ -627,7 +627,7 @@ public Object getValueAt(int row, int col) {
 	// 	- ts = (TS) vector.elementAt(i);
 	//	- ts = array[i];
 	// the array statement is about 4 times faster.
-	TS ts = (TS)_data.elementAt(col - 1);
+	TS ts = (TS)_data.get(col - 1);
 	
 	return new Double(ts.getDataValue(__workingDate));
 }
@@ -673,7 +673,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 			// no editing supported yet
 			return false;
 		}	
-		TS ts = (TS)_data.elementAt(columnIndex - 1);
+		TS ts = (TS)_data.get(columnIndex - 1);
 		return ts.isEditable();
 	}
 	return false;
@@ -697,7 +697,7 @@ public void setValueAt(Object value, int row, int col) {
 		return;
 	}
 
-	TS ts = (TS)_data.elementAt(col-1);
+	TS ts = (TS)_data.get(col-1);
 
 	if (ts == null) {
 		return;

@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// NotificationAction_SystemCall - class that perofrms a system call as the
+// NotificationAction_SystemCall - class that performs a system call as the
 // response to at least one positive data test result
 // ----------------------------------------------------------------------------
 // Copyright:	See the COPYRIGHT file.
@@ -11,7 +11,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.ProcessManager;
 import RTi.Util.IO.PropList;
@@ -20,8 +20,7 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
-This class is an action that will make a system call when a positive action
-occurs.
+This class is an action that will make a system call when a positive action occurs.
 */
 public class NotificationAction_SystemCall extends NotificationAction
 {
@@ -62,7 +61,7 @@ True otherwise.
 public boolean runAction(DateTime runDateTime, DataTest test) {
 	String mthd = "NotificationAction_SystemCall.runAction";
 	removeOldResults(runDateTime);
-	Vector results = getPositiveResults(test);
+	List results = getPositiveResults(test);
 	int resSize = results.size();
 	
 	Message.printStatus(1, "", "Positive Results: " + resSize);
@@ -72,19 +71,17 @@ public boolean runAction(DateTime runDateTime, DataTest test) {
 		// properties should be protected in base class, not private.
 		PropList properties = getProperties();
 		String commandPrompt = properties.getValue("COMMAND");
-		Vector ArgsList = StringUtil.breakStringList (
-			commandPrompt, " ", StringUtil.DELIM_SKIP_BLANKS);
+		List ArgsList = StringUtil.breakStringList ( commandPrompt, " ", StringUtil.DELIM_SKIP_BLANKS);
 		int size = ArgsList.size();
 		
 		if( size == 0 ) {
-			Message.printWarning(2, mthd,
-			"Empty command prompt, will not do a system call");
+			Message.printWarning(2, mthd, "Empty command prompt, will not do a system call");
 			return false;
 		}
 		
 		String[] args = new String[size];	
 		for ( int i = 0; i < size; i++ ) {
-			args[i] = (String)ArgsList.elementAt(i);
+			args[i] = (String)ArgsList.get(i);
 		}
 	
 		String commandLine = "";

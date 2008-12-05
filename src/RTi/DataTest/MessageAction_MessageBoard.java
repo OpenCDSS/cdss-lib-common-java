@@ -13,6 +13,7 @@
 
 package RTi.DataTest;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.GUI.SimpleJTree;
@@ -70,9 +71,9 @@ True otherwise.
 */
 public boolean runAction(DateTime runDateTime, DataTest test) {
 	removeOldResults(runDateTime);
-	Vector results = getPositiveResults(test);
+	List results = getPositiveResults(test);
 	int size = results.size();
-	Vector v = null;
+	List v = null;
 	DataTestResult r = null;
 	
 	boolean dateNodeAdded = false;
@@ -87,7 +88,7 @@ public boolean runAction(DateTime runDateTime, DataTest test) {
 	// the tree when adding nodes.
 	__tree.setFastAdd(true, true);
 
-	Vector nodes = new Vector();
+	List nodes = new Vector();
 
 	// If there is any severity information with the action, get that
 	// and use it to color code the font.
@@ -151,12 +152,12 @@ public boolean runAction(DateTime runDateTime, DataTest test) {
 	// under the parent node (above) and the further levels will be added
 	// under the level 0 node as children.
 	for (int i = 0; i < size; i++) {
-		v = (Vector)results.elementAt(i);
+		v = (List)results.get(i);
 
 		// find the 0-level result -- there's no assumption that 
 		// the nodes are sorted by result level.
 		for (int j = v.size() - 1; j >= 0; j--) {		
-			r = (DataTestResult)v.elementAt(j);
+			r = (DataTestResult)v.get(j);
 			level = r.getLevel();
 
 			if (level == 0) {
@@ -209,7 +210,7 @@ public boolean runAction(DateTime runDateTime, DataTest test) {
 			}
 
 			for (int k = v.size() - 1; k >= 0; k--) {
-				r = (DataTestResult)v.elementAt(k);
+				r = (DataTestResult)v.get(k);
 				level = r.getLevel();
 
 				if (level != j) {
@@ -267,7 +268,7 @@ public boolean runAction(DateTime runDateTime, DataTest test) {
 
 	__tree.setFastAdd(false, true);
 	for (int i = 0; i < nodes.size(); i++) {
-		__tree.expandNode((SimpleJTree_Node)nodes.elementAt(i));
+		__tree.expandNode((SimpleJTree_Node)nodes.get(i));
 	}
 
 	return true;

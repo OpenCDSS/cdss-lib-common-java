@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.GIS.GeoView.GeoLayer;
@@ -251,7 +252,7 @@ throws IOException
 	double ymax_layer = -1.0e10;
 	String string = null;
 	double x, y = 0.0;
-	Vector tokens = null;
+	List tokens = null;
 	if (	((filetype == COUNTY) || (filetype == FG_BASIN) ||
 		(filetype == MAP_BASIN) ||
 		(filetype == RFC_BOUNDARY) ||
@@ -278,56 +279,56 @@ throws IOException
 		in = new BufferedReader ( new InputStreamReader(
 				IOUtil.getInputStream ( geodata_file )) );
 		if ( read_attributes ) {
-			Vector table_fields = new Vector (1);
+			List table_fields = new Vector (1);
 			if ( filetype == COUNTY ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"ID",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"COUNTY",24) );
 			}
 			else if ( filetype == FG_BASIN ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"FG",24) );
 			}
 			else if ( filetype == MAP_BASIN ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"MAP Area",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"MAP Name",24) );
 			}
 			if ( filetype == RFC_BOUNDARY ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"RFC",24) );
 			}
 			else if ( filetype == RIVER ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"REACH",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"NAME",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_DOUBLE,
 				"ORDER",4,0) );
 			}
 			else if ( filetype == STATE ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"Abbreviation",3) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"Name",24) );
@@ -354,20 +355,20 @@ throws IOException
 				// boundary...
 				TableRecord record = new TableRecord ( 1 );
 				record.addFieldValue (
-					(String)tokens.elementAt(0) );
+					(String)tokens.get(0) );
 				if ( filetype == RIVER ) {
 					record.addFieldValue (
-					(String)tokens.elementAt(1) );
+					(String)tokens.get(1) );
 					record.addFieldValue (
 					new Double((String)
-					tokens.elementAt(2)));
+					tokens.get(2)));
 				}
 				else if ( (filetype == STATE) ||
 					(filetype == COUNTY) ||
 					(filetype == FG_BASIN) ||
 					(filetype == MAP_BASIN) ) {
 					record.addFieldValue (
-					(String)tokens.elementAt(1) );
+					(String)tokens.get(1) );
 				}
 				try {	_attribute_table.addRecord ( record );
 				}
@@ -376,7 +377,7 @@ throws IOException
 				}
 				record = null;
 			}
-			size = StringUtil.atoi((String)tokens.elementAt(3));
+			size = StringUtil.atoi((String)tokens.get(3));
 			GRPolygon polygon = null;
 			GRPolyline polyline = null;
 			if (	(filetype == RIVER) ||
@@ -398,14 +399,14 @@ throws IOException
 					(tokens.size() == 2) ) {
 					if ( filetype == COUNTY ) {
 						x = StringUtil.atod(
-						(String)tokens.elementAt(0));
+						(String)tokens.get(0));
 						y = StringUtil.atod(
-						(String)tokens.elementAt(1));
+						(String)tokens.get(1));
 					}
 					else {	y = StringUtil.atod(
-						(String)tokens.elementAt(0));
+						(String)tokens.get(0));
 						x = -(StringUtil.atod(
-						(String)tokens.elementAt(1)));
+						(String)tokens.get(1)));
 					}
 					if (	(filetype == RIVER) ||
 						(filetype == STATE) ||
@@ -431,7 +432,7 @@ throws IOException
 				polyline.ymax = ymax;
 				polyline.limits_found = true;
 				polyline.index = polycount++;
-				_shapes.addElement ( polyline );
+				_shapes.add ( polyline );
 			}
 			else {	polygon.xmin = xmin;
 				polygon.ymin = ymin;
@@ -439,7 +440,7 @@ throws IOException
 				polygon.ymax = ymax;
 				polygon.limits_found = true;
 				polygon.index = polycount++;
-				_shapes.addElement ( polygon );
+				_shapes.add ( polygon );
 			}
 			xmin_layer = MathUtil.min ( xmin, xmin_layer );
 			xmax_layer = MathUtil.max ( xmax, xmax_layer );
@@ -474,56 +475,56 @@ throws IOException
 			IOUtil.getInputStream( geodata_file ) );
 		boolean is_big_endian = IOUtil.isBigEndianMachine();
 		if ( read_attributes ) {
-			Vector table_fields = new Vector (1);
+			List table_fields = new Vector (1);
 			if ( filetype == COUNTY ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"ID",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"COUNTY",24) );
 			}
 			else if ( filetype == FG_BASIN ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"FG",24) );
 			}
 			else if ( filetype == MAP_BASIN ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"MAP Area",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"MAP Name",24) );
 			}
 			else if ( filetype == RFC_BOUNDARY ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,"RFC",24) );
 			}
 			else if ( filetype == RIVER ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"REACH",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"NAME",24) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_DOUBLE,
 				"ORDER",4,0) );
 			}
 			else if ( filetype == STATE ) {
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"Abbreviation",3) );
-				table_fields.addElement (
+				table_fields.add (
 				new TableField(
 				TableField.DATA_TYPE_STRING,
 				"Name",24) );
@@ -626,7 +627,7 @@ throws IOException
 				polyline.ymax = ymax;
 				polyline.limits_found = true;
 				polyline.index = polycount++;
-				_shapes.addElement ( polyline );
+				_shapes.add ( polyline );
 			}
 			else {	polygon.xmin = xmin;
 				polygon.ymin = ymin;
@@ -634,7 +635,7 @@ throws IOException
 				polygon.ymax = ymax;
 				polygon.limits_found = true;
 				polygon.index = polycount++;
-				_shapes.addElement ( polygon );
+				_shapes.add ( polygon );
 			}
 			xmin_layer = MathUtil.min ( xmin, xmin_layer );
 			xmax_layer = MathUtil.max ( xmax, xmax_layer );
@@ -655,12 +656,12 @@ throws IOException
 		if ( read_attributes ) {
 			// Only attribute is the name of the basin
 			// boundary...
-			Vector table_fields = new Vector (3);
-			table_fields.addElement ( new TableField(
+			List table_fields = new Vector (3);
+			table_fields.add ( new TableField(
 				TableField.DATA_TYPE_STRING,"Name",30) );
-			table_fields.addElement ( new TableField(
+			table_fields.add ( new TableField(
 				TableField.DATA_TYPE_STRING,"State",3) );
-			table_fields.addElement ( new TableField(
+			table_fields.add ( new TableField(
 				TableField.DATA_TYPE_STRING,"FP",12) );
 			_attribute_table = new DataTable(table_fields);
 				table_fields = null;
@@ -680,8 +681,8 @@ throws IOException
 			if (	(tokens == null) || (tokens.size() != 2) ) {
 				continue;
 			}
-			y = StringUtil.atod( (String)tokens.elementAt(0));
-			x = StringUtil.atod( (String)tokens.elementAt(1));
+			y = StringUtil.atod( (String)tokens.get(0));
+			x = StringUtil.atod( (String)tokens.get(1));
 			point = new GRPoint ( -x, y );
 			xmin = MathUtil.min ( -x, xmin );
 			xmax = MathUtil.max ( -x, xmax );
@@ -700,11 +701,11 @@ throws IOException
 					record.addFieldValue ( "" );
 				}
 				else {	record.addFieldValue ( ((String)
-					tokens.elementAt(0)).trim() );
+					tokens.get(0)).trim() );
 					record.addFieldValue ( ((String)
-					tokens.elementAt(1)).trim() );
+					tokens.get(1)).trim() );
 					record.addFieldValue ( ((String)
-					tokens.elementAt(2)).trim() );
+					tokens.get(2)).trim() );
 				}
 				try {	_attribute_table.addRecord ( record );
 				}
@@ -715,7 +716,7 @@ throws IOException
 			}
 			point.index = count++;
 			point.limits_found = true;
-			_shapes.addElement ( point );
+			_shapes.add ( point );
 		}
 		xmin_layer = xmin;
 		xmax_layer = xmax;
@@ -752,7 +753,7 @@ throws IOException
 			if (	(tokens == null) || (tokens.size() != 6) ) {
 				continue;
 			}
-			elev = ((String)tokens.elementAt(3)).trim();
+			elev = ((String)tokens.get(3)).trim();
 			// Remove the characters from the elevation...
 			len = elev.length();
 			units = "";
@@ -766,33 +767,33 @@ throws IOException
 			if ( (count == 0) && read_attributes ) {
 				// Need to know the units to be able to set
 				// the attribute correctly...
-				Vector table_fields = new Vector (4);
-				table_fields.addElement ( new TableField(
+				List table_fields = new Vector (4);
+				table_fields.add ( new TableField(
 					TableField.DATA_TYPE_STRING, "ID",10) );
 				if ( units.length() > 0 ) {
-					table_fields.addElement (
+					table_fields.add (
 					new TableField(
 					TableField.DATA_TYPE_DOUBLE,"ELEV_" +
 					units.toUpperCase(),
 					6,1));
 				}
-				else {	table_fields.addElement (
+				else {	table_fields.add (
 					new TableField(
 					TableField.DATA_TYPE_DOUBLE,"ELEV",
 					6,1));
 				}
-				table_fields.addElement ( new TableField(
+				table_fields.add ( new TableField(
 					TableField.DATA_TYPE_STRING,"BASESTA",
 					18));
-				table_fields.addElement ( new TableField(
+				table_fields.add ( new TableField(
 					TableField.DATA_TYPE_STRING,"NAME",30));
 				_attribute_table = new DataTable( table_fields);
 				table_fields = null;
 			}
 			y = StringUtil.atod(
-				(String)tokens.elementAt(1));
+				(String)tokens.get(1));
 			x = StringUtil.atod(
-				(String)tokens.elementAt(2));
+				(String)tokens.get(2));
 			point = new GRPoint ( x, y );
 			xmin = MathUtil.min ( x, xmin );
 			xmax = MathUtil.max ( x, xmax );
@@ -802,15 +803,15 @@ throws IOException
 				TableRecord record = new TableRecord(3);
 				record.addFieldValue (
 					((String)
-					tokens.elementAt(0)).trim() );
+					tokens.get(0)).trim() );
 				record.addFieldValue (
 					new Double( StringUtil.atod(elev)) );
 				record.addFieldValue (
 					((String)
-					tokens.elementAt(4)).trim() );
+					tokens.get(4)).trim() );
 				record.addFieldValue (
 					((String)
-					tokens.elementAt(5)).trim() );
+					tokens.get(5)).trim() );
 				try {	_attribute_table.addRecord (
 					record );
 				}
@@ -821,7 +822,7 @@ throws IOException
 			}
 			point.index = count++;
 			point.limits_found = true;
-			_shapes.addElement ( point );
+			_shapes.add ( point );
 		}
 		xmin_layer = xmin;
 		xmax_layer = xmax;

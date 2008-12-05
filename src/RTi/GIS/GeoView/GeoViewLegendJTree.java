@@ -92,6 +92,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JLabel;
@@ -288,7 +289,7 @@ public void actionPerformed(ActionEvent evt) {
 		__theGeoViewJPanel.addLayerView();
 	}
 	else if (command.equals(__theGeoViewJPanel.REMOVE)) {
-		Vector v = getSelectedLayerViews(false);
+		List v = getSelectedLayerViews(false);
 		if (v.size() == 0) {
 			// this *shouldn't* happen, but ...
 			return;
@@ -311,25 +312,21 @@ public void actionPerformed(ActionEvent evt) {
 		}	
 		
 		for (int i = 0; i < v.size(); i++) {
-			__theGeoViewJPanel.removeLayerView(
-				(GeoLayerView)v.elementAt(i), true);
+			__theGeoViewJPanel.removeLayerView( (GeoLayerView)v.get(i), true);
 		}
 	}
 	else if (command.equals(__theGeoViewJPanel.PROPERTIES)) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)getSelectedNode();
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();
 		GeoLayerView layerView = (GeoLayerView)node.getData(); 
 		__theGeoViewJPanel.showLayerViewProperties(layerView);
 	}
 	else if (command.equals(__MENU_SHOW_ANIMATION_CONTROL_GUI)) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)getSelectedNode();
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();
 		GeoLayerView layerView = (GeoLayerView)node.getData(); 
 		layerView.getAnimationControlJFrame().setVisible(true);
 	}
 	else if (command.equals(__MENU_VIEW_ATTRIBUTES)) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)getSelectedNode();	
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();	
 		GeoLayerView layerView = (GeoLayerView)node.getData(); 	
 		GRLegend legend = layerView.getLegend();
 		String layerName = legend.getText();
@@ -628,15 +625,14 @@ Returns a Vector of all the nodes that contain layer information (i.e.,
 are GeoViewLegendJTree_Nodes), but not the project node.
 @return a Vector of the nodes with layer information.
 */
-public Vector getAllLayerNodes() {
-	Vector v = new Vector();
+public List getAllLayerNodes() {
+	List v = new Vector();
 
 	if (__projectNode != null) {
 		if (__projectNode.getChildCount() >= 0) {
 			for (Enumeration e = __projectNode.children(); 
 				e.hasMoreElements();) {
-				SimpleJTree_Node n = 
-					(SimpleJTree_Node)e.nextElement();
+				SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 				getAllLayerNodes(n, v);
 			}
 		}		
@@ -649,7 +645,7 @@ Utility method used by getAllLayerNodes()
 @param node the node to check to see if to add to the Vector
 @param v the Vector to which to add the nodes.
 */
-private void getAllLayerNodes(SimpleJTree_Node node, Vector v) {
+private void getAllLayerNodes(SimpleJTree_Node node, List v) {
 	if (node instanceof GeoViewLegendJTree_Node) {
 		v.add(node);
 	}
@@ -666,11 +662,10 @@ Returns a Vector of all the nodes that contain layer information (i.e.,
 are GeoViewLegendJTree_Nodes), but not the project node.
 @return a Vector of the nodes with layer information.
 */
-public Vector getAllNodes() {
-	Vector v = new Vector();
+public List getAllNodes() {
+	List v = new Vector();
 
-	if (__projectNode == null 
-	    || __projectNode.getChildCount() <= 0) {
+	if (__projectNode == null || __projectNode.getChildCount() <= 0) {
 		return v;
 	}
 
@@ -697,25 +692,24 @@ public GeoViewJPanel getGeoViewJPanel() {
 /**
 Returns the names of all the layers in the JTree.
 @param visibleOnly whether to only return the names of the visible layers.
-@return a Vector (guaranteed to be non-null) with the names of the 
-specified kind of layers.
+@return a list (guaranteed to be non-null) with the names of the specified kind of layers.
 */
-public Vector[] getLayersNamesAndNodes(boolean visibleOnly) {
-	Vector allNodes = getAllLayerNodes();
-	Vector layers = new Vector();
-	Vector names = new Vector();
-	Vector matchNodes = new Vector();
+public List[] getLayersNamesAndNodes(boolean visibleOnly) {
+	List allNodes = getAllLayerNodes();
+	List layers = new Vector();
+	List names = new Vector();
+	List matchNodes = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.elementAt(i);
+			(GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) 
 		   || (!visibleOnly))) {
 		   	layers.add(node.getData());
-			names.addElement(node.getFieldText());
+			names.add(node.getFieldText());
 			matchNodes.add(node);
 		}
 	}
-	Vector[] vectors = { layers, names, matchNodes };
+	List[] vectors = { layers, names, matchNodes };
 	return vectors;
 }
 
@@ -725,15 +719,14 @@ Returns the names of all the layers in the JTree.
 @return a Vector (guaranteed to be non-null) with the names of the 
 specified kind of layers.
 */
-public Vector getLayerNames(boolean visibleOnly) {
-	Vector allNodes = getAllLayerNodes();
-	Vector names = new Vector();
+public List getLayerNames(boolean visibleOnly) {
+	List allNodes = getAllLayerNodes();
+	List names = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.elementAt(i);
-		if (((visibleOnly && node.isCheckBoxSelected()) 
-		   || (!visibleOnly))) {
-			names.addElement(node.getFieldText());
+			(GeoViewLegendJTree_Node)allNodes.get(i);
+		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly))) {
+			names.add(node.getFieldText());
 		}
 	}
 	return names;
@@ -758,17 +751,15 @@ Currently the list is not sorted and duplicates and blanks may be present.
 @param visibleOnly If true only return app layer types that are visible and
 selected.  If false, return selected app layer types, whether visible or not.
 */
-public Vector getSelectedAppLayerTypes(boolean visibleOnly) {
-	Vector allNodes = getAllLayerNodes();
-	Vector appLayerTypes = new Vector();
+public List getSelectedAppLayerTypes(boolean visibleOnly) {
+	List allNodes = getAllLayerNodes();
+	List appLayerTypes = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.elementAt(i);
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) 
 		   || (!visibleOnly)) && node.isTextSelected()) {
 			GeoLayerView layerView = (GeoLayerView)node.getData();
-			appLayerTypes.addElement(
-				layerView.getLayer().getAppLayerType());
+			appLayerTypes.add(layerView.getLayer().getAppLayerType());
 		}
 	}
 	return appLayerTypes;
@@ -776,21 +767,20 @@ public Vector getSelectedAppLayerTypes(boolean visibleOnly) {
 
 /**
 Return the list of layer views that are selected in the legend.
-@return a Vector of layer views that are selected in the legend.  The list can
-be of zero size.
+@return a Vector of layer views that are selected in the legend.  The list can be of zero size.
 @param visibleOnly If true only return layers that are visible and selected.
 If false, return selected layers, whether visible or not.
 */
-public Vector getSelectedLayerViews(boolean visibleOnly) {
-	Vector allNodes = getAllLayerNodes();
-	Vector appLayerTypes = new Vector();
+public List getSelectedLayerViews(boolean visibleOnly) {
+	List allNodes = getAllLayerNodes();
+	List appLayerTypes = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.elementAt(i);
+			(GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) 
 		   || (!visibleOnly)) && node.isTextSelected()) {
 			GeoLayerView layerView = (GeoLayerView)node.getData();
-			appLayerTypes.addElement(layerView);
+			appLayerTypes.add(layerView);
 		}
 	}
 	return appLayerTypes;
@@ -802,9 +792,8 @@ Checks to see if the specified layer is visible.
 @return true if the layer is visible, false if not.
 */
 public boolean isLayerVisible(int num) {
-	Vector allNodes = getAllLayerNodes();
-	GeoViewLegendJTree_Node node 
-		= (GeoViewLegendJTree_Node)allNodes.elementAt(num);
+	List allNodes = getAllLayerNodes();
+	GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(num);
 	if (node.isCheckBoxSelected()) {
 		return true;
 	}
@@ -817,12 +806,10 @@ Checks to see if the layer with the given name is visible.
 @return true if the layer is visible, false if not.
 */
 public boolean isLayerVisible(String name) {
-	Vector allNodes = getAllLayerNodes();
+	List allNodes = getAllLayerNodes();
 	for (int i = 0; i < allNodes.size(); i++) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.elementAt(i);
-		if (node.getFieldText().equals(name) 
-		    && node.isCheckBoxSelected()) {
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
+		if (node.getFieldText().equals(name) && node.isCheckBoxSelected()) {
 			return true;
 		}
 	}
@@ -964,11 +951,11 @@ it will be deselected in the tree and not drawn on the map.
 @param visible whether to make the layer visible or not.
 */
 public void setLayerVisible(GeoLayerView layerView, boolean visible) {
-	Vector allNodes = getAllLayerNodes();
+	List allNodes = getAllLayerNodes();
 	GeoLayerView layer = null;
 	GeoViewLegendJTree_Node node = null;
 	for (int i = 0; i < allNodes.size(); i++) {
-		node = (GeoViewLegendJTree_Node)allNodes.elementAt(i);
+		node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		layer = (GeoLayerView)node.getData();
 		if (layer == layerView) {
 			node.setVisible(visible);

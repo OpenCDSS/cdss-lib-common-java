@@ -11,7 +11,7 @@
 
 package RTi.DMI;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JFrame;
 
@@ -34,14 +34,14 @@ public class ERDiagram_Table_JFrame extends JFrame {
 Constructor.
 @param tables the Vector of tables to display in the worksheet.
 */
-public ERDiagram_Table_JFrame(Vector tables) {
+public ERDiagram_Table_JFrame(List tables) {
 	setupGUI(tables);
 }
 
 /**
 Sets up the GUI.
 */
-private void setupGUI(Vector tables) {
+private void setupGUI(List tables) {
 	String routine = "setupGUI";
 
 	// AML:
@@ -73,10 +73,8 @@ private void setupGUI(Vector tables) {
 
 	int[] widths = null;
 	try {
-		ERDiagram_Table_TableModel tmr = new
-			ERDiagram_Table_TableModel(tables);
-		ERDiagram_Table_CellRenderer crr = new
-			ERDiagram_Table_CellRenderer(tmr);
+		ERDiagram_Table_TableModel tmr = new ERDiagram_Table_TableModel(tables);
+		ERDiagram_Table_CellRenderer crr = new ERDiagram_Table_CellRenderer(tmr);
 	
 		jsw = new JScrollWorksheet(crr, tmr, p);
 

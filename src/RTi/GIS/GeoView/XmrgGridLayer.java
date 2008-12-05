@@ -86,6 +86,7 @@ import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 //import RTi.GIS.GeoView.HRAPProjection;
@@ -240,7 +241,7 @@ public XmrgGridLayer (	String filename, String user_id, DateTime saved_date,
 	_grid.xmax = (double)(xor + maxx);
 	_grid.ymax = (double)(yor + maxy);
 	setLimits ( _grid.xmin, _grid.ymin, _grid.xmax, _grid.ymax );
-	_shapes.addElement ( _grid );
+	_shapes.add ( _grid );
 	// Set the grid size using the grid integer row/column positions...
 	_grid.setSize ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
 	_grid.setSizeFull ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
@@ -272,7 +273,7 @@ public XmrgGridLayer (	String filename, boolean read_data,
 	setShapeType ( GRID );
 	// The entire grid will be read.
 	_grid = new GeoGrid ();
-	_shapes.addElement ( _grid );
+	_shapes.add ( _grid );
 	read ( read_data, remain_open );
 }
 
@@ -301,7 +302,7 @@ throws IOException {
 	setShapeType ( GRID );
 	// The entire grid will be read.
 	_grid = new GeoGrid ();
-	_shapes.addElement ( _grid );
+	_shapes.add ( _grid );
 	_grid.setSize ( mincol, minrow, maxcol, maxrow );
 	read ( read_data, remain_open );
 }
@@ -616,7 +617,7 @@ final application.
 the directory is not found.
 @param directory Name of a directory with XMRG files.
 */
-public static Vector listNonZeroFiles ( String directory )
+public static List listNonZeroFiles ( String directory )
 {	File f = new File ( directory );
 	if ( f == null ) {
 		return null;
@@ -626,7 +627,7 @@ public static Vector listNonZeroFiles ( String directory )
 		return null;
 	}
 	XmrgGridLayer xmrg = null;
-	Vector nonzero_files = new Vector();
+	List nonzero_files = new Vector();
 	String file = null;
 	for ( int i = 0; i < list.length; i++ ) {
 		if ( !isXmrg ( list[i], false ) ) {
@@ -635,7 +636,7 @@ public static Vector listNonZeroFiles ( String directory )
 		file = directory + File.separator + list[i];
 		try {	xmrg = new XmrgGridLayer ( file, false, false );
 			if ( xmrg.getMaxValueHeader() > 0 ) {
-				nonzero_files.addElement ( file );
+				nonzero_files.add ( file );
 			}
 		}
 		catch ( Exception e ) {

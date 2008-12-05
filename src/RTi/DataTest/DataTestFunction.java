@@ -18,7 +18,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.DMI.DMIUtil;
 
@@ -283,8 +283,7 @@ applicable to DataTestExpression objects.  Does nothing, as nothing needs to
 be done for a function.  Declared in DataTestSide to be more generic when 
 calling it on an expression tree.
 */
-public void evaluatePositiveResult(DataTest test, Vector results, 
-DateTime testTime, int level) {
+public void evaluatePositiveResult(DataTest test, List results, DateTime testTime, int level) {
 	// defined in DataTestSide so no casting need be done on any side,
 	// but will only ever be called on Expression objects, so should not
 	// do anything for functions.

@@ -111,6 +111,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.GUI.InputFilter;
@@ -249,8 +250,8 @@ public static void createDataDictionary (	DMI dmi, String filename,
 	}
 
 	String	s;
-	Vector table_names = new Vector();
-	Vector table_remarks = new Vector();
+	List table_names = new Vector();
+	List table_remarks = new Vector();
 	while ( more ) {
 
 		try {	// Table name...
@@ -288,7 +289,7 @@ public static void createDataDictionary (	DMI dmi, String filename,
 	int size = table_names.size();
 	for ( int i = 0; i < size; i++ ) {
 		Message.printStatus ( 2, routine,
-		table_names.elementAt(i) + "," + table_remarks.elementAt(i) );
+		table_names.get(i) + "," + table_remarks.get(i) );
 	}
 
 	// Next list the table contents...
@@ -302,7 +303,7 @@ public static void createDataDictionary (	DMI dmi, String filename,
 	for ( int i = 0; i < size; i++ ) {
 		Message.printStatus ( 2, routine, "Table details" );
 
-		table_name = (String)table_names.elementAt(i);
+		table_name = (String)table_names.get(i);
 		try {	rs = metadata.getColumns (null, null, table_name, null);
 			if ( rs == null ) {
 				Message.printWarning ( 2, routine,
@@ -377,8 +378,8 @@ relationships.  May be null.
 null is returned if there was an error creating the objects or reading from
 the database.
 */
-public static Vector createERDiagramRelationships(DMI dmi, Vector notIncluded) {
-	Vector tableNames = getDatabaseTableNames(dmi, notIncluded);
+public static List createERDiagramRelationships(DMI dmi, List notIncluded) {
+	List tableNames = getDatabaseTableNames(dmi, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -394,11 +395,11 @@ public static Vector createERDiagramRelationships(DMI dmi, Vector notIncluded) {
 		String endField = null;
 	
 		int size = tableNames.size();
-		Vector rels = new Vector();
+		List rels = new Vector();
 	
 		for (int i = 0; i < size; i++) {
 			rs = metadata.getExportedKeys(null, null, 
-				(String)tableNames.elementAt(i));
+				(String)tableNames.get(i));
 	
 			while (rs.next()) {		
 				startTable = rs.getString(3);
@@ -439,15 +440,15 @@ ERDiagram.  May be null.
 ER Diagram.  null is returned if there was an error creating the tables or
 reading from the database.
 */
-public static Vector createERDiagramTables(DMI dmi, String tablesTableName,
-String tableField, String erdXField, String erdYField, Vector notIncluded) {
+public static List createERDiagramTables(DMI dmi, String tablesTableName,
+String tableField, String erdXField, String erdYField, List notIncluded) {
 	String routine = "DMIUtil.createERDiagramTables";
 	String temp;
 	DatabaseMetaData metadata = null;
 	ResultSet rs = null;
 	boolean more;
 
-	Vector tableNames = getDatabaseTableNames(dmi, notIncluded);
+	List tableNames = getDatabaseTableNames(dmi, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -455,10 +456,9 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 
 	int size = tableNames.size();
 	String tableName = null;
-	Message.printStatus(2, routine, 
-		"Writing table details for tables");
+	Message.printStatus(2, routine, "Writing table details for tables");
 	
-	Vector tables = new Vector();
+	List tables = new Vector();
 	ERDiagram_Table table = null;
 
 	try {
@@ -470,22 +470,20 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 	}
 	
 	for (int i = 0; i < size; i++) {
-		tableName = (String)tableNames.elementAt(i);
+		tableName = (String)tableNames.get(i);
 		table = new ERDiagram_Table(tableName);
 	
 		try {	
 			// First get a list of all the table columns that
 			// are in the Primary key.
 			ResultSet primaryKeysRS = null;
-			Vector primaryKeysV = null;
+			List primaryKeysV = null;
 			int primaryKeysSize = 0;
 			try {
-				primaryKeysRS = metadata.getPrimaryKeys(
-					null, null, tableName);
+				primaryKeysRS = metadata.getPrimaryKeys( null, null, tableName);
 				primaryKeysV = new Vector();
 				while (primaryKeysRS.next()) {
-					primaryKeysV.add(
-						primaryKeysRS.getString(4));	
+					primaryKeysV.add(primaryKeysRS.getString(4));	
 				}
 				primaryKeysSize = primaryKeysV.size();
 				DMI.closeResultSet(primaryKeysRS);
@@ -499,8 +497,8 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			}
 			
 			boolean key = false;
-			Vector columns = new Vector();
-			Vector columnNames = new Vector();
+			List columns = new Vector();
+			List columnNames = new Vector();
 
 			// next, get the actual column data for the 
 			// current table.
@@ -523,7 +521,7 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			String columnName = null;
 			while (more) {
 				key = false;
-				Vector column = new Vector();
+				List column = new Vector();
 			
 				// Get the 'column name' and store it in
 				// Vector position 0
@@ -544,7 +542,7 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 				for (int j = 0; j < primaryKeysSize; j++) {
 					if (columnName.equals(
 						((String)
-						primaryKeysV.elementAt(j))
+						primaryKeysV.get(j))
 						.trim())) {
 						key = true;		
 					}
@@ -598,10 +596,9 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			// to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
-			Vector[] sortedVectors = new Vector[numColumns];
+			List[] sortedVectors = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedVectors[j] = (Vector)columns.elementAt(
-					order[j]);
+				sortedVectors[j] = (List)columns.get(order[j]);
 			}
 		
 			String[] keyFields = new String[primaryKeysSize];
@@ -611,27 +608,26 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			// the Primary key.  They will be displayed in bold
 			// face font with a yellow background.
 			String field;
-			String[] nonKeyFields = new String[
-				(numColumns - primaryKeysSize)];
+			String[] nonKeyFields = new String[(numColumns - primaryKeysSize)];
 			int count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				Vector column = sortedVectors[j];
+				List column = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.elementAt(1);
+				temp = (String)column.get(1);
 
 				if (temp.equals("TRUE")) {
 					// display the column name
-					temp = (String)column.elementAt(0);
+					temp = (String)column.get(0);
 					field = temp + ": ";
 
 					// display the column type
-					temp = (String)column.elementAt(2);
+					temp = (String)column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "("
-						+ (String)column.elementAt(3)
+						+ (String)column.get(3)
 						+ ", " 
-						+ (String)column.elementAt(4);
+						+ (String)column.get(4);
 					}
 					else if (temp.equalsIgnoreCase(
 							"float")||
@@ -650,7 +646,7 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 					}
 					else {
 						temp = temp + "("
-						+ (String)column.elementAt(3)
+						+ (String)column.get(3)
 						+ ")";
 					}					
 					field += temp;
@@ -662,23 +658,23 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			// non-primary key fields.  
 			count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				Vector column = sortedVectors[j];
+				List column = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.elementAt(1);
+				temp = (String)column.get(1);
 
 				if (temp.equals("FALSE")) {
 					// display the column name
-					temp = (String)column.elementAt(0);
+					temp = (String)column.get(0);
 					field = temp + ": ";
 
 					// display the column type
-					temp = (String)column.elementAt(2);
+					temp = (String)column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "("
-						+ (String)column.elementAt(3)
+						+ (String)column.get(3)
 						+ ", " 
-						+ (String)column.elementAt(4);
+						+ (String)column.get(4);
 					}
 					else if (temp.equalsIgnoreCase(
 							"float")||
@@ -697,7 +693,7 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 					}
 					else {
 						temp = temp + "("
-						+ (String)column.elementAt(3)
+						+ (String)column.get(3)
 						+ ")";
 					}					
 					field += temp;
@@ -707,8 +703,7 @@ String tableField, String erdXField, String erdYField, Vector notIncluded) {
 			table.setKeyFields(keyFields);
 			table.setNonKeyFields(nonKeyFields);
 			table.setVisible(true);
-			setTableXY(dmi, table, tablesTableName, tableField,
-				erdXField, erdYField);
+			setTableXY(dmi, table, tablesTableName, tableField, erdXField, erdYField);
 			tables.add(table);
 		}
 		catch (Exception e) {
@@ -740,17 +735,15 @@ table detail in section 2, below:</li>
 of all their data.</li>
 @param dmi DMI instance for an opened database connection.
 @param filename Complete name of the data dictionary HTML file to write.  If
-the filename does not end with ".html", that will be added to the end of
-the filename.
+the filename does not end with ".html", that will be added to the end of the filename.
 @param referenceTables If not null, the contents of these tables will be listed
-in a section of the data dictionary to illustrate possible values for lookup
-fields.  
+in a section of the data dictionary to illustrate possible values for lookup fields.  
 @param notIncluded this Vector contains a list of tables that should be
 excluded from the data dictionary.  The names of the tables in this list
 must match the actual table names exactly (cases and spaces).  May be null.
 */
 public static void createHTMLDataDictionary (DMI dmi, String filename,
-String [] referenceTables, Vector notIncluded) {
+String [] referenceTables, List notIncluded) {
 	String routine = "DMIUtil.createHTMLDataDictionary";
 
 	// Get the name of the data.  If the name is null, it's most likely
@@ -856,8 +849,8 @@ String [] referenceTables, Vector notIncluded) {
 	}
 	String temp;
 	String temp2;
-	Vector tableNames = new Vector();
-	Vector tableRemarks = new Vector();
+	List tableNames = new Vector();
+	List tableRemarks = new Vector();
 	while (more) {
 		try {	
 			// Table name...
@@ -905,38 +898,38 @@ String [] referenceTables, Vector notIncluded) {
 	Message.printStatus(2, routine, 
 		"Removing tables that should be skipped");	
 	if (databaseEngine.equalsIgnoreCase("Access")) {
-		tableNames.removeElement("MSysAccessObjects");
-		tableNames.removeElement("MSysACEs");
-		tableNames.removeElement("MSysObjects");
-		tableNames.removeElement("MSysQueries");
-		tableNames.removeElement("MSysRelationships");
-		tableNames.removeElement("Paste Errors");
+		tableNames.remove("MSysAccessObjects");
+		tableNames.remove("MSysACEs");
+		tableNames.remove("MSysObjects");
+		tableNames.remove("MSysQueries");
+		tableNames.remove("MSysRelationships");
+		tableNames.remove("Paste Errors");
 	}
 	else if (databaseEngine.regionMatches(true,0,"SQL",0,3)) {
 		isSQLServer = true;
-		tableNames.removeElement("syscolumns");
-		tableNames.removeElement("syscomments");
-		tableNames.removeElement("sysdepends");
-		tableNames.removeElement("sysfilegroups");
-		tableNames.removeElement("sysfiles");
-		tableNames.removeElement("sysfiles1");
-		tableNames.removeElement("sysforeignkeys");
-		tableNames.removeElement("sysfulltextcatalogs");
-		tableNames.removeElement("sysfulltextnotify");
-		tableNames.removeElement("sysindexes");
-		tableNames.removeElement("sysindexkeys");
-		tableNames.removeElement("sysmembers");
-		tableNames.removeElement("sysobjects");
-		tableNames.removeElement("syspermissions");
-		tableNames.removeElement("sysproperties");
-		tableNames.removeElement("sysprotects");
-		tableNames.removeElement("sysreferences");
-		tableNames.removeElement("systypes");
-		tableNames.removeElement("sysusers");
-		tableNames.removeElement("sysconstraints");
-		tableNames.removeElement("syssegments");
-		tableNames.removeElement("dtproperties");
-		tableNames.removeElement("Paste Errors");
+		tableNames.remove("syscolumns");
+		tableNames.remove("syscomments");
+		tableNames.remove("sysdepends");
+		tableNames.remove("sysfilegroups");
+		tableNames.remove("sysfiles");
+		tableNames.remove("sysfiles1");
+		tableNames.remove("sysforeignkeys");
+		tableNames.remove("sysfulltextcatalogs");
+		tableNames.remove("sysfulltextnotify");
+		tableNames.remove("sysindexes");
+		tableNames.remove("sysindexkeys");
+		tableNames.remove("sysmembers");
+		tableNames.remove("sysobjects");
+		tableNames.remove("syspermissions");
+		tableNames.remove("sysproperties");
+		tableNames.remove("sysprotects");
+		tableNames.remove("sysreferences");
+		tableNames.remove("systypes");
+		tableNames.remove("sysusers");
+		tableNames.remove("sysconstraints");
+		tableNames.remove("syssegments");
+		tableNames.remove("dtproperties");
+		tableNames.remove("Paste Errors");
 	}
 	else {	
 		// unsure what tables are specific to other database types,
@@ -955,7 +948,7 @@ String [] referenceTables, Vector notIncluded) {
 	if (notIncluded != null) {
 		int notSize = notIncluded.size();
 		for (int i = 0; i < notSize; i++) {
-			tableNames.removeElement(notIncluded.elementAt(i));
+			tableNames.remove(notIncluded.get(i));
 		}
 	}
 
@@ -979,7 +972,7 @@ String [] referenceTables, Vector notIncluded) {
 		html.tableRowEnd();
 	
 		for (int i = 0; i < size; i++) {
-			String name = (String)tableNames.elementAt(i);
+			String name = (String)tableNames.get(i);
 			html.tableRowStart("valign=top");
 			html.tableCellStart();
 			html.linkStart("#Table:" + name);
@@ -990,7 +983,7 @@ String [] referenceTables, Vector notIncluded) {
 				temp = getSQLServerTableComment(dmi, name);
 			}
 			else {
-				temp = (String)tableRemarks.elementAt(i);
+				temp = (String)tableRemarks.get(i);
 			}
 			if (temp.trim().equals("")) {
 				temp = "    ";
@@ -1081,7 +1074,7 @@ String [] referenceTables, Vector notIncluded) {
 	String priTable = null;
 	
 	for (int i = 0; i < size; i++) {
-		tableName = (String)tableNames.elementAt(i);
+		tableName = (String)tableNames.get(i);
 		try {	
 			html.anchor("Table:" + tableName);
 			// REVISIT (JTS - 2004-02-04)
@@ -1115,7 +1108,7 @@ String [] referenceTables, Vector notIncluded) {
 			// get a list of all the table columns that
 			// are in the Primary key.
 			ResultSet primaryKeysRS = null;
-			Vector primaryKeysV = null;
+			List primaryKeysV = null;
 			int primaryKeysSize = 0;
 			try {
 				primaryKeysRS = metadata.getPrimaryKeys(
@@ -1139,9 +1132,9 @@ String [] referenceTables, Vector notIncluded) {
 			// get a list of all the table columns that 
 			// have foreign key references to other tables
 			ResultSet foreignKeysRS = null;
-			Vector foreignKeyPriTablesV = null;
-			Vector foreignKeyPriFieldsV = null;
-			Vector foreignKeyFieldsV = null;
+			List foreignKeyPriTablesV = null;
+			List foreignKeyPriFieldsV = null;
+			List foreignKeyFieldsV = null;
 			int foreignKeysSize = 0;
 			try {
 				foreignKeysRS = metadata.getImportedKeys(
@@ -1166,7 +1159,7 @@ String [] referenceTables, Vector notIncluded) {
 			// get a list of all the fields that are exported
 			// so that foreign keys can link to them
 			ResultSet exportedKeysRS = null;
-			Vector exportedKeysV = null;
+			List exportedKeysV = null;
 			int exportedKeysSize = 0;
 			try {
 				exportedKeysRS = metadata.getExportedKeys(
@@ -1186,8 +1179,8 @@ String [] referenceTables, Vector notIncluded) {
 			boolean foreignKey = false;
 			boolean primaryKey = false;
 			int foreignKeyPos = -1;
-			Vector columns = new Vector();
-			Vector columnNames = new Vector();
+			List columns = new Vector();
+			List columnNames = new Vector();
 
 			// next, get the actual column data for the 
 			// current table.
@@ -1213,8 +1206,12 @@ String [] referenceTables, Vector notIncluded) {
 				foreignKey = false;
 				primaryKey = false;
 				foreignKeyPos = -1;
-				Vector column = new Vector();
-				column.setSize(__POS_NUM);
+				List column = new Vector();
+				// Do the followign since using List now instead of Vector
+				for ( int ic = 0; ic < __POS_NUM; ic++ ) {
+					column.set(ic,"");
+				}
+				//column.setSize(__POS_NUM);
 			
 				// Get the 'column name' and store it in
 				// Vector position __POS_COLUMN_NAME
@@ -1225,8 +1222,7 @@ String [] referenceTables, Vector notIncluded) {
 				else {
 					columnName= columnName.trim();
 				}
-				column.setElementAt(columnName, 
-					__POS_COLUMN_NAME);
+				column.set(__POS_COLUMN_NAME, columnName);
 				columnNames.add(columnName);
 
 				// Get whether this is a primary key or not
@@ -1234,21 +1230,16 @@ String [] referenceTables, Vector notIncluded) {
 				// primary key) or "FALSE" in Vector
 				// position __POS_IS_PRIMARY_KEY
 				for (int j = 0; j < primaryKeysSize; j++) {
-					if (columnName.equals(
-						((String)
-						primaryKeysV.elementAt(j))
-						.trim())) {
+					if (columnName.equals(((String)primaryKeysV.get(j)).trim())) {
 						primaryKey = true;		
 						j = primaryKeysSize + 1;
 					}
 				}				
 				if (primaryKey) {
-					column.setElementAt("TRUE",
-						__POS_IS_PRIMARY_KEY);
+					column.set(__POS_IS_PRIMARY_KEY,"TRUE");
 				}
 				else {
-					column.setElementAt("FALSE",
-						__POS_IS_PRIMARY_KEY);
+					column.set(__POS_IS_PRIMARY_KEY,"FALSE");
 				}
 
 				// Get the 'column type' and store it in 
@@ -1260,26 +1251,24 @@ String [] referenceTables, Vector notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.setElementAt(temp, __POS_COLUMN_TYPE);
+				column.set(__POS_COLUMN_TYPE,temp);
 
 				// Get the 'column size' and store it in
 				// Vector position __POS_COLUMN_SIZE
 				temp = rs.getString(7);
-				column.setElementAt(temp, __POS_COLUMN_SIZE);
+				column.set(__POS_COLUMN_SIZE,temp );
 				
 				// Get the 'column num digits' and store it
 				// in Vector position __POS_NUM_DIGITS
 				temp = rs.getString(9);
 				if (temp == null) {
-					column.setElementAt("0",
-						__POS_NUM_DIGITS);
+					column.set(__POS_NUM_DIGITS,"0");
 				}
 				else {
-					column.setElementAt(temp,
-						__POS_NUM_DIGITS);
+					column.set(__POS_NUM_DIGITS,temp);
 				}
 
-				// Get whether the colum is nullable and 
+				// Get whether the column is nullable and 
 				// store it in Vector position __POS_NULLABLE
 				temp = rs.getString(18);
 				if (temp == null) {
@@ -1288,15 +1277,12 @@ String [] referenceTables, Vector notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.setElementAt(temp, __POS_NULLABLE);
+				column.set(__POS_NULLABLE, temp );
 				
 				// Get the column remarks and store them in
 				// Vector position __POS_REMARKS
 				if (isSQLServer) {
-					column.setElementAt(
-						getSQLServerColumnComment(dmi, 
-						tableName, columnName),
-						__POS_REMARKS);
+					column.set(__POS_REMARKS,getSQLServerColumnComment(dmi, tableName, columnName)	);
 				} 
 				else {
 					temp = rs.getString(12);
@@ -1306,8 +1292,7 @@ String [] referenceTables, Vector notIncluded) {
 					else {
 						temp = temp.trim();
 					}
-					column.setElementAt(temp, 
-						__POS_REMARKS);
+					column.set(__POS_REMARKS,temp);
 				}
 				
 				// get whether the column is exported for
@@ -1315,21 +1300,16 @@ String [] referenceTables, Vector notIncluded) {
 				// in Vector position __POS_EXPORTED as 
 				// either "TRUE" or "FALSE"
 				for (int j = 0; j < exportedKeysSize; j++) {
-					if (columnName.equals(
-						((String)
-						exportedKeysV.elementAt(j))
-						.trim())) {
+					if (columnName.equals(((String)exportedKeysV.get(j)).trim())) {
 						exportedKey = true;		
 						j = exportedKeysSize + 1;
 					}
 				}				
 				if (exportedKey) {
-					column.setElementAt("TRUE",
-						__POS_EXPORTED);
+					column.set(__POS_EXPORTED,"TRUE");
 				}
 				else {
-					column.setElementAt("FALSE",
-						__POS_EXPORTED);
+					column.set(__POS_EXPORTED,"FALSE");
 				}
 
 				// get whether the column is a foreign key
@@ -1348,34 +1328,21 @@ String [] referenceTables, Vector notIncluded) {
 				// key, that position will be null.
 
 				for (int j = 0; j < foreignKeysSize; j++) {
-					if (columnName.equals(
-						((String)
-						foreignKeyFieldsV.elementAt(j))
-						.trim())) {
+					if (columnName.equals( ((String)foreignKeyFieldsV.get(j)).trim())) {
 						foreignKey = true;		
 						foreignKeyPos = j; 
 						j = foreignKeysSize + 1;
 					}
 				}				
 				if (foreignKey) {
-					column.setElementAt("TRUE",
-						__POS_FOREIGN);
-					column.setElementAt(
-						(String)foreignKeyPriTablesV
-						.elementAt(foreignKeyPos),
-						__POS_PRIMARY_TABLE);
-					column.setElementAt(
-						(String)foreignKeyPriFieldsV
-						.elementAt(foreignKeyPos),
-						__POS_PRIMARY_FIELD);
+					column.set(__POS_FOREIGN,"TRUE");
+					column.set(__POS_PRIMARY_TABLE,(String)foreignKeyPriTablesV.get(foreignKeyPos));
+					column.set(__POS_PRIMARY_FIELD,(String)foreignKeyPriFieldsV.get(foreignKeyPos));
 				}
 				else {
-					column.setElementAt("FALSE",
-						__POS_FOREIGN);
-					column.setElementAt(null,
-						__POS_PRIMARY_TABLE);
-					column.setElementAt(null,
-						__POS_PRIMARY_FIELD);
+					column.set(__POS_FOREIGN,"FALSE");
+					column.set(__POS_PRIMARY_TABLE,null);
+					column.set(__POS_PRIMARY_FIELD,null);
 				}
 				
 				columns.add(column);
@@ -1407,10 +1374,9 @@ String [] referenceTables, Vector notIncluded) {
 			// to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
-			Vector[] sortedVectors = new Vector[numColumns];
+			List[] sortedVectors = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedVectors[j] = (Vector)columns.elementAt(
-					order[j]);
+				sortedVectors[j] = (List)columns.get(order[j]);
 			}
 			
 			// Now that the sorted order of the column names
@@ -1419,24 +1385,20 @@ String [] referenceTables, Vector notIncluded) {
 			// the Primary key.  They will be displayed in bold
 			// face font with a yellow background.
 			for (int j = 0; j < numColumns; j++) {
-				Vector column = sortedVectors[j];
+				List column = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.elementAt(
-					__POS_IS_PRIMARY_KEY);
+				temp = (String)column.get(__POS_IS_PRIMARY_KEY);
 
 				if (temp.equals("TRUE")) {
-					html.tableRowStart(
-						"valign=top bgcolor=yellow");
+					html.tableRowStart("valign=top bgcolor=yellow");
 					
 					// display the column name
-					temp = (String)column.elementAt(
-						__POS_COLUMN_NAME);
+					temp = (String)column.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.boldStart();
 
-					temp2 = (String)column.elementAt(
-						__POS_EXPORTED);
+					temp2 = (String)column.get(__POS_EXPORTED);
 					if (temp2.equals("TRUE")) {
 						html.anchor("Table:"
 							+ tableName
@@ -1448,8 +1410,7 @@ String [] referenceTables, Vector notIncluded) {
 					html.tableCellEnd();
 
 					// display the remarks
-					temp = (String)column.elementAt(
-						__POS_REMARKS);
+					temp = (String)column.get(__POS_REMARKS);
 					html.tableCellStart();
 					html.boldStart();
 					html.addText(temp);
@@ -1457,15 +1418,12 @@ String [] referenceTables, Vector notIncluded) {
 					html.tableCellEnd();
 
 					// display the column type
-					temp = (String)column.elementAt(
-						__POS_COLUMN_TYPE);
+					temp = (String)column.get(__POS_COLUMN_TYPE);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "("
-						+ (String)column.elementAt(
-						__POS_COLUMN_SIZE)
+						+ (String)column.get(__POS_COLUMN_SIZE)
 						+ ", " 
-						+ (String)column.elementAt(
-						__POS_NUM_DIGITS)
+						+ (String)column.get(__POS_NUM_DIGITS)
 						+ ")";
 					}
 					else if (temp.equalsIgnoreCase(
@@ -1485,8 +1443,7 @@ String [] referenceTables, Vector notIncluded) {
 					}
 					else {
 						temp = temp + "("
-						+ (String)column.elementAt(
-						__POS_COLUMN_SIZE)
+						+ (String)column.get(__POS_COLUMN_SIZE)
 						+ ")";
 					}					
 					html.tableCellStart();
@@ -1496,27 +1453,20 @@ String [] referenceTables, Vector notIncluded) {
 					html.tableCellEnd();
 
 					// display whether it's nullable
-					temp = (String)column.elementAt(
-						__POS_NULLABLE);
+					temp = (String)column.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.boldStart();
 					html.addText(temp);
 					html.boldEnd();
 					html.tableCellEnd();
 
-					temp = (String)column.elementAt(
-						__POS_FOREIGN);
+					temp = (String)column.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
 						html.tableCellStart();
-						priTable = (String)column
-							.elementAt(
-							__POS_PRIMARY_TABLE);
-						priField = (String)column
-							.elementAt(
-							__POS_PRIMARY_FIELD);
+						priTable = (String)column.get(__POS_PRIMARY_TABLE);
+						priField = (String)column.get(__POS_PRIMARY_FIELD);
 
-						html.link("#Table:" + priTable,
-							priTable);
+						html.link("#Table:" + priTable,	priTable);
 						html.addLinkText(".");
 						html.link("#Table:" + priTable
 							+ "." + priField,
@@ -1534,15 +1484,13 @@ String [] referenceTables, Vector notIncluded) {
 			// Now do the same thing for the other fields, the
 			// non-primary key fields.  
 			for (int j = 0; j < numColumns; j++) {
-				Vector column = sortedVectors[j];
+				List column = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.elementAt(
-					__POS_IS_PRIMARY_KEY);
+				temp = (String)column.get(__POS_IS_PRIMARY_KEY);
 
 				if (temp.equals("FALSE")) {
-					temp = (String)column.elementAt(
-						__POS_FOREIGN);
+					temp = (String)column.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
 						html.tableRowStart(
 							"valign=top "
@@ -1554,29 +1502,24 @@ String [] referenceTables, Vector notIncluded) {
 					}
 					
 					// display the column name
-					temp = (String)column.elementAt(
-						__POS_COLUMN_NAME);
+					temp = (String)column.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
 					// display the remarks
-					temp = (String)column.elementAt(
-						__POS_REMARKS);
+					temp = (String)column.get(__POS_REMARKS);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
 					// display the column type
-					temp = (String)column.elementAt(
-						__POS_COLUMN_TYPE);
+					temp = (String)column.get(__POS_COLUMN_TYPE);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "("
-						+ (String)column.elementAt(
-						__POS_COLUMN_SIZE)
+						+ (String)column.get(__POS_COLUMN_SIZE)
 						+ ", " 
-						+ (String)column.elementAt(
-						__POS_NUM_DIGITS)
+						+ (String)column.get(__POS_NUM_DIGITS)
 						+ ")";
 					}
 					else if (temp.equalsIgnoreCase(
@@ -1596,8 +1539,7 @@ String [] referenceTables, Vector notIncluded) {
 					}
 					else {
 						temp = temp + "("
-						+ (String)column.elementAt(
-						__POS_COLUMN_SIZE)
+						+ (String)column.get(__POS_COLUMN_SIZE)
 						+ ")";
 					}					
 					html.tableCellStart();
@@ -1605,22 +1547,16 @@ String [] referenceTables, Vector notIncluded) {
 					html.tableCellEnd();
 
 					// display whether it's nullable
-					temp = (String)column.elementAt(
-						__POS_NULLABLE);
+					temp = (String)column.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
-					temp = (String)column.elementAt(
-						__POS_FOREIGN);
+					temp = (String)column.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
 						html.tableCellStart();
-						priTable = (String)column
-							.elementAt(
-							__POS_PRIMARY_TABLE);
-						priField = (String)column
-							.elementAt(
-							__POS_PRIMARY_FIELD);
+						priTable = (String)column.get(__POS_PRIMARY_TABLE);
+						priField = (String)column.get(__POS_PRIMARY_FIELD);
 
 						html.link("#Table:" + priTable,
 							priTable);
@@ -1698,7 +1634,7 @@ String [] referenceTables, Vector notIncluded) {
 			html.headingEnd(3);
 			html.blockquoteStart();
 
-			Vector columnNames = new Vector();
+			List columnNames = new Vector();
 			more = rs.next();
 			while (more) {
 			    columnNames.add(rs.getString(4).trim());
@@ -1717,8 +1653,7 @@ String [] referenceTables, Vector notIncluded) {
 				if (j > 0) {
 					sql += ", ";
 				}
-				sql += ldelim + (String)columnNames.elementAt(j)
-					+ rdelim;
+				sql += ldelim + (String)columnNames.get(j) + rdelim;
 			}
 			sql += " FROM " + ldelim + tableName + rdelim 
 				+ " ORDER BY ";
@@ -1727,8 +1662,7 @@ String [] referenceTables, Vector notIncluded) {
 				if (j > 0) {
 					sql += ", ";
 				}
-				sql += ldelim + (String)columnNames.elementAt(j)
-					+ rdelim;
+				sql += ldelim + (String)columnNames.get(j) + rdelim;
 			}
 
 			// j will be greater than 0 if there were any columns
@@ -1740,12 +1674,10 @@ String [] referenceTables, Vector notIncluded) {
 
 				// Create the header for the reference table
 				html.tableStart("border=2 cellspacing=0");
-				html.tableRowStart(
-					"valign=top bgcolor=#CCCCCC");
+				html.tableRowStart( "valign=top bgcolor=#CCCCCC");
 				
 				for (j = 0; j < columnNames.size(); j++) {
-					html.tableHeader((String)
-						columnNames.elementAt(j));
+					html.tableHeader((String)columnNames.get(j));
 				}
 				html.tableRowEnd();
 
@@ -1953,7 +1885,7 @@ throws Exception {
 
 	// get a list of all the table columns that are in the Primary key.
 	ResultSet primaryKeysRS = null;
-	Vector primaryKeysV = null;
+	List primaryKeysV = null;
 	int primaryKeysSize = 0;
 	primaryKeysRS = metadata.getPrimaryKeys(null, null, origTableName);
 	primaryKeysV = new Vector();
@@ -1965,7 +1897,7 @@ throws Exception {
 
 	boolean key = false;
 	String temp = null;
-	Vector columns = new Vector();
+	List columns = new Vector();
 	// loop through each column and move all its important
 	// data into a Vector of Vectors.  This data will
 	// be run through at least twice, and to do that
@@ -1973,7 +1905,7 @@ throws Exception {
 	// opens and closes.
 	while (more) {
 		key = false;
-		Vector column = new Vector();
+		List column = new Vector();
 		
 		// Get the 'column name' and store it in
 		// Vector position 0
@@ -1993,7 +1925,7 @@ throws Exception {
 		for (int j = 0; j < primaryKeysSize; j++) {
 			if (temp.trim().equals(
 				((String)
-				primaryKeysV.elementAt(j))
+				primaryKeysV.get(j))
 				.trim())) {
 				key = true;		
 			}
@@ -2064,13 +1996,13 @@ throws Exception {
 		if (i == (numFields - 1) && primaryKeysSize == 0) {
 			comma = "\n)";
 		}
-		Vector column = (Vector)columns.elementAt(i);
-		String name = (String)column.elementAt(0);
-		String type = (String)column.elementAt(2);
+		List column = (List)columns.get(i);
+		String name = (String)column.get(0);
+		String type = (String)column.get(2);
 		if (type.equalsIgnoreCase("VARCHAR")) {
-			type = type + " (" + (String)column.elementAt(3) + ")";
+			type = type + " (" + (String)column.get(3) + ")";
 		}
-		String isNull = (String)column.elementAt(5);
+		String isNull = (String)column.get(5);
 		if (isNull.equalsIgnoreCase("Unknown") ||
 		    isNull.equalsIgnoreCase("No")) {
 		    	isNull = "NOT NULL";
@@ -2087,7 +2019,7 @@ throws Exception {
 			if (i > 0) {
 				SQL.append(", ");
 			}
-			SQL.append(primaryKeysV.elementAt(i));
+			SQL.append(primaryKeysV.get(i));
 		}
 		SQL.append("))");
 	
@@ -2651,9 +2583,9 @@ throws Exception {
 	
 	// check for BETWEEN searches
 	if (isString.startsWith("BETWEEN")) {
-		Vector v = StringUtil.breakStringList(isString, " ", 0);
+		List v = StringUtil.breakStringList(isString, " ", 0);
 
-		if (((String)v.elementAt(0)).equalsIgnoreCase("BETWEEN")) {
+		if (((String)v.get(0)).equalsIgnoreCase("BETWEEN")) {
 			// If the query is using BETWEEN searches, then it MUST
 			// adhere to the following format:
 			// elementAt(0) = "BETWEEN"
@@ -2665,19 +2597,17 @@ throws Exception {
 			try {	
 				// try will catch number format for the first
 				// value
-				try {	formatWhereCheckNumber(type,
-					(String)v.elementAt(1));
+				try {
+					formatWhereCheckNumber(type,(String)v.get(1));
 				}
 				catch(Exception e5) {
-					Message.printWarning(2, function, 
-					(String)v.elementAt(1)+ message);
+					Message.printWarning(2, function, (String)v.get(1)+ message);
 					return null;
 				}
 
 				// determine if AND is present
 				try {
-					String andString = 
-						(String)v.elementAt(2);
+					String andString = (String)v.get(2);
 					if (!andString.
 						equalsIgnoreCase("AND")) {
 						Message.printWarning(2,function,
@@ -2703,12 +2633,10 @@ throws Exception {
 				// try will catch number format for the 
 				// second value
 				try {
-					formatWhereCheckNumber(type, 
-						(String)v.elementAt(3));
+					formatWhereCheckNumber(type, (String)v.get(3));
 				}
 				catch(Exception e6) {
-					Message.printWarning(2, function, 
-						(String)v.elementAt(3)+message);
+					Message.printWarning(2, function, (String)v.get(3)+message);
 					return null;
 				}		
 				
@@ -2723,10 +2651,10 @@ throws Exception {
 						+ "\n" + betweenForNumber);	
 				}
 
-				formatString = " " + (String)v.elementAt(0)
-						+ " " + (String)v.elementAt(1)
-						+ " " + (String)v.elementAt(2)
-						+ " " + (String)v.elementAt(3);
+				formatString = " " + (String)v.get(0)
+						+ " " + (String)v.get(1)
+						+ " " + (String)v.get(2)
+						+ " " + (String)v.get(3);
 
 				return whereString + formatString;
 			}
@@ -2942,7 +2870,7 @@ Constructs a concatenated String with AND inserted at the appropriate locations.
 @return returns a String with AND inserted at the appropriate locations,
 null if "and" is null
 */
-public static String getAndClause(Vector and) {
+public static String getAndClause(List and) {
         if (and == null) {
                 return null;
         }
@@ -2952,10 +2880,10 @@ public static String getAndClause(Vector and) {
 
         for (int i = 0; i < size; i++) {
                 if ((i != (size - 1)) && (size != 1)) {
-                        andString += and.elementAt(i)+ " AND " ;
+                        andString += and.get(i)+ " AND " ;
                 }
                 else {
-                        andString += and.elementAt(i);
+                        andString += and.get(i);
                 }
         }
         return "(" + andString + ")";         
@@ -2965,7 +2893,7 @@ public static String getAndClause(Vector and) {
 Returns all the kinds of databases a DMI can connect to.
 @return a Vector of all the kinds of databases a DMI can connect to.
 */
-public static Vector getAllDatabaseTypes() {
+public static List getAllDatabaseTypes() {
 	return DMI.getAllDatabaseTypes();
 }
 
@@ -2977,7 +2905,7 @@ in the final list of table names.
 @return the names of all the tables in the dmi's database in a Vector.  null
 is returned if there was an error reading from the database.
 */
-public static Vector getDatabaseTableNames(DMI dmi, Vector notIncluded) {
+public static List getDatabaseTableNames(DMI dmi, List notIncluded) {
 	String routine = "getDatabaseTableNames";
 	// Get the name of the data.  If the name is null, it's most likely
 	// because the connection is going through ODBC, in which case the 
@@ -3018,7 +2946,7 @@ public static Vector getDatabaseTableNames(DMI dmi, Vector notIncluded) {
 		more = false;
 	}
 	String temp;
-	Vector tableNames = new Vector();
+	List tableNames = new Vector();
 	while (more) {
 		try {	
 			// Table name...
@@ -3053,36 +2981,36 @@ public static Vector getDatabaseTableNames(DMI dmi, Vector notIncluded) {
 	Message.printStatus(2, routine, 
 		"Removing tables that should be skipped");	
 	if (databaseEngine.equalsIgnoreCase("Access")) {
-		tableNames.removeElement("MSysAccessObjects");
-		tableNames.removeElement("MSysACEs");
-		tableNames.removeElement("MSysObjects");
-		tableNames.removeElement("MSysQueries");
-		tableNames.removeElement("MSysRelationships");
-		tableNames.removeElement("Paste Errors");
+		tableNames.remove("MSysAccessObjects");
+		tableNames.remove("MSysACEs");
+		tableNames.remove("MSysObjects");
+		tableNames.remove("MSysQueries");
+		tableNames.remove("MSysRelationships");
+		tableNames.remove("Paste Errors");
 	}
 	else if (databaseEngine.regionMatches(true,0,"SQL",0,3)) {
-		tableNames.removeElement("syscolumns");
-		tableNames.removeElement("syscomments");
-		tableNames.removeElement("sysdepends");
-		tableNames.removeElement("sysfilegroups");
-		tableNames.removeElement("sysfiles");
-		tableNames.removeElement("sysfiles1");
-		tableNames.removeElement("sysforeignkeys");
-		tableNames.removeElement("sysfulltextcatalogs");
-		tableNames.removeElement("sysfulltextnotify");
-		tableNames.removeElement("sysindexes");
-		tableNames.removeElement("sysindexkeys");
-		tableNames.removeElement("sysmembers");
-		tableNames.removeElement("sysobjects");
-		tableNames.removeElement("syspermissions");
-		tableNames.removeElement("sysproperties");
-		tableNames.removeElement("sysprotects");
-		tableNames.removeElement("sysreferences");
-		tableNames.removeElement("systypes");
-		tableNames.removeElement("sysusers");
-		tableNames.removeElement("sysconstraints");
-		tableNames.removeElement("syssegments");
-		tableNames.removeElement("dtproperties");
+		tableNames.remove("syscolumns");
+		tableNames.remove("syscomments");
+		tableNames.remove("sysdepends");
+		tableNames.remove("sysfilegroups");
+		tableNames.remove("sysfiles");
+		tableNames.remove("sysfiles1");
+		tableNames.remove("sysforeignkeys");
+		tableNames.remove("sysfulltextcatalogs");
+		tableNames.remove("sysfulltextnotify");
+		tableNames.remove("sysindexes");
+		tableNames.remove("sysindexkeys");
+		tableNames.remove("sysmembers");
+		tableNames.remove("sysobjects");
+		tableNames.remove("syspermissions");
+		tableNames.remove("sysproperties");
+		tableNames.remove("sysprotects");
+		tableNames.remove("sysreferences");
+		tableNames.remove("systypes");
+		tableNames.remove("sysusers");
+		tableNames.remove("sysconstraints");
+		tableNames.remove("syssegments");
+		tableNames.remove("dtproperties");
 	}
 	else {	
 		// unsure what tables are specific to other database types,
@@ -3094,7 +3022,7 @@ public static Vector getDatabaseTableNames(DMI dmi, Vector notIncluded) {
 	if (notIncluded != null) {
 		int notSize = notIncluded.size();
 		for (int i = 0; i < notSize; i++) {
-			tableNames.removeElement(notIncluded.elementAt(i));
+			tableNames.remove(notIncluded.get(i));
 		}
 	}
 	return tableNames;
@@ -3111,8 +3039,8 @@ Vector may be empty.
 @param strip_general If true, strip general ODBC DSNs from the list (e.g.,
 "Excel Files").
 */
-public static Vector getDefinedOdbcDsn ( boolean strip_general )
-{	Vector output = null;
+public static List getDefinedOdbcDsn ( boolean strip_general )
+{	List output = null;
 	if (!IOUtil.isUNIXMachine()) {
 		try {	String [] command_array = new String[2];
 			command_array[0] = "shellcon";
@@ -3120,7 +3048,7 @@ public static Vector getDefinedOdbcDsn ( boolean strip_general )
 			ProcessManager pm = new ProcessManager(command_array);
 			pm.saveOutput(true);
 			pm.run ();
-			output = pm.getOutputVector();
+			output = pm.getOutputList();
 			//Message.printStatus ( 2, routine,
 			//"Exit status from shellcon for ODBC is: " +
 			//pm.getExitStatus() );
@@ -3134,14 +3062,14 @@ public static Vector getDefinedOdbcDsn ( boolean strip_general )
 		}
 	}
 
-	Vector available_OdbcDsn = new Vector();
+	List available_OdbcDsn = new Vector();
 	if ((output != null) && (output.size() > 0)) {
 		output = StringUtil.sortStringList (output,
 			StringUtil.SORT_ASCENDING, null, false, true);
 		int size = output.size();
 		String odbc = "";
 		for (int i = 0; i < size; i++) {
-			odbc = ((String)output.elementAt(i)).trim();
+			odbc = ((String)output.get(i)).trim();
 			if (	strip_general &&
 				(odbc.regionMatches(
 				true,0,"dBASE Files",0,11) ||
@@ -3225,10 +3153,9 @@ public static int getMinRecord(DMI dmi, String table, String field) {
 /**
 Constructs a concatenated String with OR inserted at the appropriate locations.
 @param or Vector of Strings in which to construct an OR clause
-@return returns a String with OR inserted at the appropriate locations,
-null if "or" is null
+@return returns a String with OR inserted at the appropriate locations, null if "or" is null
 */
-public static String getOrClause(Vector or) {
+public static String getOrClause(List or) {
         if (or == null) {
                 return null;
         }
@@ -3238,10 +3165,10 @@ public static String getOrClause(Vector or) {
 
         for (int i = 0; i < size; i++) {
                 if ((i != (size - 1)) && (size != 1)) {
-                        orString += or.elementAt(i)+ " OR " ;
+                        orString += or.get(i)+ " OR " ;
                 }
                 else {
-                        orString += or.elementAt(i);
+                        orString += or.get(i);
                 }
         }
         return "(" + orString + ")";         
@@ -3262,7 +3189,7 @@ server connection.
 @return a Vector of the database types a DMI can connect to that are done via
 direct server connection.
 */
-public static Vector getServerDatabaseTypes() {
+public static List getServerDatabaseTypes() {
 	return DMI.getServerDatabaseTypes();
 }
 
@@ -3328,13 +3255,13 @@ statement.
 formatting.
 @param panel The InputFilter_JPanel instance to be converted.
 */
-public static Vector getWhereClausesFromInputFilter (	DMI dmi,
+public static List getWhereClausesFromInputFilter (	DMI dmi,
 						InputFilter_JPanel panel )
 {	// Loop through each filter group.  There will be one where clause per
 	// filter group.
 	int nfg = panel.getNumFilterGroups ();
 	InputFilter filter;
-	Vector where_clauses = new Vector();
+	List where_clauses = new Vector();
 	String where_clause="";	// A where clause that is being formed.
 	for ( int ifg = 0; ifg < nfg; ifg++ ) {
 		filter = panel.getInputFilter ( ifg );	
@@ -3588,22 +3515,22 @@ private static boolean isMissingLong(long value) {
 Uses Message.printDebug(1, ...) to print out the results stored in a 
 Vector of Vectors (which has been returned from a call to processResultSet)
 */
-public static void printResults(Vector v) {
+public static void printResults(List v) {
 	printResults(v, "  ");
 }
 
 /**
 Uses Message.printDebug(1, ...) to print out the results stored in a 
-Vector of Vectors (which has been returned from a call to processResultSet)
+list of lists (which has been returned from a call to processResultSet)
 */
-public static void printResults(Vector v, String delim) {
+public static void printResults(List v, String delim) {
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
-		Vector vv = (Vector)v.elementAt(i);
+		List vv = (List)v.get(i);
 		int vsize = vv.size();
 		Message.printDebug(1, "", "  -> ");
 		for (int j = 0; j < vsize; j++) {
-			Message.printDebug(1, "", "" + vv.elementAt(j) + delim);
+			Message.printDebug(1, "", "" + vv.get(j) + delim);
 		}
 		Message.printDebug(1, "", "\n");
 	}
@@ -3653,23 +3580,21 @@ now.  Fortunately, such occurrences should be very rare.
 @param rs the resultSet whose values will be entered into vector format
 @return a vector containing all the values from the resultset
 @throws SQLException thrown by ResultSet.getMetaData(), 
-ResultSetMetaData.getColumnCount(), or any of the ResultSet.get[DataType]()
-methods
+ResultSetMetaData.getColumnCount(), or any of the ResultSet.get[DataType]() methods
 */
-public static Vector processResultSet(ResultSet rs) throws SQLException {
+public static List processResultSet(ResultSet rs) throws SQLException {
 	String routine = "DMI.processResultSet";
 	int dl = 25;
 
 	if (Message.isDebugOn) {
-		Message.printDebug(dl, routine, 
-			"[method called]");
+		Message.printDebug(dl, routine, "[method called]");
 	}
 
 	// used for storing the type of each column in the resultSet
-	Vector types = new Vector(0);
+	List types = new Vector(0);
 
 	// the vector which will be built containing the rows from the resultSet
-	Vector results = new Vector(0);
+	List results = new Vector(0);
 
 	// set up the types vector 
 	ResultSetMetaData rsmd = rs.getMetaData();	
@@ -3679,9 +3604,9 @@ public static Vector processResultSet(ResultSet rs) throws SQLException {
 	}
 
 	while(rs.next()) {
-		Vector row = new Vector(0);
+		List row = new Vector(0);
 		for (int i = 0; i < columnCount; i++) {
-		Integer I = (Integer)types.elementAt(i);
+		Integer I = (Integer)types.get(i);
 		int val = I.intValue();
 
 		switch(val) {
@@ -3763,16 +3688,15 @@ to X
 @throws SQLException thrown by ResultSet.getMetaData, 
 ResultSetMetaData.getColumnCount or ResultSetMetaData.getColumnName
 */
-public static Vector processResultSetColumnNames(ResultSet rs) 
+public static List processResultSetColumnNames(ResultSet rs) 
 throws SQLException {
 	String routine = "DMI.processResultSetColumnNames";
 	int dl = 25;
 
 	if (Message.isDebugOn) {
-		Message.printDebug(dl, routine, 
-			"[method called]");
+		Message.printDebug(dl, routine, "[method called]");
 	}
-	Vector names = new Vector(0);
+	List names = new Vector(0);
 	
 	ResultSetMetaData rsmd = rs.getMetaData();
 	int count = rsmd.getColumnCount();
@@ -3915,7 +3839,7 @@ public static void testPrivileges(DMI dmi, String tableName) {
 public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	Message.printStatus(2, "", "" + tableName + " foreign key info:");
 	ResultSet keysRS = null;
-	Vector keysV = null;
+	List keysV = null;
 	int keysSize = 0;
 	try {
 		keysRS = metadata.getImportedKeys(null, null, tableName);
@@ -3928,8 +3852,7 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	catch (Exception e) {
 	}
 	for (int i = 0; i < keysSize; i++) {
-		Message.printStatus(2, "", "  [" + i + "] (imp): "
-			+ keysV.elementAt(i));
+		Message.printStatus(2, "", "  [" + i + "] (imp): " + keysV.get(i));
 	}
 
 	try {
@@ -3943,8 +3866,7 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	catch (Exception e) {
 	}
 	for (int i = 0; i < keysSize; i++) {
-		Message.printStatus(2, "", "  [" + i + "] (exp): "
-			+ keysV.elementAt(i));
+		Message.printStatus(2, "", "  [" + i + "] (exp): " + keysV.get(i));
 	}
 }
 

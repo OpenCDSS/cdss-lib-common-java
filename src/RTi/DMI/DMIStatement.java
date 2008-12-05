@@ -74,6 +74,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Time.DateTime;
@@ -134,50 +135,50 @@ stored procedure out in executable format when a query is run.
 private String[] __spParameters = null;
 
 /**
-Vector for fields that are autonumbers
+List for fields that are autonumbers
 */
-protected Vector _autonumber_Vector;
+protected List _autonumber_Vector;
 
 /**
-Vector for fields used in the statement (e.g., SELECT XXXX, XXXX).
+List for fields used in the statement (e.g., SELECT XXXX, XXXX).
 */
-protected Vector _field_Vector;
+protected List _field_Vector;
 
 /**
-Vector to specify the tables for joins.
+List to specify the tables for joins.
 */
-protected Vector _join_Vector;
+protected List _join_Vector;
 
 /**
-Vector to specify the join types for joins.
+List to specify the join types for joins.
 */
-protected Vector _join_type_Vector;
+protected List _join_type_Vector;
 
 /**
-Vector for specifying the ON clauses for joins.
+List for specifying the ON clauses for joins.
 */
-protected Vector _on_Vector;
+protected List _on_Vector;
 
 /**
-Vector for ORDER BY clauses used in the statement
+List for ORDER BY clauses used in the statement
 (e.g., ORDER BY XXXX, XXXX).
 */
-protected Vector _order_by_Vector;
+protected List _order_by_Vector;
 
 /**
-Vector for tables used in the statement (e.g., FROM XXXX, XXXX).
+List for tables used in the statement (e.g., FROM XXXX, XXXX).
 */
-protected Vector _table_Vector;
+protected List _table_Vector;
 
 /**
-Vector for values to be inserted or updated with the statement
+List for values to be inserted or updated with the statement
 */
-protected Vector _values_Vector;
+protected List _values_Vector;
 
 /**
-Vector for where clauses used in the statement (e.g., WHERE XXXX, XXXX).
+List for where clauses used in the statement (e.g., WHERE XXXX, XXXX).
 */
-protected Vector _where_Vector;
+protected List _where_Vector;
 
 /**
 Construct an SQL statement.  Typically a derived class instance (e.g.,
@@ -221,7 +222,7 @@ Add a field the statement.
 @param field Field to add to the statement.
 */
 public void addField ( String field ) {	
-	_field_Vector.addElement ( field );
+	_field_Vector.add ( field );
 }
 
 /**
@@ -264,7 +265,7 @@ throws Exception {
 	}
 	else {
 		// this is for insert/update statements
-		_values_Vector.addElement(null);
+		_values_Vector.add(null);
 	}
 }
 
@@ -276,23 +277,22 @@ public void addOrderByClause(String order_by_clause) {
 	int size = _order_by_Vector.size();
 	String s = null;
 	for (int i = 0; i < size; i++) {
-		s = (String)_order_by_Vector.elementAt(i);
+		s = (String)_order_by_Vector.get(i);
 		if (s.equalsIgnoreCase(order_by_clause)) {
-			// already present in the order by Vector, do not
-			// add again.
+			// already present in the order by Vector, do not add again.
 			return;
 		}
 	}
-	_order_by_Vector.addElement ( order_by_clause );
+	_order_by_Vector.add ( order_by_clause );
 }
 
 /**
 Adds a series of order by clauses to the statement at once.
 @param order_by_clauses Vector of String order by clauses to add.
 */
-public void addOrderByClauses(Vector order_by_clauses) {
+public void addOrderByClauses(List order_by_clauses) {
 	for (int i = 0; i < order_by_clauses.size(); i++) {
-		addOrderByClause((String)order_by_clauses.elementAt(i));
+		addOrderByClause((String)order_by_clauses.get(i));
 	}
 }
 
@@ -301,7 +301,7 @@ Add a table the statement.
 @param table Table to add to the statement.
 */
 public void addTable ( String table ) {
-	_table_Vector.addElement ( table );
+	_table_Vector.add ( table );
 }
 
 /**
@@ -314,7 +314,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement(new Boolean(value));
+		_values_Vector.add(new Boolean(value));
 	}
 }
 
@@ -355,24 +355,21 @@ throws Exception {
 	SimpleDateFormat sdf = new SimpleDateFormat(format);
 
 	if (value == null) {
-		_values_Vector.addElement(null);
+		_values_Vector.add(null);
 	} else {
 	/*
 		_values_Vector.addElement(DMIUtil.formatDateTime(_dmi, 
 			new DateTime(value)));
 	*/
 		if (_dmi._database_engine == _dmi._DBENGINE_ACCESS ) {
-			_values_Vector.addElement
-				("#" + sdf.format(value) + "#");
+			_values_Vector.add("#" + sdf.format(value) + "#");
 		}
 		else if	( (_dmi._database_engine == _dmi._DBENGINE_SQLSERVER7)||
 			(_dmi._database_engine==_dmi._DBENGINE_SQLSERVER2000)){
-			_values_Vector.addElement 
-				("'" + sdf.format(value) + "'");
+			_values_Vector.add("'" + sdf.format(value) + "'");
 		}
 		else {
-			_values_Vector.addElement 
-				("'" + sdf.format(value) + "'");
+			_values_Vector.add("'" + sdf.format(value) + "'");
 		}
 	}
 }
@@ -391,8 +388,7 @@ throws Exception {
 		addValue(value);
 		return;
 	}
-	_values_Vector.addElement(DMIUtil.formatDateTime(_dmi, 
-		new DateTime(value, precision)));
+	_values_Vector.add(DMIUtil.formatDateTime(_dmi, new DateTime(value, precision)));
 }
 
 /**
@@ -405,7 +401,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement(value);
+		_values_Vector.add(value);
 	}
 }
 
@@ -419,7 +415,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement (new Double(value));
+		_values_Vector.add (new Double(value));
 	}
 }
 
@@ -442,7 +438,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement (new Float(value));
+		_values_Vector.add (new Float(value));
 	}
 }
 
@@ -465,7 +461,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement(new Integer(value));
+		_values_Vector.add(new Integer(value));
 	}
 }
 
@@ -488,7 +484,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.addElement(new Long(value));
+		_values_Vector.add(new Long(value));
 	}
 }
 
@@ -515,16 +511,14 @@ throws Exception {
 		 || _dmi.getDatabaseEngine().equalsIgnoreCase("SQLServer7") 
 		 || _dmi.getDatabaseEngine().equalsIgnoreCase("SQLServer2000")){
 			if (value.indexOf('\'') > -1) {
-				_values_Vector.addElement("'"
-					+ StringUtil.replaceString(value, "'", 
-					"''") + "'");
+				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
 			}	
 			else {
-				_values_Vector.addElement("'" + value + "'");
+				_values_Vector.add("'" + value + "'");
 			}
 		}
 		else {
-			_values_Vector.addElement("'" + value + "'");
+			_values_Vector.add("'" + value + "'");
 		}
 	}
 }
@@ -621,7 +615,7 @@ throws Exception {
 		setValueFromWhereClause(where_clause);	
 	}
 	else {
-		_where_Vector.addElement ( where_clause );
+		_where_Vector.add ( where_clause );
 	}
 }
 
@@ -629,11 +623,11 @@ throws Exception {
 Adds a series of where clauses to the statement at once.
 @param where_clauses Vector ofString where clauses to add.
 */
-public void addWhereClauses(Vector where_clauses) 
+public void addWhereClauses(List where_clauses) 
 throws Exception {
 	String s;
 	for (int i = 0; i < where_clauses.size(); i++) {
-		s = (String)where_clauses.elementAt(i);
+		s = (String)where_clauses.get(i);
 		addWhereClause(s);
 	}
 }
@@ -749,7 +743,7 @@ Removes a field from the statement.
 @param field the field to remove from the statement.
 */
 public void removeField (String field) {
-	_field_Vector.removeElement(field);
+	_field_Vector.remove(field);
 }
 
 /**

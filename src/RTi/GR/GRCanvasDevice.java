@@ -27,6 +27,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
@@ -166,9 +167,9 @@ Note for this device.  Used for simple on-line help for the GUI.
 protected String	_note;
 
 /**
-Vector of GRDrawingArea objects for this device.
+List of GRDrawingArea objects for this device.
 */
-protected Vector _drawing_area_list;
+protected List _drawing_area_list;
 
 /**
 Construct using name.
@@ -227,7 +228,7 @@ public void addDrawingArea ( GRDrawingArea grda )
 		"Adding drawing area \"" + grda.getName() + "\" to device \"" +
 		_name + "\"" );
 	}
-	_drawing_area_list.addElement ( (GRCanvasDrawingArea)grda );
+	_drawing_area_list.add ( (GRCanvasDrawingArea)grda );
 }
 
 /**

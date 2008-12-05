@@ -285,6 +285,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.SQLException;
 
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -685,10 +686,10 @@ restrictive than the system password but may be the same.
 private String __user_password;
 
 /**
-Vector for holding all the statements that were created during a transaction,
+List for holding all the statements that were created during a transaction,
 so they can be closed when the transaction is committed or rolled back.
 */
-private Vector __statementsVector;
+private List __statementsVector;
 
 /**
 An empty constructor.  If this constructor is used, initialize() must be called
@@ -955,13 +956,12 @@ private void closeStatements() {
 	int size = __statementsVector.size();
 	Statement s = null;
 	for (int i = 0; i < size; i++) {
-		s = (Statement)__statementsVector.elementAt(i);
+		s = (Statement)__statementsVector.get(i);
 		try {
 			s.close();
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, 
-				"Error closing statement:");
+			Message.printWarning(2, routine, "Error closing statement:");
 			Message.printWarning(2, routine, e);
 		}
 	}
@@ -1839,8 +1839,8 @@ throws Throwable {
 Returns all the kinds of databases a DMI can connect to.
 @return a Vector of all the kinds of databases a DMI can connect to.
 */
-protected static Vector getAllDatabaseTypes() {
-	Vector v = new Vector();
+protected static List getAllDatabaseTypes() {
+	List v = new Vector();
 	v.add("Access");
 	v.add("Informix");
 	v.add("MySQL");
@@ -1920,28 +1920,28 @@ including server name (e.g., for use in the header of an output file; 1 for
 very concise output (e.g., the database name and version, for use in a product
 footer).  This arguments defaults to 3 if this base class method is called.
 */
-public Vector getDatabaseProperties(int level) {
-	Vector v = new Vector();
+public List getDatabaseProperties(int level) {
+	List v = new Vector();
 	if ( __jdbc_odbc )
 	{ 	// Need the server name, database name, etc...
-		v.addElement( "Database engine: " + __database_engine_String );
-		v.addElement( "Database server: " + __database_server);
-		v.addElement( "Database name: " + __database_name);
-		v.addElement( "Database port: " + __port);
+		v.add( "Database engine: " + __database_engine_String );
+		v.add( "Database server: " + __database_server);
+		v.add( "Database name: " + __database_name);
+		v.add( "Database port: " + __port);
 	}
 	else
-	{	v.addElement( "ODBC DSN: " + __odbc_name );
+	{	v.add( "ODBC DSN: " + __odbc_name );
 	}
 	// Always have this...
-	v.addElement( "Database version: " + __database_version );
+	v.add( "Database version: " + __database_version );
 
 	// Secure information...
 
 	if ( __secure )
-	{	v.addElement( "System login: " + __system_login);
-		v.addElement( "System password: " + __system_password);
-		v.addElement( "User login: " + __user_login);
-		v.addElement( "User password: " + __user_password);
+	{	v.add( "System login: " + __system_login);
+		v.add( "System password: " + __system_password);
+		v.add( "User login: " + __user_login);
+		v.add( "User password: " + __user_password);
 	}
 	
 	return v;
@@ -2132,13 +2132,11 @@ public boolean getSecure() {
 }
 
 /**
-Returns the database types a DMI can connect to that are done via direct
-server connection.
-@return a Vector of the database types a DMI can connect to that are done via
-direct server connection.
+Returns the database types a DMI can connect to that are done via direct server connection.
+@return a Vector of the database types a DMI can connect to that are done via direct server connection.
 */
-protected static Vector getServerDatabaseTypes() {
-	Vector v = new Vector();
+protected static List getServerDatabaseTypes() {
+	List v = new Vector();
 	v.add("Informix");
 	v.add("MySQL");
 	v.add("Oracle");

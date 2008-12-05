@@ -58,7 +58,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -93,7 +93,7 @@ implements ActionListener, WindowListener
 // Private data...
 
 private TSViewJFrame __tsview_JFrame;	// TSViewJFrame parent.
-private Vector __tslist;		// List of time series to graph.
+private List __tslist;		// List of time series to graph.
 private PropList __props;		// Property list.
 
 private SimpleJButton __graph_JButton = null;
@@ -114,12 +114,10 @@ private int __summary_font_size = 11;
 Construct a TSViewSummaryJFrame.
 @param tsview_gui Parent TSViewJFrame.
 @param tslist List of time series to display.
-@param props Properties for display (currently same list passed in to
-TSViewFrame).
+@param props Properties for display (currently same list passed in to TSViewFrame).
 @exception if there is an error displaying the time series.
 */
-public TSViewSummaryJFrame(	TSViewJFrame tsview_gui, Vector tslist,
-				PropList props )
+public TSViewSummaryJFrame(	TSViewJFrame tsview_gui, List tslist, PropList props )
 throws Exception
 {	super ( "Time Series - Summary View" );
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
@@ -189,11 +187,9 @@ throws Throwable
 Initialize the data and GUI.
 @param tsview_gui Parent TSViewJFrame.
 @param tslist List of time series to display.
-@param props Properties for display (currently same list passed in to
-TSViewJFrame).
+@param props Properties for display (currently same list passed in to TSViewJFrame).
 */
-private void initialize (	TSViewJFrame tsview_gui, Vector tslist,
-				PropList props )
+private void initialize ( TSViewJFrame tsview_gui, List tslist, PropList props )
 {	__tsview_JFrame = tsview_gui;
 	__tslist = tslist;
 	__props = props;
@@ -250,12 +246,12 @@ private void openGUI ( boolean mode )
 
 	StringBuffer buffer = new StringBuffer();
 	String nl = System.getProperty ( "line.separator" );
-	try {	Vector summary_strings = TSUtil.formatOutput (__tslist,__props);
+	try {
+		List summary_strings = TSUtil.formatOutput (__tslist,__props);
 		if ( summary_strings != null ) {
 			int size = summary_strings.size();
 			for ( int i = 0; i < size; i++ ) {
-				buffer.append (
-				(String)summary_strings.elementAt(i) + nl );
+				buffer.append ( (String)summary_strings.get(i) + nl );
 			}
 		}
 		summary_strings = null;

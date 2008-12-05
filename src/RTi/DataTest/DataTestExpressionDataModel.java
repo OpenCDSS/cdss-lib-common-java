@@ -11,6 +11,7 @@
 
 package RTi.DataTest;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.DMI.DMIUtil;
@@ -145,7 +146,7 @@ been set.
 if no data are missing.
 */
 public String getMissingValues() {
-	Vector v = new Vector();
+	List v = new Vector();
 
 	if (DMIUtil.isMissing(__expressionType)) {
 		v.add("expression type");	
@@ -179,7 +180,7 @@ public String getMissingValues() {
 			if (i > 0) {
 				s += ", ";
 			}
-			s += v.elementAt(i);
+			s += v.get(i);
 		}
 		return s;
 	}

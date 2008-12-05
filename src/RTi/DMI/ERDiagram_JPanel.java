@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRLimits;
@@ -143,10 +144,9 @@ the tables to put on the ER Diagram.
 private String __tableNameField;
 
 /**
-A Vector of the names of the reference tables in the ER diagram.  Will never
-be null.
+A Vector of the names of the reference tables in the ER diagram.  Will never be null.
 */
-private Vector __referenceTables;
+private List __referenceTables;
 
 /**
 Constructor.
@@ -165,7 +165,7 @@ Y position of the tables in the ER Diagram.
 */
 public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi, 
 String tablesTableName, String tableNameField, String erdXField, 
-String erdYField, Vector referenceTables, PageFormat pageFormat, 
+String erdYField, List referenceTables, PageFormat pageFormat, 
 boolean debug) {
 	__dmi = dmi;
 	__parent = parent;
@@ -237,11 +237,11 @@ appear to hover independent of all other tables.
 @param rels the Vector of relationships to convert.
 @return the converted relationships Vector.
 */
-private Vector convertReferenceRelationships(Vector rels) {
-	Vector newRels = new Vector();
+private List convertReferenceRelationships(List rels) {
+	List newRels = new Vector();
 	ERDiagram_Relationship rel;	
 	for (int i = 0; i < rels.size(); i++) {	
-		rel = (ERDiagram_Relationship)rels.elementAt(i);
+		rel = (ERDiagram_Relationship)rels.get(i);
 		if (isReferenceTable(rel.getStartTable())
 			&& isReferenceTable(rel.getEndTable())) {
 //Message.printStatus(2, "", "Link from " + rel.getStartTable() + " to " 
@@ -337,7 +337,7 @@ Returns whether the table with the given name is a reference table or not.
 private boolean isReferenceTable(String name) {
 	String s = null;
 	for (int i = 0; i < __referenceTableCount; i++) {
-		s = (String)__referenceTables.elementAt(i);
+		s = (String)__referenceTables.get(i);
 		if (s.equals(name)) {
 			return true;
 		}
@@ -365,12 +365,12 @@ which either the start table or the end table is not visible.
 @return the relationships vector, minus all relationships connecting to 
 non-visible tables.
 */
-private Vector pruneInvisibleRelationships(Vector rels) {
-	Vector newRels = new Vector();
+private List pruneInvisibleRelationships(List rels) {
+	List newRels = new Vector();
 	ERDiagram_Relationship rel;
 	
 	for (int i = 0; i < rels.size(); i++) {	
-		rel = (ERDiagram_Relationship)rels.elementAt(i);
+		rel = (ERDiagram_Relationship)rels.get(i);
 
 		if (isTableInTablesArray(rel.getStartTable())) {
 			if (isTableInTablesArray(rel.getEndTable())) {
@@ -394,13 +394,13 @@ database and populate the array of ERDiagram_Relationship objects.
 */
 protected ERDiagram_Relationship[] readRelationships() {
 	setMessageStatus("Creating list of table relationships", "WAIT");
-	Vector rels = DMIUtil.createERDiagramRelationships(__dmi, null);
+	List rels = DMIUtil.createERDiagramRelationships(__dmi, null);
 
 	rels = pruneInvisibleRelationships(rels);
 	rels = convertReferenceRelationships(rels);
 	__rels = new ERDiagram_Relationship[rels.size()];
 	for (int i = 0; i < rels.size(); i++) {
-		__rels[i] = (ERDiagram_Relationship)rels.elementAt(i);	
+		__rels[i] = (ERDiagram_Relationship)rels.get(i);	
 	}
 
 	setMessageStatus("Done creating list", "READY");
@@ -413,12 +413,12 @@ the array of ERDiagram_Table object.
 */
 protected ERDiagram_Table[] readTables() {
 	setMessageStatus("Creating list of database tables", "WAIT");
-	Vector tables = DMIUtil.createERDiagramTables(__dmi, __tablesTableName, 
+	List tables = DMIUtil.createERDiagramTables(__dmi, __tablesTableName, 
 		__tableNameField, __erdXField, __erdYField, null);
 
 	__tables = new ERDiagram_Table[tables.size()];
 	for (int i = 0; i < tables.size(); i++) {
-		__tables[i] = (ERDiagram_Table)tables.elementAt(i);
+		__tables[i] = (ERDiagram_Table)tables.get(i);
 	}
 	setMessageStatus("Done creating list", "READY");
 	return __tables;

@@ -69,7 +69,7 @@ public String toInsertString() {
 
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
-		statement.append ( (String)_table_Vector.elementAt(0) );
+		statement.append ( (String)_table_Vector.get(0) );
 		statement.append (" (");
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toInsertString", 	
@@ -80,11 +80,11 @@ public String toInsertString() {
 	size = _field_Vector.size();
 	if (size > 0) {
 		statement.append (
-			removeTableName((String)_field_Vector.elementAt(0)));
+			removeTableName((String)_field_Vector.get(0)));
 
 		for (int i = 1; i < size; i++) {
 			statement.append(", " + 
-			removeTableName((String)_field_Vector.elementAt(i)));
+			removeTableName((String)_field_Vector.get(i)));
 		}
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toInsertString", 	
@@ -95,10 +95,10 @@ public String toInsertString() {
 	statement.append (") VALUES (");
 	size = _values_Vector.size();
 	if (size > 0) {
-		statement.append(_values_Vector.elementAt(0));
+		statement.append(_values_Vector.get(0));
 
 		for (int i = 1; i < size; i++) {
-			statement.append (", " + _values_Vector.elementAt(i));
+			statement.append (", " + _values_Vector.get(i));
 		}
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toInsertString", 	
@@ -133,7 +133,7 @@ public String toUpdateString(boolean tryBuildWhere) {
 
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
-		statement.append ( (String)_table_Vector.elementAt(0) );
+		statement.append ( (String)_table_Vector.get(0) );
 		statement.append (" ");
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toUpdateString", 	
@@ -153,15 +153,15 @@ public String toUpdateString(boolean tryBuildWhere) {
 		return "";
 	}
 	else {
-		statement.append ((String)_field_Vector.elementAt(0));
+		statement.append ((String)_field_Vector.get(0));
 		statement.append (" = ");
-		statement.append (_values_Vector.elementAt(0));
+		statement.append (_values_Vector.get(0));
 
 		for (int i = 1; i < size; i++) {
 			statement.append (", ");
-			statement.append ((String)_field_Vector.elementAt(i));
+			statement.append ((String)_field_Vector.get(i));
 			statement.append (" = ");
-			statement.append (_values_Vector.elementAt(i));
+			statement.append (_values_Vector.get(i));
 		}
 	}
 
@@ -169,23 +169,23 @@ public String toUpdateString(boolean tryBuildWhere) {
 
 	size = _where_Vector.size();
 	if (size > 0) {
-		statement.append ((String)_where_Vector.elementAt(0));
+		statement.append ((String)_where_Vector.get(0));
 		
 		for (int i = 1; i < size; i++) {
 			statement.append(" AND ");
-			statement.append((String)_where_Vector.elementAt(i));
+			statement.append((String)_where_Vector.get(i));
 		}
 	} else if (tryBuildWhere) {
-		statement.append((String)_field_Vector.elementAt(0));
+		statement.append((String)_field_Vector.get(0));
 		statement.append(" = ");
-		statement.append(_values_Vector.elementAt(0));
+		statement.append(_values_Vector.get(0));
 
 		size = _field_Vector.size();
 		for (int i = 1; i < size; i++) {
 			statement.append (" AND ");
-			statement.append ((String)_field_Vector.elementAt(i));
+			statement.append ((String)_field_Vector.get(i));
 			statement.append (" = ");
-			statement.append (_values_Vector.elementAt(i));
+			statement.append (_values_Vector.get(i));
 		}
 	}
 	else {

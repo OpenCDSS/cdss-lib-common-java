@@ -164,6 +164,7 @@ import java.io.File;
 
 import java.net.URL;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -256,8 +257,7 @@ It has the the following layout:
 </pre>
 This GeoViewJPanel is meant to be used for integrated map and as a stand-alone
 tool when used by GeoViewJFrame.
-REVISIT (JTS - 2006-05-23)
-Example of usage?
+TODO (JTS - 2006-05-23) Example of usage?
 */
 public class GeoViewJPanel 
 extends JPanel
@@ -336,7 +336,7 @@ public final String SET_ATTRIBUTE_KEY = "Set Attribute Key...";
 
 private String __gvpFile = "";
 
-private Vector __enabledAppLayerTypes = new Vector (5);
+private List __enabledAppLayerTypes = new Vector (5);
 
 private PropList __displayProps = null;
 
@@ -792,7 +792,7 @@ public GeoLayerView addSummaryLayerView (DataTable attribute_table,
 					String layer_name,
 					int identifier_field,
 					int first_data_field,
-					Vector avail_app_layer_types,
+					List avail_app_layer_types,
 					boolean equalize_max ) 
 throws Exception {
 	return addSummaryLayerView(attribute_table, layer_name, 
@@ -847,7 +847,7 @@ public GeoLayerView addSummaryLayerView (DataTable attribute_table,
 					String layer_name,
 					int identifier_field,
 					int first_data_field,
-					Vector avail_app_layer_types,
+					List avail_app_layer_types,
 					boolean equalize_max,
 					int[] animationFields,
 					double[] animationMaxValues)
@@ -917,7 +917,7 @@ public GeoLayerView addSummaryLayerView (DataTable attribute_table,
 					String layer_name,
 					int[] identifier_fields,
 					int[] data_fields,
-					Vector avail_app_layer_types,
+					List avail_app_layer_types,
 					boolean equalize_max,
 					int[] animationFields,
 					double[] animationMaxValues)
@@ -1000,17 +1000,15 @@ If the symbol type is a teacup, this array should have only one value in in,
 the maximum capacity of all the teacups being animated together.  
 @return the summary layer view added
 @throws Exception if there is an error processing the summary layer data.
-@throws Exception if the specified symbol type is not one of the supported 
-types.
-@throws Exception if for teacup symbols the data fields and animation fields
-do not contain 3 values.
+@throws Exception if the specified symbol type is not one of the supported types.
+@throws Exception if for teacup symbols the data fields and animation fields do not contain 3 values.
 */
 public GeoLayerView addSummaryLayerView (DataTable attributeTable,
 					int symbolType,
 					String layerName,
 					int[] identifierFields,
 					int[] dataFields,
-					Vector availAppLayerTypes,
+					List availAppLayerTypes,
 					boolean equalizeMax,
 					int[] animationFields,
 					double[] animationMaxValues,
@@ -1024,7 +1022,7 @@ throws Exception {
 		numAppLayerTypes = availAppLayerTypes.size();
 	}
 	
-	Vector layerViews = getGeoView().getLayerViews();			
+	List layerViews = getGeoView().getLayerViews();			
 	int numLayerViews = layerViews.size();
 
 	if (numAppLayerTypes == 0) {
@@ -1032,7 +1030,7 @@ throws Exception {
 		numAppLayerTypes = numLayerViews;
 	}
 
-	Vector dataFieldsVector = new Vector();
+	List dataFieldsVector = new Vector();
 
 	if (symbolType == GRSymbol.SYM_TEACUP) {
 		if (dataFields.length != 3) {
@@ -1043,8 +1041,7 @@ throws Exception {
 	}
 
 	for (int i = 0; i < dataFields.length; i++) {
-		dataFieldsVector.addElement(attributeTable.getFieldName(
-			dataFields[i]));
+		dataFieldsVector.add(attributeTable.getFieldName(dataFields[i]));
 	}
 
 	// Convert the field names to numbers (names may be duplicated so use
@@ -1057,7 +1054,7 @@ throws Exception {
 
 	GeoLayer summaryLayer = new GeoLayer(new PropList("SummaryLayer"));
 	summaryLayer.setShapeType(GeoLayer.POINT);
-	Vector summaryShapes = summaryLayer.getShapes();
+	List summaryShapes = summaryLayer.getShapes();
 	summaryLayer.setAttributeTable(attributeTable);
 	summaryLayer.setAppLayerType("Summary");
 	GRLegend summaryLegend = null;
@@ -1120,8 +1117,7 @@ throws Exception {
 		summaryLegend = new GRLegend(1);
 		summaryLegend.setText(layerName);
 		symbol = new GRScaledTeacupSymbol(dataFields);
-		symbol.setClassificationField(
-			(String)dataFieldsVector.elementAt(2));
+		symbol.setClassificationField((String)dataFieldsVector.get(2));
 		symbol.setColor(GRColor.blue);
 		symbol.setColor2(GRColor.red);
 		String tsize = props.getValue("TeacupSize");
@@ -1157,8 +1153,7 @@ throws Exception {
 		for (int i = 0; i < length; i++) {
 			symbol = new GRScaledClassificationSymbol();
 			symbol.setStyle(GRSymbol.SYM_VBARSIGNED);
-			symbol.setClassificationField(
-				(String)dataFieldsVector.elementAt(i));
+			symbol.setClassificationField((String)dataFieldsVector.get(i));
 			symbol.setSizeX(4.0);
 			symbol.setSizeY(40.0);
 			if (posColors != null) {
@@ -1182,8 +1177,7 @@ throws Exception {
 		for (int i = 0; i < length; i++) {
 			symbol = new GRScaledClassificationSymbol();
 			symbol.setStyle(GRSymbol.SYM_VBARUNSIGNED);
-			symbol.setClassificationField(
-				(String)dataFieldsVector.elementAt(i));
+			symbol.setClassificationField((String)dataFieldsVector.get(i));
 			symbol.setSizeX(4.0);
 			symbol.setSizeY(40.0);
 			if (posColors != null) {
@@ -1254,8 +1248,8 @@ throws Exception {
 				// that is being searched.	
 	String appLayerType;	// Layer type in a layer that is being searched
 	String temp = null;
-	Vector joinFieldsVector = null;
-	Vector shapes = null;	// Shapes in a layer that is being searched
+	List joinFieldsVector = null;
+	List shapes = null;	// Shapes in a layer that is being searched
 
 	for (int i = 0; i < size; i++) { // Loop on list of feature IDs to match
 		found = false;
@@ -1270,8 +1264,7 @@ throws Exception {
 		// requested AppLayerTypes...
 		for (j = 0; j < numLayerViews; j++) {
 			skipLayer = true;
-			layerView = (GeoLayerView)
-				layerViews.elementAt(j);
+			layerView = (GeoLayerView)layerViews.get(j);
 			layer = layerView.getLayer();
 			appLayerType = layer.getAppLayerType();
 			if ((availAppLayerTypes == null) 
@@ -1282,9 +1275,7 @@ throws Exception {
 			else {	
 				// Figure out if layer should be searched...
 				for (k = 0; k < numAppLayerTypes; k++) {
-					if (appLayerType.equalsIgnoreCase(
-						(String)availAppLayerTypes
-							.elementAt(k))) {
+					if (appLayerType.equalsIgnoreCase((String)availAppLayerTypes.get(k))) {
 						skipLayer = false;
 					}
 				}
@@ -1322,11 +1313,7 @@ throws Exception {
 
 				layerJoinFields = new int[joinSize];
 				for (ic = 0; ic < joinSize; ic++) {
-					layerJoinFields[ic] = 	
-						layerAttributeTable
-						.getFieldIndex(
-						(String)joinFieldsVector
-						.elementAt(ic));
+					layerJoinFields[ic] = layerAttributeTable.getFieldIndex((String)joinFieldsVector.get(ic));
 				}
 			}
 			catch (Exception e) {
@@ -1338,9 +1325,8 @@ throws Exception {
 				continue;
 			}
 			for (is = 0; is < numShapes; is++) {
-				shape = (GRShape)shapes.elementAt(is);
-				// Get the identifier attribute from the
-				// layer...
+				shape = (GRShape)shapes.get(is);
+				// Get the identifier attribute from the layer...
 				layerIDs = new String[identifierFields.length];
 				for (ic = 0; ic < identifierFields.length;
 					ic++) {
@@ -1437,7 +1423,7 @@ layerIDs[ic] = StringUtil.formatString(
 			missingCount++;
 		}
 		shape.index = i;
-		summaryShapes.addElement(shape);
+		summaryShapes.add(shape);
 	}
 
 	// Figure out the limits of the data to be used with each symbol.  This
@@ -1569,13 +1555,13 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 		avail_app_layer_types.addElement ( "Streamflow" );
 		avail_app_layer_types.addElement ( "Well" );
 		*/
-		Vector avail_app_layer_types = new Vector();
-		avail_app_layer_types.addElement ( "BaseLayer" );
+		List avail_app_layer_types = new Vector();
+		avail_app_layer_types.add ( "BaseLayer" );
 
-		Vector tableFields = DataTable.parseDelimitedFileHeader (
+		List tableFields = DataTable.parseDelimitedFileHeader (
 			filename, delimiter);
 
-		Vector appLayers = getLayerViews(null);
+		List appLayers = getLayerViews(null);
 		GeoViewSummaryFileJDialog d = new GeoViewSummaryFileJDialog(
 			__parentJFrame, filename, tableFields, delimiter,
 			appLayers);
@@ -1588,7 +1574,7 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 	
 		int[] dataFields = d.getDataFields();
 
-		Vector v = d.getAppLayerTypes();
+		List v = d.getAppLayerTypes();
 
 		boolean equalizeMax = d.getEqualizeMax();
 
@@ -1598,7 +1584,7 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 		String s = null;
 		Vector appLayerTypes = new Vector();
 		for (int i = 0; i < v.size(); i++) {
-			s = (String)v.elementAt(i);
+			s = (String)v.get(i);
 			index = s.indexOf(" - ");
 			s = s.substring(0, index).trim();
 			appLayerTypes.add(s);
@@ -1607,8 +1593,7 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 		// Default field type is string so set data fields to double...
 
 		for (int i = 0; i < dataFields.length; i++) {
-			((TableField)tableFields.elementAt(dataFields[i])).
-				setDataType(TableField.DATA_TYPE_DOUBLE);
+			((TableField)tableFields.get(dataFields[i])).setDataType(TableField.DATA_TYPE_DOUBLE);
 		}
 
 		// Now read the file and properly handle the field types...
@@ -1728,13 +1713,11 @@ AppLayerTypes of "Streamflow" may be specified.  The layer types
 are associated with the GeoLayer for the view.  All GeoLayerViews are checked
 and views that show layers that are not in the enabled set are turned off.
 Currently, layers and layer views are a one to one relationship.
-@param enabled_types Vector of strings containing application layer types that
-should be enabled.
-@param disabled_types Vector of strings containing application layer types that
-should be disabled.
+@param enabled_types Vector of strings containing application layer types that should be enabled.
+@param disabled_types Vector of strings containing application layer types that should be disabled.
 Currently only false is supported.
 */
-public void disableAppLayerTypes ( Vector enabled_types, Vector disabled_types )
+public void disableAppLayerTypes ( List enabled_types, List disabled_types )
 {	int tsize = 0;
 	if ( disabled_types != null ) {
 		tsize = disabled_types.size();
@@ -1744,13 +1727,13 @@ public void disableAppLayerTypes ( Vector enabled_types, Vector disabled_types )
 		return;
 	}
 	int size = __mainGeoView.getNumLayerViews();
-	Vector layer_views = __mainGeoView.getLayerViews();
+	List layer_views = __mainGeoView.getLayerViews();
 	GeoLayerView layer_view = null;
 	GeoLayer layer = null;
 	String layer_type = null;
 	boolean did_something = false;
 	for ( int i = 0; i < size; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		if ( layer_view == null ) {
 			continue;
 		}
@@ -1764,24 +1747,18 @@ public void disableAppLayerTypes ( Vector enabled_types, Vector disabled_types )
 		Message.printStatus ( 1, "", "App layer type for " +
 		layer.getFileName() + " is \"" + layer_type + "\"" );
 		for ( int j = 0; j < tsize; j++ ) {
-			Message.printStatus ( 1, "",
-			"Checking disabled type \"" +
-			(String)disabled_types.elementAt(j) + "\"" );
-			if (layer_type.equalsIgnoreCase(
-				(String)disabled_types.elementAt(j)) ) {
+			Message.printStatus ( 1, "", "Checking disabled type \"" + (String)disabled_types.get(j) + "\"" );
+			if (layer_type.equalsIgnoreCase((String)disabled_types.get(j)) ) {
 				layer_view.isVisible ( false );
 				did_something = true;
 				break;
 			}
 		}
 		if ( layer_view.isVisible() ) {
-			Message.printStatus ( 1, "",
-			"Layer view for \"" + layer.getFileName() +
-			"\" is visible.");
+			Message.printStatus ( 1, "", "Layer view for \"" + layer.getFileName() + "\" is visible.");
 		}
-		else {	Message.printStatus ( 1, "",
-			"Layer view for \"" + layer.getFileName() +
-			"\" is not visible.");
+		else {
+			Message.printStatus ( 1, "", "Layer view for \"" + layer.getFileName() + "\" is not visible.");
 		}
 	}
 	layer_views = null;
@@ -1816,7 +1793,7 @@ actually be reflected in the graphical interface.
 existing enabled list.  If false, only the listed types are enabled.
 Currently only false is supported.
 */
-public void enableAppLayerTypes ( Vector enabled_types, boolean append_types )
+public void enableAppLayerTypes ( List enabled_types, boolean append_types )
 {	int tsize = 0;
 	if ( enabled_types != null ) {
 		tsize = enabled_types.size();
@@ -1837,11 +1814,11 @@ public void enableAppLayerTypes ( Vector enabled_types, boolean append_types )
 	// For now always do this...
 	__enabledAppLayerTypes = enabled_types;
 	boolean did_something = false;
-	Vector layerNodes = __legendJTree.getAllLayerNodes();
+	List layerNodes = __legendJTree.getAllLayerNodes();
 	size = layerNodes.size();
 	GeoViewLegendJTree_Node node = null;	
 	for ( int i = 0; i < size; i++ ) {
-		node = (GeoViewLegendJTree_Node)layerNodes.elementAt(i);
+		node = (GeoViewLegendJTree_Node)layerNodes.get(i);
 		layer_view = node.getLayerView();
 		if (layer_view == null) {
 			continue;
@@ -1872,10 +1849,10 @@ public void enableAppLayerTypes ( Vector enabled_types, boolean append_types )
 		for ( int j = 0; j < tsize; j++ ) {
 			Message.printStatus ( 1, "",
 			"Checking enabled type \"" +
-			(String)enabled_types.elementAt(j) + "\"" );
+			(String)enabled_types.get(j) + "\"" );
 			if (layer_type.equals("") ||
 				layer_type.equalsIgnoreCase(
-				(String)enabled_types.elementAt(j)) ) {
+				(String)enabled_types.get(j)) ) {
 				layer_view.isVisible ( true );
 				node.setVisible(true);
 				did_something = true;
@@ -1953,36 +1930,33 @@ public String geoViewGetLabel ( GeoRecord record )
 }
 
 /**
-Handle GeoView info event.  This will show the information for the selected
-features.
+Handle GeoView info event.  This will show the information for the selected features.
 @param devpt Device coordinates of selection.
 @param datapt Data limits of selection.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRShape devpt, GRShape datapt, Vector selected) {
+public void geoViewInfo(GRShape devpt, GRShape datapt, List selected) {
 	showFeatureInformation ( selected );
 }
 
 /**
-Handle GeoView info event.  This will show the information for the selected
-features.
+Handle GeoView info event.  This will show the information for the selected features.
 @param devlim Device limits (these are actual device limits in native
 device coordinates - Y0 will be at top of window).
 @param datalim Data limits.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRLimits devlim, GRLimits datalim, Vector selected) {
+public void geoViewInfo(GRLimits devlim, GRLimits datalim, List selected) {
 	showFeatureInformation ( selected );
 }
 
 /**
-Handle GeoView info event.  This will show the information for the selected
-features.
+Handle GeoView info event.  This will show the information for the selected features.
 @param devpt Device coordinates of selection.
 @param datapt Data limits of selection.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRPoint devpt, GRPoint datapt, Vector selected) {
+public void geoViewInfo(GRPoint devpt, GRPoint datapt, List selected) {
 	showFeatureInformation ( selected );
 }
 
@@ -2025,8 +1999,7 @@ Handle GeoView select event.  Do nothing.
 @param datapt Data coordinates.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRShape devpt, GRShape datapt, Vector selected,
-boolean append) {}
+public void geoViewSelect(GRShape devpt, GRShape datapt, List selected, boolean append) {}
 
 /**
 Handle GeoView select event; does nothing.
@@ -2035,8 +2008,7 @@ device coordinates - Y0 will be at top of window).
 @param datalim Data limits.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRLimits devlim, GRLimits datalim, Vector selected, 
-boolean append) {}
+public void geoViewSelect(GRLimits devlim, GRLimits datalim, List selected, boolean append) {}
 
 /**
 Handle select event; does nothing.
@@ -2045,8 +2017,7 @@ Handle GeoView select event.  Do nothing.
 @param datapt Data coordinates.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRPoint devpt, GRPoint datapt, Vector selected,
-boolean append) {}
+public void geoViewSelect(GRPoint devpt, GRPoint datapt, List selected, boolean append) {}
 
 /**
 Handle GeoView zoom event; does nothing.
@@ -2073,13 +2044,11 @@ public GeoViewJComponent getGeoView ()
 }
 
 /**
-Returns a Vector of the app layer types of the app layers that are currently
-enabled.
-@return a Vector of the app layer types of the app layers that are currently
-enabled.
+Returns a Vector of the app layer types of the app layers that are currently enabled.
+@return a Vector of the app layer types of the app layers that are currently enabled.
 */
-public Vector getEnabledAppLayerTypes() {
-	Vector layerViews = getGeoView().getLayerViews();			
+public List getEnabledAppLayerTypes() {
+	List layerViews = getGeoView().getLayerViews();			
 	GeoLayerView glv = null;
 	GeoLayer gl = null;
 	
@@ -2089,10 +2058,10 @@ public Vector getEnabledAppLayerTypes() {
 	
 	int size = layerViews.size();
 
-	Vector v = new Vector();
+	List v = new Vector();
 
 	for (int i = 0; i < size; i++) {
-		glv = (GeoLayerView)layerViews.elementAt(i);
+		glv = (GeoLayerView)layerViews.get(i);
 		if (glv.isVisible()) {
 			gl = glv.getLayer();
 			v.add(gl.getAppLayerType());
@@ -2121,33 +2090,31 @@ for the GeoViewPanel.
 @return a Vector of GeoLayerView that is being managed in the main canvas
 for the GeoViewPanel, or null if no layer views match the requested criteria.
 @param app_layer_types A Vector of application layer types.  If null, all
-layer views are returned.  Otherwise, only layer views matching the requested
-type are returned.
+layer views are returned.  Otherwise, only layer views matching the requested type are returned.
 */
-public Vector getLayerViews ( Vector app_layer_types )
-{	Vector layer_views = __mainGeoView.getLayerViews();
+public List getLayerViews ( List app_layer_types )
+{	List layer_views = __mainGeoView.getLayerViews();
 	if ( app_layer_types == null ) {
 		return layer_views;
 	}
 	GeoLayerView layer_view = null;
 	String app_layer_type = null;
 	int numlayerviews = layer_views.size();
-	Vector matching_layer_views = null;
+	List matching_layer_views = null;
 	int n_app_layer_types = app_layer_types.size(), j;
 	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
-		app_layer_type= layer_view.getPropList().getValue (
-			"AppLayerType");
+		layer_view = (GeoLayerView)layer_views.get(i);
+		app_layer_type= layer_view.getPropList().getValue ( "AppLayerType");
 		if ( app_layer_type == null ) {
 			continue;
 		}
 		for ( j = 0; j < n_app_layer_types; j++ ) {
 			if (app_layer_type.equalsIgnoreCase(
-				(String)app_layer_types.elementAt(j)) ) {
+				(String)app_layer_types.get(j)) ) {
 				if ( matching_layer_views == null ) {
 					matching_layer_views = new Vector();
 				}
-				matching_layer_views.addElement ( layer_view );
+				matching_layer_views.add ( layer_view );
 			}
 		}
 	}
@@ -2181,14 +2148,12 @@ public JFrame getParentJFrame() {
 
 /**
 Determine whether any of the AppLayerType String match visible layers.
-This can be used, for example, to turn on map features when supporting data are
-available.
+This can be used, for example, to turn on map features when supporting data are available.
 @param app_layer_types Vector of AppLayerType String to check.
-@return true if any of the specified AppLayerType match the AppLayerType for
-visible layer views.
+@return true if any of the specified AppLayerType match the AppLayerType for visible layer views.
 */
-public boolean hasAppLayerType ( Vector app_layer_types )
-{	Vector layer_views = __mainGeoView.getLayerViews();
+public boolean hasAppLayerType ( List app_layer_types )
+{	List layer_views = __mainGeoView.getLayerViews();
 	GeoLayerView layer_view = null;
 	int size = 0;
 	if ( app_layer_types != null ) {
@@ -2200,16 +2165,15 @@ public boolean hasAppLayerType ( Vector app_layer_types )
 	}
 	String prop_value = null;
 	for ( int i = 0; i < isize; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		if ( layer_view.isVisible() ) {
-			prop_value =
-			layer_view.getPropList().getValue("AppLayerType");
+			prop_value = layer_view.getPropList().getValue("AppLayerType");
 			if ( prop_value == null ) {
 				continue;
 			}
 			for ( int j = 0; j < size; j++ ) {
 				if (prop_value.equalsIgnoreCase(
-					(String)app_layer_types.elementAt(j)) ){
+					(String)app_layer_types.get(j)) ){
 					layer_view = null;
 					layer_views = null;
 					prop_value = null;
@@ -2491,14 +2455,14 @@ public void removeAllLayerViews ()
 Remove layer views that match an App Layer Type.
 @param app_layer_types Vector of app layer types to remove.
 */
-public void removeAppLayerViews ( Vector app_layer_types )
+public void removeAppLayerViews ( List app_layer_types )
 {	// First get a Vector of matching layer views...
 	int size = 0;
-	Vector app_layer_views = new Vector();
+	List app_layer_views = new Vector();
 	if ( app_layer_types != null ) {
 		size = app_layer_types.size();
 	}
-	Vector layer_views = __mainGeoView.getLayerViews();
+	List layer_views = __mainGeoView.getLayerViews();
 	int vsize = 0;
 	if ( layer_views != null ) {
 		vsize = layer_views.size();
@@ -2508,13 +2472,12 @@ public void removeAppLayerViews ( Vector app_layer_types )
 	// Find layer views that have app layer types that match the
 	// requested type.
 	for ( int i = 0; i < size; i++ ) {
-		app_layer_type = (String)app_layer_types.elementAt(i);
+		app_layer_type = (String)app_layer_types.get(i);
 		for ( int j = 0; j < vsize; j++ ) {
-			layer_view = (GeoLayerView)
-					layer_views.elementAt(j);
+			layer_view = (GeoLayerView)layer_views.get(j);
 			if (app_layer_type.equalsIgnoreCase(
 				layer_view.getLayer().getAppLayerType()) ) {
-				app_layer_views.addElement ( layer_view );
+				app_layer_views.add ( layer_view );
 			}
 		}
 	}
@@ -2523,14 +2486,11 @@ public void removeAppLayerViews ( Vector app_layer_types )
 	for ( int i = 0; i < size; i++ ) {
 		if ( i == (size - 1) ) {
 			// Remove and redraw the view...
-			removeLayerView (
-			(GeoLayerView)app_layer_views.elementAt(i),
-			true );
+			removeLayerView ( (GeoLayerView)app_layer_views.get(i), true );
 		}
-		else {	// Remove but do not redraw the view...
-			removeLayerView (
-			(GeoLayerView)app_layer_views.elementAt(i),
-			false );
+		else {
+			// Remove but do not redraw the view...
+			removeLayerView ( (GeoLayerView)app_layer_views.get(i), false );
 		}
 	}
 	app_layer_views = null;
@@ -2547,19 +2507,17 @@ project).
 @param layer_view_to_remove GeoLayerView to remove.
 @param redraw Indicates whether the map display should be redrawn.  For
 performance reasons this should be specified as false if multiple layer views
-are being removed - then redraw after all have been removed (or specify true
-for the last remove).
+are being removed - then redraw after all have been removed (or specify true for the last remove).
 */
-public void removeLayerView (	GeoLayerView layer_view_to_remove,
-				boolean redraw )
-{	Vector layer_views = __mainGeoView.getLayerViews();
+public void removeLayerView ( GeoLayerView layer_view_to_remove, boolean redraw )
+{	List layer_views = __mainGeoView.getLayerViews();
 	int size = 0;
 	if ( layer_views != null ) {
 		size = layer_views.size();
 	}
 	GeoLayerView layer_view;
 	for ( int i = 0; i < size; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		// Check reference value...
 		if ( layer_view == layer_view_to_remove ) {
 			// Remove from the legend first...
@@ -2598,7 +2556,7 @@ private void saveAs () {
 	JGUIUtil.setLastFileDialogDirectory(file.getParent());
 	try {	// Write the first selected layer or if nothing is
 		// selected the first layer...
-		Vector layer_views = __mainGeoView.getLayerViews();
+		List layer_views = __mainGeoView.getLayerViews();
 		int pos = -1;
 		GeoLayerView layer_view = null;
 		GeoLayer layer = null;
@@ -2607,8 +2565,7 @@ private void saveAs () {
 			isize = layer_views.size();
 		}
 		for ( int i = 0; i < isize; i++ ) {
-			layer_view = (GeoLayerView)
-				layer_views.elementAt(i);
+			layer_view = (GeoLayerView)layer_views.get(i);
 			if ( layer_view.isSelected() ) {
 				pos = i;
 				break;
@@ -2623,7 +2580,7 @@ private void saveAs () {
 			return;
 		}		
 		// If here write the shapefile...
-		layer_view = (GeoLayerView)layer_views.elementAt(pos);
+		layer_view = (GeoLayerView)layer_views.get(pos);
 		layer = layer_view.getLayer();
 		int shape_type = layer.getShapeType();		
 		if ( shape_type == GRShape.GRID ) {
@@ -2634,15 +2591,13 @@ private void saveAs () {
 			double max_to_draw = 0.0;
 			boolean use_data_limits = false;
 			if ( prop_value != null ) {
-				Vector v = StringUtil.breakStringList (
+				List v = StringUtil.breakStringList (
 				prop_value,",",0);
 				prop_value = null;
 				if ( (v != null) && (v.size() == 2) ) {
 					use_data_limits = true;
-					min_to_draw = StringUtil.atod(
-						(String)v.elementAt(0));
-					max_to_draw = StringUtil.atod(
-						(String)v.elementAt(1));
+					min_to_draw = StringUtil.atod((String)v.get(0));
+					max_to_draw = StringUtil.atod((String)v.get(1));
 					use_data_limits = true;
 				}
 				v = null;
@@ -2689,16 +2644,13 @@ separated by commas.
 selected shapes.
 @param zoom_buffer The percent (1.0 is 100%) to expand the visible area in
 both directions for the selected shapes.  For example, specifying a value of
-1.0 would result in a viewable area that is 50% bigger than selecte shapes on
-each edge.
+1.0 would result in a viewable area that is 50% bigger than selecte shapes on each edge.
 @param zoom_buffer2 If the selected shapes result in a region that is a single
 point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
-@return Vector of GeoRecord for the selected features, or null if nothing is
-selected.
+@return Vector of GeoRecord for the selected features, or null if nothing is selected.
 */
-public Vector selectAppFeatures (	Vector app_layer_types, 
-					Vector feature_ids,
+public List selectAppFeatures ( List app_layer_types, List feature_ids,
 					boolean zoom_to_selected,
 					double zoom_buffer, double zoom_buffer2)
 {	return selectAppFeatures (	app_layer_types, feature_ids,
@@ -2727,18 +2679,13 @@ point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
-@return Vector of GeoRecord for the selected features, or null if nothing is
-selected.
+@return Vector of GeoRecord for the selected features, or null if nothing is selected.
 */
-public Vector selectAppFeatures (	Vector app_layer_types,
-					Vector feature_ids,
-					boolean zoom_to_selected,
-					double zoom_buffer, double zoom_buffer2,
-					boolean append )
+public List selectAppFeatures (	List app_layer_types, List feature_ids, boolean zoom_to_selected,
+					double zoom_buffer, double zoom_buffer2, boolean append )
 {	String routine = "GeoViewPanel.selectAppFeatures";
 
-	// First loop through all non-baseline layers and set shapes to not
-	// selected.
+	// First loop through all non-baseline layers and set shapes to not selected.
 
 	if ( feature_ids == null ) {
 		return null;
@@ -2754,24 +2701,22 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 	// Break the features_ids into a 2-D array of strings for examination
 	// below.  It is assumed that the first feature_id has the correct
 	// number of fields...
-	Vector georecords = null;
-	Vector v = StringUtil.breakStringList (
-		(String)feature_ids.elementAt(0), ",", 0 );
+	List georecords = null;
+	List v = StringUtil.breakStringList ( (String)feature_ids.get(0), ",", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
 	int nfeature_parts = v.size();
 	String[][] feature_array = new String[nfeature][nfeature_parts];
 	for ( int i = 0; i < nfeature; i++ ) {
-		v = StringUtil.breakStringList (
-			(String)feature_ids.elementAt(i), ",", 0 );
+		v = StringUtil.breakStringList ( (String)feature_ids.get(i), ",", 0 );
 		for ( int j = 0; j < nfeature_parts; j++ ) {
-			feature_array[i][j] = (String)v.elementAt(j);
+			feature_array[i][j] = (String)v.get(j);
 		}
 	}
 	v = null;
 	
-	Vector layer_views = __mainGeoView.getLayerViews();
+	List layer_views = __mainGeoView.getLayerViews();
 	int numlayerviews = 0;
 	if ( layer_views != null ) {
 		numlayerviews = layer_views.size();
@@ -2780,7 +2725,7 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 	GeoLayer layer = null;
 	String prop_value = null;
 	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		//prop_value = layer_view.getPropList().getValue (
 		//			"AppLayerType");
 		//if ( prop_value.equalsIgnoreCase("BaseLayer") ) {
@@ -2793,13 +2738,13 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 	// Now loop through all non-baseline layers and search for the
 	// features...
 
-	Vector lv_records = null;	// Records selected in a layer view.
+	List lv_records = null;	// Records selected in a layer view.
 	String join_field;		// Fields to join the application data
 					// to the spatial data
-	Vector join_fields_Vector;	// join_field parsed with ","
+	List join_fields_Vector;	// join_field parsed with ","
 
 	for ( int i = 0; i < numlayerviews; i++ ) {	
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		layer = (GeoLayer)layer_view.getLayer();
 
 		// See if the app layer type matches the types that should be
@@ -2809,7 +2754,7 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 			for ( int j = 0; j < napp_layer_types; j++ ) {
 				if (layer.getAppLayerType(
 					).equalsIgnoreCase(
-					(String)app_layer_types.elementAt(j)) ){
+					(String)app_layer_types.get(j)) ){
 					layer_type_matches = true;
 					break;
 				}
@@ -2857,8 +2802,7 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 			else {	// Transfer...
 				int lv_size = lv_records.size();
 				for ( int ilv = 0; ilv < lv_size; ilv++ ) {
-					georecords.addElement (
-					lv_records.elementAt(ilv) );
+					georecords.add ( lv_records.get(ilv) );
 				}
 			}
 		}
@@ -2884,8 +2828,7 @@ public Vector selectAppFeatures (	Vector app_layer_types,
 				// Have to check for zero because some shapes
 				// don't have coordinates...  For now check
 				// only the max...
-				georecord = (GeoRecord)
-					georecords.elementAt(i);
+				georecord = (GeoRecord)georecords.get(i);
 				shape = georecord.getShape();
 				if ( zoom_to_selected && (shape.xmin != 0.0) ) {
 					if ( datalimits == null) {
@@ -3008,12 +2951,11 @@ point.
 @return Vector of GeoRecord for the selected features, or null if nothing is
 selected.  At a minimum, the size of this Vector can be used by calling code
 to determine wether the count of input items is less than the number matched.
-@exception Exception if there is an error selecting features (e.g., properties
-are not valid).
+@exception Exception if there is an error selecting features (e.g., properties are not valid).
 */
-public Vector selectLayerFeatures (	Vector layer_list,
-					Vector attribute_list,
-					Vector feature_ids,
+public List selectLayerFeatures (	List layer_list,
+					List attribute_list,
+					List feature_ids,
 					PropList props )
 throws Exception
 {	String routine = "GeoViewPanel.selectLayerFeatures";
@@ -3072,24 +3014,22 @@ throws Exception
 	// Break the features_ids into a 2-D array of strings for examination
 	// below.  It is assumed that the first feature_id has the correct
 	// number of fields...
-	Vector georecords = null;
-	Vector v = StringUtil.breakStringList (
-		(String)feature_ids.elementAt(0), ",", 0 );
+	List georecords = null;
+	List v = StringUtil.breakStringList ( (String)feature_ids.get(0), ",", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
 	int nfeature_parts = v.size();
 	String[][] feature_array = new String[nfeature][nfeature_parts];
 	for ( int i = 0; i < nfeature; i++ ) {
-		v = StringUtil.breakStringList (
-			(String)feature_ids.elementAt(i), ",", 0 );
+		v = StringUtil.breakStringList ( (String)feature_ids.get(i), ",", 0 );
 		for ( int j = 0; j < nfeature_parts; j++ ) {
-			feature_array[i][j] = (String)v.elementAt(j);
+			feature_array[i][j] = (String)v.get(j);
 		}
 	}
 	v = null;
 	
-	Vector layer_views = __mainGeoView.getLayerViews();
+	List layer_views = __mainGeoView.getLayerViews();
 	int numlayerviews = 0;
 	if ( layer_views != null ) {
 		numlayerviews = layer_views.size();
@@ -3097,7 +3037,7 @@ throws Exception
 	GeoLayerView layer_view = null;
 	GeoLayer layer = null;
 	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		//prop_value = layer_view.getPropList().getValue (
 		//			"AppLayerType");
 		//if ( prop_value.equalsIgnoreCase("BaseLayer") ) {
@@ -3109,7 +3049,7 @@ throws Exception
 
 	// Now loop through specified layers and search for the features...
 
-	Vector lv_records = null;	// Records selected in a layer view.
+	List lv_records = null;	// Records selected in a layer view.
 	String join_field;		// Fields to join the application data
 					// to the spatial data
 
@@ -3122,12 +3062,12 @@ throws Exception
 					// lookup layers requested for the
 					// search.
 	for ( int i = 0; i < numlayerviews; i++ ) {	
-		layer_view = (GeoLayerView)layer_views.elementAt(i);
+		layer_view = (GeoLayerView)layer_views.get(i);
 		layer = (GeoLayer)layer_view.getLayer();
 
 		layer_match = false;
 		for ( int j = 0; j < layer_list_size; j++ ) {
-			o = layer_list.elementAt(j);
+			o = layer_list.get(j);
 			if ( o instanceof String ) {
 				// Check the layer name...
 				layer_name = (String)o;
@@ -3210,7 +3150,7 @@ throws Exception
 			continue;
 		}
 		*/
-		join_field = (String)attribute_list.elementAt(layer_match_j);
+		join_field = (String)attribute_list.get(layer_match_j);
 		Message.printStatus ( 2, routine,
 		"Selecting from " + layer_view.getName() +
 		" using join field " + join_field );
@@ -3226,8 +3166,7 @@ throws Exception
 			else {	// Transfer...
 				int lv_size = lv_records.size();
 				for ( int ilv = 0; ilv < lv_size; ilv++ ) {
-					georecords.addElement (
-					lv_records.elementAt(ilv) );
+					georecords.add ( lv_records.get(ilv) );
 				}
 			}
 		}
@@ -3253,8 +3192,7 @@ throws Exception
 				// Have to check for zero because some shapes
 				// don't have coordinates...  For now check
 				// only the max...
-				georecord = (GeoRecord)
-					georecords.elementAt(i);
+				georecord = (GeoRecord)georecords.get(i);
 				shape = georecord.getShape();
 				if ( zoom_to_selected && (shape.xmin != 0.0) ) {
 					if ( datalimits == null) {
@@ -3333,16 +3271,15 @@ point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
-@return A Vector of GeoRecord for the selected features, or null if nothing is
-selected.
+@return A Vector of GeoRecord for the selected features, or null if nothing is selected.
 */
-public Vector selectAppFeatures (	Vector app_layer_types, GRShape shape,
+public List selectAppFeatures (	List app_layer_types, GRShape shape,
 					boolean zoom_to_selected,
 					double zoom_buffer, double zoom_buffer2,
 					boolean append )
 {	String routine = "GeoViewPanel.selectAppFeatures";
 	// A general method is available in GeoViewCanvas...
-	Vector georecords = __mainGeoView.selectGeoRecords (
+	List georecords = __mainGeoView.selectGeoRecords (
 				shape, app_layer_types,
 				GeoViewJComponent.INTERACTION_SELECT,
 				append );
@@ -3892,8 +3829,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 			Message.printStatus ( 1, "", message);
 			size = __enabledAppLayerTypes.size();
 			for ( int i = 0; i < size; i++ ) {
-				Message.printStatus ( 1, "",
-				(String)__enabledAppLayerTypes.elementAt(i) );
+				Message.printStatus ( 1, "", (String)__enabledAppLayerTypes.get(i) );
 			}
 		}
 	}
@@ -3904,7 +3840,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 Show the information for selected features.
 @param selected Vector of selected GeoRecord.
 */
-private void showFeatureInformation ( Vector selected )
+private void showFeatureInformation ( List selected )
 {	GeoRecord record = null;
 	GRShape shape = null;
 	
@@ -3922,15 +3858,15 @@ private void showFeatureInformation ( Vector selected )
 
 	DataTable table = null;
 	int j = 0;
-	Vector strings = new Vector();
+	List strings = new Vector();
 	int nfields = 0;
 	String string = null;
 	String name = null;		// Name of layer.
 	Object o = null;
-	strings.addElement ( "" );
-	strings.addElement ( "Selected " + size + " features." );
+	strings.add ( "" );
+	strings.add ( "Selected " + size + " features." );
 	for ( int i = 0; i < size; i++ ) {
-		record = (GeoRecord)selected.elementAt(i);
+		record = (GeoRecord)selected.get(i);
 		if ( record == null ) {
 			break;
 		}
@@ -3956,10 +3892,10 @@ private void showFeatureInformation ( Vector selected )
 		if ( name == null ) {
 			name = layer.getFileName();
 		}
-		strings.addElement ("");
-		strings.addElement ( "" + (i+1) + ": " + name +
+		strings.add ("");
+		strings.add ( "" + (i+1) + ": " + name +
 				", layer feature [" + shape.index + "]" );
-		strings.addElement ("");
+		strings.add ("");
 		String field_formats[] = table.getFieldFormats();
 		for ( j = 0; j < nfields; j++ ) {
 			string = "[" + j + "] " +
@@ -3972,24 +3908,24 @@ private void showFeatureInformation ( Vector selected )
 				Message.printWarning ( 2, "", e );
 				string += "";
 			}
-			strings.addElement ( string );
+			strings.add ( string );
 		}
 		if ( shape.type == GRShape.POINT ) {
-			strings.addElement ( "    X: " +
+			strings.add ( "    X: " +
 			StringUtil.formatString(((GRPoint)shape).x, "%13.6f"));
-			strings.addElement ( "    Y: " +
+			strings.add ( "    Y: " +
 			StringUtil.formatString(((GRPoint)shape).y, "%13.6f"));
 		}
-		else {	strings.addElement ( "    XMIN: " +
+		else {	strings.add ( "    XMIN: " +
 				StringUtil.formatString(
 				shape.xmin,"%13.6f"));
-			strings.addElement ( "    YMIN: " +
+			strings.add ( "    YMIN: " +
 				StringUtil.formatString(
 				shape.ymin,"%13.6f"));
-			strings.addElement ( "    XMAX: " +
+			strings.add ( "    XMAX: " +
 				StringUtil.formatString(
 				shape.xmax,"%13.6f"));
-			strings.addElement ( "    YMAX: " +
+			strings.add ( "    YMAX: " +
 				StringUtil.formatString(
 				shape.ymax,"%13.6f"));
 		}

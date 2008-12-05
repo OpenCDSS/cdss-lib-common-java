@@ -77,6 +77,7 @@
 package RTi.GRTS;
 
 import java.awt.event.WindowListener;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -200,7 +201,7 @@ private void processGraphProduct ( TSProduct tsproduct )
 throws Exception
 {	
 	String routine = "TSProcessor.processGraphProduct";
-	Vector tslist = new Vector(10);
+	List tslist = new Vector(10);
 	TS ts = null;
 	// Loop through the sub-products (graphs on page) and get the time series to
 	// support the graph.
@@ -238,7 +239,7 @@ throws Exception
 			}
 			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 				// Add a null time series...
-				tslist.addElement ( (TS)null );
+				tslist.add ( (TS)null );
 				continue;
 			}
 			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
@@ -321,7 +322,7 @@ throws Exception
 			    Message.printStatus(2, routine, "Adding time series for graph:  " + ts.getIdentifier() + " period " +
 			            ts.getDate1() + " to " + ts.getDate2() );
 			}
-			tslist.addElement ( ts );
+			tslist.add ( ts );
 		}
 	}
 
@@ -494,7 +495,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 		String fname = null;
 		String prop_value = null;
 		String report_type = null;
-		Vector tslist = new Vector();
+		List tslist = new Vector();
 
 		// get file name for subproduct
 		// if there isn't one set then set a temp file name
@@ -534,7 +535,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 			}
 			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 				// Add a null time series...
-				tslist.addElement ( (TS)null );
+				tslist.add ( (TS)null );
 				continue;
 			}
 			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
@@ -610,7 +611,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 				}
 			}
 			
-			tslist.addElement ( ts );
+			tslist.add ( ts );
 		}
 
 		// Done adding all time series for that subproduct write output for this subproduct to a file

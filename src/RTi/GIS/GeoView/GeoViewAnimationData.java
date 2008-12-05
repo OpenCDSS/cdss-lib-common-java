@@ -15,7 +15,7 @@
 
 package RTi.GIS.GeoView;
 
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
@@ -202,7 +202,7 @@ cannot be found in the layer view's attribute table.
 the size of the TS Vector passed to the constructor.
 */
 public GeoViewAnimationData(GeoViewAnimationLayerData layerData,
-Vector tsVector, String attributeFieldName, String dateFieldName, 
+List tsVector, String attributeFieldName, String dateFieldName, 
 String guiLabel, String groupName, boolean visible, int selectType,
 double animationFieldMax) 
 throws Exception {
@@ -223,7 +223,7 @@ throws Exception {
 	int size = tsVector.size();
 	__tsArray = new TS[size];
 	for (int i = 0; i < size; i++) {
-		__tsArray[i] = (TS)tsVector.elementAt(i);
+		__tsArray[i] = (TS)tsVector.get(i);
 	}
 
 	tsVector = null;

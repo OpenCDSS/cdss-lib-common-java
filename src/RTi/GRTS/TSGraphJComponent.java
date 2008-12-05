@@ -180,6 +180,7 @@ import java.awt.print.Printable;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -289,9 +290,9 @@ not available for setting font-dependent area sizes.
 private boolean _first_paint = true;
 
 /**
-Vector of time series to plot.  Not sure if this needs to be saved here.
+List of time series to plot.  Not sure if this needs to be saved here.
 */
-private Vector _tslist = null;	
+private List _tslist = null;	
 
 /**
 Background color.
@@ -397,7 +398,7 @@ private GRLimits _printBounds = null;		// Set with update.  Useful for
 
 private JFrame _parent = null;			// Parent JFrame
 
-private Vector _tsgraphs = new Vector();	// Vector of TSGraph.
+private List _tsgraphs = new Vector();	// Vector of TSGraph.
 						// Allocate so don't have to
 						// checked for null repeatedly.
 
@@ -473,7 +474,7 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent ( TSViewGraphJFrame parent, Vector tslist, PropList props )
+public TSGraphJComponent ( TSViewGraphJFrame parent, List tslist, PropList props )
 {	super ( "TSGraphJComponent" );
 	_force_redraw = true;
 	_parent = parent;
@@ -717,7 +718,7 @@ time series data are checked to determine some properties.</b>
 @param tsproduct TSProduct to check.
 @praam tsgraphs Vector of TSGraph describing the graphs.
 */
-private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
+private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 {	// Put here any checks that cannot be performed in the initial call
 	// to checkTSProduct() - primarily checks that depend on the time
 	// series (units for axis labels, etc.).
@@ -728,12 +729,12 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 	//Message.printStatus ( 1, "",
 	//_gtype + "Checking " + nsubs + " graphs after graphs were created." );
 	int graph_type = TSProduct.GRAPH_TYPE_LINE;
-	Vector tslist = null;
+	List tslist = null;
 	TSGraph tsgraph = null;
 	int nts = 0;
 	String prop_val;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
-		tsgraph = (TSGraph)tsgraphs.elementAt(isub);
+		tsgraph = (TSGraph)tsgraphs.get(isub);
 		// Get the graph type to simplify later checks...
 		prop_val = tsproduct.getLayeredPropValue (
 					"GraphType", isub, -1, false );
@@ -791,7 +792,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 				// need to do something else if more than one
 				// time series...
 				if ( nts >= 1 ) {
-					TS ts0 = (TS)tslist.elementAt(0);
+					TS ts0 = (TS)tslist.get(0);
 					tsproduct.setPropValue (
 					"LeftYAxisTitleString",
 					ts0.getDataUnits(), isub, -1 );
@@ -820,7 +821,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 					String units = "";
 					TS ts = null;
 					for ( int its = 0; its < nts; its++ ) {
-						ts = (TS)tslist.elementAt(its);
+						ts = (TS)tslist.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -843,7 +844,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 				// need to do something else if more than one
 				// time series...
 				if ( nts >= 1 ) {
-					TS ts0 = (TS)tslist.elementAt(0);
+					TS ts0 = (TS)tslist.get(0);
 					tsproduct.setPropValue (
 					"LeftYAxisUnits",
 					ts0.getDataUnits(), isub, -1 );
@@ -871,7 +872,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 					String units = "";
 					TS ts = null;
 					for ( int its = 0; its < nts; its++ ) {
-						ts = (TS)tslist.elementAt(its);
+						ts = (TS)tslist.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -935,7 +936,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 
 		if (	tsproduct.getLayeredPropValue("BottomXAxisTitleString",
 			isub, -1, false ) == null ) {
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( tsgraph == null ) {
 				continue;
 			}
@@ -948,7 +949,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, Vector tsgraphs )
 				// Bottom axis is the units of the first
 				// independent time series...
 				if ( nts >= 2 ) {
-					TS ts1 = (TS)tslist.elementAt(1);
+					TS ts1 = (TS)tslist.get(1);
 					String units = ts1.getDataUnits();
 					tsproduct.setPropValue (
 					"BottomXAxisTitleString", units, isub,
@@ -997,9 +998,9 @@ area is divided among the individual graphs.
 @return Vector of TSGraph to use when drawing.  The Vector is
 guaranteed to be non-null but may contain zero graphs.
 */
-private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
+private List createTSGraphsFromTSProduct (	TSProduct tsproduct,
 						PropList display_props,
-						Vector tsproduct_tslist,
+						List tsproduct_tslist,
 						GRLimits drawlim_graphs )
 {	String routine = "TSGraphJComponent.createTSGraphsFromTSProduct";
 	if ( Message.isDebugOn ) {
@@ -1034,7 +1035,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 		height = drawlim_graphs.getHeight();
 	}
 	GRLimits drawlim = null;
-	Vector tslist = null;
+	List tslist = null;
 	int nts = 0;
 	if ( tsproduct_tslist != null ) {
 		nts = tsproduct_tslist.size();
@@ -1045,7 +1046,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 	}
 	TS ts, tsfound;
 	String prop_val;
-	Vector tsgraphs = new Vector ( nsubs );
+	List tsgraphs = new Vector ( nsubs );
 	int reference_ts_index = -1;	// This is the value for the tslist
 					// that is used by the graph, NOT the
 					// value in the entire list.
@@ -1130,7 +1131,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			// to null so the properties line up.
 			tsfound = null;
 			for ( int kts = 0; kts < nts; kts++ ) {
-				ts = (TS)tsproduct_tslist.elementAt(kts);
+				ts = (TS)tsproduct_tslist.get(kts);
 				if ( ts == null ) {
 					continue;
 				}
@@ -1197,7 +1198,7 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
 			// the order of the time series passed in.
 			prop_val = tsproduct.getLayeredPropValue ( "TSIndex", isub, jtsid, false );
 			if ( (nsubs == 1) && (prop_val != null) && StringUtil.isInteger(prop_val) ) {
-				tsfound = (TS)tsproduct_tslist.elementAt( StringUtil.atoi(prop_val) );
+				tsfound = (TS)tsproduct_tslist.get( StringUtil.atoi(prop_val) );
 			}
 			// Now add the time series or null reference...
             if ( tsfound == null ) {
@@ -1211,11 +1212,11 @@ private Vector createTSGraphsFromTSProduct (	TSProduct tsproduct,
                             "\" alias=\"" + tsfound.getAlias() + "\" for graph." );
                 }
             }
-			tslist.addElement ( tsfound );
+			tslist.add ( tsfound );
 		}
 		// Supply the short time series list for the graph and add the graph to the main Vector to be managed.
 		tsgraph = new TSGraph ( this, drawlim, tsproduct, display_props, isub, tslist, reference_ts_index );
-		tsgraphs.addElement ( tsgraph );
+		tsgraphs.add ( tsgraph );
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
 		}
@@ -1243,7 +1244,7 @@ an empty TSProduct is created.  The checkTSProduct() method assigns appropriate
 default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
-private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist )
+private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 {	//String routine = "TSGraphJComponent.createTSProductFromPropList";
 
     try {
@@ -1297,7 +1298,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 
 	// Transfer "Product." properties...
 
-	Vector v = proplist.getPropsMatchingRegExp ( "Product.*" );
+	List v = proplist.getPropsMatchingRegExp ( "Product.*" );
 	int size = 0;
 	if ( v != null ) {
 		size = v.size();
@@ -1305,7 +1306,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 	Prop prop = null;
 	PropList tsproduct_props = tsproduct.getPropList();
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.elementAt(i);
+		prop = (Prop)v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
@@ -1382,7 +1383,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 		size = v.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.elementAt(i);
+		prop = (Prop)v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
@@ -1395,7 +1396,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 	TS ts;
 	int how_set_prev2 = tsproduct.getPropList().getHowSet();
 	for ( int i = 0; i < nts; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			tsproduct.setPropValue ( "TSID", "", 0, i );
 		}
@@ -1425,7 +1426,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, Vector tslist
 		size = v.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.elementAt(i);
+		prop = (Prop)v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
@@ -1514,22 +1515,22 @@ each element of which is:<br>
 <br>
 2 - data limits for the graphs<br>
 */
-private Vector determineDataLimits() {
+private List determineDataLimits() {
 	TS tempTS = null;
-	Vector limitsData = new Vector();
-	Vector ids = null;
-	Vector ts = null;
-	Vector v = null;
+	List limitsData = new Vector();
+	List ids = null;
+	List ts = null;
+	List v = null;
 
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		ts = ((TSGraph)(_tsgraphs.elementAt(i))).getTSList();
+		ts = ((TSGraph)(_tsgraphs.get(i))).getTSList();
 
 		v = new Vector();
 		v.add(new Integer(ts.size()));
 		
 		ids = new Vector();
 		for (int j = 0; j < ts.size(); j++) {
-			tempTS = (TS)(ts.elementAt(j));
+			tempTS = (TS)(ts.get(j));
 			if (tempTS == null) {
 				ids.add("null");
 			}
@@ -1539,7 +1540,7 @@ private Vector determineDataLimits() {
 		}
 		ids = StringUtil.sortStringList(ids);
 		v.add(ids);
-		v.add(((TSGraph)(_tsgraphs.elementAt(i))).getDataLimits());
+		v.add(((TSGraph)(_tsgraphs.get(i))).getDataLimits());
 		limitsData.add(v);
 	}
 
@@ -1667,7 +1668,7 @@ private TSGraph getEventTSGraph ( GRPoint pt )
 {	int size = _tsgraphs.size();
 	TSGraph tsgraph = null;
 	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+		tsgraph = (TSGraph)_tsgraphs.get(isub);
 		if ( _is_reference_graph && (isub != _reference_sub) ) {
 			// Don't check the graph
 			continue;
@@ -2181,7 +2182,7 @@ public void mouseReleased ( MouseEvent event )
 					for ( int i = 0; i < size; i++ ) {
 						_listeners[i].tsViewSelect (
 						tsgraph, devpt, datapt,
-						(Vector)null );
+						(List)null );
 					}
 				}
 				devpt = null;
@@ -2277,7 +2278,7 @@ public void mouseReleased ( MouseEvent event )
 				for ( int i = 0; i < size; i++ ) {
 					_listeners[i].tsViewSelect (
 						tsgraph, mouse_limits,
-						newdata_limits, (Vector)null );
+						newdata_limits, (List)null );
 				}
 			}
 		}
@@ -2716,7 +2717,7 @@ public void paint ( Graphics g )
 				if ( _is_reference_graph &&	(isub != _reference_sub) ) {
 					continue;
 				}
-				tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+				tsgraph = (TSGraph)_tsgraphs.get(isub);
 				if ( tsgraph == null ) {
 					continue;
 				}
@@ -3098,11 +3099,10 @@ public void reinitializeGraphs(TSProduct product) {
 	DateTime temp = null;
 	TSGraph g = null;
 
-	// Find the latest end date and the earliest start date from the
-	// graphs.
+	// Find the latest end date and the earliest start date from the graphs.
 
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = (TSGraph)_tsgraphs.elementAt(i);
+		g = (TSGraph)_tsgraphs.get(i);
 		if (g.getEndDate() != null) {
 			temp = g.getEndDate();
 			if (end == null || end.lessThanOrEqualTo(temp)) {
@@ -3126,7 +3126,7 @@ public void reinitializeGraphs(TSProduct product) {
 	TS ts = null;
 	int size = _tslist.size();
 	for (int i = 0; i < size; i++) {
-		ts = (TS)_tslist.elementAt(i);
+		ts = (TS)_tslist.get(i);
 		temp = ts.getDate1();
 		if (maxStart == null 
 		    || (temp != null && temp.lessThan(maxStart))) {
@@ -3140,7 +3140,7 @@ public void reinitializeGraphs(TSProduct product) {
 		}
 	}
 	
-	Vector v = determineDataLimits();
+	List v = determineDataLimits();
 	
 	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct,
 		_display_props, _tslist, 
@@ -3167,7 +3167,7 @@ public void reinitializeGraphs(TSProduct product) {
 	// dates are set from the current graph dates (above).
 	
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = (TSGraph)_tsgraphs.elementAt(i);
+		g = (TSGraph)_tsgraphs.get(i);
 		if (!g.isReferenceGraph()) {
 			g.setEndDate(end);
 			g.setMaxEndDate(maxEnd);
@@ -3189,19 +3189,19 @@ each element of which is:<br>
 <br>
 2 - data limits for the graphs<br>
 */
-private void resetGraphDataLimits(Vector v) {
+private void resetGraphDataLimits(List v) {
 	int tsCount = 0;
 	int vCount = 0;
 	TS ts = null;
 	TSGraph graph = null;
-	Vector ids = null;
-	Vector tslist = null;
+	List ids = null;
+	List tslist = null;
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		graph = (TSGraph)_tsgraphs.elementAt(i);
+		graph = (TSGraph)_tsgraphs.get(i);
 		tslist = graph.getTSList();		
 		ids = new Vector();
 		for (int j = 0; j < tslist.size(); j++) {
-			ts = (TS)(tslist.elementAt(j));
+			ts = (TS)(tslist.get(j));
 			if (ts == null) {
 				ids.add("null");
 			}
@@ -3212,14 +3212,14 @@ private void resetGraphDataLimits(Vector v) {
 		ids = StringUtil.sortStringList(ids);		
 		tsCount = tslist.size();
 		for (int j = 0; j < v.size(); j++) {		
-			Vector dataVector = (Vector)v.elementAt(j);
-			Integer I = (Integer)dataVector.elementAt(0);
+			List dataVector = (List)v.get(j);
+			Integer I = (Integer)dataVector.get(0);
 			vCount = I.intValue();
 			if (vCount == tsCount) {
-				Vector vids = (Vector)dataVector.elementAt(1);
+				List vids = (List)dataVector.get(1);
 				if (stringVectorsAreEqual(ids, vids)) {
 					GRLimits dataLimits = (GRLimits)
-						dataVector.elementAt(2);
+						dataVector.get(2);
 					graph.setDataLimits(dataLimits);
 				}
 			}
@@ -3282,7 +3282,7 @@ public void scroll ( double pages, boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
 				max_data_limits = new GRLimits(
 					tsgraph.getMaxDataLimits() );
@@ -3303,7 +3303,7 @@ public void scroll ( double pages, boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			prop_value = _tsproduct.getLayeredPropValue (
 				"ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
@@ -3436,7 +3436,7 @@ public void scrollToEnd ( boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
 				max_data_limits = new GRLimits(
 					tsgraph.getMaxDataLimits() );
@@ -3457,7 +3457,7 @@ public void scrollToEnd ( boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			prop_value = _tsproduct.getLayeredPropValue (
 				"ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
@@ -3548,7 +3548,7 @@ public void scrollToStart ( boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
 				max_data_limits = new GRLimits(
 					tsgraph.getMaxDataLimits() );
@@ -3569,7 +3569,7 @@ public void scrollToStart ( boolean notify_listeners )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			prop_value = _tsproduct.getLayeredPropValue (
 				"ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
@@ -3882,7 +3882,7 @@ public void setGraphDrawingLimits ()
 //	System.out.println("");
 		
 	for ( i = 0; i < nsubs; i++ ) {
-		tsgraph = (TSGraph)_tsgraphs.elementAt(i);
+		tsgraph = (TSGraph)_tsgraphs.get(i);
 		if ( tsgraph == null ) {
 			continue;
 		}
@@ -3961,7 +3961,7 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 	DateTime d = new DateTime ( datapt.x, true );
 	// Find the time series with a y-value closest to the data point...
 	int size = 0;
-	Vector tslist = tsgraph.getTSList();
+	List tslist = tsgraph.getTSList();
 	if ( tslist != null ) {
 		size = tslist.size();
 	}
@@ -3970,7 +3970,7 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 	double mindiff = 1.0e10;
 	double diff = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -4023,7 +4023,7 @@ equalsIgnoreCase()) in the same order, or are both null.  Returns false if only
 one is null or the sizes of the Vectors are different or they don't contain 
 the same strings, element-by-element.
 */
-private boolean stringVectorsAreEqual(Vector v1, Vector v2) {
+private boolean stringVectorsAreEqual(List v1, List v2) {
 	if (v1 == null && v2 == null) {
 		return true;
 	}
@@ -4038,8 +4038,8 @@ private boolean stringVectorsAreEqual(Vector v1, Vector v2) {
 		String s1 = null;
 		String s2 = null;
 		for (int i = 0; i < size; i++) {
-			s1 = (String)v1.elementAt(i);
-			s2 = (String)v2.elementAt(i);
+			s1 = (String)v1.get(i);
+			s2 = (String)v2.get(i);
 			if (!s1.equalsIgnoreCase(s2)) {
 				return false;
 			}
@@ -4066,10 +4066,9 @@ Currently this does nothing.
 @param g TSGraph that select occurred in.
 @param dev_shape Coordinates of mouse in device coordinates (pixels).
 @param data_shape Coordinates of mouse in data coordinates.
-@param selected Vector of selected TS.  Currently ignored.
+@param selected list of selected TS.  Currently ignored.
 */
-public void tsViewSelect (	TSGraph g, GRShape dev_shape,
-				GRShape data_shape, Vector selected )
+public void tsViewSelect ( TSGraph g, GRShape dev_shape, GRShape data_shape, List selected )
 {
 }
 
@@ -4123,7 +4122,7 @@ public void zoom (	TSGraph tsgraph,
 	int size = _tsgraphs.size();
 	TSGraph tsgraph2;
 	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph2 = (TSGraph)_tsgraphs.elementAt(isub);
+		tsgraph2 = (TSGraph)_tsgraphs.get(isub);
 		if (	tsgraph2.canZoom() &&
 			zoom_group.equalsIgnoreCase(
 			_tsproduct.getLayeredPropValue ( "ZoomGroup",
@@ -4172,13 +4171,12 @@ public void zoomOut ( boolean re_draw )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(
-					tsgraph.getMaxDataLimits() );
+				max_data_limits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
-			else {	max_data_limits =
-				max_data_limits.max(tsgraph.getMaxDataLimits());
+			else {
+				max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
@@ -4193,9 +4191,8 @@ public void zoomOut ( boolean re_draw )
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.elementAt(isub);
-			prop_value = _tsproduct.getLayeredPropValue (
-				"ZoomEnabled", isub, -1, false );
+			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( prop_value.equalsIgnoreCase("true") ) {
 				if (tsgraph.getNumTS() > 0) {
 					tsgraph.setDataLimits(max_data_limits);

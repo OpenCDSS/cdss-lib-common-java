@@ -93,6 +93,7 @@
 package RTi.GIS.GeoView;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRLimits;
@@ -217,7 +218,7 @@ Vector of shape data.  Note that the index in the shape is used to
 cross-reference to the attribute table.  The index starts at 0, unlike the ESRI
 shapefiles, where the record numbers start at 1.
 */
-protected Vector _shapes;
+protected List _shapes;
 
 /**
 Overall limits of the layer (this can be reset using computeLimits() or may be
@@ -316,7 +317,7 @@ public Object clone() {
 		GRShape shape = null;
 		l._shapes = new Vector(size);
 		for (int i = 0; i < size; i++) {
-			shape = (GRShape)_shapes.elementAt(i);
+			shape = (GRShape)_shapes.get(i);
 			l._shapes.add((GRShape)shape.clone());
 		}
 	}
@@ -357,7 +358,7 @@ throws Exception
 	GRShape shape = null;
 	double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		if ( shape == null ) {
 			continue;
 		}
@@ -409,7 +410,7 @@ public void deselectAllShapes ()
 {	GRShape shape = null;
 	int size = _shapes.size();
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		if ( shape.is_selected ) {
 			--_selected_count;
 		}
@@ -452,12 +453,12 @@ public double getAttributeMax (	int field, boolean include_invisible )
 	if ( size == 0 ) {
 		return 0.0;
 	}
-	GRShape shape = (GRShape)_shapes.elementAt(0);
+	GRShape shape = (GRShape)_shapes.get(0);
 	double max = 0.0;
 	try {	max = StringUtil.atod (
 		getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
-			shape = (GRShape)_shapes.elementAt(i);
+			shape = (GRShape)_shapes.get(i);
 			if ( shape == null ) {
 				continue;
 			}
@@ -493,12 +494,12 @@ public double getAttributeMin (	int field, boolean include_invisible )
 	if ( size == 0 ) {
 		return 0.0;
 	}
-	GRShape shape = (GRShape)_shapes.elementAt(0);
+	GRShape shape = (GRShape)_shapes.get(0);
 	double min = 0.0;
 	try {	min = StringUtil.atod (
 		getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
-			shape = (GRShape)_shapes.elementAt(i);
+			shape = (GRShape)_shapes.get(i);
 			if ( shape == null ) {
 				continue;
 			}
@@ -618,7 +619,7 @@ public GRShape getShape ( int index )
 {	if ( (index < 0) || (index > (_shapes.size() - 1)) ) {
 		return null;
 	}
-	return (GRShape)_shapes.elementAt((int)index);
+	return (GRShape)_shapes.get((int)index);
 }
 
 /**
@@ -676,11 +677,11 @@ throws Exception {
 }
 
 /**
-Return the Vector of shapes used in the layer.  This Vector can be added to
+Return the list of shapes used in the layer.  This list can be added to
 externally when reading the shapes from a file.
-@return the Vector of shapes used by this layer.
+@return the list of shapes used by this layer.
 */
-public Vector getShapes ()
+public List getShapes ()
 {	return _shapes;
 }
 
@@ -768,8 +769,7 @@ public void project ( GeoProjection projection )
 	// Loop through all the shapes and project them...
 	int size = _shapes.size();
 	for ( int i = 0; i < size; i++ ) {
-		GeoProjection.projectShape ( _projection, projection,
-			(GRShape)_shapes.elementAt(i), true );
+		GeoProjection.projectShape ( _projection, projection, (GRShape)_shapes.get(i), true );
 	}
 	// Now reset the limits...
 	try {	computeLimits ( true );
@@ -846,7 +846,7 @@ public void refresh ()
 	GRShape shape;
 	_selected_count = 0;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape )_shapes.elementAt(i);
+		shape = (GRShape )_shapes.get(i);
 		if ( shape.is_selected ) {
 			++_selected_count;
 		}
@@ -870,7 +870,7 @@ public void reindex ()
 	GRShape shape = null;
 	for ( int i = 0; i < size; i++ ) {
 		// Just set the index to the loop index...
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		shape.index = i;
 	}
 	shape = null;
@@ -888,7 +888,7 @@ public void removeAllAssociations()
 	}
 	GRShape shape = null;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		shape.associated_object = null;
 	}
 	shape = null;
@@ -908,21 +908,22 @@ will allow attribute data to be read on the fly.
 public void removeUnassociatedShapes ( boolean hide_only )
 {	int size = _shapes.size();
 	GRShape shape = null;
-	Vector records = null;
+	List records = null;
 	if ( _attribute_table != null ) {
 		records = _attribute_table.getTableRecords();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		if ( shape.associated_object == null ) {
 			if ( hide_only ) {
 				// Just set to not visible...
 				shape.is_visible = false;
 			}
 			else {	// Actually remove the shape...
-				_shapes.removeElementAt(i);
-				try {	if ( records != null ) {
-						records.removeElementAt(i);
+				_shapes.remove(i);
+				try {
+					if ( records != null ) {
+						records.remove(i);
 					}
 				}
 				catch ( Exception e ) {
@@ -969,7 +970,7 @@ Set the shapes associated with the layer.  This is most often called
 when bulk manipulation of layers is occurring.
 @param shapes Shape list for the layer.
 */
-public void setShapes ( Vector shapes )
+public void setShapes ( List shapes )
 {	_shapes = shapes;
 }
 
@@ -1055,7 +1056,7 @@ public void setShapesVisible (	boolean is_visible, boolean do_selected,
 {	GRShape shape = null;
 	int size = _shapes.size();
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.elementAt(i);
+		shape = (GRShape)_shapes.get(i);
 		if ( shape.is_selected && do_selected ) {
 			shape.is_visible = is_visible;
 		}

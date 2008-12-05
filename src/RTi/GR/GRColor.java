@@ -22,7 +22,7 @@
 package RTi.GR;
 
 import java.awt.Color;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
@@ -235,31 +235,29 @@ error occurs.
 public static GRColor parseColor ( String color )
 {	if ( color.indexOf('.') >= 0 ) {
 		// Assume 0.0-1.0 RGB values separated by commas
-		Vector v = StringUtil.breakStringList(color,",",
-			StringUtil.DELIM_SKIP_BLANKS );
+		List v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
 		if ( (v == null) || (v.size() != 3) ) {
 			v = null;
 			return new GRColor(0);
 		}
 		GRColor grc = new GRColor (
-			StringUtil.atof((String)v.elementAt(0)),
-			StringUtil.atof((String)v.elementAt(1)),
-			StringUtil.atof((String)v.elementAt(2)) );
+			StringUtil.atof((String)v.get(0)),
+			StringUtil.atof((String)v.get(1)),
+			StringUtil.atof((String)v.get(2)) );
 		v = null;
 		return grc;
 	}
 	else if ( color.indexOf(',') >= 0 ) {
 		// Assume 0-255 RGB values separated by commas
-		Vector v = StringUtil.breakStringList(color,",",
-			StringUtil.DELIM_SKIP_BLANKS );
+		List v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
 		if ( (v == null) || (v.size() != 3) ) {
 			v = null;
 			return new GRColor(0);
 		}
 		GRColor grc = new GRColor (
-			StringUtil.atoi((String)v.elementAt(0)),
-			StringUtil.atoi((String)v.elementAt(1)),
-			StringUtil.atoi((String)v.elementAt(2)) );
+			StringUtil.atoi((String)v.get(0)),
+			StringUtil.atoi((String)v.get(1)),
+			StringUtil.atoi((String)v.get(2)) );
 		v = null;
 		return grc;
 	}

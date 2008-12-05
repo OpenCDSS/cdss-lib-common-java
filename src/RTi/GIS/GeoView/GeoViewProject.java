@@ -30,7 +30,7 @@ package RTi.GIS.GeoView;
 import java.awt.Color;
 import java.io.File;
 import java.lang.Runtime;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GR.GRColor;
 import RTi.GR.GRLegend;
@@ -399,7 +399,7 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 	}
 	// Now loop through the symbols for the layer...
 	GRSymbol symbol = null;
-	Vector tokens = null;
+	List tokens = null;
 	for ( int isym = 0; isym < nsymbols; isym++ ) {
 		// Get the symbol...
 		symbol = new GRSymbol ( default_symbol.getType(),
@@ -505,10 +505,8 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 					"GeoLayerView " + index + ".Color" );
 			}
 			if ( prop_value != null ) {
-				// The color property can contain more than one
-				// color, separated by ";"...
-				Vector v = StringUtil.breakStringList (
-					prop_value, ";", 0 );
+				// The color property can contain more than one color, separated by ";"...
+				List v = StringUtil.breakStringList ( prop_value, ";", 0 );
 				int vsize = v.size();
 				if ( vsize == 1 ) {
 					symbol.setColor(GRColor.parseColor(
@@ -517,16 +515,13 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 					prop_value));
 				}
 				else if ( vsize == 2 ) {
-					symbol.setColor(GRColor.parseColor(
-					(String)v.elementAt(0) ));
-					symbol.setColor2(GRColor.parseColor(
-					(String)v.elementAt(1) ));
+					symbol.setColor(GRColor.parseColor((String)v.get(0) ));
+					symbol.setColor2(GRColor.parseColor((String)v.get(1) ));
 				}
 			}
 			// Size for symbol...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index +
-				"." + (isym + 1) + ".SymbolSize" );
+			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolSize" );
 			// Old style...
 			if ( prop_value == null ) {
 				prop_value = _proplist.getValue (
@@ -535,27 +530,23 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			if ( prop_value != null ) {
 				// The size can be specified as a single value
 				// or an x and y value, separated by a comma...
-				Vector v = StringUtil.breakStringList(
-					prop_value,",",0);
+				List v = StringUtil.breakStringList(prop_value,",",0);
 				int size = 0;
 				if ( v != null ) {
 					size = v.size();
 				}
 				if ( size == 1 ) {
 					symbol.setSize( StringUtil.atod(
-					(String)v.elementAt(0)));
+					(String)v.get(0)));
 				}
 				else if ( size == 2 ) {
-					symbol.setSizeX( StringUtil.atod(
-					(String)v.elementAt(0)));
-					symbol.setSizeY( StringUtil.atod(
-					(String)v.elementAt(1)));
+					symbol.setSizeX( StringUtil.atod((String)v.get(0)));
+					symbol.setSizeY( StringUtil.atod((String)v.get(1)));
 				}
 			}
 			// Symbol class field...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index +
-					"." + (isym + 1) +".SymbolClassField" );
+			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
 			// Old style...
 			if ( prop_value == null ) {
 				prop_value = _proplist.getValue (
@@ -601,14 +592,11 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 				}
 				int num_classes = 0;
 				if ( prop_value != null ) {
-					Vector c = StringUtil.breakStringList (
+					List c = StringUtil.breakStringList (
 						prop_value, ";",
 						StringUtil.DELIM_SKIP_BLANKS );
-					num_classes = StringUtil.atoi( ((String)
-						c.elementAt(1)).trim());
-					symbol.setColorTable (
-						((String)c.elementAt(0)).trim(),
-						num_classes );
+					num_classes = StringUtil.atoi( ((String)c.get(1)).trim());
+					symbol.setColorTable ( ((String)c.get(0)).trim(),num_classes );
 					c = null;
 				}
 				// Get the class breaks.  Examine the
@@ -627,13 +615,12 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 						index + ".SymbolClassBreaks" );
 				}
 				if ( prop_value != null ) {
-					Vector c = StringUtil.breakStringList (
+					List c = StringUtil.breakStringList (
 						prop_value,",",
 						StringUtil.DELIM_SKIP_BLANKS );
 					// For now always use double...
 					for ( int i = 0; i < num_classes; i++ ){
-						d[i] = StringUtil.atod(((String)
-							c.elementAt(i)).trim());
+						d[i] = StringUtil.atod(((String)c.get(i)).trim());
 					}
 					symbol.setClassificationData ( d, true);
 					c = null;
@@ -739,8 +726,7 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 					prop_value, ",",
 					StringUtil.DELIM_SKIP_BLANKS );
 				if ( tokens.size() > 1 ) {
-					int transparency = StringUtil.atoi(
-						(String)tokens.elementAt(1) );
+					int transparency = StringUtil.atoi((String)tokens.get(1) );
 					symbol.setTransparency ( transparency );
 				}
 			}

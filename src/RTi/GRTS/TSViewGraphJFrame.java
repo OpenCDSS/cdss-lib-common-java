@@ -133,6 +133,7 @@ import java.awt.event.WindowListener;
 
 import java.io.File;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
@@ -189,7 +190,7 @@ private TSViewJFrame __tsview_JFrame;
 /**
 List of time series to graph.
 */
-private Vector __tslist;
+private List __tslist;
 
 // TODO SAM 2008-01-11 Need to describe the properties.
 /**
@@ -257,7 +258,7 @@ Construct a TSViewGraphJFrame.
 defined in the TSViewJFrame constructor documentation.
 @exception Exception if there is an error displaying the view.
 */
-public TSViewGraphJFrame ( TSViewJFrame tsview_gui, Vector tslist, PropList props )
+public TSViewGraphJFrame ( TSViewJFrame tsview_gui, List tslist, PropList props )
 throws Exception
 {	super ( "Time Series - Graph View" );
 	initialize ( tsview_gui, tslist, props );
@@ -501,7 +502,7 @@ Initialize data and open the GUI.
 @param props Properties to customize the data display.  The properties are
 defined in the TSViewJFrame constructor documentation.
 */
-private void initialize (TSViewJFrame tsview_gui,Vector tslist, PropList props )
+private void initialize (TSViewJFrame tsview_gui,List tslist, PropList props )
 {	__tsview_JFrame = tsview_gui;
 	__tslist = tslist;
 	__props = props;
@@ -625,7 +626,7 @@ private void openGUI ( boolean mode )
 	int nmonths = 0;
 	TSLimits limits = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts_i = (TS)__tslist.elementAt(i);
+		ts_i = (TS)__tslist.get(i);
 		if ( ts_i == null ) {
 			continue;
 		}
@@ -959,7 +960,7 @@ private void saveEdits ()
         Message.printWarning ( 1, routine, "DefaultSaveFile property is not specified.  File chooser is not enabled.");
         return;
     }
-    Vector editable_tslist = new Vector();
+    List editable_tslist = new Vector();
     String DefaultSaveFile_full = DefaultSaveFile;
     try {
         int size = 0;
@@ -968,13 +969,13 @@ private void saveEdits ()
         }
         TS ts = null;
         for ( int i = 0; i < size; i++ ) {
-            ts = (TS)__tslist.elementAt(i);
+            ts = (TS)__tslist.get(i);
             if ( ts == null ) {
                 // Might have null time series in list.
                 continue;
             }
             if ( ts.isEditable()) {
-                editable_tslist.addElement ( ts );
+                editable_tslist.add ( ts );
             }
         }
         DefaultSaveFile_full = IOUtil.getPathUsingWorkingDir ( DefaultSaveFile );
@@ -1019,7 +1020,7 @@ private void saveGraph() {
 	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
-	Vector tsProductDMIs = __tsview_JFrame.getTSProductDMIs();
+	List tsProductDMIs = __tsview_JFrame.getTSProductDMIs();
 	int size = tsProductDMIs.size();
 	SimpleFileFilter[] dmiff = null;
 	String s = null;
@@ -1027,7 +1028,7 @@ private void saveGraph() {
 		dmiff = new SimpleFileFilter[size];
 	 	TSProductDMI dmi = null;
 		for (int i = 0; i < size; i++) {
-			dmi = (TSProductDMI)tsProductDMIs.elementAt(i);
+			dmi = (TSProductDMI)tsProductDMIs.get(i);
 			s = "Time Series Product saved to " + dmi.getDMIName();
 			if (dmi instanceof DMI) {
 				if (!((DMI)dmi).getInputName().equals("")) {
@@ -1142,7 +1143,7 @@ private void saveGraph() {
 		if (dmiff != null) {
 			for (int i = 0; i < size; i++) {
 				if (fc.getFileFilter() == dmiff[i]) {
-					TSProductDMI dmi = (TSProductDMI)tsProductDMIs.elementAt(i);
+					TSProductDMI dmi = (TSProductDMI)tsProductDMIs.get(i);
 					dmi.writeTSProduct(__tsproduct);
 				}
 			}
@@ -1209,8 +1210,7 @@ public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt )
 {	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(datapt) );
 }
 
-public void tsViewSelect (	TSGraph g, GRShape devlim, GRShape datalim,
-				Vector selected )
+public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List selected )
 {
 }
 

@@ -40,6 +40,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JMenuItem;
@@ -289,14 +290,14 @@ in the 'move graph' dialog box.
 @param selectedGraph the graph to be moved down.
 @return a Vector of the graphs that are 'down' from the selected graph.
 */
-private Vector buildDownList(int selectedGraph) {
-	Vector v = new Vector();
-	Vector graphs = __parent.getGraphList();
+private List buildDownList(int selectedGraph) {
+	List v = new Vector();
+	List graphs = __parent.getGraphList();
 	String s = null;
 	int count = 1;
 	String plural = "";
 	for (int i = selectedGraph + 1; i < graphs.size(); i++) {
-		s = StringUtil.getToken((String)graphs.elementAt(i), "-", 0, 0);
+		s = StringUtil.getToken((String)graphs.get(i), "-", 0, 0);
 		s = s.trim();
 		v.add("" + count + " step" + plural + ", below graph #"
 			+ (i + 1) + " (\"" + s + "\")");		
@@ -350,16 +351,16 @@ private void buildPopup() {
 Builds the list of graphs that are 'up' from the selected graph, for use 
 in the 'move graph' dialog box.
 @param selectedGraph the graph to be moved up.
-@return a Vector of the graphs that are 'up' from the selected graph.
+@return a list of the graphs that are 'up' from the selected graph.
 */
-private Vector buildUpList(int selectedGraph) {
-	Vector v = new Vector();
-	Vector graphs = __parent.getGraphList();
+private List buildUpList(int selectedGraph) {
+	List v = new Vector();
+	List graphs = __parent.getGraphList();
 	String s = null;
 	int count = 1;
 	String plural = "";
 	for (int i = selectedGraph - 1; i >= 0; i--) {
-		s = StringUtil.getToken((String)graphs.elementAt(i), "-", 0, 0);
+		s = StringUtil.getToken((String)graphs.get(i), "-", 0, 0);
 		s = s.trim();
 		v.add("" + count + " step" + plural + ", above graph #" 	
 			+ (i + 1) + " ('" + s + "')");
@@ -708,19 +709,17 @@ public boolean handleDropData(Object o, Point p) {
 	}
 	
 	String id = null;
-	Vector v = null;
+	List v = null;
 
 	if (o instanceof TS) {
 		if (o instanceof YearTS) {
 			if (IOUtil.testing()) {
-				Message.printStatus(1, "", 
-					"Dropping Year time series");
+				Message.printStatus(1, "", "Dropping Year time series");
 			}
 		}
 		else if (o instanceof MonthTS) {
 			if (IOUtil.testing()) {
-				Message.printStatus(1, "",
-					"Dropping Month time series");
+				Message.printStatus(1, "", "Dropping Month time series");
 			}
 		}
 		else if (o instanceof DayTS) {
@@ -897,7 +896,7 @@ to determine how far to move the graph.
 */
 private void moveGraphDownClicked() {
 	int selectedGraph = __parent.getSelectedGraph();
-	Vector v = buildDownList(selectedGraph);
+	List v = buildDownList(selectedGraph);
 	if (v.size() == 1) {
 		__product.swapSubProducts(selectedGraph, selectedGraph + 1);
 		__parent.redisplayProperties();
@@ -934,7 +933,7 @@ determine how far to move the graph.
 */
 private void moveGraphUpClicked() {
 	int selectedGraph = __parent.getSelectedGraph();
-	Vector v = buildUpList(selectedGraph);
+	List v = buildUpList(selectedGraph);
 	if (v.size() == 1) {
 		__product.swapSubProducts(selectedGraph, selectedGraph - 1);
 		__parent.redisplayProperties();
@@ -978,7 +977,7 @@ private void removeGraphClicked() {
 	}
 	int selectedGraph = __parent.getSelectedGraph();
 	int origPos = selectedGraph + 1;
-	Vector graphs = __parent.getGraphList();
+	List graphs = __parent.getGraphList();
 	int count = graphs.size();
 	int shifts = count - (selectedGraph + 1);
 	for (int i = 0; i < shifts; i++) {		

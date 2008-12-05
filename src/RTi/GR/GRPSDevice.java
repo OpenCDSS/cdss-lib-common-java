@@ -24,6 +24,7 @@ import java.awt.Graphics;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.PropList;
@@ -167,9 +168,9 @@ Indicates a specific device that requires special attention, such as a plotter.
 protected String _specific_device = "";
 
 /**
-Vector of GRDrawingArea objects for this device.
+List of GRDrawingArea objects for this device.
 */
-protected Vector _drawing_area_list;
+protected List _drawing_area_list;
 
 /**
 Constructor.
@@ -222,7 +223,7 @@ public void addDrawingArea ( GRDrawingArea grda )
 		"Adding drawing area \"" + grda.getName() + "\" to device \"" +
 		_name + "\"" );
 	}
-	_drawing_area_list.addElement ( (GRPSDrawingArea)grda );
+	_drawing_area_list.add ( (GRPSDrawingArea)grda );
 }
 
 /**

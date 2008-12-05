@@ -9,7 +9,7 @@
 
 package RTi.GRTS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.PropList;
 
@@ -46,7 +46,7 @@ Returns a Vector of Strings, each of which is one of the types of annotation
 that is provided by this class.
 @return a Vector of the annotations that this class provides.
 */
-public Vector getAnnotationProviderChoices();
+public List getAnnotationProviderChoices();
 
 /**
 Returns true if this class provides the given annotation type, false if not.

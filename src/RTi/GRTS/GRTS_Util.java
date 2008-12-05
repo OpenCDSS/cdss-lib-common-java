@@ -16,7 +16,7 @@
 
 package	RTi.GRTS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TS;
 import RTi.Util.IO.PropList;
@@ -42,8 +42,7 @@ adopted as standard defaults.
 @param tslist List of time series to be graphed.
 @param props Properties to modify for the graph product (must be non-null).
 */
-public static void addDefaultPropertiesForDataFlags (
-						Vector tslist, PropList props )
+public static void addDefaultPropertiesForDataFlags ( List tslist, PropList props )
 {	int size = 0;
 	if ( tslist != null ) {
 		size = tslist.size();
@@ -60,7 +59,7 @@ public static void addDefaultPropertiesForDataFlags (
 	}
 	TS ts = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.elementAt(i);
+		ts = (TS)tslist.get(i);
 		if ( ts.hasDataFlags() ) {
 			// Turn on the symbols and labels...
 			/* REVISIT SAM 2006-05-22

@@ -37,7 +37,7 @@ import java.awt.Shape;
 
 import java.io.PrintWriter;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.PropList;
 
@@ -49,8 +49,7 @@ import RTi.Util.String.StringUtil;
 
 /**
 This class implements a driver to PostScript files.
-REVISIT (SAM - 2003-05-08)
-Revisit code later -- it may have limited use.
+TODO (SAM - 2003-05-08) Revisit code later -- it may have limited use.
 */
 public class GRPSDrawingArea extends GRDrawingArea
 {
@@ -198,8 +197,7 @@ public void drawArc (	double x, double y, double xr, double yr, double a1,
 /**
 Not implemented
 */
-public void drawCompoundText (	Vector text, GRColor color, double x, double y,
-				double angle, int flag )
+public void drawCompoundText (	List text, GRColor color, double x, double y, double angle, int flag )
 {	String routine = "GRPSDrawingArea.drawCompoundText";
 	Message.printWarning ( 1, routine,
 	"GRPSDrawingArea.drawCompoundText not implemnted" );

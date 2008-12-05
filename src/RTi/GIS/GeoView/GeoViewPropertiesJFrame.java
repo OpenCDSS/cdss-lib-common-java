@@ -72,6 +72,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
@@ -1633,7 +1634,7 @@ private void setupGUI() {
 			0, y, 1, 1, 0, 0, TLBN,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHEAST);
 			
-		Vector v = new Vector();
+		List v = new Vector();
 		v.add("Default");
 		__legendComboBox = new SimpleJComboBox(v, true);
 		JGUIUtil.addComponent(layoutJPanel, __legendComboBox,
@@ -1683,10 +1684,10 @@ private void setupGUI() {
 		//       in the tree
 		// [1] - the layer names associated with each node in the tree
 		// [2] - the actual nodes in the tree
-		Vector[] vectors = legendJTree.getLayersNamesAndNodes(false);
-		Vector layers = vectors[0];
-		Vector names = vectors[1];
-		Vector nodes = vectors[2];
+		List[] vectors = legendJTree.getLayersNamesAndNodes(false);
+		List layers = vectors[0];
+		List names = vectors[1];
+		List nodes = vectors[2];
 
 		// all methods must be the same size (forced by the called 
 		// method, so just get the size from one)
@@ -1706,8 +1707,8 @@ private void setupGUI() {
 
 		for (int i = 0; i < size; i++) {
 			// pull out the values returned from the Vectors above
-			glv = (GeoLayerView)layers.elementAt(i);
-			name = (String)names.elementAt(i);
+			glv = (GeoLayerView)layers.get(i);
+			name = (String)names.get(i);
 			checkBox = new JCheckBox((String)null);
 			
 			// the following panel is what will be displayed in 
@@ -1770,8 +1771,7 @@ private void setupGUI() {
 				// if the layer was not found in the layout,
 				// add it and all its other associated control
 				// information to the layout
-				layout.addNodeLayerCheckBox(
-					(SimpleJTree_Node)nodes.elementAt(i), 
+				layout.addNodeLayerCheckBox( (SimpleJTree_Node)nodes.get(i), 
 					glv, checkBox, checkBox.isSelected());
 			}
 			else {

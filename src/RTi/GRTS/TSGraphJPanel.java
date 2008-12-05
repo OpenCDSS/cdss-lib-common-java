@@ -10,7 +10,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Image;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -25,7 +25,7 @@ public class TSGraphJPanel extends JPanel
 
 TSGraphJComponent _graph = null;
 
-public TSGraphJPanel ( JFrame parent, Vector tslist, PropList props )
+public TSGraphJPanel ( JFrame parent, List tslist, PropList props )
 {
        	GridBagLayout gbl = new GridBagLayout();
 	setLayout ( gbl );

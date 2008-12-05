@@ -68,7 +68,7 @@ package RTi.GIS.GeoView;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GIS.GeoView.GeoLayer;
 import RTi.GR.GRPoint;
@@ -537,10 +537,8 @@ throws IOException
 			// mixed but we don't really care at this point so
 			// don't check against the file shape type.
 			if ( shape_type == UNKNOWN ) {
-				// No geometry data...  Instantiate a shape
-				// of unknown type...
-				_shapes.addElement (
-				new GRShape(record_number - 1 ) );
+				// No geometry data...  Instantiate a shape of unknown type...
+				_shapes.add ( new GRShape(record_number - 1 ) );
 				continue;
 			}
 			else if ( shape_type == ARC ) {
@@ -550,11 +548,9 @@ throws IOException
 				xmax = _shp_stream.readLittleEndianDouble();
 				ymax = _shp_stream.readLittleEndianDouble();
 				// Read the number of polylines...
-				npolylines =
-					_shp_stream.readLittleEndianInt();
+				npolylines = _shp_stream.readLittleEndianInt();
 				// Allocate memory and set the limits...
-				polylinelist = new GRPolylineList (
-					npolylines );
+				polylinelist = new GRPolylineList (	npolylines );
 				polylinelist.index = record_number - 1;
 				polylinelist.xmin = xmin;
 				polylinelist.ymin = ymin;
@@ -606,7 +602,7 @@ throws IOException
 					}
 					polylinelist.setPolyline ( i, polyline);
 				}
-				_shapes.addElement ( polylinelist);
+				_shapes.add ( polylinelist);
 			}
 			else if ( shape_type == MULTIPOINT ) {
 				// Read the box.
@@ -618,9 +614,8 @@ throws IOException
 				num_points = _shp_stream.readLittleEndianInt();
 				// Save a GRPolypoint, using the record number
 				// as the attribute table index...
-				polypoint = new GRPolypoint (
-					(record_number - 1), num_points );
-				_shapes.addElement ( polypoint);
+				polypoint = new GRPolypoint ( (record_number - 1), num_points );
+				_shapes.add ( polypoint);
 				for ( i = 0; i < num_points; i++ ) {
 					x =_shp_stream.readLittleEndianDouble();
 					y =_shp_stream.readLittleEndianDouble();
@@ -638,13 +633,11 @@ throws IOException
 				point.xmax = x;
 				point.ymax = y;
 				point.limits_found = true;
-				_shapes.addElement ( point );
+				_shapes.add ( point );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Point x,y =" + x + "," + y);
+					Message.printDebug ( dl, routine, "Point x,y =" + x + "," + y);
 				}
-				// REVISIT SAM 2006-01-23
-				// Some CDSS point data are having very large
+				// TODO SAM 2006-01-23 Some CDSS point data are having very large
 				// negative values assigned, which results in
 				// erroneous displays.  Change to UNKNOWN shape
 				// type here in these cases.
@@ -743,7 +736,7 @@ throws IOException
 					}
 					polygonlist.setPolygon ( i, polygon);
 				}
-				_shapes.addElement ( polygonlist);
+				_shapes.add ( polygonlist);
 			}
 		}
 		catch ( Exception e ) {
@@ -862,12 +855,11 @@ included.  The first shape is used to indicate the type of shapefile.
 @param to_projection The projection to use for the output.
 @exception IOException if there is an error writing the file.
 */
-public static void write (	String filename, DataTable table, Vector shapes,
+public static void write (	String filename, DataTable table, List shapes,
 				GeoProjection from_projection,
 				GeoProjection to_projection )
 throws IOException
-{	write ( filename, table, shapes, true, false, from_projection,
-		to_projection );
+{	write ( filename, table, shapes, true, false, from_projection, to_projection );
 }
 
 /**
@@ -885,7 +877,7 @@ included.  The first shape is used to indicate the type of shapefile.
 @param to_projection The projection to use for the output.
 @exception IOException if there is an error writing the file.
 */
-public static void write (	String filename, DataTable table, Vector shapes,
+public static void write (	String filename, DataTable table, List shapes,
 				boolean visible_only,
 				boolean selected_only,
 				GeoProjection from_projection,
@@ -937,7 +929,7 @@ throws IOException
 	if ( size > 0 ) {
 		write_record = new boolean[size];
 		for ( int i = 0; i < size; i++ ) {
-			shape = (GRShape)shapes.elementAt(i);
+			shape = (GRShape)shapes.get(i);
 			if ( !visible_only && !selected_only ) {
 				write_record[i] = true;
 			}
@@ -995,14 +987,14 @@ Write both the SHP and the SHX files.  All shapes are written.
 Currently, only the polygon shape type is supported.
 @param shp_file name of SHP file, with or without extension.
 @param shx_file name of SHX file, with or without extension.
-@param allShapes Vector of GRShape to save.  <b>Warning - if a projection is
+@param allShapes list of GRShape to save.  <b>Warning - if a projection is
 required, the shape data will be modified as it is converted to the requested
 projection.</b>.
 @param from_projection Projection of raw data.
 @param to_projection Desired projection of output.
 */
 public static void writeSHPAndSHX (	String shp_file, String shx_file,
-					Vector allShapes,
+					List allShapes,
 					boolean visible_only,
 					boolean selected_only,
 					GeoProjection from_projection,
@@ -1053,7 +1045,7 @@ throws IOException
 	GRShape shape = null;
 	int grshape_type = 0;
 	if ( numberRecords > 0 ) {
-		shape =	(GRShape)allShapes.elementAt(0);
+		shape =	(GRShape)allShapes.get(0);
 		grshape_type = shape.type;
 	}
 	shape = null;
@@ -1084,7 +1076,7 @@ throws IOException
 		// Content length will be same for every record...
 		GRPoint point = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1134,7 +1126,7 @@ throws IOException
 		shp_type = MULTIPOINT;
 		GRPolypoint polypoint = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1197,7 +1189,7 @@ throws IOException
 		shp_type = ARC;
 		GRPolyline polyline = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1263,7 +1255,7 @@ throws IOException
 		shp_type = ARC;
 		GRPolylineList polylinelist = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1339,7 +1331,7 @@ throws IOException
 		shp_type = POLYGON;
 		GRPolygon polygon = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1405,7 +1397,7 @@ throws IOException
 		shp_type = POLYGON;
 		GRPolygonList polygonlist = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.elementAt(i);
+			shape = (GRShape)allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
 				// Unknown (null?) shape type in the data.
 				// Skip it rather than keeping.
@@ -1567,7 +1559,7 @@ throws IOException
 	GRPolylineList polylinelist = null;
 	int shape_count2 = 0;	// Need for record count below...
 	for ( int i = 0; i < numberRecords; i++ ) {
-		shape = (GRShape)allShapes.elementAt(i);
+		shape = (GRShape)allShapes.get(i);
 		if ( contLenArray[i] == 0 ) {
 			// Determined above that shape does not need to be
 			// written...
@@ -1588,12 +1580,12 @@ throws IOException
 		++shape_count2;
 
 		if ( grshape_type == GRShape.POINT ) { 
-			point = (GRPoint)allShapes.elementAt(i);   
+			point = (GRPoint)allShapes.get(i);   
 			raf_SHP_stream.writeLittleEndianDouble(point.x);
 			raf_SHP_stream.writeLittleEndianDouble(point.y);
 		}
 		else if ( grshape_type == GRShape.POLYPOINT ) { 
-			polypoint = (GRPolypoint)allShapes.elementAt(i);   
+			polypoint = (GRPolypoint)allShapes.get(i);   
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(polypoint.xmin);
 			raf_SHP_stream.writeLittleEndianDouble(polypoint.ymin);
@@ -1614,7 +1606,7 @@ throws IOException
 		}
 		else if ( grshape_type == GRShape.POLYLINE ) { 
 			// Write as a single-polyline list...
-			polyline = (GRPolyline)allShapes.elementAt(i);   
+			polyline = (GRPolyline)allShapes.get(i);   
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(polyline.xmin);
 			raf_SHP_stream.writeLittleEndianDouble(polyline.ymin);
@@ -1641,7 +1633,7 @@ throws IOException
 		}
 		else if ( grshape_type == GRShape.POLYLINE_LIST ) { 
 			// Write as a polyline list...
-			polylinelist = (GRPolylineList)allShapes.elementAt(i);
+			polylinelist = (GRPolylineList)allShapes.get(i);
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(
 				polylinelist.xmin);
@@ -1682,7 +1674,7 @@ throws IOException
 		}
 		else if ( grshape_type == GRShape.POLYGON ) { 
 			// Write as a single-polygon list...
-			polygon = (GRPolygon)allShapes.elementAt(i);   
+			polygon = (GRPolygon)allShapes.get(i);   
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(polygon.xmin);
 			raf_SHP_stream.writeLittleEndianDouble(polygon.ymin);
@@ -1709,7 +1701,7 @@ throws IOException
 		}
 		else if ( grshape_type == GRShape.POLYGON_LIST ) {
 			// Write as a polygon list...
-			polygonlist = (GRPolygonList)allShapes.elementAt(i);   
+			polygonlist = (GRPolygonList)allShapes.get(i);   
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(
 				polygonlist.xmin);
@@ -1749,8 +1741,7 @@ throws IOException
 			}
 		}
 		else {	Message.printWarning(2, 
-			"ESRIShapefile.writeSHPAndSHX",
-			"Error recognizing GR shape type " + grshape_type );
+			"ESRIShapefile.writeSHPAndSHX", "Error recognizing GR shape type " + grshape_type );
 			continue;
 		}
 	}

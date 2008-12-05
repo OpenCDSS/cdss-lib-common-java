@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 import RTi.DMI.DMI;
@@ -404,7 +405,7 @@ This method is called from readTimeSeries().
 @param req_date1 Requested first date/time (can be null).
 @param req_date2 Requested last date/time (can be null).
 */
-public Vector readDataChronListForSensorIDAndPeriod (	String sensorid,
+public List readDataChronListForSensorIDAndPeriod (	String sensorid,
 							DateTime req_date1,
 							DateTime req_date2 )
 throws Exception
@@ -429,7 +430,7 @@ throws Exception
 	}
 	// Also add wheres for the start and end dates if they are specified...
 	ResultSet rs = dmiSelect(q);
-	Vector v = toDataChronList (rs);
+	List v = toDataChronList (rs);
 	rs.close();
 	return v;
 }
@@ -449,12 +450,12 @@ public void readGlobalData () throws SQLException, Exception {
 Read the GroupDef records.
 @return a vector of objects of type DIADvisor_GroupDef.
 */
-public Vector readGroupDefList ()
+public List readGroupDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_GROUPDEF );
 	ResultSet rs = dmiSelect(q);
-	Vector v = toGroupDefList (rs);
+	List v = toGroupDefList (rs);
 	rs.close();
 	return v;
 }
@@ -468,7 +469,7 @@ This method is called from readTimeSeries().
 @param req_date1 Requested first date/time (can be null).
 @param req_date2 Requested last date/time (can be null).
 */
-private Vector readRegularTSRecordList (	String ts_table,
+private List readRegularTSRecordList (	String ts_table,
 						String sensorid,
 						DateTime req_date1,
 						DateTime req_date2 )
@@ -500,7 +501,7 @@ throws Exception
 	}
 	// Also add wheres for the start and end dates if they are specified...
 	ResultSet rs = dmiSelect(q);
-	Vector v = toRegularTSRecordList (rs);
+	List v = toRegularTSRecordList (rs);
 	rs.close();
 	return v;
 }
@@ -509,7 +510,7 @@ throws Exception
 Read SensorDef records for distinct group.
 @return a vector of objects of type DIADvisor_SensorDef.
 */
-public Vector readSensorDefListForDistinctGroup ()
+public List readSensorDefListForDistinctGroup ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	// Select from SensorDef
@@ -519,7 +520,7 @@ throws Exception
 	q.addOrderByClause("SensorDef.Group");
 	ResultSet rs = dmiSelect ( q );
 	// Transfer here instead of the toSensorDefList() method...
-	Vector v = new Vector();
+	List v = new Vector();
 	int index = 1;
 	String s;
 	DIADvisor_SensorDef data = null;
@@ -529,7 +530,7 @@ throws Exception
 		if ( !rs.wasNull() ) {
 			data.setGroup ( s.trim() );
 		}
-		v.addElement ( data );
+		v.add ( data );
 	}
 	rs.close();
 	return v;
@@ -547,12 +548,12 @@ throws Exception
 	q.addWhereClause ( "SensorDef." + _left_id_delim + "Sensor ID" +
 		_right_id_delim + "=" + SensorId ); 
 	ResultSet rs = dmiSelect(q);
-	Vector v = toSensorDefList (rs);
+	List v = toSensorDefList (rs);
 	rs.close();
 	if ( (v == null) || (v.size() < 1) ) {
 		return null;
 	}
-	else {	return (DIADvisor_SensorDef)v.elementAt(0);
+	else {	return (DIADvisor_SensorDef)v.get(0);
 	}
 }
 
@@ -560,12 +561,12 @@ throws Exception
 Read the SensorDef records.
 @return a vector of objects of type DIADvisor_SensorDef.
 */
-public Vector readSensorDefList ()
+public List readSensorDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SENSOR_DEF );
 	ResultSet rs = dmiSelect(q);
-	Vector v = toSensorDefList (rs);
+	List v = toSensorDefList (rs);
 	rs.close();
 	return v;
 }
@@ -574,13 +575,13 @@ throws Exception
 Read the SiteDef records.
 @return a vector of objects of type DIADvisor_SiteDef.
 */
-public Vector readSiteDefList ()
+public List readSiteDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SITE_DEF );
 	//q.addWhereClause ( "Area.MeasLoc_num=" + MeasLoc_num ); 
 	ResultSet rs = dmiSelect(q);
-	Vector v = toSiteDefList (rs);
+	List v = toSiteDefList (rs);
 	rs.close();
 	return v;
 }
@@ -595,12 +596,12 @@ throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SYS_CONFIG );
 	ResultSet rs = dmiSelect(q);
-	Vector v = toSysConfigList (rs);
+	List v = toSysConfigList (rs);
 	rs.close();
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
-	else {	return (DIADvisor_SysConfig)v.elementAt(0);
+	else {	return (DIADvisor_SysConfig)v.get(0);
 	}
 }
 
@@ -695,7 +696,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 		return ts;
 	}
 	// Read the data...
-	Vector data_records = null;
+	List data_records = null;
 	if ( is_regular ) {
 		if ( tsident.getScenario().equals("") ) {
 			data_records =__dmi_operational.readRegularTSRecordList(
@@ -746,23 +747,23 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 		// Set the date from the records...
 		if ( is_regular ) {
 			reg_data = (DIADvisor_RegularTSRecord)
-				data_records.elementAt(0);
+				data_records.get(0);
 			ts.setDate1(new DateTime(reg_data._StartTime));
 			ts.setDate1Original(new DateTime(reg_data._StartTime));
 
 			reg_data = (DIADvisor_RegularTSRecord)
-				data_records.elementAt(size - 1);
+				data_records.get(size - 1);
 			ts.setDate2(new DateTime(reg_data._StartTime));
 			ts.setDate2Original(new DateTime(reg_data._StartTime));
 			ts.allocateDataSpace();
 		}
 		else {	irreg_data = (DIADvisor_DataChron)
-				data_records.elementAt(0);
+				data_records.get(0);
 			ts.setDate1(new DateTime(irreg_data._DateTime));
 			ts.setDate1Original(new DateTime(irreg_data._DateTime));
 
 			irreg_data = (DIADvisor_DataChron)
-				data_records.elementAt(size - 1);
+				data_records.get(size - 1);
 			ts.setDate2(new DateTime(irreg_data._DateTime));
 			ts.setDate2Original(new DateTime(irreg_data._DateTime));
 			ts.allocateDataSpace();
@@ -783,7 +784,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 			// to increase performance...
 			if ( is_regular ) {
 				reg_data = (DIADvisor_RegularTSRecord)
-					data_records.elementAt(i);
+					data_records.get(i);
 				date.setDate ( reg_data._StartTime );
 				// Adjust so the time is the interval-ending
 				// time (DIADvisor uses the interval start,
@@ -797,7 +798,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 				// used as is.   Get the value depending on
 				// whether DataValue1 or DataValue2 are used...
 				irreg_data = (DIADvisor_DataChron)
-					data_records.elementAt(i);
+					data_records.get(i);
 				date.setDate ( irreg_data._DateTime );
 				flag = irreg_data._DataType;
 				if ( is_datavalue1 ) {
@@ -846,8 +847,8 @@ Convert a ResultSet to a Vector of DIADvisor_DataChron.
 @param rs ResultSet from a DataChron table query.
 query.
 */
-private Vector toDataChronList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toDataChronList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	double d;
 	int i;
@@ -895,7 +896,7 @@ private Vector toDataChronList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setComment(s.trim());
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }
@@ -904,8 +905,8 @@ private Vector toDataChronList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_GroupDef.
 @param rs ResultSet from a GroupDef table query.
 */
-private Vector toGroupDefList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toGroupDefList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	String s;
 	int i;
@@ -933,7 +934,7 @@ private Vector toGroupDefList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setDisplay(i);
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }
@@ -943,8 +944,8 @@ Convert a ResultSet to a Vector of DIADvisor_RegularTSRecord.
 @param rs ResultSet from a regular time series table (Hour, Day, Interval)
 query.
 */
-private Vector toRegularTSRecordList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toRegularTSRecordList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	double d;
 	int i;
@@ -971,7 +972,7 @@ private Vector toRegularTSRecordList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setCount(i);
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }
@@ -980,8 +981,8 @@ private Vector toRegularTSRecordList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SensorDef.
 @param rs ResultSet from a SensorDef table query.
 */
-private Vector toSensorDefList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toSensorDefList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	String s;
 	int i;
@@ -1124,7 +1125,7 @@ private Vector toSensorDefList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setEquation2(s.trim());
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }
@@ -1133,8 +1134,8 @@ private Vector toSensorDefList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SiteDef.
 @param rs ResultSet from a SiteDef table query.
 */
-private Vector toSiteDefList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toSiteDefList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	String s;
 	long l;
@@ -1192,7 +1193,7 @@ private Vector toSiteDefList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setLastUpdate(date);
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }
@@ -1201,8 +1202,8 @@ private Vector toSiteDefList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SysConfig.
 @param rs ResultSet from a SysConfig table query.
 */
-private Vector toSysConfigList ( ResultSet rs ) throws Exception
-{	Vector v = new Vector();
+private List toSysConfigList ( ResultSet rs ) throws Exception
+{	List v = new Vector();
 	int index = 1;
 	int i;
 	DIADvisor_SysConfig data = null;
@@ -1213,7 +1214,7 @@ private Vector toSysConfigList ( ResultSet rs ) throws Exception
 		if ( !rs.wasNull() ) {
 			data.setInterval(i);
 		}
-		v.addElement(data);
+		v.add(data);
 	}
 	return v;
 }

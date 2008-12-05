@@ -35,6 +35,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JCheckBox;
@@ -95,10 +96,9 @@ Reference to the text field label that appears in this component.
 private JTextField __field = null;
 
 /**
-The listeners that are registered to listen for this objects item state changed
-events.
+The listeners that are registered to listen for this objects item state changed events.
 */
-private Vector __listeners = null;
+private List __listeners = null;
 
 /**
 Constructor.
@@ -331,7 +331,7 @@ issued the event.
 public void itemStateChanged(ItemEvent e) {
 	ItemEvent newEvt = new ItemEvent(this, 0, null, e.getStateChange());
 	for (int i = 0; i < __listeners.size(); i++) {
-		ItemListener l = (ItemListener)__listeners.elementAt(i);
+		ItemListener l = (ItemListener)__listeners.get(i);
 		l.itemStateChanged(newEvt);
 	}
 }
@@ -416,7 +416,7 @@ Removes an item listener from the list of listeners.
 */
 public void removeItemListener(ItemListener listener) {
 	for (int i = 0; i < __listeners.size(); i++) {
-		if ((ItemListener)__listeners.elementAt(i) == listener) {
+		if ((ItemListener)__listeners.get(i) == listener) {
 			__listeners.remove(i);
 		}
 	}

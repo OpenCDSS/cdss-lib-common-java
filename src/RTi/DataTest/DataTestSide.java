@@ -17,7 +17,7 @@
 
 package RTi.DataTest;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.DMI.DMIUtil;
 
@@ -177,14 +177,14 @@ public abstract double evaluate(DateTime dateTime);
 
 /**
 Evaluates for a positive result, creating DataTestResults.  This is called once
-evalute() returns a TRUE value.
+evaluate() returns a TRUE value.
 @param test the DataTest in which the expression was evaluated.
 @param result the Vector into which DataTestResult objects are accumulated.
 @param testTime the date/time at which this side was evaluated.
 @param level the level of the DataTestResult, which determines its location
 within the overall expression tree.
 */
-public abstract void evaluatePositiveResult(DataTest test, Vector results, 
+public abstract void evaluatePositiveResult(DataTest test, List results, 
 DateTime testTime, int level);
 
 /**

@@ -24,7 +24,7 @@
 
 package RTi.GIS.GeoView;
 
-import java.util.Vector;
+import java.util.List;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Message.Message;
 import RTi.GR.GRLimits;
@@ -37,8 +37,8 @@ symbols can be more generally applied.
 */
 public class BigPictureLayer extends GeoLayer {
 
-private Vector _parent_geolayers;
-private Vector _parent_join_fields;
+private List _parent_geolayers;
+private List _parent_join_fields;
 private DataTable _big_picture_table;
 private GRLimits _big_picture_limits;
 
@@ -50,11 +50,10 @@ spatial information that is matched against the attributes.
 @param parent_join_fields Field names in the parent layers that contain the
 identifier field to join to.
 @param bigPictureTable DataTable containing delimited data.  The first field
-is the identifier, the second the name, and 3+ contain data attributes that
-can be plotted.
+is the identifier, the second the name, and 3+ contain data attributes that can be plotted.
 */
-public BigPictureLayer( String filename, Vector parent_geolayers,
-			Vector parent_join_fields, DataTable bigPictureTable )
+public BigPictureLayer( String filename, List parent_geolayers,
+			List parent_join_fields, DataTable bigPictureTable )
 {	super ( filename );
 	initialize( parent_geolayers, parent_join_fields, bigPictureTable );
 }
@@ -68,10 +67,8 @@ throws Exception
 	int num_fields = bigPictureTable.getNumberOfFields();
 	double ytmp;
 
-	double ymin = ((Double)bigPictureTable.getFieldValue ( 0, 2 )).
-		doubleValue();
-	double ymax = ((Double)bigPictureTable.getFieldValue ( 0, 2 )).
-		doubleValue();
+	double ymin = ((Double)bigPictureTable.getFieldValue ( 0, 2 )).doubleValue();
+	double ymax = ((Double)bigPictureTable.getFieldValue ( 0, 2 )).doubleValue();
 
 	for ( int i=0; i<num_records; i++ ) {
 		for ( int j=2; j<num_fields; j++ ) {
@@ -104,19 +101,15 @@ public DataTable getBigPictureTable () {
 	return _big_picture_table;
 }
 
-private void initialize (	Vector parent_geolayers,
-				Vector parent_join_fields,
-				DataTable bigPictureTable ) {
+private void initialize ( List parent_geolayers, List parent_join_fields, DataTable bigPictureTable ) {
 	_parent_geolayers = parent_geolayers;
 	_parent_join_fields = parent_join_fields;
 	_big_picture_table = bigPictureTable;
 	_shape_type = BIG_PICTURE;
 	try {
-		_limits = ((GeoLayer)parent_geolayers.elementAt(0)).
-			getLimits();
+		_limits = ((GeoLayer)parent_geolayers.get(0)).getLimits();
 	for ( int i=1; i<parent_geolayers.size(); i++ ) {
-		_limits = _limits.max (
-			((GeoLayer)parent_geolayers.elementAt(i)).getLimits());
+		_limits = _limits.max ( ((GeoLayer)parent_geolayers.get(i)).getLimits());
 	}
 	} catch ( Exception e2 ) {
 		Message.printWarning ( 1, "BigPictureLayer",
@@ -125,13 +118,12 @@ private void initialize (	Vector parent_geolayers,
 	try {
 	_big_picture_limits = computeBigPictureLimits ( bigPictureTable );
 	} catch ( Exception e )  {
-		Message.printWarning ( 1, "BigPictureLayer", 
-		"Problems computing limits of big picture data." );
+		Message.printWarning ( 1, "BigPictureLayer", "Problems computing limits of big picture data." );
 	}
 }
 
 public DataTable getAttributeTable(int index) {
-	return ((GeoLayer)_parent_geolayers.elementAt(index)).
+	return ((GeoLayer)_parent_geolayers.get(index)).
 		getAttributeTable();
 }
 
@@ -140,16 +132,15 @@ public GRLimits getBigPictureLimits ()
 }
 
 public String getJoinField(int index) {
-	return (String)_parent_join_fields.elementAt(index);
+	return (String)_parent_join_fields.get(index);
 }
 
 public int getNumAssociatedLayers ()
 {	return _parent_geolayers.size();
 }
 
-public Vector getShapes(int index) {
-	return ((GeoLayer)_parent_geolayers.elementAt(index)).
-		getShapes();
+public List getShapes(int index) {
+	return ((GeoLayer)_parent_geolayers.get(index)).getShapes();
 }
 
 } // End BigPictureLayer

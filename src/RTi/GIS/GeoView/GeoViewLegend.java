@@ -24,7 +24,7 @@
 package RTi.GIS.GeoView;
 
 import java.awt.Graphics;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.GR.GRAspect;
 import RTi.GR.GRColor;
@@ -109,7 +109,7 @@ Draw the symbols on the legend for the appropriate GeoLayerViews.  Symbols for
 Some layers are not drawn (e.g., basins).
 @param layerViews Vector of GeoLayerView that are drawn.
 */
-private void drawSymbols ( Vector layerViews )
+private void drawSymbols ( List layerViews )
 {	if ( layerViews == null ) {
 		return;
 	}
@@ -181,7 +181,7 @@ private void drawSymbols ( Vector layerViews )
 			continue;
 		}
 
-		layerView = (GeoLayerView)layerViews.elementAt(i);	
+		layerView = (GeoLayerView)layerViews.get(i);	
 		legend = layerView.getLegend();
 		if ( legend == null )  {
 			continue;
@@ -276,7 +276,7 @@ Determine which layers should have an entry in the legend.
 @return array of flags indicating whether the layer views should be in the
 legend.  Return null if the layer views Vector is null.
 */
-private boolean[] establishDrawLayerIndicator ( Vector layerViews )
+private boolean[] establishDrawLayerIndicator ( List layerViews )
 {	if ( layerViews == null ) {
 		return null;
 	}
@@ -290,7 +290,7 @@ private boolean[] establishDrawLayerIndicator ( Vector layerViews )
 	String layer_desc [] = new String[num_layers];
 	GRSymbol layer_symbol [] = new GRSymbol[num_layers]; 
 	for ( int i=0; i<num_layers; i++ ) {
-		layerView = (GeoLayerView)layerViews.elementAt(i);	
+		layerView = (GeoLayerView)layerViews.get(i);	
 		legend = layerView.getLegend();
 		if ( legend == null ) {
 			layer_indicator[i] = false;
