@@ -1,6 +1,6 @@
 package RTi.TS;
 
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.IO.MeasTimeScale;
 import RTi.Util.IO.PropList;
@@ -2027,7 +2027,7 @@ public class TSUtil_ChangeInterval {
 
         // Initialize the irregular data...
 
-        Vector alldata = oldts.getData();
+        List alldata = oldts.getData();
         if (alldata == null) {
             // No data...
             return newts;
@@ -2050,7 +2050,7 @@ public class TSUtil_ChangeInterval {
             sum = 0.0;
             count = 0;
             for (; i < iend; i++) {
-                data = (TSData) alldata.elementAt(i);
+                data = (TSData) alldata.get(i);
                 t = data.getDate();
                 if (Message.isDebugOn) {
                     Message.printDebug(dl, routine, "Processing IRRTS date " + t.toString(DateTime.FORMAT_Y2K_LONG));
@@ -2618,7 +2618,7 @@ public class TSUtil_ChangeInterval {
         if (Message.isDebugOn) {
             Message.printDebug(dl, routine, "Iterator start/end are: " + start + " " + end);
         }
-        Vector alldata = oldts.getData();
+        List alldata = oldts.getData();
         if (alldata == null) {
             // No data...
             return newts;
@@ -2626,7 +2626,7 @@ public class TSUtil_ChangeInterval {
         TSData data = null;
         int iend = alldata.size();
         for (int i = 0; i < iend; i++) {
-            data = (TSData) alldata.elementAt(i);
+            data = (TSData) alldata.get(i);
             t = data.getDate();
 
             if (Message.isDebugOn) {
