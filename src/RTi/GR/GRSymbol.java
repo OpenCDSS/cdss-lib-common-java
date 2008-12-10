@@ -74,11 +74,9 @@ Additional features may be added later to help with optimization of multi-symbol
 layout.
 NEED TO ADD DERIVED CLASSES TO STORE THE MORE SPECIFIC INFORMATION (like
 color table) SO THIS CLASS IS NOT SO BLOATED.
-REVISIT (JTS - 2003-05-05)
-color table has been moved out, but this still has a lot of stuff in it.
+TODO (JTS - 2003-05-05) color table has been moved out, but this still has a lot of stuff in it.
 does it need any anti-bloating?
-SAM:
-agree -- later
+SAM: agree -- later
 */
 public class GRSymbol
 implements Cloneable
