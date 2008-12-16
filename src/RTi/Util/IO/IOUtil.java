@@ -736,58 +736,68 @@ public static String getFileExtension ( String file )
 */
 
 /**
-@return The FileHeader associated with a file.  This information is used by
-processFileHeaders when tracking revisions to files.  Comment strings must
-start at the beginning of the line.
-@param filename The name of the file to process.
-@param comments An array of strings indicating valid comments.  For example:
-{"#", "*"}.
-@param ignore_comments An array of strings indicating valid comments which
+@deprecated Use version that operates on lists.
+*/
+public static FileHeader getFileHeader ( String filename, String[] commentIndicators,
+		String[] ignoredCommentIndicators, int flags )
+{
+	List commentIndicatorList = null;
+	if ( commentIndicators != null ) {
+		commentIndicatorList = StringUtil.toList(commentIndicators);
+	}
+	List ignoredCommentIndicatorList = null;
+	if ( ignoredCommentIndicators != null ) {
+		ignoredCommentIndicatorList = StringUtil.toList(ignoredCommentIndicators);
+	}
+	return getFileHeader ( filename, commentIndicatorList, ignoredCommentIndicatorList, flags );
+}
+
+/**
+@return The FileHeader associated with a file.  This information is used by processFileHeaders
+when tracking revisions to files.  Comment strings must start at the beginning of the line.
+@param fileName The name of the file to process.
+@param commentIndicators A list of strings indicating valid comment indicators.  For example: {"#", "*"}.
+@param ignoredCommentIndicators A list of strings indicating valid comments which
 should be ignored and which take precedence over "comments".  For example, "#>"
 might be used for comments that are written to a file each time it is revised
 but those comments are to be ignored each time the header is read.
 @param flags Currently unused.
 @see #processFileHeaders
 */
-public static FileHeader getFileHeader (	String filename,
-						String[] comments,
-						String[] ignore_comments,
-						int flags )
+public static FileHeader getFileHeader ( String fileName, List commentIndicators,
+						List ignoredCommentIndicators, int flags )
 {	String	routine = "IOUtil.getFileHeader", string;
-	int	dl = 30, header_first = -1, header_last = -1, header_revision,
-		i, len, revlen;
+	int	dl = 30, header_first = -1, header_last = -1, header_revision, i, len, revlen;
 	boolean	iscomment, isignore;
 
-// Need to handle error.
+	// Need to handle error.
 	
-	revlen		= HEADER_REVISION_STRING.length();
-	if ( filename == null ) {
+	revlen = HEADER_REVISION_STRING.length();
+	if ( fileName == null ) {
 		Message.printWarning ( 10, routine, "NULL file name pointer" );
 		return null;
 	}
-	if ( filename.length() == 0 ) {
+	if ( fileName.length() == 0 ) {
 		Message.printWarning ( 10, routine, "Empty file name" );
 		return null;
 	}
-	if ( !fileReadable(filename) ) {
-		Message.printWarning ( 10, routine,
-		"File \"" + filename + "\" is not readable" );
+	if ( !fileReadable(fileName) ) {
+		Message.printWarning ( 10, routine, "File \"" + fileName + "\" is not readable" );
 		return null;
 	}
-	if ( comments == null ) {
-		Message.printWarning ( 10, routine,
-		"Empty comment strings list" );
+	if ( commentIndicators == null ) {
+		Message.printWarning ( 10, routine, "Empty comment strings list" );
 		return null;
 	}
 
 	// Open the file...
 
 	BufferedReader fp = null;
-	try {	fp = new BufferedReader ( new FileReader(filename) );
+	try {
+		fp = new BufferedReader ( new FileReader(fileName) );
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 10, routine,
-		"Error opening file \"" + filename + "\" for reading." );
+		Message.printWarning ( 10, routine, "Error opening file \"" + fileName + "\" for reading." );
 		return null;
 	}
 
@@ -796,11 +806,12 @@ public static FileHeader getFileHeader (	String filename,
 	
 	FileHeader header = new FileHeader ();
 
-	int length_comments = comments.length;
+	int length_comments = commentIndicators.size();
 	int linecount = 0;
 	while ( true ) {
 		++linecount;
-		try {	string = fp.readLine ();
+		try {
+			string = fp.readLine ();
 			if ( string == null ) {
 				break;
 			}
@@ -810,33 +821,30 @@ public static FileHeader getFileHeader (	String filename,
 			break;
 		}
 		// First, find out if the line is a comment.  It is if the
-		// first part of the string exactly matches any of the comment
-		// strings.
+		// first part of the string exactly matches any of the comment strings.
 		iscomment = false;
 		boolean revision_start = false;
 		int comment_length = 0;
 		for ( i = 0; i < length_comments; i++ ) {
 			// Find the length of the comment string...
-			comment_length = comments[i].length();
+			comment_length = ((String)commentIndicators.get(i)).length();
 			if ( comment_length < 1 ) {
 				continue;
 			}
 			// Allow characters too so do a regionMatches...
-			revision_start = string.regionMatches(true,0,
-				comments[i],0,comments[i].length() );
+			revision_start = string.regionMatches(true,0,(String)commentIndicators.get(i),0,
+				((String)commentIndicators.get(i)).length() );
 			if ( revision_start ) {
 				// Found a match...
 				iscomment	= true;
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 50, routine,
-					"Found comment at line " + linecount );
+					Message.printDebug ( 50, routine, "Found comment at line " + linecount );
 				}
 				break;
 			}
 		}
-		// If we do not have a comment, then there is no need to
-		// continue in this loop because we are out of the comments
-		// section in the file...
+		// If we do not have a comment, then there is no need to continue in this loop because
+		// we are out of the comments section in the file...
 		if ( !iscomment ) {
 			break;
 		}
@@ -845,52 +853,41 @@ public static FileHeader getFileHeader (	String filename,
 		String revision_string;
 		if ( (comment_length + revlen) <= string.length() ) {
 			// There might be a header string
-			revision_string = string.substring(comment_length,
-					(comment_length + revlen));
+			revision_string = string.substring(comment_length, (comment_length + revlen));
 		}
-		else {	revision_string = string.substring(comment_length);
+		else {
+			revision_string = string.substring(comment_length);
 		}
-		if (	revision_string.equals(HEADER_REVISION_STRING) ) {
-			/*
-			** This is a header revision line so read the revision
-			** number from the string...
-			*/
-			revision_string = string.substring(
-					comment_length + revlen + 1);
+		if ( revision_string.equals(HEADER_REVISION_STRING) ) {
+			// This is a header revision line so read the revision number from the string...
+			revision_string = string.substring(	comment_length + revlen + 1);
 			header_revision = StringUtil.atoi ( revision_string );
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-				"Found header revision " + header_revision +
-				"from \"" + string + "\"" );
+				"Found header revision " + header_revision + "from \"" + string + "\"" );
 			}
-			header_first = Math.min
-				(header_first, header_revision);
-			header_last = Math.max
-				(header_last, header_revision);
+			header_first = Math.min(header_first, header_revision);
+			header_last = Math.max(header_last, header_revision);
 		}
 		// Now determine whether this is a comment that can be ignored.
 		// If so, we just do not add it to the list...
 		isignore = false;
-		if ( ignore_comments != null ) {
-			for ( i = 0; i < ignore_comments.length; i++ ) {
+		if ( ignoredCommentIndicators != null ) {
+			for ( i = 0; i < ignoredCommentIndicators.size(); i++ ) {
 				// Find the length of the comment string...
-				len = ignore_comments[i].length();
+				len = ((String)ignoredCommentIndicators.get(i)).length();
 				String ignore_substring;
 				if ( len <= string.length() ) {
-					ignore_substring =
-					string.substring(0,len);
+					ignore_substring = string.substring(0,len);
 				}
-				else {	ignore_substring =
-					string.substring(0);
+				else {
+					ignore_substring = string.substring(0);
 				}
-				if(ignore_substring.equals(ignore_comments[i])){
+				if(ignore_substring.equals((String)ignoredCommentIndicators.get(i))){
 					// Found a match...
 					isignore = true;
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Ignoring: \"" + string +
-						"\"" );
+						Message.printDebug ( dl, routine, "Ignoring: \"" + string + "\"" );
 					}
 					break;
 				}
@@ -898,30 +895,26 @@ public static FileHeader getFileHeader (	String filename,
 		}
 		// If the comment is to be ignored, read another line...
 		if ( isignore ) {
-			// continue;
-			
-			// don't want to read anyfurther.  First ignored
+			// Don't want to read any further.  First ignored
 			// comment indicates the entire header has been read
 			break;
 		}
 		// If we have gotten to here, add the line to the list...
 		string = StringUtil.removeNewline ( string );
 		header.addElement ( string );
-		/*
-		need to trap error
-		if ( list == (char **)NULL ) {
-			HMPrintWarning ( 10, routine,
-			"Error adding to string list" );
-		}
-		*/
+		//FIXME SAM 2008-12-11 need to trap error
+		//if ( list == (char **)NULL ) {
+		//	HMPrintWarning ( 10, routine, "Error adding to string list" );
+		//}
 	}
 
-	try {	fp.close ();
+	try {
+		fp.close ();
 	}
 	catch ( Exception e ) {
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "\"" + filename + "\":  " +
+		Message.printDebug ( dl, routine, "\"" + fileName + "\":  " +
 		header.size() + " lines in header" );
 	}
 	header.setHeaderFirst ( header_first );
@@ -1973,6 +1966,35 @@ throws IOException
 }
 
 /**
+@deprecated Use the overloaded version that uses List parameters.
+@param oldFile
+@param newFile
+@param newComments
+@param commentIndicators
+@param ignoredCommentIndicators
+@param flags
+@return PrintWriter to allow additional writing to the file.
+*/
+public static PrintWriter processFileHeaders ( String oldFile, String newFile,
+		String [] newComments, String [] commentIndicators, String [] ignoredCommentIndicators, int flags )
+{
+	List newCommentList = null;
+	List commentIndicatorList = null;
+	List ignoreCommentIndicatorList = null;
+	if ( newComments != null ) {
+		newCommentList = StringUtil.toList(newComments);
+	}
+	if ( commentIndicators != null ) {
+		commentIndicatorList = StringUtil.toList(commentIndicators);
+	}
+	if ( ignoredCommentIndicators != null ) {
+		ignoreCommentIndicatorList = StringUtil.toList(ignoredCommentIndicators);
+	}
+	return processFileHeaders ( oldFile, newFile,
+		newCommentList, commentIndicatorList, ignoreCommentIndicatorList, flags );
+}
+
+/**
 This method should be used to process the header of a file that is going through
 revisions over time.  It can be used short of full revision control on the file.
 The old file header will be copied to the new file using special comments
@@ -1989,26 +2011,22 @@ The initial header will be number 0.
 @return PrintWriter for the file (it will be opened and processed so that the
 new file header consists of the old header with new comments at the top).  The
 file can then be written to.  Return null if the new file cannot be opened.
-@param oldfile An existing file whose header is to be updated.
-@param newfile The name of the new file that is to contain the updated header
+@param oldFile An existing file whose header is to be updated.
+@param newFile The name of the new file that is to contain the updated header
 (and will be pointed to by the returned PrintWriter (it can be the same as
 "oldfile").  If the name of the file ends in XML then the file is assumed to
 be an XML file and the header is wrapped in <!-- --> (this may change to actual
 XML tags in the future).
-@param newcomments Array of strings to be added as comments in the new
-revision (often null).
-@param comment_strings Array of strings that indicate comment lines that should
+@param newComments list of strings to be added as comments in the new revision (often null).
+@param commentIndicators list of strings that indicate comment lines that should
 be retained in the next revision.
-@param ignore_comment_strings Array of strings that indicate comment lines that
+@param ignoredCommentIndicators list of strings that indicate comment lines that
 can be ignored in the next revision (e.g., lines that describe the file format
 that only need to appear once).
 @param flags Currently unused.
 */
-public static PrintWriter processFileHeaders (	String oldfile, String newfile,
-						String[] newcomments,
-						String[] comment_strings,
-						String[] ignore_comment_strings,
-						int flags )
+public static PrintWriter processFileHeaders ( String oldFile, String newFile, List newComments,
+		List commentIndicators, List ignoredCommentIndicators, int flags )
 {	String comment;
 	String routine = "IOUtil.processFileHeaders";
 	FileHeader oldheader;
@@ -2018,19 +2036,19 @@ public static PrintWriter processFileHeaders (	String oldfile, String newfile,
 
 	// Get the old file header...
 
-	if ( oldfile == null ) {
+	if ( oldFile == null ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "NULL old file - no old header" );
 		}
 		oldheader = null;
 	}
-	else if ( oldfile.length() == 0 ) {
+	else if ( oldFile.length() == 0 ) {
 		Message.printWarning ( dl, routine, "Empty old file - no old header" );
 		oldheader = null;
 	}
 	else {
 	    // Try to get the header...
-		oldheader = getFileHeader (	oldfile, comment_strings, ignore_comment_strings, 0 );
+		oldheader = getFileHeader (	oldFile, commentIndicators, ignoredCommentIndicators, 0 );
 		if ( oldheader != null ) {
 			header_last = oldheader.getHeaderLast();
 		}
@@ -2039,24 +2057,24 @@ public static PrintWriter processFileHeaders (	String oldfile, String newfile,
 	// Open the new output file...
 
 	try {
-	    ofp = new PrintWriter ( new FileOutputStream(newfile) );
-		if ( StringUtil.endsWithIgnoreCase(newfile,".xml") ) {
+	    ofp = new PrintWriter ( new FileOutputStream(newFile) );
+		if ( StringUtil.endsWithIgnoreCase(newFile,".xml") ) {
 			is_xml = true;
 		}
 	}
 	catch ( Exception e ) {
-		e.printStackTrace();
-		Message.printWarning ( wl, routine, "Unable to open output file \"" + newfile + "\"" );
+		Message.printWarning ( 3, routine, e );
+		Message.printWarning ( wl, routine, "Unable to open output file \"" + newFile + "\"" );
 		return null;
 	}
 
 	// Print the new file header.  If a comment string is not specified, use the default...
 
-	if ( (comment_strings == null) || (comment_strings.length == 0) ) {
+	if ( (commentIndicators == null) || (commentIndicators.size() == 0) ) {
 		comment = UNIVERSAL_COMMENT_STRING;
 	}
 	else {
-	    comment = comment_strings[0];
+	    comment = (String)commentIndicators.get(0);
 	}
 	header_revision = header_last + 1;
 	if ( is_xml ) {
@@ -2074,19 +2092,18 @@ public static PrintWriter processFileHeaders (	String oldfile, String newfile,
 	}
 	printCreatorHeader ( ofp, comment, 80, 0, props );
 
-	// Now print essential comments for this revision.  These strings do
-	// not have the comment prefix...
+	// Now print essential comments for this revision.  These strings do not have the comment prefix...
 
-	if ( newcomments != null ) {
-		if ( newcomments.length > 0 ) {
+	if ( newComments != null ) {
+		if ( newComments.size() > 0 ) {
 			if ( is_xml ) {
 				ofp.println ( comment );
 			}
 			else {
 			    ofp.println ( comment + "----" );
 			}
-			for ( i = 0; i < newcomments.length; i++ ) {
-				ofp.println ( comment + " " + newcomments[i] );
+			for ( i = 0; i < newComments.size(); i++ ) {
+				ofp.println ( comment + " " + newComments.get(i) );
 			}
 		}
 	}
