@@ -40,64 +40,78 @@ class MessageImpl
 /**
 Maximum number of output files to receive Message output.
 */
-protected int MAX_FILES	 	= 5;
-							// debugging being done.
-							// Set to true in
-							// command-line parsing
-							// code if setDebug is
-							// called.
+protected int MAX_FILES = 5;
 
 /**
 Show the message tags.  This is only used internally since properties are being
 phased in to set behavior. 
 */
-protected int __SHOW_MESSAGE_TAG	= 0x10;
+protected int __SHOW_MESSAGE_TAG = 0x10;
 
-						
-protected boolean 		_initialized = false;	// Initialize the data.
-protected JFrame 		_top_level = null;	// JFrame when a GUI
-							// application.
-protected int 		_flag = 0;		// Controls the
-							// appearance of
-							// messages.
-protected int [] 		_debug_level;		// Debug levels for the
-							// different output
-							// streams.
-protected int [] 		_status_level;		// Status levels for the
-							// different output
-							// streams.
-protected int [] 		_warning_level;		// Warning levels for
-							// the different output
-							// streams.
-protected Method [] 	_method;		// Methods to receive
-							// output for the
-							// different streams.
-protected boolean		_method_registered;	// Indicates if any
-							// methods (functions)
-							// have been registered
-							// to receive output.
-protected Object [] 	_object;		// Associated with
-							// _method.
-protected String 		_newline;		// Newline character to
-							// use for output.
-protected String 		_prefix;		// Prefix to use for
-							// messages.
-protected String 		_suffix;		// Suffix to use for
-							// messages.
-protected PrintWriter [] 	_out_stream;		// Output streams for
-							// file output.
-protected String		_logfile;		// Name of log file
-							// (perhaps at some
-							// point track names of
-							// all output
-							// receivers?).
-protected PropList		_props = new PropList ("Message.props");
-							// Properties to control
-							// display of messages,
-							// especially warnings.
-protected boolean		_show_warning_dialog;	// Use to increase
-							// performance rather
-							// than hit proplist.
+/**
+Indicates if the Message class has been initialized.
+*/
+protected boolean _initialized = false;
+/**
+JFrame when a GUI application, to allow message dialogs to be on top.
+*/
+protected JFrame _top_level = null;
+/**
+Controls the appearance of messages.
+*/
+protected int _flag = 0;
+/**
+Debug levels for the different output streams.
+*/
+protected int [] _debug_level;
+/**
+Status levels for the different output streams.
+*/
+protected int [] _status_level;
+/**
+Warning levels for the different output streams.
+*/
+protected int [] _warning_level;
+/**
+Methods to receive output for the different streams.
+*/
+protected Method [] _method;
+/**
+Indicates if any methods (functions) have been registered to receive output.
+*/
+protected boolean _method_registered;
+/**
+Associated with _method.
+*/
+protected Object [] _object;
+/**
+Newline character to use for output.
+*/
+protected String _newline;
+/**
+Prefix to use for messages.
+*/
+protected String _prefix;
+/**
+Suffix to use for messages.
+*/
+protected String _suffix;
+/**
+Output streams for file output.
+*/
+protected PrintWriter [] _out_stream;
+/**
+Name of log file (perhaps at some point track names of all output receivers?).
+*/
+protected String _logfile;
+/**
+Properties to control display of messages, especially warnings.
+*/
+protected PropList _props = new PropList ("Message.props");
+/**
+Use to increase performance rather than hit proplist.
+*/
+protected boolean _show_warning_dialog;
 
 protected List _messageLogListeners;
 
@@ -117,8 +131,7 @@ protected void addMessageLogListener(MessageLogListener listener) {
 }
 
 /**
-Flush and close the log file associated with Message.LOG_OUTPUT, if it has
-been opened.
+Flush and close the log file associated with Message.LOG_OUTPUT, if it has been opened.
 */
 protected void closeLogFile ()
 {	if ( _out_stream[Message.LOG_OUTPUT] != null ) {
@@ -129,8 +142,7 @@ protected void closeLogFile ()
 }
 
 /**
-Flush the output buffers.  It does not appear that this method has any effect
-on some systems.
+Flush the output buffers.  It does not appear that this method has any effect on some systems.
 @param flag Currently unused.
 */
 protected void flushOutputFiles ( int flag )
@@ -146,8 +158,7 @@ protected void flushOutputFiles ( int flag )
 
 /**
 Return the debug level for an output stream.
-@return The debug level for an output stream number (specified by a *_OUTPUT
-value).
+@return The debug level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 protected int getDebugLevel ( int i )
@@ -179,8 +190,7 @@ protected List getMessageLogListeners() {
 }
 
 /**
-Return the value of a Message property.  See setPropValue() for a description of
-valid properties.
+Return the value of a Message property.  See setPropValue() for a description of valid properties.
 @return the property value or null if not defined.
 */
 protected String getPropValue ( String key )
@@ -192,8 +202,7 @@ protected String getPropValue ( String key )
 
 /**
 Return the status level for an output stream.
-@return The status level for an output stream number (specified by a *_OUTPUT
-value).
+@return The status level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 protected int getStatusLevel ( int i )
@@ -205,8 +214,7 @@ protected int getStatusLevel ( int i )
 
 /**
 Return the warning level for an output stream.
-@return The warning level for an output stream number (specified by a *_OUTPUT
-value).
+@return The warning level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 protected int getWarningLevel ( int i )
@@ -225,19 +233,19 @@ protected void initialize()
 	}
 	// For now we want to show the routine and flush the output.  For
 	// performance, we will likely turn flushing off at some point...
-	_debug_level 	= new int[MAX_FILES];
-	_flag		= Message.GUI_FOR_WARNING_1 | Message.SHOW_ROUTINE | Message.FLUSH_OUTPUT;
-	_logfile	= "";
-	_method		= new Method[MAX_FILES];
+	_debug_level = new int[MAX_FILES];
+	_flag = Message.GUI_FOR_WARNING_1 | Message.SHOW_ROUTINE | Message.FLUSH_OUTPUT;
+	_logfile = "";
+	_method = new Method[MAX_FILES];
 	_method_registered = false;
-	_newline	= System.getProperty( "line.separator" );
-	_object		= new Object[MAX_FILES];
-	_out_stream 	= new PrintWriter[MAX_FILES];
-	_prefix		= "";
+	_newline = System.getProperty( "line.separator" );
+	_object = new Object[MAX_FILES];
+	_out_stream = new PrintWriter[MAX_FILES];
+	_prefix = "";
 	_show_warning_dialog = true;
-	_status_level 	= new int[MAX_FILES];
-	_suffix		= "";
-	_warning_level 	= new int[MAX_FILES];
+	_status_level = new int[MAX_FILES];
+	_suffix = "";
+	_warning_level = new int[MAX_FILES];
 	_messageLogListeners = new Vector();
 
 	initStreams();
@@ -252,20 +260,19 @@ protected void initialize()
 
 	_props.set ( "ShowWarningDialog=true" );
 	_props.set ( "WarningDialogOKNoMoreButton=false" );
-	_props.set ( "WarningDialogOKNoMoreButtonLabel=" +
-			"OK - Do Not Show More Warnings" );
+	_props.set ( "WarningDialogOKNoMoreButtonLabel=OK - Do Not Show More Warnings" );
 	_props.set ( "ShowMessageLevel=false" );
 	_props.set ( "ShowMessageTag=false" );
 }
 
 protected void initStreams() {
     for( int i=0; i<MAX_FILES; i++ ){
-		_out_stream[i]		= null;
-		_method[i]		= null;
-		_object[i]		= null;
-		_debug_level[i] 	= 0;
-		_status_level[i]	= 1;	// Default is some status
-		_warning_level[i]	= 1;	// Default is some warning
+		_out_stream[i] = null;
+		_method[i] = null;
+		_object[i] = null;
+		_debug_level[i] = 0;
+		_status_level[i] = 1; // Default is some status
+		_warning_level[i] = 1; // Default is some warning
 	}
 
 	// Set the output stream for terminal so that we can debug initial
@@ -292,15 +299,13 @@ throws IOException
 	String program_name = IOUtil.getProgramName();
 	if ( program_name == null ) {
 		// No program name set...
-		message =
-		"No program name set.  Cannot use default log file name.";
+		message = "No program name set.  Cannot use default log file name.";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
 	if ( program_name.length() == 0 ) {
 		// No program name set...
-		message = "Program name is zero-length.  Cannot use default" +
-		" log file name.";
+		message = "Program name is zero-length.  Cannot use default log file name.";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
@@ -320,62 +325,9 @@ throws IOException
 {	if( !_initialized ){
 		initialize();
 	}
-	// The following will throw an IOException if there is an error...
-	return openLogFile ( logfile, 0 );
-}
-
-/**
-Open the log file.
-Because no log file is specified, the name of the log file will default to
-the program name and the extension ".log" (set with IOUtil.setProgramName).
-@see RTi.Util.IO.IOUtil#setProgramName
-@return The PrintWriter corresponding to the log file.
-@exception IOException if there is an error opening the log file.
-@deprecated Use the version that has no flag argument.
-*/
-protected PrintWriter openLogFile ( int flag )
-throws IOException
-{	String message = null, routine = "Message.openLogFile";
-	if( !_initialized ){
-		initialize();
-	}
-	String program_name = IOUtil.getProgramName();
-	if ( program_name == null ) {
-		// No program name set...
-		message =
-		"No program name set.  Cannot use default log file name.";
-		Message.printWarning ( 2, routine, message );
-		throw new IOException ( message );
-	}
-	if ( program_name.length() == 0 ) {
-		// No program name set...
-		message = "Program name is zero-length.  Cannot use default" +
-		" log file name.";
-		Message.printWarning ( 2, routine, message );
-		throw new IOException ( message );
-	}
-	// The following will throw an IOException if an error occurs...
-	return openLogFile ( program_name, flag );
-}
-
-/**
-Open the log file.  The log file name must be specified.  After opening a basic
-file header is printed using IOUtil.printCreatorHeader.
-@return The PrintWriter corresponding to the log file.
-@exception IOException if there is an error opening the log file.
-@deprecated Use the version that has a String as an argument.
-@param logfile Name of log file to open.
-@param flag Unused (may be deprecated in future).
-REVISIT JAVADOC: see RTi.Util.IO.IOUtil.printCreatorHeader
-*/
-protected PrintWriter openLogFile ( String logfile, int flag )
-throws IOException
-{	String	routine = "Message.openLogFile";
+	String	routine = "Message.openLogFile";
 	String	message = null;
 
-	if( !_initialized ) {
-		initialize();
-	}
 	if ( logfile == null ) {
 		message = "Null log file.  Not opening log file.";
 		Message.printWarning ( 2, routine, message );
@@ -387,7 +339,8 @@ throws IOException
 		throw new IOException ( message );
 	}
 	PrintWriter ofp = null;
-	try {	ofp = new PrintWriter( new FileWriter(logfile));
+	try {
+		ofp = new PrintWriter( new FileWriter(logfile));
 		Message.setOutputFile( Message.LOG_OUTPUT, ofp);
 	}
 	catch( IOException e ){
@@ -418,8 +371,7 @@ throws IOException
 	// Write the log file information...
 
 	ofp.println ( "#" );
-	ofp.println ( "# " + logfile + " - " + IOUtil.getProgramName() +
-	" log file" );
+	ofp.println ( "# " + logfile + " - " + IOUtil.getProgramName() + " log file" );
 	ofp.println ( "#" );
 	IOUtil.printCreatorHeader ( ofp, "#", 80, 0 );
 	return ofp;
@@ -449,25 +401,27 @@ protected void printDebug( int level, String routine, String message )
 	if( (_flag & Message.SHOW_MESSAGE_LEVEL) != 0 ){
 		dlstring = "[" + level + "]";
 	}
-	else {	dlstring = "";
+	else {
+		dlstring = "";
 	}
 	String routine_string = null;
 	if ( routine != null ) {
 		if( (_flag & Message.SHOW_ROUTINE) != 0 ){
 			routine_string = "(" + routine + ")";
 		}
-		else {	routine_string = "";
+		else {
+			routine_string = "";
 		}
 	}
-	else {	routine_string = "";
+	else {
+		routine_string = "";
 	}
 	
 	Object [] arg_list = null;
 
 	// Format the final string...
 
-	String message2 = _prefix + "Debug" + dlstring + routine_string + 
-			": " + message + _suffix;
+	String message2 = _prefix + "Debug" + dlstring + routine_string + ": " + message + _suffix;
 
 	// Only do the following if methods are registered...
 	if ( _method_registered ) {
@@ -478,17 +432,16 @@ protected void printDebug( int level, String routine, String message )
 	}
 
 	for( int i=0; i<MAX_FILES; i++ ){
-		if( 	_out_stream[i] != null && 
-			level <= _debug_level[i] ){
+		if( _out_stream[i] != null && level <= _debug_level[i] ){
 			_out_stream[i].print( message2 + _newline );
 			if ( (_flag & Message.FLUSH_OUTPUT) != 0 ) {
 				_out_stream[i].flush();
 			}
 		}
 
-		if ( 	(_method[i] != null) && (_object[i] != null) &&
-			(level <= _debug_level[i]) ){
-			try {	_method[i].invoke( _object[i], arg_list );
+		if ( (_method[i] != null) && (_object[i] != null) && (level <= _debug_level[i]) ){
+			try {
+				_method[i].invoke( _object[i], arg_list );
 			}
 			catch( Exception e ){
 				printDebug ( level, routine, e );
@@ -517,15 +470,15 @@ protected void printDebug ( int level, String routine, Throwable e )
 {	if( !_initialized ) {
 		initialize();
 	}
-	printDebug ( level, routine,
-	"Exception stack trace follows (see log file)..." );
+	printDebug ( level, routine, "Exception stack trace follows (see log file)..." );
 	if ( e != null ) {
 		printDebug ( level, routine, e.getMessage() );
 		if( _out_stream[Message.LOG_OUTPUT] != null ) {
 			e.printStackTrace ( _out_stream[Message.LOG_OUTPUT] );
 		}
 	}
-	else {	printDebug ( level, routine, "Null Throwable." );
+	else {
+		printDebug ( level, routine, "Null Throwable." );
 	}
 	printDebug ( level, routine, "... end of exception stack trace." );
 }
@@ -542,10 +495,8 @@ protected void printMessageLevels ( )
 }
 
 /**
-Print information about the registered message levels using the current message
-settings.
-@param flag If true, print using status messages.  If false, print to the
-system standard output.
+Print information about the registered message levels using the current message settings.
+@param flag If true, print using status messages.  If false, print to the system standard output.
 */
 protected void printMessageLevels ( boolean flag )
 {	int	i;
@@ -559,79 +510,64 @@ protected void printMessageLevels ( boolean flag )
 		printStatus ( 1, "", "" );
 		printStatus ( 1, "", "Is debug turned on:  " + Message.isDebugOn );
 		printStatus ( 1, "", "" );
-		printStatus ( 1, "",
-		"-------------------------------------------------");
-		printStatus ( 1, "",
-		"File  Debug   Status  Warning  File      Function");
-		printStatus ( 1, "",
-		"#     Level   Level   Level    Attached  Attached");
-		printStatus ( 1, "",
-		"-------------------------------------------------");
+		printStatus ( 1, "", "-------------------------------------------------");
+		printStatus ( 1, "", "File  Debug   Status  Warning  File      Function");
+		printStatus ( 1, "", "#     Level   Level   Level    Attached  Attached");
+		printStatus ( 1, "", "-------------------------------------------------");
 		for ( i = 0; i < MAX_FILES; i++ ) {
 			string = 
 			StringUtil.formatString(i,"%-3d") + "   " +
-			StringUtil.formatString( _debug_level[i], "%-5d") +
-			"   " +
-			StringUtil.formatString ( _status_level[i], "%-5d") +
-			"   " +
-			StringUtil.formatString ( _warning_level[i], "%-5d") +
-			"    ";
-			// Now indicate whether files are attached for the
-			// different message types.  Since we have updated so
-			// that all the types go to the same file, just output
-			// one (unlike C version).
+			StringUtil.formatString( _debug_level[i], "%-5d") +	"   " +
+			StringUtil.formatString ( _status_level[i], "%-5d") + "   " +
+			StringUtil.formatString ( _warning_level[i], "%-5d") + "    ";
+			// Now indicate whether files are attached for the different message types.
+			// Since all the types go to the same file, just output one.
 			if ( _out_stream[i] != null ) {
 				string = string + "  Y       ";
 			}
-			else {	string = string + "          ";
+			else {
+				string = string + "          ";
 			}
-			// Now indicate whether functions are attached for the
-			// different message types...
+			// Now indicate whether functions are attached for the different message types...
 			if ( _method[i] != null ) {
 				string = string + "  Y  ";
 			}
-			else {	string = string + "     ";
+			else {
+				string = string + "     ";
 			}
 			printStatus ( 1, "", string );
 		}
 	}
-	else {	// Print to the system...
+	else {
+		// Print to the system...
 		PrintWriter fp = new PrintWriter ( System.out, true );
 	
 		fp.println ();
-		fp.println (
-		"-------------------------------------------------");
-		fp.println (
-		"File  Debug   Status  Warning  File      Function");
-		fp.println (
-		"#     Level   Level   Level    Attached  Attached");
-		fp.println (
-		"-------------------------------------------------");
+		fp.println ( "-------------------------------------------------");
+		fp.println ( "File  Debug   Status  Warning  File      Function");
+		fp.println ( "#     Level   Level   Level    Attached  Attached");
+		fp.println ( "-------------------------------------------------");
 		for ( i = 0; i < MAX_FILES; i++ ) {
 			string =
 			StringUtil.formatString(i,"%-3d") + "   " +
-			StringUtil.formatString( _debug_level[i], "%-5d") +
-			"   " +
-			StringUtil.formatString ( _status_level[i], "%-5d") +
-			"   " +
-			StringUtil.formatString ( _warning_level[i], "%-5d") +
-			"    ";
-			// Now indicate whether files are attached for the
-			// different message types.  Since we have updated so
-			// that all the types go to the same file, just output
-			// one (unlike C version).
+			StringUtil.formatString( _debug_level[i], "%-5d") + "   " +
+			StringUtil.formatString ( _status_level[i], "%-5d") + "   " +
+			StringUtil.formatString ( _warning_level[i], "%-5d") + "    ";
+			// Now indicate whether files are attached for the different message types.
+			// Since all the types go to the same file, just output one.
 			if ( _out_stream[i] != null ) {
 				string = string + "  Y  ";
 			}
-			else {	string = string + "     ";
+			else {
+				string = string + "     ";
 			}
 			string = string + "     ";
-			// Now indicate whether functions are attached for the
-			// different message types...
+			// Now indicate whether functions are attached for the different message types...
 			if ( _method[i] != null ) {
 				string = string + "  Y  ";
 			}
-			else {	string = string + "     ";
+			else {
+				string = string + "     ";
 			}
 			fp.println ( string );
 		}
@@ -657,7 +593,8 @@ protected void printStatus ( int level, String routine, String message )
 	if( (_flag & Message.SHOW_MESSAGE_LEVEL) != 0 ){
 		slstring = "[" + level + "]";
 	}
-	else {	slstring = "";
+	else {
+		slstring = "";
 	}
 	String routine_string = "";
 	if ( routine != null ) {
@@ -674,8 +611,7 @@ protected void printStatus ( int level, String routine, String message )
 
 	// Format the final string...
 
-	String message2 = _prefix + "Status" + slstring + routine_string + 
-			": " + message + _suffix;
+	String message2 = _prefix + "Status" + slstring + routine_string + ": " + message + _suffix;
 
 	if ( _method_registered ) {
 		arg_list = new Object[3];
@@ -691,19 +627,11 @@ protected void printStatus ( int level, String routine, String message )
 	}
 
 	for( int i=0; i<MAX_FILES; i++ ){
-		if( 	(_out_stream[i] != null) && 
-			(level <= _status_level[i]) ){
-// JTS - put this IOUtil.testing() code in around June 2005 -- leaving it
-// in for now because it allows some easy benchmarking of times.  
-//			if (IOUtil.testing()) {
-//				message2 = "[" + now.toString() + "] " 
-//					+ message2;
-//			}
+		if( (_out_stream[i] != null) && (level <= _status_level[i]) ){
 			_out_stream[i].print( message2 + _newline );
 			_out_stream[i].flush();
 		}
-		if( 	(_method[i] != null && _object[i] != null) &&
-			(level <= _status_level[i]) ){
+		if( (_method[i] != null && _object[i] != null) && (level <= _status_level[i]) ){
 			try {
 				_method[i].invoke( _object[i], arg_list );
 			}
@@ -725,14 +653,13 @@ protected void printStatus ( int level, String routine, String message )
 }
 
 /**
-This routine calls printWarning but allows the developer to specify a
+This method calls printWarning but allows the developer to specify a
 different _top_level frame from the preset top level frame.  This is useful
 when you are printing a warning of level 1 and want to specify which window
 that WarningDialog should be associated with, without changing the top
 level window that should be typically used.
 */
-protected void printWarning ( int level, String routine, String message,
-	JFrame top_level )
+protected void printWarning ( int level, String routine, String message, JFrame top_level )
 {	// Save current global top level JFrame...
 	JFrame permanent_top_level = _top_level;
 
@@ -762,12 +689,10 @@ Print a warning message to the registered output receivers.
 the message if the ShowMessageLevel property is "true".
 @param tag A tag to be printed with the message.  The tag will be printed with
 the message if the ShowMessageTag property is "true".
-@param routine Name of the routine printing the message.  If blank the routine
-will not be printed.
+@param routine Name of the routine printing the message.  If blank the routine will not be printed.
 @param message Warning message.
 */
-protected void printWarning (	int level, String tag, String routine,
-					String message )
+protected void printWarning ( int level, String tag, String routine, String message )
 {	if ( !_initialized ){
 		initialize();
 	}
@@ -776,14 +701,16 @@ protected void printWarning (	int level, String tag, String routine,
 	if( (_flag & Message.SHOW_MESSAGE_LEVEL) != 0 ){
 		wlstring = "[" + level + "]";
 	}
-	else {	wlstring = "";
+	else {
+		wlstring = "";
 	}
 
 	String tagstring = null;
-	if ( ((_flag & __SHOW_MESSAGE_TAG) != 0) && (tag != null) ){
+	if ( ((_flag & __SHOW_MESSAGE_TAG) != 0) && (tag != null) && !tag.equals("")){
 		tagstring = "<" + tag + ">";
 	}
-	else {	tagstring = "";
+	else {
+		tagstring = "";
 	}
 
 	String routine_string = null;
@@ -791,20 +718,21 @@ protected void printWarning (	int level, String tag, String routine,
 		if( ((_flag & Message.SHOW_ROUTINE) != 0) && (level > 1) ){
 			routine_string = "(" + routine + ")";
 		}
-		else {	routine_string = "";
+		else {
+			routine_string = "";
 		}
 	}
-	else {	routine_string = "";
+	else {
+		routine_string = "";
 	}
 
 	// Format the final string...
 
-	// REVISIT SAM 2005-03-11 Not sure of warning level and tag should
+	// TODO SAM 2005-03-11 Not sure of warning level and tag should
 	// always be shown or should only be in the log file.  Need to evaluate
 	// with StateDMI and TSTool, which are probably the only applications
 	// that will initially use the extra information.
-	String message2 = _prefix + "Warning" + wlstring + tagstring +
-			routine_string + ": " + message + _suffix;
+	String message2 = _prefix + "Warning" + wlstring + tagstring + routine_string + ": " + message + _suffix;
 
 	Object [] arg_list = null;
 
@@ -816,16 +744,15 @@ protected void printWarning (	int level, String tag, String routine,
 	}
 
 	for( int i=0; i<MAX_FILES; i++ ){
-		if( 	_out_stream[i] != null && 
-			level <= _warning_level[i] ){
+		if( _out_stream[i] != null && level <= _warning_level[i] ){
 			_out_stream[i].print( message2 + _newline );
 			if ( (_flag & Message.FLUSH_OUTPUT) != 0 ) {
 				_out_stream[i].flush();
 			}
 		}
-		if( 	_method[i] != null && _object[i] != null &&
-			level <= _warning_level[i] ){
-			try {	_method[i].invoke( _object[i], arg_list );
+		if( _method[i] != null && _object[i] != null && level <= _warning_level[i] ){
+			try {
+				_method[i].invoke( _object[i], arg_list );
 			}
 			catch( Exception e ){
 				printWarning(level,routine,e);
@@ -836,10 +763,8 @@ protected void printWarning (	int level, String tag, String routine,
 	// Now pop up the MessageJDialog if necessary.
 
 	if ( _show_warning_dialog ) {
-		if( 	(level == 1) &&
-			( (_flag & Message.GUI_FOR_WARNING_1) != 0 ) &&
-			(_top_level != null ) &&
-			!IOUtil.isBatch() ) {	// Batch = no GUI
+		if( (level == 1) && ( (_flag & Message.GUI_FOR_WARNING_1) != 0 ) &&
+			(_top_level != null ) && !IOUtil.isBatch() ) { // Batch = no GUI
 			new MessageJDialog( _top_level, message2 );
 		}
 	}
@@ -856,8 +781,7 @@ protected void printWarning (	int level, String tag, String routine,
 }
 
 /**
-Print a stack trace as if a warning message.  Output will only be to the log
-file, if open.
+Print a stack trace as if a warning message.  Output will only be to the log file, if open.
 @param level Warning level for the message.
 @param routine Name of the routine printing the message.
 @param e Throwable (e.g. Error, Exception) for which to print a stack trace.
@@ -874,18 +798,17 @@ protected void printWarning ( int level, String routine, Throwable e )
 		System.out.println("... end of exception stack trace.");
 	}
 	else {
-		printWarning ( level, routine,
-		"Exception stack trace follows (see log file)..." );
+		printWarning ( level, routine, "Exception stack trace follows (see log file)..." );
 		if ( e != null ) {
 			printWarning ( level, routine, e.getMessage() );
 			if( _out_stream[Message.LOG_OUTPUT] != null ) {
 				e.printStackTrace ( _out_stream[Message.LOG_OUTPUT] );
 			}
 		}
-		else {	printWarning ( level, routine, "null Throwable" );
+		else {
+			printWarning ( level, routine, "null Throwable" );
 		}
-		printWarning ( level, routine, 
-			"... end of exception stack trace." );
+		printWarning ( level, routine, "... end of exception stack trace." );
 	}
 }
 
@@ -911,8 +834,7 @@ protected void removeMessageLogListener(MessageLogListener listener) {
 }
 
 /**
-Closes and opens the log file, so old data will be overwritten next time
-something is logged.
+Closes and opens the log file, so old data will be overwritten next time something is logged.
 */
 protected void restartLogFile() 
 throws Exception {
@@ -923,9 +845,8 @@ throws Exception {
 /**
 Set the output behavior flags (e.g., SHOW_MESSAGE_LEVEL) as a bit mask.
 Currently this sets the given bit (but does not unset the others).
-<b>The handling of these flags needs more work (the defaults are usually
-OK).</b>
-See setProp() for additioinal properties used to control message behavior.
+<b>The handling of these flags needs more work (the defaults are usually OK).</b>
+See setProp() for additional properties used to control message behavior.
 @param flag Bit mask for flag to set.
 */
 protected void setBehaviorFlag( int flag )
@@ -939,8 +860,7 @@ protected void setBehaviorFlag( int flag )
 /**
 Set the flag indicating whether debug is on or off.  This is called by the
 setDebugLevel method if the debug level is greater than zero for any output
-receiver.  If debug is turned off, then debug messages that check this flag
-will run much faster.
+receiver.  If debug is turned off, then debug messages that check this flag will run much faster.
 @param flag true if debug should be turned on, false if not.
 */
 protected void setDebug ( boolean flag )
@@ -952,11 +872,10 @@ protected void setDebug ( boolean flag )
 
 /**
 Set the debug level for an output receiver. If the level is > 0, do not set
-debugging to on.  The debug levels are independent of whether debug is
-actually on or off.
+debugging to on.  The debug levels are independent of whether debug is actually on or off.
 @param i Output receiver number (the *_OUTPUT values).
 @param level Debug level for the output receiver.
-REVISIT JAVADOC: see RTi.Util.Message.Message.setDebug
+TODO JAVADOC: see RTi.Util.Message.Message.setDebug
 */
 protected void setDebugLevel ( int i, int level )
 {	if( !_initialized ) {
@@ -965,13 +884,11 @@ protected void setDebugLevel ( int i, int level )
 	String	routine = "setDebugLevel";
 	if( i >= MAX_FILES ){
 		printWarning( 1, routine,
-		"Attempting to set level " + i + ". Only " + MAX_FILES +
-		" are available." );
+		"Attempting to set level " + i + ". Only " + MAX_FILES + " are available." );
 		return;
 	}
 	_debug_level[i]	= level;
-	printStatus ( 1, routine, "Set debug level for " + Message.OUTPUT_NAMES[i] +
-		" to " + level );
+	printStatus ( 1, routine, "Set debug level for " + Message.OUTPUT_NAMES[i] + " to " + level );
 	routine = null;
 }
 
@@ -994,9 +911,10 @@ protected void setDebugLevel ( String debug_level )
 	int nlist = 0;
 	if ( debug_level.length() > 0 ) {
 		list = StringUtil.breakStringList (debug_level, ",", 0);
-			nlist = list.size();
+		nlist = list.size();
 	}
-	else {	nlist = 0;
+	else {
+		nlist = 0;
 	}
 
 	int level0, level1;
@@ -1009,7 +927,8 @@ protected void setDebugLevel ( String debug_level )
 		setDebugLevel ( Message.TERM_OUTPUT, level0 );
 		setDebugLevel ( Message.LOG_OUTPUT, level1 );
 	}
-	else {	//
+	else {
+		//
 		// ,# or #,#
 		//
 		String tmp = list.get(0).toString();
@@ -1061,8 +980,7 @@ protected void setOutputFile ( int i, PrintWriter output_stream )
 	}
 	if( i >= MAX_FILES ){
 		printWarning( 1, "Message.setOutputFile",
-		"Attempting to set file " + i + ". Only " + MAX_FILES +
-		" are available." );
+		"Attempting to set file " + i + ". Only " + MAX_FILES + " are available." );
 		return;
 	}
 	_out_stream[i] = output_stream;
@@ -1073,8 +991,7 @@ Set the function to call for an output receiver.
 @param i Output receiver (the *_OUTPUT values).
 @param obj Object containing the function to call.
 @param function_name Name of function to call to receive message.  The function
-must take an integer (message level), a String (the routine name), and a
-second String (the message).
+must take an integer (message level), a String (the routine name), and a second String (the message).
 */
 protected void setOutputFunction ( int i, Object obj, String function_name )
 {	if( !_initialized ){
@@ -1083,8 +1000,7 @@ protected void setOutputFunction ( int i, Object obj, String function_name )
 	String	routine = "Message.setOutputFunction";
 	if( i >= MAX_FILES ){
 		printWarning( 1, routine,
-		"Attempting to set function " + i + ". Only " + MAX_FILES +
-		" are available." );
+		"Attempting to set function " + i + ". Only " + MAX_FILES + " are available." );
 		return;
 	}
 
@@ -1113,12 +1029,12 @@ protected void setOutputFunction ( int i, Object obj, String function_name )
 	args[2] = String.class;
 
 	Method method;
-	try {	method = obj.getClass().getMethod( function_name, args );
+	try {
+		method = obj.getClass().getMethod( function_name, args );
 	}
 	catch( NoSuchMethodException e ){
 		Message.printWarning( 2, routine,
-		"Error getting \"Method\" for " + function_name + 
-		"( int, String, String )" );
+		"Error getting \"Method\" for " + function_name + "( int, String, String )" );
 		return;
 	}
 	_object[i] = obj;
@@ -1142,7 +1058,7 @@ protected void setPrefix ( String prefix )
 }
 
 /**
-Set a property used to control message behavior.  These properies are currently
+Set a property used to control message behavior.  These properties are currently
 used mainly to control the warning dialog behavior.
 The properties should be set by high-level code
 to control how the application behaves.  For example, if there is potential for
@@ -1229,26 +1145,28 @@ protected void setPropValue ( String prop )
 {	if ( !_initialized ) {
 		initialize();
 	}
-	_props.set ( prop );	// Set the property no matter what it is.
-	// Check some properties and set other variables to optimize
-	// performance...
+	_props.set ( prop ); // Set the property no matter what it is.
+	// Check some properties and set other variables to optimize performance...
 	if ( _props.getValue("ShowWarningDialog").equalsIgnoreCase("true") ) {
 		_show_warning_dialog = true;
 	}
-	else {	_show_warning_dialog = false;
+	else {
+		_show_warning_dialog = false;
 	}
 	if ( _props.getValue("ShowMessageLevel").equalsIgnoreCase("true") ) {
 		// Turn on the level...
 		_flag |= Message.SHOW_MESSAGE_LEVEL;
 	}
-	else {	// Turn off the level...
+	else {
+		// Turn off the level...
 		_flag ^= Message.SHOW_MESSAGE_LEVEL;
 	}
 	if ( _props.getValue("ShowMessageTag").equalsIgnoreCase("true") ) {
 		// Turn on the level...
 		_flag |= __SHOW_MESSAGE_TAG;
 	}
-	else {	// Turn off the level...
+	else {
+		// Turn off the level...
 		_flag ^= __SHOW_MESSAGE_TAG;
 	}
 }
@@ -1266,13 +1184,11 @@ protected void setStatusLevel ( int i, int level )
 	String	routine = "setStatusLevel";
 	if ( i >= MAX_FILES ){
 		printWarning( 1, routine,
-		"Attempting to set level " + i + ". Only " + MAX_FILES +
-		" are available." );
+		"Attempting to set level " + i + ". Only " + MAX_FILES + " are available." );
 		return;
 	}
 	_status_level[i] = level;
-	printStatus ( 1, routine, "Set status level for " + Message.OUTPUT_NAMES[i] +
-		" to " + level );
+	printStatus ( 1, routine, "Set status level for " + Message.OUTPUT_NAMES[i] + " to " + level );
 	routine = null;
 }
 
@@ -1315,15 +1231,12 @@ protected void setWarningLevel( int i, int level )
 	String	routine = "setWarningLevel";
 	if( i >= MAX_FILES ){
 		printWarning( 1, routine,
-		"Attempting to set level " + i + ". Only " + MAX_FILES +
-		" are available." );
+		"Attempting to set level " + i + ". Only " + MAX_FILES + " are available." );
 		return;
 	}
 	_warning_level[i] = level;
-	printStatus ( 1, routine, "Set warning level for " + Message.OUTPUT_NAMES[i] +
-		" to " + level );
+	printStatus ( 1, routine, "Set warning level for " + Message.OUTPUT_NAMES[i] + " to " + level );
 	routine = null;
 }
 
-
-} // End of Message class
+}

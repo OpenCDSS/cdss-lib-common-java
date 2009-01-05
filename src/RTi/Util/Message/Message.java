@@ -99,8 +99,7 @@ level 1 messages being visible to the user.  Libraries should generally never
 print level 1 warning messages.  Errors should be trapped and migrated back to
 the main application through exceptions.  Use the print* methods to embed
 message calls in code.  Because debug messages may occur often and because
-formatting messages is a performance hit, debug messages should be wrapped in
-the following code:
+formatting messages is a performance hit, debug messages should be wrapped in the following code:
 <p>
 <pre>
 if ( Message.isDebugOn ) {
@@ -141,44 +140,44 @@ public final static int TERM_OUTPUT 		= 0;
 /**
 Output to the log file.
 */
-public final static int LOG_OUTPUT 		= 1;
+public final static int LOG_OUTPUT = 1;
 
 /**
 Output to the GUI.
 @deprecated Use STATUS_HISTORY_OUTPUT.
 */
-public final static int GUI_OUTPUT	 	= 2;
+public final static int GUI_OUTPUT = 2;
 
 /**
 Output messages to the DiagnosticsJFrame as a scrolling history.
 @see DiagnosticsJFrame
 */
-public final static int STATUS_HISTORY_OUTPUT 	= 2;
+public final static int STATUS_HISTORY_OUTPUT = 2;
 
 /**
 Output to a one-line status bar at the bottom of the application screen.
 The routine to print the message needs to be set using setOutputFunction.
 REVISIT JAVADOC: see RTi.Util.Message.Message.setOutputFunction
 */
-public final static int STATUS_BAR_OUTPUT 	= 3;
+public final static int STATUS_BAR_OUTPUT = 3;
 
 /**
 Output to a scrolling status area within ProcessManagerDialog or
-ProcessManagerJDialog - this may not be needed after 2002-10-16 revisions to
-the ProcessManager.
+ProcessManagerJDialog - this may not be needed after 2002-10-16 revisions to the ProcessManager.
 @see RTi.Util.IO.ProcessManagerDialog
 @see RTi.Util.IO.ProcessManagerJDialog
 */
-public final static int PROCESS_MANAGER_GUI 	= 4;
+public final static int PROCESS_MANAGER_GUI = 4;
 
 /**
 A list of output names corresponding to the *_OUTPUT values.
 */
-public final static String [] OUTPUT_NAMES	= {	"Terminal",
-							"Log file",
-						  	"Status history",
-						  	"Status bar",
-							"Process manager" };
+public final static String [] OUTPUT_NAMES	= {
+	"Terminal",
+	"Log file",
+  	"Status history",
+  	"Status bar",
+	"Process manager" };
 
 /**
 Indicates whether debug is on.  This is public so that it can be quickly
@@ -190,13 +189,10 @@ if ( Message.isDebugOn ) {
   Message.printDebug ( 1, "myroutine", "the message" );
 }
 </pre>
+The default to no debugging being done.  Set to true in command-line parsing
+code if setDebug is called.
 */
-public static boolean 	isDebugOn = false;		// Default to no
-							// debugging being done.
-							// Set to true in
-							// command-line parsing
-							// code if setDebug is
-							// called.
+public static boolean 	isDebugOn = false;
 
 /**
 The following are flags for printing messages, set by various methods in this
@@ -204,28 +200,27 @@ class.  The following setting will print the message level in debug and warning
 messages (the default is to not show the level).  The Diagnostics GUI will at
 some point edit all of these settings.
 
-Show the message level in output (normally the level is not displayed in
-messages).
+Show the message level in output (normally the level is not displayed in messages).
 */
-public final static int SHOW_MESSAGE_LEVEL	= 0x1;
+public final static int SHOW_MESSAGE_LEVEL = 0x1;
 
 /**
 Show the dialog for warning messages at level 1 (this is the default).
 THIS IS BEING PHASED OUT IN FAVOR OF THE PROPERTIES.
 */
-public final static int GUI_FOR_WARNING_1	= 0x2;
+public final static int GUI_FOR_WARNING_1 = 0x2;
 
 /**
 Show the routine name (the default is to print the routine name for debug
 messages and for warning messages greater than level 1).
 */
-public final static int SHOW_ROUTINE		= 0x4;
+public final static int SHOW_ROUTINE = 0x4;
 
 /**
 Flush the output buffer after each message is written.  The default is to let
 the system flush the output buffer.
 */
-public final static int FLUSH_OUTPUT		= 0x8;
+public final static int FLUSH_OUTPUT = 0x8;
 
 private static final MessageImpl impl = getImpl();
 
@@ -262,18 +257,15 @@ public static void addMessageLogListener(MessageLogListener listener) {
 }
 
 /**
-Flush and close the log file associated with Message.LOG_OUTPUT, if it has
-been opened.
+Flush and close the log file associated with Message.LOG_OUTPUT, if it has been opened.
 */
 public static void closeLogFile ()
 {	
-    
     impl.closeLogFile();
 }
 
 /**
-Flush the output buffers.  It does not appear that this method has any effect
-on some systems.
+Flush the output buffers.  It does not appear that this method has any effect on some systems.
 @param flag Currently unused.
 */
 public static void flushOutputFiles ( int flag )
@@ -283,8 +275,7 @@ public static void flushOutputFiles ( int flag )
 
 /**
 Return the debug level for an output stream.
-@return The debug level for an output stream number (specified by a *_OUTPUT
-value).
+@return The debug level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 public static int getDebugLevel ( int i )
@@ -310,8 +301,7 @@ public static List getMessageLogListeners() {
 }
 
 /**
-Return the value of a Message property.  See setPropValue() for a description of
-valid properties.
+Return the value of a Message property.  See setPropValue() for a description of valid properties.
 @return the property value or null if not defined.
 */
 public static String getPropValue ( String key )
@@ -321,8 +311,7 @@ public static String getPropValue ( String key )
 
 /**
 Return the status level for an output stream.
-@return The status level for an output stream number (specified by a *_OUTPUT
-value).
+@return The status level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 public static int getStatusLevel ( int i )
@@ -332,8 +321,7 @@ public static int getStatusLevel ( int i )
 
 /**
 Return the warning level for an output stream.
-@return The warning level for an output stream number (specified by a *_OUTPUT
-value).
+@return The warning level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
 */
 public static int getWarningLevel ( int i )
@@ -365,35 +353,6 @@ Open the log file using the specified name.
 public static PrintWriter openLogFile ( String logfile )
 throws IOException
 {	return impl.openLogFile(logfile);
-}
-
-/**
-Open the log file.
-Because no log file is specified, the name of the log file will default to
-the program name and the extension ".log" (set with IOUtil.setProgramName).
-@see RTi.Util.IO.IOUtil#setProgramName
-@return The PrintWriter corresponding to the log file.
-@exception IOException if there is an error opening the log file.
-@deprecated Use the version that has no flag argument.
-*/
-public static PrintWriter openLogFile ( int flag )
-throws IOException
-{	return impl.openLogFile(flag);
-}
-
-/**
-Open the log file.  The log file name must be specified.  After opening a basic
-file header is printed using IOUtil.printCreatorHeader.
-@return The PrintWriter corresponding to the log file.
-@exception IOException if there is an error opening the log file.
-@deprecated Use the version that has a String as an argument.
-@param logfile Name of log file to open.
-@param flag Unused (may be deprecated in future).
-REVISIT JAVADOC: see RTi.Util.IO.IOUtil.printCreatorHeader
-*/
-public static PrintWriter openLogFile ( String logfile, int flag )
-throws IOException
-{	return impl.openLogFile(logfile,flag);
 }
 
 /**
@@ -438,8 +397,7 @@ static public void printMessageLevels ( )
 }
 
 /**
-Print information about the registered message levels using the current message
-settings.
+Print information about the registered message levels using the current message settings.
 @param flag If true, print using status messages.  If false, print to the
 system standard output.
 */
@@ -489,18 +447,15 @@ Print a warning message to the registered output receivers.
 the message if the ShowMessageLevel property is "true".
 @param tag A tag to be printed with the message.  The tag will be printed with
 the message if the ShowMessageTag property is "true".
-@param routine Name of the routine printing the message.  If blank the routine
-will not be printed.
+@param routine Name of the routine printing the message.  If blank the routine will not be printed.
 @param message Warning message.
 */
-public static void printWarning (	int level, String tag, String routine,
-					String message )
+public static void printWarning ( int level, String tag, String routine, String message )
 {	impl.printWarning(level,tag,routine,message);
 }
 
 /**
-Print a stack trace as if a warning message.  Output will only be to the log
-file, if open.
+Print a stack trace as if a warning message.  Output will only be to the log file, if open.
 @param level Warning level for the message.
 @param routine Name of the routine printing the message.
 @param e Throwable (e.g. Error, Exception) for which to print a stack trace.
@@ -520,8 +475,7 @@ public static void removeMessageLogListener(MessageLogListener listener) {
 }
 
 /**
-Closes and opens the log file, so old data will be overwritten next time
-something is logged.
+Closes and opens the log file, so old data will be overwritten next time something is logged.
 */
 public static void restartLogFile() 
 throws Exception {
@@ -532,9 +486,8 @@ throws Exception {
 /**
 Set the output behavior flags (e.g., SHOW_MESSAGE_LEVEL) as a bit mask.
 Currently this sets the given bit (but does not unset the others).
-<b>The handling of these flags needs more work (the defaults are usually
-OK).</b>
-See setProp() for additioinal properties used to control message behavior.
+<b>The handling of these flags needs more work (the defaults are usually OK).</b>
+See setProp() for additional properties used to control message behavior.
 @param flag Bit mask for flag to set.
 */
 public static void setBehaviorFlag( int flag )
@@ -545,8 +498,7 @@ public static void setBehaviorFlag( int flag )
 /**
 Set the flag indicating whether debug is on or off.  This is NOT called by the
 setDebugLevel method if the debug level is greater than zero for any output
-receiver.  If debug is turned off, then debug messages that check this flag
-will run much faster.
+receiver.  If debug is turned off, then debug messages that check this flag will run much faster.
 @param flag true if debug should be turned on, false if not.
 */
 public static void setDebug ( boolean flag )
@@ -555,11 +507,10 @@ public static void setDebug ( boolean flag )
 
 /**
 Set the debug level for an output receiver. If the level is > 0, do not set
-debugging to on.  The debug levels are independent of whether debug is
-actually on or off.
+debugging to on.  The debug levels are independent of whether debug is actually on or off.
 @param i Output receiver number (the *_OUTPUT values).
 @param level Debug level for the output receiver.
-REVISIT JAVADOC: see RTi.Util.Message.Message.setDebug
+TODO JAVADOC: see RTi.Util.Message.Message.setDebug
 */
 public static void setDebugLevel ( int i, int level )
 {	impl.setDebugLevel(i,level);
@@ -754,5 +705,4 @@ public static void setWarningLevel( int i, int level )
     impl.setWarningLevel(i,level);
 }
 
-
-} // End of Message class
+}
