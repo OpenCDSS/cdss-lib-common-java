@@ -56,7 +56,7 @@ that will be constrained.  [constraint] is the way the data field will be
 matched against (see the INPUT_* data members).  [input] is the value to 
 constrain the field against.<p>
 
-In most cases, a Vector of these objects is created as appropriate by 
+In most cases, a list of these objects is created as appropriate by 
 specific software and is then managed by a InputFilter_JPanel object.
 */
 public class InputFilter implements Cloneable
@@ -98,6 +98,7 @@ Input filter type, for use with numbers that are between two values.
 public final static String INPUT_BETWEEN = "Is between";
 
 /**
+FIXME SAM 2009-01-08 Need to change to <, for brevity.
 Input filter type, for use with numbers that are less than a value.
 */
 public final static String INPUT_LESS_THAN = "Less than";
@@ -108,13 +109,13 @@ Input filter type, for use with numbers that are less than or equal to a value.
 public final static String INPUT_LESS_THAN_OR_EQUAL_TO = "<=";
 
 /**
+FIXME SAM 2009-01-08 Need to change to >, for brevity.
 Input filter type, for use with numbers that are greater than a value.
 */
 public final static String INPUT_GREATER_THAN = "Greater than";
 
 /**
-Input filter type, for use with numbers that are greater than or equal to a
-value.
+Input filter type, for use with numbers that are greater than or equal to a value.
 */
 public final static String INPUT_GREATER_THAN_OR_EQUAL_TO = ">=";
 
@@ -128,140 +129,142 @@ Specifies for an input JComboBox to display the default number of rows.
 */
 public final static int JCOMBOBOX_ROWS_DISPLAY_DEFAULT = 0;
 
-private String __where_internal = "";
-				// The string that is internally used in a
-				// where clause (e.g., a database table
-				// column: "table.column").
-private String __where_internal_2 = "";
-				// The string that is internally used in a 
-				// where clause (e.g., a database table 
-				// column: "table.column").  This secondary
-				// where string can be used in case of times
-				// where in certain instances a different thing
-				// is queried against.  For instance, the
-				// first where string could be used for SQL 
-				// queries and the second where string could
-				// be used when querying against fields in 
-				// a database view.  
-private String __where_label="";// The string label to be visible to the user
-				// (e.g., "Station Name").
-private int __input_type = 0;	// A value from
-				// RTi.Util.String.StringUtil.TYPE_*, indicating
-				// the expected input value.  The type is used
-				// to check the validity of the input with 
-				// checkInput().
-private List __choice_label_Vector = null;
-				// A Vector of String choices to choose from.
-				// If not null a JComboBox will be displayed
-				// to let the user choose from.
-private List __choice_internal_Vector = null;
-				// The internal values (e.g., database table
-				// and column) corresponding to the visible choices.
-private String __choice_delimiter = null;
-				// Used when the choices are not simple strings
-				// but contain informational notes - indicates
-				// the delimiter between data and notes.
-private int __choice_token = 0;
-				// Used when the choices are not simple strings
-				// but contain informational notes - indicates
-				// the token position (relative to 0) for the
-				// data in the choices.
-private JComponent __input_component = null;
-				// The component used to enter input, typically
-				// assigned by external code like
-				// InputFilter_JPanel
-private boolean __are_choices_editable = false;
-				// If true, it is expected that the JComboBox
-				// used with __choices_Vecor is editable.
+/**
+The string that is internally used in a where clause (e.g., a database table column: "table.column").
+*/
+private String __whereInternal = "";
 
+/**
+The string that is internally used in a where clause (e.g., a database table column: "table.column").
+This secondary where string can be used in case of times where in certain instances a different thing
+is queried against.  For instance, the first where string could be used for SQL queries and the second
+where string could be used when querying against fields in a database view. 
+*/
+private String __whereInternal2 = "";
+
+/**
+The string label to be visible to the user (e.g., "Station Name").
+*/
+private String __whereLabel="";
+
+/**
+A value from RTi.Util.String.StringUtil.TYPE_*, indicating the expected input value.  The type is used
+to check the validity of the input with checkInput().
+*/
+private int __inputType = 0;
+
+/**
+A list of String choices to choose from.  If not null a JComboBox will be displayed to let the user choose from.
+*/
+private List __choiceLabelList = null;
+
+/**
+The internal values (e.g., database table and column) corresponding to the visible choices.
+*/
+private List __choiceInternalList = null;
+
+/**
+Used when the choices are not simple strings but contain informational notes - indicates
+the delimiter between data and notes.
+*/
+private String __choiceDelimiter = null;
+
+/**
+Used when the choices are not simple strings but contain informational notes - indicates
+the token position (relative to 0) for the data in the choices.
+*/
+private int __choiceToken = 0;
+
+/**
+The component used to enter input, typically assigned by external code like InputFilter_JPanel
+*/
+private JComponent __inputComponent = null;
+
+/**
+If true, it is expected that the JComboBox used with __choicesList is editable.
+*/
+private boolean __areChoicesEditable = false;
+
+/**
+If the input component is going to be a text field, this can be set to false to
+set the text field uneditable (this is only useful in very limited circumstances).
+*/
 private boolean __inputJTextFieldEditable = true;
-				// if the input component is going to be a 
-				// text field, this can be set to false to
-				// set the text field uneditable (this is only
-				// useful in very limited circumstances).
 
+/**
+The width of the input JTextField (if used) on the GUI, roughly in characters.
+*/
 private int __inputJTextFieldWidth = 10;
-				// the width of the input JTextField (if used)
-				// on the GUI, roughly in characters.
 
+/**
+Specifies how many rows of values to show at one time in a GUI.  Possible values are
+JCOMBOBOX_ROWS_DISPLAY_ALL, JCOMBOBOX_ROWS_DISPLAY_DEFAULT, or a positive integer.
+*/
 private int __numInputJComboBoxRows = JCOMBOBOX_ROWS_DISPLAY_DEFAULT;
-				// specifies how many rows of values to show 
-				// at one time in a GUI.  Possible values are
-				// JCOMBOBOX_ROWS_DISPLAY_ALL,
-				// JCOMBOBOX_ROWS_DISPLAY_DEFAULT, 
-				// or a positive integer.
 
+/**
+If any tool tip text is defined for the InputFilter, it is stored here.  Otherwise, this value is null.
+*/
 private String __inputComponentToolTipText = null;
-				// if any tool tip text is defined for the
-				// InputFilter, it is stored here.  Otherwise,
-				// this value is null.
 
+/**
+The listeners that want to listen to mouse events on the input component.
+*/
 private List __inputComponentMouseListeners = null;
-				// the listeners that want to listen to mouse
-				// events on the input component.
+
+/**
+If not null, contains all the constraints that should NOT appear in the constraint
+combo box for this InputFilter.
+*/
 private List __removedConstraints = null;
-				// if not null, contains all the constraints
-				// that should NOT appear in the constraint
-				// combo box for this InputFilter.
 
 /**
 Construct an input filter.
-@param where_label A string to be listed in a choice to tell the user what
-input parameter is being filtered.  A blank string can be specified to indicate
-that the filter can be disabled.
-@param where_internal The internal value that can be used to perform a query.
+@param whereLabel A string to be listed in a choice to tell the user what input parameter is being filtered.
+A blank string can be specified to indicate that the filter can be disabled.
+@param whereInternal The internal value that can be used to perform a query.
 For example, set to a database table and column ("table.column").  This can be
 set to null or empty if not used by other software.
-@param input_type The input filter data type, see
-RTi.Util.String.StringUtil.TYPE_*.
-@param choice_labels A Vector of String containing choice values to be
+@param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
+@param choiceLabels A list of String containing choice values to be
 displayed to the user.  If null, the user will not be shown a list of choices.
-@param choices_internal A Vector of String containing choice values (e.g.,
-database column values).
-@param are_choices_editable If true, and a non-null list of choices is provided,
-the choices will also be editable (an editable JTextField part of the JComboBox
-will be shown).
+@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param areChoicesEditable If true, and a non-null list of choices is provided,
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
-public InputFilter (	String where_label, String where_internal,
-			int input_type, List choice_labels,
-			List choices_internal, boolean are_choices_editable )
+public InputFilter ( String whereLabel, String whereInternal,
+	int inputType, List choiceLabels, List choicesInternal, boolean areChoicesEditable )
 {
-	this(where_label, where_internal, "", input_type, choice_labels,
-		choices_internal, are_choices_editable);
+	this(whereLabel, whereInternal, "", inputType, choiceLabels, choicesInternal, areChoicesEditable);
 }
 
 /**
 Construct an input filter.
-@param where_label A string to be listed in a choice to tell the user what
-input parameter is being filtered.  A blank string can be specified to indicate
-that the filter can be disabled.
-@param where_internal The internal value that can be used to perform a query.
+@param whereLabel A string to be listed in a choice to tell the user what input parameter is being filtered.
+A blank string can be specified to indicate that the filter can be disabled.
+@param whereInternal The internal value that can be used to perform a query.
 For example, set to a database table and column ("table.column").  This can be
 set to null or empty if not used by other software.
-@param where_internal_2 the internal value that can be used if in certain 
+@param whereInternal2 the internal value that can be used if in certain 
 cases a different field must be used for performing a query.  For instance, if
 a database can be used to query with SQL or to query against a database view.
 It can be set to null or an empty string if it won't be used by software.
-@param input_type The input filter data type, see
-RTi.Util.String.StringUtil.TYPE_*.
-@param choice_labels A Vector of String containing choice values to be
+@param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
+@param choiceLabels A list of String containing choice values to be
 displayed to the user.  If null, the user will not be shown a list of choices.
-@param choices_internal A Vector of String containing choice values (e.g.,
-database column values).
-@param are_choices_editable If true, and a non-null list of choices is provided,
+@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param areChoicesEditable If true, and a non-null list of choices is provided,
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
-public InputFilter (	String where_label, String where_internal,
-			String where_internal_2, int input_type, 
-			List choice_labels, List choices_internal, 
-			boolean are_choices_editable )
-{	__where_label = where_label;
-	__where_internal = where_internal;
-	__where_internal_2 = where_internal_2;
-	__input_type = input_type;
-	__choice_label_Vector = choice_labels;
-	__choice_internal_Vector = choices_internal;
-	__are_choices_editable = are_choices_editable;
+public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
+	List choiceLabels, List choicesInternal, boolean areChoicesEditable )
+{	__whereLabel = whereLabel;
+	__whereInternal = whereInternal;
+	__whereInternal2 = whereInternal2;
+	__inputType = inputType;
+	__choiceLabelList = choiceLabels;
+	__choiceInternalList = choicesInternal;
+	__areChoicesEditable = areChoicesEditable;
 }
 
 /**
@@ -282,7 +285,7 @@ able to type in a value in addition to using the choices.  This is only used
 when choices are provided.
 */
 public boolean areChoicesEditable()
-{	return __are_choices_editable;
+{	return __areChoicesEditable;
 }
 
 /**
@@ -292,38 +295,37 @@ exception is that the input component is set to null - it normally needs to be
 defined by calling code after the clone() call occurs.
 */
 public Object clone()
-{	try {	// Clone the base class...
+{	try {
+        // Clone the base class...
 		InputFilter filter = (InputFilter)super.clone();
 		// Now clone the mutable objects...
-		// The following clone automatically because they are
-		// primitives:
+		// The following clone automatically because they are primitives:
 		//
-		// __where_internal
-		// __where_label
-		// __input_type
-		// __are_choices_editable
-		// __choice_delimiter
-		// __choice_token
+		// __whereInternal
+		// __whereLabel
+		// __inputType
+		// __areCchoicesEditable
+		// __choiceDelimiter
+		// __choiceTtoken
 
-		// Do not clone the __input_component because it will be set
-		// in calling code.
+		// Do not clone the __inputCcomponent because it will be set in calling code.
 
-		filter.__input_component = null;
+		filter.__inputComponent = null;
 
 		// Copy the contents of the vectors...
 
-		if ( __choice_label_Vector != null ) {
-			int size = __choice_label_Vector.size();
-			filter.__choice_label_Vector = new Vector ( size );
+		if ( __choiceLabelList != null ) {
+			int size = __choiceLabelList.size();
+			filter.__choiceLabelList = new Vector ( size );
 			for ( int i = 0; i < size; i++ ) {
-				filter.__choice_label_Vector.add ( __choice_label_Vector.get(i) );
+				filter.__choiceLabelList.add ( __choiceLabelList.get(i) );
 			}
 		}
-		if ( __choice_internal_Vector != null ) {
-			int size = __choice_internal_Vector.size();
-			filter.__choice_internal_Vector = new Vector ( size );
+		if ( __choiceInternalList != null ) {
+			int size = __choiceInternalList.size();
+			filter.__choiceInternalList = new Vector ( size );
 			for ( int i = 0; i < size; i++ ) {
-				filter.__choice_internal_Vector.add ( __choice_internal_Vector.get(i) );
+				filter.__choiceInternalList.add ( __choiceInternalList.get(i) );
 			}
 		}
 		return filter;
@@ -339,13 +341,13 @@ Cleans up member variables.
 */
 public void finalize()
 throws Throwable {
-	__where_internal = null;
-	__where_internal_2 = null;
-	__where_label=null;
-	__choice_label_Vector = null;
-	__choice_internal_Vector = null;
-	__choice_delimiter = null;
-	__input_component = null;
+	__whereInternal = null;
+	__whereInternal2 = null;
+	__whereLabel=null;
+	__choiceLabelList = null;
+	__choiceInternalList = null;
+	__choiceDelimiter = null;
+	__inputComponent = null;
 	__inputComponentToolTipText = null;
 	__inputComponentMouseListeners = null;
 	__removedConstraints = null;
@@ -357,25 +359,23 @@ Return the choices that are visible to the user.
 @return the choices that are visible to the user. 
 */
 public List getChoiceLabels()
-{	return __choice_label_Vector;
+{	return __choiceLabelList;
 }
 
 /**
-Return the delimiter used in choices, which is used to separate actual data from
-descriptive information.
+Return the delimiter used in choices, which is used to separate actual data from descriptive information.
 @return the delimiter used in choices.
 */
 public String getChoiceDelimiter ()
-{	return __choice_delimiter;
+{	return __choiceDelimiter;
 }
 
 /**
-Return the token position used in choices, which is the position of actual data,
-compared to descriptive information.
+Return the token position used in choices, which is the position of actual data, compared to descriptive information.
 @return the token position used in choices (0+).
 */
 public int getChoiceToken ()
-{	return __choice_token;
+{	return __choiceToken;
 }
 
 /**
@@ -390,30 +390,29 @@ protected List getConstraintsToRemove() {
 Return the user-supplied input, as entered in the input component.
 If the input component is a SimpleJComboBox, the internal value is returned if
 not blank and the input choice is not blank.
-@return the user-supplied input, as a string, or null if the input component
-is null.
+@return the user-supplied input, as a string, or null if the input component is null.
 @param return_full If true, then full input is returned, which may include
 informational comments.  If false, only the specific data token is returned,
 requiring that setTokenInfo() be called for the filter.
 */
 public String getInput ( boolean return_full )
-{	if ( __input_component == null ) {
+{	if ( __inputComponent == null ) {
 		return null;
 	}
-	else if ( __input_component instanceof SimpleJComboBox ) {
-		SimpleJComboBox cb = (SimpleJComboBox)__input_component;
-		if ( return_full || (__choice_delimiter == null) ) {
+	else if ( __inputComponent instanceof SimpleJComboBox ) {
+		SimpleJComboBox cb = (SimpleJComboBox)__inputComponent;
+		if ( return_full || (__choiceDelimiter == null) ) {
 			// Input choices are not formatted...
 			return cb.getSelected();
 		}
-		else {	// Return a token from the input choices.
-			return StringUtil.getToken(cb.getSelected(),
-				__choice_delimiter,
-				StringUtil.DELIM_SKIP_BLANKS, __choice_token );
+		else {
+		    // Return a token from the input choices.
+			return StringUtil.getToken(cb.getSelected(), __choiceDelimiter,
+				StringUtil.DELIM_SKIP_BLANKS, __choiceToken );
 		}
 	}
-	else if ( __input_component instanceof JTextField ) {
-		return ((JTextField)__input_component).getText();
+	else if ( __inputComponent instanceof JTextField ) {
+		return ((JTextField)__inputComponent).getText();
 	}
 	return null;
 }
@@ -421,11 +420,11 @@ public String getInput ( boolean return_full )
 /**
 Return the input component for the data filter.  This is used by external code
 to manage GUI components used for input.  A distinct component should be
-available for each filter, usuall a JComboBox or a JTextField.
+available for each filter, usually a JComboBox or a JTextField.
 @return the input component.
 */
 public JComponent getInputComponent()
-{	return __input_component;
+{	return __inputComponent;
 }
 
 /**
@@ -451,24 +450,24 @@ JTextField, the visible input is returned.
 @return the input using internal notation.
 */
 public String getInputInternal ()
-{	if ( __input_component instanceof SimpleJComboBox ) {
-		SimpleJComboBox cb = (SimpleJComboBox)__input_component;
+{	if ( __inputComponent instanceof SimpleJComboBox ) {
+		SimpleJComboBox cb = (SimpleJComboBox)__inputComponent;
 		int pos = cb.getSelectedIndex();
 		if (pos == -1) {
 			return cb.getFieldText();
 		}
 		else {
-			return (String)__choice_internal_Vector.get(pos);
+			return (String)__choiceInternalList.get(pos);
 		}
 	}
-	else {	//JTextField...
+	else {
+	    // JTextField...
 		return getInput ( true );
 	}
 }
 
 /**
-Returns the width of the input JTextField, roughly in characters.  Default is
-10.
+Returns the width of the input JTextField, roughly in characters.  Default is 10.
 @return the width of the input JTextField.
 */
 protected int getInputJTextFieldWidth() {
@@ -480,16 +479,14 @@ Return the input type (one of StringUtil.TYPE_*).
 @return the input type (one of StringUtil.TYPE_*).
 */
 public int getInputType()
-{	return __input_type;
+{	return __inputType;
 }
 
 /**
 Returns the maximum number of rows to display for this InputFilter's input
 JComboBox.  Possible values are JCOMBOBOX_ROWS_DISPLAY_ALL,
-JCOMBOBOX_ROWS_DISPLAY_DEFAULT and positive 
-integers.
-@return the maximum number of rows to display for this InputFilter's input
-JComboBox.
+JCOMBOBOX_ROWS_DISPLAY_DEFAULT and positive integers.
+@return the maximum number of rows to display for this InputFilter's input JComboBox.
 */
 protected int getNumberInputJComboBoxRows() {
 	return __numInputJComboBoxRows;
@@ -500,20 +497,18 @@ Return the internal Where field that corresponds to the visible label.
 @return the internal Where field that corresponds to the visible label. 
 */
 public String getWhereInternal ()
-{	return __where_internal;
+{	return __whereInternal;
 }
 
 /**
 Returns the secondary internal Where field that corresponds to the visible 
 label.  If no secondary internal where field has been defined, then the 
-primary internal where field is returned (identical to calling 
-getWhereInternal()).
-@return the secondary internal Where field that corresponds to the visible 
-label.
+primary internal where field is returned (identical to calling getWhereInternal()).
+@return the secondary internal Where field that corresponds to the visible label.
 */
 public String getWhereInternal2() {
-	if (__where_internal_2 != null && !__where_internal_2.equals("")) {
-		return __where_internal_2;
+	if (__whereInternal2 != null && !__whereInternal2.equals("")) {
+		return __whereInternal2;
 	}
 	else {
 		return getWhereInternal();
@@ -525,14 +520,12 @@ Return the Where field label that is visible to the user.
 @return the Where field label that is visible to the user. 
 */
 public String getWhereLabel()
-{	return __where_label;
+{	return __whereLabel;
 }
 
 /**
-Returns whether the input text field (if a text field is being used for input)
-is editable or not.
-@return whether the input text field (if a text field is being uesd for input)
-is editable or not.
+Returns whether the input text field (if a text field is being used for input) is editable or not.
+@return whether the input text field (if a text field is being used for input) is editable or not.
 */
 protected boolean isInputJTextFieldEditable() {
 	return __inputJTextFieldEditable;
@@ -545,57 +538,54 @@ filter manually (e.g., outside of a database).  The filter type is checked and
 appropriate comparisons are made.
 @param s String to compare to.  Numerical values are converted from the string
 (false is returned if a conversion from string to number cannot be made).
-@param operator Operator to apply to the filter (usually managed in
-InputFilter_JFrame).
+@param operator Operator to apply to the filter (usually managed in InputFilter_JFrame).
 @param ignore_case If true, then case is ignored when comparing the strings.
-@return true if the string matches the current input for the input filter, or
-false otherwise.
+@return true if the string matches the current input for the input filter, or false otherwise.
 */
 public boolean matches ( String s, String operator, boolean ignore_case )
 {	String input = getInput ( false );
-	if ( __input_type == StringUtil.TYPE_STRING ) {
+	if ( __inputType == StringUtil.TYPE_STRING ) {
 		if ( operator.equalsIgnoreCase(INPUT_MATCHES) ) {
 			// Full string must match...
 			if ( ignore_case ) {
 				return input.equalsIgnoreCase(s);
 			}
-			else {	return input.equals(s);
+			else {
+			    return input.equals(s);
 			}
 		}
 		else if ( operator.equalsIgnoreCase(INPUT_STARTS_WITH) ) {
 			if ( ignore_case ) {
-			return s.toUpperCase().matches(
-					input.toUpperCase() + ".*" );
+			return s.toUpperCase().matches(input.toUpperCase() + ".*" );
 			}
-			else {	return s.matches ( input + ".*" );
+			else {
+			    return s.matches ( input + ".*" );
 			}
 		}
 		else if ( operator.equalsIgnoreCase(INPUT_ENDS_WITH) ) {
 			if ( ignore_case ) {
-				return s.toUpperCase().matches(
-					".*" + input.toUpperCase() );
+				return s.toUpperCase().matches( ".*" + input.toUpperCase() );
 			}
-			else {	return s.matches ( ".*" + input );
+			else {
+			    return s.matches ( ".*" + input );
 			}
 		}
 		else if ( operator.equalsIgnoreCase(INPUT_CONTAINS) ) {
 			if ( ignore_case ) {
-				return s.toUpperCase().matches(
-					".*" + input.toUpperCase() + ".*" );
+				return s.toUpperCase().matches( ".*" + input.toUpperCase() + ".*" );
 			}
-			else {	return s.matches ( ".*" + input + ".*" );
+			else {
+			    return s.matches ( ".*" + input + ".*" );
 			}
 		}
 		// Operator not recognized.
 		return false;
 	}
-	else if ( (__input_type == StringUtil.TYPE_INTEGER) &&
-		StringUtil.isInteger(s) ) {
+	else if ( (__inputType == StringUtil.TYPE_INTEGER) && StringUtil.isInteger(s) ) {
 		// Use the overloaded method...
 		return matches ( StringUtil.atoi(s), operator );
 	}
-	else if ( (__input_type == StringUtil.TYPE_DOUBLE) &&
-		StringUtil.isDouble(s) ) {
+	else if ( (__inputType == StringUtil.TYPE_DOUBLE) && StringUtil.isDouble(s) ) {
 		// Use the overloaded method...
 		return matches ( StringUtil.atod(s), operator );
 	}
@@ -609,14 +599,12 @@ to see if the filter input matches a secondary integer when applying the
 filter manually (e.g., outside of a database).  The filter type is checked and
 appropriate comparisons are made.
 @param i Integer to compare to.  The filter type must be for an integer.
-@param operator Operator to apply to the filter (usually managed in
-InputFilter_JFrame).
-@return true if the integer matches the current input for the input filter, or
-false otherwise.
+@param operator Operator to apply to the filter (usually managed in InputFilter_JFrame).
+@return true if the integer matches the current input for the input filter, or false otherwise.
 */
 public boolean matches ( int i, String operator )
 {	String input = getInput ( false );
-	if ( __input_type != StringUtil.TYPE_INTEGER ) {
+	if ( __inputType != StringUtil.TYPE_INTEGER ) {
 		return false;
 	}
 	if ( !StringUtil.isInteger ( input ) ) {
@@ -648,14 +636,12 @@ to see if the filter input matches a secondary double when applying the
 filter manually (e.g., outside of a database).  The filter type is checked and
 appropriate comparisons are made.
 @param d Double to compare to.  The filter type must be for a double.
-@param operator Operator to apply to the filter (usually managed in
-InputFilter_JFrame).
-@return true if the integer matches the current input for the input filter, or
-false otherwise.
+@param operator Operator to apply to the filter (usually managed in InputFilter_JFrame).
+@return true if the integer matches the current input for the input filter, or false otherwise.
 */
 public boolean matches ( double d, String operator )
 {	String input = getInput ( false );
-	if ( __input_type != StringUtil.TYPE_DOUBLE ) {
+	if ( __inputType != StringUtil.TYPE_DOUBLE ) {
 		return false;
 	}
 	if ( !StringUtil.isDouble ( input ) ) {
@@ -684,8 +670,7 @@ public boolean matches ( double d, String operator )
 /**
 Removes a constraint from the constraint combo box.  If the given constraint
 does not exist in the combo box, nothing will be done.
-@param constraint the constraint (see the INPUT_* data members) to remove
-from the constraint combo box.
+@param constraint the constraint (see the INPUT_* data members) to remove from the constraint combo box.
 */
 public void removeConstraint(String constraint) {
 	if (__removedConstraints == null) {
@@ -695,16 +680,35 @@ public void removeConstraint(String constraint) {
 }
 
 /**
+Set the choices available to a filter.  This can be called after initialization to change the list of
+choices, for example, based on dynamically selected information.
+@param choiceLabels A list of String containing choice values to be
+displayed to the user.  If null, the user will not be shown a list of choices.
+@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param areChoicesEditable If true, and a non-null list of choices is provided,
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
+*/
+public void setChoices ( List choiceLabels, List choicesInternal, boolean areChoicesEditable )
+{   // Clear the list and add the new list so that GUI components that use this class as the data model
+    // retain the same references.
+    __choiceLabelList.clear();
+    __choiceLabelList.add(choiceLabels);
+    __choiceInternalList.clear();
+    __choiceInternalList.add(choicesInternal);
+    __areChoicesEditable = areChoicesEditable;
+}
+
+/**
 Set the input component for the data filter.  This is used by external code
 to manage GUI components used for input.  A distinct component should be
-availabel for each filter, usuall a JComboBox or a JTextField.
+available for each filter, usually a JComboBox or a JTextField.
 @param input_component the input component.
 */
 public void setInputComponent(JComponent input_component) {
-	__input_component = input_component;
+	__inputComponent = input_component;
 
-	if (__input_component != null) {
-		__input_component.setToolTipText(__inputComponentToolTipText);
+	if (__inputComponent != null) {
+		__inputComponent.setToolTipText(__inputComponentToolTipText);
 	}
 }
 
@@ -740,13 +744,12 @@ public void setInputJTextFieldWidth(int width) {
 Sets the maximum number of rows to display in the input JComboBox for this
 InputFilter.  If this InputFilter does not use a JComboBox as an input 
 component, then this method will do nothing.  If JCOMBOBOX_ROWS_DISPLAY_ALL 
-is passed in for the number of rows, the JComboBox will be sized 
-to display all of its rows.
+is passed in for the number of rows, the JComboBox will be sized to display all of its rows.
 @param num the maximum number of rows to display.  If 
 JCOMBOBOX_ROWS_DISPLAY_ALL is passed in for the number of rows, the 
 JComboBox will be sized to display all of its rows.
 */
-public void setNumberInputJComboBoxRows(int num)  {
+public void setNumberInputJComboBoxRows(int num) {
 	__numInputJComboBoxRows = num;
 }
 
@@ -759,8 +762,8 @@ delimiters are treated as one delimiter when parsing.
 the token position for the data value.
 */
 public void setTokenInfo ( String delimiter, int token ) {
-	__choice_delimiter = delimiter;
-	__choice_token = token;
+	__choiceDelimiter = delimiter;
+	__choiceToken = token;
 }
 
-} // End of InputFilter
+}
