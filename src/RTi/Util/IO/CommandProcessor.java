@@ -62,20 +62,17 @@ to call specialized methods in the command processor.
 This version allows properties to be passed as name/value pairs
 in a PropList.  It also allows multiple results to be returned.
 The parameter and result names/contents should be well documented by specific processors.
-@return a CommandProcessorRequestResultsBean containing the results of a request
-and other useful information.
+@return a CommandProcessorRequestResultsBean containing the results of a request and other useful information.
 @param request A request keyword.
 @param parameters Input to the request, as a PropList.
 @exception Exception if there is an error processing the request.
 */
-public CommandProcessorRequestResultsBean processRequest (
-		String request, PropList parameters ) throws Exception ;
+public CommandProcessorRequestResultsBean processRequest ( String request, PropList parameters ) throws Exception ;
 
 /**
 Set a property given the property.
 @param prop Property to set.
-@exception Exception if the property is not recognized or cannot
-be set.
+@exception Exception if the property is not recognized or cannot be set.
 */
 public void setProp ( Prop prop ) throws Exception;
 
@@ -85,7 +82,6 @@ Set a property's contents given the property name.
 @param contents Property contents.
 @exception Exception if the property is not recognized or cannot be set.
 */
-public void setPropContents ( String prop, Object contents )
-throws Exception;
+public void setPropContents ( String prop, Object contents ) throws Exception;
 
 }

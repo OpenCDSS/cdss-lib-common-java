@@ -300,57 +300,48 @@ Adjust an existing path.  This can be used, for example to navigate up an
 absolute path by a relative change.  The resulting path is returned.  Rules
 for adjustment are as follows:
 <ol>
-<li>	If the adjustment is an absolute path, the returned path is the same
-	as the adjustment.
+<li>	If the adjustment is an absolute path, the returned path is the same as the adjustment.
 	</li>
 <li>	If the adjustment is a relative path (e.g., "..", "../something",
 	"something", "something/something2"), the initial path is adjusted by
 	removing redundant path information if possible.
 	</li>
-<li>	If the adjustment is a relative path that cannot be applied, an
-	exception is thrown.
+<li>	If the adjustment is a relative path that cannot be applied, an exception is thrown.
 	</li>
-<li>	The returned path will not have the file separator unless the path is
-	the root directory.
+<li>	The returned path will not have the file separator unless the path is the root directory.
 	</li>
 </ol>
 No check for path existence is made.
-@return the original path adjusted by the adjustment, with no path separator
-at the end.
-@param initial_path Original path to adjust.
-@param adjustment Adjustment to the path to apply (e.g., "..").
+@return the original path adjusted by the adjustment, with no path separator at the end.
+@param initialPath Original path to adjust.
+@param adjustment Adjustment to the path to apply (e.g., "..", or a file/folder name).
 @exception Exception if the path cannot be adjusted.
 */
-public static String adjustPath ( String initial_path, String adjustment )
+public static String adjustPath ( String initialPath, String adjustment )
 throws Exception
 {	File a = new File ( adjustment );
 	// If the adjustment is blank, return the initial path.  Do not trim
-	// the adjustment because it is possible that a filename has only
-	// spaces.
+	// the adjustment because it is possible that a filename has only spaces.
 	if ( (adjustment == null) || (adjustment.length() == 0) ) {
-		return initial_path;
+		return initialPath;
 	}
 	if ( a.isAbsolute() ) {
 		// Adjustment is absolute so make the adjustment...
 		return adjustment;
 	}
-	// The adjustment is relative.  First make sure the initial path ends
-	// in a file separator...
-	StringBuffer buffer = new StringBuffer ( initial_path );
+	// The adjustment is relative.  First make sure the initial path ends in a file separator...
+	StringBuffer buffer = new StringBuffer ( initialPath );
 	char filesep = File.separator.charAt(0);
-	if ( initial_path.charAt(initial_path.length() - 1) != filesep ) {
+	if ( initialPath.charAt(initialPath.length() - 1) != filesep ) {
 		buffer.append ( filesep );
 	}
-	// Loop through the adjustment.  For every ".." that is encountered,
-	// remove one directory from "buffer"...
+	// Loop through the adjustment.  For every ".." that is encountered, remove one directory from "buffer"...
 	int length = adjustment.length();
-	String up_one = "..";
+	String upOne = "..";
 	for ( int i = 0; i < length; i++ ) {
-		if ( adjustment.indexOf(up_one,i) == i ) {
-			// The next part of the string has "..".  Move up one
-			// level in the initial string.  The buffer will have a
-			// separator at the end so need to skip over it at the
-			// start...
+		if ( adjustment.indexOf(upOne,i) == i ) {
+			// The next part of the string has "..".  Move up one level in the initial string.
+		    // The buffer will have a separator at the end so need to skip over it at the start...
 			for ( int j = buffer.length() - 2; j >= 0; j-- ) {
 				if ( buffer.charAt(j) == filesep ) {
 					// Found the previous separator...
@@ -365,9 +356,8 @@ throws Exception
 			// Need to go up one directory
 		}
 		else if ( adjustment.charAt(i) == '.' ) {
-			// If the next character is a separator (or at the end
-			// of the string), ignore this part of the path (since
-			// it references the current directory...
+			// If the next character is a separator (or at the end of the string), ignore this part of the
+		    // path (since it references the current directory...
 			if ( i == (length - 1) ) {
 				// Done processing...
 				break;
@@ -377,18 +367,18 @@ throws Exception
 				++i;
 				continue;
 			}
-			else {	// A normal "." for a file extension so add
-				// it...
+			else {
+			    // A normal "." for a file extension so add it...
 				buffer.append ( '.' );
 			}
 		}
-		else {	// Add the characters to the adjusted path...
+		else {
+		    // Add the characters to the adjusted path...
 			buffer.append ( adjustment.charAt(i) );
 		}
 	}
 	// Remove the trailing separator, but only if not the root directory..
-	if (	(buffer.charAt(buffer.length() - 1) == filesep) &&
-		!buffer.equals("" + filesep) ) {
+	if ( (buffer.charAt(buffer.length() - 1) == filesep) && !buffer.equals("" + filesep) ) {
 		// Remove the trailing file separator...
 		buffer.setLength(buffer.length() - 1);
 	}
@@ -2533,8 +2523,7 @@ public static String toAbsolutePath ( String dir, String path )
 	// Loop through the "path".  For each occurance of "..", knock a
 	// directory off the end of the "dir"...
 
-	// always trim any trailing directory separators off the directory
-	// paths
+	// Always trim any trailing directory separators off the directory paths
 	while (dir.length() > 1 && dir.endsWith(File.separator)) {
 		dir = dir.substring(0, dir.length() - 1);
 	}
