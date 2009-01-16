@@ -100,28 +100,47 @@ implements Cloneable, Serializable, Transferable {
 
 // Data members...
 
+//FIXME SAM 2009-01-15 Need to separate the data transfer code from normal classes
 /**
 The DataFlavor for transferring this specific class.
 */
-public static DataFlavor minuteTSFlavor = new DataFlavor(RTi.TS.MinuteTS.class, 
-	"RTi.TS.MinuteTS");
+public static DataFlavor minuteTSFlavor = new DataFlavor(RTi.TS.MinuteTS.class, "RTi.TS.MinuteTS");
 
-private	double[][][]	_data;		// This is the data space for minute
-					// time series.
-private	char[][][][]	_data_flags;	// Data flags for each data value.  The
-					// dimensions are [month][day]
-					// [minute value][_data_flag_length]
+/**
+Data space for minute time series.
+*/
+private	double[][][] _data;
 
-					// The following are set by
-					// getDataPosition() and used
-					// internally:
-private int		_month_pos;	// Month position in data array.
-private int		_day_pos;	// Day position in data array.
-private int		_interval_pos;	// Interval position in data array.
-private int [] _pos = null;		// Return for the following to
-					// optimize memory use.
-protected TSData	_tsdata;	// TSData object that is reused when
-					// getDataPoint() is called.
+/**
+Data flags for each data value.  The dimensions are [month][day][minute value][_data_flag_length].
+The following are set by getDataPosition() and used internally:
+*/
+private	char[][][][] _data_flags;
+
+/**
+Month position in data array.
+*/
+private int _month_pos;
+
+/**
+Day position in data array.
+*/
+private int _day_pos;
+
+/**
+Interval position in data array.
+*/
+private int _interval_pos;
+
+/**
+Return for the following to optimize memory use.
+*/
+private int [] _pos = null;
+
+/**
+TSData object that is reused when getDataPoint() is called.
+*/
+protected TSData _tsdata;
 
 /**
 Default constructor.
@@ -132,8 +151,7 @@ public MinuteTS ( )
 }
 
 /**
-Copy constructor.  Everything is copied by calling copyHeader() and then
-copying the data values.
+Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 @param ts MinuteTS to copy.
 */
 public MinuteTS ( MinuteTS ts )
@@ -163,8 +181,7 @@ is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
 @param initial_value Initial value (null is allowed and will result in the
 flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if
-necessary, but
+@param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
@@ -611,8 +628,7 @@ public Object clone ()
 				continue;
 			}
 			ts._data[i][j] = new double[_data[i][j].length];
-			System.arraycopy ( _data[i][j], 0, ts._data[i][j],
-			0,_data[i][j].length);
+			System.arraycopy ( _data[i][j], 0, ts._data[i][j], 0,_data[i][j].length);
 		}
 	}
 	if ( _has_data_flags ) {
@@ -621,22 +637,14 @@ public Object clone ()
 		int iday, ival;
 		for ( int imon = 0; imon < _data_flags.length; imon++ ) {
 			// Allocate days in month...
-			ts._data_flags[imon] =
-				new char[_data_flags[imon].length][][];
+			ts._data_flags[imon] = new char[_data_flags[imon].length][][];
 			for(iday = 0; iday < _data_flags[imon].length; iday++){
 				// Allocate data values in day...
-				ts._data_flags[imon][iday] =
-				new char[_data_flags[imon][iday].length][];
-				for (	ival = 0;
-					ival < _data_flags[imon][iday].length;
-					ival++ ) {
-					_data_flags[imon][iday][ival] =
-						new char[_data_flag_length];
-						System.arraycopy (
-						ts.
-						_data_flags[imon][iday][ival],0,
-						_data_flags[imon][iday][ival],0,
-						_data_flag_length );
+				ts._data_flags[imon][iday] = new char[_data_flags[imon][iday].length][];
+				for ( ival = 0; ival < _data_flags[imon][iday].length; ival++ ) {
+					_data_flags[imon][iday][ival] = new char[_data_flag_length];
+						System.arraycopy ( ts._data_flags[imon][iday][ival],0,
+						_data_flags[imon][iday][ival],0,_data_flag_length );
 				}
 			}
 		}

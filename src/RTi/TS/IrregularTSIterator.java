@@ -87,22 +87,18 @@ public int getDuration ()
 { 	return 0;
 }
 
-// REVISIT SAM 2005-09-16 Remove the warning when implemented
+// TODO SAM 2005-09-16 Remove the warning when implemented
 /**
 Go to the specified date/time, returning the matching data as if next() or
 previous() had been called.  The date/time in the time series MUST exactly
-match the date (dt.equals(...)).  If unable to go to the date/time, null is
-returned.
+match the date (dt.equals(...)).  If unable to go to the date/time, null is returned.
 @param dt Date/time to go to.
-THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.
-null IS ALWAYS RETURNED.
+THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.  null IS ALWAYS RETURNED.
 @param reset_if_fail If true and the search fails, reset to the starting
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
-@return the TSData for the requesting date/time.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the requesting date/time.  WARNING:  the contents of this object are volatile
+and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
 public TSData goTo ( DateTime dt, boolean reset_if_fail )
 {	Message.printWarning (1, "IrregularTSIterator.goTo",
@@ -110,30 +106,26 @@ public TSData goTo ( DateTime dt, boolean reset_if_fail )
 	return null;
 }
 
-// REVISIT SAM 2005-09-16 Remove the warning when implemented
+// TODO SAM 2005-09-16 Remove the warning when implemented
 /**
 Go to the specified date/time, returning the matching data as if next() or
 previous() had been called.  If an exact match for the requested date/time
 cannot be made, return the nearest next (future) data.  Return null if the
 search cannot find a matching date/time (e.g., due to the end of the period).
-THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.
-null IS ALWAYS RETURNED.
+THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.  null IS ALWAYS RETURNED.
 @param reset_if_fail If true and the search fails, reset to the starting
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
-@return the TSData for the requesting date/time.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the requesting date/time.  WARNING:  the contents of this object are volatile
+and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
 public TSData goToNearestNext ( DateTime dt, boolean reset_if_fail )
 {	Message.printWarning (1, "IrregularTSIterator.goToNearestNext",
-	"The goToNearestNext() method is not yet implemented in " +
-		"IrregularTSIterator." );
+	"The goToNearestNext() method is not yet implemented in IrregularTSIterator." );
 	return null;
 }
 
-// REVISIT SAM 2005-09-16 Remove the warning when implemented
+// TODO SAM 2005-09-16 Remove the warning when implemented
 /**
 Go to the specified date/time, returning the matching data as if next() or
 previous() had been called.  If an exact match for the requested date/time
@@ -143,22 +135,18 @@ search cannot find a matching date/time (e.g., due to the end of the period).
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
 @return the TSData for the requesting date/time.
-THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.
-null IS ALWAYS RETURNED.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+THIS METHOD IS NOT YET IMPLEMENTED FOR IrregularTSIterator.  null IS ALWAYS RETURNED.
+WARNING:  the contents of this object are volatile and change with each iteration.
+Use the get*() methods in TSIterator to retrieve data directly.
 */
 public TSData goToNearestPrevious ( DateTime dt, boolean reset_if_fail )
 {	Message.printWarning (1, "IrregularTSIterator.goToNearestPrevious",
-	"The goToNearestPrevious() method is not yet implemented in " +
-		"IrregularTSIterator." );
+	"The goToNearestPrevious() method is not yet implemented in IrregularTSIterator." );
 	return null;
 }
 
 /**
-Advance the iterator.  When called the first time, the initial values will be
-returned.
+Advance the iterator.  When called the first time, the initial values will be returned.
 @return null if the data is past the end or a pointer to an internal
 TSData object containing the data for the current time step (WARNING:  the
 contents of this object are volatile and change with each iteration).  Use the
@@ -171,66 +159,59 @@ public TSData next ( )
 	if ( (_ts == null) || (_ts.getDataSize() == 0) ) {
 		return null;
 	}
-	if ( _last_date_processed ) { 
+	if ( _lastDateProcessed ) { 
 		return null;
 	}
 
 	// We only want to advance the date if we have not already
 	// gone past the end...
 
-	if ( _first_date_processed ) {
+	if ( _firstDateProcessed ) {
 		theData = _tsdata.getNext();                         	
 	}
-	else {	// SAM fixing some things 2001-09-10. Make look like C++ but
-		// this old code is probably not a problem...
-		// This returns a copy which has null pointers.???
-		//_tsdata = _ts.getDataPoint(_current_date); 
-		//theData  = _tsdata;
-		// instead, loop the first time...
+	else {
 		List v = ((IrregularTS)_ts).getData();
 		if ( (v == null) || (v.size() == 0) ) {
 			return null;
 		}
 		int size = v.size();
 		TSData ptr = null;
-		for (	int i = 0; i < size; i++ ) {
+		for ( int i = 0; i < size; i++ ) {
 			ptr = (TSData)v.get(i);
-			if  ( ptr.getDate().equals(_current_date) ) {
+			if ( ptr.getDate().equals(_currentDate) ) {
 				theData = ptr;
 				break;
 			}
 		}
 		v = null;
 		ptr = null;
-		_first_date_processed = true;
+		_firstDateProcessed = true;
 	}
 
 	if ( theData == null ) {
-		// We are at the end or have exceeded the
-		// limits he data...
-		_last_date_processed = true;
+		// We are at the end or have exceeded the limits he data...
+		_lastDateProcessed = true;
 	}
-	else {	_current_date = theData.getDate();
-		if ( _current_date.greaterThan(_date2) ) {
+	else {
+	    _currentDate = theData.getDate();
+		if ( _currentDate.greaterThan(_date2) ) {
 			// We are further than we want to go ...
-			_last_date_processed = true;
+			_lastDateProcessed = true;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl,
-				"IrregularTSIterator.next",
-				"Have passed end date: " +
-				_date2.toString() );
+				Message.printDebug ( dl, "IrregularTSIterator.next", "Have passed end date: " + _date2.toString() );
 			}
 		}
 	}
 
-	if ( _last_date_processed ) { 
+	if ( _lastDateProcessed ) { 
 		return null;
 	}
-	else {	_tsdata = theData;
+	else {
+	    _tsdata = theData;
 		return theData;
 	}
 }
 
-// REVISIT - need to add previous  also need to add clone().
+// TODO - need to add previous also need to add clone().
 
-} // End IrregularTSIterator
+}

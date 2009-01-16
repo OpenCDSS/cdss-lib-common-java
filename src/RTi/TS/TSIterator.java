@@ -60,8 +60,7 @@ import RTi.Util.Time.DateTime;
 /**
 The TSIterator allows iteration through a regular-interval time series.  Use the
 IrregularTSIterator for irregular-interval time series.  In general,
-this should be transparent because the proper iterator will be created from the
-TS.iterator() method.
+this should be transparent because the proper iterator will be created from the TS.iterator() method.
 Use the iterator as follows:
 <pre>
 TS somets;	// Construct and initialize a time series or use an
@@ -91,8 +90,7 @@ for ( data = tsi.next(); data != null; data = tsi.next() ) {
 }
 </pre>
 The previous() method can be substituted for next() if iteration is to occur
-backwards (in this case the date/times are still specified with the earliest
-date/time first).
+backwards (in this case the date/times are still specified with the earliest date/time first).
 */
 public class TSIterator
 {
@@ -105,12 +103,12 @@ protected TS _ts = null;
 /**
 Interval base for time series, to optimize code.
 */
-protected int _interval_base = 0;
+protected int _intervalBase = 0;
 
 /**
 Interval multiplier for time series, to optimize code.
 */
-protected int _interval_mult = 0;
+protected int _intervalMult = 0;
 
 /**
 Date/time to start iteration.
@@ -125,23 +123,22 @@ protected DateTime _date2 = null;
 /**
 Date/time for current position.
 */
-protected DateTime _current_date = null;
+protected DateTime _currentDate = null;
 
 /**
 Indicates whether the first date has been processed.
 Only next() and previous() should change the values of this data member.
 */
-protected boolean _first_date_processed = false;
+protected boolean _firstDateProcessed = false;
 
 /**
 Indicates whether the last date has been processed.
 Only next() and previous() should change the values of this data member.
 */
-protected boolean _last_date_processed = false;
+protected boolean _lastDateProcessed = false;
 
 /**
-The data object to return.  It is reused for each return to avoid numerous
-memory allocation operations.
+The data object to return.  It is reused for each return to avoid numerous memory allocation operations.
 */
 protected TSData _tsdata = null;
 
@@ -157,8 +154,8 @@ throws Exception
 {	initialize ();
 
 	_ts = ts;
-	_interval_base = _ts.getDataIntervalBase();
-	_interval_mult = _ts.getDataIntervalMult();
+	_intervalBase = _ts.getDataIntervalBase();
+	_intervalMult = _ts.getDataIntervalMult();
 	if ( ts == null ) {
 		throw new Exception ( "Null TS for TSIterator" );
 	}
@@ -170,7 +167,7 @@ throws Exception
 	}
 	_date1 = new DateTime(ts.getDate1());
 	_date2 = new DateTime(ts.getDate2());
-	_current_date = new DateTime(_date1);
+	_currentDate = new DateTime(_date1);
 }
 
 /**
@@ -198,47 +195,42 @@ throws Exception
 		throw new Exception ( "Null TS.date2 for TSIterator" );
 	}
 	_ts = ts;
-	_interval_base = _ts.getDataIntervalBase();
-	_interval_mult = _ts.getDataIntervalMult();
+	_intervalBase = _ts.getDataIntervalBase();
+	_intervalMult = _ts.getDataIntervalMult();
 
 	if ( date1 != null ) {
 		_date1 = new DateTime (date1);
 	}
-	else {	_date1 = new DateTime (ts.getDate1());
+	else {
+	    _date1 = new DateTime (ts.getDate1());
 	}
 	
 	if ( date2 != null ) {
 		_date2 = new DateTime(date2);
 	}
-	else {	_date2 = new DateTime ( ts.getDate2());
+	else {
+	    _date2 = new DateTime ( ts.getDate2());
 	}
 
-	_current_date = new DateTime(_date1);
+	_currentDate = new DateTime(_date1);
 
 	// It is possible that the date passed in does not agree with a date
 	// in the time series.  For the initialization of the iterator, we want
 	// the _current_date to be an actual date in the data...
-	// Need to REVISIT???
+	// TODO SAM 2009-01-15 Evaluate code
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "TSIterator",
-		"Requested start date is " + _current_date.toString() );
+		Message.printDebug ( 50, "TSIterator", "Requested start date is " + _currentDate.toString() );
 	}
-	if ( _current_date.greaterThan(_ts.getDate2()) ) {
+	if ( _currentDate.greaterThan(_ts.getDate2()) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, "TSIterator",
-			"Initialized Current Date " +
-			_current_date.toString() +
-			" is larger than last Date of TS " +
-			_ts.getDate2().toString() +
-			". TS has only one value!" );
+			Message.printDebug ( 50, "TSIterator", "Initialized Current Date " + _currentDate.toString() +
+			" is larger than last Date of TS " + _ts.getDate2().toString() + ". TS has only one value!" );
 		}
-		_current_date = new DateTime (_ts.getDate2());
+		_currentDate = new DateTime (_ts.getDate2());
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "TSIterator",
-		"After check, start date changed to " +
-		_current_date.toString() );
+		Message.printDebug ( 50, "TSIterator", "After check, start date changed to " + _currentDate.toString() );
 	}
 }
 
@@ -249,27 +241,24 @@ Copy constructor.
 public TSIterator ( TSIterator i )
 {	initialize();
 
-	_ts 			= i._ts;	// Don't need to make a deep
-						// copy because this is meant to
-						// be a reference.
-	_interval_base		= i._interval_base;
-	_interval_mult		= i._interval_mult;
-	_date1 			= (DateTime)i._date1.clone();
-	_date2 			= (DateTime)i._date2.clone();
-	_current_date		= (DateTime)i._current_date.clone();
+	_ts = i._ts; // Don't need to make a deep copy because this is meant to be a reference.
+	_intervalBase = i._intervalBase;
+	_intervalMult = i._intervalMult;
+	_date1 = (DateTime)i._date1.clone();
+	_date2 = (DateTime)i._date2.clone();
+	_currentDate = (DateTime)i._currentDate.clone();
 }
 
 /**
-Clone this TSIterator object.  The Object base class clone() method is called
-and then the TSIterator objects are cloned.  The result is a complete deep
-copy.  The time series that is being iterated is NOT cloned because only a
-reference is maintained by the TSIterator.
+Clone this TSIterator object.  The Object base class clone() method is called and then the TSIterator
+objects are cloned.  The result is a complete deep copy.  The time series that is being iterated is
+NOT cloned because only a reference is maintained by the TSIterator.
 */
 public Object clone ()
-{	try {	// Clone the base class...
+{	try {
+        // Clone the base class...
 		TSIterator tsi = (TSIterator)super.clone();
-		// Don't want to clone the TS reference, just set the
-		// reference...
+		// Don't want to clone the TS reference, just set the reference...
 		tsi._ts = _ts;
 		// Now clone the mutable objects...
 		if ( _date1 != null ) {
@@ -278,8 +267,8 @@ public Object clone ()
 		if ( _date2 != null ) {
 			tsi._date2 = (DateTime)_date2.clone();
 		}
-		if ( _current_date != null ) {
-			tsi._current_date = (DateTime)_current_date.clone();
+		if ( _currentDate != null ) {
+			tsi._currentDate = (DateTime)_currentDate.clone();
 		}
 		return tsi;
 	}
@@ -298,7 +287,7 @@ throws Throwable
 {	_ts = null;
 	_date1 = null;
 	_date2 = null;
-	_current_date = null;
+	_currentDate = null;
 	_tsdata = null;
 	super.finalize();
 }
@@ -308,7 +297,7 @@ Return the current date for the iterator.
 @return the current date for the iterator.
 */
 public DateTime getDate ()
-{	return _current_date;
+{	return _currentDate;
 }
 
 /**
@@ -327,28 +316,26 @@ public double getDataValue ()
 { 	return _tsdata.getData ();
 }
 
-// REVISIT SAM 2005-09-14
-// Make this private for now since we call only when data should be available.
+// TODO SAM 2005-09-14 Make this private for now since we call only when data should be available.
 // This method may be useful if public.
 /**
 Return the TSData for the current date/time of the iterator.
-@return the TSData for the current date/time of the iterator.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the current date/time of the iterator.  WARNING:  the contents of this object are
+volatile and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
 private TSData getCurrentTSData ()
 {	if ( _ts.hasDataFlags() ) {
 		// Transfer the values.  This has more overhead but currently
 		// there is no way to get the data quality otherwise...
-		TSData data = _ts.getDataPoint ( _current_date );
-		_tsdata.setDate(_current_date);
+		TSData data = _ts.getDataPoint ( _currentDate );
+		_tsdata.setDate(_currentDate);
 		_tsdata.setData(data.getData());
 		_tsdata.setDataFlag ( data.getDataFlag() );
 	}
-	else {	// A little more efficient...
-		_tsdata.setDate(_current_date);
-		_tsdata.setData(_ts.getDataValue(_current_date));
+	else {
+	    // A little more efficient...
+		_tsdata.setDate(_currentDate);
+		_tsdata.setData(_ts.getDataValue(_currentDate));
 		_tsdata.setDataFlag ( "" );
 	}
 	return _tsdata;
@@ -363,43 +350,37 @@ public TS getTS ()
 }
 
 /**
-Go to the specified date/time, returning the matching data as if next() or
-previous() had been called.  The date/time in the time series MUST exactly
-match the date (dt.equals(date/time from time series) is called).  If unable to
-go to the date/time, null is returned.
+Go to the specified date/time, returning the matching data as if next() or previous() had been called.
+The date/time in the time series MUST exactly match the date (dt.equals(date/time from time series) is called).
+If unable to go to the date/time, null is returned.
 @param dt Date/time to go to.
-@param reset_if_fail If true and the search fails, reset to the starting
+@param resetIfFail If true and the search fails, reset to the starting
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
-@return the TSData for the requesting date/time.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the requesting date/time.  WARNING:  the contents of this object are volatile and
+change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
-public TSData goTo ( DateTime dt, boolean reset_if_fail )
+public TSData goTo ( DateTime dt, boolean resetIfFail )
 {	DateTime date = null;
 	TSData data = null;
-	// If the iterator has not fully initialized, call next() once
-	// to force it...
-	if ( !_first_date_processed && !_last_date_processed ) {
+	// If the iterator has not fully initialized, call next() once to force it...
+	if ( !_firstDateProcessed && !_lastDateProcessed ) {
 		next();
 	}
-	DateTime _current_date_orig = null;
-	boolean _last_date_processed_orig = _last_date_processed;
-	boolean _first_date_processed_orig = _first_date_processed;
-	if ( dt.equals(_current_date) ) {
+	DateTime currentDateOrig = null;
+	boolean lastDateProcessedOrig = _lastDateProcessed;
+	boolean firstDateProcessedOrig = _firstDateProcessed;
+	if ( dt.equals(_currentDate) ) {
 		// Just return...
 		return getCurrentTSData ();
 	}
-	else if ( dt.greaterThan(_current_date) ) {
+	else if ( dt.greaterThan(_currentDate) ) {
 		// Requested date/time is greater than current.
 		// Need to move forward in time.
-		if ( reset_if_fail ) {
-			// Save the starting conditions in case the search
-			// fails...
-			if ( _current_date != null ) {
-				_current_date_orig = new DateTime (
-					_current_date);
+		if ( resetIfFail ) {
+			// Save the starting conditions in case the search fails...
+			if ( _currentDate != null ) {
+				currentDateOrig = new DateTime (_currentDate);
 			}
 		}
 		while ( (data = next()) != null ) {
@@ -409,26 +390,23 @@ public TSData goTo ( DateTime dt, boolean reset_if_fail )
 			}
 			else if ( dt.lessThan(date) ) {
 				// Have passed the requested date/time.
-				// Precision is not OK for compare?  Trigger a
-				// fail...
 				break;
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
-	else {	// Requested date/time is earlier than the current date/time.
-		// Need to move back in time...
-		if ( reset_if_fail ) {
-			// Save the starting conditions in case the search
-			// fails...
-			if ( _current_date != null ) {
-				_current_date_orig =new DateTime(_current_date);
+	else {
+	    // Requested date/time is earlier than the current date/time.  Need to move back in time...
+		if ( resetIfFail ) {
+			// Save the starting conditions in case the search fails...
+			if ( _currentDate != null ) {
+				currentDateOrig =new DateTime(_currentDate);
 			}
 		}
 		while ( (data = previous()) != null ) {
@@ -438,16 +416,14 @@ public TSData goTo ( DateTime dt, boolean reset_if_fail )
 			}
 			else if ( dt.greaterThan(date) ) {
 				// Have passed the requested date/time.
-				// Precision is not OK for compare?  Trigger a
-				// fail...
 				break;
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
@@ -458,59 +434,55 @@ Go to the specified date/time, returning the matching data as if next() or
 previous() had been called.  If an exact match for the requested date/time
 cannot be made, return the nearest next (future) data.  Return null if the
 search cannot find a matching date/time (e.g., due to the end of the period).
-@param reset_if_fail If true and the search fails, reset to the starting
+@param resetIfFail If true and the search fails, reset to the starting
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
-@return the TSData for the requesting date/time.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the requesting date/time.  WARNING:  the contents of this object are volatile
+and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
-public TSData goToNearestNext ( DateTime dt, boolean reset_if_fail )
+public TSData goToNearestNext ( DateTime dt, boolean resetIfFail )
 {	DateTime date = null;
 	TSData data = null;
-	// If the iterator has not fully initialized, call next() once
-	// to force it...
-	if ( !_first_date_processed && !_last_date_processed ) {
+	// If the iterator has not fully initialized, call next() once to force it...
+	if ( !_firstDateProcessed && !_lastDateProcessed ) {
 		next();
 	}
-	DateTime _current_date_orig = null;
-	boolean _last_date_processed_orig = _last_date_processed;
-	boolean _first_date_processed_orig = _first_date_processed;
-	if ( reset_if_fail ) {
+	DateTime currentDateOrig = null;
+	boolean lastDateProcessedOrig = _lastDateProcessed;
+	boolean firstDateProcessedOrig = _firstDateProcessed;
+	if ( resetIfFail ) {
 		// Save the starting conditions in case the search fails...
-		if ( _current_date != null ) {
-			_current_date_orig = new DateTime ( _current_date );
+		if ( _currentDate != null ) {
+			currentDateOrig = new DateTime ( _currentDate );
 		}
 	}
-	if ( dt.equals(_current_date) ) {
+	if ( dt.equals(_currentDate) ) {
 		// Just return...
 		return getCurrentTSData ();
 	}
-	else if ( dt.greaterThanOrEqualTo(_current_date) ) {
-		// Requested date/time is greater than the iterator current
-		// time so need to move forward in time.
+	else if ( dt.greaterThanOrEqualTo(_currentDate) ) {
+		// Requested date/time is greater than the iterator current time so need to move forward in time.
 		while ( (data = next()) != null ) {
 			date = data.getDate();
 			if ( dt.greaterThan(date) ) {
 				// Still not there...
 				continue;
 			}
-			else {	// Have matched/passed the requested
-				// date/time...
+			else {
+			    // Have matched/passed the requested date/time...
 				return data;
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
-	else {	// Requested date/time is less than the current time so need to
-		// move back in time...
+	else {
+	    // Requested date/time is less than the current time so need to move back in time...
 		while ( (data = previous()) != null ) {
 			date = data.getDate();
 			if ( dt.lessThan(date) ) {
@@ -518,26 +490,26 @@ public TSData goToNearestNext ( DateTime dt, boolean reset_if_fail )
 				continue;
 			}
 			else if ( dt.equals(date) ) {
-				// Have matched the requested date/time so
-				// return it...
+				// Have matched the requested date/time so return it...
 				return data;
 			}
-			else {	// Have passed the requested date/time.  Return
-				// the next item (which should be after the
+			else {
+			    // Have passed the requested date/time.  Return the next item (which should be after the
 				// requested date/time...
 				data = next();
 				if ( data != null ) {
 					return data;
 				}
-				else {	break;	// Return null below.
+				else {
+				    break;	// Return null below.
 				}
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
@@ -548,38 +520,34 @@ Go to the specified date/time, returning the matching data as if next() or
 previous() had been called.  If an exact match for the requested date/time
 cannot be made, return the nearest previous (past) data.  Return null if the
 search cannot find a matching date/time (e.g., due to the end of the period).
-@param reset_if_fail If true and the search fails, reset to the starting
+@param resetIfFail If true and the search fails, reset to the starting
 position, but still return null.  If false and the search fails, the current
 date/time of the iterator will be at the end of data and null will be returned.
-@return the TSData for the requesting date/time.
-WARNING:  the contents of this
-object are volatile and change with each iteration.  Use the get*() methods in
-TSIterator to retrieve data directly.
+@return the TSData for the requesting date/time.  WARNING:  the contents of this object are volatile
+and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
 */
-public TSData goToNearestPrevious ( DateTime dt, boolean reset_if_fail )
+public TSData goToNearestPrevious ( DateTime dt, boolean resetIfFail )
 {	DateTime date = null;
 	TSData data = null;
-	// If the iterator has not fully initialized, call previous() once
-	// to force it...
-	if ( !_first_date_processed && !_last_date_processed ) {
+	// If the iterator has not fully initialized, call previous() once to force it...
+	if ( !_firstDateProcessed && !_lastDateProcessed ) {
 		previous();
 	}
-	DateTime _current_date_orig = null;
-	boolean _last_date_processed_orig = _last_date_processed;
-	boolean _first_date_processed_orig = _first_date_processed;
-	if ( reset_if_fail ) {
+	DateTime currentDateOrig = null;
+	boolean lastDateProcessedOrig = _lastDateProcessed;
+	boolean firstDateProcessedOrig = _firstDateProcessed;
+	if ( resetIfFail ) {
 		// Save the starting conditions in case the search fails...
-		if ( _current_date != null ) {
-			_current_date_orig = new DateTime ( _current_date );
+		if ( _currentDate != null ) {
+			currentDateOrig = new DateTime ( _currentDate );
 		}
 	}
-	if ( dt.equals(_current_date) ) {
+	if ( dt.equals(_currentDate) ) {
 		// Just return...
 		return getCurrentTSData ();
 	}
-	else if ( dt.greaterThan(_current_date) ) {
-		// Requested date/time is after current date/time.
-		// Need to move forward in time.
+	else if ( dt.greaterThan(_currentDate) ) {
+		// Requested date/time is after current date/time.  Need to move forward in time.
 		while ( (data = next()) != null ) {
 			date = data.getDate();
 			if ( dt.equals(date) ) {
@@ -591,36 +559,37 @@ public TSData goToNearestPrevious ( DateTime dt, boolean reset_if_fail )
 				if ( data != null ) {
 					return data;
 				}
-				else {	break;	// return null below.
+				else {
+				    break;	// return null below.
 				}
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
-	else {	// Requested date/time is less than current date/time.
-		// Need to move back in time...
+	else {
+	    // Requested date/time is less than current date/time.  Need to move back in time...
 		while ( (data = previous()) != null ) {
 			date = data.getDate();
 			if ( dt.lessThan(date) ) {
 				// Still searching...
 				continue;
 			}
-			else {	// Have matched/passed the requested
-				// date/time...
+			else {
+			    // Have matched/passed the requested date/time...
 				return data;
 			}
 		}
 		// If here the search failed.
-		if ( reset_if_fail ) {
-			_current_date = _current_date_orig;
-			_first_date_processed = _first_date_processed_orig;
-			_last_date_processed = _last_date_processed_orig;
+		if ( resetIfFail ) {
+			_currentDate = currentDateOrig;
+			_firstDateProcessed = firstDateProcessedOrig;
+			_lastDateProcessed = lastDateProcessedOrig;
 		}
 		return null;
 	}
@@ -631,16 +600,15 @@ Initialize data.
 */
 private void initialize ()
 {	_ts = null;
-	_first_date_processed = false;
-	_last_date_processed = false;
+	_firstDateProcessed = false;
+	_lastDateProcessed = false;
 	_tsdata = new TSData();
 }
 
 /**
 Advance the iterator one data point.  When called the first time, the first data
-point will be returned.  This method is used to advance forward through a time
-series.
-@return null if the time series has no data valuse or the date/time is past the
+point will be returned.  This method is used to advance forward through a time series.
+@return null if the time series has no data value or the date/time is past the
 end.  If the previous situation does not apply, return a pointer to an internal
 TSData object containing the data for the current time step (WARNING:  the
 contents of this object are volatile and change with each iteration).  Use the
@@ -652,38 +620,33 @@ public TSData next ()
 	if ( (_ts == null) || (_ts.getDataSize() == 0) ) {
 		return null;
 	}
-	if ( !_last_date_processed ) {
-		// We only want to advance the date if we have not already
-		// gone past the end...
-		if ( !_first_date_processed ) {
+	if ( !_lastDateProcessed ) {
+		// We only want to advance the date if we have not already gone past the end...
+		if ( !_firstDateProcessed ) {
 			// It is possible that the date specified as input does
 			// not exactly align with a date in the time series.
 			// But it is adjusted at construction.
-			_first_date_processed = true;
+			_firstDateProcessed = true;
 		}
-		else {	// Only increment if have processed the first date...
-			// The following should only be used for IrregularTS.
-			// However, IrregularTS now should return an
-			// IrregularTSIterator so the following should actually
-			// never get called...
-			_current_date.addInterval (
-					_interval_base, _interval_mult);
+		else {
+		    // Only increment if have processed the first date...
+			// The following should only be used for IrregularTS.  However, IrregularTS now should
+		    // return an IrregularTSIterator so the following should actually never get called...
+			_currentDate.addInterval (_intervalBase, _intervalMult);
 		}
-		if ( _current_date.greaterThan(_date2) ) {
-			// We are at the end or have exceeded the
-			// limits of the data...
-			_last_date_processed = true;
+		if ( _currentDate.greaterThan(_date2) ) {
+			// We are at the end or have exceeded the limits of the data...
+			_lastDateProcessed = true;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl,
-				"TSIterator.next",
-				"Have passed end date: " + _date2 );
+				Message.printDebug ( dl, "TSIterator.next", "Have passed end date: " + _date2 );
 			}
 		}
 	}
-	if ( _last_date_processed ) {
+	if ( _lastDateProcessed ) {
 		return null;
 	}
-	else {	// Set the values.  These are used by getDate, etc...
+	else {
+	    // Set the values.  These are used by getDate, etc...
 		return getCurrentTSData();
 	}
 }
@@ -708,47 +671,42 @@ public TSData previous ()
 	if ( (_ts == null) || (_ts.getDataSize() == 0) ) {
 		return null;
 	}
-	if ( !_first_date_processed ) {
-		// We only want to decrement the date if we have not already
-		// gone past the end...
-		if ( !_first_date_processed && !_last_date_processed ) {
+	if ( !_firstDateProcessed ) {
+		// We only want to decrement the date if we have not already gone past the end...
+		if ( !_firstDateProcessed && !_lastDateProcessed ) {
 			// Because at construction the current date/time is set
 			// to the start, we need to override here and set to the
 			// ending date/time.  Only do this if next() has not
-			// been called (in this case _first_date_processed will
-			// be false).
-			_current_date = new DateTime ( _date2 );
-			_last_date_processed = true;
+			// been called (in this case _first_date_processed will be false).
+			_currentDate = new DateTime ( _date2 );
+			_lastDateProcessed = true;
 		}
-		else if ( !_last_date_processed ) {
+		else if ( !_lastDateProcessed ) {
 			// It is possible that the date specified as input does
 			// not exactly align with a date in the time series.
 			// But it is adjusted at construction.
-			_last_date_processed = true;
+			_lastDateProcessed = true;
 		}
-		else {	// Only decrement if have processed the last date...
+		else {
+		    // Only decrement if have processed the last date...
 			// The following should only be used for IrregularTS.
 			// However, IrregularTS now should return an
-			// IrregularTSIterator so the following should actually
-			// never get called...
-			_current_date.addInterval (
-					_interval_base, -_interval_mult);
+			// IrregularTSIterator so the following should actually never get called...
+			_currentDate.addInterval (_intervalBase, -_intervalMult);
 		}
-		if ( _current_date.lessThan(_date1) ) {
-			// We are at the end or have exceeded the
-			// limits of the data...
-			_first_date_processed = true;
+		if ( _currentDate.lessThan(_date1) ) {
+			// We are at the end or have exceeded the limits of the data...
+			_firstDateProcessed = true;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl,
-				"TSIterator.previous",
-				"Have passed start date: " + _date1 );
+				Message.printDebug ( dl, "TSIterator.previous", "Have passed start date: " + _date1 );
 			}
 		}
 	}
-	if ( _first_date_processed ) {
+	if ( _firstDateProcessed ) {
 		return null;
 	}
-	else {	// Set the values.  These are used by getDate, etc...
+	else {
+	    // Set the values.  These are used by getDate, etc...
 		return getCurrentTSData();
 	}
 }
@@ -760,9 +718,9 @@ The iterator will be reset and a call to next() will return the first value.
 */
 public void setBeginTime ( DateTime date1 )
 {	_date1 = new DateTime(date1);
-	_first_date_processed = false;
-	_last_date_processed = false;
-	_current_date = new DateTime(_date1);		// Default for next()
+	_firstDateProcessed = false;
+	_lastDateProcessed = false;
+	_currentDate = new DateTime(_date1); // Default for next()
 }
 
 /**
@@ -773,7 +731,7 @@ but will return the next value after the last value returned.
 */
 public void setEndTime ( DateTime date2 )
 {	_date2 = new DateTime(date2);
-	_last_date_processed = false;
+	_lastDateProcessed = false;
 }
 
-} // End TSIterator
+}

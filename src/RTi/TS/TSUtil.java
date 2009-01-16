@@ -3637,17 +3637,13 @@ throws Exception
 
 	// Fill in the genesis information...
 
-	ts.setDataUnits ( ts.getDataUnits() + "/" + tsd.getDataUnits() );
+	if ( tsd.getDataUnits().trim().length() > 0 ) {
+	    ts.setDataUnits ( ts.getDataUnits() + "/" + tsd.getDataUnits() );
+	}
 	ts.addToGenesis ( "Divided " + start_date.toString() +
-		" to " + end_date.toString() + " by " +
-		tsd.getDescription() + "." );
+		" to " + end_date.toString() + " by " + tsd.getDescription() + "." );
 
-	ts.setDescription ( ts.getDescription() + ", /" +
-		tsd.getDescription() );
-
-	start = null;
-	end = null;
-	date = null;
+	ts.setDescription ( ts.getDescription() + ", /" + tsd.getDescription() );
 }
 
 /**
@@ -10144,8 +10140,7 @@ throws TSException
 
 /**
 Multiply an entire time series by another time series.  Only regular time series
-can be multiplied.  If either value is missing, then the result is set to
-missing.
+can be multiplied.  If either value is missing, then the result is set to missing.
 @param ts Time series to multiply.
 @param tsm Time series to multiply by.
 @exception Exception if there is an error processing.
@@ -10157,16 +10152,14 @@ throws Exception
 
 /**
 Multiply a time series by another time series for the indicated period.  Only
-regular time series can be multiplied.  If either value is missing, then the
-result is set to missing.
+regular time series can be multiplied.  If either value is missing, then the result is set to missing.
 @param ts Time series to multiply.
 @param tsm Time series to multiply by.
-@param start_date Date to start multiply.
-@param end_date Date to stop multiply.
+@param startDate Date to start multiply.
+@param endDate Date to stop multiply.
 @exception Exception if there is an error processing.
 */
-public static void multiply (	TS ts, TS tsm, DateTime start_date,
-				DateTime end_date )
+public static void multiply ( TS ts, TS tsm, DateTime startDate, DateTime endDate )
 throws Exception
 {	if ( ts == null ) {
 		return;
@@ -10177,24 +10170,19 @@ throws Exception
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
-	valid_dates = null;
+	TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
+	DateTime start = validDates.getDate1();
+	DateTime end = validDates.getDate2();
+	validDates = null;
 
-	int interval_base = ts.getDataIntervalBase();
-	int interval_mult = ts.getDataIntervalMult();
-	if (	(interval_base != tsm.getDataIntervalBase()) ||
-		(interval_mult != tsm.getDataIntervalMult()) ) {
-		throw new Exception (
-		"Cannot multiply data with different intervals (" +
-		ts.getIdentifierString() + " and " +
-		tsm.getIdentifierString() + ")." );
+	int intervalBase = ts.getDataIntervalBase();
+	int intervalMult = ts.getDataIntervalMult();
+	if ( (intervalBase != tsm.getDataIntervalBase()) || (intervalMult != tsm.getDataIntervalMult()) ) {
+		throw new Exception ( "Cannot multiply data with different intervals (" +
+		ts.getIdentifierString() + " and " + tsm.getIdentifierString() + ")." );
 	}
-	if ( interval_base == TimeInterval.IRREGULAR ) {
-		throw new Exception (
-		"Cannot multiply irregular interval data (" +
-		ts.getIdentifierString() + ")" );
+	if ( intervalBase == TimeInterval.IRREGULAR ) {
+		throw new Exception ( "Cannot multiply irregular interval data (" + ts.getIdentifierString() + ")" );
 	}
 
 	// Loop using addInterval...
@@ -10203,31 +10191,24 @@ throws Exception
 	double missing = ts.getMissing();
 	double oldvalue = 0.0;
 	double mult = 0.0;
-	for (	; date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
 		oldvalue = ts.getDataValue(date);
 		mult = tsm.getDataValue(date);
-		if (	ts.isDataMissing(oldvalue) ||
-			ts.isDataMissing(mult) ) {
+		if ( ts.isDataMissing(oldvalue) || ts.isDataMissing(mult) ) {
 			ts.setDataValue ( date, missing );
 		}
-		else {	ts.setDataValue ( date, oldvalue*mult );
+		else {
+		    ts.setDataValue ( date, oldvalue*mult );
 		}
 	}
 
+	if ( tsm.getDataUnits().trim().length() > 0 ) {
+	    ts.setDataUnits ( ts.getDataUnits() + "*" + tsm.getDataUnits() );
+	}
+	ts.setDescription ( ts.getDescription() + ", *" + tsm.getDescription() );
+	
 	// Fill in the genesis information...
-
-	ts.setDataUnits ( ts.getDataUnits() + "*" + tsm.getDataUnits() );
-	ts.addToGenesis ( "Multiplied " + start_date.toString() +
-		" to " + end_date.toString() + " by " +
-		tsm.getDescription() + "." );
-
-	ts.setDescription ( ts.getDescription() + ", *" +
-		tsm.getDescription() );
-
-	start = null;
-	end = null;
-	date = null;
+    ts.addToGenesis ( "Multiplied " + startDate + " to " + endDate + " by " + tsm.getDescription() + "." );
 }
 
 /**

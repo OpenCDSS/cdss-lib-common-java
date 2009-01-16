@@ -143,7 +143,7 @@ private	double[][] _data;
 /**
 Data flags for each hourly value.  The dimensions are [month][value_in_month][_data_flag_length]
 */
-protected char [][][] _data_flags;
+private char [][][] _dataFlags;
 /**
 Data position, used internally by get/set methods.
 */
@@ -159,7 +159,7 @@ private int _column;
 /**
 TSData object that is reused when getDataPoint() is called.
 */
-protected TSData	_tsdata;
+private TSData _tsdata;
 
 /**
 Default constructor.
@@ -193,19 +193,17 @@ public HourTS ( HourTS ts )
 Allocate the data flag space for the time series.  This requires that the data
 interval base and multiplier are set correctly and that _date1 and _date2 have
 been set.  The allocateDataSpace() method will allocate the data flags if
-appropriate.  Use this method when the data flags need to be allocated after
-the initial allocation.
-@param data_flag_length Maximum length of data flags.  If the data flags array
+appropriate.  Use this method when the data flags need to be allocated after the initial allocation.
+@param dataFlagLength Maximum length of data flags.  If the data flags array
 is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
-@param initial_value Initial value (null is allowed and will result in the
-flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if necessary, but
+@param initialValue Initial value (null is allowed and will result in the flags being initialized to spaces).
+@param retainPreviousValues If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
+public void allocateDataFlagSpace (	int dataFlagLength, String initialValue, boolean retainPreviousValues )
 throws Exception
 {	String	routine="HourTS.allocateDataFlagSpace", message;
 	int	i;
@@ -229,25 +227,25 @@ throws Exception
 		throw new Exception ( message );
 	}
 
-	char [][][] data_flags_prev = null;
-	int data_flag_length_prev = _data_flag_length;
-	if ( _has_data_flags && retain_previous_values ) {
+	char [][][] dataFlagsPrev = null;
+	int dataFlagLengthPrev = _data_flag_length;
+	if ( _has_data_flags && retainPreviousValues ) {
 		// Save the reference to the old flags array...
-		data_flags_prev = _data_flags;
+		dataFlagsPrev = _dataFlags;
 		// Increment the total length to be allocated to the previous value plus the new length...
-		_data_flag_length += data_flag_length;
+		_data_flag_length += dataFlagLength;
 	}
 	else {
 	    // Turn on the flags...
 		_has_data_flags = true;
-		_data_flag_length = data_flag_length;
+		_data_flag_length = dataFlagLength;
 	}
 	char [] blanks = null;
 	// Top-level allocation...
-	_data_flags = new char[nmonths][][];
+	_dataFlags = new char[nmonths][][];
 	// Set up the initial value, to be reused...
 	blanks = new char[_data_flag_length];
-	if ( initial_value == null ) {
+	if ( initialValue == null ) {
 		for ( i = 0; i < _data_flag_length; i++ ) {
 			blanks[i] = ' ';
 		}
@@ -255,7 +253,7 @@ throws Exception
 	else {
 	    // Assign to the initial value...
 		for ( i = 0; i < _data_flag_length; i++ ) {
-			blanks[i] = initial_value.charAt(i);
+			blanks[i] = initialValue.charAt(i);
 		}
 	}
 
@@ -270,28 +268,28 @@ throws Exception
 
 	int j = 0;
 	int nvals = 0;
-	int ndays_in_month = 0;
+	int ndaysInMonth = 0;
 	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
 		// If a non-valid interval, an exception was thrown above...
-		ndays_in_month = TimeUtil.numDaysInMonth ( date );
-		nvals = ndays_in_month*(24/_data_interval_mult);
+		ndaysInMonth = TimeUtil.numDaysInMonth ( date );
+		nvals = ndaysInMonth*(24/_data_interval_mult);
 
-		_data_flags[i] = new char[nvals][];
+		_dataFlags[i] = new char[nvals][];
 
 		// Now fill with the initial data value...
 
 		for ( j = 0; j < nvals; j++ ) {
-			_data_flags[i][j] = new char[_data_flag_length];
+			_dataFlags[i][j] = new char[_data_flag_length];
 			// Initialize with blanks (spaces)...
-			System.arraycopy ( blanks, 0, _data_flags[i][j], 0, _data_flag_length );
-			if(retain_previous_values && (data_flags_prev != null)){
+			System.arraycopy ( blanks, 0, _dataFlags[i][j], 0, _data_flag_length );
+			if(retainPreviousValues && (dataFlagsPrev != null)){
 				// Copy over the old values (typically shorter character arrays)...
-				System.arraycopy ( data_flags_prev[i][j], 0, _data_flags[i][j], 0, data_flag_length_prev );
+				System.arraycopy ( dataFlagsPrev[i][j], 0, _dataFlags[i][j], 0, dataFlagLengthPrev );
 			}
 		}
 	}
 
-	data_flags_prev = null;
+	dataFlagsPrev = null;
 	date = null;
 	routine = null;
 }
@@ -302,7 +300,7 @@ Allocate the data space.  The start and end dates and the interval multiplier sh
 */
 public int allocateDataSpace( )
 {	String	routine = "HourTS.allocateDataSpace";
-	int	dl = 30, i, ndays_in_month, nmonths=0, nvals;
+	int	dl = 30, i, ndaysInMonth, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
 		Message.printWarning ( 2, routine, "No dates set for memory allocation" );
@@ -323,7 +321,7 @@ public int allocateDataSpace( )
 	_data = new double[nmonths][];
 	char [] blanks = null;
 	if ( _has_data_flags ) {
-		_data_flags = new char[nmonths][][];
+		_dataFlags = new char[nmonths][][];
 		blanks = new char[_data_flag_length];
 		for ( i = 0; i < _data_flag_length; i++ ) {
 			blanks[i] = ' ';
@@ -340,12 +338,12 @@ public int allocateDataSpace( )
 	date.setYear( _date1.getYear() );
 
 	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
-		ndays_in_month = TimeUtil.numDaysInMonth ( date );
+		ndaysInMonth = TimeUtil.numDaysInMonth ( date );
 		// 1-24 hour data...
-		nvals = ndays_in_month*(24/_data_interval_mult);
+		nvals = ndaysInMonth*(24/_data_interval_mult);
 		_data[i] = new double[nvals];
 		if ( _has_data_flags ) {
-			_data_flags[i] = new char[nvals][];
+			_dataFlags[i] = new char[nvals][];
 		}
 
 		if ( Message.isDebugOn ) {
@@ -359,8 +357,8 @@ public int allocateDataSpace( )
 		for ( int j = 0; j < nvals; j++ ) {
 			_data[i][j] = _missing;
 			if ( _has_data_flags ) {
-				_data_flags[i][j] = new char[_data_flag_length];
-					System.arraycopy ( blanks, 0, _data_flags[i][j], 0, _data_flag_length );
+				_dataFlags[i][j] = new char[_data_flag_length];
+					System.arraycopy ( blanks, 0, _dataFlags[i][j], 0, _data_flag_length );
 				
 			}
 		}
@@ -382,20 +380,20 @@ public int allocateDataSpace( )
 Determine the total number of points between two dates, given an interval multiplier.
 @return The number of data points for an hour time series
 given the data interval multiplier for the specified period.
-@param start_date The first date of the period.
-@param end_date The last date of the period.
+@param startDate The first date of the period.
+@param endDate The last date of the period.
 @param interval_mult The time series data interval multiplier.
 */
-public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult )
+public static int calculateDataSize ( DateTime startDate, DateTime endDate, int interval_mult )
 {	String routine = "HourTS.calculateDataSize";
 	int datasize = 0;
 
-	if ( start_date == null ) {
-		Message.printWarning ( 2, routine, "Start date is null" );
+	if ( startDate == null ) {
+		Message.printWarning ( 2, routine, "Start date/time is null" );
 		return 0;
 	}
-	if ( end_date == null ) {
-		Message.printWarning ( 2, routine, "End date is null" );
+	if ( endDate == null ) {
+		Message.printWarning ( 2, routine, "End date/time is null" );
 		return 0;
 	}
 	if ( interval_mult > 24 ) {
@@ -403,19 +401,19 @@ public static int calculateDataSize ( DateTime start_date, DateTime end_date, in
 		return 0;
 	}
 	// First set to the number of data in the months...
-	datasize = TimeUtil.numDaysInMonths ( start_date.getMonth(), start_date.getYear(),
-		end_date.getMonth(), end_date.getYear() )*24/interval_mult;
+	datasize = TimeUtil.numDaysInMonths ( startDate.getMonth(), startDate.getYear(),
+		endDate.getMonth(), endDate.getYear() )*24/interval_mult;
 	// Now subtract off the data at the ends that are missing...
 	// Start by subtracting the full day at the beginning of the month that is not included...
-	datasize -= (start_date.getDay() - 1)*24/interval_mult;
+	datasize -= (startDate.getDay() - 1)*24/interval_mult;
 	// Now subtract the recordings on the first day before the first time...
-	datasize -= start_date.getHour()/interval_mult;
+	datasize -= startDate.getHour()/interval_mult;
 	// Now subtract off the data at the end...
 	// Start by subtracting the full days off the end of the month...
-	int ndays_in_month = TimeUtil.numDaysInMonth ( end_date.getMonth(), end_date.getYear() );
-	datasize -= (ndays_in_month - end_date.getDay())*24/interval_mult;
+	int ndays_in_month = TimeUtil.numDaysInMonth ( endDate.getMonth(), endDate.getYear() );
+	datasize -= (ndays_in_month - endDate.getDay())*24/interval_mult;
 	// Now subtract the readings at the end of the last day...
-	datasize -= (23 - end_date.getHour())/interval_mult;
+	datasize -= (23 - endDate.getHour())/interval_mult;
 	routine = null;
 	return datasize;
 }
@@ -429,8 +427,8 @@ missing data will be used to fill the time series.  If the period is shortened, 
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException
-{	String	routine="HourTS.changePeriodOfRecord";
-	String	message;
+{	String routine="HourTS.changePeriodOfRecord";
+	String message;
 
 	// To transfer, allocate a new data space.  In any case, need to get the dates established...
 	if ( (date1 == null) && (date2 == null) ) {
@@ -440,27 +438,28 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	DateTime new_date1 = null;
+	DateTime newDate1 = null;
 	if ( date1 == null ) {
 		// Use the original date...
-		new_date1 = new DateTime ( _date1 );
-	}
-	else {	// Use the date passed in...
-		new_date1 = new DateTime ( date1 );
-	}
-	DateTime new_date2 = null;
-	if ( date2 == null ) {
-		// Use the original date...
-		new_date2 = new DateTime ( _date2 );
+		newDate1 = new DateTime ( _date1 );
 	}
 	else {
 	    // Use the date passed in...
-		new_date2 = new DateTime ( date2 );
+		newDate1 = new DateTime ( date1 );
+	}
+	DateTime newDate2 = null;
+	if ( date2 == null ) {
+		// Use the original date...
+		newDate2 = new DateTime ( _date2 );
+	}
+	else {
+	    // Use the date passed in...
+		newDate2 = new DateTime ( date2 );
 	}
 
 	// Do not change the period if the dates are the same...
 
-	if ( _date1.equals(new_date1) && _date2.equals(new_date2) ) {
+	if ( _date1.equals(newDate1) && _date2.equals(newDate2) ) {
 		// No need to change period...
 		return;
 	}
@@ -469,38 +468,38 @@ throws TSException
 	// the new position.  To get the right data position, declare a
 	// temporary HourTS with the old dates and save a reference to the old data...
 
-	double [][] data_save = _data;
-	char [][][] data_flags_save = _data_flags;
-	HourTS temp_ts = new HourTS ();
-	temp_ts.setDataInterval ( TimeInterval.HOUR, _data_interval_mult );
-	temp_ts.setDate1 ( _date1 );
-	temp_ts.setDate2 ( _date2 );
+	double [][] dataSave = _data;
+	char [][][] dataFlagsSave = _dataFlags;
+	HourTS tempTs = new HourTS ();
+	tempTs.setDataInterval ( TimeInterval.HOUR, _data_interval_mult );
+	tempTs.setDate1 ( _date1 );
+	tempTs.setDate2 ( _date2 );
 
 	// Also compute limits for the transfer to optimize performance...
 
-	DateTime transfer_date1 = null;
-	DateTime transfer_date2 = null;
-	if ( new_date1.lessThan(_date1) ) {
+	DateTime transferDate1 = null;
+	DateTime transferDate2 = null;
+	if ( newDate1.lessThan(_date1) ) {
 		// Extending so use the old date...
-		transfer_date1 = new DateTime ( _date1 );
+		transferDate1 = new DateTime ( _date1 );
 	}
 	else {
 	    // Shortening so use the new...
-		transfer_date1 = new DateTime ( new_date1 );
+		transferDate1 = new DateTime ( newDate1 );
 	}
-	if ( new_date2.greaterThan(_date2) ) {
+	if ( newDate2.greaterThan(_date2) ) {
 		// Extending so use the old date...
-		transfer_date2 = new DateTime ( _date2 );
+		transferDate2 = new DateTime ( _date2 );
 	}
 	else {
 	    // Shortening so use the new...
-		transfer_date2 = new DateTime ( new_date2 );
+		transferDate2 = new DateTime ( newDate2 );
 	}
 
 	// Now reset the dates and reallocate the period...
 
-	setDate1 ( new_date1 );
-	setDate2 ( new_date2 );
+	setDate1 ( newDate1 );
+	setDate2 ( newDate2 );
 	allocateDataSpace();
 
 	// At this point the data space will be completely filled with missing data.
@@ -510,19 +509,19 @@ throws TSException
 	// with transferring the values for the the old time series that are within the new period...
 
 	double value;
-	int [] data_pos;
-	for ( DateTime date = new DateTime (transfer_date1,DateTime.DATE_FAST);
-		date.lessThanOrEqualTo (transfer_date2);
+	int [] dataPos;
+	for ( DateTime date = new DateTime (transferDate1,DateTime.DATE_FAST);
+		date.lessThanOrEqualTo (transferDate2);
 		date.addInterval( _data_interval_base, _data_interval_mult ) ) {
 		// Get the data position for the old data...
-		data_pos = temp_ts.getDataPosition(date);
+		dataPos = tempTs.getDataPosition(date);
 		// Now get the value...
-		value = data_save[data_pos[0]][data_pos[1]];
+		value = dataSave[dataPos[0]][dataPos[1]];
 		// Now set in the new period...
 		// Also transfer the data flag...
 		if ( _has_data_flags ) {
 			// Transfer the value and flag...
-			setDataValue ( date, value, new String(data_flags_save[data_pos[0]][data_pos[1]]), 1 );
+			setDataValue ( date, value, new String(dataFlagsSave[dataPos[0]][dataPos[1]]), 1 );
 		}
 		else {
 		    // Transfer the value...
@@ -532,16 +531,16 @@ throws TSException
 
 	// Add to the genesis...
 
-	addToGenesis ( "Changed period from: " + temp_ts.getDate1() + " - " +
-		temp_ts.getDate2() + " to " + new_date1 + " - " + new_date2 );
+	addToGenesis ( "Changed period from: " + tempTs.getDate1() + " - " +
+		tempTs.getDate2() + " to " + newDate1 + " - " + newDate2 );
 	routine = null;
 	message = null;
-	new_date1 = null;
-	new_date2 = null;
-	temp_ts = null;
-	transfer_date1 = null;
-	transfer_date2 = null;
-	data_save = null;
+	newDate1 = null;
+	newDate2 = null;
+	tempTs = null;
+	transferDate1 = null;
+	transferDate2 = null;
+	dataSave = null;
 }
 
 /**
@@ -561,13 +560,14 @@ public Object clone ()
 	int ival = 0;
 	if ( _has_data_flags ) {
 		// Allocate months...
-		ts._data_flags = new char[_data_flags.length][][];
-		for ( int imon = 0; imon < _data_flags.length; imon++ ) {
-			// Allocate days in month...
-			ts._data_flags[imon] = new char[_data_flags[imon].length][];
-			for(ival = 0; ival < _data_flags[imon].length; ival++){
-				_data_flags[imon][ival] = new char[_data_flag_length];
-				System.arraycopy ( ts._data_flags[imon][ival], 0, _data_flags[imon][ival], 0, _data_flag_length );
+		ts._dataFlags = new char[_dataFlags.length][][];
+		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
+			// Allocate flag arrays for values in month one flag array for each value in month...
+			ts._dataFlags[imon] = new char[_dataFlags[imon].length][];
+			for(ival = 0; ival < _dataFlags[imon].length; ival++){
+			    // Allocate data flags array for hour values...
+				ts._dataFlags[imon][ival] = new char[_data_flag_length];
+				System.arraycopy ( ts._dataFlags[imon][ival], 0, _dataFlags[imon][ival], 0, _data_flag_length );
 			}
 		}
 	}
@@ -586,7 +586,7 @@ Finalize before garbage collection.
 protected void finalize ()
 throws Throwable
 {	_data = null;
-	_data_flags = null;
+	_dataFlags = null;
 	_pos = null;
 	_tsdata = null;
 	super.finalize();
@@ -738,7 +738,7 @@ throws TSException
 {	String message = "", routine = "HourTS.formatOutput", year_column = "";
 List strings = new Vector (20,10);
 	PropList props = null;
-	String calendar = "WaterYear", data_format = "%9.1f", prop_value = null;
+	String calendar = "WaterYear", dataFormat = "%9.1f", propValue = null;
 
 	// Only know how to do this 1 to 24-hour time series (in the future may
 	// automatically convert to correct interval)...
@@ -785,38 +785,38 @@ List strings = new Vector (20,10);
 
 	// Get the precision...
 
-	prop_value = props.getValue ( "OutputPrecision" );
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "OutputPrecision" );
+	if ( propValue == null ) {
 		// Older, being phased out...
 		Message.printWarning ( 2, routine, "Need to switch Precision property to OutputPrecision" );
-		prop_value = props.getValue ( "Precision" );
+		propValue = props.getValue ( "Precision" );
 	}
-	if ( prop_value == null ) {
+	if ( propValue == null ) {
 		// Try to get units information for default...
 		try {
 		    DataUnits u = DataUnits.lookupUnits ( req_units );
-			data_format = "%9." + u.getOutputPrecision() + "f";
+			dataFormat = "%9." + u.getOutputPrecision() + "f";
 		}
 		catch ( Exception e ) {
 			// Default...
-			data_format = "%9.1f";
+			dataFormat = "%9.1f";
 		}
 	}
 	else {
 	    // Set to requested precision...
-		data_format = "%9." + prop_value + "f";
+		dataFormat = "%9." + propValue + "f";
 	}
 
 	// Determine whether water or calendar year...
 
-	prop_value = props.getValue ( "CalendarType" );
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "CalendarType" );
+	if ( propValue == null ) {
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
 	else {
 	    // Set to requested format...
-		calendar = prop_value;
+		calendar = propValue;
 	}
 
 	// Determine the period to output.  For now always output the total...
@@ -826,52 +826,53 @@ List strings = new Vector (20,10);
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
-	DateTime start_date = new DateTime (_date1);
-	prop_value = props.getValue ( "OutputStart" );
-	if ( prop_value != null ) {
+	DateTime startDate = new DateTime (_date1);
+	propValue = props.getValue ( "OutputStart" );
+	if ( propValue != null ) {
 		try {
-		    start_date = DateTime.parse ( prop_value );
-			start_date.setPrecision ( DateTime.PRECISION_HOUR );
+		    startDate = DateTime.parse ( propValue );
+			startDate.setPrecision ( DateTime.PRECISION_HOUR );
 		}
 		catch ( Exception e ) {
 			// Default to the time series...
-			start_date = new DateTime ( _date1 );
+			startDate = new DateTime ( _date1 );
 		}
 	}
-	DateTime end_date = new DateTime (_date2);
-	prop_value = props.getValue ( "OutputEnd" );
-	if ( prop_value != null ) {
-		try {	end_date = DateTime.parse ( prop_value );
-			end_date.setPrecision ( DateTime.PRECISION_HOUR );
+	DateTime endDate = new DateTime (_date2);
+	propValue = props.getValue ( "OutputEnd" );
+	if ( propValue != null ) {
+		try {
+		    endDate = DateTime.parse ( propValue );
+			endDate.setPrecision ( DateTime.PRECISION_HOUR );
 		}
 		catch ( Exception e ) {
 			// Default to the time series...
-			end_date = new DateTime ( _date2 );
+			endDate = new DateTime ( _date2 );
 		}
 	}
 
 	// Now generate the output based on the format...
 
-	prop_value = props.getValue ( "PrintHeader" );
-	String print_header = null;
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "PrintHeader" );
+	String printHeader = null;
+	if ( propValue == null ) {
 		// Default is true...
-		print_header = "true";
+		printHeader = "true";
 	}
 	else {
-	    print_header = prop_value;
+	    printHeader = propValue;
 	}
-	prop_value = props.getValue ( "UseCommentsForHeader" );
-	String use_comments_for_header = null;
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "UseCommentsForHeader" );
+	String useCommentsForHeader = null;
+	if ( propValue == null ) {
 		// Default is false...
-		use_comments_for_header = "false";
+		useCommentsForHeader = "false";
 	}
 	else {
-	    use_comments_for_header = prop_value;
+	    useCommentsForHeader = propValue;
 	}
-	if ( print_header.equalsIgnoreCase("true") ) {
-		if ( !use_comments_for_header.equalsIgnoreCase("true") || (_comments.size() == 0) ){
+	if ( printHeader.equalsIgnoreCase("true") ) {
+		if ( !useCommentsForHeader.equalsIgnoreCase("true") || (_comments.size() == 0) ){
 			// Format the header from data (not comments)...
 			strings.add ( "" );
 			List strings2 = formatHeader();
@@ -881,20 +882,20 @@ List strings = new Vector (20,10);
 		
 	// Add comments if available...
 
-	prop_value = props.getValue ( "PrintComments" );
-	String print_comments = null;
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "PrintComments" );
+	String printComments = null;
+	if ( propValue == null ) {
 		// Default is true...
-		print_comments = "true";
+		printComments = "true";
 	}
 	else {
-	    print_comments = prop_value;
+	    printComments = propValue;
 	}
-	if ( print_comments.equalsIgnoreCase("true") || use_comments_for_header.equalsIgnoreCase("true")){
+	if ( printComments.equalsIgnoreCase("true") || useCommentsForHeader.equalsIgnoreCase("true")){
 		strings.add ( "" );
 		if ( _comments != null ) {
 			int ncomments = _comments.size();
-			if ( !use_comments_for_header.equalsIgnoreCase("true")){
+			if ( !useCommentsForHeader.equalsIgnoreCase("true")){
 				strings.add ( "Comments:" );
 			}
 			if ( ncomments > 0 ) {
@@ -913,14 +914,14 @@ List strings = new Vector (20,10);
 	
 	// Print the genesis information...
 
-	prop_value = props.getValue ( "PrintGenesis" );
+	propValue = props.getValue ( "PrintGenesis" );
 	String print_genesis = null;
-	if ( prop_value == null ) {
+	if ( propValue == null ) {
 		// Default is true...
 		print_genesis = "true";
 	}
 	else {
-	    print_genesis = prop_value;
+	    print_genesis = propValue;
 	}
 	if ( (_genesis != null) && print_genesis.equalsIgnoreCase("true") ) {
 		int size = _genesis.size();
@@ -931,10 +932,10 @@ List strings = new Vector (20,10);
 		}
 	}
 	if ( _data_interval_mult == 24 ) {
-		formatOutput24Hour ( strings, props, calendar, data_format, start_date, end_date, req_units, year_column );
+		formatOutput24Hour ( strings, props, calendar, dataFormat, startDate, endDate, req_units, year_column );
 	}
 	else {
-	    formatOutputNHour (	strings, props, calendar, data_format, start_date, end_date, req_units, year_column );
+	    formatOutputNHour (	strings, props, calendar, dataFormat, startDate, endDate, req_units, year_column );
 	}
 
 	message = null;
@@ -942,14 +943,14 @@ List strings = new Vector (20,10);
 	year_column = null;
 	props = null;
 	calendar = null;
-	data_format = null;
-	prop_value = null;
+	dataFormat = null;
+	propValue = null;
 	req_units = null;
-	start_date = null;
-	end_date = null;
-	print_header = null;
-	use_comments_for_header = null;
-	print_comments = null;
+	startDate = null;
+	endDate = null;
+	printHeader = null;
+	useCommentsForHeader = null;
+	printComments = null;
 	print_genesis = null;
 	return strings;
 }
@@ -963,10 +964,10 @@ Format the time series for output.
 */
 public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List	formatted_output = null;
-	String	routine = "HourTS.formatOutput";
+{	List formattedOutput = null;
+	String routine = "HourTS.formatOutput";
 	int	dl = 20;
-	String	message;
+	String message;
 
 	if ( fp == null) {
 		message = "Null PrintWriter for output";
@@ -977,18 +978,18 @@ throws TSException
 	// First get the formatted output...
 
 	try {
-	    formatted_output = formatOutput ( props );
-		if ( formatted_output != null ) {
+	    formattedOutput = formatOutput ( props );
+		if ( formattedOutput != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formattedOutput.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
 
 			String newline = System.getProperty ( "line.separator");
-			int size = formatted_output.size();
+			int size = formattedOutput.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.get(i) + newline );
+				fp.print ( (String)formattedOutput.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -1002,7 +1003,7 @@ throws TSException
 
 	message = null;
 	routine = null;
-	return formatted_output;
+	return formattedOutput;
 }
 
 /**
@@ -1015,7 +1016,7 @@ Format the time series for output.
 public List formatOutput ( String fname, PropList props )
 throws TSException
 {	String message = null, routine = "HourTS.formatOutput";
-List formatted_output = null;
+List formattedOutput = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1035,7 +1036,7 @@ List formatted_output = null;
 	}
 
 	try {
-	    formatted_output = formatOutput ( stream, props );
+	    formattedOutput = formatOutput ( stream, props );
 		stream.close();
 		stream = null;
 	}
@@ -1048,7 +1049,7 @@ List formatted_output = null;
 
 	message = null;
 	routine = null;
-	return formatted_output;
+	return formattedOutput;
 }
 
 /**
@@ -1056,15 +1057,15 @@ Format the body of the report for 24-hour data.
 @param strings Vector of strings to be used as output.
 @param props Properties to control output.
 @param calendar Calendar to use for output.
-@param data_format Format for data values (C printf style).
-@param start_date Start date for output.
-@param end_date End date for output.
-@param req_units Requested units for output.
-@param total_column indicates whether total column is total or average.
+@param dataFormat Format for data values (C printf style).
+@param startDate Start date for output.
+@param endDate End date for output.
+@param reqUnits Requested units for output.
+@param totalColumn indicates whether total column is total or average.
 */
-private void formatOutput24Hour ( List strings, PropList props, String calendar, String data_format,
-					DateTime start_date, DateTime end_date, String req_units, String total_column )
-{	String	prop_value = null, routine = "HourTS.formatOutput24Hour";
+private void formatOutput24Hour ( List strings, PropList props, String calendar, String dataFormat,
+					DateTime startDate, DateTime endDate, String reqUnits, String totalColumn )
+{	String propValue = null, routine = "HourTS.formatOutput24Hour";
 	int	column = 0, dl = 20, row = 0;
 
 	strings.add ( "" );
@@ -1081,87 +1082,85 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 		
 	// Adjust the start and end dates to be on full years for the calendar that is requested...
 
-	int year_offset = 0;
-	int month_to_start = 1;	// First month in year.
-	int month_to_end = 12; // Last month in year.
+	int yearOffset = 0;
+	int monthToStart = 1;	// First month in year.
+	int monthToEnd = 12; // Last month in year.
 	if ( calendar.equalsIgnoreCase("CalendarYear") ) {
 		// Just need to output for the full year...
-		start_date.setMonth ( 1 );
-		start_date.setDay ( 1 );
-		end_date.setMonth ( 12 );
-		end_date.setDay ( 31 );
-		month_to_start = 1;
-		month_to_end = 12;
+		startDate.setMonth ( 1 );
+		startDate.setDay ( 1 );
+		endDate.setMonth ( 12 );
+		endDate.setDay ( 31 );
+		monthToStart = 1;
+		monthToEnd = 12;
 	}
 	else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
 		// Need to adjust for the irrigation year to make sure
 		// that the first month is Nov and the last is Oct...
-		if ( start_date.getMonth() < 11 ) {
+		if ( startDate.getMonth() < 11 ) {
 			// Need to shift to include the previous irrigation
 			// year...
-			start_date.addYear ( -1 );
+			startDate.addYear ( -1 );
 		}
 		// Always set the start month to Nov...
-		start_date.setMonth ( 11 );
-		start_date.setDay ( 1 );
-		if ( end_date.getMonth() > 11 ) {
+		startDate.setMonth ( 11 );
+		startDate.setDay ( 1 );
+		if ( endDate.getMonth() > 11 ) {
 			// Need to include the next irrigation year...
-			end_date.addYear ( 1 );
+			endDate.addYear ( 1 );
 		}
 		// Always set the end month to Oct...
-		end_date.setMonth ( 10 );
-		end_date.setDay ( 31 );
+		endDate.setMonth ( 10 );
+		endDate.setDay ( 31 );
 		// The year that is printed in the summary is actually later than the calendar for the Nov month...
-		year_offset = 1;
-		month_to_start = 11;
-		month_to_end = 10;
+		yearOffset = 1;
+		monthToStart = 11;
+		monthToEnd = 10;
 	}
 	else if ( calendar.equalsIgnoreCase("WaterYear") ) {
 		// Need to adjust for the water year to make sure that the first month is Oct and the last is Sep...
-		if ( start_date.getMonth() < 10 ) {
+		if ( startDate.getMonth() < 10 ) {
 			// Need to shift to include the previous water year...
-			start_date.addYear ( -1 );
+			startDate.addYear ( -1 );
 		}
 		// Always set the start month to Oct...
-		start_date.setMonth ( 10 );
-		start_date.setDay ( 1 );
-		if ( end_date.getMonth() > 9 ) {
+		startDate.setMonth ( 10 );
+		startDate.setDay ( 1 );
+		if ( endDate.getMonth() > 9 ) {
 			// Need to include the next water year...
-			end_date.addYear ( 1 );
+			endDate.addYear ( 1 );
 		}
 		// Always set the end month to Sep...
-		end_date.setMonth ( 9 );
-		end_date.setDay ( 30 );
+		endDate.setMonth ( 9 );
+		endDate.setDay ( 30 );
 		// The year that is printed in the summary is actually later than the calendar for the Oct month...
-		year_offset = 1;
-		month_to_start = 10;
-		month_to_end = 9;
+		yearOffset = 1;
+		monthToStart = 10;
+		monthToEnd = 9;
 	}
 	// Calculate the number of years...
 	// up with the same month as the start month...
-	int num_years = (end_date.getAbsoluteMonth() - start_date.getAbsoluteMonth() + 1)/12;
+	int num_years = (endDate.getAbsoluteMonth() - startDate.getAbsoluteMonth() + 1)/12;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Printing " + num_years + " years of summary for " +
-		start_date.toString(DateTime.FORMAT_YYYY_MM) + " to " + end_date.toString(DateTime.FORMAT_YYYY_MM) );
+		startDate.toString(DateTime.FORMAT_YYYY_MM) + " to " + endDate.toString(DateTime.FORMAT_YYYY_MM) );
 	}
 	// Reuse for each month that is printed.
 	double data[][] = new double[31][12];
 
 	// Now loop through the time series and transfer to the proper location in the matrix.
 	// Since days are vertical, cannot print any results until we have completed a month...
-	double data_value;
-	DateTime date = new DateTime(start_date,DateTime.DATE_FAST);
+	double dataValue;
+	DateTime date = new DateTime(startDate,DateTime.DATE_FAST);
 	StringBuffer buffer = new StringBuffer();	// Allocate up front and then reuse
 	// We have adjusted the dates above, so we always start in
 	// column 0 (first day of first month in year)...
 	column = 0;
 	row = 0;
 	double missing = getMissing();
-	int ndays_in_month = 0;
+	int ndaysInMonth = 0;
 	int day, month;
-	for (	;
-		date.lessThanOrEqualTo(end_date);
-		date.addInterval(_data_interval_base, _data_interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo(endDate); date.addInterval(_data_interval_base, _data_interval_mult) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Processing " + date.toString(DateTime.FORMAT_YYYY_MM_DD) +
 			" row:" + row + " column:" + column );
@@ -1170,7 +1169,7 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 		day = date.getDay();
 		month = date.getMonth();
 		if ( day == 1 ) {
-			if ( month == month_to_start ) {
+			if ( month == monthToStart ) {
 				// Reset the data array...
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine, "Resetting output array..." );
@@ -1181,17 +1180,17 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 					}
 				}
 			}
-			ndays_in_month = TimeUtil.numDaysInMonth ( month, date.getYear() );
+			ndaysInMonth = TimeUtil.numDaysInMonth ( month, date.getYear() );
 		}
-		data_value = getDataValue ( date );
+		dataValue = getDataValue ( date );
 		// Save the data value for later use in output and statistics.  Allow missing data values to be saved...
-		data[row][column] = data_value;
+		data[row][column] = dataValue;
 		// Check to see if at the end of the year.  If so, print out one year's values...
-		if ((month == month_to_end) && (day == ndays_in_month)){
+		if ((month == monthToEnd) && (day == ndaysInMonth)){
 			// Print the header for the year...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-				    "Printing output for summary year " + (date.getYear() + year_offset) );
+				    "Printing output for summary year " + (date.getYear() + yearOffset) );
 			}
 			strings.add ( "" );
 			// "date" will be at the end of the year...
@@ -1233,37 +1232,37 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			}
 			// Now print the summary for the year...
-			int row_day, column_month;
+			int rowDay, columnMonth;
 			int irow, icolumn;
-			int year, nvalid_days_in_month;
+			int year, nvalidDaysInMonth;
 			for ( irow = 0; irow < 31; irow++ ) {
-				row_day = irow + 1;
+				rowDay = irow + 1;
 				for ( icolumn = 0; icolumn < 12; icolumn++ ) {
-					column_month = month_to_start + icolumn;
+					columnMonth = monthToStart + icolumn;
 					if ( icolumn == 0 ) {
 						// Allocate a new buffer and print the day for all 12 months...
 						buffer.setLength(0);
-						buffer.append ( StringUtil.formatString(row_day, " %2d ") );
+						buffer.append ( StringUtil.formatString(rowDay, " %2d ") );
 					}
 					// Print the daily value...
 					// Figure out if the day is valid for the month.  The date is for the end
 					// of the year (last month) from the loop.
 					year = date.getYear();
-					if ( calendar.equalsIgnoreCase("WaterYear") && (column_month > 9) ) {
+					if ( calendar.equalsIgnoreCase("WaterYear") && (columnMonth > 9) ) {
 						--year;
 					}
-					else if (calendar.equalsIgnoreCase("IrrigationYear") && (column_month > 10) ) {
+					else if (calendar.equalsIgnoreCase("IrrigationYear") && (columnMonth > 10) ) {
 						--year;
 					}
-					nvalid_days_in_month = TimeUtil.numDaysInMonth ( column_month, year );
-					if ( row_day > nvalid_days_in_month ) {
+					nvalidDaysInMonth = TimeUtil.numDaysInMonth ( columnMonth, year );
+					if ( rowDay > nvalidDaysInMonth ) {
 						buffer.append ( "    ---   " );
 					}
 					else if ( isDataMissing( data[irow][icolumn])){
 						buffer.append ( "    NC    " );
 					}
 					else {
-					    buffer.append (	StringUtil.formatString(data[irow][icolumn], " " + data_format) );
+					    buffer.append (	StringUtil.formatString(data[irow][icolumn], " " + dataFormat) );
 					}
 					if ( icolumn == 11 ) {
 						// Have processed the last month in the year print the row...
@@ -1275,55 +1274,55 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			// Now to do the statistics.  Loop through each column..
 			// First check to see if all stats should be printed (can be dangerous if we add new statistics)..
-			prop_value = props.getValue ( "PrintAllStats" );
-			String print_all_stats = null;
-			if ( prop_value == null ) {
+			propValue = props.getValue ( "PrintAllStats" );
+			String printAllStats = null;
+			if ( propValue == null ) {
 				// Default is false...
-				print_all_stats = "false";
+				printAllStats = "false";
 			}
 			else {
-			    print_all_stats = prop_value;
+			    printAllStats = propValue;
 			}
 			// Now start on the minimum...
-			prop_value = props.getValue ( "PrintMinStats" );
-			String print_min = null;
-			if ( prop_value == null ) {
+			propValue = props.getValue ( "PrintMinStats" );
+			String printMin = null;
+			if ( propValue == null ) {
 				// Default is true...
-				print_min = "true";
+				printMin = "true";
 			}
 			else {
-			    print_min = prop_value;
+			    printMin = propValue;
 			}
-			if ( print_min.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Min ", data_format ) );
+			if ( printMin.equalsIgnoreCase("true") || printAllStats.equalsIgnoreCase("true") ) {
+				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Min ", dataFormat ) );
 			}
-			prop_value = props.getValue ( "PrintMaxStats" );
-			String print_max = null;
-			if ( prop_value == null ) {
+			propValue = props.getValue ( "PrintMaxStats" );
+			String printMax = null;
+			if ( propValue == null ) {
 				// Default is true...
-				print_max = "true";
+				printMax = "true";
 			}
 			else {
-			    print_max = prop_value;
+			    printMax = propValue;
 			}
-			if ( print_max.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Max ", data_format ) );
+			if ( printMax.equalsIgnoreCase("true") || printAllStats.equalsIgnoreCase("true") ) {
+				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Max ", dataFormat ) );
 			}
-			prop_value = props.getValue ( "PrintMeanStats");
-			String print_mean = null;
-			if ( prop_value == null ) {
+			propValue = props.getValue ( "PrintMeanStats");
+			String printMean = null;
+			if ( propValue == null ) {
 				// Default is true...
-				print_mean = "true";
+				printMean = "true";
 			}
 			else {
-			    print_mean = prop_value;
+			    printMean = propValue;
 			}
-			if ( print_mean.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Mean", data_format ) );
+			if ( printMean.equalsIgnoreCase("true") || printAllStats.equalsIgnoreCase("true") ) {
+				strings = StringUtil.addListToStringList ( strings, formatOutputStats ( data, "Mean", dataFormat ) );
 			}
 			column = -1;	// Will be incremented in next step.
 		}
-		if ( day == ndays_in_month ) {
+		if ( day == ndaysInMonth ) {
 			// Reset to the next column...
 			++column;
 			row = 0;
@@ -1335,16 +1334,16 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 
 	// Now do the notes...
 
-	prop_value = props.getValue ( "PrintNotes" );
-	String print_notes = null;
-	if ( prop_value == null ) {
+	propValue = props.getValue ( "PrintNotes" );
+	String printNotes = null;
+	if ( propValue == null ) {
 		// Default is true...
-		print_notes = "true";
+		printNotes = "true";
 	}
 	else {
-	    print_notes = prop_value;
+	    printNotes = propValue;
 	}
-	if ( print_notes.equalsIgnoreCase("true") ) {
+	if ( printNotes.equalsIgnoreCase("true") ) {
 		strings.add ( "" );
 		strings.add ( "Notes:" );
 		if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
@@ -1368,9 +1367,9 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 	buffer = null;
 	data = null;
 	date = null;
-	prop_value = null;
+	propValue = null;
 	routine = null;
-	print_notes = null;
+	printNotes = null;
 }
 
 /**
@@ -1382,37 +1381,37 @@ values are always a maximum of 9 characters.
 @param strings Vector of strings to be used as output.
 @param props Properties to control output.
 @param calendar Calendar to use for output.
-@param data_format Format for data values (C printf style).
-@param start_date Start date for output.
-@param end_date End date for output.
-@param req_units Requested units for output.
-@param total_column indicates whether total column is total or average.
+@param dataFormat Format for data values (C printf style).
+@param startDate Start date for output.
+@param endDate End date for output.
+@param reqUnits Requested units for output.
+@param totalColumn indicates whether total column is total or average.
 */
-private void formatOutputNHour ( List strings, PropList props, String calendar, String data_format,
-					DateTime start_date, DateTime end_date, String req_units, String total_column )
+private void formatOutputNHour ( List strings, PropList props, String calendar, String dataFormat,
+					DateTime startDate, DateTime endDate, String reqUnits, String totalColumn )
 {	StringBuffer b = new StringBuffer();
 	// Loop through the data starting at the appropriate first hour for the period...
-	DateTime date = new DateTime ( start_date );
+	DateTime date = new DateTime ( startDate );
 	date.setHour ( 0 );	// Always want full days
-	DateTime end = new DateTime ( end_date );
+	DateTime end = new DateTime ( endDate );
 	end.setHour ( 24 - _data_interval_mult );
 	int col = 0;	// col=0 is date, col=1 is first data column
 	int row = 1;	// Row within a day
 	double total = 0.0, value = 0.0;
 	int count = 0;
 	boolean do_total = false;
-	if ( total_column.equalsIgnoreCase("Total") ) {
+	if ( totalColumn.equalsIgnoreCase("Total") ) {
 		do_total = true;
 	}
-	boolean first_header = true;
+	boolean firstHeader = true;
 	int numcol = 24/_data_interval_mult;
 	if ( _data_interval_mult == 1 ) {
 		numcol = 12;
 	}
 	for ( ; date.lessThanOrEqualTo(end); date.addInterval(_data_interval_base,_data_interval_mult) ) {
 		// Print a header if the first time or the day is 1...
-		if ( first_header || ((date.getDay() == 1) && (date.getHour() == 0)) ) {
-			first_header = false;
+		if ( firstHeader || ((date.getDay() == 1) && (date.getHour() == 0)) ) {
+			firstHeader = false;
 			strings.add ( "" );
 			b.setLength(0);
 			b.append ( "   Date   " );
@@ -1425,7 +1424,7 @@ private void formatOutputNHour ( List strings, PropList props, String calendar, 
 				    b.append ( "    " + StringUtil.formatString( i*_data_interval_mult,"%2d") + "    ");
 				}
 			}
-			b.append ( " " + total_column );
+			b.append ( " " + totalColumn );
 			strings.add ( b.toString() );
 			// Now add the underlines for the headings...
 			b.setLength(0);
@@ -1454,7 +1453,7 @@ private void formatOutputNHour ( List strings, PropList props, String calendar, 
 		}
 		else {
 		    b.append(" " + StringUtil.formatString(value,
-			data_format) );
+			dataFormat) );
 			total += value;
 			++count;
 		}
@@ -1471,10 +1470,10 @@ private void formatOutputNHour ( List strings, PropList props, String calendar, 
 			else {
 			    // Need to output the row and the total...
 				if ( do_total || (count == 0) ) {
-					b.append(" " + StringUtil.formatString(total, data_format) );
+					b.append(" " + StringUtil.formatString(total, dataFormat) );
 				}
 				else {
-				    b.append(" " + StringUtil.formatString(total/count, data_format) );
+				    b.append(" " + StringUtil.formatString(total/count, dataFormat) );
 				}
 				strings.add ( b.toString() );
 				row = 1;
@@ -1493,10 +1492,10 @@ private void formatOutputNHour ( List strings, PropList props, String calendar, 
 Format the output statistics row given the data array.
 @param data Data to analyze.
 @param label label for output (e.g., "Mean").
-@param data_format Format to use for floating point data.
+@param dataFormat Format to use for floating point data.
 @return strings to be added to the output.
 */
-private List formatOutputStats ( double[][] data, String label, String data_format )
+private List formatOutputStats ( double[][] data, String label, String dataFormat )
 {	List strings = new Vector (2,1);
 	double stat = 0.0;
 	StringBuffer buffer = null;
@@ -1510,20 +1509,20 @@ private List formatOutputStats ( double[][] data, String label, String data_form
 			buffer.append ( label );
 		}
 		// Extract the non-missing values...
-		int num_not_missing = 0;
-		for (	row = 0; row < 31; row++ ) {
+		int numNotMissing = 0;
+		for ( row = 0; row < 31; row++ ) {
 			if ( !isDataMissing( data[row][column])){
-				++num_not_missing;
+				++numNotMissing;
 			}
 		}
-		if ( num_not_missing > 0 ) {
+		if ( numNotMissing > 0 ) {
 			// Transfer to an array...
-			array = new double[num_not_missing];
-			num_not_missing = 0;
+			array = new double[numNotMissing];
+			numNotMissing = 0;
 			for ( row = 0; row < 31; row++ ){
 				if ( !isDataMissing( data[row][column]) ) {
-					array[num_not_missing] = data[row][column];
-					++num_not_missing;
+					array[numNotMissing] = data[row][column];
+					++numNotMissing;
 				}
 			}
 			stat = 0.0;
@@ -1540,7 +1539,7 @@ private List formatOutputStats ( double[][] data, String label, String data_form
 			}
 			catch ( Exception e ) {
 			}
-			buffer.append ( StringUtil.formatString( stat," " + data_format) );
+			buffer.append ( StringUtil.formatString( stat," " + dataFormat) );
 		}
 		else {
 		    buffer.append ( "    NC    " );
@@ -1592,7 +1591,7 @@ public TSData getDataPoint ( DateTime date )
 	// This computes the _row and _column...
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
-		_tsdata.setValues ( date, getDataValue(date), _data_units, new String(_data_flags[_row][_column]), 0 );
+		_tsdata.setValues ( date, getDataValue(date), _data_units, new String(_dataFlags[_row][_column]), 0 );
 	}
 	else {
 	    _tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
@@ -1919,13 +1918,13 @@ public void setDataValue (	DateTime date, double value, String data_flag, int du
 			length = _data_flag_length;
 		}
 		for ( int i = 0; i < length; i++ ) {
-			_data_flags[_row][_column][i] = data_flag.charAt(i);
+			_dataFlags[_row][_column][i] = data_flag.charAt(i);
 		}
 		// Make sure a reset of a data flag does not leave old characters in place...
 		for ( int i = length; i < _data_flag_length; i++ ) {
-			_data_flags[_row][_column][i] = ' ';
+			_dataFlags[_row][_column][i] = ' ';
 		}
 	}
 }
 
-} // End HourTS
+}
