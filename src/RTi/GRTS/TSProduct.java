@@ -155,6 +155,7 @@ import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
+import RTi.Util.Time.DateTime;
 
 /**
 The TSProduct class provides methods to read a time series product (tsp) file,
@@ -2342,6 +2343,84 @@ public void checkGraphProperties ( int nsubs )
 	}
 
 	__proplist.setHowSet ( how_set_prev );
+}
+
+/**
+Expand a parameter value to recognize processor-level properties.  For example, a parameter value like
+"${WorkingDir}/morepath" will be expanded to include the working directory.
+@param processor the CommandProcessor that has a list of named properties.
+@param command the command that is being processed (may be used later for context sensitive values).
+@param propertyValue the parameter value being expanded.
+*/
+public String expandPropertyValue( String propertyValue )
+{   String routine = "TSCommandProcessorUtil.expandParameterValue";
+    if ( (propertyValue == null) || (propertyValue.length() == 0) ) {
+        // Just return what was provided.
+        return propertyValue;
+    }
+    // Else see if the parameter value can be expanded to replace $ symbolic references with other values
+    // Search the parameter string for $ until all processor parameters have been resolved
+    int searchPos = 0;  // Position in the "parameter_val" string to search for $ references
+    int foundPos;       // Position when leading ${ is found
+    int foundPosEnd;   // Position when ending } is found
+    String foundProp = null;    // Whether a property is found that matches the $ symbol
+    String delimStart = "${";
+    String delimEnd = "}";
+    while ( searchPos < propertyValue.length() ) {
+        foundPos = propertyValue.indexOf(delimStart, searchPos);
+        foundPosEnd = propertyValue.indexOf(delimEnd, (searchPos + delimStart.length()));
+        if ( (foundPos < 0) && (foundPosEnd < 0)  ) {
+            // No more $ property names, so return what we have.
+            return propertyValue;
+        }
+        // Else found the delimiter so continue with the replacement
+        Message.printStatus ( 2, routine, "Found " + delimStart + " at position [" + foundPos + "]");
+        // Get the name of the property
+        foundProp = propertyValue.substring((foundPos+2),foundPosEnd);
+        // Try to get the property from the processor
+        // TODO SAM 2007-12-23 Evaluate whether to skip null.  For now show null in result.
+        Object propval = null;
+        String propvalString = null;
+        try {
+            //propval = processor.getPropContents ( foundProp );
+            // Look up known properties.  For now define them here also
+            // FIXME SAM 2009-01-15 Figure out a more generic way to do this
+            // Also need to standarize these, add to the documentation, and to the properties editor
+            PropList props = new PropList("props");
+            DateTime now = new DateTime(DateTime.DATE_CURRENT);
+            props.set( "CurrentToYear",now.toString(DateTime.FORMAT_YYYY));
+            props.set( "CurrentToMonth",now.toString(DateTime.FORMAT_YYYY_MM));
+            props.set( "CurrentToDay",now.toString(DateTime.FORMAT_YYYY_MM_DD));
+            props.set( "CurrentToHour",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH));
+            props.set( "CurrentToMinute",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH_mm));
+            props.set( "CurrentToSecond",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS));
+            propval = props.getValue(foundProp);
+            if ( propval != null ) {
+                propvalString = "" + propval;
+            }
+        }
+        catch ( Exception e ) {
+            // Keep the original value
+            propvalString = delimStart + propval + delimEnd;
+        }
+        StringBuffer b = new StringBuffer();
+        // Append the start of the string
+        if ( foundPos > 0 ) {
+            b.append ( propertyValue.substring(0,foundPos) );
+        }
+        // Now append the value of the property...
+        b.append ( propvalString );
+        // Now append the end of the original string if anything is at the end...
+        if ( propertyValue.length() > (foundPosEnd + 1) ) {
+            b.append ( propertyValue.substring(foundPosEnd + 1) );
+        }
+        // Now reset the search position to finish evaluating whether to expand the string.
+        propertyValue = b.toString();
+        searchPos = foundPos + propvalString.length();   // Expanded so no need to consider delim*
+        Message.printStatus( 2, routine, "Expanded property value is \"" + propertyValue +
+                "\" searchpos is now " + searchPos + " in string \"" + propertyValue + "\"" );
+    }
+    return propertyValue;
 }
 
 /**

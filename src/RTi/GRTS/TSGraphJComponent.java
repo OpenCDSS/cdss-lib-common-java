@@ -1588,11 +1588,11 @@ private void drawTitles ()
 	String maintitle_fontstyle = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
 	String maintitle_fontsize = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
 	GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font, maintitle_fontstyle,
-			StringUtil.atod(maintitle_fontsize) );
-	String maintitle_string = _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
+		StringUtil.atod(maintitle_fontsize) );
+	String maintitle_string = _tsproduct.expandPropertyValue(
+	    _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false));
 	GRDrawingAreaUtil.drawText ( _da_maintitle, maintitle_string,
-			_datalim_maintitle.getCenterX(), _datalim_maintitle.getCenterY(), 0.0,
-			GRText.CENTER_X|GRText.CENTER_Y );
+		_datalim_maintitle.getCenterX(), _datalim_maintitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 
 	// Sub title....
 
@@ -1601,10 +1601,10 @@ private void drawTitles ()
 	String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
 	String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
 	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font, subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
-	String subtitle_string = _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
+	String subtitle_string = _tsproduct.expandPropertyValue(
+	    _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false ));
 	GRDrawingAreaUtil.drawText ( _da_subtitle, subtitle_string,
-			_datalim_subtitle.getCenterX(),	_datalim_subtitle.getCenterY(), 0.0,
-			GRText.CENTER_X|GRText.CENTER_Y );
+		_datalim_subtitle.getCenterX(),	_datalim_subtitle.getCenterY(), 0.0,GRText.CENTER_X|GRText.CENTER_Y );
 }
 
 /**
@@ -3641,48 +3641,34 @@ void setDrawingLimits()
 				// drawing areas when in debug mode)
 	// Figure out dimensions up front...
 
-	// Main and sub-titles and footers will have zero size unless the titles
-	// are specified...
+	// Main and sub-titles and footers will have zero size unless the titles are specified...
 
 	double maintitle_height = 0.0;
-	String maintitle_string = _tsproduct.getLayeredPropValue (
-				"MainTitleString", -1, -1, false );
+	String maintitle_string = _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
 
 	if ( (maintitle_string != null) && !maintitle_string.equals("") ) {
 		// Get the text extents and set the height based on that...
-		String maintitle_font = _tsproduct.getLayeredPropValue (
-				"MainTitleFontName", -1, -1, false );
-		String maintitle_fontsize = _tsproduct.getLayeredPropValue (
-				"MainTitleFontSize", -1, -1, false );
-		String maintitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"MainTitleFontStyle", -1, -1, false );
-		GRDrawingAreaUtil.setFont (
-			_da_maintitle, maintitle_font, maintitle_fontstyle,
+		String maintitle_font = _tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
+		String maintitle_fontsize = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
+		String maintitle_fontstyle = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
+		GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font, maintitle_fontstyle,
 			StringUtil.atod(maintitle_fontsize) );
-		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( 
-				_da_maintitle, maintitle_string,
-				GRUnits.DEVICE );
+		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( _da_maintitle, maintitle_string, GRUnits.DEVICE );
 		maintitle_height = text_limits.getHeight();
 		text_limits = null;
 	}
 
 	double subtitle_height = 0.0;
-	String subtitle_string = _tsproduct.getLayeredPropValue (
-				"SubTitleString", -1, -1, false );
+	String subtitle_string = _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
 
 	if ( (subtitle_string != null) && !subtitle_string.equals("") ) {
 		// Get the text extents and set the height based on that...
-		String subtitle_font = _tsproduct.getLayeredPropValue (
-				"SubTitleFontName", -1, -1, false );
-		String subtitle_fontsize = _tsproduct.getLayeredPropValue (
-				"SubTitleFontSize", -1, -1, false );
-		String subtitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"SubTitleFontStyle", -1, -1, false );
+		String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
+		String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
+		String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
 		GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font,
 			subtitle_fontstyle, StringUtil.atod(subtitle_fontsize));
-		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( 
-				_da_subtitle, subtitle_string,
-				GRUnits.DEVICE );
+		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( _da_subtitle, subtitle_string, GRUnits.DEVICE );
 		subtitle_height = text_limits.getHeight();
 		text_limits = null;
 	}
@@ -3788,16 +3774,13 @@ void setDrawingLimits()
 	// Now set in the drawing areas...
 
 	if ( (_da_maintitle != null) && (_drawlim_maintitle != null) ) {
-		_da_maintitle.setDrawingLimits ( _drawlim_maintitle,
-			GRUnits.DEVICE, GRLimits.DEVICE );
+		_da_maintitle.setDrawingLimits ( _drawlim_maintitle, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 	if ( (_da_subtitle != null) && (_drawlim_subtitle != null) ) {
-		_da_subtitle.setDrawingLimits ( _drawlim_subtitle,
-			GRUnits.DEVICE, GRLimits.DEVICE );
+		_da_subtitle.setDrawingLimits ( _drawlim_subtitle, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 	if ( (_da_graphs != null) && (_drawlim_graphs != null) ) {
-		_da_graphs.setDrawingLimits ( _drawlim_graphs, GRUnits.DEVICE,
-			GRLimits.DEVICE );
+		_da_graphs.setDrawingLimits ( _drawlim_graphs, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 }
 

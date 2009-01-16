@@ -2822,8 +2822,7 @@ private void drawCurrentDateTime ()
 }
 
 /**
-Draw the drawing areas, for troubleshooting.  Drawing areas boundaries are drawn
-in magenta.
+Draw the drawing areas, for troubleshooting.  Drawing areas boundaries are drawn in magenta.
 */
 public void drawDrawingAreas ()
 {	//boolean do_names = false;
@@ -3091,7 +3090,7 @@ private void drawGraph () {
 		for (int ir = 0; ir < nregression; ir++) {
 			regressionData = (TSRegression)_regression_data.get(ir);
 			if (regressionData != null) {
-			    	if (residual) {
+			   	if (residual) {
 					if (isTSEnabled(ir + 1)) {
 						drawTS(ir + 1, regressionData.getResidualTS());
 					}
@@ -3453,39 +3452,27 @@ private void drawTitles ()
 	// Main title.
 
 	_da_maintitle.setColor ( GRColor.black );
-	String maintitle_font = _tsproduct.getLayeredPropValue (
-				"MainTitleFontName", _subproduct, -1, false );
-	String maintitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"MainTitleFontStyle", _subproduct, -1, false );
-	String maintitle_fontsize = _tsproduct.getLayeredPropValue (
-				"MainTitleFontSize", _subproduct, -1, false );
+	String maintitle_font = _tsproduct.getLayeredPropValue ("MainTitleFontName", _subproduct, -1, false );
+	String maintitle_fontstyle = _tsproduct.getLayeredPropValue ("MainTitleFontStyle", _subproduct, -1, false );
+	String maintitle_fontsize = _tsproduct.getLayeredPropValue ("MainTitleFontSize", _subproduct, -1, false );
 	GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font,
-			maintitle_fontstyle,
-			StringUtil.atod(maintitle_fontsize) );
-	String maintitle_string = _tsproduct.getLayeredPropValue (
-				"MainTitleString", _subproduct, -1, false );
-	GRDrawingAreaUtil.drawText (	_da_maintitle, maintitle_string,
-			_datalim_maintitle.getCenterX(),
-			_datalim_maintitle.getCenterY(), 0.0,
-			GRText.CENTER_X|GRText.CENTER_Y );
+		maintitle_fontstyle, StringUtil.atod(maintitle_fontsize) );
+	String maintitle_string = _tsproduct.expandPropertyValue(
+	    _tsproduct.getLayeredPropValue ( "MainTitleString", _subproduct, -1, false));
+	GRDrawingAreaUtil.drawText ( _da_maintitle, maintitle_string, _datalim_maintitle.getCenterX(),
+		_datalim_maintitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 
 	// Sub title....
 
 	_da_subtitle.setColor ( GRColor.black );
-	String subtitle_font = _tsproduct.getLayeredPropValue (
-				"SubTitleFontName", _subproduct, -1, false );
-	String subtitle_fontstyle = _tsproduct.getLayeredPropValue (
-				"SubTitleFontStyle", _subproduct, -1, false );
-	String subtitle_fontsize = _tsproduct.getLayeredPropValue (
-				"SubTitleFontSize", _subproduct, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font,
-		subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
-	String subtitle_string = _tsproduct.getLayeredPropValue (
-				"SubTitleString", _subproduct, -1, false );
-	GRDrawingAreaUtil.drawText (	_da_subtitle, subtitle_string,
-			_datalim_subtitle.getCenterX(),
-			_datalim_subtitle.getCenterY(), 0.0,
-			GRText.CENTER_X|GRText.CENTER_Y );
+	String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", _subproduct, -1, false );
+	String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", _subproduct, -1, false );
+	String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", _subproduct, -1, false );
+	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font, subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
+	String subtitle_string = _tsproduct.expandPropertyValue(
+	    _tsproduct.getLayeredPropValue ( "SubTitleString", _subproduct, -1, false));
+	GRDrawingAreaUtil.drawText ( _da_subtitle, subtitle_string, _datalim_subtitle.getCenterX(),
+		_datalim_subtitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 }
 
 private void drawTS(int its, TS ts) {
