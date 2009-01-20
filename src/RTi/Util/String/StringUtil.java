@@ -2460,12 +2460,13 @@ public static List removeDuplicates ( List strings, boolean ignore_case, boolean
 */
 
 /**
+Remove the newline character(s) from a string.
 The newline pattern for UNIX or PC machines is recognized, as appropriate.
 @return String that has the newline character removed.
 @param string String to remove newline read from.
 */
 public static String removeNewline ( String string )
-{	char	c, c2 = '\n';
+{	char c, c2 = '\n';
 	int	k;
 
 	if ( string == null ) {
@@ -2478,12 +2479,8 @@ public static String removeNewline ( String string )
 	for ( int i = 0; i < string_length; i++ ) {
 		c = string.charAt ( i );
 		if ( (c == '\n') || (c == '\r') ) {
-					// Regardless of platform a newline is
-					// always initiated by a \n character
-			/*
-			** See if the character after newline(s) is the end
-			** of the string...
-			*/
+			// Regardless of platform a newline is always initiated by a \n character
+			// See if the character after newline(s) is the end of the string...
 			for ( k = (i + 1); k < string_length; k++ ) {
 				c2 = string.charAt ( k );
 				if ( (c2 != '\n') && (c2 != '\r') ) {
@@ -2491,20 +2488,17 @@ public static String removeNewline ( String string )
 				}
 			}
 			if ( (c2 == '\n') || (c2 == '\r') ) {
-				/*
-				** Nothing after the newline(s).  Return the
-				** string up to that point.  substring will
-				** return up to i - 1!
-				*/
+				// Nothing after the newline(s).  Return the string up to that point.  substring will
+				// return up to i - 1!
 				String newstring = string.substring(0, i);
 				return newstring;
 			}
-			else {	/*
-				** Something after the newline(s)...
-				*/
+			else {
+				// Something after the newline(s)...
 			 	//*pt = ' ';
-				System.out.println (
-				"embedded newlines not handled yet" );
+				Message.printWarning ( 3, "StringUtil.removeNewline", "embedded newlines not handled yet" );
+				// FIXME SAM 2009-01-19 Need to use a StringBuffer or something to better handle
+				// embedded newlines.
 				/*
 				try {
 					throw new Exception(
