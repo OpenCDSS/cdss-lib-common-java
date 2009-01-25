@@ -59,8 +59,7 @@ GeoProjection is a base class to be used for projections.  Currently this class
 only defines a couple of methods that need to be defined for each projection.
 As more familiarity with the projection requirements is gained, more data and
 methods will be added to this base class.  In the future, may add some type of
-query ability here so that an application can list the projections that are
-available.
+query ability here so that an application can list the projections that are available.
 */
 public abstract class GeoProjection
 implements Cloneable
@@ -68,11 +67,9 @@ implements Cloneable
 
 /**
 A single GeographicProjection instance is made available to allow code to be
-optimized.  The GeographicProjection is the base projection that is used when
-changing projections.
+optimized.  The GeographicProjection is the base projection that is used when changing projections.
 */
-public static GeographicProjection geographic_projection =
-				new GeographicProjection();
+public static GeographicProjection geographic_projection = new GeographicProjection();
 
 /**
 Datum used (e.g., "NAD83").
@@ -80,37 +77,37 @@ Datum used (e.g., "NAD83").
 protected String _datum = "";
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _e0 = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _e1 = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _e2 = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _e = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _es = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _esp = 0.0;
 
 /**
-Eccentricy constant (this is a GCTP parameter).
+Eccentricity constant (this is a GCTP parameter).
 */
 protected double _e3 = 0.0;
 
@@ -125,7 +122,7 @@ False northing (this is a GCTP parameter).
 protected double _false_northing = 0.0;
 
 /**
-Spherial flag (this is a GCTP parameter).
+Spherical flag (this is a GCTP parameter).
 */
 protected boolean _ind = false;
 
@@ -146,14 +143,12 @@ protected double _ml0 = 0.0;
 
 /**
 Projection name (e.g., "Geographic").  Currently only simple names are used but
-in the future longer names may be used as more formal handling of projections
-occurs.
+in the future longer names may be used as more formal handling of projections occurs.
 */
 protected String _projection_name = "Unknown";
 
 /**
-The projection number is an internal number to keep track of and compare
-projections.
+The projection number is an internal number to keep track of and compare projections.
 */
 protected int _projection_number = 0;
 
@@ -203,8 +198,7 @@ projections that are created (e.g., don't create inside a loop when a single
 projection is sufficient).  In most cases, a projection will be created and
 associated with a layer when it is read and then the same projection can be
 used for conversions.  This procedure is a simple form of reference counting and
-will allow projections to be dynamically added (which are not in the recognized
-list).
+will allow projections to be dynamically added (which are not in the recognized list).
 @param name Projection name ("Geographic", "HRAP", "UTM").
 */
 public GeoProjection ( String name )
@@ -270,8 +264,7 @@ public GeoProjection ( GeoProjection p )
 }
 
 /*
-Adjust a longitude angle to range from -180 to 180 radians (method from GCTP
-package).
+Adjust a longitude angle to range from -180 to 180 radians (method from GCTP package).
 @param x Angle in radians.
 */
 protected static double adjust_lon ( double x )
@@ -295,7 +288,8 @@ protected static double adjust_lon ( double x )
 		else if (((long)Math.abs(x / (DBLLONG * TWO_PI))) < MAXLONG) {
 			x = x-(((long)(x/(DBLLONG*TWO_PI)))*(TWO_PI * DBLLONG));
 		}
-		else {	x = x-(sign(x) *TWO_PI);
+		else {
+			x = x-(sign(x) *TWO_PI);
 		}
 		count++;
 		if ( count > 4 ) {
@@ -313,7 +307,8 @@ protected static double asinz ( double con )
 		if (con > 1.0 ) {
 			con = 1.0;
 		}
-		else {	con = -1.0;
+		else {
+			con = -1.0;
 		}
 	}
 	return Math.asin(con);
@@ -333,8 +328,7 @@ public Object clone() {
 }
 
 /**
-Compute the constant e0, which is used in a series for calculating the distance
-along a meridian.
+Compute the constant e0, which is used in a series for calculating the distance along a meridian.
 @return value of e0.
 @param x the eccentricity squared.
 */
@@ -343,8 +337,7 @@ protected static double e0fn ( double x )
 }
 
 /**
-Compute the constant e1, which is used in a series for calculating the distance
-along a meridian.
+Compute the constant e1, which is used in a series for calculating the distance along a meridian.
 @return value of e1.
 @param x the eccentricity squared.
 */
@@ -353,8 +346,7 @@ protected static double e1fn ( double x )
 }
 
 /**
-Compute the constant e2, which is used in a series for calculating the distance
-along a meridian.
+Compute the constant e2, which is used in a series for calculating the distance along a meridian.
 @return value of e2.
 @param x the eccentricity squared.
 */
@@ -377,9 +369,8 @@ Determine if projections are equal.  Currently, the name, datum, and zone are th
 @return true if the projections are equal.
 */
 public boolean equals ( GeoProjection other )
-{	if (	_datum.equalsIgnoreCase(other._datum) &&
-		_projection_name.equalsIgnoreCase(other._projection_name) &&
-		(_zone == other._zone) ) {
+{	if ( _datum.equalsIgnoreCase(other._datum) &&
+		_projection_name.equalsIgnoreCase(other._projection_name) && (_zone == other._zone) ) {
 		return true;
 	}
 	return false;
@@ -454,31 +445,26 @@ public int getProjectionNumber ()
 Compute the distance along a meridian from the Equator to latitude phi.
 Method is from the GCTP package.
 */
-protected static double mlfn (	double e0, double e1, double e2, double e3,
-				double phi )
-{	return (e0*phi - e1*Math.sin(2.0*phi) + e2*Math.sin(4.0*phi) -
-		e3*Math.sin(6.0*phi));
+protected static double mlfn (	double e0, double e1, double e2, double e3, double phi )
+{	return (e0*phi - e1*Math.sin(2.0*phi) + e2*Math.sin(4.0*phi) - e3*Math.sin(6.0*phi));
 }
 
 /**
 Determine whether a projection needs to be made.
-@return false if the projection numbers are the same or either projection is
-unknown, true otherwise.
+@return false if the projection numbers are the same or either projection is unknown, true otherwise.
 @param projection1 First projection.
 @param projection2 Second projection.
 */
-public static boolean needToProject (	GeoProjection projection1,
-					GeoProjection projection2 )
+public static boolean needToProject ( GeoProjection projection1, GeoProjection projection2 )
 {	if ( (projection1 == null) || (projection2 == null) ) {
 		return false;
 	}
-	if (	projection1.getProjectionName().equalsIgnoreCase("Unknown") ||
+	if ( projection1.getProjectionName().equalsIgnoreCase("Unknown") ||
 		projection2.getProjectionName().equalsIgnoreCase("Unknown") ) {
 		return false;
 	}
 /*
-	if (	projection1.getProjectionNumber() ==
-		projection2.getProjectionNumber() ) {
+	if ( projection1.getProjectionNumber() == projection2.getProjectionNumber() ) {
 		return false;
 	}
 */
@@ -546,8 +532,8 @@ throws Exception
 	else if ( projection_string.regionMatches(true,0,"UTM",0,3) ) {
 		return UTMProjection.parse(projection_string);
 	}
-	else {	throw new Exception ( "Unknown projection \"" +
-			projection_string + "\"" );
+	else {
+		throw new Exception ( "Unknown projection \"" + projection_string + "\"" );
 	}
 }
 
@@ -559,62 +545,57 @@ re-used for the output (doing so saves memory).
 */
 public GRPoint project ( GRPoint p, boolean reuse_point )
 {	Message.printStatus ( 2, "GeoProjection.project",
-	"This method should be defined in the derived class. " +
-	"Returning the original point." );
+	"This method should be defined in the derived class.  Returning the original point." );
 	return p;
 }
 
 /**
-Project a shape from one projection to another.  Note that GRArc radii are not
-currently projected.
+Project a shape from one projection to another.  Note that GRArc radii are not currently projected.
 @param from Projection to convert from.
 @param to Projection to convert to.
 @param shape Shape to convert.
 @param reuse_shape Indicates whether shape should be reused (doing so saves
-memor resources).  Currently only true can be specified.
+memory resources).  Currently only true can be specified.
 */
-public static GRShape projectShape (	GeoProjection from, GeoProjection to,
-					GRShape shape, boolean reuse_shape )
+public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRShape shape, boolean reuse_shape )
 {	if ( shape.type == GRShape.ARC ) {
 		GRArc arc = null;
 		if ( reuse_shape ) {
 			arc = (GRArc)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			arc.limits_found = false;
 		}
-		else {	arc = new GRArc ( (GRArc)shape );
+		else {
+			arc = new GRArc ( (GRArc)shape );
 		}
 		from.unProject(arc.pt,true);
 		to.project(arc.pt,true);
-		// Also need to project the radii (do later - for now require
-		// radii to be pre-projected)...
+		// Also need to project the radii (do later - for now require radii to be pre-projected)...
 		// This is necessary to recalculate the max/min values, which
-		// ultimately get used when deciding if the shape should be
-		// drawn...
+		// ultimately get used when deciding if the shape should be drawn...
 		arc.setPoint ( arc.pt );
 		if ( reuse_shape ) {
 			arc = null;
 			return shape;
 		}
-		else {	return arc;
+		else {
+			return arc;
 		}
 	}
 	else if ( shape.type == GRShape.POLYGON ) {
 		GRPolygon polygon = null;
 		if ( reuse_shape ) {
 			polygon = (GRPolygon)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			polygon.limits_found = false;
 		}
-		else {	polygon = new GRPolygon ( (GRPolygon)shape );
+		else {
+			polygon = new GRPolygon ( (GRPolygon)shape );
 		}
 		for ( int i = 0; i < polygon.npts; i++ ) {
 			from.unProject(polygon.pts[i],true);
 			to.project(polygon.pts[i],true);
-			// This is necessary to recalculate the max/min
-			// values, which ultimately get used when
+			// This is necessary to recalculate the max/min values, which ultimately get used when
 			// deciding if the shape should be drawn...
 			polygon.setPoint ( i, polygon.pts[i] );
 		}
@@ -622,49 +603,49 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 			polygon = null;
 			return shape;
 		}
-		else {	return polygon;
+		else {
+			return polygon;
 		}
 	}
 	else if ( shape.type == GRShape.POLYGON_LIST ) {
 		GRPolygonList polygonlist = null;
 		if ( reuse_shape ) {
 			polygonlist = (GRPolygonList)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			polygonlist.limits_found = false;
 		}
-		else {	polygonlist = new GRPolygonList ( (GRPolygonList)shape);
+		else {
+			polygonlist = new GRPolygonList ( (GRPolygonList)shape);
 		}
 		// Loop through the polygons in the list and project each...
 		for ( int i = 0; i < polygonlist.npolygons; i++ ) {
 			projectShape ( from, to, polygonlist.polygons[i], true);
 			// This is necessary to recalculate the max/min
-			// values, which ultimately get used when
-			// deciding if the shape should be drawn...
+			// values, which ultimately get used when deciding if the shape should be drawn...
 			polygonlist.setPolygon ( i, polygonlist.polygons[i] );
 		}
 		if ( reuse_shape ) {
 			polygonlist = null;
 			return shape;
 		}
-		else {	return polygonlist;
+		else {
+			return polygonlist;
 		}
 	}
 	else if ( shape.type == GRShape.POLYLINE ) {
 		GRPolyline polyline = null;
 		if ( reuse_shape ) {
 			polyline = (GRPolyline)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			polyline.limits_found = false;
 		}
-		else {	polyline = new GRPolyline ( (GRPolyline)shape );
+		else {
+			polyline = new GRPolyline ( (GRPolyline)shape );
 		}
 		for ( int i = 0; i < polyline.npts; i++ ) {
 			from.unProject(polyline.pts[i],true);
 			to.project(polyline.pts[i],true);
-			// This is necessary to recalculate the max/min
-			// values, which ultimately get used when
+			// This is necessary to recalculate the max/min values, which ultimately get used when
 			// deciding if the shape should be drawn...
 			polyline.setPoint ( i, polyline.pts[i] );
 		}
@@ -672,32 +653,33 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 			polyline = null;
 			return shape;
 		}
-		else {	return polyline;
+		else {
+			return polyline;
 		}
 	}
 	else if ( shape.type == GRShape.POLYLINE_LIST ) {
 		GRPolylineList polylinelist = null;
 		if ( reuse_shape ) {
 			polylinelist = (GRPolylineList)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			polylinelist.limits_found = false;
 		}
-		else {	polylinelist =new GRPolylineList((GRPolylineList)shape);
+		else {
+			polylinelist =new GRPolylineList((GRPolylineList)shape);
 		}
 		// Loop through the polylines in the list and project each...
 		for ( int i = 0; i < polylinelist.npolylines; i++ ) {
 			projectShape (from, to, polylinelist.polylines[i],true);
 			// This is necessary to recalculate the max/min
-			// values, which ultimately get used when
-			// deciding if the shape should be drawn...
+			// values, which ultimately get used when deciding if the shape should be drawn...
 			polylinelist.setPolyline(i, polylinelist.polylines[i] );
 		}
 		if ( reuse_shape ) {
 			polylinelist = null;
 			return shape;
 		}
-		else {	return polylinelist;
+		else {
+			return polylinelist;
 		}
 	}
 	else if ( shape.type == GRShape.POINT ) {
@@ -705,7 +687,8 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 		if ( reuse_shape ) {
 			point = (GRPoint)shape;
 		}
-		else {	point = new GRPoint ( (GRPoint)shape );
+		else {
+			point = new GRPoint ( (GRPoint)shape );
 		}
 		from.unProject(point,true);
 		to.project(point,true);
@@ -713,24 +696,24 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 			point = null;
 			return shape;
 		}
-		else {	return point;
+		else {
+			return point;
 		}
 	}
 	else if ( shape.type == GRShape.POLYPOINT ) {
 		GRPolypoint polypoint = null;
 		if ( reuse_shape ) {
 			polypoint = (GRPolypoint)shape;
-			// Need to do this so there will be clean start
-			// on getting limits...
+			// Need to do this so there will be clean start on getting limits...
 			polypoint.limits_found = false;
 		}
-		else {	polypoint = new GRPolypoint ( (GRPolypoint)shape );
+		else {
+			polypoint = new GRPolypoint ( (GRPolypoint)shape );
 		}
 		for ( int i = 0; i < polypoint.npts; i++ ) {
 			from.unProject(polypoint.pts[i],true);
 			to.project(polypoint.pts[i],true);
-			// This is necessary to recalculate the max/min
-			// values, which ultimately get used when
+			// This is necessary to recalculate the max/min values, which ultimately get used when
 			// deciding if the shape should be drawn...
 			polypoint.setPoint ( i, polypoint.pts[i] );
 		}
@@ -738,7 +721,8 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 			polypoint = null;
 			return shape;
 		}
-		else {	return polypoint;
+		else {
+			return polypoint;
 		}
 	}
 	// For now just return
@@ -746,9 +730,8 @@ public static GRShape projectShape (	GeoProjection from, GeoProjection to,
 }
 
 /**
-Set the spheroid information (_r_major, _r_minor, _radius) given the datum
-string.  This is called from the
-derived projections.  This code was taken from the GCTP sphdz() function.
+Set the spheroid information (_r_major, _r_minor, _radius) given the datum string.  This is called
+from the derived projections.  This code was taken from the GCTP sphdz() function.
 @param datum Datum string (currently only "NAD27" and "NAD83" are recognized.
 */
 protected void setSpheroid ( String datum )
@@ -766,7 +749,8 @@ protected void setSpheroid ( String datum )
 		_r_minor = 6356752.31414;
 		_radius = 6370997.0; // GCTP 19: Sphere of Radius 6370997 meters
 	}
-	else {	// GCTP 0: Clarke 1866 (default)
+	else {
+		// GCTP 0: Clarke 1866 (default)
 		_datum = "NAD27";
 		_r_major = 6378206.4;
 		_r_minor = 6356583.8;
@@ -782,7 +766,8 @@ protected static int sign ( double x )
 {	if ( x < 0.0 ) {
     		return -1;
 	}
-	else {	return 1;
+	else {
+		return 1;
 	}
 }
 
@@ -803,9 +788,8 @@ re-used for the output (doing so saves memory).
 */
 public GRPoint unProject ( GRPoint p, boolean reuse_point )
 {	Message.printStatus ( 2, "GeoProjection.unProject",
-	"This method should be defined in the derived class. " +
-	"Returning the original point." );
+	"This method should be defined in the derived class.  Returning the original point." );
 	return p;
 }
 
-} // End GeoProjection
+}

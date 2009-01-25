@@ -83,14 +83,12 @@ protected void finalize() throws Throwable
 }
 
 /**
-Parse a projection and return an instance of UTMProjection if a valid string
-is provided.
+Parse a projection and return an instance of UTMProjection if a valid string is provided.
 @param projection_string String describing the projection.  The string contains
 comma-separated parameters to define the projection.  At a minimum, "UTM" and
 a zone are required.  Optionally, include datum (default "NAD83"),
 false easting (default 500000), false northing (default 0),
-central longitude (default computed from zone), origin latitude (default 0),
-and scale (default .9996).
+central longitude (default computed from zone), origin latitude (default 0), and scale (default .9996).
 Empty strings are allowed and result in appropriate defaults.
 @return UTMProjection corresponding to the string.
 @exception Exception if there is an error parsing the projection information.
@@ -103,24 +101,22 @@ throws Exception
 		size = tokens.size();
 	}
 	if ( size < 2 ) {
-		throw new Exception (
-		"UTM projection requires at least 2 parameters" );
+		throw new Exception ( "UTM projection requires at least 2 parameters" );
 	}
 	UTMProjection projection = new UTMProjection ();
 	// 0 is the "UTM"
 	// 1 is the zone
 	projection._zone = StringUtil.atoi((String)tokens.get(1));
 	if ( (Math.abs(projection._zone) < 1) || (Math.abs(projection._zone) > 60)) {
-		throw new Exception ( "Illegal UTM zone number " +
-			projection._zone);
+		throw new Exception ( "Illegal UTM zone number " + projection._zone);
 	}
 
-	// 2 is the datum for spheroid (this sets _datum, _r_major and
-	// _r_minor)...
+	// 2 is the datum for spheroid (this sets _datum, _r_major and _r_minor)...
 	if ( size >= 3 ) {
 		projection.setSpheroid ( (String)tokens.get(2) );
 	}
-	else {	// Will use default...
+	else {
+		// Will use default...
 		projection.setSpheroid ( "NAD83" );
 	}
 
@@ -131,21 +127,20 @@ throws Exception
 	if ( projection._zone < 0 ) {
 		projection._false_northing = 10000000.0;
 	}
-	else {	projection._false_northing = 0.0;
+	else {
+		projection._false_northing = 0.0;
 	}
 
 	if ( size >= 4 ) {
 		// Input string may have easting...
 		if ( StringUtil.isDouble((String)tokens.get(3)) ) {
-			projection._false_easting = StringUtil.atod(
-					(String)tokens.get(3) );
+			projection._false_easting = StringUtil.atod((String)tokens.get(3) );
 		}
 	}
 	if ( size >= 5 ) {
 		// Input string may have northing...
 		if ( StringUtil.isDouble((String)tokens.get(4)) ) {
-			projection._false_northing = StringUtil.atod(
-					(String)tokens.get(4) );
+			projection._false_northing = StringUtil.atod((String)tokens.get(4) );
 		}
 	}
 
@@ -153,24 +148,21 @@ throws Exception
 	projection._lon_center = ((6 * Math.abs(projection._zone)) - 183) * D2R;
 	if ( size >= 6 ) {
 		if ( StringUtil.isDouble((String)tokens.get(5)) ) {
-			projection._lon_center = StringUtil.atod(
-					(String)tokens.get(5) )*D2R;
+			projection._lon_center = StringUtil.atod((String)tokens.get(5) )*D2R;
 		}
 	}
 
 	projection._lat_origin = 0.0;
 	if ( size >= 7 ) {
 		if ( StringUtil.isDouble((String)tokens.get(6)) ) {
-			projection._lat_origin = StringUtil.atod(
-					(String)tokens.get(6) )*D2R;
+			projection._lat_origin = StringUtil.atod((String)tokens.get(6) )*D2R;
 		}
 	}
 
 	projection._scale_factor = .9996;
 	if ( size >= 8 ) {
 		if ( StringUtil.isDouble((String)tokens.get(7)) ) {
-			projection._scale_factor = StringUtil.atod(
-					(String)tokens.get(7) );
+			projection._scale_factor = StringUtil.atod((String)tokens.get(7) );
 		}
 	}
 
@@ -199,9 +191,8 @@ throws Exception
 Project latitude and longitude to the UTM coordinate system.
 @return the projected (to UTM) points.
 @param p Point to project from longitude, latitude.
-@param reuse_point Indicates whether the point that 
-	is passed in should be re-used for the output 
-	(doing so saves memory).
+@param reuse_point Indicates whether the point that is passed in should be re-used for the output 
+(doing so saves memory).
 */
 public GRPoint project ( GRPoint p, boolean reuse_point )
 {	double delta_lon;	// Delta longitude (Given longitude - center)
@@ -226,22 +217,21 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 	if ( _ind ) {
 		b = cos_phi * Math.sin(delta_lon);
 		if ((Math.abs(Math.abs(b) - 1.0)) < .0000000001) {
-			Message.printWarning ( 2, "UTMProjection.project",
-			"Point projects into infinity" );
+			Message.printWarning ( 2, "UTMProjection.project", "Point projects into infinity" );
 			x = 0.0;
 			y = 0.0;
 		}
-		else {	x = .5*_r_major*_scale_factor *
-				Math.log((1.0 + b)/(1.0 - b));
-			con = Math.acos(cos_phi * Math.cos(delta_lon)/
-				Math.sqrt(1.0 - b*b));
+		else {
+			x = .5*_r_major*_scale_factor * Math.log((1.0 + b)/(1.0 - b));
+			con = Math.acos(cos_phi * Math.cos(delta_lon)/Math.sqrt(1.0 - b*b));
 			if ( lat < 0 ) {
 				con = -con;
 			}
 			y = _r_major * _scale_factor * (con - _lat_origin); 
 		}
 	}
-	else {	al  = cos_phi * delta_lon;
+	else {
+		al  = cos_phi * delta_lon;
 		als = al*al;
 		c   = _esp*cos_phi*cos_phi;
 		tq  = Math.tan(lat);
@@ -251,13 +241,11 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 		ml  = _r_major * mlfn(_e0, _e1, _e2, _e3, lat);
 		
 		x  = _scale_factor*n*al*(1.0 + als/6.0*(1.0 - t + c + als/20.0 *
-      			(5.0 - 18.0*t + t*t + 72.0*c - 58.0*_esp))) +
-			_false_easting;
+      			(5.0 - 18.0*t + t*t + 72.0*c - 58.0*_esp))) + _false_easting;
 		
 		y  = _scale_factor*(ml - _ml0 + n*tq*(als * (0.5 + als/24.0*
       			(5.0 - t + 9.0*c + 4.0*c*c + als/30.0*
-			(61.0 - 58.0*t + t*t + 600.0*c - 330.0*_esp))))) +
-			_false_northing;
+			(61.0 - 58.0*t + t*t + 600.0*c - 330.0*_esp))))) + _false_northing;
 	}
 
 	if (reuse_point) {
@@ -269,7 +257,8 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 		p.ymin = p.y;
 		return p;
 	}
-	else {	return new GRPoint( x, y);
+	else {
+		return new GRPoint( x, y);
 	}
 }
 
@@ -277,8 +266,8 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 Un-project coordinates from UTM back to longitude, latitude.
 @return the un-projected (from UTM) points.
 @param p Point to un-project to longitude, latitude.
-@param reuse_point Indicates whether the point that 
-	is passed in should be re-used for the output (doing so saves memory).
+@param reuse_point Indicates whether the point that is passed in should be re-used for the output
+(doing so saves memory).
 */
 public GRPoint unProject(GRPoint p, boolean reuse_point)
 {	double x = p.x;
@@ -310,10 +299,12 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		if ((g == 0) && (h == 0)) {
 			lon = _lon_center;
 		}
-		else {	lon = adjust_lon(Math.atan2(g,h) + _lon_center);
+		else {
+			lon = adjust_lon(Math.atan2(g,h) + _lon_center);
 		}
 	}
-	else {	// Inverse equations
+	else {
+		// Inverse equations
 		x = x - _false_easting;
 		y = y - _false_northing;
 
@@ -321,19 +312,15 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		phi = con;
 		for (i=0;;i++) {
 			delta_phi=((con + _e1 * Math.sin(2.0*phi) -
-					_e2 * Math.sin(4.0*phi) +
-					_e3 * Math.sin(6.0*phi))/_e0) - phi;
+					_e2 * Math.sin(4.0*phi) + _e3 * Math.sin(6.0*phi))/_e0) - phi;
 			// Commented in GCTP code...
-			//delta_phi = ((con + e1 * sin(2.0*phi) -
-			// e2 * sin(4.0*phi)) / e0) - phi;
+			//delta_phi = ((con + e1 * sin(2.0*phi) - e2 * sin(4.0*phi)) / e0) - phi;
 			phi += delta_phi;
 			if (Math.abs(delta_phi) <= EPSLN) {
 				break;
 			}
 			if (i >= max_iter) { 
-				Message.printWarning ( 2,
-				"UTMProjection.unProject",
-				"Latitude failed to converge"); 
+				Message.printWarning ( 3, "UTMProjection.unProject", "Latitude failed to converge"); 
 				lat = 0.0;
 				lon = 0.0;
 				break;
@@ -362,7 +349,8 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 				28.0*t - 3.0*cs + 8.0*_esp +
 				24.0*ts)))/cos_phi));
 		}
-		else {	lat = HALF_PI * sign(y);
+		else {
+			lat = HALF_PI * sign(y);
 			lon = _lon_center;
 		}
 	}
@@ -377,8 +365,9 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		return p;
 	}	
 	//if reuse is false, create new GRPoint
-	else {	return new GRPoint(lon*R2D,lat*R2D);
+	else {
+		return new GRPoint(lon*R2D,lat*R2D);
 	}
 }
 	
-} // End UTMProjection
+}
