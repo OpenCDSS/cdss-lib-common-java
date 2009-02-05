@@ -25,8 +25,8 @@ public class MessageLoggingImpl extends MessageImpl {
     }
     
     public MessageLoggingImpl() {
-        status.setLevel(Level.FINE);
-        warning.setLevel(Level.ALL);
+        status.setLevel(Level.OFF);
+        warning.setLevel(Level.WARNING);
         debug.setLevel(Level.OFF);
     }
     
