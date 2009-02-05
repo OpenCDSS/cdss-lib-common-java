@@ -1801,14 +1801,12 @@ throws SQLException {
 				break;	
 		}		
 
-		Message.printStatus(2, "", "Column " + (i + 1)
-			+ ": " + type);
+		Message.printStatus(2, "", "Column " + (i + 1) + ": " + type);
 	}
 }
 
 /**
-Duplicates a table, its columns and primary key, and possibly the data (see the
-copyData parameter).
+Duplicates a table, its columns and primary key, and possibly the data (see the copyData parameter).
 @param dmi an open DMI connection.
 @param origTableName the name of the table to duplicate
 @param newTableName the name of the table to create
@@ -1820,8 +1818,7 @@ column information is queried from the original table and a CREATE TABLE
 SQL command is built.
 @throws Exception if an error occurs
 */
-public static void duplicateTable(DMI dmi, String origTableName, 
-String newTableName, boolean copyData) 
+public static void duplicateTable(DMI dmi, String origTableName, String newTableName, boolean copyData) 
 throws Exception {
 	String routine = "DMIUtil.duplicateTable";
 	StringBuffer SQL = new StringBuffer();
@@ -1845,16 +1842,13 @@ throws Exception {
 	//
 	// So it's better just to prevent duplicate table names completely.
 	if (databaseHasTable(dmi, newTableName)) {
-		throw new Exception ("Table '" + newTableName + "' already "
-			+ "exists in the database.");
+		throw new Exception ("Table '" + newTableName + "' already " + "exists in the database.");
 	}
 
 	if (copyData) {
-		SQL.append("SELECT * INTO " + newTableName + " FROM "
-			+ origTableName);
+		SQL.append("SELECT * INTO " + newTableName + " FROM " + origTableName);
 		// Turn off capitalization before executing the query so that
-		// table names are made case sensitive to how the name was 
-		// passed in to the method.
+		// table names are made case sensitive to how the name was passed in to the method.
 		boolean caps = dmi.getCapitalize();
 		if (caps) {
 			dmi.setCapitalize(false);
@@ -1873,14 +1867,12 @@ throws Exception {
 	// get the column data for the original table
 	rs = metadata.getColumns(null, null, origTableName, null);
 	if (rs == null) {
-		throw new Exception ("Error getting columns for \""
-			+ origTableName + "\" table.");
+		throw new Exception ("Error getting columns for \"" + origTableName + "\" table.");
 	} 
 
 	boolean more = rs.next();
 	if (more == false) {
-		throw new Exception ("Unable to retrieve column information "
-			+ "for table '" + origTableName + "'");
+		throw new Exception ("Unable to retrieve column information for table '" + origTableName + "'");
 	}
 
 	// get a list of all the table columns that are in the Primary key.
@@ -1898,17 +1890,14 @@ throws Exception {
 	boolean key = false;
 	String temp = null;
 	List columns = new Vector();
-	// loop through each column and move all its important
-	// data into a Vector of Vectors.  This data will
-	// be run through at least twice, and to do that
-	// with a ResultSet would require several expensive
+	// Loop through each column and move all its important data into a Vector of Vectors.  This data will
+	// be run through at least twice, and to do that with a ResultSet would require several expensive
 	// opens and closes.
 	while (more) {
 		key = false;
 		List column = new Vector();
 		
-		// Get the 'column name' and store it in
-		// Vector position 0
+		// Get the 'column name' and store it in Vector position 0
 		temp = rs.getString(4);
 		if (temp == null) {
 			temp = " ";
@@ -1918,15 +1907,10 @@ throws Exception {
 		}
 		column.add(temp);
 
-		// Get whether this is a primary key or not
-		// and store either "TRUE" (for it being a 
-		// primary key) or "FALSE" in Vector
-		// position 1
+		// Get whether this is a primary key or not and store either "TRUE" (for it being a 
+		// primary key) or "FALSE" in list position 1
 		for (int j = 0; j < primaryKeysSize; j++) {
-			if (temp.trim().equals(
-				((String)
-				primaryKeysV.get(j))
-				.trim())) {
+			if (temp.trim().equals( ((String)primaryKeysV.get(j)).trim())) {
 				key = true;		
 			}
 		}				
@@ -1937,8 +1921,7 @@ throws Exception {
 			column.add("FALSE");
 		}
 
-		// Get the 'column type' and store it in 
-		// Vector position 2
+		// Get the 'column type' and store it in list position 2
 		temp = rs.getString(6);
 		if (temp == null) {
 		temp = "Unknown";
@@ -1948,18 +1931,15 @@ throws Exception {
 		}
 		column.add(temp);
 
-		// Get the 'column size' and store it in
-		// Vector position 3
+		// Get the 'column size' and store it in list position 3
 		temp = rs.getString(7);
 		column.add(temp);
 		
-		// Get the 'column num digits' and store it
-		// in Vector position 4
+		// Get the 'column num digits' and store it in list position 4
 		temp = rs.getString(9);
 		column.add(temp);
 
-		// Get whether the colum is nullable and 
-		// store it in Vector position 5
+		// Get whether the column is nullable and store it in list position 5
 		temp = rs.getString(18);
 		if (temp == null) {
 			temp = "Unknown";
@@ -1969,8 +1949,7 @@ throws Exception {
 		}
 		column.add(temp);
 		
-		// Get the column remarks and store them in
-		// Vector position 6
+		// Get the column remarks and store them in list position 6
 		temp = rs.getString(12);
 		if (temp == null) {
 			temp = "   ";
@@ -2003,8 +1982,7 @@ throws Exception {
 			type = type + " (" + (String)column.get(3) + ")";
 		}
 		String isNull = (String)column.get(5);
-		if (isNull.equalsIgnoreCase("Unknown") ||
-		    isNull.equalsIgnoreCase("No")) {
+		if (isNull.equalsIgnoreCase("Unknown") || isNull.equalsIgnoreCase("No")) {
 		    	isNull = "NOT NULL";
 		}
 		else {
@@ -2027,8 +2005,7 @@ throws Exception {
 	Message.printDebug(25, routine, "SQL: '" + SQL.toString() + "'");
 
 	// Turn off capitalization before executing the query so that
-	// table names are made case sensitive to how the name was passed
-	// in to the method.
+	// table names are made case sensitive to how the name was passed in to the method.
 	boolean caps = dmi.getCapitalize();
 	if (caps) {
 		dmi.setCapitalize(false);
@@ -2041,60 +2018,49 @@ throws Exception {
 
 /**
 Determine whether a database has a given stored procedure.  This can be used
-to determine a database version or as a basic check for a stored procedure
-before executing it.
+to determine a database version or as a basic check for a stored procedure before executing it.
 @return true if the procedure is in the database, false if not.
 @param dmi DMI instance for an opened database connection.
 @param procedureName the name of the procedure to test for.
 @exception Exception if an error occurs
 */
-public static boolean databaseHasStoredProcedure (	DMI dmi,
-							String procedureName) 
+public static boolean databaseHasStoredProcedure ( DMI dmi, String procedureName) 
 throws Exception, SQLException {
 	if (!dmi.connected() ) {
-		throw new SQLException ("Database not connected, cannot call "
-			+ "DMIUtil.databaseHasStoredProcedure()");
+		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasStoredProcedure()");
 	}
 	
-	return databaseHasStoredProcedure ( dmi,
-					dmi.getConnection().getMetaData(),
-					procedureName);
+	return databaseHasStoredProcedure ( dmi, dmi.getConnection().getMetaData(), procedureName);
 }
 
 /**
 Determine whether a database has a given stored procedure.  This can be used
-to determine a database version or as a basic check for a stored procedure
-before executing it.
+to determine a database version or as a basic check for a stored procedure before executing it.
 @return true if the procedure is in the database, false if not
 @param dmi DMI instance for a database.
 @param metaData meta data to search for the procedure name
 @param procedureName the name of the procedure
 @exception Exception if an error occurs.
 */
-public static boolean databaseHasStoredProcedure (	DMI dmi,
-						DatabaseMetaData metaData,
-						String procedureName)
+public static boolean databaseHasStoredProcedure ( DMI dmi, DatabaseMetaData metaData, String procedureName)
 throws Exception, SQLException {
 	if (!dmi.connected()) {
-		throw new SQLException ("Database not connected, cannot call "
-			+ "DMIUtil.databaseHasStoredProcedure()");
+		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasStoredProcedure()");
 	}	
 
 	String message;
 	String routine = "DMIUtil.databaseHasStoredProcedure";
 	int dl = 25;
 	
-	ResultSet rs = 
-		metaData.getProcedures( dmi.getDatabaseName(), null, null);
+	ResultSet rs = metaData.getProcedures( dmi.getDatabaseName(), null, null);
 	if (rs == null) {
 		message = "Error getting result set of procedure names";
-	Message.printWarning(dl, routine, message);
-	throw new Exception (message);
+        Message.printWarning(dl, routine, message);
+        throw new Exception (message);
 	}
 	
 	while (rs.next()) {
 		String proc = rs.getString(3);
-		
 		if (proc.equalsIgnoreCase(procedureName)) {
 			return true;
 		}
@@ -2108,50 +2074,45 @@ throws Exception, SQLException {
 Determine whether a database has a table.
 @return true if the specified table is in the database, false if not.
 @param dmi DMI instance for a database connection.
-@param table_name Name of table.
+@param tableName Name of table.
 @exception Exception if there is an error getting database information.
 */
-public static boolean databaseHasTable ( DMI dmi, String table_name )
+public static boolean databaseHasTable ( DMI dmi, String tableName )
 throws Exception, SQLException	{	
 	if (!dmi.connected()) {
-		throw new SQLException ("Database not connected, cannot call "
-			+ "DMIUtil.databaseHasTable()");
+		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasTable()");
 	}	
 	
-	return databaseHasTable(dmi.getConnection().getMetaData(), table_name );
+	return databaseHasTable(dmi.getConnection().getMetaData(), tableName );
 }
 
 /**
 Determine whether a database has a table.
 @return true if the specified table is in the database, false if not.
 @param metadata DatabaseMetaData for connection.
-@param table_name Name of table.
+@param tableName Name of table.
 @exception if there is an error getting database information.
 */
-public static boolean databaseHasTable (	DatabaseMetaData metadata,
-						String table_name )
+public static boolean databaseHasTable ( DatabaseMetaData metadata, String tableName )
 throws Exception {	
 	String message, routine = "DMI.databaseHasTable";
-	ResultSet	rs = null;
-	int		dl = 5;
+	ResultSet rs = null;
+	int dl = 5;
 
 	// The following can be used to get a full list of columns...
-	try {	rs = metadata.getTables ( null, null, null, null );
+	try {
+	    rs = metadata.getTables ( null, null, null, null );
 		if ( rs == null ) {
-			message =
-			"Error getting list of tables to find table \"" +
-			table_name + "\".";
+			message = "Error getting list of tables to find table \"" + tableName + "\".";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
 		} 
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Database returned non-null table list." );
+			Message.printDebug ( dl, routine, "Database returned non-null table list." );
 		} 
 	} 
 	catch ( Exception e ) {
-		message = "Error getting list of tables to find table \"" +
-			table_name + "\".";
+		message = "Error getting list of tables to find table \"" + tableName + "\".";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	} 
@@ -2160,7 +2121,7 @@ throws Exception {
 
 	boolean more = rs.next();
 
-	String	s;
+	String s;
 	int count = 0;
 	while ( more ) {
 		++count;
@@ -2168,24 +2129,22 @@ throws Exception {
 		// The table name is field 3...
 
 		//if ( Message.isDebugOn ) {
-		//	Message.printDebug ( dl, routine,
-		//	"Checking table " + count );
+		//	Message.printDebug ( dl, routine, "Checking table " + count );
 		//}
 		s = rs.getString(3);
 		if ( !rs.wasNull() ) {
 			s = s.trim();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Database has table \"" + s + "\"" );
+				Message.printDebug ( dl, routine, "Database has table \"" + s + "\"" );
 			} 
-			if ( s.equalsIgnoreCase(table_name) ) {
+			if ( s.equalsIgnoreCase(tableName) ) {
 				rs.close();
 				return true;
 			} 
 		}  
-		else {	if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Database has null table." );
+		else {
+		    if ( Message.isDebugOn ) {
+				Message.printDebug ( dl, routine, "Database has null table." );
 			}  
 		} 
 
@@ -2199,41 +2158,34 @@ throws Exception {
 
 /**
 Determine whether a table in the database has a column.
-@return true if the specified table includes the specified column, false if
-the column is not in the table.
+@return true if the specified table includes the specified column, false if the column is not in the table.
 @param dmi DMI instance for a database connection.
-@param table_name Name of table.
-@param column_name Name of column to check.
+@param tableName Name of table.
+@param columnName Name of column to check.
 @exception if there is an error getting database information.
 */
-public static boolean databaseTableHasColumn (	DMI dmi, String table_name,
-						String column_name )
+public static boolean databaseTableHasColumn ( DMI dmi, String tableName, String columnName )
 throws SQLException, Exception {	
 	if (!dmi.connected()) {
-		throw new SQLException ("Database not connected, cannot call "
-			+ "DMIUtil.databaseTableHasColumn()");
+		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseTableHasColumn()");
 	}	
-    boolean columnExists = databaseTableHasColumn ( dmi.getConnection().getMetaData(),
-					table_name, column_name);	
+    boolean columnExists = databaseTableHasColumn ( dmi.getConnection().getMetaData(), tableName, columnName);	
     if (!columnExists) {
         columnExists = databaseTableHasColumn( dmi.getConnection().getMetaData(),
-                table_name.toUpperCase(), column_name.toUpperCase());
+                tableName.toUpperCase(), columnName.toUpperCase());
     }
     return columnExists;
 }
 
 /**
 Determine whether a table in the database has a column.
-@return true if the specified table includes the specified column, false if
-the column is not in the table.
+@return true if the specified table includes the specified column, false if the column is not in the table.
 @param metadata DatabaseMetaData for connection.
-@param table_name Name of table.
-@param column_name Name of column to check.
+@param tableName Name of table.
+@param columnName Name of column to check.
 @exception if there is an error getting database information.
 */
-public static boolean databaseTableHasColumn (	DatabaseMetaData metadata,
-						String table_name,
-						String column_name )
+public static boolean databaseTableHasColumn ( DatabaseMetaData metadata, String tableName, String columnName )
 throws Exception, SQLException {	
 	String message, routine = "DMI.databaseTableHasColumn";
 	ResultSet	rs = null;
@@ -2241,17 +2193,16 @@ throws Exception, SQLException {
 
 	// The following can be used to get a full list of columns...
 	//try {	rs = metadata.getColumns ( null, null, table_name, null );}
-	try {	rs = metadata.getColumns ( null, null, table_name, column_name);
+	try {
+	    rs = metadata.getColumns ( null, null, tableName, columnName);
 		if ( rs == null ) {
-			message =
-			"Error getting columns for \"" + table_name+"\" table.";
+			message = "Error getting columns for \"" + tableName+"\" table.";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
 		} 
 	} 
 	catch ( Exception e ) {
-		message = "Error getting database information for table \""
-			+ table_name + "\".";
+		message = "Error getting database information for table \"" + tableName + "\".";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	} 
@@ -2269,20 +2220,17 @@ throws Exception, SQLException {
 		if ( !rs.wasNull() ) {
 			s = s.trim();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Table \"" + table_name
-				+ "\" has column \"" + s + "\"" );
+				Message.printDebug ( dl, routine, "Table \"" + tableName + "\" has column \"" + s + "\"" );
 			}
-			if ( s.equalsIgnoreCase(column_name) ) {
+			if ( s.equalsIgnoreCase(columnName) ) {
 				rs.close();
 				return true;
 			}
 			//column_names.add ( s );
 		} 
-		else {	if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Table \"" + table_name
-				+ "\" has null column" );
+		else {
+		    if ( Message.isDebugOn ) {
+				Message.printDebug ( dl, routine, "Table \"" + tableName + "\" has null column" );
 			}
 		}
 
@@ -2296,8 +2244,7 @@ throws Exception, SQLException {
 }
 
 /**
-Format a date/time string based on the database engine so that it can be used
-in an SQL statement.
+Format a date/time string based on the database engine so that it can be used in an SQL statement.
 @param dmi DMI instance form which to format date.
 @param datetime a DateTime object containing a date.  The precision of this
 DateTime object controls the formatting of the string.
@@ -2310,8 +2257,7 @@ throws Exception {
 }
 
 /**
-Format a date/time string based on the database engine so that it can be used
-in an SQL statement.
+Format a date/time string based on the database engine so that it can be used in an SQL statement.
 @param dmi DMI instance form which to format date.
 @param datetime a DateTime object containing a date.  The precision of this
 DateTime object controls the formatting of the string.

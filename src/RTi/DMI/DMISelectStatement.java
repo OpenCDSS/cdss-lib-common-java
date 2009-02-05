@@ -26,8 +26,7 @@ The DMISelectStatement class stores basic information about SQL select
 statements.  Currently all functionality is included in the base class but at
 some point data and behavior may be moved to derived classes.<p>
 See HydroBaseDMI for many good examples of using DMISelectStatement;
-REVISIT (JTS - 2006-05-23)
-Add some examples.
+TODO (JTS - 2006-05-23) Add some examples.
 */
 public class DMISelectStatement 
 extends DMIStatement {
@@ -38,8 +37,7 @@ Flag indicating whether a distinct select is executed.
 protected boolean _distinct;
 
 /**
-Flag indicating whether the ORDER BY clause should be a GROUP BY clause, 
-instead.
+Flag indicating whether the ORDER BY clause should be a GROUP BY clause, instead.
 */
 protected boolean _groupBy = false;
 

@@ -289,25 +289,20 @@ import java.util.List;
 import java.util.Vector;
 
 /**
-The DMI class serves as a base class to allow interaction with ODBC/JDBC
-compliant database servers.
-Derived classes should define specific code to implement a connection with
-the database.
+The DMI class serves as a base class to allow interaction with ODBC/JDBC compliant database servers.
+Derived classes should define specific code to implement a connection with the database.
 In particular, a derived class should:
 <ol>
-<li>	Call the appropriate constructor in this base class when constructing an
-	instance.</li>
+<li>	Call the appropriate constructor in this base class when constructing an instance.</li>
 <li>	Implement a determineDatabaseVersion() method, which is called from
 	the open() method in this base DMI class.  The
 	determineDatabaseVersion() method should call the setDatabaseVersion()
 	method of this DMI base class.</li>
 <li>	Implement a readGlobalData() method to read global data that will be
-	kept in memory in the derived DMI class (e.g., for commonly used data
-	like units).
+	kept in memory in the derived DMI class (e.g., for commonly used data like units).
 <li>	Implement a getDatabaseProperties() method that can be used by an
 	application (e.g., to show database properties to a user.</li>
-<li>	Use the DMI*Statement objects to create SQL statements.  Execute the
-	statements using dmi*() methods.</li>
+<li>	Use the DMI*Statement objects to create SQL statements.  Execute the statements using dmi*() methods.</li>
 <li>	Implement constructors that follow the guidelines described below.
 </ol>
 To create a connection to a database, a DMI instance should be created using one
