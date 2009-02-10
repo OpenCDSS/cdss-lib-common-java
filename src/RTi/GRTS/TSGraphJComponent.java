@@ -2891,8 +2891,9 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 			(int)(pageFormat.getHeight() 
 				- pageFormat.getImageableY()));
 
-	Message.printDebug(1, "", "PrintBounds after print selection:\n"
-		+ _printBounds);
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, "", "PrintBounds after print selection:\n" + _printBounds);
+			}
 
 		// set the printing flag to true
 		_printing = true;

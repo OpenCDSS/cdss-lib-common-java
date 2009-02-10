@@ -14,24 +14,20 @@ import RTi.Util.IO.CommandStatusType;
  */
 public class CommandStatusUtil
 {
-  /**
-   * Adds a command to the HTML accumulating in the HTMLStatusAssembler.
-   * 
-   * @param command
-   * @param assembler
-   * @return return 0 if no warnings or failures found, otherwise 1
-   */
-  private static int addCommandHTML(Command command,
-          HTMLStatusAssembler assembler)
-  {
+/**
+Adds a command to the HTML accumulating in the HTMLStatusAssembler.
+@param command
+@param assembler
+@return return 0 if no warnings or failures found, otherwise 1
+*/
+private static int addCommandHTML(Command command, HTMLStatusAssembler assembler)
+{
     CommandStatus cs;
     int problemsFound = 0;
     
-    if ( command instanceof CommandStatusProvider ) 
-      {
+    if ( command instanceof CommandStatusProvider ) {
         cs = ((CommandStatusProvider)command).getCommandStatus();
-        if (isProblematic(cs))
-          {
+        if (isProblematic(cs)) {
             problemsFound = 1;
             // add Command
             assembler.addCommand(command.toString());
@@ -40,102 +36,91 @@ public class CommandStatusUtil
             addCommandSummary(cs, assembler);
 
             addCommandDetailTable(assembler, cs);
-          }
-      }
-    else
-      {
+        }
+    }
+    else {
         addNotACommandStatusProvider(assembler);
-      }
+    }
 
     assembler.endCommand();
     
     return problemsFound;
-  }
+}
+  
 /**
- * Adds Detail table.
- * 
- * @param assembler
- * @param cs
- */
-  private static void addCommandDetailTable(
-          HTMLStatusAssembler assembler, CommandStatus cs)
-  {
+Adds Detail table.
+@param assembler
+@param cs
+*/
+private static void addCommandDetailTable( HTMLStatusAssembler assembler, CommandStatus cs) 
+{
     assembler.startCommandStatusTable();
 
     if (cs.getCommandStatus(CommandPhaseType.INITIALIZATION)== CommandStatusType.WARNING
-            ||cs.getCommandStatus(CommandPhaseType.INITIALIZATION)== CommandStatusType.FAILURE)
-      {
+        ||cs.getCommandStatus(CommandPhaseType.INITIALIZATION)== CommandStatusType.FAILURE) {
         addPhaseHTML(cs, assembler, CommandPhaseType.INITIALIZATION);
-      }
-
+    }
     if (cs.getCommandStatus(CommandPhaseType.DISCOVERY)== CommandStatusType.WARNING
-            ||cs.getCommandStatus(CommandPhaseType.DISCOVERY)== CommandStatusType.FAILURE)
-      {
+        ||cs.getCommandStatus(CommandPhaseType.DISCOVERY)== CommandStatusType.FAILURE) {
         addPhaseHTML(cs, assembler, CommandPhaseType.DISCOVERY);
-      }
+    }
     if (cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.WARNING
-            ||cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.FAILURE)
-      {
+        ||cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.FAILURE) {
         addPhaseHTML(cs, assembler, CommandPhaseType.RUN);
-      }
-  }
+    }
+}
   
-  /**
-   * Adds command status summary table.
-   * @param cs
-   * @param assembler
-   */
-  private static void addCommandSummary(CommandStatus cs, HTMLStatusAssembler assembler)
-  {
+/**
+Adds command status summary table.
+@param cs
+@param assembler
+*/
+private static void addCommandSummary(CommandStatus cs, HTMLStatusAssembler assembler)
+{
     assembler.addCommandStatusSummary(
             cs.getCommandStatus(CommandPhaseType.INITIALIZATION),
             cs.getCommandStatus(CommandPhaseType.DISCOVERY),
             cs.getCommandStatus(CommandPhaseType.RUN));
-  }
+}
   
-  /**
-   * Adds text indicating no issues found.
-   * @param assembler
-   */
-  private static void addNotACommandStatusProvider(HTMLStatusAssembler assembler)
-  {
+/**
+Adds text indicating no issues found.
+@param assembler
+*/
+private static void addNotACommandStatusProvider(HTMLStatusAssembler assembler)
+{
     assembler.addNotACommandStatusProvider();
-  }
+}
   
-  /**
-   * Adds html for a command status phase.
-   * @param cs
-   * @param assembler
-   */
-  private static void addPhaseHTML(CommandStatus cs,
-          HTMLStatusAssembler assembler, CommandPhaseType commandPhaseType)
-  {
+/**
+Adds html for a command status phase.
+@param cs
+@param assembler
+*/
+private static void addPhaseHTML(CommandStatus cs,
+    HTMLStatusAssembler assembler, CommandPhaseType commandPhaseType)
+{
     CommandStatusType status = cs.getCommandStatus(commandPhaseType);
       
-      List v = cs.getCommandLog(commandPhaseType);
-      if ( v.size() > 0 )
-        {
-          int size = v.size();
-          for ( int i = 0; i < size; i++ )
-              {
-                CommandLogRecord clr = (CommandLogRecord)v.get(i);
-
-                assembler.addPhase(commandPhaseType.toString(),
-                        status.toString(),
-                        getStatusColor(status),
-                        clr.getProblem(),
-                        clr.getRecommendation());
-                ++i;
-              }
-      }
-  }
+	List v = cs.getCommandLog(commandPhaseType);
+	if ( v.size() > 0 ) {
+	    int size = v.size();
+	    for ( int i = 0; i < size; i++ ) {
+	        CommandLogRecord clr = (CommandLogRecord)v.get(i);
+	        assembler.addPhase(commandPhaseType.toString(),
+	                    status.toString(),
+	                    getStatusColor(status),
+	                    clr.getProblem(),
+	                    clr.getRecommendation());
+	    }
+	}
+}
   
-  /**
-   * Returns the command status log records ready for display as HTML.
-   * 
-   * @param csp command status provider
-   * @return concatenated log records as text
-   */
+/**
+Returns the command status log records ready for display as HTML.
+@param csp command status provider
+@return concatenated log records as text
+*/
 //  public static String getCommandLogHTML(CommandStatus status)
 //    {
 //	  if ( status == null ) {
@@ -148,12 +133,11 @@ public class CommandStatusUtil
 //	  }
 //    }
 //    
-  /**
-   * Returns the command log records ready for display as HTML.
-   * 
-   * @param csp command status provider
-   * @return concatenated log records as HTML
-   */
+/**
+Returns the command log records ready for display as HTML.
+@param csp command status provider
+@return concatenated log records as HTML
+*/
 //  public static String getCommandLogHTML(CommandStatusProvider csp)
 //    {
 //      return "<html><font bgcolor=red> Stati </font></html>";
@@ -167,15 +151,15 @@ public class CommandStatusUtil
 //      
 //    }
   
-  /**
-   * Append log records from a list of commands to a status.  For example, this is used
-   * when running a list of commands with a "runner" command.
-   * @param status a CommandStatus instance to which log records should be appended.
-   * @param commandList a list of CommandStatusProviders (such as Command instances) that
-   * have log records to be appended to the first parameter.
-   */
-  public static void appendLogRecords ( CommandStatus status, List commandList )
-  {
+/**
+Append log records from a list of commands to a status.  For example, this is used
+when running a list of commands with a "runner" command.
+@param status a CommandStatus instance to which log records should be appended.
+@param commandList a list of CommandStatusProviders (such as Command instances) that
+have log records to be appended to the first parameter.
+*/
+public static void appendLogRecords ( CommandStatus status, List commandList )
+{
       if ( status == null ) {
           return;
       }
@@ -207,18 +191,18 @@ public class CommandStatusUtil
               status.addToLog(CommandPhaseType.RUN, (CommandLogRecord)logs.get(il) );
           }
       }
-  }
+}
   
-  /**
-	 * TODO SAM 2007-08-15 Need to doc.
-	 * @param o
-	 * @return
-	 */
-  public static String getCommandLogHTML(CommandStatusProvider csp)
-  {
-        String toolTip = getHTMLCommandStatus(csp.getCommandStatus());
-        return toolTip;
-  }
+/**
+TODO SAM 2007-08-15 Need to doc.
+@param o
+@return
+*/
+public static String getCommandLogHTML(CommandStatusProvider csp)
+{
+    String toolTip = getHTMLCommandStatus(csp.getCommandStatus());
+    return toolTip;
+}
 
   /**
    * Returns the command log records ready for display as text, suitable
@@ -250,13 +234,12 @@ public class CommandStatusUtil
     	  b.append ( nl + thin_line );
     	  b.append ( nl + "Initialization log:");
           int size = v.size();
-          for ( int i = 0; i < size; i++ )
-              {
+          for ( int i = 0; i < size; i++ ) {
         	  	if ( i > 0 ) {
         	  		b.append ( nl + dash_line );
         	  	}
                 b.append ( nl + v.get(i).toString() );
-              }
+          }
       }
       b.append ( nl + thick_line );
       b.append ( nl + "Discovery status: " + cs.getCommandStatus(CommandPhaseType.DISCOVERY));
@@ -431,6 +414,3 @@ public static String getHTMLCommandStatus(CommandStatus css)
     return ret;
   }
 }
-
-
-

@@ -46,8 +46,7 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-REVISIT (JTS - 2006-05-23)
-Example of use (eg, from ERDiagram_Device)
+TODO (JTS - 2006-05-23) Document example of use (e.g., from ERDiagram_Device)
 */
 public class GRJComponentDevice 
 extends JComponent 
@@ -64,7 +63,7 @@ If true, drawing will be performed to the double-buffer.
 */
 protected boolean _doubleBuffered = false;
 /**
-For backwards-compatability with older code.  Probably should be removed soon.
+For backwards compatability with older code.  Probably should be removed soon.
 */
 protected boolean _double_buffering = _doubleBuffered;
 
@@ -144,30 +143,25 @@ Display mode (allows recording).
 */
 protected int		_mode;
 /**
-Page orientation -- shouldn't be necessary for any class other than 
-GRPSDevice.
+Page orientation -- shouldn't be necessary for any class other than GRPSDevice.
 */
 protected int		_orientation;
 /**
-Page count -- shouldn't be necessary for any class other than 
-GRPSDevice.
+Page count -- shouldn't be necessary for any class other than GRPSDevice.
 */
 protected int		_page;
 /**
 Size that is used by calling drawing routines.  Used in Postscript/page 
-systems where drawing can be to one page size with a single "scale"
-command.  
+systems where drawing can be to one page size with a single "scale" command.  
 */
 protected int		_sizedrawn;
 /**
 Size of output after scaling.  Used in Postscript/page 
-systems where drawing can be to one page size with a single "scale"
-command.  
+systems where drawing can be to one page size with a single "scale" command.  
 */
 protected int		_sizeout;
 /**
-Indicates the status of the drawing area.  See GRUtil.STATUS_*.  Might be
-an equivalent of a C++ option.
+Indicates the status of the drawing area.  See GRUtil.STATUS_*.  Might be an equivalent of a C++ option.
 */
 protected int		_status;
 /**
@@ -181,8 +175,7 @@ Device units.
 protected int		_units;
 
 /**
-Name of this device (assigned by creating code).  It will be used as a window
-name if necessary.
+Name of this device (assigned by creating code).  It will be used as a window name if necessary.
 */
 protected String	_name;
 /**
@@ -206,8 +199,7 @@ public GRJComponentDevice ( String name )
 }
 
 /**
-Construct using name and size.  Currently, the size is ignored (controlled by
-layout managers).
+Construct using name and size.  Currently, the size is ignored (controlled by layout managers).
 */
 public GRJComponentDevice ( String name, GRLimits size )
 {	PropList props = new PropList ( "GRJComponentDevice.default" );
@@ -229,8 +221,7 @@ public GRJComponentDevice ( PropList props )
 }
 
 /**
-Add a drawing area to the device.  The device will then manage the drawing
-areas as much as possible.
+Add a drawing area to the device.  The device will then manage the drawing areas as much as possible.
 @param grda GRJComponentDrawingArea to add.
 */
 public void addDrawingArea ( GRDrawingArea grda )
@@ -243,8 +234,7 @@ public void addDrawingArea ( GRDrawingArea grda )
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, routine,
-		"Adding drawing area \"" + grda.getName() + "\" to device \"" +
-		_name + "\"" );
+		"Adding drawing area \"" + grda.getName() + "\" to device \"" + _name + "\"" );
 	}
 	_drawing_area_list.add ( (GRJComponentDrawingArea)grda );
 }
@@ -262,8 +252,7 @@ Clears the double-buffer.
 public void clearDoubleBuffer() {
 	int width = _buffer.getWidth();
 	int height = _buffer.getHeight();
-	_buffer = new BufferedImage(width, height, 
-		BufferedImage.TYPE_4BYTE_ABGR);
+	_buffer = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
 	_graphics = (Graphics2D)_buffer.getGraphics();
 }
 
@@ -297,8 +286,7 @@ throws Throwable
 }
 
 /**
-Flush the device (used by PS devices and X-Windoes).  Should be defined in 
-derived class.
+Flush the device (used by PS devices and X-Windows).  Should be defined in derived class.
 */
 public void flush ()
 {
@@ -308,16 +296,14 @@ public void flush ()
 Unsure of just what this is meant to do.  
 @deprecated deprecated (2006-05-22) to see if any other classes are using this
 method. If so, evaluate what they're doing, javadoc, and undeprecate.  
-Alternately, REVISIT (JTS - 2006-05-23) in a few months and if it's still here,
-remove.
+Alternately, REVISIT (JTS - 2006-05-23) in a few months and if it's still here, remove.
 */
 public void forceGraphics(Graphics g) {
 	_graphics = (Graphics2D)g;
 }
 
 /**
-Return the internal Image used for double-buffering or null if image is null
-or no double-buffering.
+Return the internal Image used for double-buffering or null if image is null or no double-buffering.
 @return Image for the device.
 */
 //public Image getImage () {
@@ -340,8 +326,7 @@ public GRLimits getLimits ( boolean recompute )
 		// Get the size of the JComponent...
 
 		Rectangle bounds = getBounds ();
-		// Now transfer into GR, where the origin is at the lower
-		// left...
+		// Now transfer into GR, where the origin is at the lower left...
 
 		limits.setLeftX ( 0.0 );
 		limits.setBottomY ( 0.0 );
@@ -351,8 +336,7 @@ public GRLimits getLimits ( boolean recompute )
 		setLimits ( limits );
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 30, "GRJComponentDevice.getLimits",
-			"Device limits are: 0.0,0.0 " +
-			bounds.width + "," + bounds.height );
+			"Device limits are: 0.0,0.0 " + bounds.width + "," + bounds.height );
 		}
 	}
 	return _limits;
@@ -365,8 +349,7 @@ public GRLimits getLimits ( boolean recompute, double scale )
 		// Get the size of the JComponent...
 
 		Rectangle bounds = getBounds ();
-		// Now transfer into GR, where the origin is at the lower
-		// left...
+		// Now transfer into GR, where the origin is at the lower left...
 
 		limits.setLeftX ( 0.0 );
 		limits.setBottomY ( 0.0 );
@@ -376,16 +359,14 @@ public GRLimits getLimits ( boolean recompute, double scale )
 		setLimits ( limits );
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 30, "GRJComponentDevice.getLimits",
-			"Device limits are: 0.0,0.0 " +
-			bounds.width + "," + bounds.height );
+			"Device limits are: 0.0,0.0 " + bounds.width + "," + bounds.height );
 		}
 	}
 	return _limits;
 }
 
 /**
-Returns the current limits of the device.   This checks the size of the
-JComponent.
+Returns the current limits of the device.  This checks the size of the JComponent.
 @return the current limits of the device.
 */
 public GRLimits getLimits ()
@@ -421,15 +402,13 @@ Initializes member variables.
 @param props a PropList with settings for the device.
 */
 private void initialize ( PropList props )
-{	// For now we always manage the double-buffer internally for
-	// JComponents...
+{	// For now we always manage the double-buffer internally for JComponents...
 
 	// This turns off the double buffering.  Double-buffering is always
 	// on by default in Swing, but RTi's preferred mode of operation
-	// is for it to always be OFF by default, and enabled only when
-	// selected.
+	// is for it to always be OFF by default, and enabled only when selected.
 
-// REVISIT (JTS - 2003-05-2)
+// TODO (JTS - 2003-05-2)
 // Instead of doing the double-buffering as we are
 // doing it now (with an off-screen buffer that we manage), maybe
 // we could just make the calls to stopDoubleBuffering and 
@@ -445,8 +424,7 @@ private void initialize ( PropList props )
 // }
 //
 // and then ignore the rest of it?  Tests should be run as to the performance
-// effects of each.  One advantage of NOT doing it that way is the enhanced
-// control it gives us.  
+// effects of each.  One advantage of NOT doing it that way is the enhanced control it gives us.  
 //
 // Food for thought.
 
@@ -535,7 +513,8 @@ private void initialize ( PropList props )
 			prop_value.charAt(0) == 'P' ) {
 			_orientation = GRDeviceUtil.ORIENTATION_PORTRAIT;
 		}
-		else {	_orientation = GRDeviceUtil.ORIENTATION_LANDSCAPE;
+		else {
+			_orientation = GRDeviceUtil.ORIENTATION_LANDSCAPE;
 		}
 	}
 	prop_value = props.getValue("Note");
@@ -558,23 +537,21 @@ private void initialize ( PropList props )
 		_devy2 = 1.0;
 		_limits = new GRLimits ( _devx1, _devy1, _devx2, _devy2 );
 	}
-	else {	// Set the limits...
+	else {
+		// Set the limits...
 		setLimits ( limits );
 	}
 
 	// The size of the device will have been set in the constructor, but
-	// the base class only knows how to store the data.  Force a resize
-	// here.
+	// the base class only knows how to store the data.  Force a resize here.
 	//resize ( _devx1, _devy1, _devx2, _devy2 );
 
-	// Set to null.  Wait for the derived class to set the graphics for
-	// use throughout the drawing event...
+	// Set to null.  Wait for the derived class to set the graphics for use throughout the drawing event...
 
 	// Set information used by the base class and other code...
 
 	_graphics = null;
-	_reverse_y = true;	// Java uses y going down.  This is handled
-				// properly in
+	_reverse_y = true;	// Java uses y going down.  This is handled properly in
 				// GRJComponentDrawingArea.scaleYData().
 	// Set the limits to the JComponent size...
 	setLimits ( getLimits ( true ) );
@@ -600,8 +577,7 @@ public boolean isPrinting()
 This method is called when the JComponent is to be drawn.  It is expected that
 classes extended from this base class will implement a paint() method that
 either itself sets the graphics or calls super.paint() to call this method to
-set the graphics.  Using a GRJComponentDevice directly will result in this
-method
+set the graphics.  Using a GRJComponentDevice directly will result in this method
 being called for resize, etc., and the graphics in effect at the time is set as
 the current graphics.   The Graphics can then be used by subsequent calls for
 drawing.  The base class paint() is not called from this method.
@@ -611,16 +587,14 @@ public void paint ( Graphics graphics )
 }
 
 /**
-Indicates the end of a page of output.  Used in PS and should be defined in
-derived classes.
+Indicates the end of a page of output.  Used in PS and should be defined in derived classes.
 */
 public void pageEnd ()
 {
 }
 
 /**
-End of a plot of output, used for PS.  This should be implemented 
-in derived classes.
+End of a plot of output, used for PS.  This should be implemented in derived classes.
 */
 public void plotEnd ( int flag )
 {
@@ -673,8 +647,7 @@ public void setLimits ( GRLimits limits )
 	_limits = new GRLimits ( limits );
 	if ( Message.isDebugOn ) {
 		String routine = "GRDevice.setLimits";
-		Message.printDebug ( 1, routine,
-		"Setting \"" + _name + "\" device limits to " + limits );
+		Message.printDebug ( 1, routine, "Setting \"" + _name + "\" device limits to " + limits );
 	}
 }
 
@@ -855,8 +828,7 @@ public void setPrinting ( boolean printing )
 /**
 Sets up a double buffer for the device, with a buffer size equal to the
 size with which the device was initialized.  This method calls 
-the other setupDoubleBuffer((int)_devx1, (int)_devy1, (int)_devx2, 
-(int)_devy2);).<p>
+the other setupDoubleBuffer((int)_devx1, (int)_devy1, (int)_devx2, (int)_devy2);).<p>
 This method sets up the buffer region using a BufferedImage that has been
 initialized to be of type TYPE_4BYTE_ABGR.  Any pixels that are not drawn in
 the buffer will not be drawn to the screen when the buffer is transferred to
@@ -868,8 +840,7 @@ public void setupDoubleBuffer() {
 
 /**
 Sets up a double buffer for the device, with a buffer size equal to the
-size with which the device was initialized.  This method calls 
-startDoubleBuffer().<p>
+size with which the device was initialized.  This method calls startDoubleBuffer().<p>
 This method sets up the buffer region using a BufferedImage that has been
 initialized to be of type TYPE_4BYTE_ABGR.  Any pixels that are not drawn in
 the buffer will not be drawn to the screen when the buffer is transferred to
@@ -907,8 +878,7 @@ public void showDoubleBuffer() {
 }
 
 /**
-Shows what has been drawn to the double buffer by drawing it to the provided
-Graphics object.
+Shows what has been drawn to the double buffer by drawing it to the provided Graphics object.
 @param g the Graphics objec to which to draw the double buffer.
 */
 public void showDoubleBuffer(Graphics g) {
@@ -918,8 +888,7 @@ public void showDoubleBuffer(Graphics g) {
 }
 
 /**
-Starts double buffering the drawing done with this device.  Note: This method is
-called by setupDoubleBuffer.
+Starts double buffering the drawing done with this device.  Note: This method is called by setupDoubleBuffer.
 */
 public void startDoubleBuffer() {
 	_graphics = (Graphics2D)_buffer.getGraphics();
@@ -940,7 +909,7 @@ Translates the image a specified number of X and Y values.  Calls _graphics.tran
 @param x the x value to translate (can be negative).
 @param y the y value to translate (can be negative).  Note that increasing Y
 values of translation will move the image Down, as this is a java call and Y
-gets larger tha farther down the screen it goes.
+gets larger the farther down the screen it goes.
 */
 public void translate(int x, int y) {
 	_graphics.translate(x, y);
