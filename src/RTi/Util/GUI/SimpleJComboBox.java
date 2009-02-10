@@ -108,8 +108,7 @@ public class SimpleJComboBox
 extends JComboBox {
 
 /**
-Refers to the very last position in the combo box, for use with 
-setSelectionFailureFallback.
+Refers to the very last position in the combo box, for use with setSelectionFailureFallback.
 */
 public int LAST = -999;
 
@@ -119,14 +118,12 @@ Whether the text field for this combo box is editable or not.
 private boolean __editable = false;
 
 /**
-The position at which fall back text (see setSelectionFailureFallback) will
-be inserted in the combo box.
+The position at which fall back text (see setSelectionFailureFallback) will be inserted in the combo box.
 */
 private int __fallbackPos = -1;
 
 /**
-The fallback text to be inserted in the combo box (see 
-setSelectionFailureFallback).
+The fallback text to be inserted in the combo box (see setSelectionFailureFallback).
 */
 private String __fallbackString = "";
 
@@ -159,12 +156,11 @@ public SimpleJComboBox(boolean editable) {
 }
 
 /**
-Constructor.  Also populates the SimpleJComboBox with the contents of the 
-Vector passed in.  The default width of the SimpleJComboBox will be the 
-width of the widest String in the Vector.
+Constructor.  Also populates the SimpleJComboBox with the contents of the list passed in.
+The default width of the SimpleJComboBox will be the width of the widest String in the list.
 <p><b>Note:</b> if using an editable combo box, the method 
 <tt>getSelected()</tt> should be used instead of <tt>getSelectedItem()</tt>.
-@param v a Vector of Strings to be placed in the SimpleJComboBox.
+@param v a list of Strings to be placed in the SimpleJComboBox.
 */
 public SimpleJComboBox(List v) {
 	super(new Vector(v));
@@ -172,12 +168,11 @@ public SimpleJComboBox(List v) {
 }
 
 /**
-Constructor.  Also populates the SimpleJComboBox with the contents of the
-Vector passed in.  The default width of the SimpleJComboBox will be the
-width of the widest String in the Vector.
+Constructor.  Also populates the SimpleJComboBox with the contents of the list passed in.
+The default width of the SimpleJComboBox will be the width of the widest String in the list.
 <p><b>Note:</b> if using an editable combo box, the method 
 <tt>getSelected()</tt> should be used instead of <tt>getSelectedItem()</tt>.
-@param v a Vector of Strings to be placed in the SimpleJComboBox.
+@param v a list of Strings to be placed in the SimpleJComboBox.
 @param editable if true, then the values in the combo box can be edited.
 */
 public SimpleJComboBox(List v, boolean editable) {
@@ -199,12 +194,11 @@ public SimpleJComboBox(int defaultSize, boolean editable) {
 }
 
 /**
-Constructor.  Populates the SimpleJComboBox with the contents of the 
-Vector of Strings passed in, sets the default field width, and whether 
-the combo box is editable.
+Constructor.  Populates the SimpleJComboBox with the contents of the list of Strings passed in,
+sets the default field width, and whether the combo box is editable.
 <p><b>Note:</b> if using an editable combo box, the method 
 <tt>getSelected()</tt> should be used instead of <tt>getSelectedItem()</tt>.
-@param v a Vector of Strings to be placed in the SimpleJComboBox.
+@param v a list of Strings to be placed in the SimpleJComboBox.
 @param defaultSize the default field width of the SimpleJComboBox.
 @param editable whether the SimpleJComboBox should be editable (true) or not.
 */
@@ -231,8 +225,7 @@ public void add(String s) {
 }
 
 /**
-Adds a string to a list of strings in a SimpleJComboBox and adds it in
-alphabetical order.
+Adds a string to a list of strings in a SimpleJComboBox and adds it in alphabetical order.
 @param s the string to add alphabetically to the combo box
 */
 public void addAlpha(String s) {
@@ -248,11 +241,9 @@ public void addAlpha(String s) {
 }
 
 /**
-Adds a string to a list of strings in a SimpleJComboBox and adds it in
-alphabetical order.
+Adds a string to a list of strings in a SimpleJComboBox and adds it in alphabetical order.
 @param s the string to add alphabetically to the combo box
-@param skip the number of initial rows to skip before doing the alphabetical
-comparison.
+@param skip the number of initial rows to skip before doing the alphabetical comparison.
 */
 public void addAlpha(String s, int skip) {
 	int size = getItemCount();
@@ -269,8 +260,7 @@ public void addAlpha(String s, int skip) {
 /**
 Adds a set of Listeners to the SimpleJComboBox.  The ActionListener is 
 used to tell when the SimpleJComboBox selection changes, and the KeyListener
-is placed on the SimpleJComboBox's text field to tell whenever a key is 
-pressed in the SimpleJComboBox.
+is placed on the SimpleJComboBox's text field to tell whenever a key is pressed in the SimpleJComboBox.
 @param a an ActionListener.
 @param k a KeyListner.
 */
@@ -319,8 +309,7 @@ public boolean contains(String s) {
 Returns the text currently displayed by the Simple JComboBox -- more
 specifically, the text that has been entered by the user into the editable
 text field of the combo box.
-@return a String containing the text of the text field of the 
-SimpleJComboBox.
+@return a String containing the text of the text field of the SimpleJComboBox.
 */
 public String getFieldText() {
 	return ((JTextComponent)getEditor().getEditorComponent()).getText();
@@ -329,8 +318,7 @@ public String getFieldText() {
 /** 
 Returns the String at the given index.  Mimics Choice's getItem(int) method.
 If any edits have been made to the combo box (for instance, if it is editable 
-and the user has entered a new value), those edits will not be represented in 
-this call.<p>
+and the user has entered a new value), those edits will not be represented in this call.<p>
 If the location is out of bounds, null is returned.
 @param location the index in the SimpleJComboBox of the item to return.
 @return the String at the given index.
@@ -343,11 +331,9 @@ public String getItem(int location) {
 Returns the list item at the specified index.  If index is out of range (less
 than zero or greater than or equal to size), it will return null.  If any
 edits have been made to the combo box (for instance, if it is editable and
-the user has entered a new value), those edits will not be represented in 
-this call.<p>
+the user has entered a new value), those edits will not be represented in this call.<p>
 If the location is out of bounds, null is returned.
-@param index an integer indicating hte list position, where the first item
-starts at zero.
+@param index an integer indicating the list position, where the first item starts at zero.
 @return the Object at that list position, or null if out of range.
 */
 public Object getItemAt(int index) {
@@ -374,8 +360,7 @@ public int getPosition(String s) {
 /**
 Returns the currently-selected SimpleJComboBox option's text.  
 See getFieldText() for information as to how these methods differ.
-@return a String containing the text of the currently-selected 
-SimpleJComboBox value.
+@return a String containing the text of the currently-selected SimpleJComboBox value.
 */
 public String getSelected() {
 	if (__editable) {
@@ -391,8 +376,7 @@ Returns the current selected item.<p>
 <B>Don't use.  Use getSelected() instead, or strange behavior may be 
 encountered with editable combo boxes.</b><p>
 If the combo box is editable, then this value may not have been added to the 
-combo box with <tt>addItem</tt>, <tt>insertItemAt</tt>, or the data 
-constructors.
+combo box with <tt>addItem</tt>, <tt>insertItemAt</tt>, or the data constructors.
 @return the current selected Object.
 */
 public Object getSelectedItem() {
@@ -406,14 +390,6 @@ Returns the value stored at the specified position.
 */
 public String getStringAt(int i) {
 	return (String)(super.getItemAt(i));
-}
-
-/**
-Do not use.
-@deprecated do not use.  Use getSelected() instead.
-*/
-public String getText() {
-	return (String)getSelected();
 }
 
 /**
@@ -446,8 +422,7 @@ Initializes the SimpleJComboBox with a defaultSize and editable value.  If
 defaultSize is set to -1, the defaultSize will be calculated from the width
 of the widest String in the SimpleJComboBox.
 @param defaultSize the width to make the SimpleJComboBox.  If defaultSize 
-is set to -1, the width will be calculated from the width of the widest 
-String in the SimpleJComboBox.
+is set to -1, the width will be calculated from the width of the widest String in the SimpleJComboBox.
 @param editable whether the SimpleJComboBox should be editable (true) or not.
 */
 private void initialize(int defaultSize, boolean editable) {
@@ -464,8 +439,7 @@ private void initialize(int defaultSize, boolean editable) {
 }
 
 /** 
-Inserts a String at the given position into the SimpleJComboBox.  Mimics
-Choice's insert(String, int) method.
+Inserts a String at the given position into the SimpleJComboBox.  Mimics Choice's insert(String, int) method.
 @param str the String to be inserted.
 @param location the index at which to insert the String.
 */
@@ -495,8 +469,7 @@ public boolean isEditable() {
 }
 
 /**
-Removes the String at the given Index from the SimpleJComboBox.  Mimics
-Choice's remove(int) method.
+Removes the String at the given Index from the SimpleJComboBox.  Mimics Choice's remove(int) method.
 @param location the index in the SimpleJComboBox of the String to be removed.
 If location is greater than the number of elements in the combo box, or less
 than 0, nothing will be done.
@@ -508,14 +481,6 @@ public void removeAt(int location) {
 	else {
 		removeItemAt(location);
 	}
-}
-
-/**
-Do not call.
-@deprecated use removeAt instead.
-*/
-public void remove(int location) {
-	super.remove(location);
 }
 
 /**
@@ -534,8 +499,7 @@ public boolean remove(String s) {
 }
 
 /**
-Removes all items from the SimpleJComboBox.  Mimics Choice's removeAll() 
-method.
+Removes all items from the SimpleJComboBox.  Mimics Choice's removeAll() method.
 */
 public void removeAll() {
 	removeAllItems();
@@ -550,8 +514,7 @@ public void removeTextFieldKeyListener(KeyListener k) {
 }
 
 /**
-Sets the String at the given index as the currently-selected String.  Mimics
-Choice's select(int) method.
+Sets the String at the given index as the currently-selected String.  Mimics Choice's select(int) method.
 @param location the index in the SimpleJComboBox of the String to be the
 currently-selected String.
 */
@@ -560,8 +523,7 @@ public void select(int location) {
 }
 
 /**
-Sets the given String as the currently-selected String.  Mimics
-Choice's select(String) method.
+Sets the given String as the currently-selected String.  Mimics Choice's select(String) method.
 @param str the String to set as the currently-selected String.
 */
 public void select(String str) {
@@ -570,8 +532,7 @@ public void select(String str) {
 
 /**
 Selects the given String (if it exists in the combo box), ignoring case.
-If the string does not exist in the combo box, no change will be made to the
-current selection.
+If the string does not exist in the combo box, no change will be made to the current selection.
 @param str the String to select.
 */
 public void selectIgnoreCase(String str) {
@@ -588,7 +549,7 @@ public void selectIgnoreCase(String str) {
 
 /**
 Sets the data stored in the combo box all at once.
-@param v a Vector of Strings, each of which will be an item in the combo box.
+@param v a list of Strings, each of which will be an item in the combo box.
 */
 public void setData(List v)
 {
@@ -612,16 +573,13 @@ Sets the selected item in the combo box display area to the object in the
 argument.  If anObject is in the list, the display area shows anObject
 selected.  <b>anObject must be a String or nothing will happen</b>.<p>
 If anObject is <i>not</i> in the list and the combo box is uneditable, it
-will not change the current selection.  For editable combo boxes, the selection
-will change to anObject.<p>
+will not change the current selection.  For editable combo boxes, the selection will change to anObject.<p>
 If this constitutes a change in the selected item, ItemListeners added to the 
 combo box will be notified with one or two ItemEvents.  If there is a current
 selected item, an ItemEvent will be fired and the state change will be 
 ItemEvent.DESELECTED.  If anObject is in the list and is not currently 
-selected then an ItemEvent will be fired and the StateChange will be 
-ItemEvent.SELECTED.<p>
-ActionListeners added to the combo box will be notified with an ActionEvent 
-when this method is called.
+selected then an ItemEvent will be fired and the StateChange will be ItemEvent.SELECTED.<p>
+ActionListeners added to the combo box will be notified with an ActionEvent when this method is called.
 @param anObject the list object to select; use null to clear the selection.
 */
 public void setSelectedItem(Object anObject) {
@@ -655,11 +613,9 @@ public boolean setSelectedPrefixItem(String prefix) {
 				int index = __fallbackString.indexOf("~");
 				String value = null;
 				if (index > -1) {
-					value = __fallbackString.substring(
-						0, index);
+					value = __fallbackString.substring(0, index);
 					value += prefix;
-					value += __fallbackString.substring(
-						index + 1);
+					value += __fallbackString.substring(index + 1);
 				}
 				else {
 					value = new String(__fallbackString);
@@ -676,11 +632,9 @@ public boolean setSelectedPrefixItem(String prefix) {
 				int index = __fallbackString.indexOf("~");
 				String value = null;
 				if (index > -1) {
-					value = __fallbackString.substring(
-						0, index);
+					value = __fallbackString.substring(0, index);
 					value += prefix;
-					value += __fallbackString.substring(
-						index + 1);
+					value += __fallbackString.substring(index + 1);
 				}
 				else {
 					value = new String(__fallbackString);
@@ -710,8 +664,7 @@ If no Strings were found that match the prefix "Station 1", the following
 String would be inserted at the very beginning of the Combo Box:<p>
 <pre>	"Value (Station 1) not found"</pre>
 @param text the fallback String to insert in the combo box if the selected
-prefix item could not be found.  If null, the fallback String process will be
-disabled.
+prefix item could not be found.  If null, the fallback String process will be disabled.
 @param i the position in the combo box at which to insert the fallback item.
 If -1, the fallback String process will be disabled.
 */
@@ -730,8 +683,7 @@ public void setSelectionFailureFallback(String text, int i) {
 Sets the current text of the SimpleJComboBox to the given String.  
 If the String is already in the SimpleJComboBox, then that element of the 
 SimpleJComboBox is made the currently-selected element.  If the String is 
-not found, the String will be added and then made the currently-selected 
-element.
+not found, the String will be added and then made the currently-selected element.
 @param s the String to set the currently-selected element to.
 */
 public void setText(String s) {
