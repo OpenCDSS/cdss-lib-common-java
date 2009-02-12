@@ -512,10 +512,11 @@ public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ = 25;
 The following formats a date as follows:  "YYYY-MM-DD HH:mm:SS ZZZ".
 */
 public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ = 26;
+/**
+The following formats a date as follows:  "MM/DD/YYYY HH:mm:SS".
+*/
+public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS = 28;
 
-// !!!!!
-// Current maximum value for FORMAT* is 26.
-// !!!!!
 
 /**
 Hundredths of a second (0-99).
@@ -2635,9 +2636,14 @@ throws Exception
 	}
 	else if( length == 19 ){
 		//
-		// the date is YYYY-MM-DD HH:mm:SS
+		// the date is YYYY-MM-DD HH:mm:SS or MM/DD/YYYY HH:mm:SS
 		//
-		return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS, 0 ) );
+        if( date_string.charAt(2) == '/' ) {
+			return( parse( date_string, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS, 0 ) );
+		}
+		else {
+            return( parse( date_string, FORMAT_YYYY_MM_DD_HH_mm_SS, 0 ) );
+        }
 	}
 	else if( length == 22 ){
 		//
@@ -2835,6 +2841,17 @@ throws Exception
 		date.__year = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
 		date.__minute = ((Integer)v.get(4)).intValue();
+	}
+    else if (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS) {
+		date = new DateTime (PRECISION_SECOND );
+		is_minute = true;
+		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2x1i2" );
+		date.__month = ((Integer)v.get(0)).intValue();
+		date.__day = ((Integer)v.get(1)).intValue();
+		date.__year = ((Integer)v.get(2)).intValue();
+		date.__hour = ((Integer)v.get(3)).intValue();
+		date.__minute = ((Integer)v.get(4)).intValue();
+		date.__second = ((Integer)v.get(5)).intValue();
 	}
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_MONTH );
@@ -3961,6 +3978,15 @@ public String toString ( int format )
 		StringUtil.formatString(__year,"%04d") + " " +
 		StringUtil.formatString(__hour,"%02d") + ":" +
 		StringUtil.formatString(__minute,"%02d");
+	}
+	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS ) {
+		return
+		StringUtil.formatString(__month,"%02d") + "/" +
+		StringUtil.formatString(__day,"%02d") + "/" +
+		StringUtil.formatString(__year,"%04d") + " " +
+		StringUtil.formatString(__hour,"%02d") + ":" +
+		StringUtil.formatString(__minute,"%02d") + ":" +
+		StringUtil.formatString(__second,"%02d");
 	}
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		return
