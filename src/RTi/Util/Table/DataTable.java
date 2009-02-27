@@ -1189,7 +1189,7 @@ throws Exception
             }
             // FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings.  For now only handle first
             if ( vsize > 1 ) {
-                Message.printWarning ( 2, routine,
+                Message.printWarning ( 3, routine,
                    "Only know how to handle single-row headings.  Ignoring other heading rows." );
                 vsize = 1;
             }
@@ -1325,15 +1325,16 @@ throws Exception
 		++linecount;
 		linecount0 = linecount - 1;
 		
-		Message.printStatus ( 2, routine, "Line [" + linecount0 + "]: " + line );
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 10, routine, "Line [" + linecount0 + "]: " + line );
+		}
 		
 		// Skip any comments at the top of the file (most likely place for them to appear.
 		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 		    continue;
 		}
 		
-		// Also skip the requested lines to skip
-		// linecount is 1+ while rows to skip are 0+
+		// Also skip the requested lines to skip linecount is 1+ while rows to skip are 0+
 		
 		if ( linecount0 <= SkipRows_Vector_maxval ) {
 		    // Need to check it...
@@ -1404,8 +1405,7 @@ throws Exception
 	// Close the file...
 	in.close();
 	
-	// Make sure that the table fields are in place for the maximum number of
-	// columns.
+	// Make sure that the table fields are in place for the maximum number of columns.
 
 	if (tableFields == null) {
 		tableFields = new Vector();
@@ -1447,7 +1447,7 @@ throws Exception
     // Loop through all rows of data that were read
     int vsize;
     String cell;
-    String cell_trimmed;    // Must have when checking for types.
+    String cell_trimmed; // Must have when checking for types.
 	for ( int irow = 0; irow < size; irow++ ) {
 	    v = (List)data_record_tokens.get(irow);
 	    vsize = v.size();
@@ -1585,7 +1585,7 @@ throws Exception
 /**
 Determine whether a line from the file matches the list of rows that are of interest.
 @param linecount0
-@param rows_List list of Integet objects that are row numbers (0+) of interest.
+@param rows_List list of Integer objects that are row numbers (0+) of interest.
 @param rows_List_size Size of rows_List - used to speed up performance.
 @return true if the line matches an item in the list.
 */
