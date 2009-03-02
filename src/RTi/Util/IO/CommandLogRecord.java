@@ -12,6 +12,12 @@ public class CommandLogRecord implements Cloneable
 {
 	
 /**
+CommandStatusProvider that generates this log (currently null unless extracted by other code from
+the log list.
+*/
+private CommandStatusProvider __commandStatusProvider = null;
+	
+/**
  * Log type/severity level.
  */
 private CommandStatusType __severity = null;
@@ -35,11 +41,11 @@ private String __recommendation = null;
  * @param recommendation A String recommending a solution.
  */
 public CommandLogRecord(CommandStatusType severity, String problem, String recommendation)
-  {
+{
 	__severity = severity;
     __problem = problem;
     __recommendation = recommendation;
-  }
+}
 
 /**
  * Details that can be used to troubleshoot and link to other information.
@@ -77,6 +83,15 @@ public Object clone ()
 }
 
 /**
+Get the log record command status provider.
+@return the log record command status provider.
+*/
+public CommandStatusProvider getCommandStatusProvider()
+{
+  return __commandStatusProvider;
+}
+
+/**
  * Get the log record problem.
  * 
  * @return the problem string
@@ -105,6 +120,16 @@ public CommandStatusType getSeverity()
 }
 
 /**
+Set the command status provider for this record (e.g., the Command that generated the record).
+Currently this is not in the constructor and is typically set with CommandStatusUtil.getLogRecordList().
+Make it protected to handle internally in this package for now.
+*/
+protected void setCommandStatusProvider ( CommandStatusProvider csp )
+{
+	__commandStatusProvider = csp;
+}
+
+/**
  * Set the details describing the problem.
  
 public void setDetails ( PropList details )
@@ -127,9 +152,8 @@ public void setRecommendation ( String recommendation )
 }
 
 /**
- * Return a string representation of the problem, suitable for display in
- * a popup, etc.
- */
+Return a string representation of the problem, suitable for display in a popup, etc.
+*/
 public String toString ()
 {	return
 	"Severity:  " + __severity + "\n" +

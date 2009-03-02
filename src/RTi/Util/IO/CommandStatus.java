@@ -158,7 +158,7 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
 /**
  * Returns the command log for the specified phase
  * @param phase - see CommandPhaseType.
- * @return command log as a Vector of CommandLogRecord
+ * @return command log as a list of CommandLogRecord
  */
 public List getCommandLog(CommandPhaseType phase)
   {

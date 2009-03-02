@@ -1,6 +1,7 @@
 package RTi.Util.IO;
 
 import java.util.List;
+import java.util.Vector;
 
 import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandStatus;
@@ -381,6 +382,43 @@ public static String getHTMLCommandStatus(CommandStatus css)
   addCommandDetailTable(assembler, css);
   return assembler.getHTML();
 }
+
+/**
+Given a list of CommandStatusProvider, return a list of all the log records.  This is useful for
+providing the full list for reporting.
+@param commandStatusProviderList List of CommandStatusProvider (e.g., list of commands from a command
+processor).
+@param commandPhase command phase to return or null to return all.
+*/
+public static List getLogRecordList ( List commandStatusProviderList, CommandPhaseType commandPhase )
+{	String routine = "CommandStatusUtil.getLogRecordList";
+	List logRecordList = new Vector();
+	int size = 0;
+	if ( commandStatusProviderList != null ) {
+		size = commandStatusProviderList.size();
+	}
+	CommandStatusProvider csp = null;
+	CommandStatus status = null;
+	List statusLogRecordList = null;
+	CommandLogRecord logRecord = null;
+	for ( int iCommandStatusProvider = 0; iCommandStatusProvider < size; iCommandStatusProvider++ ) {
+		// Get the information from a single command status provider
+		csp = (CommandStatusProvider)commandStatusProviderList.get(iCommandStatusProvider);
+		status = csp.getCommandStatus();
+		statusLogRecordList = status.getCommandLog(commandPhase);
+		int statusLogRecordListSize = statusLogRecordList.size();
+		for ( int iLogRecord = 0; iLogRecord < statusLogRecordListSize; iLogRecord++ ) {
+			// Append to full list of log records
+			// Also set the command instance in the log record here since it was not
+			// included in the original design
+			logRecord = (CommandLogRecord)statusLogRecordList.get(iLogRecord);
+			logRecord.setCommandStatusProvider(csp);
+			logRecordList.add(logRecord);
+		}
+	}
+	return logRecordList;
+}
+
   /**
    * Returns a color associated with specified status type.
    * 
