@@ -45,8 +45,7 @@ this class, the developer has to pay careful attention to the order in which
 certain methods are called, and so it's safer to simply use this class.<p>
 
 <b>CREATING A WORKSHEET</b><p>
-To add a scrollable worksheet to a GUI using this class will require code
-similar to the following:<p>
+To add a scrollable worksheet to a GUI using this class will require code similar to the following:<p>
 <tt><blockquote>
 	PropList props = new PropList("Worksheet Properties");
 	// populate the properties
@@ -59,13 +58,11 @@ similar to the following:<p>
 	JWorksheet worksheet = jsw.getJWorksheet();
 	
 	// add the scrolled worksheet object (which functions
-	// as a JScrollPane around the returned worksheet)
-	// to the GUI
+	// as a JScrollPane around the returned worksheet) to the GUI
 	JGUIUtil.addComponent(mainPanel, jsw, ....);
 </tt></blockquote>
 */
-public class JScrollWorksheet 
-extends JScrollPane {
+public class JScrollWorksheet extends JScrollPane {
 
 /**
 Whether this class is holding a drag and drop JWorksheet.
@@ -73,14 +70,12 @@ Whether this class is holding a drag and drop JWorksheet.
 private boolean __dnd = false;
 
 /**
-The worksheet created by this class, and around which this class will act as
-a JScrollPane.
+The worksheet created by this class, and around which this class will act as a JScrollPane.
 */
 private JWorksheet __worksheet;
 
 /**
-The drag and drop worksheet created by this class, and around which this class
-will act as a JScrollPane.
+The drag and drop worksheet created by this class, and around which this class will act as a JScrollPane.
 */
 private DragAndDropJWorksheet __dndWorksheet;
 
@@ -148,8 +143,7 @@ public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props, boolean dnd) {
 	__dnd = dnd;
 	if (dnd) {
-		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, 
-			tableModel, props);
+		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, tableModel, props);
 	}
 	else {
 		__worksheet = new JWorksheet(cellRenderer, tableModel, props);
@@ -167,12 +161,11 @@ Constructor.
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
 public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
-JWorksheet_AbstractTableModel tableModel, PropList props, int[] cols, 
-boolean dnd) {
+JWorksheet_AbstractTableModel tableModel, PropList props, int[] cols, boolean dnd)
+{
 	__dnd = dnd;
 	if (dnd) {
-		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, 
-			tableModel, props);
+		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, tableModel, props);
 	}
 	else {
 		__worksheet = new JWorksheet(cellRenderer, tableModel, props);
@@ -190,12 +183,11 @@ Constructor.
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
 public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
-JWorksheet_AbstractTableModel tableModel, PropList props, JWorksheet worksheet, 
-boolean dnd) {
+JWorksheet_AbstractTableModel tableModel, PropList props, JWorksheet worksheet, boolean dnd)
+{
 	__dnd = dnd;
 	if (dnd) {
-		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, 
-			tableModel, props);
+		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, tableModel, props);
 	}
 	else {
 		__worksheet = new JWorksheet(cellRenderer, tableModel, props);
@@ -211,8 +203,8 @@ Constructor.
 @param props the properties for the worksheet
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
-public JScrollWorksheet(int rows, int cols, PropList props, 
-boolean dnd) {
+public JScrollWorksheet(int rows, int cols, PropList props, boolean dnd)
+{
 	__dnd = dnd;
 	if (dnd) {
 		__dndWorksheet = new DragAndDropJWorksheet(rows, cols, props);
@@ -256,22 +248,19 @@ public JWorksheet getJWorksheet() {
 }
 
 /**
-Initializes the scrolling interface for the worksheet and if necessary, sets up
-the row headers.
+Initializes the scrolling interface for the worksheet and if necessary, sets up the row headers.
 */
 private void initialize() {
 	// lifted from JScrollPane constructor.
 	setLayout(new ScrollPaneLayout.UIResource());
 	setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-	setHorizontalScrollBarPolicy(
-		JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 	setViewport(createViewport());
 	setVerticalScrollBar(createVerticalScrollBar());
 	setHorizontalScrollBar(createHorizontalScrollBar());
 
 	if (IOUtil.isUNIXMachine()) {
-		// See JWorksheet.adjustmentValueChanged() for an explanation
-		// of why the following is done.
+		// See JWorksheet.adjustmentValueChanged() for an explanation of why the following is done.
 		getVerticalScrollBar().addAdjustmentListener(__worksheet);
 		getHorizontalScrollBar().addAdjustmentListener(__worksheet);
 	}
@@ -307,22 +296,19 @@ private void initialize() {
 }
 
 /**
-Initializes the scrolling interface for the worksheet and if necessary, sets up
-the row headers.
+Initializes the scrolling interface for the worksheet and if necessary, sets up the row headers.
 */
 private void initialize(JWorksheet worksheet, int[] cols) {
 	// lifted from JScrollPane constructor.
 	setLayout(new ScrollPaneLayout.UIResource());
 	setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-	setHorizontalScrollBarPolicy(
-		JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 	setViewport(createViewport());
 	setVerticalScrollBar(createVerticalScrollBar());
 	setHorizontalScrollBar(createHorizontalScrollBar());
 
 	if (IOUtil.isUNIXMachine()) {
-		// See JWorksheet.adjustmentValueChanged() for an explanation
-		// of why the following is done.	
+		// See JWorksheet.adjustmentValueChanged() for an explanation of why the following is done.	
 		getVerticalScrollBar().addAdjustmentListener(__worksheet);
 		getHorizontalScrollBar().addAdjustmentListener(__worksheet);
 	}
