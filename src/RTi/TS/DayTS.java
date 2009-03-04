@@ -128,30 +128,23 @@ The DayTS class is the base class for daily time series.  The class can be
 extended for variations on daily data.  Override the allocateDataSpace() and
 set/get methods to do so.
 */
-public class DayTS 
-extends TS
-implements Cloneable, Serializable, Transferable {
+public class DayTS extends TS implements Cloneable, Serializable, Transferable {
 
 // Data members...
 
 /**
 The DataFlavor for transferring this specific class.
 */
-public static DataFlavor dayTSFlavor = new DataFlavor(RTi.TS.DayTS.class, 
-	"RTi.TS.DayTS");
+public static DataFlavor dayTSFlavor = new DataFlavor(RTi.TS.DayTS.class, "RTi.TS.DayTS");
 
-protected double[][]	_data;		// This is the data space for daily
-					// time series.
-protected char [][][]	_data_flags;	// Data flags for each daily value.  The
-					// dimensions are [month][day_in_month]
-					// [_data_flag_length]
-private int [] _pos = null;		// Used to optimize performance when
-					// getting data.
-protected int		_row,		// Row position in data.
-			_column;	// Column position in data.
+protected double[][] _data; // This is the data space for daily time series.
+protected char [][][] _data_flags; // Data flags for each daily value.  The
+					// dimensions are [month][day_in_month][_data_flag_length]
+private int [] _pos = null; // Used to optimize performance when getting data.
+protected int _row, // Row position in data.
+			_column; // Column position in data.
 
-protected TSData	_tsdata;	// TSData object that is reused when
-					// getDataPoint() is called.
+protected TSData _tsdata; // TSData object that is reused when getDataPoint() is called.
 
 /**
 Constructor.
@@ -162,8 +155,7 @@ public DayTS ()
 }
 
 /**
-Copy constructor.  Everything is copied by calling copyHeader() and then
-copying the data values.
+Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 */
 public DayTS ( DayTS ts )
 {	if ( ts == null ) {
@@ -217,8 +209,7 @@ public DayTS ( HourTS ts )
 	}
 	catch (Exception e) {
 		// this ought never to happen
-		Message.printWarning(2, "DayTS.constructor",
-			"Error setting Time Series Idnetifier: " + tsid);
+		Message.printWarning(2, "DayTS.constructor", "Error setting Time Series Idnetifier: " + tsid);
 		Message.printWarning(3, "DayTS.constructor", e);
 	}
 
@@ -675,7 +666,7 @@ daily time series are always output in a matrix summary format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalanderYear (but may be made sensitive to the data type or units in the
@@ -824,13 +815,11 @@ information.  This can be used when the entire header is formatted elsewhere.
 */
 public List formatOutput( PropList proplist )
 throws TSException
-{	String 		message = "",
-			routine = "DayTS.formatOutput()";	
-	int		column, dl = 20, row;
-	List		strings = new Vector (20,10);
-	PropList	props = null;
-	String		calendar = "WaterYear", data_format = "%9.1f",
-						format = "", prop_value = null;
+{	String message = "", routine = "DayTS.formatOutput()";	
+	int column, dl = 20, row;
+	List strings = new Vector (20,10);
+	PropList props = null;
+	String calendar = "WaterYear", data_format = "%9.1f", format = "", prop_value = null;
 
 	// Only know how to do this for 1-day time series (in the future may
 	// automatically convert to correct interval)...
@@ -845,11 +834,11 @@ throws TSException
 	// constantly check for null...
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the
-		// time.
+		// Create a PropList so we don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+		props = proplist;
 	}
 
 	// Get the important formatting information from the property list...
@@ -901,7 +890,8 @@ throws TSException
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
-	else {	// Set to requested format...
+	else {
+		// Set to requested format...
 		calendar = prop_value;
 	}
 
@@ -1078,7 +1068,7 @@ throws TSException
 			month_to_start = 1;
 			month_to_end = 12;
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+		else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
 			// Need to adjust for the irrigation year to make sure
 			// that the first month is Nov and the last is Oct...
 			if ( start_date.getMonth() < 11 ) {
@@ -1196,8 +1186,7 @@ throws TSException
 				// Print the header for the year...
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"Printing output for summary year " +
-					(date.getYear() + year_offset) );
+					"Printing output for summary year " + (date.getYear() + year_offset) );
 				}
 				strings.add ( "" );
 				// "date" will be at the end of the year...
@@ -1205,16 +1194,14 @@ throws TSException
 					strings.add (
 "                                                 Water Year " +
 					date.getYear() +
-					" (Oct " + (date.getYear() - 1) +
-					" to Sep " + date.getYear() + ")" );
+					" (Oct " + (date.getYear() - 1) + " to Sep " + date.getYear() + ")" );
 				}
-				else if (	calendar.equalsIgnoreCase(
-						"IrrigationYear") ) {
+				else if ( calendar.equalsIgnoreCase("IrrigationYear") ||
+					calendar.equalsIgnoreCase("NovToOct")) {
 					strings.add (
 "                                                 Irrigation Year " +
 					date.getYear() +
-					" (Nov " + (date.getYear() - 1) +
-					" to Oct " + date.getYear() + ")" );
+					" (Nov " + (date.getYear() - 1) + " to Oct " + date.getYear() + ")" );
 				}
 				else {	strings.add (
 "                                                 Calendar Year " +
@@ -1270,48 +1257,33 @@ throws TSException
 						// year (last month) from the
 						// loop.
 						year = date.getYear();
-						if ( calendar.equalsIgnoreCase(
-							"WaterYear") &&
-							(column_month > 9) ) {
+						if ( calendar.equalsIgnoreCase("WaterYear") && (column_month > 9) ) {
 							--year;
 						}
-						else if (
-							calendar.equalsIgnoreCase(
-							"IrrigationYear") &&
+						else if ( (calendar.equalsIgnoreCase("IrrigationYear") ||
+							calendar.equalsIgnoreCase("NovToOct")) &&
 							(column_month > 10) ) {
 							--year;
 						}
-						nvalid_days_in_month =
-						TimeUtil.numDaysInMonth (
-						column_month, year );
-						if (	row_day >
-							nvalid_days_in_month ) {
-							buffer.append (
-							"    ---   " );
+						nvalid_days_in_month = TimeUtil.numDaysInMonth (column_month, year );
+						if ( row_day > nvalid_days_in_month ) {
+							buffer.append ( "    ---   " );
 						}
-						else if ( isDataMissing(
-							data[irow][icolumn])){
-							buffer.append (
-							"    NC    " );
+						else if ( isDataMissing( data[irow][icolumn])) {
+							buffer.append ( "    NC    " );
 						}
-						else {	buffer.append (
-							StringUtil.formatString(
-							data[irow][icolumn],
-							" " + data_format) );
+						else {
+							buffer.append (StringUtil.formatString(data[irow][icolumn], " " + data_format) );
 						}
 						if ( icolumn == 11 ) {
-							// Have processed the
-							// last month in the
-							// year print the row...
-							strings.add(
-							buffer.toString() );
+							// Have processed the last month in the year print the row...
+							strings.add(buffer.toString() );
 						}
 					}
 				}
 				strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
-				// Now do the statistics.  Loop through each
-				// column...
+				// Now do the statistics.  Loop through each column...
 				// First check to see if all stats should be
 				// printed (can be dangerous if we add new
 				// statistics)..
@@ -1321,7 +1293,8 @@ throws TSException
 					// Default is false...
 					print_all_stats = "false";
 				}
-				else {	print_all_stats = prop_value;
+				else {
+					print_all_stats = prop_value;
 				}
 				// Now start on the minimum...
 				prop_value = props.getValue ( "PrintMinStats" );
@@ -1330,11 +1303,10 @@ throws TSException
 					// Default is true...
 					print_min = "true";
 				}
-				else {	print_min = prop_value;
+				else {
+					print_min = prop_value;
 				}
-				if (	print_min.equalsIgnoreCase("true") ||
-					print_all_stats.equalsIgnoreCase(
-					"true") ) {
+				if ( print_min.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
 					strings =
 					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Min ", data_format ) );
 				}
@@ -1344,11 +1316,10 @@ throws TSException
 					// Default is true...
 					print_max = "true";
 				}
-				else {	print_max = prop_value;
+				else {
+					print_max = prop_value;
 				}
-				if (	print_max.equalsIgnoreCase("true") ||
-					print_all_stats.equalsIgnoreCase(
-					"true") ) {
+				if ( print_max.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
 					strings =
 					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Max ", data_format ) );
 				}
@@ -1358,16 +1329,14 @@ throws TSException
 					// Default is true...
 					print_mean = "true";
 				}
-				else {	print_mean = prop_value;
+				else {
+					print_mean = prop_value;
 				}
-				if (	print_mean.equalsIgnoreCase("true") ||
-					print_all_stats.equalsIgnoreCase(
-					"true") ) {
+				if ( print_mean.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
 					strings =
 					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Mean", data_format ) );
 				}
-				column = -1;	// Will be incremented in next
-						// step.
+				column = -1; // Will be incremented in next step.
 				print_all_stats = null;
 				print_mean = null;
 				print_min = null;
@@ -1378,7 +1347,8 @@ throws TSException
 				++column;
 				row = 0;
 			}
-			else {	++row;
+			else {
+				++row;
 			}
 		}
 
@@ -1401,14 +1371,12 @@ throws TSException
 				strings.add (
 				"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 			}
-			else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
+			else if ( calendar.equalsIgnoreCase("IrrigationYear" ) || calendar.equalsIgnoreCase("NovToOct" )){
 				strings.add (
-				"  Years shown are irrigation years." );
-				strings.add (
-				"  An irrigation year spans Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
+				"  Years shown span Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
 			}
-			else {	strings.add (
-				"  Years shown are calendar years." );
+			else {
+				strings.add ( "  Years shown are calendar years." );
 			}
 			strings.add (
 			"  Annual values and statistics are computed only on non-missing data." );

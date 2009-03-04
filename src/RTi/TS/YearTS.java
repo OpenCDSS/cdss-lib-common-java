@@ -528,7 +528,7 @@ year time series are always output in a column format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear" or "NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalanderYear (but may be made sensitive to the data type or units in the
@@ -657,35 +657,32 @@ information.  This can be used when the entire header is formatted elsewhere.
 */
 public List formatOutput( PropList proplist )
 throws TSException
-{	String 		message = "", routine = "YearTS.formatOutput",
-			year_column = "";
-	List		strings = new Vector (20,10);
-	PropList	props = null;
-	String		calendar = "WaterYear", data_format = "%13.1f",
-			prop_value = null;
+{	String message = "", routine = "YearTS.formatOutput", year_column = "";
+	List strings = new Vector (20,10);
+	PropList props = null;
+	String calendar = "WaterYear", data_format = "%13.1f", prop_value = null;
 
 	// If the property list is null, allocate one here so we don't have to
 	// constantly check for null...
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the
-		// time.
+		// Create a PropList so we don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+		props = proplist;
 	}
 
 	// Get the important formatting information from the property list...
 
-	// Determine the units to output.  For now use what is in the time
-	// series...
+	// Determine the units to output.  For now use what is in the time series...
 
 	String req_units = _data_units;
 
 	// Need to check the data type to determine if it is an average
 	// or a total.  For now, make some guesses based on the units...
 
-	if (	req_units.equalsIgnoreCase("AF") ||
+	if ( req_units.equalsIgnoreCase("AF") ||
 		req_units.equalsIgnoreCase("ACFT") ||
 		req_units.equalsIgnoreCase("FT") ||
 		req_units.equalsIgnoreCase("FEET") ||
@@ -695,7 +692,8 @@ throws TSException
 		// Assume totals...
 		year_column = "Total";
 	}
-	else {	// Assume averages...
+	else {
+		// Assume averages...
 		year_column = "Average";
 	}
 
@@ -704,13 +702,13 @@ throws TSException
 	prop_value = props.getValue ( "OutputPrecision" );
 	if ( prop_value == null ) {
 		// Older, being phased out...
-		Message.printWarning ( 2, routine,
-		"Need to switch Precision property to OutputPrecision" );
+		Message.printWarning ( 2, routine, "Need to switch Precision property to OutputPrecision" );
 		prop_value = props.getValue ( "Precision" );
 	}
 	if ( prop_value == null ) {
 		// Try to get units information for default...
-		try {	DataUnits u = DataUnits.lookupUnits ( req_units );
+		try {
+			DataUnits u = DataUnits.lookupUnits ( req_units );
 			data_format = "%13." + u.getOutputPrecision() + "f";
 			u = null;
 		}
@@ -719,7 +717,8 @@ throws TSException
 			data_format = "%13.1f";
 		}
 	}
-	else {	// Set to requested precision...
+	else {
+		// Set to requested precision...
 		data_format = "%13." + prop_value + "f";
 	}
 
@@ -730,7 +729,8 @@ throws TSException
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
-	else {	// Set to requested format...
+	else {
+		// Set to requested format...
 		calendar = prop_value;
 	}
 
@@ -744,7 +744,8 @@ throws TSException
 	DateTime start_date = new DateTime (_date1);
 	prop_value = props.getValue ( "OutputStart" );
 	if ( prop_value != null ) {
-		try {	start_date = DateTime.parse ( prop_value );
+		try {
+			start_date = DateTime.parse ( prop_value );
 			start_date.setPrecision ( DateTime.PRECISION_YEAR );
 		}
 		catch ( Exception e ) {
@@ -755,7 +756,8 @@ throws TSException
 	DateTime end_date = new DateTime (_date2);
 	prop_value = props.getValue ( "OutputEnd" );
 	if ( prop_value != null ) {
-		try {	end_date = DateTime.parse ( prop_value );
+		try {
+			end_date = DateTime.parse ( prop_value );
 			end_date.setPrecision ( DateTime.PRECISION_YEAR );
 		}
 		catch ( Exception e ) {
@@ -772,7 +774,8 @@ throws TSException
 		// Default is true...
 		print_header = "true";
 	}
-	else {	print_header = prop_value;
+	else {
+		print_header = prop_value;
 	}
 	prop_value = props.getValue ( "UseCommentsForHeader" );
 	String use_comments_for_header = null;
@@ -780,7 +783,8 @@ throws TSException
 		// Default is false...
 		use_comments_for_header = "false";
 	}
-	else {	use_comments_for_header = prop_value;
+	else {
+		use_comments_for_header = prop_value;
 	}
 	if ( print_header.equalsIgnoreCase("true") ) {
 		if ( !use_comments_for_header.equalsIgnoreCase("true") ||
@@ -800,7 +804,8 @@ throws TSException
 		// Default is true...
 		print_comments = "true";
 	}
-	else {	print_comments = prop_value;
+	else {
+		print_comments = prop_value;
 	}
 	if ( print_comments.equalsIgnoreCase("true") ||
 		use_comments_for_header.equalsIgnoreCase("true")){
@@ -812,14 +817,15 @@ throws TSException
 			}
 			if ( ncomments > 0 ) {
 				for ( int i = 0; i < ncomments; i++ ) {
-					strings.add(
-					(String)_comments.get(i));
+					strings.add((String)_comments.get(i));
 				}
 			}
-			else {	strings.add( "No comments available.");
+			else {
+				strings.add( "No comments available.");
 			}
 		}
-		else {	strings.add( "No comments available.");
+		else {
+			strings.add( "No comments available.");
 		}
 	}
 	
@@ -831,10 +837,10 @@ throws TSException
 		// Default is true...
 		print_genesis = "true";
 	}
-	else {	print_genesis = prop_value;
+	else {
+		print_genesis = prop_value;
 	}
-	if (	(_genesis != null) &&
-		print_genesis.equalsIgnoreCase("true") ) {
+	if ( (_genesis != null) && print_genesis.equalsIgnoreCase("true") ) {
 		int size = _genesis.size();
 		if ( size > 0 ) {
 			strings.add ( "" );
@@ -884,12 +890,11 @@ throws TSException
 
 	// First get the formatted output...
 
-	try {	formatted_output = formatOutput ( props );
+	try {
+		formatted_output = formatOutput ( props );
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Formatted output is " +
-				formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
@@ -897,8 +902,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.get(i)
-				+ newline );
+				fp.print ( (String)formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -924,15 +928,15 @@ Format the time series for output.
 */
 public List formatOutput ( String fname, PropList props )
 throws TSException
-{	String		message = null,
-			routine = "YearTS.formatOutput";
+{	String message = null, routine = "YearTS.formatOutput";
 	List formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
 	// First open the output file...
 
-	try {	stream = new PrintWriter ( new FileWriter(full_fname) );
+	try {
+		stream = new PrintWriter ( new FileWriter(full_fname) );
 	}
 	catch ( Exception e ) {
 		message = "Unable to open file \"" + full_fname + "\"";
@@ -944,7 +948,8 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	try {	formatted_output = formatOutput ( stream, props );
+	try {
+		formatted_output = formatOutput ( stream, props );
 		stream.close();
 		stream = null;
 	}
@@ -984,7 +989,8 @@ private void formatOutputNYear ( List strings, PropList props,
 		strings.add ( "Year     Value     Flag" );
 		strings.add ( "---- ------------- ----" );
 	}
-	else {	strings.add ( "Year     Value    " );
+	else {
+		strings.add ( "Year     Value    " );
 		strings.add ( "---- -------------" );
 	}
 	double value = 0.0;
@@ -994,29 +1000,22 @@ private void formatOutputNYear ( List strings, PropList props,
 		value = getDataValue ( date );
 		if ( _has_data_flags ) {
 			if ( isDataMissing(value) ) {
-				strings.add(
-				date.toString(DateTime.FORMAT_YYYY)+
-				"               " +
-				StringUtil.formatString(
-				getDataPoint(date).getDataFlag(),"%4.4s") );
+				strings.add(date.toString(DateTime.FORMAT_YYYY)+ "               " +
+				StringUtil.formatString(getDataPoint(date).getDataFlag(),"%4.4s") );
 			}
-			else {	strings.add(
-				date.toString(DateTime.FORMAT_YYYY)+
-				" " + StringUtil.formatString(
-				value,data_format) + " " +
-				StringUtil.formatString(
-				getDataPoint(date).getDataFlag(),"%4.4s") );
+			else {
+				strings.add(date.toString(DateTime.FORMAT_YYYY)+
+				" " + StringUtil.formatString(value,data_format) + " " +
+				StringUtil.formatString(getDataPoint(date).getDataFlag(),"%4.4s") );
 			}
 		}
-		else {	if ( isDataMissing(value) ) {
-				strings.add(
-				date.toString(DateTime.FORMAT_YYYY)+
-				"               " );
+		else {
+			if ( isDataMissing(value) ) {
+				strings.add(date.toString(DateTime.FORMAT_YYYY)+ "               " );
 			}
-			else {	strings.add(
-				date.toString(DateTime.FORMAT_YYYY)+
-				" " + StringUtil.formatString(
-				value,data_format) );
+			else {
+				strings.add(date.toString(DateTime.FORMAT_YYYY)+
+				" " + StringUtil.formatString(value,data_format) );
 			}
 		}
 	}
@@ -1056,8 +1055,7 @@ public TSData getDataPoint ( DateTime date )
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "YearTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 +
-			")" );
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		_tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return _tsdata;
@@ -1075,8 +1073,8 @@ public TSData getDataPoint ( DateTime date )
 				0 );
 		}
 	}
-	else {	_tsdata.setValues ( date, getDataValue(date), _data_units,
-				"", 0 );
+	else {
+		_tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
 	}
 	return _tsdata;
 }
@@ -1133,8 +1131,7 @@ exists.  From the Transferable interface.  Supported dataflavors are:<br>
 <li>TS - TS.class / RTi.TS.TS</li>
 <li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
 @param flavor the flavor in which to return the data.
-@return the data in the specified DataFlavor, or null if no matching flavor
-exists.
+@return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
 public Object getTransferData(DataFlavor flavor) {
 	if (flavor.equals(yearTSFlavor)) {
@@ -1152,8 +1149,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Returns the flavors in which data can be transferred.  From the Transferable
-interface.  
+Returns the flavors in which data can be transferred.  From the Transferable interface.  
 The order of the dataflavors that are returned are:<br>
 <ul>
 <li>YearTS - YearTS.class / RTi.TS.YearTS</li>
@@ -1178,14 +1174,14 @@ method if no data are available results in the header information being
 unavailable.  Instead, return a TS with only the header information and call
 hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
-Note that true will be returned even if all the data values are set to the
-missing data value.
+Note that true will be returned even if all the data values are set to the missing data value.
 */
 public boolean hasData ()
 {	if ( _data != null ) {
 		return true;
 	}
-	else {	return false;
+	else {
+		return false;
 	}
 }
 
@@ -1193,13 +1189,13 @@ public boolean hasData ()
 Initialize instance.
 */
 private void init()
-{	_data 				= null;
-	_data_interval_base		= TimeInterval.YEAR;
-	_data_interval_mult		= 1;
-	_data_interval_base_original	= TimeInterval.YEAR;
-	_data_interval_mult_original	= 1;
-	_year1				= 0;
-	_year2				= 0;
+{	_data = null;
+	_data_interval_base = TimeInterval.YEAR;
+	_data_interval_mult = 1;
+	_data_interval_base_original = TimeInterval.YEAR;
+	_data_interval_mult_original = 1;
+	_year1 = 0;
+	_year2 = 0;
 }
 
 /**
@@ -1229,12 +1225,10 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 
 /**
 Refresh the dependent time series data, such as limits.  This routine is called
-when retrieving secondary data (like limits) to make sure that the values are
-current.
+when retrieving secondary data (like limits) to make sure that the values are current.
 */
 public void refresh ()
-{	// If the data is not dirty, then we do not have to refresh the other
-	// information...
+{	// If the data is not dirty, then we do not have to refresh the other information...
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {

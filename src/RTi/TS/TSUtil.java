@@ -2154,7 +2154,7 @@ displays raw data values.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear" or "NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalenderYear (but may be made sensitive to the data type or units in the
@@ -2288,7 +2288,7 @@ throws Exception
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+	else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
 		// Irrigation year...
 		strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
@@ -2318,7 +2318,7 @@ throws Exception
 		start_date.setMonth ( 1 );
 		end_date.setMonth ( 12 );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+	else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
 		// Need to adjust for the irrigation year to make sure
 		// that the first month is Nov and the last is Oct...
 		if ( start_date.getMonth() < 11 ) {
@@ -2686,13 +2686,12 @@ throws Exception
 		strings.add (
 		"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
+	else if ( calendar.equalsIgnoreCase("IrrigationYear" ) || calendar.equalsIgnoreCase("NovToOct" )){
 		strings.add (
-		"  Years shown are irrigation years." );
-		strings.add (
-		"  An irrigation year spans Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
+		"  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
 	}
-	else {	strings.add (
+	else {
+		strings.add (
 		"  Years shown are calendar years." );
 	}
 	strings.add (
@@ -9045,8 +9044,7 @@ The dates are always returned as calendar dates (e.g., if water years are
 requested, the first date will be adjusted to be October).
 @param date1 First date of interest.
 @param date2 Second date of interest.
-@param calendar_type Calendar type ("CalendarYear", "WaterYear", or
-"IrrigationYear").
+@param calendar_type Calendar type ("CalendarYear", "WaterYear", or "IrrigationYear"/"NovToOct").
 @param por_flag Currently ignored.
 */
 public static TSLimits getPeriodFromDates (	DateTime date1, DateTime date2,
@@ -9100,7 +9098,8 @@ throws TSException
 		}
 		return limits;
 	}
-	else if ( calendar_type.equalsIgnoreCase("IrrigationYear") ) {
+	else if ( calendar_type.equalsIgnoreCase("IrrigationYear") ||
+		calendar_type.equalsIgnoreCase("NovToDec") ) {
 		if ( month1 != 11 ) {
 			DateTime newdate1 = new DateTime ( date1 );
 			if ( month1 < 11 ) {

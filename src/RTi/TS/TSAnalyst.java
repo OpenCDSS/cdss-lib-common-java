@@ -57,8 +57,7 @@ import RTi.Util.Time.TimeUtil;
 
 /**
 This class analyzes a time series.  It is currently in development.
-Declare an instance of this class with a string-based input that is similar to
-SQL.
+Declare an instance of this class with a string-based input that is similar to SQL.
 */
 public class TSAnalyst
 {
@@ -2337,16 +2336,14 @@ generalize to other data statistics.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
-<td>CalenderYear (but may be made sensitive to the data type or units in the
-future).</td>
+<td>CalenderYear (but may be made sensitive to the data type or units in the future).</td>
 </tr>
 </table>
 */
-public void startDataCoverageReport (	DateTime start, DateTime end,
-					PropList props )
+public void startDataCoverageReport ( DateTime start, DateTime end, PropList props )
 throws TSException
 {	String delim = "|";
 	if ( start == null ) {
@@ -2356,10 +2353,10 @@ throws TSException
 		throw new TSException ( "Null end date for report" );
 	}
 	if ( props == null ) {
-		_data_coverage_report_props =
-		new PropList ( "DataCoverageReport" );
+		_data_coverage_report_props = new PropList ( "DataCoverageReport" );
 	}
-	else {	_data_coverage_report_props = props;
+	else {
+		_data_coverage_report_props = props;
 	}
 
 	// Get the calendar type...
@@ -2372,8 +2369,8 @@ throws TSException
 	// Get the full year dates to use for looping...
 
 	TSLimits limits = null;
-	try {	limits = TSUtil.getPeriodFromDates (
-		start, end, year_type, 0 );
+	try {
+		limits = TSUtil.getPeriodFromDates ( start, end, year_type, 0 );
 	}
 	catch ( Exception e ) {
 		// ignore...
@@ -2407,15 +2404,13 @@ throws TSException
 
 	StringBuffer data_string = new StringBuffer ();
 	DateTime date = new DateTime ( _data_coverage_report_date1 );
-	for (	; date.lessThanOrEqualTo ( _data_coverage_report_date2);
-		date.addYear(1) ) {
-		if ( year_type.equalsIgnoreCase("WaterYear") ) {
+	for ( ; date.lessThanOrEqualTo ( _data_coverage_report_date2); date.addYear(1) ) {
+		if ( year_type.equalsIgnoreCase("WaterYear") || year_type.equalsIgnoreCase("NovToDec")) {
 			// Offset...
-			data_string.append ( StringUtil.formatString(
-			(date.getYear() + 1),"%04d").substring(2) + delim );
+			data_string.append ( StringUtil.formatString((date.getYear() + 1),"%04d").substring(2) + delim );
 		}
-		else {	data_string.append ( StringUtil.formatString(
-			date.getYear(),"%04d").substring(2) + delim );
+		else {
+			data_string.append ( StringUtil.formatString(date.getYear(),"%04d").substring(2) + delim );
 		}
 	}
 	_data_coverage_report_Vector.add (

@@ -148,14 +148,12 @@ public static final int LOOKUP_TIME_ZONE_ONCE = 1;
 /**
 The following indicates that for DateTime construction the local time zone is
 looked up each time a DateTime is created.  This should be considered when
-running a real-time application that runs continuously between time zone
-changes.
+running a real-time application that runs continuously between time zone changes.
 */
 public static final int LOOKUP_TIME_ZONE_ALWAYS	= 2;
 
 /**
-Local Time Zone String (e.g, "MST", "MDT", "GMT"), based on the last call to
-getLocalTimeZone().
+Local Time Zone String (e.g, "MST", "MDT", "GMT"), based on the last call to getLocalTimeZone().
 @deprecated Use the getLocalTimeZone() or getLocalTimeZoneAbbr() methods or
 use the protected _local_time_zone_string if in this package.
 */
@@ -203,8 +201,7 @@ public static final String DAY_NAMES[] = {		"Sunday", "Monday",
 /**
 Days in months (non-leap year).
 */
-public static final int MONTH_DAYS[] = {	31, 28, 31, 30, 31, 30,
-						31, 31, 30, 31, 30, 31 };
+public static final int MONTH_DAYS[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 /**
 For a month, the number of days in the year passed on the first day of the
@@ -221,8 +218,7 @@ protected static boolean _local_time_zone_retrieved = false;
 protected static int _time_zone_lookup_method = LOOKUP_TIME_ZONE_ONCE;
 
 /**
-Compute the absolute day.  This can be used for determining the difference
-between dates.
+Compute the absolute day.  This can be used for determining the difference between dates.
 @return The absolute day, with respect to Dec 31, 1799.  The datum may change
 in the future and should be used only in a dynamic fashion.
 @param year Year (4-digit).
@@ -249,8 +245,7 @@ public static int absoluteDay ( int year, int month, int day )
 }
 
 /**
-Compute the absolute minute.  This can be used for determining the difference
-between dates.
+Compute the absolute minute.  This can be used for determining the difference between dates.
 @return The absolute minute, with respect to Dec 31, 1799.  The datum may change
 in the future and should be used only in a dynamic fashion.
 @param year Year (4-digit).
@@ -259,8 +254,7 @@ in the future and should be used only in a dynamic fashion.
 @param hour Hour (0-23).
 @param minute Minute (0-59).
 */
-public static long absoluteMinute (	int year, int month, int day, int hour,
-					int minute )
+public static long absoluteMinute (	int year, int month, int day, int hour, int minute )
 {	int aday = absoluteDay ( year, month, day );
 	long aminute = aday*1440 + hour*60 + minute;
 	return aminute;
@@ -285,8 +279,7 @@ the DateTime, returning the final DateTime.
 @param mult Interval multiplier.
 @param nintervals Number of times to increment.
 */
-public static DateTime addIntervals ( 	DateTime t1, int base, int mult,
-					int nintervals )
+public static DateTime addIntervals ( DateTime t1, int base, int mult, int nintervals )
 {	DateTime t = new DateTime ( t1 );
 	for ( int count = 0; count < nintervals; count ++ ){
 		t.addInterval( base, mult );
@@ -300,10 +293,9 @@ This is useful, for example, in confirming that DateTime's for a time series are
 consistent with the time series data interval.
 @param dt DateTime to check.
 @param interval TimeInterval string to check.
-@return 0 if the percision of the DateTime is the same as the interval,
+@return 0 if the precision of the DateTime is the same as the interval,
 -1 if the precision of the DateTime is less than the interval,
-1 if the precision of the DateTime is greater than the interval, and
-null if the input is invalid.
+1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
 */
 public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String interval_string )
 {
@@ -323,10 +315,9 @@ This is useful, for example, in confirming that DateTime's for a time series are
 consistent with the time series data interval.
 @param dt DateTime to check.
 @param interval TimeInterval integer to check.
-@return 0 if the percision of the DateTime is the same as the interval,
+@return 0 if the precision of the DateTime is the same as the interval,
 -1 if the precision of the DateTime is less than the interval, and
-1 if the precision of the DateTime is greater than the interval, and
-null if the input is invalid.
+1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
 */
 public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, int interval )
 {
@@ -351,21 +342,18 @@ int month = convertCalendarMonthToSpecialMonth ( cal_month, 10 );
 </pre>
 @param cal_month The calendar month (1=January, etc.).
 @param first_cal_month_in_year The calendar month corresponding to the first
-month in the special calendar.  For example, for water years, specify 10 for
-October.
+month in the special calendar.  For example, for water years, specify 10 for October.
 @return the month number in the custom calendar (1 to 12).
 */
-public static int convertCalendarMonthToCustomMonth (
-				int cal_month, int first_cal_month_in_year )
+public static int convertCalendarMonthToCustomMonth ( int cal_month, int first_cal_month_in_year )
 {	if ( cal_month >= first_cal_month_in_year ) {
 		// This is the only clause that is processed for calendar year
 		// and is used for high calendar months in custom calendars.
-		// For example for water year (first_cal_month_in_year = 10),
-		// return cal_month - 3
+		// For example for water year (first_cal_month_in_year = 10), return cal_month - 3
 		return (cal_month - (first_cal_month_in_year - 1) );
 	}
-	else {	// This will be processed for non-calendar year for early months
-		// in the calendar year.
+	else {
+		// This will be processed for non-calendar year for early months in the calendar year.
 		// For example for water year, return cal_month + 3
 		return (cal_month + (12 - first_cal_month_in_year + 1) );
 	}
@@ -412,8 +400,7 @@ public static int dayOfYear ( DateTime d )
 }
 
 /**
-Compute the difference between dates.  See overloaded routine for more
-information.
+Compute the difference between dates.  See overloaded routine for more information.
 @return The offset from the date instance to the given date.  For example, if
 "date" is before the instance date, then the offset will be positive.
 @param date1 The date to be subtracted from.
@@ -502,8 +489,7 @@ throws Exception
 
 /**
 Format a DateTime using the given format.
-@return The date/time as a string for the specified date using the specified
-format.
+@return The date/time as a string for the specified date using the specified format.
 @param d0 The date to format.  If the date is null, the current time is used.
 @param format0 The date format.  If the format is null,
 the default is as follows:  "Fri Jan 03 16:05:14 MST 1998" (the UNIX date
@@ -598,8 +584,7 @@ C "strftime" routine, as follows:
 
 <tr>
 <td><b>%y</b></td>
-<td>Two digit year since 1900 (this is use discouraged because the datum is
-ambiguous).</td>
+<td>Two digit year since 1900 (this is use discouraged because the datum is ambiguous).</td>
 </tr>
 
 <tr>
@@ -654,14 +639,14 @@ public static String formatDateTime ( DateTime d0, String format0 )
 	cal.setTime ( d.getDate() );
 	SimpleDateFormat sdf = new SimpleDateFormat();
 	DateFormatSymbols dfs = sdf.getDateFormatSymbols();
-	String[]	short_weekdays = dfs.getShortWeekdays();
-	String[]	short_months = dfs.getShortMonths();
-	String[]	months = dfs.getMonths();
-	String[]	weekdays = dfs.getWeekdays();
-	int		len = format.length();
-	StringBuffer	formatted_string = new StringBuffer ();
-	char		c = '\0';
-	int		ifield;
+	String[] short_weekdays = dfs.getShortWeekdays();
+	String[] short_months = dfs.getShortMonths();
+	String[] months = dfs.getMonths();
+	String[] weekdays = dfs.getWeekdays();
+	int len = format.length();
+	StringBuffer formatted_string = new StringBuffer ();
+	char c = '\0';
+	int ifield;
 	// The values returned are as follows:
 	//
 	//		Java		We use
@@ -774,14 +759,15 @@ public static String formatDateTime ( DateTime d0, String format0 )
 				// Literal percent...
 				formatted_string.append ( '%' );
 			}
-			else {	// Go ahead and add the % and the character
-				// (e.g., so the format can be passed to a
-				// secondary formatter).
+			else {
+				// Go ahead and add the % and the character
+				// (e.g., so the format can be passed to a secondary formatter).
 				formatted_string.append ( '%' );
 				formatted_string.append ( c );
 			}
 		}
-		else {	// Just add the character to the string...
+		else {
+			// Just add the character to the string...
 			formatted_string.append ( c );
 		}
 	}
@@ -918,8 +904,7 @@ C "strftime" routine, as follows:
 
 <tr>
 <td><b>%y</b></td>
-<td>Two digit year since 1900 (this is use discouraged because the datum is
-ambiguous).</td>
+<td>Two digit year since 1900 (this is use discouraged because the datum is ambiguous).</td>
 </tr>
 
 <tr>
@@ -951,7 +936,8 @@ public static String formatTimeString ( Date d0, String format0 )
 	else if ( format0.length() == 0 ) {
 		format = new String ( default_format );
 	}
-	else {	format = new String ( format0 );
+	else {
+		format = new String ( format0 );
 	}
 
 	Date d;
@@ -959,12 +945,12 @@ public static String formatTimeString ( Date d0, String format0 )
 		// Get the current time...
 		d = new Date();
 	}
-	else {	d = d0;
+	else {
+		d = d0;
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Formatting \"" + d0 + "\" using \"" + format + "\"" );
+		Message.printDebug ( dl, routine, "Formatting \"" + d0 + "\" using \"" + format + "\"" );
 	}
 
 	if ( format.equals("datum_seconds") ) {
@@ -982,17 +968,17 @@ public static String formatTimeString ( Date d0, String format0 )
 
 		GregorianCalendar cal = new GregorianCalendar ();
 		cal.setTime ( d );
-		int		len = format.length();
-		StringBuffer	formatted_string = new StringBuffer ();
-		char		c = '\0';
-		int		ifield;	// integer field value
+		int len = format.length();
+		StringBuffer formatted_string = new StringBuffer ();
+		char c = '\0';
+		int ifield;	// integer field value
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		DateFormatSymbols dfs = sdf.getDateFormatSymbols();
-		String[]	short_weekdays = dfs.getShortWeekdays();
-		String[]	short_months = dfs.getShortMonths();
-		String[]	months = dfs.getMonths();
-		String[]	weekdays = dfs.getWeekdays();
-		String[]	am_pm = dfs.getAmPmStrings();
+		String[] short_weekdays = dfs.getShortWeekdays();
+		String[] short_months = dfs.getShortMonths();
+		String[] months = dfs.getMonths();
+		String[] weekdays = dfs.getWeekdays();
+		String[] am_pm = dfs.getAmPmStrings();
 		// The values returned are as follows:
 		//
 		//		Java		We use
@@ -1012,120 +998,94 @@ public static String formatTimeString ( Date d0, String format0 )
 				// We have a format character...
 				++i;
 				if ( i >= len ) {
-					break;	// this will exit the whole
-						// loop
+					break;	// this will exit the whole loop
 				}
 				c = format.charAt(i);
 				if ( c == 'a' ) {
 					// Abbreviated weekday name.
 					ifield = cal.get(Calendar.DAY_OF_WEEK);
-					formatted_string.append(
-					short_weekdays[ifield]);
+					formatted_string.append(short_weekdays[ifield]);
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine, "Day of week =" +
-						ifield + " \"" +
-						short_weekdays[ifield] + "\"" );
+						routine, "Day of week =" + ifield + " \"" + short_weekdays[ifield] + "\"" );
 					}
 				}
 				else if ( c == 'A' ) {
 					// Full weekday name.
 					ifield = cal.get(Calendar.DAY_OF_WEEK);
-					formatted_string.append(
-					weekdays[ifield]);
+					formatted_string.append(weekdays[ifield]);
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine, "Day of week =" +
-						ifield + " \"" +
-						weekdays[ifield] + "\"" );
+						routine, "Day of week =" + ifield + " \"" + weekdays[ifield] + "\"" );
 					}
 				}
 				else if ( c == 'b' ) {
 					// Abbreviated month name.
 					ifield = cal.get(Calendar.MONTH);
-					formatted_string.append(
-					short_months[ifield]);
+					formatted_string.append(short_months[ifield]);
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine, "Month=" +
-						ifield + " \"" +
-						short_months[ifield] + "\"" );
+						routine, "Month=" + ifield + " \"" + short_months[ifield] + "\"" );
 					}
 				}
 				else if ( c == 'B' ) {
 					// Long month name.
 					ifield = cal.get(Calendar.MONTH);
-					formatted_string.append(
-					months[ifield]);
+					formatted_string.append(months[ifield]);
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine, "Month=" +
-						ifield + " \"" +
-						months[ifield] + "\"" );
+						routine, "Month=" + ifield + " \"" + months[ifield] + "\"" );
 					}
 				}
 				else if ( c == 'c' ) {
-					formatted_string.append(
-					"%c not supported" );
+					formatted_string.append("%c not supported" );
 				}
 				else if ( c == 'd' ) {
 					// Day of month
 					ifield = cal.get(Calendar.DAY_OF_MONTH);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Day =" + ifield );
+						Message.printDebug ( dl, routine, "Day =" + ifield );
 					}
 				}
 				else if ( c == 'H' ) {
 					// Hour of day...
 					ifield = cal.get(Calendar.HOUR_OF_DAY);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Hour=" + ifield );
+						Message.printDebug ( dl, routine, "Hour=" + ifield );
 					}
 				}
 				else if ( c == 'I' ) {
 					// Hour of day 1-12
 					ifield = cal.get(Calendar.HOUR);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Hour =" + ifield );
+						Message.printDebug ( dl, routine, "Hour =" + ifield );
 					}
 				}
 				else if ( c == 'j' ) {
 					// Day of year...
 					ifield = cal.get(Calendar.DAY_OF_YEAR);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%03d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%03d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "DayofYear=" + ifield);
+						Message.printDebug ( dl, routine, "DayofYear=" + ifield);
 					}
 				}
 				else if ( c == 'm' ) {
 					// Month of year...
 					ifield = cal.get(Calendar.MONTH) + 1;
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Month =" + ifield );
+						Message.printDebug ( dl, routine, "Month =" + ifield );
 					}
 				}
 				else if ( c == 'M' ) {
 					// Minute of hour...
 					ifield = cal.get(Calendar.MINUTE);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Minute =" + ifield );
+						Message.printDebug ( dl, routine, "Minute =" + ifield );
 					}
 				}
 				else if ( c == 'p' ) {
@@ -1133,28 +1093,22 @@ public static String formatTimeString ( Date d0, String format0 )
 					ifield = cal.get(Calendar.AM_PM);
 					formatted_string.append(am_pm[ifield]);
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "AM/PM=" + ifield +
-						" \"" + am_pm[ifield] + "\"" );
+						Message.printDebug ( dl, routine, "AM/PM=" + ifield + " \"" + am_pm[ifield] + "\"" );
 					}
 				}
 				else if ( c == 'S' ) {
 					// Seconds of minute...
 					ifield = cal.get(Calendar.SECOND);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Second =" + ifield );
+						Message.printDebug ( dl, routine, "Second =" + ifield );
 					}
 				}
 				else if ( (c == 'U') || (c == 'W')) {
 					// Week of year...
-					// Don't worry now about whether Sunday
-					// or Monday are the start of the week.
+					// Don't worry now about whether Sunday or Monday are the start of the week.
 					ifield = cal.get(Calendar.WEEK_OF_YEAR);
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
 						routine, "Weekofyear =" +
@@ -1162,12 +1116,10 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'x' ) {
-					formatted_string.append(
-					"%x not supported" );
+					formatted_string.append("%x not supported" );
 				}
 				else if ( c == 'X' ) {
-					formatted_string.append(
-					"%X not supported" );
+					formatted_string.append("%X not supported" );
 				}
 				else if ( c == 'y' ) {
 					// Two digit year...
@@ -1177,12 +1129,9 @@ public static String formatTimeString ( Date d0, String format0 )
 						ifield -= 65536;
 					}
 					ifield = formatYear ( ifield, 2, true );
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%02d"));
+					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "year =" +
-						ifield );
+						Message.printDebug ( dl, routine, "year =" + ifield );
 					}
 				}
 				else if ( c == 'Y' ) {
@@ -1192,18 +1141,14 @@ public static String formatTimeString ( Date d0, String format0 )
 						// Borland database bug...
 						ifield -= 65536;
 					}
-					ifield = formatYear ( ifield, 4,
-							true );
-					formatted_string.append(
-					StringUtil.formatString(ifield,"%04d"));
+					ifield = formatYear ( ifield, 4, true );
+					formatted_string.append(StringUtil.formatString(ifield,"%04d"));
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Year =" + ifield );
+						Message.printDebug ( dl, routine, "Year =" + ifield );
 					}
 				}
 				else if ( c == 'Z' ) {
-					// Time zone offset from GMT to local
-					// time, in milliseconds...
+					// Time zone offset from GMT to local time, in milliseconds...
 					formatted_string.append (
 					cal.getTimeZone().getID() );
 				}
@@ -1212,7 +1157,8 @@ public static String formatTimeString ( Date d0, String format0 )
 					formatted_string.append ( '%' );
 				}
 			}
-			else {	// Just add the character to the string...
+			else {
+				// Just add the character to the string...
 				formatted_string.append ( c );
 			}
 		}
@@ -1260,7 +1206,8 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 			year = year0;
 			return year;
 		}
-		else {	// Truncate the year to return only the last 2 digits...
+		else {
+			// Truncate the year to return only the last 2 digits...
 			year = (year0 - ((year0/100)*100));
 			return year;
 		}
@@ -1271,17 +1218,15 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 			year = year0;
 			return year;
 		}
-		else {	// Get the year offset from the system (have to assume
-			// this so old data may have problems!).
+		else {
+			// Get the year offset from the system (have to assume this so old data may have problems!).
 			year_offset = getYearOffset ();
 			if ( year_offset < 0 ) {
-				Message.printWarning ( 3, "TimeUtil.formatYear",
-				"Unable to get system year offset" );
+				Message.printWarning ( 3, "TimeUtil.formatYear", "Unable to get system year offset" );
 				return -1;
 			}
 			// Get the current system year...
-			// This does not seem to work well - it converts to
-			// Pacific time.
+			// This does not seem to work well - it converts to Pacific time.
 			//String message = "{0,date,yyyy}";
 			//MessageFormat mf = new MessageFormat ( message );
 			//Date now = new Date();
@@ -1304,9 +1249,9 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 			return year;
 		}
 	}
-	else {	// Unknown format request...
-		Message.printWarning ( 3, "TimeUtil.formatYear",
-		"Year ndigits " + len + " not 2 or 4!" );
+	else {
+		// Unknown format request...
+		Message.printWarning ( 3, "TimeUtil.formatYear", "Year ndigits " + len + " not 2 or 4!" );
 		return -1;
 	}
 }
@@ -1314,8 +1259,7 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 /**
 Get the current day of the week as a number.
 @return The current day of the week as a number, in the range 0-6, with 0 being
-Sunday.  The system clock is used to get the current time.  Return -1 if an
-error.
+Sunday.  The system clock is used to get the current time.  Return -1 if an error.
 */
 public int getCurrentDayOfWeek ()
 {	// First get the day of week as a string...
@@ -1362,7 +1306,8 @@ public static String[] getDateTimeFormatSpecifiers(boolean include_description )
 		formats[13] = "%Y - Year, yyyy";
 		formats[14] = "%Z - Time zone";
 	}
-	else {	formats[0] = "%a";
+	else {
+		formats[0] = "%a";
 		formats[1] = "%A";
 		formats[2] = "%b";
 		formats[3] = "%B";
@@ -1388,8 +1333,7 @@ public static String[] getDateTimeFormatSpecifiers(boolean include_description )
 /**
 Return the local time zone abbreviation.
 The method of lookup is either LOOKUP_TIME_ZONE_ONCE (default) or
-LOOKUP_TIME_ZONE_ALWAYS.  The method can be changed by calling the overloaded
-method.
+LOOKUP_TIME_ZONE_ALWAYS.  The method can be changed by calling the overloaded method.
 @return the local time zone abbreviation.
 */
 public static String getLocalTimeZoneAbbr ()
@@ -1405,7 +1349,7 @@ The default is LOOKUP_TIME_ZONE_ONCE.
 @return the local time zone abbreviation.
 */
 public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
-{	if (	(time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE) ||
+{	if ( (time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE) ||
 		(time_zone_lookup_method == LOOKUP_TIME_ZONE_ALWAYS) ) {
 		_time_zone_lookup_method = time_zone_lookup_method;
 	}
@@ -1426,7 +1370,8 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 			date_as_string = null;
 			_local_time_zone_retrieved = true;
 		}
-		else {	return _local_time_zone_string;
+		else {
+			return _local_time_zone_string;
 		}
 	}
 	else if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ALWAYS ) {
@@ -1461,57 +1406,54 @@ public static int [] getMonthAndDayFromDayOfYear ( int year, int julian_day )
 {	int [] month_day = new int[2];
 
 	try {
-	boolean isleap = isLeapYear ( year );
-	if ( julian_day > 366 ) {
-		month_day[0] = 12;
-		month_day[0] = 31;
-	}
-	else {	// Loop forwards subtracting the days for each month intil we
-		// have only one complete or partial month.
-		int	daysleft = julian_day;
-		int	monthdays;
-		for ( int i = 0; i < 12; i++ ) {
-			if ( (i == 1) && isleap ) {
-				// Set the offset to 1 to account for extra
-				// days in febrary...
-				monthdays = MONTH_DAYS[i] + 1;
-			}
-			else {	// All other months...
-				monthdays = MONTH_DAYS[i];
-			}
-			if ( daysleft <= monthdays ) {
-				// We have found our month...
-				month_day[0] = i + 1;
-				month_day[1] = daysleft;
-				break;
-			}
-			daysleft -= monthdays;
+		boolean isleap = isLeapYear ( year );
+		if ( julian_day > 366 ) {
+			month_day[0] = 12;
+			month_day[0] = 31;
 		}
-	}
-	return month_day;
+		else {
+			// Loop forwards subtracting the days for each month until
+			// have only one complete or partial month.
+			int	daysleft = julian_day;
+			int	monthdays;
+			for ( int i = 0; i < 12; i++ ) {
+				if ( (i == 1) && isleap ) {
+					// Set the offset to 1 to account for extra days in February...
+					monthdays = MONTH_DAYS[i] + 1;
+				}
+				else {
+					// All other months...
+					monthdays = MONTH_DAYS[i];
+				}
+				if ( daysleft <= monthdays ) {
+					// We have found our month...
+					month_day[0] = i + 1;
+					month_day[1] = daysleft;
+					break;
+				}
+				daysleft -= monthdays;
+			}
+		}
+		return month_day;
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3,"TimeUtil.getMonthAndDayFromDayOfYear",
-		"Error getting month and day from year " + year +
-		" Julian day " + julian_day );
+		"Error getting month and day from year " + year + " Julian day " + julian_day );
 		return null;
 	}
 }
 
 /**
-Return the number of intervals between two dates.
-This uses a loop to count
+Return the number of intervals between two dates.  This uses a loop to count
 the intervals and may be slow.  For time series, a faster method may be to call
-the TSUtil.getDataSize method.  Zero is returned if the start date is after the
-end date.
+the TSUtil.getDataSize method.  Zero is returned if the start date is after the end date.
 @return The number of intervals between two dates.
 @param t1 Start date.
 @param t2 End date.
 @param base The time series base interval.
 @param mult The time series interval multiplier.
 */
-public static int getNumIntervals (	DateTime t1, DateTime t2, int base,
-					int mult )
+public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult )
 {	int	intervals=0;
 
 	if( t2.lessThan(t1) ) {
@@ -1520,11 +1462,10 @@ public static int getNumIntervals (	DateTime t1, DateTime t2, int base,
 		return 0;
 	}
 
-	// We want to remain less than t2, so if the two dates are the 
-	// same we will return 0.
+	// We want to remain less than t2, so if the two dates are the same we will return 0.
 
 	DateTime t = new DateTime(t1);
-	for (	; t.lessThan(t2); t.addInterval( base, mult ) ) {
+	for ( ; t.lessThan(t2); t.addInterval( base, mult ) ) {
 		intervals++;	
 	}
 	t = null;
@@ -1534,8 +1475,7 @@ public static int getNumIntervals (	DateTime t1, DateTime t2, int base,
 
 /**
 Return the current system time using the default format.
-@return The current system time as a string, using the default format used by
-formatDateTime.
+@return The current system time as a string, using the default format used by formatDateTime.
 REVISIT JAVADOC: see RTi.Util.Time.TimeUtil.formatDateTime
 */
 public static String getSystemTimeString ( )
@@ -1544,8 +1484,7 @@ public static String getSystemTimeString ( )
 
 /**
 Return the current system time using the specified format.
-@return The current system time as a string, using the specified format, as
-used by formatDateTime.
+@return The current system time as a string, using the specified format, as used by formatDateTime.
 @param format Format for date (see formatDateTime).
 */
 public static String getSystemTimeString ( String format )
@@ -1577,7 +1516,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 	// First guess at the year.  146097 is the number of days in 400 years,
 	// accounting for leap years.  Take an initial guess at the year...
 
-	year =	(jd*400)/146097 + 1800;
+	year = (jd*400)/146097 + 1800;
 
 	while ( true ) {
 		leap = 1;
@@ -1587,7 +1526,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		if ( ((year%100) == 0) && ((year%400) != 0) ) {
 			leap = 0;
 		}
-		id1 =	365*(year) +
+		id1 = 365*(year) +
 			year/4 -
 			year/100 +
 			year/400 -
@@ -1599,8 +1538,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		--year;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"After first pass, found year to be: " + year );
+		Message.printDebug ( dl, routine, "After first pass, found year to be: " + year );
 	}
 
 	day	= jd - id1;
@@ -1619,8 +1557,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		day = day - 365 - leap;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"After second pass, found year to be: " + year );
+		Message.printDebug ( dl, routine, "After second pass, found year to be: " + year );
 	}
 
 	// Find month...
@@ -1643,8 +1580,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine,
-		"Found month to be: " + month );
+		Message.printDebug ( 1, routine, "Found month to be: " + month );
 	}
 
 	//  Month known, compute day offset from month
@@ -1654,8 +1590,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		day -= leap;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine,
-		"Found day to be: " + day );
+		Message.printDebug ( 1, routine, "Found day to be: " + day );
 	}
 
 	int [] date_info = new int[3];
@@ -1670,8 +1605,7 @@ private static int _offset_year = -10000;
 
 /**
 @return The year offset for a 4-digit year (e.g., 1900 for 1981).  If a
-two-digit year is passed in, the offset is determined using the current
-system clock.
+two-digit year is passed in, the offset is determined using the current system clock.
 */
 public static int getYearOffset ( )
 {	if ( _offset_year == -10000 ) {
@@ -1709,13 +1643,11 @@ throws Exception
 	}
 	int precision1 = datetime1.getPrecision();
 	if ( (precision1 < TimeInterval.HSECOND) || (precision1 > TimeInterval.YEAR) ) {
-		throw new Exception ( "Precision for first DateTime is not " +
-		"between hsecond and year." );
+		throw new Exception ( "Precision for first DateTime is not between hsecond and year." );
 	}
 	int precision2 = datetime2.getPrecision();
 	if ( (precision2 < TimeInterval.HSECOND) || (precision2 > TimeInterval.YEAR) ) {
-		throw new Exception ( "Precision for second DateTime is not " +
-		"between hsecond and year." );
+		throw new Exception ( "Precision for second DateTime is not between hsecond and year." );
 	}
 	if ( precision1 < precision2 ) {
 		return precision1;
@@ -1723,12 +1655,10 @@ throws Exception
 	return precision2;
 }
 
-// REVISIT SAM 2005-11-16
-// Should this be deprecated in favor of the convert*Month methods?
+// TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
 Get the irrigation month given a calendar month.  The irrigation year starts in
-November of the previous calendar year and ends in October of the irrigation
-year.
+November of the previous calendar year and ends in October of the irrigation year.
 @return the irrigation month.
 */
 public static int irrigationMonthFromCalendar ( int month )
@@ -1744,8 +1674,7 @@ public static int irrigationMonthFromCalendar ( int month )
 // Should this be deprecated in favor of the convert*Month methods?
 /**
 Get the irrigation year given a calendar month and year.  The irrigation year
-starts in November of the previous calendar year and ends in October of the
-irrigation year.
+starts in November of the previous calendar year and ends in October of the irrigation year.
 @return the irrigation year.
 */
 public static int irrigationYearFromCalendar ( int month, int year )
@@ -1782,7 +1711,8 @@ only date/time formats recognized by DateTime are recognized.
 @return true if the string is a date (can be parsed).
 */
 public static boolean isDateTime ( String date_string )
-{	try {	DateTime.parse ( date_string );
+{	try {
+	DateTime.parse ( date_string );
 		return true;
 	} catch ( Exception e ) { 
 		return false;
@@ -2020,7 +1950,7 @@ Determine the lowest precision (largest interval) for two DateTime instances.
 @param datetime1 A DateTime instance to compare.
 @param datetime2 Another DateTime instance to compare.
 @exception Exception if either of the dates are null or have an imprecise
-precsision (UNKNOWN or IRREGULAR).
+precision (UNKNOWN or IRREGULAR).
 */
 public static int lowestPrecision ( DateTime datetime1, DateTime datetime2 )
 throws Exception
@@ -2031,16 +1961,12 @@ throws Exception
 		throw new Exception ( "Second DateTime is null" );
 	}
 	int precision1 = datetime1.getPrecision();
-	if (	(precision1 < TimeInterval.HSECOND) ||
-		(precision1 > TimeInterval.YEAR) ) {
-		throw new Exception ( "Precision for first DateTime is not " +
-		"between hsecond and year." );
+	if ( (precision1 < TimeInterval.HSECOND) || (precision1 > TimeInterval.YEAR) ) {
+		throw new Exception ( "Precision for first DateTime is not between hsecond and year." );
 	}
 	int precision2 = datetime2.getPrecision();
-	if (	(precision2 < TimeInterval.HSECOND) ||
-		(precision2 > TimeInterval.YEAR) ) {
-		throw new Exception ( "Precision for second DateTime is not " +
-		"between hsecond and year." );
+	if ( (precision2 < TimeInterval.HSECOND) || (precision2 > TimeInterval.YEAR) ) {
+		throw new Exception ( "Precision for second DateTime is not between hsecond and year." );
 	}
 	if ( precision1 > precision2 ) {
 		return precision1;
@@ -2050,8 +1976,7 @@ throws Exception
 
 /**
 Return the maximum of two DateTime instances.  If one is null, return the
-non-null value.  If both are null, return null.  The comparison is made as
-follows:
+non-null value.  If both are null, return null.  The comparison is made as follows:
 <pre>
 if ( dt1.greaterThan(dt2) ) {
 	return dt1;
@@ -2074,14 +1999,14 @@ public static DateTime max ( DateTime dt1, DateTime dt2 )
 	else if ( dt1.greaterThan(dt2) ) {
 		return dt1;
 	}
-	else {	return dt2;
+	else {
+		return dt2;
 	}
 }
 
 /**
 Return the minimum of two DateTime instances.  If one is null, return the
-non-null value.  If both are null, return null.  The comparison is made as
-follows:
+non-null value.  If both are null, return null.  The comparison is made as follows:
 <pre>
 if ( dt1.lessThan(dt2) ) {
 	return dt1;
@@ -2117,20 +2042,20 @@ public static String monthAbbreviation ( int month )
 {	if ( (month < 1) || ( month > 12) ) {
 		return "";
 	}
-	else {	return MONTH_ABBREVIATIONS[month - 1];
+	else {
+		return MONTH_ABBREVIATIONS[month - 1];
 	}
 }
 
 /**
 Convert an absolute month to its year and month values.
 @return An array if int's indicating the month and year corresponding to the
-given absolute month.  The first value will be the year, the second will be the
-month.
+given absolute month.  The first value will be the year, the second will be the month.
 @param amon Absolute month (year*12 + month).
 */
 public static int[] monthFromAbsolute ( int amon )
 {	int	month, year;
-	int[]	monthyear = new int[2];
+	int[] monthyear = new int[2];
 
 	monthyear[0] = 0;
 	monthyear[1] = 0;
@@ -2175,7 +2100,8 @@ public static int numDaysInMonth ( int month, int year )
 		// Project out into the future...
 		return numDaysInMonth ( (month%12), (year + month/12) );
 	}
-	else {	// Usual case...
+	else {
+		// Usual case...
 		ndays = MONTH_DAYS[month - 1];
 		if ( (month == 2) && isLeapYear(year) ) {
 			++ndays;
@@ -2196,8 +2122,8 @@ return the number of days in the initial month and its following month.
 static public int numDaysInMonths ( int month0, int year0, int n )
 {	int	i, month, ndays = 0, year;
 
-	month	= month0;
-	year	= year0;
+	month = month0;
+	year = year0;
 	for ( i = 0; i < n; i++ ) {
 		ndays += numDaysInMonth ( month, year );
 		++month;
@@ -2217,10 +2143,8 @@ Calculate the number of days in several months.
 @param month1 The last month of interest.
 @param year1 The last year of interest.
 */
-static public int numDaysInMonths (	int month0, int year0, int month1,
-					int year1 )
-{	int nmonths = absoluteMonth ( month1, year1 ) -
-			absoluteMonth ( month0, year0 ) + 1;
+static public int numDaysInMonths (	int month0, int year0, int month1, int year1 )
+{	int nmonths = absoluteMonth ( month1, year1 ) - absoluteMonth ( month0, year0 ) + 1;
 	return numDaysInMonths ( month0, year0, nmonths );
 }
 
@@ -2233,7 +2157,8 @@ public static int numDaysInYear ( int year )
 {	if ( isLeapYear(year) ) {
 		return 366;
 	}
-	else {	return 365;
+	else {
+		return 365;
 	}
 }
 
@@ -2254,15 +2179,14 @@ public static int monthFromAbbrev( String abbrev )
 }
 
 /**
-Parse a 4-digit military time into its hour and minute and return in an array
-of int's.
+Parse a 4-digit military time into its hour and minute and return in an array of int's.
 @return An array of int's with the hour (index 0) and minute (index 1).
 @param time 4-digit military time.
 */
 public static int [] parseMilitaryTime ( int time )
 {	int [] hour_min = new int[2];
-	hour_min[0] = time/100;			// the hour
-	hour_min[1] = time - hour_min[0]*100;	// the minutes
+	hour_min[0] = time/100; // the hour
+	hour_min[1] = time - hour_min[0]*100; // the minutes
 	return hour_min;
 }
 
@@ -2334,50 +2258,45 @@ the file being detected.
 public static boolean waitForFile ( String filename, int wait, int numtries )
 {	for ( int i = 0; i < numtries; i++ ) {
 		if ( IOUtil.fileExists(filename) ) {
-			Message.printStatus ( 1, "",
-			"File \"" + filename + "\" DOES exist at " +
-			formatTimeString() );
+			Message.printStatus ( 1, "", "File \"" + filename + "\" DOES exist at " + formatTimeString() );
 			return true;
 		}
-		else {	Message.printStatus ( 1, "",
-			"File \"" + filename + "\" DOES NOT exist at " +
-			formatTimeString() );
+		else {
+			Message.printStatus ( 1, "", "File \"" + filename + "\" DOES NOT exist at " + formatTimeString() );
 			sleep ( wait );
 		}
 	}
 	return false;
 }
 
-// REVISIT SAM 2005-11-16
-// Should this be deprecated in favor of the convert*Month methods?
+// TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
 Get the water year month given a calendar month.  The water year starts in
-October of the previous calendar year and ends in September of the irrigation
-year.
+October of the previous calendar year and ends in September of the irrigation year.
 @return the water year month.
 */
 public static int waterMonthFromCalendar ( int month )
 {	if ( month >= 10 ) {
 		return (month - 9);
 	}
-	else {	return (month + 3);
+	else {
+		return (month + 3);
 	}
 }
 
-// REVISIT SAM 2005-11-16
-// Should this be deprecated in favor of the convert*Month methods?
+// TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
 Get the water year given a calendar month and year.  The water year
-starts in October of the previous calendar year and ends in September of the
-irrigation year.
+starts in October of the previous calendar year and ends in September of the irrigation year.
 @return the water year.
 */
 public static int waterYearFromCalendar ( int month, int year )
 {	if ( month >= 10 ) {
 		return (year - 1);
 	}
-	else {	return year;
+	else {
+		return year;
 	}
 }
 
-} // End TimeUtil
+}

@@ -94,9 +94,7 @@ import RTi.Util.Time.TimeUtil;
 The MinuteTS class is the base class for time series used to store minute data.
 Derive classes from this class for specific minute time series data.
 */
-public class MinuteTS 
-extends TS
-implements Cloneable, Serializable, Transferable {
+public class MinuteTS extends TS implements Cloneable, Serializable, Transferable {
 
 // Data members...
 
@@ -693,7 +691,7 @@ minute time series are always output in a matrix summary format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalanderYear (but may be made sensitive to the data type or units in the
@@ -822,12 +820,10 @@ information.  This can be used when the entire header is formatted elsewhere.
 */
 public List formatOutput( PropList proplist )
 throws TSException
-{	String 		message = "", routine = "MinuteTS.formatOutput",
-			year_column = "";
+{	String message = "", routine = "MinuteTS.formatOutput", year_column = "";
 	List strings = new Vector (20,10);
-	PropList	props = null;
-	String		calendar = "WaterYear", data_format = "%9.1f",
-			prop_value = null;
+	PropList props = null;
+	String calendar = "WaterYear", data_format = "%9.1f", prop_value = null;
 
 	// Only know how to do this for 24-hour time series (in the future may
 	// automatically convert to correct interval)...
@@ -842,24 +838,23 @@ throws TSException
 	// constantly check for null...
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the
-		// time.
+		// Create a PropList so we don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+		props = proplist;
 	}
 
 	// Get the important formatting information from the property list...
 
-	// Determine the units to output.  For now use what is in the time
-	// series...
+	// Determine the units to output.  For now use what is in the time series...
 
 	String req_units = _data_units;
 
 	// Need to check the data type to determine if it is an average
 	// or a total.  For now, make some guesses based on the units...
 
-	if (	req_units.equalsIgnoreCase("AF") ||
+	if ( req_units.equalsIgnoreCase("AF") ||
 		req_units.equalsIgnoreCase("ACFT") ||
 		req_units.equalsIgnoreCase("FT") ||
 		req_units.equalsIgnoreCase("FEET") ||
@@ -904,7 +899,8 @@ throws TSException
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
-	else {	// Set to requested format...
+	else {
+		// Set to requested format...
 		calendar = prop_value;
 	}
 
@@ -929,7 +925,8 @@ throws TSException
 	DateTime end_date = new DateTime (_date2);
 	prop_value = props.getValue ( "OutputEnd" );
 	if ( prop_value != null ) {
-		try {	end_date = DateTime.parse ( prop_value );
+		try {
+			end_date = DateTime.parse ( prop_value );
 			end_date.setPrecision ( DateTime.PRECISION_MINUTE );
 		}
 		catch ( Exception e ) {
@@ -946,7 +943,8 @@ throws TSException
 		// Default is true...
 		print_header = "true";
 	}
-	else {	print_header = prop_value;
+	else {
+		print_header = prop_value;
 	}
 	prop_value = props.getValue ( "UseCommentsForHeader" );
 	String use_comments_for_header = null;
@@ -954,7 +952,8 @@ throws TSException
 		// Default is false...
 		use_comments_for_header = "false";
 	}
-	else {	use_comments_for_header = prop_value;
+	else {
+		use_comments_for_header = prop_value;
 	}
 	if ( print_header.equalsIgnoreCase("true") ) {
 		if ( !use_comments_for_header.equalsIgnoreCase("true") ||
@@ -974,7 +973,8 @@ throws TSException
 		// Default is true...
 		print_comments = "true";
 	}
-	else {	print_comments = prop_value;
+	else {
+		print_comments = prop_value;
 	}
 	if ( print_comments.equalsIgnoreCase("true") ||
 		use_comments_for_header.equalsIgnoreCase("true")){
@@ -989,7 +989,8 @@ throws TSException
 					strings.add((String)_comments.get(i));
 				}
 			}
-			else {	strings.add( "No comments available.");
+			else {
+				strings.add( "No comments available.");
 			}
 		}
 		else {
@@ -1005,10 +1006,10 @@ throws TSException
 		// Default is true...
 		print_genesis = "true";
 	}
-	else {	print_genesis = prop_value;
+	else {
+		print_genesis = prop_value;
 	}
-	if (	(_genesis != null) &&
-		print_genesis.equalsIgnoreCase("true") ) {
+	if ( (_genesis != null) && print_genesis.equalsIgnoreCase("true") ) {
 		int size = _genesis.size();
 		if ( size > 0 ) {
 			strings.add ( "" );
@@ -1018,7 +1019,7 @@ throws TSException
 	}
 	// Currently no difference in how the output is formatted but in the
 	// future might do it differently for different intervals...
-	formatOutputNMinute (	strings, props, calendar, data_format,
+	formatOutputNMinute ( strings, props, calendar, data_format,
 				start_date, end_date, req_units, year_column );
 
 	message = null;
@@ -1047,8 +1048,8 @@ Format the time series for output.
 */
 public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List	formatted_output = null;
-	String	routine = "MinuteTS.formatOutput";
+{	List formatted_output = null;
+	String routine = "MinuteTS.formatOutput";
 	int	dl = 20;
 	String	message;
 
@@ -1060,12 +1061,12 @@ throws TSException
 
 	// First get the formatted output...
 
-	try {	formatted_output = formatOutput ( props );
+	try {
+		formatted_output = formatOutput ( props );
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-				"Formatted output is " +
-				formatted_output.size() + " lines" );
+				"Formatted output is " + formatted_output.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
@@ -1092,7 +1093,7 @@ throws TSException
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return List of strings that are written to the file.
 @param fname Name of output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
@@ -1106,7 +1107,8 @@ throws TSException
 
 	// First open the output file...
 
-	try {	stream = new PrintWriter ( new FileWriter(full_fname) );
+	try {
+		stream = new PrintWriter ( new FileWriter(full_fname) );
 	}
 	catch ( Exception e ) {
 		message = "Unable to open file \"" + full_fname + "\"";
@@ -1162,8 +1164,8 @@ private void formatOutputNMinute ( List strings, PropList props,
 	date.setMinute ( 0 );	// Always want full hours
 	DateTime end = new DateTime ( end_date );
 	end.setMinute ( 60 - _data_interval_mult );
-	int col = 0;	// col=0 is date, col=1 is first data column
-	int row = 1;	// Row within a day
+	int col = 0; // col=0 is date, col=1 is first data column
+	int row = 1; // Row within a day
 	double total = 0.0, value = 0.0;
 	int count = 0;
 	boolean do_total = false;
@@ -1179,22 +1181,19 @@ private void formatOutputNMinute ( List strings, PropList props,
 		date.lessThanOrEqualTo(end);
 		date.addInterval(_data_interval_base,_data_interval_mult) ) {
 		// Print a header if the first time or the day is 1...
-		if (	first_header ||
-			((date.getHour() == 0) && (date.getMinute() == 0)) ) {
+		if ( first_header || ((date.getHour() == 0) && (date.getMinute() == 0)) ) {
 			first_header = false;
 			strings.add ( "" );
 			b.setLength(0);
 			b.append ( "  Date/Hour  " );
 			for ( int i = 0; i < numcol; i++ ) {
 				if ( _data_interval_mult == 1 ) {
-					b.append ( "   "+
-					StringUtil.formatString(i,"%2d") + "/"+
-					StringUtil.formatString((i+12),"%2d") +
-					"  ");
+					b.append ( "   "+ StringUtil.formatString(i,"%2d") + "/"+
+					StringUtil.formatString((i+12),"%2d") + "  ");
 				}
-				else {	b.append ( "    " +
-					StringUtil.formatString(
-					i*_data_interval_mult,"%2d") + "    ");
+				else {
+					b.append ( "    " +
+					StringUtil.formatString(i*_data_interval_mult,"%2d") + "    ");
 				}
 			}
 			b.append ( " " + total_column );
@@ -1212,10 +1211,10 @@ private void formatOutputNMinute ( List strings, PropList props,
 			b.setLength(0);
 			if ( row == 1 ) {
 				// Add the date at the start of the line...
-				b.append ( date.toString(
-				DateTime.FORMAT_YYYY_MM_DD_HH));
+				b.append ( date.toString(DateTime.FORMAT_YYYY_MM_DD_HH));
 			}
-			else {	b.append ( "          " );
+			else {
+				b.append ( "          " );
 			}
 			++col;
 		}
@@ -1224,7 +1223,8 @@ private void formatOutputNMinute ( List strings, PropList props,
 		if ( isDataMissing(value) ) {
 			b.append ( "          " );
 		}
-		else {	b.append(" " + StringUtil.formatString(value,
+		else {
+			b.append(" " + StringUtil.formatString(value,
 			data_format) );
 			total += value;
 			++count;
@@ -1239,15 +1239,13 @@ private void formatOutputNMinute ( List strings, PropList props,
 				row = 2;
 				strings.add ( b.toString() );
 			}
-			else {	// Need to output the row and the total...
+			else {
+				// Need to output the row and the total...
 				if ( do_total || (count == 0) ) {
-					b.append(" " +
-					StringUtil.formatString(total,
-					data_format) );
+					b.append(" " + StringUtil.formatString(total,data_format) );
 				}
-				else {	b.append(" " +
-					StringUtil.formatString(total/count,
-					data_format) );
+				else {
+					b.append(" " + StringUtil.formatString(total/count, data_format) );
 				}
 				strings.add ( b.toString() );
 				row = 1;
@@ -1269,15 +1267,13 @@ Return a data point for the date.
 */
 public TSData getDataPoint ( DateTime date )
 {	if ( _tsdata == null ) {
-		// Allocate it (this is the only method that uses it and don't
-		// want to wast memory)...
+		// Allocate it (this is the only method that uses it and don't want to waste memory)...
 		_tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "MinuteTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 +
-			")" );
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		_tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return _tsdata;
@@ -1290,9 +1286,8 @@ public TSData getDataPoint ( DateTime date )
 				_data_units, new String(_data_flags
 				[_month_pos][_day_pos][_interval_pos]), 0 );
 	}
-	else {	_tsdata.setValues ( date,
-				_data[_month_pos][_day_pos][_interval_pos],
-				_data_units, "", 0 );
+	else {
+		_tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos], _data_units, "", 0 );
 	}
 	return _tsdata;
 }
@@ -1320,7 +1315,8 @@ public int [] getDataPosition ( DateTime date )
 		// We are OK doing a straight retrieval
 		//tzshift = 0;
 	}
-	else {	if ( Message.isDebugOn ) {
+	else {
+		if ( Message.isDebugOn ) {
 			Message.printWarning ( 10, "MinuteTS.getDataPosition",
 			"Do not know how to shift time zones yet (\"" + tz1 +
 			"\" to \"" + tz + "\"" );
@@ -1340,7 +1336,7 @@ public int [] getDataPosition ( DateTime date )
 
 	_month_pos = date.getAbsoluteMonth() - _date1.getAbsoluteMonth();
 
-        // Calculate the day position of the data...
+    // Calculate the day position of the data...
 
 	_day_pos = date.getDay() - 1;
 
@@ -1349,8 +1345,7 @@ public int [] getDataPosition ( DateTime date )
 	// minute data by interval.  Note that the recording at 00:00 of the
 	// current day is the first reading of the day!
 
-	_interval_pos = (date.getHour()*60 + date.getMinute())/
-			_data_interval_mult;
+	_interval_pos = (date.getHour()*60 + date.getMinute())/_data_interval_mult;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 50, "MinuteTS.getDataPosition",

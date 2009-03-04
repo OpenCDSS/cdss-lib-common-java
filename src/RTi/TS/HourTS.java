@@ -122,12 +122,9 @@ import RTi.Util.Time.TimeUtil;
 
 /**
 The HourTS class is the base class for hourly time series.  Additional hour
-time series can be extended if the allocateDataSpace() and set/get methods are
-overridden.
+time series can be extended if the allocateDataSpace() and set/get methods are overridden.
 */
-public class HourTS 
-extends TS
-implements Cloneable, Serializable, Transferable {
+public class HourTS extends TS implements Cloneable, Serializable, Transferable {
 
 /**
 The DataFlavor for transferring this specific class.
@@ -606,7 +603,7 @@ hourly time series are always output in a matrix summary format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalanderYear (but may be made sensitive to the data type or units in the
@@ -1094,7 +1091,7 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 		monthToStart = 1;
 		monthToEnd = 12;
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+	else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
 		// Need to adjust for the irrigation year to make sure
 		// that the first month is Nov and the last is Oct...
 		if ( startDate.getMonth() < 11 ) {
@@ -1195,18 +1192,15 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 			strings.add ( "" );
 			// "date" will be at the end of the year...
 			if ( calendar.equalsIgnoreCase("WaterYear") ) {
-				strings.add (
-"                                                Water Year " +
+				strings.add ("                                                Water Year " +
 				date.getYear() + " (Oct " + (date.getYear() - 1) + " to Sep " + date.getYear() + ")" );
 			}
-			else if ( calendar.equalsIgnoreCase("IrrigationYear") ){
-				strings.add ( 
-"                                                 Irrigation Year " +
+			else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")){
+				strings.add ( "                                                 Irrigation Year " +
 				date.getYear() + " (Nov " + (date.getYear() - 1) + " to Oct " + date.getYear() + ")" );
 			}
 			else {
-			    strings.add ( 
-"                                                                    Calendar Year " +
+			    strings.add ( "                                                                    Calendar Year " +
 				date.getYear() );
 			}
 			strings.add ( "" );
@@ -1217,7 +1211,7 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			}
-			else if ( calendar.equalsIgnoreCase("IrrigationYear") ){
+			else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")){
 				// Irrigation year...
 				strings.add (
 "Day     Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct       " );
@@ -1251,7 +1245,8 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 					if ( calendar.equalsIgnoreCase("WaterYear") && (columnMonth > 9) ) {
 						--year;
 					}
-					else if (calendar.equalsIgnoreCase("IrrigationYear") && (columnMonth > 10) ) {
+					else if ( (calendar.equalsIgnoreCase("IrrigationYear") ||
+						calendar.equalsIgnoreCase("NovToOct")) && (columnMonth > 10) ) {
 						--year;
 					}
 					nvalidDaysInMonth = TimeUtil.numDaysInMonth ( columnMonth, year );
@@ -1351,10 +1346,8 @@ private void formatOutput24Hour ( List strings, PropList props, String calendar,
 			strings.add ( "  A water year spans Oct of the previous calendar year to Sep of the current " +
 			"calendar year (all within the indicated water year).");
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
-			strings.add ( "  Years shown are irrigation years." );
-			strings.add ( "  An irrigation year spans Nov of the previous calendar year to Oct of the current " +
-			"calendar year (all within the indicated irrigation year)." );
+		else if ( calendar.equalsIgnoreCase("IrrigationYear" ) || calendar.equalsIgnoreCase("NovToOct" )){
+			strings.add ( "  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
 		}
 		else {
 		    strings.add("  Years shown are calendar years.");

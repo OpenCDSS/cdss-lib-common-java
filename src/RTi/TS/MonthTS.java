@@ -133,22 +133,17 @@ implements Cloneable, Serializable, Transferable
 /**
 The DataFlavor for transferring this specific class.
 */
-public static DataFlavor monthTSFlavor = new DataFlavor(RTi.TS.MonthTS.class, 
-	"RTi.TS.MonthTS");
+public static DataFlavor monthTSFlavor = new DataFlavor(RTi.TS.MonthTS.class, "RTi.TS.MonthTS");
 
-private	double[][]	_data;		// This is the data space for monthly
-protected char [][][]	_data_flags;	// Data flags for each daily value.  The
-					// dimensions are [year][month][flags]
-protected int		_min_amon;	// Minimum absolute month stored.
-protected int		_max_amon;	// Maximum absolute month stored.
-private int []		_pos = null;	// Use to return data without creating
-					// memory all the time.
-protected TSData	_tsdata;	// TSData object that is reused when
-					// getDataPoint() is called.
+private	double[][] _data; // This is the data space for monthly
+protected char [][][] _data_flags; // Data flags for each daily value.  The dimensions are [year][month][flags]
+protected int _min_amon; // Minimum absolute month stored.
+protected int _max_amon; // Maximum absolute month stored.
+private int [] _pos = null; // Use to return data without creating memory all the time.
+protected TSData _tsdata; // TSData object that is reused when getDataPoint() is called.
 
 /**
-Constructor.  Set the dates and call allocateDataSpace() to create space for
-data.
+Constructor.  Set the dates and call allocateDataSpace() to create space for data.
 */
 public MonthTS ( )
 {	super ();
@@ -156,8 +151,7 @@ public MonthTS ( )
 }
 
 /**
-Copy constructor.  Everything is copied by calling copyHeader() and then
-copying the data values.
+Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 @param ts MonthTS to copy.
 */
 public MonthTS ( MonthTS ts )
@@ -187,8 +181,7 @@ is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
 @param initial_value Initial value (null is allowed and will result in the
 flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if
-necessary, but
+@param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
@@ -685,7 +678,7 @@ monthly time series are always output in a matrix summary format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"
+<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
 <td>CalenderYear (but may be made sensitive to the data type or units in the
@@ -853,22 +846,21 @@ throws TSException
 		Message.printWarning ( 2, "MonthTS.formatOutput", message );
 		throw new TSException ( message );
 	}
-	int		column, dl = 20, row;
-	List		strings = new Vector (20,10);
-	PropList	props = null;
-	String		calendar = "WaterYear", 
-			format = "", prop_value = null, year_column = "";
-	String		data_format = "%9.1f";
+	int column, dl = 20, row;
+	List strings = new Vector (20,10);
+	PropList props = null;
+	String calendar = "WaterYear", format = "", prop_value = null, year_column = "";
+	String data_format = "%9.1f";
 
 	// If the property list is null, allocate one here so we don't have to
 	// constantly check for null...
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the
-		// time.
+		// Create a PropList so we don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+		props = proplist;
 	}
 
 	// Get the important formatting information from the property list...
@@ -921,7 +913,8 @@ throws TSException
 		// Default to "CalendarYear"...
 		calendar = "CalendarYear";
 	}
-	else {	// Set to requested format...
+	else {
+		// Set to requested format...
 		calendar = prop_value;
 	}
 
@@ -1096,14 +1089,16 @@ throws TSException
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+		else if ( calendar.equalsIgnoreCase("IrrigationYear") ||
+			calendar.equalsIgnoreCase("NovToOct")) {
 			// Irrigation year...
 			strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
-		else {	// Calendar year...
+		else {
+			// Calendar year...
 			strings.add (
 "Year    Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       Oct       Nov       Dec     " + year_column );
 			strings.add (
@@ -1126,7 +1121,7 @@ throws TSException
 			start_date.setMonth ( 1 );
 			end_date.setMonth ( 12 );
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear") ) {
+		else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
 			// Need to adjust for the irrigation year to make sure
 			// that the first month is Nov and the last is Oct...
 			if ( start_date.getMonth() < 11 ) {
@@ -1168,8 +1163,7 @@ throws TSException
 		}
 		// Calculate the number of years...
 		// up with the same month as the start month...
-		int num_years = (end_date.getAbsoluteMonth() -
-				start_date.getAbsoluteMonth() + 1)/12;
+		int num_years = (end_date.getAbsoluteMonth() - start_date.getAbsoluteMonth() + 1)/12;
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,
 			"Printing " + num_years + " years of summary for " +
@@ -1329,7 +1323,8 @@ throws TSException
 			// Default is true...
 			print_notes = "true";
 		}
-		else {	print_notes = prop_value;
+		else {
+			print_notes = prop_value;
 		}
 		if ( print_notes.equalsIgnoreCase("true") ) {
 			strings.add ( "" );
@@ -1340,13 +1335,13 @@ throws TSException
 				strings.add (
 				"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 			}
-			else if ( calendar.equalsIgnoreCase("IrrigationYear" )){
+			else if ( calendar.equalsIgnoreCase("IrrigationYear" ) ||
+				calendar.equalsIgnoreCase("NovToOct" )){
 				strings.add (
-				"  Years shown are irrigation years." );
-				strings.add (
-				"  An irrigation year spans Nov of the previous calendar year to Oct of the current calendar year (all within the indicated irrigation year)." );
+				"  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
 			}
-			else {	strings.add (
+			else {
+				strings.add (
 				"  Years shown are calendar years." );
 			}
 			strings.add (
