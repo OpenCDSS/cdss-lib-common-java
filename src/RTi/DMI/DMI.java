@@ -828,6 +828,7 @@ throws Exception {
 		_left_id_delim = "\"";
 		_right_id_delim = "\"";	
 		_string_delim = "'";
+        __port = 1521;
 		_database_engine = _DBENGINE_ORACLE;
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
@@ -2442,6 +2443,16 @@ throws SQLException, Exception {
 			connUrl = "jdbc:h2:file:" + f.getAbsolutePath() + ";IFEXISTS=TRUE";
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
+        else if (_database_engine == _DBENGINE_ORACLE ) {
+            __secure = true;
+			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
+			Class.forName( "oracle.jdbc.OracleDriver");
+			connUrl = "jdbc:oracle:thin:@//"
+				+ __database_server + ":"
+                + __port + "/cen.arkansas";
+            // setDatabaseName(__database_name);
+			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
+        }
 		else {	
 			printStatusOrDebug(dl, routine, "Unknown database engine, throwing exception.");
 			throw new Exception("Don't know what JDBC driver to use for database type " 
@@ -2459,7 +2470,7 @@ throws SQLException, Exception {
 		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
 		
-	if ( __secure ) {
+    if ( __secure ) {
 		printStatusOrDebug(dl, routine, "Calling getConnection(" 
 		+ connUrl + ", " + system_login + ", " + system_password + ") via the Java DriverManager.");
 	}
@@ -2468,8 +2479,11 @@ throws SQLException, Exception {
 		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
 	}
 	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
-
-	printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
+    
+    if (_database_engine == _DBENGINE_ORACLE && __database_name != null ) {
+        __connection.createStatement().execute("alter session set current_schema = " + __database_name );
+    }
+    printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
 	__connection.setAutoCommit(__autoCommit);
 	
 	printStatusOrDebug(dl, routine, "Connected!");
