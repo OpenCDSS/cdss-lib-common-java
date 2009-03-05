@@ -156,24 +156,30 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
 }
 
 /**
- * Returns the command log for the specified phase
+ * Returns the command log for the specified phase, guaranteed to be non-null.
  * @param phase - see CommandPhaseType.
  * @return command log as a list of CommandLogRecord
  */
 public List getCommandLog(CommandPhaseType phase)
-  {
-    List v = null;
+{
     if ( phase == CommandPhaseType.INITIALIZATION ) {
-        v =  __initialization_log_Vector;
+        return __initialization_log_Vector;
     }
     else if ( phase == CommandPhaseType.DISCOVERY ) {
-        v = __discovery_log_Vector;
+        return __discovery_log_Vector;
     }
     else if ( phase == CommandPhaseType.RUN ) {
-        v = __run_log_Vector;
+        return __run_log_Vector;
     }
-    return v;
-  }
+    else {
+        // Return all records
+        List v = new Vector();
+        v.addAll(__initialization_log_Vector);
+        v.addAll(__discovery_log_Vector);
+        v.addAll(__run_log_Vector);
+        return v;
+    }
+}
 
 /**
 Refresh the command status for a phase.  This should normally only be called when

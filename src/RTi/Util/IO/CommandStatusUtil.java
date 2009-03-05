@@ -205,6 +205,28 @@ public static String getCommandLogHTML(CommandStatusProvider csp)
     return toolTip;
 }
 
+/**
+Get the display name for a CommandLogRecord class.  This is used, for example when displaying the
+full list of problems.
+@param log CommandLogRecord instance.
+*/
+public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
+{
+    // Have to check the class name because instanceof will return true for anything derived from
+    // CommandLogRecord
+    String className = log.getClass().getSimpleName();
+    if ( className.equals("CommandLogRecord") ) {
+        // Using base class for log record class - general command run-time error but indicate whether
+        // the problem was generated in initialization, discover, or run
+        // TODO SAM 2009-03-06 Need to figure out whether phases are reflected in the string
+        return "CommandRun";
+    }
+    else {
+        // The class name must be specific and is used for output.
+        return className;
+    }
+}
+
   /**
    * Returns the command log records ready for display as text, suitable
    * for general output.  Rudimentary formatting is done to make the output readable,
@@ -388,25 +410,29 @@ Given a list of CommandStatusProvider, return a list of all the log records.  Th
 providing the full list for reporting.
 @param commandStatusProviderList List of CommandStatusProvider (e.g., list of commands from a command
 processor).
-@param commandPhase command phase to return or null to return all.
+@param commandPhase command phase to return or null to return all (currently null does not return anything).
+@return the list of log records for the given command phase
 */
 public static List getLogRecordList ( List commandStatusProviderList, CommandPhaseType commandPhase )
-{	String routine = "CommandStatusUtil.getLogRecordList";
-	List logRecordList = new Vector();
+{	//String routine = "CommandStatusUtil.getLogRecordList";
+	List logRecordList = new Vector(); // Returned list of log records
 	int size = 0;
 	if ( commandStatusProviderList != null ) {
 		size = commandStatusProviderList.size();
 	}
-	CommandStatusProvider csp = null;
-	CommandStatus status = null;
-	List statusLogRecordList = null;
-	CommandLogRecord logRecord = null;
+	CommandStatusProvider csp = null; // For example a Command
+	CommandStatus status = null; // Status for the command
+	List statusLogRecordList = null; // List of status log records for the command
+	CommandLogRecord logRecord = null; // Single log record
 	for ( int iCommandStatusProvider = 0; iCommandStatusProvider < size; iCommandStatusProvider++ ) {
 		// Get the information from a single command status provider
 		csp = (CommandStatusProvider)commandStatusProviderList.get(iCommandStatusProvider);
+		//Message.printStatus(2, routine, "Getting log records for " + csp );
 		status = csp.getCommandStatus();
 		statusLogRecordList = status.getCommandLog(commandPhase);
 		int statusLogRecordListSize = statusLogRecordList.size();
+		//Message.printStatus(2, routine, "Command " + iCommandStatusProvider + " has " + statusLogRecordListSize +
+		//    " log records." );
 		for ( int iLogRecord = 0; iLogRecord < statusLogRecordListSize; iLogRecord++ ) {
 			// Append to full list of log records
 			// Also set the command instance in the log record here since it was not

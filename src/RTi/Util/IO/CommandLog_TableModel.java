@@ -140,15 +140,7 @@ public Object getValueAt(int row, int col) {
 		case COL_SEVERITY:
 			return log.getSeverity().toString();
 		case COL_TYPE:
-			String className = log.getClass().getSimpleName();
-			if ( className.equals("CommandLogRecord") ) {
-				// Using base class for log record class - general command run-time error
-				return "CommandRuntimeError";
-			}
-			else {
-				// The class name must be specific.
-				return className;
-			}
+			return CommandStatusUtil.getCommandLogRecordDisplayName(log);
 		case COL_COMMAND:
 			CommandStatusProvider csp = log.getCommandStatusProvider();
 			if ( csp == null ) {
