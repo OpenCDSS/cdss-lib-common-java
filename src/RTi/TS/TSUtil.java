@@ -7946,14 +7946,13 @@ throws TSException
 		// over the place...
 		props = new PropList ( "TSUtil.formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+	    props = proplist;
 	}
 
-	// Loop through the time series and generate a summary for each time
-	// series and append to the vector...
+	// Loop through the time series and generate a summary for each time series and append to the vector...
 
-	// Need to add properties and corresponding code to only print one
-	// header, etc.
+	// Need to add properties and corresponding code to only print one header, etc.
 
 	int	size = tslist.size();
 	TS	ts = null;
@@ -7972,31 +7971,26 @@ throws TSException
 
 	// Now check to see if we are supposed to write to to a writer...
 
-	boolean opened_here = false;	// Indicates whether Writer was opened
-					// in this routine.
+	boolean opened_here = false; // Indicates whether Writer was opened in this routine.
 	if ( fp == null ) {
 		// Check to see if a filename has been specified...
 		if ( full_fname != null ) {
-			try {	fp = new PrintWriter (
-				new FileWriter(full_fname) );
+			try {
+			    fp = new PrintWriter ( new FileWriter(full_fname) );
 				opened_here = true;
 			}
 			catch ( Exception e ) {
-				String message = "Unable to open file \"" +
-					full_fname + "\"";
+				String message = "Unable to open file \"" + full_fname + "\"";
 				opened_here = false;
 				throw new TSException ( message );
 			}
 		}
 	}
 	if ( fp != null ) {
-		// Writer has been specified or opened in the previous step
-		// so write to it...
+		// Writer has been specified or opened in the previous step so write to it...
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Formatted output is " +
-				formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
