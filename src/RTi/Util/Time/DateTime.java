@@ -307,22 +307,22 @@ public static final int DATE_STRICT	= 0x1000;
 Indicates that dates need not be treated strictly.  This is useful for faster
 processing of dates in loop iterators.
 */
-public static final int DATE_FAST	= 0x2000;
+public static final int DATE_FAST = 0x2000;
 
 /**
 Create a DateTime with zero data and blank time zone, which is the default.
 */
-public static final int DATE_ZERO	= 0x4000;
+public static final int DATE_ZERO = 0x4000;
 
 /**
 Create a DateTime with the current date and time.
 */
-public static final int DATE_CURRENT	= 0x8000;
+public static final int DATE_CURRENT = 0x8000;
 
 /**
 Create a DateTime and only use the time fields.  This works in conjunction with the precision flag.
 */
-public static final int TIME_ONLY	= 0x10000;
+public static final int TIME_ONLY = 0x10000;
 
 /**
 The following are meant to be used in the constructor and will result in the
@@ -375,8 +375,7 @@ another precision flag).
 public static final int PRECISION_TIME_ZONE= 0x20000;
 
 // Alphabetize the formats, but the numbers may not be in order because they
-// are added over time (do not renumber because some dependent classes may not
-// get recompiled)...
+// are added over time (do not renumber because some dependent classes may not get recompiled).
 /**
 The following are used to format date/time output.
 <pre>
@@ -3640,6 +3639,8 @@ Set the date using the year and a Julian day.
 */
 public void setToJulianDay ( int y, int julday )
 {	__year = y;
+    // Need to set here because leap year is tested in the following loop
+    __isleap = TimeUtil.isLeapYear( __year );
 	// Loop through the static Julian day data...
 	int offset = 0;
 	for ( int i = 1; i < 12; i++ ) {
