@@ -44,66 +44,135 @@ extended for more complicated analysis.  At this time, regression is not
 implemented (only storage is).  This class was implemented as a base class for
 the RTi.TS.TSRegression class.  The actual regression occurs by calling
 MathUtil.regress() (or TSUtil regression methods).  This generic code is
-typically then called to fill in the information in this class and possibly a
-derived class.
+typically then called to fill in the information in this class and possibly a derived class.
 <p>
 
 The regression determines the values of "a" and "b" in the relationship
 Y = a + b * X, where Y is a value to be determined (e.g., missing data in a
 dependent time series), a is the Y-intercept, b is the slope, and X is the known
 value (e.g., known value in independent time series).  The correlation
-coefficient (r) and RMS error (RMSE) are assumed to be computed in the normal
-fashion.
+coefficient (r) and RMS error (RMSE) are assumed to be computed in the normal fashion.
 */
 public class Regression
 {
 
+/**
+If true, then the value of A is forced in the computation code.
+*/
 protected boolean _force_intercept = false;
-					// If true, then the value of A is
-					// forced in the computation code.
-protected double _a = 0.0;		// Y-intercept of best fit line.
-protected double _b = 0.0;		// Slope of best fit line.
-protected int _n1 = 0;			// Number of non-missing points in X and
-					// Y
-protected int _n2 = 0;			// Number of non-missing points in X
-					// that are not in _n1.
-protected double _rmse = 0.0;		// RMS Error - untransformed data
-protected double _transformed_rmse =0.0;// RMS Error for transformed data
-protected double _r = 0.0;		// Correlation coefficient
-protected boolean _is_analyzed = false;	// Indicates whether the analysis has
-					// been completed.
-protected int _lag_intervals = 0;	// Intervals that the second time
-					// series is lagged compared to the
-					// first when performing the regression
-					// analysis.  Need to be double?
-
-protected double _max_x1 = 0.0;		// Max value of X in N1.
-protected double _max_y1 = 0.0;		// Max value of Y in N1.
-protected double _min_x1 = 0.0;		// Min value of X in N1.
-protected double _min_y1 = 0.0;		// Min value of Y in N1.
-
-protected double _mean_x = 0.0;		// Mean of X in N1 + N2.
-protected double _mean_x1 = 0.0;	// Mean of X in N1.
-protected double _mean_x2 = 0.0;	// Mean of X in N2.
-protected double _mean_y = 0.0;		// Mean of Y in N1 + N2.
-protected double _mean_y1 = 0.0;	// Mean of Y in N1.
+/**
+Y-intercept of best fit line.
+*/
+protected double _a = 0.0;
+/**
+Slope of best fit line.
+*/
+protected double _b = 0.0;
+/**
+Number of non-missing points in X and Y
+*/
+protected int _n1 = 0;
+/**
+Number of non-missing points in X that are not in _n1.
+*/
+protected int _n2 = 0;
+/**
+RMS Error - for untransformed data.
+*/
+protected double _rmse = 0.0;
+/**
+RMS Error for transformed data.
+*/
+protected double _transformed_rmse = 0.0;
+/**
+Correlation coefficient.
+*/
+protected double _r = 0.0;
+/**
+Indicates whether the analysis has been completed.
+*/
+protected boolean _is_analyzed = false;
+/**
+Intervals that the second time series is lagged compared to the first when performing the regression
+analysis.
+TODO SAM 2009-03-10 Need to be double?
+*/
+protected int _lag_intervals = 0;
+/**
+Maximum value of X in N1.
+*/
+protected double _max_x1 = 0.0;
+/**
+Maximum value of Y in N1.
+*/
+protected double _max_y1 = 0.0;
+/**
+Minimum value of X in N1.
+*/
+protected double _min_x1 = 0.0;
+/**
+Minimum value of Y in N1.
+*/
+protected double _min_y1 = 0.0;
+/**
+Mean of X in N1 + N2.
+*/
+protected double _mean_x = 0.0;
+/**
+Mean of X in N1.
+*/
+protected double _mean_x1 = 0.0;
+/**
+Mean of X in N2.
+*/
+protected double _mean_x2 = 0.0;
+/**
+Mean of Y in N1 + N2.
+*/
+protected double _mean_y = 0.0;
+/**
+Mean of Y in N1.
+*/
+protected double _mean_y1 = 0.0;
+/**
+Mean of estimated Y in N1.
+*/
 protected double _mean_y1_estimated = 0.0;
-					// Mean of estimated Y in N1.
-
-protected double _stddev_x = 0.0;	// Std. dev. of X in N1 + N2.
-protected double _stddev_x1 = 0.0;	// Std. dev. of X in N1.
-protected double _stddev_x2 = 0.0;	// Std. dev. of X in N2.
-protected double _stddev_y = 0.0;	// Std. dev. of X in N1 + N2.
-protected double _stddev_y1 = 0.0;	// Std. dev. of Y in N1.
+/**
+Standard deviation of X in N1 + N2.
+*/
+protected double _stddev_x = 0.0;
+/**
+Standard deviation of X in N1.
+*/
+protected double _stddev_x1 = 0.0;
+/**
+Standard deviation of X in N2.
+*/
+protected double _stddev_x2 = 0.0;
+/**
+Standard deviation of X in N1 + N2.
+*/
+protected double _stddev_y = 0.0;
+/**
+Standard deviation of Y in N1.
+*/
+protected double _stddev_y1 = 0.0;
+/**
+Standard deviation of estimated Y in N1.
+*/
 protected double _stddev_y1_estimated = 0.0;
-					// Std. dev. of estimated Y in N1.
-
-protected double [] _X1;		// Array of X1 values
-protected double [] _Y1;		// Array of Y1 values
+/**
+Array of X1 values.
+*/
+protected double [] _X1;
+/**
+Array of Y1 values.
+*/
+protected double [] _Y1;
 
 /**
-Default constructor.  Typically the data in this class are set by the
-MathUtil.regress*() methods.
+Default constructor.  Typically the data in this class are set by the MathUtil.regress*() methods.
 */
 public Regression ()
 {
@@ -123,8 +192,7 @@ throws Throwable {
 /**
 Set whether the intercept (A) for the relationship is forced.
 @param force_intercept If true, then the value of A has been forced.  The
-calculation of B should therefore use different equations (MathUtil.regress
-handles the option).
+calculation of B should therefore use different equations (MathUtil.regress handles the option).
 */
 public boolean forceIntercept ( boolean force_intercept )
 {	_force_intercept = force_intercept;
@@ -155,8 +223,8 @@ public double getB ()
 }
 
 /**
-Return the correlation coefficent (r) for the relationship (-1 to 1).
-@return The correlation coefficent for (r) the relationship (-1 to 1).
+Return the correlation coefficient (r) for the relationship (-1 to 1).
+@return The correlation coefficient for (r) the relationship (-1 to 1).
 */
 public double getCorrelationCoefficient ()
 {	return _r;
@@ -166,8 +234,7 @@ public double getCorrelationCoefficient ()
 Return The number of data intervals that the second series has been lagged
 compared to the first.  This is used by higher-level code when performing an
 analysis.  This is a new feature that is being tested.
-@return The number of data intervals that the second series has been lagged
-compared to the first.
+@return The number of data intervals that the second series has been lagged compared to the first.
 */
 public int getLagIntervals()
 {	return _lag_intervals;
@@ -319,8 +386,7 @@ public double getStandardDeviationY1 ()
 
 /**
 Return the standard deviation for the estimated dependent array in the N1 space.
-@return the standard deviation for the estimated dependent array in the N1
-space.
+@return the standard deviation for the estimated dependent array in the N1 space.
 */
 public double getStandardDeviationY1Estimated ()
 {	return _stddev_y1_estimated;
@@ -395,8 +461,7 @@ public void setCorrelationCoefficient ( double r )
 /**
 Set the number of data intervals that the second series has been lagged compared
 to the first.  This is used by higher-level code when performing an analysis.
-@param lag_intervals Number of intervals the second data set has been lagged
-compared to the first.
+@param lag_intervals Number of intervals the second data set has been lagged compared to the first.
 */
 public void setLagIntervals ( int lag_intervals )
 {	_lag_intervals = lag_intervals;
@@ -508,8 +573,7 @@ public void setRMSE ( double rmse )
 
 /**
 Set the standard deviation for the independent data in the N1 + N2 space.
-@param stddev_x Standard deviation for the independent data in the N1 + N2
-space.
+@param stddev_x Standard deviation for the independent data in the N1 + N2 space.
 */
 public void setStandardDeviationX ( double stddev_x )
 {	_stddev_x = stddev_x;
@@ -533,8 +597,7 @@ public void setStandardDeviationX2 ( double stddev_x2 )
 
 /**
 Set the standard deviation for the dependent data in the N1 + N2 space.
-@param stddev_y Standard deviation for the dependent data in the N1 + N2
-space.
+@param stddev_y Standard deviation for the dependent data in the N1 + N2 space.
 */
 public void setStandardDeviationY ( double stddev_y )
 {	_stddev_y = stddev_y;
@@ -550,8 +613,7 @@ public void setStandardDeviationY1 ( double stddev_y1 )
 
 /**
 Set the standard deviation for the estimated dependent data in the N1 space.
-@param stddev_y1_estimated Standard deviation for the dependent data in the N1
-space.
+@param stddev_y1_estimated Standard deviation for the dependent data in the N1 space.
 */
 public void setStandardDeviationY1Estimated ( double stddev_y1_estimated )
 {	_stddev_y1_estimated = stddev_y1_estimated;
@@ -584,8 +646,7 @@ public void setY1 ( double [] y1 )
 /**
 Return a string representation of the data.
 @return a string representation of the object, which is a verbose listing
-of A, B, etc.  Typically this method needs to be overloaded in a more specific
-class.
+of A, B, etc.  Typically this method needs to be overloaded in a more specific class.
 */
 public String toString ()
 {	if ( _is_analyzed ) {
@@ -596,8 +657,9 @@ public String toString ()
 		"RMSE = " + _rmse + ", " +
 		"R = " + _r;
 	}
-	else {	return "Analysis not performed";
+	else {
+	    return "Analysis not performed";
 	}
 }
 
-} // End Regression
+}
