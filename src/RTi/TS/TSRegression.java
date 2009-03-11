@@ -150,8 +150,7 @@ import RTi.Util.Time.TimeUtil;
 The TSRegression class performs regression, MOVE1, and MOVE2 analysis on time
 series.  The RTi.Util.Math.Regression base class stores some data, as
 appropriate (e.g., total-period, non-monthly, parameters and results).
-The results can then be used for filling (e.g., by the TSUtil.fillRegress()
-method.
+The results can then be used for filling (e.g., by the TSUtil.fillRegress() method.
 </P>
 <P>
 TSRegression allows provides a relatively simple interface to programmers,
@@ -160,8 +159,7 @@ performance problems if many combinations of time series are analyzed.  To allow
 for performance optimization, a constructor is provided that accepts the
 data arrays.  The calling code must track when a time series is reused and
 should request the arrays from a previous TSRegression in order to pass to a
-new TSRegression.  This form of the constructur will likely be used only by
-advanced tools.
+new TSRegression.  This form of the constructor will likely be used only by advanced tools.
 </P>
 */
 public class TSRegression extends Regression
@@ -169,113 +167,86 @@ public class TSRegression extends Regression
 
 // Data members...
 
-private int		ANALYSIS_OLS = 0;	// Internal method indicators
-private int		ANALYSIS_MOVE1 = 1;	// to increase performance
-private int		ANALYSIS_MOVE2 = 2;
+private int ANALYSIS_OLS = 0;	// Internal method indicators
+private int ANALYSIS_MOVE1 = 1;	// to increase performance
+private int ANALYSIS_MOVE2 = 2;
 
-private int		_AnalysisMethod_int = ANALYSIS_OLS;
-private String		_AnalysisMethod = "OLS";
+private int _AnalysisMethod_int = ANALYSIS_OLS;
+private String _AnalysisMethod = "OLS";
 
-private TS		__yTSpredicted = null;
-private TS		__yTSresidual  = null;
+private TS __yTSpredicted = null;
+private TS __yTSresidual  = null;
 
-private	TS		_yTS;		// Dependent, Y.
-private	TS		_xTS;		// Independent, X.
-private double []	__X;		// One equation X array (independent).
-private double [][]	__X_monthly;	// Monthly equation X array.
-					// (independent).
-private double []	__X1;		// One equation X1 array (independent).
-private double [][]	__X1_monthly;	// Monthly equation X1 array.
-					// (independent).
-private double []	__Y1;		// One equation Y1 array (dependent).
-private double [][]	__Y1_monthly;	// Monthly equation Y1 array.
-// REVISIT SAM 2005-08-05 The following arrays are envisioned to be used by the
+private	TS _yTS; // Dependent, Y.
+private	TS _xTS; // Independent, X.
+private double [] __X; // One equation X array (independent).
+private double [][]	__X_monthly; // Monthly equation X array (independent).
+private double [] __X1; // One equation X1 array (independent).
+private double [][] __X1_monthly; // Monthly equation X1 array (independent).
+private double [] __Y1; // One equation Y1 array (dependent).
+private double [][]	__Y1_monthly; // Monthly equation Y1 array.
+// TODO SAM 2005-08-05 The following arrays are envisioned to be used by the
 // mixed station analysis to optimize data processing.  Basically the data
 // arrays will be extracted up front and re-used.
-private boolean		__dependent_arrays_provided = false;
-private boolean		__independent_arrays_provided = false;
+private boolean __dependent_arrays_provided = false;
+private boolean __independent_arrays_provided = false;
 					// Indicate whether the dependent and
 					// independent data are provided in
 					// array format (instead of just the
 					// time series format).
-private PropList	_props;		// Property list indicating how
-					// regression should be done.
-private DateTime	_dep_analysis_period_start;
-private DateTime	_dep_analysis_period_end;
-					// Analysis period for the dependent
-					// (Y) time series.
-private DateTime	_ind_analysis_period_start;
-private DateTime	_ind_analysis_period_end;
-					// Analysis period for the independent
-					// (X) time series.  For OLS and MOVE2,
-					// this is the same as the dependent
-					// analysis period.  For MOVE2 it can be
+private PropList _props; // Property list indicating how regression should be done.
+private DateTime _dep_analysis_period_start;
+private DateTime _dep_analysis_period_end; // Analysis period for the dependent (Y) time series.
+private DateTime _ind_analysis_period_start;
+private DateTime _ind_analysis_period_end;
+					// Analysis period for the independent (X) time series.  For OLS and MOVE2,
+					// this is the same as the dependent analysis period.  For MOVE2 it can be
 					// different.
-private DateTime	_fill_period_start;
-private DateTime	_fill_period_end;
-					// Fill period for the dependent - used
-					// to compute error when _filling is
-					// true.
+private DateTime _fill_period_start;
+private DateTime _fill_period_end; // Fill period for the dependent - used to compute error when _filling is true.
 
-private int []		_n1_monthly;	// _n1 on a monthly basis - the number
-					// of non-missing points in X and Y in
+private int [] _n1_monthly;	// _n1 on a monthly basis - the number of non-missing points in X and Y in
 					// the analysis period.
-private int []		_n2_monthly;	// _n2 on a monthly basis - the number
-					// of non-missing points in X and Y in
-					// the analysis period.
-private boolean		__force_intercept = false;
-					// Indicate the intercept to force in
-					// equations - currently applies to 1
-					// all equations.
-private double		__intercept = 0.0;
-					// The intercept to force.
-private double []	_a_monthly;	// _a on a monthly basis.
-private double []	_b_monthly;	// _b on a monthly basis.
-private double []	_rmse_monthly;	// RMSE on a monthly basis
-private double []	_transformed_rmse_monthly;
-					// transformed RMS error on a monthly
-					// basis
-private boolean []	_is_analyzed_monthly;
-					// Indicates whether analysis results
-					// are available for monthly analysis.
-private double []	_r_monthly;	// _correlationCoeff on a monthly basis
-private boolean		_analyzeLog = false;
-					// Indicates if the time series are
-					// correlated by taking the log10 of
-					// the data.
-private boolean		_analyzeMonthly = false;
-					// Indicates if the time series are
-					// correlated on a monthy basis.
-private boolean []	_analyze_month;	// Indicates the months to analyze.
-private int []		_analyze_month_list;
-					// List of month numbers to analyze.
-private double []	_X_max_monthly;
-private double []	_X1_max_monthly;
-private double []	_X2_max_monthly;
-private double []	_Y1_max_monthly;
+private int [] _n2_monthly; // _n2 on a monthly basis - the number
+					// of non-missing points in X and Y in the analysis period.
+private boolean __force_intercept = false;
+					// Indicate the intercept to force in equations - currently applies to 1 all equations.
+private double __intercept = 0.0; // The intercept to force.
+private double [] _a_monthly; // _a on a monthly basis.
+private double [] _b_monthly; // _b on a monthly basis.
+private double [] _rmse_monthly; // RMSE on a monthly basis
+private double [] _transformed_rmse_monthly; // transformed RMS error on a monthly basis
+private boolean [] _is_analyzed_monthly; // Indicates whether analysis results are available for monthly analysis.
+private double [] _r_monthly; // _correlationCoeff on a monthly basis
+private boolean _analyzeLog = false; // Indicates if the time series are correlated by taking the log10 of the data.
+private boolean _analyzeMonthly = false; // Indicates if the time series are correlated on a monthy basis.
+private boolean [] _analyze_month; // Indicates the months to analyze.
+private int [] _analyze_month_list; // List of month numbers to analyze.
+private double [] _X_max_monthly;
+private double [] _X1_max_monthly;
+private double [] _X2_max_monthly;
+private double [] _Y1_max_monthly;
 
-private double []	_X_min_monthly;
-private double []	_X1_min_monthly;
-private double []	_X2_min_monthly;
-private double []	_Y1_min_monthly;
+private double [] _X_min_monthly;
+private double [] _X1_min_monthly;
+private double [] _X2_min_monthly;
+private double [] _Y1_min_monthly;
 
-private double []	_X_mean_monthly;
-private double []	_Y_mean_monthly;
-private double []	_X1_mean_monthly;
-private double []	_X2_mean_monthly;
-private double []	_Y1_mean_monthly;
-private double []	_Y1_estimated_mean_monthly;
+private double [] _X_mean_monthly;
+private double [] _Y_mean_monthly;
+private double [] _X1_mean_monthly;
+private double [] _X2_mean_monthly;
+private double [] _Y1_mean_monthly;
+private double [] _Y1_estimated_mean_monthly;
 
-private double []	_X_stddev_monthly;
-private double []	_Y_stddev_monthly;
-private double []	_X1_stddev_monthly;
-private double []	_X2_stddev_monthly;
-private double []	_Y1_stddev_monthly;
-private double []	_Y1_estimated_stddev_monthly;
+private double [] _X_stddev_monthly;
+private double [] _Y_stddev_monthly;
+private double [] _X1_stddev_monthly;
+private double [] _X2_stddev_monthly;
+private double [] _Y1_stddev_monthly;
+private double [] _Y1_estimated_stddev_monthly;
 
-private boolean		_filling = false;	// Indicates whether regression
-						// is beging computed for
-						// filling (or just comparison).
+private boolean _filling = false; // Indicates whether regression is being computed for filling (or just comparison).
 
 /**
 Default constructor.
@@ -292,8 +263,7 @@ to fill data using the relationship:
      Y = a + bX;
 </pre>
 @exception Exception if an error occurs performing the analysis.  However, it
-is best to check the isAnalyzed() value to determine whether results can be
-used.
+is best to check the isAnalyzed() value to determine whether results can be used.
 @param independentTS The independent time series (X).
 @param dependentTS The dependent time series (Y).
 @param props Property list indicating how the regression should be performed.
@@ -424,16 +394,14 @@ used when analyzing data for filling.
 <td><b>NumberOfEquations</b></td>
 <td>Set to "OneEquation" to calculate one relationship.  Set to
 "MonthlyEquations" if a monthly analysis should be done (in which
-case 12 relationships will be determined).  In the future support for seasonal
-equations may be added.</td>
+case 12 relationships will be determined).  In the future support for seasonal equations may be added.</td>
 <td>OneEquation</td>
 </tr>
 
 <tr>
 <td><b>Transformation</b></td>
 <td>Set to "Log" if a log10 regression should be done, or "None" if no
-transformation (the older "Linear" is also recognized and is equivalent to
-"None").</td>
+transformation (the older "Linear" is also recognized and is equivalent to "None").</td>
 <td>false</td>
 </tr>
 </table>
@@ -452,8 +420,7 @@ This version should be used when an initial analysis has occurred (e.g., with
 a previous TSRegression) and data arrays can be re-used for a subsequent
 analysis.  For example, the same dependent and independent time series may be
 used, but with different analysis method or transformation.  In this case, there
-is no reason to recreate the data arrays from the time series.  An example of
-use is as follows:
+is no reason to recreate the data arrays from the time series.  An example of use is as follows:
 <pre>
 // First analysis...
 TSRegression reg1 = new TSRegression ( ts_ind, ts_dep, props );
@@ -467,18 +434,15 @@ reg1.getY1(), reg1.getY1Monthly() );
 In this way, the data arrays can be used repeatedly, thus improving performance.
 Note that the "1" and "2" arrays are computed based on the overlap between the
 independent and dependent time series.  Therefore, changing the combination will
-require that the arrays are recreated (use the first version of the
-constructor).
+require that the arrays are recreated (use the first version of the constructor).
 @exception Exception if an error occurs performing the analysis.  However, it
-is best to check the isAnalyzed() value to determine whether results can be
-used.
+is best to check the isAnalyzed() value to determine whether results can be used.
 @param independentTS The independent time series (X).
 @param dependentTS The dependent time series (Y).
 @param props Property list indicating how the regression should be performed.
 See the overloaded method for possible properties.
 */
-public TSRegression (	TS independentTS, TS dependentTS, PropList props,
-			double[] X, double[][] XMonthly )
+public TSRegression ( TS independentTS, TS dependentTS, PropList props, double[] X, double[][] XMonthly )
 throws Exception
 {	super ();
 	initialize ( independentTS, dependentTS, props );
@@ -488,8 +452,7 @@ throws Exception
 /**
 This routine is the most general analysis routine and should be called in all
 cases.  It evaluates the property list set in the constructor and calls the
-appropriate secondary routines.  See the constructor documentation for possible
-property values.
+appropriate secondary routines.  See the constructor documentation for possible property values.
 @exception RTi.TS.Exception if there is a problem performing regression.
 */
 private void analyze ()
@@ -497,7 +460,8 @@ throws Exception
 {	if ( _AnalysisMethod_int == ANALYSIS_MOVE2 ) {
 		analyzeMOVE2();
 	}
-	else {	analyzeOLSRegression();
+	else {
+	    analyzeOLSRegression();
 	}
 }
 
@@ -534,47 +498,28 @@ throws Exception
 	for ( int ieq = 1; ieq <= num_equations; ieq++ ) {
 		try {
 		// Get the data array for the dependent analysis period (N1).
-		if (	(num_equations == 1) &&
-			((_analyze_month_list == null) ||
-			(_analyze_month_list.length == 0)) ) {
+		if ( (num_equations == 1) && ((_analyze_month_list == null) || (_analyze_month_list.length == 0)) ) {
 			// Input data is for all the months to be analyzed...
-			x1Array = TSUtil.toArray ( _xTS,
-				_dep_analysis_period_start,
-				_dep_analysis_period_end );
-			y1Array = TSUtil.toArray ( _yTS,
-				_dep_analysis_period_start,
-				_dep_analysis_period_end );
-			xArray = TSUtil.toArray ( _xTS,
-				_ind_analysis_period_start,
-				_ind_analysis_period_end );
+			x1Array = TSUtil.toArray ( _xTS, _dep_analysis_period_start, _dep_analysis_period_end );
+			y1Array = TSUtil.toArray ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end );
+			xArray = TSUtil.toArray ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end );
 		}
 		else if ((num_equations == 1) && (_analyze_month_list != null)){
 			// Only get the months to analyze...
-			x1Array = TSUtil.toArray ( _xTS,
-				_ind_analysis_period_start,
-				_ind_analysis_period_end,
+			x1Array = TSUtil.toArray ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end,
 				_analyze_month_list );
-			y1Array = TSUtil.toArray ( _yTS,
-				_dep_analysis_period_start,
-				_dep_analysis_period_end,
+			y1Array = TSUtil.toArray ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end,
 				_analyze_month_list );
-			xArray = TSUtil.toArray ( _xTS,
-				_xTS.getDate1(), _xTS.getDate2(),
-				_analyze_month_list );
+			xArray = TSUtil.toArray ( _xTS, _xTS.getDate1(), _xTS.getDate2(), _analyze_month_list );
 		}
-		else {	if ( !_analyze_month[ieq - 1] ) {
+		else {
+		    if ( !_analyze_month[ieq - 1] ) {
 				continue;
 			}
 			// Get the input data by month...
-			x1Array = TSUtil.toArrayByMonth ( _xTS,
-				_dep_analysis_period_start,
-				_dep_analysis_period_end, ieq );
-			y1Array = TSUtil.toArrayByMonth ( _yTS,
-				_dep_analysis_period_start,
-				_dep_analysis_period_end, ieq );
-			xArray = TSUtil.toArrayByMonth ( _xTS,
-				_ind_analysis_period_start,
-				_ind_analysis_period_end, ieq );
+			x1Array = TSUtil.toArrayByMonth ( _xTS, _dep_analysis_period_start, _dep_analysis_period_end, ieq );
+			y1Array = TSUtil.toArrayByMonth ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end, ieq );
+			xArray = TSUtil.toArrayByMonth ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end, ieq );
 		}
 
 		// Initially indicate that the analysis is not complete...
@@ -582,33 +527,29 @@ throws Exception
 		if ( num_equations == 1 ) {
 			isAnalyzed ( false );
 		}
-		else {	isAnalyzed ( ieq, false );
+		else {
+		    isAnalyzed ( ieq, false );
 		}
 
 		if ( (x1Array == null) || (y1Array == null) ) {
 			// Not enough data...
 			if ( num_equations == 1 ) {
-				throw new TSException (
-				"No data.  Not performing analysis." );
+				throw new TSException ( "No data.  Not performing analysis." );
 			}
-			else { 	Message.printWarning ( 2, routine,
-				"Not enough data.  Not performing analysis for "
-				+ "month " + ieq + "." );
+			else {
+			    Message.printWarning ( 2, routine, "Not enough data.  Not performing analysis for month " + ieq + "." );
 				continue;
 			}
 		}
 
-		// The array lengths should be the same, even if padded with
-		// missing data...
+		// The array lengths should be the same, even if padded with missing data...
 
 		if ( (x1Array.length != y1Array.length) ) {
 			if ( num_equations == 1 ) {
-				throw new TSException (
-				"Data set lengths are not equal." );
+				throw new TSException ( "Data set lengths are not equal." );
 			}
-			else { 	Message.printWarning ( 2, routine,
-				"Data set lengths are not equal.  Not " +
-				"performing analysis for month " + ieq );
+			else {
+			    Message.printWarning ( 2, routine, "Data set lengths are not equal.  Not performing analysis for month " + ieq );
 				continue;
 			}
 		}
@@ -620,8 +561,7 @@ throws Exception
 
 		n1 = 0;
 		for ( int i = 0; i < x1Array.length; i++ ) {
-			if (	!_xTS.isDataMissing(x1Array[i]) &&
-				!_yTS.isDataMissing(y1Array[i]) ) {
+			if ( !_xTS.isDataMissing(x1Array[i]) && !_yTS.isDataMissing(y1Array[i]) ) {
 				// both are not missing...
 				++n1;
 			}
@@ -629,15 +569,12 @@ throws Exception
 
 		if ( n1 == 0 ) {
 			if ( num_equations == 1 ) {
-				String message =
-				"The number of overlapping points is 0." +
-				"  Cannot perform MOVE2 analysis.";
+				String message = "The number of overlapping points is 0.  Cannot perform MOVE2 analysis.";
 				Message.printWarning ( 2, routine, message );
 				throw new Exception ( message );
 			}
-			else {	String message =
-				"The number of overlapping points is 0 for " +
-				"month " + ieq +
+			else {
+			    String message = "The number of overlapping points is 0 for month " + ieq +
 				".  Cannot perform MOVE2 analysis.";
 				Message.printWarning ( 2, routine, message );
 				continue;
@@ -645,13 +582,13 @@ throws Exception
 		}
 
 		// Set the number of overlapping values because this is used
-		// in other code (e.g., plotting) to allow a single point
-		// plot...
+		// in other code (e.g., plotting) to allow a single point plot...
 
 		if ( num_equations == 1 ) {
 			setN1 ( n1 );
 		}
-		else {	setN1 ( ieq, n1 );
+		else {
+		    setN1 ( ieq, n1 );
 		}
 
 		// Now transfer the values to temporary arrays for the
@@ -659,12 +596,8 @@ throws Exception
 		// transformation, do it here and then treat all other
 		// operations as if no transformation...
 
-		double [] X1_data = new double[n1];
-						// non-missing X data where
-						// non-missing Y for n1
-		double [] Y1_data = new double[n1];
-						// non-missing Y data where
-						// non-missing X for n1
+		double [] X1_data = new double[n1]; // non-missing X data where non-missing Y for n1
+		double [] Y1_data = new double[n1]; // non-missing Y data where non-missing X for n1
 		double [] orig_X1_data = null;
 		double [] orig_Y1_data = null;
 		if ( _analyzeLog ) {
@@ -674,28 +607,28 @@ throws Exception
 
 		n1 = 0;	// Can reuse
 		for ( int i = 0; i < x1Array.length; i++ ) {
-			if (	!_xTS.isDataMissing(x1Array[i]) &&
-				!_yTS.isDataMissing(y1Array[i]) ) {
+			if ( !_xTS.isDataMissing(x1Array[i]) && !_yTS.isDataMissing(y1Array[i]) ) {
 				// both are not missing...
 				if ( _analyzeLog ) {
 					if ( x1Array[i] <= 0.0 ) {
 						// Assume X = .001
 						X1_data[n1] = -3.0;
 					}
-					else {	X1_data[n1] = MathUtil.log10(
-							x1Array[i] );
+					else {
+					    X1_data[n1] = MathUtil.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
 						// Assume Y = .001
 						Y1_data[n1] = -3.0;
 					}
-					else {	Y1_data[n1] = MathUtil.log10(
-							y1Array[i] );
+					else {
+					    Y1_data[n1] = MathUtil.log10(y1Array[i] );
 					}
 					orig_X1_data[n1] = x1Array[i];
 					orig_Y1_data[n1] = y1Array[i];
 				}
-				else {	X1_data[n1] = x1Array[i];
+				else {
+				    X1_data[n1] = x1Array[i];
 					Y1_data[n1] = y1Array[i];
 				}
 				++n1;
@@ -706,27 +639,22 @@ throws Exception
 
 		// First loop through and determine in this period where there
 		// is a non-missing X value and a missing Y value.  The period
-		// outside the dependent analysis period is considered to have
-		// missing Y data.
+		// outside the dependent analysis period is considered to have missing Y data.
 
 		// Because N2 values are not used to evaluate RMSE, only need
 		// one set of data (the original or transformed)...
 
 		n2 = 0;
-		for (	date = new DateTime(_ind_analysis_period_start);
+		for ( date = new DateTime(_ind_analysis_period_start);
 			date.lessThanOrEqualTo(_ind_analysis_period_end);
 			date.addInterval(ind_interval_base, ind_interval_mult)){
-			if (	(num_equations != 1) &&
-				(date.getMonth() != ieq) ) {
+			if ( (num_equations != 1) && (date.getMonth() != ieq) ) {
 				continue;
 			}
 			if ( !_xTS.isDataMissing(_xTS.getDataValue(date)) ) {
-				if (	date.lessThan(
-					_dep_analysis_period_start) ||
-					date.greaterThan(
-					_dep_analysis_period_end) ||
-					_yTS.isDataMissing(
-					_yTS.getDataValue(date)) ) {
+				if ( date.lessThan(_dep_analysis_period_start) ||
+					date.greaterThan(_dep_analysis_period_end) ||
+					_yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 					// OK to increment...
 					++n2;
 				}
@@ -735,22 +663,18 @@ throws Exception
 
 		if ( n2 == 0 ) {
 			if ( num_equations == 1 ) {
-				String message =
-				"The number of non-overlapping points is 0." +
-				"  Cannot perform MOVE2.";
+				String message = "The number of non-overlapping points is 0.  Cannot perform MOVE2.";
 				Message.printWarning ( 2, routine, message );
 				throw new Exception ( message );
 			}
-			else {	String message =
-				"The number of non-overlapping points for " +
-				"month " + ieq +" is 0.  Cannot perform MOVE2.";
+			else {
+			    String message = "The number of non-overlapping points for month " + ieq +" is 0.  Cannot perform MOVE2.";
 				Message.printWarning ( 2, routine, message );
 				throw new Exception ( message );
 			}
 		}
 
-		double [] X2_data = new double[n2];
-						// non-missing X data in n2
+		double [] X2_data = new double[n2]; // non-missing X data in n2
 
 		// Now loop through again and transfer the data...
 
@@ -758,29 +682,25 @@ throws Exception
 		for (	date = new DateTime(_ind_analysis_period_start);
 			date.lessThanOrEqualTo(_ind_analysis_period_end);
 			date.addInterval(ind_interval_base,ind_interval_mult)) {
-			if (	(num_equations != 1) &&
-				(date.getMonth() != ieq) ) {
+			if ( (num_equations != 1) && (date.getMonth() != ieq) ) {
 				continue;
 			}
 			data_value = _xTS.getDataValue(date);
 			if ( !_xTS.isDataMissing(data_value) ) {
-				if (	date.lessThan(
-					_dep_analysis_period_start) ||
-					date.greaterThan(
-					_dep_analysis_period_end) ||
-					_yTS.isDataMissing(
-					_yTS.getDataValue(date)) ) {
+				if ( date.lessThan(_dep_analysis_period_start) ||
+					date.greaterThan(_dep_analysis_period_end) ||
+					_yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 					if ( _analyzeLog ) {
 						if ( data_value <= 0.0 ) {
 							// Assume X = .001
 							X2_data[n2] = -3.0;
 						}
-						else {	X2_data[n2] =
-							MathUtil.log10(
-							data_value );
+						else {
+						    X2_data[n2] = MathUtil.log10( data_value );
 						}
 					}
-					else {	X2_data[n2] = data_value;
+					else {
+					    X2_data[n2] = data_value;
 					}
 					++n2;
 				}
@@ -800,32 +720,26 @@ throws Exception
 		double Y1_stddev = MathUtil.standardDeviation ( Y1_data );
 
 		// Do the regression to get the correlation coefficient.
-		// Missing data should not have come through so don't check
-		// again...
+		// Missing data should not have come through so don't check again...
 
 		Regression rd = null;
-		try {	rd = MathUtil.regress ( X1_data, Y1_data, false,
-				_xTS.getMissing(), _yTS.getMissing(),
-				false, 0.0 );
+		try {
+		    rd = MathUtil.regress ( X1_data, Y1_data, false, _xTS.getMissing(), _yTS.getMissing(), false, 0.0 );
 		}
 		catch ( Exception e ) {
 			if ( num_equations == 1 ) {
-				throw new TSException (
-				"Error performing regression on N1." );
+				throw new TSException ( "Error performing regression on N1." );
 			}
-			else {	Message.printWarning ( 2, routine,
-				"Error performing regression on N1 for month "
-				+ ieq );
+			else {
+			    Message.printWarning ( 2, routine, "Error performing regression on N1 for month " + ieq );
 			}
 		}
 		if ( rd == null ) {
 			if ( num_equations == 1 ) {
-				throw new TSException (
-				"Error performing regression on N1." );
+				throw new TSException ( "Error performing regression on N1." );
 			}
-			else {	Message.printWarning ( 2, routine,
-				"Error performing regression on N1 for month "
-				+ ieq );
+			else {
+			    Message.printWarning ( 2, routine, "Error performing regression on N1 for month " + ieq );
 			}
 		}
 
@@ -845,8 +759,7 @@ throws Exception
 			(X2_mean - X1_mean)*(X2_mean - X1_mean)
 		);
 
-		double Ybar = Y1_mean + (double)n2*b*
-			(X2_mean - X1_mean)/((double)n1 + (double)n2);
+		double Ybar = Y1_mean + (double)n2*b* (X2_mean - X1_mean)/((double)n1 + (double)n2);
 
 		if ( _analyzeLog ) {
 			// Update the X array to logs...
@@ -858,14 +771,13 @@ throws Exception
 					// Assume X = .001
 					xArray[j] = -3.0;
 				}
-				else {	xArray[j] = MathUtil.log10( xArray[j] );
+				else {
+				    xArray[j] = MathUtil.log10( xArray[j] );
 				}
 			}
 		}
-		double X_mean = MathUtil.mean ( xArray.length, xArray,
-			_xTS.getMissing() );
-		double X_stddev = MathUtil.standardDeviation ( xArray.length,
-			xArray, _xTS.getMissing() );
+		double X_mean = MathUtil.mean ( xArray.length, xArray, _xTS.getMissing() );
+		double X_stddev = MathUtil.standardDeviation ( xArray.length, xArray, _xTS.getMissing() );
 
 		b = Math.sqrt(Sy_sq)/X_stddev;
 		double a = Ybar - b*X_mean;
@@ -873,68 +785,49 @@ throws Exception
 		double rmse = 0.0, transformed_rmse = 0.0;
 		double [] Y1_estimated = null;	// Estimated Y1 if filling data.
 		if ( _filling ) {
-			// Now if filling, extimate Y1 using A and B and compute
+			// Now if filling, estimate Y1 using A and B and compute
 			// the RMSE from Y1 - Y.  Just loop through the X1
-			// because we know these points originally lined up with
-			// Y1...
+			// because we know these points originally lined up with Y1...
 
 			Y1_estimated = new double[n1];
 			double ytemp1, ytemp2;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( _analyzeLog ) {
-					// Estimate Y in log10 space.  X1 was
-					// transformed to log above...
+					// Estimate Y in log10 space.  X1 was transformed to log above...
 					Y1_estimated[i] = a + X1_data[i]*b;					
-					transformed_rmse +=
-						((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));						
-					transformed_rmse_total +=
-						((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));
-					// Always do untransformed data.  To
-					// do so, untransform the estimated
-					// log10 Y value and compare to the
-					// original untransformed Y value...
+					transformed_rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));						
+					transformed_rmse_total += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
+					// Always do untransformed data.  To do so, un-transform the estimated
+					// log10 Y value and compare to the original untransformed Y value...
 					ytemp1=Math.pow(10.0, Y1_estimated[i]);					
 					ytemp2=orig_Y1_data[i];
-					rmse +=((ytemp1 - ytemp2)*
-						(ytemp1 - ytemp2));
-					rmse_total +=((ytemp1 - ytemp2)*
-						(ytemp1 - ytemp2));			
+					rmse +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));
+					rmse_total +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));			
 				}
-				else {	Y1_estimated[i] = a + X1_data[i]*b;
-					rmse += ((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));
+				else {
+				    Y1_estimated[i] = a + X1_data[i]*b;
+					rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 						
-					rmse_total +=
-						((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));		
+					rmse_total += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));		
 				}
 			}
 		}
-		else {	// Just use available data...
+		else {
+		    // Just use available data...
 			double ytemp, xtemp;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( _analyzeLog ) {
-					transformed_rmse +=
-						((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
-					transformed_rmse_total +=
-						((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
+					transformed_rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					transformed_rmse_total += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 					// Always do untransformed data...
 					ytemp = Math.pow(10.0, Y1_data[i]);
 					xtemp = Math.pow(10.0, X1_data[i]);
-					rmse += ((ytemp - xtemp)*
-						(ytemp - xtemp));
-					rmse_total += ((ytemp - xtemp)*
-						(ytemp - xtemp));
+					rmse += ((ytemp - xtemp)*(ytemp - xtemp));
+					rmse_total += ((ytemp - xtemp)*(ytemp - xtemp));
 				}
-				else {	rmse += ((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
-					rmse_total +=
-						((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
+				else {
+				    rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					rmse_total += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 				}
 			}
 		}
@@ -974,15 +867,14 @@ throws Exception
 			setMeanY1 ( Y1_mean );
 			setStandardDeviationY1 ( Y1_stddev );
 			if ( _filling ) {
-				setMeanY1Estimated (
-				MathUtil.mean(Y1_estimated) );
-				setStandardDeviationY1Estimated (
-				MathUtil.standardDeviation(Y1_estimated) );
+				setMeanY1Estimated ( MathUtil.mean(Y1_estimated) );
+				setStandardDeviationY1Estimated ( MathUtil.standardDeviation(Y1_estimated) );
 			}
 
 			setLagIntervals ( rd.getLagIntervals() );
 		}
-		else {	isAnalyzed ( ieq, true );
+		else {
+		    isAnalyzed ( ieq, true );
 			setA ( ieq, a );
 			setB ( ieq, b );
 			setCorrelationCoefficient ( ieq, r );
@@ -993,17 +885,12 @@ throws Exception
 			}
 			setRMSE ( ieq, rmse );
 			if ( ieq == 12 ) {
-				// Save the total in the non-monthly data
-				// values...
-				rmse_total = Math.sqrt (
-					rmse_total/(double)n1_total );
-				transformed_rmse_total = Math.sqrt (
-					transformed_rmse_total/
-					(double)n1_total);
+				// Save the total in the non-monthly data values...
+				rmse_total = Math.sqrt ( rmse_total/(double)n1_total );
+				transformed_rmse_total = Math.sqrt ( transformed_rmse_total/(double)n1_total);
 				setRMSE( rmse_total );
 				if ( _analyzeLog  ) {
-					setTransformedRMSE ( 
-					transformed_rmse_total );
+					setTransformedRMSE ( transformed_rmse_total );
 				}
 			}
 			setMaxX1 ( ieq, rd.getMaxX1() );
@@ -1022,10 +909,8 @@ throws Exception
 			setMeanY1 ( ieq, Y1_mean );
 			setStandardDeviationY1 ( ieq, Y1_stddev );
 			if ( _filling ) {
-				setMeanY1Estimated ( ieq,
-				MathUtil.mean(Y1_estimated) );
-				setStandardDeviationY1Estimated ( ieq,
-				MathUtil.standardDeviation(Y1_estimated) );
+				setMeanY1Estimated ( ieq, MathUtil.mean(Y1_estimated) );
+				setStandardDeviationY1Estimated ( ieq, MathUtil.standardDeviation(Y1_estimated) );
 			}
 		}
 
@@ -1042,7 +927,8 @@ throws Exception
 		if ( num_equations == 1 ) {
 			isAnalyzed ( false );
 		}
-		else {	isAnalyzed ( ieq, false );
+		else {
+		    isAnalyzed ( ieq, false );
 		}
 	}
 	}
@@ -1078,58 +964,43 @@ throws Exception
 	for ( int ieq = 1; ieq <= 12; ieq++ ) {
 		try {
 		// Get the data array for the dependent analysis period (N1).
-		// For OLS regression the independent and dependent analysis
-		// period are the same.
-		if (	(num_equations == 1) &&
-			((_analyze_month_list == null) ||
-			(_analyze_month_list.length == 0)) ) {
-			// Get all of the data because one equation is used and
-			// it is not a specific month.
+		// For OLS regression the independent and dependent analysis period are the same.
+		if ( (num_equations == 1) && ((_analyze_month_list == null) || (_analyze_month_list.length == 0)) ) {
+			// Get all of the data because one equation is used and it is not a specific month.
 			if ( __independent_arrays_provided ) {
 				x1Array = __X1;
 				xArray = __X;
 			}
-			else {	x1Array = TSUtil.toArray ( _xTS,
-					_ind_analysis_period_start,
-					_ind_analysis_period_end );
-				xArray = TSUtil.toArray ( _xTS,
-					_xTS.getDate1(),
-					_xTS.getDate2() );
+			else {
+			    x1Array = TSUtil.toArray ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end );
+				xArray = TSUtil.toArray ( _xTS, _xTS.getDate1(), _xTS.getDate2() );
 			}
 			if ( __dependent_arrays_provided ) {
 				y1Array = __Y1;
 			}
-			else {	y1Array = TSUtil.toArray ( _yTS,
-					_dep_analysis_period_start,
-					_dep_analysis_period_end );
+			else {
+			    y1Array = TSUtil.toArray ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end );
 			}
 		}
 		else if ((num_equations == 1) && (_analyze_month_list != null)){
-			// This analyzes a "season" of data consisting of one
-			// or more months.
+			// This analyzes a "season" of data consisting of one or more months.
 			if ( __independent_arrays_provided ) {
 				x1Array = __X1;
 				xArray = __X;
 			}
-			else {	x1Array = TSUtil.toArray ( _xTS,
-					_ind_analysis_period_start,
-					_ind_analysis_period_end,
-					_analyze_month_list );
-				xArray = TSUtil.toArray ( _xTS,
-					_xTS.getDate1(), _xTS.getDate2(),
-					_analyze_month_list );
+			else {
+			    x1Array = TSUtil.toArray ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end, _analyze_month_list );
+				xArray = TSUtil.toArray ( _xTS, _xTS.getDate1(), _xTS.getDate2(), _analyze_month_list );
 			}
 			if ( __independent_arrays_provided ) {
 				y1Array = __Y1;
 			}
-			else {	y1Array = TSUtil.toArray ( _yTS,
-					_dep_analysis_period_start,
-					_dep_analysis_period_end,
-					_analyze_month_list );
+			else {
+			    y1Array = TSUtil.toArray ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end, _analyze_month_list );
 			}
 		}
-		else {	// Analyze data for the month indicated by the loop
-			// index...
+		else {
+		    // Analyze data for the month indicated by the loop index...
 			if ( !_analyze_month[ieq - 1] ) {
 				continue;
 			}
@@ -1137,19 +1008,15 @@ throws Exception
 				x1Array = __X1_monthly[ieq - 1];
 				xArray = __X_monthly[ieq - 1];
 			}
-			else {	x1Array = TSUtil.toArrayByMonth ( _xTS,
-					_ind_analysis_period_start,
-					_ind_analysis_period_end, ieq );
-				xArray = TSUtil.toArrayByMonth ( _xTS,
-					_xTS.getDate1(),
-					_xTS.getDate2(), ieq );
+			else {
+			    x1Array = TSUtil.toArrayByMonth ( _xTS, _ind_analysis_period_start, _ind_analysis_period_end, ieq );
+				xArray = TSUtil.toArrayByMonth ( _xTS, _xTS.getDate1(), _xTS.getDate2(), ieq );
 			}
 			if ( __independent_arrays_provided ) {
 				y1Array = __Y1_monthly[ieq - 1];
 			}
-			else {	y1Array = TSUtil.toArrayByMonth ( _yTS,
-					_dep_analysis_period_start,
-					_dep_analysis_period_end, ieq);
+			else {
+			    y1Array = TSUtil.toArrayByMonth ( _yTS, _dep_analysis_period_start, _dep_analysis_period_end, ieq);
 			}
 		}
 
@@ -1158,36 +1025,32 @@ throws Exception
 		if ( num_equations == 1 ) {
 			isAnalyzed ( false );
 		}
-		else {	isAnalyzed ( ieq, false );
+		else {
+		    isAnalyzed ( ieq, false );
 		}
 
 		if ( (x1Array == null) || (y1Array == null) ) {
 			// Not enough data...
 			if ( num_equations == 1 ) {
-				Message.printWarning ( 10, routine, "No data." +
-				"  Not performing analysis." );
-				throw new TSException ( "No data." +
-				"  Not performing analysis." );
+				Message.printWarning ( 10, routine, "No data.  Not performing analysis." );
+				throw new TSException ( "No data.  Not performing analysis." );
 			}
-			else {	Message.printWarning ( 10, routine, "No data." +
-				"  Not performing analysis for month "+ieq+".");
+			else {
+			    Message.printWarning ( 10, routine, "No data.  Not performing analysis for month "+ieq+".");
 			}
 			continue;
 		}
 
-		// The array lengths should be the same, even if padded with
-		// missing data...
+		// The array lengths should be the same, even if padded with missing data...
 
 		if ( x1Array.length != y1Array.length ) {
 			// Not enough data...
 			if ( num_equations == 1 ) {
-				Message.printWarning ( 10, routine,
-				"Data set lengths are not equal." );
-				throw new TSException (
-				"Data set lengths are not equal." );
+				Message.printWarning ( 10, routine, "Data set lengths are not equal." );
+				throw new TSException ( "Data set lengths are not equal." );
 			}
-			else {	Message.printWarning ( 10, routine,
-				"Data set lengths are not the same.  " +
+			else {
+			    Message.printWarning ( 10, routine, "Data set lengths are not the same.  " +
 				"Not performing analysis for month "+ieq+".");
 				continue;
 			}
@@ -1200,8 +1063,7 @@ throws Exception
 
 		n1 = 0;
 		for ( int i = 0; i < x1Array.length; i++ ) {
-			if (	!_xTS.isDataMissing(x1Array[i]) &&
-				!_yTS.isDataMissing(y1Array[i]) ) {
+			if ( !_xTS.isDataMissing(x1Array[i]) && !_yTS.isDataMissing(y1Array[i]) ) {
 				// both are not missing...
 				++n1;
 			}
@@ -1209,15 +1071,12 @@ throws Exception
 
 		if ( n1 == 0 ) {
 			if ( num_equations == 1 ) {
-				String message =
-				"The number of overlapping points is 0." +
-				"  Cannot perform OLS regression.";
+				String message = "The number of overlapping points is 0.  Cannot perform OLS regression.";
 				Message.printWarning ( 2, routine, message );
 				throw new TSException ( message );
 			}
-			else {	String message =
-				"The number of overlapping points is 0 for " +
-				"month " + ieq +
+			else {
+			    String message = "The number of overlapping points is 0 for month " + ieq +
 				".  Cannot perform OLS regression.";
 				Message.printWarning ( 2, routine, message );
 				continue;
@@ -1225,26 +1084,21 @@ throws Exception
 		}
 
 		// Set the number of overlapping values because this is used
-		// in other code (e.g., plotting) to allow a single point
-		// plot...
+		// in other code (e.g., plotting) to allow a single point plot...
 
 		if ( num_equations == 1 ) {
 			setN1 ( n1 );
 		}
-		else {	setN1 ( ieq, n1 );
+		else {
+		    setN1 ( ieq, n1 );
 		}
 
 		// Now transfer the values to temporary arrays for the
 		// independent variable for N1 and N2 values.  If doing a log
-		// transformation, do it here and then treat all other
-		// operations as if no transformation...
+		// transformation, do it here and then treat all other operations as if no transformation...
 
-		double [] X1_data = new double[n1];
-						// non-missing X data where
-						// non-missing Y for n1
-		double [] Y1_data = new double[n1];
-						// non-missing Y data where
-						// non-missing X for n1
+		double [] X1_data = new double[n1]; // non-missing X data where non-missing Y for n1
+		double [] Y1_data = new double[n1]; // non-missing Y data where non-missing X for n1
 		double [] orig_X1_data = null;
 		double [] orig_Y1_data = null;
 		if ( _analyzeLog ) {
@@ -1254,28 +1108,28 @@ throws Exception
 
 		n1 = 0;	// Can reuse
 		for ( int i = 0; i < x1Array.length; i++ ) {
-			if (	!_xTS.isDataMissing(x1Array[i]) &&
-				!_yTS.isDataMissing(y1Array[i]) ) {
+			if ( !_xTS.isDataMissing(x1Array[i]) && !_yTS.isDataMissing(y1Array[i]) ) {
 				// both are not missing...
 				if ( _analyzeLog ) {
 					if ( x1Array[i] <= 0.0 ) {
 						// Assume X = .001
 						X1_data[n1] = -3.0;
 					}
-					else {	X1_data[n1] = MathUtil.log10(
-							x1Array[i] );
+					else {
+					    X1_data[n1] = MathUtil.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
 						// Assume Y = .001
 						Y1_data[n1] = -3.0;
 					}
-					else {	Y1_data[n1] = MathUtil.log10(
-							y1Array[i] );
+					else {
+					    Y1_data[n1] = MathUtil.log10(y1Array[i] );
 					}
 					orig_X1_data[n1] = x1Array[i];
 					orig_Y1_data[n1] = y1Array[i];
 				}
-				else {	X1_data[n1] = x1Array[i];
+				else {
+				    X1_data[n1] = x1Array[i];
 					Y1_data[n1] = y1Array[i];
 				}
 				++n1;
@@ -1286,27 +1140,21 @@ throws Exception
 
 		// First loop through and determine in this period where there
 		// is a non-missing X value and a missing Y value.  The period
-		// outside the dependent analysis period is considered to have
-		// missing Y data.
+		// outside the dependent analysis period is considered to have missing Y data.
 
 		// Because N2 values are not used to evaluate RMSE, only need
 		// one set of data (the original or transformed)...
 
 		n2 = 0;
-		for (	date = new DateTime(_ind_analysis_period_start);
+		for ( date = new DateTime(_ind_analysis_period_start);
 			date.lessThanOrEqualTo(_ind_analysis_period_end);
 			date.addInterval(ind_interval_base,ind_interval_mult)) {
-			if (	(num_equations != 1) &&
-				(date.getMonth() != ieq) ) {
+			if ( (num_equations != 1) && (date.getMonth() != ieq) ) {
 				continue;
 			}
 			if ( !_xTS.isDataMissing(_xTS.getDataValue(date)) ) {
-				if (	date.lessThan(
-					_dep_analysis_period_start) ||
-					date.greaterThan(
-					_dep_analysis_period_end) ||
-					_yTS.isDataMissing(
-					_yTS.getDataValue(date)) ) {
+				if ( date.lessThan( _dep_analysis_period_start) || date.greaterThan( _dep_analysis_period_end) ||
+					_yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 					// OK to increment...
 					++n2;
 				}
@@ -1317,43 +1165,33 @@ throws Exception
 
 		double [] X2_data = null;
 		if ( n2 > 0 ) {
-			X2_data = new double[n2];
-					// non-missing X data in n2
+			X2_data = new double[n2]; // non-missing X data in n2
 
 			// Now loop through again and transfer the data...
 
 			n2 = 0;
 			for (	date = new DateTime(_ind_analysis_period_start);
-				date.lessThanOrEqualTo(
-				_ind_analysis_period_end);
+				date.lessThanOrEqualTo(_ind_analysis_period_end);
 				date.addInterval(ind_interval_base,
 				ind_interval_mult)) {
-				if (	(num_equations != 1) &&
-					(date.getMonth() != ieq) ) {
+				if ( (num_equations != 1) && (date.getMonth() != ieq) ) {
 					continue;
 				}
 				data_value = _xTS.getDataValue(date);
 				if ( !_xTS.isDataMissing(data_value) ) {
-					if (	date.lessThan(
-						_dep_analysis_period_start) ||
-						date.greaterThan(
-						_dep_analysis_period_end) ||
-						_yTS.isDataMissing(
-						_yTS.getDataValue(date)) ) {
+					if ( date.lessThan(_dep_analysis_period_start) ||
+						date.greaterThan(_dep_analysis_period_end) || _yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 						if ( _analyzeLog ) {
 							if ( data_value <= 0.0){
-								// Assume X =
-								// .001
-								X2_data[n2] =
-								-3.0;
+								// Assume X = .001
+								X2_data[n2] = -3.0;
 							}
-							else {	X2_data[n2] =
-								MathUtil.log10(
-								data_value );
+							else {
+							    X2_data[n2] = MathUtil.log10(data_value );
 							}
 						}
-						else {	X2_data[n2] =
-							data_value;
+						else {
+						    X2_data[n2] = data_value;
 						}
 						++n2;
 					}
@@ -1376,7 +1214,8 @@ throws Exception
 		double Y1_stddev = MathUtil.standardDeviation ( Y1_data );
 		double X2_stddev = 0.0;
 		if ( n2 > 0 ) {
-			try {	X2_stddev = MathUtil.standardDeviation(X2_data);
+			try {
+			    X2_stddev = MathUtil.standardDeviation(X2_data);
 			}
 			catch ( Exception e ) {
 				// Not used anywhere so set to zero.
@@ -1385,43 +1224,35 @@ throws Exception
 		}
 
 		// Data are already transformed so just use the normal log.
-		// There is no reason to consider missing data because missing
-		// values were removed above...
+		// There is no reason to consider missing data because missing values were removed above...
 
-		try {	rd = MathUtil.regress ( X1_data, Y1_data,
-					false, _xTS.getMissing(),
-					_yTS.getMissing(),
-					__force_intercept, __intercept );
+		try {
+		    rd = MathUtil.regress ( X1_data, Y1_data, false, _xTS.getMissing(),
+					_yTS.getMissing(), __force_intercept, __intercept );
 		}
 		catch ( Exception e ) {
 			if ( num_equations == 1 ) {
-				Message.printWarning ( 10, routine,
-				"Error performing analysis.");
+				Message.printWarning ( 10, routine, "Error performing analysis.");
 				isAnalyzed ( false );
 				Message.printWarning ( 10, routine, e );
-				throw new TSException (
-				"Error performing analysis" );
+				throw new TSException ( "Error performing analysis" );
 			}
-			else {	// Non-fatal (just set the analysis flag to
-				// false...
-				Message.printWarning ( 10, routine,
-				"Error performing analysis for month "+ieq+".");
+			else {
+			    // Non-fatal (just set the analysis flag to false...
+				Message.printWarning ( 10, routine, "Error performing analysis for month "+ieq+".");
 				isAnalyzed ( ieq, false );
 				continue;
 			}
 		}
 		if ( rd == null ) {
 			if ( num_equations == 1 ) {
-				Message.printWarning ( 10, routine,
-				"Error performing analysis.");
+				Message.printWarning ( 10, routine, "Error performing analysis.");
 				isAnalyzed ( false );
-				throw new TSException (
-				"Error performing analysis" );
+				throw new TSException ( "Error performing analysis" );
 			}
-			else {	// Non-fatal (just set the analysis flag to
-				// false...
-				Message.printWarning ( 10, routine,
-				"Error performing analysis for month "+ieq+".");
+			else {
+			    // Non-fatal (just set the analysis flag to false...
+				Message.printWarning ( 10, routine, "Error performing analysis for month "+ieq+".");
 				isAnalyzed ( ieq, false );
 				continue;
 			}
@@ -1437,61 +1268,53 @@ throws Exception
 					// Assume X = .001
 					xArray[j] = -3.0;
 				}
-				else {	xArray[j] = MathUtil.log10( xArray[j] );
+				else {
+				    xArray[j] = MathUtil.log10( xArray[j] );
 				}
 			}
 		}
-		double X_mean = MathUtil.mean ( xArray.length, xArray,
-			_xTS.getMissing() );
-		double X_stddev = MathUtil.standardDeviation ( xArray.length,
-			xArray, _xTS.getMissing() );
+		double X_mean = MathUtil.mean ( xArray.length, xArray, _xTS.getMissing() );
+		double X_stddev = MathUtil.standardDeviation ( xArray.length, xArray, _xTS.getMissing() );
 
 		double a = rd.getA();
 		double b = rd.getB();
 		double rmse = 0.0, transformed_rmse = 0.0;
-		double [] Y1_estimated = null;	// Estimated Y1 if filling
-						// data.
+		double [] Y1_estimated = null;	// Estimated Y1 if filling data.
 		if ( _filling ) {
-			// Now if filling, extimate Y1 using A and B and compute
+			// Now if filling, estimate Y1 using A and B and compute
 			// the RMSE from Y1 - Y.  Just loop through the X1
-			// because we know these points originally lined up with
-			// Y1...
+			// because we know these points originally lined up with Y1...
 
 			Y1_estimated = new double[n1];
 			double ytemp1, ytemp2;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( _analyzeLog ) {
 					Y1_estimated[i] = a + X1_data[i]*b;
-					transformed_rmse +=
-						((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));
+					transformed_rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 					// Always do untransformed data...
 					ytemp1=Math.pow(10.0, Y1_estimated[i]);
 					ytemp2=orig_Y1_data[i];
-					rmse +=((ytemp1 - ytemp2)*
-						(ytemp1 - ytemp2));
+					rmse +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));
 				}
-				else {	Y1_estimated[i] = a + X1_data[i]*b;
-					rmse += ((Y1_estimated[i] - Y1_data[i])*
-						(Y1_estimated[i] - Y1_data[i]));
+				else {
+				    Y1_estimated[i] = a + X1_data[i]*b;
+					rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 				}
 			}
 		}
-		else {	// Just use available data...
+		else {
+		    // Just use available data...
 			double ytemp, xtemp;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( _analyzeLog ) {
-					transformed_rmse +=
-						((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
+					transformed_rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 					// Always do untransformed data...
 					ytemp = Math.pow(10.0, Y1_data[i]);
 					xtemp = Math.pow(10.0, X1_data[i]);
-					rmse += ((ytemp - xtemp)*
-						(ytemp - xtemp));
+					rmse += ((ytemp - xtemp)*(ytemp - xtemp));
 				}
-				else {	rmse += ((Y1_data[i] - X1_data[i])*
-						(Y1_data[i] - X1_data[i]));
+				else {
+				    rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 				}
 			}
 		}
@@ -1507,8 +1330,7 @@ throws Exception
 			isAnalyzed ( true );
 			setA ( rd.getA() );
 			setB ( rd.getB() );
-			setCorrelationCoefficient (
-				rd.getCorrelationCoefficient() );
+			setCorrelationCoefficient ( rd.getCorrelationCoefficient() );
 			setN1 ( rd.getN1() );
 			setN2 ( n2 );
 			if ( _analyzeLog ) {
@@ -1530,16 +1352,15 @@ throws Exception
 			setStandardDeviationY1 ( Y1_stddev );
 			if ( _filling ) {
 				setMeanY1Estimated(MathUtil.mean(Y1_estimated));
-				setStandardDeviationY1Estimated (
-				MathUtil.standardDeviation(Y1_estimated) );
+				setStandardDeviationY1Estimated (MathUtil.standardDeviation(Y1_estimated) );
 			}
 			setLagIntervals ( rd.getLagIntervals() );
 		}
-		else {	isAnalyzed ( ieq, true );
+		else {
+		    isAnalyzed ( ieq, true );
 			setA ( ieq, rd.getA() );
 			setB ( ieq, rd.getB() );
-			setCorrelationCoefficient ( ieq,
-				rd.getCorrelationCoefficient() );
+			setCorrelationCoefficient ( ieq, rd.getCorrelationCoefficient() );
 			setN1 ( ieq, n1 );
 			setN2 ( ieq, n2 );
 			// There is no N2...
@@ -1561,10 +1382,8 @@ throws Exception
 			setMeanY1 ( ieq, Y1_mean );
 			setStandardDeviationY1 ( ieq, Y1_stddev );
 			if ( _filling ) {
-				setMeanY1Estimated ( ieq,
-				MathUtil.mean(Y1_estimated) );
-				setStandardDeviationY1Estimated ( ieq,
-				MathUtil.standardDeviation(Y1_estimated) );
+				setMeanY1Estimated ( ieq, MathUtil.mean(Y1_estimated) );
+				setStandardDeviationY1Estimated ( ieq, MathUtil.standardDeviation(Y1_estimated) );
 			}
 			setLagIntervals ( rd.getLagIntervals() );
 		}
@@ -1574,7 +1393,8 @@ throws Exception
 		if ( num_equations == 1 ) {
 			isAnalyzed ( false );
 		}
-		else {	isAnalyzed ( ieq, false );
+		else {
+		    isAnalyzed ( ieq, false );
 		}
 	}
 	}
@@ -1610,11 +1430,9 @@ throws Exception
 		// Create a time series that has the same header as the dependent
 		// time series, but with a location that has + "_predicted".
 		predictedIdent = new TSIdent( _yTS.getIdentifier() );
-		predictedIdent.setLocation (
-			predictedIdent.getLocation() + "_predicted");
+		predictedIdent.setLocation ( predictedIdent.getLocation() + "_predicted");
 		// Create the new time series using the full identifier.
-		__yTSpredicted = TSUtil.newTimeSeries(
-			 predictedIdent.getIdentifier(), true );
+		__yTSpredicted = TSUtil.newTimeSeries(  predictedIdent.getIdentifier(), true );
 		if ( __yTSpredicted == null ) {
 			mssg = "Could not create the predicted time series.";
 			throw new TSException ( mssg );
@@ -1623,11 +1441,9 @@ throws Exception
 		// Create a time series that has the same header as the dependent
 		// time series, but with a location that has + "_residual".
 		residualIdent = new TSIdent( _yTS.getIdentifier() );
-		residualIdent.setLocation (
-			residualIdent.getLocation() + "_residual" );
+		residualIdent.setLocation ( residualIdent.getLocation() + "_residual" );
 		// Create the new time series using the full identifier.
-		__yTSresidual = TSUtil.newTimeSeries(
-			residualIdent.getIdentifier(), true );
+		__yTSresidual = TSUtil.newTimeSeries( residualIdent.getIdentifier(), true );
 		if ( __yTSresidual == null ) {
 			mssg = "Could not create the residual time series.";
 			throw new TSException ( mssg );
@@ -1646,11 +1462,11 @@ throws Exception
 	//         It also set the dates, from the old time series. Make sure to
 	//         reset these properties to the values needed by the new time
 	//	   series. Finally allocate data space.
-	__yTSpredicted.copyHeader    ( _yTS );
+	__yTSpredicted.copyHeader ( _yTS );
 	__yTSpredicted.setIdentifier ( predictedIdent  ); 
 	__yTSpredicted.allocateDataSpace ();
-	__yTSresidual.copyHeader     ( _yTS );
-	__yTSresidual.setIdentifier  ( residualIdent  ); 
+	__yTSresidual.copyHeader ( _yTS );
+	__yTSresidual.setIdentifier ( residualIdent  ); 
 	__yTSresidual.allocateDataSpace ();
 	
 	// Define the number of equations to be used in the loop
@@ -1661,9 +1477,9 @@ throws Exception
 	
 	// Use the equation to set the data values in the predicted time series
 	DateTime startDate = new DateTime ( __yTSpredicted.getDate1() );
-	DateTime endDate   = new DateTime ( __yTSpredicted.getDate2() );
-	int interval_base  = _yTS.getDataIntervalBase();
-	int interval_mult  = _yTS.getDataIntervalMult();
+	DateTime endDate = new DateTime ( __yTSpredicted.getDate2() );
+	int interval_base = _yTS.getDataIntervalBase();
+	int interval_mult = _yTS.getDataIntervalMult();
 	DateTime date;
 	double Xvalue, Yvalue, preYvalue, resYvalue;
 	double A, B;
@@ -1679,23 +1495,16 @@ throws Exception
 				B = getB( ieq );	
 			}
 			
-			for (	date = new DateTime(startDate);
-	        		date.lessThanOrEqualTo( endDate );
-				date.addInterval( interval_base,
-						  interval_mult ) ) {
+			for ( date = new DateTime(startDate); date.lessThanOrEqualTo( endDate );
+				date.addInterval( interval_base, interval_mult ) ) {
 	
 				// Process only for a single month if monthly
-				if ( ( num_equations != 1 ) &&
-				     ( date.getMonth() != ieq ) ) {
+				if ( ( num_equations != 1 ) && ( date.getMonth() != ieq ) ) {
 					continue;
 				}
 					
-				// If not in the dependent analysis period
-				// let missing in the __yTSpredicted.
-				if ( date.lessThan(
-					_dep_analysis_period_start) ||
-				     date.greaterThan(
-					_dep_analysis_period_end ) ) {
+				// If not in the dependent analysis period let missing in the __yTSpredicted.
+				if ( date.lessThan( _dep_analysis_period_start) || date.greaterThan(_dep_analysis_period_end ) ) {
 					continue;	
 				}
 					
@@ -1703,8 +1512,7 @@ throws Exception
 				Xvalue = _xTS.getDataValue( date );
 				Yvalue = _yTS.getDataValue( date );
 				if ( _xTS.isDataMissing( Xvalue ) ) {
-					// If missing let missing in the
-					// __yTSpredicted.
+					// If missing let missing in the __yTSpredicted.
 					continue;
 				}
 		
@@ -1720,7 +1528,7 @@ throws Exception
 					}
 					// Compute the estimated value.
 					preYvalue = A + Xvalue * B;		
-					// Untransform from log space.  
+					// Un-transform from log space.  
 					preYvalue = Math.pow( 10.0, preYvalue );
 				} else {
 					preYvalue = A + Xvalue * B;	
@@ -1729,12 +1537,10 @@ throws Exception
 				// Saving the predicted value.
 				__yTSpredicted.setDataValue ( date, preYvalue );
 				
-				// Computing and saving the residual value,
-				// if the YValue is not missing.
+				// Computing and saving the residual value, if the YValue is not missing.
 				if ( !_yTS.isDataMissing( Yvalue ) ) {
 					resYvalue = preYvalue - Yvalue;
-					__yTSresidual.setDataValue
-						( date, resYvalue );
+					__yTSresidual.setDataValue( date, resYvalue );
 				} 			
 			}		
 		} catch ( Exception e ) {
@@ -1781,24 +1587,6 @@ public DateTime getDependentAnalysisEnd()
 }
 
 /**
-Return the dependent time series analysis end.
-@return the dependent time series analysis end.
-@deprecated Use getDependentAnalysisEnd().
-*/
-public DateTime getDependentAnalysisPeriodEnd()
-{	return getDependentAnalysisEnd();
-}
-
-/**
-Return the dependent time series analysis start.
-@return the dependent time series analysis start.
-@deprecated Use getDependentAnalysisStart().
-*/
-public DateTime getDependentAnalysisPeriodStart()
-{	return getDependentAnalysisStart();
-}
-
-/**
 Return the dependent time series analysis start.
 @return the dependent time series analysis start.
 */
@@ -1823,24 +1611,6 @@ public DateTime getIndependentAnalysisEnd()
 }
 
 /**
-Return the independent time series analysis end.
-@return the independent time series analysis end.
-@deprecated Use getIndependentAnalysisEnd().
-*/
-public DateTime getIndependentAnalysisPeriodEnd()
-{	return getIndependentAnalysisEnd();
-}
-
-/**
-Return the independent time series analysis start.
-@return the independent time series analysis start.
-@deprecated Use getIndependentAnalysisStart().
-*/
-public DateTime getIndependentAnalysisPeriodStart()
-{	return getIndependentAnalysisStart();
-}
-
-/**
 Return the independent time series analysis start.
 @return the independent time series analysis start.
 */
@@ -1858,8 +1628,7 @@ public TS getIndependentTS()
 
 /**
 Return the predicted (Y) time series.
-@return the predicted (Y) time series or null if the method createPredictedTS()
-was not called yet.
+@return the predicted (Y) time series or null if the method createPredictedTS() was not called yet.
 */
 public TS getPredictedTS()
 {	
@@ -1867,10 +1636,8 @@ public TS getPredictedTS()
 }
 
 /**
-Return the residual TS ( difference between the predicted and the original
-dependent time series.
-@return the residual TS ( difference between the predicted and the original
-dependent time series.
+Return the residual TS ( difference between the predicted and the original dependent time series.
+@return the residual TS ( difference between the predicted and the original dependent time series.
 */
 public TS getResidualTS()
 {	
@@ -1884,8 +1651,8 @@ Initialize instance data.
 @param props Properties to control regression.
 */
 private void initialize ( TS xTS, TS yTS, PropList props )
-{	
-	String routine = "TSRegression.initialize"; 
+{	String routine = "TSRegression.initialize";
+    String message;
 	
 	__yTSpredicted = null;
 	__yTSresidual  = null;
@@ -1915,7 +1682,8 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 			_AnalysisMethod_int = ANALYSIS_MOVE2;
 		}
 	}
-	else {	_AnalysisMethod = "OLS";	// Default
+	else {
+	    _AnalysisMethod = "OLS";	// Default
 	}
 
 	// Check for forced intercept...
@@ -1925,15 +1693,14 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 	prop_value = _props.getValue ( "Intercept" );
 	if ( (prop_value != null) && StringUtil.isDouble(prop_value) ) {
 		__force_intercept = true;
-		__intercept = StringUtil.atod ( prop_value );
+		__intercept = Double.parseDouble ( prop_value );
 	}
 
 	// Check for monthly or one relationship (later add seasonal)...
 
 	_analyzeMonthly = false;
 	prop_value = _props.getValue ( "NumberOfEquations" );
-	if (	(prop_value != null) &&
-		prop_value.equalsIgnoreCase("MonthlyEquations") ) {
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("MonthlyEquations") ) {
 		_analyzeMonthly = true;
 	}
 
@@ -1941,8 +1708,7 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 
 	_analyzeLog = false;
 	prop_value = _props.getValue ( "Transformation" );
-	if (	(prop_value != null) &&
-		prop_value.equalsIgnoreCase("Log") ) {
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("Log") ) {
 		_analyzeLog = true;
 	}
 
@@ -1953,43 +1719,63 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		// Check for an obsolete value...
 		prop_value = _props.getValue ( "DependentAnalysisPeriodStart");
 		if ( prop_value != null ) {
-			Message.printWarning ( 2, routine,
-			"DependentAnalysisPeriodStart parameter is obsolete.  "+
-			"Use DependentAnalysisStart instead."); 
+		    message = "TSRegression DependentAnalysisPeriodStart parameter is obsolete.  Use DependentAnalysisStart.";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
-	_dep_analysis_period_start = yTS.getDate1();
-	if (	(prop_value != null) && !prop_value.equals("*") &&
-		!prop_value.equals("") ) {
-		try {	_dep_analysis_period_start = DateTime.parse(prop_value);
+    if ( prop_value == null ) {
+        // Check for an obsolete value...
+        prop_value = _props.getValue ( "AnalysisStart");
+        if ( prop_value != null ) {
+            message = "TSRegression AnalysisStart parameter is obsolete.  Use DependentAnalysisStart.";
+            Message.printWarning ( 3, routine, message );
+            throw new RuntimeException ( message );
+        }
+    }
+	_dep_analysis_period_start = yTS.getDate1(); // Default and parse below
+	if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+		try {
+		    _dep_analysis_period_start = DateTime.parse(prop_value);
+		    Message.printStatus(2, routine, "Using specified dependent analysis period start = " +
+		         _dep_analysis_period_start);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error parsing dependent analysis period start "
-			+ "date/time.  Using full period." );
-			_dep_analysis_period_start = yTS.getDate1();
+		    message = "Error parsing dependent analysis period start date/time \"" + prop_value + "\".";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
-	prop_value = _props.getValue ( "DependentAnalysisPeriodEnd" );
+	prop_value = _props.getValue ( "DependentAnalysisEnd" );
 	if ( prop_value == null ) {
 		// Check for an obsolete value...
 		prop_value = _props.getValue ( "DependentAnalysisPeriodEnd");
 		if ( prop_value != null ) {
-			Message.printWarning ( 2, routine,
-			"DependentAnalysisPeriodEnd parameter is obsolete.  "+
-			"Use DependentAnalysisEnd instead."); 
+		    message = "DependentAnalysisPeriodEnd parameter is obsolete.  Use DependentAnalysisEnd.";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
-	_dep_analysis_period_end = yTS.getDate2();
-	if (	(prop_value != null) && !prop_value.equals("*") &&
-		!prop_value.equals("") ) {
-		try {	_dep_analysis_period_end = DateTime.parse( prop_value );
+    if ( prop_value == null ) {
+        // Check for an obsolete value...
+        prop_value = _props.getValue ( "AnalysisEnd");
+        if ( prop_value != null ) {
+            message = "TSRegression AnalysisEnd parameter is obsolete.  Use DependentAnalysisEnd.";
+            Message.printWarning ( 3, routine, message );
+            throw new RuntimeException ( message );
+        }
+    }
+	_dep_analysis_period_end = yTS.getDate2(); // Default and parse below
+	if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+		try {
+		    _dep_analysis_period_end = DateTime.parse( prop_value );
+	        Message.printStatus(2, routine, "Using specified dependent analysis period end = " +
+	            _dep_analysis_period_end);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error parsing dependent analysis period end " +
-			"date/time.  Using full period." );
-			_dep_analysis_period_end = yTS.getDate2();
+		    message = "Error parsing dependent analysis period end date/time \"" + prop_value + "\".";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
 
@@ -1999,55 +1785,48 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		prop_value = _props.getValue ("IndependentAnalysisStart");
 		if ( prop_value == null ) {
 			// Check for an obsolete value...
-			prop_value = _props.getValue (
-				"IndependentAnalysisPeriodStart");
+			prop_value = _props.getValue ( "IndependentAnalysisPeriodStart");
 			if ( prop_value != null ) {
-				Message.printWarning ( 2, routine,
-				"IndependentAnalysisPeriodStart " +
-				"parameter is obsolete.  Use " +
-				"IndependentAnalysisStart instead."); 
+			    message = "IndependentAnalysisPeriodStart parameter is obsolete.  Use IndependentAnalysisStart.";
+				Message.printWarning ( 3, routine, message );
+				throw new RuntimeException ( message );
 			}
 		}
 		_ind_analysis_period_start = xTS.getDate1();
-		if (	(prop_value != null) && !prop_value.equals("*") &&
-			!prop_value.equals("") ) {
-			try {	_ind_analysis_period_start = DateTime.parse (
-				prop_value);
+		if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+			try {
+			    _ind_analysis_period_start = DateTime.parse ( prop_value);
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 2, routine,
-				"Error parsing independent analysis period " +
-				"start date/time.  Using full period." );
-				_ind_analysis_period_start = xTS.getDate1();
+			    message = "Error parsing independent analysis period start date/time \"" + prop_value + "\".";
+				Message.printWarning ( 3, routine, message );
+				throw new RuntimeException ( message );
 			}
 		}
 		prop_value = _props.getValue ( "IndependentAnalysisEnd" );
 		if ( prop_value == null ) {
 			// Check for an obsolete value...
-			prop_value = _props.getValue (
-				"IndependentAnalysisPeriodEnd");
+			prop_value = _props.getValue ( "IndependentAnalysisPeriodEnd");
 			if ( prop_value != null ) {
-				Message.printWarning ( 2, routine,
-				"IndependentAnalysisPeriodEnd " +
-				"parameter is obsolete.  Use " +
-				"IndependentAnalysisEnd instead."); 
+			    message = "IndependentAnalysisPeriodEnd parameter is obsolete.  Use IndependentAnalysisEnd.";
+				Message.printWarning ( 3, routine, message );		
+				throw new RuntimeException ( message );
 			}
 		}
 		_ind_analysis_period_end = xTS.getDate2();
-		if (	(prop_value != null) && !prop_value.equals("*") &&
-			!prop_value.equals("") ) {
-			try {	_ind_analysis_period_end = DateTime.parse (
-				prop_value);
+		if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+			try {
+			    _ind_analysis_period_end = DateTime.parse ( prop_value);
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 2, routine,
-				"Error parsing independent analysis period end "
-				+ "date/time.  Using full period." );
-				_ind_analysis_period_end = xTS.getDate2();
+			    message = "Error parsing independent analysis period end date/time \"" + prop_value + "\".";
+				Message.printWarning ( 3, routine, message );
+				throw new RuntimeException ( message );
 			}
 		}
 	}
-	else {	// Independent analysis period is the same as the dependent...
+	else {
+	    // Independent analysis period is the same as the dependent...
 		_ind_analysis_period_start = _dep_analysis_period_start;
 		_ind_analysis_period_end = _dep_analysis_period_end;
 	}
@@ -2059,20 +1838,20 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		// Check for old version...
 		prop_value = _props.getValue ( "FillPeriodStart" );
 		if ( prop_value != null ) {
-			Message.printWarning ( 2, routine, "FillPeriodStart " +
-			"parameter is obsolete.  Use FillStart instead."); 
+		    message = "FillPeriodStart parameter is obsolete.  Use FillStart.";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
 	_fill_period_start = yTS.getDate1();
-	if (	(prop_value != null) && !prop_value.equals("*") &&
-		!prop_value.equals("") ) {
-		try {	_fill_period_start = DateTime.parse ( prop_value );
+	if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+		try {
+		    _fill_period_start = DateTime.parse ( prop_value );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error parsing fill period start " +
-			"date/time.  Using full period." );
-			_fill_period_start = yTS.getDate1();
+		    message = "Error parsing fill period start date/time \"" + prop_value + "\".";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
 	prop_value = _props.getValue ( "FillEnd" );
@@ -2080,20 +1859,20 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		// Check for old version...
 		prop_value = _props.getValue ( "FillPeriodEnd" );
 		if ( prop_value != null ) {
-			Message.printWarning ( 2, routine, "FillPeriodEnd " +
-			"parameter is obsolete.  Use FillEnd instead."); 
+		    message = "FillPeriodEnd parameter is obsolete.  Use FillEnd.";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
 	_fill_period_end = yTS.getDate2();
-	if (	(prop_value != null) && !prop_value.equals("*") &&
-		!prop_value.equals("") ) {
-		try {	_fill_period_end = DateTime.parse ( prop_value );
+	if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
+		try {
+		    _fill_period_end = DateTime.parse ( prop_value );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Error parsing fill period end " +
-			"date/time.  Using full period." );
-			_fill_period_end = yTS.getDate2();
+		    message = "Error parsing fill period end date/time \"" + prop_value + "\".";
+			Message.printWarning ( 3, routine, message );
+			throw new RuntimeException ( message );
 		}
 	}
 
@@ -2157,8 +1936,7 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		_transformed_rmse_monthly[i] = 0;
 		_is_analyzed_monthly[i] = false;
 		_r_monthly[i] = 0;
-		_analyze_month[i] = true;	// Default is to analyze all
-						// months.
+		_analyze_month[i] = true; // Default is to analyze all months.
 	}
 
 	// Check the month to analyze (default is all)...
@@ -2167,16 +1945,14 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 	if ( prop_value != null ) {
 		prop_value = prop_value.trim();
 	}
-	if (	(prop_value != null) && !prop_value.equals("*") &&
-		!prop_value.equals("") ) {
+	if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
 		List tokens = StringUtil.breakStringList ( prop_value, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
 		int size = 0;
 		if ( tokens != null ) {
 			size = tokens.size();
 		}
 		if ( size > 0 ) {
-			// Reset all to false.  Selected months will be set
-			// to true below.
+			// Reset all to false.  Selected months will be set to true below.
 			_analyze_month_list = new int[size];
 			for ( int i = 0; i < 12; i++ ) {
 				_analyze_month[i] = false;
@@ -2184,7 +1960,7 @@ private void initialize ( TS xTS, TS yTS, PropList props )
 		}
 		int imon;
 		for ( int i = 0; i < size; i++ ) {
-			imon = StringUtil.atoi((String)tokens.get(i) );
+			imon = Integer.parseInt((String)tokens.get(i) );
 			// TODO SAM what to do with list if not right?  Allow exception to be thrown
 			//if ( (imon >= 1) && (imon <= 12) ) {
 				_analyze_month[imon - 1] = true;
@@ -2200,8 +1976,7 @@ time series value, a is the intercept of the equation, b is the slope, and X is
 the known value.  This is a value that has been calculated for each month.
 The base class has a getA() when only one relationship is used.
 @return A intercept value.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no regression data available for the month.
 @see RTi.Util.Math.Regression#getA
 */
@@ -2212,8 +1987,7 @@ throws TSException
 		monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _a_monthly[monthIndex-1];
 }
@@ -2232,20 +2006,17 @@ value, a is the intercept of the equation, b is the slope, and X is the known
 value.  This is a value which has been calculated for each month.  The base
 class has a getB when only one relationship is used.
 @return B slope value.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no regression data available for the month.
 @see RTi.Util.Math.Regression#getB
 */
 public double getB ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException ( "No regression computed for month " + 
-		monthIndex );
+		throw new TSException ( "No regression computed for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _b_monthly[monthIndex-1];
 }
@@ -2255,8 +2026,7 @@ Return the correlation coefficient between the two time series that have been
 analyzed.  This is a value that has been calculated for each month.  The base
 class has a getCorrelationCoefficient when only one relationship is used.
 @return The correlation coefficient R.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no regression data available for the month.
 @see RTi.Util.Math.Regression#getCorrelationCoefficient
 */
@@ -2267,8 +2037,7 @@ throws TSException
 		monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _r_monthly[monthIndex-1];
 }
@@ -2276,19 +2045,16 @@ throws TSException
 /**
 Return the maximum for X.
 @return the maximum for X.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMaxX ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X_max_monthly[monthIndex-1];
 }
@@ -2296,19 +2062,16 @@ throws TSException
 /**
 Return the maximum for X1.
 @return the maximum for X1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMaxX1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X1_max_monthly[monthIndex-1];
 }
@@ -2316,19 +2079,16 @@ throws TSException
 /**
 Return the maximum for X2.
 @return the maximum for X2.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMaxX2 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X2_max_monthly[monthIndex-1];
 }
@@ -2336,19 +2096,16 @@ throws TSException
 /**
 Return the maximum for Y1.
 @return the maximum for Y1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMaxY1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_max_monthly[monthIndex-1];
 }
@@ -2356,19 +2113,16 @@ throws TSException
 /**
 Return the mean for X.
 @return the mean for X.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanX ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X_mean_monthly[monthIndex-1];
 }
@@ -2376,19 +2130,16 @@ throws TSException
 /**
 Return the mean for X1.
 @return the mean for X1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanX1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X1_mean_monthly[monthIndex-1];
 }
@@ -2396,19 +2147,16 @@ throws TSException
 /**
 Return the mean for X2.
 @return the mean for X2.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanX2 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X2_mean_monthly[monthIndex-1];
 }
@@ -2416,19 +2164,16 @@ throws TSException
 /**
 Return the mean for Y.
 @return the mean for Y.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanY ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y_mean_monthly[monthIndex-1];
 }
@@ -2436,19 +2181,16 @@ throws TSException
 /**
 Return the mean for Y1.
 @return the mean for Y1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanY1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_mean_monthly[monthIndex-1];
 }
@@ -2456,19 +2198,16 @@ throws TSException
 /**
 Return the mean for Y1_estimated.
 @return the mean for Y1_estimated.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMeanY1Estimated ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_estimated_mean_monthly[monthIndex-1];
 }
@@ -2476,19 +2215,16 @@ throws TSException
 /**
 Return the minimum for X.
 @return the minimum for X.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMinX ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X_min_monthly[monthIndex-1];
 }
@@ -2496,19 +2232,16 @@ throws TSException
 /**
 Return the minimum for X1.
 @return the minimum for X1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMinX1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X1_min_monthly[monthIndex-1];
 }
@@ -2516,19 +2249,16 @@ throws TSException
 /**
 Return the minimum for X2.
 @return the minimum for X2.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMinX2 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X2_min_monthly[monthIndex-1];
 }
@@ -2536,19 +2266,16 @@ throws TSException
 /**
 Return the minimum for Y1.
 @return the minimum for Y1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getMinY1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_min_monthly[monthIndex-1];
 }
@@ -2616,12 +2343,14 @@ public PropList getPropList ()
 	if ( _analyzeMonthly ) {
 		props.set ( "NumberOfEquations", "MonthlyEquations" );
 	}
-	else {	props.set ( "NumberOfEquations", "OneEquation" );
+	else {
+	    props.set ( "NumberOfEquations", "OneEquation" );
 	}
 	if ( _analyzeLog ) {
 		props.set ( "Transformation", "Log" );
 	}
-	else {	props.set ( "Transformation", "None" );
+	else {
+	    props.set ( "Transformation", "None" );
 	}
 	return props;
 }
@@ -2631,20 +2360,17 @@ Return the RMS error for the correlation between the two time series that have
 been analyzed.  This is a value which has been calculated for each month.
 The base class has a getRMSE() when only one relationship is used.
 @return the RMS error.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no regression data available for the month.
 @see RTi.Util.Math.Regression#getRMSE
 */
 public double getRMSE ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _rmse_monthly[monthIndex-1];
 }
@@ -2652,19 +2378,16 @@ throws TSException
 /**
 Return the standard deviation for X.
 @return the standard deviation for X.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationX ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X_stddev_monthly[monthIndex-1];
 }
@@ -2672,19 +2395,16 @@ throws TSException
 /**
 Return the standard deviation for X1.
 @return the standard deviation for X1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationX1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X1_stddev_monthly[monthIndex-1];
 }
@@ -2692,19 +2412,16 @@ throws TSException
 /**
 Return the standard deviation for X2.
 @return the standard deviation for X2.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationX2 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _X2_stddev_monthly[monthIndex-1];
 }
@@ -2712,19 +2429,16 @@ throws TSException
 /**
 Return the standard deviation for Y.
 @return the standard deviation for Y.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationY ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y_stddev_monthly[monthIndex-1];
 }
@@ -2732,19 +2446,16 @@ throws TSException
 /**
 Return the standard deviation for Y1.
 @return the standard deviation for Y1.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationY1 ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_stddev_monthly[monthIndex-1];
 }
@@ -2752,19 +2463,16 @@ throws TSException
 /**
 Return the standard deviation for Y1_estimated.
 @return the standard deviation for Y1_estimated.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no analysis data available for the month.
 */
 public double getStandardDeviationY1Estimated ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _Y1_estimated_stddev_monthly[monthIndex-1];
 }
@@ -2773,28 +2481,24 @@ throws TSException
 Return the RMS error for the transformed data for a month.
 The base class has a getTransformedRMSE() when only one relationship is used.
 @return the RMS error for the transformed data.
-@param monthIndex The integer representation for the month of interest (1 is
-January).
+@param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if there is no data available for the month.
 @see RTi.Util.Math.Regression#getRMSE
 */
 public double getTransformedRMSE ( int monthIndex )
 throws TSException
 {	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException (
-		"No analysis results available for month " + monthIndex );
+		throw new TSException ( "No analysis results available for month " + monthIndex );
 	}
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex
-		+ " out of range 1-12." );
+		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
 	return _transformed_rmse_monthly[monthIndex-1];
 }
 
 /**
 Determine if monthly analysis results are available.
-@return true if the analysis relationship is available for the requested
-month (1 is January).
+@return true if the analysis relationship is available for the requested month (1 is January).
 @param monthIndex Index for month.
 */
 public boolean isAnalyzed ( int monthIndex )
@@ -2807,8 +2511,7 @@ public boolean isAnalyzed ( int monthIndex )
 /**
 Set the flag indicating whether a monthly analysis relationship is available.
 @param monthIndex month (1 is January).
-@param flag true if the time series have been analyzed and results are
-available.
+@param flag true if the time series have been analyzed and results are available.
 */
 public boolean isAnalyzed ( int monthIndex, boolean flag )
 {	_is_analyzed_monthly[monthIndex - 1] = flag;
@@ -2817,18 +2520,15 @@ public boolean isAnalyzed ( int monthIndex, boolean flag )
 
 /**
 Indicate whether a log transformation is applied to data.
-@return true if the time series are first transformed using the log10 of
-the data.
+@return true if the time series are first transformed using the log10 of the data.
 */
 public boolean isLogTransformation ( )
 {	return _analyzeLog;
 }
 
 /**
-Set the flag indicating whether the time series are first transformed using the
-log10 of the data values.
-@param flag true if the time series data are transformed using the log10 of the
-data.
+Set the flag indicating whether the time series are first transformed using the log10 of the data values.
+@param flag true if the time series data are transformed using the log10 of the data.
 */
 public boolean isLogTransformation ( boolean flag )
 {	_analyzeLog = flag;
@@ -2844,8 +2544,7 @@ public boolean isMonthlyAnalysis ( )
 }
 
 /**
-Set the flag indicating whether the time series are correlated on a monthly
-basis.
+Set the flag indicating whether the time series are correlated on a monthly basis.
 @param flag true if the time series are correlated on a monthly basis.
 */
 public boolean isMonthlyAnalysis ( boolean flag )
@@ -3043,8 +2742,7 @@ public void setMinY1 ( int monthIndex, double min )
 /**
 Set the number of points N1 used in the analysis for a particular month.
 @param monthIndex The numerical value for the intended month (1 is January).
-@param n1 The number of points used in the analysis for the month (non-missing
-overlapping data).
+@param n1 The number of points used in the analysis for the month (non-missing overlapping data).
 */
 public void setN1 ( int monthIndex, int n1 )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
@@ -3055,8 +2753,7 @@ public void setN1 ( int monthIndex, int n1 )
 /**
 Set the number of points N2 used in the analysis for a particular month.
 @param monthIndex The numerical value for the intended month (1 is January).
-@param n2 The number of points used in the analysis for the month (non-missing
-overlapping data).
+@param n2 The number of points used in the analysis for the month (non-missing overlapping data).
 */
 public void setN2 ( int monthIndex, int n2 )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
@@ -3144,8 +2841,7 @@ public void setStandardDeviationY1Estimated ( int monthIndex, double stddev )
 /**
 Set the RMS error for the transformed data for a particular month.
 @param monthIndex The numerical value for the intended month (1 is January).
-@param transformed_rmse RMS error for the transformed data for the indicated
-month.
+@param transformed_rmse RMS error for the transformed data for the indicated month.
 */
 public void setTransformedRMSE ( int monthIndex, double transformed_rmse )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
@@ -3156,8 +2852,7 @@ public void setTransformedRMSE ( int monthIndex, double transformed_rmse )
 /**
 Return string representation of analysis data.
 @return A string representation of the regression data.  A multi-line table
-of results is returned, suitable for inclusion in a report.  The lines are
-separated by "\n".
+of results is returned, suitable for inclusion in a report.  The lines are separated by "\n".
 */
 public String toString ()
 {	String nl = "\n";
@@ -3176,7 +2871,8 @@ public String toString ()
 		_yTS.getIdentifierString() + " (" +_yTS.getDescription() + ") "+
 		_yTS.getDataUnits() + nl );
 	}
-	else {	stats.append (
+	else {
+	    stats.append (
 		"Independent time series (X, " + _xTS.getDate1() + " - " +
 		_xTS.getDate2() + "): " +
 		_xTS.getIdentifierString()+ " (" + _xTS.getDescription() + ") "+
@@ -3188,15 +2884,15 @@ public String toString ()
 	}
 	
 	if ( _AnalysisMethod_int == ANALYSIS_MOVE2 ) {
-		stats.append ( "Dependent analysis period:  " +
-			_dep_analysis_period_start.toString()
+		stats.append ( "Dependent analysis period:  " + _dep_analysis_period_start.toString()
 			+ " to " + _dep_analysis_period_end.toString() + nl );
 		stats.append ( "Independent analysis period:  " +
 			_ind_analysis_period_start.toString()
 			+ " to " + _ind_analysis_period_end.toString() + nl );
 	}
-	else {	stats.append ( "Analysis period:  " +
-			_dep_analysis_period_start.toString()
+	else {
+	    // Analysis period applies to both dependent and independent
+	    stats.append ( "Analysis period:  " + _dep_analysis_period_start.toString()
 			+ " to " + _dep_analysis_period_end.toString() + nl );
 	}
 	if ( _filling ) {
@@ -3207,48 +2903,36 @@ public String toString ()
 		stats.append ("Intercept (A) was assigned, not calculated."+nl);
 	}
 	if ( _AnalysisMethod_int == ANALYSIS_OLS ) {
-		stats.append (
-		"Analysis method:  Ordinary Least Squares Regression" + nl);
+		stats.append ( "Analysis method:  Ordinary Least Squares Regression" + nl);
 	}
 	else if ( _AnalysisMethod_int == ANALYSIS_MOVE1 ) {
-		stats.append (
-		"Analysis method:  Maintenance of Variance Extension (MOVE.1)" +
-		nl );
+		stats.append ( "Analysis method:  Maintenance of Variance Extension (MOVE.1)" + nl );
 	}
 	else if ( _AnalysisMethod_int == ANALYSIS_MOVE2 ) {
-		stats.append (
-		"Analysis method:  Maintenance of Variance Extension (MOVE.2)" +
-		nl );
+		stats.append ( "Analysis method:  Maintenance of Variance Extension (MOVE.2)" + nl );
 	}
 	
 	if ( _analyzeLog ) {
-		stats.append (
-		"Data transformation:  Log10" + nl );
+		stats.append ( "Data transformation:  Log10" + nl );
 	}
-	else {	stats.append (
-		"Data transformation:  None"  + nl );
+	else {
+	    stats.append ( "Data transformation:  None"  + nl );
 	}
 
 	if ( _analyzeMonthly ) {
-		stats.append (
-		"Number of equations:  12 (Monthly)" + nl );
+		stats.append ( "Number of equations:  12 (Monthly)" + nl );
 		for ( int i = 1; i <= 12; i++ ) {
 			if ( !isAnalyzed(i) ) {
-				stats.append (
-				"THE ANALYSIS FOR " +
-				TimeUtil.monthAbbreviation(i) +
-				" FAILED FOR SOME REASON.  The results shown " +
-				"are for information only." + nl );
+				stats.append ( "THE ANALYSIS FOR " + TimeUtil.monthAbbreviation(i) +
+				" FAILED FOR SOME REASON.  The results shown are for information only." + nl );
 			}
 		}
 		stats.append ( nl );
 	}
 	else {
-		stats.append (
-		"Number of equations:  1" + nl);
+		stats.append ( "Number of equations:  1" + nl);
 		if ( !isAnalyzed() ) {
-			stats.append (
-			"THE ANALYSIS FAILED FOR SOME REASON.  The results " +
+			stats.append ( "THE ANALYSIS FAILED FOR SOME REASON.  The results " +
 			"shown are for information only." + nl );
 		}
 		stats.append ( nl );
@@ -3256,85 +2940,61 @@ public String toString ()
 
 	// Print a table with the independent station information...
 
-	String format = "%12.2f";	// Normal data - probably should check
-					// units (SAMX)
+	String format = "%12.2f"; // Normal data - probably should check units (SAMX)
 	if ( _analyzeLog ) {
-		format = "%12.6f";	// Need more precision
+		format = "%12.6f"; // Need more precision
 	}
-	stats.append (
-	"----------------------------------------------------------" +
-	"---------------------------------------" );
+	stats.append ( "-------------------------------------------------------------------------------------------------" );
 	stats.append ( nl );
-	stats.append (
-	"|   |                                     Independent (X) " +
-	"                         " +
-	"             |" + nl );
-	stats.append (
-	"|Mon|  N1  |   MeanX1   |    SX1     |  N2  |   MeanX2   |" +
-	"    SX2     |    MeanX   |     SX     |" + nl );
-	//	"XXX XXXXXX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXX XXXXXXXXX.XX "
-	//      "XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX "
+	stats.append ( "|   |                                     Independent (X)                                       |" + nl );
+	stats.append ( "|Mon|  N1  |   MeanX1   |    SX1     |  N2  |   MeanX2   |    SX2     |    MeanX   |     SX     |" + nl );
+	//	           "|XXX XXXXXX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX|"
 	//      "XXXXXXXXX.XX XXXXXXXXX.XX sX.XXXX XXXXXXXXX.XX "
 	//			       "XXXXXXXXX.XX XXXXXXXXX.XX "
-	stats.append (
-	"----------------------------------------------------------" +
-	"---------------------------------------" + nl );
+	stats.append ( "-------------------------------------------------------------------------------------------------" + nl );
 	if ( _analyzeMonthly ) {
 		for ( int i = 1; i <= 12; i++ ) {
-			stats.append ( "|" + TimeUtil.monthAbbreviation(i) +
-				"|" );
-			try {	stats.append (
+			stats.append ( "|" + TimeUtil.monthAbbreviation(i) + "|" );
+			try {
+			    stats.append (
 				StringUtil.formatString(getN1(i),"%6d") + "|" +
-				StringUtil.formatString(
-					getMeanX1(i),format)+"|"+
-				StringUtil.formatString(
-					getStandardDeviationX1(i),format)+"|"+
+				StringUtil.formatString(getMeanX1(i),format)+"|"+
+				StringUtil.formatString(getStandardDeviationX1(i),format)+"|"+
 				StringUtil.formatString(getN2(i),"%6d") + "|" +
-				StringUtil.formatString(
-					getMeanX2(i),format)+"|"+
-				StringUtil.formatString(
-					getStandardDeviationX2(i),format)+"|"+
-				StringUtil.formatString(
-					getMeanX(i),format)+"|"+
-				StringUtil.formatString(
-					getStandardDeviationX(i),format)+"|"+
-					nl);
+				StringUtil.formatString(getMeanX2(i),format)+"|"+
+				StringUtil.formatString(getStandardDeviationX2(i),format)+"|"+
+				StringUtil.formatString(getMeanX(i),format)+"|"+
+				StringUtil.formatString(getStandardDeviationX(i),format)+"|"+ nl);
 			}
 			catch ( TSException e ) {
-				// Should never get this since we
-				// checked isAnalyzed().
+				// Should never get this since we checked isAnalyzed().
 				stats.append ( nl );
 			}
 		}
 	}
-	else {	// Single equation...
-		try {	// Else do full format...
+	else {
+	    // Single equation...
+		try {
+		    // Else do full format...
 			stats.append ( "|All|" +
 			StringUtil.formatString(getN1(),"%6d") + "|" +
-			StringUtil.formatString( getMeanX1(),format)+"|"+
-			StringUtil.formatString(
-				getStandardDeviationX1(),format)+"|"+
+			StringUtil.formatString(getMeanX1(),format)+"|"+
+			StringUtil.formatString(getStandardDeviationX1(),format)+"|"+
 			StringUtil.formatString(getN2(),"%6d") + "|" +
-			StringUtil.formatString( getMeanX2(),format)+"|"+
-			StringUtil.formatString(
-				getStandardDeviationX2(),format)+"|"+
-			StringUtil.formatString( getMeanX(),format)+"|"+
-			StringUtil.formatString(
-				getStandardDeviationX(),format)+"|"+nl);
+			StringUtil.formatString(getMeanX2(),format)+"|"+
+			StringUtil.formatString(getStandardDeviationX2(),format)+"|"+
+			StringUtil.formatString(getMeanX(),format)+"|"+
+			StringUtil.formatString(getStandardDeviationX(),format)+"|"+nl);
 		}
 		catch ( Exception e ) {
-			// SAMX need to handle
+			// TODO SAM 2009-03-10 need to handle
 		}
 	}
-	stats.append (
-	"----------------------------------------------------------" +
-	"---------------------------------------" + nl );
+	stats.append ( "-------------------------------------------------------------------------------------------------" + nl );
 
 	// Now print a table with dependent and line fit results...
 
-	stats.append (
-	"----------------------------------------------------------" +
-	"----------------------------------------------" );
+	stats.append ( "----------------------------------------------------------------------------------------------------------------" );
 	if ( _analyzeLog ) {
 		stats.append ( "-------------" );
 	}
@@ -3342,27 +3002,24 @@ public String toString ()
 		stats.append ( "--------------------------" );
 	}
 	stats.append ( nl );
-	stats.append (
-	"|   |                   Dependent (Y)                   |" +
-	"         Line Fit Results        |            " );
+	stats.append ( "|   |                   Dependent (Y)                   |         Line Fit Results                |            " );
 	if ( _analyzeLog ) {
 		stats.append ( "             " );
 	}
 	if ( _filling ) {
 		stats.append ( "                          |" );
 	}
-	else {	stats.append ( "|" );
+	else {
+	    stats.append ( "|" );
 	}
 	stats.append ( nl );
-	stats.append (
-	"|Mon|   MeanY1   |" +
-	"    SY1     |   MeanY    |     SY     |" +
-	"     A      |      B     |   R   |" );
+	stats.append ( "|Mon|   MeanY1   |    SY1     |   MeanY    |     SY     |     A      |      B     |   R   |  R^2  |" );
 	if ( _analyzeLog ) {
 		stats.append ( "RMSE (log10)|" );
 		stats.append ( "RMSE (data) |" );
 	}
-	else {	stats.append ( "    RMSE    |" );
+	else {
+	    stats.append ( "    RMSE    |" );
 	}
 	if ( _filling ) {
 		stats.append ( " MeanY1_est |   SY1_est  |" );
@@ -3374,9 +3031,7 @@ public String toString ()
 	//      "XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX XXXXXXXXX.XX "
 	//      "XXXXXXXXX.XX XXXXXXXXX.XX sX.XXXX XXXXXXXXX.XX "
 	//			       "XXXXXXXXX.XX XXXXXXXXX.XX "
-	stats.append (
-	"----------------------------------------------------------" +
-	"----------------------------------------------" );
+	stats.append ( "----------------------------------------------------------------------------------------------------------------" );
 	if ( _analyzeLog ) {
 		stats.append ( "-------------" );
 	}
@@ -3386,83 +3041,60 @@ public String toString ()
 	stats.append ( nl );
 	if ( _analyzeMonthly ) {
 		for ( int i = 1; i <= 12; i++ ) {
-			stats.append ( "|" + TimeUtil.monthAbbreviation(i) +
-				"|" );
-			try {	stats.append (
-				StringUtil.formatString(
-					getMeanY1(i),format)+"|"+
-				StringUtil.formatString(
-					getStandardDeviationY1(i),format)+"|"+
-				StringUtil.formatString(
-					getMeanY(i),format)+"|"+
-				StringUtil.formatString(
-					getStandardDeviationY(i),format)+"|"+
-				StringUtil.formatString(
-					getA(i),format)+ "|" +
-				StringUtil.formatString(
-					getB(i),format)+ "|" +
-				StringUtil.formatString(
-					getCorrelationCoefficient(i),"%7.4f")+
-					"|" );
+			stats.append ( "|" + TimeUtil.monthAbbreviation(i) + "|" );
+			try {
+			    stats.append ( StringUtil.formatString(getMeanY1(i),format)+"|"+
+				StringUtil.formatString(getStandardDeviationY1(i),format)+"|"+
+				StringUtil.formatString(getMeanY(i),format)+"|"+
+				StringUtil.formatString(getStandardDeviationY(i),format)+"|"+
+				StringUtil.formatString(getA(i),format)+ "|" +
+				StringUtil.formatString(getB(i),format)+ "|" +
+				StringUtil.formatString(getCorrelationCoefficient(i),"%7.4f")+ "|" +
+				StringUtil.formatString(getCorrelationCoefficient(i)*getCorrelationCoefficient(i),"%7.4f")+ "|" );
 				if ( _analyzeLog ) {
-					stats.append (
-					StringUtil.formatString(
-					getTransformedRMSE(i),"%12.4f")+ "|" );
+					stats.append (StringUtil.formatString(getTransformedRMSE(i),"%12.4f")+ "|" );
 				}
 				stats.append (
-				StringUtil.formatString(
-					getRMSE(i),"%12.2f")+ "|" );
+				StringUtil.formatString(getRMSE(i),"%12.2f")+ "|" );
 				if ( _filling ) {
 					stats.append (
-					StringUtil.formatString(
-					getMeanY1Estimated(i),format)+"|"+
-					StringUtil.formatString(
-					getStandardDeviationY1Estimated(i),
-					format)+"|" );
+					StringUtil.formatString(getMeanY1Estimated(i),format)+"|"+
+					StringUtil.formatString(getStandardDeviationY1Estimated(i),format)+"|" );
 				}
 				stats.append ( nl );
 			}
 			catch ( TSException e ) {
-				// Should never get this since we
-				// checked isAnalyzed().
+				// Should never get this since we checked isAnalyzed().
 				stats.append ( nl );
 			}
 		}
 	}
-	else {	// Single equation...
-		try {	stats.append ( "|All|" +
-			StringUtil.formatString(getMeanY1(),format)+"|"+
-			StringUtil.formatString(
-				getStandardDeviationY1(),format)+"|"+
-			StringUtil.formatString( getMeanY(),format)+"|"+
-			StringUtil.formatString(
-				getStandardDeviationY(),format)+"|"+
-			StringUtil.formatString( getA(),format)+ "|" +
-			StringUtil.formatString( getB(),format)+ "|" +
-			StringUtil.formatString(
-				getCorrelationCoefficient(),"%7.4f")+ "|" );
+	else {
+	    // Single equation...
+		try {
+		    stats.append ( "|All|" + StringUtil.formatString(getMeanY1(),format)+"|"+
+			StringUtil.formatString(getStandardDeviationY1(),format)+"|"+
+			StringUtil.formatString(getMeanY(),format)+"|"+
+			StringUtil.formatString(getStandardDeviationY(),format)+"|"+
+			StringUtil.formatString(getA(),format)+ "|" +
+			StringUtil.formatString(getB(),format)+ "|" +
+			StringUtil.formatString(getCorrelationCoefficient(),"%7.4f")+ "|" +
+			StringUtil.formatString(getCorrelationCoefficient()*getCorrelationCoefficient(),"%7.4f")+ "|" );
 			if ( _analyzeLog ) {
-				stats.append ( StringUtil.formatString(
-					getTransformedRMSE(),"%12.4f")+ "|" );
+				stats.append ( StringUtil.formatString(getTransformedRMSE(),"%12.4f")+ "|" );
 			}
-			stats.append ( StringUtil.formatString(
-				getRMSE(),"%12.2f")+ "|" );
+			stats.append ( StringUtil.formatString(getRMSE(),"%12.2f")+ "|" );
 			if ( _filling ) {
-				stats.append ( StringUtil.formatString(
-					getMeanY1Estimated(),format)+"|"+
-					StringUtil.formatString(
-					getStandardDeviationY1Estimated(),
-					format)+"|" );
+				stats.append ( StringUtil.formatString(getMeanY1Estimated(),format)+"|"+
+					StringUtil.formatString(getStandardDeviationY1Estimated(),format)+"|" );
 			}
 			stats.append ( nl );
 		}
 		catch ( Exception e ) {
-			// SAMX need to handle
+			// FIXME SAM 2009-03-10 need to handle
 		}
 	}
-	stats.append (
-	"----------------------------------------------------------" +
-	"----------------------------------------------" );
+	stats.append ("----------------------------------------------------------------------------------------------------------------" );
 	if ( _analyzeLog ) {
 		stats.append ( "-------------" );
 	}
@@ -3473,12 +3105,9 @@ public String toString ()
 
 	if ( _analyzeMonthly ) {
 		// Include a total RMSE row...
-		stats.append ( "|All|                                      " +
-		"                                               |" );
+		stats.append ( "|All|                                                                                     |" );
 		if ( _analyzeLog ) {
-			stats.append (
-			StringUtil.formatString(
-				getTransformedRMSE(),"%12.4f")+ "|" );
+			stats.append ( StringUtil.formatString(getTransformedRMSE(),"%12.4f")+ "|" );
 		}
 		stats.append (
 		StringUtil.formatString( getRMSE(),"%12.2f")+ "|" );
@@ -3486,9 +3115,7 @@ public String toString ()
 			stats.append ( "                         |" );
 		}
 		stats.append ( nl );
-		stats.append (
-		"----------------------------------------------------------" +
-		"----------------------------------------------" );
+		stats.append ( "----------------------------------------------------------------------------------------------------------------" );
 		if ( _analyzeLog ) {
 			stats.append ( "-------------" );
 		}
@@ -3505,34 +3132,28 @@ public String toString ()
 	//_min_x1 + "/" + StringUtil.formatString(_max_x1,"%.6f") + nl +
 	//"Minimum/Maximum from dependent (Y) series = " +
 	//_min_y1 + "/" + StringUtil.formatString(_max_y1,"%.6f") + nl +
-	stats.append ( "N1 indicates analysis period where X and Y are " +
-		"non-missing.  " +
-		"N2 indicates analysis period where only X is non-missing." +
-		nl );
+	stats.append ( "N1 indicates analysis period where X and Y are non-missing.  " +
+		"N2 indicates analysis period where only X is non-missing." + nl );
 	if ( _AnalysisMethod_int == ANALYSIS_MOVE2 ) {
-		stats.append ( "The variance of the X2 values is considered " +
-			"in the MOVE.2 procedure." + nl );
+		stats.append ( "The variance of the X2 values is considered in the MOVE.2 procedure." + nl );
 		stats.append ( "MeanX and SX are for the period N1 + N2." + nl);
 	}
-	else {	stats.append ( "The N2 and full period values are provided as" +
-			" information but are not considered in the " +
-			"regression analysis." + nl );
-		stats.append (
-		"MeanX and SX are for the dependent available period." + nl );
+	else {
+	    stats.append ( "The N2 and full period values are provided as" +
+			" information but are not considered in the regression analysis." + nl );
+		stats.append ( "MeanX and SX are for the dependent available period (may be different than the analysis period)." + nl );
 	}
 	if ( _filling ) {
 		stats.append ( "RMSE = sqrt(sum((Y1_est - Y1)^2)/N1), where" +
-		" Y1_est is estimated using X1, A, and B, and Y1 is observed." +
-		nl );
+		" Y1_est is estimated using X1, A, and B, and Y1 is observed." + nl );
 	}
-	else {	stats.append ( "RMSE = sqrt(sum((Y1 - X1)^2)/N1), where " +
-		"Y1 is dependent and X1 is independent." + nl );
+	else {
+	    stats.append ( "RMSE = sqrt(sum((Y1 - X1)^2)/N1), where Y1 is dependent and X1 is independent." + nl );
 	}
 	if ( _analyzeLog ) {
-		stats.append ( "RMSE is shown for original data units and " +
-		"log10 transform of data." + nl );
+		stats.append ( "RMSE is shown for original data units and log10 transform of data." + nl );
 	}
 	return stats.toString();
 }
 
-} // End of TSRegression class.
+}
