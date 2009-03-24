@@ -58,7 +58,7 @@ public void commandCancelled ( int icommand, int ncommand, Command command,
 
 /**
 Indicate the progress that is occurring within a command.  This may be a chained call
-from a CommandProcessor that implements CommandListener to listen to a command.  This
+from a CommandProcessor that implements CommandProgressListener to listen to a command.  This
 level of monitoring is useful if more than one progress indicator is present in an application UI.
 @param istep The number of steps being executed in a command (0+).
 @param nstep The total number of steps to process within a command.
