@@ -272,7 +272,7 @@ public class LagK {
         }
         
         // If no double backs, perform lookup to get the value at t = 0
-        if ( doubleBack > 0 ) {
+        if ( doubleBack == 0 ) {
             result = calcTable.lookup( 0.0, FLOWCOLUMN, true ) ;
         } else // otherwise, calculate resulting flow "inside" curve
         {
@@ -303,6 +303,7 @@ public class LagK {
                         {
                             result += calcTable.lookup( j, FLOWCOLUMN ) ;
 //                            goto Line295 ;
+                            // Next line outside above for loop so break is OK.
                             break;
                         }
                         
