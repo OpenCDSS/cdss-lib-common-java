@@ -88,8 +88,7 @@ import RTi.Util.String.StringUtil;
 
 /**
 The DataUnits class provides capabilities for reading and storing 
-data units and conversion between units.  Units are maintained internally using
-a Vector of DataUnits.
+data units and conversion between units.  Units are maintained internally using a list of DataUnits.
 */
 public class DataUnits
 {
@@ -113,26 +112,48 @@ public static final int SYSTEM_ALL	= 3;
 
 // Data members...
 
-private String	__abbreviation;		// The units abbreviation (e.g., "AF").
-private String	__long_name;		// The long name (e.g., "ACRE-FOOT").
-private DataDimension __dimension;	// The dimension (e.g., "L3").
-private int	__base_flag;		// Indicates whether it the base unit
-					// in the dimension.
-private int	__output_precision;	// The number of digits of precision
-					// after the decimal point on output.
-private int	__system;		// Units system (SYSTEM_SI,
-					// SYSTEM_ENGLISH, SYSTEM_ALL, or
-					// SYSTEM_UNKNOWN).
-private double	__mult_factor;		// Multiplier for conversion (relative
-					// to base).
-private double	__add_factor;		// Add factor for conversion (relative
-					// to base).
-private int	__behavior_mask;	// Behavior flag (e.g., whether to output in uppercase).
+/**
+The units abbreviation (e.g., "AF").
+*/
+private String __abbreviation;
+/**
+The long name (e.g., "ACRE-FOOT").
+*/
+private String __long_name;
+/**
+The dimension (e.g., "L3").
+*/
+private DataDimension __dimension;
+/**
+Indicates whether it the base unit in the dimension.
+*/
+private int __base_flag;
+/**
+The number of digits of precision after the decimal point on output.
+*/
+private int __output_precision;
+/**
+Units system (SYSTEM_SI, SYSTEM_ENGLISH, SYSTEM_ALL, or SYSTEM_UNKNOWN).
+*/
+private int	__system;
+/**
+Multiplier for conversion (relative to base).
+*/
+private double __mult_factor;
+/**
+Add factor for conversion (relative to base).
+*/
+private double __add_factor;
+/**
+Behavior flag (e.g., whether to output in uppercase).
+*/
+private int	__behavior_mask;
 
-// The following list can be modified  by the static functions...
-
+/**
+List of internally-maintained available units.
+*/
 private static List __units_Vector = new Vector(20);
-					// Vector of internally-maintained available units.
+
 
 /**
 Construct and set all data members to empty strings and zeros.
@@ -144,23 +165,20 @@ public DataUnits ( )
 /**
 Construct using the individual data items.
 @param dimension Units dimension (see DataDimension).
-@param base_flag 1 if the units are the base units for conversion purposes,
-for the dimension.
+@param base_flag 1 if the units are the base units for conversion purposes, for the dimension.
 @param abbreviation Abbreviation for the units.
 @param long_name Long name for the units.
 @param output_precision The output precision for the units (the number of
 digits output after the decimal point).
-@param mult_factor Multiplication factor used when converting to the base units
-for the dimension.
-@param add_factor Addition factor used when converting to the base units
-for the dimension.
+@param mult_factor Multiplication factor used when converting to the base units for the dimension.
+@param add_factor Addition factor used when converting to the base units for the dimension.
 @see DataDimension
 */
-public DataUnits (	String dimension, int base_flag, String abbreviation,
-			String long_name, int output_precision,
-			double mult_factor, double add_factor )
+public DataUnits ( String dimension, int base_flag, String abbreviation,
+    String long_name, int output_precision, double mult_factor, double add_factor )
 {	initialize ();
-	try {	setDimension ( dimension );
+	try {
+	    setDimension ( dimension );
 	}
 	catch ( Exception e ) {
 		// Do nothing for now.
@@ -181,7 +199,8 @@ public DataUnits ( DataUnits units )
 {	initialize();
 	setAbbreviation ( units.__abbreviation );
 	setLongName ( units.__long_name );
-	try {	// Converts to integer, etc.
+	try {
+	    // Converts to integer, etc.
 		setDimension ( units.__dimension.getAbbreviation() );	
 	}
 	catch ( Exception e ) {
@@ -209,10 +228,8 @@ public static void addUnits ( DataUnits units )
 		// Get the units for the loop index...
 		pt = (DataUnits)__units_Vector.get(i);
 		// Now compare...
-		if (	units.getAbbreviation().equalsIgnoreCase(
-			pt.getAbbreviation() ) ) {
-			// The requested units match something that is
-			// already in the list.  Reset the list...
+		if ( units.getAbbreviation().equalsIgnoreCase(pt.getAbbreviation() ) ) {
+			// The requested units match something that is already in the list.  Reset the list...
 			__units_Vector.set ( i, units );
 			return;
 		}
@@ -236,8 +253,7 @@ public static boolean areUnitsStringsCompatible ( List units_strings )
 
 /**
 Determine whether a two units strings are compatible.
-The units are allowed to be different as long as they are within the same
-dimension (e.g., each is a length).
+The units are allowed to be different as long as they are within the same dimension (e.g., each is a length).
 @param units_string1 First units strings.
 @param units_string2 Second units strings.
 @param require_same Flag indicating whether the units must exactly match (no
@@ -248,8 +264,7 @@ public static boolean areUnitsStringsCompatible ( String units_string1, String u
 {	List units_strings = new Vector(2);
 	units_strings.add ( units_string1 );
 	units_strings.add ( units_string2 );
-	boolean result = areUnitsStringsCompatible ( units_strings,
-		require_same);
+	boolean result = areUnitsStringsCompatible ( units_strings, require_same);
 	units_strings = null;
 	return result;
 }
@@ -277,23 +292,20 @@ public static boolean areUnitsStringsCompatible ( List units_strings, boolean re
 		return true;
 	}
 	String units2;
-	// Allow nulls because it is assumed that later they will
-	// result in an ignored conversion...
+	// Allow nulls because it is assumed that later they will result in an ignored conversion...
 	DataUnitsConversion conversion = null;
 	for ( int i = 1; i < size; i++ ) {
 		units2 = (String)units_strings.get(i);
 		if ( units2 == null ) {
 			continue;
 		}
-		// Get the conversions and return false if a conversion
-		// cannot be obtained...
-		try {	conversion = getConversion ( units1, units2 );
+		// Get the conversions and return false if a conversion cannot be obtained...
+		try {
+		    conversion = getConversion ( units1, units2 );
 			if ( require_same ) {
 				// If the factors are not unity, return false.
-				// This will allow AF and ACFT to compare
-				// exactly...
-				if (	(conversion.getAddFactor() != 0.0) ||
-					(conversion.getMultFactor() != 1.0) ) {
+				// This will allow AF and ACFT to compare exactly...
+				if ( (conversion.getAddFactor() != 0.0) || (conversion.getMultFactor() != 1.0) ) {
 					return false;
 				}
 			}
@@ -313,9 +325,9 @@ public static boolean areUnitsStringsCompatible ( List units_strings, boolean re
 
 /**
 This routine checks the internal list of units data for integrity.  This
-consistists of making sure that for units of a dimension, there is
-base unit only.  THIS ROUTINE IS CURRENTLY A PLACEHOLDER.  THE
-FUNCTIONALITY NEEDS TO BE ADDED.
+consists of making sure that for units of a dimension, there is
+base unit only.  THIS ROUTINE IS CURRENTLY A PLACEHOLDER.
+@TODO SAM 2009-03-25 THE FUNCTIONALITY NEEDS TO BE ADDED.
 */
 private static void checkUnitsData ( )
 {	// First see if the units are already in the list...
@@ -367,56 +379,47 @@ public String getBaseString ( )
 {	if ( __base_flag == 1 ) {
 		return "BASE";
 	}
-	else {	return "OTHR";
+	else {
+	    return "OTHR";
 	}
 }
 
 /**
 Get the conversion from units string to another.
-@return A DataUnitsConversion instance with the conversion information from one
-set of units to another.
+@return A DataUnitsConversion instance with the conversion information from one set of units to another.
 @param u1_string Original units.
 @param u2_string The units after conversion.
 @exception Exception If the conversion cannot be found.
 */
-public static DataUnitsConversion getConversion (	String u1_string,
-							String u2_string )
+public static DataUnitsConversion getConversion ( String u1_string, String u2_string )
 throws Exception
 {	// Call the routine that takes the auxiliary information.  This is not
-	// fully implemented at this time but provides a migration path from
-	// the legacy code...
+	// fully implemented at this time but provides a migration path from the legacy code...
 	return getConversion ( u1_string, u2_string, 0.0, "" );
 }
 
 /**
 Get the conversion from units string to another.
-@return A DataUnitsConversion instance with the conversion information from one
-set of units to another.
+@return A DataUnitsConversion instance with the conversion information from one set of units to another.
 @param u1_string Original units.
 @param u2_string The units after conversion.
-@param aux An auxiliary piece of information when converting between units of
-different dimension.
+@param aux An auxiliary piece of information when converting between units of different dimension.
 @param aunits The units of "aux".
 @exception Exception If the conversion cannot be found.
 */
-public static DataUnitsConversion getConversion (	String u1_string,
-							String u2_string,
-							double aux,
-							String aunits )
+public static DataUnitsConversion getConversion ( String u1_string, String u2_string, double aux, String aunits )
 throws Exception
 {	int	dl = 20;
 	String	routine = "DataUnits.getConversion", u1_dim, u2_dim;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Trying to get conversion from \"" + u1_string + "\" to \"" +
-		u2_string + "\"" );
+		"Trying to get conversion from \"" + u1_string + "\" to \"" + u2_string + "\"" );
 	}
 
 	// Make sure that the units strings are not NULL...
 
-	if (	((u1_string == null) || (u1_string.equals(""))) &&
-		((u2_string == null) || (u2_string.equals(""))) ) {
+	if ( ((u1_string == null) || (u1_string.equals(""))) && ((u2_string == null) || (u2_string.equals(""))) ) {
 		// Both units are unspecified so return a unit conversion...
 		DataUnitsConversion c = new DataUnitsConversion();
 		c.setMultFactor ( 1.0 );
@@ -442,8 +445,7 @@ throws Exception
 	c.setOriginalUnits ( u1_string );
 	c.setNewUnits ( u2_string );
 
-	// First thing we do is see if the units are the same.  If so, we are
-	// done...
+	// First thing we do is see if the units are the same.  If so, we are done...
 
 	if ( u1_string.trim().equalsIgnoreCase(u2_string.trim()) ) {
 		c.setMultFactor ( 1.0 );
@@ -465,20 +467,20 @@ throws Exception
 	// First get the units data...
 
 	DataUnits u1, u2;
-	try {	u1 = lookupUnits ( u1_string );
+	try {
+	    u1 = lookupUnits ( u1_string );
 	}
 	catch ( Exception e ) {
-		message = "Unable to get units type for \"" + u1_string +
-		"\"";
+		message = "Unable to get units type for \"" + u1_string + "\"";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 		
 	}
-	try {	u2 = lookupUnits ( u2_string );
+	try {
+	    u2 = lookupUnits ( u2_string );
 	}
 	catch ( Exception e ) {
-		message = "Unable to get units type for \"" + u2_string +
-		"\"";
+		message = "Unable to get units type for \"" + u2_string + "\"";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
@@ -488,27 +490,24 @@ throws Exception
 	u1_dim = u1.getDimension().getAbbreviation();
 	u2_dim = u2.getDimension().getAbbreviation();
 
-	if (	u1_dim.equalsIgnoreCase(u2_dim) ) {
+	if ( u1_dim.equalsIgnoreCase(u2_dim) ) {
 		// Same dimension...
 		c.setMultFactor ( u1.getMultFactor()/u2.getMultFactor() );
 		// For the add factor assume that a value over .001 indicates
 		// that an add factor should be considered.  This should only
-		// be the case for temperatures and all other dimensions should
-		// have a factor of 0.0.
-		if (	(Math.abs(u1.getAddFactor()) > .001) ||
-			(Math.abs(u2.getAddFactor()) > .001) ){
+		// be the case for temperatures and all other dimensions should have a factor of 0.0.
+		if ( (Math.abs(u1.getAddFactor()) > .001) || (Math.abs(u2.getAddFactor()) > .001) ){
 			// The addition factor needs to take into account the
 			// different scales for the measurement range...
-			c.setAddFactor (
-			-1.0*u2.getAddFactor()/u2.getMultFactor() +
-			u1.getAddFactor()/u2.getMultFactor() );
+			c.setAddFactor ( -1.0*u2.getAddFactor()/u2.getMultFactor() + u1.getAddFactor()/u2.getMultFactor() );
 		}
-		else {	c.setAddFactor ( 0.0 );
+		else {
+		    c.setAddFactor ( 0.0 );
 		}
 		Message.printStatus(1, "", "Add factor is " + c.getAddFactor());
 	}
-	else {	message = "Dimensions are different for " + u1_string +
-		" and " + u2_string;
+	else {
+	    message = "Dimensions are different for " + u1_string + " and " + u2_string;
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
@@ -573,11 +572,6 @@ throws Exception
 		c.setMultFactor ( mult );
 	}
 */
-	routine = null;
-	u1_dim = null;
-	u2_dim = null;
-	u1 = null;
-	u2 = null;
 	return c;
 }
 
@@ -607,8 +601,7 @@ public double getMultFactor ( )
 }
 
 /**
-Determine the format for output based on the units and precision.  A default
-precision of 2 is used.
+Determine the format for output based on the units and precision.  A default precision of 2 is used.
 @return the printing format for data of a units type.
 @param units_string Units of data.
 @param width Width of output (if zero, no width will be used in the format).
@@ -625,8 +618,7 @@ Determine the format for output based on the units and precision.
 @param default_precision Default precision if precision cannot be determined
 from the units.  If not specified, 2 will be used.
 */
-public static DataFormat getOutputFormat ( String units_string, int width,
-						int default_precision )
+public static DataFormat getOutputFormat ( String units_string, int width, int default_precision )
 {	String	routine = "DataUnits.getOutputFormat";
 
 	// Initialize the DataFormat for return...
@@ -640,21 +632,20 @@ public static DataFormat getOutputFormat ( String units_string, int width,
 	if ( (units_string == null) || (units_string.length() == 0) ) {
 		// No units are specified...
 		Message.printWarning ( 3, routine,
-		"No units abbreviation specified.  Using precision " +
-		default_precision );
+		"No units abbreviation specified.  Using precision " + default_precision );
 		return format;
 	}
 
 	// Get the units...
 
-	try {	DataUnits units = lookupUnits ( units_string );
+	try {
+	    DataUnits units = lookupUnits ( units_string );
 		format.setPrecision ( units.getOutputPrecision() );
 		units = null;
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, "DataUnits.getOutputFormat",
-		"Unable to find data for units \"" + units_string +
-		"\".  Using format \"" + format.toString() + "\"" );
+		"Unable to find data for units \"" + units_string + "\".  Using format \"" + format.toString() + "\"" );
 	}
 
 	routine = null;
@@ -669,15 +660,13 @@ Get the output format string for data given the units, width and precision.
 @param default_precision Default precision if precision cannot be determined
 from the units.  If not specified, 2 will be used.
 */
-public static String getOutputFormatString ( String units, int width,
-					int default_precision )
+public static String getOutputFormatString ( String units, int width, int default_precision )
 {	return getOutputFormat(units,width,default_precision).toString();
 }
 
 /**
 Return the output precision for the units.
-@return The output precision for the units (the number of digits after the
-decimal point).
+@return The output precision for the units (the number of digits after the decimal point).
 */
 public int getOutputPrecision ( )
 {	return __output_precision;
@@ -693,8 +682,7 @@ public int getSystem ( )
 
 /**
 Return the units system as a string.
-@return The units system as a string ("SI", "ENGL", "" ).
-See SYSTEM*.
+@return The units system as a string ("SI", "ENGL", "" ). See SYSTEM*.
 */
 public String getSystemString ( )
 {	if ( __system == SYSTEM_SI ) {
@@ -706,21 +694,9 @@ public String getSystemString ( )
 	else if ( __system == SYSTEM_ALL ) {
 		return "ALL";
 	}
-	else {	return "";
+	else {
+	    return "";
 	}
-}
-
-/**
-Return a DataUnits instance, given the units abbreviation.
-@return A DataUnits instance, given the units abbreviation.
-@param units_string The units abbreviation to look up.
-@exception Exception If there is a problem looking up the units
-abbreviation.
-@deprecated Use lookupUnits() instead.
-*/
-public static DataUnits getUnits ( String units_string )
-throws Exception
-{	return lookupUnits ( units_string );
 }
 
 /**
@@ -753,8 +729,7 @@ private void initialize ()
 Return a DataUnits instance, given the units abbreviation.  A copy is NOT made.
 @return A DataUnits instance, given the units abbreviation.
 @param units_string The units abbreviation to look up.
-@exception Exception If there is a problem looking up the units
-abbreviation.
+@exception Exception If there is a problem looking up the units abbreviation.
 */
 public static DataUnits lookupUnits ( String units_string )
 throws Exception
@@ -769,9 +744,8 @@ throws Exception
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 20, routine, "Comparing " + units_string + " and " + pt.getAbbreviation());
 		}
-		if (	units_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
-			// The requested units match something that is
-			// in the list.  Return the matching DataUnits...
+		if ( units_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
+			// The requested units match something that is in the list.  Return the matching DataUnits...
 			return pt;
 		}
 	}
@@ -780,13 +754,11 @@ throws Exception
 }
 
 /**
-Return all the DataUnits objects that have the Dimension abbreviation
-equal to the parameter passed in.
+Return all the DataUnits objects that have the Dimension abbreviation equal to the parameter passed in.
 @param system Requested units system.  Pass null or "" to get all systems,
 "ENGL" for English, or "SI" for SI units.
 @param dimension the dimension abbreviation to return units for.
-@return a Vector of all the DataUnits objects that match the dimension or
-an empty Vector if none exist.
+@return a list of all the DataUnits objects that match the dimension or an empty list if none exist.
 */
 public static List lookupUnitsForDimension ( String system, String dimension )
 {	List v = new Vector();
@@ -800,12 +772,10 @@ public static List lookupUnitsForDimension ( String system, String dimension )
 
 	for ( int i = 0; i < size; i++ ) {
 		pt = (DataUnits)__units_Vector.get(i);
-		if (	(system != null) && !system.equals("") &&
-			!pt.getSystemString().equals("") &&
+		if ( (system != null) && !system.equals("") && !pt.getSystemString().equals("") &&
 			!pt.getSystemString().equalsIgnoreCase(system) ) {
 			// The system does not equal the requested value so
-			// ignore the units object (system of "" is OK for
-			// ENGL and SI)...
+			// ignore the units object (system of "" is OK for ENGL and SI)...
 			continue;
 		}
 		dud = (DataDimension)pt.getDimension();
@@ -820,8 +790,7 @@ public static List lookupUnitsForDimension ( String system, String dimension )
 
 /**
 Read a file that is in NWS DATAUNIT format.  See the fully loaded method for
-more information.  This version calls the other version with define_dimensions
-as true.
+more information.  This version calls the other version with define_dimensions as true.
 @param dfile Units file to read (can be a URL).
 */
 public static void readNWSUnitsFile ( String dfile )
@@ -863,11 +832,10 @@ instance checks the dimension against defined dimensions.
 */
 public static void readNWSUnitsFile ( String dfile, boolean define_dimensions )
 throws IOException
-{	double		add_factor = 0.0, mult_factor = 1.0;
-	String		abbreviation, base_string, dimension, long_name,
-			routine = "DataUnits.readNWSUnitsFile", string;
-	int		output_precision = 2;
-	BufferedReader	fp = null;
+{	double add_factor = 0.0, mult_factor = 1.0;
+	String abbreviation, base_string, dimension, long_name, routine = "DataUnits.readNWSUnitsFile", string;
+	int output_precision = 2;
+	BufferedReader fp = null;
 	String [] engl_units = { "IN", "FT", "MI", "NM",
 				"FT/S", "FT/M", "MI/H", "MI/D", "KNOT",
 				"IN2", "FT2", "MI2", "NM2", "ACRE",
@@ -883,128 +851,126 @@ throws IOException
 				"MMHG",
 				"DEGC" };
 
-	try {	// Main try...
-	// Open the file (allow the units file to be a normal file or a URL so
-	// web applications can also be supported)...
-	try {	fp = new BufferedReader(new InputStreamReader(
-			IOUtil.getInputStream(dfile)));
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 3, routine, e );
-		throw new IOException ( "Error opening units file \"" + dfile
-		+ "\"" );
-	}
-	int linecount = 0;
-	DataUnits units = null;
-	boolean system_found = false;	// Indicates whether the system for the
-					// units has been found.
-	while ( true ) {
-		// Read a line...
-		string = fp.readLine();
-		++linecount;
-		if ( string == null ) {
-			// End of file...
-			break;
-		}
-		try {	// If exceptions are caught, ignore the data..
-		string = string.trim();
-		if ( string.length() == 0 ) {
-			// Skip blank lines...
-			continue;
-		}
-		if ( string.charAt(0) == '*' ) {
-			// A comment line...
-			if ( string.regionMatches(true,0,"* END",0,5) ) {
-				// End of file...
-				break;
-			}
-			// Else ignore...
-			continue;
-		}
-		// A line with conversion factors...
-		dimension = string.substring(0,4).trim();
-		base_string = string.substring(5,9).trim();
-		abbreviation = string.substring(10,14).trim();
-		long_name = string.substring(16,52).trim();
-		// This is sometimes blank.  If so, default to 3...
-		if ( string.substring(52,53).trim().equals("") ) {
-			output_precision = 3;
-		}
-		else {	output_precision = StringUtil.atoi(
-				string.substring(52,53).trim() );
-		}
-		mult_factor = StringUtil.atod ( string.substring(54,64).trim());
-		if ( dimension.equalsIgnoreCase("TEMP") ) {
-			//if ( string.length() >= 71 ) {
-				//add_factor = StringUtil.atod(
-				//string.substring(64,71).trim() );
-			//}
-			//else {	
-				add_factor = StringUtil.atod(
-				string.substring(64).trim() );
-			//}
-		}
-		else {	add_factor = 0.0;
-		}
-		// Now add as a new set of units (for now, we add
-		// everything and don't just add the ones that are
-		// commonly used, as in the legacy HMData code)...
-		units = new DataUnits();
-		if ( define_dimensions ) {
-			// Define the dimension in the DataDimension global
-			// data so that it can be referenced below.  It is OK
-			// to define more than once because DataDimension will
-			// keep only one unique definition.
-			DataDimension.addDimension (
-				new DataDimension(dimension,dimension) );
-		}
-		units.setDimension ( dimension );
-		if ( base_string.equalsIgnoreCase("BASE") ) {
-			units.setBaseFlag ( 1 );
-		}
-		else {	units.setBaseFlag ( 0 );
-		}
-		units.setAbbreviation ( abbreviation );
-		units.setLongName ( long_name );
-		units.setOutputPrecision ( output_precision );
-		units.setMultFactor ( mult_factor );
-		units.setAddFactor ( add_factor );
-		// Determine the system from hard-coded units...
-		system_found = false;
-		units.setSystem ( SYSTEM_ALL );	// default
-		for ( int iu = 0; iu < engl_units.length; iu++ ) {
-			if ( abbreviation.equalsIgnoreCase(engl_units[iu]) ) {
-				units.setSystem ( SYSTEM_ENGLISH );
-				system_found = true;
-				break;
-			}
-		}
-		if ( !system_found ) {
-			for ( int iu = 0; iu < si_units.length; iu++ ) {
-				if(abbreviation.equalsIgnoreCase(si_units[iu])){
-					units.setSystem ( SYSTEM_SI );
-					break;
-				}
-			}
-		}
-		addUnits ( units );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 3, routine,
-			"Error reading units at line " + linecount +
-			" of file \"" + dfile + "\"" );
-			Message.printWarning ( 3, routine, e );
-		}
-	}
-	fp.close();
-	checkUnitsData();
-	units = null;
+	try {
+	    // Main try...
+    	// Open the file (allow the units file to be a normal file or a URL so
+    	// web applications can also be supported)...
+    	try {
+    	    fp = new BufferedReader(new InputStreamReader(IOUtil.getInputStream(dfile)));
+    	}
+    	catch ( Exception e ) {
+    		Message.printWarning ( 3, routine, e );
+    		throw new IOException ( "Error opening units file \"" + dfile + "\"" );
+    	}
+    	int linecount = 0;
+    	DataUnits units = null;
+    	boolean system_found = false; // Indicates whether the system for the units has been found.
+    	while ( true ) {
+    		// Read a line...
+    		string = fp.readLine();
+    		++linecount;
+    		if ( string == null ) {
+    			// End of file...
+    			break;
+    		}
+    		try {
+    		    // If exceptions are caught, ignore the data..
+        		string = string.trim();
+        		if ( string.length() == 0 ) {
+        			// Skip blank lines...
+        			continue;
+        		}
+        		if ( string.charAt(0) == '*' ) {
+        			// A comment line...
+        			if ( string.regionMatches(true,0,"* END",0,5) ) {
+        				// End of file...
+        				break;
+        			}
+        			// Else ignore...
+        			continue;
+        		}
+        		// A line with conversion factors...
+        		dimension = string.substring(0,4).trim();
+        		base_string = string.substring(5,9).trim();
+        		abbreviation = string.substring(10,14).trim();
+        		long_name = string.substring(16,52).trim();
+        		// This is sometimes blank.  If so, default to 3...
+        		if ( string.substring(52,53).trim().equals("") ) {
+        			output_precision = 3;
+        		}
+        		else {
+        		    output_precision = Integer.parseInt(string.substring(52,53).trim() );
+        		}
+        		mult_factor = Double.parseDouble ( string.substring(54,64).trim());
+        		if ( dimension.equalsIgnoreCase("TEMP") ) {
+        			//if ( string.length() >= 71 ) {
+        				//add_factor = StringUtil.atod(string.substring(64,71).trim() );
+        			//}
+        			//else {	
+        				add_factor = Double.parseDouble(string.substring(64).trim() );
+        			//}
+        		}
+        		else {
+        		    add_factor = 0.0;
+        		}
+        		// Now add as a new set of units (for now, we add everything and don't just add the ones that are
+        		// commonly used, as in the legacy HMData code)...
+        		units = new DataUnits();
+        		if ( define_dimensions ) {
+        			// Define the dimension in the DataDimension global
+        			// data so that it can be referenced below.  It is OK
+        			// to define more than once because DataDimension will keep only one unique definition.
+        			DataDimension.addDimension ( new DataDimension(dimension,dimension) );
+        		}
+        		units.setDimension ( dimension );
+        		if ( base_string.equalsIgnoreCase("BASE") ) {
+        			units.setBaseFlag ( 1 );
+        		}
+        		else {
+        		    units.setBaseFlag ( 0 );
+        		}
+        		units.setAbbreviation ( abbreviation );
+        		units.setLongName ( long_name );
+        		units.setOutputPrecision ( output_precision );
+        		units.setMultFactor ( mult_factor );
+        		units.setAddFactor ( add_factor );
+        		// Determine the system from hard-coded units...
+        		system_found = false;
+        		units.setSystem ( SYSTEM_ALL );	// default
+        		for ( int iu = 0; iu < engl_units.length; iu++ ) {
+        			if ( abbreviation.equalsIgnoreCase(engl_units[iu]) ) {
+        				units.setSystem ( SYSTEM_ENGLISH );
+        				system_found = true;
+        				break;
+        			}
+        		}
+        		if ( !system_found ) {
+        			for ( int iu = 0; iu < si_units.length; iu++ ) {
+        				if(abbreviation.equalsIgnoreCase(si_units[iu])){
+        					units.setSystem ( SYSTEM_SI );
+        					break;
+        				}
+        			}
+        		}
+        		addUnits ( units );
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 3, routine,
+    			"Error reading units at line " + linecount + " of file \"" + dfile + "\" - ignoring line." );
+    			Message.printWarning ( 3, routine, e );
+    		}
+    	}
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, routine, e );
 		// Global catch...
-		throw new IOException ( "Error reading units file \"" + dfile
-		+ "\"" );
+		throw new IOException ( "Error reading units file \"" + dfile + "\"" );
+	}
+	finally {
+	    if ( fp != null ) {
+	        fp.close();
+	    }
+	    checkUnitsData();
 	}
 	abbreviation = null;
 	base_string = null;
@@ -1016,9 +982,8 @@ throws IOException
 }
 
 /**
-Read a file that is in RTi format.  See the fully loaded method for
-more information.  This version calls the other version with define_dimensions
-as true.
+Read a file that is in RTi format.  See the fully loaded method for more information.
+This version calls the other version with define_dimensions as true.
 @param dfile Units file to read (can be a URL).
 */
 public static void readUnitsFile ( String dfile )
@@ -1028,11 +993,10 @@ throws IOException
 
 /**
 Read a file that is in RTi format.
-This routine depends on on the values in an RTi DATAUNIT file.  The
-format for this file is as follows:
+This routine depends on on the values in an RTi DATAUNIT file.  The format for this file is as follows:
 <p>
 <pre>
-# Dimension|BASE or OTHR|Abbreviaion|System|Long name|Precision|MultFac|AddFac|
+# Dimension|BASE or OTHR|Abbreviation|System|Long name|Precision|MultFac|AddFac|
 # TEMPERATURE
 TEMP|BASE|DEGC|SI|DEGREE CENTIGRADE|1|1.|0.0|
 TEMP|OTHR|DEGK|ENG|DEGREE KELVIN|1|1.|-273.|
@@ -1055,114 +1019,103 @@ throws IOException
 {	String	message, routine = "DataUnits.readUnitsFile";
 	List units_file = null;
 
-	try {	// Main try...
-
-	// Read the file into a list...
-
 	try {
-		units_file = IOUtil.fileToStringList ( dfile );
-	}
-	catch ( Exception e ) {
-		message = "Unable to read units file \"" + dfile + "\"";
-		Message.printWarning ( 3, routine, message );
-		throw new IOException ( message );
-	}
-	if ( units_file == null ) {
-		message = "Empty contents for units file \"" + dfile + "\"";
-		Message.printWarning ( 3, routine, message );
-		throw new IOException ( message );
-	}
-	int nstrings = units_file.size();
-	if ( nstrings == 0 ) {
-		message = "Empty contents for units file \"" + dfile + "\"";
-		Message.printWarning ( 3, routine, message );
-		throw new IOException ( message );
-	}
+	    // Main try...
 
-	// For each line, if not a comment, break apart and add units to the
-	// global list...
-
-	DataUnits units;
-	String string, token;
-	List tokens = null;
-	char first;
-	for ( int i = 0; i < nstrings; i++ ) {
-		try {
-		string = (String)units_file.get(i);
-		if ( string == null ) {
-			continue;
-		}
-		if ( string.length() == 0 ) {
-			continue;
-		}
-		first = string.charAt(0);
-		if (	(first == '#') ||
-			(first == '\n') ||
-			(first == '\r') ) {
-			continue;
-		}
-		// Break the line...
-		tokens = StringUtil.breakStringList (
-			string, "|", 0 );
-		if ( tokens == null ) {
-			// A corrupt line...
-			continue;
-		}
-		if ( tokens.size() < 7 ) {
-			// A corrupt line...
-			continue;
-		}
-		// Else add the units...
-		units = new DataUnits ();
-		if ( define_dimensions ) {
-			// Define the dimension in the DataDimension global
-			// data so that it can be referenced below.  It is OK
-			// to define more than once because DataDimension will
-			// keep only one unique definition.
-			DataDimension.addDimension (
-				new DataDimension(
-					((String)tokens.get(0)).trim(),
-					((String)tokens.get(0)).trim()));
-		}
-		units.setDimension ( ((String)tokens.get(0)).trim() );
-		token = (String)tokens.get(1);
-		if ( token.equalsIgnoreCase("BASE") ) {
-			// Base units for the dimension...
-			units.setBaseFlag ( 1 );
-		}
-		else {	units.setBaseFlag ( 0 );
-		}
-		units.setAbbreviation ( ((String)tokens.get(2)).trim() );
-		units.setSystem ( ((String)tokens.get(3)).trim() );
-		units.setLongName ( ((String)tokens.get(4)).trim() );
-		units.setOutputPrecision ( StringUtil.atoi( ((String)tokens.get(5)).trim()) );
-		units.setMultFactor ( StringUtil.atod( ((String)tokens.get(6)).trim()) );
-		units.setAddFactor ( StringUtil.atod( ((String)tokens.get(7)).trim()) );
-
-		// Add the units to the list...
-
-		addUnits ( units );
-		}
-		catch ( Exception e ) {
-			Message.printWarning ( 3, routine,
-			"Error reading units at line " + (i + 1) +
-			" of file \"" + dfile + "\"" );
-		}
-	}
-
-	// Check the units for consistency...
-
-	checkUnitsData();
-	units = null;
-	string = null;
-	token = null;
-	tokens = null;
+    	// Read the file into a list...
+	    // FIXME SAM 2009-03-25 Error handling needs to be improved here - remove nested exceptions
+    	try {
+    		units_file = IOUtil.fileToStringList ( dfile );
+    	}
+    	catch ( Exception e ) {
+    		message = "Unable to read units file \"" + dfile + "\"";
+    		Message.printWarning ( 3, routine, message );
+    		throw new IOException ( message );
+    	}
+    	if ( units_file == null ) {
+    		message = "Empty contents for units file \"" + dfile + "\"";
+    		Message.printWarning ( 3, routine, message );
+    		throw new IOException ( message );
+    	}
+    	int nstrings = units_file.size();
+    	if ( nstrings == 0 ) {
+    		message = "Empty contents for units file \"" + dfile + "\"";
+    		Message.printWarning ( 3, routine, message );
+    		throw new IOException ( message );
+    	}
+    
+    	// For each line, if not a comment, break apart and add units to the global list...
+    
+    	DataUnits units;
+    	String string, token;
+    	List tokens = null;
+    	char first;
+    	for ( int i = 0; i < nstrings; i++ ) {
+    		try {
+        		string = (String)units_file.get(i);
+        		if ( string == null ) {
+        			continue;
+        		}
+        		if ( string.length() == 0 ) {
+        			continue;
+        		}
+        		first = string.charAt(0);
+        		if ( (first == '#') || (first == '\n') || (first == '\r') ) {
+        			continue;
+        		}
+        		// Break the line...
+        		tokens = StringUtil.breakStringList ( string, "|", 0 );
+        		if ( tokens == null ) {
+        			// A corrupt line...
+        			continue;
+        		}
+        		if ( tokens.size() < 7 ) {
+        			// A corrupt line...
+        			continue;
+        		}
+        		// Else add the units...
+        		units = new DataUnits ();
+        		if ( define_dimensions ) {
+        			// Define the dimension in the DataDimension global data so that it can be referenced below.
+        		    // It is OK to define more than once because DataDimension will
+        			// keep only one unique definition.
+        			DataDimension.addDimension (
+        				new DataDimension( ((String)tokens.get(0)).trim(), ((String)tokens.get(0)).trim()));
+        		}
+        		units.setDimension ( ((String)tokens.get(0)).trim() );
+        		token = (String)tokens.get(1);
+        		if ( token.equalsIgnoreCase("BASE") ) {
+        			// Base units for the dimension...
+        			units.setBaseFlag ( 1 );
+        		}
+        		else {
+        		    units.setBaseFlag ( 0 );
+        		}
+        		units.setAbbreviation ( ((String)tokens.get(2)).trim() );
+        		units.setSystem ( ((String)tokens.get(3)).trim() );
+        		units.setLongName ( ((String)tokens.get(4)).trim() );
+        		units.setOutputPrecision ( StringUtil.atoi( ((String)tokens.get(5)).trim()) );
+        		units.setMultFactor ( StringUtil.atod( ((String)tokens.get(6)).trim()) );
+        		units.setAddFactor ( StringUtil.atod( ((String)tokens.get(7)).trim()) );
+        
+        		// Add the units to the list...
+        
+        		addUnits ( units );
+    		}
+    		catch ( Exception e ) {
+    			Message.printWarning ( 3, routine,
+    			"Error reading units at line " + (i + 1) + " of file \"" + dfile + "\" - ignoring line." );
+    		}
+    	}
+    
+    	// Check the units for consistency...
+    
+    	checkUnitsData();
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, routine, e );
 		// Global catch...
-		throw new IOException ( "Error reading units file \"" + dfile
-		+ "\"" );
+		throw new IOException ( "Error reading units file \"" + dfile + "\"." );
 	}
 	message = null;
 	routine = null;
@@ -1189,8 +1142,7 @@ public void setAddFactor ( double add_factor )
 }
 
 /**
-Indicate whether the units are base units (should only have one base for a
-dimension.
+Indicate whether the units are base units (should only have one base for a dimension.
 @param base_flag Indicates if the units are base units.
 */
 public void setBaseFlag ( int base_flag )
@@ -1198,8 +1150,7 @@ public void setBaseFlag ( int base_flag )
 }
 
 /**
-Set the behavior flag for the units (used for converting to strings).  This is
-not used at this time.
+Set the behavior flag for the units (used for converting to strings).  This is not used at this time.
 @param behavior_mask Indicates how units should be displayed. 
 */
 public void setBehaviorMask ( int behavior_mask )
@@ -1209,8 +1160,7 @@ public void setBehaviorMask ( int behavior_mask )
 /**
 Set the dimension for the units.
 @param dimension_string Dimension string (e.g., "L3/T").
-@exception Exception If the dimension string to be used is not
-recognized.
+@exception Exception If the dimension string to be used is not recognized.
 @see DataDimension
 */
 public void setDimension ( String dimension_string )
@@ -1226,14 +1176,13 @@ throws Exception
 	// First look up the dimension to make sure that it is valid...
 
 	DataDimension dim;
-	try {	dim = DataDimension.lookupDimension(dimension_string);
+	try {
+	    dim = DataDimension.lookupDimension(dimension_string);
 	}
 	catch ( Exception e ) {
 		// Problem finding dimension.  Don't set...
 		String message;
-		message =
-		"Can't find dimension \"" + dimension_string +
-		"\".  Not setting.";
+		message = "Can't find dimension \"" + dimension_string + "\".  Not setting.";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception(message);
 	}
@@ -1265,10 +1214,9 @@ public void setMultFactor ( double mult_factor )
 }
 
 /**
-Set the number of digits after the decimal to be used for output data of these
-units.
+Set the number of digits after the decimal to be used for output data of these units.
 @param output_precision Number of digits after the decimal to be used for output
-for dtaa of these units.
+for data of these units.
 */
 public void setOutputPrecision ( int output_precision )
 {	__output_precision = output_precision;
@@ -1300,7 +1248,8 @@ public void setSystem ( String system )
 	else if ( system.regionMatches(true,0,"ALL",0,4) ) {
 		__system = SYSTEM_ALL;
 	}
-	else {	__system = SYSTEM_UNKNOWN;
+	else {
+	    __system = SYSTEM_UNKNOWN;
 	}
 }
 
@@ -1320,4 +1269,4 @@ public String toString ()
 	__add_factor + "|";
 }
 
-} // End DataUnits
+}
