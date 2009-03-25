@@ -273,6 +273,70 @@ public static List getTimeIntervalChoices ( int start_interval, int end_interval
 }
 
 /**
+Return a list of base time interval strings (e.g., "Year", "Hour"), optionally
+including the Irregular time step.  No multipliers are prefixed on the time intervals.
+@return a list of interval strings.
+@param start_interval The starting (smallest) interval base to return.
+@param end_interval The ending (largest) interval base to return.
+@param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
+@param include_irregular Indicate whether the "Irregular" time step should be
+included.  If included, "Irregular" is always at the end of the list.
+*/
+public static List getTimeIntervalBaseChoices ( int start_interval, int end_interval,
+                        int sort_order, boolean include_irregular )
+{   // Add in ascending order and sort to descending later if requested...
+    List v = new Vector();
+    if ( start_interval > end_interval ) {
+        // Swap (only rely on sort_order for ordering)...
+        int temp = end_interval;
+        end_interval = start_interval;
+        start_interval = temp;
+    }
+    if ( (HSECOND >= start_interval) && (HSECOND <= end_interval) ) {
+        // TODO SAM 2005-02-16 We probably don't need to support this at all.
+    }
+    if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
+        v.add ( "Second" );
+    }
+    if ( (MINUTE >= start_interval) && (MINUTE <= end_interval) ) {
+        v.add ( "Minute" );
+    }
+    if ( (HOUR >= start_interval) && (HOUR <= end_interval) ) {
+        v.add ( "Hour" );
+    }
+    if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
+        v.add ( "Day" );
+    }
+    // TODO SAM 2005-02-16 Week is not yet supported
+    //if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
+    //}
+    if ( (MONTH >= start_interval) && (MONTH <= end_interval) ) {
+        v.add ( "Month" );
+    }
+    if ( (YEAR >= start_interval) && (YEAR <= end_interval) ) {
+        v.add ( "Year" );
+    }
+    if ( sort_order >= 0 ) {
+        if ( include_irregular ) {
+            v.add ( "Irregular" );
+        }
+        return v;
+    }
+    else {
+        // Change to descending order...
+        int size = v.size();
+        List v2 = new Vector ( size );
+        for ( int i = size -1; i >= 0; i-- ) {
+            v2.add ( v.get(i) );
+        }
+        if ( include_irregular ) {
+            v2.add ( "Irregular" );
+        }
+        return v2;
+    }
+}
+
+/**
 Return a list of interval strings (e.g., "Year", "6Hour"), optionally
 including the Irregular time step.  Only evenly divisible choices are returned
 (no "5Hour" because it does not divide into the day).
