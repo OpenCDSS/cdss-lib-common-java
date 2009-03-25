@@ -107,8 +107,8 @@ public class LagK {
     }
     
     public double solveMethod( DateTime cur_date, double previousOutflow ) {
-        double LagdQin1 = 0.0 ;  // Calulated lagged outflow before K (t-1) timestep
-        double LagdQin2 = 0.0 ;  // Calulated lagged outflow before K (t) timestep
+        double LagdQin1 = 0.0 ;  // Calculated lagged outflow before K (t-1) timestep
+        double LagdQin2 = 0.0 ;  // Calculated lagged outflow before K (t) timestep
         double Qout1 = 0.0;      // Outflow after K (t-1) timestep
         double Qout2 = 0.0;      // Outflow after K (t) timestep
         
