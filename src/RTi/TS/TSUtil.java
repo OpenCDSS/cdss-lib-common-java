@@ -10228,7 +10228,8 @@ public static DateTime newPrecisionDateTime ( TS ts, DateTime date )
 /**
 Given a time series identifier as a string, determine the type of time series
 to be allocated and creates a new instance.  Only the interval base and
-multiplier are set (the memory allocation must occur elsewhere).
+multiplier are set (the memory allocation must occur elsewhere).  Time series metadata including the
+identifier are also NOT set.
 @param id time series identifier as a string.
 @param long_id If true, then the string is a full identifier.  Otherwise,
 the string is only the interval (e.g., "10min").
