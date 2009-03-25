@@ -67,6 +67,29 @@ public class Table {
         return id;
     }
     
+    /**
+     * Return the value for a table cell.
+     * @param row row index (0+).
+     * @param col column index (0 or 1).
+     * @return value at the given cell address.
+     * @exception ArrayIndexOutOfBoundsException if an invalid row or column index is specified.
+     */
+    public double get( int row, int col ) {
+        if ( (col != 0) && (col != 1) ) {
+            throw new ArrayIndexOutOfBoundsException ( "Column " + col + " requested for Table - must be 0 or 1.");
+        }
+        if ( (row < 0) || (row > getNRows() - 1) ) {
+            throw new ArrayIndexOutOfBoundsException ( "Row " + row + " requested for Table - must be in range 0 - " +
+                (getNRows() - 1) + ".");
+        }
+        if ( col == 0 ) {
+            return column1[row];
+        }
+        else {
+            return column2[row];
+        }
+    }
+    
     public int     getNRows() {
         return column1 == null ? 0 : column1.length;
     }
