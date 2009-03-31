@@ -1,6 +1,7 @@
 package riverside.ts.routing.lagk;
 
 import RTi.TS.TS;
+import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import java.util.Arrays;
 import riverside.ts.util.Table;
@@ -31,6 +32,7 @@ public class LagKBuilder {
     }
     
     public LagK create() {
+        String routine = "LagK.create";
         int lag = lk._lag;
         if (lag == 0) {
             lk._sizeInflowCO = 1;
@@ -40,6 +42,10 @@ public class LagKBuilder {
             lk._sizeInflowCO = lk._lag / lk._t_mult + 2;
         } else {
             lk._sizeInflowCO = lk._lag / lk._t_mult + 1;
+        }
+        if ( Message.isDebugOn ) {
+            Message.printDebug(1, routine, "lk._lag=" + lk._lag + " lk._t_mult=" + lk._t_mult +
+                " lk._sizeInflowCO =" + lk._sizeInflowCO ); 
         }
         
         lk.variableK = _n_kval != 1;

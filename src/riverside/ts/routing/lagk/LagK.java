@@ -7,6 +7,7 @@
 package riverside.ts.routing.lagk;
 
 import RTi.TS.TS;
+import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
 import java.util.logging.Logger;
@@ -100,6 +101,15 @@ public class LagK {
         _co_inflow = coTable.getColumn(FLOWCOLUMN);
     }
     
+    /**
+     * Return the current carryover array.
+     * @return
+     */
+    public double[] getCarryoverValues ()
+    {
+        return _co_inflow;
+    }
+    
     public double[] getCarryOverValues(DateTime cur_date) {
         Table coTable = new Table(_sizeInflowCO + 1);
         getCarryOverValues( cur_date, coTable ) ;
@@ -120,7 +130,7 @@ public class LagK {
         // Qout1 is the outflow calculated from the last timestep
         // Qout2 is either the result of lagging or the result of K
 //        Qout1 = _owner->_outflow ;
-//        Qout1 = previousOutflow;
+        Qout1 = previousOutflow;
         Qout2 = LagdQin2 ;
         
         // Choose algorithm, we prefer Atlanta, except when doing
@@ -162,6 +172,7 @@ public class LagK {
     }
     
     private double solveLag( DateTime cur_date ) {
+        String routine = getClass().getName() + ".solveLag";
 //        _Active = 1 ;
         
         // Note: A goodly portion of this code has been copied to
@@ -212,6 +223,9 @@ public class LagK {
             }
             
             laggedTable.populate( i, Table.GETCOLUMN_2, timeHours + lagHours ) ;
+        }
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "cur_date=" + cur_date + " laggedTable=\n" + laggedTable );
         }
         
         // If any subsequent lagged values are the same and not missing,
@@ -462,6 +476,7 @@ public class LagK {
     }
     
     private void getCarryOverValues(DateTime cur_date, Table carryOverTable,int offset) {
+        String routine = getClass().getName() + ".getCarryOverValues";
         
         int requiredCO = _sizeInflowCO ;
 //        char tmp_str3[512];
@@ -472,17 +487,26 @@ public class LagK {
             carryOverTable.populate( i, FLOWCOLUMN, 0.0 ) ;
             carryOverTable.populate( i, TIMECOLUMN, 0.0 ) ;
         }
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "At " + cur_date + " after clearing carryover table: \n" + carryOverTable );
+        }
         
         // The number of time steps between the forecast date and the current
         // simulation date is the number of steps that are available from
         // simulation.
-        int nSimulatedDates = 1 ;
+        int nSimulatedDates = 1;
+        /* TODO SAM 2009-03-29 Use the above always - below seems too complicated (working with MLB).
         if ( getForecastDate1().lessThan( cur_date ) ) {
             nSimulatedDates = TimeUtil.getNumIntervals(
                 getForecastDate1( ) , cur_date, _t_int, _t_mult ) + 1;
             
             if ( nSimulatedDates > requiredCO )
                 nSimulatedDates = requiredCO;
+        }
+        */
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "getForecastDate1=" + getForecastDate1() + " cur_date=" + cur_date +
+                " SimulatedDates=" + nSimulatedDates + " requiredCO=" + requiredCO);
         }
         
         // Place numbers into the working array, note that times will be
@@ -495,11 +519,17 @@ public class LagK {
             carryOverTable.populate( i, TIMECOLUMN, timeHours ) ;
             timeHours += _t_mult ;
         }
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "At cur_date=" + cur_date + " after inserting _co_inflow: \n" + carryOverTable );
+        }
         
         // nSimulatedDates includes the current date, so go back
         // ( nSimulatedDates - 1 ) periods
-        DateTime date1 = cur_date ;
+        DateTime date1 = new DateTime(cur_date);
         date1.addInterval( _t_int, -1 * (int) (nSimulatedDates - 1) * _t_mult ) ;
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "date1=" + date1 + " cur_date=" + cur_date);
+        }
         
         // Get the remainder of the values from the calculated inflow time
         // series for this reach.  Move back by nIntervals time steps and save
@@ -513,6 +543,9 @@ public class LagK {
             carryOverTable.populate( i, FLOWCOLUMN, currentFlow ) ;
             carryOverTable.populate( i, TIMECOLUMN, timeHours ) ;
             timeHours += _t_mult ;
+        }
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "At " + cur_date + " after adding current flow at end of table: \n" + carryOverTable );
         }
     }
     
