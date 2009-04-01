@@ -2447,10 +2447,20 @@ throws SQLException, Exception {
             __secure = true;
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
 			Class.forName( "oracle.jdbc.OracleDriver");
-			connUrl = "jdbc:oracle:thin:@//"
-				+ __database_server + ":"
-                + __port + "/cen.arkansas";
-            // setDatabaseName(__database_name);
+            // jdbc:oracle:thin:@//{__database_server}:{port}/{service}
+            String server[] = __database_server.split(",");
+            String serverName = __database_server;
+            String service = "";
+            if (server.length < 2) {
+                Message.printWarning(dl, routine, "DatabaseServer must contain \"host,service\" (" + __database_server + ")");
+            }
+            else {
+                serverName = server[0];
+                service = server[1];
+            }
+            connUrl = "jdbc:oracle:thin:@//"
+				+ serverName + ":" + __port + "/" + service;
+            // setDatabaseName(__database_name);  -- see below after connection has been established
 			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
         }
 		else {	
