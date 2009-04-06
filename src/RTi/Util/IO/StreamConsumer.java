@@ -19,6 +19,10 @@ package RTi.Util.IO;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Vector;
+
+import RTi.Util.Message.Message;
 
 /**
 The StreamConsumer class is a thread that will read all the output from a
@@ -30,14 +34,52 @@ output and allow requests to retrieve the output.
 public class StreamConsumer extends Thread
 {
 
-InputStream __is;	// Input stream to consume output from
+/**
+Input stream to consume output from.
+*/
+private InputStream __is;
+
+/**
+Whether to log the information for the stream.  Message.printStatus(2,...) will be used.
+TODO SAM 2009-04-03 Evaluate passing a logger when Java logging is implemented.
+*/
+private boolean __logOutput = false;
+
+/**
+Whether to save stream output, for retrieval with getOutputList().  This is simpler than adding listeners, etc.,
+and works well with standard error.
+*/
+private boolean __saveOutput = false;
+
+/**
+The list of output returned with getOutputList().
+*/
+private List __outputList = new Vector();
+
+/**
+Label with which to prefix all logged output.
+*/
+private String __label = null;
 
 /**
 Construct with an open InputStream.
 @param is InputStream to consume.
 */
 public StreamConsumer ( InputStream is )
-{	__is = is;
+{	this ( is, null, false, false );
+}
+
+/**
+Construct with an open InputStream.
+@param is InputStream to consume.
+@param logOutput if true, log the stream output using Message.printStatus(2,...).
+@param saveOutput if true, save the output in a list in memory, to return with getOutputList().
+*/
+public StreamConsumer ( InputStream is, String label, boolean logOutput, boolean saveOutput )
+{   __is = is;
+    __logOutput = logOutput;
+    __saveOutput = saveOutput;
+    __label = label;
 }
 
 /**
@@ -50,15 +92,41 @@ throws Throwable {
 }
 
 /**
-Start consuming the stream.  Data will be read until a null is read, at which
-time the thread will expire.
+Return the output list.
+@return the output list.
+*/
+public List getOutputList()
+{
+    return __outputList;
+}
+
+/**
+Start consuming the stream.  Data will be read until a null is read, at which time the thread will expire.
 */
 public void run ()
-{	try {
+{	String routine = "StreamConsumer.run";
+    try {
         BufferedReader br = new BufferedReader(	new InputStreamReader (__is) );
-		while ( br.readLine() != null ) {
-			// TODO SAM 2007-05-09 - this is where output could be passed
-			// to listening code.
+        String line;
+		while ( true ) {
+		    Message.printStatus ( 2, routine, "Reading another line...");
+		    line = br.readLine();
+		    Message.printStatus ( 2, routine, "...done reading another line.");
+		    if ( line == null ) {
+		        break;
+		    }
+			// TODO SAM 2007-05-09 - this is where output could be passed to listening code.
+		    if (__logOutput) {
+		        if ( __label == null ) {
+		            Message.printStatus(2, "StreamConsumer", "\"" + line + "\"" );
+		        }
+		        else {
+                    Message.printStatus(2, "StreamConsumer", __label + "\"" + line + "\"" );
+                }
+		    }
+		    if ( __saveOutput ) {
+		        __outputList.add ( line );
+		    }
 		}
 	}
 	catch ( Exception e ) {
@@ -71,4 +139,4 @@ public void run ()
 	}
 }
 
-} // End StreamConsumer
+}
