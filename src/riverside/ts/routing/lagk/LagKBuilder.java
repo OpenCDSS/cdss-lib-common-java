@@ -43,6 +43,11 @@ public class LagKBuilder {
         } else {
             lk._sizeInflowCO = lk._lag / lk._t_mult + 1;
         }
+        
+        // Increase the size of the carryover array to handle K algorithm and reproduce MCP3 results.
+        // As of 2009-03-30 NWSRFS RESJ has a bug because it does not include this fix.
+        ++lk._sizeInflowCO;
+
         if ( Message.isDebugOn ) {
             Message.printDebug(1, routine, "lk._lag=" + lk._lag + " lk._t_mult=" + lk._t_mult +
                 " lk._sizeInflowCO =" + lk._sizeInflowCO ); 
@@ -163,7 +168,7 @@ public class LagKBuilder {
         lk._out_k_tbl.allocateDataSpace(2);
         lk._out_k_tbl.populate(0,LagK.FLOWCOLUMN, 0.);
         lk._out_k_tbl.populate(0,LagK.KCOLUMN, k);
-        lk._out_k_tbl.populate(1,LagK.FLOWCOLUMN, 1000000.0);
+        lk._out_k_tbl.populate(1,LagK.FLOWCOLUMN, Double.MAX_VALUE );
         lk._out_k_tbl.populate(1,LagK.KCOLUMN, k);
         _n_kval = 2;        
         valueOfK = k;
