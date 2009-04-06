@@ -1653,6 +1653,9 @@ Initialize instance data.
 private void initialize ( TS xTS, TS yTS, PropList props )
 {	String routine = "TSRegression.initialize";
     String message;
+    
+    // FIXME SAM 2009-04-03 Evaluate going away from PropList - too easy to have errors.  Or, add check
+    // to warn about properties that are not recognized - fixed when mixed station is fixed.
 	
 	__yTSpredicted = null;
 	__yTSresidual  = null;
