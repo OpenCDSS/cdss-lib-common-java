@@ -440,7 +440,9 @@ considered as a delimiter so "xxxx,xxxx" returns two strings if the comma is a
 delimiter and "xxxxx" returns one string if the comma is the delimiter.  If a
 delimiter character is actually the last character, no null field is returned at
 the end.  If multiple delimiters are at the front and skip blanks is specified,
-all the delimiters will be skipped.
+all the delimiters will be skipped.  Escaped single characters are passed through
+as is.  Therefore \" (two characters) will be two characters in the output.  Other
+code needs to interpret the two characters as the actual special character.
 @return A list of Strings.
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.  Each
@@ -496,8 +498,19 @@ public static List breakStringList( String string, String delim, int flag )
 		while ( istring < length_string ) {
 			// Process a sub-string...
 			cstring = string.charAt ( istring );
-			//Message.printStatus ( 1, routine,
-			// "SAMX Processing character " + cstring );
+			// Check for escaped special characters...
+			if ( (cstring == '\\') && (istring < (length_string - 1)) &&
+			    (string.charAt(istring + 1) == '\"') ) {
+			    // Add the backslash and the next character - currently only handle single characters
+			    tempstr.append ( cstring );
+			    // Now increment to the next character...
+			    ++istring;
+			    cstring = string.charAt ( istring );
+			    tempstr.append ( cstring );
+			    ++istring;
+			    continue;
+			}
+			//Message.printStatus ( 2, routine, "SAMX Processing character " + cstring );
 			if ( allow_strings ) {
 				// Allowing quoted strings so do check for the start and end of quotes...
 				if ( !instring && ((cstring == '"')||(cstring == '\'')) ){
