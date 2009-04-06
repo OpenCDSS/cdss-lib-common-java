@@ -274,7 +274,7 @@ The TSGraph class manages the drawing areas for displaying one or more time
 series in a single graph.   The drawing areas are set up by specifying a
 GRJComponentDevice and information about how much of the device should be used
 for this graph.  Drawing properties are retrieved from a TSProduct, where this
-graph is identified as a subproduct of the entire product.
+graph is identified as a sub-product of the entire product.
 This class also implements TSViewListener, which is
 typically used to allow a reference other TSGraph so that zooming can occur similarly for all graphs.
 The layout of the graph is as follows (see TSGraphJComponent for other layout
@@ -359,12 +359,11 @@ private Graphics _graphics = null;
 /**
 Indicates whether units should be ignored for normal graphs.  This allows line
 graphs to plot different units and units are put in the legend and removed from
-the Y-axis label.  If the units are not the same, then one of the following
-will occur:
+the Y-axis label.  If the units are not the same, then one of the following will occur:
 <ol>
 <li>	If the "LeftYAxisIgnoreUnits" property is set, then it will be used to
 	indicate how the data should be treated.</li>
-<li>	If the property is not set, the user will be propted as to what they
+<li>	If the property is not set, the user will be prompted as to what they
 	want to do.  They can choose to not continue.</li>
 </ol>
 The _ignore_units flag is then set.  If necessary, the
@@ -446,9 +445,9 @@ Limits for time series data for current zoom.
 private TSLimits _tslimits = null;
 
 /**
-Maximum data limits based on full period data limits.  Initialie to unit limits
+Maximum data limits based on full period data limits.  Initialize to unit limits
 because this is what the default data limits are.  Then, if no data are
-available, something reasonable cann still be drawn (e.g., "No Data Available").
+available, something reasonable can still be drawn (e.g., "No Data Available").
 */
 private GRLimits _max_data_limits = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 
@@ -755,7 +754,7 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).  This value must be set for the local
 tslist Vector that is passed in.
-@param subproduct The subproduct from the main product.  This is used to look
+@param subproduct The sub-product from the main product.  This is used to look
 up properties specific to this graph product.  The first product is 1.
 @param tslist Vector of time series to graph.  Only the time series for this
 graph are expected but time series for other graphs can be shared (access them in the TSProduct).
@@ -792,8 +791,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// to change during the life of the graph, even if its properties are
 	// changed.  All other properties should be checked before being used
 	// (e.g., axis properties should be checked in the drawAxesBack() method).
-	// It is a little slower to look up the properties sometimes but the
-	// code is simpler to maintain.
+	// It is a little slower to look up the properties sometimes but the code is simpler to maintain.
 
 	if ( _dev.isReferenceGraph() ) {
 		_is_reference_graph = true;
@@ -1159,8 +1157,7 @@ Later it may be tied to a property.
 @return true if the graph can zoom, false otherwise.
 */
 public boolean canZoom() {
-	if ((_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) 
- 	    || (_graph_type == TSProduct.GRAPH_TYPE_DURATION)) {
+	if ((_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) || (_graph_type == TSProduct.GRAPH_TYPE_DURATION)) {
 		return false;
 	}
 	else {	
@@ -1172,8 +1169,7 @@ public boolean canZoom() {
 Check properties that may change dynamically and, if necessary, reset internal
 variables that correspond to properties.  Internal data are used to increase
 performance, especially for data that are used often (e.g., the axis precision
-and units, which are used for the mouse tracker).  This method should be called
-immediately before drawing.
+and units, which are used for the mouse tracker).  This method should be called immediately before drawing.
 */
 private void checkInternalProperties ()
 {	// "BottomXAxisLabelFormat" = _bottomx_date_format;
@@ -1407,7 +1403,7 @@ protected void computeDataLimits (boolean max)
             if ( Message.isDebugOn ) {
 				Message.printDebug ( 1, routine, _gtype + "Main graph max data limits are " + _max_tslimits );
 			}
-			// If the properties are given, set the limits to thegiven properties,
+			// If the properties are given, set the limits to the given properties,
             // but only if they are outside the range of the data that was determined...
 			//
 			// TODO SAM 2006-09-28
@@ -2016,7 +2012,7 @@ private void computeLabels ( TSLimits limits )
 		}
 		date = new DateTime ( _start_date );
 		for ( i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
-			x_axis_labels_temp.add (	new Double(date.toDouble() ) );
+			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
 			date.addYear ( delta );
 		}
 	}
@@ -2331,17 +2327,17 @@ private void doAnalysis ()
 		String prop_value = _tsproduct.getLayeredPropValue ( "XYScatterAnalyzeForFilling", _subproduct, -1, false );
 		rprops.set ( "AnalyzeForFilling=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodStart", _subproduct, -1, false );
-		rprops.set ( "DependentAnalysisPeriodStart=" + prop_value );
+		rprops.set ( "DependentAnalysisStart=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "DependentAnalysisPeriodEnd=" + prop_value );
+		rprops.set ( "DependentAnalysisEnd=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodStart", _subproduct, -1, false );
-		rprops.set ( "FillPeriodStart=" + prop_value );
+		rprops.set ( "FillStart=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "FillPeriodEnd=" + prop_value );
+		rprops.set ( "FillEnd=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodStart", _subproduct, -1, false );
-		rprops.set ( "IndependentAnalysisPeriodStart=" + prop_value );
+		rprops.set ( "IndependentAnalysisStart=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "IndependentAnalysisPeriodEnd=" + prop_value );
+		rprops.set ( "IndependentAnalysisEnd=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIntercept", _subproduct, -1, false );
 		rprops.set ( "Intercept=" + prop_value );
 		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterMethod", _subproduct, -1, false );
@@ -2782,7 +2778,8 @@ private void drawCurrentDateTime ()
 	if ( (prop_value == null) || (prop_value.trim().length() == 0) || prop_value.equalsIgnoreCase("None")) {
 		return;
 	}
-	try {	DateTime current_time = null;
+	try {
+	    DateTime current_time = null;
 		if ( prop_value.equalsIgnoreCase("Auto") ) {
 			// Use the current time from the system.
 			current_time = new DateTime ( DateTime.DATE_CURRENT );
@@ -3424,18 +3421,15 @@ so the box looks solid, and before drawing data.
 private void drawOutlineBox ()
 {	GRDrawingAreaUtil.setColor ( _da_graph, GRColor.black );
 	if ( _is_reference_graph ) {
-		// Just draw a box around the graph area to make it more
-		// visible...
+		// Just draw a box around the graph area to make it more visible...
 		// Using GR seems to not always get the line (roundoff)?
 		Rectangle bounds = _dev.getBounds();
 
-		_graphics.drawRect ( 0, 0, (bounds.width - 1),
-			(bounds.height - 1) );
+		_graphics.drawRect ( 0, 0, (bounds.width - 1), (bounds.height - 1) );
 		return;
 	}
 	else {	// Normal drawing area...
-		GRDrawingAreaUtil.drawRectangle ( _da_graph,
-			_data_limits.getMinX(), _data_limits.getMinY(),
+		GRDrawingAreaUtil.drawRectangle ( _da_graph, _data_limits.getMinX(), _data_limits.getMinY(),
 			_data_limits.getWidth(), _data_limits.getHeight() );
 	}
 }
@@ -3480,9 +3474,8 @@ private void drawTS(int its, TS ts) {
 }
 
 /**
-Draw a single time series.  This method is called for graph types
-TSProduct.GRAPH_TYPE_BAR, TSProduct.GRAPH_TYPE_LINE,
-TSProduct.GRAPH_TYPE_PERIOD.  Other graph types should
+Draw a single time series.  This method is called for graph types TSProduct.GRAPH_TYPE_BAR,
+TSProduct.GRAPH_TYPE_LINE, TSProduct.GRAPH_TYPE_PERIOD.  Other graph types should
 use the individual drawing methods for those graph types.
 @param its Counter for time series (starting at 0).
 @param ts Single time series to draw.
@@ -3502,9 +3495,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 
 	GRColor tscolor = null;
 	try {	
-		tscolor = GRColor.parseColor(
-			getLayeredPropValue("Color", _subproduct, its, false,
-				overrideProps));
+		tscolor = GRColor.parseColor( getLayeredPropValue("Color", _subproduct, its, false, overrideProps));
 	}
 	catch (Exception e) {
 		tscolor = GRColor.black;
@@ -3514,8 +3505,8 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 /*
 	// The following was envisioned to optimize the processing.  For now,
 	// handle below to skip data that do not need to be drawn...
-	try {	valid_dates =
-		TSUtil.getValidPeriod ( ts, _start_date, _end_date );
+	try {
+	    valid_dates = TSUtil.getValidPeriod ( ts, _start_date, _end_date );
 	}
 	catch ( Exception e ) {
 		return;
@@ -3524,15 +3515,13 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 	DateTime end	= valid_dates.getDate2();
 */
 
-	// REVISIT SAM 2006-10-01 The following is what we want to do.  For now,
-	// test the method at the bottom of this class, but need to move it
-	// elsewhere
+	// TODO SAM 2006-10-01 The following is what we want to do.  For now,
+	// test the method at the bottom of this class, but need to move it elsewhere
 	//start = getNearestDateTimeLessThanOrEqualTo ( _start_date, ts );
 	// When zoomed in really far, sometimes lines don't draw completely
 	// across the edges.  Maybe should decrement the returned DateTime by
 	// one time series data interval to make sure it starts outside the
-	// page (and will get cropped correctly upon drawing) - need to evaluate
-	// this more.
+	// page (and will get cropped correctly upon drawing) - need to evaluate this more.
 
 	// To draw the single time series, use the start and end dates for the
 	// graph, using the correct precision for the time series.  The start
@@ -3553,10 +3542,9 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 		start = start_withOffset;
 	}
 
-	// REVISIT SAM 2006-09-28
-/* SAM - not sure if Kurt's code is bulletproof for a list of monthy, daily,
-irregular time series mixed - have him look at some more combinations and
-possibly consider something like the following...
+	/* TODO SAM 2006-09-28 not sure if Kurt's code is bulletproof for a list of monthly, daily,
+	//irregular time series mixed - have him look at some more combinations and
+	//possibly consider something like the following...
 	// Need to evaluate the following code to see if it works in all
 	// situations.
 	// Make sure that the time series actually has a date-time that aligns
@@ -3572,9 +3560,8 @@ possibly consider something like the following...
 		// Time series is offset...
 		so adjust the start by the offset
 	}
-*/
-	
-	// End REVISIT SAM 2006-09-28
+	   // End REVISIT SAM 2006-09-28
+	 */
 
 	// Make sure that the iterator for this time series is using a precision
 	// that matches the time series data...
@@ -3583,18 +3570,18 @@ possibly consider something like the following...
 	end.setPrecision(ts.getDataIntervalBase());
 
 	/* Can uncomment for debug purposes on start and end dates 
-	Message.printStatus(1, "",
+	Message.printStatus(2, "",
 	"----------------------------------------------------------");
 	String tsStatus = "TS:" + (ts.getIdentifier()).getIdentifier() +
 	"    GRAPH_TYPE:" + _gtype;
 	String tsInfo   = "DIFF:" + diff.toString() + "  Interval:" +
 	ts.getDataIntervalBase() + "   Mult:" + ts.getDataIntervalMult();
-	Message.printStatus(1, "", tsInfo);
-	Message.printStatus(1, "", tsStatus);
+	Message.printStatus(2, "", tsInfo);
+	Message.printStatus(2, "", tsStatus);
 	String timeStatus = "START   " + _start_date.toString() + "   " +
 	start.toString() + "    END:" + end.toString();
-	Message.printStatus(1, routine, timeStatus);
-	Message.printStatus(1, "",
+	Message.printStatus(2, routine, timeStatus);
+	Message.printStatus(2, "",
 	"----------------------------------------------------------");
 	*/
 
@@ -3609,37 +3596,23 @@ possibly consider something like the following...
 	}
 	
 	if (Message.isDebugOn) {
-		Message.printDebug(1, routine,
-			_gtype + "Drawing time series from " + _start_date 
-			+ " to " + _end_date);
+		Message.printDebug(1, routine, _gtype + "Drawing time series from " + _start_date + " to " + _end_date);
 	}
 
 	// Only draw the time series if the units are being ignored or can be
 	// converted.  The left axis units are determined at construction.
 
 	if (!_ignore_units) {
-		if (_graph_type != TSProduct.GRAPH_TYPE_DURATION 
-		    && _graph_type != TSProduct.GRAPH_TYPE_XY_SCATTER) {
-		    	String lefty_units = getLayeredPropValue(
-				"LeftYAxisUnits", _subproduct, -1, false,
-				overrideProps);
+		if (_graph_type != TSProduct.GRAPH_TYPE_DURATION && _graph_type != TSProduct.GRAPH_TYPE_XY_SCATTER) {
+		   	String lefty_units = getLayeredPropValue( "LeftYAxisUnits", _subproduct, -1, false, overrideProps);
 
-			if (!DataUnits.areUnitsStringsCompatible(
-			    ts.getDataUnits(),lefty_units,true)) {
+			if (!DataUnits.areUnitsStringsCompatible(ts.getDataUnits(),lefty_units,true)) {
 				if (lefty_units.equals("")) {
-					// new graph -- set units to whatever
-					// ts 1's units are
-					int how_set_prev = 
-						_tsproduct.getPropList()
-						.getHowSet();
-					_tsproduct.getPropList().setHowSet(
-						Prop.SET_AS_RUNTIME_DEFAULT);
-					_tsproduct.setPropValue(
-						"LeftYAxisUnits", 
-						ts.getDataUnits(), 
-						_subproduct, -1);
-					_tsproduct.getPropList().setHowSet(
-						how_set_prev);
+					// new graph -- set units to whatever ts 1's units are
+					int how_set_prev = _tsproduct.getPropList().getHowSet();
+					_tsproduct.getPropList().setHowSet( Prop.SET_AS_RUNTIME_DEFAULT);
+					_tsproduct.setPropValue("LeftYAxisUnits", ts.getDataUnits(), _subproduct, -1);
+					_tsproduct.getPropList().setHowSet(how_set_prev);
 				}
 				else {
 					// no units, so can't draw the graph
@@ -3663,8 +3636,7 @@ possibly consider something like the following...
 		symbol = GRSymbol.SYM_NONE;
 	}
 	else {	
-		prop_value = getLayeredPropValue("SymbolStyle", _subproduct,
-			its, false, overrideProps);
+		prop_value = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
 		try {	
 			symbol = GRSymbol.toInteger(prop_value);
 		}
@@ -3673,8 +3645,7 @@ possibly consider something like the following...
 		}
 	}
 
-	symbol_size = StringUtil.atod(getLayeredPropValue(
-		"SymbolSize", _subproduct, its, false, overrideProps));
+	symbol_size = StringUtil.atod(getLayeredPropValue("SymbolSize", _subproduct, its, false, overrideProps));
 
 	// Data label.
 
@@ -3687,14 +3658,11 @@ possibly consider something like the following...
 
 	boolean graphLabelFormatSet = false;
 
-	// First try to get the label format from the time series
-	// properties.
-	label_format = getLayeredPropValue("DataLabelFormat", _subproduct,
-		its, false, overrideProps);
+	// First try to get the label format from the time series properties.
+	label_format = getLayeredPropValue("DataLabelFormat", _subproduct, its, false, overrideProps);
 	if (label_format == null || label_format.equals("")) {
 		// Try to get from the graph properties.
-		label_format = getLayeredPropValue("DataLabelFormat",
-			_subproduct, -1, false, overrideProps);
+		label_format = getLayeredPropValue("DataLabelFormat", _subproduct, -1, false, overrideProps);
 		if (!label_format.equals("")) {
 			// Label the format
 			label_symbol = true;
@@ -3705,7 +3673,7 @@ possibly consider something like the following...
 		label_symbol = true;
 	}
 
-	// REVISIT (JTS - 2006-04-26)
+	// TODO (JTS - 2006-04-26) Evaluate label format
 	// What happens here is that if the label format has been set in the
 	// time series properties, the time series label position will be used,
 	// too.  If the label format has been set in the graph properties, the
@@ -3718,20 +3686,13 @@ possibly consider something like the following...
 	// desired behavior, but for now it will be the graph's behavior.  
 
 	if (label_symbol) {
-		// Are drawing point labels so get the position, set
-		// the font, and get the format.
-		label_position_string = getLayeredPropValue("DataLabelPosition",
-			_subproduct, its, false, overrideProps);
+		// Are drawing point labels so get the position, set the font, and get the format.
+		label_position_string = getLayeredPropValue("DataLabelPosition", _subproduct, its, false, overrideProps);
 		// Determine the label position automatically, if necessary.
-		if (graphLabelFormatSet 
-		    || label_position_string.equals("") 
-		    || label_position_string.equalsIgnoreCase("Auto")) {
+		if (graphLabelFormatSet || label_position_string.equals("") || label_position_string.equalsIgnoreCase("Auto")) {
 			// Try to get from the graph properties.
-			label_position_string = getLayeredPropValue(
-				"DataLabelPosition", _subproduct, -1, false,
-				overrideProps);
-			if (label_position_string.equals("") 
-			    || label_position_string.equalsIgnoreCase("Auto")) {
+			label_position_string = getLayeredPropValue( "DataLabelPosition", _subproduct, -1, false, overrideProps);
+			if (label_position_string.equals("") || label_position_string.equalsIgnoreCase("Auto")) {
 				// Default position
 				label_position_string = "Right";
 			}
@@ -3740,8 +3701,7 @@ possibly consider something like the following...
 		label_position = GRText.CENTER_Y | GRText.LEFT;
 
 		try {	
-			label_position = GRText.parseTextPosition(
-				label_position_string);
+			label_position = GRText.parseTextPosition( label_position_string);
 		}
 		catch (Exception e) {
 			label_position = GRText.CENTER_Y | GRText.LEFT;
@@ -3749,20 +3709,14 @@ possibly consider something like the following...
 
 		// The font is only defined at the graph level.
 		// Set for point labels.
-		String fontname = getLayeredPropValue("DataLabelFontName",
-			_subproduct, -1, false, overrideProps);
-		String fontsize = getLayeredPropValue("DataLabelFontSize", 
-			_subproduct, -1, false, overrideProps);
-		String fontstyle = getLayeredPropValue("DataLabelFontStyle", 
-			_subproduct, -1, false, overrideProps);
-		GRDrawingAreaUtil.setFont(_da_graph, fontname, fontstyle,
-			StringUtil.atod(fontsize));
+		String fontname = getLayeredPropValue("DataLabelFontName", _subproduct, -1, false, overrideProps);
+		String fontsize = getLayeredPropValue("DataLabelFontSize", _subproduct, -1, false, overrideProps);
+		String fontstyle = getLayeredPropValue("DataLabelFontStyle", _subproduct, -1, false, overrideProps);
+		GRDrawingAreaUtil.setFont(_da_graph, fontname, fontstyle, StringUtil.atod(fontsize));
 
-		// Determine the format for the data value in case it
-		// is needed to format the label.
+		// Determine the format for the data value in case it is needed to format the label.
 		label_units = ts.getDataUnits();
-		label_value_format = DataUnits.getOutputFormatString(
-			label_units, 0, 4);
+		label_value_format = DataUnits.getOutputFormatString(label_units, 0, 4);
 	}
 
 	// Bar graph parameters
@@ -3774,8 +3728,7 @@ possibly consider something like the following...
 	double miny = 0.0;
 
 	int bar_position = 0;		// position 0 means centered on the date
-	prop_value = getLayeredPropValue("BarPosition", _subproduct, -1, false,
-		overrideProps);
+	prop_value = getLayeredPropValue("BarPosition", _subproduct, -1, false, overrideProps);
 	if (prop_value != null) {
 		if (prop_value.equalsIgnoreCase("LeftOfDate")) {
 			bar_position = -1;
@@ -3785,8 +3738,7 @@ possibly consider something like the following...
 		}
 	}
 
-	// generate the clipping area that will be set so that no data are 
-	// drawn outside of the graph
+	// Generate the clipping area that will be set so that no data are drawn outside of the graph
 	Shape clip = GRDrawingAreaUtil.getClip(_da_graph);
 	GRDrawingAreaUtil.setClip(_da_graph, _da_graph.getDataLimits());
 
@@ -3797,8 +3749,7 @@ possibly consider something like the following...
 
 	int nts = getEnabledTSList().size();
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL
-	    && __tslist != null) {
+	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL && __tslist != null) {
 		int numReg = __tslist.size() - 1;
 		nts = 0;
 		for (int i = 0; i < numReg; i++) {
@@ -3814,27 +3765,23 @@ possibly consider something like the following...
 	boolean niceSymbols = true;
 	int lineWidth = 1;
 	
-	prop_value = getLayeredPropValue("LineStyle", _subproduct, its, false,
-		overrideProps);
+	prop_value = getLayeredPropValue("LineStyle", _subproduct, its, false, overrideProps);
 	if (prop_value != null && prop_value.equalsIgnoreCase("None")) {
 		draw_line = false;
 	}
 
-	prop_value = getLayeredPropValue("GraphType", _subproduct, -1, false,
-		overrideProps);
+	prop_value = getLayeredPropValue("GraphType", _subproduct, -1, false, overrideProps);
 	if (prop_value != null && prop_value.equalsIgnoreCase("Point")) {
 		draw_line = false;
 	}
 
-	prop_value = getLayeredPropValue("SymbolAntiAlias", -1, -1, false,
-		overrideProps);
+	prop_value = getLayeredPropValue("SymbolAntiAlias", -1, -1, false, overrideProps);
 	if (prop_value != null && prop_value.equalsIgnoreCase("False")) {
 		niceSymbols = false;
 	}
 
 	if (!_is_reference_graph) {
-		prop_value = getLayeredPropValue("LineWidth", _subproduct, its,
-			false, overrideProps);
+		prop_value = getLayeredPropValue("LineWidth", _subproduct, its, false, overrideProps);
 		if (prop_value != null) {
 			if (StringUtil.isInteger(prop_value)) {
 				lineWidth = StringUtil.atoi(prop_value);
@@ -3852,8 +3799,7 @@ possibly consider something like the following...
 	// line dashes are currently only supported
 	boolean dashedLine = false;
 	double[] lineDash = null;
-	prop_value = getLayeredPropValue("LineStyle", _subproduct, its, 
-		false, overrideProps);
+	prop_value = getLayeredPropValue("LineStyle", _subproduct, its, false, overrideProps);
 	if (prop_value != null && prop_value.equalsIgnoreCase("Dashed")) {
 		dashedLine = true;
 		lineDash = new double[2];
@@ -3861,16 +3807,14 @@ possibly consider something like the following...
 		lineDash[1] = 5;
 	}
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_BAR
-	    || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (_graph_type == TSProduct.GRAPH_TYPE_BAR || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
 		DateTime temp_date = new DateTime(_tslimits.getDate1());
 		// Convert date to a double
 		full_bar_width = temp_date.toDouble();
 		// Subtract from the date
 		if (ts.getDataIntervalBase() == TimeInterval.MONTH) {
 			// Use largest number of days in month to prevent
-			// overlap.  Need to use day precision to make this
-			// work.
+			// overlap.  Need to use day precision to make this work.
 			temp_date.setPrecision(DateTime.PRECISION_DAY );
 			temp_date.addDay(-30);
 		}
@@ -3882,8 +3826,7 @@ possibly consider something like the following...
 			temp_date.addInterval(interval_base, -interval_mult);
 		}
 
-		// Subtract the new value to get the bar width in plotting
-		// units.
+		// Subtract the new value to get the bar width in plotting units.
 		full_bar_width -= temp_date.toDouble();
 		temp_date = null;
 		miny = _data_limits.getMinY();
@@ -3894,8 +3837,7 @@ possibly consider something like the following...
 
 		// If bar width is <= 5 pixels in device units, do not
 		// draw bounding rectangle because it will hide the data...
-		if ((_da_graph.scaleXData(full_bar_width) 
-		    - _da_graph.scaleXData(0.0)) <= 5.0) {
+		if ((_da_graph.scaleXData(full_bar_width) - _da_graph.scaleXData(0.0)) <= 5.0) {
 			draw_bounding_rectangle = false;
 		}
 	}
@@ -3925,8 +3867,7 @@ possibly consider something like the following...
 	if (interval_base == TimeInterval.IRREGULAR) {
 		// Get the data and loop through the vector.  Currently do not
 		// use TSIterator because head-to-head performance tests have
-		// not been performed.  Need to do so before deciding which
-		// approach is faster.
+		// not been performed.  Need to do so before deciding which approach is faster.
 		IrregularTS irrts = (IrregularTS)ts;
 		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
@@ -3938,253 +3879,222 @@ possibly consider something like the following...
 		DateTime date = null;
 
 		for ( int i = 0; i < nalltsdata; i++ ) {
-/////////////////////////////////////
-// Two indents have been removed from the following to make it more legible
-// at the right margin of the page.
 		
-	tsdata = (TSData)alltsdata.get(i);
-	date = tsdata.getDate();
-	if (date.greaterThan(end)) {
-		// Past the end of where want to go so
-		// quit.
-		break;
-	}
+        	tsdata = (TSData)alltsdata.get(i);
+        	date = tsdata.getDate();
+        	if (date.greaterThan(end)) {
+        		// Past the end of where want to go so quit.
+        		break;
+        	}
 
-// REVISIT (JTS - 2006-04-26)
-// All data flags (returned from getDataFlag()) are being trimmed below.
-// In the future, if the spacing of data flags becomes critical, this may need
-// revisited.
-	if (date.greaterThanOrEqualTo(start)) {
-		y = tsdata.getData();
-		if (ts.isDataMissing(y)) {
-			lasty = y;
-			continue;
-		}
-
-		// Else, see if need to moveto or lineto
-		// the point.
-		x = date.toDouble();
-		if (((drawcount == 0) || ts.isDataMissing(lasty)) 
-		    && (_graph_type != TSProduct.GRAPH_TYPE_BAR
-    	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
-			// Always draw the symbol
-//if (tsdata != null) 
-//Message.printStatus(1, "", "JTS0" + date + ": '" + tsdata.getDataFlag() 
-//	+ "'  '" + label_position + "'  '" + y + "'");
-			if (_is_reference_graph) {
-				// Don't draw symbols
-			}
-			else if (label_symbol 
-			    && ((symbol == GRSymbol.SYM_NONE)
-			    || (symbol_size <= 0))) {
-				// Text only
-				GRDrawingAreaUtil.drawText(_da_graph,
-					TSData.toString(label_format,
-					label_value_format, date, y, 0.0,
-					tsdata.getDataFlag().trim(),
-					label_units), 
-					x, y, 0.0, label_position);
-			}
-			else if (label_symbol) {
-				if (niceSymbols) {
-					GRDrawingAreaUtil.setDeviceAntiAlias(
-					     _da_graph, true);
-				}
-
-				// Text and symbol
-				GRDrawingAreaUtil.drawSymbolText(_da_graph, 
-					symbol, x, y, symbol_size,
-					TSData.toString(label_format,
-					label_value_format, date, y, 0.0,
-					tsdata.getDataFlag().trim(), 
-					label_units), 
-					0.0, label_position, GRUnits.DEVICE,
-					GRSymbol.SYM_CENTER_X 
-					| GRSymbol.SYM_CENTER_Y);
-					
-				if (niceSymbols) {
-					// turn off antialiasing so that
-					// it only applies for symbols
-					GRDrawingAreaUtil.setDeviceAntiAlias(
-					     _da_graph, false);
-				}
-			}
-			else {	
-				// Symbol only
-				if (niceSymbols) {
-					GRDrawingAreaUtil.setDeviceAntiAlias(
-					     _da_graph, true);
-				}
-
-				GRDrawingAreaUtil.drawSymbol(_da_graph, symbol,
-					x, y, symbol_size, GRUnits.DEVICE,
-					GRSymbol.SYM_CENTER_X
-					| GRSymbol.SYM_CENTER_Y);
-
-				if (niceSymbols) {
-					// turn off antialiasing so that
-					// it only applies for symbols
-					GRDrawingAreaUtil.setDeviceAntiAlias(
-					     _da_graph, false);
-				}
-			}
-
-			// First point or skipping data. Put second so 
-			// symbol coordinates do not set the last point.
-			GRDrawingAreaUtil.moveTo(_da_graph, x, y );
-		}
-		else {	
-			// Draw the line segment or bar
-			if (_graph_type != TSProduct.GRAPH_TYPE_BAR	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-				if (draw_line) {
-					GRDrawingAreaUtil.setLineWidth( _da_graph, lineWidth);
-						
-					if (dashedLine) {
-						GRDrawingAreaUtil.setLineDash( _da_graph, lineDash, 0);
-					}
-					
-					GRDrawingAreaUtil.lineTo(_da_graph, x, y);
-
-					// Reset the line width to the normal setting for all other drawing
-					GRDrawingAreaUtil.setLineWidth(	_da_graph, 1);
-
-					if (dashedLine) {
-						// Reset the line dash so that only this line is drawn dashed
-						GRDrawingAreaUtil.setLineDash( _da_graph, null, 0);
-					}
-				}
-				else {	
-					// No line to draw, so simply move the position of the stylus
-					GRDrawingAreaUtil.moveTo(_da_graph,	x, y);
-				}
-				if (_is_reference_graph) {
-					// No symbol or label to draw
-				}
-				else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
-					// Just text
-					GRDrawingAreaUtil.drawText(_da_graph,
-						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
-						label_units), x, y, 0.0, label_position);
-				}
-				else if (label_symbol) {
-					if (niceSymbols) {
-						GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
-					}
-					
-					// Symbol and label...
-					GRDrawingAreaUtil.drawSymbolText( _da_graph, symbol, x, y, symbol_size,
-					        TSData.toString(label_format,label_value_format,date, y, 0.0, tsdata.getDataFlag().trim(), 
-						label_units), 0.0, label_position, GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
-					if (niceSymbols) {
-						// Turn off antialiasing so it doesn't affect anything else
-						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
-					}
-				}
-				else {	
-					// Just symbol
-					if (niceSymbols) {
-						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
-					}
-					GRDrawingAreaUtil.drawSymbol(_da_graph, symbol, x, y, symbol_size,
-						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
-					if (niceSymbols) {
-						// Turn off antialiasing so it doesn't affect anything else
-						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
-					}
-				}
-
-				// Need because symbol coordinates have set the last point.
-				GRDrawingAreaUtil.moveTo(_da_graph, x, y);
-				lasty = y;
-				++drawcount;
-				continue;
-			}
-
-			// If get to here need to draw the line or bar.
-			// Shift the bars according to the BarPosition property.
-			if (bar_position == -1) {
-				// All bars left of date
-				centerx = x - full_bar_width_d2
-					- (nts - 1) * full_bar_width 
-					+ its * full_bar_width;
-			}
-			else if (bar_position == 1) {
-				// Bar right of date.
-				centerx = x + full_bar_width_d2 + its * full_bar_width;
-			}
-			else {	
-				// Center on date.
-				centerx = x - (nts - 1)* full_bar_width_d2 + its * full_bar_width;
-			}
-			
-			leftx = centerx - bar_width_d2;
-			
-			if ((leftx >=_data_limits.getMinX()) && ((leftx + bar_width) <= _data_limits.getMaxX())){
-				_da_graph.setColor(tscolor);
-				if (y >= 0.0) {
-					// Positive bars...
-					if (miny >= 0.0) {
-						// From miny up
-						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, miny, bar_width, (y - miny));
-						if (always_draw_bar) {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, miny, leftx, y);
-						}
-					}
-					else {	
-						// From zero up
-						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, 0.0, bar_width, y);
-						if (always_draw_bar) {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, 0.0, leftx, y);
-						}
-					}
-				}
-				else {	
-					// Negative bars.
-					if (maxy >= 0.0) {
-						// Up to zero.
-						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, y, bar_width, -y);
-						if (always_draw_bar) {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, y, leftx, 0.0);
-						}
-					}
-					else {	
-						// Up to top negative value
-						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, y, bar_width, (maxy - y));
-						if (always_draw_bar) {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, y, leftx, maxy);
-						}
-					}
-				}
-
-				GRDrawingAreaUtil.setColor(_da_graph, _background);
-
-				if (draw_bounding_rectangle) {
-					if (y >= 0.0) {
-						if (miny >= 0.0) {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, miny, leftx, y);
-						}
-						else {
-							GRDrawingAreaUtil.drawLine(	_da_graph, leftx, 0.0, leftx, y);
-						}
-					}
-					else {	
-						if (maxy >= 0.0) {
-							GRDrawingAreaUtil.drawLine(	_da_graph, leftx, 0.0, leftx, y);
-						}
-						else {
-							GRDrawingAreaUtil.drawLine( _da_graph, leftx, maxy,	leftx, y);
-						}
-					}
-				}
-			}
-		}
-		lasty = y;
-		++drawcount;
-	}
-
-// Two indents have been removed from the preceding to make it more legible
-// at the right margin of the page.
-/////////////////////////////////////
+            // TODO (JTS - 2006-04-26) All data flags (returned from getDataFlag()) are being trimmed below.
+            // In the future, if the spacing of data flags becomes critical, this may need revisited.
+        	if (date.greaterThanOrEqualTo(start)) {
+        		y = tsdata.getData();
+        		if (ts.isDataMissing(y)) {
+        			lasty = y;
+        			continue;
+        		}
+        
+        		// Else, see if need to moveto or lineto the point.
+        		x = date.toDouble();
+        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (_graph_type != TSProduct.GRAPH_TYPE_BAR
+            	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
+        			// Always draw the symbol
+                    //if (tsdata != null) 
+                    //Message.printStatus(1, "", "JTS0" + date + ": '" + tsdata.getDataFlag() 
+                    //	+ "'  '" + label_position + "'  '" + y + "'");
+        			if (_is_reference_graph) {
+        				// Don't draw symbols
+        			}
+        			else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        				// Text only
+        				GRDrawingAreaUtil.drawText(_da_graph,
+        				    TSData.toString(label_format,label_value_format, date, y, 0.0,
+        					tsdata.getDataFlag().trim(),label_units), 
+        					x, y, 0.0, label_position);
+        			}
+        			else if (label_symbol) {
+        				if (niceSymbols) {
+        					GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
+        				}
+        
+        				// Text and symbol
+        				GRDrawingAreaUtil.drawSymbolText(_da_graph, symbol, x, y, symbol_size,
+        					TSData.toString(label_format,label_value_format, date, y, 0.0,
+        					tsdata.getDataFlag().trim(), label_units), 
+        					0.0, label_position, GRUnits.DEVICE,
+        					GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        					
+        				if (niceSymbols) {
+        					// Turn off anti-aliasing so that it only applies for symbols
+        					GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
+        				}
+        			}
+        			else {	
+        				// Symbol only
+        				if (niceSymbols) {
+        					GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
+        				}
+        
+        				GRDrawingAreaUtil.drawSymbol(_da_graph, symbol, x, y, symbol_size,
+        				    GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        
+        				if (niceSymbols) {
+        					// Turn off anti-aliasing so that it only applies for symbols
+        					GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
+        				}
+        			}
+        
+        			// First point or skipping data. Put second so symbol coordinates do not set the last point.
+        			GRDrawingAreaUtil.moveTo(_da_graph, x, y );
+        		}
+        		else {	
+        			// Draw the line segment or bar
+        			if (_graph_type != TSProduct.GRAPH_TYPE_BAR	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+        				if (draw_line) {
+        					GRDrawingAreaUtil.setLineWidth( _da_graph, lineWidth);
+        						
+        					if (dashedLine) {
+        						GRDrawingAreaUtil.setLineDash( _da_graph, lineDash, 0);
+        					}
+        					
+        					GRDrawingAreaUtil.lineTo(_da_graph, x, y);
+        
+        					// Reset the line width to the normal setting for all other drawing
+        					GRDrawingAreaUtil.setLineWidth(	_da_graph, 1);
+        
+        					if (dashedLine) {
+        						// Reset the line dash so that only this line is drawn dashed
+        						GRDrawingAreaUtil.setLineDash( _da_graph, null, 0);
+        					}
+        				}
+        				else {	
+        					// No line to draw, so simply move the position of the stylus
+        					GRDrawingAreaUtil.moveTo(_da_graph,	x, y);
+        				}
+        				if (_is_reference_graph) {
+        					// No symbol or label to draw
+        				}
+        				else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        					// Just text
+        					GRDrawingAreaUtil.drawText(_da_graph,
+        						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
+        						label_units), x, y, 0.0, label_position);
+        				}
+        				else if (label_symbol) {
+        					if (niceSymbols) {
+        						GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
+        					}
+        					
+        					// Symbol and label...
+        					GRDrawingAreaUtil.drawSymbolText( _da_graph, symbol, x, y, symbol_size,
+        					    TSData.toString(label_format,label_value_format,date, y, 0.0, tsdata.getDataFlag().trim(), 
+        						label_units), 0.0, label_position, GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        					if (niceSymbols) {
+        						// Turn off anti-aliasing so it doesn't affect anything else
+        						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
+        					}
+        				}
+        				else {	
+        					// Just symbol
+        					if (niceSymbols) {
+        						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
+        					}
+        					GRDrawingAreaUtil.drawSymbol(_da_graph, symbol, x, y, symbol_size,
+        						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        					if (niceSymbols) {
+        						// Turn off anti-aliasing so it doesn't affect anything else
+        						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
+        					}
+        				}
+        
+        				// Need because symbol coordinates have set the last point.
+        				GRDrawingAreaUtil.moveTo(_da_graph, x, y);
+        				lasty = y;
+        				++drawcount;
+        				continue;
+        			}
+        
+        			// If get to here need to draw the line or bar.
+        			// Shift the bars according to the BarPosition property.
+        			if (bar_position == -1) {
+        				// All bars left of date
+        				centerx = x - full_bar_width_d2 - (nts - 1) * full_bar_width + its * full_bar_width;
+        			}
+        			else if (bar_position == 1) {
+        				// Bar right of date.
+        				centerx = x + full_bar_width_d2 + its * full_bar_width;
+        			}
+        			else {	
+        				// Center on date.
+        				centerx = x - (nts - 1)* full_bar_width_d2 + its * full_bar_width;
+        			}
+        			
+        			leftx = centerx - bar_width_d2;
+        			
+        			if ((leftx >=_data_limits.getMinX()) && ((leftx + bar_width) <= _data_limits.getMaxX())){
+        				_da_graph.setColor(tscolor);
+        				if (y >= 0.0) {
+        					// Positive bars...
+        					if (miny >= 0.0) {
+        						// From miny up
+        						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, miny, bar_width, (y - miny));
+        						if (always_draw_bar) {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, miny, leftx, y);
+        						}
+        					}
+        					else {	
+        						// From zero up
+        						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, 0.0, bar_width, y);
+        						if (always_draw_bar) {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, 0.0, leftx, y);
+        						}
+        					}
+        				}
+        				else {	
+        					// Negative bars.
+        					if (maxy >= 0.0) {
+        						// Up to zero.
+        						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, y, bar_width, -y);
+        						if (always_draw_bar) {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, y, leftx, 0.0);
+        						}
+        					}
+        					else {	
+        						// Up to top negative value
+        						GRDrawingAreaUtil.fillRectangle( _da_graph, leftx, y, bar_width, (maxy - y));
+        						if (always_draw_bar) {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, y, leftx, maxy);
+        						}
+        					}
+        				}
+        
+        				GRDrawingAreaUtil.setColor(_da_graph, _background);
+        
+        				if (draw_bounding_rectangle) {
+        					if (y >= 0.0) {
+        						if (miny >= 0.0) {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, miny, leftx, y);
+        						}
+        						else {
+        							GRDrawingAreaUtil.drawLine(	_da_graph, leftx, 0.0, leftx, y);
+        						}
+        					}
+        					else {	
+        						if (maxy >= 0.0) {
+        							GRDrawingAreaUtil.drawLine(	_da_graph, leftx, 0.0, leftx, y);
+        						}
+        						else {
+        							GRDrawingAreaUtil.drawLine( _da_graph, leftx, maxy,	leftx, y);
+        						}
+        					}
+        				}
+        			}
+        		}
+        		lasty = y;
+        		++drawcount;
+        	}
 		}
 		
 		irrts = null;
@@ -4229,9 +4139,8 @@ possibly consider something like the following...
 			// Uncomment this for hard-core debugging
 			//Message.printStatus(1, routine, "its=" + its + " date = " + date + " x = " + x + " y=" + y);
 
-			if (((drawcount == 0) || ts.isDataMissing(lasty))
-			    && (_graph_type != TSProduct.GRAPH_TYPE_BAR
-	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
+			if (((drawcount == 0) || ts.isDataMissing(lasty)) && (_graph_type != TSProduct.GRAPH_TYPE_BAR
+			    && _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
 				// Previous point was missing so all need to do is draw the symbol (if not a referencegraph)				
 				if (_is_reference_graph) {
 					// Don't label or draw symbol.
@@ -4253,7 +4162,7 @@ possibly consider something like the following...
 						label_units ), 0.0, label_position,
 						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
 					if (niceSymbols) {
-						// Turn off antialiasing so nothing is antialiased that shouldn't be
+						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
 						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
 					}
 				}
@@ -4265,7 +4174,7 @@ possibly consider something like the following...
 					GRDrawingAreaUtil.drawSymbol(_da_graph, symbol, x, y, symbol_size,
 						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
 					if (niceSymbols) {
-						// Turn off antialiasing so nothing is antialiased that shouldn't be
+						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
 						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
 					}
 				}
@@ -4316,7 +4225,7 @@ possibly consider something like the following...
 						GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
 						
 					if (niceSymbols) {
-						// Turn off antialiasing so nothing is antialiased that shouldn't be
+						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
 						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
 					}
 				}
@@ -4330,7 +4239,7 @@ possibly consider something like the following...
 					        GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
 
 					if (niceSymbols) {
-						// Turn off antialiasing so nothing is antialiased that shouldn't be
+						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
 						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
 					}
 				}
@@ -4422,12 +4331,6 @@ possibly consider something like the following...
 	// Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
 	GRDrawingAreaUtil.setClip(_da_graph, (Shape)null);
 	GRDrawingAreaUtil.setClip(_da_graph, clip);
-	
-	// clean up...
-	routine = null;
-	end = null;
-	start = null;
-	tscolor = null;
 }
 
 /**
@@ -4563,7 +4466,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		//
 		// The top axis label is the year and the bottom label is not used.  Additional criteria are:
 		//
-		// *	If the period allows all years to be labelled, do it
+		// *	If the period allows all years to be labeled, do it
 		// *	If not, try to plot even years.
 		// *	Then try every 5 years.
 		// *	Then try every 10 years.
@@ -4696,7 +4599,8 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				xt[1] = x;
 				GRDrawingAreaUtil.drawLine (_da_graph, xt, yt );
 			}
-			else {	// Draw the labels and tics...
+			else {
+			    // Draw the labels and tics...
 				GRDrawingAreaUtil.drawText ( _da_bottomx_label, date.toString(), x,
 				_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
 				// Draw tick marks at the labels...
@@ -4713,7 +4617,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		// The top axis label is the month and the bottom label
 		// is the year.  Additional criteria are:
 		//
-		// *	If the period allows all months to be labelled, do it
+		// *	If the period allows all months to be labeled, do it
 		// *	If not, try to plot even months.
 		// *	Then try every 3 months.
 		// *	Then try every 4 months.
@@ -4764,8 +4668,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		double x = 0.0;
 		int nlabel2 = 0;
 		for ( ; ; date.addMonth ( month_increment ) ) {
-			// Draw minor tick marks first because they may
-			// cover an area on the edge of the graph...
+			// Draw minor tick marks first because they may cover an area on the edge of the graph...
 			x = date.toDouble();
 			// Now do the major tick marks and labels...
 			if ( x < _data_limits.getMinX() ) {
@@ -4784,10 +4687,8 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 				"" + date.getMonth(),x, _datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
 				if ( date.getMonth() <= month_increment ) {
 					// Label the year...
-					GRDrawingAreaUtil.drawText (
-					_da_bottomx_label, "" + date.getYear(),
-					x, _datalim_bottomx_label.getBottomY(),
-					0.0, GRText.CENTER_X|GRText.BOTTOM );
+					GRDrawingAreaUtil.drawText ( _da_bottomx_label, "" + date.getYear(),
+					x, _datalim_bottomx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
 					++nlabel2;
 				}
 				// Draw tick marks at the labels...
@@ -4815,25 +4716,20 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	}
 	else if ((_xaxis_date_precision == DateTime.PRECISION_DAY)||
 		(TSUtil.calculateDataSize(_start_date,_end_date, TimeInterval.HOUR, 1) > 168) ) {
-		// Days less than 60 days or higher
-		// precision data more than 7 days (168 hours)...
+		// Days less than 60 days or higher precision data more than 7 days (168 hours)...
 		//
-		// The top axis label is the day and the bottom label
-		// is YYYY-MM.  Additional criteria are:
+		// The top axis label is the day and the bottom label is YYYY-MM.  Additional criteria are:
 		//
 		// *	If the period allows all days to be labelled, do it
 		// *	If not, try to plot even days.
 		// *	Then try every 7 days.
-		// Apparently "99" is not the widest string for fonts
-		// and picking other numbers or letters does not always
-		// give nice spacing so to be sure try different numbers
-		// to get the max likely label size...
+		// Apparently "99" is not the widest string for fonts and picking other numbers or letters does not always
+		// give nice spacing so to be sure try different numbers to get the max likely label size...
 		GRLimits text_limits;
 		label_width = 0;
 		for ( int ic = 0; ic <= 9; ic++ ) {
-			text_limits = GRDrawingAreaUtil.getTextExtents ( 
-			_da_bottomx_label, "" + ic + ic, GRUnits.DEVICE );
-			if ( (int)text_limits.getWidth() > label_width){
+			text_limits = GRDrawingAreaUtil.getTextExtents ( _da_bottomx_label, "" + ic + ic, GRUnits.DEVICE );
+			if ( (int)text_limits.getWidth() > label_width) {
 				label_width=(int)text_limits.getWidth();
 			}
 		}
@@ -4921,10 +4817,9 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		(TSUtil.calculateDataSize(_start_date,_end_date, TimeInterval.MINUTE,1) > 1440) ) {
 		// Hours less than 7 days or minute data more than 1 day...
 		//
-		// The top axis label is the hour and the bottom label
-		// is YYYY-MM-DD.  Additional criteria are:
+		// The top axis label is the hour and the bottom label is YYYY-MM-DD.  Additional criteria are:
 		//
-		// *	If the period allows all hours to be labelled, do it
+		// *	If the period allows all hours to be labeled, do it
 		// *	If not, try to plot even hours.
 		// *	If not, try to plot every 3 hours.
 		// *	If not, try to plot every 4 hours.
@@ -5026,7 +4921,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		//
 		// The top axis label is the minute and the bottom label is YYYY-MM-DD HH.  Additional criteria are:
 		//
-		// *	If the period allows all minutes to be labelled, do it
+		// *	If the period allows all minutes to be labeled, do it
 		// *	If not, try to plot even minutes.
 		// *	If not, try to plot every 5 minutes.
 		// *	If not, try to plot every 10 minutes.
@@ -5183,8 +5078,7 @@ private void drawXYScatterPlot ()
 	int [] sort_order = null;
 	double A = 0.0;
 	double B = 0.0;
-	double F = 0.0, xbar = 0.0, ybar = 0.0, left, right, xsum = 0.0,
-			yhatsum = 0.0;
+	double F = 0.0, xbar = 0.0, ybar = 0.0, left, right, xsum = 0.0, yhatsum = 0.0;
 	double x, y;
 	int iyci;
 	int n1;
@@ -5199,7 +5093,6 @@ private void drawXYScatterPlot ()
 		niceSymbols = false;
 	}
 
-	
 	for (int i = 0, its = 1; i < nreg; i++, its++) {
 		ts = (TS)__tslist.get(its);
 		if (ts == null || !isTSEnabled(i)) {
@@ -7069,8 +6962,7 @@ In this case, the first DateTime in the time series before the candidate must be
 chosen, regardless of whether the candidate's hour aligns with the time series data.
 @param candidate_DateTime The candidate DateTime, which may have a precision
 greater than or less than those used by the indicated time series.
-@param ts Time series to examine, which may be a regular or irregular time
-series.
+@param ts Time series to examine, which may be a regular or irregular time series.
 @return DateTime matching the precision of DateTimes used in the specified time
 series that is equal to or less than the candidate DateTime.  The returned
 DateTime will align with the time series data and may NOT align evenly with the candidate DateTime.
