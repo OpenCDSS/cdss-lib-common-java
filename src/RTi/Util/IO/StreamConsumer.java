@@ -109,9 +109,9 @@ public void run ()
         BufferedReader br = new BufferedReader(	new InputStreamReader (__is) );
         String line;
 		while ( true ) {
-		    Message.printStatus ( 2, routine, "Reading another line...");
+		    //Message.printStatus ( 2, routine, "Reading another line...");
 		    line = br.readLine();
-		    Message.printStatus ( 2, routine, "...done reading another line.");
+		    //Message.printStatus ( 2, routine, "...done reading another line.");
 		    if ( line == null ) {
 		        break;
 		    }
