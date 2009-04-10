@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="RTi_Common-test" default="all-tests" basedir="..">
+    
+    <import file="../../rtibuild/common-test.xml"/>
+    
+    <property name="emma.filter" value="rti.*, RTi.*, DWR.*, cdss.*"/>
+
+    <target name="build-all-tests" depends="-init-tests">
+        <build-tests type=""/>
+    </target>
+</project>
