@@ -139,6 +139,7 @@ package RTi.Util.IO;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.Runtime;
@@ -299,17 +300,17 @@ private String __command = null;
 /**
 Command array, which can be used to initialize a process instead of a simple command string.
 */
-private String [] __command_array = null;
+private String [] __commandArray = null;
 /**
 Operating system interpreter to run the command.  This is by default determined automatically but can be
 set.  An array is used because the interpreter often consists of a program name and option (e.g., cmd.exe /c).
 */
-private String [] __command_interpreter_array = null;
+private String [] __commandInterpreterArray = null;
 
 /**
-String version of the __command_interpreter_array with strings separated by spaces - use for messages.
+String version of the __commandInterpreterArray with strings separated by spaces - use for messages.
 */
-private String __command_interpreter = null;
+private String __commandInterpreter = null;
 
 /**
 The above is set to false only if setCommandInterpreter is called with a null array,
@@ -340,7 +341,7 @@ private BufferedReader __outReader = null;
 /**
 Buffers the __process standard error.
 */
-private BufferedReader __error_reader = null;
+private BufferedReader __errorReader = null;
 /**
 If set to true by calling cancel(), the run() method will gracefully shut down.
 */
@@ -357,11 +358,11 @@ private int __exitValue = 0;
 /**
 Used to handle timeouts.
 */
-private int __timeout_milliseconds = 0;
+private int __timeoutMilliseconds = 0;
 /**
 Event timer used if a timeout is specified.
 */
-private EventTimer __event_timer = null;
+private EventTimer __eventTimer = null;
 /**
 To track the actual time used for the process.
 */
@@ -373,11 +374,11 @@ private boolean __saveOutput = false;
 /**
 List containing process output, used if __save_output is true.
 */
-private List __out_Vector = null;
+private List __outList = null;
 /**
 List containing process errors, used if __save_output is true.
 */
-private List __error_Vector = null;
+private List __errorList = null;
 /**
 Listeners to receive process output.
 */
@@ -393,6 +394,11 @@ The level at which status output will be printed when a process is running.
 private int __processStatusLevel = 1;
 
 /**
+The working directory for the process.
+*/
+private File __workingDir = null;
+
+/**
 Create a ProcessManager for the given command.
 Using this version calls the Runtime.exec ( String command ) method - it may be
 more appropriate to call the version that takes an array for arguments.
@@ -400,11 +406,10 @@ The process is created only when the "run" function is called.
 No timeout will be in effect (the process will run until complete, no matter how long it takes).
 @param command  The command passed to the constructor, which can either specify
 a full path command or just the command itself.  If the full path is not
-specified, the PATH environment variable is used to find the executable,
-according to the operating system.
+specified, the PATH environment variable is used to find the executable, according to the operating system.
 */
 public ProcessManager ( String command ) {
-	this ( command, 0, null, true );
+	this ( command, 0, null, true, (File)null );
 }
 
 /**
@@ -413,14 +418,13 @@ Using this version calls the Runtime.exec ( String command ) method - it may be
 more appropriate to call the version that takes an array for arguments.
 @param command  The command passed to the constructor, which can either specify
 a full path command or just the command itself.  If the full path is not
-specified, the PATH environment variable is used to find the executable,
-according to the operating system.
+specified, the PATH environment variable is used to find the executable, according to the operating system.
 @param timeoutMilliseconds If the process is not complete in this time, then
 exit with a status of 999.  Specifying 0 will result in no timeout.
 */
 public ProcessManager ( String command, int timeoutMilliseconds )
 {	
-    this ( command, timeoutMilliseconds, null, true );
+    this ( command, timeoutMilliseconds, null, true, (File)null );
 }
 
 /**
@@ -440,19 +444,22 @@ is not smart enough to evaluate whether a command to be run is a self-contained 
 contain shell commands, the calling code must define whether the command shell is used.  Use true if unsure and
 use false if it is known that a specific executable is being called.  Using the command shell may complicate
 error and stream handling due to the additional layer of processes.
+@param workingDir the working directory in which to run the command.  Specifying this allows the command name and
+parameters to be specified relative to the working directory, if appropriate, which may actually be required to
+limit the length of strings for some software.
 */
 public ProcessManager ( String command, int timeoutMilliseconds, String exitStatusIndicator,
-    boolean useCommandShell )
+    boolean useCommandShell, File workingDir )
 {   if ( Message.isDebugOn ) {
         Message.printDebug ( 1, "ProcessManager", "ProcessManager constructor: \"" + command + "\"" );
     }
     __command = command;
-    __timeout_milliseconds = timeoutMilliseconds;
+    __timeoutMilliseconds = timeoutMilliseconds;
     __exitValue = 0;
     
-    if ( __timeout_milliseconds > 0 ) {
+    if ( __timeoutMilliseconds > 0 ) {
         // Setup a timer thread which will 
-        __event_timer = new EventTimer ( __timeout_milliseconds, this, "Timeout" );
+        __eventTimer = new EventTimer ( __timeoutMilliseconds, this, "Timeout" );
     }
     if ( (exitStatusIndicator != null) && exitStatusIndicator.equals("") ) {
         // Set to null for internal use
@@ -460,6 +467,7 @@ public ProcessManager ( String command, int timeoutMilliseconds, String exitStat
     }
     __exitStatusIndicator = exitStatusIndicator;
     __isCommandInterpreterUsed = useCommandShell;
+    __workingDir = workingDir;
 }
 
 /**
@@ -494,7 +502,7 @@ specified, the PATH environment variable is used to find the executable,
 according to the operating system.
 */
 public ProcessManager ( String [] command_array ) {
-	this ( command_array, 0, (String)null, true );
+	this ( command_array, 0, (String)null, true, (File)null );
 }
 
 /**
@@ -508,7 +516,7 @@ according to the operating system.
 exit with a status of 999.  Specifying 0 will result in no timeout.
 */
 public ProcessManager ( String [] command_array, int timeout_milliseconds )
-{	this ( command_array, timeout_milliseconds, (String)null, true );
+{	this ( command_array, timeout_milliseconds, (String)null, true, (File)null );
 }
 
 /**
@@ -532,7 +540,7 @@ are used as a delimiter to evaluate the output.
 public ProcessManager ( String [] command_array, int timeout_milliseconds, PropList props )
 {
     this ( command_array, timeout_milliseconds, props == null ? (String)null : props.getValue( "ExitStatusTokens" ),
-        true );
+        true, (File)null );
 }
 
 /**
@@ -540,8 +548,7 @@ Create a ProcessManager for the given command and optionally specify a timeout i
 Using this version calls the Runtime.exec ( String [] command ) method.
 @param command_array The command passed to the constructor, which can either
 specify a full path command or just the command itself.  If the full path is not
-specified, the PATH environment variable is used to find the executable,
-according to the operating system.
+specified, the PATH environment variable is used to find the executable, according to the operating system.
 @param timeout_milliseconds If the process is not complete in this time, then
 exit with a status of 999.  Specifying 0 will result in no timeout.
 @param exitStatusIndicator A string at the start of output lines to indicate tokens to check for
@@ -554,9 +561,12 @@ is not smart enough to evaluate whether a command to be run is a self-contained 
 contain shell commands, the calling code must define whether the command shell is used.  Use true if unsure and
 use false if it is known that a specific executable is being called.  Using the command shell may complicate
 error and stream handling due to the additional layer of processes.
+@param workingDir the working directory in which to run the command.  Specifying this allows the command name and
+parameters to be specified relative to the working directory, if appropriate, which may actually be required to
+limit the length of strings for some software.
 */
 public ProcessManager ( String [] command_array, int timeout_milliseconds, String exitStatusIndicator,
-    boolean useCommandShell )
+    boolean useCommandShell, File workingDir )
 {   String routine = "ProcessManager";
     // Create a single command string from the command parts...
     StringBuffer b = new StringBuffer ();
@@ -570,8 +580,8 @@ public ProcessManager ( String [] command_array, int timeout_milliseconds, Strin
     if ( Message.isDebugOn ) {
         Message.printDebug ( 1, routine, "ProcessManager constructor: \"" + __command + "\"" );
     }
-    __command_array = command_array;
-    __timeout_milliseconds = timeout_milliseconds;
+    __commandArray = command_array;
+    __timeoutMilliseconds = timeout_milliseconds;
     __exitValue = 0;
     if ( (exitStatusIndicator != null) && exitStatusIndicator.equals("") ) {
         // Set to null for internal use
@@ -583,11 +593,12 @@ public ProcessManager ( String [] command_array, int timeout_milliseconds, Strin
         __exitStatusIndicator + "\" to detect end of process." );
     }
     
-    if ( __timeout_milliseconds > 0 ) {
+    if ( __timeoutMilliseconds > 0 ) {
         // Setup a timer thread which will 
-        __event_timer = new EventTimer ( __timeout_milliseconds, this, "Timeout" );
+        __eventTimer = new EventTimer ( __timeoutMilliseconds, this, "Timeout" );
     }
     __isCommandInterpreterUsed = useCommandShell;
+    __workingDir = workingDir;
 }
 
 /**
@@ -599,7 +610,7 @@ public void actionPerformed ( ActionEvent e )
 		// Called by the __event_timer to allow a check for a timeout.
 		// If this method is called, then the process needs to be stopped and an exit status of 999 returned.
 		Message.printWarning ( 2, "ProcessManager.actionPerformed",
-		"Process has timed out after " + __timeout_milliseconds + " milliseconds." );
+		"Process has timed out after " + __timeoutMilliseconds + " milliseconds." );
 		setProcessFinished ( 999, "Process timed out." );
 	}
 }
@@ -668,8 +679,8 @@ private void cleanup()
 	}
 	try {
 	    // Get rid of the timer...
-		if ( __event_timer != null ) {
-			__event_timer.finish();
+		if ( __eventTimer != null ) {
+			__eventTimer.finish();
 		}
 	}
 	catch ( Exception e ) {
@@ -699,8 +710,8 @@ private void cleanup()
 		Message.printWarning ( 3, "", e );
 	}
 	try {
-	    if ( __error_reader != null ) {
-			__error_reader.close();
+	    if ( __errorReader != null ) {
+			__errorReader.close();
 		}
 	}
 	catch ( Exception e ) {
@@ -717,13 +728,13 @@ throws Throwable
 	__out = null;
 	__error = null;
 	__outReader = null;
-	__error_reader = null;
-	__event_timer = null;
+	__errorReader = null;
+	__eventTimer = null;
 	__stopwatch = null;
-	__out_Vector = null;
-	IOUtil.nullArray(__command_array);
-	IOUtil.nullArray(__command_interpreter_array);
-	__command_interpreter = null;
+	__outList = null;
+	IOUtil.nullArray(__commandArray);
+	IOUtil.nullArray(__commandInterpreterArray);
+	__commandInterpreter = null;
 	IOUtil.nullArray(__listeners);
 	__exitStatusIndicator = null;
 	
@@ -764,7 +775,7 @@ Return the standard error of the process as a list of String.
 If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
 public List getErrorList ()
-{	return __error_Vector;
+{	return __errorList;
 }
 
 /**
@@ -773,7 +784,7 @@ Return the standard output of the process as a list of String.
 If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
 public List getOutputList ()
-{	return __out_Vector;
+{	return __outList;
 }
 
 /**
@@ -847,7 +858,7 @@ process will complete in one of the following ways:
 */
 public void run ()
 {	String rtn = "ProcessManager.run";
-	Runtime rt = Runtime.getRuntime();
+    boolean useProcessBuilder = true; // If using the ProcessBuilder class to create the process
 
 	__stopwatch = new StopWatch();
 	__stopwatch.start();
@@ -855,12 +866,12 @@ public void run ()
 	// Start the process...
 
 	String os_name = System.getProperty("os.name");
-	String command_string = "";	// Actual command sent to exec.
+	String commandString = "";	// Actual command sent to exec.
 	try {
 	    // Might want to put the following in the constructor, but
 		// leave here for now because we can rely on the check for a
 		// non-null interpreter to know if the user has defined...
-		if ( __command_interpreter != null ) {
+		if ( __commandInterpreter != null ) {
 			// Assume that the calling code has set
 			// __command_interpreter and
 			// __command_interpreter_array
@@ -868,25 +879,25 @@ public void run ()
 		}
 		else if ( os_name.equalsIgnoreCase( "Windows 95" )) {
 			// Windows 95/98...
-			__command_interpreter = "command.com /C";
-			__command_interpreter_array = new String[2];
-			__command_interpreter_array[0] = "command.com";
-			__command_interpreter_array[1] = "/C";
+			__commandInterpreter = "command.com /C";
+			__commandInterpreterArray = new String[2];
+			__commandInterpreterArray[0] = "command.com";
+			__commandInterpreterArray[1] = "/C";
 		}
 		else if ( IOUtil.isUNIXMachine() ) {
 			// Unix, including Linux...
-			__command_interpreter = "/bin/sh -c";
-			__command_interpreter_array = new String[2];
-			__command_interpreter_array[0] = "/bin/sh";
-			__command_interpreter_array[1] = "-c";
+			__commandInterpreter = "/bin/sh -c";
+			__commandInterpreterArray = new String[2];
+			__commandInterpreterArray[0] = "/bin/sh";
+			__commandInterpreterArray[1] = "-c";
 		}
 		else if ( os_name.startsWith("Windows") ) {
 			// Assume "Windows NT", "Windows 2000", or later so
 			// we don't have to be on the bleeding edge with changes...
-			__command_interpreter = "cmd.exe /C";
-			__command_interpreter_array = new String[2];
-			__command_interpreter_array[0] = "cmd.exe";
-			__command_interpreter_array[1] = "/C";
+			__commandInterpreter = "cmd.exe /C";
+			__commandInterpreterArray = new String[2];
+			__commandInterpreterArray[0] = "cmd.exe";
+			__commandInterpreterArray[1] = "/C";
 		}
 		else {
 		    Message.printWarning ( 2, rtn, "Unable to start process for \"" + __command +
@@ -897,40 +908,40 @@ public void run ()
 		// Set up the command string, which is used for messages and
 		// if the command array version is NOT used...
 		if ( __isCommandInterpreterUsed ) {
-			if ( __command_interpreter.length() != 0 ) {
+			if ( __commandInterpreter.length() != 0 ) {
 				// Command interpreter used and it is not empty...
-				command_string = __command_interpreter + " " + __command;
+				commandString = __commandInterpreter + " " + __command;
 			}
 			else {
 			    // Command interpreter used but it is empty...
-				command_string = __command;
+				commandString = __command;
 			}
 		}
 		else {
 		    // No interpreter - just use command...
-			command_string = __command;
+			commandString = __command;
 		}
 		// Now actually start the process...
-		if ( __command_array != null ) {
+		if ( __commandArray != null ) {
 			// Execute using the array of arguments...
 			String [] array = null;
 			if ( __isCommandInterpreterUsed ) {
-				array = new String[__command_interpreter_array.length + __command_array.length];
+				array = new String[__commandInterpreterArray.length + __commandArray.length];
 			}
 			else {
-			    array = new String[__command_array.length];
+			    array = new String[__commandArray.length];
 			}
 			// Transfer command interpreter, if the command interpreter is to be used...
 			int n = 0;
 			if ( __isCommandInterpreterUsed ) {
-				n = __command_interpreter_array.length;
+				n = __commandInterpreterArray.length;
 				for ( int i = 0; i < n; i++ ) {
-					array[i]=__command_interpreter_array[i];
+					array[i]=__commandInterpreterArray[i];
 				}
 			}
 			// Transfer command and arguments...
-			for ( int i = 0; i < __command_array.length; i++ ) {
-				array[i + n] = __command_array[i];
+			for ( int i = 0; i < __commandArray.length; i++ ) {
+				array[i + n] = __commandArray[i];
 			}
 		    Message.printStatus ( __processStatusLevel, rtn,
 	             "Running on \"" + os_name + "\".  Executing process using individual program name and arguments (array):" );
@@ -938,25 +949,47 @@ public void run ()
 		        Message.printStatus ( __processStatusLevel, rtn,
 		            "Array [" + i + "] = \""+ array[i] + "\" (" + array[i].length() + " characters)." );
 		    }
-			__process = rt.exec ( array );
+		    if ( useProcessBuilder ) {
+		        ProcessBuilder pb = new ProcessBuilder ( array );
+		        if ( __workingDir != null ) {
+		            Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
+		            pb.directory ( __workingDir );
+		        }
+		        __process = pb.start();
+		    }
+		    else {
+	            Runtime rt = Runtime.getRuntime();
+	            __process = rt.exec ( array );
+		    }
 		}
 		else {
 		    // Execute using the full command line.  The interpreter
 			// is properly included (or not) in the command_string...
-		      Message.printStatus ( __processStatusLevel, rtn,
-	              "Running on \"" + os_name + "\".  Executing process using full command line \""+ command_string +
-	              "\" (" + command_string.length() + " characters)." );
-			__process = rt.exec ( command_string );
+		    Message.printStatus ( __processStatusLevel, rtn,
+	            "Running on \"" + os_name + "\".  Executing process using full command line \""+ commandString +
+	            "\" (" + commandString.length() + " characters)." );
+		    if ( useProcessBuilder ) {
+		        ProcessBuilder pb = new ProcessBuilder ( commandString );
+               if ( __workingDir != null ) {
+                    Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
+                    pb.directory ( __workingDir );
+                }
+		        __process = pb.start();
+	        }
+	        else {
+	            Runtime rt = Runtime.getRuntime();
+	            __process = rt.exec ( commandString );
+	        }
 		}
 	} catch ( SecurityException se ) {
 		Message.printWarning ( 2, rtn, "Security exception encountered." );
 		Message.printWarning ( 3, rtn, se );
-		setProcessFinished ( 996, "Security exception." );
+		setProcessFinished ( 996, "Security exception (" + se + ")." );
 		return;
 	} catch ( Exception e ) {
-		Message.printWarning ( 1, rtn, "Unable to create process using command \"" + command_string + "\"" );
+		Message.printWarning ( 1, rtn, "Unable to create process using command \"" + commandString + "\"" );
 		Message.printWarning ( 2, rtn, e );
-		setProcessFinished ( 997, "Error creating process" );
+		setProcessFinished ( 997, "Error creating process (" + e + ")." );
 		return;
 	}
 
@@ -1034,7 +1067,7 @@ public void run ()
         					Message.printStatus ( 2, rtn, "stdout line: \"" + outLine+ "\""  );
         				//}
         				if ( __saveOutput ) {
-        					__out_Vector.add ( outLine );
+        					__outList.add ( outLine );
         				}
         				if ( __exitStatusIndicator != null ) {
         					// Check the output for a line that starts with the token.
@@ -1130,7 +1163,7 @@ public void run ()
         setProcessFinished ( 996, "Process cancelled." );
     }
 	catch ( Exception e ) {
-		Message.printWarning ( 2, rtn, "Error processing output from command \"" + command_string + "\"" );
+		Message.printWarning ( 2, rtn, "Error processing output from command \"" + commandString + "\"" );
 		Message.printWarning ( 3, rtn, e );
 		setProcessFinished ( 996, "Error reading output." );
 	}
@@ -1153,7 +1186,7 @@ The default is not to save the output.
 public void saveOutput ( boolean save_output )
 {	__saveOutput = save_output;
 	// Create the Vector for output...
-	__out_Vector = new Vector ();
+	__outList = new Vector ();
 }
 
 /**
@@ -1169,10 +1202,10 @@ tokens.  If no interpreter is desired, specify a null array.
 */
 public void setCommandInterpreter ( String [] interpreter )
 {	String routine = "ProcessManager.setCommandInterpreter";
-    __command_interpreter_array = interpreter;
+    __commandInterpreterArray = interpreter;
 	__isCommandInterpreterUsed = true;	// Default
 	if ( interpreter == null ) {
-		__command_interpreter = "";
+		__commandInterpreter = "";
 		__isCommandInterpreterUsed = false;
 		Message.printStatus( 2, routine, "Command interpreter will not be used because calling code has " +
 			"set the interpreter string to null." );
@@ -1186,8 +1219,8 @@ public void setCommandInterpreter ( String [] interpreter )
 			}
 			b.append ( interpreter[i] );
 		}
-		__command_interpreter = b.toString().trim();
-	    Message.printStatus( 2, routine, "Command interpreter string is set to \"" + __command_interpreter + "\"." );
+		__commandInterpreter = b.toString().trim();
+	    Message.printStatus( 2, routine, "Command interpreter string is set to \"" + __commandInterpreter + "\"." );
 	}
 }
 
@@ -1195,7 +1228,7 @@ public void setCommandInterpreter ( String [] interpreter )
 Set the List that contains the error output for the process.  This is usually retrieved from a stream consumer.
 */
 private void setErrorList ( List errorList ) {
-    __error_Vector = errorList;
+    __errorList = errorList;
 }
 
 /**
