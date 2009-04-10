@@ -252,7 +252,7 @@ Typically, a command will be run in one of the ways illustrated below:
 	<p>
 
 	In this case the ProcessManager is run as a new thread.  All of the
-	output from the command is added to a Vector.
+	output from the command is added to a list.
 	</li>
 
 <li>	Run a command using a thread and retrieve its output as the command
@@ -315,7 +315,7 @@ private String __command_interpreter = null;
 The above is set to false only if setCommandInterpreter is called with a null array,
 indicating that no command interpreter should be used.
 */
-private boolean __command_interpreter_used = true;
+private boolean __isCommandInterpreterUsed = true;
 
 /**
 Process that runs __command
@@ -344,7 +344,7 @@ private BufferedReader __error_reader = null;
 /**
 If set to true by calling cancel(), the run() method will gracefully shut down.
 */
-private boolean __cancel = false;
+private volatile boolean __cancel = false;
 /**
 Indicates whether process is complete.  Use setProcessFinished() for all manipulation of this
 variable so that the process time can be determined.
@@ -404,7 +404,7 @@ specified, the PATH environment variable is used to find the executable,
 according to the operating system.
 */
 public ProcessManager ( String command ) {
-	this ( command, 0, null );
+	this ( command, 0, null, true );
 }
 
 /**
@@ -420,7 +420,7 @@ exit with a status of 999.  Specifying 0 will result in no timeout.
 */
 public ProcessManager ( String command, int timeoutMilliseconds )
 {	
-    this ( command, timeoutMilliseconds, null );
+    this ( command, timeoutMilliseconds, null, true );
 }
 
 /**
@@ -435,8 +435,14 @@ according to the operating system.
 exit with a status of 999.  Specifying 0 will result in no timeout.
 @param exitStatusIndicator a string which if found at the start of output lines, will be followed by an integer
 exit status (e.g., "Status:").  If null, the exit status is taken from the process exit status.
+@param useCommandShell indicates if the process should be run using a command shell.  Because the internal code
+is not smart enough to evaluate whether a command to be run is a self-contained executable or a script that may
+contain shell commands, the calling code must define whether the command shell is used.  Use true if unsure and
+use false if it is known that a specific executable is being called.  Using the command shell may complicate
+error and stream handling due to the additional layer of processes.
 */
-public ProcessManager ( String command, int timeoutMilliseconds, String exitStatusIndicator )
+public ProcessManager ( String command, int timeoutMilliseconds, String exitStatusIndicator,
+    boolean useCommandShell )
 {   if ( Message.isDebugOn ) {
         Message.printDebug ( 1, "ProcessManager", "ProcessManager constructor: \"" + command + "\"" );
     }
@@ -453,6 +459,7 @@ public ProcessManager ( String command, int timeoutMilliseconds, String exitStat
         exitStatusIndicator = null;
     }
     __exitStatusIndicator = exitStatusIndicator;
+    __isCommandInterpreterUsed = useCommandShell;
 }
 
 /**
@@ -487,7 +494,7 @@ specified, the PATH environment variable is used to find the executable,
 according to the operating system.
 */
 public ProcessManager ( String [] command_array ) {
-	this ( command_array, 0, (String)null );
+	this ( command_array, 0, (String)null, true );
 }
 
 /**
@@ -501,7 +508,7 @@ according to the operating system.
 exit with a status of 999.  Specifying 0 will result in no timeout.
 */
 public ProcessManager ( String [] command_array, int timeout_milliseconds )
-{	this ( command_array, timeout_milliseconds, (String)null );
+{	this ( command_array, timeout_milliseconds, (String)null, true );
 }
 
 /**
@@ -524,7 +531,8 @@ are used as a delimiter to evaluate the output.
 */
 public ProcessManager ( String [] command_array, int timeout_milliseconds, PropList props )
 {
-    this ( command_array, timeout_milliseconds, props == null ? (String)null : props.getValue( "ExitStatusTokens" ) );
+    this ( command_array, timeout_milliseconds, props == null ? (String)null : props.getValue( "ExitStatusTokens" ),
+        true );
 }
 
 /**
@@ -541,8 +549,14 @@ exit with a status of 999.  Specifying 0 will result in no timeout.
 its exit status does not seem to be getting passed back through the operating
 system command call.  Currently, only one token can be specified and spaces
 are used as a delimiter to evaluate the output.  The exit status integer is expected to follow the indicator.
+@param useCommandShell indicates if the process should be run using a command shell.  Because the internal code
+is not smart enough to evaluate whether a command to be run is a self-contained executable or a script that may
+contain shell commands, the calling code must define whether the command shell is used.  Use true if unsure and
+use false if it is known that a specific executable is being called.  Using the command shell may complicate
+error and stream handling due to the additional layer of processes.
 */
-public ProcessManager ( String [] command_array, int timeout_milliseconds, String exitStatusIndicator )
+public ProcessManager ( String [] command_array, int timeout_milliseconds, String exitStatusIndicator,
+    boolean useCommandShell )
 {   String routine = "ProcessManager";
     // Create a single command string from the command parts...
     StringBuffer b = new StringBuffer ();
@@ -573,6 +587,7 @@ public ProcessManager ( String [] command_array, int timeout_milliseconds, Strin
         // Setup a timer thread which will 
         __event_timer = new EventTimer ( __timeout_milliseconds, this, "Timeout" );
     }
+    __isCommandInterpreterUsed = useCommandShell;
 }
 
 /**
@@ -881,7 +896,7 @@ public void run ()
 		}
 		// Set up the command string, which is used for messages and
 		// if the command array version is NOT used...
-		if ( __command_interpreter_used ) {
+		if ( __isCommandInterpreterUsed ) {
 			if ( __command_interpreter.length() != 0 ) {
 				// Command interpreter used and it is not empty...
 				command_string = __command_interpreter + " " + __command;
@@ -896,13 +911,10 @@ public void run ()
 			command_string = __command;
 		}
 		// Now actually start the process...
-		Message.printStatus ( __processStatusLevel, rtn,
-		"Running on \"" + os_name + "\".  Executing process \""+ command_string + "\" (" + command_string.length() +
-		" characters)." );
 		if ( __command_array != null ) {
 			// Execute using the array of arguments...
 			String [] array = null;
-			if ( __command_interpreter_used ) {
+			if ( __isCommandInterpreterUsed ) {
 				array = new String[__command_interpreter_array.length + __command_array.length];
 			}
 			else {
@@ -910,7 +922,7 @@ public void run ()
 			}
 			// Transfer command interpreter, if the command interpreter is to be used...
 			int n = 0;
-			if ( __command_interpreter_used ) {
+			if ( __isCommandInterpreterUsed ) {
 				n = __command_interpreter_array.length;
 				for ( int i = 0; i < n; i++ ) {
 					array[i]=__command_interpreter_array[i];
@@ -920,11 +932,20 @@ public void run ()
 			for ( int i = 0; i < __command_array.length; i++ ) {
 				array[i + n] = __command_array[i];
 			}
+		    Message.printStatus ( __processStatusLevel, rtn,
+	             "Running on \"" + os_name + "\".  Executing process using individual program name and arguments (array):" );
+		    for ( int i = 0; i < array.length; i++ ) {
+		        Message.printStatus ( __processStatusLevel, rtn,
+		            "Array [" + i + "] = \""+ array[i] + "\" (" + array[i].length() + " characters)." );
+		    }
 			__process = rt.exec ( array );
 		}
 		else {
 		    // Execute using the full command line.  The interpreter
 			// is properly included (or not) in the command_string...
+		      Message.printStatus ( __processStatusLevel, rtn,
+	              "Running on \"" + os_name + "\".  Executing process using full command line \""+ command_string +
+	              "\" (" + command_string.length() + " characters)." );
 			__process = rt.exec ( command_string );
 		}
 	} catch ( SecurityException se ) {
@@ -952,17 +973,18 @@ public void run ()
 
     // For the standard output, either just consume it (and process the strings later), or use the standard
     // output to know when the process is complete.
-    int exitValue = 0;
+    int exitValueFromProcess = -9999; // from waitFor() or exitValue()
+    int exitValueFromOutput = -9999; // from __exitStatusIndicator
     try {
     	//boolean handleOutputWithStreamConsumer = true; // Uses Process.waitFor() to determine stations
-    	boolean handleOutputWithStreamConsumer = false; // Uses output to determine status
+    	boolean handleOutputWithStreamConsumer = false; // Uses output and exitValue() to determine status
     	__out = __process.getInputStream ();
     	if ( handleOutputWithStreamConsumer ) {
     	    // Consume the stream
     	    StreamConsumer outputConsumer = new StreamConsumer (__out, "Output:",true,true);
     	    outputConsumer.start();
     	    // This will block if the process is not complete.
-    	    exitValue = __process.waitFor();
+    	    exitValueFromProcess = __process.waitFor();
     	    // TODO SAM 2009-04-03 With this approach need to post-process the output if the exit status
     	    // is determined from output rather than waitFor() returned value.
     	    // TODO SAM 2009-04-03 Need to evaluate cancel of process
@@ -993,14 +1015,17 @@ public void run ()
         		// null, it is assumed to be done (is this correct?)  What
         		// happens if there is no more input on the buffer - does it hang?
         		if ( !__outDone ) {
-        		    Message.printStatus(2, rtn, "Reading another line from stdout...");
+        		    //Message.printStatus(2, rtn, "Reading another line from stdout...");
         			outLine = __outReader.readLine();
-        			Message.printStatus ( 2, rtn, "...done reading another line.");
+        			//Message.printStatus ( 2, rtn, "...done reading another line.");
         			if ( outLine == null ) {
         				__outDone = true;
         				if ( Message.isDebugOn ) {
         					Message.printDebug (1, rtn, "End of output detected as null." );
         				}
+        				// This will block if the process is not complete but since no more output is
+        				// expected, it should work.
+        	            exitValueFromProcess = __process.waitFor();
         			}
         			else {
         			    // Always log output
@@ -1015,10 +1040,16 @@ public void run ()
         					// Check the output for a line that starts with the token.
         					if ( StringUtil.startsWithIgnoreCase(outLine, __exitStatusIndicator)){
         						// Save the exit status line to evaluate below when the process is finished...
-        						exitStatusLine = outLine;
-        						if ( Message.isDebugOn ) {
-        							Message.printDebug (1, rtn, "Exit status detected from output line:  \"" + exitStatusLine + "\"" );
-        						}
+        					    if ( __exitStatusIndicator.length() >= outLine.trim().length() ) {
+        					        Message.printWarning (3, rtn, "Exit status indicator \"" + __exitStatusIndicator +
+        					             "\" is detected at the start of the output line: \"" + outLine +
+        					             "\" but output is too short to have status - not using for exit status." );
+        					    }
+        					    else {
+        					        exitStatusLine = outLine;
+        					        Message.printStatus (2, rtn, "Exit status indicator \"" + __exitStatusIndicator +
+        					            "\" detected in output line:  \"" + exitStatusLine + "\"" );
+        					    }
         					}
         				}
         				if ( __listeners != null ) {
@@ -1043,32 +1074,46 @@ public void run ()
         		if ( __outDone ) {
         			try {
         			    if ( (__exitStatusIndicator != null) && (exitStatusLine != null) ) {
-        					// Get the exit status from the exit line...
-        					List v = StringUtil.breakStringList(exitStatusLine, " ", 0);
-        					if ( (v == null) || (v.size() < 2) || !StringUtil.isInteger( ((String)v.get(1)).trim()) ) {
+        					// Get the exit status from the exit line.  First remove the exit status indicator, then
+        			        // parse using whitespace, and then convert the first token to an integer as the status.
+        			        // The length of the line is guaranteed to be at least that of the indicator because of
+        			        // checks performed above.
+        			        String exitStatusLineCropped = exitStatusLine.substring(__exitStatusIndicator.length());
+        					List v = StringUtil.breakStringList(exitStatusLineCropped, " \t",
+        					    StringUtil.DELIM_SKIP_BLANKS);
+        					if ( (v == null) || (v.size() < 1) || !StringUtil.isInteger( ((String)v.get(0)).trim()) ) {
         						// Get the exit status from the process...
-        						exitValue = __process.exitValue();
-        						Message.printStatus (2, rtn, "Exit status from process was " + exitValue );
+        						exitValueFromProcess = __process.exitValue();
+        						Message.printStatus (2, rtn, "Exit status could not be determined from saved output line \"" +
+        						    exitStatusLine + "\" using exit status from process: " + exitValueFromProcess );
         					}
         					else {
-        						exitValue = Integer.parseInt (((String)v.get(1)).trim() );
+        						exitValueFromOutput = Integer.parseInt (((String)v.get(0)).trim() );
         						Message.printStatus (2, rtn, "Exit status from output line using indicator \"" +
-        						    __exitStatusIndicator + "\" was "+ exitValue );
+        						    __exitStatusIndicator + "\" is "+ exitValueFromOutput );
         					}
         				}
         				else if((__exitStatusIndicator != null) && (exitStatusLine == null) ) {
         					// Assume an error...
-        					exitValue = 1;
+        					exitValueFromOutput = 1;
     						Message.printStatus (2, rtn,
     						    "Exit status set to 1 - expecting exit status from output line using \"" +
     						    __exitStatusIndicator + "\" but did not find it." );
         				}
         				else {
         				    // Get the exit status from the process...
-        					exitValue = __process.exitValue();
-    						Message.printDebug (2, rtn, "Exit status from process was " + exitValue );
+        					exitValueFromProcess = __process.exitValue();
+    						Message.printDebug (2, rtn, "Exit status from process was " + exitValueFromProcess );
         				}
-        				setProcessFinished ( exitValue, "" );
+        			    // Tell this ProcessManager what the exit value was so that external code can access
+        			    // the value.
+        			    if ( exitValueFromOutput != -9999 ) {
+        			        setProcessFinished ( exitValueFromOutput, "" );
+        			    }
+        			    else {
+        			        // Just use exit status from the process
+        			        setProcessFinished ( exitValueFromProcess, "" );
+        			    }
         				setErrorList ( errorConsumer.getOutputList() );
         				break; // This will allow the process to die.
         			}
@@ -1090,7 +1135,12 @@ public void run ()
 		setProcessFinished ( 996, "Error reading output." );
 	}
 	finally {
-	    __exitValue = exitValue;
+	    if ( exitValueFromOutput != -9999 ) {
+	        __exitValue = exitValueFromOutput;
+	    }
+	    else {
+	        __exitValue = exitValueFromProcess;
+	    }
 	}
 }
 
@@ -1107,7 +1157,8 @@ public void saveOutput ( boolean save_output )
 }
 
 /**
-Set the command interpreter to use to run the command.  By default the following interpreters are used:
+Set the command interpreter to use to run the command.  This method is typically only used when troubleshooting
+command shell issues.  Otherwise, the following interpreters are used:
 <pre>
 Windows 95/98:  command.com /C
 Windows NT, 2000, xp:  cmd.exe /C
@@ -1117,11 +1168,14 @@ UNIX/Linux:  /bin/sh -c
 tokens.  If no interpreter is desired, specify a null array.
 */
 public void setCommandInterpreter ( String [] interpreter )
-{	__command_interpreter_array = interpreter;
-	__command_interpreter_used = true;	// Default
+{	String routine = "ProcessManager.setCommandInterpreter";
+    __command_interpreter_array = interpreter;
+	__isCommandInterpreterUsed = true;	// Default
 	if ( interpreter == null ) {
 		__command_interpreter = "";
-		__command_interpreter_used = false;
+		__isCommandInterpreterUsed = false;
+		Message.printStatus( 2, routine, "Command interpreter will not be used because calling code has " +
+			"set the interpreter string to null." );
 	}
 	else {
 	    // Put together the interpreter string...
@@ -1133,6 +1187,7 @@ public void setCommandInterpreter ( String [] interpreter )
 			b.append ( interpreter[i] );
 		}
 		__command_interpreter = b.toString().trim();
+	    Message.printStatus( 2, routine, "Command interpreter string is set to \"" + __command_interpreter + "\"." );
 	}
 }
 
