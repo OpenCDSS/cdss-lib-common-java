@@ -1804,7 +1804,7 @@ public class TSUtil_ChangeInterval {
             // Loop through the new TS until the end of the
             // old interval - 1 new interval, computing and
             // saving the interpolated values.
-            while ( !newTSi.is_lastDateProcessed() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
+            while ( !newTSi.isLastDateProcessed() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
                 // Get date offset of the new TS value.
                 offsetLength = newTSi.getDate().toDouble() - previousDateDouble;
 

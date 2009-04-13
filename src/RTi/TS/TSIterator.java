@@ -293,10 +293,10 @@ throws Throwable
 }
 
 /**
-Return the current state of the is_lastDateProcessed flag.
-@return the current state of is_lastDateProcessed flag for the iterator.
+Return the current state of the isLastDateProcessed flag.
+@return the current state of isLastDateProcessed flag for the iterator.
 */
-public boolean is_lastDateProcessed() {
+public boolean isLastDateProcessed() {
     return _lastDateProcessed;
 }
 
