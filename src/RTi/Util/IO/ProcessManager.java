@@ -982,14 +982,19 @@ public void run ()
 	            "Running on \"" + os_name + "\".  Executing process using full command line \""+ commandString +
 	            "\" (" + commandString.length() + " characters)." );
 		    if ( useProcessBuilder ) {
+		        // Need to separate the command shell and its argument so that the underlying system "exec" call can find
+		        // the program in the path.  The remaining command is passed as is but may require care with double quotes
+		        // around commands that contain spaces.
 		        ProcessBuilder pb = new ProcessBuilder ( __commandInterpreterArray[0], __commandInterpreterArray[1], __command );
-               if ( __workingDir != null ) {
+                if ( __workingDir != null ) {
                     Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
                     pb.directory ( __workingDir );
                 }
 		        __process = pb.start();
 	        }
 	        else {
+	            // The command string contains the interpreter.  Apparently the underlying code is able to find the interpreter
+	            // even though it is not specifically called out (like in the ProcessBuilder) array above.
 	            Runtime rt = Runtime.getRuntime();
 	            __process = rt.exec ( commandString );
 	        }
