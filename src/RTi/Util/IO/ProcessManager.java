@@ -969,7 +969,7 @@ public void run ()
 	            "Running on \"" + os_name + "\".  Executing process using full command line \""+ commandString +
 	            "\" (" + commandString.length() + " characters)." );
 		    if ( useProcessBuilder ) {
-		        ProcessBuilder pb = new ProcessBuilder ( commandString );
+		        ProcessBuilder pb = new ProcessBuilder ( __commandInterpreterArray[0], __commandInterpreterArray[1], __command );
                if ( __workingDir != null ) {
                     Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
                     pb.directory ( __workingDir );
