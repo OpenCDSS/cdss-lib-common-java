@@ -584,7 +584,16 @@ public class TSUtil_ChangeInterval {
                             OutputFillMethod)) {
                         returnTS = true;
                     }
-                } else {
+                }
+                else if (NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST)) {
+                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag /*, AllowMissingCount_int,
+                        OutputFillMethod */
+                            )) {
+                    returnTS = true;
+                    Message.printStatus(1, routine, "Done.");
+                    }
+                }
+                else {
                     warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
                     throw new TSException(warning);
                 }
@@ -1519,6 +1528,300 @@ public class TSUtil_ChangeInterval {
             }
         }
         return true;
+    }
+
+    /**
+     * Change intervals to INST time series. Call only from TSUtil.changeInterval! Supported conversion are:
+     * <p>
+     * <table width=100% cellpadding=10 cellspacing=0 border=2>
+     * <tr>
+     * <td><b>From</b></td>
+     * <td><b>To</b></td>
+     * </tr>
+     * <tr>
+     * <td><b>MEAN</b></td>
+     * <td><b>INST</b></td>
+     * </tr>
+     * </table>
+     *
+     * @param oldTSi Reference to the iterator object for the old time series.
+     * @param newTSi Reference to the iterator object for the new time series.
+     * @param intervalRelation ratio of intervals, negative if newTS interval is longer than the oldTS.
+     * @param OldTimeScale - The time scale of the old time series.
+     * @param NewTimeScale - The time scale of the new time series.
+     * @param missingValueFlag Indicates how to treat missing values in the input TS
+     *            <p>
+     *            <table width=100% cellpadding=10 cellspacing=0 border=2>
+     *            <tr>
+     *            <td><b>Value/b></td>
+     *            <td><b>Action</b></td>
+     *            </tr>
+     *            <tr>
+     *            <td><b>0</b></td>
+     *            <td><b>leave missing</b></td>
+     *            </tr>
+     *            <tr>
+     *            <td><b>1</b></td>
+     *            <td><b>set to zero</b></td>
+     *            </tr>
+     *            <tr>
+     *            <td><b>2</b></td>
+     *            <td><b>use persistence</b></td>
+     *            </tr>
+     * @return true if successful or false if an error.
+     */
+    private boolean changeInterval_toINST(TSIterator oldTSi, TSIterator newTSi, int intervalRelation, String OldTimeScale, String NewTimeScale,
+            int missingValueFlag) throws Exception {
+        String routine = "TSUtil.changeInterval_toINST", warning;
+
+        // Make sure the required conversion is supported
+        if (!(OldTimeScale.equalsIgnoreCase(MeasTimeScale.MEAN) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST))) {
+            warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
+            throw new TSException(warning);
+        }
+
+        if (intervalRelation > 0) {
+            // The old interval is longer than the new interval.
+            // Loop through the old time series.
+            // To clarify which TS each variable is referring to, variables
+            // will either start with "old" or "new" so the variable
+            // oldCurrentValue isn't as strange as it sounds - it's just the
+            // currentValue of the old TS.
+            TS newTS = newTSi.getTS();
+            TS oldTS = oldTSi.getTS();
+            int oldIntervalBase = oldTS.getDataIntervalBase();
+            int oldIntervalMult = oldTS.getDataIntervalMult();
+            int newIntervalBase = newTS.getDataIntervalBase();
+            int newIntervalMult = newTS.getDataIntervalMult();
+            int newPrecision = newTS.getDate1().getPrecision();
+            double newMissing = newTS.getMissing();
+            double oldMissing = oldTS.getMissing();
+            boolean oldPreviousValueMissing = true;
+            boolean oldCurrentValueMissing = true;
+            boolean oldNextValueMissing = true;
+            double oldPreviousValue;
+            double oldCurrentValue;
+            double oldNextValue;
+            double oldLastValue = oldMissing;
+            DateTime newTSCurrentDate, oldTSPreviousDate, oldTSCurrentDate, oldTSNextDate;
+
+            // This is the first call to next().
+            // Does not increment the date.
+            newTSi.next();
+
+            oldPreviousValue = oldTSi.getDataValue();
+            if (oldTS.isDataMissing(oldPreviousValue)) {
+                oldPreviousValue = replaceDataValue(missingValueFlag, oldLastValue, oldMissing);
+            } else {
+                oldLastValue = oldPreviousValue;
+            }
+
+            // Set the missing flag for the previous value.
+            oldPreviousValueMissing = oldTS.isDataMissing(oldPreviousValue);
+
+            // Just in case we have just one value in the old time series,
+            // the loop below will not run, so we need to say that this
+            // data point is the current one, instead of the previous, to
+            // allow the code after the loop to save this single point.
+            oldCurrentValue = oldPreviousValue;
+            oldCurrentValueMissing = oldPreviousValueMissing;
+
+            // Loop, starting from 1st data point in old TS until the end
+            // of the old timeseries.
+            for (; oldTSi.next() != null;) {
+                Message.printStatus (1, routine, "Working on old date: " + oldTSi.getDate());
+                oldTSCurrentDate = new DateTime(oldTSi.getDate());
+                oldTSPreviousDate = new DateTime(oldTSCurrentDate);
+                oldTSPreviousDate.subtractInterval(oldIntervalBase, oldIntervalMult);
+                oldTSNextDate = new DateTime(oldTSCurrentDate);
+                oldTSNextDate.addInterval(oldIntervalBase, oldIntervalMult);
+
+                // Get data values and check and replace missing data
+                oldPreviousValue = oldCurrentValue;
+                oldCurrentValue = oldTSi.getDataValue();
+                if (oldTS.isDataMissing(oldCurrentValue)) {
+                    oldCurrentValue = replaceDataValue(missingValueFlag, oldLastValue, oldMissing);
+                } else {
+                    oldLastValue = oldCurrentValue;
+                }
+                oldNextValue = oldTSNextDate.greaterThan(oldTS.getDate2()) ? oldCurrentValue : oldTS.getDataValue(oldTSNextDate);
+                if ( oldTS.isDataMissing(oldNextValue)) {
+                    oldNextValue = replaceDataValue(missingValueFlag, oldLastValue, oldMissing);
+                }
+
+                newTSCurrentDate = new DateTime(newTSi.getDate());
+
+                // Set the missing flag for the current value.
+                oldCurrentValueMissing = oldTS.isDataMissing(oldCurrentValue);
+                oldPreviousValueMissing = oldTS.isDataMissing(oldPreviousValue);
+                oldNextValueMissing = oldTS.isDataMissing(oldNextValue);
+
+                // Save the points between the previousValue and
+                // current value with missing if any of the bounding
+                // values are missing or linear interpolation if both
+                // bounding values are non-missing.
+                if (oldCurrentValueMissing) {
+                    while (newTSi.getDate().lessThan(oldTSi.getDate())) {
+                        newTS.setDataValue(newTSi.getDate(), newMissing);
+                        newTSi.next();
+                    }
+                } else if ( oldPreviousValueMissing || oldNextValueMissing ) {
+                    while (newTSi.getDate().lessThanOrEqualTo(oldTSi.getDate())) {
+                        newTS.setDataValue(newTSi.getDate(), oldCurrentValue);
+                        newTSi.next();
+                    }
+                }else if ((  oldPreviousValue <= oldCurrentValue &&
+                              oldCurrentValue <= oldNextValue ) ||
+                            ( oldPreviousValue >= oldCurrentValue &&
+                              oldCurrentValue >= oldNextValue)) {
+                    //
+                    // Continuing rise or fall
+                    //
+                    // Interpolate the new values linearly
+                    double startValue, endValue;
+                    DateTime startEndPointDate = new DateTime ( oldTSCurrentDate );
+                    startEndPointDate.setPrecision(newPrecision);
+                    DateTime endEndPointDate = new DateTime ( oldTSNextDate );
+                    endEndPointDate.setPrecision(newPrecision);
+                    endEndPointDate.subtractInterval(newIntervalBase, newIntervalMult);
+                    // this works whether we are on a continuing rise or fall
+                    startValue = oldCurrentValue - ( .25 * ( oldCurrentValue - oldPreviousValue ));
+                    startValue = startValue < 0 ? 0 : startValue;
+                    endValue = oldCurrentValue + ( .25 * ( oldNextValue - oldCurrentValue ));
+                    endValue = endValue < 0 ? 0 : endValue;
+
+                    changeIntervalToInstByInterpolation ( newTSi,
+                        startEndPointDate, startValue,
+                        endEndPointDate, endValue );
+                }
+                else if ((  oldPreviousValue <= oldCurrentValue &&
+                              oldCurrentValue >= oldNextValue ) ||      // peak
+                            ( oldPreviousValue >= oldCurrentValue &&
+                              oldCurrentValue <= oldNextValue)) {       // trough
+                    //
+                    // peak or trough
+                    //
+                    boolean peak = false;
+                    if ( oldPreviousValue <= oldCurrentValue && oldCurrentValue >= oldNextValue ) {
+                        peak = true;
+                    }
+                    //
+                    // Calculate midpoint date and instantaneous peak or trough value
+                    // Endpoints...
+                    double startValue, endValue;
+                    DateTime startEndPointDate = new DateTime ( oldTSCurrentDate );
+                    startEndPointDate.setPrecision(newPrecision);
+                    DateTime endEndPointDate = new DateTime ( oldTSNextDate );
+                    endEndPointDate.setPrecision(newPrecision);
+                    endEndPointDate.subtractInterval(newIntervalBase, newIntervalMult);
+                    double preDiff = Math.abs(oldCurrentValue - oldPreviousValue);
+                    double postDiff = Math.abs(oldNextValue - oldCurrentValue);
+
+                    // Midpoint...
+                    int numIntervals = TimeUtil.getNumIntervals(startEndPointDate, endEndPointDate, newIntervalBase, newIntervalMult);
+                    DateTime midpointDate = new DateTime ( startEndPointDate );
+                    midpointDate.addInterval(newIntervalBase, (int)(numIntervals/(postDiff/(preDiff+postDiff))));
+                    // midpointDate.addInterval(newIntervalBase, numIntervals/2);
+                    if ( midpointDate.lessThan(startEndPointDate )) {
+                        midpointDate = startEndPointDate;
+                    }
+                    if ( midpointDate.greaterThan(endEndPointDate )) {
+                        midpointDate = endEndPointDate;
+                    }
+
+                    // Midpoint value...
+                    // 1/4 of the average differences between the current mean and the previous and next means
+                    double midpointValue = .25 * (( preDiff + postDiff ) / 2.0);
+                    midpointValue = peak? oldCurrentValue + midpointValue : oldCurrentValue - midpointValue;
+                    midpointValue = midpointValue < 0 ? 0 : midpointValue;
+
+                    // this works whether we are on a peak or trough
+                    startValue = oldCurrentValue - ( .25 * ( oldCurrentValue - oldPreviousValue ));
+                    startValue = startValue < 0 ? 0 : startValue;
+                    endValue = oldCurrentValue + ( .25 * ( oldNextValue - oldCurrentValue ));
+                    endValue = endValue < 0 ? 0 : endValue;
+
+                    changeIntervalToInstByInterpolation ( newTSi,
+                        startEndPointDate, startValue,
+                        midpointDate, midpointValue );
+                    changeIntervalToInstByInterpolation ( newTSi,
+                        midpointDate, midpointValue,
+                        endEndPointDate, endValue );
+                }
+
+                // Set the previous values to the current ones
+                oldPreviousValue = oldCurrentValue;
+                oldPreviousValueMissing = oldCurrentValueMissing;
+                Message.printStatus (1, routine, "Completed new date: " + newTSi.getDate());
+            }
+
+            // Save the last data point ( missing or currentValue )
+            newTSCurrentDate = new DateTime(newTSi.getDate());
+            
+            // Saving
+            if (oldCurrentValueMissing) {
+                newTS.setDataValue(newTSCurrentDate, newMissing);
+            } else {
+                newTS.setDataValue(newTSCurrentDate, oldCurrentValue);
+            }
+
+            return true;
+        }
+        else {
+            warning = "Conversion from \"" + OldTimeScale + "\" to \"" +
+                    NewTimeScale + "\" is not supported!  To convert to instantaneous, the new interval must be shorter than the old interval.";
+            throw new TSException(warning);
+        }
+    }
+
+    //
+    // Every parameter but newTSi refers to information from the old time series.
+    // newTSi should be set to the start of the new time series start date.  After
+    // routine has run, it will be set at or before nextDate.  Additionally, all checks
+    // have been done by this point to ensure no missing data is present.
+    private boolean changeIntervalToInstByInterpolation ( TSIterator newTSi,
+            DateTime previousDate, double previousValue,
+            DateTime nextDate, double nextValue ) {
+
+            String routine = "TSUtil_ChangeInterval.changeIntervalToInstByInterpolation";
+            double pValue = previousValue;
+            double previousDateDouble = previousDate.toDouble(); // should I set precision here?
+            double diffValue, intervalLength, offsetLength, newValue;
+            DateTime newDate;
+            TS newTS = newTSi.getTS();
+
+            // Get the difference in values.
+            diffValue = nextValue - pValue;
+
+            // Get the length of the interval.
+            intervalLength = nextDate.toDouble() - previousDate.toDouble();
+
+            // We are creating a ratio:
+            // newValue = previousValue + diffValue * (offsetLength / intervalLength);
+            // diffValue and intervalLength don't change so let's set that ratio.
+            double ratio = diffValue / intervalLength;
+
+            // Loop through the new TS until the end of the
+            // old interval - 1 new interval, computing and
+            // saving the interpolated values.
+            while ( !newTSi.is_lastDateProcessed() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
+                // Get date offset of the new TS value.
+                offsetLength = newTSi.getDate().toDouble() - previousDateDouble;
+
+                // Interpolate.
+                newValue = previousValue + ( ratio * offsetLength );
+                newDate = new DateTime(newTSi.getDate());
+                Message.printStatus(1, routine, "Interpolating for " + newDate );
+
+                // Saving
+                newTS.setDataValue(newDate, newValue);
+                newTSi.next();
+            }
+            // newTSi has been moved 1 interval past the end date
+            if ( newTSi != null ) {
+                newTSi.previous();
+            }
+            return true;
     }
 
     /**
