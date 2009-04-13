@@ -450,8 +450,9 @@ limit the length of strings for some software.
 */
 public ProcessManager ( String command, int timeoutMilliseconds, String exitStatusIndicator,
     boolean useCommandShell, File workingDir )
-{   if ( Message.isDebugOn ) {
-        Message.printDebug ( 1, "ProcessManager", "ProcessManager constructor: \"" + command + "\"" );
+{   String routine = "ProcessManager";
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( 1, routine, "ProcessManager constructor: \"" + command + "\"" );
     }
     __command = command;
     __timeoutMilliseconds = timeoutMilliseconds;
@@ -467,6 +468,12 @@ public ProcessManager ( String command, int timeoutMilliseconds, String exitStat
     }
     __exitStatusIndicator = exitStatusIndicator;
     __isCommandInterpreterUsed = useCommandShell;
+    if ( workingDir == null ) {
+        Message.printStatus( 2, routine, "Working directory for process is previous value." );
+    }
+    else {
+        Message.printStatus( 2, routine, "Working directory for process is \"" + workingDir + "\"." );
+    }
     __workingDir = workingDir;
 }
 
@@ -598,6 +605,12 @@ public ProcessManager ( String [] command_array, int timeout_milliseconds, Strin
         __eventTimer = new EventTimer ( __timeoutMilliseconds, this, "Timeout" );
     }
     __isCommandInterpreterUsed = useCommandShell;
+    if ( workingDir == null ) {
+        Message.printStatus( 2, routine, "Working directory for process is previous value." );
+    }
+    else {
+        Message.printStatus( 2, routine, "Working directory for process is \"" + workingDir + "\"." );
+    }
     __workingDir = workingDir;
 }
 
