@@ -1,4 +1,4 @@
-package RTi.Util;
+package RTi.Util.IO;
 
 import RTi.Util.IO.ProcessManager;
 import java.io.File;
@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import junit.framework.TestCase;
 
 /**
@@ -25,6 +26,28 @@ public class ProcessManagerTest extends TestCase {
         assertEquals(5000,pm.getOutputList().size() );
         assertEquals(5000,pm.getErrorList().size() );
         assertEquals(0,pm.getExitStatus());
+    }
+
+    public void testArrayConstructorFailsWhenUsingInterpreter() {
+        List<String> args = buildJavaArgs("1");
+        ProcessManager pm = new ProcessManager(args.toArray(new String[0]));
+        pm.run();
+        assertTrue("expected non-zero exit code", pm.getExitStatus() != 0);
+    }
+
+    public void testStringConstructorWorksWithAdequateQuotingWhenUsingInterpreter() {
+        List<String> args = buildJavaArgs("1");
+        StringBuilder b = new StringBuilder("\"");
+        for (int i = 0; i < args.size(); i++) {
+            b.append(String.format("\"%s\"", args.get(i)));
+            if (i + 1 < args.size()) {
+                b.append(' ');
+            }
+        }
+        b.append("\"");
+        ProcessManager pm = new ProcessManager(b.toString());
+        pm.run();
+        assertEquals(0, pm.getExitStatus());
     }
 
     public void testProcessFails() {
@@ -63,6 +86,10 @@ public class ProcessManagerTest extends TestCase {
     }
     
     private ProcessManager processJavaTest(String... args) {
+        return process(buildJavaArgs(args).toArray(new String[0]));
+    }
+
+    private List<String> buildJavaArgs(String... args) {
         String java = findJava().getAbsolutePath();
         String cp = findTestClasses().getAbsolutePath() + File.pathSeparatorChar + findJunit().getAbsolutePath();
         ArrayList<String> argList = new ArrayList<String>();
@@ -71,11 +98,11 @@ public class ProcessManagerTest extends TestCase {
         argList.add(cp);
         argList.add(getClass().getName());
         Collections.addAll(argList, args);
-        return process(argList.toArray(new String[0]));
+        return argList;
     }
 
     private ProcessManager process(String... args) {
-        ProcessManager pm = new ProcessManager(args);
+        ProcessManager pm = new ProcessManager(args,0,null,false,new File("."));
         return pm;
     }
 
