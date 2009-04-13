@@ -741,7 +741,6 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param read_data Indicates whether data should be read.
 @exception FileNotFoundException if the file is not found.
 @exception IOException if there is an error reading the file.
-@exception 
 */
 public static List readTimeSeriesList ( String fname, DateTime date1, DateTime date2,
 						String units, boolean read_data)
