@@ -9,7 +9,7 @@ package riverside.ts.routing.lagk;
 import RTi.TS.TS;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
-import RTi.Util.Time.TimeUtil;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import riverside.ts.util.Table;
 
@@ -108,6 +108,14 @@ public class LagK {
     public double[] getCarryoverValues ()
     {
         return _co_inflow;
+    }
+
+    public double getStorageCarryOver() {
+        return _storageCO;
+    }
+
+    public double getLaggedInflow() {
+        return _laggedInflow;
     }
     
     public double[] getCarryOverValues(DateTime cur_date) {
@@ -859,6 +867,12 @@ public class LagK {
 //            q, qtl);
         return q;
     }
+
+    public String getStateString() {
+        return String.format("laggedInflow %f, storageCO %f, inflowCO %s", _laggedInflow,_storageCO, Arrays.toString(_co_inflow));
+    }
+
+
     
     /**
      * Interpolate from table to get value.
