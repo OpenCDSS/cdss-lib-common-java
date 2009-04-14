@@ -61,7 +61,7 @@ public class LagKBuilder {
         if (lk._co_inflow == null) {
             lk._co_inflow = new double[lk._sizeInflowCO];
         } else {
-            Arrays.fill(lk._co_inflow,0);
+            //Arrays.fill(lk._co_inflow,0);
         }
         
         if (lk.variableLag) {
