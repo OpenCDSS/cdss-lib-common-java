@@ -1,9 +1,11 @@
 package riverside.ts.routing.lagk;
 
 import RTi.TS.TS;
+import RTi.Util.IO.DataUnits;
+import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
-import java.util.Arrays;
+import RTi.Util.Time.TimeInterval;
 import riverside.ts.util.Table;
 
 /**
@@ -386,5 +388,88 @@ public class LagKBuilder {
         
     }
 
+
+    /**
+     * Ensure that the values in a Table are normalized to a time series with respect to interval and units.
+     * @param originalTable The Table to check
+     * @param lagInterval The interval of the Table
+     * @param flowUnits The units of the Table
+     * @param ts The time series to use for units and interval
+     * @return A new normalized Table or the original if no changes were needed
+     * @throws IllegalArgumentException if either the interval or units could not be converted.
+     */
+    public static Table normalizeTable(Table originalTable,TimeInterval lagInterval,String flowUnits,TS ts) {
+        if (originalTable.getNRows() == 0) {
+            return originalTable;
+        }
+
+        final boolean intervalBaseExact = lagInterval.getBase() == ts.getDataIntervalBase();
+        DataUnitsConversion unitsConversion = null;
+        boolean unitsExact = DataUnits.areUnitsStringsCompatible(ts.getDataUnits(), flowUnits, true);
+        if (!unitsExact) {
+            // Verify that conversion factors can be obtained.
+            boolean unitsCompatible = DataUnits.areUnitsStringsCompatible(ts.getDataUnits(), flowUnits, false);
+            if (unitsCompatible) {
+                // Get the conversion factor on the units.
+                try {
+                    unitsConversion = DataUnits.getConversion(flowUnits, ts.getDataUnits());
+                } catch (Exception e) {
+                    throw new RuntimeException("Obtaining data units conversion failed", e);
+                }
+            } else if (!unitsExact && unitsCompatible) {
+                // This is a problem
+                throw new IllegalArgumentException(String.format(
+                        "The input time series units \"%s\" " +
+                        "are not compatible with table flow values \"%s\" - cannot convert to use for routing.",
+                        ts.getDataUnits(),
+                        flowUnits
+                        ));
+
+            }
+        }
+        if ( unitsExact && intervalBaseExact ) {
+            return originalTable;
+        }
+        
+        Table newTable = new Table();
+        newTable.allocateDataSpace(originalTable.getNRows());
+        double flowAddFactor = unitsConversion == null ? 0 : unitsConversion.getAddFactor();
+        double flowMultFactor = unitsConversion == null ? 1 : unitsConversion.getMultFactor();
+        double timeMultFactor; // Convert from original table to time series base interval, 1.0 for no change
+        if ( intervalBaseExact ) {
+            timeMultFactor = 1.0;
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.DAY) && (ts.getDataIntervalBase() == TimeInterval.HOUR)) {
+           timeMultFactor = lagInterval.getMultiplier()*24.0;
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.DAY) && (ts.getDataIntervalBase() == TimeInterval.MINUTE)) {
+            timeMultFactor = lagInterval.getMultiplier()*24.0*60.0/ts.getDataIntervalMult();
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.HOUR) && (ts.getDataIntervalBase() == TimeInterval.MINUTE)) {
+            timeMultFactor = lagInterval.getMultiplier()*60.0/ts.getDataIntervalMult();
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.HOUR) && (ts.getDataIntervalBase() == TimeInterval.DAY)) {
+            timeMultFactor = lagInterval.getMultiplier()/ts.getDataIntervalMult()*24.0;
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.MINUTE) && (ts.getDataIntervalBase() == TimeInterval.DAY)) {
+            timeMultFactor = lagInterval.getMultiplier()/ts.getDataIntervalMult()*24.0*60.0;
+        }
+        else if ( (lagInterval.getBase() == TimeInterval.MINUTE) && (ts.getDataIntervalBase() == TimeInterval.HOUR)) {
+            timeMultFactor = lagInterval.getMultiplier()/ts.getDataIntervalMult()*60.0;
+        }
+        else {
+            throw new IllegalArgumentException(String.format(
+                    "The input time series interval \"%s\" cannot be converted to internal values of \"%s\"",
+                    ts.getIdentifier().getInterval(),
+                    lagInterval
+                    ));
+        }
+        for ( int i = 0; i < originalTable.getNRows(); i++ ) {
+            double newFlowValue = flowAddFactor + flowMultFactor*originalTable.get(i,0);
+            double newTimeValue = timeMultFactor*originalTable.get(i,1);
+            newTable.set(i, newFlowValue, newTimeValue );
+        }
+        return newTable;
+    }
     
 }
