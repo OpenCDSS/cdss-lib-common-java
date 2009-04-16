@@ -50,21 +50,15 @@ public class HTMLStatusAssembler
    * @param problem problem encountered
    * @param recommendation recommended solution
    */
-  public void addPhase(String phase, String severity,String color,
-          String problem,
-          String recommendation)
+  public void addPhase(String phase, String severity,String color, String problem, String recommendation)
   {
-
     String bgcolor = "<td valign=top bgcolor=" + color + ">";
     
-    buf.append("<tr><td valign=top>" + phase
-            + bgcolor + severity
-            +"<td valign=top>" + problem + "</tr>"
-            +"<td valign=top>" + recommendation + "</tr>"
+    buf.append("<tr><td valign=top>" + phase + bgcolor + severity
+            +"<td valign=top>" + HTMLUtil.text2html(problem,false) + "</tr>"
+            +"<td valign=top>" + HTMLUtil.text2html(recommendation,false) + "</tr>"
             );
   }
-
-  
   
   /**
    * Adds an entry for a command in HTML.

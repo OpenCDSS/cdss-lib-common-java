@@ -4,6 +4,8 @@ package RTi.Util.IO;
 
 import java.util.Arrays;
 
+import RTi.Util.Message.Message;
+
 
 /**
  */
@@ -27,9 +29,11 @@ public class HTMLUtil {
      * Method text2html: Convert a text to an HTML format.
      *
      * @param text:     The original text string
+     * @param includeWrapper if true, include &lt;html&gt; wrapper tags around the HTML.  If false, convert the string
+     * encoding to HTML to deal with special characters, but do not wrap the string with the tags.
      * @return          The converted HTML text including symbolic codes string
      */
-    public static String text2html(String text) {
+    public static String text2html(String text, boolean includeWrapper) {
         if (text == null)
             return text;
         
@@ -43,11 +47,14 @@ public class HTMLUtil {
             if ((int) c < symbolicCode.length) { // Maybe slower than  "(int)c & 0xFF != 0" but more evolutive
                 String sc = symbolicCode[(int) c];
                 if ("".equals(sc)) {
+                    // Character does not need to be converted so just append
                     t = t.append(c);
                 } else {
+                    // Character was converted to encoded representation
                     t = t.append(sc);
                 }
             } else {
+                // Not in the lookup table so just append
                 t = t.append(c);
             }
         }
@@ -111,13 +118,13 @@ public class HTMLUtil {
         // 30
         "", "", "", "",
         "&quot;", // quotation mark
-        "", "", "", "", "&#39;",
+        "", "", "", "", "&amp;",
         // 40
         "", "", "", "", "", "", "", "", "", "",
         // 50
         "", "", "", "", "", "", "", "", "", "",
         // 60
-        "", "", "", "",
+        "&lt;", "", "&gt;", "",
         "&#64;", // commercial at
         "", "", "", "", "",
         // 70
@@ -141,7 +148,7 @@ public class HTMLUtil {
         // 150
         "", "", "", "", "", "", "", "", "", "",
         // 160
-        "", // non breaking space (should be &nbsp;)
+        "&nbsp;", // non breaking space (should be &nbsp;)
         "&iexcl;", // invertedexclamation sign
         "&cent;", // cent sign
         "&pound;", // pound sterling sign

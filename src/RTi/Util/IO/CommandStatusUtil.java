@@ -195,9 +195,8 @@ public static void appendLogRecords ( CommandStatus status, List commandList )
 }
   
 /**
-TODO SAM 2007-08-15 Need to doc.
-@param o
-@return
+@param csp CommandStatusProvider (i.e., a command for which to get the command log).
+@return the command log as HTML.
 */
 public static String getCommandLogHTML(CommandStatusProvider csp)
 {

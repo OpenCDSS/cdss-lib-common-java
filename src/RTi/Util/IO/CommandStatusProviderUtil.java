@@ -41,7 +41,7 @@ public class CommandStatusProviderUtil
    */
   public static String getCommandLogHTML(CommandStatusProvider csp)
   {
-    return HTMLUtil.text2html(getCommandLogText(csp));
+    return HTMLUtil.text2html(getCommandLogText(csp),true);
   }
 
 

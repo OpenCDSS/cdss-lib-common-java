@@ -31,18 +31,14 @@ import RTi.Util.IO.CommandStatusUtil;
 import RTi.Util.Message.Message;
 
 /**
- * ProblemGutter is used for displaying line numbers and markers next to a JList 
- * in a JScrollPane.
+ * ProblemGutter is used for displaying line numbers and markers next to a JList in a JScrollPane.
  * <p>
- * When the mouse hovers over a marker, text associated with the marker
- * is displayed. 
+ * When the mouse hovers over a marker, text associated with the marker is displayed. 
  * <p>
- * The text is obtained from JList model items implementing the <code>
- * CommandStatusProvider </code> interface.
+ * The text is obtained from JList model items implementing the <code>CommandStatusProvider</code> interface.
  * <p>
  * The margin showing the line numbers & markers may be hidden/shown by
- * clicking in the gutter. (When collapsed, the gutter is only a few pixels
- * wide.
+ * clicking in the gutter. (When collapsed, the gutter is only a few pixels wide.
  * 
  */
 
@@ -50,8 +46,7 @@ public class ProblemGutter extends JComponent
 implements AdjustmentListener
 {
   /**
-   * GutterRowIterator encapsulates layout logic for the
-   * <code>ProblemGutter</code>. 
+   * GutterRowIterator encapsulates layout logic for the <code>ProblemGutter</code>. 
    */
   class GutterRowIterator
   {
@@ -66,12 +61,10 @@ implements AdjustmentListener
         int errorHeight = _jList.getModel().getSize() * rowHeight;
         // FIXME SAM 2007-08-16 Need to handle the following more gracefully.
         // _jList may have a cell height of zero, so initialize to non-zero.
-        if ( errorHeight == 0 )
-          {
+        if ( errorHeight == 0 ) {
         	errorHeight = 1;
-          }
-        barHeight = rowHeight
-            * Math.min(height / (double) errorHeight, 1.);
+        }
+        barHeight = rowHeight * Math.min(height / (double) errorHeight, 1.);
       }
 
     /**
