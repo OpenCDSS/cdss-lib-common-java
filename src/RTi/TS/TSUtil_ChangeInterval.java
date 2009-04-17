@@ -23,6 +23,12 @@ public class TSUtil_ChangeInterval {
     }
 
     /**
+     *  Once a simulated instantaneous time series has been created, compare it to an
+     * existing mean time series.  After summing the simulated instantaneous values
+     * over each mean interval (using the average of the endpoints), if the difference
+     * between the simulated and given values is outside a given tolerance, adjust
+     * each value in the simulated accordingly.  The beginning endpoint is actually
+     * an average of the current and previous simulated values.
      *
      * @param TSMean - old Mean TS we are trying to change to instantaneous
      * @param TSInst - newly created instantaneous TS
@@ -35,7 +41,7 @@ public class TSUtil_ChangeInterval {
         int newIntervalBase = newTS.getDataIntervalBase();
         int newIntervalMult = newTS.getDataIntervalMult();
         int newPrecision = newTS.getDate1().getPrecision();
-        double sum, simulatedMean, oldValue, firstValueNew, lastValueNew, ratio, oldValueNew;
+        double sum, simulatedMean, oldValue, firstValueNew, lastValueNew, ratio, tmp, savedPreviousEndPoint;
 
         // get the dates of the first and second data values of the old TS
         DateTime startDateOld = new DateTime (oldTS.getDate1());
@@ -53,13 +59,14 @@ public class TSUtil_ChangeInterval {
 
         boolean needsAdjustment = true;
         int iterations = 0;
+        savedPreviousEndPoint = newTS.getMissing();
         while ( needsAdjustment && iterations < 15 ) {
             needsAdjustment = false;
             while ( !lastDateNew.greaterThan(newTS.getDate2())) {
                 sum = 0;
                 oldValue = oldTS.getDataValue(startDateOld);
                 if ( oldTS.isDataMissing(oldValue)) {
-                    // do nothing
+                    savedPreviousEndPoint = newTS.getMissing();
                 } else {
                     // first and last values are averaged
                     // currentDateNew collects middle values
@@ -67,30 +74,41 @@ public class TSUtil_ChangeInterval {
                     currentDateNew.addInterval(newIntervalBase, newIntervalMult);
                     firstValueNew = newTS.getDataValue(startDateNew);
                     lastValueNew = newTS.getDataValue(lastDateNew);
+                    savedPreviousEndPoint = newTS.isDataMissing(savedPreviousEndPoint) ? firstValueNew : savedPreviousEndPoint;
                     // sum middle values
                     for ( int i=0; i<nintervals-1; i++) {
                         sum += newTS.getDataValue(currentDateNew);
                         currentDateNew.addInterval(newIntervalBase, newIntervalMult);
                     }
                     // add the averaged first and last values
-                    sum += (firstValueNew + lastValueNew)/2.0;
+                    sum += (savedPreviousEndPoint + lastValueNew)/2.0;
                     simulatedMean = sum/nintervals;
 
                     if ( (Math.abs(simulatedMean - oldValue) / oldValue) > tolerance ) {
+                        //
                         // adjust new ts
+                        //
                         needsAdjustment = true;
                         ratio = oldValue/simulatedMean;
                         currentDateNew = new DateTime (startDateNew);
-                        // we aren't changing the fist data value
+
+                        // BEGINNING ENDPOINT:
+                        tmp = newTS.getDataValue(currentDateNew);
+                        newTS.setDataValue(currentDateNew, ((tmp + (tmp * ratio))) / 2.0 );
                         currentDateNew.addInterval(newIntervalBase, newIntervalMult);
+                        
+                        // MIDDLE VALUES:
                         for ( int i=0; i<nintervals-1; i++) {
                             newTS.setDataValue(currentDateNew, newTS.getDataValue(currentDateNew) * ratio );
                             currentDateNew.addInterval(newIntervalBase, newIntervalMult);
                         }
-                        // rather than setting the last data value like the others, we average the new
-                        // adjusted value with the old (not from the old TS but the old simulated value
-                        oldValueNew = newTS.getDataValue(currentDateNew);
-                        newTS.setDataValue(currentDateNew, ((oldValueNew * ratio) + oldValueNew) / 2.0 );
+                        // ENDING ENDPOINT: rather than setting the last data value like the others, we average the new
+                        // adjusted value with the old (not from the old TS but the old simulated value)
+                        tmp = newTS.getDataValue(currentDateNew);
+                        savedPreviousEndPoint = tmp;
+                        newTS.setDataValue(currentDateNew, (tmp + (tmp * ratio)) / 2.0 );
+                    } else {
+                        savedPreviousEndPoint = lastValueNew;
                     }
 
                 }
@@ -1716,6 +1734,9 @@ public class TSUtil_ChangeInterval {
             // allow the code after the loop to save this single point.
             oldCurrentValue = oldPreviousValue;
             oldCurrentValueMissing = oldPreviousValueMissing;
+            oldTSCurrentDate = new DateTime(oldTSi.getDate());
+            oldLastValue = oldCurrentValue;
+
 
             // Set first data value in newTS
             newTS.setDataValue(new DateTime(newTSi.getDate()), oldPreviousValue);
@@ -1754,19 +1775,19 @@ public class TSUtil_ChangeInterval {
                 // values are missing or linear interpolation if both
                 // bounding values are non-missing.
                 if (oldCurrentValueMissing) {
-                    while (newTSi.getDate().lessThan(oldTSi.getDate())) {
+                    while (newTSi.getDate().lessThan(oldTSNextDate)) {
                         newTS.setDataValue(newTSi.getDate(), newMissing);
                         newTSi.next();
                     }
                 } else if ( oldPreviousValueMissing || oldNextValueMissing ) {
-                    while (newTSi.getDate().lessThanOrEqualTo(oldTSi.getDate())) {
+                    while (newTSi.getDate().lessThanOrEqualTo(oldTSNextDate)) {
                         newTS.setDataValue(newTSi.getDate(), oldCurrentValue);
                         newTSi.next();
                     }
                 // need to change the following to tolerance rather than .01
                 }else if ( Math.abs( oldNextValue - oldCurrentValue ) < 0.01 &&
                            Math.abs( oldPreviousValue - oldCurrentValue ) < 0.01) {
-                    while (newTSi.getDate().lessThanOrEqualTo(oldTSi.getDate())) {
+                    while (newTSi.getDate().lessThanOrEqualTo(oldTSNextDate)) {
                         newTS.setDataValue(newTSi.getDate(), oldCurrentValue);
                         newTSi.next();
                     }
@@ -1777,13 +1798,13 @@ public class TSUtil_ChangeInterval {
                     //
                     // Continuing rise or fall
                     //
-                    // Interpolate the new values linearly
+                    // Interpolate the new values
                     double startValue, endValue;
                     DateTime startEndPointDate = new DateTime ( oldTSCurrentDate );
                     startEndPointDate.setPrecision(newPrecision);
                     DateTime endEndPointDate = new DateTime ( oldTSNextDate );
                     endEndPointDate.setPrecision(newPrecision);
-                    // endEndPointDate.subtractInterval(newIntervalBase, newIntervalMult);
+
                     // this works whether we are on a continuing rise or fall
                     startValue = oldCurrentValue - ( .25 * ( oldCurrentValue - oldPreviousValue ));
                     startValue = startValue < 0 ? 0 : startValue;
@@ -1819,13 +1840,21 @@ public class TSUtil_ChangeInterval {
                     // Midpoint...
                     int numIntervals = TimeUtil.getNumIntervals(startEndPointDate, endEndPointDate, newIntervalBase, newIntervalMult);
                     DateTime midpointDate = new DateTime ( startEndPointDate );
-                    midpointDate.addInterval(newIntervalBase, (int)(numIntervals/(postDiff/(preDiff+postDiff))));
-                    // midpointDate.addInterval(newIntervalBase, numIntervals/2);
-                    if ( midpointDate.lessThan(startEndPointDate )) {
-                        midpointDate = startEndPointDate;
+                    /*
+                    double ratio;
+                    int n = numIntervals/2;
+                    if ( preDiff > postDiff ) {
+                        ratio = postDiff > 0.01 ? preDiff/postDiff : preDiff;
+                        n += (ratio/2);
+                    } else {
+                        ratio = preDiff > 0.01 ? postDiff/preDiff : postDiff;
+                        n -= ratio/2;
                     }
-                    if ( midpointDate.greaterThan(endEndPointDate )) {
+                    midpointDate.addInterval(newIntervalBase, n*newIntervalMult); */
+                    midpointDate.addInterval(newIntervalBase, newIntervalMult* (int)(numIntervals*(preDiff/(preDiff+postDiff))));
+                    if ( midpointDate.greaterThanOrEqualTo(endEndPointDate )) {
                         midpointDate = endEndPointDate;
+                        midpointDate.subtractInterval(newIntervalBase, newIntervalMult);
                     }
 
                     // Midpoint value...
@@ -1855,8 +1884,19 @@ public class TSUtil_ChangeInterval {
                 oldTSi.next();
             }
 
+            // carry final value of new time series through to end of old ts.
+            /*
+            DateTime tmpDate = new DateTime ( oldTSCurrentDate );
+            tmpDate.addInterval( oldIntervalBase, oldIntervalMult );
+            double tmp = newTSi.getDataValue();
+            while (newTSi.getDate().lessThanOrEqualTo(newTS.getDate2())) {
+                newTS.setDataValue(newTSi.getDate(), tmp);
+                newTSi.next();
+            }
+             */
+
             // need to allow user to specify tolerance:
-            adjustInstantaneousBasedOnMean ( oldTSi.getTS(), newTSi.getTS(), 0.025);
+            adjustInstantaneousBasedOnMean ( oldTSi.getTS(), newTSi.getTS(), 0.01);
             return true;
         }
         else {
