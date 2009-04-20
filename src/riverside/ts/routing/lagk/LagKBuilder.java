@@ -35,20 +35,10 @@ public class LagKBuilder {
     
     public LagK create() {
         String routine = "LagK.create";
-        int lag = lk._lag;
-        if (lag == 0) {
-            lk._sizeInflowCO = 1;
-        } else if (lag < lk._t_mult) {
-            lk._sizeInflowCO = 2;
-        } else if (lag % lk._t_mult != 0) {
-            lk._sizeInflowCO = lk._lag / lk._t_mult + 2;
-        } else {
-            lk._sizeInflowCO = lk._lag / lk._t_mult + 1;
-        }
         
-        // Increase the size of the carryover array to handle K algorithm and reproduce MCP3 results.
-        // As of 2009-03-30 NWSRFS RESJ has a bug because it does not include this fix.
-        ++lk._sizeInflowCO;
+        // Size of carryover array includes lag window divided by the interval, plus 1 to be
+        // inclusive of the end-points (?maybe?), plus 2 for K.
+        lk._sizeInflowCO = (lk._lagMax + lk._lagMin)/lk._t_mult + 3;
 
         if ( Message.isDebugOn ) {
             Message.printDebug(1, routine, "lk._lag=" + lk._lag + " lk._t_mult=" + lk._t_mult +
@@ -56,6 +46,7 @@ public class LagKBuilder {
         }
         
         lk.variableK = _n_kval != 1;
+        // FIXME SAM 2009-04-16 Negative lag requires variable lag and K and need > 1 row in lag table
         lk.variableLag = _n_lagval != 1;
         if (lk._in_lag_tbl.getNRows() > lk._sizeInflowCO) {
             lk._sizeInflowCO = lk._in_lag_tbl.getNRows();
@@ -178,14 +169,22 @@ public class LagKBuilder {
     }
     
     public void setLagIn(Table table) {
+        String routine = getClass().getName() + ".setLagIn";
         lk._in_lag_tbl = table;
         int l = 0;
         for (int i = 0; i < table.getNRows(); i++) {
             double v = table.lookup(i,Table.GETCOLUMN_2);
             if (v > l) {
                 l = (int) ( v + .5 );
+                // Needed for negative lag...
+                lk._lagMax = l;
+            }
+            // Needed for negative lag...
+            if ( (v < lk._lagMin) && (v < 0) ) {
+                lk._lagMin = (int) ( -v + .5 );;
             }
         }
+        Message.printStatus(2,routine, "lagMin=" + lk._lagMin + " lagMax="+lk._lagMax );
         _n_lagval = table.getNRows();
         lk._lag = l;
     }

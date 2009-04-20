@@ -7,6 +7,8 @@
 package riverside.ts.routing.lagk;
 
 import RTi.TS.TS;
+import RTi.TS.TSData;
+import RTi.TS.TSIterator;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import java.util.Arrays;
@@ -39,6 +41,20 @@ public class LagK {
     
     // Lag value in units of time.
     int     _lag;
+    
+    /**
+    If any negative lag values are in the table, this is the corresponding value, rounded to
+    the base interval and positive.  For example, if -24.2 (hours) is encountered,
+    the value would be 24.  This is needed to handle negative lag.
+    */
+    int _lagMin = 0;
+    
+    /**
+    If any positive lag values are in the table, this is the corresponding value, rounded to
+    the base interval.  For example, if 24.2 (hours) is encountered, the value would be 24.
+    This is needed to handle negative lag.
+    */
+    int _lagMax = 0;
     
 //    int
 //        _n_kval,                // Number of k values in the table.
@@ -122,6 +138,25 @@ public class LagK {
         Table coTable = new Table(_sizeInflowCO + 1);
         getCarryOverValues( cur_date, coTable ) ;
         return coTable.getColumn(FLOWCOLUMN);
+    }
+    
+    /**
+     * If negative lag, initialize the lag object by grabbing future values from the time series
+     * and putting them in the carryover array.  Also adjust the initial date/time of the iterator
+     * to start at the correct initial time because of this shift.
+     * @param tsi time series iterator
+     * @return time series iterator that is properly set up to handle the negative lag
+     */
+    public void initializeCarryoverForNegativeLag ( TSIterator tsi )
+    {
+        if ( _lagMin > 0 ) {
+            int numIntervals = _lagMin/_t_mult + 1; // Zero if no negative lag
+            TSData data = null;
+            for ( int i = 0; i < numIntervals; i++ ) {
+                data = tsi.next();
+                _co_inflow[_sizeInflowCO - numIntervals + i] = data.getData();
+            }
+        }
     }
     
     public double solveMethod( DateTime cur_date, double previousOutflow ) {
@@ -233,7 +268,7 @@ public class LagK {
             laggedTable.populate( i, Table.GETCOLUMN_2, timeHours + lagHours ) ;
         }
         if ( Message.isDebugOn ) {
-            Message.printDebug ( 1, routine, "cur_date=" + cur_date + " laggedTable=\n" + laggedTable );
+            Message.printDebug ( 1, routine, "cur_date=" + cur_date + " lagHours=" + lagHours + " laggedTable=\n" + laggedTable );
         }
         
         // If any subsequent lagged values are the same and not missing,
@@ -520,7 +555,11 @@ public class LagK {
         // Place numbers into the working array, note that times will be
         // negative.  When nSimulatedDates is larger than the
         // carryover size, the carryover array will not be used.
-        double timeHours = (double) -( requiredCO - 1 ) * _t_mult;
+        //double timeHours = (double) -( requiredCO - 1 )*_t_mult + (_lagMin/_t_mult + 1)*_t_mult;
+        double timeHours = (double) -( requiredCO - 1 )*_t_mult + (_lagMin/_t_mult + 1)*_t_mult;
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 1, routine, "At cur_date=" + cur_date + " initial timeHours=" + timeHours );
+        }
         for ( i = 0 ; i < requiredCO - nSimulatedDates; i++ ) {
             double currentFlow = _co_inflow[i + nSimulatedDates] ;
             carryOverTable.populate( i, FLOWCOLUMN, currentFlow ) ;
@@ -528,7 +567,8 @@ public class LagK {
             timeHours += _t_mult ;
         }
         if ( Message.isDebugOn ) {
-            Message.printDebug ( 1, routine, "At cur_date=" + cur_date + " after inserting _co_inflow: \n" + carryOverTable );
+            Message.printDebug ( 1, routine, "At cur_date=" + cur_date + " computed timeHours=" + timeHours +
+                " after inserting _co_inflow: \n" + carryOverTable );
         }
         
         // nSimulatedDates includes the current date, so go back
