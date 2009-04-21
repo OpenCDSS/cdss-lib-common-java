@@ -15,6 +15,8 @@ import RTi.Util.Time.TimeUtil;
  */
 public class TSUtil_ChangeInterval {
 
+    private enum HandleEndpointsHow { INCLUDE_FIRST_ONLY, AVERAGE_ENDPOINTS }
+
     /**
      * Constructor.
      */
@@ -364,6 +366,38 @@ public class TSUtil_ChangeInterval {
         int newtsBase = newtsTimeInterval.getBase();
         int newtsMultiplier = newtsTimeInterval.getMultiplier();
 
+        String Tolerance = proplist.getValue( "Tolerance" );
+        double Tolerance_double = 0.01;
+        if (Tolerance != null) {
+            if (!StringUtil.isDouble(Tolerance)) {
+                warning = "Tolerance (" + Tolerance + ") is not a double.";
+                throw new TSException(warning);
+            } else {
+                // Get the value.
+                Tolerance_double = StringUtil.atod(Tolerance);
+
+                // If the given value is less than 0, throw exception.
+                if (Tolerance_double < 0 || Tolerance_double > 1 ) {
+                    warning = "Tolerance_double (" + Tolerance_double + ") is not between 0 and 1.";
+                    throw new TSException(warning);
+                }
+            }
+        }
+
+        HandleEndpointsHow handleEndpointsHow = HandleEndpointsHow.INCLUDE_FIRST_ONLY;
+        String HandleEndpointsHow_String = proplist.getValue("HandleEndpointsHow");
+        if (HandleEndpointsHow_String != null) {
+            if (HandleEndpointsHow_String.equalsIgnoreCase("IncludeFirstOnly")) {
+                handleEndpointsHow = HandleEndpointsHow.INCLUDE_FIRST_ONLY;
+            } else if (HandleEndpointsHow_String.equalsIgnoreCase("AverageEndpoints")) {
+                handleEndpointsHow = HandleEndpointsHow.AVERAGE_ENDPOINTS;
+            } else {
+                warning = "HandleEndpointsHow '" + HandleEndpointsHow_String +
+                        "' is not valid. Valid values are:" + " IncludeFirstOnly and AverageEndpoints.";
+                throw new TSException(warning);
+            }
+        }
+
         // HandleMissingInputHow - Get the transmission type from the prop list.
         // If not given it will default to Regular Transmission
         // when the missingValueFlag is set to 0
@@ -689,12 +723,12 @@ public class TSUtil_ChangeInterval {
                 // -----------------------------------------------------
                 if ((NewTimeScale.equalsIgnoreCase(MeasTimeScale.MEAN)) || (NewTimeScale.equalsIgnoreCase(MeasTimeScale.ACCM))) {
                     if (changeInterval_toMEANorACCM(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag, AllowMissingCount_int,
-                            OutputFillMethod)) {
+                            OutputFillMethod, handleEndpointsHow )) {
                         returnTS = true;
                     }
                 }
                 else if (NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST)) {
-                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag /*, AllowMissingCount_int,
+                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag, Tolerance_double /*, AllowMissingCount_int,
                         OutputFillMethod */
                             )) {
                     returnTS = true;
@@ -723,7 +757,7 @@ public class TSUtil_ChangeInterval {
                     // changeInterval_toMEANorACCM
                     // ---------------------------------------------
                     if (changeInterval_toMEANorACCM(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag, AllowMissingCount_int,
-                            OutputFillMethod)) {
+                            OutputFillMethod, handleEndpointsHow )) {
                         returnTS = true;
                     }
                 } else {
@@ -1679,7 +1713,7 @@ public class TSUtil_ChangeInterval {
      * @return true if successful or false if an error.
      */
     private boolean changeInterval_toINST(TSIterator oldTSi, TSIterator newTSi, int intervalRelation, String OldTimeScale, String NewTimeScale,
-            int missingValueFlag) throws Exception {
+            int missingValueFlag, double tolerance ) throws Exception {
         String routine = "TSUtil.changeInterval_toINST", warning;
 
         // Make sure the required conversion is supported
@@ -1712,6 +1746,7 @@ public class TSUtil_ChangeInterval {
             double oldNextValue;
             double oldLastValue = oldMissing;
             DateTime oldTSPreviousDate, oldTSCurrentDate, oldTSNextDate;
+            DateTime oldTSDate2 = oldTS.getDate2();
 
             // This is the first call to next().
             // Does not increment the date.
@@ -1751,6 +1786,9 @@ public class TSUtil_ChangeInterval {
                 oldTSPreviousDate.subtractInterval(oldIntervalBase, oldIntervalMult);
                 oldTSNextDate = new DateTime(oldTSCurrentDate);
                 oldTSNextDate.addInterval(oldIntervalBase, oldIntervalMult);
+                // we can't be trying to assign data to newTS past it's endpoint
+                if ( oldTSNextDate.greaterThan(oldTSDate2))
+                    oldTSNextDate = new DateTime (newTS.getDate2());
 
                 // Get data values and check and replace missing data
                 oldPreviousValue = oldCurrentValue;
@@ -1760,7 +1798,8 @@ public class TSUtil_ChangeInterval {
                 } else {
                     oldLastValue = oldCurrentValue;
                 }
-                oldNextValue = oldTSNextDate.greaterThan(oldTS.getDate2()) ? oldCurrentValue : oldTS.getDataValue(oldTSNextDate);
+                // oldNextValue = oldTSNextDate.greaterThan(oldTS.getDate2()) ? oldCurrentValue : oldTS.getDataValue(oldTSNextDate);
+                oldNextValue = oldTS.getDataValue(oldTSNextDate);
                 if ( oldTS.isDataMissing(oldNextValue)) {
                     oldNextValue = replaceDataValue(missingValueFlag, oldLastValue, oldMissing);
                 }
@@ -1896,7 +1935,7 @@ public class TSUtil_ChangeInterval {
              */
 
             // need to allow user to specify tolerance:
-            adjustInstantaneousBasedOnMean ( oldTSi.getTS(), newTSi.getTS(), 0.01);
+            adjustInstantaneousBasedOnMean ( oldTSi.getTS(), newTSi.getTS(), tolerance );
             return true;
         }
         else {
@@ -2004,7 +2043,7 @@ public class TSUtil_ChangeInterval {
                 }
                 newDate = new DateTime(newTSi.getDate());
                 Message.printStatus(10, routine, "Date: " + newDate + ": " + newValue );
-
+ 
                 // Saving
                 newTS.setDataValue(newDate, newValue);
                 newTSi.next();
@@ -2081,7 +2120,7 @@ public class TSUtil_ChangeInterval {
      * @return true if successful or false if an error.
      */
     private boolean changeInterval_toMEANorACCM(TSIterator oldTSi, TSIterator newTSi, int intervalRelation, String OldTimeScale, String NewTimeScale,
-            int missingValueFlag, int maxMissingPerInterval, String OutputFillMethod) throws Exception {
+            int missingValueFlag, int maxMissingPerInterval, String OutputFillMethod, HandleEndpointsHow handleEndpointsHow ) throws Exception {
         String routine = "TSUtil.changeInterval_toMEANorACCM", warning;
 
         //Message.printStatus(2, routine, " Running ...");
@@ -2171,10 +2210,10 @@ public class TSUtil_ChangeInterval {
         double oldMissing = oldTS.getMissing();
 
         TSData oldData;
-        DateTime newDate;
-        double lastValue = -999.99, value, sum;
+        DateTime newDate, nextDate;
+        double lastValue = -999.99, value = oldTS.getMissing(), sum, lastEndpointValue, firstEndpointValue;
         int missingCount, dataCount;
-        boolean missingFlag;
+        boolean missingFlag, first_time;
 
         // Change Interval
         if (intervalRelation < 0) {
@@ -2192,17 +2231,22 @@ public class TSUtil_ChangeInterval {
             // The first next() call does not increment the date.
             oldData = oldTSi.next();
 
+            // save data at endpoint
+            value = oldData.getData();
+            firstEndpointValue = value;
+
             // If the old ts is < Day (stamped in the end) we need
             // to advance one old interval.
             if (oldTsTimeStampedAtEnd) {
                 oldData = oldTSi.next();
             }
 
+
             // Save the previous newTS date.
             DateTime previousNewTSDate = new DateTime(newTSi.getDate());
 
             for (; newTSi.next() != null;) {
-
+                first_time = true;
                 sum = 0.0;
                 missingCount = 0;
                 dataCount = 0;
@@ -2263,6 +2307,11 @@ public class TSUtil_ChangeInterval {
                         lastValue = value;
                     }
 
+                    if ( first_time ) {
+                        firstEndpointValue = oldData.getData();
+                        first_time = false;
+                    }
+
                     if (Message.isDebugOn) {
                         warning = "Old TS: " + oldTSi.getDate().toString() + " -> " + String.valueOf(value) + " %%%  New TS: " + newTSi.getDate().toString();
                         Message.printDebug(10, routine, warning);
@@ -2275,6 +2324,16 @@ public class TSUtil_ChangeInterval {
                     }
 
                     oldData = oldTSi.next();
+                }
+
+                lastEndpointValue = oldTSi.getDataValue();
+                if (oldTS.isDataMissing(lastEndpointValue)) {
+                        lastEndpointValue = replaceDataValue(missingValueFlag, lastValue, oldMissing);
+                }
+                if ( handleEndpointsHow == HandleEndpointsHow.AVERAGE_ENDPOINTS && 
+                        !oldTS.isDataMissing(lastEndpointValue) && !oldTS.isDataMissing(firstEndpointValue)) {
+                    sum -= firstEndpointValue;
+                    sum += (firstEndpointValue+lastEndpointValue)/2.0;
                 }
 
                 // Compute the value for the newer time series and
