@@ -3293,6 +3293,16 @@ public class TSUtil_ChangeInterval {
         DateTime old_date1 = oldts.getDate1();
         DateTime old_date2 = oldts.getDate2();
 
+        // If migrating to a time series of smaller interval, add the number of intervals required
+        // to preserve same ending date.
+        boolean to_smaller = false;
+        DateTime old_date1_plus_one = new DateTime(old_date1);
+        old_date1_plus_one.addInterval(oldts.getDataIntervalBase(), oldts.getDataIntervalMult());
+        int nintervals = TimeUtil.getNumIntervals(old_date1, old_date1_plus_one, newbase, newmult);
+        nintervals = nintervals == 0? 1 : nintervals;
+        if ( oldts.getDataIntervalBase() > newbase )
+            to_smaller = true;
+
         if (newbase == TimeInterval.IRREGULAR) {
             // Can use the original dates as is...
             newts_date[0] = new DateTime(oldts.getDate1());
@@ -3314,8 +3324,9 @@ public class TSUtil_ChangeInterval {
             // Round the minutes to the new multiplier...
             newts_date[0].setMinute(newmult * (newts_date[0].getMinute() / newmult));
             newts_date[1].setMinute(newmult * (newts_date[1].getMinute() / newmult));
-            // Extend by one interval
-            newts_date[1].addInterval(newbase, newmult);
+            // Extend by nintervals
+            if (to_smaller)
+                newts_date[1].addInterval(newbase, newmult*nintervals);
         } else if (newbase == TimeInterval.HOUR) {
             newts_date[0] = new DateTime(DateTime.PRECISION_HOUR);
             newts_date[1] = new DateTime(DateTime.PRECISION_HOUR);
@@ -3359,7 +3370,8 @@ public class TSUtil_ChangeInterval {
                 }
             }
             // Extend by one interval
-            newts_date[1].addInterval(newbase, newmult);
+            if (to_smaller)
+                newts_date[1].addInterval(newbase, newmult*nintervals);
         } else if (newbase == TimeInterval.DAY) {
             // Use the old dates except set everything to zero values other
             // than month and year and day...
@@ -3373,7 +3385,8 @@ public class TSUtil_ChangeInterval {
             newts_date[1].setMonth(old_date2.getMonth());
             newts_date[1].setDay(old_date2.getDay());
             // Extend by one interval
-            newts_date[1].addInterval(newbase, newmult);
+            if (to_smaller)
+                newts_date[1].addInterval(newbase, newmult*nintervals);
         } else if (newbase == TimeInterval.MONTH) {
             // Use the old dates except set everything to zero values other
             // than month and year...
@@ -3390,7 +3403,8 @@ public class TSUtil_ChangeInterval {
             newts_date[1].setYear(old_date2.getYear());
             newts_date[1].setMonth(old_date2.getMonth());
             // Extend by one interval
-            newts_date[1].addInterval(newbase, newmult);
+            if (to_smaller)
+                newts_date[1].addInterval(newbase, newmult*nintervals);
         } else if (newbase == TimeInterval.YEAR) {
             // Similar to monthly above, but also set month to 1...
             newts_date[0] = new DateTime(DateTime.PRECISION_YEAR);
@@ -3399,7 +3413,8 @@ public class TSUtil_ChangeInterval {
             newts_date[0].setYear(old_date1.getYear());
             newts_date[1].setYear(old_date2.getYear());
             // Extend by one interval
-            newts_date[1].addInterval(newbase, newmult);
+            if (to_smaller)
+                newts_date[1].addInterval(newbase, newmult*nintervals);
         } else {
             Message.printWarning(2, routine, "Getting dates to change to interval " + newbase + " not supported.  Using original dates.");
         }
