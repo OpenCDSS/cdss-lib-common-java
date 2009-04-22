@@ -1,18 +1,6 @@
-//------------------------------------------------------------------------------
-// CommandProcessor - an interface to define a command processor that can
-//			process Command instances.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 2005-04-29   Steven A. Malers, RTi    Initial version.
-// 2005-05-19   SAM, RTi                 Move from TSTool package.
-// 2007-02-09   SAM, RTi                 Add processRequest() to allow uncoupling
-//                                       commands from the TSCommandProcessor.
-//------------------------------------------------------------------------------
-
 package RTi.Util.IO;
+
+import java.util.List;
 
 /**
 This interface is implemented by classes that can process string commands.
@@ -29,6 +17,13 @@ The command processor should perform the following:
 */
 public interface CommandProcessor
 {
+    
+/**
+Return a list of commands being managed by the processor.  This allows generic utility code to
+further process the commands.
+@return the list of commands being managed by the processor.
+*/
+public List<Command> getCommands();
 
 /**
 Return a property given the property name (request).  Return null if not found.

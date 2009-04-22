@@ -51,7 +51,7 @@ import java.io.FileWriter;
 Class to format HTML content.  This class is meant to be used
 at the most basic level for HTML formatting.  Therefore, HTML tags are
 written in pieces.  It is expected that a higher-level class will be developed
-o provide a more friendly interface to HTML.<p>
+to provide a more friendly interface to HTML.<p>
 
 All of the HTML tag methods are named in a specific pattern (and the list of
 supported tags along with their appropriate functions is 
@@ -72,8 +72,7 @@ instead of a method called <tt>&quot;b()&quot;</tt>, there is one called
 
 <tr valign=top>
 <td>tagName(String)</td>
-<td>inserts &lt;TAG&gt;, followed by the String passed in to the method, 
-followed by &lt;/TAG&gt;</td>
+<td>inserts &lt;TAG&gt;, followed by the String passed in to the method, followed by &lt;/TAG&gt;</td>
 </tr>
 
 <tr valign=top>
@@ -570,8 +569,7 @@ If set to true, the text that is visible on the HTML page is checked for
 metacharacters (e.g., "&gt;" or "&lt;") that may not appear properly and
 the valid escape sequence is entered instead.  This can be expensive, because
 every character is checked prior to being placed in the html text.  Text 
-inside of a PRE or TT tag will not be checked for such things as multiple-
-spaces.
+inside of a PRE or TT tag will not be checked for such things as multiple  spaces.
 */
 private boolean __checkText = true;
 
@@ -749,8 +747,7 @@ private StringBuffer __htmlBuffer = null;
 
 /**
 Constructor.  Calls HTMLWriter(null, null, false) and sets up HTML that will
-not be written to a file but will instead be written to a StringBuffer in 
-memory.
+not be written to a file but will instead be written to a StringBuffer in memory.
 */
 public HTMLWriter () 
 throws Exception {
@@ -769,8 +766,7 @@ throws Exception {
 }
 
 /**
-Constructor.  Calls HTMLWriter(filename, title, true) and sets up a file to 
-have HTML written to it.
+Constructor.  Calls HTMLWriter(filename, title, true) and sets up a file to have HTML written to it.
 @param filename the name of the file to write (or if it exists, overwrite)
 @param title the title of the html page
 */
@@ -784,11 +780,11 @@ Constructor.
 @param filename the filename to which to write HTML.  Can be null, in which 
 case the HTML will not be written to a file but will be stored in memory.
 @param title the title to assign to the HTML.  Can be null.
-@param createHeader whether to create a header (an HTML and BODY tag) for this
+@param createHead whether to create a head (an HTML and BODY tag) for this
 HTML.  This should be true if creating an HTML page and false if only 
 generating a snippet of HTML (e.g., for placing in the Clipboard).
 */
-public HTMLWriter (String filename, String title, boolean createHeader) 
+public HTMLWriter (String filename, String title, boolean createHead) 
 throws Exception {
 	if (filename == null) {
 		__writeToFile = false;
@@ -798,11 +794,10 @@ throws Exception {
 	else {
 		__writeToFile = true;
 		__htmlBuffer = null;
-		__htmlFile = new BufferedWriter(
-			new FileWriter(filename, false));
+		__htmlFile = new BufferedWriter(new FileWriter(filename, false));
 	}
 
-	__hasHeader = createHeader;
+	__hasHeader = createHead;
 	if (__hasHeader) {
 		htmlStart();
 		head(title);
@@ -821,10 +816,8 @@ throws Exception {
 }
 
 /**
-Constructor for an HTMLWriter that will write into HTML already produced
-by another HTMLWriter.
-@param htmlWriter an existing HTMLWriter into which this HTML will be 
-written.
+Constructor for an HTMLWriter that will write into HTML already produced by another HTMLWriter.
+@param htmlWriter an existing HTMLWriter into which this HTML will be written.
 */
 public HTMLWriter(HTMLWriter htmlWriter) 
 throws Exception {
@@ -834,8 +827,7 @@ throws Exception {
 	__hasHeader = htmlWriter.getHasHeader();
 	__checkText = htmlWriter.checkTextForMetaCharacters();
 
-	// The following are easier to initialize here, rather than above
-	// where they are declared
+	// The following are easier to initialize here, rather than above where they are declared
 	__hL = new int[7];
 	__hL[1] = 0;
 	__hL[2] = 0;
@@ -849,8 +841,7 @@ throws Exception {
 
 /**
 Cleans up member variables.  If the HTML has not been closed yet (i.e., not
-written to disk), this will attempt to do so.  This may be unreliable, so
-do not rely on it.
+written to disk), this will attempt to do so.  This may be unreliable, so do not rely on it.
 */
 public void finalize() 
 throws Throwable {
@@ -877,7 +868,7 @@ appends a newline after the text is added -- this can mess up links in IE.
 public void addLinkText(String s)
 throws Exception {
 	if (__checkText) {
-		write(checkText(s));
+		write(textToHtml(s));
 	}
 	else {
 		write(s);
@@ -892,7 +883,7 @@ Writes the given text to the HTML.
 public void addText(String s)
 throws Exception {
 	if (__checkText) {
-		write(checkText(s) + "\n");
+		write(textToHtml(s) + "\n");
 	}
 	else {
 		write(s + "\n" );
@@ -902,8 +893,7 @@ throws Exception {
 /**
 Creates an anchor tag with the given anchor name.
 @param s the anchor name for the tag.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">&lt;A&gt; 
-tag</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">&lt;A&gt; tag</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void anchor(String s)
@@ -911,6 +901,29 @@ throws Exception {
 	write("<a name=\"");
 	addLinkText(s);
 	write("\">");
+}
+
+/**
+Inserts the end of the anchor.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void anchorEnd()
+throws Exception {
+    __aL--;
+    write("</a>");
+}
+
+/**
+Inserts the start of the anchor with the given name.
+@param s the anchor name.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void anchorStart(String s)
+throws Exception {
+    __aL++;
+    write("<a name=\"");
+    addLinkText(s);
+    write("\"");
 }
 
 /**
@@ -1000,8 +1013,7 @@ throws Exception {
 }
 
 /**
-Starts a body declaration and assigns the values in the proplist to the
-BODY.
+Starts a body declaration and assigns the values in the proplist to the BODY.
 @param p the values to use as the BODY parameters.
 @see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">
 &lt;BODY&gt; tag.</a>
@@ -1170,13 +1182,13 @@ public boolean checkTextForMetaCharacters() {
 }
 
 /**
-Checks text for special characters such as &lt;, &gt;, &amp;, and &quot; and
-replaces them with html escape codes for these characters.
+Converts normal text to HTML, where special characters such as &lt;, &gt;, &amp;, and &quot; are
+replaced with html escape codes for these characters.
 @param s a String of text to search for special characters.
-@return the String that was passed in to the method with HTML escape codes for
-the special characters.
+@return the String that was passed in to the method with HTML escape codes for the special characters.
 */
-private String checkText(String s) {
+private String textToHtml(String s)
+{
 	int length = s.length();
 	char ch;
 	String rep = "";
@@ -1243,7 +1255,8 @@ private String checkText(String s) {
 		}
 	}
 
-	// do other checks related to check files
+	// FIXME SAM 2009-04-21 Evaluate the following - should not do anything special here for check file HTML
+	// Do other checks related to check files
 	// shouldn't affect anything unless they have a special
 	// sequence of characters
 	String tmp = s.replaceAll("%font_red", "<b><font color=red>");
@@ -1252,9 +1265,8 @@ private String checkText(String s) {
 	// Replace tooltips with HTML title strings
 	if ( s.indexOf( "%tooltip" ) >= 0 ) {
 		tmp = s.replaceAll("%tooltip_start", 
-		// need to wrap into a paragraph element otherwise
-		// the title attribute cannot be used to create the
-		// tooltip hover capability.
+		// Need to wrap into a paragraph element otherwise
+		// the title attribute cannot be used to create the tooltip hover capability.
 		"<p title=\"");
 		s = tmp.replaceAll("%tooltip_end", "\">");
 		s = s + "</p>";
@@ -1264,8 +1276,7 @@ private String checkText(String s) {
 }
 
 /**
-Sets whether text should be checked for metacharacters prior to being 
-written to the HTML.
+Sets whether text should be checked for metacharacters prior to being written to the HTML.
 @param check if true, text such as &gt; will be translated to "\&amp;gt;".
 */
 public void checkTextForMetacharacters(boolean check) {
@@ -1383,6 +1394,18 @@ throws Exception {
 		__htmlFile.close();
 	}
 	__closed = true;
+}
+
+/**
+Adds the given string in "code" to the HTML.
+@param s the String to output in code format.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void code(String s)
+throws Exception {
+    write("<code>");
+    addText(s);
+    write("</code>");
 }
 
 /**
@@ -1652,8 +1675,7 @@ protected boolean getHasHeader() {
 }
 
 /**
-Returns the HTML that was written to memory, or null if no HTML was/has been
-written to memory.
+Returns the HTML that was written to memory, or null if no HTML was/has been written to memory.
 @return a String of HTML.
 */
 public String getHTML() {
@@ -1693,15 +1715,16 @@ throws Exception {
 	if (s == null) {
 		s = "";
 	}
-	write("<head>\n  <title>" + s + "</title>\n</head>\n");
+	write("<head>\n");
+	title(s);
+	headEnd();
 }
 
 /**
 Creates a HEAD tag and uses the given title String as the title of the page
 and the arrays (of 2 Strings) passed in for adding 1 META data tags. 
 The first item in each array is used to assign the data for NAME part of 
-the META tag and the second item in each array is assign the data to 
-content part of the meta tag. 
+the META tag and the second item in each array is assign the data to content part of the meta tag. 
 (see description of below method for more details).
 @param s the title to set the page to.  Can be null.
 @param arrMeta1 the array of 2 String to use for the first META tag.  
@@ -1719,8 +1742,7 @@ Creates a HEAD tag and uses the given title String as the title of the page
 and the 2 arrays (of 2 Strings) passed in for adding 2 META data tags. 
 The first item in each array is used to assign the data for NAME part of 
 the META tag and the second item in each array is assign the data to 
-content part of the META tag. For example, for typical META tags such 
-as the ones below:
+content part of the META tag. For example, for typical META tags such as the ones below:
 <PRE>
 <P><I><META NAME="keywords" content="hydrology, reservoir"></I>
 <BR><I><META NAME="description" content="Project analyzed the ..."></I>
@@ -1849,19 +1871,7 @@ public void headerStart( int size, PropList p ) throws Exception
 }
 
 /**
-Inserts the head tags and style information for RTi check files.
-@throws Exception
- */
-public void headForCheckFile( ) throws Exception
-{
-	headStart();
-	writeCheckFileStyle();
-	headEnd();
-}
-
-/**
-Creates a heading for the given size (1 is bigger, 6 is smallest) and the
-given text.
+Creates a heading for the given size (1 is bigger, 6 is smallest) and the given text.
 @param number the kind of heading (1-6) to make.
 @param s the string to store in the heading.
 @see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
@@ -1967,10 +1977,8 @@ are encoded for HTML.  For example: a ";" is changed to: "&amp;"
 @return encoded string
 */
 public String encodeHTML( String s ) {
-	return checkText(s);
+	return textToHtml(s);
 }
-
-
 
 /**
 Ends an HTML declaration.
@@ -1991,7 +1999,10 @@ throws Exception {
 }
 
 /**
-Starts an HTML declaration.
+Starts an HTML declaration.  Also add a DTD line for strict:
+<pre>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+</pre>
 @see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">
 &lt;HTML&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
@@ -1999,6 +2010,7 @@ Starts an HTML declaration.
 public void htmlStart()
 throws Exception {
 	__htmlL++;
+	write("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
 	write("<html>\n");
 }
 
@@ -2042,7 +2054,6 @@ an alt tag with the second string passed in.
 @param s Path to image.
 @param alt_str Text for alt Tag
 @param border Int to use to set border around image.
-adding border info.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void image( String s, String alt_str, int border )
@@ -2055,7 +2066,6 @@ Inserts an image tag with image path, alt tag, and border information.
 @param s Path to image.
 @param alt_str Text for alt Tag.  If "", will write "" as alt Tag.
 @param border Int to use to set border around image.
-adding border info.
 @param width Int to indicate width.  Pass in -999 to not specify.
 @param height Int to indicate heigth.  Pass in -999 to not specify.
 @param floatStr "left" or "right" to indicate image float with 
@@ -2128,7 +2138,6 @@ private void image( String s, String alt_str, int border,
 Inserts an image tag with image path, alt tag, and border information 
 so that it floats to the Left of the text.
 @param s Path to image.
-adding border info.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void imageFloatLeft( String s  ) 
@@ -2141,7 +2150,6 @@ Inserts an image tag with image path, alt tag, and border information
 so that it floats to the Left of the text.
 @param s Path to image.
 @param alt_str Text for alt Tag
-adding border info.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void imageFloatLeft( String s, String alt_str  ) throws Exception {
@@ -2154,7 +2162,6 @@ so that it floats to the Left of the text.
 @param s Path to image.
 @param alt_str Text for alt Tag
 @param border Int to use to set border around image.
-adding border info.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void imageFloatLeft( String s, String alt_str, int border ) 
@@ -2168,13 +2175,12 @@ so that it floats to the Left of the text.
 @param s Path to image.
 @param alt_str Text for alt Tag
 @param border Int to use to set border around image.
-adding border info.
 @param width Int to indicate width.
 @param height Int to indicate heigth.
 @throws Exception if an error occurs writing HTML text to a file.
 */
-public void imageFloatLeft( String s, String alt_str, int border, int width,
-			int height) throws Exception {
+public void imageFloatLeft( String s, String alt_str, int border, int width, int height)
+throws Exception {
 	image ( s, alt_str, border, width, height, "left");
 }
 
@@ -2207,7 +2213,6 @@ so that it floats to the Right of the text.
 @param s Path to image.
 @param alt_str Text for alt Tag
 @param border Int to use to set border around image.
-adding border info.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void imageFloatRight( String s, String alt_str, int border )
@@ -2221,7 +2226,6 @@ so that it floats to the Right of the text.
 @param s Path to image.
 @param alt_str Text for alt Tag
 @param border Int to use to set border around image.
-adding border info.
 @param width Int to indicate width.
 @param height Int to indicate heigth.
 @throws Exception if an error occurs writing HTML text to a file.
@@ -2469,7 +2473,7 @@ Inserts a new paragraph with the given text.
 */
 public void paragraph(String s)
 throws Exception {
-	write("<p>\n" + checkText(s) + "</p>\n");
+	write("<p>\n" + textToHtml(s) + "</p>\n");
 }
 
 /**
@@ -2652,7 +2656,7 @@ Inserts a new quote with the given text.
 */
 public void quote(String s)
 throws Exception {
-	write("<q>\n" + checkText(s) + "</q>\n");
+	write("<q>\n" + textToHtml(s) + "</q>\n");
 }
 
 /**
@@ -2987,7 +2991,7 @@ throws Exception {
 	if (__trL == 0) {
 		return;
 	}
-	write("<th>" + checkText( s.replaceAll("\n", "" ) ) + "</th>\n");
+	write("<th>" + textToHtml( s.replaceAll("\n", "" ) ) + "</th>\n");
 }
 
 /**
@@ -3161,6 +3165,19 @@ throws Exception {
 }
 
 /**
+Inserts the document title given the text.
+@param s the title to insert.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void title(String s)
+throws Exception
+{
+    write("<title>");
+    addText(s);
+    write("</title>");
+}
+
+/**
 Inserts a block of underlined text.
 @param s the underlined text to insert.
 @see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">
@@ -3214,10 +3231,11 @@ throws Exception {
 
 /**
 Writes a String of text either to a file, or to an internal StringBuffer.
+No checks are done on the content, so it should contain proper open and closing tags.
 @param s the String to write.
 @throws Exception if an error occurs writing to a file.
 */
-private void write( String s )
+public void write( String s )
 throws Exception {
 	if (__writeToFile) {
 		__htmlFile.write(s);
@@ -3225,25 +3243,6 @@ throws Exception {
 	else {
 		__htmlBuffer.append(s);
 	}
-}
-
-/**
-Inserts the style attributes for a check file.
-@throws Exception
- */
-public void writeCheckFileStyle() throws Exception
-{
-	write("<style>\n"
-			+ "#titles { font-weight:bold; color:#303044 }\n"
-			+ "table { background-color:black; text-align:left }\n"  
-			+ "th {background-color:#333366; text-align:center;"
-			+ " vertical-align:bottom; color:white }\n" 
-			+ "td {background-color:white; text-align:center;"
-			+ " vertical-align:bottom; }\n" 
-			+ "body { text-align:left; font-size:12; }\n"
-			+ "pre { font-size:12; }\n"
-			+ "p { font-size:12; }\n"
-			+ "</style>\n");
 }
 
 }

@@ -197,6 +197,17 @@ private String getHeaderString()
 }
 
 /**
+Inserts the head tags and style information for RTi check files.
+@throws Exception
+ */
+public void headForCheckFile( HTMLWriter html ) throws Exception
+{
+    html.headStart();
+    writeCheckFileStyle(html);
+    html.headEnd();
+}
+
+/**
 Checks if the given string is null or has a length of zero.
 @param  str String to check.
 @return If string is valid or not.
@@ -220,7 +231,7 @@ private void startHTML( HTMLWriter html ) throws Exception
 {
 	if ( html != null ) {
 		html.htmlStart();
-		html.headForCheckFile();
+		headForCheckFile(html);
 		html.bodyStart();
 	}
 }
@@ -233,6 +244,25 @@ the check file.
 public String toString()
 {
 	return __check_file;
+}
+
+/**
+Inserts the style attributes for a check file.
+@throws Exception
+ */
+public void writeCheckFileStyle(HTMLWriter html) throws Exception
+{
+    html.write("<style>\n"
+            + "#titles { font-weight:bold; color:#303044 }\n"
+            + "table { background-color:black; text-align:left }\n"  
+            + "th {background-color:#333366; text-align:center;"
+            + " vertical-align:bottom; color:white }\n" 
+            + "td {background-color:white; text-align:center;"
+            + " vertical-align:bottom; }\n" 
+            + "body { text-align:left; font-size:12; }\n"
+            + "pre { font-size:12; }\n"
+            + "p { font-size:12; }\n"
+            + "</style>\n");
 }
 
 /**

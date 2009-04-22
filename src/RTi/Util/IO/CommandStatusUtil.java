@@ -154,12 +154,12 @@ Returns the command log records ready for display as HTML.
   
 /**
 Append log records from a list of commands to a status.  For example, this is used
-when running a list of commands with a "runner" command.
+when running a list of commands with a "runner" command to get a full list of logs.
 @param status a CommandStatus instance to which log records should be appended.
 @param commandList a list of CommandStatusProviders (such as Command instances) that
 have log records to be appended to the first parameter.
 */
-public static void appendLogRecords ( CommandStatus status, List commandList )
+public static void appendLogRecords ( CommandStatus status, List<CommandStatusProvider> commandList )
 {
       if ( status == null ) {
           return;
@@ -171,12 +171,8 @@ public static void appendLogRecords ( CommandStatus status, List commandList )
       int size = commandList.size();
       CommandStatusProvider csp;
       for ( int i = 0; i < size; i++ ) {
-          if ( ! (commandList.get(i) instanceof CommandStatusProvider) ) {
-              // No need to process.
-              continue;
-          }
           // Transfer the command log records to the status...
-          csp = (CommandStatusProvider)commandList.get(i);
+          csp = commandList.get(i);
           CommandStatus status2 = csp.getCommandStatus();
           // Get the logs for the initialization...
           List logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
@@ -205,7 +201,7 @@ public static String getCommandLogHTML(CommandStatusProvider csp)
 }
 
 /**
-Get the display name for a CommandLogRecord class.  This is used, for example when displaying the
+Get the display name (problem type) for a CommandLogRecord class.  This is used, for example when displaying the
 full list of problems.
 @param log CommandLogRecord instance.
 */
@@ -390,6 +386,7 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
     
     return assembler.getHTML();
   }
+
   /**
    * Returns status for a single command in HTML.
    * <p>
@@ -444,23 +441,67 @@ public static List getLogRecordList ( List commandStatusProviderList, CommandPha
 	return logRecordList;
 }
 
-  /**
-   * Returns a color associated with specified status type.
-   * 
-   * @param type command status type
-   * @return color associated with type
-   */
-  public static String getStatusColor(CommandStatusType type)
-  {
-    // colors for : success, warning, failure
-    String colors[] = {"green","yellow","red"};
-    
-    if (type == CommandStatusType.UNKNOWN)
-      {
-        return "white";
+/**
+Determine the number of log records for the requested severity.
+@param commandList a list of CommandStatusProviders (such as Command instances) that
+have log records to be appended to the first parameter.
+@param severity the requested severity for a count.
+@return the number of log records for the requested severity.
+*/
+public static int getSeverityCount ( List<Command> commandList, CommandStatusType severity )
+{
+      if ( commandList == null ) {
+          return 0;
       }
-    return colors[type.getSeverity()];
-  }
+      // Loop through the commands
+      int size = commandList.size();
+      CommandStatusProvider csp;
+      Command command;
+      int severityCount = 0;
+      for ( int i = 0; i < size; i++ ) {
+          // Transfer the command log records to the status...
+          command = commandList.get(i);
+          if ( command instanceof CommandStatusProvider ) {
+              csp = (CommandStatusProvider)command;
+          }
+          else {
+              continue;
+          }
+          CommandStatus status2 = csp.getCommandStatus();
+          // Get the logs for the initialization...
+          List<CommandLogRecord> logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          CommandLogRecord log;
+          for ( int ilog = 0; ilog < logs.size(); ilog++ ) {
+              log = logs.get(ilog);
+              if ( log.getSeverity() == severity ) {
+                  ++severityCount;
+              }
+          }
+      }
+      return severityCount;
+}
+
+/**
+* Returns a color associated with specified status type, for background color.
+* 
+* @param type command status type
+* @return color associated with type
+*/
+public static String getStatusColor(CommandStatusType type)
+{
+    if (type == CommandStatusType.SUCCESS) {
+        return "green";
+    }
+    else if (type == CommandStatusType.WARNING) {
+        return "yellow";
+    }
+    else if (type == CommandStatusType.FAILURE) {
+        return "red";
+    }
+    else {
+        return "white";
+    }
+}
   
   /**
    * Returns whether command status has warnings/failures.

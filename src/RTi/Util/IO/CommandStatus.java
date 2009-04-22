@@ -160,7 +160,7 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
  * @param phase - see CommandPhaseType.
  * @return command log as a list of CommandLogRecord
  */
-public List getCommandLog(CommandPhaseType phase)
+public List<CommandLogRecord> getCommandLog(CommandPhaseType phase)
 {
     if ( phase == CommandPhaseType.INITIALIZATION ) {
         return __initialization_log_Vector;
