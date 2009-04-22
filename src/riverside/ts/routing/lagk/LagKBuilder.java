@@ -170,23 +170,48 @@ public class LagKBuilder {
     
     public void setLagIn(Table table) {
         String routine = getClass().getName() + ".setLagIn";
+        // Add an extra row if negative lag and only one row - at least two are required
+        if ( (table.getNRows() == 1) && (table.get(0, Table.GETCOLUMN_2) <= 0) ) {
+            // Resize the table to 2 rows, copy the first row, and add another
+            Message.printStatus ( 2, routine,
+                 "Automatically adding a row to lag table - 2+ are required when using negative lag");
+            Table tableBigger = new Table();
+            tableBigger.allocateDataSpace( 2 );
+            tableBigger.populate(0,Table.GETCOLUMN_1, table.get(0, Table.GETCOLUMN_1));
+            tableBigger.populate(0,Table.GETCOLUMN_2, table.get(0, Table.GETCOLUMN_2));
+            tableBigger.populate(1,Table.GETCOLUMN_1, Double.MAX_VALUE );
+            tableBigger.populate(1,Table.GETCOLUMN_2, table.get(0, Table.GETCOLUMN_2));
+            table = tableBigger;
+        }
+        
         lk._in_lag_tbl = table;
         int l = 0;
         for (int i = 0; i < table.getNRows(); i++) {
             double v = table.lookup(i,Table.GETCOLUMN_2);
             if (v > l) {
                 l = (int) ( v + .5 );
-                // Needed for negative lag...
+                // Needed for negative lag and to compute carryover size...
                 lk._lagMax = l;
             }
-            // Needed for negative lag...
+            // Needed for negative lag and to compute carryover size...
             if ( (v < lk._lagMin) && (v < 0) ) {
                 lk._lagMin = (int) ( -v + .5 );;
             }
         }
+        // Round to next even multiple of the time series interval
+        if ( lk._lagMin%lk._t_mult > 0 ) {
+            lk._lagMin = lk._t_mult*((lk._lagMin/lk._t_mult) + 1);
+        }
         Message.printStatus(2,routine, "lagMin=" + lk._lagMin + " lagMax="+lk._lagMax );
         _n_lagval = table.getNRows();
         lk._lag = l;
+        // If negative lagging, all the lag values must be negative or zero
+        if ( lk._lagMin > 0 && lk._lagMax > 0 ) {
+            String message = "Negative and positive lag values cannot occur together (lagMin=" +
+                lk._lagMin + " lagMax="+lk._lagMax + ")";
+            Message.printWarning(3,routine, message );
+            throw new RuntimeException ( message );
+        }
     }
     
     public void setKOut(Table outKTable) {

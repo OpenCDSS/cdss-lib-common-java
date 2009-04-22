@@ -112,7 +112,9 @@ public class LagK {
     }
     
     public void doCarryOver(DateTime cur_date) {
-        Table coTable = new Table(_sizeInflowCO + 1);
+        // TODO SAM 2009-04-21 Evaluate whether +1 needed
+        //Table coTable = new Table(_sizeInflowCO + 1);
+        Table coTable = new Table(_sizeInflowCO);
         getCarryOverValues( cur_date, coTable ) ;
         _co_inflow = coTable.getColumn(FLOWCOLUMN);
     }
@@ -148,13 +150,15 @@ public class LagK {
      * @return time series iterator that is properly set up to handle the negative lag
      */
     public void initializeCarryoverForNegativeLag ( TSIterator tsi )
-    {
+    {   String routine = getClass().getName() + ".initializeCarryoverForNegativeLag";
         if ( _lagMin > 0 ) {
             int numIntervals = _lagMin/_t_mult + 1; // Zero if no negative lag
             TSData data = null;
             for ( int i = 0; i < numIntervals; i++ ) {
                 data = tsi.next();
                 _co_inflow[_sizeInflowCO - numIntervals + i] = data.getData();
+                Message.printStatus(2, routine,
+                    "Assigning initial carryover at " + data.getDate() + " to " + data.getData());
             }
         }
     }
@@ -193,7 +197,7 @@ public class LagK {
 //        }
         
         // Only set the _owner members if calling function is not
-        // a ComboMethod.
+        // a ComboMethod.  This is only RES-J 
 //        if ( !group_val ) {
 //            _owner->_outflow = Qout2 ;
 //        } else {
@@ -209,9 +213,17 @@ public class LagK {
 //            _owner->_id, Qout2 ) ;
         logger.finer(String.format("Date: %s QI1 : %f QI2: %f",cur_date.toString(),LagdQin1,LagdQin2));
         
+        // TODO SAM 2009-04-21 The following code seems to be necessary for negative lag.  However, if run for
+        // positive lag, it breaks the code.  Similar logic must be occurring somewhere for positive lag.
+        // Add current inflow to carryover array and shift values
+        if ( _lagMin > 0 ) {
+            for ( int i = 0; i < _sizeInflowCO - 1; i++ ) {
+                _co_inflow[i] = _co_inflow[i + 1];
+            }
+            _co_inflow[_sizeInflowCO - 1] = totalInflows.getDataValue ( cur_date );
+        }
+
         return Qout2;
-        
-        
     }
     
     private double solveLag( DateTime cur_date ) {
@@ -556,7 +568,17 @@ public class LagK {
         // negative.  When nSimulatedDates is larger than the
         // carryover size, the carryover array will not be used.
         //double timeHours = (double) -( requiredCO - 1 )*_t_mult + (_lagMin/_t_mult + 1)*_t_mult;
-        double timeHours = (double) -( requiredCO - 1 )*_t_mult + (_lagMin/_t_mult + 1)*_t_mult;
+        double timeHours = 0.0;
+        if ( _lagMin > 0 ) {
+        	// Have negative lag - not sure why there is an extra +1 on the second term.
+        	// This fouls up the case where there is no negative lag
+        	timeHours = (_lagMin/_t_mult - requiredCO + 1)*_t_mult;
+        	// Other code initializes the states so no need to do that work below
+        	nSimulatedDates = 0;
+        }
+        else {
+        	timeHours = (double) -( requiredCO - 1 )*_t_mult;
+        }
         if ( Message.isDebugOn ) {
             Message.printDebug ( 1, routine, "At cur_date=" + cur_date + " initial timeHours=" + timeHours );
         }
