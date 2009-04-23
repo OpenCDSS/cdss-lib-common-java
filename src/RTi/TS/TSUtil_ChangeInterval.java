@@ -50,12 +50,10 @@ public class TSUtil_ChangeInterval {
         DateTime nextDateOld = new DateTime (startDateOld);
         nextDateOld.addInterval(oldTS.getDataIntervalBase(), oldTS.getDataIntervalMult());
 
-        // get the corresponding dates of the new TS
-        DateTime startDateNew = new DateTime (startDateOld);
-        DateTime lastDateNew = new DateTime (nextDateOld);      // last date of the current interval we are analyzing
+        // provide for the corresponding dates of the new TS
+        DateTime startDateNew;
+        DateTime lastDateNew;      // last date of the current interval we are analyzing
         DateTime currentDateNew;  // this date will move from startDateNew to lastDateNew
-        startDateNew.setPrecision(newPrecision);
-        lastDateNew.setPrecision(newPrecision);
 
         int nintervals = TimeUtil.getNumIntervals(startDateOld, nextDateOld, newIntervalBase, newIntervalMult);
 
@@ -64,6 +62,18 @@ public class TSUtil_ChangeInterval {
         savedPreviousEndPoint = newTS.getMissing();
         while ( needsAdjustment && iterations < 15 ) {
             needsAdjustment = false;
+
+            // initialize the mean dates
+            startDateOld = new DateTime (oldTS.getDate1());
+            nextDateOld = new DateTime (startDateOld);
+            nextDateOld.addInterval(oldTS.getDataIntervalBase(), oldTS.getDataIntervalMult());
+
+            // initialize the start and end dates for the instantaneous
+            startDateNew = new DateTime (startDateOld);
+            startDateNew.setPrecision(newPrecision);
+            lastDateNew = new DateTime (nextDateOld);      // last date of the current interval we are analyzing
+            lastDateNew.setPrecision(newPrecision);
+
             while ( !lastDateNew.greaterThan(newTS.getDate2())) {
                 sum = 0;
                 oldValue = oldTS.getDataValue(startDateOld);
@@ -127,8 +137,12 @@ public class TSUtil_ChangeInterval {
             iterations++;
         }
 
-        if ( iterations == 15 )
+        if ( iterations == 15 ) {
             Message.printWarning(2, routine, "Maximum number of iterations reached during adjustment.");
+        }
+        else {
+            Message.printStatus ( 10, routine, "Iterated " + iterations + " time(s) to adjust instantaneous ts to mean ts." );
+        }
 
     }
 
@@ -384,7 +398,7 @@ public class TSUtil_ChangeInterval {
             }
         }
 
-        HandleEndpointsHow handleEndpointsHow = HandleEndpointsHow.INCLUDE_FIRST_ONLY;
+        HandleEndpointsHow handleEndpointsHow = HandleEndpointsHow.AVERAGE_ENDPOINTS;
         String HandleEndpointsHow_String = proplist.getValue("HandleEndpointsHow");
         if (HandleEndpointsHow_String != null) {
             if (HandleEndpointsHow_String.equalsIgnoreCase("IncludeFirstOnly")) {
@@ -522,7 +536,14 @@ public class TSUtil_ChangeInterval {
                 AllowMissingPercent_boolean = true;
              }
          }
-         
+
+         // allow negatives
+         boolean AllowNegativeValues_boolean = false;        // Default is to NOT allow negative values (like for streamflow)
+         String AllowNegativeValues_String = proplist.getValue("AllowNegativeValues");
+         if ( AllowNegativeValues_String != null ) {
+             AllowNegativeValues_boolean = AllowNegativeValues_String.equalsIgnoreCase("TRUE") ? true : false;
+         }
+
         // ??????????????????????????????????????????????????????????????????????
         // Create the new time series
         // From the old time series identifier create the new time series
@@ -728,8 +749,9 @@ public class TSUtil_ChangeInterval {
                     }
                 }
                 else if (NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST)) {
-                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag, Tolerance_double /*, AllowMissingCount_int,
-                        OutputFillMethod */
+                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, 
+                            OldTimeScale, NewTimeScale, missingValueFlag, Tolerance_double,
+                            AllowNegativeValues_boolean /*, AllowMissingCount_int, */
                             )) {
                     returnTS = true;
                     Message.printStatus(1, routine, "Done.");
@@ -1713,7 +1735,7 @@ public class TSUtil_ChangeInterval {
      * @return true if successful or false if an error.
      */
     private boolean changeInterval_toINST(TSIterator oldTSi, TSIterator newTSi, int intervalRelation, String OldTimeScale, String NewTimeScale,
-            int missingValueFlag, double tolerance ) throws Exception {
+            int missingValueFlag, double tolerance, boolean allowNegativeValues ) throws Exception {
         String routine = "TSUtil.changeInterval_toINST", warning;
 
         // Make sure the required conversion is supported
@@ -1798,7 +1820,7 @@ public class TSUtil_ChangeInterval {
                 } else {
                     oldLastValue = oldCurrentValue;
                 }
-                // oldNextValue = oldTSNextDate.greaterThan(oldTS.getDate2()) ? oldCurrentValue : oldTS.getDataValue(oldTSNextDate);
+
                 oldNextValue = oldTS.getDataValue(oldTSNextDate);
                 if ( oldTS.isDataMissing(oldNextValue)) {
                     oldNextValue = replaceDataValue(missingValueFlag, oldLastValue, oldMissing);
@@ -1846,9 +1868,9 @@ public class TSUtil_ChangeInterval {
 
                     // this works whether we are on a continuing rise or fall
                     startValue = oldCurrentValue - ( .25 * ( oldCurrentValue - oldPreviousValue ));
-                    startValue = startValue < 0 ? 0 : startValue;
+                    startValue = startValue < 0 ? 0.000001 : startValue;
                     endValue = oldCurrentValue + ( .25 * ( oldNextValue - oldCurrentValue ));
-                    endValue = endValue < 0 ? 0 : endValue;
+                    endValue = endValue < 0 ? 0.000001 : endValue;
                     changeIntervalToInstByNWSRFSInterpolation ( newTSi,
                         startEndPointDate, startValue,
                         endEndPointDate, endValue,
@@ -1900,13 +1922,13 @@ public class TSUtil_ChangeInterval {
                     // 1/4 of the average differences between the current mean and the previous and next means
                     double midpointValue = .25 * (( preDiff + postDiff ) / 2.0);
                     midpointValue = peak? oldCurrentValue + midpointValue : oldCurrentValue - midpointValue;
-                    midpointValue = midpointValue < 0 ? 0 : midpointValue;
+                    midpointValue = midpointValue < 0.0 ? 0.00001 : midpointValue;
 
                     // this works whether we are on a peak or trough
                     startValue = oldCurrentValue - ( .25 * ( oldCurrentValue - oldPreviousValue ));
-                    startValue = startValue < 0 ? 0 : startValue;
+                    startValue = startValue < 0.0 ? 0.000001 : startValue;
                     endValue = oldCurrentValue + ( .25 * ( oldNextValue - oldCurrentValue ));
-                    endValue = endValue < 0 ? 0 : endValue;
+                    endValue = endValue < 0.0 ? 0.000001 : endValue;
 
                     changeIntervalToInstByInterpolation ( newTSi,
                         startEndPointDate, startValue,
@@ -2241,6 +2263,20 @@ public class TSUtil_ChangeInterval {
                 oldData = oldTSi.next();
             }
 
+            // Set a variable for how to handle the endpoints.
+            // If the user has chosen to average the endpoints AND
+            // the new time series interval is hourly or finer, average the
+            // endpoints.
+            boolean averageEndpoints = false;
+            if ( handleEndpointsHow == HandleEndpointsHow.AVERAGE_ENDPOINTS &&
+                    ( newTS.getDataIntervalBase() == TimeInterval.HOUR ||
+                      newTS.getDataIntervalBase() == TimeInterval.MINUTE ||
+                      newTS.getDataIntervalBase() == TimeInterval.SECOND ||
+                      newTS.getDataIntervalBase() == TimeInterval.HSECOND )) {
+                averageEndpoints = true;
+            }
+
+
 
             // Save the previous newTS date.
             DateTime previousNewTSDate = new DateTime(newTSi.getDate());
@@ -2330,8 +2366,8 @@ public class TSUtil_ChangeInterval {
                 if (oldTS.isDataMissing(lastEndpointValue)) {
                         lastEndpointValue = replaceDataValue(missingValueFlag, lastValue, oldMissing);
                 }
-                if ( handleEndpointsHow == HandleEndpointsHow.AVERAGE_ENDPOINTS && 
-                        !oldTS.isDataMissing(lastEndpointValue) && !oldTS.isDataMissing(firstEndpointValue)) {
+                if ( averageEndpoints &&
+                        !oldTS.isDataMissing(lastEndpointValue) && !oldTS.isDataMissing(firstEndpointValue) ) {
                     sum -= firstEndpointValue;
                     sum += (firstEndpointValue+lastEndpointValue)/2.0;
                 }
