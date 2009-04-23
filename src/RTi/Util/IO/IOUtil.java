@@ -1771,8 +1771,7 @@ to the header may not be handled by the XML parser.  The opening and closing
 XML tags must be added before and after calling this method.
 @return 0 if successful, 1 if not.
 */
-public static int printCreatorHeader (	PrintWriter ofp, String comment0,
-					int maxwidth, int flag, PropList props )
+public static int printCreatorHeader ( PrintWriter ofp, String comment0, int maxwidth, int flag, PropList props )
 {	String	comment, routine = "IOUtil.printCreatorHeader";
 	int	commentlen, i, left_border = 12, len;
 	boolean is_xml = false;
