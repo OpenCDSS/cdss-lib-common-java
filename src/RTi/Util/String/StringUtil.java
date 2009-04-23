@@ -157,15 +157,6 @@ public final class StringUtil {
 
 // Global data...
 
-/* Just comment out and switch (2001-12-20)  Change to TYPE_*...
-public static final int ARG_CHARACTER =	1;	// types of data 
-public static final int ARG_DOUBLE = 2;
-public static final int ARG_FLOAT = 3;
-public static final int ARG_INTEGER = 4;
-public static final int ARG_STRING = 5;
-public static final int ARG_SPACE = 6;
-*/
-
 /**
 Indicates that strings should be sorted in ascending order.
 */
@@ -1817,6 +1808,41 @@ public static final String formatString ( Object o, String format )
 	String s = formatString ( v, format );
 	v = null;
 	return s;
+}
+
+/**
+Format a string for output to a CSV file.  The following actions are taken:
+<ol>
+<li> If the string contains a comma or "alwaysQuote" is true, the string is surrounded by quotes.</li>
+<li> If the string contains double quotes, each double quote is replaced with two double quotes, as per Excel conventions.
+</ol>
+@param s string to process
+@param treatAsString if true, always return a result enclosed in double quotes, regardless of contents.
+@return the string formatted for inclusion as an item in an Excel CSV file.
+*/
+public static String formatStringForCsv ( String s, boolean alwaysQuote )
+{
+    StringBuffer b = new StringBuffer();
+    if ( alwaysQuote || (s.indexOf(",") >= 0) ) {
+        b.append ( "\"" );
+    }
+    int length = s.length();
+    char c;
+    for ( int i = 0; i < length; i++ ) {
+        c = s.charAt(i);
+        if ( c == '"' ) {
+            // Detected a quote so output double quotes.
+            b.append ( "\"\"" );
+        }
+        else {
+            // Just append the character
+            b.append ( c );
+        }
+    }
+    if ( alwaysQuote || (s.indexOf(",") >= 0) ) {
+        b.append ( "\"" );
+    }
+    return b.toString();
 }
 
 /**
