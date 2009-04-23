@@ -631,8 +631,7 @@ public static DataFormat getOutputFormat ( String units_string, int width, int d
 
 	if ( (units_string == null) || (units_string.length() == 0) ) {
 		// No units are specified...
-		Message.printWarning ( 3, routine,
-		"No units abbreviation specified.  Using precision " + default_precision );
+		Message.printWarning ( 3, routine, "No units abbreviation specified.  Using precision " + default_precision );
 		return format;
 	}
 
