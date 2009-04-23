@@ -34,7 +34,6 @@ import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.MeasTimeScale;
-import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -43,8 +42,7 @@ import RTi.Util.Time.TZ;
 
 /**
 This ShefATS class provides static methods for reading and writing .A format
-SHEF (Standard Hydrological Exchange Format) time series.  Currently, only
-write methods are available.
+SHEF (Standard Hydrological Exchange Format) time series.  Currently, only write methods are available.
 */
 public class ShefATS
 {
@@ -75,10 +73,8 @@ public static List getPEForTimeSeries ( List tslist )
 			v.add ( datatype.getSHEFpe() );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"Unable to look up data type for \"" +
-			ts.getIdentifierString() + "\" (" + ts.getDataType() +
-			").  Setting SHEF PE to blank." );
+			Message.printWarning ( 3, routine, "Unable to look up data type for \"" +
+			ts.getIdentifierString() + "\" (" + ts.getDataType() + ").  Setting SHEF PE to blank." );
 			v.add ( "" );
 			continue;
 		}
@@ -89,11 +85,9 @@ public static List getPEForTimeSeries ( List tslist )
 /**
 Get a SHEF time zone from another time zone string.  Recognized SHEF time zones
 are taken from Table 8 of the SHEF handbook.
-@return a recognized SHEF time zone matching the characteristics of the
-specified time zone.
+@return a recognized SHEF time zone matching the characteristics of the specified time zone.
 @param ts_tz Time zone abbreviation recognized by the RTi.Util.Time.TZ class.
-@exception Exception if the specified time zone cannot be converted to a
-recognized SHEF time zone.
+@exception Exception if the specified time zone cannot be converted to a recognized SHEF time zone.
 */
 public static String getSHEFTimeZone ( String ts_tz )
 throws Exception
@@ -111,13 +105,10 @@ throws Exception
 				"L", "LD", "LS",
 				"B", "BD", "BS",
 				"Z" };
-	// Loop through the time zones.  If the abbreviation exactly matches a
-	// SHEF time zone, assume that it is OK.
+	// Loop through the time zones.  If the abbreviation exactly matches a SHEF time zone, assume that it is OK.
 	for ( int i = 0; i < shef_tz.length; i++ ) {
 		if ( ts_tz.equalsIgnoreCase(shef_tz[i]) ) {
-			return shef_tz[i];	// Return the SHEF value in case
-						// there is an upper/lower case
-						// issue.
+			return shef_tz[i];	// Return the SHEF value in case there is an upper/lower case issue.
 		}
 	}
 	// Get time zones with the same characteristics...
@@ -127,8 +118,7 @@ throws Exception
 		size = matching_tz.size();
 	}
 	// Loop through the matches and compare with the SHEF time zones that
-	// are know.  If a match occurs, then return the matching SHEF time
-	// zone...
+	// are know.  If a match occurs, then return the matching SHEF time zone...
 	String tz_abbrev;
 	for ( int j = 0; j < size; j++ ) {
 		tz_abbrev = ((TZ)matching_tz.get(j)).getAbbreviation();
@@ -145,37 +135,29 @@ throws Exception
 /**
 Write a single time series to a SHEF .A format file.
 @param ts Single time series to write.
-@param fname Name of file to write.
-The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
+@param fname Name of file to write.  The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
+@param append indicate whether to append to the file.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units
-will be converted on output.  Units are defined in Appendix A of the SHEF
-documentation.
-@param write_data Indicates whether data should be written (as opposed to only
-writing the header).
+will be converted on output.  Units are defined in Appendix A of the SHEF documentation.
+@param write_data Indicates whether data should be written (as opposed to only writing the header).
 @param PE physical element corresponding to the time series data type,
 according to Table 9 of the SHEF documentation.  This is required.
-@param duration Duration of the data, as defined by tables 3 and 11 of the
-SHEF documentation.
+@param duration Duration of the data, as defined by tables 3 and 11 of the SHEF documentation.
 @param alt_id Aternate identifier, different from the time series identifier
 location, to be used in SHEF output.
 @param props See the overloaded method for a description.
 @exception Exception if there is an error writing the file.
 */
-public static void writeTimeSeries (	TS ts, String fname,
-					DateTime date1, DateTime date2,
-					String units, boolean write_data,
-					String PE,
-					String duration,
-					String alt_id,
-					PropList props )
+public static void writeTimeSeries ( TS ts, String fname, boolean append, DateTime date1, DateTime date2,
+	String units, boolean write_data, String PE, String alt_id, String timeZone, String observationTime,
+	String creationDate, String duration, int hourMax, int precision )
 throws Exception
 {	// Call the fully-loaded method...
 	List v = new Vector(1);
 	v.add ( ts );
-	List PEList = null, UnitsList = null, DurationList = null,
-		AltIDList = null;
+	List PEList = null, UnitsList = null, DurationList = null, AltIDList = null;
 	if ( (PE != null) && !PE.equals("") ) {
 		PEList = new Vector ( 1 );
 		PEList.add ( PE );
@@ -193,75 +175,49 @@ throws Exception
 		DurationList.add ( duration );
 	}
 
-	writeTimeSeriesList ( v, fname, date1, date2, UnitsList, PEList, DurationList, AltIDList, props );
+	writeTimeSeriesList ( v, fname, append, date1, date2, UnitsList, PEList, DurationList, AltIDList, timeZone,
+	    observationTime, creationDate, duration, hourMax, precision );
 }
 
 /**
-Write a Vector of time series to a SHEF A format file.
-@param tslist Vector of time series to write.
+Write a list of time series to a SHEF A format file.
+@param tslist list of time series to write.
 @param out PrintWriter to write to.
+@param append indicate whether to append (if true, write and abbreviated header).
 @param date1 First date to write (if null write the entire time series).
 @param date2 Last date to write (if null write the entire time series).
-@param unitsList List of units other than the default, if not an empty list,
-then one per time series.
-@param PE Vector of PE Physical element codes (see SHEF Handbook), one per time
-series.
-@param DurList Vector of duration codes (see SHEF Handbook), one per time
-series.
-@param AltID Vector of alternate identifiers to output (default is to use the
-TS location).
-@param props Properties to control the output, as follows:
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>	<td><b>Description</b></td>	<td><b>Default</b></td>
-</tr>
-
-<tr>
-<td>CreationDate</td>
-<td>The creation date part of the SHEF message, which will be applied to all
-records that are output (e.g., "DCYYMMDDHHmm").</td>
-<td>No creation date is included in the output output.</td>
-</tr>
-
-<tr>
-<td>Duration</td>
-<td>The duration part of the SHEF message, which will be applied to all records
-that are output.  Specifying this string may be needed in cases where the
-default cannot be determined correctly (e.g., to specify a duration of "DH1200"
-for forecasted maximum and minimum temperatures).</td>
-<td>Determine the duration from the data interval of the time series.  For
-example, a 24Hour interval would result in "DH2400".</td>
-</tr>
-
-<tr>
-<td>HourMax</td>
-<td>The maximum integer hour in the day.  Specify 23 (for 0-23 clock) or
-24 (for 1-24 clock).</td>
-<td>23</td>
-</tr>
-
-<tr>
-<td>TimeZone</td>
-<td>The time zone abbreviation, which be applied for all SHEF messages.
+@param unitsList List of units other than the default, if not an empty list, then one per time series.
+@param PE Vector of PE Physical element codes (see SHEF Handbook), one per time series.
+@param DurList list of duration codes (see SHEF Handbook), one per time series.
+@param AltID list of alternate identifiers to output (default is to use the TS location).
+@param timeZone the time zone abbreviation, which be applied for all SHEF messages.
 The time zone should match a value from according to Table 8 of the SHEF
 documentation.  If null or blank, the time zone from the time series start date
 will be used.  If that is blank, "Z" will be used.  If a non-null time zone is
 determined from the parameter or time series, an attempt will be made to convert
 the time zone to standard SHEF time zones (e.g., "MST" becomes "MS").  Note
 that the time series time zone, if known internally is not shifted (data remain
-in the same hour as originally read).</TD>
-<td>Blank, which results in "Z" being used in SHEF messages.</td>
-</tr>
-
-</table>
+in the same hour as originally read).
+@param observationTime the observation time part of the SHEF message, which will be applied to all records
+that are output.  Specifying this string may be needed in cases where the
+default cannot be determined correctly (e.g., to specify an observation time of of "DH1200"
+for forecasted daily maximum and minimum temperatures).  By default the observation time will be determined
+from the time series.  For example, a 24Hour or Day interval would result in "DH2400".  If a number is specified,
+the "DH" or other prefix will automatically be added.
+@param creationDate the creation date part of the SHEF message, which will be applied to all
+records that are output (e.g., "DCYYMMDDHHmm").  If null or blank no creation date is included in
+the output output.  If a number, "DC" will automatically be added.
+@param duration the duration part of the SHEF message, which will be applied to all records
+that are output.  Specifying this string may be needed in cases where the
+default cannot be determined correctly (e.g., to specify a duration of "DVH06"
+to specify six hour duration.  The default is to determine the duration from the data interval of the time series.  For
+example, a 24Hour interval would result in "DVH24".
+@param hourMax the maximum integer hour in the day.  Specify 24 (for 1-24 clock) or any other value for 0-23 clock.
+@param precision the precision for output, 0+ (default is to use the units to determine precision, or 2 if unable).
 */
-public static void writeTimeSeriesList (List tslist, PrintWriter out,
-					DateTime date1, DateTime date2,
-					List unitsList,
-					List PE,
-					List DurList,
-					List AltID,
-					PropList props )
+public static void writeTimeSeriesList (List<TS> tslist, PrintWriter out, boolean append, DateTime date1, DateTime date2,
+	List<String> unitsList, List<String> PE, List<String> DurList, List<String> AltID,
+	String timeZone, String observationTime, String creationDate, String duration, int hourMax, int precision )
 throws Exception
 {	String message, routine = "ShefATS.writeTimeSeriesList";
 	DateTime ts_start = null, ts_end = null;
@@ -269,45 +225,69 @@ throws Exception
 	// Check for a null time series list...
 
 	if ( tslist == null ) {
-		Message.printWarning ( 2, routine, "Null time series list.  Not writing SHEFA file." );
+		Message.printWarning ( 3, routine, "Null time series list.  Not writing SHEFA file." );
 		return;
 	}
 
 	int size = tslist.size();
 	if ( size == 0 ) {
-		Message.printWarning ( 2, routine, "No time series in list.  Not writing." );
+		Message.printWarning ( 3, routine, "No time series in list.  Not writing." );
 		return;
 	}
 
-	// Initialize properties so don't have to check for null list below...
-	if ( props == null ) {
-		props = new PropList ( "ShefATS" );
-	}
+	// Check properties - set strings to null if blank to simplify logic below.
+	
+	// Convert the time zone to the value that SHEF will use
 
-	// Check properties...
+    String SHEFTimeZone = "";
+    if ( (timeZone != null) && (timeZone.trim().length() > 0) ) {
+        // Use the specified time zone for all time series.
+        SHEFTimeZone = timeZone;
+    }
+    else {
+        // Default is Zulu...
+        SHEFTimeZone = "Z";
+    }
+    
+    // Observation time can be not specified, an integer or D...
 
-	boolean Hour24Flag = false;
-	String prop_val = props.getValue ( "HourMax" );
-	String hour_max_prop = "";
-	if ( (prop_val != null) && prop_val.equals("24") ) {
-		Hour24Flag = true;
-		hour_max_prop = prop_val;
-	}
-	String duration_prop = "";
-	prop_val = props.getValue ( "Duration" );
-	if ( prop_val != null ) {
-		duration_prop = prop_val;
-	}
-	String creation_date_prop = "";
-	prop_val = props.getValue ( "CreationDate" );
-	if ( prop_val != null ) {
-		creation_date_prop = prop_val;
-	}	// After this point, no more changes to the duration.
-	String time_zone_prop = "";
-	prop_val = props.getValue ( "TimeZone" );
-	if ( prop_val != null ) {
-		time_zone_prop = prop_val;
-	}	// After this point, no more changes to the time zone.
+	boolean observationTimeLiteral = false; // Does the observation time have characters - hence us as is
+    if ( (observationTime != null) && (observationTime.trim().length() == 0) ) {
+        // Set to null to simplify logic below
+        observationTime = null;
+    }
+    if ( observationTime != null ) {
+        if ( !StringUtil.isInteger(observationTime) ) {
+            // Observation time is being specified as a literal and will be included as is
+            // (otherwise the DH etc will be added as appropriate)
+            observationTimeLiteral = true;
+        }
+    }
+    
+    // Creation date can be not specified, an integer or DC...
+
+    String creationDateOutput = ""; // No creation date
+    if ( (creationDate != null) && (creationDate.trim().length() == 0) ) {
+        // Set to null to simplify logic below
+        creationDate = null;
+    }
+    if ( creationDate != null ) {
+        if ( !StringUtil.isInteger(creationDate) ) {
+            // Creation date is being specified as a literal and will be included as is
+            creationDateOutput = "/" + creationDate;
+        }
+        else {
+            // Add the leading "DC"
+            creationDateOutput = "/DC" + creationDate;
+        }
+    }
+    
+    // Duration can be not specified, or as a literal...
+
+    if ( (duration != null) && (duration.trim().length() == 0) ) {
+        // Set to null to simplify logic below
+        duration = null;
+    }
 
 	// Use the requested output period if not null...
 
@@ -316,17 +296,6 @@ throws Exception
 	}
 	if ( date2 != null ) {
 		ts_end = new DateTime ( date2 );
-	}
-
-	// Check time zone
-
-	String SHEFTimeZone = "";
-	if ( (time_zone_prop != null) && (time_zone_prop.length() > 0) ) {
-		// Use the specified time zone for all time series.
-		SHEFTimeZone = time_zone_prop;
-	}
-	else {	// Default is Zulu...
-		SHEFTimeZone = "Z";
 	}
 
 	// Check if alternative IDs are defined
@@ -357,8 +326,18 @@ throws Exception
 
 	// Output some header comments...
 
-	out.println ( ": SHEF A file" );
-	IOUtil.printCreatorHeader ( out, ":", 80, 0 );
+	if ( append ) {
+	    // Add a short note.
+	    out.println ( ":" );
+	    out.println ( ": Appended records..." );
+	    out.println ( ":" );
+	}
+	else {
+	    // Output the full header
+    	out.println ( ": SHEF A file" );
+    	IOUtil.printCreatorHeader ( out, ":", 80, 0 );
+	}
+	// Always print the list of time series...
 	out.println ( ":" );
 	out.println ( ": Time series and requested output are as follows." );
 	out.println ( ": Blanks indicate that values will be determined automatically." );
@@ -367,7 +346,7 @@ throws Exception
 	out.println ( ":Count Location        Units PE      Duration AltID" );
 	out.println ( ":" );
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -376,16 +355,16 @@ throws Exception
 		dur = "";
 		altid = "";
 		if ( (unitsList != null) && (unitsList.size() == size) ) {
-			units = (String)unitsList.get(i);
+			units = unitsList.get(i);
 		}
 		if ( (PE != null) && (PE.size() == size) ) {
-			pe = (String)PE.get(i);
+			pe = PE.get(i);
 		}
 		if ( (DurList != null) && (DurList.size() == size) ) {
-			dur = (String)DurList.get(i);
+			dur = DurList.get(i);
 		}
 		if ( (AltID != null) && (AltID.size() == size) ) {
-			altid = (String)AltID.get(i);
+			altid = AltID.get(i);
 		}
 		out.println ( ": " +
 			StringUtil.formatString((i + 1),"%4d" ) + " " +
@@ -395,39 +374,52 @@ throws Exception
 			+ StringUtil.formatString(dur,"%-8.8s" ) + " "
 			+ StringUtil.formatString(altid,"%s") );
 	}
+	// List in order of SHEF format left to right
 	out.println ( ":" );
 	out.println ( ": Override properties for output are as follows:" );
 	out.println ( ":" );
-	if ( creation_date_prop.equals("") ) {
-		out.println ( ": CreationDate = default (not specified)" );
+    if ( timeZone == null ) {
+        out.println ( ": TimeZone = default (Z)." );
+    }
+    else {
+        out.println ( ": TimeZone = " + timeZone );
+    }
+    if ( observationTime == null ) {
+        out.println ( ": ObservationTime = default (determined from data)" );
+    }
+    else {
+        out.println ( ": ObservationTime = " + observationTime );
+    }
+	if ( creationDate == null ) {
+		out.println ( ": CreationDate = default (not used)" );
 	}
 	else {
-        out.println ( ": CreationDate = " + creation_date_prop );
+        out.println ( ": CreationDate = " + creationDate );
 	}
-	if ( duration_prop.equals("") ) {
+	if ( duration == null ) {
 		out.println ( ": Duration = default (determined from data interval)" );
 	}
 	else {
-        out.println ( ": Duration = " + duration_prop );
+        out.println ( ": Duration = " + duration );
 	}
-	if ( hour_max_prop.equals("") ) {
+	if ( hourMax == 24 ) {
+        out.println ( ": HourMax = 24.  Hours are 1-24" );
+	}
+	else {
 		out.println ( ": HourMax = default (23).  Hours are 0-23" );
 	}
-	else {
-        out.println ( ": HourMax = " + hour_max_prop );
-	}
-	if ( time_zone_prop.equals("") ) {
-		out.println ( ": TimeZone = default (Z)." );
-	}
-	else {
-        out.println ( ": TimeZone = " + time_zone_prop );
-	}
+    if ( precision < 0 ) {
+        out.println ( ": Precision = default (from units, or 2)." );
+    }
+    else {
+        out.println ( ": Precision = " + precision );
+    }
 	out.println ( ":" );
 
 	DataUnits tsUnits;
 	DataUnitsConversion conversion;
 	String SHEFID, SHEFMessage;
-	String dateString,qualityFlag;
+	String dateString, qualityFlag;
 	String PhysicalElement, scaleType;
 	String SHEFSystem, unitsFormat;
 	int tsMult, tsBase;
@@ -436,12 +428,11 @@ throws Exception
 
 	// Loop through the time series...
 
-	String SHEFTimeZone_ts = SHEFTimeZone;	// SHEF time zone to be used for
-						// a time series.
-	String timeZone_ts = null;		// Time zone from a time series
-						// start date/time.
-	String creation_date=creation_date_prop;// Used to indicate when the
-						// data record was created.
+	String SHEFTimeZone_ts = SHEFTimeZone; // SHEF time zone to be used for a time series.
+	String timeZone_ts = null; // Time zone from a time series start date/time.
+	//String creation_date=creation_date_prop;// Used to indicate when the data record was created.
+	String observationTimeOutput = null; // The observation time that is actually output
+	String observationTimePrefix = "DH"; // Default for hourly data
 	for ( int i = 0; i < size; i++ ) {
 		ts = (TS)tslist.get(i);
 		if ( ts == null ) {
@@ -463,13 +454,11 @@ throws Exception
 			}
 		}
 
-		// Check the time zone to see if it should be taken from the
-		// time series...
+		// Check the time zone to see if it should be taken from the time series...
 	
 		SHEFTimeZone_ts = SHEFTimeZone;	 // Default determined above
-		if ((time_zone_prop == null) || (time_zone_prop.length() == 0)){
-			// No time zone was specified as an input parameter
-			// so try to get it from the time series...
+		if ( timeZone == null ) {
+			// No time zone was specified as an input parameter so try to get it from the time series...
 			timeZone_ts = ts.getDate1().getTimeZoneAbbreviation();
 			if ( timeZone_ts.length() != 0 ) {
 				// Time series has a time zone so use it...
@@ -478,10 +467,10 @@ throws Exception
 				}
 				catch ( Exception e ) {
 					// Unable to get a valid time zone...
-					message = "Time zone from time series (\"" +
-					timeZone_ts + "\") not recognized.  Skipping output.";
+					message = "Time zone from time series (\"" + timeZone_ts + "\") not recognized (" + e +
+					    ").  Skipping output.";
 					out.println ( ": " + message );
-					Message.printWarning ( 2, routine, message );
+					Message.printWarning ( 3, routine, message );
 					continue;
 				}
 			}
@@ -496,17 +485,17 @@ throws Exception
 
 		SHEFID = ts.getLocation();
 		if ( alternativeIDDefined ) {
-			if ( ((String)AltID.get(i)).length() > 0 ) {
-				SHEFID = (String)AltID.get(i);
+			if ( AltID.get(i).length() > 0 ) {
+				SHEFID = AltID.get(i);
 			}
 		}
 
 		// get the PE code
- 		PhysicalElement = (String)PE.get(i);
+ 		PhysicalElement = PE.get(i);
 		if ( PhysicalElement.equals("") ) {
 			message = "No PE code specified for \"" + ts.getIdentifierString() + "\"... skipping SHEF .A write.";
 			out.println ( ": " + message );
-			Message.printWarning ( 2, routine, message );
+			Message.printWarning ( 3, routine, message );
 			continue;
 		}
 
@@ -514,32 +503,37 @@ throws Exception
 		tsMult = ts.getDataIntervalMult();
 		tsBase = ts.getDataIntervalBase();
 
-		// Get the original TS units
-		try {	tsUnits = DataUnits.lookupUnits( ts.getDataUnits());
-			system =  tsUnits.getSystem();
-			unitsFormat = DataUnits.getOutputFormatString( ts.getDataUnits(), 0, 0 );
+		// Get the original TS units and format for output
+		try {
+		    tsUnits = DataUnits.lookupUnits( ts.getDataUnits());
+			system = tsUnits.getSystem();
+			// The output format does not specify a width
+			if ( precision >= 0 ) {
+			    // Use the user-specified precision
+			    unitsFormat = "%." + precision + "f";
+			}
+			else {
+			    // Determine the precision from units and defaults
+			    unitsFormat = DataUnits.getOutputFormatString( ts.getDataUnits(), 0, 0 );
+	         }
 		}
 		catch ( Exception e ) {
-			message = "Error getting units for " +
-			ts.getIdentifierString() + ": " + ts.getDataUnits() +
-			". Will skip.";
+			message = "Error getting units for " + ts.getIdentifierString() + ": " + ts.getDataUnits() + " (" + e +
+			    "). Will skip.";
 			out.println ( ": " + message );
-			Message.printWarning ( 2, routine, message );
-			Message.printWarning( 2, routine, e );
+			Message.printWarning ( 3, routine, message );
+			Message.printWarning( 3, routine, e );
 			continue;
 		}
 
 		// Set the scale if the TS is accumulated or a mean.  If so, SHEF must have a duration
 		scale = false;
 		if ( durationDefined ) {
-			scaleType = (String)DurList.get( i );
+			scaleType = DurList.get( i );
 
-			if (	scaleType.equalsIgnoreCase(MeasTimeScale.ACCM)||
-				scaleType.equalsIgnoreCase(MeasTimeScale.MEAN)){
+			if ( scaleType.equalsIgnoreCase(MeasTimeScale.ACCM) || scaleType.equalsIgnoreCase(MeasTimeScale.MEAN)) {
 				scale = true;
-				// a 'V' after the PE indicates that the
-				// duration of the data is defined elsewhere in
-				// the message
+				// a 'V' after the PE indicates that the duration of the data is defined elsewhere in the message
 				PhysicalElement += "V";
 			}
 		}
@@ -548,8 +542,7 @@ throws Exception
 		//Set the duration code if the TS is regular
 		if ( scale && (tsBase != TimeInterval.IRREGULAR) ) {
 			durationCode = "/DV";
-			String multString = 
-			StringUtil.formatString( tsMult, "%02d" );
+			String multString = StringUtil.formatString( tsMult, "%02d" );
 			if ( tsBase == TimeInterval.SECOND) {
 				durationCode = durationCode + "S" + multString;
 			}
@@ -563,8 +556,7 @@ throws Exception
 				durationCode = durationCode + "D" + multString;
 			}
 			else if( tsBase == TimeInterval.WEEK) {
-				multString = 
-				StringUtil.formatString( tsMult * 7, "%02d" );
+				multString = StringUtil.formatString( tsMult * 7, "%02d" );
 				durationCode = durationCode + "D" + multString;
 			}
 			else if( tsBase == TimeInterval.MONTH) {
@@ -592,12 +584,10 @@ throws Exception
 					unitsFormat = DataUnits.getOutputFormatString(units, 0, 0);
 				}
 				catch ( Exception e ) {
-					message = "Unable to convert units to \"" +
-					units + "\" leaving units as \"" +
-					ts.getDataUnits() + "\"";
+					message = "Unable to convert units to \"" + units + "\" (" + e +
+					    ") leaving units as \"" + ts.getDataUnits() + "\"";
 					out.println (": " + message + " :");
-					Message.printWarning( 2, routine,
-					message );
+					Message.printWarning( 3, routine, message );
 				}
 			}
 		}
@@ -612,28 +602,28 @@ throws Exception
 		}
 		else {
             message = "Cannot find valid units system.  SHEF will default to ENGLISH.";
-			Message.printWarning( 2, routine, message );
+			Message.printWarning( 3, routine, message );
 
 			SHEFSystem = "/DUE";
 						
 			out.println (": " + message + " :");
 		}
 
-		int duration = 0;
+		int durationIrreg = 0;
 		int mod;
 
-		// REVISIT - why is some of the following code in the loop.
-		// Can't it be determined once outside the loop?
+		// TODO - why is some of the following code in the loop.  Can't it be determined once outside the loop?
 
 		while ( tsi.next() != null ) {
 			value = tsi.getDataValue();
 			if ( !ts.isDataMissing( value ) ) {
 				value *= mult + add;
-				// Revisit - is the contructor necessary?
+				// TODO - is the constructor necessary?
 				t = new DateTime(tsi.getDate());
 
-				if ( Hour24Flag ) {
+				if ( hourMax == 24 ) {
 					if ( t.getHour() == 0 ) {
+					    // Want hour 0 of day to be hour 24 of the previous day
 						t.setHour( 24 );
 						t.addDay( -1 );
 					}
@@ -645,31 +635,31 @@ throws Exception
 				if( tsBase == TimeInterval.IRREGULAR ) {
 					if ( scale ) {
 						// The duration is in seconds.
-						duration =((IrregularTSIterator)tsi).getDuration();
+					    durationIrreg = ((IrregularTSIterator)tsi).getDuration();
 
 						// TODO - this code is kind of ugly - maybe it can be done cleaner
-						if ( duration > 0 ) {
-							mod = duration/60; 
+						if ( durationIrreg > 0 ) {
+							mod = durationIrreg/60; 
 							if( mod > 0 ) {
 								// Duration in minutes
-								duration = mod;
-								mod = duration/60; 
+							    durationIrreg = mod;
+								mod = durationIrreg/60; 
 								durationCode = "/DVN";
 								if( mod > 0 ) {
-									//duration inhours
-									duration = mod;
-									mod = duration/24; 
+									//duration in hours
+								    durationIrreg = mod;
+									mod = durationIrreg/24; 
 									durationCode = "/DVH";
 									if( mod > 0 ) { //duration in days
-										duration = mod;
-										mod = duration/30;
+									    durationIrreg = mod;
+										mod = durationIrreg/30;
 										durationCode = "/DVD";
 										if( mod > 0 ) { //duration in month
-											duration = mod;
-											mod = duration/12;
+										    durationIrreg = mod;
+											mod = durationIrreg/12;
 											durationCode = "/DVM";
 											if( mod > 0 ) { //duration in years
-												duration = mod;
+											    durationIrreg = mod;
 												durationCode = "/DVY";
 											}
 										}
@@ -692,28 +682,38 @@ throws Exception
 
 				// Override with the creation date if specified by the user...
 
-				if ( creation_date_prop.length() == 0 ) {
-					// Use the default...
-					creation_date = "DH" + dateString.substring( 8 );
+				if ( observationTime == null ) {
+					// Get the observation time from the data...
+					observationTimeOutput = " " + observationTimePrefix + dateString.substring( 8 );
+				}
+				else {
+				    // Use what was specified by the calling code
+				    if ( observationTimeLiteral ) {
+				        // Use what has been defined
+				        observationTimeOutput = " " + observationTime;
+				    }
+				    else {
+				        // Prefix with the standard 
+				        observationTimeOutput = " " + observationTimePrefix + observationTime;
+				    }
 				}
 
 				// Override the duration code determined above with the value specified by the user...
 
-				if ( duration_prop.length() != 0 ) {
-					durationCode = "/" + duration_prop;
+				if ( duration != null ) {
+					durationCode = "/" + duration;
 				}
 
 				SHEFMessage = ".A " + SHEFID + " " +
-					dateString.substring( 0, 8 ) + " " + 
-					SHEFTimeZone_ts + " " +
-					creation_date +
-					SHEFSystem +
-					qualityFlag +
-					durationCode +
-					"/" + PhysicalElement + 
-					" " + StringUtil.formatString( 
-						value, unitsFormat );
-
+					dateString.substring( 0, 8 ) + " " + // The date part
+					SHEFTimeZone_ts + // Always specified
+					observationTimeOutput + // has leading " " if used
+					creationDateOutput + // blank if not used
+					SHEFSystem + // Always specified
+					qualityFlag + // blank if not used
+					durationCode + // blank if not used
+					"/" + PhysicalElement + // Always used
+					" " + StringUtil.formatString( value, unitsFormat ); // Value always specified
 				out.println ( SHEFMessage );
 			}
 		}
@@ -721,44 +721,40 @@ throws Exception
 }
 
 /**
-Write a Vector of time series to the specified SHEF A file.
-@param tslist Vector of time series to write.
+Write a list of time series to the specified SHEF A file.
+@param tslist list of time series to write.
 @param fname Name of file to write.
+@param append indicates whether to append records to the file.
 @param date1 First date to write (if null write the entire time series).
 @param date2 Last date to write (if null write the entire time series).
-@param units Vector of units to write, one per time series.  If different than
-the current units the units will be converted on output.  Specify null to use
-the time series units.
-@param Vector of PE Physical element codes, one per time series (see SHEF
-Handbook).  This information must be supplied.
+@param units list of units to write, one per time series.  If different than
+the current units the units will be converted on output.  Specify null to use the time series units.
+@param list of PE Physical element codes, one per time series (see SHEF Handbook).  This information must be supplied.
 @param props See the overloaded method for a description.
 @exception IOException if there is an error writing the file.
 */
-public static void writeTimeSeriesList(	List tslist, String fname,
-					DateTime date1, DateTime date2,
-					List units,
-					List PEList, List DurList,
-					List AltIDList, PropList props )
+public static void writeTimeSeriesList(	List<TS> tslist, String fname, boolean append, DateTime date1, DateTime date2,
+    List<String> units,	List<String> PEList, List<String> DurList, List<String> AltIDList, String timeZone,
+    String observationTime, String creationDate, String duration, int hourMax, int precision )
 throws Exception
 {	String routine = "ShefATS.writeTimeSeriesList";
 
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
-	try {	FileOutputStream fos = new FileOutputStream ( full_fname );
-		PrintWriter fout = new PrintWriter ( fos );
+	try {
+	    PrintWriter fout = new PrintWriter (new FileOutputStream ( full_fname, append ));
 
-		writeTimeSeriesList (	tslist, fout, date1, date2, units,
-					PEList, DurList, AltIDList, props );
+		writeTimeSeriesList ( tslist, fout, append, date1, date2, units, PEList, DurList, AltIDList, timeZone,
+		    observationTime, creationDate, duration, hourMax, precision );
 
 		fout.flush();
 		fout.close();
 	}
 	catch ( Exception e ) {
-		String message = "Error writing \"" +
-		full_fname + "\" for writing.";
-		Message.printWarning( 2, routine, message );
-		Message.printWarning( 2, routine, e );
+		String message = "Error writing \"" + full_fname + "\" for writing.";
+		Message.printWarning( 3, routine, message );
+		Message.printWarning( 3, routine, e );
 		throw new Exception (message);
 	}
 }
 
-} // End ShefATS
+}
