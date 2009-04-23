@@ -442,13 +442,30 @@ public static List getLogRecordList ( List commandStatusProviderList, CommandPha
 }
 
 /**
-Determine the number of log records for the requested severity.
-@param commandList a list of CommandStatusProviders (such as Command instances) that
-have log records to be appended to the first parameter.
+Determine the number of log records (or commands) for the requested severity.
+@param command a command that has log records to be appended to the first parameter.  It must implement
+CommandStatusProvider.
 @param severity the requested severity for a count.
 @return the number of log records for the requested severity.
+@param countCommands if false, return the total count of log records for a severity, and if true return the total
+number of commands that have at least one log record with the indicated severity.
 */
-public static int getSeverityCount ( List<Command> commandList, CommandStatusType severity )
+public static int getSeverityCount ( Command command, CommandStatusType severity, boolean countCommands )
+{
+    List list = new Vector(1);
+    list.add(command);
+    return getSeverityCount ( list, severity, countCommands );
+}
+
+/**
+Determine the number of log records (or commands) for the requested severity.
+@param commandList a list of CommandStatusProviders (such as Command instances) to be examined.
+@param severity the requested severity for a count.
+@return the number of log records for the requested severity.
+@param countCommands if false, return the total count of log records for a severity, and if true return the total
+number of commands that have at least one log record with the indicated severity.
+*/
+public static int getSeverityCount ( List<Command> commandList, CommandStatusType severity, boolean countCommands )
 {
       if ( commandList == null ) {
           return 0;
@@ -458,6 +475,7 @@ public static int getSeverityCount ( List<Command> commandList, CommandStatusTyp
       CommandStatusProvider csp;
       Command command;
       int severityCount = 0;
+      int severityCountCommandCount = 0;
       for ( int i = 0; i < size; i++ ) {
           // Transfer the command log records to the status...
           command = commandList.get(i);
@@ -467,18 +485,40 @@ public static int getSeverityCount ( List<Command> commandList, CommandStatusTyp
           else {
               continue;
           }
-          CommandStatus status2 = csp.getCommandStatus();
+          CommandStatus status = csp.getCommandStatus();
           // Get the logs for the initialization...
-          List<CommandLogRecord> logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
-          CommandLogRecord log;
-          for ( int ilog = 0; ilog < logs.size(); ilog++ ) {
-              log = logs.get(ilog);
-              if ( log.getSeverity() == severity ) {
-                  ++severityCount;
+          boolean commandSeverityMatched = false; // Did command have log with matching severity?
+          for ( int iphase = 0; iphase <= 2; iphase++ ) {
+              List<CommandLogRecord> logs = null;
+              if ( iphase == 0 ) {
+                  logs = status.getCommandLog(CommandPhaseType.INITIALIZATION);
+              }
+              else if ( iphase == 1 ) {
+                  logs = status.getCommandLog(CommandPhaseType.DISCOVERY);
+              }
+              else if ( iphase == 2 ) {
+                  logs = status.getCommandLog(CommandPhaseType.RUN);
+              }
+              CommandLogRecord log;
+              int logsSize = logs.size();
+              for ( int ilog = 0; ilog < logsSize; ilog++ ) {
+                  log = logs.get(ilog);
+                  if ( log.getSeverity() == severity ) {
+                      commandSeverityMatched = true;
+                      ++severityCount;
+                  }
               }
           }
+          if ( commandSeverityMatched ) {
+              ++severityCountCommandCount;
+          }
       }
-      return severityCount;
+      if ( countCommands ) {
+          return severityCountCommandCount;
+      }
+      else {
+          return severityCount;
+      }
 }
 
 /**
