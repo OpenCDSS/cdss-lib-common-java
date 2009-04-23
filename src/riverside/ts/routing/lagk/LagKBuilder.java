@@ -171,10 +171,11 @@ public class LagKBuilder {
     public void setLagIn(Table table) {
         String routine = getClass().getName() + ".setLagIn";
         // Add an extra row if negative lag and only one row - at least two are required
-        if ( (table.getNRows() == 1) && (table.get(0, Table.GETCOLUMN_2) <= 0) ) {
+        // Also add if one row for positive to force variable lagK logic
+        if ( (table.getNRows() == 1) && (table.get(0, Table.GETCOLUMN_2) <= 0)  ) {
             // Resize the table to 2 rows, copy the first row, and add another
             Message.printStatus ( 2, routine,
-                 "Automatically adding a row to lag table - 2+ are required when using negative lag");
+                "Automatically adding a row to lag table - 2+ are required when using negative lag.");
             Table tableBigger = new Table();
             tableBigger.allocateDataSpace( 2 );
             tableBigger.populate(0,Table.GETCOLUMN_1, table.get(0, Table.GETCOLUMN_1));
@@ -194,8 +195,8 @@ public class LagKBuilder {
                 lk._lagMax = l;
             }
             // Needed for negative lag and to compute carryover size...
-            if ( (v < lk._lagMin) && (v < 0) ) {
-                lk._lagMin = (int) ( -v + .5 );;
+            if ( (v < 0) && (-v > lk._lagMin) ) {
+                lk._lagMin = (int) ( -v + .5 );
             }
         }
         // Round to next even multiple of the time series interval
