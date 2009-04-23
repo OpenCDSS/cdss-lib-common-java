@@ -1,8 +1,10 @@
 package RTi.TS;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
 /**
@@ -14,8 +16,8 @@ public class TSUtil_CheckTimeSeries
 /**
 Check types that can be performed.
 */
-private static String __CHECK_TYPE_ChangeValueInTime = "ChangeValueInTime";
-private static String __CHECK_TYPE_ChangePercentInTime = "ChangePercentInTime";
+private static String __CHECK_TYPE_AbsChangeGreaterThan = "AbsChange>";
+private static String __CHECK_TYPE_AbsChangePercentGreaterThan = "AbsChangePercent>";
 private static String __CHECK_TYPE_InRange = "InRange";
 private static String __CHECK_TYPE_OutOfRange = "OutOfRange";
 private static String __CHECK_TYPE_Missing = "Missing";
@@ -71,12 +73,18 @@ Constructor.
 */
 public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
         DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, String problemType )
-{
+{   String message;
+    String routine = getClass().getName() + ".constructor";
 	// Save data members.
     __ts = ts;
     __valueToCheck = valueToCheck;
     if ( valueToCheck == null ) {
-        __valueToCheck = "Raw";
+        __valueToCheck = "DataValue";
+    }
+    if ( !__valueToCheck.equalsIgnoreCase("DataValue") ) {
+        message = "Only \"DataValue\" can be specified for value to check";
+        Message.printWarning(3, routine, message);
+        throw new InvalidParameterException ( message );
     }
     __checkCriteria = checkType;
     __analysisStart = analysisStart;
@@ -111,72 +119,79 @@ throws Exception
     int tsvalueCount = 0; // Number of values processed
     String message = null;
     DateTime date; // Date corresponding to data value
+    boolean isMissing;
+    double diff;
     while ( (data = tsi.next()) != null ) {
         // Analyze the value - do this brute force with string comparisons and improve performance once logic is in place
         message = null;
         date = tsi.getDate();
-        if ( valueToCheck.equals("Raw") ) {
+        if ( valueToCheck.equals("DataValue") ) {
             tsvalue = data.getData();
-            if ( checkCriteria.equals(__CHECK_TYPE_ChangePercentInTime) ) {
-                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvalue) && !ts.isDataMissing(tsvalue) &&
-                        (Math.abs(((tsvalue - tsvaluePrev)/tsvaluePrev)*100.0) > value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
-                        value1 + " % since previous value " + tsvaluePrev;
+            isMissing = ts.isDataMissing(tsvalue);
+            if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangeGreaterThan) ) {
+                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
+                     diff = tsvalue - tsvaluePrev;
+                    if ( Math.abs(diff) > value1 ) {
+                        message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
+                            value1 + " since previous value " + tsvaluePrev + " (diff=" + diff + ")";
+                    }
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_ChangeValueInTime) ) {
-                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvalue) && !ts.isDataMissing(tsvalue) &&
-                        (Math.abs(tsvalue - tsvaluePrev) > value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
-                        value1 + " since previous value " + tsvaluePrev;
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangePercentGreaterThan) ) {
+                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
+                    diff = ((tsvalue - tsvaluePrev)/tsvaluePrev)*100.0;
+                    if ( Math.abs(diff) > value1 ) {
+                        message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
+                            value1 + " since previous value " + tsvaluePrev + " (diff=" + diff + " %)";
+                    }
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_EqualTo) ) {
-                if ( tsvalue == value1 ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is == test value " + value1;
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_EqualTo) ) {
+                if ( !isMissing && (tsvalue == value1) ) {
+                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is = test value " + value1;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_GreaterThan) ) {
-                if ( tsvalue > value1 ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThan) ) {
+                if ( !isMissing && (tsvalue > value1) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is > limit " + value1;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
-                if ( tsvalue >= value1 ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
+                if ( !isMissing && (tsvalue >= value1) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is >= limit " + value1;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_InRange) ) {
-                if ( (tsvalue >= value1) && (tsvalue <= value2) ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_InRange) ) {
+                if ( !isMissing && (tsvalue >= value1) && (tsvalue <= value2) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is in range " + value1 +
                     " to " + value2;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_LessThan) ) {
-                if ( tsvalue < value1 ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThan) ) {
+                if ( !isMissing && (tsvalue < value1) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is < limit " + value1;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_LessThanOrEqualTo) ) {
-                if ( tsvalue <= value1 ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThanOrEqualTo) ) {
+                if ( !isMissing && (tsvalue <= value1) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is <= limit " + value1;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_Missing) ) {
-                if ( ts.isDataMissing(tsvalue) ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
+                if ( isMissing ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is missing";
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_OutOfRange) ) {
-                if ( (tsvalue < value1) || (tsvalue > value2) ) {
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_OutOfRange) ) {
+                if ( !isMissing && (tsvalue < value1) || (tsvalue > value2) ) {
                     message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is out of range " + value1 +
                     " to " + value2;
                 }
             }
-            else if ( checkCriteria.equals(__CHECK_TYPE_Repeat) ) {
-                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvalue) && !ts.isDataMissing(tsvalue) &&
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Repeat) ) {
+                if ( !isMissing && (tsvalueCount > 0) && !ts.isDataMissing(tsvalue) && !ts.isDataMissing(tsvalue) &&
                         (tsvalue == tsvaluePrev) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " repeated";
+                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " repeated previous value";
                 }
             }
             if ( message != null ) {
@@ -226,9 +241,8 @@ Get the list of check types that can be performed.
 public static List getCheckCriteriaChoices()
 {
     List choices = new Vector();
-    choices.add ( __CHECK_TYPE_ChangeValueInTime );
-    choices.add ( __CHECK_TYPE_ChangePercentInTime );
-    choices.add ( __CHECK_TYPE_InRange );
+    choices.add ( __CHECK_TYPE_AbsChangeGreaterThan );
+    choices.add ( __CHECK_TYPE_AbsChangePercentGreaterThan );
     choices.add ( __CHECK_TYPE_InRange );
     choices.add ( __CHECK_TYPE_OutOfRange );
     choices.add ( __CHECK_TYPE_Missing );
@@ -239,6 +253,55 @@ public static List getCheckCriteriaChoices()
     choices.add ( __CHECK_TYPE_GreaterThanOrEqualTo );
     choices.add ( __CHECK_TYPE_EqualTo );
     return choices;
+}
+
+/**
+Return the number of values that are required to evaluate a criteria.
+@return the number of values that are required to evaluate a criteria.
+@param checkCriteria the check criteria that is being evaluated.
+*/
+public static int getRequiredNumberOfValuesForCheckCriteria ( String checkCriteria )
+{
+    // TODO SAM 2009-04-23 Need to convert to enumeration or something other than simple strings
+    if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangePercentGreaterThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangeGreaterThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_EqualTo) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_InRange) ) {
+        return 2;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThanOrEqualTo) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
+        return 0;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_OutOfRange) ) {
+        return 2;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Repeat) ) {
+        return 0;
+    }
+    else {
+        String message = "Requested criteria is not recognized: " + checkCriteria;
+        String routine = "TSUtil_CheckTimeSeries.getRequiredNumberOfValuesForCheckCriteria";
+        Message.printWarning(3, routine, message);
+        throw new InvalidParameterException ( message );
+    }
 }
 
 /**
