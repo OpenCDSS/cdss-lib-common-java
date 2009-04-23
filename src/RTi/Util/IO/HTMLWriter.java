@@ -876,7 +876,7 @@ throws Exception {
 }
 
 /**
-Writes the given text to the HTML.  
+Writes the given text to the HTML and adds a newline.  
 @param s the text to write to the HTML.
 @throws Exception if an error occurs writing HTML text to a file.
 */
@@ -923,7 +923,7 @@ throws Exception {
     __aL++;
     write("<a name=\"");
     addLinkText(s);
-    write("\"");
+    write("\">");
 }
 
 /**
@@ -3064,6 +3064,18 @@ throws Exception {
 		return;
 	}
 	write("<th " + s + ">");
+}
+
+/**
+Inserts multiple cells into a table with the row start and end tags.
+@param cells Array of Strings to write to each cell.
+@throws Exception
+ */
+public void tableRow( String cells [] ) throws Exception
+{   
+    tableRowStart();
+    tableCells ( cells );
+    tableRowEnd();
 }
 
 /**
