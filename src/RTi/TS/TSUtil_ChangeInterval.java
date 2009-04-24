@@ -740,7 +740,7 @@ public class TSUtil_ChangeInterval {
                 // REGULAR ACCM to ACCM
                 // REGULAR MEAN to ACCM
                 // REGULAR ACCM to INST ( Not supported )
-                // REGULAR MEAN to INST ( Not supported )
+                // REGULAR MEAN to INST
                 // -----------------------------------------------------
                 if ((NewTimeScale.equalsIgnoreCase(MeasTimeScale.MEAN)) || (NewTimeScale.equalsIgnoreCase(MeasTimeScale.ACCM))) {
                     if (changeInterval_toMEANorACCM(oldTSi, newTSi, intervalRelation, OldTimeScale, NewTimeScale, missingValueFlag, AllowMissingCount_int,
@@ -2269,7 +2269,8 @@ public class TSUtil_ChangeInterval {
             // endpoints.
             boolean averageEndpoints = false;
             if ( handleEndpointsHow == HandleEndpointsHow.AVERAGE_ENDPOINTS &&
-                    ( newTS.getDataIntervalBase() == TimeInterval.HOUR ||
+                    ( newTS.getDataIntervalBase() == TimeInterval.DAY ||
+                      newTS.getDataIntervalBase() == TimeInterval.HOUR ||
                       newTS.getDataIntervalBase() == TimeInterval.MINUTE ||
                       newTS.getDataIntervalBase() == TimeInterval.SECOND ||
                       newTS.getDataIntervalBase() == TimeInterval.HSECOND )) {
