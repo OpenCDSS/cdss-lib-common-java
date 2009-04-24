@@ -201,10 +201,8 @@ import RTi.Util.Time.TimeUtil;
 This class provides static functions for file input/output and also provides
 global functionality that may be useful in any program.  The class provides
 useful functionality in addition to the Java System, IO, and security classes.
-A PropListManager is used to manage a global, un-named PropList in conjunction
-with other PropLists.
-To make the best use of this class, initialize from the main()
-or init() functions, as follows:
+A PropListManager is used to manage a global, un-named PropList in conjunction with other PropLists.
+To make the best use of this class, initialize from the main() or init() functions, as follows:
 <p>
 
 <pre>
@@ -612,9 +610,10 @@ public static AppletContext getAppletContext ( )
 }
 
 /**
-Returns the application home dir.  This is the directory from which log files,
-config files, etc, can be located.
-@return the application home dir.
+Returns the application home directory.  This is the directory from which log files,
+configuration files, documentation etc, can be located.  Normally it is the installation home
+(e.g., C:\Program Files\RTi\TSTool).
+@return the application home directory.
 */
 public static String getApplicationHomeDir() {
 	return __homeDir;
@@ -1680,9 +1679,10 @@ public static void nullArray(Object[] array) {
 }
 
 /**
-Finds the default browser for Mac, Windows or Unix and then
-launches the URL given.
-@param url URL to open the default browser to.
+Open the resource identified by the URL using the appropriate application for the operating system and user
+environment.  On Windows, determine the default application using the file extension (e.g., "html" will result in
+a web browser).  On UNIX/Linux, a web browser is always used.
+@param url URL to open.
  */
 public static void openURL(String url) 
 {
@@ -1692,39 +1692,45 @@ public static void openURL(String url)
     }
     // Find the default browser for the OS
     try {
-       if (osName.startsWith("Mac OS")) {
-          Class fileMgr = Class.forName("com.apple.eio.FileManager");
-          Method openURL = fileMgr.getDeclaredMethod("openURL",
-             new Class[] {String.class});
-          openURL.invoke(null, new Object[] {url});
-       }
-       else if (osName.startsWith("Windows")) {
-          Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
-       }
-       else { //assume Unix or Linux
-          String[] browsers = {
-             "firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape" };
-          String browser = null;
-          for (int count = 0; count < browsers.length && browser == null;
-          count++) {
-             if (Runtime.getRuntime().exec(
-                   new String[] { "which", browsers[count] }).waitFor() == 0)
-                browser = browsers[count];
-          }
-          // If browser is not found then print warning and throw exception
-          if (browser == null) {
-             Message.printWarning(2, "IOUtil.openURL", 
-            	 "Could not find web browser" );
-          }
-          else {
-             Runtime.getRuntime().exec( new String[] { browser, url } );
-          }
-       }
+        if (osName.startsWith("Mac OS")) {
+            Class fileMgr = Class.forName("com.apple.eio.FileManager");
+            Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {String.class});
+            openURL.invoke(null, new Object[] {url});
+        }
+        else if (osName.startsWith("Windows")) {
+            // See: http://support.microsoft.com/kb/164787
+            // rundll <dllname>,<entrypoint> <optional arguments>
+            // Works by:
+            // 1. parses command line (what is that?)
+            // 2. loads the dll via LoadLibrary()
+            // 3. obtains the address of the <entrypoint> via GetProcAddress()
+            // 4. it calls the <entrypoint> function, passing the command line tail which is the <optional arguments>
+            // 5. when the <entrypoint> function returns, Rundll.exe unloads the DLL and exits.
+            Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+        }
+        else {
+            // Assume Unix or Linux
+            // TODO SAM 2009-04-24 Is there a "FileProtocolHandler" to bring up the correct application for file
+            // extension?  For now always attempt to open the file with a web browser given that the address is a URL.
+            String[] browsers = { "firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape" };
+            String browser = null;
+            for (int count = 0; count < browsers.length && browser == null; count++) {
+                if (Runtime.getRuntime().exec( new String[] { "which", browsers[count] }).waitFor() == 0) {
+                    browser = browsers[count];
+                }
+            }
+            // If browser is not found then print warning and throw exception
+            if (browser == null) {
+                Message.printWarning(2, "IOUtil.openURL", "Could not find web browser" );
+            }
+            else {
+                Runtime.getRuntime().exec( new String[] { browser, url } );
+            }
+        }
     }
     catch ( Exception e ) {
-    	Message.printWarning(2, "IOUtil.openURL", "Could not open default" +
-    		" browser to URL: " + url );
-       }
+    	Message.printWarning(2, "IOUtil.openURL", "Could not open application to view to URL: " + url );
+    }
 }
 
 /**
@@ -2737,6 +2743,23 @@ This is a simple method that does the following:
 @return A path to the file that uses separators appropriate for the operating system.
 */
 public static String verifyPathForOS ( String path )
+{
+    return verifyPathForOS ( path, false );
+}
+
+/**
+Verify that a path is appropriate for the operating system.
+This is a simple method that does the following:
+<ol>
+<li>    If on UNIX/LINUX, replace all "\" characters with "/".  WARNING - as implemented,
+        this will convert UNC paths to forward slashes.</li>
+<li>    If on Windows, do nothing (unless force=true).  Java automatically handles "/" in paths.</li>
+</ol>
+@param force always do the conversion (on Windows this will always convert // to \ - this should probably be
+the default behavior but make it an option since this has not always been the behavior of this method (see overload).
+@return A path to the file that uses separators appropriate for the operating system.
+*/
+public static String verifyPathForOS ( String path, boolean force )
 {   if ( path == null ) {
         return path;
     }
@@ -2744,7 +2767,14 @@ public static String verifyPathForOS ( String path )
         return ( path.replace ( '\\', '/' ) );
     }
     else {
-        return path;
+        if ( force ) {
+            // Even on windows force it although it does not seem to be necessary in most cases
+            return ( path.replace ( '/', '\\' ) );
+        }
+        else {
+            // Just return... paths on Windows can have / or \ and still work
+            return path;
+        }
     }
 }
 
