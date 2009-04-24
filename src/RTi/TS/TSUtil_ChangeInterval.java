@@ -754,7 +754,6 @@ public class TSUtil_ChangeInterval {
                             AllowNegativeValues_boolean /*, AllowMissingCount_int, */
                             )) {
                     returnTS = true;
-                    Message.printStatus(1, routine, "Done.");
                     }
                 }
                 else {
@@ -1978,14 +1977,13 @@ public class TSUtil_ChangeInterval {
             DateTime nextDate, double nextValue ) {
 
             String routine = "TSUtil_ChangeInterval.changeIntervalToInstByInterpolation";
-            double pValue = previousValue;
-            double previousDateDouble = previousDate.toDouble(); // should I set precision here?
+            double previousDateDouble = previousDate.toDouble(); 
             double diffValue, intervalLength, offsetLength, newValue;
             DateTime newDate;
             TS newTS = newTSi.getTS();
 
             // Get the difference in values.
-            diffValue = nextValue - pValue;
+            diffValue = nextValue - previousValue;
 
             // Get the length of the interval.
             intervalLength = nextDate.toDouble() - previousDate.toDouble();
@@ -3455,7 +3453,7 @@ public class TSUtil_ChangeInterval {
         } else {
             Message.printWarning(2, routine, "Getting dates to change to interval " + newbase + " not supported.  Using original dates.");
         }
-        Message.printStatus(1, routine, "Bounding dates for new time series are: " + newts_date[0] + " to " + newts_date[1]);
+        Message.printStatus(10, routine, "Bounding dates for new time series are: " + newts_date[0] + " to " + newts_date[1]);
         return newts_date;
     }
 
