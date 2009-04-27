@@ -5005,10 +5005,10 @@ throws Exception
 }
 
 /**
-Fill missing data in the time series with monthly values.  For example,
-values[0] is
+Fill missing data in the time series with monthly values.  For example, values[0] is
 used for any date in January.  This can be used, for example, to fill an entire
 period with a repetitive monthly pattern.
+@return the number of values that were filled.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
@@ -5043,16 +5043,14 @@ one-character string is specified.
 </table>
 @exception if there is an error performing the fill.
 */
-public static void fillConstantByMonth (	TS ts, DateTime start_date,
-						DateTime end_date,
-						double values[],
-						PropList props )
+public static int fillConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, double values[],
+	PropList props )
 throws Exception
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	// Get the properties...
 
@@ -5075,19 +5073,18 @@ throws Exception
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
 	double	oldvalue;
-	int []	nfilled = new int[12];
+	int [] nfilled = new int[12];
 	for ( int i = 0; i < 12; i++ ) {
 		nfilled[i] = 0;
 	}
-	TSData tsdata = null;	// Used for irrigular data and setting the flag
-				// in regular data.
+	TSData tsdata = null; // Used for irrigular data and setting the flag in regular data.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
 		List alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
-			return;
+			return 0;
 		}
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
@@ -5095,15 +5092,13 @@ throws Exception
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				oldvalue = tsdata.getData();
 				if ( irrts.isDataMissing(oldvalue) ) {
-					tsdata.setData(
-						values[date.getMonth() - 1]);
+					tsdata.setData(values[date.getMonth() - 1]);
 					if ( FillFlag_boolean ) {
 						// Set the flag, appending to the old value...
 						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
@@ -5116,24 +5111,21 @@ throws Exception
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+		// Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			oldvalue = ts.getDataValue ( date );
 			if ( ts.isDataMissing(oldvalue) ) {
 				if ( FillFlag_boolean ) {
-					// Set the data flag, appending to the
-					// old value...
+					// Set the data flag, appending to the old value...
 					tsdata = ts.getDataPoint ( date );
 					ts.setDataValue ( date,
-					values[date.getMonth() - 1],
-					(tsdata.getDataFlag().trim()+FillFlag),
-					1 );
+					values[date.getMonth() - 1], (tsdata.getDataFlag().trim()+FillFlag), 1 );
 				}
-				else {	// No data flag...
+				else {
+					// No data flag...
 					ts.setDataValue ( date,
 					values[date.getMonth() - 1] );
 				}
@@ -5144,31 +5136,31 @@ throws Exception
 
 	// Fill in the genesis information...
 
-	int nfilled_total = 0;
-	for ( int i = 0; i < nfilled_total; i++ ) {
-		nfilled_total += nfilled[i];
+	int nfilledTotal = 0;
+	for ( int i = 0; i < 12; i++ ) {
+		nfilledTotal += nfilled[i];
 	}
 	ts.addToGenesis ( "Filled missing data " + start.toString() +
 	" to " + end.toString() + " with monthly values:" );
 	for ( int i = 0; i < 12; i++ ) {
 		if ( !ts.isDataMissing(values[i]) ) {
-			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
-			": " +
-			StringUtil.formatString(values[i],"%12.2f") +
-			" (filled " + nfilled[i] + " values)." );
+			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " +
+			StringUtil.formatString(values[i],"%12.2f") + " (filled " + nfilled[i] + " values)." );
 		}
-		else {	ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
-			": No non-missing data available for filling.");
+		else {
+			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
+			": Value to use for filling is missing.");
 		}
 	}
 	if ( DescriptionSuffix == null ) {
-		if ( nfilled_total > 0 ) {
-			ts.setDescription ( ts.getDescription() +
-			", fill w/ mon val" );
+		if ( nfilledTotal > 0 ) {
+			ts.setDescription ( ts.getDescription() + ", fill w/ mon val" );
 		}
 	}
-	else {	ts.setDescription ( ts.getDescription() + DescriptionSuffix );
+	else {
+		ts.setDescription ( ts.getDescription() + DescriptionSuffix );
 	}
+	return nfilledTotal;
 }
 
 /**
@@ -10129,6 +10121,34 @@ throws TSException
 		Message.printWarning ( 2, routine, e );
 		throw new TSException ( message );
 	}
+}
+
+/**
+Get the count of missing data in a period.
+@return the count of missing values in a period.
+@param start the starting date/time for the check.
+@param end the ending date/time for the check.
+*/
+public static int missingCount ( TS ts, DateTime start, DateTime end )
+throws Exception
+{	if ( ts == null ) {
+		return 0;
+	}
+	if ( start == null ) {
+		start = new DateTime(ts.getDate1());
+	}
+	if ( end == null ) {
+		end = new DateTime(ts.getDate2());
+	}
+	TSIterator tsi = ts.iterator(start,end);
+	TSData data = null;
+	int nMissing = 0;
+	while ( (data = tsi.next()) != null ) {
+		if ( ts.isDataMissing(data.getData())) {
+			++nMissing;
+		}
+	}
+	return nMissing;
 }
 
 /**
