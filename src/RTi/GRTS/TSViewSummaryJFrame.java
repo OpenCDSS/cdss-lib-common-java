@@ -92,9 +92,18 @@ implements ActionListener, WindowListener
 
 // Private data...
 
-private TSViewJFrame __tsview_JFrame;	// TSViewJFrame parent.
-private List __tslist;		// List of time series to graph.
-private PropList __props;		// Property list.
+/**
+TSViewJFrame parent, which manages all the views collectively.
+*/
+private TSViewJFrame __tsview_JFrame;
+/**
+List of time series to graph.
+*/
+private List __tslist;
+/**
+Property list.
+*/
+private PropList __props;
 
 private SimpleJButton __graph_JButton = null;
 private SimpleJButton __table_JButton = null;
@@ -152,8 +161,7 @@ public void actionPerformed ( ActionEvent e )
 	}
 	else if ( o == __search_JButton ) {
 		// Search the text area...
-		new SearchJDialog ( this, __summary_JTextArea,
-			"Search " + getTitle() );
+		new SearchJDialog ( this, __summary_JTextArea, "Search " + getTitle() );
 	}
 	else if ( o == __table_JButton ) {
 		// Display a table...
@@ -195,20 +203,19 @@ private void initialize ( TSViewJFrame tsview_gui, List tslist, PropList props )
 	__props = props;
 	String prop_value = __props.getValue ( "TSViewTitleString" );
 	if ( prop_value == null ) {
-		if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Time Series - Summary" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - Time Series - Summary" );
+		else {
+			setTitle( JGUIUtil.getAppNameForWindows() + " - Time Series - Summary" );
 		}
 	}
-	else {	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+	else {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( prop_value + " - Summary" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() + " - " +
-			prop_value + " - Summary" );
+		else {
+			setTitle( JGUIUtil.getAppNameForWindows() + " - " + prop_value + " - Summary" );
 		}
 	}
 	prop_value = null;
@@ -233,8 +240,7 @@ private void openGUI ( boolean mode )
 
 	GridBagLayout gbl = new GridBagLayout();
 
-	Insets insetsTLBR = new Insets ( 7, 7, 7, 7 );	// space around text
-							// area
+	Insets insetsTLBR = new Insets ( 7, 7, 7, 7 );	// space around text area
 	
 	// Add a panel to hold the text area...
 
@@ -257,15 +263,14 @@ private void openGUI ( boolean mode )
 		summary_strings = null;
 	}
 	catch ( Exception e ) {
-		buffer.append ( "Error processing time series summary." );
+		buffer.append ( "Error creating time series summary." );
 	}
 	nl = null;
 
 	__summary_JTextArea = new JTextArea ();
 	__summary_JTextArea.setBackground ( Color.white );
 	__summary_JTextArea.setEditable ( false );
-	__summary_JTextArea.setFont ( new Font ( __summary_font_name,
-				__summary_font_style, __summary_font_size ) );
+	__summary_JTextArea.setFont ( new Font ( __summary_font_name, __summary_font_style, __summary_font_size ) );
 	JScrollPane summary_JScrollPane = new JScrollPane (__summary_JTextArea);
 	JGUIUtil.addComponent ( display_JPanel, summary_JScrollPane,
 			0, 0, 1, 1, 1, 1,
@@ -276,64 +281,67 @@ private void openGUI ( boolean mode )
 	JPanel button_JPanel = new JPanel ();
 	button_JPanel.setLayout ( new FlowLayout(FlowLayout.CENTER) );
 
-	__graph_JButton =new SimpleJButton("Graph", "TSViewSummaryJFrame.Graph",
-				this );
+	__graph_JButton =new SimpleJButton("Graph", "TSViewSummaryJFrame.Graph", this );
 	String prop_value=__props.getValue("EnableGraph");
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__graph_JButton.setEnabled(false);
 	}
 	button_JPanel.add ( __graph_JButton );
 
-	__table_JButton =new SimpleJButton("Table", "TSViewSummaryJFrame.Table",
-				this);
+	__table_JButton =new SimpleJButton("Table", "TSViewSummaryJFrame.Table", this);
 	prop_value=__props.getValue("EnableTable");
 	if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 		__table_JButton.setEnabled(false);
 	}
 	button_JPanel.add ( __table_JButton );
 
-	__search_JButton = new SimpleJButton("Search",
-			"TSViewSummaryJFrame.Search", this );
+	__search_JButton = new SimpleJButton("Search", "TSViewSummaryJFrame.Search", this );
 	button_JPanel.add ( __search_JButton );
 
-	__help_JButton = new SimpleJButton("Help",
-			"TSViewSummaryJFrame.Help",this);
+	__help_JButton = new SimpleJButton("Help", "TSViewSummaryJFrame.Help",this);
 	// REVISIT - enable later when better on-line help system is enabled.
 	//button_JPanel.add ( __help_JButton );
 
-	__print_JButton =new SimpleJButton("Print", "TSViewSummaryJFrame.Print",
-			this );
+	__print_JButton =new SimpleJButton("Print", "TSViewSummaryJFrame.Print", this );
 	button_JPanel.add ( __print_JButton );
 
-	__save_JButton = new SimpleJButton("Save",
-			"TSViewSummaryJFrame.Save", this );
+	__save_JButton = new SimpleJButton("Save", "TSViewSummaryJFrame.Save", this );
 	button_JPanel.add ( __save_JButton );
 
-	__close_JButton=new SimpleJButton("Close",
-				"TSViewSummaryJFrame.Close",this);
+	__close_JButton=new SimpleJButton("Close", "TSViewSummaryJFrame.Close",this);
 	button_JPanel.add ( __close_JButton );
 
 	getContentPane().add ( "South", button_JPanel );
 
-	prop_value = __props.getValue ( "TotalWidth" );
+	// Get properties specific to the view
+	prop_value = __props.getValue ( "Summary.TotalWidth" );
+	if ( prop_value == null ) {
+		prop_value = __props.getValue ( "TotalWidth" );
+	}
 	pack ();	// Before setting size
 	int total_width = 0, total_height = 0;
 	if ( prop_value != null ) {
 		total_width = StringUtil.atoi(prop_value);
 	}
-	prop_value = __props.getValue ( "TotalHeight" );
+	prop_value = __props.getValue ( "Summary.TotalHeight" );
+	if ( prop_value == null ) {
+		prop_value = __props.getValue ( "TotalHeight" );
+	}
 	if ( prop_value != null ) {
 		total_height = StringUtil.atoi(prop_value);
 	}
 	if ( (total_width <= 0) || (total_height <= 0) ) {
 		// No property so make a guess...
-		setSize ( 600, 400 );
+		setSize ( 800, 600 );
 	}
-	else {	setSize ( total_width, total_height );
+	else {
+		setSize ( total_width, total_height );
 	}
 	JGUIUtil.center ( this );
 	// Seems to work best here to get the window size right.
 	__summary_JTextArea.setText ( buffer.toString() );
+	// Set the cursor position to the top
+	__summary_JTextArea.setCaretPosition(0);
 	setVisible ( mode );
 	// Clean up...
 	buffer = null;
@@ -359,11 +367,9 @@ private void save ()
 	JFileChooser fc =JFileChooserFactory.createJFileChooser(last_directory);
 	fc.setDialogTitle ( "Save Summary" );
 	fc.setAcceptAllFileFilterUsed ( false );
-	SimpleFileFilter dv_sff = new SimpleFileFilter("dv",
-		"DateValue Time Series File" );
+	SimpleFileFilter dv_sff = new SimpleFileFilter("dv", "DateValue Time Series File" );
 	fc.addChoosableFileFilter ( dv_sff );
-	SimpleFileFilter dvtxt_sff = new SimpleFileFilter ( "txt",
-		"DateValue Time Series File" );
+	SimpleFileFilter dvtxt_sff = new SimpleFileFilter ( "txt", "DateValue Time Series File" );
 	fc.addChoosableFileFilter ( dvtxt_sff );
 	SimpleFileFilter txt_sff = new SimpleFileFilter("txt", "Text Report" );
 	fc.addChoosableFileFilter ( txt_sff );
@@ -375,38 +381,38 @@ private void save ()
 	last_directory = fc.getSelectedFile().getParent();
 	String path = fc.getSelectedFile().getPath();
 	JGUIUtil.setLastFileDialogDirectory(last_directory);
-	if (	(fc.getFileFilter() == dv_sff) ||
-		(fc.getFileFilter() == dvtxt_sff) ) {
+	if ( (fc.getFileFilter() == dv_sff) || (fc.getFileFilter() == dvtxt_sff) ) {
 		if ( fc.getFileFilter() == dv_sff ) {
 			path = IOUtil.enforceFileExtension ( path, "dv" );
 		}
-		else {	path = IOUtil.enforceFileExtension ( path, "txt" );
+		else {
+			path = IOUtil.enforceFileExtension ( path, "txt" );
 		}
 		if ( !TSUtil.intervalsMatch(__tslist) ) {
 			Message.printWarning ( 1, routine, "Unable to write " +
 			"DateValue time series of different intervals." );
 			return;
 		}
-		try {	__tsview_JFrame.setWaitCursor ( true );
+		try {
+			__tsview_JFrame.setWaitCursor ( true );
 			DateValueTS.writeTimeSeriesList ( __tslist, path );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error saving DateValue file \"" + path + "\"");
+			Message.printWarning ( 1, routine, "Error saving DateValue file \"" + path + "\"");
 			Message.printWarning ( 2, routine, e );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 	}
 	else if ( fc.getFileFilter() == txt_sff ) {
 		path = IOUtil.enforceFileExtension ( path, "txt" );
-		try {	__tsview_JFrame.setWaitCursor ( true );
+		try {
+			__tsview_JFrame.setWaitCursor ( true );
 			JGUIUtil.writeFile ( __summary_JTextArea, path );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 1, routine,
-			"Error saving report file \"" + path + "\"");
+			Message.printWarning ( 1, routine, "Error saving report file \"" + path + "\"");
 			Message.printWarning ( 2, routine, e );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
@@ -427,7 +433,8 @@ public void processWindowEvent ( WindowEvent e)
 		super.processWindowEvent(e);
 		__tsview_JFrame.closeGUI(TSViewJFrame.SUMMARY);
 	}
-	else {	super.processWindowEvent(e);
+	else {
+		super.processWindowEvent(e);
 	}
 }
 
@@ -440,4 +447,4 @@ public void windowDeiconified( WindowEvent evt ){;}
 public void windowOpened( WindowEvent evt ){;}
 public void windowIconified( WindowEvent evt ){;}
 
-} // End of TSViewSummaryJFrame
+}
