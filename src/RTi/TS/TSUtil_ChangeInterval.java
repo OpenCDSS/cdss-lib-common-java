@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import RTi.Util.IO.InvalidCommandParameterException;
 import java.util.List;
 
 import RTi.Util.IO.MeasTimeScale;
@@ -725,7 +726,7 @@ public class TSUtil_ChangeInterval {
                 }
             } else {
                 warning = "Conversion from '" + OldTimeScale + "' to '" + NewTimeScale + "' is not supported!";
-                throw new TSException(warning);
+                throw new InvalidCommandParameterException(warning);
             }
         }
 
@@ -758,7 +759,7 @@ public class TSUtil_ChangeInterval {
                 }
                 else {
                     warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-                    throw new TSException(warning);
+                    throw new InvalidCommandParameterException(warning);
                 }
             }
 
@@ -786,13 +787,13 @@ public class TSUtil_ChangeInterval {
                     // From REGULAR INST to ACCM, (not supported)
                     // ---------------------------------------------
                     warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-                    throw new TSException(warning);
+                    throw new InvalidCommandParameterException(warning);
                 }
             }
 
             else {
                 warning = "Cannot change interval from time scales '" + OldTimeScale + "' to '" + NewTimeScale + "'.";
-                throw new TSException(warning);
+                throw new InvalidCommandParameterException(warning);
             }
         }
 
@@ -855,7 +856,7 @@ public class TSUtil_ChangeInterval {
         // Make sure the required conversion is supported
         if (!(OldTimeScale.equalsIgnoreCase(MeasTimeScale.INST) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST))) {
             warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         if (intervalRelation < 0) {
@@ -983,7 +984,7 @@ public class TSUtil_ChangeInterval {
         if (!(OldTimeScale.equalsIgnoreCase(MeasTimeScale.INST) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST))
                 && !(OldTimeScale.equalsIgnoreCase(MeasTimeScale.INST) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.MEAN))) {
             warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         TS newTS = newTSi.getTS();
@@ -1250,7 +1251,7 @@ public class TSUtil_ChangeInterval {
             newTimeScale = INST;
         } else {
             warning = "Conversion from '" + OldTimeScale + "' to '" + NewTimeScale + "' is not supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         // Old time series related variables initialization
@@ -1277,7 +1278,7 @@ public class TSUtil_ChangeInterval {
         // method is fully implemented.
         if (newTimeScale != INST && TSBase >= TimeInterval.DAY) {
             warning = "Conversion from Irregular '" + OldTimeScale + "' to regular other than instantaneous'" + NewTimeScale + "' (interval>=DAY ) is not yet supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         // Others
@@ -1740,7 +1741,7 @@ public class TSUtil_ChangeInterval {
         // Make sure the required conversion is supported
         if (!(OldTimeScale.equalsIgnoreCase(MeasTimeScale.MEAN) && NewTimeScale.equalsIgnoreCase(MeasTimeScale.INST))) {
             warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         if (intervalRelation > 0) {
@@ -1962,7 +1963,7 @@ public class TSUtil_ChangeInterval {
         else {
             warning = "Conversion from \"" + OldTimeScale + "\" to \"" +
                     NewTimeScale + "\" is not supported!  To convert to instantaneous, the new interval must be shorter than the old interval.";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
     }
@@ -2173,7 +2174,7 @@ public class TSUtil_ChangeInterval {
             newTimeScale = ACCM;
         } else {
             warning = "Conversion from \"" + OldTimeScale + "\" to \"" + NewTimeScale + "\" is not supported!";
-            throw new TSException(warning);
+            throw new InvalidCommandParameterException(warning);
         }
 
         // Declaring timeseries, interval base and interval multipliers for the
@@ -2263,7 +2264,7 @@ public class TSUtil_ChangeInterval {
 
             // Set a variable for how to handle the endpoints.
             // If the user has chosen to average the endpoints AND
-            // the new time series interval is hourly or finer, average the
+            // the new time series interval is daily or finer, average the
             // endpoints.
             boolean averageEndpoints = false;
             if ( handleEndpointsHow == HandleEndpointsHow.AVERAGE_ENDPOINTS &&
