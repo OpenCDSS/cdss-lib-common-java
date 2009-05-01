@@ -131,6 +131,11 @@ public class AnnotatedCommandJList extends JPanel
     _problemGutter = new ProblemGutter(_jList, _jScrollPane);
     _jScrollPane.setRowHeaderView(_problemGutter);
     
+    // Get the size of the vertical scrollbar arrow, and the "lowerright" componoent in the JScroll pane
+    // in order to compute the vertical size of wasted space.  This space is passed to the overview gutter
+    // constructor and is used to offset computations of the problem indicators.
+    //Message.printStatus_jScrollPane.get
+    
     // Provide an overview of markers
     _overviewGutter = new OverviewGutter(_dataModel, _jList);
     add(_overviewGutter, BorderLayout.EAST);
