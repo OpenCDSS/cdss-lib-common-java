@@ -212,14 +212,13 @@ public static final String PROGVER = "1.2 (12 Mar 1998)";
 
 public void init ()
 {	IOUtil.setApplet ( this );
-        IOUtil.setProgramData ( PROGNAME, PROGVER, null );
-
+    IOUtil.setProgramData ( PROGNAME, PROGVER, null );
 }
 
 // Called if stand-alone...
 public static void main ( String argv )
 {	// The default is not an applet.
-        IOUtil.setProgramData ( PROGNAME, PROGVER, argv );
+    IOUtil.setProgramData ( PROGNAME, PROGVER, argv );
 }
 </pre>
 */
@@ -227,12 +226,13 @@ public abstract class IOUtil {
 
 // Global data...
 
+// TODO SAM 2009-05-06 Evaluate whether needed
 /**
 Flags use to indicate the vendor
 */
-public final static int		SUN		= 1,
-				MICROSOFT	= 2,
-				UNKNOWN		= 3;
+public final static int SUN = 1;
+public final static int MICROSOFT = 2;
+public final static int UNKNOWN = 3;
 
 /**
 String to use to indicate a file header revision line.
@@ -244,40 +244,81 @@ String used to indicate comments in files (unless otherwise indicated).
 */
 protected static final String UNIVERSAL_COMMENT_STRING = "#";
 
-private static String _argv[] = null;	// Command-line arguments.
-private static Applet _applet = null;	// Applet.
+/**
+Command-line arguments, guaranteed to be non-null but may be empty.
+*/
+private static String _argv[] = new String[0];
+/**
+Applet, null if not an applet.
+*/
+private static Applet _applet = null;
+/**
+Applet context.  Call setAppletContext() from init() of an application that uses this class.
+*/
 private static AppletContext _applet_context = null;
-					// Applet context.  Call
-					// setAppletContext() from init() of
-					// an application that uses this class.
+/**
+Document base for the applet.
+*/
 private static URL _document_base = null;
-					// Document base for the applet.
-
-private static String _command_file ="";// Program command file
-private static List _command_list=null;// Program command list
-private static String _host = "";	// Host running the program.
-private static String _progname = "";	// Program name.
-private static String _progver = "";	// Program version.
-private static String _user = "";	// Program user.
-private static boolean _testing = false;// Indicates whether a test run.
-
-private static String _working_dir = "";// Program working directory.
-
+/**
+Program command file.
+TODO SAM (2009-05-06) Evaluate phasing out since command file is managed with processor, not program.
+*/
+private static String _command_file ="";
+/**
+Program command list.
+TODO SAM (2009-05-06) Evaluate phasing out since command file is managed with processor, not program.
+*/
+private static List _command_list=null;
+/**
+Host (computer) running the program.
+*/
+private static String _host = "";
+/**
+Program name, as it should appear in title bars, Help About, etc.
+*/
+private static String _progname = "";
+/**
+Program version, typically "XX.XX.XX" or "XX.XX.XX beta".
+*/
+private static String _progver = "";
+/**
+Program user.
+*/
+private static String _user = "";
+/**
+Indicates whether a test run (not used much anymore) - can be used for experimental features that are buried
+in the code base.
+*/
+private static boolean _testing = false;
+/**
+Program working directory, which is virtual and used to create absolute paths to files.  This is needed
+because the application cannot change the current working directory due to security checks.
+*/
+private static String _working_dir = "";
+/**
+Indicates whether global data are initialized.
+*/
 private static boolean _initialized = false;
-					// Indicates whether global data are
-					// initialized.
+/**
+Indicate whether the program is running as an applet.
+*/
 private static boolean _is_applet = false;
-					// Use to indicate if we are running as
-					// an applet.
+/**
+Indicates whether the program is running in batch (non-interactive) or interactive GUI/shell.
+*/
 private static boolean _is_batch = false;
-					// Use to indicate if program is batch
-					// (non-interactive) or interactive
-					// GUI/shell
+/**
+A property list manager that can be used globally in the application.
+*/
 private static PropListManager _prop_list_manager = null;
-					// A property list manager that can be
-					// used by any application.
+/**
+TODO SAM 2009-05-06 Seems to be redundant with _is_applet.
+*/
 private static boolean __runningApplet = false;
-private static boolean __release = false;
+/**
+Home directory for the application, typically the installation location (e.g., C:\Program Files\Company\AppName).
+*/
 private static String __homeDir = null;
 
 /**
@@ -294,9 +335,8 @@ public static void addPropList ( PropList proplist, boolean replace_if_match )
 }
 
 /**
-Adjust an existing path.  This can be used, for example to navigate up an
-absolute path by a relative change.  The resulting path is returned.  Rules
-for adjustment are as follows:
+Adjust an existing path.  This can be used, for example to navigate up an absolute path by a relative change.
+The resulting path is returned.  Rules for adjustment are as follows:
 <ol>
 <li>	If the adjustment is an absolute path, the returned path is the same as the adjustment.
 	</li>
@@ -387,15 +427,12 @@ throws Exception
 Tries to manually load a class into memory in order to see if it is available.  
 Normally, class-loading is done by the Java Virtual Machine when a class is 
 first used in code, but this method can be used to load a class at any time, 
-and more importantly, to check whether a class is available to the virtual
-machine.<p>
+and more importantly, to check whether a class is available to the virtual machine.<p>
 Classes may be unavailable because of a difference in program versions, or 
 because they were intentionally left out of a jar file in order to limit
 the functionality of an application.<p>
-The virtual machine will look through the entire class path when it tries to
-load the given class.
-@param className the fully-qualified class name (including package) of the
-class to try loading.  Examples:<p>
+The virtual machine will look through the entire class path when it tries to load the given class.
+@param className the fully-qualified class name (including package) of the class to try loading.  Examples:<p>
 - RTi.Util.GUI.JWorksheet<p>
 - java.util.Vector<p>
 - DWR.DMI.HydroBaseDMI.HydroBase_StructureView
@@ -430,8 +467,7 @@ throws IOException {
 	in.close();
 	out.close();
 */
-	// JTS (2004-10-11)
-	// the above is supposed to be faster, but MT was getting some 
+	// FIXME JTS (2004-10-11) the above is supposed to be faster, but MT was getting some 
 	// bizarre errors that seem related to the use of Channels.  Will
 	// try the following, but I believe it's going to be slowed.
 	FileInputStream fis  = new FileInputStream(source);
@@ -469,7 +505,8 @@ public static String enforceFileExtension ( String filename, String extension )
 {	if ( StringUtil.endsWithIgnoreCase(filename, "." + extension) ) {
 		return filename;
 	}
-	else {	return filename + "." + extension;
+	else {
+	    return filename + "." + extension;
 	}
 }
 
@@ -498,14 +535,16 @@ public static boolean fileReadable ( String filename )
 		return false;
 	}
 	InputStream st = null;
-	try {	st = IOUtil.getInputStream( filename);
+	try {
+	    st = IOUtil.getInputStream( filename);
 	}
 	catch ( Exception e ) {
 		st = null;
 		return false;
 	}
 	if ( st != null ) {
-		try {	st.close();
+		try {
+		    st.close();
 		}
 		catch ( Exception e ) {
 		}
@@ -545,16 +584,15 @@ throws IOException
 	// Open the file...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 30, routine,
-		"Breaking file \"" + filename + "\" into string list" );
+		Message.printDebug ( 30, routine, "Breaking file \"" + filename + "\" into string list" );
 	}
 	BufferedReader fp = null;
-	try {	fp = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream( filename) ));
+	try {
+	    fp = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream( filename) ));
 	}
 	catch ( Exception e ) {
-		message = "Unable to read file \"" + filename + "\"";
-		Message.printWarning ( 2, routine, message );
+		message = "Unable to read file \"" + filename + "\" (" + e + ").";
+		Message.printWarning ( 3, routine, message );
 		throw new IOException ( message );
 	}
 
@@ -576,8 +614,7 @@ throws IOException
 }
 
 /**
-Determine if a file is writeable.  False is returned if the file does not
-exist.
+Determine if a file is writeable.  False is returned if the file does not exist.
 @return true if the file is writeable, false if not.  The file must exist.
 @param filename String path to the file to check.
 */
@@ -639,20 +676,20 @@ public static String getDrive ( String path )
 		return "";
 	}
 	// Assume windows...
-	if (	(path.length() >= 2) &&
+	if ( (path.length() >= 2) &&
 		(((path.charAt(0) >= 'a') && (path.charAt(0) <= 'z')) ||
 		((path.charAt(0) >= 'A') && (path.charAt(0) <= 'Z'))) && 
 		(path.charAt(1) == ':') ) {
 		return path.substring(0,2);
 	}
-	else {	return "";
+	else {
+	    return "";
 	}
 }
 
 /**
 Determine the file extension.
-@return the part of a file name after the last "." character, or null if no
-".".
+@return the part of a file name after the last "." character, or null if no ".".
 */
 public static String getFileExtension ( String file )
 {	List v = StringUtil.breakStringList ( file, ".", 0 );
@@ -837,8 +874,7 @@ public static FileHeader getFileHeader ( String fileName, List commentIndicators
 		if ( !iscomment ) {
 			break;
 		}
-		// Find out if this is a header revision comment, and, if so,
-		// compare to the current values saved...
+		// Find out if this is a header revision comment, and, if so, compare to the current values saved...
 		String revision_string;
 		if ( (comment_length + revlen) <= string.length() ) {
 			// There might be a header string
@@ -884,8 +920,7 @@ public static FileHeader getFileHeader ( String fileName, List commentIndicators
 		}
 		// If the comment is to be ignored, read another line...
 		if ( isignore ) {
-			// Don't want to read any further.  First ignored
-			// comment indicates the entire header has been read
+			// Don't want to read any further.  First ignored comment indicates the entire header has been read
 			break;
 		}
 		// If we have gotten to here, add the line to the list...
@@ -912,7 +947,7 @@ public static FileHeader getFileHeader ( String fileName, List commentIndicators
 }
 
 /**
-Get a list of files from a pathlist.
+Get a list of files from a path list.
 @return a list of paths to a file given a prefix path and a file name.
 The files do not need to exist.  Return null if there is a problem with input.
 @param paths Paths to prefix the file with.
@@ -950,20 +985,6 @@ public static List getFilesFromPathList ( List paths, String file )
 }
 
 /**
-Return the appropriate file separator.
-@return The appropriate file separator ( e.g., "/" or "\" ), depending on OS
-and Applet.
-@deprecated Use File.separator.
-*/
-public static String getFileSeparator()
-{	if( IOUtil.isApplet() ) {
-		return "/";
-	}
-	else {	return System.getProperty( "file.separator" );		
-	}
-}
-
-/**
 Open an input stream given a URL or regular file name.
 @return An InputStream given a URL or file name.  If the string starts with
 "http:", "ftp:", or "file:", a URL is created and the associated stream is
@@ -987,7 +1008,7 @@ throws IOException
 		throw new IOException ( "URL is empty" );
 	}
         
-	if (	url_string.regionMatches( true, 0, "http:", 0, 5) ||
+	if ( url_string.regionMatches( true, 0, "http:", 0, 5) ||
 		url_string.regionMatches( true, 0, "file:", 0, 5) ||
 		url_string.regionMatches( true, 0, "ftp:", 0, 4) ) {
 		try {	url = new URL ( url_string );
@@ -998,7 +1019,9 @@ throws IOException
 			throw new IOException(noIndex);
 		}
 	}
-	else {	try {	fileStream = new FileInputStream(url_string);
+	else {
+	    try {
+	        fileStream = new FileInputStream(url_string);
 			return ( fileStream );
 		}
 		catch (Exception e) {
@@ -1027,8 +1050,7 @@ public static List getJarFilesManifests() {
 	// Get the Classpath and split it into a String array.  The order
 	// of the elements in the array is the same as the order in which
 	// things are included in the classpath.
-	String[] jars = System.getProperty("java.class.path").split(
-		System.getProperty("path.separator"));
+	String[] jars = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
 	
 	Attributes a = null;
 	int j = -1;
@@ -1044,8 +1066,7 @@ public static List getJarFilesManifests() {
 	for (int i = 0; i < jars.length; i++) {
 		if (!StringUtil.endsWithIgnoreCase(jars[i], ".jar")) {
 			// directories, etc, can be specified in a class path
-			// but avoid those for just the jar files in the 
-			// class path.
+			// but avoid those for just the jar files in the class path.
 			continue;
 		}
 		
@@ -1059,15 +1080,13 @@ public static List getJarFilesManifests() {
 			o = set.toArray();
 			sort = new Vector();
 			for (j = 0; j < o.length; j++) {
-				sort.add(tab + ((Attributes.Name)(o[j])) + " = "
-					+ a.getValue((Attributes.Name)(o[j])));
+				sort.add(tab + ((Attributes.Name)(o[j])) + " = " + a.getValue((Attributes.Name)(o[j])));
 			}
 
 			// the order in which the data in the manifest file 
 			// are returned is not guaranteed to be in the same
 			// order as they are in the manifest file.  Thus, the
-			// data are sorted to present a consistent return 
-			// pattern.
+			// data are sorted to present a consistent return pattern.
 			Collections.sort(sort);
 			size = sort.size();
 			for (j = 0; j < size; j++) {
@@ -1090,28 +1109,25 @@ public static List getJarFilesManifests() {
 /**
 Return a path considering the working directory set by
 setProgramWorkingDir().  The following rules are used:
-@param path Path to use.
 <ul>
 <li>	If the path is null or empty, return the path.</li>
 <li>	If the path is an absolute path (starts with / or \ or has : as the
-	second character; or starts with http:, ftp:, file:), it is returned as
-	is.</li>
-<li>	If the path is a relative path and the working directory is ".", the
-	path is returned.</li>
+	second character; or starts with http:, ftp:, file:), it is returned as is.</li>
+<li>	If the path is a relative path and the working directory is ".", the path is returned.</li>
 <li>	If the path is a relative path and the working directory is not ".",
 	the path is appended to the current working directory (separated with
 	/ or \ as appropriate) and returned.</li>
 </ul>
+@param path Path to use.
 @return a path considering the working directory.
 */
 public static String getPathUsingWorkingDir ( String path )
-{	if ( (path == null) || (path.length() == 0) ) {
+{   String routine = "IOUtil.getPathUsingWorkingDir";
+    if ( (path == null) || (path.length() == 0) ) {
 		return path;
 	}
 	// Check for URL...
-	if (	path.startsWith("http:") ||
-		path.startsWith("ftp:") ||
-		path.startsWith("file:") ) {
+	if ( path.startsWith("http:") || path.startsWith("ftp:") || path.startsWith("file:") ) {
 		return path;
 	}
 	// Check for absolute path...
@@ -1124,12 +1140,14 @@ public static String getPathUsingWorkingDir ( String path )
 		}
 		else {
 			String fullPath = path;
-			try { fullPath = (new File(_working_dir + "/" 
-					 + path).getCanonicalPath().toString());
-				} 
+			try {
+			    fullPath = (new File(_working_dir + "/" + path).getCanonicalPath().toString());
+			} 
 			catch (IOException e) {
-					e.printStackTrace();
-				}		
+			    Message.printWarning(3, routine, e);
+			    // FIXME SAM 2009-05-05 Evaluate whether to do the following - used for startup issues before logging?
+				e.printStackTrace();
+			}		
 			return fullPath;
 			//return ( _working_dir + "/" + path );
 		}
@@ -1139,8 +1157,7 @@ public static String getPathUsingWorkingDir ( String path )
 			// UNC path
 			return path;
 		}
-		if (	(path.charAt(0) == '\\') ||
-			((path.length() >= 2) && (path.charAt(1) == ':')) ) {
+		if ( (path.charAt(0) == '\\') || ((path.length() >= 2) && (path.charAt(1) == ':')) ) {
 			return path;
 		} 
 		if ( _working_dir.equals("") || _working_dir.equals(".") ) {
@@ -1148,11 +1165,11 @@ public static String getPathUsingWorkingDir ( String path )
 		}
 		else {	
 			String fullPath = path;
-			try { fullPath = (new File(_working_dir + "\\" 
-					 + path).getCanonicalPath().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
+    			try { fullPath = (new File(_working_dir + "\\" + path).getCanonicalPath().toString());
+    		} catch (IOException e) {
+    		    Message.printWarning(3, routine, e);
+    			e.printStackTrace();
+    		}	
 			return fullPath;
 			//return ( _working_dir + "\\" + path );
 		}
@@ -1245,17 +1262,6 @@ public static String getProgramVersion ()
 }
 
 /**
-Return the working directory, as set by setProgramWorkingDir().  The software
-may not actually be running in the directory.
-@return The program working directory as set by setProgramWorkingDir.
-@see #setProgramWorkingDir
-@deprecated use getProgramWorkingDir
-*/
-public static String getProgramWorkingDirectory ()
-{	return getProgramWorkingDir();
-}
-
-/**
 Return the working directory.
 @return The program working directory as set by setProgramWorkingDir.
 @see #setProgramWorkingDir
@@ -1269,8 +1275,7 @@ public static String getProgramWorkingDir()
 
 /**
 Return global PropList property.
-@return The property in the global property list manager corresponding to the
-given key.
+@return The property in the global property list manager corresponding to the given key.
 <b>This routine is being reworked to be consistent with the Prop* classes.</b>
 @param key String key to look up a property.
 @see Prop
@@ -1286,8 +1291,7 @@ public static Prop getProp ( String key )
 
 /**
 Return property value as an Object.
-@return The value of a property in the global property list manager
-corresponding to the given key.
+@return The value of a property in the global property list manager corresponding to the given key.
 @param key String key to look up a property.
 @see Prop
 @see PropList
@@ -1320,8 +1324,7 @@ public static PropListManager getPropListManager ()
 
 /**
 Return property value as a String.
-@return The value of a property in the global property list manager
-corresponding to the given key.
+@return The value of a property in the global property list manager corresponding to the given key.
 @param key String key to look up a property.
 @see Prop
 @see PropList
@@ -1331,7 +1334,8 @@ public static String getPropValue ( String key )
 {	if ( !_initialized ) {
 		initialize ();
 	}
-	try {	Prop prop = getProp ( key );
+	try {
+	    Prop prop = getProp ( key );
 		if ( prop == null ) {
 			return null;
 		}
@@ -1344,7 +1348,7 @@ public static String getPropValue ( String key )
 }
 
 /**
-Returns a Vector of Strings containing information about the system on which
+Returns a list of Strings containing information about the system on which
 the Java application is currently running.
 @return a Vector of Strings.
 */
@@ -1371,8 +1375,7 @@ public static List getSystemProperties() {
 			length = _argv[i].length() + 1;
 		
 			if (totalLength + length >= 80) {
-				// it would be too big for the line, so 
-				// add the current line and put the next
+				// it would be too big for the line, so add the current line and put the next
 				// argument on what will be the next line
 				v.add(command);
 				command = tab + tab + _argv[i];
@@ -1437,7 +1440,8 @@ public static int getVendor()
 	else if ( s.equalsIgnoreCase( "http://www.microsoft.com" ) ) {
 		return MICROSOFT;
 	}
-	else {	return UNKNOWN;
+	else {
+	    return UNKNOWN;
 	}
 }
 
@@ -1452,22 +1456,19 @@ private static void initialize ()
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Initializing IOUtil..." );
 	}
-	try {	// Put this in just in case we have security problems...
+	try {
+	    // Put this in just in case we have security problems...
 		if ( _is_applet ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "An applet!");
 			}
 			_command_file = "";
 			_command_list = null;
-			// REVISIT (JTS - 2005-06-06)
-			// should do some testing to see what the effects are
-			// of doing a host set like in the non-applet code 
-			// below.  Possibilities I foresee:
+			// TODO (JTS - 2005-06-06) should do some testing to see what the effects are
+			// of doing a host set like in the non-applet code below.  Possibilities I foresee:
 			// 1) applets lack the permission to get the hostname
-			// 2) applets return the name of the computer the user
-			//    is physically working on.
-			// 3) applets return the name of the server on which
-			//    the applet code actually resides.
+			// 2) applets return the name of the computer the user is physically working on.
+			// 3) applets return the name of the server on which the applet code actually resides.
 			// I have no way of knowing right now which one would
 			// be the case, and moreover, no time to test this.
 			_host = "web server/client/URL unknown";
@@ -1477,10 +1478,10 @@ private static void initialize ()
 			_working_dir = "dir unknown (applet)";
 			__homeDir = "dir unknown (applet)";
 		}
-		else {	// A stand-alone application...
+		else {
+		    // A stand-alone application...
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Not an applet!" );
+				Message.printDebug ( dl, routine, "Not an applet!" );
 			}
 			_command_file = "";
 			_command_list = null;
@@ -1493,8 +1494,7 @@ private static void initialize ()
 		}
 	} catch ( Exception e ) {
 		// Don't do anything.  Just print a warning...
-		Message.printWarning ( 2, routine,
-		"Caught an exception initializing IOUtil.  Continuing." );
+		Message.printWarning ( 3, routine, "Caught an exception initializing IOUtil (" + e + ").  Continuing." );
 	}
 
 	// Initialize the applet context...
@@ -1504,8 +1504,7 @@ private static void initialize ()
 	// Initialize the property list manager to contain an unnamed list...
 
 	_prop_list_manager = new PropListManager ();
-	_prop_list_manager.addList (
-		new PropList("", PropList.FORMAT_PROPERTIES), true );
+	_prop_list_manager.addList ( new PropList("", PropList.FORMAT_PROPERTIES), true );
 
 	// Set the flag to know that the class has been initialized...
 
@@ -1535,12 +1534,10 @@ public static void isApplet ( boolean is_applet )
 
 	_is_applet = is_applet;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, "IOUtil.isApplet",
-		"set _is_applet to " + _is_applet );
+		Message.printDebug ( dl, "IOUtil.isApplet", "set _is_applet to " + _is_applet );
 	}
 	// Force the reinitialization.  Problems may have occurred when IO
-	// first loaded if it did not know that we are running an Applet so
-	// reinitialize now.
+	// first loaded if it did not know that we are running an Applet so reinitialize now.
 	initialize ();
 }
 
@@ -1553,15 +1550,13 @@ public static boolean isBatch ()
 }
 
 /**
-Set whether the program is running in batch mode (the default if not set is
-false). 
+Set whether the program is running in batch mode (the default if not set is false). 
 @param is_batch Indicates whether the program is batch mode.
 */
 public static void isBatch ( boolean is_batch )
 {	_is_batch = is_batch;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "IOUtil.isBatch",
-		"Batch mode is " + _is_batch );
+		Message.printDebug ( 1, "IOUtil.isBatch", "Batch mode is " + _is_batch );
 	}
 }
 
@@ -1572,8 +1567,7 @@ applications (e.g., native C, C++, and FORTRAN compilers).  The Java Virtual
 Machine is big endian so any binary files written with Java are transparently
 big endian.  If little endian files need to be read, use the
 EndianDataInputStream and other classes in this package.
-Currently the determinatoin is made by looking at the operating system.  The
-following are assumed:
+Currently the determinatoin is made by looking at the operating system.  The following are assumed:
 <pre>
 Linux	          LittleEndian
 All other UNIX    BigEndian
@@ -1589,7 +1583,8 @@ public static boolean isBigEndianMachine ()
 	else if ( isUNIXMachine() ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1628,8 +1623,7 @@ public static boolean isPortOpen(int port) {
 }
 	
 /**
-Returns whether the program is running as an applet (must be set with 
-setRunningApplet).
+Returns whether the program is running as an applet (must be set with setRunningApplet).
 */
 public static boolean isRunningApplet() {
 	return __runningApplet;
@@ -1646,8 +1640,7 @@ Windows 2000          x86        "Windows NT"     5.0
 Linux                 i386       "Linux"
 HP-UX                 PA-RISC
 </pre>
-@return true if a UNIX platform, including os.name of Linux, false if not (presumably
-Windows).
+@return true if a UNIX platform, including os.name of Linux, false if not (presumably Windows).
 */
 public static boolean isUNIXMachine ()
 {	String arch = System.getProperty ( "os.arch" );
@@ -1657,7 +1650,8 @@ public static boolean isUNIXMachine ()
 		name.equalsIgnoreCase("Linux") ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1739,8 +1733,7 @@ information.  It is assumed that the file is not an XML file.
 @param ofp PrintWriter that is being written to.
 @param comment0 The String to use for comments.
 @param maxwidth The maximum length of a line of output (if whitespace is
-embedded in the header information, lines will be broken appropriately to fit
-within the specified length.
+embedded in the header information, lines will be broken appropriately to fit within the specified length.
 @param flag Currently unused.
 @return 0 if successful, 1 if not.
 */
@@ -1854,8 +1847,7 @@ public static int printCreatorHeader ( PrintWriter ofp, String comment0, int max
 			ofp.println ( comment );
 		}
 		else {
-		    ofp.println ( comment +
-			"-----------------------------------------------------------------------" );
+		    ofp.println ( comment + "-----------------------------------------------------------------------" );
 		}
 		if ( fileReadable(_command_file) ) {
 			ofp.println ( comment + " Last command file: \"" +
@@ -1874,8 +1866,8 @@ public static int printCreatorHeader ( PrintWriter ofp, String comment0, int max
 		if ( is_xml ) {
 			ofp.println ( comment );
 		}
-		else {	ofp.println ( comment +
-			"-----------------------------------------------------------------------" );
+		else {
+		    ofp.println ( comment + "-----------------------------------------------------------------------" );
 		}
 		ofp.println ( comment + " Command file \"" + _command_file + "\":" );
 		ofp.println ( comment );
@@ -1916,16 +1908,17 @@ public static int printCreatorHeader ( PrintWriter ofp, String comment0, int max
 }
 
 /**
-Print a Vector of strings to a file.  The file is created, opened, and closed.
+Print a list of strings to a file.  The file is created, opened, and closed.
 */
 public static void printStringList ( String file, List strings )
 throws IOException
-{	String		message, routine = "IOUtil.printStringList";
+{	String message, routine = "IOUtil.printStringList";
 	PrintWriter	ofp;
 
 	// Open the file...
 
-	try {	ofp = new PrintWriter ( 
+	try {
+	    ofp = new PrintWriter ( 
 		new FileOutputStream(file) );
 	}
 	catch ( Exception e ) {
@@ -2001,8 +1994,7 @@ The old file header will be copied to the new file using special comments
 </pre>
 <p>
 
-Where the number indicates the revision for the header.
-The initial header will be number 0.
+Where the number indicates the revision for the header.  The initial header will be number 0.
 @return PrintWriter for the file (it will be opened and processed so that the
 new file header consists of the old header with new comments at the top).  The
 file can then be written to.  Return null if the new file cannot be opened.
@@ -2010,14 +2002,11 @@ file can then be written to.  Return null if the new file cannot be opened.
 @param newFile The name of the new file that is to contain the updated header
 (and will be pointed to by the returned PrintWriter (it can be the same as
 "oldfile").  If the name of the file ends in XML then the file is assumed to
-be an XML file and the header is wrapped in <!-- --> (this may change to actual
-XML tags in the future).
+be an XML file and the header is wrapped in <!-- --> (this may change to actual XML tags in the future).
 @param newComments list of strings to be added as comments in the new revision (often null).
-@param commentIndicators list of strings that indicate comment lines that should
-be retained in the next revision.
+@param commentIndicators list of strings that indicate comment lines that should be retained in the next revision.
 @param ignoredCommentIndicators list of strings that indicate comment lines that
-can be ignored in the next revision (e.g., lines that describe the file format
-that only need to appear once).
+can be ignored in the next revision (e.g., lines that describe the file format that only need to appear once).
 @param flags Currently unused.
 */
 public static PrintWriter processFileHeaders ( String oldFile, String newFile, List newComments,
@@ -2127,35 +2116,24 @@ public static PrintWriter processFileHeaders ( String oldFile, String newFile, L
 }
 
 /**
-Checks whether the application is running in release mode or not.
-@deprecated Avoid using this method - deal with release issues as part of the build testing.
-@return true if in release mode, false if not.
-*/
-public static boolean release() {
-	return __release;
-}
-
-/**
 Replaces old file extension with new one.  If the file has no
 extension then it adds the extension specified.
 @param file File name to change extension on.
 @param extension New file extension.
 @return file_new New file name with replaced extension.
- * @throws IOException 
- */
+@throws IOException 
+*/
 public static String replaceFileExtension( String file, String extension ) 
 throws IOException
 {
-	// first make sure the file is an absolute value
-	// this makes it easier to check and replace
+	// First make sure the file is an absolute value this makes it easier to check and replace
 	File tmp = new File(file);
 	if ( !tmp.isAbsolute() ) {
 		file = tmp.getCanonicalPath().toString();
 	}
 	tmp = null;
 	
-	// add a period to the beginning of the extension
-	// if one doesn't exist already
+	// Add a period to the beginning of the extension if one doesn't exist already
 	if ( !(extension.startsWith(".")) ) {
 		extension = "." + extension;
 	}
@@ -2178,8 +2156,7 @@ throws IOException
 /**
 Set the applet for a program.  This is generally called from the init() method
 of an application.  This method then saves the AppletContext and DocumentBase
-for later use.  After calling with a non-null Applet, isApplet() will return
-true.
+for later use.  After calling with a non-null Applet, isApplet() will return true.
 @param applet The Applet for the application.
 @see #isApplet
 @see #getApplet
@@ -2193,8 +2170,7 @@ public static void setApplet ( Applet applet )
 		_document_base = applet.getDocumentBase();
 		_is_applet = true;
 	}
-	// Do this after setting the applet so that the initialization can
-	// check...
+	// Do this after setting the applet so that the initialization can check...
 	if ( !_initialized ) {
 		initialize ();
 	}
@@ -2215,8 +2191,7 @@ public static void setAppletContext ( AppletContext applet_context )
 Sets the application home directory.  This is a base directory that should 
 only be set once during an application run.  It is the base from which log
 files, system files, etc, can be located.  For instance, for CDSS applications
-the application home is set to (eg) j:\cdss\.  Other directories under this
-include "system" and "logs".
+the application home is set to (eg) j:\cdss\.  Other directories under this include "system" and "logs".
 @param homeDir the home directory to set.
 */
 public static void setApplicationHomeDir(String homeDir) {
@@ -2237,12 +2212,9 @@ public static void setApplicationHomeDir(String homeDir) {
 				// UNC path -- leave as is
 			}
 			else if (homeDir.charAt(1) != ':') {
-				// homeDir does not start with a drive
-				// letter.  Get the drive letter of the current
-				// working dir and use it instead.  Since 
-				// working dir is initialized to the java 
-				// working dir when IOUtil is first used,
-				// _working_dir will always have a drive letter
+				// homeDir does not start with a drive letter.  Get the drive letter of the current
+				// working dir and use it instead.  Since working dir is initialized to the java 
+				// working dir when IOUtil is first used, _working_dir will always have a drive letter
 				// for windows machines.
 				char drive = _working_dir.charAt(0);
 				homeDir = drive + ":" + homeDir;
@@ -2264,12 +2236,12 @@ public static void setProgramArguments ( String argv[] )
 	}
 
 	if ( argv == null ) {
-		// No arguments...
-		_argv = null;
+		// No arguments - initialize to avoid null pointer exceptions...
+		_argv = new String[0];
 		return;
 	}
 
-	// Now we create a copy of the command-line arguments
+	// Create a copy of the command-line arguments
 	int length = argv.length;
 	if ( length > 0 ) {
 		_argv = new String[length];
@@ -2297,8 +2269,7 @@ public static void setProgramCommandFile ( String command_file )
 
 /**
 Set the program main data, which can be used later for GUI labels, etc.  This
-is generally called from the main() or init() function of an application (or
-from application base classes).
+is generally called from the main() or init() function of an application (or from application base classes).
 @param progname The program name.
 @param progver The program version.
 @param argv The program command-line arguments (ignored if an Applet).
@@ -2306,8 +2277,7 @@ from application base classes).
 @see #getProgramVersion
 @see #getProgramArguments
 */
-public static void setProgramData ( String progname, String progver,
-	String argv[] )
+public static void setProgramData ( String progname, String progver, String argv[] )
 {	if ( !_initialized) {
 		initialize ();
 	}
@@ -2345,8 +2315,7 @@ public static void setProgramName ( String progname )
 }
 
 /**
-Set the program user.  This is usually called from within IO by checking system
-properties.
+Set the program user.  This is usually called from within IO by checking system properties.
 @param user The user name.
 @see #getProgramUser
 */
@@ -2398,8 +2367,7 @@ public static void setProgramWorkingDir ( String working_dir )
 	if ( working_dir != null ) {
 		working_dir = working_dir.trim();
 		if ( working_dir.endsWith(File.separator) ) {
-			working_dir = working_dir.substring(
-					0,(working_dir.length() - 1) );
+			working_dir = working_dir.substring(0,(working_dir.length() - 1) );
 		}
 
 		// for windows-based machines:
@@ -2409,12 +2377,9 @@ public static void setProgramWorkingDir ( String working_dir )
 				// UNC drive -- leave as is
 			}
 			else if (working_dir.charAt(1) != ':') {
-				// working_dir does not start with a drive
-				// letter.  Get the drive letter of the current
-				// working dir and use it instead.  Since 
-				// working dir is initialized to the java 
-				// working dir when IOUtil is first used,
-				// _working_dir will always have a drive letter
+				// working_dir does not start with a drive letter.  Get the drive letter of the current
+				// working dir and use it instead.  Since working dir is initialized to the java 
+				// working dir when IOUtil is first used, _working_dir will always have a drive letter
 				// for windows machines.
 				char drive = _working_dir.charAt(0);
 				working_dir = drive + ":" + working_dir;
@@ -2425,8 +2390,7 @@ public static void setProgramWorkingDir ( String working_dir )
 }
 
 /**
-Set a property in the global PropListManager.  This sets the value in the
-un-named PropList.
+Set a property in the global PropListManager.  This sets the value in the un-named PropList.
 */
 public static void setProp ( String key, Object prop )
 {	if ( !_initialized ) {
@@ -2434,18 +2398,6 @@ public static void setProp ( String key, Object prop )
 	}
 	// Set in the first list...
 	_prop_list_manager.setValue ( "", key, prop );
-}
-
-/**
-Sets whether the application is running in release mode.
-@param release if true, the application is in release mode.
-@deprecated Avoid using this method - deal with release issues as part of the build testing.
-*/
-public static void setRelease(boolean release) {	
-	if (!_initialized) {
-		initialize();
-	}
-	__release = release;
 }
 
 /**
@@ -2458,6 +2410,7 @@ public static void setRunningApplet(boolean applet) {
 	__runningApplet = applet;
 }
 
+// FIXME SAM 2009-05-06 Need to use the built-in feature of the File class.
 /**
 Determine a unique temporary file name.  On UNIX, temporary files are created
 in /tmp.  On PCs, temporary files are created in C:/TEMP.  If using Java 1.2x,
@@ -2470,7 +2423,8 @@ public static String tempFileName()
 	if ( isUNIXMachine() ) {
 		prefix = "/tmp/";
 	}
-	else {	prefix = "C:\\temp\\";
+	else {
+	    prefix = "C:\\temp\\";
 	}
 	Date d = null;
 	// Use the date as a seed and make sure the file does not exist...
@@ -2492,10 +2446,8 @@ Set whether the application is being run in test mode.  The testing()
 method can be called to check the value.  An appropriate way to use this
 functionality is to check for a -test command line argument.  If present, call
 IOUtil.testing(true).  Later, check the value with IOUtil.testing().  This is
-useful for adding GUI features or expanded debugging only for certain parts of
-the code that are being tested.
-@param is_testing true if the application is being run in test mode (default
-initial value is false).
+useful for adding GUI features or expanded debugging only for certain parts of the code that are being tested.
+@param is_testing true if the application is being run in test mode (default initial value is false).
 @return the value of the testing flag, after being set.
 */
 public static boolean testing ( boolean is_testing )
@@ -2504,8 +2456,7 @@ public static boolean testing ( boolean is_testing )
 }
 
 /**
-Determine whether the application is being run in test mode.  See overloaded
-method for more information.
+Determine whether the application is being run in test mode.  See overloaded method for more information.
 @return the value of the testing flag, after being set.
 */
 public static boolean testing ()
@@ -2517,16 +2468,14 @@ Convert a path and an absolute directory to an absolute path.
 @param dir Directory to prepend to path.
 @param path Path to append to dir to create an absolute path.  If absolute, it
 will be returned.  If relative, it will be appended to dir.  If the path
-includes "..", the directory will be truncated before appending the non-".."
-part of the path.
+includes "..", the directory will be truncated before appending the non-".." part of the path.
 */
 public static String toAbsolutePath ( String dir, String path )
 {	File f = new File ( path );
 	if ( f.isAbsolute() ) {
 		return path;
 	}
-	// Loop through the "path".  For each occurance of "..", knock a
-	// directory off the end of the "dir"...
+	// Loop through the "path".  For each occurance of "..", knock a directory off the end of the "dir"...
 
 	// Always trim any trailing directory separators off the directory paths
 	while (dir.length() > 1 && dir.endsWith(File.separator)) {
@@ -2597,8 +2546,7 @@ to it are not null or empty, but apart from that does no error-checking to
 validate proper directory naming structure.  This method will fail with
 improper directory names (e.g., "C:\\c:\\\\\\\\test\\\\").
 @param rootDir the root directory from which to build a relative directory.
-@param relDir the directory for which to create the relative directory path
-from the rootDir.
+@param relDir the directory for which to create the relative directory path from the rootDir.
 @return the relative path created from the two directory structures.  This
 path will NOT have a trailing directory separator (\ or /).  If both the
 rootDir and relDir are the same, for instance, the value "." will be returned.
@@ -2611,12 +2559,10 @@ public static String toRelativePath (String rootDir, String relDir)
 throws Exception {
 	// do some simple error checking
 	if (rootDir == null || rootDir.trim().equals("")) {
-		throw new Exception ("Bad rootDir (" + rootDir + ") passed "
-			+ "in to IOUtil.toRelativePath()");
+		throw new Exception ("Bad rootDir (" + rootDir + ") passed in to IOUtil.toRelativePath()");
 	}
 	if (relDir == null || relDir.trim().equals("")) {
-		throw new Exception ("Bad relDir (" + relDir + ") passed "
-			+ "in to IOUtil.toRelativePath()");
+		throw new Exception ("Bad relDir (" + relDir + ") passed in to IOUtil.toRelativePath()");
 	}
 
 	String sep = File.separator;
@@ -2633,13 +2579,11 @@ throws Exception {
 
 		if (drive1 != drive2) {
 			throw new Exception ( "Cannot adjust \"" + relDir +
-				" to relative using directory \"" 
-				+ rootDir + "\"");
+				" to relative using directory \"" + rootDir + "\"");
 		}
 	}
 		
-	// always trim any trailing directory separators off the directory
-	// paths
+	// Always trim any trailing directory separators off the directory paths
 	while (rootDir.length() > 1 && rootDir.endsWith(File.separator)) {
 		rootDir = rootDir.substring(0, rootDir.length() - 1);
 	}
@@ -2648,19 +2592,15 @@ throws Exception {
 	}
 
 	// Check to see if the two paths are the same
-	if ((unix && rootDir.equals(relDir)) 
-		|| (!unix && rootDir.equalsIgnoreCase(relDir))) {
+	if ((unix && rootDir.equals(relDir)) || (!unix && rootDir.equalsIgnoreCase(relDir))) {
 		return ".";
 	}
 
-	// check to see if the relDir dir is farther up the same branch that
-	// the rootDir is on.
+	// Check to see if the relDir dir is farther up the same branch that the rootDir is on.
 	
-	if ((unix && relDir.startsWith(rootDir))
-		|| (!unix && StringUtil.startsWithIgnoreCase(relDir, rootDir))){
+	if ((unix && relDir.startsWith(rootDir)) || (!unix && StringUtil.startsWithIgnoreCase(relDir, rootDir))){
 
-		// at this point, it is known that relDir is longer than
-		// rootDir
+		// At this point, it is known that relDir is longer than rootDir
 		String c = "" + relDir.charAt(rootDir.length());
 
 		if (c.equals(File.separator)) {	
@@ -2677,8 +2617,7 @@ throws Exception {
 
 	// get the final directory separator from the first directory, and
 	// then start working backwards in the string to find where the
-	// second directory and the first directory share directory 
-	// information
+	// second directory and the first directory share directory information
 	int start = rootDir.lastIndexOf(sep);	
 	int x = 0;
 	for (int i = start; i >= 0; i--) {
@@ -2687,24 +2626,17 @@ throws Exception {
 		if (!s.equals(sep)) {
 			// do nothing this iteration
 		}
-		else if ((unix 
-		    && relDir.regionMatches(false, 0, rootDir + sep, 0, i + 1))
-			|| (!unix 
-			&& relDir.regionMatches(true,0,rootDir + sep, 0, i+1))){
-			// a common "header" in the directory name has been
-			// found.  Count the number of separators in each
-			// directory to determine how much separation lies
-			// between the two
-			int dir1seps = StringUtil.patternCount(
-				rootDir.substring(0, i), sep);
-			int dir2seps = StringUtil.patternCount(
-				rootDir, sep);
+		else if ((unix && relDir.regionMatches(false, 0, rootDir + sep, 0, i + 1))
+			|| (!unix && relDir.regionMatches(true,0,rootDir + sep, 0, i+1))){
+			// A common "header" in the directory name has been found.  Count the number of separators in each
+			// directory to determine how much separation lies between the two
+			int dir1seps = StringUtil.patternCount(rootDir.substring(0, i), sep);
+			int dir2seps = StringUtil.patternCount(rootDir, sep);
 			x = i + 1;
 			if (x > relDir.length()) {
 				x = relDir.length();
 			}
-			String uncommon = relDir.substring(x,
-				relDir.length());
+			String uncommon = relDir.substring(x, relDir.length());
 			int steps = dir2seps - dir1seps;
 			if (steps == 1) {
 				if (uncommon.trim().equals("")) {
@@ -2789,7 +2721,8 @@ throws IOException
 {	String message, routine = "IOUtil.writeFile";
 
 	BufferedWriter fp = null;
-	try {	fp = new BufferedWriter ( new FileWriter( filename ));
+	try {
+	    fp = new BufferedWriter ( new FileWriter( filename ));
 		fp.write ( contents );
 		fp.close ();
 	}
@@ -2800,4 +2733,4 @@ throws IOException
 	}
 }
 
-} // End class IOUtil
+}
