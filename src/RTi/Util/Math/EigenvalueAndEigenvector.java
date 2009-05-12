@@ -5,15 +5,75 @@
 
 package RTi.Util.Math;
 
+import java.security.InvalidParameterException;
+
 /**
+ *  Currently, there are 2 ways to call the jacobi method.  One is static and
+ *      the output matrix (eigenvectors) and vector (eigenvalues) must be created
+ *      and passed in as parameters as well as the size of the input matrix.  The
+ *      other is non-static.  An example of how to call that method follows:
+ *
+ *      int n=4;
+ *      double[][] a = new double[n][n];
+ *      a[0][0] = 4; a[0][1] = -30; a[0][2] = 60; a[0][3] = -35;
+ *      a[1][0] = -30; a[1][1] = 300; a[1][2] = -675; a[1][3] = 420;
+ *      a[2][0] = 60; a[2][1] = -675; a[2][2] = 1620; a[2][3] = -1050;
+ *      a[3][0] = -35; a[3][1] = 420; a[3][2] = -1050; a[3][3] = 700;
+ *
+ *      EigenvalueAndEigenvector ee = new EigenvalueAndEigenvector( a );
+ *      if ( ee.getStatus() != EigenvalueAndEigenvector.Status.CONVERGED )
+ *          fail();  // or return or whatever
+ *      ee.jacobi();
+ *      double eigenvalues[] = ee.getEigenvalues();
+ *      double eigenvectors[][] = ee.getEigenvectors();
+ *
  *
  * @author cen
  */
 public class EigenvalueAndEigenvector {
 
+private double[][] _inputMatrix;
+private double[] _eigenvalues;
+private double[][] _eigenvectors;
+private Status _status;
+private int _size;
 
-double[] _eigenvalues;
-double[][] _eigenvectors;
+public enum Status { CONVERGED, FAIL, NOT_CALCULATED }
+
+public EigenvalueAndEigenvector (double[][] input)
+throws InvalidParameterException
+{
+    _inputMatrix = input;
+
+    _size = _inputMatrix.length;
+    if ( _size == 0 ) {
+        throw new InvalidParameterException("Can't perform Eigenvalue/Eigenvector calculations on empty matrix.");
+    }
+    if ( _inputMatrix[0].length != _size ) {
+        throw new InvalidParameterException("Can't perform Eigenvalue/Eigenvector calculations on non n by n matrices.");
+    }
+
+    _eigenvalues = new double[_size];
+    _eigenvectors = new double[_size][_size];
+    _status = Status.NOT_CALCULATED;
+
+}
+
+public double[] getEigenvalues() {
+    return _eigenvalues;
+}
+
+public double[][] getEigenvectors() {
+    return _eigenvectors;
+}
+
+public int getSize() {
+    return _size;
+}
+
+public Status getStatus() {
+    return _status;
+}
 
 /**
  *    David Garen  6/89
@@ -39,6 +99,12 @@ double[][] _eigenvectors;
  * @return status: 0 for normal completion, 1 for no convergence.
  * @todo this really needs to change so that only a is input!!!
  */
+public void jacobi ()
+{
+    int status = jacobi ( _inputMatrix, _size, _eigenvalues, _eigenvectors );
+
+    _status = status == 0? Status.CONVERGED : Status.FAIL;
+}
 public static int jacobi(double[][] a, int n, double[] eigenvalues, double[][] eigenvectors)
 {
    double c;                     // cosine of rotation angle
