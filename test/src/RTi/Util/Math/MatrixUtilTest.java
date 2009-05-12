@@ -111,4 +111,144 @@ public class MatrixUtilTest extends TestCase {
         
     }
 
+
+    public void testTranspose ()
+    {
+        int nrows = 4;
+        int ncols = 5;
+        double[][] a = new double[nrows][ncols];
+
+        for ( int i=0; i<nrows; i++ ) {
+            for ( int j=0; j<ncols; j++ ) {
+                a[i][j] = (i*nrows) + j;
+            }
+        }
+
+        double[][] b = MatrixUtil.Transpose(a);
+
+        System.out.println("Original Matrix:");
+        for ( int i=0; i<nrows; i++ ) {
+            for ( int j=0; j<ncols; j++ ) {
+                System.out.print("  " + a[i][j]);
+            }
+            System.out.println("");
+        }
+        System.out.println("Resulting Matrix:");
+        for ( int i=0; i<ncols; i++ ) {
+            for ( int j=0; j<nrows; j++ ) {
+                System.out.print("  " + b[i][j]);
+            }
+            System.out.println("");
+        }
+
+        // randomly chosen elements to compare
+        assertEquals ( 0, b[0][0], 0.01);
+        assertEquals ( 7, b[3][1], 0.01);
+        assertEquals ( 9, b[1][2], 0.01);
+
+    }
+
+    public void testMultiply ()
+    {
+        int nARows = 3;
+        int nACols = 4;
+        int nBRows = nACols;
+        int nBCols = 2;
+        double[][] a = new double[nARows][nACols];
+        double[][] b = new double[nBRows][nBCols];
+
+        // fill a
+        for ( int i=0; i<nARows; i++ ) {
+            for ( int j=0; j<nACols; j++ ) {
+                a[i][j] = (i*nARows) + j;
+            }
+        }
+
+        System.out.println("Original Matrix (A):");
+        for ( int i=0; i<nARows; i++ ) {
+            for ( int j=0; j<nACols; j++ ) {
+                System.out.print("  " + a[i][j]);
+            }
+            System.out.println("");
+        }
+
+        // fill b
+        for ( int i=0; i<nBRows; i++ ) {
+            for ( int j=0; j<nBCols; j++ ) {
+                b[i][j] = (i*nBRows) + j;
+            }
+        }
+
+        System.out.println("Original Matrix (B):");
+        for ( int i=0; i<nBRows; i++ ) {
+            for ( int j=0; j<nBCols; j++ ) {
+                System.out.print("  " + b[i][j]);
+            }
+            System.out.println("");
+        }
+
+        double[][] product = MatrixUtil.Multiply(a, b);
+
+        // print results
+        System.out.println("Product:");
+        for ( int i=0; i<nARows; i++ ) {
+            for ( int j=0; j<nBCols; j++ ) {
+                System.out.print("  " + product[i][j]);
+            }
+            System.out.println("");
+        }
+
+        assertEquals ( 56, product[0][0], 0.01);
+        assertEquals ( 62, product[0][1], 0.01);
+        assertEquals ( 128, product[1][0], 0.01);
+        assertEquals ( 146, product[1][1], 0.01);
+        assertEquals ( 200, product[2][0], 0.01);
+        assertEquals ( 230, product[2][1], 0.01);
+    }
+
+    public void testMultiplyVector ()
+    {
+        int nARows = 3;
+        int nACols = 4;
+        int nBRows = nACols;
+        double[][] a = new double[nARows][nACols];
+        double[] b = new double[nBRows];
+
+        // fill a
+        for ( int i=0; i<nARows; i++ ) {
+            for ( int j=0; j<nACols; j++ ) {
+                a[i][j] = (i*nARows) + j;
+            }
+        }
+
+        System.out.println("Original Matrix:");
+        for ( int i=0; i<nARows; i++ ) {
+            for ( int j=0; j<nACols; j++ ) {
+                System.out.print("  " + a[i][j]);
+            }
+            System.out.println("");
+        }
+
+        // fill b
+        for ( int i=0; i<nBRows; i++ ) {
+                b[i] = i*nBRows;
+        }
+
+        System.out.println("Original Vector:");
+        for ( int i=0; i<nBRows; i++ ) {
+                System.out.println( b[i]);
+        }
+
+        double[] product = MatrixUtil.Multiply(a, b);
+
+        // print results
+        System.out.println("Product:");
+        for ( int i=0; i<nARows; i++ ) {
+                System.out.println("  " + product[i]);
+        }
+
+        assertEquals ( 56, product[0], 0.01);
+        assertEquals ( 128, product[1], 0.01);
+        assertEquals ( 200, product[2], 0.01);
+    }
 }
