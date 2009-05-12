@@ -1,5 +1,10 @@
 /*
- *
+ * This class contains tools to handle matrix manipulation.
+ * Many of the routines have been modified from a C version, adding
+ * better checks for valid input data, easier use (size input matrices and vectors
+ * are calculated rather than input), and better methods for handling results
+ * (returned from the method rather than part of the parameter list).
+ * 
  */
 
 package RTi.Util.Math;
