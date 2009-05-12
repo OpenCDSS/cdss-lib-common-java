@@ -21,9 +21,9 @@ import java.security.InvalidParameterException;
  *      a[3][0] = -35; a[3][1] = 420; a[3][2] = -1050; a[3][3] = 700;
  *
  *      EigenvalueAndEigenvector ee = new EigenvalueAndEigenvector( a );
+ *      ee.jacobi();
  *      if ( ee.getStatus() != EigenvalueAndEigenvector.Status.CONVERGED )
  *          fail();  // or return or whatever
- *      ee.jacobi();
  *      double eigenvalues[] = ee.getEigenvalues();
  *      double eigenvectors[][] = ee.getEigenvectors();
  *
