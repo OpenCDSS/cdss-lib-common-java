@@ -251,4 +251,43 @@ public class MatrixUtilTest extends TestCase {
         assertEquals ( 128, product[1], 0.01);
         assertEquals ( 200, product[2], 0.01);
     }
+
+    public void testSortArray ()
+    {
+        int n = 5;
+        double[] x = new double[] {7, 8.2, 2.1, 4, 0};
+        int[] indx = new int [n];
+
+        MatrixUtil.sortArray(x, indx, n);
+        System.out.println("Array: ");
+        for ( int i=0; i<n; i++) {
+            System.out.print(" " + x[i]);
+        }
+        System.out.println("");
+        System.out.println("Array index: ");
+        for ( int i=0; i<n; i++) {
+            System.out.print(" " + indx[i]);
+        }
+        System.out.println("");
+        System.out.println("Sorted array: ");
+        for ( int i=0; i<n; i++) {
+            System.out.print(" " + x[indx[i]]);
+        }
+        System.out.println("");
+    }
+
+    public void testCat (){
+        int x = 1;
+        double y = 2;
+        double[] xt = new double[] {10, 11};
+        doit ( x, y, xt );
+        System.out.println("x = " + x + ", y = " + y + ", xt = " + xt[0] + " " + xt[1]);
+    }
+    private void doit ( int x, double y, double[] xt ) {
+        x = 3;
+        y = 4;
+        xt[0] = 84;
+        xt[1] = 72;
+    }
+
 }
