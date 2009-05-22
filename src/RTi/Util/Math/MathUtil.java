@@ -706,6 +706,18 @@ throws Exception
 	return m;
 }
 
+public static PrincipalComponentAnalysis performPrincipalComponentAnalysis (
+        double[] dependentArray, double[][] independentMatrix,
+        double missingDependentValue, double missingIndependentValue,
+        int maximumCombinations )
+throws Exception
+{
+    PrincipalComponentAnalysis pca = new PrincipalComponentAnalysis(
+            dependentArray, independentMatrix, missingDependentValue, missingIndependentValue,
+            maximumCombinations );
+    return pca;
+}
+
 /**
 Perform an ordinary least squares regression on two arrays of data.  See the
 Regression class methods for more information.  Analysis results are saved and
