@@ -40,7 +40,7 @@ public class MatrixUtilTest extends TestCase {
 
         double deter = 0;
         try {
-            deter = MatrixUtil.Inverse(MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, matrix, vector);
+            deter = MatrixUtil.inverse(MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, matrix, vector);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -69,7 +69,7 @@ public class MatrixUtilTest extends TestCase {
         matrix2[1][1]= 5;
         matrix2[1][2]= 7;
         try {
-            deter = MatrixUtil.Inverse(MatrixUtil.MatrixInverseComputations.INVERSE_AND_EQUATION_SOLUTIONS, matrix2, vector);
+            deter = MatrixUtil.inverse(MatrixUtil.MatrixInverseComputations.INVERSE_AND_EQUATION_SOLUTIONS, matrix2, vector);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -89,9 +89,9 @@ public class MatrixUtilTest extends TestCase {
                 System.out.println(vector[j]);
         }
 
-        
+        /*
         try {
-            deter = MatrixUtil.Inverse(MatrixUtil.MatrixInverseComputations.INVERSE_AND_EQUATION_SOLUTIONS, matrix, vector);
+            deter = MatrixUtil.inverse(MatrixUtil.MatrixInverseComputations.INVERSE_AND_EQUATION_SOLUTIONS, matrix, vector);
             fail ();
         } catch (InvalidParameterException ex) {
             assertSame("Matrix size not properly reported.", 
@@ -100,7 +100,7 @@ public class MatrixUtilTest extends TestCase {
 
         }
         try {
-            deter = MatrixUtil.Inverse(MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, matrix2, vector);
+            deter = MatrixUtil.inverse(MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, matrix2, vector);
             fail();
         } catch (InvalidParameterException ex) {
             assertSame("Matrix size not properly reported.",
@@ -108,7 +108,7 @@ public class MatrixUtilTest extends TestCase {
         } catch (Exception ex) {
 
         }
-        
+        */
     }
 
 
@@ -124,7 +124,7 @@ public class MatrixUtilTest extends TestCase {
             }
         }
 
-        double[][] b = MatrixUtil.Transpose(a);
+        double[][] b = MatrixUtil.transpose(a);
 
         System.out.println("Original Matrix:");
         for ( int i=0; i<nrows; i++ ) {
@@ -187,7 +187,7 @@ public class MatrixUtilTest extends TestCase {
             System.out.println("");
         }
 
-        double[][] product = MatrixUtil.Multiply(a, b);
+        double[][] product = MatrixUtil.multiply(a, b);
 
         // print results
         System.out.println("Product:");
@@ -239,7 +239,7 @@ public class MatrixUtilTest extends TestCase {
                 System.out.println( b[i]);
         }
 
-        double[] product = MatrixUtil.Multiply(a, b);
+        double[] product = MatrixUtil.multiply(a, b);
 
         // print results
         System.out.println("Product:");

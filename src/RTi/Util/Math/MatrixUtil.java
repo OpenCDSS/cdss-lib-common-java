@@ -59,26 +59,54 @@ public enum MatrixInverseComputations {
  */
 
 /**
- *
+ * The entire matrix is inversed.
  * @param a matrix to invert
  * @return determinant of n by n matrix
  */
-public static double Inverse ( double[][] a )
+public static double inverse ( double[][] a )
 throws Exception
 {
     double[] x = new double[0];
-    return Inverse ( MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, a, x);
+    return inverse ( MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, a, x);
 }
 
 /**
- *
+ * This function is provided in case the user wants to inverse only the first n rows/columns.
+ * @param n number of rows/columns to inverse
+ * @param a matrix to inverse
+ * @return determinant of n by n matrix
+ */
+public static double inverse ( double[][] a, int n )
+throws Exception
+{
+    double[] x = new double[0];
+    return inverse ( MatrixUtil.MatrixInverseComputations.INVERSE_ONLY, n, a, x);
+}
+
+/**
+ * 
  * @param indic Indicates desired computations:  one of MatrixInverseComputations
  *      (INVERSE_ONLY, INVERSE_AND_EQUATION_SOLUTIONS, EQUATION_SOLUTIONS_ONLY)
  * @param a;                     // input matrix
  * @param x;                      // vector of equation solutions
  * @return determinant of n by n+1 matrix
  */
-public static double Inverse( MatrixInverseComputations indic, double[][] a, double[] x )
+public static double inverse( MatrixInverseComputations indic, double[][] a, double[] x )
+throws Exception
+{
+    int n = a.length;
+    return inverse ( indic, n, a, x);
+}
+/**
+ * This function is provided in case the user wants to inverse only the first n rows/columns
+ * @param indic Indicates desired computations:  one of MatrixInverseComputations
+ *      (INVERSE_ONLY, INVERSE_AND_EQUATION_SOLUTIONS, EQUATION_SOLUTIONS_ONLY)
+ * @param n number of rows and columns in a
+ * @param a input matrix
+ * @param x vector of equation solutions
+ * @return determinant of n by n+1 matrix
+ */
+public static double inverse( MatrixInverseComputations indic, int n, double[][] a, double[] x )
 throws Exception
 {
    String routine = "MatrixUtil.Inverse";
@@ -106,7 +134,7 @@ throws Exception
    double[] y;                  // temporary storage vector
 
    // number of rows and columns in matrix a
-   int n = a.length;
+   
    max = indic==MatrixInverseComputations.INVERSE_ONLY ? n : n+1;
 
    // Perform a few checks on input
@@ -114,6 +142,7 @@ throws Exception
        Message.printWarning(3, routine, "Matrix is empty.");
        return 0;
    }
+   /* Commenting out because n may be specified for a larger matrix.
    if ( indic == MatrixInverseComputations.INVERSE_ONLY ) {
        if ( n != a[0].length ) {
            Message.printWarning(1, routine, "Only n by n matrices can be inversed.");
@@ -125,6 +154,7 @@ throws Exception
            throw new InvalidParameterException("Equation solutions can only be calculated for n by n+1 matrices.");
        }
    }
+    */
 
    // Allocate work vector space
    y = new double[n];
@@ -265,13 +295,13 @@ throws Exception
 }
 
 /**
- * Post-multiply a matrix by a vector.
+ * Post-multiply a matrix by a vector.  The size of x1 and x2 are calculated.
  * @param x1 input matrix
  * @param x2 vector
  * @return prod product of multiplication
  * @throws java.security.InvalidParameterException
  */
-public static double[] Multiply ( double[][] x1, double[] x2  )
+public static double[] multiply (double[][] x1, double[] x2)
 throws InvalidParameterException
 {
     int nX1Rows = x1.length;
@@ -280,12 +310,33 @@ throws InvalidParameterException
     }
 
     int nX1Cols = x1[0].length;
+    return multiply ( x1, x2, nX1Rows, nX1Cols );
+}
 
+/**
+ * Post-multiply a matrix by a vector.
+ * @param x1 input matrix
+ * @param x2 vector
+ * @param nX1Rows number of rows in x1 and number of elements in product vector
+ * @param nX1Cols number of columns in x matrix and number of elements in x2
+ * @return prod product of multiplication
+ * @throws java.security.InvalidParameterException
+ */
+public static double[] multiply ( double[][] x1, double[] x2, int nX1Rows, int nX1Cols  )
+throws InvalidParameterException
+{
+    
+    if ( nX1Rows == 0 || nX1Cols == 0 ) {
+        throw new InvalidParameterException("Zero-sized input matrix.");
+    }
+
+    /* Comment out because we are allowing users to specify nX1Rows and nX1Cols
     if ( nX1Cols != x2.length ){
         throw new InvalidParameterException(
                 "Number of columns in matrix (" + nX1Cols +
                 ") doesn't match number of rows in vector ("+ x2.length + ")." );
     }
+    */
 
     double[] prod = new double[nX1Rows];
 
@@ -304,7 +355,7 @@ throws InvalidParameterException
  * @return prod product of multiplication
  * @throws java.security.InvalidParameterException
  */
-public static double[][] Multiply ( double[][] x1, double[][] x2  )
+public static double[][] multiply ( double[][] x1, double[][] x2  )
 throws InvalidParameterException
 {
     int nX1Rows = x1.length;
@@ -314,14 +365,37 @@ throws InvalidParameterException
 
     int nX1Cols = x1[0].length;
 
+    if ( x2.length == 0 ) {
+        throw new InvalidParameterException("Zero-sized input matrix.");
+    }
+    int nX2Cols = x2[0].length;
+
+    return multiply ( x1, x2, nX1Rows, nX1Cols, nX2Cols );
+}
+
+/**
+ * Multiply two matrices.
+ * @param x1 first input matrix
+ * @param x2 second input matrix
+ * @return prod product of multiplication
+ * @throws java.security.InvalidParameterException
+ */
+public static double[][] multiply ( double[][] x1, double[][] x2, int nX1Rows, int nX1Cols, int nX2Cols  )
+throws InvalidParameterException
+{
+    
+    if ( nX1Rows == 0 || nX1Cols == 0 || nX2Cols == 0 ) {
+        throw new InvalidParameterException("Zero-sized input matrix.");
+    }
+    
+    /*
     if ( nX1Cols != x2.length ){
         throw new InvalidParameterException(
                 "Number of columns in first matrix (" + nX1Cols +
                 ") doesn't match number of rows in second matrix ("+ x2.length + ")." );
     }
+    */
     
-    int nX2Cols = x2[0].length;
-
     double[][] prod = new double[nX1Rows][nX2Cols];
 
     for (int i = 0; i < nX1Rows; i++) {
@@ -334,13 +408,15 @@ throws InvalidParameterException
     return prod;
 }
 
+
 /**
- * Transpose a matrix.
+ * Transpose a matrix.  The entire matrix is transposed because nrows and ncols
+ * is not specified.
  * @param x matrix to transpose
  * @return xt resulting matrix
  * @throws java.security.InvalidParameterException
  */
-public static double[][] Transpose ( double[][] x )
+public static double[][] transpose ( double[][] x )
 throws InvalidParameterException
 {
     int nrows = x.length;
@@ -349,6 +425,22 @@ throws InvalidParameterException
     }
 
     int ncols = x[0].length;
+    return transpose ( x, nrows, ncols );
+}
+/**
+ * Transpose a matrix.
+ * @param x matrix to transpose
+ * @param nrows number of rows in x matrix
+ * @param ncols number of columns in x matrix
+ * @return xt resulting matrix
+ * @throws java.security.InvalidParameterException
+ */
+public static double[][] transpose ( double[][] x, int nrows, int ncols )
+throws InvalidParameterException
+{
+    if ( nrows == 0 ) {
+        throw new InvalidParameterException("Zero-sized matrix.");
+    }
 
     // It looks odd to see [ncols][nrows], but this is transpose which is
     // exactly what we want.
