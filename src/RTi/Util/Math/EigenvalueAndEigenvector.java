@@ -101,6 +101,13 @@ public Status getStatus() {
  */
 public void jacobi ()
 {
+    jacobi ( _size );
+}
+
+public void jacobi (int size)
+{
+    // specifying size is provided in case the entire matrix should not be processed
+    _size = Math.min(size, _size);
     int status = jacobi ( _inputMatrix, _size, _eigenvalues, _eigenvectors );
 
     _status = status == 0? Status.CONVERGED : Status.FAIL;
