@@ -75,16 +75,16 @@ private void analyze( ) throws Exception {
      */
 
     int nn;
-    int icomb = 0;
+    int icomb = -1;
     int[][] csave = new int[_maxCombinations][nx+1];    // matrix of flags indicating variables used in stored combinations
     for (int i = 0; i < _maxCombinations; i++) {
-       for (int j = 0; j < (nx+1); j++) {
+       for (int j = 0; j <= nx; j++) {
           csave[i][j] = 0;
        }
     }
 
-    int[] iuse = new int[nx+1];                     // vector indicating
-    for (int j = 0; j < (nx+1); j++) {
+    int[] iuse = new int[nx+1];                     // vector indicating to use that station -
+    for (int j = 1; j <= nx; j++) {                 // really should be taken out since we are always using all stations
        iuse[j] = 1;
     }
 
@@ -113,7 +113,7 @@ private void analyze( ) throws Exception {
          double dum1 = n * sumxy - sumx * sumy;
          double dum2 = n * sumy2 - sumy * sumy;
          double dum3 = n * sumx2 - sumx * sumx;
-         corr[j] = sign (dum1 / Math.sqrt(dum2 * dum3));
+         corr[j+1] = sign (dum1 / Math.sqrt(dum2 * dum3));
     }
 
     // Perform regression combinations
@@ -128,7 +128,7 @@ private void analyze( ) throws Exception {
 
       if (n == 1) {      /* 1-variable models */
 
-         for (int j = 0; j < nx; j++)
+         for (int j = 1; j <= nx; j++)
             if (iuse[j] == 1) {
                cuse[j] = 1;
                icomb = PCAreg(icomb, n );
@@ -146,29 +146,36 @@ private void analyze( ) throws Exception {
             /* Skip stored combinations that have fewer than n-1 variables */
 
             int cadd = 0;
-            for (int j = 0; j < nx; j++)
+            for (int j = 1; j <= nx; j++)
                cadd += csave[i][j];
-/* Debug
-fprintf(fpout, "\n\nCheck for combinations having fewer than n-1 variables:\ni = %d   cadd = %d   n = %d   nn = %d",
-        i, cadd, n, nn);
-   End debug */
+            /* Debug
+            fprintf(fpout, "\n\nCheck for combinations having fewer than n-1 variables:\ni = %d   cadd = %d   n = %d   nn = %d",
+                    i, cadd, n, nn);
+               End debug */
             if (cadd < (n-1))
                continue;
 
             /* Set cuse flags for first n-1 variables */
 
-            for (int j = 0; j < nx; j++) {
+            for (int j = 1; j <= nx; j++) {
                cuse[j] = 0;
-            }
-            for (int j = 0; j < n; j++ ) {
+            }/*  this is NOT the same as the loop below ... why?
+            for (int j = 1; j < n; j++ ) {
                if (csave[i][j] == 1) {
                   cuse[j] = 1;
                }
-            }
+            }*/
+            int w = 1;
+            int a =  0;
+            while (w < n)
+               if (csave[i][++a] == 1) {
+                  cuse[a] = 1;
+                  w++;
+               }
 
             /* Cycle through all variables for n-th variable */
 
-            for (int j = 0; j < nx; j++) {
+            for (int j = 1; j <= nx; j++) {
 
                /* If j-th variable is already in equation, skip it --
                   otherwise set it as the n-th variable in equation */
@@ -180,7 +187,12 @@ fprintf(fpout, "\n\nCheck for combinations having fewer than n-1 variables:\ni =
 
                   /* For first stored combination, go ahead and perform
                      regression */
-
+                  /* Debug */
+                   System.out.println("cuse before PCAreg: ");
+                  for ( int q=1; q<=nx; q++ )
+                        System.out.print("  " + cuse[q]);
+                   System.out.println("");
+                  /* End debug */
                   icomb = PCAreg(icomb, n);
                   cuse[j] = 0;
                }
@@ -190,12 +202,12 @@ fprintf(fpout, "\n\nCheck for combinations having fewer than n-1 variables:\ni =
                   int m;
                   for ( m = 0; m < i; m++) {
                      cadd = 0;
-                     for (int l = 0; l < nx; l++)
+                     for (int l = 1; l <= nx; l++)
                         cadd += ((csave[m][l] + cuse[l]) / 2);
-/* Debug
-fprintf(fpout, "\n\nCheck for dups:  i = %d   m = %d   cadd = %d,
-        i, m, cadd);
-   End debug */
+                    /* Debug
+                    fprintf(fpout, "\n\nCheck for dups:  i = %d   m = %d   cadd = %d,
+                            i, m, cadd);
+                       End debug */
                      if (cadd >= (n-1)) {
                         cuse[j] = 0;
                         break;
@@ -205,9 +217,15 @@ fprintf(fpout, "\n\nCheck for dups:  i = %d   m = %d   cadd = %d,
                   /* No duplicate found; do regression */
 
                   if (m == i) {
-/* Debug
-fprintf(fpout, "\n\nNo duplicate found ... performing regression ...");
-   End debug */
+                    /* Debug
+                    fprintf(fpout, "\n\nNo duplicate found ... performing regression ...");
+                       End debug */
+                      /* Debug */
+                   System.out.println("cuse before PCAreg: ");
+                  for ( int q=1; q<=nx; q++ )
+                        System.out.print("  " + cuse[q]);
+                   System.out.println("");
+                  /* End debug */
                      icomb = PCAreg(icomb, n );
                      cuse[j] = 0;
                   }
@@ -223,8 +241,8 @@ fprintf(fpout, "\n\nNo duplicate found ... performing regression ...");
       int m = 0;
       for (int i = 0; i < nn; i++) {
          m = 0;
-         for (int j = 0; j < nx; j++) {
-            if (iuse[j] == 1 && bcomb[i][j] != -999.)
+         for (int j = 1; j <= nx; j++) {
+            if (iuse[j] == 1 && bcomb[i][j] != _independentMissingValue)
                m++;
          }
          if (m == n)
@@ -238,21 +256,23 @@ fprintf(fpout, "\n\nNo duplicate found ... performing regression ...");
          stored combination */
 
       for (int i = 0; i < nn; i++) {
-         for (int j = 0; j < nx; j++) {
-             csave[i][j] = (iuse[j] == 1 && bcomb[i][j] != -999.) ? 1 : 0;
+         for (int j = 1; j <= nx; j++) {
+             csave[i][j] = (iuse[j] == 1 && bcomb[i][j] != _independentMissingValue) ? 1 : 0;
          }
       }
-/* Debug
-fprintf(fpout, "\n\ncsave flags after %d-variable eqns. have been done:\n", n);
-for (i = 0; i < nn; i++) {
-   fprintf(fpout, "\n");
-   for (j = PCAny; j < nv; j++)
-      fprintf(fpout, "%d  ", csave[i][j]);
-}
-   End debug */
+        /* Debug */
+        System.out.printf("\n\ncsave flags after %d-variable eqns. have been done:\n", n);
+        for (int i = 0; i < nn; i++) {
+           System.out.printf( "\n");
+           for (int j = 1; j <= nx; j++)
+              System.out.printf( "%d  ", csave[i][j]);
+        }
+        System.out.printf( "\n\n\n");
+           /* End debug */
    }
    int ncomb = icomb + 1;
    if (ncomb == 0) {
+       // @todo This shouldn't really throw an exception, just end the program...
       throw new Exception ("No valid equations found.  Program terminated ...");
    }
 
@@ -263,27 +283,27 @@ for (i = 0; i < nn; i++) {
    }
    else {
       int n = Math.min(ncomb, _maxCombinations);
-/* Debug
-fprintf(fpout, "\n\nUnsorted regression results:\n");
-for (i = 0; i < n; i++) {
-   fprintf(fpout, "\n%4d%6.3f%10.3f%10.3f", i, r[i], se[i],
-           bcomb[i][0]);
-   for (j = PCAny; j < nv; j++)
-      if (iuse[j] == 1)
-         fprintf(fpout, "%10.3f", bcomb[i][j]);
-}
-   End debug */
+        /* Debug
+        fprintf(fpout, "\n\nUnsorted regression results:\n");
+        for (i = 0; i < n; i++) {
+           fprintf(fpout, "\n%4d%6.3f%10.3f%10.3f", i, r[i], se[i],
+                   bcomb[i][0]);
+           for (j = PCAny; j < nv; j++)
+              if (iuse[j] == 1)
+                 fprintf(fpout, "%10.3f", bcomb[i][j]);
+        }
+           End debug */
       MatrixUtil.sortArray(se, indx, n);
-/* Debug */
-System.out.println("Sorted regression results:");
-for (int i = 0; i < n; i++) {
-    System.out.printf("\n%4d%6.3f%10.3f%10.3f",
-            indx[i], r[indx[i]], se[indx[i]], bcomb[indx[i]][0]);
-   for (int j = 0; j < nx; j++)
-      if (iuse[j] == 1)
-         System.out.printf( "%10.3f", bcomb[indx[i]][j]);
-}
-   /* End debug */
+        /* Debug */
+        System.out.println("Sorted regression results:");
+        for (int i = 0; i < n; i++) {
+            System.out.printf("\n%4d%6.3f%10.3f%10.3f",
+                    indx[i], r[indx[i]], se[indx[i]], bcomb[indx[i]][0]);
+           for (int j = 1; j <= nx; j++)
+              if (iuse[j] == 1)
+                 System.out.printf( "%10.3f", bcomb[indx[i]][j]);
+        }
+           /* End debug */
 
 
    }
@@ -325,8 +345,8 @@ private void initialize(double[] dependentArray, double[][] independentMatrix,
     bcomb = new double[_maxCombinations][nx+1]; // regression coefficients for combinations
 
     for (int i = 0; i < _maxCombinations; i++) {
-       for (int j = 0; j < (nx+1); j++) {
-          bcomb[i][j] = -999.;
+       for (int j = 0; j <= nx; j++) {
+          bcomb[i][j] = _independentMissingValue;
        }
     }
 
@@ -371,8 +391,8 @@ private int PCAreg(int icomb, int k ) throws Exception
          n--;
          continue;
       }
-      for ( m = 0; m < nx; m++) {
-         if ( _independentMatrix[i][m] == _independentMissingValue ) {
+      for ( m = 1; m <= nx; m++) {
+         if ( cuse[m] == 1 && _independentMatrix[i][m-1] == _independentMissingValue ) {
             ouse[i] = 0;
             n--;
             break;
@@ -392,12 +412,22 @@ private int PCAreg(int icomb, int k ) throws Exception
    for (int i = 0; i < nobs; i++) {
       if (ouse[i] == 1) {
          y[++m] = _dependentArray[i];
-         n = 0;     // @todo should this be -1
-         for (int l = 0; l < nx; l++)
+         n = 0; 
+         for (int l = 1; l <= nx; l++)
             if (cuse[l] == 1)
-               x[m][++n] = _independentMatrix[i][l];
+               x[m][++n] = _independentMatrix[i][l-1];
       }
    }
+
+    /* Debug */
+    System.out.printf( "\n\nPCAreg:  y and x data for combination %d:\n", icomb);
+    for (int i = 0; i <= m; i++) {
+       System.out.printf( "\n%10.3f", y[i]);
+       for (int l = 0; l <= k; l++)
+          System.out.printf( "%10.3f", x[i][l]);
+    }
+    /* End debug */
+
 
    // Perform regression
   icomb = PCAregress(icomb, m+1, k );
@@ -440,27 +470,27 @@ int PCAreg_coef( int n, int nvar, double[] rANDse, double[] t )
    /* Add one to nvar to account for intercept */
 
    nvar++;
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  y and x input data:\n");
-for (i = 0; i < n; i++) {
-   fprintf(fpout, "\n%8.2f", y[i]);
-   for (j = 0; j < nvar; j++)
-      fprintf(fpout, "%8.2f", x[i][j]);
-}
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  y and x input data:\n");
+    for (i = 0; i < n; i++) {
+       fprintf(fpout, "\n%8.2f", y[i]);
+       for (j = 0; j < nvar; j++)
+          fprintf(fpout, "%8.2f", x[i][j]);
+    }
+       End debug */
 
-   /* Transpose the x matrix (x') */
+   // Transpose the x matrix (x')
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  transposing matrix ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  transposing matrix ...\n");
+       End debug */
    double [][] xt = MatrixUtil.transpose(x, n, nvar );
 
-   /* Compute x'x */
+   // Compute x'x
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  multiplying matrix ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  multiplying matrix ...\n");
+       End debug */
    double[][] work1 = MatrixUtil.multiply(xt, x, nvar, n, nvar );
    try {
         /* Invert x'x */
@@ -480,51 +510,51 @@ fprintf(fpout, "\n\nPCAreg_coef:  multiplying matrix ...\n");
    for (int i = 0; i < nvar; i++)
       t[i] = work1[i][i];
 
-   /* Multiply matrix inverse by x' */
+   // Multiply matrix inverse by x'
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  multiplying matrix ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  multiplying matrix ...\n");
+       End debug */
    double[][] work2 = MatrixUtil.multiply(work1, xt, nvar, nvar, n);
 
-   /* Multiply resultant matrix by y vector to get regression coefficients */
+   // Multiply resultant matrix by y vector to get regression coefficients
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  calculating regression coefficients ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  calculating regression coefficients ...\n");
+       End debug */
    double[] btemp = MatrixUtil.multiply(work2, y, nvar, n );
    for ( int i=0; i<btemp.length; i++ ) {
        b[i] = btemp[i];
    }
-/* Debug
-fprintf(fpout, "\n\nRegression coefficients:\n");
-for (i = 0; i < nvar; i++)
-   fprintf(fpout, "%8.3f\n", b[i]);
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nRegression coefficients:\n");
+    for (i = 0; i < nvar; i++)
+       fprintf(fpout, "%8.3f\n", b[i]);
+       End debug */
 
-   /* Generate equation estimates of y (yest) */
+   // Generate equation estimates of y (yest)
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  calculating y estimates ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  calculating y estimates ...\n");
+       End debug */
    yest = MatrixUtil.multiply(x, b, n, nvar );
 
 
-   /* Compute correlation coefficient and standard error */
+   // Compute correlation coefficient and standard error
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  calculating r and se ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  calculating r and se ...\n");
+       End debug */
 
-      for (int i = 0; i < n; i++) {
-         sumo += y[i];
-         sumf += yest[i];
-         sumof += y[i] * yest[i];
-         sumo2 += y[i] * y[i];
-         sumf2 += yest[i] * yest[i];
-         err[i] = yest[i] - y[i];
-         sse += err[i] * err[i];
-      }
+  for (int i = 0; i < n; i++) {
+     sumo += y[i];
+     sumf += yest[i];
+     sumof += y[i] * yest[i];
+     sumo2 += y[i] * y[i];
+     sumf2 += yest[i] * yest[i];
+     err[i] = yest[i] - y[i];
+     sse += err[i] * err[i];
+  }
 
    dum1 = n * sumof - sumo * sumf;
    dum2 = n * sumo2 - sumo * sumo;
@@ -533,11 +563,11 @@ fprintf(fpout, "\n\nPCAreg_coef:  calculating r and se ...\n");
    mse = sse / (n - nvar);
    rANDse[1] = Math.sqrt(mse);
 
-   /* Compute t statistics for regression coefficients */
+   // Compute t statistics for regression coefficients
 
-/* Debug
-fprintf(fpout, "\n\nPCAreg_coef:  calculating t statistics ...\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\nPCAreg_coef:  calculating t statistics ...\n");
+       End debug */
 
    for (int i = 0; i < nvar; i++) {
       t[i] *= mse;
@@ -578,21 +608,21 @@ throws Exception
       // Compute principal components
 
       if (pccalc(nobsuse, nvar ) != 0) {
-            throw new Exception ("Error in eigenvalue/eigenvector computation.  Program terminated ...");
+            throw new Exception ("Error in eigenvalue/eigenvector computation.  Program terminated ... Combination no. " + icomb );
       }
 
       // Compute regression coefficients
 
-      imax = Math.min(nvar, nx);
+      imax = Math.min(nvar, lastc);
       nc = 0;
       for (int i = 1; i <= imax; i++) {
 
          // Only perform regression if there are 4 remaining degrees of freedom
 
          if ((nobsuse - i - 1) < 4) {
-/* Debug
-fprintf(fpout, "\n\nPCAregress: Fewer than 4 remaining d.f. for comb. %d", *icomb);
-   End debug */
+            /* Debug
+            fprintf(fpout, "\n\nPCAregress: Fewer than 4 remaining d.f. for comb. %d", *icomb);
+               End debug */
             break;
          }
          if (PCAreg_coef(nobsuse, i, rANDse, t) != 0) {
@@ -603,15 +633,15 @@ fprintf(fpout, "\n\nPCAregress: Fewer than 4 remaining d.f. for comb. %d", *icom
             convert regression coefficients from principal components into
             original variables and save results */
 
-/* Debug
-fprintf(fpout, "\n\nPCAregress: t-values for combination %d are:", *icomb);
-for (j = 1; j <= i; j++)
-   fprintf(fpout, "%8.3f", t[j]);
-fprintf(fpout, "\n           Variables:");
-for (j = PCAny; j < nv; j++)
-   if (cuse[j] == 1)
-      fprintf(fpout, "  %s", v[j]);
-   End debug */
+        /* Debug
+        fprintf(fpout, "\n\nPCAregress: t-values for combination %d are:", *icomb);
+        for (j = 1; j <= i; j++)
+           fprintf(fpout, "%8.3f", t[j]);
+        fprintf(fpout, "\n           Variables:");
+        for (j = PCAny; j < nv; j++)
+           if (cuse[j] == 1)
+              fprintf(fpout, "  %s", v[j]);
+           End debug */
          if (Math.abs(t[i]) >= _tcrit) {
             pcconv(i, nvar );
 
@@ -620,37 +650,37 @@ for (j = PCAny; j < nv; j++)
                not use the last included component. */
 
             int k = 0;
-            for ( j = 0; j < nx; j++) {
+            for ( j = 1; j <= nx; j++) {
                if (cuse[j] == 1 && sign(b[++k]) != corr[j])
                   break;
             }
 
-            if (j >= nx) {
+            if (j >= (nx+1)) {
                nc = i;
 
-               /* Save regression results */
+               // Save regression results
 
                for (j = 0; j <= nvar; j++)
                   bsave[j] = b[j];
-               rsave = rANDse[0];
-               sesave = rANDse[1];
+                  rsave = rANDse[0];
+                  sesave = rANDse[1];
                   for (j = 0; j < nobsuse; j++) {
                      esave[j] = err[j];
                      cmpsave[j] = yest[j];
                   }
             }
-/* Debug
-else {
-   fprintf(fpout, "\n\nRegression coefficient of inappropriate sign -- component no. %d", i);
-   fprintf(fpout, "\nVariables and coefficients:\n");
-   for (j = PCAny; j < nv; j++)
-      if (cuse[j] == 1)
-         fprintf(fpout, "       %s", v[j]);
-   fprintf(fpout, "\n");
-   for (j = 1; j <= nvar; j++)
-      fprintf(fpout, "%10.3f", b[j]);
-}
-   End debug */
+        /* Debug
+        else {
+           fprintf(fpout, "\n\nRegression coefficient of inappropriate sign -- component no. %d", i);
+           fprintf(fpout, "\nVariables and coefficients:\n");
+           for (j = PCAny; j < nv; j++)
+              if (cuse[j] == 1)
+                 fprintf(fpout, "       %s", v[j]);
+           fprintf(fpout, "\n");
+           for (j = 1; j <= nvar; j++)
+              fprintf(fpout, "%10.3f", b[j]);
+        }
+           End debug */
          }
          else
             break;
@@ -662,14 +692,14 @@ else {
          (icomb)--;
          return icomb;
       }
-/* Debug
-else {
-   fprintf(fpout, "\n\nNumber of components retained = %d\nVariables:\n", nc);
-   for (j = PCAny; j < nv; j++)
-      if (cuse[j] == 1)
-         fprintf(fpout, "       %s", v[j]);
-}
-   End debug */
+    /* Debug
+    else {
+       fprintf(fpout, "\n\nNumber of components retained = %d\nVariables:\n", nc);
+       for (j = PCAny; j < nv; j++)
+          if (cuse[j] == 1)
+             fprintf(fpout, "       %s", v[j]);
+    }
+       End debug */
    }
 
    // Standard regression */
@@ -681,11 +711,11 @@ else {
       /* If any variables have non-significant t-statistic, throw out
          that combination; otherwise, save regression results */
 
-/* Debug
-fprintf(fpout, "\n\nPCAregress: t-values for combination %d are:  ", *icomb);
-for (j = 1; j <= nvar; j++)
-   fprintf(fpout, "%8.3f", t[j]);
-   End debug */
+        /* Debug
+        fprintf(fpout, "\n\nPCAregress: t-values for combination %d are:  ", *icomb);
+        for (j = 1; j <= nvar; j++)
+           fprintf(fpout, "%8.3f", t[j]);
+           End debug */
       for ( j = 1; j <= nvar; j++)
          if (Math.abs(t[j]) < _tcrit) {
             icomb--;
@@ -700,15 +730,21 @@ for (j = 1; j <= nvar; j++)
         cmpsave[j] = yest[j];
      }
    }
-/* Debug
-fprintf(fpout, "\nPCAregress results for combination %d:", *icomb);
-if (ipcflg == 1 && nvar > 1)
-   fprintf(fpout, "\n   (number of prin. comp. retained = %d)", nc);
-fprintf(fpout, "\n   (number of observations used = %d)", nobsuse);
-fprintf(fpout, "\n%6.3f%10.3f", rsave, sesave);
-for (k = 0; k <= nvar; k++)
-   fprintf(fpout, "%10.3f", bsave[k]);
-   End debug */
+    /* Debug */
+    System.out.printf( "\n\nPCAregress results for combination %d:", icomb);
+    if (nvar > 1)
+       System.out.printf("\n   (number of prin. comp. retained = %d)", nc);
+    System.out.printf("\n   (number of observations used = %d)", nobsuse);
+    System.out.printf("\nrsave: %6.3f sesave: %10.3f", rsave, sesave);
+    System.out.printf("\nintercept?: %6.3f", bsave[0]);
+    System.out.printf("\nnvar: %d\n", nvar);
+    for (int q = 1; q <= nx; q++)
+         if (cuse[q] == 1)
+             System.out.printf( "\ncuse(%d)", q);
+    for (int k = 1; k <= nvar; k++) {
+            System.out.printf( "\n(%d) %10.3f", k, bsave[k]);
+    }
+       /* End debug */
 
    if (icomb < _maxCombinations) {
 
@@ -716,24 +752,24 @@ for (k = 0; k <= nvar; k++)
 
       bcomb[icomb][0] = bsave[0];
       int k = 0;
-      for (j = 0; j < nx; j++)
+      for (j = 1; j <= nx; j++)
          if (cuse[j] == 1)
             bcomb[icomb][j] = bsave[++k];
       r[icomb] = rsave;
       se[icomb] = sesave;
       nobsc[icomb] = nobsuse;
       ncomp[icomb] = nvar > 1 ? nc : 0;
-         k = -1;
-         for (j = 0; j < nobs; j++) {
-            if (ouse[j] == 1) {
-               k++;
-               error[icomb][j] = esave[k];
-               comp[icomb][j] = cmpsave[k];
-               obs[icomb][j] = 1;
-            }
-            else
-               obs[icomb][j] = 0;
-         }
+     k = -1;
+     for (j = 0; j < nobs; j++) {
+        if (ouse[j] == 1) {
+           k++;
+           error[icomb][j] = esave[k];
+           comp[icomb][j] = cmpsave[k];
+           obs[icomb][j] = 1;
+        }
+        else
+           obs[icomb][j] = 0;
+     }
    }
    else {
 
@@ -741,8 +777,6 @@ for (k = 0; k <= nvar; k++)
          is superior to all those stored */
 
       // Find regular standard error
-
-
       semax = -1.;
       ise = -1;
       for (int i = 0; i < _maxCombinations; i++) {
@@ -751,9 +785,9 @@ for (k = 0; k <= nvar; k++)
                ise = i;
             }
       }
-/* Debug
-fprintf(fpout, "\n\nsemax for combination %d is %f", *icomb, semax);
-   End debug */
+        /* Debug
+        fprintf(fpout, "\n\nsemax for combination %d is %f", *icomb, semax);
+           End debug */
 
       /*
          Search for maximum stored regular standard error and compare
@@ -765,16 +799,13 @@ fprintf(fpout, "\n\nsemax for combination %d is %f", *icomb, semax);
       if (sesave < semax) {
             // save results if combination is superior to stored ones
 
-/* Debug
-fprintf(fpout, "\n\nCombination %d replacing stored value no. %d", *icomb, ise);
-   End debug */
+            /* Debug
+            fprintf(fpout, "\n\nCombination %d replacing stored value no. %d", *icomb, ise);
+               End debug */
             bcomb[ise][0] = bsave[0];
             int k = 0;
-            for (j = 0; j < nx; j++) {
-               if (cuse[j] == 1)
-                  bcomb[ise][j] = bsave[++k];
-               else
-                  bcomb[ise][j] = -999.;
+            for (j = 1; j <= nx; j++) {
+                  bcomb[ise][j] = cuse[j] == 1 ? bsave[++k] : _independentMissingValue;
             }
             r[ise] = rsave;
             se[ise] = sesave;
@@ -818,13 +849,13 @@ int pccalc(int nobs, int nx )
    double sumb2;                 // sum of squares of second data elements
    double denom;
 
-/* Debug
-fprintf(fpout, "\n\npccalc:  input x data:\n");
-for (i = 0; i < nobs; i++) {
-   fprintf(fpout, "\n");
-   for (j = 0; j <= nx; j++)
-      fprintf(fpout, "%9.2f", x[i][j]);
-}
+    /* Debug
+    fprintf(fpout, "\n\npccalc:  input x data:\n");
+    for (i = 0; i < nobs; i++) {
+       fprintf(fpout, "\n");
+       for (j = 0; j <= nx; j++)
+          fprintf(fpout, "%9.2f", x[i][j]);
+    }
    End debug */
 
    // Compute means, standard deviations, and correlation matrix
@@ -860,57 +891,61 @@ for (i = 0; i < nobs; i++) {
          dum1 = nobs * sumab - suma * sumb;
          dum2 = nobs * suma2 - suma * suma;
          dum3 = nobs * sumb2 - sumb * sumb;
-         rp[i][j] = dum1 / Math.sqrt(dum2 * dum3);
          denom =  Math.sqrt(dum2 * dum3);
+         if ( denom == 0 ) {
+             System.out.println("Zero in denominator!!");
+             return (1);
+         }
+         rp[i][j] = dum1 / denom;
          // rp[i][j] = denom == 0 ? 0 : dum1 / Math.sqrt(dum2 * dum3);
          rp[j][i] = rp[i][j];
       }
    }
-/* Debug
-fprintf(fpout, "\n\npccalc:  means and sd's of x data:\n");
-for (i = 1; i <= nx; i++)
-   fprintf(fpout, "%10.3f%10.3f\n", xm[i], xs[i]);
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\npccalc:  means and sd's of x data:\n");
+    for (i = 1; i <= nx; i++)
+       fprintf(fpout, "%10.3f%10.3f\n", xm[i], xs[i]);
+       End debug */
 
    // Compute eigenvalues and eigenvectors
    EigenvalueAndEigenvector ee = new EigenvalueAndEigenvector( rp );
-   ee.jacobi();
+   ee.jacobi(nx);
    if ( ee.getStatus() != EigenvalueAndEigenvector.Status.CONVERGED )
         return(1);
    evct = ee.getEigenvectors();
 
    // Standardize input data
 
-/* Debug
-fprintf(fpout, "\n\npccalc:  calculating standardized data:\n");
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\npccalc:  calculating standardized data:\n");
+       End debug */
    for (int j = 1; j <= nx; j++) {
       for (int i = 0; i < nobs; i++) {
-/* Debug
-        fprintf(fpout, "x[%d][%d] = %7.2f  xm[%d] = %8.3f  xs[%d] = %8.3f",
-                i, j, x[i][j], j, xm[j], j, xs[j]);
-   End debug */
+        /* Debug
+                fprintf(fpout, "x[%d][%d] = %7.2f  xm[%d] = %8.3f  xs[%d] = %8.3f",
+                        i, j, x[i][j], j, xm[j], j, xs[j]);
+           End debug */
          xstd[i][j] = (x[i][j] - xm[j]) / xs[j];
-/* Debug
-         fprintf(fpout, "  xstd[%d][%d] = %7.3f  adr = %p  adr **xstd = %p\n",
-                 i, j, xstd[i][j], &xstd[i][j], xstd);
-   End debug */
+        /* Debug
+                 fprintf(fpout, "  xstd[%d][%d] = %7.3f  adr = %p  adr **xstd = %p\n",
+                         i, j, xstd[i][j], &xstd[i][j], xstd);
+           End debug */
       }
    }
-/* Debug
-fprintf(fpout, "\n\npccalc:  standardized x data:\n");
-for (i = 0; i < nobs; i++) {
-   fprintf(fpout, "\n");
-   for (j = 1; j <= nx; j++)
-      fprintf(fpout, "%8.3f", xstd[i][j]);
-}
-fprintf(fpout, "\n\npccalc:  addresses of standardized x data:\n");
-for (i = 0; i < nobs; i++) {
-   fprintf(fpout, "\n%p", xstd);
-   for (j = 1; j <= nx; j++)
-      fprintf(fpout, " %p", &xstd[i][j]);
-}
-   End debug */
+    /* Debug
+    fprintf(fpout, "\n\npccalc:  standardized x data:\n");
+    for (i = 0; i < nobs; i++) {
+       fprintf(fpout, "\n");
+       for (j = 1; j <= nx; j++)
+          fprintf(fpout, "%8.3f", xstd[i][j]);
+    }
+    fprintf(fpout, "\n\npccalc:  addresses of standardized x data:\n");
+    for (i = 0; i < nobs; i++) {
+       fprintf(fpout, "\n%p", xstd);
+       for (j = 1; j <= nx; j++)
+          fprintf(fpout, " %p", &xstd[i][j]);
+    }
+       End debug */
 
    // Compute new variates (principal components) */
 
@@ -971,7 +1006,7 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
    // Header information
 
    Date date = new Date();
-   fpout.printf("%s     %s\n%s%3.1f",
+   fpout.printf("\n%s     %s\n%s%3.1f",
            "REGRESSION COMBINATION PROGRAM", date,
            "Critical value of t-statistic = ", _tcrit);
    fpout.printf("\n%s%d",
@@ -995,20 +1030,30 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
       fpout.printf("\n      ");
 
       if (i == 0) {
-         if (nx < 5)
+          for ( int j=1; j <= nx; j++ ) {
+              if (iuse[j] == 1)
+                  fpout.printf(" X");
+          }
+
+         if (nx < 5) {
             for (int j = 5; j > nx; j--)
                fpout.printf("  ");
-
-            fpout.printf("             USED");
+         }
+         fpout.printf("             USED");
+      } else if ( i==2 ) {
+          for ( int j=1; j <= nx; j++ ) {
+              if (iuse[j] == 1)
+                  fpout.printf(" %d", j);
+          }
       }
    }
    fpout.printf("\n");
    for (int k = 0; k < nn; k++) {
          ix = indx[k];
       fpout.printf("\n%4d  ", k+1);
-      for (int j = 0; j < nx; j++) {
+      for (int j = 1; j <= nx; j++) {
          if (iuse[j] == 1) {
-            if (bcomb[ix][j] != -999.)
+            if (bcomb[ix][j] != _independentMissingValue)
                fpout.printf(" X");
             else
                fpout.printf("  ");
@@ -1017,8 +1062,8 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
       if (nx < 5) {
          for (int j = 5; j > nx; j--)
             fpout.printf("  ");
-         fpout.printf("%11.3f%6d", se[ix], nobsc[ix]);
       }
+      fpout.printf("%11.3f%6d", se[ix], nobsc[ix]);
    }
 
    // List of ranked equations
@@ -1026,19 +1071,19 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
    fpout.printf("\n\n\n\n\nRANKED REGRESSION EQUATIONS:");
    for (int k = 0; k < nn; k++) {
       ix = indx[k];
-      int jend = -1;
+      int jend = 0;
       for (int i = 1; i <= nlines; i++) {
          int jbegin = jend + 1;
          if (i == nlines)
-            jend = nx - 1;
+            jend = nx;
          if (i == 1)
             fpout.printf("\n\n\nRANK   INTERCEPT");
          else
             fpout.printf("\n\n                ");
          int n = 0;
-         for (int j = jbegin; j < nx; j++)
+         for (int j = jbegin; j <= nx; j++)
             if (iuse[j] == 1 ) {
-               fpout.printf("      x %s", j+1);
+               fpout.printf("      x %s", j);
                n++;
                if (n == 12) {
                   jend = j;
@@ -1051,7 +1096,7 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
             fpout.printf("\n                ");
          for (int j = jbegin; j <= jend; j++) {
             if (iuse[j] == 1) {
-               if (bcomb[ix][j] != -999.)
+               if (bcomb[ix][j] != _independentMissingValue)
                   fpout.printf("%9.3f", bcomb[ix][j]);
                else
                   fpout.printf("        0");
@@ -1068,7 +1113,7 @@ private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx 
 
 
       // Observed, computed, and error series
-         fpout.printf("       YEAR   OBSERVED   COMPUTED      ERROR\n");
+         fpout.printf("\n       YEAR   OBSERVED   COMPUTED      ERROR\n");
          for (int i = 0; i < nobs; i++)
             if (obs[ix][i] == 1) {
                fpout.printf("\n%11d%11.2f%11.2f%11.2f", i,
