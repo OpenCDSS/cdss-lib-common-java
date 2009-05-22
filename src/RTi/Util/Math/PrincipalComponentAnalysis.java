@@ -187,12 +187,12 @@ private void analyze( ) throws Exception {
 
                   /* For first stored combination, go ahead and perform
                      regression */
-                  /* Debug */
+                  /* Debug 
                    System.out.println("cuse before PCAreg: ");
                   for ( int q=1; q<=nx; q++ )
                         System.out.print("  " + cuse[q]);
                    System.out.println("");
-                  /* End debug */
+                   End debug */
                   icomb = PCAreg(icomb, n);
                   cuse[j] = 0;
                }
@@ -220,12 +220,12 @@ private void analyze( ) throws Exception {
                     /* Debug
                     fprintf(fpout, "\n\nNo duplicate found ... performing regression ...");
                        End debug */
-                      /* Debug */
+                      /* Debug 
                    System.out.println("cuse before PCAreg: ");
                   for ( int q=1; q<=nx; q++ )
                         System.out.print("  " + cuse[q]);
                    System.out.println("");
-                  /* End debug */
+                   End debug */
                      icomb = PCAreg(icomb, n );
                      cuse[j] = 0;
                   }
@@ -260,7 +260,7 @@ private void analyze( ) throws Exception {
              csave[i][j] = (iuse[j] == 1 && bcomb[i][j] != _independentMissingValue) ? 1 : 0;
          }
       }
-        /* Debug */
+        /* Debug 
         System.out.printf("\n\ncsave flags after %d-variable eqns. have been done:\n", n);
         for (int i = 0; i < nn; i++) {
            System.out.printf( "\n");
@@ -268,7 +268,7 @@ private void analyze( ) throws Exception {
               System.out.printf( "%d  ", csave[i][j]);
         }
         System.out.printf( "\n\n\n");
-           /* End debug */
+            End debug */
    }
    int ncomb = icomb + 1;
    if (ncomb == 0) {
@@ -294,7 +294,7 @@ private void analyze( ) throws Exception {
         }
            End debug */
       MatrixUtil.sortArray(se, indx, n);
-        /* Debug */
+        /* Debug 
         System.out.println("Sorted regression results:");
         for (int i = 0; i < n; i++) {
             System.out.printf("\n%4d%6.3f%10.3f%10.3f",
@@ -303,7 +303,7 @@ private void analyze( ) throws Exception {
               if (iuse[j] == 1)
                  System.out.printf( "%10.3f", bcomb[indx[i]][j]);
         }
-           /* End debug */
+            End debug */
 
 
    }
@@ -419,14 +419,14 @@ private int PCAreg(int icomb, int k ) throws Exception
       }
    }
 
-    /* Debug */
+    /* Debug 
     System.out.printf( "\n\nPCAreg:  y and x data for combination %d:\n", icomb);
     for (int i = 0; i <= m; i++) {
        System.out.printf( "\n%10.3f", y[i]);
        for (int l = 0; l <= k; l++)
           System.out.printf( "%10.3f", x[i][l]);
     }
-    /* End debug */
+     End debug */
 
 
    // Perform regression
@@ -730,7 +730,7 @@ throws Exception
         cmpsave[j] = yest[j];
      }
    }
-    /* Debug */
+    /* Debug 
     System.out.printf( "\n\nPCAregress results for combination %d:", icomb);
     if (nvar > 1)
        System.out.printf("\n   (number of prin. comp. retained = %d)", nc);
@@ -744,7 +744,7 @@ throws Exception
     for (int k = 1; k <= nvar; k++) {
             System.out.printf( "\n(%d) %10.3f", k, bsave[k]);
     }
-       /* End debug */
+        End debug */
 
    if (icomb < _maxCombinations) {
 
