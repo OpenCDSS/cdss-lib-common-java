@@ -4,7 +4,6 @@
 
 package RTi.TS;
 
-import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.PrincipalComponentAnalysis;
 import RTi.Util.String.StringUtil;
@@ -32,43 +31,21 @@ PrincipalComponentAnalysis _pca;        // Analysis, including statistics, etc.
  *
 @param dependentTS The dependent time series (Y).
 @param independentTS A list of the independent time series (X).
-@param props Property list indicating how the regression should be performed.
-Possible properties are listed in the table below:
-<p>
-
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>   <td><b>Description</b></td>   <td><b>Default</b></td>
-</tr
-
-<tr>
-<td><b>AnalysisMonth</b></td>
-<td>Indicate the months that are to be analyzed.
+@param AnalysisPeriodStart Date/time indicating analysis period start (full period of dependent TS if null)
+@param AnalysisPeriodEnd Date/time indicating analysis period end (full period of dependent TS if null)
+@param AnalysisMonths Indicate the months that are to be analyzed.
 If monthly equations are being used, indicate the one month to analyze.
 Specify the months separated by commas or white space.
-<td>"" (analyze all months)</td>
-</tr>
-
-<tr>
-<td><b>AnalysisPeriodEnd</b></td>
-<td>Date/time as a string indicating analysis period end.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>AnalysisPeriodStart</b></td>
-<td>Date/time as a string indicating analysis period start.</td>
-<td>Full period.</td>
-</tr>
-
- </table>
  *
  * @throws java.lang.Exception
  */
-public TSPrincipalComponentAnalysis ( TS dependentTS, List<TS> independentTS, PropList props )
+public TSPrincipalComponentAnalysis ( TS dependentTS, List<TS> independentTS, 
+        DateTime AnalysisPeriodStart, DateTime AnalysisPeriodEnd,
+        int maxCombinations, String analysisMonths )
 throws Exception {
 
-    initialize ( dependentTS, independentTS, props );
+    initialize ( dependentTS, independentTS, AnalysisPeriodStart, AnalysisPeriodEnd,
+            maxCombinations, analysisMonths );
     analyze ( );
 
 }
@@ -106,24 +83,16 @@ private void analyze() throws Exception {
             _dependentTS.getMissing(), _independentTS.get(0).getMissing(), _maxCombinations );
 }
 
-private void initialize(TS dependentTS, List<TS> independentTS, PropList props ) throws Exception {
-    String prop_value = null;
+private void initialize(TS dependentTS, List<TS> independentTS, DateTime start, DateTime end,
+        int maxCombinations, String analysisMonths ) throws Exception {
 
     _dependentTS = dependentTS;
     _independentTS = independentTS;
 
-    if ( props == null ) {
-        props = new PropList ( "TSRegression" );
-    }
-
-    prop_value = props.getValue ( "AnalysisMonth" );
     _analyze_month = new boolean[12];
     _analyze_month_list = null;
-    if ( prop_value != null ) {
-        prop_value = prop_value.trim();
-    }
-    if ( (prop_value != null) && !prop_value.equals("*") && !prop_value.equals("") ) {
-        List tokens = StringUtil.breakStringList ( prop_value, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
+    if ( (analysisMonths != null) && !analysisMonths.equals("*") && !analysisMonths.equals("") ) {
+        List tokens = StringUtil.breakStringList ( analysisMonths, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
         int size = 0;
         if ( tokens != null ) {
             size = tokens.size();
@@ -148,23 +117,11 @@ private void initialize(TS dependentTS, List<TS> independentTS, PropList props )
         }
     }
 
-    prop_value = props.getValue ( "AnalysisPeriodEnd" );
-    _analysis_period_start = dependentTS.getDate1();    // default
-    if ( prop_value != null ) {
-        _analysis_period_start = DateTime.parse(prop_value);
-    }
+    _analysis_period_end = (end == null) ? dependentTS.getDate1() : end;
 
-    prop_value = props.getValue ( "AnalysisPeriodStart" );
-    _analysis_period_start = dependentTS.getDate1();    // default
-    if ( prop_value != null ) {
-        _analysis_period_start = DateTime.parse(prop_value);
-    }
+    _analysis_period_start = (start == null) ? dependentTS.getDate1() : start;
 
-    prop_value = props.getValue ( "MaximumCombinations" );
-    _maxCombinations = 20;    // default
-    if ( prop_value != null ) {
-        _maxCombinations = Integer.parseInt(prop_value);
-    }
+    _maxCombinations = maxCombinations == 0 ? 20 : maxCombinations;
 
 
 }
