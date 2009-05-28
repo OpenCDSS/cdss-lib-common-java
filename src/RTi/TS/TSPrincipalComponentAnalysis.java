@@ -117,7 +117,7 @@ private void initialize(TS dependentTS, List<TS> independentTS, DateTime start, 
         }
     }
 
-    _analysis_period_end = (end == null) ? dependentTS.getDate1() : end;
+    _analysis_period_end = (end == null) ? dependentTS.getDate2() : end;
 
     _analysis_period_start = (start == null) ? dependentTS.getDate1() : start;
 
