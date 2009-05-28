@@ -61,6 +61,8 @@ public class PrincipalComponentAnalysisTest extends TestCase {
         
         PrincipalComponentAnalysis pca = MathUtil.performPrincipalComponentAnalysis(yArray, xMatrix,
             -999, -999, 20 );
+
+        // need to add check for expected file and actual results.
     }
 
    

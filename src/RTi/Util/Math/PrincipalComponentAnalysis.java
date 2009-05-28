@@ -8,6 +8,7 @@
 package RTi.Util.Math;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,7 +38,11 @@ int[] cuse;             // vector indicating variables used for current combinat
 double[] err;           // vector of forecast errors
 double[][] error;       // matrix of forecast errors for combs.
 double[][] evct;        // eigenvector matrix
+int[] indx;             // index vector for sorting combinations
+
+int[] iuse;             // vector indicating to use that station -
 int lastc;              // last principal component to be considered
+int ncomb;              // num of combinations retained after all calculations
 int[] ncomp;            // number of components retained for combs.
 int[][] obs;            // matrix indicating observations used for stored combinations
 int nobs;               // number of observations in input file
@@ -47,7 +52,6 @@ int nx;                 // number of x variables used
 double[] r;             // correlation coefficients for combinations
 double[][] rp;          // correlation coefficients for prin. comp.
 double[] se;            // standard deviations for combinations
-//double[] t;             // vector of t statistics for PCAreg. coeffs.
 double[][] x;           // independent variable data matrix containing only data included in computations
 double[] xm;            // vector of means of x data
 double[] xs;            // vector of standard deviations of x data
@@ -82,14 +86,6 @@ private void analyze( ) throws Exception {
           csave[i][j] = 0;
        }
     }
-
-    int[] iuse = new int[nx+1];                     // vector indicating to use that station -
-    for (int j = 1; j <= nx; j++) {                 // really should be taken out since we are always using all stations
-       iuse[j] = 1;
-    }
-
-    int[] indx = new int[_maxCombinations];         // index vector for sorting combinations
-
 
     /* Calculate correlations of independent variables with dependent
      * variable -- signs of correlations will be used in PCAregress() for
@@ -270,7 +266,8 @@ private void analyze( ) throws Exception {
         System.out.printf( "\n\n\n");
             End debug */
    }
-   int ncomb = icomb + 1;
+
+   ncomb = icomb + 1;
    if (ncomb == 0) {
        // @todo This shouldn't really throw an exception, just end the program...
       throw new Exception ("No valid equations found.  Program terminated ...");
@@ -307,8 +304,6 @@ private void analyze( ) throws Exception {
 
 
    }
-
-   printOutput(System.out, ncomb, iuse, indx );
 
     System.out.println("PROGRAM FINISHED.");
 }
@@ -352,9 +347,13 @@ private void initialize(double[] dependentArray, double[][] independentMatrix,
 
     corr = new double[nx+1];     // vector of signs of correlations of independent var. with dependent vars.
     cuse = new int[nx+1];        // vector indicating variables used for current combination
+    iuse = new int[nx+1];        // vector indicating to use that station
     for (int j = 0; j < (nx+1); j++) {
        corr[j] = 0.;
        cuse[j] = 0;
+    }
+    for (int j = 1; j <= nx; j++) {                 // really should be taken out since we are always using all stations
+       iuse[j] = 1;
     }
 
     err = new double[nobs];                // vector of forecast errors
@@ -367,6 +366,7 @@ private void initialize(double[] dependentArray, double[][] independentMatrix,
     x = new double[nobs][nx+1];            //
     y = new double[nobs];
     yest = new double[nobs];               // y-estimates from PCAreg_coef function
+    indx = new int[_maxCombinations];      // index vector for sorting combinations
 }
 
 /**
@@ -995,7 +995,7 @@ void pcconv(int ncomp, int nx )
 }
 
 
-private void printOutput ( PrintStream fpout, int ncomb, int[] iuse, int[] indx )
+public void printOutput ( PrintWriter fpout )
 {
     // Write out results for top NCOMBP equations
 
