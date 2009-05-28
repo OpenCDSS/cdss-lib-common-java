@@ -22,19 +22,19 @@ package RTi.DMI;
 Bare-bones class for doing simple and quick DMI work.  Mostly it just implements
 the abstract methods in the base DMI class, but it has no database-specific
 code to get in the way of doing simple JDBC work.<p>
-This class is extremely valuable for DMI debugging purposes.  It isn't
+This class is useful for DMI debugging purposes.  It isn't
 tied to any particular database and so can be used for checking connections,
 executing queries (with dmiSelect) and writes (with dmiWrite).  
-Here is an example of use:<p><tt><blockquote>
-	GenericDMI dmi = null;<br>
-	dmi = new GenericDMI("SQLServer2000", "localhost", "RiversideDB",<br>
-		1433, "sa", "sa");<br>
-	dmi.open();<br>
-	ResultSet rs = dmi.dmiSelect("select * from geoloc");<br>
-	if (rs.next()) {<br>
-		System.out.println("'''" + rs.getString(8) + "'''");<br>
-	}<p>
-	</blockquote></tt>
+Here is an example of use:
+<pre>
+	GenericDMI dmi = null;
+	dmi = new GenericDMI("SQLServer", "localhost", "RiversideDB", 1433, "sa", "sa");
+	dmi.open();
+	ResultSet rs = dmi.dmiSelect("select * from geoloc");
+	if (rs.next()) {
+		System.out.println("'''" + rs.getString(8) + "'''");
+	}
+</pre>
 */
 public class GenericDMI extends DMI {
 
@@ -53,7 +53,7 @@ throws Exception {
 }
 
 /**
-Bulids a DMI connection to the named database.
+Builds a DMI connection to the named database.
 @param database_engine the kind of database that is running
 @param database_server the machine on which the database is running
 @param database_name the name of the database to which to connect
@@ -65,8 +65,7 @@ Bulids a DMI connection to the named database.
 public GenericDMI (String database_engine, String database_server,
 String database_name, int port,	String system_login, String system_password )
 throws Exception {
-	super ( database_engine, database_server, database_name, port,
-		system_login, system_password );
+	super ( database_engine, database_server, database_name, port, system_login, system_password );
 }
 
 /**

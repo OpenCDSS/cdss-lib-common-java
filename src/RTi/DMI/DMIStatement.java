@@ -71,8 +71,6 @@ import java.sql.CallableStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -101,14 +99,12 @@ Whether the statement is executing via a stored procedure.
 protected boolean _isSP = false;
 
 /**
-The object that will actually execute the stored procedure in the low level
-java code.
+The object that will actually execute the stored procedure in the low level java code.
 */
 protected CallableStatement __storedProcedureCallableStatement = null;
 
 /**
-DMI that will execute the query.  It is used to determine the database type
-for formatting statements.
+DMI that will execute the query.  It is used to determine the database type for formatting statements.
 */
 protected DMI _dmi;
 
@@ -160,8 +156,7 @@ List for specifying the ON clauses for joins.
 protected List _on_Vector;
 
 /**
-List for ORDER BY clauses used in the statement
-(e.g., ORDER BY XXXX, XXXX).
+List for ORDER BY clauses used in the statement (e.g., ORDER BY XXXX, XXXX).
 */
 protected List _order_by_Vector;
 
@@ -181,10 +176,8 @@ List for where clauses used in the statement (e.g., WHERE XXXX, XXXX).
 protected List _where_Vector;
 
 /**
-Construct an SQL statement.  Typically a derived class instance (e.g.,
-DMISelectStatement) is declared.
-@param dmi DMI instance to use (this is checked to properly format 
-the statement for the database engine).
+Construct an SQL statement.  Typically a derived class instance (e.g., DMISelectStatement) is declared.
+@param dmi DMI instance to use (this is checked to properly format the statement for the database engine).
 */
 public DMIStatement ( DMI dmi ) {
 	_dmi = dmi;
@@ -328,8 +321,7 @@ throws Exception {
 }
 
 /** 
-Adds a date value to the statement, with a default date format of
-yyyy-MM-dd
+Adds a date value to the statement, with a default date format of yyyy-MM-dd
 @param value date value to add to the statement
 */
 public void addValue (Date value) 
@@ -343,44 +335,11 @@ throws Exception {
 }
 
 /**
-Add a Date value to the statement
-@param value Date value to add to the statement
-@param format a string format representing how the date should be formatted.
-For more information on formats, see the Javadocs for SimpleDateFormatter
-@deprecated Don't use!  Dates with hours in the afternoon will not be entered
-properly into SQL Server database.  Use addValue(Date, int) instead.
-*/
-public void addValue (Date value, String format) 
-throws Exception {
-	SimpleDateFormat sdf = new SimpleDateFormat(format);
-
-	if (value == null) {
-		_values_Vector.add(null);
-	} else {
-	/*
-		_values_Vector.addElement(DMIUtil.formatDateTime(_dmi, 
-			new DateTime(value)));
-	*/
-		if (_dmi._database_engine == _dmi._DBENGINE_ACCESS ) {
-			_values_Vector.add("#" + sdf.format(value) + "#");
-		}
-		else if	( (_dmi._database_engine == _dmi._DBENGINE_SQLSERVER7)||
-			(_dmi._database_engine==_dmi._DBENGINE_SQLSERVER2000)){
-			_values_Vector.add("'" + sdf.format(value) + "'");
-		}
-		else {
-			_values_Vector.add("'" + sdf.format(value) + "'");
-		}
-	}
-}
-
-/**
 Adds a Date value to the statement.
 @param value Date value to add to the statement.
 @param precision the DateTime PRECISION_* flag that determines how much of
 the Date will be formatted by DMIUtil.formatDateTime().
-@throws Exception if there is an error formatting the date time (shouldn't 
-happen).
+@throws Exception if there is an error formatting the date time (shouldn't happen).
 */
 public void addValue(Date value, int precision) 
 throws Exception {
@@ -507,9 +466,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		if (_dmi.getDatabaseEngine().equalsIgnoreCase("SQL_Server") 
-		 || _dmi.getDatabaseEngine().equalsIgnoreCase("SQLServer7") 
-		 || _dmi.getDatabaseEngine().equalsIgnoreCase("SQLServer2000")){
+		if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
 			if (value.indexOf('\'') > -1) {
 				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
 			}	
@@ -1134,179 +1091,6 @@ throws Exception {
 				+ type);
 	}
 
-}
-
-////////////////////////////////////////////////////////////////////
-// REVISIT (JTS - 2004-06-15)
-// revisit these later.  Are they used anywhere?  If so, according to the
-// (incorrect) javadocs?  Are they needed? 
-// REVISIT (JTS - 2006-05-03)
-// REMOVE ASAP!
-
-/**
-Test to see if the date is missing, and if so, delete the field from
-the _field_vector and do not add the value to the _values_vector
-@param value Date value to add to the statement
-@deprecated use addValueOrNull
-*/
-public void testAddValue (Date value, String format) 
-throws Exception {	
-	if ( DMIUtil.isMissing(value) ) {		
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(Date)",
-					"Warning: " + 
-					"Field: '" + field + "' not found in " +
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-		addNullValue();
-	} else {
-		addValue(value, format);
-	}
-}
-
-/**
-Test to see if the date is missing, and if so, delete the field from the
-_field_vector and do not add the value to the _values_vector.
-@param value Date value to add to the statement
-@param precision the precision in which to format the date.
-@throws Exception if there is an error formatting the date time.
-@deprecated use addValueOrNull
-*/
-public void testAddValue(Date value, int precision)
-throws Exception {
-	if (DMIUtil.isMissing(value)) {
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(Date, int)",
-					"Warning: " + 
-					"FIeld: '" + field + "' not found int "+
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-		addNullValue();
-	}
-	else {
-		addValue(value, precision);
-	}
-}
-
-/**
-Test to see if the number is missing, and if so, delete the field from
-the _field_vector and do not add the value to the _values_vector
-@param value double value to add to the statement
-@deprecated use addValueOrNull
-*/
-public void testAddValue (double value) 
-throws Exception {
-	if ( DMIUtil.isMissing(value) ) {
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(double)",
-					"Warning: " + 
-					"Field: '" + field + "' not found in " +
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-		addNullValue();
-	} else {
-		addValue(value);
-	}
-}
-
-/**
-Test to see if the int is missing, and if so, delete the field from
-the _field_vector and do not add the value to the _values_vector
-@param value int value to add to the statement
-@deprecated use addValueOrNull
-*/
-public void testAddValue (int value) 
-throws Exception {
-	if (value == DMIUtil.MISSING_INT) {
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(int)",
-					"Warning: " + 
-					"Field: '" + field + "' not found in " +
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-		addNullValue();
-	} else {
-		addValue(value);
-	}
-}
-
-/**
-Test to see if the long is missing, and if so, delete the field from
-the _field_vector and do not add the value to the _values_vector
-@param value long value to add to the statement
-@deprecated use addValueOrNull
-*/
-public void testAddValue (long value) 
-throws Exception {
-	if (value == DMIUtil.MISSING_LONG) {
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(int)",
-					"Warning: " + 
-					"Field: '" + field + "' not found in " +
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-		addNullValue();
-	} else {
-		addValue(value);
-	}
-}
-
-/**
-Test to see if the string is missing, and if so, delete the field from
-the _field_vector and do not add the value to the _values_vector
-@param value String value to add to the statement
-@deprecated use addValueOrNull
-*/
-public void testAddValue (String value) 
-throws Exception {
-	if (DMIUtil.isMissing(value)) {
-		/*
-		if (_field_Vector.removeElement(field) == false) {
-			if (Message.isDebugOn) {
-				Message.printWarning(25,
-					"DMIStatement.testAddValue(String)",
-					"Warning: " + 
-					"Field: '" + field + "' not found in " +
-					"_field_Vector."
-				);
-			}
-		}
-		*/
-//		addValue("");		
-		addNullValue();
-	} else {
-		addValue(value);
-	}
 }
 
 }
