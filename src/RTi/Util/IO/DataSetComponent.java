@@ -30,11 +30,9 @@ import java.util.Vector;
 import RTi.Util.Message.Message;
 
 /**
-This DataSetComponent class stores information for a single data
-component in a data set.
+This DataSetComponent class stores information for a single data component in a data set.
 Typically, each component corresponds to a file, a table in a database or a
-section within a single monolithic data file.  A list of components is
-maintained in the DataSet class.
+section within a single monolithic data file.  A list of components is maintained in the DataSet class.
 */
 public class DataSetComponent
 {
@@ -42,81 +40,88 @@ public class DataSetComponent
 /**
 Indicate how the list for a component group is created.
 */
-// REVISIT - need to figure out generic this can be.
+// TODO - need to figure out generic this can be.
 public final static String LIST_SOURCE_PRIMARY_COMPONENT = "PrimaryComponent";
 public final static String LIST_SOURCE_NETWORK = "Network";
 public final static String LIST_SOURCE_LISTFILE = "ListFile";
 
+/**
+Type of component - integer used to increase performance so string lookups don't need to be done.
+*/
 private int __type = -1;
-				// Type of component - integer used to increase
-				// performace so string lookups don't need to
-				// be done.
 
-private String __name = "";	// Name of the component.
+/**
+Name of the component.
+*/
+private String __name = "";
 
+/**
+Name of file that will hold the data when saved to disk.
+*/
 private String __data_file_name = "";
-				// Name of file that will hold the data when
-				// saved to disk.
 
+/**
+Name of the command file used to create the component, if _created_from is DATA_FROM_COMMANDS.
+*/
 private String __commands_file_name = "";
-				// Name of the commands file used to create the
-				// component, if _created_from is
-				// DATA_FROM_COMMANDS.
 
+/**
+Name of the list file corresponding to the data component (e.g., used by StateDMI).
+*/
 private String __list_file_name = "";
-				// Name of the list file corresponding to the
-				// data component (e.g., used by StateDMI).
 
+/**
+Indicates how the list for a component group is created (see LIST_SOURCE_*).
+TODO - need to handle
+*/
 private String __list_source = "";
-				// Indicates how the list for a component group
-				// is created (see LIST_SOURCE_*).
-				// REVISIT - need to handle
 
-private Object __data = null;	// Data for component type (often a Vector of
-				// objects).  If the component is a group, the
-				// data will be a Vector of the components in
-				// the group.
+/**
+Data for component type (often a list of objects).  If the component is a group, the
+data will be a Vector of the components in the group.
+*/
+private Object __data = null;
 
+/**
+Indicates whether the component is dirty.
+*/
 private boolean __is_dirty = false;
-				// Indicates whether the component is dirty.
 
+/**
+Is the data component actually a group of components.  In this case the _data is a
+list of StateCU_DataSetComponent.  This is determined from the group type, not
+whether the component actually has subcomponents
+*/
 private boolean __is_group = false;
-				// Is the data component actually a group of
-				// components.  In this case the _data is a
-				// Vector of StateCU_DataSetComponent.
-				// This is determined from the group type, not
-				// whether the component actually has
-				// subcomponents
 
+/**
+Is the data component being saved as output?  This is used, for example, to help know when
+to perform data checks.
+*/
 private boolean __is_output = false;
-				// Is the data component being saved as output?
-				// This is used, for example, to help know when
-				// to perform data checks.
 
+/**
+Indicates if the component should be visible because of the data set type (control settings).
+Extra components may be included in a data set to ease transition from one data set type to another.
+*/
 private boolean __is_visible = true;
-				// Indicates if the component should be visible
-				// because of the data set type (control
-				// settings).  Extra components may be included
-				// in a data set to ease transition from one
-				// data set type to another.
 
+/**
+If the component belongs to a group, this reference points to the group component.
+*/
 private DataSetComponent __parent = null;
-				// If the component belongs to a group, this
-				// reference points to the group component.
 
+/**
+The DataSet that this DataSetComponent belongs to.  It is assumed that a
+DataSetComponent always belongs to a DataSet, even if only a partial data set (e.g., one group).
+*/
 private DataSet __dataset = null;
-				// The DataSet that this DataSetComponent
-				// belongs to.  It is assumed that a
-				// DataSetComponent always belongs to a DataSet,
-				// even if only a partial data set (e.g., one
-				// group).
 
+/**
+A list of String used to store data check results, suitable for printing to an output
+file header, etc.  See the __is_output flag to help indicate when check results should be created.
+*/
 private List __data_check_results = null;
-				// A Vector of String used to store data check
-				// results, suitable for printing to an output
-				// file header, etc.  See the __is_output flag
-				// to help indicate when check results should
-				// be created.
 
 /**
 Construct the data set component and set values to empty strings and null.
@@ -136,8 +141,7 @@ throws Exception
 	if ( __dataset._component_groups != null ) {
 		size = __dataset._component_groups.length;
 	}
-	// Set whether the component is a group, based on the data set
-	// information.
+	// Set whether the component is a group, based on the data set information.
 	__is_group = false;
 	for ( int i = 0; i < size; i++ ) {
 		if ( __dataset._component_groups[i] == __type ) {
@@ -156,11 +160,9 @@ Copy constructor.
 original (e.g., from the DataSet copy constructor).
 @param deep_copy If true, all data are copied (currently not recognized).
 If false, the component is copied but not the data itself.  This is
-typically used to save the names of components before editing in the response
-file editor.
+typically used to save the names of components before editing in the response file editor.
 */
-public DataSetComponent (	DataSetComponent comp, DataSet dataset,
-				boolean deep_copy )
+public DataSetComponent ( DataSetComponent comp, DataSet dataset, boolean deep_copy )
 throws Exception
 {	this ( dataset, comp.getComponentType() );
 	__type = comp.__type;
@@ -169,7 +171,7 @@ throws Exception
 	__commands_file_name = comp.__commands_file_name;
 	__list_file_name = comp.__list_file_name;
 	__list_source = comp.__list_source;
-	__data = null;	// REVISIT - support deep copy later
+	__data = null;	// TODO - support deep copy later
 	__is_dirty = comp.__is_dirty;
 	__is_group = comp.__is_group;
 	__is_visible = comp.__is_visible;
@@ -293,8 +295,8 @@ public String getListSource ()
 
 /**
 Indicates whether there is data contained in the object.  If the data is null,
-false is returned.  If the data is a Vector and is has 0 elements, false is 
-returned.  Otherwise, true is returned.
+false is returned.  If the data is a Vector and is has 0 elements, false is returned.
+Otherwise, true is returned.
 @return whether there is data.
 */
 public boolean hasData() {
@@ -360,8 +362,7 @@ public void setComponentType ( int type )
 }
 
 /**
-Set the data object containing the component's data.  Often this is a Vector
-of objects.
+Set the data object containing the component's data.  Often this is a Vector of objects.
 @param data Data object containing the component's data.
 */
 public void setData ( Object data )
@@ -403,8 +404,7 @@ public void setIsGroup ( boolean is_group )
 /**
 Set whether the component is output.
 @param is_output Indicate whether the component is being created as output,
-which usually means that it is being writtent to a file or other persistent
-location.
+which usually means that it is being written to a file or other persistent location.
 */
 public void setIsOutput ( boolean is_output )
 {	__is_output = is_output;
@@ -443,4 +443,4 @@ public void setVisible ( boolean is_visible )
 {	__is_visible = is_visible;
 }
 
-} // End DataSetComponent
+}
