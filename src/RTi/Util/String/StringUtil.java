@@ -170,7 +170,7 @@ public static final int SORT_DESCENDING = 2;
 /**
 Token types for parsing routines.
 */
-public static final int TYPE_CHARACTER = 1;	// types of data 
+public static final int TYPE_CHARACTER = 1; 
 public static final int TYPE_DOUBLE = 2;
 public static final int TYPE_FLOAT = 3;
 public static final int TYPE_INTEGER = 4;
@@ -178,9 +178,9 @@ public static final int TYPE_STRING = 5;
 public static final int TYPE_SPACE = 6;
 
 /**
-For use with breakStringList.  Skip blank fields.
+For use with breakStringList.  Skip blank fields (adjoining delimiters are merged).
 */
-public static final int DELIM_SKIP_BLANKS = 0x1;	// flags for parsing
+public static final int DELIM_SKIP_BLANKS = 0x1;
 /**
 For use with breakStringList.  Allow tokens that are surrounded by quotes.
 */
@@ -189,15 +189,14 @@ public static final int DELIM_ALLOW_STRINGS = 0x2;
 /**
 For use with padding routines.  Pad/unpad back of string.
 */
-public static final int PAD_BACK = 0x1;		// types of padding/unpadding
+public static final int PAD_BACK = 0x1;
 /**
 For use with padding routines.  Pad/unpad front of string.
 */
 public static final int PAD_FRONT = 0x2;
 /**
 For use with padding routines.  Pad/unpad middle of string.  This is private
-because for middle unpadding we currently only allow the full
-PAD_FRONT_MIDDLE_BACK option.
+because for middle unpadding we currently only allow the full PAD_FRONT_MIDDLE_BACK option.
 */
 private static final int PAD_MIDDLE = 0x4;
 /**
@@ -217,11 +216,11 @@ first list will be returned.  If both are null, null will be returned.
 @param v list of Strings - will be modified if not null when passed in.
 @param newv list of Strings to add.
 */
-public static List addListToStringList ( List v, List newv )
+public static List<String> addListToStringList ( List<String> v, List<String> newv )
 {	if ( newv == null ) {
 		return v;
 	}
-	List vmain = null;
+	List<String> vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
@@ -245,8 +244,8 @@ to the list, even if the String is null.
 @param v list of Strings.
 @param string String to add to the list.
 */
-public static List addToStringList ( List v, String string )
-{	List vmain = null;
+public static List addToStringList ( List<String> v, String string )
+{	List<String> vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
@@ -266,8 +265,8 @@ added to the list, even if they are null.
 @param v list of Strings.
 @param strings Array of String to add to list.
 */
-public static List addToStringList ( List v, String [] strings )
-{	List vmain = null;
+public static List<String> addToStringList ( List<String> v, String [] strings )
+{	List<String> vmain = null;
 	if ( v == null ) {
 		// Create a vector...
 		vmain = new Vector ( 50, 10 );
@@ -285,7 +284,7 @@ public static List addToStringList ( List v, String [] strings )
 }
 
 /**
-Convert a String to an int, similar to C languange atoi() function.
+Convert a String to an int, similar to C language atoi() function.
 @param s String to convert.
 @return An int as converted from the String or 0 if conversion fails.
 */
@@ -447,9 +446,9 @@ Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.  Note that when allowing
 quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
 */
-public static List breakStringList( String string, String delim, int flag )
+public static List<String> breakStringList( String string, String delim, int flag )
 {	String routine = "StringUtil.breakStringList";
-	List list = new Vector(2,1);
+	List<String> list = new Vector(2,1);
 	
 	if ( string == null ) {
 	 	return list;
@@ -703,76 +702,6 @@ public static boolean endsWithIgnoreCase ( String s, String pattern )
 	}
 	String sub = s.substring(slen - plen);
 	return sub.regionMatches(true,0,pattern,0,plen);
-}
-
-/**
-Return a token in a string or null if no token.  This method calls
-breakStringList() and returns the requested token or null if out of range.
-@param string The string to break.
-@param delim A String containing characters to treat as delimiters.
-@param flag Bitmask indicating how to break the string.  Specify
-DELIM_SKIP_BLANKS to skip blank fields and
-DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
-@param token Token to return (starting with 0).
-@return the requested token or null.
-*/
-public static String getToken ( String string, String delim, int flag, int token )
-{	if ( token < 0 ) {
-		return null;
-	}
-	List v = breakStringList ( string, delim, flag );
-	if ( v == null ) {
-		return null;
-	}
-	if ( v.size() < (token + 1) ) {
-		v = null;
-		return null;
-	}
-	String s = (String)v.get(token);
-	v = null;
-	return s;
-}
-
-/**
-Return index of string in string list.  If string is not in string list,
--1 is returned.  A case-insensitive compare is used.
-@return Index of string in stringlist (or -1).
-@param stringlist List of strings to search.
-@param searchString String to return index of.
-*/
-public static int indexOf ( List stringlist, String searchString )
-{	if ( stringlist == null || searchString == null )
-		return -1;
-
-	int num_strings = stringlist.size();
-	String currentString;
-	for ( int i=0; i<num_strings; i++ ) {
-		currentString = (String)stringlist.get(i);
-		if (currentString == null) {
-			// skip
-		}
-		else if ( currentString.equalsIgnoreCase ( searchString )) {
-			return i;	
-		}
-	}
-	return -1;
-}
-
-/**
-Determine whether a string exists in another string, ignoring case.
-@param full Full string to check.
-@param substring Substring to find in "full".
-@param fromIndex The index where the search should begin.
-@return position of substring or -1 if not found.
-*/
-public static int indexOfIgnoreCase ( String full, String substring, int fromIndex )
-{	// Convert both strings to uppercase and then do the comparison.
-	String full_up = full.toUpperCase();
-	String substring_up = substring.toUpperCase();
-	int pos = full_up.indexOf ( substring_up, fromIndex );
-	full_up = null;
-	substring_up = null;
-	return pos;
 }
 
 /**
@@ -1846,6 +1775,103 @@ public static String formatStringForCsv ( String s, boolean alwaysQuote )
 }
 
 /**
+Return a token in a string or null if no token.  This method calls
+breakStringList() and returns the requested token or null if out of range.
+@param string The string to break.
+@param delim A String containing characters to treat as delimiters.
+@param flag Bitmask indicating how to break the string.  Specify
+DELIM_SKIP_BLANKS to skip blank fields and
+DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
+@param token Token to return (starting with 0).
+@return the requested token or null.
+*/
+public static String getToken ( String string, String delim, int flag, int token )
+{	if ( token < 0 ) {
+		return null;
+	}
+	List<String> v = breakStringList ( string, delim, flag );
+	if ( v == null ) {
+		return null;
+	}
+	if ( v.size() < (token + 1) ) {
+		v = null;
+		return null;
+	}
+	String s = v.get(token);
+	v = null;
+	return s;
+}
+
+// TODO SAM 2009-06-01 Evaluate whether to deprecate, etc given that it should not be ignore case
+// based on the name of the method.
+/**
+Return index of string in string list.  If string is not in string list,
+-1 is returned.  <b>A case-insensitive compare is used.</b>
+@return Index of string in stringlist (or -1).
+@param stringlist List of strings to search.
+@param searchString String to return index of.
+*/
+public static int indexOf ( List<String> stringlist, String searchString )
+{	if ( stringlist == null || searchString == null ) {
+		return -1;
+	}
+	int num_strings = stringlist.size();
+	String currentString;
+	for ( int i=0; i<num_strings; i++ ) {
+		currentString = stringlist.get(i);
+		if (currentString == null) {
+			// skip
+		}
+		else if ( currentString.equalsIgnoreCase ( searchString )) {
+			return i;	
+		}
+	}
+	return -1;
+}
+
+/**
+Return index of string in string list.  If string is not in string list,
+-1 is returned.  A case-insensitive compare is used.
+@return Index of string in stringlist (or -1).
+@param stringlist List of strings to search.
+@param searchString String to return index of.
+*/
+public static int indexOfIgnoreCase ( List<String> stringlist, String searchString )
+{	if ( stringlist == null || searchString == null )
+		return -1;
+
+	int num_strings = stringlist.size();
+	String currentString;
+	for ( int i=0; i<num_strings; i++ ) {
+		currentString = stringlist.get(i);
+		if (currentString == null) {
+			// skip
+		}
+		else if ( currentString.equalsIgnoreCase ( searchString )) {
+			return i;	
+		}
+	}
+	return -1;
+}
+
+/**
+Determine whether a string exists in another string, ignoring case.
+@param full Full string to check.
+@param substring Substring to find in "full".
+@param fromIndex The index where the search should begin.
+@return position of substring or -1 if not found.
+*/
+public static int indexOfIgnoreCase ( String full, String substring, int fromIndex )
+{	// Convert both strings to uppercase and then do the comparison.
+	String full_up = full.toUpperCase();
+	String substring_up = substring.toUpperCase();
+	int pos = full_up.indexOf ( substring_up, fromIndex );
+	full_up = null;
+	substring_up = null;
+	return pos;
+}
+
+/**
 Determine whether a string is an ASCII string.
 @return true if the string is an ASCII string.
 @param s String to check.
@@ -1950,11 +1976,10 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	// For now just do breakStringList() using white space.  However, need
 	// to consider commas, etc.  One idea would be to loop through the
 	// string and start at the next maxlength point.  Then go back to find
-	// a delimiter.  If none is found, insert one somewhere or move
-	// forward.
+	// a delimiter.  If none is found, insert one somewhere or move forward.
 	//
 	// Also need to consider Tom's code.
-	List v = breakStringList ( string, " \t\n", 0 );
+	List<String> v = breakStringList ( string, " \t\n", 0 );
 	int size = 0; 
 	if ( v != null ) {
 		size = v.size();
@@ -1963,7 +1988,7 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	StringBuffer sub_buffer = new StringBuffer();
 	String token = null;
 	for ( int i = 0; i < size; i++ ) {
-		token = (String)v.get(i);
+		token = v.get(i);
 		if ((sub_buffer.length() + 1 + token.length()) > maxlength ){
 			// Add the sub_buffer to the buffer...
 			main_buffer.append ( sub_buffer.toString() + linebreak);
@@ -2209,8 +2234,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 										dl,
 										routine,
 										"Added " +
-										okchars.charAt(nokchars - 1) +
-	" from [-] list" );
+										okchars.charAt(nokchars - 1) + " from [-] list" );
 									}
 									if (	okchars.charAt(nokchars - 1) ==
 									creg ) {
@@ -2229,8 +2253,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 									dl,
 									routine,
 									"Added "+
-									okchars.charAt(nokchars - 1) +
-" from [abc] list" );
+									okchars.charAt(nokchars - 1) + " from [abc] list" );
 								}
 								++ireg;
 							}
@@ -2449,7 +2472,7 @@ make a copy before calling this method if necessary.
 increases processing speed.  TRUE IS CURRENTLY THE ONLY VALUE THAT IS SUPPORTED.
 @return the list with duplicate values rememoved.
 */
-public static List removeDuplicates ( List strings, boolean ignore_case, boolean sorted )
+public static List removeDuplicates ( List<String> strings, boolean ignore_case, boolean sorted )
 {	if ( sorted ) {
 		// Loop through and compare each string with the previous string
 		// in the list, removing the current string if a duplicate.
@@ -2459,10 +2482,10 @@ public static List removeDuplicates ( List strings, boolean ignore_case, boolean
 		}
 		String string, string0 = null;
 		if ( size > 0 ) {
-			string0 = (String)strings.get(0);
+			string0 = strings.get(0);
 		}
 		for ( int i = 1; i < size; i++ ) {
-			string = (String)strings.get(i);
+			string = strings.get(i);
 			if ( ignore_case ) {
 				if ( string.equalsIgnoreCase(string0) ) {
 					strings.remove(i);
@@ -2480,23 +2503,6 @@ public static List removeDuplicates ( List strings, boolean ignore_case, boolean
 	}
 	return strings;
 }
-
-/* ----------------------------------------------------------------------------
-** removeNewline - remove newline from string (from HMRemoveNewline)
-** ----------------------------------------------------------------------------
-** Copyright:	See the COPYRIGHT file.
-** ----------------------------------------------------------------------------
-** History:
-**
-** 06 Sep 1996	Steven A. Malers, RTi	Split code out of HMUtil.c file.
-** ----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** pt		L	Pointer to string.
-** pt2		L	Second pointer to string.
-** string	I/O	String to manipulate.
-** ----------------------------------------------------------------------------
-*/
 
 /**
 Remove the newline character(s) from a string.
@@ -2706,12 +2712,12 @@ This is mainly used for Java debugging and testing.
 @return A list of strings, each of which is the expanded character for a character in the original string.
 @param string String to print cotrol characters for.
 */
-public static List showControl ( String string )
-{	List v = new Vector ( 10, 5 );
+public static List<String> showControl ( String string )
+{	List<String> v = new Vector ( 10, 5 );
 
-	int		length = string.length();
-	char		c;
-	String		control;
+	int length = string.length();
+	char c;
+	String control;
 	for ( int i = 0; i < length; i++ ) {
 		c = string.charAt(i);
 		if ( Character.isISOControl(c) ) {
@@ -2722,7 +2728,8 @@ public static List showControl ( String string )
 			else if ( c == '\n' ) {
 				control = "NL";
 			}
-			else {	control = "Ctrl-unknown(" + c + ")";
+			else {
+				control = "Ctrl-unknown(" + c + ")";
 			}
 			v.add ( "Letter [" + i + "]: " + control );
 		}
@@ -2743,13 +2750,13 @@ Sort a list of strings into ascending order, considering case.
 @return The sorted list (a new list is returned).
 @param list The original list of String.
 */
-public static List sortStringList ( List list )
+public static List sortStringList ( List<String> list )
 {	return sortStringList ( list, SORT_ASCENDING, null, false, false );
 }
 
 /**
 Sort a list of strings.
-@return The sorted vector (a new list is returned).
+@return The sorted list (a new list is returned).
 @param list The original list of String.
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
 @param sort_order Original locations of data after sort (array needs to be
@@ -2759,7 +2766,8 @@ Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 @param ignore_case If true, then case is ignored when comparing the strings.
 */
-public static List sortStringList ( List list, int order, int sort_order[], boolean sflag, boolean ignore_case )
+public static List sortStringList ( List<String> list, int order, int sort_order[], boolean sflag,
+	boolean ignore_case )
 {	int	i, ismallest;
 	int[] itmp=null;
 	String routine="StringUtil.sortStringList", smallest="";
@@ -2770,7 +2778,7 @@ public static List sortStringList ( List list, int order, int sort_order[], bool
 	}
 	int size = list.size();
 
-	List list_tosort = list;
+	List<String> list_tosort = list;
 	if ( ignore_case ) {
 		// Create a new list that is all upper case...
 		list_tosort = new Vector ( size );
@@ -2785,7 +2793,7 @@ public static List sortStringList ( List list, int order, int sort_order[], bool
 			}
 		}
 	}
-	List newlist = new Vector(size);
+	List<String> newlist = new Vector(size);
 
 	// Allocate memory for the temporary int array used to keep track of the sort order...
 
@@ -2878,14 +2886,14 @@ Convert a list of strings to an array of strings.
 @return An array containing the strings.
 @param v list of strings to convert.
 */
-public static String[] toArray ( List v )
+public static String[] toArray ( List<String> v )
 {	if ( v == null ) {
 		return null;
 	}
 	int vector_size = v.size();
 	String [] array = new String [vector_size];
 	for ( int i = 0; i < vector_size; i++ ) {
-		array[i] = (String)v.get(i);
+		array[i] = v.get(i);
 	}
 	return array;
 }
@@ -2901,7 +2909,7 @@ DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @return the first token or null.
 */
 public static int tokenCount ( String string, String delim, int flag )
-{	List v = breakStringList ( string, delim, flag );
+{	List<String> v = breakStringList ( string, delim, flag );
 	if ( v == null ) {
 		return 0;
 	}
@@ -2915,13 +2923,13 @@ Convert an array of strings to a List of strings.
 @return A List containing the strings.
 @param array Array of strings to convert.
 */
-public static List toList ( String [] array )
+public static List<String> toList ( String [] array )
 {
 	if ( array == null ) {
 		return null;
 	}
 	int array_size = array.length;
-	List v = new Vector ( array_size, 50 );
+	List<String> v = new Vector ( array_size, 50 );
 	for ( int i = 0; i < array_size; i++ ) {
 		v.add ( array[i] );
 	}
@@ -2934,7 +2942,7 @@ given string (usually the system line separator).  Null strings are treated
 as empty strings.  This is useful for converting lists to something that a TextArea can display.
 @return the combined string, or null if the original list is null.
 */
-public static String toString ( List strings, String delimiter )
+public static String toString ( List<String> strings, String delimiter )
 {
 	if ( strings == null ) {
 		return null;
@@ -2943,7 +2951,7 @@ public static String toString ( List strings, String delimiter )
 	int size = strings.size();
 	String string = null;
 	for ( int i = 0; i < size; i++ ) {
-		string = (String)strings.get(i);
+		string = strings.get(i);
 		buffer.append ( string + delimiter );
 	}
 	return buffer.toString();
@@ -2966,44 +2974,6 @@ public static List toList ( Enumeration e )
 	return v;
 }
 
-/*-----------------------------------------------------------------------------
-** HMUnpadString - Unpad a string
-**-----------------------------------------------------------------------------
-** Copyright:	See the COPYRIGHT file.
-**-----------------------------------------------------------------------------
-** History:
-**
-** 01/08/96	Peter T. Abplanalp, RTi	Created routine.
-** 17 Jan 96	Steven A. Malers, RTi	Allow user specified list of delimiter
-**					characters.
-** 03 Feb 96	SAM, RTi		Previous version did not seem to work
-**					correctly.
-** 03 Sep 96	SAM, RTi		Split code out of HMUtil.c and make
-**					more stand-alone.
-** 18 Sep 96	SAM, RTi		Up the debugs and use the variable
-**					argument message routines.
-** 07 Nov 96	SAM, RTi		Was having a problem if the string is
-**					zero length after the first pass.  In
-**					this case, do not process the second
-**					pass.
-**-----------------------------------------------------------------------------
-** Notes:	(1)	Input string is modified by this routine.
-**-----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** default_white L	Default white space characters.
-** dl		L	Debug level for this routine.
-** flag		I	Flag to specify routine behavior.
-** i		L	Size of character array.
-** pt		L	Generic pointer.
-** routine	L	Routine name.
-** string	I/O	String to unpad.
-** white0	I	List of user-supplied characters to use for whitespace.
-** white	L	List of characters to use for whitespace within this
-**			routine.
-**-----------------------------------------------------------------------------
-*/
-
 /**
 Remove characters from string.
 @return A string that has been unpadded (whitespace removed from front, back and/or middle).
@@ -3013,9 +2983,9 @@ Remove characters from string.
 PAD_FRONT, PAD_BACK, PAD_MIDDLE, PAD_FRONT_BACK, or PAD_FRONT_MIDDLE_BACK.
 */
 public static String unpad ( String string, String white0, int flag )
-{	int		length_string, length_white;
-	String		default_white = " \t\n\r", white;
-	StringBuffer	buffer;
+{	int length_string, length_white;
+	String default_white = " \t\n\r", white;
+	StringBuffer buffer;
 
 	// Check for NULL prointers...
 
@@ -3029,12 +2999,14 @@ public static String unpad ( String string, String white0, int flag )
 		white = default_white;
 		length_white = white.length ();
 	}
-	else {	length_white = white0.length();
+	else {
+		length_white = white0.length();
 		if ( length_white == 0 ) {
 			white = default_white;
 			length_white = white.length ();
 		}
-		else {	white = white0;
+		else {
+			white = white0;
 			length_white = white.length ();
 		}
 	}
@@ -3049,8 +3021,7 @@ public static String unpad ( String string, String white0, int flag )
 
 	// Unpad the whole string...
 
-	if (	(flag == StringUtil.PAD_FRONT_MIDDLE_BACK) &&
-		(length_string > 0) ) {
+	if ( (flag == StringUtil.PAD_FRONT_MIDDLE_BACK) && (length_string > 0) ) {
 		buffer = new StringBuffer ();
 		for ( istring = 0; istring < length_string; istring++ ) {
 			cstring = string.charAt ( istring );
@@ -3067,16 +3038,13 @@ public static String unpad ( String string, String white0, int flag )
 
 	// Do the back first so that we do not shift the string yet...
 
-	if (	((flag & StringUtil.PAD_BACK) != 0) &&
-		(length_string > 0) ) {
+	if ( ((flag & StringUtil.PAD_BACK) != 0) && (length_string > 0) ) {
 		// Remove whitespace from back...
 		istring = length_string - 1;
 		if ( istring >= 0 ) {
 			cstring = string.charAt ( istring );
-			while (	(istring >= 0)
-				&& (white.indexOf(cstring) != -1) ) {
-				// Shorten by one character as we
-				// backtrack...
+			while (	(istring >= 0) && (white.indexOf(cstring) != -1) ) {
+				// Shorten by one character as we backtrack...
 				--length_string;
 				if ( length_string < 0 ) {
 					length_string = 0;
@@ -3088,20 +3056,17 @@ public static String unpad ( String string, String white0, int flag )
 				}
 			}
 		}
-		//Message.printDebug ( dl, routine,
-		//"Result after \"%s\" off back: \"%s\".", white, string );
+		//Message.printDebug ( dl, routine, "Result after \"%s\" off back: \"%s\".", white, string );
 	}
 
 	// Now do the front...
 
 	int skip_count = 0;
-	if (	((flag & StringUtil.PAD_FRONT) != 0) &&
-		(length_string > 0) ) {
+	if ( ((flag & StringUtil.PAD_FRONT) != 0) && (length_string > 0) ) {
 		// Remove whitespace from front...
 		istring = 0;
 		cstring = string.charAt ( istring );
-		while ( (istring < length_string)
-			&& (white.indexOf(cstring) != -1) ) {
+		while ( (istring < length_string) && (white.indexOf(cstring) != -1) ) {
 			// Skipping leading whitespace...
 			++skip_count;
 			++istring;
@@ -3115,8 +3080,7 @@ public static String unpad ( String string, String white0, int flag )
 		}
 		//buffer.append ( string.substring(istring) );
 		//strcpy ( string, pt );
-		//Message.printDebug ( dl, routine,
-		//"Result after \"%s\" off front: \"%s\".", white, string );
+		//Message.printDebug ( dl, routine, "Result after \"%s\" off front: \"%s\".", white, string );
 	}
 
 	// Else, return the string from the front and back operations...
@@ -3149,11 +3113,11 @@ spaces, tabs, backslashes and forward slashes.
 @return a wrapped that will fit on lines of the given length.
 */
 public static String wrap(String s, int lineLength) {
-	List v = StringUtil.breakStringList(s, "\n", 0);
+	List<String> v = StringUtil.breakStringList(s, "\n", 0);
 	StringBuffer sb = new StringBuffer("");
 	
 	for (int i = 0; i < v.size(); i++) {
-		sb.append(wrapHelper((String)v.get(i), lineLength));
+		sb.append(wrapHelper(v.get(i), lineLength));
 	}
 	return sb.toString();
 }
@@ -3298,11 +3262,9 @@ A helper function used by wrap() to locate a the point at which a line of text c
 @return the location of the next immediate wrap point, or -1 if none can be found.
 */
 private static int wrapFindFirstWrappableIndex(String s, int from) {
-	// there are two batches of characters to be checked and each batch
-	// must be handled differently.  
+	// There are two batches of characters to be checked and each batch must be handled differently.  
 
-	// in the first case are characters that denote that the line can
-	// be wrapped immediately AFTERWARDS
+	// In the first case are characters that denote that the line can be wrapped immediately AFTERWARDS
 	int index1 = wrapFindFirstWrappableIndexHelper(s, ".", from, -1);
 	index1 = wrapFindFirstWrappableIndexHelper(s, ",", from, index1);
 	index1 = wrapFindFirstWrappableIndexHelper(s, "!", from, index1);
@@ -3315,7 +3277,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 	index1 = wrapFindFirstWrappableIndexHelper(s, "/", from, index1);
 	index1 = wrapFindFirstWrappableIndexHelper(s, "\\", from, index1);
 
-	// in the second case are characters that denote that the line must be wrapped BEFORE.
+	// In the second case are characters that denote that the line must be wrapped BEFORE.
 	int index2 = wrapFindFirstWrappableIndexHelper(s, "(", from, -1);
 	index2 = wrapFindFirstWrappableIndexHelper(s, "{", from, index2);
 	index2 = wrapFindFirstWrappableIndexHelper(s, "[", from, index2);
@@ -3395,30 +3357,24 @@ from the same from point, but for a different character.
 @return the earliest wrap point based on the wrap point that is found and the
 previously-found wrap point (index), or -1 if none can be found.
 */
-private static int wrapFindFirstWrappableIndexHelper(String s, String ch, 
-int from, int index) {
-	// find the first position of the specified character from the 
-	// specified start point.
+private static int wrapFindFirstWrappableIndexHelper(String s, String ch, int from, int index) {
+	// Find the first position of the specified character from the specified start point.
 	int i = s.indexOf(ch, from);
 	
-	// if no position was found, and no position had been found 
-	// previously ...
+	// If no position was found, and no position had been found previously ...
 	if (i == -1 && index == -1) {
 		return -1;
 	}
 	
-	// if a position was found this time, but none had been found
-	// previously ...
+	// If a position was found this time, but none had been found previously ...
 	if (i > -1 && index == -1) {
 		return i;
 	}
-	// if no position was found this time, but one had been found 
-	// previously ...
+	// If no position was found this time, but one had been found previously ...
 	else if (i == -1 && index > -1) {	
 		return index;
 	}
-	// if a position was found this time AND one had been found
-	// previously ...
+	// If a position was found this time AND one had been found previously ...
 	else {
 		// return whichever is smaller.
 		if (index < i) {
