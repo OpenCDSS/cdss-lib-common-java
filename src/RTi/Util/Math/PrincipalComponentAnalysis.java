@@ -7,9 +7,11 @@
 
 package RTi.Util.Math;
 
+import RTi.Util.Message.Message;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,11 +68,13 @@ public PrincipalComponentAnalysis ( double[] dependentArray, double[][] independ
     try {
         analyze();
     } catch (Exception ex) {
-        Logger.getLogger(PrincipalComponentAnalysis.class.getName()).log(Level.SEVERE, null, ex);
+        Message.printWarning(1, "PrincipalComponentAnalysis", "Error during PCA analysis.");
     }
 }
 
-   
+    public void fill() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
 private void analyze( ) throws Exception {
     /* Allocate array space for principal components calculations
