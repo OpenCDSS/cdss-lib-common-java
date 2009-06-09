@@ -8,12 +8,8 @@
 package RTi.Util.Math;
 
 import RTi.Util.Message.Message;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -72,9 +68,9 @@ public PrincipalComponentAnalysis ( double[] dependentArray, double[][] independ
     }
 }
 
-    public void fill() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+public int getNumberOfAvailableCombinations() {
+    return Math.min(ncomb, _maxCombinations);
+}
 
 private void analyze( ) throws Exception {
     /* Allocate array space for principal components calculations
