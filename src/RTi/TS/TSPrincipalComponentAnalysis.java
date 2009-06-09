@@ -130,4 +130,11 @@ public PrincipalComponentAnalysis getPrincipalComponentAnalysis() {
     return _pca;
 }
 
+public static TS fill ( TS tsToFill, List independentTSList, PrincipalComponentAnalysis pca,
+        int regressionEqIndex, DateTime fillStart, DateTime fillEnd )
+{
+    double regressionEquation[] = pca.getBcombForIndex(regressionEqIndex);
+    return tsToFill;
+}
+
 }
