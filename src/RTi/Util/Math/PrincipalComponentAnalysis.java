@@ -72,6 +72,16 @@ public int getNumberOfAvailableCombinations() {
     return Math.min(ncomb, _maxCombinations);
 }
 
+public double[] getBcombForIndex(int index) {
+    double[] selected_bcomb = new double[nx+1];
+    int ix = indx[index];
+
+    for ( int i=0; i<nx+1; i++ ) {
+        selected_bcomb[i] = bcomb[ix][i];
+    }
+    return selected_bcomb;
+}
+
 private void analyze( ) throws Exception {
     /* Allocate array space for principal components calculations
      * Most of these will be moved to their appropriate subroutine.
