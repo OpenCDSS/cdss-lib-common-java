@@ -1,11 +1,15 @@
 /*
- *
+ * These routines help manipulate data for Principal Component Analysis
+ * by arranging the data in arrays suitable for calculations.  Also, a
+ * fill routine is provided to use the results from PCA to fill missing data
+ * in a TS.
  */
 
 package RTi.TS;
 
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.PrincipalComponentAnalysis;
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import java.util.List;
@@ -24,6 +28,8 @@ private DateTime _analysis_period_end;  // Analysis period
 private boolean [] _analyze_month;      // Indicates the months to analyze.
 private int [] _analyze_month_list;     // List of month numbers to analyze.
 private int _maxCombinations;           // Maximum combination of solutions to retain.
+double [][] _xMatrix = null;            // matrix representation of independentTS data
+double [] _yArray = null;               // array representation of dependentTS data
 PrincipalComponentAnalysis _pca;        // Analysis, including statistics, etc.
 
 
@@ -51,8 +57,7 @@ throws Exception {
 }
 
 private void analyze() throws Exception {
-    double [][] xMatrix = null;
-    double [] yArray = null;
+    
     double [] xArray = null;
 
     int numTS = _independentTS.size();
@@ -60,14 +65,14 @@ private void analyze() throws Exception {
         false : true;
 
     // Get data specified or all data if analysis months weren't specified
-    yArray = includeAnalyzeMonthList ?
+    _yArray = includeAnalyzeMonthList ?
         TSUtil.toArray ( _dependentTS, _analysis_period_start, _analysis_period_end, _analyze_month_list ) :
         TSUtil.toArray ( _dependentTS, _analysis_period_start, _analysis_period_end );
 
     // Save independent observations in xMatrix[nObservations][numTS]
-    int nObservations = yArray.length;
+    int nObservations = _yArray.length;
     // now we know number of stations and number of observations
-    xMatrix = new double[nObservations][numTS];
+    _xMatrix = new double[nObservations][numTS];
 
     // fill all data into xMatrix
     for ( int nTS = 0; nTS < numTS; nTS++ ) {
@@ -76,18 +81,32 @@ private void analyze() throws Exception {
             TSUtil.toArray ( ts, _analysis_period_start, _analysis_period_end, _analyze_month_list ) :
             TSUtil.toArray ( ts, _analysis_period_start, _analysis_period_end );
         for ( int i=0; i<nObservations; i++)
-            xMatrix[i][nTS] = xArray[i];
+            _xMatrix[i][nTS] = xArray[i];
     }
 
-    _pca = MathUtil.performPrincipalComponentAnalysis(yArray, xMatrix,
+    _pca = MathUtil.performPrincipalComponentAnalysis(_yArray, _xMatrix,
             _dependentTS.getMissing(), _independentTS.get(0).getMissing(), _maxCombinations );
 }
 
 private void initialize(TS dependentTS, List<TS> independentTS, DateTime start, DateTime end,
         int maxCombinations, String analysisMonths ) throws Exception {
 
+    String rtn = "TSPrincipalComponentAnalysis.initialize";
     _dependentTS = dependentTS;
     _independentTS = independentTS;
+
+    // verify all TS have same interval
+    int interval_base = _dependentTS.getDataIntervalBase();
+	int interval_mult = _dependentTS.getDataIntervalMult();
+    int numTS = _independentTS.size();
+    for ( int nTS = 0; nTS < numTS; nTS++ ) {
+        TS ts = _independentTS.get(nTS);
+        if ( ts.getDataIntervalBase() != interval_base ||
+             ts.getDataIntervalMult() != interval_mult ) {
+            Message.printWarning ( 1, rtn, "All TS mult have same data interval.  Cannot continue analysis.");
+            return;
+        }
+    }
 
     _analyze_month = new boolean[12];
     _analyze_month_list = null;
@@ -130,10 +149,48 @@ public PrincipalComponentAnalysis getPrincipalComponentAnalysis() {
     return _pca;
 }
 
-public static TS fill ( TS tsToFill, List independentTSList, PrincipalComponentAnalysis pca,
-        int regressionEqIndex, DateTime fillStart, DateTime fillEnd )
+/*
+ * This routine uses the results from the Principal Component Analysis
+ */
+public TS fill ( int regressionEqIndex, DateTime fillStart, DateTime fillEnd ) throws Exception
 {
-    double regressionEquation[] = pca.getBcombForIndex(regressionEqIndex);
+    TS tsToFill = (TS) _dependentTS.clone();
+    // regressionEqIndex is 1-based, bcomb is 0-based.
+    double regressionEquation[] = _pca.getBcombForIndex(regressionEqIndex-1);
+
+    // at this point, _analysis_period_start correlates with the first data value
+    // in regressionEquation
+    TSData ydata = null;
+    double xdata, value, missing = tsToFill.getMissing();
+    int numTS = _independentTS.size();
+    TSIterator tsi = new TSIterator( _dependentTS, _analysis_period_start, _analysis_period_end );
+    int regressionIndex;    // index to regression equation
+    int timeIndex=0;        // index to time; used to step through xMatrix
+
+    while ( (ydata=tsi.next()) != null ) {
+        if ( ydata.getData() == missing ) {
+            // regressionEquation[0] is the intercept.  Start with that.
+            value = regressionEquation[0];
+            regressionIndex=0;
+            for ( int nTS = 0; nTS < numTS; nTS++ ) {
+                xdata = _xMatrix[timeIndex][nTS];
+                if ( xdata == missing ) {
+                    value = missing;
+                    // end the loop
+                    nTS = numTS;
+                } else {
+                    if ( regressionEquation[++regressionIndex] != missing ) {
+                        value += xdata * regressionEquation[regressionIndex];
+                    }
+                }
+            }
+            if ( value != missing ) {
+                tsToFill.setDataValue(tsi.getDate(), value);
+            }
+        }
+        timeIndex++;
+    }
+
     return tsToFill;
 }
 
