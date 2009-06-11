@@ -84,8 +84,7 @@ pass information.  In general, code outside of the TS package will only use the
 get*() methods (because TS or TSUtil methods will set the data).
 This TSLimits base class can be used for any time series.  More detailed limits
 like MonthTSLimits can be extended to contain more information.  The
-toString() method should be written to provide output suitable for use in a
-report.
+toString() method should be written to provide output suitable for use in a report.
 */
 public class TSLimits
 implements Cloneable, Serializable
@@ -98,7 +97,7 @@ Flags used to indicate how limits are to be computed.
 The following indicates that a time series' full limits should be refreshed.
 This is generally used only by code internal to the TS library.
 */
-public static final int REFRESH_TS	= 0x1;
+public static final int REFRESH_TS = 0x1;
 
 /**
 Do not compute the total limits (using this TSLimits class).  This is used by
@@ -122,22 +121,21 @@ public static final int IGNORE_LESS_THAN_OR_EQUAL_ZERO = 0x8;
 
 // Data members...
 
-private TS		__ts = null;	// Time series being studied.
-private DateTime	__date1;
-private DateTime	__date2;
-protected int		_flags;		// Flags to control behavior.
-private double		__max_value;
-private DateTime	__max_value_date;
-private double		__mean;
-private double		__min_value;
-private DateTime	__min_value_date;
-private int		__missing_data_count;
-private int		__non_missing_data_count;
-private DateTime	__non_missing_data_date1;
-private DateTime	__non_missing_data_date2;
-private double		__sum;
-private String		__data_units="";// Data units (just copy from TS at the
-					// time of creation).
+private TS __ts = null;	// Time series being studied.
+private DateTime __date1;
+private DateTime __date2;
+protected int _flags;		// Flags to control behavior.
+private double __max_value;
+private DateTime __max_value_date;
+private double __mean;
+private double __min_value;
+private DateTime __min_value_date;
+private int __missing_data_count;
+private int __non_missing_data_count;
+private DateTime __non_missing_data_date1;
+private DateTime __non_missing_data_date2;
+private double __sum;
+private String __data_units="";// Data units (just copy from TS at the time of creation).
 
 private boolean	__found;
 
@@ -149,8 +147,7 @@ public TSLimits ()
 }
 
 /**
-Copy constructor.  A deep copy is made, except that the time series is not
-copied.
+Copy constructor.  A deep copy is made, except that the time series is not copied.
 @param limits Instance to copy.
 */
 public TSLimits ( TSLimits limits )
@@ -200,7 +197,8 @@ TSLimits.NO_COMPUTE_TOTALS flags for explanations.
 */
 public TSLimits ( TS ts, DateTime startdate, DateTime enddate, int flags )
 throws TSException
-{	try {	initialize ();
+{	try {
+		initialize ();
 		__ts = ts;
 		__data_units = ts.getDataUnits();
 		boolean refresh_flag = false;
@@ -226,7 +224,8 @@ Construct the TS limits for the full period.
 */
 public TSLimits ( TS ts )
 throws TSException
-{	try {	initialize ();
+{	try {
+		initialize ();
 		__ts = ts;
 		__data_units = ts.getDataUnits();
 		// Make sure that this version is called...
@@ -249,7 +248,8 @@ Construct the TS limits between two dates.
 */
 public TSLimits ( TS ts, DateTime startdate, DateTime enddate )
 throws TSException
-{	try {	initialize ();
+{	try {
+		initialize ();
 		__ts = ts;
 		__data_units = ts.getDataUnits();
 		// Make sure this version is called...
@@ -265,8 +265,7 @@ throws TSException
 
 /**
 Indicates whether the time series data and dates have been fully processed. 
-Sometimes only some of the data members are used.  This routine is most often
-used by low-level code.
+Sometimes only some of the data members are used.  This routine is most often used by low-level code.
 @return A boolean indicating whether the limits have been found.
 */
 public boolean areLimitsFound ()
@@ -285,327 +284,310 @@ routine without the flag should be called).
 @see TSLimits
 @exception if there is an error computing limits.
 */
-private void calculateDataLimits (	TS ts, DateTime start0, DateTime end0,
-					boolean refresh_flag )
+private void calculateDataLimits ( TS ts, DateTime start0, DateTime end0, boolean refresh_flag )
 throws TSException
-{	String		message, routine="TSLimits.getDataLimits";
-	double		max = 1.0, mean = 0.0, min = 0.0, sum = 0.0,
-			value = 0.0;
-	int		base=0, missing_count = 0, mult = 0,
-			non_missing_count = 0;
-	boolean		found = false;
-	DateTime	date, max_date = null, min_date = null,
-			non_missing_data_date1 = null,
-			non_missing_data_date2 = null,
-			t = null, ts_date1, ts_date2;
+{	String message, routine="TSLimits.getDataLimits";
+	double max = 1.0, mean = 0.0, min = 0.0, sum = 0.0, value = 0.0;
+	int base=0, missing_count = 0, mult = 0, non_missing_count = 0;
+	boolean found = false;
+	DateTime date, max_date = null, min_date = null, non_missing_data_date1 = null,
+		non_missing_data_date2 = null, t = null, ts_date1, ts_date2;
 
-	try {	// Main try...
+	try {
+		// Main try...
 
-	if ( ts == null ) {
-		message = "NULL time series";
-		Message.printWarning ( 3, routine, message );
-		throw new TSException ( message );
-	}
-
-	// Initialize the sum and the mean...
-
-	double missing = ts.getMissing();
-	sum = missing;
-	mean = missing;
-
-	// Get valid date limits because the ones passed in may have been
-	// null...
-
-	TSLimits valid_dates = TSUtil.getValidPeriod ( ts, start0, end0 );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
-	valid_dates = null;
-
-	// Make sure that the time series has current limits...
-
-	base = ts.getDataIntervalBase();
-	mult = ts.getDataIntervalMult();
-	if ( refresh_flag ) {
-		// Force a refresh of the time series.
-		//
-		// Need to be picky here because of the dependence on the
-		// type...
-		if ( base == TimeInterval.MINUTE ) {
-			MinuteTS temp = (MinuteTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else if ( base == TimeInterval.HOUR ) {
-			HourTS temp = (HourTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else if ( base == TimeInterval.DAY ) {
-			DayTS temp = (DayTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else if ( base == TimeInterval.MONTH ) {
-			MonthTS temp = (MonthTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else if ( base == TimeInterval.YEAR ) {
-			YearTS temp = (YearTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else if ( base == TimeInterval.IRREGULAR ) {
-			IrregularTS temp = (IrregularTS)ts;
-			temp.refresh ();
-			temp = null;
-		}
-		else {	message =
-			"Unknown time series interval for refresh()";
+		if ( ts == null ) {
+			message = "NULL time series";
 			Message.printWarning ( 3, routine, message );
 			throw new TSException ( message );
 		}
-	}
-
-	// Get the variables that are used often in this function.
-
-	ts_date1 = ts.getDate1 ();
-	ts_date2 = ts.getDate2 ();
-
-	// Figure out if we are treating data <= 0 as missing...
-
-	boolean ignore_lezero = false;
-	if ( (_flags & IGNORE_LESS_THAN_OR_EQUAL_ZERO) != 0 ) {
-		ignore_lezero = true;
-	}
-
-	// Loop through the dates and get max and min data values;
-
-	if ( base == TimeInterval.IRREGULAR ) {
-		// Loop through the dates and get max and min data values;
-		// Need to cast as an irregular TS...
-
-		IrregularTS its = (IrregularTS)ts;
-
-		List data_array = its.getData ();
-		if ( data_array == null ) {
-			message = "Null data for " + ts;
-			Message.printWarning ( 3, routine, message );
-			throw new TSException ( message );
-		}
-		int size = data_array.size();
-		TSData ptr = null;
-		for ( int i = 0; i < size; i++ ) {
-			ptr = (TSData)data_array.get(i);
-			date = ptr.getDate();
 	
-			if ( date.lessThan( ts_date1 ) ) {
-				// Still looking for data...
-				continue;
+		// Initialize the sum and the mean...
+	
+		double missing = ts.getMissing();
+		sum = missing;
+		mean = missing;
+	
+		// Get valid date limits because the ones passed in may have been
+		// null...
+	
+		TSLimits valid_dates = TSUtil.getValidPeriod ( ts, start0, end0 );
+		DateTime start = valid_dates.getDate1();
+		DateTime end = valid_dates.getDate2();
+		valid_dates = null;
+	
+		// Make sure that the time series has current limits...
+	
+		base = ts.getDataIntervalBase();
+		mult = ts.getDataIntervalMult();
+		if ( refresh_flag ) {
+			// Force a refresh of the time series.
+			//
+			// Need to be picky here because of the dependence on the type...
+			if ( base == TimeInterval.MINUTE ) {
+				MinuteTS temp = (MinuteTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-			else if ( date.greaterThan( ts_date2 ) ) {
-				// No need to continue processing...
-				break;
+			else if ( base == TimeInterval.HOUR ) {
+				HourTS temp = (HourTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-
-			value 	= ptr.getData();
-		
-			if (	ts.isDataMissing( value ) ||
-				(ignore_lezero && (value <= 0.0)) ) {
-				//The value is missing
-				++missing_count;
-                        	continue;
+			else if ( base == TimeInterval.DAY ) {
+				DayTS temp = (DayTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-
-			// Else, data value is not missing...
-
-			if ( ts.isDataMissing(sum) ) {
-				// Reset the sum...
-				sum = value;
+			else if ( base == TimeInterval.MONTH ) {
+				MonthTS temp = (MonthTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-			else {	// Add to the sum...
-				sum += value;
+			else if ( base == TimeInterval.YEAR ) {
+				YearTS temp = (YearTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-			++non_missing_count;
-
-			if ( found ) {
-				// Already found the first non-missing point so
-				// all we need to do is check the limits.  These
-				// should only result in new DateTime a few
-				// times...
-				if( value > max ) {
-                			max = value;
-					max_date = new DateTime ( date );
-				}
-				if( value < min ) {
-                			min = value;
-					min_date = new DateTime ( date );
-                		}
+			else if ( base == TimeInterval.IRREGULAR ) {
+				IrregularTS temp = (IrregularTS)ts;
+				temp.refresh ();
+				temp = null;
 			}
-			else {	// We set the limits to the first value found...
-				//date = new DateTime ( t );
-				max 			= value;
-				max_date 		= new DateTime ( date );
-				min 			= value;
-				min_date 		= max_date;
-				non_missing_data_date1 	= max_date;
-				non_missing_data_date2	= max_date;
-				found = true;
-				continue;
+			else {
+				message = "Unknown time series interval for refresh()";
+				Message.printWarning ( 3, routine, message );
+				throw new TSException ( message );
 			}
-        	}
-		// Now search backwards to find the first non-missing date...
-		if ( found ) {
-			for ( int i = (size - 1); i >= 0; i-- ){
+		}
+	
+		// Get the variables that are used often in this function.
+	
+		ts_date1 = ts.getDate1 ();
+		ts_date2 = ts.getDate2 ();
+	
+		// Figure out if we are treating data <= 0 as missing...
+	
+		boolean ignore_lezero = false;
+		if ( (_flags & IGNORE_LESS_THAN_OR_EQUAL_ZERO) != 0 ) {
+			ignore_lezero = true;
+		}
+	
+		// Loop through the dates and get max and min data values;
+	
+		if ( base == TimeInterval.IRREGULAR ) {
+			// Loop through the dates and get max and min data values;
+			// Need to cast as an irregular TS...
+	
+			IrregularTS its = (IrregularTS)ts;
+	
+			List data_array = its.getData ();
+			if ( data_array == null ) {
+				message = "Null data for " + ts;
+				Message.printWarning ( 3, routine, message );
+				throw new TSException ( message );
+			}
+			int size = data_array.size();
+			TSData ptr = null;
+			for ( int i = 0; i < size; i++ ) {
 				ptr = (TSData)data_array.get(i);
 				date = ptr.getDate();
-				value = ptr.getData();
-				if ( date.greaterThan(end) ) {
-					// Have not found data...
+		
+				if ( date.lessThan( ts_date1 ) ) {
+					// Still looking for data...
 					continue;
 				}
-				else if ( date.lessThan(start) ) {
-					// Passed start...
+				else if ( date.greaterThan( ts_date2 ) ) {
+					// No need to continue processing...
 					break;
 				}
-				if (	(!ignore_lezero &&
-					!ts.isDataMissing(value)) ||
-					(ignore_lezero && ((value > 0.0) &&
-					!ts.isDataMissing(value))) ) {
-					// Found the one date we are after...
-					non_missing_data_date2 = new DateTime (
-					date );
-					break;
+	
+				value = ptr.getData();
+			
+				if ( ts.isDataMissing( value ) || (ignore_lezero && (value <= 0.0)) ) {
+					//The value is missing
+					++missing_count;
+	                continue;
 				}
-			}
-		}
-		its = null;
-		data_array = null;
-		ptr = null;
-	}
-	else {	// A regular TS... easier to iterate...
-		// First loop through and find the data limits and the
-		// minimum non-missing date...
-		t = new DateTime ( start, DateTime.DATE_FAST );
-		for (	; t.lessThanOrEqualTo(end);
-			t.addInterval( base, mult )) {
-
-			value = ts.getDataValue( t );
-		
-			if (	ts.isDataMissing(value) ||
-				(ignore_lezero && (value <= 0.0)) ) {
-				//The value is missing
-				++missing_count;
-                        	continue;
-			}
-
-			// Else, data value is not missing...
-
-			if ( ts.isDataMissing(sum) ) {
-				// Reset the sum...
-				sum = value;
-			}
-			else {	// Add to the sum...
-				sum += value;
-			}
-			++non_missing_count;
-
+	
+				// Else, data value is not missing...
+	
+				if ( ts.isDataMissing(sum) ) {
+					// Reset the sum...
+					sum = value;
+				}
+				else {
+					// Add to the sum...
+					sum += value;
+				}
+				++non_missing_count;
+	
+				if ( found ) {
+					// Already found the first non-missing point so
+					// all we need to do is check the limits.  These
+					// should only result in new DateTime a few times...
+					if( value > max ) {
+	                	max = value;
+						max_date = new DateTime ( date );
+					}
+					if( value < min ) {
+	                	min = value;
+						min_date = new DateTime ( date );
+	                }
+				}
+				else {
+					// Set the limits to the first value found...
+					//date = new DateTime ( t );
+					max = value;
+					max_date = new DateTime ( date );
+					min = value;
+					min_date = max_date;
+					non_missing_data_date1 = max_date;
+					non_missing_data_date2 = max_date;
+					found = true;
+					continue;
+				}
+	        }
+			// Now search backwards to find the first non-missing date...
 			if ( found ) {
-				// Already found the first non-missing point so
-				// all we need to do is check the limits.  These
-				// should only result in new DateTime a few
-				// times...
-				if ( value > max ) {
-                			max = value;
-					max_date = new DateTime ( t );
+				for ( int i = (size - 1); i >= 0; i-- ){
+					ptr = (TSData)data_array.get(i);
+					date = ptr.getDate();
+					value = ptr.getData();
+					if ( date.greaterThan(end) ) {
+						// Have not found data...
+						continue;
+					}
+					else if ( date.lessThan(start) ) {
+						// Passed start...
+						break;
+					}
+					if ( (!ignore_lezero && !ts.isDataMissing(value)) ||
+						(ignore_lezero && ((value > 0.0) && !ts.isDataMissing(value))) ) {
+						// Found the one date we are after...
+						non_missing_data_date2 = new DateTime ( date );
+						break;
+					}
 				}
-				if ( value < min ) {
-                			min = value;
-					min_date = new DateTime ( t );
-                		}
 			}
-			else {	// First non-missing point so set the initial
-				// values...
-				date = new DateTime( t );
-				max = value;
-				max_date = date;
-				min = value;
-				min_date = date;
-				non_missing_data_date1 = date;
-				non_missing_data_date2 = date;
-				found = true;
-			}
-        	}
-		// Now loop backwards and find the last non-missing value...
-		t = new DateTime ( end, DateTime.DATE_FAST );
-		if ( found ) {
-			for(	; t.greaterThanOrEqualTo(start);
-				t.addInterval( base, -mult )) {
+			its = null;
+			data_array = null;
+			ptr = null;
+		}
+		else {
+			// A regular TS... easier to iterate...
+			// First loop through and find the data limits and the minimum non-missing date...
+			t = new DateTime ( start, DateTime.DATE_FAST );
+			for ( ; t.lessThanOrEqualTo(end); t.addInterval( base, mult )) {
+	
 				value = ts.getDataValue( t );
-				if (	(!ignore_lezero &&
-					!ts.isDataMissing(value)) ||
-					(ignore_lezero && ((value > 0.0) &&
-					!ts.isDataMissing(value))) ) {
-					// The value is not missing...
-					non_missing_data_date2 =new DateTime(t);
-					break;
+			
+				if ( ts.isDataMissing(value) || (ignore_lezero && (value <= 0.0)) ) {
+					//The value is missing
+					++missing_count;
+	                continue;
+				}
+	
+				// Else, data value is not missing...
+	
+				if ( ts.isDataMissing(sum) ) {
+					// Reset the sum...
+					sum = value;
+				}
+				else {
+					// Add to the sum...
+					sum += value;
+				}
+				++non_missing_count;
+	
+				if ( found ) {
+					// Already found the first non-missing point so
+					// all we need to do is check the limits.  These
+					// should only result in new DateTime a few times...
+					if ( value > max ) {
+	                	max = value;
+						max_date = new DateTime ( t );
+					}
+					if ( value < min ) {
+	                	min = value;
+						min_date = new DateTime ( t );
+	                }
+				}
+				else {
+					// First non-missing point so set the initial values...
+					date = new DateTime( t );
+					max = value;
+					max_date = date;
+					min = value;
+					min_date = date;
+					non_missing_data_date1 = date;
+					non_missing_data_date2 = date;
+					found = true;
+				}
+	        }
+			// Now loop backwards and find the last non-missing value...
+			t = new DateTime ( end, DateTime.DATE_FAST );
+			if ( found ) {
+				for( ; t.greaterThanOrEqualTo(start); t.addInterval( base, -mult )) {
+					value = ts.getDataValue( t );
+					if ( (!ignore_lezero && !ts.isDataMissing(value)) ||
+						(ignore_lezero && ((value > 0.0) && !ts.isDataMissing(value))) ) {
+						// The value is not missing...
+						non_missing_data_date2 =new DateTime(t);
+						break;
+					}
 				}
 			}
 		}
-	}
-
-	if ( !found ) {
-		message = "\"" + ts.getIdentifierString() +
-		"\": problems finding limits, whole POR missing!";
-		Message.printWarning( 3, routine, message );
-		throw new TSException ( message );
-	}
-
-	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, routine,
-		"Overall date limits are: " + start + " to " + end );
-		Message.printDebug( 10, routine,
-		"Found limits to be: " + min + " on " + min_date + " to "
-		+ max + " on " + max_date );
-		Message.printDebug( 10, routine,
-		"Found non-missing data dates to be: " +
-		non_missing_data_date1 + " -> " + non_missing_data_date2 );
-	}
-
-	// Set the basic information...
-
-	setDate1 ( start );
-	setDate2 ( end );
-	setMaxValue ( max, max_date );
-	setMinValue ( min, min_date );
-	setNonMissingDataDate1 ( non_missing_data_date1 );
-	setNonMissingDataDate2 ( non_missing_data_date2 );
-	setMissingDataCount ( missing_count );
-	setNonMissingDataCount ( non_missing_count );
-	//int data_size = calculateDataSize ( ts, start, end );
-	//limits.setNonMissingDataCount ( data_size - missing_count );
-	if ( !ts.isDataMissing (sum) && (non_missing_count > 0) ) {
-		mean = sum/(double)non_missing_count;
-	}
-	else {	mean = missing;
-	}
-	setSum ( sum );
-	setMean ( mean );
-	// Clean up...
-	date = null;
-	max_date = null;
-	min_date = null;
-	non_missing_data_date1 = null;
-	non_missing_data_date2 = null;
-	t = null;
-	ts_date1 = null;
-	ts_date2 = null;
+	
+		if ( !found ) {
+			message = "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!";
+			Message.printWarning( 3, routine, message );
+			throw new TSException ( message );
+		}
+	
+		if ( Message.isDebugOn ) {
+			Message.printDebug( 10, routine, "Overall date limits are: " + start + " to " + end );
+			Message.printDebug( 10, routine,
+			"Found limits to be: " + min + " on " + min_date + " to " + max + " on " + max_date );
+			Message.printDebug( 10, routine,
+			"Found non-missing data dates to be: " + non_missing_data_date1 + " -> " + non_missing_data_date2 );
+		}
+	
+		// Set the basic information...
+	
+		setDate1 ( start );
+		setDate2 ( end );
+		setMaxValue ( max, max_date );
+		setMinValue ( min, min_date );
+		setNonMissingDataDate1 ( non_missing_data_date1 );
+		setNonMissingDataDate2 ( non_missing_data_date2 );
+		setMissingDataCount ( missing_count );
+		setNonMissingDataCount ( non_missing_count );
+		//int data_size = calculateDataSize ( ts, start, end );
+		//limits.setNonMissingDataCount ( data_size - missing_count );
+		if ( !ts.isDataMissing (sum) && (non_missing_count > 0) ) {
+			mean = sum/(double)non_missing_count;
+		}
+		else {
+			mean = missing;
+		}
+		setSum ( sum );
+		setMean ( mean );
+		// Clean up...
+		date = null;
+		max_date = null;
+		min_date = null;
+		non_missing_data_date1 = null;
+		non_missing_data_date2 = null;
+		t = null;
+		ts_date1 = null;
+		ts_date2 = null;
 	}
 	catch ( Exception e ) {
 		message = "Error computing limits.";
 		Message.printWarning ( 3, routine, message );
-		// Put in debug because output sometimes is overwhelming when
-		// data are not available.
+		// Put in debug because output sometimes is overwhelming when data are not available.
 		if ( Message.isDebugOn ) {
 			Message.printWarning ( 3, routine, e );
 		}
@@ -622,12 +604,9 @@ limits analysis, then external code may need to call setLimitsFound() to
 manually set the found flag.
 */
 private void checkDates ()
-{	if (	(__date1 != null) &&
-		(__date2 != null) &&
-		(__max_value_date != null) &&
-		(__min_value_date != null) &&
-		(__non_missing_data_date1 != null) &&
-		(__non_missing_data_date2 != null) ) {
+{	if ( (__date1 != null) && (__date2 != null) &&
+		(__max_value_date != null) && (__min_value_date != null) &&
+		(__non_missing_data_date1 != null) && (__non_missing_data_date2 != null) ) {
 		// The dates have been fully processed (set)...
 		__found = true;
 	}
@@ -639,7 +618,8 @@ TS objects are cloned.  The result is a complete deep copy for all object
 except the reference to the associated time series.
 */
 public Object clone ()
-{	try {	// Clone the base class...
+{	try {
+		// Clone the base class...
 		TSLimits limits = (TSLimits)super.clone();
 		limits.__ts = __ts;
 		if ( __date1 != null ) {
@@ -649,20 +629,16 @@ public Object clone ()
 			limits.__date2 = (DateTime)__date2.clone();
 		}
 		if ( __max_value_date != null ) {
-			limits.__max_value_date =
-			(DateTime)__max_value_date.clone();
+			limits.__max_value_date = (DateTime)__max_value_date.clone();
 		}
 		if ( __min_value_date != null ) {
-			limits.__min_value_date =
-			(DateTime)__min_value_date.clone();
+			limits.__min_value_date = (DateTime)__min_value_date.clone();
 		}
 		if ( __non_missing_data_date1 != null ) {
-			limits.__non_missing_data_date1 =
-				(DateTime)__non_missing_data_date1.clone();
+			limits.__non_missing_data_date1 = (DateTime)__non_missing_data_date1.clone();
 		}
 		if ( __non_missing_data_date2 != null ) {
-			limits.__non_missing_data_date2 =
-				(DateTime)__non_missing_data_date2.clone();
+			limits.__non_missing_data_date2 = (DateTime)__non_missing_data_date2.clone();
 		}
 		return limits;
 	}
@@ -1027,11 +1003,9 @@ public String toString ( )
 	double non_missing_percent = 0.0;
 	if ( (__missing_data_count + __non_missing_data_count) > 0 ) {
 		missing_percent = 100.0*(double)__missing_data_count/
-				(double)(__missing_data_count +
-					__non_missing_data_count);
+				(double)(__missing_data_count + __non_missing_data_count);
 		non_missing_percent = 100.0*(double)__non_missing_data_count/
-				(double)(__missing_data_count +
-					__non_missing_data_count);
+				(double)(__missing_data_count + __non_missing_data_count);
 	}
 	return 
 	"Min:  " + StringUtil.formatString(__min_value,"%20.4f") + units +
@@ -1043,11 +1017,9 @@ public String toString ( )
 	"Number Missing:     " + __missing_data_count + " (" +
 			StringUtil.formatString(missing_percent,"%.2f")+"%)\n" +
 	"Number Not Missing: " + __non_missing_data_count + " (" +
-			StringUtil.formatString(non_missing_percent,"%.2f")
-			+ "%)\n" +
+			StringUtil.formatString(non_missing_percent,"%.2f") + "%)\n" +
 	"Total period: " + __date1 + " to " + __date2 + "\n" +
-	"Non-missing data period: " + __non_missing_data_date1 + " to " +
-	__non_missing_data_date2;
+	"Non-missing data period: " + __non_missing_data_date1 + " to " + __non_missing_data_date2;
 }
 
-} // End of TSLimits
+}
