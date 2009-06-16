@@ -154,6 +154,7 @@ public PrincipalComponentAnalysis getPrincipalComponentAnalysis() {
  */
 public TS fill ( int regressionEqIndex, DateTime fillStart, DateTime fillEnd ) throws Exception
 {
+    boolean changed = false;
     TS tsToFill = (TS) _dependentTS.clone();
     // regressionEqIndex is 1-based, bcomb is 0-based.
     double regressionEquation[] = _pca.getBcombForIndex(regressionEqIndex-1);
@@ -186,11 +187,23 @@ public TS fill ( int regressionEqIndex, DateTime fillStart, DateTime fillEnd ) t
             }
             if ( value != missing ) {
                 tsToFill.setDataValue(tsi.getDate(), value);
+                changed = true;
             }
         }
         timeIndex++;
     }
 
+    // add genesis if missing values were filled
+    if ( changed ) {
+        StringBuffer genesis = new StringBuffer ("Filled missing values using PCA, regression equation ");
+        for ( int nTS = 1; nTS <= numTS; nTS++ ) {
+            genesis.append("" + (regressionEquation[nTS] == tsToFill.getMissing()? 0 : regressionEquation[nTS]));
+            if ( nTS != numTS )
+                genesis.append(", ");
+        }
+        tsToFill.addToGenesis(genesis.toString());
+
+    }
     return tsToFill;
 }
 
