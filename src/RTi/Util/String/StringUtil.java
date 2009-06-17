@@ -685,6 +685,56 @@ public static boolean containsAny ( String s, String chars, boolean ignore_case 
 }
 
 /**
+Convert a string containing a number sequence like "1,4-5,13" to zero offset like "0,3-4,12".
+This method is used to convert user-based parameters that have values 1+ with internal code values 0+, which
+is useful when high-level (i.e., user-specified) parameters need to be converted to the zero offset form
+used by low-level code.
+@param sequenceString a string of positions like "1,4-5,13", where each index is 1+.
+@return the string of positions like "0,3-4,12", where each index is 0+.
+*/
+public static String convertNumberSequenceToZeroOffset ( String sequenceString )
+{
+    if ( (sequenceString == null) || (sequenceString.length() == 0) ) {
+        return sequenceString;
+    }
+    StringBuffer b = new StringBuffer();
+    List<String> v = StringUtil.breakStringList ( sequenceString, ", ", StringUtil.DELIM_SKIP_BLANKS );
+    int vsize = 0;
+    if ( v != null ) {
+        vsize = v.size();
+    }
+    for ( int i = 0; i < vsize; i++ ) {
+        String vi = v.get(i);
+        if ( i != 0 ) {
+            b.append (",");
+        }
+        if ( StringUtil.isInteger(vi)) {
+            int index = Integer.parseInt(vi);
+            b.append ( "" + (index - 1) );
+        }
+        else {
+            int pos = vi.indexOf("-");
+            if ( pos >= 0 ) {
+                // Specifying a range of values...
+                int first_in_range = -1;
+                int last_in_range = -1;
+                if ( pos == 0 ) {
+                    // First index is 1 (will be decremented below)...
+                    first_in_range = 1;
+                }
+                else {
+                    // Get first to skip...
+                    first_in_range = Integer.parseInt(vi.substring(0,pos).trim());
+                }
+                last_in_range = Integer.parseInt(vi.substring(pos+1).trim());
+                b.append ( "" + (first_in_range - 1) + "-" + (last_in_range - 1));
+            }
+        }
+    }
+    return b.toString();
+}
+
+/**
 Determine whether one strings ends with the specified substring, ignoring case.
 @param s String to evaluate.
 @param pattern End-string to compare.
