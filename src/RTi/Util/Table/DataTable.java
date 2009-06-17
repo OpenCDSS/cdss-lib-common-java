@@ -872,14 +872,10 @@ it will be .trim()'d before being parsed into a number or String.
 or equal to 0, all lines will be read.
 @exception Exception if there is an error parsing the file.
 */
-public static DataTable parseDelimitedFile (	String filename,
-						String delimiter,
-						List tableFields,
-						int num_lines_header, 
-						boolean trim_spaces,
-						int maxLines)
-throws Exception {
-
+public static DataTable parseDelimitedFile ( String filename, String delimiter, List tableFields,
+	int num_lines_header, boolean trim_spaces, int maxLines)
+throws Exception
+{
 	String iline;
 	boolean processed_header = false;
 	List columns;
@@ -1069,7 +1065,7 @@ Properties and their effects:<br>
 "AllStrings" (all are strings, the default from historical behavior), or a list of
 data types (to be implemented in the future).
 Lines starting with this character are skipped (TrimInput is applied after checking for comments).</td>
-<td>No default.</td>
+<td>AllStrings.</td>
 </tr>
 
 <tr>
@@ -1096,9 +1092,9 @@ using the following StringUtil.breakStringList() call (the flag can be modified 
 </tr>
 
 <tr>
-<td><b>HeaderRows</b></td>
-<td>The rows containing the header information, specified as single number or a range (e.g., 2-3).
-Multiple rows will be separated with a newline when displayed, or Auto to automatically treat the
+<td><b>HeaderLines (previously HeaderRows)</b></td>
+<td>The lines containing the header information, specified as single number or a range (e.g., 2-3).
+Multiple lines will be separated with a newline when displayed, or Auto to automatically treat the
 first non-comment row as a header if the value is double-quoted.</td>
 <td>Auto</td>
 </tr>
@@ -1111,10 +1107,11 @@ StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
 </tr>
 
 <tr>
-<td><b>SkipRows</b></td>
-<td>Rows to skip (0+), as list of individual row or ranges.  Skipped rows are generally
-non-parsable information.</td>
-<td>Don't skip any rows.</td>
+<td><b>SkipLines (previously SkipRows)</b></td>
+<td>Lines from the original file to skip (each value 0+), as list of comma-separated individual row or
+ranges like 3-6.  Skipped lines are generally information that cannot be parsed.  The lines are skipped after
+the initial read and are not available for further processing.</td>
+<td>Don't skip any lines.</td>
 </tr>
 
 <tr>
@@ -1166,19 +1163,26 @@ throws Exception
         Delimiter = ",";
 	}
 	
-    propVal = props.getValue("HeaderRows");
-    List HeaderRows_Vector = new Vector();
-    int HeaderRows_Vector_maxval = -1;  // Used to optimize code below
-    boolean HeaderRows_Auto_boolean = false;    // Are header rows to be determined automatically?
+    propVal = props.getValue("HeaderLines");
+    if ( propVal == null ) {
+        // Use older form...
+        propVal = props.getValue("HeaderRows");
+        if ( propVal != null ) {
+            Message.printWarning(3, routine, "Need to convert HeaderRows parameter to HeaderLines in software." );
+        }
+    }
+    List HeaderLines_Vector = new Vector();
+    int HeaderLines_Vector_maxval = -1;  // Used to optimize code below
+    boolean HeaderLines_Auto_boolean = false;    // Are header rows to be determined automatically?
     if ( (propVal == null) || (propVal.length() == 0) ) {
         // Default...
-        HeaderRows_Auto_boolean = true;
+        HeaderLines_Auto_boolean = true;
     }
     else {
         // Interpret the property.
-        Message.printStatus ( 2, routine, "HeaderRows=\"" + propVal + "\"" );
+        Message.printStatus ( 2, routine, "HeaderLines=\"" + propVal + "\"" );
         if ( propVal.equalsIgnoreCase("Auto")) {
-            HeaderRows_Auto_boolean = true;
+            HeaderLines_Auto_boolean = true;
         }
         else {
             // Determine the list of rows to skip.
@@ -1198,8 +1202,8 @@ throws Exception
                 if ( StringUtil.isInteger(vi)) {
                     int row = Integer.parseInt(vi);
                     Message.printStatus ( 2, routine, "Header row is [" + row + "]");
-                    HeaderRows_Vector.add(new Integer(row));
-                    HeaderRows_Vector_maxval = Math.max(HeaderRows_Vector_maxval, row);
+                    HeaderLines_Vector.add(new Integer(row));
+                    HeaderLines_Vector_maxval = Math.max(HeaderLines_Vector_maxval, row);
                 }
                 else {
                     int pos = vi.indexOf("-");
@@ -1217,8 +1221,8 @@ throws Exception
                         }
                         last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
                         for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
-                            HeaderRows_Vector.add(new Integer(is));
-                            HeaderRows_Vector_maxval = Math.max(HeaderRows_Vector_maxval, is);
+                            HeaderLines_Vector.add(new Integer(is));
+                            HeaderLines_Vector_maxval = Math.max(HeaderLines_Vector_maxval, is);
                         }
                     }
                 }
@@ -1226,7 +1230,7 @@ throws Exception
         }
     }
     // Use to speed up code below.
-    int HeaderRows_Vector_size = HeaderRows_Vector.size();
+    int HeaderLines_Vector_size = HeaderLines_Vector.size();
 
 	propVal = props.getValue("MergeDelimiters");
 	int parse_flag = StringUtil.DELIM_ALLOW_STRINGS;
@@ -1240,9 +1244,16 @@ throws Exception
         CommentLineIndicator = propVal;
 	}
 
-    propVal = props.getValue("SkipRows");
-    List SkipRows_Vector = new Vector();
-    int SkipRows_Vector_maxval = - 1;
+    propVal = props.getValue("SkipLines");
+    if ( propVal == null ) {
+        // Try the older form...
+        propVal = props.getValue("SkipRows");
+        if ( propVal != null ) {
+            Message.printWarning(3, routine, "Need to convert SkipRows parameter to SkipLines in software." );
+        }
+    }
+    List SkipLines_Vector = new Vector();
+    int SkipLines_Vector_maxval = - 1;
     if ( (propVal != null) && (propVal.length() > 0) ) {
         // Determine the list of rows to skip.
         List v = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
@@ -1254,8 +1265,8 @@ throws Exception
             String vi = (String)v.get(i);
             if ( StringUtil.isInteger(vi)) {
                 int row = Integer.parseInt(vi);
-                SkipRows_Vector.add(new Integer(row));
-                SkipRows_Vector_maxval = Math.max(SkipRows_Vector_maxval, row);
+                SkipLines_Vector.add(new Integer(row));
+                SkipLines_Vector_maxval = Math.max(SkipLines_Vector_maxval, row);
             }
             else {
                 int pos = vi.indexOf("-");
@@ -1273,15 +1284,15 @@ throws Exception
                     }
                     last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
                     for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
-                        SkipRows_Vector.add(new Integer(is));
-                        SkipRows_Vector_maxval = Math.max(SkipRows_Vector_maxval, is);
+                        SkipLines_Vector.add(new Integer(is));
+                        SkipLines_Vector_maxval = Math.max(SkipLines_Vector_maxval, is);
                     }
                 }
             }
         }
     }
     // Use to speed up code below.
-    int SkipRows_Vector_size = SkipRows_Vector.size();
+    int SkipLines_Vector_size = SkipLines_Vector.size();
 	
 	propVal = props.getValue("TrimInput");
 	boolean TrimInput_Boolean = false;	// Default
@@ -1311,9 +1322,9 @@ throws Exception
 	// Read until the end of the file...
 	
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
-	int linecount0;    // linecount - 1 (zero index), for code perspective.
+	int linecount0;    // linecount0 = linecount - 1 (zero index), for code perspective.
 	boolean headers_found = false; // Indicates whether the headers have been found
-	List tableFields = null; // Table fields as controlled by header or examination of data records
+	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
 	int numFields = -1;    // Number of table fields.
 	TableField tableField = null;  // Table field added below
 	while ( true ) {
@@ -1329,16 +1340,16 @@ throws Exception
 			Message.printDebug ( 10, routine, "Line [" + linecount0 + "]: " + line );
 		}
 		
-		// Skip any comments at the top of the file (most likely place for them to appear.
+		// Skip any comments anywhere in the file.
 		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 		    continue;
 		}
 		
-		// Also skip the requested lines to skip linecount is 1+ while rows to skip are 0+
+		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+
 		
-		if ( linecount0 <= SkipRows_Vector_maxval ) {
+		if ( linecount0 <= SkipLines_Vector_maxval ) {
 		    // Need to check it...
-		    if ( parseFile_LineMatchesLineFromList(linecount0,SkipRows_Vector, SkipRows_Vector_size)) {
+		    if ( parseFile_LineMatchesLineFromList(linecount0,SkipLines_Vector, SkipLines_Vector_size)) {
 		        // Skip the line as requested
                 continue;
 		    }
@@ -1347,9 +1358,9 @@ throws Exception
 		// "line" now contains the latest non-comment line so evaluate whether
 	    // the line contains the column names.
 	    
-		if ( !headers_found && (HeaderRows_Auto_boolean ||
-		        ((HeaderRows_Vector != null) && linecount0 <= HeaderRows_Vector_maxval)) ) {
-		    if ( HeaderRows_Auto_boolean ) {
+		if ( !headers_found && (HeaderLines_Auto_boolean ||
+		    ((HeaderLines_Vector != null) && linecount0 <= HeaderLines_Vector_maxval)) ) {
+		    if ( HeaderLines_Auto_boolean ) {
 		        // If a quote is detected, then this line is assumed to contain the name of the fields.
         	    if (line.startsWith("\"")) {
         	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
@@ -1359,9 +1370,9 @@ throws Exception
         	        continue;
         	    }
 		    }
-		    else if ( HeaderRows_Vector != null ) {
+		    else if ( HeaderLines_Vector != null ) {
 		        // Calling code has specified the header rows.  Check to see if this is a row.
-		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderRows_Vector, HeaderRows_Vector_size)) {
+		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLines_Vector, HeaderLines_Vector_size)) {
 		            // This row has been specified as a header row so process it.
 		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
 		            numFields = tableFields.size();
@@ -1369,7 +1380,7 @@ throws Exception
                     //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings
                     // What is the column name?
 		            // If the maximum header row has been processed, indicate that headers have been found.
-		            //if ( linecount0 == HeaderRows_Vector_maxval ) {
+		            //if ( linecount0 == HeaderLines_Vector_maxval ) {
 		                headers_found = true;
 		            //}
 		            // Now read another line of data to be used below.
@@ -1378,16 +1389,15 @@ throws Exception
 		    }
 		}
 		
-		if ( linecount0 <= HeaderRows_Vector_maxval ) {
+		if ( linecount0 <= HeaderLines_Vector_maxval ) {
 		    // Currently only allow one header row so need to ignore other rows that are found
 		    // (don't want them considered as data).
-		    if ( parseFile_LineMatchesLineFromList(linecount0,HeaderRows_Vector, HeaderRows_Vector_size)) {
+		    if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLines_Vector, HeaderLines_Vector_size)) {
 		        continue;
 		    }
 		}
 
-    	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of
-		// columns below.
+    	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of columns below.
     	
         if ( TrimInput_Boolean ) {
 			v = StringUtil.breakStringList(line.trim(), Delimiter, parse_flag );
@@ -1399,7 +1409,7 @@ throws Exception
 		if (size > maxColumns) {
 			maxColumns = size;
 		}
-		// Save the file tokens
+		// Save the tokens from the data rows - this will NOT include comments, headers, or lines to be excluded.
 		data_record_tokens.add(v);
 	}
 	// Close the file...
@@ -1457,12 +1467,17 @@ throws Exception
 	        cell_trimmed = cell.trim();
 	        if ( StringUtil.isInteger(cell_trimmed)) {
 	            ++count_int[icol];
+	            // Length needed in case handled as string data
+	            lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
 	        }
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
+             // Length needed in case handled as string data
+                lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
             else {
+                // String
                 ++count_string[icol];
                 if ( TrimStrings_boolean ) {
                     lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
@@ -1496,17 +1511,21 @@ throws Exception
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
     	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
     	        tableField.setWidth (lenmax_string[icol] );
+    	        Message.printStatus ( 2, routine, "length max =" + lenmax_string[icol] );
     	    }
-    	    Message.printStatus ( 2, routine,"Column [" + icol + "] type is " + tableField.getDataType() );
+    	    Message.printStatus ( 2, routine, "Column [" + icol + "] type is " + tableField.getDataType() +
+    	        " as determined from examining data.");
     	}
 	}
 	else {
 	    // All are strings (from above but reset just in case)...
 	    for ( int icol = 0; icol < maxColumns; icol++ ) {
 	        tableField = (TableField)tableFields.get(icol);
-	        //tableField.setDataType(TableField.DATA_TYPE_STRING);
-	        //tableField.setWidth (lenmax_string[icol] );
+	        tableField.setDataType(TableField.DATA_TYPE_STRING);
 	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
+	        tableField.setWidth (lenmax_string[icol] );
+	        Message.printStatus ( 2, routine,"Column [" + icol + "] type is " +
+	            tableField.getDataType() + " all strings assumed, width =" + tableField.getWidth() );
 	    }
 	}
 	
@@ -1520,8 +1539,8 @@ throws Exception
 	
 	int cols = 0;
 	int icol = 0;
-	for (int i = 0; i < size; i++) {
-		v = (List)data_record_tokens.get(i);
+	for (int irow = 0; irow < size; irow++) {
+		v = (List)data_record_tokens.get(irow);
 
 		tablerec = new TableRecord(maxColumns);
 		cols = v.size();
@@ -1615,12 +1634,12 @@ All fields are set to type String, although this will be reset when data records
 @param parse_flag the flag to be passed to StringUtil.breakStringList() when parsing the line.
 @return A list of TableField describing the table columns.
 */
-private static List parseFile_ParseHeaderLine (
+private static List<TableField> parseFile_ParseHeaderLine (
         String line, int linecount0, boolean TrimInput_Boolean, String Delimiter,
         int parse_flag )
 {   String routine = "DataTable.parseFile_ParseHeaderLine";
     Message.printStatus ( 2, routine, "Adding column headers from line [" + linecount0 + "]: " + line );
-    List columns = null;
+    List<String> columns = null;
     if ( TrimInput_Boolean ) {
         columns = StringUtil.breakStringList( line.trim(), Delimiter, parse_flag );
     }
@@ -1629,11 +1648,11 @@ private static List parseFile_ParseHeaderLine (
     }
     
     int numFields = columns.size();
-    List tableFields = new Vector();
+    List<TableField> tableFields = new Vector();
     TableField tableField = null;
     String temp = null;
     for (int i = 0; i < numFields; i++) {
-        temp = ((String)columns.get(i)).trim();
+        temp = columns.get(i).trim();
         while (findPreviousFieldNameOccurances(tableFields, temp)) {
             temp = temp + "_2";
         }
@@ -1772,12 +1791,12 @@ they will be written surrounded by double quotes.
 @param filename the file to write to.
 @param delimiter the delimiter to use.
 @param writeHeader If true, the field names will be read from the fields 
-and written as a one-line header of field names.  Currently the headers are
-not checked for delimiter and are not double-quoted.
-@param comments a Vector of Strings to put at the top of the file as comments.
+and written as a one-line header of field names.  The headers are double-quoted.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments.
 @throws Exception if an error occurs.
 */
-public void writeDelimitedFile(String filename, String delimiter, boolean writeHeader, List comments) 
+public void writeDelimitedFile(String filename, String delimiter, boolean writeHeader, List<String> comments) 
 throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
@@ -1787,51 +1806,67 @@ throws Exception {
 	}
 		
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
-
-	// If any comments have been passed in, print them at the top of the file
-	if (comments != null && comments.size() > 0) {
-		int size = comments.size();
-		for (int i = 0; i < size; i++) {
-			out.println("# " + (comments.get(i)).toString());
-		}
+	try {
+    	// If any comments have been passed in, print them at the top of the file
+    	if (comments != null && comments.size() > 0) {
+    		int size = comments.size();
+    		for (int i = 0; i < size; i++) {
+    			out.println("# " + comments.get(i) );
+    		}
+    	}
+    
+    	int cols = getNumberOfFields();
+    	if (cols == 0) {
+    		Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
+    		return;
+    	}
+    
+    	StringBuffer line = new StringBuffer();
+    
+    	if (writeHeader) {
+    	    // First determine if any headers are non blank
+    	    int nonBlank = 0;
+            for (int col = 0; col < (cols - 1); col++) {
+                if ( getFieldName(col).length() > 0 ) {
+                    ++nonBlank;
+                }
+            }
+            if ( nonBlank > 0 ) {
+        		line.setLength(0);
+        		for (int col = 0; col < (cols - 1); col++) {
+        			line.append( "\"" + getFieldName(col) + "\"" + delimiter);
+        		}
+        		line.append( "\"" + getFieldName((cols - 1)) + "\"");
+        		out.println(line);
+            }
+    	}
+    	
+    	int rows = getNumberOfRecords();
+    	String cell;
+    	for (int row = 0; row < rows; row++) {
+    		line.setLength(0);
+    		for (int col = 0; col < (cols - 1); col++) {
+    			cell = "" + getFieldValue(row,col);
+    			// If the field contains the delimiter, surround with double quotes...
+    			if ( cell.indexOf(delimiter) > -1 ) {
+    				cell = "\"" + cell + "\"";
+    			}
+    			line.append ( "" + cell + delimiter );
+    		}
+    		line.append(getFieldValue(row, (cols - 1)));
+    
+    		out.println(line);
+    	}
 	}
-
-	int cols = getNumberOfFields();
-	if (cols == 0) {
-		Message.printWarning(1, routine, "Table has 0 columns!  Nothing will be written.");
-		return;
+	catch ( Exception e ) {
+	    // Log and rethrow
+	    Message.printWarning(3, routine, "Unexpected error writing delimited file (" + e + ")." );
+	    Message.printWarning(3, routine, e);
 	}
-
-	String line = null;
-
-	if (writeHeader) {
-		line = "";
-		for (int col = 0; col < (cols - 1); col++) {
-			line += getFieldName(col) + delimiter;
-		}
-		line += getFieldName((cols - 1));
-		out.println(line);
+	finally {
+    	out.flush();
+    	out.close();
 	}
-	
-	int rows = getNumberOfRecords();
-	String cell;
-	for (int row = 0; row < rows; row++) {
-		line = "";
-		for (int col = 0; col < (cols - 1); col++) {
-			cell = "" + getFieldValue(row,col);
-			// If the field contains the delimiter, surround with double quotes...
-			if ( cell.indexOf(delimiter) > -1 ) {
-				cell = "\"" + cell + "\"";
-			}
-			line += "" + cell + delimiter;
-		}
-		line += getFieldValue(row, (cols - 1));
-
-		out.println(line);
-	}
-
-	out.flush();
-	out.close();
 }
 
 }
