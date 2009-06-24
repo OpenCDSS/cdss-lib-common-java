@@ -1016,7 +1016,7 @@ public void printOutput ( PrintWriter fpout )
    // Header information
 
    Date date = new Date();
-   fpout.printf("\n%s     %s\n%s%3.1f",
+   fpout.printf("\n%s\n#%s\n%s%3.1f",
            "REGRESSION COMBINATION PROGRAM", date,
            "Critical value of t-statistic = ", _tcrit);
    fpout.printf("\n%s%d",
