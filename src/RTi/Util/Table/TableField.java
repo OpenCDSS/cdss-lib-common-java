@@ -17,6 +17,9 @@
 
 package RTi.Util.Table;
 
+import java.util.List;
+import java.util.Vector;
+
 /**
 This class is used to help define the fields (columns) in a table.  A DataTable is created
 by specifying a vector of TableField objects to pass into the DataTable
@@ -34,52 +37,52 @@ public class TableField {
 /**
 4-byte integer.
 */
-public final static int DATA_TYPE_INT		= 0;
+public final static int DATA_TYPE_INT = 0;
 
 /**
 2-byte integer.
 */
-public final static int DATA_TYPE_SHORT		= 1;
+public final static int DATA_TYPE_SHORT = 1;
 
 /**
 8-byte double.
 */
-public final static int DATA_TYPE_DOUBLE	= 2;
+public final static int DATA_TYPE_DOUBLE = 2;
 
 /**
 4-byte float.
 */
-public final static int DATA_TYPE_FLOAT		= 3;
+public final static int DATA_TYPE_FLOAT = 3;
 
 /**
 1-byte characters as string.
 */
-public final static int DATA_TYPE_STRING	= 4;
+public final static int DATA_TYPE_STRING = 4;
 
 /**
-Date.
+Date and time, stored internally as Java Date object.
 */
-public final static int DATA_TYPE_DATE		= 5;
+public final static int DATA_TYPE_DATE = 5;
 
 /**
 Data type (DATA_TYPE_*) for the field (column).
 */
-private int	_data_type;
+private int _data_type;
 
 /**
 Field name (also used for a column heading).
 */
-private String	_name;
+private String _name;
 
 /**
 Field width (e.g., maximum characters for strings or number width in characters).
 */
-private int	_width;
+private int _width;
 
 /**
 Precision applied to numbers (e.g., 3 in 11.3 numbers).
 */
-private int	_precision;	
+private int _precision;	
 
 /**
 Construct a new table of default type String.
@@ -112,8 +115,7 @@ public TableField ( int type, String name )
 
 /**
 Construct a new table field for the specified type and name.
-The precision defaults to zero (precision is only applicable to floating point
-data).
+The precision defaults to zero (precision is only applicable to floating point data).
 @param type Type of data associated with a particular column within
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
@@ -165,6 +167,63 @@ public int getDataType ( )
 }
 
 /**
+TODO SAM 2009-07-22 Need to use an enum type class for the types but need to refactor code.
+Get type of data represented in this field, as a String.
+@return data type as string (e.g., DATA_TYPE_INT = "integer") or null if unknown.
+*/
+public static String getDataTypeAsString ( int dataType )
+{   if ( dataType == DATA_TYPE_DATE ) {
+        return "datetime";
+    }
+    else if ( dataType == DATA_TYPE_DOUBLE ) {
+        return "double";
+    }
+    else if ( dataType == DATA_TYPE_FLOAT ) {
+        return "float";
+    }
+    else if ( dataType == DATA_TYPE_INT ) {
+        return "integer";
+    }
+    else if ( dataType == DATA_TYPE_SHORT ) {
+        return "short";
+    }
+    else if ( dataType == DATA_TYPE_STRING ) {
+        return "string";
+    }
+    else {
+        return null;
+    }
+}
+
+/**
+TODO SAM 2009-04-22 Need to use enum construct for data types.
+Get the list of available data types, useful for displaying choices to users.
+@return a list of data type strings, suitable for choices for users.
+@param includeNote if true, include a note describing the data type using form "dataType - note".
+*/
+public static List<String> getDataTypeChoices ( boolean includeNote )
+{
+    List<String> dataTypeList = new Vector();
+    if ( includeNote ) {
+        dataTypeList.add ( "datetime - date and time" );
+        dataTypeList.add ( "double - double precision number" );
+        dataTypeList.add ( "float - single precision number" );
+        dataTypeList.add ( "integer - integer" );
+        dataTypeList.add ( "short - short integer" );
+        dataTypeList.add ( "string" );  
+    }
+    else {
+        dataTypeList.add ( "datetime" );
+        dataTypeList.add ( "double" );
+        dataTypeList.add ( "float" );
+        dataTypeList.add ( "integer" );
+        dataTypeList.add ( "short" );
+        dataTypeList.add ( "string" );
+    }
+    return dataTypeList;
+}
+
+/**
 Get field name.
 @return field name.
 */
@@ -186,6 +245,35 @@ Get the field width.
 */
 public int getWidth ( )
 {	return _width;
+}
+
+/**
+TODO SAM 2009-07-22 Need to use an enum type class for the types and refactor code.
+Lookup the type of data represented in this field as an internal integer given the string type representation.
+@return data type as internal integer representation (e.g., DATA_TYPE_INT = "integer") or -1 if unknown.
+*/
+public static int lookupDataType ( String dataType )
+{   if ( dataType.equalsIgnoreCase("datetime") ) {
+        return DATA_TYPE_DATE;
+    }
+    else if ( dataType.equalsIgnoreCase("double") ) {
+        return DATA_TYPE_DOUBLE;
+    }
+    else if ( dataType.equalsIgnoreCase("float") ) {
+        return DATA_TYPE_FLOAT;
+    }
+    else if ( dataType.equalsIgnoreCase("int") || dataType.equalsIgnoreCase("integer")) {
+        return DATA_TYPE_INT;
+    }
+    else if ( dataType.equalsIgnoreCase("short") ) {
+        return DATA_TYPE_SHORT;
+    }
+    else if ( dataType.equalsIgnoreCase("string") ) {
+        return DATA_TYPE_STRING;
+    }
+    else {
+        return -1;
+    }
 }
 
 /**

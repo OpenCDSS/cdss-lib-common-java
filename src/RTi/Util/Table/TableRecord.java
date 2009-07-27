@@ -22,7 +22,7 @@ import RTi.Util.Message.Message;
 
 /**
 This class is used to contain all the information associated with one record in
-a DataTable.  The field values are stored as a Vector of Object.  In the future
+a DataTable.  The field values are stored as a list of Object.  In the future
 more specialized (and optimized) handling of primitive data types may be
 implemented.  The record field values must be consistent with the definition of
 the DataTable.  An example of defining a TableRecord is:
@@ -46,8 +46,7 @@ Whether the data has been changed or not.
 private boolean __dirty = false;
 
 /**
-List of data values corresponding to the different fields.  Currently no Vector
-methods are exposed but if this is needed, expose as a List.
+List of data values corresponding to the different fields.  Currently no list methods are exposed.
 */
 private Vector __record;
 
@@ -101,8 +100,7 @@ Deletes a field's data value from the record.
 public void deleteField(int fieldNum)
 throws Exception {
 	if (fieldNum < 0 || fieldNum > (__record.size() - 1)) {
-		throw new Exception ("Field num " + fieldNum + " out of "
-			+ "bounds.");
+		throw new Exception ("Field num " + fieldNum + " out of bounds.");
 	}
 	__record.remove(fieldNum);
 }
@@ -116,12 +114,10 @@ The returned object must be properly cast.
 public Object getFieldValue(int index)
 throws Exception {
 	if (Message.isDebugOn) {
-		Message.printDebug(20, "TableRecord.getFieldValue",
-		"Getting index " + index);
+		Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
 	}
 	if (__record.size() <= index) {
-		throw new Exception ("Index " + index + 
-		" of field not valid (" + __record.size() + ")");
+		throw new Exception ("Index " + index + " of field not valid (" + __record.size() + ")");
 	}
 	return __record.get(index);
 }
@@ -148,8 +144,9 @@ The number of available fields should be set in the constructor or use setNumber
 @param index Field position to set.
 @param contents Field contents to set.
 @exception if the index exceeds the available number of fields within this record.
+@return the instance of this record, to facilitate chaining set calls.
 */
-public void setFieldValue(int index, Object contents)
+public TableRecord setFieldValue(int index, Object contents)
 throws Exception {
 	if (index < __record.size()) {
 		__record.set(index,contents);
@@ -157,6 +154,7 @@ throws Exception {
 	else {	
 		throw new Exception("Specified index " + index + " does not exist.");
 	}
+	return this;
 }
 
 /**
@@ -167,6 +165,7 @@ public void setDirty(boolean dirty) {
 	__dirty = dirty;
 }
 
+// TODO SAM 2009-07-26 Evaluate what is using this - limits using more generic List for data
 /**
 Sets the number of fields within this record.  If the previous number of
 fields is larger than the new number, those fields after the new number of fields will be lost.

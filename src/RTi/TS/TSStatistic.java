@@ -3,6 +3,7 @@ package RTi.TS;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeInterval;
 
 /**
@@ -18,28 +19,32 @@ public class TSStatistic
 Statistics that are available for analysis.
 */
 public final static String
-	CountGE = "CountGE",		// Count of values >= test
-	CountGT = "CountGT",		// Count of values > test
-	CountLE = "CountLE",		// Count of values <= test
-	CountLT = "CountLT",		// Count of values < test
-	DayOfFirstGE = "DayOfFirstGE",	// Day of first value >= test
-	DayOfFirstGT = "DayOfFirstGT",	// Day of first value > test
-	DayOfFirstLE = "DayOfFirstLE",	// Day of first value <= test
-	DayOfFirstLT = "DayOfFirstLT",	// Day of first value < test
-	DayOfLastGE = "DayOfLastGE",	// Day of last value >= test
-	DayOfLastGT = "DayOfLastGT",	// Day of last value > test
-	DayOfLastLE = "DayOfLastLE",	// Day of last value <= test
-	DayOfLastLT = "DayOfLastLT",	// Day of last value < test
-	DayOfMax = "DayOfMax",		// Day of maximum value
-	DayOfMin = "DayOfMin",		// Day of minimum value
+    Count = "Count", // Count of non-missing values
+    CountPercent = "CountPercent", // Percent of non-missing values
+	CountGE = "CountGE", // Count of values >= test
+	CountGT = "CountGT", // Count of values > test
+	CountLE = "CountLE", // Count of values <= test
+	CountLT = "CountLT", // Count of values < test
+	DayOfFirstGE = "DayOfFirstGE", // Day of first value >= test
+	DayOfFirstGT = "DayOfFirstGT", // Day of first value > test
+	DayOfFirstLE = "DayOfFirstLE", // Day of first value <= test
+	DayOfFirstLT = "DayOfFirstLT", // Day of first value < test
+	DayOfLastGE = "DayOfLastGE", // Day of last value >= test
+	DayOfLastGT = "DayOfLastGT", // Day of last value > test
+	DayOfLastLE = "DayOfLastLE", // Day of last value <= test
+	DayOfLastLT = "DayOfLastLT", // Day of last value < test
+	DayOfMax = "DayOfMax", // Day of maximum value
+	DayOfMin = "DayOfMin", // Day of minimum value
     ExceedanceProbabilityGE10 = "ExceedanceProbabilityGE10", // Probability of exceeding value is >= 10%
-    ExceedanceProbabilityGE50 = "ExceedanceProbabilityGE50", // Probability of exceeding value is >= 10%
-    ExceedanceProbabilityGE90 = "ExceedanceProbabilityGE90", // Probability of exceeding value is >= 10%
-	Max = "Max",			// Maximum value in the sample
+    ExceedanceProbabilityGE50 = "ExceedanceProbabilityGE50", // Probability of exceeding value is >= 50%
+    ExceedanceProbabilityGE90 = "ExceedanceProbabilityGE90", // Probability of exceeding value is >= 90%
+	Max = "Max", // Maximum value in the sample
 	Median = "Median", // Median value in the sample
-	Mean = "Mean",			// Mean value in the sample
-	Min = "Min",			// Minimum value in the sample
-	Total = "Total";       // Total value in the sample
+	Mean = "Mean", // Mean value in the sample
+	Min = "Min", // Minimum value in the sample
+    MissingCount = "MissingCount", // Count of missing values
+    MissingPercent = "MissingPercent", // Percent of missing values
+	Total = "Total"; // Total of values in the sample
 
 // TODO SAM 2005-09-30
 // Need to add:
@@ -94,6 +99,8 @@ public static List getStatisticChoicesForInterval ( int interval, String timesca
 	return statistics;
 }
 
+// TODO SAM 2009-07-27 More robust to move method like the following to specific computation classes so
+// that only appropriate statistics are listed for users
 /**
 Return a list of statistic choices for the requested interval and scale, for a simple
 sample.  For example, if all Jan 1 daily values are in the sample, the statistics would
@@ -119,4 +126,21 @@ public static List getStatisticChoicesForSimpleSample ( int interval, String tim
 	return statistics;
 }
 
-} // End of TSStatistic
+// TODO SAM 2009-07-27 evaluate using enumeration, etc. to have properties for statistic
+/**
+Return the statistic data type as double, integer, etc., to facilitate handling by other code.
+@param statistic name of statistic
+@return the statistic data type.
+*/
+public static Class getStatisticDataType ( String statistic )
+{
+    if ( (StringUtil.indexOfIgnoreCase(statistic, "Count", 0) >= 0) ||
+        StringUtil.startsWithIgnoreCase(statistic,"Day") ) {
+        return Integer.class;
+    }
+    else {
+        return Double.class;
+    }
+}
+
+}
