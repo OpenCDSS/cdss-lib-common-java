@@ -1872,8 +1872,7 @@ public void calculateColumnWidths(int minWidth, int rows, Graphics g) {
 	calculateColumnWidths(minWidth, rows, null, g);
 }
 
-public void calculateColumnWidths(int minWidth, int rows, int[] skipCols,
-Graphics g) {
+public void calculateColumnWidths(int minWidth, int rows, int[] skipCols, Graphics g) {
 	int count = __columnNames.length;
 	String name = null;
 	TableColumn tc = null;
