@@ -1887,8 +1887,9 @@ Return index of string in string list.  If string is not in string list,
 @param searchString String to return index of.
 */
 public static int indexOfIgnoreCase ( List<String> stringlist, String searchString )
-{	if ( stringlist == null || searchString == null )
+{	if ( stringlist == null || searchString == null ) {
 		return -1;
+    }
 
 	int num_strings = stringlist.size();
 	String currentString;
