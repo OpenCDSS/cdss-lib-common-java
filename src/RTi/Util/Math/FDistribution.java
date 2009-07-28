@@ -28,11 +28,11 @@ throws Exception
 		col = 1;
 	}
 
-	// For now don't carry around this data as static so the footprint of
-	// the code is smaller.
+	// For now don't carry around this data as static so the footprint of the code is smaller.
 
 	//			v2    F_.01	F_.05
-	double [][] F_v2 = {	{ 1.0, 5000.0,	200.0 },
+	double [][] F_v2 = {
+	            { 1.0, 5000.0,	200.0 },
 				{ 2.0, 99.0,	19.0 },
 				{ 3.0, 30.82,	9.55 },
 				{ 4.0, 18.00,	6.94 },
@@ -84,4 +84,4 @@ throws Exception
 			F_v2[i_lower][col], F_v2[i_upper][col] );
 }
 
-} // End FDistribution
+}
