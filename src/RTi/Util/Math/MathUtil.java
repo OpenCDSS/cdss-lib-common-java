@@ -67,6 +67,7 @@ import	RTi.Util.Message.Message;
 
 import java.lang.Math;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -77,27 +78,27 @@ public class MathUtil
 /**
 Sort using a bubble sort.
 */
-public static final int SORT_BUBBLE 	= 1;
+public static final int SORT_BUBBLE = 1;
 /**
 Sort using a heap sort.
 */
-public static final int SORT_HEAP 	= 2;
+public static final int SORT_HEAP = 2;
 /**
 Sort using a quick sort.
 */
-public static final int SORT_QUICK 	= 3;
+public static final int SORT_QUICK = 3;
 
 /**
 Sort into ascending order.
 */
-public static final int SORT_ASCENDING 	= 1;
+public static final int SORT_ASCENDING = 1;
 /**
 Sort into descending order.
 */
-public static final int SORT_DESCENDING	= 2;
+public static final int SORT_DESCENDING = 2;
 
 /**
-Method to integrate a function:  Guassian quadrature integration.
+Method to integrate a function:  Gaussian quadrature integration.
 */
 public static final int INTEGRATE_GAUSSIAN_QUADRATURE = 1;
 
@@ -118,17 +119,17 @@ public static int[] commonDenominators ( int values[], int return_num )
 	if ( nvalues == 0 ) {
 		return null;
 	}
-	// Don't really know a better way to do it, so just use the brute
-	// force method...
+	// Don't really know a better way to do it, so just use the brute force method...
 	int max_value = 0;
-	try {	max_value = max ( values );
+	try {
+	    max_value = max ( values );
 	}
 	catch ( Exception e ) {
 		return null;
 	}
 	int j = 0;
 	boolean divisible;
-	Vector common_denominators = new Vector();
+	List<Integer> common_denominators = new Vector();
 	for ( int i = max_value; i > 1; i-- ) {
 		divisible = true;
 		for ( j = 0; j < nvalues; j++ ) {
@@ -140,7 +141,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 		}
 		if ( divisible ) {
 			// Save the value...
-			common_denominators.addElement ( new Integer(i) );
+			common_denominators.add ( new Integer(i) );
 		}
 	}
 	// Now return...
@@ -148,13 +149,13 @@ public static int[] commonDenominators ( int values[], int return_num )
 		return null;
 	}
 	else if ( return_num == -1 ) {
-		j = ((Integer)common_denominators.elementAt(common_denominators.size() - 1)).intValue();
+		j = (common_denominators.get(common_denominators.size() - 1)).intValue();
 		int [] iarray = new int[1];
 		iarray[0] = j;
 		return iarray;
 	}
 	else if ( return_num == 1 ) {
-		j = ((Integer)common_denominators.elementAt(0)).intValue();
+		j = (common_denominators.get(0)).intValue();
 		int [] iarray = new int[1];
 		iarray[0] = j;
 		return iarray;
@@ -163,7 +164,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 	int size = common_denominators.size();
 	int [] iarray = new int[size];
 	for ( int i = 0; i < size; i++ ) {
-		iarray[i] = ((Integer)common_denominators.elementAt(i)).intValue();
+		iarray[i] = (common_denominators.get(i)).intValue();
 	}
 	return iarray;
 }
@@ -219,25 +220,25 @@ Perform integration for a function.
 */
 public static double integrate ( int method, Function func, double a0, double b0, int nseg )
 throws Exception
-{	double a, b;	// End-points used for integration
-	double dx;	// increment to map "gx" values to real values
-	double s;	// integration value
-	double seglen;	// segment length
-	double stot;	// total for all segments
-	double xm;	// point in center of "a" and "b"
-	double xr;	// length of "a" to "b"
-	int i;		// counter for integration points
-	int j;		// counter for segments
-	int ng = 5;	// number of integration points
-	double	gx[] = {
-	            0.1488743389,	// unit-interval points to
-				0.4333953941,	// evaluate function
+{	double a, b; // End-points used for integration
+	double dx; // increment to map "gx" values to real values
+	double s; // integration value
+	double seglen; // segment length
+	double stot; // total for all segments
+	double xm; // point in center of "a" and "b"
+	double xr; // length of "a" to "b"
+	int i; // counter for integration points
+	int j; // counter for segments
+	int ng = 5; // number of integration points
+	double gx[] = {
+	            0.1488743389, // unit-interval points to evaluate function
+				0.4333953941,
 				0.6794095682,
 				0.8650633666,
 				0.9739065285 },
 		gw[] = {
-	            0.2955242247, // Gauss weights
-				0.2692667193, // corresponding to "gx"
+	            0.2955242247, // Gauss weights corresponding to "gx"
+				0.2692667193,
 				0.2190863625,
 				0.1494513491,
 				0.0666713443 };
@@ -249,10 +250,10 @@ throws Exception
 	// Divide the interval into segments and integrate each (helps with
 	// functions that are not smooth, and long intervals)...
 
-	seglen	= (b0 - a0)/nseg;
-	stot	= 0.0;
-	a	= a0;
-	b	= a0 + seglen;
+	seglen = (b0 - a0)/nseg;
+	stot = 0.0;
+	a = a0;
+	b = a0 + seglen;
 
 	double [] func_input1 = new double[1];
 	double [] func_input2 = new double[1];
@@ -267,8 +268,8 @@ throws Exception
 			func_input2[0] = xm - dx; 
 			s += gw[i]*(func.evaluate(func_input1) + func.evaluate(func_input2));
 		}
-		s	*= xr;
-		stot	+= s;
+		s *= xr;
+		stot += s;
 
 		a = b;
 		b = a + seglen;
@@ -431,7 +432,7 @@ throws Exception
 public static int max ( int n, int x[] )
 throws Exception
 {	int	i;
-	String	routine = "MathUtil.max";
+	String routine = "MathUtil.max";
 	int	m = 0;
 
 	if ( n <= 0 ) {
@@ -951,7 +952,8 @@ throws Exception
 		    b = totalX1Y1/totalX1_sq;
 		}
 	}
-	else {	denom = ((double)n1*totalX1_sq) - (totalX1*totalX1);
+	else {
+	    denom = ((double)n1*totalX1_sq) - (totalX1*totalX1);
 		if ( denom > 0 ) {
 			b = (((double)n1*totalX1Y1) - (totalX1*totalY1))/denom;
 		}
@@ -1525,7 +1527,7 @@ Sort an array of doubles into ascending order using the quick sort method.
 @param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
+public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 {	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
 		itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
 	int[]	istack;
@@ -1558,54 +1560,54 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 			if ( jstack == 0 ) {
 				break;
 			}
-			ir	= istack[jstack--];
-			l	= istack[jstack--];
+			ir = istack[jstack--];
+			l = istack[jstack--];
 		}
 		else {
 		    k = (l + ir)/2;
-			temp		= data[k];
-			data[k]		= data[l + 1];
+			temp = data[k];
+			data[k] = data[l + 1];
 			data[l + 1]	= temp;
 			if ( sflag ) {
-				itemp		= sort_order[k];
-				sort_order[k]	= sort_order[l + 1];
-				sort_order[l+1]	= itemp;
+				itemp = sort_order[k];
+				sort_order[k] = sort_order[l + 1];
+				sort_order[l+1] = itemp;
 			}
 			if ( data[l + 1] > data[ir] ) {
-				temp		= data[l + 1];
-				data[l + 1]	= data[ir];
-				data[ir]	= temp;
+				temp = data[l + 1];
+				data[l + 1] = data[ir];
+				data[ir] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l + 1];
-					sort_order[l+1]	= sort_order[ir];
-					sort_order[ir]	= itemp;
+					itemp = sort_order[l + 1];
+					sort_order[l+1] = sort_order[ir];
+					sort_order[ir] = itemp;
 				}
 			}
 			if ( data[l] > data[ir] ) {
-				temp		= data[l];
-				data[l]		= data[ir];
-				data[ir]	= temp;
+				temp = data[l];
+				data[l] = data[ir];
+				data[ir] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l];
-					sort_order[l]	= sort_order[ir];
-					sort_order[ir]	= itemp;
+					itemp = sort_order[l];
+					sort_order[l] = sort_order[ir];
+					sort_order[ir] = itemp;
 				}
 			}
 			if ( data[l + 1] > data[l] ) {
-				temp		= data[l + 1];
-				data[l + 1]	= data[l];
-				data[l]		= temp;
+				temp = data[l + 1];
+				data[l + 1] = data[l];
+				data[l] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l + 1];
-					sort_order[l+1]	= sort_order[l];
-					sort_order[l]	= itemp;
+					itemp = sort_order[l + 1];
+					sort_order[l+1] = sort_order[l];
+					sort_order[l] = itemp;
 				}
 			}
-			i	= l + 1;
-			j	= ir;
-			a	= data[l];
+			i = l + 1;
+			j = ir;
+			a = data[l];
 			if ( sflag ) {
-				ia	= sort_order[l];
+				ia = sort_order[l];
 			}
 			while ( true ) {
 				do {
@@ -1617,13 +1619,13 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 				if ( j < i ) {
 					break;
 				}
-				temp		= data[i];
-				data[i]		= data[j];
-				data[j]		= temp;
+				temp = data[i];
+				data[i] = data[j];
+				data[j] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[i];
-					sort_order[i]	= sort_order[j];
-					sort_order[j]	= itemp;
+					itemp = sort_order[i];
+					sort_order[i] = sort_order[j];
+					sort_order[j] = itemp;
 				}
 			}
 			data[l]	= data[j];
@@ -1640,14 +1642,14 @@ public static int sortDQuick (	double[] data, int[] sort_order, boolean sflag )
 				return 1;
 			}
 			if ( (ir - i + 1) >= (j - l) ) {
-				istack[jstack]		= ir;
-				istack[jstack - 1]	= i;
-				ir			= j - 1;
+				istack[jstack] = ir;
+				istack[jstack - 1] = i;
+				ir = j - 1;
 			}
 			else {
-			    istack[jstack]		= j - 1;
-				istack[jstack - 1]	= l;
-				l			= i;
+			    istack[jstack] = j - 1;
+				istack[jstack - 1] = l;
+				l = i;
 			}
 		}
 	}

@@ -42,21 +42,18 @@ Return the cumulative value of the standard normal density function.
 This method calculates the cumulative probability of a standard normal function
 for a normalized variable "z" (z = 0 at mean).  It does so by using an
 appropriate value as a starting point and then integrating to the desired value.
-Half of the standard normal density curve is used for calculations since the
-curve is symmetrical.
+Half of the standard normal density curve is used for calculations since the curve is symmetrical.
 @param z Normalized value (0 = mean).
 @return the cumulative value of the standard normal density function.
 @exception Exception if the there is an error evaluating the function.
 */
 public static double cumulativeStandardNormal ( double z )
 throws Exception
-{	Function fp = new StandardNormal();	// Reference to function
-						// to integrate.
+{	Function fp = new StandardNormal();	// Reference to function to integrate.
 	double s;
-	double z0 = z;	// So user does not need to see z0 in javadoc
-	int	i;	// Loop counter.
-	int nseg = 10;	// Number of segments to divide interval into for
-			// integration.
+	double z0 = z; // So user does not need to see z0 in javadoc
+	int	i; // Loop counter.
+	int nseg = 10; // Number of segments to divide interval into for integration.
 	String routine = "MathUtil.cumulativeStandardNormal";
 
 	// Account for very small values of "z"...
@@ -76,7 +73,8 @@ throws Exception
 	else if ( z0 > 0.0 ) {
 		z = -z0;
 	}
-	else {	z = z0;
+	else {
+	    z = z0;
 	}
 
 	// Find the known point to start at...
@@ -92,18 +90,17 @@ throws Exception
 			if ( z0 > 0.0 ) {
 				return ( 1.0 - __zprob[i][1] );
 			}
-			else {	return __zprob[i][1];
+			else {
+			    return __zprob[i][1];
 			}
 		}
 		// _zprob values start with -5.0 at [0] and end with 0.0 at
 		// [length - 1].  We want to find the z value
 		// that is to the "left" of the requested z value...
 		else if ( __zprob[i][0] > z ) {
-			// Caught the -5.0 case above and would have returned
-			// already...
+			// Caught the -5.0 case above and would have returned already...
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 50, routine,
-				"Looking up " + z +	" - \"left\" value is zprob [" + i + "]" );
+				Message.printDebug ( 50, routine, "Looking up " + z + " - \"left\" value is zprob [" + i + "]" );
 			}
 			--i;
 			break;
@@ -141,16 +138,15 @@ where the x-axis is "z" and the y-axis is "prob - prob1".
 */
 public static double cumulativeStandardNormalInverse ( double prob )
 throws Exception
-{	double prob0 = prob;	// So developers don't see prob0 in javadoc
+{	double prob0 = prob; // So developers don't see prob0 in javadoc
 	double a = 0.0, b = 0.0;// Estimates for "z".
-	double fa, fb;		// Probability for "z" values of "a" and "b".
-	double prob1;		// Value used in calculations.
-	double ptol = .000001;	// Minimum tolerance for ending estimation.
-	double z = 0.0;		// The normalized value corresponding to the
-				// given probability.
-	int count = 0;		// Counter for iterations to converge.
-	int dl = 20;		// Debug level for this method
-	int maxcount = 50;	// Maximum number of iterations before giving up
+	double fa, fb; // Probability for "z" values of "a" and "b".
+	double prob1; // Value used in calculations.
+	double ptol = .000001; // Minimum tolerance for ending estimation.
+	double z = 0.0; // The normalized value corresponding to the given probability.
+	int count = 0; // Counter for iterations to converge.
+	int dl = 20; // Debug level for this method
+	int maxcount = 50; // Maximum number of iterations before giving up
 	String routine = "StandardNormal.cumulativeStandardNormalInverse";
 	String message;
 
@@ -173,9 +169,10 @@ throws Exception
 		return 0.0;
 	}
 	else if ( prob0 < .5 ) {
-		prob1	= prob0;
+		prob1 = prob0;
 	}
-	else {	prob1	= 1.0 - prob0;
+	else {
+	    prob1 = 1.0 - prob0;
 	}
 
 	// Select good bounds for starting numerical estimate...
@@ -186,7 +183,8 @@ throws Exception
 			if ( prob0 > .5 ) {
 				return (-1.0*__zprob[i][0]);
 			}
-			else {	return __zprob[i][0];
+			else {
+			    return __zprob[i][0];
 			}
 		}
 		else if ( prob1 > __zprob[i][1] ) {
@@ -225,8 +223,7 @@ throws Exception
 	fb = cumulativeStandardNormal ( b ) - prob1;
 	while ( true ) {
 		if ( fa == fb ) {
-			// Both points are the same.  It has converged.  Exit
-			// the loop.
+			// Both points are the same.  It has converged.  Exit the loop.
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "fa (" + fa + ") = fb at z = " + z + ".  Converged" );
 			}
@@ -258,9 +255,10 @@ throws Exception
 	}
 
 	if ( prob0 > .5 ) {
-		return (-1.0*z);	// z corresponds to prob1
+		return (-1.0*z); // z corresponds to prob1
 	}
-	else {	return z;
+	else {
+	    return z;
 	}
 }
 
@@ -271,8 +269,7 @@ This method calculates the probability of an event occurring at normalized value
 of zero and a standard deviation of one.
 @return the value of standard normal density function.
 @param params Parameters for the function.  The value of params[0] should be
-the z value (the normalized value where 0 = mean and 1 = one standard
-deviation).
+the z value (the normalized value where 0 = mean and 1 = one standard deviation).
 */
 public double evaluate ( double [] params )
 throws Exception
@@ -280,4 +277,4 @@ throws Exception
 	return (1.0/Math.sqrt(2.0*Math.PI))*Math.pow(Math.E,-1.0*z*z/2.0);
 }
 
-} // End StandardNormal
+}
