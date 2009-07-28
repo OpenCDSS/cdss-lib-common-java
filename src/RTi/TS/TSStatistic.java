@@ -19,8 +19,7 @@ public class TSStatistic
 Statistics that are available for analysis.
 */
 public final static String
-    Count = "Count", // Count of non-missing values
-    CountPercent = "CountPercent", // Percent of non-missing values
+    Count = "Count", // Count of missing and non-missing values
 	CountGE = "CountGE", // Count of values >= test
 	CountGT = "CountGT", // Count of values > test
 	CountLE = "CountLE", // Count of values <= test
@@ -44,6 +43,9 @@ public final static String
 	Min = "Min", // Minimum value in the sample
     MissingCount = "MissingCount", // Count of missing values
     MissingPercent = "MissingPercent", // Percent of missing values
+    NonmissingCount = "NonmissingCount", // Count of non-missing values
+    NonmissingPercent = "NonmissingPercent", // Percent of non-missing values
+    NqYY = "NqYY", // for daily data: 10-year recurrence interval for lowest 7-day average flow (each year)
 	Total = "Total"; // Total of values in the sample
 
 // TODO SAM 2005-09-30

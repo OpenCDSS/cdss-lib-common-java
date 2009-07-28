@@ -55,10 +55,15 @@ Start of analysis (null to analyze all).
 private Double __value2 = null;
 
 /**
+Start of analysis (null to analyze all).
+*/
+private Double __value3 = null;
+
+/**
 Constructor.
 */
 public TSUtil_CalculateTimeSeriesStatistic ( TS ts, String statistic,
-        DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2 )
+        DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, Double value3 )
 {   // Save data members.
     __ts = ts;
     __statistic = statistic;
@@ -66,6 +71,7 @@ public TSUtil_CalculateTimeSeriesStatistic ( TS ts, String statistic,
     __analysisEnd = analysisEnd;
     __value1 = value1;
     __value2 = value2;
+    __value3 = value3;
 }
 
 /**
@@ -74,13 +80,31 @@ Check the time series.
 public void calculateTimeSeriesStatistic ()
 throws Exception
 {
-    // Iterate through the time series
+    String statistic = getStatistic();
+    double value1 = (getValue1() == null) ? -999.0 : getValue1().doubleValue();
+    double value2 = (getValue2() == null) ? -999.0 : getValue2().doubleValue();
+    double value3 = (getValue3() == null) ? -999.0 : getValue3().doubleValue();
     TS ts = getTimeSeries();
+    // If statistic takes more work, call other supporting code and then return
+    if ( statistic.equalsIgnoreCase(TSStatistic.NqYY) ) {
+        if ( !(ts instanceof DayTS) ) {
+            throw new InvalidParameterException ( "Attempting to calculate statistic \"" + statistic +
+                "\" on other than daily time series (TSID=" + ts.getIdentifierString() + ")");
+        }
+        NqYYFrequencyAnalysis nqyy = new NqYYFrequencyAnalysis ( (DayTS)ts, (int)(value1 + .01), value2,
+            getAnalysisStart(), getAnalysisEnd(), (int)(value3 + .01) );
+        nqyy.analyze();
+        Double result = nqyy.getAnalysisResult();
+        if ( result != null ) {
+            setStatisticResult ( result );
+        }
+        return;
+    }
+    
+    // Else, iterate through the time series and do the work here
     TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
     TSData data = null;
-    String statistic = getStatistic();
-    //double value1 = (getValue1() == null) ? -999.0 : getValue1().doubleValue();
-    //double value2 = (getValue2() == null) ? -999.0 : getValue2().doubleValue();
+
     /*
     String tsid = ts.getIdentifier().toString();
     if ( (ts.getAlias() != null) && !ts.getAlias().equals("") ) {
@@ -88,13 +112,18 @@ throws Exception
     }
     */
     double tsvalue; // time series data value
-    double tsvaluePrev = 0; // time series data value (previous) - will be used for change in value
+    //double tsvaluePrev = 0; // time series data value (previous) - will be used for change in value
     DateTime date; // Date corresponding to data value
     boolean isMissing;
+    boolean sumNeeded = false;
+    if ( statistic.equalsIgnoreCase("Mean") ) {
+        sumNeeded = true;
+    }
     int countNotMissing = 0;
     int countMissing = 0;
     //double diff;
     double sum = ts.getMissing(); // Sum of data values
+    boolean sumCalculated = false; // To improve performance
     double statisticResult = ts.getMissing();
     DateTime statisticResultDateTime = null;
     boolean statisticCalculated = false;
@@ -109,6 +138,19 @@ throws Exception
         else {
             ++countNotMissing;
         }
+        if ( sumNeeded ) {
+            if ( !isMissing ) {
+                if ( !sumCalculated ) {
+                    // Initialize to total
+                    sum = tsvalue;
+                    sumCalculated = true;
+                }
+                else {
+                    // Increment total
+                    sum += tsvalue;
+                }
+            }
+        }
         if ( statistic.equalsIgnoreCase(TSStatistic.Max) ) {
             if ( !isMissing ) {
                 if ( !statisticCalculated || (tsvalue > statisticResult)) {
@@ -116,19 +158,6 @@ throws Exception
                     statisticResultDateTime = new DateTime(date);
                     statisticCalculated = true;
                 }
-            }
-        }
-        else if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
-            if ( !isMissing ) {
-                if ( !statisticCalculated ) {
-                    // Initialize to total
-                    sum = tsvalue;
-                }
-                else {
-                    // Increment total
-                    sum += tsvalue;
-                }
-                statisticCalculated = true;
             }
         }
         else if ( statistic.equalsIgnoreCase(TSStatistic.Min) ) {
@@ -140,12 +169,12 @@ throws Exception
                 }
             }
         }
-        tsvaluePrev = tsvalue;
+        //tsvaluePrev = tsvalue;
     }
-    // Handle counts differently to improve performance and avoid roundoff with many increments - still
-    // return as floating point number
+    // Set the final statistic value
+    // Handle counts differently to improve performance
     if ( statistic.equalsIgnoreCase(TSStatistic.Count) ) {
-        setStatisticResult ( new Integer(countNotMissing) ); 
+        setStatisticResult ( new Integer(countNotMissing + countMissing) ); 
     }
     else if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
         if ( countNotMissing > 0 ) {
@@ -154,6 +183,21 @@ throws Exception
     }
     else if ( statistic.equalsIgnoreCase(TSStatistic.MissingCount) ) {
         setStatisticResult ( new Integer(countMissing) ); 
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.MissingPercent) ) {
+        int countTotal = countNotMissing + countMissing;
+        if ( countTotal != 0 ) {
+            setStatisticResult ( new Double((double)countMissing/(double)countTotal) );
+        }
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.NonmissingCount) ) {
+        setStatisticResult ( new Integer(countNotMissing) ); 
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.NonmissingPercent) ) {
+        int countTotal = countNotMissing + countMissing;
+        if ( countTotal != 0 ) {
+            setStatisticResult ( new Double((double)countNotMissing/(double)countTotal) );
+        }
     }
     else if ( statisticCalculated ) {
         // All other statistics - numerical values - just set from values computed locally above
@@ -215,12 +259,14 @@ public static List<String> getStatisticChoices()
 {
     List<String> choices = new Vector();
     choices.add ( TSStatistic.Count );
-    choices.add ( TSStatistic.CountPercent );
-    choices.add ( TSStatistic.Mean );
     choices.add ( TSStatistic.Max );
+    choices.add ( TSStatistic.Mean );
     choices.add ( TSStatistic.Min );
     choices.add ( TSStatistic.MissingCount );
     choices.add ( TSStatistic.MissingPercent );
+    choices.add ( TSStatistic.NonmissingCount );
+    choices.add ( TSStatistic.NonmissingPercent );
+    choices.add ( TSStatistic.NqYY );
     return choices;
 }
 
@@ -235,7 +281,7 @@ public static int getRequiredNumberOfValuesForStatistic ( String statistic )
     if ( statistic.equalsIgnoreCase(TSStatistic.Count) ) {
         return 0;
     }
-    else if ( statistic.equalsIgnoreCase(TSStatistic.CountPercent) ) {
+    else if ( statistic.equalsIgnoreCase(TSStatistic.Max) ) {
         return 0;
     }
     else if ( statistic.equalsIgnoreCase(TSStatistic.Max) ) {
@@ -252,6 +298,16 @@ public static int getRequiredNumberOfValuesForStatistic ( String statistic )
     }
     else if ( statistic.equalsIgnoreCase(TSStatistic.MissingPercent) ) {
         return 0;
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.NonmissingCount) ) {
+        return 0;
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.NonmissingPercent) ) {
+        return 0;
+    }
+    else if ( statistic.equalsIgnoreCase(TSStatistic.NqYY) ) {
+        // Need days to average (N), return frequency (YY), and allowed missing in average
+        return 3;
     }
     else {
         String message = "Requested statistic is not recognized: " + statistic;
@@ -286,6 +342,15 @@ Return Value2 for the check.
 public Double getValue2 ()
 {
     return __value2;
+}
+
+/**
+Return Value3 for the check.
+@return Value3 for the check.
+*/
+public Double getValue3 ()
+{
+    return __value3;
 }
 
 /**
