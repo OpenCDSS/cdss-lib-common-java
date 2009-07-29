@@ -35,6 +35,11 @@ Constructor.
 */
 public LogPearsonType3Distribution ( double [] X )
 {   String routine = getClass().getName() + ".constructor";
+    if ( (X == null) || (X.length < 3) ) {
+        // Use n - 2 in divisor below
+        throw new InvalidParameterException (
+            "Sample size is too small - cannot analyze for log-Pearson Type III distribution." );
+    }
     setData ( X );
     // Compute the basic statistics
     // If a data value is <= 0.0 assume that it is .001 when computing the log
@@ -66,6 +71,13 @@ public LogPearsonType3Distribution ( double [] X )
         }
         diff = (logX - logXbar);
         sigmaLogX += diff*diff;
+    }
+    if ( sigmaLogX == 0.0 ) {
+        // TODO SAM 2009-07-29 is it appropriate to handle samples that are all the same value?
+        // All the sample values are the same.  This will cause an error below.  For now
+        // just throw an exception.
+        throw new InvalidParameterException (
+            "All samples are the same value - cannot analyze log-Pearson Type III distribution." );
     }
     // Divide by the divisor and take the square root to get the final result
     sigmaLogX = Math.sqrt(sigmaLogX/(X.length - 1));

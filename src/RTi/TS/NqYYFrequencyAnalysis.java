@@ -120,6 +120,7 @@ throws Exception
     DateTime dt = new DateTime ( analysisStart ); // used for iteration
     int dayIncrement;  // Value to increment day at start of "day" loop.
     DateTime dtSample = new DateTime(dt); // Date/time for sample loop
+    DateTime yearMinimumDateTime = null; // DateTime for minimum N day average in year (center day)
     // Loop through the years to analyze
     for ( int year = analysisStart.getYear(); year <= yearEnd; year++ ) {
         // Loop through the days in the year
@@ -137,9 +138,9 @@ throws Exception
             }
             // For troubleshooting
             // Message.printStatus(2, routine, "Starting 7-day analysis on " + dt );
-            dtSample.setDay(dt.getDay());
             dtSample.setMonth(dt.getMonth());
             dtSample.setYear(dt.getYear());
+            dtSample.setDay(dt.getDay()); // Set day last because leap year may cause problem otherwise
             sum = 0;
             sumCount = 0;
             // Shift to initial offset day...
@@ -156,13 +157,14 @@ throws Exception
                 average = sum/sumCount;
                 if ( average < yearMinimum ) {
                     yearMinimum = average;
+                    yearMinimumDateTime = new DateTime(dt);
                 }
             }
             // Add to the main array
             yearMinimumArray[year - analysisStart.getYear()] = yearMinimum;
         }
         Message.printStatus ( 2, routine, "Minimum " + numberInAverage + " average for " + year +
-            " is " + yearMinimum );
+            " is " + yearMinimum + " centered on day " + yearMinimumDateTime );
     }
     // Discard values in the array for years that could not be computed
     int discardCount = 0;
@@ -182,10 +184,6 @@ throws Exception
         }
         Message.printStatus(2, routine, "Ignored " + discardCount + " years because not enough data.");
     }
-    
-    // Sort the values into ascending order...
-    
-    //MathUtil.sortDQuick(yearMinimumArray2, null, false );
     
     // Determine the YY recurrence interval value...
     
