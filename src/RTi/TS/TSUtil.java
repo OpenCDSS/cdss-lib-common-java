@@ -8848,6 +8848,36 @@ throws TSException
 }
 
 /**
+Return the list of identifier strings given the time series list.  The alias will be returned if set.  Otherwise
+the full time series identifier string will be returned.
+@param tsList list of time series to process.
+@param includeInput if true, include the input part of the time series identifier.
+If false, only include the 5-part information.
+@return the list of time series identifier strings, useful for choices in applications - a non-null list is
+guaranteed.
+*/
+public static List<String> getTimeSeriesIdentifiers ( List<TS>tsList, boolean includeInput )
+{
+    List<String> list = new Vector();
+    if ( tsList != null ) {
+        int tssize = tsList.size();
+        TS ts;
+        for ( int its = 0; its < tssize; its++ ) {
+            ts = tsList.get(its);
+            if ( !ts.getAlias().equals("") ) {
+                // Use the alias if it is available.
+                list.add( ts.getAlias() );
+            }
+            else {
+                // Use the identifier.
+                list.add ( ts.getIdentifier().toString(includeInput) );
+            }
+        }
+    }
+    return list;
+}
+
+/**
 Return the interpolated data value between two time steps for a time series.
 @param ts Time series to get data from.  Irregular time series are currently
 not supported and always return missing data.
