@@ -738,17 +738,14 @@ strip out missing data values.
 @param missingy Missing data value indicator for "yArray".
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
-@param force_intercept If true, use the "intercept" parameter to specify a 
-forced intercept (A value).  If false, calculate the intercept.
-@param intercept If "forceIntercept" is true, use this parameter to specify the
-parameter.  Note that currently the intercept must be zero.
+@param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
-public static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
-					double missingy, boolean force_intercept, double intercept )
+public static Regression regress ( double [] xArray, double [] yArray, boolean useMissing, double missingx,
+					double missingy, Double intercept )
 throws Exception
-{	return regress (xArray, yArray, useMissing, missingx, missingy, false, force_intercept, intercept );
+{	return regress (xArray, yArray, useMissing, missingx, missingy, false, intercept );
 }
 
 /**
@@ -770,15 +767,12 @@ strip out missing data values.
 @param missingy Missing data value indicator for "yArray".
 @param data_transformed Indicates whether the data being passed in have been
 transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE data member.
-@param forceIntercept If true, use the "intercept" parameter to specify a forced
-intercept (A value).  If false, calculate the intercept.
-@param intercept If "forceIntercept" is true, use this parameter to specify the
-parameter.  Note that currently the intercept must be zero.
+@param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
 private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
-					double missingy, boolean data_transformed, boolean forceIntercept, double intercept )
+					double missingy, boolean data_transformed, Double intercept )
 throws Exception
 {	String rtn = "MathUtil.regress";
 	if ( xArray.length != yArray.length ) {
@@ -943,7 +937,7 @@ throws Exception
 	//
 	// b = sum(xy)/sum(x^2)
 
-	if ( forceIntercept ) {
+	if ( intercept != null ) {
 		if ( totalX1_sq == 0.0 ) {
 			// TODO - should this throw an exception?
 			b = -999.0;
@@ -971,8 +965,8 @@ throws Exception
 	//
 	// a = 0.0
 
-	if ( forceIntercept ) {
-		if ( intercept != 0.0 ) {
+	if ( intercept != null) {
+		if ( intercept.doubleValue() != 0.0 ) {
 			throw new Exception ( "Only zero intercept is supported (specified as " + intercept + ")." );
 		}
 		a = intercept;
@@ -998,7 +992,7 @@ throws Exception
 	else {
 	    rd.setRMSE ( rmse );
 	}
-	rd.forceIntercept ( forceIntercept );
+	rd.setIntercept ( intercept );
 	rd.setN1 ( n1 );
 	rd.setX1 ( X1 );
 	rd.setY1 ( Y1 );
@@ -1112,7 +1106,7 @@ throws Exception
 
 	// Do the regression on the transformed data.  The RMSE will be saved in the transformed data member...
 
-	Regression rd = regress ( logArrayX, logArrayY, useMissing, missingx, missingy, true, false, 0 );
+	Regression rd = regress ( logArrayX, logArrayY, useMissing, missingx, missingy, true, null );
 	// Also compute the RMSE for the untransformed data...
 	rd.setRMSE ( RMSError(xArray.length, xArray, yArray, useMissing, missingx, missingy) );
 

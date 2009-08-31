@@ -1093,6 +1093,27 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 	return tokens;
 }
 
+/**
+Format an array as a sequence of numbers separated by a delimiter.  A blank string is returned if
+the array is null or empty.
+@return a string containing the formatted sequence of integers.
+@param array array of numbers to format
+@param delim delimiter to user between numbers (no extra spaces will be added)
+*/
+public static String formatNumberSequence ( int [] array, String delim )
+{
+    StringBuffer b = new StringBuffer();
+    if ( array != null ) {
+        for ( int i = 0; i < array.length; i++ ) {
+            if ( (i > 0) && (delim != null) ) {
+                b.append(delim);
+            }
+            b.append ( "" + array[i] );
+        }
+    }
+    return b.toString();
+}
+
 // Format a string like the C sprintf
 //
 // Notes:	(1)	We accept any of the formats:
@@ -2413,6 +2434,35 @@ Check to see if a String matches a regular expression, considering case explicit
 */
 public static boolean matchesRegExp ( String candidate_string, String regexp_string )
 {	return matchesRegExp ( false, candidate_string, regexp_string );
+}
+
+/**
+Parse a string like "1, 2, 3" or "1,2,3" into an array containing the numbers.
+@param seq string to parse
+@param delim delimiter characters
+@param parseFlag see breakStringList() flag
+@return an array of integers parsed from the string.
+*/
+public static int [] parseIntegerSequenceArray ( String seq, String delim, int parseFlag )
+{
+    if ( seq == null ) {
+        return new int[0];
+    }
+    List<String> tokens = breakStringList ( seq, delim, parseFlag );
+    int size = 0;
+    if ( tokens != null ) {
+        size = tokens.size();
+    }
+    if ( size == 0 ) {
+        return new int[0];
+    }
+    else {
+        int iseq[] = new int[size];
+        for ( int i = 0; i < size; i++ ) {
+            iseq[i] = Integer.parseInt(tokens.get(i).trim() );
+        }
+        return iseq;
+    }
 }
 
 /**

@@ -57,9 +57,9 @@ public class Regression
 {
 
 /**
-If true, then the value of A is forced in the computation code.
+Forced intercept A in the computation code.
 */
-protected boolean _force_intercept = false;
+protected Double _intercept = null;
 /**
 Y-intercept of best fit line.
 */
@@ -190,22 +190,11 @@ throws Throwable {
 }
 
 /**
-Set whether the intercept (A) for the relationship is forced.
-@param force_intercept If true, then the value of A has been forced.  The
-calculation of B should therefore use different equations (MathUtil.regress handles the option).
-*/
-public boolean forceIntercept ( boolean force_intercept )
-{	_force_intercept = force_intercept;
-	return _force_intercept;
-}
-
-/**
 Indicate whether the intercept (A) for the relationship is forced.
 */
-public boolean forceIntercept ()
-{	return _force_intercept;
+public Double getIntercept ()
+{	return _intercept;
 }
-
 /**
 Return A in correlation equation.
 @return A in correlation equation.
@@ -456,6 +445,15 @@ Set the correlation coefficient.
 */
 public void setCorrelationCoefficient ( double r )
 {	_r = r;
+}
+
+/**
+Set the intercept (A) for the relationship is forced.
+@param intercept Set the intercept value of A that has been forced.  The
+calculation of B should therefore use different equations (MathUtil.regress handles the option).
+*/
+public void setIntercept ( Double intercept )
+{   _intercept = intercept;
 }
 
 /**

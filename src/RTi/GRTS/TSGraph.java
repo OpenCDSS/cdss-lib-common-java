@@ -258,8 +258,11 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 
+import RTi.Util.Math.DataTransformationType;
 import RTi.Util.Math.FDistribution;
 import RTi.Util.Math.MathUtil;
+import RTi.Util.Math.NumberOfEquationsType;
+import RTi.Util.Math.RegressionType;
 
 import RTi.Util.Message.Message;
 
@@ -389,14 +392,14 @@ This will force the analysis to be done for analytical graph types when the grap
 private int _last_graph_type = -1;	
 
 /**
-Vector of all time series to plot (this is used for the legend).
+List of all time series to plot (this is used for the legend).
 */
-private List __tslist = null;
+private List<TS> __tslist = null;
 
 /**
-Vector of time series to plot using left axis (currently the default).
+List of time series to plot using left axis (currently the default).
 */
-private List __left_tslist = null;	
+private List<TS> __left_tslist = null;	
 
 /**
 Precision for left y-axis labels.
@@ -697,7 +700,7 @@ private boolean _zoom_keep_y_limits = false;
 /**
 Regression data used by scatter plot.
 */
-private List _regression_data = null;
+private List<TSRegression> _regression_data = null;
 
 // TODO SAM Evaluate adding double mass plot
 //private TSDoubleMass _double_mass_data = null;// Used by double mass plot.
@@ -2322,32 +2325,85 @@ private void doAnalysis ()
 		if ( nreg > 0 ) {
 			_regression_data = new Vector ( nreg );
 		}
-		PropList rprops = new PropList("regress");
 		// Set the regression properties.  These may be changed by the properties interface.
-		String prop_value = _tsproduct.getLayeredPropValue ( "XYScatterAnalyzeForFilling", _subproduct, -1, false );
-		rprops.set ( "AnalyzeForFilling=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodStart", _subproduct, -1, false );
-		rprops.set ( "DependentAnalysisStart=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "DependentAnalysisEnd=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodStart", _subproduct, -1, false );
-		rprops.set ( "FillStart=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "FillEnd=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodStart", _subproduct, -1, false );
-		rprops.set ( "IndependentAnalysisStart=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodEnd", _subproduct, -1, false );
-		rprops.set ( "IndependentAnalysisEnd=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterIntercept", _subproduct, -1, false );
-		rprops.set ( "Intercept=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterMethod", _subproduct, -1, false );
-		rprops.set ( "AnalysisMethod=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterMonth", _subproduct, -1, false );
-		rprops.set ( "AnalysisMonth", prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterNumberOfEquations", _subproduct, -1, false );
-		rprops.set ( "NumberOfEquations=" + prop_value );
-		prop_value = _tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false );
-		rprops.set ( "Transformation=" + prop_value );
+		boolean analyzeForFilling = false;
+		if (_tsproduct.getLayeredPropValue ( "XYScatterAnalyzeForFilling", _subproduct, -1, false ).
+		    equalsIgnoreCase("True") ) {
+		    analyzeForFilling = true;
+		}
+		DateTime dependentAnalysisStart = null;
+		String propValue = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodStart", _subproduct, -1, false );
+		if ( TimeUtil.isDateTime(propValue) ) {
+		    try {
+		        dependentAnalysisStart = DateTime.parse(propValue);
+		    }
+		    catch ( Exception e ) {
+		        // Should not happen
+		    }
+		}
+		DateTime dependentAnalysisEnd = null;
+		propValue = _tsproduct.getLayeredPropValue ( "XYScatterDependentAnalysisPeriodEnd", _subproduct, -1, false );
+        if ( TimeUtil.isDateTime(propValue) ) {
+            try {
+                dependentAnalysisEnd = DateTime.parse(propValue);
+            }
+            catch ( Exception e ) {
+                // Should not happen
+            }
+        }
+        DateTime independentAnalysisStart = null;
+		propValue = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodStart", _subproduct, -1, false );
+        if ( TimeUtil.isDateTime(propValue) ) {
+            try {
+                independentAnalysisStart = DateTime.parse(propValue);
+            }
+            catch ( Exception e ) {
+                // Should not happen
+            }
+        }
+        DateTime independentAnalysisEnd = null;
+		propValue = _tsproduct.getLayeredPropValue ( "XYScatterIndependentAnalysisPeriodEnd", _subproduct, -1, false );
+        if ( TimeUtil.isDateTime(propValue) ) {
+            try {
+                independentAnalysisEnd = DateTime.parse(propValue);
+            }
+            catch ( Exception e ) {
+                // Should not happen
+            }
+        }
+        DateTime fillStart = null;
+        propValue = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodStart", _subproduct, -1, false );
+        if ( TimeUtil.isDateTime(propValue) ) {
+            try {
+                fillStart = DateTime.parse(propValue);
+            }
+            catch ( Exception e ) {
+                // Should not happen
+            }
+        }
+        DateTime fillEnd = null;
+        propValue = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodEnd", _subproduct, -1, false );
+        if ( TimeUtil.isDateTime(propValue) ) {
+            try {
+                fillEnd = DateTime.parse(propValue);
+            }
+            catch ( Exception e ) {
+                // Should not happen
+            }
+        }
+		Double intercept = null;
+		propValue = _tsproduct.getLayeredPropValue ( "XYScatterIntercept", _subproduct, -1, false );
+		if ( StringUtil.isDouble(propValue)) {
+		    intercept = Double.parseDouble(propValue);
+		}
+		RegressionType analysisMethod = RegressionType.valueOfIgnoreCase(
+		    _tsproduct.getLayeredPropValue ( "XYScatterMethod", _subproduct, -1, false ) );
+		int [] analysisMonths = StringUtil.parseIntegerSequenceArray(
+		    _tsproduct.getLayeredPropValue ( "XYScatterMonth", _subproduct, -1, false ), ", ", StringUtil.DELIM_SKIP_BLANKS );
+		NumberOfEquationsType numberOfEquations = NumberOfEquationsType.valueOfIgnoreCase(
+		    _tsproduct.getLayeredPropValue ( "XYScatterNumberOfEquations", _subproduct, -1, false ) );
+		DataTransformationType transformation = DataTransformationType.valueOfIgnoreCase(
+		    _tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false ) );
 
 		TSRegression regressionData = null;
 		for ( int i = 1; i <= nreg; i++ ) {
@@ -2356,11 +2412,17 @@ private void doAnalysis ()
 			ts0 = (TS)__tslist.get(0);
 			ts = (TS)__tslist.get(i);
 			try {
-			    regressionData = new TSRegression ( ts, ts0, rprops );
+			    regressionData = new TSRegression ( ts, ts0,
+			            analyzeForFilling, analysisMethod,
+			            intercept, numberOfEquations, analysisMonths,
+			            transformation,
+			            dependentAnalysisStart, dependentAnalysisEnd,
+			            independentAnalysisStart, independentAnalysisEnd,
+			            fillStart, fillEnd );
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 2, routine, "Error performing regression for TS [" + (i - 1) + "]" );
-				Message.printWarning ( 2, routine, e );
+				Message.printWarning ( 3, routine, "Error performing regression for TS [" + (i - 1) + "]" );
+				Message.printWarning ( 3, routine, e );
 				regressionData = null;
 			}
 			// Always add something...
@@ -2424,29 +2486,40 @@ private void doAnalysis ()
 		if (nreg > 0 ) {
 			_regression_data = new Vector(nreg);
 		}
-		PropList rprops = new PropList("regress");
-		// Set the regression properties.  These may be changed by the properties interface.
-		rprops.set("AnalysisMethod", "MOVE2");
-		rprops.set("Transformation", "None");
-		rprops.set("NumberOfEquations", "OneEquation");
-		rprops.set("MinimumDataCount", "1");
-		rprops.set("MinimumR", "0");
-		rprops.set("BestFit", "SEP");
-		rprops.set("OutputFile", "c:\\temp\\output.regress");
 
 		TSRegression regressionData = null;
 		for (int i = 1; i <= nreg; i++) {
 			// The first time series [0] is always the independent
 			// time series and time series [1+] are the dependent for each relationship...
-			ts0 = (TS)__tslist.get(0);
-			ts = (TS)__tslist.get(i);
-			try {	
-				regressionData = new TSRegression( ts0, ts, rprops);
+			ts0 = __tslist.get(0);
+			ts = __tslist.get(i);
+			try {
+			    // Pick reasonable defaults for the regression analysis - they can be changed in the
+			    // properties interface
+				regressionData = new TSRegression( ts0, ts,
+				    false, // Analyze for filling
+				    RegressionType.MOVE2,
+                    null, // intercept
+                    NumberOfEquationsType.ONE_EQUATION,
+                    null, //analysisMonths,
+                    DataTransformationType.NONE,
+                    null, //dependentAnalysisStart,
+                    null, //dependentAnalysisEnd,
+                    null, //independentAnalysisStart,
+                    null, //independentAnalysisEnd,
+                    null, // FillStart
+                    null ); // FillEnd
+				// FIXME SAM 2009-08-30 These were being set previously for TSRegression but seem to have no
+				// effect:
+		        //rprops.set("MinimumDataCount", "1");
+		        //rprops.set("MinimumR", "0");
+		        //rprops.set("BestFit", "SEP");
+		        //rprops.set("OutputFile", "c:\\temp\\output.regress");
 				regressionData.createPredictedTS();
 			}
 			catch (Exception e) {
-				Message.printWarning(2, routine, "Error performing regression for TS [" + (i - 1) + "]");
-				Message.printWarning(2, routine, e);
+				Message.printWarning(3, routine, "Error performing regression for TS [" + (i - 1) + "]");
+				Message.printWarning(3, routine, e);
 				regressionData = null;
 			}
 
@@ -5184,7 +5257,7 @@ private void drawXYScatterPlot ()
 					GRDrawingAreaUtil.drawText (_da_graph, "" + il, xlabel, ylabel, 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 				}
 				else {
-				    label = regressionData.getPropList().getValue( "AnalysisMonth" );
+				    label = StringUtil.formatNumberSequence(regressionData.getAnalysisMonths(), ",");
 					if ( (label != null) && !label.equals("") ) {
 						xlabel = xp[1];
 						ylabel = yp[1];
@@ -6107,15 +6180,14 @@ public void paint ( Graphics g )
 		// properties for the first regression apply to all regression data...
 		
 		if ((_regression_data != null) && (_regression_data.size()>0)) {
-			PropList old_props = ((TSRegression)_regression_data.get(0)).getPropList();
 			if (!_tsproduct.getLayeredPropValue( "XYScatterMethod", _subproduct, -1, false).equalsIgnoreCase(
-			        old_props.getValue("AnalysisMethod")) 
+			      ""+_regression_data.get(0).getAnalysisMethod()) 
 			  || !_tsproduct.getLayeredPropValue ( "XYScatterMonth", _subproduct, -1, false).equalsIgnoreCase(
-			          old_props.getValue("AnalysisMonth")) 
+		          StringUtil.formatNumberSequence(_regression_data.get(0).getAnalysisMonths(),",")) 
 		  	  || !_tsproduct.getLayeredPropValue ( "XYScatterNumberOfEquations", _subproduct, -1, false ).equalsIgnoreCase(
-				old_props.getValue("NumberOfEquations")) 
+		  	      ""+_regression_data.get(0).getNumberOfEquations()) 
 			  || !_tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false ).equalsIgnoreCase(
-				old_props.getValue("Transformation")) ) {
+		          ""+_regression_data.get(0).getTransformation()) ) {
 				need_to_analyze = true;
 			}
 		}

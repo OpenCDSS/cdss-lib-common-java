@@ -304,7 +304,10 @@ import	RTi.Util.IO.DataUnits;
 import	RTi.Util.IO.DataUnitsConversion;
 import	RTi.Util.IO.IOUtil;
 import	RTi.Util.IO.PropList;
+import RTi.Util.Math.DataTransformationType;
 import	RTi.Util.Math.MathUtil;
+import RTi.Util.Math.NumberOfEquationsType;
+import RTi.Util.Math.RegressionType;
 import	RTi.Util.Message.Message;
 import	RTi.Util.String.StringUtil;
 import	RTi.Util.Time.DateTime;
@@ -4008,6 +4011,9 @@ throws TSException, Exception
 	return count_changed;
 }
 
+// FIXME SAM 2009-08-30 Remove this code when able - comment out to break app code and force refactor - regression
+// parameters are no longer a PropList due to fragility and this could cause this method to not work
+// if something was missed
 // ----------------------------------------------------------------------------
 // fill - generic method to fill missing data values
 // ----------------------------------------------------------------------------
@@ -4132,18 +4138,20 @@ series data interval).
 
 @exception RTi.TS.TSException If there is a problem filling the time series
 (generally an input problem).
+@deprecated use specific fill methods because this one is getting too complicated to handle errors.
 */
+/*
 public static TS fill (	TS ts, List needed_ts, PropList props )
 // At some point need to pass in a TSLookupTable also?? - talking to Dan Weiler
 throws TSException
-{	String 			message, routine = "TSUtil.fill";
-	int			dl = 20, i, j;
-	TSRegression		rd=null, rdMonthly=null;
-	TS			simTS=null;
-	double []		fill_hist_month_ave_values = new double[12];
-	int []			fill_hist_month_ave_nvalues = new int[12];
-	int			month_pos;
-	double			value;
+{	String message, routine = "TSUtil.fill";
+	int dl = 20, i, j;
+	TSRegression rd=null, rdMonthly=null;
+	TS simTS=null;
+	double [] fill_hist_month_ave_values = new double[12];
+	int [] fill_hist_month_ave_nvalues = new int[12];
+	int month_pos;
+	double value;
 
 	// Make sure that there is a valid time series...
 
@@ -4156,23 +4164,21 @@ throws TSException
 
 	// Get valid dates because the ones passed in may have been null...
 
-	DateTime start	= ts.getDate1();
-	DateTime end	= ts.getDate2();
-	DateTime date	= null;
+	DateTime start = ts.getDate1();
+	DateTime end = ts.getDate2();
+	DateTime date = null;
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		// Don't support filling this type of data.  Can only fill
-		// regular interval data.
+		// Don't support filling this type of data.  Can only fill regular interval data.
 		message = "Can only fill regular-interval data.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// Make sure we have a valid PropList so we don't have to constantly
-	// check for null...
+	// Make sure we have a valid PropList so we don't have to constantly check for null...
 
 	PropList proplist = PropList.getValidPropList ( props, "TSUtil.fill" );
 	String prop_value = null;
@@ -4182,11 +4188,11 @@ throws TSException
 	prop_value = proplist.getValue ( "StartDate" );
 	if ( prop_value != null ) {
 		DateTime d = null;
-		try {	d = DateTime.parse ( prop_value );
+		try {
+		    d = DateTime.parse ( prop_value );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"StartDate is invalid:  \"" + prop_value + "\"" );
+			Message.printWarning ( 2, routine, "StartDate is invalid:  \"" + prop_value + "\"" );
 			d = null;
 		}
 		if ( d != null ) {
@@ -4196,11 +4202,11 @@ throws TSException
 	prop_value = proplist.getValue ( "EndDate" );
 	if ( prop_value != null ) {
 		DateTime d = null;
-		try {	d = DateTime.parse ( prop_value );
+		try {
+		    d = DateTime.parse ( prop_value );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"EndDate is invalid:  \"" + prop_value + "\"" );
+			Message.printWarning ( 2, routine, "EndDate is invalid:  \"" + prop_value + "\"" );
 			d = null;
 		}
 		if ( d != null ) {
@@ -4221,8 +4227,7 @@ throws TSException
 	// Now split out the fill methods into a vector of strings...
 
 	List fill_methods_strings = StringUtil.breakStringList (
-		fill_methods_string,
-		",", StringUtil.DELIM_SKIP_BLANKS );
+		fill_methods_string, ",", StringUtil.DELIM_SKIP_BLANKS );
 	if ( fill_methods_strings == null ) {
 		message = "Unable to get fill methods list";
 		Message.printWarning ( 2, routine, message );
@@ -4236,8 +4241,7 @@ throws TSException
 	// Loop through the list and make sure the methods are valid and
 	// then assign an integer method so that we do not have to do a bunch
 	// of string compares later.  This improves performance.  Also, as each
-	// fill method is detected, try to get the fill data for the fill
-	// method...
+	// fill method is detected, try to get the fill data for the fill method...
 	String fill_method;
 	int nfill_methods0 = nfill_methods;
 	nfill_methods = 0;
@@ -4245,16 +4249,14 @@ throws TSException
 		fill_method = (String)fill_methods_strings.get(i);
 		if ( fill_method.equalsIgnoreCase("FillCarryForward") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillCarryForward fill method" );
+				Message.printDebug ( dl, routine, "Detected FillCarryForward fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_CARRY_FORWARD;
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillConstant") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillConstant fill method" );
+				Message.printDebug ( dl, routine, "Detected FillConstant fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_CONSTANT;
 			++nfill_methods;
@@ -4264,47 +4266,40 @@ throws TSException
 				// Default is zero...
 				fill_constant_value = 0.0;
 			}
-			else {	fill_constant_value =
-				StringUtil.atod ( prop_value );
+			else {
+			    fill_constant_value = StringUtil.atod ( prop_value );
 			}
 			String FillFlag = props.getValue("FillFlag");
-			if( FillFlag != null && FillFlag.equalsIgnoreCase("Auto") ||
-					FillFlag.length() == 1) {
+			if( FillFlag != null && FillFlag.equalsIgnoreCase("Auto") || FillFlag.length() == 1) {
 				try {
 					ts.allocateDataFlagSpace (
 						FillFlag.length(),	// Max length of flag
 						null,	// Initial flag value
 						true );	// keep old flags
-				} catch (Exception e) {
-					Message.printWarning(2, routine, "Couldn't " + 
-						"allocate data space for fill flags.\n");
+				}
+				catch (Exception e) {
+					Message.printWarning(2, routine, "Couldn't allocate data space for fill flags.\n");
 					Message.printWarning(2, routine, e );
 				}	
 			}
 		}
 		else if ( fill_method.equalsIgnoreCase("FillHistDayAve") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillHistDayAve fill method" );
+				Message.printDebug ( dl, routine, "Detected FillHistDayAve fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_HIST_DAY_AVE;
-			Message.printWarning ( 2, routine,
-			"FillHistDayAve fill method not implemented" );
+			Message.printWarning ( 2, routine, "FillHistDayAve fill method not implemented" );
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillHistMonthAve") ) {
 			// Need to compute the monthly averages for the time
-			// series before any filling occurs.  At some point,
-			// maybe use getMonthTotals for this...
+			// series before any filling occurs.  At some point, maybe use getMonthTotals for this...
 			boolean values_set = false;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillHistMonthAve fill method" );
+				Message.printDebug ( dl, routine, "Detected FillHistMonthAve fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_HIST_MONTH_AVE;
-			// If the FillHistMonthAveValues property is set, use
-			// that information...
+			fill_methods[nfill_methods] = FILL_METHOD_HIST_MONTH_AVE;
+			// If the FillHistMonthAveValues property is set, use that information...
 			prop_value =proplist.getValue("FillHistMonthAveValues");
 			if ( prop_value != null ) {
 				// Parse into a list.
@@ -4325,105 +4320,84 @@ throws TSException
 					fill_hist_month_ave_nvalues[j] = 0;
 				}
 				date = new DateTime(start, DateTime.DATE_FAST );
-				for (	;
-					date.lessThanOrEqualTo( end );
-					date.addInterval(interval_base,
-					interval_mult) ) {
+				for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 					// Get the data value...
 					value = ts.getDataValue ( date );
 					if ( ts.isDataMissing(value) ) {
-						// Value is missing so no need
-						// to process...
+						// Value is missing so no need to process...
 						continue;
 					}
 					// Not missing...
 					month_pos = date.getMonth() - 1;
-					if (	ts.isDataMissing(
-						fill_hist_month_ave_values[
-						month_pos])){
+					if ( ts.isDataMissing(fill_hist_month_ave_values[month_pos])){
 						// Set the value...
-						fill_hist_month_ave_values[
-						month_pos] = value;
+						fill_hist_month_ave_values[month_pos] = value;
 					}
-					else {	// Add to value...
-						fill_hist_month_ave_values[
-						month_pos] += value;
+					else {
+					    // Add to value...
+						fill_hist_month_ave_values[month_pos] += value;
 					}
-					++fill_hist_month_ave_nvalues[
-					month_pos];
+					++fill_hist_month_ave_nvalues[month_pos];
 				}
 				// Now compute the averages...
 				for ( j = 0; j < 12; j++ ) {
-					if (	!ts.isDataMissing(
-						fill_hist_month_ave_values[j])){
-						fill_hist_month_ave_values[j] /=
-						fill_hist_month_ave_nvalues[j];
+					if ( !ts.isDataMissing(fill_hist_month_ave_values[j])){
+						fill_hist_month_ave_values[j] /= fill_hist_month_ave_nvalues[j];
 					}
 				}
 			}
 			if ( Message.isDebugOn ) {
 				for ( j = 0; j < 12; j++ ) {
-					Message.printDebug ( dl,
-					routine, "MonthAve[" + j + "]="+
-					fill_hist_month_ave_values[j] );
+					Message.printDebug ( dl, routine, "MonthAve[" + j + "]=" + fill_hist_month_ave_values[j] );
 				}
 			}
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillHistSeasonAve") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillHistSeasonAve fill method" );
+				Message.printDebug ( dl, routine, "Detected FillHistSeasonAve fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_HIST_SEASON_AVE;
-			Message.printWarning ( 2, routine,
-			"FillHistSeasonAve fill method not implemented" );
+			fill_methods[nfill_methods] = FILL_METHOD_HIST_SEASON_AVE;
+			Message.printWarning ( 2, routine, "FillHistSeasonAve fill method not implemented" );
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillHistYearAve") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillHistYearAve fill method" );
+				Message.printDebug ( dl, routine, "Detected FillHistYearAve fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_HIST_YEAR_AVE;
-			Message.printWarning ( 2, routine,
-			"FillHistYearAve fill method not implemented" );
+			Message.printWarning ( 2, routine, "FillHistYearAve fill method not implemented" );
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillInitZero") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillInitZero fill method" );
+				Message.printDebug ( dl, routine, "Detected FillInitZero fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_INIT_ZERO;
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillLookupTable") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillLookupTable fill method" );
+				Message.printDebug ( dl, routine, "Detected FillLookupTable fill method" );
 			}
 			fill_methods[nfill_methods] = FILL_METHOD_LOOKUP_TABLE;
-			Message.printWarning ( 2, routine,
-			"FillLookupTable fill method not implemented" );
+			Message.printWarning ( 2, routine, "FillLookupTable fill method not implemented" );
 			++nfill_methods;
 		}
 		else if ( fill_method.equalsIgnoreCase("FillRegressLinear") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillRegressLinear fill method" );
+				Message.printDebug ( dl, routine, "Detected FillRegressLinear fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_REGRESS_LINEAR;
+			fill_methods[nfill_methods] = FILL_METHOD_REGRESS_LINEAR;
 			++nfill_methods;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, routine, 
-				"In fill - using FillRegressLinear." );
+				Message.printDebug ( 10, routine, "In fill - using FillRegressLinear." );
 			}
 			simTS = (TS)needed_ts.get(0);
-			try { rd = new TSRegression ( simTS, ts, null);
-			} catch ( Exception e ) {
+			try {
+			    rd = new TSRegression ( simTS, ts );
+			}
+			catch ( Exception e ) {
 			}
 		}
 		else if ( fill_method.equalsIgnoreCase("FillRegressLinear12") ||
@@ -4431,29 +4405,29 @@ throws TSException
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Detected FillRegressLinear12 fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_REGRESS_LINEAR_12;
+			fill_methods[nfill_methods] = FILL_METHOD_REGRESS_LINEAR_12;
 			++nfill_methods;
 			simTS = (TS)needed_ts.get(0);
 			try {
 				PropList regprops = new PropList("regression");
 				regprops.set( "NumberOfEquations=MonthlyEquations");
 				rdMonthly = new TSRegression ( simTS, ts, regprops );
-			} catch ( Exception e ) {
+			}
+			catch ( Exception e ) {
 				rdMonthly = null;
 			}
 		}
 		else if ( fill_method.equalsIgnoreCase("FillRegressLog") ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillRegressLog fill method" );
+				Message.printDebug ( dl, routine, "Detected FillRegressLog fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_REGRESS_LOG;
+			fill_methods[nfill_methods] = FILL_METHOD_REGRESS_LOG;
 			PropList tmpProps = new PropList("specialRegress");
 			tmpProps.set ( "Transformation", "Log" );
-			try {	rd = new TSRegression( simTS, ts, tmpProps );
-			} catch ( Exception e ) {
+			try {
+			    rd = new TSRegression( simTS, ts, tmpProps );
+			}
+			catch ( Exception e ) {
 				rd = null;
 			}
 			++nfill_methods;
@@ -4461,25 +4435,22 @@ throws TSException
 		else if ( fill_method.equalsIgnoreCase("FillRegressLog12") ||
 			fill_method.equalsIgnoreCase("FillRegressLogMonthly")) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Detected FillRegressLog12 fill method" );
+				Message.printDebug ( dl, routine, "Detected FillRegressLog12 fill method" );
 			}
-			fill_methods[nfill_methods] =
-				FILL_METHOD_REGRESS_LOG_12;
+			fill_methods[nfill_methods] = FILL_METHOD_REGRESS_LOG_12;
 			PropList tmpProps = new PropList("specialRegress");
 			tmpProps.set ( "Transformation", "Log" );
-			tmpProps.set ( "NumberOfEquations",
-				"MonthlyEquations" );
-			try {	rdMonthly = new TSRegression( simTS, ts,
-				tmpProps );
-			} catch ( Exception e ) {
+			tmpProps.set ( "NumberOfEquations", MonthlyEquations" );
+			try {
+			    rdMonthly = new TSRegression( simTS, ts, tmpProps );
+			}
+			catch ( Exception e ) {
 				rdMonthly = null;
 			}
 			++nfill_methods;
 		}
-		else {	Message.printWarning(2,routine,
-			"Fill method \"" + fill_method +
-			"\" not recognized...ignoring." );
+		else {
+		    Message.printWarning(2,routine, "Fill method \"" + fill_method + "\" not recognized...ignoring." );
 		}
 	}
 
@@ -4489,150 +4460,104 @@ throws TSException
 	boolean	some_data_found = false;
 	double fill_carry_forward_value = 0.0;
 	double simValue = 0.0;	// for regression
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		// Get the data value...
 		value = ts.getDataValue ( date );
 		if ( !ts.isDataMissing(value) ) {
-			// No need to process since we only care about missing
-			// data...
+			// No need to process since we only care about missing data...
 			some_data_found = true;
 			fill_carry_forward_value = value;
 			continue;
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Detected missing data value at " + date.toString() );
+			Message.printDebug ( dl, routine, "Detected missing data value at " + date.toString() );
 		}
 		// Loop through the list of desired fill methods.  If we are
 		// able to fill the value using a fill method, break out and
-		// continue processing date/value pairs.  List in the order of
-		// most likely first.
+		// continue processing date/value pairs.  List in the order of most likely first.
 		for ( i = 0; i < nfill_methods; i++ ) {
 			// For the debug messages below, don't repeat the date
 			// since it was printed above.  Also, don't use
 			// if, else, else because some of the if's may include
 			// checks that do not result in a fill (e.g., if the
-			// fill parameters have not been set for the particular
-			// date.
+			// fill parameters have not been set for the particular date.
 			if ( fill_methods[i] == FILL_METHOD_CARRY_FORWARD ) {
-				// Keep track of last value used and carry
-				// forward if missing...
+				// Keep track of last value used and carry forward if missing...
 				if ( some_data_found ) {
-					ts.setDataValue ( date,
-					fill_carry_forward_value );
+					ts.setDataValue ( date, fill_carry_forward_value );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Filled by carrying forward "
-						+ fill_carry_forward_value );
+						Message.printDebug ( dl, routine, "Filled by carrying forward " + fill_carry_forward_value );
 					}
-					break;	// Don't need to find another
-						// fill method.
+					break;	// Don't need to find another fill method.
 				}
 			}
 			else if ( fill_methods[i] == FILL_METHOD_CONSTANT ) {
 				// check for FillFlag
 				String fillFlag = proplist.getValue("FillFlag");
-				if( fillFlag != null && fillFlag.length() == 1 ||
-						fillFlag.equalsIgnoreCase("Auto")) {
-					
-					ts.setDataValue( date, fill_constant_value,
-						fillFlag, 1);
+				if( fillFlag != null && fillFlag.length() == 1 || fillFlag.equalsIgnoreCase("Auto")) {
+					ts.setDataValue( date, fill_constant_value, fillFlag, 1);
 				}
-				else {	// fill constant without fill flag
+				else {
+				    // fill constant without fill flag
 					ts.setDataValue ( date, fill_constant_value );
 				}
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl,
-					routine, "Filled using constant value "
-					+ fill_constant_value );
+					Message.printDebug ( dl, routine, "Filled using constant value " + fill_constant_value );
 				}
-				break;	// Don't need to find another fill
-					// method.
+				break;	// Don't need to find another fill method.
 			}
-			else if ( (fill_methods[i] == FILL_METHOD_INIT_ZERO) &&
-				!some_data_found ) {
-				// No non-missing data have been found
-				// so set to zero...
+			else if ( (fill_methods[i] == FILL_METHOD_INIT_ZERO) && !some_data_found ) {
+				// No non-missing data have been found so set to zero...
 				ts.setDataValue ( date, 0.0 );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl,
-					routine, "Filled using 0.0" );
+					Message.printDebug ( dl, routine, "Filled using 0.0" );
 				}
-				break;	// Don't need to find another
-					// fill method.
+				break;	// Don't need to find another fill method.
 			}
-			else if ( fill_methods[i] ==
-				FILL_METHOD_HIST_MONTH_AVE ) {
+			else if ( fill_methods[i] == FILL_METHOD_HIST_MONTH_AVE ) {
 				month_pos = date.getMonth() - 1;
-				if ( !ts.isDataMissing(
-					fill_hist_month_ave_values[month_pos])){
-					// Historical average is not missing so
-					// OK to fill with historical average...
-					ts.setDataValue ( date, 
-					fill_hist_month_ave_values[month_pos] );
+				if ( !ts.isDataMissing(fill_hist_month_ave_values[month_pos])){
+					// Historical average is not missing so OK to fill with historical average...
+					ts.setDataValue ( date, fill_hist_month_ave_values[month_pos] );
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Filled using month average " +
-						fill_hist_month_ave_values[
-						month_pos] );
+						Message.printDebug ( dl, routine,
+						"Filled using month average " + fill_hist_month_ave_values[month_pos] );
 					}
-					break;	// Don't need to find another
-						// fill method.
+					break;	// Don't need to find another fill method.
 				}
 			}
-			else if ( fill_methods[i] == 
-				FILL_METHOD_REGRESS_LINEAR ) {
-				try {	simValue = simTS.getDataValue ( date );
+			else if ( fill_methods[i] == FILL_METHOD_REGRESS_LINEAR ) {
+				try {
+				    simValue = simTS.getDataValue ( date );
 					if ( !simTS.isDataMissing(simValue)) {
-						ts.setDataValue ( date, 
-						simValue*rd.getB()+rd.getA());
+						ts.setDataValue ( date, simValue*rd.getB()+rd.getA());
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Filled using linear "+
-						"regression value "
-						+ simValue*rd.getB() +
-						rd.getA() );
+						Message.printDebug ( dl, routine, "Filled using linear regression value "
+						+ simValue*rd.getB() + rd.getA() );
 					}
-					break;	// Don't need to find another
-						// fill method.
+					break;	// Don't need to find another fill method.
 				}
 				catch ( Exception e ) {
-					// Probably an error with not having
-					// regression data.  Try the next
-					// method.
+					// Probably an error with not having regression data.  Try the next method.
 					;
 				}
 			}
-			else if ( fill_methods[i] == 
-				FILL_METHOD_REGRESS_LINEAR_12 ) {
-				try {	simValue = simTS.getDataValue ( date );
+			else if ( fill_methods[i] == FILL_METHOD_REGRESS_LINEAR_12 ) {
+				try {
+				    simValue = simTS.getDataValue ( date );
 					if ( !simTS.isDataMissing(simValue)) {
 						ts.setDataValue ( date, 
-						simValue*
-						rdMonthly.getB(date.getMonth())+
-						rdMonthly.getA(
-						date.getMonth()));
+						simValue*rdMonthly.getB(date.getMonth()) + rdMonthly.getA(date.getMonth()));
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Filled using linear "+
-						"regression value " + simValue*
-						rdMonthly.getB(date.getMonth())+
-						rdMonthly.getA(
-						date.getMonth()));
+						Message.printDebug ( dl, routine, "Filled using linear regression value " +
+						simValue*rdMonthly.getB(date.getMonth()) + rdMonthly.getA(date.getMonth()));
 					}
-					break;	// Don't need to find another
-						// fill method.
+					break;	// Don't need to find another fill method.
 				}
 				catch ( Exception e ) {
-					// Probably an error with not having
-					// regression data.  Try the next
-					// method.
+					// Probably an error with not having regression data.  Try the next method.
 					;
 				}
 			}
@@ -4641,31 +4566,33 @@ throws TSException
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "Filled missing data using " + fill_methods_string +
-		"." );
+	ts.addToGenesis ( "Filled missing data using " + fill_methods_string + "." );
 
 	// Return the time series...
 
 	return ts;
 }
+*/
 
 /**
 Version of fill that does not require additional time series.
 @return Filled time series.
 @param ts Time series to fill.
-@param props Property list to control filling (see main version of this
-method).
-@exception RTi.TS.TSException If there is a problem filling the time series
-(generally an input problem).
+@param props Property list to control filling (see main version of this method).
+@exception RTi.TS.TSException If there is a problem filling the time series (generally an input problem).
+@deprecated use specific fill methods because this one is getting too complicated to handle errors.
 */
+/*
 public static TS fill (	TS ts, PropList props )
 throws TSException
-{	try {	return fill ( ts, null, props );
+{	try {
+        return fill ( ts, null, props );
 	}
 	catch ( TSException e ) {
 		throw e;
 	}
 }
+*/
 
 /**
 Fill missing data by carrying forward the last known value.
@@ -6700,19 +6627,20 @@ will cause the data flags to be allocated in the time series).
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
 @param fill_period_start Date/time to start filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fill_period_end Date/time to end filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param prop_list Property list with element as described above.
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
-public static TSRegression fillRegress (	TS ts_to_fill,
-						TS ts_independent, 
-						DateTime fill_period_start,
-						DateTime fill_period_end,
-						PropList prop_list )
+public static TSRegression fillRegress ( TS ts_to_fill, TS ts_independent,
+    RegressionType analysisMethod, NumberOfEquationsType numberOfEquations,
+    Double intercept, int [] analysisMonths,
+    DataTransformationType transformation,
+    DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
+    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
+    DateTime fillStart, DateTime fillEnd,
+    String fillFlag, String descriptionString )
 throws TSException, Exception
 {	String  routine = "TSUtil.fillRegress";
 	String	message;
@@ -6730,7 +6658,7 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 
-	if (	(interval_base != ts_independent.getDataIntervalBase()) ||
+	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
 		(interval_mult != ts_independent.getDataIntervalMult()) ) {
 		message="Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
@@ -6739,27 +6667,29 @@ throws TSException, Exception
 
 	String prop_value = null;
 
-	PropList props;
-	if ( prop_list == null ) {
-		// Create a temporary property list so we don't have to check
-		// for nulls all the time...
-		props = new PropList ( "Regression" );
+	if ( numberOfEquations == null ) {
+	    numberOfEquations = NumberOfEquationsType.ONE_EQUATION; // default
 	}
-	else {	props = prop_list;
-	}
-
-	prop_value = props.getValue ( "NumberOfEquations" );
 	// The following throws TSException if there is an error...
-	if ( prop_value != null ) {
-		if ( prop_value.equalsIgnoreCase("MonthlyEquations")) {
-			return fillRegressMonthly ( ts_to_fill,
-			ts_independent, fill_period_start,
-			fill_period_end, props );
-		}
+	if ( numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
+		return fillRegressMonthly ( 
+		        ts_to_fill, ts_independent,
+		        analysisMethod, intercept, analysisMonths,
+		        transformation,
+		        dependentAnalysisStart, dependentAnalysisEnd,
+		        independentAnalysisStart, independentAnalysisEnd,
+		        fillStart, fillEnd,
+		        fillFlag, descriptionString );
 	}
-	return fillRegressTotal ( ts_to_fill, ts_independent,
-				fill_period_start, fill_period_end,
-				props );
+	else {
+	    return fillRegressTotal ( ts_to_fill, ts_independent,
+	            analysisMethod, intercept, analysisMonths,
+                transformation,
+                dependentAnalysisStart, dependentAnalysisEnd,
+                independentAnalysisStart, independentAnalysisEnd,
+                fillStart, fillEnd,
+                fillFlag, descriptionString );
+	}
 }
 
 /**
@@ -6772,24 +6702,23 @@ appended to the description (if not set, "fill regress monthly using TSID" or
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
 @param fill_period_start Date/time to start filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fill_period_end Date/time to end filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
-@param prop_list Properties to control filling.  See the TSRegression
-properties.
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
+@param prop_list Properties to control filling.  See the TSRegression properties.
 @exception Exception if there is an error performing the regression.
 */
-private static TSRegression fillRegressMonthly (TS ts_to_fill,
-						TS ts_independent, 
-						DateTime fill_period_start,
-						DateTime fill_period_end,
-						PropList prop_list )
+private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent,
+    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    DataTransformationType transformation,
+    DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
+    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
+    DateTime fillStart, DateTime fillEnd,
+	String fillFlag, String descriptionString )
 throws TSException, Exception
-{	String  routine = "TSUtil.fillRegressMonthly";
-	String	message;
-	int	dl = 50;	// Debug level
+{	String routine = "TSUtil.fillRegressMonthly";
+	String message;
+	int	dl = 50; // Debug level
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "In fillRegressMonthly." );
@@ -6798,151 +6727,121 @@ throws TSException, Exception
 	int interval_base = ts_to_fill.getDataIntervalBase();
 	int interval_mult = ts_to_fill.getDataIntervalMult();
 
-	if (	(interval_base != ts_independent.getDataIntervalBase()) ||
+	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
 		(interval_mult != ts_independent.getDataIntervalMult()) ) {
 		message="Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	String prop_value = null;
 	boolean regressLog = false;
 
-	PropList props;
-	if ( prop_list == null ) {
-		props = new PropList ( "specialRegression" );
-	}
-	else {	props = prop_list;
-	}
-
-	props.set ( "NumberOfEquations", "MonthlyEquations" );
-	prop_value = props.getValue ( "Transformation" );
-	if ( prop_value != null ) {
-		if ( prop_value.equals("Log")) {
-			regressLog = true;
-		}
-	}
-
-	String FillFlag = prop_list.getValue ( "FillFlag" );
-	boolean FillFlag_boolean = false;	// Indicate whether to use flag
-	if ( (FillFlag != null) && (FillFlag.length() > 0) ) {
-		FillFlag_boolean = true;
+	boolean fillFlag_boolean = false;	// Indicate whether to use flag
+	if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
+		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts_to_fill.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
+			fillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod(	ts_to_fill,
-						fill_period_start,
-						fill_period_end );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	TSLimits valid_dates = getValidPeriod( ts_to_fill, fillStart, fillEnd );
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	TSRegression rd;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Getting TSRegression data.");
 	}
-	try {	rd = new TSRegression ( ts_independent, ts_to_fill, props );
+	try {
+	    rd = new TSRegression ( ts_independent, ts_to_fill, true, analysisMethod,
+	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
+	            transformation,
+	            dependentAnalysisStart, dependentAnalysisEnd,
+	            independentAnalysisStart, independentAnalysisEnd,
+	            fillStart, fillEnd );
 	}
 	catch ( Exception e ) {
 		message="Unable to complete analysis.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new TSException ( message );
 	}
 		
 	double newval = 0.0, x = 0.0;
-	for (	DateTime date = new DateTime ( start );
-		date.lessThanOrEqualTo( end );
+	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
-		try {	// Catch an error for the interval.  It is most likely
+		try {
+		    // Catch an error for the interval.  It is most likely
 			// due to not having regression data for the month...
-			// REVISIT SAM - need to evaluate this - use
-			// isAnalyzed() to improve performance
-		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date)) ) {
-			// Try to fill the value...
-			x = ts_independent.getDataValue ( date );
-			if ( !ts_independent.isDataMissing(x)) {
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine, 
-					"Found data at " + 
-					date.toString() + 
-					" - full ts value: " + x  );
-				}
-				if ( regressLog ) {
-					// Need to work on the log of the X
-					// value...
-					if ( x <= 0.0 ) {
-						// .001 observed
-						x = -3.00;
-					}
-					else {	x = MathUtil.log10(x);
-					}
-					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Using log value: " + x);
-					}
-				}
-
-				newval = rd.getA(date.getMonth()) +
-					rd.getB(date.getMonth())*x;
-
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"New value: " + newval );
-				}
-
-				if ( regressLog ) {
-					// Now convert Y back from log10
-					// space...
-					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Must use inverse log for " +
-						newval );
-					}
-					if ( FillFlag_boolean ) {
-						// Set the flag...
-						ts_to_fill.setDataValue ( date, 
-						Math.pow ( 10, newval ),
-						FillFlag, 1 );
-					}
-					else {	// No flag...
-						ts_to_fill.setDataValue ( date, 
-						Math.pow ( 10, newval ));
-					}
-				}
-				else {	if ( FillFlag_boolean ) {
-						// Set the flag...
-						ts_to_fill.setDataValue(date,
-						newval, FillFlag, 1 );
-					}
-					else {	// No flag...
-						ts_to_fill.setDataValue(date,
-						newval );
-					}
-				}
-			}
-		}
+			// REVISIT SAM - need to evaluate this - use isAnalyzed() to improve performance
+    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date)) ) {
+    			// Try to fill the value...
+    			x = ts_independent.getDataValue ( date );
+    			if ( !ts_independent.isDataMissing(x)) {
+    				if ( Message.isDebugOn ) {
+    					Message.printDebug ( dl, routine, "Found data at " + date + " - full ts value: " + x  );
+    				}
+    				if ( regressLog ) {
+    					// Need to work on the log of the X value...
+    					if ( x <= 0.0 ) {
+    						// .001 observed
+    						x = -3.00;
+    					}
+    					else {
+    					    x = MathUtil.log10(x);
+    					}
+    					if ( Message.isDebugOn ) {
+    						Message.printDebug ( dl, routine, "Using log value: " + x);
+    					}
+    				}
+    
+    				newval = rd.getA(date.getMonth()) + rd.getB(date.getMonth())*x;
+    
+    				if ( Message.isDebugOn ) {
+    					Message.printDebug ( dl, routine, "New value: " + newval );
+    				}
+    
+    				if ( regressLog ) {
+    					// Now convert Y back from log10 space...
+    					if ( Message.isDebugOn ) {
+    						Message.printDebug ( dl, routine, "Must use inverse log for " + newval );
+    					}
+    					if ( fillFlag_boolean ) {
+    						// Set the flag...
+    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1 );
+    					}
+    					else {
+    					    // No flag...
+    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ));
+    					}
+    				}
+    				else {
+    				    if ( fillFlag_boolean ) {
+    						// Set the flag...
+    						ts_to_fill.setDataValue(date, newval, fillFlag, 1 );
+    					}
+    					else {
+    					    // No flag...
+    						ts_to_fill.setDataValue(date, newval );
+    					}
+    				}
+    			}
+    		}
 		}
 		catch ( Exception e ) {
 			// Error filling interval but just continue.  The error
-			// is most likely because the month did not have
-			// regression relationships.
+			// is most likely because the month did not have regression relationships.
 			;
 		}
 	}
 
 	// Fill in the genesis information...
 
-	ts_to_fill.addToGenesis (
-		"Filled missing data " + start + " to " + end +
-		" using analysis results:" );
+	ts_to_fill.addToGenesis ( "Filled missing data " + start + " to " + end + " using analysis results:" );
 
 	// The following comes back as multiple strings but to handle genesis
 	// information nicely, break into separate strings...
@@ -6956,27 +6855,24 @@ throws TSException, Exception
 		}
 	}
 
-	prop_value = props.getValue ( "DescriptionString" );
-	if ( prop_value != null ) {
+	if ( descriptionString != null ) {
 		// Description has been specified...
-		ts_to_fill.setDescription ( ts_to_fill.getDescription() + prop_value );
+		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
 	}
-	else {	// Automatically add to the description...
-		prop_value = props.getValue ( "AnalysisMethod" );
-		if ( prop_value == null ) {
+	else {
+	    // Automatically add to the description...
+		if ( analysisMethod == null ) {
 			// Default is OLS regression...
-			prop_value = "OLSRegression";
+			analysisMethod = RegressionType.OLS_REGRESSION;
 		}
-		else {	if ( regressLog ) {
-				ts_to_fill.setDescription (
-				ts_to_fill.getDescription()+
-				", fill log " + prop_value + " monthly using " +
-				ts_independent.getIdentifierString() );
+		else {
+		    if ( regressLog ) {
+				ts_to_fill.setDescription ( ts_to_fill.getDescription()+
+				", fill log " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
 			}
-			else {	ts_to_fill.setDescription (
-				ts_to_fill.getDescription() +
-				", fill " + prop_value + " monthly using "  +
-				ts_independent.getIdentifierString() );
+			else {
+			    ts_to_fill.setDescription ( ts_to_fill.getDescription() +
+				", fill " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
 			}
 		}
 	}
@@ -6996,23 +6892,21 @@ appended to the description (if not set, "fill regress using TSID" or
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
 @param fill_period_start Date/time to start filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fill_period_end Date/time to end filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for
-analysis periods).
-@param prop_list Properties to control filling.  See the TSRegression
-properties.
+analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
+@param prop_list Properties to control filling.  See the TSRegression properties.
 @exception Exception if there is a problem doing regression.
 */
-private static TSRegression fillRegressTotal (	TS ts_to_fill,
-						TS ts_independent,
-						DateTime fill_period_start,
-						DateTime fill_period_end,
-						PropList prop_list )
+private static TSRegression fillRegressTotal ( TS ts_to_fill, TS ts_independent,
+					    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+					    DataTransformationType transformation,
+					    DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
+					    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
+					    DateTime fillStart, DateTime fillEnd,
+					    String fillFlag, String descriptionString )
 throws TSException, Exception
-{	String  message, routine = "TSUtil.fillRegressTotal";
-	String	prop_value = null;
+{	String message, routine = "TSUtil.fillRegressTotal";
 	boolean regressLog = false;
 
 	if ( Message.isDebugOn ) {
@@ -7022,122 +6916,103 @@ throws TSException, Exception
 	int interval_base = ts_to_fill.getDataIntervalBase();
 	int interval_mult = ts_to_fill.getDataIntervalMult();
 
-	if (	(interval_base != ts_independent.getDataIntervalBase()) ||
+	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
 		(interval_mult != ts_independent.getDataIntervalMult()) ) {
 		message="Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	PropList props;
-	if ( prop_list == null ) {
-		props = new PropList ( "specialRegression" );
-	}
-	else {	props = prop_list;
-	}
-
-	prop_value = props.getValue ( "Transformation" );
-	if ( prop_value != null) {
-		if ( prop_value.equals("Log")) {
-			regressLog = true;
-		}
-	}
-
-	String FillFlag = prop_list.getValue ( "FillFlag" );
-	boolean FillFlag_boolean = false;	// Indicate whether to use flag
-	if ( (FillFlag != null) && (FillFlag.length() > 0) ) {
-		FillFlag_boolean = true;
+	boolean fillFlag_boolean = false;	// Indicate whether to use flag
+	if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
+		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts_to_fill.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length
+			fillFlag.length(),	// Max length
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod(	ts_to_fill,
-						fill_period_start,
-						fill_period_end );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	TSLimits valid_dates = getValidPeriod( ts_to_fill, fillStart, fillEnd );
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	TSRegression rd;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, routine, "Analyzing data." );
 	}
-	try {	rd = new TSRegression (	ts_independent, ts_to_fill, props );
+	try {
+	    rd = new TSRegression (	ts_independent, ts_to_fill, true, analysisMethod,
+                intercept, NumberOfEquationsType.ONE_EQUATION, analysisMonths, transformation,
+                dependentAnalysisStart, dependentAnalysisEnd,
+                independentAnalysisStart, independentAnalysisEnd,
+                fillStart, fillEnd );
 	}
 	catch ( Exception e ) {
 		message = "Unable to complete analysis.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new TSException ( message );
 	}
 		
 	double newval = 0.0, x = 0.0;
-	for (	DateTime date = new DateTime ( start );
-		date.lessThanOrEqualTo( end );
+	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
-		try {	// Catch an error for the interval.  It is most likely
-			// due to not having analysis data...
-			// SAMX - need to evaluate this - use isAnalyzed() to
-			// improve performance
-		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date) ) ){
-			x = ts_independent.getDataValue ( date );
-			if ( !ts_independent.isDataMissing(x)) {
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( 10, routine, 
-					"Found null data at " + 
-					date.toString() );
-				}
-				if ( regressLog ) {
-					if ( x <= 0.0 ) {
-						// .001 observed
-						x = -3.00;
-					}
-					else {	x = MathUtil.log10(x);
-					}
-				}
-
-				newval = rd.getA() + rd.getB()*x;
-
-				if ( regressLog ) {
-					if ( FillFlag_boolean ) {
-						// Use data flag...
-						ts_to_fill.setDataValue ( date, 
-						Math.pow ( 10, newval ),
-						FillFlag, 1);
-					}
-					else {	// No data flag...
-						ts_to_fill.setDataValue ( date, 
-						Math.pow ( 10, newval ));
-					}
-				}
-				else {	if ( FillFlag_boolean ) {
-						// Use data flag...
-						ts_to_fill.setDataValue ( date,
-						newval, FillFlag, 1 );
-					}
-					else {	ts_to_fill.setDataValue ( date,
-						newval);
-					}
-				}
-			}
-		}
+		try {
+		    // Catch an error for the interval.  It is most likely due to not having analysis data...
+			// SAMX - need to evaluate this - use isAnalyzed() to improve performance
+    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date) ) ){
+    			x = ts_independent.getDataValue ( date );
+    			if ( !ts_independent.isDataMissing(x)) {
+    				if ( Message.isDebugOn ) {
+    					Message.printDebug ( 10, routine, "Found null data at " + date );
+    				}
+    				if ( regressLog ) {
+    					if ( x <= 0.0 ) {
+    						// .001 observed
+    						x = -3.00;
+    					}
+    					else {
+    					    x = MathUtil.log10(x);
+    					}
+    				}
+    
+    				newval = rd.getA() + rd.getB()*x;
+    
+    				if ( regressLog ) {
+    					if ( fillFlag_boolean ) {
+    						// Use data flag...
+    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1);
+    					}
+    					else {
+    					     // No data flag...
+    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ));
+    					}
+    				}
+    				else {
+    				    if ( fillFlag_boolean ) {
+    						// Use data flag...
+    						ts_to_fill.setDataValue ( date, newval, fillFlag, 1 );
+    					}
+    					else {
+    					    ts_to_fill.setDataValue ( date, newval);
+    					}
+    				}
+    			}
+    		}
 		}
 		catch ( Exception e ) {
 			// Error filling interval but just continue.  The error
-			// is most likely because the month did not have
-			// analysis relationships.
+			// is most likely because the month did not have analysis relationships.
 			;
 		}
 	}
 
 	// Fill in the genesis information...
 
-	ts_to_fill.addToGenesis ( "Filled missing data " +
-		start + " to " + end + " using:" );
+	ts_to_fill.addToGenesis ( "Filled missing data " + start + " to " + end + " using:" );
 
 	// The following comes back as multiple strings but to handle genesis
 	// information nicely, break into separate strings...
@@ -7151,25 +7026,24 @@ throws TSException, Exception
 		}
 	}
 
-	prop_value = props.getValue ( "DescriptionString" );
-	if ( prop_value != null ) {
-		ts_to_fill.setDescription ( ts_to_fill.getDescription() +
-			prop_value );
+	if ( descriptionString != null ) {
+		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
 	}
-	else {	prop_value = props.getValue ( "AnalysisMethod" );
-		if ( prop_value == null ) {
-			prop_value = "OLSRegression";
+	else {
+	    String prop_value = "" + analysisMethod;
+		if ( analysisMethod == null ) {
+		    // Default
+			prop_value = "" + RegressionType.OLS_REGRESSION;
 		}
 		String id = ts_independent.getIdentifierString();
 		if ( ts_independent.getAlias().length() > 0 ) {
 			id = ts_independent.getAlias();
 		}
 		if ( regressLog ) {
-			ts_to_fill.setDescription (ts_to_fill.getDescription() +
-			", fill log " + prop_value + " using " + id );
+			ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill log " + prop_value + " using " + id );
 		}
-		else {	ts_to_fill.setDescription (ts_to_fill.getDescription() +
-			", fill " + prop_value + " using " + id );
+		else {
+		    ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill " + prop_value + " using " + id );
 		}
 	}
 
@@ -7179,8 +7053,7 @@ throws TSException, Exception
 }
 
 /**
-Fill missing data by repeating the last known value, processing either forward
-or backward.
+Fill missing data by repeating the last known value, processing either forward or backward.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
