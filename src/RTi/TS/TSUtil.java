@@ -338,6 +338,7 @@ public abstract class TSUtil
 Private flags used with TSUtil.fill.  Treat as bitmask for now, just in case
 we ever allow a mask, but rely on properties as much as possible.
 */
+/*
 private static final int FILL_METHOD_CONSTANT		= 0x1;
 private static final int FILL_METHOD_HIST_DAY_AVE	= 0x2;
 private static final int FILL_METHOD_HIST_MONTH_AVE	= 0x4;
@@ -350,6 +351,7 @@ private static final int FILL_METHOD_REGRESS_LINEAR_12	= 0x100;
 private static final int FILL_METHOD_REGRESS_LOG	= 0x200;
 private static final int FILL_METHOD_REGRESS_LOG_12	= 0x400;
 private static final int FILL_METHOD_CARRY_FORWARD	= 0x800;
+*/
 
 /**
 Used with getPeriodFromTS, and getPeriodFromLimits and others.  Find the
@@ -6660,12 +6662,10 @@ throws TSException, Exception
 
 	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
 		(interval_mult != ts_independent.getDataIntervalMult()) ) {
-		message="Analysis only available for same data interval.";
+		message = "Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
-
-	String prop_value = null;
 
 	if ( numberOfEquations == null ) {
 	    numberOfEquations = NumberOfEquationsType.ONE_EQUATION; // default
@@ -6673,22 +6673,20 @@ throws TSException, Exception
 	// The following throws TSException if there is an error...
 	if ( numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
 		return fillRegressMonthly ( 
-		        ts_to_fill, ts_independent,
-		        analysisMethod, intercept, analysisMonths,
-		        transformation,
-		        dependentAnalysisStart, dependentAnalysisEnd,
-		        independentAnalysisStart, independentAnalysisEnd,
-		        fillStart, fillEnd,
-		        fillFlag, descriptionString );
+	        ts_to_fill, ts_independent,
+	        analysisMethod, intercept, analysisMonths, transformation,
+	        dependentAnalysisStart, dependentAnalysisEnd,
+	        independentAnalysisStart, independentAnalysisEnd,
+	        fillStart, fillEnd,
+	        fillFlag, descriptionString );
 	}
 	else {
 	    return fillRegressTotal ( ts_to_fill, ts_independent,
-	            analysisMethod, intercept, analysisMonths,
-                transformation,
-                dependentAnalysisStart, dependentAnalysisEnd,
-                independentAnalysisStart, independentAnalysisEnd,
-                fillStart, fillEnd,
-                fillFlag, descriptionString );
+            analysisMethod, intercept, analysisMonths, transformation,
+            dependentAnalysisStart, dependentAnalysisEnd,
+            independentAnalysisStart, independentAnalysisEnd,
+            fillStart, fillEnd,
+            fillFlag, descriptionString );
 	}
 }
 
