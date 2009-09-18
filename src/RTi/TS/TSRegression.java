@@ -1672,6 +1672,21 @@ throws Throwable
 }
 
 /**
+Free the resources computed during the analysis, including arrays of numbers.  Normally these are left in
+memory to facilitate reporting or further analysis (although currently there are no getter methods).
+Freeing the resources may be necessary in large analysis.
+*/
+public void freeResources ()
+{
+    __X = null;
+    __X_monthly = null;
+    __X1 = null;
+    __X1_monthly = null;
+    __Y1 = null;
+    __Y1_monthly = null;
+}
+
+/**
 Return The "a" value in the equation Y = a + b * X where Y is the estimated
 time series value, a is the intercept of the equation, b is the slope, and X is
 the known value.  This is a value that has been calculated for each month.

@@ -6628,6 +6628,8 @@ will cause the data flags to be allocated in the time series).
 @return An instance of TSRegression containing the regression information.
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
+@param tsRegression A previously computed TSRegression object - if specified as non-null it will be
+used rather than computing the regression information from other parameters.
 @param fill_period_start Date/time to start filling (this is used for the
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fill_period_end Date/time to end filling (this is used for the
@@ -6636,6 +6638,7 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
 public static TSRegression fillRegress ( TS ts_to_fill, TS ts_independent,
+    TSRegression tsRegression,
     RegressionType analysisMethod, NumberOfEquationsType numberOfEquations,
     Double intercept, int [] analysisMonths,
     DataTransformationType transformation,
@@ -6673,7 +6676,7 @@ throws TSException, Exception
 	// The following throws TSException if there is an error...
 	if ( numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
 		return fillRegressMonthly ( 
-	        ts_to_fill, ts_independent,
+	        ts_to_fill, ts_independent, tsRegression,
 	        analysisMethod, intercept, analysisMonths, transformation,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
@@ -6681,7 +6684,7 @@ throws TSException, Exception
 	        fillFlag, descriptionString );
 	}
 	else {
-	    return fillRegressTotal ( ts_to_fill, ts_independent,
+	    return fillRegressTotal ( ts_to_fill, ts_independent, tsRegression,
             analysisMethod, intercept, analysisMonths, transformation,
             dependentAnalysisStart, dependentAnalysisEnd,
             independentAnalysisStart, independentAnalysisEnd,
@@ -6706,7 +6709,7 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @param prop_list Properties to control filling.  See the TSRegression properties.
 @exception Exception if there is an error performing the regression.
 */
-private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent,
+private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
     RegressionType analysisMethod, Double intercept, int [] analysisMonths,
     DataTransformationType transformation,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
@@ -6754,19 +6757,24 @@ throws TSException, Exception
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Getting TSRegression data.");
 	}
-	try {
-	    rd = new TSRegression ( ts_independent, ts_to_fill, true, analysisMethod,
-	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
-	            transformation,
-	            dependentAnalysisStart, dependentAnalysisEnd,
-	            independentAnalysisStart, independentAnalysisEnd,
-	            fillStart, fillEnd );
+	if ( tsRegression != null ) {
+	    rd = tsRegression;
 	}
-	catch ( Exception e ) {
-		message="Unable to complete analysis.";
-		Message.printWarning ( 3, routine, message );
-		Message.printWarning ( 3, routine, e );
-		throw new TSException ( message );
+	else {
+    	try {
+    	    rd = new TSRegression ( ts_independent, ts_to_fill, true, analysisMethod,
+    	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
+    	            transformation,
+    	            dependentAnalysisStart, dependentAnalysisEnd,
+    	            independentAnalysisStart, independentAnalysisEnd,
+    	            fillStart, fillEnd );
+    	}
+    	catch ( Exception e ) {
+    		message="Unable to complete analysis.";
+    		Message.printWarning ( 3, routine, message );
+    		Message.printWarning ( 3, routine, e );
+    		throw new TSException ( message );
+    	}
 	}
 		
 	double newval = 0.0, x = 0.0;
@@ -6896,13 +6904,13 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @param prop_list Properties to control filling.  See the TSRegression properties.
 @exception Exception if there is a problem doing regression.
 */
-private static TSRegression fillRegressTotal ( TS ts_to_fill, TS ts_independent,
-					    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
-					    DataTransformationType transformation,
-					    DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
-					    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
-					    DateTime fillStart, DateTime fillEnd,
-					    String fillFlag, String descriptionString )
+private static TSRegression fillRegressTotal ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
+    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    DataTransformationType transformation,
+    DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
+    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
+    DateTime fillStart, DateTime fillEnd,
+    String fillFlag, String descriptionString )
 throws TSException, Exception
 {	String message, routine = "TSUtil.fillRegressTotal";
 	boolean regressLog = false;
@@ -6938,22 +6946,27 @@ throws TSException, Exception
 	DateTime end = valid_dates.getDate2();
 
 	TSRegression rd;
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine, "Analyzing data." );
-	}
-	try {
-	    rd = new TSRegression (	ts_independent, ts_to_fill, true, analysisMethod,
+    if ( tsRegression != null ) {
+        rd = tsRegression;
+    }
+    else {
+    	if ( Message.isDebugOn ) {
+    		Message.printDebug ( 10, routine, "Analyzing data." );
+    	}
+    	try {
+    	    rd = new TSRegression (	ts_independent, ts_to_fill, true, analysisMethod,
                 intercept, NumberOfEquationsType.ONE_EQUATION, analysisMonths, transformation,
                 dependentAnalysisStart, dependentAnalysisEnd,
                 independentAnalysisStart, independentAnalysisEnd,
                 fillStart, fillEnd );
-	}
-	catch ( Exception e ) {
-		message = "Unable to complete analysis.";
-		Message.printWarning ( 3, routine, message );
-		Message.printWarning ( 3, routine, e );
-		throw new TSException ( message );
-	}
+    	}
+    	catch ( Exception e ) {
+    		message = "Unable to complete analysis.";
+    		Message.printWarning ( 3, routine, message );
+    		Message.printWarning ( 3, routine, e );
+    		throw new TSException ( message );
+    	}
+    }
 		
 	double newval = 0.0, x = 0.0;
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
