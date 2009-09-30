@@ -1,8 +1,9 @@
 package RTi.Util.IO;
 
+import java.security.InvalidParameterException;
+
 /**
-This class provides an enumeration of possible command status values.
-An enum could be used when Java 1.5 is utilized.     
+This class provides an enumeration of possible command status values.  
 */
 public class CommandStatusType {
 	
@@ -137,10 +138,40 @@ public class CommandStatusType {
 			return status2;
 		}
 	}
+	
+	/**
+	 * Parse the command status type and return an instance of the enumeration.
+	 * @param cst CommandStatusType string to parse.
+	 * @return an instance of the enumeration that matches the string.
+	 * @exception InvalidParameterException if the requested string does not match a command status type.
+	 */
+	public static CommandStatusType parse ( String cst )
+	{
+		if ( cst.equalsIgnoreCase(UNKNOWN.toString())) {
+			return UNKNOWN;
+		}
+		else if ( cst.equalsIgnoreCase(INFO.toString())) {
+			return INFO;
+		}
+		else if ( cst.equalsIgnoreCase(SUCCESS.toString())) {
+			return SUCCESS;
+		}
+		else if ( cst.equalsIgnoreCase(WARNING.toString()) || cst.equalsIgnoreCase("warn")) {
+			return WARNING;
+		}
+		else if ( cst.equalsIgnoreCase(FAILURE.toString()) || cst.equalsIgnoreCase("fail")) {
+			return FAILURE;
+		}
+		else {
+			throw new InvalidParameterException ( "The command status type \"" + cst +
+				"\" is not a recognized type.");
+		}
+	}
     
 	/**
 	 * Return a String representation of the command status, as follows:
 	 * <pre>
+	 * INFO - informational message
 	 * UNKNOWN - status is unknown (not implemented or not initialized)
 	 * SUCCESS - command was successful (no WARNING or FAILURE)
 	 * WARNING - command completed but user should review possible problem
