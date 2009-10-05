@@ -113,10 +113,10 @@ An example of a DataTable instantiation is:
 <pre>
 try {
 	/// First, create define the table by assembling a vector of TableField objects...
-	List myTableFields = new Vector(3);
-	myTableFields.addElement ( new TableField ( TableField.DATA_TYPE_STRING, "id_label_6", 12 ) );
-	myTableFields.addElement ( new TableField ( TableField.DATA_TYPE_INT, "Basin", 12 ) );
-	myTableFields.addElement ( new TableField ( TableField.DATA_TYPE_STRING, "aka", 12 ) );
+	List<TableField> myTableFields = new Vector(3);
+	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "id_label_6", 12 ) );
+	myTableFields.add ( new TableField ( TableField.DATA_TYPE_INT, "Basin", 12 ) );
+	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "aka", 12 ) );
 
 	// Now define table with one simple call...
 	DataTable myTable = new DataTable ( myTableFields );
@@ -125,7 +125,7 @@ try {
 	TableRecord contents = new TableRecord (3);
 	contents.addFieldValue ( "123456" );
 	contents.addFieldValue ( new Integer (6));
-	contents.addFieldValue ( "RTi station" );
+	contents.addFieldValue ( "Station ID" );
 
 	myTable.addRecord ( contents );
 
