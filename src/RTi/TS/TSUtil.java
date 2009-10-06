@@ -1222,15 +1222,38 @@ public static boolean areAnyTimeSeriesEditable(List tslist)
     }
 
   return false;
-} // eof areAnyTimeSeriesEditable
+}
 
+/**
+Determine whether any time series are irregular.
+@return true if any time series are irregular, false if not.
+@param tslist list of time series to evaluate.
+*/
+public static boolean areAnyTimeSeriesIrregular ( List<TS> tslist )
+{
+    int size = 0;
+    if ( tslist != null ) {
+        size = tslist.size();
+    }
+    TS ts = null;
+    for ( int i = 0; i < size; i++ ) {
+        ts = tslist.get(i);
+        if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+// FIXME SAM 2009-10-05 Evaluate whether to keep this or intervalsMatch()
 /**
 Determine whether the intervals for the time series are the same (the base and
 multiplier for the interval must agree).
 @return true if the intervals are the same.
 @param tslist list of time series.
 */
-public static boolean areIntervalsSame ( List tslist )
+public static boolean areIntervalsSame ( List<TS> tslist )
 {
 	if ( tslist == null ) {
 		// No units.  Decide later whether to throw an exception.
@@ -1247,7 +1270,7 @@ public static boolean areIntervalsSame ( List tslist )
 	int interval_mult, interval_mult0 = 0;
 	boolean first_found = false;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -1260,8 +1283,7 @@ public static boolean areIntervalsSame ( List tslist )
 		}
 		interval_base = ts.getDataIntervalBase();
 		interval_mult = ts.getDataIntervalMult();
-		if (	(interval_base != interval_base0) ||
-			(interval_mult != interval_mult0) ) {
+		if ( (interval_base != interval_base0) || (interval_mult != interval_mult0) ) {
 			return false;
 		}
 	}
@@ -9239,10 +9261,9 @@ Exaple of POR calculation:
 do not overlap, return the maximum.
 @param ts A vector of time series of interest.
 @param por_flag Use a *_POR flag.
-@exception RTi.TS.TSException If the period cannot be determined from the time
-series.
+@exception RTi.TS.TSException If the period cannot be determined from the time series.
 */
-public static TSLimits getPeriodFromTS ( List ts, int por_flag )
+public static TSLimits getPeriodFromTS ( List<TS> ts, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromTS";
 	TS tsPtr = null;
@@ -9275,7 +9296,7 @@ throws TSException
 
     int nullcount = 0;
 	for ( int its = 0; its < vectorSize; its++ ) {
-		tsPtr = (TS)ts.get(its);
+		tsPtr = ts.get(its);
 		if ( tsPtr != null ) {
             if ( tsPtr.getDate1() != null ) {
                 start = tsPtr.getDate1();
@@ -9306,7 +9327,7 @@ throws TSException
 	// Now loop through the remaining time series...
 
 	for( i = 1; i < vectorSize; i++ ) {
-		tsPtr = (TS)ts.get(i);
+		tsPtr = ts.get(i);
 		if( tsPtr == null ) {
 			// Ignore the time series...
 			continue;
@@ -9371,9 +9392,9 @@ for building graphical interfaces.
 True, the description is also returned.
 */
 public static String[] getTSFormatSpecifiers(boolean include_description )
-{	String [] formats = new String[19];
+{	String [] formats = new String[20];
 	if ( include_description ) {
-		formats[0] = "%A - Abbreviation";
+		formats[0] = "%A - Alias";
 		formats[1] = "%b - Interval, base";
 		formats[2] = "%D - Description";
 		formats[3] = "%F - Identifier";
@@ -9382,16 +9403,17 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[6] = "%L - Location";
 		formats[7] = "%l - Location, main";
 		formats[8] = "%m - Interval, mult";
-		formats[9] = "%S - Source";
-		formats[10] = "%s - Source, main";
-		formats[11] = "%U - Units";
-		formats[12] = "%T - Data type";
-		formats[13] = "%t - Data type, main";
-		formats[14] = "%k - Data type, sub";
-		formats[15] = "%w - Location, sub";
-		formats[16] = "%x - Source, sub";
-		formats[17] = "%Z - Scenario";
-		formats[18] = "%z - Sequence #";
+		formats[9] = "%p - Data period";
+		formats[10] = "%S - Source";
+		formats[11] = "%s - Source, main";
+		formats[12] = "%U - Units";
+		formats[13] = "%T - Data type";
+		formats[14] = "%t - Data type, main";
+		formats[15] = "%k - Data type, sub";
+		formats[16] = "%w - Location, sub";
+		formats[17] = "%x - Source, sub";
+		formats[18] = "%Z - Scenario";
+		formats[19] = "%z - Sequence #";
 	}
 	else {
 	    formats[0] = "%A";
@@ -9403,16 +9425,17 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[6] = "%L";
 		formats[7] = "%l";
 		formats[8] = "%m";
-		formats[9] = "%S";
-		formats[10] = "%s";
-		formats[11] = "%U";
-		formats[12] = "%T";
-		formats[13] = "%k";
-		formats[14] = "%u";
-		formats[15] = "%w";
-		formats[16] = "%x";
-		formats[17] = "%Z";
-		formats[18] = "%z";
+		formats[9] = "%p";
+		formats[10] = "%S";
+		formats[11] = "%s";
+		formats[12] = "%U";
+		formats[13] = "%T";
+		formats[14] = "%k";
+		formats[15] = "%u";
+		formats[16] = "%w";
+		formats[17] = "%x";
+		formats[18] = "%Z";
+		formats[19] = "%z";
 	}
 	return formats;
 }
@@ -9631,7 +9654,7 @@ public static boolean isSmallerInterval ( TS ts, TS comparets )
 the first time series in the list, false if not.
 @param ts List of time series to check.
 */
-public static boolean intervalsMatch ( List ts )
+public static boolean intervalsMatch ( List<TS> ts )
 {	if ( ts == null ) {
 		return false;
 	}
@@ -9642,7 +9665,7 @@ public static boolean intervalsMatch ( List ts )
 	int size = ts.size();
 	TS tspt = null;
 	for ( int i = 0; i < size; i++ ) {
-		tspt = (TS)ts.get(i);
+		tspt = ts.get(i);
 		if ( tspt != null ) {
 			break;
 		}
@@ -9650,20 +9673,18 @@ public static boolean intervalsMatch ( List ts )
 	if ( tspt == null ) {
 		return false;
 	}
-	boolean matches = intervalsMatch ( ts, tspt.getDataIntervalBase(),
-				tspt.getDataIntervalMult() );
+	boolean matches = intervalsMatch ( ts, tspt.getDataIntervalBase(), tspt.getDataIntervalMult() );
 	tspt = null;
 	return matches;
 }
 
 /**
-@return true if all the time series in the vector have the same interval as
-specified, false if not.
+@return true if all the time series in the vector have the same interval as specified, false if not.
 @param ts List of time series to check.
 @param interval_base Data interval base (e.g., TimeInterval.HOUR).
 @param interval_mult Data interval multiplier.
 */
-public static boolean intervalsMatch ( List ts, int interval_base, int interval_mult )
+public static boolean intervalsMatch ( List<TS> ts, int interval_base, int interval_mult )
 {	TS	tspt = null;
 
 	if ( ts == null ) {
@@ -9673,7 +9694,7 @@ public static boolean intervalsMatch ( List ts, int interval_base, int interval_
 	for ( int i = 0; i < nseries; i++ ) {
 		tspt = (TS)ts.get ( i );
 		if ( tspt == null ) {
-			Message.printWarning ( 2, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
+			Message.printWarning ( 3, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
 			return false;
 		}
 		if ( (tspt.getDataIntervalBase() != interval_base) ||

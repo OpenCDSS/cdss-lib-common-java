@@ -1758,15 +1758,38 @@ private static List<TableField> parseFile_ParseHeaderLine (
 
 /**
 Sets the value of a specific field. 
-@param row the row in which to set the value.
-@param col the column in which to set the value.
+@param row the row (0+) in which to set the value.
+@param col the column (0+) in which to set the value.
 @param value the value to set.
+@exception Exception if the field value cannot be set, including if the row does not exist.
 */
 public void setFieldValue(int row, int col, Object value) 
 throws Exception
 {
-	TableRecord record = _table_records.get(row);
-	record.setFieldValue(col, value);
+    setFieldValue ( row, col, value, false );
+}
+
+/**
+Sets the value of a specific field. 
+@param row the row (0+) in which to set the value .
+@param col the column (0+) in which to set the value.
+@param value the value to set.
+@param createIfNecessary if true and the requested row is not in the existing rows, create
+intervening rows, initialize to missing (null objects), and then set the data.
+*/
+public void setFieldValue(int row, int col, Object value, boolean createIfNecessary ) 
+throws Exception
+{
+    int nRows = getNumberOfRecords();
+    if ( (row > (nRows - 1)) && createIfNecessary ) {
+        // Create empty rows
+        for ( int i = nRows; i <= row; i++ ) {
+            addRecord(emptyRecord());
+        }
+    }
+    // Now set the value (will throw ArrayIndexOutOfBoundsException if row is out of range)...
+    TableRecord record = _table_records.get(row);
+    record.setFieldValue(col, value);
 }
 
 /**

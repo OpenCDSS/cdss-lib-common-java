@@ -1,11 +1,11 @@
 package RTi.TS;
 
-import java.lang.Exception;
+import java.security.InvalidParameterException;
 
 /**
-This exception should be thrown when a method does not support hangling irregular time series.
+This exception should be thrown when a method does not support handling irregular time series.
 */
-public class IrregularTimeSeriesNotSupportedException extends Exception
+public class IrregularTimeSeriesNotSupportedException extends InvalidParameterException
 {
 
 /**

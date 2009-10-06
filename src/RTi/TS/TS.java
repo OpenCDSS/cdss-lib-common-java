@@ -263,12 +263,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
 /**
-This class is the base class for all time series classes.  The code is written
-to be similar to the C++ version of the TS library.  Consequently, this class
-provides "virtual" functions that are meant to be overridden (in Java these
-methods are just included here but are expected to be overridden - an interface
-has not been implemented to force this behavior because the methods are not
-"pure virtual").
+This class is the base class for all time series classes.
 */
 public class TS implements Cloneable, Serializable, Transferable
 {
@@ -282,8 +277,7 @@ public static DataFlavor tsFlavor = new DataFlavor(RTi.TS.TS.class,"RTi.TS.TS");
 /**
 General string to use for status of the time series (use as appropriate by
 high-level code).  This value is volatile - do not assume its value will remain
-for long periods.  This value is not used much now that the GRTS package has
-been updated.
+for long periods.  This value is not used much now that the GRTS package has been updated.
 */
 protected String _status;
 
@@ -343,8 +337,7 @@ allocateDataSpace() method.  This is useful for general information.
 protected int _data_size;	
 
 /**
-Data units.  A list of units and conversions is typically maintained in the
-DataUnits* classes.
+Data units.  A list of units and conversions is typically maintained in the DataUnits* classes.
 */
 protected String _data_units;
 
@@ -364,8 +357,7 @@ protected int _data_flag_length = 0;
 Indicates whether data flags are being used with data.  If enabled, the derived
 classes that store data should override the allocateDataSpace(boolean, int)
 method to create a data array to track the data flags.  It is recommended to
-save space that the flags be treated as char[] data, padded with null
-characters.
+save space that the flags be treated as char[] data, padded with null characters.
 */
 protected boolean _has_data_flags = false;
 
@@ -376,13 +368,11 @@ Version of the data format (mainly for use with files).
 protected String _version;
 
 // FIXME SAM 2007-12-13 Need to evaluate renaming to avoid confusion with TSTIdent input name.
-// Implementing a DataSource concept for input/output may help (but also have data source in
-// TSIdent!).
+// Implementing a DataSource concept for input/output may help (but also have data source in TSIdent!).
 /**
 Input source information.  Filename if read from file or perhaps a database
 name and table (e.g., HydroBase.daily_flow).  This is the actual location read,
-which should not be confused with the TSIdent storage name (which may not be
-fully expanded).
+which should not be confused with the TSIdent storage name (which may not be fully expanded).
 */
 protected String _input_name;	
 
@@ -394,8 +384,7 @@ protected TSIdent _id;
 
 /**
 Indicates whether the time series data have been modified by calling
-setDataValue().  Call refresh() to update the limits.  This is not used with
-header data.
+setDataValue().  Call refresh() to update the limits.  This is not used with header data.
 */
 protected boolean _dirty;
 
@@ -434,14 +423,12 @@ The missing data value.  Default is -999.0.
 protected double _missing;
 
 /**
-Lower bound on the missing data value (for quick comparisons and when missing
-data ranges are used).
+Lower bound on the missing data value (for quick comparisons and when missing data ranges are used).
 */
 protected double _missingl;
 
 /**
-Upper bound on the missing data value (for quick comparisons and when missing
-data ranges are used).
+Upper bound on the missing data value (for quick comparisons and when missing data ranges are used).
 */
 protected double _missingu;
 
@@ -457,16 +444,14 @@ protected TSLimits _data_limits_original;
 
 //TODO SAM 2007-12-13 Evaluate need now that GRTS is available.
 /**
-Legend to show when plotting or tabulating a time series.  This is generally a
-short legend.
+Legend to show when plotting or tabulating a time series.  This is generally a short legend.
 */
 protected String _legend;
 
 // TODO SAM 2007-12-13 Evaluate need now that GRTS is available.
 /**
 Legend to show when plotting or tabulating a time series.  This is usually a
-long legend.  This may be phased out now that the GRTS package has been phased
-in for visualization.
+long legend.  This may be phased out now that the GRTS package has been phased in for visualization.
 */
 protected String _extended_legend;
 
@@ -495,8 +480,7 @@ public TS ()
 }
 
 /**
-Copy constructor.  Only the header is copied since derived classes should
-copy the data.
+Copy constructor.  Only the header is copied since derived classes should copy the data.
 @see #copyHeader
 */
 public TS ( TS ts )
@@ -517,17 +501,17 @@ public void addToComments( String comment )
 }
 
 /**
-Add Vector of String to the comments associated with the time series (e.g., station remarks).
+Add a list of String to the comments associated with the time series (e.g., station remarks).
 @param comments Comments strings to add.
 */
-public void addToComments( List comments )
+public void addToComments( List<String> comments )
 {	if ( comments == null ) {
 		return;
 	}
 	String comment = null;
 	int size = comments.size();
 	for ( int i = 0; i < size; i++ ) {
-		comment = (String)comments.get(i);
+		comment = comments.get(i);
 		if ( comment != null ) {
 			_comments.add ( comment );
 		}
@@ -553,22 +537,18 @@ interval base and multiplier are set correctly and that _date1 and _date2 have
 been set.  The allocateDataSpace() method will allocate the data flags if
 appropriate.  Use this method when the data flags need to be allocated after
 the initial allocation.  This method is meant to be overridden in derived
-classes (e.g., MinuteTS, MonthTS) that are optimized for data storage for
-different intervals.
+classes (e.g., MinuteTS, MonthTS) that are optimized for data storage for different intervals.
 @param data_flag_length Maximum length of data flags.  If the data flags array
 is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
 @param initial_value Initial value (null is allowed and will result in the
 flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if
-necessary, but
+@param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length,
-					String initial_value,
-					boolean retain_previous_values )
+public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
 throws Exception
 {	Message.printWarning ( 1, "TS.allocateDataFlagSpace", 
 	"TS.allocateDataFlagSpace() is virtual, define in derived classes." );
@@ -579,8 +559,7 @@ Allocate the data space for the time series.  This requires that the data
 interval base and multiplier are set correctly and that _date1 and _date2 have
 been set.  If data flags are used, hasDataFlags() should also be called before
 calling this method.  This method is meant to be overridden in derived classes
-(e.g., MinuteTS, MonthTS) that are optimized for data storage for different
-intervals.
+(e.g., MinuteTS, MonthTS) that are optimized for data storage for different intervals.
 @return 0 if successful allocating memory, non-zero if failure.
 */
 public int allocateDataSpace ( )
@@ -599,17 +578,15 @@ class (the allocateDataSpace(void) method of the derived class will be called).
 */
 public int allocateDataSpace ( DateTime date1, DateTime date2 )
 {	//Set data
-        setDate1 ( date1 );
-        setDate1Original ( date1 );
-        setDate2 ( date2 );
-        setDate2Original ( date2 );
+    setDate1 ( date1 );
+    setDate1Original ( date1 );
+    setDate2 ( date2 );
+    setDate2Original ( date2 );
 
-        // Now allocate memory for the new data space...
+   // Now allocate memory for the new data space...
 	if ( allocateDataSpace() != 0 ) {
-		Message.printWarning ( 2,
-		"TS.allocateDataSpace(DateTime,DateTime)",
-		"Error allocating data space for " + date1 + " to " +
-		date2 );
+		Message.printWarning ( 3, "TS.allocateDataSpace(DateTime,DateTime)",
+		"Error allocating data space for " + date1 + " to " + date2 );
 		return 1;
 	}
 	return 0;
@@ -624,8 +601,7 @@ overridden in derived classes (in which case the interval base will be known).
 @param multiplier Multiplier for interval base.
 @return the number of data points in a period, given the interval mulitplier.
 */
-public static int calculateDataSize (	DateTime date1, DateTime date2,
-					int multiplier )
+public static int calculateDataSize ( DateTime date1, DateTime date2, int multiplier )
 {	Message.printWarning ( 1, "TS.calculateDataSize", 
 	"TS.calculateDataSize() is virtual, define in derived classes." );
 	return 0;
@@ -634,8 +610,7 @@ public static int calculateDataSize (	DateTime date1, DateTime date2,
 /**
 Change the period of record for the data.  If the period is lengthened, fill
 with missing data.  If shortened, truncate the data.  This method should be
-implemented in a derived class and should handle resizing of the data space
-and data flag array.
+implemented in a derived class and should handle resizing of the data space and data flag array.
 @param date1 Start date for new period.
 @param date2 End date for new period.
 @exception RTi.TS.TSException if this method is called in the base class (or if
@@ -657,7 +632,8 @@ Clone the object.  The Object base class clone() method is called and then the
 TS objects are cloned.  The result is a complete deep copy.
 */
 public Object clone ()
-{	try {	// Clone the base class...
+{	try {
+    // Clone the base class...
 		TS ts = (TS)super.clone();
 		// Now clone mutable objects..
 		if ( _date1 != null ) {
@@ -707,23 +683,18 @@ public Object clone ()
 }
 
 /**
-Copy the data array from one time series to another.  This method should be
-defined in a derived class.
+Copy the data array from one time series to another.  This method should be defined in a derived class.
 @param ts The time series to copy the data from.
-@param start_date The time to start copying the data (if null, use the first
-date from this instance).
-@param end_date The time to end copying the data (if null, use the last date
-from this instance).
+@param start_date The time to start copying the data (if null, use the first date from this instance).
+@param end_date The time to end copying the data (if null, use the last date from this instance).
 @param copy_missing If true, copy missing data (including out-of-period missing
 data).  If false, ignore missing data.
 @exception TSException if an error occurs.
 */
-public void copyData ( TS ts, DateTime start_date, DateTime end_date,
-			boolean copy_missing )
+public void copyData ( TS ts, DateTime start_date, DateTime end_date, boolean copy_missing )
 throws TSException
-{	String message = "This method needs to be " +
-	"implemented in a derived class (e.g., MonthTS)";
-	Message.printWarning ( 2, "TS.copyData", message );
+{	String message = "This method needs to be implemented in a derived class (e.g., MonthTS)";
+	Message.printWarning ( 3, "TS.copyData", message );
 	throw new TSException ( message );
 }
 
@@ -737,9 +708,8 @@ data).  If false, ignore missing data.
 */
 public void copyData ( TS ts, boolean copy_missing )
 throws TSException
-{	String message = "This method needs to be " +
-	"implemented in a derived class (e.g., MonthTS)";
-	Message.printWarning ( 2, "TS.copyData", message );
+{	String message = "This method needs to be implemented in a derived class (e.g., MonthTS)";
+	Message.printWarning ( 3, "TS.copyData", message );
 	throw new TSException ( message );
 }
 
@@ -896,7 +866,7 @@ public void copyHeader ( TS ts )
 	_date1_original = new DateTime ( ts.getDate1Original() );
 	_date2_original = new DateTime ( ts.getDate2Original() );
 
-        setDataType( ts.getDataType() );
+    setDataType( ts.getDataType() );
 
 	_data_interval_base = ts.getDataIntervalBase();
 	_data_interval_mult = ts.getDataIntervalMult();
@@ -970,13 +940,11 @@ public String formatExtendedLegend ( String format )
 }
 
 /**
-Return a formatted extended legend string and optionally save the changed
-legend.
+Return a formatted extended legend string and optionally save the changed legend.
 @return A formatted extended legend string for the time series.
 The format is the same as for formatLegend().
 @param format Format string.
-@param flag If true, the extended legend data member will be updated after
-formatting.
+@param flag If true, the extended legend data member will be updated after formatting.
 @see #formatLegend
 */
 public String formatExtendedLegend ( String format, boolean flag )
@@ -991,36 +959,30 @@ public String formatExtendedLegend ( String format, boolean flag )
 
 /**
 Format a standard time series header, for use with formatOutput.
-@return A Vector of strings containing the header.  Blank lines at the start
+@return A list of strings containing the header.  Blank lines at the start
 and end of the header are not included.
 */
-public List formatHeader ()
+public List<String> formatHeader ()
 {	List header = new Vector ( 10, 5 );
 
-	header.add ( "Time Series Identifier  = " +
-		getIdentifier().toString() );
+	header.add ( "Time Series Identifier  = " + getIdentifier().toString() );
 	header.add ( "Description             = " + getDescription() );
-	header.add ( "Data source             = " +
-		getIdentifier().getSource() );
-	header.add ( "Data type               = "
-		+ getIdentifier().getType() );
-	header.add ( "Data interval           = "
-		+ getIdentifier().getInterval() );
+	header.add ( "Data source             = " + getIdentifier().getSource() );
+	header.add ( "Data type               = " + getIdentifier().getType() );
+	header.add ( "Data interval           = " + getIdentifier().getInterval() );
 	header.add ( "Data units              = " + _data_units );
 	if ( (_date1 != null) && (_date2 != null) ) {
-		header.add ( "Period                  = " +
-			_date1 + " to " + _date2 );
+		header.add ( "Period                  = " + _date1 + " to " + _date2 );
 		//StringUtil.formatString(_date1.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(_date1.getMonth(), "%02d") + " to " +
 		//StringUtil.formatString(_date2.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(_date2.getMonth(), "%02d") ) );
 	}
-	else {	header.add ( "Period                  = N/A" );
+	else {
+	    header.add ( "Period                  = N/A" );
 	}
-	if (	(_date1_original != null) &&
-		(_date2_original != null)) {
-		header.add ( "Orig./Avail. period     = " +
-			_date1_original + " to " + _date2_original );
+	if ( (_date1_original != null) && (_date2_original != null)) {
+		header.add ( "Orig./Avail. period     = " + _date1_original + " to " + _date2_original );
 		//StringUtil.formatString(
 		//_date1_original.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(
@@ -1030,7 +992,8 @@ public List formatHeader ()
 		//StringUtil.formatString(
 		//_date2_original.getMonth(), "%02d") ) );
 	}
-	else {	header.add ( "Orig./Avail. period     = N/A" );
+	else {
+	    header.add ( "Orig./Avail. period     = N/A" );
 	}
 	return header;
 }
@@ -1038,8 +1001,7 @@ public List formatHeader ()
 /**
 Return a formatted legend string, without changing the legend in memory.
 @return A formatted legend string for the time series but do not update the
-time series legend data.  See the version that accepts a flag for a description
-of format characters.
+time series legend data.  See the version that accepts a flag for a description of format characters.
 @param format Format string.
 */
 public String formatLegend ( String format )
@@ -1049,11 +1011,9 @@ public String formatLegend ( String format )
 // FIXME SAM This code seems redundant with similar code in TSUtil.  Need to refactor and consolidate.
 /**
 Return a formatted legend string, optionally changing the legend in memory.
-@return A formatted legend string for the time series but do not update the
-time series legend data.
+@return A formatted legend string for the time series but do not update the time series legend data.
 @param format Format string containing normal characters and formatting strings
-which will be replaced with time series header information, as follows (grouped
-in categories):
+which will be replaced with time series header information, as follows (grouped in categories):
 <p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -1151,8 +1111,7 @@ Sub-type part of the identifier.</td>
 <p>
 
 @param update_ts If true, the legend data member in the time series will be
-updated.  Otherwise a formatted string is returned but the internal data member
-is left unchanged.
+updated.  Otherwise a formatted string is returned but the internal data member is left unchanged.
 @see TSIdent
 @see RTi.Util.IO.DataUnits
 */
@@ -1265,12 +1224,14 @@ public String formatLegend ( String format, boolean update_ts )
 				// Sequence number...
 				buffer.append ( "" + _id.getSequenceNumber() );
 			}
-			else {	// No match.  Add the % and the character...
+			else {
+			    // No match.  Add the % and the character...
 				buffer.append ( "%" );
 				buffer.append ( c );
 			}
 		}
-		else {	// Just add the character...
+		else {
+		    // Just add the character...
 			buffer.append ( c );
 		}
 	}
@@ -1292,7 +1253,7 @@ should be implemented as classes with static readTimeSeries()/writeTimeSeries() 
 */
 public List formatOutput ( PropList props )
 throws TSException
-{	Message.printWarning( 1, "TS.formatOutput",
+{	Message.printWarning( 3, "TS.formatOutput",
 	"TS.formatOutput(PropList) is virtual, redefine in derived classes." );
 	return null;
 }
@@ -1307,7 +1268,7 @@ This method should be overridden in the derived class.
 */
 public List formatOutput ( PrintWriter out, PropList props )
 throws TSException
-{	Message.printWarning( 1, "TS.formatOutput", "TS.formatOutput(" +
+{	Message.printWarning( 3, "TS.formatOutput", "TS.formatOutput(" +
 	"PrintWriter,PropList) is virtual, redefine in derived classes" );
 	return null;
 }
@@ -1315,12 +1276,12 @@ throws TSException
 /**
 Format the time series into a general output format.  This method should be
 overridden in the derived class.
-@return Vector containing formatted output, or null.
+@return List containing formatted output, or null.
 @param out Name of the output file.
 @param props Modifiers for output.
 @exception RTi.TS.TSException Thrown if low-level formatting code throws an exception.
 */
-public List formatOutput ( String out, PropList props )
+public List<String> formatOutput ( String out, PropList props )
 throws TSException
 {	String	routine="TS.formatOutput(string,int,long)";
 	Message.printWarning( 1, routine, "TS.formatOutput(String,PropList)" +
@@ -1386,8 +1347,7 @@ public int getDataIntervalMultOriginal()
 
 /**
 Return the time series data limits (a new copy is returned).  If necessary, the
-limits are refreshed.  The refresh() method should be defined in the derived
-class.
+limits are refreshed.  The refresh() method should be defined in the derived class.
 @return The time series data limits.
 @see TSLimits
 */
@@ -1397,7 +1357,8 @@ public TSLimits getDataLimits ()
 	if ( _data_limits == null ) {
 		return null;
 	}
-	else {	return( new TSLimits(_data_limits) );
+	else {
+	    return( new TSLimits(_data_limits) );
 	}
 }
 
@@ -1411,7 +1372,8 @@ public TSLimits getDataLimitsOriginal ()
 {	if ( _data_limits_original == null ) {
 		return null;
 	}
-	else {	return ( _data_limits_original );
+	else {
+	    return ( _data_limits_original );
 	}
 }
 
@@ -1419,11 +1381,10 @@ public TSLimits getDataLimitsOriginal ()
 Return a TSData for a date.  This method should be defined in derived classes,
 especially if data flags are being used.
 @param date Date to get data.
-@return a TSData for the specified date.  This method is meant to be overridden
-in derived classes.
+@return a TSData for the specified date.  This method is meant to be overridden in derived classes.
 */
 public TSData getDataPoint ( DateTime date )
-{	Message.printWarning( 1, "TS.getDataPoint", 
+{	Message.printWarning( 3, "TS.getDataPoint", 
 	"This is a virtual function, redefine in lower classes" );
 	// Empty point...
 	TSData data = new TSData();
@@ -1440,7 +1401,7 @@ This method should be overruled in a derived class.
 @param date Date corresponding to the data value.
 */
 public int [] getDataPosition ( DateTime date )
-{	Message.printWarning( 1, "TS.getDataPosition", 
+{	Message.printWarning( 3, "TS.getDataPosition", 
 	"TS.getDataPosition() is virtual, redefine in derived classes." );
 	// For now, return null as a default...
 	return null;
@@ -1455,15 +1416,15 @@ public int getDataSize ( )
 }
 
 /**
-Return the data type from the TSIdent or an empty string if no TSIdent has been
-set.
+Return the data type from the TSIdent or an empty string if no TSIdent has been set.
 @return The data type abbreviation.
 */
 public String getDataType( )
 {	if ( _id == null ) {
 		return "";
 	}
-	else {	return _id.getType();
+	else {
+	    return _id.getType();
 	}
 }
 
@@ -1492,7 +1453,7 @@ overridden in derived classes (always returns the missing data value here).
 @param date Date corresponding to the data value.
 */
 public double getDataValue( DateTime date )
-{	Message.printWarning( 1, "TS.getDataValue", 
+{	Message.printWarning( 3, "TS.getDataValue", 
 	"TS.getDataValue is a virtual function, redefine in derived classes" );
 	return _missing;
 }
@@ -1511,8 +1472,7 @@ public DateTime getDate1()
 /**
 Return the first date in the original period of record (returns a copy).
 @return The first date of the original data source (generally equal to or
-earlier than the time series that is actually read), or null if the date is
-null.
+earlier than the time series that is actually read), or null if the date is null.
 */
 public DateTime getDate1Original()
 {	if ( _date1_original == null ) {
@@ -1586,8 +1546,7 @@ public TSIdent getIdentifier()
 }
 
 /**
-Return the time series identifier as a String.  This returns
-TSIdent.getIdentifier().
+Return the time series identifier as a String.  This returns TSIdent.getIdentifier().
 @return The time series identifier as a string.
 @see TSIdent
 */
@@ -1773,37 +1732,21 @@ private void init( )
 	_id = new TSIdent ();
 	_legend = "";
 	_extended_legend = "";
-
 	_data_size = 0;
-
 	// DateTime need to be initialized somehow...
-
-        setDataType( "" );
-
+    setDataType( "" );
 	_data_interval_base = 0;
-
 	_data_interval_mult = 1;
-
 	_data_interval_base_original = 1;
-
 	_data_interval_mult_original = 0;
-
 	setDescription( "" );
-
 	_comments = new Vector (2,2);
-
 	_genesis = new Vector (2,2);
-
 	setDataUnits( "" );
-
 	setDataUnitsOriginal( "" );
-
 	setMissing ( -999.0 );
-
 	_data_limits = new TSLimits();
-
 	_dirty = true;	// We need to recompute limits when we get the chance
-
 	_enabled = true;
 	_selected = false;	// Let other code select, e.g., as query result
 	_editable = false;
@@ -1846,8 +1789,7 @@ class treats NaN as missing.
 @param value Value to check.
 */
 public boolean isDataMissing ( double value )
-{	if ( value != value ) {
-		// Check for NaN...
+{	if ( Double.isNaN(value) ) {
 		return true;
 	}
 	if ( (value >= _missingl) && (value <= _missingu) ) {
@@ -1885,8 +1827,7 @@ Create and return an iterator for the time series using the full period for the
 time series.  For regular interval time series,
 the iterator is TSIterator.  IrregularTS use the IrregularTSIterator.
 @return an iterator for the time series.
-@exception if the dates for the iterator are not set (they are not set in the
-time series).
+@exception if the dates for the iterator are not set (they are not set in the time series).
 */
 public TSIterator iterator ()
 throws Exception
@@ -1895,13 +1836,11 @@ throws Exception
 
 /**
 Return an iterator for the time series using the specified period.
-For regular interval time series,
-the iterator is that same. IrregularTS use the IrregularTSIterator.
+For regular interval time series, the iterator is that same. IrregularTS use the IrregularTSIterator.
 @param date1 Start of data iteration.
 @param date2 End of data iteration.
 @return an iterator for the time series.
-@exception if the dates for the iterator are not set (they are not set in the
-time series).
+@exception if the dates for the iterator are not set (they are not set in the time series).
 */
 public TSIterator iterator ( DateTime date1, DateTime date2 )
 throws Exception
@@ -1909,12 +1848,10 @@ throws Exception
 }
 
 /**
-Refresh the secondary data (e.g., data limits).  This should be overruled in
-the derived class.
+Refresh the secondary data (e.g., data limits).  This should be overruled in the derived class.
 */
 public void refresh ()
-{	Message.printWarning ( 1, "TS.refresh",
-	"TS.refresh is virtual.  Define in the derived class!" );
+{	Message.printWarning ( 3, "TS.refresh", "TS.refresh is virtual.  Define in the derived class!" );
 }
 
 /**
@@ -1983,8 +1920,7 @@ public void setDataLimitsOriginal ( TSLimits limits )
 }
 
 /**
-Set the number of data points including the full period.  This should be called
-by refresh().
+Set the number of data points including the full period.  This should be called by refresh().
 @param data_size Number of data points in the time series.
 */
 protected void setDataSize ( int data_size )
@@ -2044,7 +1980,7 @@ should be defined in derived classes.
 @see DateTime
 */
 public void setDataValue ( DateTime date, double val, String data_flag,	int duration )
-{	Message.printWarning ( 1, "TS.setDataValue", "TS.setDataValue is " +
+{	Message.printWarning ( 3, "TS.setDataValue", "TS.setDataValue is " +
 	"virtual and should be redefined in derived classes" );
 }
 
@@ -2211,9 +2147,7 @@ Set the time series identifier using a individual string parts.
 @exception Exception If there is an error setting the identifier (e.g., interval
 is not recognized).
 */
-public void setIdentifier( 	String location, String source,
-				String type, String interval,
-				String scenario )
+public void setIdentifier( String location, String source, String type, String interval, String scenario )
 throws Exception
 {	_id.setLocation( location );
 	_id.setSource( source );
@@ -2373,4 +2307,4 @@ public void setVersion( String version )
 	}
 }
 
-} // End of TS class
+}
