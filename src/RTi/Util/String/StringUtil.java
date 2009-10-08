@@ -3041,6 +3041,7 @@ public static List<String> toList ( String [] array )
 Convert a list of strings into one long string that is delimited by the
 given string (usually the system line separator).  Null strings are treated
 as empty strings.  This is useful for converting lists to something that a TextArea can display.
+@param delimiter delimiter to include between each string, or null to not use a delimiter.
 @return the combined string, or null if the original list is null.
 */
 public static String toString ( List<String> strings, String delimiter )
@@ -3053,7 +3054,9 @@ public static String toString ( List<String> strings, String delimiter )
 	String string = null;
 	for ( int i = 0; i < size; i++ ) {
 		string = strings.get(i);
-		buffer.append ( string + delimiter );
+		if ( delimiter != null ) {
+		    buffer.append ( string + delimiter );
+		}
 	}
 	return buffer.toString();
 }
