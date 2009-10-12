@@ -1827,22 +1827,23 @@ public static void writeTimeSeriesList (List tslist, PrintWriter out, DateTime d
 					DateTime date2, String units, boolean write_data, PropList props )
 throws Exception
 {	String	message, routine = "DateValueTS.writeTimeSeriesList";
-	DateTime ts_start, ts_end, t = new DateTime( DateTime.DATE_FAST );
+	DateTime ts_start = null, ts_end = null, t = new DateTime( DateTime.DATE_FAST );
 	int	i = 0;
 
 	// Check for a null time series list...
 
 	if ( tslist == null ) {
-		message = "Null time series list.  Not writing.";
+		message = "Null time series list.  Output will be empty.";
 		Message.printWarning ( 2, routine, message );
-		throw new Exception ( message );
 	}
 
-	int size = tslist.size();
+	int size = 0;
+	if ( tslist != null ) {
+	    size = tslist.size();
+	}
 	if ( size == 0 ) {
-		message = "No time series in list.  Not writing.";
+		message = "No time series in list.  Output will be empty.";
 		Message.printWarning ( 2, routine, message );
-		throw new Exception ( message );
 	}
 	
 	// Make sure that a non-null properties list is available
@@ -1853,27 +1854,29 @@ throws Exception
 	// Set the parameters for output..
 
 	TSLimits limits = new TSLimits ();
-	if ( (date1 == null) || (date2 == null) ) {
-		// Get the limits...
-		try {
-		    limits = TSUtil.getPeriodFromTS ( tslist, TSUtil.MAX_POR );
-		}
-		catch ( Exception e ) {}
-	}
-	if ( date1 == null ) {
-		// Use the maximum period in the time series list...
-		ts_start = new DateTime ( limits.getDate1() );
-	}
-	else {
-	    ts_start = new DateTime ( date1 );
-	}
-
-	if ( date2 == null ) {
-		// Use the time series value...
-		ts_end = new DateTime ( limits.getDate2() );
-	}
-	else {
-	    ts_end = new DateTime ( date2 );
+	if ( size > 0 ) {
+    	if ( (date1 == null) || (date2 == null) ) {
+    		// Get the limits...
+    		try {
+    		    limits = TSUtil.getPeriodFromTS ( tslist, TSUtil.MAX_POR );
+    		}
+    		catch ( Exception e ) {}
+    	}
+    	if ( date1 == null ) {
+    		// Use the maximum period in the time series list...
+    		ts_start = new DateTime ( limits.getDate1() );
+    	}
+    	else {
+    	    ts_start = new DateTime ( date1 );
+    	}
+    
+    	if ( date2 == null ) {
+    		// Use the time series value...
+    		ts_end = new DateTime ( limits.getDate2() );
+    	}
+    	else {
+    	    ts_end = new DateTime ( date2 );
+    	}
 	}
 
 	// Loop through the time series and make sure they have the same interval...
@@ -1924,12 +1927,14 @@ throws Exception
 		}
 	}
 
-	if ( (data_interval_base == TimeInterval.IRREGULAR) && (size > 1) ) {
-		message = "Currently, only one irregular TS can be written to a file.";
-		Message.printWarning ( 2, routine, message );
-		mult = null;
-		add = null;
-		throw new Exception ( message );
+	if ( size > 0 ) {
+    	if ( (data_interval_base == TimeInterval.IRREGULAR) && (size > 1) ) {
+    		message = "Currently, only one irregular TS can be written to a file.";
+    		Message.printWarning ( 2, routine, message );
+    		mult = null;
+    		add = null;
+    		throw new Exception ( message );
+    	}
 	}
 
     // Write header.  See the printSample() method for an example string...
@@ -2094,8 +2099,13 @@ throws Exception
 		// so output the data flags information for all the time series...
 		out.println ( "DataFlags   = " + dataflag_buffer.toString() );
 	}
-	out.println ( "Start       = " + ts_start.toString() );
-	out.println ( "End         = " + ts_end.toString() );
+	if ( size == 0 ) {
+	    out.println ( "# Unable to determine data start and end - no time series." );
+	}
+	else {
+        out.println ( "Start       = " + ts_start.toString() );
+        out.println ( "End         = " + ts_end.toString() );
+	}
 
 	// Print the comments/genesis information...
 
