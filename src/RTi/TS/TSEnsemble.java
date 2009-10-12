@@ -16,9 +16,9 @@ public class TSEnsemble implements Cloneable
 {
 
 /**
-Ensemble of time series data.  Use a Vector by default to avoid null checks.
+Ensemble of time series data, guaranteed to exist but may be empty.
 */
-private List __tslist = new Vector();
+private List<TS> __tslist = new Vector();
 
 /**
 Identifier for the ensemble.
@@ -37,21 +37,23 @@ public TSEnsemble ()
 {
 }
 
-// FIXME SAM 2007-12-13 Need to use generics to force TS in list
 /**
 Create a new ensemble, given a Vector of time series.
 @param tslist List of time series.
 */
-public TSEnsemble ( String id, String name, List tslist )
+public TSEnsemble ( String id, String name, List<TS> tslist )
 {
     setEnsembleID ( id );
     setEnsembleName ( name );
+    if ( tslist == null ) {
+        tslist = new Vector();
+    }
     __tslist = tslist;
 }
 
 /**
 Add a time series to the ensemble.
-@param ts Time series to add to the ensemble.
+@param ts time series to add to the ensemble.
 */
 public void add ( TS ts )
 {   __tslist.add ( ts );
@@ -94,7 +96,7 @@ Get a time series from the ensemble.
 @return The time series from the ensemble.
 */
 public TS get ( int pos )
-{   return (TS)__tslist.get ( pos );
+{   return __tslist.get ( pos );
 }
 
 /**
@@ -111,6 +113,26 @@ Return the ensemble name.
 */
 public String getEnsembleName ()
 {   return __name;
+}
+
+/**
+Return the time series list.
+@param copyList if true, the list is copied (but the time series contents remain the same).
+Use this when the list object is going to be modified.
+*/
+public List<TS> getTimeSeriesList ( boolean copyList )
+{
+    if ( !copyList ) {
+        return __tslist;
+    }
+    else {
+        List<TS> tslist = new Vector();
+        int size = __tslist.size();
+        for ( int i = 0; i < size; i++ ) {
+            tslist.add( __tslist.get(i));
+        }
+        return tslist;
+    }
 }
 
 /**
@@ -140,8 +162,7 @@ public void setEnsembleName ( String name )
 }
 
 /**
-Set the time series in the ensemble.  If the list is too small, null time series will
-be added.
+Set the time series in the ensemble.  If the list is too small, null time series will be added.
 @param index Index (0+) at which to set the ensemble.
 @param ts Time series to set.
 */
@@ -173,7 +194,7 @@ public TS [] toArray ()
     int size = size();
     TS [] array = new TS[size];
     for ( int i = 0; i < size; i++ ) {
-        array[i] = (TS)__tslist.get(i);
+        array[i] = __tslist.get(i);
     }
     return array;
 }
