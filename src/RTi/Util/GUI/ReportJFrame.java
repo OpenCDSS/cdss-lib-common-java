@@ -98,23 +98,23 @@ Display a report in a JTextArea.  See the constructor for more information.
 public class ReportJFrame extends JFrame implements ActionListener, HyperlinkListener, WindowListener
 {
 
-private JTextField	_status_JTextField;	// status TextField
-private JTextArea	_info_JTextArea;	// Report TextArea
-private JEditorPane	_info_JEditorPane;	// Report TextArea
-private List _info_Vector;		// Contains String elements to display in the _info_TextArea object
+private JTextField _status_JTextField; // status TextField
+private JTextArea _info_JTextArea; // Report TextArea
+private JEditorPane _info_JEditorPane; // Report TextArea
+private List<String> _info_Vector; // Contains list of String to display in the _info_TextArea object
                                                 
-private PropList	_prop;			// PropList object
-private String		_help_key;              // Help Keyword
+private PropList _prop; // Controls display
+private String _help_key; // Help Keyword
 
-private SimpleJButton	_close_JButton,		// close
-			_help_JButton,		// help
-			_print_JButton,		// print
-			_save_JButton,		// save
-			_search_JButton;	// Search
+private SimpleJButton _close_JButton,
+			_help_JButton,
+			_print_JButton,
+			_save_JButton,
+			_search_JButton;
                         
-private int	_page_length,		// lines to a page
-			_print_size;		// print point size
-private String		_title = null;		// Title for frame
+private int _page_length; // lines to a page
+private int _print_size; // print point size
+private String _title = null; // Title for frame
 
 /**
 Determines the kind of text component that will be used for displaying results, either
@@ -124,7 +124,7 @@ private String __textComponent = "JTextArea";
 
 /**
 ReportJFrame constructor.
-@param info Contains String elements to Display.
+@param info Contains list of String to display.
 @param prop PropList object as described in the following table
 <table width=80% cellpadding=2 cellspacing=0 border=2>
 <tr>
@@ -215,7 +215,7 @@ but it can display HTML</li>
 
 </table>
 */
-public ReportJFrame ( List info, PropList prop )
+public ReportJFrame ( List<String> info, PropList prop )
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	_info_Vector = info;
 	_prop = prop;
@@ -648,4 +648,4 @@ public void windowDeiconified(WindowEvent e) {}
 public void windowIconified(WindowEvent e) {}
 public void windowOpened(WindowEvent e) {}
 
-} // end ReportJFrame
+}
