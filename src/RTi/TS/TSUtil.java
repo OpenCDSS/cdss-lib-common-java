@@ -11721,7 +11721,7 @@ throws Exception
 }
 
 /**
-Return an array containing the data values of the time series for the specified
+Return an array containing the data values (including missing values) of the time series for the specified
 period.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
@@ -11738,7 +11738,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date )
 }
 
 /**
-Return an array containing the data values of the time series for the specified
+Return an array containing the data values (including missing values) of the time series for the specified
 period.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
@@ -11748,17 +11748,34 @@ other versions of this routine.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
 @param end_date Date corresponding to the last date of the returned array.
-@param month_index Month of interest (1=Jan, 12=Dec).  If zero, process all
-months.
+@param month_index Month of interest (1=Jan, 12=Dec).  If zero, process all months.
 */
-public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
-				int month_index )
+public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int month_index )
 {	int [] month_indices = null;
 	if ( month_index != 0 ) {
 		month_indices = new int[1];
 		month_indices[0] = month_index;
 	}
-	return toArray ( ts, start_date, end_date, month_indices );
+	return toArray ( ts, start_date, end_date, month_indices, true );
+}
+
+/**
+Return an array containing the data values of the time series for the specified
+period, including missing values.  If the start date or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.  This is a utility routine mainly used by
+other versions of this routine.
+@return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
+@param ts Time series to convert data to array format.
+@param startDate Date corresponding to the first date of the returned array.
+@param endDate Date corresponding to the last date of the returned array.
+@param monthIndices Months of interest (1=Jan, 12=Dec).  If null or an empty
+array, process all months.
+*/
+public static double[] toArray ( TS ts, DateTime startDate, DateTime endDate, int [] monthIndices )
+{
+    return toArray ( ts, startDate, endDate, monthIndices, true );
 }
 
 /**
@@ -11768,20 +11785,21 @@ record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
 dates of the time series are used.  This is a utility routine mainly used by
 other versions of this routine.
-@return The array of data for the time series.  If an error, return null.
+@return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
 @param end_date Date corresponding to the last date of the returned array.
 @param month_indices Months of interest (1=Jan, 12=Dec).  If null or an empty
 array, process all months.
+@param includeMissing if true, include missing values; if false, do not include missing values
 */
-public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
-				int [] month_indices )
+public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
+    boolean includeMissing )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 	
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -11789,8 +11807,8 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
 		size = calculateDataSize ( ts, start, end );
 	}
-	else {	size = calculateDataSize ( start, end, interval_base,
-			interval_mult );
+	else {
+	    size = calculateDataSize ( start, end, interval_base, interval_mult );
 	}
 
 	int month_indices_size = 0;
@@ -11798,16 +11816,15 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 		month_indices_size = month_indices.length;
 	}
 
-	// Need to throw an exception in the next major TS update...
-
 	if ( size == 0 ) {
-		return null;
+		return new double[0];
 	}
 
-	double [] dataArray = new double[size];
-	int count = 0;	// Number of values in array.
-	int im = 0;	// Index for month_indices
-	int month = 0;	// Month for date.
+	double [] dataArray = new double[size]; // Initial size including missing
+	int count = 0; // Number of values in array.
+	int im = 0; // Index for month_indices
+	int month = 0; // Month for date.
+	double value; // Data value in time series
 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
@@ -11824,24 +11841,26 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				if ( month_indices_size == 0 ) {
 					// Transfer any value...
-					dataArray[count++] = tsdata.getData();
+	                value = tsdata.getData ();
+	                if ( includeMissing || !ts.isDataMissing(value) ) {
+	                    dataArray[count++] = value;
+	                }
 				}
-				else {	// Transfer only if the month agrees
-					// with that requested...
+				else {
+				    // Transfer only if the month agrees with that requested...
 					month = date.getMonth();
-					for (	im = 0;
-						im < month_indices_size;
-						im++ ) {
-						if (month == month_indices[im]){
-							dataArray[count++] =
-							tsdata.getData();
+					for ( im = 0; im < month_indices_size; im++ ) {
+						if (month == month_indices[im]) {
+		                    value = tsdata.getData ();
+		                    if ( includeMissing || !ts.isDataMissing(value) ) {
+		                        dataArray[count++] = value;
+		                    }
 							break;
 						}
 					}
@@ -11849,34 +11868,37 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date,
 			}
 		}
 	}
-	else {	// Regular, increment the data by interval...
-		DateTime date	= new DateTime ( start );
-		for (	count=0;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+	else {
+	    // Regular, increment the data by interval...
+		DateTime date = new DateTime ( start );
+		count = 0;
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			if ( month_indices_size == 0 ) {
 				// Transfer all the data...
-				dataArray[count++] = ts.getDataValue ( date );
+		        value = ts.getDataValue ( date );
+			    if ( includeMissing || !ts.isDataMissing(value) ) {
+			        dataArray[count++] = value;
+			    }
 			}
-			else {	// Transfer only if the month agrees with the
-				// requested month...
+			else {
+			    // Transfer only if the month agrees with the requested month...
 				month = date.getMonth();
 				for ( im = 0; im < month_indices_size; im++ ) {
 					if ( month == month_indices[im] ) {
-						dataArray[count++] =
-						ts.getDataValue (date);
-						break;
+					    value = ts.getDataValue ( date );
+		                if ( includeMissing || !ts.isDataMissing(value) ) {
+		                    dataArray[count++] = value;
+		                }
+						break; // Found a matching month
 					}
 				}
 			}
 		}
 	}
 
-	if ( (month_indices_size != 0) && (count != size) ) {
-		// The original array is too big and needs to be cut down to
-		// the exact size (the second check above should really only
-		// affect IrregularTS which might happen to have data only in
-		// one month)...
+	if ( count != size ) {
+		// The original array is too big and needs to be cut down to the exact size due to limited
+	    // months or missing data being excluded)...
 		double [] new_dataArray = new double[count];
 		for ( int j = 0; j < count; j++ ) {
 			new_dataArray[j] = dataArray[j];
@@ -11897,12 +11919,27 @@ dates of the time series are used.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
 @param end_date Date corresponding to the last date of the returned array.
-@param monthIndex Month of interest (1=Jan, 12=Dec).  If zero, process all
-months.
+@param monthIndex Month of interest (1=Jan, 12=Dec).  If zero, process all months.
 */
 public static double[] toArrayByMonth ( TS ts, 
 	DateTime start_date, DateTime end_date, int monthIndex )
 {	return toArray ( ts, start_date, end_date, monthIndex );
+}
+
+/**
+Return an array containing the data values (do not include missing values) of the time series for
+the specified period.  If the start date or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.
+@return The array of data for to time series.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+*/
+public static double[] toArrayNoMissing ( TS ts, DateTime start_date, DateTime end_date )
+{   // Call the version that takes the month indices but pass a null indicating to process all months...
+    return toArray ( ts, start_date, end_date, null, false );
 }
 
 /** 
