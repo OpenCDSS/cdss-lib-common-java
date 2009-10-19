@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Vector;
 
@@ -524,7 +525,8 @@ throws Exception
 		props = new PropList ( "TSAnalyst" );
 	}
 	
-	String Statistic = props.getValue ( "Statistic" );
+	String statisticProp = props.getValue ( "Statistic" );
+	TSStatisticType statisticType = TSStatisticType.valueOfIgnoreCase(statisticProp);
 
 	try {
         // Main try...
@@ -555,9 +557,9 @@ throws Exception
 			TSIdent tsident = new TSIdent ( NewTSID );
 			output_ts.setIdentifier ( tsident );
 		}
-		else if ( (Statistic != null) && (Statistic.length() > 0) ) {
+		else {
 			// Default is to reset the data type to the statistic...
-			output_ts.setDataType ( Statistic );
+			output_ts.setDataType ( "" + statisticType );
 		}
 	}
 	catch ( Exception e ) {
@@ -578,14 +580,14 @@ throws Exception
     TS stat_ts = null;
     if ( tsensemble == null ) {
         // Analyze the single time series to get a statistic...
-        stat_ts = createStatisticTimeSeries_ComputeStatistic ( ts, analysis_start, analysis_end, Statistic );
+        stat_ts = createStatisticTimeSeries_ComputeStatistic ( ts, analysis_start, analysis_end, statisticType );
         // Now use the statistic to repeat every year...
-        createStatisticTimeSeries_FillOuput ( stat_ts, output_ts, output_start, output_end, Statistic );
+        createStatisticTimeSeries_FillOuput ( stat_ts, output_ts, output_start, output_end );
     }
     else {
         // Analyse the ensemble to compute and assign the statistic to the output time series...
         createStatisticTimeSeries_ComputeStatisticFromEnsemble ( tsensemble, output_ts,
-                analysis_start, analysis_end, Statistic );
+                analysis_start, analysis_end, statisticType );
     }
 
 	// Return the statistic result...
@@ -608,10 +610,11 @@ February 29 data to be computed as a statistic, although it may not be used in t
 @param ts Time series to be analyzed.
 @param analysis_start Start of period to analyze.
 @param analysis_end End of period to analyze.
-@param statistic Statistic to compute.
+@param statisticType Statistic to compute.
 @return The statistics in a single-year time series.
 */
-private TS createStatisticTimeSeries_ComputeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end, String statistic )
+private TS createStatisticTimeSeries_ComputeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end,
+    TSStatisticType statisticType )
 throws Exception
 {	
  // Initialize statistic integer to speed processing
@@ -619,7 +622,7 @@ throws Exception
     int MEAN = 0;
     int MEDIAN = 1;
     int statisticInt = 0;
-    if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
+    if ( statisticType == TSStatisticType.MEAN ) {
         statisticInt = MEAN;
     }
     /*
@@ -654,7 +657,7 @@ throws Exception
 	// Reset the data type...
 	sum_ts.setDataType("Sum");
 	count_ts.setDataType("CountNonMissing");
-	stat_ts.setDataType(statistic);
+	stat_ts.setDataType("" + statisticType);
 	// Set the dates in the statistic time series...
 	sum_ts.setDate1( date1 );
 	sum_ts.setDate2 ( date2 );
@@ -729,28 +732,25 @@ series having the interval of the input data.
 @param stat_ts Statistic (output) time series to be created.
 @param analysis_start Start of period to analyze.
 @param analysis_end End of period to analyze.
-@param statistic Statistic to compute.
+@param statisticType Statistic to compute.
 @return The statistics in a single-year time series.
 */
 private TS createStatisticTimeSeries_ComputeStatisticFromEnsemble ( TSEnsemble tsensemble, TS stat_ts,
-        DateTime analysis_start, DateTime analysis_end, String statistic )
-throws Exception
+        DateTime analysis_start, DateTime analysis_end, TSStatisticType statisticType )
 {   // Initialize statistic integer to speed processing
-    // TODO SAM 2008-10-30 Need to enable global enumeration for statistics
-    int MEAN = 0;
-    int MEDIAN = 1;
-    int statisticInt = 0;
-    if ( statistic.equalsIgnoreCase(TSStatistic.Mean) ) {
-        statisticInt = MEAN;
-    }
-    else if ( statistic.equalsIgnoreCase(TSStatistic.Median) ) {
-        statisticInt = MEDIAN;
-    }
-    else {
-        throw new Exception ( "Only know how to generate mean and median statistics.");
+
+    if ( (statisticType != TSStatisticType.MEAN) &&
+        (statisticType != TSStatisticType.MEDIAN) ) {
+        throw new InvalidParameterException ( "Only know how to generate mean and median statistics.");
     }
     // Initialize the iterators using the analysis period...
-    TSIterator tsi_stat = stat_ts.iterator ( analysis_start, analysis_end );
+    TSIterator tsi_stat = null;
+    try {
+        tsi_stat = stat_ts.iterator ( analysis_start, analysis_end );
+    }
+    catch ( Exception e ) {
+        throw new RuntimeException ( "Error creating irregular time series iterator (" + e + ").");
+    }
     int size = tsensemble.size();
     TS ts;
     // To improve performance, initialize an array of time series...
@@ -791,12 +791,12 @@ throws Exception
         }
         // Now compute the statistic time series.
         // FIXME SAM 2008-10-30 Need to add more statistics
-        if ( statisticInt == MEAN ) {
+        if ( statisticType == TSStatisticType.MEAN ) {
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, sum_value/(double)countNonMissing );
             }
         }
-        else if ( statisticInt == MEDIAN ) {
+        else if ( statisticType == TSStatisticType.MEDIAN ) {
             // Remove the missing values and analyze only non-missing values
             stat_ts.setDataValue ( date, MathUtil.median(countNonMissing,sampleData) );
         }
@@ -812,9 +812,9 @@ Fill the output repeating time series with the statistic values.
 @param output_ts Output time series to fill.
 @param output_start Output period start.
 @param output_end Output period end.
-@param Statistic Statistic being generated.
 */
-private void createStatisticTimeSeries_FillOuput ( TS stat_ts, TS output_ts, DateTime output_start, DateTime output_end, String Statistic )
+private void createStatisticTimeSeries_FillOuput ( TS stat_ts, TS output_ts, DateTime output_start,
+    DateTime output_end )
 throws Exception
 {
 	TSIterator tsi = output_ts.iterator();
@@ -939,7 +939,8 @@ throws TSException
 		props = new PropList ( "TSAnalyst" );
 	}
 	
-	String Statistic = props.getValue ( "Statistic" );
+	String statisticProp = props.getValue ( "Statistic" );
+	TSStatisticType statisticType = TSStatisticType.valueOfIgnoreCase(statisticProp);
 
 	try {	// Main try...
 
@@ -965,9 +966,9 @@ throws TSException
 			TSIdent tsident = new TSIdent ( NewTSID );
 			yearts.setIdentifier ( tsident );
 		}
-		else if ( (Statistic != null) && (Statistic.length() > 0) ) {
+		else {
 			// Default is to reset the data type to the statistic...
-			yearts.setDataType ( Statistic );
+			yearts.setDataType ( "" + statisticType );
 		}
 	}
 	catch ( Exception e ) {
@@ -989,31 +990,30 @@ throws TSException
 	// Process the statistic of interest...
 
 	if (	
-		Statistic.equals(TSStatistic.CountGE) ||
-		Statistic.equals(TSStatistic.CountGT) ||
-		Statistic.equals(TSStatistic.CountLE) ||
-		Statistic.equals(TSStatistic.CountLT) ||
-		Statistic.equals(TSStatistic.DayOfFirstGE) ||
-		Statistic.equals(TSStatistic.DayOfFirstGT) ||
-		Statistic.equals(TSStatistic.DayOfFirstLE) ||
-		Statistic.equals(TSStatistic.DayOfFirstLT) ||
-		Statistic.equals(TSStatistic.DayOfLastGE) ||
-		Statistic.equals(TSStatistic.DayOfLastGT) ||
-		Statistic.equals(TSStatistic.DayOfLastLE) ||
-		Statistic.equals(TSStatistic.DayOfLastLT) ||
-		Statistic.equals(TSStatistic.DayOfMax) ||
-		Statistic.equals(TSStatistic.DayOfMin) ||
-		Statistic.equals(TSStatistic.Max) ||
-	    Statistic.equals(TSStatistic.Mean) ||
-		Statistic.equals(TSStatistic.Median) ||
-		Statistic.equals(TSStatistic.Min) ||
-		Statistic.equals(TSStatistic.Total) ) {
+		(statisticType == TSStatisticType.COUNT_GE) ||
+		(statisticType == TSStatisticType.COUNT_GT) ||
+		(statisticType == TSStatisticType.COUNT_LE) ||
+		(statisticType == TSStatisticType.COUNT_LT) ||
+		(statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
+		(statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
+		(statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
+		(statisticType == TSStatisticType.DAY_OF_FIRST_LT) ||
+		(statisticType == TSStatisticType.DAY_OF_LAST_GE) ||
+		(statisticType == TSStatisticType.DAY_OF_LAST_GT) ||
+		(statisticType == TSStatisticType.DAY_OF_LAST_LE) ||
+		(statisticType == TSStatisticType.DAY_OF_LAST_LT) ||
+		(statisticType == TSStatisticType.DAY_OF_MAX) ||
+		(statisticType == TSStatisticType.DAY_OF_MIN) ||
+		(statisticType == TSStatisticType.MAX) ||
+	    (statisticType == TSStatisticType.MEAN) ||
+		(statisticType == TSStatisticType.MEDIAN) ||
+		(statisticType == TSStatisticType.MIN) ||
+		(statisticType == TSStatisticType.TOTAL) ) {
 		processStatistic ( ts, yearts, props, start, end,
 		        AnalysisWindowStart_DateTime, AnalysisWindowEnd_DateTime  );
 	}
 	else {
-	    // TODO SAM 2005-09-12
-		// The following is for the data coverage report and needs to
+	    // TODO SAM 2005-09-12 The following is for the data coverage report and needs to
 		// be migrated to a method.  This currently the default.
 		processStatisticDataCoveragePercent ( ts, yearts, props, start, end );
 	}
@@ -1407,7 +1407,6 @@ private void processStatistic (	TS ts, YearTS yearts,
 				PropList props,
 				DateTime start, DateTime end,
 				DateTime AnalysisWindowStart_DateTime, DateTime AnalysisWindowEnd_DateTime )
-throws Exception
 {	String routine = "TSAnalyst.processStatistic", message;
 	DateTime year_date = new DateTime ( end, DateTime.PRECISION_YEAR );
 	double year_value = 0.0,	// Statistic value for year.
@@ -1422,12 +1421,11 @@ throws Exception
 	if ( interval_base != TimeInterval.DAY ) {
 		message = "Only daily time series can be processed.";
 		Message.printWarning ( 3, routine, message );
-		throw new Exception ( message );
+		throw new InvalidParameterException ( message );
 	}
 	boolean is_regular = TimeInterval.isRegularInterval(interval_base);
 
-	// TODO SAM 2005-09-22
-	// Currently this is used below in setting the description.  However,
+	// TODO SAM 2005-09-22 Currently this is used below in setting the description.  However,
 	// some statistics may not need a test value.
 
 	String TestValue = props.getValue ( "TestValue" );
@@ -1436,7 +1434,7 @@ throws Exception
 		if ( !StringUtil.isDouble(TestValue) ) {
 			message = "TestValue (" +TestValue+") is not a number.";
 			Message.printWarning ( 3, routine, message );
-			throw new Exception ( message );
+			throw new InvalidParameterException ( message );
 		}
 		else {
 		    TestValue_double = StringUtil.atod ( TestValue );
@@ -1447,27 +1445,9 @@ throws Exception
 
 	String SearchStart = props.getValue ( "SearchStart" );
 
-	String Statistic = props.getValue ( "Statistic" );
-	int Statistic_CountGE = 0;	// Used to control logic below
-	int Statistic_CountGT = 1;
-	int Statistic_CountLE = 2;
-	int Statistic_CountLT = 3;
-	int Statistic_DayOfFirstGE = 4;
-	int Statistic_DayOfFirstGT = 5;
-	int Statistic_DayOfFirstLE = 6;
-	int Statistic_DayOfFirstLT = 7;
-	int Statistic_DayOfLastGE = 8;
-	int Statistic_DayOfLastGT = 9;
-	int Statistic_DayOfLastLE = 10;
-	int Statistic_DayOfLastLT = 11;
-	int Statistic_DayOfMax = 12;
-	int Statistic_DayOfMin = 13;
-	int Statistic_Max = 14;
-	int Statistic_Mean = 15;
-	int Statistic_Median = 16;
-	int Statistic_Min = 17;
-	int Statistic_Total = 18;
-	int Statistic_int = -1;	
+	String statisticProp = props.getValue ( "Statistic" );
+	TSStatisticType statisticType = TSStatisticType.valueOfIgnoreCase(statisticProp);
+
 	int Test_GE = 0;	// Tests to perform >=
 	int Test_GT = 1;	// >
 	int Test_LE = 2;	// <=
@@ -1479,163 +1459,144 @@ throws Exception
 	boolean Statistic_isCount = false;	// Indicates if the statistic is
 						// one that keeps a count of
 						// test passes.
-	if ( Statistic.equals(TSStatistic.CountGE) ) {
+	if ( statisticType == TSStatisticType.COUNT_GE ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_CountGE;
 		Test_int = Test_GE;
 		yearts.setDescription ( "Count of values >= " + TestValue );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( Statistic.equals(TSStatistic.CountGT) ) {
+	else if ( statisticType == TSStatisticType.COUNT_GT ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_CountGT;
 		Test_int = Test_GT;
 		yearts.setDescription ( "Count of values > " + TestValue );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( Statistic.equals(TSStatistic.CountLE) ) {
+	else if ( statisticType == TSStatisticType.COUNT_LE ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_CountLE;
 		Test_int = Test_LE;
 		yearts.setDescription ( "Count of values <= " + TestValue );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( Statistic.equals(TSStatistic.CountLT) ) {
+	else if ( statisticType == TSStatisticType.COUNT_LT ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_CountLT;
 		Test_int = Test_LT;
 		yearts.setDescription ( "Count of values < " + TestValue );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfFirstGE ) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_FIRST_GE ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfFirstGE;
 		Test_int = Test_GE;
 		yearts.setDescription ( "Day of year for first value >= " +	TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfFirstGT ) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_FIRST_GT ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfFirstGT;
 		Test_int = Test_GT;
 		yearts.setDescription ( "Day of year for first value > " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfFirstLE ) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_FIRST_LE ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfFirstLE;
 		Test_int = Test_LE;
 		yearts.setDescription ( "Day of year for first value <= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfFirstLT ) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_FIRST_LT ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfFirstLT;
 		Test_int = Test_LT;
 		yearts.setDescription ( "Day of year for first value < " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfLastGE) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_LAST_GE ) {
 		iterate_forward = false;
-		Statistic_int = Statistic_DayOfLastGE;
 		Test_int = Test_GE;
 		yearts.setDescription ( "Day of year for last value >= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfLastGT) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_LAST_GT ) {
 		iterate_forward = false;
-		Statistic_int = Statistic_DayOfLastGT;
 		Test_int = Test_GT;
 		yearts.setDescription ( "Day of year for last value > " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfLastLE) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_LAST_LE ) {
 		iterate_forward = false;
-		Statistic_int = Statistic_DayOfLastLE;
 		Test_int = Test_LE;
 		yearts.setDescription ( "Day of year for last value <= " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfLastLT) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_LAST_LT ) {
 		iterate_forward = false;
-		Statistic_int = Statistic_DayOfLastLT;
 		Test_int = Test_LT;
 		yearts.setDescription ( "Day of year for last value < " + TestValue );
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	// TODO SAM 2005-09-28
-	// Need to decide if iteration direction and SearchStart should be a
+	// TODO SAM 2005-09-28 Need to decide if iteration direction and SearchStart should be a
 	// parameter for max and min
-	else if ( Statistic.equals(TSStatistic.DayOfMax) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_MAX ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfMax;
 		Test_int = Test_Max;
 		yearts.setDescription ( "Day of year for maximum value" );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.DayOfMin) ) {
+	else if ( statisticType == TSStatisticType.DAY_OF_MIN ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_DayOfMin;
 		Test_int = Test_Min;
 		yearts.setDescription ( "Day of year for minimum value" );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( "DayOfYear" );
 	}
-	else if ( Statistic.equals(TSStatistic.Max) ) {
+	else if ( statisticType == TSStatisticType.MAX ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_Max;
 		Test_int = Test_Max;
 		yearts.setDescription ( "Maximum value" );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( ts.getDataUnits() );
 	}
-    else if ( Statistic.equals(TSStatistic.Mean) ) {
+    else if ( statisticType == TSStatisticType.MEAN ) {
         iterate_forward = true;
-        Statistic_int = Statistic_Mean;
         Test_int = Test_Accumulate;
         yearts.setDescription ( "Mean value" );
         SearchStart = "01-01";  // Always default to first of year
         yearts.setDataUnits ( ts.getDataUnits() );
         //Statistic_isCount = true;   // Needed for computations
     }
-    else if ( Statistic.equals(TSStatistic.Median) ) {
+    else if ( statisticType == TSStatisticType.MEDIAN ) {
         iterate_forward = true;
-        Statistic_int = Statistic_Median;
         Test_int = Test_Accumulate;
         yearts.setDescription ( "Median value" );
         SearchStart = "01-01";  // Always default to first of year
         yearts.setDataUnits ( ts.getDataUnits() );
         //Statistic_isCount = true;   // Needed for computations
     }
-	else if ( Statistic.equals(TSStatistic.Min) ) {
+	else if ( statisticType == TSStatisticType.MIN ) {
 		iterate_forward = true;
-		Statistic_int = Statistic_Min;
 		Test_int = Test_Min;
 		yearts.setDescription ( "Minimum value" );
 		SearchStart = "01-01";	// Always default to first of year
 		yearts.setDataUnits ( ts.getDataUnits() );
 	}
-    else if ( Statistic.equals(TSStatistic.Total) ) {
+    else if ( statisticType == TSStatisticType.TOTAL ) {
         iterate_forward = true;
-        Statistic_int = Statistic_Total;
         Test_int = Test_Accumulate;
         yearts.setDescription ( "Total value" );
         SearchStart = "01-01";  // Always default to first of year
         yearts.setDataUnits ( ts.getDataUnits() );
         //Statistic_isCount = true;   // Needed for computation checks
     }
-	else { 	message = "Unknown statistic (" + Statistic + ").";
+	else {
+	    message = "Unknown statistic (" + statisticType + ").";
 		Message.printWarning ( 3, routine, message );
-		throw new Exception ( message );
+		throw new InvalidParameterException ( message );
 	}
 
 	String AllowMissingCount = props.getValue ( "AllowMissingCount" );
@@ -1644,7 +1605,7 @@ throws Exception
 		if ( !StringUtil.isInteger(AllowMissingCount) ) {
 			message = "AllowMissingCount (" + AllowMissingCount + ") is not an integer.";
 			Message.printWarning ( 3, routine, message );
-			throw new Exception ( message );
+			throw new InvalidParameterException ( message );
 		}
 		AllowMissingCount_int = StringUtil.atoi ( AllowMissingCount );
 		if ( AllowMissingCount_int < 0 ) {
@@ -1661,7 +1622,7 @@ throws Exception
 		{
 			message = "SearchStart (" + SearchStart + ") is not a date.";
 			Message.printWarning ( 3, routine, message );
-			throw new Exception ( message );
+			throw new InvalidParameterException ( message );
 		}
 	}
 	else {
@@ -1671,8 +1632,7 @@ throws Exception
 
 	// Loop through data, starting at the front of the time series...
 	DateTime date = null,
-		date_search = null;	// DateTime corresponding to SearchStart
-					// for a particular year
+		date_search = null;	// DateTime corresponding to SearchStart for a particular year
 	if ( iterate_forward ) {
 		date = new DateTime ( start );
 	}
@@ -1681,18 +1641,22 @@ throws Exception
 	}
 	int year_prev = date.getYear();
 	int year = 0;
-	TSIterator tsi = ts.iterator();
+	TSIterator tsi = null;
+	try {
+	    tsi = ts.iterator();
+	}
+	catch ( Exception e ) {
+	    throw new RuntimeException ( "Error creating irregular time series iterator (" + e + ").");
+	}
 	TSData data = null;
-	DateTime AnalysisWindowEndInYear_DateTime = null;    // End of analysis window in a year
-	boolean need_to_analyze = true;	// Need to analyze value for current year
+	DateTime AnalysisWindowEndInYear_DateTime = null; // End of analysis window in a year
+	boolean need_to_analyze = true; // Need to analyze value for current year
 	boolean first_interval = true;
-	int missing_count = 0;     // missing count in a year
-	int nonmissing_count = 0;  // nonmissing count in a year
-	int gap = 0;			// Number of missing values in a gap
-					// at the end of the period.
-	boolean end_of_data = false;	// Use to indicate end of data because
-					// checking for data == null directly
-					// can't be done with SearchStart logic.
+	int missing_count = 0; // missing count in a year
+	int nonmissing_count = 0; // non-missing count in a year
+	int gap = 0; // Number of missing values in a gap at the end of the period.
+	boolean end_of_data = false; // Use to indicate end of data because
+					// checking for data == null directly can't be done with SearchStart logic.
 	while ( true ) {
 		if ( iterate_forward ) {
 		    // First call will initialize and return first point.
@@ -1724,7 +1688,7 @@ throws Exception
 				// Now recheck to see if the value should be set (not missing)...
 				if ( !yearts.isDataMissing(year_value) ) {
 					// Have a value to assign to the statistic...
-				    if ( Statistic_int == Statistic_Total ) {
+				    if ( statisticType == TSStatisticType.TOTAL ) {
 				        if ( (missing_count <= AllowMissingCount_int) && !yearts.isDataMissing(year_value) ) {
 				            if ( Message.isDebugOn ) {
 				                Message.printDebug ( dl, routine, "Setting " + date + " year value=" + year_value );
@@ -1732,7 +1696,7 @@ throws Exception
 				            yearts.setDataValue ( year_date, year_value );
 				        }
 				    }
-				    else if ( Statistic_int == Statistic_Mean ) {
+				    else if ( statisticType == TSStatisticType.MEAN ) {
                         if ( (missing_count <= AllowMissingCount_int) && (nonmissing_count > 0) &&
                                 !yearts.isDataMissing(year_value) ) {
                             year_value = year_value/(double)nonmissing_count;
@@ -1743,7 +1707,7 @@ throws Exception
                         }
                     }
 				    else {
-				        // Simple assignment of a statitic.
+				        // Simple assignment of a statistic.
 	                    yearts.setDataValue ( year_date, year_value );
 	                    if ( Message.isDebugOn ) {
 	                        Message.printDebug ( dl, routine,
@@ -1779,7 +1743,7 @@ throws Exception
                     }
 				}
 				if ( AnalysisWindowStart_DateTime != null ) {
-				    // The AnalysisWindow takes precendence.
+				    // The AnalysisWindow takes precedence.
                     date_search.setMonth( AnalysisWindowStart_DateTime.getMonth());
                     date_search.setDay ( AnalysisWindowStart_DateTime.getDay());
                     // Also set the end date in the year to include.
@@ -1859,8 +1823,7 @@ throws Exception
 		// If need_to_analyze is false, then the data can be skipped.
 		// This will occur either if the value is found or too much
 		// missing data have been found and the result cannot be used.
-		// TODO SAM 2005-09-22
-		// Some of the following is in place because a TSIterator is
+		// TODO SAM 2005-09-22 Some of the following is in place because a TSIterator is
 		// being used to accomodate regular and irregular data.  It
 		// should be possible to jump over data but for now the brute
 		// force search is performed.
@@ -1880,10 +1843,8 @@ throws Exception
 				// Have too much missing data to generate the statistic...
 				need_to_analyze = false;
 				Message.printDebug ( dl, "",
-				"Will not analyze year because more" +
-				" than " + AllowMissingCount_int +
-				" missing values were found (" + missing_count +
-				")." );
+				"Will not analyze year because more than " + AllowMissingCount_int +
+				" missing values were found (" + missing_count + ")." );
 				continue;
 			}
 			// If missing data have not been a problem so far, continue with the check...
@@ -1901,7 +1862,7 @@ throws Exception
 			    // Data value is not missing so evaluate the test...
 			    ++nonmissing_count;
 				if ( (Test_int == Test_GE) && (value >= TestValue_double) ) {
-					if (Statistic_int == Statistic_CountGE){
+					if (statisticType == TSStatisticType.COUNT_GE ){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1909,15 +1870,15 @@ throws Exception
 						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int == Statistic_DayOfFirstGE) ||
-						(Statistic_int == Statistic_DayOfLastGE) ){
+					else if ((statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
+						(statisticType == TSStatisticType.DAY_OF_LAST_GE) ){
 						year_value = TimeUtil.dayOfYear(date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
 				else if((Test_int == Test_GT) && (value > TestValue_double) ) {
-					if (Statistic_int == Statistic_CountGT){
+					if (statisticType == TSStatisticType.COUNT_GT ){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1925,15 +1886,15 @@ throws Exception
 						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int == Statistic_DayOfFirstGT) ||
-						(Statistic_int == Statistic_DayOfLastGT) ){
+					else if ((statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
+						(statisticType == TSStatisticType.DAY_OF_LAST_GT) ){
 						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
 				else if((Test_int == Test_LE) && (value <= TestValue_double) ) {
-					if (Statistic_int == Statistic_CountLE){
+					if (statisticType == TSStatisticType.COUNT_LE) {
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1941,15 +1902,15 @@ throws Exception
 						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int == Statistic_DayOfFirstLE) ||
-						(Statistic_int == Statistic_DayOfLastLE) ){
+					else if ((statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
+						(statisticType == TSStatisticType.DAY_OF_LAST_LE) ){
 						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
 					}
 				}
 				else if((Test_int == Test_LT) && (value < TestValue_double) ) {
-					if (Statistic_int == Statistic_CountLT){
+					if (statisticType == TSStatisticType.COUNT_LT){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1957,8 +1918,8 @@ throws Exception
 						    year_value += 1.0;
 						}
 					}
-					else if ((Statistic_int == Statistic_DayOfFirstLT) ||
-						(Statistic_int == Statistic_DayOfLastLT) ){
+					else if ((statisticType == TSStatisticType.DAY_OF_FIRST_LT) ||
+						(statisticType == TSStatisticType.DAY_OF_LAST_LT) ){
 						year_value = TimeUtil.dayOfYear( date);
 						need_to_analyze = false;	
 						// Found value for the year.
@@ -1967,7 +1928,7 @@ throws Exception
 				else if ( Test_int == Test_Max ) {
 					if(yearts.isDataMissing(extreme_value)||(value > extreme_value) ) {
 						// Set the max...
-						if ( Statistic_int == Statistic_DayOfMax ) {
+						if ( statisticType == TSStatisticType.DAY_OF_MAX ) {
 							year_value = TimeUtil.dayOfYear( date);
 						}
 						else {
@@ -1980,7 +1941,7 @@ throws Exception
 				else if ( Test_int == Test_Min ) {
 					if(yearts.isDataMissing(extreme_value)||(value < extreme_value) ) {
 						// Set the min...
-						if ( Statistic_int == Statistic_DayOfMin ) {
+						if ( statisticType == TSStatisticType.DAY_OF_MIN ) {
 							year_value = TimeUtil.dayOfYear( date);
 						}
 						else {
@@ -2004,17 +1965,13 @@ throws Exception
 		}
 	}
 	if ( ts.getAlias().length() > 0 ) {
-		yearts.addToGenesis ( "Created " + Statistic +
-			" statistic time series (TestValue=" + TestValue +
-			",SearchStart=" + SearchStart +
-			",AllowMissingCount=" + AllowMissingCount +
+		yearts.addToGenesis ( "Created " + statisticType + " statistic time series (TestValue=" + TestValue +
+			",SearchStart=" + SearchStart + ",AllowMissingCount=" + AllowMissingCount +
 			") from input: " + ts.getAlias() );
 	}
 	else {
-	    yearts.addToGenesis ( "Created " + Statistic +
-			" statistic time series (TestValue=" + TestValue +
-			",SearchStart=" + SearchStart +
-			",AllowMissingCount=" + AllowMissingCount +
+	    yearts.addToGenesis ( "Created " + statisticType + " statistic time series (TestValue=" + TestValue +
+			",SearchStart=" + SearchStart + ",AllowMissingCount=" + AllowMissingCount +
 			") from input: " + ts.getIdentifier() );
 	}
 }
@@ -2022,10 +1979,8 @@ throws Exception
 /**
 Process a time series to create the DataCoveragePercent statistic.
 */
-private void processStatisticDataCoveragePercent (	TS ts, YearTS yearts,
-							PropList props,
-							DateTime start,
-							DateTime end )
+private void processStatisticDataCoveragePercent ( TS ts, YearTS yearts, PropList props,
+	DateTime start, DateTime end )
 throws Exception
 {	String routine = "TSAnalyst.processStatisticDataCoveragePercent";
 	int dl = 10;
@@ -2033,14 +1988,12 @@ throws Exception
 	int interval_mult = ts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Not supported.
-		throw new TSException (
-		"Irregular time series cannot be analyzed." );
+		throw new TSException ( "Irregular time series cannot be analyzed." );
 	}
 
 	boolean set_missing_if_missing = false;
 	String SetMissingIfMissing = props.getValue ( "SetMissingIfMissing" );
-	if (	(SetMissingIfMissing != null) &&
-		SetMissingIfMissing.equalsIgnoreCase("true") ) {
+	if ( (SetMissingIfMissing != null) && SetMissingIfMissing.equalsIgnoreCase("true") ) {
 		set_missing_if_missing = true;
 	}
 
@@ -2071,27 +2024,21 @@ throws Exception
 				if ( !set_missing_if_missing ) {
 					year_value = 0.0;
 				}
-				else {	year_value =yearts.getMissing();
+				else {
+				    year_value =yearts.getMissing();
 				}
 			}
 			else {	int nintervals = 0;
 				for ( int im = 1; im <= 12; im++ ) {
-					nintervals +=
-					TSUtil.numIntervalsInMonth( im,
-					lastyear, interval_base,
-					interval_mult);
+					nintervals += TSUtil.numIntervalsInMonth( im, lastyear, interval_base, interval_mult);
 				}
-				year_value = (double)data_count*100.0/
-						nintervals;
+				year_value = (double)data_count*100.0/nintervals;
 			}
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"For " + date + " found " + data_count
-				+ " values." );
+				Message.printDebug ( dl, routine, "For " + date + " found " + data_count + " values." );
 			}
 			yearts.setDataValue ( year_date, year_value );
-			// Now increment the year to be ready for the
-			// next year...
+			// Now increment the year to be ready for the next year...
 			year_date.addYear ( 1 );
 			// Reset the value for next year...
 			data_count = 0;
@@ -2108,36 +2055,31 @@ throws Exception
 	// Always do the last value using the same logic as above...
 	if ( year != 0 ) {
 		// New year so set last year's values...
-		// We are setting the percentage of data found
-		// for the year.
+		// We are setting the percentage of data found for the year.
 		if ( data_count == 0 ) {
 			if ( !set_missing_if_missing ) {
 				year_value = 0.0;
 			}
-			else {	year_value = yearts.getMissing();
+			else {
+			    year_value = yearts.getMissing();
 			}
 		}
-		else {	int nintervals = 0;
+		else {
+		    int nintervals = 0;
 			for ( int im = 1; im <= 12; im++ ) {
-				nintervals +=
-				TSUtil.numIntervalsInMonth( im,
-				lastyear, interval_base, interval_mult);
+				nintervals += TSUtil.numIntervalsInMonth( im, lastyear, interval_base, interval_mult);
 			}
-			year_value = (double)
-				data_count*100.0/nintervals;
+			year_value = (double)data_count*100.0/nintervals;
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"For " + date + " found " + data_count
-			+ " values." );
+			Message.printDebug ( dl, routine, "For " + date + " found " + data_count + " values." );
 		}
 		yearts.setDataValue ( year_date, year_value );
 	}
 
 	// Set the genesis information...
 
-	ts.addToGenesis ( "Evaluated missing data from " + start.toString() +
-		" to " + end.toString() + "." );
+	ts.addToGenesis ( "Evaluated missing data from " + start + " to " + end + "." );
 }
 
 /**
@@ -2145,8 +2087,7 @@ Run an interactive shell that prompts for commands.
 @param ts Time series to analyze.
 */
 public static void runShell ( TS ts )
-{	String		full_string = "", routine = "TSAnalyst.runShell",
-			string = "";
+{	String full_string = "", routine = "TSAnalyst.runShell", string = "";
 	boolean		showid = false;
 	InputStream	console_in = System.in;
 	PrintStream	console_out = System.out;
@@ -2202,8 +2143,7 @@ public static void runShell ( TS ts )
 		// Prepare the full string for use later...
 		full_string = full_string + string;
 		if ( Message.isDebugOn ) {
-			Message.printStatus ( dl, routine,
-			"Full string is \"" + full_string + "\"" );
+			Message.printStatus ( dl, routine, "Full string is \"" + full_string + "\"" );
 		}
 		// Now check for recognized commands...
 		if ( string.regionMatches(true,0,"close",0,5) ) {
@@ -2229,12 +2169,11 @@ public static void runShell ( TS ts )
 			// Get the time series limits...
 			try {	String limits_string = null;
 				TSLimits limits = null;
-				if ( ts.getDataIntervalBase() ==
-					TimeInterval.MONTH ) {
-					limits = new MonthTSLimits (
-						(MonthTS)ts );
+				if ( ts.getDataIntervalBase() == TimeInterval.MONTH ) {
+					limits = new MonthTSLimits ( (MonthTS)ts );
 				}
-				else {	limits = new TSLimits ( ts );
+				else {
+				    limits = new TSLimits ( ts );
 				}
 				limits_string = limits.toString();
 				out.println ( limits_string );
@@ -2242,22 +2181,18 @@ public static void runShell ( TS ts )
 				limits = null;
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Unable to print time series limits." );
+				Message.printWarning ( 1, routine, "Unable to print time series limits." );
 			}
 		}
 		else if ( string.regionMatches(true,0,"open",0,4) ) {
 			// Open the output file...
-			try {	output_file = string.substring ( 4 ).trim();
-				out = new PrintWriter ( new FileWriter(
-					output_file) );
-				Message.printStatus ( 2, routine,
-				"Output will be printed to \"" + output_file +
-				"\"" );
+			try {
+			    output_file = string.substring ( 4 ).trim();
+				out = new PrintWriter ( new FileWriter(output_file) );
+				Message.printStatus ( 2, routine, "Output will be printed to \"" + output_file + "\"" );
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Unable to open file \"" + output_file + "\"" );
+				Message.printWarning ( 1, routine, "Unable to open file \"" + output_file + "\"" );
 				output_file = "console";
 				out = new PrintWriter ( System.out );
 			}
@@ -2275,13 +2210,13 @@ public static void runShell ( TS ts )
 			if ( showid ) {
 				showid = false;
 			}
-			else {	showid = true;
+			else {
+			    showid = true;
 			}
 		}
 		else if ( string.regionMatches(true,0,"status",0,6) ) {
 			// Print the status of the session...
-			Message.printStatus ( 2, routine,
-			"Output is printing to \"" + output_file + "\"" );
+			Message.printStatus ( 2, routine, "Output is printing to \"" + output_file + "\"" );
 		}
 		else if ( string.regionMatches(true,0,"summary",0, 7) ) {
 			PropList props = new PropList ( "summary" );
@@ -2298,24 +2233,15 @@ public static void runShell ( TS ts )
 				}
 			}
 			catch ( Exception e ) {
-				Message.printWarning ( 1, routine,
-				"Unable to print time series summary." );
+				Message.printWarning ( 1, routine, "Unable to print time series summary." );
 			}
 			props = null;
 		}
-		else {	// Unknown command...
-			Message.printWarning ( 1, routine,
-			"Unknown command \"" + string + "\"" );
+		else {
+		    // Unknown command...
+			Message.printWarning ( 1, routine, "Unknown command \"" + string + "\"" );
 		}
 	}
-	full_string = null;
-	routine = null;
-	string = null;
-	console_in = null;
-	console_out = null;
-	bytes = null;
-	output_file = null;
-	out = null;
 }
 
 /**
@@ -2413,25 +2339,16 @@ throws TSException
 			data_string.append ( StringUtil.formatString(date.getYear(),"%04d").substring(2) + delim );
 		}
 	}
-	_data_coverage_report_Vector.add (
-		StringUtil.formatString("Station","%-20.20s") +
-		delim +
-		StringUtil.formatString("Name","%-40.40s") +
-		delim + data_string.toString() );
-	delim = null;
-	year_type = null;
-	limits = null;
-	data_string = null;
-	date = null;
+	_data_coverage_report_Vector.add ( StringUtil.formatString("Station","%-20.20s") + delim +
+		StringUtil.formatString("Name","%-40.40s") + delim + data_string.toString() );
 }
 
 /**
-Return a string representation of the analyst.  Currently returns an empty
-string.
+Return a string representation of the analyst.  Currently returns an empty string.
 @return A verbose string representation of the results.
 */
 public String toString ( )
 {	return "";
 }
 
-} // End of TSAnalyst
+}

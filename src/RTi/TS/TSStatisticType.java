@@ -1,18 +1,16 @@
 package RTi.TS;
 
-import java.util.List;
-import java.util.Vector;
-
 import RTi.Util.String.StringUtil;
-import RTi.Util.Time.TimeInterval;
 
 /**
-This class stores a time series statistic, which is a value or values determined
+This class stores time series statistic types, which are a value or values determined
 from the sample given by the time series data points.  Some statistics are general in
 nature and could be applied outside of time series.  Some are specific to time series
-(e.g., day of year that some condition occurs).
+(e.g., day of year that some condition occurs).  This enumeration only provides a list of potential
+statistic types.  Computation and management of results occurs in other classes.  Code that uses
+these statistics types should typically decide which statistics are supported.
 */
-public enum TSStatistic
+public enum TSStatisticType
 {
     /**
      * Count of missing and non-missing values (total count).
@@ -111,6 +109,10 @@ public enum TSStatistic
      */
     EXCEEDANCE_PROBABILITY_GE90 ( "ExceedanceProbabilityGE90" ),
     /**
+     * Auto-correlation with previous interval.
+     */
+    LAG1_AUTO_CORRELATION ( "Lag-1AutoCorrelation" ),
+    /**
      * Maximum value in the sample.
      */
 	MAX ( "Max" ),
@@ -196,7 +198,7 @@ public enum TSStatistic
      * Construct a time series statistic enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
-    private TSStatistic(String displayName) {
+    private TSStatisticType(String displayName) {
         this.displayName = displayName;
     }
 
@@ -217,74 +219,9 @@ public enum TSStatistic
 
 // TODO SAM 2005-09-12
 // Need to figure out how to handle irregular data.
-/**
-Return a list of statistic choices for the requested interval and scale.
-These strings are suitable for listing in a user interface.  The statistics are
-listed in ascending alphabetical order.  Parameters can be used to limit the
-choices (these features will be phased in over time as statistics are added).
-@param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
-@param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
-expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
-@deprecated due to the large number of statistics, choices should be determined for the specific
-computational code to avoid inappropriate choices.
-*/
-public static List getStatisticChoicesForInterval ( int interval, String timescale )
-{	List statistics = new Vector();
-	if ( (interval >= TimeInterval.MONTH) || (interval == TimeInterval.UNKNOWN) ) {
-		statistics.add ( COUNT_GE );
-		statistics.add ( COUNT_GT );
-		statistics.add ( COUNT_LE );
-		statistics.add ( COUNT_LT );
-		statistics.add ( DAY_OF_FIRST_GE );
-		statistics.add ( DAY_OF_FIRST_GT );
-		statistics.add ( DAY_OF_FIRST_LE );
-		statistics.add ( DAY_OF_FIRST_LT );
-		statistics.add ( DAY_OF_LAST_GE );
-		statistics.add ( DAY_OF_LAST_GT );
-		statistics.add ( DAY_OF_LAST_LE );
-		statistics.add ( DAY_OF_LAST_LT );
-		statistics.add ( DAY_OF_MAX );
-		statistics.add ( DAY_OF_MIN );
-		statistics.add ( MAX );
-		statistics.add ( MEDIAN );
-		statistics.add ( MEAN );
-		statistics.add ( MIN );
-		statistics.add ( TOTAL );
-	}
-	return statistics;
-}
 
-// TODO SAM 2009-07-27 More robust to move method like the following to specific computation classes so
-// that only appropriate statistics are listed for users
-/**
-Return a list of statistic choices for the requested interval and scale, for a simple
-sample.  For example, if all Jan 1 daily values are in the sample, the statistics would
-be those that can be determined for the sample.
-These strings are suitable for listing in a user interface.  The statistics are
-listed in ascending alphabetical order.  Parameters can be used to limit the
-choices (these features will be phased in over time as statistics are added).
-@param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
-@param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
-expected on accumulated, mean, instantaneous data.  Pass null to get all choices.
-@deprecated due to the large number of statistics, choices should be determined for the specific
-computational code to avoid inappropriate choices.
-*/
-public static List getStatisticChoicesForSimpleSample ( int interval, String timescale )
-{	List statistics = new Vector();
-	// TODO SAM 2007-11-05 Could add the CountLE, etc.
-	//statistics.addElement ( Max );
-    //statistics.addElement ( ExceedanceProbabilityGE10 );
-    //statistics.addElement ( ExceedanceProbabilityGE50 );
-    //statistics.addElement ( ExceedanceProbabilityGE90 );
-    statistics.add ( MEAN );
-    statistics.add ( MEDIAN );
-	//statistics.addElement ( Min );
-	return statistics;
-}
-
-// TODO SAM 2009-07-27 evaluate using enumeration, etc. to have properties for statistic
+// TODO SAM 2009-07-27 evaluate using enumeration, etc. to have properties for statistic or add this method
+// to specific calculation classes.
 /**
 Return the statistic data type as double, integer, etc., to facilitate handling by other code.
 @param statistic name of statistic
@@ -315,10 +252,10 @@ public String toString() {
  * Return the enumeration value given a string name (case-independent).
  * @return the enumeration value given a string name (case-independent), or null if not matched.
  */
-public static TSStatistic valueOfIgnoreCase(String name)
+public static TSStatisticType valueOfIgnoreCase(String name)
 {
-    TSStatistic [] values = values();
-    for ( TSStatistic t : values ) {
+    TSStatisticType [] values = values();
+    for ( TSStatisticType t : values ) {
         if ( name.equalsIgnoreCase(t.toString()) ) {
             return t;
         }
