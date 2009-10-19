@@ -300,10 +300,40 @@ public static double interpolate ( double x, double xmin, double xmax, double ym
 }
 
 /**
+Calculate the lag-k auto correlation, defined as:
+<pre>
+(sum_i_N-k(Xi - Xmean)(Xi+k - Xmean))/(sum_i_N(Xi - Xmean)^2)
+</pre>
+@param n number of values at start of array to use for sample size
+@param y sample set
+@param k lag (a lag of zero should return a autocorrelation of 1
+@return lag-k auto correlation value
+@throws Exception
+*/
+public static double lagAutoCorrelation ( int n, double y[], int k )
+throws Exception
+{   //String message, routine = "MathUtil.lagAutoCorrelation";
+
+    double mean = mean ( n, y );
+    double numeratorSum = 0.0;
+    int iend = n - k;
+    for ( int i = 0; i < iend; i++ ) {
+        numeratorSum += ((y[i] - mean)*(y[i+k] - mean));
+    }
+    double denominatorSum = 0.0;
+    for ( int i = 0; i < n; i++ ) {
+        denominatorSum += Math.pow((y[i] - mean),2.0);
+    }
+    double rk = numeratorSum/denominatorSum;
+    return rk;
+}
+
+/**
 @return the Log base 10 value for a number.  This is a work-around because
-JDK does not have a log10.  The value returned is simply log(x)/log(10).  No
+JDK prior to Java 1.5 does not have a log10.  The value returned is simply log(x)/log(10).  No
 error checks are in place.  Reference:   JDC bug 4074599.
 @param x Value for which to determine log base 10.
+@deprecated use Math.log10
 */
 public static double log10 ( double x )
 {
@@ -1348,6 +1378,44 @@ throws Exception
 }
 
 /**
+Calculate the coefficient of skew, defined as:
+<pre>
+Cs = (n*Sum_n(xi - x_mean)^3)/(n - 1)(n - 2)s^3
+
+where s = standard deviation
+
+See Applied Hydrology, Chow, et. al.
+</pre>
+@param n number of values at start of array to use for sample size
+@param x sample set
+@return skew coefficient
+@throws Exception
+*/
+public static double skew ( int n, double x[] )
+throws Exception
+{   String message, routine = "MathUtil.skew";
+
+    if ( n < 3 ) {
+        message = "Number in sample (" + n + ") must be > 2.  Cannot compute skew.";
+        Message.printWarning ( 3, routine, message );
+        throw new RuntimeException ( message );
+    }
+    double stddev = standardDeviation ( n, x );
+    if ( stddev == 0.0 ) {
+        message = "Standard dev = 0.  Cannot compute skew.";
+        Message.printWarning ( 3, routine, message );
+        throw new RuntimeException ( message );
+    }
+    double mean = mean ( n, x );
+    double numeratorSum = 0.0;
+    for ( int i = 0; i < n; i++ ) {
+        numeratorSum += Math.pow((x[i] - mean),3.0);
+    }
+    double skew = (n*numeratorSum)/((n - 1)*(n - 2)*Math.pow(stddev,3.0));
+    return skew;
+}
+
+/**
 Sort an array of doubles.
 @return Zero if successful and 1 if not successful.
 @param data Array of doubles to sort.
@@ -1955,7 +2023,7 @@ public static double sum ( int n, double x[], double missing )
 public static double variance ( double x[] )
 throws Exception
 {	try {
-    return variance ( x.length, x );
+        return variance ( x.length, x );
 	}
 	catch ( Exception e ) {
 		throw e;
@@ -1989,6 +2057,14 @@ throws Exception
 	return var;
 }
 
+/**
+Compute the sample variance (denominator is non-missing sample size minus 1).
+@param n number of values in array to process (can be less than the data array size).
+@param x array of values to process.
+@param missing the value to use for missing values
+@return the variance
+@throws Exception
+*/
 public static double variance ( int n, double x[], double missing )
 throws Exception
 {	int	i;
