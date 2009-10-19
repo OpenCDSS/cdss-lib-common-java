@@ -17,11 +17,14 @@ public enum BestFitIndicatorType
     SEP("SEP"),
     SEP_TOTAL("SEPTotal");
     
+    /**
+     * The name that should be displayed when the best fit type is used in UIs and reports.
+     */
     private final String displayName;
 
     /**
-     * Name that should be displayed in choices, etc.
-     * @param displayName
+     * Construct an enumeration value.
+     * @param displayName name that should be displayed in choices, etc.
      */
     private BestFitIndicatorType(String displayName) {
         this.displayName = displayName;
