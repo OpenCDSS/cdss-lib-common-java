@@ -55,25 +55,85 @@ IrregularTS to store data returned by getDataPoint() methods.
 public class TSData 
 implements Cloneable, Serializable {
 
-private	double	_data;		// Data value.
-private String	_data_flag;	// Data flag (often used for quality, etc.).
-private DateTime  _date;	// Date/time associated with data value.
-private int	_duration;	// Duration of the value (seconds)
-private transient TSData	_next;	
-				// Pointer to next TSData in list (an
-				// internally maintained linked list).
-private transient TSData	_previous;	
-				// Pointer to previous TSData in list (an
-				// internally maintained linked list).
-private String	_units;		// Units of data.
+/**
+Data value.
+*/
+private	double _data;
+/**
+Data flag (often used for quality, etc.).
+*/
+private String _data_flag;
+/**
+Date/time associated with data value.
+*/
+private DateTime _date;
+/**
+Duration of the value (seconds)
+*/
+private int _duration;
+/**
+Pointer to next TSData in list (an internally maintained linked list).
+*/
+private transient TSData _next;	
+/**
+Pointer to previous TSData in list (an internally maintained linked list).
+*/
+private transient TSData _previous;	
+/**
+Units of data.
+*/
+private String _units;
 
 /**
-Default constructor.  The date is set to null and the data value is set to
-zero.
+Default constructor.  The date is set to null and the data value is set to zero.
 */
 public TSData()
 {	super();
 	initialize();
+}
+
+/**
+Construct and set the data values.
+@param date date for data value.
+@param value data value.
+*/
+public TSData ( DateTime date, double value )
+{   super();
+    initialize();
+    setDate( date );
+    setData( value );
+}
+
+/**
+Construct and set the data values.
+@param date date for data value.
+@param value data value.
+@param units data units.
+@see DataUnits
+*/
+public TSData ( DateTime date, double value, String units )
+{   super();
+    initialize();
+    setDate( date );
+    setData( value );
+    setUnits( units );
+}
+
+/**
+Construct and set the data values.
+@param date date for data value.
+@param value data value.
+@param units data units.
+@param flag Data flag.
+@see DataUnits
+*/
+public TSData ( DateTime date, double value, String units, String flag )
+{   super();
+    initialize();
+    setDate( date );
+    setData( value );
+    setUnits( units );
+    setDataFlag( flag );
 }
 
 /**
@@ -83,24 +143,24 @@ previous pointers, which are copied as is.  If a sequence of new data are
 being created, the next/previous pointers will need to be reset accordingly.
 */
 public TSData ( TSData tsdata )
-{	_data_flag	= tsdata._data_flag;
-	_duration	= tsdata._duration;
-	_units		= tsdata._units;
-	_data		= tsdata._data;
-	_date	 	= new DateTime ( tsdata._date );
-	_next		= tsdata._next;
-	_previous	= tsdata._previous;
+{	_data_flag = tsdata._data_flag;
+	_duration = tsdata._duration;
+	_units = tsdata._units;
+	_data = tsdata._data;
+	_date = new DateTime ( tsdata._date );
+	_next = tsdata._next;
+	_previous = tsdata._previous;
 }
 
 /**
-Clone the object.   The Object base class clone() method is called and then
-the local data are cloned.
+Clone the object.   The Object base class clone() method is called and then the local data are cloned.
 A deep copy is made except for the next and
 previous pointers, which are copied as is.  If a sequence of new data are
 being created, the next/previous pointers will need to be reset accordingly.
 */
 public Object clone ()
-{	try {	TSData tsdata = (TSData)super.clone();
+{	try {
+        TSData tsdata = (TSData)super.clone();
 		tsdata._date = (DateTime)_date.clone();
 		tsdata._next = _next;
 		tsdata._previous = _previous;
@@ -190,13 +250,13 @@ public String getUnits()
 Initialize the data.
 */
 private void initialize ( ) 
-{	_data_flag 	= "";
-	_date		= null;
-	_duration	= 0;
-	_units		= "";
-	_data		= 0.0;
-	_next		= null;
-	_previous	= null;
+{	_data_flag = "";
+	_date = null;
+	_duration = 0;
+	_units = "";
+	_data = 0.0;
+	_next = null;
+	_previous = null;
 }
 
 /**
@@ -204,7 +264,7 @@ Set the data value.
 @param d Data value.
 */
 public void setData( double d )
-{	_data	= d;
+{	_data = d;
 }
 
 /**
@@ -254,7 +314,7 @@ public void setPrevious( TSData d )
 /**
 Set the units for the data value.
 @param units Data units.
-REVISIT -- Incorrect tag usage: see DataUnits
+@see DataUnits
 */
 public void setUnits( String units )
 {	if( units != null ){
@@ -268,7 +328,7 @@ Set the data values.
 @param d Data value.
 @param units Data units.
 @param flag Data flag.
-REVISIT -- Incorrect tag usage: see DataUnits
+@see DataUnits
 */
 public void setValues( DateTime date, double d, String units, String flag )
 {	setDate( date );
@@ -284,10 +344,9 @@ Set the data values.
 @param units Data units.
 @param flag Data flag.
 @param duration Duration (seconds).
-REVISIT -- Incorrect tag usage: see DataUnits
+@see DataUnits
 */
-public void setValues ( DateTime date, double d, String units, String flag,
-			int duration )
+public void setValues ( DateTime date, double d, String units, String flag, int duration )
 {	setDate( date );
 	_data = d;
 	setUnits( units );
@@ -314,13 +373,10 @@ any of the following specifiers:  %v (data value, formatted based on units),
 %U (data units), %q (data flag).  Any format information not recognized as a
 format specifier is treated as a literal string.
 @return A string representation of a TSData.
-@param full_format Format string containing TimeUtil.formatDateTime() format
-specifiers, %v, %U, or %q.
+@param full_format Format string containing TimeUtil.formatDateTime() format specifiers, %v, %U, or %q.
 @param value_format Format to use for data value (e.g., %.4f).  This should
-in most cases be determined before calling this method repeatedly, in order to
-improve performance.
-@param date Date for the data value (can be null if no date format specifiers
-are given).
+in most cases be determined before calling this method repeatedly, in order to improve performance.
+@param date Date for the data value (can be null if no date format specifiers are given).
 @param value1 Data value to format (can be ignored if %v is not specified).
 @param value2 Second value to format (can be ignored if %v is not specified) -
 use when plotting time series on each axis.
@@ -328,8 +384,7 @@ use when plotting time series on each axis.
 @param units Data units (can be ignored if %v and %U are not specified.
 */
 public static String toString (	String full_format, String value_format,
-				DateTime date, double value1, double value2,
-				String flag, String units )
+    DateTime date, double value1, double value2, String flag, String units )
 {	// Format the date first...
 	String format = TimeUtil.formatDateTime ( date, full_format );
 	// Now format the %v, %U, and %q (copy this code from
@@ -345,10 +400,10 @@ public static String toString (	String full_format, String value_format,
 	}
 
 	// Convert format to string...
-	int		len = format.length();
-	StringBuffer	formatted_string = new StringBuffer ();
-	char		c = '\0';
-	boolean		value1_found = false;
+	int len = format.length();
+	StringBuffer formatted_string = new StringBuffer ();
+	char c = '\0';
+	boolean value1_found = false;
 	for ( int i = 0; i < len; i++ ) {
 		c = format.charAt(i);
 		if ( c == '%' ) {
@@ -361,14 +416,11 @@ public static String toString (	String full_format, String value_format,
 			if ( c == 'v' ) {
 				// Data value.
 				if ( !value1_found ) {
-					formatted_string.append(
-					StringUtil.formatString(value1,
-					value_format2) );
+					formatted_string.append(StringUtil.formatString(value1,value_format2) );
 					value1_found = true;
 				}
-				else {	formatted_string.append(
-					StringUtil.formatString(value2,
-					value_format2) );
+				else {
+				    formatted_string.append(StringUtil.formatString(value2,value_format2) );
 				}
 			}
 			else if ( c == 'U' ) {
@@ -384,7 +436,8 @@ public static String toString (	String full_format, String value_format,
 				formatted_string.append ( '%' );
 			}
 		}
-		else {	// Just add the character to the string...
+		else {
+		    // Just add the character to the string...
 			formatted_string.append ( c );
 		}
 	}
@@ -395,4 +448,4 @@ public static String toString (	String full_format, String value_format,
 	return s;
 }
 
-} // End of TSData
+}
