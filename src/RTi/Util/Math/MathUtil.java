@@ -406,8 +406,8 @@ throws Exception
 public static double max ( int n, double x[] )
 throws Exception
 {	int	i;
-	String	routine = "MathUtil.max";
-	double	m = 0.0;
+	String routine = "MathUtil.max";
+	double m = 0.0;
 
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0";
