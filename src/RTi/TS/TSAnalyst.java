@@ -484,6 +484,7 @@ are recognized:
 
 </table>
 @exception Exception if there is an error analyzing the time series.
+@deprecated use the TSUtil_NewStatisticTimeSeries class.
 */
 public TS createStatisticTimeSeries ( Object tsobject,
 					DateTime AnalysisStart_DateTime,
@@ -612,6 +613,7 @@ February 29 data to be computed as a statistic, although it may not be used in t
 @param analysis_end End of period to analyze.
 @param statisticType Statistic to compute.
 @return The statistics in a single-year time series.
+@deprecated use the TSUtil_NewStatisticTimeSeries class.
 */
 private TS createStatisticTimeSeries_ComputeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end,
     TSStatisticType statisticType )
@@ -619,19 +621,8 @@ throws Exception
 {	
  // Initialize statistic integer to speed processing
     // TODO SAM 2008-10-30 Need to enable global enumeration for statistics
-    int MEAN = 0;
-    int MEDIAN = 1;
-    int statisticInt = 0;
-    if ( statisticType == TSStatisticType.MEAN ) {
-        statisticInt = MEAN;
-    }
-    /*
-    else if ( statistic.equalsIgnoreCase(TSStatistic.Median) ) {
-        statisticInt = MEDIAN;
-    }
-    */
-    else {
-        throw new Exception ( "Only know how to generate mean and median statistics.");
+    if ( statisticType != TSStatisticType.MEAN ) {
+        throw new InvalidParameterException ( "Statistic \"" + statisticType + "\" is not supported.");
     }
     
     // Get the dates for the one-year statistic time series...
@@ -669,7 +660,8 @@ throws Exception
 	sum_ts.allocateDataSpace();
 	count_ts.allocateDataSpace();
 	stat_ts.allocateDataSpace();
-	// Iterate through the raw data and increment the statistic time series.  For now, only handle a few statistics.
+	// Iterate through the raw data and increment the statistic time series.
+	// For now, only handle a few statistics.
 	TSIterator tsi = ts.iterator();
 	DateTime date;
 	double value;	// Value from the input time series
@@ -713,10 +705,10 @@ throws Exception
             // No data values so keep the initial missing value
             continue;
         }
-		if ( statisticInt == MEAN ) {
+		if ( statisticType == TSStatisticType.MEAN ) {
    			stat_ts.setDataValue ( date, sum_ts.getDataValue(date)/countNonMissingDouble);
 		}
-		else if ( statisticInt == MEDIAN ) {
+		else if ( statisticType == TSStatisticType.MEDIAN ) {
 		    // FIXME SAM 2008-10-30 Need to finish
 		    //stat_ts.setDataValue ( date, MathUtil.median(countNonMissing, x));
 		}
@@ -725,6 +717,7 @@ throws Exception
 	return stat_ts;
 }
 
+// TODO SAM 2009-10-20 Need to move to a new separate class similar to other commands
 /**
 Create the statistic data from an ensemble of time series.  The results are saved in a time
 series having the interval of the input data.
@@ -812,6 +805,7 @@ Fill the output repeating time series with the statistic values.
 @param output_ts Output time series to fill.
 @param output_start Output period start.
 @param output_end Output period end.
+@deprecated use the TSUtil_NewStatisticTimeSeries class.
 */
 private void createStatisticTimeSeries_FillOuput ( TS stat_ts, TS output_ts, DateTime output_start,
     DateTime output_end )

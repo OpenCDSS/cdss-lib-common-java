@@ -311,6 +311,7 @@ import RTi.Util.Math.RegressionType;
 import	RTi.Util.Message.Message;
 import	RTi.Util.String.StringUtil;
 import	RTi.Util.Time.DateTime;
+import RTi.Util.Time.InvalidTimeIntervalException;
 import	RTi.Util.Time.TimeInterval;
 import	RTi.Util.Time.TimeUtil;
 import	RTi.Util.Time.TZ;
@@ -318,6 +319,7 @@ import	RTi.Util.Time.TZ;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
+import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Vector;
 
@@ -6820,7 +6822,7 @@ throws TSException, Exception
     						x = -3.00;
     					}
     					else {
-    					    x = MathUtil.log10(x);
+    					    x = Math.log10(x);
     					}
     					if ( Message.isDebugOn ) {
     						Message.printDebug ( dl, routine, "Using log value: " + x);
@@ -7008,7 +7010,7 @@ throws TSException, Exception
     						x = -3.00;
     					}
     					else {
-    					    x = MathUtil.log10(x);
+    					    x = Math.log10(x);
     					}
     				}
     
@@ -11924,6 +11926,161 @@ dates of the time series are used.
 public static double[] toArrayByMonth ( TS ts, 
 	DateTime start_date, DateTime end_date, int monthIndex )
 {	return toArray ( ts, start_date, end_date, monthIndex );
+}
+
+/**
+Return an array containing the data values of the time series for the specified
+period and for a date/time of interest.  The date/time should be the same precision as the
+time series interval.  For example, if a monthly time series is processed and the date/time is
+YYYY-01, then all the January values will be extracted.  If a daily time series is processed and the
+date/time is YYYY-MM-01, then all the January 1 values are extracted.
+If the start or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.  CURRENTLY ONLY MONTH AND DAY TIME SERIES CAN BE PROCESSED.
+@return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
+An array of TSData is returned to allow the dates corresponding to values to be tracked, for example when
+computing statistics like maximum where the date/time of the maximum is of interest.
+@param ts Time series to convert data to array format.
+@param startDate Date corresponding to the first date of the returned array.
+@param endDate Date corresponding to the last date of the returned array.
+@param dateTimeRequested a date/time matching the precision of the time series interval, for which values
+are to be extracted.  For example, for a daily time series, this is the month and day of the year for
+which values should be extracted (the other date/time parts are ignored).
+@param includeMissing if true, include missing values; if false, do not include missing values
+@exception InvalidTimeIntervalException if other than day or month time series are processed.
+*/
+public static TSData[] toArrayForDateTime ( TS ts, DateTime startDate, DateTime endDate,
+    DateTime datetimeRequested, boolean includeMissing )
+throws InvalidTimeIntervalException
+{   // Get month and data for the extraction
+    int monthRequested = datetimeRequested.getMonth();
+    int dayRequested = datetimeRequested.getDay();
+    
+    // Get valid dates because the ones passed in may have been null...
+    TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
+    DateTime start = validDates.getDate1();
+    DateTime end = validDates.getDate2();
+    
+    int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
+    
+    // Currently only support monthly and daily data
+    if ( (intervalBase != TimeInterval.MONTH) && (intervalBase != TimeInterval.DAY) ) {
+        throw new InvalidTimeIntervalException(
+            "Only Month and Day time series can be processed.  Trying to process " +
+            ts.getIdentifier().getInterval() + "." );
+    }
+    if ( intervalMult != 1 ) {
+        throw new InvalidTimeIntervalException(
+            "Only Month and Day time series with interval multipler of 1 can be processed.  Trying to process " +
+            ts.getIdentifier().getInterval() + "." );
+    }
+    
+    int size = 0; // Initial (maximum) size of data array - will be shortened at end
+    if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
+        size = calculateDataSize ( ts, start, end );
+    }
+    else {
+        size = calculateDataSize ( start, end, intervalBase, intervalMult );
+    }
+
+    if ( size == 0 ) {
+        return new TSData[0]; // Not possible to find data
+    }
+
+    TSData [] dataArray = new TSData[size]; // Initial size including missing
+    int count = 0; // Number of values in array.
+    int month = 0; // Month for iteration date.
+    int day = 0; // Day for iteration date.
+    double value; // Data value in time series
+
+    if ( intervalBase == TimeInterval.IRREGULAR ) {
+        throw new InvalidParameterException ( "Irregular time series are not currently supported.");
+        /* Not currently supported
+        // Get the data and loop through the vector...
+        IrregularTS irrts = (IrregularTS)ts;
+        List alltsdata = irrts.getData();
+        if ( alltsdata == null ) {
+            // No data for the time series...
+            return null;
+        }
+        int nalltsdata = alltsdata.size();
+        TSData tsdata = null;
+        DateTime date = null;
+        for ( int i = 0; i < nalltsdata; i++ ) {
+            tsdata = (TSData)alltsdata.get(i);
+            date = tsdata.getDate();
+            if ( date.greaterThan(end) ) {
+                // Past the end of where we want to go so quit...
+                break;
+            }
+            if ( date.greaterThanOrEqualTo(start) ) {
+                if ( month_indices_size == 0 ) {
+                    // Transfer any value...
+                    value = tsdata.getData ();
+                    if ( includeMissing || !ts.isDataMissing(value) ) {
+                        dataArray[count++] = value;
+                    }
+                }
+                else {
+                    // Transfer only if the month agrees with that requested...
+                    month = date.getMonth();
+                    for ( im = 0; im < month_indices_size; im++ ) {
+                        if (month == month_indices[im]) {
+                            value = tsdata.getData ();
+                            if ( includeMissing || !ts.isDataMissing(value) ) {
+                                dataArray[count++] = value;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }*/
+    }
+    else {
+        // Regular, increment the data by interval...
+        DateTime date = new DateTime ( start );
+        count = 0;
+        // FIXME SAM 2009-10-20 This is brute force.  It would be faster to add a year but leap years
+        // cause problems.  Do this for now unless it is a performance problem.
+        boolean processValue; // whether to process the data value
+        for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
+            month = date.getMonth();
+            day = date.getDay();
+            processValue = false;
+            if ( (intervalBase == TimeInterval.MONTH) && (month == monthRequested) ) {
+                processValue = true;
+            }
+            else if ( (intervalBase == TimeInterval.DAY) && (month == monthRequested) &&
+                (day == dayRequested) ) {
+                processValue = true;
+            }
+            if ( processValue ) {
+                // Process the data value...
+                value = ts.getDataValue ( date );
+                if ( includeMissing || !ts.isDataMissing(value) ) {
+                    // OK to include the value
+                    TSData data = new TSData(new DateTime(date),value);
+                    dataArray[count++] = data;
+                }
+            }
+        }
+    }
+
+    if ( count != size ) {
+        // The original array is too big and needs to be cut down to the exact size due to missing data
+        // being excluded.  Retain the original object references.
+        TSData [] new_dataArray = new TSData[count];
+        for ( int j = 0; j < count; j++ ) {
+            new_dataArray[j] = dataArray[j];
+        }
+        dataArray = null;
+        return new_dataArray;
+    }
+    // Return the full array...
+    return dataArray;
 }
 
 /**

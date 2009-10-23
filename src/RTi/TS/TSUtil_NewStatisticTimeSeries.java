@@ -4,6 +4,7 @@ import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
@@ -101,7 +102,7 @@ public TSUtil_NewStatisticTimeSeries ( TS ts, DateTime analysisStart, DateTime a
         throw new InvalidParameterException ( message );
     }
     
-    if ( statisticType != TSStatisticType.MEAN ) {
+    if ( !isStatisticSupported(statisticType) ) {
         throw new InvalidParameterException ( "Statistic \"" + statisticType + "\" is not supported.");
     }
 }
@@ -195,10 +196,14 @@ throws Exception
 
     // Process the statistic of interest...
 
-    // Analyze the single time series to get a statistic...
-    TS stat_ts = computeStatistic ( ts, analysisStart, analysisEnd, statisticType, allowMissingCount,
-        minimumSampleSize );
-    // Now use the statistic to repeat every year...
+    // Analyze the single time series to get a 1 year time series with statistic for each interval...
+    // Legacy...
+    //TS stat_ts = computeStatistic ( ts, analysisStart, analysisEnd, statisticType, allowMissingCount,
+    //    minimumSampleSize );
+    // New code...
+    TS stat_ts = compute1YearStatisticTS ( ts, analysisStart, analysisEnd, statisticType, allowMissingCount,
+            minimumSampleSize );
+    // Now use the 1-year statistic time series to repeat every year...
     fillOutput ( stat_ts, output_ts, outputStart, outputEnd );
 
     // Return the statistic result...
@@ -211,6 +216,7 @@ series having the interval of the input data, from January 1, 2000 to December 3
 the start of the next year).  Year 2000 is used because it was a leap year.  This allows
 February 29 data to be computed as a statistic, although it may not be used in the final output if the
 final time series period does not span a leap year.
+This is the legacy method that was used for the Mean statistic but is difficult to extend to other statistics.
 @param ts Time series to be analyzed.
 @param analysis_start Start of period to analyze.
 @param analysis_end End of period to analyze.
@@ -353,6 +359,128 @@ throws Exception
 }
 
 /**
+Create the statistic data from another time series.  The results are saved in a time
+series having the interval of the input data, from January 1, 2000 to December 31, 2000 (one interval from
+the start of the next year).  Year 2000 is used because it was a leap year.  This allows
+February 29 data to be computed as a statistic, although it may not be used in the final output if the
+final time series period does not span a leap year.
+This version uses the TSUtil.toArrayForDateTime() method to extract samples, which allows more
+flexibility for other statistics.
+@param ts Time series to be analyzed.
+@param analysisStart Start of period to analyze.
+@param analysisEnd End of period to analyze.
+@param statisticType Statistic to compute.
+@param allowMissingCount0 number of missing values allowed in sample to compute statistic.
+@param minimumSampleSize0 minimum sample size required to compute statistic.
+@return The statistics in a single-year time series.
+*/
+private TS compute1YearStatisticTS ( TS ts, DateTime analysisStart, DateTime analysisEnd,
+    TSStatisticType statisticType, Integer allowMissingCount0, Integer minimumSampleSize0 )
+throws Exception
+{   String routine = getClass().getName() + ".compute1YearStatisticTS";
+    // Get the controlling parameters as simple integers to simplify code
+    int allowMissingCount = -1;
+    if ( allowMissingCount0 != null ) {
+        allowMissingCount = allowMissingCount0.intValue();
+    }
+    int minimumSampleSize = -1;
+    if ( minimumSampleSize0 != null ) {
+        minimumSampleSize = minimumSampleSize0.intValue();
+    }
+    // Get the dates for the one-year statistic time series - treat as instantaneous, with leap year
+    DateTime date1 = new DateTime ( analysisStart );   // To get precision consistent with time series
+    date1.setYear( 2000 );
+    date1.setMonth ( 1 );
+    date1.setDay( 1 );
+    date1.setHour ( 0 );
+    date1.setMinute ( 0 );
+    DateTime date2 = new DateTime ( date1 );
+    // Add one year...
+    date2.addYear( 1 );
+    // Now subtract one interval...
+    date2.addInterval( ts.getDataIntervalBase(), -ts.getDataIntervalMult());
+    
+    TS stat_ts = TSUtil.newTimeSeries ( ts.getIdentifierString(), true );
+    // Copy the header information...
+    stat_ts.copyHeader ( ts );
+    // Reset the data type...
+    stat_ts.setDataType("" + statisticType);
+    // Set the dates in the statistic time series...
+    stat_ts.setDate1( date1 );
+    stat_ts.setDate2 ( date2 );
+    // Now allocate the data space...
+    stat_ts.allocateDataSpace();
+    
+    // Loop through each interval in the time series, comprising a full year.
+    
+    int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
+    TSData [] dataArray;
+    double [] nonMissingDataArray;
+    int countMissing, countNonMissing;
+    for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
+        date.addInterval(intervalBase,intervalMult) ) {
+        // Get the data array slice, including missing values
+        dataArray = TSUtil.toArrayForDateTime(ts, analysisStart, analysisEnd, date, true );
+        Message.printStatus(2,routine, "For " + date + " have " + dataArray.length + " values in sample.");
+        nonMissingDataArray = getNonMissingData ( ts, dataArray );
+        countNonMissing = nonMissingDataArray.length;
+        countMissing = dataArray.length - countNonMissing;
+        if ( (allowMissingCount >= 0) && (countMissing > allowMissingCount) ) {
+            // Too many missing values to compute statistic
+            Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
+                " because number of missing values " + countMissing + " is > allowed (" + allowMissingCount + ").");
+            stat_ts.setDataValue ( date, stat_ts.getMissing() );
+            continue;
+        }
+        if ( (minimumSampleSize >= 0) && (countNonMissing < minimumSampleSize) ) {
+            // Sample size too small to compute statistic
+            Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
+                " because sample size " + countNonMissing + " is < minimum required (" + minimumSampleSize + ").");
+            stat_ts.setDataValue ( date, stat_ts.getMissing() );
+            continue;
+        }
+        // TODO SAM 2009-10-20 Will need to redo if the date/time of the critical value is needed, for example
+        // for Max.  For now, just use the utility methods for the statistics to keep the code simple.
+        // Now compute the statistic
+        if ( statisticType == TSStatisticType.MAX ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.max(nonMissingDataArray.length,nonMissingDataArray));
+            }
+        }
+        else if ( statisticType == TSStatisticType.MEAN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.mean(nonMissingDataArray));
+            }
+        }
+        else if ( statisticType == TSStatisticType.MEDIAN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.median(nonMissingDataArray.length,nonMissingDataArray));
+            }
+        }
+        else if ( statisticType == TSStatisticType.MIN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.min(nonMissingDataArray.length,nonMissingDataArray));
+            }
+        }
+        /*
+        else if ( statisticType == TSStatisticType.STD_DEV ) {
+            stat_ts.setDataValue ( date, MathUtil.standardDeviation(nonMissingDataArray.length,nonMissingDataArray));
+        }
+        else if ( statisticType == TSStatisticType.VARIANCE ) {
+            stat_ts.setDataValue ( date, MathUtil.variance(nonMissingDataArray.length,nonMissingDataArray));
+        }
+        */
+        else {
+            throw new InvalidParameterException ( "Do not know how to process statistic \"" + statisticType + "\".");
+        }
+    }
+    
+    // Return the 1-year long time series
+    return stat_ts;
+}
+
+/**
 Fill the output repeating time series with the statistic values.
 @param stat_ts Year-long time series with statistic.
 @param output_ts Output time series to fill.
@@ -403,12 +531,57 @@ public DateTime getAnalysisEnd ()
 }
 
 /**
+Return the analysis start date/time.
+@return the analysis start date/time.
+*/
+public DateTime getAnalysisStart ()
+{
+    return __analysisStart;
+}
+
+/**
+Return the minimum sample size allowed to compute the statistic.
+@return the minimum sample size allowed to compute the statistic.
+*/
+public Integer getMinimumSampleSize ()
+{
+    return __minimumSampleSize;
+}
+
+/**
 Return the time series identifier for the new time series.
 @return the time series identifier for the new time series.
 */
 private String getNewTSID ()
 {
     return __newTSID;
+}
+
+/**
+Get the array of non-missing values from the array of data.
+*/
+private double [] getNonMissingData ( TS ts, TSData[] dataArray )
+{
+    int nonMissingCount = 0;
+    double value;
+    double [] nonMissingDataArray = new double[dataArray.length]; // Initial size
+    for ( int i = 0; i < dataArray.length; i++ ) {
+        value = dataArray[i].getData();
+        if ( !ts.isDataMissing(value) ) {
+            nonMissingDataArray[nonMissingCount++] = value;
+            Message.printStatus( 2, "", "Data value [" + i + "] = " + value + " at " + dataArray[i].getDate() );
+        }
+    }
+    // Resize the array if necessary
+    if ( nonMissingCount != dataArray.length ) {
+        double [] temp = new double[nonMissingCount];
+        System.arraycopy(nonMissingDataArray,0,temp,0,nonMissingCount);
+        return temp;
+    }
+    else {
+        // Return the full array
+        return nonMissingDataArray;
+    }
 }
 
 /**
@@ -430,34 +603,16 @@ public DateTime getOutputEnd ()
 }
 
 /**
-Return the analysis start date/time.
-@return the analysis start date/time.
-*/
-public DateTime getAnalysisStart ()
-{
-    return __analysisStart;
-}
-
-/**
-Return the minimum sample size allowed to compute the statistic.
-@return the minimum sample size allowed to compute the statistic.
-*/
-public Integer getMinimumSampleSize ()
-{
-    return __minimumSampleSize;
-}
-
-/**
 Get the list of statistics that can be performed.
 */
 public static List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
     List<TSStatisticType> choices = new Vector();
-    //choices.add ( TSStatisticType.MAX );
+    choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
-    //choices.add ( TSStatisticType.MEDIAN );
-    //choices.add ( TSStatisticType.MIN );
+    choices.add ( TSStatisticType.MEDIAN );
+    choices.add ( TSStatisticType.MIN );
     //choices.add ( TSStatisticType.SKEW );
     //choices.add ( TSStatisticType.STD_DEV );
     //choices.add ( TSStatisticType.VARIANCE );
@@ -494,6 +649,20 @@ Return the time series being analyzed.
 public TS getTimeSeries ()
 {
     return __ts;
+}
+
+/**
+Indicate whether a statistic is supported.
+*/
+public boolean isStatisticSupported ( TSStatisticType statisticType )
+{
+    List<TSStatisticType> choices = getStatisticChoices();
+    for ( int i = 0; i < choices.size(); i++ ) {
+        if ( choices.get(i) == statisticType ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 }
