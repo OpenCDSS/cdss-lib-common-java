@@ -9,7 +9,8 @@ import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
 /**
-Compute a YearTS that has a statistic for each year in the period.
+Compute a time series that has a statistic for each interval in the period.  For example, all Jan 1 are used
+for the sample and the result is assigned to Jan 1 of the output time series.
 */
 public class TSUtil_NewStatisticTimeSeries
 {

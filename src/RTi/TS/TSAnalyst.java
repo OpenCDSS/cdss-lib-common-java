@@ -484,7 +484,7 @@ are recognized:
 
 </table>
 @exception Exception if there is an error analyzing the time series.
-@deprecated use the TSUtil_NewStatisticTimeSeries class.
+@deprecated use the TSUtil_NewStatisticTimeSeries and TSUtil_NewStatisticTimeSeriesFromEnsemble classes.
 */
 public TS createStatisticTimeSeries ( Object tsobject,
 					DateTime AnalysisStart_DateTime,
@@ -727,6 +727,7 @@ series having the interval of the input data.
 @param analysis_end End of period to analyze.
 @param statisticType Statistic to compute.
 @return The statistics in a single-year time series.
+@deprecated use the TSUtil_NewTimeSeriesFromEnsemble class.
 */
 private TS createStatisticTimeSeries_ComputeStatisticFromEnsemble ( TSEnsemble tsensemble, TS stat_ts,
         DateTime analysis_start, DateTime analysis_end, TSStatisticType statisticType )
