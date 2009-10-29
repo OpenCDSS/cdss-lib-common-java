@@ -217,7 +217,8 @@ series having the interval of the input data, from January 1, 2000 to December 3
 the start of the next year).  Year 2000 is used because it was a leap year.  This allows
 February 29 data to be computed as a statistic, although it may not be used in the final output if the
 final time series period does not span a leap year.
-This is the legacy method that was used for the Mean statistic but is difficult to extend to other statistics.
+FIXME SAM 2009-10-26 This is the legacy method that was used for the Mean statistic but is difficult to
+extend to other statistics.
 @param ts Time series to be analyzed.
 @param analysis_start Start of period to analyze.
 @param analysis_end End of period to analyze.
@@ -226,6 +227,7 @@ This is the legacy method that was used for the Mean statistic but is difficult 
 @param minimumSampleSize0 minimum sample size required to compute statistic.
 @return The statistics in a single-year time series.
 */
+/*
 private TS computeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end,
     TSStatisticType statisticType, Integer allowMissingCount0, Integer minimumSampleSize0 )
 throws Exception
@@ -358,6 +360,7 @@ throws Exception
     // Return the result.
     return stat_ts;
 }
+*/
 
 /**
 Create the statistic data from another time series.  The results are saved in a time

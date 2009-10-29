@@ -11763,6 +11763,30 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 
 /**
 Return an array containing the data values of the time series for the specified
+period.  If the start date or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.  This is a utility routine mainly used by
+other versions of this routine.
+@return The array of data for the time series.  If an error, return null.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+@param month_index Month of interest (1=Jan, 12=Dec).  If zero, process all months.
+@param includeMissing indicate whether missing values should be included in the result.
+*/
+public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int month_index,
+    boolean includeMissing )
+{   int [] month_indices = null;
+    if ( month_index != 0 ) {
+        month_indices = new int[1];
+        month_indices[0] = month_index;
+    }
+    return toArray ( ts, start_date, end_date, month_indices, includeMissing );
+}
+
+/**
+Return an array containing the data values of the time series for the specified
 period, including missing values.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
@@ -11923,9 +11947,26 @@ dates of the time series are used.
 @param end_date Date corresponding to the last date of the returned array.
 @param monthIndex Month of interest (1=Jan, 12=Dec).  If zero, process all months.
 */
-public static double[] toArrayByMonth ( TS ts, 
-	DateTime start_date, DateTime end_date, int monthIndex )
+public static double[] toArrayByMonth ( TS ts, DateTime start_date, DateTime end_date, int monthIndex )
 {	return toArray ( ts, start_date, end_date, monthIndex );
+}
+
+/**
+Return an array containing the data values of the time series for the specified
+period.  If the start date or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.
+@return The array of data for the time series.  If an error, return null.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+@param monthIndex Month of interest (1=Jan, 12=Dec).  If zero, process all months.
+@param includeMissing indicate whether missing values should be included.
+*/
+public static double[] toArrayByMonth ( TS ts, DateTime start_date, DateTime end_date, int monthIndex,
+    boolean includeMissing )
+{   return toArray ( ts, start_date, end_date, monthIndex, includeMissing );
 }
 
 /**

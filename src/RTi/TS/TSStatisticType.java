@@ -73,29 +73,41 @@ public enum TSStatisticType
 	 */
 	DAY_OF_MIN ( "DayOfMin" ),
     /**
-     * Maximum of number of consecutive intervals with values below the mean.
-     */
-	DEFICIT_LENGTH_MAX ( "DeficitLengthMax" ),
-    /**
-     * Mean of number of consecutive intervals with values below the mean.
-     */
-    DEFICIT_LENGTH_MEAN ( "DeficitLengthMean" ),
-    /**
-     * Mean of number of consecutive intervals with values below the mean.
-     */
-    DEFICIT_LENGTH_MIN ( "DeficitLengthMin" ),
-    /**
-     * Maximum of (mean - value) sum when consecutive values are below the mean.
+     * Maximum of (mean - value) when value is below the mean.
      */
     DEFICIT_MAX ( "DeficitMax" ),
     /**
-     * Mean of (mean - value) sum when consecutive values are above the mean.
+     * Mean of (mean - value) when value is below the mean.
      */
     DEFICIT_MEAN ( "DeficitMean" ),
     /**
-     * Minimum of (mean - value) sum when consecutive values are above the mean.
+     * Minimum of (mean - value) when value is below the mean.
      */
     DEFICIT_MIN ( "DeficitMin" ),
+    /**
+     * Maximum of number of sequential intervals with values below the mean.
+     */
+	DEFICIT_SEQ_LENGTH_MAX ( "DeficitSeqLengthMax" ),
+    /**
+     * Mean of number of sequential intervals with values below the mean.
+     */
+    DEFICIT_SEQ_LENGTH_MEAN ( "DeficitSeqLengthMean" ),
+    /**
+     * Mean of number of sequential intervals with values below the mean.
+     */
+    DEFICIT_SEQ_LENGTH_MIN ( "DeficitSeqLengthMin" ),
+    /**
+     * Maximum of (mean - value) sum when sequential values are below the mean.
+     */
+    DEFICIT_SEQ_MAX ( "DeficitSeqMax" ),
+    /**
+     * Mean of (mean - value) sum when sequential values are above the mean.
+     */
+    DEFICIT_SEQ_MEAN ( "DeficitSeqMean" ),
+    /**
+     * Minimum of (mean - value) sum when sequential values are above the mean.
+     */
+    DEFICIT_SEQ_MIN ( "DeficitSeqMin" ),
 	/**
 	 * Probability of exceeding value is >= 10%.
 	 */
@@ -157,29 +169,41 @@ public enum TSStatisticType
      */
     STD_DEV ( "StdDev" ),
     /**
-     * Maximum of number of consecutive intervals with values above the mean.
-     */
-    SURPLUS_LENGTH_MAX ( "SurplusLengthMax" ),
-    /**
-     * Mean of number of consecutive intervals with values above the mean.
-     */
-    SURPLUS_LENGTH_MEAN ( "SurplusLengthMean" ),
-    /**
-     * Mean of number of consecutive intervals with values below the mean.
-     */
-    SURPLUS_LENGTH_MIN ( "SurplusLengthMin" ),
-    /**
-     * Maximum of value sum when consecutive values are above the mean.
+     * Maximum of of (value - mean), if a surplus.
      */
     SURPLUS_MAX ( "SurplusMax" ),
     /**
-     * Mean of value sum when consecutive values are above the mean.
+     * Mean of (value - mean), if a surplus.
      */
     SURPLUS_MEAN ( "SurplusMean" ),
     /**
-     * Minimum of value sum when consecutive values are above the mean.
+     * Minimum of (value - mean), if a surplus.
      */
     SURPLUS_MIN ( "SurplusMin" ),
+    /**
+     * Maximum of number of sequential intervals with values above the mean.
+     */
+    SURPLUS_SEQ_LENGTH_MAX ( "SurplusSeqLengthMax" ),
+    /**
+     * Mean of number of sequential intervals with values above the mean.
+     */
+    SURPLUS_SEQ_LENGTH_MEAN ( "SurplusSeqLengthMean" ),
+    /**
+     * Mean of number of sequential intervals with values above the mean.
+     */
+    SURPLUS_SEQ_LENGTH_MIN ( "SurplusSeqLengthMin" ),
+    /**
+     * Maximum of (value - mean) sum when sequential values are above the mean.
+     */
+    SURPLUS_SEQ_MAX ( "SurplusSeqMax" ),
+    /**
+     * Mean of (value - mean) sum when sequential values are above the mean.
+     */
+    SURPLUS_SEQ_MEAN ( "SurplusSeqMean" ),
+    /**
+     * Minimum of (value - mean) sum when sequential values are above the mean.
+     */
+    SURPLUS_SEQ_MIN ( "SurplusSeqMin" ),
     /**
      * Total of values in the sample.
      */

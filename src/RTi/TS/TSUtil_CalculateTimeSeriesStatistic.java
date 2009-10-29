@@ -76,16 +76,16 @@ public TSUtil_CalculateTimeSeriesStatistic ( TS ts, TSStatisticType statistic,
 }
 
 /**
-Calculate the deficit/surplus statistics.  A deficit is when a value is below the mean.  A surplus is
-when a a value is above the mean.  The length statistics indicates the number of intervals where each interval
-has a deficit (or surplus) value.
-@param statisticType one of the DEFICIT* and SURPLUS* statistics
+Calculate the deficit/surplus sequence statistics (where statistics are based on a sequence of consecutive values).
+A deficit is when a value is below the mean.  A surplus is when a a value is above the mean.
+The length statistics indicates the number of intervals where each interval has a deficit (or surplus) value.
+@param statisticType one of the DEFICIT_SEQ* and SURPLUS_SEQ* statistics
 @param ts time series to analyze
 @param start starting date/time for analysis period
 @param end ending date/time for analysis period
 @return the computed statistic value
 */
-private void calculateDeficitSurplusStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
+private void calculateDeficitSurplusSeqStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
 throws Exception
 {   String routine = getClass().getName() + ".calculateDeficitSurplusStatistic";
     // First compute the mean of the data, needed to evaluate the statistic
@@ -93,12 +93,12 @@ throws Exception
     double mean = MathUtil.mean(values);
     
     boolean checkSurplus = true; // Default when computing surplus statistics
-    if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_MIN) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MIN) ) {
+    if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ) {
         checkSurplus = false; // Check for deficit
     }
     
@@ -158,29 +158,29 @@ throws Exception
         // (means are computed after the loop).
         if ( (!inCondition && inConditionPrev) || (inCondition && date.equals(end) ) ) {
             // Need to complete processing the condition instance
-            if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
-                (statisticType == TSStatisticType.SURPLUS_MAX) ) {
+            if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+                (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ) {
                 if ( conditionTotal > statistic ) {
                     statistic = conditionTotal;
                     statisticDate = new DateTime(date);
                 }
             }
-            else if ( (statisticType == TSStatisticType.DEFICIT_MIN) ||
-                (statisticType == TSStatisticType.SURPLUS_MIN) ) {
+            else if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
+                (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ) {
                 if ( (statistic < 0.0) || (conditionTotal < statistic) ) {
                     statistic = conditionTotal;
                     statisticDate = new DateTime(date);
                 }
             }
-            else if ( (statisticType == TSStatisticType.DEFICIT_LENGTH_MAX) ||
-                (statisticType == TSStatisticType.SURPLUS_LENGTH_MAX) ) {
+            else if ( (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+                (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ) {
                 if ( inConditionCount > statistic ) {
                     statistic = inConditionCount;
                     statisticDate = new DateTime(date);
                 }
             }
-            else if ( (statisticType == TSStatisticType.DEFICIT_LENGTH_MIN) ||
-                (statisticType == TSStatisticType.SURPLUS_LENGTH_MIN) ) {
+            else if ( (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+                (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
                 if ( (statistic < 0.0) || (inConditionCount < statistic) ) {
                     statistic = inConditionCount;
                     statisticDate = new DateTime(date);
@@ -202,14 +202,14 @@ throws Exception
         " inConditionCountSum=" + inConditionCountSum +
         " inConditionInstanceCount=" + inConditionInstanceCount );
     // If the statistic is one of the means, compute it here...
-    if ( (statisticType == TSStatisticType.DEFICIT_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_MEAN) ) {
+    if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ) {
         if ( inConditionInstanceCount > 0 ) {
             statistic = conditionTotalSum/inConditionInstanceCount;
         }
     }
-    else if ( (statisticType == TSStatisticType.DEFICIT_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MEAN) ) {
+    else if ( (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ) {
         if ( inConditionInstanceCount > 0 ) {
             statistic = inConditionCountSum/inConditionInstanceCount;
         }
@@ -218,6 +218,59 @@ throws Exception
     if ( statistic >= 0.0 ) {
         setStatisticResult ( new Double(statistic) );
         setStatisticResultDateTime ( statisticDate );
+    }
+}
+
+/**
+Calculate the deficit/surplus statistics.  A deficit is when a value is below the mean.
+A surplus is when a a value is above the mean.
+@param statisticType one of the DEFICIT* and SURPLUS* statistics (not the *SEQ* statistics).
+@param ts time series to analyze
+@param start starting date/time for analysis period
+@param end ending date/time for analysis period
+@return the computed statistic value
+*/
+private void calculateDeficitSurplusStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
+throws Exception
+{   //String routine = getClass().getName() + ".calculateDeficitSurplusStatistic";
+    // First compute the mean of the data, needed to evaluate the statistic
+    double [] values = TSUtil.toArrayNoMissing ( ts, start, end );
+    double mean = MathUtil.mean(values);
+    
+    boolean checkSurplus = true; // Default when computing surplus statistics
+    if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_MIN) ) {
+        checkSurplus = false; // Check for deficit
+    }
+    
+    // Loop through the values and determine if they are a surplus or deficit
+    double [] values2 = new double[values.length];
+    int values2Count = 0; // Count of number of deficit or surplus values
+    for ( int i = 0; i < values.length; i++ ) {
+        if ( checkSurplus && (values[i] > mean) ) {
+            values2[values2Count++] = (values[i] - mean);
+        }
+        else if ( !checkSurplus && (values[i] < mean) ) {
+            values2[values2Count++] = (mean - values[i]);
+        }
+        // Else 0 is not in either category
+    }
+    
+    if ( (statisticType == TSStatisticType.DEFICIT_MAX) || (statisticType == TSStatisticType.SURPLUS_MAX) ) {
+        if ( values2Count > 0 ) {
+            setStatisticResult ( MathUtil.max(values2Count, values2) );
+        }
+    }
+    else if ( (statisticType == TSStatisticType.DEFICIT_MEAN) || (statisticType == TSStatisticType.SURPLUS_MEAN) ) {
+        if ( values2Count > 0 ) {
+            setStatisticResult ( MathUtil.mean(values2Count, values2) );
+        }
+    }
+    else if ( (statisticType == TSStatisticType.DEFICIT_MIN) || (statisticType == TSStatisticType.SURPLUS_MIN) ) {
+        if ( values2Count > 0 ) {
+            setStatisticResult ( MathUtil.min(values2Count, values2) );
+        }
     }
 }
 
@@ -287,19 +340,31 @@ throws Exception
     else if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_MEAN) ||
         (statisticType == TSStatisticType.DEFICIT_MIN) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MIN) ||
         (statisticType == TSStatisticType.SURPLUS_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_MIN) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MIN) ) {
+        (statisticType == TSStatisticType.SURPLUS_MIN) ) {
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         // Compute the sample mean because it is needed to evaluate the statistic at each time step
         calculateDeficitSurplusStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
+        return;
+    }
+    else if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
+        // Get period for the specific time series
+        TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
+        // Compute the sample mean because it is needed to evaluate the statistic at each time step
+        calculateDeficitSurplusSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
     
@@ -437,12 +502,15 @@ public static List<TSStatisticType> getStatisticChoices()
 {
     List<TSStatisticType> choices = new Vector();
     choices.add ( TSStatisticType.COUNT );
-    choices.add ( TSStatisticType.DEFICIT_LENGTH_MAX );
-    choices.add ( TSStatisticType.DEFICIT_LENGTH_MEAN );
-    choices.add ( TSStatisticType.DEFICIT_LENGTH_MIN );
     choices.add ( TSStatisticType.DEFICIT_MAX );
     choices.add ( TSStatisticType.DEFICIT_MEAN );
     choices.add ( TSStatisticType.DEFICIT_MIN );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_LENGTH_MAX );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_LENGTH_MIN );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_MAX );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_MEAN );
+    choices.add ( TSStatisticType.DEFICIT_SEQ_MIN );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
@@ -454,12 +522,15 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.NQYY );
     choices.add ( TSStatisticType.SKEW );
     choices.add ( TSStatisticType.STD_DEV );
-    choices.add ( TSStatisticType.SURPLUS_LENGTH_MAX );
-    choices.add ( TSStatisticType.SURPLUS_LENGTH_MEAN );
-    choices.add ( TSStatisticType.SURPLUS_LENGTH_MIN );
     choices.add ( TSStatisticType.SURPLUS_MAX );
     choices.add ( TSStatisticType.SURPLUS_MEAN );
     choices.add ( TSStatisticType.SURPLUS_MIN );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_LENGTH_MAX );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_LENGTH_MIN );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_MAX );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_MEAN );
+    choices.add ( TSStatisticType.SURPLUS_SEQ_MIN );
     choices.add ( TSStatisticType.VARIANCE );
     return choices;
 }
@@ -487,12 +558,15 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
 {
     // Many basic statistics do not need additional input...
     if ( (statisticType == TSStatisticType.COUNT) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_LENGTH_MIN) ||
         (statisticType == TSStatisticType.DEFICIT_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_MEAN) ||
         (statisticType == TSStatisticType.DEFICIT_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
         (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
         (statisticType == TSStatisticType.MAX) ||
         (statisticType == TSStatisticType.MEAN) ||
@@ -503,12 +577,15 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.NONMISSING_PERCENT) ||
         (statisticType == TSStatisticType.SKEW) ||
         (statisticType == TSStatisticType.STD_DEV) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ||
         (statisticType == TSStatisticType.SURPLUS_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
         (statisticType == TSStatisticType.VARIANCE) ) {
         return 0;
     }
