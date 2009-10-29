@@ -152,7 +152,7 @@ throws Exception {
 		__record.set(index,contents);
 	}
 	else {	
-		throw new Exception("Specified index " + index + " does not exist.");
+		throw new Exception("Specified table record column index " + index + " does not exist.");
 	}
 	return this;
 }
