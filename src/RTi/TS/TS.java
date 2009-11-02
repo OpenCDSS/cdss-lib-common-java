@@ -2194,7 +2194,7 @@ The value is constrained to Double.MAX and Double.Min.
 */
 public void setMissing ( double missing )
 {	_missing = missing;
-	if ( missing != missing ) {
+	if ( Double.isNaN(missing) ) {
 		// Will return true if NaN and can't do anything else.  The
 		// isDataMissing() method has a similar check.
 		return;

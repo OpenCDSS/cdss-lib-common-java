@@ -2214,7 +2214,7 @@ throws Exception
 		                string_value = missingValue_String;
 		         }
 		         else {
-    				if ( value != value ) {
+    				if ( Double.isNaN(value) ) {
     					// This trick is used to figure out if missing data are indicated by NaN...
     					string_value = "NaN";
     				}
@@ -2255,7 +2255,7 @@ throws Exception
 		                string_value = missingValue_String;
 		            }
 		            else {
-    					if ( value != value ) {
+    					if ( Double.isNaN(value) ) {
     						// This trick is used to figure out if missing data are indicated by NaN...
     						string_value = "NaN";
     					}

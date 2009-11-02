@@ -29,6 +29,7 @@ import java.util.Vector;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Time.TimeScaleType;
 
 /**
 The SHEFType class provides capabilities for reading and storing 
@@ -37,8 +38,7 @@ information is cross-referenced using the SHEF physical element (PE) code in
 the DataType class.  In general, the data listed in DataType are written to
 SHEF (using, for example RTi.TS.ShefATS), using the default information in
 this SHEFType class, in order to simplify data exchange.
-SHEF Data types are maintained internally using a Vector of SHEFType
-(self-referencing).
+SHEF Data types are maintained internally using a list of SHEFType (self-referencing).
 */
 public class SHEFType
 {
@@ -494,13 +494,14 @@ throws IOException
 		if ( duration.equals("-1") ) {
 			type.setDefaultIntervalBase("DAY");
 			type.setDefaultIntervalMult(1);
-			type.setMeasTimeScale(MeasTimeScale.MEAN);
+			type.setMeasTimeScale(""+TimeScaleType.MEAN);
 		}
 		else if ( duration.equals("0") ) {
-			type.setMeasTimeScale(MeasTimeScale.INST);
+			type.setMeasTimeScale(""+TimeScaleType.INST);
 		}
-		else {	// duration > 0
-			type.setMeasTimeScale(MeasTimeScale.ACCM);
+		else {
+		    // duration > 0
+			type.setMeasTimeScale("" + TimeScaleType.ACCM);
 			// Also evaluate the full SHEF, which has more detailed
 			// information about the interval...
 			if ( SHEF_pe_long.charAt(2) == 'H' ) {

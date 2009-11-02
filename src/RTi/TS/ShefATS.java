@@ -33,12 +33,12 @@ import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.IO.IOUtil;
-import RTi.Util.IO.MeasTimeScale;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TZ;
+import RTi.Util.Time.TimeScaleType;
 
 /**
 This ShefATS class provides static methods for reading and writing .A format
@@ -531,7 +531,7 @@ throws Exception
 		if ( durationDefined ) {
 			scaleType = DurList.get( i );
 
-			if ( scaleType.equalsIgnoreCase(MeasTimeScale.ACCM) || scaleType.equalsIgnoreCase(MeasTimeScale.MEAN)) {
+			if ( scaleType.equalsIgnoreCase(""+TimeScaleType.ACCM) || scaleType.equalsIgnoreCase(""+TimeScaleType.MEAN)) {
 				scale = true;
 				// a 'V' after the PE indicates that the duration of the data is defined elsewhere in the message
 				PhysicalElement += "V";

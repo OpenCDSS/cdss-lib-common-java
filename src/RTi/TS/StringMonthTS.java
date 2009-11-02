@@ -455,7 +455,7 @@ class treats NaN as missing.
 @param value Value to check.
 */
 public boolean isDataMissing ( String value )
-{	if ( value != value ) {
+{	if ( value.equalsIgnoreCase("NaN") ) {
 		// Check for NaN...
 		return true;
 	}

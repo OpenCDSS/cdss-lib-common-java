@@ -77,14 +77,23 @@ public static final int WEEK = 50;
 public static final int MONTH = 60;
 public static final int YEAR = 70;
 
-private String	_interval_base_string;	// The string associated with the base interval.
-private String	_interval_mult_string;	// The string associated with the
-					// interval multiplier (may be "" if
-					// not specified in string used with
-					// the constructor).
-
-private int	_interval_base;		// The base data interval.
-private int	_interval_mult;		// The data interval multiplier.
+/**
+The string associated with the base interval (e.g, "Month").
+*/
+private String __intervalBaseString;
+/**
+The string associated with the interval multiplier (may be "" if
+not specified in string used with the constructor).
+*/
+private String __intervalMultString;
+/**
+The base data interval.
+*/
+private int	__intervalBase;
+/**
+The data interval multiplier.
+*/
+private int	__intervalMult;
 
 /**
 Construct and initialize data to zeros and empty strings.
@@ -99,10 +108,10 @@ Copy constructor.
 */
 public TimeInterval ( TimeInterval interval )
 {	init();
-	_interval_base = interval.getBase ();
-	_interval_mult = interval.getMultiplier ();
-	_interval_base_string = interval.getBaseString ();
-	_interval_mult_string = interval.getMultiplierString ();
+	__intervalBase = interval.getBase ();
+	__intervalMult = interval.getMultiplier ();
+	__intervalBaseString = interval.getBaseString ();
+	__intervalMultString = interval.getMultiplierString ();
 }
 
 /**
@@ -114,18 +123,18 @@ from getMultiplierString() will be set to "" and the integer multiplier will be 
 */
 public TimeInterval ( int base, int mult )
 {	init();
-	_interval_base = base;
-	_interval_mult = mult;
-	_interval_base_string = getName ( base );
-	if ( _interval_base == IRREGULAR ) {
-		_interval_mult_string = "";
+	__intervalBase = base;
+	__intervalMult = mult;
+	__intervalBaseString = getName ( base );
+	if ( __intervalBase == IRREGULAR ) {
+		__intervalMultString = "";
 	}
 	else if ( mult <= 0 ) {
-		_interval_mult_string = "";
-		_interval_mult = 1;
+		__intervalMultString = "";
+		__intervalMult = 1;
 	}
 	else {
-	    _interval_mult_string = "" + mult;
+	    __intervalMultString = "" + mult;
 	}
 }
 
@@ -137,7 +146,7 @@ Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 @return true if the integer interval base and multiplier are equal, false otherwise.
 */
 public boolean equals ( TimeInterval interval )
-{	if ( (_interval_base == interval.getBase () ) && (_interval_mult	== interval.getMultiplier ()) ) {
+{	if ( (__intervalBase == interval.getBase() ) && (__intervalMult == interval.getMultiplier()) ) {
 		return true;
 	}
 	else {
@@ -184,8 +193,8 @@ Finalize before garbage collection.
 */
 protected void finalize()
 throws Throwable
-{	_interval_base_string = null;
-	_interval_mult_string = null;
+{	__intervalBaseString = null;
+	__intervalMultString = null;
 	super.finalize();
 }
 
@@ -193,32 +202,32 @@ throws Throwable
 Return the interval base (see TimeInterval.INTERVAL*).
 @return The interval base (see TimeInterval.INTERVAL*).
 */
-public int getBase ( )
-{	return _interval_base;
+public int getBase ()
+{	return __intervalBase;
 }
 
 /**
 Return the interval base as a string.
 @return The interval base as a string.
 */
-public String getBaseString ( )
-{	return _interval_base_string;
+public String getBaseString ()
+{	return __intervalBaseString;
 }
 
 /**
 Return the interval multiplier.
 @return The interval multiplier.
 */
-public int getMultiplier ( )
-{	return _interval_mult;
+public int getMultiplier ()
+{	return __intervalMult;
 }
 
 /**
 Return the interval base as a string.
 @return The interval base as a string.
 */
-public String getMultiplierString ( )
-{	return _interval_mult_string;
+public String getMultiplierString ()
+{	return __intervalMultString;
 }
 
 /**
@@ -534,10 +543,10 @@ public boolean lessThan ( TimeInterval interval )
 Initialize the data.
 */
 private void init ()
-{	_interval_base = 0;
-	_interval_base_string = "";
-	_interval_mult = 0;
-	_interval_mult_string = "";
+{	__intervalBase = 0;
+	__intervalBaseString = "";
+	__intervalMult = 0;
+	__intervalMultString = "";
 }
 
 /**
@@ -862,18 +871,17 @@ Set the interval base.
 @param base Time series interval.
 */
 public void setBase ( int base )
-{	_interval_base = base;
+{	__intervalBase = base;
 }
 
 /**
-Set the interval base string.  This is normally only called by other methods
-within this class.
+Set the interval base string.  This is normally only called by other methods within this class.
 @return Zero if successful, non-zero if not.
 @param base_string Time series interval base as string.
 */
 public void setBaseString ( String base_string )
 {	if ( base_string != null ) {
-		_interval_base_string = base_string;
+		__intervalBaseString = base_string;
 	}
 }
 
@@ -882,17 +890,16 @@ Set the interval multiplier.
 @param mult Time series interval.
 */
 public void setMultiplier ( int mult )
-{	_interval_mult = mult;
+{	__intervalMult = mult;
 }
 
 /**
-Set the interval multiplier string.  This is normally only called by other
-methods within this class.
+Set the interval multiplier string.  This is normally only called by other methods within this class.
 @param multiplier_string Time series interval base as string.
 */
 public void setMultiplierString ( String multiplier_string )
 {	if ( multiplier_string != null ) {
-		_interval_mult_string = multiplier_string;
+		__intervalMultString = multiplier_string;
 	}
 }
 
@@ -904,20 +911,20 @@ toSecondsApproximate() for a version that will handle all intervals.
 @return Number of seconds in an interval, or -1 if the interval cannot be processed.
 */
 public int toSeconds ()
-{	if ( _interval_base == SECOND ) {
-		return _interval_mult;
+{	if ( __intervalBase == SECOND ) {
+		return __intervalMult;
 	}
-	else if ( _interval_base == MINUTE ) {
-		return 60*_interval_mult;
+	else if ( __intervalBase == MINUTE ) {
+		return 60*__intervalMult;
 	}
-	else if ( _interval_base == HOUR ) {
-		return 3600*_interval_mult;
+	else if ( __intervalBase == HOUR ) {
+		return 3600*__intervalMult;
 	}
-	else if ( _interval_base == DAY ) {
-		return 86400*_interval_mult;
+	else if ( __intervalBase == DAY ) {
+		return 86400*__intervalMult;
 	}
-	else if ( _interval_base == WEEK ) {
-		return 604800*_interval_mult;
+	else if ( __intervalBase == WEEK ) {
+		return 604800*__intervalMult;
 	}
 	else {
 	    return -1;
@@ -928,38 +935,38 @@ public int toSeconds ()
 Return the number of seconds in an interval, accounting for the base interval
 and multiplier.  For intervals greater than a day, the seconds are computed
 assuming 30 days per month (360 days per year).  Intervals of HSecond will
-return 0.  The result of this method can
-then be used to perform relative comparisons of intervals.
+return 0.  The result of this method can then be used to perform relative comparisons of intervals.
 @return Number of seconds in an interval.
 */
 public int toSecondsApproximate ()
-{	if ( _interval_base == HSECOND ) {
+{	if ( __intervalBase == HSECOND ) {
 		return 0;
 	}
-	else if ( _interval_base == SECOND ) {
-		return _interval_mult;
+	else if ( __intervalBase == SECOND ) {
+		return __intervalMult;
 	}
-	else if ( _interval_base == MINUTE ) {
-		return 60*_interval_mult;
+	else if ( __intervalBase == MINUTE ) {
+		return 60*__intervalMult;
 	}
-	else if ( _interval_base == HOUR ) {
-		return 3600*_interval_mult;
+	else if ( __intervalBase == HOUR ) {
+		return 3600*__intervalMult;
 	}
-	else if ( _interval_base == DAY ) {
-		return 86400*_interval_mult;
+	else if ( __intervalBase == DAY ) {
+		return 86400*__intervalMult;
 	}
-	else if ( _interval_base == WEEK ) {
-		return 604800*_interval_mult;
+	else if ( __intervalBase == WEEK ) {
+		return 604800*__intervalMult;
 	}
-	else if ( _interval_base == MONTH ) {
+	else if ( __intervalBase == MONTH ) {
 		// 86400*30
-		return 2592000*_interval_mult;
+		return 2592000*__intervalMult;
 	}
-	else if ( _interval_base == YEAR ) {
+	else if ( __intervalBase == YEAR ) {
 		// 86400*30*13
-		return 31104000*_interval_mult;
+		return 31104000*__intervalMult;
 	}
-	else {	// Should not happen...
+	else {
+	    // Should not happen...
 		return -1;
 	}
 }
@@ -971,7 +978,6 @@ base string is returned (the multiplier may be "" or a number).
 @return a string representation of the interval (e.g., "1Month").
 */
 public String toString ()
-{	return _interval_mult_string + _interval_base_string;
+{	return __intervalMultString + __intervalBaseString;
 }
-
 }
