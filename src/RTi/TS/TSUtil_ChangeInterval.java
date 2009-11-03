@@ -7,6 +7,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeScaleType;
 import RTi.Util.Time.TimeUtil;
+import RTi.Util.Time.YearType;
 
 /**
  * Change a time series interval, creating a new time series.
@@ -85,6 +86,11 @@ Output fill method when going from larger interval to smaller interval.
 private TSUtil_ChangeInterval_OutputFillMethodType __outputFillMethod = null;
 
 /**
+Output year type when new interval is year.
+*/
+private YearType __outputYearType = null;
+
+/**
 Tolerance (e.g., .01) used with convergence tests (when needed).
 */
 private double __tolerance = 0.01;
@@ -107,6 +113,7 @@ indicating the new interval for the time series.
 the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
 @param newTimeScale The new time scale indicates whether values in the new time series are accumulated over
 the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
+@param outputYearType output year type used when the new interval is year (if null use calendar).
 @param newDataType the data type for the new time series.  If null, the data type from the old time series
 will be used (Warning: for some systems, the meaning of the data type changes depending on the interval.
 For example "Streamflow" may be instantaneous for irregular data and mean for daily data.)
@@ -144,8 +151,8 @@ The default if specified as null is KEEP_MISSING.
 TODO SAM 2009-11-02 need to evaluate the references to ALERT versus general behavior.
 */
 public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
-    TimeScaleType oldTimeScale, TimeScaleType newTimeScale, String newDataType, String newUnits,
-    Double tolerance,
+    TimeScaleType oldTimeScale, TimeScaleType newTimeScale, YearType outputYearType,
+    String newDataType, String newUnits, Double tolerance,
     TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow,
     TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
     TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow,
@@ -177,6 +184,11 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         throw new IllegalArgumentException ( "New time scale is null.  Cannot change interval.");
     }
     setNewTimeScale ( newTimeScale );
+    
+    if ( outputYearType == null ) {
+        outputYearType = YearType.CALENDAR;
+    }
+    setOutputYearType ( outputYearType );
     
     if ( (newDataType == null) || newDataType.equals("")  ) {
         // Assume the data type of the old time series
@@ -396,6 +408,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         int newtsMultiplier = newInterval.getMultiplier();
         TimeScaleType oldTimeScale = getOldTimeScale();
         TimeScaleType newTimeScale = getNewTimeScale();
+        YearType outputYearType = getOutputYearType();
         String newUnits = getNewUnits(); // Will check below when creating the time series.
         String newDataType = getNewDataType();
         TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod = getOutputFillMethod();
@@ -438,6 +451,31 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         newTS.setDate2(newts_date[1]);
         newTS.setDate1Original(oldTS.getDate1());
         newTS.setDate2Original(oldTS.getDate2());
+        
+        // If the output is a different year type, adjust the output time series to fully
+        // encompass the original time series period.
+        if ( (newInterval.getBase() == TimeInterval.YEAR) && (outputYearType != YearType.CALENDAR) ) {
+            if ( (outputYearType.getYearOffset() < 0) &&
+                (oldTS.getDate1().getMonth() >= outputYearType.getFirstMonth()) ) {
+                // The old time series starts >= after the beginning of the output year and would result
+                // in an extra year at the start so increment the first year. For example, if the water year
+                // and the start is Oct, 2000, need to increment the output year to 2001.
+                DateTime date1 = newTS.getDate1();
+                date1.addYear ( 1 );
+                newTS.setDate1 ( date1 );
+                Message.printStatus(2, routine, "Adjusting output time series start to " + date1 +
+                    " to align with " + outputYearType + " year type." );
+            }
+            // Similarly shift the end of the year...
+            if ( (outputYearType.getYearOffset() < 0) &&
+                (oldTS.getDate2().getMonth() >= outputYearType.getFirstMonth()) ) {
+                DateTime date2 = newTS.getDate2();
+                date2.addYear ( 1 );
+                newTS.setDate2 ( date2 );
+                Message.printStatus(2, routine, "Adjusting output time series start to " + date2 +
+                    " to align with " + outputYearType + " year type." );
+            }
+        }
         
         // Set the units if specified...
         if ( (newUnits != null) && !newUnits.equals("") ) {
@@ -546,7 +584,26 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         // Processing all the different change interval options.
         boolean returnTS = false;
 
-        if (oldTS.getDataIntervalBase() == TimeInterval.IRREGULAR) {
+        if ( (newtsBase == TimeInterval.YEAR) && (outputYearType != YearType.CALENDAR) ) {
+            // Special case - handle with simpler code that does not utilize all the parameters
+            // The old interval must be Day or Month
+            if ( (oldTS.getDataIntervalBase() != TimeInterval.DAY) &&
+                (oldTS.getDataIntervalBase() != TimeInterval.MONTH) &&
+                (oldTS.getDataIntervalMult() != 1) ) {
+                warning = "Conversion using output year type \"" + outputYearType +
+                "\" is only available for daily and monthly input time series.";
+                throw new IllegalArgumentException(warning);
+            }
+            if ( (newTimeScale != TimeScaleType.ACCM) && (newTimeScale != TimeScaleType.MEAN) ) {
+                warning = "Conversion using output year type \"" + outputYearType +
+                "\" is only available for an output time scale of " + TimeScaleType.ACCM + " and " +
+                TimeScaleType.MEAN + ".";
+                throw new IllegalArgumentException(warning);
+            }
+            changeIntervalToDifferentYearType ( oldTS, newTS, newTimeScale, outputYearType, allowMissingCount );
+            returnTS = true;
+        }
+        else if (oldTS.getDataIntervalBase() == TimeInterval.IRREGULAR) {
             // -------------------------------------------------------------
             // From IRREGULAR ACCM, MEAN and INST input TS use routine
             // changeInterval_fromIRREGULAR
@@ -1714,8 +1771,80 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             throw new IllegalArgumentException(warning);
         }
     }
+    
+/**
+Change the time series interval to a new output year type.  This is a simpler method that operates only
+on daily and monthly interval input; consequently, all input interval data fall nicely in the output interval
+without edge effects and zero time issues.
+The output year type controls the operation and can only be ACCM (in which case all input values are
+accumulated) and MEAN (in which case the input values are averaged).
+*/
+private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
+    TimeScaleType newTimeScale, YearType outputYearType, int allowMissingCount )
+{   String routine = getClass().getName() + ".changeIntervalToDifferentYearType";
+    // Create dates that have the correct precision (matching the old time series)
+    // and initialize for the first year.  These are used to step through the time series.
+    // The iteration year based on the old time series dates may start one year too early but that
+    // is OK since the output time series will simply not have a value added out of period.
+    DateTime yearStart = new DateTime ( oldTS.getDate1() );
+    yearStart.addYear( outputYearType.getYearOffset() );
+    yearStart.setMonth( outputYearType.getFirstMonth() );
+    yearStart.setDay( 1 ); // Will not be used if monthly input
+    DateTime yearEnd = new DateTime ( yearStart );
+    yearEnd.addMonth ( 11 );
+    yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
+    // Always create a new instance of date for the iterator to protect original data
+    int intervalBase = oldTS.getDataIntervalBase();
+    int intervalMult = oldTS.getDataIntervalMult();
+    double value;
+    DateTime newYear = new DateTime(yearStart,DateTime.PRECISION_YEAR);
+    newYear.addYear( -1*outputYearType.getYearOffset() );
+    // Loop until all the new years are processed
+    // The new time series period should have been defined to align with the year type
+    // Checking the year start will allow any period - with missing values filling in if necessary
+    while ( yearStart.lessThanOrEqualTo(newTS.getDate2()) ) {
+        // Initialize for the new year
+        double sum = 0.0;
+        int nMissing = 0;
+        int nNotMissing = 0;
+        // Extract data from the old time series for the new year
+        // This loops over the full year so that missing values on the end will impact results
+        Message.printStatus(2, routine, "Processing old time series for " + yearStart + " to " + yearEnd +
+            " to create output year " + newYear );
+        for ( DateTime idate = new DateTime(yearStart); idate.lessThanOrEqualTo(yearEnd);
+            idate.addInterval(intervalBase,intervalMult)) {
+            // Process the data values
+            value = oldTS.getDataValue ( idate );
+            if ( oldTS.isDataMissing(value) ) {
+                ++nMissing;
+            }
+            else {
+                ++nNotMissing;
+                sum += value;
+            }
+        }
+        // Save the results
+        Message.printStatus(2, routine, "For output year " + newYear + ", sum=" + sum + ", nMissing=" +
+            nMissing + ", nNotMissing=" + nNotMissing );
+        if ( newTimeScale == TimeScaleType.ACCM ) {
+            if ( (nNotMissing > 0) && (nMissing <= allowMissingCount) ) {
+                newTS.setDataValue(newYear, sum );
+            }
+        }
+        else if ( newTimeScale == TimeScaleType.MEAN ) {
+            if ( (nNotMissing > 0) && (nMissing <= allowMissingCount) ) {
+                newTS.setDataValue(newYear, sum/nNotMissing );
+            }
+        }
+        // Reset the annual value and increment the dates.
+        yearStart.addYear ( 1 );
+        // Also reset the day because the number of days in the month may depend on the year
+        yearEnd.addYear ( 1 );
+        yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
+        newYear.addYear ( 1 );
+    }
+}
 
-    //
     // Every parameter but newTSi refers to information from the old time series.
     // newTSi should be set to the start of the new time series start date.  After
     // routine has run, it will be set at or before nextDate.  Additionally, all checks
@@ -2975,6 +3104,15 @@ private TSUtil_ChangeInterval_OutputFillMethodType getOutputFillMethod ()
 }
 
 /**
+Return the output year type.
+@return the output year type.
+*/
+private YearType getOutputYearType ()
+{
+    return __outputYearType;
+}
+
+/**
 Return the tolerance used with convergence tests.
 @return the tolerance used with convergence tests.
 */
@@ -3101,6 +3239,15 @@ Set the output fill method.
 private void setOutputFillMethod ( TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod )
 {
     __outputFillMethod = outputFillMethod;
+}
+
+/**
+Set the output year type.
+@param outputYearType output year type.
+*/
+private void setOutputYearType ( YearType outputYearType )
+{
+    __outputYearType = outputYearType;
 }
 
 /**

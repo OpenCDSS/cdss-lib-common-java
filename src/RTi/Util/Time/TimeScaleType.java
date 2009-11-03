@@ -32,7 +32,7 @@ The name that is used for notes and explanations (more verbose).
 private final String displayNameVerbose;
 
 /**
-Construct a time series statistic enumeration value.
+Construct an enumeration value.
 @param displayName name that should be displayed in choices, etc.
 */
 private TimeScaleType(String displayName, String displayNameVerbose ) {
