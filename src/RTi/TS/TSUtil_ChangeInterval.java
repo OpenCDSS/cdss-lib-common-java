@@ -455,8 +455,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         // If the output is a different year type, adjust the output time series to fully
         // encompass the original time series period.
         if ( (newInterval.getBase() == TimeInterval.YEAR) && (outputYearType != YearType.CALENDAR) ) {
-            if ( (outputYearType.getYearOffset() < 0) &&
-                (oldTS.getDate1().getMonth() >= outputYearType.getFirstMonth()) ) {
+            if ( (outputYearType.getStartYearOffset() < 0) &&
+                (oldTS.getDate1().getMonth() >= outputYearType.getStartMonth()) ) {
                 // The old time series starts >= after the beginning of the output year and would result
                 // in an extra year at the start so increment the first year. For example, if the water year
                 // and the start is Oct, 2000, need to increment the output year to 2001.
@@ -467,8 +467,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     " to align with " + outputYearType + " year type." );
             }
             // Similarly shift the end of the year...
-            if ( (outputYearType.getYearOffset() < 0) &&
-                (oldTS.getDate2().getMonth() >= outputYearType.getFirstMonth()) ) {
+            if ( (outputYearType.getStartYearOffset() < 0) &&
+                (oldTS.getDate2().getMonth() >= outputYearType.getStartMonth()) ) {
                 DateTime date2 = newTS.getDate2();
                 date2.addYear ( 1 );
                 newTS.setDate2 ( date2 );
@@ -1787,8 +1787,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
     // The iteration year based on the old time series dates may start one year too early but that
     // is OK since the output time series will simply not have a value added out of period.
     DateTime yearStart = new DateTime ( oldTS.getDate1() );
-    yearStart.addYear( outputYearType.getYearOffset() );
-    yearStart.setMonth( outputYearType.getFirstMonth() );
+    yearStart.addYear( outputYearType.getStartYearOffset() );
+    yearStart.setMonth( outputYearType.getStartMonth() );
     yearStart.setDay( 1 ); // Will not be used if monthly input
     DateTime yearEnd = new DateTime ( yearStart );
     yearEnd.addMonth ( 11 );
@@ -1798,7 +1798,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
     int intervalMult = oldTS.getDataIntervalMult();
     double value;
     DateTime newYear = new DateTime(yearStart,DateTime.PRECISION_YEAR);
-    newYear.addYear( -1*outputYearType.getYearOffset() );
+    newYear.addYear( -1*outputYearType.getStartYearOffset() );
     // Loop until all the new years are processed
     // The new time series period should have been defined to align with the year type
     // Checking the year start will allow any period - with missing values filling in if necessary

@@ -14,15 +14,15 @@ public enum YearType
 /**
 Standard calendar year.
 */
-CALENDAR ( "Calendar", 0, 1 ),
+CALENDAR ( "Calendar", 0, 1, 0, 12 ),
 /**
 November (of previous year) to October (of current) year.
 */
-NOV_TO_OCT ( "NovToOct", -1, 11 ),
+NOV_TO_OCT ( "NovToOct", -1, 11, 0, 10 ),
 /**
 Water year (October to September).
 */
-WATER ( "Water", -1, 10 );
+WATER ( "Water", -1, 10, 0, 9 );
 
 /**
 The name that is used for choices and other technical code (terse).
@@ -33,32 +33,74 @@ private final String __displayName;
 The calendar year offset in which the year starts.  For example, -1 indicates that the year starts
 in the previous calendar year.
 */
-private final int __yearOffset;
+private final int __startYearOffset;
+
+/**
+The calendar year offset in which the year ends.  For example, 0 indicates that the year ends
+in the previous calendar year.
+*/
+private final int __endYearOffset;
 
 /**
 The calendar month (1-12) when the year starts.  For example, 10 indicates that the year starts in October.
 */
-private final int __firstMonth;
+private final int __startMonth;
+
+/**
+The calendar month (1-12) when the year ends.  For example, 9 indicates that the year ends in September.
+*/
+private final int __endMonth;
 
 /**
 Construct an enumeration value.
 @param displayName name that should be displayed in choices, etc.
-@param yearOffset the offset to the calendar year for the start of the year.
-@param firstMonth the first calendar month (1-12) for the year type.
+@param startYearOffset the offset to the calendar year for the start of the year.
+@param startMonth the first calendar month (1-12) for the year type.
+@param endYearOffset the offset to the calendar year for the start of the year.
+@param endMonth the first calendar month (1-12) for the year type.
 */
-private YearType(String displayName, int yearOffset, int firstMonth ) {
+private YearType(String displayName, int startYearOffset, int startMonth, int endYearOffset, int endMonth ) {
     this.__displayName = displayName;
-    this.__yearOffset = yearOffset;
-    this.__firstMonth = firstMonth;
+    this.__startYearOffset = startYearOffset;
+    this.__startMonth = startMonth;
+    this.__endYearOffset = endYearOffset;
+    this.__endMonth = endMonth;
 }
 
 /**
-Return the first month in the year.
+Return the last month (1-12) in the year.
+@return the last month in the year.
+*/
+public int getEndMonth ()
+{
+    return __endMonth;
+}
+
+/**
+Return the end year offset.
+@return the end year offset.
+*/
+public int getEndYearOffset ()
+{
+    return __endYearOffset;
+}
+
+/**
+Return the first month (1-12) in the year.
 @return the first month in the year.
 */
-public int getFirstMonth ()
+public int getStartMonth ()
 {
-    return __firstMonth;
+    return __startMonth;
+}
+
+/**
+Return the start year offset.
+@return the start year offset.
+*/
+public int getStartYearOffset ()
+{
+    return __startYearOffset;
 }
 
 /**
@@ -88,15 +130,6 @@ public static List<String> getYearTypeChoicesAsStrings()
         stringChoices.add ( choiceString );
     }
     return stringChoices;
-}
-
-/**
-Return the year offset.
-@return the year offset.
-*/
-public int getYearOffset ()
-{
-    return __yearOffset;
 }
 
 /**
