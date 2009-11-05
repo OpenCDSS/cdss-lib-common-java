@@ -848,6 +848,7 @@ original data.
 The year time series will have an end date with the year matching this date.
 If null, the entire period will be analyzed.
 @param props Properties to consider when analyzing (see overloaded version for details).
+@deprecated use the TSUtil_NewStatisticYearTS class.
 @exception TSException if there is an error analyzing the time series.
 */
 public YearTS createStatisticYearTS ( TS ts,
@@ -907,6 +908,7 @@ when no data are found.
 </tr>
 
 </table>
+@deprecated use the TSUtil_NewStatisticYearTS class.
 @exception TSException if there is an error analyzing the time series.
 */
 public YearTS createStatisticYearTS (	TS ts,
@@ -1397,6 +1399,7 @@ Currently only Month... to precision are evaluated (not day... etc.).
 @param AnalysisWindowEnd_DateTime If not null, specify the end of the window within
 the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
+@deprecated use the TSUtil_newStatisticYearTS class.
 */
 private void processStatistic (	TS ts, YearTS yearts,
 				PropList props,

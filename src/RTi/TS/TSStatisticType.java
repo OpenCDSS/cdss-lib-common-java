@@ -125,6 +125,10 @@ public enum TSStatisticType
      */
     LAG1_AUTO_CORRELATION ( "Lag-1AutoCorrelation" ),
     /**
+     * Last non-missing value in the sample.
+     */
+    LAST ( "Last" ),
+    /**
      * Maximum value in the sample.
      */
 	MAX ( "Max" ),

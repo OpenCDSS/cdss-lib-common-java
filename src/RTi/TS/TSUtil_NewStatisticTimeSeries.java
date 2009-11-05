@@ -78,7 +78,6 @@ If null, the period of the original time series will be output.
 @param statisticType the statistic type for the output time series.
 @param allowMissingCount the number of values allowed to be missing in the sample.
 @param minimumSampleSize the minimum sample size to allow to compute the statistic.
-@exception Exception if there is an error analyzing the time series.
 */
 public TSUtil_NewStatisticTimeSeries ( TS ts, DateTime analysisStart, DateTime analysisEnd,
     DateTime outputStart, DateTime outputEnd, String newTSID, TSStatisticType statisticType,
