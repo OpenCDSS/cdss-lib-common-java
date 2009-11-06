@@ -817,7 +817,14 @@ throws Exception {
 		_database_engine = DBENGINE_SQLSERVER;
 		if ( port <= 0 ) {
 			setDefaultPort ();
-		}
+		} else {
+            // If use has provided a port AND a named instance, e.g. localhost\SQLEXPRESS,
+            // warn them about it. -IWS
+            if (__database_server.indexOf('\\') >= 0) {
+                Message.printWarning(1, "initialize", "SQLServer connection should either " +
+                        "provide a named instance OR a port, but not both.");
+            }
+        }
 	}
     else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("H2")) {
         _left_id_delim = "";
@@ -2180,11 +2187,17 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using \"" + connUrl + "\"" );
 		}
 		// All the SQL Server connections are now concentrated into one code block as using the SQL Server
-		// 2008 JDBC driver.  Comments are included below in case troubleshooting needs to occur.
+		// 2008 JDBC (jdbc4) driver.  Comments are included below in case troubleshooting needs to occur.
 		else if ( _database_engine == DBENGINE_SQLSERVER ) {
-			connUrl = "jdbc:sqlserver://"
-				+ __database_server + ":"
-				+ __port + ";databaseName=" + __database_name;
+            // http://msdn.microsoft.com/en-us/library/ms378428%28SQL.90%29.aspx
+            connUrl = "jdbc:sqlserver://" + __database_server;
+            // if connecting to a named instance, DO NOT USE PORT!
+            // NOTE : it is generally recommended to use the port for speed
+            // -IWS
+            if (__database_server.indexOf('\\') < 0) {
+                connUrl += ":" + __port;
+            }
+            connUrl += ";databaseName=" + __database_name;
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
 		}
