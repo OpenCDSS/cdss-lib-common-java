@@ -383,20 +383,65 @@ public static int dayOfYear ( Date d )
 Return the day of the year.
 @return The day of the year (where 1 is the first day of the year and 365 or
 366 is the last).  Return -1 if an error.
-@param d Java Date.
+@param d Datetime to evaluate.
 */
 public static int dayOfYear ( DateTime d )
 {	if ( d == null ) {
 		return -1;
 	}
-	int day = 0;
+	int days = 0;
 	// Days in previous months...
 	if ( d.getMonth() > 1 ) {
-		day += numDaysInMonths ( 1, d.getYear(), (d.getMonth() - 1) );
+		days += numDaysInMonths ( 1, d.getYear(), (d.getMonth() - 1) );
 	}
 	// Add the days from this month...
-	day += d.getDay();
-	return day;
+	days += d.getDay();
+	return days;
+}
+
+/**
+Return the day of the year, where day 1 is the first day in the year type (Jan 1 for calendar year type).
+For example, for calendar year day 1 is Jan 1 and for water year day 1 is Oct 1.
+@return The day of the year (where 1 is the first day of the year and 365 or 366 is the last).
+@param d Datetime to evaluate, in calendar year.
+@param yearType year type.
+@exception IllegalArgumentException if there is an error.
+*/
+public static int dayOfYear ( DateTime d, YearType yearType )
+{   if ( (yearType == YearType.CALENDAR) || (yearType == null) ) {
+        return dayOfYear ( d );
+    }
+    // Else have non-calendar year so evaluation is a bit more complex
+    if ( d == null ) {
+        throw new IllegalArgumentException ( "Date is null - cannot calculate day of year.");
+    }
+    int days = 0;
+    // Else have non-calendar year so evaluation is a bit more complex
+    int calMonth = d.getMonth();
+    int startMonth = yearType.getStartMonth();
+    if ( calMonth < startMonth ) {
+        // First add the number of days in the months in the previous year
+        days += numDaysInMonths ( startMonth, d.getYear() + yearType.getStartYearOffset(),
+            (12 - startMonth + 1) );
+        // Add the days in previous months of the current year
+        if ( calMonth > 1 ) {
+            // Add the days from the previous months...
+            days += numDaysInMonths ( 1, d.getYear(), (calMonth -1) );
+        }
+        // Add the days from the current month...
+        days += d.getDay();
+    }
+    else {
+        // At the start of the year (previous calendar year)
+        if ( calMonth > startMonth ) {
+            // Add the days from the previous months...
+            days += numDaysInMonths ( startMonth, d.getYear() + yearType.getStartYearOffset(),
+                (calMonth - startMonth) );
+        }
+        // Add the days from the current month...
+        days += d.getDay();
+    }
+    return days;
 }
 
 /**
@@ -2048,6 +2093,22 @@ public static String monthAbbreviation ( int month )
 }
 
 /**
+Determine the integer month given the month abbreviation.
+@return An integer in the range 1-12 corresponding to the month abbreviation,
+or 0 if the abbreviation cannot be matched.
+@param abbrev Month abbreviation (currently limited to 3-letter abbreviations
+in the MONTH_ABBREVIATIONS array).
+*/
+public static int monthFromAbbrev( String abbrev )
+{   for ( int i = 0; i < 12; i++ ) {
+        if(abbrev.equalsIgnoreCase( MONTH_ABBREVIATIONS[i] ) ) {
+            return i + 1;
+        }
+    }
+    return 0;
+}
+
+/**
 Convert an absolute month to its year and month values.
 @return An array if int's indicating the month and year corresponding to the
 given absolute month.  The first value will be the year, the second will be the month.
@@ -2072,6 +2133,28 @@ public static int[] monthFromAbsolute ( int amon )
 	monthyear[0] = month;
 	monthyear[1] = year;
 	return monthyear;
+}
+
+/**
+Return the month of the year, where month 1 is the first month in the year type.
+For example Jan is month 1 for calendar year type and Oct is month 1 for water year type.
+@return The month of the year (where 1 is the first month of the year and 12 is the last).
+@param d Datetime to evaluate, in calendar year.
+@param yearType year type.
+@exception IllegalArgumentException if input is invalid.
+*/
+public static int monthOfYear ( DateTime d, YearType yearType )
+{   int calMonth = d.getMonth();
+    if ( yearType == YearType.CALENDAR ) {
+        return calMonth;
+    }
+    // Else have non-calendar year so evaluation is a bit more complex
+    if ( calMonth < yearType.getStartMonth() ) {
+        return 12 - yearType.getStartMonth() + 1 + calMonth;
+    }
+    else {
+        return calMonth - yearType.getStartMonth() + 1;
+    }
 }
 
 /**
@@ -2162,21 +2245,6 @@ public static int numDaysInYear ( int year )
 	}
 }
 
-/**
-Determine the integer month given the month abbreviation.
-@return An integer in the range 1-12 corresponding to the month abbreviation,
-or 0 if the abbreviation cannot be matched.
-@param abbrev Month abbreviation (currently limited to 3-letter abbreviations
-in the MONTH_ABBREVIATIONS array).
-*/
-public static int monthFromAbbrev( String abbrev )
-{	for ( int i = 0; i < 12; i++ ) {
-		if(abbrev.equalsIgnoreCase( MONTH_ABBREVIATIONS[i] ) ) {
-			return i + 1;
-		}
-	}
-	return 0;
-}
 
 /**
 Parse a 4-digit military time into its hour and minute and return in an array of int's.
