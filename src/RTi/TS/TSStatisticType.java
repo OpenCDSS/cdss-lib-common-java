@@ -16,22 +16,6 @@ public enum TSStatisticType
      * Count of missing and non-missing values (total count).
      */
     COUNT("Count"),
-    /**
-     * Count of values >= test value.
-     */
-	COUNT_GE ( "CountGE" ),
-	/**
-	 * Count of values > test value.
-	 */
-	COUNT_GT ( "CountGT" ),
-	/**
-	 * Count of values <= test value.
-	 */
-	COUNT_LE ( "CountLE" ),
-	/**
-	 * Count of values < test value.
-	 */
-	COUNT_LT ( "CountLT" ),
 	/**
 	 * Day of first value >= test value.
 	 */
@@ -121,6 +105,22 @@ public enum TSStatisticType
      */
     EXCEEDANCE_PROBABILITY_GE90 ( "ExceedanceProbabilityGE90" ),
     /**
+     * Count of values >= test value.
+     */
+    GE_COUNT ( "GECount" ),
+    /**
+     * Percent of values >= test value.
+     */
+    GE_PERCENT ( "GEPercent" ),
+    /**
+     * Count of values > test value.
+     */
+    GT_COUNT ( "GTCount" ),
+    /**
+     * Percent of values > test value.
+     */
+    GT_PERCENT ( "GTPercent" ),
+    /**
      * Auto-correlation with previous interval.
      */
     LAG1_AUTO_CORRELATION ( "Lag-1AutoCorrelation" ),
@@ -128,6 +128,22 @@ public enum TSStatisticType
      * Last non-missing value in the sample.
      */
     LAST ( "Last" ),
+    /**
+     * Count of values <= test value.
+     */
+    LE_COUNT ( "LECount" ),
+    /**
+     * Percent of values <= test value.
+     */
+    LE_PERCENT ( "LEPercent" ),
+    /**
+     * Count of values < test value.
+     */
+    LT_COUNT ( "LTCount" ),
+    /**
+     * Percent of values < test value.
+     */
+    LT_PERCENT ( "LTPercent" ),
     /**
      * Maximum value in the sample.
      */
@@ -152,6 +168,46 @@ public enum TSStatisticType
      * Percent of missing values in the sample.
      */
     MISSING_PERCENT ( "MissingPercent" ),
+    /**
+     * Month of first value >= test value.
+     */
+    MONTH_OF_FIRST_GE ( "MonthOfFirstGE" ),
+    /**
+     * Day of first value > test value.
+     */
+    MONTH_OF_FIRST_GT ( "MonthOfFirstGT" ),
+    /**
+     * Month of first value <= test value.
+     */
+    MONTH_OF_FIRST_LE ( "MonthOfFirstLE" ),
+    /**
+     * Month of first value < test value.
+     */
+    MONTH_OF_FIRST_LT ( "MonthOfFirstLT" ),
+    /**
+     * Month of last value >= test value.
+     */
+    MONTH_OF_LAST_GE ( "MonthOfLastGE" ),
+    /**
+     * Month of last value > test value.
+     */
+    MONTH_OF_LAST_GT ( "MonthOfLastGT" ),
+    /**
+     * Month of last value <= test value.
+     */
+    MONTH_OF_LAST_LE ( "MonthOfLastLE" ),
+    /**
+     * Month of last value < test value.
+     */
+    MONTH_OF_LAST_LT ( "MonthOfLastLT" ),
+    /**
+     * Month of maximum value.
+     */
+    MONTH_OF_MAX ( "MonthOfMax" ),
+    /**
+     * Month of minimum value.
+     */
+    MONTH_OF_MIN ( "MonthOfMin" ),
     /**
      * Count of non-missing values in the sample.
      */
@@ -283,6 +339,20 @@ public String toString() {
 public static TSStatisticType valueOfIgnoreCase(String name)
 {
     TSStatisticType [] values = values();
+    // Legacy conversions
+    if ( name.equalsIgnoreCase("COUNT_GE") ) {
+        return GE_COUNT;
+    }
+    else if ( name.equalsIgnoreCase("COUNT_GT") ) {
+        return GT_COUNT;
+    }
+    else if ( name.equalsIgnoreCase("COUNT_LE") ) {
+        return LE_COUNT;
+    }
+    else if ( name.equalsIgnoreCase("COUNT_LT") ) {
+        return LT_COUNT;
+    }
+    // Currently supported values
     for ( TSStatisticType t : values ) {
         if ( name.equalsIgnoreCase(t.toString()) ) {
             return t;
