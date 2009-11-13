@@ -354,12 +354,13 @@ private void refresh ()
 		__dataSourceTextField.setText ( datasource );
 		__dataTypeTextField.setText ( datatype );
         if ( __EnableInterval_boolean ) {
-    		if ( JGUIUtil.isSimpleJComboBoxItem(__dataInterval_JComboBox,interval, JGUIUtil.NONE, null, null ) ) {
-    			__dataInterval_JComboBox.select ( interval );
-    		}
-    		else {
-                __warning += "Interval \"" + interval +	"\" is not recognized.";
-    		}
+            // Do case-insensitive select to avoid problems.
+			try {
+			    JGUIUtil.selectIgnoreCase(__dataInterval_JComboBox, interval );
+			}
+			catch ( Exception e ) {
+			    __warning += "Interval \"" + interval + "\" is not recognized.";
+			}
         }
 		/* TODO SAM 2005-08-26
 		 Add this for regular expressions, etc.?
