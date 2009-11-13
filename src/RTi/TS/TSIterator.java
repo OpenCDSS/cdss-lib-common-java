@@ -63,8 +63,7 @@ IrregularTSIterator for irregular-interval time series.  In general,
 this should be transparent because the proper iterator will be created from the TS.iterator() method.
 Use the iterator as follows:
 <pre>
-TS somets;	// Construct and initialize a time series or use an
-		// existing time series.
+TS somets;	// Construct and initialize a time series or use an existing time series.
 TSIterator tsi = somets.iterator ( somets.getDate1(), somets.getDate2() );
 		// Can construct with any set of dates (ideally matching the
 		// time series interval) or no dates, in which case the full
@@ -75,8 +74,7 @@ TSData data;
 for ( ; (data = tsi.next()) != null; ) {
 			// The first call will set the pointer to the
 			// first data value in the period.  next() will return
-			// null when the last date in the processing period
-			// has been passed.
+			// null when the last date in the processing period has been passed.
 	date = tsi.getDate();
 	value = tsi.getDataValue();
 }
@@ -157,13 +155,13 @@ throws Exception
 	_intervalBase = _ts.getDataIntervalBase();
 	_intervalMult = _ts.getDataIntervalMult();
 	if ( ts == null ) {
-		throw new Exception ( "Null TS for TSIterator" );
+		throw new Exception ( "Null time series for TSIterator" );
 	}
 	if ( ts.getDate1() == null ) {
-		throw new Exception ( "Null TS.date1 for TSIterator" );
+		throw new Exception ( "Null starting date/time for TSIterator" );
 	}
 	if ( ts.getDate2() == null ) {
-		throw new Exception ( "Null TS.date2 for TSIterator" );
+		throw new Exception ( "Null ending date/time for TSIterator" );
 	}
 	_date1 = new DateTime(ts.getDate1());
 	_date2 = new DateTime(ts.getDate2());
@@ -186,13 +184,13 @@ throws Exception
 {	initialize ();
 
 	if ( ts == null ) {
-		throw new Exception ( "Null TS for TSIterator" );
+		throw new Exception ( "Null time series for TSIterator" );
 	}
 	if ( (date1 == null) && (ts.getDate1() == null) ) {
-		throw new Exception ( "Null TS.date1 for TSIterator" );
+		throw new Exception ( "Null starting date/time for TSIterator" );
 	}
 	if ( (date2 == null) && (ts.getDate2() == null) ) {
-		throw new Exception ( "Null TS.date2 for TSIterator" );
+		throw new Exception ( "Null ending date/time for TSIterator" );
 	}
 	_ts = ts;
 	_intervalBase = _ts.getDataIntervalBase();
@@ -214,24 +212,27 @@ throws Exception
 
 	_currentDate = new DateTime(_date1);
 
+	/* FIXME SAM 2009-11-13 THIS CODE COMMENTED OUT ON 2009-11-13 - SEEMS TO BE A BUG AND NOT
+	CLEAR WHY IT IS HERE.  Remove this code if tests are OK and no further fixes are needed.
 	// It is possible that the date passed in does not agree with a date
 	// in the time series.  For the initialization of the iterator, we want
 	// the _current_date to be an actual date in the data...
 	// TODO SAM 2009-01-15 Evaluate code
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "TSIterator", "Requested start date is " + _currentDate.toString() );
+		Message.printDebug ( 50, "TSIterator", "Requested start date is " + _currentDate );
 	}
 	if ( _currentDate.greaterThan(_ts.getDate2()) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, "TSIterator", "Initialized Current Date " + _currentDate.toString() +
+			Message.printDebug ( 50, "TSIterator", "Initialized Current Date " + _currentDate +
 			" is larger than last Date of TS " + _ts.getDate2().toString() + ". TS has only one value!" );
 		}
 		_currentDate = new DateTime (_ts.getDate2());
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "TSIterator", "After check, start date changed to " + _currentDate.toString() );
+		Message.printDebug ( 50, "TSIterator", "After check, start date changed to " + _currentDate );
 	}
+	*/
 }
 
 /**
