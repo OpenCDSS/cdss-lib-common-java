@@ -987,10 +987,10 @@ throws TSException
 	// Process the statistic of interest...
 
 	if (	
-		(statisticType == TSStatisticType.COUNT_GE) ||
-		(statisticType == TSStatisticType.COUNT_GT) ||
-		(statisticType == TSStatisticType.COUNT_LE) ||
-		(statisticType == TSStatisticType.COUNT_LT) ||
+		(statisticType == TSStatisticType.GE_COUNT) ||
+		(statisticType == TSStatisticType.GT_COUNT) ||
+		(statisticType == TSStatisticType.LE_COUNT) ||
+		(statisticType == TSStatisticType.LT_COUNT) ||
 		(statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
 		(statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
 		(statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
@@ -1457,7 +1457,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 	boolean Statistic_isCount = false;	// Indicates if the statistic is
 						// one that keeps a count of
 						// test passes.
-	if ( statisticType == TSStatisticType.COUNT_GE ) {
+	if ( statisticType == TSStatisticType.GE_COUNT ) {
 		iterate_forward = true;
 		Test_int = Test_GE;
 		yearts.setDescription ( "Count of values >= " + TestValue );
@@ -1465,7 +1465,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( statisticType == TSStatisticType.COUNT_GT ) {
+	else if ( statisticType == TSStatisticType.GT_COUNT ) {
 		iterate_forward = true;
 		Test_int = Test_GT;
 		yearts.setDescription ( "Count of values > " + TestValue );
@@ -1473,7 +1473,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( statisticType == TSStatisticType.COUNT_LE ) {
+	else if ( statisticType == TSStatisticType.LE_COUNT ) {
 		iterate_forward = true;
 		Test_int = Test_LE;
 		yearts.setDescription ( "Count of values <= " + TestValue );
@@ -1481,7 +1481,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 		yearts.setDataUnits ( "Count" );
 		Statistic_isCount = true;
 	}
-	else if ( statisticType == TSStatisticType.COUNT_LT ) {
+	else if ( statisticType == TSStatisticType.LT_COUNT ) {
 		iterate_forward = true;
 		Test_int = Test_LT;
 		yearts.setDescription ( "Count of values < " + TestValue );
@@ -1860,7 +1860,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 			    // Data value is not missing so evaluate the test...
 			    ++nonmissing_count;
 				if ( (Test_int == Test_GE) && (value >= TestValue_double) ) {
-					if (statisticType == TSStatisticType.COUNT_GE ){
+					if (statisticType == TSStatisticType.GE_COUNT ){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1876,7 +1876,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 					}
 				}
 				else if((Test_int == Test_GT) && (value > TestValue_double) ) {
-					if (statisticType == TSStatisticType.COUNT_GT ){
+					if (statisticType == TSStatisticType.GT_COUNT ){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1892,7 +1892,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 					}
 				}
 				else if((Test_int == Test_LE) && (value <= TestValue_double) ) {
-					if (statisticType == TSStatisticType.COUNT_LE) {
+					if (statisticType == TSStatisticType.LE_COUNT) {
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
@@ -1908,7 +1908,7 @@ private void processStatistic (	TS ts, YearTS yearts,
 					}
 				}
 				else if((Test_int == Test_LT) && (value < TestValue_double) ) {
-					if (statisticType == TSStatisticType.COUNT_LT){
+					if (statisticType == TSStatisticType.LT_COUNT){
 						if(yearts.isDataMissing( year_value) ) {
 							year_value = 1.0;
 						}
