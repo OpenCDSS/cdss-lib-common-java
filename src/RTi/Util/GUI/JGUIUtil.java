@@ -438,16 +438,14 @@ public static int indexOf (	JList list, String item,
 }
 
 /**
-Determine if the specified compare String exists within a SimpleJComboBox.
-This is a port of the GUIUtil method for Choice.
+Determine if the specified compare String exists within a SimpleJComboBox - CASE SENSITIVE.
 <ul>
 <li>	Can compare the compare String against substrings for each item
 	in the comboBox object if FLAG is set to CHECK_SUBSTRINGS.</li>
 <li>	To not compare against substrings, set FLAG to NONE.</li>
 </ul>
 @param comboBox SimpleJComboBox object.
-@param compare String to compare comboBox items against.  If null, false is
-returned.
+@param compare String to compare comboBox items against.  If null, false is returned.
 @param FLAG compare criteria (i.e, CHECK_SUBSTRINGS, NONE).
 @param delimiter String containing delimiter to parse for CHECK_SUBSTRINGS,
 may be null if using FLAG == NONE.
@@ -455,60 +453,56 @@ may be null if using FLAG == NONE.
 @return returns true if compare exist in the comboBox items list,
 false otherwise.  This is filled in unless it is passed as null.
 */
-public static boolean isSimpleJComboBoxItem (	SimpleJComboBox comboBox,
-						String compare, 
-						int FLAG, String delimiter,
-						int[] index )
-{	int             size;           // number of items in the 
-                                        // Choice object
-        int             curIndex,       // current character position
-                        length;         // length of curItem
-        String          curItem;        // current Choice item
-        String          curChar;        // current character
+public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
+	String compare, int FLAG, String delimiter, int[] index )
+{	int size; // number of items in the choices
+    int curIndex; // current character position
+    int length; // length of curItem
+    String curItem; // current Choice item
+    String curChar; // current character
  
 	if ( compare == null ) {
 		return false;
 	}
-        // Initialize variables
-        compare = compare.trim();
-        size = comboBox.getItemCount();
+    // Initialize variables
+    compare = compare.trim();
+    size = comboBox.getItemCount();
 
-        for( int i=0; i<size; i++ ) {
-                curItem = comboBox.getItem( i ).trim(); 
-                String sub = curItem;
+    for( int i=0; i<size; i++ ) {
+        curItem = comboBox.getItem( i ).trim(); 
+        String sub = curItem;
 
-                // check substring where substrings are delineated by spaces
-                if ( FLAG == CHECK_SUBSTRINGS ) {
-                        // Jump over all characters until the delimiter is
+        // check substring where substrings are delineated by spaces
+        if ( FLAG == CHECK_SUBSTRINGS ) {
+            // Jump over all characters until the delimiter is
 			// reached.  Break the remaining String into a SubString
 			// and compare to the compare String.
-                        length = sub.length();
-                        for ( curIndex = 0; curIndex < length; curIndex++ ) {
-                                curChar = String.valueOf( 
-				curItem.charAt( curIndex ) ).trim();
-                                if ( curChar.equals(delimiter) ) {
-                                        sub = sub.substring( curIndex+1).trim();
-                                }
-                        }
-                        // Compare the remaining String, sub, to the compare
+            length = sub.length();
+            for ( curIndex = 0; curIndex < length; curIndex++ ) {
+                curChar = String.valueOf(curItem.charAt( curIndex ) ).trim();
+                if ( curChar.equals(delimiter) ) {
+                    sub = sub.substring( curIndex+1).trim();
+                }
+            }
+            // Compare the remaining String, sub, to the compare
 			// String.  If a match occurs, return true and the index
 			// in the list in which the match was found.
-                        if ( compare.equals( sub ) ) {
-                                index[0] = i;
-                                return true;
-                        }
-                }
+            if ( compare.equals( sub ) ) {
+                index[0] = i;
+                return true;
+            }
+        }
 		else if ( FLAG == NONE ) {
 			// Compare to the curItem String directly
-                        if ( curItem.equals(compare) ) {
-				if ( index != null ) {
-                                	index[0] = i;
-				}
-                                return true;
-                        }
-                }
+            if ( curItem.equals(compare) ) {
+        		if ( index != null ) {
+                	index[0] = i;
+        		}
+                return true;
+            }
         }
-        return false;
+    }
+    return false;
 }
 
 /**
