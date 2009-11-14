@@ -11997,6 +11997,8 @@ throws InvalidTimeIntervalException
 {   // Get month and data for the extraction
     int monthRequested = datetimeRequested.getMonth();
     int dayRequested = datetimeRequested.getDay();
+    int hourRequested = datetimeRequested.getHour();
+    int minuteRequested = datetimeRequested.getMinute();
     
     // Get valid dates because the ones passed in may have been null...
     TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
@@ -12007,16 +12009,19 @@ throws InvalidTimeIntervalException
     int intervalMult = ts.getDataIntervalMult();
     
     // Currently only support monthly and daily data
-    if ( (intervalBase != TimeInterval.MONTH) && (intervalBase != TimeInterval.DAY) ) {
+    if ( (intervalBase != TimeInterval.YEAR) && (intervalBase != TimeInterval.MONTH) &&
+        (intervalBase != TimeInterval.DAY) && (intervalBase != TimeInterval.HOUR) &&
+        (intervalBase != TimeInterval.MINUTE)) {
         throw new InvalidTimeIntervalException(
-            "Only Month and Day time series can be processed.  Trying to process " +
+            "Only Year, Month, Day, Hour, and Minute time series can be processed.  Trying to process " +
             ts.getIdentifier().getInterval() + "." );
     }
+    /*
     if ( intervalMult != 1 ) {
         throw new InvalidTimeIntervalException(
-            "Only Month and Day time series with interval multipler of 1 can be processed.  Trying to process " +
+            "Only Year, Month, Day, Hour, and Minute time series with interval multipler of 1 can be processed.  Trying to process " +
             ts.getIdentifier().getInterval() + "." );
-    }
+    }*/
     
     int size = 0; // Initial (maximum) size of data array - will be shortened at end
     if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
@@ -12034,6 +12039,8 @@ throws InvalidTimeIntervalException
     int count = 0; // Number of values in array.
     int month = 0; // Month for iteration date.
     int day = 0; // Day for iteration date.
+    int hour = 0; // Hour for iteration date.
+    int minute = 0; // Minute for iteration date.
     double value; // Data value in time series
 
     if ( intervalBase == TimeInterval.IRREGULAR ) {
@@ -12090,12 +12097,30 @@ throws InvalidTimeIntervalException
         for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
             month = date.getMonth();
             day = date.getDay();
+            hour = date.getHour();
+            minute = date.getMinute();
             processValue = false;
-            if ( (intervalBase == TimeInterval.MONTH) && (month == monthRequested) ) {
+            if ( intervalBase == TimeInterval.YEAR ) {
+                // No need to check any other date parts...
+                processValue = true;
+            }
+            else if ( (intervalBase == TimeInterval.MONTH) && (month == monthRequested) ) {
+                // Month must agree...
                 processValue = true;
             }
             else if ( (intervalBase == TimeInterval.DAY) && (month == monthRequested) &&
                 (day == dayRequested) ) {
+                // Month and day must agree...
+                processValue = true;
+            }
+            else if ( (intervalBase == TimeInterval.HOUR) && (month == monthRequested) &&
+                (day == dayRequested) && (hour == hourRequested)) {
+                // Month, day, and hour must agree...
+                processValue = true;
+            }
+            else if ( (intervalBase == TimeInterval.HOUR) && (month == monthRequested) &&
+                (day == dayRequested) && (hour == hourRequested) && (minute == minuteRequested) ) {
+                // Month, day, hour, and minute must agree...
                 processValue = true;
             }
             if ( processValue ) {

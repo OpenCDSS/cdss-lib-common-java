@@ -7,6 +7,7 @@ import java.util.Vector;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.TimeInterval;
 
 /**
 Compute a time series that has a statistic for each interval in the period.  For example, all Jan 1 are used
@@ -423,7 +424,6 @@ throws Exception
     int countMissing, countNonMissing;
     for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
         date.addInterval(intervalBase,intervalMult) ) {
-        // Get the data array slice, including missing values
         dataArray = TSUtil.toArrayForDateTime(ts, analysisStart, analysisEnd, date, true );
         Message.printStatus(2,routine, "For " + date + " have " + dataArray.length + " values in sample.");
         nonMissingDataArray = getNonMissingData ( ts, dataArray );
