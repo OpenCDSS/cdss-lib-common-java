@@ -560,14 +560,14 @@ public static boolean fileReadable ( String filename )
 }
 
 /**
-Read in a file and store it in a string list (Vector of String).
+Read in a file and store it in a string list (list of String).
 @param filename	File to read and convert to string list.
 @return the file as a string list.
 @exception IOException if there is an error.
 */
-public static List fileToStringList ( String filename )
+public static List<String> fileToStringList ( String filename )
 throws IOException
-{	List list = null;
+{	List<String> list = null;
 	String message, routine = "IOUtil.fileToStringList", tempstr;
 	
 	if ( filename == null ) {
