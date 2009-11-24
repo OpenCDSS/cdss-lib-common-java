@@ -106,13 +106,18 @@ implements Cloneable, Serializable, Transferable {
 /**
 The DataFlavor for transferring this specific class.
 */
-public static DataFlavor irregularTSFlavor = new DataFlavor(
-	RTi.TS.IrregularTS.class, "RTi.TS.IrregularTS");
+public static DataFlavor irregularTSFlavor = new DataFlavor(RTi.TS.IrregularTS.class, "RTi.TS.IrregularTS");
 
-private	List __ts_data_head;	// list of data points.
-protected int	__data_index;	// Index used when traversing the data array.
-				// This is the element in _ts_data_head
-				// (zero-reference) that was last accessed.
+/**
+List of data points.
+*/
+private	List<TSData> __ts_data_head;
+
+/**
+Index used when traversing the data array.
+This is the element in _ts_data_head (0+) that was last accessed.
+*/
+protected int __data_index;
 
 /**
 Default constructor.  The data array is initialized to null.
@@ -123,8 +128,7 @@ public IrregularTS ( )
 }
 
 /**
-Copy constructor.  Everything is copied by calling copyHeader() and then
-copying the data values.
+Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 */
 public IrregularTS ( IrregularTS ts )
 {	if ( ts == null ) {
@@ -132,7 +136,7 @@ public IrregularTS ( IrregularTS ts )
 	}
 	copyHeader ( ts );
 	// Get the data and loop through the vector...
-	List all_tsdata = ts.getData();
+	List<TSData> all_tsdata = ts.getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
 		__data_index = ts.__data_index;
@@ -142,11 +146,10 @@ public IrregularTS ( IrregularTS ts )
 	//__ts_data_head = new Vector ( nalltsdata );
 	TSData tsdata = null;
 	for ( int i = 0; i < nalltsdata; i++ ) {
-		// Would be nice to do this but the next/prev seem to get
-		// fouled up.
+		// Would be nice to do this but the next/prev seem to get fouled up.
 		//__ts_data_head.addElement (
 		//	new TSData((TSData)tsdata.elementAt(i)) );
-		tsdata = (TSData)all_tsdata.get(i);
+		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
 			setDataValue ( tsdata.getDate(), tsdata.getData() );
@@ -166,15 +169,12 @@ is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
 @param initial_value Initial value (null is allowed and will result in the
 flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if
-necessary, but
+@param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length,
-					String initial_value,
-					boolean retain_previous_values )
+public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
 throws Exception
 {	return;
 }
@@ -190,14 +190,12 @@ public int allocateDataSpace()
 /**
 Calculate the number of data points between two dates.
 <b>This method is not valid for IrregularTS but is maintained for compatibility.  Use the non-static calculateDataSize() method.</b>
-@return A count of the data recordings between the given dates (always zero
-here).
+@return A count of the data recordings between the given dates (always zero here).
 @param start_date First date of interest.
 @param end_date Last date of interest.
 @param interval_mult Data interval multiplier (not used).
 */
-public static int calculateDataSize (	DateTime start_date, DateTime end_date,
-					int interval_mult )
+public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult )
 {	Message.printWarning ( 1, "IrregularTS.calculateDataSize",
 	"Must have an instance of IrregularTS to compute the data size.  Use " +
 	"the non-static calculateDataSize() method" );
@@ -219,11 +217,11 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 
 	// Loop through the data and count the intervals in the given period...
 
-	DateTime	date = new DateTime (DateTime.DATE_STRICT);
-	TSData	ptr = null;
+	DateTime date = new DateTime (DateTime.DATE_STRICT);
+	TSData ptr = null;
 	int	size = __ts_data_head.size();
-	for (	int i = 0; i < size; i++ ) {
-		ptr = (TSData)__ts_data_head.get(i);
+	for ( int i = 0; i < size; i++ ) {
+		ptr = __ts_data_head.get(i);
 		date = ptr.getDate();
 
 		if ( date.lessThan(start_date) ) {
@@ -251,7 +249,7 @@ public Object clone() {
 
 	ts.copyHeader ( this );
 	// Get the data and loop through the vector...
-	List all_tsdata = getData();
+	List<TSData> all_tsdata = getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
 		ts.__data_index = __data_index;
@@ -260,7 +258,7 @@ public Object clone() {
 	int nalltsdata = all_tsdata.size();
 	TSData tsdata = null;
 	for ( int i = 0; i < nalltsdata; i++ ) {
-		tsdata = (TSData)all_tsdata.get(i);
+		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
 			ts.setDataValue ( tsdata.getDate(), tsdata.getData() );
@@ -310,7 +308,7 @@ GRTS TSView* package correctly displays irregular data.</b>
 @param start_date First date of interest.
 @param end_date Last date of interest.
 */
-/* SAM REVISIT - need to change TSDateIterator to IrregularTSIterator
+/* SAM TODO - need to change TSDateIterator to IrregularTSIterator
 public int enforceDataGaps (	int interval_base, int interval_mult,
 				DateTime date1, DateTime date2)
 {	String	routine = "IrregularTS.enforceDataGaps";
@@ -534,23 +532,22 @@ output.
 */
 public List formatOutput( PropList proplist )
 throws TSException
-{	String 		message = "",
-			routine = "Irregular.formatOutput";	
-	int		dl = 20;
-	List		strings = new Vector (20,10);
-	PropList	props = null;
-	String		format = "", prop_value = null;
-	String		data_format = "%9.1f";
+{	String message = "", routine = "Irregular.formatOutput";	
+	int dl = 20;
+	List<String> strings = new Vector (20,10);
+	PropList props = null;
+	String format = "", prop_value = null;
+	String data_format = "%9.1f";
 
 	// If the property list is null, allocate one here so we don't have to
 	// constantly check for null...
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the
-		// time.
+		// Create a PropList so we don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
-	else {	props = proplist;
+	else {
+	    props = proplist;
 	}
 
 	// Get the important formatting information from the property list...
@@ -562,12 +559,12 @@ throws TSException
 		// Default to "Summary"...
 		format = "Summary";
 	}
-	else {	// Set to requested format...
+	else {
+	    // Set to requested format...
 		format = prop_value;
 	}
 
-	// Determine the units to output.  For now use what is in the time
-	// series...
+	// Determine the units to output.  For now use what is in the time series...
 
 	String req_units = _data_units;
 
@@ -576,7 +573,8 @@ throws TSException
 	prop_value = props.getValue ( "Precision" );
 	if ( prop_value == null ) {
 		// Try to get units information for default...
-		try {	DataUnits u = DataUnits.lookupUnits ( req_units );
+		try {
+		    DataUnits u = DataUnits.lookupUnits ( req_units );
 			data_format = "%9." + u.getOutputPrecision() + "f";
 		}
 		catch ( Exception e ) {
@@ -584,7 +582,8 @@ throws TSException
 			data_format = "%9.1f";
 		}
 	}
-	else {	// Set to requested precision...
+	else {
+	    // Set to requested precision...
 		data_format = "%9." + prop_value + "f";
 	}
 
@@ -601,8 +600,7 @@ throws TSException
 	// Now generate the output based on the format...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Creating output in format \"" + format + "\"" );
+		Message.printDebug ( dl, routine, "Creating output in format \"" + format + "\"" );
 	}
 	if ( format.equalsIgnoreCase("Spreadsheet") ) {
 		// Spreadsheet
@@ -611,11 +609,11 @@ throws TSException
 			// Default to "|"...
 			format = "|";
 		}
-		else {	// Set to requested delimiter...
+		else {
+		    // Set to requested delimiter...
 			format = prop_value;
 		}
-		Message.printWarning ( 1, routine,
-		"Spreadsheet output format is not implemented" );
+		Message.printWarning ( 1, routine, "Spreadsheet output format is not implemented" );
 		return strings;
 	}
 	else if ( format.equalsIgnoreCase("Summary") ) {
@@ -633,7 +631,8 @@ throws TSException
 			// Default is true...
 			print_header = "true";
 		}
-		else {	print_header = prop_value;
+		else {
+		    print_header = prop_value;
 		}
 		prop_value = props.getValue ( "UseCommentsForHeader" );
 		String use_comments_for_header = null;
@@ -641,15 +640,15 @@ throws TSException
 			// Default is false...
 			use_comments_for_header = "false";
 		}
-		else {	use_comments_for_header = prop_value;
+		else {
+		    use_comments_for_header = prop_value;
 		}
 		if ( print_header.equalsIgnoreCase("true") ) {
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
 				// Format the header...
 				strings.add ( "" );
-				List strings2 = formatHeader();
-				StringUtil.addListToStringList ( strings,
-					strings2 );
+				List<String> strings2 = formatHeader();
+				StringUtil.addListToStringList ( strings, strings2 );
 			}
 		}
 		
@@ -661,15 +660,14 @@ throws TSException
 			// Default is true...
 			print_comments = "true";
 		}
-		else {	print_comments = prop_value;
+		else {
+		    print_comments = prop_value;
 		}
-		if (	print_comments.equalsIgnoreCase("true") ||
-			use_comments_for_header.equalsIgnoreCase("true")){
+		if ( print_comments.equalsIgnoreCase("true") || use_comments_for_header.equalsIgnoreCase("true")){
 			strings.add ( "" );
 			if ( _comments != null ) {
 				int ncomments = _comments.size();
-				if ( !use_comments_for_header.equalsIgnoreCase(
-					"true")){
+				if ( !use_comments_for_header.equalsIgnoreCase("true")){
 					strings.add ( "Comments:" );
 				}
 				if ( ncomments > 0 ) {
@@ -681,7 +679,8 @@ throws TSException
 					strings.add("No comments available.");
 				}
 			}
-			else {	strings.add( "No comments available.");
+			else {
+			    strings.add( "No comments available.");
 			}
 		}
 		print_comments = null;
@@ -695,17 +694,15 @@ throws TSException
 			// Default is true...
 			print_genesis = "true";
 		}
-		else {	print_genesis = prop_value;
+		else {
+		    print_genesis = prop_value;
 		}
-		if (	(_genesis != null) &&
-			print_genesis.equalsIgnoreCase("true") ) {
+		if ( (_genesis != null) && print_genesis.equalsIgnoreCase("true") ) {
 			int size = _genesis.size();
 			if ( size > 0 ) {
 				strings.add ( "" );
-				strings.add ( "Time series " +
-				"creation history:" );
-				strings = StringUtil.addListToStringList(
-					strings, _genesis );
+				strings.add ( "Time series creation history:" );
+				strings = StringUtil.addListToStringList(strings, _genesis );
 			}
 		}
 		print_genesis = null;
@@ -723,63 +720,45 @@ throws TSException
 			return strings;
 		}
 
-		strings.add (
-"Date                          Value" );
-		strings.add (
-"--------------------------------------------" );
+		strings.add ( "Date                          Value" );
+		strings.add ( "--------------------------------------------" );
 
-		// Now loop through the time series and transfer to the proper
-		// location in the matrix...
+		// Now loop through the time series and transfer to the proper location in the matrix...
 		double		data_value;
 		int nalltsdata = __ts_data_head.size();
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)__ts_data_head.get(i);
+			tsdata = __ts_data_head.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end_date) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start_date) ) {
 				data_value = tsdata.getData();
 				// Format the date according to the active
-				// date precision but allow room for full
-				// date, to line up with headers...
-				strings.add (
-				StringUtil.formatString(date.toString(),
-				"%-26.26s") + "  " +
-				StringUtil.formatString(data_value,
-				data_format) );
+				// date precision but allow room for full date, to line up with headers...
+				strings.add ( StringUtil.formatString(date.toString(),
+				"%-26.26s") + "  " + StringUtil.formatString(data_value,data_format) );
 			}
 		}
 		tsdata = null;
 		date = null;
 
-		strings.add (
-"--------------------------------------------" );
+		strings.add ( "--------------------------------------------" );
 		// Now need to do the statistics.  Loop through each column...
 		// First check to see if all stats should be printed (can be
 		// dangerous if we add new statistics)..
 		// NOT ENABLED IN IRREGULAR TIME SERIES
 	}
-	else {	message = "Unrecognized format: \"" + format + "\"";
+	else {
+	    message = "Unrecognized format: \"" + format + "\"";
 		Message.printWarning ( 1, routine, message );
 		throw new TSException ( message );
 	}
 
 	// Print footnotes to the output...
-
-	end_date = null;
-	start_date = null;
-	req_units = null;
-	message = null;
-	routine = null;
-	props = null;
-	format = null;
-	prop_value = null;
-	data_format = null;
 	return strings;
 }
 
@@ -792,10 +771,10 @@ Format the time series for output.
 */
 public List formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List	formatted_output = null;
-	String	routine = "MonthTS.formatOutput(Writer,props)";
+{	List<String> formatted_output = null;
+	String routine = "MonthTS.formatOutput(Writer,props)";
 	int	dl = 20;
-	String	message;
+	String message;
 
 	if ( fp == null) {
 		message = "Null PrintWriter for output";
@@ -805,12 +784,11 @@ throws TSException
 
 	// First get the formatted output...
 
-	try {	formatted_output = formatOutput ( props );
+	try {
+	    formatted_output = formatOutput ( props );
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Formatted output is " +
-				formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
@@ -818,7 +796,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.get(i) + newline );
+				fp.print ( formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}
@@ -828,30 +806,28 @@ throws TSException
 		throw e;
 	}
 
-	// Also return the list (consistent with C++ single return type.
+	// Also return the list
 
-	routine = null;
-	message = null;
 	return formatted_output;
 }
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return List of strings that are written to the file.
 @param fname Name of output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( String fname, PropList props )
+public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String		message = null,
-			routine = "MonthTS.formatOutput(char*,int,long)";
-	List formatted_output = null;
+{	String message = null, routine = "IrregularTS.formatOutput";
+	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 
 	// First open the output file...
 
-	try {	stream = new PrintWriter ( new FileWriter(fname) );
+	try {
+	    stream = new PrintWriter ( new FileWriter(fname) );
 	}
 	catch ( Exception e ) {
 		message = "Unable to open file \"" + fname + "\"";
@@ -863,7 +839,8 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	try {	formatted_output = formatOutput ( stream, props );
+	try {
+	    formatted_output = formatOutput ( stream, props );
 		stream.close();
 		stream = null;
 	}
@@ -874,8 +851,6 @@ throws TSException
 
 	// Also return the list (consistent with C++ single return type.
 
-	message = null;
-	routine = null;
 	return formatted_output;
 }
 
@@ -921,8 +896,7 @@ public TSData getDataPoint ( DateTime date )
 	if ( date.lessThan(_date1) || date.greaterThan(_date2) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 30, "IrregularTS.getDataPoint",
-			date + " not within POR (" + _date1 + " - " + _date2 +
-			")" );
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 			// Leave __data_index as is.
 			data_point.setData( _missing );
 			return data_point;
@@ -938,31 +912,27 @@ public TSData getDataPoint ( DateTime date )
 
 	TSData next_data = getNextElement ();
 	if ( next_data != null ) {
-		// Do this code.  Otherwise, cascade to the next search
-		// techniques...
+		// Do this code.  Otherwise, cascade to the next search techniques...
 		DateTime next_date = next_data.getDate();
 		if ( next_date.equals(date) ) {
 			// We have a match!  Increment the date index so that
-			// we can use it next time and return the matching
-			// TSData...
+			// we can use it next time and return the matching TSData...
 			++__data_index;
 			return next_data;
 		}
 	}
 
 	//
-	// We need to determine if the date is closer to the 
-	// tail of the list, or the head.
+	// Determine if the date is closer to the tail of the list, or the head.
 	//
-	double	date_double 	= date.toDouble();
-	double	date1_double 	= _date1.toDouble();
-	double	date2_double	= _date2.toDouble();
+	double date_double = date.toDouble();
+	double date1_double = _date1.toDouble();
+	double date2_double = _date2.toDouble();
 
 	int size = __ts_data_head.size();
 	int found_index = -1;
-	if( 	Math.abs( date_double - date1_double ) < 
-		Math.abs( date_double - date2_double ) ){
-		for( 	i=0; i < size; i++ ){
+	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
+		for ( i=0; i < size; i++ ) {
 			ptr = (TSData)__ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
@@ -970,9 +940,10 @@ public TSData getDataPoint ( DateTime date )
 			}
 		}
 	}
-	else {	for(	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.get(i); 
-			if( ptr.getDate().equals( date ) ){
+	else {
+	    for ( i=(size-1); i >= 0; i-- ) {
+			ptr = __ts_data_head.get(i); 
+			if( ptr.getDate().equals( date ) ) {
 				found_index = i;
 				break;
 			}
@@ -980,8 +951,7 @@ public TSData getDataPoint ( DateTime date )
 	}
 
 	if( ptr == null ){
-		Message.printWarning( 2, "IrregularTS.getDataPoint",
-		"Big problems finding data value." );
+		Message.printWarning( 2, "IrregularTS.getDataPoint", "Cannot find data value in inernal time series." );
 		// Leave __data_index as is.
 		data_point.setData( _missing );
 		return data_point;
@@ -991,13 +961,13 @@ public TSData getDataPoint ( DateTime date )
 		ptr.getData() + " for " + date + " from _data[" + i + "]." );
 	}
 
-	// Set the data index to the found point and then return the data
-	// value...
+	// Set the data index to the found point and then return the data value...
 
 	if ( found_index >= 0 ) {
 		__data_index = found_index;
 	}
-	else {	data_point.setData ( _missing );
+	else {
+	    data_point.setData ( _missing );
 		return data_point;
 	}
 
@@ -1038,7 +1008,7 @@ value if the date cannot be found in the data.
 @param date Date of interest.
 */
 public double getDataValue( DateTime date )
-{	// Do not define routine here to increase peformance.
+{	// Do not define routine here to increase performance.
 	int	dl = 30, found_index = -1, i = 0;
 	TSData	ptr=null;
 
@@ -1053,8 +1023,7 @@ public double getDataValue( DateTime date )
 	if ( date.lessThan(_date1) || date.greaterThan(_date2) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug( 2, "IrregularTS.getDataValue",
-			date + " not within POR (" +
-			_date1 + " - " + _date2 + ")" );
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		// Leave __data_index as is.
 		return _missing;
@@ -1069,39 +1038,36 @@ public double getDataValue( DateTime date )
 
 	TSData next_data = getNextElement ();
 	if ( next_data != null ) {
-		// Do this code.  Otherwise, cascade to the next search
-		// techniques...
+		// Do this code.  Otherwise, cascade to the next search techniques...
 		DateTime next_date = next_data.getDate();
 		if ( next_date.equals(date) ) {
 			// We have a match!  Increment the date index so that
-			// we can use it next time and return the matching
-			// TSData...
+			// we can use it next time and return the matching TSData...
 			++__data_index;
 			return next_data.getData();
 		}
 	}
 
 	//
-	// We need to determine if the date is closer to the 
-	// tail of the list, or the head.
+	// Determine if the date is closer to the tail of the list, or the head.
 	//
-	double	date_double 	= date.toDouble();
-	double	date1_double 	= _date1.toDouble();
-	double	date2_double	= _date2.toDouble();
+	double date_double = date.toDouble();
+	double date1_double = _date1.toDouble();
+	double date2_double = _date2.toDouble();
 
 	int size = __ts_data_head.size();
-	if( 	Math.abs( date_double - date1_double ) < 
-		Math.abs( date_double - date2_double ) ){
-		for( 	i=0; i < size; i++ ){
-			ptr = (TSData)__ts_data_head.get(i); 
+	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
+		for ( i=0; i < size; i++ ) {
+			ptr = __ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
 			}
 		}
 	}
-	else {	for(	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.get(i); 
+	else {
+	    for ( i=(size-1); i >= 0; i-- ){
+			ptr = __ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1111,7 +1077,7 @@ public double getDataValue( DateTime date )
 
 	if( ptr == null ){
 		Message.printWarning( 2, "IrregularTS.getDataValue",
-		"Big problems finding data value." );
+		"Unable to find data value in time series." );
 		// Leave __data_index as is.
 		return _missing;
 	}
@@ -1122,13 +1088,11 @@ public double getDataValue( DateTime date )
 
 	if ( found_index < 0 ) {
 		// Did not find the data...
-		Message.printDebug ( dl, "IrregularTS.getDataValue",
-		"Can't find data matching date " + date );
+		Message.printDebug ( dl, "IrregularTS.getDataValue", "Can't find data matching date " + date );
 		return _missing;
 	}
 
-	// Set the data index to the found point and then return the data
-	// value...
+	// Set the data index to the found point and then return the data value...
 	__data_index = found_index;
 	next_data = null;
 	double value = ptr.getData();
@@ -1145,7 +1109,8 @@ public DateTime getDate1()
 {	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
 		return super.getDate1();
 	}
-	else {	return ((TSData)__ts_data_head.get(0)).getDate();
+	else {
+	    return __ts_data_head.get(0).getDate();
 	}
 }
 
@@ -1158,8 +1123,8 @@ public DateTime getDate2()
 {	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
 		return super.getDate2();
 	}
-	else {	return ((TSData)__ts_data_head.get(
-			__ts_data_head.size() - 1)).getDate();
+	else {
+	    return __ts_data_head.get(__ts_data_head.size() - 1).getDate();
 	}
 }
 
@@ -1167,12 +1132,11 @@ public DateTime getDate2()
 Get the next element in the data vector.
 This method can be used to return the element after the previously accessed
 element.  For example, when searching the data array, this routine can be used
-to get the next data value.  The routine returns null if at the end of the data
-array.
+to get the next data value.  The routine returns null if at the end of the data array.
 @return The next data point after the previous access.
 */
 public TSData getNextElement()
-{	// Do not define routine here to increase peformance.
+{	// Do not define routine here to increase performance.
 	TSData	tsdata=null;
 
 	if ( __ts_data_head == null ) {
@@ -1188,17 +1152,16 @@ public TSData getNextElement()
 	if ( ((__data_index + 1) >= size) || ((__data_index + 1) < 0) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug( 20, "IrregularTS.getNextElement",
-			"Data index " + __data_index +
-			" out of range, returning NULL.");
+			"Data index " + __data_index + " out of range, returning NULL.");
 		}
 		return null;
 	}
 
 	// Now return the next data value as a copy...
 
-	tsdata = (TSData)__ts_data_head.get( __data_index + 1 );
+	tsdata = __ts_data_head.get( __data_index + 1 );
 
-	return( (TSData)tsdata.clone() );
+	return (TSData)tsdata.clone();
 }
 
 /**
@@ -1209,8 +1172,7 @@ exists.  From the Transferable interface.  Supported dataflavors are:<br>
 <li>TS - TS.class / RTi.TS.TS</li>
 <li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
 @param flavor the flavor in which to return the data.
-@return the data in the specified DataFlavor, or null if no matching flavor
-exists.
+@return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
 public Object getTransferData(DataFlavor flavor) {
 	if (flavor.equals(irregularTSFlavor)) {
@@ -1228,8 +1190,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Returns the flavors in which data can be transferred.  From the Transferable
-interface.  
+Returns the flavors in which data can be transferred.  From the Transferable interface.  
 The order of the dataflavors that are returned are:<br>
 <ul>
 <li>IrregularTS - IrregularTS.class / RTi.TS.IrregularTS</li>
@@ -1237,7 +1198,8 @@ The order of the dataflavors that are returned are:<br>
 <li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul>
 @return the flavors in which data can be transferred.
 */
-public DataFlavor[] getTransferDataFlavors() {
+public DataFlavor[] getTransferDataFlavors()
+{
 	DataFlavor[] flavors = new DataFlavor[3];
 	flavors[0] = irregularTSFlavor;
 	flavors[1] = TS.tsFlavor;
@@ -1261,7 +1223,8 @@ public boolean hasData ()
 {	if ( (__ts_data_head != null) && (__ts_data_head.size() > 0) ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1269,12 +1232,12 @@ public boolean hasData ()
 Initialize data.
 */
 private void init(  )
-{	_data_interval_base		= TimeInterval.IRREGULAR;
-	_data_interval_mult		= 1;
-	_data_interval_base_original	= TimeInterval.IRREGULAR;
-	_data_interval_mult_original	= 1;
-	__ts_data_head 			= null;
-	__data_index			= -1;
+{	_data_interval_base = TimeInterval.IRREGULAR;
+	_data_interval_mult = 1;
+	_data_interval_base_original = TimeInterval.IRREGULAR;
+	_data_interval_mult_original = 1;
+	__ts_data_head = null;
+	__data_index = -1;
 }
 
 /**
@@ -1303,8 +1266,7 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
-Return an iterator for the time series using the full period for the
-time series.
+Return an iterator for the time series using the full period for the time series.
 @return an iterator for the time series.
 @exception Exception if the time series dates are null.
 */
@@ -1332,8 +1294,7 @@ Refresh the derived data in the time series (e.g., recompute limits if data
 has been set).  This is typically only called from other package routines.
 */
 public void refresh ()
-{	// If the data is not dirty, then we do not have to refresh the other
-	// information...
+{	// If the data is not dirty, then we do not have to refresh the other information...
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
@@ -1346,8 +1307,7 @@ public void refresh ()
 	// Else we need to refresh...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "IrregularTS.refresh",
-		"Time Series is dirty. Recomputing limits" );
+		Message.printDebug( 30, "IrregularTS.refresh", "Time Series is dirty. Recomputing limits" );
 	}
 
 	TSLimits limits = TSUtil.getDataLimits ( this, _date1, _date2, false );
@@ -1379,21 +1339,19 @@ Set the data value and associated information for the date.
 @param duration Duration for value (ignored - assumed to be 1-day or
 instantaneous depending on data type).
 */
-public void setDataValue (	DateTime date, double value, String data_flag,
-				int duration )
+public void setDataValue (	DateTime date, double value, String data_flag, int duration )
 {	// Do not define routine here to increase performance.
 	boolean	found;
 	int	i;
-	TSData	ptr=null, tsdata=null;
-	DateTime	dateLocal = new DateTime(date);
+	TSData ptr=null, tsdata=null;
+	DateTime dateLocal = new DateTime(date);
 
 	if ( __ts_data_head == null ) {
 		// Need to set the head of the list.
 
 		tsdata = new TSData();
 		
-		tsdata.setValues( dateLocal, value, _data_units, data_flag,
-			duration );
+		tsdata.setValues( dateLocal, value, _data_units, data_flag, duration );
 
 		__ts_data_head = new Vector();
 
@@ -1414,12 +1372,12 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		return;
 	}
 
-        // Determine if the date is closer to the tail of the list, or the head,
+    // Determine if the date is closer to the tail of the list, or the head,
 	// using a simple bisection approach.
 
-        double  date_double     = dateLocal.toDouble();
-        double  date1_double    = _date1.toDouble();
-        double  date2_double    = _date2.toDouble();
+    double date_double = dateLocal.toDouble();
+    double date1_double = _date1.toDouble();
+    double date2_double = _date2.toDouble();
 
 	found = false;
 	int insert_position = -1;
@@ -1439,8 +1397,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 	// Else we need to insert somewhere in the list...
 	else if(Math.abs( date_double - date1_double ) <
 		Math.abs( date_double - date2_double ) ){
-		// We are going to try to find the position starting from the
-		// front of the list...
+		// We are going to try to find the position starting from the front of the list...
 	
 		//if ( Message.isDebugOn ) {
 		//	Message.printDebug( 30, "IrregularTS.setDataValue", 
@@ -1448,7 +1405,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		//}
 	
 		for( i=0; i< size; i++ ){
-			ptr = (TSData)__ts_data_head.get(i); 
+			ptr = __ts_data_head.get(i); 
 			
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50,
@@ -1465,10 +1422,8 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 				//	"Setting " + value + " for " +
 				//	dateLocal + " at " + i );
 				//}
-				
-				
-				// Set the dirty flag so that we know to 
-				// recompute the limits if desired...
+			
+				// Set the dirty flag so that we know to recompute the limits if desired...
 
 				_dirty = true;
 				found  = true;
@@ -1492,8 +1447,8 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		//	"Searching vector from end for " + dateLocal );
 		//}
 
-		for( 	i=(size-1); i >= 0; i-- ){
-			ptr = (TSData)__ts_data_head.get(i);
+		for ( i=(size-1); i >= 0; i-- ){
+			ptr = __ts_data_head.get(i);
 
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50,
@@ -1549,8 +1504,7 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 	if ( Message.isDebugOn ) {
 		//Message.printDebug( 20, "IrregularTS.setDataValue",
 		//"Attempting to add new TSData object to list for " +
-		// dateLocal +
-		//" : " + value );
+		// dateLocal + " : " + value );
 	}
 	
 	// If we got here, then we didn't find the date, we need to 
@@ -1567,20 +1521,20 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		// Set the next/previous pointers (note this is done after
 		// the insert so compute positions accordingly...
 		if ( insert_position == 0 ) {
-			ptr = (TSData)__ts_data_head.get(1);
+			ptr = __ts_data_head.get(1);
 			tsdata.setNext ( ptr );
 			ptr.setPrevious ( tsdata );
 		}
 		else if ( insert_position == (__ts_data_head.size() - 1) ) {
-			ptr = (TSData)
-			__ts_data_head.get(insert_position - 1);
+			ptr = __ts_data_head.get(insert_position - 1);
 			tsdata.setPrevious ( ptr );
 			ptr.setNext ( tsdata );
 		}
-		else {	ptr=(TSData)__ts_data_head.get(insert_position-1);
+		else {
+		    ptr = __ts_data_head.get(insert_position-1);
 			tsdata.setPrevious ( ptr );
 			ptr.setNext ( tsdata );
-			ptr = (TSData)__ts_data_head.get(insert_position + 1);
+			ptr = __ts_data_head.get(insert_position + 1);
 			tsdata.setNext ( ptr );
 			ptr.setPrevious ( tsdata );
 		}
@@ -1608,16 +1562,11 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 
 		// Increment the data size...
 		setDataSize ( getDataSize() + 1 );
-
-		ptr = null;
-		tsdata = null;
-		dateLocal = null;
 		return;
 	}
 
 	// If we get to here, we must have a logic problem!
-	Message.printWarning ( 1, "IrregularTS.setDataValue",
-	"Logic problem in routine.  Need to fix!" );
+	Message.printWarning ( 1, "IrregularTS.setDataValue", "Logic problem in routine.  Need to fix!" );
 }
 
-} // End of IrregularTS
+}
