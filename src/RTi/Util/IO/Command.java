@@ -69,22 +69,21 @@ public String getCommandName ();
 
 /**
 Return the processor that is managing the command.
-@return the processor that is managing the commandcommand name.
+@return the processor that is managing the command name.
 */
 public CommandProcessor getCommandProcessor ();
 
 /**
 Return the parameters being used by the command.  The Prop.getHowSet() method
 can be used to determine whether a property was defined in the original command
-string (Prop.SET_FROM_PERSISTENT) or is defaulted internally
-(Prop.SET_AS_RUNTIME_DEFAULT).
+string (Prop.SET_FROM_PERSISTENT) or is defaulted internally (Prop.SET_AS_RUNTIME_DEFAULT).
 TODO SAM 2005-04-29 Does this need a boolean parameter to allow dialogs to
 see only the parameters in the command, so that defaults are not explicitly displayed?
 @return the parameters being used by the command.  A non-null list is guaranteed.
 */
 public PropList getCommandParameters ();
 
-// REVISIT SAM 2005-05-05 Evaluate whether something like
+// TODO SAM 2005-05-05 Evaluate whether something like
 // getDefaultParameterValue is needed.  The problem is that for some low-level
 // code a value of null is the default.  Should null be provided as a default parameter?
 
@@ -100,9 +99,7 @@ suitable for creating a new command instance before editing in the command edito
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
-public void initializeCommand (	String command_string,
-				CommandProcessor processor,
-				boolean full_initialization )
+public void initializeCommand (	String command_string, CommandProcessor processor, boolean full_initialization )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException;
 
 /**
@@ -127,8 +124,13 @@ valid command number cannot be determined.
 one or more parameters are determined to be invalid.
 */
 public void runCommand ( int command_index )
-throws InvalidCommandParameterException,
-CommandWarningException, CommandException;
+throws InvalidCommandParameterException, CommandWarningException, CommandException;
+
+/**
+Get the runtime in milliseconds.  This is used to evaluate and optimize performance.
+@return runTime the runtime in milliseconds.
+*/
+public long getRunTime ();
 
 /**
 Set a command parameter.  This is used, for example, by a command editor dialog,
@@ -146,6 +148,12 @@ editor (GenericCommand_JDialog) and should only be implemented in the AbstractCo
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string );
+
+/**
+Set the runtime in milliseconds.  This is used to evaluate and optimize performance.
+@param runTime the runtime in milliseconds.
+*/
+public void setRunTime ( long runTime );
 
 /**
 Return the standard string representation of the command, which can be parsed

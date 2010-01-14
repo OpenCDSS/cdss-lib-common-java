@@ -1880,12 +1880,31 @@ Creates a heading for the given size (1 is bigger, 6 is smallest) and the given 
 */
 public void heading(int number, String s)
 throws Exception {
+	heading ( number, s, null );
+}
+
+/**
+Creates a heading for the given size (1 is bigger, 6 is smallest) and the given text, and include a
+"name" property to allow linking to the heading.
+@param number the kind of heading (1-6) to make.
+@param s the string to store in the heading.
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
+&lt;HX&gt; tag.</a>
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void heading(int number, String s, String name )
+throws Exception {
 	if (number < 1 || number > 6) {
 		addText(s);
 		return;
 	}
 	__hL[number]++;
-	write("\n<h" + number + ">" + s + "</h" + number + ">\n");
+	if ( (name != null) && (name.length() > 0) ) {
+		write("\n<h" + number + "><a name=\"" + name + "\">" + s + "</h" + number + ">\n");
+	}
+	else {
+		write("\n<h" + number + ">" + s + "</h" + number + ">\n");
+	}
 }
 
 /**
@@ -2905,21 +2924,22 @@ public void tableCells( String cells [] ) throws Exception
 
 /**
 Inserts multiple cells into a table.
-@param cells Array of Strings to write to each cell.
+@param cells Array of Strings to write to each cell.  Null strings are inserted as empty strings.
 @param Property list for HTML attributes.
 @throws Exception
  */
 public void tableCells( String cells [], PropList props ) throws Exception
-{	
-	for(int i = 0; i < cells.length; i++ ) {
-		if( cells[i] != null && cells[i].length() > 0 ) {
-			tableCellStart( props );
-			addText( cells[i] );
-			tableCellEnd();
+{	String cell;
+	for ( int i = 0; i < cells.length; i++ ) {
+		cell = cells[i];
+		if ( cells[i] == null ) {
+			cell = "";
 		}
+		tableCellStart( props );
+		addText( cell );
+		tableCellEnd();
 	}
 }
-
 
 /**
 Ends a table cell declaration.
@@ -3244,6 +3264,7 @@ throws Exception {
 /**
 Writes a String of text either to a file, or to an internal StringBuffer.
 No checks are done on the content, so it should contain proper open and closing tags.
+No newline is written so add the newline to the string before calling if needed for formatting.
 @param s the String to write.
 @throws Exception if an error occurs writing to a file.
 */

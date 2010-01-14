@@ -64,6 +64,11 @@ This is initialized to an empty PropList and should be set when initializing the
 private PropList __parameters = new PropList ( "" );
 
 /**
+The run time for the command, in milliseconds, used to evaluate and optimize performance.
+*/
+private long __runTime = 0;
+
+/**
 The status for the command.
 */
 private CommandStatus __status = new CommandStatus();
@@ -278,6 +283,14 @@ public String getCommandString() {
 }
 
 /**
+Return the runtime, in milliseconds.
+*/
+public long getRunTime () 
+{
+	return __runTime;
+}
+
+/**
 Initialize the command by parsing the command and indicating warnings.
 @param command A string command to parse.  This is necessary because the
 command factory typically only uses a command string to instantiate the proper
@@ -434,6 +447,15 @@ editor and should only be implemented in this SkeletonCommand base class.
 */
 public void setCommandString ( String command_string )
 {	__command_string = command_string;
+}
+
+/**
+Set the runtime in milliseconds.  This is used to evaluate and optimize performance.
+@param runTime the runtime in milliseconds.
+*/
+public void setRunTime ( long runTime )
+{
+	__runTime = runTime;
 }
 
 /**
