@@ -2857,7 +2857,7 @@ public static List sortStringList ( List<String> list )
 
 /**
 Sort a list of strings.
-@return The sorted list (a new list is returned).
+@return The sorted list (a new list is always returned, even if empty).
 @param list The original list of String.
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
 @param sort_order Original locations of data after sort (array needs to be
@@ -2875,7 +2875,8 @@ public static List sortStringList ( List<String> list, int order, int sort_order
 
 	if ( (list == null) || (list.size() == 0) ){
 		Message.printWarning ( 50, routine, "NULL string list" );
-		return null;
+		// Always return a new list
+		return new Vector();
 	}
 	int size = list.size();
 
@@ -3051,12 +3052,11 @@ public static String toString ( List<String> strings, String delimiter )
 	}
 	StringBuffer buffer = new StringBuffer ();
 	int size = strings.size();
-	String string = null;
 	for ( int i = 0; i < size; i++ ) {
-		string = strings.get(i);
-		if ( delimiter != null ) {
-		    buffer.append ( string + delimiter );
+		if ( (i > 0) && (delimiter != null) ) {
+			buffer.append(delimiter);
 		}
+		buffer.append ( strings.get(i) );
 	}
 	return buffer.toString();
 }
