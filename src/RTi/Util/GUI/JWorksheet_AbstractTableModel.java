@@ -41,13 +41,11 @@ TableModels in a JWorksheet should be used.  It implements a few core
 data members that all those classes should have, including some 
 sorting support. 
 <p>
-TODO (JTS - 2006-05-25)
-If I could do this over, I would combine this table model with 
+TODO (JTS - 2006-05-25) If I could do this over, I would combine this table model with 
 AbstractRowTableModel, in order to simplify things.  I don't see a very 
 good reason to require both of these, honestly.
 */
-public abstract class JWorksheet_AbstractTableModel
-extends AbstractTableModel {
+public abstract class JWorksheet_AbstractTableModel extends AbstractTableModel {
 
 /**
 Holds the sorted order of the records to be displayed.
@@ -67,10 +65,8 @@ protected int _type = -1;
 /**
 The worksheet that this table model works with.  This is here so that it 
 can be set by derived classes.
-REVISIT (JTS - 2004-11-30)
-remove?  subclasses may be using this ...
-REVISIT (JTS - 2005-03-30)
-no, leave in, and have it called automatically by the worksheet whenever a model
+TODO (JTS - 2004-11-30) remove?  subclasses may be using this ...
+TODO (JTS - 2005-03-30) no, leave in, and have it called automatically by the worksheet whenever a model
 is set in it.  add a setWorksheet() method.
 */
 protected JWorksheet _worksheet;
@@ -286,7 +282,7 @@ public void removeTableModelListener(JWorksheet_TableModelListener listener) {
 
 /**
 Sets new data into the table model (used if many rows change at once or all-new data is to be shown.
-@param data the Vector of data.
+@param data the list of data objects to be displayed in rows of the table.
 */
 public void setNewData(List data) {
 	_data = data;

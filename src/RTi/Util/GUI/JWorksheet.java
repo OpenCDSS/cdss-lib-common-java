@@ -4119,8 +4119,8 @@ public int getSelectedRowCount() {
 /**
 Returns an integer array of the rows in the table that have been selected.
 Rows are considered to be selected if any of their cells are selected.
-@return an integer array of the rows in the table that have been selected.  The
-array results will be in order from lowest row to highest row.
+@return an integer array of the rows in the table that have been selected, guaranteed to be non-null but may
+be zero length.  The array results will be in order from lowest row to highest row.
 */
 public int[] getSelectedRows() {
 	if (__selectionMode == __EXCEL_SELECTION) {
