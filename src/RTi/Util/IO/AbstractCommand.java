@@ -324,9 +324,11 @@ Notify registered CommandProcessorEventListeners of a CommandProcessorEvent.
 */
 public void notifyCommandProcessorEventListeners ( CommandProcessorEvent event )
 {
-    for ( int i = 0; i < __CommandProcessorEventListener_array.length; i++ ) {
-        __CommandProcessorEventListener_array[i].handleCommandProcessorEvent(event);
-    }
+	if ( __CommandProcessorEventListener_array != null ) {
+	    for ( int i = 0; i < __CommandProcessorEventListener_array.length; i++ ) {
+	        __CommandProcessorEventListener_array[i].handleCommandProcessorEvent(event);
+	    }
+	}
 }
 
 /**
@@ -345,9 +347,11 @@ own determination (e.g., ((istep + 1)/nstep)*100).
 */
 public void notifyCommandProgressListeners ( int istep, int nstep, float percentComplete, String message )
 {
-    for ( int i = 0; i < __CommandProgressListener_array.length; i++ ) {
-        __CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
-    }
+	if ( __CommandProgressListener_array != null ) {
+	    for ( int i = 0; i < __CommandProgressListener_array.length; i++ ) {
+	        __CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
+	    }
+	}
 }
 
 /**
