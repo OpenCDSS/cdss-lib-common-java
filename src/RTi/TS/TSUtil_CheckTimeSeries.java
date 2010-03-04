@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
@@ -101,16 +102,26 @@ throws Exception
 {
     // Create a new list of problems
     __problems = new Vector();
+    TS ts = getTimeSeries();
+    String checkCriteria = getCheckCriteria();
+    String tsid = ts.getIdentifier().toString();
+    
+    // If time series has no data and check is for missing, add a message.
+    // Otherwise skip
+    if ( !ts.hasData() ) {
+        if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
+            __problems.add ( "Time series " + tsid + " has no data." );
+        }
+        return;
+    }
     
     // Iterate through the time series
-    TS ts = getTimeSeries();
+
     TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
     TSData data = null;
     String valueToCheck = getValueToCheck();
-    String checkCriteria = getCheckCriteria();
     double value1 = (getValue1() == null) ? -999.0 : getValue1().doubleValue();
     double value2 = (getValue2() == null) ? -999.0 : getValue2().doubleValue();
-    String tsid = ts.getIdentifier().toString();
     if ( (ts.getAlias() != null) && !ts.getAlias().equals("") ) {
         tsid = ts.getAlias();
     }
@@ -121,6 +132,8 @@ throws Exception
     DateTime date; // Date corresponding to data value
     boolean isMissing;
     double diff;
+    // TODO SAM 2010 evaluate whether to check units for precision
+    String tsValueFormat = "%.6f"; // Format for values for messages
     while ( (data = tsi.next()) != null ) {
         // Analyze the value - do this brute force with string comparisons and improve performance once logic is in place
         message = null;
@@ -130,9 +143,11 @@ throws Exception
             isMissing = ts.isDataMissing(tsvalue);
             if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangeGreaterThan) ) {
                 if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
-                     diff = tsvalue - tsvaluePrev;
+                    diff = tsvalue - tsvaluePrev;
                     if ( Math.abs(diff) > value1 ) {
-                        message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
+                        message = "Time series " + tsid + " value " +
+                            StringUtil.formatString(tsvalue,tsValueFormat)
+                            + " at " + date + " changed more than " +
                             value1 + " since previous value " + tsvaluePrev + " (diff=" + diff + ")";
                     }
                 }
@@ -141,57 +156,76 @@ throws Exception
                 if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
                     diff = ((tsvalue - tsvaluePrev)/tsvaluePrev)*100.0;
                     if ( Math.abs(diff) > value1 ) {
-                        message = "Time series " + tsid + " value " + tsvalue + " at " + date + " changed more than " +
-                            value1 + " since previous value " + tsvaluePrev + " (diff=" + diff + " %)";
+                        message = "Time series " + tsid + " value " +
+                            StringUtil.formatString(tsvalue,tsValueFormat) +
+                            " at " + date + " changed more than " +
+                            value1 + " since previous value " +
+                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" + diff + " %)";
                     }
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_EqualTo) ) {
                 if ( !isMissing && (tsvalue == value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is = test value " + value1;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is = test value " + value1;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThan) ) {
                 if ( !isMissing && (tsvalue > value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is > limit " + value1;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is > limit " + value1;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
                 if ( !isMissing && (tsvalue >= value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is >= limit " + value1;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is >= limit " + value1;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_InRange) ) {
                 if ( !isMissing && (tsvalue >= value1) && (tsvalue <= value2) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is in range " + value1 +
-                    " to " + value2;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is in range " + value1 + " to " + value2;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThan) ) {
                 if ( !isMissing && (tsvalue < value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is < limit " + value1;
+                    message = "Time series " + tsid + " value " +
+                        StringUtil.formatString(tsvalue,tsValueFormat) +
+                        " at " + date + " is < limit " + value1;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThanOrEqualTo) ) {
                 if ( !isMissing && (tsvalue <= value1) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is <= limit " + value1;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is <= limit " + value1;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
                 if ( isMissing ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is missing";
+                    message = "Time series " + tsid + " value " + 
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is missing";
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_OutOfRange) ) {
                 if ( !isMissing && (tsvalue < value1) || (tsvalue > value2) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " is out of range " + value1 +
-                    " to " + value2;
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " is out of range " + value1 + " to " + value2;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Repeat) ) {
                 if ( !isMissing && (tsvalueCount > 0) && !ts.isDataMissing(tsvalue) && !ts.isDataMissing(tsvalue) &&
-                        (tsvalue == tsvaluePrev) ) {
-                    message = "Time series " + tsid + " value " + tsvalue + " at " + date + " repeated previous value";
+                    (tsvalue == tsvaluePrev) ) {
+                    message = "Time series " + tsid + " value " +
+                    StringUtil.formatString(tsvalue,tsValueFormat) +
+                    " at " + date + " repeated previous value";
                 }
             }
             if ( message != null ) {
@@ -203,7 +237,7 @@ throws Exception
             tsvaluePrev = tsvalue;
         }
         else if ( valueToCheck.equals("Statistic") ) {
-            // TODO SAM 2009-04-20 Need to implemented
+            // TODO SAM 2009-04-20 Need to implement
         }
     }
 }
