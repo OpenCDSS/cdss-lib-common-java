@@ -430,7 +430,7 @@ throws Exception
     else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
         if ( countTotal != 0 ) {
-            setStatisticResult ( new Double((double)countMissing/(double)countTotal) );
+            setStatisticResult ( new Double(100.0*countMissing/(double)countTotal) );
         }
     }
     else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
@@ -439,7 +439,7 @@ throws Exception
     else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
         if ( countTotal != 0 ) {
-            setStatisticResult ( new Double((double)countNotMissing/(double)countTotal) );
+            setStatisticResult ( new Double(100.0*countNotMissing/(double)countTotal) );
         }
     }
     else if ( statisticCalculated ) {
