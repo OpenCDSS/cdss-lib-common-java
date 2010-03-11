@@ -2479,12 +2479,12 @@ throws Exception
 
 	// First check to make sure we have something...
 	if( date_string == null ) {
-		Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from null string." );
+		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from null string." );
 		throw new Exception ( "Null DateTime string to parse" );
 	} 
 	length = date_string.length();
 	if( length == 0 ) {
-		Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from zero-length string." );
+		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from zero-length string." );
 		throw new Exception ( "Empty DateTime string to parse" );
 	}
 
