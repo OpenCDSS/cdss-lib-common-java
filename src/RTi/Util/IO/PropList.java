@@ -1327,34 +1327,34 @@ throws Exception
 Checks all the property names in the PropList to make sure only valid and 
 deprecated ones are in the list, and returns a Vector with warning messages
 about deprecated and invalid properties.
-@param validProps a Vector of property names that are possible valid values.
-Not all the values in this Vector need to be present in the PropList, but all
-the property names in the PropList must be in this Vector to be considered valid.
+@param validProps a list of property names that are possible valid values.
+Not all the values in this list need to be present in the PropList, but all
+the property names in the PropList must be in this list to be considered valid.
 <p>If any properties are found in the PropList that are not valid and not 
 deprecated, the returned Vector will include a line in the format:<p>
 <pre>	[name] is not a valid [target].</pre><p>
 Where [name] is the name of the property and [target] is the target (see the
 <b>target</b> parameter for more information on this).<p>
 If this parameter is null it will be considered the same as a zero-size
-Vector.  In both cases, all properties in the PropList will be flagged as invalid properties.
-@param deprecatedProps an optional Vector of the names of properties that are
+list.  In both cases, all properties in the PropList will be flagged as invalid properties.
+@param deprecatedProps an optional list of the names of properties that are
 deprecated (i.e., in a transitional state between property names).  If any 
-property names in this Vector are found in the PropList, the returned Vector
+property names in this Vector are found in the PropList, the returned list
 will contain a line in the format: <p>
 <pre>	[name] is no longer recognized as a valid [target].  [note]</pre><p>
 Where [name] is the name of the property, [target] is the target (see the 
 <b>target</b> parameter in this method), and [note] is an optional note 
 explaining the deprecation (see the next parameter).<p>
-This Vector can be null if there are no deprecated properties.<p>
-<b>Note:</b> The property names in this Vector must not include any of the
-values in the deprecatedProps Vector, or else the property names will be 
+This list can be null if there are no deprecated properties.<p>
+<b>Note:</b> The property names in this list must not include any of the
+values in the deprecatedProps list, or else the property names will be 
 considered valid -- and <b>not</b> checked for whether they are deprecated or not.
 @param deprecatedNotes an optional Vector that accompanies the deprecatedProps
-Vector and offers further information about the deprecation.<p>
-If deprecatedProps is included, this Vector is optional.  However, if
-this Vector is non-null, the deprecatedProps Vector must be non-null as well.<p>
-The elements in this Vector are related to the elements in the deprecatedProps
-Vector on a 1:1 basis.  That is, the data at element N in each Vector are 
+list and offers further information about the deprecation.<p>
+If deprecatedProps is included, this list is optional.  However, if
+this list is non-null, the deprecatedProps list must be non-null as well.<p>
+The elements in this list are related to the elements in the deprecatedProps
+list on a 1:1 basis.  That is, the data at element N in each Vector are 
 the name of a deprecated property and a note explaining the deprecation.<p>
 The note will be added to the deprecation warning lines as shown above in the
 documentation for deprecatedProps.  For best formatting, the first character
@@ -1367,16 +1367,16 @@ to "JWorksheet property" so that the error messages would be:<p>
 <pre>	PropertyName is no longer recognized as a valid JWorksheet property.
 	PropertyName is not a valid JWorksheet property.</pre><p>
 @param removeInvalid indicates whether invalid properties should be removed from the list.
-@return null or a Vector containing Strings, each of which is a warning about 
+@return null or a list containing Strings, each of which is a warning about 
 an invalid or deprecated property in the PropList.  The order of the returned
-Vector is that invalid properties are returned first, and deprecated properties
+list is that invalid properties are returned first, and deprecated properties
 returned second.  If null is returned, no invalid or deprecated properties were found in the PropList.
 @throws Exception if an error occurs.  Specifically, if deprecatedProps and
 deprecatedNotes are non-null and the size of the Vectors is different, an 
 Exception will be thrown warning of the error.
 */
-public List validatePropNames(List validProps, List deprecatedProps,
-List deprecatedNotes, String target, boolean removeInvalid ) 
+public List<String> validatePropNames(List<String> validProps, List<String> deprecatedProps,
+List<String> deprecatedNotes, String target, boolean removeInvalid ) 
 throws Exception {
 	// Get the sizes of the Vectors that will be iterated through, handling null Vectors gracefully.
 
@@ -1412,35 +1412,34 @@ throws Exception {
 	}
 
 	boolean valid = false;
-	int size = size();
 	Prop p = null;
 	String key = null;
 	String msg = null;
 	String val = null;
-	List warnings = new Vector();
+	List<String> warnings = new Vector();
 	
 	// Iterate through all the properties in the PropList and check for
 	// whether they are valid, invalid, or deprecated.
 
-	List invalids = new Vector();
-	List deprecateds = new Vector();
+	List<String> invalids = new Vector();
+	List<String> deprecateds = new Vector();
 	
 	String removeInvalidString = "";
 	if ( removeInvalid ) {
 	    removeInvalidString = "  Removing invalid property.";
 	}
 	
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size(); i++) { // Check size dynamically in case props are removed below
 		p = propAt(i);
 		key = p.getKey();
 
 		valid = false;
 
-		// First make sure that the property is in the valid property name Vector.
+		// First make sure that the property is in the valid property name list.
 		// Properties will only be checked for whether they are deprecated if they are not valid.
 
 		for (int j = 0; j < validPropsSize; j++) {
-			val = (String)validProps.get(j);
+			val = validProps.get(j);
 			if (val.equalsIgnoreCase(key)) {
 				valid = true;
 				break;
@@ -1448,15 +1447,15 @@ throws Exception {
 		}
 
 		if (!valid) {
-			// Only check to see if the property is in the deprecated Vector if it was not already found in 
-			// the valid properties Vector.
+			// Only check to see if the property is in the deprecated list if it was not already found in 
+			// the valid properties list.
 
 			for (int j = 0; j < deprecatedPropsSize; j++) {
-				val = (String)deprecatedProps.get(j);
+				val = deprecatedProps.get(j);
 				if (val.equalsIgnoreCase(key)) {
 					msg = "\"" + key + "\" is no longer recognized as a valid " + target + "." + removeInvalidString;
 					if (hasNotes) {
-						msg += "  " +(String)deprecatedNotes.get(j);
+						msg += "  " + deprecatedNotes.get(j);
 					}
 					deprecateds.add(msg);
 
