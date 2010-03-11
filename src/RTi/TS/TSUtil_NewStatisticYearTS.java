@@ -83,6 +83,11 @@ private DateTime __analysisWindowStart = null;
 Ending date/time for analysis window, within a year.
 */
 private DateTime __analysisWindowEnd = null;
+
+/**
+Search start date/time for analysis window, within a year.
+*/
+private DateTime __searchStart = null;
     
 /**
 Construct the analysis object with required input.  Values will be checked for validity.
@@ -100,11 +105,14 @@ Execute the newStatisticYearTS() method to perform the analysis.
 in precision of the original data.  If null, the entire year of data will be analyzed.
 @param analysisWindowEnd Ending date (year is ignored) for analysis within the year,
 in precision of the original data.  If null, the entire year of data will be analyzed.
+@param searchStart search start date (year is ignored) for analysis within the year,
+in precision of the original data.  If null, the entire year of data will be analyzed.
+This is used when a starting point is needed, such as when first and last values >, < in a year.
 */
 public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statisticType, Double testValue,
     Integer allowMissingCount, Integer minimumSampleSize,
     YearType outputYearType, DateTime analysisStart, DateTime analysisEnd,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd )
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
 {   String routine = getClass().getName();
     String message;
     
@@ -156,6 +164,7 @@ public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statis
     
     setAnalysisWindowStart ( analysisWindowStart );
     setAnalysisWindowEnd ( analysisWindowEnd );
+    setSearchStart ( searchStart );
 }
 
 /**
@@ -196,11 +205,13 @@ Currently only Month... to precision are evaluated (not day... etc.).
 @param analysisWindowEnd If not null, specify the end of the window within
 the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
+@param searchStart starting date/time in the year to analyze, in particular to condition
+seasonal data processing.
 */
 private void calculateStatistic (
     TS ts, YearTS yearts, TSStatisticType statisticType, Double testValue, YearType outputYearType,
     DateTime analysisStart, DateTime analysisEnd, int allowMissingCount, int minimumSampleSize,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd )
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
 {   String routine = getClass().getName() + ".calculateStatistic";
     // Initialize the settings to evaluate the statistic and set appropriate information in the time series
     boolean statisticIsCount = isStatisticCount(statisticType);
@@ -314,6 +325,44 @@ private void calculateStatistic (
             Message.printStatus(2, routine, "Resetting input analysis window to requested " +
                 yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
         }
+        // Further adjust the analysis window based on the search start
+        if ( searchStart != null ) {
+            // Reset the start or end of the analysis window depending on whether
+            // iterating forward (reset start) or backward (reset end).
+            if ( iterateForward ) {
+                yearStartForAnalysisWindow = new DateTime(yearStart);
+                int searchStartMonth = searchStart.getMonth();
+                if ( (outputYearType.getStartYearOffset() < 0) &&
+                    (searchStartMonth < outputYearType.getStartMonth()) &&
+                    (yearStart.getYear() < yearEnd.getYear())) {
+                    // Need to adjust the year because the default start of year is in the previous year
+                    // The check on the years above is redundant but put in just in case
+                    yearStartForAnalysisWindow.setYear(yearEnd.getYear());
+                }
+                yearStartForAnalysisWindow.setMonth(searchStart.getMonth());
+                yearStartForAnalysisWindow.setDay(searchStart.getDay());
+                yearStartForAnalysisWindow.setHour(searchStart.getHour());
+                yearStartForAnalysisWindow.setMinute(searchStart.getMinute());
+            }
+            else {
+                yearEndForAnalysisWindow = new DateTime(yearEnd);
+                int searchStartMonth = searchStart.getMonth();
+                if ( (outputYearType.getStartYearOffset() < 0) &&
+                    (searchStartMonth >= outputYearType.getStartMonth()) &&
+                    (yearStart.getYear() < yearEnd.getYear())) {
+                    // Need to adjust the year because the default end of year is in the next year
+                    // The check on the years above is redundant but put in just in case
+                    yearEndForAnalysisWindow.setYear(yearStart.getYear());
+                }
+                yearEndForAnalysisWindow.setMonth(searchStart.getMonth());
+                yearEndForAnalysisWindow.setDay(searchStart.getDay());
+                yearEndForAnalysisWindow.setHour(searchStart.getHour());
+                yearEndForAnalysisWindow.setMinute(searchStart.getMinute());
+            }
+            Message.printStatus(2, routine,
+                "Resetting input analysis window using SearchStart to requested " +
+                yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
+        }
         // Create an iterator for the data...
         TSIterator tsi = null;
         try {
@@ -414,6 +463,8 @@ private void calculateStatistic (
                         }
                     }
                     else if((testType == TestType.LE) && (value <= testValueDouble) ) {
+                        Message.printStatus(2, routine, "Found value " + value + " <= " +
+                            testValueDouble + " on " + date );
                         if ( (statisticType == TSStatisticType.LE_COUNT) ||
                             (statisticType == TSStatisticType.LE_PERCENT) ) {
                             if(yearts.isDataMissing( yearValue) ) {
@@ -643,6 +694,15 @@ Return the output year type.
 private YearType getOutputYearType ()
 {
     return __outputYearType;
+}
+
+/**
+Return the search start date/time.
+@return the search start date/time.
+*/
+private DateTime getSearchStart ()
+{
+    return __searchStart;
 }
 
 /**
@@ -1114,6 +1174,7 @@ public YearTS newStatisticYearTS ( )
     YearType outputYearType = getOutputYearType();
     DateTime analysisWindowStart = getAnalysisWindowStart();
     DateTime analysisWindowEnd = getAnalysisWindowEnd();
+    DateTime searchStart = getSearchStart();
     
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "Trying to create statistic year TS for \"" +
@@ -1199,7 +1260,7 @@ public YearTS newStatisticYearTS ( )
     calculateStatistic (
             ts, yearts, statisticType, testValue, outputYearType,
             analysisStart, analysisEnd, allowMissingCount, minimumSampleSize,
-            analysisWindowStart, analysisWindowEnd );
+            analysisWindowStart, analysisWindowEnd, searchStart );
 
     // Return the statistic result...
     return yearts;
@@ -1855,6 +1916,15 @@ Set the output year type.
 private void setOutputYearType ( YearType outputYearType )
 {
     __outputYearType = outputYearType;
+}
+
+/**
+Set the search start.
+@param searchStart start date/time processing in a year.
+*/
+private void setSearchStart ( DateTime searchStart )
+{
+    __searchStart = searchStart;
 }
 
 /**
