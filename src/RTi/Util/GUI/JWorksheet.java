@@ -448,7 +448,7 @@ a subclassed table renderer and table model data).<p><pre>
 	}
 	catch (Exception e) {
 		// if there was a problem, simply create an empty JWorksheet.
-		Message.printWarning(2, routine, e);
+		Message.printWarning(3, routine, e);
 		__worksheet = new JWorksheet(0, 0, p);
 		e.printStackTrace();
 	}
@@ -4208,8 +4208,8 @@ public String getStringFormat(String numberFormat) {
 	}
 	catch (Exception e) {
 		String routine = "JWorksheet.getStringFormat()";
-		Message.printWarning(2, routine, e);
-		Message.printWarning(2, routine, "Could not parse format: '" + numberFormat + "'");
+		Message.printWarning(3, routine, e);
+		Message.printWarning(3, routine, "Could not parse format: '" + numberFormat + "'");
 	}
 	return "%s";
 }
@@ -4325,8 +4325,8 @@ public String getValueAtAsString(int row, int column, String format) {
 	}
 	catch (Exception e) {
 		String routine = "JWorksheet.getValueAtAsString()";
-		Message.printWarning(2, routine, e);
-		Message.printWarning(2, "", "getValueAsString(" + row + ", " 
+		Message.printWarning(3, routine, e);
+		Message.printWarning(3, "", "getValueAsString(" + row + ", " 
 			+ column + ", " + format + "): class(" + getAbsoluteColumn(column) + ": " + c + "  data: " 
 			+ o + "  data class: " + o.getClass());
 	}
@@ -4473,7 +4473,7 @@ public void insertRowAt(Object o, int pos) {
 	String routine = CLASS + ".insertRowAt(Object, int)";
 	
 	if (pos < 0) {
-		Message.printWarning(2, routine, "Attempting to insert at a negative position, not inserting.");
+		Message.printWarning(3, routine, "Attempting to insert at a negative position, not inserting.");
 		return;
 	}
 	
@@ -5115,7 +5115,7 @@ private void readPropList(PropList p) {
 			__selectionMode = __EXCEL_SELECTION;
 		}
 		else {
-			Message.printWarning(2, routine, "Unrecognized selection mode: " + s);
+			Message.printWarning(3, routine, "Unrecognized selection mode: " + s);
 			__selectionMode = __EXCEL_SELECTION;
 		}
 	}
@@ -5154,7 +5154,7 @@ private void readPropList(PropList p) {
 		if (s.equalsIgnoreCase("true")) {
 			setSelectable(false);
 		}
-		Message.printWarning(2, routine, "Unselectable is being phased out.  Use property 'Selectable' instead.");
+		Message.printWarning(3, routine, "Unselectable is being phased out.  Use property 'Selectable' instead.");
 	}
 
 	s = p.getValue("JWorksheet.Selectable");
@@ -5190,61 +5190,61 @@ private void readPropList(PropList p) {
 	// check for old properties no longer supported
 	s = p.getValue("JWorksheet.HeaderFont");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderFont) is no longer supported.  Use JWorksheet.ColumnHeaderFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderFontName");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderFontName) is no longer supported.  Use JWorksheet.ColumnHeaderFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderFontStyle");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderFontStyle) is no longer supported.  Use JWorksheet.ColumnHeaderFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderSize");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderSize) is no longer supported.  Use JWorksheet.ColumnHeaderFontSize instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderBackground");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderBackground) is no longer supported.  Use JWorksheet.ColumnHeaderBackground instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderStyle");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderStyle) is no longer supported.  Use JWorksheet.ColumnHeaderFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.HeaderSize");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "HeaderSize) is no longer supported.  Use JWorksheet.ColumnHeaderFontSize instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellFont");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "CellFont) is no longer supported.  Use JWorksheet.CellFontName instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellStyle");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "CellStyle) is no longer supported.  Use JWorksheet.CellFontStyle instead.");
 	}
 
 	s = p.getValue("JWorksheet.CellSize");
 	if (s != null) {
-		Message.printWarning(2, routine, "This property (JWorksheet."
+		Message.printWarning(3, routine, "This property (JWorksheet."
 			+ "CellSize) is no longer supported.  Use JWorksheet.CellFontSize instead.");
 	}	
 
@@ -5538,8 +5538,8 @@ public void saveToFile(String filename, String delimiter) {
 	}
 	catch (Exception e) {
 		JGUIUtil.setWaitCursor(this, false);
-		Message.printWarning(2, routine, "Error writing to file.");
-		Message.printWarning(2, routine, e);
+		Message.printWarning(3, routine, "Error writing to file.");
+		Message.printWarning(3, routine, e);
 	}
 
 	JGUIUtil.setWaitCursor(this, false);
@@ -5569,12 +5569,12 @@ public void scrollToRow(int row) {
 	String routine = CLASS + ".scrollToRow";
 	
 	if (row >= getRowCount()) {
-		Message.printWarning(2, routine, "Will not scroll to row "
+		Message.printWarning(3, routine, "Will not scroll to row "
 			+ row + ", total row count is " + getRowCount());
 		return;
 	}
 	if (row < 0) {
-		Message.printWarning(2, routine, "Will not scroll to negative row");
+		Message.printWarning(3, routine, "Will not scroll to negative row");
 		return;
 	}
 	scrollToCell(row, 0);
@@ -5659,12 +5659,12 @@ public void selectRow(int row, boolean deselectFirst) {
 	String routine = CLASS + ".selectRow";
 	
 	if (row >= getRowCount()) {
-		Message.printWarning(2, routine, "Cannot select row " + row 
+		Message.printWarning(3, routine, "Cannot select row " + row 
 			+ ", there are only " + getRowCount() + " rows in the worksheet.");
 		return;
 	}
 	if (row < 0) {
-		Message.printWarning(2, routine, "Cannot select a negative row.");
+		Message.printWarning(3, routine, "Cannot select a negative row.");
 		return;
 	}
 
@@ -5709,7 +5709,7 @@ public void setCellAlternateText(int row, int absoluteColumn, String text) {
 	String routine = CLASS + ".setCellAlternateText";
 	
 	if (row < 0 || absoluteColumn < 0) {
-		Message.printWarning(2, routine, "Row " + row + " or column " + absoluteColumn + " is out of bounds.");
+		Message.printWarning(3, routine, "Row " + row + " or column " + absoluteColumn + " is out of bounds.");
 		return;
 	}
 	
@@ -5794,7 +5794,7 @@ public void setCellAttributes(int row, int absoluteColumn, JWorksheet_CellAttrib
 	String routine = CLASS + ".setCellAttributes";
 
 	if (row < 0 || absoluteColumn < 0) {
-		Message.printWarning(2, routine, "Row " + row + " or column "
+		Message.printWarning(3, routine, "Row " + row + " or column "
 			+ absoluteColumn + " is out of bounds.");
 		return;
 	}
@@ -6102,10 +6102,10 @@ public void setColumnToolTipText(int absoluteColumn, String tip) {
 		getWorksheetHeader().setColumnToolTip(absoluteColumn, tip);	
 	}
 	catch (Exception e) {	
-		Message.printWarning(2, CLASS + ".setColumnToolTipText",
+		Message.printWarning(3, CLASS + ".setColumnToolTipText",
 			"Error setting column tool tip (column " 
 			+ absoluteColumn + ").  Check log for details.");
-		Message.printWarning(2, CLASS + ".setColumnToolTipText", e);
+		Message.printWarning(3, CLASS + ".setColumnToolTipText", e);
 	}
 }
 
@@ -6153,19 +6153,19 @@ public void setColumnWidths(int[] widths, Graphics g) {
 	String routine = CLASS + ".setColumnWidths";
 
 	if (g == null) {
-		Message.printWarning(2, routine, "Graphics are null, not setting column widths.");
+		Message.printWarning(3, routine, "Graphics are null, not setting column widths.");
 		return;
 	}
 	if (widths == null) {
-		Message.printWarning(2, routine, "Widths are null, not setting column widths.");
+		Message.printWarning(3, routine, "Widths are null, not setting column widths.");
 		return;
 	}
 	if (__columnNames == null) {
-		Message.printWarning(2, routine, "Column names are null, not setting column widths.");			
+		Message.printWarning(3, routine, "Column names are null, not setting column widths.");			
 		return;
 	}
 	if (widths.length != __columnNames.length) {
-		Message.printWarning(2, routine, "Length of widths array ("
+		Message.printWarning(3, routine, "Length of widths array ("
 			+ widths.length + ") does not match internal column "
 			+ "names array length (" + __columnNames.length + ").");
 		return;
