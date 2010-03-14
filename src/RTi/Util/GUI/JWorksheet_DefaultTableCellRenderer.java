@@ -59,11 +59,12 @@ Returns the table cell renderer used to render a cell in a table.
 @param row the row in which the cell can be found.
 @param column the column in which the cell can be found.
 @return a component that can be displayed in a table cell, which contains 
-the value of the cell being renderered.
+the value of the cell being rendered.
 */
 public Component getTableCellRendererComponent(JTable table, Object value,
 boolean isSelected, boolean hasFocus, int row, int column) {
 	return super.getTableCellRendererComponent(table, value,
 		isSelected, hasFocus, row, column);
 }
+
 }

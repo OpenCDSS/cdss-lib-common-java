@@ -44,6 +44,7 @@ import RTi.DMI.DMIUtil;
 
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
+import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
@@ -123,40 +124,48 @@ by the JTable when it is rendering its cells.  This overrides some code from Def
 @return a properly-rendered cell that can be placed in the table.
 */
 public Component getTableCellRendererComponent(JTable table, Object value,
-boolean isSelected, boolean hasFocus, int row, int column) {
+boolean isSelected, boolean hasFocus, int row, int column)
+{
+    JWorksheet jworksheet = (JWorksheet)table;
 	String str = "";
- 	if (value != null) {
+ 	if ( value != null ) {
+ 	    // Value as string
 		str = value.toString();
 	}
 	
-	int abscolumn = ((JWorksheet)table).getAbsoluteColumn(column);
+	int abscolumn = jworksheet.getAbsoluteColumn(column);
 	
+	// Get the format from the cell renderer
 	String format = getFormat(abscolumn);
+    //Message.printStatus(2, "SAMX", "formatting " + value + " with " + format );
 	
-	int justification = SwingConstants.LEFT;
+	int justification = SwingConstants.LEFT; // Default for strings, dates
 
 	if (value instanceof Integer) {
-		if (DMIUtil.isMissing(((Integer)value).intValue())) {
+	    Integer i = (Integer)value;
+		if ( (value == null) || DMIUtil.isMissing(i.intValue())) {
 			str = "";
 		} 
 		else {
 			justification = SwingConstants.RIGHT;
-			str = StringUtil.formatString(value, format);
+			str = StringUtil.formatString(i.intValue(), format);
 		}
 	}	
 	else if (value instanceof Double) {
-		double d = ((Double)value).doubleValue();
+		Double d = (Double)value;
 		// Display the value as a space if it is missing (typically one of the values shown)
 		// The latter was added to support HEC-DSS time series database files (correspondence indicated
 		// that Float.MAX_VALUE was used but it seems to be negative Float.MAX_VALUE).
 		// FIXME SAM 2008-11-11 Need a way to register some type of interface method that is called when
 		// checking for missing data, rather than hard-coding for all instances of worksheet here.
-		if (DMIUtil.isMissing(d) || Double.isNaN(d) || (d >= Float.MAX_VALUE) || (d <= -Float.MAX_VALUE)) {
+		if ( (d == null) || Double.isNaN(d) || (d >= Float.MAX_VALUE) || (d <= -Float.MAX_VALUE) ||
+		    DMIUtil.isMissing(d.doubleValue()) ) {
 			str = "";
 		}	
 		else {
 			justification = SwingConstants.RIGHT;
-			str = StringUtil.formatString(value, format);
+			//Message.printStatus(2, "SAMX", "formatting " + d.doubleValue() + " with " + format );
+			str = StringUtil.formatString(d.doubleValue(), format);
 		}
 	}
 	else if (value instanceof Date) {
@@ -165,18 +174,28 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}
 	else if (value instanceof String) {
 		justification = SwingConstants.LEFT;
-		str = StringUtil.formatString(value, format);
+		str = StringUtil.formatString((String)value, format);
 	}
 	else if (value instanceof Float) {
-		float f = ((Float)value).floatValue();
-		if (DMIUtil.isMissing(f) || Float.isNaN(f)) {
+		Float f = (Float)value;
+		if ( (f == null) || Float.isNaN(f.floatValue()) || DMIUtil.isMissing(f.floatValue()) ) {
 			str = "";
 		}
 		else {
 			justification = SwingConstants.RIGHT;
-			str = StringUtil.formatString(value, format);
+			str = StringUtil.formatString(f.floatValue(), format);
 		}
 	}
+    if (value instanceof Long) {
+        Long l = (Long)value;
+        if ( (value == null) || DMIUtil.isMissing(l.longValue())) {
+            str = "";
+        } 
+        else {
+            justification = SwingConstants.RIGHT;
+            str = StringUtil.formatString(l.longValue(), format);
+        }
+    }
 	else if (value instanceof Boolean && __renderBooleanAsCheckBox) {
 		JCheckBox component = new JCheckBox((String)null, ((Boolean)value).booleanValue());
 		setProperColors(component, table, isSelected, hasFocus, row, column);
@@ -191,13 +210,14 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	// all the cell highlighting is handled properly.
 	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);	
 	
-	int tableAlignment = ((JWorksheet)table).getColumnAlignment(abscolumn);
+	// TODO SAM 2010-03-12 Seems to not do anything...
+	int tableAlignment = jworksheet.getColumnAlignment(abscolumn);
 	if (tableAlignment != JWorksheet.DEFAULT) {
 		justification = tableAlignment;
 	}
 	
 	setHorizontalAlignment(justification);
-	setFont(((JWorksheet)table).getCellFont());
+	setFont(jworksheet.getCellFont());
 
 	return this;
 }

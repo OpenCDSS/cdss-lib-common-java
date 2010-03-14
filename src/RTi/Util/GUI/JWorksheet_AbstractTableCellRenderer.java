@@ -20,7 +20,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 Base class from which other classes that are to be used as cell renderers in 
 the JWorksheet should be built, as it provides a getWidths() routine (which 
 is used by JWorksheet) if the other classes do not.<p>
-REVISIT (JTS - 2006-05-25)<p>
+TODO (JTS - 2006-05-25)<p>
 If I could do this over again, I would have combined AbstractTableCellRenderer,
 DefaultTableCellRenderer and AbstractExcelCellRenderer into a single cell 
 renderer.  The reasoning for having the separation came about from the 
@@ -63,7 +63,7 @@ throws Throwable {
 /**
 Returns a null array.   In derived classes, this should return an array
 of integers, each of which is the width (in characters) that column #i (at 
-position array[i]) should be able to accomodate.
+position array[i]) should be able to accommodate.
 @return a null integer array.
 */
 public int[] getColumnWidths() {
