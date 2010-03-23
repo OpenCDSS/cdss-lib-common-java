@@ -2983,19 +2983,18 @@ throws Exception {
 }
 
 /**
-Create a Vector of where clauses give an InputFilter_JPanel.  The InputFilter
+Create a list of where clauses give an InputFilter_JPanel.  The InputFilter
 instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
-@return a Vector of where clauses, each of which can be added to a DMI statement.
+@return a list of where clauses, each of which can be added to a DMI statement.
 @param dmi The DMI instance being used, which may be checked for specific formatting.
 @param panel The InputFilter_JPanel instance to be converted.
 */
-public static List getWhereClausesFromInputFilter (	DMI dmi,
-						InputFilter_JPanel panel )
+public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter_JPanel panel )
 {	// Loop through each filter group.  There will be one where clause per filter group.
 	int nfg = panel.getNumFilterGroups ();
 	InputFilter filter;
-	List where_clauses = new Vector();
+	List<String> where_clauses = new Vector();
 	String where_clause="";	// A where clause that is being formed.
 	for ( int ifg = 0; ifg < nfg; ifg++ ) {
 		filter = panel.getInputFilter ( ifg );	
@@ -3016,8 +3015,7 @@ the database table and field names in the internal (non-label) data.
 @param operator the operator to use in creating the where clause
 @param panel The InputFilter_JPanel instance to be converted.
 */
-public static String getWhereClauseFromInputFilter(DMI dmi,
-InputFilter filter, String operator) {
+public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator) {
 	String routine = "getWhereClauseFromInputFilter";
 	// Get the selected filter for the filter group...
 	if ( filter.getWhereLabel().trim().equals("") ) {

@@ -577,15 +577,14 @@ throws Exception {
 }
 
 /**
-Adds a series of where clauses to the statement at once.
-@param where_clauses Vector ofString where clauses to add.
+Adds a series of WHERE clauses to the statement at once.
+@param whereClauses list of String WHERE clauses to add.
 */
-public void addWhereClauses(List where_clauses) 
-throws Exception {
-	String s;
-	for (int i = 0; i < where_clauses.size(); i++) {
-		s = (String)where_clauses.get(i);
-		addWhereClause(s);
+public void addWhereClauses( List<String> whereClauses) 
+throws Exception
+{
+	for ( String whereClause : whereClauses ) {
+		addWhereClause(whereClause);
 	}
 }
 

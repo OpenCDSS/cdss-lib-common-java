@@ -44,7 +44,6 @@ import RTi.DMI.DMIUtil;
 
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
-import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
