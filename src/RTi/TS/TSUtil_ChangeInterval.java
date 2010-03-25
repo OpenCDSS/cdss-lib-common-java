@@ -1,7 +1,9 @@
 package RTi.TS;
 
 import java.util.List;
+import java.util.Vector;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
@@ -66,6 +68,11 @@ New time time scale for output time series.
 private TimeScaleType __newTimeScale = null;
 
 /**
+Statistic computed while changing interval (e.g., max value when converting INST-small to INST-large).
+*/
+private TSStatisticType __statistic = null;
+
+/**
 Units for the new time series.
 */
 private String __newUnits = null;
@@ -113,6 +120,9 @@ indicating the new interval for the time series.
 the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
 @param newTimeScale The new time scale indicates whether values in the new time series are accumulated over
 the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
+@param statisticType the output statistic type, support for some calculations (currently only INST-small
+to INST-large), for example compute daily max from instantaneous small interval.  Specify null to use the
+default statistic for the time scale and interval combination.
 @param outputYearType output year type used when the new interval is year (if null use calendar).
 @param newDataType the data type for the new time series.  If null, the data type from the old time series
 will be used (Warning: for some systems, the meaning of the data type changes depending on the interval.
@@ -151,7 +161,7 @@ The default if specified as null is KEEP_MISSING.
 TODO SAM 2009-11-02 need to evaluate the references to ALERT versus general behavior.
 */
 public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
-    TimeScaleType oldTimeScale, TimeScaleType newTimeScale, YearType outputYearType,
+    TimeScaleType oldTimeScale, TimeScaleType newTimeScale, TSStatisticType statisticType, YearType outputYearType,
     String newDataType, String newUnits, Double tolerance,
     TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow,
     TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
@@ -184,6 +194,30 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         throw new IllegalArgumentException ( "New time scale is null.  Cannot change interval.");
     }
     setNewTimeScale ( newTimeScale );
+    
+    // Statistic is only allowed for INST (small) to INST (large)
+    if ( statisticType != null ) {
+        if ( oldTimeScale != TimeScaleType.INST ) {
+            throw new IllegalArgumentException ( "Statistic can only be specified with INST(small) to INST(large).");
+        }
+        if ( newTimeScale != TimeScaleType.INST ) {
+            throw new IllegalArgumentException ( "Statistic can only be specified with INST(small) to INST(large).");
+        }
+        // TODO SAM 2010-03-24 need check for small interval to large
+        boolean supported = false;
+        List<TSStatisticType> statistics = TSUtil_CalculateTimeSeriesStatistic.getStatisticChoices();
+        for ( TSStatisticType statistic : statistics ) {
+            if ( statisticType == statistic ) {
+                supported = true;
+                break;
+            }
+        }
+        if ( !supported ) {
+            throw new IllegalArgumentException ( "The statistic (" + statisticType +
+                ") is not supported by this command." );
+        }
+    }
+    setStatistic ( statisticType );
     
     if ( outputYearType == null ) {
         outputYearType = YearType.CALENDAR;
@@ -408,6 +442,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         int newtsMultiplier = newInterval.getMultiplier();
         TimeScaleType oldTimeScale = getOldTimeScale();
         TimeScaleType newTimeScale = getNewTimeScale();
+        TSStatisticType statistic = getStatistic();
         YearType outputYearType = getOutputYearType();
         String newUnits = getNewUnits(); // Will check below when creating the time series.
         String newDataType = getNewDataType();
@@ -669,7 +704,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     // From REGULAR INST to INST use routine changeInterval_fromINST
                     // ---------------------------------------------
                     if (changeInterval_fromINST(oldTSi, newTSi, intervalRelation, oldTimeScale, newTimeScale,
-                        handleMissingInputHow)) {
+                        statistic, handleMissingInputHow, allowMissingCount) ) {
                         returnTS = true;
                     }
                 }
@@ -707,18 +742,18 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
 
     /**
      * Change intervals from INST to INST for regular interval time series.
-     * Call only from TSUtil.changeInterval!
      * @param oldTSi Reference to the iterator object for the old time series.
      * @param newTSi Reference to the iterator object for the new time series.
      * @param intervalRelation ratio of intervals, negative if newTS interval is longer than the oldTS.
-     * @param oldTimeScale - The time scale of the old time series.
-     * @param newTimeScale - The time scale of the new time series.
+     * @param oldTimeScale time scale of the old time series.
+     * @param newTimeScale time scale of the new time series.
      * @param handleMissingInputHow Indicates how to treat missing values in the input time series
+     * @param allowMissingCount the number of missing values allowed (only used with statistic).
      * @return true if successful or false if an error.
      */
     private boolean changeInterval_fromINST(TSIterator oldTSi, TSIterator newTSi, int intervalRelation,
-        TimeScaleType oldTimeScale, TimeScaleType newTimeScale,
-        TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow )
+        TimeScaleType oldTimeScale, TimeScaleType newTimeScale, TSStatisticType statistic,
+        TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, int allowMissingCount )
         throws Exception {
         String routine = "TSUtil.changeInterval_fromINST", warning;
 
@@ -744,19 +779,32 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
 
             // The first next() call does not increment the date.
             TSData oldData = oldTSi.next();
-
+            double [] statisticSample = new double[500]; // Sample when computing statistic (guess at size)
+            int statisticSampleSize = 0; // For statistic - sample size from input (non-missing)
+            int statisticSampleMissingCount = 0; // For statistic - count of missing excluded from sample size
             for (; newTSi.next() != null;) {
 
                 currentValue = newMissing;
+                statisticSampleSize = 0;
+                statisticSampleMissingCount = 0;
                 // Just use the last recorded instantaneous old currentValue within the new interval
                 while (oldData != null && oldTSi.getDate().lessThanOrEqualTo(newTSi.getDate())) {
 
-                    // Assign value only if dates are equal
-                    if (oldTSi.getDate().equals(newTSi.getDate())) {
+                    // TODO SAM 2010-03-24 Should interpolation be allowed?
+                    // Should carry forward on input be allowed (seems to be implied by replaceDataValue() call
+                    // below.
+                    if ( statistic == null ) {
+                        // Legacy behavior is to pick off values...assign value only if dates are equal
+                        if (oldTSi.getDate().equals(newTSi.getDate())) {
+                            currentValue = oldTSi.getDataValue();
+                        }
+                    }
+                    else {
+                        // Computing a statistic so need to get all input values...
                         currentValue = oldTSi.getDataValue();
                     }
 
-                    // Replace missing data currentValue:
+                    // Replace missing data in currentValue as per handleMissingHow parameter:
                     // by newMissing if REGULAR data;
                     // by 0 if ALERT INCREMENT data and
                     // by lastValue if ALERT REGULAR.
@@ -764,18 +812,66 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                         currentValue = replaceDataValue(handleMissingInputHow, lastValue, newMissing);
                     }
                     else {
+                        // Current value was not missing so save it as the last non-missing value,
+                        // for use in calls in the above clause.
                         lastValue = currentValue;
                     }
+                    
+                    //Message.printStatus(2,routine,"" + oldTSi.getDate() + " currentValue=" + currentValue );
+                    
+                    // If a statistic is being computed, save each of the old values as they are iterated...
+                    if ( statistic != null ) {
+                        // Save the value in the sample, but only if not missing
+                        if ( oldTS.isDataMissing(currentValue) ) {
+                            // Keep track of missing count and don't add to sample
+                            ++statisticSampleMissingCount;
+                        }
+                        else {
+                            // Not missing so add to sample
+                            if ( statisticSampleSize == statisticSample.length ) {
+                                // Increase the size of the array to handle more values
+                                double [] statisticSampleNew = new double[statisticSample.length + 100];
+                                // Copy old sample into larger array..
+                                System.arraycopy(statisticSample, 0, statisticSampleNew, 0, statisticSample.length);
+                                // Reset the sample to the new array
+                                statisticSample = statisticSampleNew;
+                            }
+                            //Message.printStatus(2,routine,"Sample[" + statisticSampleSize +"]=" + currentValue );
+                            statisticSample[statisticSampleSize++] = currentValue;
+                        }
+                    }
 
+                    // Increment the old data pointer to the next value...
                     oldData = oldTSi.next();
                 }
 
                 if (Message.isDebugOn) {
-                    warning = "Old TS: " + oldTSi.getDate() + " -> " + String.valueOf(currentValue) +
-                        " %%%  New TS: " + newTSi.getDate();
+                    warning = "Old TS: " + oldTSi.getDate() + " -> " + currentValue +
+                        "  New TS: " + newTSi.getDate();
                     Message.printDebug(40, routine, warning);
                 }
-                newTS.setDataValue(newTSi.getDate(), currentValue);
+                if ( statistic == null ) {
+                    // Simple assignment based on picking a smaller interval value at the
+                    // matching date/time for the new longer interval
+                    newTS.setDataValue(newTSi.getDate(), currentValue);
+                }
+                else {
+                    // Compute the statistic based on the sample
+                    double statisticValue = newMissing;
+                    //Message.printStatus (2,routine,"Calculating max with sample size=" + statisticSampleSize +
+                    //        " statisticSampleMissingCount=" + statisticSampleMissingCount +
+                     //       " allowMissingCount=" + allowMissingCount);
+                    if ( (statisticSampleSize > 0) && (statisticSampleMissingCount <= allowMissingCount) ) {
+                        // Have enough values to compute the sample.
+                        if ( statistic == TSStatisticType.MAX ) {
+                            statisticValue = MathUtil.max(statisticSampleSize, statisticSample);
+                        }
+                        else if ( statistic == TSStatisticType.MIN ) {
+                            statisticValue = MathUtil.min(statisticSampleSize, statisticSample);
+                        }
+                    }
+                    newTS.setDataValue(newTSi.getDate(), statisticValue );
+                }
             }
         }
         else {
@@ -3113,6 +3209,43 @@ private YearType getOutputYearType ()
 }
 
 /**
+Return the statistic being computed.
+@return the statistic being computed.
+*/
+private TSStatisticType getStatistic()
+{
+    return __statistic;
+}
+
+/**
+Get the list of statistics that can be created during the conversion.  For example, for INST to INST the
+computed value can be the MAX or MIN or default (new INST).
+@return the list of statistic display names as TSStatisticType.
+*/
+public static List<TSStatisticType> getStatisticChoices()
+{
+    List<TSStatisticType> choices = new Vector();
+    choices.add ( TSStatisticType.MAX );
+    choices.add ( TSStatisticType.MIN );
+    return choices;
+}
+
+/**
+Get the list of statistics that can be created during the conversion.  For example, for INST to INST the
+computed value can be the MAX or MIN or default (new INST).
+@return the statistic display names as strings.
+*/
+public static List<String> getStatisticChoicesAsStrings()
+{
+    List<TSStatisticType> choices = getStatisticChoices();
+    List<String> stringChoices = new Vector();
+    for ( TSStatisticType choice : choices ) {
+        stringChoices.add ( "" + choice );
+    }
+    return stringChoices;
+}
+
+/**
 Return the tolerance used with convergence tests.
 @return the tolerance used with convergence tests.
 */
@@ -3248,6 +3381,15 @@ Set the output year type.
 private void setOutputYearType ( YearType outputYearType )
 {
     __outputYearType = outputYearType;
+}
+
+/**
+Set the statistic type.
+@param statistic statistic being computed (e.g., MAX for INST-small to INST-large).
+*/
+private void setStatistic ( TSStatisticType statistic )
+{
+    __statistic = statistic;
 }
 
 /**
