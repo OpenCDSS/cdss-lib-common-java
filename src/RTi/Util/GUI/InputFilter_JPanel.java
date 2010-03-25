@@ -72,6 +72,7 @@ import java.util.Vector;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import RTi.Util.GUI.JGUIUtil;
@@ -86,7 +87,7 @@ import RTi.Util.String.StringUtil;
 
 // TODO SAM 2004-05-20 - see limitation below.
 /**
-This class provides a JPanel to display a Vector of InputFilter.  The
+This class provides a JPanel to display a list of InputFilter.  The
 constructor should indicate the number of input filter groups to be displayed,
 where an input filter group lists all input filters.  For example, if three
 input filters are specified (in the constructor or later with setInputFilters),
@@ -98,6 +99,10 @@ There is a limitation in that if an input filter has a list of string choices
 and an operator like "Ends with" is chosen, the full list of string choices is
 still displayed in the input.  Therefore, a substring cannot be operated on.  This
 limitation needs to be removed in later versions of the software if it impacts functionality.
+In addition to the fully functional input filter, a constructor is provided for a blank panel, and
+a constructor is provided to display text in the panel.  These variations can be used as place holders
+or to provide information to users.  Often the panels are added in the same layout position and made active
+by setting visible under appropriate conditions.
 */
 public class InputFilter_JPanel extends JPanel implements ItemListener
 {
@@ -133,12 +138,35 @@ Properties to control the display.
 private PropList __props = null;
 
 /**
+Text area to display text (if the text version of constructor is used).
+*/
+private JTextArea __textArea = null;
+
+/**
 Construct an input filter panel.  The setInputFilters() method must be called
-at some point during initialization in the calling code.
+at some point during initialization in the calling code.  Or, use an empty input filter
+for cases where the filters do not apply (see also overloaded version with text).
 */
 public InputFilter_JPanel ()
 {	GridBagLayout gbl = new GridBagLayout();
 	setLayout ( gbl );
+}
+
+/**
+Construct an input filter panel that will include a text area for a message.
+This version is used as a place holder with a message, with visibility being swapped with
+standard (or empty input filter panel).
+Use setText() to update the text that is displayed.
+@param text text to display in the input filter panel.  Use \n to indicate newline characters.
+*/
+public InputFilter_JPanel ( String text )
+{   GridBagLayout gbl = new GridBagLayout();
+    setLayout ( gbl );
+    __textArea = new JTextArea(text);
+    Insets insetsNNNN = new Insets(0,0,0,0);
+    JGUIUtil.addComponent(this, __textArea,
+        0, 0, 1, 1, 0.0, 0.0, insetsNNNN,
+        GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 }
 
 /**
@@ -433,6 +461,20 @@ Return the operator for a filter group (one of InputFilter.INPUT_*).
 public String getOperator ( int ifg )
 {	SimpleJComboBox cb = (SimpleJComboBox)__operatorComponentList.get(ifg);
 	return cb.getSelected();
+}
+
+/**
+Return the text that is displayed in the panel, when the text constructor is used.
+@return the text displayed in the panel text area.
+*/
+public String getText ()
+{
+    if ( __textArea == null ) {
+        return "";
+    }
+    else {
+        return __textArea.getText();
+    }
 }
 
 /**
@@ -797,6 +839,17 @@ public void setInputFilters ( List inputFilters, PropList props )
                 GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 		}
 	}
+}
+
+/**
+Set the text that is displayed in the panel, when the text constructor is used.
+@param text the text displayed in the panel text area.
+*/
+public void setText ( String text )
+{
+    if ( __textArea != null ) {
+        __textArea.setText(text);
+    }
 }
 
 /**
