@@ -40,43 +40,59 @@ a file.  This class should be extended to provide specific functionality for a d
 public abstract class DataSet
 {
 
-private String __basename = "";		// Base name for data set, used to
-					// provide default file names when
-					// creating new files.
+/**
+Base name for data set, used to provide default file names when creating new files.
+*/
+private String __basename = "";
 
-private List __components = null;	// Vector of data components.
+/**
+List of data components.
+*/
+private List __components = null;
 
+/**
+Array of component names, used in lookups.
+*/
 protected String [] _component_names = null;
-					// Array of component names, used in
-					// lookups.
 
-protected int [] _component_types = null;// Array of component types (as
-					// integers), corresponding to the
-					// component names.
+/**
+Array of component types (as integers), corresponding to the component names.
+*/
+protected int [] _component_types = null;
+
+/**
+Array of component types (as integers) that are group components.
+*/
 protected int [] _component_groups = null;
-					// Array of component types (as
-					// integers) that are group components.
+
+/**
+Array of component types (as integers) that indicates the group components for each component.
+*/
 protected int [] _component_group_assignments = null;
-					// Array of component types (as
-					// integers) that indicates the
-					// group components for each component.
+
+/**
+Array of component types (as integers) that indicates the primary components for each group.
+These components are used to get the list of object identifiers for displays and processing.
+*/
 protected int [] _component_group_primaries = null;
-					// Array of component types (as
-					// integers) that indicates the
-					// primary components for each group.
-					// These componets are used to get the
-					// list of object identifiers for
-					// displays and processing.
 
-private String __dataset_dir = "";	// Directory for data set.
+/**
+Directory for data set.
+*/
+private String __dataset_dir = "";
 
-private String __dataset_filename = "";	// Name of the data set file (XML file).
+/**
+Name of the data set file (XML file).
+*/
+private String __dataset_filename = "";
 
 // TODO - evaluate switching this to a String - it is not checked as often
 // as the component types are
-private int __type = -1;		// Data set type.  The derived class can
-					// use this to define specific data set
-					// types.  The value is initialized to -1.
+/**
+Data set type.  The derived class can use this to define specific data set
+types.  The value is initialized to -1.
+*/
+private int __type = -1;
 
 /**
 Construct a blank data set.  It is expected that other information will be set
@@ -105,10 +121,8 @@ primary components.  One primary component should be identified for each group
 and the primary component will be used to supply a list of objects/identifiers
 to create the list of objects identifiers in the group.
 */
-public DataSet (	int [] component_types, String [] component_names,
-			int [] component_groups,
-			int [] component_group_assignments,
-			int [] component_group_primaries )
+public DataSet ( int [] component_types, String [] component_names, int [] component_groups,
+	int [] component_group_assignments, int [] component_group_primaries )
 {	__components = new Vector ();
 	_component_types = component_types;
 	_component_names = component_names;
@@ -141,8 +155,7 @@ public void addComponent ( DataSetComponent comp )
 }
 
 /**
-Determine whether a data component has data.  A check is made for a non-null
-data object.
+Determine whether a data component has data.  A check is made for a non-null data object.
 @param component_type The component type to evaluate.
 @return true if a data component has a non-null data object, false if not.
 Return false if the component does not exist in the data set.
@@ -155,7 +168,8 @@ public boolean componentHasData ( int component_type )
 	if ( comp.getData() != null ) {
 		return true;
 	}
-	else {	return false;
+	else {
+		return false;
 	}
 }
 
@@ -167,7 +181,7 @@ protected void finalize()
 throws Throwable
 {	__basename = null;
 	__components = null;
-	// REVISIT SAM 2005-05-21 The following sets static component names to
+	// TODO SAM 2005-05-21 The following sets static component names to
 	// null!  Subsequent access of the component names do not work.
 	//IOUtil.nullArray(_component_names);
 	_component_types = null;
@@ -201,8 +215,7 @@ public DataSetComponent getComponentAt ( int pos )
 Return the full path to the component data file.  If the original file name
 was set as absolute, then it is returned.  Otherwise, the data set directory
 and component data file name are joined.
-@return the full path to the component data file or null if it cannot be
-determined.
+@return the full path to the component data file or null if it cannot be determined.
 @param comp_type Component type.
 */
 public String getComponentDataFilePath ( int comp_type )
@@ -214,11 +227,10 @@ public String getComponentDataFilePath ( int comp_type )
 }
 
 /**
-Return the full path to the component data file.  If the origional file name
+Return the full path to the component data file.  If the original file name
 was set as absolute, then it is returned.  Otherwise, the data set directory
 and component data file name are joined.
-@return the full path to the component data file or null if it cannot be
-determined.
+@return the full path to the component data file or null if it cannot be determined.
 @param comp Component.
 */
 public String getComponentDataFilePath ( DataSetComponent comp )
@@ -278,13 +290,12 @@ public DataSetComponent getComponentForComponentType ( int type )
 	//Message.printStatus ( 2, "", "looking up component " + type );
 	for ( int i = 0; i < size; i++ ) {
 		comp = (DataSetComponent)__components.get(i);
-		//Message.printStatus ( 2, "", "Checking " +
-			//comp.getComponentType() );
+		//Message.printStatus ( 2, "", "Checking " + comp.getComponentType() );
 		if ( comp.getComponentType() == type ) {
 			return comp;
 		}
 		// If the component is a group and did not match the type, check
-		// the subtypes in the component...
+		// the sub-types in the component...
 		if ( comp.isGroup() ) {
 			v = (List)comp.getData();
 			size2 = 0;
@@ -346,7 +357,8 @@ public String getDataFilePath ( String file )
 	if ( f.isAbsolute() ) {
 		return file;
 	}
-	else { return __dataset_dir + File.separator + file;
+	else {
+		return __dataset_dir + File.separator + file;
 	}
 }
 
@@ -367,11 +379,10 @@ public int getDataSetType ()
 }
 
 /**
-Return the data set type name.  This method calls lookupDataSetName() for the
-instance.
+Return the data set type name.  This method calls lookupDataSetName() for the instance.
 @return the data set type name.
 */
-/* REVISIT - for now put in extended class because no generic way has been added
+/* TODO - for now put in extended class because no generic way has been added
 here to keep track of different data set types
 public String getDataSetName ()
 {	return lookupDataSetName ( __type );
@@ -386,28 +397,30 @@ Initialize the data set.  This method should be defined in the extended class.
 /**
 Determine the component group type for a component type.  For example, use this
 to determine the group to add input components to when reading an input file.
-file.
 @param component_type The component type (should not be a group component).
-@return the component group type for the component or -1 if a component group
-cannot be determined.
+@return the component group type for the component or -1 if a component group cannot be determined.
 */
 public int lookupComponentGroupTypeForComponent ( int component_type )
 {	if (	(component_type < 0) ||
 		(component_type >= _component_group_assignments.length) ) {
 		return -1;
 	}
-	else {	return _component_group_assignments[component_type];
+	else {
+		return _component_group_assignments[component_type];
 	}
 }
 
 /**
 Return the component name given its number.
-@return the component name given its number or null if the component type is
-not found.
+@return the component name given its number or null if the component type is not found.
 */
-public String lookupComponentName ( int component_type ) {
-	if ( component_type < _component_names.length ) {
-		return _component_names[component_type];
+public String lookupComponentName ( int component_type )
+{	// The component types are not necessarily numbers that match array indices
+	// so match the type values
+	for ( int i = 0; i < _component_types.length; i++ ) {
+		if ( component_type == _component_types[i] ) {
+			return _component_names[i];
+		}
 	}
 	return null;
 }
@@ -420,7 +433,7 @@ Return the numeric component type given its string name.
 public int lookupComponentType ( String component_name )
 {	for ( int i = 0; i < _component_types.length; i++ ) {
 		if ( _component_names[i].equalsIgnoreCase(component_name) ) {
-			return i;
+			return _component_types[i]; // The _component_names and _component_types arrays must align
 		}
 	}
 	return -1;
@@ -452,7 +465,8 @@ public int lookupPrimaryComponentTypeForComponentGroup ( int component_type )
 			if ( (i >= _component_group_primaries.length) ) {
 				return -1;
 			}
-			else {	return _component_group_primaries[i];
+			else {
+				return _component_group_primaries[i];
 			}
 		}
 	}
@@ -460,8 +474,7 @@ public int lookupPrimaryComponentTypeForComponentGroup ( int component_type )
 }
 
 /**
-Indicate whether any components in the data set are dirty (data have been
-modified in memory).
+Indicate whether any components in the data set are dirty (data have been modified in memory).
 @return true if any files in the data set are dirty.
 */
 public boolean isDirty ()
@@ -477,8 +490,7 @@ public boolean isDirty ()
 			}
 			return true;
 		}
-		// If the component is a group and it was not dirty (above),
-		// check the sub-components...
+		// If the component is a group and it was not dirty (above), check the sub-components...
 		if ( comp.isGroup() ) {
 			v = (List)comp.getData();
 			size2 = 0;
@@ -489,10 +501,8 @@ public boolean isDirty ()
 				comp = (DataSetComponent)v.get(j);
 				if ( comp.isDirty() ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, "",
-						"Croup sub-component " +
-						comp.getComponentName() +
-						" is dirty." );
+						Message.printDebug ( 1, "", "Croup sub-component " +
+						comp.getComponentName() + " is dirty." );
 					}
 					return true;
 				}
@@ -502,29 +512,26 @@ public boolean isDirty ()
 	return false;
 }
 
-// REVISIT - Need to evaluate whether this NEEDS TO BE IN EACH DERIVED CLASS.
+// TODO - Need to evaluate whether this NEEDS TO BE IN EACH DERIVED CLASS.
 /**
 Process an XML Document node during the read process.
 @param dataset DataSet that is being read.
 @param node an XML document node, which may have children.
 @exception Exception if there is an error processing the node.
 */
-/* REVISIT
-private static void processDocumentNodeForRead (	DataSet dataset,
-							Node node )
+/* TODO
+private static void processDocumentNodeForRead ( DataSet dataset, Node node )
 throws Exception
 {	String routine = "DataSet.processDocumentNodeForRead";
 	switch ( node.getNodeType() ) {
 		case Node.DOCUMENT_NODE:
 			// The main data set node.  Get the data set type, etc.
-			processDocumentNodeForRead( dataset,
-				((Document)node).getDocumentElement() );
+			processDocumentNodeForRead( dataset, ((Document)node).getDocumentElement() );
 			break;
 		case Node.ELEMENT_NODE:
 			// Data set components.  Print the basic information...
 			String element_name = node.getNodeName();
-			Message.printStatus ( 1, routine, "Element name: " +
-				element_name );
+			Message.printStatus ( 1, routine, "Element name: " + element_name );
 			NamedNodeMap attributes;
 			Node attribute_Node;
 			String attribute_name, attribute_value;
@@ -534,30 +541,20 @@ throws Exception
 				int nattributes = attributes.getLength();
 				for ( int i = 0; i < nattributes; i++ ) {
 					attribute_Node = attributes.item(i);
-					attribute_name =
-						attribute_Node.getNodeName();
-					if (	attribute_name.equalsIgnoreCase(
-						"Type" ) ) {
-						try {	dataset.setComponentType
-							( attribute_Node.
-							getNodeValue(), true );
+					attribute_name = attribute_Node.getNodeName();
+					if ( attribute_name.equalsIgnoreCase("Type" ) ) {
+						try {
+							dataset.setComponentType ( attribute_Node.getNodeValue(), true );
 						}
 						catch ( Exception e ) {
-							Message.printWarning (
-							2, routine,
-							"Data set type \"" +
-							attribute_name + "\" is"
-							+ " not recognized." );
-							throw new Exception (
-							"Error processing data "
-							+ "set" );
+							Message.printWarning ( 2, routine, "Data set type \"" + attribute_name +
+							"\" is not recognized." );
+							throw new Exception ( "Error processing data set" );
 						}
 					}
 					else if (
-						attribute_name.equalsIgnoreCase(
-						"BaseName" ) ) {
-						dataset.setBaseName (
-						attribute_Node.getNodeValue() );
+						attribute_name.equalsIgnoreCase( "BaseName" ) ) {
+						dataset.setBaseName ( attribute_Node.getNodeValue() );
 					}
 				}
 			}
@@ -565,54 +562,40 @@ throws Exception
 				"DataSetComponent") ) {
 				attributes = node.getAttributes();
 				int nattributes = attributes.getLength();
-				String	comptype = "", compdatafile = "",
-					complistfile = "", compcommandsfile ="";
+				String comptype = "", compdatafile = "", complistfile = "", compcommandsfile ="";
 				for ( int i = 0; i < nattributes; i++ ) {
 					attribute_Node = attributes.item(i);
-					attribute_name =
-						attribute_Node.getNodeName();
-					attribute_value =
-						attribute_Node.getNodeValue();
-					if (	attribute_name.equalsIgnoreCase(
-						"Type" ) ) {
+					attribute_name = attribute_Node.getNodeName();
+					attribute_value = attribute_Node.getNodeValue();
+					if ( attribute_name.equalsIgnoreCase("Type" ) ) {
 						comptype = attribute_value;
 					}
-					else if(attribute_name.equalsIgnoreCase(
-						"DataFile" ) ) {
+					else if(attribute_name.equalsIgnoreCase("DataFile" ) ) {
 						compdatafile = attribute_value;
 					}
-					else if(attribute_name.equalsIgnoreCase(
-						"ListFile" ) ) {
+					else if(attribute_name.equalsIgnoreCase("ListFile" ) ) {
 						complistfile = attribute_value;
 					}
-					else if(attribute_name.equalsIgnoreCase(
-						"CommandsFile" ) ) {
-						compcommandsfile =
-						attribute_value;
+					else if(attribute_name.equalsIgnoreCase("CommandsFile" ) ) {
+						compcommandsfile = attribute_value;
 					}
-					else {	Message.printWarning ( 2,
-						routine, "Unrecognized " +
-						"attribute \"" + attribute_name+
+					else {
+						Message.printWarning ( 2, routine, "Unrecognized attribute \"" + attribute_name+
 						" for \"" + element_name +"\"");
 					}
 				}
-				int component_type = lookupComponentType (
-							comptype );
+				int component_type = lookupComponentType ( comptype );
 				if ( component_type < 0 ) {
 					Message.printWarning ( 2, routine,
-					"Unrecognized data set component \"" +
-					comptype + "\".  Skipping." );
+					"Unrecognized data set component \"" + comptype + "\".  Skipping." );
 					return;
 				}
 				// Add the component...
-				DataSetComponent comp = 
-				new DataSetComponent ( component_type );
+				DataSetComponent comp = new DataSetComponent ( component_type );
 				comp.setDataFileName ( compdatafile );
 				comp.setListFileName ( complistfile );
 				comp.setCommandsFileName ( compcommandsfile );
-				Message.printStatus ( 1, routine,
-				"Adding new component for data \"" +
-				compdatafile + "\" \"" );
+				Message.printStatus ( 1, routine, "Adding new component for data \"" + compdatafile + "\" \"" );
 				dataset.addComponent ( comp );
 			}
 			// The main document node will have a list of children
@@ -622,8 +605,7 @@ throws Exception
 			if ( children != null ) {
 				int len = children.getLength();
 				for ( int i = 0; i < len; i++ ) {
-					processDocumentNodeForRead (
-						dataset, children.item(i) );
+					processDocumentNodeForRead ( dataset, children.item(i) );
 				}
 			}
 			break;
@@ -631,11 +613,10 @@ throws Exception
 }
 */
 
-// REVISIT - put in derived class
+// TODO - put in derived class
 /**
 Read a component.  This method should be defined in the extended class.
-@param comp DataSetComponent to read, using the file defined for the data set
-component.
+@param comp DataSetComponent to read, using the file defined for the data set component.
 @exception Exception if an error occurs reading the component.
 */
 //public abstract void readComponent ( DataSetComponent comp );
@@ -647,22 +628,21 @@ Read a complete data set from an XML data set file.
 be read into memory, providing a complete data set for viewing and manipulation.
 @exception Exception if there is an error reading the file.
 */
-/* REVISIT
+/* TODO
 public static DataSet readXMLFile ( String filename, boolean read_all )
 throws Exception
 {	String routine = "DataSet.readXMLFile";
 	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
 
 	DOMParser parser = null;
-	try {	parser = new DOMParser();
+	try {
+		parser = new DOMParser();
 		parser.parse ( full_filename );
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, 
-			"Error reading data set \"" + filename + "\"" );
+		Message.printWarning ( 2, routine, "Error reading data set \"" + filename + "\"" );
 		Message.printWarning ( 2, routine, e );
-		throw new Exception ( "Error reading data set \"" +
-			filename + "\"" );
+		throw new Exception ( "Error reading data set \"" + filename + "\"" );
 	}
 
 	// Create a new data set object...
@@ -677,15 +657,14 @@ throws Exception
 
 	Document doc = parser.getDocument();
 
-	// Loop through and process the document nodes, starting with the root
-	// node...
+	// Loop through and process the document nodes, starting with the root node...
 
 	processDocumentNodeForRead ( dataset, doc );
 
 	// Synchronize the response file with the control file (for now just
 	// check - need to decide how to make bulletproof)...
 
-	/ * REVISIT
+	/ * TODO
 	StateCU_DataSetComponent comp = dataset.getComponentForComponentType (
 		StateCU_DataSetComponent.TYPE_RESPONSE );
 	if ( comp != null ) {
@@ -697,8 +676,7 @@ throws Exception
 	// Compare components and response file.  Need to REVISIT this.
 
 	// Now just read the components - the assumption is that the data set
-	// components are correct for the data set but need to tighten this
-	// down
+	// components are correct for the data set but need to tighten this down
 
 	String read_warning = "";
 	if ( read_all ) {
@@ -707,45 +685,24 @@ throws Exception
 		String datafile = "";
 		DataSetComponent comp;
 		for ( int i = 0; i < size; i++ ) {
-			comp = (DataSetComponent)
-				components.elementAt(i);
+			comp = (DataSetComponent)components.elementAt(i);
 			try {	datafile = comp.getDataFileName();
 				f = new File(datafile);
 				if ( !f.isAbsolute() ) {
-					datafile =	dataset.getDirectory() +
-							File.separator +
-							datafile;
+					datafile = dataset.getDirectory() + File.separator + datafile;
 				}
-/ * REVISIT
-				if (	comp.getType() ==
-					StateCU_DataSetComponent.
-					TYPE_CU_LOCATIONS
-					) {
-					comp.setData (
-					StateCU_Location.readStateCUFile(
-					datafile));
+/ * TODO
+				if ( comp.getType() == StateCU_DataSetComponent.TYPE_CU_LOCATIONS ) {
+					comp.setData (StateCU_Location.readStateCUFile(datafile));
 				}
-				else if (comp.getType() ==
-					StateCU_DataSetComponent.
-					TYPE_CROP_CHARACTERISTICS
-					) {
-					comp.setData (
-					StateCU_CropCharacteristics.
-					readStateCUFile( datafile));
+				else if (comp.getType() == StateCU_DataSetComponent.TYPE_CROP_CHARACTERISTICS ) {
+					comp.setData ( StateCU_CropCharacteristics.readStateCUFile( datafile));
 				}
-				else if (comp.getType() ==
-					StateCU_DataSetComponent.TYPE_BLANEY_CRIDDLE
-					) {
-					comp.setData (
-					StateCU_BlaneyCriddle.readStateCUFile(
-					datafile));
+				else if (comp.getType() == StateCU_DataSetComponent.TYPE_BLANEY_CRIDDLE ) {
+					comp.setData ( StateCU_BlaneyCriddle.readStateCUFile(datafile));
 				}
-				else if (comp.getType() ==
-					StateCU_DataSetComponent.TYPE_CLIMATE_STATIONS
-					) {
-					comp.setData (
-					StateCU_ClimateStation.readStateCUFile(
-					datafile));
+				else if (comp.getType() == StateCU_DataSetComponent.TYPE_CLIMATE_STATIONS ) {
+					comp.setData ( StateCU_ClimateStation.readStateCUFile(datafile));
 				}
 * /
 			}
@@ -755,11 +712,11 @@ throws Exception
 			}
 		}
 	}
-	else {	// Read the control file???
+	else {
+		// Read the control file???
 	}
 	if ( read_warning.length() > 0 ) {
-		Message.printWarning ( 1, routine,
-		"Error reading data files:" + read_warning );
+		Message.printWarning ( 1, routine, "Error reading data files:" + read_warning );
 	}
 
 	return dataset;
@@ -809,8 +766,7 @@ Set the data set type.
 @param initialize_components If true, the components are cleared and the
 component groups for the type are initialized by calling the
 initializeDataSet() method, which should be defined in the extended class.
-@exception Exception if there is an error setting the data type or initializing
-the component groups.
+@exception Exception if there is an error setting the data type or initializing the component groups.
 */
 public void setDataSetType ( int type, boolean initialize_components )
 throws Exception
@@ -828,13 +784,12 @@ Set the data set type
 @param initialize_components If true, the components are cleared and the
 component groups for the type are initialized.
 */
-/* REVISIT - can this be put here?  For now but in derived class
+/* TODO - can this be put here?  For now but in derived class
 public void setDataSetType ( String type, boolean initialize_components )
 throws Exception
 {	int itype = lookupDataSetType ( type );
 	if ( itype < 0 ) {
-		throw new Exception ( "Data set type \"" + type +
-			"\" is not recognized." );
+		throw new Exception ( "Data set type \"" + type + "\" is not recognized." );
 	}
 	setDataSetType ( itype, initialize_components );
 }
@@ -856,9 +811,9 @@ public String toString ()
 		if ( comp == null ) {
 			buffer.append ( "null\n" );
 		}
-		else {	buffer.append ( comp.getComponentName() + "\n" );
-			buffer.append ( "    Type:       " +
-				comp.getComponentType() + "\n");
+		else {
+			buffer.append ( comp.getComponentName() + "\n" );
+			buffer.append ( "    Type:       " + comp.getComponentType() + "\n");
 			buffer.append ( "    Is group:   "+comp.isGroup()+"\n");
 			buffer.append ( "    Is dirty:   "+comp.isDirty()+"\n");
 			buffer.append ( "    Is visible: "+comp.isDirty()+"\n");
@@ -875,18 +830,13 @@ public String toString ()
 				if ( comp == null ) {
 					buffer.append ( "null\n" );
 				}
-				else {	buffer.append (
-					comp.getComponentName() + "\n" );
-					buffer.append ( "        Type:       " +
-					comp.getComponentType() + "\n");
-					buffer.append ( "        Is group:   " +
-					comp.isGroup()+"\n");
-					buffer.append ( "        Is dirty:   " +
-					comp.isDirty()+"\n");
-					buffer.append ( "        Is visible: " +
-					comp.isVisible()+"\n");
-					buffer.append ( "        Data File:  " +
-					comp.getDataFileName()+"\n");
+				else {
+					buffer.append ( comp.getComponentName() + "\n" );
+					buffer.append ( "        Type:       " + comp.getComponentType() + "\n");
+					buffer.append ( "        Is group:   " + comp.isGroup()+"\n");
+					buffer.append ( "        Is dirty:   " + comp.isDirty()+"\n");
+					buffer.append ( "        Is visible: " + comp.isVisible()+"\n");
+					buffer.append ( "        Data File:  " + comp.getDataFileName()+"\n");
 				}
 			}
 		}
@@ -901,19 +851,17 @@ working directory if necessary using IOUtil.getPathUsingWorkingDir().
 processing headers).  Specify as null if no previous file is available.
 @param filename The name of the file to write.
 @param data_Vector A Vector of StateCU_Location to write.
-@new_comments Comments to add to the top of the file.  Specify as null if no
+@param new_comments Comments to add to the top of the file.  Specify as null if no
 comments are available.
 @exception IOException if there is an error writing the file.
 */
-public static void writeXMLFile (	String filename_prev, String filename,
-					DataSet dataset,
-					String [] new_comments )
+public static void writeXMLFile ( String filename_prev, String filename,
+					DataSet dataset, String [] new_comments )
 throws IOException
 {	String [] comment_str = { "#" };
 	String [] ignore_comment_str = { "#>" };
 	PrintWriter out = null;
-	String full_filename_prev = IOUtil.getPathUsingWorkingDir (
-		filename_prev );
+	String full_filename_prev = IOUtil.getPathUsingWorkingDir ( filename_prev );
 	if ( !StringUtil.endsWithIgnoreCase(filename,".xml") ) {
 		filename = filename + ".xml";
 	}
@@ -921,8 +869,7 @@ throws IOException
 	out = IOUtil.processFileHeaders ( full_filename_prev, full_filename, 
 		new_comments, comment_str, ignore_comment_str, 0 );
 	if ( out == null ) {
-		throw new IOException ( "Error writing to \"" +
-			full_filename + "\"" );
+		throw new IOException ( "Error writing to \"" + full_filename + "\"" );
 	}
 	writeDataSetToXMLFile ( dataset, out );
 	out.flush();
@@ -934,14 +881,14 @@ throws IOException
 Write a data set to an opened XML file.
 @param data A DataSet to write.
 @param out output PrintWriter.
-@exceptoin IOException if an error occurs.
+@exception IOException if an error occurs.
 */
 private static void writeDataSetToXMLFile ( DataSet dataset, PrintWriter out )
 throws IOException
 {	//String cmnt = "#>";
 	//DataSetComponent comp = null;
 
-/* REVISIT - need to evaluate how best to implement
+/* TODO - need to evaluate how best to implement
 	// Start XML tag...
 	out.println ("<!--" );
 	out.println ( cmnt );
@@ -986,4 +933,4 @@ throws IOException
 */
 }
 
-} // End DataSet
+}
