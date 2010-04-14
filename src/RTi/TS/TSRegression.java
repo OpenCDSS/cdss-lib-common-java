@@ -630,7 +630,7 @@ private void analyzeMOVE2 ()
 				throw new TSException ( "No data.  Not performing analysis." );
 			}
 			else {
-			    Message.printWarning ( 2, routine, "Not enough data.  Not performing analysis for month " + ieq + "." );
+			    Message.printWarning ( 3, routine, "No data.  Not performing analysis for month " + ieq + "." );
 				continue;
 			}
 		}
@@ -642,7 +642,7 @@ private void analyzeMOVE2 ()
 				throw new TSException ( "Data set lengths are not equal." );
 			}
 			else {
-			    Message.printWarning ( 2, routine, "Data set lengths are not equal.  Not performing analysis for month " + ieq );
+			    Message.printWarning ( 3, routine, "Data set lengths are not equal.  Not performing analysis for month " + ieq );
 				continue;
 			}
 		}
@@ -663,13 +663,13 @@ private void analyzeMOVE2 ()
 		if ( n1 == 0 ) {
 			if ( num_equations == 1 ) {
 				String message = "The number of overlapping points is 0.  Cannot perform MOVE2 analysis.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				throw new Exception ( message );
 			}
 			else {
 			    String message = "The number of overlapping points is 0 for month " + ieq +
 				".  Cannot perform MOVE2 analysis.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				continue;
 			}
 		}
@@ -708,14 +708,14 @@ private void analyzeMOVE2 ()
 						X1_data[n1] = -3.0;
 					}
 					else {
-					    X1_data[n1] = MathUtil.log10(x1Array[i] );
+					    X1_data[n1] = Math.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
 						// Assume Y = .001
 						Y1_data[n1] = -3.0;
 					}
 					else {
-					    Y1_data[n1] = MathUtil.log10(y1Array[i] );
+					    Y1_data[n1] = Math.log10(y1Array[i] );
 					}
 					orig_X1_data[n1] = x1Array[i];
 					orig_Y1_data[n1] = y1Array[i];
@@ -757,12 +757,12 @@ private void analyzeMOVE2 ()
 		if ( n2 == 0 ) {
 			if ( num_equations == 1 ) {
 				String message = "The number of non-overlapping points is 0.  Cannot perform MOVE2.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				throw new Exception ( message );
 			}
 			else {
 			    String message = "The number of non-overlapping points for month " + ieq +" is 0.  Cannot perform MOVE2.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				throw new Exception ( message );
 			}
 		}
@@ -789,7 +789,7 @@ private void analyzeMOVE2 ()
 							X2_data[n2] = -3.0;
 						}
 						else {
-						    X2_data[n2] = MathUtil.log10( data_value );
+						    X2_data[n2] = Math.log10( data_value );
 						}
 					}
 					else {
@@ -824,7 +824,7 @@ private void analyzeMOVE2 ()
 				throw new TSException ( "Error performing regression on N1." );
 			}
 			else {
-			    Message.printWarning ( 2, routine, "Error performing regression on N1 for month " + ieq );
+			    Message.printWarning ( 3, routine, "Error performing regression on N1 for month " + ieq );
 			}
 		}
 		if ( rd == null ) {
@@ -832,7 +832,7 @@ private void analyzeMOVE2 ()
 				throw new TSException ( "Error performing regression on N1." );
 			}
 			else {
-			    Message.printWarning ( 2, routine, "Error performing regression on N1 for month " + ieq );
+			    Message.printWarning ( 3, routine, "Error performing regression on N1 for month " + ieq );
 			}
 		}
 
@@ -865,7 +865,7 @@ private void analyzeMOVE2 ()
 					xArray[j] = -3.0;
 				}
 				else {
-				    xArray[j] = MathUtil.log10( xArray[j] );
+				    xArray[j] = Math.log10( xArray[j] );
 				}
 			}
 		}
@@ -1163,13 +1163,13 @@ private void analyzeOLSRegression ()
 		if ( n1 == 0 ) {
 			if ( num_equations == 1 ) {
 				String message = "The number of overlapping points is 0.  Cannot perform OLS regression.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				throw new TSException ( message );
 			}
 			else {
 			    String message = "The number of overlapping points is 0 for month " + ieq +
 				".  Cannot perform OLS regression.";
-				Message.printWarning ( 2, routine, message );
+				Message.printWarning ( 3, routine, message );
 				continue;
 			}
 		}
@@ -1207,14 +1207,14 @@ private void analyzeOLSRegression ()
 						X1_data[n1] = -3.0;
 					}
 					else {
-					    X1_data[n1] = MathUtil.log10(x1Array[i] );
+					    X1_data[n1] = Math.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
 						// Assume Y = .001
 						Y1_data[n1] = -3.0;
 					}
 					else {
-					    Y1_data[n1] = MathUtil.log10(y1Array[i] );
+					    Y1_data[n1] = Math.log10(y1Array[i] );
 					}
 					orig_X1_data[n1] = x1Array[i];
 					orig_Y1_data[n1] = y1Array[i];
@@ -1278,7 +1278,7 @@ private void analyzeOLSRegression ()
 								X2_data[n2] = -3.0;
 							}
 							else {
-							    X2_data[n2] = MathUtil.log10(data_value );
+							    X2_data[n2] = Math.log10(data_value );
 							}
 						}
 						else {
@@ -1359,7 +1359,7 @@ private void analyzeOLSRegression ()
 					xArray[j] = -3.0;
 				}
 				else {
-				    xArray[j] = MathUtil.log10( xArray[j] );
+				    xArray[j] = Math.log10( xArray[j] );
 				}
 			}
 		}
@@ -1539,10 +1539,11 @@ throws Exception
 			throw new TSException ( mssg );
 		}
 		
-	} catch ( Exception e ) {
-		Message.printWarning ( 3, mthd, e );
-		mssg ="Error creating new time series.";
+	}
+	catch ( Exception e ) {
+		mssg ="Error creating new time series (" + e + ").";
 		Message.printWarning ( 3, mthd, mssg );
+	    Message.printWarning ( 3, mthd, e );
 		throw new TSException ( mssg );
 	}
 	
@@ -1616,7 +1617,7 @@ throws Exception
 						Xvalue = -3.0;
 					}
 					else {
-						Xvalue  = MathUtil.log10(Xvalue);
+						Xvalue  = Math.log10(Xvalue);
 					}
 					// Compute the estimated value.
 					preYvalue = A + Xvalue * B;		
@@ -1639,7 +1640,7 @@ throws Exception
 		}
 		catch ( Exception e ) {
 			// Error computing the predicted values.'
-			mssg = "Error computing the predicted/residual values";
+			mssg = "Error computing the predicted/residual values (" + e + ").";
 			Message.printWarning( 3, mthd, mssg );
 			Message.printWarning( 3, mthd, e );
 			continue;
