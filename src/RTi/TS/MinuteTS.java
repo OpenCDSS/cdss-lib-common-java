@@ -184,9 +184,7 @@ previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length,
-					String initial_value,
-					boolean retain_previous_values )
+public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
 throws Exception
 {	String	routine="MinuteTS.allocateDataFlagSpace", message;
 	int	i;
@@ -197,8 +195,7 @@ throws Exception
 		throw new Exception ( message );
 	}
 	if ( (_data_interval_mult < 1) || (_data_interval_mult > 60) ) {
-		message = "Only know how to handle 1-60 minute data, not " +
-		_data_interval_mult + "-minute";
+		message = "Only know how to handle 1-60 minute data, not " + _data_interval_mult + "-minute";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
@@ -216,11 +213,11 @@ throws Exception
 	if ( _has_data_flags && retain_previous_values ) {
 		// Save the reference to the old flags array...
 		data_flags_prev = _data_flags;
-		// Increment the total length to be allocated to the previous
-		// value plus the new length...
+		// Increment the total length to be allocated to the previous value plus the new length...
 		_data_flag_length += data_flag_length;
 	}
-	else {	// Turn on the flags...
+	else {
+	    // Turn on the flags...
 		_has_data_flags = true;
 		_data_flag_length = data_flag_length;
 	}
@@ -234,7 +231,8 @@ throws Exception
 			blanks[i] = ' ';
 		}
 	}
-	else {	// Assign to the initial value...
+	else {
+	    // Assign to the initial value...
 		for ( i = 0; i < _data_flag_length; i++ ) {
 			blanks[i] = initial_value.charAt(i);
 		}
@@ -260,8 +258,7 @@ throws Exception
 		for ( j = 0; j < ndays_in_month; j++ ) {
 			if ( i == 0 ) {
 				// In the first month.  If the day is less than
-				// the first day in the period, do not use up
-				// memory...
+				// the first day in the period, do not use up memory...
 				day = j + 1;
 				if ( day < _date1.getDay() ) {
 					continue;
@@ -269,45 +266,31 @@ throws Exception
 			}
 			else if ( (i + 1) == nmonths ) {
 				// In the last month.  If the day is greater
-				// than the last day in the period, do not use
-				// up memory...
+				// than the last day in the period, do not use up memory...
 				day = j + 1;
 				if ( day > _date2.getDay() ) {
 					continue;
 				}
 			}
-			// Else we do allocate memory for some data during the
-			// day.
-			// If a non-valid interval, an exception was thrown
-			// above...
+			// Else we do allocate memory for some data during the day.
+			// If a non-valid interval, an exception was thrown above...
 			nvals = 24*(60/_data_interval_mult);
 			_data_flags[i][j] = new char[nvals][];
 
 			// Now fill with the initial data value...
 
 			for ( k = 0; k < nvals; k++ ) {
-				_data_flags[i][j][k] =
-					new char[_data_flag_length];
+				_data_flags[i][j][k] = new char[_data_flag_length];
 				// Initialize with blanks (spaces)...
-				System.arraycopy ( blanks, 0,
-					_data_flags[i][j][k], 0,
-					_data_flag_length );
-				if (	retain_previous_values &&
-					(data_flags_prev != null)){
-					// Copy over the old values (typically
-					// shorter character arrays)...
-					System.arraycopy (
-						data_flags_prev[i][j][k], 0,
-						_data_flags[i][j][k], 0,
-						data_flag_length_prev );
+				System.arraycopy ( blanks, 0, _data_flags[i][j][k], 0, _data_flag_length );
+				if ( retain_previous_values && (data_flags_prev != null)){
+					// Copy over the old values (typically shorter character arrays)...
+					System.arraycopy ( data_flags_prev[i][j][k], 0,
+						_data_flags[i][j][k], 0, data_flag_length_prev );
 				}
 			}
 		}
 	}
-
-	data_flags_prev = null;
-	date = null;
-	routine = null;
 }
 
 /**
@@ -320,11 +303,11 @@ public int allocateDataSpace( )
 	int	dl = 10, i, ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		Message.printWarning ( 2, routine, "No dates set for memory allocation" );
+		Message.printWarning ( 3, routine, "No dates set for memory allocation" );
 		return 1;
 	}
 	if ( (_data_interval_mult < 1) || (_data_interval_mult > 60) ) {
-		Message.printWarning ( 2, routine,
+		Message.printWarning ( 3, routine,
 		"Only know how to handle 1-60 minute data, not " + _data_interval_mult + "-minute" );
 		return 1;
 	}
@@ -434,8 +417,7 @@ given the data interval multiplier for the specified period.
 @param end_date The last date of the period.
 @param interval_mult The time series data interval multiplier.
 */
-public static int calculateDataSize (	DateTime start_date, DateTime end_date,
-					int interval_mult )
+public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult )
 {	String routine = "MinuteTS.calculateDataSize";
 	int datasize = 0;
 
@@ -459,15 +441,11 @@ public static int calculateDataSize (	DateTime start_date, DateTime end_date,
 	// Start by subtracting the full day at the beginning of the
 	// month that is not included...
 	datasize -= (start_date.getDay() - 1)*24*60/interval_mult;
-	// Now subtract the recordings on the first day before the
-	// first time...
+	// Now subtract the recordings on the first day before the first time...
 	datasize -= start_date.getHour()*60/interval_mult;
 	// Now subtract off the data at the end...
-	// Start by subtracting the full days off the end of the
-	// month...
-	int ndays_in_month = TimeUtil.numDaysInMonth (
-				end_date.getMonth(),
-				end_date.getYear() );
+	// Start by subtracting the full days off the end of the month...
+	int ndays_in_month = TimeUtil.numDaysInMonth ( end_date.getMonth(), end_date.getYear() );
 	datasize -= (ndays_in_month - end_date.getDay())*24*60/interval_mult;
 	// Now subtract the readings at the end of the last day...
 	datasize -= (23 - end_date.getHour())*60/interval_mult;
@@ -477,8 +455,7 @@ public static int calculateDataSize (	DateTime start_date, DateTime end_date,
 
 /** 
 Change the period of record to the specified dates.  If the period is extended,
-missing data will be used to fill the time series.  If the period is shortened,
-data will be lost.
+missing data will be used to fill the time series.  If the period is shortened, data will be lost.
 @param date1 New start date of time series.
 @param date2 New end date of time series.
 @exception RTi.TS.TSException if there is a problem extending the data.
@@ -488,13 +465,10 @@ throws TSException
 {	String	routine="MinuteTS.changePeriodOfRecord";
 	String	message;
 
-	// To transfer, allocate a new data space.  In any case, need to get the
-	// dates established...
+	// To transfer, allocate a new data space.  In any case, need to get the dates established...
 	if ( (date1 == null) && (date2 == null) ) {
 		// No dates.  Cannot change.
-		message =
-		"\"" + _id +
-		"\": period dates are null.  Cannot change the period.";
+		message = "\"" + _id + "\": period dates are null.  Cannot change the period.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -506,7 +480,8 @@ throws TSException
 		// Use the original date...
 		new_date1 = new DateTime ( _date1 );
 	}
-	else {	// Use the date passed in...
+	else {
+	    // Use the date passed in...
 		new_date1 = new DateTime ( date1 );
 	}
 	DateTime new_date2 = null;
@@ -514,7 +489,8 @@ throws TSException
 		// Use the original date...
 		new_date2 = new DateTime ( _date2 );
 	}
-	else {	// Use the date passed in...
+	else {
+	    // Use the date passed in...
 		new_date2 = new DateTime ( date2 );
 	}
 
@@ -527,8 +503,7 @@ throws TSException
 
 	// To transfer the data (later), get the old position and then set in
 	// the new position.  To get the right data position, declare a
-	// temporary HourTS with the old dates and save a reference to the old
-	// data...
+	// temporary HourTS with the old dates and save a reference to the old data...
 
 	double [][][] data_save = _data;
 	char [][][][] data_flags_save = _data_flags;
@@ -545,14 +520,16 @@ throws TSException
 		// Extending so use the old date...
 		transfer_date1 = new DateTime ( _date1 );
 	}
-	else {	// Shortening so use the new...
+	else {
+	    // Shortening so use the new...
 		transfer_date1 = new DateTime ( new_date1 );
 	}
 	if ( new_date2.greaterThan(_date2) ) {
 		// Extending so use the old date...
 		transfer_date2 = new DateTime ( _date2 );
 	}
-	else {	// Shortening so use the new...
+	else {
+	    // Shortening so use the new...
 		transfer_date2 = new DateTime ( new_date2 );
 	}
 
@@ -562,13 +539,11 @@ throws TSException
 	setDate2 ( new_date2 );
 	allocateDataSpace();
 
-	// At this point the data space will be completely filled with missing
-	// data.
+	// At this point the data space will be completely filled with missing data.
 
 	// Now transfer the data.  To do so, get the
 	// old position and then set in the new position.  We are only concerned
-	// with transferring the values for the the old time series that are
-	// within the new period...
+	// with transferring the values for the the old time series that are within the new period...
 
 	double value;
 	int [] data_pos;
@@ -584,10 +559,10 @@ throws TSException
 		if ( _has_data_flags ) {
 			// Transfer the value and flag...
 			setDataValue ( date, value,
-				new String(data_flags_save[data_pos[0]]
-						[data_pos[1]][data_pos[2]]), 1);
+				new String(data_flags_save[data_pos[0]][data_pos[1]][data_pos[2]]), 1);
 		}
-		else {	// Transfer the value...
+		else {
+		    // Transfer the value...
 			setDataValue ( date, value );
 		}
 	}
@@ -694,15 +669,13 @@ minute time series are always output in a matrix summary format.
 <td>The type of calendar, either "WaterYear" (Oct through Sep), "Irrigationyear"/"NovToOct"
 (Nov through Oct), or "CalendarYear" (Jan through Dec).
 </td>
-<td>CalanderYear (but may be made sensitive to the data type or units in the
-future).</td>
+<td>CalanderYear (but may be made sensitive to the data type or units in the future).</td>
 </tr>
 
 <tr>
 <td><b>OutputEnd</b></td>
 <td>
-The ending date/time for output, in a format that can be parsed by
-DateTime.parse().
+The ending date/time for output, in a format that can be parsed by DateTime.parse().
 </td>
 <td>null - output all available data.
 </td>
@@ -711,8 +684,7 @@ DateTime.parse().
 <tr>
 <td><b>OutputStart</b></td>
 <td>
-The starting date/time for output, in a format that can be parsed by
-DateTime.parse().
+The starting date/time for output, in a format that can be parsed by DateTime.parse().
 </td>
 <td>null - output all available data.
 </td>
@@ -740,7 +712,7 @@ Available Period        = 1924-01 to 1995-12
 <td><b>PrintComments</b></td>
 <td>Print the comments associated with the time series.  This may contain
 information about the quality of data, station information, etc.  This
-information is usually viarable-length text, and may not be available.
+information is usually variable-length text, and may not be available.
 </td>
 <td>true</td>
 </tr>
@@ -864,7 +836,8 @@ throws TSException
 		// Assume totals...
 		year_column = "Total";
 	}
-	else {	// Assume averages...
+	else {
+	    // Assume averages...
 		year_column = "Average";
 	}
 
@@ -873,8 +846,7 @@ throws TSException
 	prop_value = props.getValue ( "OutputPrecision" );
 	if ( prop_value == null ) {
 		// Older, being phased out...
-		Message.printWarning ( 2, routine,
-		"Need to switch Precision property to OutputPrecision" );
+		Message.printWarning ( 2, routine, "Need to switch Precision property to OutputPrecision" );
 		prop_value = props.getValue ( "Precision" );
 	}
 	if ( prop_value == null ) {
@@ -888,7 +860,8 @@ throws TSException
 			data_format = "%9.1f";
 		}
 	}
-	else {	// Set to requested precision...
+	else {
+	    // Set to requested precision...
 		data_format = "%9." + prop_value + "f";
 	}
 
@@ -1065,8 +1038,7 @@ throws TSException
 		formatted_output = formatOutput ( props );
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Formatted output is " + formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
 			}
 	
 			// Now write each string to the writer...
@@ -1318,8 +1290,7 @@ public int [] getDataPosition ( DateTime date )
 	else {
 		if ( Message.isDebugOn ) {
 			Message.printWarning ( 10, "MinuteTS.getDataPosition",
-			"Do not know how to shift time zones yet (\"" + tz1 +
-			"\" to \"" + tz + "\"" );
+			"Do not know how to shift time zones yet (\"" + tz1 + "\" to \"" + tz + "\"" );
 			//tzshift = 0;
 		}
 	}
@@ -1328,10 +1299,8 @@ public int [] getDataPosition ( DateTime date )
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug( 50, "MinuteTS.getDataPosition",
-		"Using " + date + "(" + date.getAbsoluteMonth() +
-		") and start date: " + 
-		_date1 + "(" + _date1.getAbsoluteMonth() +
-		") for row-col calculation." );
+		"Using " + date + "(" + date.getAbsoluteMonth() + ") and start date: " + 
+		_date1 + "(" + _date1.getAbsoluteMonth() + ") for row-col calculation." );
 	}
 
 	_month_pos = date.getAbsoluteMonth() - _date1.getAbsoluteMonth();
@@ -1340,7 +1309,7 @@ public int [] getDataPosition ( DateTime date )
 
 	_day_pos = date.getDay() - 1;
 
-	// Calculate the interval position of thedata.  We know that minute
+	// Calculate the interval position of the data.  We know that minute
 	// data are stored in a 3D array with the last dimension being the
 	// minute data by interval.  Note that the recording at 00:00 of the
 	// current day is the first reading of the day!
@@ -1348,8 +1317,7 @@ public int [] getDataPosition ( DateTime date )
 	_interval_pos = (date.getHour()*60 + date.getMinute())/_data_interval_mult;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "MinuteTS.getDataPosition",
-		"Month=[" + _month_pos +
+		Message.printDebug ( 50, "MinuteTS.getDataPosition", "Month=[" + _month_pos +
 		"] Day=[" + _day_pos +"] interval=[" + _interval_pos +"]" );
 	}
 
@@ -1380,9 +1348,8 @@ public double getDataValue( DateTime date )
 	if(	(date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to increase performance...
-			Message.printWarning( 2, "MinuteTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 +
-			")" );
+			Message.printWarning( 3, "MinuteTS.getDataValue",
+			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return _missing;
 	}
@@ -1393,10 +1360,9 @@ public double getDataValue( DateTime date )
 	getDataPosition(date);
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "MinuteTS.getDataValue",
+		Message.printDebug( 50, "MinuteTS.getDataValue",
 		_data[_month_pos][_day_pos][_interval_pos] + " for " + date +
-		" from _data[" + _month_pos + "][" + _day_pos + "][" +
-		_interval_pos + "]" );
+		" from _data[" + _month_pos + "][" + _day_pos + "][" + _interval_pos + "]" );
 	}
 
 	return _data[_month_pos][_day_pos][_interval_pos];
@@ -1404,14 +1370,13 @@ public double getDataValue( DateTime date )
 
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor
-exists.  From the Transferable interface.  Supported dataflavors are:<br>
+exists.  From the Transferable interface.  Supported data flavors are:<br>
 <ul>
 <li>MinuteTS - MinuteTS.class / RTi.TS.MinuteTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
 <li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
 @param flavor the flavor in which to return the data.
-@return the data in the specified DataFlavor, or null if no matching flavor
-exists.
+@return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
 public Object getTransferData(DataFlavor flavor) {
 	if (flavor.equals(minuteTSFlavor)) {
@@ -1429,8 +1394,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Returns the flavors in which data can be transferred.  From the Transferable
-interface.  
+Returns the flavors in which data can be transferred.  From the Transferable interface.  
 The order of the dataflavors that are returned are:<br>
 <ul>
 <li>MinuteTS - MinuteTS.class / RTi.TS.MinuteTS</li>
@@ -1455,14 +1419,14 @@ method if no data are available results in the header information being
 unavailable.  Instead, return a TS with only the header information and call
 hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
-Note that true will be returned even if all the data values are set to the
-missing data value.
+Note that true will be returned even if all the data values are set to the missing data value.
 */
 public boolean hasData ()
 {	if ( _data != null ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1470,23 +1434,23 @@ public boolean hasData ()
 Initialize the data.
 */
 private void init()
-{	_data 				= null;
-	_data_interval_base		= TimeInterval.MINUTE;
-	_data_interval_mult		= 1;
-	_data_interval_base_original	= TimeInterval.MINUTE;
-	_data_interval_mult_original	= 1;
+{	_data = null;
+	_data_interval_base = TimeInterval.MINUTE;
+	_data_interval_mult = 1;
+	_data_interval_base_original = TimeInterval.MINUTE;
+	_data_interval_mult_original = 1;
 	_pos = new int[3];
 	_pos[0] = 0;
 	_pos[1] = 0;
 	_pos[2] = 0;
-	_month_pos			= 0;
-	_day_pos			= 0;
-	_interval_pos			= 0;
+	_month_pos = 0;
+	_day_pos = 0;
+	_interval_pos = 0;
 }
 
 /**
 Determines whether the specified flavor is supported as a transfer flavor.
-From the Transferable interface.  Supported dataflavors are:<br>
+From the Transferable interface.  Supported data flavors are:<br>
 <ul>
 <li>MinuteTS - MinuteTS.class / RTi.TS.MinuteTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
@@ -1516,13 +1480,11 @@ This is generally only called by methods within the package.
 public void refresh ()
 {	TSLimits limits = null;
 
-	// If the data is not dirty, then we do not have to refresh the other
-	// information...
+	// If the data is not dirty, then we do not have to refresh the other information...
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 30, "MinuteTS.refresh",
-			"Time series is not dirty.  Not recomputing limits" );
+			Message.printDebug ( 30, "MinuteTS.refresh", "Time series is not dirty.  Not recomputing limits" );
 		}
 		return;
 	}
@@ -1530,8 +1492,7 @@ public void refresh ()
 	// Else we need to refresh...
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "MinuteTS.refresh",
-		"Time Series is dirty. Recomputing limits" );
+		Message.printDebug( 30, "MinuteTS.refresh", "Time Series is dirty. Recomputing limits" );
 	}
 
 	limits = TSUtil.getDataLimits ( this, _date1, _date2, false );
@@ -1550,18 +1511,17 @@ Set the data value at a date.
 @param value Data value corresponding to date.
 */
 public void setDataValue( DateTime date, double value )
-{	// Do not define routine here to increase peformance.
+{	// Do not define routine here to increase performance.
 
 	if ( date == null ) {
 		return;
 	}
 
-	if( 	(date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
+	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to perform better...
 			Message.printWarning( 10, "MinuteTS.setDataValue",
-			"Date " + date + " is outside bounds " + _date1 +
-			" - " + _date2 );
+			"Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return;
 	}
@@ -1571,13 +1531,12 @@ public void setDataValue( DateTime date, double value )
 	getDataPosition ( date );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "MinuteTS.setDataValue",
+		Message.printDebug( 50, "MinuteTS.setDataValue",
 		"Setting " + value + " for " + date + " at [" + _month_pos +
 		"][" + _day_pos + "][" + _interval_pos + "]" );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if
-	// desired...
+	// Set the dirty flag so that we know to recompute the limits if desired...
 
 	_dirty = true;
 	_data[_month_pos][_day_pos][_interval_pos] = value;
@@ -1591,13 +1550,11 @@ Set the data value and associated information for the date.
 @param duration Duration for value (ignored - assumed to be 1-day or
 instantaneous depending on data type).
 */
-public void setDataValue (	DateTime date, double value, String data_flag,
-				int duration )
+public void setDataValue ( DateTime date, double value, String data_flag, int duration )
 {	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printWarning( 10, "MinuteTS.setDataValue",
-			"Date " + date + " is outside bounds " + _date1 +
-			" - " + _date2 );
+			"Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return;
 	}
@@ -1610,29 +1567,25 @@ public void setDataValue (	DateTime date, double value, String data_flag,
 		"][" + _day_pos + "][" + _interval_pos + "]" );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if
-	// desired...
+	// Set the dirty flag so that we know to recompute the limits if desired...
 
 	_dirty = true;
 
 	_data[_month_pos][_day_pos][_interval_pos] = value;
 	if ( _has_data_flags && (data_flag != null) ) {
 		int length = data_flag.length();
-		// Are only storing a limited number of characters to optimize
-		// memory use...
+		// Are only storing a limited number of characters to optimize memory use...
 		if ( length > _data_flag_length ) {
 			length = _data_flag_length;
 		}
 		for ( int i = 0; i < length; i++ ) {
-			_data_flags[_month_pos][_day_pos][_interval_pos][i] =
-				data_flag.charAt(i);
+			_data_flags[_month_pos][_day_pos][_interval_pos][i] = data_flag.charAt(i);
 		}
-		// Make sure a reset of a data flag does not leave old
-		// characters in place...
+		// Make sure a reset of a data flag does not leave old characters in place...
 		for ( int i = length; i < _data_flag_length; i++ ) {
 			_data_flags[_month_pos][_day_pos][_interval_pos][i]=' ';
 		}
 	}
 }
 
-} // End MinuteTS
+}
