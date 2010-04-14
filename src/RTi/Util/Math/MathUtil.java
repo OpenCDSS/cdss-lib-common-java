@@ -922,21 +922,21 @@ throws Exception
 	//
 	// The following is computed by...
 	//
-	// R = sum(XY) - [sum(x)*sum(y)]/n
+	// R = sum(xy) - [sum(x)*sum(y)]/n
 	//     ---------------------------------------------------------
-	//	sqrt(x^2 - [sum(x)^2]/n) * sqrt(y^2 - [sum(y)^2]/n)
+	//	sqrt(sum(x^2) - [sum(x)^2]/n) * sqrt(sum(y^2) - [sum(y)^2]/n)
 	//
 	// or
 	//
-	// R = N*sum(XY) - [sum(x)*sum(y)]
+	// R = N*sum(xy) - [sum(x)*sum(y)]
 	//     ---------------------------------------------------------
-	//	sqrt(N*x^2 - sum(x)^2) * sqrt(N*y^2 - sum(y)^2)
+	//	sqrt(N*sum(x^2) - sum(x)^2) * sqrt(N*sum(y^2) - sum(y)^2)
 	//
 	// or
 	//
-	// R = N*sum(XY) - [sum(x)*sum(y)]
+	// R = N*sum(xy) - [sum(x)*sum(y)]
 	//     ---------------------------------------------------------
-	//	sqrt([N*x^2 - sum(x)^2] * [N*y^2 - sum(y)^2])
+	//	sqrt([N*sum(x^2) - sum(x)^2] * [N*sum(y^2) - sum(y)^2])
 
 	double denom = Math.sqrt ((((double)n1 * totalX1_sq) -
 		(totalX1*totalX1)) * (((double)n1 * totalY1_sq) - (totalY1*totalY1)));
