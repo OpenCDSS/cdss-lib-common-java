@@ -129,8 +129,8 @@ will be used (Warning: for some systems, the meaning of the data type changes de
 For example "Streamflow" may be instantaneous for irregular data and mean for daily data.)
 @param newUnits Units for the new time series.  If null, use the units from the original time series.
 @param tolerance Used when converting large interval MEAN data to small interval INST data - see TSTool documentation.
-@param handleEndpointsHow when changing from small interval to large interval (but only daily or smaller),
-indicate how the end-points should be handled.
+@param handleEndpointsHow when changing from INST to MEAN, small interval to large interval (but only daily or
+smaller), indicate how the end-points should be handled.
 @param allowMissingCount Indicate the number of missing values that can be missing in the input data and still
 allow computation of the result. For example, if daily data are being converted to monthly, a value of 5 would
 allow <= 5 missing values to be present in a month's daily data, and still generate a monthly value.
@@ -147,7 +147,7 @@ different months. This argument is not used for conversion from irregular time s
 from larger intervals to smaller ones.  If specified as null, the default value is 0,
 meaning that any missing data in the input data will result in missing data in the result.  However, if the
 allowMissingCount is specified, it will override this default.
-@param outputFillMethod This property is used only by conversions from instantaneous to mean when the conversion
+@param outputFillMethod This property is used only by conversions from INST to MEAN when the conversion
 is from larger to smaller time intervals.  The options are:
 INTERPOLATE - The new time series values are interpolated between the old time series data points.
 REPEAT - The new time series values are carry forward or backward from one of the bounding old data values
@@ -177,6 +177,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         throw new IllegalArgumentException(  "Input time series has no data.  Cannot change interval." );
     }
     setOldTimeSeries ( oldTS );
+    int oldIntervalBase = oldTS.getDataIntervalBase();
     
     if ( newInterval == null ) {
         throw new IllegalArgumentException ( "New interval is null.  Cannot change interval." );
@@ -249,9 +250,25 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     }
     setTolerance ( tolerance.doubleValue() );
     
-    // HandleEndpointsHow - Used when changing from small interval to large interval.
-    if ( handleEndpointsHow == null ) {
-        handleEndpointsHow = TSUtil_ChangeInterval_HandleEndpointsHowType.AVERAGE_ENDPOINTS; // Default
+    // HandleEndpointsHow - Used when changing from INST to MEAN, small interval to large (daily or less) interval.
+    if ( (oldTimeScale == TimeScaleType.INST) && (newTimeScale == TimeScaleType.MEAN) &&
+        (newInterval.getBase() <= TimeInterval.DAY) && (oldIntervalBase < TimeInterval.DAY) ) {
+        if ( handleEndpointsHow == null ) {
+            // Default...
+            handleEndpointsHow = TSUtil_ChangeInterval_HandleEndpointsHowType.AVERAGE_ENDPOINTS;
+        }
+        // Else go with the user value
+    }
+    else {
+        if ( handleEndpointsHow == null ) {
+            // Legacy code used this for other combinations - gives the correct numbers
+            //handleEndpointsHow = TSUtil_ChangeInterval_HandleEndpointsHowType.INCLUDE_FIRST_ONLY;
+            // OK to leave as null as default will be handled in other code.
+        }
+        else {
+            throw new IllegalArgumentException("Specifying HandleEndpointsHow is only valid when changing " +
+        	    "from INST to MEAN small interval to large (daily or less).");
+        }
     }
     setHandleEndpointsHow ( handleEndpointsHow );
     
@@ -265,6 +282,13 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     // HandleMissingInputHow
     if ( handleMissingInputHow == null ) {
         handleMissingInputHow = TSUtil_ChangeInterval_HandleMissingInputHowType.KEEP_MISSING; // Default
+    }
+    // Not used for conversion to annual...
+    if ( ((newTimeScale == TimeScaleType.MEAN) || (newTimeScale == TimeScaleType.ACCM)) &&
+        (newInterval.getBase() == TimeInterval.YEAR) &&
+        (handleMissingInputHow != TSUtil_ChangeInterval_HandleMissingInputHowType.KEEP_MISSING)) {
+        throw new IllegalArgumentException (
+            "HandleMissingInputHow cannot be specified for MEAN or ACCM, Year interval output." );
     }
     setHandleMissingInputHow ( handleMissingInputHow );
     
@@ -2107,6 +2131,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
        TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow )
    throws Exception {
         String routine = "TSUtil.changeInterval_toMEANorACCM", warning;
+        int dl = 40;
 
         // Make sure the required conversion is supported - use if statements to filter valid combinations.
 
@@ -2148,8 +2173,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
 
         // Same as day but still hourly time series.
         // TODO [LT 2005-03-25]. This test is not necessary. 24HOUR time
-        // series is still Hourly time series and so the data should be
-        // time stamped at the end.
+        // series is still Hourly time series and so the data should be time stamped at the end.
         // if( oldTSBase == TimeInterval.HOUR && oldTSMult == 24 &&
         // Math.abs(intervalRelation) != 1 ) {
         // oldTsTimeStampedAtEnd = false;
@@ -2209,7 +2233,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             // If the user has chosen to average the end points AND
             // the new time series interval is daily or finer, average the end points.
             boolean averageEndpoints = false;
-            if ( (handleEndpointsHow == TSUtil_ChangeInterval_HandleEndpointsHowType.AVERAGE_ENDPOINTS) &&
+            if ( (handleEndpointsHow != null) &&
+                (handleEndpointsHow == TSUtil_ChangeInterval_HandleEndpointsHowType.AVERAGE_ENDPOINTS) &&
                     ( newTS.getDataIntervalBase() == TimeInterval.DAY ||
                       newTS.getDataIntervalBase() == TimeInterval.HOUR ||
                       newTS.getDataIntervalBase() == TimeInterval.MINUTE ||
@@ -2287,7 +2312,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                     }
 
                     if (Message.isDebugOn) {
-                        warning = "Old TS: " + oldTSi.getDate() + " -> " + value + " %%%  New TS: " + newTSi.getDate();
+                        warning = "Old TS: " + oldTSi.getDate() + " -> " + value + "  New TS: " + newTSi.getDate();
                         Message.printDebug(10, routine, warning);
                     }
 
@@ -2302,10 +2327,11 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
 
                 lastEndpointValue = oldTSi.getDataValue();
                 if (oldTS.isDataMissing(lastEndpointValue)) {
-                        lastEndpointValue = replaceDataValue(handleMissingInputHow, lastValue, oldMissing);
+                    lastEndpointValue = replaceDataValue(handleMissingInputHow, lastValue, oldMissing);
                 }
                 if ( averageEndpoints &&
-                        !oldTS.isDataMissing(lastEndpointValue) && !oldTS.isDataMissing(firstEndpointValue) ) {
+                    !oldTS.isDataMissing(lastEndpointValue) && !oldTS.isDataMissing(firstEndpointValue) ) {
+                    // Don't use the first value, use the average of the first and last values (half of each)
                     sum -= firstEndpointValue;
                     sum += (firstEndpointValue+lastEndpointValue)/2.0;
                 }
@@ -2340,29 +2366,42 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 // Set the data value for this DateTime point to
                 // missing, if the number of missing values is greater
                 // than the max allowed or if no non-missing values
-                // were found. Otherwise compute the new value either
-                // as mean or accumulation.
-                if (missingCount > maxMissingPerInterval || dataCount == 0) {
+                // were found. Otherwise compute the new value either as mean or accumulation.
+                if ( (missingCount > maxMissingPerInterval) || (dataCount == 0) ) {
                     newTS.setDataValue(newDate, newMissing);
+                    if ( Message.isDebugOn ) {
+                        Message.printDebug ( dl, routine, "Set new TS " + newDate + " -> " + newMissing +
+                            " missingCount=" + missingCount + " dataCount=" + dataCount);
+                    }
                     /* newDate, newMissing, qualityFlag, 0 ); */
-                    // TODO [LT] 2005-03-01 Quality flag is
-                    // currently not used.
+                    // TODO [LT] 2005-03-01 Quality flag is currently not used.
                 }
                 else {
                     // If MEAN, divide by the number of points.
                     if (newTimeScale == TimeScaleType.MEAN) {
+                        if ( Message.isDebugOn ) {
+                            Message.printDebug ( dl, routine, "Set new TS " + newDate + " -> " + sum + "/" +
+                                dataCount + "=" + sum/dataCount);
+                        }
                         sum /= dataCount;
+                    }
+                    else {
+                        // Sum - no need to divide by the number of points
+                        if ( Message.isDebugOn ) {
+                            Message.printDebug ( dl, routine, "Set new TS " + newDate + " -> " + sum +
+                                " dataCount=" + dataCount );
+                        }
                     }
 
                     // Set data value for this date.
                     // Mean or accumulation.
                     newTS.setDataValue(newDate, sum);
+
                     // newDate, sum, qualityFlag, 0 );
                     // TODO [LT] 2005-03-01 Quality flag is currently not used.
                 }
 
-                // Save current newTS date as the previous newTS date
-                // for the next iteration.
+                // Save current newTS date as the previous newTS date for the next iteration.
                 previousNewTSDate = new DateTime(newTSi.getDate());
             }
         }
