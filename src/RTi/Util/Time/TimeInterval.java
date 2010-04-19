@@ -116,7 +116,8 @@ public TimeInterval ( TimeInterval interval )
 
 /**
 Constructor from the integer base and multiplier.  The string base name is
-set to defaults.  The multiplier is not relevant if the base is IRREGULAR.
+set to defaults.  The multiplier is not relevant if the base is IRREGULAR, although in the future
+intervals like IrregMonth may be allowed.
 @param base Interval base.
 @param mult Interval multiplier.  If set to <= 0, the multiplier string returned
 from getMultiplierString() will be set to "" and the integer multiplier will be set to 1.
@@ -277,7 +278,7 @@ day).  This version does NOT include the Irregular time step.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
 */
-public static List getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
+public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
 {	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
 }
 
@@ -358,10 +359,10 @@ do not pad (e.g., "6Hour").
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
-public static List getTimeIntervalChoices ( int start_interval, int end_interval,
+public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval,
 						boolean pad_zeros, int sort_order, boolean include_irregular )
 {	// Add in ascending order and sort to descending later if requested...
-	List v = new Vector();
+	List<String> v = new Vector();
 	if ( start_interval > end_interval ) {
 		// Swap (only rely on sort_order for ordering)...
 		int temp = end_interval;
@@ -980,4 +981,5 @@ base string is returned (the multiplier may be "" or a number).
 public String toString ()
 {	return __intervalMultString + __intervalBaseString;
 }
+
 }
