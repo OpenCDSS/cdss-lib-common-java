@@ -2437,6 +2437,47 @@ public static boolean matchesRegExp ( String candidate_string, String regexp_str
 }
 
 /**
+Parse a string like "1, 2, 3" or "1,2,3" or "1-3,4,6-10" into an array containing the numbers.
+Single values result in a range where the start and end value are the same.
+@param seq string to parse
+@param delim delimiter characters
+@param parseFlag see breakStringList() flag
+@return an array of integers parsed from the string.
+*/
+public static int [][] parseIntegerRangeSequence ( String seq, String delim, int parseFlag )
+{
+    if ( seq == null ) {
+        return new int[0][0];
+    }
+    List<String> tokens = breakStringList ( seq, delim, parseFlag );
+    int size = 0;
+    if ( tokens != null ) {
+        size = tokens.size();
+    }
+    if ( size == 0 ) {
+        return new int[0][0];
+    }
+    else {
+        int[][] ranges = new int[size][2];
+        for ( int i = 0; i < size; i++ ) {
+            String token = tokens.get(i);
+            if ( token.indexOf("-") > 0 ) {
+                // Range.  Split out the start and end of the range
+                List<String> tokens2 = breakStringList ( token, "-", 0 );
+                ranges[i][0] = Integer.parseInt(tokens2.get(0).trim());
+                ranges[i][1] = Integer.parseInt(tokens2.get(1).trim());
+            }
+            else {
+                // Single number
+                ranges[i][0] = Integer.parseInt(token.trim());
+                ranges[i][1] = ranges[i][0];
+            }
+        }
+        return ranges;
+    }
+}
+
+/**
 Parse a string like "1, 2, 3" or "1,2,3" into an array containing the numbers.
 @param seq string to parse
 @param delim delimiter characters
