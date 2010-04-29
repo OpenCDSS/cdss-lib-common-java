@@ -6,6 +6,7 @@ import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyListener;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +26,11 @@ import RTi.Util.String.StringUtil;
  */
 public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
 {
+    /**
+     * Hint to aid user.
+     */
+    String __hint = "-- Select Specifier --";
+    
     /**
      * Text field containing the edited format specifier.
      */
@@ -54,10 +60,12 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         JGUIUtil.addComponent(this, __inputJTextField,
             x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         x += 2;
-        JGUIUtil.addComponent(this, new JLabel("Insert:"),
+        JGUIUtil.addComponent(this, new JLabel(" Insert:"),
             x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         __formatJComboBox = new SimpleJComboBox ( false );
-        __formatJComboBox.setData(StringUtil.toList(TSUtil.getTSFormatSpecifiers(true)));
+        List<String> choicesList = StringUtil.toList(TSUtil.getTSFormatSpecifiers(true));
+        choicesList.add(0,__hint);
+        __formatJComboBox.setData(choicesList);
         __formatJComboBox.addItemListener ( this );
         JGUIUtil.addComponent(this, __formatJComboBox,
             x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -89,10 +97,12 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         // Only insert on select..
         if ( evt.getStateChange() == ItemEvent.SELECTED ) {
             String selection = StringUtil.getToken ( __formatJComboBox.getSelected(), "-", 0, 0 ).trim();
-            int pos = __inputJTextField.getCaretPosition();
-            String text = __inputJTextField.getText();
-            String newText = text.substring(0,pos) + selection + text.substring(pos);
-            __inputJTextField.setText ( newText );
+            if ( !selection.equals(__hint)) {
+                int pos = __inputJTextField.getCaretPosition();
+                String text = __inputJTextField.getText();
+                String newText = text.substring(0,pos) + selection + text.substring(pos);
+                __inputJTextField.setText ( newText );
+            }
         }
     }
     
