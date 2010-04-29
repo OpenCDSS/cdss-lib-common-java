@@ -156,7 +156,7 @@ comparisons where roundoff may have occurred.
 public static final double MISSING_DOUBLE_CEILING = -998.9;
 
 /**
-constant that represents a missing float value.
+Constant that represents a missing float value.
 */
 public static final float MISSING_FLOAT = (float) -999.0;
 
@@ -166,8 +166,7 @@ Constant that represents a missing int value.
 public static final int MISSING_INT = -999;
 
 /**
-Field numbers used in determining field values when generating data
-dictionaries.
+Field numbers used in determining field values when generating data dictionaries.
 */
 private static final int 
 	__POS_NUM = 11,
@@ -3591,6 +3590,29 @@ public static String testKeysString(ResultSet rs) {
 		s = "[null]";
 	}
 	return s;
+}
+
+/**
+Convert a ResultSet to a list of strings.  The ResultSet is expected to only contain a string data element.
+This is useful for converting a distinct string query to the list of strings.
+@param rs ResultSet from a table query.
+@return a list of strings for the first and only column in the result set, guaranteed to be non-null,
+but may be empty.
+@throws SQLException if an error occurs
+*/
+public static List<String> toStringList ( ResultSet rs ) 
+throws SQLException {
+    List<String> v = new Vector();
+    int index = 1;
+    String s;
+    while ( rs.next() ) {
+        index = 1;
+        s = rs.getString(index++);
+        if ( !rs.wasNull() ) {
+            v.add(s.trim());
+        }
+    }
+    return v;
 }
 
 public static void dumpProcedureInfo(DMI dmi, String procedure) {
