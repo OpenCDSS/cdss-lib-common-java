@@ -821,7 +821,7 @@ throws Exception {
             // If use has provided a port AND a named instance, e.g. localhost\SQLEXPRESS,
             // warn them about it. -IWS
             if (__database_server.indexOf('\\') >= 0) {
-                Message.printWarning(1, "initialize", "SQLServer connection should either " +
+                Message.printWarning(3, "initialize", "SQLServer connection should either " +
                         "provide a named instance OR a port, but not both.");
             }
         }
