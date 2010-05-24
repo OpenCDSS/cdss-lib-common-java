@@ -2195,6 +2195,7 @@ throws SQLException, Exception {
             // NOTE : it is generally recommended to use the port for speed
             // -IWS
             if (__database_server.indexOf('\\') < 0) {
+                // For example "localhost\\CDSS" (and database name would be "HydroBase_CO_YYYYMMDD")
                 connUrl += ":" + __port;
             }
             connUrl += ";databaseName=" + __database_name;
