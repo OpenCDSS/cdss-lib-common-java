@@ -79,7 +79,7 @@ import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
 
 import RTi.Util.IO.IOUtil;
-import RTi.Util.IO.PropList;
+//import RTi.Util.IO.PropList;
 
 import RTi.Util.Message.Message;
 
@@ -108,9 +108,14 @@ public class InputFilter_JPanel extends JPanel implements ItemListener
 {
 
 /**
-Number of filter groups to display.  One filter group will list all filters. 
+Number of filter groups to display.  Each filter group will list all filters. 
 */
-private int __numFilterGroups = 0;
+private int __numFilterGroups = 1;
+
+/**
+Number of where choices to display in combobox choices. 
+*/
+private int __numWhereChoicesToDisplay = -1;
 
 /**
 List of InputFilter to display.  The original input filter that is supplied is copied for as many input
@@ -131,11 +136,6 @@ List of the operator components between the where an input components, one Simpl
 Each input filter group has a list of operators and the operators are reset as needed in the filter group.
 */
 private List __operatorComponentList = null;
-
-/**
-Properties to control the display.
-*/
-private PropList __props = null;
 
 /**
 Text area to display text (if the text version of constructor is used).
@@ -172,15 +172,11 @@ public InputFilter_JPanel ( String text )
 /**
 Construct an input filter panel.
 @param inputFilters A list of InputFilter, to be displayed.
-@param props Properties to control the input filter panel, as described in the setInputFilters() method.
 */
-public InputFilter_JPanel ( List inputFilters, PropList props )
+public InputFilter_JPanel ( List inputFilters, int numInputFilters, int numWhereChoicesToDisplay )
 {	GridBagLayout gbl = new GridBagLayout();
 	setLayout ( gbl );
-	if ( props == null ) {
-		props = new PropList ( "InputFilter" );
-	}
-	setInputFilters ( inputFilters, props );
+	setInputFilters ( inputFilters, numInputFilters, numWhereChoicesToDisplay );
 }
 
 /**
@@ -323,6 +319,8 @@ private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List constrai
 		cb.add ( InputFilter.INPUT_STARTS_WITH );
 		cb.add ( InputFilter.INPUT_ENDS_WITH );
 		cb.add ( InputFilter.INPUT_CONTAINS );
+		// TODO SAM 2010-05-23 Evaluate automatically adding
+		//cb.add ( InputFilter.INPUT_IS_EMPTY );
 	}
 	else if ( (type == StringUtil.TYPE_DOUBLE) || (type == StringUtil.TYPE_FLOAT) ||
 		(type == StringUtil.TYPE_INTEGER) ) {
@@ -359,15 +357,13 @@ public void finalize()
 throws Throwable {
 	IOUtil.nullArray(__inputFilterListArray);
 	__whereComponentList = null;
-	__operatorComponentList = null;
-	__props = null;		
+	__operatorComponentList = null;	
 	super.finalize();
 }
 
 /**
 Return the input that has been entered in the panel, for a requested parameter.
-If the requested where_label is not selected in any of the input filters, a zero
-length vector will be returned.
+If the requested where_label is not selected in any of the input filters, a zero length vector will be returned.
 Currently only the string input type is enabled.
 @return the input that has been entered in the panel, for a requested parameter.
 @param whereLabel The visible label for the input filter.
@@ -375,11 +371,10 @@ Currently only the string input type is enabled.
 wildcards, suitable for "matches" calls (e.g., "*inputvalue*").  If false,
 the returned information will be returned in verbose format as per the
 toString() method (e.g., "contains;inputvalue").
-@param delim Delimiter character to use if use_wildcards=false.  See the
-toString() method.  If null, use ";".
+@param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
 */
-public List getInput ( String whereLabel, boolean useWildcards, String delim )
-{	List inputList = new Vector();
+public List<String> getInput ( String whereLabel, boolean useWildcards, String delim )
+{	List<String> inputList = new Vector();
 	if ( delim == null ) {
 		delim = ";";
 	}
@@ -572,23 +567,26 @@ private void removeInputFilters()
 /**
 Set the contents of an input filter.
 @param ifg The Filter group to be set (0+).
-@param inpu_filter_string The where clause as a string, using visible information in the input filters:
+@param input_filter_string The where clause as a string, using visible information in the input filters:
 <pre>
    WhereValue; Operator; InputValue
 </pre>
-@param delim The delimiter used for the above information.
+@param delim The delimiter used for the above information, or a semi-colon if null.
 @exception Exception if there is an error setting the filter data.
 */
 public void setInputFilter ( int ifg, String inputFilterString, String delim )
 throws Exception
-{	List v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
-	String where = ((String)v.get(0)).trim();
-	String operator = ((String)v.get(1)).trim();
+{	if ( delim == null ) {
+        delim = ";";
+    }
+    List<String> v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
+	String where = v.get(0).trim();
+	String operator = v.get(1).trim();
 	// Sometimes during initialization an ending token may not be provided
 	// (e.g., ";Matches;") so handle below...
 	String input = "";
 	if ( v.size() > 2 ) {
-		input = ((String)v.get(2)).trim();
+		input = v.get(2).trim();
 	}
 
 	// Set the where...
@@ -630,61 +628,30 @@ throws Exception
 /**
 Set the input filters.  The previous contents of the panel are removed and new
 contents are created based on the parameters.
-@param inputFilters A Vector of InputFilter, containing valid data.  The input
+@param inputFilters A list of InputFilter, containing valid data.  The input
 component will be set in each input filter as the GUI is defined.
-@param props Properties to control the display of the panel, as described in the following table.
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>	<td><b>Description</b></td>	
-<td><b>Default</b></td>
-</tr>
-
-<tr>
-<td><b>NumFilterGroups</b></td>
-<td><b>Indicates how many filter groups should be displayed.  
+@param numFilterGroups how many filter groups should be displayed.  
 Each group will include all the filters supplied at construction or with a setInputFilters() call.
-<td>1</td>
-</tr>
-
-<tr>
-<td><b>NumWhereRowsToDisplay</b></td>
-<td><b>Indicates the number of rows to be displayed in the drop-down list of
-one of the combo boxes that lists the fields for a filter.
-<td>(system-dependent JComboBox default)</td>
-</tr>
-
-</table>
+This will be reset to zero if no data are available.
+@param numWhereChoicesToDisplay the number of rows to be displayed in the drop-down list of
+one of the combo boxes that lists the fields for a filter.  If negative, display the number of items in
+the list.
 */
-public void setInputFilters ( List inputFilters, PropList props )
-{	// Make sure non-null properties are available internally...
-	if ( props == null ) {
-		__props = new PropList ( "InputFilter_JPanel" );
-	}
-	else {
-	    __props = props;
-	}
-	// First remove the existing input filters...
+public void setInputFilters ( List inputFilters, int numFilterGroups, int numWhereChoicesToDisplay )
+{	// First remove the existing input filters (the event generators will also be removed so
+	// listeners will no longer get the events)...
 	removeInputFilters();
 	// Duplicate the input filters for each filter group...
-	String prop_val = __props.getValue ( "NumFilterGroups" );
-	__numFilterGroups = 0;	// Number of filter groups
 	int numFilters = inputFilters.size();	// Number of filters in a filter group
 	if ( inputFilters != null ) {
 		numFilters = inputFilters.size();
 	}
 	if ( (inputFilters == null) || (inputFilters.size() == 0) ) {
 		// Only display if we actually have data...
-		__numFilterGroups = 0;
+		setNumFilterGroups ( 0 );
 	}
 	else {
-	    if ( prop_val != null ) {
-			// Calling code has requested the number of filters...
-			__numFilterGroups = StringUtil.atoi(prop_val);
-		}
-		else {
-		    // Assume one filter group...
-			__numFilterGroups = 1;
-		}
+	    setNumFilterGroups ( numFilterGroups );
 	}
 	__inputFilterListArray = new Vector[__numFilterGroups];
 	InputFilter filter;
@@ -722,11 +689,7 @@ public void setInputFilters ( List inputFilters, PropList props )
 	__whereComponentList = new Vector(__numFilterGroups);
 	__operatorComponentList = new Vector(__numFilterGroups);
 
-	String numRowsToDisplayString=__props.getValue("NumWhereRowsToDisplay");
-	int numRowsToDisplay = -1;
-	if (numRowsToDisplayString != null) {
-		numRowsToDisplay = StringUtil.atoi(numRowsToDisplayString);
-	}
+	setNumWhereChoicesToDisplay(numWhereChoicesToDisplay);
 	
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++, y++ ) {
 		x = 0;
@@ -753,8 +716,8 @@ public void setInputFilters ( List inputFilters, PropList props )
 			where_JComboBox.setData ( whereList );
 			where_JComboBox.addItemListener ( this );
 
-			if (numRowsToDisplay > -1) {
-				where_JComboBox.setMaximumRowCount(numRowsToDisplay);
+			if (numWhereChoicesToDisplay > -1) {
+				where_JComboBox.setMaximumRowCount(numWhereChoicesToDisplay);
 			}
 				
     		JGUIUtil.addComponent(this, where_JComboBox,
@@ -839,6 +802,24 @@ public void setInputFilters ( List inputFilters, PropList props )
                 GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 		}
 	}
+}
+
+/**
+Set the number of filter groups to display.
+@param numFilterGroups number of filter groups to display (vertical components).
+*/
+public void setNumFilterGroups ( int numFilterGroups )
+{
+    __numFilterGroups = numFilterGroups;
+}
+
+/**
+Set the number of where choices in a .
+@param numFilterGroups number of where choices to display.
+*/
+public void setNumWhereChoicesToDisplay ( int numWhereChoicesToDisplay )
+{
+    __numWhereChoicesToDisplay = numWhereChoicesToDisplay;
 }
 
 /**

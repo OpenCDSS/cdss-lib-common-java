@@ -98,6 +98,11 @@ Input filter type, for use with numbers that are between two values.
 public final static String INPUT_BETWEEN = "Is between";
 
 /**
+Input filter type, for use with strings that are null or empty.
+*/
+public final static String INPUT_IS_EMPTY = "Is empty";
+
+/**
 FIXME SAM 2009-01-08 Need to change to <, for brevity.
 Input filter type, for use with numbers that are less than a value.
 */
@@ -556,7 +561,7 @@ public boolean matches ( String s, String operator, boolean ignore_case )
 		}
 		else if ( operator.equalsIgnoreCase(INPUT_STARTS_WITH) ) {
 			if ( ignore_case ) {
-			return s.toUpperCase().matches(input.toUpperCase() + ".*" );
+			    return s.toUpperCase().matches(input.toUpperCase() + ".*" );
 			}
 			else {
 			    return s.matches ( input + ".*" );
