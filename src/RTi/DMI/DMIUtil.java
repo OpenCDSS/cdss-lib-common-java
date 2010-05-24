@@ -3025,6 +3025,9 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	int input_type = filter.getInputType();
 	// Get the internal where...
 	String where = filter.getWhereInternal();
+	if ( where == null ) {
+	    return null;
+	}
 	// Get the user input...
 	String input = filter.getInputInternal().trim();
 	// Now format the where clause...
@@ -3038,8 +3041,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 		// Only applies to strings...
 		where_clause = where + " like '%" + input + "%'";
 	}
-	else if ( operator.equalsIgnoreCase(
-		InputFilter.INPUT_ENDS_WITH) ) {
+	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_ENDS_WITH) ) {
 		// Only applies to strings...
 		where_clause = where + " like '%" + input + "'";
 	}
@@ -3060,6 +3062,9 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 		// Only applies to numbers (?)...
 		where_clause = where + ">=" + input;
 	}
+    else if ( operator.equalsIgnoreCase(InputFilter.INPUT_IS_EMPTY)){
+        where_clause = where + "='' or where is null";
+    }
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_LESS_THAN) ) {
 		// Only applies to numbers (?)...
 		where_clause = where + "<" + input;
@@ -3084,7 +3089,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 		return null;
 	}
 	// TODO - need to handle is null, negative (not), when enabled in InputFilter_JPanel.
-	// TODO - need a clean way to enforce uppercase input but
+	// TODO - need a clean way to enforce upper case input but
 	// also perhaps allow a property in the filter to override
 	// because a database may have mixed case in only a few tables...
 	//if ( dmi.uppercaseStringsPreferred() ) {
