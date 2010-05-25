@@ -2507,6 +2507,72 @@ public static int [] parseIntegerSequenceArray ( String seq, String delim, int p
 }
 
 /**
+Parse a string like "1:3" or "1:" or "1:-2" into an array containing the positional numbers, where the
+parts are start, stop, and optionally step.
+Single values result in a range where the start and end value are the same.
+Note that this does NOT impose zero-offset indexing (like Python) - the range is 1+ to nVals, which
+is more conducive to applications with users who are not programmers.
+@param seq string to parse
+@param delim delimiter character(s)
+@param parseFlag see breakStringList() flag
+@param count the number of values in the list corresponding to the slice, needed if the slice uses
+ending notation like -2.
+@return an array of integers parsed from the string.
+*/
+public static int [] parseIntegerSlice ( String seq, String delim, int parseFlag, int count )
+{
+    if ( seq == null ) {
+        return new int[0];
+    }
+    List<String> tokens = breakStringList ( seq, delim, parseFlag );
+    int size = 0;
+    if ( tokens != null ) {
+        size = tokens.size();
+    }
+    if ( size == 0 ) {
+        return new int[0];
+    }
+    else if ( size == 1 ) {
+        // Single value
+        int [] vals = new int[1];
+        vals[0] = Integer.parseInt(tokens.get(0));
+        return vals;
+    }
+    else {
+        // Start value...
+        int start = 1; // Default
+        String token = tokens.get(0);
+        if ( !token.equals("") ) {
+            start = Integer.parseInt(token);
+        }
+        // End value...
+        int end = count; // Default
+        token = tokens.get(1);
+        if ( !token.equals("") ) {
+            end = Integer.parseInt(token);
+            if ( end < 0 ) {
+                end = end + count; // 
+            }
+        }
+        // Determine the step
+        int step = 1;
+        if ( size == 3 ) {
+            // Have a step
+            step = Integer.parseInt(tokens.get(2));
+        }
+        // Determine the number of values...
+        int nVals = (end - start)/step + 1;
+        // Now iterate and generate the sequence
+        int[] vals = new int[nVals];
+        int i = 0;
+        for ( int ival = start; ival <= end; ival++ ) {
+            vals[i++] = ival;
+        }
+        return vals;
+    }
+}
+
+/**
 Count the number of unique (non-overlapping) instances of a pattern in a string.
 @param s String to search.
 @param pattern Pattern to search for.  Currently this can only be a one-character string.
