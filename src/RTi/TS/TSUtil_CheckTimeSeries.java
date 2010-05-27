@@ -148,7 +148,9 @@ throws Exception
                         message = "Time series " + tsid + " value " +
                             StringUtil.formatString(tsvalue,tsValueFormat)
                             + " at " + date + " changed more than " +
-                            value1 + " since previous value " + tsvaluePrev + " (diff=" + diff + ")";
+                            value1 + " since previous value " +
+                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
+                            StringUtil.formatString(diff,tsValueFormat) + ")";
                     }
                 }
             }
@@ -159,8 +161,9 @@ throws Exception
                         message = "Time series " + tsid + " value " +
                             StringUtil.formatString(tsvalue,tsValueFormat) +
                             " at " + date + " changed more than " +
-                            value1 + " since previous value " +
-                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" + diff + " %)";
+                            value1 + "% since previous value " +
+                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
+                            StringUtil.formatString(diff,tsValueFormat) + "%)";
                     }
                 }
             }
