@@ -2525,6 +2525,10 @@ public static int [] parseIntegerSlice ( String seq, String delim, int parseFlag
         return new int[0];
     }
     List<String> tokens = breakStringList ( seq, delim, parseFlag );
+    if ( seq.endsWith(delim) ) {
+        // breakStringList won't return a token at the end
+        tokens.add("");
+    }
     int size = 0;
     if ( tokens != null ) {
         size = tokens.size();
@@ -2548,10 +2552,16 @@ public static int [] parseIntegerSlice ( String seq, String delim, int parseFlag
         // End value...
         int end = count; // Default
         token = tokens.get(1);
-        if ( !token.equals("") ) {
+        if ( token.equals("") ) {
+            // End has not been specified so loop to the count
+            end = count;
+        }
+        else {
+            // End has been specified...
             end = Integer.parseInt(token);
             if ( end < 0 ) {
-                end = end + count; // 
+                // Negative number so relative to the count
+                end = end + count;
             }
         }
         // Determine the step
