@@ -1106,10 +1106,8 @@ Sub-type part of the identifier.</td>
 <td><b>%z</b></td>
 <td>Time series sequence number (e.g., year for traces).</td>
 </tr>
-
 </table>
 <p>
-
 @param update_ts If true, the legend data member in the time series will be
 updated.  Otherwise a formatted string is returned but the internal data member is left unchanged.
 @see TSIdent
@@ -1118,7 +1116,7 @@ updated.  Otherwise a formatted string is returned but the internal data member 
 public String formatLegend ( String format, boolean update_ts )
 {	StringBuffer buffer = new StringBuffer();
 
-	Message.printStatus ( 2, "", "Legend format is " + format );
+	//Message.printStatus ( 2, "", "Legend format is " + format );
 	// Loop through the format string and if format strings are found,
 	// append to the buffer.  Otherwise, transfer all characters as given.
 	if ( format == null ) {
