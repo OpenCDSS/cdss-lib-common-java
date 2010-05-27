@@ -649,7 +649,7 @@ public static AppletContext getAppletContext ( )
 /**
 Returns the application home directory.  This is the directory from which log files,
 configuration files, documentation etc, can be located.  Normally it is the installation home
-(e.g., C:\Program Files\RTi\TSTool).
+(e.g., C:\Program Files\RTi\TSTool-Version).
 @return the application home directory.
 */
 public static String getApplicationHomeDir() {
@@ -2190,8 +2190,8 @@ public static void setAppletContext ( AppletContext applet_context )
 /**
 Sets the application home directory.  This is a base directory that should 
 only be set once during an application run.  It is the base from which log
-files, system files, etc, can be located.  For instance, for CDSS applications
-the application home is set to (eg) j:\cdss\.  Other directories under this include "system" and "logs".
+files, system files, etc, can be located.  For instance, for CDSS TSTool
+the application home is set to C:\CDSS\TSTool-Version.  Other directories under this include "system" and "logs".
 @param homeDir the home directory to set.
 */
 public static void setApplicationHomeDir(String homeDir) {
@@ -2201,6 +2201,7 @@ public static void setApplicationHomeDir(String homeDir) {
 
 	if (homeDir != null) {
 		homeDir = homeDir.trim();
+		// Remove the trailing directory separator
 		if (homeDir.endsWith(File.separator)) {
 			homeDir = homeDir.substring(0, (homeDir.length() - 1));
 		}
