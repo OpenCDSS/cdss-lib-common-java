@@ -6,15 +6,23 @@ Best fit indicators that may be determined, for example when performing a regres
 public enum BestFitIndicatorType
 {
     /**
+     * Nash-Sutcliffe model efficiency coefficient.
+    */
+    NASH_SUTCLIFFE("NashSutcliffeEfficiency"),
+    /**
      * Correlation coefficient.
      */
-    R("r"),
+    R("R"),
     /**
      * Standard Error of Prediction, defined as the square root
-     * of the sum of differences between the known dependent value, and the value
+     * of the sum of squared differences between the known dependent value, and the value
      * determined from the equation used to estimate the data.
      */
     SEP("SEP"),
+    /**
+     * The following is used with TSTool's Mixed Station Analysis and indicates that monthly
+     * equations are used but the error is the total of all months.
+     */
     SEP_TOTAL("SEPTotal");
     
     /**
