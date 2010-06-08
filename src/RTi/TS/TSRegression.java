@@ -1046,8 +1046,8 @@ private void analyzeOLSRegression ()
 	double [] x1Array = null;
 	double [] xArray = null;
 	double [] y1Array = null;
-	int n1 = 0;
-	int n2 = 0;
+	int n1 = 0; // Number of points where X and Y are non-missing
+	int n2 = 0; // Number of points where X is not missing and Y is missing
 	int ind_interval_base = _xTS.getDataIntervalBase();
 	int ind_interval_mult = _xTS.getDataIntervalMult();
 	DateTime date = null;
