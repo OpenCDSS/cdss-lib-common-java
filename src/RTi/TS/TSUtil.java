@@ -6802,12 +6802,13 @@ throws TSException, Exception
 	}
 		
 	double newval = 0.0, x = 0.0;
+	int fillCount = 0; // To know whether to add to genesis
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
 		try {
 		    // Catch an error for the interval.  It is most likely
 			// due to not having regression data for the month...
-			// REVISIT SAM - need to evaluate this - use isAnalyzed() to improve performance
+			// TODO SAM - need to evaluate this - use isAnalyzed() to improve performance
     		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date)) ) {
     			// Try to fill the value...
     			x = ts_independent.getDataValue ( date );
@@ -6859,6 +6860,8 @@ throws TSException, Exception
     						ts_to_fill.setDataValue(date, newval );
     					}
     				}
+    				// Increment the counter on the number of values filled
+    				++fillCount;
     			}
     		}
 		}
@@ -6871,40 +6874,42 @@ throws TSException, Exception
 
 	// Fill in the genesis information...
 
-	ts_to_fill.addToGenesis ( "Filled missing data " + start + " to " + end + " using analysis results:" );
-
-	// The following comes back as multiple strings but to handle genesis
-	// information nicely, break into separate strings...
-
-	List strings = StringUtil.breakStringList ( rd.toString(),
-		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
-	if ( strings != null ) {
-		int size = strings.size();
-		for ( int j = 0; j < size; j++ ) {
-			ts_to_fill.addToGenesis( (String)strings.get(j) );
-		}
-	}
-
-	if ( descriptionString != null ) {
-		// Description has been specified...
-		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
-	}
-	else {
-	    // Automatically add to the description...
-		if ( analysisMethod == null ) {
-			// Default is OLS regression...
-			analysisMethod = RegressionType.OLS_REGRESSION;
-		}
-		else {
-		    if ( regressLog ) {
-				ts_to_fill.setDescription ( ts_to_fill.getDescription()+
-				", fill log " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
-			}
-			else {
-			    ts_to_fill.setDescription ( ts_to_fill.getDescription() +
-				", fill " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
-			}
-		}
+	if ( fillCount > 0 ) {
+    	ts_to_fill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using analysis results:" );
+    
+    	// The following comes back as multiple strings but to handle genesis
+    	// information nicely, break into separate strings...
+    
+    	List strings = StringUtil.breakStringList ( rd.toString(),
+    		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
+    	if ( strings != null ) {
+    		int size = strings.size();
+    		for ( int j = 0; j < size; j++ ) {
+    			ts_to_fill.addToGenesis( (String)strings.get(j) );
+    		}
+    	}
+    
+    	if ( descriptionString != null ) {
+    		// Description has been specified...
+    		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
+    	}
+    	else {
+    	    // Automatically add to the description...
+    		if ( analysisMethod == null ) {
+    			// Default is OLS regression...
+    			analysisMethod = RegressionType.OLS_REGRESSION;
+    		}
+    		else {
+    		    if ( regressLog ) {
+    				ts_to_fill.setDescription ( ts_to_fill.getDescription()+
+    				", fill log " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
+    			}
+    			else {
+    			    ts_to_fill.setDescription ( ts_to_fill.getDescription() +
+    				", fill " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
+    			}
+    		}
+    	}
 	}
 	
 	// Return the regression information...
@@ -6971,9 +6976,11 @@ throws TSException, Exception
 
 	TSRegression rd;
     if ( tsRegression != null ) {
+        // Use previous analysis results
         rd = tsRegression;
     }
     else {
+        // Compute the resgression relationship
     	if ( Message.isDebugOn ) {
     		Message.printDebug ( 10, routine, "Analyzing data." );
     	}
@@ -6985,7 +6992,7 @@ throws TSException, Exception
                 fillStart, fillEnd );
     	}
     	catch ( Exception e ) {
-    		message = "Unable to complete analysis.";
+    		message = "Error analyzing regression relationship (" + e + ").";
     		Message.printWarning ( 3, routine, message );
     		Message.printWarning ( 3, routine, e );
     		throw new TSException ( message );
@@ -6993,6 +7000,7 @@ throws TSException, Exception
     }
 		
 	double newval = 0.0, x = 0.0;
+	int fillCount = 0;
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
 		try {
@@ -7035,6 +7043,10 @@ throws TSException, Exception
     					    ts_to_fill.setDataValue ( date, newval);
     					}
     				}
+    				
+    				// Count how many values are filled so that genesis, etc. is only appended to when
+    				// 1+ values are filled.
+    				++fillCount;
     			}
     		}
 		}
@@ -7047,39 +7059,41 @@ throws TSException, Exception
 
 	// Fill in the genesis information...
 
-	ts_to_fill.addToGenesis ( "Filled missing data " + start + " to " + end + " using:" );
-
-	// The following comes back as multiple strings but to handle genesis
-	// information nicely, break into separate strings...
-
-	List strings = StringUtil.breakStringList ( rd.toString(),
-		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
-	if ( strings != null ) {
-		int size = strings.size();
-		for ( int j = 0; j < size; j++ ) {
-			ts_to_fill.addToGenesis ((String)strings.get(j) );
-		}
-	}
-
-	if ( descriptionString != null ) {
-		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
-	}
-	else {
-	    String prop_value = "" + analysisMethod;
-		if ( analysisMethod == null ) {
-		    // Default
-			prop_value = "" + RegressionType.OLS_REGRESSION;
-		}
-		String id = ts_independent.getIdentifierString();
-		if ( ts_independent.getAlias().length() > 0 ) {
-			id = ts_independent.getAlias();
-		}
-		if ( regressLog ) {
-			ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill log " + prop_value + " using " + id );
-		}
-		else {
-		    ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill " + prop_value + " using " + id );
-		}
+	if ( fillCount > 0 ) {
+    	ts_to_fill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using:" );
+    
+    	// The following comes back as multiple strings but to handle genesis
+    	// information nicely, break into separate strings...
+    
+    	List<String> strings = StringUtil.breakStringList ( rd.toString(),
+    		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
+    	if ( strings != null ) {
+    		int size = strings.size();
+    		for ( int j = 0; j < size; j++ ) {
+    			ts_to_fill.addToGenesis (strings.get(j) );
+    		}
+    	}
+    
+    	if ( descriptionString != null ) {
+    		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
+    	}
+    	else {
+    	    String prop_value = "" + analysisMethod;
+    		if ( analysisMethod == null ) {
+    		    // Default
+    			prop_value = "" + RegressionType.OLS_REGRESSION;
+    		}
+    		String id = ts_independent.getIdentifierString();
+    		if ( ts_independent.getAlias().length() > 0 ) {
+    			id = ts_independent.getAlias();
+    		}
+    		if ( regressLog ) {
+    			ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill log " + prop_value + " using " + id );
+    		}
+    		else {
+    		    ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill " + prop_value + " using " + id );
+    		}
+    	}
 	}
 
 	// Return the regression information...
