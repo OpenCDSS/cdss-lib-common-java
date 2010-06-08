@@ -1909,8 +1909,10 @@ public static int printCreatorHeader ( PrintWriter ofp, String comment0, int max
 
 /**
 Print a list of strings to a file.  The file is created, opened, and closed.
+@param file name of file to write.
+@param strings list of strings to write.
 */
-public static void printStringList ( String file, List strings )
+public static void printStringList ( String file, List<String> strings )
 throws IOException
 {	String message, routine = "IOUtil.printStringList";
 	PrintWriter	ofp;
@@ -1918,27 +1920,25 @@ throws IOException
 	// Open the file...
 
 	try {
-	    ofp = new PrintWriter ( 
-		new FileOutputStream(file) );
+	    ofp = new PrintWriter ( new FileOutputStream(file) );
 	}
 	catch ( Exception e ) {
 		message = "Unable to open output file \"" + file + "\"";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
-	printStringList ( ofp, strings );
-
-	// Flush and close the file...
-
-	ofp.flush();
-	ofp.close();
-	ofp = null;
-	message = null;
-	routine = null;
+	try {
+	    printStringList ( ofp, strings );
+	}
+	finally {
+      	// Flush and close the file...
+    	ofp.flush();
+    	ofp.close();
+	}
 }
 
 /**
-Print a Vector of strings to an opened file.
+Print a list of strings to an opened file.
 @param ofp PrintWrite to write to.
 @param strings Vector of strings to write.
 */
@@ -2411,34 +2411,64 @@ public static void setRunningApplet(boolean applet) {
 	__runningApplet = applet;
 }
 
-// FIXME SAM 2009-05-06 Need to use the built-in feature of the File class.
 /**
-Determine a unique temporary file name.  On UNIX, temporary files are created
-in /tmp.  On PCs, temporary files are created in C:/TEMP.  If using Java 1.2x,
-use the File.createTempFile() method instead.
+Determine a unique temporary file name, using the system clock.  On UNIX, temporary files are created
+in /tmp.  On PCs, temporary files are created in C:/TEMP.  The file may theoretically be grabbed by another
+application but this is unlikely.
+If using Java 1.2x, can use the File.createTempFile() method instead.
 @return Full path to an unused temporary file.
 */
 public static String tempFileName()
+{
+    return tempFileName ( null, null );
+}
+
+// FIXME SAM 2009-05-06 Need to use the built-in feature of the File class.
+/**
+Determine a unique temporary file name, using the system clock.  On UNIX, temporary files are created
+in /tmp.  On PCs, temporary files are created in C:/TEMP.  The file may theoretically be grabbed by another
+application but this is unlikely.
+If using Java 1.2x, can use the File.createTempFile() method instead.
+@param prefix prefix to filename, in addition to temporary pattern, or null for no prefix.
+@param extension extension to filename (without leading .), or null for no extension.
+@return Full path to an unused temporary file.
+*/
+public static String tempFileName( String prefix, String extension )
 {	// Get the prefix...
-	String prefix = null;
+	String dir = null;
+	if ( prefix == null ) {
+	    prefix = "";
+	}
+	if ( extension == null ) {
+	    extension = "";
+	}
+	else if ( !extension.startsWith(".") ) {
+	    extension = "." + extension;
+	}
 	if ( isUNIXMachine() ) {
-		prefix = "/tmp/";
+		dir = "/tmp/";
 	}
 	else {
-	    prefix = "C:\\temp\\";
+	    String dir0 = "C:\\tmp";
+	    dir = dir0 + "\\";
+	    File f = new File(dir);
+	    if ( !f.exists() || !f.isDirectory() ) {
+	        // Try the next option...
+    	    dir0 = "C:\\temp";
+    	    dir = dir0 + "\\";
+	    }
 	}
 	Date d = null;
 	// Use the date as a seed and make sure the file does not exist...
 	String filename = null;
 	while ( true ) {
 		d = new Date();
-		filename = prefix + d.getTime();
+		filename = dir + prefix + d.getTime() + extension;
 		if ( !fileExists(filename) ) {
 			d = null;
 			break;
 		}
 	}
-	prefix = null;
 	return filename;
 }
 
