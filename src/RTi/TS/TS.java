@@ -406,7 +406,13 @@ Comments that describe the data.  This can be anything from an original data
 source.  Sometimes the comments are created on the fly to generate a standard
 header (e.g., describe drainage area).
 */
-protected List _comments;
+protected List<String> _comments;
+
+/**
+List of metadata about data flags.  This provides a description about flags
+encountered in the time series.
+*/
+private List<TSDataFlagMetadata> __dataFlagMetadataList = new Vector();
 
 /**
 History of time series.  This is not the same as the comments but instead
@@ -414,7 +420,7 @@ chronicles how the time series is manipulated in memory.  For example the first
 genesis note may be about how the time series was read.  The second may
 indicate how it was filled.  Many TSUtil methods add to the genesis.
 */
-protected List _genesis;
+protected List<String> _genesis;
 
 // TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
@@ -491,6 +497,15 @@ public TS ( TS ts )
 }
 
 /**
+Add a TSDataFlagMetadata instance to the list maintained with the time series, to explain flag meanings.
+@param dataFlagMetadata instance of TSDataFlagMetadata to add to time series.
+*/
+public void addDataFlagMetadata ( TSDataFlagMetadata dataFlagMetadata )
+{
+    __dataFlagMetadataList.add(dataFlagMetadata);
+}
+
+/**
 Add a String to the comments associated with the time series (e.g., station remarks).
 @param comment Comment string to add.
 */
@@ -541,8 +556,7 @@ classes (e.g., MinuteTS, MonthTS) that are optimized for data storage for differ
 @param data_flag_length Maximum length of data flags.  If the data flags array
 is already allocated, then the flag size will be increased by the specified
 length.  This allows multiple flags to be concatenated.
-@param initial_value Initial value (null is allowed and will result in the
-flags being initialized to spaces).
+@param initial_value Initial value (null is allowed and will result in the flags being initialized to spaces).
 @param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated
 and initialized to spaces.
@@ -620,11 +634,9 @@ public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException
 {	String routine = "TS.changePeriodOfRecord";
 
-	Message.printWarning ( 1, routine, "TS.changePeriodOfRecord is a " +
-	"virtual function, redefine in derived classes" );
+	Message.printWarning ( 1, routine, "TS.changePeriodOfRecord is a virtual function, redefine in derived classes" );
 
-	throw new TSException ( routine +
-	": changePeriodOfRecord needs to be implemented in derived class!" );
+	throw new TSException ( routine + ": changePeriodOfRecord needs to be implemented in derived class!" );
 }
 
 /**
@@ -699,8 +711,7 @@ throws TSException
 }
 
 /**
-Copy the data array from one time series to another.  This method should be
-defined in a derived class.
+Copy the data array from one time series to another.  This method should be defined in a derived class.
 @param ts The time series to copy the data from.
 @param copy_missing If true, copy missing data (including out-of-period missing
 data).  If false, ignore missing data.
@@ -1297,9 +1308,9 @@ public String getAlias( )
 
 /**
 Return the time series comments.
-@return The comments Vector.
+@return The comments list.
 */
-public List getComments ()
+public List<String> getComments ()
 {	return _comments;
 }
 
@@ -1309,6 +1320,14 @@ Return the maximum length of data flags, to be used when data flags are enabled.
 */
 public int getDataFlagLength()
 {	return _data_flag_length;
+}
+
+/**
+Return the time series data flag metadata list.
+@return The data flag metadata list.
+*/
+public List<TSDataFlagMetadata> getDataFlagMetadataList ()
+{   return __dataFlagMetadataList;
 }
 
 /**
@@ -1530,7 +1549,7 @@ public String getExtendedLegend()
 Return the genesis information.
 @return The genesis comments.
 */
-public List getGenesis ()
+public List<String> getGenesis ()
 {	return _genesis;
 }
 
