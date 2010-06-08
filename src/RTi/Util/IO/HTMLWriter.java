@@ -1810,6 +1810,7 @@ public void headEnd() throws Exception
 	write("</head>\n");
 }
 
+// TODO SAM 2010-06-06 This is confusing - need to convert to heading methods when there is time.
 /**
 Writes a header end tag based on the size input needed.
 Size of 1 refers to creating an H1 tag.
@@ -1818,7 +1819,7 @@ This is based on the valid sizes for HTML header tags.
 @param size The size of the header tag.  1 is largest, 6 is smallest.
 @param id The id to use for this tag if one is to be assigned.
 @throws Exception if file can't be written to.
- */
+*/
 public void headerEnd ( int size ) throws Exception
 {
 	// check for valid tag
@@ -2719,6 +2720,51 @@ throws Exception {
 	else {
 		write("<q " + s + ">\n");
 	}
+}
+
+/**
+Inserts a span element.
+@param spanText text to insert.
+@param props property list for HTML attributes, for example style
+@throws Exception
+ */
+public void span ( String spanText, PropList props ) throws Exception
+{   spanStart( props );
+    addText( spanText );
+    spanEnd();
+}
+
+/**
+Ends a span declaration.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void spanEnd()
+throws Exception {
+    write("</span>");
+}
+
+/**
+Starts a span declaration with the given properties.
+@param p PropList of span properties.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void spanStart(PropList p)
+throws Exception {
+    spanStart(propListToString(p));
+}
+
+/**
+Starts a span declaration with the given parameters.
+@param s String of span parameters.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+public void spanStart(String s)
+throws Exception {
+    if (s.trim().equals("")) {
+        write("<span>");
+        return;
+    }
+    write("<span " + s + ">");
 }
 
 public void styleStart() throws Exception
