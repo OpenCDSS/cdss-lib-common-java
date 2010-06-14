@@ -1889,6 +1889,7 @@ Creates a heading for the given size (1 is bigger, 6 is smallest) and the given 
 "name" property to allow linking to the heading.
 @param number the kind of heading (1-6) to make.
 @param s the string to store in the heading.
+@paam name the target name for a link.
 @see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
 &lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
@@ -1901,7 +1902,7 @@ throws Exception {
 	}
 	__hL[number]++;
 	if ( (name != null) && (name.length() > 0) ) {
-		write("\n<h" + number + "><a name=\"" + name + "\">" + s + "</h" + number + ">\n");
+		write("\n<h" + number + "><a name=\"" + name + "\">" + s + "</a></h" + number + ">\n");
 	}
 	else {
 		write("\n<h" + number + ">" + s + "</h" + number + ">\n");
