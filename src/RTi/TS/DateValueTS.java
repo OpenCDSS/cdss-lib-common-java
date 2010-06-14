@@ -1374,7 +1374,7 @@ throws Exception
 		}
 		if ( ts_has_data_flag[i] ) {
 			// Data flags are being used.
-			ts.hasDataFlags ( true, ts_data_flag_length[i] );
+			ts.hasDataFlags ( true, true );
 		}
 	}
 	}
@@ -2033,7 +2033,7 @@ throws Exception
 			}
 			if ( ts.hasDataFlags() ) {
 				has_data_flags = true;
-				dataflag_buffer.append ( "true," + ts.getDataFlagLength() );
+				dataflag_buffer.append ( "true" );
 				columns_buffer.append ( delim );
 				columns_buffer.append ( "DataFlag" );
 			}
@@ -2284,16 +2284,6 @@ throws Exception
 			out.println ( buffer.toString () );
 		}
 	}
-	// Clean up...
-	columns_buffer = null;
-	datatype_buffer = null;
-	dataflag_buffer = null;
-	description_buffer = null;
-	missingval_buffer = null;
-	tsid_buffer = null;
-	units_buffer = null;
-	mult = null;
-	add = null;
 }
 
 /**
