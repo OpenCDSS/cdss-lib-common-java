@@ -348,18 +348,17 @@ original data were in CMS).
 protected String _data_units_original;
 
 /**
-The length of each data flag char[] (the maximum number of flag characters).
-This should be set in the hasDataFlags(boolean,int) method.
-*/
-protected int _data_flag_length = 0;
-
-/**
 Indicates whether data flags are being used with data.  If enabled, the derived
 classes that store data should override the allocateDataSpace(boolean, int)
 method to create a data array to track the data flags.  It is recommended to
-save space that the flags be treated as char[] data, padded with null characters.
+save space that the flags be handled using String.intern().
 */
 protected boolean _has_data_flags = false;
+
+/**
+Indicate whether data flags should use String.intern().
+*/
+protected boolean _internDataFlagStrings = true;
 
 // FIXME SAM 2007-12-13 Need to phase this out in favor of handling in DAO code.
 /**
@@ -367,7 +366,7 @@ Version of the data format (mainly for use with files).
 */
 protected String _version;
 
-// FIXME SAM 2007-12-13 Need to evaluate renaming to avoid confusion with TSTIdent input name.
+// FIXME SAM 2007-12-13 Need to evaluate renaming to avoid confusion with TSIdent input name.
 // Implementing a DataSource concept for input/output may help (but also have data source in TSIdent!).
 /**
 Input source information.  Filename if read from file or perhaps a database
@@ -548,21 +547,17 @@ public void addToGenesis ( String genesis )
 
 /**
 Allocate the data flag space for the time series.  This requires that the data
-interval base and multiplier are set correctly and that _date1 and _date2 have
-been set.  The allocateDataSpace() method will allocate the data flags if
-appropriate.  Use this method when the data flags need to be allocated after
-the initial allocation.  This method is meant to be overridden in derived
+interval base and multiplier are set correctly and that _date1 and _date2 have been set.
+The allocateDataSpace() method will allocate the data flags if appropriate.
+Use this method when the data flags need to be allocated after the initial allocation.
+This method is meant to be overridden in derived
 classes (e.g., MinuteTS, MonthTS) that are optimized for data storage for different intervals.
-@param data_flag_length Maximum length of data flags.  If the data flags array
-is already allocated, then the flag size will be increased by the specified
-length.  This allows multiple flags to be concatenated.
-@param initial_value Initial value (null is allowed and will result in the flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if necessary, but
-previous data values will be retained.  If false, the array will be reallocated
-and initialized to spaces.
+@param initialValue Initial value (null is allowed and will result in the flags being initialized to spaces).
+@param retainPreviousValues If true, the array size will be increased if necessary, but
+previous data values will be retained.  If false, the array will be reallocated and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
+public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
 throws Exception
 {	Message.printWarning ( 1, "TS.allocateDataFlagSpace", 
 	"TS.allocateDataFlagSpace() is virtual, define in derived classes." );
@@ -577,7 +572,7 @@ calling this method.  This method is meant to be overridden in derived classes
 @return 0 if successful allocating memory, non-zero if failure.
 */
 public int allocateDataSpace ( )
-{	Message.printWarning ( 1, "TS.allocateDataSpace", 
+{	Message.printWarning ( 1, "TS.allocateDataSpace",
 	"TS.allocateDataSpace() is virtual, define in derived classes." );
 	return 1;
 }
@@ -909,7 +904,6 @@ public void copyHeader ( TS ts )
 	// Data flags...
 
 	_has_data_flags = ts._has_data_flags;
-	_data_flag_length = ts._data_flag_length;
 }
 
 /**
@@ -1256,14 +1250,13 @@ overridden in the derived class.  For example, all MonthTS should be have a
 general text report format.  The properties can be used to customize the
 output.  This method is meant as a general output format.  Specific formats
 should be implemented as classes with static readTimeSeries()/writeTimeSeries() methods.
-@return Vector of strings containing formatted output.
+@return list of strings containing formatted output.
 @param props Modifiers for output.
 @exception RTi.TS.TSException If low-level formatting code throws an exception.
 */
-public List formatOutput ( PropList props )
+public List<String> formatOutput ( PropList props )
 throws TSException
-{	Message.printWarning( 3, "TS.formatOutput",
-	"TS.formatOutput(PropList) is virtual, redefine in derived classes." );
+{	Message.printWarning( 3, "TS.formatOutput", "TS.formatOutput(PropList) is virtual, redefine in derived classes." );
 	return null;
 }
 
@@ -1275,7 +1268,7 @@ This method should be overridden in the derived class.
 @param props Modifiers for output.
 @exception RTi.TS.TSException Thrown if low-level formatting code throws an exception.
 */
-public List formatOutput ( PrintWriter out, PropList props )
+public List<String> formatOutput ( PrintWriter out, PropList props )
 throws TSException
 {	Message.printWarning( 3, "TS.formatOutput", "TS.formatOutput(" +
 	"PrintWriter,PropList) is virtual, redefine in derived classes" );
@@ -1292,7 +1285,7 @@ overridden in the derived class.
 */
 public List<String> formatOutput ( String out, PropList props )
 throws TSException
-{	String	routine="TS.formatOutput(string,int,long)";
+{	String routine="TS.formatOutput(string,int,long)";
 	Message.printWarning( 1, routine, "TS.formatOutput(String,PropList)" +
 	" function is virtual, redefine in derived classes" );
 	return null;
@@ -1315,16 +1308,8 @@ public List<String> getComments ()
 }
 
 /**
-Return the maximum length of data flags, to be used when data flags are enabled.
-@return the maximum length of data flags.
-*/
-public int getDataFlagLength()
-{	return _data_flag_length;
-}
-
-/**
-Return the time series data flag metadata list.
-@return The data flag metadata list.
+Return the time series data flag meta-data list.
+@return The data flag meta-data list.
 */
 public List<TSDataFlagMetadata> getDataFlagMetadataList ()
 {   return __dataFlagMetadataList;
@@ -1418,8 +1403,7 @@ This method should be overruled in a derived class.
 @param date Date corresponding to the data value.
 */
 public int [] getDataPosition ( DateTime date )
-{	Message.printWarning( 3, "TS.getDataPosition", 
-	"TS.getDataPosition() is virtual, redefine in derived classes." );
+{	Message.printWarning( 3, "TS.getDataPosition", "TS.getDataPosition() is virtual, redefine in derived classes." );
 	// For now, return null as a default...
 	return null;
 }
@@ -1470,8 +1454,7 @@ overridden in derived classes (always returns the missing data value here).
 @param date Date corresponding to the data value.
 */
 public double getDataValue( DateTime date )
-{	Message.printWarning( 3, "TS.getDataValue", 
-	"TS.getDataValue is a virtual function, redefine in derived classes" );
+{	Message.printWarning( 3, "TS.getDataValue", "TS.getDataValue is a virtual function, redefine in derived classes" );
 	return _missing;
 }
 
@@ -1577,6 +1560,14 @@ Return the input name (file or database table) for the time series.
 */
 public String getInputName ()
 {	return _input_name;
+}
+
+/**
+Return whether data flag strings use String.intern().
+@return True if data flag strings use String.intern(), false otherwise.
+*/
+public boolean getInternDataFlagStrings()
+{   return _internDataFlagStrings;
 }
 
 /**
@@ -1700,13 +1691,11 @@ public String getVersion ()
 Indicate whether the time series has data, which is determined by checking to
 see whether memory has been allocated for the data space (which implies that
 the dates have been set).  This method can be checked after data are read rather
-than checking the dates.  This method should be defined in derived classes with
-specific data storage schemes.
+than checking the dates.  This method should be defined in derived classes with specific data storage schemes.
 @return true if the time series has data, false if not.
 */
 public boolean hasData ()
-{	Message.printWarning( 1, "TS.getDataValue", 
-	"TS.hasData() is a virtual function, redefine in derived classes" );
+{	Message.printWarning( 1, "TS.getDataValue", "TS.hasData() is a virtual function, redefine in derived classes" );
 	return false;
 }
 
@@ -1722,17 +1711,15 @@ public boolean hasDataFlags ()
 Set whether the time series has data flags.  This method should be called before
 allocateDataSpace() is called.  If data flags are enabled, allocateDataSpace()
 will allocate memory for the data and data flags.
-@param has_data_flags Indicates whether data flags will be associated with each
-data value.  The data flag is a character string (char []).
-@param data_flag_length Maximum length of the data flags.  Each flag is
-stored as a char[] to minimize memory use so the data flag length should be set
-to the maximum expected size of the flag (which is usually defined for the time
-series input).  If specified as zero, no memory will be allocated.
+@param hasDataFlags Indicates whether data flags will be associated with each data value.  The data flag is a String.
+@param internDataFlagStrings if true, then String.intern() will be used to manage the data flags.  This generally
+is advised because flags often consist of the same strings used repeatedly.  However, if unique
+string values are used, then false can be specified so as to not bloat the global String table.
 @return true if data flags are enabled for the time series, after the set.
 */
-public boolean hasDataFlags ( boolean has_data_flags, int data_flag_length )
-{	_has_data_flags = has_data_flags;
-	_data_flag_length = data_flag_length;
+public boolean hasDataFlags ( boolean hasDataFlags, boolean internDataFlagStrings )
+{	_has_data_flags = hasDataFlags;
+    _internDataFlagStrings = internDataFlagStrings;
 	return _has_data_flags;
 }
 
@@ -1800,8 +1787,7 @@ values are NaN).  Consequently there is no way to see know if only one or both
 values is NaN, using the standard operators.  Instead, we assume that NaN
 should be interpreted as missing and do the check if ( value != value ), which
 will return true if the value is NaN.  Consequently, code that uses time series
-data should not check for missing and treat NaN differently because the TS
-class treats NaN as missing.
+data should not check for missing and treat NaN differently because the TS class treats NaN as missing.
 @return true if the data value is missing, false if not.
 @param value Value to check.
 */
