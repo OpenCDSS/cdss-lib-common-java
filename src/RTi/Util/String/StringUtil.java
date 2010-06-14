@@ -2603,28 +2603,21 @@ public static int patternCount ( String s, String pattern )
 	return count;
 }
 
-/* ----------------------------------------------------------------------------
-** HMStringReadToDelim - read until a delimiting character has been found
-** ----------------------------------------------------------------------------
-** Copyright:	See the COPYRIGHT file.
-** ----------------------------------------------------------------------------
-** Notes:	(1)	Everything read is copied to "string".
-**			HMSTATUS_SUCCESS is returned if the end of string is
-**			encountered. HMSTATUS_FAILURE is returned if everything
-**			goes well.  The delimiter is not included in the string.
-** ----------------------------------------------------------------------------
-** History:
-**
-** 06 Sep 1996	Steven A. Malers, RTi	Split out of the HMUtil.c file.
-** ----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** c		L	Single character.
-** delim	I	Delimiter character to indicate end of read.
-** string0	I	Pointer to string being read.
-** string	O	String to contain characters read.
-** ----------------------------------------------------------------------------
+/**
+Return "s" if the count is > 1 or an empty string if 1.  This is used to form strings that may or may not refer
+to a plural.
+@param count the number of objects being evaluted to determine if plural.
+@return "s" if count is > 1, and "" otherwise.
 */
+public static String pluralS ( int count )
+{
+    if ( count > 1 ) {
+        return "s";
+    }
+    else {
+        return "";
+    }
+}
 
 /**
 @return String up to but not including the delimiter character.
@@ -2632,29 +2625,24 @@ public static int patternCount ( String s, String pattern )
 @param delim Delimiter character to read to.
 */
 public static String readToDelim ( String string0, char delim )
-{	int		i = 0;
-	char		c;
-	StringBuffer	string = new StringBuffer ();
-	String		return_string;
+{	int i = 0;
+	char c;
+	StringBuffer string = new StringBuffer ();
 
 	if ( string0 == null ) {
-		return_string = string.toString();
-		string = null;
-		return return_string;
+		return string.toString();
 	}
-	do {	c = string0.charAt(i);
+	do {
+	    c = string0.charAt(i);
 		if ( c == delim ) {
-			return_string = string.toString();
-			string = null;
-			return return_string;
+			return string.toString();
 		}
-		else {	string.append ( c );
+		else {
+		    string.append ( c );
 		}
 		i++;
 	} while ( c != '\0' );
-	return_string = string.toString();
-	string = null;
-	return return_string;
+	return string.toString();
 }
 
 /**
