@@ -308,8 +308,7 @@ throws TSException
 		sum = missing;
 		mean = missing;
 	
-		// Get valid date limits because the ones passed in may have been
-		// null...
+		// Get valid date limits because the ones passed in may have been null...
 	
 		TSLimits valid_dates = TSUtil.getValidPeriod ( ts, start0, end0 );
 		DateTime start = valid_dates.getDate1();
