@@ -119,11 +119,11 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
+import RTi.Util.Time.YearType;
 
 /**
 The MonthTS class is the base class for monthly time series.  Derive from this
-class for specific monthly time series formats (override allocateDataSpace() to
-control memory management).
+class for specific monthly time series formats (override allocateDataSpace() to control memory management).
 */
 public class MonthTS extends TS implements Cloneable, Serializable, Transferable
 {
@@ -135,8 +135,8 @@ The DataFlavor for transferring this specific class.
 */
 public static DataFlavor monthTSFlavor = new DataFlavor(RTi.TS.MonthTS.class, "RTi.TS.MonthTS");
 
-private	double[][] _data; // This is the data space for monthly
-protected char [][][] _data_flags; // Data flags for each daily value.  The dimensions are [year][month][flags]
+private	double[][] _data; // This is the data space for monthly values.  The dimensions are [year][month]
+protected String [][] _dataFlags; // Data flags for each monthly value.  The dimensions are [year][month]
 protected int _min_amon; // Minimum absolute month stored.
 protected int _max_amon; // Maximum absolute month stored.
 private int [] _pos = null; // Use to return data without creating memory all the time.
@@ -175,24 +175,19 @@ Allocate the data flag space for the time series.  This requires that the data
 interval base and multiplier are set correctly and that _date1 and _date2 have
 been set.  The allocateDataSpace() method will allocate the data flags if
 appropriate.  Use this method when the data flags need to be allocated after the initial allocation.
-@param data_flag_length Maximum length of data flags.  If the data flags array
-is already allocated, then the flag size will be increased by the specified
-length.  This allows multiple flags to be concatenated.
-@param initial_value Initial value (null is allowed and will result in the
-flags being initialized to spaces).
-@param retain_previous_values If true, the array size will be increased if necessary, but
-previous data values will be retained.  If false, the array will be reallocated
-and initialized to spaces.
+@param initialValue Initial value (null will be converted to an empty string).
+@param retainPreviousValues If true, the array size will be increased if necessary, but
+previous data values will be retained.  If false, the array will be reallocated and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
-public void allocateDataFlagSpace (	int data_flag_length, String initial_value, boolean retain_previous_values )
+public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
 throws Exception
 {	String	routine="MonthTS.allocateDataFlagSpace", message;
 	int	i, nyears = 0;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
 		message ="Dates have not been set.  Cannot allocate data space";
-		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
 	if ( _data_interval_mult != 1 ) {
@@ -202,65 +197,58 @@ throws Exception
 		throw new Exception ( message );
 	}
 	
+	if ( initialValue == null ) {
+	    initialValue = "".intern();
+	}
+	
 	nyears = _date2.getYear() - _date1.getYear() + 1;
 	
 	if( nyears == 0 ){
 		message="TS has 0 years POR, maybe Dates haven't been set yet";
-		Message.printWarning( 2, routine, message );
+		Message.printWarning( 3, routine, message );
 		throw new Exception ( message );
 	}
 
-	char [][][] data_flags_prev = null;
-	int data_flag_length_prev = _data_flag_length;
-	if ( _has_data_flags && retain_previous_values ) {
+	String [][] dataFlagsPrev = null;
+	if ( _has_data_flags && retainPreviousValues ) {
 		// Save the reference to the old flags array...
-		data_flags_prev = _data_flags;
-		// Increment the total length to be allocated to the previous value plus the new length...
-		_data_flag_length += data_flag_length;
+		dataFlagsPrev = _dataFlags;
 	}
 	else {
 	    // Turn on the flags...
 		_has_data_flags = true;
-		_data_flag_length = data_flag_length;
 	}
-	char [] blanks = null;
 	// Top-level allocation...
-	_data_flags = new char[nyears][][];
-	// Set up the initial value, to be reused...
-	blanks = new char[_data_flag_length];
-	if ( initial_value == null ) {
-		for ( i = 0; i < _data_flag_length; i++ ) {
-			blanks[i] = ' ';
-		}
-	}
-	else {
-	    // Assign to the initial value...
-		for ( i = 0; i < _data_flag_length; i++ ) {
-			blanks[i] = initial_value.charAt(i);
-		}
-	}
+	_dataFlags = new String[nyears][];
 
 	// Allocate memory...
 
 	int j, nvals = 12;
+	boolean internDataFlagStrings = getInternDataFlagStrings();
 	for ( i = 0; i < nyears; i++ ) {
-		_data_flags[i] = new char[nvals][];
+		_dataFlags[i] = new String[nvals];
 
 		// Now fill with the initial data value...
 
 		for ( j = 0; j < nvals; j++ ) {
-			_data_flags[i][j] = new char[_data_flag_length];
-			// Initialize with blanks (spaces)...
-			System.arraycopy ( blanks, 0, _data_flags[i][j], 0, _data_flag_length );
-			if(retain_previous_values && (data_flags_prev != null)){
+			// Initialize with initial value...
+		    if ( internDataFlagStrings ) {
+		        _dataFlags[i][j] = initialValue.intern();
+		    }
+		    else {
+		        _dataFlags[i][j] = initialValue;
+		    }
+			if(retainPreviousValues && (dataFlagsPrev != null)){
 				// Copy over the old values (typically shorter character arrays)...
-				System.arraycopy ( data_flags_prev[i][j], 0, _data_flags[i][j], 0, data_flag_length_prev );
+			    if ( internDataFlagStrings ) {
+			        _dataFlags[i][j] = dataFlagsPrev[i][j].intern();
+			    }
+			    else {
+			        _dataFlags[i][j] = dataFlagsPrev[i][j];
+			    }
 			}
 		}
 	}
-
-	data_flags_prev = null;
-	routine = null;
 }
 
 /*
@@ -279,7 +267,7 @@ data interval multiplier must have been set.  Fill with the specified data value
 */
 public int allocateDataSpace ( double value )
 {	String	routine="MonthTS.allocateDataSpace";
-	int	i, nyears = 0;
+	int	iYear, nyears = 0;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
 		Message.printWarning ( 2, routine, "Dates have not been set.  Cannot allocate data space" );
@@ -299,31 +287,25 @@ public int allocateDataSpace ( double value )
 	}
 
 	_data = new double [nyears][];
-	char [] blanks = null;
 	if ( _has_data_flags ) {
-		_data_flags = new char[nyears][][];
-		blanks = new char[_data_flag_length];
-		for ( i = 0; i < _data_flag_length; i++ ) {
-			blanks[i] = ' ';
-		}
+		_dataFlags = new String[nyears][];
 	}
 
 	// Allocate memory...
 
-	int j, nvals = 12;
-	for ( i = 0; i < nyears; i++ ) {
-		_data[i] = new double[nvals];
+	int iMonth, nvals = 12;
+	for ( iYear = 0; iYear < nyears; iYear++ ) {
+		_data[iYear] = new double[nvals];
 		if ( _has_data_flags ) {
-			_data_flags[i] = new char[nvals][];
+			_dataFlags[iYear] = new String[nvals];
 		}
 
 		// Now fill with the missing data value...
 
-		for ( j = 0; j < nvals; j++ ) {
-			_data[i][j] = value;
+		for ( iMonth = 0; iMonth < nvals; iMonth++ ) {
+			_data[iYear][iMonth] = value;
 			if ( _has_data_flags ) {
-				_data_flags[i][j] = new char[_data_flag_length];
-				System.arraycopy ( blanks, 0, _data_flags[i][j], 0, _data_flag_length );
+				_dataFlags[iYear][iMonth] = "".intern(); // Always use intern for default
 			}
 		}
 	}
@@ -431,7 +413,7 @@ throws TSException
 	// data position, declare a temporary MonthTS with the old dates and save a reference to the old data...
 
 	double [][] data_save = _data;
-	char [][][] data_flags_save = _data_flags;
+	String [][] dataFlagsSave = _dataFlags;
 	MonthTS temp_ts = new MonthTS ();
 	temp_ts.setDataInterval ( TimeInterval.MONTH, _data_interval_mult );
 	temp_ts.setDate1 ( _date1 );
@@ -471,6 +453,7 @@ throws TSException
 	// with transferring the values for the the old time series that are within the new period...
 
 	int column, row, temp_ts_year1 = temp_ts.getDate1().getYear();
+	boolean internDataFlagStrings = getInternDataFlagStrings();
 	for ( DateTime date = new DateTime (transfer_date1,DateTime.DATE_FAST);
 		date.lessThanOrEqualTo (transfer_date2);
 		date.addInterval( _data_interval_base, _data_interval_mult ) ) {
@@ -479,10 +462,15 @@ throws TSException
 		column = date.getMonth() - 1; // Zero offset!
 		if ( _has_data_flags ) {
 			// Transfer the value and flag...
-			setDataValue ( date, data_save[row][column], new String(data_flags_save[row][column]), 1 );
+		    if ( internDataFlagStrings ) {
+		        setDataValue ( date, data_save[row][column], dataFlagsSave[row][column].intern(), 1 );
+		    }
+		    else {
+		        setDataValue ( date, data_save[row][column], dataFlagsSave[row][column], 1 );
+		    }
 		}
 		else {
-		    // Transfer the value...
+		    // Transfer just the value...
 			setDataValue ( date, data_save[row][column] );
 		}
 	}
@@ -490,17 +478,6 @@ throws TSException
 	// Add to the genesis...
 
 	addToGenesis ( "Changed period: " + new_date1 + " to " + new_date2 );
-
-	// Clean up...
-
-	new_date1 = null;
-	new_date2 = null;
-	transfer_date1 = null;
-	transfer_date2 = null;
-	temp_ts = null;
-	data_save = null;
-	routine = null;
-	message = null;
 }
 
 /**
@@ -521,6 +498,22 @@ public Object clone ()
 		ts._data[i] = new double[_data[i].length];
 		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
 	}
+	boolean internDataFlagStrings = getInternDataFlagStrings();
+    if ( _has_data_flags && (_dataFlags != null) ) {
+        // Allocate months...
+        ts._dataFlags = new String[_dataFlags.length][];
+        for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
+            ts._dataFlags[iYear] = new String[_dataFlags[iYear].length];
+            for ( int iMonth = 0; iMonth < _dataFlags[iYear].length; iMonth++ ) {
+                if ( internDataFlagStrings ) {
+                    ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth].intern();
+                }
+                else {
+                    ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth];
+                }
+            }
+        }
+    }
 	ts._pos = new int[2];
 	ts._pos[0] = _pos[0];
 	ts._pos[1] = _pos[1];
@@ -629,7 +622,7 @@ Finalize before garbage collection.
 protected void finalize()
 throws Throwable
 {	_data = null;
-	_data_flags = null;
+	_dataFlags = null;
 	_pos = null;
 	_tsdata = null;
 	super.finalize();
@@ -649,8 +642,8 @@ monthly time series are always output in a matrix summary format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"/"NovToOct"
-(Nov through Oct), or "CalendarYear" (Jan through Dec).
+<td>The type of calendar, either "Water" (Oct through Sep), "NovToOct"
+(Nov through Oct), or "Calendar" (Jan through Dec), consistent with YearType enumeration.
 </td>
 <td>CalenderYear (but may be made sensitive to the data type or units in the future).</td>
 </tr>
@@ -802,7 +795,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 </table>
 @exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public List formatOutput( PropList proplist )
+public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = null, routine = "MonthTS.formatOutput";
 	if ( _data_interval_mult != 1 ) {
@@ -811,9 +804,9 @@ throws TSException
 		throw new TSException ( message );
 	}
 	int column, dl = 20, row;
-	List strings = new Vector (20,10);
+	List<String> strings = new Vector (20,10);
 	PropList props = null;
-	String calendar = "WaterYear", format = "", prop_value = null, year_column = "";
+	String format = "", prop_value = null, year_column = "";
 	String data_format = "%9.1f";
 
 	// If the property list is null, allocate one here so we don't have to constantly check for null...
@@ -875,12 +868,9 @@ throws TSException
 	prop_value = props.getValue ( "CalendarType" );
 	if ( prop_value == null ) {
 		// Default to "CalendarYear"...
-		calendar = "CalendarYear";
+		prop_value = "" + YearType.CALENDAR;
 	}
-	else {
-	    // Set to requested format...
-		calendar = prop_value;
-	}
+	YearType calendar = YearType.valueOfIgnoreCase(prop_value);
 
 	// Determine the period to output.  For now always output the total...
 
@@ -962,7 +952,7 @@ throws TSException
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
 				// Format the header...
 				strings.add ( "" );
-				List strings2 = formatHeader();
+				List<String> strings2 = formatHeader();
 				StringUtil.addListToStringList ( strings, strings2 );
 			}
 		}
@@ -988,7 +978,7 @@ throws TSException
 				}
 				if ( ncomments > 0 ) {
 					for ( int i = 0; i < ncomments; i++ ) {
-						strings.add( (String)_comments.get(i));
+						strings.add( _comments.get(i));
 					}
 				}
 				else {
@@ -999,8 +989,6 @@ throws TSException
 			    strings.add( "No comments available.");
 			}
 		}
-		print_comments = null;
-		use_comments_for_header = null;
 
 		// Print the genesis information...
 
@@ -1050,14 +1038,14 @@ throws TSException
 			year_column = "Average";
 		}
 
-		if ( calendar.equalsIgnoreCase("WaterYear") ) {
+		if ( calendar == YearType.WATER ) {
 			// Water year...
 			strings.add (
 "Year    Oct       Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep     " + year_column );
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
+		else if ( calendar == YearType.NOV_TO_OCT ) {
 			// Irrigation year...
 			strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
@@ -1081,12 +1069,12 @@ throws TSException
 		// Adjust the start and end dates to be on full years for the calendar that is requested...
 
 		int year_offset = 0;
-		if ( calendar.equalsIgnoreCase("CalendarYear") ) {
+		if ( calendar == YearType.CALENDAR ) {
 			// Just need to output for the full year...
 			start_date.setMonth ( 1 );
 			end_date.setMonth ( 12 );
 		}
-		else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
+		else if ( calendar == YearType.NOV_TO_OCT ) {
 			// Need to adjust for the irrigation year to make sure
 			// that the first month is Nov and the last is Oct...
 			if ( start_date.getMonth() < 11 ) {
@@ -1105,7 +1093,7 @@ throws TSException
 			// later than the calendar for the Nov month...
 			year_offset = 1;
 		}
-		else if ( calendar.equalsIgnoreCase("WaterYear") ) {
+		else if ( calendar == YearType.WATER ) {
 			// Need to adjust for the water year to make sure that
 			// the first month is Oct and the last is Sep...
 			if ( start_date.getMonth() < 10 ) {
@@ -1202,8 +1190,7 @@ throws TSException
 		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 		// Now need to do the statistics.  Loop through each column...
-		// First check to see if all stats should be printed (can be
-		// dangerous if we add new statistics)..
+		// First check to see if all statistics should be printed (can be dangerous if new statistics are added)..
 		prop_value = props.getValue ( "PrintAllStats" );
 		String print_all_stats = null;
 		if ( prop_value == null ) {
@@ -1269,14 +1256,12 @@ throws TSException
 		if ( print_notes.equalsIgnoreCase("true") ) {
 			strings.add ( "" );
 			strings.add ( "Notes:" );
-			if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
+			if ( calendar == YearType.WATER ) {
 				strings.add ( "  Years shown are water years." );
 				strings.add ( "  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 			}
-			else if ( calendar.equalsIgnoreCase("IrrigationYear" ) ||
-				calendar.equalsIgnoreCase("NovToOct" )){
-				strings.add (
-				"  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
+			else if ( calendar == YearType.NOV_TO_OCT ){
+				strings.add ( "  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
 			}
 			else {
 			    strings.add ( "  Years shown are calendar years." );
@@ -1284,10 +1269,6 @@ throws TSException
 			strings.add ( "  Annual values and statistics are computed only on non-missing data." );
 			strings.add ( "  NC indicates that a value is not computed because of missing data or the data value itself is missing." );
 		}
-		print_notes = null;
-		data = null;
-		date = null;
-		buffer = null;
 	}
 	else {
 	    message = "Unrecognized format: \"" + format + "\"";
@@ -1295,17 +1276,6 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	routine = null;
-	message = null;
-	props = null;
-	calendar = null;
-	format = null;
-	prop_value = null;
-	year_column = null;
-	data_format = null;
-	req_units = null;
-	start_date = null;
-	end_date = null;
 	return strings;
 }
 
@@ -1316,9 +1286,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( PrintWriter fp, PropList props )
+public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List formatted_output = null;
+{	List<String> formatted_output = null;
 	String routine = "MonthTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String message;
@@ -1355,22 +1325,20 @@ throws TSException
 
 	// Also return the list (consistent with C++ single return type.
 
-	message = null;
-	routine = null;
 	return formatted_output;
 }
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return list of strings that are written to the file.
 @param fname Name of output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( String fname, PropList props )
+public List<String> formatOutput ( String fname, PropList props )
 throws TSException
 {	String message = null, routine = "MonthTS.formatOutput(char*,int,long)";
-	List formatted_output = null;
+	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1401,8 +1369,6 @@ throws TSException
 
 	// Also return the list (consistent with C++ single return type)...
 
-	message = null;
-	routine = null;
 	return formatted_output;
 }
 
@@ -1462,16 +1428,7 @@ private List formatOutputStats ( double[][] data, int num_years, String label, S
 	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 
-	buffer = null;
-	array = null;
 	return strings;
-}
-
-/**
-Free the data space.  This is unused in Java since there is garbage collection.
-*/
-public void freeDataSpace(  )
-{	// Set _data to null??
 }
 
 /**
@@ -1505,10 +1462,15 @@ public TSData getDataPoint ( DateTime date )
 	}
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
-		_tsdata.setValues ( date, getDataValue(date), _data_units, new String(_data_flags[_pos[0]][_pos[1]]), 0 );
+	    if ( _internDataFlagStrings ) {
+	        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_pos[0]][_pos[1]].intern(), 0 );
+	    }
+	    else {
+	        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_pos[0]][_pos[1]], 0 );
+	    }
 	}
 	else {
-	    _tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
+	    _tsdata.setValues ( date, getDataValue(date), _data_units, "".intern(), 0 );
 	}
 	return _tsdata;
 }
@@ -1524,7 +1486,7 @@ Return the data position.
 </pre>
 @return An array of integers containing the position in the data array
 corresponding to the date.  Return null if the date is outside the period of
-record.  The array that is used is re-used in order to increase performace.  You
+record.  The array that is used is re-used in order to increase performance.  You
 must copy the information after the return to ensure protecting the data.
 @param date Date of interest.
 */
@@ -1819,20 +1781,11 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 
 	_dirty = true;
 	_data[row][column] = value;
-
-	if ( _has_data_flags && (data_flag != null) ) {
-		int length = data_flag.length();
-		// Are only storing a limited number of characters to optimize memory use...
-		if ( length > _data_flag_length ) {
-			length = _data_flag_length;
-		}
-		for ( int i = 0; i < length; i++ ) {
-			_data_flags[row][column][i] = data_flag.charAt(i);
-		}
-		// Make sure a reset of a data flag does not leave old characters in place...
-		for ( int i = length; i < _data_flag_length; i++ ) {
-			_data_flags[row][column][i] = ' ';
-		}
+	if ( _internDataFlagStrings ) {
+	    _dataFlags[row][column] = data_flag.intern();
+	}
+	else {
+	    _dataFlags[row][column] = data_flag;
 	}
 }
 
