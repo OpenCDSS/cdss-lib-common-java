@@ -55,6 +55,7 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeUtil;
+import RTi.Util.Time.YearType;
 
 /**
 This class analyzes a time series.  It is currently in development.
@@ -147,18 +148,12 @@ public void appendToDataCoverageSummaryReport ( MonthTS monthts )
 	}
 	StringBuffer data_string = new StringBuffer ();
 	DateTime date = new DateTime ( _data_coverage_report_date1 );
-	String cal = _data_coverage_report_props.getValue ( "CalendarType" );
-	if ( cal == null ) {
-		cal = "CalendarYear";
-	}
 	// By this point the start and end dates will line up exactly with
-	// the requested year type so just process 12 months in a row to
-	// get totals, etc...
+	// the requested year type so just process 12 months in a row to get totals, etc...
 	int count = 0;
 	double sum = 0.0, ave = 0.0, value = 0.0;
 	int imonth = 0;
-	for (	; date.lessThanOrEqualTo ( _data_coverage_report_date2);
-		date.addMonth(1) ) {
+	for ( ; date.lessThanOrEqualTo ( _data_coverage_report_date2); date.addMonth(1) ) {
 		// Get data value...
 		value = monthts.getDataValue ( date );
 		++imonth;
@@ -187,7 +182,8 @@ public void appendToDataCoverageSummaryReport ( MonthTS monthts )
 				else if ( ave < 100.0 ) {
 					data_string.append ( string75+delim );
 				}
-				else {	data_string.append ( string100+delim );
+				else {
+				    data_string.append ( string100+delim );
 				}
 			}
 			count = 0;
@@ -196,19 +192,8 @@ public void appendToDataCoverageSummaryReport ( MonthTS monthts )
 		}
 	}
 	// Now add the whole line...
-	_data_coverage_report_Vector.add (
-		StringUtil.formatString(monthts.getLocation(),"%-20.20s") +
-		delim +
-		StringUtil.formatString(monthts.getDescription(),"%-40.40s") +
-		delim + data_string.toString() );
-	delim = null;
-	string100 = null;
-	string50 = null;
-	stringnot0 = null;
-	string0 = null;
-	data_string = null;
-	date = null;
-	cal = null;
+	_data_coverage_report_Vector.add ( StringUtil.formatString(monthts.getLocation(),"%-20.20s") + delim +
+		StringUtil.formatString(monthts.getDescription(),"%-40.40s") + delim + data_string.toString() );
 }
 
 /**
@@ -256,16 +241,13 @@ data coverage report but may want to change.
 percentage of data available is always computed).
 @exception TSException if there is an error analyzing the time series.
 */
-public MonthTS createStatisticMonthTS ( TS ts, DateTime start_date,
-					DateTime end_date, PropList props )
+public MonthTS createStatisticMonthTS ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws TSException
 {	String message, routine = "TSAnalyst.createStatisticMonthTS";
 	int dl = 10;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to create statistics month TS for \"" +
-		ts.getIdentifierString() + "\"" );
+		Message.printDebug ( dl, routine, "Trying to create statistics month TS for \"" + ts.getIdentifierString() + "\"" );
 	}
 	if ( ts == null ) {
 		// Nothing to do...
@@ -276,17 +258,15 @@ throws TSException
 	try {	// Main try...
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = TSUtil.getValidPeriod (
-				ts, start_date, end_date );
-	DateTime start	= new DateTime ( valid_dates.getDate1() );
-	DateTime end	= new DateTime ( valid_dates.getDate2() );
+	TSLimits valid_dates = TSUtil.getValidPeriod ( ts, start_date, end_date );
+	DateTime start = new DateTime ( valid_dates.getDate1() );
+	DateTime end = new DateTime ( valid_dates.getDate2() );
 	valid_dates = null;
 
 	// Create a monthly time series to be filled...
 
 	MonthTS monthts = new MonthTS();
-	monthts.addToGenesis ( "Initialized statistics month TS from \"" +
-		ts.getIdentifierString() + "\"" );
+	monthts.addToGenesis ( "Initialized statistics month TS from \"" + ts.getIdentifierString() + "\"" );
 	monthts.copyHeader ( ts );
 	// Need to make sure the base and multiplier are not clobbered...
 	monthts.setDataInterval ( TimeInterval.MONTH, 1 );
@@ -333,40 +313,32 @@ throws TSException
 		}
 */
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		int lastmonth = date.getMonth();
 		int lastyear = date.getYear();
 		month_value = 0.0;
 		int data_count = 0;
 		int month = 0, year = 0;
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			month = date.getMonth();
 			year = date.getYear();
-			if (	((month != 0) && (month != lastmonth)) 
-				|| (year != lastyear) ) {
+			if ( ((month != 0) && (month != lastmonth)) || (year != lastyear) ) {
 				// New month so set last month's values...
-				// We are setting the percentage of data found
-				// for the month.
+				// Set the percentage of data found for the month.
 				if ( data_count == 0 ) {
 					month_value = 0.0;
 				}
-				else {	month_value = (double)data_count*100.0/
-					TSUtil.numIntervalsInMonth(
-					lastmonth, lastyear,
-					interval_base, interval_mult );
+				else {
+				    month_value = (double)data_count*100.0/
+					    TSUtil.numIntervalsInMonth( lastmonth, lastyear, interval_base, interval_mult );
 				}
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"For " + date + " found " + data_count
-					+ " values." );
+					Message.printDebug ( dl, routine, "For " + date + " found " + data_count + " values." );
 				}
-				monthts.setDataValue (
-					month_date, month_value );
-				// Now increment the month to be ready for the
-				// next month...
+				monthts.setDataValue ( month_date, month_value );
+				// Now increment the month to be ready for the next month...
 				month_date.addMonth ( 1 );
 				// Reset the value for next month...
 				data_count = 0;
@@ -377,27 +349,23 @@ throws TSException
 			if ( !ts.isDataMissing(value) ) {
 				++data_count;
 			}
-			// Set the month and year so we can check in the next
-			// iteration...
+			// Set the month and year so we can check in the next iteration...
 			lastmonth = month;
 			lastyear = year;
 		}
 		// Always do the last value using the same logic as above...
 		if ( month != 0 ) {
 			// New month so set last month's values...
-			// We are setting the percentage of data found
-			// for the month.
+			// Set the percentage of data found for the month.
 			if ( data_count == 0 ) {
 				month_value = 0.0;
 			}
-			else {	month_value = (double)data_count*100.0/
-				TSUtil.numIntervalsInMonth( lastmonth, lastyear,
-				interval_base, interval_mult );
+			else {
+			    month_value = (double)data_count*100.0/
+				TSUtil.numIntervalsInMonth( lastmonth, lastyear, interval_base, interval_mult );
 			}
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"For " + date + " found " + data_count
-				+ " values." );
+				Message.printDebug ( dl, routine, "For " + date + " found " + data_count + " values." );
 			}
 			monthts.setDataValue ( month_date, month_value );
 		}
@@ -406,14 +374,7 @@ throws TSException
 
 	// Set the genesis information...
 
-	ts.addToGenesis ( "Evaluated missing data from " + start.toString() +
-		" to " + end.toString() + "." );
-	// Clean up...
-	month_date = null;
-	start = null;
-	end = null;
-	message = null;
-	routine = null;
+	ts.addToGenesis ( "Evaluated missing data from " + start.toString() + " to " + end.toString() + "." );
 	return monthts;
 	}
 	catch ( Exception e ) {
@@ -437,9 +398,7 @@ percentage of data available is always computed).
 @deprecated Use createStatisticMonthTS
 @exception TSException if there is an error analyzing the time series.
 */
-public static MonthTS createStatisticsMonthTS ( TS ts, DateTime start_date,
-						DateTime end_date,
-						PropList props )
+public static MonthTS createStatisticsMonthTS ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws TSException
 {	TSAnalyst tsa = new TSAnalyst();
 	return tsa.createStatisticMonthTS ( ts, start_date, end_date, props );
@@ -455,14 +414,12 @@ of all the non-missing Jan 1 values.
 @param ts Time series to analyze (must be a regular interval).
 @param AnalysisStart_DateTime Starting date/time for analysis, in precision of the
 original data.
-@param AnalysisEnd_DateTime Ending date for analysis, in precision of the
-original data.
+@param AnalysisEnd_DateTime Ending date for analysis, in precision of the original data.
 @param OutputStart_DateTime Output start date/time.
 If null, the period of the original time series will be output.
 @param OutputEnd_DateTime Output end date/time.
 If null, the entire period will be analyzed.
-@param props Properties to consider when analyzing.  The following properties
-are recognized:
+@param props Properties to consider when analyzing.  The following properties are recognized:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
 <td><b>Property</b></td>	<td><b>Description</b></td>	<td><b>Default</b></td>
@@ -1044,10 +1001,9 @@ throws Throwable
 
 /**
 Return the contents of the data coverage report as a Vector of String.
-@return the results of the data coverage report.  This returns the report
-contents (not a copy).
+@return the results of the data coverage report.  This returns the report contents (not a copy).
 */
-public List getDataCoverageReport ()
+public List<String> getDataCoverageReport ()
 {	return _data_coverage_report_Vector;
 }
 
@@ -2251,23 +2207,9 @@ space for zero coverage.  Later may make this a separate class if we can
 generalize to other data statistics.
 @param start Start date for output.
 @param end End date for output.
-@param props Properties of the output, as described in the following table:
-
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>	<td><b>Description</b></td>	<td><b>Default</b></td>
-</tr>
-
-<tr>
-<td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear"/"NovToOct"
-(Nov through Oct), or "CalendarYear" (Jan through Dec).
-</td>
-<td>CalenderYear (but may be made sensitive to the data type or units in the future).</td>
-</tr>
-</table>
+@param yearType the output year type for the report.
 */
-public void startDataCoverageReport ( DateTime start, DateTime end, PropList props )
+public void startDataCoverageReport ( DateTime start, DateTime end, YearType yearType )
 throws TSException
 {	String delim = "|";
 	if ( start == null ) {
@@ -2276,30 +2218,22 @@ throws TSException
 	if ( end == null ) {
 		throw new TSException ( "Null end date for report" );
 	}
-	if ( props == null ) {
-		_data_coverage_report_props = new PropList ( "DataCoverageReport" );
-	}
-	else {
-		_data_coverage_report_props = props;
-	}
 
 	// Get the calendar type...
 
-	String year_type = _data_coverage_report_props.getValue("CalendarType");
-	if ( year_type == null ) {
-		year_type = "CalendarYear";
+	if ( yearType == null ) {
+		yearType = YearType.CALENDAR;
 	}
 
 	// Get the full year dates to use for looping...
 
 	TSLimits limits = null;
 	try {
-		limits = TSUtil.getPeriodFromDates ( start, end, year_type, 0 );
+		limits = TSUtil.getPeriodFromDates ( start, end, yearType, 0 );
 	}
 	catch ( Exception e ) {
 		// ignore...
-		Message.printWarning ( 2, "TSAnalyst.startDataCoverageReport",
-		"Error getting dates for summary report" );
+		Message.printWarning ( 2, "TSAnalyst.startDataCoverageReport", "Error getting dates for summary report" );
 		return;
 	}
 
@@ -2309,12 +2243,9 @@ throws TSException
 	_data_coverage_report_Vector.add ( "" );
 	_data_coverage_report_Vector.add ( "Data Coverage Report" );
 	_data_coverage_report_Vector.add ( "" );
-	_data_coverage_report_Vector.add (
-	"Years shown in the report are for calendar type:  " + year_type );
-	_data_coverage_report_Vector.add ( "Start:  " +
-		_data_coverage_report_date1.toString (DateTime.FORMAT_YYYY_MM));
-	_data_coverage_report_Vector.add ( "End:    " +
-		_data_coverage_report_date2.toString (DateTime.FORMAT_YYYY_MM));
+	_data_coverage_report_Vector.add ( "Years shown in the report are for calendar type:  " + yearType );
+	_data_coverage_report_Vector.add ( "Start:  " + _data_coverage_report_date1.toString (DateTime.FORMAT_YYYY_MM));
+	_data_coverage_report_Vector.add ( "End:    " + _data_coverage_report_date2.toString (DateTime.FORMAT_YYYY_MM));
 	_data_coverage_report_Vector.add ( "" );
 	_data_coverage_report_Vector.add ( "## indicates 100% coverage");
 	_data_coverage_report_Vector.add("** indicates >= 75% coverage");
@@ -2329,7 +2260,7 @@ throws TSException
 	StringBuffer data_string = new StringBuffer ();
 	DateTime date = new DateTime ( _data_coverage_report_date1 );
 	for ( ; date.lessThanOrEqualTo ( _data_coverage_report_date2); date.addYear(1) ) {
-		if ( year_type.equalsIgnoreCase("WaterYear") || year_type.equalsIgnoreCase("NovToDec")) {
+		if ( (yearType == YearType.WATER) || (yearType == YearType.NOV_TO_OCT) ) {
 			// Offset...
 			data_string.append ( StringUtil.formatString((date.getYear() + 1),"%04d").substring(2) + delim );
 		}
