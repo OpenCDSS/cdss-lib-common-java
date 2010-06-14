@@ -235,8 +235,6 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 		// Add to the counter...
 		++datasize;
 	}
-	date = null;
-	ptr = null;
 	return datasize;
 }
 
@@ -530,7 +528,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 @exception RTi.TS.TSException Throws if there is a problem formatting the
 output.
 */
-public List formatOutput( PropList proplist )
+public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "Irregular.formatOutput";	
 	int dl = 20;
@@ -764,12 +762,12 @@ throws TSException
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return list of strings that are written to the file.
 @param fp Writer to receive output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( PrintWriter fp, PropList props )
+public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException
 {	List<String> formatted_output = null;
 	String routine = "MonthTS.formatOutput(Writer,props)";
@@ -855,18 +853,10 @@ throws TSException
 }
 
 /**
-Free the data space.  Not used in Java because of garbage-collection.
-This method does set the data array to null.
-*/
-public void freeDataSpace(  )
-{	__ts_data_head = null;
-}
-
-/**
-Return the data array Vector.
+Return the data array list.
 @return The reference to the data array.  Use caution when manipulating.
 */
-public List getData()
+public List<TSData> getData()
 {	return __ts_data_head;
 }
 
