@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.HTMLWriter;
+import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -91,18 +92,25 @@ throws Exception
         HTMLWriter html = new HTMLWriter( null, htmlTitle, false );
         // Start the file and write the head section
         html.htmlStart();
+        if ( htmlTitle == null ) {
+            htmlTitle = "Time Series Summary";
+        }
         writeHtmlHead(html,htmlTitle);
         // Start the body section
         html.bodyStart();
         // Write introduction information
-        //htmlWriteCheckFileIntro( html, userTitle, processor, newComments2 );
+        String userTitle = null;
+        List<String> notes = null;
+        writeHtmlIntro( html, userTitle, notes );
+        // Write the time series list
+        List<TS> tslist = getTSList();
+        writeHtmlTimeSeriesListTable ( html, tslist );
+        // Write the summary for each time series.
         int count = 0;
-        for ( TS ts : getTSList() ) {
+        for ( TS ts : tslist ) {
             ++count;
-            if ( count > 1 ) {
-                // Add a horizontal separator
-                html.horizontalRule();
-            }
+            // Add a horizontal separator before the time series
+            html.horizontalRule();
             // Determine the precision based on data units
             if ( precision == null ) {
                 // Try to get units information for default...
@@ -115,7 +123,7 @@ throws Exception
                     precision = new Integer(2);
                 }
             }
-            writeHtmlForOneTimeSeries ( html, ts, yearType, outputStart, outputEnd, precision );
+            writeHtmlForOneTimeSeries ( html, ts, count, yearType, outputStart, outputEnd, precision );
         }
         // Close the body section and file
         html.bodyEnd();
@@ -131,11 +139,10 @@ throws Exception
 Write the HTML for one month-interval time series.
 @param ts monthly time series to format as HTML.
 */
-private void writeHtmlForOneMonthTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+private void writeHtmlForOneMonthTimeSeries ( HTMLWriter html, TS ts, int count, YearType yearType,
     DateTime outputStart, DateTime outputEnd, Integer precision )
 throws Exception
-{
-    html.heading (2,"Time series " + ts.getIdentifier() + " (" + ts.getDescription() + ")" );
+{   String routine = getClass().getName() + ".writeHtmlForOneMonthTimeSeries";
     
     // Make a local copy of the output start/end
     
@@ -174,9 +181,14 @@ throws Exception
         // Assume averages...
         tableHeaders[13] = "Average";
     }
-    // Other table headings depend on year type
-    for ( int i = 0; i < 12; i++ ) {
-        tableHeaders[i + 1] = TimeUtil.monthAbbreviation(i + 1);
+    // Month column headings depend on year type
+    int iMonth = yearType.getStartMonth();
+    for ( int i = 1; i <= 12; i++ ) {
+        tableHeaders[i] = TimeUtil.monthAbbreviation(iMonth);
+        ++iMonth;
+        if ( iMonth == 13 ) {
+            iMonth = 1;
+        }
     }
     html.tableHeaders( tableHeaders );
     html.tableRowEnd();
@@ -190,12 +202,12 @@ throws Exception
     else {
         // Need to adjust for years with offsets
         if ( outputStart.getMonth() < yearType.getStartMonth() ) {
-            // Need to shift to include the previous irrigation year...
+            // Need to shift to include the previous year...
             outputStart.addYear ( -1 );
         }
         outputStart.setMonth ( yearType.getStartMonth() );
         if ( outputEnd.getMonth() > yearType.getStartMonth() ) {
-            // Need to include the next irrigation year...
+            // Need to include the next year...
             outputEnd.addYear ( 1 );
         }
         outputEnd.setMonth ( yearType.getEndMonth() );
@@ -203,6 +215,7 @@ throws Exception
         // later than the calendar for some months...
         yearOffset = 1;
     }
+    Message.printStatus ( 2, routine, "Reset output period to full years " + outputStart + " to " + outputEnd );
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
     TSData data;
     int monthPos = -1; // use 0 as reference (0-11) for months
@@ -286,26 +299,49 @@ throws Exception
             html.tableRowEnd();
             yearTotal = ts.getMissing();
             nonMissingInRow = 0;
-            monthPos = -1; // Will be incremented at the start of the loop
+            monthPos = -1; // Will be incremented at the start of the loop to be zero for first month column
         }
     }
     html.tableEnd();
 
-    // Write the data flag notes - loop through flags found in the data and then see if
-    // flag metadata is available from the time series.  If so, use it.  If not display a general message.
-
-    List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
-    if ( foundFlagsListSorted.size() > 0 ) {
-        html.heading(2, "Data Flags" );
+    // Write the data flag notes - loop through flag meta-data that has been defined and then see if
+    // any flags have been found.  This generally ensures that flags are written in the order of processing logic (e.g.,
+    // fill with one method and then another), rather than the order of flags in the data, which can be rather random
+    // if iterating through the period.  If flag meta-data is found, use it.  Otherwise, display a general message.
+    if ( (foundFlagsList.size() > 0) || (missingCountTotal > 0) ) {
+        // Display the colors used in the table
+        if ( foundFlagsList.size() > 0 ) {
+            html.heading(3, "Data Flags (alphabetized)" );
+        }
+        else {
+            html.heading(3, "Data Flags" );
+        }
+        html.tableStart();
+        html.tableRowStart();
+        html.tableCellStart(propsFlaggedCell);
+        html.write("Flagged Value");
+        html.tableCellEnd();
+        html.tableCellStart(propsMissing);
+        html.write("Missing Value");
+        html.tableCellEnd();
+        html.tableRowEnd();
+        html.tableEnd();
+    }
+    if ( foundFlagsList.size() > 0 ) {
+        // Write the data flag notes - loop through flags found in the data and then see if
+        // flag meta-data is available from the time series.  If so, use it.  If not display a general message.
+        PropList propsFlagNote = new PropList("");
+        propsMissing.set("class","flagnote");
+        List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
         List<TSDataFlagMetadata> flagMetadataList = ts.getDataFlagMetadataList();
         // Loop through the found flags
         boolean found;
         for ( String foundFlag : foundFlagsListSorted ) {
-            // See if any metadata have been stored with the time series
+            // See if any meta-data have been stored with the time series
             found = false;
             for ( TSDataFlagMetadata flagMetadata : flagMetadataList ) {
                 if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
-                    // Use the found metadata...
+                    // Use the found meta-data...
                     html.write( foundFlag + " - " + flagMetadata.getDescription());
                     html.breakLine();
                     found = true;
@@ -314,7 +350,7 @@ throws Exception
             }
             if ( !found ) {
                 // Generic message
-                html.write ( foundFlag + " - no information available describing meaning" );
+                html.span ( foundFlag + " - no information available describing meaning", propsFlagNote );
                 html.breakLine();
             }
         }
@@ -325,21 +361,47 @@ throws Exception
 Write the HTML for one time series.
 @param ts time series to format as HTML
 */
-private void writeHtmlForOneTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+private void writeHtmlForOneTimeSeries ( HTMLWriter html, TS ts, int count, YearType yearType,
     DateTime outputStart, DateTime outputEnd, Integer precision )
 throws Exception
 {
+    // Write the heading for the time series
+    
+    html.heading (2, "Time series " + ts.getIdentifier() + " (" + ts.getDescription() + ")", "ts" + count);
+    
+    // Now write the data section
     // Currently only support monthly data
     
     if ( (ts.getDataIntervalBase() == TimeInterval.MONTH) && (ts.getDataIntervalMult() == 1) ) {
-        writeHtmlForOneMonthTimeSeries ( html, ts, yearType, outputStart, outputEnd, precision );
+        writeHtmlForOneMonthTimeSeries ( html, ts, count, yearType, outputStart, outputEnd, precision );
     }
     else {
-        html.headerStart(2);
         html.write("Time series " + ts.getIdentifier() + " (" + ts.getDescription() +
             ") cannot be formatted - only Month interval is supported." );
-        html.headerEnd(2);
-        return;
+    }
+    
+    // Write the comment section
+    
+    List<String> comments = ts.getComments();
+    if ( (comments != null) && (comments.size() > 0) ) {
+        html.heading (3,"Time series comments" );
+        html.preStart();
+        for ( String comment : comments ) {
+            html.write(comment + "\n");
+        }
+        html.preEnd();
+    }
+    
+    // Write the genesis
+    
+    List<String> genesisList = ts.getGenesis();
+    if ( (genesisList != null) && (genesisList.size() > 0) ) {
+        html.heading (3, "Time Series Creation History" );
+        html.preStart();
+        for ( String genesis : genesisList ) {
+            html.write(genesis + "\n");
+        }
+        html.preEnd();
     }
 }
 
@@ -360,6 +422,98 @@ private void writeHtmlHead( HTMLWriter html, String title ) throws Exception
 }
 
 /**
+Write the introduction to the report.
+@param html HTMLWriter object.
+@throws Exception
+ */
+private void writeHtmlIntro( HTMLWriter html, String userTitle, List<String> notes )
+throws Exception
+{
+    // proplist provides an anchor link for this section used from the table of contents
+    //PropList header_prop = new PropList("header");
+    //header_prop.add("name=header");
+    
+    html.heading(1, IOUtil.getProgramName() + " Time Series Summary" );
+    
+    if ( userTitle != null ) {
+        html.heading(2, userTitle );
+    }
+    
+    // Table of contents using same heading and section names as main content...
+    
+    html.heading(2, "Table of Contents" );
+    
+    String environmentHeading = "Program/Environment Information";
+    String environmentLink = "environment";
+    String notesHeading = "Notes";
+    String notesLink = "notes";
+    String tslistHeading = "Time Series List";
+    String tslistLink = "tslist";
+    
+    html.link("#"+environmentLink, environmentHeading );
+    html.write ( " - generated at runtime");
+    html.breakLine();
+    if ( (notes != null) && (notes.size() > 0) ) {
+        html.link("#"+notesLink, notesHeading );
+        html.write ( " - as written to output file headers");
+    }
+    html.breakLine();
+    html.link("#"+tslistLink, tslistHeading );
+    html.write ( " - list of time series");
+    html.breakLine();
+    
+    // Environment section of the report...
+    
+    html.heading(2, environmentHeading, environmentLink );
+    
+    DateTime now = new DateTime(DateTime.DATE_CURRENT);
+    String [] tableHeaders = { "Property", "Value" };
+    html.paragraphStart();
+    html.tableStart();
+    html.tableRowStart();
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+    String [] tds = new String[2];
+    tds[0] = "Program";
+    tds[1] = IOUtil.getProgramName() + " " + IOUtil.getProgramVersion();
+    html.tableRow( tds );
+    tds[0] = "User";
+    tds[1] = IOUtil.getProgramUser();
+    html.tableRow( tds );
+    tds[0] = "Creation time";
+    tds[1] = "" + now;
+    html.tableRow( tds );
+    tds[0] = "Computer";
+    tds[1] = IOUtil.getProgramHost();
+    html.tableRow( tds );
+    StringBuffer b = new StringBuffer();
+    b.append( IOUtil.getProgramName() );
+    String [] args = IOUtil.getProgramArguments();
+    for ( int i = 0; i < args.length; i++ ) {
+        b.append ( " " + args[i] );
+    }
+    tds[0] = "Command line";
+    tds[1] = b.toString();
+    html.tableRow( tds );
+    html.tableEnd();
+    html.paragraphEnd();
+    
+    // Notes
+    if ( (notes != null) && (notes.size() > 0) ) {
+        html.heading(2, notesHeading, notesLink );
+        html.preStart();
+        for ( String note : notes ) {
+            html.write(note + "\n");
+        }
+        html.preEnd();
+    }
+
+    html.heading(2, tslistHeading, tslistLink );
+    //htmlWriteProblemCounts ( html );
+    //htmlWriteCommands( html, processor.getCommands(), true ); // false to write text, true for table
+}
+
+/**
 Inserts the style attributes for a time series summary.
 @throws Exception
  */
@@ -371,7 +525,8 @@ throws Exception
         + "table { background-color:black; text-align:left; border:1; bordercolor:black; cellspacing:1; cellpadding:1 }\n"  
         + "th { background-color:#333366; text-align:center; vertical-align:bottom; color:white }\n"
         + "tr { valign:bottom; halign:right }\n"
-        + "td { background-color:white; text-align:right; vertical-align:bottom; }\n" 
+        + "td { background-color:white; text-align:right; vertical-align:bottom; font-style:normal; " +
+        		"font-family:courier; font-size:.75em }\n" 
         + "body { text-align:left; font-size:12pt; }\n"
         + "pre { font-size:12pt; margin: 0px }\n"
         + "p { font-size:12pt; }\n"
@@ -379,7 +534,49 @@ throws Exception
         + ".flagcell { background-color:lightgray; }\n"
         + ".missing { background-color:yellow; }\n"
         + ".flag { vertical-align: super; }\n"
+        + ".flagnote { font-style:normal; font-family:courier; font-size:.75em; }\n"
         + "</style>\n");
+}
+
+/**
+Write HTML table listing all time series, with embedded links to each.
+*/
+private void writeHtmlTimeSeriesListTable ( HTMLWriter html, List<TS> tslist )
+throws Exception
+{
+    if ( (tslist == null) || (tslist.size() == 0) ) {
+        return;
+    }
+    html.tableStart();
+    html.tableRowStart();
+    String [] tableHeaders = new String[6];
+    tableHeaders[0] = "#";
+    tableHeaders[1] = "TSID";
+    tableHeaders[2] = "Alias";
+    tableHeaders[3] = "Description";
+    tableHeaders[4] = "Start";
+    tableHeaders[5] = "End";
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+    int count = 0;
+    for ( TS ts : tslist ) {
+        ++count;
+        html.tableRowStart();
+        html.tableCell( "" + count );
+        html.tableCellStart();
+        html.link ( "#ts" + count, ts.getIdentifierString() );
+        html.tableCellEnd();
+        html.tableCellStart();
+        html.link( "#ts" + count, ts.getAlias());
+        html.tableCellEnd();
+        html.tableCellStart();
+        html.link( "#ts" + count, ts.getDescription() );
+        html.tableCellEnd();
+        html.tableCell( "" + ts.getDate1() );
+        html.tableCell( "" + ts.getDate2() );
+        html.tableRowEnd();
+    }
+    html.tableEnd();
 }
 
 }
