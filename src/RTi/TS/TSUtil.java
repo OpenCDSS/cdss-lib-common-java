@@ -315,6 +315,7 @@ import RTi.Util.Time.InvalidTimeIntervalException;
 import	RTi.Util.Time.TimeInterval;
 import	RTi.Util.Time.TimeUtil;
 import	RTi.Util.Time.TZ;
+import RTi.Util.Time.YearType;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -356,22 +357,19 @@ private static final int FILL_METHOD_CARRY_FORWARD	= 0x800;
 */
 
 /**
-Used with getPeriodFromTS, and getPeriodFromLimits and others.  Find the
-maximum period.
+Used with getPeriodFromTS, and getPeriodFromLimits and others.  Find the maximum period.
 */
-public final static int MAX_POR 	= 0;	// Return the maximum period
+public final static int MAX_POR = 0;
 /**
 Used with getPeriodFromTS and others.  Find the minimum (overlapping) period.
 */
-public final static int MIN_POR 	= 1;	// Return the minimum period
+public final static int MIN_POR = 1;
 /**
 Use the available period.  For example, when adding time series, does the
 resulting time series have the maximum (combined period),
-minimum (overlapping period), or original period (of the
-first time series).
+minimum (overlapping period), or original period (of the first time series).
 */
-public final static int AVAILABLE_POR 	= 2;	// Operate on the original
-						// period
+public final static int AVAILABLE_POR = 2;
 
 /**
 Used with createRunningAverageTS.
@@ -418,8 +416,7 @@ When used as a property, indicates that a time series transfer or analysis
 should occur strictly by date/time.  In other words, if using
 TRANSFER_BYDATETIME, Mar 1 will always line up with Mar 1, regardless of whether
 leap years are encountered.  However, if TRANSFER_SEQUENTIALLY is used, then
-data from Feb 29 of a leap year may be transferred to Mar 1 on the non-leapyear
-time series.
+data from Feb 29 of a leap year may be transferred to Mar 1 on the non-leapyear time series.
 */
 public static String TRANSFER_BYDATETIME = "ByDateTime";
 public static String TRANSFER_SEQUENTIALLY = "Sequentially";
@@ -623,8 +620,7 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 
-	// If we want the period of record to be all-inclusive, resize the
-	// period of record...
+	// If we want the period of record to be all-inclusive, resize the period of record...
 
 /* not enabled in Java - we just add to the period from the original time
     series...
@@ -651,11 +647,9 @@ throws TSException, Exception
 	}
 */
 
-	// Now loop through the time series list and add to the primary time
-	// series...
+	// Now loop through the time series list and add to the primary time series...
 
-	// Set starting and ending time for time loop based on period of
-	// "tsadd"...
+	// Set starting and ending time for time loop based on period of "tsadd"...
 
 	int ntslist = ts_to_add.size();
 	String req_units = ts.getDataUnits ();
@@ -669,8 +663,7 @@ throws TSException, Exception
 	// If missing_flag indicates missing data should result in missing data
 	// in the result, then a temporary array is needed to track missing...
 
-	if (	(missing_flag == SET_MISSING_IF_OTHER_MISSING) ||
-		(missing_flag == SET_MISSING_IF_ANY_MISSING) ) {
+	if ( (missing_flag == SET_MISSING_IF_OTHER_MISSING) || (missing_flag == SET_MISSING_IF_ANY_MISSING) ) {
 		set_to_missing = true;
 		int ndata = ts.getDataSize();
 		missing_indicators = new boolean[ndata];
@@ -710,9 +703,7 @@ throws TSException, Exception
 			// For this data type, if we can find a matching date,
 			// add to that date.  Otherwise, add a new data point
 			// for the date...  For now, don't support...
-			Message.printWarning ( 3, routine,
-			"IrregularTS not supported.  Not adding." +
-			tspt.getIdentifier().toString() );
+			Message.printWarning ( 3, routine, "IrregularTS not supported.  Not adding." + tspt.getIdentifier().toString() );
 			continue;
 /* Irregular not supported...
 			IrregularTS irrts = (IrregularTS)ts;
@@ -735,135 +726,90 @@ throws TSException, Exception
 			}
 */
 		}
-		else {	// Regular interval.  Loop using addInterval...
+		else {
+		    // Regular interval.  Loop using addInterval...
 			DateTime start_date = new DateTime ( ts.getDate1() );
 			DateTime end_date = new DateTime ( ts.getDate2() );
 			DateTime date = new DateTime ( start_date );
 			
-			for (	timestep_index = 0;
+			for ( timestep_index = 0;
 				date.lessThanOrEqualTo( end_date);
 				date.addInterval(interval_base, interval_mult),
 				++timestep_index ) {
-				// If a previous time series had missing data
-				// at this time step and set_to_missing is true
-				// then the value has already been set to
-				// missing and there is no reason to do anything
-				// else...
-				if (	set_to_missing &&
-					missing_indicators[timestep_index] ) {
-					// Increment this because we are in
-					// effect treating as missing.
+				// If a previous time series had missing data at this time step and set_to_missing is true
+				// then the value has already been set to missing and there is no reason to do anything else...
+				if ( set_to_missing && missing_indicators[timestep_index] ) {
+					// Increment this because we are in effect treating as missing.
 					++nmissing;
 					continue;
 				}
-				// If here, the previous time series in the
-				// loop did NOT have missing data at this
-				// timestep (but the time series being added to
-				// might)...
-				// Add the data, converting units if
-				// necessary...
+				// If here, the previous time series in the loop did NOT have missing data at this
+				// timestep (but the time series being added to might)...
+				// Add the data, converting units if necessary...
 				data_value_to_add = tspt.getDataValue ( date );
 				if ( tspt.isDataMissing ( data_value_to_add ) ){
-					// The value to add is missing so don't
-					// do it.  If we are tracking missing,
-					// also set in the array.  This will
-					// prevent other time series from
-					// processing.
+					// The value to add is missing so don't do it.  If we are tracking missing,
+					// also set in the array.  This will prevent other time series from processing.
 					++nmissing;
 					if ( set_to_missing ) {
-						missing_indicators[
-						timestep_index] = true;
-						ts.setDataValue ( date,
-							ts_missing );
+						missing_indicators[timestep_index] = true;
+						ts.setDataValue ( date, ts_missing );
 					}
 					continue;
 				}
-				// If here, there is a non-missing data value
-				// to add so do it...
+				// If here, there is a non-missing data value to add so do it...
 				data_value = ts.getDataValue ( date );
-				if (	ts.isDataMissing( data_value ) ) {
-					// Original data is missing so reset
-					// and multiply by the factor...
-					if (	missing_flag ==
-						SET_MISSING_IF_ANY_MISSING ) {
-						missing_indicators[
-						timestep_index] = true;
+				if ( ts.isDataMissing( data_value ) ) {
+					// Original data is missing so reset and multiply by the factor...
+					if ( missing_flag == SET_MISSING_IF_ANY_MISSING ) {
+						missing_indicators[timestep_index] = true;
 						++nmissing;
 						continue;
 					}
-					else {	if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							routine, "At " +
-							date.toString() +
-							", setting " +
-							(data_value_to_add*mult
-							+ add)*factor[i] +
-							" to " + data_value );
+					else {
+					    if ( Message.isDebugOn ) {
+							Message.printDebug ( dl, routine, "At " + date + ", setting " +
+							(data_value_to_add*mult + add)*factor[i] + " to " + data_value );
 						}
-						ts.setDataValue ( date,
-						(data_value_to_add*mult + add)*
-						factor[i] );
+						ts.setDataValue ( date, (data_value_to_add*mult + add)*factor[i] );
 					}
 				}
-				else {	// Add to current value...
+				else {
+				    // Add to current value...
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "At " +
-						date.toString() +
-						", adding " +
-						(data_value_to_add*mult + add)
-						*factor[i] +
-						" to " + data_value );
+						Message.printDebug ( dl, routine, "At " + date + ", adding " +
+						(data_value_to_add*mult + add)*factor[i] + " to " + data_value );
 					}
-					ts.setDataValue ( date, data_value + 
-					(data_value_to_add*mult + add)*
-					factor[i] );
+					ts.setDataValue ( date, data_value + (data_value_to_add*mult + add)*factor[i] );
 				}
 			}
 			if ( factor[i] >= 0.0 ) {
 				if ( factor[i] == 1.0 ) {
-					ts.setDescription ( ts.getDescription()
-					+" + " + tspt.getDescription () );
-					ts.addToGenesis ( "Added \"" +
-					tspt.getIdentifierString() +
-					"\" to this time series (#missing=" +
-					nmissing + ")." );
+					ts.setDescription ( ts.getDescription() + " + " + tspt.getDescription () );
+					ts.addToGenesis ( "Added \"" + tspt.getIdentifierString() +
+					    "\" to this time series (#missing=" + nmissing + ")." );
 				}
-				else {	ts.setDescription ( ts.getDescription()
-					+" + " + StringUtil.formatString(
-					factor[i],"%.3f") + "*" +
-					tspt.getDescription () );
-					ts.addToGenesis ( "Added \"" +
-					StringUtil.formatString(
-					factor[i],"%.3f") + "*" +
-					tspt.getIdentifierString() +
-					"\" to this time series (#missing=" +
-					nmissing + ")." );
+				else {
+				    ts.setDescription ( ts.getDescription() + " + " + StringUtil.formatString(
+				         factor[i],"%.3f") + "*" + tspt.getDescription () );
+					ts.addToGenesis ( "Added \"" + StringUtil.formatString( factor[i],"%.3f") + "*" +
+					    tspt.getIdentifierString() + "\" to this time series (#missing=" + nmissing + ")." );
 				}
 			}
 			else {	if ( factor[i] != -1.0 ) {
-					ts.setDescription ( ts.getDescription()
-					+ " minus " + StringUtil.formatString(
-					-factor[i],"%.3f") + "*" +
-					tspt.getDescription () );
-					ts.addToGenesis ( "Subtracted \"" +
-					StringUtil.formatString(factor[i],
-					"%.3f") + "*" +
-					tspt.getIdentifierString() +
-					"\" from this time series (#missing=" +
-					nmissing + ")." );
+					    ts.setDescription ( ts.getDescription() + " minus " + StringUtil.formatString(
+					        -factor[i],"%.3f") + "*" + tspt.getDescription () );
+					ts.addToGenesis ( "Subtracted \"" + StringUtil.formatString(factor[i], "%.3f") + "*" +
+					    tspt.getIdentifierString() + "\" from this time series (#missing=" + nmissing + ")." );
 				}
-				else {	ts.setDescription ( ts.getDescription()
-					+ " minus " + tspt.getDescription () );
-					ts.addToGenesis ( "Subtracted \"" +
-					tspt.getIdentifierString() +
-					"\" from this time series (#missing=" +
-					nmissing + ")." );
+				else {
+				    ts.setDescription ( ts.getDescription() + " minus " + tspt.getDescription () );
+					ts.addToGenesis ( "Subtracted \"" + tspt.getIdentifierString() +
+					"\" from this time series (#missing=" + nmissing + ")." );
 				}
 			}
 		}
 	}
-	missing_indicators = null;
 	return ts;
 	}
 	catch ( Exception e ) {
@@ -878,15 +824,13 @@ throws TSException, Exception
 }
 
 /**
-Add a constant to the time series.  The overloaded version is called with
-missing_flag=SET_MISSING_IF_ANY_MISSING.
+Add a constant to the time series.  The overloaded version is called with missing_flag=SET_MISSING_IF_ANY_MISSING.
 @param ts Time series to add to.
 @param start_date Date to start adding.
 @param end_date Date to stop adding.
 @param add_value Data value to add to the time series.
 */
-public static void addConstant(	TS ts, DateTime start_date,
-				DateTime end_date, double add_value )
+public static void addConstant(	TS ts, DateTime start_date, DateTime end_date, double add_value )
 {	String  routine = "TSUtil.addConstant";
 
 	if ( ts == null ) {
@@ -908,11 +852,9 @@ missing_flag=SET_MISSING_IF_ANY_MISSING.
 @param month Month to add.  If negative, add for every month.
 @param add_value Data value to add to time series.
 */
-public static void addConstant(	TS ts, DateTime start_date,
-				DateTime end_date, int month, double add_value )
+public static void addConstant(	TS ts, DateTime start_date, DateTime end_date, int month, double add_value )
 {
-	addConstant ( ts, start_date, end_date, month, add_value,
-			SET_MISSING_IF_ANY_MISSING );
+	addConstant ( ts, start_date, end_date, month, add_value, SET_MISSING_IF_ANY_MISSING );
 }
 
 /**
@@ -976,31 +918,25 @@ public static void addConstant(	TS ts, DateTime start_date,
 				oldvalue = tsdata.getData();
 				if ( !ts.isDataMissing(oldvalue) ) {
 						tsdata.setData(oldvalue + add_value);
-						// Have to do this manually since TSData
-						// are being modified directly to
-						// improve performance...
+						// Have to do this manually since TSData are being modified directly to improve performance...
 						ts.setDirty ( true );
 				}
 				else if ( missing_flag == IGNORE_MISSING ) {
 					tsdata.setData ( add_value );
-					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
+					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
 			}
 		}
 	}
-	else {	// Loop using addInterval...
-		// Set the precision of the date to that of the time series to
-		// prevent issues.
+	else {
+	    // Loop using addInterval...
+		// Set the precision of the date to that of the time series to prevent issues.
 		start.setPrecision( interval_base );
 		end.setPrecision ( interval_base );
 		DateTime date = new DateTime ( start );
 		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			if ( (month >= 0) && (date.getMonth() != month) ) {
 				continue;
 			}
@@ -1018,14 +954,14 @@ public static void addConstant(	TS ts, DateTime start_date,
 
 	if ( month >= 0 ) { 
 		ts.addToGenesis ( "Added " + StringUtil.formatString(add_value,"%.6f") +
-				" " + start + " to " + end + " (month " + month + ")." );
+			" " + start + " to " + end + " (month " + month + ")." );
 	}
-	else {	ts.addToGenesis ( "Added " + StringUtil.formatString(add_value,"%.6f") +
+	else {
+	    ts.addToGenesis ( "Added " + StringUtil.formatString(add_value,"%.6f") +
 			" " + start + " to " + end + "." );
 	}
 
-	ts.setDescription ( ts.getDescription() + ", add " +
-			StringUtil.formatString(add_value,"%.3f") );
+	ts.setDescription ( ts.getDescription() + ", add " + StringUtil.formatString(add_value,"%.3f") );
 }
 
 /**
@@ -1033,8 +969,7 @@ Adjust extreme values in a time series by maintaining "mass" and adjusting nearb
 @param ts time series to adjust.
 @param adjustMethod If "Average", then values on each side of the extreme are
 added until the average does not exceed the extreme value.  Then each
-non-missing value is set to the average.  If "WeightedAverage" (currently not
-implemented), a similar
+non-missing value is set to the average.  If "WeightedAverage" (currently not implemented), a similar
 approach is used except that the adjustment is distributed according to the
 orginal data values, with values that exceed the extreme being set to the extreme.
 @param extremeToAdjust AdjustMinimum or AdjustMaximum, indicating whether low or
@@ -1043,14 +978,13 @@ high extremes are being adjusted.
 example, specify zero and extremeToAdjust="AdjustMinimum" to adjust negative values.
 @param maxIntervals The maximum number of intervals on each side of the extreme
 that can be used to computed an adjusted value.  If the value is exceeded
-without reaching a satisfactory adjustment, do not adjust.  Specify zero to
-allow any number of intervals.
+without reaching a satisfactory adjustment, do not adjust.  Specify zero to allow any number of intervals.
 @param analysisStart Start of the analysis period or null for the full period.
 @param analysisEnd End of the analysis period or null for the full period.
 @exception Exception if there is an input error.
 */
 public static void adjustExtremes (	TS ts, String adjustMethod,	String extremeToAdjust,	double extremeValue,
-					int maxIntervals, DateTime analysisStart,	DateTime analysisEnd )
+					int maxIntervals, DateTime analysisStart, DateTime analysisEnd )
 throws Exception
 {	String  routine = "TSUtil.adjustExtremes";
 	double	oldvalue;
@@ -1115,7 +1049,7 @@ throws Exception
 				}
 				if ( left_date.lessThan(start) ) {
 					ts.addToGenesis ( "AdjustExtremes:  reached period start trying to adjust value at " +
-					        date + " - not adjusting." );
+				        date + " - not adjusting." );
 					do_adjust = false;
 					break;
 				}
@@ -1131,15 +1065,13 @@ throws Exception
 				right_date.addInterval ( interval_base, interval_mult );
 				if ( right_date.greaterThan(end) ) {
 					ts.addToGenesis (
-					"AdjustExtremes:  reached period end trying to adjust value at " + date +
-					" - not adjusting." );
+					"AdjustExtremes:  reached period end trying to adjust value at " + date + " - not adjusting." );
 					do_adjust = false;
 					break;
 				}
 				right_value = ts.getDataValue(right_date);
 				if ( ts.isDataMissing(right_value) ) {
-					ts.addToGenesis (
-					"AdjustExtremes:  found missing data at " + right_date +" - skipping it.");
+					ts.addToGenesis ( "AdjustExtremes:  found missing data at " + right_date +" - skipping it.");
 				}
 				else {
 				    total += (right_value - extremeValue);
@@ -1198,10 +1130,10 @@ throws Exception
 /**
  * Returns whether any Time Series is editable.
  *  
- * @param tslist Vector of time series 
+ * @param tslist list of time series 
  * @return True if a time series is editable
  */
-public static boolean areAnyTimeSeriesEditable(List tslist)
+public static boolean areAnyTimeSeriesEditable(List<TS> tslist)
 {
   int size =0;
   if ( tslist != null )
@@ -1212,7 +1144,7 @@ public static boolean areAnyTimeSeriesEditable(List tslist)
 
   for ( int i = 0; i < size; i++ )
     {
-      ts = (TS)tslist.get(i);
+      ts = tslist.get(i);
       if ( ts == null ) 
         {
           continue;
@@ -1294,8 +1226,7 @@ public static boolean areIntervalsSame ( List<TS> tslist )
 
 /**
 Shift and attenuate the time series using the ARMA (AutoRegressive Moving Average) approach.
-The time series is copied internally and is then updated where the output
-time series is computed with:
+The time series is copied internally and is then updated where the output time series is computed with:
 O[t] = a1*O[t-1] + a2*O[t-2] + ... + ap*O[t-p] + b0*I[t] + b1*I[t-1] + ... + bq*I[t-q]
 Startup values that are missing in O are set to I.
 @param oldts Time series to shift.
@@ -1334,11 +1265,9 @@ throws Exception
 	TimeInterval interval_data = new TimeInterval(
 		oldts.getDataIntervalBase(), oldts.getDataIntervalMult() );
 	TimeInterval interval_ARMA =TimeInterval.parseInterval ( ARMA_interval);
-	int interval_ratio = 1;	// Factor to expand data due to ARMA interval
-				// being less than data interval.
+	int interval_ratio = 1;	// Factor to expand data due to ARMA interval being less than data interval.
 	int ARMA_ratio = 1;	// Factor to skip expanded data due to ARMA
-				// interval being longer than for the expanded
-				// data.
+				// interval being longer than for the expanded data.
 	if ( !interval_data.equals(interval_ARMA) ) {
 		// Intervals are different.  For daily and less, can get the
 		// seconds and compare.  For longer, don't currently support.
@@ -1359,8 +1288,7 @@ throws Exception
 		seconds_values[1] = seconds_ARMA;
 		int [] common_denoms = MathUtil.commonDenominators ( seconds_values, 0 );
 		if ( common_denoms == null ) {
-			message = "Cannot currently use ARMA when ARMA interval and data interval do not\n" +
-			"have a common denominator.";
+			message = "Cannot currently use ARMA when ARMA interval and data interval do not have a common denominator.";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
@@ -1390,8 +1318,7 @@ throws Exception
 
 	// Now expand the time series because of the interval_ratio.
 
-	double [] oldts_data = null;	// Old data in base interval (interval
-					// that divides into data and ARMA interval).
+	double [] oldts_data = null; // Old data in base interval (interval that divides into data and ARMA interval).
 	double [] newts_data = null;	// Routed data in base interval.
 	double missing = oldts.getMissing();
 	if ( interval_ratio == 1 ) {
@@ -1514,8 +1441,7 @@ throws Exception
 
 	// Routing of the individual values in the ARMA interval is now
 	// complete.  Total back to the original data time step.  Use the
-	// original oldts_data0 array to store the values (next step will put
-	// back in the time series)...
+	// original oldts_data0 array to store the values (next step will put back in the time series)...
 
 	int j = 0;
 	double double_ratio = (double)interval_ratio;
@@ -1552,7 +1478,7 @@ throws Exception
 
 	// Now return the modified original time series...
 
-	List genesis = oldts.getGenesis();
+	List<String> genesis = oldts.getGenesis();
 	oldts.setDescription ( oldts.getDescription() + ",ARMA" );
 	genesis.add(genesis_length, "Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) +
 	 ") using ARMA interval " + ARMA_interval +	" and coefficients:" );
@@ -1561,20 +1487,17 @@ throws Exception
 		"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f") );
 	}
 	for ( i = 0; i < n_b; i++ ) {
-		genesis.add ( (genesis_length + n_a + 1 + i), "    b" + i + " = " +
-			StringUtil.formatString(b[i], "%.6f") );
+		genesis.add ( (genesis_length + n_a + 1 + i), "    b" + i + " = " + StringUtil.formatString(b[i], "%.6f") );
 	}
 	genesis.add ((genesis_length + n_a + n_b + 1),
 	"ARMA: The original number of data points were expanded by a factor " );
 	genesis.add ((genesis_length + n_a + n_b + 2),
 	"ARMA: of " + interval_ratio + " before applying ARMA." );
 	if ( ARMA_ratio == 1 ) {
-		genesis.add ((genesis_length + n_a + n_b + 3),
-		"ARMA: All points were then used as the final result." );
+		genesis.add ((genesis_length + n_a + n_b + 3), "ARMA: All points were then used as the final result." );
 	}
 	else {	genesis.add ((genesis_length + n_a + n_b + 3),
-		"ARMA: 1/" + ARMA_ratio +
-		" points were then used to compute the averaged final result." );
+		"ARMA: 1/" + ARMA_ratio + " points were then used to compute the averaged final result." );
 	}
 	oldts.setGenesis ( genesis );
 	return oldts;
@@ -1587,9 +1510,9 @@ dimension (e.g., each is a length).
 If it is necessary to guarantee that the units are exactly the same, call the
 version of this method that takes the boolean flag.
 @return true if the units in the time series are compatible.
-@param tslist Vector of time series.
+@param tslist list of time series.
 */
-public static boolean areUnitsCompatible ( List tslist )
+public static boolean areUnitsCompatible ( List<TS> tslist )
 {	return areUnitsCompatible ( tslist, false );
 }
 
@@ -1598,12 +1521,12 @@ Determine whether the units for a list of time series are compatible.
 The units are allowed to be different as long as they are within the same
 dimension (e.g., each is a length).
 @return true if the units in the time series are compatible, according to the "require_same" flag.
-@param tslist Vector of time series.
+@param tslist list of time series.
 @param require_same Flag indicating whether the units must exactly match (no
 conversion necessary).  If true, the units must be the same.  If false, the
 units must only be in the same dimension (e.g., "CFS" and "GPM" would be compatible).
 */
-public static boolean areUnitsCompatible ( List tslist, boolean require_same )
+public static boolean areUnitsCompatible ( List<TS> tslist, boolean require_same )
 {	if ( tslist == null ) {
 		// No units.  Decide later whether to throw an exception.
 		return true;
@@ -1618,7 +1541,7 @@ public static boolean areUnitsCompatible ( List tslist, boolean require_same )
 	TS ts = null;
 	String units_string = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -1628,10 +1551,7 @@ public static boolean areUnitsCompatible ( List tslist, boolean require_same )
 		}
 		units.add ( units_string );
 	}
-	units_string = null;
 	boolean result = DataUnits.areUnitsStringsCompatible(units, require_same);
-	units = null;
-	ts = null;
 	return result;
 }
 
@@ -1640,15 +1560,13 @@ Average the data for a list of time series by averaging values at each interval.
 The new time series will have the period requested by the start and end dates.
 The data type, units, etc., will be taken from the first time series in the list
 and should be reset if necessary after the call.  It is assumed that the time
-series align in date/time (i.e., this method cannot be used to shift time series
-in time before averaging).
+series align in date/time (i.e., this method cannot be used to shift time series in time before averaging).
 @param tslist Time series to get data from, in order to calculate the average.
 @param start_date Date to start data analysis (relative to the new average
 time series).  If null, the earliest date/time is taken from the time series
 list.
 @param end_date Date to stop the data transfer (relative to the new average
-time series).  If null, the latest date/time is taken from the time series
-list.
+time series).  If null, the latest date/time is taken from the time series list.
 @param props Properties to control the average.  Recognized properties are:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -1680,12 +1598,10 @@ throws Exception
 
 	// Check the properties that influence this method...
 
-	boolean transfer_bydate = true;	// Default - make dates match in both
-					// time series.
+	boolean transfer_bydate = true;	// Default - make dates match in both time series.
 	if ( props != null ) {
 		String prop_val = props.getValue("TransferData");
-		if (	(prop_val != null) &&
-			prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
+		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
@@ -1713,8 +1629,7 @@ throws Exception
 	}
 	TS ts = null;	// Used for temporary data.
 
-	// Create a new time series to be returned, using the first time series
-	// in the list as a template...
+	// Create a new time series to be returned, using the first time series in the list as a template...
 
 	ts = (TS)tslist.get(0);
 	TS newts = newTimeSeries ( ts.getIdentifierString(), true );
@@ -1742,12 +1657,10 @@ throws Exception
 
 	DateTime date = new DateTime ( start );	// Start time for iterator.
 
-	TS [] tsarray = null;			// Time series list as an array,
-						// to improve performance.
-	TSIterator [] tsi = null;		// TS iterators for each time
-						// series in list.
-	int size = tslist.size();		// Number of TS in list.
-	int its = 0;				// Loop counter for time series.
+	TS [] tsarray = null; // Time series list as an array, to improve performance.
+	TSIterator [] tsi = null; // TS iterators for each time series in list.
+	int size = tslist.size(); // Number of TS in list.
+	int its = 0; // Loop counter for time series.
 	tsarray = new TS[size];
 	// Assign the time series to an array to increase performance...
 	for ( its = 0; its < size; its++ ) {
@@ -1766,14 +1679,11 @@ throws Exception
 
 	// Loop until the end date has been reached...
 
-	double data_value = 0.0;		// Data value from time series.
-	double missing = newts.getMissing();	// Missing data value.
-	double average = 0.0;			// Average of time series data
-						// values at an interval.
-	int count = 0;				// Number of values averaged.
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	double data_value = 0.0; // Data value from time series.
+	double missing = newts.getMissing(); // Missing data value.
+	double average = 0.0; // Average of time series data values at an interval.
+	int count = 0; // Number of values averaged.
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		// Initialize the average value...
 		average = missing;
 		count = 0;
@@ -1783,18 +1693,19 @@ throws Exception
 			if ( transfer_bydate ) {
 				data_value = tsarray[its].getDataValue ( date );
 			}
-			else {	// Use the iterator...
+			else {
+			    // Use the iterator...
 				tsi[its].next();
 				data_value = tsi[its].getDataValue ();
 			}
 			if ( !tsarray[its].isDataMissing(data_value) ) {
 				++count;
 				if ( !newts.isDataMissing(average) ) {
-					// Have previously initialized the
-					// total...
+					// Have previously initialized the total...
 					average += data_value;
 				}
-				else {	// Have not initialized the average...
+				else {
+				    // Have not initialized the average...
 					average = data_value;
 				}
 			}
@@ -1807,19 +1718,16 @@ throws Exception
 	
 	// Fill in the genesis information...
 
-	newts.addToGenesis ( "Averaged data " + start.toString() +
-		" to " + end.toString() + " by using values from:" );
+	newts.addToGenesis ( "Averaged data " + start.toString() + " to " + end.toString() + " by using values from:" );
 	for ( its = 0; its < size; its++ ) {
 		ts = tsarray[its];
 		newts.addToGenesis ( "    " + ts.getIdentifierString() );
 	}
 	if ( !transfer_bydate ) {
-		newts.addToGenesis (
-			"Data values were transferred by date/time." );
+		newts.addToGenesis ( "Data values were transferred by date/time." );
 	}
-	else {	newts.addToGenesis (
-			"Data values were transferred sequentially from start "+
-			"date/time" );
+	else {
+	    newts.addToGenesis ( "Data values were transferred sequentially from start date/time" );
 	}
 	return newts;
 }
@@ -1827,8 +1735,7 @@ throws Exception
 /**
 Blend one time series into another.  Only regular time series
 can be blended.  The resulting time series will have the combined period of both
-time series.  Only data after the last date in the original time series will be
-blended.
+time series.  Only data after the last date in the original time series will be blended.
 @param ts Time series to be modified.
 @param tsb Time series to blend.
 @exception Exception if there is an error processing (e.g., incompatible units).
@@ -1844,40 +1751,35 @@ throws Exception
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
-	if (	(interval_base != tsb.getDataIntervalBase()) ||
-		(interval_mult != tsb.getDataIntervalMult()) ) {
-		throw new Exception (
-		"Cannot blend data with different intervals (" +
-		ts.getIdentifierString() + " and " +
-		tsb.getIdentifierString() + ")." );
+	if ( (interval_base != tsb.getDataIntervalBase()) || (interval_mult != tsb.getDataIntervalMult()) ) {
+		throw new Exception ( "Cannot blend data with different intervals (" +
+		ts.getIdentifierString() + " and " + tsb.getIdentifierString() + ")." );
 	}
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		throw new Exception (
-		"Cannot blend irregular interval data (" +
-		ts.getIdentifierString() + ")" );
+		throw new Exception ( "Cannot blend irregular interval data (" + ts.getIdentifierString() + ")" );
 	}
 
 	// The output period is at least that of "ts" and if the end of tsb
 	// is > ts, then the end date is that of tsb...
 
 	DateTime ts_date2_orig = new DateTime ( ts.getDate2() );
-	DateTime start	= new DateTime ( ts.getDate1() );
-	DateTime end	= new DateTime ( ts.getDate2() );
+	DateTime start = new DateTime ( ts.getDate1() );
+	DateTime end = new DateTime ( ts.getDate2() );
 	if ( tsb.getDate2().greaterThan(end) ) {
 		end = new DateTime ( tsb.getDate2() );
 		// Change the period of the original time series...
 		ts.changePeriodOfRecord ( start, end );
 	}
 
-	// Loop using addInterval.  Only blend the second time series after
-	// data in the first.
+	// Loop using addInterval.  Only blend the second time series after data in the first.
 
 	DateTime date = null;
 	if ( tsb.getDate1().greaterThan(ts_date2_orig) ) {
 		// Reset to start transfer at the start of the second TS...
 		date = new DateTime ( tsb.getDate1() );
 	}
-	else {	// Process a partial tsb time series after the end of the first
+	else {
+	    // Process a partial tsb time series after the end of the first
 		// time series (end of first + one interval)...
 		date = new DateTime ( ts_date2_orig );
 		date.addInterval ( interval_base, interval_mult );
@@ -1896,16 +1798,9 @@ throws Exception
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "Blended " + start.toString() +
-		" to " + end.toString() + ": " + tsb.getDescription() + "." );
+	ts.addToGenesis ( "Blended " + start.toString() + " to " + end.toString() + ": " + tsb.getDescription() + "." );
 
-	ts.setDescription ( ts.getDescription() + ", blend" +
-		tsb.getDescription() );
-
-	start = null;
-	end = null;
-	date = null;
-	ts_date2_orig = null;
+	ts.setDescription ( ts.getDescription() + ", blend" + tsb.getDescription() );
 }
 
 /**
@@ -1921,8 +1816,7 @@ spacing of data is unknown unless a time series is supplied).
 @param interval_base The time series data interval base.
 @param interval_mult The time series data interval multiplier.
 */
-public static int calculateDataSize (	DateTime start_date, DateTime end_date,
-					int interval_base, int interval_mult )
+public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_base, int interval_mult )
 {	String routine = "TSUtil.calculateDataSize";
 
 	if ( start_date == null ) {
@@ -1934,33 +1828,27 @@ public static int calculateDataSize (	DateTime start_date, DateTime end_date,
 		return 0;
 	}
 	if ( interval_base == TimeInterval.YEAR ) {
-		return YearTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return YearTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
 	else if ( interval_base == TimeInterval.MONTH ) {
-		return MonthTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return MonthTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
 	else if ( interval_base == TimeInterval.DAY ) {
-		return DayTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return DayTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
 	else if ( interval_base == TimeInterval.HOUR ) {
-		return HourTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return HourTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
 	else if ( interval_base == TimeInterval.MINUTE ) {
-		return MinuteTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return MinuteTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
 	else if ( interval_base == TimeInterval.IRREGULAR ) {
 		// This will just count the data values in the period...
-		return IrregularTS.calculateDataSize ( start_date, end_date,
-			interval_mult );
+		return IrregularTS.calculateDataSize ( start_date, end_date, interval_mult );
 	}
-	else {	// Interval is not supported.  Big problem!
-		Message.printWarning ( 2, routine,
-		"Time series interval " + interval_base + " is not supported" );
+	else {
+	    // Interval is not supported.  Big problem!
+		Message.printWarning ( 2, routine, "Time series interval " + interval_base + " is not supported" );
 		return 0;
 	}
 }
@@ -1975,8 +1863,7 @@ end dates are not specifiec, the time series limits will be used.
 @param start_date The first date of the period.
 @param end_date The last date of the period.
 */
-public static int calculateDataSize (	TS ts, DateTime start_date,
-					DateTime end_date )
+public static int calculateDataSize ( TS ts, DateTime start_date, DateTime end_date )
 {	if ( ts == null ) {
 		return 0;
 	}
@@ -1991,13 +1878,11 @@ public static int calculateDataSize (	TS ts, DateTime start_date,
 	*/
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
 		// Need to do something different than for regular...
-		// For now, put in the IrregularTS code but may have trouble
-		// with C++...
 		IrregularTS irrts = (IrregularTS)ts;
 		return irrts.calculateDataSize ( start_date, end_date );
 	}
-	else {	return calculateDataSize ( start_date, end_date,
-			ts.getDataIntervalBase(), ts.getDataIntervalMult() );
+	else {
+	    return calculateDataSize ( start_date, end_date, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
 	}
 }
 
@@ -2037,15 +1922,14 @@ units abbreviations stored in the DataUnits class data.
 cannot be found.  Requested units of blank or null result in no change.
 */
 public static void convertUnits ( TS ts, String req_units ) throws TSException
-{	double	mult, add;
-	String	rtn = "TSUtil.convertUnits";
+{	double mult, add;
+	String rtn = "TSUtil.convertUnits";
 	int	dl = 20;
 
 	// Make sure that there is a time series...
 
 	if ( ts == null ) {
-		Message.printWarning ( 2, rtn,
-		"Null time series - no action taken." );
+		Message.printWarning ( 2, rtn, "Null time series - no action taken." );
 		return;
 	}
 
@@ -2055,9 +1939,7 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 		// Probably no need to even notify the user.  Some software may
 		// call this code even when units are set to a default.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, rtn,
-			"No coversion necessary since units are null or " +
-			"blank." );
+			Message.printDebug ( dl, rtn, "No coversion necessary since units are null or blank." );
 		}
 		return;
 	}
@@ -2067,10 +1949,8 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 	String units = ts.getDataUnits();
 	if ( req_units.equalsIgnoreCase(units) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, rtn,
-			"No coversion necessary since units \"" + units +
-			"\" are the same as the requested units \"" + req_units+
-			"\"." );
+			Message.printDebug ( dl, rtn, "No coversion necessary since units \"" + units +
+			"\" are the same as the requested units \"" + req_units+ "\"." );
 		}
 		return;
 	}
@@ -2078,16 +1958,15 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 	// Find conversion factor...
 
 	DataUnitsConversion conversion = null;
-	try {	conversion = DataUnits.getConversion ( units, req_units );
+	try {
+	    conversion = DataUnits.getConversion ( units, req_units );
 	}
 	catch ( Exception e ) {
-		throw new TSException (
-		"Unable to get conversion from \"" + units + "\" to \"" +
+		throw new TSException ( "Unable to get conversion from \"" + units + "\" to \"" +
 		req_units + "\"" );
 	}
 	if ( conversion == null ) {
-		throw new TSException (
-		"Unable to get conversion from \"" + units + "\" to \"" +
+		throw new TSException ( "Unable to get conversion from \"" + units + "\" to \"" +
 		req_units + "\"" );
 	}
 	mult = conversion.getMultFactor();
@@ -2116,18 +1995,16 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 				data_value = add + data_value*mult;
 			}
 			tsdata.setData(data_value);
-			// Have to do this manually since TSData are being
-			// modified directly to improve performance...
+			// Have to do this manually since TSData are being modified directly to improve performance...
 			ts.setDirty ( true );
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime start_date = new DateTime ( ts.getDate1() );
 		DateTime end_date = new DateTime ( ts.getDate2() );
 		DateTime date = new DateTime ( start_date );
-		for (	;
-			date.lessThanOrEqualTo( end_date);
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end_date); date.addInterval(interval_base, interval_mult) ) {
 			data_value = ts.getDataValue ( date );
 			if ( !ts.isDataMissing(data_value) ) {
 				// Not missing, so do the conversion...
@@ -2140,16 +2017,12 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 	// Set the units field to reflect new units of data...
 
 	if ( add == 0.0 ) {
-		ts.addToGenesis (
-		"Converted data units from \"" + units
-	 	+ "\" to \"" + req_units + "\" using *" +
-		StringUtil.formatString(mult,"%.6f") );
+		ts.addToGenesis ( "Converted data units from \"" + units
+	 	+ "\" to \"" + req_units + "\" using *" + StringUtil.formatString(mult,"%.6f") );
 	}
-	else {	ts.addToGenesis (
-		"Converted data units from \"" + units
-	 	+ "\" to \"" + req_units + "\" using *" +
-		StringUtil.formatString(mult,"%.6f") + "+" +
-		StringUtil.formatString(add,"%.6f") );
+	else {
+	    ts.addToGenesis ( "Converted data units from \"" + units + "\" to \"" + req_units + "\" using *" +
+		StringUtil.formatString(mult,"%.6f") + "+" + StringUtil.formatString(add,"%.6f") );
 	}
 	ts.setDataUnits ( req_units );
 }
@@ -2170,8 +2043,7 @@ public static void copyHeader ( TS ts1, TS ts2 )
 Create a monthly summary report for the time series.  This format is suitable
 for data intervals less than monthly.  Data are first accumulated to daily
 values and are then accumulated to monthly for the final output.  This report
-should not be confused with the MonthTS.formatOutput() method, which just
-displays raw data values.
+should not be confused with the MonthTS.formatOutput() method, which just displays raw data values.
 @param ts Time series to process.
 @param date1 First date/time to process.
 @param date2 Last date/time to process.
@@ -2183,11 +2055,10 @@ displays raw data values.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear" or "NovToOct"
-(Nov through Oct), or "CalendarYear" (Jan through Dec).
+<td>The type of calendar, either "Water" (Oct through Sep), "NovToOct"
+(Nov through Oct), or "Calendar" (Jan through Dec), consistent with YearType enumeration.
 </td>
-<td>CalenderYear (but may be made sensitive to the data type or units in the
-future).</td>
+<td>CalenderYear (but may be made sensitive to the data type or units in the future).</td>
 </tr>
 
 <tr>
@@ -2203,8 +2074,7 @@ If "Total", values will be totaled to obtain the daily value.
 <tr>
 <td><b>OutputPrecision</b></td>
 <td>The precision of numbers as printed.  All data values are printed in a
-9-digit column.  The precision controls how many digits are shown after the
-decimal.
+9-digit column.  The precision controls how many digits are shown after the decimal.
 </td>
 <td>
 If not specified, an attempt will be made to use the units to
@@ -2219,19 +2089,16 @@ look up the precision.  If that fails, a default of 1 will be used.
 public static List createMonthSummary ( TS ts, DateTime date1, DateTime date2, PropList props )
 throws Exception
 {	// Pull much of the code from the MonthTS.formatOutput() method.  This
-	// method creates a similar report but does not track data as
-	// specifically as is needed here.
+	// method creates a similar report but does not track data as specifically as is needed here.
 
 	String message, routine = "TSUtil.createMonthSummary";
 	int column, dl = 20, row;
 	int data_interval_base = ts.getDataIntervalBase();
 	int data_interval_mult = ts.getDataIntervalMult();
 
-	if (	(data_interval_base != TimeInterval.DAY) &&
-		(data_interval_base != TimeInterval.HOUR) &&
+	if ( (data_interval_base != TimeInterval.DAY) && (data_interval_base != TimeInterval.HOUR) &&
 		(data_interval_base != TimeInterval.MINUTE) ) {
-		message = "The Month Summary Report can only be used for " +
-			"day, hour, and minute interval.";
+		message = "The Month Summary Report can only be used for day, hour, and minute interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -2239,8 +2106,7 @@ throws Exception
 	List strings = new Vector(20,10);
 	StringUtil.addListToStringList ( strings, ts.formatHeader() );
 
-	// Determine the units to output.  For now use what is in the time
-	// series...
+	// Determine the units to output.  For now use what is in the time series...
 
 	String req_units = ts.getDataUnits();
 
@@ -2252,8 +2118,7 @@ throws Exception
 		// Try older...
 		prop_value = props.getValue ( "Precision" );
 		if ( prop_value != null ) {
-			Message.printWarning ( 2, routine,
-			"Need to switch Precision property to OutputPrecision");
+			Message.printWarning ( 2, routine, "Need to switch Precision property to OutputPrecision");
 		}
 	}
 	if ( prop_value == null ) {
@@ -2275,15 +2140,11 @@ throws Exception
 	// Determine whether water or calendar year...
 
 	prop_value = props.getValue ( "CalendarType" );
-	String calendar = "CalendarYear";
 	if ( prop_value == null ) {
-		// Default to "CalendarYear"...
-		calendar = "CalendarYear";
+		// Default to "Calendar"...
+		prop_value = "" + YearType.CALENDAR;
 	}
-	else {
-	    // Set to requested format...
-		calendar = prop_value;
-	}
+	YearType calendar = YearType.valueOfIgnoreCase(prop_value);
 
 	// Determine the period to output.  For now always output the total...
 
@@ -2310,49 +2171,47 @@ throws Exception
 		day_is_average = false;
 	}
 
-	if ( calendar.equalsIgnoreCase("WaterYear") ) {
+	if ( calendar == YearType.WATER ) {
 		// Water year...
 		strings.add (
 "Year    Oct       Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep     " + year_column );
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
+	else if ( calendar == YearType.NOV_TO_OCT ) {
 		// Irrigation year...
 		strings.add (
 "Year    Nov       Dec       Jan       Feb       Mar       Apr       May       Jun       Jul       Aug        Sep      Oct     " + year_column );
 		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
-	else {	// Calendar year...
+	else {
+	    // Calendar year...
 		strings.add (
 "Year    Jan       Feb       Mar       Apr       May       Jun       Jul        Aug      Sep       Oct       Nov       Dec     " + year_column );
 		strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	}
 
-	// Now transfer the monthly data into a summary matrix, which
-	// looks like:
+	// Now transfer the monthly data into a summary matrix, which looks like:
 	//
 	// 0 - 11 Total/Ave
 	// ...
 	// statistics
 	
-	// Adjust the start and end dates to be on full years for the
-	// calendar that is requested...
+	// Adjust the start and end dates to be on full years for the calendar that is requested...
 
 	int year_offset = 0;
-	if ( calendar.equalsIgnoreCase("CalendarYear") ) {
+	if ( calendar == YearType.CALENDAR ) {
 		// Just need to output for the full year...
 		start_date.setMonth ( 1 );
 		end_date.setMonth ( 12 );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear") || calendar.equalsIgnoreCase("NovToOct")) {
+	else if ( calendar == YearType.NOV_TO_OCT ) {
 		// Need to adjust for the irrigation year to make sure
 		// that the first month is Nov and the last is Oct...
 		if ( start_date.getMonth() < 11 ) {
-			// Need to shift to include the previous irrigation
-			// year...
+			// Need to shift to include the previous irrigation year...
 			start_date.addYear ( -1 );
 		}
 		// Always set the start month to Nov...
@@ -2363,13 +2222,11 @@ throws Exception
 		}
 		// Always set the end month to Oct...
 		end_date.setMonth ( 10 );
-		// The year that is printed in the summary is actually
-		// later than the calendar for the Nov month...
+		// The year that is printed in the summary is actually later than the calendar for the Nov month...
 		year_offset = 1;
 	}
-	else if ( calendar.equalsIgnoreCase("WaterYear") ) {
-		// Need to adjust for the water year to make sure that
-		// the first month is Oct and the last is Sep...
+	else if ( calendar == YearType.WATER ) {
+		// Need to adjust for the water year to make sure that the first month is Oct and the last is Sep...
 		if ( start_date.getMonth() < 10 ) {
 			// Need to shift to include the previous water year...
 			start_date.addYear ( -1 );
@@ -2388,8 +2245,7 @@ throws Exception
 	}
 
 	// Make sure that the start and end date/times have values set for the
-	// precision of the data to get a full month and calculate the number
-	// of needed values...
+	// precision of the data to get a full month and calculate the number of needed values...
 
 	// TODO SAM 2004-09-07 The start appears to be the interval-ending
 	// date/time for the first interval in the month...
@@ -2439,10 +2295,8 @@ throws Exception
 	// Calculate the number of years...
 	int num_years = (end_date.getAbsoluteMonth() - start_date.getAbsoluteMonth() + 1)/12;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Printing " + num_years + " years of summary for " +
-		start_date.toString(DateTime.FORMAT_YYYY_MM) + " to " +
-		end_date.toString(DateTime.FORMAT_YYYY_MM) );
+		Message.printDebug ( dl, routine, "Printing " + num_years + " years of summary for " +
+		start_date.toString(DateTime.FORMAT_YYYY_MM) + " to " + end_date.toString(DateTime.FORMAT_YYYY_MM) );
 	}
 	// Allow for total column...
 	double data[][] = new double[num_years][13];	// Monthly values
@@ -2460,8 +2314,7 @@ throws Exception
 		}
 	}
 
-	// Now loop through the time series and transfer to the proper
-	// location in the matrix...
+	// Now loop through the time series and transfer to the proper location in the matrix...
 	double day_total = missing, year_total = missing;
 	double day_value = missing, month_value = missing, month_total = missing;
 	double value = missing;
@@ -2469,28 +2322,23 @@ throws Exception
 	DateTime date = new DateTime(start_date,DateTime.DATE_FAST);
 	StringBuffer buffer = null;
 	int non_missing_in_row = 0;
-	// We have adjusted the dates above, so we always start in
-	// column 0 (first month in year)...
+	// We have adjusted the dates above, so we always start in column 0 (first month in year)...
 	column = 0;
 	row = 0;
 	// Set the previous to the current so that we don't force processing
-	// the first time through the loop (it will occur for daily data because
-	// of a check below.
+	// the first time through the loop (it will occur for daily data because of a check below.
 	int day = date.getDay(), day_prev = day, month = date.getMonth(), month_prev = month;
 	boolean need_to_process_day = false;
 	boolean need_to_process_month = false;
 	int nvalues_in_month = 0;
 	int nvalues_in_month_needed = 0;
 	// The loop goes through each value.  Accumulate to days and then to month, as needed...
-	for (	;
-		date.lessThanOrEqualTo(end_date);
-		date.addInterval(data_interval_base, data_interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo(end_date); date.addInterval(data_interval_base, data_interval_mult) ) {
 		value = ts.getDataValue ( date );
 /*
 		//if ( Message.isDebugOn ) {
 			//Message.printDebug ( dl, routine, "Processing " +
-			Message.printStatus ( 1, routine, "Processing " +
-			date.toString() +
+			Message.printStatus ( 1, routine, "Processing " + date +
 			" row:" + row + " column:" + column + " value:"+value );
 		//}
 */
@@ -2513,13 +2361,11 @@ throws Exception
 		else if ( day != day_prev ) {
 			// First interval in next day, which is still considered
 			// part of the previous day because intervals are dated
-			// at the end of the interval (assuming no instantaneous
-			// data)...
+			// at the end of the interval (assuming no instantaneous data)...
 			need_to_process_day = true;
 		}
 		if ( !need_to_process_day ) {
-			// Not a new day so go to the next value to get the next
-			// value to accumulate...
+			// Not a new day so go to the next value to get the next value to accumulate...
 			day_prev = day;
 			continue;
 		}
@@ -2527,11 +2373,11 @@ throws Exception
 		// Allow missing data values to be saved...
 		day_prev = day;
 		if ( nvalues_in_day != nvalues_in_day_needed ) {
-			// Don't have the right number of values so set to
-			// missing...
+			// Don't have the right number of values so set to missing...
 			day_value = missing;
 		}
-		else {	// Compute the day value...
+		else {
+		    // Compute the day value...
 			if ( day_is_average ) {
 				if ( !ts.isDataMissing(day_total) ) {
 					if ( nvalues_in_day > 0 ) {
@@ -2548,8 +2394,7 @@ throws Exception
 		}
 /*
 		Message.printStatus ( 1, routine, "SAMX Setting daily value "+
-			day_value + " nvalues:" + nvalues_in_day +
-			" nvalues_needed:" + nvalues_in_day_needed );
+			day_value + " nvalues:" + nvalues_in_day + " nvalues_needed:" + nvalues_in_day_needed );
 */
 		// Check the minimum and maximum daily values...
 		data_max[row][column] = MathUtil.max ( data_max[row][column], day_value, missing );
@@ -2574,18 +2419,15 @@ throws Exception
 		need_to_process_month = false;
 		if ( data_interval_base == TimeInterval.DAY ) {
 			if ( (day == TimeUtil.numDaysInMonth(month,date.getYear()))){
-				// Daily interval so month is complete when last
-				// day of the month is encountered...
+				// Daily interval so month is complete when last day of the month is encountered...
 				need_to_process_month = true;
 				// Use the current month...
 				nvalues_in_month_needed = TimeUtil.numDaysInMonth( month, date.getYear() );
 			}
 		}
 		else if ( month != month_prev ) {
-			// First interval in next month, which is still
-			// considered part of the previous month because
-			// intervals are dated at the end of the interval
-			// (assuming no instantaneous data)...
+			// First interval in next month, which is still considered part of the previous month because
+			// intervals are dated at the end of the interval (assuming no instantaneous data)...
 			need_to_process_month = true;
 			// Need to use the previous month...
 			if ( month_prev == 12 ) {
@@ -2640,14 +2482,14 @@ throws Exception
 			buffer.append ( StringUtil.formatString( (date.getYear() + year_offset), "%04d") + " " );
 			non_missing_in_row = 0;
 		}
-		// Do not use an else here because if we are on column 0 we
-		// still want to print the data value.
+		// Do not use an else here because if we are on column 0 we still want to print the data value.
 		// Print the monthly value...
 		if ( ts.isDataMissing(month_value) ) {
 			buffer.append ( "    NC    " );
 			data[row][column] = missing;
 		}
-		else {	buffer.append ( StringUtil.formatString(
+		else {
+		    buffer.append ( StringUtil.formatString(
 			month_value, data_format) + " " );
 			if ( ts.isDataMissing(year_total) ) {
 				year_total = 0.0;
@@ -2656,13 +2498,10 @@ throws Exception
 			++non_missing_in_row;
 		}
 		if ( column == 11 ) {
-			// Have processed the last month in the year so
-			// process the total or average.  We have been
-			// adding to the total, so divide by the number
-			// of non-missing for the year if averaging...
+			// Have processed the last month in the year so process the total or average.  We have been
+			// adding to the total, so divide by the number of non-missing for the year if averaging...
 			// Now reset the year-value to zero...
-			if (	ts.isDataMissing(year_total) ||
-				(non_missing_in_row != 12) ) {
+			if ( ts.isDataMissing(year_total) || (non_missing_in_row != 12) ) {
 				buffer.append ( "    NC    " );
 				data[row][12] = missing;
 			}
@@ -2671,8 +2510,8 @@ throws Exception
 					buffer.append ( StringUtil.formatString( year_total, data_format) );
 					data[row][12] = year_total;
 				}
-				else {	buffer.append (
-					StringUtil.formatString( year_total/(double)non_missing_in_row, data_format) );
+				else {
+				    buffer.append ( StringUtil.formatString( year_total/(double)non_missing_in_row, data_format) );
 					data[row][12] = year_total/(double)non_missing_in_row;
 				}
 			}
@@ -2688,8 +2527,7 @@ throws Exception
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 	// Now need to do the statistics.  Loop through each column...
 	if ( !day_is_average ) {
-		// Daily values are totals so include a total at the bottom
-		// also...
+		// Daily values are totals so include a total at the bottom also...
 		strings = StringUtil.addListToStringList (strings,
 		createMonthSummaryStats(ts,data,num_years,"Tot ", data_format));
 	}
@@ -2710,49 +2548,38 @@ throws Exception
 
 	strings.add ( "" );
 	strings.add ( "Notes:" );
-	if ( calendar.equalsIgnoreCase("WaterYear" ) ) {
+	if ( calendar == YearType.WATER ) {
 		strings.add ( "  Years shown are water years." );
-		strings.add (
-		"  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
+		strings.add ( "  A water year spans Oct of the previous calendar year to Sep of the current calendar year (all within the indicated water year)." );
 	}
-	else if ( calendar.equalsIgnoreCase("IrrigationYear" ) || calendar.equalsIgnoreCase("NovToOct" )){
-		strings.add (
-		"  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
+	else if ( calendar == YearType.NOV_TO_OCT ) {
+		strings.add ( "  Years shown span Nov of the previous calendar year to Oct of the current calendar year." );
 	}
 	else {
-		strings.add (
-		"  Years shown are calendar years." );
+		strings.add ( "  Years shown are calendar years." );
 	}
-	strings.add (
-	"  Annual values and statistics are computed only on non-missing data." );
-	strings.add (
-	"  NC indicates that a value is not computed because of missing data or the data value itself is missing." );
-	strings.add (
-	"  Statistics are for values shown in the main table except:" );
-	strings.add (
-	"    MMxD are the means of the maximum daily values in a month." );
-	strings.add (
-	"    MMnD are the means of the minimum daily values in a month." );
+	strings.add ( "  Annual values and statistics are computed only on non-missing data." );
+	strings.add ( "  NC indicates that a value is not computed because of missing data or the data value itself is missing." );
+	strings.add ( "  Statistics are for values shown in the main table except:" );
+	strings.add ( "    MMxD are the means of the maximum daily values in a month." );
+	strings.add ( "    MMnD are the means of the minimum daily values in a month." );
 	return strings;
 }
 
 /**
-Format the output statistics row given for the month summary report for the
-data array.
+Format the output statistics row given for the month summary report for the data array.
 @param ts Time series that is being processed.
 @param data Data array to process.
 @param num_years Number of years of data.
 @param label Label for the statistics row.
 @param data_format Format like "%9.1f" to format values.
 */
-private static List createMonthSummaryStats (	TS ts, double[][] data,
-						int num_years, String label,
-						String data_format )
+private static List createMonthSummaryStats ( TS ts, double[][] data, int num_years, String label, String data_format )
 {	List strings = new Vector (20,10);
 	double stat;
-	StringBuffer	buffer = null;
-	double[]	array = new double[num_years];
-	int		column, row;
+	StringBuffer buffer = null;
+	double[] array = new double[num_years];
+	int column, row;
 
 	for ( column = 0; column < 13; column++ ) {
 		if ( column == 0 ) {
@@ -2771,27 +2598,24 @@ private static List createMonthSummaryStats (	TS ts, double[][] data,
 			array = new double[num_not_missing];
 			num_not_missing = 0;
 			for ( row = 0; row < num_years; row++ ){
-				if (	!ts.isDataMissing(
-					data[row][column]) ) {
-					array[num_not_missing] =
-					data[row][column];
+				if ( !ts.isDataMissing( data[row][column]) ) {
+					array[num_not_missing] = data[row][column];
 					++num_not_missing;
 				}
 			}
 			stat = 0.0;
-			try {	if ( label.startsWith("Min") ) {
+			try {
+			    if ( label.startsWith("Min") ) {
 					stat = MathUtil.min ( array );
 				}
 				else if ( label.startsWith("Max") ) {
 					stat = MathUtil.max ( array );
 				}
-				else if ( label.startsWith("Mean") ||
-					label.startsWith("MM") ) {
+				else if ( label.startsWith("Mean") || label.startsWith("MM") ) {
 					stat = MathUtil.mean ( array );
 				}
 				else if ( label.startsWith("SDev") ) {
-					stat = MathUtil.standardDeviation (
-						array );
+					stat = MathUtil.standardDeviation ( array );
 				}
 				else if ( label.startsWith("Tot") ) {
 					stat = MathUtil.sum ( array );
@@ -2799,18 +2623,16 @@ private static List createMonthSummaryStats (	TS ts, double[][] data,
 			}
 			catch ( Exception e ) {
 			}
-			buffer.append (
-			StringUtil.formatString(stat," "+ data_format));
+			buffer.append ( StringUtil.formatString(stat," "+ data_format));
 		}
-		else {	buffer.append ( "     NC   " );
+		else {
+		    buffer.append ( "     NC   " );
 		}
 	}
 	strings.add( buffer.toString() );
 	strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 
-	buffer = null;
-	array = null;
 	return strings;
 }
 
@@ -2912,17 +2734,15 @@ throws Exception
 Create a period of record time series where the time series value is the
 specified value if the original data for the data are not-missing, and the
 missing data value if the data are missing.  The header information for the
-old time series is copied.  The resulting time series can be used for
-graphing.
+old time series is copied.  The resulting time series can be used for graphing.
 @param ts Time series for which to create the period of record time series.
 @param value Value to fill the period of record time series.
-@exception RTi.TS.TSException if there is a problem creating and filling the
-new time series.
+@exception RTi.TS.TSException if there is a problem creating and filling the new time series.
 */
 public static TS createPeriodOfRecordTS ( TS ts, double value )
 throws TSException
-{	String	message, routine = "TSUtil.createPeriodOfRecordTS";
-	TS	newts = null;
+{	String message, routine = "TSUtil.createPeriodOfRecordTS";
+	TS newts = null;
 
 	if ( ts == null ) {
 		message = "Input time series is null!";
@@ -2941,8 +2761,8 @@ throws TSException
 		newts.setDate2 ( ts.getDate2() );
 		newts.allocateDataSpace();
 	}
-	else {	message =
-		"Only monthly time series POR time series is implemented!";
+	else {
+	    message = "Only monthly time series POR time series is implemented!";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -2952,12 +2772,9 @@ throws TSException
 	DateTime date = new DateTime ( ts.getDate1() );
 	DateTime end = new DateTime ( ts.getDate2() );
 		
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( !ts.isDataMissing(ts.getDataValue(date) ) ) {
-			// Data is not missing so reset to the indicator
-			// value...
+			// Data is not missing so reset to the indicator value...
 			newts.setDataValue(date,value);
 		}
 	}
@@ -2979,8 +2796,7 @@ values, centered on each point.  RUNNING_AVERAGE_NYEAR will average n years of
 data, including the current point (one value per year).
 @return The new running average time series, which is a copy of the original metadata
 but with data being the running average.
-@exception RTi.TS.TSException if there is a problem creating and filling the
-new time series.
+@exception RTi.TS.TSException if there is a problem creating and filling the new time series.
 */
 public static TS createRunningAverageTS ( TS ts, int n, int type )
 throws TSException, IrregularTimeSeriesNotSupportedException
@@ -3138,8 +2954,7 @@ starting for interval-ending 06, 12, 18, and 00 hours.
 @param method Method to disaggregate.  If "Ormsbee", use the procedure given
 by TVA.  If "Transfer", do a simple transfer of values (currently not implemented).
 @param new_datatype If "" or "*", transfer the datatype from the original
-time series.  Otherwise, use the new data type in the disaggregated time series
-(including the identifier).
+time series.  Otherwise, use the new data type in the disaggregated time series (including the identifier).
 @param new_units If "" or "*", transfer the units from the original
 time series.  Otherwise, use the new units in the disaggregated time series.
 @param req_interval_base Interval base to disaggregate to (as per TimeInterval class).
@@ -3147,8 +2962,7 @@ time series.  Otherwise, use the new units in the disaggregated time series.
 @exception Exception if an error occurs (e.g., improper disaggregation parameters).
 */
 public static TS disaggregate (	TS ts, String method, String new_datatype,
-				String new_units, int req_interval_base,
-				int req_interval_mult )
+				String new_units, int req_interval_base, int req_interval_mult )
 throws Exception
 {	String routine = "TSUtil.disaggregate";
 	int interval_base = ts.getDataIntervalBase();
@@ -3208,10 +3022,7 @@ throws Exception
 
 		// Iterate through the original time series, creating 4 6-hour values in the new time series...
 
-		for (	;
-			date.lessThanOrEqualTo ( end );
-			++nprocessed,
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo ( end ); ++nprocessed, date.addInterval(interval_base, interval_mult) ) {
 			// Get the initial values.  If necessary, offset the
 			// date used in the iterator to get previous/next
 			// values, taking care to reset to the "current" value
@@ -3296,16 +3107,14 @@ throws Exception
 					wt = f[0]*t/vx - (f[0]-f[1])*t*t/(2.0*vx*tx);
 				}
 				else {
-				    wt = (f[1]+f[0])*tx/(2.0*vx) +
-						f[1]*(t-tx)/vx - (f[1]-f[2])*(t-tx)*(t-tx)/(2.0*vx*(24.0-tx));
+				    wt = (f[1]+f[0])*tx/(2.0*vx) + f[1]*(t-tx)/vx - (f[1]-f[2])*(t-tx)*(t-tx)/(2.0*vx*(24.0-tx));
 				}
             	new_value = 4.0*(f[1] * (wt - wt1));
 				newts.setDataValue ( newdate, new_value );
             	wt1 = wt;
 			}
 		}
-		newts.addToGenesis ( 
-		"disaggregate: Ormsbee method used to create 6Hour time series"+
+		newts.addToGenesis ( "disaggregate: Ormsbee method used to create 6Hour time series"+
 		" from 1Day time series " + ts.getIdentifierString() + ", " );
 		newts.addToGenesis ( "disaggregate:   " + ts.getDescription() );
 		newts.addToGenesis ( "disaggregate: First day " + ts.getDate1()
@@ -3315,10 +3124,8 @@ throws Exception
 	else if ( method.equalsIgnoreCase("SameValue") ) {
 		TS newts = null;
 		TSIdent tsident = null;
-		if ( (interval_base == TimeInterval.YEAR) &&
-			(interval_mult == 1) &&
-			(req_interval_base == TimeInterval.MONTH) &&
-			(req_interval_mult == 1) ) {
+		if ( (interval_base == TimeInterval.YEAR) && (interval_mult == 1) &&
+			(req_interval_base == TimeInterval.MONTH) && (req_interval_mult == 1) ) {
 			// Year -> Month
 
 			// Create a 1Month time series using as much header
@@ -3351,10 +3158,7 @@ throws Exception
 
 			// Iterate through the original time series....
 
-			for (	;
-				newdate.lessThanOrEqualTo ( newdate2 );
-				newdate.addInterval(req_interval_base,
-				req_interval_mult) ) {
+			for ( ; newdate.lessThanOrEqualTo ( newdate2 ); newdate.addInterval(req_interval_base, req_interval_mult) ) {
 				if ( newdate.getMonth() == 1 ) {
 					// New year so get a new value...
 					date.setYear ( newdate.getYear() );
@@ -3363,10 +3167,8 @@ throws Exception
 				newts.setDataValue ( newdate, new_value );
 			}
 		}
-		else if ((interval_base == TimeInterval.MONTH) &&
-			(interval_mult == 1) &&
-			(req_interval_base == TimeInterval.DAY) &&
-			(req_interval_mult == 1) ) {
+		else if ((interval_base == TimeInterval.MONTH) && (interval_mult == 1) &&
+			(req_interval_base == TimeInterval.DAY) && (req_interval_mult == 1) ) {
 			// Month -> Day
 
 			// Create a 1Day time series using as much header
@@ -3399,10 +3201,7 @@ throws Exception
 
 			// Iterate through the original time series....
 
-			for (	;
-				newdate.lessThanOrEqualTo ( newdate2 );
-				newdate.addInterval(req_interval_base,
-				req_interval_mult) ) {
+			for ( ; newdate.lessThanOrEqualTo ( newdate2 ); newdate.addInterval(req_interval_base, req_interval_mult) ) {
 				if ( newdate.getDay() == 1 ) {
 					// New month so get a new value...
 					date.setYear ( newdate.getYear() );
@@ -3418,8 +3217,7 @@ throws Exception
 			// Day -> NHour
 
 			// Create an hourly time series using as much header
-			// information from the original time series as
-			// possible....
+			// information from the original time series as possible....
 
 			newts = new HourTS ();
 			newts.copyHeader ( ts );
@@ -3459,15 +3257,10 @@ throws Exception
 
 			// Iterate through the original time series....
 
-			for (	;
-				newdate.lessThanOrEqualTo ( newdate2 );
-				newdate.addInterval(req_interval_base,
-				req_interval_mult) ) {
+			for ( ; newdate.lessThanOrEqualTo ( newdate2 ); newdate.addInterval(req_interval_base, req_interval_mult) ) {
 				if ( req_interval_mult == 24 ) {
-					// New hour zero value is the previous
-					// day's value.  The date was initially
-					// set and can be incremented in step
-					// with the newdate increment of 24hours
+					// New hour zero value is the previous day's value.  The date was initially
+					// set and can be incremented in step with the newdate increment of 24hours
 					// since they are equivalent...
 					new_value = ts.getDataValue ( date );
 					newts.setDataValue (newdate, new_value);
@@ -3475,10 +3268,8 @@ throws Exception
 				}
 				else {
 				    if ( newdate.getHour() == req_interval_mult ) {
-						// The zero hour will use the
-						// previous day's value but
-						// others need to use the
-						// current day's value...
+						// The zero hour will use the previous day's value but
+						// others need to use the current day's value...
 						date.addDay ( 1 );
 						new_value = ts.getDataValue ( date );
 					}
@@ -3486,8 +3277,7 @@ throws Exception
 				}
 			}
 		}
-		else if ((interval_base == TimeInterval.HOUR) &&
-			(interval_mult == 1) &&
+		else if ((interval_base == TimeInterval.HOUR) && (interval_mult == 1) &&
 			(req_interval_base == TimeInterval.MINUTE) ) {
 			// Hour -> Nminute
 
@@ -3533,29 +3323,21 @@ throws Exception
 
 			// Iterate through the original time series....
 
-			for (	;
-				newdate.lessThanOrEqualTo ( newdate2 );
-				newdate.addInterval(req_interval_base,
-				req_interval_mult) ) {
+			for ( ; newdate.lessThanOrEqualTo ( newdate2 ); newdate.addInterval(req_interval_base, req_interval_mult) ) {
 				if ( req_interval_mult == 60 ) {
-					// New minute zero value is the previous
-					// hour's value.  The date was initially
-					// set and can be incremented in step
-					// with the newdate increment of 60min
+					// New minute zero value is the previous hour's value.  The date was initially
+					// set and can be incremented in step with the newdate increment of 60min
 					// since they are equivalent...
 					new_value = ts.getDataValue ( date );
 					newts.setDataValue (newdate, new_value);
 					date.addHour ( 1 );
 				}
-				else {	if (	newdate.getMinute() ==
-						req_interval_mult ) {
-						// The zero minute will use the
-						// previous hour's value but
-						// others need to use the
-						// current day's value...
+				else {
+				    if ( newdate.getMinute() == req_interval_mult ) {
+						// The zero minute will use the previous hour's value but
+						// others need to use the current day's value...
 						date.addHour ( 1 );
-						new_value = ts.getDataValue (
-							date );
+						new_value = ts.getDataValue ( date );
 					}
 					newts.setDataValue (newdate, new_value);
 				}
@@ -3571,16 +3353,12 @@ throws Exception
 			if ( (new_units != null) && !new_units.equals("") && !new_units.equals("*") ) {
 				newts.setDataUnits ( new_units );
 			}
-			if (	(new_datatype != null) &&
-				!new_datatype.equals("") &&
-				!new_datatype.equals("*") ) {
+			if ( (new_datatype != null) && !new_datatype.equals("") && !new_datatype.equals("*") ) {
 				newts.setDataUnits ( new_datatype );
 			}
 			newts.addToGenesis ( 
-			"disaggregate: SameValue method used to create " +
-			tsident.getInterval() + " time series from " +
-			ts.getIdentifier().getInterval()+
-			" time series " + ts.getIdentifierString() + "," );
+			"disaggregate: SameValue method used to create " + tsident.getInterval() + " time series from " +
+			ts.getIdentifier().getInterval()+ " time series " + ts.getIdentifierString() + "," );
 			newts.addToGenesis ( "disaggregate:   " + ts.getDescription() );
 		}
 		return newts;
@@ -3612,8 +3390,7 @@ missing.  The units are set to UNITS/UNITS.
 @param end_date Date to stop divide.
 @exception Exception if there is an error processing.
 */
-public static void divide (	TS ts, TS tsd, DateTime start_date,
-				DateTime end_date )
+public static void divide (	TS ts, TS tsd, DateTime start_date, DateTime end_date )
 throws Exception
 {	if ( ts == null ) {
 		return;
@@ -3625,23 +3402,18 @@ throws Exception
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 	valid_dates = null;
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
-	if (	(interval_base != tsd.getDataIntervalBase()) ||
-		(interval_mult != tsd.getDataIntervalMult()) ) {
-		throw new Exception (
-		"Cannot divide data with different intervals (" +
-		ts.getIdentifierString() + " and " +
-		tsd.getIdentifierString() + ")." );
+	if ( (interval_base != tsd.getDataIntervalBase()) || (interval_mult != tsd.getDataIntervalMult()) ) {
+		throw new Exception ( "Cannot divide data with different intervals (" +
+		ts.getIdentifierString() + " and " + tsd.getIdentifierString() + ")." );
 	}
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		throw new Exception (
-		"Cannot divide irregular interval data (" +
-		ts.getIdentifierString() + ")" );
+		throw new Exception ( "Cannot divide irregular interval data (" + ts.getIdentifierString() + ")" );
 	}
 
 	// Loop using addInterval...
@@ -3650,16 +3422,14 @@ throws Exception
 	double missing = ts.getMissing();
 	double oldvalue = 0.0;
 	double div = 0.0;
-	for (	; date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		oldvalue = ts.getDataValue(date);
 		div = tsd.getDataValue(date);
-		if (	ts.isDataMissing(oldvalue) ||
-			ts.isDataMissing(div) ||
-			(div == 0.0) ) {
+		if ( ts.isDataMissing(oldvalue) || ts.isDataMissing(div) || (div == 0.0) ) {
 			ts.setDataValue ( date, missing );
 		}
-		else {	ts.setDataValue ( date, oldvalue/div );
+		else {
+		    ts.setDataValue ( date, oldvalue/div );
 		}
 	}
 
@@ -3711,7 +3481,7 @@ the maximum allowed values will be set to the maximum.
 @param start_date Date to start the enforcement.
 @param end_date Date to end the enforcement.
 @param ts Time series to check.
-@param limit_dates_given Vector of dates corresponding to the limiting values.  
+@param limit_dates_given list of dates corresponding to the limiting values.  
 The
 date/limit pairs are in effect from the date until the next date encountered.
 The dates and corresponding values are sorted with the earlier dates first.
@@ -3754,7 +3524,7 @@ recommended.  The flag will be appended to existing flags.
 </table>
 @exception RTi.TS.TSException if there is a problem with input.
 */
-public static int enforceLimits ( TS ts, DateTime start_date, DateTime end_date, List limit_dates_given,
+public static int enforceLimits ( TS ts, DateTime start_date, DateTime end_date, List<DateTime> limit_dates_given,
 					double [] max_values_given, PropList props )
 throws TSException, Exception
 {	String  routine = "TSUtil.enforceLimits";
@@ -3786,7 +3556,6 @@ throws TSException, Exception
 			SetFlag_boolean = true;
 			// Make sure that the data flag is allocated.
 			ts.allocateDataFlagSpace (
-				SetFlag.length(),	// Max length of flag
 				null,	// Initial flag value
 				true );	// Keep old flags if already allocated
 		}
@@ -3795,32 +3564,28 @@ throws TSException, Exception
 	int num_max_values = max_values_given.length;
 	if ( num_limit_dates != num_max_values ) {
 		message = "The number of dates (" + num_limit_dates +
-		") and values (" + num_max_values +
-		") for limits does not agree";
+		") and values (" + num_max_values + ") for limits does not agree";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Enforcing limits for \"" + ts.getIdentifierString() + "\"" );
+		Message.printDebug ( dl, routine, "Enforcing limits for \"" + ts.getIdentifierString() + "\"" );
 	}
 
-	// Sort the dates and corresponding values...  First convert DateTimes
-	// to doubles...
+	// Sort the dates and corresponding values...  First convert DateTimes to doubles...
 
 	double [] double_dates = new double [num_limit_dates];
 	int [] sort_order = new int [num_limit_dates];
-	DateTime	limit_date = null;
+	DateTime limit_date = null;
 	for ( int i = 0; i < num_limit_dates; i++ ) {
-		limit_date = (DateTime)limit_dates_given.get(i);
+		limit_date = limit_dates_given.get(i);
 		double_dates[i] = limit_date.toDouble();
 	}
 
 	// Now sort...
 
-	MathUtil.sort ( double_dates, MathUtil.SORT_QUICK,
-		MathUtil.SORT_ASCENDING, sort_order, true );
+	MathUtil.sort ( double_dates, MathUtil.SORT_QUICK, MathUtil.SORT_ASCENDING, sort_order, true );
 
 	// Now reset the dates again...
 
@@ -3828,10 +3593,8 @@ throws TSException, Exception
 	double [] max_values = new double[num_limit_dates];
 	if ( Message.isDebugOn ) {
 		for ( int i = 0; i < num_limit_dates; i++ ) {
-			limit_date = (DateTime)limit_dates_given.get(i);
-			Message.printDebug ( dl, routine,
-			"Before sort by dates, limits[" + i + "] = " +
-			max_values_given[i] + " on " + limit_date );
+			limit_date = limit_dates_given.get(i);
+			Message.printDebug ( dl, routine, "Before sort by dates, limits[" + i + "] = " + max_values_given[i] + " on " + limit_date );
 		}
 	}
 	for ( int i = 0; i < num_limit_dates; i++ ) {
@@ -3841,27 +3604,24 @@ throws TSException, Exception
 	if ( Message.isDebugOn ) {
 		for ( int i = 0; i < num_limit_dates; i++ ) {
 			limit_date = (DateTime)limit_dates.get(i);
-			Message.printDebug ( dl, routine,
-			"After sort by dates, limits[" + i + "] = " +
-			max_values[i] + " on " + limit_date );
+			Message.printDebug ( dl, routine, "After sort by dates, limits[" + i + "] = " + max_values[i] + " on " + limit_date );
 		}
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 
 	int	limit_pos = 0;
 	limit_date = (DateTime)limit_dates.get(limit_pos);
-	DateTime	next_limit_date = null;
+	DateTime next_limit_date = null;
 
-	// Enhancement:  Need to pick limiting date that is nearest the
-	// starting date...
+	// Enhancement:  Need to pick limiting date that is nearest the starting date...
 
 	if ( (limit_pos + 1) != num_limit_dates ) {
 		next_limit_date = (DateTime)limit_dates.get(limit_pos +1);
@@ -3869,13 +3629,11 @@ throws TSException, Exception
 	else {
 		next_limit_date = null;
 	}
-	double	limit_value0 = max_values[limit_pos];
-	double	limit_value;
+	double limit_value0 = max_values[limit_pos];
+	double limit_value;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Starting with max " +
-		limit_value0 + " at " + limit_date );
-		Message.printDebug ( dl, routine, "Next limit date is " +
-		next_limit_date );
+		Message.printDebug ( dl, routine, "Starting with max " + limit_value0 + " at " + limit_date );
+		Message.printDebug ( dl, routine, "Next limit date is " + next_limit_date );
 	}
 
 	TSData tsdata = null;	// Single data point.
@@ -3900,65 +3658,54 @@ throws TSException, Exception
 				if ( next_limit_date != null ) {
 					while ( true ) {
 						if ( next_limit_date == null ) {
-							// As a result of the
-							// loop...
+							// As a result of the loop...
 							break;
 						}
-					if ( next_limit_date.lessThanOrEqualTo(date) ) {
-						// Need to update the dates...
-						++limit_pos;
-						limit_date = next_limit_date;
-						limit_value0 =
-							max_values[limit_pos];
-						if ( (limit_pos+1) != num_limit_dates){
-							next_limit_date = (DateTime)limit_dates.get(limit_pos + 1 );
-						}
-						else {
-							next_limit_date = null;
-						}
-					}
-					else {
-						// Check again in the next iteration...
-						break;
-					}
+    					if ( next_limit_date.lessThanOrEqualTo(date) ) {
+    						// Need to update the dates...
+    						++limit_pos;
+    						limit_date = next_limit_date;
+    						limit_value0 = max_values[limit_pos];
+    						if ( (limit_pos+1) != num_limit_dates){
+    							next_limit_date = (DateTime)limit_dates.get(limit_pos + 1 );
+    						}
+    						else {
+    							next_limit_date = null;
+    						}
+    					}
+    					else {
+    						// Check again in the next iteration...
+    						break;
+    					}
 					} // end while
 				}
 				// Check to see that the value is less than the max...
 				if ( scale_by_days ) {
-					limit_value = limit_value0*
-					TimeUtil.numDaysInMonth(
-					date.getMonth(), date.getYear() );
+					limit_value = limit_value0*TimeUtil.numDaysInMonth( date.getMonth(), date.getYear() );
 				}
-				else {	limit_value = limit_value0;
+				else {
+				    limit_value = limit_value0;
 				}
 				if ( value > limit_value ) {
 					// Reset to the maximum...
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Resetting " + value +
-						" to limit value "
-						+ limit_value + " at " + date );
+						Message.printDebug ( dl, routine, "Resetting " + value + " to limit value " + limit_value + " at " + date );
 					}
 					tsdata.setData ( limit_value );
 					if ( SetFlag_boolean ) {
-						// Also set the data flag,
-						// appending to the old value...
-						tsdata.setDataFlag ( 
-							tsdata.getDataFlag().
-							trim() + SetFlag );
+						// Also set the data flag, // appending to the old value...
+						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + SetFlag );
 					}
 					++count_changed;
 				}
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
 			// Make sure that the limiting date is updated...
 			if ( next_limit_date != null ) {
@@ -3967,62 +3714,47 @@ throws TSException, Exception
 						// As a result of the loop...
 						break;
 					}
-					if ( next_limit_date.lessThanOrEqualTo(
-						date) ) {
+					if ( next_limit_date.lessThanOrEqualTo(date) ) {
 						// Need to update the dates...
 						++limit_pos;
 						limit_date = next_limit_date;
-						limit_value0 =
-							max_values[limit_pos];
-						if (	(limit_pos+1) !=
-							num_limit_dates){
+						limit_value0 = max_values[limit_pos];
+						if ( (limit_pos+1) != num_limit_dates){
 							next_limit_date = (DateTime)limit_dates.get(limit_pos + 1 );
 						}
-						else {	next_limit_date = null;
+						else {
+						    next_limit_date = null;
 						}
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							routine,
-							"Updating limits at " +
-							date +
-							" to " + limit_value0 );
-							Message.printDebug ( dl,
-							routine,
-							"Next limits date is " +
-							next_limit_date );
+							Message.printDebug ( dl, routine, "Updating limits at " + date + " to " + limit_value0 );
+							Message.printDebug ( dl, routine, "Next limits date is " + next_limit_date );
 						}
 					}
-					else {	// Check again in the next
-						// iteration...
+					else {
+					    // Check again in the next iteration...
 						break;
 					}
 				} // end while
 			}
 			// Check to see that the value is less than the max...
 			if ( scale_by_days ) {
-				limit_value = limit_value0*
-					TimeUtil.numDaysInMonth(
-					date.getMonth(), date.getYear() );
+				limit_value = limit_value0*TimeUtil.numDaysInMonth( date.getMonth(), date.getYear() );
 			}
-			else {	limit_value = limit_value0;
+			else {
+			    limit_value = limit_value0;
 			}
 			if ( value > limit_value ) {
 				// Reset to the maximum...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Resetting " + value +
-					" to limit value "
-					+ limit_value + " at " + date );
+					Message.printDebug ( dl, routine, "Resetting " + value + " to limit value " + limit_value + " at " + date );
 				}
 				if ( SetFlag_boolean ) {
-					// Set the data flag, appending to the
-					// old value...
+					// Set the data flag, appending to the old value...
 					tsdata = ts.getDataPoint ( date );
-					ts.setDataValue ( date, limit_value,
-					(tsdata.getDataFlag().trim()+
-					SetFlag), 1 );
+					ts.setDataValue ( date, limit_value, (tsdata.getDataFlag().trim()+ SetFlag), 1 );
 				}
-				else {	ts.setDataValue ( date, limit_value );
+				else {
+				    ts.setDataValue ( date, limit_value );
 				}
 				++count_changed;
 			}
@@ -4031,8 +3763,7 @@ throws TSException, Exception
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "Enforced step-function limits "+start_date.toString()
-		+ " to " + end_date.toString() );
+	ts.addToGenesis ( "Enforced step-function limits "+start_date.toString() + " to " + end_date.toString() );
 
 	return count_changed;
 }
@@ -4636,7 +4367,8 @@ throws TSException
 
 	// Else, use the overall start and end dates for filling...
 
-	try {	fillCarryForward ( ts, ts.getDate1(), ts.getDate2() );
+	try {
+	    fillCarryForward ( ts, ts.getDate1(), ts.getDate2() );
 	}
 	catch ( TSException e ) {
 		throw e;
@@ -4650,8 +4382,7 @@ Fill missing data by carrying forward the last known value.
 @param end_date Date to stop assignment.
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillCarryForward (	TS ts, DateTime start_date,
-					DateTime end_date )
+public static void fillCarryForward ( TS ts, DateTime start_date, DateTime end_date )
 throws TSException
 {	String  routine = "TSUtil.fillCarryForward";
 	String	message;
@@ -4659,26 +4390,23 @@ throws TSException
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		message =
-		"Filling IrregularTS by carrying forward is not supported";
+		message = "Filling IrregularTS by carrying forward is not supported";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 	// Loop using addInterval...
-	DateTime	date = new DateTime ( start );
-	double	data_value = 0.0;
-	boolean	last_found = false;
-	double	last_found_value = 0.0;
+	DateTime date = new DateTime ( start );
+	double data_value = 0.0;
+	boolean last_found = false;
+	double last_found_value = 0.0;
 		
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		data_value = ts.getDataValue ( date );
 		if ( ts.isDataMissing ( data_value ) ) {
 			if ( last_found ) {
@@ -4687,7 +4415,8 @@ throws TSException
 				ts.setDataValue ( date, last_found_value );
 			}
 		}
-		else {	// Save the last data value...
+		else {
+		    // Save the last data value...
 			last_found_value = data_value;
 			last_found = true;
 		}
@@ -4730,8 +4459,7 @@ Fill missing data in the time series with a constant value.
 @deprecated Use the version that takes a PropList.
 @exception if there is an error performing the fill.
 */
-public static void fillConstant (	TS ts, DateTime start_date,
-					DateTime end_date, double value )
+public static void fillConstant ( TS ts, DateTime start_date, DateTime end_date, double value )
 throws Exception
 {	fillConstant ( ts, ts.getDate1(), ts.getDate2(), value, null );
 }
@@ -4751,11 +4479,9 @@ Fill missing data in the time series with a constant value.
 <tr>
 <td><b>DescriptionSuffix</b></td>
 <td>
-A string to append to the description (specify as a
-null string to append ", fill constant").
+A string to append to the description (specify as a null string to append ", fill constant").
 </td>
-<td>null will cause the default to be used: ", fill w/ X", where X is the
-constant used for the fill.
+<td>null will cause the default to be used: ", fill w/ X", where X is the constant used for the fill.
 </td>
 </tr>
 
@@ -4772,15 +4498,13 @@ one-character string is specified.
 </table>
 @exception if there is an error performing the fill.
 */
-public static void fillConstant (	TS ts, DateTime start_date,
-					DateTime end_date, double value,
-					PropList props )
+public static void fillConstant ( TS ts, DateTime start_date, DateTime end_date, double value, PropList props )
 throws Exception
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	// Get the properties...
 
@@ -4796,17 +4520,15 @@ throws Exception
 		FillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
 
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
-	double	oldvalue;
+	double oldvalue;
 	int	nfilled = 0;
-	TSData tsdata = null;		// Data point used for irregular and for
-					// handling the data flag.
+	TSData tsdata = null; // Data point used for irregular and for handling the data flag.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -4821,8 +4543,7 @@ throws Exception
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -4831,15 +4552,10 @@ throws Exception
 					// Do in any case...
 					tsdata.setData(value);
 					if ( FillFlag_boolean ) {
-						// Also set the data flag,
-						// appending to the old value...
-						tsdata.setDataFlag ( 
-							tsdata.getDataFlag().
-							trim() + FillFlag );
+						// Also set the data flag, appending to the old value...
+						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
 					}
-					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
+					// Have to do this manually since TSData are being modified directly to improve performance...
 					irrts.setDirty ( true );
 					++nfilled;
 				}
@@ -4848,20 +4564,16 @@ throws Exception
 	}
 	else {	// Loop using addInterval...
 		DateTime date = new DateTime ( start );
-		for ( ;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			oldvalue = ts.getDataValue ( date );
 			if ( ts.isDataMissing(oldvalue) ) {
 				if ( FillFlag_boolean ) {
-					// Set the data flag, appending to the
-					// old value...
+					// Set the data flag, appending to the old value...
 					tsdata = ts.getDataPoint ( date );
-					ts.setDataValue ( date, value,
-					(tsdata.getDataFlag().trim()+FillFlag),
-					1 );
+					ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 				}
-				else {	// No data flag...
+				else {
+				    // No data flag...
 					ts.setDataValue ( date, value );
 				}
 				++nfilled;
@@ -4872,89 +4584,10 @@ throws Exception
 	// Fill in the genesis information...
 
 	if ( nfilled > 0 ) {
-		ts.setDescription ( ts.getDescription() + ", fill w/ " +
-		StringUtil.formatString(value,"%.3f") );
+		ts.setDescription ( ts.getDescription() + ", fill w/ " + StringUtil.formatString(value,"%.3f") );
 	}
 	ts.addToGenesis ( "Filled missing data " + start.toString() + " to " +
-		end.toString() + " using constant " + value + " (" + nfilled
-		+ " values filled)." );
-}
-
-// REVISIT SAM 2005-05-17 Deprecated on this date.  Remove the method after a
-// sufficient time has passed (1 year?).
-/**
-Fill missing data in the entire time series with monthly values.  For example,
-values[0] is used for any date in January.  The description is updated using
-the defaults.
-@param ts Time series to fill.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
-@deprecated Use the fully-overloaded version with a PropList.
-*/
-public static void fillConstantByMonth ( TS ts, double values[] )
-throws Exception
-{	String routine = "TSUtil.fillConstantByMonth";
-
-	if ( ts == null ) {
-		// No time series...
-		Message.printWarning ( 2, routine, "Null time series" );
-	}
-
-	// Else, use the overall start and end dates for filling...
-
-	fillConstantByMonth ( ts, ts.getDate1(), ts.getDate2(), values,
-		(PropList)null );
-}
-
-// REVISIT SAM 2005-05-17 Deprecated on this date.  Remove the method after a
-// sufficient time has passed (1 year?).
-/**
-Fill missing data in the time series with monthly values.  For example,
-values[0] is
-used for any date in January.  This can be used, for example, to fill an entire
-period with a repetitive monthly pattern.  The description is updated using
-the defaults.
-@param ts Time series to fill.
-@param start_date Date to start assignment.
-@param end_date Date to stop assignment.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
-@deprecated Use the fully-overloaded version with a PropList.
-*/
-public static void fillConstantByMonth (	TS ts, DateTime start_date,
-						DateTime end_date,
-						double values[] )
-throws Exception
-{	fillConstantByMonth ( ts, start_date, end_date, values,
-				(PropList)null );
-}
-
-// REVISIT SAM 2005-05-17 Deprecated on this date.  Remove the method after a
-// sufficient time has passed (1 year?).
-/**
-Fill missing data in the time series with monthly values.  For example,
-values[0] is
-used for any date in January.  This can be used, for example, to fill an entire
-period with a repetitive monthly pattern.
-@param ts Time series to fill.
-@param start_date Date to start assignment.
-@param end_date Date to stop assignment.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
-@param description_string String to append to the description (specify as a
-null string to append ", fill w/ mon val".
-@deprecated Use the fully overloaded version.
-*/
-public static void fillConstantByMonth (	TS ts, DateTime start_date,
-						DateTime end_date,
-						double values[],
-						String description_string )
-throws Exception
-{	PropList props = new PropList ( "fillConstantByMonth" );
-	if ( description_string != null ) {
-		props.set ( "DescriptionSuffix", description_string );
-	}
-	fillConstantByMonth ( ts, start_date, end_date, values, props );
+		end.toString() + " using constant " + value + " (" + nfilled + " values filled)." );
 }
 
 /**
@@ -4965,39 +4598,16 @@ period with a repetitive monthly pattern.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
-@param props Properties to control the method, as follows:
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>	<td><b>Description</b></td>	<td><b>Default</b></td>
-</tr>
-
-<tr>
-<td><b>DescriptionSuffix</b></td>
-<td>
-A string to append to the description (specify as a
-null string to append ", fill w/ mon val").
-</td>
-<td>null will cause the default to be used: ", fill w/ mon val"
-</td>
-</tr>
-
-<tr>
-<td><b>FillFlag</b></td>
-<td>
-A string to use as the data flag when a value is filled.  Typically a
-one-character string is specified.
-</td>
-<td>No flag value will be set.
-</td>
-</tr>
-
-</table>
+@param values Data values to fill time series (the first value is for January, the last is for December).
+@param descriptionSuffix a string to append to the description (specify as a
+null string to append default ", fill w/ mon avg").
+@param fillFlag a string to use as the data flag when a value is filled.  Null will result in no flag being used.
+Specify as "auto" to use the month abbreviation and "Avg".
+@param fillFlagDesc the description of the fill flag.  If specified, append to the month abbreviation.
 @exception if there is an error performing the fill.
 */
 public static int fillConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, double values[],
-	PropList props )
+	String descriptionSuffix, String fillFlag, String fillFlagDescription )
 throws Exception
 {	// Get valid dates because the ones passed in may have been null...
 
@@ -5005,22 +4615,24 @@ throws Exception
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
 
-	// Get the properties...
-
-	if ( props == null ) {
-		props = new PropList ( "fillConstantByMonth" );
-	}
-	String DescriptionSuffix = props.getValue ( "DescriptionSuffix" );
-
-	String FillFlag = props.getValue ( "FillFlag" );
 	boolean FillFlag_boolean = false;	// Indicate whether to use flag
-	if ( (FillFlag != null) && (FillFlag.length() > 0) ) {
+	String [] fillFlagByMonth = null;
+	if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
 		FillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
+		// Define the fill flags to use for each month
+		fillFlagByMonth = new String[12];
+		for ( int i = 0; i < 12; i++ ) {
+		    if ( fillFlag.equalsIgnoreCase("auto") ) {
+		        fillFlagByMonth[i] = TimeUtil.monthAbbreviation(i + 1) + "Avg";
+		    }
+		    else {
+		        fillFlagByMonth[i] = fillFlag;
+		    }
+		}
 	}
 
 	int	interval_base = ts.getDataIntervalBase();
@@ -5054,11 +4666,10 @@ throws Exception
 					tsdata.setData(values[date.getMonth() - 1]);
 					if ( FillFlag_boolean ) {
 						// Set the flag, appending to the old value...
-						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
+						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + fillFlagByMonth[date.getMonth() - 1] );
 					}
 					++nfilled[date.getMonth() - 1];
-					// Have to do this manually since TSData are being modified directly to
-					// improve performance...
+					// Have to do this manually since TSData are being modified directly to improve performance...
 					irrts.setDirty ( true );
 				}
 			}
@@ -5074,8 +4685,8 @@ throws Exception
 				if ( FillFlag_boolean ) {
 					// Set the data flag, appending to the old value...
 					tsdata = ts.getDataPoint ( date );
-					ts.setDataValue ( date,
-					values[date.getMonth() - 1], (tsdata.getDataFlag().trim()+FillFlag), 1 );
+					ts.setDataValue ( date, values[date.getMonth() - 1],
+					    (tsdata.getDataFlag().trim()+ fillFlagByMonth[date.getMonth() - 1]), 1 );
 				}
 				else {
 					// No data flag...
@@ -5093,25 +4704,52 @@ throws Exception
 	for ( int i = 0; i < 12; i++ ) {
 		nfilledTotal += nfilled[i];
 	}
-	ts.addToGenesis ( "Filled missing data " + start.toString() +
-	" to " + end.toString() + " with monthly values:" );
+	ts.addToGenesis ( "Filled " + nfilledTotal + " total missing data value" + StringUtil.pluralS(nfilledTotal) +
+	    " " + start.toString() + " to " + end.toString() + " with historical monthly average values:" );
 	for ( int i = 0; i < 12; i++ ) {
 		if ( !ts.isDataMissing(values[i]) ) {
-			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " +
-			StringUtil.formatString(values[i],"%12.2f") + " (filled " + nfilled[i] + " values)." );
+			ts.addToGenesis ( "    " + TimeUtil.monthAbbreviation(i + 1) + ": " +
+			StringUtil.formatString(values[i],"%12.4f") + " (filled " + nfilled[i] + " value" +
+			StringUtil.pluralS(nfilled[i]) + ")" );
 		}
 		else {
-			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
-			": Value to use for filling is missing.");
+			ts.addToGenesis ( TimeUtil.monthAbbreviation(i + 1) + ": Value to use for filling is missing.");
+		}
+		if ( fillFlagByMonth != null ) {
+		    // Fill flags are being used
+		    if ( nfilled[i] > 0 ) {
+    		    // Add a description for the data flag
+    		    if ( (fillFlag != null) && fillFlag.equalsIgnoreCase("auto") ) {
+    		        // Flags will be different for each month...
+    		        if ( (fillFlagDescription != null) && (fillFlagDescription.length() > 0) ) {
+    		            ts.addDataFlagMetadata(new TSDataFlagMetadata(fillFlagByMonth[i], fillFlagDescription));
+    		        }
+    		        else {
+    		            ts.addDataFlagMetadata(new TSDataFlagMetadata(
+        		        fillFlagByMonth[i], "Filled " + nfilled[i] + " missing value" + StringUtil.pluralS(nfilled[i]) +
+        		            " using historical monthly average " + StringUtil.formatString(values[i],"%.4f")));
+    		        }
+    		    }
+		    }
 		}
 	}
-	if ( DescriptionSuffix == null ) {
+    if ( (fillFlagByMonth != null) && !fillFlag.equalsIgnoreCase("auto") ) {
+        // One flag for entire time series since not "auto"
+        if ( (fillFlagDescription != null) && (fillFlagDescription.length() > 0) ) {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( fillFlagByMonth[0], fillFlagDescription ) );
+        }
+        else {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( fillFlagByMonth[0], "Filled " + nfilledTotal +
+            " missing value" + StringUtil.pluralS(nfilledTotal) + " using historical monthly average values."));
+        }
+    }
+	if ( descriptionSuffix == null ) {
 		if ( nfilledTotal > 0 ) {
-			ts.setDescription ( ts.getDescription() + ", fill w/ mon val" );
+			ts.setDescription ( ts.getDescription() + ", fill w/ mon avg" );
 		}
 	}
 	else {
-		ts.setDescription ( ts.getDescription() + DescriptionSuffix );
+		ts.setDescription ( ts.getDescription() + descriptionSuffix );
 	}
 	return nfilledTotal;
 }
@@ -5124,10 +4762,7 @@ Fill missing data in a daily time series using D1 = D2 * M1/M2.
 @param monthts2 Monthly time series, M2.
 @exception RTi.TS.TSException if an error occurs (usually null input).
 */
-public static void fillDayTSFrom2MonthTSAnd1DayTS (	DayTS dayts1,
-							MonthTS monthts1,
-							DayTS dayts2,
-							MonthTS monthts2 )
+public static void fillDayTSFrom2MonthTSAnd1DayTS (	DayTS dayts1, MonthTS monthts1, DayTS dayts2, MonthTS monthts2 )
 throws TSException
 {	String routine = "TSUtil.fillDayTSFrom2MonthTSAnd1DayTS";
 
@@ -5139,10 +4774,8 @@ throws TSException
 
 	// Else, use the overall start and end dates for filling...
 
-	try {	fillDayTSFrom2MonthTSAnd1DayTS ( dayts1, monthts1,
-						dayts2, monthts2,
-						dayts1.getDate1(),
-						dayts1.getDate2() );
+	try {
+	    fillDayTSFrom2MonthTSAnd1DayTS ( dayts1, monthts1, dayts2, monthts2, dayts1.getDate1(), dayts1.getDate2() );
 	}
 	catch ( TSException e ) {
 		throw e;
@@ -5159,14 +4792,10 @@ Fill missing data in a daily time series using D1 = D2 * M1/M2.
 @param end_date Date to stop assignment.
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillDayTSFrom2MonthTSAnd1DayTS (	TS dayts1,
-							MonthTS monthts1,
-							DayTS dayts2,
-							MonthTS monthts2,
-							DateTime start_date,
-							DateTime end_date )
+public static void fillDayTSFrom2MonthTSAnd1DayTS (	TS dayts1, MonthTS monthts1, DayTS dayts2,
+	MonthTS monthts2, DateTime start_date, DateTime end_date )
 throws TSException
-{	String  routine = "TSUtil.fillDayTSFrom2MonthTSAnd1DayTS";
+{	String routine = "TSUtil.fillDayTSFrom2MonthTSAnd1DayTS";
 
 	if ( dayts1 == null ) {
 		// No time series...
@@ -5208,19 +4837,17 @@ throws TSException
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( dayts1, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	// Loop using addInterval...
-	DateTime	date = new DateTime ( start );
-	double	data_value = 0.0;
-	double	m1, m2, d2;
-	double	m1_m2 = -999;		// M1/M2
+	DateTime date = new DateTime ( start );
+	double data_value = 0.0;
+	double m1, m2, d2;
+	double m1_m2 = -999;		// M1/M2
 	int	fill_count = 0;
 		
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addDay(1) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addDay(1) ) {
 		data_value = dayts1.getDataValue ( date );
 		if ( !dayts1.isDataMissing ( data_value ) ) {
 			continue;
@@ -5238,7 +4865,8 @@ throws TSException
 			if ( m2 == 0.0 ) {
 				m1_m2 = 0.0;
 			}
-			else {	m1_m2 = m1/m2;
+			else {
+			    m1_m2 = m1/m2;
 			}
 		}
 		// Now fill in the value...
@@ -5254,8 +4882,7 @@ throws TSException
 
 	dayts1.setDescription ( dayts1.getDescription() + ", fill D2*M1/M2" );
 	dayts1.addToGenesis ( "Filled " + fill_count + " missing data points " +
-		start.toString() + " to " + end.toString() +
-		" using D1 = D2 * M1/M2." );
+		start.toString() + " to " + end.toString() + " using D1 = D2 * M1/M2." );
 }
 
 /**
@@ -5275,8 +4902,7 @@ throws TSException
 
 	// Else, use the overall start and end dates for filling...
 
-	fillFromTS (	dependentTS, independentTS, dependentTS.getDate1(),
-			dependentTS.getDate2() );
+	fillFromTS ( dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2() );
 }
 
 /**
@@ -5289,11 +4915,10 @@ The data intervals do not need to be the same.
 @param end_date Date to stop assignment.
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillFromTS (	TS dependentTS, TS independentTS,
-				DateTime start_date, DateTime end_date )
+public static void fillFromTS (	TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date )
 throws TSException
-{	String  routine = "TSUtil.fillFromTS";
-	String	message;
+{	String routine = "TSUtil.fillFromTS";
+	String message;
 
 	if ( (dependentTS == null) || (independentTS == null) ) {
 		return;
@@ -5302,25 +4927,22 @@ throws TSException
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod (dependentTS,start_date,end_date);
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = dependentTS.getDataIntervalBase();
 	int interval_mult = dependentTS.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		message = "Filling IrregularTS by using another time series " +
-			"is not supported";
+		message = "Filling IrregularTS by using another time series is not supported";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 	// Loop using addInterval...
-	DateTime	date = new DateTime ( start );
-	double	data_value = 0.0;
+	DateTime date = new DateTime ( start );
+	double data_value = 0.0;
 		
 	double data_value2 = 0.0;
-	for (	;
-		date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		data_value = dependentTS.getDataValue ( date );
 		if ( dependentTS.isDataMissing ( data_value ) ) {
 			data_value2 = independentTS.getDataValue ( date );
@@ -5332,16 +4954,13 @@ throws TSException
 
 	// Fill in the genesis information...
 
-	dependentTS.setDescription ( dependentTS.getDescription() +
-		", fillFromTS" );
+	dependentTS.setDescription ( dependentTS.getDescription() + ", fillFromTS" );
 	dependentTS.addToGenesis ( "Filled missing data " + start.toString() +
-		" to " + end.toString() + " by using known values from " +
-		independentTS.getIdentifierString() );
+		" to " + end.toString() + " by using known values from " + independentTS.getIdentifierString() );
 }
 
 /**
-Fill missing data in the time series using linear interpolation between
-non-missing values.
+Fill missing data in the time series using linear interpolation between non-missing values.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
@@ -5350,10 +4969,8 @@ If 0 then there is no limit on the number of intervals that can be filled.
 @param interpolate_method Reserved for future use.  Currently always linear.
 @exception TSException if there is an error filling the time series.
 */
-public static void fillInterpolate (	TS ts, DateTime start_date,
-					DateTime end_date,
-					int intervals_can_fill,
-					int interpolate_method )
+public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date,
+	int intervals_can_fill, int interpolate_method )
 throws TSException, Exception
 {
 	PropList props = new PropList ( "fillInterpolate" );
@@ -5363,15 +4980,13 @@ throws TSException, Exception
 
 /**
 Fill missing data in the time series using linear interpolation between
-non-missing values.  There is no limit on how many points can be filled between
-known points.
+non-missing values.  There is no limit on how many points can be filled between known points.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
 @exception TSException if there is an error filling the time series.
 */
-public static void fillInterpolate (	TS ts, DateTime start_date,
-					DateTime end_date )
+public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date )
 throws TSException, Exception
 {	PropList props = new PropList ( "fillInterpolate" );
 	props.set ( "MaxIntervals=0");
@@ -5379,8 +4994,7 @@ throws TSException, Exception
 }
 
 /**
-Fill missing data in the time series using linear interpolation between
-non-missing values.
+Fill missing data in the time series using linear interpolation between non-missing values.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
@@ -5396,8 +5010,7 @@ If 0 then there is no limit on the number of intervals that can be filled.
 <tr>
 <td><b>FillFlag</b></td>
 <td>
-A string to use as the data flag when a value is filled.  Typically a
-one-character string is specified.
+A string to use as the data flag when a value is filled.  Typically a one-character string is specified.
 </td>
 <td>No flag value will be set.
 </td>
@@ -5444,7 +5057,6 @@ throws Exception
 		FillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
@@ -5452,43 +5064,35 @@ throws Exception
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
 	double	delta = 0.0, oldvalue = 0.0, value = 0.0;
-	TSData tsdata = null;		// Data point used for setting the data flag
-	// handling the data flag.
+	TSData tsdata = null; // Data point used for setting the data flag handling the data flag.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		Message.printWarning ( 1, routine,
-		"Filling irregular time series using interpolation is not" +
-		" supported." );
+		Message.printWarning ( 1, routine, "Filling irregular time series using interpolation is not supported." );
 		return;
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		DateTime after, before;
 		boolean after_found = false, before_found = false;
 		int num_after_intervals = 0, num_before_intervals = 0;
 		boolean previous_was_filled = false;
 		double before_value = 0.0, after_value = 0.0;
-		for ( ;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			oldvalue = ts.getDataValue ( date );
 			if ( ts.isDataMissing(oldvalue) ) {
-				// If the previous value was filled using
-				// interpolation then re-use the delta...
+				// If the previous value was filled using interpolation then re-use the delta...
 				if ( previous_was_filled ) {
 					value = value + delta;
 					if ( FillFlag_boolean ) {
-						// Set the data flag, appending to the
-						// old value...
+						// Set the data flag, appending to the old value...
 						tsdata = ts.getDataPoint ( date );
-						ts.setDataValue ( date, value,
-						(tsdata.getDataFlag().trim()+FillFlag),
-						1 );
+						ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 					}
 					else {
 						ts.setDataValue ( date, value );
@@ -5496,70 +5100,50 @@ throws Exception
 					previous_was_filled = true;
 					continue;
 				}
-				// Search forward and back to find known
-				// values...  Inline the code here to improve
-				// performance...
+				// Search forward and back to find known values...  Inline the code here to improve performance...
 				before_found = false;
 				after_found = false;
 				before = new DateTime ( date );
 				after = new DateTime ( date );
 				num_before_intervals = num_after_intervals = 0;
-				// Search for date before.  Start with the
-				// current date so increment.  This often only
-				// comes in to play if the requested period
-				// allows backing up to find a value.
+				// Search for date before.  Start with the current date so increment.  This often only
+				// comes in to play if the requested period allows backing up to find a value.
 				while ( before.greaterThanOrEqualTo(start) ) {
 					// If not missing, break...
-					if ( !ts.isDataMissing(
-						ts.getDataValue(before)) ) {
+					if ( !ts.isDataMissing( ts.getDataValue(before)) ) {
 						before_found = true;
 						break;
 					}
-					before.addInterval(interval_base,
-					-interval_mult);
+					before.addInterval(interval_base, -interval_mult);
 					++num_before_intervals;
-					if (	(intervals_can_fill != 0) &&
-						(num_before_intervals >
-						intervals_can_fill) ) {
+					if ( (intervals_can_fill != 0) && (num_before_intervals > intervals_can_fill) ) {
 						break;
 					}
 				}
 				// Now search for date after...
 				while ( after.lessThanOrEqualTo(end) ) {
 					// If not missing, break...
-					if ( !ts.isDataMissing(
-						ts.getDataValue(after)) ) {
+					if ( !ts.isDataMissing( ts.getDataValue(after)) ) {
 						after_found = true;
 						break;
 					}
-					after.addInterval(interval_base,
-					interval_mult);
+					after.addInterval(interval_base, interval_mult);
 					++num_after_intervals;
-					if (	(intervals_can_fill != 0 ) &&
-						(num_after_intervals >
-						intervals_can_fill) ) {
+					if ( (intervals_can_fill != 0 ) && (num_after_intervals > intervals_can_fill) ) {
 						break;
 					}
 				}
-				if (	before_found && after_found &&
-					((intervals_can_fill == 0) ||
-					((num_before_intervals +
-					num_after_intervals - 1) <=
-					intervals_can_fill)) ) {
+				if ( before_found && after_found && ((intervals_can_fill == 0) ||
+					((num_before_intervals + num_after_intervals - 1) <= intervals_can_fill)) ) {
 					// Can do the interpolation...
 					before_value = ts.getDataValue(before);
 					after_value = ts.getDataValue(after);
-					delta =	(after_value - before_value)/
-						(num_before_intervals +
-						num_after_intervals);
+					delta =	(after_value - before_value)/(num_before_intervals + num_after_intervals);
 					value = before_value + delta;
 					if ( FillFlag_boolean ) {
-						// Set the data flag, appending to the
-						// old value...
+						// Set the data flag, appending to the old value...
 						tsdata = ts.getDataPoint ( date );
-						ts.setDataValue ( date, value,
-						(tsdata.getDataFlag().trim()+FillFlag),
-						1 );
+						ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 					}
 					else {
 						ts.setDataValue ( date, value );
@@ -5567,7 +5151,8 @@ throws Exception
 					previous_was_filled = true;
 				}
 			}
-			else {	// Not filling...
+			else {
+			    // Not filling...
 				previous_was_filled = false;
 			}
 		}
@@ -5584,8 +5169,7 @@ throws Exception
 Fill the entire time series with monthly values if missing.  
 For example, values[0] is used for any date in January.
 @param ts Time series to fill.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
+@param values Data values to fill time series (the first value is for January, the last is for December).
 @deprecated Use TSUtil.fillConstant or TSUtil.setConstant.
 */
 public static void fillMonthly( TS ts, double values[] )
@@ -5607,17 +5191,15 @@ For example, values[0] is used for any date in January.
 @param ts Time series to fill.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
-@param values Data values to fill time series (the first value is for January,
-the last is for December).
+@param values Data values to fill time series (the first value is for January, the last is for December).
 @deprecated Use TSUtil.fillConstant or TSUtil.setConstant.
 */
-public static void fillMonthly(	TS ts, DateTime start_date,
-					DateTime end_date, double values[] )
+public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, double values[] )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -5640,21 +5222,19 @@ public static void fillMonthly(	TS ts, DateTime start_date,
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				if ( ts.isDataMissing ( 
-				ts.getDataValue ( date )))
-				tsdata.setData(values[date.getMonth() - 1]);
-				// Have to do this manually since TSData are being modified directly to
-				// improve performance...
-				ts.setDirty ( true );
+				if ( ts.isDataMissing ( ts.getDataValue ( date ))) {
+				    tsdata.setData(values[date.getMonth() - 1]);
+				    // Have to do this manually since TSData are being modified directly to improve performance...
+				    ts.setDirty ( true );
+				}
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			if ( ts.isDataMissing ( ts.getDataValue ( date )))
 			ts.setDataValue ( date, values[date.getMonth() - 1] );
 		}
@@ -5662,16 +5242,13 @@ public static void fillMonthly(	TS ts, DateTime start_date,
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "Filled missing data " + start_date.toString() +
-		" to " + end_date.toString() + " with monthly values:" );
+	ts.addToGenesis ( "Filled missing data " + start_date.toString() + " to " + end_date.toString() + " with monthly values:" );
 	for ( int i = 0; i < 12; i++ ) {
 		if ( !ts.isDataMissing(values[i]) ) {
-			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
-			": " +
-			StringUtil.formatString(values[i],"%12.2f"));
+			ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " + StringUtil.formatString(values[i],"%12.2f"));
 		}
-		else {	ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] +
-			": No non-missing data available for filling.");
+		else {
+		    ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": No non-missing data available for filling.");
 		}
 	}
 }
@@ -5679,14 +5256,12 @@ public static void fillMonthly(	TS ts, DateTime start_date,
 /**
 Fill the time series missing data with monthly values based on the averages for
 the given pattern.  For example, if Dec, 1995 is missing, and Dec 1995 is a
-"wet" year according to the pattern, fill Dec, 1995 with the average of all
-wet year Decembers.
+"wet" year according to the pattern, fill Dec, 1995 with the average of all wet year Decembers.
 @param ts Time series to fill.
 @param pattern_ts Pattern time series.
 @param props See the full-argument version for information.
 */
-public static void fillPattern ( TS ts, StringMonthTS pattern_ts,
-				PropList props )
+public static void fillPattern ( TS ts, StringMonthTS pattern_ts, PropList props )
 throws Exception
 {	String routine = "TSUtil.fillPattern";
 
@@ -5697,22 +5272,19 @@ throws Exception
 	}
 	if ( pattern_ts == null ) {
 		// No time series...
-		Message.printWarning ( 2, routine,
-		"Null pattern time series" );
+		Message.printWarning ( 2, routine, "Null pattern time series" );
 		return;
 	}
 
 	// Else, use the overall start and end dates for filling...
 
-	fillPattern ( ts, pattern_ts, ts.getDate1(), ts.getDate2(), null,
-			props );
+	fillPattern ( ts, pattern_ts, ts.getDate1(), ts.getDate2(), null, props );
 }
 
 /**
 Fill the time series missing data with monthly values based on the averages for
 the given pattern.  For example, if Dec, 1995 is missing, and Dec 1995 is a
-"wet" year according to the pattern, fill Dec, 1995 with the average of all
-wet year Decembers.
+"wet" year according to the pattern, fill Dec, 1995 with the average of all wet year Decembers.
 @param ts Time series to fill.
 @param pattern_ts Pattern time series.
 */
@@ -5727,30 +5299,25 @@ throws Exception
 	}
 	if ( pattern_ts == null ) {
 		// No time series...
-		Message.printWarning ( 2, routine,
-		"Null pattern time series" );
+		Message.printWarning ( 2, routine, "Null pattern time series" );
 		return;
 	}
 
 	// Else, use the overall start and end dates for filling...
 
-	fillPattern ( ts, pattern_ts, ts.getDate1(), ts.getDate2(), null,
-			(PropList)null );
+	fillPattern ( ts, pattern_ts, ts.getDate1(), ts.getDate2(), null, (PropList)null );
 }
 
 /**
 Fill the time series missing data with monthly values based on the averages for
 the given pattern.  For example, if Dec, 1995 is missing, and Dec 1995 is a
-"wet" year according to the pattern, fill Dec, 1995 with the average of all
-wet year Decembers.
+"wet" year according to the pattern, fill Dec, 1995 with the average of all wet year Decembers.
 @param ts Time series to fill.
 @param pattern_ts Pattern time series.
 @param pattern_stats Time series pattern statistics returned from
-TSUtil.getPatternStats.  In general, this is only used by complicated
-analysis code.
+TSUtil.getPatternStats.  In general, this is only used by complicated analysis code.
 */
-public static void fillPattern (	TS ts, StringMonthTS pattern_ts,
-					TSPatternStats pattern_stats )
+public static void fillPattern ( TS ts, StringMonthTS pattern_ts, TSPatternStats pattern_stats )
 throws Exception
 {	String routine = "TSUtil.fillPattern";
 
@@ -5761,50 +5328,42 @@ throws Exception
 	}
 	if ( pattern_ts == null ) {
 		// No time series...
-		Message.printWarning ( 2, routine,
-		"Null pattern time series" );
+		Message.printWarning ( 2, routine, "Null pattern time series" );
 		return;
 	}
 
 	// Else, use the overall start and end dates for filling...
 
-	fillPattern (	ts, pattern_ts, ts.getDate1(), ts.getDate2(),
-			pattern_stats, (PropList)null );
+	fillPattern ( ts, pattern_ts, ts.getDate1(), ts.getDate2(), pattern_stats, (PropList)null );
 }
 
 /**
 Fill the time series missing data with monthly values based on the averages for
 the given pattern.  For example, if Dec, 1995 is missing, and Dec 1995 is a
-"wet" year according to the pattern, fill Dec, 1995 with the average of all
-wet year Decembers.
+"wet" year according to the pattern, fill Dec, 1995 with the average of all wet year Decembers.
 @param ts Time series to fill.
 @param pattern_ts Pattern time series.
 @param start_date Starting date for fill.
 @param end_date Ending date for fill.
 @param pattern_stats Time series pattern statistics returned from
-TSUtil.getPatternStats.  In general, this is only used by complicated
-analysis code.
+TSUtil.getPatternStats.  In general, this is only used by complicated analysis code.
 */
-public static void fillPattern(	TS ts, StringMonthTS pattern_ts,
-				DateTime start_date, DateTime end_date,
-				TSPatternStats pattern_stats )
+public static void fillPattern(	TS ts, StringMonthTS pattern_ts, DateTime start_date, DateTime end_date,
+    TSPatternStats pattern_stats )
 throws Exception
-{	fillPattern (	ts, pattern_ts, start_date, end_date,
-			pattern_stats, (PropList)null );
+{	fillPattern ( ts, pattern_ts, start_date, end_date, pattern_stats, (PropList)null );
 }
 
 /**
 Fill the time series missing data with monthly values based on the averages for
 the given pattern.  For example, if Dec, 1995 is missing, and Dec 1995 is a
-"wet" year according to the pattern, fill Dec, 1995 with the average of all
-wet year Decembers.
+"wet" year according to the pattern, fill Dec, 1995 with the average of all wet year Decembers.
 @param ts Time series to fill.
 @param pattern_ts Pattern time series.
 @param start_date Starting date for fill.
 @param end_date Ending date for fill.
 @param pattern_stats Time series pattern statistics returned from
-TSUtil.getPatternStats.  In general, this is only used by complicated
-analysis code.
+TSUtil.getPatternStats.  In general, this is only used by complicated analysis code.
 @param props PropList containing modifiers.
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -5825,8 +5384,7 @@ No flag is assigned.
 <tr>
 <td><b>IgnoreLessThanOrEqualZero</b></td>
 <td>
-Indicates whether values <= zero should be treated as missing when computing
-averages.
+Indicates whether values <= zero should be treated as missing when computing averages.
 </td>
 False
 </td>
@@ -5835,13 +5393,12 @@ False
 </table>
 @exception Exception if an error occurs.
 */
-public static void fillPattern(	TS ts, StringMonthTS pattern_ts,
-				DateTime start_date, DateTime end_date,
-				TSPatternStats pattern_stats, PropList props )
+public static void fillPattern(	TS ts, StringMonthTS pattern_ts, DateTime start_date, DateTime end_date,
+	TSPatternStats pattern_stats, PropList props )
 throws Exception
-{	String  routine = "TSUtil.fillPattern";
-	double	fill_value;
-	String	indicator;
+{	String routine = "TSUtil.fillPattern";
+	double fill_value;
+	String indicator;
 	int	dl = 20;
 
 	if ( ts == null ) {
@@ -5851,8 +5408,7 @@ throws Exception
 	}
 	if ( pattern_ts == null ) {
 		// No time series...
-		Message.printWarning ( 2, routine,
-		"Null pattern time series" );
+		Message.printWarning ( 2, routine, "Null pattern time series" );
 		return;
 	}
 
@@ -5868,13 +5424,11 @@ throws Exception
 		if ( FillFlag.equalsIgnoreCase("Auto") ) {
 			FillFlagAuto_boolean = true;
 			ts.allocateDataFlagSpace (
-			1,	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 		}
-		else {	// Flag might be > 1 character, although unlikely...
+		else {
 			ts.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 		}
@@ -5883,21 +5437,19 @@ throws Exception
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
-	// Get the average values for the incoming time series according to the
-	// pattern...
+	// Get the average values for the incoming time series according to the pattern...
 
 	TSPatternStats stats = null;
 	if ( pattern_stats == null ) {
 		stats = getPatternStats ( ts, pattern_ts, props );
 	}
-	else {	stats = pattern_stats;
+	else {
+	    stats = pattern_stats;
 	}
-	Message.printStatus ( 2, routine,
-	"Filling \"" + ts.getIdentifierString() + "\" for " + start + " to " +
-	end );
+	Message.printStatus ( 2, routine, "Filling \"" + ts.getIdentifierString() + "\" for " + start + " to " + end );
 	Message.printStatus ( 2, routine, stats.toString () );
 
 	TSData tsdata = null;
@@ -5918,76 +5470,41 @@ throws Exception
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				if (	ts.isDataMissing (
-					ts.getDataValue ( date ))) {
-					indicator =
-					pattern_ts.getDataValueAsString( date );
+				if ( ts.isDataMissing ( ts.getDataValue ( date ))) {
+					indicator = pattern_ts.getDataValueAsString( date );
 					if ( indicator.equals("") ) {
 						if ( Message.isDebugOn ) {
-							Message.printWarning (5,
-							routine, "Unable to " +
-							"get pattern for " +
-							"date " + date +
-							".  Not filling." );
+							Message.printWarning (5, routine, "Unable to get pattern for date " + date + ".  Not filling." );
 						}
 						continue;
 					}
-					try {	fill_value = stats.getAverage (
-							indicator,
-							date.getMonth() );
-						if (	!ts.isDataMissing(
-							fill_value) ) {
-							tsdata.setData (
-							fill_value );
+					try {
+					    fill_value = stats.getAverage ( indicator, date.getMonth() );
+						if ( !ts.isDataMissing(fill_value) ) {
+							tsdata.setData ( fill_value );
 							if ( FillFlag_boolean ){
-								// Set the flag,
-								// appending to
-								// the old
-								// value...
+								// Set the flag, appending to the old value...
 								if ( FillFlagAuto_boolean ) {
-									FillFlag =
-									"" +
-									indicator.charAt(0);
+									FillFlag = "" + indicator.charAt(0);
 								}
-								tsdata.
-								setDataFlag (
-								tsdata.
-								getDataFlag().
-								trim() +
-								FillFlag );
+								tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
 							}
-							// Have to do this
-							// manually since TSData
-							// are being modified
-							// directly to improve
-							// performance...
+							// Have to do this manually since TSData are being modified directly to improve performance...
 							ts.setDirty ( true );
 							if ( Message.isDebugOn){
-								Message.
-								printDebug (
-								dl, routine,
-								"Filled using "+
-								"pattern \"" +
-								indicator +
-								"\" average: " +
-								fill_value +
-								" at " +
-								date );
+								Message.printDebug ( dl, routine,
+								"Filled using pattern \"" + indicator + "\" average: " + fill_value + " at " + date );
 							}
 							++nfilled;
 						}
 					}
 					catch ( TSException e ) {
 						Message.printWarning ( 2,
-						routine,
-						"Unable to get fill value for "+
-						"pattern \"" +indicator+
-						"\" on date " + date );
+						routine, "Unable to get fill value for pattern \"" +indicator+ "\" on date " + date );
 					}
 				}
 			}
@@ -5996,76 +5513,50 @@ throws Exception
 	else {	// Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			if ( ts.isDataMissing ( ts.getDataValue ( date ))) {
 				indicator=pattern_ts.getDataValueAsString(date);
 				if ( indicator.equals("") ) {
 					if ( Message.isDebugOn ) {
-						Message.printWarning ( 5,
-						routine,
-						"Unable to get pattern for " +
-						"date " + date +
-						".  Not filling." );
+						Message.printWarning ( 5, routine, "Unable to get pattern for date " + date + ".  Not filling." );
 					}
 					continue;
 				}
-				try {	fill_value = stats.getAverage (
-						indicator, date.getMonth() );
+				try {
+				    fill_value = stats.getAverage ( indicator, date.getMonth() );
 					if ( !ts.isDataMissing(fill_value) ) {
-						ts.setDataValue ( date,
-						fill_value );
+						ts.setDataValue ( date, fill_value );
 						if ( FillFlag_boolean ) {
-							// Set the data flag,
-							// appending to the
-							// old value...
-							if (
-							FillFlagAuto_boolean ) {
-								FillFlag =
-								"" +
-								indicator.
-								charAt(0);
+							// Set the data flag, appending to the old value...
+							if ( FillFlagAuto_boolean ) {
+								FillFlag = "" + indicator.charAt(0);
 							}
-							tsdata =ts.getDataPoint(
-								 date );
-							ts.setDataValue ( date,
-							fill_value,
-							(tsdata.getDataFlag().
-							trim()+FillFlag),
-							1 );
+							tsdata =ts.getDataPoint( date );
+							ts.setDataValue ( date, fill_value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 						}
-						else {	// No data flag...
-							ts.setDataValue ( date,
-								fill_value );
+						else {
+						    // No data flag...
+							ts.setDataValue ( date, fill_value );
 						}
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							routine, "Filled using "
-							+ "pattern \"" +
-							indicator +
-							"\" average: " +
-							fill_value + " at " +
-							date );
+							Message.printDebug ( dl, routine, "Filled using pattern \"" +
+							indicator + "\" average: " + fill_value + " at " + date );
 						}
 						++nfilled;
 					}
 				}
 				catch ( TSException e ) {
 					Message.printWarning ( 2, routine,
-					"Unable to get fill value for pattern "+
-					"\"" + indicator + "\" on date " +date);
+					    "Unable to get fill value for pattern \"" + indicator + "\" on date " +date);
 				}
 			}
 		}
 	}
 	if ( nfilled > 0 ) {
 		// Only change the description if some data were filled...
-		ts.setDescription( ts.getDescription() + ",fillpattern " +
-		pattern_ts.getLocation() );
+		ts.setDescription( ts.getDescription() + ",fillpattern " + pattern_ts.getLocation() );
 	}
-	ts.addToGenesis ( "Filled using pattern information for " +
-		start + " to " + end + " using pattern " +
+	ts.addToGenesis ( "Filled using pattern information for " + start + " to " + end + " using pattern " +
 		pattern_ts.getLocation() + " (" + nfilled + " values filled).");
 }
 
@@ -6076,11 +5567,9 @@ independent and fill time series.  Data processing can occur forward
 or backward in time.  The ratio is ts/independent for known points.  For
 missing values in ts, the value is estimated as
 ts_value = independent_value*(ratio).  Independent values of zero are ignored
-when computing the ratio (fillConstant() can be used later to fill with zero
-if appropriate.
+when computing the ratio (fillConstant() can be used later to fill with zero if appropriate.
 @param ts Time series to fill.
-@param independent_ts Independent time series to find non-missing values to
-compute the ratio.
+@param independent_ts Independent time series to find non-missing values to compute the ratio.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
 @param direction -1 if filling backward, >= 0 if filling forward.
@@ -6089,8 +5578,7 @@ on the end of the period.  See the overloaded method for possible values.
 @exception RTi.TS.Exception if there is a problem filling data.
 @deprecated Use the PropList version of this method.
 */
-public static void fillProrate(	TS ts, TS independent_ts,
-				DateTime start_date, DateTime end_date,
+public static void fillProrate(	TS ts, TS independent_ts, DateTime start_date, DateTime end_date,
 				int direction, double initial_value )
 throws Exception
 {	PropList props = new PropList ( "fillProrate" );
@@ -6282,7 +5770,6 @@ throws Exception
 		FillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts.allocateDataFlagSpace (
-			FillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
@@ -6375,8 +5862,7 @@ throws Exception
 				else {
 				    note = "/";
 				}
-				ts.addToGenesis (
-				"Filled " + fill_count + " missing data points " + FillStart_DateTime + " to " +
+				ts.addToGenesis ( "Filled " + fill_count + " missing data points " + FillStart_DateTime + " to " +
 				FillEnd_DateTime + " by prorating known values from \"" +
 				independent_ts.getIdentifierString() + "\" " + note + " average factor " + ratio );
 			}
@@ -6625,15 +6111,13 @@ throws Exception
     			ts.setDescription ( ts.getDescription() + ", fill prorate forward" );
     			ts.addToGenesis ( "Filled " + fill_count + " missing data points " +
     			FillStart_DateTime + " to " + FillEnd_DateTime +
-    			" by prorating known values (forward) from \"" +
-    			independent_ts.getIdentifierString() + "\"" );
+    			" by prorating known values (forward) from \"" + independent_ts.getIdentifierString() + "\"" );
     		}
     		else {
     		    ts.setDescription ( ts.getDescription() + ", fill prorate backward" );
     			ts.addToGenesis ( "Filled " + fill_count + " missing data points " +
     			FillStart_DateTime + " to " + FillEnd_DateTime +
-    			" by prorating known values (backward) from \"" +
-    			independent_ts.getIdentifierString() + "\"" );
+    			" by prorating known values (backward) from \"" + independent_ts.getIdentifierString() + "\"" );
     		}
     	}
 	} // NearestPoint
@@ -6654,11 +6138,22 @@ will cause the data flags to be allocated in the time series).
 @param ts_independent Independent time series.
 @param tsRegression A previously computed TSRegression object - if specified as non-null it will be
 used rather than computing the regression information from other parameters.
-@param fill_period_start Date/time to start filling (this is used for the
+@param analysisMethod analysis method to use for the analysis
+@param numberOfEquatiosn the number of equations (1 or 12 for monthly analysis)
+@param intercept can be set to zero for OLS regression, ignored otherwise
+@param analysisMonths an array of months (values 1 to 12) that indicate the months to analyze.  If one equation
+is used, then only data for the specified months will be used.
+@param transformation the transformation to apply to data.
+@param dependentAnalysisStart date/time to start the analysis of the dependent time series.
+@param dependentAnalysisEnd date/time to end the analysis of the dependent time series.
+@param independentAnalysisStart date/time to start the analysis of the independent time series.
+@param independentAnalysisEnd date/time to end the analysis of the independent time series.
+@param fillStart Date/time to start filling (this is used for the
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
-@param fill_period_end Date/time to end filling (this is used for the
+@param fillEnd Date/time to end filling (this is used for the
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
-@param prop_list Property list with element as described above.
+@param fillFlag a string to mark filled values with
+@param descriptionString a string to append to the existing time series description.
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
 public static TSRegression fillRegress ( TS ts_to_fill, TS ts_independent,
@@ -6726,11 +6221,24 @@ appended to the description (if not set, "fill regress monthly using TSID" or
 "fill log regress monthly using TSID" will be used).
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
-@param fill_period_start Date/time to start filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
-@param fill_period_end Date/time to end filling (this is used for the
-analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
-@param prop_list Properties to control filling.  See the TSRegression properties.
+@param tsRegression if null, then regression relationships will be determined using the specified parameters.
+If not null, an existing regression relationship will be used.  This allows a previously calculated A, B to be
+used rather than recalculating using data that may have been filled in some way.
+@param analysisMethod the regression analysis method to use
+@param intercept can be specified as zero for OLS regression to force the relationship through zero, not used with
+other methods
+@param analysisMonths if using one relationship, this specifies that only the specified months (array of values 1-12)
+should be considered to develop the relationship, and only those months will be filled.  If monthly relationships, only
+the specific months will be analyzed and filled.
+@param transformation the data transformation to apply before analyzing.
+@param dependentAnalysisStart the analysis start for the dependent time series, used by all methods.
+@param dependentAnalysisEnd the analysis end for the dependent time series, used by all methods.
+@param independentAnalysisStart the analysis start for the independent time series, used by the MOVE2 method.
+@param independentAnalysisEnd the analysis end for the independent time series, used by the MOVE2 method.
+@param fillStart date/time to start filling 
+@param fillEnd date/time to end filling
+@param fillFlag the flag to use for filled data values
+@param descriptionString the string to append to the time series description, if any values are filled
 @exception Exception if there is an error performing the regression.
 */
 private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
@@ -6766,7 +6274,6 @@ throws TSException, Exception
 		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts_to_fill.allocateDataFlagSpace (
-			fillFlag.length(),	// Max length of flag
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
@@ -6782,19 +6289,19 @@ throws TSException, Exception
 		Message.printDebug ( dl, routine, "Getting TSRegression data.");
 	}
 	if ( tsRegression != null ) {
+	    // Use an existing relationship
 	    rd = tsRegression;
 	}
 	else {
+	    // Compute the regression relationship
     	try {
     	    rd = new TSRegression ( ts_independent, ts_to_fill, true, analysisMethod,
     	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
-    	            transformation,
-    	            dependentAnalysisStart, dependentAnalysisEnd,
-    	            independentAnalysisStart, independentAnalysisEnd,
-    	            fillStart, fillEnd );
+    	            transformation, dependentAnalysisStart, dependentAnalysisEnd,
+    	            independentAnalysisStart, independentAnalysisEnd, fillStart, fillEnd );
     	}
     	catch ( Exception e ) {
-    		message="Unable to complete analysis.";
+    		message="Unable to complete analysis (" + e + ").";
     		Message.printWarning ( 3, routine, message );
     		Message.printWarning ( 3, routine, e );
     		throw new TSException ( message );
@@ -6803,18 +6310,32 @@ throws TSException, Exception
 		
 	double newval = 0.0, x = 0.0;
 	int fillCount = 0; // To know whether to add to genesis
+	int month = 0, iMonth; // Used for analysisMonths check
+	boolean foundMonth = false; // Used for analysisMonths check
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
 		try {
-		    // Catch an error for the interval.  It is most likely
-			// due to not having regression data for the month...
-			// TODO SAM - need to evaluate this - use isAnalyzed() to improve performance
+		    // TODO SAM - need to evaluate this - use isAnalyzed() to improve performance
     		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date)) ) {
     			// Try to fill the value...
     			x = ts_independent.getDataValue ( date );
     			if ( !ts_independent.isDataMissing(x)) {
+    			    // Skip the month if not requested
+    	            if ( analysisMonths != null ) {
+    	                foundMonth = false;
+    	                month = date.getMonth();
+    	                for ( iMonth = 0; iMonth < analysisMonths.length; iMonth++ ) {
+    	                    if ( month == analysisMonths[iMonth] ) {
+    	                        foundMonth = true;
+    	                        break;
+    	                    }
+    	                }
+    	                if ( !foundMonth ) {
+    	                    continue;
+    	                }
+    	            }
     				if ( Message.isDebugOn ) {
-    					Message.printDebug ( dl, routine, "Found data at " + date + " - full ts value: " + x  );
+    					Message.printDebug ( dl, routine, "Found nonmissing independant data at " + date + " - value: " + x  );
     				}
     				if ( regressLog ) {
     					// Need to work on the log of the X value...
@@ -6833,7 +6354,7 @@ throws TSException, Exception
     				newval = rd.getA(date.getMonth()) + rd.getB(date.getMonth())*x;
     
     				if ( Message.isDebugOn ) {
-    					Message.printDebug ( dl, routine, "New value: " + newval );
+    					Message.printDebug ( dl, routine, "Calculated dependent value: " + newval );
     				}
     
     				if ( regressLog ) {
@@ -6900,13 +6421,18 @@ throws TSException, Exception
     			analysisMethod = RegressionType.OLS_REGRESSION;
     		}
     		else {
+    		    String monthString = "monthly";
+    		    if ( (analysisMonths != null) && (analysisMonths.length == 1) ) {
+    		        // Filling one month so be specific in the description
+    		        monthString = TimeUtil.monthAbbreviation(analysisMonths[0]);
+    		    }
     		    if ( regressLog ) {
     				ts_to_fill.setDescription ( ts_to_fill.getDescription()+
-    				", fill log " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
+    				", fill log " + analysisMethod + " " + monthString + " using " + ts_independent.getIdentifierString() );
     			}
     			else {
     			    ts_to_fill.setDescription ( ts_to_fill.getDescription() +
-    				", fill " + analysisMethod + " monthly using " + ts_independent.getIdentifierString() );
+    				", fill " + analysisMethod + " " + monthString + " using " + ts_independent.getIdentifierString() );
     			}
     		}
     	}
@@ -6922,8 +6448,7 @@ Fill the missing data within the time series with values based on a regression,
 MOVE1, or MOVE2 analysis.  A single relationship is used.  If a logarithmic
 analysis is desired, pass a property value of "Transformation" set to "log" in
 the prop_list.  A property "DescriptionString" can also be set, which will be
-appended to the description (if not set, "fill regress using TSID" or
-"fill log regress using TSID" will be used).
+appended to the description (if not set, "fill regress using TSID" or "fill log regress using TSID" will be used).
 @param ts_to_fill Time series to fill.
 @param ts_independent Independent time series.
 @param fill_period_start Date/time to start filling (this is used for the
@@ -6963,7 +6488,6 @@ throws TSException, Exception
 		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
 		ts_to_fill.allocateDataFlagSpace (
-			fillFlag.length(),	// Max length
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
@@ -7001,16 +6525,32 @@ throws TSException, Exception
 		
 	double newval = 0.0, x = 0.0;
 	int fillCount = 0;
+	boolean foundMonth = false; // Used for analysisMonths check
+	int month, iMonth; // Used for analysisMonths check
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 		date.addInterval(interval_base, interval_mult) ) {
 		try {
 		    // Catch an error for the interval.  It is most likely due to not having analysis data...
-			// SAMX - need to evaluate this - use isAnalyzed() to improve performance
-    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date) ) ){
+			// TODO SAM 2010-06-10 - need to evaluate this - use isAnalyzed() to improve performance
+    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date) ) ) {
     			x = ts_independent.getDataValue ( date );
     			if ( !ts_independent.isDataMissing(x)) {
+    		        // Skip the month if not requested
+    	            if ( analysisMonths != null ) {
+    	                foundMonth = false;
+    	                month = date.getMonth();
+    	                for ( iMonth = 0; iMonth < analysisMonths.length; iMonth++ ) {
+    	                    if ( month == analysisMonths[iMonth] ) {
+    	                        foundMonth = true;
+    	                        break;
+    	                    }
+    	                }
+    	                if ( !foundMonth ) {
+    	                    continue;
+    	                }
+    	            }
     				if ( Message.isDebugOn ) {
-    					Message.printDebug ( 10, routine, "Found null data at " + date );
+    					Message.printDebug ( 10, routine, "Found nonmissing independent data " + x + " at " + date );
     				}
     				if ( regressLog ) {
     					if ( x <= 0.0 ) {
@@ -7111,8 +6651,7 @@ Fill missing data by repeating the last known value, processing either forward o
 indicates to fill all (no maximum).
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date,
-				int direction, int max_intervals )
+public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, int direction, int max_intervals )
 throws TSException
 {	String  routine = "TSUtil.fillRepeat";
 	String	message;
@@ -7120,69 +6659,61 @@ throws TSException
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		message =
-		"Filling IrregularTS by repeating value is not supported";
+		message = "Filling IrregularTS by repeating value is not supported";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 	// Loop using addInterval...
-	DateTime	date = null;
-	double	data_value = 0.0;
-	boolean	last_found = false;
-	double	last_found_value = 0.0;
+	DateTime date = null;
+	double data_value = 0.0;
+	boolean last_found = false;
+	double last_found_value = 0.0;
 	int	fill_count = 0;	// Number of sequential intervals filled.
 		
 	if ( direction >= 0 ) {
 		// Iterate forward...
-		for (	date = new DateTime(start);
-			date.lessThanOrEqualTo( end );
+		for ( date = new DateTime(start); date.lessThanOrEqualTo( end );
 			date.addInterval(interval_base, interval_mult) ) {
 			data_value = ts.getDataValue ( date );
 			if ( ts.isDataMissing ( data_value ) ) {
 				if ( last_found ) {
-					// Use the last value found to fill.  If
-					// no value has been found, leave
-					// missing...
-					if (	(max_intervals == 0) ||
-						(fill_count < max_intervals) ) {
-						ts.setDataValue ( date,
-						last_found_value );
+					// Use the last value found to fill.  If no value has been found, leave missing...
+					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
+						ts.setDataValue ( date, last_found_value );
 						++fill_count;
 					}
 				}
 			}
-			else {	// Save the last data value...
+			else {
+			    // Save the last data value...
 				last_found_value = data_value;
 				last_found = true;
 				fill_count = 0;
 			}
 		}
 	}
-	else {	// Iterate backward...
-		for (	date = new DateTime(end);
-			date.greaterThanOrEqualTo( start );
+	else {
+	    // Iterate backward...
+		for ( date = new DateTime(end); date.greaterThanOrEqualTo( start );
 			date.addInterval(interval_base, -interval_mult) ) {
 			data_value = ts.getDataValue ( date );
 			if ( ts.isDataMissing ( data_value ) ) {
 				if ( last_found ) {
-					// Use the last value found to fill.  If
-					// no value has been found, leave
-					// missing...
-					if (	(max_intervals == 0) ||
-						(fill_count < max_intervals) ) {
-						ts.setDataValue ( date,
-						last_found_value );
+					// Use the last value found to fill.  If no value has been found, leave missing...
+					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
+						ts.setDataValue ( date, last_found_value );
 						++fill_count;
 					}
 				}
 			}
-			else {	// Save the last data value...
+			else {
+			    // Save the last data value...
 				last_found_value = data_value;
 				last_found = true;
 				fill_count = 0;
@@ -7193,17 +6724,14 @@ throws TSException
 	// Fill in the genesis information...
 
 	if ( direction >= 0 ) {
-		ts.setDescription ( ts.getDescription() +
-		", fill repeat forward" );
+		ts.setDescription ( ts.getDescription() + ", fill repeat forward" );
 		ts.addToGenesis ( "Filled missing data " + start.toString() +
-		" to " + end.toString() +
-		" by repeating forward known values, up to " + max_intervals );
+		" to " + end.toString() + " by repeating forward known values, up to " + max_intervals );
 	}
-	else {	ts.setDescription ( ts.getDescription() +
-		", fill repeat backward" );
+	else {
+	    ts.setDescription ( ts.getDescription() + ", fill repeat backward" );
 		ts.addToGenesis ( "Filled missing data " + start.toString() +
-		" to " + end.toString() +
-		" by repeating backward known values, up to " + max_intervals );
+		" to " + end.toString() + " by repeating backward known values, up to " + max_intervals );
 	}
 }
 
@@ -7221,11 +6749,7 @@ is no limitation on how far forward to search.
 @param nback Indicates how many time steps to search backward.  If zero, there
 is no limitation on how far back to search.
 */
-public static double findNearestDataValue (	TS ts,
-					DateTime date,
-					int direction,
-					int nforward,
-					int nback )
+public static double findNearestDataValue (	TS ts, DateTime date, int direction, int nforward, int nback )
 {	if ( ts == null ) {
 		return -999.0;
 	}
@@ -7237,12 +6761,12 @@ public static double findNearestDataValue (	TS ts,
 	}
 
 	DateTime forward_date = new DateTime(date);
-	DateTime back_date    = new DateTime(date);
-	DateTime date1        = ts.getDate1();
-	DateTime date2        = ts.getDate2();
-	double value          = ts.getMissing();
-	int interval_base     = ts.getDataIntervalBase();
-	int interval_mult     = ts.getDataIntervalMult();
+	DateTime back_date = new DateTime(date);
+	DateTime date1 = ts.getDate1();
+	DateTime date2 = ts.getDate2();
+	double value = ts.getMissing();
+	int interval_base = ts.getDataIntervalBase();
+	int interval_mult = ts.getDataIntervalMult();
 	boolean back_done = false;
 	int count = 0;
 	boolean forward_done = false;
@@ -7305,23 +6829,19 @@ public static double findNearestDataValue (	TS ts,
 Returns the nearest TSData point at which non-missing data is found.  If
 there are no non-missing data points found then null is returned.
 @param inputTS Time series object to iterate.
-@param date1 First DateTime of the iteration. If null, uses start date set for
-the given TS.
-@param date2 Last DateTime of the iteration.  If null, uses end date set for
-the given TS.
+@param date1 First DateTime of the iteration. If null, uses start date set for the given TS.
+@param date2 Last DateTime of the iteration.  If null, uses end date set for the given TS.
 @param reverse If true then the iteration will go from date2 to date1.  If
 false then iteration starts at date1 and finishes at date2.
 @return
  */
-public static TSData findNearestDataPoint(TS inputTS, DateTime date1,
-		DateTime date2, boolean reverse)
+public static TSData findNearestDataPoint(TS inputTS, DateTime date1, DateTime date2, boolean reverse)
 {
 	if( inputTS == null ) {
 		return null;
 	}
 	TSData nearestPoint = null;
-	String routine = 
-		"FillUsingDiversionComments_Command.getFirstNonMissingDate";
+	String routine = "FillUsingDiversionComments_Command.getFirstNonMissingDate";
 	TSIterator iter = null;
 	
 	// check date parameters and if null set to TS dates
@@ -7366,310 +6886,6 @@ public static TSData findNearestDataPoint(TS inputTS, DateTime date1,
 	return nearestPoint;
 }
 
-
-// ----------------------------------------------------------------------------
-// TSUtil.findTSFile - find a time series file using a path to the file.
-// ----------------------------------------------------------------------------
-// Notes:	(1)	This routine searches for a time series data file using
-//			the following search order:
-//
-//				I.	If the time series identifier has a
-//					scenario that is a file in the current
-//					directory or the full path to a file,
-//					use it.
-//				II.	If the TS ID has a scenario but the file
-//					is not in the current directory, use
-//					the path information to
-//					search.  If a file is found, use it.
-//				III.	If the scenario is blank, use the
-//					information in the TS ID to form
-//					reasonable file names and search the
-//					path for a file.  If one is found use
-//					it.
-//				IV.	If unable to find a file, return non-
-//					zero.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 05 Jan 1997	Steven A. Malers, RTi	Write initial version.
-// 10 Mar 1997	SAM, RTi		Use semi-colons for the path so that
-//					this code will work on the PC and UNIX.
-// 22 Sep 1997	SAM, RTi		Fold in code from DSSFindTSFile in DSS
-//					library.
-// 10 Jan 1998	SAM, RTi		Move from DSSApp library to here.
-// 17 Apr 1998	SAM, RTi		Overload to take a string list.  Remove
-//					the static on the string list because
-//					we expect it to be maintained
-//					statically elsewhere.
-// ----------------------------------------------------------------------------
-// Variable	I/O	Description
-//
-// fulltsdatadirs L	Fill paths to possible time series files.
-// i		L	Loop counter for directories.
-// nfulltsdatadirs L	Number of "fulltsdatadirs".
-// ntsdatadirs	G	Number of "tsdatadirs".
-// scenario	L	Scenario part of time series identifier.  Used to
-//			specify a file name.
-// string	L	Generic string.
-// tsdatapath	L	Time series data directory path as a string.
-// tsdatadirs	G	Time series data directory path as string list.
-// tsfile	O	Full path to time series file.
-// tsid_string0	I	Time series identifier string (original).
-// tsid_string	L	Time series identifier string.
-// ----------------------------------------------------------------------------
-
-public static String findTSFile ( String tsid_string0, String tsdatapath0 )
-{	String	routine = "TSUtil.findTSFile(String,String)", tsdatapath = ".",
-		tsid_string;
-	List tsdatadirs = null;
-	int	i, ntsdatadirs = 0;
-
-	// Make sure we have a non-NULL identifier...
-
-	if ( tsid_string0 == null ) {
-		Message.printWarning ( 10, routine,
-		"Time series identifier is NULL" );
-		return null;
-	}
-	else if ( tsid_string0.length() == 0 ) {
-		Message.printWarning ( 10, routine,
-		"Time series identifier is empty" );
-		return null;
-	}
-
-	// Make sure that the path is non-NULL...
-
-	if ( tsdatapath0 == null ) {
-		Message.printWarning ( 10, routine,
-		"Time series path is NULL.  Using \".\"" );
-		tsdatapath = ".";
-	}
-	else if ( tsdatapath0.length() == 0 ) {
-		Message.printWarning ( 1, routine,
-		"Time series path is empty.  Using \".\"" );
-		tsdatapath = ".";
-	}
-
-	tsid_string = tsid_string0;
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Trying to find time series" +
-		" for ID \"" + tsid_string + "\"" );
-	}
-
-	tsdatadirs = StringUtil.breakStringList ( tsdatapath, "\t; ", StringUtil.DELIM_SKIP_BLANKS );
-	if ( tsdatadirs == null ) {
-		// Trouble, use the default...
-		Message.printWarning ( 10, routine,
-		"Unable to parse path.  Using \".\"");
-		tsdatadirs = StringUtil.addToStringList ( tsdatadirs, "." );
-		return findTSFile ( tsid_string, tsdatadirs );
-	}
-	ntsdatadirs = tsdatadirs.size();
-	if ( ntsdatadirs < 1 ) {
-		// Trouble, use the default...
-		Message.printWarning ( 1, routine,
-		"Unable to parse path.  Using \".\"");
-		tsdatadirs = StringUtil.addToStringList ( tsdatadirs, "." );
-	}
-	else {	if ( Message.isDebugOn ) {
-			for ( i = 0; i < ntsdatadirs; i++ ) {
-				Message.printDebug ( 10, routine,
-				"tsdatadir[" + i + "] = \"" +
-				(String)tsdatadirs.get(i) );
-			}
-		}
-	}
-
-	// Call the overloaded version...
-
-	return findTSFile ( tsid_string, tsdatadirs );
-}
-
-// SAM TODO Is this code even used for anything?
-// Overload to take a string list...
-public static String findTSFile ( String tsid_string0, List tsdatadirs0 )
-{	String		routine = "TSUtil.findTSFile(String,Vector)",
-			scenario, string, tsid_string, tsfile;
-	List tsdatadirs = null;
-	int		i, nfulltsdatadirs = 0;
-	int		ntsdatadirs = 0;
-
-	// Make sure we have a non-NULL identifier...
-
-	if ( tsid_string0 == null ) {
-		Message.printWarning ( 1, routine,
-		"Time series identifier is NULL" );
-		return null;
-	}
-	else if ( tsid_string0.length() == 0 ) {
-		Message.printWarning ( 1, routine,
-		"Time series identifier is empty" );
-		return null;
-	}
-	tsid_string = tsid_string0;
-
-	// Make sure that the path is non-NULL...
-
-	if ( tsdatadirs0 == null ) {
-		Message.printWarning ( 1, routine, "Time series directory list is NULL.  Using \".\"" );
-		tsdatadirs = new Vector ( 5, 5 );
-		tsdatadirs = StringUtil.addToStringList ( tsdatadirs, "." );
-	}
-	else {	ntsdatadirs = tsdatadirs0.size();
- 		if ( ntsdatadirs < 1 ) {
-			Message.printWarning ( 1, routine, "Time series directory list is empty.  Using \".\"" );
-			tsdatadirs = new Vector ( 5, 5 );
-			tsdatadirs = StringUtil.addToStringList(tsdatadirs,".");
-		}
-		else {
-			// Use what was passed in...
-			tsdatadirs = tsdatadirs0;
-		}
-	}
-
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Trying to find time series for ID \"" + tsid_string + "\"" );
-	}
-
-	// Now we have a list of directories to search.  Initialize a TSIdent
-	// with the character string identifier so that we can get to the
-	// parts...
-
-	TSIdent tsident = null;
-	try {	tsident = new TSIdent ( tsid_string );
-	}
-	catch ( Exception e ) {
-		// Can't do anything more...
-		return null;
-	}
-
-	scenario = tsident.getScenario();
-	if ( scenario.length() > 0 ) {
-		// We have scenario information...  Let's see if the
-		// file exists...
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 10, routine,
-			"Trying TS file from scenario:  \"" + scenario + "\"");
-		}
-		if ( IOUtil.fileReadable(scenario) ) {
-			// It is, use it...
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, routine,
-				"Found TS file from scenario:  \"" + scenario +
-				"\"" );
-			}
-			tsfile = scenario;
-			return tsfile;
-		}
-		// If we have gotten to here, then we could not get the file
-		// directly and we need to check the path...
-		List fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, scenario );
-		if ( fulltsdatadirs == null ) {
-			nfulltsdatadirs = 0;
-		}
-		else {	nfulltsdatadirs = fulltsdatadirs.size();
-		}
-		for ( i = 0; i < nfulltsdatadirs; i++ ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, routine,
-				"Trying TS file from path:  \"" +
-				(String)fulltsdatadirs.get(i) + "\"" );
-			}
-			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ) {
-				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.get(i);
-				return tsfile;
-			}
-		}
-	}
-
-	// If we have gotten to here, then we do not have scenario information
-	// and we need to guess at a file name from the other ID parts...
-
-	// First try the full time series identifier...
-
-	List fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, tsid_string );
-
-	if ( fulltsdatadirs == null ) {
-		nfulltsdatadirs = 0;
-	}
-	else {	nfulltsdatadirs = fulltsdatadirs.size();
-	}
-	for ( i = 0; i < nfulltsdatadirs; i++ ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 10, routine,
-			"Trying TS file from path:  \"" + (String)fulltsdatadirs.get(i) + "\"" );
-		}
-		if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ){
-			// Found a match, use it...
-			tsfile = (String)fulltsdatadirs.get(i);
-			return tsfile;
-		}
-	}
-
-	// If there is no scenario, try composing the file name without the
-	// scenario part...
-
-	if ( scenario.length() == 0 ) {
-		tsid_string = 
-		tsident.getLocation() + "." + tsident.getSource() + "." +
-		tsident.getType() + "." + tsident.getInterval();
-		fulltsdatadirs = IOUtil.getFilesFromPathList ( tsdatadirs, tsid_string );
-
-		if ( fulltsdatadirs == null ) {
-			nfulltsdatadirs = 0;
-		}
-		else {	nfulltsdatadirs = fulltsdatadirs.size();
-		}
-		for ( i = 0; i < nfulltsdatadirs; i++ ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, routine,
-				"Trying TS file from path:  \"" +
-				(String)fulltsdatadirs.get(i) + "\"" );
-			}
-			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i)) ) {
-				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.get(i);
-				return tsfile;
-			}
-		}
-
-		string = tsident.getSource().toUpperCase();
-		// Try using all uppercase data source...
-		tsid_string = tsident.getLocation() + "." + string + "." +
-			 tsident.getType() + "." + tsident.getInterval();
-		fulltsdatadirs = IOUtil.getFilesFromPathList (
-		tsdatadirs, tsid_string );
-
-		if ( fulltsdatadirs == null ) {
-			nfulltsdatadirs = 0;
-		}
-		else {	nfulltsdatadirs = fulltsdatadirs.size();
-		}
-		for ( i = 0; i < nfulltsdatadirs; i++ ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, routine,
-				"Trying TS file from path:  \"" + (String)fulltsdatadirs.get(i) + "\"" );
-			}
-			if ( IOUtil.fileReadable((String)fulltsdatadirs.get(i) ) ) {
-				// Found a match, use it...
-				tsfile = (String)fulltsdatadirs.get(i);
-				return tsfile;
-			}
-		}
-	}
-
-	// Need to maybe try different upper/lowercase combinations for the
-	// data type and interval??	
-
-	// If we have gotten to here we do not know where the time series is...
-
-	Message.printWarning ( 1, routine,
-	"Unable to find TS file for \"" + tsid_string + "\"" );
-
-	return null;
-}
-
 // TODO SAM - when is this ever used?
 /**
 Returns the index of the time series within the vector of time series
@@ -7677,17 +6893,19 @@ whose location or full id (depending upon the PropList) matches the
 key passed in the parameter list.  Matching just the location is the default.
 PropList values can be "MatchLocation=true" or "MatchFullID=true"
 */
-public static int findTSIndex ( List tsVector, String key, PropList prop_list )
+public static int findTSIndex ( List<TS> tsVector, String key, PropList prop_list )
 {
 	PropList props;
 	if ( prop_list == null ) {
 		props = new PropList ( "findTS" );
 	}
-	else {	props = prop_list;
+	else {
+	    props = prop_list;
 	}
 
 	TSIdent ident = null;
-	try {	ident = new TSIdent ( key );
+	try {
+	    ident = new TSIdent ( key );
 	}
 	catch ( Exception e ) {
 		return -999;
@@ -7705,7 +6923,8 @@ public static int findTSIndex ( List tsVector, String key, PropList prop_list )
 		token = ident.getIdentifier();	
 		matchFullID = true;
 	}
-	else {	// "MatchLocation"
+	else {
+	    // "MatchLocation"
 		token = ident.getLocation();	
 		// TODO SAM 2007-03-01 Evaluate use
 		//matchLocation = true;
@@ -7729,9 +6948,8 @@ public static int findTSIndex ( List tsVector, String key, PropList prop_list )
 /**
 Format output for a vector of time series, resulting in a standard text
 output.  This routine calls the formatOutput() member functions for each time
-series (some of which may not be implemented at this time).  Null time series
-are skipped.
-@return The Vector of strings for the complete output.
+series (some of which may not be implemented at this time).  Null time series are skipped.
+@return The lsit of strings for the complete output.
 @param tslist List of time series to format.
 @param proplist List of properties to modify output.  This list will be passed
 to the lower-level routines and will be modified as necessary (e.g. if the
@@ -7772,7 +6990,7 @@ DateTime.parse().
 @see IrregularTS#formatOutput
 @exception RTi.TS.TSException Thrown if a lower-level routine throws an exception.
 */
-public static List formatOutput ( List tslist, PropList proplist )
+public static List<String> formatOutput ( List<TS> tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
@@ -7786,25 +7004,25 @@ Version to take a single time series.
 @param proplist Property list to control formatting.
 @exception TSException if there is a problem formatting output.
 */
-public static List formatOutput ( TS ts, PropList proplist )
+public static List<String> formatOutput ( TS ts, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
 
-	List tslist = new Vector ();
+	List<TS> tslist = new Vector ();
 	tslist.add ( ts );
 	return formatOutput ( (PrintWriter)null, (String)null, tslist, proplist );
 }
 
 /**
 Version to write output to a file.
-@return Vector of formatted output.
+@return List of formatted output.
 @param fname Name of file to receive output.  File is closed at output.
-@param tslist Vector of time series to process.
+@param tslist list of time series to process.
 @param proplist Properties to modify output.
 @exception RTi.TS.TSException Thrown if there is an exception in the low-level code.
 */
-public static List formatOutput ( String fname, List tslist, PropList proplist )
+public static List<String> formatOutput ( String fname, List<TS> tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
@@ -7814,13 +7032,13 @@ throws TSException
 
 /**
 Version to write output to a Writer.
-@return Vector of formatted output.
+@return List of formatted output.
 @param fp PrintWrither to receive output.
-@param tslist Vector of time series to process.
+@param tslist list of time series to process.
 @param proplist Properties to modify output.
 @exception RTi.TS.TSException Thrown if there is an exception in the low-level code.
 */
-public static List formatOutput ( PrintWriter fp, List tslist, PropList proplist )
+public static List formatOutput ( PrintWriter fp, List<TS> tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
@@ -7830,19 +7048,17 @@ throws TSException
 
 /**
 This is the main routine for formatOutput.
-@param fp PrintWriter to receive output.  If not null, then output will be
-written.  If "fp" is null but "fname" is
-not, then a writer will be opened.  If both are null, just
-generate the strings.  This should give a enough flexibility.
+@param fp PrintWriter to receive output.  If not null, then output will be written.  If "fp" is null but "fname" is
+not, then a writer will be opened.  If both are null, just generate the strings.  This should give a enough flexibility.
 @param fname File name to write.
 @param tslist List of time series to output.
 @param proplist Properties to format the output.
 @exception RTi.TS.TSException Thrown if there is an exception in the low-level routines.
 */
-private static List formatOutput ( PrintWriter fp, String fname, List tslist, PropList proplist )
+private static List<String> formatOutput ( PrintWriter fp, String fname, List<TS> tslist, PropList proplist )
 throws TSException
-{	String	routine = "TSUtil.formatOutput(private)";
-	List formatted_output = null;
+{	String routine = "TSUtil.formatOutput(private)";
+	List<String> formatted_output = null;
 	int	dl = 20;
 	// Get the full path to the file...
 	String full_fname = null;
@@ -7856,8 +7072,7 @@ throws TSException
 
 	PropList props = null;
 	if ( proplist == null ) {
-		// Create an empty list so we do not have to check for null all
-		// over the place...
+		// Create an empty list so we do not have to check for null all over the place...
 		props = new PropList ( "TSUtil.formatOutput" );
 	}
 	else {
@@ -7869,9 +7084,9 @@ throws TSException
 	// Need to add properties and corresponding code to only print one header, etc.
 
 	int	size = tslist.size();
-	TS	ts = null;
+	TS ts = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -7883,7 +7098,7 @@ throws TSException
 		}
 	}
 
-	// Now check to see if we are supposed to write to to a writer...
+	// Now check to see if we are supposed to write to a writer...
 
 	boolean opened_here = false; // Indicates whether Writer was opened in this routine.
 	if ( fp == null ) {
@@ -7912,7 +7127,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.get(i) + newline );
+				fp.print ( formatted_output.get(i) + newline );
 			}
 		}
 		// If we opened the Writer here, close it...
@@ -7974,24 +7189,16 @@ routine without the flag should be called).  If calling from a TS class
 refresh() method, the flag should be false.
 @see TSLimits
 */
-protected static TSLimits getDataLimits (	TS ts, DateTime start0,
-						DateTime end0,
-						boolean refresh_flag )
-{	String		routine="TSUtil.getDataLimits";
-	double		max = 1.0, mean = 0.0, min = 0.0, sum = 0.0,
-			value = 0.0;
-	int		base=0, missing_count = 0, mult = 0,
-			non_missing_count = 0;
-	boolean		found = false;
-	DateTime	date, max_date = null, min_date = null,
-			non_missing_data_date1 = null,
-			non_missing_data_date2 = null, t = null;
+protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0, boolean refresh_flag )
+{	String routine="TSUtil.getDataLimits";
+	double max = 1.0, mean = 0.0, min = 0.0, sum = 0.0, value = 0.0;
+	int base=0, missing_count = 0, mult = 0, non_missing_count = 0;
+	boolean found = false;
+	DateTime date, max_date = null, min_date = null, non_missing_data_date1 = null, non_missing_data_date2 = null, t = null;
 
-	//Message.printStatus ( 2, routine, "Getting limits from " + start0 +
-	//	" to " + end0 );
+	//Message.printStatus ( 2, routine, "Getting limits from " + start0 + " to " + end0 );
 
-	// REVISIT WHY DOESN'T THIS JUST INSTANTIATE A TSLimits AND LET IT FILL
-	// IN THE VALUES - SAM 2001-03-22???
+	// REVISIT WHY DOESN'T THIS JUST INSTANTIATE A TSLimits AND LET IT FILL IN THE VALUES - SAM 2001-03-22???
 	// The code seems to be redundant
 
 	if ( ts == null ) {
@@ -8005,12 +7212,11 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 	sum = missing;
 	mean = missing;
 
-	// Get valid date limits because the ones passed in may have been
-	// null...
+	// Get valid date limits because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start0, end0 );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	// Make sure that the time series has current limits...
 
@@ -8019,8 +7225,7 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 	if ( refresh_flag ) {
 		// Force a refresh of the time series.
 		//
-		// Need to be picky here because of the dependence on the
-		// type...
+		// Need to be picky here because of the dependence on the type...
 		if ( base == TimeInterval.MINUTE ) {
 			MinuteTS temp = (MinuteTS)ts;
 			temp.refresh ();
@@ -8051,8 +7256,8 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 			temp.refresh ();
 			temp = null;
 		}
-		else {	Message.printWarning ( 2, routine,
-			"Unknown time series interval for refresh()" );
+		else {
+		    Message.printWarning ( 2, routine, "Unknown time series interval for refresh()" );
 			return new TSLimits();
 		}
 	}
@@ -8088,7 +7293,7 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 			if ( ts.isDataMissing( value ) ) {
 				//The value is missing
 				++missing_count;
-                        	continue;
+                continue;
 			}
 
 			// Else, data value is not missing...
@@ -8097,37 +7302,37 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 				// Reset the sum...
 				sum = value;
 			}
-			else {	// Add to the sum...
+			else {
+			    // Add to the sum...
 				sum += value;
 			}
 			++non_missing_count;
 
 			if ( found ) {
-				// Already found the first non-missing point so
-				// all we need to do is check the limits.  These
-				// should only result in new DateTime a few
-				// times...
+				// Already found the first non-missing point so all we need to do is check the limits.  These
+				// should only result in new DateTime a few times...
 				if( value > max ) {
-                			max = value;
+                	max = value;
 					max_date = new DateTime ( date );
 				}
 				if( value < min ) {
-                			min = value;
-					min_date = new DateTime ( date );
-                		}
+                	min = value;
+                	min_date = new DateTime ( date );
+                }
 			}
-			else {	// We set the limits to the first value found...
+			else {
+			    // Set the limits to the first value found...
 				//date = new DateTime ( t );
-				max 			= value;
-				max_date 		= new DateTime ( date );
-				min 			= value;
-				min_date 		= max_date;
-				non_missing_data_date1 	= max_date;
-				non_missing_data_date2	= max_date;
+				max = value;
+				max_date = new DateTime ( date );
+				min = value;
+				min_date = max_date;
+				non_missing_data_date1 = max_date;
+				non_missing_data_date2 = max_date;
 				found = true;
 				continue;
 			}
-        	}
+        }
 		// Now search backward to find the first non-missing date...
 		if ( found ) {
 			for ( int i = (size - 1); i >= 0; i-- ){
@@ -8144,16 +7349,15 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 				}
 				if( !ts.isDataMissing( value ) ) {
 					// Found the one date we are after...
-					non_missing_data_date2 = new DateTime (
-					date );
+					non_missing_data_date2 = new DateTime ( date );
 					break;
 				}
 			}
 		}
 	}
-	else {	// A regular TS... easier to iterate...
-		// First loop through and find the data limits and the
-		// minimum non-missing date...
+	else {
+	    // A regular TS... easier to iterate...
+		// First loop through and find the data limits and the minimum non-missing date...
 		t = new DateTime ( start, DateTime.DATE_FAST );
 
 		for ( ; t.lessThanOrEqualTo(end); t.addInterval( base, mult )){
@@ -8162,7 +7366,7 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 			if ( ts.isDataMissing( value ) ) {
 				//The value is missing
 				++missing_count;
-                        	continue;
+                continue;
 			}
 
 			// Else, data value is not missing...
@@ -8171,27 +7375,26 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 				// Reset the sum...
 				sum = value;
 			}
-			else {	// Add to the sum...
+			else {
+			    // Add to the sum...
 				sum += value;
 			}
 			++non_missing_count;
 
 			if ( found ) {
-				// Already found the first non-missing point so
-				// all we need to do is check the limits.  These
-				// should only result in new DateTime a few
-				// times...
+				// Already found the first non-missing point so all we need to do is check the limits.  These
+				// should only result in new DateTime a few times...
 				if ( value > max ) {
-                			max = value;
+                	max = value;
 					max_date = new DateTime ( t );
 				}
 				if ( value < min ) {
-                			min = value;
+                	min = value;
 					min_date = new DateTime ( t );
-                		}
+                }
 			}
-			else {	// First non-missing point so set the initial
-				// values...
+			else {
+			    // First non-missing point so set the initial values...
 				date = new DateTime( t );
 				max = value;
 				max_date = date;
@@ -8201,12 +7404,11 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 				non_missing_data_date2 = date;
 				found = true;
 			}
-        	}
+        }
 		// Now loop backward and find the last non-missing value...
 		if ( found ) {
 			t = new DateTime ( end, DateTime.DATE_FAST );
-			for(	; t.greaterThanOrEqualTo(start);
-				t.addInterval( base, -mult )) {
+			for( ; t.greaterThanOrEqualTo(start); t.addInterval( base, -mult )) {
 				value = ts.getDataValue( t );
 				if( !ts.isDataMissing( value ) ) {
 					// The value is not missing...
@@ -8218,27 +7420,21 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 	}
 
 	if ( !found ) {
-		Message.printWarning( 2, routine,
-		"\"" + ts.getIdentifierString() +
-		"\": problems finding limits, whole POR missing!" );
+		Message.printWarning( 2, routine, "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!" );
 		return new TSLimits();
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, routine,
-		"Overall date limits are: " + start + " to " + end );
-		Message.printDebug( 10, routine,
-		"Found limits to be: " + min + " on " + min_date + " to "
+		Message.printDebug( 10, routine, "Overall date limits are: " + start + " to " + end );
+		Message.printDebug( 10, routine, "Found limits to be: " + min + " on " + min_date + " to "
 		+ max + " on " + max_date );
 		Message.printDebug( 10, routine,
-		"Found non-missing data dates to be: " +
-		non_missing_data_date1 + " -> " + non_missing_data_date2 );
+		"Found non-missing data dates to be: " + non_missing_data_date1 + " -> " + non_missing_data_date2 );
 	}
 
 	TSLimits limits = new TSLimits ();
 
-	// Set the basic information (all the dates have been created locally
-	// so no need for a "new")...
+	// Set the basic information (all the dates have been created locally so no need for a "new")...
 
 	limits.setDate1 ( start );
 	limits.setDate2 ( end );
@@ -8253,7 +7449,8 @@ protected static TSLimits getDataLimits (	TS ts, DateTime start0,
 	if ( !ts.isDataMissing (sum) && (non_missing_count > 0) ) {
 		mean = sum/(double)non_missing_count;
 	}
-	else {	mean = missing;
+	else {
+	    mean = missing;
 	}
 	limits.setSum ( sum );
 	limits.setMean ( mean );
@@ -8268,16 +7465,14 @@ The dates in the limits will be for the data, not the dates that are passed in.
 @param tslist List of time series of interest.
 @param start Starting date for the check.
 @param end Ending date for the check.
-@param req_units Units to use for check.  If not specified, the units from the 
-first time series will be used.
+@param req_units Units to use for check.  If not specified, the units from the first time series will be used.
 @param refresh_flag Indicates whether the time series should be refreshed first
 (in general this is used only within the TS package and the version of this
 routine without the flag should be called).  Specifying true will result in slower execution.
 @exception Exception If the data limits cannot be found.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist, DateTime start,
-					DateTime end, String req_units, boolean refresh_flag )
+public static TSLimits getDataLimits ( List tslist, DateTime start, DateTime end, String req_units, boolean refresh_flag )
 throws Exception
 {	return getDataLimits (	tslist, start, end, req_units, refresh_flag, false );
 }
@@ -8287,25 +7482,20 @@ Determine the overall data limits for a list of time series.
 @return The overall data limits for a list of time series between two dates.
 The dates in the limits will be for the data, not the dates that are passed in.
 @param tslist List of time series of interest.
-@param start Starting date for the check, or null to evaluate the full period
-for each time series.
-@param end Ending date for the check, or null to evaluate the full period for
-each time series.
+@param start Starting date for the check, or null to evaluate the full period for each time series.
+@param end Ending date for the check, or null to evaluate the full period for each time series.
 @param req_units Units to use for check.  If not specified, the units from the
 first non-null time series will be used.
 @param refresh_flag Indicates whether the time series should be refreshed first
 (in general this is used only within the TS package and the version of this
-routine without the flag should be called).  Specifying true will result in
-slower execution.
+routine without the flag should be called).  Specifying true will result in slower execution.
 @param ignore_units Indicates whether units should be ignored.  This is suitable
 for getting the overall data limits for graphs where units can be ignored.
 @exception Exception If the data limits cannot be found.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist, DateTime start,
-					DateTime end,
-					String req_units, boolean refresh_flag,
-					boolean ignore_units )
+public static TSLimits getDataLimits ( List<TS> tslist, DateTime start,
+	DateTime end, String req_units, boolean refresh_flag, boolean ignore_units )
 throws Exception
 {	String	message = null, routine="TSUtil.getDataLimits(Vector,dates)";
 
@@ -8362,7 +7552,7 @@ throws Exception
 	if ( !ignore_units ) {
 		if ( (req_units == null) || req_units.equals("") ) {
 			for ( int i = 0; i < size; i++ ) {
-				ts = (TS)tslist.get(i);
+				ts = tslist.get(i);
 				if ( ts == null ) {
 					continue;
 				}
@@ -8383,28 +7573,25 @@ throws Exception
 	DateTime tslimits_date;
 	double add = 0.0, tslimits_value = 0.0, mult = 1.0, value = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
 
 		// Get the limits for the time series...
 		if ( (start_date == null) && (end_date == null) ) {
-			// This is fast since in many cases recomputation is
-			// not needed...
+			// This is fast since in many cases recomputation is not needed...
 			tslimits = ts.getDataLimits ();
 		}
-		else {	// Get the limits, iterating through data if
-			// necessary...
-			tslimits = TSUtil.getDataLimits ( ts, start_date,
-					end_date );
+		else {
+		    // Get the limits, iterating through data if necessary...
+			tslimits = TSUtil.getDataLimits ( ts, start_date, end_date );
 		}
 		if ( tslimits == null ) {
 			continue;
 		}
 		// Get the units for the time series and get conversion factors
-		// if necessary (this will throw an exception if the units are
-		// not found)...
+		// if necessary (this will throw an exception if the units are not found)...
 		if ( !ignore_units ) {
 			tsunits = ts.getDataUnits ();
 			conversion = DataUnits.getConversion ( tsunits, units );
@@ -8460,14 +7647,11 @@ throws Exception
 		}
 	}
 
-	// REVISIT SAM 2005-04-22
-	// Need to set limits to null, etc., if the final values are the initial
-	// (not actual) values.
+	// TODO SAM 2005-04-22
+	// Need to set limits to null, etc., if the final values are the initial (not actual) values.
 
 	// Return the overall limits...
 
-	conversion = null;
-	tslimits_date = null;
 	limits.setLimitsFound ( true );
 	return limits;
 }
@@ -8546,8 +7730,7 @@ throws Exception
 /**
 This routine is a port of the legacy TSMonthTotals and may be deprecated at
 some point.  It is used in the State of Colorado StateDMI software.
-@return An instance of MonthTotals containing the monthly totals for the
-time series.
+@return An instance of MonthTotals containing the monthly totals for the time series.
 @param ts Time series to evaluate.
 @exception RTi.TS.TSException if there is a problem determining the totals.
 @see MonthTotals
@@ -8555,7 +7738,8 @@ time series.
 public static MonthTotals getMonthTotals ( TS ts )
 throws TSException
 {
-	try {	return getMonthTotals ( ts, ts.getDate1(), ts.getDate2() );
+	try {
+	    return getMonthTotals ( ts, ts.getDate1(), ts.getDate2() );
 	}
 	catch ( TSException e ) {
 		throw e;
@@ -8566,16 +7750,14 @@ throws TSException
 This routine is a port of the legacy TSMonthTotals and may be deprecated at
 some point.  It is used in the State of Colorado StateDMI software.
 @return An instance of MonthTotals containing the monthly totals for the
-time series.  Data values (sums and averages) are initialized with the missing
-data value for the time series.
+time series.  Data values (sums and averages) are initialized with the missing data value for the time series.
 @param ts Time series to evaluate.
 @param date1 Starting date to evaluate for totals.
 @param date2 Ending date to evaluate for totals.
 @exception RTi.TS.TSException if there is a problem determining the totals.
 @see MonthTotals
 */
-public static MonthTotals getMonthTotals (	TS ts,
-						DateTime date1, DateTime date2 )
+public static MonthTotals getMonthTotals ( TS ts, DateTime date1, DateTime date2 )
 throws TSException
 {	return getMonthTotals ( ts, date1, date2, (TS)null, (PropList)null );
 }
@@ -8584,8 +7766,7 @@ throws TSException
 This routine is a port of the legacy TSMonthTotals and may be deprecated at
 some point.  It is used in the State of Colorado StateDMI software.
 @return An instance of MonthTotals containing the monthly totals for the
-time series.  Data values (sums and averages) are initialized with the missing
-data value for the time series.
+time series.  Data values (sums and averages) are initialized with the missing data value for the time series.
 @param ts Time series to evaluate.
 @param date1 Starting date to evaluate for totals.
 @param date2 Ending date to evaluate for totals.
@@ -8628,25 +7809,20 @@ as missing).
 </td>
 <td>false</td>
 </tr>
-
 </table>
-
 @exception RTi.TS.TSException if there is a problem determining the totals.
 @see MonthTotals
 */
-public static MonthTotals getMonthTotals (	TS ts,
-						DateTime date1, DateTime date2,
-						TS reference_ts,
-						PropList props )
+public static MonthTotals getMonthTotals ( TS ts, DateTime date1, DateTime date2, TS reference_ts, PropList props )
 throws TSException
-{	int		i, month;
-	String 		message, routine = "TSUtil.getMonthTotals";
-	int []		numsummed = new int [12];
-	int []		nummissing = new int [12];
-	double		missing = -999.0;
-	double []	avgvals = new double [12];
-	double []	summedvals = new double [12];
-	MonthTS		tspt = null;
+{	int i, month;
+	String message, routine = "TSUtil.getMonthTotals";
+	int [] numsummed = new int [12];
+	int [] nummissing = new int [12];
+	double missing = -999.0;
+	double [] avgvals = new double [12];
+	double [] summedvals = new double [12];
+	MonthTS tspt = null;
 
 	if ( ts == null ) {
 		message = "Null time series";
@@ -8661,13 +7837,11 @@ throws TSException
 	//boolean ignore_ref_le_zero = false;
 	if ( props != null ) {
 		String prop_value = props.getValue ( "CheckRefTS" );
-		if (	(prop_value != null) &&
-			prop_value.equalsIgnoreCase("true") ) {
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
 			check_ref_ts = true;
 		}
 		prop_value = props.getValue ( "IgnoreLEZero" );
-		if (	(prop_value != null) &&
-			prop_value.equalsIgnoreCase("true") ) {
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
 			ignore_le_zero = true;
 		}
 		/* TODO SAM 2007-03-01 Evaluate if needed.
@@ -8697,8 +7871,7 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	// Use the missing data value from the time series to initialize the
-	// data...
+	// Use the missing data value from the time series to initialize the data...
 
 	missing = ts.getMissing();
 
@@ -8716,9 +7889,7 @@ throws TSException
 	int interval_mult = ts.getDataIntervalMult();
 	double data_value; 
 	
-	for (	;
-		date.lessThanOrEqualTo( end_date);
-		date.addInterval(interval_base, interval_mult)){
+	for ( ; date.lessThanOrEqualTo( end_date); date.addInterval(interval_base, interval_mult)){
 		data_value = ts.getDataValue ( date );
 		month = date.getMonth();
 
@@ -8739,13 +7910,13 @@ throws TSException
 			}
 		}
 		// Else we have data that can be processed...
-		// If the sum is missing, set the value.  Otherwise,
-		// add to the sum...
+		// If the sum is missing, set the value.  Otherwise, add to the sum...
 		if ( tspt.isDataMissing(summedvals[month - 1]) ) {
 			// Set...
 			summedvals[month-1] = data_value;
 		}
-		else {	// Add...
+		else {
+		    // Add...
 			summedvals[month-1] += data_value;
 		}
 		++numsummed[month-1];
@@ -8755,9 +7926,10 @@ throws TSException
 		if ( numsummed[i] > 0 ) {
 			avgvals[i] = summedvals[i]/numsummed[i];
 		}
-		else {	// Use the missing data value...
-			summedvals[i]	= missing;
-			avgvals[i]	= missing;
+		else {
+		    // Use the missing data value...
+			summedvals[i] = missing;
+			avgvals[i] = missing;
 		}
 	}
 
@@ -8775,8 +7947,7 @@ the full time series identifier string will be returned.
 @param tsList list of time series to process.
 @param includeInput if true, include the input part of the time series identifier.
 If false, only include the 5-part information.
-@return the list of time series identifier strings, useful for choices in applications - a non-null list is
-guaranteed.
+@return the list of time series identifier strings, useful for choices in applications - a non-null list is guaranteed.
 */
 public static List<String> getTimeSeriesIdentifiers ( List<TS>tsList, boolean includeInput )
 {
@@ -8804,15 +7975,11 @@ Return the interpolated data value between two time steps for a time series.
 @param ts Time series to get data from.  Irregular time series are currently
 not supported and always return missing data.
 @param date Date/time for the end of the interval.
-The precision of the date/time should be the same as the time series 
-for accurate date comparisons.
+The precision of the date/time should be the same as the time series for accurate date comparisons.
 @param double timeStepFraction Fraction of the time step to look back in time
-from date.  Must be betweem 0.0 (return value at date) and 1.0 (return value one
-time step prior to date).
+from date.  Must be betweem 0.0 (return value at date) and 1.0 (return value one time step prior to date).
 */
-public static double getInterpolatedDataValue ( TS ts, 
-					  DateTime date, 
-					  double timeStepFraction )
+public static double getInterpolatedDataValue ( TS ts, DateTime date, double timeStepFraction )
 {	if ( ts == null ) {
 		return -999.0;
 	}
@@ -8842,8 +8009,8 @@ public static double getInterpolatedDataValue ( TS ts,
 		// Not yet supported...
 		return ts.getMissing();
 	}
-	else {	// A regular TS... easier to interpolate...
-		
+	else {
+	    // A regular TS... easier to interpolate...
 		// get date for last time step
 		DateTime idate = new DateTime(DateTime.DATE_STRICT);
 		idate = new DateTime(date);
@@ -8856,8 +8023,7 @@ public static double getInterpolatedDataValue ( TS ts,
 		}
 		
 		//interpolate
-		double value = thisValue + timeStepFraction * 
-				( lastValue - thisValue );
+		double value = thisValue + timeStepFraction * ( lastValue - thisValue );
 		return value;
 	}
 }
@@ -8865,8 +8031,7 @@ public static double getInterpolatedDataValue ( TS ts,
 /**
 Determines time series statistics resulting from the application of a pattern
 to the time series.  This is called by fillPattern.
-@return The pattern statistics as a TSPatternStats instance, or null if there
-is a problem.
+@return The pattern statistics as a TSPatternStats instance, or null if there is a problem.
 */
 public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts )
 {	return getPatternStats ( ts, pattern_ts, (PropList)null );
@@ -8875,22 +8040,18 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts )
 /**
 Determines time series statistics resulting from the application of a pattern
 to the time series.  This is called by fillPattern.
-@return The pattern statistics as a TSPatternStats instance, or null if there
-is a problem.
+@return The pattern statistics as a TSPatternStats instance, or null if there is a problem.
 @param ts Time series to analyze.
 @param pattern_ts Time series containing patterns.
 @param props PropList to modify behavior.  Currently, only
-"IgnoreLessThanOrEqualZero=true" is recognized.  If true, averages will ignore
-values <= 0.  The default is false.
+"IgnoreLessThanOrEqualZero=true" is recognized.  If true, averages will ignore values <= 0.  The default is false.
 */
-public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
-						PropList props )
+public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts, PropList props )
 {	String	routine = "TSUtil.getPatternStats";
 
 	boolean ignore_lezero = false;
 	if ( props != null ) {
-		String prop_value = props.getValue (
-					"IgnoreLessThanOrEqualZero" );
+		String prop_value = props.getValue ( "IgnoreLessThanOrEqualZero" );
 		if ( prop_value != null ) {
 			if ( prop_value.equalsIgnoreCase ("true" ) ) {
 				ignore_lezero = true;
@@ -8905,8 +8066,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 	}
 	if ( pattern_ts == null ) {
 		// No time series...
-		Message.printWarning ( 2, routine,
-		"Null pattern time series" );
+		Message.printWarning ( 2, routine, "Null pattern time series" );
 		return null;
 	}
 
@@ -8922,9 +8082,9 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
-	double	data_value;
-	String	indicator;
-	DateTime	date;
+	double data_value;
+	String indicator;
+	DateTime date;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -8952,16 +8112,11 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 		DateTime end_date = new DateTime ( ts.getDate2() );
 		date = new DateTime ( start_date );
 		
-		for (	;
-			date.lessThanOrEqualTo( end_date);
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end_date); date.addInterval(interval_base, interval_mult) ) {
 			data_value = ts.getDataValue ( date );
-			if (	(!ignore_lezero &&
-				!ts.isDataMissing(data_value)) ||
-				(ignore_lezero && ((data_value > 0.0) &&
-				!ts.isDataMissing(data_value))) ) {
-				indicator = pattern_ts.getDataValueAsString (
-					date );
+			if ( (!ignore_lezero && !ts.isDataMissing(data_value)) ||
+				(ignore_lezero && ((data_value > 0.0) && !ts.isDataMissing(data_value))) ) {
+				indicator = pattern_ts.getDataValueAsString ( date );
 				// Not missing, so add...
 				stats.add(indicator,data_value,date.getMonth());
 			}
@@ -8975,19 +8130,16 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts,
 
 /*
 @return the period given two dates and indicator for the type of calendar.
-The maximum full year bounding period for the
-calendar type is returned, even
+The maximum full year bounding period for the calendar type is returned, even
 if it means extending the period to include missing data.
 The dates are always returned as calendar dates (e.g., if water years are
 requested, the first date will be adjusted to be October).
 @param date1 First date of interest.
 @param date2 Second date of interest.
-@param calendar_type Calendar type ("CalendarYear", "WaterYear", or "IrrigationYear"/"NovToOct").
+@param calendar_type Calendar type.
 @param por_flag Currently ignored.
 */
-public static TSLimits getPeriodFromDates (	DateTime date1, DateTime date2,
-						String calendar_type,
-						int por_flag )
+public static TSLimits getPeriodFromDates (	DateTime date1, DateTime date2, YearType calendar_type, int por_flag )
 throws TSException
 {	if ( date1 == null ) {
 		throw new TSException ( "Null start date" );
@@ -9000,7 +8152,7 @@ throws TSException
 	limits.setDate2 ( date2 );
 	int month1 = date1.getMonth();
 	int month2 = date2.getMonth();
-	if ( calendar_type.equalsIgnoreCase("CalendarYear") ) {
+	if ( calendar_type == YearType.CALENDAR ) {
 		if ( month1 != 1 ) {
 			DateTime newdate1 = new DateTime ( date1 );
 			newdate1.setMonth(1);
@@ -9013,7 +8165,7 @@ throws TSException
 		}
 		return limits;
 	}
-	else if ( calendar_type.equalsIgnoreCase("WaterYear") ) {
+	else if ( calendar_type == YearType.WATER ) {
 		if ( month1 != 10 ) {
 			DateTime newdate1 = new DateTime ( date1 );
 			if ( month1 < 10 ) {
@@ -9036,8 +8188,7 @@ throws TSException
 		}
 		return limits;
 	}
-	else if ( calendar_type.equalsIgnoreCase("IrrigationYear") ||
-		calendar_type.equalsIgnoreCase("NovToDec") ) {
+	else if ( calendar_type == YearType.NOV_TO_OCT ) {
 		if ( month1 != 11 ) {
 			DateTime newdate1 = new DateTime ( date1 );
 			if ( month1 < 11 ) {
@@ -9077,17 +8228,17 @@ Exaple of POR calculation:
 </pre>
 <p>
 @return The TSLimits resulting from the combination of the given TSLimits.
-@param limits A Vector of TSLimits of interest.
+@param limits A list of TSLimits of interest.
 @param por_flag Use a *_POR flag.
 @exception RTi.TS.TSException If the period cannot be determined from the
 limits (e.g., requesting minimum and there is no overlap).
 */
-public static TSLimits getPeriodFromLimits ( List limits, int por_flag )
+public static TSLimits getPeriodFromLimits ( List<TSLimits> limits, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromLimits";
 	int	vectorSize;
 	int	dl = 10, i = 0;
-	DateTime	end, start;
+	DateTime end, start;
 
 	if ( limits == null ) {
 		message = "TSLimits vector is null";
@@ -9102,11 +8253,10 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	// Initialize the start and end dates to the first
-	// TS dates...
+	// Initialize the start and end dates to the first TS dates...
 
-	TSLimits limits_pointer = (TSLimits)limits.get(0);
-	start	= limits_pointer.getDate1();
+	TSLimits limits_pointer = limits.get(0);
+	start = limits_pointer.getDate1();
 	end	= limits_pointer.getDate2();
 
 	// Now loop through the remaining TSLimits...
@@ -9114,12 +8264,12 @@ throws TSException
 	DateTime limits_start;
 	DateTime limits_end;
 	for( i = 1; i < vectorSize; i++ ) {
-		limits_pointer	= (TSLimits)limits.get(i);
+		limits_pointer	= limits.get(i);
 		if( limits_pointer == null ) {
 			// Ignore the TSLimits...
 			continue;
 		}
-		limits_start	= limits_pointer.getDate1();
+		limits_start = limits_pointer.getDate1();
 		limits_end	= limits_pointer.getDate2();
 		if ( (limits_start == null) || (limits_end == null) ) {
 			continue;
@@ -9146,23 +8296,19 @@ throws TSException
 	// If the time series do not overlap, then the limits may be
 	// reversed.  In this case, throw an exception...
 	if ( start.greaterThan(end) ) {
-		message =
-		"Periods do not overlap.  Can't determine minimum period.";
+		message = "Periods do not overlap.  Can't determine minimum period.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
 	if( (por_flag == MAX_POR) && Message.isDebugOn ) {
-		Message.printDebug( dl, routine, "Maximum POR limits are " +
-			start + " to " + end );
+		Message.printDebug( dl, routine, "Maximum POR limits are " + start + " to " + end );
 	}
 	if( (por_flag == MIN_POR) && Message.isDebugOn ) {
-		Message.printDebug( dl, routine, "Minimum POR limits are " +
-			start + " to " + end );
+		Message.printDebug( dl, routine, "Minimum POR limits are " + start + " to " + end );
 	}
 
-	// Now return the dates as a new instance so we don't mess up what was
-	// in the time series...
+	// Now return the dates as a new instance so we don't mess up what was in the time series...
 
 	TSLimits newlimits = new TSLimits();
 	newlimits.setDate1 ( new DateTime(start) );
@@ -9226,7 +8372,7 @@ throws TSException
 	}
 	else {
         // Put single TS into a vector...
-		List v = new Vector (1);
+		List<TS> v = new Vector (1);
 		v.add ( ts );
 		return getPeriodFromTS ( v, por_flag );
 	}
@@ -9244,7 +8390,7 @@ overload the version that accepts a vector of time series.
 @exception RTi.TS.TSException If the period cannot be determined from the time
 series (e.g., requesting minimum and there is no overlap).
 */
-public static TSLimits getPeriodFromTS ( TS ts, List tslist, int por_flag )
+public static TSLimits getPeriodFromTS ( TS ts, List<TS> tslist, int por_flag )
 throws TSException
 {	if ( (ts == null) || (tslist == null) ) {
 		// Let other routine handle...
@@ -9252,7 +8398,7 @@ throws TSException
 	}
 	else {
         // Put single TS and other TS into a vector...
-		List v = new Vector (1);
+		List<TS> v = new Vector (1);
 		v.add ( ts );
 		int size = v.size();
 		for ( int i = 0; i < size; i++ ) {
@@ -9372,8 +8518,7 @@ throws TSException
 			}
 		}
 	}
-	// If the time series do not overlap, then the limits may be
-	// reversed.  In this case, throw an exception...
+	// If the time series do not overlap, then the limits may be reversed.  In this case, throw an exception...
 	if ( start.greaterThan(end) ) {
 		message = "Periods do not overlap.  Can't determine minimum period.";
 		Message.printWarning ( 2, routine, message );
@@ -9485,18 +8630,19 @@ are created to protect against changing the original dates.
 @param suggested_start Suggested start date.
 @param suggested_end Suggested end date.
 */
-public static TSLimits getValidPeriod (	TS ts, DateTime suggested_start,
-					DateTime suggested_end )
+public static TSLimits getValidPeriod (	TS ts, DateTime suggested_start, DateTime suggested_end )
 {	TSLimits dates = new TSLimits();
 	if ( suggested_start == null ) {
 		dates.setDate1( new DateTime(ts.getDate1()) );	
 	}
-	else {	dates.setDate1 ( new DateTime(suggested_start) );
+	else {
+	    dates.setDate1 ( new DateTime(suggested_start) );
 	}
 	if ( suggested_end == null ) {
 		dates.setDate2( new DateTime(ts.getDate2()) );
 	}
-	else {	dates.setDate2 ( new DateTime(suggested_end) );
+	else {
+	    dates.setDate2 ( new DateTime(suggested_end) );
 	}
 	return dates;
 }
@@ -9510,21 +8656,20 @@ case-insensitive query is made.  The sequence number is not used in the search.
 @param direction If >= 0, search forward.  If < 0, search backward.
 @return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	List tslist, String id, String field, int direction )
+public static int indexOf (	List<TS> tslist, String id, String field, int direction )
 {	return indexOf ( tslist, id, field, -1, direction );
 }
 
 /**
-Find a time series in a Vector.  The indicated field is searched and a case-insensitive query is made.
+Find a time series in a list.  The indicated field is searched and a case-insensitive query is made.
 @param tslist List of time series to search.
 @param id String identifier to match.
 @param field Field to match (currently can only be "Alias" or "Location").
-@param sequence_number If >= 0, the sequence number is also checked to make a
-match.  This is used for traces.
+@param sequence_number If >= 0, the sequence number is also checked to make a match.  This is used for traces.
 @param direction If >= 0, search forward.  If < 0, search backward.
 @return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	List tslist, String id, String field, int sequence_number, int direction )
+public static int indexOf (	List<TS> tslist, String id, String field, int sequence_number, int direction )
 {	if ( tslist == null ) {
 		return -1;
 	}
@@ -9543,63 +8688,64 @@ public static int indexOf (	List tslist, String id, String field, int sequence_n
 	if ( direction >= 0 ) {
 		// Search forward...
 		for ( int i = 0; i < size; i++ ) {
-			ts = (TS)tslist.get(i);
+			ts = tslist.get(i);
 			if ( ts == null ) {
 				continue;
 			}
 			if ( ifield == 1 ) {
 				if ( id.equalsIgnoreCase(ts.getAlias()) ) {
 					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() ==
-							sequence_number ) {
+						if ( ts.getSequenceNumber() == sequence_number ) {
 							return i;
 						}
 					}
-					else {	return i;
+					else {
+					    return i;
 					}
 				}
 			}
 			else if ( ifield == 2 ) {
 				if ( id.equalsIgnoreCase(ts.getLocation()) ) {
 					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() ==
-							sequence_number ) {
+						if ( ts.getSequenceNumber() == sequence_number ) {
 							return i;
 						}
 					}
-					else {	return i;
+					else {
+					    return i;
 					}
 				}
 			}
 		}
 	}
-	else {	// Search backward...
+	else {
+	    // Search backward...
 		for ( int i = (size - 1); i >= 0; i-- ) {
-			ts = (TS)tslist.get(i);
+			ts = tslist.get(i);
 			if ( ts == null ) {
 				continue;
 			}
 			if ( ifield == 1 ) {
 				if ( id.equalsIgnoreCase(ts.getAlias()) ) {
 					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() ==
-							sequence_number ) {
+						if ( ts.getSequenceNumber() == sequence_number ) {
 							return i;
 						}
 					}
-					else {	return i;
+					else {
+					    return i;
 					}
 				}
 			}
 			else if ( ifield == 2 ) {
 				if ( id.equalsIgnoreCase(ts.getLocation()) ) {
 					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() ==
-							sequence_number ) {
+						if ( ts.getSequenceNumber() == sequence_number ) {
 							return i;
 						}
 					}
-					else {	return i;
+					else {
+					    return i;
 					}
 				}
 			}
@@ -9689,9 +8835,7 @@ public static boolean intervalsMatch ( List<TS> ts )
 	if ( tspt == null ) {
 		return false;
 	}
-	boolean matches = intervalsMatch ( ts, tspt.getDataIntervalBase(), tspt.getDataIntervalMult() );
-	tspt = null;
-	return matches;
+	return intervalsMatch ( ts, tspt.getDataIntervalBase(), tspt.getDataIntervalMult() );
 }
 
 /**
@@ -9708,7 +8852,7 @@ public static boolean intervalsMatch ( List<TS> ts, int interval_base, int inter
 	}
 	int nseries = ts.size();
 	for ( int i = 0; i < nseries; i++ ) {
-		tspt = (TS)ts.get ( i );
+		tspt = ts.get ( i );
 		if ( tspt == null ) {
 			Message.printWarning ( 3, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
 			return false;
@@ -9745,10 +8889,9 @@ throws TSException
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	List v = new Vector ( 1, 1 );
+	List<TS> v = new Vector ( 1, 1 );
 	v.add ( ts_to_check );
 	TS ts2 = max ( ts, v );
-	v = null;
 	return ts2;
 }
 
@@ -9760,12 +8903,12 @@ series description and genesis information are updated to reflect the addition.
 @param ts_to_check List of time series to check against "ts".
 @exception RTi.TS.TSException if there is an error processing the time series.
 */
-public static TS max (	TS ts, List ts_to_check )
+public static TS max (	TS ts, List<TS> ts_to_check )
 throws TSException
-{	String	message, routine = "TSUtil.max(TS,Vector)";
+{	String message, routine = "TSUtil.max(TS,Vector)";
 	int	dl = 20, nmissing = 0;
-	TS	tspt = null;
-	double	add = 0.0, mult = 1.0;
+	TS tspt = null;
+	double add = 0.0, mult = 1.0;
 	int set_count = 0;
 
 	// Make sure that the pointers are OK...
@@ -9786,19 +8929,16 @@ throws TSException
 	// may want to overload to allow a period to be added.
 
 	try {
-	if (	!intervalsMatch(ts_to_check, ts.getDataIntervalBase(),
-		ts.getDataIntervalMult()) ) {
+	if ( !intervalsMatch(ts_to_check, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
 		message = "All time series in the list are not of interval " +
 		ts.getDataIntervalBase() + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// Now loop through the time series list and modify the primary time
-	// series...
+	// Now loop through the time series list and modify the primary time series...
 
-	// Set starting and ending time for time loop based on period of
-	// "ts"...
+	// Set starting and ending time for time loop based on period of "ts"...
 
 	int ntslist = ts_to_check.size();
 	String req_units = ts.getDataUnits ();
@@ -9809,28 +8949,24 @@ throws TSException
 	double data_value, data_value_to_check;
 
 	for ( int i = 0; i < ntslist; i++ ) {
-		nmissing	= 0;
+		nmissing = 0;
 		set_count = 0;
-		tspt		= (TS)ts_to_check.get(i);
+		tspt = ts_to_check.get(i);
 		if ( tspt == null ) {
-			message =
-			"Trouble getting [" + i + "]-th time series in list";
+			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
 		// Get the units conversions to convert to the final TS...
-		try {	conversion = DataUnits.getConversion(
-					tspt.getDataUnits(), req_units );
+		try {
+		    conversion = DataUnits.getConversion( tspt.getDataUnits(), req_units );
 			mult = conversion.getMultFactor();
 			add = conversion.getAddFactor();
 		}
 		catch ( Exception e ) {
 			// Can't get conversion.  This may not be a fatal
-			// error, but we don't want to allow different units
-			// to be summed so return...
-			message = "Trouble getting conversion from \"" +
-				tspt.getDataUnits() + "\" to \"" +
-				req_units + "\"";
+			// error, but we don't want to allow different units to be summed so return...
+			message = "Trouble getting conversion from \"" + tspt.getDataUnits() + "\" to \"" + req_units + "\"";
 			Message.printWarning ( 2, routine, message );
 			throw e;
 		}
@@ -9840,52 +8976,38 @@ throws TSException
 
 		if ( tspt_interval_base == TimeInterval.IRREGULAR ) {
 			// For now, don't support...
-			Message.printWarning ( 2, routine,
-			"IrregularTS not supported.  Not processing max()." +
+			Message.printWarning ( 2, routine, "IrregularTS not supported.  Not processing max()." +
 			tspt.getIdentifier().toString() );
 			continue;
 		}
-		else {	// Regular interval.  Loop using addInterval...
+		else {
+		    // Regular interval.  Loop using addInterval...
 			DateTime start_date = new DateTime ( ts.getDate1() );
 			DateTime end_date = new DateTime ( ts.getDate2() );
 			DateTime date = new DateTime ( start_date );
 			
-			for (	;
-				date.lessThanOrEqualTo( end_date);
-				date.addInterval(interval_base, interval_mult)){
+			for ( ; date.lessThanOrEqualTo( end_date); date.addInterval(interval_base, interval_mult)){
 				data_value_to_check = tspt.getDataValue( date );
 				if ( tspt.isDataMissing ( data_value_to_check)){
-					// The value to check is missing so
-					// don't do it.  If we are tracking
-					// missing, also set in the array.  This
-					// will prevent other time series from
-					// processing.
+					// The value to check is missing so don't do it.  If we are tracking
+					// missing, also set in the array.  This will prevent other time series from processing.
 					++nmissing;
 					continue;
 				}
-				// If here, there is a non-missing data value
-				// to check so do it...
+				// If here, there is a non-missing data value to check so do it...
 				data_value = ts.getDataValue ( date );
-				if (	ts.isDataMissing( data_value ) ||
-					(data_value_to_check > data_value) ) {
-					// Original data is missing or less than than
-					// the max so reset...
-					ts.setDataValue ( date,
-					(data_value_to_check*mult + add) );
+				if ( ts.isDataMissing( data_value ) || (data_value_to_check > data_value) ) {
+					// Original data is missing or less than than the max so reset...
+					ts.setDataValue ( date, (data_value_to_check*mult + add) );
 					++set_count;
 				}
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"At " + date.toString() +
-					", changed max from " + data_value +
-					" to " + data_value_to_check );
+					"At " + date.toString() + ", changed max from " + data_value + " to " + data_value_to_check );
 				}
 			}
-			ts.setDescription ( ts.getDescription() + ",max(" +
-			tspt.getDescription () + ")" );
-			ts.addToGenesis ( "Reset " + set_count +
-				" values to max, comparing " +
-				"to \"" + tspt.getDescription() + "\"" );
+			ts.setDescription ( ts.getDescription() + ",max(" + tspt.getDescription () + ")" );
+			ts.addToGenesis ( "Reset " + set_count + " values to max, comparing to \"" + tspt.getDescription() + "\"" );
 		}
 	}
 	return ts;
@@ -9920,11 +9042,10 @@ throws TSException
 		Message.printWarning ( 2, "TSUtil.min", message );
 		throw new TSException ( message );
 	}
-	// Else, set up a vector and call the overload routine...
-	List v = new Vector ( 1, 1 );
+	// Else, set up a list and call the overload routine...
+	List<TS> v = new Vector ( 1, 1 );
 	v.add ( ts_to_check );
 	TS ts2 = min ( ts, v );
-	v = null;
 	return ts2;
 }
 
@@ -9936,12 +9057,12 @@ series description and genesis information are updated to reflect the processing
 @param ts_to_check List of time series to check against "ts".
 @exception RTi.TS.TSException if there is an error processing the time series.
 */
-public static TS min ( TS ts, List ts_to_check )
+public static TS min ( TS ts, List<TS> ts_to_check )
 throws TSException
 {	String	message, routine = "TSUtil.min(TS,Vector)";
 	int	dl = 20, nmissing = 0;
 	TS	tspt = null;
-	double	add = 0.0, mult = 1.0;
+	double add = 0.0, mult = 1.0;
 	int set_count = 0;
 
 	// Make sure that the pointers are OK...
@@ -9962,20 +9083,16 @@ throws TSException
 	// may want to overload to allow a period to be added.
 
 	try {
-	if (	!intervalsMatch(ts_to_check, ts.getDataIntervalBase(),
-		ts.getDataIntervalMult()) ) {
-		message =
-		"All time series in the list are not of interval " +
+	if ( !intervalsMatch(ts_to_check, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
+		message = "All time series in the list are not of interval " +
 		ts.getDataIntervalBase() + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// Now loop through the time series list and modify the primary time
-	// series...
+	// Now loop through the time series list and modify the primary time series...
 
-	// Set starting and ending time for time loop based on period of
-	// "ts"...
+	// Set starting and ending time for time loop based on period of "ts"...
 
 	int ntslist = ts_to_check.size();
 	String req_units = ts.getDataUnits ();
@@ -9986,9 +9103,9 @@ throws TSException
 	double data_value, data_value_to_check;
 
 	for ( int i = 0; i < ntslist; i++ ) {
-		nmissing	= 0;
+		nmissing = 0;
 		set_count = 0;
-		tspt		= (TS)ts_to_check.get(i);
+		tspt = ts_to_check.get(i);
 		if ( tspt == null ) {
 			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 2, routine, message );
@@ -10002,11 +9119,8 @@ throws TSException
 		}
 		catch ( Exception e ) {
 			// Can't get conversion.  This may not be a fatal
-			// error, but we don't want to allow different units
-			// to be summed so return...
-			message = "Trouble getting conversion from \"" +
-				tspt.getDataUnits() + "\" to \"" +
-				req_units + "\"";
+			// error, but we don't want to allow different units to be summed so return...
+			message = "Trouble getting conversion from \"" + tspt.getDataUnits() + "\" to \"" + req_units + "\"";
 			Message.printWarning ( 2, routine, message );
 			throw e;
 		}
@@ -10016,52 +9130,38 @@ throws TSException
 
 		if ( tspt_interval_base == TimeInterval.IRREGULAR ) {
 			// For now, don't support...
-			Message.printWarning ( 2, routine,
-			"IrregularTS not supported.  Not doing min()." +
-			tspt.getIdentifier().toString() );
+			Message.printWarning ( 2, routine, "IrregularTS not supported.  Not doing min()." + tspt.getIdentifier() );
 			continue;
 		}
-		else {	// Regular interval.  Loop using addInterval...
+		else {
+		    // Regular interval.  Loop using addInterval...
 			DateTime start_date = new DateTime ( ts.getDate1() );
 			DateTime end_date = new DateTime ( ts.getDate2() );
 			DateTime date = new DateTime ( start_date );
 			
-			for (	;
-				date.lessThanOrEqualTo( end_date);
-				date.addInterval(interval_base, interval_mult)){
+			for ( ; date.lessThanOrEqualTo( end_date); date.addInterval(interval_base, interval_mult)){
 				data_value_to_check = tspt.getDataValue( date );
 				if ( tspt.isDataMissing ( data_value_to_check)){
-					// The value to check is missing so
-					// don't do it.  If we are tracking
-					// missing, also set in the array.  This
-					// will prevent other time series from
-					// processing.
+					// The value to check is missing so don't do it.  If we are tracking
+					// missing, also set in the array.  This will prevent other time series from processing.
 					++nmissing;
 					continue;
 				}
-				// If here, there is a non-missing data value
-				// to check so do it...
+				// If here, there is a non-missing data value to check so do it...
 				data_value = ts.getDataValue ( date );
-				if (	ts.isDataMissing( data_value ) ||
-					(data_value_to_check < data_value) ) {
-					// Original data is missing or greater than
-					// the minimum so reset...
-					ts.setDataValue ( date,
-					(data_value_to_check*mult + add) );
+				if ( ts.isDataMissing( data_value ) || (data_value_to_check < data_value) ) {
+					// Original data is missing or greater than the minimum so reset...
+					ts.setDataValue ( date, (data_value_to_check*mult + add) );
 					++set_count;
 				}
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"At " + date.toString() +
-					", changed min from " + data_value +
-					" to " + data_value_to_check );
+					"At " + date.toString() + ", changed min from " + data_value + " to " + data_value_to_check );
 				}
 			}
 			ts.setDescription ( ts.getDescription() + ",min(" +
 			tspt.getDescription () + ")" );
-			ts.addToGenesis ( "Reset " + set_count +
-				" values to min, comparing " +
-				"to \"" + tspt.getDescription() + "\"" );
+			ts.addToGenesis ( "Reset " + set_count + " values to min, comparing " + "to \"" + tspt.getDescription() + "\"" );
 		}
 	}
 	return ts;
@@ -10075,12 +9175,25 @@ throws TSException
 }
 
 /**
-Get the count of missing data in a period.
+Get the count of missing data in a period, for all months in a year.
 @return the count of missing values in a period.
 @param start the starting date/time for the check.
 @param end the ending date/time for the check.
 */
 public static int missingCount ( TS ts, DateTime start, DateTime end )
+throws Exception
+{
+    return missingCountForMonths ( ts, start, end, null );
+}
+
+/**
+Get the count of missing data in a period, optionally analyzing only specified months.
+@return the count of missing values in a period.
+@param start the starting date/time for the check.
+@param end the ending date/time for the check.
+@param months an array specifying month numbers 1-12.  Any months that are indicated will be analyzed.
+*/
+public static int missingCountForMonths ( TS ts, DateTime start, DateTime end, int [] months )
 throws Exception
 {	if ( ts == null ) {
 		return 0;
@@ -10094,7 +9207,25 @@ throws Exception
 	TSIterator tsi = ts.iterator(start,end);
 	TSData data = null;
 	int nMissing = 0;
+	int month = 0;
+	boolean found;
+	int iMonth; // loop counter when looping through "month"
 	while ( (data = tsi.next()) != null ) {
+	    if ( months != null ) {
+	        // Evaluate whether to skip the month
+	        month = tsi.getDate().getMonth();
+	        found = false;
+	        for ( iMonth = 0; iMonth < months.length; iMonth++ ) {
+	            if ( month == months[iMonth] ) {
+	                found = true;
+	                break;
+	            }
+	        }
+	        if ( !found ) {
+	            // Skip the month
+	            continue;
+	        }
+	    }
 		if ( ts.isDataMissing(data.getData())) {
 			++nMissing;
 		}
@@ -10192,7 +9323,6 @@ public static DateTime newPrecisionDateTime ( TS ts, DateTime date )
 	}
 	DateTime d = new DateTime ( d1 );
 	d.setDate ( date );
-	d1 = null;
 	return d;
 }
 
@@ -10280,17 +9410,14 @@ throws Exception
 
 /**
 Normalize a time series by linearly interpolating each value between the time
-series' minimum and maximum values (or zero, depending "minfromdata"), resulting
-in values in the range specified
+series' minimum and maximum values (or zero, depending "minfromdata"), resulting in values in the range specified
 by "newmin" and "newmax".  The data type is
 left the same but the units are set to "".  If no data limits
-can be found (all missing data), the data values are left as is but the
-other changes are made.
+can be found (all missing data), the data values are left as is but the other changes are made.
 @param ts Time series to normalized (the time series will be modified).
 @param minfromdata Indicate true if the minimum data value to use in the
 normalization interpolation should be the minimum time series data value.
-Indicate false if the minimum value should used for interpolation should be
-zero.
+Indicate false if the minimum value should used for interpolation should be zero.
 @param newmin New minimum value (generally specify 0.0).
 @param newmax New maximum value (generally specify 1.0).
 */
@@ -10331,8 +9458,7 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 				oldvalue = tsdata.getData();
 				if ( !ts.isDataMissing(oldvalue) ) {
 					tsdata.setData(	MathUtil.interpolate(oldvalue,min,max,newmin,newmax) );
-					// Have to do this manually since TSData
-					// are being modified directly to improve performance...
+					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
 			}
@@ -10351,58 +9477,54 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 	// Set the time series properties...
 	ts.setDataUnits ( "" );
 	ts.addToGenesis ( 
-	"Normalized time series using linear interpolation between min value " +
-	min + " and max value " + max );
+	"Normalized time series using linear interpolation between min value " + min + " and max value " + max );
 	ts.setDescription ( ts.getDescription() + ", normalized" );
 }
 
 /**
 @return the number of intervals in a month.  This is useful when doing averages,
 etc.  May need to later make this more generic.
-@exception TSException if there is an error with input or an unsupported
-interval.
+@exception TSException if there is an error with input or an unsupported interval.
 */
-public static int numIntervalsInMonth ( int month, int year, int interval_base,
-					int interval_mult )
+public static int numIntervalsInMonth ( int month, int year, int interval_base, int interval_mult )
 throws TSException
 {
 	if ( interval_base == TimeInterval.MONTH ) {
 		if ( interval_mult == 1 ) {
 			return 1;
 		}
-		else {	throw new TSException ( "Interval mult " +
-			interval_mult + " is not valid for month data" );
+		else {
+		    throw new TSException ( "Interval mult " + interval_mult + " is not valid for month data" );
 		}
 	}
 	else if ( interval_base == TimeInterval.DAY ) {
 		if ( interval_mult == 1 ) {
 			return TimeUtil.numDaysInMonth(month,year);
 		}
-		else {	throw new TSException ( "Interval mult " +
-			interval_mult + " is not valid for day data" );
+		else {
+		    throw new TSException ( "Interval mult " + interval_mult + " is not valid for day data" );
 		}
 	}
 	else if ( interval_base == TimeInterval.HOUR ) {
 		if ( (interval_mult > 24) || (24%interval_mult != 0) ) {
-			throw new TSException ( "Interval mult " +
-			interval_mult + " is not valid for hour data" );
+			throw new TSException ( "Interval mult " + interval_mult + " is not valid for hour data" );
 		}
-		else {	int days_in_month =
-				TimeUtil.numDaysInMonth(month,year);
+		else {
+		    int days_in_month = TimeUtil.numDaysInMonth(month,year);
 			return days_in_month*24/interval_mult;
 		}
 	}
 	else if ( interval_base == TimeInterval.MINUTE ) {
 		if ( (interval_mult > 60) || (60%interval_mult != 0) ) {
-			throw new TSException ( "Interval mult " +
-			interval_mult + " is not valid for minute data" );
+			throw new TSException ( "Interval mult " + interval_mult + " is not valid for minute data" );
 		}
-		else {	int days_in_month =
-				TimeUtil.numDaysInMonth(month,year);
+		else {
+		    int days_in_month = TimeUtil.numDaysInMonth(month,year);
 			return days_in_month*24*60/interval_mult;
 		}
 	}
-	else {	// Not a supported interval...
+	else {
+	    // Not a supported interval...
 		String message = "Unknown interval " + interval_base;
 		String routine = "TSUtil.numIntervalsInMonth";
 		Message.printWarning ( 2, routine, message );
@@ -10416,8 +9538,7 @@ Only regular time series can be analyzed.  If either value is missing, then the
 result is set to missing.  If the denominator is zero, the result is set to
 missing.  The units are set to "", which assumes that the relative difference
 is determined using consistent units (although units are not currently checked).
-@param ts1 Time series to be subtracted from.  This time series is also modified
-and returned.
+@param ts1 Time series to be subtracted from.  This time series is also modified and returned.
 @param ts2 Time series to subtract.
 @param divisor The time series to divide by.  Although it can be any time
 series, it should typically be ts1 or ts2.
@@ -10434,8 +9555,7 @@ Only regular time series can be analyzed.  If either value is missing, then the
 result is set to missing.  If the denominator is zero, the result is set to
 missing.  The units are set to "", which assumes that the relative difference
 is determined using consistent units (although units are not currently checked).
-@param ts1 Time series to be subtracted from.  This time series is also modified
-and returned.
+@param ts1 Time series to be subtracted from.  This time series is also modified and returned.
 @param ts2 Time series to subtract.
 @param divisor The time series to divide by.  Although it can be any time
 series, it should typically be ts1 or ts2.
@@ -10443,8 +9563,7 @@ series, it should typically be ts1 or ts2.
 @param end_date Last date to process.
 @exception Exception if there is an error processing.
 */
-public static void relativeDiff (	TS ts1, TS ts2, TS divisor,
-					DateTime start_date, DateTime end_date )
+public static void relativeDiff ( TS ts1, TS ts2, TS divisor, DateTime start_date, DateTime end_date )
 throws Exception
 {	if ( ts1 == null ) {
 		return;
@@ -10459,30 +9578,22 @@ throws Exception
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts1, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 	valid_dates = null;
 
 	int interval_base = ts1.getDataIntervalBase();
 	int interval_mult = ts1.getDataIntervalMult();
-	if (	(interval_base != ts2.getDataIntervalBase()) ||
-		(interval_mult != ts2.getDataIntervalMult()) ) {
-		throw new Exception ( "Cannot determine relativeDiff for " +
-		"TS1, TS2 data with different intervals (" +
-		ts1.getIdentifierString() + " and " +
-		ts2.getIdentifierString() + ")." );
+	if ( (interval_base != ts2.getDataIntervalBase()) || (interval_mult != ts2.getDataIntervalMult()) ) {
+		throw new Exception ( "Cannot determine relativeDiff for TS1, TS2 data with different intervals (" +
+		ts1.getIdentifierString() + " and " + ts2.getIdentifierString() + ")." );
 	}
-	if (	(interval_base != divisor.getDataIntervalBase()) ||
-		(interval_mult != divisor.getDataIntervalMult()) ) {
-		throw new Exception ( "Cannot determine relativeDiff for " +
-		"TS1, divisor data with different intervals (" +
-		ts1.getIdentifierString() + " and " +
-		divisor.getIdentifierString() + ")." );
+	if ( (interval_base != divisor.getDataIntervalBase()) || (interval_mult != divisor.getDataIntervalMult()) ) {
+		throw new Exception ( "Cannot determine relativeDiff for TS1, divisor data with different intervals (" +
+		ts1.getIdentifierString() + " and " + divisor.getIdentifierString() + ")." );
 	}
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		throw new Exception (
-		"Cannot compute relativeDiff for irregular interval data (" +
-		ts1.getIdentifierString() + ")" );
+		throw new Exception ( "Cannot compute relativeDiff for irregular interval data (" + ts1.getIdentifierString() + ")" );
 	}
 
 	// Loop using addInterval...
@@ -10492,18 +9603,15 @@ throws Exception
 	double ts1value = 0.0;
 	double ts2value = 0.0;
 	double div = 0.0;
-	for (	; date.lessThanOrEqualTo( end );
-		date.addInterval(interval_base, interval_mult) ) {
+	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		ts1value = ts1.getDataValue(date);
 		ts2value = ts2.getDataValue(date);
 		div = divisor.getDataValue(date);
-		if (	ts1.isDataMissing(ts1value) ||
-			ts2.isDataMissing(ts2value) ||
-			divisor.isDataMissing(div) ||
-			(div == 0.0) ) {
+		if ( ts1.isDataMissing(ts1value) || ts2.isDataMissing(ts2value) || divisor.isDataMissing(div) || (div == 0.0) ) {
 			ts1.setDataValue ( date, missing );
 		}
-		else {	ts1.setDataValue ( date, (ts1value - ts2value)/div );
+		else {
+		    ts1.setDataValue ( date, (ts1value - ts2value)/div );
 		}
 	}
 
@@ -10511,22 +9619,15 @@ throws Exception
 
 	ts1.setDataUnits ( "" );
 	ts1.addToGenesis ("Converted to relativeDiff " + start_date.toString() +
-		" to " + end_date.toString() + " by subtracting " +
-		ts2.getDescription() + " and dividing by " +
+		" to " + end_date.toString() + " by subtracting " + ts2.getDescription() + " and dividing by " +
 		divisor.getDescription() );
 
-	ts1.setDescription ( ts1.getDescription() + "-" +
-		ts2.getDescription() + "/" + divisor.getDescription() );
-
-	start = null;
-	end = null;
-	date = null;
+	ts1.setDescription ( ts1.getDescription() + "-" + ts2.getDescription() + "/" + divisor.getDescription() );
 }
 
 /**
 Replace a range of values in the time series data with a constant value.
-The data range is checked regardless of whether the missing data value is in
-the range.
+The data range is checked regardless of whether the missing data value is in the range.
 @param ts Time series to update.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
@@ -10534,14 +9635,13 @@ the range.
 @param maxvalue Maximum data value to replace.
 @param newvalue Replacement data value.
 */
-public static void replaceValue (	TS ts, DateTime start_date,
-					DateTime end_date, double minvalue,
-					double maxvalue, double newvalue )
+public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, double minvalue,
+	double maxvalue, double newvalue )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -10561,27 +9661,20 @@ public static void replaceValue (	TS ts, DateTime start_date,
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			value = tsdata.getData();
-			if (	date.greaterThanOrEqualTo(start) &&
-				(value >= minvalue) &&
-				(value <= maxvalue) ) {
+			if ( date.greaterThanOrEqualTo(start) && (value >= minvalue) && (value <= maxvalue) ) {
 				tsdata.setData(newvalue);
-				// Have to do this manually since TSData
-				// are being modified directly to
-				// improve performance...
+				// Have to do this manually since TSData are being modified directly to improve performance...
 				ts.setDirty ( true );
 			}
 		}
 	}
 	else {	// Loop using addInterval...
 		DateTime date = new DateTime ( start );
-		for ( ;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
 			if ( (value >= minvalue) && (value <= maxvalue) ) {
 				ts.setDataValue ( date, newvalue );
@@ -10597,8 +9690,7 @@ public static void replaceValue (	TS ts, DateTime start_date,
 		StringUtil.formatString(newvalue, "%.3f") + ")" );
 	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
 	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
-	StringUtil.formatString(newvalue,"%.3f") + " " +
-	start.toString() + " to " + end.toString() + "." );
+	StringUtil.formatString(newvalue,"%.3f") + " " + start.toString() + " to " + end.toString() + "." );
 }
 
 /**
@@ -10629,8 +9721,7 @@ Scale the time series by a constant value.
 @param scale Data value to scale time series.
 @exception Exception if the scale value is bad or another error occurs.
 */
-public static void scale (	TS ts, DateTime start_date,
-				DateTime end_date, double scale )
+public static void scale ( TS ts, DateTime start_date, DateTime end_date, double scale )
 throws Exception
 {	String  routine = "TSUtil.scale";
 
@@ -10653,8 +9744,7 @@ Scale the time series by a constant value.
 @param scale Data value to scale time series.
 @exception Exception if the scale value is bad or another error occurs.
 */
-public static void scale (	TS ts, DateTime start_date,
-				DateTime end_date, int month, double scale )
+public static void scale ( TS ts, DateTime start_date, DateTime end_date, int month, double scale )
 throws Exception
 {	scale ( ts, start_date, end_date, month, "" + scale );
 }
@@ -10671,9 +9761,7 @@ floating number, will be used as the scale value.  This is useful for
 converting between a monthly interval and an interval shorter than monthly.
 @exception Exception if the scale value is bad or another error occurs.
 */
-public static void scale (	TS ts, DateTime start_date,
-				DateTime end_date, int month,
-				String ScaleValue )
+public static void scale ( TS ts, DateTime start_date, DateTime end_date, int month, String ScaleValue )
 throws Exception
 {	String  routine = "TSUtil.scale";
 	double	oldvalue;
@@ -10687,10 +9775,7 @@ throws Exception
 		DaysInMonthInverse_boolean = true;
 	}
 	else {	if ( !StringUtil.isDouble(ScaleValue) ) {
-			String message =
-			"Scale value \"" + ScaleValue +
-			"\" is not a number, DaysInMonth, or " +
-			"DaysInMonthInverse.";
+			String message = "Scale value \"" + ScaleValue + "\" is not a number, DaysInMonth, or DaysInMonthInverse.";
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
@@ -10723,54 +9808,42 @@ throws Exception
 				continue;
 			}
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so
-				// quit...
+				// Past the end of where we want to go so quit...
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				oldvalue = tsdata.getData();
 				if ( !ts.isDataMissing(oldvalue) ) {
 					if ( DaysInMonth_boolean ) {
-						ScaleValue_double =
-						TimeUtil.numDaysInMonth(
-							tsdata.getDate());
+						ScaleValue_double = TimeUtil.numDaysInMonth(tsdata.getDate());
 					}
 					else if ( DaysInMonthInverse_boolean ) {
-						ScaleValue_double =
-						1.0/TimeUtil.numDaysInMonth(
-							tsdata.getDate());
+						ScaleValue_double = 1.0/TimeUtil.numDaysInMonth(tsdata.getDate());
 					}
 					tsdata.setData(oldvalue*
 						ScaleValue_double);
-					// Have to do this manually since TSData
-					// are being modified directly to
-					// improve performance...
+					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
-		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			if ( (month >= 0) && (date.getMonth() != month) ) {
 				continue;
 			}
 			oldvalue = ts.getDataValue(date);
 			if ( !ts.isDataMissing(oldvalue) ) {
 				if ( DaysInMonth_boolean ) {
-					ScaleValue_double =
-					TimeUtil.numDaysInMonth(date);
+					ScaleValue_double = TimeUtil.numDaysInMonth(date);
 				}
 				else if ( DaysInMonthInverse_boolean ) {
-					ScaleValue_double =
-					1.0/TimeUtil.numDaysInMonth( date );
+					ScaleValue_double = 1.0/TimeUtil.numDaysInMonth( date );
 				}
-				ts.setDataValue(date, oldvalue*
-					ScaleValue_double);
+				ts.setDataValue(date, oldvalue*ScaleValue_double);
 			}
 		}
 	}
@@ -10779,37 +9852,33 @@ throws Exception
 
 	if ( month >= 0 ) { 
 		if ( DaysInMonth_boolean || DaysInMonthInverse_boolean ) {
-			ts.addToGenesis ( "Scaled " + start +
-			" to " + end + " (month " + month + ") by " +
-			ScaleValue + "." );
+			ts.addToGenesis ( "Scaled " + start + " to " + end + " (month " + month + ") by " + ScaleValue + "." );
 		}
-		else {	ts.addToGenesis ( "Scaled " + start +
-			" to " + end + " (month " + month + ") by " +
+		else {
+		    ts.addToGenesis ( "Scaled " + start + " to " + end + " (month " + month + ") by " +
 			StringUtil.formatString(ScaleValue_double,"%.6f") );
 		}
 	}
-	else {	if ( DaysInMonth_boolean || DaysInMonthInverse_boolean ) {
-			ts.addToGenesis ( "Scaled " + start +
-			" to " + end + " by " + ScaleValue + "." );
+	else {
+	    if ( DaysInMonth_boolean || DaysInMonthInverse_boolean ) {
+			ts.addToGenesis ( "Scaled " + start + " to " + end + " by " + ScaleValue + "." );
 		}
-		else {	ts.addToGenesis ( "Scaled " + start +
-			" to " + end + " by " +
+		else {
+		    ts.addToGenesis ( "Scaled " + start + " to " + end + " by " +
 			StringUtil.formatString(ScaleValue_double,"%.6f")+".");
 		}
 	}
 
 	if ( DaysInMonth_boolean || DaysInMonthInverse_boolean ) {
-		ts.setDescription ( ts.getDescription() + ", scale*" +
-			ScaleValue );
+		ts.setDescription ( ts.getDescription() + ", scale*" + ScaleValue );
 	}
-	else {	ts.setDescription ( ts.getDescription() + ", scale*" +
-			StringUtil.formatString(ScaleValue_double,"%.3f") );
+	else {
+	    ts.setDescription ( ts.getDescription() + ", scale*" + StringUtil.formatString(ScaleValue_double,"%.3f") );
 	}
 }
 
 /**
-Scale the entire time series by a constant value, but only for the specified
-month.
+Scale the entire time series by a constant value, but only for the specified month.
 @param ts Time series to scale.
 @param month Month number (1-12) to scale.  Specify -1 to scale all months.
 @param scale Data value to scale time series.
@@ -10836,17 +9905,16 @@ more time series identifiers strings with those in the time series list.
 @return a Vector of matching time series (guaranteed to be non-null but may be
 zero length).  If the requested TSID string has blank input type and name, then
 the check is made ignoring the input type and name in the candidate time
-series.  If the input type and name are present int he requested TSID, then the
-input type and name are checked.
-@param tslist a Vector of TS to be checked.
-@param tsids a Vector of time series identifier strings.  The comparison is made
+series.  If the input type and name are present int he requested TSID, then the input type and name are checked.
+@param tslist a list of TS to be checked.
+@param tsids a list of time series identifier strings.  The comparison is made
 by creating a TSIdent for each string and then calling
 TSIdent.matches(TSIdentstring-from-TS,true,true), therefore the alias and input
 name are checked for a match.  Each matching time series is returned in the list.
 @param PropList props Properties to control processing, not currently used.
 */
-public static List selectTimeSeries ( List tslist, List tsids, PropList props )
-{	List v = new Vector();
+public static List<TS> selectTimeSeries ( List<TS> tslist, List<String> tsids, PropList props )
+{	List<TS> v = new Vector();
 	int tsids_size = 0;
 	if ( tsids != null ) {
 		tsids_size = tsids.size();
@@ -10860,8 +9928,7 @@ public static List selectTimeSeries ( List tslist, List tsids, PropList props )
 	int j;
 	boolean check_input = true;
 	for ( int i = 0; i < tsids_size; i++ ) {
-		Message.printStatus ( 2, "",
-		"Checking TSID \"" + (String)tsids.get(i) + "\"" );
+		Message.printStatus ( 2, "", "Checking TSID \"" + tsids.get(i) + "\"" );
 		try {
 			tsident = new TSIdent ( (String)tsids.get(i) );
 			if ( (tsident.getInputType().length() == 0) && (tsident.getInputName().length() == 0) ) {
@@ -10872,7 +9939,7 @@ public static List selectTimeSeries ( List tslist, List tsids, PropList props )
 			// Ignore.  Just don't return a match.
 		}
 		for ( j = 0; j < tslist_size; j++ ) {
-			ts = (TS)tslist.get(j);
+			ts = tslist.get(j);
 			if ( tsident.matches( ts.getIdentifier().toString(true), true, check_input) ){
 				v.add ( ts );
 				Message.printStatus ( 2, "", "Match: \"" + ts.getIdentifier().toString(true)+ "\"" );
@@ -10910,13 +9977,12 @@ Set the time series data to a constant value.
 @param end_date Date to stop assignment.
 @param value Data value to set as time series data.
 */
-public static void setConstant (	TS ts, DateTime start_date,
-					DateTime end_date, double value )
+public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, double value )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -10945,27 +10011,23 @@ public static void setConstant (	TS ts, DateTime start_date,
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
-		for ( ;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			ts.setDataValue ( date, value );
 		}
 	}
 
 	// Set the genesis information...
 
-	ts.setDescription ( ts.getDescription() + ", constant=" +
-		StringUtil.formatString(value, "%.3f") );
+	ts.setDescription ( ts.getDescription() + ", constant=" + StringUtil.formatString(value, "%.3f") );
 	ts.addToGenesis ( "Set " + start.toString() + " to " +
-	end.toString() + " to constant " +
-		StringUtil.formatString(value,"%.3f") + "." );
+	    end.toString() + " to constant " + StringUtil.formatString(value,"%.3f") + "." );
 }
 
 /**
-Set the entire time series to monthly values.  For example, values[0] is
-used for any date in January.
+Set the entire time series to monthly values.  For example, values[0] is used for any date in January.
 @param ts Time series to update.
 @param values Data values to set time series data (the
 first value is for January, the last is for December).
@@ -10990,16 +10052,14 @@ period with a repetitive monthly pattern.
 @param ts Time series to update.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
-@param values Data values to set in the time series
-(the first value is for January, the last is for December).
+@param values Data values to set in the time series (the first value is for January, the last is for December).
 */
-public static void setConstantByMonth (	TS ts, DateTime start_date,
-					DateTime end_date, double values[] )
+public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, double values[] )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -11023,30 +10083,24 @@ public static void setConstantByMonth (	TS ts, DateTime start_date,
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				tsdata.setData(values[date.getMonth() - 1]);
-				// Have to do this manually since TSData
-				// are being modified directly to
-				// improve performance...
+				// Have to do this manually since TSData are being modified directly to improve performance...
 				irrts.setDirty ( true );
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
-		
-		for (	;
-			date.lessThanOrEqualTo( end );
-			date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			ts.setDataValue ( date, values[date.getMonth() - 1] );
 		}
 	}
 
 	// Add to the genesis information...
 
-	ts.addToGenesis ( "Set " + start.toString() + " to " +
-		end.toString() + " to monthly values:" );
+	ts.addToGenesis ( "Set " + start.toString() + " to " + end.toString() + " to monthly values:" );
 	for ( int i = 0; i < 12; i++ ) {
-		ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " +
-		StringUtil.formatString(values[0],"%12.2f"));
+		ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " + StringUtil.formatString(values[0],"%12.2f"));
 	}
 }
 
@@ -11067,20 +10121,16 @@ throws Exception
 
 	// Else, use the overall start and end dates for filling...
 
-	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(),
-			dependentTS.getDate2(), null );
+	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null );
 }
 
 /**
 Set data by getting values from another time series.
-The data intervals do not need to be the same (truncation of dates will result
-if date precision is different).
+The data intervals do not need to be the same (truncation of dates will result if date precision is different).
 @param dependentTS Time series to update.
 @param independentTS Time series to copy from.
-@param start_date Date to start data transfer (relative to the dependent time
-series).
-@param end_date Date to stop the data transfer (relative to the dependent time
-series).
+@param start_date Date to start data transfer (relative to the dependent time series).
+@param end_date Date to stop the data transfer (relative to the dependent time series).
 @param props Properties to control the transfer.  Recognized properties are:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -11221,22 +10271,19 @@ throws Exception
 	}
 
 	if ( olddate == null ) {
-		message = "Old date is null to shift " +
-		oldts.getIdentifierString();
+		message = "Old date is null to shift " + oldts.getIdentifierString();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException( message );
 	}
 	if ( newdate == null ) {
-		message = "New date is null to shift " +
-		oldts.getIdentifierString();
+		message = "New date is null to shift " + oldts.getIdentifierString();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException( message );
 	}
 
 	//if ( Message.isDebugOn ) {
 		Message.printStatus ( 1, routine,
-		"Shifting " + oldts.getIdentifierString() +
-		" from existing " + olddate + " to new " + newdate );
+		"Shifting " + oldts.getIdentifierString() + " from existing " + olddate + " to new " + newdate );
 	//}
 
 	// Get the original dates in the time series...
@@ -11270,8 +10317,7 @@ throws Exception
 	// 1996      1995      negative
 	DateTime offset = TimeUtil.diff ( newdate, olddate );
 	//if ( Message.isDebugOn ) {
-		Message.printStatus ( 1, routine,
-		"Applying offset: " + offset );
+		Message.printStatus ( 1, routine, "Applying offset: " + offset );
 	//}
 
 	// Now shift to the new dates using the offset between the supplied
@@ -11287,52 +10333,40 @@ throws Exception
 	int interval_base = oldts.getDataIntervalBase();
 	int interval_mult = oldts.getDataIntervalMult();
 	if ( interval_base == TimeInterval.YEAR ) {
-		Message.printDebug ( dl, routine,
-			"Creating new YearTS to shift from " + olddate
-				+ " to " + newdate );
+		Message.printDebug ( dl, routine, "Creating new YearTS to shift from " + olddate + " to " + newdate );
 
 		// Need to overload the contructor to the various TS to take
 		// the dates and multiplier so it can call allocateDataSpace
-		// directly.  Until then, do it the old way.  Also, we have to
-		// be careful with the copyHeader stuff!
+		// directly.  Until then, do it the old way.  Also, we have to be careful with the copyHeader stuff!
 
 		newts = new YearTS();
 	}
 	
 	if ( interval_base == TimeInterval.MONTH ) {
-		Message.printDebug ( dl, routine,
-			"Creating new MonthTS to shift from " + olddate
-				+ " to " + newdate );
+		Message.printDebug ( dl, routine, "Creating new MonthTS to shift from " + olddate + " to " + newdate );
 		newts = new MonthTS();
 	}
 	else if ( interval_base == TimeInterval.WEEK ) {
-		Message.printDebug ( dl, routine,
-			"Shifting a WeekTS is not currently supported." );
+		Message.printDebug ( dl, routine, "Shifting a WeekTS is not currently supported." );
 		
 		//newts = new MonthTS();
 		return null;
 	}
 	else if ( interval_base == TimeInterval.DAY ) {
-		Message.printDebug ( dl, routine,
-			"Creating new DayTS to shift from " + olddate
-				+ " to " + newdate );
+		Message.printDebug ( dl, routine, "Creating new DayTS to shift from " + olddate + " to " + newdate );
 		newts = new DayTS();
 	}
 	else if ( interval_base == TimeInterval.HOUR ) {
-		Message.printDebug ( dl, routine,
-			"Creating new HourTS to shift from " + olddate
-				+ " to " + newdate );
+		Message.printDebug ( dl, routine, "Creating new HourTS to shift from " + olddate + " to " + newdate );
 		newts = new HourTS();
 	}
 	else if ( interval_base == TimeInterval.MINUTE ) {
-		Message.printDebug ( dl, routine,
-			"Creating new MinuteTS to shift from " + olddate
-				+ " to " + newdate );
+		Message.printDebug ( dl, routine, "Creating new MinuteTS to shift from " + olddate + " to " + newdate );
 		newts = new MinuteTS();
 	}
-	else {	Message.printWarning( 1, routine,
-		"Time series and output base interval of " + interval_base
-			 + " are not recognized." );
+	else {
+	    Message.printWarning( 1, routine,
+		"Time series and output base interval of " + interval_base + " are not recognized." );
 		return null;
 	}
 
@@ -11356,44 +10390,33 @@ throws Exception
 	DateTime newdate_i = new DateTime ( date1, DateTime.DATE_FAST );
 
 	double data_value;
-	for (	;
-		newdate_i.lessThanOrEqualTo( date2 ) &&
-		olddate_i.lessThanOrEqualTo( olddate2 );
+	for ( ; newdate_i.lessThanOrEqualTo( date2 ) && olddate_i.lessThanOrEqualTo( olddate2 );
 		newdate_i.addInterval(interval_base, interval_mult),
 		olddate_i.addInterval(interval_base, interval_mult) ) {
-		// Re-align if the leap years do not line up.  Only deal with
-		// daily for now...
+		// Re-align if the leap years do not line up.  Only deal with daily for now...
 		if ( interval_base == TimeInterval.DAY ) {
 			if ( olddate_i.getMonth() == 3 ) {
 				if ( olddate_i.getDay() == 1 ) {
-					if (	(newdate_i.getMonth() == 2) &&
-						(newdate_i.getDay() == 29) ) {
-						// Add the date 1 by one
-						// interval to make things line
-						// up.  Will have missing in
-						// the new data for the 29th...
+					if ( (newdate_i.getMonth() == 2) && (newdate_i.getDay() == 29) ) {
+						// Add the date 1 by one interval to make things line
+						// up.  Will have missing in the new data for the 29th...
 						newdate_i.addDay ( 1 );
 					}
 				}
 			}
 		}
 
-		// Now get the data from the old time series and set in the
-		// new time series...
+		// Now get the data from the old time series and set in the new time series...
 		data_value = oldts.getDataValue( olddate_i );
 		newts.setDataValue( newdate_i, data_value );
-		//Message.printStatus ( 1, routine,
-		//"Shifting old date " + olddate1.toString() +
+		//Message.printStatus ( 1, routine, "Shifting old date " + olddate1.toString() +
 		//" value " + data_value + " to new date " + date1 );
 
 		if ( interval_base == TimeInterval.DAY ) {
 			if ( olddate_i.getMonth() == 2 ) {
 				if ( olddate_i.getDay() == 29 ) {
-					if (	(newdate_i.getMonth() == 3) &&
-						(newdate_i.getDay() == 1) ) {
-						// Decrement the date1 by one
-						// interval so the next
-						// iteration properly resets...
+					if ( (newdate_i.getMonth() == 3) && (newdate_i.getDay() == 1) ) {
+						// Decrement the date1 by one interval so the next iteration properly resets...
 						newdate_i.addDay ( -1 );
 					}
 				}
@@ -11403,13 +10426,9 @@ throws Exception
 
 	// Now return the new time series...
 
-	Message.printStatus ( 1, routine,
-	"New period is " + newts.getDate1().toString() + " to " +
-	newts.getDate2().toString() );
-	newts.addToGenesis ( "Shifted dates from " + newdate.toString()
-			+ " to " + olddate.toString() );
-	newts.addToGenesis ( "Period is " + newts.getDate1().toString()
-			+ " to " + newts.getDate2().toString() );
+	Message.printStatus ( 1, routine, "New period is " + newts.getDate1() + " to " + newts.getDate2() );
+	newts.addToGenesis ( "Shifted dates from " + newdate + " to " + olddate );
+	newts.addToGenesis ( "Period is " + newts.getDate1() + " to " + newts.getDate2() );
 	return newts;
 }
 
@@ -11426,8 +10445,7 @@ The new value is computed as data[i] = sum(data[interval_offsets[i]]*weights[i])
 @return new time series.
 @exception Exception if there is a problem with input
 */
-public static TS shiftTimeByInterval (	TS oldts, int interval_offsets[],
-					double weights[] )
+public static TS shiftTimeByInterval ( TS oldts, int interval_offsets[], double weights[] )
 throws TSException
 {	String routine = "TSUtil.shiftTimeByInterval";
 
@@ -11464,8 +10482,7 @@ throws TSException
 	int i = 0;
 	double missing = oldts.getMissing();
 	// Will use an array of DateTimes.  Set the initial offsets and then iterate by one
-	// interval with the other loop.  This is much faster than the old code that repositioned
-	// the date each time.
+	// interval with the other loop.  This is much faster than the old code that repositioned the date each time.
 	DateTime [] shifted_date = new DateTime[npairs];
 	boolean first_time = true; // Indicates to setup in first loop
 	// Loop through each date/time in the time series that is being modified (oldts).
@@ -11512,8 +10529,7 @@ throws TSException
 	oldts.setDescription ( oldts.getDescription() + ",shift time" );
 	oldts.addToGenesis ( "Shifted time using data[i]=sum(data[i + offset[i]]*wt[i]) where offset/wts: ");
 	for ( i = 0; i < npairs; i++ ) {
-		oldts.addToGenesis (
-			"    " + interval_offsets[i] + "," + StringUtil.formatString(weights[i], "%.6f") );
+		oldts.addToGenesis ( "    " + interval_offsets[i] + "," + StringUtil.formatString(weights[i], "%.6f") );
 	}
 	return oldts;
 }
@@ -11536,13 +10552,11 @@ The shift is accomplished as follows:
 	dates that have the new time zone.  The original time series is then
 	iterated through and data are transferred to the new time series.  This
 	transfer results in a consistent shift throughout the time zeries and
-	should therefore occur using standard time zones only (not daylight
-	savings time zones).</li>
+	should therefore occur using standard time zones only (not daylight savings time zones).</li>
 </ul>
 @param ts The time series to be modified.
 @param req_tz A requested time zone abbreviation, as recognized by the
-RTi.Util.Time.TZ class.  If null, or "" are specified, the original time series
-is returned.
+RTi.Util.Time.TZ class.  If null, or "" are specified, the original time series is returned.
 @param from_date A DateTime used as a reference to determine daylight savings
 time.  Currently this is not evaluated.  In the future it may be used to
 allow conversion between standard and daylight time zones.  It is not currently
@@ -11550,16 +10564,12 @@ supported because standard/daylight shifts will vary in a long time series.
 @param reset_tz_if_same If true and the requested time zone is numerically the
 same as the original time series, then the requested time zone will be used
 in the start and end dates for the time series (e.g, use to switch from "Z" to
-"GMT").  If false and the time zones are numerically equal, use the original
-time zone.
-@return the original time series if no shift has occurred, or a new time series
-with shifted data.
+"GMT").  If false and the time zones are numerically equal, use the original time zone.
+@return the original time series if no shift has occurred, or a new time series with shifted data.
 @exception if there is an error shifting the time zone (e.g., trying to shift
 hourly data by 30 minutes, or the requested time zone is not recognized).
 */
-public static TS shiftTimeZone (	TS ts, String req_tz,
-					DateTime from_date,
-					boolean reset_tz_if_same )
+public static TS shiftTimeZone ( TS ts, String req_tz, DateTime from_date, boolean reset_tz_if_same )
 throws Exception
 {	if ( (req_tz == null) || (req_tz.length() == 0) ) {
 		// Not any information to do a shift so don't do anything...
@@ -11572,8 +10582,7 @@ throws Exception
 		// The time zones are numerically equal.
 		if ( reset_tz_if_same ) {
 			// Reset the time zone in the start and end dates in
-			// the time series (but do not do so in limits or
-			// irregular data...
+			// the time series (but do not do so in limits or irregular data...
 			ts.getDate1().setTimeZone(req_tz);
 			ts.getDate1Original().setTimeZone(req_tz);
 			ts.getDate2().setTimeZone(req_tz);
@@ -11581,16 +10590,15 @@ throws Exception
 		}
 		return ts;
 	}
-	else {	// Need to create a new time series with the new dates and
-		// transfer the data.
+	else {
+	    // Need to create a new time series with the new dates and transfer the data.
 		// Only support for hourly data...
 		int interval_base = ts.getDataIntervalBase();
 		int interval_mult = ts.getDataIntervalMult();
 		if ( interval_base != TimeInterval.HOUR ) {
-			throw new Exception (
-			"Only hourly data can have their time zone shifted.");
+			throw new Exception ( "Only hourly data can have their time zone shifted.");
 		}
-		// REVISIT SAM 2004-11-08 The following is not very efficient
+		// TODO SAM 2004-11-08 The following is not very efficient
 		// and could be optimized, in particular to avoid the initial
 		// close of the data space and to avoid transfer altogether if
 		// no shift in the data space is necessary.
@@ -11619,8 +10627,7 @@ throws Exception
 		date = new DateTime(ts1.getDate1());
 		DateTime date_end = new DateTime(ts1.getDate2());
 		DateTime date2 = new DateTime(ts2.getDate1());
-		for (	; date.lessThanOrEqualTo(date_end);
-			date.addInterval(interval_base,interval_mult),
+		for ( ; date.lessThanOrEqualTo(date_end); date.addInterval(interval_base,interval_mult),
 			date2.addInterval(interval_base,interval_mult) ) {
 			ts2.setDataValue ( date2, ts1.getDataValue(date) );
 		}
@@ -11635,23 +10642,22 @@ Null identifiers are treated as blank strings.
 @param tslist Vector of TS to sort, each having a valid TSIdent.
 @return the sorted Vector of time series.  If the Vector is null or zero size,
 the original Vector is returned.  Otherwise, a new Vector instance is returned.
-The original TS data are included in the Vector (not copies of the original
-data).
+The original TS data are included in the Vector (not copies of the original data).
 */
-public static List sort ( List tslist )
+public static List<TS> sort ( List<TS> tslist )
 {	if ( (tslist == null) || (tslist.size() == 0) ) {
 		return tslist;
 	}
 	// Since TS does not implement Comparable, sort the TSIdent strings...
 	int size = tslist.size();
-	List strings = new Vector(size);
+	List<String> strings = new Vector(size);
 	TSIdent tsid;
 	for ( int i = 0; i < size; i++ ) {
 		if ( tslist.get(i) == null ) {
 			strings.add ( "" );
 			continue;
 		}
-		tsid = ((TS)tslist.get(i)).getIdentifier();
+		tsid = tslist.get(i).getIdentifier();
 		if ( tsid == null ) {
 			strings.add ( "" );
 			continue;
@@ -11665,7 +10671,7 @@ public static List sort ( List tslist )
 					sort_order, true,// Use sort array
 					true );		// Ignore case.
 	// Now sort the time series...
-	List tslist_sorted = new Vector ( size );
+	List<TS> tslist_sorted = new Vector ( size );
 	for ( int i = 0; i < size; i++ ) {
 		tslist_sorted.add( tslist.get ( sort_order[i] ) );
 	}
@@ -11690,11 +10696,12 @@ public static TS subtract ( TS ts, TS ts_to_subtract )
 		return ts;
 	}
 	// Else, set up a vector and call the overload routine...
-	List v = new Vector ( 1, 1 );
+	List<TS> v = new Vector ( 1, 1 );
 	v.add ( ts_to_subtract );
 	double [] factor = new double[1];
 	factor[0] = -1.0;
-	try {	return add ( ts, v, factor, IGNORE_MISSING );
+	try {
+	    return add ( ts, v, factor, IGNORE_MISSING );
 	}
 	catch ( Exception e ) {;}
 	return ts;
@@ -11708,7 +10715,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts Time series to be subtracted from.
 @param ts_to_subtract List of time series to subtract from "ts".
 */
-public static TS subtract ( TS ts, List ts_to_subtract )
+public static TS subtract ( TS ts, List<TS> ts_to_subtract )
 throws Exception
 {	return subtract ( ts, ts_to_subtract, IGNORE_MISSING );
 }
@@ -11722,7 +10729,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_subtract List of time series to subtract from "ts".
 @param missing_flag See documentation for add().
 */
-public static TS subtract ( TS ts, List ts_to_subtract, int missing_flag )
+public static TS subtract ( TS ts, List<TS> ts_to_subtract, int missing_flag )
 throws Exception
 {	// Call the main overload routine...
 	if ( ts_to_subtract == null ) {
@@ -11740,8 +10747,7 @@ throws Exception
 Return an array containing the data values (including missing values) of the time series for the specified
 period.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
-for those values.  If the start date or end date are null, the start and end
-dates of the time series are used.
+for those values.  If the start date or end date are null, the start and end dates of the time series are used.
 @return The array of data for to time series.  If an error, return null.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
@@ -11758,8 +10764,7 @@ Return an array containing the data values (including missing values) of the tim
 period.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
-dates of the time series are used.  This is a utility routine mainly used by
-other versions of this routine.
+dates of the time series are used.  This is a utility routine mainly used by other versions of this routine.
 @return The array of data for the time series.  If an error, return null.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
@@ -11780,8 +10785,7 @@ Return an array containing the data values of the time series for the specified
 period.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
-dates of the time series are used.  This is a utility routine mainly used by
-other versions of this routine.
+dates of the time series are used.  This is a utility routine mainly used by other versions of this routine.
 @return The array of data for the time series.  If an error, return null.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
@@ -11804,8 +10808,7 @@ Return an array containing the data values of the time series for the specified
 period, including missing values.  If the start date or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
-dates of the time series are used.  This is a utility routine mainly used by
-other versions of this routine.
+dates of the time series are used.  This is a utility routine mainly used by other versions of this routine.
 @return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
 @param ts Time series to convert data to array format.
 @param startDate Date corresponding to the first date of the returned array.
@@ -11829,8 +10832,7 @@ other versions of this routine.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
 @param end_date Date corresponding to the last date of the returned array.
-@param month_indices Months of interest (1=Jan, 12=Dec).  If null or an empty
-array, process all months.
+@param month_indices Months of interest (1=Jan, 12=Dec).  If null or an empty array, process all months.
 @param includeMissing if true, include missing values; if false, do not include missing values
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
@@ -12208,4 +11210,4 @@ public static TS getFirstEditableTS(List tslist)
   return null;
 }
 
-} // end TSUtil class
+}
