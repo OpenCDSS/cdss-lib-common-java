@@ -136,28 +136,498 @@ throws Exception
 }
 
 /**
-Write the HTML for one month-interval time series.
-@param ts monthly time series to format as HTML.
+Write the HTML for data flag notes for one time series.
 */
-private void writeHtmlForOneMonthTimeSeries ( HTMLWriter html, TS ts, int count, YearType yearType,
-    DateTime outputStart, DateTime outputEnd, Integer precision )
+private void writeHtmlDataFlagNotes ( HTMLWriter html, TS ts, List<String> foundFlagsList, int missingCountTotal,
+    PropList propsFlaggedCell, PropList propsMissing )
+throws Exception
+{
+    // Write the data flag notes - loop through flag meta-data that has been defined and then see if
+    // any flags have been found.  This generally ensures that flags are written in the order of processing logic (e.g.,
+    // fill with one method and then another), rather than the order of flags in the data, which can be rather random
+    // if iterating through the period.  If flag meta-data is found, use it.  Otherwise, display a general message.
+    if ( (foundFlagsList.size() > 0) || (missingCountTotal > 0) ) {
+        // Display the colors used in the table
+        if ( foundFlagsList.size() > 0 ) {
+            html.heading(3, "Data Flags (alphabetized)" );
+        }
+        else {
+            html.heading(3, "Data Flags" );
+        }
+        html.tableStart();
+        html.tableRowStart();
+        html.tableCellStart(propsFlaggedCell);
+        html.write("Flagged Value");
+        html.tableCellEnd();
+        html.tableCellStart(propsMissing);
+        html.write("Missing Value");
+        html.tableCellEnd();
+        html.tableRowEnd();
+        html.tableEnd();
+    }
+    if ( foundFlagsList.size() > 0 ) {
+        // Write the data flag notes - loop through flags found in the data and then see if
+        // flag meta-data is available from the time series.  If so, use it.  If not display a general message.
+        PropList propsFlagNote = new PropList("");
+        propsMissing.set("class","flagnote");
+        List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
+        List<TSDataFlagMetadata> flagMetadataList = ts.getDataFlagMetadataList();
+        // Loop through the found flags
+        boolean found;
+        for ( String foundFlag : foundFlagsListSorted ) {
+            // See if any meta-data have been stored with the time series
+            found = false;
+            for ( TSDataFlagMetadata flagMetadata : flagMetadataList ) {
+                if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
+                    // Use the found meta-data...
+                    html.write( foundFlag + " - " + flagMetadata.getDescription());
+                    html.breakLine();
+                    found = true;
+                    break;
+                }
+            }
+            if ( !found ) {
+                // Generic message
+                html.span ( foundFlag + " - no information available describing meaning", propsFlagNote );
+                html.breakLine();
+            }
+        }
+    }
+}
+
+/**
+Write the HTML for one month-interval time series.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years (full period if null).
+@param outputEnd the ending date/time for output - will be rounded to full years (full period if null).
+@param the precision for data values (will default if null).
+*/
+private void writeHtmlForOneDayTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
+throws Exception
+{   String routine = getClass().getName() + ".writeHtmlForOneDayTimeSeries";
+    
+    // Write the table headings...
+    
+    String [] tableHeaders = new String[13];
+    tableHeaders[0] = "Day";
+    // Month column headings depend on year type
+    int iMonth = yearType.getStartMonth();
+    for ( int i = 1; i <= 12; i++ ) {
+        tableHeaders[i] = TimeUtil.monthAbbreviation(iMonth);
+        ++iMonth;
+        if ( iMonth == 13 ) {
+            iMonth = 1;
+        }
+    }
+    // Make sure that the iterator processes full rows...
+    if ( yearType == YearType.CALENDAR ) {
+        // Just need to output for the full year...
+        outputStart.setMonth ( 1 );
+        outputEnd.setMonth ( 12 );
+    }
+    else {
+        // Need to adjust for years with offsets
+        if ( outputStart.getMonth() < yearType.getStartMonth() ) {
+            // Need to shift to include the previous year...
+            outputStart.addYear ( -1 );
+        }
+        outputStart.setMonth ( yearType.getStartMonth() );
+        if ( outputEnd.getMonth() > yearType.getStartMonth() ) {
+            // Need to include the next year...
+            outputEnd.addYear ( 1 );
+        }
+        outputEnd.setMonth ( yearType.getEndMonth() );
+        // The year that is printed in the summary is actually
+        // later than the calendar for some months...
+    }
+    Message.printStatus ( 2, routine, "Reset output period to full years " + outputStart + " to " + outputEnd );
+    DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
+    TSData data;
+    double value;
+    String flag = null;
+    double yearTotal = ts.getMissing();
+    int nonMissingInRow = 0;
+    int missingCountTotal = 0;
+    int flagCountTotal = 0;
+    String dataFormat = "%." + precision + "f";
+    String [] td = new String[1]; // Single cell value
+    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    // Year for iteration is the calendar year for the start of the year (but not necessarily Jan)
+    for ( int year = outputStart.getYear(); year <= (outputEnd.getYear() + yearType.getStartYearOffset()); year++ ) {
+        int outputYear = year - yearType.getStartYearOffset();
+        // Heading is the output year
+        html.heading(3, "" + yearType + " Year " + outputYear + " (" + TimeUtil.monthAbbreviation(yearType.getStartMonth()) +
+            " " + year + " to " + TimeUtil.monthAbbreviation(yearType.getEndMonth()) + " " + outputYear + ")");
+        // Start a new table for the year of output
+        html.tableStart();
+        html.tableRowStart();
+        html.tableHeaders( tableHeaders );
+        html.tableRowEnd();
+        for ( int day = 1; day <= 31; day++ ) {
+            html.tableCell("" + day );
+            int monthCount = 1;
+            for ( int month = yearType.getStartMonth(); monthCount <= 12; month++, monthCount++ ) {
+                if ( month > 12 ) {
+                    month = 1;
+                }
+                // If month does not have as many days as in the iterator, output a blank
+                int yearOffset = year;
+                if ( (yearType.getStartYearOffset() != 0) && (month < yearType.getStartMonth()) ) {
+                    yearOffset = year - yearType.getStartYearOffset();
+                }
+                if ( day > TimeUtil.numDaysInMonth(month,yearOffset) ) {
+                    html.tableCell("");
+                }
+                else {
+                    // Need to process the data value
+                    date.setYear(yearOffset);
+                    date.setMonth(month);
+                    date.setDay(day);
+                    data = ts.getDataPoint ( date );
+                    value = data.getData();
+                    flag = data.getDataFlag();
+                    if ( flag != null ) {
+                        flag = flag.trim();
+                        if ( flag.length() > 0 ) {
+                            addToFoundFlags ( foundFlagsList, flag );
+                        }
+                    }
+                    if ( ts.isDataMissing(value) ) {
+                        // May still have a flag
+                        if ( (flag != null) && (flag.length() != 0) ) {
+                            html.tableCellStart(propsMissing);
+                            html.span(flag,propsFlag);
+                            html.tableCellEnd();
+                            ++flagCountTotal;
+                        }
+                        else {
+                            // Blank cell
+                            td[0] = "";
+                            html.tableCells(td,propsMissing);
+                        }
+                        ++missingCountTotal;
+                    }
+                    else {
+                        // Not missing
+                        if ( (flag == null) || (flag.length() == 0) ) {
+                            // Just display the value with no special formatting
+                            html.tableCell(StringUtil.formatString(value,dataFormat));
+                        }
+                        else {
+                            // Color the cell to indicate flagged value
+                            html.tableCellStart(propsFlaggedCell);
+                            html.write("" + StringUtil.formatString(value,dataFormat));
+                            html.span(flag,propsFlag);
+                            html.tableCellEnd();
+                            ++flagCountTotal;
+                        }
+                        // Process total/average
+                        if ( ts.isDataMissing(yearTotal) ) {
+                            yearTotal = 0.0;
+                        }
+                        yearTotal += value;
+                        ++nonMissingInRow;
+                    }
+                }
+        
+                if ( monthCount == 12 ) {
+                    // Have processed the last month in the row
+                    html.tableRowEnd();
+                }
+            }
+        }
+        // Close the table
+        html.tableEnd();
+    }
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
+}
+
+/**
+Write the HTML for one hour-interval time series.  Currently this is very basic, similar to year interval.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years.
+@param outputEnd the ending date/time for output - will be rounded to full years.
+@param the precision for data values.
+*/
+private void writeHtmlForOneHourTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
+throws Exception
+{   // String routine = getClass().getName() + ".writeHtmlForOneYearTimeSeries";
+    
+    // Write the table headings...
+    
+    html.tableStart();
+    html.tableRowStart();
+    String [] tableHeaders = new String[2];
+    tableHeaders[0] = "Date/time";
+    tableHeaders[1] = "Value";
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+ 
+    DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
+    TSData data;
+    double value;
+    String flag = null;
+    int missingCountTotal = 0;
+    int flagCountTotal = 0;
+    String dataFormat = "%." + precision + "f";
+    String [] td = new String[1]; // Single cell value
+    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
+    for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(intervalBase,intervalMult) ) {
+        html.tableRowStart();
+        // Write the year...
+        td[0] = "" + date; // Format using ISO default
+        html.tableCells(td);
+        // Process data value for year...
+        data = ts.getDataPoint ( date );
+        value = data.getData();
+        flag = data.getDataFlag();
+        if ( flag != null ) {
+            flag = flag.trim();
+            if ( flag.length() > 0 ) {
+                addToFoundFlags ( foundFlagsList, flag );
+            }
+        }
+        if ( ts.isDataMissing(value) ) {
+            // May still have a flag
+            if ( (flag != null) && (flag.length() != 0) ) {
+                html.tableCellStart(propsMissing);
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+            else {
+                // Blank cell
+                td[0] = "";
+                html.tableCells(td,propsMissing);
+            }
+            ++missingCountTotal;
+        }
+        else {
+            // Not missing
+            if ( (flag == null) || (flag.length() == 0) ) {
+                // Just display the value with no special formatting
+                html.tableCell(StringUtil.formatString(value,dataFormat));
+            }
+            else {
+                // Color the cell to indicate flagged value
+                html.tableCellStart(propsFlaggedCell);
+                html.write("" + StringUtil.formatString(value,dataFormat));
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+        }
+        html.tableRowEnd();
+    }
+    html.tableEnd();
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
+}
+
+/**
+Write the HTML for one irregular-interval time series.  Currently this is very basic, similar to year interval.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years.
+@param outputEnd the ending date/time for output - will be rounded to full years.
+@param the precision for data values.
+*/
+private void writeHtmlForOneIrregularTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
+throws Exception
+{   //String routine = getClass().getName() + ".writeHtmlForOneIrregularTimeSeries";
+    
+    // Write the table headings...
+    
+    html.tableStart();
+    html.tableRowStart();
+    String [] tableHeaders = new String[2];
+    tableHeaders[0] = "Date/time";
+    tableHeaders[1] = "Value";
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+ 
+    DateTime date;
+    TSData data;
+    double value;
+    String flag = null;
+    int missingCountTotal = 0;
+    int flagCountTotal = 0;
+    String dataFormat = "%." + precision + "f";
+    String [] td = new String[1]; // Single cell value
+    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    TSIterator iter = ts.iterator();
+    while ( (data = iter.next()) != null ) {
+        html.tableRowStart();
+        date = data.getDate();
+        // Write the year...
+        td[0] = "" + date; // Format using ISO default
+        html.tableCells(td);
+        // Process data value for year...
+        value = data.getData();
+        flag = data.getDataFlag();;
+        if ( flag != null ) {
+            flag = flag.trim();
+            if ( flag.length() > 0 ) {
+                addToFoundFlags ( foundFlagsList, flag );
+            }
+        }
+        if ( ts.isDataMissing(value) ) {
+            // May still have a flag
+            if ( (flag != null) && (flag.length() != 0) ) {
+                html.tableCellStart(propsMissing);
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+            else {
+                // Blank cell
+                td[0] = "";
+                html.tableCells(td,propsMissing);
+            }
+            ++missingCountTotal;
+        }
+        else {
+            // Not missing
+            if ( (flag == null) || (flag.length() == 0) ) {
+                // Just display the value with no special formatting
+                html.tableCell(StringUtil.formatString(value,dataFormat));
+            }
+            else {
+                // Color the cell to indicate flagged value
+                html.tableCellStart(propsFlaggedCell);
+                html.write("" + StringUtil.formatString(value,dataFormat));
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+        }
+        html.tableRowEnd();
+    }
+    html.tableEnd();
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
+}
+
+/**
+Write the HTML for one hour-interval time series.  Currently this is very basic, similar to year interval.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years.
+@param outputEnd the ending date/time for output - will be rounded to full years.
+@param the precision for data values.
+*/
+private void writeHtmlForOneMinuteTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
+throws Exception
+{   // String routine = getClass().getName() + ".writeHtmlForOneYearTimeSeries";
+    
+    // Write the table headings...
+    
+    html.tableStart();
+    html.tableRowStart();
+    String [] tableHeaders = new String[2];
+    tableHeaders[0] = "Date/time";
+    tableHeaders[1] = "Value";
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+ 
+    DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
+    TSData data;
+    double value;
+    String flag = null;
+    int missingCountTotal = 0;
+    int flagCountTotal = 0;
+    String dataFormat = "%." + precision + "f";
+    String [] td = new String[1]; // Single cell value
+    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
+    for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(intervalBase,intervalMult) ) {
+        html.tableRowStart();
+        // Write the year...
+        td[0] = "" + date; // Format using ISO default
+        html.tableCells(td);
+        // Process data value for year...
+        data = ts.getDataPoint ( date );
+        value = data.getData();
+        flag = data.getDataFlag();
+        if ( flag != null ) {
+            flag = flag.trim();
+            if ( flag.length() > 0 ) {
+                addToFoundFlags ( foundFlagsList, flag );
+            }
+        }
+        if ( ts.isDataMissing(value) ) {
+            // May still have a flag
+            if ( (flag != null) && (flag.length() != 0) ) {
+                html.tableCellStart(propsMissing);
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+            else {
+                // Blank cell
+                td[0] = "";
+                html.tableCells(td,propsMissing);
+            }
+            ++missingCountTotal;
+        }
+        else {
+            // Not missing
+            if ( (flag == null) || (flag.length() == 0) ) {
+                // Just display the value with no special formatting
+                html.tableCell(StringUtil.formatString(value,dataFormat));
+            }
+            else {
+                // Color the cell to indicate flagged value
+                html.tableCellStart(propsFlaggedCell);
+                html.write("" + StringUtil.formatString(value,dataFormat));
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+        }
+        html.tableRowEnd();
+    }
+    html.tableEnd();
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
+}
+
+/**
+Write the HTML for one month-interval time series.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years (full period if null).
+@param outputEnd the ending date/time for output - will be rounded to full years (full period if null).
+@param the precision for data values (will default if null).
+*/
+private void writeHtmlForOneMonthTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
 throws Exception
 {   String routine = getClass().getName() + ".writeHtmlForOneMonthTimeSeries";
-    
-    // Make a local copy of the output start/end
-    
-    if ( outputStart == null ) {
-        outputStart = new DateTime(ts.getDate1());
-    }
-    else {
-        outputStart = new DateTime ( outputStart );
-    }
-    if ( outputEnd == null ) {
-        outputEnd = new DateTime(ts.getDate2());
-    }
-    else {
-        outputEnd = new DateTime ( outputEnd );
-    }
     
     // Write the table headings...
     
@@ -228,12 +698,6 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    PropList propsMissing = new PropList("");
-    propsMissing.set("class","missing");
-    PropList propsFlaggedCell = new PropList("");
-    propsFlaggedCell.set("class","flagcell");
-    PropList propsFlag = new PropList("");
-    propsFlag.set("class","flag");
     List<String> foundFlagsList = new Vector(); // Flags found from the data
     for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(TimeInterval.MONTH,1) ) {
         ++monthPos;
@@ -253,8 +717,18 @@ throws Exception
             }
         }
         if ( ts.isDataMissing(value) ) {
-            td[0] = "";
-            html.tableCells(td,propsMissing);
+            // May still have a flag
+            if ( (flag != null) && (flag.length() != 0) ) {
+                html.tableCellStart(propsMissing);
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+            else {
+                // Blank cell
+                td[0] = "";
+                html.tableCells(td,propsMissing);
+            }
             ++missingCountTotal;
         }
         else {
@@ -303,58 +777,96 @@ throws Exception
         }
     }
     html.tableEnd();
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
+}
 
-    // Write the data flag notes - loop through flag meta-data that has been defined and then see if
-    // any flags have been found.  This generally ensures that flags are written in the order of processing logic (e.g.,
-    // fill with one method and then another), rather than the order of flags in the data, which can be rather random
-    // if iterating through the period.  If flag meta-data is found, use it.  Otherwise, display a general message.
-    if ( (foundFlagsList.size() > 0) || (missingCountTotal > 0) ) {
-        // Display the colors used in the table
-        if ( foundFlagsList.size() > 0 ) {
-            html.heading(3, "Data Flags (alphabetized)" );
+/**
+Write the HTML for one year-interval time series.
+@param html the HTMLWrite used to format the document.
+@param ts monthly time series to format as HTML.
+@param yearType the year type for output.
+@param outputStart the starting date/time for output - will be rounded to full years.
+@param outputEnd the ending date/time for output - will be rounded to full years.
+@param the precision for data values.
+*/
+private void writeHtmlForOneYearTimeSeries ( HTMLWriter html, TS ts, YearType yearType,
+    DateTime outputStart, DateTime outputEnd, int precision,
+    PropList propsMissing, PropList propsFlaggedCell, PropList propsFlag )
+throws Exception
+{   // String routine = getClass().getName() + ".writeHtmlForOneYearTimeSeries";
+    
+    // Write the table headings...
+    
+    html.tableStart();
+    html.tableRowStart();
+    String [] tableHeaders = new String[2];
+    tableHeaders[0] = "Year";
+    tableHeaders[1] = "Value";
+    html.tableHeaders( tableHeaders );
+    html.tableRowEnd();
+ 
+    DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
+    TSData data;
+    double value;
+    String flag = null;
+    int missingCountTotal = 0;
+    int flagCountTotal = 0;
+    String dataFormat = "%." + precision + "f";
+    String [] td = new String[1]; // Single cell value
+    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(TimeInterval.YEAR,1) ) {
+        html.tableRowStart();
+        // Write the year...
+        td[0] = "" + date.getYear();
+        html.tableCells(td);
+        // Process data value for year...
+        data = ts.getDataPoint ( date );
+        value = data.getData();
+        flag = data.getDataFlag();
+        if ( flag != null ) {
+            flag = flag.trim();
+            if ( flag.length() > 0 ) {
+                addToFoundFlags ( foundFlagsList, flag );
+            }
+        }
+        if ( ts.isDataMissing(value) ) {
+            // May still have a flag
+            if ( (flag != null) && (flag.length() != 0) ) {
+                html.tableCellStart(propsMissing);
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
+            else {
+                // Blank cell
+                td[0] = "";
+                html.tableCells(td,propsMissing);
+            }
+            ++missingCountTotal;
         }
         else {
-            html.heading(3, "Data Flags" );
+            // Not missing
+            if ( (flag == null) || (flag.length() == 0) ) {
+                // Just display the value with no special formatting
+                html.tableCell(StringUtil.formatString(value,dataFormat));
+            }
+            else {
+                // Color the cell to indicate flagged value
+                html.tableCellStart(propsFlaggedCell);
+                html.write("" + StringUtil.formatString(value,dataFormat));
+                html.span(flag,propsFlag);
+                html.tableCellEnd();
+                ++flagCountTotal;
+            }
         }
-        html.tableStart();
-        html.tableRowStart();
-        html.tableCellStart(propsFlaggedCell);
-        html.write("Flagged Value");
-        html.tableCellEnd();
-        html.tableCellStart(propsMissing);
-        html.write("Missing Value");
-        html.tableCellEnd();
         html.tableRowEnd();
-        html.tableEnd();
     }
-    if ( foundFlagsList.size() > 0 ) {
-        // Write the data flag notes - loop through flags found in the data and then see if
-        // flag meta-data is available from the time series.  If so, use it.  If not display a general message.
-        PropList propsFlagNote = new PropList("");
-        propsMissing.set("class","flagnote");
-        List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
-        List<TSDataFlagMetadata> flagMetadataList = ts.getDataFlagMetadataList();
-        // Loop through the found flags
-        boolean found;
-        for ( String foundFlag : foundFlagsListSorted ) {
-            // See if any meta-data have been stored with the time series
-            found = false;
-            for ( TSDataFlagMetadata flagMetadata : flagMetadataList ) {
-                if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
-                    // Use the found meta-data...
-                    html.write( foundFlag + " - " + flagMetadata.getDescription());
-                    html.breakLine();
-                    found = true;
-                    break;
-                }
-            }
-            if ( !found ) {
-                // Generic message
-                html.span ( foundFlag + " - no information available describing meaning", propsFlagNote );
-                html.breakLine();
-            }
-        }
-    }
+    html.tableEnd();
+    
+    // Write the data flags
+    writeHtmlDataFlagNotes ( html, ts, foundFlagsList, missingCountTotal, propsFlaggedCell, propsMissing );
 }
 
 /**
@@ -369,22 +881,95 @@ throws Exception
     
     html.heading (2, "Time series " + ts.getIdentifier() + " (" + ts.getDescription() + ")", "ts" + count);
     
+    // Determine the precision for output
+    
+    int precisionInt = 2;
+    if (precision != null) {
+        precisionInt = precision.intValue();
+    }
+    else {  
+        try {   
+            DataUnits units = DataUnits.lookupUnits(ts.getDataUnits());
+            precisionInt = units.getOutputPrecision();
+        }
+        catch (Exception e) {
+            // Use the default...
+            precisionInt = 2;
+        }
+    }
+    
+    // Make a local copy of the output start/end and deal with nulls so that this code does not need to be repeated
+    // in other methods - the dates may be modified in the loop based on data in the time series.
+    
+    if ( outputStart == null ) {
+        outputStart = new DateTime(ts.getDate1());
+    }
+    else {
+        outputStart = new DateTime ( outputStart );
+    }
+    if ( outputEnd == null ) {
+        outputEnd = new DateTime(ts.getDate2());
+    }
+    else {
+        outputEnd = new DateTime ( outputEnd );
+    }
+    
+    // Properties to specify styles
+    
+    PropList propsMissing = new PropList("");
+    propsMissing.set("class","missing");
+    PropList propsFlaggedCell = new PropList("");
+    propsFlaggedCell.set("class","flagcell");
+    PropList propsFlag = new PropList("");
+    propsFlag.set("class","flag");
+    
     // Now write the data section
     // Currently only support monthly data
     
-    if ( (ts.getDataIntervalBase() == TimeInterval.MONTH) && (ts.getDataIntervalMult() == 1) ) {
-        writeHtmlForOneMonthTimeSeries ( html, ts, count, yearType, outputStart, outputEnd, precision );
+    if ( (ts.getDataIntervalBase() == TimeInterval.YEAR) && (ts.getDataIntervalMult() == 1) ) {
+        writeHtmlForOneYearTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
+    }
+    else if ( (ts.getDataIntervalBase() == TimeInterval.MONTH) && (ts.getDataIntervalMult() == 1) ) {
+        writeHtmlForOneMonthTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
+    }
+    else if ( (ts.getDataIntervalBase() == TimeInterval.DAY) && (ts.getDataIntervalMult() == 1) ) {
+        writeHtmlForOneDayTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
+    }
+    else if ( ts.getDataIntervalBase() == TimeInterval.HOUR ) {
+        writeHtmlForOneHourTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
+    }
+    else if ( ts.getDataIntervalBase() == TimeInterval.MINUTE ) {
+        writeHtmlForOneMinuteTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
+    }
+    else if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
+        writeHtmlForOneIrregularTimeSeries ( html, ts, yearType, outputStart, outputEnd, precisionInt,
+            propsMissing, propsFlaggedCell, propsFlag );
     }
     else {
         html.write("Time series " + ts.getIdentifier() + " (" + ts.getDescription() +
-            ") cannot be formatted - only Month interval is supported." );
+            ") cannot be formatted - interval is not supported." );
     }
+    
+    // Write time series metadata
+    
+    html.heading (3,"Time Series Metadata" );
+    html.preStart();
+    List<String> headerList = ts.formatHeader();
+    for ( String header : headerList ) {
+        html.write(header + "\n");
+    }
+    html.preEnd();
     
     // Write the comment section
     
     List<String> comments = ts.getComments();
     if ( (comments != null) && (comments.size() > 0) ) {
-        html.heading (3,"Time series comments" );
+        html.heading (3,"Time Series Comments" );
         html.preStart();
         for ( String comment : comments ) {
             html.write(comment + "\n");
@@ -521,6 +1106,7 @@ private void writeHtmlStyles(HTMLWriter html)
 throws Exception
 {
     html.write("<style>\n"
+        + "@media screen {\n"
         + "#titles { font-weight:bold; color:#303044 }\n"
         + "table { background-color:black; text-align:left; border:1; bordercolor:black; cellspacing:1; cellpadding:1 }\n"  
         + "th { background-color:#333366; text-align:center; vertical-align:bottom; color:white }\n"
@@ -535,6 +1121,24 @@ throws Exception
         + ".missing { background-color:yellow; }\n"
         + ".flag { vertical-align: super; }\n"
         + ".flagnote { font-style:normal; font-family:courier; font-size:.75em; }\n"
+        + "}\n"
+        + "@media print {\n"
+        + "#titles { font-weight:bold; color:#303044 }\n"
+        + "table { border-collapse: collapse; background-color:white; text-align:left; border:1pt solid #000000; cellspacing:2pt; cellpadding:2pt }\n"  
+        + "th { background-color:white; text-align:center; vertical-align:bottom; color:black }\n"
+        + "tr { valign:bottom; halign:right;  }\n"
+        + "td { background-color:white; border: 1pt solid #000000; text-align:right; vertical-align:bottom; font-style:normal; " +
+                "font-family:courier; font-size:11pt; padding: 2pt; }\n" 
+        + "body { text-align:left; font-size:11pt; }\n"
+        + "pre { font-size:11pt; margin: 0px }\n"
+        + "p { font-size:11pt; }\n"
+        + "/* The following controls formatting of data values in tables */\n"
+        + ".flagcell { background-color:lightgray; }\n"
+        + ".missing { background-color:yellow; }\n"
+        + ".flag { vertical-align: super; }\n"
+        + ".flagnote { font-style:normal; font-family:courier; font-size:11pt; }\n"
+        + "}\n"
+        + "}\n"
         + "</style>\n");
 }
 
