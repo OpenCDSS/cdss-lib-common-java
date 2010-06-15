@@ -1313,7 +1313,7 @@ throws TSException
 			String newline = System.getProperty ( "line.separator");
 			int size = formatted_output.size();
 			for ( int i = 0; i < size; i++ ) {
-				fp.print ( (String)formatted_output.get(i) + newline );
+				fp.print ( formatted_output.get(i) + newline );
 			}
 			newline = null;
 		}

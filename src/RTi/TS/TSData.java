@@ -442,10 +442,7 @@ public static String toString (	String full_format, String value_format,
 		}
 	}
 
-	format = null;
-	String s = formatted_string.toString();
-	formatted_string = null;
-	return s;
+	return formatted_string.toString();
 }
 
 }

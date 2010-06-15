@@ -559,8 +559,8 @@ previous data values will be retained.  If false, the array will be reallocated 
 */
 public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
 throws Exception
-{	Message.printWarning ( 1, "TS.allocateDataFlagSpace", 
-	"TS.allocateDataFlagSpace() is virtual, define in derived classes." );
+{	Message.printWarning ( 1, "TS.allocateDataFlagSpace",
+        "TS.allocateDataFlagSpace() is virtual, define in derived classes." );
 }
 
 /**
@@ -572,8 +572,7 @@ calling this method.  This method is meant to be overridden in derived classes
 @return 0 if successful allocating memory, non-zero if failure.
 */
 public int allocateDataSpace ( )
-{	Message.printWarning ( 1, "TS.allocateDataSpace",
-	"TS.allocateDataSpace() is virtual, define in derived classes." );
+{	Message.printWarning ( 1, "TS.allocateDataSpace", "TS.allocateDataSpace() is virtual, define in derived classes." );
 	return 1;
 }
 
@@ -611,8 +610,7 @@ overridden in derived classes (in which case the interval base will be known).
 @return the number of data points in a period, given the interval mulitplier.
 */
 public static int calculateDataSize ( DateTime date1, DateTime date2, int multiplier )
-{	Message.printWarning ( 1, "TS.calculateDataSize", 
-	"TS.calculateDataSize() is virtual, define in derived classes." );
+{	Message.printWarning ( 1, "TS.calculateDataSize", "TS.calculateDataSize() is virtual, define in derived classes." );
 	return 0;
 }
 
@@ -968,7 +966,7 @@ Format a standard time series header, for use with formatOutput.
 and end of the header are not included.
 */
 public List<String> formatHeader ()
-{	List header = new Vector ( 10, 5 );
+{	List<String> header = new Vector ( 10, 5 );
 
 	header.add ( "Time Series Identifier  = " + getIdentifier().toString() );
 	header.add ( "Description             = " + getDescription() );

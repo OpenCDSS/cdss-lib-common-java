@@ -1083,8 +1083,7 @@ throws TSException
 				Message.printDebug ( dl, routine, "Processing " + date.toString(DateTime.FORMAT_YYYY_MM_DD) +
 				" row:" + row + " column:" + column );
 			}
-			// Figure out if this is a new year.  If so, we reset
-			// the headers, etc...
+			// Figure out if this is a new year.  If so, we reset the headers, etc...
 			day = date.getDay();
 			month = date.getMonth();
 			if ( day == 1 ) {
@@ -1101,16 +1100,14 @@ throws TSException
 				}
 				ndays_in_month = TimeUtil.numDaysInMonth ( month, date.getYear() );
 			}
-			// Save the data value for later use in output and
-			// statistics.  Allow missing data values to be saved...
+			// Save the data value for later use in output and statistics.  Allow missing data values to be saved...
 			data_value = getDataValue ( date );
 			data[row][column] = data_value;
 			// Check to see if at the end of the year.  If so, print out one year's values...
 			if ((month == month_to_end) && (day == ndays_in_month)){
 				// Print the header for the year...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					    "Printing output for summary year " + (date.getYear() + year_offset) );
+					Message.printDebug ( dl, routine, "Printing output for summary year " + (date.getYear() + year_offset) );
 				}
 				strings.add ( "" );
 				// "date" will be at the end of the year...
@@ -1192,8 +1189,7 @@ throws TSException
 				strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 				// Now do the statistics.  Loop through each column...
-				// First check to see if all stats should be printed (can be dangerous if we add new
-				// statistics)..
+				// First check to see if all stats should be printed (can be dangerous if we add new statistics)..
 				prop_value = props.getValue ( "PrintAllStats" );
 				String print_all_stats = null;
 				if ( prop_value == null ) {
@@ -1214,8 +1210,7 @@ throws TSException
 					print_min = prop_value;
 				}
 				if ( print_min.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-					strings =
-					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Min ", data_format ) );
+					strings = StringUtil.addListToStringList (strings, formatOutputStats ( data, "Min ", data_format ) );
 				}
 				prop_value = props.getValue ( "PrintMaxStats" );
 				String print_max = null;
@@ -1227,8 +1222,7 @@ throws TSException
 					print_max = prop_value;
 				}
 				if ( print_max.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-					strings =
-					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Max ", data_format ) );
+					strings = StringUtil.addListToStringList (strings, formatOutputStats ( data, "Max ", data_format ) );
 				}
 				prop_value = props.getValue ( "PrintMeanStats");
 				String print_mean = null;
@@ -1240,8 +1234,7 @@ throws TSException
 					print_mean = prop_value;
 				}
 				if ( print_mean.equalsIgnoreCase("true") || print_all_stats.equalsIgnoreCase("true") ) {
-					strings =
-					StringUtil.addListToStringList (strings, formatOutputStats ( data, "Mean", data_format ) );
+					strings = StringUtil.addListToStringList (strings, formatOutputStats ( data, "Mean", data_format ) );
 				}
 				column = -1; // Will be incremented in next step.
 				print_all_stats = null;

@@ -9989,7 +9989,7 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -9998,7 +9998,7 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -10022,8 +10022,7 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 	// Set the genesis information...
 
 	ts.setDescription ( ts.getDescription() + ", constant=" + StringUtil.formatString(value, "%.3f") );
-	ts.addToGenesis ( "Set " + start.toString() + " to " +
-	    end.toString() + " to constant " + StringUtil.formatString(value,"%.3f") + "." );
+	ts.addToGenesis ( "Set " + start + " to " + end + " to constant " + StringUtil.formatString(value,"%.3f") + "." );
 }
 
 /**
