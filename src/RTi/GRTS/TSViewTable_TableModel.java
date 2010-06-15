@@ -77,8 +77,7 @@ top Y value of the worksheet is different from it was when getValueAt() was
 last called.  If so, then the worksheet has been scrolled.  Each time the 
 worksheet is scrolled, the date/time of the top-most visible row is calculated
 using date caching.  Then, the date of each row that is drawn for the 
-current scroll position is calculated from the date of the top-most visible 
-row.<p>
+current scroll position is calculated from the date of the top-most visible row.<p>
 <b>Notes</b>
 These caching steps may seem overkill, but JTS found during extensive testing
 that they increase the speed of browsing through a table of time series 
@@ -718,8 +717,7 @@ public void setValueAt(Object value, int row, int col) {
 
 /**
 Sets the worksheet in which this table model is being used.
-@param worksheet the worksheet in which the instance of this table model is 
-used.
+@param worksheet the worksheet in which the instance of this table model is used.
 */
 public void setWorksheet(JWorksheet worksheet) {
 	__worksheet = worksheet;
