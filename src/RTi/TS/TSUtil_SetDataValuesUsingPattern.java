@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
@@ -35,8 +36,7 @@ throws Exception
 	DateTime end = valid_dates.getDate2();
 	
 	// Replace NaN values in patternValues with the missing value for the time series.  Do it
-	// here so that checks are minimized and the genesis information shows values relevant for
-	// the time series.
+	// here so that checks are minimized and the genesis information shows values relevant for the time series.
 	double [] patternValues2 = new double[patternValues.length];
 	for ( int i = 0; i < patternValues.length; i++ ) {
         if ( Double.isNaN(patternValues[i]) ) {
@@ -47,7 +47,7 @@ throws Exception
         }
 	}
 
-	TSIterator tsi = ts.iterator ( startDate, endDate );
+	TSIterator tsi = ts.iterator ( start, end );
 	int ipattern = 0;
 	int iflag = 0;
 	DateTime date;
@@ -92,8 +92,7 @@ throws Exception
             flagbuf.insert(0, ", flags=" );
         }
     }
-	ts.addToGenesis ( "Set " + start + " to " +
-	end + " to pattern=" + patternbuf.toString() + flagbuf.toString());
+	ts.addToGenesis ( "Set " + start + " to " + end + " to pattern=" + patternbuf.toString() + flagbuf.toString());
 }
 
 }
