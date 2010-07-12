@@ -87,14 +87,12 @@ public abstract class GRDrawingArea
 {
 
 /**
-Flag used to indicate raw device coordinates (used by getPlotLimits() and
-getDataXY()).
+Flag used to indicate raw device coordinates (used by getPlotLimits() and getDataXY()).
 */
 public static final int COORD_DEVICE = 0;
 
 /**
-Flag used to indicate GR plotting coordinates (same units as COORD_DEVICE but
-Y-axis may be flipped).
+Flag used to indicate GR plotting coordinates (same units as COORD_DEVICE but Y-axis may be flipped).
 */
 public static final int COORD_PLOT = 1;	
 
@@ -216,23 +214,19 @@ Line width.
 protected double _linewidth;
 
 /**
-Left-most plotting X value (device units), taking into account the aspect
-of the axes.
+Left-most plotting X value (device units), taking into account the aspect of the axes.
 */
 protected double _plotx1;
 /**
-Right-most plotting X value (device units), taking into account the aspect
-of the axes.
+Right-most plotting X value (device units), taking into account the aspect of the axes.
 */
 protected double _plotx2;
 /**
-Bottom-most plotting Y value (device units), taking into account the aspect
-of the axes.
+Bottom-most plotting Y value (device units), taking into account the aspect of the axes.
 */
 protected double _ploty1;
 /**
-Top-most plotting Y value (device units), taking into account the aspect
-of the axes.
+Top-most plotting Y value (device units), taking into account the aspect of the axes.
 */
 protected double _ploty2;
 
@@ -293,8 +287,7 @@ public GRDrawingArea ()
 {	String routine = "GRDrawingArea()";
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using no arguments" );
+		Message.printDebug ( 10, routine, "Constructing using no arguments" );
 	}
 	Message.printWarning ( 2, routine, "Should not use void constructor" );
 	//initialize ( null, "", GRAspect.TRUE, null, 0, 0, null );
@@ -309,20 +302,16 @@ Constructor.
 and upper-right corner of the drawing area).
 @param units Units of the limits (will be converted to device units).
 @param flag Modifier for drawing limits.  If GRLimits.UNIT, then the limits are
-assumed to be percentages of the device (0.0 to 1.0) and the units are not
-used.
-@param data_limits Data limits associated with the lower-left and upper-right
-corners of the drawing area.
+assumed to be percentages of the device (0.0 to 1.0) and the units are not used.
+@param data_limits Data limits associated with the lower-left and upper-right corners of the drawing area.
 @see GRAspect
 */
 public GRDrawingArea (	GRDevice dev, String name, int aspect,
-			GRLimits draw_limits, int units, int flag,
-			GRLimits data_limits )
+	GRLimits draw_limits, int units, int flag, GRLimits data_limits )
 {	String routine = "GRDrawingArea(...)";
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using all arguments, name=\"" + name + "\"" );
+		Message.printDebug ( 10, routine, "Constructing using all arguments, name=\"" + name + "\"" );
 	}
 	initialize ( dev, name, aspect, draw_limits, units, flag, data_limits );
 }
@@ -336,10 +325,10 @@ public GRDrawingArea ( GRDevice dev, PropList props )
 throws GRException
 {	String routine = "GRDrawingArea(PropList)";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using PropList" );
+		Message.printDebug ( 10, routine, "Constructing using PropList" );
 	}
-	try {	initialize ( dev, props );
+	try {
+	    initialize ( dev, props );
 	}
 	catch ( GRException e ) {
 		throw e;
@@ -369,12 +358,10 @@ Draw an arc using the current color, line, etc.
 @param y Y-coordinate of center.
 @param rx X-radius.
 @param ry Y-radius.
-@param a1 Initial angle to start drawing (0 is at 3 o'clock, then
-counterclockwise).
+@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
 @param a2 Ending angle.
 */
-public abstract void drawArc(double x, double y, double rx, double ry,double a1,
-			double a2 );
+public abstract void drawArc(double x, double y, double rx, double ry,double a1, double a2 );
 
 /**
 Draw compound text.
@@ -419,7 +406,7 @@ Draws a rectangle in the current color.
 */
 public void drawRectangle ( double xll, double yll, double width, double height)
 {
-	double[]	x = new double[4], y = new double[4];
+	double[] x = new double[4], y = new double[4];
 
 	x[0] = xll;
 	y[0] = yll;
@@ -442,8 +429,7 @@ Draws text.
 @param a the alpha value of the text
 @param flag the GRText.* flag to determine how text is drawn
 */
-public abstract void drawText ( String text, double x, double y, double a, 
-int flag );
+public abstract void drawText ( String text, double x, double y, double a, int flag );
 
 /**
 Draws text.
@@ -454,8 +440,7 @@ Draws text.
 @param flag the GRText.* flag to determine how text is drawn
 @param degrees the number of degrees to rotate the text clock-wise.
 */
-public abstract void drawText ( String text, double x, double y, double a, 
-int flag, double degrees);
+public abstract void drawText ( String text, double x, double y, double a, int flag, double degrees);
 
 /**
 Fills an arc using the current color, line, etc.
@@ -463,12 +448,11 @@ Fills an arc using the current color, line, etc.
 @param y Y-coordinate of center.
 @param rx X-radius.
 @param ry Y-radius.
-@param a1 Initial angle to start drawing (0 is at 3 o'clock, then
-counterclockwise).
+@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
 @param a2 Ending angle.
 */
 public abstract void fillArc (	double x, double y, double rx, double ry,
-				double a1, double a2, int fillmode );
+	double a1, double a2, int fillmode );
 
 /**
 Draw a polygon in the current color.
@@ -477,8 +461,7 @@ Draw a polygon in the current color.
 @param y array of y coordinates
 @param transparency transparency with which to draw the polygon
 */
-public abstract void fillPolygon ( int npts, double x[], double y[], 
-int transparency );
+public abstract void fillPolygon ( int npts, double x[], double y[], int transparency );
 
 /**
 Draw a polygon in the current color.
@@ -486,7 +469,7 @@ Draw a polygon in the current color.
 @param x array of x coordinates
 @param y array of y coordinates
 */
-public abstract void fillPolygon (	int npts, double x[], double y[] );
+public abstract void fillPolygon ( int npts, double x[], double y[] );
 
 /**
 Fills a rectangle in the current color.
@@ -495,8 +478,7 @@ Fills a rectangle in the current color.
 @param width the width of the rectangle
 @param height the height of the rectangle.
 */
-public abstract void fillRectangle (	double xll, double yll, double width,
-				double height );
+public abstract void fillRectangle ( double xll, double yll, double width, double height );
 
 /**
 Fills a rectangle in the current color.
@@ -581,8 +563,7 @@ public GRLimits getPlotLimits ( int flag )
 
 	GRLimits limits = new GRLimits ( _plotx1, _ploty1, _plotx2, _ploty2 );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, "GR.getPlotLimits",
-		"Plot limits in device units are " + limits );
+		Message.printDebug ( 10, "GR.getPlotLimits", "Plot limits in device units are " + limits );
 	}
 
 	if ( flag == COORD_PLOT ) {
@@ -593,20 +574,20 @@ public GRLimits getPlotLimits ( int flag )
 		GRPoint p2 = getDataXY ( _plotx2, _ploty2, COORD_PLOT );
 		limits = new GRLimits(p1.x, p1.y, p2.x, p2.y );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 10, "GR.getPlotLimits",
-			"Plot limits in data units are " + limits );
+			Message.printDebug ( 10, "GR.getPlotLimits", "Plot limits in data units are " + limits );
 		}
 		return limits;
 	}
-	else {	// Raw device units.  Correct for flipped y-axis...
+	else {
+	    // Raw device units.  Correct for flipped y-axis...
 		if ( _dev.getReverseY() ) {
 			GRLimits devlimits = _dev.getLimits();
 			double maxy = devlimits.getMaxY();
-			limits = new GRLimits ( _drawx1, (maxy - _drawy1),
-				_drawx2, (maxy - _drawy2) );
+			limits = new GRLimits ( _drawx1, (maxy - _drawy1), _drawx2, (maxy - _drawy2) );
 			return limits;
 		}
-		else {	// Return limits computed in first step...
+		else {
+		    // Return limits computed in first step...
 			return limits;
 		}
 	}
@@ -655,9 +636,8 @@ Rely on default fonts, etc., for now.
 @param data_limits the drawing area data limits
 */
 private void initialize ( GRDevice dev, String name, int aspect,
-			GRLimits draw_limits, int units, int flag,
-			GRLimits data_limits )
-{	String	routine = "GRDrawingArea.initialize";
+			GRLimits draw_limits, int units, int flag, GRLimits data_limits )
+{	String routine = "GRDrawingArea.initialize";
 	int	dl = 10;
 
 	if ( Message.isDebugOn ) {
@@ -672,17 +652,16 @@ private void initialize ( GRDevice dev, String name, int aspect,
 
 	initializeCommon();
 
-	_plotx1		= 0.0;
-	_plotx2		= 0.0;
-	_ploty1		= 0.0;
-	_ploty2		= 0.0;
+	_plotx1 = 0.0;
+	_plotx2 = 0.0;
+	_ploty1 = 0.0;
+	_ploty2 = 0.0;
 
 	if ( name != null ) {
 		_name = name;
 	}
 
-	// Set the device and let the device know that the drawing area is
-	// associated with the device...
+	// Set the device and let the device know that the drawing area is associated with the device...
 	_dev = dev;
 	_dev.addDrawingArea ( this );
 	_aspect = aspect;
@@ -693,8 +672,7 @@ private void initialize ( GRDevice dev, String name, int aspect,
 	_reverse_y = _dev.getReverseY();
 	_graphics = _dev.getPaintGraphics();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine, "Device height is " +
-		_devyshift );
+		Message.printDebug ( 10, routine, "Device height is " + _devyshift );
 	}
 
 	// Initialize the global arrays used for plotting...
@@ -716,7 +694,7 @@ Initialize the drawing area.
 */
 private void initialize ( GRDevice dev, PropList props )
 throws GRException
-{	String	message, routine = "GRDrawingArea.initialize";
+{	String message, routine = "GRDrawingArea.initialize";
 	int	dl = 10;
 
 	if ( Message.isDebugOn ) {
@@ -729,8 +707,7 @@ throws GRException
 		throw new GRException ( message );
 	}
 
-	// Initialize the basic data members which are not configurable at
-	// creation...
+	// Initialize the basic data members which are not configurable at creation...
 
 	initializeCommon();
 	
@@ -775,31 +752,30 @@ throws GRException
 Common initialization to both initialize methods above
 */
 private void initializeCommon() {
-		_status		= GRUtil.STAT_OPEN;
-	_axisx		= GRAxis.LINEAR;
-	_axisy		= GRAxis.LINEAR;
-	_color		= GRColor.white;
-	_dataset	= false;
-	// Initialize values in case there are problems setting from limits
-	// below...
-	_datax1		= 0.0;
-	_datax2		= 0.0;
-	_datay1		= 0.0;
-	_datay2		= 0.0;
-	_drawset	= false;
-	_drawx1		= 0.0;
-	_drawx2		= 0.0;
-	_drawy1		= 0.0;
-	_drawy2		= 0.0;	
-	_font		= "Helvetica";
-	_fontht		= 0.0;
-	_lastx		= 0.0;
-	_lasty		= 0.0;
-	_linearx1	= 0.0;
-	_linearx2	= 0.0;
-	_lineary1	= 0.0;
-	_lineary2	= 0.0;
-	_name		= "";
+	_status = GRUtil.STAT_OPEN;
+	_axisx = GRAxis.LINEAR;
+	_axisy = GRAxis.LINEAR;
+	_color = GRColor.white;
+	_dataset = false;
+	// Initialize values in case there are problems setting from limits below...
+	_datax1 = 0.0;
+	_datax2 = 0.0;
+	_datay1 = 0.0;
+	_datay2 = 0.0;
+	_drawset = false;
+	_drawx1 = 0.0;
+	_drawx2 = 0.0;
+	_drawy1 = 0.0;
+	_drawy2 = 0.0;	
+	_font = "Helvetica";
+	_fontht = 0.0;
+	_lastx = 0.0;
+	_lasty = 0.0;
+	_linearx1 = 0.0;
+	_linearx2 = 0.0;
+	_lineary1 = 0.0;
+	_lineary2 = 0.0;
+	_name = "";
 }
 
 /**
@@ -817,8 +793,7 @@ drawing area by specifying a value of zero for 'axis'.
 @return the interpolated value.
 */
 /*
-public double interp (	double x, double xmin, double xmax, double ymin,
-			double ymax, int axis )
+public double interp ( double x, double xmin, double xmax, double ymin, double ymax, int axis )
 {
 	double	y = x, z, zmax, zmin;
 	int	flag;
@@ -826,15 +801,16 @@ public double interp (	double x, double xmin, double xmax, double ymin,
 	if ( axis == 0 ) {
 		flag = GRAxis.LINEAR;
 	}
-	if (	((_axisx == GRAxis.LOG) && (axis == GRAxis.X)) ||
-		((_axisy == GRAxis.LOG) && (axis == GRAxis.Y)) )
+	if ( ((_axisx == GRAxis.LOG) && (axis == GRAxis.X)) || ((_axisy == GRAxis.LOG) && (axis == GRAxis.Y)) ) {
 		flag = GRAxis.LOG;
-	else if(((_axisx == GRAxis.STANDARD_NORMAL_PROBABILITY) 
-		&& (axis == GRAxis.X)) ||
-		((_axisy == GRAxis.STANDARD_NORMAL_PROBABILITY) 
-		&& (axis == GRAxis.Y)) )
+	}
+	else if(((_axisx == GRAxis.STANDARD_NORMAL_PROBABILITY) && (axis == GRAxis.X)) ||
+		((_axisy == GRAxis.STANDARD_NORMAL_PROBABILITY) && (axis == GRAxis.Y)) ) {
 		flag = GRAxis.STANDARD_NORMAL_PROBABILITY;
-	else	flag = GRAxis.LINEAR;
+	}
+	else {
+		flag = GRAxis.LINEAR;
+	}
 
 	if ( (xmax - xmin) == 0.0 ) {
 		y = ymin;
@@ -857,9 +833,8 @@ public double interp (	double x, double xmin, double xmax, double ymin,
 		if ( (x <= 0.0) || (xmin <= 0.0) || (xmax <= 0.0) ) {
 			y = ymin;
 		}
-		else {	y = ymin +
-				(ymax - ymin)*(MathUtil.log10(x/xmin))/
-				(MathUtil.log10(xmax/xmin));
+		else {
+		    y = ymin + (ymax - ymin)*(MathUtil.log10(x/xmin))/(Math.log10(xmax/xmin));
 		}
 	}
 	else if ( flag == GRAxis.STANDARD_NORMAL_PROBABILITY ) {
@@ -877,8 +852,7 @@ public double interp (	double x, double xmin, double xmax, double ymin,
 		** "right" limit, the value calculated is the probability of the
 		** value being less than the given value.  If the "left"
 		** probability limit is greater than the "right" value, then the
-		** value calculated is the probability of the value being
-		** exceeded.
+		** value calculated is the probability of the value being exceeded.
 		*/
 		/*
 		NOT SUPPORTED AT THIS TIME
@@ -888,11 +862,13 @@ public double interp (	double x, double xmin, double xmax, double ymin,
 		else if ( x == xmax ) {
 			y = ymax;
 		}
-		else {	if ( axis == GRAxis.X ) {
+		else {
+		    if ( axis == GRAxis.X ) {
 				zmin = _linearx1;
 				zmax = _linearx2;
 			}
-			else {	zmin = _lineary1;
+			else {
+			    zmin = _lineary1;
 				zmax = _lineary2;
 			}
 			/*
@@ -909,7 +885,7 @@ public double interp (	double x, double xmin, double xmax, double ymin,
 */
 
 /**
-Checks to see if this drawing area's device is drawing antialised.
+Checks to see if this drawing area's device is drawing anti-aliased.
 @return true if the device is drawing anti aliased, false if not.
 */
 public boolean isDeviceAntiAliased() {
@@ -932,7 +908,7 @@ public abstract void lineTo ( GRPoint point );
 /**
 Move the pen to a point.
 @param x x coordinate to move to
-@param y y cooridnate to move to
+@param y y coordinate to move to
 */
 public abstract void moveTo ( double x, double y );
 
@@ -964,14 +940,11 @@ public double scaleXData ( double xdata )
 			**		------------------
 			**		 x=log scale
 			*/	
-			if ( (xdata <= 0.0) || (_datax1 <= 0.0) 
-				|| (_datax2 <= 0.0) ) {
+			if ( (xdata <= 0.0) || (_datax1 <= 0.0) || (_datax2 <= 0.0) ) {
 				xdev = _plotx1;
 			}
-			else {	xdev = _plotx1 +
-					(_plotx2 - _plotx1)
-					*(MathUtil.log10(xdata/_datax1))/
-					(MathUtil.log10(_datax2/_datax1));
+			else {
+			    xdev = _plotx1 + (_plotx2 - _plotx1)*(Math.log10(xdata/_datax1))/(Math.log10(_datax2/_datax1));
 			}
 		}
 	}
@@ -990,8 +963,7 @@ public double scaleXData ( double xdata )
 		** "right" limit, the value calculated is the probability of the
 		** value being less than the given value.  If the "left"
 		** probability limit is greater than the "right" value, then the
-		** value calculated is the probability of the value being
-		** exceeded.
+		** value calculated is the probability of the value being exceeded.
 		*/
 		double xtemp = -1;
 		if (xdata == _datax1) {
@@ -1007,33 +979,25 @@ public double scaleXData ( double xdata )
 			dataMax = _linearx2;
 
 			try {
-				xtemp = MathUtil.interpolate(xdata, 0, 1,
-					-5, 5);
-				xtemp = 
-					StandardNormal.cumulativeStandardNormal(
-					xtemp);
-				xdev = MathUtil.interpolate(xtemp, dataMin, 
-					dataMax, _plotx1, _plotx2);
+				xtemp = MathUtil.interpolate(xdata, 0, 1, -5, 5);
+				xtemp = StandardNormal.cumulativeStandardNormal(xtemp);
+				xdev = MathUtil.interpolate(xtemp, dataMin, dataMax, _plotx1, _plotx2);
 			}
 			catch (Exception e) {
 				String routine = "GRDrawingArea.scaleXData";
-				Message.printWarning(2, routine, 
-					"Error calculating standard normal "
-					+ "value.");
+				Message.printWarning(2, routine, "Error calculating standard normal value.");
 				Message.printWarning(2, routine, e);
 				xdev = _plotx1;
 			}
 		}
 	}
 	else {
-		xdev= MathUtil.interpolate ( xdata, _datax1, _datax2, 
-			_plotx1, _plotx2);
+		xdev= MathUtil.interpolate ( xdata, _datax1, _datax2, _plotx1, _plotx2);
 	}
 
 	if ( Message.isDebugOn ) {
 		String routine = "GRDrawingArea.scaleXData";
-		Message.printDebug ( 100, routine,
-		"Scaled X data " + xdata + " to dev " + xdev );
+		Message.printDebug ( 100, routine, "Scaled X data " + xdata + " to dev " + xdev );
 	}
 	return xdev;
 }
@@ -1060,14 +1024,11 @@ public double scaleYData ( double ydata )
 			**		------------------
 			**		 x=log scale
 			*/	
-			if ( (ydata <= 0.0) || (_datay1 <= 0.0) 
-				|| (_datay2 <= 0.0) ) {
+			if ( (ydata <= 0.0) || (_datay1 <= 0.0) || (_datay2 <= 0.0) ) {
 				ydev = _ploty1;
 			}
-			else {	ydev = _ploty1 +
-					(_ploty2 - _ploty1)
-					*(MathUtil.log10(ydata/_datay1))/
-					(MathUtil.log10(_datay2/_datay1));
+			else {
+			    ydev = _ploty1 + (_ploty2 - _ploty1)*(Math.log10(ydata/_datay1))/(Math.log10(_datay2/_datay1));
 			}
 		}
 	}
@@ -1086,8 +1047,7 @@ public double scaleYData ( double ydata )
 		** "right" limit, the value calculated is the probability of the
 		** value being less than the given value.  If the "left"
 		** probability limit is greater than the "right" value, then the
-		** value calculated is the probability of the value being
-		** exceeded.
+		** value calculated is the probability of the value being exceeded.
 		*/
 		if (ydata == _datay1) {
 			ydev = _ploty1;
@@ -1102,31 +1062,24 @@ public double scaleYData ( double ydata )
 			dataMax = _lineary2;
 
 			try {
-				double ytemp = 
-					StandardNormal.cumulativeStandardNormal(
-					ydata);
-				ydev = MathUtil.interpolate(ytemp, dataMin, 
-					dataMax, _ploty1, _ploty2);
+				double ytemp = StandardNormal.cumulativeStandardNormal(ydata);
+				ydev = MathUtil.interpolate(ytemp, dataMin, dataMax, _ploty1, _ploty2);
 			}
 			catch (Exception e) {
 				String routine = "GRDrawingArea.scaleYData";
-				Message.printWarning(2, routine, 
-					"Error calculating standard normal "
-					+ "value.");
+				Message.printWarning(2, routine, "Error calculating standard normal value.");
 				Message.printWarning(2, routine, e);
 				ydev = _ploty1;
 			}
 		}
 	}
 	else {
-		ydev=MathUtil.interpolate ( ydata, _datay1, _datay2, 
-			_ploty1, _ploty2);
+		ydev=MathUtil.interpolate ( ydata, _datay1, _datay2, _ploty1, _ploty2);
 	}
 
 	if ( Message.isDebugOn ) {
 		String routine = "GRDrawingArea.scaleYData";
-		Message.printDebug ( 100, routine,
-		"Scaled Y data " + ydata + " to dev " + ydev );
+		Message.printDebug ( 100, routine, "Scaled Y data " + ydata + " to dev " + ydev );
 	}
 	return ydev;
 }
@@ -1188,8 +1141,7 @@ Set the data limits for the drawing area.
 @param xright the rightmost x coordinate
 @param ytop the top y coordinate
 */
-public void setDataLimits (	double xleft, double ybottom, double xright,
-				double ytop )
+public void setDataLimits (	double xleft, double ybottom, double xright, double ytop )
 {	int	dl = 10;
 
 	_datax1 = xleft;
@@ -1198,10 +1150,8 @@ public void setDataLimits (	double xleft, double ybottom, double xright,
 	_datay2 = ytop;
 	_dataset = true;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl,
-		"GRDrawingArea.setDataLimits(x1,y1,x2,y2)",
-		"Set data limits to (" + _datax1 + "," + _datay1 + ") (" +
-		_datax2 + "," + _datay2 + ")" );
+		Message.printDebug ( dl, "GRDrawingArea.setDataLimits(x1,y1,x2,y2)",
+		"Set data limits to (" + _datax1 + "," + _datay1 + ") (" + _datax2 + "," + _datay2 + ")" );
 	}
 	if ( _drawset ) {
 		setPlotLimits ();
@@ -1215,19 +1165,17 @@ Set the data limits for the drawing area.
 public void setDataLimits ( GRLimits limits )
 { 	if ( limits == null ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 10, "GRDrawingArea.setDataLimits",
-			"Null GRLimits" );
+			Message.printDebug ( 10, "GRDrawingArea.setDataLimits", "Null GRLimits" );
 		}
 		return;
 	}
-	setDataLimits ( limits.getLeftX(), limits.getBottomY(),
-			limits.getRightX (), limits.getTopY () );
+	setDataLimits ( limits.getLeftX(), limits.getBottomY(), limits.getRightX (), limits.getTopY () );
 }
 
 /**
-Sets whether this drawing area's device should begin drawing antialiased.
+Sets whether this drawing area's device should begin drawing anti-aliased.
 Currently, on GRJComponentDevice Objects support this.
-@param antiAlias if true, the device will be told to begin drawing antialiased.
+@param antiAlias if true, the device will be told to begin drawing anti-aliased.
 */
 public void setDeviceAntiAlias(boolean antiAlias) {
 	_dev.setAntiAlias(antiAlias);
@@ -1239,8 +1187,7 @@ Set the drawing limits (device limits) for the drawing area.
 and upper-right corner of the drawing area).
 @param units Units of the limits (will be converted to device units).
 @param flag Modifier for drawing limits.  If GRLimits.UNIT, then the limits are
-assumed to be percentages of the device (0.0 to 1.0) and the units are not
-used.
+assumed to be percentages of the device (0.0 to 1.0) and the units are not used.
 @see GRUnits
 */
 public void setDrawingLimits ( GRLimits limits, int units, int flag )
@@ -1248,13 +1195,9 @@ public void setDrawingLimits ( GRLimits limits, int units, int flag )
 		return;
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10,
-		"GRDrawingArea.setDrawingLimits(GRLimits)",
-		"Limits values are: " + limits );
+		Message.printDebug ( 10, "GRDrawingArea.setDrawingLimits(GRLimits)", "Limits values are: " + limits );
 	}
-	setDrawingLimits (	limits.getLeftX(), limits.getBottomY(),
-				limits.getRightX(), limits.getTopY(), units,
-				flag );
+	setDrawingLimits ( limits.getLeftX(), limits.getBottomY(), limits.getRightX(), limits.getTopY(), units, flag );
 }
 
 /**
@@ -1266,15 +1209,13 @@ Sets the drawing limits (device limits) for the drawing area.
 @param units the units for the drawing area
 @param flag kind of limits (either GRLimits.DEVICE or GRLimits.UNIT)
 */
-public void setDrawingLimits (	double xmin, double ymin, double xmax,
-				double ymax, int units, int flag )
+public void setDrawingLimits ( double xmin, double ymin, double xmax, double ymax, int units, int flag )
 {	String	routine = "GRDrawingArea.setDrawingLimits(x1,y1,x2,y2)";
 	int	dl = 10;
 	if ( flag == GRLimits.DEVICE ) {
 		int dev_units = _dev.getUnits();
 		if ( units == GRUnits.DEVICE ) {
-			// Just in case developer passes in generic device
-			// units instead of actual units...
+			// Just in case developer passes in generic device units instead of actual units...
 			units = dev_units;
 		}
 		_drawx1 = GRUnits.convert ( xmin, units, dev_units );
@@ -1284,19 +1225,14 @@ public void setDrawingLimits (	double xmin, double ymin, double xmax,
 	}
 	else if ( flag == GRLimits.UNIT ) {
 		GRLimits devlimits = _dev.getLimits ();
-		_drawx1 = MathUtil.interpolate ( xmin, 0.0, 1.0, 
-			devlimits.getLeftX(), devlimits.getRightX());
-		_drawy1 = MathUtil.interpolate ( ymin, 0.0, 1.0, 
-			devlimits.getBottomY(), devlimits.getTopY());
-		_drawx2 = MathUtil.interpolate ( xmax, 0.0, 1.0, 
-			devlimits.getLeftX(), devlimits.getRightX());
-		_drawy2 = MathUtil.interpolate ( ymax, 0.0, 1.0, 
-			devlimits.getBottomY(), devlimits.getTopY());
+		_drawx1 = MathUtil.interpolate ( xmin, 0.0, 1.0, devlimits.getLeftX(), devlimits.getRightX());
+		_drawy1 = MathUtil.interpolate ( ymin, 0.0, 1.0, devlimits.getBottomY(), devlimits.getTopY());
+		_drawx2 = MathUtil.interpolate ( xmax, 0.0, 1.0, devlimits.getLeftX(), devlimits.getRightX());
+		_drawy2 = MathUtil.interpolate ( ymax, 0.0, 1.0, devlimits.getBottomY(), devlimits.getTopY());
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
-		"Set drawing limits to (" + _drawx1 + "," + _drawy1 + ") (" +
-		_drawx2 + "," + _drawy2 + ")" );
+		"Set drawing limits to (" + _drawx1 + "," + _drawy1 + ") (" + _drawx2 + "," + _drawy2 + ")" );
 	}
 	_drawset = true;
 	if ( _dataset ) {
@@ -1304,7 +1240,7 @@ public void setDrawingLimits (	double xmin, double ymin, double xmax,
 	}
 }
 
-//	int setDrawMask (	int drawmask );
+//	int setDrawMask ( int drawmask );
 
 /**
 Set the font for the drawing area.
@@ -1365,8 +1301,7 @@ public abstract void setLineJoin ( int join );
 
 /**
 Set the line width.
-REVISIT (SAM - 2003-05-07)
-Need to standardize on points, pixels, etc.  Both, depending on output?
+TODO (SAM - 2003-05-07) Need to standardize on points, pixels, etc.  Both, depending on output?
 @param linewidth the width of the line
 */
 public abstract void setLineWidth ( double linewidth );
@@ -1375,86 +1310,80 @@ public abstract void setLineWidth ( double linewidth );
 Set the plot limits knowing that the data and device limits are set.
 */
 public void setPlotLimits ()
-{	String		routine = "GRDrawingArea.setPlotLimits";
-	double		height, width, xpercent, xrange, ypercent, yrange;
-	int		dl = 10;
+{	String routine = "GRDrawingArea.setPlotLimits";
+	double height, width, xpercent, xrange, ypercent, yrange;
+	int dl = 10;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Setting the plot limits._axisx=" + _axisx + " _axisy=" +
-		_axisy );
+		Message.printDebug ( dl, routine, "Setting the plot limits._axisx=" + _axisx + " _axisy=" + _axisy );
 	}
 
 	if ( !_dataset ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Data limits are not set.  Not setting plot limits." );
+			Message.printDebug ( dl, routine, "Data limits are not set.  Not setting plot limits." );
 		}
 		return;
 	}
 	if ( !_drawset ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Drawing limits are not set.  Not setting plot " +
-			"limits." );
+			Message.printDebug ( dl, routine, "Drawing limits are not set.  Not setting plot limits." );
 		}
 		return;
 	}
 	if ( _aspect == GRAspect.TRUE ) {
-		// Plot is to maintain true scale aspect of data
-		// in horizontal and vertical directions...
-		width	= _drawx2 - _drawx1;
-		height	= _drawy2 - _drawy1;
-		xrange	= _datax2 - _datax1;
+		// Plot is to maintain true scale aspect of data in horizontal and vertical directions...
+		width = _drawx2 - _drawx1;
+		height = _drawy2 - _drawy1;
+		xrange = _datax2 - _datax1;
 		if ( xrange < 0.0 ) {
 			xrange *= -1.0;
 		}
-		yrange	= _datay2 - _datay1;
+		yrange = _datay2 - _datay1;
 		if ( yrange < 0.0 ) {
 			yrange *= -1.0;
 		}
 		if ( (xrange/yrange) > (width/height) ) {
-			xpercent	= 100.0;
-			ypercent	= 100.0*yrange*width/(xrange*height);
+			xpercent = 100.0;
+			ypercent = 100.0*yrange*width/(xrange*height);
 		}
-		else {	ypercent	= 100.0;
-			xpercent	= 100.0*xrange*height/(yrange*width);
+		else {
+		    ypercent = 100.0;
+			xpercent = 100.0*xrange*height/(yrange*width);
 		}
-		_ploty1 =	height/2.0 - height*ypercent/200.0 + _drawy1;
-		_ploty2 =	height/2.0 + height*ypercent/200.0 + _drawy1;
-		_plotx1 =	width/2.0 - width*xpercent/200.0 + _drawx1;
-		_plotx2 =	width/2.0 + width*xpercent/200.0 + _drawx1;
+		_ploty1 = height/2.0 - height*ypercent/200.0 + _drawy1;
+		_ploty2 = height/2.0 + height*ypercent/200.0 + _drawy1;
+		_plotx1 = width/2.0 - width*xpercent/200.0 + _drawx1;
+		_plotx2 = width/2.0 + width*xpercent/200.0 + _drawx1;
 	}
 	else if ( _aspect == GRAspect.FILL ) {
 		// Fill the drawing area in both directions...
-		_plotx1 =	_drawx1;
-		_ploty1 =	_drawy1;
-		_plotx2 =	_drawx2;
-		_ploty2 =	_drawy2;
+		_plotx1 = _drawx1;
+		_ploty1 = _drawy1;
+		_plotx2 = _drawx2;
+		_ploty2 = _drawy2;
 	}
 	else if ( _aspect == GRAspect.FILLX ) {
 		// Fill the drawing area in the X-direction...
-		_plotx1 =	_drawx1;
-		_plotx2 =	_drawx2;
+		_plotx1 = _drawx1;
+		_plotx2 = _drawx2;
 	}
 	else if ( _aspect == GRAspect.FILLY ) {
 		// Only fill the drawing area in the Y-direction...
-		_ploty1 =	_drawy1;
-		_ploty2 =	_drawy2;
+		_ploty1 = _drawy1;
+		_ploty2 = _drawy2;
 	}
 	// Save the linearized data limits used for interpolating plotting
 	// positions.  For a linear scale, these are just the normal limits.
 	// For a log scale, these are the log10 values.  If we are using a
 	// probability axis, need to calculate linearized Z data values
-	// corresponding to probabilities (to be used in interpolating plotting
-	// coordinates)...
+	// corresponding to probabilities (to be used in interpolating plotting coordinates)...
 	if ( _axisx == GRAxis.LINEAR ) {
 		_linearx1 = _datax1;
 		_linearx2 = _datax2;
 	}
 	else if ( _axisx == GRAxis.LOG ) {
-		_linearx1 = MathUtil.log10(_datax1);
-		_linearx2 = MathUtil.log10(_datax2);
+		_linearx1 = Math.log10(_datax1);
+		_linearx2 = Math.log10(_datax2);
 	}
 	else if ( _axisx == GRAxis.STANDARD_NORMAL_PROBABILITY ) {
 		try {
@@ -1463,27 +1392,24 @@ public void setPlotLimits ()
 		}
 		catch (Exception e) {
 			Message.printWarning(2, routine, 
-				"Error calculating data limits for standard "
-				+ "normal X.  Drawing will not work properly --"
+				"Error calculating data limits for standard normal X.  Drawing will not work properly --"
 				+ " find and fix the error!");
 			Message.printWarning(2, routine, e);
 		}
 		if (Message.isDebugOn) {
-			Message.printDebug(10, routine,
-				"Set linearized X data limits to "
-				+ _linearx1 + " to " + _linearx2);
+			Message.printDebug(10, routine, "Set linearized X data limits to " + _linearx1 + " to " + _linearx2);
 		}
 	}
-	else {	Message.printWarning ( 2, routine,
-		"X axis type " + _axisx + " is not recognized.  Big problem!");
+	else {
+	    Message.printWarning ( 2, routine, "X axis type " + _axisx + " is not recognized.  Big problem!");
 	}
 	if ( _axisy == GRAxis.LINEAR ) {
 		_lineary1 = _datay1;
 		_lineary2 = _datay2;
 	}
 	else if ( _axisy == GRAxis.LOG ) {
-		_lineary1 = MathUtil.log10(_datay1);
-		_lineary2 = MathUtil.log10(_datay2);
+		_lineary1 = Math.log10(_datay1);
+		_lineary2 = Math.log10(_datay2);
 	}
 	else if ( _axisy == GRAxis.STANDARD_NORMAL_PROBABILITY ) {
 		try {
@@ -1491,20 +1417,16 @@ public void setPlotLimits ()
 			_lineary2 = StandardNormal.cumulativeStandardNormal(5);
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, 
-				"Error calculating data limits for standard "
-				+ "normal X.  Drawing will not work properly --"
-				+ " find and fix the error!");
+			Message.printWarning(2, routine, "Error calculating data limits for standard "
+				+ "normal X.  Drawing will not work properly -- find and fix the error!");
 			Message.printWarning(2, routine, e);
 		}		
 		if (Message.isDebugOn) {
-			Message.printDebug(10, routine,
-				"Set linearized Y data limits to "
-				+ _lineary1 + " to " + _lineary2);
+			Message.printDebug(10, routine, "Set linearized Y data limits to " + _lineary1 + " to " + _lineary2);
 		}		
 	}
-	else {	Message.printWarning ( 2, routine,
-		"Y axis type " + _axisy + " is not recognized.  Big problem!" );
+	else {
+	    Message.printWarning ( 2, routine, "Y axis type " + _axisy + " is not recognized.  Big problem!" );
 	}
 
 	if ( Message.isDebugOn ) {
@@ -1516,5 +1438,4 @@ public void setPlotLimits ()
 public abstract void pageEnd();
 public abstract void pageStart();
 
-
-} // End GRDrawingArea
+}
