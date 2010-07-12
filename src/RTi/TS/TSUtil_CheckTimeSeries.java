@@ -19,6 +19,8 @@ Check types that can be performed.
 */
 private static String __CHECK_TYPE_AbsChangeGreaterThan = "AbsChange>";
 private static String __CHECK_TYPE_AbsChangePercentGreaterThan = "AbsChangePercent>";
+private static String __CHECK_TYPE_ChangeGreaterThan = "Change>";
+private static String __CHECK_TYPE_ChangeLessThan = "Change<";
 private static String __CHECK_TYPE_InRange = "InRange";
 private static String __CHECK_TYPE_OutOfRange = "OutOfRange";
 private static String __CHECK_TYPE_Missing = "Missing";
@@ -70,10 +72,16 @@ Start of analysis (null to analyze all).
 private Double __value2 = null;
 
 /**
+Flag string for detected values.
+*/
+private String __flag = null;
+
+/**
 Constructor.
 */
 public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
-        DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, String problemType )
+        DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, String problemType,
+        String flag )
 {   String message;
     String routine = getClass().getName() + ".constructor";
 	// Save data members.
@@ -92,6 +100,7 @@ public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
     __analysisEnd = analysisEnd;
     __value1 = value1;
     __value2 = value2;
+    __flag = flag;
 }
 
 /**
@@ -132,11 +141,12 @@ throws Exception
     DateTime date; // Date corresponding to data value
     boolean isMissing;
     double diff;
+    TSData dataPoint = null; // Used when setting the flag
     // TODO SAM 2010 evaluate whether to check units for precision
     String tsValueFormat = "%.6f"; // Format for values for messages
     while ( (data = tsi.next()) != null ) {
         // Analyze the value - do this brute force with string comparisons and improve performance once logic is in place
-        message = null;
+        message = null; // A non-null message indicates that the check criteria was met for the value
         date = tsi.getDate();
         if ( valueToCheck.equals("DataValue") ) {
             tsvalue = data.getData();
@@ -162,8 +172,34 @@ throws Exception
                             StringUtil.formatString(tsvalue,tsValueFormat) +
                             " at " + date + " changed more than " +
                             value1 + "% since previous value " +
+                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff %=" +
+                            StringUtil.formatString(diff,tsValueFormat) + ")";
+                    }
+                }
+            }
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeGreaterThan) ) {
+                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
+                    diff = tsvalue - tsvaluePrev;
+                    if ( diff > value1 ) {
+                        message = "Time series " + tsid + " value " +
+                            StringUtil.formatString(tsvalue,tsValueFormat)
+                            + " at " + date + " change is > " +
+                            value1 + " since previous value " +
                             StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
-                            StringUtil.formatString(diff,tsValueFormat) + "%)";
+                            StringUtil.formatString(diff,tsValueFormat) + ")";
+                    }
+                }
+            }
+            else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeLessThan) ) {
+                if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
+                    diff = tsvalue - tsvaluePrev;
+                    if ( diff < value1 ) {
+                        message = "Time series " + tsid + " value " +
+                            StringUtil.formatString(tsvalue,tsValueFormat)
+                            + " at " + date + " change is < " +
+                            value1 + " since previous value " +
+                            StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
+                            StringUtil.formatString(diff,tsValueFormat) + ")";
                     }
                 }
             }
@@ -234,13 +270,19 @@ throws Exception
             if ( message != null ) {
                 // Add to the problems list
                 __problems.add ( message );
+                if ( __flag != null ) {
+                    // Update the flag value
+                    dataPoint = ts.getDataPoint(date);
+                    dataPoint.setDataFlag ( __flag );
+                    ts.setDataValue(date, dataPoint.getData(), dataPoint.getDataFlag(), dataPoint.getDuration() );
+                }
             }
             // Increment the count and save the previous value
             ++tsvalueCount;
             tsvaluePrev = tsvalue;
         }
         else if ( valueToCheck.equals("Statistic") ) {
-            // TODO SAM 2009-04-20 Need to implement
+            // TODO SAM 2009-04-20 Need to implement statistic checks
         }
     }
 }
@@ -280,6 +322,8 @@ public static List getCheckCriteriaChoices()
     List choices = new Vector();
     choices.add ( __CHECK_TYPE_AbsChangeGreaterThan );
     choices.add ( __CHECK_TYPE_AbsChangePercentGreaterThan );
+    choices.add ( __CHECK_TYPE_ChangeGreaterThan );
+    choices.add ( __CHECK_TYPE_ChangeLessThan );
     choices.add ( __CHECK_TYPE_InRange );
     choices.add ( __CHECK_TYPE_OutOfRange );
     choices.add ( __CHECK_TYPE_Missing );
@@ -304,6 +348,12 @@ public static int getRequiredNumberOfValuesForCheckCriteria ( String checkCriter
         return 1;
     }
     else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangeGreaterThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeGreaterThan) ) {
+        return 1;
+    }
+    else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeLessThan) ) {
         return 1;
     }
     else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_EqualTo) ) {
