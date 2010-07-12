@@ -9,19 +9,20 @@ package RTi.Util.IO;
  */
 public class HTMLStatusAssembler
 {
-  
   private final StringBuffer TRAILER = new StringBuffer("</body></html>");
   private StringBuffer buf = new StringBuffer("<html><body>");
-  private final StringBuffer TABLE_START= new StringBuffer(""
-          + "<table border=1 width=650><TR bgcolor=\"CCCCFF\"><th align=left>Phase</th><th align=left>Severity</th>"
-          + "<th align=left width=300>Problem</th><th>Recommendation</th></TR>");
+  // Add some spaces around the row count because the Java HTML viewer smashes together.
+  private final String TABLE_START =
+          "<table border=1 width=650><tr bgcolor=\"CCCCFF\"><th align=left>"
+          + "&nbsp;&nbsp;&nbsp#&nbsp;&nbsp;&nbsp;</th>"
+          + "<th align=left>Phase</th><th align=left>Severity</th>"
+          + "<th align=left width=300>Problem</th><th>Recommendation</th></tr>";
   
-  private final StringBuffer SUMMARY_TABLE_START = new StringBuffer(""
-         + "<table border=1>"
-         + "<TR bgcolor=\"CCCCFF\"><th align=left>Phase</th><th align=left>Status/Max Severity</th></TR>");
+  private final String SUMMARY_TABLE_START =
+         "<table border=1>"
+         + "<tr bgcolor=\"CCCCFF\"><th align=left>Phase</th><th align=left>Status/Max Severity</th></tr>";
   
-  
-  private final StringBuffer TABLE_END = new StringBuffer("</table>");
+  private final String TABLE_END = "</table>";
   
   /**
    * Creates a new HTML assembler for command status assembly.
@@ -50,13 +51,14 @@ public class HTMLStatusAssembler
    * @param problem problem encountered
    * @param recommendation recommended solution
    */
-  public void addPhase(String phase, String severity,String color, String problem, String recommendation)
+  public void addPhase( int count, String phase, String severity, String color, String problem,
+      String recommendation )
   {
-    String bgcolor = "<td valign=top bgcolor=" + color + ">";
+    String bgcolor = "</td><td valign=top bgcolor=" + color + ">";
     
-    buf.append("<tr><td valign=top>" + phase + bgcolor + severity
-            +"<td valign=top>" + HTMLUtil.text2html(problem,false) + "</tr>"
-            +"<td valign=top>" + HTMLUtil.text2html(recommendation,false) + "</tr>"
+    buf.append("<tr><td valign=top>" + count + "</td><td valign=top>" + phase + bgcolor + severity
+            +"</td><td valign=top>" + HTMLUtil.text2html(problem,false) + "</td>"
+            +"<td valign=top>" + HTMLUtil.text2html(recommendation,false) + "</td></tr>"
             );
   }
   
@@ -73,10 +75,11 @@ public class HTMLStatusAssembler
   
   /**
    * Add HTML to start status table
+   * @param nlog the number of log messages that will be shown (WARNING and more severe).
    */
-  public void startCommandStatusTable()
+  public void startCommandStatusTable( int nwarn, int nfail )
   {
-    buf.append("<p><b>Command Status Details:");
+    buf.append("<p><b>Command Status Details (" + nwarn + " warnings, " + nfail + " failures):");
     buf.append(TABLE_START); 
   }
   
@@ -90,7 +93,7 @@ public class HTMLStatusAssembler
 
   public void addNotACommandStatusProvider()
   {
-    buf.append("<tr><td> Not a CommandStatusProvider</td></tr>");
+    buf.append("<tr><td>Not a CommandStatusProvider</td></tr>");
   }
 
   /**
@@ -107,12 +110,12 @@ public class HTMLStatusAssembler
     String bgColor1 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus1) + ">";
     String bgColor2 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus2) + ">";
     String bgColor3 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus3) + ">";
-    buf.append("<p><b>Command Status Summary</b> (see below for details if necessary):");
+    buf.append("<p><b>Command Status Summary</b> (see below for details if problems exist):");
 
     buf.append(SUMMARY_TABLE_START)
-    .append("<tr><td>INITIALIZATION").append(bgColor1).append(commandStatus1.toString()).append("</tr>")
-    .append("<tr><td>DISCOVERY").append(bgColor2).append(commandStatus2.toString()).append("</tr>")
-    .append("<tr><td>RUN").append(bgColor3).append(commandStatus3.toString()).append("</tr>")
+    .append("<tr><td>INITIALIZATION</td>").append(bgColor1).append(commandStatus1.toString()).append("</td></tr>")
+    .append("<tr><td>DISCOVERY</td>").append(bgColor2).append(commandStatus2.toString()).append("</td></tr>")
+    .append("<tr><td>RUN</td>").append(bgColor3).append(commandStatus3.toString()).append("</td></tr>")
     .append(TABLE_END);
 
   }
@@ -133,4 +136,4 @@ public class HTMLStatusAssembler
     .append("<tr><td>RUN").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
     .append(TABLE_END);
   }
-} // eof class HTMLAssembler
+}

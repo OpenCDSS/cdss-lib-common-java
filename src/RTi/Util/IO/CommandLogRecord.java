@@ -21,6 +21,12 @@ private CommandStatusProvider __commandStatusProvider = null;
  * Log type/severity level.
  */
 private CommandStatusType __severity = null;
+
+/**
+ * Type of problem that has been identified.
+ * This is used, for example, for a log record report to show categories of problems.
+ */
+private String __type = null;
 	
 /**
  * Problem that has been identified.
@@ -42,7 +48,20 @@ private String __recommendation = null;
  */
 public CommandLogRecord(CommandStatusType severity, String problem, String recommendation)
 {
-	__severity = severity;
+	this ( severity, "", problem, recommendation );
+}
+
+/**
+ * Constructor for a command log record.
+ * @param severity Severity for the log record, from CommandStatusType.
+ * @param type the log record type.
+ * @param problem A String describing the problem.
+ * @param recommendation A String recommending a solution.
+ */
+public CommandLogRecord(CommandStatusType severity, String type, String problem, String recommendation)
+{
+    __severity = severity;
+    __type = type;
     __problem = problem;
     __recommendation = recommendation;
 }
@@ -70,7 +89,8 @@ public CommandLogRecord ( String problem, String recommendation, PropList detail
 Clone the instance.  All command data are cloned.
 */
 public Object clone ()
-{	try {	CommandLogRecord record = (CommandLogRecord)super.clone();
+{	try {
+        CommandLogRecord record = (CommandLogRecord)super.clone();
 		// The problem and recommendation are automatically copied.
 		// Copy the severity...
 		record.__severity = __severity;
@@ -109,6 +129,16 @@ public String getProblem()
 public String getRecommendation()
 {
   return __recommendation;
+}
+
+/**
+ * Get the log record type.
+ * 
+ * @return type string
+ */
+public String getType()
+{
+  return __type;
 }
 
 /**
@@ -157,6 +187,7 @@ Return a string representation of the problem, suitable for display in a popup, 
 public String toString ()
 {	return
 	"Severity:  " + __severity + "\n" +
+	"Type:  " + __type + "\n" +
 	"Problem:  " + __problem + "\n" +
 	"Recommendation:  " + __recommendation + "\n";// +
 	//"Details:\n" + "uncomment"; //XXX dre:uncomment

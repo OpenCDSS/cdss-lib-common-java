@@ -6,10 +6,6 @@ import java.util.Arrays;
 
 import RTi.Util.Message.Message;
 
-
-/**
- */
-
 /*
  * HtmlUtil.java
  *
@@ -39,13 +35,19 @@ public class HTMLUtil {
         
         StringBuffer t = new StringBuffer(text.length() + 10); // 10 is just a test value, could be anything, should affect performance
  
-        t.append("<html>");
+        if ( includeWrapper ) {
+            t.append("<html>");
+        }
         
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             // Check for non ISO8859-1 characters
-            if ((int) c < symbolicCode.length) { // Maybe slower than  "(int)c & 0xFF != 0" but more evolutive
-                String sc = symbolicCode[(int) c];
+            int pos = (int)c;
+            Message.printStatus(2, "", "Position for " + c + " is " + pos );
+            if ( pos < symbolicCode.length ) {
+                // Character is within the lookup table
+                String sc = symbolicCode[pos];
+                Message.printStatus(2, "", "Translated character is " + sc );
                 if ("".equals(sc)) {
                     // Character does not need to be converted so just append
                     t = t.append(c);
@@ -58,7 +60,9 @@ public class HTMLUtil {
                 t = t.append(c);
             }
         }
-        t.append("</html>");
+        if ( includeWrapper ) {
+            t.append("</html>");
+        }
         return t.toString();
     }
 
@@ -149,7 +153,7 @@ public class HTMLUtil {
         "", "", "", "", "", "", "", "", "", "",
         // 160
         "&nbsp;", // non breaking space (should be &nbsp;)
-        "&iexcl;", // invertedexclamation sign
+        "&iexcl;", // inverted exclamation sign
         "&cent;", // cent sign
         "&pound;", // pound sterling sign
         "&curren;", // general currency sign

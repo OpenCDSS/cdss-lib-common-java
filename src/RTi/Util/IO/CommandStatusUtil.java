@@ -55,19 +55,28 @@ Adds Detail table.
 */
 private static void addCommandDetailTable( HTMLStatusAssembler assembler, CommandStatus cs) 
 {
-    assembler.startCommandStatusTable();
+    int nwarn = getSeverityCount ( cs, CommandStatusType.WARNING );
+    int nfail = getSeverityCount ( cs, CommandStatusType.FAILURE );
+    assembler.startCommandStatusTable( nwarn, nfail );
 
+    int startCount = 1;
     if (cs.getCommandStatus(CommandPhaseType.INITIALIZATION)== CommandStatusType.WARNING
         ||cs.getCommandStatus(CommandPhaseType.INITIALIZATION)== CommandStatusType.FAILURE) {
-        addPhaseHTML(cs, assembler, CommandPhaseType.INITIALIZATION);
+        int nprinted = addPhaseHTML(cs, assembler, CommandPhaseType.INITIALIZATION, startCount);
+        if ( nprinted > 0 ) {
+            startCount += (nprinted - 1);
+        }
     }
     if (cs.getCommandStatus(CommandPhaseType.DISCOVERY)== CommandStatusType.WARNING
         ||cs.getCommandStatus(CommandPhaseType.DISCOVERY)== CommandStatusType.FAILURE) {
-        addPhaseHTML(cs, assembler, CommandPhaseType.DISCOVERY);
+        int nprinted = addPhaseHTML(cs, assembler, CommandPhaseType.DISCOVERY, startCount );
+        if ( nprinted > 0 ) {
+            startCount += (nprinted - 1);
+        }
     }
     if (cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.WARNING
         ||cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.FAILURE) {
-        addPhaseHTML(cs, assembler, CommandPhaseType.RUN);
+        addPhaseHTML(cs, assembler, CommandPhaseType.RUN, startCount );
     }
 }
   
@@ -95,26 +104,28 @@ private static void addNotACommandStatusProvider(HTMLStatusAssembler assembler)
   
 /**
 Adds html for a command status phase.
-@param cs
-@param assembler
+@param cs CommandStatus instance to print
+@param assembler object that processes the output
+@param commandPhaseType the command phase type to print in output
+@param startCount the starting count to display in output, will be incremented during output
+@return the last count printed
 */
-private static void addPhaseHTML(CommandStatus cs,
-    HTMLStatusAssembler assembler, CommandPhaseType commandPhaseType)
+private static int addPhaseHTML ( CommandStatus cs,
+    HTMLStatusAssembler assembler, CommandPhaseType commandPhaseType, int startCount )
 {
     CommandStatusType status = cs.getCommandStatus(commandPhaseType);
       
-	List v = cs.getCommandLog(commandPhaseType);
-	if ( v.size() > 0 ) {
-	    int size = v.size();
-	    for ( int i = 0; i < size; i++ ) {
-	        CommandLogRecord clr = (CommandLogRecord)v.get(i);
-	        assembler.addPhase(commandPhaseType.toString(),
-	                    status.toString(),
-	                    getStatusColor(status),
-	                    clr.getProblem(),
-	                    clr.getRecommendation());
-	    }
-	}
+	List<CommandLogRecord> logRecList = cs.getCommandLog(commandPhaseType);
+	int count = startCount;
+    for ( CommandLogRecord logRec: logRecList ) {
+        assembler.addPhase (
+                    count++, commandPhaseType.toString(),
+                    status.toString(),
+                    getStatusColor(status),
+                    logRec.getProblem(),
+                    logRec.getRecommendation());
+    }
+	return logRecList.size();
 }
   
 /**
@@ -175,17 +186,17 @@ public static void appendLogRecords ( CommandStatus status, List<CommandStatusPr
           csp = commandList.get(i);
           CommandStatus status2 = csp.getCommandStatus();
           // Get the logs for the initialization...
-          List logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          List<CommandLogRecord> logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.INITIALIZATION, (CommandLogRecord)logs.get(il) );
+              status.addToLog(CommandPhaseType.INITIALIZATION, logs.get(il) );
           }
           logs = status2.getCommandLog(CommandPhaseType.DISCOVERY);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.DISCOVERY, (CommandLogRecord)logs.get(il) );
+              status.addToLog(CommandPhaseType.DISCOVERY, logs.get(il) );
           }
           logs = status2.getCommandLog(CommandPhaseType.RUN);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.RUN, (CommandLogRecord)logs.get(il) );
+              status.addToLog(CommandPhaseType.RUN, logs.get(il) );
           }
       }
 }
@@ -202,7 +213,8 @@ public static String getCommandLogHTML(CommandStatusProvider csp)
 
 /**
 Get the display name (problem type) for a CommandLogRecord class.  This is used, for example when displaying the
-full list of problems.
+full list of problems.  If the command log record has a non-blank type, it will be used.  Otherwise the default
+is "CommandRun".  If the CommandLogRecord class name indicates an extended class, then the class name is used.
 @param log CommandLogRecord instance.
 */
 public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
@@ -214,7 +226,14 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
         // Using base class for log record class - general command run-time error but indicate whether
         // the problem was generated in initialization, discover, or run
         // TODO SAM 2009-03-06 Need to figure out whether phases are reflected in the string
-        return "CommandRun";
+        String type = log.getType();
+        if ( (type != null) && !type.equals("") ) {
+            return type;
+        }
+        else {
+            // Generic type.
+            return "CommandRun";
+        }
     }
     else {
         // The class name must be specific and is used for output.
@@ -247,7 +266,7 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
       //b.append( nl + "Command:  " + "would be nice to have here.")
       //b.append( nl + thick_line );
       b.append ( nl + "Initialization status: " + cs.getCommandStatus(CommandPhaseType.INITIALIZATION));
-      List v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
+      List<CommandLogRecord> v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
       if ( v.size() > 0 ){
     	  b.append ( nl + thin_line );
     	  b.append ( nl + "Initialization log:");
@@ -256,7 +275,7 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
         	  	if ( i > 0 ) {
         	  		b.append ( nl + dash_line );
         	  	}
-                b.append ( nl + v.get(i).toString() );
+                b.append ( nl + v.get(i) );
           }
       }
       b.append ( nl + thick_line );
@@ -271,7 +290,7 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
       	  		if ( i > 0 ) {
       	  			b.append ( nl + dash_line );
       	  		}
-                b.append ( nl + v.get(i).toString() );
+                b.append ( nl + v.get(i) );
               }
       }
       b.append ( nl + thick_line );
@@ -286,7 +305,7 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
         	  	if ( i > 0 ) {
         		  b.append ( nl + dash_line );
     	  		}
-                b.append ( nl + v.get(i).toString() );
+                b.append ( nl + v.get(i) );
               }
       }
 
@@ -368,15 +387,13 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
    * @param commands
    * @return HTML status report
    */
-  public static String getHTMLStatusReport(List commands)
+  public static String getHTMLStatusReport(List<Command> commands)
   {
     HTMLStatusAssembler assembler = new HTMLStatusAssembler();
-    Command command;
     int count = 0;
     
-    for ( int i = 0; i < commands.size(); i++ ) 
+    for ( Command command: commands ) 
       {
-        command = (Command)commands.get(i);
         count = count + addCommandHTML(command, assembler);
        }
     if (count == 0)
@@ -402,6 +419,26 @@ public static String getHTMLCommandStatus(CommandStatus css)
 }
 
 /**
+Given a list of Command, return a list of all the log records.  This is useful for
+providing the full list for reporting.  The getLogRecordList() method is called with the commands that
+implement CommandStatusProvider.
+@param commandList List of CommandStatusProvider (e.g., list of commands from a command processor).
+@param commandPhase command phase to return or null to return all (currently null does not return anything).
+@return the list of log records for the given command phase
+*/
+public static List<CommandLogRecord> getLogRecordListFromCommands ( List<Command> commandList,
+    CommandPhaseType commandPhase )
+{
+    List<CommandStatusProvider> commandStatusProviderList = new Vector();
+    for ( Command command: commandList ) {
+        if ( command instanceof CommandStatusProvider ) {
+            commandStatusProviderList.add((CommandStatusProvider)command);
+        }
+    }
+    return getLogRecordList ( commandStatusProviderList, commandPhase );
+}
+
+/**
 Given a list of CommandStatusProvider, return a list of all the log records.  This is useful for
 providing the full list for reporting.
 @param commandStatusProviderList List of CommandStatusProvider (e.g., list of commands from a command
@@ -409,36 +446,61 @@ processor).
 @param commandPhase command phase to return or null to return all (currently null does not return anything).
 @return the list of log records for the given command phase
 */
-public static List getLogRecordList ( List commandStatusProviderList, CommandPhaseType commandPhase )
+public static List<CommandLogRecord> getLogRecordList ( List<CommandStatusProvider> commandStatusProviderList,
+    CommandPhaseType commandPhase )
 {	//String routine = "CommandStatusUtil.getLogRecordList";
-	List logRecordList = new Vector(); // Returned list of log records
-	int size = 0;
-	if ( commandStatusProviderList != null ) {
-		size = commandStatusProviderList.size();
+	List<CommandLogRecord> logRecordList = new Vector(); // Returned list of log records
+	if ( commandStatusProviderList == null ) {
+	    // Return empty list
+		return logRecordList;
 	}
-	CommandStatusProvider csp = null; // For example a Command
 	CommandStatus status = null; // Status for the command
-	List statusLogRecordList = null; // List of status log records for the command
-	CommandLogRecord logRecord = null; // Single log record
-	for ( int iCommandStatusProvider = 0; iCommandStatusProvider < size; iCommandStatusProvider++ ) {
+	List<CommandLogRecord> statusLogRecordList = null; // List of status log records for the command
+	for ( CommandStatusProvider csp: commandStatusProviderList ) {
 		// Get the information from a single command status provider
-		csp = (CommandStatusProvider)commandStatusProviderList.get(iCommandStatusProvider);
 		//Message.printStatus(2, routine, "Getting log records for " + csp );
 		status = csp.getCommandStatus();
 		statusLogRecordList = status.getCommandLog(commandPhase);
-		int statusLogRecordListSize = statusLogRecordList.size();
-		//Message.printStatus(2, routine, "Command " + iCommandStatusProvider + " has " + statusLogRecordListSize +
-		//    " log records." );
-		for ( int iLogRecord = 0; iLogRecord < statusLogRecordListSize; iLogRecord++ ) {
+		//Message.printStatus(2, routine, "Command " + iCommandStatusProvider + " has " +
+		//    statusLogRecordListSize + " log records." );
+		for ( CommandLogRecord logRecord: statusLogRecordList ) {
 			// Append to full list of log records
 			// Also set the command instance in the log record here since it was not
 			// included in the original design
-			logRecord = (CommandLogRecord)statusLogRecordList.get(iLogRecord);
 			logRecord.setCommandStatusProvider(csp);
 			logRecordList.add(logRecord);
 		}
 	}
 	return logRecordList;
+}
+
+/**
+Determine the number of log records for the requested severity.
+@param status a CommandStatus that has log records to be appended to the first parameter.
+@param severity the requested severity for a count.
+@return the number of log records for the requested severity.
+*/
+public static int getSeverityCount ( CommandStatus status, CommandStatusType severity )
+{
+    int severityCount = 0;
+    for ( int iphase = 0; iphase <= 2; iphase++ ) {
+        List<CommandLogRecord> logs = null;
+        if ( iphase == 0 ) {
+            logs = status.getCommandLog(CommandPhaseType.INITIALIZATION);
+        }
+        else if ( iphase == 1 ) {
+            logs = status.getCommandLog(CommandPhaseType.DISCOVERY);
+        }
+        else if ( iphase == 2 ) {
+            logs = status.getCommandLog(CommandPhaseType.RUN);
+        }
+        for ( CommandLogRecord log: logs ) {
+            if ( log.getSeverity() == severity ) {
+                ++severityCount;
+            }
+        }
+    }
+    return severityCount;
 }
 
 /**
@@ -448,11 +510,11 @@ CommandStatusProvider.
 @param severity the requested severity for a count.
 @return the number of log records for the requested severity.
 @param countCommands if false, return the total count of log records for a severity, and if true return the total
-number of commands that have at least one log record with the indicated severity.
+number of commands that have at least one log record with the indicated severity (in this case 0 or 1).
 */
 public static int getSeverityCount ( Command command, CommandStatusType severity, boolean countCommands )
 {
-    List list = new Vector(1);
+    List<Command> list = new Vector(1);
     list.add(command);
     return getSeverityCount ( list, severity, countCommands );
 }
@@ -487,29 +549,10 @@ public static int getSeverityCount ( List<Command> commandList, CommandStatusTyp
           }
           CommandStatus status = csp.getCommandStatus();
           // Get the logs for the initialization...
-          boolean commandSeverityMatched = false; // Did command have log with matching severity?
-          for ( int iphase = 0; iphase <= 2; iphase++ ) {
-              List<CommandLogRecord> logs = null;
-              if ( iphase == 0 ) {
-                  logs = status.getCommandLog(CommandPhaseType.INITIALIZATION);
-              }
-              else if ( iphase == 1 ) {
-                  logs = status.getCommandLog(CommandPhaseType.DISCOVERY);
-              }
-              else if ( iphase == 2 ) {
-                  logs = status.getCommandLog(CommandPhaseType.RUN);
-              }
-              CommandLogRecord log;
-              int logsSize = logs.size();
-              for ( int ilog = 0; ilog < logsSize; ilog++ ) {
-                  log = logs.get(ilog);
-                  if ( log.getSeverity() == severity ) {
-                      commandSeverityMatched = true;
-                      ++severityCount;
-                  }
-              }
-          }
-          if ( commandSeverityMatched ) {
+          int severityCount0 = getSeverityCount ( status, severity );
+          severityCount += severityCount0;
+          if ( severityCount0 > 0 ) {
+              // Found a command that had status of the requested severity
               ++severityCountCommandCount;
           }
       }
