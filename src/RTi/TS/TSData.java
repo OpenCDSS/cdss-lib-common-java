@@ -268,12 +268,22 @@ public void setData( double d )
 }
 
 /**
-Set the data flag.
+Set the data flag.  If the first character of the flag is "+", then the flag will be appended
+with flag (without the +).
 @param flag Data flag.
 */
 public void setDataFlag( String flag )
 {	if( flag != null ){
-		_data_flag = flag;
+        if ( flag.startsWith("+") ) {
+            // Append to the flag...
+            if ( flag.length() > 1 ) {
+                _data_flag += flag.substring(1);
+            }
+        }
+        else {
+            // Just set the flag...
+            _data_flag = flag;
+        }
 	}
 }
 
