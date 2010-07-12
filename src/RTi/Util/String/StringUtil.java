@@ -1175,7 +1175,7 @@ and the following formatting strings:
 The format can be preceded by a - (e.g., %-8.2f, %-s) to left-justify the
 formatted string.  The default is to left-justify strings and right-justify
 numbers.  Numeric formats, if preceded by a 0 will result in the format being
-padded by zeros (e.g., %04d will padd an integer with zeros up to 4 digits).
+padded by zeros (e.g., %04d will pad an integer with zeros up to 4 digits).
 To force strings to be a certain width use a format like %20.20s.  To force
 floating point numbers to always use a decimal point use the #.
 Additional capabilities may be added later.
@@ -1222,8 +1222,7 @@ public static final String formatString ( List v, String format )
 			"Format character :\"" + cformat + "\", vindex = " + vindex );
 		}
 		if ( cformat == '%' ) {
-			// We have the start of a format field.  Get the rest
-			// so that we can process.  First advance one...
+			// The start of a format field.  Get the rest so that we can process.  First advance one...
 			dot_found = false;
 			left_shift = false;
 			pound_format = false;
@@ -1235,7 +1234,7 @@ public static final String formatString ( List v, String format )
 				// End of format...
 				break;
 			}
-			// Else we are on the character after the %
+			// On the character after the %
 			first = true;
 			for ( ; iformat < length_format; iformat++ ) {
 				cformat = format.charAt ( iformat );
@@ -1284,10 +1283,8 @@ public static final String formatString ( List v, String format )
 						first = false;
 					}
 				}
-				// Else we are retrieving characters until an
-				// ending "s", "i", "d", or "f" is encountered.
-				if (	Character.isDigit(cformat) ||
-					(cformat == '.') ) {
+				// Else retrieving characters until an ending "s", "i", "d", or "f" is encountered.
+				if ( Character.isDigit(cformat) || (cformat == '.') ) {
 					if ( cformat == '.' ) {
 						dot_found = true;
 						continue;
@@ -1308,7 +1305,7 @@ public static final String formatString ( List v, String format )
 					Message.printWarning ( 3, "StringUtil.formatString", "Invalid format string" );
 					break;
 				}
-				// If we are here, we have a valid format string and need to process...
+				// If here, have a valid format string and need to process...
 
 				// First get the width and precision on the format...
 
@@ -1331,10 +1328,10 @@ public static final String formatString ( List v, String format )
 					return buffer.toString();
 				}
 
-				// Now do things specific to the different data types...
+				// Now format for the different data types...
 
 				if ( cformat == 'd' ) {
-					// If NULL or an empty string, just add a blank string of the desired width...
+				    // Integer.  If NULL or an empty string, just add a blank string of the desired width...
 					if ( v.get(vindex) == null ) {
 						if ( Message.isDebugOn ) {
 							Message.printDebug ( dl, "StringUtil.formatString", "NULL integer" );
@@ -1368,7 +1365,8 @@ public static final String formatString ( List v, String format )
 					if ( cvalue == '-' ) {
 						sign = 1;
 					}
-					else {	sign = 0;
+					else {
+					    sign = 0;
 					}
 					// String will be left-justified so we need to see if we need to shift
 					// right.  Allow overflow.  "temp" already has the sign in it.
@@ -1419,7 +1417,7 @@ public static final String formatString ( List v, String format )
 					buffer.append ( temp );
 				}
 				else if	( (cformat == 'f') || (cformat == 'F')){
-					// First, get the whole number as a string...
+					// Float.  First, get the whole number as a string...
 					// If NULL, just add a blank string of the desired width...
 					if ( v.get(vindex) == null ) {
 						if ( Message.isDebugOn ) {
@@ -1453,6 +1451,23 @@ public static final String formatString ( List v, String format )
 						}
 						++vindex;
 						break;
+					}
+					else if ( number_as_string.equals("NaN") ) {
+					    // Pad with spaces and justify according to the formatting.
+					    if ( left_shift ) {
+					        buffer.append ( "NaN" );
+		                    for ( i = 0; i < (width - 3); i++ ){
+	                            buffer.append ( ' ' );
+	                        }
+					    }
+					    else {
+                            for ( i = 0; i < (width - 3); i++ ){
+                                buffer.append ( ' ' );
+                            } 
+                            buffer.append ( "NaN" );
+					    }
+		                ++vindex;
+					    break;
 					}
 					// Need to check here as to whether the number is less than 10^-3 or greater
 					// than 10^7, in which case the string comes back in exponential notation
@@ -1711,6 +1726,7 @@ public static final String formatString ( List v, String format )
 }
 
 // Simple variations on formatString for single objects...
+// TODO SAM 2010-06-15 Need to figure out how to not create lists on each call, but needs to be thread safe
 
 /**
 Format a double as a string.
@@ -1719,11 +1735,9 @@ Format a double as a string.
 @param format Format to use.
 */
 public static final String formatString ( double d, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Double> v = new Vector ( 1, 1 );
 	v.add ( new Double(d) );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1733,11 +1747,9 @@ Format a Double as a string.
 @param format Format to use.
 */
 public static final String formatString ( Double d, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Double> v = new Vector ( 1, 1 );
 	v.add ( d );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1747,11 +1759,9 @@ Format a float as a string.
 @param format Format to use.
 */
 public static final String formatString ( float f, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Float> v = new Vector ( 1, 1 );
 	v.add ( new Float(f) );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1761,11 +1771,9 @@ Format an int as a string.
 @param format Format to use.
 */
 public static final String formatString ( int i, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Integer> v = new Vector ( 1, 1 );
 	v.add ( new Integer(i) );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1775,11 +1783,9 @@ Format an Integer as a string.
 @param format Format to use.
 */
 public static final String formatString ( Integer i, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Integer> v = new Vector ( 1, 1 );
 	v.add ( i );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1789,11 +1795,9 @@ Format a long as a string.
 @param format Format to use.
 */
 public static final String formatString ( long l, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Long> v = new Vector ( 1, 1 );
 	v.add ( new Long(l) );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1803,11 +1807,9 @@ Format an object as a string.
 @param format Format to use.
 */
 public static final String formatString ( Object o, String format )
-{	List v = new Vector ( 1, 1 );
+{	List<Object> v = new Vector ( 1, 1 );
 	v.add ( o );
-	String s = formatString ( v, format );
-	v = null;
-	return s;
+	return formatString ( v, format );
 }
 
 /**
@@ -1865,12 +1867,9 @@ public static String getToken ( String string, String delim, int flag, int token
 		return null;
 	}
 	if ( v.size() < (token + 1) ) {
-		v = null;
 		return null;
 	}
-	String s = v.get(token);
-	v = null;
-	return s;
+	return v.get(token);
 }
 
 // TODO SAM 2009-06-01 Evaluate whether to deprecate, etc given that it should not be ignore case
@@ -1938,8 +1937,6 @@ public static int indexOfIgnoreCase ( String full, String substring, int fromInd
 	String full_up = full.toUpperCase();
 	String substring_up = substring.toUpperCase();
 	int pos = full_up.indexOf ( substring_up, fromIndex );
-	full_up = null;
-	substring_up = null;
 	return pos;
 }
 
@@ -2144,9 +2141,7 @@ false, strings will be compared literally.
 @deprecated Use the standard String.matches() method or
 StringUtil.matchesIgnoreCase().
 */
-public static boolean matchesRegExp ( boolean ignore_case,
-					String candidate_string,
-					String regexp_string )
+public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string )
 {	String	okchars = "", routine = "StringUtil.mtchesRegExp";
 	int	dl = 50, nokchars = 0;
 	boolean	asterisk = false, jumptotest = false;
@@ -2198,7 +2193,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 	// ccan = character in candidate_string
 	// creg = character in regexp_string
 	int	ican = 0, ireg = 0;
-	char	ccan, creg;
+	char ccan, creg;
 	while ( true ) {
 		// Start new segment in the regular expression...
 		if ( Message.isDebugOn ) {
@@ -2226,9 +2221,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 		// i is position in regexp_string, j in candidate_string.
 		while ( true ) {
 			creg = regexp_string.charAt(ireg);
-			for (	ican = 0;
-				(ireg < regexp_len) && (creg != '*');
-				ireg++, ican++ ) {
+			for ( ican = 0; (ireg < regexp_len) && (creg != '*'); ireg++, ican++ ) {
 				creg = regexp_string.charAt(ireg);
 				if ( ican >= candidate_len ) {
 					// No match...
@@ -2237,29 +2230,21 @@ public static boolean matchesRegExp ( boolean ignore_case,
 				ccan = candidate_string.charAt(ican);
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"regexp_string[" + ireg + "]=" + creg +
-					"candidate_string[" + ican + "]=" +
-					ccan );
+					"regexp_string[" + ireg + "]=" + creg + "candidate_string[" + ican + "]=" + ccan );
 				}
-				if (	creg != ccan ) {
+				if ( creg != ccan ) {
 					if ( creg == '.' ) {
 						// Single character match...
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							routine, "Character . -"
-							+ " go to next " +
-							"character" );
+							Message.printDebug ( dl, routine, "Character . - go to next character" );
 						}
 						continue;
 					}
 					else if ( creg == '[' ) {
 						// Start of character range.
-						// First need to get OK
-						// characters...
+						// First need to get OK characters...
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl,
-							routine, "[ - check " +
-							"range character" );
+							Message.printDebug ( dl, routine, "[ - check range character" );
 						}
 						++ireg;
 						while ( true ) {
@@ -2267,85 +2252,63 @@ public static boolean matchesRegExp ( boolean ignore_case,
 								return false;
 							}
 							creg = regexp_string.charAt(ireg);
-							if (	creg != ']' ) {
+							if ( creg != ']' ) {
 								break;
 							}
 							else if (creg == '-' ) {
-								// Need to find
-								// the next
-								// character and
-								// then go
-								// until that
-								// matches...
+								// Need to find the next character and then go until that matches...
 								++ireg;
 								if ( ireg >= regexp_len ) {
 									return false;
 								}
 								creg =
 								regexp_string.charAt(ireg);
-								if ( (nokchars > 0) &&
-									(creg <
-									okchars.charAt(nokchars - 1)) ) {
+								if ( (nokchars > 0) && (creg < okchars.charAt(nokchars - 1)) ) {
 									return
 									false;
 								}
 								if ( Message.isDebugOn ) {
 									Message.printDebug (
-									dl,
-									routine,
-									"Using range " +
-									okchars.charAt(nokchars - 1) + " to " +
-									creg );
+									dl, routine, "Using range " + okchars.charAt(nokchars - 1) + " to " + creg );
 								}
 								while ( true ) {
-									okchars+=
-									okchars.charAt(nokchars - 1) + 1;
+									okchars += okchars.charAt(nokchars - 1) + 1;
 									++nokchars;
 									if ( Message.isDebugOn ) {
 										Message.printDebug (
-										dl,
-										routine,
-										"Added " +
-										okchars.charAt(nokchars - 1) + " from [-] list" );
+										dl, routine, "Added " + okchars.charAt(nokchars - 1) + " from [-] list" );
 									}
-									if (	okchars.charAt(nokchars - 1) ==
-									creg ) {
+									if ( okchars.charAt(nokchars - 1) == creg ) {
 										// Last character in range...
 										break;
-
 									}
 								}
 							}
-							else {	// Just add the
-								// character...
+							else {
+							    // Just add the character...
 								okchars += creg;
 								++nokchars;
 								if ( Message.isDebugOn ) {
 									Message.printDebug (
-									dl,
-									routine,
-									"Added "+
-									okchars.charAt(nokchars - 1) + " from [abc] list" );
+									dl, routine, "Added " + okchars.charAt(nokchars - 1) + " from [abc] list" );
 								}
 								++ireg;
 							}
 						}
 						// Now check the character...
-						if (	okchars.indexOf(
-							ccan) >= 0 ) {
+						if ( okchars.indexOf(ccan) >= 0 ) {
 							// Matches OK...
 							continue;
 						}
-						else {	// No match...
+						else {
+						    // No match...
 							return false;
 						}
 					}
 					else if ( !asterisk ) {
 						// ?
 						if ( Message.isDebugOn ) {
-							Message.printDebug (
-							dl, routine,
-							"Not asterisk." );
+							Message.printDebug ( dl, routine, "Not asterisk." );
 						}
 						return false;
 					}
@@ -2353,22 +2316,18 @@ public static boolean matchesRegExp ( boolean ignore_case,
 					++ican;
 					// Reevaluate the loop again...
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Jumping to test" );
+						Message.printDebug ( dl, routine, "Jumping to test" );
 					}
 					jumptotest = true;
 					break;
 				}
-				else {	if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine, "Chars are equal.  " +
-						"Increment..." );
+				else {
+				    if ( Message.isDebugOn ) {
+						Message.printDebug ( dl, routine, "Chars are equal.  Increment..." );
 					}
 				}
 			}
-			if (	jumptotest ||
-				(ireg >= regexp_len) || (creg == '*') ){
+			if ( jumptotest || (ireg >= regexp_len) || (creg == '*') ) {
 				break;
 			}
 		}
@@ -2380,9 +2339,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 		if ( !jumptotest ) {
 			if ( creg == '*' ) {
 				//if ( Message.isDebugOn ) {
-				//	Message.printDebug ( dl, routine,
-				//	"Have an * - increment by " + i +
-				//	" and restart segment" );
+				//	Message.printDebug ( dl, routine, "Have an * - increment by " + i + " and restart segment" );
 				//}
 				// Don't need?
 				//pt_candidate	+= j;
@@ -2393,8 +2350,7 @@ public static boolean matchesRegExp ( boolean ignore_case,
 			if ( ican >= candidate_len ) {
 				// End of string...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"End of string." );
+					Message.printDebug ( dl, routine, "End of string." );
 				}
 				return true;
 			}
@@ -2402,23 +2358,20 @@ public static boolean matchesRegExp ( boolean ignore_case,
 				(regexp_string.charAt(ireg - 1) == '*') ) {
 				// Rest of string is wildcard...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Rest of string *." );
+					Message.printDebug ( dl, routine, "Rest of string *." );
 				}
 				return true;
 			}
 			else if ( !asterisk ) {
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Not asterisk." );
+					Message.printDebug ( dl, routine, "Not asterisk." );
 				}
 				return false;
 			}
 			// Don't need?
 			//++pt_candidate;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Jumping to test" );
+				Message.printDebug ( dl, routine, "Jumping to test" );
 			}
 			jumptotest = true;
 		}
@@ -2830,7 +2783,7 @@ because the method is called from the formatString() method that operates on str
 @param precision Number of digits after the decimal point to round the number.
 */
 public static String round ( String string, int precision )
-{	String	new_string;
+{	String new_string;
 
 	// First break the string into its integer and remainder parts...
 	int dot_pos = string.indexOf ( '.' );
@@ -2850,8 +2803,7 @@ public static String round ( String string, int precision )
 		// can just add zeros on the end of the original string until we get to the precision length...
 	}
 	// If we get to here we need to do the more complicated roundoff 
-	// stuff.  First check if the precision is zero.  If so, we can round
-	// of the main number and return...
+	// stuff.  First check if the precision is zero.  If so, round off the main number and return...
 	if ( precision == 0 ) {
 		long ltemp = Math.round ( new Double(string).doubleValue() );
 		return ( new Long(ltemp).toString() );
