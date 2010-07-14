@@ -77,11 +77,16 @@ Flag string for detected values.
 private String __flag = null;
 
 /**
+Description for __flag.
+*/
+private String __flagDesc = null;
+
+/**
 Constructor.
 */
 public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
         DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, String problemType,
-        String flag )
+        String flag, String flagDesc )
 {   String message;
     String routine = getClass().getName() + ".constructor";
 	// Save data members.
@@ -101,6 +106,7 @@ public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
     __value1 = value1;
     __value2 = value2;
     __flag = flag;
+    __flagDesc = flagDesc;
 }
 
 /**
@@ -284,6 +290,74 @@ throws Exception
         else if ( valueToCheck.equals("Statistic") ) {
             // TODO SAM 2009-04-20 Need to implement statistic checks
         }
+    }
+    if ( (__flag != null) && !__flag.equals("") && (__problems.size() > 0) ) {
+        // Remove leading + on flag, used to indicate concatenation
+        String flag = StringUtil.remove(__flag,"+");
+        if ( (__flagDesc == null) || __flagDesc.equals("") ) {
+            // Default description...
+            message = "Detected " + __problems.size() + " values where " + formatCriteriaForFlagDesc() + ".";
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
+        }
+        else {
+            // Use supplied description...
+            message = "Detected " + __problems.size() + " values where " + __flagDesc + ".";
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
+        }
+        // Add a message to the genesis since flags have been set...
+        ts.addToGenesis ( message + "  Set flag to " + flag + "." );
+    }
+}
+
+/**
+Format the criteria for use in output.
+@return a string that describes the criteria, suitable for the flag description.
+*/
+private String formatCriteriaForFlagDesc ()
+{
+    if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangeGreaterThan) ) {
+        return "abs(change(value)) > " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_AbsChangePercentGreaterThan) ) {
+        return "precent(abs(change(value))) > " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeGreaterThan) ) {
+        return "change(value) > " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_ChangeLessThan) ) {
+        return "change(value) < " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_InRange) ) {
+        return StringUtil.formatString(__value1,"%.6f") + " <= value <= " +
+            StringUtil.formatString(__value2,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_OutOfRange) ) {
+        return "value < " + StringUtil.formatString(__value1,"%.6f") + " OR value > " +
+        StringUtil.formatString(__value2,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
+        return "value is missing";
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Repeat) ) {
+        return "value repeats previous value";
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThan) ) {
+        return "value < " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThanOrEqualTo) ) {
+        return "value <= " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThan) ) {
+        return "value > " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
+        return "value >= " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else if ( __checkCriteria.equalsIgnoreCase(__CHECK_TYPE_EqualTo) ) {
+        return "value = " + StringUtil.formatString(__value1,"%.6f");
+    }
+    else {
+        throw new InvalidParameterException ( "Unrecognized check criteria \"" + __checkCriteria + "\"" );
     }
 }
 

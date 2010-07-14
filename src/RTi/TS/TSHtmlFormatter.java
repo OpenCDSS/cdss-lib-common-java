@@ -166,14 +166,32 @@ throws Exception
         html.tableEnd();
     }
     if ( foundFlagsList.size() > 0 ) {
-        // Write the data flag notes - loop through flags found in the data and then see if
-        // flag meta-data is available from the time series.  If so, use it.  If not display a general message.
         PropList propsFlagNote = new PropList("");
         propsMissing.set("class","flagnote");
-        List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
+        // Loop through the found flags and add any flags in the time series that are not already in the found
+        // list.  This is necessary because flags can be appended and the flag list needs to be complete.
+        // The complete list can only be obtained from checking both lists.
         List<TSDataFlagMetadata> flagMetadataList = ts.getDataFlagMetadataList();
-        // Loop through the found flags
         boolean found;
+        for ( TSDataFlagMetadata flagMetadata : flagMetadataList) {
+            // See if any meta-data have been stored with the time series
+            found = false;
+            for ( String foundFlag : foundFlagsList ) {
+                if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
+                    // Use the found meta-data...
+                    found = true;
+                    break;
+                }
+            }
+            if ( !found ) {
+                // Add to the list
+                foundFlagsList.add ( flagMetadata.getDataFlag() );
+            }
+        }
+        // Now sort the flags for final output
+        List<String> foundFlagsListSorted = StringUtil.sortStringList(foundFlagsList);
+        // Write the data flag notes - loop through flags found in the data and then see if
+        // flag meta-data is available from the time series.  If so, use it.  If not display a general message.
         for ( String foundFlag : foundFlagsListSorted ) {
             // See if any meta-data have been stored with the time series
             found = false;
@@ -188,7 +206,9 @@ throws Exception
             }
             if ( !found ) {
                 // Generic message
-                html.span ( foundFlag + " - no information available describing meaning", propsFlagNote );
+                html.span ( foundFlag +
+                    " - no information available describing meaning (may be combination of other flags).",
+                    propsFlagNote );
                 html.breakLine();
             }
         }
