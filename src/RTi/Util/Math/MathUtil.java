@@ -329,18 +329,6 @@ throws Exception
 }
 
 /**
-@return the Log base 10 value for a number.  This is a work-around because
-JDK prior to Java 1.5 does not have a log10.  The value returned is simply log(x)/log(10).  No
-error checks are in place.  Reference:   JDC bug 4074599.
-@param x Value for which to determine log base 10.
-@deprecated use Math.log10
-*/
-public static double log10 ( double x )
-{
-	return Math.log(x)/Math.log(10.0);
-}
-
-/**
 Find the maximum of two values.
 @return the maximum value.
 @param x First value to check.
@@ -664,8 +652,8 @@ throws Exception
 public static double min ( int n, double x[] )
 throws Exception
 {	int	i;
-	String	routine = "MathUtil.min";
-	double	m = 0.0;
+	String routine = "MathUtil.min";
+	double m = 0.0;
 
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0.0";
@@ -1111,7 +1099,7 @@ throws Exception
 		}
 		else {
 		    if ( xArray[i] > 0 ) {
-				logArrayX[i] = log10(xArray[i]);
+				logArrayX[i] = Math.log10(xArray[i]);
 			}
 			else {
 			    logArrayX[i] = .001;
@@ -1126,7 +1114,7 @@ throws Exception
 		}
 		else {
 		    if ( yArray[i] > 0 ) {
-				logArrayY[i] = log10(yArray[i]);
+				logArrayY[i] = Math.log10(yArray[i]);
 			}
 			else {
 			    logArrayY[i] = .001;
@@ -1154,9 +1142,6 @@ throws Exception
 	if ( rd.getMinY1() != missingy ) {
 		rd.setMinY1 ( Math.pow(10.0,rd.getMinY1()) );
 	}
-	// Clean up memory...
-	logArrayY = null;
-	logArrayX = null;
 	return rd;
 }
 
@@ -1195,8 +1180,8 @@ Reverse an array of doubles.
 */
 public static int reverseArray(	double[] data )
 {	int	i, j, half, ndata = data.length;
-	double	tempf;
-	String	routine="MathUtil.reverseArray";
+	double tempf;
+	String routine="MathUtil.reverseArray";
 
 	if ( data == null ) {
 		Message.printWarning ( 2, routine, "No array to reverse!" );
@@ -1268,12 +1253,10 @@ Compute the RMS error between two sets as sqrt(sum((y - x)^2)/n).
 @param x Independent data.
 @param y Dependent data corresponding to x.
 @param use_missing Indicates whether the missing data flags should be used to
-ignore data.  If true, then having missing data in either array causes both
-array values to be ignored.
+ignore data.  If true, then having missing data in either array causes both array values to be ignored.
 @param xmissing Missing data value for x.
 @param ymissing Missing data value for y.
-@return the RMS error for the data set.  Return 0 if the number of points
-considered is 0.
+@return the RMS error for the data set.  Return 0 if the number of points considered is 0.
 @exception Exception if there is an error computing the RMS error.
 */
 public static double RMSError ( int n, double x[], double y[],
@@ -1332,15 +1315,15 @@ throws Exception
 
 public static double roundToPercent ( double x, double interval, int mflag, int rflag )
 throws Exception
-{	String	message, routine = "MathUtil.roundToPercent";
-	double	fact, interval100, xhigh, xhighdif, xlow, xlowdif, xr, xs;
+{	String message, routine = "MathUtil.roundToPercent";
+	double fact, interval100, xhigh, xhighdif, xlow, xlowdif, xr, xs;
 
 	xr = 0.0;
 	// Figure out factors, etc. to convert everything to 100.0 scale...
 	if ( mflag > 0 ) {
 		if ( (x < 0.0) || (x > 1.0) ) {
 			message = "" + x + " cannot be rounded because it is not > 0.0, < 1.0";
-			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
 		fact = 1.0;
@@ -1351,7 +1334,7 @@ throws Exception
 	else {
 	    if ( (x < 0.0) || (x > 100.0) ) {
 			message = "" + x + " cannot be rounded because it is not > 0.0, < 100.0";
-			Message.printWarning ( 1, routine, message );
+			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
 		fact = 100.0;
@@ -1396,7 +1379,7 @@ throws Exception
 {   String message, routine = "MathUtil.skew";
 
     if ( n < 3 ) {
-        message = "Number in sample (" + n + ") must be > 2.  Cannot compute skew.";
+        message = "Number in sample (" + n + ") must be >= 3.  Cannot compute skew.";
         Message.printWarning ( 3, routine, message );
         throw new RuntimeException ( message );
     }
@@ -1592,9 +1575,9 @@ Sort an array of doubles into ascending order using the quick sort method.
 public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 {	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
 		itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
-	int[]	istack;
-	double	a, temp;
-	String	routine="MathUtil.sortDQuick";
+	int[] istack;
+	double a, temp;
+	String routine="MathUtil.sortDQuick";
 
 	istack = new int [ NSTACK ];
 
@@ -1699,8 +1682,6 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 			jstack	+= 2;
 			if ( jstack > (NSTACK - 1) ) {
 				Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
-				// Free memory...
-				istack = null;
 				return 1;
 			}
 			if ( (ir - i + 1) >= (j - l) ) {
@@ -1715,7 +1696,6 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 			}
 		}
 	}
-	istack = null;
 	return 0;
 }
 
@@ -1873,7 +1853,6 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 			}
 		}
 	}
-	istack = null;
 	return 0;
 }
 
@@ -2033,12 +2012,12 @@ throws Exception
 public static double variance ( int n, double x[] )
 throws Exception
 {	int	i;
-	double	dif, meanx;
-	String	message, routine = "MathUtil.variance";
+	double dif, meanx;
+	String message, routine = "MathUtil.variance";
 
 	double var = 0.0;
 	if ( n <= 1 ) {
-		message = "Number of data values = " + n + " <= 1";
+		message = "Number of data values = " + n + " <= 1 (must be >= 2).";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
@@ -2046,7 +2025,7 @@ throws Exception
 	    meanx = mean(n, x);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 50, routine, "Error calculating mean" );
+		Message.printWarning ( 50, routine, "Error calculating mean - cannot compute variance." );
 		throw e;
 	}
 	for ( i = 0; i < n; i++ ) {
@@ -2068,8 +2047,8 @@ Compute the sample variance (denominator is non-missing sample size minus 1).
 public static double variance ( int n, double x[], double missing )
 throws Exception
 {	int	i;
-	double	dif, meanx;
-	String	message, routine = "MathUtil.variance";
+	double dif, meanx;
+	String message, routine = "MathUtil.variance";
 
 	double var = 0.0;
 	if ( n <= 1 ) {
@@ -2101,4 +2080,4 @@ throws Exception
 	return var;
 }
 
-} // End MathUtil
+}
