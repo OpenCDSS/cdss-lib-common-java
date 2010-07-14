@@ -145,7 +145,9 @@ import java.io.InputStreamReader;
 import java.lang.Runtime;
 import java.lang.Exception;
 import java.lang.StringBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import RTi.Util.GUI.EventTimer;
@@ -313,6 +315,11 @@ String version of the __commandInterpreterArray with strings separated by spaces
 private String __commandInterpreter = null;
 
 /**
+Environment that should be added to the existing environment during runs.
+*/
+private Map<String,String> __environmentMap = new HashMap();
+
+/**
 The above is set to false only if setCommandInterpreter is called with a null array,
 indicating that no command interpreter should be used.
 */
@@ -374,11 +381,11 @@ private boolean __saveOutput = false;
 /**
 List containing process output, used if __save_output is true.
 */
-private List __outList = null;
+private List<String> __outList = null;
 /**
 List containing process errors, used if __save_output is true.
 */
-private List __errorList = null;
+private List<String> __errorList = null;
 /**
 Listeners to receive process output.
 */
@@ -454,7 +461,13 @@ public ProcessManager ( String command, int timeoutMilliseconds, String exitStat
     if ( Message.isDebugOn ) {
         Message.printDebug ( 1, routine, "ProcessManager constructor: \"" + command + "\"" );
     }
-    __command = command;
+    // If the command includes spaces, escape with quotes
+    if ( command.indexOf(" ") > 0 ) {
+        __command = "\"" + command + "\"";
+    }
+    else {
+        __command = command;
+    }
     __timeoutMilliseconds = timeoutMilliseconds;
     __exitValue = 0;
     
@@ -787,7 +800,7 @@ Return the standard error of the process as a list of String.
 @return the standard error of the process as a list of String.
 If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
-public List getErrorList ()
+public List<String> getErrorList ()
 {	return __errorList;
 }
 
@@ -796,7 +809,7 @@ Return the standard output of the process as a list of String.
 @return the standard output of the process as a list of String.
 If saveOutput(true) is called, this will be non-null.  Otherwise, it will be null.
 */
-public List getOutputList ()
+public List<String> getOutputList ()
 {	return __outList;
 }
 
@@ -853,7 +866,8 @@ public void removeProcessListener ( ProcessListener listener )
 }
 
 /**
-Instantiate and run the process.  The runtime environment is retrieved, the
+Instantiate and run the process.  The runtime environment is retrieved (and is appended to if
+setEnvironment() has been called), the
 input stream established, etc.  If a ProcessManager IS NOT defined as a Thread
 then the command will be run all the way through and output can be retrieved
 using the getOutput() method.  If a ProcessManager IS defined in a Thread
@@ -967,6 +981,26 @@ public void run ()
 		        if ( __workingDir != null ) {
 		            Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
 		            pb.directory ( __workingDir );
+		        }
+		        // Add the environment to the process
+		        Map<String,String> pbMap = pb.environment();
+		        for ( String env: __environmentMap.keySet() ) {
+		            String oldVal = pbMap.get(env);
+		            String newVal = __environmentMap.get(env);
+		            // Determine if the map value has a +, indicating that it should be appended to
+		            // existing values, and remove the + so that the set can occur.
+		            boolean append = true;
+		            if ( (newVal.length() > 0) && (newVal.charAt(0) == '+') ) {
+		                append = true;
+		                newVal = newVal.substring(1);
+		            }
+		            if ( append && (oldVal != null) ) {
+		                pbMap.put(env, oldVal + newVal);
+		            }
+		            else {
+		                // Just set
+		                pbMap.put(env, newVal);
+		            }
 		        }
 		        __process = pb.start();
 		    }
@@ -1110,11 +1144,11 @@ public void run ()
         				}
         			}
         		}
-         		// Check to see if the process has been cancelled due to a call
+         		// Check to see if the process has been canceled due to a call
         		// to cancel() - this normally occurs only from something like
         		// the ProcessManagerJDialog.
         		if ( __cancel ) {
-        			setProcessFinished ( 900, "Process cancelled." );
+        			setProcessFinished ( 900, "Process canceled." );
         		}
         		// Check to see if the process is done.  Do this by calling
         		// exitValue() instead of waitFor() in order to not have to
@@ -1130,7 +1164,7 @@ public void run ()
         			        // The length of the line is guaranteed to be at least that of the indicator because of
         			        // checks performed above.
         			        String exitStatusLineCropped = exitStatusLine.substring(__exitStatusIndicator.length());
-        					List v = StringUtil.breakStringList(exitStatusLineCropped, " \t",
+        					List<String> v = StringUtil.breakStringList(exitStatusLineCropped, " \t",
         					    StringUtil.DELIM_SKIP_BLANKS);
         					if ( (v == null) || (v.size() < 1) || !StringUtil.isInteger( ((String)v.get(0)).trim()) ) {
         						// Get the exit status from the process...
@@ -1243,9 +1277,19 @@ public void setCommandInterpreter ( String [] interpreter )
 }
 
 /**
+Set the environment variables to be used by the run.
+@param the map of environment variables to set for the run.  Specify the value with a + as the first
+character to append to the existing value, or no + to set to the specified value.
+*/
+public void setEnvironment ( Map<String,String> env )
+{
+    __environmentMap = env;
+}
+
+/**
 Set the List that contains the error output for the process.  This is usually retrieved from a stream consumer.
 */
-private void setErrorList ( List errorList ) {
+private void setErrorList ( List<String> errorList ) {
     __errorList = errorList;
 }
 
