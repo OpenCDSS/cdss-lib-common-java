@@ -172,7 +172,7 @@ Array of Y1 values.
 protected double [] _Y1;
 
 /**
-Default constructor.  Typically the data in this class are set by the MathUtil.regress*() methods.
+Default constructor.  Typically the data in this class are set by the MathUtil.regress*() or similar methods.
 */
 public Regression ()
 {
@@ -191,6 +191,7 @@ throws Throwable {
 
 /**
 Indicate whether the intercept (A) for the relationship is forced.
+@return the forced intercept or null if not forced.
 */
 public Double getIntercept ()
 {	return _intercept;

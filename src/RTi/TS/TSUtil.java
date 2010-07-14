@@ -6138,6 +6138,8 @@ will cause the data flags to be allocated in the time series).
 @param ts_independent Independent time series.
 @param tsRegression A previously computed TSRegression object - if specified as non-null it will be
 used rather than computing the regression information from other parameters.
+@param confidenceLevel the confidencel level % to impose - estimated values outside the range are not retained.
+Specify null to allow all estimated values.
 @param analysisMethod analysis method to use for the analysis
 @param numberOfEquatiosn the number of equations (1 or 12 for monthly analysis)
 @param intercept can be set to zero for OLS regression, ignored otherwise
@@ -6157,7 +6159,7 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
 public static TSRegression fillRegress ( TS ts_to_fill, TS ts_independent,
-    TSRegression tsRegression,
+    TSRegression tsRegression, Double confidenceLevel,
     RegressionType analysisMethod, NumberOfEquationsType numberOfEquations,
     Double intercept, int [] analysisMonths,
     DataTransformationType transformation,
@@ -6196,19 +6198,17 @@ throws TSException, Exception
 	if ( numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
 		return fillRegressMonthly ( 
 	        ts_to_fill, ts_independent, tsRegression,
-	        analysisMethod, intercept, analysisMonths, transformation,
+	        confidenceLevel, analysisMethod, intercept, analysisMonths, transformation,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
-	        fillStart, fillEnd,
-	        fillFlag, descriptionString );
+	        fillStart, fillEnd, fillFlag, descriptionString );
 	}
 	else {
 	    return fillRegressTotal ( ts_to_fill, ts_independent, tsRegression,
-            analysisMethod, intercept, analysisMonths, transformation,
+            confidenceLevel, analysisMethod, intercept, analysisMonths, transformation,
             dependentAnalysisStart, dependentAnalysisEnd,
             independentAnalysisStart, independentAnalysisEnd,
-            fillStart, fillEnd,
-            fillFlag, descriptionString );
+            fillStart, fillEnd, fillFlag, descriptionString );
 	}
 }
 
@@ -6224,6 +6224,7 @@ appended to the description (if not set, "fill regress monthly using TSID" or
 @param tsRegression if null, then regression relationships will be determined using the specified parameters.
 If not null, an existing regression relationship will be used.  This allows a previously calculated A, B to be
 used rather than recalculating using data that may have been filled in some way.
+@param confidenceLevel the confidencel level % to require from the regression slope.
 @param analysisMethod the regression analysis method to use
 @param intercept can be specified as zero for OLS regression to force the relationship through zero, not used with
 other methods
@@ -6242,7 +6243,7 @@ the specific months will be analyzed and filled.
 @exception Exception if there is an error performing the regression.
 */
 private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
-    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    Double confidenceLevel, RegressionType analysisMethod, Double intercept, int [] analysisMonths,
     DataTransformationType transformation,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
@@ -6295,7 +6296,7 @@ throws TSException, Exception
 	else {
 	    // Compute the regression relationship
     	try {
-    	    rd = new TSRegression ( ts_independent, ts_to_fill, true, analysisMethod,
+    	    rd = new TSRegression ( ts_independent, ts_to_fill, true, confidenceLevel, analysisMethod,
     	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
     	            transformation, dependentAnalysisStart, dependentAnalysisEnd,
     	            independentAnalysisStart, independentAnalysisEnd, fillStart, fillEnd );
@@ -6459,7 +6460,7 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @exception Exception if there is a problem doing regression.
 */
 private static TSRegression fillRegressTotal ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
-    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    Double confidenceLevel, RegressionType analysisMethod, Double intercept, int [] analysisMonths,
     DataTransformationType transformation,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
@@ -6509,7 +6510,7 @@ throws TSException, Exception
     		Message.printDebug ( 10, routine, "Analyzing data." );
     	}
     	try {
-    	    rd = new TSRegression (	ts_independent, ts_to_fill, true, analysisMethod,
+    	    rd = new TSRegression (	ts_independent, ts_to_fill, true, confidenceLevel, analysisMethod,
                 intercept, NumberOfEquationsType.ONE_EQUATION, analysisMonths, transformation,
                 dependentAnalysisStart, dependentAnalysisEnd,
                 independentAnalysisStart, independentAnalysisEnd,

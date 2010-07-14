@@ -140,6 +140,7 @@ import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.NumberOfEquationsType;
 import RTi.Util.Math.Regression;
 import RTi.Util.Math.RegressionType;
+import RTi.Util.Math.TDistribution;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -165,9 +166,13 @@ new TSRegression.  This form of the constructor will likely be used only by adva
 public class TSRegression extends Regression
 {
 
-// Data members...
-
+/**
+The predicted Y time series, using the regression relationship.
+*/
 private TS __yTSpredicted = null;
+/**
+The residual (Ypredicted  - Y) time series, using the regression relationship.
+*/
 private TS __yTSresidual  = null;
 /**
 Analysis method (regression type).
@@ -279,6 +284,18 @@ _correlationCoeff on a monthly basis
 */
 private double [] _r_monthly;
 /**
+Confidence level for slope that is requested.
+*/
+private Double __confidenceLevel = null;
+/**
+Whether the confidence level for slope has been met (one equation).
+*/
+private boolean __confidenceLevelMet = true;
+/**
+Whether the confidence level for slope has been met (monthly equations).
+*/
+private boolean [] __confidenceLevelMetMonthly = null;
+/**
 Indicates the data transformation.
 */
 private DataTransformationType __transformation = null;
@@ -342,148 +359,42 @@ to fill data using the relationship:
 is best to check the isAnalyzed() value to determine whether results can be used.
 @param independentTS The independent time series (X).
 @param dependentTS The dependent time series (Y).
-@param props Property list indicating how the regression should be performed.
-Possible properties are listed in the table below:
-<p>
-
-<table width=100% cellpadding=10 cellspacing=0 border=2>
-<tr>
-<td><b>Property</b></td>   <td><b>Description</b></td>   <td><b>Default</b></td>
-</tr
-
-<tr>
-<td><b>AnalysisMethod</b></td>
-<td>Set to "OLSRegression" if a ordinary least squares regression, "MOVE1" if
-using the MOVE.1 procedure or "MOVE2" if using the MOVE.2 procedure.
-<td>"OLSRegression"</td>
-</tr>
-
-<tr>
-<td><b>AnalysisMonth</b></td>
-<td>If one equation is being used, indicate the months that are to be analyzed.
-If monthly equations are being used, indicate the one month to analyze.
-Specify the months separated by commas or white space.
-<td>"" (analyze all months)</td>
-</tr>
-
-<td><b>AnalyzeForFilling</b></td>
-<td>Set to "true" if analysis is being done as part of a data filling process,
-in which case the FillStart and FillEnd can be specified.
-The RMSE is computed as the difference between Y and Y-estimated where Y is
-known.  The default ("false") is used to compare time series (e.g., for
-calibration), in which case the RMSE is computed using the difference between
-X and Y.</td>
-<td>false</td>
-</tr>
-
-<tr>
-<td><b>DependentAnalysisEnd</b></td>
-<td>Date/time as a string indicating analysis period end for the dependent time
-series.  This can be specified for all analysis methods.  For OLS and MOVE1,
-this period will also be used for the independent time series.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>DependentAnalysisPeriodEnd</b></td>
-<td>Obsolete, use DependentAnalysisEnd.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>DependentAnalysisPeriodStart</b></td>
-<td>Obsolete, use DependentAnalysisStart.</td>
-<td></td>
-</tr>
-
-<tr>
-<td><b>DependentAnalysisStart</b></td>
-<td>Date/time as a string indicating analysis period start for the dependent
-time series.  This can be specified for all analysis methods.  For OLS and
-MOVE1, this period will also be used for the independent time series.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>FillEnd</b></td>
-<td>Date/time as a string indicating filling period end.  Specify when
-AnalyzeForFilling is true.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>FillPeriodEnd</b></td>
-<td>Obsolete, replaced by FillEnd.</td>
-<td></td>
-</tr>
-
-<tr>
-<td><b>FillPeriodStart</b></td>
-<td>Obsolete, replaced by FillStart.</td>
-<td></td>
-</tr>
-
-<tr>
-<td><b>FillStart</b></td>
-<td>Date/time as a string indicating filling period start.  Specify when
-AnalyzeForFilling is true.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>IndependentAnalysisEnd</b></td>
-<td>Date/time as a string indicating analysis period end for the independent
-time series.  This can be specified for the MOVE2 analysis method.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>IndependentAnalysisPeriodEnd</b></td>
-<td>Obsolete, use IndependentAnalysisEnd.</td>
-<td></td>
-</tr>
-
-<tr>
-<td><b>IndependentAnalysisPeriodStart</b></td>
-<td>Obsolete, use IndependentAnalysisStart.</td>
-<td></td>
-</tr>
-
-<tr>
-<td><b>IndependentAnalysisStart</b></td>
-<td>Date/time as a string indicating analysis period start for the independent
-time series.  This can be specified for the MOVE2 analysis method.</td>
-<td>Full period.</td>
-</tr>
-
-<tr>
-<td><b>Intercept</b></td>
-<td>If specified, indicate the intercept (A-value in best fit equation) that
+@param analyzeForFilling Set to "true" if analysis is being done as part of a data filling process,
+in which case the FillStart and FillEnd can be specified to limit the fill period.
+The RMSE is computed as the difference between Y and Y-estimated where Y is known in the original sample.
+The default ("false") is used to compare time series (e.g., for calibration),
+in which case the RMSE is computed using the difference between X and Y.
+@param confidenceLevel if specified as non-null, a check will be performed to determine if the slope of the
+resulting regression line is within the specified confidence level (see getIsInConfideneLevel()).
+@param analysisMethod the analysis method to be used to determine the regression relationship.
+@param intercept If specified, indicate the intercept (A-value in best fit equation) that
 should be forced when analyzing the data.  This is currently only implemented
 for Linear (no) transformation and can currently only have a value of 0.
-If specified as blank, no intercept is used.  This feature is typically only
+If specified as null, no intercept is used.  This feature is typically only
 used when analyzing data for filling.
-<td>Not used - intercept is calculated.</td>
-</tr>
-
-<tr>
-<td><b>NumberOfEquations</b></td>
-<td>Set to "OneEquation" to calculate one relationship.  Set to
-"MonthlyEquations" if a monthly analysis should be done (in which
-case 12 relationships will be determined).  In the future support for seasonal equations may be added.</td>
-<td>OneEquation</td>
-</tr>
-
-<tr>
-<td><b>Transformation</b></td>
-<td>Set to "Log" if a log10 regression should be done, or "None" if no
-transformation (the older "Linear" is also recognized and is equivalent to "None").</td>
-<td>false</td>
-</tr>
-</table>
+@param numberOfEquations Set to "OneEquation" to calculate one relationship.  Set to
+"MonthlyEquations" if a monthly analysis should be done (in which case 12 relationships will be
+determined).  In the future support for seasonal equations may be added.
+@param analysisMonths If one equation is being used, indicate the months that are to be analyzed.
+If monthly equations are being used, indicate the one month to analyze.
+@param transformation Set to "Log" if a log10 regression should be done, or "None" if no transformation.
+@param dependentAnalysisStart Date/time as a string indicating analysis period start for the dependent
+time series.  This can be specified for all analysis methods.  For OLS and
+MOVE1, this period will also be used for the independent time series.  If null, the full period is analyzed.
+@param dependentAnalysisEnd Date/time as a string indicating analysis period end for the dependent time
+series.  This can be specified for all analysis methods.  For OLS and MOVE1,
+this period will also be used for the independent time series.  If null, the full period is analyzed.
+@param independentAnalysisStart Date/time as a string indicating analysis period start for the independent
+time series.  This can be specified for the MOVE2 analysis method.  If null, the full period is analyzed.
+@param independentAnalysisEnd Date/time as a string indicating analysis period end for the independent
+time series.  This can be specified for the MOVE2 analysis method.  If null, the full period is analyzed.
+@param Date/time as a string indicating filling period start.  Specify when analyzeForFilling is true.
+If null, the full period is filled.
+@param fillEnd Date/time as a string indicating filling period end.  Specify when analyzeForFilling is true.
+If null, the full period is filled.
 */
 public TSRegression ( TS independentTS, TS dependentTS,
-        boolean analyzeForFilling, RegressionType analysisMethod,
+        boolean analyzeForFilling, Double confidenceLevel, RegressionType analysisMethod,
         Double intercept, NumberOfEquationsType numberOfEquations, int [] analysisMonths,
         DataTransformationType transformation,
         DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
@@ -491,7 +402,7 @@ public TSRegression ( TS independentTS, TS dependentTS,
         DateTime fillStart, DateTime fillEnd )
 throws Exception
 {	super ();
-	initialize ( independentTS, dependentTS, analyzeForFilling, analysisMethod,
+	initialize ( independentTS, dependentTS, analyzeForFilling, confidenceLevel, analysisMethod, 
         intercept, numberOfEquations, analysisMonths, transformation,
         dependentAnalysisStart, dependentAnalysisEnd,
         independentAnalysisStart, independentAnalysisEnd,
@@ -499,6 +410,10 @@ throws Exception
 	analyze ();
 }
 
+// FIXME SAM 2010-06-10 Why are all the parameters needed?  Can't the parameters just be extracted
+// from the existing object?  Presumably the parameters that are passed in are consistent with the
+// original computation and its really the internal information (A, B, etc.) that are being reused
+// and not recomputed.
 /**
 Construct a TSRegression object and perform the analysis.  See the overloaded
 version for a description of the analysis.
@@ -514,8 +429,7 @@ TSRegression reg1 = new TSRegression ( ts_ind, ts_dep, props );
 props.set ( ... );
 // Analyze again, using the same data arrays as in the previous analysis...
 TSRegression reg2 = new TSRegression ( ts_ind, ts_dep, props,
-reg1.getX(), reg1.getXMonthly(), reg1.getX1(), reg1.getX1Monthly(),
-reg1.getY1(), reg1.getY1Monthly() );
+reg1.getX(), reg1.getXMonthly(), reg1.getX1(), reg1.getX1Monthly(), reg1.getY1(), reg1.getY1Monthly() );
 </pre>
 In this way, the data arrays can be used repeatedly, thus improving performance.
 Note that the "1" and "2" arrays are computed based on the overlap between the
@@ -529,7 +443,7 @@ is best to check the isAnalyzed() value to determine whether results can be used
 See the overloaded method for possible properties.
 */
 public TSRegression ( TS independentTS, TS dependentTS, double[] X, double[][] XMonthly,
-    boolean analyzeForFilling, RegressionType analysisMethod,
+    boolean analyzeForFilling, Double confidenceLevel, RegressionType analysisMethod,
     Double intercept, NumberOfEquationsType numberOfEquations, int [] analysisMonths,
     DataTransformationType transformation,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
@@ -537,7 +451,7 @@ public TSRegression ( TS independentTS, TS dependentTS, double[] X, double[][] X
     DateTime fillStart, DateTime fillEnd)
 throws Exception
 {	super ();
-	initialize ( independentTS, dependentTS, analyzeForFilling, analysisMethod,
+	initialize ( independentTS, dependentTS, analyzeForFilling, confidenceLevel, analysisMethod,
 	        intercept, numberOfEquations, analysisMonths, transformation,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
@@ -1048,6 +962,7 @@ private void analyzeOLSRegression ()
 	double [] y1Array = null;
 	int n1 = 0; // Number of points where X and Y are non-missing
 	int n2 = 0; // Number of points where X is not missing and Y is missing
+	boolean confidenceLevelMet = true; // Whether requested confidence level has been met for slope
 	int ind_interval_base = _xTS.getDataIntervalBase();
 	int ind_interval_mult = _xTS.getDataIntervalMult();
 	DateTime date = null;
@@ -1371,9 +1286,8 @@ private void analyzeOLSRegression ()
 		double rmse = 0.0, transformed_rmse = 0.0;
 		double [] Y1_estimated = null;	// Estimated Y1 if filling data.
 		if ( _filling ) {
-			// Now if filling, estimate Y1 using A and B and compute
-			// the RMSE from Y1 - Y.  Just loop through the X1
-			// because we know these points originally lined up with Y1...
+			// Now if filling, estimate Y1 using A and B and compute the RMSE from Y1 - Y.
+		    // Just loop through the X1 because these points originally lined up with Y1...
 
 			Y1_estimated = new double[n1];
 			double ytemp1, ytemp2;
@@ -1390,6 +1304,21 @@ private void analyzeOLSRegression ()
 				    Y1_estimated[i] = a + X1_data[i]*b;
 					rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 				}
+			}
+			// Check to see if the relationship is within the confidence level...
+			confidenceLevelMet = true;
+			if ( __confidenceLevel != null ) {
+			    // Get the limiting value given the confidence interval
+			    double alpha = (1.0 - __confidenceLevel.doubleValue()/100.0); // double-tailed
+			    double tMet = TDistribution.getTQuantile(alpha/2.0, n1 - 2 ); // Single-tailed so divide by 2
+			    Message.printStatus ( 2, routine, "T based on confidence interval = " + tMet );
+			    // Compute the statistic based on standard error of the estimate;
+			    //double ssxy = sxy - sx*my1;
+			    //double t = ssxy/see/Math.sqrt(ssx);
+			    //if ( t >= tMet ) {
+			    //    confidenceLevelMet = true;
+			    //}
+			    
 			}
 		}
 		else {
@@ -1421,6 +1350,7 @@ private void analyzeOLSRegression ()
 			setA ( rd.getA() );
 			setB ( rd.getB() );
 			setCorrelationCoefficient ( rd.getCorrelationCoefficient() );
+			setConfidenceLevelMet ( confidenceLevelMet );
 			setN1 ( rd.getN1() );
 			setN2 ( n2 );
 			if ( __transformation == DataTransformationType.LOG ) {
@@ -1451,6 +1381,7 @@ private void analyzeOLSRegression ()
 			setA ( ieq, rd.getA() );
 			setB ( ieq, rd.getB() );
 			setCorrelationCoefficient ( ieq, rd.getCorrelationCoefficient() );
+			setConfidenceLevelMet ( ieq, confidenceLevelMet );
 			setN1 ( ieq, n1 );
 			setN2 ( ieq, n2 );
 			// There is no N2...
@@ -1515,7 +1446,7 @@ throws Exception
 	
 	// Create the time series for the predicted and residual time series.
 	TSIdent predictedIdent = null;
-	TSIdent residualIdent  = null;
+	TSIdent residualIdent = null;
 	try {
 		// Create a time series that has the same header as the dependent
 		// time series, but with a location that has + "_predicted".
@@ -1617,7 +1548,7 @@ throws Exception
 						Xvalue = -3.0;
 					}
 					else {
-						Xvalue  = Math.log10(Xvalue);
+						Xvalue = Math.log10(Xvalue);
 					}
 					// Compute the estimated value.
 					preYvalue = A + Xvalue * B;		
@@ -1754,6 +1685,27 @@ throws TSException
         throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
     }
     return _b_monthly[monthIndex-1];
+}
+
+/**
+Determine if the confidence level for the slope has been met, for one equation.
+@return true if the slope is within the specified confidence level.
+@param monthIndex Index for month.
+*/
+public boolean getConfidenceLevelMet ()
+{   return __confidenceLevelMet;
+}
+
+/**
+Determine if the confidence level for the slope has been met, for a monthly equation.
+@return true if the slope is within the specified confidence level.
+@param monthIndex Index for month.
+*/
+public boolean getConfidenceLevelMet ( int monthIndex )
+{   if ( (monthIndex < 1) || (monthIndex > 12) ) {
+        return false;
+    }
+    return __confidenceLevelMetMonthly[monthIndex - 1];
 }
 
 /**
@@ -2324,9 +2276,9 @@ Initialize instance data.
 @param xTS Independent time series.
 @param yTS Dependent time series.
 */
-private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, RegressionType analysisMethod,
-    Double intercept, NumberOfEquationsType numberOfEquations, int [] analysisMonths,
-    DataTransformationType transformation,
+private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, Double confidenceLevel,
+    RegressionType analysisMethod, Double intercept, NumberOfEquationsType numberOfEquations,
+    int [] analysisMonths, DataTransformationType transformation,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd )
@@ -2341,6 +2293,9 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, RegressionT
     _yTS = yTS;
     
     _filling = analyzeForFilling; // Default previously was false
+    
+    __confidenceLevel = confidenceLevel;  // Confidence level to check for slope of the line
+    __confidenceLevelMet = true; // Whether the confidence level has been met
 
     // Check for analysis method...
 
@@ -2407,6 +2362,7 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, RegressionT
 
     _b_monthly = new double[12];
     _a_monthly = new double[12];
+    __confidenceLevelMetMonthly = new boolean[12];
     _n1_monthly = new int[12];
     _n2_monthly = new int[12];
     _X_max_monthly = new double[12];
@@ -2440,6 +2396,7 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, RegressionT
     for ( int i=0; i<12; i++ ) {
         _a_monthly[i] = 0;
         _b_monthly[i] = 0;
+        __confidenceLevelMetMonthly[i] = true;
         _n1_monthly[i] = 0;
         _n2_monthly[i] = 0;
         _X_max_monthly[i] = 0.0;
@@ -2545,6 +2502,25 @@ public void setB ( int monthIndex, double B )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
 		_b_monthly[monthIndex-1] = B;
 	}
+}
+
+/**
+Set the flag indicating whether single equation confidence level has been met.
+@param confidenceLevelMet true if the slope is within the specified confidence level.
+*/
+public boolean setConfidenceLevelMet ( boolean confidenceLevelMet )
+{   __confidenceLevelMet = confidenceLevelMet;
+    return confidenceLevelMet;
+}
+
+/**
+Set the flag indicating whether a monthly confidence level has been met.
+@param monthIndex month (1 is January).
+@param flag true if the slope is within the specified confidence level.
+*/
+public boolean setConfidenceLevelMet ( int monthIndex, boolean flag )
+{   __confidenceLevelMetMonthly[monthIndex - 1] = flag;
+    return flag;
 }
 
 /**
