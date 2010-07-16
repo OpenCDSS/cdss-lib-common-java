@@ -168,13 +168,13 @@ public TSLimits ( TSLimits limits )
 		__min_value_date = new DateTime ( limits.__min_value_date );
 	}
 	if ( limits.__non_missing_data_date1 != null ) {
-		__non_missing_data_date1 =
-		new DateTime ( limits.__non_missing_data_date1 );
+		__non_missing_data_date1 = new DateTime ( limits.__non_missing_data_date1 );
 	}
 	if ( limits.__non_missing_data_date2 != null ) {
-		__non_missing_data_date2 =
-		new DateTime ( limits.__non_missing_data_date2 );
+		__non_missing_data_date2 = new DateTime ( limits.__non_missing_data_date2 );
 	}
+	__non_missing_data_count = limits.__non_missing_data_count;
+	__missing_data_count = limits.__missing_data_count;
 	__mean = limits.__mean;
 	__sum = limits.__sum;
 	__found = limits.__found;
