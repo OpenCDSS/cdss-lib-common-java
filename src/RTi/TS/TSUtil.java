@@ -2040,6 +2040,36 @@ public static void copyHeader ( TS ts1, TS ts2 )
 }
 
 /**
+Count the number of data values that are isolated (have missing values on both sides).  This
+is useful, for example, for determining whether graphs should be drawn with symbols to show the data.
+@param ts time series to process
+@param start the starting date/time for the count, or null to process the entire time series
+@param end the ending date/time for the count, or null to process the entire time series
+*/
+public static int countIsolatedPoints ( TS ts, DateTime start, DateTime end )
+throws Exception
+{
+	TSIterator tsi = ts.iterator(start,end);
+	double val1 = ts.getMissing(); // Previous to previous to current value
+	double val2 = ts.getMissing(); // Previous to current value
+	double val3 = ts.getMissing(); // Current value
+	int isolatedCount = 0;
+	while ( tsi.next() != null ) {
+		// Move the previous values forward (order of this is important!)
+		val1 = val2;
+		val2 = val3;
+		// Get the current value
+		val3 = tsi.getDataValue();
+		// Now do the check of missing on the center point
+		if ( !ts.isDataMissing(val2) && ts.isDataMissing(val1) && ts.isDataMissing(val3) ) {
+			// Have a non-missing value with missing on each side, so an isolated point
+			++isolatedCount;
+		}
+	}
+	return isolatedCount;
+}
+
+/**
 Create a monthly summary report for the time series.  This format is suitable
 for data intervals less than monthly.  Data are first accumulated to daily
 values and are then accumulated to monthly for the final output.  This report
@@ -7199,7 +7229,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 
 	//Message.printStatus ( 2, routine, "Getting limits from " + start0 + " to " + end0 );
 
-	// REVISIT WHY DOESN'T THIS JUST INSTANTIATE A TSLimits AND LET IT FILL IN THE VALUES - SAM 2001-03-22???
+	// TODO WHY DOESN'T THIS JUST INSTANTIATE A TSLimits AND LET IT FILL IN THE VALUES - SAM 2001-03-22???
 	// The code seems to be redundant
 
 	if ( ts == null ) {
@@ -7224,38 +7254,33 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 	base = ts.getDataIntervalBase();
 	mult = ts.getDataIntervalMult();
 	if ( refresh_flag ) {
+		// TODO SAM 2010-07-15 Circular logic is confusing
 		// Force a refresh of the time series.
 		//
 		// Need to be picky here because of the dependence on the type...
 		if ( base == TimeInterval.MINUTE ) {
 			MinuteTS temp = (MinuteTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else if ( base == TimeInterval.HOUR ) {
 			HourTS temp = (HourTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else if ( base == TimeInterval.DAY ) {
 			DayTS temp = (DayTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else if ( base == TimeInterval.MONTH ) {
 			MonthTS temp = (MonthTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else if ( base == TimeInterval.YEAR ) {
 			YearTS temp = (YearTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else if ( base == TimeInterval.IRREGULAR ) {
 			IrregularTS temp = (IrregularTS)ts;
 			temp.refresh ();
-			temp = null;
 		}
 		else {
 		    Message.printWarning ( 2, routine, "Unknown time series interval for refresh()" );
@@ -7406,14 +7431,14 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 				found = true;
 			}
         }
-		// Now loop backward and find the last non-missing value...
+		// Now loop backward from he end date/time and find the last non-missing value...
 		if ( found ) {
 			t = new DateTime ( end, DateTime.DATE_FAST );
 			for( ; t.greaterThanOrEqualTo(start); t.addInterval( base, -mult )) {
 				value = ts.getDataValue( t );
 				if( !ts.isDataMissing( value ) ) {
 					// The value is not missing...
-					non_missing_data_date2 =new DateTime(t);
+					non_missing_data_date2 = new DateTime(t);
 					break;
 				}
 			}
@@ -7421,7 +7446,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 	}
 
 	if ( !found ) {
-		Message.printWarning( 2, routine, "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!" );
+		Message.printWarning( 3, routine, "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!" );
 		return new TSLimits();
 	}
 
