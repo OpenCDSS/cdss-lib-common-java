@@ -1689,11 +1689,10 @@ public void refresh ()
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 30, "DayTS.refresh", "Time series is not dirty.  Not recomputing limits" );
 		}
-		limits = null;
 		return;
 	}
 
-	// Else we need to refresh...
+	// Else need to refresh...
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug( 30, "DayTS.refresh", "Time Series is dirty. Recomputing limits" );
@@ -1714,7 +1713,6 @@ public void refresh ()
 	}
 
 	_dirty = false;
-	limits = null;
 }
 
 /**

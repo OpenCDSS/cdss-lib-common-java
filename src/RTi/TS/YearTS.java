@@ -492,8 +492,7 @@ year time series are always output in a column format.
 
 <tr>
 <td><b>CalendarType</b></td>
-<td>The type of calendar, either "WaterYear" (Oct through Sep), "IrrigationYear" or "NovToOct"
-(Nov through Oct), or "CalendarYear" (Jan through Dec).
+<td>The type of calendar, from YearType enumeration.
 </td>
 <td>CalanderYear (but may be made sensitive to the data type or units in the future).</td>
 </tr>
@@ -616,7 +615,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 </table>
 @exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public List formatOutput( PropList proplist )
+public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "YearTS.formatOutput", year_column = "";
 	List<String> strings = new Vector (20,10);

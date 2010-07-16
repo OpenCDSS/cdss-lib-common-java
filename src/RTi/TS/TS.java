@@ -1358,6 +1358,7 @@ public TSLimits getDataLimits ()
 		return null;
 	}
 	else {
+		// Create a new copy to protect.
 	    return( new TSLimits(_data_limits) );
 	}
 }
@@ -1838,8 +1839,8 @@ throws Exception
 /**
 Return an iterator for the time series using the specified period.
 For regular interval time series, the iterator is that same. IrregularTS use the IrregularTSIterator.
-@param date1 Start of data iteration.
-@param date2 End of data iteration.
+@param date1 Start of data iteration.  If null, the first date/time will be used.
+@param date2 End of data iteration.  If null, the last date/time will be used.
 @return an iterator for the time series.
 @exception if the dates for the iterator are not set (they are not set in the time series).
 */

@@ -99,8 +99,7 @@ is the maximum overlapping period.
 @param ts_to_add Time series to add to "ts".
 @exception TSException if there is an error adding the time series.
 */
-public static FrostDatesYearTS add (	FrostDatesYearTS ts,
-					FrostDatesYearTS ts_to_add )
+public static FrostDatesYearTS add ( FrostDatesYearTS ts, FrostDatesYearTS ts_to_add )
 throws TSException
 {	String message, routine = "FrostDatesYearTS.add";
 
@@ -118,21 +117,15 @@ throws TSException
 	}
 	// Else, set up a vector and call the overload routine...
 	try {
-		List v = new Vector ( 1, 1 );
+		List<TS> v = new Vector ( 1, 1 );
 		v.add ( ts_to_add );
 		double [] factor = new double[1];
 		factor[0] = 1.0;
 		FrostDatesYearTS ts2 = add ( ts, v, factor, TSUtil.MAX_POR );
-		v = null;
-		factor = null;
-		message = null;
-		routine = null;
 		return ts2;
 	}
 	catch ( TSException e ) {
 		// Just rethrow...
-		message = null;
-		routine = null;
 		throw e;
 	}
 }
@@ -148,7 +141,7 @@ time series will have the maximum overlapping period.
 overlapping period or 0 to use the period of the first time series.
 @exception TSException if an error occurs adding the time series.
 */
-public static FrostDatesYearTS add ( FrostDatesYearTS ts, List ts_to_add, int flag )
+public static FrostDatesYearTS add ( FrostDatesYearTS ts, List<TS> ts_to_add, int flag )
 throws TSException
 {	String message, routine = "FrostDatesYearTS.add";
 
@@ -158,21 +151,17 @@ throws TSException
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
-	try {	int size = ts_to_add.size();
+	try {
+		int size = ts_to_add.size();
 		double [] factor = new double[size];
 		for ( int i = 0; i < size; i++ ) {
 			factor[i] = 1.0;
 		}
 		FrostDatesYearTS ts2 = add ( ts, ts_to_add, factor, flag );
-		factor = null;
-		message = null;
-		routine = null;
 		return ts2;
 	}
 	catch ( TSException e ) {
 		// Just rethrow...
-		message = null;
-		routine = null;
 		throw e;
 	}
 }
@@ -191,7 +180,7 @@ to have a period encompassing all the time series, or zero to use the
 original period of the first time series.
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static FrostDatesYearTS add ( FrostDatesYearTS ts, List ts_to_add, double factor[], int flag )
+public static FrostDatesYearTS add ( FrostDatesYearTS ts, List<TS> ts_to_add, double factor[], int flag )
 throws TSException
 {	String	message, routine = "FrostDatesYearTS.add(TS,Vector,double[])";
 	int	dl = 20;
@@ -211,8 +200,7 @@ throws TSException
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Adding to " + ts.getIdentifierString() );
+		Message.printDebug ( dl, routine, "Adding to " + ts.getIdentifierString() );
 	}
 
 	// Make sure that the intervals match.  Currently this is a requirement
@@ -220,17 +208,15 @@ throws TSException
 	// may want to overload to allow a period to be added.
 
 	try {
-	if (	!TSUtil.intervalsMatch(ts_to_add, ts.getDataIntervalBase(),
+	if ( !TSUtil.intervalsMatch(ts_to_add, ts.getDataIntervalBase(),
 		ts.getDataIntervalMult()) ) {
-		message =
-		"All time series in the list are not of interval " +
+		message = "All time series in the list are not of interval " +
 		ts.getDataIntervalBase() + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// If we want the period of record to be all-inclusive, resize the
-	// period of record...
+	// If we want the period of record to be all-inclusive, resize the period of record...
 
 	DateTime start_date = null;
 	DateTime end_date = null;
@@ -238,15 +224,13 @@ throws TSException
 		// Get the POR from the list of time series...
 		TSLimits limits = null;
 		try {
-		limits = TSUtil.getPeriodFromTS ( ts, ts_to_add,
-			TSUtil.MAX_POR );
-		start_date = limits.getDate1();
-		end_date = limits.getDate2();
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Resulting TS will have period " + start_date +
-			" to " + end_date );
-		}
+			limits = TSUtil.getPeriodFromTS ( ts, ts_to_add, TSUtil.MAX_POR );
+			start_date = limits.getDate1();
+			end_date = limits.getDate2();
+			if ( Message.isDebugOn ) {
+				Message.printDebug ( dl, routine,
+				"Resulting TS will have period " + start_date + " to " + end_date );
+			}
 		}
 		catch ( Exception e ) {
 			message = "Can't get maximum period for time series.";
@@ -254,37 +238,33 @@ throws TSException
 			throw new TSException ( message );
 		}
 		// Change the period of record...
-		try {	ts.changePeriodOfRecord ( start_date, end_date );
+		try {
+			ts.changePeriodOfRecord ( start_date, end_date );
 		}
 		catch ( Exception e ) {
-			message = "Can't change period of time series from " +
-			start_date + " to " + end_date;
+			message = "Can't change period of time series from " + start_date + " to " + end_date;
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
-		limits = null;
 	}
 
-	// Now loop through the time series list and add to the primary time
-	// series...
+	// Now loop through the time series list and add to the primary time series...
 
-	// Set starting and ending time for time loop based on period of
-	// "tsadd"...
+	// Set starting and ending time for time loop based on period of "tsadd"...
 
 	int ntslist = ts_to_add.size();
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	int tspt_interval_base;
-	DateTime	data_value_to_add = null;
-	DateTime	transfer_start_date = null;
-	DateTime	transfer_end_date = null;
-	DateTime	date = null;
+	DateTime data_value_to_add = null;
+	DateTime transfer_start_date = null;
+	DateTime transfer_end_date = null;
+	DateTime date = null;
 	int	year = 0;
 	for ( int i = 0; i < ntslist; i++ ) {
 		tspt = (FrostDatesYearTS)ts_to_add.get(i);
 		if ( tspt == null ) {
-			message =
-			"Trouble getting [" + i + "]-th time series in list";
+			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
@@ -296,92 +276,75 @@ throws TSException
 		if ( tspt_interval_base == TimeInterval.IRREGULAR ) {
 			// add to that date.  Otherwise, add a new data point
 			// for the date...  For now, don't support...
-			message = "IrregularTS not supported.  Not adding." +
-			tspt.getIdentifier().toString();
+			message = "IrregularTS not supported.  Not adding." + tspt.getIdentifier().toString();
 			Message.printWarning ( 2, routine, message );
 			throw new TSException ( message );
 		}
-		else {	// Regular interval.  Loop using addInterval...
+		else {
+			// Regular interval.  Loop using addInterval...
 			if ( (start_date != null) && (end_date != null) ) {
 				// Period was specified above...
 				transfer_start_date = new DateTime(start_date );
 				transfer_end_date = new DateTime ( end_date );
 			}
-			else {	// Just use the receiving time series period...
-				transfer_start_date = new DateTime (
-					ts.getDate1() );
-				transfer_end_date = new DateTime (
-					ts.getDate2() );
+			else {
+				// Just use the receiving time series period...
+				transfer_start_date = new DateTime ( ts.getDate1() );
+				transfer_end_date = new DateTime ( ts.getDate2() );
 			}
 			date = new DateTime ( transfer_start_date );
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
 				"Adding from " + tspt.getIdentifierString() +
-				" for " + transfer_start_date + " to " +
-				transfer_end_date );
+				" for " + transfer_start_date + " to " + transfer_end_date );
 			}
 			
-			for (	;
-				date.lessThanOrEqualTo( transfer_end_date);
+			for ( ; date.lessThanOrEqualTo( transfer_end_date);
 				date.addInterval(interval_base, interval_mult)){
 				year = date.getYear();
 				// Get the value to add...
 				data_value_to_add = tspt.getLast28Spring (year);
 				if ( data_value_to_add == null ) {
-					// The value to add is missing so don't
-					// do it...
+					// The value to add is missing so don't do it...
 					continue;
 				}
-				// Do the to reset.  Don't consider the
-				// factors right now...
+				// Do the to reset.  Don't consider the factors right now...
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"Setting last 28 Spring " +
-					data_value_to_add + " for " + year );
+					"Setting last 28 Spring " + data_value_to_add + " for " + year );
 				}
-				ts.setLast28Spring ( year, new DateTime (
-					data_value_to_add ) );
+				ts.setLast28Spring ( year, new DateTime ( data_value_to_add ) );
 
 				// Get the value to add...
 				data_value_to_add = tspt.getLast32Spring (year);
 				if ( data_value_to_add == null ) {
-					// The value to add is missing so don't
-					// do it...
+					// The value to add is missing so don't do it...
 					continue;
 				}
-				// Do the to reset.  Don't consider the
-				// factors right now...
-				ts.setLast32Spring ( year, new DateTime (
-					data_value_to_add ) );
+				// Do the to reset.  Don't consider the factors right now...
+				ts.setLast32Spring ( year, new DateTime (data_value_to_add ) );
 
 				// Get the value to add...
 				data_value_to_add = tspt.getFirst32Fall (year);
 				if ( data_value_to_add == null ) {
-					// The value to add is missing so don't
-					// do it...
+					// The value to add is missing so don't do it...
 					continue;
 				}
-				// Do the to reset.  Don't consider the
-				// factors right now...
-				ts.setFirst32Fall ( year, new DateTime (
-					data_value_to_add )  );
+				// Do the to reset.  Don't consider the factors right now...
+				ts.setFirst32Fall ( year, new DateTime ( data_value_to_add )  );
 
 				// Get the value to add...
 				data_value_to_add = tspt.getFirst28Fall (year);
 				if ( data_value_to_add == null ) {
-					// The value to add is missing so don't
-					// do it...
+					// The value to add is missing so don't do it...
 					continue;
 				}
-				// Do the to reset.  Don't consider the
-				// factors right now...
+				// Do the to reset.  Don't consider the factors right now...
 				ts.setFirst28Fall ( year,
 					new DateTime ( data_value_to_add ) );
 
 				//if ( Message.isDebugOn ) {
-					//Message.printDebug ( dl, routine,
-					//"At " + date.toString() +
-					//", adding " + data_value_to_add );
+					//Message.printDebug ( dl, routine, "At " + date + ", adding " + data_value_to_add );
 				//}
 			}
 			ts.setDescription ( ts.getDescription() + " + " +
@@ -389,21 +352,12 @@ throws TSException
 			ts.addToGenesis("Added \"" + tspt.getIdentifier()+"\"");
 		}
 	}
-	// Clean up...
-	message = null;
-	routine = null;
-	start_date = null;
-	end_date = null;
-	data_value_to_add = null;
-	transfer_start_date = null;
-	transfer_end_date = null;
-	date = null;
 	return ts;
 	}
 	catch ( Exception e ) {
 		message = "Error adding time series.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new TSException ( message );
 	}
 }
@@ -427,8 +381,7 @@ public int allocateDataSpace ()
 	}
 	if ( _date1.greaterThan(_date2) ) {
 		Message.printWarning ( 2, routine,
-		"First date (" + _date1 + ") is later than last date (" +
-		_date2 + ")." );
+		"First date (" + _date1 + ") is later than last date (" + _date2 + ")." );
 		return 1;
 	}
 
@@ -449,7 +402,6 @@ public int allocateDataSpace ()
 		_first_28F_fall.add ( (DateTime)null );
 	}
 
-	routine = null;
 	return 0;
 }
 
@@ -463,14 +415,13 @@ data will be lost.
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException
-{	String	message, routine="FrostDatesYearTS.changePeriodOfRecord";
+{	String message, routine="FrostDatesYearTS.changePeriodOfRecord";
 
 	// To transfer, we need to allocate a new data space.  In any case, we
 	// need to get the dates established...
 	if ( (date1 == null) && (date2 == null) ) {
 		// No dates.  Cannot change.
-		message = "\"" + _id +
-		"\": period dates are null.  Cannot change the period.";
+		message = "\"" + _id + "\": period dates are null.  Cannot change the period.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -480,7 +431,8 @@ throws TSException
 		// Use the original date...
 		new_date1 = new DateTime ( _date1 );
 	}
-	else {	// Use the date passed in...
+	else {
+		// Use the date passed in...
 		new_date1 = new DateTime ( date1 );
 	}
 	DateTime new_date2 = null;
@@ -488,7 +440,8 @@ throws TSException
 		// Use the original date...
 		new_date2 = new DateTime ( _date2 );
 	}
-	else {	// Use the date passed in...
+	else {
+		// Use the date passed in...
 		new_date2 = new DateTime ( date2 );
 	}
 
@@ -518,14 +471,16 @@ throws TSException
 		// Extending so use the old date...
 		transfer_date1 = new DateTime ( _date1 );
 	}
-	else {	// Shortening so use the new...
+	else {
+		// Shortening so use the new...
 		transfer_date1 = new DateTime ( new_date1 );
 	}
 	if ( new_date2.greaterThan(_date2) ) {
 		// Extending so use the old date...
 		transfer_date2 = new DateTime ( _date2 );
 	}
-	else {	// Shortening so use the new...
+	else {
+		// Shortening so use the new...
 		transfer_date2 = new DateTime ( new_date2 );
 	}
 
@@ -535,8 +490,7 @@ throws TSException
 	setDate2 ( new_date2 );
 	allocateDataSpace();
 
-	// At this point the data space will be completely filled with missing
-	// data.
+	// At this point the data space will be completely filled with missing data.
 
 	// Now transfer the data.  To do so, get the old position and then set
 	// in the new position.  We are only concerned with transferring the
@@ -547,7 +501,7 @@ throws TSException
 	int oldpos, old_year1 = save_date1.getYear(), year;
 	int nyears = transfer_date2.getYear() - transfer_date1.getYear() + 1;
 	DateTime date = null;
-	for (	int i = 0; i < nyears; i++ ) {
+	for ( int i = 0; i < nyears; i++ ) {
 		// Year that we are transferring...
 		year = transfer_year1 + i;
 		// Position in old lists...
@@ -573,19 +527,6 @@ throws TSException
 			setFirst28Fall ( year, new DateTime ( date ) );
 		}
 	}
-	// Clean up...
-	message = null;
-	routine = null;
-	new_date1 = null;
-	new_date2 = null;
-	save_last_28F_spring = null;
-	save_last_32F_spring = null;
-	save_first_32F_fall = null;
-	save_first_28F_fall = null;
-	save_date1 = null;
-	transfer_date1 = null;
-	transfer_date2 = null;
-	date = null;
 
 	// Add to the genesis...
 
@@ -599,25 +540,20 @@ by the neighboring value.  If any of the neighboring values are missing, use
 the long-term average for this time series if "fill_ave" is true.  This also
 applies if no weights are specified.  Floating point numbers are used for
 computations to allow for any station weights, etc.
-@param weights Array of weights to use.  Set to null if not filling with
-weights.
-@param tslist List of time series to use for filling.  Set to null if not
-filling with weights.
+@param weights Array of weights to use.  Set to null if not filling with weights.
+@param tslist List of time series to use for filling.  Set to null if not filling with weights.
 @param date1 The starting date for filling.
-@param date2 The ending date for filleding.
+@param date2 The ending date for filling.
 @param fill_ave If true fill missing data with the long-term average of the
-filled station, if available.  This is applied after filling with weighted
-stations.
+filled station, if available.  This is applied after filling with weighted stations.
 @param limits Data limits for the FrostDatesYearTS to be used for filling with
 averages.  If the fill_ave parameter is true and the limits are not given,
 the limits for the entire time series period are computed and used.  If you
 want to fill with averages for only a certain period, compute the limits before
 calling this method.
 */
-public void fillWeights (	double [] weights, FrostDatesYearTS [] tslist,
-				DateTime date1, DateTime date2,
-				boolean fill_ave,
-				FrostDatesYearTSLimits limits )
+public void fillWeights ( double [] weights, FrostDatesYearTS [] tslist,
+	DateTime date1, DateTime date2, boolean fill_ave, FrostDatesYearTSLimits limits )
 throws TSException
 {	String message, routine = "FrostDatesYearTS.fillWeights";
 
@@ -634,12 +570,11 @@ throws TSException
 	DateTime date32fall_ave = null;
 	DateTime date28fall_ave = null;
 	if ( fill_ave ) {
-		// We are filling with average.  Make sure that we have
-		// limits...
+		// We are filling with average.  Make sure that we have limits...
 		if ( data_limits == null ) {
 			// Get the limits using the time series...
 			try {
-			data_limits = new FrostDatesYearTSLimits ( this );
+				data_limits = new FrostDatesYearTSLimits ( this );
 			}
 			catch ( Exception e ) {
 				message = "Error getting limits for averaging.";
@@ -659,8 +594,8 @@ throws TSException
 	// the valid dates for filling...
 
 	TSLimits valid_dates = TSUtil.getValidPeriod ( this, date1, date2 );
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
 	valid_dates = null;
 
 	if ( (start == null) || (end == null) ) {
@@ -674,9 +609,7 @@ throws TSException
 
 	int	count = 0, nweights = 0, year = 0;
 	double	sum = 0.0;
-	for (	DateTime date = new DateTime ( start );
-		date.lessThanOrEqualTo ( end );
-		date.addYear(1) ) {
+	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo ( end ); date.addYear(1) ) {
 		year = date.getYear();
 		date28spring = getLast28Spring ( year );
 		if ( date28spring == null ) {
@@ -691,8 +624,7 @@ throws TSException
 					break;
 				}
 				// Else, convert to a double and add to sum...
-				sum += weights[j]*(filldate.toDouble() -
-					(double)filldate.getYear());
+				sum += weights[j]*(filldate.toDouble() - (double)filldate.getYear());
 				++count;
 			}
 			if ( (count != 0) && (count == nweights) ) {
@@ -719,13 +651,11 @@ throws TSException
 					break;
 				}
 				// Else, convert to a double and add to sum...
-				sum += weights[j]*(filldate.toDouble() -
-					(double)filldate.getYear());
+				sum += weights[j]*(filldate.toDouble() - (double)filldate.getYear());
 				++count;
 			}
 			if ( (count != 0 ) && (count == nweights) ) {
-				// Now convert weighted sum back to a
-				// DateTime...
+				// Now convert weighted sum back to a DateTime...
 				date32spring = new DateTime ( sum, true );
 			}
 			else if ( (count == 0) && fill_ave ) {
@@ -747,8 +677,7 @@ throws TSException
 					break;
 				}
 				// Else, convert to a double and add to sum...
-				sum += weights[j]*(filldate.toDouble() -
-					(double)filldate.getYear());
+				sum += weights[j]*(filldate.toDouble() - (double)filldate.getYear());
 				++count;
 			}
 			if ( (count != 0) && (count == nweights) ) {
@@ -774,8 +703,7 @@ throws TSException
 					break;
 				}
 				// Else, convert to a double and add to sum...
-				sum += weights[j]*(filldate.toDouble() -
-					(double)filldate.getYear());
+				sum += weights[j]*(filldate.toDouble() - (double)filldate.getYear());
 				++count;
 			}
 			if ( (count != 0) && (count == nweights) ) {
@@ -789,28 +717,13 @@ throws TSException
 			setFirst28Fall ( year, date28fall );
 		}
 	}
-	// Clean up...
-	data_limits = limits;
-	date32fall = null;
-	date28fall = null;
-	date28spring = null;
-	date32spring = null;
-	filldate = null;
-	date28spring_ave = null;
-	date32spring_ave = null;
-	date32fall_ave = null;
-	date28fall_ave = null;
-	start = null;
-	end = null;
 	}
 	catch ( Exception e ) {
 		message = "Error filling frost dates.";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new TSException ( message );
 	}
-	message = null;
-	routine = null;
 }
 
 /**
@@ -860,7 +773,8 @@ public DateTime getFirst32Fall ( int year )
 {	if ( _first_32F_fall == null ) {
 		return null;
 	}
-	try {	int year1 = _date1.getYear();
+	try {
+		int year1 = _date1.getYear();
 		int year2 = _date2.getYear();
 		if ( (year < year1) || (year > year2) ) {
 			// Outside the period so return null...
@@ -884,7 +798,8 @@ public DateTime getLast28Spring ( int year )
 {	if ( _last_28F_spring == null ) {
 		return null;
 	}
-	try {	int year1 = _date1.getYear();
+	try {
+		int year1 = _date1.getYear();
 		int year2 = _date2.getYear();
 		if ( (year < year1) || (year > year2) ) {
 			// Outside the period so return null...
@@ -908,7 +823,8 @@ public DateTime getLast32Spring ( int year )
 {	if ( _last_32F_spring == null ) {
 		return null;
 	}
-	try {	int year1 = _date1.getYear();
+	try {
+		int year1 = _date1.getYear();
 		int year2 = _date2.getYear();
 		if ( (year < year1) || (year > year2) ) {
 			// Outside the period so return null...
@@ -930,13 +846,13 @@ to a standard StateMod time series, but for the dates in the data.
 @param date2_req Requested ending date.
 @return a Vector of String that can be displayed or output to a file.
 */
-public static List formatOutput ( List ts_list, DateTime date1_req, DateTime date2_req )
+public static List<String> formatOutput ( List<TS> ts_list, DateTime date1_req, DateTime date2_req )
 throws IOException
-{	String	cmnt = "#>";	// Non-permanent comment for header.
-	String	message = null;
-	String	rtn="FrostDatesYearTS.formatOutput";
-	List	strings = new Vector ( 50, 50 );
-	List	v = new Vector ( 50 );
+{	String cmnt = "#>";	// Non-permanent comment for header.
+	String message = null;
+	String rtn="FrostDatesYearTS.formatOutput";
+	List<String> strings = new Vector ( 50, 50 );
+	List v = new Vector ( 50 );
 
 	try {
 
@@ -947,14 +863,12 @@ throws IOException
 
 	int year1_req = date1_req.getYear(), year2_req = date2_req.getYear();
 
-	String	iline, iline_format;
-	int	i, j, year, year1 = year1_req, year2 = year2_req,
-		num_years;
+	String iline, iline_format;
+	int	i, j, year, year1 = year1_req, year2 = year2_req, num_years;
 
 	// count the number of series in list
 	if ( ts_list == null ) {
-		Message.printWarning ( 2, rtn,
-		"Null time series list" );
+		Message.printWarning ( 2, rtn, "Null time series list" );
 		return strings;
 	}
 	int nseries = ts_list.size();
@@ -966,24 +880,17 @@ throws IOException
 		int earliest_year, latest_year;
 
 		// use first time series dates as first and last
-		// then compare to remaining time series for earlier
-		// and later dates
-		earliest_year = 
-			((FrostDatesYearTS)
-			ts_list.get(0)).getDate1().getYear();
-		latest_year = 
-			((FrostDatesYearTS)
-			ts_list.get(0)).getDate2().getYear();
+		// then compare to remaining time series for earlier and later dates
+		earliest_year = ts_list.get(0).getDate1().getYear();
+		latest_year = ts_list.get(0).getDate2().getYear();
 
 		for ( i=1; i<nseries; i++ )
 		{
-			year = ((FrostDatesYearTS)
-				ts_list.get(i)).getDate1().getYear();
+			year = ts_list.get(i).getDate1().getYear();
 			if (( year < earliest_year ) && ( year != 0)) {
 				earliest_year = year;
 			}
-			year = ((FrostDatesYearTS)
-				ts_list.get(i)).getDate2().getYear();
+			year = ts_list.get(i).getDate2().getYear();
 			if ( year > latest_year ) {
 				latest_year = year;
 			}
@@ -1009,12 +916,9 @@ throws IOException
 	// Always do calendar year...
 
 	strings.add ( cmnt + " Years Shown = Calendar Years" );
-	strings.add ( cmnt + 
-		"(requested period of record for time series data may be" );
-	strings.add( cmnt + 
-		"different from each station's recorded period of record" );
-	strings.add ( cmnt + 
-		"as shown in the following table)" );
+	strings.add ( cmnt + "(requested period of record for time series data may be" );
+	strings.add ( cmnt + "different from each station's recorded period of record" );
+	strings.add ( cmnt + "as shown in the following table)" );
 	strings.add ( cmnt );
 
 	// print each time series id, description, and type
@@ -1022,10 +926,9 @@ throws IOException
 	strings.add ( cmnt + "     TS ID                    Type" +
 	"   Source   Units  Period of Record    Location    Description");
 
-	String			empty_string = "-", tmpdesc, tmpid, tmplocation,
-				tmpsource, tmptype, tmpunits;
-	FrostDatesYearTS	tsptr = null;
-	String			format;
+	String empty_string = "-", tmpdesc, tmpid, tmplocation, tmpsource, tmptype, tmpunits;
+	FrostDatesYearTS tsptr = null;
+	String format;
 	for ( i=0; i < nseries; i++ ) {
 		tsptr = (FrostDatesYearTS)ts_list.get(i);
 
@@ -1059,8 +962,7 @@ throws IOException
 			tmplocation = empty_string;
 		}
 
-		format= "%s %3d %-24.24s %-6.6s %-8.8s %-6.6s %3.3s/%d - "
-			+ "%3.3s/%d %-12.12s%-24.24s";
+		format= "%s %3d %-24.24s %-6.6s %-8.8s %-6.6s %3.3s/%d - %3.3s/%d %-12.12s%-24.24s";
 		v.clear();
 		v.add ( cmnt );
 		v.add ( new Integer ( i+1 ));
@@ -1068,16 +970,10 @@ throws IOException
 		v.add ( tmptype );
 		v.add ( tmpsource );
 		v.add ( tmpunits );
-		v.add ( 
-			TimeUtil.monthAbbreviation(
-			tsptr.getDate1().getMonth()));
-		v.add ( new Integer (
-			tsptr.getDate1().getYear()));
-		v.add ( 
-			TimeUtil.monthAbbreviation(
-			tsptr.getDate2().getMonth()));
-		v.add ( new Integer (
-			tsptr.getDate2().getYear()));
+		v.add ( TimeUtil.monthAbbreviation(tsptr.getDate1().getMonth()));
+		v.add ( new Integer ( tsptr.getDate1().getYear()));
+		v.add ( TimeUtil.monthAbbreviation(tsptr.getDate2().getMonth()));
+		v.add ( new Integer (tsptr.getDate2().getYear()));
 		v.add ( tmplocation );
 		v.add ( tmpdesc );
 
@@ -1099,8 +995,7 @@ throws IOException
 	{
 		tsptr = (FrostDatesYearTS)ts_list.get(i);
 		if ( tsptr.getDataIntervalBase() != TimeInterval.YEAR ) {
-			message = "A TS interval other than year detected:" +
-		   	tsptr.getDataIntervalBase();		
+			message = "A TS interval other than year detected:" + tsptr.getDataIntervalBase();		
 			Message.printWarning ( 2, rtn, message );
 			throw new IOException ( message );
 		}
@@ -1108,13 +1003,10 @@ throws IOException
 
 	strings.add( cmnt + "Temperatures are degrees F" );
 	strings.add( cmnt );
-	strings.add( cmnt +
-	"               Last    Last    First   First" );
-	strings.add( cmnt +
-	" Yr ID         Spr 28  Spr 32  Fall 32 Fall 28" );
+	strings.add( cmnt +	"               Last    Last    First   First" );
+	strings.add( cmnt + " Yr ID         Spr 28  Spr 32  Fall 32 Fall 28" );
 
-	strings.add ( 
-		cmnt + "-e-b----------eb------eb------eb------eb------e" );
+	strings.add ( cmnt + "-e-b----------eb------eb------eb------eb------e" );
 
 	// For now, always output in calendar year...
 
@@ -1122,8 +1014,7 @@ throws IOException
 	StringUtil.formatString(year1,"%4d") + "  -     12/" +
 	StringUtil.formatString(year2,"%4d") + " DATE  CYR" ));
 
-	DateTime	ts_date32fall = null, ts_date28fall = null,
-		ts_date28spring = null, ts_date32spring = null;
+	DateTime ts_date32fall = null, ts_date28fall = null, ts_date28spring = null, ts_date32spring = null;
 	
 	num_years = year2 - year1 + 1;
 	List iline_v = new Vector(30);
@@ -1141,8 +1032,7 @@ throws IOException
 			iline_v.add ( new Integer (year));
 			iline_v.add ( tsptr.getIdentifier().getLocation());
 
-			// Get the data from the time series (null if not
-			// found)...
+			// Get the data from the time series (null if not found)...
 
 			ts_date32fall = tsptr.getFirst32Fall(year);
 			ts_date28fall = tsptr.getFirst28Fall(year);
@@ -1156,27 +1046,26 @@ throws IOException
 				// No date...
 				iline_v.add ( missing_Integer );
 			}
-			else {	iline_format += "%8.8s";
-				iline_v.add (
-				ts_date28spring.toString(
-				DateTime.FORMAT_MM_SLASH_DD));
+			else {
+				iline_format += "%8.8s";
+				iline_v.add (ts_date28spring.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date32spring == null ) {
 				iline_format += "%8d";
 				// No date...
 				iline_v.add ( missing_Integer );
 			}
-			else {	iline_format += "%8.8s";
-				iline_v.add (
-				ts_date32spring.toString(
-				DateTime.FORMAT_MM_SLASH_DD));
+			else {
+				iline_format += "%8.8s";
+				iline_v.add (ts_date32spring.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date32fall == null ) {
 				iline_format += "%8d";
 				// No date...
 				iline_v.add ( missing_Integer );
 			}
-			else {	iline_format += "%8.8s";
+			else {
+				iline_format += "%8.8s";
 				iline_v.add ( ts_date32fall.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
 			if ( ts_date28fall == null ) {
@@ -1184,40 +1073,18 @@ throws IOException
 				// No date...
 				iline_v.add ( missing_Integer );
 			}
-			else {	iline_format += "%8.8s";
+			else {
+				iline_format += "%8.8s";
 				iline_v.add (ts_date28fall.toString(DateTime.FORMAT_MM_SLASH_DD));
 			}
-			strings.add ( StringUtil.formatString(
-				iline_v, iline_format) );
+			strings.add ( StringUtil.formatString(iline_v, iline_format) );
 		}
 	}
-	// Clean up...
-	iline = null;
-	iline_format = null;
-	empty_string = null;
-	tmpdesc = null;
-	tmpid = null;
-	tmplocation = null;
-	tmpsource = null;
-	tmptype = null;
-	tmpunits = null;
-	tsptr = null;
-	format = null;
-	ts_date32fall = null;
-	ts_date28fall = null;
-	ts_date28spring = null;
-	ts_date32spring = null;
-	iline_v = null;
-	missing_Integer = null;
 	} catch ( Exception e ) {
 		message = "Unable to format frost dates output.";
 		Message.printWarning ( 2, rtn, message );
 		throw new IOException ( message );
 	}
-	cmnt = null;
-	message = null;
-	rtn=null;
-	v = null;
 	return strings;
 }
 
@@ -1252,8 +1119,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Returns the flavors in which data can be transferred.  From the Transferable
-interface.  
+Returns the flavors in which data can be transferred.  From the Transferable interface.  
 The order of the dataflavors that are returned are:<br>
 <ul>
 <li>FrostDatesYearTS - FrostDatesYearTS.class / RTi.TS.FrostDatesYearTS</li>
@@ -1280,19 +1146,18 @@ method if no data are available results in the header information being
 unavailable.  Instead, return a TS with only the header information and call
 hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
-Note that true will be returned even if all the data values are set to the
-missing data value.
+Note that true will be returned even if all the data values are set to the missing data value.
 */
 public boolean hasData ()
-{	if (	(_last_28F_spring != null) ||
+{	if ( (_last_28F_spring != null) ||
 		(_last_32F_spring != null) ||
 		(_first_32F_fall != null) ||
 		(_first_28F_fall != null) ) {
-		// Assume that we have enough data to be considered "having
-		// data"
+		// Assume that we have enough data to be considered "having data"
 		return true;
 	}
-	else {	return false;
+	else {
+		return false;
 	}
 }
 
@@ -1337,8 +1202,7 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
-Set the date corresponding to the first 28 F temperature in the fall given
-the year.
+Set the date corresponding to the first 28 F temperature in the fall given the year.
 @param year Calendar year.
 @param date Frost date value to use.
 */
@@ -1357,8 +1221,7 @@ public void setFirst28Fall ( int year, DateTime date )
 }
 
 /**
-Set the date corresponding to the first 32 F temperature in the fall
-given the year requested.
+Set the date corresponding to the first 32 F temperature in the fall given the year requested.
 @param year Calendar year.
 @param date Frost date value to use.
 */
@@ -1377,8 +1240,7 @@ public void setFirst32Fall ( int year, DateTime date )
 }
 
 /**
-Set the date corresponding to the last 28 F temperature in the spring
-given the year requested.
+Set the date corresponding to the last 28 F temperature in the spring given the year requested.
 @param year Calendar year.
 @param date Frost date value to use.
 */
@@ -1397,8 +1259,7 @@ public void setLast28Spring ( int year, DateTime date )
 }
 
 /**
-Set the date corresponding to the last 32 F temperature in the spring
-given the year requested.
+Set the date corresponding to the last 32 F temperature in the spring given the year requested.
 @param year Calendar year.
 @param date Frost date value to use.
 */
@@ -1416,4 +1277,4 @@ public void setLast32Spring ( int year, DateTime date )
 	_last_32F_spring.set(pos,date);
 }
 
-} // End FrostDatesYearTS
+}
