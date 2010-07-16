@@ -67,6 +67,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import RTi.TS.DateValueTS;
+import RTi.TS.TS;
 import RTi.TS.TSUtil;
 
 import RTi.Util.GUI.JFileChooserFactory;
@@ -99,7 +100,7 @@ private TSViewJFrame __tsview_JFrame;
 /**
 List of time series to graph.
 */
-private List __tslist;
+private List<TS> __tslist;
 /**
 Property list.
 */
@@ -126,7 +127,7 @@ Construct a TSViewSummaryJFrame.
 @param props Properties for display (currently same list passed in to TSViewFrame).
 @exception if there is an error displaying the time series.
 */
-public TSViewSummaryJFrame(	TSViewJFrame tsview_gui, List tslist, PropList props )
+public TSViewSummaryJFrame(	TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
 throws Exception
 {	super ( "Time Series - Summary View" );
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
@@ -197,7 +198,7 @@ Initialize the data and GUI.
 @param tslist List of time series to display.
 @param props Properties for display (currently same list passed in to TSViewJFrame).
 */
-private void initialize ( TSViewJFrame tsview_gui, List tslist, PropList props )
+private void initialize ( TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
 {	__tsview_JFrame = tsview_gui;
 	__tslist = tslist;
 	__props = props;
@@ -218,7 +219,6 @@ private void initialize ( TSViewJFrame tsview_gui, List tslist, PropList props )
 			setTitle( JGUIUtil.getAppNameForWindows() + " - " + prop_value + " - Summary" );
 		}
 	}
-	prop_value = null;
 	openGUI ( true );
 }
 
@@ -227,7 +227,8 @@ Open the GUI and display the time series summary.
 @param mode Indicates whether the GUI should be visible at creation.
 */
 private void openGUI ( boolean mode )
-{	// Start a big try block to set up the GUI...
+{	String routine = getClass().getName() + ".openGUI";
+	// Start a big try block to set up the GUI...
 	try {
 
 	// Add a listener to catch window manager events...
@@ -253,17 +254,17 @@ private void openGUI ( boolean mode )
 	StringBuffer buffer = new StringBuffer();
 	String nl = System.getProperty ( "line.separator" );
 	try {
-		List summary_strings = TSUtil.formatOutput (__tslist,__props);
+		List<String> summary_strings = TSUtil.formatOutput (__tslist,__props);
 		if ( summary_strings != null ) {
 			int size = summary_strings.size();
 			for ( int i = 0; i < size; i++ ) {
-				buffer.append ( (String)summary_strings.get(i) + nl );
+				buffer.append ( summary_strings.get(i) + nl );
 			}
 		}
-		summary_strings = null;
 	}
 	catch ( Exception e ) {
 		buffer.append ( "Error creating time series summary." );
+		Message.printWarning(3, routine, e);
 	}
 	nl = null;
 
@@ -343,18 +344,9 @@ private void openGUI ( boolean mode )
 	// Set the cursor position to the top
 	__summary_JTextArea.setCaretPosition(0);
 	setVisible ( mode );
-	// Clean up...
-	buffer = null;
-	prop_value = null;
-	gbl = null;
-	insetsTLBR = null;
-	display_JPanel = null;
-	button_JPanel = null;
 	} // end of try
 	catch ( Exception e ) {
-		if (IOUtil.testing()) {
-			e.printStackTrace();
-		}
+		Message.printWarning(3, routine, e);
 	}
 }
 
@@ -374,7 +366,7 @@ private void save ()
 	SimpleFileFilter txt_sff = new SimpleFileFilter("txt", "Text Report" );
 	fc.addChoosableFileFilter ( txt_sff );
 	if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION ) {
-		// Cancelled...
+		// Canceled...
 		return;
 	}
 	// Else figure out the file format and location and then do the save...
@@ -400,7 +392,7 @@ private void save ()
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error saving DateValue file \"" + path + "\"");
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 	}
@@ -413,7 +405,7 @@ private void save ()
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 1, routine, "Error saving report file \"" + path + "\"");
-			Message.printWarning ( 2, routine, e );
+			Message.printWarning ( 3, routine, e );
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 	}
