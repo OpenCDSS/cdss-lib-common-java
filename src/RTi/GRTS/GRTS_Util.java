@@ -22,8 +22,7 @@ import RTi.TS.TS;
 import RTi.Util.IO.PropList;
 
 /**
-This class contains static utility methods that operate on GRTS package
-objects.
+This class contains static utility methods that operate on GRTS package objects.
 */
 public abstract class GRTS_Util
 {
@@ -42,7 +41,7 @@ adopted as standard defaults.
 @param tslist List of time series to be graphed.
 @param props Properties to modify for the graph product (must be non-null).
 */
-public static void addDefaultPropertiesForDataFlags ( List tslist, PropList props )
+public static void addDefaultPropertiesForDataFlags ( List<TS> tslist, PropList props )
 {	int size = 0;
 	if ( tslist != null ) {
 		size = tslist.size();
@@ -59,32 +58,40 @@ public static void addDefaultPropertiesForDataFlags ( List tslist, PropList prop
 	}
 	TS ts = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts.hasDataFlags() ) {
 			// Turn on the symbols and labels...
-			/* REVISIT SAM 2006-05-22
+			/* TODO SAM 2006-05-22
 			This does not seem like a good idea.  Although it works
 			well for sparse data, some data with flags (like daily
 			precipitation, when drawn with symbols, overwhelms
-			the user.  For now copy this out and only show the
-			label symbols.
+			the user.  For now copy this out and only show the label symbols.
 			if ( !ispointgraph ) {
 				// Don't set symbol style and size for point
 				// graphs because defaults are usually in
 				// place...
-				props.set ( "Data 1." + (i + 1) +
-				".SymbolStyle=Circle-Filled" );
-				props.set ( "Data 1." + (i + 1) +
-				".SymbolSize=6" );
+				props.set ( "Data 1." + (i + 1) + ".SymbolStyle=Circle-Filled" );
+				props.set ( "Data 1." + (i + 1) + ".SymbolSize=6" );
 			}
 			*/
 			// Always set label position...
-			props.set (
-			"Data 1." + (i + 1) + ".DataLabelFormat=%q" );
-			props.set (
-			"Data 1." + (i + 1) + ".DataLabelPosition=UpperRight" );
+			props.set ( "Data 1." + (i + 1) + ".DataLabelFormat=%q" );
+			props.set (	"Data 1." + (i + 1) + ".DataLabelPosition=UpperRight" );
 		}
 	}
 }
 
-} // end GRTS_Util class
+/**
+Format a TSView property for the subproduct (graph) and data property.  The returned string has
+the format "Subproduct igraph.Data its.propVal".
+@return the formatted property value for the 
+@param igraph The graph number 1+.
+@param its The time series number 1+.
+@param propVal the raw property value.
+*/
+public static String formatDataProperty ( int igraph, int its, String propVal )
+{
+	return "Data " + igraph + "." + its + "." + propVal;
+}
+
+}
