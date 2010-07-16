@@ -176,6 +176,7 @@ The worksheet in which this table model is being used.
 private JWorksheet __worksheet;
 /**
 The formats (in printf() style) in which the column data should be displayed.
+This depends on the time series data units.
 */
 private String[] __dataFormats;
 
@@ -200,8 +201,7 @@ public TSViewTable_TableModel(List data, DateTime start,
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
 boolean useExtendedLegend)
 throws Exception {
-	this(data, start, intervalBase, intervalMult, dateFormat, dataFormats,
-		useExtendedLegend, 50);
+	this(data, start, intervalBase, intervalMult, dateFormat, dataFormats, useExtendedLegend, 50);
 }
 
 /**
@@ -326,6 +326,8 @@ public String getColumnName(int columnIndex) {
 			}
 			return "DATE";
 	}
+	
+	// Otherwise the column names depends on time series properties
 
 	TS ts = (TS)_data.get(columnIndex - 1);
 
@@ -429,8 +431,9 @@ public Object getConsecutiveValueAt(int row, int col) {
 Returns the total number of characters in a DateTime object formatted with __dateFormat.
 @return the total number of characters in a DateTime object formatted with __dateFormat.
 */
-private int getDateFormatLength() {
-// TODO (SAM - 2003-07-21) might add something similar to DateTime.
+private int getDateFormatLength()
+{
+	// TODO (SAM - 2003-07-21) might add something similar to DateTime.
 	switch (__dateFormat) {
 		case DateTime.FORMAT_MM:
 			return 2;
@@ -514,6 +517,15 @@ Returns the number of rows of data in the table.
 */
 public int getRowCount() {
 	return _rows;
+}
+
+/**
+Returns the time series.
+@return the time series at a specific index i.
+*/
+public TS getTS ( int i )
+{	
+	return (TS)_data.get(i);
 }
 
 /**
@@ -642,8 +654,7 @@ public int[] getColumnWidths() {
 	int len = 0;
 	
 	if (__columns > 0) {
-		widths[0] = getDateFormatLength() 
-			+ (int)(getDateFormatLength() / 10) + 1;
+		widths[0] = getDateFormatLength() + (int)(getDateFormatLength() / 10) + 1;
 	}
 	for (int i = 1; i < __columns; i++) {
 		colName = getColumnName(i);
@@ -668,10 +679,10 @@ Returns whether the cell is editable or not.  Returns false.
 public boolean isCellEditable(int rowIndex, int columnIndex) {
 	if (columnIndex > 0) {
 		if (1 == 1) {
-			// REVISIT (JTS - 2004-01-22)
-			// no editing supported yet
+			// TODO (JTS - 2004-01-22) no editing supported yet
 			return false;
-		}	
+		}
+		// FIXME SAM (2010-07-15) Figure this out - we added some editing.
 		TS ts = (TS)_data.get(columnIndex - 1);
 		return ts.isEditable();
 	}

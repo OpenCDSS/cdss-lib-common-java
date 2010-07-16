@@ -765,7 +765,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	int count = 0;
 	boolean hit = false;
 	
-	// get the first TS in the Vector and get the interval base.  All other
+	// get the first TS in the list and get the interval base.  All other
 	// TS in the Vector must have the same interval base
 	TS ts = tslist.get(0);	
 	int interval = ts.getDataIntervalBase();
