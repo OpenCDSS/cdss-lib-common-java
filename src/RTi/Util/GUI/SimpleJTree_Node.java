@@ -98,8 +98,7 @@ public SimpleJTree_Node(String text) {
 }
 
 /**
-Constructor.  Creates a node that holds the given Component and has the
-given name.
+Constructor.  Creates a node that holds the given object and has the given name.
 @param userObject the Component to store in this node.
 @param name the name of this node.
 */

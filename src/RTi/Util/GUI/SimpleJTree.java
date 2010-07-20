@@ -296,25 +296,36 @@ public SimpleJTree() {
 
 /**
 Constructor.
+This creates a tree containing the provided root node.
+@param root the root node to use to initialize the tree.
+*/
+public SimpleJTree( SimpleJTree_Node root ) {
+    DefaultTreeModel model = new DefaultTreeModel(root);
+    setModel(model);
+    initialize();
+}
+
+/**
+Constructor.
 This creates a tree with an invisible root node that is programmatically 
 editable and which has the default tree node selection model and populates 
 it with the values stored in the provided Vector as follows:<ul>
 <li>
-If the Vector contains Strings, each String is placed in a new 
+If the list contains Strings, each String is placed in a new 
 SimpleJTree_Node and placed in the tree.  This method of operation is
 similar to how JTree's are most-often used (i.e., to show a list of files
 in a directory tree, with each String being the name of a file).
 </li>
 <li>
-If the Vector contains Vectors ... <ul>
+If the list contains list ... <ul>
 <li>
-... and the Vectors within the main Vector have <b>2</b> values in them,
+... and the list within the main list have <b>2</b> values in them,
 the first value is cast as a <b>Component</b> and the second is cast
 as a <b>String</b> and passed to the <tt>SimpleJTree_Node(Component, String)
 </tt> constructor.
 </li>
 <li>
-... and the Vectors within the main Vector have <b>3</b> values in them,
+... and the lists within the main list have <b>3</b> values in them,
 the first value is cast as a <b>String</b>, the second as an <b>Icon</b> and
 the third as a <b>String</b> and passed to the 
 <tt>SimpleJTree_Node(String, Icon, String)</tt> constructor.
@@ -1166,8 +1177,8 @@ public SimpleJTree_Node getSelectedNode() {
 }
 
 /**
-Returns a Vector of all the nodes selected in the tree, or an empty Vector if none are selected.
-@return a Vector of all the nodes selected in the tree, or an empty Vector if none are selected.
+Returns a list of all the nodes selected in the tree, or an empty list if none are selected.
+@return a list of all the nodes selected in the tree, or an empty list if none are selected.
 */
 public List getSelectedNodes() {
 	TreePath[] tps = getSelectionPaths();
