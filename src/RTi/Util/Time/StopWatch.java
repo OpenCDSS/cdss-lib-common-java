@@ -1,28 +1,10 @@
-// ----------------------------------------------------------------------------
-// StopWatch - a timer class to help time processing
-// ----------------------------------------------------------------------------
-// History:
-//
-// ?		Steven A. Malers, RTi	Initial version to help diagnose
-//					performance issues.
-// 2001-02-06	SAM, RTi		Clean up javadoc to simplify port to
-//					C++.  Add finalize() method and make
-//					sure values are set to null when not
-//					used.
-// 2001-05-04	SAM, RTi		Rename to StopWatch from Timer because
-//					MS VC++ has a conflict with Timer.
-//					Deprecate the other class and start
-//					using this class.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.Time;
 
 import java.lang.String;
 import java.util.Date;
 
 /**
-This class provides a way to track execution time similar to a physical
-stopwatch.  To
+This class provides a way to track execution time similar to a physical stopwatch.  To
 use the class, declare an instance and then call "start" and "stop" as necessary
 to add to the time.  Use "clear" to reset the timer to zero.  The time amounts
 are tracked internally in milliseconds.  Note that the StopWatch features do
@@ -34,13 +16,22 @@ Message.isDebugOn() checks.
 */
 public class StopWatch {
 
-// Data members...
-
-private long	_total_milliseconds;	// Total time in milliseconds.
-private Date	_start_date;		// Start date for a StopWatch session.
-private boolean	_start_set;		// Indicates if the start time has been
-					// set.
-private Date	_stop_date;		// Stop date for a StopWatch session.
+/**
+Total elapsed running time in milliseconds.
+*/
+private long _total_milliseconds;
+/**
+Start date for a StopWatch session.
+*/
+private Date _start_date;
+/**
+Indicates if the start time has been set.
+*/
+private boolean _start_set;
+/**
+Stop date for a StopWatch session.
+*/
+private Date _stop_date;
 
 /**
 Constructor and initialize the StopWatch count to zero milliseconds.
@@ -59,10 +50,27 @@ public StopWatch ( long total )
 }
 
 /**
+Add the time from another stopwatch to the elapsed time for this stopwatch.
+@param sw the StopWatch from which to get additional time.
+*/
+public void add ( StopWatch sw )
+{
+    _total_milliseconds += sw.getMilliseconds();
+}
+
+/**
 Reset the StopWatch to zero.
 */
 public void clear ()
 {	_total_milliseconds = 0;
+}
+
+/**
+Reset the StopWatch to zero and call start().
+*/
+public void clearAndStart ()
+{   _total_milliseconds = 0;
+    start();
 }
 
 /**
@@ -116,7 +124,7 @@ subsequent calls to "start" can be made to continue adding to the StopWatch.
 */
 public void stop ()
 {	_stop_date = new Date ();
-	// now compute the difference and add to the
+	// Compute the difference and add to the elapsed time.
 	if ( _start_set ) {
 		long add = _stop_date.getTime() - _start_date.getTime();
 		_total_milliseconds += add;
@@ -131,4 +139,4 @@ public String toString ()
 {	return "StopWatch(seconds)=" + getSeconds();
 }
 
-} // End class StopWatch
+}
