@@ -4,8 +4,6 @@ package RTi.Util.IO;
 
 import java.util.Arrays;
 
-import RTi.Util.Message.Message;
-
 /*
  * HtmlUtil.java
  *
@@ -43,11 +41,11 @@ public class HTMLUtil {
             char c = text.charAt(i);
             // Check for non ISO8859-1 characters
             int pos = (int)c;
-            Message.printStatus(2, "", "Position for " + c + " is " + pos );
+            //Message.printStatus(2, "", "Position for " + c + " is " + pos );
             if ( pos < symbolicCode.length ) {
                 // Character is within the lookup table
                 String sc = symbolicCode[pos];
-                Message.printStatus(2, "", "Translated character is " + sc );
+                //Message.printStatus(2, "", "Translated character is " + sc );
                 if ("".equals(sc)) {
                     // Character does not need to be converted so just append
                     t = t.append(c);
