@@ -161,12 +161,12 @@ private int __inputType = 0;
 /**
 A list of String choices to choose from.  If not null a JComboBox will be displayed to let the user choose from.
 */
-private List __choiceLabelList = null;
+private List<String> __choiceLabelList = null;
 
 /**
 The internal values (e.g., database table and column) corresponding to the visible choices.
 */
-private List __choiceInternalList = null;
+private List<String> __choiceInternalList = null;
 
 /**
 Used when the choices are not simple strings but contain informational notes - indicates
@@ -215,13 +215,13 @@ private String __inputComponentToolTipText = null;
 /**
 The listeners that want to listen to mouse events on the input component.
 */
-private List __inputComponentMouseListeners = null;
+private List<MouseListener> __inputComponentMouseListeners = null;
 
 /**
 If not null, contains all the constraints that should NOT appear in the constraint
 combo box for this InputFilter.
 */
-private List __removedConstraints = null;
+private List<String> __removedConstraints = null;
 
 /**
 Construct an input filter.
@@ -238,7 +238,7 @@ displayed to the user.  If null, the user will not be shown a list of choices.
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
 public InputFilter ( String whereLabel, String whereInternal,
-	int inputType, List choiceLabels, List choicesInternal, boolean areChoicesEditable )
+	int inputType, List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {
 	this(whereLabel, whereInternal, "", inputType, choiceLabels, choicesInternal, areChoicesEditable);
 }
@@ -262,7 +262,7 @@ displayed to the user.  If null, the user will not be shown a list of choices.
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
 public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
-	List choiceLabels, List choicesInternal, boolean areChoicesEditable )
+	List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {	__whereLabel = whereLabel;
 	__whereInternal = whereInternal;
 	__whereInternal2 = whereInternal2;
@@ -363,7 +363,7 @@ throws Throwable {
 Return the choices that are visible to the user. 
 @return the choices that are visible to the user. 
 */
-public List getChoiceLabels()
+public List<String> getChoiceLabels()
 {	return __choiceLabelList;
 }
 
@@ -387,7 +387,7 @@ public int getChoiceToken ()
 Returns the constraints that should not appear in the constraint combo box for this InputFilter.
 @return the constraints that should not appear in the constraint combo box for this InputFilter.
 */
-protected List getConstraintsToRemove() {
+protected List<String> getConstraintsToRemove() {
 	return __removedConstraints;
 }
 
@@ -433,10 +433,10 @@ public JComponent getInputComponent()
 }
 
 /**
-Returns the Vector of mouse listeners for the input component.  May be null if none have been set.
-@return the Vector of mouse listeners for the input component.
+Returns the list of mouse listeners for the input component.  May be null if none have been set.
+@return the list of mouse listeners for the input component.
 */
-public List getInputComponentMouseListeners() {
+public List<MouseListener> getInputComponentMouseListeners() {
 	return __inputComponentMouseListeners;
 }
 
@@ -462,7 +462,7 @@ public String getInputInternal ()
 			return cb.getFieldText();
 		}
 		else {
-			return (String)__choiceInternalList.get(pos);
+			return __choiceInternalList.get(pos);
 		}
 	}
 	else {
@@ -693,13 +693,13 @@ displayed to the user.  If null, the user will not be shown a list of choices.
 @param areChoicesEditable If true, and a non-null list of choices is provided,
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
-public void setChoices ( List choiceLabels, List choicesInternal, boolean areChoicesEditable )
+public void setChoices ( List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {   // Clear the list and add the new list so that GUI components that use this class as the data model
     // retain the same references.
     __choiceLabelList.clear();
-    __choiceLabelList.add(choiceLabels);
+    __choiceLabelList.addAll(choiceLabels);
     __choiceInternalList.clear();
-    __choiceInternalList.add(choicesInternal);
+    __choiceInternalList.addAll(choicesInternal);
     __areChoicesEditable = areChoicesEditable;
 }
 
