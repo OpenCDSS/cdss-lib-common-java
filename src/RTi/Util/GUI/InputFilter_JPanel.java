@@ -367,7 +367,8 @@ If the requested where_label is not selected in any of the input filters, a zero
 Currently only the string input type is enabled.
 @return the input that has been entered in the panel, for a requested parameter.
 @param whereLabel The visible label for the input filter.
-@param useWildcards If true, the returned information will be returned using
+@param useWildcards Suitable only for string input (treated as false if numeric input).
+If true, the returned information will be returned using
 wildcards, suitable for "matches" calls (e.g., "*inputvalue*").  If false,
 the returned information will be returned in verbose format as per the
 toString() method (e.g., "contains;inputvalue").
@@ -393,6 +394,7 @@ public List<String> getInput ( String whereLabel, boolean useWildcards, String d
 		inputType = filter.getInputType();
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			if ( useWildcards ) {
+			    // Insert the wildcard character around the input, as appropriate
 				if ( getOperator(ifg).equals( InputFilter.INPUT_MATCHES) ) {
 					inputList.add( input );
 				}
@@ -407,15 +409,26 @@ public List<String> getInput ( String whereLabel, boolean useWildcards, String d
 				}
 			}
 			else {
+			    // Return the input with operator
 				inputList.add (getOperator(ifg) + delim + input );
 			}
 		}
-		/* TODO SAM 2004-09-10 Need to enable at some point
 		else if ( (inputType == StringUtil.TYPE_DOUBLE) || (inputType == StringUtil.TYPE_FLOAT) ) {
+		    if ( useWildcards ) {
+		        inputList.add ( input );
+		    }
+		    else {
+		        inputList.add (getOperator(ifg) + delim + input );
+		    }
 		}
 		else if	( inputType == StringUtil.TYPE_INTEGER ) {
+            if ( useWildcards ) {
+                inputList.add ( input );
+            }
+            else {
+                inputList.add (getOperator(ifg) + delim + input );
+            }
 		}
-		*/
 	}
 	return inputList;
 }
