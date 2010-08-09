@@ -856,14 +856,17 @@ Return a data point for a date.
 @return A TSData for the date of interest.
 @param date Date of interest.
 */
-public TSData getDataPoint ( DateTime date )
+public TSData getDataPoint ( DateTime date, TSData data_point )
 {	int	i = 0;
-	TSData	ptr = null;
+	TSData ptr = null;
 
-	TSData data_point = new TSData();
+	if ( data_point == null ) {
+	    data_point = new TSData();
+	}
 	data_point.setDate ( date );
 	data_point.setUnits ( _data_units );
-	data_point.setDataFlag ( "" );	// Until we know better.
+	data_point.setDataFlag ( "" ); // default
+	data_point.setDuration ( 0 ); // default
 
 	//Check the date coming in 
 
@@ -914,7 +917,7 @@ public TSData getDataPoint ( DateTime date )
 	int found_index = -1;
 	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
 		for ( i=0; i < size; i++ ) {
-			ptr = (TSData)__ts_data_head.get(i); 
+			ptr = __ts_data_head.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -956,19 +959,9 @@ public TSData getDataPoint ( DateTime date )
 
 	data_point.setData ( ptr.getData() );
 	data_point.setDataFlag ( ptr.getDataFlag() );
+	data_point.setDuration( ptr.getDuration() );
 
 	return data_point;
-}
-
-/**
-Return the data position.  This is not valid for IrregularTS.
-@return The data position in the data array given a date.
-@param date Date of interest.
-@see TSDataPosition
-*/
-public int [] getDataPosition ( DateTime date )
-{	Message.printWarning( 2, "IrregularTS.getDataPosition", "getDataPosition is not used with IrregularTS." );
-	return null;
 }
 
 /**

@@ -71,6 +71,7 @@ import java.io.Serializable;
 
 import java.util.List;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -128,12 +129,15 @@ protected int _flags;		// Flags to control behavior.
 private double __max_value;
 private DateTime __max_value_date;
 private double __mean;
+private double __median;
 private double __min_value;
 private DateTime __min_value_date;
 private int __missing_data_count;
 private int __non_missing_data_count;
 private DateTime __non_missing_data_date1;
 private DateTime __non_missing_data_date2;
+private double __skew;
+private double __stdDev;
 private double __sum;
 private String __data_units="";// Data units (just copy from TS at the time of creation).
 
@@ -176,9 +180,12 @@ public TSLimits ( TSLimits limits )
 	__non_missing_data_count = limits.__non_missing_data_count;
 	__missing_data_count = limits.__missing_data_count;
 	__mean = limits.__mean;
+	__median = limits.__median;
 	__sum = limits.__sum;
 	__found = limits.__found;
 	_flags = limits._flags;
+	__skew = limits.__skew;
+	__stdDev = limits.__stdDev;
 	__ts = limits.__ts;
 }
 
@@ -321,43 +328,7 @@ throws TSException
 		mult = ts.getDataIntervalMult();
 		if ( refresh_flag ) {
 			// Force a refresh of the time series.
-			//
-			// Need to be picky here because of the dependence on the type...
-			if ( base == TimeInterval.MINUTE ) {
-				MinuteTS temp = (MinuteTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else if ( base == TimeInterval.HOUR ) {
-				HourTS temp = (HourTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else if ( base == TimeInterval.DAY ) {
-				DayTS temp = (DayTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else if ( base == TimeInterval.MONTH ) {
-				MonthTS temp = (MonthTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else if ( base == TimeInterval.YEAR ) {
-				YearTS temp = (YearTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else if ( base == TimeInterval.IRREGULAR ) {
-				IrregularTS temp = (IrregularTS)ts;
-				temp.refresh ();
-				temp = null;
-			}
-			else {
-				message = "Unknown time series interval for refresh()";
-				Message.printWarning ( 3, routine, message );
-				throw new TSException ( message );
-			}
+		    ts.refresh();
 		}
 	
 		// Get the variables that are used often in this function.
@@ -373,6 +344,7 @@ throws TSException
 		}
 	
 		// Loop through the dates and get max and min data values;
+		// TODO SAM 2010-06-15 Need to consolidate code to use iterator
 	
 		if ( base == TimeInterval.IRREGULAR ) {
 			// Loop through the dates and get max and min data values;
@@ -380,7 +352,7 @@ throws TSException
 	
 			IrregularTS its = (IrregularTS)ts;
 	
-			List data_array = its.getData ();
+			List<TSData> data_array = its.getData ();
 			if ( data_array == null ) {
 				message = "Null data for " + ts;
 				Message.printWarning ( 3, routine, message );
@@ -389,7 +361,7 @@ throws TSException
 			int size = data_array.size();
 			TSData ptr = null;
 			for ( int i = 0; i < size; i++ ) {
-				ptr = (TSData)data_array.get(i);
+				ptr = data_array.get(i);
 				date = ptr.getDate();
 		
 				if ( date.lessThan( ts_date1 ) ) {
@@ -450,7 +422,7 @@ throws TSException
 			// Now search backwards to find the first non-missing date...
 			if ( found ) {
 				for ( int i = (size - 1); i >= 0; i-- ){
-					ptr = (TSData)data_array.get(i);
+					ptr = data_array.get(i);
 					date = ptr.getDate();
 					value = ptr.getData();
 					if ( date.greaterThan(end) ) {
@@ -469,9 +441,6 @@ throws TSException
 					}
 				}
 			}
-			its = null;
-			data_array = null;
-			ptr = null;
 		}
 		else {
 			// A regular TS... easier to iterate...
@@ -538,6 +507,44 @@ throws TSException
 				}
 			}
 		}
+		
+		// TODO SAM 2010-06-15 This is a performance hit, but not too bad
+		// TODO SAM 2010-06-15 Consider treating other statistics similarly but need to define unit tests
+		// TODO SAM 2010-06-15 This code would need to be changed if doing Lag-1 correlation because order matters
+		// For newly added statistics, use helper method to get data, ignoring missing...
+		double [] dataArray = TSUtil.toArray(ts, start, end, 0, false );
+		// Check for <= 0 values if necessary
+		int nDataArray = dataArray.length;
+		if ( ignore_lezero ) {
+		    for ( int i = 0; i < nDataArray; i++ ) {
+		        if ( dataArray[i] <= 0.0 ) {
+		            // Just exchange with the last value and reduce the size
+		            double temp = dataArray[i];
+		            dataArray[i] = dataArray[nDataArray - 1];
+		            dataArray[nDataArray - 1] = temp;
+		            --nDataArray;
+		        }
+		    }
+		}
+		if ( nDataArray > 0 ) {
+		    setMedian ( MathUtil.median (nDataArray, dataArray) );
+		}
+        if ( nDataArray > 1 ) {
+            try {
+                setStdDev ( MathUtil.standardDeviation(nDataArray, dataArray) );
+            }
+            catch ( Exception e ) {
+                // Likely due to small sample size
+            }
+        }
+        if ( nDataArray > 2 ) {
+            try {
+                setSkew ( MathUtil.skew(nDataArray, dataArray) );
+            }
+            catch ( Exception e ) {
+                // Likely due to small sample size
+            }
+        }
 	
 		if ( !found ) {
 			message = "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!";
@@ -573,15 +580,6 @@ throws TSException
 		}
 		setSum ( sum );
 		setMean ( mean );
-		// Clean up...
-		date = null;
-		max_date = null;
-		min_date = null;
-		non_missing_data_date1 = null;
-		non_missing_data_date2 = null;
-		t = null;
-		ts_date1 = null;
-		ts_date2 = null;
 	}
 	catch ( Exception e ) {
 		message = "Error computing limits.";
@@ -592,15 +590,12 @@ throws TSException
 		}
 		throw new TSException ( message );
 	}
-	message = null;
-	routine = null;
 }
 
 /**
 Check to see if ALL the dates have been set (are non-null) and if so set the
 _found flag to true.  If a TSLimits is being used for something other than fill
-limits analysis, then external code may need to call setLimitsFound() to
-manually set the found flag.
+limits analysis, then external code may need to call setLimitsFound() to manually set the found flag.
 */
 private void checkDates ()
 {	if ( (__date1 != null) && (__date2 != null) &&
@@ -723,6 +718,14 @@ public double getMean ()
 }
 
 /**
+Return the median data value for the time series.
+@return The median data value for the time series, or NaN if not computed.
+*/
+public double getMedian ()
+{   return __median;
+}
+
+/**
 Return the minimum data value for the time series.
 @return The minimum data value for the time series.
 */
@@ -810,6 +813,22 @@ public boolean hasNonMissingData ()
 }
 
 /**
+Return the skew for the time series.
+@return The skew for the time series, or NaN if not computed.
+*/
+public double getSkew ()
+{   return __skew;
+}
+
+/**
+Return the standard deviation for the time series.
+@return The standard deviation for the time series, or NaN if not computed.
+*/
+public double getStdDev ()
+{   return __stdDev;
+}
+
+/**
 Initialize the data.
 Need to rework code to use an instance of TS so we can initialize to missing
 data values used by the time series!
@@ -822,13 +841,16 @@ private void initialize ()
 	_flags = 0;
 	__max_value = 0.0;
 	__max_value_date = null;
-	__mean = -999.0;		// Assume.
+	__mean = -999.0; // Assume.
+	__median = Double.NaN; // Assume.
 	__min_value = 0.0;
 	__min_value_date = null;
 	__missing_data_count = 0;
 	__non_missing_data_count = 0;
 	__non_missing_data_date1 = null;
 	__non_missing_data_date2 = null;
+	__skew = Double.NaN;
+	__stdDev = Double.NaN;
 	__sum = -999.0;		// Assume.
 	__found = false;
 }
@@ -906,6 +928,14 @@ public void setMean ( double mean )
 }
 
 /**
+Set the median data value for the time series.
+@param median The median data value.
+*/
+public void setMedian ( double median )
+{   __median = median;
+}
+
+/**
 Set the minimum data value for the time series.
 @param min_value The minimum data value.
 */
@@ -973,6 +1003,22 @@ public void setNonMissingDataDate2 ( DateTime date )
 }
 
 /**
+Set the skew for the time series.
+@param skew The skew data value.
+*/
+public void setSkew ( double skew )
+{   __skew = skew;
+}
+
+/**
+Set the standard deviation for the time series.
+@param stdDev The standard deviation.
+*/
+public void setStdDev ( double stdDev )
+{   __stdDev = stdDev;
+}
+
+/**
 Set the sum of data values for the time series.
 @param sum The sum of data value.
 */
@@ -1007,12 +1053,13 @@ public String toString ( )
 				(double)(__missing_data_count + __non_missing_data_count);
 	}
 	return 
-	"Min:  " + StringUtil.formatString(__min_value,"%20.4f") + units +
-		" on " + __min_value_date + "\n" +
-	"Max:  " + StringUtil.formatString(__max_value,"%20.4f") + units +
-		" on " + __max_value_date + "\n" +
+	"Min:  " + StringUtil.formatString(__min_value,"%20.4f") + units + " on " + __min_value_date + "\n" +
+	"Max:  " + StringUtil.formatString(__max_value,"%20.4f") + units + " on " + __max_value_date + "\n" +
 	"Sum:  " + StringUtil.formatString(__sum,"%20.4f") + units + "\n" +
 	"Mean: " + StringUtil.formatString(__mean,"%20.4f") + units + "\n" +
+	"Median: " + StringUtil.formatString(__median,"%20.4f") + units + "\n" +
+	"StdDev: " + StringUtil.formatString(__stdDev,"%20.4f") + units + "\n" +
+	"Skew: " + StringUtil.formatString(__skew,"%20.4f") + units + "\n" +
 	"Number Missing:     " + __missing_data_count + " (" +
 			StringUtil.formatString(missing_percent,"%.2f")+"%)\n" +
 	"Number Not Missing: " + __non_missing_data_count + " (" +

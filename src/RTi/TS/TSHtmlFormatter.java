@@ -266,7 +266,7 @@ throws Exception
     }
     Message.printStatus ( 2, routine, "Reset output period to full years " + outputStart + " to " + outputEnd );
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
-    TSData data;
+    TSData data = new TSData();
     double value;
     String flag = null;
     double yearTotal = ts.getMissing();
@@ -307,7 +307,7 @@ throws Exception
                     date.setYear(yearOffset);
                     date.setMonth(month);
                     date.setDay(day);
-                    data = ts.getDataPoint ( date );
+                    data = ts.getDataPoint ( date, data );
                     value = data.getData();
                     flag = data.getDataFlag();
                     if ( flag != null ) {
@@ -394,7 +394,7 @@ throws Exception
     html.tableRowEnd();
  
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
-    TSData data;
+    TSData data = new TSData();
     double value;
     String flag = null;
     int missingCountTotal = 0;
@@ -410,7 +410,7 @@ throws Exception
         td[0] = "" + date; // Format using ISO default
         html.tableCells(td);
         // Process data value for year...
-        data = ts.getDataPoint ( date );
+        data = ts.getDataPoint ( date, data );
         value = data.getData();
         flag = data.getDataFlag();
         if ( flag != null ) {
@@ -571,7 +571,7 @@ throws Exception
     html.tableRowEnd();
  
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
-    TSData data;
+    TSData data = new TSData();
     double value;
     String flag = null;
     int missingCountTotal = 0;
@@ -587,7 +587,7 @@ throws Exception
         td[0] = "" + date; // Format using ISO default
         html.tableCells(td);
         // Process data value for year...
-        data = ts.getDataPoint ( date );
+        data = ts.getDataPoint ( date, data );
         value = data.getData();
         flag = data.getDataFlag();
         if ( flag != null ) {
@@ -707,7 +707,7 @@ throws Exception
     }
     Message.printStatus ( 2, routine, "Reset output period to full years " + outputStart + " to " + outputEnd );
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
-    TSData data;
+    TSData data = new TSData();
     int monthPos = -1; // use 0 as reference (0-11) for months
     int year;
     double value;
@@ -727,7 +727,7 @@ throws Exception
             html.tableRowStart();
             html.tableCell( "" + year );
         }
-        data = ts.getDataPoint ( date );
+        data = ts.getDataPoint ( date, data );
         value = data.getData();
         flag = data.getDataFlag();
         if ( flag != null ) {
@@ -828,7 +828,7 @@ throws Exception
     html.tableRowEnd();
  
     DateTime date = new DateTime(outputStart,DateTime.DATE_FAST);
-    TSData data;
+    TSData data = new TSData();
     double value;
     String flag = null;
     int missingCountTotal = 0;
@@ -842,7 +842,7 @@ throws Exception
         td[0] = "" + date.getYear();
         html.tableCells(td);
         // Process data value for year...
-        data = ts.getDataPoint ( date );
+        data = ts.getDataPoint ( date, data );
         value = data.getData();
         flag = data.getDataFlag();
         if ( flag != null ) {

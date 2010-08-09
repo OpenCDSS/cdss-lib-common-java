@@ -3666,7 +3666,7 @@ throws TSException, Exception
 		Message.printDebug ( dl, routine, "Next limit date is " + next_limit_date );
 	}
 
-	TSData tsdata = null;	// Single data point.
+	TSData tsdata = new TSData();	// Single data point.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -3780,7 +3780,7 @@ throws TSException, Exception
 				}
 				if ( SetFlag_boolean ) {
 					// Set the data flag, appending to the old value...
-					tsdata = ts.getDataPoint ( date );
+					tsdata = ts.getDataPoint ( date, tsdata );
 					ts.setDataValue ( date, limit_value, (tsdata.getDataFlag().trim()+ SetFlag), 1 );
 				}
 				else {
@@ -4558,7 +4558,7 @@ throws Exception
 	int	interval_mult = ts.getDataIntervalMult();
 	double oldvalue;
 	int	nfilled = 0;
-	TSData tsdata = null; // Data point used for irregular and for handling the data flag.
+	TSData tsdata = new TSData(); // Data point used for irregular and for handling the data flag.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -4599,7 +4599,7 @@ throws Exception
 			if ( ts.isDataMissing(oldvalue) ) {
 				if ( FillFlag_boolean ) {
 					// Set the data flag, appending to the old value...
-					tsdata = ts.getDataPoint ( date );
+					tsdata = ts.getDataPoint ( date, tsdata );
 					ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 				}
 				else {
@@ -4672,7 +4672,7 @@ throws Exception
 	for ( int i = 0; i < 12; i++ ) {
 		nfilled[i] = 0;
 	}
-	TSData tsdata = null; // Used for irrigular data and setting the flag in regular data.
+	TSData tsdata = new TSData(); // Used for irrigular data and setting the flag in regular data.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -4714,7 +4714,7 @@ throws Exception
 			if ( ts.isDataMissing(oldvalue) ) {
 				if ( FillFlag_boolean ) {
 					// Set the data flag, appending to the old value...
-					tsdata = ts.getDataPoint ( date );
+					tsdata = ts.getDataPoint ( date, tsdata );
 					ts.setDataValue ( date, values[date.getMonth() - 1],
 					    (tsdata.getDataFlag().trim()+ fillFlagByMonth[date.getMonth() - 1]), 1 );
 				}
@@ -5100,7 +5100,7 @@ throws Exception
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
 	double	delta = 0.0, oldvalue = 0.0, value = 0.0;
-	TSData tsdata = null; // Data point used for setting the data flag handling the data flag.
+	TSData tsdata = new TSData(); // Data point used for setting the data flag handling the data flag.
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		Message.printWarning ( 1, routine, "Filling irregular time series using interpolation is not supported." );
 		return;
@@ -5121,7 +5121,7 @@ throws Exception
 					value = value + delta;
 					if ( FillFlag_boolean ) {
 						// Set the data flag, appending to the old value...
-						tsdata = ts.getDataPoint ( date );
+						tsdata = ts.getDataPoint ( date, tsdata );
 						ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 					}
 					else {
@@ -5172,7 +5172,7 @@ throws Exception
 					value = before_value + delta;
 					if ( FillFlag_boolean ) {
 						// Set the data flag, appending to the old value...
-						tsdata = ts.getDataPoint ( date );
+						tsdata = ts.getDataPoint ( date, tsdata );
 						ts.setDataValue ( date, value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 					}
 					else {
@@ -5561,7 +5561,7 @@ throws Exception
 							if ( FillFlagAuto_boolean ) {
 								FillFlag = "" + indicator.charAt(0);
 							}
-							tsdata =ts.getDataPoint( date );
+							tsdata = ts.getDataPoint( date, tsdata );
 							ts.setDataValue ( date, fill_value, (tsdata.getDataFlag().trim()+FillFlag), 1 );
 						}
 						else {

@@ -118,8 +118,6 @@ private String [] _dataFlags; // Data flags for each yearly value.
 private int _year1; // Bounds for allocated data.
 private int _year2; // Bounds for allocated data.
 
-protected TSData _tsdata; // TSData object that is reused when getDataPoint() is called.
-
 /**
 Default constructor.  Set dates and use allocateDataSpace() to create memory for data.
 */
@@ -175,7 +173,7 @@ throws Exception
 	}
 	
 	if ( initialValue == null ) {
-	    initialValue = "".intern(); // Use intern regardless here
+	    initialValue = "";
 	}
 	
 	int nyears = _date2.getYear() - _date1.getYear() + 1;
@@ -257,7 +255,7 @@ public int allocateDataSpace( double value )
 	for ( int iYear = 0; iYear < nyears; iYear++ ) {
 		_data[iYear] = value;
 		if ( _has_data_flags ) {
-			_dataFlags[iYear] = "".intern(); // Always use intern for blank string
+			_dataFlags[iYear] = "";
 		}
 	}
 
@@ -474,7 +472,6 @@ protected void finalize ()
 throws Throwable
 {	_data = null;
 	_dataFlags = null;
-	_tsdata = null;
 	super.finalize();
 }
 
@@ -929,17 +926,18 @@ private void formatOutputNYear ( List<String> strings, PropList props, YearType 
 		strings.add ( "---- -------------" );
 	}
 	double value = 0.0;
+	TSData tsdata = new TSData();
 	for ( ; date.lessThanOrEqualTo(end); date.addInterval(_data_interval_base,_data_interval_mult) ) {
 		value = getDataValue ( date );
 		if ( _has_data_flags ) {
 			if ( isDataMissing(value) ) {
 				strings.add(date.toString(DateTime.FORMAT_YYYY)+ "               " +
-				StringUtil.formatString(getDataPoint(date).getDataFlag(),"%4.4s") );
+				StringUtil.formatString(getDataPoint(date,tsdata).getDataFlag(),"%4.4s") );
 			}
 			else {
 				strings.add(date.toString(DateTime.FORMAT_YYYY)+
 				" " + StringUtil.formatString(value,data_format) + " " +
-				StringUtil.formatString(getDataPoint(date).getDataFlag(),"%4.4s") );
+				StringUtil.formatString(getDataPoint(date,tsdata).getDataFlag(),"%4.4s") );
 			}
 		}
 		else {
@@ -962,47 +960,47 @@ Return a data point for the date.
   		    \|/
   		   year 
 </pre>
-@return The data point corresponding to the date.  Note that the data point is
-reused between calls to optimize performance.  Therefore, if the values are
-to be used externally, they should be used immediately and then ignored after
-the next call or should be copied.
-@param date Date of interest.
+@param date date/time to get data.
+@param tsdata if null, a new instance of TSData will be returned.  If non-null, the provided
+instance will be used (this is often desirable during iteration to decrease memory use and
+increase performance).
+@return a TSData for the specified date/time.
+@see TSData
 */
-public TSData getDataPoint ( DateTime date )
+public TSData getDataPoint ( DateTime date, TSData tsdata )
 {	// Initialize data to most of what we need...
-	if ( _tsdata == null ) {
-		// Allocate it (this is the only method that uses it and don't want to waste memory)...
-		_tsdata = new TSData();
+	if ( tsdata == null ) {
+		// Allocate it...
+		tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "YearTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			    date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
-		_tsdata.setValues ( date, _missing, _data_units, "", 0 );
-		return _tsdata;
+		tsdata.setValues ( date, _missing, _data_units, "", 0 );
+		return tsdata;
 	}
 	if ( _has_data_flags ) {
 		int index = date.getYear() - _year1;
 		if ( (index < 0) || (index >= _dataFlags.length) ) {
-			_tsdata.setValues ( date, getDataValue(date),
-				_data_units, "".intern(), // No flag for date
+			tsdata.setValues ( date, getDataValue(date),
+				_data_units, "", // No flag for date
 				0 );
 		}
 		else {
 		    if ( _internDataFlagStrings ) {
-		        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[date.getYear()-_year1].intern(), 0 );
+		        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[date.getYear()-_year1].intern(), 0 );
 		    }
 		    else {
-		        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[date.getYear()-_year1], 0 ); 
+		        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[date.getYear()-_year1], 0 ); 
 		    }
 		}
 	}
 	else {
-	    // Always use intern() here since empty string is common
-		_tsdata.setValues ( date, getDataValue(date), _data_units, "".intern(), 0 );
+		tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
 	}
-	return _tsdata;
+	return tsdata;
 }
 
 /**

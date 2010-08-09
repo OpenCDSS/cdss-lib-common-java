@@ -35,15 +35,16 @@
 
 package RTi.TS;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
 
 /**
-This class stores information about the data and date limits of a monthly
-time series.  If detailed information is not necessary, use the TSLimits
-class for overall limits.
+This class stores information about the data and date limits of a monthly time series.
+If detailed information is not necessary, use the TSLimits class for overall limits.
+In summary, since this class extends TSLimits, both full period limits and limits by month are computed.
 */
 public class MonthTSLimits extends TSLimits
 {
@@ -59,12 +60,15 @@ MonthTS _ts = null;
 private double [] _max_value_by_month = null;
 private DateTime [] _max_value_date_by_month = null;
 private double [] _mean_by_month = null;
+private double [] __medianByMonth = null;
 private double [] _min_value_by_month = null;
 private DateTime [] _min_value_date_by_month = null;
 private int [] _missing_data_count_by_month = null;
 private int [] _non_missing_data_count_by_month = null;
 private DateTime [] _non_missing_data_date1_by_month = null;
 private DateTime [] _non_missing_data_date2_by_month = null;
+private double [] __skewByMonth = null;
+private double [] __stdDevByMonth = null;
 private double [] _sum_by_month = null;
 
 /**
@@ -100,11 +104,14 @@ throws TSException
 			_min_value_by_month[i] = limits.getMaxValue ( i + 1 );
 			_max_value_date_by_month[i] = new DateTime ( limits.getMaxValueDate ( i + 1 ) );
 			_min_value_date_by_month[i] = new DateTime ( limits.getMinValueDate ( i + 1 ) );
-			_mean_by_month[i] = limits.getMean ( i + 1 );;
+			_mean_by_month[i] = limits.getMean ( i + 1 );
+			__medianByMonth[i] = limits.getMedian ( i + 1 );
 			_missing_data_count_by_month[i] = limits.getMissingDataCount ( i + 1 );
 			_non_missing_data_count_by_month[i] = limits.getNonMissingDataCount ( i + 1 );
 			_non_missing_data_date1_by_month[i] = new DateTime ( limits.getNonMissingDataDate1 ( i + 1 ) );
 			_non_missing_data_date2_by_month[i] = new DateTime ( limits.getNonMissingDataDate2 ( i + 1 ) );
+			__skewByMonth[i] = limits.getSkew ( i + 1 );
+			__stdDevByMonth[i] = limits.getStdDev ( i + 1 );
 			_sum_by_month[i] = limits.getSum ( i + 1 );
 		}
 	}
@@ -140,10 +147,10 @@ throws TSException
 		if ( (flags & TSLimits.REFRESH_TS) != 0 ) {
 			refresh_flag = true;
 		}
-		getDataLimits ( ts, startdate, enddate, refresh_flag );
+		calculateDataLimits ( ts, startdate, enddate, refresh_flag );
 	}
 	catch ( Exception e ) {
-		String message = "Error creating MonthTSLimits";
+		String message = "Error creating MonthTSLimits (" + e + ")";
 		Message.printWarning ( 3, "MonthTSLimits(MonthTS,...)", message);
 		throw new TSException ( message );
 	}
@@ -162,7 +169,7 @@ throws TSException
 		// Compute the monthly limits...
 		initialize ();
 		_ts = ts;
-		getDataLimits ( ts, (DateTime)null, (DateTime)null, false );
+		calculateDataLimits ( ts, (DateTime)null, (DateTime)null, false );
 	}
 	catch ( Exception e ) {
 		String message = "Error creating MonthTSLimits";
@@ -186,7 +193,7 @@ throws TSException
 		// Compute the monthly limits...
 		initialize ();
 		_ts = ts;
-		getDataLimits ( ts, startdate, enddate, false );
+		calculateDataLimits ( ts, startdate, enddate, false );
 	}
 	catch ( Exception e ) {
 		String message = "Error creating MonthTSLimits";
@@ -224,8 +231,7 @@ throws Throwable
 /**
 Compute the monthly data limits for a monthly time series between two dates.
 This code was taken from the TSUtil.getDataLimits method.  This method should
-be private.  Otherwise, the base class may call this method when it really
-needs to call its own version.
+be private.  Otherwise, the base class may call this method when it really needs to call its own version.
 @param ts Time series of interest.
 @param start0 Starting date for the check.
 @param end0 Ending date for the check.
@@ -235,7 +241,7 @@ routine without the flag should be called).
 @see TSLimits
 @exception TSException if there is an error computing the detailed limits.
 */
-private void getDataLimits ( TS ts, DateTime start0, DateTime end0, boolean refresh_flag )
+private void calculateDataLimits ( TS ts, DateTime start0, DateTime end0, boolean refresh_flag )
 throws TSException
 {	String message, routine="MonthTSLimits.getDataLimits";
 	double value = 0.0;
@@ -359,26 +365,6 @@ throws TSException
 				found_by_month[month_index] = true;
 				found = true;	// Overall check.
 			}
-	/* This is not implemented.  Need to optimize if we want this feature
-			// Now loop backwards and find the last non-missing value...
-			// For now, don't do this for monthly data because of
-			// performance issues...
-			if ( found ) {
-				t = new DateTime(end, DateTime.DATE_FAST );
-				for(	; t.greaterThanOrEqualTo(start);
-					t.addInterval( base, -mult )) {
-					value = ts.getDataValue( t );
-					if (	(!ignore_lezero &&
-						!ts.isDataMissing(value)) ||
-						(ignore_lezero && ((value > 0.0) &&
-						!ts.isDataMissing(value))) ) {
-						// The value is not missing...
-						non_missing_data_date2 =new DateTime(t);
-						break;
-					}
-				}
-			}
-	*/
 		}
 	
 		if( !found ){
@@ -386,19 +372,6 @@ throws TSException
 			Message.printWarning( 2, routine, message );
 			throw new TSException ( message );
 		}
-	
-	/* Need to update toString and print here
-		if ( Message.isDebugOn ) {
-			Message.printDebug( 10, routine,
-			"Overall date limits are: " + start + " to " + end );
-			Message.printDebug( 10, routine,
-			"Found limits to be: " + min + " on " + min_date + " to "
-			+ max + " on " + max_date );
-			Message.printDebug( 10, routine,
-			"Found non-missing data dates to be: " +
-			non_missing_data_date1 + " -> " + non_missing_data_date2 );
-		}
-	*/
 	
 		// Set the monthly values...
 	
@@ -422,22 +395,46 @@ throws TSException
 			}
 			setSum ( i, sum_by_month[i - 1] );
 			setMean ( i, mean );
+			
+			// TODO SAM 2010-06-15 This is a performance hit, but not too bad
+	        // TODO SAM 2010-06-15 Consider treating other statistics similarly but need to define unit tests
+	        // TODO SAM 2010-06-15 This code would need to be changed if doing Lag-1 correlation because order matters
+	        // For newly added statistics, use helper method to get data, ignoring missing...
+	        double [] dataArray = TSUtil.toArray(ts, start, end, i, false );
+	        // Check for <= 0 values if necessary
+	        int nDataArray = dataArray.length;
+	        if ( ignore_lezero ) {
+	            for ( int iData = 0; iData < nDataArray; iData++ ) {
+	                if ( dataArray[iData] <= 0.0 ) {
+	                    // Just exchange with the last value and reduce the size
+	                    double temp = dataArray[iData];
+	                    dataArray[iData] = dataArray[nDataArray - 1];
+	                    dataArray[nDataArray - 1] = temp;
+	                    --nDataArray;
+	                }
+	            }
+	        }
+	        if ( nDataArray > 0 ) {
+	            setMedian ( i, MathUtil.median (nDataArray, dataArray) );
+	        }
+	        if ( nDataArray > 1 ) {
+	            // At least 2 values required
+	            try {
+	                setStdDev ( i, MathUtil.standardDeviation(nDataArray, dataArray) );
+	            }
+	            catch ( Exception e ) {
+	                // Likely due to small sample size
+	            }
+	        }
+	        if ( nDataArray > 2 ) {
+	            try {
+	                setSkew ( i, MathUtil.skew(nDataArray, dataArray) );
+	            }
+                catch ( Exception e ) {
+                    // Likely due to small sample size
+                }
+	        }
 		}
-		// Clean up...
-		max_by_month = null;
-		min_by_month = null;
-		sum_by_month = null;
-		missing_count_by_month = null;
-		non_missing_count_by_month = null;
-		found_by_month = null;
-		date = null;
-		t = null;
-		max_date_by_month = null;
-		min_date_by_month = null;
-		non_missing_data_date1_by_month = null;
-		non_missing_data_date2_by_month = null;
-		start = null;
-		end = null;
 	}
 	catch ( Exception e ) {
 		message = "Error computing data limits.";
@@ -445,8 +442,6 @@ throws TSException
 		Message.printWarning ( 3, routine, e );
 		throw new TSException ( message );
 	}
-	message = null;
-	routine = null;
 }
 
 /**
@@ -504,6 +499,29 @@ time series with missing data.  The array will be null if a time series has not 
 */
 public double [] getMeanArray ()
 {	return _mean_by_month;
+}
+
+/**
+Return the median data value for the indicated month.
+@return The median data value for the indicated month, or -999 if the month is invalid.
+@param month Month of interest (1-12).
+*/
+public double getMedian ( int month )
+{   if ( (month >= 1) && (month <= 12) ) {
+        return __medianByMonth[month - 1];
+    }
+    else {
+        return -999.0;
+    }
+}
+
+/**
+Return the median data value array.
+@return The median data value array (12 monthly values with the first value
+corresponding to January).  The array will be null if a time series has not been analyzed.
+*/
+public double [] getMedianArray ()
+{   return __medianByMonth;
 }
 
 /**
@@ -603,6 +621,52 @@ public DateTime getNonMissingDataDate2 ( int month )
 }
 
 /**
+Return the skew for the indicated month.
+@return The skew for the indicated month, or -999 if the month is invalid.
+@param month Month of interest (1-12).
+*/
+public double getSkew ( int month )
+{   if ( (month >= 1) && (month <= 12) ) {
+        return __skewByMonth[month - 1];
+    }
+    else {
+        return -999.0;
+    }
+}
+
+/**
+Return the skew array.
+@return The skew array (12 monthly values with the first value
+corresponding to January).  The array will be null if a time series has not been analyzed.
+*/
+public double [] getSkewArray ()
+{   return __skewByMonth;
+}
+
+/**
+Return the standard deviation for the indicated month.
+@return The standard deviation for the indicated month, or -999 if the month is invalid.
+@param month Month of interest (1-12).
+*/
+public double getStdDev ( int month )
+{   if ( (month >= 1) && (month <= 12) ) {
+        return __stdDevByMonth[month - 1];
+    }
+    else {
+        return -999.0;
+    }
+}
+
+/**
+Return the standard deviation array.
+@return The standard deviation array (12 monthly values with the first value
+corresponding to January).  The array will be null if a time series has not been analyzed.
+*/
+public double [] getStdDevArray ()
+{   return __stdDevByMonth;
+}
+
+/**
 Return the sum for the indicated month.
 @return The sum for the indicated month, or -999 if the month is invalid.
 @param month Month of interest (1-12).
@@ -626,286 +690,30 @@ private void initialize ()
 	_max_value_date_by_month = new DateTime[12];
 	_min_value_date_by_month = new DateTime[12];
 	_mean_by_month = new double[12];
+	__medianByMonth = new double[12];
 	_missing_data_count_by_month = new int[12];
 	_non_missing_data_count_by_month = new int[12];
 	_non_missing_data_date1_by_month = new DateTime[12];
 	_non_missing_data_date2_by_month = new DateTime[12];
+	__skewByMonth = new double[12];
+	__stdDevByMonth = new double[12];
 	_sum_by_month = new double[12];
 	for ( int i = 0; i < 12; i++ ) {
 		_max_value_by_month[i] = 0.0;
 		_min_value_by_month[i] = 0.0;
 		_max_value_date_by_month[i] = null;
 		_min_value_date_by_month[i] = null;
+		__medianByMonth[i] = -999.0;
 		_mean_by_month[i] = -999.0;
 		_missing_data_count_by_month[i] = 0;
 		_non_missing_data_count_by_month[i] = 0;
 		_non_missing_data_date1_by_month[i] = null;
 		_non_missing_data_date2_by_month[i] = null;
+		__skewByMonth[i] = -999.0;
+		__stdDevByMonth[i] = -999.0;
 		_sum_by_month[i] = -999.0;
 	}
 }
-
-/**
-Merge two MonthTSLimits instances.  For example, this is useful when the time
-series are going to be added before filling.  The original data limits can be
-merged so that they reflect the original data, unchanged by filling.  Each
-limits instance must have an associated time series.
-@param limits1 The first MonthTSLimits to merge.
-@param limits2 The second MonthTSLimits to merge.
-@param ts The time series that should be associated with the new limits.
-@return a new MonthTSLimits reflecting the merged results.  If one of the
-limits is null, then the result is a copy of the non-null data.  If both are
-null, null is returned.
-*/
-/* TODO 2005-02-07 This code is not ready for prime time.  The premise was
-flawed in its use in StateDMI
-public static MonthTSLimits merge (	MonthTSLimits limits1, MonthTSLimits limits2, MonthTS ts )
-{	if ( (limits1 == null) && (limits2 == null) ) {
-		return null;
-	}
-	MonthTSLimits limits = null;
-	if ( (limits1 == null) && (limits2 != null) ) {
-		try {	limits = new MonthTSLimits ( limits2 );
-		}
-		catch ( Exception e ) {
-			// Should not happen
-		}
-		return limits;
-	}
-	if ( (limits1 != null) && (limits2 == null) ) {
-		try {	limits = new MonthTSLimits ( limits1 );
-		}
-		catch ( Exception e ) {
-			// Should not happen
-		}
-		return limits;
-	}
-	// Create a new MonthTSLimits and fill its contents by merging the
-	// two instances...
-	try {	limits = new MonthTSLimits();	// Intializes to missing
-	}
-	catch ( Exception e ) {
-		// Should not happen
-	}
-	limits._ts = ts;	// Null is bad.
-	limits.setTimeSeries ( ts );
-				// REVISIT SAM 2005-02-07 Why here and in base
-				// class?
-	TS ts1 = limits1.getTimeSeries();
-	TS ts2 = limits2.getTimeSeries();
-	for ( int i = 0; i < 12; i++ ) {
-		// Check the missing data using the time series for each limits.
-		if ( !ts1.isDataMissing(limits1._max_value_by_month[i]) ) {
-			limits._max_value_by_month[i] =
-			limits1._max_value_by_month[i];
-			limits._max_value_date_by_month[i] =
-			limits1._max_value_date_by_month[i];
-		}
-		if ( !ts2.isDataMissing(limits2._max_value_by_month[i]) ) {
-			// First value may still be missing, but second is
-			// not...
-			if (	ts.isDataMissing(limits._max_value_by_month[i])
-				|| (limits2._max_value_by_month[i] >
-				limits._max_value_by_month[i]) ) {
-				limits._max_value_by_month[i] =
-				limits2._max_value_by_month[i];
-				limits._max_value_date_by_month[i] =
-				limits2._max_value_date_by_month[i];
-			}
-		}
-		if ( !ts1.isDataMissing(limits1._min_value_by_month[i]) ) {
-			limits._min_value_by_month[i] =
-			limits1._min_value_by_month[i];
-			limits._min_value_date_by_month[i] =
-			limits1._min_value_date_by_month[i];
-		}
-		if ( !ts2.isDataMissing(limits2._min_value_by_month[i]) ) {
-			// First value may still be missing, but second is
-			// not...
-			if (	ts.isDataMissing(limits._min_value_by_month[i])
-				|| (limits2._min_value_by_month[i] <
-				limits._min_value_by_month[i]) ) {
-				limits._min_value_by_month[i] =
-				limits2._min_value_by_month[i];
-				limits._min_value_date_by_month[i] =
-				limits2._min_value_date_by_month[i];
-			}
-		}
-		// Just add the counts...
-		limits._missing_data_count_by_month[i] =
-			limits1._missing_data_count_by_month[i] +
-			limits2._missing_data_count_by_month[i];
-		limits._non_missing_data_count_by_month[i] =
-			limits1._non_missing_data_count_by_month[i] +
-			limits2._non_missing_data_count_by_month[i];
-		// Just do a min/max on the dates...
-		if ( limits1._non_missing_data_date1_by_month[i] != null ) {
-			limits._non_missing_data_date1_by_month[i] =
-			limits1._non_missing_data_date1_by_month[i];
-			if (	limits2._non_missing_data_date1_by_month[i]
-				!= null ) {
-				if (	(limits1.
-					_non_missing_data_date1_by_month[i]
-					== null) ||
-					limits2.
-					_non_missing_data_date1_by_month[i].
-					lessThan
-					(limits1.
-					_non_missing_data_date1_by_month[i]) ){
-					limits.
-					_non_missing_data_date1_by_month[i] =
-					limits2.
-					_non_missing_data_date1_by_month[i];
-				}
-			}
-		}
-		if ( limits1._non_missing_data_date2_by_month[i] != null ) {
-			limits._non_missing_data_date2_by_month[i] =
-			limits1._non_missing_data_date2_by_month[i];
-			if (	limits2._non_missing_data_date2_by_month[i]
-				!= null ) {
-				if (	(limits1.
-					_non_missing_data_date2_by_month[i]
-					== null) ||
-					limits2.
-					_non_missing_data_date2_by_month[i].
-					greaterThan
-					(limits1.
-					_non_missing_data_date2_by_month[i]) ){
-					limits.
-					_non_missing_data_date2_by_month[i] =
-					limits2.
-					_non_missing_data_date2_by_month[i];
-				}
-			}
-		}
-		// Use the counts to adjust the values...
-		if ( !ts1.isDataMissing(limits1._sum_by_month[i]) ) {
-			limits._sum_by_month[i] = limits1._sum_by_month[i];
-			limits._mean_by_month[i] = limits1._mean_by_month[i];
-		}
-		if ( !ts2.isDataMissing(limits2._sum_by_month[i]) ) {
-			// First value may still be missing, but second is
-			// not...
-			if ( ts.isDataMissing(limits._sum_by_month[i]) ) {
-				// Assign...
-				limits._sum_by_month[i] =
-				limits2._sum_by_month[i];
-				limits._mean_by_month[i] =
-				limits2._mean_by_month[i];
-			}
-			else {	// Add.  Must do the mean first so the sum is
-				// not double counted...
-				limits._mean_by_month[i] =
-				(limits._sum_by_month[i] +
-				limits2._sum_by_month[i])/(double)
-				(limits._non_missing_data_count_by_month[i] +
-				limits2._non_missing_data_count_by_month[i]);
-				// Now add...
-				limits._sum_by_month[i] +=
-				limits2._sum_by_month[i];
-			}
-		}
-	}
-	// Base class data.
-	// REVISIT SAM 2005-02-05 Need to determine if this is handled in the
-	// base class.  For now, do the computations here.
-	// Overall dates...
-	if ( ts1.getDate1() != null ) {
-		limits.setDate1(ts1.getDate1());
-	}
-	if ( ts2.getDate1() != null ) {
-		// First value may still be missing, but second is not...
-		if (	(limits.getDate1() == null) ||
-			limits2.getDate1().lessThan( limits.getDate1())) {
-			limits.setDate1(ts2.getDate1());
-		}
-	}
-	if ( ts1.getDate2() != null ) {
-		limits.setDate2(ts1.getDate2());
-	}
-	if ( ts2.getDate2() != null ) {
-		// First value may still be missing, but second is not...
-		if (	(limits.getDate2() == null) ||
-			limits2.getDate2().greaterThan(limits.getDate2())) {
-			limits.setDate2(ts2.getDate2());
-		}
-	}
-	// Min and max...
-	if ( !ts1.isDataMissing(limits1.getMaxValue()) ) {
-		limits.setMaxValue(limits1.getMaxValue());
-		limits.setMaxValueDate( limits1.getMaxValueDate() );
-	}
-	if ( !ts2.isDataMissing(limits2.getMaxValue()) ) {
-		// First value may still be missing, but second is not...
-		if (	ts.isDataMissing(limits.getMaxValue())
-			|| (limits2.getMaxValue() >
-			limits.getMaxValue()) ) {
-			limits.setMaxValue( limits2.getMaxValue());
-			limits.setMaxValueDate( limits2.getMaxValueDate());
-		}
-	}
-	if ( !ts1.isDataMissing(limits1.getMinValue()) ) {
-		limits.setMinValue(limits1.getMinValue());
-		limits.setMinValueDate( limits1.getMinValueDate() );
-	}
-	if ( !ts2.isDataMissing(limits2.getMinValue()) ) {
-		// First value may still be missing, but second is not...
-		if (	ts.isDataMissing(limits.getMinValue())
-			|| (limits2.getMinValue() >
-			limits.getMinValue()) ) {
-			limits.setMinValue( limits2.getMinValue());
-			limits.setMinValueDate( limits2.getMinValueDate());
-		}
-	}
-	// Just add the counts...
-	DateTime dt_i = null;
-	DateTime dt1 = limits.getNonMissingDataDate1();	// From base class.
-	DateTime dt2 = limits.getNonMissingDataDate2();	// From base class.
-	double sum = ts.getMissing();
-	for ( int i = 0; i < 12; i++ ) {
-		limits.setMissingDataCount(
-			limits.getMissingDataCount() +
-			limits1.getMissingDataCount() +
-			limits2.getMissingDataCount() );
-		limits.setNonMissingDataCount(
-			limits.getNonMissingDataCount() +
-			limits1.getNonMissingDataCount() +
-			limits2.getNonMissingDataCount() );
-		// Just do a min/max on the dates...
-		dt_i = limits._non_missing_data_date1_by_month[i];
-		if ( dt_i != null ) {
-			if ( dt1 == null ) {
-				limits.setNonMissingDataDate1 ( dt_i );
-			}
-			else if ( dt_i.lessThan(dt1) ) {
-				limits.setNonMissingDataDate1 ( dt_i );
-			}
-		}
-		dt_i = limits._non_missing_data_date2_by_month[i];
-		if ( dt_i != null ) {
-			if ( dt2 == null ) {
-				limits.setNonMissingDataDate2 ( dt_i );
-			}
-			else if ( dt_i.greaterThan(dt2) ) {
-				limits.setNonMissingDataDate2 ( dt_i );
-			}
-		}
-		if ( !ts.isDataMissing(limits._sum_by_month[i]) ) {
-			if ( ts.isDataMissing(sum) ) {
-				sum = limits._sum_by_month[i];
-			}
-			else {	sum += limits._sum_by_month[i];
-			}
-		}
-	}
-	limits.setSum ( sum );
-	if ( limits.getNonMissingDataCount() > 0 ) {
-		limits.setMean ( sum/(double)limits.getNonMissingDataCount() );
-	}
-	return limits;
-}
-*/
 
 /**
 Set the maximum data value for the indicated month.
@@ -953,6 +761,17 @@ public void setMean ( int month, double mean )
 {	if ( (month >= 1) && (month <= 12) ) {
 		_mean_by_month[month - 1] = mean;
 	}
+}
+
+/**
+Set the median for data for the indicated month.
+@param month Month of interest (1-12).
+@param median The median for the month.
+*/
+public void setMedian ( int month, double median )
+{   if ( (month >= 1) && (month <= 12) ) {
+        __medianByMonth[month - 1] = median;
+    }
 }
 
 /**
@@ -1039,6 +858,28 @@ public void setNonMissingDataDate2 ( int month, DateTime date )
 }
 
 /**
+Set the skew for data for the indicated month.
+@param month Month of interest (1-12).
+@param skew The skew for the month.
+*/
+public void setSkew ( int month, double skew )
+{   if ( (month >= 1) && (month <= 12) ) {
+        __skewByMonth[month - 1] = skew;
+    }
+}
+
+/**
+Set the standard deviation for data for the indicated month.
+@param month Month of interest (1-12).
+@param stdDev The skew for the month.
+*/
+public void setStdDev ( int month, double stdDev )
+{   if ( (month >= 1) && (month <= 12) ) {
+        __stdDevByMonth[month - 1] = stdDev;
+    }
+}
+
+/**
 Set the sum for data for the indicated month.
 @param month Month of interest (1-12).
 @param sum The sum for the month.
@@ -1058,21 +899,21 @@ public String toString ( )
 
 	StringBuffer buffer = new StringBuffer ( );
 	if ( _ts != null ) {
-		buffer.append ( "Time series:  " + _ts.getIdentifierString() +
-		" (" + getDataUnits() + ")" +nl );
+		buffer.append ( "Time series:  " + _ts.getIdentifierString() + " (" + getDataUnits() + ")" +nl );
 	}
 	buffer.append (
 	"Monthly limits for period " + getDate1() + " to " + getDate2() + " are:" + nl  +
 	"                                                       #      %      # Not  % Not " + nl +
-	"Month    Min    MinDate     Max    MaxDate     Sum     Miss.  Miss.  Miss.  Miss.     Mean"+ nl +
-	"--------------------------------------------------------------------------------------------" + nl );
+	"Month    Min    MinDate     Max    MaxDate     Sum     Miss.  Miss.  Miss.  Miss.     Mean  " +
+	"    Median     StdDev      Skew"+ nl +
+	"--------------------------------------------------------------------------------------------" +
+	"---------------------------------" + nl );
 	String date_string = null;
 	int num_values = 0;		// Used for percents
 	for ( int i = 0; i < 12; i++ ) {
 		// Get the individual data that may be null...
 		// Now format the output line...
-		buffer.append (
-		TimeUtil.monthAbbreviation(i + 1) + "  " +
+		buffer.append ( TimeUtil.monthAbbreviation(i + 1) + "  " +
 		StringUtil.formatString(_min_value_by_month[i],"%10.1f") + " ");
 		if ( _min_value_date_by_month[i] == null ) {
 			date_string = "       ";
@@ -1110,10 +951,13 @@ public String toString ( )
 			buffer.append ( StringUtil.formatString(
 			(100.0*(double)_non_missing_data_count_by_month[i]/(double)num_values),"%6.2f")+" ");
 		}
-		buffer.append ( StringUtil.formatString(_mean_by_month[i],"%10.1f") + nl );
+		buffer.append ( StringUtil.formatString(_mean_by_month[i],"%10.1f") );
+		buffer.append ( StringUtil.formatString(__medianByMonth[i]," %10.1f") );
+		buffer.append ( StringUtil.formatString(__stdDevByMonth[i]," %10.2f") );
+		buffer.append ( StringUtil.formatString(__skewByMonth[i]," %10.4f") + nl );
 	}
 	buffer.append ( "-----------------------------------------------------"+
-	"---------------------------------------" + nl );
+	"------------------------------------------------------------------------" + nl );
 	String mindate_string = "       ";
 	String maxdate_string = "       ";
 	if ( getMinValueDate() != null ) {
@@ -1144,9 +988,13 @@ public String toString ( )
 		buffer.append ( StringUtil.formatString(
 		(100.0*(double)getNonMissingDataCount()/(double)num_values),"%6.2f")+" ");
 	}
-	buffer.append ( StringUtil.formatString(getMean(),"%10.1f") + nl );
+	buffer.append ( StringUtil.formatString(getMean(),"%10.1f") );
+	buffer.append ( StringUtil.formatString(getMedian()," %10.1f") );
+	buffer.append ( StringUtil.formatString(getStdDev()," %10.2f") );
+	buffer.append ( StringUtil.formatString(getSkew()," %10.4f") + nl );
 	buffer.append (
-	"--------------------------------------------------------------------------------------------" + nl );
+	"--------------------------------------------------------------------------------------------" +
+	"---------------------------------" + nl );
 	String r = buffer.toString();
 	return r;
 }

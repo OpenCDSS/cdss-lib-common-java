@@ -147,7 +147,7 @@ throws Exception
     DateTime date; // Date corresponding to data value
     boolean isMissing;
     double diff;
-    TSData dataPoint = null; // Used when setting the flag
+    TSData dataPoint = new TSData(); // Used when setting the flag
     // TODO SAM 2010 evaluate whether to check units for precision
     String tsValueFormat = "%.6f"; // Format for values for messages
     while ( (data = tsi.next()) != null ) {
@@ -278,7 +278,7 @@ throws Exception
                 __problems.add ( message );
                 if ( __flag != null ) {
                     // Update the flag value
-                    dataPoint = ts.getDataPoint(date);
+                    dataPoint = ts.getDataPoint(date, dataPoint );
                     dataPoint.setDataFlag ( __flag );
                     ts.setDataValue(date, dataPoint.getData(), dataPoint.getDataFlag(), dataPoint.getDuration() );
                 }

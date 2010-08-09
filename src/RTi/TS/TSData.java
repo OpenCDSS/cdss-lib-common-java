@@ -42,6 +42,7 @@ package RTi.TS;
 
 import java.io.Serializable;
 
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
@@ -141,6 +142,7 @@ Create a copy of the object.
 A deep copy is made except for the next and
 previous pointers, which are copied as is.  If a sequence of new data are
 being created, the next/previous pointers will need to be reset accordingly.
+@param tsdata the instance that is being copied.
 */
 public TSData ( TSData tsdata )
 {	_data_flag = tsdata._data_flag;
@@ -150,6 +152,42 @@ public TSData ( TSData tsdata )
 	_date = new DateTime ( tsdata._date );
 	_next = tsdata._next;
 	_previous = tsdata._previous;
+}
+
+/**
+Append a data flag string to an existing flag.  If the first character of the flag is "+",
+then the flag will be appended with flag (without the +).  If the first two characters are "+,",
+then the flag will be appended and a comma will be included only if a previous flag was set.
+@param flagOrig original data flag
+@param flag data flag to append
+@return the new merged data flag string
+*/
+public static String appendDataFlag ( String flagOrig, String flag )
+{   //Message.printStatus(2, "", "Before append flagOrig= \"" + flagOrig + "\" flag=\"" + flag + "\"" );
+    if ( flagOrig == null ) {
+        flagOrig = "";
+    }
+    if( (flag != null) && (flag.length() > 0) ){
+        if ( flag.startsWith("+") && (flag.length() > 1) ) {
+            // Have +X... so append to the flag...
+            if ( (flag.charAt(1) == ',') && (flagOrig.length() == 0) ) {
+                // Original flag is empty so append without leading comma
+                if ( flag.length() > 2 ) {
+                    flagOrig += flag.substring(2);
+                }
+            }
+            else {
+                // Append the string after the +, including the comma if provided
+                flagOrig += flag.substring(1);
+            }
+        }
+        else {
+            // Just set the flag, overriding the previous flag...
+            flagOrig = flag;
+        }
+    }
+    //Message.printStatus(2, "", "Flag after append = \"" + flagOrig + "\"" );
+    return flagOrig;
 }
 
 /**
@@ -269,22 +307,20 @@ public void setData( double d )
 
 /**
 Set the data flag.  If the first character of the flag is "+", then the flag will be appended
-with flag (without the +).
+with flag (without the +).  If the first two characters are "+,", then the flag will be appended and a
+comma will be included only if a previous flag was set.
 @param flag Data flag.
 */
 public void setDataFlag( String flag )
-{	if( flag != null ){
-        if ( flag.startsWith("+") ) {
-            // Append to the flag...
-            if ( flag.length() > 1 ) {
-                _data_flag += flag.substring(1);
-            }
-        }
-        else {
-            // Just set the flag...
-            _data_flag = flag;
-        }
-	}
+{	if ( (flag != null) && (flag.length() > 0) && (flag.charAt(0) == '+') ) {
+        // Appending the flag
+        _data_flag = appendDataFlag(_data_flag,flag);
+    }
+    else {
+        // Simple set.  Do this because calling only the above code can result in
+        // previous flag values getting carried forward during iteration.
+        _data_flag = flag;
+    }
 }
 
 /**

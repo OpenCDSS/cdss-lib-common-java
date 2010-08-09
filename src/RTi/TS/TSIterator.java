@@ -330,24 +330,11 @@ public double getDataValue ()
 /**
 Return the TSData for the current date/time of the iterator.
 @return the TSData for the current date/time of the iterator.  WARNING:  the contents of this object are
-volatile and change with each iteration.  Use the get*() methods in TSIterator to retrieve data directly.
+volatile and change with each call.  Use the get*() methods in TSIterator to retrieve data directly prior
+to making subsequent calls.
 */
 private TSData getCurrentTSData ()
-{	if ( _ts.hasDataFlags() ) {
-		// Transfer the values.  This has more overhead but currently
-		// there is no way to get the data quality otherwise...
-		TSData data = _ts.getDataPoint ( _currentDate );
-		_tsdata.setDate(_currentDate);
-		_tsdata.setData(data.getData());
-		_tsdata.setDataFlag ( data.getDataFlag() );
-	}
-	else {
-	    // A little more efficient...
-		_tsdata.setDate(_currentDate);
-		_tsdata.setData(_ts.getDataValue(_currentDate));
-		_tsdata.setDataFlag ( "" );
-	}
-	return _tsdata;
+{	return _ts.getDataPoint ( _currentDate, _tsdata );
 }
 
 /**

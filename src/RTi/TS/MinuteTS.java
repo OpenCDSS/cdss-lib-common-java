@@ -136,11 +136,6 @@ Return for the following to optimize memory use.
 private int [] _pos = null;
 
 /**
-TSData object that is reused when getDataPoint() is called.
-*/
-protected TSData _tsdata;
-
-/**
 Default constructor.
 */
 public MinuteTS ( )
@@ -193,7 +188,7 @@ throws Exception
 	}
 	
 	if ( initialValue == null ) {
-	    initialValue = "".intern();
+	    initialValue = "";
 	}
 	
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
@@ -366,7 +361,7 @@ public int allocateDataSpace( )
 			for ( k = 0; k < nvals; k++ ) {
 				_data[i][j][k] = _missing;
 				if ( _has_data_flags ) {
-					_dataFlags[i][j][k] = "".intern(); // always use intern for this
+					_dataFlags[i][j][k] = "";
 				}
 			}
 		}
@@ -615,7 +610,6 @@ throws Throwable
 {	_data = null;
 	_dataFlags = null;
 	_pos = null;
-	_tsdata = null;
 	super.finalize();
 }
 
@@ -1174,38 +1168,42 @@ private void formatOutputNMinute ( List<String> strings, PropList props,
 
 /**
 Return a data point for the date.
-@return A data point corresponding to the given date.
-@param date Date of interest.
+@param date date/time to get data.
+@param tsdata if null, a new instance of TSData will be returned.  If non-null, the provided
+instance will be used (this is often desirable during iteration to decrease memory use and
+increase performance).
+@return a TSData for the specified date/time.
 */
-public TSData getDataPoint ( DateTime date )
-{	if ( _tsdata == null ) {
-		// Allocate it (this is the only method that uses it and don't want to waste memory)...
-		_tsdata = new TSData();
+public TSData getDataPoint ( DateTime date, TSData tsdata )
+{	
+    if ( tsdata == null ) {
+		// Allocate it...
+		tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "MinuteTS.getDataValue",
 			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
-		_tsdata.setValues ( date, _missing, _data_units, "".intern(), 0 );
-		return _tsdata;
+		tsdata.setValues ( date, _missing, _data_units, "", 0 );
+		return tsdata;
 	}
 	// This computes the _month_pos, _day_pos and _interval_pos...
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
 	    if ( _internDataFlagStrings ) {
-	        _tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos],
+	        tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos],
 				 _data_units, _dataFlags[_month_pos][_day_pos][_interval_pos].intern(), 0 );
 	    }
 	    else {
-            _tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos],
+            tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos],
                  _data_units, _dataFlags[_month_pos][_day_pos][_interval_pos], 0 );
 	    }
 	}
 	else {
-		_tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos], _data_units, "".intern(), 0 );
+		tsdata.setValues ( date, _data[_month_pos][_day_pos][_interval_pos], _data_units, "", 0 );
 	}
-	return _tsdata;
+	return tsdata;
 }
 
 /**
@@ -1214,7 +1212,7 @@ Minute data are stored as: [absolute month][days in month][interval in day].
 The position array is re-used and values should be copied if there is a need to use between calls.
 @param date Date of interest.
 */
-public int [] getDataPosition ( DateTime date )
+private int [] getDataPosition ( DateTime date )
 {	// Do not define routine here to improve performance.
 	String tz, tz1;
 

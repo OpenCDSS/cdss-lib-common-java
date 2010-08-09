@@ -67,8 +67,7 @@ within a month, indicators, etc.).  Because strings are used to store data,
 different set/get routines are implemented compared to the standard time series
 classes.  Currently, there are no read/write methods because it is anticipated
 that the time series file formats will match those of other time series classes
-(e.g., StateModMonthTS) and the read/write routines should be implemented in
-those classes.
+(e.g., StateModMonthTS) and the read/write routines should be implemented in those classes.
 @see MonthTS
 */
 public class StringMonthTS 
@@ -77,8 +76,7 @@ implements Cloneable, Serializable, Transferable {
 // Data members...
 
 // The location part of the TSIdent is used as the time series name.
-// The multiplier default of 1 is currently the only multiplier that is
-//	supported.
+// The multiplier default of 1 is currently the only multiplier that is supported.
 
 /**
 The DataFlavor for transferring this specific class.
@@ -86,11 +84,19 @@ The DataFlavor for transferring this specific class.
 public static DataFlavor stringMonthTSFlavor = new DataFlavor(
 	RTi.TS.StringMonthTS.class, "RTi.TS.StringMonthTS");
 
-private String	_data[][] = null;	// Array to hold data.
-private List _unique_data = new Vector ( 10,5);
-					// Unique strings in data.  Used when
-					// processing TSPatternStats.
-private String __missing_string = "";	// Default for missing data
+/**
+Array to hold data.
+*/
+private String _data[][] = null;
+// TODO SAM 2010-07-30 Can String.intern() be used instead here?
+/**
+Unique strings in data.  Used when processing TSPatternStats.
+*/
+private List<String> _unique_data = new Vector ( 10,5);
+/**
+Default for missing data.
+*/
+private String __missing_string = "";
 
 /**
 Constructor.
@@ -103,7 +109,8 @@ name that will be used - generally only the location needs to be specified).
 public StringMonthTS ( String tsident_string, DateTime date1, DateTime date2 )
 throws Exception
 {	super ();
-	try {	init( tsident_string, date1, date2 );
+	try {
+	    init( tsident_string, date1, date2 );
 		allocateDataSpace();
 	}
 	catch ( TSException e ) {
@@ -133,27 +140,24 @@ public int allocateDataSpace()
 
 /**
 Allocate the data space for the time series.  The start and end dates and the
-data interval multiplier must have been set.  Fill with the specified
-data value.
+data interval multiplier must have been set.  Fill with the specified data value.
 @param value Value to initialize data space.
 @return 1 if failure, 0 if success.
 */
 public int allocateDataSpace( String value )
-{	String	routine="StringMonthTS.allocateDataSpace";
+{	String routine="StringMonthTS.allocateDataSpace";
 	int	i, nvals, nyears = 0;
-	DateTime	date;
+	DateTime date;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		Message.printWarning ( 2, routine,
-		"Dates have not been set.  Cannot allocate data space" );
+		Message.printWarning ( 2, routine, "Dates have not been set.  Cannot allocate data space" );
 		return 1;
 	}
 	
 	nyears = _date2.getYear() - _date1.getYear() + 1;
 	
 	if( nyears == 0 ){
-		Message.printWarning( 2, routine,
-		"TS has 0 years POR, maybe Dates haven't been set yet" );
+		Message.printWarning( 2, routine, "TS has 0 years POR, maybe Dates haven't been set yet" );
 		return 1;
 	}
 
@@ -161,18 +165,16 @@ public int allocateDataSpace( String value )
 
 	// Allocate memory...
 
-	for (	i = 0, date = new DateTime(_date1,DateTime.DATE_FAST);
-		i < nyears;
-		i++,
-		date.addInterval(_data_interval_base, _data_interval_mult) ) {
+	for ( i = 0, date = new DateTime(_date1,DateTime.DATE_FAST); i < nyears;
+		i++, date.addInterval(_data_interval_base, _data_interval_mult) ) {
 		if ( _data_interval_mult == 1 ) {
 			// Easy to handle 1 month data...
 			nvals = 12;
 		}
-		else {	// Do not know how to handle N-month interval...
+		else {
+		    // Do not know how to handle N-month interval...
 			Message.printWarning ( 2, routine,
-			"Only know how to handle 1 month data, not " +
-			_data_interval_mult + "-month" );
+			"Only know how to handle 1 month data, not " + _data_interval_mult + "-month" );
 			return 1;
 		}
 		_data[i] = new String[nvals];
@@ -189,20 +191,16 @@ public int allocateDataSpace( String value )
 	int datasize = calculateDataSize ( _date1, _date2, _data_interval_mult);
 	setDataSize ( datasize );
 
-	// Set the limits used for set/get routines...  These are in the
-	// MonthTS class...
+	// Set the limits used for set/get routines...  These are in the MonthTS class...
 
 	_min_amon = _date1.getAbsoluteMonth();
 	_max_amon = _date2.getAbsoluteMonth();
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, routine,
-		"Successfully allocated " + nyears +
+		Message.printDebug( 10, routine, "Successfully allocated " + nyears +
 		" years of memory (" + datasize + " month values)" ); 
 	}
 
-	routine = null;
-	date = null;
 	return 0;
 }
 
@@ -217,8 +215,7 @@ throws Throwable
 }
 
 /**
-Dummy routine to prevent warnings.  This is mainly called when getting data
-limits.
+Dummy routine to prevent warnings.  This is mainly called when getting data limits.
 @param date Date to get data.
 @return 0.0 always.
 */
@@ -266,11 +263,9 @@ public String getDataValueAsString ( DateTime date )
 
 	//Check the date coming in 
 
-	if (	(date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
+	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, date +
-			" not within data period (" + _date1 + " - " + _date2 +
-			")" );
+			Message.printDebug ( dl, routine, date + " not within data period (" + _date1 + " - " + _date2 + ")" );
 		}
 		return "";
 	}
@@ -280,8 +275,7 @@ public String getDataValueAsString ( DateTime date )
 	if ( pos == null ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to boost performance...
-			Message.printWarning( 2, routine,
-			"Unable to get data position for " + date );
+			Message.printWarning( 3, routine, "Unable to get data position for " + date );
 		}
 		return "";
 	}
@@ -290,12 +284,9 @@ public String getDataValueAsString ( DateTime date )
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug( dl, routine,
-		_data[row][column] + " for " + date + " from _data[" + row +
-		"][" + column + "]" );
+		_data[row][column] + " for " + date + " from _data[" + row + "][" + column + "]" );
 	}
 
-	routine = null;
-	pos = null;
 	return _data[row][column];
 }
 
@@ -312,7 +303,7 @@ public int getNumUniqueData ()
 Return the unique data values.
 @return The unique data values.
 */
-public List getUniqueData ()
+public List<String> getUniqueData ()
 {	refresh ();
 	return _unique_data;
 }
@@ -348,8 +339,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Returns the flavors in which data can be transferred.  From the Transferable
-interface.  
+Returns the flavors in which data can be transferred.  From the Transferable interface.  
 The order of the dataflavors that are returned are:<br>
 <ul>
 <li>StringMonthTS - StringMonthTS.class / RTi.TS.StringMonthTS</li>
@@ -376,21 +366,20 @@ method if no data are available results in the header information being
 unavailable.  Instead, return a TS with only the header information and call
 hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
-Note that true will be returned even if all the data values are set to the
-missing data value.
+Note that true will be returned even if all the data values are set to the missing data value.
 */
 public boolean hasData ()
 {	if ( _data != null ) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
 /**
 Initialize the private data members.  This method accepts all the possible
-parameters and handles null appropriately.  This method does not allocate
-memory.
+parameters and handles null appropriately.  This method does not allocate memory.
 @param tsident_string Time series identifier string (this is the pattern
 name that will be used - generally only the location need be specified).
 @param date1 Starting date for time series.
@@ -459,18 +448,17 @@ public boolean isDataMissing ( String value )
 		// Check for NaN...
 		return true;
 	}
-	if (  value.equals(__missing_string) ) {
+	if ( value.equals(__missing_string) ) {
 		return true;
 	}
 	return false;
 }
 
 /**
-Refresh the derived data.  This will compute the number of unique attribute
-values.
+Refresh the derived data.  This will compute the number of unique attribute values.
 */
 public void refresh ()
-{	String	routine = "StringMonthTS.refresh";
+{	String routine = "StringMonthTS.refresh";
 
 	// Call on the base class...
 
@@ -485,12 +473,11 @@ public void refresh ()
 
 	// Figure out how many unique values there are (brute force)...
 
-	String	string_j, value;
+	String string_j, value;
 	int	j, size;
-	DateTime	date = null;
+	DateTime date = null;
 	boolean	found;
-	for (	date = new DateTime ( _date1, DateTime.DATE_FAST );
-		date.lessThanOrEqualTo(_date2);
+	for ( date = new DateTime ( _date1, DateTime.DATE_FAST ); date.lessThanOrEqualTo(_date2);
 		date.addInterval(_data_interval_base, _data_interval_mult) ) {
 		// Get the value...
 		value = getDataValueAsString(date);
@@ -509,16 +496,10 @@ public void refresh ()
 			// A new string.  Add and break...
 			_unique_data.add(value);
 			if ( Message.isDebugOn ) {
-				Message.printStatus ( 1, routine,
-				"Adding unique string to list: \"" +
-				value + "\"" );
+				Message.printStatus ( 1, routine, "Adding unique string to list: \"" + value + "\"" );
 			}
 		}
 	}
-	routine = null;
-	string_j = null;
-	value = null;
-	date = null;
 }
 
 /**
@@ -539,8 +520,7 @@ public void setDataValue ( DateTime date, String value )
 	if ( pos == null ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to boost performance...
-			Message.printWarning( 2, "StringMonthTS.setDataValue",
-			"Unable to get data position for " + date );
+			Message.printWarning( 2, "StringMonthTS.setDataValue", "Unable to get data position for " + date );
 		}
 		return;
 	}
@@ -552,14 +532,12 @@ public void setDataValue ( DateTime date, String value )
 		"Setting " + value + " " + date + " at " + row + "," + column );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if
-	// desired...
+	// Set the dirty flag so that we know to recompute the limits if desired...
 
 	_dirty = true;
 
 	// Save as a copy of the string...
 
-	pos = null;
 	_data[row][column] = value;
 }
 
@@ -571,4 +549,4 @@ public void setMissing ( String missing )
 {	__missing_string = missing;
 }
 
-} // End StringMonthTS
+}

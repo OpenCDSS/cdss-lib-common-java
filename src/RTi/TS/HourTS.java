@@ -154,10 +154,6 @@ private int _row;
 Column position in data.
 */
 private int _column;
-/**
-TSData object that is reused when getDataPoint() is called.
-*/
-private TSData _tsdata;
 
 /**
 Default constructor.
@@ -214,7 +210,7 @@ throws Exception
 	}
 	
 	if ( initialValue == null ) {
-	    initialValue = "".intern();
+	    initialValue = "";
 	}
 	
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
@@ -338,7 +334,7 @@ public int allocateDataSpace( )
 		for ( int j = 0; j < nvals; j++ ) {
 			_data[i][j] = _missing;
 			if ( _has_data_flags ) {
-				_dataFlags[i][j] = "".intern(); // Always use intern for this
+				_dataFlags[i][j] = "";
 			}
 		}
 	}
@@ -568,7 +564,6 @@ throws Throwable
 {	_data = null;
 	_dataFlags = null;
 	_pos = null;
-	_tsdata = null;
 	super.finalize();
 }
 
@@ -1522,40 +1517,40 @@ Return the data point corresponding to the date.
   		    \|/
   		   month 
 </pre>
-@return The data point corresponding to the date.  Note that the data point is
-reused between calls to optimize performance.  Therefore, if the values are
-to be used externally, they should be used immediately and then ignored after
-the next call or should be copied.
-@param date Date of interest.
+@param date date/time to get data.
+@param tsdata if null, a new instance of TSData will be returned.  If non-null, the provided
+instance will be used (this is often desirable during iteration to decrease memory use and
+increase performance).
+@return a TSData for the specified date/time.
 @see TSData
 */
-public TSData getDataPoint ( DateTime date )
-{	if ( _tsdata == null ) {
-		// Allocate it (this is the only method that uses it and don't want to wast memory)...
-		_tsdata = new TSData();
+public TSData getDataPoint ( DateTime date, TSData tsdata )
+{	if ( tsdata == null ) {
+		// Allocate it...
+		tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "HourTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
-		_tsdata.setValues ( date, _missing, _data_units, "", 0 );
-		return _tsdata;
+		tsdata.setValues ( date, _missing, _data_units, "", 0 );
+		return tsdata;
 	}
 	// This computes the _row and _column...
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
 	    if ( _internDataFlagStrings ) {
-	        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column].intern(), 0 );
+	        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column].intern(), 0 );
 	    }
 	    else {
-	        _tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column], 0 );
+	        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column], 0 );
 	    }
 	}
 	else {
-	    _tsdata.setValues ( date, getDataValue(date), _data_units, "".intern(), 0 );
+	    tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
 	}
 
-	return _tsdata;
+	return tsdata;
 }
 
 /**
@@ -1571,7 +1566,7 @@ Compute the data position corresponding to the date.
 and the contents of the array may change.  This information is typically only used internally.
 @param date Date of interest.
 */
-public int [] getDataPosition ( DateTime date )
+private int [] getDataPosition ( DateTime date )
 {	// Do not define routine here to increase performance.
 	// String tzshift;
 

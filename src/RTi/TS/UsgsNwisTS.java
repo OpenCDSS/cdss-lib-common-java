@@ -770,20 +770,15 @@ throws IOException
 
 	// What format to use for data??
 	DateTime date = new DateTime ( date1 );
-	TSData tsdata = null;
+	TSData tsdata = new TSData();
 	String source = ts.getIdentifier().getSource();
 	String id = ts.getLocation();
 	for ( ; date.lessThanOrEqualTo(date2);
 		date.addInterval(data_interval_base,data_interval_mult) ) {
-		tsdata = ts.getDataPoint ( date );
+		tsdata = ts.getDataPoint ( date, tsdata );
 		fp.println ( source + "\t" + id + "\t" + date.toString(DateTime.FORMAT_YYYY_MM_DD) + "\t" +
 		StringUtil.formatString(tsdata.getData(), "%.0f") + "\t" + tsdata.getDataFlag() );
 	}
-	routine = null;
-	id = null;
-	date1 = null;
-	date2 = null;
-	date = null;
 }
 
 }

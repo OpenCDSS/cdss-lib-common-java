@@ -1381,30 +1381,17 @@ public TSLimits getDataLimitsOriginal ()
 /**
 Return a TSData for a date.  This method should be defined in derived classes,
 especially if data flags are being used.
-@param date Date to get data.
-@return a TSData for the specified date.  This method is meant to be overridden in derived classes.
+@param date date/time to get data.
+@param tsdata if null, a new instance of TSData will be returned.  If non-null, the provided
+instance will be used (this is often desirable during iteration to decrease memory use and
+increase performance).
+@return a TSData for the specified date/time.
 */
-public TSData getDataPoint ( DateTime date )
-{	Message.printWarning( 3, "TS.getDataPoint", 
-	"This is a virtual function, redefine in lower classes" );
+public TSData getDataPoint ( DateTime date, TSData tsdata )
+{	Message.printWarning( 3, "TS.getDataPoint", "This is a virtual function, redefine in child classes" );
 	// Empty point...
 	TSData data = new TSData();
 	return data;
-}
-
-/**
-Return the position in the data array for a date.  THIS IS BEING PHASED OUT
-BECAUSE OF PERFORMANCE AND VARIATIONS BETWEEN STORAGE IN DERIVED CLASSES.
-@return The position in the data array for the given date.  The returned array
-may have a different number of components, depending on the storage scheme.
-This method should be overruled in a derived class.
-@return null here.
-@param date Date corresponding to the data value.
-*/
-public int [] getDataPosition ( DateTime date )
-{	Message.printWarning( 3, "TS.getDataPosition", "TS.getDataPosition() is virtual, redefine in derived classes." );
-	// For now, return null as a default...
-	return null;
 }
 
 /**
@@ -1972,6 +1959,7 @@ public void setDataValue ( DateTime date, double val )
 	"virtual and should be redefined in derived classes" );
 }
 
+// TODO SAM 2010-08-03 if flag is null, should it be treated as empty string?  What about append?
 /**
 Set a data value and associated information for the specified date.  This method
 should be defined in derived classes.
