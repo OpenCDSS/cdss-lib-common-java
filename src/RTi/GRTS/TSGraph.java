@@ -4177,12 +4177,12 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 		// Make sure the time zone is not set
 		date.setTimeZone("");
 
-		TSData tsdata = null;
+		TSData tsdata = new TSData();
 		for (; date.lessThanOrEqualTo(end); date.addInterval(interval_base, interval_mult)) {
 			// Use the actual data value
 			if (label_symbol) {
 				// TODO - need to optimize
-				tsdata = ts.getDataPoint(date);
+				tsdata = ts.getDataPoint(date, tsdata);
 				y = tsdata.getData();
 			}
 			else {	
