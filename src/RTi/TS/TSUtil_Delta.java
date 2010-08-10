@@ -4,7 +4,6 @@ import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.Vector;
 
-import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
@@ -177,6 +176,42 @@ throws Exception
                 // The difference is computed as the change to the first reset (e.g., to resetMax) plus the change
                 // from the second reset (e.g., resetMin to current value).
                 if ( __trendType == TrendType.DECREASING ) {
+                    if ( value > valuePrev ) {
+                        //Message.printStatus ( 2, "", "At " + dt + " diff computed inside reset.");
+                        // Value increased so account for reset
+                        if ( valuePrev < resetMin ) {
+                            if ( !ts.isDataMissing(valuePrevPrev) ) {
+                                __problems.add( "Previous value " + valuePrev + " at " + dtPrev + " is < ResetMin " +
+                                    resetMin + ".  Computing diff using second previous value " + valuePrevPrev );
+                                diff = valuePrev - valuePrevPrev;
+                            }
+                            else {
+                                // Previous value was above the maximum so can't compute diff component on top
+                                // of the previous value
+                                __problems.add( "Previous value " + valuePrev + " at " + dtPrev + " is < ResetMin " +
+                                    resetMax + ".  Ignoring ambiguous amount below ResetMin in previous value for diff." );
+                                diff = 0.0;
+                            }
+                            flag = resetFlagLow; // Will flag the data to indicate overrun (out of range)
+                        }
+                        else {
+                            // Assume that the previous value transitioned to the min and then to the new value.
+                            // This will be a negative number
+                            diff = resetMin - valuePrev;
+                        }
+                        // Now add the top part of the reset
+                        if ( value > resetMax ) {
+                            __problems.add( "Value " + value + " at " + dt + " is > ResetMax " +
+                                resetMin + ".  Adding amount above ResetMax to diff (decrease magnitude of negative diff)." );
+                            flag = resetFlagHigh; // Will flag the data to indicate underrun (out of range)
+                            diff += (value - resetMax);
+                        }
+                        else {
+                            diff -= (resetMax - value);
+                        }
+                        // The difference has been computed so no need to compute below
+                        diffComputed = true;
+                    }
                 }
                 else if ( __trendType == TrendType.INCREASING ) {
                     if ( value < valuePrev ) {
@@ -201,7 +236,7 @@ throws Exception
                             // Assume that the previous value transitioned to the max and then to the new value.
                             diff = resetMax - valuePrev;
                         }
-                        // Now add the bottom part
+                        // Now add the bottom part of the reset
                         if ( value < resetMin ) {
                             __problems.add( "Value " + value + " at " + dt + " is < ResetMin " +
                                 resetMin + ".  Subtracting amount below ResetMin from diff." );
