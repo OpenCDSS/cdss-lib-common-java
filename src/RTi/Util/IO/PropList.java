@@ -1317,7 +1317,8 @@ deprecated ones are in the list, and returns a Vector with warning messages
 about deprecated and invalid properties.  Invalid properties ARE NOT removed.
 See the overloaded method for more information.
 */
-public List validatePropNames(List validProps, List deprecatedProps, List deprecatedNotes, String target ) 
+public List<String> validatePropNames(List<String> validProps, List<String> deprecatedProps,
+    List<String> deprecatedNotes, String target ) 
 throws Exception
 {
     return validatePropNames( validProps, deprecatedProps, deprecatedNotes, target, false );
