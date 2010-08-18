@@ -109,14 +109,20 @@ The DataFlavor for transferring this specific class.
 public static DataFlavor irregularTSFlavor = new DataFlavor(RTi.TS.IrregularTS.class, "RTi.TS.IrregularTS");
 
 /**
-List of data points.
+List of data points, initially null and will be initialized on first data point set.
 */
-private	List<TSData> __ts_data_head;
+private	List<TSData> __ts_data_head = null;
 
 /**
 Previous setData() call pointer.  This is used to optimize set calls.
 */
 private TSData __prevSetDataPointer = null;
+
+/**
+Previous removeDataPoint() call pointer (for next point).  This is used to optimize remove calls.
+The next point is needed because if the previous point was removed, it will not be itself be available.
+*/
+private TSData __prevRemoveDataPointerNext = null;
 
 /**
 Index used when traversing the data array.
@@ -981,13 +987,12 @@ value if the date cannot be found in the data.
 public double getDataValue( DateTime date )
 {	// Do not define routine here to increase performance.
 	int	dl = 30, found_index = -1, i = 0;
-	TSData	ptr=null;
+	TSData ptr=null;
 
 	//Check the date coming in 
 
 	if ( __ts_data_head == null ) {
-		// No data!
-		// Leave __data_index as is.
+		// No data!  Leave __data_index as is.
 		return _missing;
 	}
 
@@ -1283,6 +1288,71 @@ public void refresh ()
 }
 
 /**
+Remove a data point corresponding to the date.
+@param date date/time for which to remove the data point.
+*/
+public void removeDataPoint ( DateTime date )
+{
+    if ( date == null ) {
+        return;
+    }
+    int size = getDataSize();
+    if ( size == 0 ) {
+        // No action
+        return;
+    }
+    else if ( size == 1 ) {
+        // Remove the head
+        __ts_data_head = null;
+        __prevSetDataPointer = null;
+        setDataSize(0);
+        _dirty  = true;
+        return;
+    }
+    // If here, need to search through the list and find the point
+    boolean pointFound = false;
+    // First check the previous set call and determine if the point is next on the list
+    // This is quite common and so this code greatly improves performance
+    TSData ptr = null;
+    if ( __prevRemoveDataPointerNext != null ) {
+        ptr = __prevRemoveDataPointerNext;
+        if ( ptr != null ) {
+            if ( ptr.getDate().equals(date) ) {
+                // Have found the point
+                pointFound = true;
+            }
+        }
+    }
+    if ( !pointFound ) {
+        // Do a more exhaustive loop.
+        // FIXME SAM 2010-08-17 Need to optimize search for the date, relinking list, etc.
+        for ( TSData ptr2 : __ts_data_head ) {
+        
+            //if ( Message.isDebugOn ) {
+            //  Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
+            //}
+            
+            if( ptr2.getDate().equals( date ) ) {
+                // Found match.
+                ptr = ptr2;
+                pointFound = true;
+            }
+        }
+    }
+    if ( pointFound ) {
+        // Do the removal - reroute pointers and then remove point from the list
+        __prevRemoveDataPointerNext = ptr.getNext(); // Save for next call
+        ptr.getPrevious().setNext(ptr.getNext());
+        ptr.getNext().setPrevious(ptr.getPrevious());
+        __ts_data_head.remove(ptr);
+        // Mark dirty so that we recompute the data limits...
+        _dirty  = true;
+        // Decrement the data size...
+        setDataSize ( getDataSize() - 1 );
+    }
+}
+
+/**
 Set the data value for the given date.  If the date has not already been set
 with a value, add a data point in the proper order.  This calls the overloaded
 method with a "" flag and duration of 0.
@@ -1296,7 +1366,7 @@ public void setDataValue( DateTime date, double value )
 /**
 Set the data value and associated information for the date.  First check to see if the point to be set exists as the
 next point relative to the previous set call - this will be fast if values are being reset sequentially (e.g., after
-being initilized to missing data and then reset with other values).
+being initialized to missing data and then reset with other values).
 If not, utilize a bisection approach to find the point to set.
 @param date Date of interest.
 @param value Data value corresponding to date.
@@ -1333,6 +1403,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	}
 	
 	// First check the previous set call and determine if the point is next on the list
+	// This is quite common and so this code greatly improves performance
 	
 	if ( __prevSetDataPointer != null ) {
 	    ptr = __prevSetDataPointer.getNext();
