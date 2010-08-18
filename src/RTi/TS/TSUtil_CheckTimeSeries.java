@@ -82,11 +82,17 @@ Description for __flag.
 private String __flagDesc = null;
 
 /**
+Action to be performed on detection (either null/blank for no action, "Remove" to remove the data point,
+or "SetMissing" to set the data point to missing.  For regular, Remove and SetMissing are equivalent.
+*/
+private String __action = null;
+
+/**
 Constructor.
 */
 public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
         DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, String problemType,
-        String flag, String flagDesc )
+        String flag, String flagDesc, String action )
 {   String message;
     String routine = getClass().getName() + ".constructor";
 	// Save data members.
@@ -107,6 +113,15 @@ public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
     __value2 = value2;
     __flag = flag;
     __flagDesc = flagDesc;
+    __action = action;
+    if ( __action.equals("") ) {
+        __action = null;
+    }
+    if ( (action != null) && !action.equalsIgnoreCase("Remove") && !action.equalsIgnoreCase("SetMissing")) {
+        message = "Action (" + action + ") is invalid.  Must be Remove or SetMissing if specified";
+        Message.printWarning(3, routine, message);
+        throw new InvalidParameterException ( message );
+    }
 }
 
 /**
@@ -146,6 +161,7 @@ throws Exception
     String message = null;
     DateTime date; // Date corresponding to data value
     boolean isMissing;
+    boolean matchDetected; // whether a data value matched the check criteria - used to trigger action
     double diff;
     TSData dataPoint = new TSData(); // Used when setting the flag
     // TODO SAM 2010 evaluate whether to check units for precision
@@ -154,6 +170,7 @@ throws Exception
         // Analyze the value - do this brute force with string comparisons and improve performance once logic is in place
         message = null; // A non-null message indicates that the check criteria was met for the value
         date = tsi.getDate();
+        matchDetected = false;
         if ( valueToCheck.equals("DataValue") ) {
             tsvalue = data.getData();
             isMissing = ts.isDataMissing(tsvalue);
@@ -167,6 +184,7 @@ throws Exception
                             value1 + " since previous value " +
                             StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
                             StringUtil.formatString(diff,tsValueFormat) + ")";
+                        matchDetected = true;
                     }
                 }
             }
@@ -180,6 +198,7 @@ throws Exception
                             value1 + "% since previous value " +
                             StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff %=" +
                             StringUtil.formatString(diff,tsValueFormat) + ")";
+                        matchDetected = true;
                     }
                 }
             }
@@ -193,6 +212,7 @@ throws Exception
                             value1 + " since previous value " +
                             StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
                             StringUtil.formatString(diff,tsValueFormat) + ")";
+                        matchDetected = true;
                     }
                 }
             }
@@ -206,6 +226,7 @@ throws Exception
                             value1 + " since previous value " +
                             StringUtil.formatString(tsvaluePrev,tsValueFormat) + " (diff=" +
                             StringUtil.formatString(diff,tsValueFormat) + ")";
+                        matchDetected = true;
                     }
                 }
             }
@@ -214,6 +235,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is = test value " + value1;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThan) ) {
@@ -221,6 +243,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is > limit " + value1;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_GreaterThanOrEqualTo) ) {
@@ -228,6 +251,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is >= limit " + value1;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_InRange) ) {
@@ -235,6 +259,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is in range " + value1 + " to " + value2;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThan) ) {
@@ -242,6 +267,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                         StringUtil.formatString(tsvalue,tsValueFormat) +
                         " at " + date + " is < limit " + value1;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_LessThanOrEqualTo) ) {
@@ -249,6 +275,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is <= limit " + value1;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Missing) ) {
@@ -256,6 +283,7 @@ throws Exception
                     message = "Time series " + tsid + " value " + 
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is missing";
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_OutOfRange) ) {
@@ -263,6 +291,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " is out of range " + value1 + " to " + value2;
+                    matchDetected = true;
                 }
             }
             else if ( checkCriteria.equalsIgnoreCase(__CHECK_TYPE_Repeat) ) {
@@ -271,6 +300,7 @@ throws Exception
                     message = "Time series " + tsid + " value " +
                     StringUtil.formatString(tsvalue,tsValueFormat) +
                     " at " + date + " repeated previous value";
+                    matchDetected = true;
                 }
             }
             if ( message != null ) {
@@ -281,6 +311,22 @@ throws Exception
                     dataPoint = ts.getDataPoint(date, dataPoint );
                     dataPoint.setDataFlag ( __flag );
                     ts.setDataValue(date, dataPoint.getData(), dataPoint.getDataFlag(), dataPoint.getDuration() );
+                }
+            }
+            // If an action is required, do it
+            if ( matchDetected && (__action != null) )  {
+                if ( __action.equalsIgnoreCase("Remove") ) {
+                    if ( ts instanceof IrregularTS ) {
+                        // Remove the data point from memory
+                        ((IrregularTS)ts).removeDataPoint(date);
+                    }
+                    else {
+                        // Set to missing
+                        ts.setDataValue(date, ts.getMissing() );
+                    }
+                }
+                else if ( __action.equalsIgnoreCase("SetMissing") ) {
+                    ts.setDataValue(date, ts.getMissing() );
                 }
             }
             // Increment the count and save the previous value
