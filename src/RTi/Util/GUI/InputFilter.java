@@ -543,7 +543,7 @@ filter manually (e.g., outside of a database).  The filter type is checked and
 appropriate comparisons are made.
 @param s String to compare to.  Numerical values are converted from the string
 (false is returned if a conversion from string to number cannot be made).
-@param operator Operator to apply to the filter (usually managed in InputFilter_JFrame).
+@param operator Operator to apply to the filter (usually managed in InputFilter_JPanel).
 @param ignore_case If true, then case is ignored when comparing the strings.
 @return true if the string matches the current input for the input filter, or false otherwise.
 */

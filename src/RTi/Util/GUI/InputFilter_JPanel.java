@@ -306,7 +306,7 @@ The previous contents are first removed.
 @param constraintsToRemove the constraints that should NOT appear in the 
 combo box.  Can be null, if all the appropriate constraints should be shown.
 */
-private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List constraintsToRemove )
+private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List<String> constraintsToRemove )
 {	if ( cb == null ) {
 		return;
 	}
@@ -338,7 +338,7 @@ private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List constrai
 	if (constraintsToRemove != null) {
 		int size = constraintsToRemove.size();
 		for (int i = 0; i < size; i++) {
-			cb.remove((String)constraintsToRemove.get(i));
+			cb.remove(constraintsToRemove.get(i));
 		}
 	}
 	
@@ -364,7 +364,6 @@ throws Throwable {
 /**
 Return the input that has been entered in the panel, for a requested parameter.
 If the requested where_label is not selected in any of the input filters, a zero length vector will be returned.
-Currently only the string input type is enabled.
 @return the input that has been entered in the panel, for a requested parameter.
 @param whereLabel The visible label for the input filter.
 @param useWildcards Suitable only for string input (treated as false if numeric input).
@@ -387,7 +386,7 @@ public List<String> getInput ( String whereLabel, boolean useWildcards, String d
 		filter = getInputFilter ( ifg );
 		where = filter.getWhereLabel();
 		if ( !where.equalsIgnoreCase(whereLabel) || where.equals("") ) {
-			// No need to evaluate...
+			// No need to evaluate because not the requested input or input is blank...
 			continue;
 		}
 		input = filter.getInput(false).trim();
@@ -454,6 +453,28 @@ public InputFilter getInputFilter ( int ifg )
 }
 
 /**
+Return the input filters that have been entered in the panel, for a requested parameter.
+If the requested where_label is not selected in any of the input filters, a zero length vector will be returned.
+@return the input that has been entered in the panel, for a requested parameter.
+@param whereLabel The visible label for the input filter.
+@param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
+*/
+public List<InputFilter> getInputFilters ( String whereLabel )
+{   List<InputFilter> inputFilterList = new Vector();
+    InputFilter filter;
+    String where; // Where label for filter selected by user.
+    for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
+        filter = getInputFilter ( ifg );
+        where = filter.getWhereLabel();
+        if ( where.equalsIgnoreCase(whereLabel) && !where.equals("") ) {
+            // Requested input name matches so add the filter...
+            inputFilterList.add(filter);
+        }
+    }
+    return inputFilterList;
+}
+
+/**
 Return the number of filter groups.
 @return the number of filter groups.
 */
@@ -469,6 +490,22 @@ Return the operator for a filter group (one of InputFilter.INPUT_*).
 public String getOperator ( int ifg )
 {	SimpleJComboBox cb = (SimpleJComboBox)__operatorComponentList.get(ifg);
 	return cb.getSelected();
+}
+
+/**
+Return the operator for an input filter.
+@return the operator for an input filter.
+@param filter input filter.
+*/
+public String getOperator ( InputFilter filter )
+{   // First figure out which input filter group the filter is in...
+    int ifgFound = -1;
+    for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
+        
+    }
+    // Now return the operator that is visible for the filter
+    SimpleJComboBox cb = (SimpleJComboBox)__operatorComponentList.get(ifgFound);
+    return cb.getSelected();
 }
 
 /**
