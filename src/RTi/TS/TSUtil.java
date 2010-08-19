@@ -9657,17 +9657,40 @@ The data range is checked regardless of whether the missing data value is in the
 @param ts Time series to update.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
-@param minvalue Minimum data value to replace.
-@param maxvalue Maximum data value to replace.
-@param newvalue Replacement data value.
+@param minValue Minimum data value to replace.
+@param maxValue Maximum data value to replace.
+@param newValue Replacement data value (optional - do not need if action is specified).
+@param action Action to perform: "Remove" to remove the point (only for irregular interval, treated as SetMissing
+for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
 */
-public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, double minvalue,
-	double maxvalue, double newvalue )
-{	// Get valid dates because the ones passed in may have been null...
-
+public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
+	Double maxValue, Double newValue, String action )
+{	
+    if ( (newValue == null) && ((action == null) || action.equals("")) ) {
+        throw new InvalidParameterException(
+            "Neither new value or action have been specified.  Cannot replace value in time series." );
+    }
+    double minvalue = minValue; // Does this increase peformacne?
+    double maxvalue = maxValue;
+    double newvalue = Double.NaN;
+    if ( newValue != null ) {
+        newvalue = newValue;
+    }
+    // Get valid dates because the ones passed in may have been null...
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
+	boolean doRemove = false;
+	boolean doSetMissing = false;
+	double missing = ts.getMissing();
+	if ( action != null ) {
+	    if ( action.equals("Remove") ) {
+	        doRemove = true;
+	    }
+	    else if ( action.equals("SetMissing") ) {
+            doSetMissing = true;
+        }
+	}
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
@@ -9675,7 +9698,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -9683,8 +9706,9 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		DateTime date = null;
+		boolean pointRemoved; // To know if remove was success
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -9692,31 +9716,63 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			}
 			value = tsdata.getData();
 			if ( date.greaterThanOrEqualTo(start) && (value >= minvalue) && (value <= maxvalue) ) {
-				tsdata.setData(newvalue);
+			    if ( doRemove ) {
+			        // This will remove the point at the date (there should only be one matching date...
+			        pointRemoved = irrts.removeDataPoint(date);
+			        if ( pointRemoved ) {
+			            // TODO SAM 2010-08-18 Evaluate changing to iterator and remove following code
+    			        // Decrement counters
+    			        --i;
+    			        --nalltsdata;
+			        }
+			    }
+			    else if ( doSetMissing ) {
+			        tsdata.setData(missing);
+			    }
+			    else {
+			        tsdata.setData(newvalue);
+			    }
 				// Have to do this manually since TSData are being modified directly to improve performance...
 				ts.setDirty ( true );
 			}
 		}
 	}
-	else {	// Loop using addInterval...
+	else {
+	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
 			if ( (value >= minvalue) && (value <= maxvalue) ) {
-				ts.setDataValue ( date, newvalue );
+			    if ( doRemove || doSetMissing ) {
+			        ts.setDataValue ( date, missing );
+			    }
+			    else {
+			        ts.setDataValue ( date, newvalue );
+			    }
 			}
 		}
 	}
 
 	// Set the genesis information...
 
-	ts.setDescription ( ts.getDescription() + ", replaceValue(" +
-		StringUtil.formatString(minvalue, "%.3f") + "," +
-		StringUtil.formatString(maxvalue, "%.3f") + "," +
-		StringUtil.formatString(newvalue, "%.3f") + ")" );
-	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
-	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
-	StringUtil.formatString(newvalue,"%.3f") + " " + start.toString() + " to " + end.toString() + "." );
+	if ( (action != null) && action.equalsIgnoreCase("Remove") || action.equalsIgnoreCase("SetMissing") ) {
+	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+            StringUtil.formatString(minvalue, "%.3f") + "," +
+            StringUtil.formatString(maxvalue, "%.3f") + "," +
+            action + ")" );
+        ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
+           " - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
+           start + " to " + end + "." );
+	}
+	else {
+	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+            StringUtil.formatString(minvalue, "%.3f") + "," +
+            StringUtil.formatString(maxvalue, "%.3f") + "," +
+            StringUtil.formatString(newvalue, "%.3f") + ")" );
+    	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
+        	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
+        	StringUtil.formatString(newvalue,"%.3f") + " " + start + " to " + end + "." );
+	}
 }
 
 /**
