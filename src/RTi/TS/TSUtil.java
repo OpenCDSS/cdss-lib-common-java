@@ -9664,7 +9664,7 @@ The data range is checked regardless of whether the missing data value is in the
 for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
-	Double maxValue, Double newValue, String action )
+	Double maxValue, Double newValue, String action, DateTime analysisWindowStart, DateTime analysisWindowEnd )
 {	
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
@@ -9695,6 +9695,19 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
 	double value = 0.0;
+	// Initialize in-year analysis window
+	boolean doAnalysisWindow = false;
+    DateTime windowStart = null;
+    if ( analysisWindowStart != null ) {
+        windowStart = new DateTime(analysisWindowStart);
+    }
+    DateTime windowEnd = null;
+    if ( analysisWindowEnd != null ) {
+        windowEnd = new DateTime(analysisWindowEnd);
+    }
+    if ( (windowStart != null) && (windowEnd != null) ) {
+        doAnalysisWindow = true;
+    }
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -9716,6 +9729,15 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			}
 			value = tsdata.getData();
 			if ( date.greaterThanOrEqualTo(start) && (value >= minvalue) && (value <= maxvalue) ) {
+	             if ( doAnalysisWindow ) {
+                    // Do check after checking values to increase performance
+                    windowStart.setYear(date.getYear());
+                    windowEnd.setYear(date.getYear());
+                    if ( date.lessThan(windowStart) || date.greaterThan(windowEnd) ) {
+                        // Not in analysis window so don't proces
+                        continue;
+                    }
+                }
 			    if ( doRemove ) {
 			        // This will remove the point at the date (there should only be one matching date...
 			        pointRemoved = irrts.removeDataPoint(date);
@@ -9743,6 +9765,15 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
 			if ( (value >= minvalue) && (value <= maxvalue) ) {
+		        if ( doAnalysisWindow ) {
+		            // Do check after checking values to increase performance
+	                windowStart.setYear(date.getYear());
+	                windowEnd.setYear(date.getYear());
+	                if ( date.lessThan(windowStart) || date.greaterThan(windowEnd) ) {
+	                    // Not in analysis window so don't proces
+	                    continue;
+	                }
+	            }
 			    if ( doRemove || doSetMissing ) {
 			        ts.setDataValue ( date, missing );
 			    }
@@ -9755,7 +9786,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 
 	// Set the genesis information...
 
-	if ( (action != null) && action.equalsIgnoreCase("Remove") || action.equalsIgnoreCase("SetMissing") ) {
+	if ( doRemove || doSetMissing ) {
 	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
             StringUtil.formatString(minvalue, "%.3f") + "," +
             StringUtil.formatString(maxvalue, "%.3f") + "," +
