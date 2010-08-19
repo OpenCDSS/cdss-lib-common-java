@@ -2423,12 +2423,11 @@ public static String tempFileName()
     return tempFileName ( null, null );
 }
 
-// FIXME SAM 2009-05-06 Need to use the built-in feature of the File class.
 /**
-Determine a unique temporary file name, using the system clock.  On UNIX, temporary files are created
-in /tmp.  On PCs, temporary files are created in C:/TEMP.  The file may theoretically be grabbed by another
-application but this is unlikely.
-If using Java 1.2x, can use the File.createTempFile() method instead.
+Determine a unique temporary file name, using the system clock milliseconds.
+The system property java.io.tmpdir is used to determine the folder.
+The file may theoretically be grabbed by another
+application but this is unlikely since the filename is based on the current time
 @param prefix prefix to filename, in addition to temporary pattern, or null for no prefix.
 @param extension extension to filename (without leading .), or null for no extension.
 @return Full path to an unused temporary file.
@@ -2445,25 +2444,38 @@ public static String tempFileName( String prefix, String extension )
 	else if ( !extension.startsWith(".") ) {
 	    extension = "." + extension;
 	}
+    String [] tmpdirs = null;
 	if ( isUNIXMachine() ) {
-		dir = "/tmp/";
+	    tmpdirs = new String[3];
+	    tmpdirs[0] = System.getProperty("java.io.tmpdir");
+	    tmpdirs[1] = "/tmp";
+	    tmpdirs[2] = "/var/tmp";
 	}
 	else {
-	    String dir0 = "C:\\tmp";
-	    dir = dir0 + "\\";
-	    File f = new File(dir);
-	    if ( !f.exists() || !f.isDirectory() ) {
-	        // Try the next option...
-    	    dir0 = "C:\\temp";
-    	    dir = dir0 + "\\";
+	    tmpdirs = new String[3];
+	    tmpdirs[0] = System.getProperty("java.io.tmpdir");
+	    tmpdirs[1] = "C:\\tmp";
+	    tmpdirs[2] = "C:\\temp";
+	}
+	for ( int i = 0; i < tmpdirs.length; i++ ) {
+        String dir2 = tmpdirs[i];
+	    File f = new File(dir2);
+	    if ( f.exists() && f.isDirectory() ) {
+	        // Found a folder that will work
+	        dir = dir2;
+	        break;
 	    }
+	}
+	if ( dir == null ) {
+	    // Should hopefully never happen
+	    throw new RuntimeException ( "Cannot determine temporary file location." );
 	}
 	Date d = null;
 	// Use the date as a seed and make sure the file does not exist...
 	String filename = null;
 	while ( true ) {
 		d = new Date();
-		filename = dir + prefix + d.getTime() + extension;
+		filename = dir + File.separator + prefix + d.getTime() + extension;
 		if ( !fileExists(filename) ) {
 			d = null;
 			break;
