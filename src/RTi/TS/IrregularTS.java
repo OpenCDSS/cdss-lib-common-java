@@ -1290,16 +1290,17 @@ public void refresh ()
 /**
 Remove a data point corresponding to the date.
 @param date date/time for which to remove the data point.
+@return true if the point was removed, false if not (date was not found).
 */
-public void removeDataPoint ( DateTime date )
+public boolean removeDataPoint ( DateTime date )
 {
     if ( date == null ) {
-        return;
+        return false;
     }
     int size = getDataSize();
     if ( size == 0 ) {
         // No action
-        return;
+        return false;
     }
     else if ( size == 1 ) {
         // Remove the head
@@ -1307,7 +1308,7 @@ public void removeDataPoint ( DateTime date )
         __prevSetDataPointer = null;
         setDataSize(0);
         _dirty  = true;
-        return;
+        return true;
     }
     // If here, need to search through the list and find the point
     boolean pointFound = false;
@@ -1342,14 +1343,24 @@ public void removeDataPoint ( DateTime date )
     if ( pointFound ) {
         // Do the removal - reroute pointers and then remove point from the list
         __prevRemoveDataPointerNext = ptr.getNext(); // Save for next call
-        ptr.getPrevious().setNext(ptr.getNext());
-        ptr.getNext().setPrevious(ptr.getPrevious());
+        // There may be cases at the start or end of the time series where nulls could be encountered
+        // so be careful about the reset
+        TSData ptrPrev = ptr.getPrevious();
+        TSData ptrNext = ptr.getNext();
+        if ( ptrPrev != null ) {
+            ptrPrev.setNext(ptrNext);
+        }
+        if ( ptrNext != null ) {
+            ptrNext.setPrevious(ptrPrev);
+        }
         __ts_data_head.remove(ptr);
         // Mark dirty so that we recompute the data limits...
         _dirty  = true;
         // Decrement the data size...
         setDataSize ( getDataSize() - 1 );
+        return true;
     }
+    return false;
 }
 
 /**
