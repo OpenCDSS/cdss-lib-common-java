@@ -114,7 +114,8 @@ public TSUtil_CheckTimeSeries ( TS ts, String valueToCheck, String checkType,
     __flag = flag;
     __flagDesc = flagDesc;
     __action = action;
-    if ( __action.equals("") ) {
+    if ( (__action != null) && __action.equals("") ) {
+        // Set to null for internal handling
         __action = null;
     }
     if ( (action != null) && !action.equalsIgnoreCase("Remove") && !action.equalsIgnoreCase("SetMissing")) {
