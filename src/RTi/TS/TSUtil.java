@@ -2923,10 +2923,11 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         needed_count = n + 1;
     }
 
-	double	sum;
+	double sum;
 	DateTime value_date = new DateTime(newts.getDate1());  // DateTime with precision of data
 	int	count, i;
-	double	value;
+	double value = 0.0;
+	double missing = ts.getMissing();
 	for ( ;	date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( !ts.isDataMissing(ts.getDataValue(date) ) ) {
 			// Initialize the date for looking up values to the initial offset from the loop date...
@@ -2942,7 +2943,16 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 			count = 0;
 			sum = 0.0;
 			for ( i = offset1; i <= offset2; i++ ) {
-				value = ts.getDataValue ( value_date );
+			    if ( (value_date.getMonth() == 2) && (value_date.getDay() == 29) &&
+			        !TimeUtil.isLeapYear(value_date.getYear()) ) {
+			        // The Feb 29 that we are requesting in another year does not exist.  Set to missing
+			        // This will result in the final output also being missing.
+			        value = missing;
+			    }
+			    else {
+			        // Normal data access.
+		            value = ts.getDataValue ( value_date );
+			    }
 				if ( ts.isDataMissing(value) ) {
 					// Break.  Below we detect whether we have the right count to do the average...
 					break;
@@ -2969,7 +2979,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 
 	// Add to the genesis...
 
-	newts.addToGenesis ( "Created " + genesis + " running average TS from original data" );
+	newts.addToGenesis ( "Created " + genesis + " running average time series from original data" );
 	newts.setDescription ( newts.getDescription() + ", " + genesis + " run ave" );
 	return newts;
 }
@@ -4616,8 +4626,8 @@ throws Exception
 	if ( nfilled > 0 ) {
 		ts.setDescription ( ts.getDescription() + ", fill w/ " + StringUtil.formatString(value,"%.3f") );
 	}
-	ts.addToGenesis ( "Filled missing data " + start.toString() + " to " +
-		end.toString() + " using constant " + value + " (" + nfilled + " values filled)." );
+	ts.addToGenesis ( "Filled missing data " + start + " to " +
+		end + " using constant " + value + " (" + nfilled + " values filled)." );
 }
 
 /**
@@ -5101,6 +5111,7 @@ throws Exception
 	int	interval_mult = ts.getDataIntervalMult();
 	double	delta = 0.0, oldvalue = 0.0, value = 0.0;
 	TSData tsdata = new TSData(); // Data point used for setting the data flag handling the data flag.
+	int fillCount = 0;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		Message.printWarning ( 1, routine, "Filling irregular time series using interpolation is not supported." );
 		return;
@@ -5127,6 +5138,7 @@ throws Exception
 					else {
 						ts.setDataValue ( date, value );
 					}
+					++fillCount;
 					previous_was_filled = true;
 					continue;
 				}
@@ -5178,6 +5190,7 @@ throws Exception
 					else {
 						ts.setDataValue ( date, value );
 					}
+					++fillCount;
 					previous_was_filled = true;
 				}
 			}
@@ -5190,9 +5203,15 @@ throws Exception
 
 	// Fill in the genesis information...
 
-	ts.addToGenesis ( "Filled missing data " + start.toString() + " to " +
-	end.toString() + " using linear interpolation from known values.");
-	ts.setDescription ( ts.getDescription() + ",fill interpolate" );
+    String maxString = "maximum of " + intervals_can_fill + " intervals in gap allowed.";
+    if ( intervals_can_fill == 0 ) {
+        maxString = " no limit to number of intervals in a gap to fill.";
+    }
+	ts.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " +
+	    end + " using linear interpolation from known values, " + maxString );
+    if ( fillCount > 0 ) {
+    	ts.setDescription ( ts.getDescription() + ",fill interpolate" );
+	}
 }
 
 /**
@@ -6706,7 +6725,7 @@ throws TSException
 	boolean last_found = false;
 	double last_found_value = 0.0;
 	int	fill_count = 0;	// Number of sequential intervals filled.
-		
+	int fillCountTotal = 0; // Total fill count
 	if ( direction >= 0 ) {
 		// Iterate forward...
 		for ( date = new DateTime(start); date.lessThanOrEqualTo( end );
@@ -6718,6 +6737,7 @@ throws TSException
 					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
 						ts.setDataValue ( date, last_found_value );
 						++fill_count;
+						++fillCountTotal;
 					}
 				}
 			}
@@ -6740,6 +6760,7 @@ throws TSException
 					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
 						ts.setDataValue ( date, last_found_value );
 						++fill_count;
+						++fillCountTotal;
 					}
 				}
 			}
@@ -6754,16 +6775,19 @@ throws TSException
 
 	// Fill in the genesis information...
 
-	if ( direction >= 0 ) {
-		ts.setDescription ( ts.getDescription() + ", fill repeat forward" );
-		ts.addToGenesis ( "Filled missing data " + start.toString() +
-		" to " + end.toString() + " by repeating forward known values, up to " + max_intervals );
+	String maxString = " up to gap of " + max_intervals  + " intervals.";
+	if ( max_intervals == 0 ) {
+	    maxString = " no limit in gap size to fill.";
+	};
+	String dir = "forward";
+	if ( direction < 0 ) {
+	    dir = "backward";
 	}
-	else {
-	    ts.setDescription ( ts.getDescription() + ", fill repeat backward" );
-		ts.addToGenesis ( "Filled missing data " + start.toString() +
-		" to " + end.toString() + " by repeating backward known values, up to " + max_intervals );
-	}
+    if ( fillCountTotal > 0 ) {
+        ts.setDescription ( ts.getDescription() + ", fill repeat " + dir );
+    }
+	ts.addToGenesis ( "Filled " + fillCountTotal + " missing data values " + start +
+	" to " + end + " by repeating " + dir + " known values," + maxString );
 }
 
 /**
@@ -9708,6 +9732,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
     if ( (windowStart != null) && (windowEnd != null) ) {
         doAnalysisWindow = true;
     }
+    int replaceCount = 0; // Number of values modified
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -9746,13 +9771,16 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
     			        // Decrement counters
     			        --i;
     			        --nalltsdata;
+    			        ++replaceCount; // Handle in each clause here and below because the above call could fail
 			        }
 			    }
 			    else if ( doSetMissing ) {
 			        tsdata.setData(missing);
+			        ++replaceCount;
 			    }
 			    else {
 			        tsdata.setData(newvalue);
+			        ++replaceCount;
 			    }
 				// Have to do this manually since TSData are being modified directly to improve performance...
 				ts.setDirty ( true );
@@ -9780,29 +9808,33 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			    else {
 			        ts.setDataValue ( date, newvalue );
 			    }
+			    ++replaceCount;
 			}
 		}
 	}
 
 	// Set the genesis information...
 
-	if ( doRemove || doSetMissing ) {
-	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
-            StringUtil.formatString(minvalue, "%.3f") + "," +
-            StringUtil.formatString(maxvalue, "%.3f") + "," +
-            action + ")" );
-        ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
-           " - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
-           start + " to " + end + "." );
-	}
-	else {
-	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
-            StringUtil.formatString(minvalue, "%.3f") + "," +
-            StringUtil.formatString(maxvalue, "%.3f") + "," +
-            StringUtil.formatString(newvalue, "%.3f") + ")" );
-    	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
-        	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
-        	StringUtil.formatString(newvalue,"%.3f") + " " + start + " to " + end + "." );
+	if ( replaceCount > 0 ) {
+    	if ( doRemove || doSetMissing ) {
+    	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+                StringUtil.formatString(minvalue, "%.3f") + "," +
+                StringUtil.formatString(maxvalue, "%.3f") + "," +
+                action + ")" );
+            ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
+               " - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
+               start + " to " + end + " (" + replaceCount + " occurrences)." );
+    	}
+    	else {
+    	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+                StringUtil.formatString(minvalue, "%.3f") + "," +
+                StringUtil.formatString(maxvalue, "%.3f") + "," +
+                StringUtil.formatString(newvalue, "%.3f") + ")" );
+        	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
+            	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
+            	StringUtil.formatString(newvalue,"%.3f") + " " + start + " to " + end +
+            	" (" + replaceCount + " occurrences)." );
+    	}
 	}
 }
 
