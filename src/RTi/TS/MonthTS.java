@@ -1780,6 +1780,23 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 
 	_dirty = true;
 	_data[row][column] = value;
+    if ( (data_flag != null) && (data_flag.length() > 0) ) {
+        if ( !_has_data_flags ) {
+            // Trying to set a data flag but space has not been allocated, so allocate the flag space
+            try {
+                allocateDataFlagSpace(null, false );
+            }
+            catch ( Exception e ) {
+                // Generally should not happen - log as debug because could generate a lot of warnings
+                if ( Message.isDebugOn ) {
+                    Message.printDebug(30, "MonthTS.setDataValue", "Error allocating data flag space (" + e +
+                        ") - will not use flags." );
+                }
+                // Make sure to turn flags off
+                _has_data_flags = false;
+            }
+        }
+    }
 	if ( _internDataFlagStrings ) {
 	    _dataFlags[row][column] = data_flag.intern();
 	}

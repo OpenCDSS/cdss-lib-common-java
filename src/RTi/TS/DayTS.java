@@ -1567,7 +1567,17 @@ public double getDataValue( DateTime date )
 		    _data[_row][_column] + " for " + date + " from _data[" + _row + "][" + _column + "]" );
 	}
 
-	return _data[_row][_column];
+	double value = 0;
+	// FIXME SAM 2010-08-20 Possible to throw exceptions if the date is not the right precision and
+	// illegal math results in negative values in arrays
+	//try {
+	    value = _data[_row][_column];
+	//}
+	//catch ( Exception e ) {
+	//    Message.printWarning(3, "", "Error getting value for date " + date + "date1=" + _date1 + "_date2=" + _date2 + " row=" + _row + " col=" + _column);
+	//    Message.printWarning(3, "", e);
+	//}
+	return value;
 }
 
 /**
@@ -1767,6 +1777,23 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	_dirty = true;
 
 	_data[_row][_column] = value;
+	if ( (data_flag != null) && (data_flag.length() > 0) ) {
+	    if ( !_has_data_flags ) {
+	        // Trying to set a data flag but space has not been allocated, so allocate the flag space
+	        try {
+	            allocateDataFlagSpace(null, false );
+	        }
+	        catch ( Exception e ) {
+	            // Generally should not happen - log as debug because could generate a lot of warnings
+	            if ( Message.isDebugOn ) {
+    	            Message.printDebug(30, "DayTS.setDataValue", "Error allocating data flag space (" + e +
+    	                ") - will not use flags." );
+	            }
+	            // Make sure to turn flags off
+	            _has_data_flags = false;
+	        }
+	    }
+	}
 	if ( _has_data_flags && (data_flag != null) ) {
 	    if ( _internDataFlagStrings ) {
 	        _dataFlags[_row][_column] = data_flag.intern();

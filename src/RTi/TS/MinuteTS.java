@@ -1508,6 +1508,23 @@ public void setDataValue ( DateTime date, double value, String dataFlag, int dur
 	_dirty = true;
 
 	_data[_month_pos][_day_pos][_interval_pos] = value;
+    if ( (dataFlag != null) && (dataFlag.length() > 0) ) {
+        if ( !_has_data_flags ) {
+            // Trying to set a data flag but space has not been allocated, so allocate the flag space
+            try {
+                allocateDataFlagSpace(null, false );
+            }
+            catch ( Exception e ) {
+                // Generally should not happen - log as debug because could generate a lot of warnings
+                if ( Message.isDebugOn ) {
+                    Message.printDebug(30, "MinuteTS.setDataValue", "Error allocating data flag space (" + e +
+                        ") - will not use flags." );
+                }
+                // Make sure to turn flags off
+                _has_data_flags = false;
+            }
+        }
+    }
 	if ( _has_data_flags && (dataFlag != null) ) {
 		if ( _internDataFlagStrings ) {
 			_dataFlags[_month_pos][_day_pos][_interval_pos] = dataFlag.intern();

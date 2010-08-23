@@ -1693,6 +1693,9 @@ public boolean hasDataFlags ()
 {	return _has_data_flags;
 }
 
+// FIXME SAM 2010-08-20 Evaluate phasing this out.  setDataValue() now automatically turns on
+// data flags when a flag is passed in.  Also, using intern strings improves memory management so
+// allocating memory is not such a big deal as it was in the past.
 /**
 Set whether the time series has data flags.  This method should be called before
 allocateDataSpace() is called.  If data flags are enabled, allocateDataSpace()
