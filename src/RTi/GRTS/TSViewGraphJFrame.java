@@ -190,7 +190,7 @@ private TSViewJFrame __tsview_JFrame;
 /**
 List of time series to graph.
 */
-private List __tslist;
+private List<TS> __tslist;
 
 // TODO SAM 2008-01-11 Need to describe the properties.
 /**
@@ -502,7 +502,7 @@ Initialize data and open the GUI.
 @param props Properties to customize the data display.  The properties are
 defined in the TSViewJFrame constructor documentation.
 */
-private void initialize (TSViewJFrame tsview_gui,List tslist, PropList props )
+private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props )
 {	__tsview_JFrame = tsview_gui;
 	__tslist = tslist;
 	__props = props;
@@ -616,8 +616,7 @@ private void openGUI ( boolean mode )
 
 	// For the reference graph, pick the time series with the longest
 	// period of record for non-missing data.  Indicate the time series to
-	// the main graph so a note can be made on the display (but not
-	// printed)...
+	// the main graph so a note can be made on the display (but not printed)...
 	int size = __tslist.size();
 	// Initialize to first time series...
 	int max_period_index = 0;
@@ -626,25 +625,28 @@ private void openGUI ( boolean mode )
 	int nmonths = 0;
 	TSLimits limits = null;
 	for ( int i = 0; i < size; i++ ) {
-		ts_i = (TS)__tslist.get(i);
+		ts_i = __tslist.get(i);
 		if ( ts_i == null ) {
 			continue;
 		}
 		limits = ts_i.getDataLimits ();
 		if ( limits.areLimitsFound() ) {
-			nmonths=limits.getNonMissingDataDate2().getAbsoluteMonth() -
-			limits.getNonMissingDataDate1().getAbsoluteMonth();
+			nmonths = limits.getNonMissingDataDate2().getAbsoluteMonth() -
+			    limits.getNonMissingDataDate1().getAbsoluteMonth();
 		}
-		else {	
-			nmonths=ts_i.getDate2().getAbsoluteMonth() - ts_i.getDate1().getAbsoluteMonth();
+		else {
+		    // Limits are not found so try to use dates if they are available
+		    if ( (ts_i.getDate1() == null) || (ts_i.getDate2() == null) ) {
+		        // Cannot process the time series.
+		        continue;
+		    }
+			nmonths = ts_i.getDate2().getAbsoluteMonth() - ts_i.getDate1().getAbsoluteMonth();
 		}
 		if ( nmonths > max_period_months ) {
 			max_period_months = nmonths;
 			max_period_index = i;
 		}
 	}
-	limits = null;
-	ts_i = null;
 
 	// Main graph...
 
@@ -653,7 +655,8 @@ private void openGUI ( boolean mode )
 		__props.set ( "ReferenceTSIndex=" + max_period_index );
 		_ts_graph = new TSGraphJComponent ( this, __tslist, __props );
 	}
-	else {	// New-style...
+	else {
+	    // New-style...
 		PropList additional_props = new PropList ( "TSViewGraphJFrame");
 		additional_props.set ( "ReferenceTSIndex=" + max_period_index );
 		__tsproduct.setTSList ( __tslist );
@@ -662,8 +665,7 @@ private void openGUI ( boolean mode )
     _ts_graph.setEditor(_tsGraphEditor);
 	main_JPanel.add ( "Center", _ts_graph );
 	
-	// Panel to hold the reference graph and buttons (to maintain spatial
-	// ordering)...
+	// Panel to hold the reference graph and buttons (to maintain spatial ordering)...
 
 	JPanel bottom_JPanel = new JPanel ();
 	bottom_JPanel.setLayout ( gbl );
@@ -722,28 +724,20 @@ private void openGUI ( boolean mode )
 		JGUIUtil.addComponent ( bottom_JPanel, reference_JPanel,
 				0, 1, 1, 1, 1.0, 0.0,
 		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER );
-		// Let this JFrame listen to the reference map (for mouse
-		// coordinate label)...
+		// Let this JFrame listen to the reference map (for mouse coordinate label)...
 		_ref_graph.addTSViewListener ( this );
-		// Let the main graph listen to the reference graph (for
-		// zooming, etc.)...
+		// Let the main graph listen to the reference graph (for zooming, etc.)...
 		_ref_graph.addTSViewListener ( _ts_graph );
-		// Let the reference graph listen to itself so it can redraw its
-		// reference box...
-		// SAMX not needed anymore?
+		// Let the reference graph listen to itself so it can redraw its reference box...
+		// TODO SAM 2010-09-07 not needed anymore?
 		//_ref_graph.addTSViewListener ( _ref_graph );
-		graph_size = null;
-		ref_props = null;
-		reference_JPanel = null;
 	}
 
 	// Listeners...
 
-	// Let this Frame listen to the main graph (for mouse coordinate
-	// label)...
+	// Let this Frame listen to the main graph (for mouse coordinate label)...
 	_ts_graph.addTSViewListener ( this );
-	// Let the reference graph listen to the main graph (for zooming,
-	// etc.)...
+	// Let the reference graph listen to the main graph (for zooming, etc.)...
 	_ts_graph.addTSViewListener ( _ref_graph );
 
 	// Put the buttons on the bottom of the window...
@@ -919,20 +913,10 @@ private void openGUI ( boolean mode )
 		// Should now have a TSProduct generated in TSGraphJComponent...
 		__tsproduct = _ts_graph.getTSProduct();
 	}
-
-	control_JPanel = null;
-	button_top_JPanel = null;
-	button_bottom_JPanel = null;
-	prop_value = null;
-	bottom_JPanel = null;
-	main_JPanel = null;
-	insetsTLBR = null;
-	gbl = null;
 	} // end of try
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
 	}
-	routine = null;
 }
 
 /**
@@ -960,7 +944,7 @@ private void saveEdits ()
         Message.printWarning ( 1, routine, "DefaultSaveFile property is not specified.  File chooser is not enabled.");
         return;
     }
-    List editable_tslist = new Vector();
+    List<TS> editable_tslist = new Vector();
     String DefaultSaveFile_full = DefaultSaveFile;
     try {
         int size = 0;
@@ -969,7 +953,7 @@ private void saveEdits ()
         }
         TS ts = null;
         for ( int i = 0; i < size; i++ ) {
-            ts = (TS)__tslist.get(i);
+            ts = __tslist.get(i);
             if ( ts == null ) {
                 // Might have null time series in list.
                 continue;
@@ -992,7 +976,7 @@ private void saveEdits ()
 
 /**
 Save the graph in standard formats.  First prompt for the format and then
-save.  The save can be cancelled.
+save.  The save can be canceled.
 */
 private void saveGraph() {
 	TSProductJFrame product = __tsview_JFrame.getTSProductJFrame();
@@ -1020,7 +1004,7 @@ private void saveGraph() {
 	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
-	List tsProductDMIs = __tsview_JFrame.getTSProductDMIs();
+	List<TSProductDMI> tsProductDMIs = __tsview_JFrame.getTSProductDMIs();
 	int size = tsProductDMIs.size();
 	SimpleFileFilter[] dmiff = null;
 	String s = null;
@@ -1028,7 +1012,7 @@ private void saveGraph() {
 		dmiff = new SimpleFileFilter[size];
 	 	TSProductDMI dmi = null;
 		for (int i = 0; i < size; i++) {
-			dmi = (TSProductDMI)tsProductDMIs.get(i);
+			dmi = tsProductDMIs.get(i);
 			s = "Time Series Product saved to " + dmi.getDMIName();
 			if (dmi instanceof DMI) {
 				if (!((DMI)dmi).getInputName().equals("")) {
@@ -1041,18 +1025,18 @@ private void saveGraph() {
 
 		File file = new File(__tsproduct.getLayeredPropValue( "ProductID", -1, -1, false));
 		fc.setSelectedFile(file);
-		fc.setFileFilter(dmiff[0]);
 	}
+	// Always default the selection to a TSP file since that is the most common use
+	fc.setFileFilter(tsp_sff);
 		
 	//-------------------------------
 	/*
-	SimpleFileFilter db_sff = new SimpleFileFilter("db",
-		"Save to DataTable File");
+	SimpleFileFilter db_sff = new SimpleFileFilter("db", "Save to DataTable File");
 	fc.addChoosableFileFilter ( db_sff );
 	*/
 	//-------------------------------
 	if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION ) {
-		// Cancelled...
+		// Canceled...
 		return;
 	}
 	// Else figure out the file format and location and then do the save...
@@ -1061,8 +1045,7 @@ private void saveGraph() {
 	JGUIUtil.setLastFileDialogDirectory(last_directory);
 	if ( (fc.getFileFilter() == dv_sff) || (fc.getFileFilter() == txt_sff) ) {
 		if ( !TSUtil.intervalsMatch(__tslist) ) {
-			Message.printWarning ( 1, routine, "Unable to write " +
-			"DateValue time series of different intervals." );
+			Message.printWarning ( 1, routine, "Unable to write DateValue time series of different intervals." );
 			return;
 		}
 		try {	
@@ -1143,7 +1126,7 @@ private void saveGraph() {
 		if (dmiff != null) {
 			for (int i = 0; i < size; i++) {
 				if (fc.getFileFilter() == dmiff[i]) {
-					TSProductDMI dmi = (TSProductDMI)tsProductDMIs.get(i);
+					TSProductDMI dmi = tsProductDMIs.get(i);
 					dmi.writeTSProduct(__tsproduct);
 				}
 			}
@@ -1186,7 +1169,7 @@ protected boolean shouldClose() {
 		ResponseJDialog.CANCEL ).response();
 
 	if ( x == ResponseJDialog.CANCEL ) {
-		// Close has been cancelled...
+		// Close has been canceled...
 		return false;
 	}
 	else if ( x == ResponseJDialog.NO ) {
@@ -1240,4 +1223,4 @@ public void windowDeiconified( WindowEvent evt ){;}
 public void windowOpened( WindowEvent evt ){;}
 public void windowIconified( WindowEvent evt ){;}
 
-} // End TSViewGraphJFrame
+}
