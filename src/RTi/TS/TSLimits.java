@@ -141,7 +141,7 @@ private double __stdDev;
 private double __sum;
 private String __data_units="";// Data units (just copy from TS at the time of creation).
 
-private boolean	__found;
+private boolean	__found = false;
 
 /**
 Default constructor.  Initialize the dates to null and the limits to zeros.
