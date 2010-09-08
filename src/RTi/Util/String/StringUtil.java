@@ -2126,8 +2126,7 @@ public static boolean matchesIgnoreCase ( String s, String regex )
 **					of characters or a character range
 **					separated by a -.
 **		(2)	This routine is designed to be called by a higher level
-**			routine to check actual filenames versus wildcard
-**			patterns.
+**			routine to check actual filenames versus wildcard patterns.
 **		(3)	The following combination is known not to work:
 **
 **				xxx*.[abc]
@@ -2138,11 +2137,10 @@ public static boolean matchesIgnoreCase ( String s, String regex )
 false, strings will be compared literally.
 @param candidate_string String to evaluate.
 @param regexp_string Regular expression string to match.
-@deprecated Use the standard String.matches() method or
-StringUtil.matchesIgnoreCase().
+@deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
 public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string )
-{	String	okchars = "", routine = "StringUtil.mtchesRegExp";
+{	String okchars = "", routine = "StringUtil.mtchesRegExp";
 	int	dl = 50, nokchars = 0;
 	boolean	asterisk = false, jumptotest = false;
 
@@ -2156,13 +2154,11 @@ public static boolean matchesRegExp ( boolean ignore_case, String candidate_stri
 	int regexp_len = regexp_string.length();
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Comparing \"" +
-		candidate_string + "\" to \"" + regexp_string + "\"" );
+		Message.printDebug ( dl, routine, "Comparing \"" + candidate_string + "\" to \"" + regexp_string + "\"" );
 	}
 
 	// Put in this quick check because the code does not seem to be
-	// working but need to get something delivered for regular expressions
-	// that end in *...
+	// working but need to get something delivered for regular expressions that end in *...
 
 	if ( regexp_string.endsWith("*") && (StringUtil.patternCount(regexp_string,"*") == 1) ) {
 		// The regular expression is xxx* so do a quick check...
@@ -2181,8 +2177,8 @@ public static boolean matchesRegExp ( boolean ignore_case, String candidate_stri
 				return true;
 			}
 		}
-		else {	if ( regexp_string.substring(0,endpos).equals(
-				candidate_string.substring(0,endpos)) ) {
+		else {
+		    if ( regexp_string.substring(0,endpos).equals(candidate_string.substring(0,endpos)) ) {
 				return true;
 			}
 		}
@@ -2354,8 +2350,7 @@ public static boolean matchesRegExp ( boolean ignore_case, String candidate_stri
 				}
 				return true;
 			}
-			else if ( (ireg > 0) &&
-				(regexp_string.charAt(ireg - 1) == '*') ) {
+			else if ( (ireg > 0) && (regexp_string.charAt(ireg - 1) == '*') ) {
 				// Rest of string is wildcard...
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine, "Rest of string *." );
