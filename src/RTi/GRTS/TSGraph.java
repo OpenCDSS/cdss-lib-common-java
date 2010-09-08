@@ -3548,11 +3548,12 @@ TSProduct.GRAPH_TYPE_LINE, TSProduct.GRAPH_TYPE_PERIOD.  Other graph types shoul
 use the individual drawing methods for those graph types.
 @param its Counter for time series (starting at 0).
 @param ts Single time series to draw.
+@param overrideProps override run-time properties to consider when getting graph properties
 */
 private void drawTS(int its, TS ts, PropList overrideProps) {
 	String routine = "TSGraph.drawTS";
 
-	if ((ts == null) || (!_is_reference_graph && !ts.getEnabled())) {
+	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
 		return;
 	}
 
