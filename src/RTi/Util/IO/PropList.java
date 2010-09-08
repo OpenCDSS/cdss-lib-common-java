@@ -221,7 +221,7 @@ private String __listName;
 /**
 List of Prop.
 */
-private List __list;
+private List<Prop> __list;
 /**
 File to save in.
 */
@@ -349,7 +349,7 @@ Return the Prop instance at the requested position.  Use size() to determine the
 @return the Prop at the specified position.
 */
 public Prop elementAt(int pos)
-{	return (Prop)__list.get(pos);
+{	return __list.get(pos);
 }
 
 /**
@@ -374,20 +374,16 @@ public int findProp ( String key )
 	Prop prop_i;
 	String propKey;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)__list.get(i);
+		prop_i = __list.get(i);
 		propKey = (String)prop_i.getKey();
 		if ( key.equalsIgnoreCase(propKey) ) {
 			// Have a match.  Return the position...
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 100, "PropList.findProp", "Found property \"" + key + "\" at index " + i);
 			}
-			prop_i = null;
-			propKey = null;
 			return i;
 		}
 	}
-	prop_i = null;
-	propKey = null;
 	return -1;
 }
 
@@ -420,15 +416,13 @@ public int findProp ( int intKey )
 {	int	prop_intKey, size = __list.size();
 	Prop prop_i;
 	for ( int i = 0; i < size; i++ ) {
-		prop_i = (Prop)__list.get(i);
+		prop_i = __list.get(i);
 		prop_intKey = prop_i.getIntKey();
 		if ( intKey == prop_intKey ) {
 			// Have a match.  Return the position...
-			prop_i = null;
 			return i;
 		}
 	}
-	prop_i = null;
 	return -1;
 }
 
@@ -441,7 +435,7 @@ public Object getContents ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the contents...
-		return ((Prop)__list.get(pos)).getContents();
+		return (__list.get(pos)).getContents();
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "PropList.getContents", "Did not find property \"" + key + "\"" );
@@ -502,20 +496,20 @@ public int getPropCount ( String key )
 // Need to figure out how to update the following code.
 
 /**
-Return a Vector of Prop that have a key that matches a regular expression.
+Return a list of Prop that have a key that matches a regular expression.
 This is useful when writing a PropList to a file in a well-defined order.
 @param regExp Regular expression recognized by StringUtil.matchesRegExp().
 @return a Vector of Prop, or null if no matching properties are found.
 */
-public List getPropsMatchingRegExp ( String regExp )
+public List<Prop> getPropsMatchingRegExp ( String regExp )
 {	if ( (__list == null) || (regExp == null) ) {
 		return null;
 	}
 	int size = __list.size();
-	List props = new Vector ();
+	List<Prop> props = new Vector ();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)__list.get(i);
+		prop = __list.get(i);
 		// Do a case-independent comparison...
 		if ( StringUtil.matchesRegExp(true, prop.getKey(), regExp)) {
 			props.add ( prop );
@@ -551,7 +545,7 @@ Search the list using the string key.
 public Prop getProp ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
-		Prop prop = (Prop)__list.get(pos);
+		Prop prop = __list.get(pos);
 		prop.refresh(this);
 		return prop;
 	}
@@ -582,7 +576,7 @@ elementAt(), which returns the property at a position in the list.
 public Prop getProp ( int intKey )
 {	int pos = findProp ( intKey );
 	if ( pos >= 0 ) {
-		return (Prop)__list.get(pos);
+		return __list.get(pos);
 	}
 	return null;
 }
@@ -619,7 +613,7 @@ public String getValue ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
 		// We have a match.  Get the value...
-		String value = ((Prop)__list.get(pos)).getValue(this);
+		String value = (__list.get(pos)).getValue(this);
 		if ( Message.isDebugOn ) {
 			Message.printDebug(100,"PropList.getValue", "Found value of \"" + key + "\" to be \"" + value + "\"" );
 		}
@@ -658,7 +652,7 @@ public String getValue ( int intKey )
 {	int	pos = findProp ( intKey );
 	if ( pos >= 0 ) {
 		// Have a match.  Get the value...
-		return ((Prop)__list.get(pos)).getValue( this );
+		return (__list.get(pos)).getValue( this );
 	}
 	return null;
 }
@@ -759,7 +753,7 @@ public Prop propAt ( int i )
 {	if ( (i < 0) || (i > (__list.size() - 1)) ) {
 		return null;
 	}
-	return (Prop)__list.get ( i );
+	return __list.get ( i );
 }
 
 /**
@@ -1038,7 +1032,7 @@ public void set ( String key, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.get ( index );
+		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( value );
 		prop.setValue ( value );
@@ -1076,7 +1070,7 @@ public void set ( String key, String contents, String value, boolean replace )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.get ( index );
+		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
@@ -1193,7 +1187,7 @@ public void setUsingObject ( String key, Object contents )
 	}
 	else {
 	    // Already in the list so change it...
-		Prop prop = (Prop)__list.get ( index );
+		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
 		prop.setValue ( value );
@@ -1215,7 +1209,7 @@ public void setValue ( String key, String value )
 {	int pos = findProp(key);
 	if ( pos >= 0 ) {
 		// Have a match.  Reset the value in the corresponding Prop...
-		Prop prop = (Prop)__list.get(pos);
+		Prop prop = __list.get(pos);
 		prop.setValue(value);
 		return;
 	}
@@ -1263,7 +1257,7 @@ public String toString ( String delim )
 	int size = __list.size();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)__list.get(i);
+		prop = __list.get(i);
 		if ( i > 0 ) {
 			b.append ( delim );
 		}
