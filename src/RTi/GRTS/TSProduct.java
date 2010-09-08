@@ -1127,20 +1127,19 @@ public class TSProduct
 {
 
 /**
-Main graph types.  Other properties influence the actual appearance (e.g.,
-log/linear axis).
+Main graph types.  Other properties influence the actual appearance (e.g., log/linear axis).
 */
 public static final int 
-	GRAPH_TYPE_UNKNOWN = 			0,
-	GRAPH_TYPE_BAR = 			1,
-	GRAPH_TYPE_DOUBLE_MASS =		2,
-	GRAPH_TYPE_DURATION = 			3,
-	GRAPH_TYPE_LINE = 			4,
-	GRAPH_TYPE_PERIOD = 			5,
-	GRAPH_TYPE_POINT = 			6,
-	GRAPH_TYPE_PREDICTED_VALUE = 		7,
-	GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL = 	8,
-	GRAPH_TYPE_XY_SCATTER =			9;
+	GRAPH_TYPE_UNKNOWN = 0,
+	GRAPH_TYPE_BAR = 1,
+	GRAPH_TYPE_DOUBLE_MASS = 2,
+	GRAPH_TYPE_DURATION = 3,
+	GRAPH_TYPE_LINE = 4,
+	GRAPH_TYPE_PERIOD = 5,
+	GRAPH_TYPE_POINT = 6,
+	GRAPH_TYPE_PREDICTED_VALUE = 7,
+	GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL = 8,
+	GRAPH_TYPE_XY_SCATTER = 9;
 
 /**
 Graph types.  Use these types for plot files, menus, etc.
@@ -1159,9 +1158,18 @@ public static final String GRAPH_TYPE_NAMES[] = {
 						"XY-Scatter"
 						};
 
-private PropList __proplist = null;		// Main PropList
-private PropList __override_proplist = null;	// Properties to override those in the file.
-private List __tslist = null; // Time series associated with the product.
+/**
+Main property list describing the product.
+*/
+private PropList __proplist = null;
+/**
+Run-time properties that will override the file properties.
+*/
+private PropList __override_proplist = null;
+/**
+Time series associated with the product.
+*/
+private List<TS> __tslist = null;
 
 /**
 The number of zoom groups among all the different graphs.
@@ -1176,30 +1184,29 @@ private int __howSet = -1;
 
 /**
 A dirty flag used for checking if anything has been deleted, or added, or the
-order has been changed -- these are things that can't be checked by looking
-at the proplist.
+order has been changed -- these are things that can't be checked by looking at the proplist.
 */
 private boolean __dirty = false;
 
 /**
 The annotation providers that will be used to generate annotations on a
-graph.  An element in this Vector at position X corresponds to the
+graph.  An element in this list at position X corresponds to the
 element in the __annotationsProvidersPropLists Vector at position X.
 */
-private List __annotationProviders = null;
+private List<TSProductAnnotationProvider> __annotationProviders = null;
 
 /**
 Control properties that determine how the annotation providers put annotations
-on a graph.  An element in this Vector at position X corresponds to the
+on a graph.  An element in this list at position X corresponds to the
 element in the __annotationsProviders Vector at position X.
 */
-private List __annotationProviderPropLists = null;
+private List<PropList> __annotationProviderPropLists = null;
 
 /**
 Checks for the annotation providers that were already used on this product,
 so that they can be checked and not used twice.
 */
-private List __usedProviders = new Vector();
+private List<TSProductAnnotationProvider> __usedProviders = new Vector();
 
 /**
 Construct a blank TSProduct.  It is assumed that properties will be added by
@@ -1214,8 +1221,7 @@ throws Exception
 }
 
 /**
-Construct a TSProduct from a product file (.tsp).  The product file is read
-into a PropList.
+Construct a TSProduct from a product file (.tsp).  The product file is read into a PropList.
 @param filename Name of gvp file to process.
 @param override_proplist Properties that override the properties in the file.
 @exception Exception if there is an error processing the file.
@@ -1235,8 +1241,7 @@ Construct a TSProduct from a PropList.  The properties in the PropList must
 conform to the organization of a time series product file.
 @param proplist Properties describing the time series product.
 @param override_proplist Properties that override the properties first
-PropList (e.g., display properties).  Specify as null if no override properties
-are given.
+PropList (e.g., display properties).  Specify as null if no override properties are given.
 @exception Exception if there is an error processing the properties.
 */
 public TSProduct ( PropList proplist, PropList override_proplist )
@@ -1258,17 +1263,14 @@ will be set automatically at that point.
 @param controlProps properties that define for each provider how they are to
 add annotations.  These properties are provider-specific.  Can be null.
 */
-public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
-PropList controlProps) {
+public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider, PropList controlProps) {
 	String routine = "TSProduct.addAnnotationProvider";
 	if (hasTimeSeries()) {
 		try {
 			provider.addAnnotations(this, controlProps);
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine,
-				"An error occurred while adding annotations to "
-				+ "a TSProduct.");
+			Message.printWarning(2, routine, "An error occurred while adding annotations to a TSProduct.");
 			Message.printWarning(3, routine, e);
 		}
 	}
@@ -1296,22 +1298,20 @@ private void addAnnotations() {
 	TSProductAnnotationProvider provider = null;
 	
 	for (int i = 0; i < size; i++) {
-		provider = (TSProductAnnotationProvider)__annotationProviders.get(i);
+		provider = __annotationProviders.get(i);
 		if (alreadyUsed(provider)) {	
 			continue;
 		}
 		else {
 			__usedProviders.add(provider);
 		}
-		controlProps = (PropList)__annotationProviderPropLists.get(i);
+		controlProps = __annotationProviderPropLists.get(i);
 
 		try {
 			provider.addAnnotations(this, controlProps);
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine,
-				"An error occurred while adding annotations to "
-				+ "a TSProduct.");
+			Message.printWarning(2, routine, "An error occurred while adding annotations to a TSProduct.");
 			Message.printWarning(3, routine, e);
 		}
 	}
@@ -1327,7 +1327,7 @@ private boolean alreadyUsed(TSProductAnnotationProvider provider) {
 	int size = __usedProviders.size();
 	TSProductAnnotationProvider p = null;
 	for (int i = 0; i < size; i++) {
-		 p = (TSProductAnnotationProvider)__usedProviders.get(i);
+		 p = __usedProviders.get(i);
 		 if (p == provider) {
 		 	return true;
 		}
@@ -1344,92 +1344,53 @@ Checks annotation properties to make sure that the annotation is fully-defined.
 public void checkAnnotationProperties(int isub, int iann) {
 	String shapeType = null;
 
-	if (getLayeredPropValue("AnnotationID", isub, iann, 
-		false, true) == null) {
+	if (getLayeredPropValue("AnnotationID", isub, iann, false, true) == null) {
 		setPropValue("AnnotationID", getDefaultPropValue("AnnotationID",
 			isub, iann, true), isub, iann, true);
 	}
 	
-	if (getLayeredPropValue("Color", 
-		isub, iann, false, true) == null) {
-		setPropValue("Color",
-			getDefaultPropValue("Color",
-			isub, iann, true), isub, iann, true);
+	if (getLayeredPropValue("Color", isub, iann, false, true) == null) {
+		setPropValue("Color", getDefaultPropValue("Color", isub, iann, true), isub, iann, true);
 	}
-	if (getLayeredPropValue("Order", 
-		isub, iann, false, true) == null) {
-		setPropValue("Order",
-			getDefaultPropValue("Order",
-			isub, iann, true), isub, iann, true);
+	if (getLayeredPropValue("Order", isub, iann, false, true) == null) {
+		setPropValue("Order", getDefaultPropValue("Order", isub, iann, true), isub, iann, true);
 	}
 	
-	shapeType = getLayeredPropValue("ShapeType", 
-		isub, iann, false, true);
+	shapeType = getLayeredPropValue("ShapeType", isub, iann, false, true);
 	if (shapeType == null) {
-		setPropValue("ShapeType",
-			getDefaultPropValue(
-			"ShapeType",
-			isub, iann, true), isub, iann, true);	
+		setPropValue("ShapeType", getDefaultPropValue("ShapeType", isub, iann, true), isub, iann, true);	
 		shapeType = getDefaultPropValue("ShapeType", isub, iann, true);
 	}
 	
-	if (getLayeredPropValue("XInputFormat", isub, iann, false, true)
-		== null) {
-		setPropValue("XInputFormat",
-			getDefaultPropValue("XInputFormat",
-			isub, iann, true), isub, iann, true);	
+	if (getLayeredPropValue("XInputFormat", isub, iann, false, true) == null) {
+		setPropValue("XInputFormat", getDefaultPropValue("XInputFormat", isub, iann, true), isub, iann, true);	
 	}
 
-	if (getLayeredPropValue("XAxisSystem", 
-		isub, iann, false, true) == null) {
-		setPropValue("XAxisSystem",
-			getDefaultPropValue("XAxisSystem",
-			isub, iann, true), isub, iann, true);
+	if (getLayeredPropValue("XAxisSystem", isub, iann, false, true) == null) {
+		setPropValue("XAxisSystem", getDefaultPropValue("XAxisSystem", isub, iann, true), isub, iann, true);
 	}
-	if (getLayeredPropValue("YAxisSystem", 
-		isub, iann, false, true) == null) {
-		setPropValue("YAxisSystem",
-			getDefaultPropValue("YAxisSystem",
-			isub, iann, true), isub, iann, true);
+	if (getLayeredPropValue("YAxisSystem", isub, iann, false, true) == null) {
+		setPropValue("YAxisSystem", getDefaultPropValue("YAxisSystem", isub, iann, true), isub, iann, true);
 	}
 	
 	if (shapeType.equalsIgnoreCase("Text")) {
-		if (getLayeredPropValue("FontSize", 
-			isub, iann, false, true) == null) {
-			setPropValue("FontSize",
-				getDefaultPropValue("FontSize",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("FontSize", isub, iann, false, true) == null) {
+			setPropValue("FontSize", getDefaultPropValue("FontSize", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("FontStyle", 
-			isub, iann, false, true) == null) {
-			setPropValue("FontStyle",
-				getDefaultPropValue("FontStyle",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("FontStyle", isub, iann, false, true) == null) {
+			setPropValue("FontStyle", getDefaultPropValue("FontStyle", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("FontName", 
-			isub, iann, false, true) == null) {
-			setPropValue("FontName",
-				getDefaultPropValue("FontName",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("FontName", isub, iann, false, true) == null) {
+			setPropValue("FontName", getDefaultPropValue("FontName", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("Point", 
-			isub, iann, false, true) == null) {
-			setPropValue("Point",
-				getDefaultPropValue(
-				"Points",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("Point", isub, iann, false, true) == null) {
+			setPropValue("Point", getDefaultPropValue("Points", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("Text", 
-			isub, iann, false, true) == null) {
-			setPropValue("Text",
-				getDefaultPropValue("Text",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("Text", isub, iann, false, true) == null) {
+			setPropValue("Text", getDefaultPropValue("Text", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("TextPosition", 
-			isub, iann, false, true) == null) {
-			setPropValue("TextPosition",
-				getDefaultPropValue("TextPosition",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("TextPosition", isub, iann, false, true) == null) {
+			setPropValue("TextPosition", getDefaultPropValue("TextPosition", isub, iann, true), isub, iann, true);
 		}
 	}
 	else if (shapeType.equalsIgnoreCase("Line")) {
@@ -4066,8 +4027,7 @@ public void setPropsHowSet(int how) {
 /**
 Specifies the HOW_SET for new properties that are set in the product.
 @param how the value to set new Prop's setHowSet value to.
-REVISIT (JTS - 2005-11-01)
-once the other method with the same name is corrected, remove the dummy
+TODO (JTS - 2005-11-01) once the other method with the same name is corrected, remove the dummy
 parameter in this method.
 */
 public void setPropsHowSet(int how, boolean dummy) {
@@ -4163,7 +4123,7 @@ annotation providers have been added with addTSProductAnnotationProvider(),
 the annotations from those providers will be set on the graph at this point.
 @param tslist list of TS associated with the TSProduct.
 */
-public void setTSList ( List tslist )
+public void setTSList ( List<TS> tslist )
 {	__tslist = tslist;
 
 	if (__annotationProviders != null) {
@@ -4335,7 +4295,7 @@ throws Exception
 	// each subproduct the data properties.  Use the prefix notation and
 	// shave the prefix off each property as it is written...
 
-	List v = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	List<Prop> v = __proplist.getPropsMatchingRegExp ( "Product.*" );
 	Prop prop = null;
 	int how_set = 0;
 	out.println ( "[Product]" );
@@ -4388,7 +4348,7 @@ throws Exception
 	
 	for (int i = 0; i < size; i++) {
 		save = false;
-		prop = (Prop)v.get(i);
+		prop = v.get(i);
 		how_set = prop.getHowSet();
 		
 		if (how_set == Prop.SET_HIDDEN) {
@@ -4411,15 +4371,14 @@ throws Exception
 		}
 
 		if (save) {
-			out.println(prop.getKey().substring(8) + " = \"" 
-				+ prop.getValue() + "\"" );
+			out.println(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" );
 		}
 	}
 
 	// Loop through the subproducts...
 
 	int nsubs = getNumSubProducts();
-	List vdata = null;
+	List<Prop> vdata = null;
 	int dsize = 0;
 	String sub_prefix;
 	int sub_prefix_length = 0;
@@ -4430,8 +4389,7 @@ throws Exception
 	String key = null;
 	
 	for (int isub = 0; isub < nsubs; isub++) {
-		v = __proplist.getPropsMatchingRegExp(
-			"SubProduct " + (isub + 1) + ".*");
+		v = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
 		sub_prefix = "[SubProduct " + (isub + 1) + "]";
 		sub_prefix_length = sub_prefix.length();
 		out.println ( "" );
@@ -4445,7 +4403,7 @@ throws Exception
 		
 		for ( int i = 0; i < size; i++ ) {
 			save = false;
-			prop = (Prop)v.get(i);
+			prop = v.get(i);
 			key = prop.getKey();
 			how_set = prop.getHowSet();
 
@@ -4466,32 +4424,26 @@ throws Exception
 					continue;
 				}
 
-				if (key.toUpperCase().endsWith(
-				    "PRODUCTIDORIGINAL")) {
+				if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 					continue;
 				}
-				else if (key.toUpperCase().endsWith(
-				    "ORIGINALGRAPHTYPE")) {
-				    	continue;
+				else if (key.toUpperCase().endsWith("ORIGINALGRAPHTYPE")) {
+				    continue;
 				}
 
 				save = true;
 			}
 
 			if (save) {
-				out.println(prop.getKey().substring(
-					sub_prefix_length - 1) + " = \"" 
-					+ prop.getValue() + "\"");
+				out.println(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
 			}
 		}
 
 		// Now write the data properties...
 		int ndata = getNumData(isub);
 		for ( int idata = 0; idata < ndata; idata++ ) {
-			vdata = __proplist.getPropsMatchingRegExp (
-				"Data " + (isub + 1) + "." + (idata + 1) +".*");
-			data_prefix =
-			"[Data " + (isub + 1) + "." + (idata + 1) + "]";
+			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
+			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
 			data_prefix_length = data_prefix.length();
 			out.println ( "" );
 			out.println ( data_prefix );
@@ -4506,8 +4458,7 @@ throws Exception
 				save = false;
 				prop = (Prop)vdata.get(j);
 				how_set = prop.getHowSet();
-				key = prop.getKey().substring(
-					data_prefix_length - 1);
+				key = prop.getKey().substring(data_prefix_length - 1);
 
 				if (how_set == Prop.SET_HIDDEN) {
 					continue;
@@ -4516,12 +4467,9 @@ throws Exception
 					save = true;
 				}
 				else if (!save_all) {
-					if (how_set 
-					        == Prop.SET_FROM_PERSISTENT
-					    || how_set
-					        == Prop.SET_AT_RUNTIME_BY_USER
-					    || how_set
-						==Prop.SET_AT_RUNTIME_FOR_USER){
+					if (how_set == Prop.SET_FROM_PERSISTENT
+					    || how_set == Prop.SET_AT_RUNTIME_BY_USER
+					    || how_set ==Prop.SET_AT_RUNTIME_FOR_USER){
 						// ok
 					}
 					else {
@@ -4529,8 +4477,7 @@ throws Exception
 						continue;
 					}
 					
-					if (key.toUpperCase().endsWith(
-					     "PRODUCTIDORIGINAL")) {
+					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 					     	continue;
 					}
 
@@ -4539,9 +4486,7 @@ throws Exception
 
 				if (save) {
 					out.println(prop.getKey().substring(
-						data_prefix_length - 1) 
-						+ " = \"" + prop.getValue() 
-						+ "\"");
+						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
 				}
 			}
 		}
@@ -4550,8 +4495,7 @@ throws Exception
 		int nann = getNumAnnotations(isub);
 		for (int iann = 0; iann < nann; iann++) {
 			vdata = __proplist.getPropsMatchingRegExp(
-				"Annotation " + (isub + 1) + "." + (iann + 1)
-				+ ".*");
+				"Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
 			type = getPropValue("Annotation " + (isub + 1) 
 				+ "." + (iann + 1) + ".ShapeType");
 			data_prefix = "[Annotation " + (isub + 1) + "." 

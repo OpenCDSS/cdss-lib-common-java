@@ -292,7 +292,7 @@ private boolean _first_paint = true;
 /**
 List of time series to plot.  Not sure if this needs to be saved here.
 */
-private List _tslist = null;	
+private List<TS> _tslist = null;	
 
 /**
 Background color.
@@ -474,7 +474,7 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent ( TSViewGraphJFrame parent, List tslist, PropList props )
+public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList props )
 {	super ( "TSGraphJComponent" );
 	_force_redraw = true;
 	_parent = parent;
@@ -1298,7 +1298,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 
 	// Transfer "Product." properties...
 
-	List v = proplist.getPropsMatchingRegExp ( "Product.*" );
+	List<Prop> v = proplist.getPropsMatchingRegExp ( "Product.*" );
 	int size = 0;
 	if ( v != null ) {
 		size = v.size();
@@ -1306,7 +1306,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 	Prop prop = null;
 	PropList tsproduct_props = tsproduct.getPropList();
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.get(i);
+		prop = v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
