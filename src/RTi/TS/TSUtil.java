@@ -11326,11 +11326,11 @@ public static double[] toArrayNoMissing ( TS ts, DateTime start_date, DateTime e
 }
 
 /** 
- * Returns the first editable Time Series in a vector
- * @param tslist A list of TS (Time Series
+ * Returns the first editable Time Series in a list
+ * @param tslist A list of TS (Time Series)
  * @return
  */
-public static TS getFirstEditableTS(List tslist)
+public static TS getFirstEditableTS(List<TS> tslist)
 {
   int size =0;
   if ( tslist != null )
@@ -11341,7 +11341,7 @@ public static TS getFirstEditableTS(List tslist)
 
   for ( int i = 0; i < size; i++ )
     {
-      ts = (TS)tslist.get(i);
+      ts = tslist.get(i);
       if ( ts == null ) 
         {
           continue;
