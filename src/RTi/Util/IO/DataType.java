@@ -44,15 +44,14 @@ public static final int SYSTEM_UNKNOWN	= 0;
 // Data members...
 
 /**
-The data type abbreviation (e.g., "MAP").  This is typically based on persistent
-data formats.
+The data type abbreviation (e.g., "MAP").  This is typically based on persistent data formats.
 */
-private String	__abbreviation;
+private String __abbreviation;
 
 /**
 The verbose description (e.g., ("Mean Areal Precipitation").
 */
-private String	__description;
+private String __description;
 
 // TODO SAM 2007-12-11 Need a class for the dimension.
 /**
@@ -65,49 +64,49 @@ private DataDimension __dimension;
 Default English units (e.g., when creating a new time series in a
 system configured for English units. "DEGF" for NWSRFS temperature).
 */
-private String	__default_engl_units;
+private String __default_engl_units;
 
 /**
 Default maximum value for English units data - for initializing range checks.
 */
-private double	__default_engl_max;
+private double __default_engl_max;
 
 /**
 Default minimum value for English units data - for initializing range checks.
 */
-private double	__default_engl_min;
+private double __default_engl_min;
 
 /**
 Default SI units (e.g., when creating a new time series in a system configured for SI units.
 "DEGC" for NWSRFS temperature).
 */
-private String	__default_si_units;
+private String __default_si_units;
 
 /**
 Default maximum value for SI units data - for initializing range checks.
 */
-private double	__default_si_max;
+private double __default_si_max;
 
 /**
 Default minimum value for SI units data - for initializing range checks.
 */
-private double	__default_si_min;
+private double __default_si_min;
 
 /**
 Measurement location type See MeasLocType static data.
 */
-private String	__meas_loc_type;
+private String __meas_loc_type;
 
 /**
 Measurement time scale See MeasTimeScale static data.
 */
-private String	__meas_time_scale;
+private String __meas_time_scale;
 
 /**
 Either "OBS" for observed or "SIM" for simulated.  This is a hold-over from
 NWSRFS conventions, which limit some data types' use to only observed or simulated data.
 */
-private String	__record_type;
+private String __record_type;
 
 // TODO SAM 2007-12-11 Evaluate a more generic use of the lookup so the SHEF code
 // does not need to be stored in this class.
@@ -121,7 +120,7 @@ private String	__SHEF_pe;
 /**
 List of internally-maintained DataType instances.  The list can be modified by the static read methods.
 */
-private static List __types_Vector = new Vector(20);
+private static List<DataType> __types_Vector = new Vector(20);
 					
 /**
 Construct and set all data members to empty strings and zeros.
@@ -143,11 +142,11 @@ digits output after the decimal point).
 @see DataDimension
 */
 /* TODO
-public DataUnits (	String dimension, int base_flag, String abbreviation,
-			String long_name, int output_precision,
-			double mult_factor, double add_factor )
+public DataUnits ( String dimension, int base_flag, String abbreviation,
+			String long_name, int output_precision, double mult_factor, double add_factor )
 {	initialize ();
-	try {	setDimension ( dimension );
+	try {
+	setDimension ( dimension );
 	}
 	catch ( Exception e ) {
 		// Do nothing for now.
@@ -201,7 +200,7 @@ public static void addDataType ( DataType type )
 	DataType pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the type for the loop index...
-		pt = (DataType)__types_Vector.get(i);
+		pt = __types_Vector.get(i);
 		// Now compare...
 		if ( type.getAbbreviation().equalsIgnoreCase(pt.getAbbreviation() ) ) {
 			// The requested units match something that is already in the list.  Reset the list...
@@ -211,7 +210,6 @@ public static void addDataType ( DataType type )
 	}
 	// Need to add the units to the list...
 	__types_Vector.add ( type );
-	pt = null;
 }
 
 /**
@@ -245,7 +243,7 @@ Return the list of data types data.
 @return the list of data types (useful for debugging and GUI displays).
 Perhaps later overload to request by dimension, system, etc.
 */
-public static List getDataTypesData ()
+public static List<DataType> getDataTypesData ()
 {	return __types_Vector;
 }
 
@@ -348,16 +346,16 @@ public String getSHEFpe ( )
 
 /**
 Return all the DataUnits objects that have the Dimension abbreviation
-equal to the paramter passed in.
+equal to the parameter passed in.
 @param system Requested units system.  Pass null or "" to get all systems,
-"ENGL" for english, or "SI" for SI units.
+"ENGL" for English, or "SI" for SI units.
 @param dimension the dimension abbreviation to return units for.
-@return a Vector of all the DataUnits objects that match the dimension or
-an empty Vector if none exist.
+@return a list of all the DataUnits objects that match the dimension or
+an empty list if none exist.
 @deprecated use lookupUnitsForDimension
 */
 /* TODO
-public static Vector getUnitsForDimension ( String system, String dimension )
+public static List<DataUnit> getUnitsForDimension ( String system, String dimension )
 {	return lookupUnitsForDimension ( system, dimension );
 }
 */
@@ -397,14 +395,14 @@ Return the matching global DataType instance, given the data type abbreviation. 
 */
 public static DataType lookupDataType ( String type_string )
 throws Exception
-{	String	routine = "DataType.lookupDataType";
+{	String routine = "DataType.lookupDataType";
 
 	// First see if the data type is already in the list...
 
 	int size = __types_Vector.size();
 	DataType pt = null;
-	for (	int i = 0; i < size; i++ ) {
-		pt = (DataType)__types_Vector.get(i);
+	for ( int i = 0; i < size; i++ ) {
+		pt = __types_Vector.get(i);
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 20, routine, "Comparing " + type_string + " and " + pt.getAbbreviation());
 		}
@@ -420,15 +418,15 @@ throws Exception
 /**
 Return all the DataUnits objects that have the Dimension abbreviation equal to the paramter passed in.
 @param system Requested units system.  Pass null or "" to get all systems,
-"ENGL" for english, or "SI" for SI units.
+"ENGL" for English, or "SI" for SI units.
 @param dimension the dimension abbreviation to return units for.
 @return a Vector of all the DataUnits objects that match the dimension or an empty Vector if none exist.
 */
 /* TODO
-public static Vector lookupUnitsForDimension ( String system, String dimension )
+public static List<DataUnit> lookupUnitsForDimension ( String system, String dimension )
 {	String	routine = "DataUnits.lookupUnitsForDimension";
 
-	Vector v = new Vector();
+	List<DataUnit> v = new Vector();
 
 	// First see if the units are already in the list...
 
@@ -438,8 +436,8 @@ public static Vector lookupUnitsForDimension ( String system, String dimension )
 	String dudDim;
 
 	for ( int i = 0; i < size; i++ ) {
-		pt = (DataUnits)__units_Vector.elementAt(i);
-		if (	(system != null) && !system.equals("") &&
+		pt = __units_Vector.elementAt(i);
+		if ( (system != null) && !system.equals("") &&
 			!pt.getSystemString().equals("") &&
 			!pt.getSystemString().equalsIgnoreCase(system) ) {
 			// The system does not equal the requested value so
@@ -471,7 +469,7 @@ throws IOException
 /**
 Read a file that is in NWS DATATYPE format.  The NWS DATAUNIT file should be
 read before calling this method, using DataUnits.readNWSUnitsFile().
-This routine depends on on the values in the DATATYPE file orignally supplied
+This routine depends on on the values in the DATATYPE file originally supplied
 by the NWS.  The file is normally named
 /awips/hydroapps/lx/rfc/nwsrfs/sys_files/DATAUNIT and has the format:
 <p>
@@ -503,8 +501,7 @@ ZRX  CALB
 In this format, multiple lines are used for each data type, with the data type
 abbreviation being included at the start of each line.
 The first line includes data type, and description, possibly for 3 levels of
-output (when read here, the end of the line is set to the description, removing
-extra whitespace).
+output (when read here, the end of the line is set to the description, removing extra whitespace).
 The second line includes data type, dimension, whether an areal ("A"),
 point ("P") or both ("A/P") measurement, the time scale ("ACCM", "MEAN", or
 "INST", whether used in the forecast and calibration system ("CALB", "FCST",
@@ -516,7 +513,7 @@ the word "FCST", the data units in which the forecast system does computations
 (used as the default units for this data type), whether missing data are allowed
 ("YES" or "NO", ignored), the code for the component that can write the data
 type ("PP" for preprocessor or "FC" for forecast, ignored), and the number
-additional pieces of infromation (ignored).
+additional pieces of information (ignored).
 If the data type is used in the calibration system, a line will be included for
 calibration system information, including data type, the word "CALB".
 @param dfile Data type file to read (can be a URL).
@@ -528,7 +525,7 @@ instance checks the dimension against defined dimensions.
 public static void readNWSDataTypeFile(String dfile, boolean define_dimensions )
 throws IOException
 {	String routine = "DataUnits.readNWSDataTypeFile", string;
-	BufferedReader	fp = null;
+	BufferedReader fp = null;
 
 	try {	// Main try...
 	// Open the file (allow the data type file to be a normal file or a URL
@@ -540,13 +537,18 @@ throws IOException
 		Message.printWarning ( 2, routine, e );
 		throw new IOException ( "Error opening data type file \"" +dfile+ "\"" );
 	}
+	finally {
+	    if ( fp != null ) {
+	        fp.close();
+	    }
+	}
 	int linecount = 0;
 	DataType type = null;
 	String type_prev = "";	// Previous type, to keep track of how many
 				// lines are read for the same type.
 	int type_count = 0;	// Count of how many times the type has been
 				// read, to keep track of multiple lines of input.
-	List tokens = new Vector(7);
+	List<String> tokens = new Vector(7);
 				// Tokens from data lines - share the Vector between multiple reads.
 	// Format to read the first data line per data type...
 	int format_1[] = {
@@ -633,15 +635,15 @@ throws IOException
 		// Now process the specific line...
 		if ( type_count == 1 ) {
 			StringUtil.fixedRead ( string, format_1, format_1w, tokens );
-			abbreviation = ((String)tokens.get(0)).trim();
-			description = ((String)tokens.get(1)).trim();
-			tmp = ((String)tokens.get(2)).trim();
+			abbreviation = tokens.get(0).trim();
+			description = tokens.get(1).trim();
+			tmp = tokens.get(2).trim();
 			// The description is comprised of the Level 1, 2, 3
 			// descriptions.  Sometimes these have a "  ." at the end so remove...
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
-			tmp = ((String)tokens.get(3)).trim();
+			tmp = tokens.get(3).trim();
 			if ( (tmp.length() > 0) && !tmp.equals(".") ) {
 				description += " " + tmp;
 			}
@@ -651,10 +653,10 @@ throws IOException
 		}
 		else if ( type_count == 2 ) {
 			StringUtil.fixedRead ( string, format_2, format_2w,	tokens );
-			dimension = ((String)tokens.get(1)).trim();
-			meas_loc_type = ((String)tokens.get(2)).trim();
-			meas_time_scale = ((String)tokens.get(3)).trim();
-			where_used = ((String)tokens.get(4)).trim();
+			dimension = tokens.get(1).trim();
+			meas_loc_type = tokens.get(2).trim();
+			meas_time_scale = tokens.get(3).trim();
+			where_used = tokens.get(4).trim();
 			if ( where_used.equalsIgnoreCase("CALB") ) {
 				in_calb = true;
 			}
@@ -669,7 +671,7 @@ throws IOException
 		}
 		else if ( string.substring(5).startsWith("FCST") ) {
 			StringUtil.fixedRead ( string, format_3, format_3w,	tokens );
-			default_units = ((String)tokens.get(2)).trim();
+			default_units = tokens.get(2).trim();
 			read_fcst = true;
 		}
 		else if ( string.substring(5).startsWith("CALB") ) {
@@ -747,7 +749,6 @@ throws IOException
 		// Global catch...
 		throw new IOException ( "Error reading data type file \"" +dfile + "\"" );
 	}
-	fp = null;
 }
 
 /**
@@ -756,7 +757,7 @@ This routine depends on on the values in an RTi DATAUNIT file.  The
 format for this file is as follows:
 <p>
 <pre>
-# Dimension|BASE or OTHR|Abbreviaion|System|Long name|Precision|MultFac|AddFac|
+# Dimension|BASE or OTHR|Abbreviation|System|Long name|Precision|MultFac|AddFac|
 # TEMPERATURE
 TEMP|BASE|DEGC|SI|DEGREE CENTIGRADE|1|1.|0.0|
 TEMP|OTHR|DEGK|ENG|DEGREE KELVIN|1|1.|-273.|
@@ -925,7 +926,7 @@ public void setDefaultEnglishUnits ( String default_engl_units )
 
 
 /**
-Set the default max for English units.
+Set the default maximum for English units.
 @param default_engl_units Default English units.
 */
 public void setDefaultEnglishMax ( double default_engl_max )
@@ -934,7 +935,7 @@ public void setDefaultEnglishMax ( double default_engl_max )
 }
 
 /**
-Set the default min for English units.
+Set the default minimum for English units.
 @param default_engl_units Default English units.
 */
 public void setDefaultEnglishMin ( double default_engl_min )
@@ -954,7 +955,7 @@ public void setDefaultSIUnits ( String default_si_units )
 }
 
 /**
-Set the default max for SI units.
+Set the default maximum for SI units.
 @param default_engl_units Default English units.
 */
 public void setDefaultSIMax ( double default_si_max )
@@ -963,7 +964,7 @@ public void setDefaultSIMax ( double default_si_max )
 }
 
 /**
-Set the default min for SI units.
+Set the default minimum for SI units.
 @param default_engl_units Default English units.
 */
 public void setDefaultSIMin ( double default_si_max )
@@ -1001,7 +1002,8 @@ throws Exception
 	// First look up the dimension to make sure that it is valid...
 
 	DataDimension dim;
-	try {	dim = DataDimension.lookupDimension(dimension_string);
+	try {
+	    dim = DataDimension.lookupDimension(dimension_string);
 	}
 	catch ( Exception e ) {
 		// Problem finding dimension.  Don't set...
@@ -1014,8 +1016,6 @@ throws Exception
 	// Now set the dimension...
 
 	__dimension = dim;
-	dim = null;
-	routine = null;
 }
 
 /**
@@ -1072,4 +1072,4 @@ public String toString ()
 	__SHEF_pe + "|";
 }
 
-} // End DataType
+}
