@@ -119,7 +119,7 @@ The precision defaults to zero (precision is only applicable to floating point d
 @param type Type of data associated with a particular column within
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
-@param width Field width in characters.
+@param width Field width in characters (-1 is allowed for variable-length strings).
 */
 public TableField ( int type, String name, int width )
 {	initialize ( type, name, width, 0 );
@@ -130,7 +130,7 @@ Construct a new table field for the specified type and name.
 @param type Type of data associated with a particular column within
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
-@param width Field width in characters.
+@param width Field width in characters (-1 is allowed for variable-length strings).
 @param precision Field precision in characters.  Used only for floating point data.
 */
 public TableField ( int type, String name, int width, int precision )
@@ -150,6 +150,8 @@ throws Throwable
 Initialize the instance.
 @param type Data type for field.
 @param name Field name.
+@param width field width for output (-1 is allowed for variable-length strings).
+@param precision digits after decimal for numbers.
 */
 private void initialize ( int type, String name, int width, int precision )
 {	_width = width;
