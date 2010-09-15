@@ -285,6 +285,7 @@ throws Exception
     double value2 = (getValue2() == null) ? -999.0 : getValue2().doubleValue();
     double value3 = (getValue3() == null) ? -999.0 : getValue3().doubleValue();
     TS ts = getTimeSeries();
+    DateTime analysisEnd = getAnalysisEnd();
     // If statistic takes more work, call other supporting code and then return
     // Statistics computed (further below) also store the date/time corresponding to a statistic value,
     // whereas the ones immediately below don't utilize this information.
@@ -307,6 +308,15 @@ throws Exception
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double auto = MathUtil.lagAutoCorrelation(values.length,values,1);
         setStatisticResult ( new Double(auto) );
+        return;
+    }
+    else if ( statisticType == TSStatisticType.LAST ) {
+        // Get the last non-missing value in the time series
+        if ( analysisEnd == null ) {
+            analysisEnd = ts.getDate2();
+        }
+        double last = TSUtil.findNearestDataValue(ts, analysisEnd, 1, 0, 0);
+        setStatisticResult ( new Double(last) );
         return;
     }
     else if ( statisticType == TSStatisticType.MEAN ) {
@@ -468,6 +478,60 @@ public DateTime getAnalysisStart ()
 }
 
 /**
+Return the number of values that are required to evaluate a statistic.
+@return the number of values that are required to evaluate a statistic.
+@param statisticType the statistic type that is being evaluated.
+*/
+public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statisticType )
+{
+    // Many basic statistics do not need additional input...
+    if ( (statisticType == TSStatisticType.COUNT) ||
+        (statisticType == TSStatisticType.DEFICIT_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
+        (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
+        (statisticType == TSStatisticType.LAST) ||
+        (statisticType == TSStatisticType.MAX) ||
+        (statisticType == TSStatisticType.MEAN) ||
+        (statisticType == TSStatisticType.MIN) ||
+        (statisticType == TSStatisticType.MISSING_COUNT) ||
+        (statisticType == TSStatisticType.MISSING_PERCENT) ||
+        (statisticType == TSStatisticType.NONMISSING_COUNT) ||
+        (statisticType == TSStatisticType.NONMISSING_PERCENT) ||
+        (statisticType == TSStatisticType.SKEW) ||
+        (statisticType == TSStatisticType.STD_DEV) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
+        (statisticType == TSStatisticType.VARIANCE) ) {
+        return 0;
+    }
+    // The following statistics need additional input.
+    else if ( statisticType == TSStatisticType.NQYY ) {
+        // Need days to average (N), return frequency (YY), and allowed missing in average
+        return 3;
+    }
+    else {
+        String message = "Requested statistic is not recognized: " + statisticType;
+        String routine = "TSUtil_CalculateTimeSeriesStatistic.getRequiredNumberOfValuesForStatistic";
+        Message.printWarning(3, routine, message);
+        throw new InvalidParameterException ( message );
+    }
+}
+
+/**
 Return the name of the statistic being calculated.
 @return the name of the statistic being calculated.
 */
@@ -512,6 +576,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.DEFICIT_SEQ_MEAN );
     choices.add ( TSStatisticType.DEFICIT_SEQ_MIN );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
+    choices.add ( TSStatisticType.LAST );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MIN );
@@ -547,59 +612,6 @@ public static List<String> getStatisticChoicesAsStrings()
         stringChoices.add ( "" + choices.get(i) );
     }
     return stringChoices;
-}
-
-/**
-Return the number of values that are required to evaluate a statistic.
-@return the number of values that are required to evaluate a statistic.
-@param statisticType the statistic type that is being evaluated.
-*/
-public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statisticType )
-{
-    // Many basic statistics do not need additional input...
-    if ( (statisticType == TSStatisticType.COUNT) ||
-        (statisticType == TSStatisticType.DEFICIT_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_MIN) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
-        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
-        (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
-        (statisticType == TSStatisticType.MAX) ||
-        (statisticType == TSStatisticType.MEAN) ||
-        (statisticType == TSStatisticType.MIN) ||
-        (statisticType == TSStatisticType.MISSING_COUNT) ||
-        (statisticType == TSStatisticType.MISSING_PERCENT) ||
-        (statisticType == TSStatisticType.NONMISSING_COUNT) ||
-        (statisticType == TSStatisticType.NONMISSING_PERCENT) ||
-        (statisticType == TSStatisticType.SKEW) ||
-        (statisticType == TSStatisticType.STD_DEV) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ||
-        (statisticType == TSStatisticType.SURPLUS_MAX) ||
-        (statisticType == TSStatisticType.SURPLUS_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_MIN) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
-        (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
-        (statisticType == TSStatisticType.VARIANCE) ) {
-        return 0;
-    }
-    // The following statistics need additional input.
-    else if ( statisticType == TSStatisticType.NQYY ) {
-        // Need days to average (N), return frequency (YY), and allowed missing in average
-        return 3;
-    }
-    else {
-        String message = "Requested statistic is not recognized: " + statisticType;
-        String routine = "TSUtil_CalculateTimeSeriesStatistic.getRequiredNumberOfValuesForStatistic";
-        Message.printWarning(3, routine, message);
-        throw new InvalidParameterException ( message );
-    }
 }
 
 /**
