@@ -6793,8 +6793,7 @@ throws TSException
 /**
 @return The nearest non-missing data value.  The search will not go past the
 end of the time series.  Return the missing data value if no non-missing value
-can be found.  If an irregular time series, always return missing (not
-implemented for irregular time series).
+can be found.  If an irregular time series, always return missing (not implemented for irregular time series).
 @param ts Time series to search.
 @param date Starting date for search.
 @param direction If zero or negative, then for each time step search backwards
@@ -6812,7 +6811,8 @@ public static double findNearestDataValue (	TS ts, DateTime date, int direction,
 		return ts.getMissing();
 	}
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
-		return ts.getMissing();
+		throw new IrregularTimeSeriesNotSupportedException("Unable to find data nearest " + date +
+		    " for irregular time series " + ts.getIdentifierString() );
 	}
 
 	DateTime forward_date = new DateTime(date);
@@ -6842,7 +6842,8 @@ public static double findNearestDataValue (	TS ts, DateTime date, int direction,
 				}
 			}
 		}
-		else {	// Check forwards first...
+		else {
+		    // Check forwards first...
 			if ( !forward_done ) {
 				value = ts.getDataValue ( forward_date );
 				if ( !ts.isDataMissing(value) ) {
