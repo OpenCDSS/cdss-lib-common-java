@@ -163,9 +163,10 @@ Number of records in the table.
 protected int _num_records = 0;
 
 /**
-Indicates if data records have been read.  This should be reset by derived classes.
+Indicates if data records have been read into memory.  This can be reset by derived classes that
+instead keep open a binary database file (e.g., dBase) and override the read/write methods.
 */
-protected boolean _have_data = false;
+protected boolean _haveDataInMemory = true;
 
 /**
 Indicates whether string data should be trimmed on retrieval.  In general, this
@@ -233,10 +234,11 @@ throws Exception
 /**
 Add a field to the table and each entry in TableRecord.  The field is added
 at the end of the other fields.  The added fields are initialized with blank
-strings or zeros, as appropriate.
+strings or NaN, as appropriate.
 @param tableField information about field to add.
+@param initValue the initial value to set (can be null).
 */
-public void addField ( TableField tableField )
+public void addField ( TableField tableField, Object initValue )
 {	_table_fields.add ( tableField );
 
 	int num = _table_records.size();
@@ -248,19 +250,19 @@ public void addField ( TableField tableField )
 		// these are ordered in the most likely types to optimize
 		int data_type = tableField.getDataType();
 		if ( data_type == TableField.DATA_TYPE_STRING ) {
-			tableRecord.addFieldValue( "");
+			tableRecord.addFieldValue( initValue );
 		}
 		else if ( data_type == TableField.DATA_TYPE_INT ) {
-			tableRecord.addFieldValue( new Integer ( 0 ));
+			tableRecord.addFieldValue( initValue );
 		}
 		else if ( data_type == TableField.DATA_TYPE_DOUBLE ) {
-			tableRecord.addFieldValue( new Double ( 0 ));
+			tableRecord.addFieldValue( initValue );
 		}
 		else if ( data_type == TableField.DATA_TYPE_SHORT ) {
-			tableRecord.addFieldValue( new Short ( "0" ));
+			tableRecord.addFieldValue( initValue );
 		}
 		else if ( data_type == TableField.DATA_TYPE_FLOAT ) {
-			tableRecord.addFieldValue( new Float ( 0 ));
+			tableRecord.addFieldValue( initValue );
 		}
 	}
 	tableRecord = null;
@@ -373,7 +375,7 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
 	if (!cloneData) {
 		return newTable;
 	}
-	newTable._have_data = true;
+	newTable._haveDataInMemory = true;
 
 	int numRecords = originalTable.getNumberOfRecords();
 	int type = -1;
@@ -495,16 +497,23 @@ are left-justified and numbers are right justified.
 */
 public String getFieldFormat ( int index )
 {	int field_type = getFieldDataType(index);
+    int fieldWidth = getFieldWidth(index);
 	if ( field_type == TableField.DATA_TYPE_STRING ) {
 		// Output left-justified and padded...
-		return "%-" + getFieldWidth(index) + "." + getFieldWidth(index) + "s";
+	    if ( fieldWidth < 0 ) {
+	        // Variable width strings
+	        return "%-s";
+	    }
+	    else {
+	        return "%-" + fieldWidth + "." + getFieldWidth(index) + "s";
+	    }
 	}
 	else {
         if ( (field_type == TableField.DATA_TYPE_FLOAT) || (field_type == TableField.DATA_TYPE_DOUBLE) ) {
-			return "%" + getFieldWidth(index) + "." + getFieldPrecision(index) + "f";
+			return "%" + fieldWidth + "." + getFieldPrecision(index) + "f";
 		}
 		else {
-		    return "%" + getFieldWidth(index) + "d";
+		    return "%" + fieldWidth + "d";
 		}
 	}
 }
@@ -539,7 +548,7 @@ throws Exception
 	}
 
 	// if this line is reached, the given field was never found
-	throw new Exception( "Unable to find field with name \"" + field_name + "\"" );
+	throw new Exception( "Unable to find table field with name \"" + field_name + "\"" );
 }
 
 /**
@@ -662,7 +671,7 @@ Return the TableRecord at a record index.
 */
 public TableRecord getRecord ( int record_index )
 throws Exception
-{	if ( !_have_data ) {
+{	if ( !_haveDataInMemory ) {
 		// Most likely a derived class is not handling on the fly
 		// reading of data and needs more development.  Return null
 		// because the limitation is likely handled elsewhere.
@@ -685,7 +694,7 @@ The type of the object will be checked before doing the comparison.
 */
 public TableRecord getRecord ( String columnName, Object columnValue )
 throws Exception
-{   if ( !_have_data ) {
+{   if ( !_haveDataInMemory ) {
         // Most likely a derived class is not handling on the fly
         // reading of data and needs more development.  Return null
         // because the limitation is likely handled elsewhere.
@@ -723,7 +732,7 @@ throws Exception
     Object columnContents;
     for ( int i = 0; i < size; i++ ) {
         rec = _table_records.get(i);
-        columnContents = _table_records.get(columnNumber);
+        columnContents = rec.getFieldValue(columnNumber);
         if ( columnValueString != null ) {
             // Do case insensitive comparison
             String s = (String)columnContents;
@@ -875,11 +884,12 @@ public boolean hasField(String fieldName) {
 
 
 /**
-Indicate whether the table has data.  This will be true if any table records
-have been added during a read or write operation.  This method is meant to be called by derived classes.
+Indicate whether the table has data in memory.  This will be true if any table records
+have been added during a read or write operation.  This method is meant to be called by derived classes
+that allow records to be accessed on the fly rather than from memory (e.g., dBase tables).
 */
-public boolean haveData ()
-{	return _have_data;
+public boolean haveDataInMemory ()
+{	return _haveDataInMemory;
 }
 
 /**
@@ -977,7 +987,7 @@ throws Exception
 	BufferedReader in = new BufferedReader ( new FileReader ( filename ));
 
 	table = new DataTable( tableFields );
-	table._have_data = true;
+	table._haveDataInMemory = true;
 	int field_types[] = table.getFieldDataTypes();
 	if ( num_lines_header == 0 ) {
 		processed_header = true;
@@ -1624,7 +1634,7 @@ throws Exception
 	// Create the table from the field information.
 
 	DataTable table = new DataTable(tableFields);
-	table._have_data = true;
+	table._haveDataInMemory = true;
 	TableRecord tablerec = null;
 	
 	// Now transfer the data records to table records.
