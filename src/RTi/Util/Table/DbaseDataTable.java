@@ -55,19 +55,39 @@ implemented for on-the-fly reads.</b>
 */
 public class DbaseDataTable extends DataTable {
 
-private EndianRandomAccessFile _raf = null;	// Used for reading and writing.
-private char _field_buffer[][] = null;		// Used when reading fields -
-						// the buffer includes a char[]
-						// for each field, sized
-						// according to the header
-private char _field_type[] = null;		// Indicates Dbase field types.
-private int _field_size[] = null;		// Width of field
-private int _field_byte[] = null;		// Byte position of field within
-						// record
-private int _field_precision[] =null; 		// Precision after .
-						// Used for numeric types.
-private int _header_bytes = 32;			// Dbase main header is 32.
-private int _record_bytes = 0;			// Size of a record.
+/**
+Used for reading and writing.
+*/
+private EndianRandomAccessFile _raf = null;
+/**
+Used when reading fields - the buffer includes a char[]
+for each field, sized according to the header.
+ */
+private char _field_buffer[][] = null;
+/**
+Indicates Dbase field types.
+*/
+private char _field_type[] = null;
+/**
+Widths of fields.
+*/
+private int _field_size[] = null;
+/**
+Byte position of field within record.
+*/
+private int _field_byte[] = null;
+/**
+Precision after period.  Used for numeric types.
+*/
+private int _field_precision[] = null;
+/**
+Dbase main header is 32.
+*/
+private int _header_bytes = 32;
+/**
+Size of a record, bytes.
+*/
+private int _record_bytes = 0;
 
 /**
 Construct a new data table from the Dbase file.  This version is meant to be
@@ -76,8 +96,7 @@ that the file would be updated, although this enhancement may be added in the fu
 @param filename Name of Dbase file to read.
 @param read_data Indicates whether the data should be read.  The header is
 always read.  If true, all the data will be read and stored in memory.  If
-false, the header only will be read.  Use subsequent calls to getFieldValue() to
-read data.
+false, the header only will be read.  Use subsequent calls to getFieldValue() to read data.
 @param remain_open Indicates whether the file should remain open.  If true,
 then data values can be read from the file using getFieldValue().
 @exception IOException if there is an error reading the file.
@@ -88,7 +107,7 @@ throws IOException
 	_raf = new EndianRandomAccessFile ( filename, "r" );
 	// Read the header and optionally the data...
 	readData ( read_data );
-	_have_data = read_data;
+	_haveDataInMemory = read_data;
 	// Close the file...
 	if ( !remain_open ) {
 		// Close the random access file...
@@ -137,22 +156,19 @@ The returned object must be properly cast.
 */
 public Object getFieldValue ( long record_index, int field_index )
 throws Exception
-{	if ( _have_data ) {
+{	if ( _haveDataInMemory ) {
 		// The data for the table are in memory so grab the value...
 		int num_recs = _table_records.size();
 		int num_fields = _table_fields.size();
 
 		if ( num_recs <= record_index ) {
 			throw new Exception ( "Requested record index " +
-			record_index + " is not available (only " + num_recs + 
-			" are in data." );
+			record_index + " is not available (only " + num_recs + " are in data." );
 		}
 
 		if ( num_fields <= field_index ) {
-			throw new Exception ( "Requested field index " +
-			field_index +
-			" is not available (only " + num_fields +
-			" are in data." );
+			throw new Exception ( "Requested field index " + field_index +
+			" is not available (only " + num_fields + " are in data." );
 		}
 
 		TableRecord tableRecord = (TableRecord)_table_records.get((int)record_index);
@@ -160,15 +176,15 @@ throws Exception
 		tableRecord = null;
 		return o;
 	}
-	else {	// Try reading the value from the file...
+	else {
+	    // Try reading the value from the file...
 		return readFieldValue ( record_index, field_index );
 	}
 }
 
 /**
 Read the header and optionally the data from a Dbase file.
-@param read_data Indicates whether data should be read (true) or only the header
-(false).
+@param read_data Indicates whether data should be read (true) or only the header (false).
 @exception IOException if there is an error reading the input.
 */
 private void readData ( boolean read_data )
@@ -193,23 +209,20 @@ throws IOException
 	// Set in the base class...
 	setNumberOfRecords ( nrecords );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "There are " + nrecords +
-		" records in the DBF file." );
+		Message.printDebug ( dl, routine, "There are " + nrecords + " records in the DBF file." );
 	}
 
 	// Get the header size in bytes (this includes the main header, the
 	// field headers, and the single trailing header terminator)...
 	_header_bytes = _raf.readLittleEndianShort ();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Header size is " + _header_bytes + " bytes." );
+		Message.printDebug ( dl, routine, "Header size is " + _header_bytes + " bytes." );
 	}
 
 	// Get the record size in bytes...
 	_record_bytes = _raf.readLittleEndianShort ();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Record size is " +
-		_record_bytes + " bytes." );
+		Message.printDebug ( dl, routine, "Record size is " + _record_bytes + " bytes." );
 	}
 
 	// Calculate the number of fields (32 bytes in main header,
@@ -218,8 +231,7 @@ throws IOException
 
 	int nfields = (_header_bytes - 32)/32;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Number of fields is " +
-		nfields );
+		Message.printDebug ( dl, routine, "Number of fields is " + nfields );
 	}
 
 	// Go to after the header...
@@ -230,15 +242,11 @@ throws IOException
 	// Now read the field headers..
 
 	String field_name[] = new String[nfields];	// Field names as String
-	char field_chars[] = new char[10];		// Field names as char[]
-							// 10 chars+\0 in header
+	char field_chars[] = new char[10]; // Field names as char[] 10 chars+\0 in header
 
-	_field_size = new int[nfields];			// Width of field
-	_field_byte = new int[nfields];			// Byte position of
-							// field within record
-	_field_precision = new int[nfields];		// Precision after .
-							// Used for numeric
-							// types.
+	_field_size = new int[nfields]; // Width of field
+	_field_byte = new int[nfields]; // Byte position of field within record
+	_field_precision = new int[nfields]; // Precision after .  (used for numeric types).
 	_field_buffer = new char[nfields][];
 	_field_type = new char[nfields];
 	int tmp_field_type=0;
@@ -246,7 +254,7 @@ throws IOException
 	List tableFields = new Vector(nfields);
 
 	// Read the field name...
-        int rowSize = 0; // IWS
+    int rowSize = 0; // IWS
 	for ( int i = 0; i < nfields; i++ ) {
 		field_chars[0] = _raf.readLittleEndianChar1();
 		field_chars[1] = _raf.readLittleEndianChar1();
@@ -261,8 +269,7 @@ throws IOException
 		// Use trimmed fields just to make output easier to deal with...
 		field_name[i] = (new String(field_chars)).trim();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Field [" + i + "] name is \"" + field_name[i] + "\"" );
+			Message.printDebug ( dl, routine, "Field [" + i + "] name is \"" + field_name[i] + "\"" );
 		}
 
 		// Skip the trailing null...
@@ -282,18 +289,17 @@ throws IOException
 
 		// Get the field size...
 
-                _field_size[i] = _raf.readUnsignedByte();
-                rowSize += _field_size[i]; // IWS
+        _field_size[i] = _raf.readUnsignedByte();
+        rowSize += _field_size[i]; // IWS
 		//_field_size[i] = (int)_raf.readByte();
 		if ( i == 0 ) {
 			_field_byte[i] = 0;
 		}
-		else {	_field_byte[i] = _field_byte[i - 1] +
-				_field_size[i - 1];
+		else {
+		    _field_byte[i] = _field_byte[i - 1] + _field_size[i - 1];
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Field size is \"" + _field_size[i] + "\"" );
+			Message.printDebug ( dl, routine, "Field size is \"" + _field_size[i] + "\"" );
 		}
 
 		// Get the field precision...
@@ -301,12 +307,11 @@ throws IOException
 		_field_precision[i] = _raf.readUnsignedByte();
 		if ( _field_type[i] == 'N' ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine,
-				"Field precision is \"" +
-				_field_precision[i] + "\"");
+				Message.printDebug ( dl, routine, "Field precision is \"" + _field_precision[i] + "\"");
 			}
 		}
-		else {	// Not a number...
+		else {
+		    // Not a number...
 			_field_precision[i] = 0;
 		}
 		// Allocate a working buffer for reads.
@@ -316,19 +321,16 @@ throws IOException
 		if ( _field_type[i] == 'N' ) {
 			tmp_field_type = TableField.DATA_TYPE_DOUBLE;
 		}
-		else {	// treat is if _field_type[i] == 'C'
+		else {
+		    // treat is if _field_type[i] == 'C'
 			tmp_field_type = TableField.DATA_TYPE_STRING;
 			// ...but do a check...
 			if ( _field_type[i] != 'C' ) {
-				Message.printWarning ( 2, routine,
-				"Treating field [" + i + "] " +
-				_field_type[i] + " as C" );
+				Message.printWarning ( 2, routine, "Treating field [" + i + "] " + _field_type[i] + " as C" );
 				_field_type[i] = 'C';
 			}
 		}
-		tableFields.add ( new TableField ( 
-			tmp_field_type, field_name[i],
-			_field_size[i], _field_precision[i]) );
+		tableFields.add ( new TableField ( tmp_field_type, field_name[i], _field_size[i], _field_precision[i]) );
 	}
 
 	field_chars = null;
@@ -355,17 +357,18 @@ throws IOException
 	TableRecord contents = null;
 
 	int i = 0;
-        byte[] rowBuffer = new byte[rowSize]; // IWS
+    byte[] rowBuffer = new byte[rowSize]; // IWS
 	for ( int i_dbf = 0; i_dbf < nrecords; ++i_dbf ) {
-		try {	// Read deleted flag...
+		try {
+		    // Read deleted flag...
 			_raf.readLittleEndianChar1();
 			contents = new TableRecord(nfields);
-                        _raf.readFully(rowBuffer); // IWS
-                        int rowOffset = 0; // IWS
+            _raf.readFully(rowBuffer); // IWS
+            int rowOffset = 0; // IWS
 			for ( i = 0; i < nfields; i++ ) {
                             
-                                        data_string = new String( rowBuffer, rowOffset, _field_size[i]);
-                                        rowOffset += _field_size[i];
+                data_string = new String( rowBuffer, rowOffset, _field_size[i]);
+                rowOffset += _field_size[i];
 				if ( _field_type[i] == 'C' ) {
 					// Read string...
                                         
@@ -377,18 +380,14 @@ throws IOException
 //					data_string = new String (
 //							_field_buffer[i] );
 					if ( _trim_strings ) {
-						contents.addFieldValue (
-						data_string.trim() );
+						contents.addFieldValue ( data_string.trim() );
 					}
-					else {	contents.addFieldValue (
-						data_string );
+					else {
+					    contents.addFieldValue ( data_string );
 					}
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine,
-						"Field [" + i +
-						"] Data string is \"" +
-						data_string + "\"" );
+						    routine, "Field [" + i + "] Data string is \"" + data_string + "\"" );
 					}
 				}
 				else if ( _field_type[i] == 'N' ) {
@@ -402,58 +401,42 @@ throws IOException
 //							_field_buffer[i] );
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
-						routine,
-						"Field [" + i +
-						"] Data string for number is \""
-						+ data_string + "\"" );
+						    routine, "Field [" + i + "] Data string for number is \"" + data_string + "\"" );
 					}
 					// Sometimes overflow values have
-					// "******" so set to zero if there is
-					// a problem.
-					try {	contents.addFieldValue (
-						new Double(data_string.trim()));
+					// "******" so set to zero if there is a problem.
+					try {
+					    contents.addFieldValue (new Double(data_string.trim()));
 					}
 					catch (Exception e3) {
-						contents.addFieldValue (
-						new Double ( 0.0 ));
-						Message.printWarning ( 2,
-						routine,
-						"Field [" + i + "] Record [" +
-						i_dbf + "] Invalid data"
-						+ "string for number: \""
-						+ data_string + "\"" );
+						contents.addFieldValue (new Double ( 0.0 ));
+						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
+						i_dbf + "] Invalid data string for number: \"" + data_string + "\"" );
 					}
 				}
-				else {	// Not yet implemented.  Problem!
-					throw new IOException (
-					"Field type \"" + _field_type[i] +
-					"\" is not yet implemented." );
+				else {
+				    // Not yet implemented.  Problem!
+					throw new IOException ( "Field type \"" + _field_type[i] + "\" is not yet implemented." );
 				}
 			}
-			try {	addRecord ( contents );
+			try {
+			    addRecord ( contents );
 			} catch ( Exception exc ) {
 				Message.printWarning ( 2, routine,
-				"Unable to add record to table - record [" +
-				i_dbf + "] field [" + i + "]" );
+				"Unable to add record to table - record [" + i_dbf + "] field [" + i + "]" );
 				Message.printWarning ( 2, "", exc );
 			}
 		}
 		catch ( IOException e ) {
-			Message.printWarning ( 2, routine,
-			"Exception reading DBF data record [" + i_dbf + "]" );
+			Message.printWarning ( 2, routine, "Exception reading DBF data record [" + i_dbf + "]" );
 			throw e;
 		}
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "Number of fields: " +
-		getNumberOfFields());
-		Message.printDebug ( dl, routine, "Number of records read: " +
-		getNumberOfRecords());
+		Message.printDebug ( dl, routine, "Number of fields: " + getNumberOfFields());
+		Message.printDebug ( dl, routine, "Number of records read: " + getNumberOfRecords());
 	}
-
-	data_string = null;
-	contents = null;
 }
 
 /**
@@ -469,12 +452,10 @@ Returned object must be properly cast.
 */
 public Object readFieldValue ( long record_index, int field_index )
 throws Exception
-{	// If _raf is null or other errors occur, just let an exception be
-	// thrown.  Assume that all is ok.
+{	// If _raf is null or other errors occur, just let an exception be thrown.  Assume that all is ok.
 	long pos = _header_bytes +
 		+ record_index*_record_bytes
-		+ _field_byte[field_index] + 1;	// +1 is to position after all
-						// the other data
+		+ _field_byte[field_index] + 1;	// +1 is to position after all the other data
 	// Now seek to the position...
 	//Message.printStatus ( 1, "", "Reading record " + record_index +
 	//" field " + field_index + " from byte " + pos );
@@ -485,35 +466,33 @@ throws Exception
 	if ( _field_type[field_index] == 'C' ) {
 		// Read string...
 		for ( j = 0; j < _field_size[field_index]; j++ ) {
-			_field_buffer[field_index][j] =
-			_raf.readLittleEndianChar1();
+			_field_buffer[field_index][j] = _raf.readLittleEndianChar1();
 		}
 		if ( _trim_strings ) {
 			o = (new String(_field_buffer[field_index])).trim();
 		}
-		else {	o = new String ( _field_buffer[field_index] );
+		else {
+		    o = new String ( _field_buffer[field_index] );
 		}
 	}
 	else if ( _field_type[field_index] == 'N' ) {
 		// Read string and convert to number...
 		for ( j = 0; j < _field_size[field_index]; j++ ){
-			_field_buffer[field_index][j] =
-			_raf.readLittleEndianChar1();
+			_field_buffer[field_index][j] = _raf.readLittleEndianChar1();
 		}
-		try {	o = new Double ( new String (
-				_field_buffer[field_index] ) );
+		try {
+		    o = new Double ( new String (_field_buffer[field_index] ) );
 		}
 		catch ( Exception e ) {
 			o = new Double ( 0.0 );
 			Message.printWarning (2,"DbaseDataTable.readFieldValue",
 			"Field [" + field_index + "] Record [" + record_index +
-			"] Invalid data string for number: \"" +
-			new String(_field_buffer[field_index]) + "\"" );
+			"] Invalid data string for number: \"" + new String(_field_buffer[field_index]) + "\"" );
 		}
 	}
-	else {	// Not yet implemented.  Problem!
-		throw new IOException ( "Field type " +
-		_field_type[field_index] + " is not yet implemented." );
+	else {
+	    // Not yet implemented.  Problem!
+		throw new IOException ( "Field type " + _field_type[field_index] + " is not yet implemented." );
 	}
 	return o;
 }
@@ -538,8 +517,7 @@ table.  Each boolean in the array indicates whether the record should be
 written.  If null, all records are written.
 @exception IOException if problem writing to file.
 */
-public static void write (	String dbf_file, DataTable table,
-				boolean[] write_record )
+public static void write ( String dbf_file, DataTable table, boolean[] write_record )
 throws IOException
 {	// Make RandomAccessFile to write out data...
 
@@ -748,15 +726,12 @@ throws IOException
 			raf_DBF_stream.writeLittleEndianChar1(outstring);
 		}
 	}
-	outstring = null;
-	format_spec = null;
 
 	// End of file marker 1AH == 26 decimal  or 0x1A
 	raf_DBF_stream.writeLittleEndianChar1('\026');
 
 	// Close stream
 	raf_DBF_stream.close();
-	raf_DBF_stream = null;
 }
 
-} // End of DbaseDataTable class
+}
