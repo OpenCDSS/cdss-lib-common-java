@@ -123,8 +123,7 @@ throws Throwable {
 }
 
 /**
-Returns the class of the data stored in a given
-column.
+Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -157,8 +156,7 @@ public String getColumnName(int columnIndex) {
 Returns the format that the specified column should be displayed in when
 the table is being displayed in the given table format. 
 @param column column for which to return the format.
-@return the format (as used by StringUtil.formatString() in which to display the
-column.
+@return the format (as used by StringUtil.formatString() in which to display the column.
 */
 public String getFormat(int column) {
 	return __fieldFormats[column];
@@ -173,8 +171,7 @@ public int getRowCount() {
 }
 
 /**
-Returns the data that should be placed in the JTable
-at the given row and column.
+Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
@@ -202,6 +199,9 @@ public int[] getColumnWidths() {
 	int[] widths = new int[__columns];
 	for (int i = 0; i < __columns; i++) {
 		widths[i] = __dataTable.getFieldWidth(i);
+		if ( widths[i] < 0 ) {
+		    widths[i] = 15; // Default
+		}
 	}
 	return widths;
 }
