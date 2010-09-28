@@ -103,6 +103,15 @@ public TableField ( int type )
 }
 
 /**
+Copy constructor.
+@param field table field to copy
+*/
+public TableField ( TableField field )
+{
+    initialize ( field.getDataType(), field.getName(), field.getWidth(), field.getPrecision() );
+}
+
+/**
 Construct a new table field for the specified type and name.
 The precision defaults to 10 characters, precision 0.
 @param type Type of data associated with a particular column within
