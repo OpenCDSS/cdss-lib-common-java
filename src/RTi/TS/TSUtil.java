@@ -6697,14 +6697,18 @@ Fill missing data by repeating the last known value, processing either forward o
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
 @param direction -1 if filling backward, >= 0 if filling forward.
-@param max_intervals Maximum number of intervals to fill in a gap.  Zero
-indicates to fill all (no maximum).
+@param max_intervals Maximum number of intervals to fill in a gap.  Zero indicates to fill all (no maximum).
+@param fillFlag flag to mark values that were filled, null or blank to not mark
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, int direction, int max_intervals )
-throws TSException
-{	String  routine = "TSUtil.fillRepeat";
-	String	message;
+public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, int direction, int max_intervals,
+    String fillFlag )
+{	String routine = "TSUtil.fillRepeat";
+	String message;
+	if ( fillFlag.equals("") ) {
+	    // Set to null to simplify processing
+	    fillFlag = null;
+	}
 
 	// Get valid dates because the ones passed in may have been null...
 
@@ -6717,7 +6721,7 @@ throws TSException
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		message = "Filling IrregularTS by repeating value is not supported";
 		Message.printWarning ( 2, routine, message );
-		throw new TSException ( message );
+		throw new IrregularTimeSeriesNotSupportedException( message );
 	}
 	// Loop using addInterval...
 	DateTime date = null;
@@ -6726,6 +6730,7 @@ throws TSException
 	double last_found_value = 0.0;
 	int	fill_count = 0;	// Number of sequential intervals filled.
 	int fillCountTotal = 0; // Total fill count
+	TSData dataPoint = new TSData(); // Used when setting the flag
 	if ( direction >= 0 ) {
 		// Iterate forward...
 		for ( date = new DateTime(start); date.lessThanOrEqualTo( end );
@@ -6735,7 +6740,15 @@ throws TSException
 				if ( last_found ) {
 					// Use the last value found to fill.  If no value has been found, leave missing...
 					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
-						ts.setDataValue ( date, last_found_value );
+					    if ( fillFlag != null ) {
+					        // Update the flag value
+		                    dataPoint = ts.getDataPoint(date, dataPoint );
+		                    dataPoint.setDataFlag ( fillFlag ); // This will append if fillFlag has +
+		                    ts.setDataValue ( date, last_found_value, dataPoint.getDataFlag(), dataPoint.getDuration() );
+					    }
+					    else {
+					        ts.setDataValue ( date, last_found_value );
+					    }
 						++fill_count;
 						++fillCountTotal;
 					}
@@ -6758,7 +6771,15 @@ throws TSException
 				if ( last_found ) {
 					// Use the last value found to fill.  If no value has been found, leave missing...
 					if ( (max_intervals == 0) || (fill_count < max_intervals) ) {
-						ts.setDataValue ( date, last_found_value );
+                        if ( fillFlag != null ) {
+                            // Update the flag value
+                            dataPoint = ts.getDataPoint(date, dataPoint );
+                            dataPoint.setDataFlag ( fillFlag ); // This will append if fillFlag has +
+                            ts.setDataValue ( date, last_found_value, dataPoint.getDataFlag(), dataPoint.getDuration() );
+                        }
+                        else {
+                            ts.setDataValue ( date, last_found_value );
+                        }
 						++fill_count;
 						++fillCountTotal;
 					}
@@ -6778,7 +6799,7 @@ throws TSException
 	String maxString = " up to gap of " + max_intervals  + " intervals.";
 	if ( max_intervals == 0 ) {
 	    maxString = " no limit in gap size to fill.";
-	};
+	}
 	String dir = "forward";
 	if ( direction < 0 ) {
 	    dir = "backward";
@@ -6786,8 +6807,13 @@ throws TSException
     if ( fillCountTotal > 0 ) {
         ts.setDescription ( ts.getDescription() + ", fill repeat " + dir );
     }
-	ts.addToGenesis ( "Filled " + fillCountTotal + " missing data values " + start +
-	" to " + end + " by repeating " + dir + " known values," + maxString );
+    if ( fillCountTotal > 0 ) {
+        String flag = StringUtil.remove(fillFlag,"+");
+        message = "Filled " + fillCountTotal + " missing data values " + start +
+        " to " + end + " by repeating " + dir + " known values," + maxString;
+        ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
+        ts.addToGenesis ( message );
+    }
 }
 
 /**
