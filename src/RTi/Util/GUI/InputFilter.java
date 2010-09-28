@@ -62,6 +62,7 @@ specific software and is then managed by a InputFilter_JPanel object.
 public class InputFilter implements Cloneable
 {
 
+// TODO SAM 2010-09-21 Need to convert to enumeration
 /**
 Input filter type, for use with strings that exactly match a pattern.
 */
@@ -339,6 +340,35 @@ public Object clone()
 		// Should not happen because everything is clonable.
 		throw new InternalError();
 	}
+}
+
+/**
+Evaluate whether a string object meets a string criterion.
+@param s string being evaluated (e.g., "does s criterion s2"?)
+@param criteria criteria being used in comparison
+@param s2 string that is being used to match the criterion
+*/
+public static boolean evaluateCriterion ( String s, InputFilterStringCriterionType criterion, String s2 )
+{
+    if ( criterion == InputFilterStringCriterionType.CONTAINS ) {
+        int index = StringUtil.indexOfIgnoreCase(s, s2, 0);
+        if ( index >= 0 ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    else if ( criterion == InputFilterStringCriterionType.ENDS_WITH ) {
+        return StringUtil.endsWithIgnoreCase(s,s2);
+    }
+    else if ( criterion == InputFilterStringCriterionType.MATCHES ) {
+        return s.equalsIgnoreCase(s2);
+    }
+    else if ( criterion == InputFilterStringCriterionType.STARTS_WITH ) {
+        return StringUtil.startsWithIgnoreCase(s,s2);
+    }
+    return false;
 }
 
 /**
