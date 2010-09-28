@@ -148,7 +148,7 @@ The identifier for the table.
 private String __table_id = "";
 
 /**
-List of TableField that describe the columns.
+List of TableField that define the table columns.
 */
 protected List<TableField> _table_fields;
 
@@ -158,7 +158,7 @@ List of TableRecord, that contains the table data.
 protected List<TableRecord> _table_records;
 
 /**
-Number of records in the table.
+Number of records in the table (kept for case where records are not in memory).
 */
 protected int _num_records = 0;
 
@@ -186,7 +186,7 @@ Construct a new table.  Use setTableFields() at a later time to define the table
 */
 public DataTable ()
 {	// Estimate that 100 is a good increment for the data vector...
-	initialize ( null, 10, 100 );
+	initialize ( new Vector(), 10, 100 );
 }
 
 /**
@@ -266,6 +266,53 @@ public void addField ( TableField tableField, Object initValue )
 		}
 	}
 	tableRecord = null;
+}
+
+/**
+Create a copy of the table.
+*/
+public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns )
+{   String routine = getClass().getName() + ".createCopy";
+    // List of columns that will be copied
+    String [] columnNames = null;
+    if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
+        // Copy only the requested names
+        columnNames = reqIncludeColumns;
+    }
+    else {
+        // Copy all
+        columnNames = table.getFieldNames();
+    }
+    // Create a new data table
+    DataTable newTable = new DataTable();
+    newTable.setTableID ( newTableID );
+    // Get the column information from the original table
+    int errorCount = 0;
+    for ( int iField = 0; iField < table.getNumberOfFields(); iField++ ) {
+        for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
+            if ( table.getFieldName(iField).equalsIgnoreCase(columnNames[iReqField])) {
+                // Copy the data from the original table
+                newTable.addField(new TableField ( table.getTableField(iField)), null );
+                int icol = newTable.getNumberOfFields() - 1;
+                for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
+                    try {
+                        newTable.setFieldValue(irow, icol, table.getFieldValue(irow, iField), true );
+                    }
+                    catch ( Exception e ) {
+                        // Should not happen
+                        Message.printWarning(3, routine, "Error setting new table data (" + e + ")." );
+                        ++errorCount;
+                    }
+                }
+                // No need to keep looking for a matching column
+                break;
+            }
+        }
+    }
+    if ( errorCount > 0 ) {
+        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table." );
+    }
+    return newTable;
 }
 
 /**
@@ -646,6 +693,7 @@ public int getNumberOfFields ()
 {	return _table_fields.size();
 }
 
+// TODO SAM 2010-09-22 Evaluate whether the records list size should be returned if records in memory?
 /**
 Return the number of records in the table.  <b>This value should be set by
 code that manipulates the data table.  If the table records Vector has been
@@ -1952,7 +2000,7 @@ throws Exception {
         int nonBlank = 0; // Number of nonblank table headings
     	if (writeHeader) {
     	    // First determine if any headers are non blank
-            for (int col = 0; col < (cols - 1); col++) {
+            for (int col = 0; col < cols; col++) {
                 if ( getFieldName(col).length() > 0 ) {
                     ++nonBlank;
                 }
