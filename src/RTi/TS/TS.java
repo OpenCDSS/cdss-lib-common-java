@@ -253,6 +253,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -420,6 +421,13 @@ genesis note may be about how the time series was read.  The second may
 indicate how it was filled.  Many TSUtil methods add to the genesis.
 */
 protected List<String> _genesis;
+
+/**
+TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be implemented instead.
+Properties for the time series beyond the built-in properties.  For example, location
+information like county and state can be set as a property.
+*/
+private Hashtable<String,Object> __property_Hashtable = null; // Set to null to save memory
 
 // TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
@@ -1609,6 +1617,19 @@ public DateTime getNonMissingDataDate2( )
 }
 
 /**
+Get a time series property's contents (case-specific).
+@param propertyName name of property being retrieved.
+@return property object corresponding to the property name.
+*/
+public Object getProperty ( String propertyName )
+{
+    if ( __property_Hashtable == null ) {
+        return null;
+    }
+    return __property_Hashtable.get ( propertyName );
+}
+
+/**
 Return the sequence number for the time series.
 @return The sequence number for the time series.  This is meant to be used
 when an array of time series traces is maintained.
@@ -2247,6 +2268,19 @@ public void setNonMissingDataDate2( DateTime t )
 {	if ( t != null ) {
 		_data_limits.setNonMissingDataDate2( t );
 	}
+}
+
+/**
+Set a time series property's contents (case-specific).
+@param propertyName name of property being set.
+@param property property object corresponding to the property name.
+*/
+public void setProperty ( String propertyName, Object property )
+{
+    if ( __property_Hashtable == null ) {
+        __property_Hashtable = new Hashtable<String, Object>();
+    }
+    __property_Hashtable.put ( propertyName, property );
 }
 
 /**
