@@ -58,7 +58,7 @@ Perform a math calculation.
 @param operator the operator to execute for processing data
 @param input2 the name of the second column to use as input, or a constant
 @param output the name of the output column
-@param nonValue value to assign when floaging point numbers cannot be computed (null or Double.NaN)
+@param nonValue value to assign when floating point numbers cannot be computed (null or Double.NaN)
 @param problems a list of strings indicating problems during processing
 */
 public void math ( String input1, DataTableMathOperatorType operator, String input2, String output,
