@@ -423,12 +423,13 @@ public static long atol( String s )
 ** tempstr	L	String used when splitting out sub-strings.
 **------------------------------------------------------------------------------
 */
-
+//TODO SAM 2010-09-21 Evaluate phasing out this method in favor of built-in parsing
+// features in Java (which are now more mature then when breakStringList() was originally written).
 /**
 Break a delimited string into a list of Strings.  The end of the string is
 considered as a delimiter so "xxxx,xxxx" returns two strings if the comma is a
 delimiter and "xxxxx" returns one string if the comma is the delimiter.  If a
-delimiter character is actually the last character, no null field is returned at
+delimiter character is actually the last character, no empty/null field is returned at
 the end.  If multiple delimiters are at the front and skip blanks is specified,
 all the delimiters will be skipped.  Escaped single characters are passed through
 as is.  Therefore \" (two characters) will be two characters in the output.  Other
