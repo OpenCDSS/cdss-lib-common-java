@@ -171,8 +171,7 @@ Constructor.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, String filename, 
-PropList props) 
+public DataTable_JPanel(DataTable_JFrame parent, String filename, PropList props) 
 throws Exception {
 	if (parent == null || filename == null || props == null) {
 		throw new NullPointerException();
@@ -243,32 +242,26 @@ throws Exception {
 	else {
 		if (StringUtil.endsWithIgnoreCase(__filename, "dbf")) {
 			try {
-				DbaseDataTable dbaseTable = new DbaseDataTable(
-					__filename, false, true);
+				DbaseDataTable dbaseTable = new DbaseDataTable(__filename, false, true);
 				__table = dbaseTable;
 				fileReadOK = true;
 			}
 			catch (Exception e) {
-				Message.printWarning(2, routine, 
-					"Error reading '" + __filename + "'");
+				Message.printWarning(2, routine, "Error reading '" + __filename + "'");
 				Message.printWarning(2, routine, e);
 				fileReadOK = false;
 			}
 		}
 		else {
 			Message.printStatus(1, routine, 
-				"Data table in filename '"
-				+ __filename 
-				+ "' is not supported for reading.");
-			throw new Exception("Data table type in filename '" 
-				+ __filename 
+				"Data table in filename '" + __filename + "' is not supported for reading.");
+			throw new Exception("Data table type in filename '" + __filename 
 				+ "' is not supported for reading.");
 		}
 	}
 
 	if (!fileReadOK) {
-		JGUIUtil.addComponent(this, new JLabel(
-			"Attributes are not available for this layer."),
+		JGUIUtil.addComponent(this, new JLabel("Attributes are not available for this layer."),
 			0, 0, 1, 1, 1, 1, 
 			GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
 		return;
