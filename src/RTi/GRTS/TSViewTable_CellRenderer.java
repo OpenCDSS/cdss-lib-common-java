@@ -105,8 +105,7 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
 	// call DefaultTableCellRenderer's version of this method so that
 	// all the cell highlighting is handled properly.
-	super.getTableCellRendererComponent(table, str, 
-		isSelected, hasFocus, row, column);	
+	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);	
 
 	int tableAlignment = ((JWorksheet)table).getColumnAlignment(abscolumn);
 	if (tableAlignment != JWorksheet.DEFAULT) {
