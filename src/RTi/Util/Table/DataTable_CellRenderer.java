@@ -20,6 +20,7 @@ import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
+import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
@@ -64,13 +65,14 @@ Renders a cell for the worksheet.
 public Component getTableCellRendererComponent(JTable table, Object value,
 boolean isSelected, boolean hasFocus, int row, int column) {
 	String str = "";
- 	if (value != null) {
+ 	if ( value != null ) {
 		str = value.toString();
 	}
 	
 	int abscolumn = ((JWorksheet)table).getAbsoluteColumn(column);
 	
 	String format = getFormat(abscolumn);
+	//Message.printStatus(2,"","Format for value " + value + " is " + format);
 	
 	int justification = SwingConstants.LEFT;
 
@@ -80,7 +82,9 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}	
 	else if (value instanceof Double) {		
 		justification = SwingConstants.RIGHT;
-		str = StringUtil.formatString(value, format);
+		if ( !((Double)value).isNaN() ) {
+		    str = StringUtil.formatString(value, format);
+		}
 	}
 	else if (value instanceof Date) {
 		justification = SwingConstants.LEFT;		
@@ -92,7 +96,9 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}
 	else if (value instanceof Float) {
 		justification = SwingConstants.RIGHT;
-		str = StringUtil.formatString(value, format);
+	    if ( !((Float)value).isNaN() ) {
+	        str = StringUtil.formatString(value, format);
+	    }
 	}
 	else {
 		justification = SwingConstants.LEFT;
@@ -102,8 +108,7 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
 	// call DefaultTableCellRenderer's version of this method so that
 	// all the cell highlighting is handled properly.
-	super.getTableCellRendererComponent(table, str, 
-		isSelected, hasFocus, row, column);	
+	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);	
 	
 	int tableAlignment = ((JWorksheet)table).getColumnAlignment(abscolumn);
 	if (tableAlignment != JWorksheet.DEFAULT) {
