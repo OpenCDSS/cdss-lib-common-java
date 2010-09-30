@@ -6705,7 +6705,7 @@ public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, i
     String fillFlag )
 {	String routine = "TSUtil.fillRepeat";
 	String message;
-	if ( fillFlag.equals("") ) {
+	if ( (fillFlag != null) && fillFlag.equals("") ) {
 	    // Set to null to simplify processing
 	    fillFlag = null;
 	}
