@@ -1598,16 +1598,19 @@ throws Exception
     int [] count_double = new int[maxColumns];
     int [] count_string = new int[maxColumns];
     int [] lenmax_string = new int[maxColumns];
+    int [] precision = new int[maxColumns];
     for ( int icol = 0; icol < maxColumns; icol++ ) {
         count_int[icol] = 0;
         count_double[icol] = 0;
         count_string[icol] = 0;
         lenmax_string[icol] = 0;
+        precision[icol] = 0;
     }
     // Loop through all rows of data that were read
     int vsize;
     String cell;
     String cell_trimmed; // Must have when checking for types.
+    int periodPos; // Position of period in floating point numbers
 	for ( int irow = 0; irow < size; irow++ ) {
 	    v = data_record_tokens.get(irow);
 	    vsize = v.size();
@@ -1622,8 +1625,14 @@ throws Exception
 	        }
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
-             // Length needed in case handled as string data
+                // Length needed in case handled as string data
                 lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
+                // Precision to help with visualization
+                periodPos = cell_trimmed.indexOf(".");
+                if ( periodPos >= 0 ) {
+                    precision[icol] = Math.max(precision[icol], (cell_trimmed.length() - periodPos - 1) );
+                }
+                
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
             else {
@@ -1650,21 +1659,32 @@ throws Exception
     	        // All data are integers so assume column type is integer
     	        tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
+    	        tableField.setWidth (lenmax_string[icol] );
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is integer as determined from examining data (" + count_int[icol] +
+    	            " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings).");
     	    }
-    	    else if ( (count_double[icol] > 0) && (count_int[icol] == 0) && (count_string[icol] == 0) ) {
-    	        // All data are double so assume column type is double
+    	    else if ( (count_double[icol] > 0) && (count_string[icol] == 0) ) {
+    	        // All data are double (integers will also count as double) so assume column type is double
                 tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
                 tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
+                tableField.setWidth (lenmax_string[icol] );
+                tableField.setPrecision ( precision[icol] );
+                Message.printStatus ( 2, routine, "Column [" + icol +
+                    "] type is double as determined from examining data (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
+                    " width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
     	    else {
     	        // Based on what is known, can only treat column as containing strings.
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
     	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
     	        tableField.setWidth (lenmax_string[icol] );
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+                    "] type is string as determined from examining data (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings).");
     	        Message.printStatus ( 2, routine, "length max =" + lenmax_string[icol] );
     	    }
-    	    Message.printStatus ( 2, routine, "Column [" + icol + "] type is " + tableField.getDataType() +
-    	        " as determined from examining data.");
     	}
 	}
 	else {
