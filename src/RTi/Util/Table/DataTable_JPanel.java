@@ -35,6 +35,7 @@ package RTi.Util.Table;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -61,7 +62,7 @@ private DataTable __table = null;
 /**
 The parent frame containing this panel.
 */
-private DataTable_JFrame __parent = null;
+private JFrame __parent = null;
 
 /**
 Column widths for the worksheet's fields.
@@ -95,7 +96,7 @@ To display with other properties, use the other constructor.
 @param table the table to display in the panel.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, DataTable table) 
+public DataTable_JPanel(JFrame parent, DataTable table) 
 throws Exception {
 	if (parent == null || table == null) {
 		throw new NullPointerException();
@@ -120,8 +121,7 @@ Constructor.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, DataTable table, 
-PropList props) 
+public DataTable_JPanel(DataTable_JFrame parent, DataTable table, PropList props) 
 throws Exception {
 	if (parent == null || table == null || props == null) {	
 		throw new NullPointerException();
@@ -253,7 +253,7 @@ throws Exception {
 			}
 		}
 		else {
-			Message.printStatus(1, routine, 
+			Message.printStatus(2, routine, 
 				"Data table in filename '" + __filename + "' is not supported for reading.");
 			throw new Exception("Data table type in filename '" + __filename 
 				+ "' is not supported for reading.");
