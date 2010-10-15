@@ -1,47 +1,3 @@
-//------------------------------------------------------------------------------
-// TSPropertiesJFrame - Frame to display a single time series' properties.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 21 Feb 2001	Steven A. Malers,	Initial version.  Copy
-//		Riverside Technology,	TSViewPropertiesGUI and modify
-//		inc.			as necessary.
-// 2001-11-05	SAM, RTi		Clean up javadoc.  Set unused variables
-//					to null for garbage collection.
-// 2002-01-17	SAM, RTi		Change name of class from
-//					TSPropertiesGUI to TSPropertiesFrame to
-//					allow support for Swing version.
-// 2002-02-11	SAM, RTi		Change to use TabbedPane for properties.
-// 2002-04-05	SAM, RTi		Add Print button for use with the
-//					history.
-// 2002-05-28	SAM, RTi		Update tabSelected() call to agree with
-//					code update.
-// =================================
-// 2002-11-12	SAM, RTi		Copy AWT version and update to use
-//					Swing.
-// 2003-06-04	SAM, RTi		* Update for latest Swing GR and TS
-//					  changes.
-//					* Add JScrollPane around JTextArea.
-//					* Corrected some addComponent()
-//					  parameters that were inconsistent.
-// 2003-09-30	SAM, RTi		* Use the icon/title from the main
-//					  application.
-// 2003-11-21	SAM, RTi		* Enable printing of the comments and
-//					  history text areas.
-// 2004-01-31	SAM, RTi		* Fix bug where null time series dates
-//					  was causing an exception in
-//					  initialization.
-// 2004-03-16	SAM, RTi		* Add checkboxes under the general tab
-//					  for whether the time series is
-//					  selected, and dirty.
-// 2004-05-21	SAM, RTi		* Handle null dates better.
-// 2005-04-27	J. Thomas Sapienza, RTi	Added all data members to finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.GRTS;
 
 import java.awt.FlowLayout;
@@ -53,6 +9,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -75,6 +35,10 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.IO.PrintJGUI;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTable_JPanel;
+import RTi.Util.Table.TableField;
+import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.TimeInterval;
 
 /**
@@ -86,20 +50,34 @@ public class TSPropertiesJFrame extends JFrame
 implements ActionListener, ChangeListener, WindowListener
 {
 
-// Private data...
-
-private TS __ts;		// Time series to display
+/**
+Time series to display.
+*/
+private TS __ts;
+/**
+Print button to be enabled only with the History tab.
+*/
 private SimpleJButton __print_JButton;
-				// Print button to be enabled only with the
-				// History tab.
+/**
+Tabbed pane to manage panels with properties.
+*/
 private JTabbedPane __props_JTabbedPane;
-				// Tabbed pane to manage panels with properties.
+/**
+JTextArea for history tab.
+*/
 private JTextArea __history_JTextArea;
-				// JTextArea for history tab.
+/**
+JTextArea for comments tab.
+*/
 private JTextArea __comments_JTextArea;
-				// JTextArea for comments tab.
-private JPanel __history_JPanel;// Panel for time series history
-private JPanel __comments_JPanel;// Panel for time series comments
+/**
+Panel for time series history.
+*/
+private JPanel __history_JPanel;
+/**
+Panel for time series comments.
+*/
+private JPanel __comments_JPanel;
 
 /**
 Construct a TSPropertiesJFrame.
@@ -125,28 +103,57 @@ public void actionPerformed ( ActionEvent e )
 		JGUIUtil.close(this);
 	}
 	else if ( command.equals("Print") ) {
-		try {	//PrintJGUI.print ( this,
-			//JGUIUtil.toVector(__history_JTextArea), null, 8 );
-			if (	__props_JTabbedPane.getSelectedComponent() ==
-				__comments_JPanel ) {
-				PrintJGUI.printJTextAreaObject(this, null,
-				__comments_JTextArea);
+		try {
+		    //PrintJGUI.print ( this, JGUIUtil.toVector(__history_JTextArea), null, 8 );
+			if ( __props_JTabbedPane.getSelectedComponent() == __comments_JPanel ) {
+				PrintJGUI.printJTextAreaObject(this, null, __comments_JTextArea);
 			}
-			else if ( __props_JTabbedPane.getSelectedComponent() ==
-				__history_JPanel ) {
-				PrintJGUI.printJTextAreaObject(this, null,
-				__history_JTextArea);
+			else if ( __props_JTabbedPane.getSelectedComponent() == __history_JPanel ) {
+				PrintJGUI.printJTextAreaObject(this, null, __history_JTextArea);
 			}
 		}
 		catch ( Exception ex ) {
-			Message.printWarning ( 1,
-			"TSPropertiesJFrame.actionPerformed",
-			"Error printing." );
-			Message.printWarning ( 2,
-				"TSPropertiesJFrame.actionPerformed", ex );
+			Message.printWarning ( 1, "TSPropertiesJFrame.actionPerformed", "Error printing (" + ex + ")." );
+			Message.printWarning ( 2, "TSPropertiesJFrame.actionPerformed", ex );
 		}
 	}
-	command = null;
+}
+
+/**
+Create a data table that contains time series properties.
+@param ts time series from which to generate a property table.
+@return a property table
+*/
+private DataTable createPropertyTable ( TS ts )
+{
+    List<TableField> tableFields = new Vector();
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name") );
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value") );
+    DataTable table = new DataTable ( tableFields );
+    Hashtable<String,Object> properties = ts.getProperties();
+    if ( properties == null ) {
+        properties = new Hashtable();
+    }
+    List<String> keyList = Collections.list(properties.keys());
+    Collections.sort(keyList);
+    TableRecord rec;
+    for ( String key : keyList ) {
+        rec = new TableRecord();
+        rec.addFieldValue(key);
+        Object value = properties.get(key);
+        if ( value == null ) {
+            value = "";
+        }
+        // TODO SAM 2010-10-08 Should objects be used?
+        rec.addFieldValue( "" + value ); // To force string, no matter the value
+        try {
+            table.addRecord(rec);
+        }
+        catch ( Exception e2 ) {
+            // Should not happen
+        }
+    }
+    return table;
 }
 
 /**
@@ -178,11 +185,8 @@ private void openGUI ( boolean mode )
 	// Add a listener to catch window manager events...
 
 	addWindowListener ( this );
-
 	GridBagLayout gbl = new GridBagLayout();
-
-	Insets insetsTLBR = new Insets ( 2, 2, 2, 2 );	// space around text
-							// area
+	Insets insetsTLBR = new Insets ( 2, 2, 2, 2 );	// space around text area
 	
 	// Font for reports (fixed width)...
 
@@ -206,8 +210,7 @@ private void openGUI ( boolean mode )
 
 	JPanel general_JPanel = new JPanel();
 	general_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "General", null, general_JPanel,
-		"General properties" );
+	__props_JTabbedPane.addTab ( "General", null, general_JPanel, "General (built-in) properties" );
 
 	int y = 0;
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Identifier:"),
@@ -221,13 +224,11 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	identifier_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel(
-			"Identifier (with input):"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier (with input):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field...
-	JTextField input_JTextField = new JTextField(
-			__ts.getIdentifier().toString(true), 50 );
+	JTextField input_JTextField = new JTextField( __ts.getIdentifier().toString(true), 50 );
 	input_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, input_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
@@ -236,8 +237,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Alias:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField alias_JTextField = new JTextField(
-			__ts.getAlias(), 30 );
+	JTextField alias_JTextField = new JTextField( __ts.getAlias(), 30 );
 	alias_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, alias_JTextField,
 			1, y, 2, 1, 0.0, 0.0,
@@ -258,9 +258,8 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Description:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	// Set a maximum size so this does not get outragously big...
-	JTextField description_JTextField=new JTextField(
-		__ts.getDescription(),50);
+	// Set a maximum size so this does not get outrageously big...
+	JTextField description_JTextField=new JTextField(__ts.getDescription(),50);
 	description_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, description_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
@@ -308,18 +307,25 @@ private void openGUI ( boolean mode )
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isdirty_JCheckBox = null;
+	
+    // Properties tab...
 
-	//
+    JPanel properties_JPanel = new JPanel();
+    properties_JPanel.setLayout ( gbl );
+    __props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Dynamic properties" );
+    JGUIUtil.addComponent ( properties_JPanel,
+            new JScrollPane (new DataTable_JPanel(this, createPropertyTable(__ts))),
+            0, y, 6, 1, 1.0, 1.0,
+            insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+
 	// Comments Tab...
-	//
 
 	__comments_JPanel = new JPanel();
 	__comments_JPanel.setLayout ( gbl );
 	__props_JTabbedPane.addTab ( "Comments", null, __comments_JPanel, "Comments" );
 
 	y = 0;
-	__comments_JTextArea = new JTextArea(
-			StringUtil.toString( __ts.getComments(),
+	__comments_JTextArea = new JTextArea(StringUtil.toString( __ts.getComments(),
 			System.getProperty("line.separator")),5,80);
 	__comments_JTextArea.setFont ( report_Font );
 	__comments_JTextArea.setEditable ( false );
@@ -337,8 +343,7 @@ private void openGUI ( boolean mode )
 	__props_JTabbedPane.addTab ( "Period", null, period_JPanel, "Period" );
 
 	y = 0;
-	JGUIUtil.addComponent ( period_JPanel, new JLabel(
-			"Current (reflects manipulation):"),
+	JGUIUtil.addComponent ( period_JPanel, new JLabel("Current (reflects manipulation):"),
 			0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField period_JTextField = new JTextField( __ts.getDate1() + " to "+
@@ -352,8 +357,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( period_JPanel, new JLabel(
 		"Original (from input):"), 0, ++y, 1, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField origperiod_JTextField =
-		new JTextField( __ts.getDate1Original() +
+	JTextField origperiod_JTextField = new JTextField( __ts.getDate1Original() +
 		" to " + __ts.getDate2Original(), 30  );
 	origperiod_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, origperiod_JTextField,
@@ -380,27 +384,25 @@ private void openGUI ( boolean mode )
 	__props_JTabbedPane.addTab ( "Limits", null, limits_JPanel, "Limits" );
 
 	y = 0;
-	JGUIUtil.addComponent ( limits_JPanel, new JLabel(
-			"Current (reflects manipulation):"),
+	JGUIUtil.addComponent ( limits_JPanel, new JLabel("Current (reflects manipulation):"),
 			0, y, 6, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JTextArea limits_JTextArea = null;
 	if ( __ts.getDataIntervalBase() == TimeInterval.MONTH ) {
-		try {	limits_JTextArea = new JTextArea(
-			new MonthTSLimits((MonthTS)__ts).toString(),12,80);
+		try {
+		    limits_JTextArea = new JTextArea(new MonthTSLimits((MonthTS)__ts).toString(),12,80);
 		}
 		catch ( Exception e ) {
-			limits_JTextArea = new JTextArea(
-			"No Limits Available",5,80);
+			limits_JTextArea = new JTextArea("No Limits Available",5,80);
 		}
 	}
-	else {	try {	limits_JTextArea = new JTextArea(
-				(TSUtil.getDataLimits(__ts, __ts.getDate1(),
+	else {
+	    try {
+	        limits_JTextArea = new JTextArea((TSUtil.getDataLimits(__ts, __ts.getDate1(),
 				__ts.getDate2())).toString(),15,80 );
 		}
 		catch ( Exception e ) {
-			limits_JTextArea = new JTextArea(
-			"No Limits Available",5,80);
+			limits_JTextArea = new JTextArea("No Limits Available",5,80);
 		}
 	}
 	limits_JTextArea.setEditable ( false );
@@ -420,8 +422,8 @@ private void openGUI ( boolean mode )
 	if ( __ts.getDataLimitsOriginal() == null ) {
 		origlim_JTextArea = new JTextArea( "No Limits Available");
 	}
-	else {	origlim_JTextArea = new JTextArea(
-			__ts.getDataLimitsOriginal().toString(),10,80);
+	else {
+	    origlim_JTextArea = new JTextArea(__ts.getDataLimitsOriginal().toString(),10,80);
 		origlim_JTextArea.setFont ( report_Font );
 		origlim_JTextArea.setEditable ( false );
 	}
@@ -440,8 +442,7 @@ private void openGUI ( boolean mode )
 	__props_JTabbedPane.addTab("History", null, __history_JPanel,"History");
 	y = 0;
 	__history_JTextArea = new JTextArea(
-			StringUtil.toString(__ts.getGenesis(),
-			System.getProperty("line.separator")),5,80);
+			StringUtil.toString(__ts.getGenesis(),System.getProperty("line.separator")),5,80);
 	__history_JTextArea.setFont ( report_Font );
 	__history_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent ( __history_JPanel,
@@ -479,8 +480,7 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	missing_JTextField = null;
 
-	JCheckBox hasdataflags_JCheckBox =
-		new JCheckBox ( "Has Data Flags", __ts.hasDataFlags() );
+	JCheckBox hasdataflags_JCheckBox = new JCheckBox ( "Has Data Flags", __ts.hasDataFlags() );
 	hasdataflags_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent ( dataflags_JPanel, hasdataflags_JCheckBox,
 			0, ++y, 2, 1, 1.0, 0.0,
@@ -500,24 +500,17 @@ private void openGUI ( boolean mode )
 	getContentPane().add ( "South", button_JPanel );
 	button_JPanel = null;
 
-	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-		JGUIUtil.getAppNameForWindows().equals("") ) {
+	if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 		setTitle ( __ts.getIdentifier().toString() + " - Properties" );
 	}
-	else {	setTitle( JGUIUtil.getAppNameForWindows() +
-		" - " + __ts.getIdentifier().toString() + " - Properties" );
+	else {
+	    setTitle( JGUIUtil.getAppNameForWindows() + " - " + __ts.getIdentifier().toString() + " - Properties" );
 	}
 
 	pack ();
 	JGUIUtil.center ( this );
 	setResizable ( false );
 	setVisible ( mode );
-	// Clean up...
-	gbl = null;
-	insetsTLBR = null;
-	display_JPanel = null;
-	//SAMX
-	//report_Font = null;
 	} // end of try
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
@@ -526,18 +519,17 @@ private void openGUI ( boolean mode )
 }
 
 /**
-React to tab selections.  Currently all that is done is the Print button
-is enabled or disabled.
+React to tab selections.  Currently all that is done is the Print button is enabled or disabled.
 @param e the ChangeEvent that happened.
 */
 public void stateChanged ( ChangeEvent e )
 {	// Check for null because events are sometimes generated at startup...
-	if (	(__props_JTabbedPane.getSelectedComponent()==__history_JPanel)||
-		(__props_JTabbedPane.getSelectedComponent()==
-		__comments_JPanel)){
+	if ( (__props_JTabbedPane.getSelectedComponent()==__history_JPanel)||
+		(__props_JTabbedPane.getSelectedComponent() == __comments_JPanel)){
 		JGUIUtil.setEnabled ( __print_JButton, true );
 	}
-	else {	JGUIUtil.setEnabled ( __print_JButton, false );
+	else {
+	    JGUIUtil.setEnabled ( __print_JButton, false );
 	}
 }
 
@@ -574,4 +566,4 @@ public void windowIconified( WindowEvent evt )
 {
 }
 
-} // End of TSPropertiesJFrame
+}
