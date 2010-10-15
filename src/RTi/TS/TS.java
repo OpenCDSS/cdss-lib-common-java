@@ -1617,6 +1617,15 @@ public DateTime getNonMissingDataDate2( )
 }
 
 /**
+Get the hashtable of properties, for example to allow display.
+@return the hashtable of properties, for example to allow display, may be null.
+*/
+public Hashtable<String,Object> getProperties()
+{
+    return __property_Hashtable;
+}
+
+/**
 Get a time series property's contents (case-specific).
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
