@@ -316,7 +316,9 @@ throws Exception
             analysisEnd = ts.getDate2();
         }
         double last = TSUtil.findNearestDataValue(ts, analysisEnd, 1, 0, 0);
-        setStatisticResult ( new Double(last) );
+        if ( !ts.isDataMissing(last) ) {
+            setStatisticResult ( new Double(last) );
+        }
         return;
     }
     else if ( statisticType == TSStatisticType.MEAN ) {
