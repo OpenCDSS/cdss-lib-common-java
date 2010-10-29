@@ -187,13 +187,15 @@ The component used to enter input, typically assigned by external code like Inpu
 private JComponent __inputComponent = null;
 
 /**
-If true, it is expected that the JComboBox used with __choicesList is editable.
+If true, the JComboBox used with __choicesList will be editable (usually choices are pre-defined
+and should not be editable, hence the default value of false).
 */
 private boolean __areChoicesEditable = false;
 
 /**
 If the input component is going to be a text field, this can be set to false to
-set the text field uneditable (this is only useful in very limited circumstances).
+set the text field uneditable (this is only useful in very limited circumstances and is
+why the default is true).
 */
 private boolean __inputJTextFieldEditable = true;
 

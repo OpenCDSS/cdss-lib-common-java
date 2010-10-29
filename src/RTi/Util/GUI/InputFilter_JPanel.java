@@ -685,7 +685,7 @@ Each group will include all the filters supplied at construction or with a setIn
 This will be reset to zero if no data are available.
 @param numWhereChoicesToDisplay the number of rows to be displayed in the drop-down list of
 one of the combo boxes that lists the fields for a filter.  If negative, display the number of items in
-the list.
+the list.  A list longer than that specified will be scrolled.
 */
 public void setInputFilters ( List inputFilters, int numFilterGroups, int numWhereChoicesToDisplay )
 {	// First remove the existing input filters (the event generators will also be removed so
