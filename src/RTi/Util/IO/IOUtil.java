@@ -510,6 +510,44 @@ public static String enforceFileExtension ( String filename, String extension )
 	}
 }
 
+// TODO SAM 2010-10-19 This is kind of specific - how to make more generic?
+/**
+Expand a configuration string property using environment and Java runtime environment variables.
+If the string is prefixed with "Env:" then the string will be replaced with the environment variable
+of the matching name.  If the string is prefixed with "SysProp:" then the string will be replaced with
+the JRE runtime system property of the same name.  Comparisons are case-sensitive and if a match
+is not found the original string will be returned.
+@param prop the string property to expand
+@return expanded property
+*/
+public static String expandPropertyForEnvironment ( String prop )
+{   if ( prop == null ) {
+        return null;
+    }
+    int pos = StringUtil.indexOfIgnoreCase(prop,"Env:",0);
+    if ( pos == 0 ) {
+        String env = System.getenv(prop.substring(4));
+        if ( env != null ) {
+            return env;
+        }
+        else {
+            return prop;
+        }
+    }
+    pos = StringUtil.indexOfIgnoreCase(prop,"SysProp:",0);
+    if ( pos == 0 ) {
+        String sys = System.getProperty(prop.substring(8));
+        if ( sys != null ) {
+            return sys;
+        }
+        else {
+            return prop;
+        }
+    }
+    // No special case so return the original value
+    return prop;
+}
+
 /**
 Determine if a file/directory exists.
 @return true if the file/directory exists, false if not.
