@@ -3009,7 +3009,7 @@ public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter
 Create a list of where clauses give an InputFilter_JPanel.  The InputFilter
 instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
-@return a Vector of where clauses, each of which can be added to a DMI statement.
+@return a list of where clauses, each of which can be added to a DMI statement.
 @param dmi The DMI instance being used, which may be checked for specific formatting.
 @param operator the operator to use in creating the where clause
 @param panel The InputFilter_JPanel instance to be converted.
@@ -3025,11 +3025,12 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	int input_type = filter.getInputType();
 	// Get the internal where...
 	String where = filter.getWhereInternal();
-	if ( where == null ) {
+	if ( (where == null) || where.equals("") ) {
 	    return null;
 	}
 	// Get the user input...
 	String input = filter.getInputInternal().trim();
+	Message.printStatus(2,routine,"Internal input is \"" + input + "\"");
 	// Now format the where clause...
 	
 	String where_clause = null;
