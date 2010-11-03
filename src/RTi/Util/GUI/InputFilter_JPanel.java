@@ -621,6 +621,7 @@ Set the contents of an input filter.
 <pre>
    WhereValue; Operator; InputValue
 </pre>
+the operator is a string like "=".  Legacy "Equals" is updated to new conventions at construction.
 @param delim The delimiter used for the above information, or a semi-colon if null.
 @exception Exception if there is an error setting the filter data.
 */
@@ -632,6 +633,18 @@ throws Exception
     List<String> v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
 	String where = v.get(0).trim();
 	String operator = v.get(1).trim();
+	// Translate legacy operators to new convention
+	// TODO SAM 2010-10-29 Evaluate whether to have a method for this but can
+	// hopefully phase out legacy convention without too much effort
+	if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS_LEGACY) ) {
+	    operator = InputFilter.INPUT_EQUALS;
+	}
+	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_LESS_THAN_LEGACY) ) {
+        operator = InputFilter.INPUT_LESS_THAN;
+    }
+    else if ( operator.equalsIgnoreCase(InputFilter.INPUT_GREATER_THAN_LEGACY) ) {
+        operator = InputFilter.INPUT_GREATER_THAN;
+    }
 	// Sometimes during initialization an ending token may not be provided
 	// (e.g., ";Matches;") so handle below...
 	String input = "";
@@ -785,7 +798,7 @@ public void setInputFilters ( List inputFilters, int numFilterGroups, int numWhe
 		__operatorComponentList.add ( operator_JComboBox );
 		JGUIUtil.addComponent(this, operator_JComboBox,
 			x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
-			GridBagConstraints.NONE, GridBagConstraints.EAST);
+			GridBagConstraints.NONE, GridBagConstraints.WEST);
 		// Now initialize the components used for input, one component per filter in the group...
 		for ( int ifilter = 0; ifilter < numFilters; ifilter++ ) {
 			filter =(InputFilter)__inputFilterListArray[ifg].get(ifilter);
