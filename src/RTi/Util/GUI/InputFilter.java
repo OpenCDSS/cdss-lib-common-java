@@ -89,9 +89,13 @@ Input filter type, for use with strings containing a pattern.
 public final static String INPUT_CONTAINS = "Contains";
 
 /**
-Input filter type, for use with numbers that exactly match a pattern.
+Input filter type, for use with numbers that exactly match.
 */
-public final static String INPUT_EQUALS = "Equals";
+public final static String INPUT_EQUALS = "=";
+/**
+Legacy INPUT_EQUALS, phasing out.
+*/
+public final static String INPUT_EQUALS_LEGACY = "Equals";
 
 /**
 Input filter type, for use with numbers that are between two values.
@@ -104,10 +108,13 @@ Input filter type, for use with strings that are null or empty.
 public final static String INPUT_IS_EMPTY = "Is empty";
 
 /**
-FIXME SAM 2009-01-08 Need to change to <, for brevity.
 Input filter type, for use with numbers that are less than a value.
 */
-public final static String INPUT_LESS_THAN = "Less than";
+public final static String INPUT_LESS_THAN = "<";
+/**
+Legacy INPUT_LESS_THAN, phasing out.
+*/
+public final static String INPUT_LESS_THAN_LEGACY = "Less than";
 
 /**
 Input filter type, for use with numbers that are less than or equal to a value.
@@ -115,10 +122,13 @@ Input filter type, for use with numbers that are less than or equal to a value.
 public final static String INPUT_LESS_THAN_OR_EQUAL_TO = "<=";
 
 /**
-FIXME SAM 2009-01-08 Need to change to >, for brevity.
 Input filter type, for use with numbers that are greater than a value.
 */
-public final static String INPUT_GREATER_THAN = "Greater than";
+public final static String INPUT_GREATER_THAN = ">";
+/**
+Legacy INPUT_GREATER_THAN, phasing out.
+*/
+public final static String INPUT_GREATER_THAN_LEGACY = "Greater than";
 
 /**
 Input filter type, for use with numbers that are greater than or equal to a value.
@@ -648,16 +658,16 @@ public boolean matches ( int i, String operator )
 		return false;
 	}
 	int input_int = StringUtil.atoi(input);
-	if ( operator.equalsIgnoreCase(INPUT_EQUALS) ) {
+	if ( operator.equals(INPUT_EQUALS) || operator.equalsIgnoreCase(INPUT_EQUALS_LEGACY) ) {
 		return (i == input_int);
 	}
-	else if ( operator.equals(INPUT_LESS_THAN) ) {
+	else if ( operator.equals(INPUT_LESS_THAN) || operator.equalsIgnoreCase(INPUT_LESS_THAN_LEGACY) ) {
 		return (i < input_int);
 	}
 	else if ( operator.equals(INPUT_LESS_THAN_OR_EQUAL_TO) ) {
 		return (i <= input_int);
 	}
-	else if ( operator.equals(INPUT_GREATER_THAN) ) {
+	else if ( operator.equals(INPUT_GREATER_THAN) || operator.equalsIgnoreCase(INPUT_GREATER_THAN_LEGACY) ) {
 		return (i > input_int);
 	}
 	else if ( operator.equals(INPUT_GREATER_THAN_OR_EQUAL_TO) ) {
@@ -685,16 +695,16 @@ public boolean matches ( double d, String operator )
 		return false;
 	}
 	double input_double = StringUtil.atod(input);
-	if ( operator.equalsIgnoreCase(INPUT_EQUALS) ) {
+	if ( operator.equals(INPUT_EQUALS) || operator.equalsIgnoreCase(INPUT_EQUALS_LEGACY) ) {
 		return (d == input_double);
 	}
-	else if ( operator.equals(INPUT_LESS_THAN) ) {
+	else if ( operator.equals(INPUT_LESS_THAN) || operator.equalsIgnoreCase(INPUT_LESS_THAN_LEGACY)) {
 		return (d < input_double);
 	}
 	else if ( operator.equals(INPUT_LESS_THAN_OR_EQUAL_TO) ) {
 		return (d <= input_double);
 	}
-	else if ( operator.equals(INPUT_GREATER_THAN) ) {
+	else if ( operator.equals(INPUT_GREATER_THAN) || operator.equalsIgnoreCase(INPUT_GREATER_THAN_LEGACY)) {
 		return (d > input_double);
 	}
 	else if ( operator.equals(INPUT_GREATER_THAN_OR_EQUAL_TO) ) {
