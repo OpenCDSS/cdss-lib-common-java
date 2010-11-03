@@ -106,6 +106,7 @@
 
 package RTi.DMI;
 
+import java.security.InvalidParameterException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -3024,8 +3025,8 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	// Get the input type...
 	int input_type = filter.getInputType();
 	// Get the internal where...
-	String where = filter.getWhereInternal();
-	if ( (where == null) || where.equals("") ) {
+	String whereSubject = filter.getWhereInternal();
+	if ( (whereSubject == null) || whereSubject.equals("") ) {
 	    return null;
 	}
 	// Get the user input...
@@ -3040,54 +3041,55 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_CONTAINS) ) {
 		// Only applies to strings...
-		where_clause = where + " like '%" + input + "%'";
+		where_clause = whereSubject + " like '%" + input + "%'";
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_ENDS_WITH) ) {
 		// Only applies to strings...
-		where_clause = where + " like '%" + input + "'";
+		where_clause = whereSubject + " like '%" + input + "'";
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS) ){
 		if ( input_type == StringUtil.TYPE_STRING ) {
-			where_clause = where + "='" + input + "'";
+			where_clause = whereSubject + "='" + input + "'";
 		}
 		else {
 			// Number...
-			where_clause = where + "=" + input;
+			where_clause = whereSubject + "=" + input;
 		}
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_GREATER_THAN) ) {
 		// Only applies to numbers (?)...
-		where_clause = where + ">" + input;
+		where_clause = whereSubject + ">" + input;
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_GREATER_THAN_OR_EQUAL_TO) ) {
 		// Only applies to numbers (?)...
-		where_clause = where + ">=" + input;
+		where_clause = whereSubject + ">=" + input;
 	}
     else if ( operator.equalsIgnoreCase(InputFilter.INPUT_IS_EMPTY)){
-        where_clause = where + "='' or where is null";
+        where_clause = whereSubject + "='' or where is null";
     }
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_LESS_THAN) ) {
 		// Only applies to numbers (?)...
-		where_clause = where + "<" + input;
+		where_clause = whereSubject + "<" + input;
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_LESS_THAN_OR_EQUAL_TO) ) {
 		// Only applies to numbers (?)...
-		where_clause = where + "<=" + input;
+		where_clause = whereSubject + "<=" + input;
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_MATCHES)){
-		where_clause = where + "='" + input + "'";
+		where_clause = whereSubject + "='" + input + "'";
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_ONE_OF) ){
 		// TODO - need to enable in InputFilter_JPanel
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_STARTS_WITH) ) {
 		// Only applies to strings...
-		where_clause = where + " like '" + input + "%'";
+		where_clause = whereSubject + " like '" + input + "%'";
 	}
 	else {
 		// Unrecognized where...
-		Message.printWarning ( 2, routine, "Unrecognized operator \"" + operator + "\"...skipping..." );
-		return null;
+	    String message = "Unrecognized operator \"" + operator + "\"";
+		Message.printWarning ( 2, routine, message );
+		throw new InvalidParameterException(message);
 	}
 	// TODO - need to handle is null, negative (not), when enabled in InputFilter_JPanel.
 	// TODO - need a clean way to enforce upper case input but
