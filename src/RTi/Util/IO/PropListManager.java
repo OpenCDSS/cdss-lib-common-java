@@ -52,7 +52,7 @@ recursive checks of PropLists and can expand configuration contents.
 */
 public class PropListManager {
 
-List _proplists;	// List of PropList objects
+List<PropList> _proplists; // List of PropList objects
 
 /**
 Default constructor.
@@ -75,7 +75,8 @@ public void addList ( PropList proplist, boolean replace_if_match )
 		// Always add...	
 		_proplists.add ( proplist );
 	}
-	else {	// Loop through and check names...
+	else {
+	    // Loop through and check names...
 		int size = _proplists.size();
 		PropList proplist_pt = null;
 		for ( int i = 0; i < size; i++ ) {
@@ -83,14 +84,11 @@ public void addList ( PropList proplist, boolean replace_if_match )
 			if ( proplist_pt == null ) {
 				continue;
 			}
-			if (	proplist_pt.getPropListName().equalsIgnoreCase(
-				proplist.getPropListName()) ) {
+			if ( proplist_pt.getPropListName().equalsIgnoreCase(proplist.getPropListName()) ) {
 				_proplists.set(i,proplist);
-				proplist_pt = null;
 				return;
 			}
 		}
-		proplist_pt = null;
 		_proplists.add ( proplist );
 	}
 }
@@ -127,9 +125,9 @@ Return the property associated with the key.
 */
 public Prop getProp ( String key )
 {	// For each list, search until we find the value...
-	int		size = _proplists.size();
-	PropList	proplist;
-	Prop		found;
+	int size = _proplists.size();
+	PropList proplist;
+	Prop found;
 	for ( int i = 0; i < size; i++ ) {
 		proplist = (PropList)_proplists.get(i);
 		if ( proplist == null ) {
@@ -137,46 +135,40 @@ public Prop getProp ( String key )
 		}
 		found = proplist.getProp(key);
 		if ( found != null ) {
-			proplist = null;
 			return found;
 		}
 	}
-	proplist = null;
-	found = null;
 	return null;
 }
 
 /**
-Return the Vector of PropLists managed by this PropListManager.
+Return the list of PropLists managed by this PropListManager.
 */
-public List getPropLists ()
+public List<PropList> getPropLists ()
 {	return _proplists;
 }
 
 /**
 Return the string value of the property.
-@return The string value of the property (if configuration informtion, the
+@return The string value of the property (if configuration information, the
 value is fully-expanded.
 @param key The String key to look up.
 */
 public String getValue ( String key )
 {	// For each list, search until we find the value...
-	int		size = _proplists.size();
-	PropList	proplist;
-	String		found;
+	int size = _proplists.size();
+	PropList proplist;
+	String found;
 	for ( int i = 0; i < size; i++ ) {
-		proplist = (PropList)_proplists.get(i);
+		proplist = _proplists.get(i);
 		if ( proplist == null ) {
 			continue;
 		}
 		found = proplist.getValue(key);
 		if ( found != null ) {
-			proplist = null;
 			return found;
 		}
 	}
-	proplist = null;
-	found = null;
 	return null;
 }
 
@@ -190,8 +182,7 @@ private int initialize ( )
 /**
 Parse a property string like "Variable=Value" where the value may be an
 expression to be expanded.  This function is in this class (rather than
-PropList) because it relies on the list of PropLists to expand the value of
-the property string.
+PropList) because it relies on the list of PropLists to expand the value of the property string.
 @return An instance of Prop resulting from the property string.
 @param prop_string The property string to parse.
 */
@@ -205,7 +196,7 @@ static Prop parsePropString ( String prop_string )
 		return prop;
 	}
 
-	List tokens = StringUtil.breakStringList ( prop_string, "=\n",
+	List<String> tokens = StringUtil.breakStringList ( prop_string, "=\n",
 			StringUtil.DELIM_SKIP_BLANKS | StringUtil.DELIM_ALLOW_STRINGS );
 	if ( tokens == null ) {
 		return prop;
@@ -219,11 +210,9 @@ static Prop parsePropString ( String prop_string )
 			tokens.add (prop_string.substring( 0,(prop_string.length() - 1)));
 			tokens.add ( "" );
 		}
-		else {	Message.printWarning ( 2,
-				"PropListManager.parsePropString",
-			"Need at least two tokens to set a property (\"" +
-			prop_string + "\")" );
-			tokens = null;
+		else {
+		    Message.printWarning ( 2, "PropListManager.parsePropString",
+			"Need at least two tokens to set a property (\"" + prop_string + "\")" );
 			return prop;
 		}
 	}
@@ -236,9 +225,6 @@ static Prop parsePropString ( String prop_string )
 		contents = contents + ((String)tokens.get(i)).trim();
 	}
 	prop = new Prop ( variable, (Object)contents, "" );
-	tokens = null;
-	variable = null;
-	contents = null;
 	return prop;
 }
 
@@ -250,7 +236,7 @@ expression to be expanded.  Use the single property list that is provided.
 @param prop_string The property string to parse.
 */
 static Prop parsePropString ( PropList proplist, String prop_string )
-{	Prop	prop = null;
+{	Prop prop = null;
 
 	// Parse the string...
 
@@ -264,16 +250,15 @@ static Prop parsePropString ( PropList proplist, String prop_string )
 
 	String value = null;
 	if ( proplist != null ) {
-		value = resolveContentsValue ( proplist,
-		(String)prop.getContents() );
+		value = resolveContentsValue ( proplist, (String)prop.getContents() );
 	}
-	else {	value = (String)prop.getContents();
+	else {
+	    value = (String)prop.getContents();
 	}
 
 	// Now fill in the Prop and return...
 
 	prop.setValue ( value );
-	value = null;
 	return prop;
 }
 
@@ -284,8 +269,7 @@ expand the contents to the literal property value.
 @param proplist_manager The PropListManager to search for properties.
 @param contents the string contents to be expanded.
 */
-public static String resolveContentsValue ( PropListManager proplist_manager,
-						String contents )
+public static String resolveContentsValue ( PropListManager proplist_manager, String contents )
 {	return resolveContentsValue ( proplist_manager.getPropLists(), contents );
 }
 
@@ -299,11 +283,10 @@ expand the contents to the literal property value.
 public static String resolveContentsValue ( PropList proplist, String contents )
 {	// Use a vector with one item to look up the information...
 
-	List v = new Vector();
+	List<PropList> v = new Vector();
 	v.add ( proplist );
 	
 	String results = resolveContentsValue ( v, contents );
-	v = null;
 	return results;
 }
 
@@ -410,25 +393,21 @@ contents, expand the contents to the literal property value.
 @param contents The string contents to be expanded.
 */
 public static String resolveContentsValue (	List proplists, String contents )
-{	char		cchar, hard_quote, soft_quote, syscall_quote;
-	String		rfr_close, rfr_open, rfr_val, rfr_val_nest,
-			routine = "PropListManager.resolveContentsValue";
-	StringBuffer	rfr_var = new StringBuffer(),
-			rfr_var_nest = new StringBuffer ();
-	int		dl = 100, i, iend, ilist, rfr_open_len;
-	boolean		in_soft_quote = false;
+{	char cchar, hard_quote, soft_quote, syscall_quote;
+	String rfr_close, rfr_open, rfr_val, rfr_val_nest, routine = "PropListManager.resolveContentsValue";
+	StringBuffer rfr_var = new StringBuffer(), rfr_var_nest = new StringBuffer ();
+	int dl = 100, i, iend, ilist, rfr_open_len;
+	boolean in_soft_quote = false;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to find value for contents \"" + contents + "\"" );
+		Message.printDebug ( dl, routine, "Trying to find value for contents \"" + contents + "\"" );
 	}
 
 	// Initialize variables...
 
 	StringBuffer value	= new StringBuffer ();
 
-	// Because of a technical issue, we need to assume here that we are
-	// inside soft quotes...
+	// Because of a technical issue, we need to assume here that we are inside soft quotes...
 
 	in_soft_quote = true;
 
@@ -439,8 +418,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 	// care whether it is an array or a single variable.
 
 	if ( proplists == null ) {
-		Message.printWarning ( 2, routine,
-		"PropList vector is NULL" );
+		Message.printWarning ( 2, routine, "PropList vector is NULL" );
 		return null;
 	}
 
@@ -451,11 +429,10 @@ public static String resolveContentsValue (	List proplists, String contents )
 		return ioval;
 	}
 	
-	// Use the old "file" notation for now until the code is working, then
-	// clean up...
-	int		size = proplists.size();
-	PropList	proplist = null;
-	boolean		literal_quotes = true;
+	// Use the old "file" notation for now until the code is working, then clean up...
+	int size = proplists.size();
+	PropList proplist = null;
+	boolean literal_quotes = true;
 	for ( ilist = 0; ilist < size; ++ilist ) {
 		// Get the PropList based on the vector position...
 		proplist = (PropList)proplists.get(ilist);
@@ -463,8 +440,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 			continue;
 		}
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Checking list \"" + proplist.toString() + "\"" );
+			Message.printDebug ( dl, routine, "Checking list \"" + proplist.toString() + "\"" );
 		}
 
 		// Set some parsing information based on the prop list...
@@ -472,62 +448,57 @@ public static String resolveContentsValue (	List proplists, String contents )
 		literal_quotes = proplist.getLiteralQuotes();
 
 		if ( proplist.getPersistentFormat() == PropList.FORMAT_NWSRFS ){
-			rfr_close	= ")";
-			rfr_open	=  "$(";
-			cchar		= '#';
-			hard_quote	= '\'';
-			soft_quote	= '\"';
-			syscall_quote	= '`';
+			rfr_close = ")";
+			rfr_open = "$(";
+			cchar = '#';
+			hard_quote = '\'';
+			soft_quote = '\"';
+			syscall_quote = '`';
 		}
-		else if ( proplist.getPersistentFormat() ==
-			PropList.FORMAT_PROPERTIES ) {
+		else if ( proplist.getPersistentFormat() == PropList.FORMAT_PROPERTIES ) {
 			// Assume PropList.FORMAT_PROPERTIES
-			rfr_close	= "}";
-			rfr_open	= "${";
-			cchar		= '#';
-			hard_quote	= '\'';
-			soft_quote	= '\"';
-			syscall_quote	= '`';
+			rfr_close = "}";
+			rfr_open = "${";
+			cchar = '#';
+			hard_quote = '\'';
+			soft_quote = '\"';
+			syscall_quote = '`';
 		}
-		else {	// Assume PropList.FORMAT_MAKEFILE
-			rfr_close	= ")";
-			rfr_open	= "$(";
-			cchar		= '#';
-			hard_quote	= '\'';
-			soft_quote	= '\"';
-			syscall_quote	= '`';
+		else {
+		    // Assume PropList.FORMAT_MAKEFILE
+			rfr_close = ")";
+			rfr_open = "$(";
+			cchar = '#';
+			hard_quote = '\'';
+			soft_quote = '\"';
+			syscall_quote = '`';
 		}
-		rfr_open_len	= rfr_open.length();
+		rfr_open_len = rfr_open.length();
 
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"Nested definitions are surrounded by " +
-			rfr_open + rfr_close );
+			Message.printDebug ( dl, routine, "Nested definitions are surrounded by " + rfr_open + rfr_close );
 		}
 
 		// Determine the associated value.  This is done by evaluating
 		// string tokens and concatenating them to the "value".
 		//
-		i	= 0;
-		iend	= contents.length() - 1;
-		char	c;
+		i = 0;
+		iend = contents.length() - 1;
+		char c;
 		while ( i <= iend ) {
 			// Determine contents of resource until:
 			//
 			// 1. Comment is found.
 			// 2. End of line is reached.
 			c = contents.charAt(i);
-			if (	(c == cchar) &&
-				!in_soft_quote) {
+			if ( (c == cchar) && !in_soft_quote) {
 				break;
 			}
 			// Hard quote.  Read until the closing quote...
-			if (	!literal_quotes && (c == hard_quote) ) {
-				// Skip quote and then add
-				// characters to resource...
+			if ( !literal_quotes && (c == hard_quote) ) {
+				// Skip quote and then add characters to resource...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Detected start of hard quote: " + c );
+					Message.printDebug ( dl, routine, "Detected start of hard quote: " + c );
 				}
 				i++;
 				if ( i > iend ) {
@@ -552,11 +523,9 @@ public static String resolveContentsValue (	List proplists, String contents )
 				continue;
 			}
 			if ( c == syscall_quote ) {
-				// Skip quote and then form and execute a
-				// system call...
+				// Skip quote and then form and execute a system call...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Detected start of system call: " + c );
+					Message.printDebug ( dl, routine, "Detected start of system call: " + c );
 				}
 				i++;
 				if ( i > iend ) {
@@ -574,9 +543,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 				}
 				// Now make the system call and append...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Making system call \"" +
-					syscall + "\"" );
+					Message.printDebug ( dl, routine, "Making system call \"" + syscall + "\"" );
 				}
 				List sysout = null;
 				try {
@@ -634,37 +601,28 @@ public static String resolveContentsValue (	List proplists, String contents )
 			}
 			// Now look for any embedded references
 			// to other variables...
-			if ( 	(contents.length() - i) >= rfr_open_len ) {
-				if (
-				contents.substring(i,(i+rfr_open_len)).equals(
-				rfr_open) ) {
+			if (  (contents.length() - i) >= rfr_open_len ) {
+				if ( contents.substring(i,(i+rfr_open_len)).equals(rfr_open) ) {
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Detected variable reference" );
+					Message.printDebug ( dl, routine, "Detected variable reference" );
 				}
 				i += rfr_open_len;
 				if ( i > iend ) {
 					break;
 				}
 				c = contents.charAt(i);
-				// Now, if the next characters
-				// are the open characers we
-				// need to recurse on a nested
-				// definition...
-				if (	contents.substring(i,
-					i+rfr_open_len).equals( rfr_open ) ) {
+				// Now, if the next characters are the open characters we
+				// need to recurse on a nested definition...
+				if ( contents.substring(i, i+rfr_open_len).equals( rfr_open ) ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Detected nesting" );
+						Message.printDebug ( dl, routine, "Detected nesting" );
 					}
 					i += rfr_open_len;
 					if ( i > iend ) {
 						break;
 					}
 					c = contents.charAt(i);
-					while ( (i <= iend) &&
-						(c != rfr_close.charAt(0)) ) {
+					while ( (i <= iend) && (c != rfr_close.charAt(0)) ) {
 						rfr_var_nest.append(c);
 						i++;
 						if ( i > iend ) {
@@ -685,24 +643,14 @@ public static String resolveContentsValue (	List proplists, String contents )
 						rfr_val_nest = "";
 					}
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( dl,
-						routine,
-						"Nested value for \"" +
-						rfr_var_nest +
-						"\" is \"" +
-						rfr_val_nest +
-						"\"" );
+						Message.printDebug ( dl, routine,
+						"Nested value for \"" + rfr_var_nest + "\" is \"" + rfr_val_nest + "\"" );
 					}
-					// Now concatenate this
-					// to the variable that
-					// we really want to
-					// look up...
+					// Now concatenate this to the variable that we really want to look up...
 					rfr_var.append( rfr_val_nest );
 				}
-				// Now continue forming the
-				// recursive reference...
-				while ( (i <= iend) &&
-					(c != rfr_close.charAt(0)) ) {
+				// Now continue forming the recursive reference...
+				while ( (i <= iend) && (c != rfr_close.charAt(0)) ) {
 					rfr_var.append(c);
 					i++;
 					if ( i > iend ) {
@@ -716,9 +664,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 				}
 				c = contents.charAt(i);
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( dl, routine,
-					"Recursive call to resolve \"" +
-					rfr_var + "\"" );
+					Message.printDebug ( dl, routine, "Recursive call to resolve \"" + rfr_var + "\"" );
 				}
 				rfr_val = resolvePropValue ( proplists, rfr_var.toString() );
 				if ( rfr_val == null ) {
@@ -727,7 +673,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 				}
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine,
-					"Recursive value for \"" + rfr_var + "\" - \"" + rfr_val + "\"" );
+					    "Recursive value for \"" + rfr_var + "\" - \"" + rfr_val + "\"" );
 				}
 				value.append ( rfr_val );
 				continue;
@@ -749,9 +695,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 			String value_string = value.toString().trim();
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine,
-				"\"" + contents +
-				"\": contents \" = \"" + value_string +
-				"\"" );
+				"\"" + contents + "\": contents \" = \"" + value_string + "\"" );
 			}
 			return value_string;
 		}
@@ -760,11 +704,11 @@ public static String resolveContentsValue (	List proplists, String contents )
 		// Unable to expand the value...
 		return value.toString();
 	}
-	else {	// Need to cut off trailing white space...
+	else {
+	    // Need to cut off trailing white space...
 		String value_string = value.toString().trim();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine,
-			"\"" + proplists.toString() + "\": contents \"" +
+			Message.printDebug ( dl, routine, "\"" + proplists.toString() + "\": contents \"" +
 			contents + "\" = \"" + value_string + "\"" );
 		}
 		return value_string;
@@ -784,7 +728,6 @@ public static String resolvePropValue ( PropList list, String key )
 	List v = new Vector();
 	v.add ( list );
 	String result = resolvePropValue ( v, key );
-	v = null;
 	return result;
 }
 
@@ -792,7 +735,7 @@ public static String resolvePropValue ( PropList list, String key )
 // PropListManager.resolvePropValue -	given a vector of PropLists and a key
 //					string, return the value
 // ----------------------------------------------------------------------------
-// Notes:	(1)	The key string can be a varialbe name (e.g., "MYVAR" )
+// Notes:	(1)	The key string can be a variable name (e.g., "MYVAR" )
 //			or it can be an array (e.g., "MYVAR[0]").  This routine
 //			loops through the property lists to find the key and
 //			then resolves its contents.
@@ -848,18 +791,16 @@ public static String resolvePropValue ( List list, String key )
 		// array position (zero-referenced)...
 		array_index = StringUtil.atoi ( (String)strings.get(1) );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl,
-			"PropListManager.resolvePropValue",
-			"Array index is " + array_index );
+			Message.printDebug ( dl, "PropListManager.resolvePropValue", "Array index is " + array_index );
 		}
 	}
 	strings = null;
 
 	// Loop through the vector searching each PropList in order...
 
-	int		found_count = 0, vsize = list.size();
-	PropList	proplist = null;
-	Prop		prop = null;
+	int found_count = 0, vsize = list.size();
+	PropList proplist = null;
+	Prop prop = null;
 	for ( int i = 0; i < vsize; i++ ) {
 		// First get the list...
 		proplist = (PropList)list.get(i);
@@ -874,18 +815,13 @@ public static String resolvePropValue ( List list, String key )
 				// We have a match.
 				++found_count;
 				if ( (found_count - 1) == array_index ) {
-					// This is the one that we want to
-					// return...
+					// This is the one that we want to return...
 					String result = prop.getValue();
-					proplist = null;
-					prop = null;
 					return result;
 				}
 			}
 		}
 	}
-	proplist = null;
-	prop = null;
 	return null;
 }
 
@@ -930,16 +866,15 @@ public int setValue ( String listname, String key, Object contents )
 		return 1;
 	}
 	// For each list, search until we find the value and then reset it...
-	int		size = _proplists.size();
-	PropList	proplist;
+	int size = _proplists.size();
+	PropList proplist;
 	for ( int i = 0; i < size; i++ ) {
 		proplist = (PropList)_proplists.get(i);
 		if ( proplist == null ) {
 			continue;
 		}
 		if ( proplist.getPropListName().equals(listname) ) {
-			// We have our list.  Set the value by calling that
-			// list's routine...
+			// We have our list.  Set the value by calling that list's routine...
 			proplist.setUsingObject ( key, contents );
 			return 0;
 		}
@@ -948,4 +883,4 @@ public int setValue ( String listname, String key, Object contents )
 	return 1;
 }
 
-} // End PropListManager definition
+}
