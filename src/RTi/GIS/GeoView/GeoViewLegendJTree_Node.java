@@ -29,6 +29,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.ItemSelectable;
 
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
@@ -38,7 +40,11 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
@@ -48,16 +54,16 @@ import RTi.Util.GUI.JGUIUtil;
 
 import RTi.Util.GUI.SimpleJTree_CellRenderer;
 import RTi.Util.GUI.SimpleJTree_Node;
+import RTi.Util.Message.Message;
 
 /**
 This class is a convenience class for displaying CheckBox and label information
 in a Tree similar to how ESRI handles its Table of Contents tree sections.
-These nodes contain two components, a JCheckBox (with no text) and a separate
-JLabel.  
+These nodes contain two components, a JCheckBox (with no text) and a separate JLabel.  
 */
 public class GeoViewLegendJTree_Node 
 extends SimpleJTree_Node
-implements MouseListener, ItemListener, ItemSelectable {
+implements FocusListener, MouseListener, ItemListener, ItemSelectable {
 
 /**
 Whether this node has been selected (i.e., the label has been clicked on) or not
@@ -65,13 +71,11 @@ Whether this node has been selected (i.e., the label has been clicked on) or not
 private boolean __selected = false;
 
 /**
-The Color in which the background of the non-selected node text should be 
-drawn.
+The Color in which the background of the non-selected node text should be drawn.
 */
 private Color bg = null;
 /**
-The Color in which the foreground of the non-selected node text should be
-drawn.
+The Color in which the foreground of the non-selected node text should be drawn.
 */
 private Color fg = null;
 
@@ -91,9 +95,13 @@ The popup menu associated with this node.
 private JPopupMenu __popup = null;
 
 /**
-Reference to the text field label that appears in this component.
+Label that appears in this component.  Originally used a JTextField to automatically handle some of
+the selection rendering.  However, JTextField did not cleanly handle HTML labels so switch to a JLabel.
 */
-private JTextField __field = null;
+private JEditorPane __field = null;
+//private JButton __field = null;
+//private JLabel __field = null;
+//private JTextField __field = null;
 
 /**
 The listeners that are registered to listen for this objects item state changed events.
@@ -106,8 +114,8 @@ Constructor.
 @param name the name of this node.
 @param tree the tree in which this component appears
 */
-public GeoViewLegendJTree_Node(String text, String name, 
-GeoViewLegendJTree tree) {
+public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree)
+{
 	super(new JPanel(), name);
 	initialize(text, name, tree, null);
 }
@@ -119,14 +127,14 @@ Constructor.
 @param tree the tree in which this component appears
 @param popupMenu the popupMenu that this node should display.
 */
-public GeoViewLegendJTree_Node(String text, String name, 
-GeoViewLegendJTree tree, JPopupMenu popupMenu) {
+public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree, JPopupMenu popupMenu)
+{
 	super(new JPanel(), name);
 	initialize(text, name, tree, popupMenu);
 }
 
 /**
-Registeres an item listener for this component.
+Registers an item listener for this component.
 @param listener the listener to add to the list of listeners.
 */
 public void addItemListener(ItemListener listener) {
@@ -199,6 +207,22 @@ throws Throwable {
 }
 
 /**
+Indicate when focus is gained on the component.
+*/
+public void focusGained ( FocusEvent e )
+{
+	Message.printStatus(2,"","Legend item focused gained for label component " + __field );
+}
+
+/**
+Indicate when focus is lost on the component.
+*/
+public void focusLost ( FocusEvent e )
+{
+	Message.printStatus(2,"","Legend item focused gained for label component " + __field );
+}
+
+/**
 Returns the layer view stored in this node.
 @return the layer view stored in this node.
 */
@@ -220,29 +244,42 @@ Initializes the settings in the GeoViewLegendJTree_Node.
 @param name the name of this node
 @param tree the SimpleJTree that contains this component
 @param listener the ItemListener to register for this component
-@param popupMenu the popupMenu that this node should display.  If null, no
-popup will be displayed.
+@param popupMenu the popupMenu that this node should display.  If null, no popup will be displayed.
 */
-private void initialize(String text, String name, 
-GeoViewLegendJTree tree, JPopupMenu popup) {
+private void initialize(String text, String name, GeoViewLegendJTree tree, JPopupMenu popup)
+{
 	JPanel panel = new JPanel();
 	panel.setLayout(new GridBagLayout());
 	__check = new JCheckBox();
 	__check.setBackground(UIManager.getColor("Tree.textBackground"));
-	__field = new JTextField();
+	//__field = new JTextField();
+	__field = new JEditorPane();
 	__tree = tree;
 
 	// Because of the way these two components (the checkbox and the
 	// label) are drawn, sometimes the first letter of the JLabel is
 	// slightly (like, 2 pixels) overlapped by the CheckBox.  Adding
-	// a single space at the front of the label text seems to avoid 
-	// this.
-	__field.setText(" " + text);
+	// a single space at the front of the label text seems to avoid this.
+	
+	if ( text.startsWith("<") ) {
+		// Assume HTML so just set it
+		__field.setText(text);
+		__field.setContentType("mime/html");
+	}
+	else {
+		// Add extra space
+		__field.setText(" " + text);
+		__field.setFont((new SimpleJTree_CellRenderer()).getFont());
+	}
 
 	__field.addMouseListener(this);
+	// JTextField and JEditorPane...
 	__field.setEditable(false);
+	// JButton and JLabel...
+	//__field.addFocusListener(this);
+	//__field.setFocusable(true);
+	// Don't want any decorative border
 	__field.setBorder(null);
-	__field.setFont((new SimpleJTree_CellRenderer()).getFont());
 	__field.setBackground(UIManager.getColor("Tree.textBackground"));
 	JGUIUtil.addComponent(panel, __check, 0, 0, 1, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -256,7 +293,7 @@ GeoViewLegendJTree tree, JPopupMenu popup) {
 
 	__popup = popup;
 
-	// store the default label drawing colors
+	// Store the default label drawing colors
 	bg = __field.getBackground();
 	fg = __field.getForeground();
 }
@@ -324,8 +361,7 @@ public void setVisible(boolean vis) {
 The internal item state changed event that occurs when the JCheckBox is clicked.
 Internally, this class is its own listener for the JCheckBox's item state
 changed event.  It catches the event and then RE-posts it so that the 
-GeoViewLegendJTree that catches the new event can see which specific node
-issued the event.
+GeoViewLegendJTree that catches the new event can see which specific node issued the event.
 @param e the ItemEvent that happened.
 */
 public void itemStateChanged(ItemEvent e) {
@@ -397,7 +433,7 @@ public void mousePressed(MouseEvent event) {
 		}
 		__tree.repaint();
 	}
-	// a node was either selected or deselected -- repaint the buttons
+	// A node was either selected or deselected -- repaint the buttons
 	// in the geoviewjpanel as appropriate
 	__tree.updateGeoViewJPanelButtons();	
 }
@@ -427,8 +463,11 @@ Select's this node's text field.
 */
 public void selectField() {
 	__selected = true;
-	__field.setBackground(__field.getSelectionColor());
-	__field.setForeground(__field.getSelectedTextColor());
+	JTextField tf = new JTextField(); // use this to get selection colors to mimic a JTextField
+	//__field.setBackground(__field.getSelectionColor());
+	//__field.setForeground(__field.getSelectedTextColor());
+	__field.setBackground(tf.getSelectionColor());
+	__field.setForeground(tf.getSelectedTextColor());
 	__field.repaint();
 	GeoLayerView layerView = (GeoLayerView)getData(); 
 	if (layerView != null) {

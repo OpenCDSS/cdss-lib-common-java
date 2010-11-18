@@ -118,10 +118,8 @@ import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_JFrame;
 
 /**
-The GeoViewLegendJTree is a Tree that displays -- in ESRI-like fashion -- the
-layers available in a GeoView.  
-REVISIT (JTS - 2006-05-23)
-How to see this tree?  Is it automatic?
+The GeoViewLegendJTree is a Tree that displays -- in ESRI-like fashion -- the layers available in a GeoView.  
+TODO (JTS - 2006-05-23) How to see this tree?  Is it automatic?
 */
 public class GeoViewLegendJTree extends SimpleJTree
 implements ActionListener, ItemListener, MouseListener
@@ -131,8 +129,8 @@ implements ActionListener, ItemListener, MouseListener
 Menu item labels.
 */
 private final String 
-	__MENU_VIEW_ATTRIBUTES = 		"View Attribute Table",
-	__MENU_SHOW_ANIMATION_CONTROL_GUI = 	"Show Animation Control";
+	__MENU_VIEW_ATTRIBUTES = "View Attribute Table",
+	__MENU_SHOW_ANIMATION_CONTROL_GUI = "Show Animation Control";
 
 /**
 The GeoViewJPanel in which this tree appears.
@@ -153,14 +151,12 @@ private JPopupMenu __projectNodePopup = null;
 
 /**
 The popup menu to be assigned to all the layer nodes except those that 
-are animated.  It is displayed when any non-animation layer node is 
-right-clicked on in the tree.
+are animated.  It is displayed when any non-animation layer node is right-clicked on in the tree.
 */
 private JPopupMenu __layerPopup = null;
 
 /**
-The popup menu to be displayed when an animated layer is right-clicked on in the
-tree.
+The popup menu to be displayed when an animated layer is right-clicked on in the tree.
 */
 private JPopupMenu __animatedPopup = null;
 
@@ -179,8 +175,7 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 
 	__theGeoViewJPanel = gvp;
 
-	// These calls set up the SimpleJTree to display in a fashion 
-	// similar to ESRI's Table of Contents
+	// These calls set up the SimpleJTree to display in a fashion similar to ESRI's Table of Contents
 	setClosedIcon(null);
 	setOpenIcon(null);
 	setLeafIcon(null);
@@ -216,16 +211,14 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	mi.addActionListener(this);
 	__animatedPopup.add(mi);
 	
-
-	// create the popup menu for the tree.  This has an "Add" menu item
+	// Create the popup menu for the tree.  This has an "Add" menu item
 	__treePopup = new JPopupMenu();
 	mi = new JMenuItem(__theGeoViewJPanel.ADD);
 	mi.addActionListener(this);
 	__treePopup.add(mi);
 	__treePopup = null;
 
-	// create the popup menu for project nodes.  This has an "Open Project"
-	// menu item
+	// Create the popup menu for project nodes.  This has an "Open Project" menu item
 	__projectNodePopup = new JPopupMenu();
 	mi = new JMenuItem(__theGeoViewJPanel.OPEN_GVP);
 	mi.addActionListener(__theGeoViewJPanel);
@@ -273,7 +266,7 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	
 	addMouseListener(this);
 
-	// allow each row's height to be computed individually
+	// Allow each row's height to be computed individually
 	setRowHeight(0);
 }
 
@@ -284,8 +277,7 @@ Handle action events from the popup menus.
 public void actionPerformed(ActionEvent evt) {
 	String command = evt.getActionCommand();
 
-	if (command.equals(__theGeoViewJPanel.ADD_LAYER_TO_GEOVIEW) ||
-	    command.equals(__theGeoViewJPanel.ADD)) {
+	if (command.equals(__theGeoViewJPanel.ADD_LAYER_TO_GEOVIEW) || command.equals(__theGeoViewJPanel.ADD)) {
 		__theGeoViewJPanel.addLayerView();
 	}
 	else if (command.equals(__theGeoViewJPanel.REMOVE)) {
@@ -300,13 +292,9 @@ public void actionPerformed(ActionEvent evt) {
 			plural = "s";
 		}
 
-		int response = new ResponseJDialog(
-			__theGeoViewJPanel.getParentJFrame(),
-			"Remove layer" + plural + "?",
-			"Are you sure you want to remove the selected layer"
-			+ plural + " from the view?",
-			ResponseJDialog.YES | ResponseJDialog.NO
-			).response();
+		int response = new ResponseJDialog( __theGeoViewJPanel.getParentJFrame(), "Remove layer" + plural + "?",
+			"Are you sure you want to remove the selected layer" + plural + " from the view?",
+			ResponseJDialog.YES | ResponseJDialog.NO ).response();
 		if (response == ResponseJDialog.NO) {
 			return;
 		}	
@@ -331,14 +319,11 @@ public void actionPerformed(ActionEvent evt) {
 		GRLegend legend = layerView.getLegend();
 		String layerName = legend.getText();
 		String filename = layerView.getLayer().getFileName();
-		if (filename != null 
-		    && layerView.getLayer().getAttributeTable() == null) {
+		if (filename != null && layerView.getLayer().getAttributeTable() == null) {
 			int index = filename.lastIndexOf(".");
 			if (index == -1) {
-				Message.printStatus(1,"GeoViewPropertiesJFrame."
-					+ "actionPerformed",
-					"Error trying to parse layer "
-					+ "file name (" + filename 
+				Message.printStatus(1,"GeoViewPropertiesJFrame.actionPerformed",
+					"Error trying to parse layer file name (" + filename 
 					+ ") into the associated .dbf file");
 				return;
 			}
@@ -346,30 +331,23 @@ public void actionPerformed(ActionEvent evt) {
 			String dbfFilename = base + "dbf";
 	
 			try {
-				new DataTable_JFrame("Attributes of " 
-					+ layerName, dbfFilename);
+				new DataTable_JFrame("Attributes of " + layerName, dbfFilename);
 			}
 			catch (Exception e) {
-				Message.printWarning(1, 
-					"GeoViewLegendJTree.actionPerformed",
-					"Error opening DataTable_JFrame");
-				Message.printWarning(2, 
-					"GeoViewLegendJTree.actionPerformed",e);
+				Message.printWarning(1, "GeoViewLegendJTree.actionPerformed",
+					"Error opening DataTable_JFrame (" + e +").");
+				Message.printWarning(2, "GeoViewLegendJTree.actionPerformed",e);
 			}
 		}
 		else {
 			GeoLayer layer = layerView.getLayer();
 			DataTable table = layer.getAttributeTable();
 			try {
-				new DataTable_JFrame("Attributes of " 
-					+ layerName, table);
+				new DataTable_JFrame("Attributes of " + layerName, table);
 			}
 			catch (Exception e) {
-				Message.printWarning(1, 
-					"GeoViewLegendJTree.actionPerformed",
-					"Error opening DataTable_JFrame");
-				Message.printWarning(2, 
-					"GeoViewLegendJTree.actionPerformed",e);
+				Message.printWarning(1, "GeoViewLegendJTree.actionPerformed", "Error opening DataTable_JFrame");
+				Message.printWarning(2, "GeoViewLegendJTree.actionPerformed",e);
 			}
 		}
 	}	
@@ -388,201 +366,169 @@ public void addLayerView(GeoLayerView layerView, int count) {
 	String layerName = layerView.getLegend().getText();
 
 	GeoViewLegendJTree_Node node = null;
+	String layerLabel = " " + layerName; // Space helps with presentation
+	if ( !layerView.getLayer().isSourceAvailable() ) {
+		// The data for the layer is not available so add a red ! to the front of the label.
+		layerLabel = "<html><p style=\"color:red\">! " + layerName + "</p></html>";
+	}
 	if (layerView.isAnimated()) {
-		node = new GeoViewLegendJTree_Node(
-			layerName, layerName, this, __animatedPopup);
+		node = new GeoViewLegendJTree_Node( layerLabel, layerName, this, __animatedPopup);
 	}
 	else {
-		node = new GeoViewLegendJTree_Node(
-			layerName, layerName, this, __layerPopup);
+		node = new GeoViewLegendJTree_Node( layerLabel, layerName, this, __layerPopup);
 	}
 
 	node.setCheckBoxSelected(layerView.isVisible());
 
 	try {
-	if (__projectNode == null) {
-		__projectNode = 
-			new GeoViewLegendJTree_Node("GeoView Layers", 
-			"Project Node Name", this,
-			__projectNodePopup);
-		__projectNode.setCheckBoxSelected(true);
-		addNode(__projectNode);
-	}
-
-	node.setData(layerView);
+		if (__projectNode == null) {
+			__projectNode =  new GeoViewLegendJTree_Node("GeoView Layers", 
+				"Project Node Name", this, __projectNodePopup);
+			__projectNode.setCheckBoxSelected(true);
+			addNode(__projectNode);
+		}
 	
-	addNode(node, __projectNode, 0);
-	// Now draw the symbol(s)...
-	// Get the number of symbols for the layer view.  First need to
-	// determine the layer view number, which is stored in the "Number"
-	// property for the layerview.  Currently this is supported only for
-	// CLASSIFICATION_SINGLE and CLASSIFICATION_SCALED_SYMBOL.
-
-	int nsymbol = layerView.getLegend().size();
-	GRSymbol symbol = null;
-	GeoLayerViewLegendJComponent[] layerCanvas = null;
-	JLabel[] layerClassJLabel = null;
-	int y = 0;
-	Insets insets_none = new Insets (1, 1, 1, 1);
-	for (int isym = 0; isym < nsymbol; isym++) {
-		symbol = layerView.getLegend().getSymbol(isym);
-		if (symbol.getClassificationType() ==
-			GRSymbol.CLASSIFICATION_SINGLE
-		|| symbol.getClassificationType() == 
-			GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
-			if (isym == 0) {
-				// For now assume that symbol types will not
-				// be mixed for a layer...
-				layerCanvas = 
-					new
-					GeoLayerViewLegendJComponent[nsymbol];
-			}
-			layerCanvas[isym] = new GeoLayerViewLegendJComponent(
-				layerView, isym, 0);
-			SimpleJTree_Node symNode = new
-				SimpleJTree_Node((Component)layerCanvas[isym], 
-				"" + layerName + " symbol #" + isym);
-
-			// this data is used when drawing the legend on 
-			// the map later, so it's important that it be set.
-			symNode.setData(layerCanvas[isym]);
-			addNode(symNode, node);
-		}
-		else if (symbol.getClassificationType() ==
-			GRSymbol.CLASSIFICATION_SCALED_SYMBOL) {
-			// This is currently enabled only for vertical signed
-			// bars where the bar is centered vertically on the
-			// point, positive values are drawn with the main
-			// foreground color and negative values are drawn with
-			// the secondary foreground color.
-			JPanel panel = new JPanel();
-			panel.setBackground(Color.white);
-			panel.setLayout(new GridBagLayout());
-			if (isym == 0) {
-				// For now assume that symbol types will not
-				// be mixed for a layer...
-				layerCanvas = new
-					GeoLayerViewLegendJComponent[nsymbol];
-				layerClassJLabel = new JLabel[nsymbol];
-			}
-			
-			layerCanvas[isym] = new GeoLayerViewLegendJComponent(
-				layerView, isym, 0);
-			JGUIUtil.addComponent (panel, layerCanvas[isym],
-				1, ++y, 1, 1, 1, 1,
-				insets_none, GridBagConstraints.NONE,
-				GridBagConstraints.SOUTH);
-			if (!symbol.getClassificationField().equals("")) {
-				// Get the maximum value for the symbol, which
-				// is used to scale the symbol...
-				// SAMX - need to streamline this - store with
-				// symbol at creation?
-				DataTable attribute_table =
-				layerView.getLayer().getAttributeTable();
-				int classification_field = -1;
-				String cf = symbol.getClassificationField();
-				if (attribute_table != null) {
-					try {	
-						classification_field =
-						attribute_table.getFieldIndex(
-						cf);
-					}
-					catch (Exception e) {
-						// Just won't label below.
-						classification_field = -1;
-					}
+		node.setData(layerView);
+		
+		addNode(node, __projectNode, 0);
+		// Now draw the symbol(s)...
+		// Get the number of symbols for the layer view.  First need to
+		// determine the layer view number, which is stored in the "Number"
+		// property for the layerview.  Currently this is supported only for
+		// CLASSIFICATION_SINGLE and CLASSIFICATION_SCALED_SYMBOL.
+	
+		int nsymbol = layerView.getLegend().size();
+		GRSymbol symbol = null;
+		GeoLayerViewLegendJComponent[] layerCanvas = null;
+		JLabel[] layerClassJLabel = null;
+		int y = 0;
+		Insets insets_none = new Insets (1, 1, 1, 1);
+		for (int isym = 0; isym < nsymbol; isym++) {
+			symbol = layerView.getLegend().getSymbol(isym);
+			if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE
+			|| symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+				if (isym == 0) {
+					// For now assume that symbol types will not be mixed for a layer...
+					layerCanvas = new GeoLayerViewLegendJComponent[nsymbol];
 				}
-
-				if ((classification_field >= 0)) {
-					double symbol_max =
-					((GRScaledClassificationSymbol)
-					symbol).getClassificationDataDisplayMax(
-					);
-					// Do this to keep legend a reasonable
-					// width...
-					if (cf.length() > 20) {
-						cf = cf.substring(0,20) + "...";
-					}
-					layerClassJLabel[isym] = new JLabel(
-					cf +
-					", Max = " + StringUtil.formatString(
-					symbol_max,"%.3f"));
-				}
-				else {	
-					if (cf.length() > 20) {
-						cf = cf.substring(0,20) + "...";
-					}
-					layerClassJLabel[isym] = new JLabel(cf);
-				}
-			}
-			else {	// Add a label with the field and maximum
-				// value...
-				layerClassJLabel[isym] = new JLabel("");
-			}
-			JGUIUtil.addComponent (panel,
-				layerClassJLabel[isym],
-				2, y, 1, 1, 1, 0,
-				insets_none, GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.NORTH);
-			SimpleJTree_Node symNode = new
-				SimpleJTree_Node((Component)panel,
-				"" + layerName + " symbol #" + isym);
-
-			// the text that is drawn on the legend to label
-			// the height of the bar.  Essential this is set!
-			// This information cannot easily be pulled from the
-			// tree, so it is just set here so that the legend 
-			// will be labelled with "Max = XXX.XX", or such.
-			layerCanvas[isym].setLegendText(
-				layerClassJLabel[isym].getText());
-
-			// this data is used when drawing the legend on 
-			// the map later, so it's important that it be set
-			symNode.setData(layerCanvas[isym]);
-			addNode(symNode, node);	
-		}
-		else {	
-			// Multiple legend items need to be drawn...
-			int numclass = symbol.getNumberOfClassifications();
-			layerCanvas = 
-			new GeoLayerViewLegendJComponent[numclass];
-			layerClassJLabel = new JLabel[numclass];
-			for (int i = 0; i < numclass; i++) {
-				JPanel panel = new JPanel();
-				panel.setLayout(new GridBagLayout());
-				panel.setBackground(getBackground());
-				layerCanvas[i] = 
-					new GeoLayerViewLegendJComponent(
-						layerView, isym, i);
-				JGUIUtil.addComponent (panel, layerCanvas[i],
-					1, ++y, 1, 1, 0, 0,
-					insets_none, GridBagConstraints.NONE,
-					GridBagConstraints.SOUTH);
-				// Add a label for the classification...
-				layerClassJLabel[i] =
-					new 
-					JLabel(symbol.getClassificationLabel(
-					i));
-				layerClassJLabel[i].setBackground(
-					getBackground());
-				JGUIUtil.addComponent (panel,
-					layerClassJLabel[i],
-					2, y, 1, 1, 1, 0,
-					insets_none,
-					GridBagConstraints.HORIZONTAL,
-					GridBagConstraints.SOUTH);
-				SimpleJTree_Node symNode = new
-					SimpleJTree_Node(
-					(Component)panel,
+				layerCanvas[isym] = new GeoLayerViewLegendJComponent(layerView, isym, 0);
+				SimpleJTree_Node symNode = new SimpleJTree_Node((Component)layerCanvas[isym], 
 					"" + layerName + " symbol #" + isym);
+	
+				// This data is used when drawing the legend on 
+				// the map later, so it's important that it be set.
+				symNode.setData(layerCanvas[isym]);
 				addNode(symNode, node);
 			}
-		}
-	}	
+			else if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL) {
+				// This is currently enabled only for vertical signed
+				// bars where the bar is centered vertically on the
+				// point, positive values are drawn with the main
+				// foreground color and negative values are drawn with
+				// the secondary foreground color.
+				JPanel panel = new JPanel();
+				panel.setBackground(Color.white);
+				panel.setLayout(new GridBagLayout());
+				if (isym == 0) {
+					// For now assume that symbol types will not be mixed for a layer...
+					layerCanvas = new GeoLayerViewLegendJComponent[nsymbol];
+					layerClassJLabel = new JLabel[nsymbol];
+				}
+				
+				layerCanvas[isym] = new GeoLayerViewLegendJComponent(layerView, isym, 0);
+				JGUIUtil.addComponent (panel, layerCanvas[isym],
+					1, ++y, 1, 1, 1, 1,
+					insets_none, GridBagConstraints.NONE,
+					GridBagConstraints.SOUTH);
+				if (!symbol.getClassificationField().equals("")) {
+					// Get the maximum value for the symbol, which is used to scale the symbol...
+					// TODO SAM 2009-07-02 - need to streamline this - store with symbol at creation?
+					DataTable attribute_table = layerView.getLayer().getAttributeTable();
+					int classification_field = -1;
+					String cf = symbol.getClassificationField();
+					if (attribute_table != null) {
+						try {	
+							classification_field = attribute_table.getFieldIndex(cf);
+						}
+						catch (Exception e) {
+							// Just won't label below.
+							classification_field = -1;
+						}
+					}
+	
+					if ((classification_field >= 0)) {
+						double symbol_max =
+							((GRScaledClassificationSymbol)symbol).getClassificationDataDisplayMax();
+						// Do this to keep legend a reasonable width...
+						if (cf.length() > 20) {
+							cf = cf.substring(0,20) + "...";
+						}
+						layerClassJLabel[isym] = new JLabel(
+						cf + ", Max = " + StringUtil.formatString(symbol_max,"%.3f"));
+					}
+					else {	
+						if (cf.length() > 20) {
+							cf = cf.substring(0,20) + "...";
+						}
+						layerClassJLabel[isym] = new JLabel(cf);
+					}
+				}
+				else {
+					// Add a label with the field and maximum value...
+					layerClassJLabel[isym] = new JLabel("");
+				}
+				JGUIUtil.addComponent (panel,
+					layerClassJLabel[isym],
+					2, y, 1, 1, 1, 0,
+					insets_none, GridBagConstraints.HORIZONTAL,
+					GridBagConstraints.NORTH);
+				SimpleJTree_Node symNode = new
+					SimpleJTree_Node((Component)panel, "" + layerName + " symbol #" + isym);
+	
+				// The text that is drawn on the legend to label
+				// the height of the bar.  Essential this is set!
+				// This information cannot easily be pulled from the
+				// tree, so it is just set here so that the legend 
+				// will be labelled with "Max = XXX.XX", or such.
+				layerCanvas[isym].setLegendText( layerClassJLabel[isym].getText());
+	
+				// This data is used when drawing the legend on 
+				// the map later, so it's important that it be set
+				symNode.setData(layerCanvas[isym]);
+				addNode(symNode, node);	
+			}
+			else {	
+				// Multiple legend items need to be drawn...
+				int numclass = symbol.getNumberOfClassifications();
+				layerCanvas = new GeoLayerViewLegendJComponent[numclass];
+				layerClassJLabel = new JLabel[numclass];
+				for (int i = 0; i < numclass; i++) {
+					JPanel panel = new JPanel();
+					panel.setLayout(new GridBagLayout());
+					panel.setBackground(getBackground());
+					layerCanvas[i] = new GeoLayerViewLegendJComponent(layerView, isym, i);
+					JGUIUtil.addComponent (panel, layerCanvas[i],
+						1, ++y, 1, 1, 0, 0,
+						insets_none, GridBagConstraints.NONE,
+						GridBagConstraints.SOUTH);
+					// Add a label for the classification...
+					layerClassJLabel[i] = new JLabel(symbol.getClassificationLabel(i));
+					layerClassJLabel[i].setBackground(getBackground());
+					JGUIUtil.addComponent (panel,
+						layerClassJLabel[i],
+						2, y, 1, 1, 1, 0,
+						insets_none,
+						GridBagConstraints.HORIZONTAL,
+						GridBagConstraints.SOUTH);
+					SimpleJTree_Node symNode = new
+						SimpleJTree_Node( (Component)panel, "" + layerName + " symbol #" + isym);
+					addNode(symNode, node);
+				}
+			}
+		}	
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error adding layer to "
-			+ "display");
+		Message.printWarning(2, routine, "Error adding layer to display");
 		Message.printWarning(2, routine, e);
 	}
 }
@@ -598,8 +544,7 @@ public void emptyTree() {
 		}
 	}
 	catch (Exception e) {
-		Message.printWarning(1, "GeoViewLegendJTree.emptyTree",
-			"Error emptying tree.");
+		Message.printWarning(1, "GeoViewLegendJTree.emptyTree", "Error emptying tree.");
 		Message.printWarning(2, "GeoViewLegendJTree.emptyTree", e);
 	}
 }
@@ -615,15 +560,13 @@ throws Throwable {
 	__theGeoViewJPanel = null;
 	__projectNodePopup = null;
 	__animatedPopup = null;
-	if(RTi.Util.IO.IOUtil.testing()) 
-		System.out.println("finalize: GeoViewLegendJTree");
 	super.finalize();
 }
 
 /**
-Returns a Vector of all the nodes that contain layer information (i.e., 
+Returns a list of all the nodes that contain layer information (i.e., 
 are GeoViewLegendJTree_Nodes), but not the project node.
-@return a Vector of the nodes with layer information.
+@return a list of the nodes with layer information.
 */
 public List getAllLayerNodes() {
 	List v = new Vector();
@@ -658,9 +601,9 @@ private void getAllLayerNodes(SimpleJTree_Node node, List v) {
 }
 
 /**
-Returns a Vector of all the nodes that contain layer information (i.e., 
+Returns a lsit of all the nodes that contain layer information (i.e., 
 are GeoViewLegendJTree_Nodes), but not the project node.
-@return a Vector of the nodes with layer information.
+@return a list of the nodes with layer information.
 */
 public List getAllNodes() {
 	List v = new Vector();
@@ -700,10 +643,8 @@ public List[] getLayersNamesAndNodes(boolean visibleOnly) {
 	List names = new Vector();
 	List matchNodes = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.get(i);
-		if (((visibleOnly && node.isCheckBoxSelected()) 
-		   || (!visibleOnly))) {
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
+		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly))) {
 		   	layers.add(node.getData());
 			names.add(node.getFieldText());
 			matchNodes.add(node);
@@ -716,15 +657,13 @@ public List[] getLayersNamesAndNodes(boolean visibleOnly) {
 /**
 Returns the names of all the layers in the JTree.
 @param visibleOnly whether to only return the names of the visible layers.
-@return a Vector (guaranteed to be non-null) with the names of the 
-specified kind of layers.
+@return a list (guaranteed to be non-null) with the names of the specified kind of layers.
 */
 public List getLayerNames(boolean visibleOnly) {
 	List allNodes = getAllLayerNodes();
 	List names = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.get(i);
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly))) {
 			names.add(node.getFieldText());
 		}
@@ -745,7 +684,7 @@ public int getNumLegend() {
 
 /**
 Return the list of application layer views that are selected in the legend.
-@return a Vector of application layer types (Strings) that are selected in the
+@return a list of application layer types (Strings) that are selected in the
 legend.  The list can be of zero size.
 Currently the list is not sorted and duplicates and blanks may be present.
 @param visibleOnly If true only return app layer types that are visible and
@@ -775,10 +714,8 @@ public List getSelectedLayerViews(boolean visibleOnly) {
 	List allNodes = getAllLayerNodes();
 	List appLayerTypes = new Vector();
 	for (int i = 0; i < allNodes.size(); i++) {
-		GeoViewLegendJTree_Node node = 
-			(GeoViewLegendJTree_Node)allNodes.get(i);
-		if (((visibleOnly && node.isCheckBoxSelected()) 
-		   || (!visibleOnly)) && node.isTextSelected()) {
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
+		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly)) && node.isTextSelected()) {
 			GeoLayerView layerView = (GeoLayerView)node.getData();
 			appLayerTypes.add(layerView);
 		}
@@ -841,8 +778,7 @@ public void itemStateChanged(ItemEvent event) {
 		SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 
 		if (n instanceof GeoViewLegendJTree_Node) {
-			((GeoViewLegendJTree_Node)n).
-			setCheckBoxSelected(select);
+			((GeoViewLegendJTree_Node)n).setCheckBoxSelected(select);
 			GeoLayerView layerView = (GeoLayerView)n.getData();
 			layerView.isVisible(select);
 		}
@@ -857,8 +793,7 @@ public void itemStateChanged(ItemEvent event) {
 }
 
 /**
-Determines whether the popup menu should be shown based on data in the 
-MouseEvent.
+Determines whether the popup menu should be shown based on data in the MouseEvent.
 @param e the MouseEvent that happened.
 */
 private void maybeShowPopup(MouseEvent e) {
@@ -915,8 +850,7 @@ public void mouseReleased(MouseEvent event) {
 
 /**
 Remove all layer views from the legend.  This should be called when clearing
-the GeoViewJPanel of all data.  The GeoViewLegendJTree will have no memory of
-its previous contents.
+the GeoViewJPanel of all data.  The GeoViewLegendJTree will have no memory of its previous contents.
 */
 public void removeAllLayerViews () {
 	emptyTree();	
@@ -938,8 +872,7 @@ public void removeLayerView(GeoLayerView layerView_to_remove) {
 		resetVisibleNodes();
 	}
 	catch (Exception e) {
-		Message.printWarning(1, "GeoViewLegendJTree.removeLayerView",
-			"Error removing layer view.");
+		Message.printWarning(1, "GeoViewLegendJTree.removeLayerView", "Error removing layer view.");
 		Message.printWarning(2, "GeoViewLegendJTree.removeLayerView",e);
 	}
 }
@@ -971,46 +904,35 @@ If a project node doesn't exist (is null), one will be added.
 public void setProjectNodeText(String name) {
 	try {
 		if (__projectNode == null) {
-			__projectNode = 
-				new GeoViewLegendJTree_Node(name, 
-				"Project Node Name", this,
-				__projectNodePopup);
+			__projectNode = new GeoViewLegendJTree_Node(name, "Project Node Name", this, __projectNodePopup);
 			__projectNode.setCheckBoxSelected(true);
 			addNode(__projectNode);
 		}
 		else {
-			__projectNode = 
-				new GeoViewLegendJTree_Node(name, 
-				"Project Node Name", this,
-				__projectNodePopup);
+			__projectNode = new GeoViewLegendJTree_Node(name, "Project Node Name", this, __projectNodePopup);
 			__projectNode.setCheckBoxSelected(true);
 			replaceNode("Project Node Name", __projectNode);
 		}
 	} 
 	catch (Exception e) {
-		Message.printWarning(1, "GeoViewLegendJTree.setProjectNodeText",
-			"Error setting project node text..");
-		Message.printWarning(2, "GeoViewLegendJTree.setProjectNodeText",
-			e);
+		Message.printWarning(1, "GeoViewLegendJTree.setProjectNodeText", "Error setting project node text.");
+		Message.printWarning(2, "GeoViewLegendJTree.setProjectNodeText", e);
 	}
 }
 
 /**
-Updates the geo view JPanel's button state depending on whether any of the
-layers are selected or not.
+Updates the geo view JPanel's button state depending on whether any of the layers are selected or not.
 */
 public void updateGeoViewJPanelButtons() {
-	// count how many children of the projectNode are selected
-	// and if more than 0, tell the GeoViewJPanel to update how
-	// the buttons are enabled or not
+	// Count how many children of the projectNode are selected
+	// and if more than 0, tell the GeoViewJPanel to update how the buttons are enabled or not
 	Enumeration e = getChildren(__projectNode);
 	for (; e.hasMoreElements();) {
 		SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 
 		if (n instanceof GeoViewLegendJTree_Node) {
 			if (((GeoViewLegendJTree_Node)n).isSelected()) {
-				__theGeoViewJPanel.
-				setButtonsEnabledByLayersSelected(true);
+				__theGeoViewJPanel.setButtonsEnabledByLayersSelected(true);
 				return;
 			}
 		}
