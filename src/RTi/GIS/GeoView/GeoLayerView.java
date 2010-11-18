@@ -88,21 +88,19 @@ private boolean[] __animationFieldVisible = null;
 /**
 Indicates whether the layer is visible or not.
 */
-protected boolean	_is_visible = true;
+protected boolean _is_visible = true;
 
 /**
-Indicates whether the layer is selected or not.  Normally this is used only for
-GUI interaction.
+Indicates whether the layer is selected or not.  Normally this is used only for GUI interaction.
 */
-protected boolean	_is_selected = false;
+protected boolean _is_selected = false;
 
 /**
 Whether this is an animated layer, where the shape symbols will change.
 */
 private boolean __isAnimated = false;
 
-// REVISIT (JTS - 2004-08-09)
-// put the missing data things into a proplist
+// TODO (JTS - 2004-08-09) put the missing data things into a proplist
 
 /**
 The value that represents missing data.  Defaults to -999.0.
@@ -117,7 +115,7 @@ private double __missingDoubleReplacement = -999.0;
 /**
 GeoLayer used by the GeoView.
 */
-protected GeoLayer	_layer = null;
+protected GeoLayer _layer = null;
 
 /**
 GeoViewJComponent that uses the GeoLayer.
@@ -127,7 +125,7 @@ protected GeoViewJComponent	_view = null;
 /**
 Color to use for layer, including symbols.
 */
-protected GRLegend	_legend = null;
+protected GRLegend _legend = null;
 
 /**
 An array that points to the fields within the attribute table that are
@@ -144,18 +142,16 @@ This means that fields 12, 13 and 15 (base-0) in the table are animated fields.
 private int[] __animationFields = null;
 
 /**
-The gui that controls the animation for this layer.  Null if the layer is not
-animated.
+The gui that controls the animation for this layer.  Null if the layer is not animated.
 */
 private JFrame __controlJFrame = null;
 
 /**
 Properties for the GeoViewLayer, including labelling information.
 */
-protected PropList	_props = null;
+protected PropList _props = null;
 
-// REVISIT (JTS - 2004-08-09)
-// put into a proplist
+// TODO (JTS - 2004-08-09) put into a proplist
 
 /**
 The name of the layer.
@@ -171,8 +167,7 @@ public GeoLayerView ()
 }
 
 /**
-Construct from a layer.  The view will be set when this GeoLayerView is
-passed to GeoView.addLayerView.
+Construct from a layer.  The view will be set when this GeoLayerView is passed to GeoView.addLayerView.
 @param layer GeoLayer instance.
 */
 public GeoLayerView ( GeoLayer layer )
@@ -194,10 +189,9 @@ GeoLayerView number in a GVP file.</b>
 public GeoLayerView ( String filename, PropList props, int count )
 throws Exception
 {	// First read the file...
-	_layer = GeoLayer.readLayer ( filename, props );
-	_props = props;
-	// Set default symbol, legend.  This will normally be reset (e.g., when
-	// reading in GeoViewProject)
+	setLayer ( GeoLayer.readLayer ( filename, props ) );
+	setProperties ( props );
+	// Set default symbol, legend.  This will normally be reset (e.g., when reading in GeoViewProject)
 	setDefaultLegend ( count );
 }
 
@@ -205,8 +199,7 @@ throws Exception
 Construct from a layer and set properties.  The view will be set when this
 GeoLayerView is passed to GeoView.addLayerView.
 @param layer GeoLayer instance.
-@param props Properties for the GeoLayerView.  The following properties are
-recognized:
+@param props Properties for the GeoLayerView.  The following properties are recognized:
 <p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -219,8 +212,7 @@ recognized:
 <td>Indicates how to label the view.  If the property is set to
 "UsingGeoViewListener", then the listener method "geoViewGetLabel" will be
 called for each shape that is drawn.  The application implementing the
-"geoViewGetLabel" method should determine an appropriate label and return the
-String for drawing.
+"geoViewGetLabel" method should determine an appropriate label and return the String for drawing.
 If the property is set to "UsingAttributeTable" then the
 "AttributeTableLabelField" property should also be defined.
 <td>No labels (just symbols, if a symbol type is defined).</td>
@@ -249,8 +241,7 @@ public GeoLayerView ( GeoLayer layer, PropList props )
 
 /**
 Construct from a layer and specify the legend.  
-The view will be set when this
-GeoLayerView is passed to GeoViewJComponent.addLayerView.
+The view will be set when this GeoLayerView is passed to GeoViewJComponent.addLayerView.
 @param layer GeoLayer instance.
 @param legend GRLayer instance.
 */
@@ -262,12 +253,10 @@ public GeoLayerView ( GeoLayer layer, GRLegend legend )
 
 /**
 Construct from a layer and specify the legend and other properties.
-The view will be set when this GeoLayerView is
-passed to GeoViewJComponent.addLayerView.
+The view will be set when this GeoLayerView is passed to GeoViewJComponent.addLayerView.
 @param layer GeoLayer instance.
 @param legend GRLayer instance.
-@param props Properties for the GeoLayerView.  See other constructors for a
-description.
+@param props Properties for the GeoLayerView.  See other constructors for a description.
 */
 public GeoLayerView ( GeoLayer layer, GRLegend legend, PropList props )
 {	initialize ();
@@ -333,15 +322,6 @@ public JFrame getAnimationControlJFrame() {
 }
 
 /**
-Returns the fields of the attribute table to be animated.
-@return the fields of the attribute table to be animated.
-@deprecated
-*/
-public int[] getAnimationFields() {
-	return __animationFields;
-}
-
-/**
 Returns the number of rows in the attribute table.
 @return the number of rows in the attribute table.
 */
@@ -352,7 +332,7 @@ public int getAttributeTableRowCount() {
 /**
 @return label field used for labeling.  This returns the
 "AttributeTableLabelField" property value or null if not defined.
-NEED TO PHASE THIS OUT.
+TODO SAM 2009-07-01 NEED TO PHASE THIS OUT.
 */
 public String getLabelField ()
 {	return _props.getValue("AttributeTableLabelField");
@@ -375,8 +355,7 @@ public GRLegend getLegend ()
 }
 
 /**
-Returns the value that represents missing data for this layer.  Default is
--999.0.
+Returns the value that represents missing data for this layer.  Default is -999.0.
 @return the value that represents missing data for this layer.
 */
 public double getMissingDoubleValue() {
@@ -392,8 +371,7 @@ public double getMissingDoubleReplacementValue() {
 	return __missingDoubleReplacement;
 }
 
-// REVISIT SAM 2006-03-02
-// Need to determine whether the name is a data member or from the PropList
+// TODO SAM 2006-03-02 Need to determine whether the name is a data member or from the PropList
 /**
 Returns the layer's name.
 @return the layer's name.
@@ -432,8 +410,7 @@ public PropList getPropList ()
 }
 
 /**
-Return the symbol used for the GeoLayerView.  This calls the getSymbol() method
-for the legend.
+Return the symbol used for the GeoLayerView.  This calls the getSymbol() method for the legend.
 @return the symbol used for the GeoLayerView or null if a legend is not defined.
 */
 public GRSymbol getSymbol ()
@@ -456,9 +433,8 @@ Initialize data.
 */
 private void initialize ()
 {	_is_visible = true;	// Default is that layer view is visible.
-	_is_selected = false;	// Default is that layer view is not
-				// specifically selected.
-    	_layer = null;
+	_is_selected = false; // Default is that layer view is not specifically selected.
+    _layer = null;
 	_legend = null;
 	_view = null;
 	// Get an empty property list...
@@ -601,8 +577,8 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 	int ijf = 0;
 				// found.
 	for ( ijf = 0; ijf < join_fields_size; ijf++ ) {
-		try {	join_fields[ijf] = table.getFieldIndex(
-			(String)join_fields_Vector.get(ijf) );
+		try {
+			join_fields[ijf] = table.getFieldIndex( (String)join_fields_Vector.get(ijf) );
 			format_spec[ijf] = table.getFieldFormat( join_fields[ijf] );
 		}
 		catch ( Exception e ) {
@@ -622,8 +598,7 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 	if ( layer_name.equals("") ) {
 		layer_name = _layer.getFileName();
 	}
-	Message.printStatus ( 1, routine,
-	"Searching \"" + layer_name + "\" for matching features..." );
+	Message.printStatus ( 1, routine, "Searching \"" + layer_name + "\" for matching features..." );
 	GRShape shape;
 	Object o;
 	String formatted_attribute;
@@ -677,34 +652,30 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 			//	"Checking join field ["  + ijf + "]=" +
 			//	(String)join_fields_Vector.elementAt(ijf) );
 			//}
-			try {	o = table.getFieldValue ( shape.index,
-					join_fields[ijf] );
+			try {
+				o = table.getFieldValue ( shape.index, join_fields[ijf] );
 			}
 			catch ( Exception e ) {
 				// Just skip...
 				continue;
 			}
 			// Format the attribute value to a common format...
-			formatted_attribute = StringUtil.formatString (
-					o.toString(), format_spec[ijf]).trim();
+			formatted_attribute = StringUtil.formatString ( o.toString(), format_spec[ijf]).trim();
 //System.out.println("   formatted_attribute: '" + formatted_attribute + "'");
 			// Now loop through each feature that is being searched
 			// for (each if the join fields will be checked in
 			// an inner loop below)...
-			for (	ifeature = 0; ifeature < nfeature; ifeature++ ){
+			for ( ifeature = 0; ifeature < nfeature; ifeature++ ){
 				// If the previous field matches where not made,
-				// there is no need to check other fields (the
-				// shape does not match).
+				// there is no need to check other fields (the shape does not match).
 				//
 				// shape_matches_feature will = ijf if previous
 				// attributes have matched.  The first time
-				// through, shape_matches_feature will be 0 and
-				// ijf will be 0.
+				// through, shape_matches_feature will be 0 and ijf will be 0.
 /* Need to change this to see if NO first attribute for the shape matched.
 				if ( shape_matches_feature[ifeature] < ijf ) {
 					// Previous attribute for shape did not
-					// match this feature's attributes so
-					// no reason to check more attributes...
+					// match this feature's attributes so no reason to check more attributes...
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( 1, "",
 						"Previous attribute for " +
@@ -720,8 +691,7 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 				//	formatted_attribute + "\" to \""
 				//	+ feature_array[ifeature][ijf]+"\"");
 				//}
-				if (	formatted_attribute.equalsIgnoreCase(
-					feature_array[ifeature][ijf]) ) {
+				if ( formatted_attribute.equalsIgnoreCase( feature_array[ifeature][ijf]) ) {
 //System.out.println("      f[" + ifeature + "][" + ijf + "]: '" + feature_array[ifeature][ijf] + "'");
 					// The features matches...
 					++shape_matches_feature[ifeature];
@@ -732,38 +702,29 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 					//	shape_matches_feature[
 					//	ifeature] );
 					//}
-					if ( shape_matches_feature[ifeature] ==
-						join_fields_size ) {
+					if ( shape_matches_feature[ifeature] == join_fields_size ) {
 						// Matched all fields so add to
 						// the match list...
 						if ( !append ) {
 							// Always select...
-							if (!shape.is_selected){
-							_layer.setNumSelected (
-							_layer.getNumSelected()
-							+ 1 );
+							if (!shape.is_selected) {
+								_layer.setNumSelected ( _layer.getNumSelected() + 1 );
 							}
 							shape.is_selected =true;
 						}
-						else {	// Reverse selection...
-							if(!shape.is_selected ){
-							shape.is_selected =true;
-							_layer.setNumSelected (
-							_layer.getNumSelected()
-							+ 1 );
+						else {
+							// Reverse selection...
+							if(!shape.is_selected ) {
+								shape.is_selected =true;
+								_layer.setNumSelected ( _layer.getNumSelected() + 1 );
 							}
 							else {
-							shape.is_selected=false;
-							_layer.setNumSelected (
-							_layer.getNumSelected()
-							- 1 );
+								shape.is_selected=false;
+								_layer.setNumSelected (_layer.getNumSelected() - 1 );
 							}
 						}
-						Message.printStatus ( 2, "",
-						"Matched shape " +
-						"type=" + shape.type +
-						" index=" + shape.index +
-						" id=" + o.toString() );
+						Message.printStatus ( 2, "", "Matched shape type=" + shape.type +
+						" index=" + shape.index + " id=" + o.toString() );
 						// Add to the GeoRecord Vector..
 						if ( georecords == null ) {
 							georecords = new Vector ( 10 );
@@ -805,12 +766,10 @@ property saved with a GeoLayerView.  One or more values can be specified.
 can be multiple fields separated by commas.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
-@return Vector of GeoRecord for the selected features, or null if nothing is
-selected.
+@return Vector of GeoRecord for the selected features, or null if nothing is selected.
 */
 /*
-private Vector selectFeatures1 (String [][] feature_array, String join_field,
-				boolean append )
+private Vector selectFeatures1 (String [][] feature_array, String join_field, boolean append )
 {	String routine = "GeoLayerView.selectFeatures";
 	if ( feature_array == null ) {
 		return null;
@@ -1044,7 +1003,8 @@ public void setDefaultLegend ( int count )
 	else if ( (count%2) == 0 ) {
 		color = GRColor.blue;
 	}
-	else {	color = GRColor.green;
+	else {
+		color = GRColor.green;
 	}
 	// Set the symbol...
 	//layer_view.setSymbol ( GR.SYM_FCIR + count - 1 );
@@ -1067,8 +1027,7 @@ public void setDefaultLegend ( int count )
 	}	
 	// Create a symbol.  The subtype currently only affects
 	// the point symbols...
-	symbol = new GRSymbol ( sym_type, (GRSymbol.SYM_FCIR +
-		count - 1), color, outline_color, symsize );
+	symbol = new GRSymbol ( sym_type, (GRSymbol.SYM_FCIR + count - 1), color, outline_color, symsize );
 	if ( layer_type == GeoLayer.GRID ) {
 		// Set a default color table assuming 10 colors...
 		symbol.setColorTable ( "YellowToRed", 10 );
@@ -1090,7 +1049,8 @@ public void setDefaultLegend ( int count )
 	if ( _legend == null ) {
 		_legend = new GRLegend ( symbol );
 	}
-	else {	_legend.setSymbol ( symbol );
+	else {
+		_legend.setSymbol ( symbol );
 	}
 	//_legend.setText ( _layer.getFileName() );
 	// The legend for the layer view is either the name (e.g., from the
@@ -1099,14 +1059,11 @@ public void setDefaultLegend ( int count )
 	if ( (prop_value != null) && !prop_value.equals("") ) {
 		_legend.setText ( prop_value );
 	}
-	else {	File f = new File ( _layer.getFileName() );
+	else {
+		File f = new File ( _layer.getFileName() );
 		_legend.setText ( f.getName() );
 		f = null;
 	}
-	prop_value = null;
-	color = null;
-	outline_color = null;
-	symbol = null;
 }
 
 /**
@@ -1122,8 +1079,17 @@ throws Exception {
 }
 
 /**
+Set the layer for the layer view.  This is protected because currently it is intended for use only within
+the package during object initialization.
+*/
+protected void setLayer ( GeoLayer layer )
+{
+	_layer = layer;
+}
+
+/**
 Set the label field used for labeling.
-THIS NEEDS TO BE PHASED OUT.
+TODO SAM 2009-07-02 THIS NEEDS TO BE PHASED OUT.
 @param label_field Name of attribute field to use for labeling.
 */
 public void setLabelField ( String label_field )
@@ -1167,8 +1133,16 @@ public void setName(String name) {
 }
 
 /**
-Sets up the array for keeping track of whether animation fields are visible
-or not.
+Set the properties for the layer view.  This is protected because currently it is intended for use only within
+the package during object initialization.
+*/
+protected void setProperties ( PropList props )
+{
+	_props = props;
+}
+
+/**
+Sets up the array for keeping track of whether animation fields are visible or not.
 */
 private void setupAnimationFieldVisible() {
 	int num = _layer.getAttributeTableFieldCount();
@@ -1188,4 +1162,4 @@ public void setView ( GeoViewJComponent view )
 	}
 }
 
-} // End GeoLayerView
+}
