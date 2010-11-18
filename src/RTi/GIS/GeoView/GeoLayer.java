@@ -92,6 +92,7 @@
 
 package RTi.GIS.GeoView;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
@@ -110,8 +111,7 @@ import RTi.Util.Table.TableRecord;
 This class holds a layer of geographically-referenced data, which can be point,
 polygon, image, etc.  GeoLayers are associated with visible attributes using
 a GeoLayerView.  The GeoLayer therefore contains mainly raw shape data as Vector
-of GRShape and shape attributes as a DataTable.  The GeoView class displays the
-layer views.
+of GRShape and shape attributes as a DataTable.  The GeoView class displays the layer views.
 This base class can be extended for the different layer formats (e.g., ESRI
 shapefiles) and the input/output code for these formats should be in the
 derived code.  The benefit of extending from GeoLayer is that layers can be
@@ -151,8 +151,7 @@ Common formats can also be added to the readLayer() method.
 If constructing a GeoLayer in memory:
 <ol>
 <li>	create the GeoLayer</li>
-<li>	call setShapeType() to set the proper shape type (1 shape type per
-	GeoLayer)</li>
+<li>	call setShapeType() to set the proper shape type (1 shape type per GeoLayer)</li>
 <li>	call getShapes() to get the shape Vector</li>
 <li>	add the proper GRShape objects to the Vector</li>
 <li>	use the GeoLayer as needed (call computeLimits() to recompute the
@@ -214,7 +213,7 @@ Type of shapes in layer (e.g., POINT).
 protected int _shape_type = UNKNOWN;
 
 /**
-Vector of shape data.  Note that the index in the shape is used to
+List of shape data.  Note that the index in the shape is used to
 cross-reference to the attribute table.  The index starts at 0, unlike the ESRI
 shapefiles, where the record numbers start at 1.
 */
@@ -228,7 +227,7 @@ protected GRLimits _limits;
 
 /**
 Name of file for layer (currently layers are not constructed from database
-querie - if so, the meaning of this data value may need to be modified).
+query - if so, the meaning of this data value may need to be modified).
 */
 protected String _file_name;
 
@@ -267,8 +266,7 @@ protected GeoProjection _projection = null;
 
 /**
 Table to store attribute information (id, location, etc.).  This may be a
-derived class like DbaseDataTable due to the special requirements of a layer
-file format.
+derived class like DbaseDataTable due to the special requirements of a layer file format.
 */
 protected DataTable _attribute_table;
 
@@ -290,8 +288,7 @@ public GeoLayer ( String filename )
 }
 
 /**
-Construct a layer and initialize to defaults (derived class should construct
-from a file).
+Construct a layer and initialize to defaults (derived class should construct from a file).
 @param filename File that is being read.
 @param props Properties for the layer (currently none are recognized).
 */
@@ -335,20 +332,16 @@ public Object clone() {
 	}
 
 	if (_attribute_table != null) {
-		l._attribute_table = DataTable.duplicateDataTable(
-			_attribute_table, true);
+		l._attribute_table = DataTable.duplicateDataTable(_attribute_table, true);
 	}
 
 	return l;
 }
 
 /**
-Compute the spatial limits of the layer.  Use getLimits() to retrieve the
-limits.
-@param include_invisible Indicate that invisible shapes should be considered
-in the limits computation.
-@exception Exception if the limits cannot be computed (e.g., all null data,
-all missing, etc.).
+Compute the spatial limits of the layer.  Use getLimits() to retrieve the limits.
+@param include_invisible Indicate that invisible shapes should be considered in the limits computation.
+@exception Exception if the limits cannot be computed (e.g., all null data, all missing, etc.).
 */
 public void computeLimits ( boolean include_invisible )
 throws Exception
@@ -370,8 +363,7 @@ throws Exception
 			// Don't want invisible shapes so skip...
 			continue;
 		}
-		// Limits for the shape are found and shape is to be
-		// considered...
+		// Limits for the shape are found and shape is to be considered...
 		if ( !limits_found ) {
 			// Initialize...
 			xmin = shape.xmin;
@@ -380,7 +372,8 @@ throws Exception
 			ymax = shape.ymax;
 			limits_found = true;
 		}
-		else {	if ( shape.xmin < xmin ) {
+		else {
+			if ( shape.xmin < xmin ) {
 				xmin = shape.xmin;
 			}
 			if ( shape.ymin < ymin ) {
@@ -438,12 +431,10 @@ throws Throwable
 
 /**
 Compute the maximum value for a numeric attribute.
-@param field index of attribute table field to check (field must be a numeric
-field).
+@param field index of attribute table field to check (field must be a numeric field).
 @param include_invisible If true all shapes will be considered.  If false, only
 visible shapes will be considered.
-@return the maximum value for a numeric attribute or zero if there is an
-error.
+@return the maximum value for a numeric attribute or zero if there is an error.
 */
 public double getAttributeMax (	int field, boolean include_invisible )
 {	int size = 0;
@@ -455,8 +446,8 @@ public double getAttributeMax (	int field, boolean include_invisible )
 	}
 	GRShape shape = (GRShape)_shapes.get(0);
 	double max = 0.0;
-	try {	max = StringUtil.atod (
-		getShapeAttributeValue ( shape.index, field).toString() );
+	try {
+		max = StringUtil.atod (getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
 			shape = (GRShape)_shapes.get(i);
 			if ( shape == null ) {
@@ -466,9 +457,7 @@ public double getAttributeMax (	int field, boolean include_invisible )
 				// Don't want invisible shapes so skip...
 				continue;
 			}
-			max = MathUtil.max ( max, StringUtil.atod (
-				getShapeAttributeValue ( shape.index,
-				field).toString() ) );
+			max = MathUtil.max ( max, StringUtil.atod ( getShapeAttributeValue ( shape.index, field).toString() ) );
 		}
 	}
 	catch ( Exception e ) {
@@ -479,12 +468,10 @@ public double getAttributeMax (	int field, boolean include_invisible )
 
 /**
 Compute the minimum value for a numeric attribute.
-@param field index of attribute table field to check (field must be a numeric
-field).
+@param field index of attribute table field to check (field must be a numeric field).
 @param include_invisible If true all shapes will be considered.  If false, only
 visible shapes will be considered.
-@return the minimum value for a numeric attribute or zero if there is an
-error.
+@return the minimum value for a numeric attribute or zero if there is an error.
 */
 public double getAttributeMin (	int field, boolean include_invisible ) 
 {	int size = 0;
@@ -496,8 +483,8 @@ public double getAttributeMin (	int field, boolean include_invisible )
 	}
 	GRShape shape = (GRShape)_shapes.get(0);
 	double min = 0.0;
-	try {	min = StringUtil.atod (
-		getShapeAttributeValue ( shape.index, field).toString() );
+	try {
+		min = StringUtil.atod (getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
 			shape = (GRShape)_shapes.get(i);
 			if ( shape == null ) {
@@ -507,9 +494,7 @@ public double getAttributeMin (	int field, boolean include_invisible )
 				// Don't want invisible shapes so skip...
 				continue;
 			}
-			min = MathUtil.min ( min, StringUtil.atod (
-				getShapeAttributeValue ( shape.index,
-				field).toString() ) );
+			min = MathUtil.min ( min, StringUtil.atod (getShapeAttributeValue ( shape.index, field).toString() ) );
 		}
 	}
 	catch ( Exception e ) {
@@ -527,9 +512,8 @@ public String getAppLayerType ()
 }
 
 /**
-Return the attribute table associated with the shapes.  Depending on the
-parameters set during the layer read/creation, this table may contain a header
-only or header and data records.
+Return the attribute table associated with the shapes.  Depending on the parameters set during
+the layer read/creation, this table may contain a header only or header and data records.
 @return Layer attribute table.
 */
 public DataTable getAttributeTable()
@@ -537,8 +521,7 @@ public DataTable getAttributeTable()
 }
 
 /**
-Returns the number of fields in the attribute table.  If there is no attribute
-table, 0 is returned.
+Returns the number of fields in the attribute table.  If there is no attribute table, 0 is returned.
 @return the number of fields in the attribute table.
 */
 public int getAttributeTableFieldCount() {
@@ -549,8 +532,7 @@ public int getAttributeTableFieldCount() {
 }
 
 /**
-Returns the number of rows in the attribute table.  If there is no attribute
-table, 0 is returned.
+Returns the number of rows in the attribute table.  If there is no attribute table, 0 is returned.
 @return the number of rows in the attribute table.
 */
 public int getAttributeTableRowCount() {
@@ -603,8 +585,7 @@ public GeoProjection getProjection()
 
 /**
 Return a property for the layer.
-@return the String value of a property for the layer.
-This calls PropList.getValue.
+@return the String value of a property for the layer.  This calls PropList.getValue().
 */
 public String getPropValue ( String key )
 {	return _props.getValue ( key );
@@ -632,15 +613,15 @@ return the value if an attribute table is available.
 the attribute table's field data types to know how to cast the returned value.
 @param index Database record for shape (zero-based).
 @param field Attribute table field to use for data (zero-based index).
-@exception Exception if an error occurs getting the value (e.g., error reading
-from the source file).
+@exception Exception if an error occurs getting the value (e.g., error reading from the source file).
 */
 public Object getShapeAttributeValue ( long index, int field )
 throws Exception
 {	if ( _attribute_table != null ) {
 		return _attribute_table.getFieldValue( index, field );
 	}
-	else {	return null;
+	else {
+		return null;
 	}
 }
 
@@ -704,29 +685,19 @@ public TableRecord getTableRecord ( int index )
 {	if ( _attribute_table == null ) {
 		return null;
 	}
-	if (	(index < 0) ||
-		(index > (_attribute_table.getNumberOfRecords()- 1)) ) {
+	if ( (index < 0) || (index > (_attribute_table.getNumberOfRecords()- 1)) ) {
 		return null;
 	}
-	try {	return (TableRecord)_attribute_table.getRecord(index);
+	try {
+		return (TableRecord)_attribute_table.getRecord(index);
 	}
 	catch ( Exception e ) {
 		// Not sure why this would happen...
 		String routine = "GeoLayer.getTableRecord";
-		Message.printWarning ( 10, routine,
-		"Unable to get attribute table record [" + index + "]" );
+		Message.printWarning ( 10, routine, "Unable to get attribute table record [" + index + "]" );
 		Message.printWarning ( 10, routine, e );
 		return null;
 	}
-}
-
-/**
-Return the user-defined type for the layer.
-@return the user-defined type for the layer.
-@deprecated use getAppLayerType().
-*/
-public String getUserType ()
-{	return getAppLayerType();
 }
 
 /**
@@ -745,17 +716,33 @@ private void initialize ( String filename, PropList props )
 		// Construct a PropList using the filename as the name...
 		_props = new PropList ( filename );
 	}
-	else {	// Use the properties that were passed in...
+	else {
+		// Use the properties that were passed in...
 		_props = props;
 	}
+}
+
+/**
+Indicate whether the layer data source is available, for example that the filename exists and is the correct
+format.  If the source does not exist, the layer is therefore empty and should typically be displayed, but may be
+shown with a special indicator and have actions (like "Browse to connect to data").
+*/
+public boolean isSourceAvailable ()
+{
+	// Currently all layers are file based so check to see if the file exists
+	// TODO SAM 2009-07-02 Need to make this more sophisticated to check for format, etc.
+	File file = new File (getFileName());
+	if ( file.exists() ) {
+		return true;
+	}
+	return false;
 }
 
 /**
 Project a layer, resulting in the raw data changing.  Note that if the data are
 saved, the projection will be different and some configuration files may need
 to be changed.  The projection is accomplished by calling
-GeoProjection.projectShape() for each shape in the layer.  The overall limits
-are also changed.
+GeoProjection.projectShape() for each shape in the layer.  The overall limits are also changed.
 @param projection to change to.
 */
 public void project ( GeoProjection projection )
@@ -772,7 +759,8 @@ public void project ( GeoProjection projection )
 		GeoProjection.projectShape ( _projection, projection, (GRShape)_shapes.get(i), true );
 	}
 	// Now reset the limits...
-	try {	computeLimits ( true );
+	try {
+		computeLimits ( true );
 	}
 	catch ( Exception e ) {
 		// Should not matter.
@@ -808,7 +796,6 @@ throws IOException
 		GeoLayer layer = new ESRIShapefile ( props2 );
 		prop_value = null;
 		props2 = null;
-		System.gc();
 		return layer;
 	}
 	else if ( XmrgGridLayer.isXmrg(filename) ) {
@@ -822,11 +809,10 @@ throws IOException
 		return new NwsrfsLayer ( filename, true );
 	}
 	if ( IOUtil.fileReadable( filename) ) {
-		throw new IOException ( "Unrecognized layer format for \"" +
-		filename + "\"" );
+		throw new IOException ( "Unrecognized layer format for \"" + filename + "\"" );
 	}
-	else {	throw new IOException ( "File is not readable: \"" +
-		filename + "\"" );
+	else {
+		throw new IOException ( "File is not readable: \"" + filename + "\"" );
 	}
 }
 
@@ -834,12 +820,10 @@ throws IOException
 Refresh the layer.  This should normally be done periodically when editing
 data layers. The following actions occur:
 <ol>
-<li>	The select count is reset to match the total of selecte shapes in the
-	shape Vector.</li>
+<li>	The select count is reset to match the total of selecte shapes in the shape list.</li>
 <li>	The limits are recomputed.</li>
 </ol>
-This method may be updated in the future to help synchronize in-memory data with
-files (e.g., when editing).
+This method may be updated in the future to help synchronize in-memory data with files (e.g., when editing).
 */
 public void refresh ()
 {	int size = _shapes.size();
@@ -852,14 +836,15 @@ public void refresh ()
 		}
 	}
 	shape = null;
-	try {	computeLimits ( true );
+	try {
+		computeLimits ( true );
 	}
 	catch ( Exception e ) {
 	}
 }
 
 /**
-Reindex the data for the layer.  This is useful if the initial data has been
+Re-index the data for the layer.  This is useful if the initial data has been
 updated (shapes inserted or removed).  It is assumed that in such case, the
 shape and table information have been modified consistently.  The reindexing
 operation loops through all shapes and resets the index in the shapes to be
@@ -919,7 +904,8 @@ public void removeUnassociatedShapes ( boolean hide_only )
 				// Just set to not visible...
 				shape.is_visible = false;
 			}
-			else {	// Actually remove the shape...
+			else {
+				// Actually remove the shape...
 				_shapes.remove(i);
 				try {
 					if ( records != null ) {
@@ -957,8 +943,7 @@ public void setAppLayerType ( String app_layer_type )
 
 /**
 Set the attribute table associated with the shapes.  This is most often called
-when the attribute table is read first and then shapes are associated with the
-table.
+when the attribute table is read first and then shapes are associated with the table.
 @param attribute_table Attribute table for the layer.
 */
 public void setAttributeTable ( DataTable attribute_table )
@@ -1032,8 +1017,7 @@ public void setProjection ( GeoProjection projection )
 }
 
 /**
-Set the String value of a property for the layer.
-This calls PropList.setValue().
+Set the String value of a property for the layer.  This calls PropList.setValue().
 @param key Key (variable) for the property.
 @param value Value for the property.
 */
@@ -1051,8 +1035,7 @@ If false, do not change the visibility of selected shapes.
 @param do_unselected If true, apply the change to selected shapes.
 If false, do not change the visibility of unselected shapes.
 */
-public void setShapesVisible (	boolean is_visible, boolean do_selected,
-				boolean do_unselected )
+public void setShapesVisible ( boolean is_visible, boolean do_selected, boolean do_unselected )
 {	GRShape shape = null;
 	int size = _shapes.size();
 	for ( int i = 0; i < size; i++ ) {
@@ -1068,19 +1051,10 @@ public void setShapesVisible (	boolean is_visible, boolean do_selected,
 }
 
 /**
-Set the shape type (e.g., POINT).  The type is not currently checked for
-validity.
+Set the shape type (e.g., POINT).  The type is not currently checked for validity.
 */
 public void setShapeType ( int shape_type )
 {	_shape_type = shape_type;
-}
-
-/**
-Set the user defined type.
-@deprecated Use setAppLayerType().
-*/
-public void setUserType ( String user_type )
-{	setAppLayerType ( user_type );
 }
 
 /**
@@ -1095,8 +1069,7 @@ All visible, selected shapes are written in the specified projection.
 */
 public void writeShapefile ( String filename, GeoProjection projection )
 throws IOException
-{	ESRIShapefile.write ( 	filename, _attribute_table, _shapes,
-				true, true, _projection, projection );
+{	ESRIShapefile.write (  filename, _attribute_table, _shapes, true, true, _projection, projection );
 }
 
 /**
@@ -1105,28 +1078,23 @@ derived classes so that specific data attributes, etc., can be handled.
 If not defined in a derived class, it is expected that the shapes and attribute
 table records can be saved to standard Shapefile formats.
 @param filename Name of file to write.
-@param visible_only If true, only visible shapes are written.  If false, all
-shapes are written.
+@param visible_only If true, only visible shapes are written.  If false, all shapes are written.
 @param selected_only If true, only selected shapes are written.  If false, all
 shapes are written (contingent on the other flag).
 @param projection Projection to use for output data.
 @exception IOException if there is an error writing the file.
 */
-public void writeShapefile (	String filename, boolean visible_only,
-				boolean selected_only,
-				GeoProjection projection )
+public void writeShapefile ( String filename, boolean visible_only, boolean selected_only,
+	GeoProjection projection )
 throws IOException
-{	ESRIShapefile.write ( 	filename, _attribute_table, _shapes,
-				visible_only, selected_only, _projection,
-				projection );
+{	ESRIShapefile.write (  filename, _attribute_table, _shapes, visible_only, selected_only, _projection, projection );
 }
 
 /**
 Save the layer as a shapefile.  This method should be defined in derived classes
 so that specific data attributes, etc., can be handled.  This method was
 implemented to handle grid data output and may not be appropriate for all other
-layer types.  If the design changes in the future, this method may be
-deprecated.
+layer types.  If the design changes in the future, this method may be deprecated.
 @param filename Name of file to write.
 @param projection Projection to use for output data.
 @param use_data_limits If true, then the following parameters are used.  This
@@ -1137,12 +1105,10 @@ data value per grid cell).
 data value per grid cell).
 @exception IOException if there is an error writing the file.
 */
-public void writeShapefile (	String filename, GeoProjection projection,
-				boolean use_data_limits, double min_data_value,
-				double max_data_value )
+public void writeShapefile ( String filename, GeoProjection projection, boolean use_data_limits,
+	double min_data_value, double max_data_value )
 throws IOException
-{	Message.printWarning ( 2, "GeoLayer.writeShapefile",
-	"This method should be defined in the derived class." );
+{	Message.printWarning ( 2, "GeoLayer.writeShapefile", "This method should be defined in the derived class." );
 }
 
-} // End of GeoLayer class
+}
