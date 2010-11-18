@@ -707,7 +707,7 @@ public static URL getDocumentBase ( )
 Return the drive letter for a path.
 @return the drive letter for a path (e.g., "C:") or return an empty string if
 no drive is found it the start of the path.
-@deprecated come back to this to resolve UNC issues.  REVISIT JTS - 2006-02-16
+@deprecated come back to this to resolve UNC issues.  TODO JTS - 2006-02-16
 */
 public static String getDrive ( String path )
 {	if ( isUNIXMachine() ) {
