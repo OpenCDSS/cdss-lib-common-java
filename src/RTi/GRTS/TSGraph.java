@@ -383,13 +383,13 @@ private boolean __drawLabels = true;
 /**
 Graph type.  Reset with properties.
 */
-private int _graph_type = TSProduct.GRAPH_TYPE_LINE;
+private TSGraphType __graphType = TSGraphType.LINE;
 
 /**
 The graph type for the last redraw.
 This will force the analysis to be done for analytical graph types when the graph type changes.
 */
-private int _last_graph_type = -1;	
+private TSGraphType __lastGraphType = TSGraphType.UNKNOWN;	
 
 /**
 List of all time series to plot (this is used for the legend).
@@ -825,14 +825,14 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 
 	_reference_ts_index = reference_ts_index;
 
-	_graph_type = TSProduct.lookupGraphTypeNumber ( tsproduct.getLayeredPropValue ( "GraphType", subproduct, -1, false ) );
-	if ( _graph_type < 0 ) {
+	__graphType = TSGraphType.valueOfIgnoreCase ( tsproduct.getLayeredPropValue ( "GraphType", subproduct, -1, false ) );
+	if ( __graphType == null ) {
 		// Should never happen...
-		_graph_type = TSProduct.GRAPH_TYPE_LINE;
+		__graphType = TSGraphType.LINE;
 	}
 
 	if (_is_reference_graph) {
-		_graph_type = TSProduct.GRAPH_TYPE_LINE;
+		__graphType = TSGraphType.LINE;
 	}
 
 	_drawlim_page = new GRLimits ( drawlim_page );
@@ -844,7 +844,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// This is also checked in the paint() method in case any analysis settings change...
 
 	doAnalysis();
-	_last_graph_type = _graph_type;
+	__lastGraphType = __graphType;
 
 	// Initialize the data limits...
 
@@ -961,7 +961,7 @@ public void actionPerformed(ActionEvent event)
 		TSLimits limits = null;
 
 		List<TS> tslist = null;
-		if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 	    	int nreg = 0;
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
@@ -977,7 +977,7 @@ public void actionPerformed(ActionEvent event)
 			}
 			tslist = v;
 		}
-		else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+		else if (__graphType == TSGraphType.PREDICTED_VALUE) {
 	    	int nreg = 0;
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
@@ -1159,7 +1159,7 @@ Later it may be tied to a property.
 @return true if the graph can zoom, false otherwise.
 */
 public boolean canZoom() {
-	if ((_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) || (_graph_type == TSProduct.GRAPH_TYPE_DURATION)) {
+	if ((__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION)) {
 		return false;
 	}
 	else {	
@@ -1232,7 +1232,7 @@ protected void computeDataLimits (boolean max)
 	try {
         // First get the date limits from the full set of time series...
 		TSLimits limits = null;
-		if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 	    	int nreg = 0;
 			if (__tslist != null) {
 				nreg = __tslist.size() - 1;
@@ -1267,8 +1267,8 @@ protected void computeDataLimits (boolean max)
 		// Now get the data limits.  To do the check correctly, the data units must be considered.
 		_ignore_units = false;
 		// First set defaults...
-		if ( (_graph_type == TSProduct.GRAPH_TYPE_DOUBLE_MASS) || (_graph_type == TSProduct.GRAPH_TYPE_PERIOD) ||
-			(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) ) {
+		if ( (__graphType == TSGraphType.DOUBLE_MASS) || (__graphType == TSGraphType.PERIOD) ||
+			(__graphType == TSGraphType.XY_SCATTER) ) {
 			_ignore_units = true;
 		}
 		// Now check the property (keep a separate copy so we can avoid the prompt below if appropriate)...
@@ -1332,7 +1332,7 @@ protected void computeDataLimits (boolean max)
 					}
 				}
 				else {	
-                	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+                	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
                 		int nreg = 0;
                 		if (__tslist != null) {
                 			nreg = __tslist.size() - 1;
@@ -1371,7 +1371,7 @@ protected void computeDataLimits (boolean max)
 			// If a period graph, the limits should be a count of
 			// the time series, 0 to 1 more than the time series
 			// count.  Reverse the axis so the number is correct...
-			if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
+			if ( __graphType == TSGraphType.PERIOD ) {
 				_max_tslimits.setMaxValue(0.0);
 				_max_tslimits.setMinValue(getEnabledTSList().size() + 1);
 			}
@@ -1418,7 +1418,7 @@ protected void computeDataLimits (boolean max)
 				}
 			}
 			else if (prop_value != null && prop_value.equalsIgnoreCase("Auto")) {
-            	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+            	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
             		int nreg = 0;
             		if (__tslist != null) {
             			nreg = __tslist.size() - 1;
@@ -1466,7 +1466,7 @@ protected void computeDataLimits (boolean max)
 		_tslimits = new TSLimits ( _max_tslimits );
 		// Initialize this here because this is what the reference
 		// graph uses throughout (it does not need nice labels).
-		if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+		if ( __graphType == TSGraphType.XY_SCATTER ) {
 			boolean xlimits_found = false;
 			boolean ylimits_found = false;
 			TSRegression regressionData = null;
@@ -1610,14 +1610,14 @@ protected void computeDataLimits (boolean max)
 			// Set the limits regardless.  Worst case they will be zero to one...
 			_data_limits = new GRLimits ( xmin, ymin, xmax, ymax );
 		}
-		else if ( _graph_type == TSProduct.GRAPH_TYPE_DURATION ) {
+		else if ( __graphType == TSGraphType.DURATION ) {
 			// X limits are 0 to 100.  Y limits are based on the time series...
 			_data_limits = new GRLimits ( 0.0, 0.0,	100.0, _tslimits.getMaxValue() );
 		}
-		else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL
-		    || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+		else if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL
+		    || __graphType == TSGraphType.PREDICTED_VALUE) {
 		    	boolean residual = true;
-			if (_graph_type==TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+			if (__graphType==TSGraphType.PREDICTED_VALUE) {
 				residual = false;
 			}
 			TSRegression regressionData = null;
@@ -1669,7 +1669,7 @@ protected void computeDataLimits (boolean max)
 				_max_data_limits = new GRLimits(_data_limits);
 			}
 			else {
-				if (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) {
+				if (__graphType == TSGraphType.XY_SCATTER) {
 				    	_max_data_limits = new GRLimits(_data_limits);
 				}
 				else {
@@ -1760,7 +1760,7 @@ private void computeLabels ( TSLimits limits )
 	// creating new graphs sometimes.  Puts fewer labels in than look like should be in there.
 	
 	if (log_y) {
-		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
+		if ( (__graphType == TSGraphType.XY_SCATTER) && (_regression_data != null) ) {
 			// Old used data from the regression...
 			//_ylabels = GRAxis.findLogLabels (_regression_data.getMin2(),_regression_data.getMax2() );
 			// New consider all regression data...
@@ -1771,7 +1771,7 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 	else if (log_xy_scatter) {
-		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
+		if ( (__graphType == TSGraphType.XY_SCATTER) && (_regression_data != null) ) {
 			// Old used data from the regression...
 			//_ylabels = GRAxis.findLogLabels (_regression_data.getMin2(),_regression_data.getMax2() );
 			// New consider all regression data...
@@ -1781,7 +1781,7 @@ private void computeLabels ( TSLimits limits )
 		    _ylabels = GRAxis.findLogLabels ( limits.getMinValue(),	limits.getMaxValue() );
 		}
 	}
-	else if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
+	else if ( __graphType == TSGraphType.PERIOD ) {
 		// Y-labels are whole numbers...
 		_ylabels = new double[getEnabledTSList().size()];
 		for ( int i = 0; i < getEnabledTSList().size(); i++ ) {
@@ -1790,7 +1790,7 @@ private void computeLabels ( TSLimits limits )
 	}
 	else {
 	    // Linear.  Minimum and maximum number of labels as computed above...
-		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (_regression_data != null) ) {
+		if ( (__graphType == TSGraphType.XY_SCATTER) && (_regression_data != null) ) {
 			while ( minlabels >= 3 ) {
 				// Make sure the max values properly account for the other axis...
 				// Old...
@@ -1821,7 +1821,7 @@ private void computeLabels ( TSLimits limits )
 			minlabels + " to " + maxlabels + " labels.  Using end-point data values." );
 		}
 		_ylabels = new double [2];
-		if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+		if ( __graphType == TSGraphType.XY_SCATTER ) {
 			_ylabels[0] = _data_limits.getMinY();
 			_ylabels[1] = _data_limits.getMaxY();
 			_data_limits = new GRLimits ( _max_data_limits.getMinX(), _ylabels[0],
@@ -1835,11 +1835,11 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 	else {	
-		if (_graph_type == TSProduct.GRAPH_TYPE_PERIOD) {
+		if (__graphType == TSGraphType.PERIOD) {
 			_data_limits = new GRLimits ( _start_date.toDouble(), (getEnabledTSList().size() + 1),
 				_end_date.toDouble(), 0.0);
 		}
-		else if (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+		else if (__graphType == TSGraphType.XY_SCATTER ) {
 			_data_limits = new GRLimits ( _max_data_limits.getMinX(), _ylabels[0],
 				_max_data_limits.getMaxX(),	_ylabels[_ylabels.length - 1]);
 		}
@@ -1875,7 +1875,7 @@ private void computeLabels ( TSLimits limits )
 	fontstyle = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontStyle", _subproduct, -1, false );
 	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
 
-	if ( _graph_type == TSProduct.GRAPH_TYPE_DURATION ) {
+	if ( __graphType == TSGraphType.DURATION ) {
 		// Limits are 0 to 100.0..
 		String maxstring = StringUtil.formatString(	(double)100.0, "%.0f");
 		label_extents = GRDrawingAreaUtil.getTextExtents( _da_lefty_label, maxstring, GRUnits.DEVICE );
@@ -1912,7 +1912,7 @@ private void computeLabels ( TSLimits limits )
 		maxstring = null;
 		return;
 	}
-	else if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+	else if ( __graphType == TSGraphType.XY_SCATTER ) {
 		// Labels are based on the _data_limits...
 		// Need to check precision for units but assume .1 for now...
 		String maxstring = StringUtil.formatString(	_data_limits.getMaxX(), "%." + _xaxis_precision + "f");
@@ -2304,10 +2304,10 @@ After the analysis, the data limits are recomputed (this is done for simple data
 private void doAnalysis ()
 {	String routine = "TSGraph.doAnalysis";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Analyzing time series for " + _graph_type + " graph.");
+		Message.printDebug ( 1, routine, "Analyzing time series for " + __graphType + " graph.");
 	}
 
-	if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+	if ( __graphType == TSGraphType.XY_SCATTER ) {
 		// Do a linear regression analysis.  The first time series is
 		// considered the independent (X) and the remaining time series
 		// the Y.  If a regression fails, set it to null in the vector
@@ -2427,7 +2427,7 @@ private void doAnalysis ()
 			_regression_data.add ( regressionData );
 		}
 	}
-	else if ( _graph_type == TSProduct.GRAPH_TYPE_DOUBLE_MASS ) {
+	else if ( __graphType == TSGraphType.DOUBLE_MASS ) {
 		// Do a double mass analysis so the information is available.
 		// TODO SAM 2007-05-09 Need to enable?
 		//TS ts0 = null;
@@ -2450,7 +2450,7 @@ private void doAnalysis ()
 		//ts0 = null;
 		//ts1 = null;
 	}
-	else if ( (_graph_type == TSProduct.GRAPH_TYPE_DURATION) && (__tslist != null) && (__tslist.size() != 0) ) {
+	else if ( (__graphType == TSGraphType.DURATION) && (__tslist != null) && (__tslist.size() != 0) ) {
 		// Generate TSDurationAnalysis for each time series...
 		int size = __tslist.size();
 		_duration_data = new Vector ( size );
@@ -2466,8 +2466,8 @@ private void doAnalysis ()
 		}
 		da = null;
 	}
-	else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	else if (__graphType == TSGraphType.PREDICTED_VALUE
+	    || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		// Do a linear regression analysis.  The first time series is
 		// considered the independent (X) and the remaining time series
 		// the Y.  If a regression fails, set it to null in the vector
@@ -2758,7 +2758,7 @@ private void drawAxesFront ()
 	}
 	else {
 	    if (__drawLabels) {
-			if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
+			if ( __graphType == TSGraphType.PERIOD ) {
 				// Only want to label with whole numbers that are > 0 and <= __tslist.size()...
 				GRAxis.drawLabels ( _da_lefty_label, _ylabels.length,
 				_ylabels, _datalim_lefty_label.getRightX(),
@@ -2800,7 +2800,7 @@ private void drawAxesFront ()
 
 	// Label axis after drawing so tics are on top of data...
 
-	if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) || (_graph_type == TSProduct.GRAPH_TYPE_DURATION) ) {
+	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ) {
 		// Label the X axis with formatted numbers...
 		GRAxis.drawLabels ( _da_bottomx_label, _xlabels.length,
 		_xlabels, _datalim_bottomx_label.getTopY(), GRAxis.X, "%.1f", GRText.TOP|GRText.CENTER_X );
@@ -2839,7 +2839,7 @@ to see if the CurrentDateTime property is set (it will be set in the override
 properties in the TSProduct).  If set and within the limits of the current graph, the current line will be drawn.
 */
 private void drawCurrentDateTime ()
-{	if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) || (_graph_type == TSProduct.GRAPH_TYPE_DURATION) ) {
+{	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ) {
 		return;
 	}
 	// Allow layered properties because the current time could be specified once for all graphs...
@@ -3134,16 +3134,15 @@ private void drawGraph () {
 	// Graph the time series.  If a reference map, only draw one time series, as specified in the properties...
 
 	TS ts = null;
-	if ( _graph_type == TSProduct.GRAPH_TYPE_DURATION ) {
+	if ( __graphType == TSGraphType.DURATION ) {
 		drawDurationPlot ();
 	}
-	else if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+	else if ( __graphType == TSGraphType.XY_SCATTER ) {
 		drawXYScatterPlot ();
 	}
-	else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-	    	boolean residual = true;
-		if (_graph_type==TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+	else if (__graphType == TSGraphType.PREDICTED_VALUE || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	    boolean residual = true;
+		if (__graphType==TSGraphType.PREDICTED_VALUE) {
 			residual = false;
 		}
 		TSRegression regressionData = null;
@@ -3284,10 +3283,10 @@ private void drawLegend () {
 	
 	TS ts;
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+	if (__graphType == TSGraphType.PREDICTED_VALUE) {
 		size = 1 + ((size - 1) * 2);
 	}
-	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		size = size - 1;
 	}
 
@@ -3308,7 +3307,7 @@ private void drawLegend () {
 			 continue;
 		}
 		
-		if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+		if (__graphType == TSGraphType.PREDICTED_VALUE) {
 			// Determine the correspondence of the TS to be drawn versus the actual time series that there is
 			// access to.  
 			// ts 0 corresponds to 0
@@ -3373,7 +3372,7 @@ private void drawLegend () {
 				line_style = "Dashed";
 			}
 		}
-		else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		else if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			if (!isTSEnabled(i + 1)) {
 				continue;
 			}
@@ -3427,11 +3426,10 @@ private void drawLegend () {
 		x[1] = x[0] + 25;
 		y[0] = ylegend + ydelta/2.0;
 		y[1] = y[0];
-		if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) && (i == 0) ) {
+		if ( (__graphType == TSGraphType.XY_SCATTER) && (i == 0) ) {
 			;// Do nothing.  Don't want the symbol (but do want the string label below
 		}
-		else if (_graph_type == TSProduct.GRAPH_TYPE_BAR || _graph_type 
-		    == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		else if (__graphType == TSGraphType.BAR || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			GRDrawingAreaUtil.fillRectangle ( da_legend, x[0], ylegend,(x[1] - x[0]), ydelta);
 		}
 		else {	
@@ -3442,10 +3440,10 @@ private void drawLegend () {
 				}
 			}
 
-			if (_graph_type != TSProduct.GRAPH_TYPE_POINT && line_style.equalsIgnoreCase("Solid") ) {
+			if (__graphType != TSGraphType.POINT && line_style.equalsIgnoreCase("Solid") ) {
 				GRDrawingAreaUtil.drawLine(da_legend, x, y);
 			}
-			else if (_graph_type != TSProduct.GRAPH_TYPE_POINT && line_style.equalsIgnoreCase("Dashed")) {
+			else if (__graphType != TSGraphType.POINT && line_style.equalsIgnoreCase("Dashed")) {
 				GRDrawingAreaUtil.setLineDash( da_legend, lineDash, 0);
 				GRDrawingAreaUtil.drawLine(da_legend, x, y);
 				GRDrawingAreaUtil.setLineDash( da_legend, null, 0);
@@ -3558,7 +3556,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 	}
 
 	if ((ts.getDataIntervalBase() == TimeInterval.IRREGULAR)  
-	    && (_graph_type == TSProduct.GRAPH_TYPE_PERIOD)) {
+	    && (__graphType == TSGraphType.PERIOD)) {
 		// Can't draw irregular time series in period of record graph.
 		return;
 	}
@@ -3673,7 +3671,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 	// converted.  The left axis units are determined at construction.
 
 	if (!_ignore_units) {
-		if (_graph_type != TSProduct.GRAPH_TYPE_DURATION && _graph_type != TSProduct.GRAPH_TYPE_XY_SCATTER) {
+		if (__graphType != TSGraphType.DURATION && __graphType != TSGraphType.XY_SCATTER) {
 		   	String lefty_units = getLayeredPropValue( "LeftYAxisUnits", _subproduct, -1, false, overrideProps);
 
 			if (!DataUnits.areUnitsStringsCompatible(ts.getDataUnits(),lefty_units,true)) {
@@ -3819,7 +3817,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 
 	int nts = getEnabledTSList().size();
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL && __tslist != null) {
+	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL && __tslist != null) {
 		int numReg = __tslist.size() - 1;
 		nts = 0;
 		for (int i = 0; i < numReg; i++) {
@@ -3877,7 +3875,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 		lineDash[1] = 5;
 	}
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_BAR || _graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (__graphType == TSGraphType.BAR || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		DateTime temp_date = new DateTime(_tslimits.getDate1());
 		// Convert date to a double
 		full_bar_width = temp_date.toDouble();
@@ -3968,8 +3966,8 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
         
         		// Else, see if need to moveto or lineto the point.
         		x = date.toDouble();
-        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (_graph_type != TSProduct.GRAPH_TYPE_BAR
-            	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
+        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR
+            	&& __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
         			// Always draw the symbol
                     //if (tsdata != null) 
                     //Message.printStatus(1, "", "JTS0" + date + ": '" + tsdata.getDataFlag() 
@@ -4021,7 +4019,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
         		}
         		else {	
         			// Draw the line segment or bar
-        			if (_graph_type != TSProduct.GRAPH_TYPE_BAR	&& _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+        			if (__graphType != TSGraphType.BAR	&& __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
         				if (draw_line) {
         					GRDrawingAreaUtil.setLineWidth( _da_graph, lineWidth);
         						
@@ -4166,11 +4164,6 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
         		++drawcount;
         	}
 		}
-		
-		irrts = null;
-		alltsdata = null;
-		tsdata = null;
-		date = null;
 	}
 	else {	
 		// Loop using addInterval
@@ -4195,8 +4188,8 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 				continue;
 			}
 			
-			if (_graph_type == TSProduct.GRAPH_TYPE_PERIOD) {
-				// Reset to use se the plotting position of the time series, which will result in a
+			if (__graphType == TSGraphType.PERIOD) {
+				// Reset to use the plotting position of the time series, which will result in a
 				// horizontal line.  Want the y position to result in the same order as in the legend,
 				// where the first time series is at the top of the legend.  This is accomplished by
 				// reversing the Y axis for plotting
@@ -4209,8 +4202,8 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 			// Uncomment this for hard-core debugging
 			//Message.printStatus(1, routine, "its=" + its + " date = " + date + " x = " + x + " y=" + y);
 
-			if (((drawcount == 0) || ts.isDataMissing(lasty)) && (_graph_type != TSProduct.GRAPH_TYPE_BAR
-			    && _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL)) {
+			if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR
+			    && __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
 				// Previous point was missing so all need to do is draw the symbol (if not a referencegraph)				
 				if (_is_reference_graph) {
 					// Don't label or draw symbol.
@@ -4257,7 +4250,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 			}
 
 			// If here, need to draw the line segment or bar...
-			if (_graph_type != TSProduct.GRAPH_TYPE_BAR && _graph_type != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+			if (__graphType != TSGraphType.BAR && __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 				if (draw_line) {
 					if (dashedLine) {
 						GRDrawingAreaUtil.setLineDash( _da_graph, lineDash, 0);
@@ -4407,7 +4400,7 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 Draw the X-axis grid.  This calls the drawXAxisDateLabels() if necessary.
 */
 private void drawXAxisGrid ()
-{	if ( (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) || (_graph_type == TSProduct.GRAPH_TYPE_DURATION) ) {
+{	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ) {
 		// Do the grid here because it uses simple numbers and not dates...
 	
 		String color_prop = _tsproduct.getLayeredPropValue ( "BottomXAxisMajorGridColor", _subproduct, -1, false );
@@ -4516,7 +4509,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		yt[1] = yt[0] + tic_height;
 		yt2[1] = yt2[0] + tic_height/2.0;
 	}
-	if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
+	if ( __graphType == TSGraphType.PERIOD ) {
 		// Reversed axes...
 		yt[0] = getEnabledTSList().size() + 1;
 		yt2[0] = getEnabledTSList().size() + 1;
@@ -5593,9 +5586,9 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
 {	if ( datapt == null ) {
 		return "";
 	}
-	else if ((_graph_type == TSProduct.GRAPH_TYPE_DOUBLE_MASS) ||
-		(_graph_type == TSProduct.GRAPH_TYPE_DURATION) ||
-		(_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) ){
+	else if ((__graphType == TSGraphType.DOUBLE_MASS) ||
+		(__graphType == TSGraphType.DURATION) ||
+		(__graphType == TSGraphType.XY_SCATTER) ){
 		return "X:  " + StringUtil.formatString(datapt.x,"%.2f") +
 			",  Y:  " + StringUtil.formatString(datapt.y,"%." + _lefty_precision + "f");
 	}
@@ -5677,11 +5670,11 @@ public GRJComponentDrawingArea getGraphDrawingArea()
 }
 
 /**
-Return the graph type (see TSProduct.GRAPH_TYPE_*).
+Return the graph type.
 @return the graph type.
 */
-public int getGraphType ()
-{	return _graph_type;
+public TSGraphType getGraphType ()
+{	return __graphType;
 }
 
 /**
@@ -5791,12 +5784,12 @@ private String getLegendString ( TS ts, int i )
 			}
 		}
 	}
-	if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+	if ( __graphType == TSGraphType.XY_SCATTER ) {
 		if ( i == 0 ) {
 			legend = "Y (dependent): " + legend;
 		}
 	}
-	else if ( _graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
+	else if ( __graphType == TSGraphType.PERIOD ) {
 		legend = (i + 1) + ") " + legend;
 	}
 	return legend;
@@ -5864,7 +5857,7 @@ public JPopupMenu getJPopupMenu() {
 	_graph_JPopupMenu = new JPopupMenu("Graph");
 	
 	// Add properties specific to each graph type
-	if (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) {
+	if (__graphType == TSGraphType.XY_SCATTER) {
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_ANALYSIS_DETAILS,__MENU_ANALYSIS_DETAILS,this));
 		_graph_JPopupMenu.addSeparator();
 	}
@@ -5875,7 +5868,7 @@ public JPopupMenu getJPopupMenu() {
 	// Add ability to set Y Maximum values
 	_graph_JPopupMenu.addSeparator();
 
-	if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_VISIBLE, __MENU_Y_MAXIMUM_VISIBLE, this));
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_VISIBLE, __MENU_Y_MINIMUM_VISIBLE, this));
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_AUTO, __MENU_Y_MAXIMUM_AUTO, this));
@@ -6167,10 +6160,10 @@ public void paint ( Graphics g )
 	// be changed.  However, XY Scatter parameters can be changed.
 
 	boolean need_to_analyze = false;
-	if ( _graph_type != _last_graph_type ) {
+	if ( __graphType != __lastGraphType ) {
 		need_to_analyze = true;
 	}
-	if ( _graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+	if ( __graphType == TSGraphType.XY_SCATTER ) {
 		// Check the properties in the old regression results and see
 		// if they differ from the current TSProduct properties.  If
 		// they do, then reanalyze the data.  Assume for now that the
@@ -6194,7 +6187,7 @@ public void paint ( Graphics g )
 		doAnalysis();
 		// This is the place where the reference graph has its data set.
 	}
-	_last_graph_type = _graph_type;
+	__lastGraphType = __graphType;
 
 	// Compute the labels for the data, which will set the _datalim_graph,
 	// which is used to set other data labels...
@@ -6319,7 +6312,7 @@ public void setDataLimits ( GRLimits datalim_graph )
 			else {
 				_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
 
-				if (_graph_type == TSProduct.GRAPH_TYPE_PERIOD){
+				if (__graphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
 					// the number of time series.  Reverse the limits to number the same as the legend...
 					_tslimits.setMaxValue(0.0);
@@ -6477,7 +6470,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	GRDrawingAreaUtil.setFont ( _da_bottomx_label, bottomx_label_font,
 		bottomx_label_fontstyle, StringUtil.atod(bottomx_label_fontsize) );
 	GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( _da_bottomx_label, "A string", GRUnits.DEVICE );
-	if ( (_graph_type == TSProduct.GRAPH_TYPE_DURATION) || (_graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) ) {
+	if ( (__graphType == TSGraphType.DURATION) || (__graphType == TSGraphType.XY_SCATTER) ) {
 		bottomx_label_height = text_limits.getHeight();
 	}
 	else {
@@ -6520,7 +6513,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         		continue;
         	}
         	if ( ts.getEnabled() ) {
-        		if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+        		if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
         			if (i == 0) {
         				// ignore the zeroth
         				continue;
@@ -6533,7 +6526,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			}
         			++nts;			
         		}
-        		else if (_graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE) {
+        		else if (__graphType == TSGraphType.PREDICTED_VALUE) {
         			// The time series will be plotted and will be shown in the legend...
         			legend = getLegendString(ts, i);
         			if (legend != null) {

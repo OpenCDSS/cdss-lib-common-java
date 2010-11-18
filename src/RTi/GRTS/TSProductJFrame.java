@@ -909,33 +909,31 @@ public void checkGUIState() {
 	// combo box.  If so, enable all the annotation entry fields.  If not,
 	// disable everything but the add button.
  
-	if (__annotation_JComboBox == null 
-		|| __annotation_JComboBox.getItemCount() == 0) {
+	if (__annotation_JComboBox == null || __annotation_JComboBox.getItemCount() == 0) {
 		setAnnotationFieldsEnabled(false);
 	}
 	else {
 		setAnnotationFieldsEnabled(true);
 	}	
 
-	String graphType = _graph_graphtype_JComboBox.getSelected();
-	if (graphType == null) {
+	String graphTypeString = _graph_graphtype_JComboBox.getSelected();
+	if (graphTypeString == null) {
 		return;
 	}
-	int graph_type = TSProduct.lookupGraphTypeNumber(graphType);
-	if (graph_type == TSProduct.GRAPH_TYPE_LINE 
-	    || graph_type == TSProduct.GRAPH_TYPE_BAR
-	    || graph_type == TSProduct.GRAPH_TYPE_POINT) {}
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(graphTypeString);
+	if (graphType == TSGraphType.LINE 
+	    || graphType == TSGraphType.BAR
+	    || graphType == TSGraphType.POINT) {}
 	else {
 		_graph_graphtype_JComboBox.setEnabled(false);
 	}	
 
-	enableComponentsBasedOnGraphType(_selected_subproduct,
-		_selected_data, false);
+	enableComponentsBasedOnGraphType(_selected_subproduct, _selected_data, false);
 }
 
 /**
-Checks whether user inputted values are valid.  
-@return true if all the user-inputted values valid, false if not.
+Checks whether user entered values are valid.  
+@return true if all the user-entered values valid, false if not.
 */
 public boolean checkUserInput() {
 	String routine = "TSProductJFrame.checkUserInput";
@@ -948,8 +946,7 @@ public boolean checkUserInput() {
 		|| (s.indexOf(" ") > -1) 
 		|| (s.indexOf("'") > -1) 
 		|| (s.indexOf("-") > -1)) {
-		warning += "\nProduct ID must be entered and cannot contain "
-			+ "spaces, apostrophes or dashes.";
+		warning += "\nProduct ID must be entered and cannot contain spaces, apostrophes or dashes.";
 	}
 
 	s = __product_name_JTextField.getText().trim();
@@ -1170,13 +1167,11 @@ important if the user changes graph types.
 @param subproduct the subproduct (base-zero) for which to clear out the other
 graph properties than for the one that is selected.
 @param ts unused
-@param graphType the kind of graph that the user selected from the graph type
-combo box.
+@param graphType the kind of graph that the user selected from the graph type combo box.
 */
-private void clearGraphProperties(int subproduct, int ts, int graphType) {
+private void clearGraphProperties(int subproduct, int ts, TSGraphType graphType) {
 	String prefix = "SubProduct " + (subproduct + 1) + ".";
-	if (graphType != TSProduct.GRAPH_TYPE_BAR 
-	    && graphType != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType != TSGraphType.BAR && graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_tsproduct.unSet(prefix + "BarPosition");
 	}
 	else {
@@ -1186,25 +1181,21 @@ private void clearGraphProperties(int subproduct, int ts, int graphType) {
 		_tsproduct.unSet(prefix + "SymbolStyle");
 	}
 
-	if (graphType == TSProduct.GRAPH_TYPE_POINT) {
+	if (graphType == TSGraphType.POINT) {
 		_tsproduct.unSet(prefix + "LineStyle");
 		_tsproduct.unSet(prefix + "LineWidth");
 	}
 
-	if (graphType != TSProduct.GRAPH_TYPE_XY_SCATTER
-	    && graphType != TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    && graphType != TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType != TSGraphType.XY_SCATTER
+	    && graphType != TSGraphType.PREDICTED_VALUE
+	    && graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_tsproduct.unSet(prefix + "XYScatterAnalyzeForFilling");
-		_tsproduct.unSet(prefix 
-			+ "XYScatterDependentAnalysisPeriodEnd");
-		_tsproduct.unSet(prefix 
-			+ "XYScatterDependentAnalysisPeriodStart");
+		_tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodEnd");
+		_tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodStart");
 		_tsproduct.unSet(prefix + "XYScatterFillPeriodEnd");
 		_tsproduct.unSet(prefix + "XYScatterFillPeriodStart");
-		_tsproduct.unSet(prefix 
-			+ "XYScatterIndependentAnalysisPeriodEnd");
-		_tsproduct.unSet(prefix 
-			+ "XYScatterIndependentAnalsysisPeriodStart");
+		_tsproduct.unSet(prefix + "XYScatterIndependentAnalysisPeriodEnd");
+		_tsproduct.unSet(prefix	+ "XYScatterIndependentAnalsysisPeriodStart");
 		_tsproduct.unSet(prefix + "XYScatterIntercept");
 		_tsproduct.unSet(prefix + "XYScatterMethod");
 		_tsproduct.unSet(prefix + "XYScatterMonth");
@@ -2606,11 +2597,12 @@ private JPanel createSubproductJPanel ()
 			GridBagConstraints.EAST );
 	_graph_graphtype_JComboBox = new SimpleJComboBox( false );
 //	_graph_graphtype_JComboBox.setEnabled ( false );
-	int size = TSProduct.GRAPH_TYPE_NAMES.length;
-	for ( int i = 0; i < size; i++ ) {
-		_graph_graphtype_JComboBox.addItem (
-			TSProduct.GRAPH_TYPE_NAMES[i] );
+	for ( TSGraphType graphType: TSGraphType.values() ) {
+	    if ( graphType != TSGraphType.UNKNOWN ) {
+	        _graph_graphtype_JComboBox.addItem ( "" + graphType );
+	    }
 	}
+	int size = _graph_graphtype_JComboBox.getItemCount();
 	_graph_graphtype_JComboBox.addItemListener(this);
 //	_graph_graphtype_JComboBox.setEnabled(false);
 	JGUIUtil.addComponent ( graphtype_JPanel, _graph_graphtype_JComboBox,
@@ -3705,8 +3697,7 @@ private void displayDataProperties ( int isub, int its )
 	// subproduct graph type since we don't allow individual time series to
 	// be different)...
 
-	int graph_type = TSProduct.lookupGraphTypeNumber (
-			_graph_graphtype_JComboBox.getSelected() );
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
 	// "Color"
 
@@ -3720,9 +3711,7 @@ private void displayDataProperties ( int isub, int its )
 	try {	
 		JGUIUtil.selectIgnoreCase(_ts_color_JComboBox,prop_val);
 		try {	
-			_ts_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				_ts_color_JTextField.getText()));
+			_ts_color_JTextField.setBackground( (Color)GRColor.parseColor(_ts_color_JTextField.getText()));
 		}
 		catch (Exception e2) {
 			_ts_color_JTextField.setBackground(Color.white);
@@ -3735,26 +3724,22 @@ private void displayDataProperties ( int isub, int its )
 
 	// "DataLabelFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"DataLabelFormat", isub, its, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFormat", isub, its, false );
 	_ts_datalabelformat_JTextField.setText(prop_val);
 
 	// "DataLabelPosition"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"DataLabelPosition", isub, its, false );
-	try {	JGUIUtil.selectIgnoreCase(
-			_ts_datalabelposition_JComboBox,prop_val);
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelPosition", isub, its, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_ts_datalabelposition_JComboBox,prop_val);
 	}
 	catch ( Exception e ) {
-		_ts_datalabelposition_JComboBox.select(
-		_tsproduct.getDefaultPropValue("DataLabelPosition",isub,its) );
+		_ts_datalabelposition_JComboBox.select( _tsproduct.getDefaultPropValue("DataLabelPosition",isub,its) );
 	}
 
 	// "Enabled"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-			"Enabled", isub, its, false);
+	prop_val = _tsproduct.getLayeredPropValue("Enabled", isub, its, false);
 	if ((prop_val == null) || prop_val.equalsIgnoreCase("true")) {
 		_ts_enabled_JCheckBox.setSelected(true);
 	}
@@ -3764,53 +3749,46 @@ private void displayDataProperties ( int isub, int its )
 
 	// "LegendFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LegendFormat", isub, its, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFormat", isub, its, false );
 	_ts_legendformat_JTextField.setText(prop_val);
 
 	// "XAxis"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"XAxis", isub, its, false );
-	try {	JGUIUtil.selectIgnoreCase(_ts_xaxis_JComboBox, prop_val );
+	prop_val = _tsproduct.getLayeredPropValue ( "XAxis", isub, its, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_ts_xaxis_JComboBox, prop_val );
 	}
 	catch ( Exception e ) {
-		_ts_xaxis_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XAxis",isub,its));
+		_ts_xaxis_JComboBox.select(_tsproduct.getDefaultPropValue("XAxis",isub,its));
 	}
 
 	// "YAxis"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"YAxis", isub, its, false );
-	try {	JGUIUtil.selectIgnoreCase(_ts_yaxis_JComboBox, prop_val );
+	prop_val = _tsproduct.getLayeredPropValue ("YAxis", isub, its, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_ts_yaxis_JComboBox, prop_val );
 	}
 	catch ( Exception e ) {
-		_ts_yaxis_JComboBox.select(
-		_tsproduct.getDefaultPropValue("YAxis",isub,its));
+		_ts_yaxis_JComboBox.select(_tsproduct.getDefaultPropValue("YAxis",isub,its));
 	}
 
 	// "LineStyle"
 
 	prop_val = _tsproduct.getLayeredPropValue("LineStyle", isub, its,false);
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_ts_linestyle_JComboBox.select("Solid");
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		_ts_linestyle_JComboBox.select("None");
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
 	else {	
 		try {	
-			JGUIUtil.selectIgnoreCase(_ts_linestyle_JComboBox,
-				prop_val);
+			JGUIUtil.selectIgnoreCase(_ts_linestyle_JComboBox,prop_val);
 		}
 		catch (Exception e) {
-			_ts_linestyle_JComboBox.select(
-				_tsproduct.getDefaultPropValue("LineStyle",
-				isub,its));
+			_ts_linestyle_JComboBox.select(_tsproduct.getDefaultPropValue("LineStyle",isub,its));
 		}
 		_ts_linestyle_JComboBox.setEnabled(true);
 	}
@@ -3818,35 +3796,31 @@ private void displayDataProperties ( int isub, int its )
 	// "LineWidth"
 
 	prop_val = _tsproduct.getLayeredPropValue("LineWidth", isub, its,false);
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR 
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_ts_linewidth_JComboBox.select("0");
 		_ts_linewidth_JComboBox.setEnabled(false);
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		_ts_linewidth_JComboBox.select("0");
 		_ts_linewidth_JComboBox.setEnabled(false);
 	}
 	else {	
 		try {	
-			JGUIUtil.selectIgnoreCase(_ts_linewidth_JComboBox,
-				prop_val);
+			JGUIUtil.selectIgnoreCase(_ts_linewidth_JComboBox, prop_val);
 		}
 		catch (Exception e) {
-			_ts_linewidth_JComboBox.select(
-				_tsproduct.getDefaultPropValue("LineWidth",
-				isub,its));
+			_ts_linewidth_JComboBox.select(_tsproduct.getDefaultPropValue("LineWidth",isub,its));
 		}
 		_ts_linewidth_JComboBox.setEnabled(true);
 	}
 
 	// "RegressionLineEnabled"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"RegressionLineEnabled", isub, its, false);
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		prop_val = _tsproduct.getLayeredPropValue("RegressionLineEnabled", isub, its, false);
 		if ((prop_val == null) || prop_val.equalsIgnoreCase("true")) {
 			_ts_regressionline_JCheckBox.setSelected(true);
 		}
@@ -3857,63 +3831,49 @@ private void displayDataProperties ( int isub, int its )
 
 	// "SymbolSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SymbolSize", isub, its, false );
-	if ( graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	prop_val = _tsproduct.getLayeredPropValue ( "SymbolSize", isub, its, false );
+	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_ts_symbolsize_JComboBox.select("0");
 		_ts_symbolsize_JComboBox.setEnabled(false);
 	}
 	else {	
 		try {	
-			JGUIUtil.selectIgnoreCase(_ts_symbolsize_JComboBox,
-				prop_val);
+			JGUIUtil.selectIgnoreCase(_ts_symbolsize_JComboBox, prop_val);
 		}
 		catch (Exception e) {
-			_ts_symbolsize_JComboBox.select(
-				_tsproduct.getDefaultPropValue("SymbolSize",
-				isub,its));
+			_ts_symbolsize_JComboBox.select(_tsproduct.getDefaultPropValue("SymbolSize",isub,its));
 		}
 		_ts_symbolsize_JComboBox.setEnabled(true);
 	}
 
 	// "SymbolStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SymbolStyle", isub, its, false );
-	if ( graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	prop_val = _tsproduct.getLayeredPropValue ( "SymbolStyle", isub, its, false );
+	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_ts_symbolstyle_JComboBox.select("None");
 		_ts_symbolstyle_JComboBox.setEnabled(false);
 	}
 	else {	
 		try {	
-			JGUIUtil.selectIgnoreCase(_ts_symbolstyle_JComboBox,
-				prop_val);
+			JGUIUtil.selectIgnoreCase(_ts_symbolstyle_JComboBox, prop_val);
 		}
 		catch (Exception e) {
-			_ts_symbolstyle_JComboBox.select(
-				_tsproduct.getDefaultPropValue("SymbolStyle",
-				isub,its));
+			_ts_symbolstyle_JComboBox.select(_tsproduct.getDefaultPropValue("SymbolStyle",isub,its));
 		}
 		_ts_symbolstyle_JComboBox.setEnabled(true);
 	}
 
 	// "XYScatterConfidenceLevel"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"XYScatterConfidenceInterval", isub, its, false);
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		prop_val = _tsproduct.getLayeredPropValue("XYScatterConfidenceInterval", isub, its, false);
 		try {	
-			JGUIUtil.selectIgnoreCase(
-				_ts_confidenceinterval_JComboBox,prop_val);
+			JGUIUtil.selectIgnoreCase(_ts_confidenceinterval_JComboBox,prop_val);
 		}
 		catch (Exception e) {
-			_ts_confidenceinterval_JComboBox.select(
-				_tsproduct.getDefaultPropValue(
-				"XYScatterConfidenceInterval",isub,its));
+			_ts_confidenceinterval_JComboBox.select(_tsproduct.getDefaultPropValue("XYScatterConfidenceInterval",isub,its));
 		}
 		
 		if (_ts_regressionline_JCheckBox.isSelected()) {
@@ -3924,15 +3884,16 @@ private void displayDataProperties ( int isub, int its )
 		}
 	}
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		// Display the regression analysis panel...
 		_ts_blank_analysis_JPanel.setVisible ( false );
 		_ts_xyscatter_analysis_JPanel.setVisible ( true );
 		_ts_xyscatter_analysis_JPanel.repaint();
 	}
-	else {	// Display the blank analysis panel...
+	else {
+	    // Display the blank analysis panel...
 		_ts_xyscatter_analysis_JPanel.setVisible ( false );
 		_ts_blank_analysis_JPanel.setVisible ( true );
 		_ts_blank_analysis_JPanel.repaint();
@@ -3949,8 +3910,7 @@ private void displayProductProperties ()
 
 	// "Enabled"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"Enabled", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "Enabled", -1, -1, false );
 	if ( (prop_val == null) || prop_val.equalsIgnoreCase("true") ) {
 		_product_enabled_JCheckBox.setSelected ( true );
 	}
@@ -3960,8 +3920,7 @@ private void displayProductProperties ()
 
 	// "MainTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"MainTitleString", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
 	_product_maintitle_JTextField.setText(prop_val);
 
 	// "ProductID"
@@ -3974,10 +3933,9 @@ private void displayProductProperties ()
 
 	// "MainTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"MainTitleFontName", -1, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_product_maintitle_fontname_JComboBox,
-		prop_val);
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_product_maintitle_fontname_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, "MainTitleFontName \"" +
@@ -3988,12 +3946,9 @@ private void displayProductProperties ()
 
 	// "MainTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"MainTitleFontStyle", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
 	try {	
-		JGUIUtil.selectIgnoreCase(
-			_product_maintitle_fontstyle_JComboBox,
-			prop_val);
+		JGUIUtil.selectIgnoreCase(_product_maintitle_fontstyle_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, "MainTitleFontStyle \"" +
@@ -4004,68 +3959,58 @@ private void displayProductProperties ()
 
 	// "MainTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"MainTitleFontSize", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
 	if ( StringUtil.isDouble(prop_val) ) {
 		_product_maintitle_fontsize_JTextField.setText(prop_val);
 	}
-	else {	Message.printWarning ( 2, routine, "MainTitleFontSize \"" +
-		prop_val + "\" is not recognized" );
+	else {
+	    Message.printWarning ( 2, routine, "MainTitleFontSize \"" + prop_val + "\" is not recognized" );
 		_product_maintitle_fontsize_JTextField.setText(
 		_tsproduct.getDefaultPropValue("MainTitleFontSize",-1,-1) );
 	}
 
 	// "SubTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SubTitleString", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
 	_product_subtitle_JTextField.setText(prop_val);
 
 	// "SubTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SubTitleFontName", -1, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_product_subtitle_fontname_JComboBox,
-			prop_val);
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_product_subtitle_fontname_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "SubTitleFontName \"" +
-		prop_val + "\" is not recognized" );
-		_product_subtitle_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SubTitleFontName",-1,-1) );
+		Message.printWarning ( 2, routine, "SubTitleFontName \"" + prop_val + "\" is not recognized" );
+		_product_subtitle_fontname_JComboBox.select(_tsproduct.getDefaultPropValue("SubTitleFontName",-1,-1) );
 	}
 
 	// "SubTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SubTitleFontStyle", -1, -1, false );
-	try {	JGUIUtil.selectIgnoreCase(_product_subtitle_fontstyle_JComboBox,
-			prop_val);
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
+	try {
+	    JGUIUtil.selectIgnoreCase(_product_subtitle_fontstyle_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "SubTitleFontStyle \"" +
-		prop_val + "\" is not recognized" );
+		Message.printWarning ( 2, routine, "SubTitleFontStyle \"" + prop_val + "\" is not recognized" );
 		_product_subtitle_fontstyle_JComboBox.select(
 		_tsproduct.getDefaultPropValue("SubTitleFontStyle",-1,-1) );
 	}
 
 	// "SubTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"SubTitleFontSize", -1, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
 	if ( StringUtil.isDouble(prop_val) ) {
 		_product_subtitle_fontsize_JTextField.setText(prop_val);
 	}
-	else {	Message.printWarning ( 2, routine, "SubTitleFontSize \"" +
-		prop_val + "\" is not recognized" );
-		_product_subtitle_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("SubTitleFontSize",-1,-1) );
+	else {
+	    Message.printWarning ( 2, routine, "SubTitleFontSize \"" + prop_val + "\" is not recognized" );
+		_product_subtitle_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("SubTitleFontSize",-1,-1) );
 	}
 
 	// "LayoutType"
 
-	prop_val = _tsproduct.getLayeredPropValue(	
-		"LayoutType", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue( "LayoutType", -1, -1, false);
 	if (prop_val == null) {
 		_layoutTypeJComboBox.select("Grid");
 	}
@@ -4075,26 +4020,22 @@ private void displayProductProperties ()
 
 	// "LayoutNumberOfRows"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutNumberOfRows", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutNumberOfRows", -1, -1, false);
 	if (prop_val == null) {
-		_numberRowsJTextField.setText("" 
-			+ (_tsproduct.getNumSubProducts() + 1));
+		_numberRowsJTextField.setText("" + (_tsproduct.getNumSubProducts() + 1));
 	}
 	else {
 		int num = StringUtil.atoi(prop_val);
 		if (num != _tsproduct.getNumSubProducts()) {
 			num = _tsproduct.getNumSubProducts();
-			_tsproduct.setPropValue("LayoutNumberOfRows", "" + num,
-				-1, -1);			
+			_tsproduct.setPropValue("LayoutNumberOfRows", "" + num, -1, -1);			
 		}
 		_numberRowsJTextField.setText("" + num);
 	}
 
 	// "LayoutNumberOfCols"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutNumberOfCols", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutNumberOfCols", -1, -1, false);
 	if (prop_val == null) {
 		// do nothing for now
 	}
@@ -4110,13 +4051,12 @@ This should be called when a graph is selected.
 private void displaySubproductProperties ( int isub )
 {	String routine = "TSProductJFrame.displaySubproductProperties";
 	String prop_val;
-	int graph_type;
+	TSGraphType graphType;
 
 	// "GraphType" - do this first and then alphabetize other properties.
 	// Some properties depend on the graph type.
 
-	prop_val = _tsproduct.getLayeredPropValue("LayoutYPercent",
-		isub, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutYPercent", isub, -1, false);
 	if (prop_val != null) {
 		_yPercentJTextField.setText(prop_val);
 	}
@@ -4128,33 +4068,27 @@ private void displaySubproductProperties ( int isub )
 		limitGraphTypes(isub);
 	}
 
-	try {	JGUIUtil.selectIgnoreCase(_graph_graphtype_JComboBox,
-			_tsproduct.getLayeredPropValue (
-			"GraphType", isub, -1, false ));
+	try {
+	    JGUIUtil.selectIgnoreCase(_graph_graphtype_JComboBox,
+			_tsproduct.getLayeredPropValue ("GraphType", isub, -1, false ));
 	}
 	catch ( Exception e ) {
-		_graph_graphtype_JComboBox.select( TSProduct.GRAPH_TYPE_LINE );
+		_graph_graphtype_JComboBox.select( "" + TSGraphType.LINE );
 	}
-	graph_type = TSProduct.lookupGraphTypeNumber (
-			_graph_graphtype_JComboBox.getSelected() );
+	graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
 	// "BarPosition" - maybe move this to TS Symbol when/if GraphType is
 	// allowed to be set for each TS
 
 	prop_val = _tsproduct.getLayeredPropValue (
 			"BarPosition", isub, -1, false );
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		try {	
-			JGUIUtil.selectIgnoreCase(_graph_barposition_JComboBox,
-				prop_val);
+			JGUIUtil.selectIgnoreCase(_graph_barposition_JComboBox, prop_val);
 		}
 		catch (Exception e) {
-			Message.printWarning (2, routine,"BarPosition \"" 
-				+ prop_val + "\" is not recognized");
-			_graph_barposition_JComboBox.select(
-				_tsproduct.getDefaultPropValue("BarPosition",
-				isub,-1));
+			Message.printWarning (2, routine,"BarPosition \"" + prop_val + "\" is not recognized");
+			_graph_barposition_JComboBox.select(_tsproduct.getDefaultPropValue("BarPosition", isub,-1));
 		}
 		_graph_barposition_JLabel.setVisible(true);
 		_graph_barposition_JComboBox.setVisible(true);
@@ -4166,38 +4100,33 @@ private void displaySubproductProperties ( int isub )
 
 	// "BottomXAxisMajorGridColor"
 
-	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisMajorGridColor",
-		isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisMajorGridColor", isub, -1, false );
 	_graph_bottomx_majorgrid_color_JTextField.setText(prop_val);
 	if ( prop_val.equalsIgnoreCase("None") ) {
 		_graph_bottomx_majorgrid_color_JComboBox.select("None");
-		_graph_bottomx_majorgrid_color_JTextField.setBackground (
-		Color.white );
+		_graph_bottomx_majorgrid_color_JTextField.setBackground ( Color.white );
 	}
 	else {
-	try {	JGUIUtil.selectIgnoreCase(
-		_graph_bottomx_majorgrid_color_JComboBox,prop_val);
-		try {	_graph_bottomx_majorgrid_color_JTextField.setBackground(
-			(Color)GRColor.parseColor(
-			_graph_bottomx_majorgrid_color_JTextField.getText()) );
-		}
-		catch ( Exception e2 ) {
-			_graph_bottomx_majorgrid_color_JComboBox.select("None");
-			_graph_bottomx_majorgrid_color_JTextField.setBackground(
-			Color.white );
-		}
-	}
-	catch ( Exception e ) {
-		_graph_bottomx_majorgrid_color_JComboBox.select("None");
-		_graph_bottomx_majorgrid_color_JTextField.setBackground (
-		Color.white );
-	}
+    	try {
+    	    JGUIUtil.selectIgnoreCase(_graph_bottomx_majorgrid_color_JComboBox,prop_val);
+    		try {
+    		    _graph_bottomx_majorgrid_color_JTextField.setBackground(
+    			(Color)GRColor.parseColor(_graph_bottomx_majorgrid_color_JTextField.getText()) );
+    		}
+    		catch ( Exception e2 ) {
+    			_graph_bottomx_majorgrid_color_JComboBox.select("None");
+    			_graph_bottomx_majorgrid_color_JTextField.setBackground(Color.white );
+    		}
+    	}
+    	catch ( Exception e ) {
+    		_graph_bottomx_majorgrid_color_JComboBox.select("None");
+    		_graph_bottomx_majorgrid_color_JTextField.setBackground (Color.white );
+    	}
 	}
 
 	// "BottomXAxisTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"BottomXAxisTitleString", isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ("BottomXAxisTitleString", isub, -1, false );
 	_graph_bottomx_title_JTextField.setText(prop_val);
 
 	// "BottomXAxisTitleFontName"
@@ -4838,62 +4767,45 @@ private void displaySubproductProperties ( int isub )
 
 	// Analysis tab.  
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue (
-				"XYScatterMethod", isub, -1, false );
-		try {	JGUIUtil.selectIgnoreCase(
-				_xyscatter_analysis_method_JComboBox,
-				prop_val);
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterMethod", isub, -1, false );
+		try {
+		    JGUIUtil.selectIgnoreCase(_xyscatter_analysis_method_JComboBox,prop_val);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"XYScatterMethod \"" +
-			prop_val + "\" is not recognized" );
-			_xyscatter_analysis_method_JComboBox.select(
-			_tsproduct.getDefaultPropValue(
-			"XYScatterMethod",isub,-1) );
+			Message.printWarning ( 3, routine, "XYScatterMethod \"" + prop_val + "\" is not recognized" );
+			_xyscatter_analysis_method_JComboBox.select(_tsproduct.getDefaultPropValue("XYScatterMethod",isub,-1) );
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue (
-				"XYScatterTransformation", isub, -1, false );
-		try {	JGUIUtil.selectIgnoreCase(
-				_xyscatter_analysis_transform_JComboBox,
-				prop_val);
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterTransformation", isub, -1, false );
+		try {
+		    JGUIUtil.selectIgnoreCase(_xyscatter_analysis_transform_JComboBox,prop_val);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"XYScatterTransformation \"" +
+			Message.printWarning ( 3, routine,"XYScatterTransformation \"" +
 			prop_val + "\" is not recognized" );
 			_xyscatter_analysis_transform_JComboBox.select(
-			_tsproduct.getDefaultPropValue(
-			"XYScatterTransformation",isub,-1) );
+			_tsproduct.getDefaultPropValue("XYScatterTransformation",isub,-1) );
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue (
-				"XYScatterNumberOfEquations", isub, -1, false );
-		try {	JGUIUtil.selectIgnoreCase(
-				_xyscatter_analysis_neqn_JComboBox,
-				prop_val);
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterNumberOfEquations", isub, -1, false );
+		try {
+		    JGUIUtil.selectIgnoreCase(_xyscatter_analysis_neqn_JComboBox,prop_val);
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine,
-			"XYScatterNumberOfEquations \"" +
+			Message.printWarning ( 2, routine, "XYScatterNumberOfEquations \"" +
 			prop_val + "\" is not recognized" );
 			_xyscatter_analysis_neqn_JComboBox.select(
-			_tsproduct.getDefaultPropValue(
-			"XYScatterNumberOfEquations",isub,-1) );
+			_tsproduct.getDefaultPropValue("XYScatterNumberOfEquations",isub,-1) );
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue (
-				"XYScatterMonth", isub, -1, false );
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterMonth", isub, -1, false );
 		_xyscatter_analysis_month_JTextField.setText ( prop_val );
 
-		prop_val = _tsproduct.getLayeredPropValue (
-				"XYScatterAnalyzeForFilling", isub, -1, false );
-		if (	(prop_val == null) ||
-			prop_val.equalsIgnoreCase ( "false" ) ) {
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterAnalyzeForFilling", isub, -1, false );
+		if ( (prop_val == null) || prop_val.equalsIgnoreCase ( "false" ) ) {
 			// Default...
 			_xyscatter_analysis_fill_JCheckBox.setEnabled ( false );
 		}
@@ -5044,17 +4956,15 @@ boolean setValue) {
 
 	// "LineStyle"
 
-	int graph_type = TSProduct.lookupGraphTypeNumber (
-			_graph_graphtype_JComboBox.getSelected() );
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (setValue) {
 			_ts_linestyle_JComboBox.select("None");
 		}
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		if (setValue) {
 			_ts_linestyle_JComboBox.select("None");
 		}
@@ -5069,15 +4979,14 @@ boolean setValue) {
 
 	// "LineWidth"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (setValue) {
 			_ts_linewidth_JComboBox.select("0");
 		}
 		_ts_linewidth_JComboBox.setEditable(false);
 		_ts_linewidth_JComboBox.setEnabled ( false );
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		if (setValue) {
 			_ts_linewidth_JComboBox.select("0");
 		}
@@ -5094,14 +5003,13 @@ boolean setValue) {
 
 	// "SymbolSize"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (setValue) {
 			_ts_symbolsize_JComboBox.select("0");
 		}
 		_ts_symbolsize_JComboBox.setEnabled(false);
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		if (setValue) {
 			_ts_symbolsize_JComboBox.select("5");
 		}
@@ -5116,14 +5024,13 @@ boolean setValue) {
 
 	// "SymbolStyle"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (setValue) {
 			_ts_symbolstyle_JComboBox.select("None");
 		}
 		_ts_symbolstyle_JComboBox.setEnabled(false);
 	}
-	else if (graph_type == TSProduct.GRAPH_TYPE_POINT) {
+	else if (graphType == TSGraphType.POINT) {
 		if (setValue) {
 			_ts_symbolstyle_JComboBox.select("Circle-Hollow");
 		}
@@ -5138,25 +5045,27 @@ boolean setValue) {
 
 	// "XYScatterConfidenceLevel"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if ( _ts_regressionline_JCheckBox.isSelected() ) {
 			_ts_confidenceinterval_JComboBox.setEnabled(true);
 		}
-		else {	_ts_confidenceinterval_JComboBox.setEnabled(false);
+		else {
+		    _ts_confidenceinterval_JComboBox.setEnabled(false);
 		}
 	}
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		// Display the regression analysis panel...
 		_ts_blank_analysis_JPanel.setVisible ( false );
 		_ts_xyscatter_analysis_JPanel.setVisible ( true );
 		_ts_xyscatter_analysis_JPanel.repaint();
 	}
-	else {	// Display the blank analysis panel...
+	else {
+	    // Display the blank analysis panel...
 		_ts_xyscatter_analysis_JPanel.setVisible ( false );
 		_ts_blank_analysis_JPanel.setVisible ( true );
 		_ts_blank_analysis_JPanel.repaint();
@@ -5734,12 +5643,10 @@ public void itemStateChanged ( ItemEvent evt ) {
 		}
 	}
 	else if (o == _graph_graphtype_JComboBox) {
-		int graph_type = TSProduct.lookupGraphTypeNumber (
-			_graph_graphtype_JComboBox.getSelected() );
-		if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-		    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-		    || graph_type 
-		    == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		TSGraphType graphType = TSGraphType.valueOfIgnoreCase (_graph_graphtype_JComboBox.getSelected() );
+		if (graphType == TSGraphType.XY_SCATTER 
+		    || graphType == TSGraphType.PREDICTED_VALUE
+		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			// Display the regression analysis panel...
 			_blank_analysis_JPanel.setVisible ( false );
 			_xyscatter_analysis_JPanel.setVisible ( true );
@@ -5748,8 +5655,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_ts_blank_analysis_JPanel.setVisible ( false );
 			_ts_xyscatter_analysis_JPanel.setVisible ( true );
 			_ts_xyscatter_analysis_JPanel.repaint();
-			if (graph_type 
-			     == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+			if (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
 			}
@@ -5766,7 +5672,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_ts_xyscatter_analysis_JPanel.setVisible ( false );
 			_ts_blank_analysis_JPanel.setVisible ( true );
 			_ts_blank_analysis_JPanel.repaint();
-			if (graph_type == TSProduct.GRAPH_TYPE_BAR) {
+			if (graphType == TSGraphType.BAR) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
 			}
@@ -5775,13 +5681,12 @@ public void itemStateChanged ( ItemEvent evt ) {
 				_graph_barposition_JLabel.setVisible(false);
 			}
 		}
-		clearGraphProperties(_selected_subproduct, -1, graph_type);
+		clearGraphProperties(_selected_subproduct, -1, graphType);
 		graphTypeSetValues = true;
 	}
 	checkGUIState();
 
-	enableComponentsBasedOnGraphType(_selected_subproduct,
-		_selected_data, graphTypeSetValues);
+	enableComponentsBasedOnGraphType(_selected_subproduct, _selected_data, graphTypeSetValues);
 }
 
 /**
@@ -5826,14 +5731,12 @@ public void keyTyped ( KeyEvent event )
 /**
 Limits the choices in the graph type combo box to only those that should 
 be available given the original graph type of the graph.
-@param subproduct the subproduct (base-zero) for which the graphs should be
-limited.
+@param subproduct the subproduct (base-zero) for which the graphs should be limited.
 */
 private void limitGraphTypes(int subproduct) {
 	boolean hold = __ignoreItemStateChange;
 	__ignoreItemStateChange = true;	
-	String originalGraphType = _tsproduct.getLayeredPropValue(
-		"OriginalGraphType", subproduct, -1, false);
+	String originalGraphType = _tsproduct.getLayeredPropValue( "OriginalGraphType", subproduct, -1, false);
 
 	if (originalGraphType.equals("Bar")
 	    || originalGraphType.equals("Line")
@@ -5844,11 +5747,11 @@ private void limitGraphTypes(int subproduct) {
 		_graph_graphtype_JComboBox.add("Point");
 	}
 	else {
-		int size = TSProduct.GRAPH_TYPE_NAMES.length;
-		for ( int i = 0; i < size; i++ ) {
-			_graph_graphtype_JComboBox.addItem (
-				TSProduct.GRAPH_TYPE_NAMES[i] );
-		}
+	    for ( TSGraphType graphType: TSGraphType.values() ) {
+	        if ( graphType != TSGraphType.UNKNOWN ) {
+	            _graph_graphtype_JComboBox.addItem ( "" + graphType );
+	        }
+	    }
 	}
 	__ignoreItemStateChange = hold;
 }
@@ -6444,38 +6347,34 @@ private void setSubproduct2 ( String selected ) {
 	// Internally, products start at 0...
 	_selected_subproduct = StringUtil.atoi(selected) - 1;
 	displaySubproductProperties ( _selected_subproduct );
-	// Update the list of choices in the time series to the list
-	// for the current graph...
+	// Update the list of choices in the time series to the list for the current graph...
 	__ts_JComboBox.removeAll();
 	int nts = _tsproduct.getNumData ( _selected_subproduct );
 	String prop_val;
 	String sequence_number;
 	for ( int its = 0; its < nts; its++ ) {
-		prop_val = _tsproduct.getLayeredPropValue( "TSAlias",
-			_selected_subproduct, its, false );
+		prop_val = _tsproduct.getLayeredPropValue( "TSAlias", _selected_subproduct, its, false );
 		if ( (prop_val == null) || prop_val.trim().equals("") ) {
-			prop_val = _tsproduct.getLayeredPropValue( "TSID",
-				_selected_subproduct, its, false );
+			prop_val = _tsproduct.getLayeredPropValue( "TSID",_selected_subproduct, its, false );
 		}
-		sequence_number = _tsproduct.getLayeredPropValue(
-			"SequenceNumber", _selected_subproduct, its, false );
+		sequence_number = _tsproduct.getLayeredPropValue("SequenceNumber", _selected_subproduct, its, false );
 		if ((sequence_number == null) || sequence_number.equals("-1") ){
 			sequence_number = "";
 		}
-		else {	sequence_number = " [" + sequence_number + "] ";
+		else {
+		    sequence_number = " [" + sequence_number + "] ";
 		}
 		if ( prop_val == null ) {
 			prop_val = "No data";
 		}
-		else {	// Limit the TSID to 60 characters...
+		else {
+		    // Limit the TSID to 60 characters...
 			if ( prop_val.length() > 60 ) {
-				prop_val = prop_val.substring(0,60) + "..." +
-					sequence_number;
+				prop_val = prop_val.substring(0,60) + "..." + sequence_number;
 			}
 		}
 		__ignoreItemStateChange = true;
-		__ts_JComboBox.add ( "" + (its + 1) + " - " + prop_val +
-			sequence_number );
+		__ts_JComboBox.add ( "" + (its + 1) + " - " + prop_val + sequence_number );
 		__ignoreItemStateChange = false;
 	}
 	if (nts > 0) {
@@ -6492,12 +6391,9 @@ private void setSubproduct2 ( String selected ) {
 	int nann = _tsproduct.getNumAnnotations(_selected_subproduct);
 	__ignoreItemStateChange = true;
 	for (int iann = 0; iann < nann; iann++) {
-		prop_val = _tsproduct.getLayeredPropValue("AnnotationID",
-			_selected_subproduct, iann, false, true);
+		prop_val = _tsproduct.getLayeredPropValue("AnnotationID", _selected_subproduct, iann, false, true);
 		if (prop_val == null || prop_val.trim().equals("")) {
-			prop_val = _tsproduct.getDefaultPropValue(
-				"AnnotationID", _selected_subproduct, 
-				iann, true);
+			prop_val = _tsproduct.getDefaultPropValue( "AnnotationID", _selected_subproduct, iann, true);
 		}
 		__annotation_JComboBox.add("" + prop_val);
 	}
@@ -6505,8 +6401,7 @@ private void setSubproduct2 ( String selected ) {
 
 	if (nann > 0) {
 		__selectedAnnotation = 0;
-		displayAnnotationProperties(_selected_subproduct, 
-			__selectedAnnotation);
+		displayAnnotationProperties(_selected_subproduct, __selectedAnnotation);
 	}
 	else {
 		__selectedAnnotation = -1;
@@ -6551,37 +6446,36 @@ public void stateChanged ( ChangeEvent e )
 		// Initializing the interface?
 		return;
 	}
-	int graph_type = TSProduct.lookupGraphTypeNumber (
-			_graph_graphtype_JComboBox.getSelected() );
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 	
 	Object comp = e.getSource();
 	if ( comp == _graph_analysis_JPanel ) {
-		if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-		    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-		    || graph_type 
-		    == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		if (graphType == TSGraphType.XY_SCATTER 
+		    || graphType == TSGraphType.PREDICTED_VALUE
+		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			// Display the regression analysis panel...
 			_blank_analysis_JPanel.setVisible ( false );
 			_xyscatter_analysis_JPanel.setVisible ( true );
 			_xyscatter_analysis_JPanel.repaint();
 		}
-		else {	// Display the blank analysis panel...
+		else {
+		    // Display the blank analysis panel...
 			_xyscatter_analysis_JPanel.setVisible ( false );
 			_blank_analysis_JPanel.setVisible ( true );
 			_blank_analysis_JPanel.repaint();
 		}
 	}
 	else if ( comp == _ts_analysis_JPanel ) {
-		if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-		    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-		    || graph_type 
-		    == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+		if (graphType == TSGraphType.XY_SCATTER 
+		    || graphType == TSGraphType.PREDICTED_VALUE
+		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			// Display the regression analysis panel...
 			_ts_blank_analysis_JPanel.setVisible ( false );
 			_ts_xyscatter_analysis_JPanel.setVisible ( true );
 			_ts_xyscatter_analysis_JPanel.repaint();
 		}
-		else {	// Display the blank analysis panel...
+		else {
+		    // Display the blank analysis panel...
 			_ts_xyscatter_analysis_JPanel.setVisible ( false );
 			_ts_blank_analysis_JPanel.setVisible ( true );
 			_ts_blank_analysis_JPanel.repaint();
@@ -6622,16 +6516,14 @@ protected int updateTSProduct (int howSet) {
 	String gui_val;
 	int how_set_prev = _tsproduct.getPropList().getHowSet();
 	_tsproduct.getPropList().setHowSet (howSet);
-	int graph_type = TSProduct.lookupGraphTypeNumber(
-			_graph_graphtype_JComboBox.getSelected());
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(_graph_graphtype_JComboBox.getSelected());
 
 	// --------------------------------------------------------------------
 	// Product properties
 	// --------------------------------------------------------------------
 
 	// "MainTitleFontName"
-	prop_val = _tsproduct.getLayeredPropValue(
-		"MainTitleFontName", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("MainTitleFontName", -1, -1, false);
 	gui_val = _product_maintitle_fontname_JComboBox.getSelected();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("MainTitleFontName", gui_val, -1, -1);
@@ -6640,8 +6532,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "MainTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"MainTitleFontStyle", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("MainTitleFontStyle", -1, -1, false);
 	gui_val = _product_maintitle_fontstyle_JComboBox.getSelected();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("MainTitleFontStyle", gui_val, -1, -1);
@@ -6650,8 +6541,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "MainTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"MainTitleFontSize", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("MainTitleFontSize", -1, -1, false);
 	gui_val = _product_maintitle_fontsize_JTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("MainTitleFontSize", gui_val, -1, -1);
@@ -6660,8 +6550,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "MainTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"MainTitleString", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("MainTitleString", -1, -1, false);
 	gui_val = _product_maintitle_JTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("MainTitleString", gui_val, -1, -1);
@@ -6688,8 +6577,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "SubTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"SubTitleFontName", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("SubTitleFontName", -1, -1, false);
 	gui_val = _product_subtitle_fontname_JComboBox.getSelected();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("SubTitleFontName", gui_val, -1, -1);
@@ -6698,8 +6586,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "SubTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"SubTitleFontStyle", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("SubTitleFontStyle", -1, -1, false);
 	gui_val = _product_subtitle_fontstyle_JComboBox.getSelected();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("SubTitleFontStyle", gui_val, -1, -1);
@@ -6708,8 +6595,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "SubTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"SubTitleFontSize", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("SubTitleFontSize", -1, -1, false);
 	gui_val = _product_subtitle_fontsize_JTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("SubTitleFontSize", gui_val, -1, -1);
@@ -6718,8 +6604,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "SubTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"SubTitleString", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("SubTitleString", -1, -1, false);
 	gui_val = _product_subtitle_JTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("SubTitleString", gui_val, -1, -1);
@@ -6728,8 +6613,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "LayoutType"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutType", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutType", -1, -1, false);
 	gui_val = _layoutTypeJComboBox.getSelected().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("LayoutType", gui_val, -1, -1);
@@ -6738,26 +6622,22 @@ protected int updateTSProduct (int howSet) {
 
 	// "LayoutNumberOfRows"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutNumberOfRows", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutNumberOfRows", -1, -1, false);
 	gui_val = _numberRowsJTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		if (StringUtil.isInteger(gui_val)) {
-			_tsproduct.setPropValue("LayoutNumberOfRows", gui_val,
-				-1, -1);
+			_tsproduct.setPropValue("LayoutNumberOfRows", gui_val, -1, -1);
 			++ndirty;
 		}
 	}
 
 	// "LayoutNumberOfCols"
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutNumberOfCols", -1, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("LayoutNumberOfCols", -1, -1, false);
 	gui_val = _numberColsJTextField.getText().trim();
 	if (!gui_val.equals(prop_val)) {
 		if (StringUtil.isInteger(gui_val)) {
-			_tsproduct.setPropValue("LayoutNumberOfCols", gui_val,
-				-1, -1);
+			_tsproduct.setPropValue("LayoutNumberOfCols", gui_val, -1, -1);
 			++ndirty;
 		}
 	}
@@ -6769,14 +6649,11 @@ protected int updateTSProduct (int howSet) {
 	// "BarPosition" - only set if it is a bar graph, otherwise it will
 	// get saved in the TSProduct file...
 
-	if (graph_type == TSProduct.GRAPH_TYPE_BAR
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"BarPosition", _selected_subproduct, -1, false);
+	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		prop_val = _tsproduct.getLayeredPropValue( "BarPosition", _selected_subproduct, -1, false);
 		gui_val = _graph_barposition_JComboBox.getSelected();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("BarPosition", gui_val, 
-				_selected_subproduct, -1);
+			_tsproduct.setPropValue("BarPosition", gui_val, _selected_subproduct, -1);
 			++ndirty;
 		}
 	}
@@ -6792,439 +6669,361 @@ protected int updateTSProduct (int howSet) {
 
 	// "BottomXAxisLabelFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisLabelFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontName", _selected_subproduct, -1, false );
 	gui_val=_graph_bottomx_label_fontname_JComboBox.getSelected();
 	if (!gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisLabelFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "BottomXAxisLabelFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "BottomXAxisLabelFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisLabelFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_bottomx_label_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisLabelFontStyle", gui_val, _selected_subproduct, -1);
+		_tsproduct.setPropValue ( "BottomXAxisLabelFontStyle", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "BottomXAxisLabelFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisLabelFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_bottomx_label_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "BottomXAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "BottomXAxisMajorGridColor"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisMajorGridColor", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisMajorGridColor", _selected_subproduct, -1, false );
 	gui_val = _graph_bottomx_majorgrid_color_JTextField.getText().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisMajorGridColor", gui_val, _selected_subproduct, -1);
+		_tsproduct.setPropValue ( "BottomXAxisMajorGridColor", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "BottomXAxisTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisTitleFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontName", _selected_subproduct, -1, false );
 	gui_val=_graph_bottomx_title_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisTitleFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "BottomXAxisTitleFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "BottomXAxisTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisTitleFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontStyle", _selected_subproduct, -1, false );
 	gui_val= _graph_bottomx_title_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisTitleFontStyle", gui_val, _selected_subproduct, -1);
+		_tsproduct.setPropValue ( "BottomXAxisTitleFontStyle", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "BottomXAxisTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisTitleFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_bottomx_title_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "BottomXAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "BottomXAxisTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"BottomXAxisTitleString", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisTitleString", _selected_subproduct, -1, false );
 	gui_val = _graph_bottomx_title_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"BottomXAxisTitleString", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "BottomXAxisTitleString", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "DataLabelFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_datalabelfontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "DataLabelFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "DataLabelFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_datalabelfontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelFontStyle", gui_val, _selected_subproduct, -1);
+		_tsproduct.setPropValue ( "DataLabelFontStyle", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "DataLabelFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_datalabelfontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "DataLabelFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "DataLabelFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelFormat", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFormat", _selected_subproduct, -1, false );
 	gui_val = _graph_datalabelformat_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelFormat", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "DataLabelFormat", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "DataLabelPosition"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelPosition", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelPosition", _selected_subproduct, -1, false );
 	gui_val = _graph_datalabelposition_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelPosition", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "DataLabelPosition", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LayoutYPercent"
-	prop_val = _tsproduct.getLayeredPropValue(
-		"LayoutYPercent", _selected_subproduct, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue( "LayoutYPercent", _selected_subproduct, -1, false);
 	gui_val = _yPercentJTextField.getText().trim();
 	if (prop_val == null && !gui_val.equals("")) {
-	    	_tsproduct.setPropValue("LayoutYPercent", gui_val,
-			_selected_subproduct, -1);
+	    _tsproduct.setPropValue("LayoutYPercent", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 	else if (prop_val != null && gui_val.equals("")) {
-		_tsproduct.unSet("SubProduct " + (_selected_subproduct + 1)
-			+ ".LayoutYPercent");
+		_tsproduct.unSet("SubProduct " + (_selected_subproduct + 1) + ".LayoutYPercent");
 		++ndirty;
 	}
 	else if (!gui_val.equals(prop_val)) {
-	    	_tsproduct.setPropValue("LayoutYPercent", gui_val,
-			_selected_subproduct, -1);
+	    _tsproduct.setPropValue("LayoutYPercent", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "GraphType"
-	prop_val = _tsproduct.getLayeredPropValue (
-		"GraphType", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "GraphType", _selected_subproduct, -1, false );
 	gui_val = _graph_graphtype_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"GraphType", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "GraphType", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisIgnoreUnits"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisIgnoreUnits", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisIgnoreUnits", _selected_subproduct, -1, false );
 	if ( _graph_lefty_ignoreunits_JCheckBox.isSelected() ) {
 		gui_val = "true";
 	}
-	else {	gui_val = "false";
+	else {
+	    gui_val = "false";
 	}
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisIgnoreUnits", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisIgnoreUnits", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisLabelFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisLabelFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_label_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisLabelFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisLabelFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisLabelFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisLabelFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_label_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisLabelFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisLabelFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisLabelFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisLabelFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_label_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisLabelPrecision"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisLabelPrecision", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelPrecision", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_precision_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisLabelPrecision", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisLabelPrecision", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisMajorGridColor"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisMajorGridColor", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorGridColor", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_majorgrid_color_JTextField.getText().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisMajorGridColor", gui_val, _selected_subproduct, -1);
+		_tsproduct.setPropValue ( "LeftYAxisMajorGridColor", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 
 	// "LeftYAxisMax"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisMax", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMax", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_max_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisMax", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisMax", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisMin"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisMin", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMin", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_min_JComboBox.getSelected().trim();
 
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisMin", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisMin", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisTitleFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_title_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisTitleFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisTitleFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisTitleFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_title_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisTitleFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisTitleFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisTitleFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_title_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisTitleString", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisTitleString", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_title_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisTitleString", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisTitleString", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisType"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisType", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisType", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_type_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LeftYAxisType", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisType", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LeftYAxisUnits"
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LeftYAxisUnits", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisUnits", _selected_subproduct, -1, false );
 	gui_val = _graph_lefty_units_JTextField.getText().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val)) {
 		int how_set_prev2 = _tsproduct.getPropList().getHowSet();
 		_tsproduct.getPropList().setHowSet(Prop.SET_AS_RUNTIME_DEFAULT);
-		_tsproduct.setPropValue (
-		"LeftYAxisUnits", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LeftYAxisUnits", gui_val, _selected_subproduct, -1 );
 		_tsproduct.getPropList().setHowSet(how_set_prev2);
 		++ndirty;
 	}
 
 	// "LegendFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_legendfontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LegendFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LegendFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_legendfontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LegendFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LegendFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_legend_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LegendFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LegendFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendFormat", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFormat", _selected_subproduct, -1, false );
 	gui_val = _graph_legendformat_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendFormat", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LegendFormat", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "LegendPosition"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendPosition", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendPosition", _selected_subproduct, -1, false );
 	gui_val = _graph_legendposition_JComboBox.getSelected().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendPosition", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "LegendPosition", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "MainTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"MainTitleFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_maintitle_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"MainTitleFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "MainTitleFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "MainTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"MainTitleFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_maintitle_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"MainTitleFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "MainTitleFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "MainTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"MainTitleFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_maintitle_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"MainTitleFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "MainTitleFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "MainTitleString"
-	prop_val = _tsproduct.getLayeredPropValue (
-		"MainTitleString", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleString", _selected_subproduct, -1, false );
 	gui_val = _graph_maintitle_JTextField.getText().trim();
 	int pos = _selected_subproduct;
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"MainTitleString", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "MainTitleString", gui_val, _selected_subproduct, -1 );
 		// Also update the _graph_JComboBox item...
 		_graph_JComboBox.removeItemListener(this);
 		_graph_JComboBox.removeAt (pos);
-		_graph_JComboBox.insert (("" + (pos+ 1) +
-				" - "+ gui_val), pos);
+		_graph_JComboBox.insert (("" + (pos+ 1) + " - "+ gui_val), pos);
 		_graph_JComboBox.addItemListener(this);
 		++ndirty;
 	}
@@ -7232,215 +7031,169 @@ protected int updateTSProduct (int howSet) {
 /*
 	// "RightYAxisLabelFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisLabelFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisLabelFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_label_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisLabelFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisLabelFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisLabelFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisLabelFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisLabelFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_label_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisLabelFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisLabelFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisLabelFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisLabelFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisLabelFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_label_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisLabelFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisTitleFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisTitleFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_title_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisTitleFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisTitleFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisTitleFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisTitleFontStyle", _selected_subproduct, -1, false );
 	gui_val= _graph_righty_title_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisTitleFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisTitleFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisTitleFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisTitleFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_title_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisTitleFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "RightYAxisTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"RightYAxisTitleString", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisTitleString", _selected_subproduct, -1, false );
 	gui_val = _graph_righty_title_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"RightYAxisTitleString", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "RightYAxisTitleString", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 */
 
 	// "SubTitleFontName"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SubTitleFontName", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontName", _selected_subproduct, -1, false );
 	gui_val = _graph_subtitle_fontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SubTitleFontName", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "SubTitleFontName", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "SubTitleFontStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SubTitleFontStyle", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", _selected_subproduct, -1, false );
 	gui_val = _graph_subtitle_fontstyle_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SubTitleFontStyle", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "SubTitleFontStyle", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "SubTitleFontSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SubTitleFontSize", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", _selected_subproduct, -1, false );
 	gui_val = _graph_subtitle_fontsize_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SubTitleFontSize", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "SubTitleFontSize", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "SubTitleString"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SubTitleString", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SubTitleString", _selected_subproduct, -1, false );
 	gui_val = _graph_subtitle_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SubTitleString", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "SubTitleString", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER 
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 
 		// "XYScatterAnalyzeForFilling"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterAnalyzeForFilling",
-			_selected_subproduct, -1, false );
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterAnalyzeForFilling", _selected_subproduct, -1, false );
 		if ( _xyscatter_analysis_fill_JCheckBox.isSelected() ) {
 			gui_val = "true";
 		}
-		else {	gui_val = "false";
+		else {
+		    gui_val = "false";
 		}
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterAnalyzeForFilling", gui_val,
-			_selected_subproduct,-1);
+			_tsproduct.setPropValue ( "XYScatterAnalyzeForFilling", gui_val, _selected_subproduct,-1);
 			++ndirty;
 		}
 
 		// "XYScatterFillPeriodEnd"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterFillPeriodEnd", _selected_subproduct, -1,
-			false );
-		gui_val =
-		_xyscatter_analysis_fill_period_end_JTextField.getText(
-			).trim();
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodEnd", _selected_subproduct, -1, false );
+		gui_val = _xyscatter_analysis_fill_period_end_JTextField.getText().trim();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterFillPeriodEnd", gui_val,
-			_selected_subproduct,-1);
+			_tsproduct.setPropValue ( "XYScatterFillPeriodEnd", gui_val, _selected_subproduct,-1);
 			++ndirty;
 		}
 
 		// "XYScatterFillPeriodStart"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterFillPeriodStart", _selected_subproduct, -1,
-			false );
-		gui_val =
-		_xyscatter_analysis_fill_period_start_JTextField.getText(
-			).trim();
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterFillPeriodStart", _selected_subproduct, -1, false );
+		gui_val = _xyscatter_analysis_fill_period_start_JTextField.getText().trim();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterFillPeriodStart", gui_val,
-			_selected_subproduct,-1);
+			_tsproduct.setPropValue ( "XYScatterFillPeriodStart", gui_val, _selected_subproduct,-1);
 			++ndirty;
 		}
 
 		// "XYScatterIntercept"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterIntercept", _selected_subproduct, -1, false );
-		gui_val =
-		_xyscatter_analysis_intercept_JTextField.getText().trim();
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterIntercept", _selected_subproduct, -1, false );
+		gui_val = _xyscatter_analysis_intercept_JTextField.getText().trim();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterIntercept", gui_val, _selected_subproduct,-1);
+			_tsproduct.setPropValue ( "XYScatterIntercept", gui_val, _selected_subproduct,-1);
 			++ndirty;
 		}
 		// "XYScatterMethod"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatter.Method", _selected_subproduct, -1, false );
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatter.Method", _selected_subproduct, -1, false );
 		gui_val =_xyscatter_analysis_method_JComboBox.getSelected();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterMethod", gui_val, _selected_subproduct, -1 );
+			_tsproduct.setPropValue ( "XYScatterMethod", gui_val, _selected_subproduct, -1 );
 			++ndirty;
 		}
 
 		// "XYScatterMonth"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterMonth", _selected_subproduct, -1, false );
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterMonth", _selected_subproduct, -1, false );
 		gui_val = _xyscatter_analysis_month_JTextField.getText().trim();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterMonth", gui_val, _selected_subproduct, -1 );
+			_tsproduct.setPropValue ( "XYScatterMonth", gui_val, _selected_subproduct, -1 );
 			++ndirty;
 		}
 
 		// "XYScatterNumberOfEquations"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterNumberOfEquations",
-			_selected_subproduct,-1,false);
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterNumberOfEquations", _selected_subproduct,-1,false);
 		gui_val = _xyscatter_analysis_neqn_JComboBox.getSelected();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 			_tsproduct.setPropValue ( "XYScatterNumberOfEquations",
@@ -7450,14 +7203,10 @@ protected int updateTSProduct (int howSet) {
 
 		// "XYScatterTransformation"
 
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterTransformation",_selected_subproduct,-1,
-			false);
-		gui_val=
-		_xyscatter_analysis_transform_JComboBox.getSelected();
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterTransformation",_selected_subproduct,-1, false);
+		gui_val= _xyscatter_analysis_transform_JComboBox.getSelected();
 		if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-			_tsproduct.setPropValue (
-			"XYScatterTransformation",gui_val, _selected_subproduct,
+			_tsproduct.setPropValue ( "XYScatterTransformation",gui_val, _selected_subproduct,
 			-1 );
 			++ndirty;
 		}
@@ -7465,27 +7214,24 @@ protected int updateTSProduct (int howSet) {
 
 	// "ZoomEnabled"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"ZoomEnabled", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "ZoomEnabled", _selected_subproduct, -1, false );
 	if ( _graph_zoomenabled_JCheckBox.isSelected() ) {
 		gui_val = "true";
 	}
-	else {	gui_val = "false";
+	else {
+	    gui_val = "false";
 	}
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"ZoomEnabled", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "ZoomEnabled", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
 	// "ZoomGroup"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"ZoomGroup", _selected_subproduct, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "ZoomGroup", _selected_subproduct, -1, false );
 	gui_val = _graph_zoomgroup_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"ZoomGroup", gui_val, _selected_subproduct, -1 );
+		_tsproduct.setPropValue ( "ZoomGroup", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
@@ -7496,8 +7242,7 @@ protected int updateTSProduct (int howSet) {
 
 	// "Enabled"
 	
-	prop_val = _tsproduct.getLayeredPropValue(
-		"Enabled", _selected_subproduct, _selected_data, false);
+	prop_val = _tsproduct.getLayeredPropValue("Enabled", _selected_subproduct, _selected_data, false);
 	if (_ts_enabled_JCheckBox.isSelected()) {
 		gui_val = "true";
 	}
@@ -7505,167 +7250,135 @@ protected int updateTSProduct (int howSet) {
 		gui_val = "false";
 	}
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
-		_tsproduct.setPropValue("Enabled", gui_val, 
-			_selected_subproduct, _selected_data);
+		_tsproduct.setPropValue("Enabled", gui_val, _selected_subproduct, _selected_data);
 		++ndirty;
 	}
 
 	// "Color"
 	
-	prop_val = _tsproduct.getLayeredPropValue (
-		"Color", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "Color", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_color_JTextField.getText().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-//	Message.printStatus(2, "", "Setting Color for " + _selected_subproduct
-//		+ " / " + _selected_data);
+//	Message.printStatus(2, "", "Setting Color for " + _selected_subproduct + " / " + _selected_data);
 //	Message.printStatus(2, "", "  COLOR: " + gui_val);
-		_tsproduct.setPropValue(
-			"Color", gui_val, _selected_subproduct, _selected_data);
+		_tsproduct.setPropValue( "Color", gui_val, _selected_subproduct, _selected_data);
 		++ndirty;
 	}
 
 	// "DataLabelFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelFormat", _selected_subproduct, _selected_data, false);
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelFormat", _selected_subproduct, _selected_data, false);
 	gui_val = _ts_datalabelformat_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelFormat", gui_val, _selected_subproduct,
-		_selected_data );
+		_tsproduct.setPropValue ( "DataLabelFormat", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "DataLabelPosition"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"DataLabelPosition", _selected_subproduct, _selected_data,
-		false );
+	prop_val = _tsproduct.getLayeredPropValue ( "DataLabelPosition", _selected_subproduct, _selected_data, false );
 	gui_val =_ts_datalabelposition_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"DataLabelPosition", gui_val, _selected_subproduct,
-		_selected_data );
+		_tsproduct.setPropValue ( "DataLabelPosition", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "LegendFormat"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LegendFormat", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LegendFormat", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_legendformat_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LegendFormat", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "LegendFormat", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "LineStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LineStyle", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LineStyle", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_linestyle_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LineStyle", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "LineStyle", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "LineWidth"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"LineWidth", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LineWidth", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_linewidth_JComboBox.getSelected().trim();
 	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue (
-		"LineWidth", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "LineWidth", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "RegressionLineEnabled"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		prop_val = _tsproduct.getLayeredPropValue (
-			"RegressionLineEnabled", _selected_subproduct, 
-			_selected_data, false );
+			"RegressionLineEnabled", _selected_subproduct, _selected_data, false );
 		if ( _ts_regressionline_JCheckBox.isSelected() ) {
 			gui_val = "true";
 		}
 		else {	
 			gui_val = "false";
 		}
-		if ((graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER
-		    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-		    || graph_type 
-		    == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) &&
+		if ((graphType == TSGraphType.XY_SCATTER
+		    || graphType == TSGraphType.PREDICTED_VALUE
+		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) &&
 			!gui_val.equalsIgnoreCase(prop_val)) {
 			// Only save the property if a scatter plot...
-			_tsproduct.setPropValue("RegressionLineEnabled", 
-				gui_val, _selected_subproduct,
-				_selected_data);
+			_tsproduct.setPropValue("RegressionLineEnabled", gui_val, _selected_subproduct, _selected_data);
 			++ndirty;
 		}
 	}
 
 	// "SymbolSize"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SymbolSize", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SymbolSize", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_symbolsize_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SymbolSize", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "SymbolSize", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "SymbolStyle"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"SymbolStyle", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "SymbolStyle", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_symbolstyle_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"SymbolStyle", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "SymbolStyle", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "XAxis"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"XAxis", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "XAxis", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_xaxis_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"XAxis", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "XAxis", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 
 	// "XYScatterConfidenceInterval"
 
-	if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER 
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE
-	    || graph_type == TSProduct.GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER 
+	    || graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterConfidenceInterval", _selected_subproduct,
-			_selected_data, false);
+			"XYScatterConfidenceInterval", _selected_subproduct, _selected_data, false);
 		gui_val= _ts_confidenceinterval_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("XYScatterConfidenceInterval", 
-				gui_val, _selected_subproduct, _selected_data);
+			_tsproduct.setPropValue("XYScatterConfidenceInterval", gui_val, _selected_subproduct, _selected_data);
 			++ndirty;
 		}
 	}
 
 	// "YAxis"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-		"YAxis", _selected_subproduct, _selected_data, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "YAxis", _selected_subproduct, _selected_data, false );
 	gui_val = _ts_yaxis_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
-		_tsproduct.setPropValue (
-		"YAxis", gui_val, _selected_subproduct, _selected_data );
+		_tsproduct.setPropValue ( "YAxis", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 	} // _selected_data > -1
@@ -7676,8 +7389,7 @@ protected int updateTSProduct (int howSet) {
 	__annotation_JComboBox.removeAll();
 	for (int i = 0; i < num; i++) {
 		__annotation_JComboBox.add("" 
-			+ _tsproduct.getLayeredPropValue("AnnotationID",
-			_selected_subproduct, i, false, true));		
+			+ _tsproduct.getLayeredPropValue("AnnotationID", _selected_subproduct, i, false, true));		
 	}
 	__ignoreItemStateChange = false;
 */
@@ -7690,16 +7402,13 @@ protected int updateTSProduct (int howSet) {
 	if (!gui_val.equalsIgnoreCase(prop_val)) {	
 		_tsproduct.setPropValue("AnnotationID", gui_val,
 			_selected_subproduct, __selectedAnnotation, true);
-		__annotation_JComboBox.insertItemAt(gui_val, 
-			__selectedAnnotation);
+		__annotation_JComboBox.insertItemAt(gui_val, __selectedAnnotation);
 		__annotation_JComboBox.removeItemAt(__selectedAnnotation + 1);
 		ndirty++;
 	}
 	
 	String shape = null;
-	prop_val = _tsproduct.getLayeredPropValue(
-		"ShapeType", _selected_subproduct, 
-		__selectedAnnotation, false, true);
+	prop_val = _tsproduct.getLayeredPropValue( "ShapeType", _selected_subproduct, __selectedAnnotation, false, true);
 	shape = prop_val;
 	gui_val = __annotation_ShapeType_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
@@ -7711,192 +7420,140 @@ protected int updateTSProduct (int howSet) {
 	
 	if (shape == null || shape.equalsIgnoreCase("Text")) {
 		prop_val = _tsproduct.getLayeredPropValue(
-			"Color", _selected_subproduct, 
-			__selectedAnnotation, false, true);
-		gui_val = __annotation_text_color_JComboBox.getSelected()
-			.trim();
+			"Color", _selected_subproduct, __selectedAnnotation, false, true);
+		gui_val = __annotation_text_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Color", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 
 		prop_val = _tsproduct.getLayeredPropValue(
-			"FontSize", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+			"FontSize", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val =__annotation_text_FontSize_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("FontSize", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("FontSize", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
 		prop_val = _tsproduct.getLayeredPropValue(
-			"FontStyle", _selected_subproduct, 
-			__selectedAnnotation, false, true);
-		gui_val = __annotation_text_FontStyle_JComboBox.getSelected()
-			.trim();
+			"FontStyle", _selected_subproduct, __selectedAnnotation, false, true);
+		gui_val = __annotation_text_FontStyle_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("FontStyle", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("FontStyle", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
-		prop_val = _tsproduct.getLayeredPropValue(
-			"FontName", _selected_subproduct, 
+		prop_val = _tsproduct.getLayeredPropValue( "FontName", _selected_subproduct, 
 			__selectedAnnotation, false, true);
-		gui_val = __annotation_text_FontName_JComboBox.getSelected()
-			.trim();
+		gui_val = __annotation_text_FontName_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("FontName", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("FontName", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Point", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Point", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val = __annotation_text_PointX_JTextField.getText().trim() 
-			+ ","
-			+ __annotation_text_PointY_JTextField.getText().trim();
+			+ "," + __annotation_text_PointY_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Point", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Point", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Text", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Text", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val = __annotation_text_Text_JTextField.getText().trim();
 		if (!gui_val.equals(prop_val)) {
-			_tsproduct.setPropValue("Text", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Text", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
-		prop_val = _tsproduct.getLayeredPropValue(
-			"TextPosition", _selected_subproduct, 
-			__selectedAnnotation, false, true);
-		gui_val = __annotation_text_Position_JComboBox.getSelected()
-			.trim();
+		prop_val = _tsproduct.getLayeredPropValue( "TextPosition", _selected_subproduct, __selectedAnnotation, false, true);
+		gui_val = __annotation_text_Position_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("TextPosition", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("TextPosition", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	}
 	else if (shape.equalsIgnoreCase("Line")) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Color", _selected_subproduct, 
+		prop_val = _tsproduct.getLayeredPropValue( "Color", _selected_subproduct, 
 			__selectedAnnotation, false, true);
-		gui_val = __annotation_line_color_JComboBox.getSelected()
-			.trim();
+		gui_val = __annotation_line_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Color", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 
 		prop_val = _tsproduct.getLayeredPropValue(
-			"LineStyle", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+			"LineStyle", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val = __lineStyleJComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("LineStyle", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("LineStyle", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
 		prop_val = _tsproduct.getLayeredPropValue(
-			"LineWidth", _selected_subproduct, 
-			__selectedAnnotation, false, true);
-		gui_val = __annotation_line_LineWidth_JTextField.getText()
-			.trim();
+			"LineWidth", _selected_subproduct, __selectedAnnotation, false, true);
+		gui_val = __annotation_line_LineWidth_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("LineWidth", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("LineWidth", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
 		prop_val = _tsproduct.getLayeredPropValue(
-			"Points", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+			"Points", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val = __annotation_line_PointX1_JTextField.getText().trim() 
-			+ "," 
-			+ __annotation_line_PointY1_JTextField.getText().trim() 
-			+ ","
-			+ __annotation_line_PointX2_JTextField.getText().trim()
-			+ ","
-			+ __annotation_line_PointY2_JTextField.getText().trim();
+			+ "," + __annotation_line_PointY1_JTextField.getText().trim() 
+			+ "," + __annotation_line_PointX2_JTextField.getText().trim()
+			+ "," + __annotation_line_PointY2_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Points", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Points", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}	
 	}
 	else if (shape.equalsIgnoreCase("Symbol")) {
 		prop_val = _tsproduct.getLayeredPropValue(
-			"Color", _selected_subproduct, 
-			__selectedAnnotation, false, true);
-		gui_val = __annotation_symbol_color_JComboBox.getSelected()
-			.trim();
+			"Color", _selected_subproduct, __selectedAnnotation, false, true);
+		gui_val = __annotation_symbol_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Color", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 
 		prop_val = _tsproduct.getLayeredPropValue(
-			"Point", _selected_subproduct, 
-			__selectedAnnotation, false, true);
+			"Point", _selected_subproduct, __selectedAnnotation, false, true);
 		gui_val = __annotation_symbol_PointX_JTextField.getText().trim()
-			+ ","
-			+__annotation_symbol_PointY_JTextField.getText().trim();
+			+ "," +__annotation_symbol_PointY_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("Point", gui_val, 
 			_selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 	
-		prop_val = _tsproduct.getLayeredPropValue(
-			"SymbolPosition", _selected_subproduct, 
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolPosition", _selected_subproduct, 
 			__selectedAnnotation, false, true);
-		gui_val = __annotation_symbol_SymbolPosition_JComboBox
-			.getSelected().trim();
+		gui_val = __annotation_symbol_SymbolPosition_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("SymbolPosition", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("SymbolPosition", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"SymbolStyle", _selected_subproduct,
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolStyle", _selected_subproduct,
 			__selectedAnnotation, false, true);
-		gui_val = __annotation_symbol_SymbolStyle_JComboBox
-			.getSelected().trim();
+		gui_val = __annotation_symbol_SymbolStyle_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("SymbolStyle", gui_val,
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("SymbolStyle", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"SymbolSize", _selected_subproduct,
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolSize", _selected_subproduct,
 			__selectedAnnotation, false, true);
-		gui_val = __annotation_symbol_SymbolSize_JComboBox.getSelected()
-			.trim();
+		gui_val = __annotation_symbol_SymbolSize_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("SymbolSize", gui_val, 
-			_selected_subproduct, __selectedAnnotation, true);
+			_tsproduct.setPropValue("SymbolSize", gui_val, _selected_subproduct, __selectedAnnotation, true);
 			ndirty++;
 		}
-		
 	}
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"Order", _selected_subproduct, 
-		__selectedAnnotation, false, true);
+	prop_val = _tsproduct.getLayeredPropValue( "Order", _selected_subproduct, __selectedAnnotation, false, true);
 	gui_val = __annotation_Order_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("Order", gui_val, 
@@ -7905,27 +7562,22 @@ protected int updateTSProduct (int howSet) {
 	}
 
 	prop_val = _tsproduct.getLayeredPropValue(
-		"XAxisSystem", _selected_subproduct, 
-		__selectedAnnotation, false, true);
+		"XAxisSystem", _selected_subproduct, __selectedAnnotation, false, true);
 	gui_val = __annotation_XAxisSystem_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
-		_tsproduct.setPropValue("XAxisSystem", gui_val, 
-		_selected_subproduct, __selectedAnnotation, true);
+		_tsproduct.setPropValue("XAxisSystem", gui_val, _selected_subproduct, __selectedAnnotation, true);
 		ndirty++;
 	}
 
 	prop_val = _tsproduct.getLayeredPropValue(
-		"YAxisSystem", _selected_subproduct, 
-		__selectedAnnotation, false, true);
+		"YAxisSystem", _selected_subproduct, __selectedAnnotation, false, true);
 	gui_val = __annotation_YAxisSystem_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
-		_tsproduct.setPropValue("YAxisSystem", gui_val, 
-		_selected_subproduct, __selectedAnnotation, true);
+		_tsproduct.setPropValue("YAxisSystem", gui_val, _selected_subproduct, __selectedAnnotation, true);
 		ndirty++;
 	}
 
-	_tsproduct.checkAnnotationProperties(_selected_subproduct, 
-		__selectedAnnotation);
+	_tsproduct.checkAnnotationProperties(_selected_subproduct, __selectedAnnotation);
 
 	}
 	
@@ -7940,51 +7592,51 @@ protected int updateTSProduct (int howSet) {
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowActivated(WindowEvent evt) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowClosed(WindowEvent evt) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowClosing(WindowEvent event) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowDeactivated(WindowEvent evt) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowDeiconified(WindowEvent evt) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowOpened(WindowEvent evt) {}
 
 /**
 Does nothing.
-REVISIT (JTS - 2006-05-24)
+TODO (JTS - 2006-05-24)
 Is a window listener really necessary for this class?
 */
 public void windowIconified(WindowEvent evt) {}
 
-} // End of TSProductJFrame
+}

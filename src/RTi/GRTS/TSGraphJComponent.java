@@ -728,21 +728,20 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 	int nsubs = tsproduct.getNumSubProducts();
 	//Message.printStatus ( 1, "",
 	//_gtype + "Checking " + nsubs + " graphs after graphs were created." );
-	int graph_type = TSProduct.GRAPH_TYPE_LINE;
-	List tslist = null;
+	TSGraphType graphType = TSGraphType.LINE;
+	List<TS> tslist = null;
 	TSGraph tsgraph = null;
 	int nts = 0;
 	String prop_val;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		tsgraph = (TSGraph)tsgraphs.get(isub);
 		// Get the graph type to simplify later checks...
-		prop_val = tsproduct.getLayeredPropValue (
-					"GraphType", isub, -1, false );
+		prop_val = tsproduct.getLayeredPropValue ( "GraphType", isub, -1, false );
 		if ( prop_val == null ) {
 			prop_val = "Line";
 			tsproduct.setPropValue ( "GraphType", "Line", isub, -1);
 		}
-		graph_type = TSProduct.lookupGraphTypeNumber( prop_val);
+		graphType = TSGraphType.valueOfIgnoreCase( prop_val);
 
 		// Get the list of time series for the sub-product.  This is a
 		// subset of the graphs used for the full product...
@@ -765,122 +764,99 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 		// boolean is set).  Set the property here so it is visible and
 		// is compatible with the internal flag...
 
-		if (	tsproduct.getLayeredPropValue("LeftYAxisIgnoreUnits",
-			isub, -1, false ) == null ) {
+		if ( tsproduct.getLayeredPropValue("LeftYAxisIgnoreUnits", isub, -1, false ) == null ) {
 			if ( tsgraph.ignoreLeftYAxisUnits() ) {
-				tsproduct.setPropValue (
-				"LeftYAxisIgnoreUnits", "true", isub, -1 );
+				tsproduct.setPropValue ( "LeftYAxisIgnoreUnits", "true", isub, -1 );
 			}
-			else {	tsproduct.setPropValue (
-				"LeftYAxisIgnoreUnits", "false", isub, -1 );
+			else {
+			    tsproduct.setPropValue ( "LeftYAxisIgnoreUnits", "false", isub, -1 );
 			}
 		}
 
 		// "LeftYAxisTitleString" - depends on graph type and units...
 
 		// REVISIT SAM 2006-09-28
-		// Why was the following always evaluted as true in previous
+		// Why was the following always evaluated as true in previous
 		// code with 1 == 1?  Was this a work-around for some other
-		// problem.  Need to evaluate further when regression tests are
-		// in place.
-		if (	tsproduct.getLayeredPropValue("LeftYAxisTitleString",
-			isub, -1, false ) == null ) {
-			tsproduct.setPropValue ( "LeftYAxisTitleString",
-				"", isub, -1 );
-			if ( graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+		// problem.  Need to evaluate further when regression tests are in place.
+		if ( tsproduct.getLayeredPropValue("LeftYAxisTitleString", isub, -1, false ) == null ) {
+			tsproduct.setPropValue ( "LeftYAxisTitleString", "", isub, -1 );
+			if ( graphType == TSGraphType.XY_SCATTER ) {
 				// Units will be 1st (dependent) time series -
-				// need to do something else if more than one
-				// time series...
+				// need to do something else if more than one time series...
 				if ( nts >= 1 ) {
 					TS ts0 = (TS)tslist.get(0);
-					tsproduct.setPropValue (
-					"LeftYAxisTitleString",
-					ts0.getDataUnits(), isub, -1 );
+					tsproduct.setPropValue ( "LeftYAxisTitleString", ts0.getDataUnits(), isub, -1 );
 					ts0 = null;
 				}
-				else {	tsproduct.setPropValue (
-					"LeftYAxisTitleString", "", isub, -1 );
+				else {
+				    tsproduct.setPropValue ( "LeftYAxisTitleString", "", isub, -1 );
 				}
 			}
-			else if ( graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
-				tsproduct.setPropValue (
-				"LeftYAxisTitleString", "Legend Index",
-				isub, -1 );
+			else if ( graphType == TSGraphType.PERIOD ) {
+				tsproduct.setPropValue ( "LeftYAxisTitleString", "Legend Index", isub, -1 );
 			}
-			else {	// Title is the units that are displayed on
-				// the axis.
+			else {
+			    // Title is the units that are displayed on the axis.
 				if ( tsgraph.ignoreLeftYAxisUnits() ) {
-					// Units are not different in data and
-					// are indicated in the legend.
-					tsproduct.setPropValue (
-					"LeftYAxisTitleString",
-					"See units in legend", isub, -1 );
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "LeftYAxisTitleString", "See units in legend", isub, -1 );
 				}
-				else {	// Get the units from the first non-null
-					// time series...
+				else {
+				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
 					for ( int its = 0; its < nts; its++ ) {
-						ts = (TS)tslist.get(its);
+						ts = tslist.get(its);
 						if ( ts == null ) {
 							continue;
 						}
 						units = ts.getDataUnits();
 						break;
 					}
-					tsproduct.setPropValue (
-					"LeftYAxisTitleString",
-					units, isub, -1 );
+					tsproduct.setPropValue ( "LeftYAxisTitleString", units, isub, -1 );
 				}
 			}
 		}
 
 		// "LeftYAxisUnits" - determined from graph type.
 
-		if (	tsproduct.getLayeredPropValue("LeftYAxisUnits",
-			isub, -1, false ) == null ) {
-			if ( graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER ) {
+		if ( tsproduct.getLayeredPropValue("LeftYAxisUnits", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.XY_SCATTER ) {
 				// Units will be 1st (dependent) time series -
-				// need to do something else if more than one
-				// time series...
+				// need to do something else if more than one time series...
 				if ( nts >= 1 ) {
 					TS ts0 = (TS)tslist.get(0);
-					tsproduct.setPropValue (
-					"LeftYAxisUnits",
-					ts0.getDataUnits(), isub, -1 );
+					tsproduct.setPropValue ( "LeftYAxisUnits", ts0.getDataUnits(), isub, -1 );
 					ts0 = null;
 				}
-				else {	tsproduct.setPropValue (
-					"LeftYAxisUnits", "", isub, -1 );
+				else {
+				    tsproduct.setPropValue ( "LeftYAxisUnits", "", isub, -1 );
 				}
 			}
-			else if ( graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
-				// Count of time series (not really used for
-				// anything)...
-				tsproduct.setPropValue (
-				"LeftYAxisUnits", "COUNT", isub, -1 );
+			else if ( graphType == TSGraphType.PERIOD ) {
+				// Count of time series (not really used for anything)...
+				tsproduct.setPropValue ( "LeftYAxisUnits", "COUNT", isub, -1 );
 			}
-			else {	// Units are time series data units.
+			else {
+			    // Units are time series data units.
 				if ( tsgraph.ignoreLeftYAxisUnits() ) {
-					// Units are not different in data and
-					// are indicated in the legend.
-					tsproduct.setPropValue (
-					"LeftYAxisUnits", "", isub, -1 );
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "LeftYAxisUnits", "", isub, -1 );
 				}
-				else {	// Get the units from the first non-null
-					// time series...
+				else {
+				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
 					for ( int its = 0; its < nts; its++ ) {
-						ts = (TS)tslist.get(its);
+						ts = tslist.get(its);
 						if ( ts == null ) {
 							continue;
 						}
 						units = ts.getDataUnits();
 						break;
 					}
-					tsproduct.setPropValue (
-					"LeftYAxisUnits", units, isub, -1 );
+					tsproduct.setPropValue ( "LeftYAxisUnits", units, isub, -1 );
 				}
 			}
 		}
@@ -888,45 +864,33 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 		// "LeftYAxisLabelPrecision" - DO THIS AFTER
 		// "LeftYAxisUnits"
 
-		if (	tsproduct.getLayeredPropValue("LeftYAxisLabelPrecision",
-			isub, -1, false ) == null ) {
-			if ( graph_type == TSProduct.GRAPH_TYPE_PERIOD ) {
-				tsproduct.setPropValue (
-				"LeftYAxisLabelPrecision", "0", isub, -1 );
+		if ( tsproduct.getLayeredPropValue("LeftYAxisLabelPrecision", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
+				tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "0", isub, -1 );
 			}
 			else if ( tsgraph.ignoreLeftYAxisUnits() ) {
 				// Set the precision to the maximum precision
 				// for the units of all time series...
 				int yaxis_precision = 2;
-				tsproduct.setPropValue (
-				"LeftYAxisLabelPrecision",
-				"" + yaxis_precision, isub, -1 );
+				tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "" + yaxis_precision, isub, -1 );
 			} 
-			else {	// Determine the precision from the axis units..
-				String lefty_units =
-				_tsproduct.getLayeredPropValue (
-				"LeftYAxisUnits", isub, -1, false );
+			else {
+			    // Determine the precision from the axis units..
+				String lefty_units = _tsproduct.getLayeredPropValue ( "LeftYAxisUnits", isub, -1, false );
 				if ( lefty_units.equals("") ) {
 					// Default...
-					tsproduct.setPropValue (
-					"LeftYAxisLabelPrecision",
-					"2", isub, -1 );
+					tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "2", isub, -1 );
 				}
-				else {	try {	DataUnits u =
-							DataUnits.lookupUnits
-							( lefty_units );
-						int precision =
-							u.getOutputPrecision();
+				else {
+				    try {
+				        DataUnits u = DataUnits.lookupUnits ( lefty_units );
+						int precision = u.getOutputPrecision();
 						u = null;
-						tsproduct.setPropValue (
-						"LeftYAxisLabelPrecision",
-						"" + precision, isub, -1 );
+						tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "" + precision, isub, -1 );
 					}
 					catch ( Exception e ) {
 						// Default...
-						tsproduct.setPropValue (
-						"LeftYAxisLabelPrecision",
-						"2", isub, -1 );
+						tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "2", isub, -1 );
 					}
 				}
 			}
@@ -934,50 +898,37 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 
 		// BottomXAxisTitleString may have units...
 
-		if (	tsproduct.getLayeredPropValue("BottomXAxisTitleString",
-			isub, -1, false ) == null ) {
+		if ( tsproduct.getLayeredPropValue("BottomXAxisTitleString", isub, -1, false ) == null ) {
 			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( tsgraph == null ) {
 				continue;
 			}
-			if ( graph_type == TSProduct.GRAPH_TYPE_DURATION ) {
-				tsproduct.setPropValue (
-				"BottomXAxisTitleString",
-				"Percent of values >= y-axis value", isub, -1 );
+			if ( graphType == TSGraphType.DURATION ) {
+				tsproduct.setPropValue ( "BottomXAxisTitleString","Percent of values >= y-axis value", isub, -1 );
 			}
-			else if (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER){
-				// Bottom axis is the units of the first
-				// independent time series...
+			else if (graphType == TSGraphType.XY_SCATTER){
+				// Bottom axis is the units of the first independent time series...
 				if ( nts >= 2 ) {
 					TS ts1 = (TS)tslist.get(1);
 					String units = ts1.getDataUnits();
-					tsproduct.setPropValue (
-					"BottomXAxisTitleString", units, isub,
-					-1 );
-					try {	DataUnits u =
-							DataUnits.lookupUnits (
-							units );
+					tsproduct.setPropValue ( "BottomXAxisTitleString", units, isub, -1 );
+					try {
+					    DataUnits u = DataUnits.lookupUnits ( units );
 						// Also set the precision...
-						tsproduct.setPropValue (
-						"BottomXAxisPrecision",
-						"" + u.getOutputPrecision(),
-						isub, -1 );
+						tsproduct.setPropValue ( "BottomXAxisPrecision", "" + u.getOutputPrecision(), isub, -1 );
 						u = null;
 					}
 					catch ( Exception e ) {
-						tsproduct.setPropValue (
-						"BottomXAxisPrecision",
-						"1", isub, -1 );
+						tsproduct.setPropValue ( "BottomXAxisPrecision", "1", isub, -1 );
 					}
 					ts1 = null;
 				}
-				else { tsproduct.setPropValue (
-					"BottomXAxisTitleString", "", isub, -1);
+				else {
+				    tsproduct.setPropValue ( "BottomXAxisTitleString", "", isub, -1);
 				}
 			}
-			else {	tsproduct.setPropValue (
-				"BottomXAxisTitleString",
-				"", isub, -1 );
+			else {
+			    tsproduct.setPropValue ( "BottomXAxisTitleString", "", isub, -1 );
 			}
 		}
 	}
@@ -988,14 +939,13 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 Create a vector of TSGraph from a TSProduct and a list of time series.
 The vector always contains the graphs but if a graph is disabled its size will
 not be shown in the graph.
-This typically would be called in the first paint where the component size is
-known.
+This typically would be called in the first paint where the component size is known.
 @param tsproduct TSProduct describing what to graph.
 @param display_props Display properties (e.g., whether a reference graph).
 @param tsproduct_tslist List of time series to graph for the full TSProduct.
-@praam drawlim_graphs Drawing limits of the area set aside for graphs.  This
+@param drawlim_graphs Drawing limits of the area set aside for graphs.  This
 area is divided among the individual graphs.
-@return Vector of TSGraph to use when drawing.  The Vector is
+@return List of TSGraph to use when drawing.  The Vector is
 guaranteed to be non-null but may contain zero graphs.
 */
 private List createTSGraphsFromTSProduct (	TSProduct tsproduct,
@@ -1962,15 +1912,14 @@ public void mouseDragged ( MouseEvent event )
 
 	// Figure out which drawing area the event occurred in...
 
-	int graph_type = tsgraph.getGraphType();
-	if ((graph_type == TSProduct.GRAPH_TYPE_DURATION) || (graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER)) {
+	TSGraphType graphType = tsgraph.getGraphType();
+	if ((graphType == TSGraphType.DURATION) || (graphType == TSGraphType.XY_SCATTER)) {
 		// Don't allow zoom.
 		_rubber_banding = false;
 		return;
 	}
 	_rubber_banding = true;
-	// Let listeners know so the tracker can be updated to help
-	// size the rubber band box...
+	// Let listeners know so the tracker can be updated to help size the rubber band box...
 	// Data units...
 	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY ( _mouse_x2, _mouse_y2, GRDrawingArea.COORD_DEVICE );
 	if ( datapt == null ) {
@@ -2140,12 +2089,11 @@ public void mouseReleased ( MouseEvent event )
 		x = event.getX();
 		y = event.getY();
 	}
-	int graph_type = 0;
+	TSGraphType graphType = TSGraphType.UNKNOWN;
 	if ( tsgraph != null ) {
-		graph_type = tsgraph.getGraphType();
+		graphType = tsgraph.getGraphType();
 	}
-	if (	(graph_type == TSProduct.GRAPH_TYPE_XY_SCATTER) ||
-		(graph_type == TSProduct.GRAPH_TYPE_DURATION) ) {
+	if ((graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ) {
 		// Currently do not allow zoom, etc...
 		return;
 	}
@@ -2154,8 +2102,7 @@ public void mouseReleased ( MouseEvent event )
 		// Right click so don't do anything...
 		return;
 	}
-	if (	(_interaction_mode == INTERACTION_SELECT) ||
-		(_interaction_mode == INTERACTION_ZOOM) ) {
+	if ( (_interaction_mode == INTERACTION_SELECT) || (_interaction_mode == INTERACTION_ZOOM) ) {
 		// Only process if box is "delta" pixels or bigger...
 		int deltax = x - _mouse_x1;
 		int delta_min = 2;
@@ -2169,24 +2116,16 @@ public void mouseReleased ( MouseEvent event )
 		if ( (deltax <= delta_min) || (deltay <= delta_min) ) {
 			if ( _interaction_mode == INTERACTION_SELECT ) {
 				// Assume they want the original point...
-				GRPoint devpt = new GRPoint (
-					(double)_mouse_x1, (double)_mouse_y1 );
-				GRPoint datapt =
-					tsgraph.getGraphDrawingArea().getDataXY(
-					_mouse_x1, _mouse_y1,
-					GRDrawingArea.COORD_DEVICE );
+				GRPoint devpt = new GRPoint ( (double)_mouse_x1, (double)_mouse_y1 );
+				GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY(
+					_mouse_x1, _mouse_y1, GRDrawingArea.COORD_DEVICE );
 				if ( _listeners != null ) {
 					int size = _listeners.length;
-					// Need to figure out which time series
-					// was selected...
+					// Need to figure out which time series was selected...
 					for ( int i = 0; i < size; i++ ) {
-						_listeners[i].tsViewSelect (
-						tsgraph, devpt, datapt,
-						(List)null );
+						_listeners[i].tsViewSelect ( tsgraph, devpt, datapt, (List)null );
 					}
 				}
-				devpt = null;
-				datapt = null;
 				_rubber_banding = false;
 				// Reset zoom coordinates...
 				_mouse_x2 = _mouse_xprev = -1;
@@ -2198,12 +2137,10 @@ public void mouseReleased ( MouseEvent event )
 			}
 			else if ( _interaction_mode == INTERACTION_ZOOM ) {
 				// Too small, don't allow...
-				// Reset zoom coordinates and force a redraw
-				// to clear the box...
+				// Reset zoom coordinates and force a redraw to clear the box...
 				_mouse_x2 = _mouse_xprev = -1;
 				if ( (x != _mouse_x1) && (y != _mouse_y1) ) {
-					// There was some motion so need to
-					// redraw to clear the box...
+					// There was some motion so need to redraw to clear the box...
 					refresh();
 					_rubber_banding = false;
 					//repaint();
@@ -2212,8 +2149,7 @@ public void mouseReleased ( MouseEvent event )
 				return;
 			}
 		}
-		// Save the point that was selected so that the drag and
-		// released events will work...
+		// Save the point that was selected so that the drag and released events will work...
 		// Reset the data limits to those from the zoom box...
 		// Make sure that the limits are always specified 
 		int xmin, xmax, ymin, ymax;
@@ -2232,15 +2168,12 @@ public void mouseReleased ( MouseEvent event )
 			ymax = y;
 		}
 		
-		GRLimits mouse_limits =
-				new GRLimits ( xmin, ymin, xmax, ymax );
+		GRLimits mouse_limits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR...
 		GRPoint pt1 = tsgraph.getGraphDrawingArea().getDataXY (
-				xmin, ymax,
-				GRDrawingArea.COORD_DEVICE );
+				xmin, ymax, GRDrawingArea.COORD_DEVICE );
 		GRPoint pt2 = tsgraph.getGraphDrawingArea().getDataXY (
-				xmax, ymin,
-				GRDrawingArea.COORD_DEVICE );
+				xmax, ymin, GRDrawingArea.COORD_DEVICE );
 
 		GRLimits newdata_limits = new GRLimits ( pt1, pt2 );
 
@@ -2248,10 +2181,8 @@ public void mouseReleased ( MouseEvent event )
 			// Reset the limits to more appropriate values...
 			if ( _zoom_keep_y_limits ) {
 				// Set the Y limits to the maximum values...
-				newdata_limits.setTopY (
-				tsgraph.getMaxDataLimits().getTopY() );
-				newdata_limits.setBottomY(
-				tsgraph.getMaxDataLimits().getBottomY() );
+				newdata_limits.setTopY ( tsgraph.getMaxDataLimits().getTopY() );
+				newdata_limits.setBottomY( tsgraph.getMaxDataLimits().getBottomY() );
 			}
 		}
 
@@ -2276,22 +2207,18 @@ public void mouseReleased ( MouseEvent event )
 			if ( _listeners != null ) {
 				int size = _listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewSelect (
-						tsgraph, mouse_limits,
-						newdata_limits, (List)null );
+					_listeners[i].tsViewSelect ( tsgraph, mouse_limits, newdata_limits, (List)null );
 				}
 			}
 		}
 		else if ( _interaction_mode == INTERACTION_ZOOM ) {
 			// Actually reset the data limits...
-			// Only set new drawing area data limits for the main
-			// graph...
+			// Only set new drawing area data limits for the main graph...
 			if ( !_is_reference_graph ) {
 				tsgraph.setDataLimits ( newdata_limits );
 				//_grda.setDataLimits ( _data_limits );
 			}
-			// Call external listeners to let them know that a
-			// graph has been zoomed...
+			// Call external listeners to let them know that a graph has been zoomed...
 			if ( _listeners != null ) {
 				int size = _listeners.length;
 				for ( int i = 0; i < size; i++ ) {
@@ -2300,8 +2227,7 @@ public void mouseReleased ( MouseEvent event )
 						mouse_limits, newdata_limits );
 				}
 			}
-			// Apply the zoom to other graphs that need to be
-			// zoomed...
+			// Apply the zoom to other graphs that need to be zoomed...
 			zoom ( tsgraph, mouse_limits, newdata_limits );
 			// Repaint...
 			// Fill in the background color.  Need this because
@@ -2311,14 +2237,9 @@ public void mouseReleased ( MouseEvent event )
 			// plotting limits that result in the full device being
 			// used.  Otherwise, mouse tracking, etc. may not
 			// allow selects from outside the actual data limits...
-			// First set so the plotting limits will be
-			// recomputed...
+			// First set so the plotting limits will be recomputed...
 			_force_redraw = true;
 		}
-		mouse_limits = null;
-		pt1 = null;
-		pt2 = null;
-		newdata_limits = null;
 		_rubber_banding = false;
 		// Reset zoom coordinates...
 		_mouse_x2 = _mouse_xprev = -1;

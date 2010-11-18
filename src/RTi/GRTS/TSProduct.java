@@ -1127,38 +1127,6 @@ public class TSProduct
 {
 
 /**
-Main graph types.  Other properties influence the actual appearance (e.g., log/linear axis).
-*/
-public static final int 
-	GRAPH_TYPE_UNKNOWN = 0,
-	GRAPH_TYPE_BAR = 1,
-	GRAPH_TYPE_DOUBLE_MASS = 2,
-	GRAPH_TYPE_DURATION = 3,
-	GRAPH_TYPE_LINE = 4,
-	GRAPH_TYPE_PERIOD = 5,
-	GRAPH_TYPE_POINT = 6,
-	GRAPH_TYPE_PREDICTED_VALUE = 7,
-	GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL = 8,
-	GRAPH_TYPE_XY_SCATTER = 9;
-
-/**
-Graph types.  Use these types for plot files, menus, etc.
-These MUST agree with the integer values defined above.
-*/
-public static final String GRAPH_TYPE_NAMES[] = {
-						"Unknown",
-						"Bar",
-						"DoubleMass",
-						"Duration",
-						"Line",
-						"PeriodOfRecord",
-						"Point",
-						"PredictedValue",
-						"PredictedValueResidual",
-						"XY-Scatter"
-						};
-
-/**
 Main property list describing the product.
 */
 private PropList __proplist = null;
@@ -1465,14 +1433,12 @@ public void checkDataProperties(int isub, int its) {
 		prop_val = getDefaultPropValue("GraphType", isub, -1);
 	}
 
-	int graph_type = lookupGraphTypeNumber(prop_val);
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
 	if (getLayeredPropValue("Color",isub,its,false) == null) {
-		if (	(graph_type == GRAPH_TYPE_XY_SCATTER) &&
-			(nts <= 2) ) {
+		if ( (graphType == TSGraphType.XY_SCATTER) && (nts <= 2) ) {
 			// Force black to be used...
-			setPropValue ( "Color",
-			"black", isub, its );
+			setPropValue ( "Color", "black", isub, its );
 		}
 		else {	
 			// Use colors for time series...
@@ -1480,7 +1446,7 @@ public void checkDataProperties(int isub, int its) {
 		}
 	}
 
-	if (graph_type == GRAPH_TYPE_POINT) {
+	if (graphType == TSGraphType.POINT) {
 		if (getLayeredPropValue("SymbolStyle",isub,its,false) == null) {
 			setPropValue("SymbolStyle",	TSGraphJComponent.lookupTSSymbol(its),isub, its);
 		}
@@ -1513,16 +1479,16 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if (getLayeredPropValue("LineStyle", isub, its, false) == null) {
-		setPropValue ( "LineStyle", getDefaultPropValue("LineStyle",isub, its, false, graph_type), isub, its);
+		setPropValue ( "LineStyle", getDefaultPropValue("LineStyle",isub, its, false, graphType), isub, its);
 	}
 
 	if (getLayeredPropValue("LineWidth", isub, its, false) == null) {
-		setPropValue("LineWidth", getDefaultPropValue("LineWidth",isub,its, false, graph_type),	isub, its);
+		setPropValue("LineWidth", getDefaultPropValue("LineWidth",isub,its, false, graphType),	isub, its);
 	}
 
-	if (graph_type == GRAPH_TYPE_XY_SCATTER
-	   || graph_type == GRAPH_TYPE_PREDICTED_VALUE
-	   || graph_type == GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
+	if (graphType == TSGraphType.XY_SCATTER
+	   || graphType == TSGraphType.PREDICTED_VALUE
+	   || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (getLayeredPropValue("RegressionLineEnabled", 
 		    isub, its, false) == null ) {
 			setPropValue("RegressionLineEnabled", getDefaultPropValue("RegressionLineEnabled", isub,its), isub, its);
@@ -1534,19 +1500,13 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if (getLayeredPropValue("SymbolSize", isub, its, false) == null) {
-		setPropValue("SymbolSize",
-			getDefaultPropValue("SymbolSize", isub,its, false, 
-				graph_type),
-			isub, its);
+		setPropValue("SymbolSize",getDefaultPropValue("SymbolSize", isub,its, false,graphType),isub, its);
 	}
 
 	// PeriodEnd, Period Start set at run-time
 
 	if (getLayeredPropValue("SymbolStyle", isub, its, false) == null) {
-		setPropValue("SymbolStyle", 
-			getDefaultPropValue("SymbolStyle", isub,its,false, 
-				graph_type),
-			isub, its);
+		setPropValue("SymbolStyle",getDefaultPropValue("SymbolStyle", isub,its,false,graphType),isub, its);
 	}
 
 	if ( getLayeredPropValue ( "TSAlias", isub, its, false ) == null ) {
@@ -1557,18 +1517,12 @@ public void checkDataProperties(int isub, int its) {
 		setPropValue ( "TSID", getDefaultPropValue("TSID",isub,its), isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"XAxis", isub, its, false ) == null ) {
-		setPropValue ( "XAxis",
-		getDefaultPropValue("XAxis",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ("XAxis", isub, its, false ) == null ) {
+		setPropValue ( "XAxis",getDefaultPropValue("XAxis",isub,its),isub, its);
 	}
 
-	if (	getLayeredPropValue (
-		"YAxis", isub, its, false ) == null ) {
-		setPropValue ( "YAxis",
-		getDefaultPropValue("YAxis",isub,its),
-		isub, its);
+	if ( getLayeredPropValue ("YAxis", isub, its, false ) == null ) {
+		setPropValue ( "YAxis",getDefaultPropValue("YAxis",isub,its),isub, its);
 	}
 }
 
@@ -1601,102 +1555,82 @@ public void checkProperties ()
     }
 
 	if (getLayeredPropValue("Enabled", -1, -1, false) == null) {
-		setPropValue("Enabled",
-			getDefaultPropValue("Enabled",-1,-1), -1, -1);
+		setPropValue("Enabled",getDefaultPropValue("Enabled",-1,-1), -1, -1);
 	}
 
 	// Product MainTitle properties...
 
 	if (getLayeredPropValue("MainTitleFontName", -1, -1, false) == null) {
-		setPropValue("MainTitleFontName",
-			getDefaultPropValue("MainTitleFontName",-1,-1), -1, -1);
+		setPropValue("MainTitleFontName",getDefaultPropValue("MainTitleFontName",-1,-1), -1, -1);
 	}
 	if (getLayeredPropValue("MainTitleFontSize", -1, -1, false) == null) {
-		setPropValue("MainTitleFontSize",
-			getDefaultPropValue("MainTitleFontSize",-1,-1), -1, -1);
+		setPropValue("MainTitleFontSize",getDefaultPropValue("MainTitleFontSize",-1,-1), -1, -1);
 	}
 	if (getLayeredPropValue("MainTitleFontStyle", -1, -1, false) == null){
-		setPropValue("MainTitleFontStyle",
-			getDefaultPropValue("MainTitleFontStyle",-1,-1), -1,-1);
+		setPropValue("MainTitleFontStyle",getDefaultPropValue("MainTitleFontStyle",-1,-1), -1,-1);
 	}
 	if (getLayeredPropValue("MainTitleString", -1, -1, false) == null) {
-		setPropValue("MainTitleString",
-			getDefaultPropValue("MainTitleString",-1,-1), -1, -1);
+		setPropValue("MainTitleString",getDefaultPropValue("MainTitleString",-1,-1), -1, -1);
 	}
 
 	// OutputFile
 
 	if (getLayeredPropValue("OutputFile", -1, -1, false) == null) {
-		setPropValue("OutputFile",
-			getDefaultPropValue("OutputFile",-1,-1), -1, -1);
+		setPropValue("OutputFile",getDefaultPropValue("OutputFile",-1,-1), -1, -1);
 	}
 
 	// PeriodEnd, PeriodStart - set at run time
 
 	// ProductID
 	if (getLayeredPropValue("ProductID", -1, -1, false) == null) {
-		setPropValue("ProductID", 
-			getDefaultPropValue("ProductID", -1, -1), -1, -1);
+		setPropValue("ProductID",getDefaultPropValue("ProductID", -1, -1), -1, -1);
 	}
 
 	// ProductName
 	if (getLayeredPropValue("ProductName", -1, -1, false) == null) {
-		setPropValue("ProductName",
-			getDefaultPropValue("ProductName", -1, -1), -1, -1);
+		setPropValue("ProductName",getDefaultPropValue("ProductName", -1, -1), -1, -1);
 	}
 
 	// ProductType.
 
 	if (getLayeredPropValue("ProductType", -1, -1, false) == null) {
-		setPropValue("ProductType",
-			getDefaultPropValue("ProductType",-1,-1), -1, -1);
+		setPropValue("ProductType",getDefaultPropValue("ProductType",-1,-1), -1, -1);
 	}
 
 	// Product Subtitle properties...
 
 	if (getLayeredPropValue("SubTitleFontName", -1, -1, false) == null) {
-		setPropValue("SubTitleFontName",
-			getDefaultPropValue("SubTitleFontName",-1,-1),-1,-1);
+		setPropValue("SubTitleFontName",getDefaultPropValue("SubTitleFontName",-1,-1),-1,-1);
 	}
 	if (getLayeredPropValue("SubTitleFontSize", -1, -1, false) == null) {
-		setPropValue("SubTitleFontSize",
-			getDefaultPropValue("SubTitleFontSize",-1,-1),-1,-1);
+		setPropValue("SubTitleFontSize",getDefaultPropValue("SubTitleFontSize",-1,-1),-1,-1);
 	}
 	if (getLayeredPropValue("SubTitleFontStyle", -1, -1, false) == null) {
-		setPropValue("SubTitleFontStyle",
-			getDefaultPropValue("SubTitleFontStyle",-1,-1),-1,-1);
+		setPropValue("SubTitleFontStyle",getDefaultPropValue("SubTitleFontStyle",-1,-1),-1,-1);
 	}
 	if (getLayeredPropValue("SubTitleString", -1, -1, false) == null) {
-		setPropValue("SubTitleString",
-			getDefaultPropValue("SubTitleString",-1,-1), -1, -1);
+		setPropValue("SubTitleString",getDefaultPropValue("SubTitleString",-1,-1), -1, -1);
 	}
 
 	// Product dimensions...
 
 	if (getLayeredPropValue("TotalHeight", -1, -1, false) == null) {
-		setPropValue("TotalHeight",
-			getDefaultPropValue("TotalHeight",-1,-1),-1,-1);
+		setPropValue("TotalHeight",getDefaultPropValue("TotalHeight",-1,-1),-1,-1);
 	}
 	if (getLayeredPropValue("TotalWidth", -1, -1, false) == null) {
-		setPropValue("TotalWidth",
-			getDefaultPropValue("TotalWidth",-1,-1),-1,-1);
+		setPropValue("TotalWidth",getDefaultPropValue("TotalWidth",-1,-1),-1,-1);
 	}
 
 	// Layout ...
 
 	if (getLayeredPropValue("LayoutType", -1, -1, false) == null) {
-		setPropValue("LayoutType", getDefaultPropValue("LayoutType",
-			-1, -1), -1, -1);
+		setPropValue("LayoutType", getDefaultPropValue("LayoutType",-1, -1), -1, -1);
 	}
 	if (getLayeredPropValue("LayoutNumberOfRows", -1, -1, false) == null) {
-		setPropValue("LayoutNumberOfRows", 
-			getDefaultPropValue("LayoutNumberOfRows", -1, -1),
-			-1, -1);
+		setPropValue("LayoutNumberOfRows",getDefaultPropValue("LayoutNumberOfRows", -1, -1),-1, -1);
 	}
 	if (getLayeredPropValue("LayoutNumberOfCols", -1, -1, false) == null) {
-		setPropValue("LayoutNumberOfCols", 
-			getDefaultPropValue("LayoutNumberOfCols", -1, -1),
-			-1, -1);
+		setPropValue("LayoutNumberOfCols",getDefaultPropValue("LayoutNumberOfCols", -1, -1),-1, -1);
 	}
 
 	//---------------------------------------------------------------------
@@ -1718,45 +1652,36 @@ Check the graph product type (as opposed to report properties) properties.
 public void checkGraphProperties ( int nsubs )
 {	String routine = "TSProduct.checkGraphProperties";
 	int nts = 0;
-	int graph_type = GRAPH_TYPE_LINE;
+	TSGraphType graphType = TSGraphType.LINE;
 	__num_zoom_groups = 1;
 	String prop_val;
 	int how_set_prev = __proplist.getHowSet();
 	__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 	for ( int isub = 0; isub < nsubs; isub++ ) {
-		//Message.printStatus ( 1, "", "Checking subproduct [" + isub +
-		//"]" );
-		// Check "GraphType" property because its value is used below
-		// to make decisions
+		//Message.printStatus ( 1, "", "Checking subproduct [" + isub + "]" );
+		// Check "GraphType" property because its value is used below to make decisions
 
 		prop_val = getLayeredPropValue ( "GraphType", isub, -1, false );
 		if ( prop_val == null ) {
 			prop_val = getDefaultPropValue ( "GraphType", isub, -1);
 			setPropValue ( "GraphType", prop_val, isub, -1);
 		}
-		graph_type = lookupGraphTypeNumber( prop_val);
+		graphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
 		// Now alphabetize the properties...
 
-		if (	(graph_type == GRAPH_TYPE_BAR) &&
-			getLayeredPropValue("BarPosition",
-			isub, -1, false ) == null ) {
-			setPropValue ( "BarPosition",
-			getDefaultPropValue("BarPosition",isub,-1),
-			isub, -1 );
+		if ( (graphType == TSGraphType.BAR) && getLayeredPropValue("BarPosition",isub, -1, false ) == null ) {
+			setPropValue ( "BarPosition", getDefaultPropValue("BarPosition",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue( "BottomXAxisLabelFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "BottomXAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "BottomXAxisLabelFontName",
 			getDefaultPropValue("BottomXAxisLabelFontName",isub,-1),
 			isub, -1 );
 		}
-		if (	getLayeredPropValue( "BottomXAxisLabelFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "BottomXAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "BottomXAxisLabelFontStyle",
-			getDefaultPropValue("BottomXAxisLabelFontStyle",
-			isub,-1), isub, -1 );
+			getDefaultPropValue("BottomXAxisLabelFontStyle",isub,-1), isub, -1 );
 		}
 		if (	getLayeredPropValue( "BottomXAxisLabelFontSize",
 			isub, -1, false ) == null ) {
@@ -1772,84 +1697,67 @@ public void checkGraphProperties ( int nsubs )
 
 		if (	getLayeredPropValue("BottomXAxisMajorGridColor",
 			isub, -1, false ) == null ) {
-			if ( graph_type == GRAPH_TYPE_PERIOD ) {
+			if ( graphType == TSGraphType.PERIOD ) {
 				// Don't usually draw the horizontal grid...
-				setPropValue ( "BottomXAxisMajorGridColor",
-					"None",isub,-1);
+				setPropValue ( "BottomXAxisMajorGridColor", "None",isub,-1);
 			}
-			else {	setPropValue ( "BottomXAxisMajorGridColor",
-				getDefaultPropValue("BottomXAxisMajorGridColor",
-				isub,-1), isub, -1 );
+			else {
+			    setPropValue ( "BottomXAxisMajorGridColor",
+				getDefaultPropValue("BottomXAxisMajorGridColor", isub,-1), isub, -1 );
 			}
 		}
 
 		// "BottomXAxisMinorGridColor"...
 
-		if (	getLayeredPropValue("BottomXAxisMinorGridColor",
-			isub, -1, false ) == null ) {
-			if ( graph_type == GRAPH_TYPE_PERIOD ) {
+		if ( getLayeredPropValue("BottomXAxisMinorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
 				// Don't usually draw the horizontal grid...
-				setPropValue ( "BottomXAxisMinorGridColor",
-					"None",isub,-1);
+				setPropValue ( "BottomXAxisMinorGridColor","None",isub,-1);
 			}
-			else {	setPropValue ( "BottomXAxisMinorGridColor",
-				getDefaultPropValue("BottomXAxisMinorGridColor",
-				isub,-1), isub, -1 );
+			else {
+			    setPropValue ( "BottomXAxisMinorGridColor",
+				getDefaultPropValue("BottomXAxisMinorGridColor", isub,-1), isub, -1 );
 			}
 		}
 
-		if (	getLayeredPropValue( "BottomXAxisTitleFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "BottomXAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "BottomXAxisTitleFontName",
-			getDefaultPropValue("BottomXAxisTitleFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("BottomXAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "BottomXAxisTitleFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "BottomXAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "BottomXAxisTitleFontStyle",
-			getDefaultPropValue("BottomXAxisTitleFontStyle",
-			isub,-1),isub, -1 );
+			getDefaultPropValue("BottomXAxisTitleFontStyle", isub,-1),isub, -1 );
 		}
-		if (	getLayeredPropValue( "BottomXAxisTitleFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "BottomXAxisTitleFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "BottomXAxisTitleFontSize",
-			getDefaultPropValue("BottomXAxisTitleFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("BottomXAxisTitleFontSize",isub,-1), isub, -1 );
 		}
 
 		// "DataLabelFontName" property...
 
-		if (	getLayeredPropValue("DataLabelFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("DataLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontName",
-			getDefaultPropValue("DataLabelFontName",isub,-1),isub,
-			-1);
+			getDefaultPropValue("DataLabelFontName",isub,-1),isub, -1);
 		}
 
 		// "DataLabelFontSize" property...
 
-		if (	getLayeredPropValue("DataLabelFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("DataLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontSize",
-			getDefaultPropValue("DataLabelFontSize",isub,-1),isub,
-			-1);
+			getDefaultPropValue("DataLabelFontSize",isub,-1),isub, -1);
 		}
 
 		// "DataLabelFontStyle" property...
 
-		if (	getLayeredPropValue("DataLabelFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("DataLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontStyle",
-			getDefaultPropValue("DataLabelFontStyle",isub,-1),isub,
-			-1);
+			getDefaultPropValue("DataLabelFontStyle",isub,-1),isub, -1);
 		}
 
 		// "DataLabelFormat" property...
 
-		if (	getLayeredPropValue("DataLabelFormat",
-			isub, -1, false ) == null ) {
-			setPropValue ( "DataLabelFormat",
-			getDefaultPropValue("DataLabelFormat",isub,-1),isub,-1);
+		if ( getLayeredPropValue("DataLabelFormat", isub, -1, false ) == null ) {
+			setPropValue ( "DataLabelFormat", getDefaultPropValue("DataLabelFormat",isub,-1),isub,-1);
 		}
 
 		// "DataLabelPosition" property...
@@ -1895,63 +1803,49 @@ public void checkGraphProperties ( int nsubs )
 
 		// "LeftYAxisMajorGridColor"...
 
-		if (	getLayeredPropValue("LeftYAxisMajorGridColor",
-			isub, -1, false ) == null ) {
-			if ( graph_type == GRAPH_TYPE_PERIOD ) {
+		if ( getLayeredPropValue("LeftYAxisMajorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
 				// Don't usually draw the horizontal grid...
-				setPropValue ( "LeftYAxisMajorGridColor",
-					"None",isub,-1);
+				setPropValue ( "LeftYAxisMajorGridColor", "None",isub,-1);
 			}
-			else {	setPropValue ( "LeftYAxisMajorGridColor",
-				getDefaultPropValue("LeftYAxisMajorGridColor",
-				isub,-1), isub, -1 );
+			else {
+			    setPropValue ( "LeftYAxisMajorGridColor",
+				getDefaultPropValue("LeftYAxisMajorGridColor", isub,-1), isub, -1 );
 			}
 		}
 
-		if (	getLayeredPropValue("LeftYAxisMax",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LeftYAxisMax",
-			getDefaultPropValue("LeftYAxisMax",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("LeftYAxisMax", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisMax", getDefaultPropValue("LeftYAxisMax",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue("LeftYAxisMin",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LeftYAxisMin",
-			getDefaultPropValue("LeftYAxisMin",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("LeftYAxisMin", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisMin", getDefaultPropValue("LeftYAxisMin",isub,-1), isub, -1 );
 		}
 
 		// "LeftYAxisMinorGridColor"...
 
-		if (	getLayeredPropValue("LeftYAxisMinorGridColor",
-			isub, -1, false ) == null ) {
-			if ( graph_type == GRAPH_TYPE_PERIOD ) {
+		if ( getLayeredPropValue("LeftYAxisMinorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
 				// Don't usually draw the horizontal grid...
-				setPropValue ( "LeftYAxisMinorGridColor",
-					"None",isub,-1);
+				setPropValue ( "LeftYAxisMinorGridColor", "None",isub,-1);
 			}
-			else {	setPropValue ( "LeftYAxisMinorGridColor",
-				getDefaultPropValue("LeftYAxisMinorGridColor",
-				isub,-1), isub, -1 );
+			else {
+			    setPropValue ( "LeftYAxisMinorGridColor",
+				getDefaultPropValue("LeftYAxisMinorGridColor", isub,-1), isub, -1 );
 			}
 		}
 
-		if (	getLayeredPropValue("LeftYAxisTitleFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisTitleFontName",
-			getDefaultPropValue("LeftYAxisTitleFontName",isub,-1),
-				isub, -1 );
+			getDefaultPropValue("LeftYAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("LeftYAxisTitleFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisTitleFontStyle",
-			getDefaultPropValue("LeftYAxisTitleFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("LeftYAxisTitleFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("LeftYAxisTitleFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisTitleFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisTitleFontSize",
-			getDefaultPropValue("LeftYAxisTitleFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("LeftYAxisTitleFontSize",isub,-1), isub, -1 );
 		}
 
 		// Check LeftYAxisTitleString in in
@@ -1959,20 +1853,14 @@ public void checkGraphProperties ( int nsubs )
 
 		// Left Y axis type...
 
-		if (	getLayeredPropValue("LeftYAxisType",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LeftYAxisType",
-			getDefaultPropValue("LeftYAxisType",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("LeftYAxisType", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisType", getDefaultPropValue("LeftYAxisType",isub,-1), isub, -1 );
 		}
 
 		// LeftYAxisUnits determined at run time
 
-		if (	getLayeredPropValue("LegendFontName",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LegendFontName",
-			getDefaultPropValue("LegendFontName",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("LegendFontName", isub, -1, false ) == null ) {
+			setPropValue ( "LegendFontName", getDefaultPropValue("LegendFontName",isub,-1), isub, -1 );
 		}
 		if (	getLayeredPropValue("LegendFontStyle",
 			isub, -1, false ) == null ) {
@@ -2017,65 +1905,49 @@ public void checkGraphProperties ( int nsubs )
 			isub, -1 );
 		}
 
-		if (	getLayeredPropValue(
-			"MainTitleString", isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("MainTitleString", isub, -1, false ) == null ) {
 			// Assign a default based on the graph type...
-			if ( graph_type == GRAPH_TYPE_DURATION ) {
-				setPropValue ( "MainTitleString",
-					"Duration Curve", isub, -1);
+			if ( graphType == TSGraphType.DURATION ) {
+				setPropValue ( "MainTitleString", "Duration Curve", isub, -1);
 			}
-			else if ( graph_type == GRAPH_TYPE_PERIOD ) {
-				setPropValue ( "MainTitleString",
-					"Period of Record", isub, -1);
+			else if ( graphType == TSGraphType.PERIOD ) {
+				setPropValue ( "MainTitleString", "Period of Record", isub, -1);
 			}
-			else if ( graph_type == GRAPH_TYPE_XY_SCATTER ) {
-				setPropValue ( "MainTitleString",
-				"XY-Scatter Plot", isub, -1);
+			else if ( graphType == TSGraphType.XY_SCATTER ) {
+				setPropValue ( "MainTitleString", "XY-Scatter Plot", isub, -1);
 			}
-			// No general title.  If needed, pass in from the
-			// application...
-			else {	setPropValue ( "MainTitleString", "", isub, -1);
+			// No general title.  If needed, pass in from the application...
+			else {
+			    setPropValue ( "MainTitleString", "", isub, -1);
 			}
 		}
 
 		// PeriodEnd, PeriodStart determined at run time.
 
-		if (	getLayeredPropValue("RightYAxisLabelFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontName",
-			getDefaultPropValue("RightYAxisLabelFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "RightYAxisLabelFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "RightYAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontStyle",
-			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("RightYAxisLabelFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontSize",
-			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue("RightYAxisTitleFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontName",
-			getDefaultPropValue("RightYAxisTitleFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "RightYAxisTitleFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "RightYAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontStyle",
-			getDefaultPropValue("RightYAxisTitleFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisTitleFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("RightYAxisTitleFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisTitleFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontSize",
-			getDefaultPropValue("RightYAxisTitleFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("RightYAxisTitleFontSize",isub,-1), isub, -1 );
 		}
 		if (	getLayeredPropValue("RightYAxisTitleString",
 			isub, -1, false ) == null ) {
@@ -2156,24 +2028,17 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "ZoomEnabled",
 			getDefaultPropValue("ZoomEnabled",isub,-1), isub, -1 );
 		}
-		if (	(graph_type == GRAPH_TYPE_XY_SCATTER) ||
-			(graph_type == GRAPH_TYPE_DURATION) ) {
+		if ( (graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ) {
 			// For now disable zooming on these graph types...
 			setPropValue ( "ZoomEnabled", "False", isub, -1 );
 		}
 
-		if (getLayeredPropValue("AnnotationProvider", 
-			isub, -1, false) == null) {
-			setPropValue("AnnotationProvider",
-				getDefaultPropValue("AnnotationProvider",
-				isub, -1), isub, -1);
+		if (getLayeredPropValue("AnnotationProvider", isub, -1, false) == null) {
+			setPropValue("AnnotationProvider", getDefaultPropValue("AnnotationProvider", isub, -1), isub, -1);
 		}
 
-		if (getLayeredPropValue("LayoutYPercent",
-			isub, -1, false) == null) {
-			setPropValue("LayoutYPercent",
-				getDefaultPropValue("LayoutYPercent",
-				isub, -1), isub, -1);
+		if (getLayeredPropValue("LayoutYPercent", isub, -1, false) == null) {
+			setPropValue("LayoutYPercent", getDefaultPropValue("LayoutYPercent", isub, -1), isub, -1);
 		}
 		
 		prop_val = getLayeredPropValue("ZoomGroup", isub, -1, false );
@@ -2181,8 +2046,8 @@ public void checkGraphProperties ( int nsubs )
 			prop_val = getDefaultPropValue("ZoomGroup",isub,-1);
 			setPropValue ( "ZoomGroup", prop_val, isub, -1 );
 		}
-		try {	__num_zoom_groups = MathUtil.max ( __num_zoom_groups,
-				StringUtil.atoi(prop_val) );
+		try {
+		    __num_zoom_groups = MathUtil.max ( __num_zoom_groups, StringUtil.atoi(prop_val) );
 		}
 		catch ( Exception e ) {
 			// Should not happen.
@@ -2190,16 +2055,12 @@ public void checkGraphProperties ( int nsubs )
 
 		// Analysis for XY-Scatter...
 
-		if (graph_type == GRAPH_TYPE_XY_SCATTER
-		    || graph_type == GRAPH_TYPE_PREDICTED_VALUE
-		    || graph_type == GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL) {
-			if (	getLayeredPropValue(
-				"XYScatterAnalyzeForFilling",
-				isub, -1, false ) == null ) {
+		if (graphType == TSGraphType.XY_SCATTER
+		    || graphType == TSGraphType.PREDICTED_VALUE
+		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			if ( getLayeredPropValue( "XYScatterAnalyzeForFilling", isub, -1, false ) == null ) {
 				setPropValue ( "XYScatterAnalyzeForFilling",
-				getDefaultPropValue(
-				"XYScatterAnalyzeForFilling",
-				isub,-1), isub, -1 );
+				     getDefaultPropValue("XYScatterAnalyzeForFilling",isub,-1), isub, -1 );
 			}
 			if (	getLayeredPropValue(
 				"XYScatterDependentAnalysisPeriodEnd",
@@ -2452,13 +2313,11 @@ prefix of "Data X.Y." will be used for the property, where X is
 not be checked.  This is also used for annotations -- see the isAnnotation 
 property.
 @param isAnnotation is true, then its will be treated as the number of an 
-annotation under the given subproduct, rather than a time series under the
-given subproduct.
+annotation under the given subproduct, rather than a time series under the given subproduct.
 @return value of property or null if not found.
 */
-public String getDefaultPropValue ( String param, int subproduct, int its,
-boolean isAnnotation) {
-	return getDefaultPropValue(param, subproduct, its, isAnnotation, -1);
+public String getDefaultPropValue ( String param, int subproduct, int its, boolean isAnnotation) {
+	return getDefaultPropValue(param, subproduct, its, isAnnotation, null);
 }
 
 /**
@@ -2479,11 +2338,11 @@ annotation under the given subproduct, rather than a time series under the
 given subproduct.
 @param graphType the kind of graph for which the default prop is being 
 returned.  Certain properties have different default values for certain kinds
-of graphs.  If -1, then the value will be ignored.
+of graphs.  If null, then the value will be ignored.
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its,
-boolean isAnnotation, int graphType) {
+boolean isAnnotation, TSGraphType graphType) {
 	//
 	//
 	// Annotation properties
@@ -2884,10 +2743,10 @@ boolean isAnnotation, int graphType) {
 			return "Auto";
 		}
 		else if ( param.equalsIgnoreCase("LineStyle") ){
-			if (graphType == GRAPH_TYPE_XY_SCATTER) {
+			if (graphType == TSGraphType.XY_SCATTER) {
 				return "None";
 			}
-			else if (graphType == GRAPH_TYPE_POINT) {
+			else if (graphType == TSGraphType.POINT) {
 				return "None";
 			}
 			else {
@@ -2895,10 +2754,10 @@ boolean isAnnotation, int graphType) {
 			}
 		}
 		else if ( param.equalsIgnoreCase("LineWidth") ){
-			if (graphType == GRAPH_TYPE_XY_SCATTER) {
+			if (graphType == TSGraphType.XY_SCATTER) {
 				return "0";
 			}
-			else if (graphType == GRAPH_TYPE_POINT) {
+			else if (graphType == TSGraphType.POINT) {
 				return "0";
 			}
 			else {
@@ -2911,10 +2770,10 @@ boolean isAnnotation, int graphType) {
 			return "true";
 		}
 		else if ( param.equalsIgnoreCase("SymbolSize") ){
-			if (graphType == GRAPH_TYPE_XY_SCATTER) {
+			if (graphType == TSGraphType.XY_SCATTER) {
 				return "4";
 			}
-			else if (graphType == GRAPH_TYPE_POINT) {
+			else if (graphType == TSGraphType.POINT) {
 				return "5";
 			}
 			else {
@@ -2922,10 +2781,10 @@ boolean isAnnotation, int graphType) {
 			}
 		}
 		else if ( param.equalsIgnoreCase("SymbolStyle") ){
-			if (graphType == GRAPH_TYPE_XY_SCATTER) {
+			if (graphType == TSGraphType.XY_SCATTER) {
 				return "Diamond-filled";
 			}
-			else if (graphType == GRAPH_TYPE_POINT) {
+			else if (graphType == TSGraphType.POINT) {
 				return "Circle-filled";
 			}
 			else {
@@ -3479,20 +3338,6 @@ public boolean isDirty() {
 	}
 //	Message.printStatus(1, "", "-- not dirty --");
 	return false;
-}
-
-/**
-Look up an integer graph type given the string graph type.
-@param graph_type Graph type as a string.
-@return the graph type or -1 if not known.
-*/
-public static int lookupGraphTypeNumber ( String graph_type )
-{	for ( int i = 0; i < GRAPH_TYPE_NAMES.length; i++ ) {
-		if ( graph_type.equalsIgnoreCase(GRAPH_TYPE_NAMES[i]) ) {
-			return i;
-		}
-	}
-	return -1;
 }
 
 /**
