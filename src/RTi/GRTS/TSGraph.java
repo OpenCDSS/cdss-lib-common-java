@@ -245,6 +245,7 @@ import RTi.TS.MonthTS;
 import RTi.TS.TS;
 import RTi.TS.TSData;
 import RTi.TS.TSDurationAnalysis;
+import RTi.TS.TSIterator;
 import RTi.TS.TSLimits;
 import RTi.TS.TSRegression;
 import RTi.TS.TSUtil;
@@ -3095,8 +3096,9 @@ private void drawDurationPlot ()
 /**
 Draw the time series graph.  This is the highest-level draw method and calls the
 other time series drawing methods.
+@param graphType graph type to draw
 */
-private void drawGraph () {
+private void drawGraph ( TSGraphType graphType ) {
 	String routine = "TSGraph.drawGraph";
 	int size = 0;
 	if (__tslist != null) {
@@ -3134,15 +3136,15 @@ private void drawGraph () {
 	// Graph the time series.  If a reference map, only draw one time series, as specified in the properties...
 
 	TS ts = null;
-	if ( __graphType == TSGraphType.DURATION ) {
+	if ( graphType == TSGraphType.DURATION ) {
 		drawDurationPlot ();
 	}
-	else if ( __graphType == TSGraphType.XY_SCATTER ) {
+	else if ( graphType == TSGraphType.XY_SCATTER ) {
 		drawXYScatterPlot ();
 	}
-	else if (__graphType == TSGraphType.PREDICTED_VALUE || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	else if ( graphType == TSGraphType.PREDICTED_VALUE || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 	    boolean residual = true;
-		if (__graphType==TSGraphType.PREDICTED_VALUE) {
+		if ( graphType == TSGraphType.PREDICTED_VALUE ) {
 			residual = false;
 		}
 		TSRegression regressionData = null;
@@ -3157,22 +3159,22 @@ private void drawGraph () {
 			if (regressionData != null) {
 			   	if (residual) {
 					if (isTSEnabled(ir + 1)) {
-						drawTS(ir + 1, regressionData.getResidualTS());
+						drawTS(ir + 1, regressionData.getResidualTS(), graphType );
 					}
 				}
 				else {
 					PropList props = new PropList("");
 						
 					if (isTSEnabled(0)) {
-						drawTS(0,regressionData.getIndependentTS(),props);
+						drawTS(0,regressionData.getIndependentTS(),graphType, props);
 					}
 	
 					if (isTSEnabled(ir + 1)) {
-						drawTS(ir + 1,regressionData.getDependentTS(),props);
+						drawTS(ir + 1,regressionData.getDependentTS(), graphType, props);
 						props.set("LineStyle=Dashed");
 						props.set("SymbolStyle=None");
 						predicted = regressionData.getPredictedTS();
-						drawTS(ir + 1, predicted, props);
+						drawTS(ir + 1, predicted, graphType, props);
 					}
 				}
 			}
@@ -3199,14 +3201,12 @@ private void drawGraph () {
 				continue;
 			}
 
-			// Draw each time series...
-			drawTS(i, ts);
+			// Draw each time series using the requested graph type.
+			// Currently the graph type will always be that of the product, but in the future
+			// may allow individual time series to have different graph types
+			drawTS ( i, ts, graphType );
 		}
 	}
-
-	// Clean up...
-	routine = null;
-	ts = null;
 }
 
 /**
@@ -3536,106 +3536,51 @@ private void drawTitles ()
 		_datalim_subtitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 }
 
-private void drawTS(int its, TS ts) {
-	drawTS(its, ts, null);
+/**
+Draw (render) a single time series on the graph.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param ts the time series to render
+@param graphType the graph type to use for the time series
+*/
+private void drawTS ( int its, TS ts, TSGraphType graphType ) {
+	drawTS(its, ts, graphType, null);
 }
 
 /**
 Draw a single time series.  This method is called for graph types TSProduct.GRAPH_TYPE_BAR,
 TSProduct.GRAPH_TYPE_LINE, TSProduct.GRAPH_TYPE_PERIOD.  Other graph types should
 use the individual drawing methods for those graph types.
-@param its Counter for time series (starting at 0).
+@param its the time series list position (0+, for retrieving properties and messaging)
 @param ts Single time series to draw.
-@param overrideProps override run-time properties to consider when getting graph properties
+@param graphType the graph type to use for the time series
+@param overrideProps run-time override properties to consider when getting graph properties
 */
-private void drawTS(int its, TS ts, PropList overrideProps) {
-	String routine = "TSGraph.drawTS";
+private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProps )
+{   String routine = "TSGraph.drawTS";
 
 	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
+	    // No need or unable to draw
 		return;
 	}
+	
+	if ( graphType == TSGraphType.AREA ) {
+	    // Take a new approach for the area graph by having a separate method.  This will duplicate
+	    // some code, but the code below is getting too complex with multiple graph types handled
+	    // in the same code.
+	    drawTSRenderAreaGraph ( its, ts, graphType, overrideProps );
+	    return;
+	}
 
-	if ((ts.getDataIntervalBase() == TimeInterval.IRREGULAR)  
-	    && (__graphType == TSGraphType.PERIOD)) {
+	if ((ts.getDataIntervalBase() == TimeInterval.IRREGULAR) && (__graphType == TSGraphType.PERIOD)) {
 		// Can't draw irregular time series in period of record graph.
 		return;
 	}
 
-	GRColor tscolor = null;
-	try {	
-		tscolor = GRColor.parseColor( getLayeredPropValue("Color", _subproduct, its, false, overrideProps));
-	}
-	catch (Exception e) {
-		tscolor = GRColor.black;
-	}
-	_da_graph.setColor(tscolor);
-
-/*
-	// The following was envisioned to optimize the processing.  For now,
-	// handle below to skip data that do not need to be drawn...
-	try {
-	    valid_dates = TSUtil.getValidPeriod ( ts, _start_date, _end_date );
-	}
-	catch ( Exception e ) {
-		return;
-	}
-	DateTime start	= valid_dates.getDate1();
-	DateTime end	= valid_dates.getDate2();
-*/
-
-	// TODO SAM 2006-10-01 The following is what we want to do.  For now,
-	// test the method at the bottom of this class, but need to move it elsewhere
-	//start = getNearestDateTimeLessThanOrEqualTo ( _start_date, ts );
-	// When zoomed in really far, sometimes lines don't draw completely
-	// across the edges.  Maybe should decrement the returned DateTime by
-	// one time series data interval to make sure it starts outside the
-	// page (and will get cropped correctly upon drawing) - need to evaluate this more.
-
-	// To draw the single time series, use the start and end dates for the
-	// graph, using the correct precision for the time series.  The start
-	// and end dates for the graph are determined using all time series and
-	// may have an offset that is not suitable for the data.
-	// For example, 24-hour data may be stored at hour 12 rather than hour
-	// zero.  Therefore, reset the start date/time for this time series to
-	// match the specific time series.
+	GRColor tscolor = drawTSHelperGetTimeSeriesColor ( its, overrideProps );
+    _da_graph.setColor(tscolor);
 	
-	// Get the start date/time for the graph (for all data) and round it
-	// down to nearest even interval based on the current time series...
-	// only do this if the ts has an hour interval type
-	DateTime start = new DateTime(_start_date);   
-	if(ts.getDataIntervalBase() == TimeInterval.HOUR)
-	{
-		DateTime start_withOffset = new DateTime();
-		start_withOffset = TSGraph.getNearestDateTimeLessThanOrEqualTo(start, ts);
-		start = start_withOffset;
-	}
-
-	/* TODO SAM 2006-09-28 not sure if Kurt's code is bulletproof for a list of monthly, daily,
-	//irregular time series mixed - have him look at some more combinations and
-	//possibly consider something like the following...
-	// Need to evaluate the following code to see if it works in all
-	// situations.
-	// Make sure that the time series actually has a date-time that aligns
-	// with the graph start.  This may involve, for example
-	//start = new DateTime ( findNearestDateTime ( start, ts, -1 ) );
-
-	// Here is a start on some ideas that work more with integer math...
-	// Get the biggest offset that could occur (the interval of the data)...
-	int offset_interval_mult = ts.getDataIntervalMult();
-	// Now check whether the time series is recorded at an offset...
-	if ( (ts.getDate1().getIntervalValue(ts.getIntervalBase())%
-		ts.getIntervalMult() != 0 ) {
-		// Time series is offset...
-		so adjust the start by the offset
-	}
-	   // End REVISIT SAM 2006-09-28
-	 */
-
-	// Make sure that the iterator for this time series is using a precision
-	// that matches the time series data...
-	start.setPrecision(ts.getDataIntervalBase());
-	DateTime end = new DateTime(_end_date);	 
-	end.setPrecision(ts.getDataIntervalBase());
+	DateTime start = drawTSHelperGetStartDateTime ( ts );
+	DateTime end = drawTSHelperGetEndDateTime ( ts );
 
 	/* Can uncomment for debug purposes on start and end dates 
 	Message.printStatus(2, "",
@@ -3653,25 +3598,16 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 	"----------------------------------------------------------");
 	*/
 
-	// If the time series data start date is greater than the global start
-	// date set to local (increases performance).  Similar for the end date.
-
-	if (ts.getDate1().greaterThan(start)) {
-		start = new DateTime(ts.getDate1());
-	}
-	if (ts.getDate2().lessThan(end)) {
-		end = new DateTime(ts.getDate2());
-	}
-	
 	if (Message.isDebugOn) {
-		Message.printDebug(1, routine, _gtype + "Drawing time series from " + _start_date + " to " + _end_date);
+		Message.printDebug(1, routine, _gtype + "Drawing time series " + start + " to " + end +
+		    " global period is: " + _start_date + " to " + _end_date);
 	}
 
 	// Only draw the time series if the units are being ignored or can be
 	// converted.  The left axis units are determined at construction.
 
 	if (!_ignore_units) {
-		if (__graphType != TSGraphType.DURATION && __graphType != TSGraphType.XY_SCATTER) {
+		if ( (__graphType != TSGraphType.DURATION) && (__graphType != TSGraphType.XY_SCATTER) ) {
 		   	String lefty_units = getLayeredPropValue( "LeftYAxisUnits", _subproduct, -1, false, overrideProps);
 
 			if (!DataUnits.areUnitsStringsCompatible(ts.getDataUnits(),lefty_units,true)) {
@@ -3691,29 +3627,16 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 	}
 
 	double lasty = ts.getMissing();
-	double symbol_size = 0.0;
 	double x;
 	double y;
 	int drawcount = 0;
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();	
-	int symbol = GRSymbol.SYM_NONE;
+
 	String prop_value;
 
-	if (_is_reference_graph) {
-		symbol = GRSymbol.SYM_NONE;
-	}
-	else {	
-		prop_value = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
-		try {	
-			symbol = GRSymbol.toInteger(prop_value);
-		}
-		catch (Exception e) {
-			symbol = GRSymbol.SYM_NONE;
-		}
-	}
-
-	symbol_size = StringUtil.atod(getLayeredPropValue("SymbolSize", _subproduct, its, false, overrideProps));
+	int symbol = drawTSHelperGetSymbolStyle ( its, overrideProps );
+	double symbol_size = drawTSHelpterGetSymbolSize ( its, overrideProps );
 
 	// Data label.
 
@@ -4388,12 +4311,302 @@ private void drawTS(int its, TS ts, PropList overrideProps) {
 			lasty = y;
 			++drawcount;
 		}
-		date = null;
 	}
 
 	// Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
 	GRDrawingAreaUtil.setClip(_da_graph, (Shape)null);
 	GRDrawingAreaUtil.setClip(_da_graph, clip);
+}
+
+/**
+Determine the end date/time for rendering the time series
+@param ts the time series being rendered
+@return the end date/time for iterating time series data
+*/
+private DateTime drawTSHelperGetEndDateTime ( TS ts )
+{
+    DateTime end = new DateTime(_end_date);  
+    end.setPrecision(ts.getDataIntervalBase());
+    // If the time series data end date is less than the global end
+    // date set to local (increases performance).
+    if (ts.getDate2().lessThan(end)) {
+        end = new DateTime(ts.getDate2());
+    }
+    return end;
+}
+
+/**
+Determine the start date/time for drawing the time series.
+@param ts the time series being rendered
+@return the start date/time for iterating time series data
+*/
+private DateTime drawTSHelperGetStartDateTime ( TS ts ) {
+    // When zoomed in really far, sometimes lines don't draw completely
+    // across the edges.  Maybe should decrement the returned DateTime by
+    // one time series data interval to make sure it starts outside the
+    // page (and will get cropped correctly upon drawing) - need to evaluate this more.
+    
+    // To draw the single time series, use the start and end dates for the
+    // graph, using the correct precision for the time series.  The start
+    // and end dates for the graph are determined using all time series and
+    // may have an offset that is not suitable for the data.
+    // For example, 24-hour data may be stored at hour 12 rather than hour
+    // zero.  Therefore, reset the start date/time for this time series to
+    // match the specific time series.
+    
+    // Get the start date/time for the graph (for all data) and round it
+    // down to nearest even interval based on the current time series...
+    // only do this if the ts has an hour interval type
+    DateTime start = new DateTime(_start_date);   
+    if ( ts.getDataIntervalBase() == TimeInterval.HOUR ) {
+        DateTime start_withOffset = new DateTime();
+        start_withOffset = TSGraph.getNearestDateTimeLessThanOrEqualTo(start, ts);
+        start = start_withOffset;
+    }
+    
+    /* TODO SAM 2006-09-28 not sure if Kurt's code is bulletproof for a list of monthly, daily,
+    //irregular time series mixed - have him look at some more combinations and
+    //possibly consider something like the following...
+    // Need to evaluate the following code to see if it works in all
+    // situations.
+    // Make sure that the time series actually has a date-time that aligns
+    // with the graph start.  This may involve, for example
+    //start = new DateTime ( findNearestDateTime ( start, ts, -1 ) );
+    
+    // Here is a start on some ideas that work more with integer math...
+    // Get the biggest offset that could occur (the interval of the data)...
+    int offset_interval_mult = ts.getDataIntervalMult();
+    // Now check whether the time series is recorded at an offset...
+    if ( (ts.getDate1().getIntervalValue(ts.getIntervalBase())%
+        ts.getIntervalMult() != 0 ) {
+        // Time series is offset...
+        so adjust the start by the offset
+    }
+       // End REVISIT SAM 2006-09-28
+     */
+    
+    // Make sure that the iterator for this time series is using a precision
+    // that matches the time series data...
+    start.setPrecision(ts.getDataIntervalBase());
+    
+    /*
+    // The following was envisioned to optimize the processing.  For now,
+    // handle in rendering code to skip data that do not need to be drawn...
+    try {
+        valid_dates = TSUtil.getValidPeriod ( ts, _start_date, _end_date );
+    }
+    catch ( Exception e ) {
+        return;
+    }
+    DateTime start  = valid_dates.getDate1();
+    DateTime end    = valid_dates.getDate2();
+    */
+    
+    // If the time series data start date is greater than the global start
+    // date set to local (increases performance).
+
+    if ( ts.getDate1().greaterThan(start) ) {
+        start = new DateTime(ts.getDate1());
+    }
+    return start;
+}
+
+/**
+Determine the symbol size used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@param return the symbol style from product properties
+*/
+private double drawTSHelpterGetSymbolSize ( int its, PropList overrideProps )
+{
+    double symbolSize = StringUtil.atod(getLayeredPropValue("SymbolSize", _subproduct, its, false, overrideProps));
+    return symbolSize;
+}
+
+/**
+Determine the symbol style used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@param return the symbol style from product properties
+*/
+private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps )
+{
+    int symbolStyle = GRSymbol.SYM_NONE;
+    if (_is_reference_graph) {
+        symbolStyle = GRSymbol.SYM_NONE;
+    }
+    else {  
+        String propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
+        try {   
+            symbolStyle = GRSymbol.toInteger(propValue);
+        }
+        catch (Exception e) {
+            symbolStyle = GRSymbol.SYM_NONE;
+        }
+    }
+    return symbolStyle;
+}
+
+/**
+Determine the current color used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@param return the color that is set
+*/
+private GRColor drawTSHelperGetTimeSeriesColor ( int its, PropList overrideProps )
+{
+    GRColor tscolor = null;
+    try {   
+        tscolor = GRColor.parseColor( getLayeredPropValue("Color", _subproduct, its, false, overrideProps));
+    }
+    catch (Exception e) {
+        tscolor = GRColor.black;
+    }
+    return tscolor;
+}
+
+//TODO SAM 2010-11-19 not sure if stacked area graph may use this same code
+/**
+Draw a single time series as an area graph.  The time series values are used to create polygons that have as
+a base the zero line.  An array is used to hold the points of the polygon for low-level rendering.  A new polygon
+is drawn if a missing value is encountered, the previous and current values have different sign, or the array
+buffer is filled.
+@param its Counter for time series (starting at 0).
+@param ts Single time series to draw.
+@param graphType the graph type to use for the time series (may be needed for other calls)
+@param overrideProps override run-time properties to consider when getting graph properties
+*/
+private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, PropList overrideProps )
+{   String routine = "TSGraph.drawTSRenderAreaGraph";
+    // Generate the clipping area that will be set so that no data are drawn outside of the graph
+    Shape clip = GRDrawingAreaUtil.getClip(_da_graph);
+    GRDrawingAreaUtil.setClip(_da_graph, _da_graph.getDataLimits());
+    
+    GRColor tscolor = drawTSHelperGetTimeSeriesColor ( its, overrideProps );
+    _da_graph.setColor(tscolor);
+    DateTime start = drawTSHelperGetStartDateTime(ts);
+    DateTime end = drawTSHelperGetEndDateTime(ts);
+    
+    // Loop using addInterval
+    DateTime date = new DateTime(start);
+    // Make sure the time zone is not set
+    date.setTimeZone("");
+
+    double x = 0.0; // X coordinate converted from date/time
+    double y = 0.0; // Y coordinate corresponding to data value
+    double xPrev = 0.0; // The previous X value
+    double yPrev = 0.0; // The previous Y value
+    boolean label_symbol = false;
+    String label_format = null;
+    String label_value_format = null;
+    String label_units = null;
+    int label_position = 0;
+    int countTotal = 0; // Total count of points processed
+    int lineWidth = 2;
+    // Array to create the polygon
+    int arraySize = 5000; // Try this to see how it performs
+    int arraySize2 = arraySize - 3; // Limit on number of points in array (to allow for closing points)
+    double [] xArray = new double[arraySize];
+    double [] yArray = new double[arraySize];
+    int arrayCount = 0; // Number of data points put into the array
+    // Iterate through data with the iterator
+    TSData tsdata = null;
+    TSIterator tsi = null;
+    try {
+        tsi = ts.iterator ( start, end );
+    }
+    catch ( Exception e ) {
+        // Unable to draw (lack of data)
+        return;
+    }
+    boolean haveMoreData = true;
+    boolean yIsMissing = false;
+    // TODO SAM 2010-11-19 Need a property to control this
+    boolean anchorToZero = true; // If true, always anchor around zero.  If false, draw from bottom of graph
+    while ( true ) {
+        tsdata = tsi.next();
+        yIsMissing = false;
+        if ( tsdata == null ) {
+            // Done with data, but may need to draw buffered points
+            haveMoreData = false;
+        }
+        else {
+            ++countTotal;
+            xPrev = x;
+            yPrev = y;
+            date = tsdata.getDate();
+            x = date.toDouble();
+            y = tsdata.getData();
+            if (ts.isDataMissing(y)) {
+                yIsMissing = true;
+            }
+        }
+        
+        // Determine if need to fill a polygon because of any of the following conditions:
+        // 1) Missing value
+        // 2) No more data
+        // 3) Y is opposite sign of previous value
+        // 4) Array buffer is full
+        
+        if ( yIsMissing || !haveMoreData || (arrayCount == arraySize2) || (y*yPrev < 0.0) ) {
+            // Need to draw what is already buffered (but do not draw the current point)
+            // Only draw if there was at least one value in the arrays
+            if ( arrayCount > 0 ) {
+                // If a sequence of missing values, then can skip drawing anything
+                // Add two data points as using a y value anchored around zero and repeat the first value
+                double yAnchor = 0.0;
+                double miny = _data_limits.getMinY();
+                if ( anchorToZero ) {
+                    // Always wrap around zero
+                    yAnchor = 0.0;
+                }
+                else {
+                    // Anchor to the bottom of the graph
+                    yAnchor = miny;
+                 }
+                xArray[arrayCount] = xArray[arrayCount - 1];
+                yArray[arrayCount] = yAnchor;
+                ++arrayCount;
+                xArray[arrayCount] = xArray[0];
+                yArray[arrayCount] = yAnchor;
+                ++arrayCount;
+                xArray[arrayCount] = xArray[0];
+                yArray[arrayCount] = yArray[0];
+                ++arrayCount;
+ 
+                Message.printStatus(2,routine,"Filling polygon with " + arrayCount + " points." );
+                GRDrawingAreaUtil.fillPolygon(_da_graph, arrayCount, xArray, yArray );
+            }
+            if ( !haveMoreData ) {
+                // Done processing data
+                break;
+            }
+            else {
+                // Initialize the arrays for the next polygon.  If the value is missing, then there
+                // will be a gap.  If the previous value was not missing, then use it to initialize
+                // the array so that there will be continuity in the rending.
+                arrayCount = 0;
+                if ( (countTotal > 0) && !ts.isDataMissing(yPrev) ) {
+                    xArray[0] = xPrev;
+                    yArray[0] = yPrev;
+                    ++arrayCount;
+                }
+            }
+        }
+        
+        // Now add the current point to the arrays, but only if not missing
+
+        if ( !yIsMissing ) {
+            xArray[arrayCount] = x;
+            yArray[arrayCount] = y;
+            Message.printStatus ( 2, routine, "Adding data point[" + arrayCount + "]: " + x + "," + y );
+            arrayCount++;
+        }
+    }
+    
+    // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
+    GRDrawingAreaUtil.setClip(_da_graph, (Shape)null);
+    GRDrawingAreaUtil.setClip(_da_graph, clip);
 }
 
 /**
@@ -6229,7 +6442,7 @@ public void paint ( Graphics g )
 	drawTitles ();
 	drawAxesBack ();
 	drawAnnotations(false);
-	drawGraph ();
+	drawGraph ( getGraphType() );
 	drawAnnotations(true);
 	drawAxesFront ();
 	drawCurrentDateTime ();

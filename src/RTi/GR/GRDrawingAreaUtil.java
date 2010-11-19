@@ -137,12 +137,10 @@ Draw a circular/elliptical arc around a point.
 @param y Y-coordinate of center.
 @param rx Radius in x direction.
 @param ry Radius in y direction.
-@param a1 Angle at which drawing is to begin (degrees), counter-clockwise from
-due east.
-@param a2 Angle at which drawing is to end (degrees), counter-clockwise from
-due east.
+@param a1 Angle at which drawing is to begin (degrees), counter-clockwise from due east.
+@param a2 Angle at which drawing is to end (degrees), counter-clockwise from due east.
 */
-public static void drawArc (	GRDrawingArea da, double x, double y, double rx,
+public static void drawArc ( GRDrawingArea da, double x, double y, double rx,
 				double ry, double a1, double a2 )
 {	double xs = da.scaleXData ( x );
 	double ys = da.scaleYData ( y );
@@ -198,8 +196,7 @@ Draw a line from one point to another.
 @param x1 X coordinates of the second point.
 @param y1 Y coordinates of the second point.
 */
-public static void drawLine (	GRDrawingArea da, double x0, double y0,
-				double x1, double y1 )
+public static void drawLine ( GRDrawingArea da, double x0, double y0, double x1, double y1 )
 {	double x[] = new double[2];
 	double y[] = new double[2];
 	x[0] = x0;
@@ -248,8 +245,7 @@ public static void drawPolygon ( GRDrawingArea da, GRPolygon polygon )
 	// Reduce the number of points...
 	//GRReducePoints ( xs, ys, &npts, 0 );
 	da.drawPolygon ( polygon.npts, xs, ys );
-	da.setLastXY( polygon.pts[polygon.npts - 1].x,
-			polygon.pts[polygon.npts - 1].y );
+	da.setLastXY( polygon.pts[polygon.npts - 1].x, polygon.pts[polygon.npts - 1].y );
 	xs = null;
 	ys = null;
 }
@@ -261,8 +257,7 @@ Draw a polygon (last point is connected to first).
 @param x X-coordinates of points.
 @param y Y-coordinates of points.
 */
-public static void drawPolygon ( GRDrawingArea da, int npts, double x[],
-				double y[] )
+public static void drawPolygon ( GRDrawingArea da, int npts, double x[], double y[] )
 {	if ( npts == 0 ) {
 		return;
 	}
@@ -283,8 +278,6 @@ public static void drawPolygon ( GRDrawingArea da, int npts, double x[],
 	//GRReducePoints ( xs, ys, &npts, 0 );
 	da.drawPolygon ( npts, xs, ys );
 	da.setLastXY( x[npts - 1], y[npts - 1] );
-	xs = null;
-	ys = null;
 }
 
 /**
@@ -293,8 +286,8 @@ Draw a segmented line
 @param polyline the polyline to draw.
 */
 public static void drawPolyline ( GRDrawingArea da, GRPolyline polyline )
-{	double	[]	xs, ys;
-	int		i;
+{	double [] xs, ys;
+	int i;
 
 	if ( polyline.npts == 0 ) {
 		return;
@@ -313,10 +306,7 @@ public static void drawPolyline ( GRDrawingArea da, GRPolyline polyline )
 		ys[i] = da.scaleYData ( polyline.pts[i].y );
 	}
 	da.drawPolyline ( polyline.npts, xs, ys );
-	da.setLastXY (	polyline.pts[polyline.npts - 1].x,
-			polyline.pts[polyline.npts - 1].y);
-	xs = null;
-	ys = null;
+	da.setLastXY (	polyline.pts[polyline.npts - 1].x, polyline.pts[polyline.npts - 1].y);
 }
 
 /**
@@ -326,25 +316,21 @@ Draw a segmented line.
 @param x array of x coordinates
 @param y array of y coordinates
 */
-public static void drawPolyline ( GRDrawingArea da, int npts, double x[],
-				double y[] )
-{	double	[]	xs, ys;
-	int		i;
+public static void drawPolyline ( GRDrawingArea da, int npts, double x[], double y[] )
+{	double [] xs, ys;
+	int i;
 
 	if ( npts == 0 ) {
 		return;
 	}
 	xs = new double[npts];
 	if ( xs == null ) {
-		Message.printWarning ( 2, "drawPolyline",
-		"Unable to malloc " + npts + " x-coordinates" );
+		Message.printWarning ( 2, "drawPolyline", "Unable to malloc " + npts + " x-coordinates" );
 		return;
 	}
 	ys = new double[npts];
 	if ( ys == null ) {
-		Message.printWarning ( 2, "drawPolyline",
-		"Unable to malloc " + npts + " y-coordinates" );
-		xs = null;
+		Message.printWarning ( 2, "drawPolyline", "Unable to malloc " + npts + " y-coordinates" );
 		return;
 	}
 	for ( i = 0; i < npts; i++ ) {
@@ -355,8 +341,6 @@ public static void drawPolyline ( GRDrawingArea da, int npts, double x[],
 	//npts = reducePoints ( xs, ys, npts, 0 );
 	da.drawPolyline ( npts, xs, ys );
 	da.setLastXY (x[npts - 1], y[npts - 1]);
-	xs = null;
-	ys = null;
 }
 
 /**
@@ -364,30 +348,23 @@ Draw a rectangle given a drawing area and rectangle information in data units.
 @param da GR drawing area.
 @param xll X-coordinates of lower left corner of rectangle.
 @param yll Y-coordinates of lower left corner of rectangle.
-@param width Width of rectangle (can be negative, in which case xll will be
-recomputed).
-@param height Height of rectangle (can be negative, in which case yll will be
-recomputed).
+@param width Width of rectangle (can be negative, in which case xll will be recomputed).
+@param height Height of rectangle (can be negative, in which case yll will be recomputed).
 */
-public static void drawRectangle ( GRDrawingArea da, double xll, double yll,
-				double width, double height )
-{	double []	xs, ys;
+public static void drawRectangle ( GRDrawingArea da, double xll, double yll, double width, double height )
+{	double [] xs, ys;
 
 	xs = new double[4];
 	if ( xs == null ) {
-		Message.printWarning ( 2, "drawRectangle",
-		"Unable to allocate points (x-coord) for rectangle.");
+		Message.printWarning ( 2, "drawRectangle", "Unable to allocate points (x-coord) for rectangle.");
 		return;
 	}
 	ys = new double[4];
 	if ( ys == null ) {
-		Message.printWarning ( 2, "drawRectangle",
-		"Unable to allocate points (y-coord) for rectangle.");
-		xs = null;
+		Message.printWarning ( 2, "drawRectangle", "Unable to allocate points (y-coord) for rectangle.");
 		return;
 	}
-	// Scale the data.  Allow the width and height to be negaive and adjust
-	// the dimensions accordingly...
+	// Scale the data.  Allow the width and height to be negative and adjust the dimensions accordingly...
 	xs[0] = da.scaleXData ( xll );
 	xs[1] = da.scaleXData ( xll + width );
 	xs[2] = xs[1];
@@ -421,16 +398,13 @@ public static void drawRectangle ( GRDrawingArea da, double xll, double yll,
 */
 	da.drawPolygon ( 4, xs, ys );
 	da.setLastXY ( xll, yll );
-	xs = null;
-	ys = null;
 }
 
 /**
 Draw a GRShape.  The shape must be one of the core GR shapes defined
 within the GR package (not a derived
 shape).  There is a performance hit by calling this method.  If code needs
-to be optimized, make calls from higher level code.  The shape will not be
-filled.
+to be optimized, make calls from higher level code.  The shape will not be filled.
 @param da Drawing area to draw to.
 @param shape GRShape to draw.
 */
@@ -441,8 +415,7 @@ public static void drawShape ( GRDrawingArea da, GRShape shape )
 /**
 Draw a GRShape.  The shape must be one of the core GR shapes (not a derived
 shape).  There is a performance hit by calling this method.  If code needs
-to be optimized, make calls from higher level code.  The shape will not be
-filled.
+to be optimized, make calls from higher level code.  The shape will not be filled.
 @param da Drawing area to draw to.
 @param shape GRShape to draw.
 @param fill True if the shape should be filled (for shapes that support filling,
@@ -458,15 +431,12 @@ shape).  There is a performance hit by calling this method.  If code needs
 to be optimized, make calls from higher level code.
 @param da Drawing area to draw to.
 @param shape GRShape to draw.
-@param fill True if the shape should be filled (for shapes that support filling,
-like GRPolygon).
-@param transparency Indicates the level of transparency when used with filled
-shapes.
+@param fill True if the shape should be filled (for shapes that support filling, like GRPolygon).
+@param transparency Indicates the level of transparency when used with filled shapes.
 If 0, the fill is totally opaque (solid).  If 255, the fill is totally
 transparent.  This is the reverse of the alpha parameter.
 */
-public static void drawShape (	GRDrawingArea da, GRShape shape, boolean fill,
-				int transparency )
+public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, int transparency )
 {	
 	if ( shape == null ) {
 		return;
@@ -477,7 +447,8 @@ public static void drawShape (	GRDrawingArea da, GRShape shape, boolean fill,
 		if ( fill ) {
 			fillArc ( da, arc, FILL_CHORD );
 		}
-		else {	drawArc ( da, arc );
+		else {
+		    drawArc ( da, arc );
 		}
 		arc = null;
 	}
@@ -487,10 +458,12 @@ public static void drawShape (	GRDrawingArea da, GRShape shape, boolean fill,
 			if ( transparency == 0 ) {
 				fillPolygon ( da, polygon );
 			}
-			else {	fillPolygon ( da, polygon, transparency );
+			else {
+			    fillPolygon ( da, polygon, transparency );
 			}
 		}
-		else {	drawPolygon ( da, polygon );
+		else {
+		    drawPolygon ( da, polygon );
 		}
 		polygon = null;
 	}
@@ -503,22 +476,20 @@ public static void drawShape (	GRDrawingArea da, GRShape shape, boolean fill,
 			}
 			if ( fill ) {
 				if ( transparency == 0 ) {
-					fillPolygon ( da,
-					polygonlist.polygons[i] );
+					fillPolygon ( da, polygonlist.polygons[i] );
 				}
-				else {	fillPolygon ( da,
-					polygonlist.polygons[i], transparency );
+				else {
+				    fillPolygon ( da, polygonlist.polygons[i], transparency );
 				}
 			}
-			else {	drawPolygon ( da, polygonlist.polygons[i] );
+			else {
+			    drawPolygon ( da, polygonlist.polygons[i] );
 			}
 		}
-		polygonlist = null;
 	}
 	else if ( type == GRShape.POLYLINE ) {
 		GRPolyline polyline = (GRPolyline)shape;
 		drawPolyline ( da, polyline );
-		polyline = null;
 	}
 	else if ( type == GRShape.POLYLINE_LIST ) {
 		GRPolylineList polylinelist = (GRPolylineList)shape;
@@ -529,7 +500,6 @@ public static void drawShape (	GRDrawingArea da, GRShape shape, boolean fill,
 			}
 			drawShape ( da, polylinelist.polylines[i] );
 		}
-		polylinelist = null;
 	}
 	// Else, don't know what to do so ignore...
 }
@@ -541,18 +511,14 @@ Draw a symbol at a point.  See the overloaded version for more information.
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
 @param size Size of the symbol (see "flag").
-@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units
-are being used for "size".
+@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
 @param orient Orientation for symbol (see flas in GRSymbol, e.g. 
 GRSymbol.SYM_LEFT).
 */
 public static void drawSymbol (	GRDrawingArea da, int symbol,
-				double x, double y, double size,
-				int flag, int orient )
-{	// Assume the same x and y dimension for the symbol and no secondary
-	// data...
-	drawSymbol ( da, symbol, x, y, size, size, 0.0, 0.0, null, flag,
-			orient );
+				double x, double y, double size, int flag, int orient )
+{	// Assume the same x and y dimension for the symbol and no secondary data...
+	drawSymbol ( da, symbol, x, y, size, size, 0.0, 0.0, null, flag, orient );
 }
 
 /**
@@ -581,21 +547,14 @@ used to plot multiple symbols at a point.
 @param offset_y Y offset of the symbol from the given location.  This can be
 used to plot multiple symbols at a point.
 @param data Array of secondary data.  For example, for scaled symbols like the
-teacup this indicates some dynamic data used to draw the symbol.  This is only
-used for some symbols.
-@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units
-are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. 
-GRSymbol.SYM_LEFT).
+teacup this indicates some dynamic data used to draw the symbol.  This is only used for some symbols.
+@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol,
-				double x, double y,
-				double size_x, double size_y,
-				double offset_x, double offset_y,
-				double [] data, int flag, int orient )
+public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+	double offset_x, double offset_y, double [] data, int flag, int orient )
 {
-	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y,
-		data, flag, orient, null);
+	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient, null);
 }
 
 /**
@@ -633,14 +592,9 @@ GRSymbol.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.  If
 not null, the teacup will be filled to a level specified by the data parameter.
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol,
-				double x, double y,
-				double size_x, double size_y,
-				double offset_x, double offset_y,
-				double [] data, int flag, int orient, 
-				PropList props)	{	
-	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y, data,
-		flag, orient, props, null);
+public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+	double offset_x, double offset_y, double [] data, int flag, int orient, PropList props)	{	
+	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient, props, null);
 }
 
 /**
@@ -671,21 +625,15 @@ used to plot multiple symbols at a point.
 @param data Array of secondary data.  For example, for scaled symbols like the
 teacup this indicates some dynamic data used to draw the symbol.  This is only
 used for some symbols.
-@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units
-are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. 
-GRSymbol.SYM_LEFT).
+@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.  If
 not null, the teacup will be filled to a level specified by the data parameter.
 @param outlineColor currently only used by filled triangles, specifies the 
 color to draw the outline of the symbol in.
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol,
-				double x, double y,
-				double size_x, double size_y,
-				double offset_x, double offset_y,
-				double [] data, int flag, int orient, 
-				PropList props, GRColor outlineColor)	
+public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+	double offset_x, double offset_y, double [] data, int flag, int orient, PropList props, GRColor outlineColor)	
 {	double	msizex,		// Symbol x direction size, device units
 		msizex2,	// 1/2 of msizex
 		msizey,		// Symbol y direction size, device units
@@ -731,8 +679,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol,
 	}
 	// Now position the symbol if requested.  Do so by offsetting the
 	// previously calculated position by 1/2 the symbol size.  The default
-	// is to be centered on the point, which are the coordinates previously
-	// used.
+	// is to be centered on the point, which are the coordinates previously used.
 	if ( (orient & GRSymbol.SYM_LEFT) != 0 ) {
 		xs += msizex2;
 	}
@@ -2464,10 +2411,9 @@ Fill a polygon given a drawing area and polygon information in data units.
 @param x X-coordinates of points.
 @param y Y-coordinates of points.
 */
-public static void fillPolygon ( GRDrawingArea da, int npts, double x[],
-				double y[] )
-{	double []	xs, ys;
-	int		i;
+public static void fillPolygon ( GRDrawingArea da, int npts, double x[], double y[] )
+{	double [] xs, ys;
+	int i;
 
 	if ( npts == 0 ) {
 		return;
@@ -2493,8 +2439,6 @@ public static void fillPolygon ( GRDrawingArea da, int npts, double x[],
 	//GRReducePoints ( xs, ys, &npts, 0 );
 	da.fillPolygon ( npts, xs, ys );
 	da.setLastXY ( x[npts - 1], y[npts - 1] );
-	xs = null;
-	ys = null;
 }
 
 /**
@@ -2502,13 +2446,10 @@ Fill a rectangle given a drawing area and rectangle information in data units.
 @param da GR drawing area.
 @param xll X-coordinates of lower left corner of rectangle.
 @param yll Y-coordinates of lower left corner of rectangle.
-@param width Width of rectangle (can be negative, in which case xll will be
-recomputed).
-@param height Height of rectangle (can be negative, in which case yll will be
-recomputed).
+@param width Width of rectangle (can be negative, in which case xll will be recomputed).
+@param height Height of rectangle (can be negative, in which case yll will be recomputed).
 */
-public static void fillRectangle ( GRDrawingArea da, double xll, double yll,
-				double width, double height )
+public static void fillRectangle ( GRDrawingArea da, double xll, double yll, double width, double height )
 {	double []	xs, ys;
 
 	xs = new double[4];

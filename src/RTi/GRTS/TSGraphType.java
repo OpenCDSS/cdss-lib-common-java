@@ -11,7 +11,7 @@ public enum TSGraphType
     AREA("Area"),
     AREA_STACKED("AreaStacked"),
     BAR("Bar"),
-    DOUBLE_MASS("DoubleMass"),
+    DOUBLE_MASS("Double-Mass"),
     DURATION("Duration"),
     LINE("Line"),
     PERIOD("PeriodOfRecord"),

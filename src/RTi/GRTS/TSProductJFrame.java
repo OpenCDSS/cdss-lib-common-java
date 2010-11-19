@@ -277,9 +277,14 @@ WindowListener, DragAndDropListener
 
 // Private data...
 
-private TSViewJFrame _tsview_gui;	// TSViewJFrame parent
-private TSProduct _tsproduct;		// Time Series Product definition,
-					// from TSGraphJComponent.getTSProduct()
+/**
+TSViewJFrame parent
+*/
+private TSViewJFrame _tsview_gui;
+/**
+Time Series Product definition, from TSGraphJComponent.getTSProduct()
+*/
+private TSProduct _tsproduct;
 
 private TSProductLayoutJComponent __layoutCanvas;
 
@@ -292,8 +297,7 @@ The JFrame above which warnings will be displayed.
 private JFrame __graphJFrame = null;
 
 /**
-Whether the GUI is ALMOST fully initialized or not yet.  
-If the GUI is not yet fully
+Whether the GUI is ALMOST fully initialized or not yet.  If the GUI is not yet fully
 initialized, then any calls to a SimpleJComboBox add() method will result in 
 the ItemListener's itemStateChanged() method being called.  This was throwing
 null-pointer exceptions because itemStateChanged() depends on the GUI being
@@ -305,28 +309,29 @@ private boolean __is_initialized = false;
 /**
 Whether some basic setup has been completed and graph types can be limited
 in the combo box now or not.  
-REVISIT (JTS - 2004-05-25)
-see if can use __is_initialized instead
+TODO (JTS - 2004-05-25) see if can use __is_initialized instead
 */
 private boolean __limitGraphTypes = false;
 
 // Shared data..
 
 private int _insets_edge = 1;
-private Insets _insetsTLBR = new Insets(_insets_edge, _insets_edge,
-					_insets_edge, _insets_edge );
-private int _selected_subproduct = -1;	// Subproduct that is selected (zero
-					// index).
-private int _selected_data = -1;	// Time series that is selected
-					// (zero index).
-private int _ndirty = 0;		// The number of dirty properties.  This
-					// is incremented as properties are
-					// set with calls to updateTSProduct()
-					// and is cleared if the display is
-					// updated.  Properties need to be
-					// updated if subproducts or time series
-					// are selected - otherwise only the
-					// last changes shown will be saved.
+private Insets _insetsTLBR = new Insets(_insets_edge, _insets_edge, _insets_edge, _insets_edge );
+/**
+Subproduct that is selected (zero index).
+*/
+private int _selected_subproduct = -1;
+/**
+Time series that is selected (zero index).
+*/
+private int _selected_data = -1;
+/**
+The number of dirty properties.  This is incremented as properties are
+set with calls to updateTSProduct() and is cleared if the display is updated.
+Properties need to be updated if subproducts or time series
+are selected - otherwise only the last changes shown will be saved.
+*/
+private int _ndirty = 0;
 
 // The following panels are listed in the general order of the interface.
 
@@ -531,7 +536,7 @@ private JButton
 	__moveAnnotationDownJButton;
 
 /**
-Whether to ignore a statechange when certain modifications are made to data
+Whether to ignore a state change when certain modifications are made to data
 in a combo box.
 */
 private boolean __ignoreItemStateChange = false;
@@ -539,8 +544,7 @@ private boolean __ignoreItemStateChange = false;
 ////////////////////////////////////////////
 // Layout GUI items
 /**
-The text field that determines the percentage of Y area that each graph should
-take up.
+The text field that determines the percentage of Y area that each graph should take up.
 */
 protected JTextField _yPercentJTextField = null;
 
@@ -578,8 +582,7 @@ Construct a TSProductJFrame.
 @param tsgraphcanvas TSGraphJComponent associated with the properties (can get
 the list of time series and TSProduct from this object).
 */
-public TSProductJFrame (TSViewJFrame tsview_gui,
-TSGraphJComponent tsgraphcanvas)
+public TSProductJFrame (TSViewJFrame tsview_gui, TSGraphJComponent tsgraphcanvas)
 throws Exception {	
 	this(tsview_gui, tsgraphcanvas, true);
 }
@@ -591,8 +594,7 @@ Construct a TSProductJFrame.
 the list of time series and TSProduct from this object).
 @param visible whether this GUI is to be visible once created.
 */
-public TSProductJFrame (TSViewJFrame tsview_gui,
-TSGraphJComponent tsgraphcanvas, boolean visible)
+public TSProductJFrame (TSViewJFrame tsview_gui, TSGraphJComponent tsgraphcanvas, boolean visible)
 throws Exception {
 	super("Time Series - Graph Properties");
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -641,14 +643,12 @@ public void actionPerformed ( ActionEvent e )
 			return;
 		}
 		int num = _tsproduct.getNumAnnotations(_selected_subproduct);
-		_tsproduct.removeAnnotation(_selected_subproduct,
-			__selectedAnnotation);
+		_tsproduct.removeAnnotation(_selected_subproduct, __selectedAnnotation);
 
 		__ignoreItemStateChange = true;
 		__annotation_JComboBox.removeAll();
 		for (int i = 0; i < num - 1; i++) {
-			__annotation_JComboBox.add("" 
-				+ _tsproduct.getLayeredPropValue("AnnotationID",
+			__annotation_JComboBox.add("" + _tsproduct.getLayeredPropValue("AnnotationID",
 				_selected_subproduct, i, false, true));		
 		}
 		__ignoreItemStateChange = false;
@@ -669,50 +669,43 @@ public void actionPerformed ( ActionEvent e )
 			return;
 		}
 
-		_tsproduct.swapAnnotations(_selected_subproduct, 
-			__selectedAnnotation, _selected_subproduct,
+		_tsproduct.swapAnnotations(_selected_subproduct, __selectedAnnotation, _selected_subproduct,
 			__selectedAnnotation - 1);
 		__ignoreItemStateChange = true;
 
-		String s = (String)__annotation_JComboBox.getItemAt(
-			__selectedAnnotation);
+		String s = (String)__annotation_JComboBox.getItemAt(__selectedAnnotation);
 		__annotation_JComboBox.removeItemAt(__selectedAnnotation);
 		__annotation_JComboBox.insertItemAt(s,__selectedAnnotation - 1);
 		__annotation_JComboBox.select(__selectedAnnotation - 1);
 		__ignoreItemStateChange = false;
 		__selectedAnnotation--;
-		displayAnnotationProperties(_selected_subproduct, 
-			__selectedAnnotation);
+		displayAnnotationProperties(_selected_subproduct, __selectedAnnotation);
 	}
 	else if (command.equals(__BUTTON_ANNOTATION_DOWN)) {
 		updateTSProduct();
 
 		int num = _tsproduct.getNumAnnotations(_selected_subproduct);
 
-		if (__selectedAnnotation == -1 
-			|| __selectedAnnotation == (num - 1)) {
+		if ( (__selectedAnnotation == -1) || (__selectedAnnotation == (num - 1)) ) {
 			return;
 		}
 		_tsproduct.swapAnnotations(_selected_subproduct, 
-			__selectedAnnotation, _selected_subproduct,
-			__selectedAnnotation + 1);
+			__selectedAnnotation, _selected_subproduct, __selectedAnnotation + 1);
 		__ignoreItemStateChange = true;
-		String s = (String)__annotation_JComboBox.getItemAt(
-			__selectedAnnotation);		
+		String s = (String)__annotation_JComboBox.getItemAt(__selectedAnnotation);		
 		__annotation_JComboBox.removeItemAt(__selectedAnnotation);
 		__annotation_JComboBox.insertItemAt(s,__selectedAnnotation + 1);
 		__annotation_JComboBox.select(__selectedAnnotation + 1);
 		__selectedAnnotation++;		
 		__ignoreItemStateChange = false;
-		displayAnnotationProperties(_selected_subproduct, 
-			__selectedAnnotation);
+		displayAnnotationProperties(_selected_subproduct, __selectedAnnotation);
 	}
-/* SAM REVISIT - need to update to new
+/* TODO SAM - need to update to new
 	else if ( command.equals("TSProductJFrame.DisableAll") ) {
 		// Disable all time series in the _enabledts_List.
 		int size = _enabledts_List.getItemCount();
 		for ( int i = 0; i < size; i++ ) {
-			ts = (TS)_tslist.elementAt(i);
+			ts = tslist.elementAt(i);
 			if ( ts != null ) {
 				_enabledts_List.deselect(i);
 				ts.setEnabled(false);
@@ -723,7 +716,7 @@ public void actionPerformed ( ActionEvent e )
 		// Enable all time series in the _enabledts_List.
 		int size = _enabledts_List.getItemCount();
 		for ( int i = 0; i < size; i++ ) {
-			ts = (TS)_tslist.elementAt(i);
+			ts = _tslist.elementAt(i);
 			if ( ts != null ) {
 				_enabledts_List.select(i);
 				ts.setEnabled(true);
@@ -732,8 +725,7 @@ public void actionPerformed ( ActionEvent e )
 	}
 	else if ( command.equals("TSProductJFrame.FindTimeSeries") ) {
 		// Find time series in the enabled list
-		new FindInJListJDialog ( this, _enabledts_List,
-		"Find Time Series" );
+		new FindInJListJDialog ( this, _enabledts_List, "Find Time Series" );
 	}
 	else if ( command.equals("TSView.Properties") ) {
 		// Show help...
@@ -832,13 +824,9 @@ protected void applyClicked() {
 		_ndirty = 0;
 	}
 	_graph_JComboBox.select(selected);
-	getTSViewJFrame().getViewGraphJFrame().getMainJComponent()
-		.reinitializeGraphs(_tsproduct);
-	if (getTSViewJFrame().getViewGraphJFrame().getReferenceGraph()
-	    != null) {
-		getTSViewJFrame().getViewGraphJFrame()
-			.getReferenceGraph()
-			.reinitializeGraphs(_tsproduct);		
+	getTSViewJFrame().getViewGraphJFrame().getMainJComponent().reinitializeGraphs(_tsproduct);
+	if (getTSViewJFrame().getViewGraphJFrame().getReferenceGraph() != null) {
+		getTSViewJFrame().getViewGraphJFrame().getReferenceGraph().reinitializeGraphs(_tsproduct);		
 	}
 }
 
@@ -921,9 +909,11 @@ public void checkGUIState() {
 		return;
 	}
 	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(graphTypeString);
-	if (graphType == TSGraphType.LINE 
-	    || graphType == TSGraphType.BAR
-	    || graphType == TSGraphType.POINT) {}
+	if ( graphType == TSGraphType.AREA || graphType == TSGraphType.AREA_STACKED ||
+	    graphType == TSGraphType.BAR || graphType == TSGraphType.LINE ||
+	    graphType == TSGraphType.POINT) {
+	    _graph_graphtype_JComboBox.setEnabled(true);
+	}
 	else {
 		_graph_graphtype_JComboBox.setEnabled(false);
 	}	
@@ -937,11 +927,9 @@ Checks whether user entered values are valid.
 */
 public boolean checkUserInput() {
 	String routine = "TSProductJFrame.checkUserInput";
-
 	String warning = "";
-	String s = null;
 
-	s = __product_id_JTextField.getText().trim();
+	String s = __product_id_JTextField.getText().trim();
 	if (s.equals("") 
 		|| (s.indexOf(" ") > -1) 
 		|| (s.indexOf("'") > -1) 
@@ -955,8 +943,7 @@ public boolean checkUserInput() {
 	}
 
 	if (warning.length() > 0) {
-		Message.printWarning(1, routine, "Warning: " + warning,
-			__graphJFrame);
+		Message.printWarning(1, routine, "Warning: " + warning, __graphJFrame);
 		return false;
 	}
 	else {
@@ -966,8 +953,7 @@ public boolean checkUserInput() {
 
 /**
 Clears out the properties set in the GUI objects.  This is necessary for
-instances when all graphs are removed from the GUI or when a graph has no
-TSIDs.
+instances when all graphs are removed from the GUI or when a graph has no TSIDs.
 */
 private void clearAllProperties() {
 	clearProductProperties();
@@ -983,79 +969,59 @@ as defined in TSProduct.  Necessary for instances when all graphs are removed
 from the GUI or a graph has no annotations.
 */
 private void clearAnnotationProperties() {
-	__annotation_line_color_JComboBox.select(_tsproduct.getDefaultPropValue(
-		"Color", 1, 1, true));
+	__annotation_line_color_JComboBox.select(_tsproduct.getDefaultPropValue("Color", 1, 1, true));
 
-	__annotation_text_color_JComboBox.select(_tsproduct.getDefaultPropValue(
-		"Color", 1, 1, true));
+	__annotation_text_color_JComboBox.select(_tsproduct.getDefaultPropValue("Color", 1, 1, true));
 
 	if (_selected_subproduct == -1) {
-		__annotation_id_JTextField.setText(
-			_tsproduct.getDefaultPropValue("AnnotationID", 0, 0,
-			true));
+		__annotation_id_JTextField.setText( _tsproduct.getDefaultPropValue("AnnotationID", 0, 0, true));
 	}
 	else {
-		__annotation_id_JTextField.setText(
-			_tsproduct.getDefaultPropValue("AnnotationID",
-			_selected_subproduct, 
-			_tsproduct.getNumAnnotations(_selected_subproduct),
-			true));
+		__annotation_id_JTextField.setText( _tsproduct.getDefaultPropValue("AnnotationID",
+			_selected_subproduct, _tsproduct.getNumAnnotations(_selected_subproduct), true));
 	}		
 
-	__annotation_Order_JComboBox.select(_tsproduct.getDefaultPropValue(
-		"Order", 1, 1, true));
+	__annotation_Order_JComboBox.select(_tsproduct.getDefaultPropValue("Order", 1, 1, true));
 
 	__annotation_ShapeType_JComboBox.select(0);
 
-	__annotation_XAxisSystem_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XAxisSystem", 1, 1, true));
+	__annotation_XAxisSystem_JComboBox.select(_tsproduct.getDefaultPropValue("XAxisSystem", 1, 1, true));
 
-	__annotation_YAxisSystem_JComboBox.select(
-		_tsproduct.getDefaultPropValue("YAxisSystem", 1, 1, true));
+	__annotation_YAxisSystem_JComboBox.select(_tsproduct.getDefaultPropValue("YAxisSystem", 1, 1, true));
 
-	__lineStyleJComboBox.select(_tsproduct.getDefaultPropValue(
-		"LineStyle", 1, 1, true));
+	__lineStyleJComboBox.select(_tsproduct.getDefaultPropValue("LineStyle", 1, 1, true));
 
-	__annotation_line_LineWidth_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LineWidth", 1, 1, true));
+	__annotation_line_LineWidth_JTextField.setText(	_tsproduct.getDefaultPropValue("LineWidth", 1, 1, true));
 
 	__annotation_line_PointX1_JTextField.setText("0");
 	__annotation_line_PointY1_JTextField.setText("0");
 	__annotation_line_PointX2_JTextField.setText("0");
 	__annotation_line_PointY2_JTextField.setText("0");
 
-	__annotation_text_FontName_JComboBox.select(
-		_tsproduct.getDefaultPropValue("FontName", 1, 1, true));
+	__annotation_text_FontName_JComboBox.select(_tsproduct.getDefaultPropValue("FontName", 1, 1, true));
 
-	__annotation_text_FontStyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("FontStyle", 1, 1, true));
+	__annotation_text_FontStyle_JComboBox.select(_tsproduct.getDefaultPropValue("FontStyle", 1, 1, true));
 
-	__annotation_text_FontSize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("FontSize", 1, 1, true));
+	__annotation_text_FontSize_JTextField.setText(_tsproduct.getDefaultPropValue("FontSize", 1, 1, true));
 
-	__annotation_text_Text_JTextField.setText(
-		_tsproduct.getDefaultPropValue("Text", 1, 1, true));
+	__annotation_text_Text_JTextField.setText(_tsproduct.getDefaultPropValue("Text", 1, 1, true));
 
 	__annotation_text_PointX_JTextField.setText("0");
 	__annotation_text_PointY_JTextField.setText("0");
 
-	__annotation_text_Position_JComboBox.select(
-		_tsproduct.getDefaultPropValue("TextPosition", 1, 1, true));
+	__annotation_text_Position_JComboBox.select(_tsproduct.getDefaultPropValue("TextPosition", 1, 1, true));
 
 	__annotation_symbol_SymbolSize_JComboBox.select("0");
-	__annotation_symbol_SymbolPosition_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SymbolPosition", 1, 1, true));
+	__annotation_symbol_SymbolPosition_JComboBox.select(_tsproduct.getDefaultPropValue("SymbolPosition", 1, 1, true));
 	__annotation_symbol_SymbolStyle_JComboBox.select(0);
 	__annotation_symbol_PointX_JTextField.setText("0");
 	__annotation_symbol_PointY_JTextField.setText("0");
-	__annotation_symbol_color_JComboBox.select(
-		_tsproduct.getDefaultPropValue("Color", 1, 1, true));
+	__annotation_symbol_color_JComboBox.select(_tsproduct.getDefaultPropValue("Color", 1, 1, true));
 }
 
 /**
 Clears out the data properties set in the GUI objects to the defaults, as
-defined in TSProduct.  Necessary for cases such as when all graphs are removed
-from the product.
+defined in TSProduct.  Necessary for cases such as when all graphs are removed from the product.
 */
 private void clearDataProperties() {
 	// data properties
@@ -1067,8 +1033,7 @@ private void clearDataProperties() {
 
 	_ts_color_JTextField.setBackground(color);
 	
-	_ts_datalabelformat_JTextField.setText(
-		_tsproduct.getDefaultPropValue("DataLabelFormat", 1, 1));
+	_ts_datalabelformat_JTextField.setText(	_tsproduct.getDefaultPropValue("DataLabelFormat", 1, 1));
 		
 	_ts_datalabelposition_JComboBox.select(
 		_tsproduct.getDefaultPropValue("DataLabelPosition", 1, 1));
@@ -1080,11 +1045,9 @@ private void clearDataProperties() {
 		_ts_enabled_JCheckBox.setSelected(false);
 	}
 	
-	_ts_legendformat_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LegendFormat", 1, 1));
+	_ts_legendformat_JTextField.setText(_tsproduct.getDefaultPropValue("LegendFormat", 1, 1));
 		
-	_ts_linestyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LineStyle", 1, 1));
+	_ts_linestyle_JComboBox.select(_tsproduct.getDefaultPropValue("LineStyle", 1, 1));
 		
 	if (graphType.equals("Bar")) {
 		_ts_linestyle_JComboBox.setEnabled(false);
@@ -1093,8 +1056,7 @@ private void clearDataProperties() {
 		_ts_linestyle_JComboBox.setEnabled(true);
 	}
 	
-	_ts_linewidth_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LineWidth", 1, 1));
+	_ts_linewidth_JComboBox.select(_tsproduct.getDefaultPropValue("LineWidth", 1, 1));
 		
 	if (graphType.equals("Bar")) {
 		_ts_linewidth_JComboBox.setEnabled(false);
@@ -1103,16 +1065,14 @@ private void clearDataProperties() {
 		_ts_linewidth_JComboBox.setEnabled(true);
 	}
 
-	if (_tsproduct.getDefaultPropValue("RegressionLineEnabled", 1, 1)
-		.equals("True")) {
+	if (_tsproduct.getDefaultPropValue("RegressionLineEnabled", 1, 1).equals("True")) {
 		_ts_regressionline_JCheckBox.setSelected(true);
 	}
 	else {
 		_ts_regressionline_JCheckBox.setSelected(false);
 	}
 	
-	_ts_symbolsize_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SymbolSize", 1, 1));		
+	_ts_symbolsize_JComboBox.select(_tsproduct.getDefaultPropValue("SymbolSize", 1, 1));		
 		
 	if (graphType.equals("Bar")) {
 		_ts_symbolsize_JComboBox.setEnabled(false);
@@ -1121,8 +1081,7 @@ private void clearDataProperties() {
 		_ts_symbolsize_JComboBox.setEnabled(false);
 	}
 	
-	_ts_symbolstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SymbolStyle", 1, 1));
+	_ts_symbolstyle_JComboBox.select(_tsproduct.getDefaultPropValue("SymbolStyle", 1, 1));
 		
 	if (graphType.equals("Bar")) {
 		_ts_symbolstyle_JComboBox.setEnabled(false);
@@ -1131,11 +1090,9 @@ private void clearDataProperties() {
 		_ts_symbolstyle_JComboBox.setEnabled(true);
 	}
 	
-	_ts_xaxis_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XAxis", 1, 1));
+	_ts_xaxis_JComboBox.select(_tsproduct.getDefaultPropValue("XAxis", 1, 1));
 		
-	_ts_confidenceinterval_JComboBox.select(
-		_tsproduct.getDefaultPropValue("YAxis", 1, 1));
+	_ts_confidenceinterval_JComboBox.select(_tsproduct.getDefaultPropValue("YAxis", 1, 1));
 		
 	if (_ts_regressionline_JCheckBox.isSelected()) {
 		_ts_confidenceinterval_JComboBox.setEnabled(true);
@@ -1144,8 +1101,7 @@ private void clearDataProperties() {
 		_ts_confidenceinterval_JComboBox.setEnabled(false);
 	}
 	
-	_ts_yaxis_JComboBox.select(
-		_tsproduct.getDefaultPropValue("YAxis", 1, 1));
+	_ts_yaxis_JComboBox.select(_tsproduct.getDefaultPropValue("YAxis", 1, 1));
 		
 	if (!graphType.equals("XY-Scatter")) {
 		_ts_xyscatter_analysis_JPanel.setVisible(false);
@@ -1217,30 +1173,14 @@ private void clearProductProperties() {
 	else {
 		_product_enabled_JCheckBox.setSelected(false);
 	}
-
-	_product_maintitle_JTextField.setText(
-		_tsproduct.getDefaultPropValue("MainTitleString", -1, -1));
-		
-	_product_maintitle_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("MainTitleFontName", -1, -1));
-		
-	_product_maintitle_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("MainTitleFontStyle", -1, -1));
-		
-	_product_maintitle_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("MainTitleFontSize", -1, -1));
-		
-	_product_subtitle_JTextField.setText(
-		_tsproduct.getDefaultPropValue("SubTitleString", -1, -1));
-		
-	_product_subtitle_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SubTitleFontName", -1, -1));
-		
-	_product_subtitle_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SubTitleFontStyle", -1, -1));
-		
-	_product_subtitle_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("SubTitleFontSize", -1, -1));
+	_product_maintitle_JTextField.setText( _tsproduct.getDefaultPropValue("MainTitleString", -1, -1));
+	_product_maintitle_fontname_JComboBox.select( _tsproduct.getDefaultPropValue("MainTitleFontName", -1, -1));
+	_product_maintitle_fontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("MainTitleFontStyle", -1, -1));
+	_product_maintitle_fontsize_JTextField.setText( _tsproduct.getDefaultPropValue("MainTitleFontSize", -1, -1));
+	_product_subtitle_JTextField.setText( _tsproduct.getDefaultPropValue("SubTitleString", -1, -1));
+	_product_subtitle_fontname_JComboBox.select( _tsproduct.getDefaultPropValue("SubTitleFontName", -1, -1));
+	_product_subtitle_fontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("SubTitleFontStyle", -1, -1));
+	_product_subtitle_fontsize_JTextField.setText( _tsproduct.getDefaultPropValue("SubTitleFontSize", -1, -1));
 }
 
 /**
@@ -1252,8 +1192,7 @@ private void clearSubProductProperties() {
 	_graph_graphtype_JComboBox.select(graphType);
 
 	if (graphType.equals("Bar")) {
-		_graph_barposition_JComboBox.select(
-			_tsproduct.getDefaultPropValue("BarPosition", 1, -1));
+		_graph_barposition_JComboBox.select( _tsproduct.getDefaultPropValue("BarPosition", 1, -1));
 		_graph_barposition_JLabel.setVisible(true);
 		_graph_barposition_JComboBox.setVisible(true);
 	}
@@ -1262,8 +1201,7 @@ private void clearSubProductProperties() {
 		_graph_barposition_JComboBox.setVisible(false);
 	}
 
-	String colorString = _tsproduct.getDefaultPropValue(
-		"BottomXAxisMajorGridColor", 1, -1);
+	String colorString = _tsproduct.getDefaultPropValue( "BottomXAxisMajorGridColor", 1, -1);
 	GRColor color = GRColor.parseColor(colorString);
 	_graph_bottomx_majorgrid_color_JTextField.setText(colorString);
 	_graph_bottomx_majorgrid_color_JComboBox.select(colorString);
@@ -1273,133 +1211,99 @@ private void clearSubProductProperties() {
 		_tsproduct.getDefaultPropValue("BottomXAxisTitleString", 1,-1));
 
 	_graph_bottomx_title_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontName", 1, -1));
 
 	_graph_bottomx_title_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontStyle",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontStyle", 1, -1));
 
 	_graph_bottomx_title_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontSize",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisTitleFontSize", 1, -1));
 
 	_graph_bottomx_label_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontName", 1, -1));
 
 	_graph_bottomx_label_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontStyle",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontStyle", 1, -1));
 		
 	_graph_bottomx_label_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontSize",
-		1, -1));
+		_tsproduct.getDefaultPropValue("BottomXAxisLabelFontSize", 1, -1));
 
-	_graph_datalabelformat_JTextField.setText(
-		_tsproduct.getDefaultPropValue("DataLabelFormat", 1, -1));
+	_graph_datalabelformat_JTextField.setText( _tsproduct.getDefaultPropValue("DataLabelFormat", 1, -1));
 
-	_graph_datalabelfontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("DataLabelFontName", 1, -1));
+	_graph_datalabelfontname_JComboBox.select( _tsproduct.getDefaultPropValue("DataLabelFontName", 1, -1));
 
-	_graph_datalabelfontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("DataLabelFontStyle", 1, -1));
+	_graph_datalabelfontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("DataLabelFontStyle", 1, -1));
 
-	_graph_datalabelfontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("DataLabelFontSize", 1, -1));
+	_graph_datalabelfontsize_JTextField.setText( _tsproduct.getDefaultPropValue("DataLabelFontSize", 1, -1));
 
-	_graph_datalabelposition_JComboBox.select(
-		_tsproduct.getDefaultPropValue("DataLabelPosition", 1, -1));
+	_graph_datalabelposition_JComboBox.select( _tsproduct.getDefaultPropValue("DataLabelPosition", 1, -1));
 
-	colorString = _tsproduct.getDefaultPropValue("LeftYAxisMajorGridColor",
-		1, -1);
+	colorString = _tsproduct.getDefaultPropValue("LeftYAxisMajorGridColor", 1, -1);
 	color = GRColor.parseColor(colorString);
 	_graph_lefty_majorgrid_color_JTextField.setText(colorString);
 	_graph_lefty_majorgrid_color_JComboBox.select(colorString);
 	_graph_lefty_majorgrid_color_JTextField.setBackground(color);
 
-	_graph_lefty_title_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LeftYAxisTitleString", 1, -1));
+	_graph_lefty_title_JTextField.setText( _tsproduct.getDefaultPropValue("LeftYAxisTitleString", 1, -1));
 
 	_graph_lefty_title_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontName", 1, -1));
 
 	_graph_lefty_title_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontStyle",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontStyle", 1, -1));
 
 	_graph_lefty_title_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontSize",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisTitleFontSize", 1, -1));
 
 	if ( __graphAnnotationProvider != null ) {
 	    __graphAnnotationProvider.select( _tsproduct.getDefaultPropValue("AnnotationProvider", 1, -1));
 	}
 
 	_graph_lefty_label_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontName", 1, -1));
 
 	_graph_lefty_label_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontStyle",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontStyle", 1, -1));
 
 	_graph_lefty_label_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontSize",
-		1, -1));
+		_tsproduct.getDefaultPropValue("LeftYAxisLabelFontSize", 1, -1));
 
-	if (_tsproduct.getDefaultPropValue("LeftYAxisIgnoreUnits", 1, -1)
-	    .equals("False")) {
+	if (_tsproduct.getDefaultPropValue("LeftYAxisIgnoreUnits", 1, -1).equals("False")) {
 		_graph_lefty_ignoreunits_JCheckBox.setSelected(false);
 	}
 	else {
 		_graph_lefty_ignoreunits_JCheckBox.setSelected(true);
 	}
 
-	_graph_lefty_max_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisMax", 1, -1));
+	_graph_lefty_max_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisMax", 1, -1));
 
-	_graph_lefty_min_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisMin", 1, -1));
+	_graph_lefty_min_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisMin", 1, -1));
 
-	_graph_lefty_type_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LeftYAxisType", 1, -1));
+	_graph_lefty_type_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisType", 1, -1));
 
-	_graph_lefty_units_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LeftYAxisUnits", 1, -1));
+	_graph_lefty_units_JTextField.setText( _tsproduct.getDefaultPropValue("LeftYAxisUnits", 1, -1));
 
-	_graph_legendfontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LegendFontName", 1, -1));
+	_graph_legendfontname_JComboBox.select( _tsproduct.getDefaultPropValue("LegendFontName", 1, -1));
 
-	_graph_legendfontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LegendFontStyle", 1, -1));
+	_graph_legendfontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("LegendFontStyle", 1, -1));
 
-	_graph_legend_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LegendFontSize", 1, -1));
+	_graph_legend_fontsize_JTextField.setText( _tsproduct.getDefaultPropValue("LegendFontSize", 1, -1));
 
-	_graph_legendformat_JTextField.setText(
-		_tsproduct.getDefaultPropValue("LegendFormat", 1, -1));
+	_graph_legendformat_JTextField.setText( _tsproduct.getDefaultPropValue("LegendFormat", 1, -1));
 
-	_graph_legendposition_JComboBox.select(
-		_tsproduct.getDefaultPropValue("LegendPosition", 1, -1));
+	_graph_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LegendPosition", 1, -1));
 
-	_graph_maintitle_JTextField.setText(
-		_tsproduct.getDefaultPropValue("MainTitleString", 1, -1));
+	_graph_maintitle_JTextField.setText( _tsproduct.getDefaultPropValue("MainTitleString", 1, -1));
 
-	_graph_maintitle_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("MainTitleFontName", 1, -1));
+	_graph_maintitle_fontname_JComboBox.select( _tsproduct.getDefaultPropValue("MainTitleFontName", 1, -1));
 
-	_graph_maintitle_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("MainTitleFontStyle", 1, -1));
+	_graph_maintitle_fontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("MainTitleFontStyle", 1, -1));
 
-	_graph_maintitle_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("MainTitleFontSize", 1, -1));
+	_graph_maintitle_fontsize_JTextField.setText( _tsproduct.getDefaultPropValue("MainTitleFontSize", 1, -1));
 
 /*
 	_graph_righty_title_JTextField.setText(
-		_tsproduct.getDefaultPropValue("RightYAxisTitleString",
-		1, -1));
+		_tsproduct.getDefaultPropValue("RightYAxisTitleString", 1, -1));
 	_graph_righty_title_fontname_JComboBox.select(
 		_tsproduct.getDefaultPropValue("RightYAxisFontName", 1, -1));
 
@@ -1413,64 +1317,45 @@ private void clearSubProductProperties() {
 		_tsproduct.getDefaultPropValue("RightYAxisFontName", 1, -1));
 
 	_graph_righty_label_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("RightYAxisLabelFontStyle",
-		1, -1));
+		_tsproduct.getDefaultPropValue("RightYAxisLabelFontStyle", 1, -1));
 
 	_graph_righty_title_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("RightYAxisTitleFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("RightYAxisTitleFontName", 1, -1));
 	_graph_righty_title_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("RightYAxisTitleFontSize",
-		1, -1));		
+		_tsproduct.getDefaultPropValue("RightYAxisTitleFontSize", 1, -1));		
 	_graph_righty_title_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("RightYAxisTitleFontStyle",
-		1, -1));		
+		_tsproduct.getDefaultPropValue("RightYAxisTitleFontStyle", 1, -1));		
 	_graph_righty_label_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("RightYAxisLabelFontName",
-		1, -1));
+		_tsproduct.getDefaultPropValue("RightYAxisLabelFontName", 1, -1));
 	_graph_righty_label_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("RightYAxisLabelFontSize",
-		1, -1));		
+		_tsproduct.getDefaultPropValue("RightYAxisLabelFontSize", 1, -1));		
 	_graph_righty_label_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("RightYAxisLabelFontStyle",
-		1, -1));		
+		_tsproduct.getDefaultPropValue("RightYAxisLabelFontStyle", 1, -1));		
 */
-	_graph_subtitle_JTextField.setText(
-		_tsproduct.getDefaultPropValue("SubTitleString", 1, -1));
+	_graph_subtitle_JTextField.setText( _tsproduct.getDefaultPropValue("SubTitleString", 1, -1));
 
-	_graph_subtitle_fontname_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SubTitleFontName", 1, -1));
+	_graph_subtitle_fontname_JComboBox.select( _tsproduct.getDefaultPropValue("SubTitleFontName", 1, -1));
 
-	_graph_subtitle_fontstyle_JComboBox.select(
-		_tsproduct.getDefaultPropValue("SubTitleFontStyle", 1, -1));
+	_graph_subtitle_fontstyle_JComboBox.select( _tsproduct.getDefaultPropValue("SubTitleFontStyle", 1, -1));
 
-	_graph_subtitle_fontsize_JTextField.setText(
-		_tsproduct.getDefaultPropValue("SubTitleFontSize", 1, -1));
+	_graph_subtitle_fontsize_JTextField.setText( _tsproduct.getDefaultPropValue("SubTitleFontSize", 1, -1));
 
-	if (_tsproduct.getDefaultPropValue("ZoomEnabled", 1, -1)
-	    .equals("False")) {
+	if (_tsproduct.getDefaultPropValue("ZoomEnabled", 1, -1).equals("False")) {
 		_graph_zoomenabled_JCheckBox.setSelected(false);
 	}
 	else {
 		_graph_zoomenabled_JCheckBox.setSelected(true);
 	}
 
-	_graph_zoomgroup_JTextField.setText(
-		_tsproduct.getDefaultPropValue("ZoomGroup", 1, -1));
+	_graph_zoomgroup_JTextField.setText( _tsproduct.getDefaultPropValue("ZoomGroup", 1, -1));
 
-	_xyscatter_analysis_method_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XYScatterMethod", 1, -1));
+	_xyscatter_analysis_method_JComboBox.select( _tsproduct.getDefaultPropValue("XYScatterMethod", 1, -1));
 
-	_xyscatter_analysis_transform_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XYScatterTransformation", 
-		1, -1));
+	_xyscatter_analysis_transform_JComboBox.select( _tsproduct.getDefaultPropValue("XYScatterTransformation", 1, -1));
 
-	_xyscatter_analysis_neqn_JComboBox.select(
-		_tsproduct.getDefaultPropValue("XYScatterNumberOfEquations",
-		1, -1));
+	_xyscatter_analysis_neqn_JComboBox.select( _tsproduct.getDefaultPropValue("XYScatterNumberOfEquations",1, -1));
 
-	_xyscatter_analysis_month_JTextField.setText(
-		_tsproduct.getDefaultPropValue("XYScatterMonth", 1, -1));
+	_xyscatter_analysis_month_JTextField.setText( _tsproduct.getDefaultPropValue("XYScatterMonth", 1, -1));
 
 	_xyscatter_analysis_fill_JCheckBox.setEnabled(false);
 	_xyscatter_analysis_intercept_JTextField.setText("");
@@ -1489,20 +1374,16 @@ private JPanel createAnnotationJPanel() {
 	GridBagLayout gbl = new GridBagLayout();
 	annotationJPanel.setLayout(gbl);
 	
-	JGUIUtil.addComponent(annotationJPanel, 
-		new JLabel("Annotation Properties:"),
+	JGUIUtil.addComponent(annotationJPanel, new JLabel("Annotation properties:"),
 		0, 0, 1, 1, 1, 1,
-		_insetsTLBR, GridBagConstraints.HORIZONTAL,
-		GridBagConstraints.NORTH);
+		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH);
 
 	__annotation_JComboBox = new SimpleJComboBox(false);
 
 	// Initialized to first annotation of first product...
 	int nann = _tsproduct.getNumAnnotations(0);
 	for (int iann = 0; iann < nann; iann++) {
-		__annotation_JComboBox.add("" 
-			+ _tsproduct.getLayeredPropValue("AnnotationID", 0,
-			iann, true));
+		__annotation_JComboBox.add("" + _tsproduct.getLayeredPropValue("AnnotationID", 0, iann, true));
 	}
 
 	__addAnnotationJButton = new JButton(__BUTTON_ADD_ANNOTATION);
@@ -1513,12 +1394,10 @@ private JPanel createAnnotationJPanel() {
 	__delAnnotationJButton.setToolTipText("Delete current annotation.");
 	__moveAnnotationUpJButton = new JButton(__BUTTON_ANNOTATION_UP);
 	__moveAnnotationUpJButton.addActionListener(this);
-	__moveAnnotationUpJButton.setToolTipText(
-		"Move annotation up one position.");
+	__moveAnnotationUpJButton.setToolTipText("Move annotation up one position.");
 	__moveAnnotationDownJButton = new JButton(__BUTTON_ANNOTATION_DOWN);
 	__moveAnnotationDownJButton.addActionListener(this);
-	__moveAnnotationDownJButton.setToolTipText(
-		"Move annotation down one position.");
+	__moveAnnotationDownJButton.setToolTipText("Move annotation down one position.");
 
 	int y = 0;
 
@@ -1537,33 +1416,32 @@ private JPanel createAnnotationJPanel() {
 
 	__annotation_JComboBox.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXXXX");
 	JGUIUtil.addComponent(annotationJPanel, __annotation_JComboBox,
-		1, y, 3, 1, 0, 1,
-		_insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.NORTH);
+		1, y, 3, 1, 0, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.NORTH);
 	y++;
 	
 	__annotation_id_JTextField = new JTextField(15);
 	JGUIUtil.addComponent(annotationJPanel, new JLabel("Annotation ID: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+		0, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(annotationJPanel, __annotation_id_JTextField,
-		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		1, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
-	JGUIUtil.addComponent(annotationJPanel, new JLabel("Shape Type: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+	JGUIUtil.addComponent(annotationJPanel, new JLabel("Shape type: "),
+		0, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_ShapeType_JComboBox = new SimpleJComboBox(false);
 	__annotation_ShapeType_JComboBox.add("Text");
 	__annotation_ShapeType_JComboBox.add("Line");
 	__annotation_ShapeType_JComboBox.add("Symbol");
 	JGUIUtil.addComponent(annotationJPanel,__annotation_ShapeType_JComboBox,
-		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		1, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
 	JGUIUtil.addComponent(annotationJPanel, new JLabel("Order: " ),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+		0, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_Order_JComboBox = new SimpleJComboBox(false);
 	__annotation_Order_JComboBox.add("OnTopOfData");
 	__annotation_Order_JComboBox.add("BehindData");
@@ -1573,36 +1451,34 @@ private JPanel createAnnotationJPanel() {
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
 	y++;
-	JGUIUtil.addComponent(annotationJPanel, new JLabel("X Axis System: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+	JGUIUtil.addComponent(annotationJPanel, new JLabel("X axis system: "),
+		0, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_XAxisSystem_JComboBox = new SimpleJComboBox(false);
 	__annotation_XAxisSystem_JComboBox.add("Data");
 	__annotation_XAxisSystem_JComboBox.add("Percent");
 	__annotation_XAxisSystem_JComboBox.select(0);
 	__annotation_XAxisSystem_JComboBox.addItemListener(this);
-	JGUIUtil.addComponent(annotationJPanel, 
-		__annotation_XAxisSystem_JComboBox, 
-		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+	JGUIUtil.addComponent(annotationJPanel, __annotation_XAxisSystem_JComboBox, 
+		1, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
-	JGUIUtil.addComponent(annotationJPanel, new JLabel("Y Axis System: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+	JGUIUtil.addComponent(annotationJPanel, new JLabel("Y axis system: "),
+		0, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_YAxisSystem_JComboBox = new SimpleJComboBox(false);
 	__annotation_YAxisSystem_JComboBox.add("Data");
 	__annotation_YAxisSystem_JComboBox.add("Percent");
 	__annotation_YAxisSystem_JComboBox.select(0);
 	__annotation_YAxisSystem_JComboBox.addItemListener(this);
-	JGUIUtil.addComponent(annotationJPanel, 
-		__annotation_YAxisSystem_JComboBox, 
-		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+	JGUIUtil.addComponent(annotationJPanel, __annotation_YAxisSystem_JComboBox, 
+		1, y, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	y++;
 	__graphAnnotationProvider = new SimpleJComboBox(__annotationProviders);
 	__graphAnnotationProvider.setPrototypeDisplayValue(	"XXXXXXXXXXXXXXXXXXXX");
-	JGUIUtil.addComponent(annotationJPanel,	new JLabel("Annotation Provider: "),
+	JGUIUtil.addComponent(annotationJPanel,	new JLabel("Annotation provider: "),
 		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,	GridBagConstraints.WEST);	
 	JGUIUtil.addComponent(annotationJPanel,	__graphAnnotationProvider,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
@@ -1677,17 +1553,14 @@ private JPanel createAnnotationJPanel() {
 	__annotation_line_color_JComboBox = new SimpleJComboBox(false);
 	int size = GRColor.COLOR_NAMES.length;
 	for (int i = 0; i < size; i++) {
-		__annotation_line_color_JComboBox.addItem(
-			GRColor.COLOR_NAMES[i]);
+		__annotation_line_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
 	}
-	__annotation_line_color_JComboBox.setMaximumRowCount(
-		__annotation_line_color_JComboBox.getItemCount());
+	__annotation_line_color_JComboBox.setMaximumRowCount(__annotation_line_color_JComboBox.getItemCount());
 	__annotation_line_color_JComboBox.select(1);
 	__annotation_line_color_JComboBox.addItemListener(this);
 	__annotation_line_color_JTextField = new JTextField(10);
 	__annotation_line_color_JTextField.setEditable(false);
-	__annotation_line_color_JTextField.setBackground(GRColor.parseColor(
-		GRColor.COLOR_NAMES[1]));
+	__annotation_line_color_JTextField.setBackground(GRColor.parseColor(GRColor.COLOR_NAMES[1]));
 
 	JGUIUtil.addComponent(__annotation_line_JPanel, new JLabel("Color: "),
 		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
@@ -1701,8 +1574,7 @@ private JPanel createAnnotationJPanel() {
 		2, y, 5, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
 
-	__annotation_line_JPanel.setBorder(BorderFactory.createTitledBorder(
-		"Line"));
+	__annotation_line_JPanel.setBorder(BorderFactory.createTitledBorder("Line"));
 	
 	__annotation_text_JPanel = new JPanel();
 	__annotation_text_JPanel.setLayout(new GridBagLayout());
@@ -1747,12 +1619,10 @@ private JPanel createAnnotationJPanel() {
 	__annotation_text_Position_JComboBox.select("Right");
 	__annotation_text_Position_JComboBox.setMaximumRowCount(10);
 	y++;
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		new JLabel("Text Position: "),
+	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Text position: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_Position_JComboBox,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_Position_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
@@ -1760,63 +1630,51 @@ private JPanel createAnnotationJPanel() {
 	__annotation_text_FontStyle_JComboBox =JGUIUtil.newFontStyleJComboBox();
 	__annotation_text_FontSize_JTextField = new JTextField(3);
 	y++;
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		new JLabel("Font Name: "),
+	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Font name: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_FontName_JComboBox,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_FontName_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		new JLabel("Font Style: "),
+	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Font style: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_FontStyle_JComboBox,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_FontStyle_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		new JLabel("Font Size: "),
+	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Font size: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_FontSize_JTextField,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_FontSize_JTextField,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	__annotation_text_color_JComboBox = new SimpleJComboBox(false);
 	size = GRColor.COLOR_NAMES.length;
 	for (int i = 0; i < size; i++) {
-		__annotation_text_color_JComboBox.addItem(
-			GRColor.COLOR_NAMES[i]);
+		__annotation_text_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
 	}
-	__annotation_text_color_JComboBox.setMaximumRowCount(
-		__annotation_text_color_JComboBox.getItemCount());
+	__annotation_text_color_JComboBox.setMaximumRowCount(__annotation_text_color_JComboBox.getItemCount());
 	__annotation_text_color_JComboBox.select(1);
 	__annotation_text_color_JComboBox.addItemListener(this);
 	__annotation_text_color_JTextField = new JTextField(10);
 	__annotation_text_color_JTextField.setEditable(false);
-	__annotation_text_color_JTextField.setBackground(GRColor.parseColor(
-		GRColor.COLOR_NAMES[1]));
+	__annotation_text_color_JTextField.setBackground(GRColor.parseColor(GRColor.COLOR_NAMES[1]));
 
 	y++;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Color: "),
 		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.EAST);		
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_color_JTextField,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_color_JTextField,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
-	JGUIUtil.addComponent(__annotation_text_JPanel, 
-		__annotation_text_color_JComboBox,
+	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_color_JComboBox,
 		2, y, 3, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
 
-	__annotation_text_JPanel.setBorder(BorderFactory.createTitledBorder(
-		"Text"));
+	__annotation_text_JPanel.setBorder(BorderFactory.createTitledBorder("Text"));
 		
 	__annotation_symbol_JPanel = new JPanel();
 	__annotation_symbol_JPanel.setLayout(new GridBagLayout());
@@ -1824,17 +1682,14 @@ private JPanel createAnnotationJPanel() {
 	__annotation_symbol_SymbolStyle_JComboBox = new SimpleJComboBox(false);
 	size = GRSymbol.SYMBOL_NAMES.length;
 	for (int i = 0; i < size; i++) {
-		__annotation_symbol_SymbolStyle_JComboBox.addItem(
-			GRSymbol.SYMBOL_NAMES[i]);
+		__annotation_symbol_SymbolStyle_JComboBox.addItem(GRSymbol.SYMBOL_NAMES[i]);
 	}
 	
 	y = 0;
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		new JLabel("Symbol Style: " ),
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol style: " ),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_SymbolStyle_JComboBox,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolStyle_JComboBox,
 		1, y, 7, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	y++;
@@ -1843,20 +1698,17 @@ private JPanel createAnnotationJPanel() {
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("X: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_PointX_JTextField,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_PointX_JTextField,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Y: "),
 		2, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_PointY_JTextField,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_PointY_JTextField,
 		3, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	__annotation_symbol_SymbolPosition_JComboBox = new SimpleJComboBox(
-		false);
+	__annotation_symbol_SymbolPosition_JComboBox = new SimpleJComboBox(false);
 	__annotation_symbol_SymbolPosition_JComboBox.add("UpperRight");
 	__annotation_symbol_SymbolPosition_JComboBox.add("Right");
 	__annotation_symbol_SymbolPosition_JComboBox.add("LowerRight");
@@ -1869,59 +1721,49 @@ private JPanel createAnnotationJPanel() {
 	__annotation_symbol_SymbolPosition_JComboBox.select("Right");
 	__annotation_symbol_SymbolPosition_JComboBox.setMaximumRowCount(10);
 	y++;
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		new JLabel("Symbol Position: "),
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol position: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_SymbolPosition_JComboBox,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolPosition_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
 	y++;
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		new JLabel("Symbol Size: "),
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol size: "),
 		0, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_symbol_SymbolSize_JComboBox = new SimpleJComboBox(true);
 	for ( int i = 0; i <= 20; i++ ) {
 		__annotation_symbol_SymbolSize_JComboBox.addItem("" + i);
 	}		
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_SymbolSize_JComboBox,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolSize_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	__annotation_symbol_color_JComboBox = new SimpleJComboBox(false);
 	size = GRColor.COLOR_NAMES.length;
 	for (int i = 0; i < size; i++) {
-		__annotation_symbol_color_JComboBox.addItem(
-			GRColor.COLOR_NAMES[i]);
+		__annotation_symbol_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
 	}
-	__annotation_symbol_color_JComboBox.setMaximumRowCount(
-		__annotation_symbol_color_JComboBox.getItemCount());
+	__annotation_symbol_color_JComboBox.setMaximumRowCount(__annotation_symbol_color_JComboBox.getItemCount());
 	__annotation_symbol_color_JComboBox.select(1);
 	__annotation_symbol_color_JComboBox.addItemListener(this);
 	__annotation_symbol_color_JTextField = new JTextField(10);
 	__annotation_symbol_color_JTextField.setEditable(false);
-	__annotation_symbol_color_JTextField.setBackground(GRColor.parseColor(
-		GRColor.COLOR_NAMES[1]));
+	__annotation_symbol_color_JTextField.setBackground(GRColor.parseColor(GRColor.COLOR_NAMES[1]));
 
 	y++;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Color: "),
 		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.EAST);		
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_color_JTextField,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_color_JTextField,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
-	JGUIUtil.addComponent(__annotation_symbol_JPanel, 
-		__annotation_symbol_color_JComboBox,
+	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_color_JComboBox,
 		2, y, 3, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
 
-	__annotation_symbol_JPanel.setBorder(BorderFactory.createTitledBorder(
-		"Symbol"));
+	__annotation_symbol_JPanel.setBorder(BorderFactory.createTitledBorder("Symbol"));
 
 	JGUIUtil.addComponent(annotationJPanel, __annotation_symbol_JPanel,
 		4, 1, 10, 10, 1, 1,
@@ -1947,8 +1789,7 @@ private JPanel createDataJPanel ()
 	GridBagLayout gbl = new GridBagLayout ();
 	data_JPanel.setLayout ( gbl );
 	String prop_val;
-	JGUIUtil.addComponent ( data_JPanel, new JLabel (
-			"Time Series Properties:"),
+	JGUIUtil.addComponent ( data_JPanel, new JLabel ("Time Series Properties:"),
 			0, 0, 1, 1, 1, 0,
 			_insetsTLBR, GridBagConstraints.HORIZONTAL,
 			GridBagConstraints.NORTH );
@@ -1961,63 +1802,55 @@ private JPanel createDataJPanel ()
 	int nts = _tsproduct.getNumData ( 0 );
 	String sequence_number;
 	for ( int its = 0; its < nts; its++ ) {
-		prop_val = _tsproduct.getLayeredPropValue( "TSAlias",
-			_selected_subproduct, its, false );
+		prop_val = _tsproduct.getLayeredPropValue( "TSAlias", _selected_subproduct, its, false );
 		if ( (prop_val == null) || prop_val.trim().equals("") ) {
-			prop_val = _tsproduct.getLayeredPropValue( "TSID",
-				_selected_subproduct, its, false );
+			prop_val = _tsproduct.getLayeredPropValue( "TSID", _selected_subproduct, its, false );
 		}
-		sequence_number = _tsproduct.getLayeredPropValue(
-			"SequenceNumber", _selected_subproduct, its, false );
+		sequence_number = _tsproduct.getLayeredPropValue( "SequenceNumber", _selected_subproduct, its, false );
 		if ((sequence_number == null) || sequence_number.equals("-1") ){
 			sequence_number = "";
 		}
-		else {	sequence_number = " [" + sequence_number + "] ";
+		else {
+		    sequence_number = " [" + sequence_number + "] ";
 		}
 		if ( prop_val == null ) {
 			prop_val = "No data";
 		}
-		else {	// Limit the property to 60 characters...
+		else {
+		    // Limit the property to 60 characters...
 			if ( prop_val.length() > 60 ) {
-				prop_val = prop_val.substring(0,60) + "..." +
-					sequence_number;
+				prop_val = prop_val.substring(0,60) + "..." + sequence_number;
 			}
 		}
-		__ts_JComboBox.add ( "" + (its + 1) + " - " + prop_val +
-			sequence_number );
+		__ts_JComboBox.add ( "" + (its + 1) + " - " + prop_val + sequence_number );
 	}
 	JGUIUtil.addComponent ( data_JPanel, __ts_JComboBox,
-			1, 0, 1, 1, 1, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.NORTH );
+			1, 0, 1, 1, 1, 0, _insetsTLBR,
+			GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
 
 	_ts_JTabbedPane = new JTabbedPane();
 	JGUIUtil.addComponent ( data_JPanel, _ts_JTabbedPane,
-			0, 1, 2, 1, 1, 0,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.NORTH );
+			0, 1, 2, 1, 1, 0, _insetsTLBR,
+			GridBagConstraints.BOTH, GridBagConstraints.NORTH );
 
 	// General tab...
 
 	JPanel general_JPanel = new JPanel();
 	general_JPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-	_ts_JTabbedPane.addTab("General", null, general_JPanel,
-		"General view properties");
-	_ts_enabled_JCheckBox = new JCheckBox("Time Series Enabled", true);
+	_ts_JTabbedPane.addTab("General", null, general_JPanel, "General view properties");
+	_ts_enabled_JCheckBox = new JCheckBox("Time series enabled", true);
 	general_JPanel.add(_ts_enabled_JCheckBox);
 
 	// Graph Type tab...
 
 	JPanel graphtype_JPanel = new JPanel();
 	graphtype_JPanel.setLayout ( gbl );
-	_ts_JTabbedPane.addTab ( "Graph Type", null, graphtype_JPanel,
-		"Graph type properties" );
+	_ts_JTabbedPane.addTab ( "Graph Type", null, graphtype_JPanel, "Graph type properties" );
 
 	int y = 0;
 	JGUIUtil.addComponent ( graphtype_JPanel,
 			new JLabel(
-			"The graph type for each time series must currently" +
-			" be the same as the graph itself: " +
+			"The graph type for each time series currently must be the same as the graph itself: " +
 			_graph_graphtype_JComboBox.getSelected()),
 			0, y, 2, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE,
@@ -2033,58 +1866,50 @@ private JPanel createDataJPanel ()
 
 	// "XAxis", "YAxis"
 
-	JGUIUtil.addComponent ( axes_JPanel, new JLabel ("X Axis:"),
-			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+	JGUIUtil.addComponent ( axes_JPanel, new JLabel ("X axis:"),
+			0, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_ts_xaxis_JComboBox = new SimpleJComboBox ( false );
 	_ts_xaxis_JComboBox.addItem ( "Bottom" );
 	_ts_xaxis_JComboBox.addItem ( "Top" );
 	_ts_xaxis_JComboBox.setEnabled ( false );
 	JGUIUtil.addComponent ( axes_JPanel, _ts_xaxis_JComboBox,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( axes_JPanel, new JLabel ("Y Axis:"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+	JGUIUtil.addComponent ( axes_JPanel, new JLabel ("Y axis:"),
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_ts_yaxis_JComboBox = new SimpleJComboBox ( false );
 	_ts_yaxis_JComboBox.addItem ( "Left" );
 	_ts_yaxis_JComboBox.addItem ( "Right" );
 	_ts_yaxis_JComboBox.setEnabled ( false );
 	JGUIUtil.addComponent ( axes_JPanel, _ts_yaxis_JComboBox,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 	// Symbol...
 
 	JPanel symbol_JPanel = new JPanel();
 	symbol_JPanel.setLayout ( gbl );
-	_ts_JTabbedPane.addTab ( "Symbol", null, symbol_JPanel,
-		"Symbol properties" );
+	_ts_JTabbedPane.addTab ( "Symbol", null, symbol_JPanel, "Symbol properties" );
 
 	y = 0;
 	// Some will be disabled if not a line graph...
-	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line Style:"),
-			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line style:"),
+			0, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linestyle_JComboBox = new SimpleJComboBox ( false );
 	_ts_linestyle_JComboBox.addItem("Dashed");
 	_ts_linestyle_JComboBox.addItem("None");
 	_ts_linestyle_JComboBox.addItem("Solid");
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linestyle_JComboBox,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line Width:"),
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line width:"),
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linewidth_JComboBox = new SimpleJComboBox ( true );
 	_ts_linewidth_JComboBox.addItem("1");
 	_ts_linewidth_JComboBox.addItem("2");
@@ -2092,67 +1917,56 @@ private JPanel createDataJPanel ()
 	_ts_linewidth_JComboBox.addItem("4");
 	_ts_linewidth_JComboBox.addItem("5");
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linewidth_JComboBox,
-			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			3, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Color:"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_color_JTextField = new JTextField (10);
 	_ts_color_JTextField.setEditable(false);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JTextField,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_color_JComboBox = new SimpleJComboBox( false );
 	_ts_color_JComboBox.addItemListener(this);
 	int size = GRColor.COLOR_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
 		_ts_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i] );
 	}
-	_ts_color_JComboBox.setMaximumRowCount(
-		_ts_color_JComboBox.getItemCount());
+	_ts_color_JComboBox.setMaximumRowCount( _ts_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JComboBox,
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
 	_ts_color_JButton.setEnabled(false);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JButton,
-			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			3, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Symbol Style:"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Symbol style:"),
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolstyle_JComboBox = new SimpleJComboBox ( false );
 	size = GRSymbol.SYMBOL_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
 		_ts_symbolstyle_JComboBox.addItem ( GRSymbol.SYMBOL_NAMES[i] );
 	}
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolstyle_JComboBox,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Symbol Size:"),
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Symbol size:"),
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolsize_JComboBox = new SimpleJComboBox ( false );
 	for ( int i = 0; i <= 20; i++ ) {
 		_ts_symbolsize_JComboBox.addItem ( "" + i );
 	}
-	_ts_symbolsize_JComboBox.setMaximumRowCount(
-		_ts_symbolsize_JComboBox.getItemCount());
+	_ts_symbolsize_JComboBox.setMaximumRowCount(_ts_symbolsize_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolsize_JComboBox,
-			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			3, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Label...
 
@@ -2161,39 +1975,31 @@ private JPanel createDataJPanel ()
 	_ts_JTabbedPane.addTab ( "Label", null,label_JPanel,"Label properties");
 
 	y = 0;
-	JGUIUtil.addComponent (label_JPanel, new JLabel ("If the Label Format "+
-			"is Auto, defaults or"+
+	JGUIUtil.addComponent (label_JPanel, new JLabel ("If the Label Format is Auto, defaults or"+
 			" the Graph Label Format will be used."),
-			0, y, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			0, y, 3, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( label_JPanel, new JLabel ("Position:"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_datalabelposition_JComboBox = new SimpleJComboBox( false );
 	String [] positions = GRText.getTextPositions();
-	_ts_datalabelposition_JComboBox.setMaximumRowCount(
-		positions.length + 1);
+	_ts_datalabelposition_JComboBox.setMaximumRowCount( positions.length + 1);
 	_ts_datalabelposition_JComboBox.addItem ( "Auto" );
 	for ( int i = 0; i < positions.length; i++ ) {
 		_ts_datalabelposition_JComboBox.addItem ( positions[i] );
 	}
 	_ts_datalabelposition_JComboBox.select ( "Right" );
 	JGUIUtil.addComponent ( label_JPanel, _ts_datalabelposition_JComboBox,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( label_JPanel,
-			new JLabel ("Format (see choices):"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( label_JPanel, new JLabel ("Format (see choices):"),
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_ts_datalabelformat_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( label_JPanel, _ts_datalabelformat_JTextField,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_ts_datalabelformat_JComboBox.addItemListener ( this );
 	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true );
@@ -2203,38 +2009,30 @@ private JPanel createDataJPanel ()
 	_ts_datalabelformat_JComboBox.addItem ( "%v - Value" );
 	_ts_datalabelformat_JComboBox.addItem ( "%U - Units" );
 	_ts_datalabelformat_JComboBox.addItem ( "%q - Flag" );
-	_ts_datalabelformat_JComboBox.setMaximumRowCount(
-		_ts_datalabelformat_JComboBox.getItemCount());
+	_ts_datalabelformat_JComboBox.setMaximumRowCount(_ts_datalabelformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( label_JPanel, _ts_datalabelformat_JComboBox,
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Legend...
 
 	JPanel legend_JPanel = new JPanel();
 	legend_JPanel.setLayout ( gbl );
-	_ts_JTabbedPane.addTab ( "Legend", null, legend_JPanel,
-				"Legend properties" );
+	_ts_JTabbedPane.addTab ( "Legend", null, legend_JPanel, "Legend properties" );
 
 	y = 0;
 	// Need to add "LegendEnabled" checkbox
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ( "If the " +
-			"Format is Auto, defaults or"+
-			" the Graph Legend Format will be used."),
-			0, y, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( legend_JPanel,
-			new JLabel ("Format (see choices):"),
-			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			"Format is Auto, defaults or the Graph Legend Format will be used."),
+			0, y, 3, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Format (see choices):"),
+			0, ++y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_legendformat_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( legend_JPanel, _ts_legendformat_JTextField,
-			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			1, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_legendformat_JComboBox = new SimpleJComboBox( false );
 	_ts_legendformat_JComboBox.addItemListener ( this );
 	formats = TSUtil.getTSFormatSpecifiers ( true );
@@ -2244,9 +2042,8 @@ private JPanel createDataJPanel ()
 	}
 	_ts_legendformat_JComboBox.setMaximumRowCount( _ts_legendformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( legend_JPanel, _ts_legendformat_JComboBox,
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Analysis...
 
@@ -2254,70 +2051,54 @@ private JPanel createDataJPanel ()
 
 	_ts_analysis_JPanel = new JPanel();
 	_ts_analysis_JPanel.setLayout ( gbl );
-	_ts_JTabbedPane.addTab ( "Analysis", null, _ts_analysis_JPanel,
-			"Analysis properties" );
+	_ts_JTabbedPane.addTab ( "Analysis", null, _ts_analysis_JPanel, "Analysis properties" );
 
-	// Create a blank panel that is set visible when there is no analysis
-	// for the time series...
+	// Create a blank panel that is set visible when there is no analysis for the time series...
 
 	_ts_blank_analysis_JPanel = new JPanel ();
 	_ts_blank_analysis_JPanel.setLayout ( gbl );
 	JGUIUtil.addComponent ( _ts_analysis_JPanel, _ts_blank_analysis_JPanel,
-			0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.WEST );
+			0, 0, 1, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_ts_blank_analysis_JPanel.setVisible ( true );
-	JGUIUtil.addComponent ( _ts_blank_analysis_JPanel,
-			new JLabel ( "Time series has no analysis." ),
-			0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.CENTER );
+	JGUIUtil.addComponent ( _ts_blank_analysis_JPanel, new JLabel ( "Time series has no analysis." ),
+			0, 0, 1, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	// Create a panel that is set visible for the XY-Scatter graph...
 
 	_ts_xyscatter_analysis_JPanel = new JPanel ();
 	_ts_xyscatter_analysis_JPanel.setLayout ( gbl );
-	JGUIUtil.addComponent (_ts_analysis_JPanel,
-			_ts_xyscatter_analysis_JPanel, 0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.WEST );
+	JGUIUtil.addComponent (_ts_analysis_JPanel, _ts_xyscatter_analysis_JPanel,
+	        0, 0, 1, 1, 1, 1, _insetsTLBR,
+	        GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_ts_xyscatter_analysis_JPanel.setVisible ( false );
 
 	y = 0;
 	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, new JLabel (
-			"Only the properties for time series 2 and higher" +
-			" cause a visual change." ),
-			0, y, 4, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			"Only the properties for time series 2 and higher cause a visual change." ),
+			0, y, 4, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, new JLabel (
-			"Confidence intervals are useful for a low number" +
-			" of points (e.g., 100)." ),
-			0, ++y, 4, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	_ts_regressionline_JCheckBox =new JCheckBox("Show Curve Fit Line",true);
+			"Confidence intervals are useful for a low number of points (e.g., 100)." ),
+			0, ++y, 4, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_ts_regressionline_JCheckBox =new JCheckBox("Show curve fit line",true);
 	_ts_regressionline_JCheckBox.addItemListener(this);
-	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel,
-			_ts_regressionline_JCheckBox,
-			0, ++y, 2, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel,
-			new JLabel("Confidence Interval (%):"),
-			0, ++y, 2, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, _ts_regressionline_JCheckBox,
+			0, ++y, 2, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, new JLabel("Confidence interval (%):"),
+			0, ++y, 2, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_confidenceinterval_JComboBox = new SimpleJComboBox( false );
 	//_ts_confidenceinterval_JComboBox.addItemListener ( this );
 	_ts_confidenceinterval_JComboBox.addItem ( "" );
 	_ts_confidenceinterval_JComboBox.addItem ( "95" );
 	_ts_confidenceinterval_JComboBox.addItem ( "99" );
-	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel,
-			_ts_confidenceinterval_JComboBox,
-			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, _ts_confidenceinterval_JComboBox,
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
 	return data_JPanel;
 }
@@ -2365,8 +2146,7 @@ private JPanel createProductJPanel ()
 	// General tab...
 
 	JPanel general_JPanel = new JPanel();
-	_product_JTabbedPane.addTab ( "General", null, general_JPanel,
-		"General properties" );
+	_product_JTabbedPane.addTab ( "General", null, general_JPanel, "General properties" );
 	general_JPanel.setLayout(new GridBagLayout());
 	__product_id_JTextField = new JTextField(20);	
 	JGUIUtil.addComponent(general_JPanel, new JLabel("Product ID: "),
@@ -2376,13 +2156,13 @@ private JPanel createProductJPanel ()
 		1, 0, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__product_name_JTextField = new JTextField(40);
-	JGUIUtil.addComponent(general_JPanel, new JLabel("Product Name: "),
+	JGUIUtil.addComponent(general_JPanel, new JLabel("Product name: "),
 		0, 1, 1, 1, 0, 0, 
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(general_JPanel, __product_name_JTextField,
 		1, 1, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	_product_enabled_JCheckBox = new JCheckBox("Product Enabled", true);
+	_product_enabled_JCheckBox = new JCheckBox("Product enabled", true);
 	_product_enabled_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent(general_JPanel, _product_enabled_JCheckBox,
 		0, 2, 1, 1, 0, 0,
@@ -2392,72 +2172,55 @@ private JPanel createProductJPanel ()
 
 	JPanel title_JPanel = new JPanel();
 	title_JPanel.setLayout ( gbl );
-	_product_JTabbedPane.addTab ( "Titles", null, title_JPanel,
-		"Title properties" );
+	_product_JTabbedPane.addTab ( "Titles", null, title_JPanel, "Title properties" );
 
 	int y = 0;
-	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main Title:"),
+	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main title:"),
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_maintitle_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( title_JPanel, _product_maintitle_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_maintitle_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
-	JGUIUtil.addComponent ( title_JPanel,
-				_product_maintitle_fontname_JComboBox,
+	JGUIUtil.addComponent ( title_JPanel, _product_maintitle_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_maintitle_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent ( title_JPanel,
-			_product_maintitle_fontstyle_JComboBox,
+	JGUIUtil.addComponent ( title_JPanel, _product_maintitle_fontstyle_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_maintitle_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent (title_JPanel,
-			_product_maintitle_fontsize_JTextField,
+	JGUIUtil.addComponent (title_JPanel, _product_maintitle_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Sub Title:"),
+	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Sub title:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_subtitle_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( title_JPanel, _product_subtitle_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_subtitle_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
 	JGUIUtil.addComponent(title_JPanel,_product_subtitle_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_subtitle_fontstyle_JComboBox =JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(title_JPanel,
-		_product_subtitle_fontstyle_JComboBox,
+	JGUIUtil.addComponent(title_JPanel, _product_subtitle_fontstyle_JComboBox,
 		3, y, 1, 1, 0, 0,
-		_insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.NORTH );
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_subtitle_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent(title_JPanel,
-			_product_subtitle_fontsize_JTextField,
+	JGUIUtil.addComponent(title_JPanel, _product_subtitle_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 	JPanel layoutJPanel = new JPanel();
 	layoutJPanel.setLayout(gbl);
-	_product_JTabbedPane.addTab("Layout", null, layoutJPanel,
-		"Layout Properties" );
+	_product_JTabbedPane.addTab("Layout", null, layoutJPanel, "Layout Properties" );
 
 	y = -1;
-	JGUIUtil.addComponent(layoutJPanel, new JLabel ("Layout Type:"),
+	JGUIUtil.addComponent(layoutJPanel, new JLabel ("Layout type:"),
 		0, ++y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	_layoutTypeJComboBox = new SimpleJComboBox();
@@ -2467,7 +2230,7 @@ private JPanel createProductJPanel ()
 		1, y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	JGUIUtil.addComponent(layoutJPanel, new JLabel("Number of Grid Rows:"),
+	JGUIUtil.addComponent(layoutJPanel, new JLabel("Number of grid rows:"),
 		0, ++y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	_numberRowsJTextField = new JTextField(10);
@@ -2478,8 +2241,7 @@ private JPanel createProductJPanel ()
 		1, y, 1, 1, 1, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
-	JGUIUtil.addComponent(layoutJPanel, 
-		new JLabel("Number of Grid Columns:"),
+	JGUIUtil.addComponent(layoutJPanel, new JLabel("Number of grid columns:"),
 		0, ++y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	_numberColsJTextField = new JTextField(10);
@@ -2490,13 +2252,11 @@ private JPanel createProductJPanel ()
 		1, y, 1, 1, 1, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-/* SAM 
-REVISIT later...
+/* TODO SAM ...
 	// Reference graph...
 
 	JPanel reference_JPanel = new JPanel();
-	_product_JTabbedPane.addTab ( "Reference Graph", null, reference_JPanel,
-		"Reference graph properties" );
+	_product_JTabbedPane.addTab ( "Reference Graph", null, reference_JPanel, "Reference graph properties" );
 */
 
 	return product_JPanel;
@@ -2511,51 +2271,45 @@ private JPanel createSubproductJPanel ()
 	GridBagLayout gbl = new GridBagLayout();
 	graph_JPanel.setLayout ( gbl );
 	String prop_val;
-	JGUIUtil.addComponent ( graph_JPanel, new JLabel (
-			"Graph Properties:"),
+	JGUIUtil.addComponent ( graph_JPanel, new JLabel ( "Graph Properties:"),
 			0, 0, 1, 1, 1, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
 
 	_graph_JComboBox = new SimpleJComboBox ( false );
 	int nsub = _tsproduct.getNumSubProducts();
 	if ( nsub == 0 ) {
 		_graph_JComboBox.addItem ( NO_GRAPHS_DEFINED );
 	}
-	else {	for ( int isub = 0; isub < nsub; isub++ ) {
-			prop_val = _tsproduct.getLayeredPropValue (
-				"MainTitleString", isub, -1, false );
+	else {
+	    for ( int isub = 0; isub < nsub; isub++ ) {
+			prop_val = _tsproduct.getLayeredPropValue ( "MainTitleString", isub, -1, false );
 			if ( prop_val == null ) {
 				prop_val = "";
 			}
 			if ( prop_val.length() > 60 ) {
 				prop_val = prop_val.substring(0,60);
 			}
-			_graph_JComboBox.addItem ( "" + (isub + 1) + " - " +
-				prop_val );
+			_graph_JComboBox.addItem ( "" + (isub + 1) + " - " + prop_val );
 		}
 	}
 	_graph_JComboBox.addItemListener ( this );
 
 	JGUIUtil.addComponent ( graph_JPanel, _graph_JComboBox,
 			2, 0, 1, 1, 1, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL,
-			GridBagConstraints.NORTHWEST );
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTHWEST );
 
 	_graph_JTabbedPane = new JTabbedPane();
 	_graph_JTabbedPane.addChangeListener ( this );
 	JGUIUtil.addComponent ( graph_JPanel, _graph_JTabbedPane,
 			0, 1, 3, 1, 1, 0,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.NORTH );
 
 	// General tab (use flow layout until more items are added)...
 
 	JPanel general_JPanel = new JPanel();
 	/*
 	general_JPanel.setLayout ( new FlowLayout(FlowLayout.LEFT) );
-	_graph_JTabbedPane.addTab ( "General", null, general_JPanel,
-			"General properties" );
+	_graph_JTabbedPane.addTab ( "General", null, general_JPanel, "General properties" );
 
 	_graph_enabled_JCheckBox = new JCheckBox("Graph Enabled", true);
 	_graph_enabled_JCheckBox.setEnabled ( false );
@@ -2564,10 +2318,9 @@ private JPanel createSubproductJPanel ()
 	general_JPanel.add ( _graph_enabled_JCheckBox );
 	*/
 	general_JPanel.setLayout ( gbl);
-	_graph_JTabbedPane.addTab ( "General", null, general_JPanel,
-			"General properties" );
+	_graph_JTabbedPane.addTab ( "General", null, general_JPanel, "General properties" );
 
-	_graph_enabled_JCheckBox = new JCheckBox("Graph Enabled", true);
+	_graph_enabled_JCheckBox = new JCheckBox("Graph enabled", true);
 	_graph_enabled_JCheckBox.setEnabled ( false );
 	_graph_isref_JCheckBox = new JCheckBox("", true);
 	_graph_isref_JCheckBox.setEnabled ( false );
@@ -2576,7 +2329,7 @@ private JPanel createSubproductJPanel ()
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	_yPercentJTextField = new JTextField(10);
-	JGUIUtil.addComponent(general_JPanel, new JLabel("Y Percent Size: "),
+	JGUIUtil.addComponent(general_JPanel, new JLabel("Y percent size: "),
 		0, 1, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(general_JPanel, _yPercentJTextField,
@@ -2587,14 +2340,12 @@ private JPanel createSubproductJPanel ()
 
 	JPanel graphtype_JPanel = new JPanel();
 	graphtype_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "Graph Type", null, graphtype_JPanel,
-				"Graph type properties" );
+	_graph_JTabbedPane.addTab ( "Graph Type", null, graphtype_JPanel, "Graph type properties" );
 
 	int y = 0;
-	JGUIUtil.addComponent ( graphtype_JPanel, new JLabel("Graph Type:"),
+	JGUIUtil.addComponent ( graphtype_JPanel, new JLabel("Graph type:"),
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_graphtype_JComboBox = new SimpleJComboBox( false );
 //	_graph_graphtype_JComboBox.setEnabled ( false );
 	for ( TSGraphType graphType: TSGraphType.values() ) {
@@ -2607,280 +2358,214 @@ private JPanel createSubproductJPanel ()
 //	_graph_graphtype_JComboBox.setEnabled(false);
 	JGUIUtil.addComponent ( graphtype_JPanel, _graph_graphtype_JComboBox,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Add bar position choice regardless of type.  The displaySubProduct()
 	// method sets to visible only if a bar graph...
 
-	_graph_barposition_JLabel = new JLabel("Bar Position:");
+	_graph_barposition_JLabel = new JLabel("Bar position:");
 	JGUIUtil.addComponent ( graphtype_JPanel, _graph_barposition_JLabel,
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_barposition_JComboBox = new SimpleJComboBox( false );
 	_graph_barposition_JComboBox.addItem ( "CenteredOnDate" );
 	_graph_barposition_JComboBox.addItem ( "LeftOfDate" );
 	_graph_barposition_JComboBox.addItem ( "RightOfDate" );
 	JGUIUtil.addComponent ( graphtype_JPanel, _graph_barposition_JComboBox,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Titles tab...
 
 	JPanel title_JPanel = new JPanel();
 	title_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "Titles", null, title_JPanel,
-			"Title properties" );
+	_graph_JTabbedPane.addTab ( "Titles", null, title_JPanel, "Title properties" );
 
 	y = 0;
-	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main Title:"),
+	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main title:"),
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_maintitle_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( title_JPanel, _graph_maintitle_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_maintitle_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
 	JGUIUtil.addComponent(title_JPanel, _graph_maintitle_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_maintitle_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	JGUIUtil.addComponent(title_JPanel,_graph_maintitle_fontstyle_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_maintitle_fontsize_JTextField = new JTextField ( 3 );
 	JGUIUtil.addComponent(title_JPanel,_graph_maintitle_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Sub Title:"),
+	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Sub title:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_subtitle_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( title_JPanel, _graph_subtitle_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_subtitle_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
 	JGUIUtil.addComponent(title_JPanel, _graph_subtitle_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_subtitle_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	JGUIUtil.addComponent(title_JPanel, _graph_subtitle_fontstyle_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_subtitle_fontsize_JTextField = new JTextField ( 3 );
 	JGUIUtil.addComponent (title_JPanel,_graph_subtitle_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-/* SAM REVISIT take out for now
+/* TODO SAM take out for now
 	// Enabled Data tab..
 
 	JPanel enabled_data_JPanel = new JPanel();
-	_graph_TabbedPane.addTab ( "Enabled Data", null, enabled_data_JPanel,
-		"Enabled data" );
+	_graph_TabbedPane.addTab ( "Enabled Data", null, enabled_data_JPanel, "Enabled data" );
 	enabled_data_Panel.add (
-		new JLabel( "Data (time series) for the graph are enabled " +
-			"using the data General tab.") );
+		new JLabel( "Data (time series) for the graph are enabled using the data General tab.") );
 */
 
 	// X Axes tab..
 
 	JPanel xaxes_JPanel = new JPanel();
 	xaxes_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "X Axis", null, xaxes_JPanel,
-			"X Axis properties" );
+	_graph_JTabbedPane.addTab ( "X Axis", null, xaxes_JPanel, "X Axis properties" );
 
 	y = 0;
-	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Bottom Title:"),
+	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Bottom title:"),
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_bottomx_title_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_title_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_bottomx_title_fontname_JComboBox=JGUIUtil.newFontNameJComboBox();
-	JGUIUtil.addComponent(xaxes_JPanel,
-			_graph_bottomx_title_fontname_JComboBox,
+	JGUIUtil.addComponent(xaxes_JPanel, _graph_bottomx_title_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
-	_graph_bottomx_title_fontstyle_JComboBox 
-		= JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(xaxes_JPanel,
-			_graph_bottomx_title_fontstyle_JComboBox,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	_graph_bottomx_title_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
+	JGUIUtil.addComponent(xaxes_JPanel, _graph_bottomx_title_fontstyle_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_bottomx_title_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent (xaxes_JPanel,
-			_graph_bottomx_title_fontsize_JTextField,
+	JGUIUtil.addComponent (xaxes_JPanel, _graph_bottomx_title_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Label Font:"),
+	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Label font:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_bottomx_label_fontname_JComboBox=JGUIUtil.newFontNameJComboBox();
-	JGUIUtil.addComponent ( xaxes_JPanel,
-			_graph_bottomx_label_fontname_JComboBox,
+	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_label_fontname_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
-	_graph_bottomx_label_fontstyle_JComboBox 
-		= JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent (xaxes_JPanel,
-			_graph_bottomx_label_fontstyle_JComboBox,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	_graph_bottomx_label_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
+	JGUIUtil.addComponent (xaxes_JPanel, _graph_bottomx_label_fontstyle_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_bottomx_label_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent (xaxes_JPanel,
-			_graph_bottomx_label_fontsize_JTextField,
+	JGUIUtil.addComponent (xaxes_JPanel, _graph_bottomx_label_fontsize_JTextField,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Major Grid Color:"),
+	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Major grid color:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_bottomx_majorgrid_color_JTextField = new JTextField (10);
-	// Do not set the background color because it will be set to that of
-	// the grid color.
+	// Do not set the background color because it will be set to that of the grid color.
 	_graph_bottomx_majorgrid_color_JTextField.setEditable(false);
-	JGUIUtil.addComponent ( xaxes_JPanel,
-			_graph_bottomx_majorgrid_color_JTextField,
+	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_majorgrid_color_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_graph_bottomx_majorgrid_color_JComboBox = new SimpleJComboBox( false );
 	_graph_bottomx_majorgrid_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
-		_graph_bottomx_majorgrid_color_JComboBox.addItem (
-		GRColor.COLOR_NAMES[i]);
+		_graph_bottomx_majorgrid_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
 	}
 	_graph_bottomx_majorgrid_color_JComboBox.setMaximumRowCount(
 		_graph_bottomx_majorgrid_color_JComboBox.getItemCount());
-	JGUIUtil.addComponent ( xaxes_JPanel,
-			_graph_bottomx_majorgrid_color_JComboBox,
+	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_majorgrid_color_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	_graph_bottomx_majorgrid_color_JButton = new SimpleJButton (
-				"Custom", "Custom", this );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_graph_bottomx_majorgrid_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
 	_graph_bottomx_majorgrid_color_JButton.setEnabled(false);
-	JGUIUtil.addComponent ( xaxes_JPanel,
-			_graph_bottomx_majorgrid_color_JButton,
+	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_majorgrid_color_JButton,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Y Axes tab..
 
 	JPanel yaxes_JPanel = new JPanel();
 	yaxes_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "Y Axis", null, yaxes_JPanel,
-			"Y Axis properties" );
+	_graph_JTabbedPane.addTab ( "Y Axis", null, yaxes_JPanel, "Y Axis properties" );
 
 	y = 0;
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Left Title:"),
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Left title:"),
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_title_JTextField = new JTextField ( 30 );
 	JGUIUtil.addComponent ( yaxes_JPanel, _graph_lefty_title_JTextField,
 			1, y, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_lefty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
-	JGUIUtil.addComponent (yaxes_JPanel,
-		_graph_lefty_title_fontname_JComboBox,
+	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_title_fontname_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_lefty_title_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(yaxes_JPanel,
-		_graph_lefty_title_fontstyle_JComboBox,
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_lefty_title_fontstyle_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_lefty_title_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent (yaxes_JPanel,
-			_graph_lefty_title_fontsize_JTextField,
+	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_title_fontsize_JTextField,
 			6, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Label:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Precision:"),
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_precision_JTextField = new JTextField ( 3 );
 	JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_precision_JTextField,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Font:"),
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_label_fontname_JComboBox = JGUIUtil.newFontNameJComboBox();
-	JGUIUtil.addComponent (yaxes_JPanel,
-		_graph_lefty_label_fontname_JComboBox,
+	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_label_fontname_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_lefty_label_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(yaxes_JPanel,
-		_graph_lefty_label_fontstyle_JComboBox,
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_lefty_label_fontstyle_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_lefty_label_fontsize_JTextField = new JTextField ( 3 );
-	JGUIUtil.addComponent (yaxes_JPanel,
-			_graph_lefty_label_fontsize_JTextField,
+	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_label_fontsize_JTextField,
 			6, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Axis Type:"),
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Axis type:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_type_JComboBox = new SimpleJComboBox ( false );
 	_graph_lefty_type_JComboBox.setEnabled ( false );
 	_graph_lefty_type_JComboBox.addItem ( "Linear" );
 	_graph_lefty_type_JComboBox.addItem ( "Log" );
 	JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_type_JComboBox,
 			1, y, 2, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Min Value:"),
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Min value:"),
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	List values = getPropertyChoices("LeftYAxisMin");
 	String value = getPropertyChoiceDefault("LeftYAxisMin");
 	_graph_lefty_min_JComboBox = new SimpleJComboBox(values, true);
@@ -2891,30 +2576,25 @@ private JPanel createSubproductJPanel ()
 		+ "limits.<br>### = use the entered number</html>");	
 	JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_min_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	_graph_lefty_ignoreunits_JCheckBox=new JCheckBox("Ignore Units", false);
+	_graph_lefty_ignoreunits_JCheckBox=new JCheckBox("Ignore units", false);
 	_graph_lefty_ignoreunits_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_ignoreunits_JCheckBox,
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Units:"),
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_units_JTextField = new JTextField ( 6 );
 	_graph_lefty_units_JTextField.setEnabled(false);
 	JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_units_JTextField,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Max Value:"),
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Max value:"),
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 
 	values = getPropertyChoices("LeftYAxisMax");
 	value = getPropertyChoiceDefault("LeftYAxisMax");
@@ -2926,95 +2606,74 @@ private JPanel createSubproductJPanel ()
 		+ "limits.<br>### = use the entered number</html>");
 	JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_max_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-/* SAM X - add these later when the axis is actually used.
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Right Title:"),
+/* TODO SAM add these later when the axis is actually used.
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Right title:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 */
 	_graph_righty_title_JTextField = new JTextField ( 30 );
 	_graph_righty_title_JTextField.setEnabled ( false );
-/* SAM X - add later when the axis is actually used.
+/* TODO SAM add later when the axis is actually used.
 	JGUIUtil.addComponent ( yaxes_JPanel, _graph_righty_title_JTextField,
 			1, y, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
 	_graph_righty_title_fontname_JComboBox =JGUIUtil.newFontNameJComboBox();
 	_graph_righty_title_fontname_JComboBox.setEnabled ( false );
-/* SAM REVISIT
-	JGUIUtil.addComponent(yaxes_JPanel,
-		_graph_righty_title_fontname_JComboBox,
+/* TODO SAM
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_righty_title_fontname_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
-	_graph_righty_title_fontstyle_JComboBox = 
-		JGUIUtil.newFontStyleJComboBox();
+	_graph_righty_title_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	_graph_righty_title_fontstyle_JComboBox.setEnabled ( false );
-/* SAM REVISIT
-	JGUIUtil.addComponent ( yaxes_JPanel,
-			_graph_righty_title_fontstyle_JComboBox,
+/* TODO SAM
+	JGUIUtil.addComponent ( yaxes_JPanel, _graph_righty_title_fontstyle_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
 	_graph_righty_title_fontsize_JTextField = new JTextField ( 3 );
 	_graph_righty_title_fontsize_JTextField.setEnabled ( false );
-/* SAM REVISIT 
-	JGUIUtil.addComponent(yaxes_JPanel,
-			_graph_righty_title_fontsize_JTextField,
+/* TODO SAM 
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_righty_title_fontsize_JTextField,
 			6, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Label Font:"),
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Label font:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 */
 	_graph_righty_label_fontname_JComboBox =JGUIUtil.newFontNameJComboBox();
 	_graph_righty_label_fontname_JComboBox.setEnabled ( false );
-/* SAM REVISIT
-	JGUIUtil.addComponent(yaxes_JPanel,
-		_graph_righty_label_fontname_JComboBox,
+/* TODO SAM
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_righty_label_fontname_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
-	_graph_righty_label_fontstyle_JComboBox = 
-		JGUIUtil.newFontStyleJComboBox();
+	_graph_righty_label_fontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	_graph_righty_label_fontstyle_JComboBox.setEnabled ( false );
-/* SAM REVISIT
-	JGUIUtil.addComponent(yaxes_JPanel,
-			_graph_righty_label_fontstyle_JComboBox,
+/* TODO SAM
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_righty_label_fontstyle_JComboBox,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
 	_graph_righty_label_fontsize_JTextField = new JTextField ( 3 );
 	_graph_righty_label_fontsize_JTextField.setEnabled ( false );
-/* SAM REVISIT
-	JGUIUtil.addComponent(yaxes_JPanel,
-			_graph_righty_label_fontsize_JTextField,
+/* TODO SAM
+	JGUIUtil.addComponent(yaxes_JPanel, _graph_righty_label_fontsize_JTextField,
 			6, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 */
 
-	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Major Grid Color:"),
+	JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Major grid color:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_majorgrid_color_JTextField = new JTextField (10);
-	// Do not set the background color because it will be set to that of
-	// the grid color.
+	// Do not set the background color because it will be set to that of the grid color.
 	_graph_lefty_majorgrid_color_JTextField.setEditable(false);
-	JGUIUtil.addComponent ( yaxes_JPanel,
-			_graph_lefty_majorgrid_color_JTextField,
+	JGUIUtil.addComponent ( yaxes_JPanel, _graph_lefty_majorgrid_color_JTextField,
 			1, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE,
 			GridBagConstraints.WEST );
@@ -3022,42 +2681,33 @@ private JPanel createSubproductJPanel ()
 	_graph_lefty_majorgrid_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
-		_graph_lefty_majorgrid_color_JComboBox.addItem (
-		GRColor.COLOR_NAMES[i]);
+		_graph_lefty_majorgrid_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
 	}
 	_graph_lefty_majorgrid_color_JComboBox.setMaximumRowCount(
 		_graph_lefty_majorgrid_color_JComboBox.getItemCount());
-	JGUIUtil.addComponent ( yaxes_JPanel,
-			_graph_lefty_majorgrid_color_JComboBox,
+	JGUIUtil.addComponent ( yaxes_JPanel, _graph_lefty_majorgrid_color_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	_graph_lefty_majorgrid_color_JButton = new SimpleJButton (
-				"Custom", "Custom", this );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_graph_lefty_majorgrid_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
 	_graph_lefty_majorgrid_color_JButton.setEnabled(false);
-	JGUIUtil.addComponent (yaxes_JPanel,
-			_graph_lefty_majorgrid_color_JButton,
+	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_majorgrid_color_JButton,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Label tab..
 
 	JPanel label_JPanel = new JPanel();
 	label_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "Label", null, label_JPanel,
-			"Label properties" );
+	_graph_JTabbedPane.addTab ( "Label", null, label_JPanel, "Label properties" );
 
 	y = 0;
 	JGUIUtil.addComponent ( label_JPanel, new JLabel ( "The Label Format," +
-			" if specified, will override the Time Series label"+
-			" properties."),
-			0, y, 6, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			" if specified, will override the Time Series label properties."),
+			0, y, 6, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( label_JPanel, new JLabel ("Position:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_datalabelposition_JComboBox = new SimpleJComboBox( false );
 	String [] positions = GRText.getTextPositions();
 	_graph_datalabelposition_JComboBox.setMaximumRowCount(positions.length);
@@ -3067,17 +2717,14 @@ private JPanel createSubproductJPanel ()
 	_graph_datalabelposition_JComboBox.select ( "Right" );
 	JGUIUtil.addComponent ( label_JPanel,_graph_datalabelposition_JComboBox,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent (label_JPanel,new JLabel("Format (see choices):"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_datalabelformat_JTextField = new JTextField ( 15 );
 	JGUIUtil.addComponent ( label_JPanel, _graph_datalabelformat_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_graph_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_graph_datalabelformat_JComboBox.addItemListener ( this );
 	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true );
@@ -3087,48 +2734,39 @@ private JPanel createSubproductJPanel ()
 	_graph_datalabelformat_JComboBox.addItem ( "%v - Value" );
 	_graph_datalabelformat_JComboBox.addItem ( "%U - Units" );
 	_graph_datalabelformat_JComboBox.addItem ( "%q - Flag" );
-	_graph_datalabelformat_JComboBox.setMaximumRowCount(
-		_graph_datalabelformat_JComboBox.getItemCount());
+	_graph_datalabelformat_JComboBox.setMaximumRowCount( _graph_datalabelformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( label_JPanel, _graph_datalabelformat_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_datalabelfontname_JComboBox = JGUIUtil.newFontNameJComboBox();
 	JGUIUtil.addComponent (label_JPanel, _graph_datalabelfontname_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_datalabelfontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	JGUIUtil.addComponent(label_JPanel, _graph_datalabelfontstyle_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_datalabelfontsize_JTextField = new JTextField ( 2 );
 	JGUIUtil.addComponent (label_JPanel,_graph_datalabelfontsize_JTextField,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 	// Legend tab..
 
 	JPanel legend_JPanel = new JPanel();
 	legend_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab ( "Legend", null, legend_JPanel,
-			"Legend properties" );
+	_graph_JTabbedPane.addTab ( "Legend", null, legend_JPanel, "Legend properties" );
 
 	y = 0;
 	// Need to add "LegendEnabled" checkbox
 
-	JGUIUtil.addComponent ( legend_JPanel, new JLabel ( "If the Format"+
-			" is Auto, the Time"+
+	JGUIUtil.addComponent ( legend_JPanel, new JLabel ( "If the Format is Auto, the Time"+
 			" Series Legend Format or defaults will be used."),
 			0, y, 6, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Position:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_legendposition_JComboBox = new SimpleJComboBox( false );
 	_graph_legendposition_JComboBox.addItem ( "Bottom" );
 	_graph_legendposition_JComboBox.addItem ( "InsideLowerLeft");
@@ -3138,23 +2776,18 @@ private JPanel createSubproductJPanel ()
 	_graph_legendposition_JComboBox.addItem ( "Left" );
 	_graph_legendposition_JComboBox.addItem ( "None" );
 	_graph_legendposition_JComboBox.addItem ( "Right" );
-	// Disable for now - mainly need the option of vertical or horizontal
-	// edge for spacing...
+	// Disable for now - mainly need the option of vertical or horizontal edge for spacing...
 	//_graph_legendposition_Choice.addItem ( "Top" );
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendposition_JComboBox,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( legend_JPanel,
-			new JLabel ("Format (see choices):"),
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Format (see choices):"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_legendformat_JTextField = new JTextField ( 20 );
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendformat_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_graph_legendformat_JComboBox = new SimpleJComboBox( false );
 	_graph_legendformat_JComboBox.addItemListener ( this );
 	formats = TSUtil.getTSFormatSpecifiers ( true );
@@ -3162,27 +2795,22 @@ private JPanel createSubproductJPanel ()
 	for ( int i = 0; i < formats.length; i++ ) {
 		_graph_legendformat_JComboBox.addItem ( formats[i] );
 	}
-	_graph_legendformat_JComboBox.setMaximumRowCount(
-		_graph_legendformat_JComboBox.getItemCount());
+	_graph_legendformat_JComboBox.setMaximumRowCount(_graph_legendformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendformat_JComboBox,
 			2, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_legendfontname_JComboBox = JGUIUtil.newFontNameJComboBox();
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendfontname_JComboBox,
 			3, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_legendfontstyle_JComboBox = JGUIUtil.newFontStyleJComboBox();
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendfontstyle_JComboBox,
 			4, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_legend_fontsize_JTextField = new JTextField ( 2 );
 	JGUIUtil.addComponent (legend_JPanel,_graph_legend_fontsize_JTextField,
 			5, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.NORTH );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 	// Zoom tab...
 
@@ -3190,25 +2818,22 @@ private JPanel createSubproductJPanel ()
 	zoom_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ("Zoom", null, zoom_JPanel,"Zoom properties");
 
-	_graph_zoomenabled_JCheckBox = new JCheckBox("Zoom Enabled", true);
+	_graph_zoomenabled_JCheckBox = new JCheckBox("Zoom enabled", true);
 	_graph_zoomenabled_JCheckBox.setEnabled ( false );
 	_graph_zoomenabled_JCheckBox.setSelected ( true );
 	_graph_zoomenabled_JCheckBox.setEnabled ( false );
 	y = 0;
 	JGUIUtil.addComponent (zoom_JPanel,_graph_zoomenabled_JCheckBox,
 			0, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
-	JGUIUtil.addComponent (zoom_JPanel,new JLabel("Zoom Group:"),
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JGUIUtil.addComponent (zoom_JPanel,new JLabel("Zoom group:"),
 			0, ++y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_zoomgroup_JTextField = new JTextField ( 4 );
 	_graph_zoomgroup_JTextField.setEditable(false);
 	JGUIUtil.addComponent (zoom_JPanel,_graph_zoomgroup_JTextField,
 			1, y, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_graph_zoomgroup_JTextField.setEnabled ( false );
 
 	// Analysis tab...
@@ -3217,24 +2842,19 @@ private JPanel createSubproductJPanel ()
 
 	_graph_analysis_JPanel = new JPanel();
 	_graph_analysis_JPanel.setLayout ( gbl );
-	_graph_JTabbedPane.addTab( "Analysis",null,_graph_analysis_JPanel,
-		"Analysis properties");
+	_graph_JTabbedPane.addTab( "Analysis",null,_graph_analysis_JPanel, "Analysis properties");
 
-	// Create a blank panel that is set visible when there is no analysis
-	// for the graph...
+	// Create a blank panel that is set visible when there is no analysis for the graph...
 
 	_blank_analysis_JPanel = new JPanel ();
 	_blank_analysis_JPanel.setLayout ( gbl );
 	JGUIUtil.addComponent ( _graph_analysis_JPanel, _blank_analysis_JPanel,
 			0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_blank_analysis_JPanel.setVisible ( true );
-	JGUIUtil.addComponent ( _blank_analysis_JPanel,
-			new JLabel ( "Graph has no analysis." ),
+	JGUIUtil.addComponent ( _blank_analysis_JPanel, new JLabel ( "Graph has no analysis." ),
 			0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.CENTER );
+			_insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	// Create a panel that is set visible for the XY-Scatter graph...
 
@@ -3242,21 +2862,18 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_JPanel.setLayout ( gbl );
 	JGUIUtil.addComponent (_graph_analysis_JPanel,
 			_xyscatter_analysis_JPanel, 0, 0, 1, 1, 1, 1,
-			_insetsTLBR, GridBagConstraints.BOTH,
-			GridBagConstraints.WEST );
+			_insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_xyscatter_analysis_JPanel.setVisible ( false );
 	y = 0;
 	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
 			new JLabel ( "Select the parameters for the " +
-			"XY-Scatter Graph curve fit analysis (applies to all" +
-			" time series)." ),
-			0, y, 7, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+			"XY-Scatter Graph curve fit analysis (applies to all time series)." ),
+			0, y, 7, 1, 1, 1,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			new JLabel ( "Curve Fit Method:" ),
-			0,++y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Curve fit method:" ),
+			0,++y, 2, 1, 1, 1,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_xyscatter_analysis_method_JComboBox = new SimpleJComboBox ( false );
 	_xyscatter_analysis_method_JComboBox.addItemListener ( this );
 	_xyscatter_analysis_method_JComboBox.addItem("MOVE2");
@@ -3264,32 +2881,27 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_method_JComboBox.select("OLSRegression");
 	_xyscatter_analysis_method_JComboBox.setToolTipText(
 		"Indicate the method used to determine the line of best fit.");
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			_xyscatter_analysis_method_JComboBox,
-			2, y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, _xyscatter_analysis_method_JComboBox,
+			2, y, 2, 1, 1, 1,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			new JLabel ( "Transformation:" ),
-			4, y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Transformation:" ),
+			4, y, 2, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_xyscatter_analysis_transform_JComboBox = new SimpleJComboBox ( false );
 	_xyscatter_analysis_transform_JComboBox.addItemListener ( this );
 	_xyscatter_analysis_transform_JComboBox.addItem("Log");
 	_xyscatter_analysis_transform_JComboBox.addItem("None");
 	_xyscatter_analysis_transform_JComboBox.select("None");
 	_xyscatter_analysis_transform_JComboBox.setEnabled(false);
-	_xyscatter_analysis_transform_JComboBox.setToolTipText(
-		"Indicate how to transform data before analysis." );
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			_xyscatter_analysis_transform_JComboBox,
-			6, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+	_xyscatter_analysis_transform_JComboBox.setToolTipText("Indicate how to transform data before analysis." );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, _xyscatter_analysis_transform_JComboBox,
+			6, y, 1, 1, 1, 1,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			new JLabel ( "Number of Equations:" ),
-			0,++y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Number of equations:" ),
+			0,++y, 2, 1, 1, 1,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_xyscatter_analysis_neqn_JComboBox = new SimpleJComboBox ( false );
 	_xyscatter_analysis_neqn_JComboBox.addItemListener ( this );
 	_xyscatter_analysis_neqn_JComboBox.addItem("MonthlyEquations");
@@ -3297,140 +2909,122 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_neqn_JComboBox.select("OneEquation");
 	_xyscatter_analysis_neqn_JComboBox.setToolTipText(
 		"Data can be analyzed with a single or monthly equations." );
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			_xyscatter_analysis_neqn_JComboBox,
-			2, y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, _xyscatter_analysis_neqn_JComboBox,
+			2, y, 2, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			new JLabel ( "Month(s) of Interest:" ),
-			4, y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Month(s) of Interest:" ),
+			4, y, 2, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_xyscatter_analysis_month_JTextField = new JTextField (10);
 	_xyscatter_analysis_month_JTextField.setToolTipText(
-		"<HTML>Specify months of interest as numbers 1-12,<br>" +
-		"separated by spaces or commas.</HTML>" );
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			_xyscatter_analysis_month_JTextField,
-			6, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.WEST );
+		"<html>Specify months of interest as numbers 1-12,<br>" +
+		"separated by spaces or commas.</html>" );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, _xyscatter_analysis_month_JTextField,
+			6, y, 1, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel (
-		"Dependent Analysis Period:" ), 
-		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ("Dependent analysis period:" ), 
+		0, ++y, 2, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	_dep_analysis_period_start_JTextField = new JTextField ( "", 15 );
 	_dep_analysis_period_start_JTextField.setEnabled ( false );
 	_dep_analysis_period_start_JTextField.addKeyListener ( this );
 	_dep_analysis_period_start_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_dep_analysis_period_start_JTextField,
-		2, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>Specify blank to analyze full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, _dep_analysis_period_start_JTextField,
+		2, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ( "to" ), 
-		4, y, 1, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.CENTER);
+		4, y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	_dep_analysis_period_end_JTextField = new JTextField ( "", 15 );
 	_dep_analysis_period_end_JTextField.setEnabled ( false );
 	_dep_analysis_period_end_JTextField.addKeyListener ( this );
 	_dep_analysis_period_end_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_dep_analysis_period_end_JTextField,
-		5, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>Specify blank to analyze full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,_dep_analysis_period_end_JTextField,
+		5, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel (
-		"Independent Analysis Period:" ), 
-		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ( "Independent analysis Period:" ), 
+		0, ++y, 2, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	_ind_analysis_period_start_JTextField = new JTextField ( "", 15 );
 	_ind_analysis_period_start_JTextField.setEnabled ( false );
 	_ind_analysis_period_start_JTextField.addKeyListener ( this );
 	_ind_analysis_period_start_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_ind_analysis_period_start_JTextField,
-		2, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>Specify blank to analyze full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, _ind_analysis_period_start_JTextField,
+		2, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ( "to" ), 
-		4, y, 1, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.CENTER);
+		4, y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	_ind_analysis_period_end_JTextField = new JTextField ( "", 15 );
 	_ind_analysis_period_end_JTextField.setEnabled ( false );
 	_ind_analysis_period_end_JTextField.addKeyListener ( this );
 	_ind_analysis_period_end_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
+		"<html>Specify blank to analyze full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
 	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
 		_ind_analysis_period_end_JTextField,
-		5, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		5, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	// The following used only when analyzing for filling data...
 
-	_xyscatter_analysis_fill_JCheckBox = new JCheckBox (
-		"Analyze (RSME) for Filling", false );
+	_xyscatter_analysis_fill_JCheckBox = new JCheckBox ( "Analyze (RSME) for filling", false );
 	_xyscatter_analysis_fill_JCheckBox.addItemListener ( this );
 	_xyscatter_analysis_fill_JCheckBox.setToolTipText(
-		"<HTML>Default is to analyze for line of best fit.</HTML>");
-	JGUIUtil.addComponent (_xyscatter_analysis_JPanel,
-			_xyscatter_analysis_fill_JCheckBox,
+		"<html>Default is to analyze for line of best fit.</html>");
+	JGUIUtil.addComponent (_xyscatter_analysis_JPanel, _xyscatter_analysis_fill_JCheckBox,
 			0, ++y, 2, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 
-	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
-			new JLabel ( "Intercept:" ),
-			4, y, 2, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
-			GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Intercept:" ),
+			4, y, 2, 1, 1, 1, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_xyscatter_analysis_intercept_JTextField = new JTextField ( "", 15 );
 	_xyscatter_analysis_intercept_JTextField.setEnabled ( false );
 	_xyscatter_analysis_intercept_JTextField.addKeyListener ( this );
 	_xyscatter_analysis_intercept_JTextField.setToolTipText(
-		"<HTML>If not blank, it must be zero.</HTML>");
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_xyscatter_analysis_intercept_JTextField,
-		6, y, 1, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>If not blank, it must be zero.</html>");
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, _xyscatter_analysis_intercept_JTextField,
+		6, y, 1, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel (
-		"Fill Period:" ), 
-		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.EAST);
-	_xyscatter_analysis_fill_period_start_JTextField =
-		new JTextField ( "", 15 );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ( "Fill period:" ), 
+		0, ++y, 2, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
+	_xyscatter_analysis_fill_period_start_JTextField = new JTextField ( "", 15 );
 	_xyscatter_analysis_fill_period_start_JTextField.setEnabled ( false );
 	_xyscatter_analysis_fill_period_start_JTextField.addKeyListener ( this);
 	_xyscatter_analysis_fill_period_start_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze filling the full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_xyscatter_analysis_fill_period_start_JTextField,
-		2, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>Specify blank to analyze filling the full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, _xyscatter_analysis_fill_period_start_JTextField,
+		2, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, new JLabel ( "to" ), 
-		4, y, 1, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.CENTER);
+		4, y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	_xyscatter_analysis_fill_period_end_JTextField =new JTextField ("", 15);
 	_xyscatter_analysis_fill_period_end_JTextField.setEnabled ( false );
 	_xyscatter_analysis_fill_period_end_JTextField.addKeyListener ( this );
 	_xyscatter_analysis_fill_period_end_JTextField.setToolTipText(
-		"<HTML>Specify blank to analyze filling the full period,<br>" +
-		"or specify using standard date/time formats.</HTML>" );
-	JGUIUtil.addComponent(_xyscatter_analysis_JPanel,
-		_xyscatter_analysis_fill_period_end_JTextField,
-		5, y, 2, 1, 1, 0, _insetsTLBR, GridBagConstraints.NONE,
-		GridBagConstraints.WEST);
+		"<html>Specify blank to analyze filling the full period,<br>" +
+		"or specify using standard date/time formats.</html>" );
+	JGUIUtil.addComponent(_xyscatter_analysis_JPanel, _xyscatter_analysis_fill_period_end_JTextField,
+		5, y, 2, 1, 1, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	// Annotations...
 
-	_graph_JTabbedPane.addTab( "Annotations", null,
-		createAnnotationJPanel(), "Annotation properties");
+	_graph_JTabbedPane.addTab( "Annotations", null, createAnnotationJPanel(), "Annotation properties");
 
 	return graph_JPanel;
 }
@@ -3445,70 +3039,55 @@ private void displayAnnotationProperties(int isub, int iann) {
 	__selectedAnnotation = iann;
 
 	// AnnotationID
-	prop_val = _tsproduct.getLayeredPropValue("AnnotationID",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("AnnotationID", isub, iann, false, true);
 	if (prop_val == null){ 
-		prop_val = _tsproduct.getDefaultPropValue("AnnotationID",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("AnnotationID", isub, iann, true);
 	}
 	__annotation_id_JTextField.setText(prop_val);
 
 	// ShapeType
-	prop_val = _tsproduct.getLayeredPropValue("ShapeType",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("ShapeType", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("ShapeType",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("ShapeType", isub, iann, true);
 	}
 	__annotation_ShapeType_JComboBox.select(prop_val);
 
 	// Order
-	prop_val = _tsproduct.getLayeredPropValue("Order",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("Order", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("Order",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("Order", isub, iann, true);
 	}
 	__annotation_Order_JComboBox.select(prop_val);
 
 	// XAxisSystem
-	prop_val = _tsproduct.getLayeredPropValue("XAxisSystem",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("XAxisSystem", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("XAxisSystem",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("XAxisSystem", isub, iann, true);
 	}
 	__annotation_XAxisSystem_JComboBox.select(prop_val);
 
 	// YAxisSystem
-	prop_val = _tsproduct.getLayeredPropValue("YAxisSystem",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("YAxisSystem", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("YAxisSystem",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("YAxisSystem", isub, iann, true);
 	}
 	__annotation_YAxisSystem_JComboBox.select(prop_val);	
 
 	// Color
-	prop_val = _tsproduct.getLayeredPropValue("Color", 
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("Color", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("Color",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("Color", isub, iann, true);
 	}
 
 	__annotation_line_color_JTextField.setText(prop_val);
 	try {	
-		JGUIUtil.selectIgnoreCase(
-			__annotation_line_color_JComboBox, prop_val);
+		JGUIUtil.selectIgnoreCase( __annotation_line_color_JComboBox, prop_val);
 		try {	
 			__annotation_line_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_line_color_JTextField.getText()));
+				(Color)GRColor.parseColor(__annotation_line_color_JTextField.getText()));
 		}
 		catch (Exception e2) {
-			__annotation_line_color_JTextField.setBackground(
-				Color.white);
+			__annotation_line_color_JTextField.setBackground(Color.white);
 		}
 	}
 	catch (Exception e) {
@@ -3518,16 +3097,13 @@ private void displayAnnotationProperties(int isub, int iann) {
 
 	__annotation_text_color_JTextField.setText(prop_val);
 	try {	
-		JGUIUtil.selectIgnoreCase(
-			__annotation_text_color_JComboBox, prop_val);
+		JGUIUtil.selectIgnoreCase(__annotation_text_color_JComboBox, prop_val);
 		try {	
 			__annotation_text_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_text_color_JTextField.getText()));
+				(Color)GRColor.parseColor(__annotation_text_color_JTextField.getText()));
 		}
 		catch (Exception e2) {
-			__annotation_text_color_JTextField.setBackground(
-				Color.white);
+			__annotation_text_color_JTextField.setBackground(Color.white);
 		}
 	}
 	catch (Exception e) {
@@ -3537,17 +3113,13 @@ private void displayAnnotationProperties(int isub, int iann) {
 
 	__annotation_symbol_color_JTextField.setText(prop_val);
 	try {	
-		JGUIUtil.selectIgnoreCase(
-			__annotation_symbol_color_JComboBox, prop_val);
+		JGUIUtil.selectIgnoreCase(__annotation_symbol_color_JComboBox, prop_val);
 		try {	
 			__annotation_symbol_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_symbol_color_JTextField
-				.getText()));
+				(Color)GRColor.parseColor(__annotation_symbol_color_JTextField.getText()));
 		}
 		catch (Exception e2) {
-			__annotation_symbol_color_JTextField.setBackground(
-				Color.white);
+			__annotation_symbol_color_JTextField.setBackground(Color.white);
 		}
 	}
 	catch (Exception e) {
@@ -3556,12 +3128,11 @@ private void displayAnnotationProperties(int isub, int iann) {
 	}
 
 	// Points
-	prop_val = _tsproduct.getLayeredPropValue("Points",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("Points", isub, iann, false, true);
 	if (prop_val == null) {	
 		prop_val = "";
 	}
-	List v = StringUtil.breakStringList(prop_val, ",", 0);
+	List<String> v = StringUtil.breakStringList(prop_val, ",", 0);
 	if (v.size() != 4) {
 		__annotation_line_PointX1_JTextField.setText("0");
 		__annotation_line_PointY1_JTextField.setText("0");
@@ -3590,35 +3161,28 @@ private void displayAnnotationProperties(int isub, int iann) {
 	__lineStyleJComboBox.select(prop_val);
 
 	// FontSize
-	prop_val = _tsproduct.getLayeredPropValue("FontSize",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("FontSize", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("FontSize",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("FontSize", isub, iann, true);
 	}
 	__annotation_text_FontSize_JTextField.setText(prop_val);
 
 	// FontStyle
-	prop_val = _tsproduct.getLayeredPropValue("FontStyle",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("FontStyle", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("FontStyle",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("FontStyle", isub, iann, true);
 	}
 	__annotation_text_FontStyle_JComboBox.select(prop_val);
 
 	// FontName
-	prop_val = _tsproduct.getLayeredPropValue("FontName",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("FontName", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("FontName",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("FontName", isub, iann, true);
 	}
 	__annotation_text_FontName_JComboBox.select(prop_val);
 
 	// Point
-	prop_val = _tsproduct.getLayeredPropValue("Point",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("Point", isub, iann, false, true);
 	if (prop_val == null) {
 		prop_val = "";
 	}
@@ -3630,58 +3194,44 @@ private void displayAnnotationProperties(int isub, int iann) {
 		__annotation_symbol_PointY_JTextField.setText("0");
 	}
 	else {
-		__annotation_text_PointX_JTextField.setText(("" 
-			+ v.get(0)).trim());
-		__annotation_text_PointY_JTextField.setText(("" 
-			+ v.get(1)).trim());
-		__annotation_symbol_PointX_JTextField.setText(("" 
-			+ v.get(0)).trim());
-		__annotation_symbol_PointY_JTextField.setText(("" 
-			+ v.get(1)).trim());
+		__annotation_text_PointX_JTextField.setText(("" + v.get(0)).trim());
+		__annotation_text_PointY_JTextField.setText(("" + v.get(1)).trim());
+		__annotation_symbol_PointX_JTextField.setText(("" + v.get(0)).trim());
+		__annotation_symbol_PointY_JTextField.setText(("" + v.get(1)).trim());
 	}
 		
 	// Text
-	prop_val = _tsproduct.getLayeredPropValue("Text",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("Text", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("Text",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("Text", isub, iann, true);
 	}
 	__annotation_text_Text_JTextField.setText(prop_val);
 
 	// TextPosition
-	prop_val = _tsproduct.getLayeredPropValue("TextPosition",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("TextPosition", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("TextPosition",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("TextPosition", isub, iann, true);
 	}
 	__annotation_text_Position_JComboBox.select(prop_val);
 
 	// SymbolStyle
-	prop_val = _tsproduct.getLayeredPropValue("SymbolStyle",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("SymbolStyle", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("SymbolStyle",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("SymbolStyle", isub, iann, true);
 	}
 	__annotation_symbol_SymbolStyle_JComboBox.select(prop_val);
 
 	// SymbolSize
-	prop_val = _tsproduct.getLayeredPropValue("SymbolSize",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("SymbolSize", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("SymbolSize",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("SymbolSize", isub, iann, true);
 	}
 	__annotation_symbol_SymbolSize_JComboBox.select(prop_val);
 
 	// SymbolPosition
-	prop_val = _tsproduct.getLayeredPropValue("SymbolPosition",
-		isub, iann, false, true);
+	prop_val = _tsproduct.getLayeredPropValue("SymbolPosition", isub, iann, false, true);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("SymbolPosition",
-			isub, iann, true);
+		prop_val = _tsproduct.getDefaultPropValue("SymbolPosition", isub, iann, true);
 	}
 	__annotation_symbol_SymbolPosition_JComboBox.select(prop_val);
 }
@@ -3694,8 +3244,7 @@ private void displayDataProperties ( int isub, int its )
 {	String prop_val;
 
 	// Get the graph type, which influences some settings (for now use the
-	// subproduct graph type since we don't allow individual time series to
-	// be different)...
+	// subproduct graph type since we don't allow individual time series to be different)...
 
 	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
@@ -3703,8 +3252,7 @@ private void displayDataProperties ( int isub, int its )
 
 	prop_val = _tsproduct.getLayeredPropValue ( "Color", isub, its, false );
 
-	// Message.printStatus(2, "", "Display data properties for " + isub 
-	//	+ " / " + its);
+	// Message.printStatus(2, "", "Display data properties for " + isub + " / " + its);
 	// Message.printStatus(2, "", "  COLOR: " + prop_val);
 	
 	_ts_color_JTextField.setText(prop_val);
@@ -3775,7 +3323,8 @@ private void displayDataProperties ( int isub, int its )
 	// "LineStyle"
 
 	prop_val = _tsproduct.getLayeredPropValue("LineStyle", isub, its,false);
-	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	     (graphType == TSGraphType.BAR) || (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 		_ts_linestyle_JComboBox.select("Solid");
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
@@ -3796,8 +3345,8 @@ private void displayDataProperties ( int isub, int its )
 	// "LineWidth"
 
 	prop_val = _tsproduct.getLayeredPropValue("LineWidth", isub, its,false);
-	if (graphType == TSGraphType.BAR 
-	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	    (graphType == TSGraphType.BAR) || (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 		_ts_linewidth_JComboBox.select("0");
 		_ts_linewidth_JComboBox.setEnabled(false);
 	}
@@ -3832,7 +3381,8 @@ private void displayDataProperties ( int isub, int its )
 	// "SymbolSize"
 
 	prop_val = _tsproduct.getLayeredPropValue ( "SymbolSize", isub, its, false );
-	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	    (graphType == TSGraphType.BAR) || (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 		_ts_symbolsize_JComboBox.select("0");
 		_ts_symbolsize_JComboBox.setEnabled(false);
 	}
@@ -3849,7 +3399,8 @@ private void displayDataProperties ( int isub, int its )
 	// "SymbolStyle"
 
 	prop_val = _tsproduct.getLayeredPropValue ( "SymbolStyle", isub, its, false );
-	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	    (graphType == TSGraphType.BAR) || (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 		_ts_symbolstyle_JComboBox.select("None");
 		_ts_symbolstyle_JComboBox.setEnabled(false);
 	}
@@ -4070,18 +3621,16 @@ private void displaySubproductProperties ( int isub )
 
 	try {
 	    JGUIUtil.selectIgnoreCase(_graph_graphtype_JComboBox,
-			_tsproduct.getLayeredPropValue ("GraphType", isub, -1, false ));
+	        _tsproduct.getLayeredPropValue ("GraphType", isub, -1, false ));
 	}
 	catch ( Exception e ) {
 		_graph_graphtype_JComboBox.select( "" + TSGraphType.LINE );
 	}
 	graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
-	// "BarPosition" - maybe move this to TS Symbol when/if GraphType is
-	// allowed to be set for each TS
+	// "BarPosition" - maybe move this to TS Symbol when/if GraphType is allowed to be set for each TS
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"BarPosition", isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "BarPosition", isub, -1, false );
 	if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		try {	
 			JGUIUtil.selectIgnoreCase(_graph_barposition_JComboBox, prop_val);
@@ -5321,8 +4870,7 @@ Display and initialize the GUI.
 @param tsgraphcanvas TSGraphJComponent associated with the product.
 @param visible whether the GUI is to be opened visible or not.
 */
-private void initialize (TSViewJFrame tsview_gui,
-TSGraphJComponent tsgraphcanvas, boolean visible) {
+private void initialize (TSViewJFrame tsview_gui, TSGraphJComponent tsgraphcanvas, boolean visible) {
 	_tsview_gui = tsview_gui;
 	_tsproduct = tsgraphcanvas.getTSProduct();
 	_selected_data = 0;	// First one in list
@@ -5382,11 +4930,9 @@ TSGraphJComponent tsgraphcanvas, boolean visible) {
 	int num = _tsproduct.getNumSubProducts();
 	String prop_val = null;
 	for (int i = 0; i < num; i++) {
-		prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider",
-			i, -1, false);
+		prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider", i, -1, false);
 		if (prop_val != null) {
-			if (StringUtil.indexOf(__annotationProviders,
-			    prop_val) == -1) {
+			if (StringUtil.indexOf(__annotationProviders, prop_val) == -1) {
 			    	__annotationProviders.add(prop_val);
 			}
 		}
@@ -5738,10 +5284,12 @@ private void limitGraphTypes(int subproduct) {
 	__ignoreItemStateChange = true;	
 	String originalGraphType = _tsproduct.getLayeredPropValue( "OriginalGraphType", subproduct, -1, false);
 
-	if (originalGraphType.equals("Bar")
-	    || originalGraphType.equals("Line")
-	    || originalGraphType.equals("Point")) {
+	if ( originalGraphType.equals("Area") || originalGraphType.equals("AreaStacked") ||
+	    originalGraphType.equals("Bar") || originalGraphType.equals("Line")
+	    || originalGraphType.equals("Point") ) {
 		_graph_graphtype_JComboBox.removeAll();
+		_graph_graphtype_JComboBox.add("Area");
+		_graph_graphtype_JComboBox.add("AreaStacked");
 		_graph_graphtype_JComboBox.add("Bar");
 		_graph_graphtype_JComboBox.add("Line");
 		_graph_graphtype_JComboBox.add("Point");
@@ -5912,8 +5460,7 @@ private void openGUI ( boolean mode )
 	// makes the text panel visible in order that pack()ing the JFrame
 	// will account for space in the largest annotation panel.  
 	// Currently the text panel (the default one) is the larger, so this
-	// isn't necessary, but in the future the addition of more panel types
-	// made require it.
+	// isn't necessary, but in the future the addition of more panel types may require it.
 	__annotation_line_JPanel.setVisible(false);
 	__annotation_symbol_JPanel.setVisible(false);
 	__annotation_text_JPanel.setVisible(true);
@@ -5946,10 +5493,8 @@ private void openGUI ( boolean mode )
 	int how_set_prev = _tsproduct.getPropList().getHowSet();
 	_tsproduct.getPropList().setHowSet(Prop.SET_AT_RUNTIME_FOR_USER);
 	for (int isp = 0; isp < nsp; isp++) {
-		graphType = _tsproduct.getLayeredPropValue(
-			"GraphType", isp, -1, false);
-		_tsproduct.setPropValue("OriginalGraphType", graphType,
-			isp, -1);
+		graphType = _tsproduct.getLayeredPropValue( "GraphType", isp, -1, false);
+		_tsproduct.setPropValue("OriginalGraphType", graphType, isp, -1);
 	}
 	_tsproduct.getPropList().setHowSet(how_set_prev);
 	__limitGraphTypes = true;
@@ -5963,7 +5508,8 @@ public void processWindowEvent ( WindowEvent e)
 		super.processWindowEvent(e);
 		_tsview_gui.closeGUI(TSViewJFrame.PROPERTIES);
 	}
-	else {	super.processWindowEvent(e);
+	else {
+	    super.processWindowEvent(e);
 	}
 }
 
@@ -5974,8 +5520,7 @@ a graph is removed.  Forces redisplay of the properties in the tsproduct.
 */
 protected void redisplayProperties() {
 	// if the select subproduct is -1, then it's a new table that was just
-	// added, so all the properties should be cleared and set to 
-	// default values.
+	// added, so all the properties should be cleared and set to default values.
 	if (_selected_subproduct == -1) {
 		clearAllProperties();
 	}
@@ -5996,16 +5541,14 @@ protected void redisplayProperties() {
 	else {	
 		String prop_val = null;
 		for (int isub = 0; isub < nsub; isub++) {
-			prop_val = _tsproduct.getLayeredPropValue(
-				"MainTitleString", isub, -1, false);
+			prop_val = _tsproduct.getLayeredPropValue("MainTitleString", isub, -1, false);
 			if (prop_val == null) {
 				prop_val = "";
 			}
 			if (prop_val.length() > 60) {
 				prop_val = prop_val.substring(0, 60);
 			}
-			_graph_JComboBox.addItem("" + (isub + 1) + " - " +
-				prop_val);
+			_graph_JComboBox.addItem("" + (isub + 1) + " - " + prop_val);
 		}
 		_graph_JComboBox.select(_selected_subproduct);	
 	}
@@ -6048,8 +5591,7 @@ private void setAnnotationFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(__annotation_symbol_color_JComboBox, enabled);
 	JGUIUtil.setEnabled(__annotation_symbol_PointX_JTextField, enabled);
 	JGUIUtil.setEnabled(__annotation_symbol_PointY_JTextField, enabled);
-	JGUIUtil.setEnabled(__annotation_symbol_SymbolPosition_JComboBox, 
-		enabled);
+	JGUIUtil.setEnabled(__annotation_symbol_SymbolPosition_JComboBox, enabled);
 	JGUIUtil.setEnabled(__annotation_symbol_SymbolStyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(__annotation_symbol_SymbolSize_JComboBox, enabled);
 
@@ -6066,7 +5608,7 @@ private void setAnnotationFieldsEnabled(boolean enabled) {
 	setEditable(__annotation_text_PointY_JTextField, enabled);
 	setEditable(__annotation_text_FontSize_JTextField, enabled);
 
-	// add is not enabled or disabled.  It is always abled.
+	// add is not enabled or disabled.  It is always enabled.
 	// The other buttons should have been enabled or disabled already, but
 	// if everything should be disabled, turn them off.
 	if (!enabled) {
@@ -6170,10 +5712,8 @@ private void setGraphFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_ind_analysis_period_start_JTextField, enabled);
 	JGUIUtil.setEnabled(_ind_analysis_period_end_JTextField, enabled);
 	JGUIUtil.setEnabled(_xyscatter_analysis_fill_JCheckBox, enabled);
-	JGUIUtil.setEnabled(_xyscatter_analysis_fill_period_start_JTextField, 
-		enabled);
-	JGUIUtil.setEnabled(_xyscatter_analysis_fill_period_end_JTextField, 
-		enabled);
+	JGUIUtil.setEnabled(_xyscatter_analysis_fill_period_start_JTextField, enabled);
+	JGUIUtil.setEnabled(_xyscatter_analysis_fill_period_end_JTextField, enabled);
 
 	setEditable(_graph_maintitle_JTextField, enabled);
 	setEditable(_graph_maintitle_fontsize_JTextField, enabled);
@@ -6224,8 +5764,7 @@ value will be applied to the product graph.
 */
 public void setMaximumYValue(String value, boolean apply) {
 	if (IOUtil.testing()) {
-		Message.printStatus(1, "", "Setting maximum y value to: " 
-			+ value);
+		Message.printStatus(1, "", "Setting maximum y value to: " + value);
 	}
 	_graph_lefty_max_JComboBox.select(value);
 
@@ -6251,8 +5790,7 @@ value will be applied to the product graph.
 */
 public void setMinimumYValue(String value, boolean apply) {
 	if (IOUtil.testing()) {
-		Message.printStatus(1, "", "Setting minimum y value to: " 
-			+ value);
+		Message.printStatus(1, "", "Setting minimum y value to: " + value);
 	}
 	_graph_lefty_min_JComboBox.select(value);
 
@@ -6286,8 +5824,7 @@ protected void setSelectedGraph(int index) {
 	if (nann > 0) {
 		__selectedAnnotation = 0;
 		__annotation_JComboBox.select(__selectedAnnotation);
-		displayAnnotationProperties(_selected_subproduct,
-			__selectedAnnotation);
+		displayAnnotationProperties(_selected_subproduct,__selectedAnnotation);
 	}
 	else {
 		__selectedAnnotation = -1;
@@ -6309,8 +5846,7 @@ protected void setSelectedSubProductAndData(int isub, int idata) {
 
 /**
 Set the selected sub-product.  This method is called when the properties are
-displayed from a popup menu from the graph.  This is equivalent to changing the
-graph choice.
+displayed from a popup menu from the graph.  This is equivalent to changing the graph choice.
 @param subproduct Subproduct number.
 */
 protected void setSubproduct(int subproduct) {
@@ -6318,14 +5854,14 @@ protected void setSubproduct(int subproduct) {
 	// First save the settings from the current display...
 	updateTSProduct(); 
 	// Select the subproduct in the list...
-	try {	_graph_JComboBox.select ( subproduct );
+	try {
+	    _graph_JComboBox.select ( subproduct );
 	}
 	catch ( Exception e ) {
 		_graph_JComboBox.select ( 0 );
 	}
 	// Now refresh the graph tabs for the selected graph.  The
-	// graphs are labeled with a number (starting at 1), " - ", and
-	// then the title from the graph .
+	// graphs are labeled with a number (starting at 1), " - ", and then the title from the graph .
 	setSubproduct2 ( _graph_JComboBox.getSelected() );
 }
 
@@ -6488,8 +6024,7 @@ Update the TSProduct properties.  Only properties that are different from the
 original are changed.  It is assumed that _selected_subproduct and
 _selected_data have been propertly set for the properties that are to be saved.
 Properties that are not case senstive are only updated if truly different (e.g.,
-titles are compared case-sensitive, but parameter settings are compared
-case-insensitive).
+titles are compared case-sensitive, but parameter settings are compared case-insensitive).
 @return the total number of properties that have been changed.
 */
 protected int updateTSProduct () {
@@ -6504,8 +6039,7 @@ Update the TSProduct properties.  Only properties that are different from the
 original are changed.  It is assumed that _selected_subproduct and
 _selected_data have been propertly set for the properties that are to be saved.
 Properties that are not case senstive are only updated if truly different (e.g.,
-titles are compared case-sensitive, but parameter settings are compared
-case-insensitive).
+titles are compared case-sensitive, but parameter settings are compared case-insensitive).
 @param howSet an integer value from Prop that determines how the props will
 be set (such as SET_AT_RUNTIME_BY_USER).
 @return the total number of properties that have been changed.
@@ -7400,8 +6934,7 @@ protected int updateTSProduct (int howSet) {
 		_selected_subproduct, __selectedAnnotation, false, true);
 	gui_val = __annotation_id_JTextField.getText().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {	
-		_tsproduct.setPropValue("AnnotationID", gui_val,
-			_selected_subproduct, __selectedAnnotation, true);
+		_tsproduct.setPropValue("AnnotationID", gui_val, _selected_subproduct, __selectedAnnotation, true);
 		__annotation_JComboBox.insertItemAt(gui_val, __selectedAnnotation);
 		__annotation_JComboBox.removeItemAt(__selectedAnnotation + 1);
 		ndirty++;
@@ -7412,8 +6945,7 @@ protected int updateTSProduct (int howSet) {
 	shape = prop_val;
 	gui_val = __annotation_ShapeType_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
-		_tsproduct.setPropValue("ShapeType", gui_val, 
-		_selected_subproduct, __selectedAnnotation, true);
+		_tsproduct.setPropValue("ShapeType", gui_val, _selected_subproduct, __selectedAnnotation, true);
 		ndirty++;
 		shape = gui_val;
 	}
