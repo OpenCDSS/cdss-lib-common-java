@@ -211,9 +211,9 @@ public DataTable ( List<TableField> tableFieldsVector, int Vector_size, int Vect
 }
 
 /**
-Adds a record to the vector of TableRecords maintained in the DataTable.
+Adds a record to the list of TableRecords maintained in the DataTable.
 @param new_record new record to be added.
-@exception Exception when the number of fields in new_record is not equal to th
+@exception Exception when the number of fields in new_record is not equal to the
 number of fields in the current TableField declaration.
 */
 public void addRecord ( TableRecord new_record )
@@ -1655,8 +1655,10 @@ throws Exception
 	if ( ColumnDataTypes_Auto_boolean ) {
     	for ( int icol = 0; icol < maxColumns; icol++ ) {
     	    tableField = (TableField)tableFields.get(icol);
-    	    if ( (count_int[icol] > 0) && (count_double[icol] == 0) && (count_string[icol] == 0) ) {
+    	    if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
+    	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
     	        // All data are integers so assume column type is integer
+    	        // Note that integers also meet the criteria of double, hence the extra check above
     	        tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        tableField.setWidth (lenmax_string[icol] );
@@ -1709,6 +1711,7 @@ throws Exception
 	
 	int cols = 0;
 	int icol = 0;
+	int errorCount = 0;
 	for (int irow = 0; irow < size; irow++) {
 		v = data_record_tokens.get(irow);
 
@@ -1765,7 +1768,20 @@ throws Exception
 			}
 		}
 		
-		table.addRecord(tablerec);
+		try {
+		    table.addRecord(tablerec);
+		}
+		catch ( Exception e ) {
+		    Message.printWarning ( 3, routine, "Error adding row to table at included data row [" + irow +
+		        "] (" + e + ")." );
+		    ++errorCount;
+		}
+	}
+	if ( errorCount > 0 ) {
+	    // There were errors processing the data
+	    String message = "There were " + errorCount + " errors processing the data.";
+	    Message.printWarning ( 3, routine, message );
+	    throw new Exception ( message );
 	}
 
 	return table;		
