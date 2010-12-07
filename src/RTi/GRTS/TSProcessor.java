@@ -282,14 +282,14 @@ throws Exception
 	        }
 			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
 				// Have the "TSAlias" property so use it instead of the TSID...
-				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
+				Message.printStatus ( 3, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
 				try {
                     ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
 				catch ( Exception e ) {
 					// Always add a time series because visual properties are going to be
 					// tied to the position of the time series.
-					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\"" );
+					Message.printWarning ( 3, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
 					ts = null;
 				}
 			}
@@ -409,8 +409,8 @@ throws Exception
         }
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 2, "TSProcessor.processGraphProduct", "Unable to create graph." );
-		Message.printWarning ( 2, "TSProcessor.processGraphProduct", e);
+		Message.printWarning ( 3, "TSProcessor.processGraphProduct", "Unable to create graph." );
+		Message.printWarning ( 3, "TSProcessor.processGraphProduct", e);
 		// Throw a new error...
 		throw new Exception ( "Unable to create graph." );
 	}
@@ -643,7 +643,7 @@ return a time series is assumed to be the correct supplier.
 @return a time series corresponding to the tsident.
 @exception Exception if no time series can be found.
 */
-public TS readTimeSeries (	String tsident, DateTime date1, DateTime date2,
+public TS readTimeSeries ( String tsident, DateTime date1, DateTime date2,
 				String req_units, boolean read_data )
 throws Exception
 {	String routine = "TSProcessor.readTimeSeries";
@@ -660,8 +660,8 @@ throws Exception
             ts = _suppliers[i].readTimeSeries (	tsident, date1, date2, (String)null, true );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, "Error reading time series for supplier \"" +
-                    supplier_name + ".  Ignoring and trying other suppliers (if available)." );
+			Message.printWarning ( 2, routine, "Error reading/finding time series for supplier \"" +
+                    supplier_name + "\".  Ignoring and trying other suppliers (if available)." );
 			Message.printWarning ( 2, routine, e );
 			continue;
 		}
@@ -679,4 +679,4 @@ throws Exception
 	throw new Exception ( "Unable to get time series \"" + tsident + "\" from " + size + " TSSupplier(s).");
 }
 
-} // End TSProcessor
+}
