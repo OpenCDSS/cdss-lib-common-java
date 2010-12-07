@@ -994,7 +994,7 @@ LowerLeft, Left, UpperLeft, Above, Center.
 <td>Indicates the graph type for the data in a graph product.  Available
 options are: "Bar", "Duration", "Line", "PeriodOfRecord", "XY-Scatter", "Point".
 <b>Currently the sub-product property is used for all data.  It is envisioned
-that this propery will be enabled in the future to allow different data
+that this property will be enabled in the future to allow different data
 representations to be plotted together (e.g., monthly as bars, daily as line).
 </b>
 </td>
@@ -1419,8 +1419,8 @@ public void checkAnnotationProperties(int isub, int iann) {
 }
 
 /**
-Checks data properties to make sure that the data are fully-defined.
-Data that are not fully-defined will have the property 
+Checks data properties to make sure that the data are fully-defined for a time series in a graph.
+Data that are not fully-defined will have the property set to a default value
 @param isub the subproduct of the annotation.
 @param iann the annotation number.
 */
@@ -1471,7 +1471,15 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
-		setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+	    // Set the default graph type for the line to the same as the graph
+	    String graphTypeProp = getLayeredPropValue("GraphType", isub, -1, false);
+	    if ( graphTypeProp == null ) {
+	        setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+	    }
+	    else {
+	        setPropValue ( "GraphType", graphTypeProp, isub, its );
+	    }
 	}
 
 	if ( getLayeredPropValue ( "LegendFormat", isub, its, false ) == null ) {
@@ -2844,20 +2852,16 @@ always be overridden if an override property is specified).
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked.  
+(subproduct) and Y is (its).  If negative, the data item property will not be checked.  
 @param property Property to get value for.
 @param allow_layered_props If true, properties are allowed to be layered, with
-the most general scope property applying to the most specific if not overridden.
-If false, only properties at the level of the finest detail are used (no
-layering).  An example of a property that may occur in several layers is
-"Enabled".
+determination of the property starting with the most general scope, through the most specific scope.
+If false, only properties at the requested level of the finest detail are used (no
+layering).  An example of a property that may occur in several layers is "Enabled".
 @return value of property or null if not found.
 */
-public String getLayeredPropValue (	String property, int subproduct,
-					int its, boolean allow_layered_props ) {
-	return getLayeredPropValue(property, subproduct, its, 
-		allow_layered_props, false);
+public String getLayeredPropValue (	String property, int subproduct, int its, boolean allow_layered_props ) {
+	return getLayeredPropValue(property, subproduct, its, allow_layered_props, false);
 }
 
 /**
@@ -2878,20 +2882,17 @@ isAnnotation parameter for more info.
 @param allow_layered_props If true, properties are allowed to be layered, with
 the most general scope property applying to the most specific if not overridden.
 If false, only properties at the level of the finest detail are used (no
-layering).  An example of a property that may occur in several layers is
-"Enabled".
+layering).  An example of a property that may occur in several layers is "Enabled".
 @param isAnnotation if true, then its will be treated as the number of an
 annotation under the given subproduct, rather than the number of a time series
 under the given subproduct.
 @return value of property or null if not found.
 */
 public String getLayeredPropValue (	String property, int subproduct,
-					int its, boolean allow_layered_props,
-					boolean isAnnotation )	
+	int its, boolean allow_layered_props, boolean isAnnotation )	
 {	String value = null;
 	String value2 = null;
-	//Message.printStatus ( 1, "", "Looking up \"" + property + "\" " +
-	//	subproduct + " " + its );
+	//Message.printStatus ( 2, "", "Looking up \"" + property + "\" " + subproduct + " " + its );
 	// First search the override properties...
 	if ( __override_proplist != null ) {
 		value = __override_proplist.getValue ( property );
@@ -2906,19 +2907,16 @@ public String getLayeredPropValue (	String property, int subproduct,
 		// Search to find the most specific property...
 		if ( __proplist != null ) {
 			// First search the generic property (not a strict
-			// product file format, or pre-formatted to do what is
-			// done below)...
+			// product file format, or pre-formatted to do what is done below)...
 			value = __proplist.getValue ( property );
 			// Next search the main product...
 			if (isAnnotation) {
 				value2 = null;
 				// this is done because both a subproduct and
-				// an annotation number must be specified
-				// to bring back an annotation.
+				// an annotation number must be specified to bring back an annotation.
 			}
 			else {
-				value2 = __proplist.getValue( 
-					"Product." + property);
+				value2 = __proplist.getValue( "Product." + property);
 			}
 			if ( value2 != null ) {
 				value = value2;
@@ -2944,9 +2942,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 			}
 			// Now search the data or annotation item...
 			if ( its >= 0 ) {
-			// REVISIT SAM
-			// Math.abs() doesn't make sense, but it's been like
-			// that for years now.
+			// TODO SAM Math.abs() doesn't make sense, but it's been like that for years now.
 				if (isAnnotation) {
 					value2 = __proplist.getValue(
 						"Annotation "
@@ -2965,10 +2961,10 @@ public String getLayeredPropValue (	String property, int subproduct,
 				}
 			}
 		}
-		value2 = null;
 		return value;
 	}
-	else {	// The request is specifically for a certain level...
+	else {
+	    // The request is specifically for a certain level...
 		if ( subproduct < 0 ) {
 			// Product property...
 			if (isAnnotation) {
@@ -2978,8 +2974,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 				return null;
 			}
 			else {
-				return __proplist.getValue("Product." 
-					+ property);
+				return __proplist.getValue("Product." + property);
 			}
 		}
 		else if ((subproduct >= 0) && (its < 0)) {
@@ -2991,25 +2986,22 @@ public String getLayeredPropValue (	String property, int subproduct,
 				return null;
 			}
 			else {
-				return __proplist.getValue("SubProduct " 
-					+ (subproduct + 1) + "." + property);
+				return __proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
 			}
 		}
 		else if ( (subproduct >=0) && (its >= 0) ) {
 			// Data or annotation property...
 			if (isAnnotation) {
-				return __proplist.getValue("Annotation "
-					+ (subproduct + 1) + "." + (its + 1)
+				return __proplist.getValue("Annotation " + (subproduct + 1) + "." + (its + 1)
 					+ "." + property);
 			}
 			else {
-				return __proplist.getValue("Data " 
-					+ (subproduct + 1) + "." + (its + 1) 
-					+ "." + property);
+				return __proplist.getValue("Data "
+					+ (subproduct + 1) + "." + (its + 1) + "." + property);
 			}
 		}
 	}
-	// Compiler needs this...
+	// Requested combination is not found...
 	return null;
 }
 
@@ -3025,8 +3017,7 @@ public int getNumAnnotations(int subproduct) {
 	String prop_value = null;
 	for (int i = 0; ; i++) {
 		// Use false to make sure we are getting the specific property..
-		prop_value = getLayeredPropValue("ShapeType", subproduct, i, 
-			false, true);
+		prop_value = getLayeredPropValue("ShapeType", subproduct, i, false, true);
 		if (prop_value != null) {
 			ndata = i;
 			continue;
@@ -3917,31 +3908,25 @@ other parameter values.
 @param value String value of the property.
 @param subproduct Sub-product number (starting at zero).  A prefix of
 "SubProduct X." will be used for the property, where X is (subproduct.
-If negative, the sub-product property will not be checked (indicating a full
-product property).
+If negative, the sub-product property will not be checked (indicating a full product property).
 @param its Time series or annotation number within a sub-product (starting at 
 zero).  A prefix of "Data X.Y." or "Annotation X.Y." will be used for the 
 property, where X is (subproduct) and Y is (its).  If negative, the data item 
 property will not be checked (indicating a sub-product or product property).  
 See isAnnotation for more information.
 @param isAnnotation is true, then its is treated as the number of an annotation
-under the given subproduct, rather than the number of a time series under the
-given subproduct.
+under the given subproduct, rather than the number of a time series under the given subproduct.
 */
-public void setPropValue (	String property, String value, int subproduct,
-				int its, boolean isAnnotation ) {
-
+public void setPropValue ( String property, String value, int subproduct, int its, boolean isAnnotation )
+{
 	if (isAnnotation) {
 		if (subproduct < 0 || its < 0) {
 			Message.printWarning(2, "setPropValue", "Negative value"
-				+ " in call to setPropValue for annotation "
-				+ "property.  (SubProduct: " 
-				+ subproduct + "  Annotation: " 
-				+ its + ").  Nothing will be set.");
+				+ " in call to setPropValue for annotation property.  (SubProduct: " 
+				+ subproduct + "  Annotation: " + its + ").  Nothing will be set.");
 			return;
 		}
-		__proplist.set("Annotation " + (subproduct + 1) + "."
-			+ (its + 1) + "." + property, value);
+		__proplist.set("Annotation " + (subproduct + 1) + "." + (its + 1) + "." + property, value);
 		return;
 	}
 			
@@ -3952,13 +3937,11 @@ public void setPropValue (	String property, String value, int subproduct,
 	}
 	else if ( (subproduct >= 0) && (its < 0) ) {
 		// Subproduct property...
-		__proplist.set ( "SubProduct " + (subproduct + 1) + "." +
-			property, value );
+		__proplist.set ( "SubProduct " + (subproduct + 1) + "." + property, value );
 	}
 	else if ( (subproduct >=0) && (its >= 0) ) {
 		// Data property...
-		__proplist.set ( "Data " + (subproduct + 1) + "." + (its + 1) +
-			"." + property, value );
+		__proplist.set ( "Data " + (subproduct + 1) + "." + (its + 1) + "." + property, value );
 	}
 }
 
@@ -3983,22 +3966,18 @@ This is only used for troubleshooting.
 */
 public void showProps(int statusLevel) {
 	int size = __proplist.size();
-	Message.printStatus(statusLevel, "", 
-		"--------------------------------------");
+	Message.printStatus(statusLevel, "", "--------------------------------------");
 	for (int i = 0; i < size; i++) {
-		Message.printStatus(statusLevel, "", "" + i + ": " 
-			+ __proplist.elementAt(i));
+		Message.printStatus(statusLevel, "", "" + i + ": " + __proplist.elementAt(i));
 	}
 	
 	if (__override_proplist == null) {
 		return;
 	}
 	size = __override_proplist.size();
-	Message.printStatus(statusLevel, "", 
-		"--------------------------------------");
+	Message.printStatus(statusLevel, "", "--------------------------------------");
 	for (int i = 0; i < size; i++) {
-		Message.printStatus(statusLevel, "", "" + i + ": " 
-			+ __override_proplist.elementAt(i));
+		Message.printStatus(statusLevel, "", "" + i + ": " + __override_proplist.elementAt(i));
 	}
 }
 
@@ -4010,8 +3989,7 @@ This is only used for troubleshooting.
 */
 public void showPropsStartingWith(int statusLevel, String start) {
 	Prop p = null;
-	Message.printStatus(statusLevel, "", 
-		"--------------------------------------");
+	Message.printStatus(statusLevel, "", "--------------------------------------");
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
 		p = (Prop)__proplist.elementAt(i);
@@ -4022,8 +4000,7 @@ public void showPropsStartingWith(int statusLevel, String start) {
 	if (__override_proplist == null) {
 		return;
 	}
-	Message.printStatus(statusLevel, "", 
-		"--------------------------------------");
+	Message.printStatus(statusLevel, "", "--------------------------------------");
 	size = __override_proplist.size();
 	for (int i = 0; i < size; i++) {
 		p = (Prop)__override_proplist.elementAt(i);
@@ -4047,8 +4024,7 @@ protected void sortProps() {
 
 /**
 This method should be called before hidden properties are to be added to the 
-product.  Hidden properties are never shown to a user and are never saved to
-a file.  
+product.  Hidden properties are never shown to a user and are never saved to a file.  
 */
 public void startAddingHiddenProps() {
 	__howSet = __proplist.getHowSet();
@@ -4079,12 +4055,9 @@ that were numbered 1.1 will now be numbered 3.2 and vice versa.
 */
 protected void swapAnnotations(int origSub, int origAnn, int newSub, 
 int newAnn) {
-	renameAnnotationProps("" + (origSub + 1), "" + (origAnn + 1), "TEMP", 
-		"TEMP");
-	renameAnnotationProps("" + (newSub + 1), "" + (newAnn + 1), 
-		"" + (origSub + 1), "" + (origAnn + 1));
-	renameAnnotationProps("TEMP", "TEMP", "" + (newSub + 1), 
-		"" + (newAnn + 1));
+	renameAnnotationProps("" + (origSub + 1), "" + (origAnn + 1), "TEMP", "TEMP");
+	renameAnnotationProps("" + (newSub + 1), "" + (newAnn + 1), "" + (origSub + 1), "" + (origAnn + 1));
+	renameAnnotationProps("TEMP", "TEMP", "" + (newSub + 1), "" + (newAnn + 1));
 	__dirty = true;
 }
 
@@ -4259,10 +4232,9 @@ throws Exception
 				save = true;
 			}
 			else if (!save_all) {
-				if (how_set == Prop.SET_FROM_PERSISTENT
-				    || how_set == Prop.SET_AT_RUNTIME_BY_USER
+				if (how_set == Prop.SET_FROM_PERSISTENT || how_set == Prop.SET_AT_RUNTIME_BY_USER
 				    || how_set == Prop.SET_AT_RUNTIME_FOR_USER){
-				    	// ok
+				    // ok
 				}
 				else {
 					// not ok
@@ -4339,12 +4311,9 @@ throws Exception
 		// now write the annotations
 		int nann = getNumAnnotations(isub);
 		for (int iann = 0; iann < nann; iann++) {
-			vdata = __proplist.getPropsMatchingRegExp(
-				"Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
-			type = getPropValue("Annotation " + (isub + 1) 
-				+ "." + (iann + 1) + ".ShapeType");
-			data_prefix = "[Annotation " + (isub + 1) + "." 
-				+ (iann + 1) + "]";
+			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
+			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
+			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
 			data_prefix_length = data_prefix.length();
 			out.println("");
 			out.println(data_prefix);
@@ -4403,9 +4372,8 @@ throws Exception
 					|| key.equalsIgnoreCase("TextPosition")
 					|| key.equalsIgnoreCase("SymbolStyle")
 					|| key.equalsIgnoreCase("SymbolSize")
-					|| key.equalsIgnoreCase(
-					    "SymbolPosition")) {
-					    	continue;
+					|| key.equalsIgnoreCase("SymbolPosition")) {
+					continue;
 				}
 				else {
 					save = true;
@@ -4420,7 +4388,7 @@ throws Exception
 					|| key.equalsIgnoreCase("Points")
 					|| key.equalsIgnoreCase("LineStyle")
 					|| key.equalsIgnoreCase("LineWidth")) {
-						continue;
+					continue;
 				}
 				else {
 					save = true;
@@ -4429,9 +4397,7 @@ throws Exception
 		}
 
 		if (save) {		
-			out.println(prop.getKey().substring(
-				data_prefix_length - 1) + " = \""
-				+ prop.getValue() + "\"");
+			out.println(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
 		}
 // 2 LEVELS OF INDENTION REMOVED				
 ////////////////////////////////////////////
@@ -4442,4 +4408,4 @@ throws Exception
 	out.close();
 }
 
-} // End TSProduct
+}
