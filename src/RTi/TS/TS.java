@@ -976,7 +976,8 @@ and end of the header are not included.
 public List<String> formatHeader ()
 {	List<String> header = new Vector ( 10, 5 );
 
-	header.add ( "Time Series Identifier  = " + getIdentifier().toString() );
+    header.add ( "Time series alias       = " + getAlias() );
+    header.add ( "Time series identifier  = " + getIdentifier() );
 	header.add ( "Description             = " + getDescription() );
 	header.add ( "Data source             = " + getIdentifier().getSource() );
 	header.add ( "Data type               = " + getIdentifier().getType() );
