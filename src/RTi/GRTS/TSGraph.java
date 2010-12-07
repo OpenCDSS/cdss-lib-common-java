@@ -393,9 +393,16 @@ This will force the analysis to be done for analytical graph types when the grap
 private TSGraphType __lastGraphType = TSGraphType.UNKNOWN;	
 
 /**
-List of all time series to plot (this is used for the legend).
+List of all the original time series to plot (this is used for the legend).
 */
 private List<TS> __tslist = null;
+
+/**
+List of all the derived time series to plot.  For example, the stacked bar graph requires that total
+time series are used for plotting positions.  The contents of the list are determined by the graph type.
+This list is guaranteed to be non-null but may be empty.
+*/
+private List<TS> __derivedTSList = new Vector();
 
 /**
 List of time series to plot using left axis (currently the default).
@@ -757,7 +764,7 @@ ReferenceGraph can be set to "true" or "false" to indicate whether the graph is
 a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).  This value must be set for the local
-tslist Vector that is passed in.
+tslist list that is passed in.
 @param subproduct The sub-product from the main product.  This is used to look
 up properties specific to this graph product.  The first product is 1.
 @param tslist Vector of time series to graph.  Only the time series for this
@@ -783,7 +790,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	if ( tslist == null ) {
 		// Create an empty vector so checks for null don't need to be added everywhere...
         Message.printStatus(2, routine, "Null list of time series for graph.  Using empty list for graph." );
-		__tslist = new Vector(1);
+		__tslist = new Vector();
 	}
 	else {
         __tslist = tslist;
@@ -802,25 +809,20 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		_gtype = "Ref:";
 	}
 
-	//if (Message.isDebugOn) {
-		// Might need to use this when we try to process all null time series...
-		int ssize = 0;
-		if ( __tslist != null ) {
-		    ssize = __tslist.size();
+	// Might need to use this when we try to process all null time series...
+	int ssize = __tslist.size();
+    Message.printStatus(2, routine, "Have " + ssize + " time series for graph." );
+	TS sts;
+	for (int ii = 0; ii < ssize; ii++) {
+		sts = __tslist.get(ii);
+		if (sts == null) {
+			Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is null");
 		}
-        Message.printStatus(2, routine, "Have " + ssize + " time series for graph." );
-		TS sts;
-		for (int ii = 0; ii < ssize; ii++) {
-			sts = __tslist.get(ii);
-			if (sts == null) {
-				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is null");
-			}
-			else {	
-				Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is " + sts.getIdentifierString() +
-				        "period " + sts.getDate1() + " to " + sts.getDate2() );
-			}
+		else {	
+			Message.printStatus(3, routine, _gtype + "TS[" + ii + "] is " + sts.getIdentifierString() +
+			        "period " + sts.getDate1() + " to " + sts.getDate2() );
 		}
-	//}
+	}
 
 	// A reference TS index can be used in a main or reference graph...
 
@@ -844,7 +846,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// This is the place where the reference graph has its data set.
 	// This is also checked in the paint() method in case any analysis settings change...
 
-	doAnalysis();
+	doAnalysis(__graphType);
 	__lastGraphType = __graphType;
 
 	// Initialize the data limits...
@@ -941,9 +943,6 @@ public void actionPerformed(ActionEvent event)
 		p.set("Title", "Analysis Details");
 		p.set("TotalHeight", "400");
 		new ReportJFrame(v, p);
-		v = null;
-		p = null;
-		r = null;
 		// Immediately remove from the component container.  See note above.
 		_dev.remove(_graph_JPopupMenu);
 	}
@@ -1118,7 +1117,7 @@ private void adjustConfidenceCurve ( double [] x, double [] y, int npts )
 				x[i - 1] = x_edge;
 				y[i - 1] = min_datay;
 				// Now set all previous points to the interpolated edge value.
-				for (	int i2 = (i - 2); i2 >= 0; i2-- ) {
+				for ( int i2 = (i - 2); i2 >= 0; i2-- ) {
 					y[i2] = min_datay;
 					x[i2] = x_edge;
 				}
@@ -1138,7 +1137,7 @@ private void adjustConfidenceCurve ( double [] x, double [] y, int npts )
 				x[i + 1] = x_edge;
 				y[i + 1] = max_datay;
 				// Now set all previous points to the interpolated edge value.
-				for (	int i2 = (i + 2); i2 < npts; i2++ ) {
+				for ( int i2 = (i + 2); i2 < npts; i2++ ) {
 					y[i2] = max_datay;
 					x[i2] = x_edge;
 				}
@@ -1195,15 +1194,18 @@ private void checkInternalProperties ()
 }
 
 /**
+TODO SAM 2010-11-22 This only computes the max/min date/time range?  Evaluate SetDataLimits() use.
 Compute the maximum data limits based on the time series.  This is normally
 only called from doAnalysis(), which is called at construction.  The maximum
 values and the current data limits are set to the limits, which serve as the
 initial data limits until zooming occurs.
+@param graphType the type of graph being produced.
 @param max whether to compute data limits from the max dates or not.  Really
 only applies currently to empty graphs.  For other graphs, see setComputeWithSetDates().
 */
-protected void computeDataLimits (boolean max)
+protected void computeDataLimits ( boolean max)
 {	String routine = "TSGraph.computeDataLimits";
+    TSGraphType graphType = getGraphType();
 	// Exceptions are thrown when trying to draw empty graph (no data)
 	if (getEnabledTSList().size() == 0) {
 		__useSetDates = false;
@@ -1233,11 +1235,8 @@ protected void computeDataLimits (boolean max)
 	try {
         // First get the date limits from the full set of time series...
 		TSLimits limits = null;
-		if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-	    	int nreg = 0;
-			if (__tslist != null) {
-				nreg = __tslist.size() - 1;
-			}
+		if (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	    	int nreg = __tslist.size() - 1;
 			List<TS> v = new Vector();
 			TSRegression regressionData = null;
 			for (int i = 0; i < nreg; i++) {
@@ -1250,8 +1249,12 @@ protected void computeDataLimits (boolean max)
 
 			limits = TSUtil.getPeriodFromTS(v, TSUtil.MAX_POR);
 		}
+		else if ( graphType == TSGraphType.AREA_STACKED ) {
+		    limits = TSUtil.getPeriodFromTS(getTSListToRender(true), TSUtil.MAX_POR);
+		}
 		else {
-			limits = TSUtil.getPeriodFromTS(getEnabledTSList(), TSUtil.MAX_POR);
+		    // Get the limits from the enabled time series
+			limits = TSUtil.getPeriodFromTS(getTSListToRender(true), TSUtil.MAX_POR);
 		}
 
 		if (__useSetDates) {
@@ -1277,7 +1280,7 @@ protected void computeDataLimits (boolean max)
 		boolean ignore = false;
 		if ( (ignore_units_prop != null) && ignore_units_prop.equalsIgnoreCase("true") ) {
 			_ignore_units = true;
-			if (TSUtil.areUnitsCompatible(getEnabledTSList(), true)) {
+			if (TSUtil.areUnitsCompatible(getTSListToRender(true), true)) {
 				_ignore_units = false;
 				_tsproduct.setPropValue("LeftYAxisIgnoreUnits", "false", _subproduct, -1);
 				ignore = true;
@@ -1286,7 +1289,7 @@ protected void computeDataLimits (boolean max)
 		try {	
 			if (_ignore_units) {
 				// Can ignore units...
-				_max_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
+				_max_tslimits = TSUtil.getDataLimits( getTSListToRender(true), _start_date, _end_date, "", false, _ignore_units);
 			}
 			else {
                 // Need to have consistent units.  For now require them to be the same because we don't
@@ -1294,17 +1297,16 @@ protected void computeDataLimits (boolean max)
 				//
 				// TODO - need to add on the fly conversion of units (slower but changing original data is
 				// a worse alternative).
-				if (!TSUtil.areUnitsCompatible(
-				    getEnabledTSList(), true)) {
+				if (!TSUtil.areUnitsCompatible(getTSListToRender(true), true)) {
 					if (_is_reference_graph) {
 						// Rely on the main graph to set the _ignore_units flag and determine whether the graph
 						// view needs to be closed.  Assume that the _ignore_units flag can be set to true since
 						// the reference graph only displays one graph.
 						_ignore_units = true;
-						_max_tslimits = TSUtil.getDataLimits( __tslist, _start_date, _end_date, "", false, _ignore_units);
+						_max_tslimits = TSUtil.getDataLimits( getTSListToRender(true), _start_date, _end_date, "", false, _ignore_units);
 					}
 					else if (ignore) {
-						_max_tslimits = TSUtil.getDataLimits( getEnabledTSList(), 
+						_max_tslimits = TSUtil.getDataLimits( getTSListToRender(true), 
 							_start_date, _end_date, "", false, _ignore_units);
 					}
 					else {	
@@ -1327,13 +1329,13 @@ protected void computeDataLimits (boolean max)
 						}
 						else {	
 							_ignore_units = true;
-							_max_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date,
+							_max_tslimits = TSUtil.getDataLimits( getTSListToRender(true), _start_date,
 							        _end_date, "", false, _ignore_units);
 						}
 					}
 				}
 				else {	
-                	if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+                	if (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
                 		int nreg = 0;
                 		if (__tslist != null) {
                 			nreg = __tslist.size() - 1;
@@ -1358,13 +1360,13 @@ protected void computeDataLimits (boolean max)
                 				minValue = tempLimits.getMinValue();
                 			}
                 		}
-                		_max_tslimits = TSUtil.getDataLimits(getEnabledTSList(), 
+                		_max_tslimits = TSUtil.getDataLimits(getTSListToRender(true), 
                 			_start_date, _end_date, "", false, _ignore_units);
                 		_max_tslimits.setMaxValue(maxValue);
                 		_max_tslimits.setMinValue(minValue);
                 	}
                 	else {
-                		_max_tslimits = TSUtil.getDataLimits(getEnabledTSList(), 
+                		_max_tslimits = TSUtil.getDataLimits(getTSListToRender(true), 
                 			_start_date, _end_date, "", false, _ignore_units);
                 	}
 				}
@@ -1372,7 +1374,7 @@ protected void computeDataLimits (boolean max)
 			// If a period graph, the limits should be a count of
 			// the time series, 0 to 1 more than the time series
 			// count.  Reverse the axis so the number is correct...
-			if ( __graphType == TSGraphType.PERIOD ) {
+			if ( graphType == TSGraphType.PERIOD ) {
 				_max_tslimits.setMaxValue(0.0);
 				_max_tslimits.setMinValue(getEnabledTSList().size() + 1);
 			}
@@ -1449,7 +1451,7 @@ protected void computeDataLimits (boolean max)
             		_max_tslimits.setMinValue(minValue);
             	}
             	else {
-            		TSLimits tempLimits = TSUtil.getDataLimits(getEnabledTSList(), 
+            		TSLimits tempLimits = TSUtil.getDataLimits(getTSListToRender(true), 
             			_max_start_date, _max_end_date, "", false, _ignore_units);
             		_max_tslimits.setMaxValue(tempLimits.getMaxValue());
             	}
@@ -1617,7 +1619,7 @@ protected void computeDataLimits (boolean max)
 		}
 		else if (__graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL
 		    || __graphType == TSGraphType.PREDICTED_VALUE) {
-		    	boolean residual = true;
+		    boolean residual = true;
 			if (__graphType==TSGraphType.PREDICTED_VALUE) {
 				residual = false;
 			}
@@ -1816,7 +1818,7 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 
-	if ( _ylabels == null ) {
+	if ( (_ylabels == null) || (_ylabels.length == 0) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Unable to find labels using " +
 			minlabels + " to " + maxlabels + " labels.  Using end-point data values." );
@@ -1829,10 +1831,19 @@ private void computeLabels ( TSLimits limits )
 				_max_data_limits.getMaxX(), _ylabels[1] );
 		}
 		else {
-		    _ylabels[0] = limits.getMinValue();
-			_ylabels[1] = limits.getMaxValue();
-			_data_limits = new GRLimits ( _start_date.toDouble(), _ylabels[0],
-					_end_date.toDouble(), _ylabels[1] );
+		    if ( log_y ) {
+		        // No data points so put in .1 to 100
+		        _ylabels = new double [4];
+		        _ylabels[0] = .1;
+                _ylabels[1] = 1.0;
+                _ylabels[2] = 10.0;
+                _ylabels[3] = 100.0;
+		    }
+		    else {
+    		    _ylabels[0] = limits.getMinValue();
+    			_ylabels[1] = limits.getMaxValue();
+	         }
+    		_data_limits = new GRLimits ( _start_date.toDouble(), _ylabels[0], _end_date.toDouble(), _ylabels[1] );
 		}
 	}
 	else {	
@@ -1906,11 +1917,10 @@ private void computeLabels ( TSLimits limits )
 			_xlabels[1] = _data_limits.getMaxX();
 		}
 		_data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
-					_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
+			_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
 		if ( !_is_reference_graph ) {
 			_da_graph.setDataLimits ( _data_limits );
 		}
-		maxstring = null;
 		return;
 	}
 	else if ( __graphType == TSGraphType.XY_SCATTER ) {
@@ -1973,7 +1983,6 @@ private void computeLabels ( TSLimits limits )
 		if ( !_is_reference_graph ) {
 			_da_graph.setDataLimits ( _data_limits );
 		}
-		maxstring = null;
 		return;
 	}
 
@@ -2064,17 +2073,12 @@ private void computeLabels ( TSLimits limits )
 
 		TS ts = getFirstEnabledTS();
 		// Try to find first non-null time series
-		int nts = 0;
-		if ( __tslist != null ) {
-		    nts = __tslist.size();
-		}
-		Object o = null;
+		int nts = __tslist.size();
 		for ( int its = 0; its < nts; ++its ) {
-		        o = __tslist.get(its);
-		        if ( o != null ) {
-		               ts = (TS)o;
-		               break;
-		        }
+	        ts = __tslist.get(its);
+	        if ( ts != null ) {
+	            break;
+	        }
 		}
 		if (ts == null) {
 		    // FIXME SAM 2008-01-13 What do do in this situation?
@@ -2187,10 +2191,6 @@ private void computeLabels ( TSLimits limits )
 			Message.printDebug ( 1, routine,_gtype + "_xlabel[" + i + "]=" + _xlabels[i] );
 		}
 	}
-
-	// Help garbage collection...
-	date = null;
-	x_axis_labels_temp = null;
 }
 
 /**
@@ -2255,8 +2255,6 @@ private void computeXAxisDatePrecision ()
 			;
 		}
 	}
-	ts = null;
-	date = null;
 	// Now convert the precision to a real DateTime precision...
 	if ( _xaxis_date_precision == TimeInterval.YEAR ) {
 		if ( Message.isDebugOn ) {
@@ -2298,27 +2296,25 @@ private void computeXAxisDatePrecision ()
 }
 
 /**
-Perform additional analysis on the data if other than a basic graph is
-indicated.  The graph type needs to be specified before this method is called.
+Perform additional analysis on the data if other than a basic graph is indicated.
 After the analysis, the data limits are recomputed (this is done for simple data also).
+@param graphType the graph type
 */
-private void doAnalysis ()
+private void doAnalysis ( TSGraphType graphType )
 {	String routine = "TSGraph.doAnalysis";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, "Analyzing time series for " + __graphType + " graph.");
+		Message.printDebug ( 1, routine, "Analyzing time series for " + __graphType +
+		    " graph - will produced derived data if necessary for output.");
 	}
-
-	if ( __graphType == TSGraphType.XY_SCATTER ) {
+	List<TS> tslist = getTSList();
+	if ( graphType == TSGraphType.XY_SCATTER ) {
 		// Do a linear regression analysis.  The first time series is
 		// considered the independent (X) and the remaining time series
 		// the Y.  If a regression fails, set it to null in the vector
 		// so the plot positions are kept consistent...
 		TS ts0 = null;
 		TS ts = null;
-		int nreg = 0;
-		if ( __tslist != null ) {
-			nreg = __tslist.size() - 1;
-		}
+		int nreg = tslist.size() - 1;
 		if ( nreg > 0 ) {
 			_regression_data = new Vector ( nreg );
 		}
@@ -2406,8 +2402,8 @@ private void doAnalysis ()
 		for ( int i = 1; i <= nreg; i++ ) {
 			// The first time series [0] is always the dependent
 			// time series and time series [1+] are the independent for each relationship...
-			ts0 = __tslist.get(0);
-			ts = __tslist.get(i);
+			ts0 = tslist.get(0);
+			ts = tslist.get(i);
 			try {
 			    regressionData = new TSRegression ( ts, ts0,
 			            analyzeForFilling,
@@ -2428,12 +2424,12 @@ private void doAnalysis ()
 			_regression_data.add ( regressionData );
 		}
 	}
-	else if ( __graphType == TSGraphType.DOUBLE_MASS ) {
+	else if ( graphType == TSGraphType.DOUBLE_MASS ) {
 		// Do a double mass analysis so the information is available.
 		// TODO SAM 2007-05-09 Need to enable?
 		//TS ts0 = null;
 		//TS ts1 = null;
-		//if ( (__tslist != null) && (__tslist.size() == 2) ) {
+		//if ( tslist.size() == 2 ) {
 		//	ts0 = __tslist.elementAt(0);
 		//	ts1 = __tslist.elementAt(1);
 		//}
@@ -2448,37 +2444,31 @@ private void doAnalysis ()
 			}
 		}
 */
-		//ts0 = null;
-		//ts1 = null;
 	}
-	else if ( (__graphType == TSGraphType.DURATION) && (__tslist != null) && (__tslist.size() != 0) ) {
+	else if ( (graphType == TSGraphType.DURATION) && (tslist.size() != 0) ) {
 		// Generate TSDurationAnalysis for each time series...
-		int size = __tslist.size();
+		int size = tslist.size();
 		_duration_data = new Vector ( size );
 		TSDurationAnalysis da = null;
 		for ( int i = 0; i < size; i++ ) {
 			try {
-			    da = new TSDurationAnalysis ( __tslist.get(i) );
+			    da = new TSDurationAnalysis ( tslist.get(i) );
 				_duration_data.add ( da );
 			}
 			catch ( Exception e ) {
 				_duration_data.add ( null );
 			}
 		}
-		da = null;
 	}
-	else if (__graphType == TSGraphType.PREDICTED_VALUE
-	    || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	else if (graphType == TSGraphType.PREDICTED_VALUE
+	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		// Do a linear regression analysis.  The first time series is
 		// considered the independent (X) and the remaining time series
 		// the Y.  If a regression fails, set it to null in the vector
 		// so the plot positions are kept consistent...
 		TS ts0 = null;
 		TS ts = null;
-		int nreg = 0;
-		if (__tslist != null) {
-			nreg = __tslist.size() - 1;
-		}
+		int nreg = tslist.size() - 1;
 		if (nreg > 0 ) {
 			_regression_data = new Vector(nreg);
 		}
@@ -2487,8 +2477,8 @@ private void doAnalysis ()
 		for (int i = 1; i <= nreg; i++) {
 			// The first time series [0] is always the independent
 			// time series and time series [1+] are the dependent for each relationship...
-			ts0 = __tslist.get(0);
-			ts = __tslist.get(i);
+			ts0 = tslist.get(0);
+			ts = tslist.get(i);
 			try {
 			    // Pick reasonable defaults for the regression analysis - they can be changed in the
 			    // properties interface
@@ -2523,11 +2513,112 @@ private void doAnalysis ()
 			// Always add something...
 			_regression_data.add(regressionData);
 		}
-		ts0 = null;
-		ts = null;
 	}
+    else if ( graphType == TSGraphType.AREA_STACKED ) {
+        doAnalysisAreaStacked();
+    }
 	// Compute the maximum data limits using the analysis objects that have been created...
-	computeDataLimits (true);
+	computeDataLimits ( true );
+}
+
+/**
+Analyze the time series data for the stacked area graph.
+This consists of creating new time series for each original time series, where the new time series
+are the sum of the previous time series.  The resulting derived time series will be drawn as area
+graphs back to front.  Any original time series that do not have a graph type of stacked area, or null
+time series, are set as null in the derived data to maintain the order in the time series list.
+*/
+private void doAnalysisAreaStacked ()
+{   String routine = getClass().getName() + ".doAnalysisAreaStacked";
+    List<TS> tslist = getEnabledTSList();
+    if ( tslist.size() == 0 ) {
+        // None are explicitly enabled so process all
+        // TODO SAM 2010-11-22 Need to evaluate enabled 
+        tslist = getTSList();
+    }
+    if ( tslist.size() == 0 ) {
+        // No time series to graph
+        return;
+    }
+    // The original time series are considered to be incremental time series and are
+    // used to create corresponding total time series, which will be graphed with simple area graphs
+    // The first derived time series is a clone of the first actual time series
+    List<TS> derivedTSList = new Vector();
+    // Get the overall period for the time series - all stacked time series will have the same period
+    TSLimits limits = null;
+    try {
+        limits = TSUtil.getPeriodFromTS(tslist.get(0), tslist, TSUtil.MAX_POR);
+    }
+    catch ( Exception e ) {
+        
+    }
+    int its = -1; // Counter for time series being processed
+    TS newtsPrev = null;
+    for ( TS ts : tslist ) {
+        ++its;
+        // Time series may be null if a data problem...
+        if ( ts == null ) {
+            Message.printStatus(2,routine,"Time series [" + its + "] is null...set to null in derived list." );
+            derivedTSList.add(null);
+            continue;
+        }
+        // If the time series graph type is not stacked area, then skip it as a derived time
+        // series - it will be drawn separately
+        TSGraphType tsGraphType = getTimeSeriesGraphType(TSGraphType.AREA_STACKED, its);
+        if ( tsGraphType != TSGraphType.AREA_STACKED ) {
+            Message.printStatus(2,routine,"Time series [" + its + "] graph type (" + tsGraphType +
+                ") is not stacked area type...set to null in derived list." );
+            derivedTSList.add(null);
+            continue;
+        }
+        // If the first time series clone.  Otherwise copy the previous and add to the value
+        TS newts = null;
+        if ( newtsPrev == null ) {
+            newts = (TS)ts.clone();
+            try {
+                newts.changePeriodOfRecord(limits.getDate1(), limits.getDate2());
+            }
+            catch ( Exception e ) {
+                Message.printWarning(3,routine,
+                    "Error changing period of record for stacked area time series [" + its + "]..." +
+                    "setting to null in derived list (" + e + ")." );
+                derivedTSList.add(null);
+                continue;
+            }
+        }
+        else {
+            newts = (TS)ts.clone();
+            try {
+                newts.changePeriodOfRecord(limits.getDate1(), limits.getDate2());
+            }
+            catch ( Exception e ) {
+                Message.printWarning(3,routine,
+                    "Error changing period of record for stacked area time series [" + its + "]..." +
+                    "setting to null in derived list (" + e + ")." );
+                derivedTSList.add(null);
+                continue;
+            }
+            try {
+                TSUtil.add(newts, newtsPrev);
+            }
+            catch ( Exception e ) {
+                Message.printWarning(3, routine, "Error adding time series for stacked area graph [" + its + "]..." +
+                		"setting to null in derived list (" + e + ").");
+                derivedTSList.add(null);
+                continue;
+            }
+        }
+        // Now add to the derived time series list and set the description back to the original
+        // (don't want add, etc. in description)
+        newts.setDescription ( ts.getDescription() );
+        derivedTSList.add ( newts );
+        Message.printStatus(2,routine,"Time series [" + its + "] added to derived list." );
+        // Keep track of the previous non-null time series, since each in stacked graph is an
+        // increment of the previous
+        newtsPrev = newts;
+    }
+    Message.printStatus(2, routine, "Created " + derivedTSList.size() + " time series in derived list.");
+    setDerivedTSList ( derivedTSList );
 }
 
 /**
@@ -2878,9 +2969,6 @@ private void drawCurrentDateTime ()
 		if ( (xp[0] >= data_limits.getMinX()) && (xp[0] <= data_limits.getMaxX()) ) { 
 			GRDrawingAreaUtil.drawLine ( _da_graph, xp, yp );
 		}
-		current_time = null;
-		xp = null;
-		yp = null;
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, "TSGraph.drawCurrentDateTime", "Unable to draw current date/time." );
@@ -3086,11 +3174,6 @@ private void drawDurationPlot ()
 	}
 	// Clean up...
 	GRDrawingAreaUtil.setLineWidth( _da_graph, 1.0 );
-	values = null;
-	percents = null;
-	ts = null;
-	da = null;
-	routine = null;
 }
 
 /**
@@ -3100,13 +3183,11 @@ other time series drawing methods.
 */
 private void drawGraph ( TSGraphType graphType ) {
 	String routine = "TSGraph.drawGraph";
-	int size = 0;
-	if (__tslist != null) {
-		size = __tslist.size();
-	}
+	int size = __tslist.size();
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype + "Drawing graph:  " + size + " time series" );
+		Message.printDebug ( 1, routine, _gtype + "Drawing graph type " + graphType + ", " + size +
+		    " time series total (some may be other graph types)." );
 	}
 	if ( size == 0 ) {
 		return;
@@ -3134,7 +3215,6 @@ private void drawGraph ( TSGraphType graphType ) {
 	*/
 	
 	// Graph the time series.  If a reference map, only draw one time series, as specified in the properties...
-
 	TS ts = null;
 	if ( graphType == TSGraphType.DURATION ) {
 		drawDurationPlot ();
@@ -3183,30 +3263,79 @@ private void drawGraph ( TSGraphType graphType ) {
 			}
 		}
 	}
+	else if ( graphType == TSGraphType.AREA_STACKED ) {
+	    drawGraphAreaStacked ();
+	}
 	else {	
 		// "Normal" graph that can be handled in general code...
-		for (int i = 0; i < size; i++) {
-			ts = __tslist.get(i);
+		for (int its = 0; its < size; its++) {
+			ts = __tslist.get(its);
 			if ((ts == null) || (!_is_reference_graph && !ts.getEnabled())
-			    || (!_is_reference_graph && !isTSEnabled(i))) {
+			    || (!_is_reference_graph && !isTSEnabled(its))) {
 				continue;
 			}
 
-			if (_is_reference_graph && (i != _reference_ts_index)) {
+			if (_is_reference_graph && (its != _reference_ts_index)) {
 				// A reference graph but we have not found the reference time series yet.  We want the
 				// reference time series drawn in the same color as it occurs in the main graph.
 				if (Message.isDebugOn) {
-					Message.printDebug(1, routine, _gtype + "Skipping time series " + i);
+					Message.printDebug(1, routine, _gtype + "Skipping time series " + its);
 				}
 				continue;
 			}
 
 			// Draw each time series using the requested graph type.
-			// Currently the graph type will always be that of the product, but in the future
-			// may allow individual time series to have different graph types
-			drawTS ( i, ts, graphType );
+		    // Allow the individual time series graph type to be different from the main graph type
+			// TODO SAM 2010-11-22 Need to evaluate defaults/checks consistent with other code.
+		    TSGraphType tsGraphType = getTimeSeriesGraphType(graphType, its);
+			drawTS ( its, ts, tsGraphType );
 		}
 	}
+}
+
+/**
+Draw the time series graph for an "AreaStacked" graph.
+@param run-time overrideProps override properties for the graph
+*/
+private void drawGraphAreaStacked ()
+{
+    // Loop through the derived time series that have been previously produced.  Draw
+    // in the reverse order because the last time series should have the biggest values and be
+    // drawn at the back.
+    TSGraphType graphType = getGraphType();
+    // Note that that the derived list will contain time series that add to each other
+    // as well as individual time series that are not stacked.  Check the time series graph type
+    // to know what to do.
+    List<TS> derivedTSlist = getDerivedTSList();
+    // Also need the full list of time series, some of which may be drawn in addition to stacked area
+    // This list is actually iterated because the time series positions match those in the derived
+    // time series, for property purposes
+    List<TS> tslist = getTSList();
+    if ( derivedTSlist == null ) {
+        return;
+    }
+    int size = tslist.size();
+    TS ts = null;
+    for ( int its = size - 1; its >= 0; its-- ) {
+        ts = derivedTSlist.get(its);
+        if ( ts == null ) {
+            // No data to draw or this is not a stacked area time series
+            continue;
+        }
+        TSGraphType tsGraphType = getTimeSeriesGraphType ( graphType, its );
+        if ( tsGraphType == TSGraphType.AREA_STACKED ) {
+            drawTS(its, ts, TSGraphType.AREA_STACKED );
+        }
+    }
+    // TODO SAM 2010-11-22 Need to have property to draw on top or bottom - assume top
+    // Now also draw the other time series that may not be the same type
+    // Allow the individual time series graph type to be different from the main graph type
+    for ( int its = 0; its < size; its++ ) {
+        TSGraphType tsGraphType = getTimeSeriesGraphType ( graphType, its );
+        if ( tsGraphType != TSGraphType.AREA_STACKED ) {
+            drawTS ( its, tslist.get(its), tsGraphType );
+        }
+    }
 }
 
 /**
@@ -3214,7 +3343,8 @@ Draw the legend.  The drawing is the same regardless of the legend position (the
 legend items are draft from top to bottom).  This should work well for left,
 right, and bottom legends.  Additional logic may need to be implemented when the top legend is supported.
 */
-private void drawLegend () {
+private void drawLegend ()
+{   TSGraphType graphType = getGraphType();
 	if (_is_reference_graph) {
 		return;
 	}
@@ -3299,6 +3429,7 @@ private void drawLegend () {
 	TSRegression regressionData = null;
 
 	for (int i = 0; i < size; i++) {
+	    TSGraphType tsGraphType = getTimeSeriesGraphType(graphType, i);
 		predicted = false;
 
 		// Make sure that the legend is not drawing using negative data units.  If it is, then it will likely 
@@ -3429,7 +3560,8 @@ private void drawLegend () {
 		if ( (__graphType == TSGraphType.XY_SCATTER) && (i == 0) ) {
 			;// Do nothing.  Don't want the symbol (but do want the string label below
 		}
-		else if (__graphType == TSGraphType.BAR || __graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		else if ( (tsGraphType == TSGraphType.AREA) || (tsGraphType == TSGraphType.AREA_STACKED) ||
+		    (tsGraphType == TSGraphType.BAR) || (tsGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 			GRDrawingAreaUtil.fillRectangle ( da_legend, x[0], ylegend,(x[1] - x[0]), ydelta);
 		}
 		else {	
@@ -3477,8 +3609,6 @@ private void drawLegend () {
 		GRDrawingAreaUtil.drawText ( da_legend, " " + legend, x[1], ylegend, 0.0, GRText.LEFT|GRText.BOTTOM );
 		ylegend -= ydelta;
 	}
-	x = null;
-	y = null;
 }
 
 /**
@@ -3547,9 +3677,7 @@ private void drawTS ( int its, TS ts, TSGraphType graphType ) {
 }
 
 /**
-Draw a single time series.  This method is called for graph types TSProduct.GRAPH_TYPE_BAR,
-TSProduct.GRAPH_TYPE_LINE, TSProduct.GRAPH_TYPE_PERIOD.  Other graph types should
-use the individual drawing methods for those graph types.
+Draw a single time series.
 @param its the time series list position (0+, for retrieving properties and messaging)
 @param ts Single time series to draw.
 @param graphType the graph type to use for the time series
@@ -3563,7 +3691,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		return;
 	}
 	
-	if ( graphType == TSGraphType.AREA ) {
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ) {
 	    // Take a new approach for the area graph by having a separate method.  This will duplicate
 	    // some code, but the code below is getting too complex with multiple graph types handled
 	    // in the same code.
@@ -3870,7 +3998,6 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		DateTime date = null;
 
 		for ( int i = 0; i < nalltsdata; i++ ) {
-		
         	tsdata = (TSData)alltsdata.get(i);
         	date = tsdata.getDate();
         	if (date.greaterThan(end)) {
@@ -4448,7 +4575,9 @@ private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps )
 }
 
 /**
-Determine the current color used for drawing a time series.
+Determine the current color used for drawing a time series.  Important - this accesses the product
+properties, which must have handled null time series, because the null time series are retained in
+data for the graph to preserve positioning.
 @param its the time series list position (0+, for retrieving properties and messaging)
 @param overrideProps run-time override properties to consider when getting graph properties
 @param return the color that is set
@@ -4473,11 +4602,15 @@ is drawn if a missing value is encountered, the previous and current values have
 buffer is filled.
 @param its Counter for time series (starting at 0).
 @param ts Single time series to draw.
-@param graphType the graph type to use for the time series (may be needed for other calls)
+@param graphType the graph type to use for the time series (may be needed for other calls).
 @param overrideProps override run-time properties to consider when getting graph properties
 */
 private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, PropList overrideProps )
-{   String routine = "TSGraph.drawTSRenderAreaGraph";
+{   //String routine = "TSGraph.drawTSRenderAreaGraph";
+    if ( ts == null ) {
+        // No data for time series
+        return;
+    }
     // Generate the clipping area that will be set so that no data are drawn outside of the graph
     Shape clip = GRDrawingAreaUtil.getClip(_da_graph);
     GRDrawingAreaUtil.setClip(_da_graph, _da_graph.getDataLimits());
@@ -4573,8 +4706,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
                 xArray[arrayCount] = xArray[0];
                 yArray[arrayCount] = yArray[0];
                 ++arrayCount;
- 
-                Message.printStatus(2,routine,"Filling polygon with " + arrayCount + " points." );
+                //Message.printStatus(2,routine,"Filling polygon with " + arrayCount + " points." );
                 GRDrawingAreaUtil.fillPolygon(_da_graph, arrayCount, xArray, yArray );
             }
             if ( !haveMoreData ) {
@@ -4599,7 +4731,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
         if ( !yIsMissing ) {
             xArray[arrayCount] = x;
             yArray[arrayCount] = y;
-            Message.printStatus ( 2, routine, "Adding data point[" + arrayCount + "]: " + x + "," + y );
+            //Message.printStatus ( 2, routine, "Adding data point[" + arrayCount + "]: " + x + "," + y );
             arrayCount++;
         }
     }
@@ -4718,7 +4850,8 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		yt[1] = yt[0] + tic_height;
 		yt2[1] = yt2[0] + tic_height/2.0;
 	}
-	else {	tic_height = _data_limits.getHeight()*.02;
+	else {
+	    tic_height = _data_limits.getHeight()*.02;
 		yt[1] = yt[0] + tic_height;
 		yt2[1] = yt2[0] + tic_height/2.0;
 	}
@@ -4806,8 +4939,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
     						if (x < _data_limits.getMinX()){
     							continue;
     						}
-    						else if ( x >
-    							_data_limits.getMaxX()){
+    						else if ( x > _data_limits.getMaxX()){
     							continue;
     						}
     						xt2[0] = x;
@@ -4816,8 +4948,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
     					}
     				}
     				else {
-    				    // Have enough room for a minor tic mark
-    					// at 6 month interval...
+    				    // Have enough room for a minor tic mark at 6 month interval...
     					label_date = new DateTime ( date);
     					label_date.setPrecision ( DateTime.PRECISION_MONTH );
     					label_date.setMonth ( 1 );
@@ -4830,8 +4961,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
     					}
     				}
     			}
-    			else if ((year_increment == 5) &&
-    				(label_spacing > 50) ) {
+    			else if ((year_increment == 5) && (label_spacing > 50) ) {
     				// Have enough room for a minor tic mark every year...
     				label_date = new DateTime ( date);
     				// Work backwards...
@@ -4996,7 +5126,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 		//
 		// The top axis label is the day and the bottom label is YYYY-MM.  Additional criteria are:
 		//
-		// *	If the period allows all days to be labelled, do it
+		// *	If the period allows all days to be labeled, do it
 		// *	If not, try to plot even days.
 		// *	Then try every 7 days.
 		// Apparently "99" is not the widest string for fonts and picking other numbers or letters does not always
@@ -5312,9 +5442,6 @@ private void drawXYScatterPlot ()
 		Message.printDebug ( 1, routine, "Scatter data limits are " +
 		_data_limits.toString() );
 	}
-	if ( __tslist == null ) {
-		return;
-	}
 	TS ts0 = __tslist.get(0);
 	if ( ts0 == null) {
 		return;
@@ -5578,12 +5705,6 @@ private void drawXYScatterPlot ()
 					GRDrawingAreaUtil.drawPolyline ( _da_graph, iyci, xp2_sorted, yp2_sorted );
 				}
 			}
-			xp = null;
-			yp = null;
-			yp2 = null;
-			yp_sorted = null;
-			yp2_sorted = null;
-			sort_order = null;
 		}
 	
 		// Now draw the data only for months that have been analyzed...
@@ -5645,7 +5766,7 @@ private void drawXYScatterPlot ()
 			label_value_format = DataUnits.getOutputFormatString( label_units, 0, 4 );
 		}
 		date = new DateTime ( start );
-		for (	; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			// If drawing a line, only draw points that are appropriate for the line.  If not drawing the line
 			// of best fit, draw all available data...
 			if ( draw_line && !analyze_month[date.getMonth() - 1] ) {
@@ -5685,12 +5806,6 @@ private void drawXYScatterPlot ()
 			}
 		}
 	}
-	start = null;
-	end = null;
-	date = null;
-	ts0 = null;
-	ts = null;
-	plot_color = null;
 }
 
 /**
@@ -5830,18 +5945,27 @@ public GRLimits getDataLimits()
 }
 
 /**
-Returns a Vector of all the time series that are enabled.  This will never 
-return null.  If no time series are enabled, a new Vector will be returned.
+Return the derived time series list used for graphing.
+@param enabledOnly if true return only time series that are enabled.  If false, return all.
+@return the derived time series list being graphed.
+*/
+public List<TS> getDerivedTSList()
+{   return __derivedTSList;
+}
+
+/**
+Returns a list of all the time series that are enabled.  This will never 
+return null.  If no time series are enabled, an empty list will be returned.
 @return a list of all the time series that are enabled.
 */
-public List getEnabledTSList() {
+public List<TS> getEnabledTSList() {
 	if (__tslist == null || __tslist.size() == 0) {
 		return new Vector();
 	}
 
 	int size = __tslist.size();
 	String propValue = null;
-	List v = new Vector();
+	List<TS> v = new Vector();
 	for (int i = 0; i < size; i++) {
 		propValue = _tsproduct.getLayeredPropValue("Enabled", _subproduct, i, false);
 		if (propValue != null && propValue.equalsIgnoreCase("False")) {
@@ -6127,10 +6251,66 @@ public int getSubProductNumber ()
 }
 
 /**
-Return the time series list used for graphing.  Currently only the full list is returned.
+Get the time series graph type.  Determine from the TSProduct properties and if not set, return the
+graph type for the graph.
+ */
+private TSGraphType getTimeSeriesGraphType ( TSGraphType mainGraphType, int its )
+{
+    // Do not request the layered property here.  Ask for time series property explicitly
+    // and then set to the main graph type if no time series property
+    String graphTypeProp = _tsproduct.getLayeredPropValue ( "GraphType", _subproduct, its, false );
+    //Message.printStatus(2, "", "time series graph type is " + graphTypeProp );
+    TSGraphType tsGraphType = TSGraphType.valueOfIgnoreCase(graphTypeProp);
+    if ( tsGraphType == null ) {
+        tsGraphType = mainGraphType;
+    }
+    return tsGraphType;
+}
+
+/**
+Return the time series list used for graphing.
+@return the time series list being graphed.
 */
-public List getTSList()
+public List<TS> getTSList()
 {	return __tslist;
+}
+
+/**
+Return the time series list used for graphing.  Depending on the graph type, this may by the original
+time series, the derived time series list, or both.  This method should be called to get the time series
+that are actually drawn (with no need for further manipulation). This method is called by code that
+determines graph limits, although actually rendering code may take more care.
+@param enabledOnly if true, only return the list of enabled time series
+@return the time series list being rendered.
+*/
+private List<TS> getTSListToRender ( boolean enabledOnly )
+{   TSGraphType graphType = getGraphType ();
+    List<TS> tslist = null;
+    if ( enabledOnly ) {
+        // Render only the enabled time series
+        tslist = getEnabledTSList();
+    }
+    else {
+        // Render all time series
+        tslist = getTSList();
+    }
+    if ( graphType == TSGraphType.AREA_STACKED ) {
+        // Return the derived time series list and the time series not in this list
+        List<TS> tsToRender = new Vector();
+        tsToRender.addAll(getDerivedTSList());
+        // Now loop through and add the additional time series
+        int size = tslist.size();
+        for ( int its = 0; its < size; its++ ) {
+            TSGraphType tsGraphType = getTimeSeriesGraphType(graphType, its);
+            if ( tsGraphType != graphType ) {
+                tsToRender.add ( tslist.get(its) );
+            }
+        }
+        return tsToRender;
+    }
+    else {
+        return tslist;
+    }
 }
 
 /**
@@ -6143,8 +6323,7 @@ event should impact this TSGraph.
 public boolean graphContains ( GRPoint devpt )
 {	// The check MUST be done in device units because more than one graph may share the same device units...
 	// be able to optimize this when there is time.
-	return _da_graph.getPlotLimits(
-		GRDrawingArea.COORD_DEVICE).contains ( devpt);
+	return _da_graph.getPlotLimits(GRDrawingArea.COORD_DEVICE).contains ( devpt);
 }
 
 /**
@@ -6397,7 +6576,7 @@ public void paint ( Graphics g )
 	}
 	if ( need_to_analyze ) {
 		// Redo the analysis...
-		doAnalysis();
+		doAnalysis(getGraphType());
 		// This is the place where the reference graph has its data set.
 	}
 	__lastGraphType = __graphType;
@@ -6459,7 +6638,6 @@ public void paint ( Graphics g )
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "...done painting TSGraph." );
 	}
-	routine = null;
 }
 
 /**
@@ -6518,12 +6696,13 @@ public void setDataLimits ( GRLimits datalim_graph )
 		}
 		try {
 		    // Recompute the limits, based on the period and data values...
-			if (getEnabledTSList().size() == 0) {
+			if ( getTSListToRender(true).size() == 0) {
 				_tslimits = null;
 				return;
 			}
 			else {
-				_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
+				//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
+			    _tslimits = TSUtil.getDataLimits( getTSListToRender(true), _start_date, _end_date, "", false, _ignore_units);
 
 				if (__graphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
@@ -6545,7 +6724,7 @@ public void setDataLimits ( GRLimits datalim_graph )
 		}
 		// This will set _datalim_graph.  The Y limits are computed from
 		// the max data limits.  The X limits are computed from _start_date and _end_date...
-		if (getEnabledTSList().size() > 0) {
+		if ( getTSListToRender(true).size() > 0) {
 			computeLabels ( _tslimits );
 			_da_graph.setDataLimits ( _data_limits );
 		}
@@ -6554,6 +6733,14 @@ public void setDataLimits ( GRLimits datalim_graph )
 		Message.printDebug(1, "setDataLimits", _gtype + "After reset, [" +_subproduct 
 			+ "] _data_limits are " + datalim_graph );
 	}
+}
+
+/**
+Set the derived time series list.
+*/
+private void setDerivedTSList ( List<TS> derivedTSList )
+{
+    __derivedTSList = derivedTSList;
 }
 
 /**
@@ -7226,8 +7413,7 @@ visible window using a DateTime range with a precision that matches the smallest
 data interval.  Time series that use dates that are less precise may be able to
 simply reset the more precise DateTime to a lower precision.  However, it may
 also be necessary for calling code to decrement the returned DateTime by an
-interval to make sure that a complete overlapping period is considered during
-iteration.
+interval to make sure that a complete overlapping period is considered during iteration.
 
 Time series that use higher precision DateTimes also need to check the candidate
 DateTime for offsets.  For example, the candidate DateTime may have a precision
