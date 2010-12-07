@@ -398,7 +398,7 @@ private GRLimits _printBounds = null;		// Set with update.  Useful for
 
 private JFrame _parent = null;			// Parent JFrame
 
-private List _tsgraphs = new Vector();	// Vector of TSGraph.
+private List<TSGraph> _tsgraphs = new Vector();	// Vector of TSGraph.
 						// Allocate so don't have to
 						// checked for null repeatedly.
 
@@ -466,7 +466,7 @@ static {
 /**
 Construct a TSGraphJComponet and display the time series.
 @param parent Parent Frame object (often a TSViewGraphJFrame).
-@param tslist Vector of time series to graph.
+@param tslist list of time series to graph.
 @param props Properties to control display of time series.  Most of these
 properties are documented in TSViewJFrame, with the following additions:
 ReferenceGraph can be set to "true" or "false" to indicate whether the graph is
@@ -479,8 +479,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 	_force_redraw = true;
 	_parent = parent;
 	_tslist = tslist;
-	// Convert the old-style PropList to a TSProduct instance.  This also
-	// fills _display_props...
+	// Convert the old-style PropList to a TSProduct instance.  This also fills _display_props...
 	_tsproduct = createTSProductFromPropList ( props, tslist );
 	checkDisplayProperties ( _display_props );
 	_tsproduct.checkProperties();
@@ -488,8 +487,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 	// information is used to create the TSGraph instances...
 	double height = 400.0, width = 400.0;
 
-	String prop_val = _tsproduct.getLayeredPropValue (
-				"TotalHeight", -1, -1, false );
+	String prop_val = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
 	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
 		height = StringUtil.atod(prop_val);
 	}
@@ -504,13 +502,9 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 		setPreferredSize ( new Dimension((int)width, (int)height) );
 	}
 	
-	// Now create the TSGraph instances that will manage the
-	// individual graphs...
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct,
-						_display_props,
-						tslist,
-						new GRLimits(
-						0.0,0.0,width,height) );
+	// Now create the TSGraph instances that will manage the individual graphs...
+	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _display_props,
+		tslist, new GRLimits(0.0,0.0,width,height) );
 	checkTSProductGraphs ( _tsproduct, _tsgraphs );
 	// Open the drawing areas with initial limits...
 	openDrawingAreas ();
@@ -533,8 +527,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 Construct a TSGraphJComponent and display the time series.
 @param parent Parent JFrame object (often a TSViewGraphGUI).
 @param tsproduct TSProduct describing the graph(s).
-The following override properties can be set in the TSProduct to affect this
-graph component.
+The following override properties can be set in the TSProduct to affect this graph component.
 @param display_props Display properties that control the display and which are
 separate from the TSProduct.  Valid properties include those described below.
 ReferenceGraph can be set to "true" or "false" to indicate whether the graph is
@@ -542,21 +535,18 @@ a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct,
-				PropList display_props )
+public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct, PropList display_props )
 {	super ( "TSGraphJComponent" );
 	String routine = "TSGraphJComponent";
 	_force_redraw = true;
 	_parent = parent;
-	_tslist = tsproduct.getTSList();// Do this for now.  Later remove
-					// _tslist
+	_tslist = tsproduct.getTSList();// Do this for now.  Later remove _tslist
 	_display_props = display_props;
 	if ( _display_props == null ) {
 		_display_props = new PropList ( "display" );
 	}
 	if ( (_tslist == null) || (_tslist.size() == 0) ) {
-		Message.printWarning ( 2, routine,
-		"Time series list is null.  Product will be empty." );
+		Message.printWarning ( 2, routine, "Time series list is null.  Product will be empty." );
 	}
 	checkDisplayProperties ( _display_props );
 	_tsproduct = tsproduct;
@@ -565,8 +555,7 @@ public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct,
 	// because this information is used to create the TSGraph instances...
 	double height = 400.0, width = 400.0;
 
-	String prop_val = _tsproduct.getLayeredPropValue (
-				"TotalHeight", -1, -1, false );
+	String prop_val = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
 	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
 		height = StringUtil.atod(prop_val);
 	}
@@ -582,13 +571,9 @@ public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct,
 	// Now create the TSGraph instances that will manage the
 	// individual graphs.  The limits of the graphs will not be correct
 	// because the titles, etc., have not been considered.  The limits will
-	// be reset in the first paint() method call and every resize after
-	// that.
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct,
-						_display_props,
-						_tslist,
-						new GRLimits(
-						0.0,0.0,width,height) );
+	// be reset in the first paint() method call and every resize after that.
+	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _display_props, _tslist,
+		new GRLimits( 0.0,0.0,width,height) );
 	checkTSProductGraphs ( _tsproduct, _tsgraphs );
 
 	// Open the drawing areas with initial limits...
@@ -625,14 +610,13 @@ public void addTSViewListener ( TSViewListener listener )
 			_listeners[0] = listener;
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 10,
-				_gtype + "TSGraphJComponent.addTSViewListener",
-				"Added TSViewListener" );
+				_gtype + "TSGraphJComponent.addTSViewListener", "Added TSViewListener" );
 			}
 		}
-		else {	// Need to resize and transfer the list...
+		else {
+		    // Need to resize and transfer the list...
 			int size = _listeners.length;
-			TSViewListener [] newlisteners =
-				new TSViewListener[size + 1];
+			TSViewListener [] newlisteners = new TSViewListener[size + 1];
 			for ( int i = 0; i < size; i++ ) {
 				newlisteners[i] = _listeners[i];
 			}
@@ -646,8 +630,7 @@ public void addTSViewListener ( TSViewListener listener )
 /**
 Indicate whether a reference graph would be useful, based on the graphs that
 are shown.  This is called by TSViewGraphJFrame to let it decide whether to
-display a reference graph.  This method does not currently evaluate the zoom
-group property.
+display a reference graph.  This method does not currently evaluate the zoom group property.
 @return true if at least one graph allows zooming.
 */
 public boolean canUseReferenceGraph()
@@ -658,16 +641,14 @@ public boolean canUseReferenceGraph()
 Indicate whether enabling zoom should occur.  This will be the case if any of
 the graphs can zoom.  Later, may allow completely if we figure out how
 to zoom scatter, duration, etc.
-This is called by TSViewGraphJFrame to let it decide whether to enable the zoom
-button.
+This is called by TSViewGraphJFrame to let it decide whether to enable the zoom button.
 @return true if at least one graph allows zooming.
 */
 public boolean canUseZoom()
 {	int size = _tsgraphs.size();
 	String prop_value;
 	for ( int i = 0; i < size; i++ ) {
-		prop_value = _tsproduct.getLayeredPropValue (
-				"ZoomEnabled", i, -1, false );
+		prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", i, -1, false );
 		if ( prop_value.equalsIgnoreCase("true") ) { 
 			return true;
 		}
@@ -695,13 +676,10 @@ private void checkDisplayProperties ( PropList display_props )
 	if ( _external_Image == null ) {
 		// Don't want to reset if already reset when converted from a
 		// PropList - need to clean this up?
-		_external_Image = 
-			(BufferedImage)display_props.getContents("Image");
+		_external_Image = (BufferedImage)display_props.getContents("Image");
 		if ( _external_Image != null ) {
-			Message.printDebug( 1, "", _gtype +
-			"Using external Image for drawing." );
-			// Disable reference time series (don't want labels in
-			// legend).
+			Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
+			// Disable reference time series (don't want labels in legend).
 			display_props.set ( "ReferenceTSIndex=" + -1 );
 		}
 	}
@@ -739,7 +717,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 		prop_val = tsproduct.getLayeredPropValue ( "GraphType", isub, -1, false );
 		if ( prop_val == null ) {
 			prop_val = "Line";
-			tsproduct.setPropValue ( "GraphType", "Line", isub, -1);
+			tsproduct.setPropValue ( "GraphType", prop_val, isub, -1);
 		}
 		graphType = TSGraphType.valueOfIgnoreCase( prop_val);
 
@@ -775,7 +753,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 
 		// "LeftYAxisTitleString" - depends on graph type and units...
 
-		// REVISIT SAM 2006-09-28
+		// TODO SAM 2006-09-28
 		// Why was the following always evaluated as true in previous
 		// code with 1 == 1?  Was this a work-around for some other
 		// problem.  Need to evaluate further when regression tests are in place.
@@ -861,8 +839,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 			}
 		}
 
-		// "LeftYAxisLabelPrecision" - DO THIS AFTER
-		// "LeftYAxisUnits"
+		// "LeftYAxisLabelPrecision" - DO THIS AFTER "LeftYAxisUnits"
 
 		if ( tsproduct.getLayeredPropValue("LeftYAxisLabelPrecision", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
@@ -948,28 +925,23 @@ area is divided among the individual graphs.
 @return List of TSGraph to use when drawing.  The Vector is
 guaranteed to be non-null but may contain zero graphs.
 */
-private List createTSGraphsFromTSProduct (	TSProduct tsproduct,
-						PropList display_props,
-						List tsproduct_tslist,
-						GRLimits drawlim_graphs )
+private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display_props,
+	List tsproduct_tslist, GRLimits drawlim_graphs )
 {	String routine = "TSGraphJComponent.createTSGraphsFromTSProduct";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "Creating graphs from TSProduct" );
 	}
-	// XJTSX
-	// change the false parameter from "true"
 	int nsubs = tsproduct.getNumSubProducts( false );
 	if ( nsubs == 0 ) {
-		// Return an empty Vector (should not happen)
+		// Return an empty list (should not happen)
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			_gtype + "Created 0 graphs from TSProduct (no enabled subproducts " + "defined)" );
+			_gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)" );
 		}
 		return new Vector ( 1 );
 	}
 
-	// For now, assume that graphs will be listed vertically with the
-	// first one on top.
+	// For now, assume that graphs will be listed vertically with the first one on top.
 
 	// Loop through the number of graphs and create a TSGraph for each one.
 	// For each TSID, locate the time series in the supplied time series
@@ -985,7 +957,7 @@ private List createTSGraphsFromTSProduct (	TSProduct tsproduct,
 		height = drawlim_graphs.getHeight();
 	}
 	GRLimits drawlim = null;
-	List tslist = null;
+	List<TS> tslist = null;
 	int nts = 0;
 	if ( tsproduct_tslist != null ) {
 		nts = tsproduct_tslist.size();
@@ -1008,12 +980,10 @@ private List createTSGraphsFromTSProduct (	TSProduct tsproduct,
 		StringUtil.atoi ( prop_value );
 	}
 	
-	// Indicate the subproduct that will be used to get reference graph
-	// information...
+	// Indicate the subproduct that will be used to get reference graph information...
 	_reference_sub = -1;
 
-	// Reset nsubs to all the products (even disabled, so that the product
-	// indexes work out)...
+	// Reset nsubs to all the products (even disabled, so that the product indexes work out)...
 	nsubs = tsproduct.getNumSubProducts();
 	String TSID_prop_val;		// To hold value of TSID
 	boolean check_input;		// Indicates whether to check the input
@@ -1268,7 +1238,8 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 	if ( prop_val != null ) {
 		tsproduct.setPropValue ( "GraphType", prop_val, 0, -1 );
 	}
-	else {	// Default...
+	else {
+	    // Default...
 		tsproduct.setPropValue ( "GraphType", "Line", 0, -1 );
 	}
 
@@ -2590,14 +2561,12 @@ public void paint ( Graphics g )
 	//
 	// * not double buffering (redraw every time)
 	// * a draw is forced (because of changes in the views)
-	// * printing has been requested (and need to redraw given page
-	//   extents, etc.)
+	// * printing has been requested (and need to redraw given page extents, etc.)
 	// * double-buffering is on and a resize has occurred.
 
 	if ( _force_redraw || _printing || __paintForSVG || !_double_buffering || resizing ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			_gtype + "Drawing graph (_force_redraw=" +
+			Message.printDebug ( 1, routine, _gtype + "Drawing graph (_force_redraw=" +
 			_force_redraw + " resizing=" + resizing + ")..." );
 		}
 		try {
@@ -2616,8 +2585,7 @@ public void paint ( Graphics g )
 			drawTitles ();
 			drawFooters ();
 			if ( IOUtil.testing() ) {
-				// Comment out unless we are reworking something
-				//drawDrawingAreas();
+				// Comment out unless we are reworking something drawDrawingAreas();
 			}
 			// Now loop through and draw each graph on the page.
 			// Only graph enabled subproducts and if a reference
@@ -2626,8 +2594,7 @@ public void paint ( Graphics g )
 			TSGraph tsgraph;
 			String prop_val;
 			for ( int isub = 0; isub < size; isub++ ) {
-				// If the graph is disabled, do not even
-				// draw...
+				// If the graph is disabled, do not even draw...
 				prop_val = _tsproduct.getLayeredPropValue ( "Enabled", isub, -1, false );
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( 1, "", _gtype + "Graph ["+ isub + "] is " + prop_val );
@@ -2638,15 +2605,13 @@ public void paint ( Graphics g )
 				if ( _is_reference_graph &&	(isub != _reference_sub) ) {
 					continue;
 				}
-				tsgraph = (TSGraph)_tsgraphs.get(isub);
+				tsgraph = _tsgraphs.get(isub);
 				if ( tsgraph == null ) {
 					continue;
 				}
 				// Debug whether graphs are enabled...
-				//Message.printStatus ( 1, "", _gtype +
-				// "Graph ["+ isub + "] is " +
-				// _tsproduct.getLayeredPropValue(
-				//"MainTitleString", isub, -1, false) );
+				//Message.printStatus ( 1, "", _gtype + "Graph ["+ isub + "] is " +
+				// _tsproduct.getLayeredPropValue("MainTitleString", isub, -1, false) );
 				tsgraph.paint ( _graphics );
 				if (_is_reference_graph) {
 					continue;
@@ -2656,8 +2621,9 @@ public void paint ( Graphics g )
 		}
 		catch ( Exception e ) {
 			JGUIUtil.setWaitCursor(_parent, false );
-			Message.printWarning ( 1, routine, "Error drawing graph(s)." );
-			Message.printWarning ( 2, routine, e );
+			// FIXME SAM 2010-11-29 Changing to level 1 and drawing the dialog causes a TSTool crash in some cases
+			Message.printWarning ( 2, routine, "Error drawing graph(s) (" + e + ")." );
+			Message.printWarning ( 3, routine, e );
 		}
 		_force_redraw = false;
 	}
@@ -2680,7 +2646,7 @@ public void paint ( Graphics g )
 
 	} // Main try wrapped around entire method.
 	catch ( Exception e ) {
-		Message.printWarning ( 2, _gtype + routine, e );
+		Message.printWarning ( 3, _gtype + routine, e );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "...done painting TSGraphJComponent." );
@@ -3007,8 +2973,7 @@ the JFrame, in the layout component, and possibly in other places, it's safest
 to simply re-read the properties and rebuild all the graphs completely when 
 major changes occur.
 @param product the TSProduct from which to read TSGraph information.  This will
-most likely be the product that's already resident in memory, but not 
-necessarily. 
+most likely be the product that's already resident in memory, but not necessarily. 
 */
 public void reinitializeGraphs(TSProduct product) {
 	// if any graphs lack start and end dates (i.e., they're brand new
@@ -3024,7 +2989,7 @@ public void reinitializeGraphs(TSProduct product) {
 	// Find the latest end date and the earliest start date from the graphs.
 
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = (TSGraph)_tsgraphs.get(i);
+		g = _tsgraphs.get(i);
 		if (g.getEndDate() != null) {
 			temp = g.getEndDate();
 			if (end == null || end.lessThanOrEqualTo(temp)) {
@@ -3089,7 +3054,7 @@ public void reinitializeGraphs(TSProduct product) {
 	// dates are set from the current graph dates (above).
 	
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = (TSGraph)_tsgraphs.get(i);
+		g = _tsgraphs.get(i);
 		if (!g.isReferenceGraph()) {
 			g.setEndDate(end);
 			g.setMaxEndDate(maxEnd);
