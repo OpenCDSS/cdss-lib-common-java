@@ -649,50 +649,52 @@ throws Exception
 {	String message, routine = "TSViewJFrame.initialize";
 
 	try {
-	//_parent = parent;
-		/* TODO SAM 2009-04-16 - allow no time series to be more flexible
-	if ( tslist == null ) {
-		// Cannot continue, we need a TS list...
-		throw new Exception ( "No time series to view." );
-	}
-	if ( tslist.size() == 0 ) {
-		// Cannot continue, we need a TS list...
-		throw new Exception ( "No time series to view." );
-	}
-	*/
-	_tslist = tslist;
-	if ( proplist == null ) {
-		// That is ok, create a new one...
-		_props = new PropList ( "TSView.Defaults" );
-	}
-	else {	// Use what was supplied...
-		_props = proplist;
-	}
-
-	// Check the proplist for the initial view...
-
-	String prop_value = null;
-	if ( _tsproduct == null ) {
-		prop_value = _props.getValue ( "InitialView" );
-		//Message.printStatus ( 1, "","InitialView from PropList is \""+ prop_value + "\"" );
-	}
-	else {	prop_value = _tsproduct.getPropValue ( "InitialView" );
-		//Message.printStatus ( 1,"","InitialView from TSProduct is \""+prop_value + "\"" );
-	}
-	if ( prop_value == null ) {
-		// Default to summary...
-		openGUI ( SUMMARY );
-	}
-	else if ( prop_value.equalsIgnoreCase("Graph") ) {
-		openGUI ( GRAPH );
-	}
-	else if ( prop_value.equalsIgnoreCase("Table") ) {
-		openGUI ( TABLE );
-	}
-	else {
-		// Default to summary...
-		openGUI ( SUMMARY );
-	}
+    	//_parent = parent;
+    	/* TODO SAM 2009-04-16 - allow no time series to be more flexible
+    	if ( tslist == null ) {
+    		// Cannot continue, we need a TS list...
+    		throw new Exception ( "No time series to view." );
+    	}
+    	if ( tslist.size() == 0 ) {
+    		// Cannot continue, we need a TS list...
+    		throw new Exception ( "No time series to view." );
+    	}
+    	*/
+    	_tslist = tslist;
+    	if ( proplist == null ) {
+    		// That is ok, create a new one...
+    		_props = new PropList ( "TSView.Defaults" );
+    	}
+    	else {
+    	    // Use what was supplied...
+    		_props = proplist;
+    	}
+    
+    	// Check the proplist for the initial view...
+    
+    	String prop_value = null;
+    	if ( _tsproduct == null ) {
+    		prop_value = _props.getValue ( "InitialView" );
+    		//Message.printStatus ( 1, "","InitialView from PropList is \""+ prop_value + "\"" );
+    	}
+    	else {
+    	    prop_value = _tsproduct.getPropValue ( "InitialView" );
+    		//Message.printStatus ( 1,"","InitialView from TSProduct is \""+prop_value + "\"" );
+    	}
+    	if ( prop_value == null ) {
+    		// Default to summary...
+    		openGUI ( SUMMARY );
+    	}
+    	else if ( prop_value.equalsIgnoreCase("Graph") ) {
+    		openGUI ( GRAPH );
+    	}
+    	else if ( prop_value.equalsIgnoreCase("Table") ) {
+    		openGUI ( TABLE );
+    	}
+    	else {
+    		// Default to summary...
+    		openGUI ( SUMMARY );
+    	}
 	}
 	catch ( Exception e ) {
 		message = "Unable to open time series view.";
