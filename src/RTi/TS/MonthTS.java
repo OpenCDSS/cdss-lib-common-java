@@ -1508,7 +1508,7 @@ protected int [] getDataPosition ( DateTime date )
 	if ( (amon < _min_amon) || (amon > _max_amon) ) {
 		// Print within debug to optimize performance...
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "MonthTS.getDataPosition", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 50, "MonthTS.getDataPosition", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return null;
 	}
@@ -1545,7 +1545,7 @@ public double getDataValue( DateTime date )
 	if ( (amon < _min_amon) || (amon > _max_amon) ) {
 		// Print within debug to optimize performance...
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "MonthTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 50, "MonthTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return _missing;
 	}
@@ -1717,7 +1717,7 @@ public void setDataValue( DateTime date, double value )
 	if ( (amon < _min_amon) || (amon > _max_amon) ) {
 		// Print within debug to optimize performance...
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "MonthTS.setDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 50, "MonthTS.setDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return;
 	}
@@ -1760,7 +1760,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	if ( (amon < _min_amon) || (amon > _max_amon) ) {
 		// Print within debug to optimize performance...
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "MonthTS.setDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 50, "MonthTS.setDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return;
 	}
