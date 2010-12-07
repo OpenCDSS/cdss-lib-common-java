@@ -899,7 +899,9 @@ throws Exception
 {
     // Write the heading for the time series
     
-    html.heading (2, "Time series " + ts.getIdentifier() + " (" + ts.getDescription() + ")", "ts" + count);
+    html.heading (2, "Time series alias: \"" + ts.getAlias() + "\", identifier: \"" + ts.getIdentifier() +
+        "\", description: \"" + ts.getDescription() + "\"",
+        "ts" + count); // tag for navigation to this point
     
     // Determine the precision for output
     
