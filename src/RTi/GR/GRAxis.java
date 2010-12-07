@@ -100,7 +100,9 @@ Label an axis given a list of floating point numbers
 @param xl Coordinates of labels.
 @param ref Reference coordinate for axis (in plane of axis).
 @param axis Indicates which axis is being plotted (X or Y).
-@param req_format Format for labels (if null, %g is used).
+@param req_format Format for labels for the StringUtil.formatString() method (if null, %g is used).
+If the label value is less than the precision, label with more precision.  Otherwise, for example,
+the graph will have duplicate labels like "0", "0" for small numbers.
 @param tflag Text attributes flag for labels (see GRText).
 */
 public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double ref, int axis, String req_format,
@@ -109,18 +111,6 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 		iplot; // Indicates which value to plot (depends on whether GRText.REVERSE_LABELS is specified).
 	String default_format = "%g", format = null, routine = "GRAxis.labelAxis", string;
 	int	tflag2;
-
-	// Figure out the format...
-
-	if ( req_format == null) {
-		format = default_format;
-	}
-	else if ( req_format.equals("") ) {
-		format = default_format;
-	}
-	else {
-	    format = req_format;
-	}
 
 	// Always assume that we are plotting in the following order:
 	//
@@ -154,7 +144,25 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 		    // The labels ARE specified from bottom to top or left to right...
 			iplot = i;
 		}
+		// Figure out the format...
+	    if ( req_format == null) {
+	        format = default_format;
+	    }
+	    else if ( req_format.equals("") ) {
+	        format = default_format;
+	    }
+	    else {
+	        format = req_format;
+	    }
 		string = StringUtil.formatString(xl[iplot],format);
+	    // If necessary, adjust the format in case the number is too small to be visible as formatted
+		// For example, a label of .0015
+		/* FIXME SAM 2010-11-29 Need to consider not only this value but adjoining to make sure that the
+		 * label is unique.  This is tricky because adjoining labels should be different, but has the code
+		 * been tested for the same values for all labels?
+        int digits = (int)Math.log10(Math.abs((xl[iplot])));
+        int pos = string.indexOf(".");
+        */
 		tflag2 = tflag;
 		if ( (axis & X) != 0 ) {
 			if ( (tflag & GRText.SHIFT_ENDS) != 0 ) {
