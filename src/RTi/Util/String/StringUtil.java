@@ -764,7 +764,8 @@ This method can be used to read integers and floating point numbers from a
 string containing fixed-format information.
 @return A List of objects that are read from the string according to the
 specified format described below.  Integers are returned as Integers, doubles
-as Doubles, etc.  Blank "x" fields are not returned.
+as Doubles, etc.  Blank "x" fields are not returned (therefore the list of returned
+objects has a size of all non-x formats).
 @param string String to parse.
 @param format Format to use for parsing, as shown in the following table.
 An example is: "i5f10x3a10", or in general
@@ -1051,6 +1052,7 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 		//    most atomic objects can be instantiated from a
 		//    String but not a StringBuffer.
 		// 2. Add to the list.
+		//Message.printStatus ( 2, "", "String to convert to object is \"" + var + "\"" );
 		if ( dtype == StringUtil.TYPE_CHARACTER ) {
 			tokens.add ( new Character(var.charAt(0)) );
 		}
