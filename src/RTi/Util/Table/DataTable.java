@@ -87,10 +87,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.IO.HTMLWriter;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
@@ -1973,6 +1975,109 @@ throws Exception
 }
 
 /**
+Formats a table to an HTML string.  This currently is used only by writeHtmlFile().
+@param writeHeader If true, the field names will be read from the fields 
+and written as a one-line header of field names.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments.
+@throws Exception if an error occurs.
+*/
+private String toHtml( boolean writeHeader, List<String> comments )
+throws Exception
+{
+    String routine = "DataTable.toHtml";
+    // Create an HTML writer
+    String htmlTitle = "";
+    HTMLWriter html = new HTMLWriter( null, htmlTitle, false );
+    // Start the file and write the head section
+    html.htmlStart();
+    if ( htmlTitle == null ) {
+        htmlTitle = "Time Series Summary";
+    }
+    writeHtmlHead(html,htmlTitle);
+    // Start the body section
+    html.bodyStart();
+    // Put the standard header at the top of the file
+    //IOUtil.printCreatorHeader ( out, "#", 80, 0 );
+    // If any comments have been passed in, print them at the top of the file
+    /* TODO SAM 2010-12-07 Add comments later - they are messing with formatting
+    if ( comments != null ) {
+        html.commentStart();
+        html.write( "Comments:\n" );
+        for ( String comment: comments ) {
+            html.write( html.encodeHTML(comment) + "\n" );
+        }
+        html.commentEnd();
+    }
+    */
+
+    int nCols = getNumberOfFields();
+    if (nCols == 0) {
+        Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
+    }
+    else {
+        StringBuffer line = new StringBuffer();
+    
+        int nonBlank = 0; // Number of nonblank table headings
+        html.tableStart();
+        if (writeHeader) {
+            // First determine if any headers are non blank
+            /*
+            for (int col = 0; col < cols; col++) {
+                if ( getFieldName(col).length() > 0 ) {
+                    ++nonBlank;
+                }
+            }
+            if ( nonBlank > 0 ) {
+                out.println ( "# Column headings are first line below, followed by data lines.");
+                line.setLength(0);
+                for (int col = 0; col < (cols - 1); col++) {
+                    line.append( "\"" + getFieldName(col) + "\"" + delimiter);
+                }
+                line.append( "\"" + getFieldName((cols - 1)) + "\"");
+                out.println(line);
+            }
+            */
+            html.tableRowStart();
+            String [] tableHeaders = new String[nCols];
+            for ( int i = 0; i < nCols; i++ ) {
+                tableHeaders[i] = getFieldName(i);
+            }
+            html.tableHeaders( tableHeaders );
+            html.tableRowEnd();
+        }
+        
+        int rows = getNumberOfRecords();
+        String cell;
+        int tableFieldType;
+        int precision;
+        for (int row = 0; row < rows; row++) {
+            html.tableRowStart();
+            for (int col = 0; col < nCols; col++) {
+                tableFieldType = getTableFieldType(col);
+                precision = getFieldPrecision(col);
+                if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
+                    (tableFieldType == TableField.DATA_TYPE_DOUBLE)) && (precision > 0) ) {
+                    // Format according to the precision if floating point
+                    cell = StringUtil.formatString(getFieldValue(row,col),"%." + precision + "f");
+                }
+                else {
+                    // Use default formatting.
+                    cell = "" + getFieldValue(row,col);
+                }
+                html.tableCell(cell);
+            }
+            html.tableRowEnd();
+        }
+        html.tableEnd();
+    }
+    html.bodyEnd();
+    html.htmlEnd();
+    html.closeFile();
+    return html.getHTML();
+}
+
+/**
 Set whether strings should be trimmed at read.
 @param trim_strings If true, strings will be trimmed at read.
 @return Boolean value indicating whether strings should be trimmed, after reset.
@@ -2094,6 +2199,99 @@ throws Exception {
     	out.flush();
     	out.close();
 	}
+}
+
+// TODO SAM 2010-12-07 Evaluate passing in styles - for now just pick some defaults
+/**
+Writes a table to an HTML file.
+@param filename the file to write to.
+@param writeHeader If true, the field names will be read from the fields 
+and written as a one-line header of field names.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments.
+@throws Exception if an error occurs.
+*/
+public void writeHtmlFile(String filename, boolean writeHeader, List<String> comments )
+throws IOException, Exception
+{
+    String routine = "DataTable.writeHtmlFile";
+    
+    if ( filename == null ) {
+        Message.printWarning ( 2, routine, "Cannot write to null file.");
+        throw new InvalidParameterException("Cannot write to null file.");
+    }
+        
+    PrintWriter out = null;
+    try {
+        out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
+        out.print( toHtml(writeHeader, comments) );
+    }
+    finally {
+        if ( out != null ) {
+            out.close();
+        }
+    }
+}
+
+/**
+Writes the start tags for the HTML check file.
+@param html HTMLWriter object.
+@param title title for the document.
+@throws Exception
+*/
+private void writeHtmlHead( HTMLWriter html, String title ) throws Exception
+{
+    if ( html != null ) {
+        html.headStart();
+        html.title(title);
+        writeHtmlStyles(html);
+        html.headEnd();
+    }
+}
+
+/**
+Inserts the style attributes for a time series summary.
+This was copied from the TSHtmlFormatter since tables are used with time series also.
+@throws Exception
+ */
+private void writeHtmlStyles(HTMLWriter html)
+throws Exception
+{
+    html.write("<style>\n"
+        + "@media screen {\n"
+        + "#titles { font-weight:bold; color:#303044 }\n"
+        + "table { background-color:black; text-align:left; border:1; bordercolor:black; cellspacing:1; cellpadding:1 }\n"  
+        + "th { background-color:#333366; text-align:center; vertical-align:bottom; color:white }\n"
+        + "tr { valign:bottom; halign:right }\n"
+        + "td { background-color:white; text-align:right; vertical-align:bottom; font-style:normal; " +
+                "font-family:courier; font-size:.75em }\n" 
+        + "body { text-align:left; font-size:12pt; }\n"
+        + "pre { font-size:12pt; margin: 0px }\n"
+        + "p { font-size:12pt; }\n"
+        + "/* The following controls formatting of data values in tables */\n"
+        + ".flagcell { background-color:lightgray; }\n"
+        + ".missing { background-color:yellow; }\n"
+        + ".flag { vertical-align: super; }\n"
+        + ".flagnote { font-style:normal; font-family:courier; font-size:.75em; }\n"
+        + "}\n"
+        + "@media print {\n"
+        + "#titles { font-weight:bold; color:#303044 }\n"
+        + "table { border-collapse: collapse; background-color:white; text-align:left; border:1pt solid #000000; cellspacing:2pt; cellpadding:2pt }\n"  
+        + "th { background-color:white; text-align:center; vertical-align:bottom; color:black }\n"
+        + "tr { valign:bottom; halign:right;  }\n"
+        + "td { background-color:white; border: 1pt solid #000000; text-align:right; vertical-align:bottom; font-style:normal; " +
+                "font-family:courier; font-size:11pt; padding: 2pt; }\n" 
+        + "body { text-align:left; font-size:11pt; }\n"
+        + "pre { font-size:11pt; margin: 0px }\n"
+        + "p { font-size:11pt; }\n"
+        + "/* The following controls formatting of data values in tables */\n"
+        + ".flagcell { background-color:lightgray; }\n"
+        + ".missing { background-color:yellow; }\n"
+        + ".flag { vertical-align: super; }\n"
+        + ".flagnote { font-style:normal; font-family:courier; font-size:11pt; }\n"
+        + "}\n"
+        + "}\n"
+        + "</style>\n");
 }
 
 }
