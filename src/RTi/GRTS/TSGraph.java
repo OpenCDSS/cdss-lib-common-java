@@ -2407,10 +2407,11 @@ private void doAnalysis ( TSGraphType graphType )
 			try {
 			    regressionData = new TSRegression ( ts, ts0,
 			            analyzeForFilling,
-			            null, // Don't specify the confidence level
 			            analysisMethod,
 			            intercept, numberOfEquations, analysisMonths,
 			            transformation,
+			            null, // Default value for <= 0 data value when log transform
+	                    null, // Don't specify the confidence interval
 			            dependentAnalysisStart, dependentAnalysisEnd,
 			            independentAnalysisStart, independentAnalysisEnd,
 			            fillStart, fillEnd );
@@ -2484,12 +2485,13 @@ private void doAnalysis ( TSGraphType graphType )
 			    // properties interface
 				regressionData = new TSRegression( ts0, ts,
 				    false, // Analyze for filling
-				    null, // Don't specify the confidence level
 				    RegressionType.MOVE2,
                     null, // intercept
                     NumberOfEquationsType.ONE_EQUATION,
                     null, //analysisMonths,
                     DataTransformationType.NONE,
+                    null, // Default value for <= 0 data value when log transform
+                    null, // Don't specify the confidence interval
                     null, //dependentAnalysisStart,
                     null, //dependentAnalysisEnd,
                     null, //independentAnalysisStart,
