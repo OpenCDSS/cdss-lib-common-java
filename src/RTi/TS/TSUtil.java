@@ -6173,28 +6173,29 @@ throws Exception
 }
 
 /**
-Fill the missing data within a time series with values based on a regression
-analysis, MOVE1, or MOVE2.  If a logarithmic regression is desired, pass a
-property value of "Transformation=Log" in the prop_list.  If a monthly
-regression is desired, pass a property value of
-"NumberOfEquations=MonthlyEquations" in the prop_list.
-A property "DescriptionString" can also be set, which will be appended to the
-description (if not set, then defaults will be used).  Set "FillFlag" to a
-single character used to tag data values that are filled (if necessary, this
-will cause the data flags to be allocated in the time series).
-@return An instance of TSRegression containing the regression information.
-@param ts_to_fill Time series to fill.
-@param ts_independent Independent time series.
+Fill the missing data within a time series with values based on ordinary least squares, MOVE1, or MOVE2.
+@return An instance of TSRegression containing the regression information
+(references to inputs and statistical results).
+@param tsToFill Time series to fill.
+@param tsIndependent Independent time series.
 @param tsRegression A previously computed TSRegression object - if specified as non-null it will be
-used rather than computing the regression information from other parameters.
-@param confidenceLevel the confidencel level % to impose - estimated values outside the range are not retained.
-Specify null to allow all estimated values.
+used rather than computing the regression information from other parameters.  This may be useful for performance
+reasons and memory management.
 @param analysisMethod analysis method to use for the analysis
 @param numberOfEquatiosn the number of equations (1 or 12 for monthly analysis)
 @param intercept can be set to zero for OLS regression, ignored otherwise
 @param analysisMonths an array of months (values 1 to 12) that indicate the months to analyze.  If one equation
 is used, then only data for the specified months will be used.
 @param transformation the transformation to apply to data.
+@param leZeroLogValue if the log tranform is used this is the value used to replace values <= zero (if null
+use the default given by TSRegression.getDefaultLEZeroLogValue() and NaN will cause the values to be discarded.
+@param minimumDataCount the minimum number of overlapping values in a sample to allow filling.  If null,
+don't have a minimum (other than constraints calculating the statistics).
+@param minimumR the minimum correlation coefficient to have a relationship and allow filling.  If null,
+don't have a minimum.
+@param confidenceInterval the confidence interval % to impose - relationships that do not pass the
+corresponding level T-test (not a strong relationship) are not used.  If null, the confidence interval
+is not examined.
 @param dependentAnalysisStart date/time to start the analysis of the dependent time series.
 @param dependentAnalysisEnd date/time to end the analysis of the dependent time series.
 @param independentAnalysisStart date/time to start the analysis of the independent time series.
@@ -6207,25 +6208,25 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @param descriptionString a string to append to the existing time series description.
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
-public static TSRegression fillRegress ( TS ts_to_fill, TS ts_independent,
-    TSRegression tsRegression, Double confidenceLevel,
-    RegressionType analysisMethod, NumberOfEquationsType numberOfEquations,
-    Double intercept, int [] analysisMonths,
-    DataTransformationType transformation,
+public static TSRegression fillRegress ( TS tsToFill, TS tsIndependent,
+    TSRegression tsRegression, RegressionType analysisMethod,
+    NumberOfEquationsType numberOfEquations, Double intercept, int [] analysisMonths,
+    DataTransformationType transformation, Double leZeroLogValue,
+    Integer minimumDataCount, Double minimumR, Double confidenceInterval,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
     String fillFlag, String descriptionString )
 throws TSException, Exception
-{	String  routine = "TSUtil.fillRegress";
-	String	message;
+{	String routine = "TSUtil.fillRegress";
+	String message;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 20, routine, "In fillRegress." );
 	}
 
-	int interval_base = ts_to_fill.getDataIntervalBase();
-	int interval_mult = ts_to_fill.getDataIntervalMult();
+	int interval_base = tsToFill.getDataIntervalBase();
+	int interval_mult = tsToFill.getDataIntervalMult();
 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		message="Analysis is not available for irregular time series.";
@@ -6233,8 +6234,8 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 
-	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
-		(interval_mult != ts_independent.getDataIntervalMult()) ) {
+	if ( (interval_base != tsIndependent.getDataIntervalBase()) ||
+		(interval_mult != tsIndependent.getDataIntervalMult()) ) {
 		message = "Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
@@ -6245,16 +6246,17 @@ throws TSException, Exception
 	}
 	// The following throws TSException if there is an error...
 	if ( numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
-		return fillRegressMonthly ( 
-	        ts_to_fill, ts_independent, tsRegression,
-	        confidenceLevel, analysisMethod, intercept, analysisMonths, transformation,
+		return fillRegressMonthly ( tsToFill, tsIndependent, tsRegression,
+	        analysisMethod, intercept, analysisMonths, transformation,
+	        leZeroLogValue, minimumDataCount, minimumR, confidenceInterval,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
 	        fillStart, fillEnd, fillFlag, descriptionString );
 	}
 	else {
-	    return fillRegressTotal ( ts_to_fill, ts_independent, tsRegression,
-            confidenceLevel, analysisMethod, intercept, analysisMonths, transformation,
+	    return fillRegressTotal ( tsToFill, tsIndependent, tsRegression,
+            analysisMethod, intercept, analysisMonths, transformation,
+            leZeroLogValue, minimumDataCount, minimumR, confidenceInterval,
             dependentAnalysisStart, dependentAnalysisEnd,
             independentAnalysisStart, independentAnalysisEnd,
             fillStart, fillEnd, fillFlag, descriptionString );
@@ -6263,17 +6265,12 @@ throws TSException, Exception
 
 /**
 Fill the missing data within the time series with values based on monthly
-equations.  Twelve relationships are determined.  If a logarithmic regression is
-desired, pass a property value of "Transformation" set to "log" in the
-prop_list.  A property "DescriptionString" can also be set, which will be
-appended to the description (if not set, "fill regress monthly using TSID" or
-"fill log regress monthly using TSID" will be used).
-@param ts_to_fill Time series to fill.
-@param ts_independent Independent time series.
+equations.  Twelve relationships are determined.
+@param tsToFill Time series to fill.
+@param tsIndependent Independent time series.
 @param tsRegression if null, then regression relationships will be determined using the specified parameters.
 If not null, an existing regression relationship will be used.  This allows a previously calculated A, B to be
 used rather than recalculating using data that may have been filled in some way.
-@param confidenceLevel the confidencel level % to require from the regression slope.
 @param analysisMethod the regression analysis method to use
 @param intercept can be specified as zero for OLS regression to force the relationship through zero, not used with
 other methods
@@ -6281,6 +6278,15 @@ other methods
 should be considered to develop the relationship, and only those months will be filled.  If monthly relationships, only
 the specific months will be analyzed and filled.
 @param transformation the data transformation to apply before analyzing.
+@param leZeroLogValue if the log tranform is used this is the value used to replace values <= zero (if null
+use the default given by TSRegression.getDefaultLEZeroLogValue() and NaN will cause the values to be discarded.
+@param minimumDataCount the minimum number of overlapping values in a sample to allow filling.  If null,
+don't have a minimum (other than constraints calculating the statistics).
+@param minimumR the minimum correlation coefficient to have a relationship and allow filling.  If null,
+don't have a minimum.
+@param confidenceInterval the confidence interval % to impose - relationships that do not pass the
+corresponding level T-test (not a strong relationship) are not used.  If null, the confidence interval
+is not examined.
 @param dependentAnalysisStart the analysis start for the dependent time series, used by all methods.
 @param dependentAnalysisEnd the analysis end for the dependent time series, used by all methods.
 @param independentAnalysisStart the analysis start for the independent time series, used by the MOVE2 method.
@@ -6291,9 +6297,10 @@ the specific months will be analyzed and filled.
 @param descriptionString the string to append to the time series description, if any values are filled
 @exception Exception if there is an error performing the regression.
 */
-private static TSRegression fillRegressMonthly ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
-    Double confidenceLevel, RegressionType analysisMethod, Double intercept, int [] analysisMonths,
-    DataTransformationType transformation,
+private static TSRegression fillRegressMonthly ( TS tsToFill, TS tsIndependent, TSRegression tsRegression,
+    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    DataTransformationType transformation, Double leZeroLogValue,
+    Integer minimumDataCount, Double minimumR, Double confidenceInterval,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
@@ -6307,11 +6314,11 @@ throws TSException, Exception
 		Message.printDebug ( dl, routine, "In fillRegressMonthly." );
 	}
 
-	int interval_base = ts_to_fill.getDataIntervalBase();
-	int interval_mult = ts_to_fill.getDataIntervalMult();
+	int interval_base = tsToFill.getDataIntervalBase();
+	int interval_mult = tsToFill.getDataIntervalMult();
 
-	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
-		(interval_mult != ts_independent.getDataIntervalMult()) ) {
+	if ( (interval_base != tsIndependent.getDataIntervalBase()) ||
+		(interval_mult != tsIndependent.getDataIntervalMult()) ) {
 		message="Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
@@ -6323,14 +6330,14 @@ throws TSException, Exception
 	if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
 		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
-		ts_to_fill.allocateDataFlagSpace (
+		tsToFill.allocateDataFlagSpace (
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod( ts_to_fill, fillStart, fillEnd );
+	TSLimits valid_dates = getValidPeriod( tsToFill, fillStart, fillEnd );
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
 
@@ -6345,9 +6352,10 @@ throws TSException, Exception
 	else {
 	    // Compute the regression relationship
     	try {
-    	    rd = new TSRegression ( ts_independent, ts_to_fill, true, confidenceLevel, analysisMethod,
+    	    rd = new TSRegression ( tsIndependent, tsToFill, true, analysisMethod,
     	            intercept, NumberOfEquationsType.MONTHLY_EQUATIONS, analysisMonths,
-    	            transformation, dependentAnalysisStart, dependentAnalysisEnd,
+    	            transformation, leZeroLogValue, confidenceInterval,
+    	            dependentAnalysisStart, dependentAnalysisEnd,
     	            independentAnalysisStart, independentAnalysisEnd, fillStart, fillEnd );
     	}
     	catch ( Exception e ) {
@@ -6366,10 +6374,10 @@ throws TSException, Exception
 		date.addInterval(interval_base, interval_mult) ) {
 		try {
 		    // TODO SAM - need to evaluate this - use isAnalyzed() to improve performance
-    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date)) ) {
+    		if ( tsToFill.isDataMissing(tsToFill.getDataValue(date)) ) {
     			// Try to fill the value...
-    			x = ts_independent.getDataValue ( date );
-    			if ( !ts_independent.isDataMissing(x)) {
+    			x = tsIndependent.getDataValue ( date );
+    			if ( !tsIndependent.isDataMissing(x)) {
     			    // Skip the month if not requested
     	            if ( analysisMonths != null ) {
     	                foundMonth = false;
@@ -6414,21 +6422,21 @@ throws TSException, Exception
     					}
     					if ( fillFlag_boolean ) {
     						// Set the flag...
-    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1 );
+    						tsToFill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1 );
     					}
     					else {
     					    // No flag...
-    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ));
+    						tsToFill.setDataValue ( date, Math.pow ( 10, newval ));
     					}
     				}
     				else {
     				    if ( fillFlag_boolean ) {
     						// Set the flag...
-    						ts_to_fill.setDataValue(date, newval, fillFlag, 1 );
+    						tsToFill.setDataValue(date, newval, fillFlag, 1 );
     					}
     					else {
     					    // No flag...
-    						ts_to_fill.setDataValue(date, newval );
+    						tsToFill.setDataValue(date, newval );
     					}
     				}
     				// Increment the counter on the number of values filled
@@ -6446,23 +6454,23 @@ throws TSException, Exception
 	// Fill in the genesis information...
 
 	if ( fillCount > 0 ) {
-    	ts_to_fill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using analysis results:" );
+    	tsToFill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using analysis results:" );
     
     	// The following comes back as multiple strings but to handle genesis
     	// information nicely, break into separate strings...
     
-    	List strings = StringUtil.breakStringList ( rd.toString(),
+    	List<String> strings = StringUtil.breakStringList ( rd.toString(),
     		System.getProperty("line.separator"), StringUtil.DELIM_SKIP_BLANKS );
     	if ( strings != null ) {
     		int size = strings.size();
     		for ( int j = 0; j < size; j++ ) {
-    			ts_to_fill.addToGenesis( (String)strings.get(j) );
+    			tsToFill.addToGenesis( (String)strings.get(j) );
     		}
     	}
     
     	if ( descriptionString != null ) {
     		// Description has been specified...
-    		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
+    		tsToFill.setDescription ( tsToFill.getDescription() + descriptionString );
     	}
     	else {
     	    // Automatically add to the description...
@@ -6477,12 +6485,12 @@ throws TSException, Exception
     		        monthString = TimeUtil.monthAbbreviation(analysisMonths[0]);
     		    }
     		    if ( regressLog ) {
-    				ts_to_fill.setDescription ( ts_to_fill.getDescription()+
-    				", fill log " + analysisMethod + " " + monthString + " using " + ts_independent.getIdentifierString() );
+    				tsToFill.setDescription ( tsToFill.getDescription()+
+    				", fill log " + analysisMethod + " " + monthString + " using " + tsIndependent.getIdentifierString() );
     			}
     			else {
-    			    ts_to_fill.setDescription ( ts_to_fill.getDescription() +
-    				", fill " + analysisMethod + " " + monthString + " using " + ts_independent.getIdentifierString() );
+    			    tsToFill.setDescription ( tsToFill.getDescription() +
+    				", fill " + analysisMethod + " " + monthString + " using " + tsIndependent.getIdentifierString() );
     			}
     		}
     	}
@@ -6494,23 +6502,32 @@ throws TSException, Exception
 }
 
 /**
-Fill the missing data within the time series with values based on a regression,
-MOVE1, or MOVE2 analysis.  A single relationship is used.  If a logarithmic
-analysis is desired, pass a property value of "Transformation" set to "log" in
-the prop_list.  A property "DescriptionString" can also be set, which will be
-appended to the description (if not set, "fill regress using TSID" or "fill log regress using TSID" will be used).
-@param ts_to_fill Time series to fill.
-@param ts_independent Independent time series.
+Fill the missing data within the time series with values based on an ordinary least squares,
+MOVE1, or MOVE2 analysis.
+@param tsToFill Time series to fill.
+@param tsIndependent Independent time series.
+@param leZeroLogValue if the log tranform is used this is the value used to replace values <= zero (if null
+use the default given by TSRegression.getDefaultLEZeroLogValue() and NaN will cause the values to be discarded.
+@param minimumDataCount the minimum number of overlapping values in a sample to allow filling.  If null,
+don't have a minimum (other than constraints calculating the statistics).
+@param minimumR the minimum correlation coefficient to have a relationship and allow filling.  If null,
+don't have a minimum.
+@param confidenceInterval the confidence interval % to impose - relationships that do not pass the
+corresponding level T-test (not a strong relationship) are not used.  If null, the confidence interval
+is not examined.
 @param fill_period_start Date/time to start filling (this is used for the
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fill_period_end Date/time to end filling (this is used for the
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param prop_list Properties to control filling.  See the TSRegression properties.
+@param descriptionString will be appended to the description (if not set, "fill regress using TSID" or
+"fill log regress using TSID" will be used).
 @exception Exception if there is a problem doing regression.
 */
-private static TSRegression fillRegressTotal ( TS ts_to_fill, TS ts_independent, TSRegression tsRegression,
-    Double confidenceLevel, RegressionType analysisMethod, Double intercept, int [] analysisMonths,
-    DataTransformationType transformation,
+private static TSRegression fillRegressTotal ( TS tsToFill, TS tsIndependent, TSRegression tsRegression,
+    RegressionType analysisMethod, Double intercept, int [] analysisMonths,
+    DataTransformationType transformation,  Double leZeroLogValue,
+    Integer minimumDataCount, Double minimumR, Double confidenceInterval,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
@@ -6523,11 +6540,11 @@ throws TSException, Exception
 		Message.printDebug ( 20, routine, "In fillRegress." );
 	}
 
-	int interval_base = ts_to_fill.getDataIntervalBase();
-	int interval_mult = ts_to_fill.getDataIntervalMult();
+	int interval_base = tsToFill.getDataIntervalBase();
+	int interval_mult = tsToFill.getDataIntervalMult();
 
-	if ( (interval_base != ts_independent.getDataIntervalBase()) ||
-		(interval_mult != ts_independent.getDataIntervalMult()) ) {
+	if ( (interval_base != tsIndependent.getDataIntervalBase()) ||
+		(interval_mult != tsIndependent.getDataIntervalMult()) ) {
 		message="Analysis only available for same data interval.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
@@ -6537,14 +6554,14 @@ throws TSException, Exception
 	if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
 		fillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
-		ts_to_fill.allocateDataFlagSpace (
+		tsToFill.allocateDataFlagSpace (
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod( ts_to_fill, fillStart, fillEnd );
+	TSLimits valid_dates = getValidPeriod( tsToFill, fillStart, fillEnd );
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
 
@@ -6559,8 +6576,9 @@ throws TSException, Exception
     		Message.printDebug ( 10, routine, "Analyzing data." );
     	}
     	try {
-    	    rd = new TSRegression (	ts_independent, ts_to_fill, true, confidenceLevel, analysisMethod,
+    	    rd = new TSRegression (	tsIndependent, tsToFill, true, analysisMethod,
                 intercept, NumberOfEquationsType.ONE_EQUATION, analysisMonths, transformation,
+                leZeroLogValue, confidenceInterval,
                 dependentAnalysisStart, dependentAnalysisEnd,
                 independentAnalysisStart, independentAnalysisEnd,
                 fillStart, fillEnd );
@@ -6582,9 +6600,9 @@ throws TSException, Exception
 		try {
 		    // Catch an error for the interval.  It is most likely due to not having analysis data...
 			// TODO SAM 2010-06-10 - need to evaluate this - use isAnalyzed() to improve performance
-    		if ( ts_to_fill.isDataMissing(ts_to_fill.getDataValue(date) ) ) {
-    			x = ts_independent.getDataValue ( date );
-    			if ( !ts_independent.isDataMissing(x)) {
+    		if ( tsToFill.isDataMissing(tsToFill.getDataValue(date) ) ) {
+    			x = tsIndependent.getDataValue ( date );
+    			if ( !tsIndependent.isDataMissing(x)) {
     		        // Skip the month if not requested
     	            if ( analysisMonths != null ) {
     	                foundMonth = false;
@@ -6617,20 +6635,20 @@ throws TSException, Exception
     				if ( regressLog ) {
     					if ( fillFlag_boolean ) {
     						// Use data flag...
-    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1);
+    						tsToFill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1);
     					}
     					else {
     					     // No data flag...
-    						ts_to_fill.setDataValue ( date, Math.pow ( 10, newval ));
+    						tsToFill.setDataValue ( date, Math.pow ( 10, newval ));
     					}
     				}
     				else {
     				    if ( fillFlag_boolean ) {
     						// Use data flag...
-    						ts_to_fill.setDataValue ( date, newval, fillFlag, 1 );
+    						tsToFill.setDataValue ( date, newval, fillFlag, 1 );
     					}
     					else {
-    					    ts_to_fill.setDataValue ( date, newval);
+    					    tsToFill.setDataValue ( date, newval);
     					}
     				}
     				
@@ -6650,7 +6668,7 @@ throws TSException, Exception
 	// Fill in the genesis information...
 
 	if ( fillCount > 0 ) {
-    	ts_to_fill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using:" );
+    	tsToFill.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " + end + " using:" );
     
     	// The following comes back as multiple strings but to handle genesis
     	// information nicely, break into separate strings...
@@ -6660,12 +6678,12 @@ throws TSException, Exception
     	if ( strings != null ) {
     		int size = strings.size();
     		for ( int j = 0; j < size; j++ ) {
-    			ts_to_fill.addToGenesis (strings.get(j) );
+    			tsToFill.addToGenesis (strings.get(j) );
     		}
     	}
     
     	if ( descriptionString != null ) {
-    		ts_to_fill.setDescription ( ts_to_fill.getDescription() + descriptionString );
+    		tsToFill.setDescription ( tsToFill.getDescription() + descriptionString );
     	}
     	else {
     	    String prop_value = "" + analysisMethod;
@@ -6673,15 +6691,15 @@ throws TSException, Exception
     		    // Default
     			prop_value = "" + RegressionType.OLS_REGRESSION;
     		}
-    		String id = ts_independent.getIdentifierString();
-    		if ( ts_independent.getAlias().length() > 0 ) {
-    			id = ts_independent.getAlias();
+    		String id = tsIndependent.getIdentifierString();
+    		if ( tsIndependent.getAlias().length() > 0 ) {
+    			id = tsIndependent.getAlias();
     		}
     		if ( regressLog ) {
-    			ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill log " + prop_value + " using " + id );
+    			tsToFill.setDescription (tsToFill.getDescription() + ", fill log " + prop_value + " using " + id );
     		}
     		else {
-    		    ts_to_fill.setDescription (ts_to_fill.getDescription() + ", fill " + prop_value + " using " + id );
+    		    tsToFill.setDescription (tsToFill.getDescription() + ", fill " + prop_value + " using " + id );
     		}
     	}
 	}

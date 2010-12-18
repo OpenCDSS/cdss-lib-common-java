@@ -286,15 +286,21 @@ private double [] _r_monthly;
 /**
 Confidence level for slope that is requested.
 */
-private Double __confidenceLevel = null;
+private Double __confidenceInterval = null;
 /**
 Whether the confidence level for slope has been met (one equation).
 */
-private boolean __confidenceLevelMet = true;
+private boolean __confidenceIntervalMet = true;
 /**
 Whether the confidence level for slope has been met (monthly equations).
 */
-private boolean [] __confidenceLevelMetMonthly = null;
+private boolean [] __confidenceIntervalMetMonthly = null;
+/**
+Data value to substitute for the original when using a log transform and the original value is <= 0.
+Can be any number > 0.
+TODO SAM 2010-12-17 Allow NaN to throw the number away, but this changes counts, etc.
+*/
+private Double __leZeroLogValue = new Double(getDefaultLEZeroLogValue()); // Default
 /**
 Indicates the data transformation.
 */
@@ -364,8 +370,6 @@ in which case the FillStart and FillEnd can be specified to limit the fill perio
 The RMSE is computed as the difference between Y and Y-estimated where Y is known in the original sample.
 The default ("false") is used to compare time series (e.g., for calibration),
 in which case the RMSE is computed using the difference between X and Y.
-@param confidenceLevel if specified as non-null, a check will be performed to determine if the slope of the
-resulting regression line is within the specified confidence level (see getIsInConfideneLevel()).
 @param analysisMethod the analysis method to be used to determine the regression relationship.
 @param intercept If specified, indicate the intercept (A-value in best fit equation) that
 should be forced when analyzing the data.  This is currently only implemented
@@ -378,6 +382,11 @@ determined).  In the future support for seasonal equations may be added.
 @param analysisMonths If one equation is being used, indicate the months that are to be analyzed.
 If monthly equations are being used, indicate the one month to analyze.
 @param transformation Set to "Log" if a log10 regression should be done, or "None" if no transformation.
+@param leZeroLogValue if the log transform is used this is the value used to replace values <= zero (if null
+use the default given by TSRegression.getDefaultLEZeroLogValue() and NaN will cause the values to be discarded.
+@param confidenceInterval the confidence interval % to impose - relationships that do not pass the
+corresponding level T-test (not a strong relationship) are not used.  If null, the confidence interval
+is not examined.
 @param dependentAnalysisStart Date/time as a string indicating analysis period start for the dependent
 time series.  This can be specified for all analysis methods.  For OLS and
 MOVE1, this period will also be used for the independent time series.  If null, the full period is analyzed.
@@ -394,16 +403,16 @@ If null, the full period is filled.
 If null, the full period is filled.
 */
 public TSRegression ( TS independentTS, TS dependentTS,
-        boolean analyzeForFilling, Double confidenceLevel, RegressionType analysisMethod,
+        boolean analyzeForFilling, RegressionType analysisMethod,
         Double intercept, NumberOfEquationsType numberOfEquations, int [] analysisMonths,
-        DataTransformationType transformation,
+        DataTransformationType transformation, Double leZeroLogValue, Double confidenceInterval, 
         DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
         DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
         DateTime fillStart, DateTime fillEnd )
 throws Exception
 {	super ();
-	initialize ( independentTS, dependentTS, analyzeForFilling, confidenceLevel, analysisMethod, 
-        intercept, numberOfEquations, analysisMonths, transformation,
+	initialize ( independentTS, dependentTS, analyzeForFilling, analysisMethod, 
+        intercept, numberOfEquations, analysisMonths, transformation, leZeroLogValue, confidenceInterval, 
         dependentAnalysisStart, dependentAnalysisEnd,
         independentAnalysisStart, independentAnalysisEnd,
         fillStart, fillEnd );
@@ -439,20 +448,18 @@ require that the arrays are recreated (use the first version of the constructor)
 is best to check the isAnalyzed() value to determine whether results can be used.
 @param independentTS The independent time series (X).
 @param dependentTS The dependent time series (Y).
-@param props Property list indicating how the regression should be performed.
-See the overloaded method for possible properties.
 */
 public TSRegression ( TS independentTS, TS dependentTS, double[] X, double[][] XMonthly,
-    boolean analyzeForFilling, Double confidenceLevel, RegressionType analysisMethod,
+    boolean analyzeForFilling, RegressionType analysisMethod,
     Double intercept, NumberOfEquationsType numberOfEquations, int [] analysisMonths,
-    DataTransformationType transformation,
+    DataTransformationType transformation, Double leZeroLogValue, Double confidenceInterval, 
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd)
 throws Exception
 {	super ();
-	initialize ( independentTS, dependentTS, analyzeForFilling, confidenceLevel, analysisMethod,
-	        intercept, numberOfEquations, analysisMonths, transformation,
+	initialize ( independentTS, dependentTS, analyzeForFilling, analysisMethod,
+	        intercept, numberOfEquations, analysisMonths, transformation, leZeroLogValue, confidenceInterval,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
 	        fillStart, fillEnd );
@@ -488,6 +495,11 @@ private void analyzeMOVE2 ()
 	if ( __numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
 		num_equations = 12;
 	}
+	
+	// The data value to use when doing a log transform and the original value is <= 0
+	double leZeroSubstituteDataValue = getLEZeroLogValue().doubleValue();
+	// Calculate the log here for use in transformed data
+	double leZeroSubstituteDataValueLog = Math.log10(leZeroSubstituteDataValue);
 
 	// Loop through the equations.
 
@@ -618,15 +630,15 @@ private void analyzeMOVE2 ()
 				// both are not missing...
 				if ( __transformation == DataTransformationType.LOG ) {
 					if ( x1Array[i] <= 0.0 ) {
-						// Assume X = .001
-						X1_data[n1] = -3.0;
+						// Substitute value
+						X1_data[n1] = leZeroSubstituteDataValueLog;
 					}
 					else {
 					    X1_data[n1] = Math.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
-						// Assume Y = .001
-						Y1_data[n1] = -3.0;
+						// Substitute value
+						Y1_data[n1] = leZeroSubstituteDataValueLog;
 					}
 					else {
 					    Y1_data[n1] = Math.log10(y1Array[i] );
@@ -694,13 +706,12 @@ private void analyzeMOVE2 ()
 			}
 			data_value = _xTS.getDataValue(date);
 			if ( !_xTS.isDataMissing(data_value) ) {
-				if ( date.lessThan(_dep_analysis_period_start) ||
-					date.greaterThan(_dep_analysis_period_end) ||
+				if ( date.lessThan(_dep_analysis_period_start) || date.greaterThan(_dep_analysis_period_end) ||
 					_yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 					if ( __transformation == DataTransformationType.LOG ) {
 						if ( data_value <= 0.0 ) {
-							// Assume X = .001
-							X2_data[n2] = -3.0;
+							// Substitute value
+							X2_data[n2] = leZeroSubstituteDataValueLog;
 						}
 						else {
 						    X2_data[n2] = Math.log10( data_value );
@@ -775,8 +786,8 @@ private void analyzeMOVE2 ()
 					continue;
 				}
 				if ( xArray[j] <= 0.0 ) {
-					// Assume X = .001
-					xArray[j] = -3.0;
+					// Substitute value
+					xArray[j] = leZeroSubstituteDataValueLog;
 				}
 				else {
 				    xArray[j] = Math.log10( xArray[j] );
@@ -950,19 +961,25 @@ Perform OLS regression analysis using either a single or 12 monthly
 relationships.  Data are also optionally transformed using Log10.
 */
 private void analyzeOLSRegression ()
-{	String	routine = "TSRegression.analyzeOLSRegression";
+{	String routine = "TSRegression.analyzeOLSRegression";
 	
 	Regression rd = null;
 	int num_equations = 1;
 	if ( __numberOfEquations == NumberOfEquationsType.MONTHLY_EQUATIONS ) {
 		num_equations = 12;
 	}
+
+	// The data value to use when doing a log transform and the original value is <= 0
+    double leZeroSubstituteDataValue = getLEZeroLogValue().doubleValue();
+    // Calculate the log here for use in transformed data
+    double leZeroSubstituteDataValueLog = Math.log10(leZeroSubstituteDataValue);
+    
 	double [] x1Array = null;
 	double [] xArray = null;
 	double [] y1Array = null;
 	int n1 = 0; // Number of points where X and Y are non-missing
 	int n2 = 0; // Number of points where X is not missing and Y is missing
-	boolean confidenceLevelMet = true; // Whether requested confidence level has been met for slope
+	boolean confidenceIntervalMet = true; // Whether requested confidence level has been met for slope
 	int ind_interval_base = _xTS.getDataIntervalBase();
 	int ind_interval_mult = _xTS.getDataIntervalMult();
 	DateTime date = null;
@@ -1118,15 +1135,15 @@ private void analyzeOLSRegression ()
 				// both are not missing...
 				if ( __transformation == DataTransformationType.LOG ) {
 					if ( x1Array[i] <= 0.0 ) {
-						// Assume X = .001
-						X1_data[n1] = -3.0;
+						// Substitute value
+						X1_data[n1] = leZeroSubstituteDataValueLog;
 					}
 					else {
 					    X1_data[n1] = Math.log10(x1Array[i] );
 					}
 					if ( y1Array[i] <= 0.0 ) {
-						// Assume Y = .001
-						Y1_data[n1] = -3.0;
+						// Substitute value
+						Y1_data[n1] = leZeroSubstituteDataValueLog;
 					}
 					else {
 					    Y1_data[n1] = Math.log10(y1Array[i] );
@@ -1189,8 +1206,8 @@ private void analyzeOLSRegression ()
 						date.greaterThan(_dep_analysis_period_end) || _yTS.isDataMissing(_yTS.getDataValue(date)) ) {
 						if ( __transformation == DataTransformationType.LOG ) {
 							if ( data_value <= 0.0){
-								// Assume X = .001
-								X2_data[n2] = -3.0;
+								// Substitute value
+								X2_data[n2] = leZeroSubstituteDataValueLog;
 							}
 							else {
 							    X2_data[n2] = Math.log10(data_value );
@@ -1270,8 +1287,8 @@ private void analyzeOLSRegression ()
 					continue;
 				}
 				if ( xArray[j] <= 0.0 ) {
-					// Assume X = .001
-					xArray[j] = -3.0;
+					// Substitue value
+					xArray[j] = leZeroSubstituteDataValueLog;
 				}
 				else {
 				    xArray[j] = Math.log10( xArray[j] );
@@ -1306,17 +1323,17 @@ private void analyzeOLSRegression ()
 				}
 			}
 			// Check to see if the relationship is within the confidence level...
-			confidenceLevelMet = true;
-			if ( __confidenceLevel != null ) {
+			confidenceIntervalMet = true;
+			if ( __confidenceInterval != null ) {
 			    // Get the limiting value given the confidence interval
-			    double alpha = (1.0 - __confidenceLevel.doubleValue()/100.0); // double-tailed
+			    double alpha = (1.0 - __confidenceInterval.doubleValue()/100.0); // double-tailed
 			    double tMet = TDistribution.getTQuantile(alpha/2.0, n1 - 2 ); // Single-tailed so divide by 2
 			    Message.printStatus ( 2, routine, "T based on confidence interval = " + tMet );
 			    // Compute the statistic based on standard error of the estimate;
 			    //double ssxy = sxy - sx*my1;
 			    //double t = ssxy/see/Math.sqrt(ssx);
 			    //if ( t >= tMet ) {
-			    //    confidenceLevelMet = true;
+			    //    confidenceIntervalMet = true;
 			    //}
 			    
 			}
@@ -1350,7 +1367,7 @@ private void analyzeOLSRegression ()
 			setA ( rd.getA() );
 			setB ( rd.getB() );
 			setCorrelationCoefficient ( rd.getCorrelationCoefficient() );
-			setConfidenceLevelMet ( confidenceLevelMet );
+			setConfidenceIntervalMet ( confidenceIntervalMet );
 			setN1 ( rd.getN1() );
 			setN2 ( n2 );
 			if ( __transformation == DataTransformationType.LOG ) {
@@ -1381,7 +1398,7 @@ private void analyzeOLSRegression ()
 			setA ( ieq, rd.getA() );
 			setB ( ieq, rd.getB() );
 			setCorrelationCoefficient ( ieq, rd.getCorrelationCoefficient() );
-			setConfidenceLevelMet ( ieq, confidenceLevelMet );
+			setConfidenceIntervalMet ( ieq, confidenceIntervalMet );
 			setN1 ( ieq, n1 );
 			setN2 ( ieq, n2 );
 			// There is no N2...
@@ -1438,7 +1455,12 @@ public TS createPredictedTS()
 throws Exception
 {	
 	String mthd = "TSRegression.createPredictedTS", mssg;
-	
+
+	// The data value to use when doing a log transform and the original value is <= 0
+    double leZeroSubstituteDataValue = getLEZeroLogValue().doubleValue();
+    // Calculate the log here for use in transformed data
+    double leZeroSubstituteDataValueLog = Math.log10(leZeroSubstituteDataValue);
+    
 	// If the time series were already created, just return it.
 	if ( __yTSpredicted != null && __yTSresidual != null ) {
 		return __yTSpredicted;
@@ -1544,8 +1566,8 @@ throws Exception
 					// double Ytemp, Xtemp;
 					// Estimate in log10 space.
 					if ( Xvalue <= 0.0 ) {
-						// Assume X = .001
-						Xvalue = -3.0;
+						// Substitute value
+						Xvalue = leZeroSubstituteDataValueLog;
 					}
 					else {
 						Xvalue = Math.log10(Xvalue);
@@ -1692,8 +1714,8 @@ Determine if the confidence level for the slope has been met, for one equation.
 @return true if the slope is within the specified confidence level.
 @param monthIndex Index for month.
 */
-public boolean getConfidenceLevelMet ()
-{   return __confidenceLevelMet;
+public boolean getConfidenceIntervalMet ()
+{   return __confidenceIntervalMet;
 }
 
 /**
@@ -1701,11 +1723,11 @@ Determine if the confidence level for the slope has been met, for a monthly equa
 @return true if the slope is within the specified confidence level.
 @param monthIndex Index for month.
 */
-public boolean getConfidenceLevelMet ( int monthIndex )
+public boolean getConfidenceIntervalMet ( int monthIndex )
 {   if ( (monthIndex < 1) || (monthIndex > 12) ) {
         return false;
     }
-    return __confidenceLevelMetMonthly[monthIndex - 1];
+    return __confidenceIntervalMetMonthly[monthIndex - 1];
 }
 
 /**
@@ -1720,8 +1742,7 @@ class has a getCorrelationCoefficient when only one relationship is used.
 public double getCorrelationCoefficient ( int monthIndex )
 throws TSException
 {   if ( !isAnalyzed(monthIndex) ) {
-        throw new TSException ( "No regression computed for month " + 
-        monthIndex );
+        throw new TSException ( "No regression computed for month " + monthIndex );
     }
     if ( (monthIndex < 1) || (monthIndex > 12) ) {
         throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
@@ -1794,6 +1815,14 @@ public TS getIndependentTS()
 }
 
 /**
+Return the default value that will be used for the log transform if the original is <= 0.
+*/
+public static double getDefaultLEZeroLogValue ()
+{
+    return .001;
+}
+
+/**
 Return the predicted (Y) time series.
 @return the predicted (Y) time series or null if the method createPredictedTS() was not called yet.
 */
@@ -1809,6 +1838,15 @@ Return the residual TS ( difference between the predicted and the original depen
 public TS getResidualTS()
 {	
 	return __yTSresidual;
+}
+
+/**
+Get the value that is substituted for data if using the log transform and the original value is <= 0.
+@return data value to use in place of the original for calculations.
+*/
+private Double getLEZeroLogValue ()
+{
+    return __leZeroLogValue;
 }
 
 /**
@@ -2276,9 +2314,9 @@ Initialize instance data.
 @param xTS Independent time series.
 @param yTS Dependent time series.
 */
-private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, Double confidenceLevel,
+private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling,
     RegressionType analysisMethod, Double intercept, NumberOfEquationsType numberOfEquations,
-    int [] analysisMonths, DataTransformationType transformation,
+    int [] analysisMonths, DataTransformationType transformation, Double leZeroLogValue, Double confidenceInterval,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd )
@@ -2294,8 +2332,8 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, Double conf
     
     _filling = analyzeForFilling; // Default previously was false
     
-    __confidenceLevel = confidenceLevel;  // Confidence level to check for slope of the line
-    __confidenceLevelMet = true; // Whether the confidence level has been met
+    __confidenceInterval = confidenceInterval;  // Confidence level to check for slope of the line
+    __confidenceIntervalMet = true; // Whether the confidence level has been met
 
     // Check for analysis method...
 
@@ -2362,7 +2400,7 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, Double conf
 
     _b_monthly = new double[12];
     _a_monthly = new double[12];
-    __confidenceLevelMetMonthly = new boolean[12];
+    __confidenceIntervalMetMonthly = new boolean[12];
     _n1_monthly = new int[12];
     _n2_monthly = new int[12];
     _X_max_monthly = new double[12];
@@ -2396,7 +2434,7 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling, Double conf
     for ( int i=0; i<12; i++ ) {
         _a_monthly[i] = 0;
         _b_monthly[i] = 0;
-        __confidenceLevelMetMonthly[i] = true;
+        __confidenceIntervalMetMonthly[i] = true;
         _n1_monthly[i] = 0;
         _n2_monthly[i] = 0;
         _X_max_monthly[i] = 0.0;
@@ -2506,11 +2544,11 @@ public void setB ( int monthIndex, double B )
 
 /**
 Set the flag indicating whether single equation confidence level has been met.
-@param confidenceLevelMet true if the slope is within the specified confidence level.
+@param confidenceIntervalMet true if the slope is within the specified confidence level.
 */
-public boolean setConfidenceLevelMet ( boolean confidenceLevelMet )
-{   __confidenceLevelMet = confidenceLevelMet;
-    return confidenceLevelMet;
+public boolean setConfidenceIntervalMet ( boolean confidenceIntervalMet )
+{   __confidenceIntervalMet = confidenceIntervalMet;
+    return confidenceIntervalMet;
 }
 
 /**
@@ -2518,8 +2556,8 @@ Set the flag indicating whether a monthly confidence level has been met.
 @param monthIndex month (1 is January).
 @param flag true if the slope is within the specified confidence level.
 */
-public boolean setConfidenceLevelMet ( int monthIndex, boolean flag )
-{   __confidenceLevelMetMonthly[monthIndex - 1] = flag;
+public boolean setConfidenceIntervalMet ( int monthIndex, boolean flag )
+{   __confidenceIntervalMetMonthly[monthIndex - 1] = flag;
     return flag;
 }
 
@@ -2532,6 +2570,15 @@ public void setCorrelationCoefficient ( int monthIndex, double coeff )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
 		_r_monthly[monthIndex-1] = coeff;
 	}
+}
+
+/**
+Set the value that is substituted for data if using the log transform and the original value is <= 0.
+@param leZeroLogValue data value to use in place of the original for calculations.
+*/
+private void setLEZeroLogValue ( Double leZeroLogValue )
+{
+    __leZeroLogValue = leZeroLogValue;
 }
 
 /**
