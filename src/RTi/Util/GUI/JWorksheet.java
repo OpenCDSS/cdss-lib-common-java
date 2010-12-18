@@ -4252,6 +4252,7 @@ public String getValueAtAsString(int row, int column) {
 
 /**
 Returns the value at the specified position formatted as a String with the specified format.
+Return an empty string if null.
 @param row the row of the value to return.
 @param column the <b>visible</b> column from which to return the value.
 @param format the format to use for formatting the value as a String.
@@ -4262,7 +4263,10 @@ public String getValueAtAsString(int row, int column, String format) {
 	Class c = getColumnClass(getAbsoluteColumn(column));
 	try {
 
-	if (c == Integer.class) {
+	if ( o == null ) {
+	    return "";
+	}
+	else if (c == Integer.class) {
 		Integer I = (Integer)o;
 		if (COPY_MISSING_AS_EMPTY_STRING && DMIUtil.isMissing(I.intValue())) {
 			format = getStringFormat(format);
@@ -4320,7 +4324,7 @@ public String getValueAtAsString(int row, int column, String format) {
 		}
 	}
 	else {
-		return o.toString();
+		return "" + o;
 	}
 	}
 	catch (Exception e) {
@@ -4330,7 +4334,7 @@ public String getValueAtAsString(int row, int column, String format) {
 			+ column + ", " + format + "): class(" + getAbsoluteColumn(column) + ": " + c + "  data: " 
 			+ o + "  data class: " + o.getClass());
 	}
-	return o.toString();
+	return "" + o;
 }
 
 /**
