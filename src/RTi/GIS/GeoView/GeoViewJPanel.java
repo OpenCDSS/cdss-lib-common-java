@@ -3492,9 +3492,9 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 
 /**
 Show the information for selected features.
-@param selected Vector of selected GeoRecord.
+@param selected list of selected GeoRecord.
 */
-private void showFeatureInformation ( List selected )
+private void showFeatureInformation ( List<? extends GeoRecord> selected )
 {	GeoRecord record = null;
 	GRShape shape = null;
 	
@@ -3512,7 +3512,7 @@ private void showFeatureInformation ( List selected )
 
 	DataTable table = null;
 	int j = 0;
-	List strings = new Vector();
+	List<String> strings = new Vector();
 	int nfields = 0;
 	String string = null;
 	String name = null;		// Name of layer.
@@ -3520,7 +3520,7 @@ private void showFeatureInformation ( List selected )
 	strings.add ( "" );
 	strings.add ( "Selected " + size + " features." );
 	for ( int i = 0; i < size; i++ ) {
-		record = (GeoRecord)selected.get(i);
+		record = selected.get(i);
 		if ( record == null ) {
 			break;
 		}

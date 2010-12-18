@@ -34,8 +34,7 @@ import RTi.Util.Table.TableRecord;
 /**
 This class provides a record for geographic (shape) and tabular data.  GeoLayer
 and GeoLayerView references are also maintained in case mixed layers are used
-in a list.  In the future, data members may be made public to increase
-performance.
+in a list.  In the future, data members may be made public to increase performance.
 */
 public class GeoRecord
 {
@@ -61,23 +60,20 @@ GeoLayerView that the record is queried from.
 protected GeoLayerView _layer_view = null;
 
 /**
-Construct an empty GeoRecord (null shape, table record, GeoLayer, and
-GeoLayerView).
+Construct an empty GeoRecord (null shape, table record, GeoLayer, and GeoLayerView).
 */
 public GeoRecord ()
 {
 }
 
 /**
-Construct a GeoRecord using the given shape, table record, GeoLayer, and
-GeoLayerView.
+Construct a GeoRecord using the given shape, table record, GeoLayer, and GeoLayerView.
 @param shape GRShape associated with the record.
 @param record TableRecord associated with the record.
 @param layer GeoLayer associated with the record.
 @param layer_view GeoLayerView associated with the record.
 */
-public GeoRecord (	GRShape shape, TableRecord record, GeoLayer layer,
-			GeoLayerView layer_view )
+public GeoRecord ( GRShape shape, TableRecord record, GeoLayer layer, GeoLayerView layer_view )
 {	_layer = layer;
 	_layer_view = layer_view;
 	_record = record;
@@ -172,4 +168,4 @@ public void setTableRecord ( TableRecord record )
 {	_record = record;
 }
 
-} // End GeoRecord class
+}
