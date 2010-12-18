@@ -2079,6 +2079,24 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 }
 
 /**
+Convert a string containing literal representations of characters (e.g., "\t") to
+the internal equivalent (e.g., tab character).  This should be used with care, for example
+to convert a visual delimiter string into the internal equivalent.  The string combinations
+that are recognized are: "\t".
+@param s string to convert
+@return the converted string, or null if the input string is null
+*/
+public static String literalToInternal ( String s )
+{
+    if ( s == null ) {
+        return null;
+    }
+    else {
+        return s.replace("\\t", "\t");
+    }
+}
+
+/**
 Determine the maximum size of the String in a list.
 @param v list of objects to check the size.  The toString() method is called
 to get a String representation of the object for the check.
@@ -2522,11 +2540,14 @@ public static int [] parseIntegerSlice ( String seq, String delim, int parseFlag
             step = Integer.parseInt(tokens.get(2));
         }
         // Determine the number of values...
+        // FIXME SAM 2010-12-17 Need more checks on invalid integers to avoid negative nVals
+        //Message.printStatus(2,"", "Seq=\""+seq+"\" delim=\""+delim+"\" flag=" + parseFlag + " count="+count +
+        //      " start=" + start + " end=" + end + " step=" + step );
         int nVals = (end - start)/step + 1;
         // Now iterate and generate the sequence
         int[] vals = new int[nVals];
         int i = 0;
-        for ( int ival = start; ival <= end; ival++ ) {
+        for ( int ival = start; ival <= end; ival += step ) {
             vals[i++] = ival;
         }
         return vals;
