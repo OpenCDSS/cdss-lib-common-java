@@ -100,8 +100,10 @@ import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
+// TODO SAM 2010-12-16 Evaluate using a different package for in-memory tables, such as
+// from H2 or other embedded database.
 /**
-This class contains records of data as a table, using a Vector of TableRecord
+This class contains records of data as a table, using a list of TableRecord
 instances.  The format of the table is defined using the TableField class.
 Tables can be used to store record-based data.  This class was originally
 implemented to store Dbase files associated with ESRI shapefile GIS data.
@@ -513,7 +515,7 @@ private static boolean findPreviousFieldNameOccurances(List<TableField> tableFie
 /**
 Return the field data type, given an index.
 @return Data type for specified zero-based index.
-@param index field index.
+@param index field index (0+).
 */
 public int getFieldDataType ( int index )
 {	return (_table_fields.get ( index )).getDataType();
@@ -597,7 +599,23 @@ throws Exception
 	}
 
 	// if this line is reached, the given field was never found
-	throw new Exception( "Unable to find table field with name \"" + field_name + "\"" );
+	throw new Exception( "Unable to find table field with name \"" + field_name + "\" in table \"" + getTableID() + "\"" );
+}
+
+/**
+Return the field indices associated with the given field names.  This method simply
+calls getFieldIndex() for each requested name.
+@return array of indices associated with the given field names.
+@param fieldNames Field names to look up.
+@exception Exception if any field name is not found.
+*/
+public int [] getFieldIndices ( String [] fieldNames )
+throws Exception
+{   int [] fieldIndices = new int[fieldNames.length];
+    for ( int i=0; i<fieldNames.length; i++ ) {
+        fieldIndices[i] = getFieldIndex ( fieldNames[i] );
+    }
+    return fieldIndices;
 }
 
 /**
@@ -736,13 +754,37 @@ throws Exception
 }
 
 /**
-Return the TableRecord for the given column and column value.
+Return the TableRecord for the given column and column value.  If multiple records are matched
+the first record is returned.
 @param columnName name of column (field), case-insensitive.
 @param columnValue column value to match in the records.  The first matching record is returned.
 The type of the object will be checked before doing the comparison.
-@return TableRecord matching the specified column value.
+@return TableRecord matching the specified column value or null if no record is matched.
 */
 public TableRecord getRecord ( String columnName, Object columnValue )
+throws Exception
+{
+    List<String> columnNames = new Vector();
+    columnNames.add(columnName);
+    List<Object> columnValues = new Vector();
+    columnValues.add(columnValue);
+    List<TableRecord> records = getRecords ( columnNames, columnValues );
+    if ( records.size() == 0 ) {
+        return null;
+    }
+    else {
+        return records.get(0);
+    }
+}
+
+/**
+Return a list of TableRecord matching the given columns and column values.
+@param columnNames list of column (field) names, case-insensitive.
+@param columnValue list of column values to match in the records.
+The type of the object will be checked before doing the comparison.
+@return TableRecord matching the specified column value, guaranteed to be non-null but may be zero length.
+*/
+public List<TableRecord> getRecords ( List<String> columnNames, List<? extends Object> columnValues )
 throws Exception
 {   if ( !_haveDataInMemory ) {
         // Most likely a derived class is not handling on the fly
@@ -750,82 +792,48 @@ throws Exception
         // because the limitation is likely handled elsewhere.
         return null;
     }
-    // Figure out which column to search
-    int columnNumber = getFieldIndex ( columnName );
-    // Convert the item to search for to a specific object type
-    String columnValueString = null;
-    Double columnValueDouble = null;
-    Float columnValueFloat = null;
-    Integer columnValueInteger = null;
-    Short columnValueShort = null;
-    Date columnValueDate = null;
-    if ( columnValue instanceof String ) {
-        columnValueString = (String)columnValue;
+    // Get the column values to check for in the appropriate type.
+    // To simplify memory management, allocate arrays for each type but only some positions will be used.
+    int iColumn = -1;
+    int [] columnNumbers = new int[columnNames.size()];
+    for ( String columnName: columnNames ) {
+        ++iColumn;
+        // Figure out which column to search
+        columnNumbers[iColumn] = getFieldIndex ( columnName );
     }
-    else if ( columnValue instanceof Double ) {
-        columnValueDouble = (Double)columnValue;
-    }
-    else if ( columnValue instanceof Float ) {
-        columnValueFloat = (Float)columnValue;
-    }
-    else if ( columnValue instanceof Integer ) {
-        columnValueInteger = (Integer)columnValue;
-    }
-    else if ( columnValue instanceof Short ) {
-        columnValueShort = (Short)columnValue;
-    }
-    else if ( columnValue instanceof Date ) {
-        columnValueDate = (Date)columnValue;
-    }
+    // Now search the the records and then the columns in the record
+    List<TableRecord> recList = new Vector();
     int size = _table_records.size();
     TableRecord rec = null;
     Object columnContents;
+    iColumn = -1; // reset for iteration
     for ( int i = 0; i < size; i++ ) {
+        ++iColumn;
         rec = _table_records.get(i);
-        columnContents = rec.getFieldValue(columnNumber);
-        if ( columnValueString != null ) {
-            // Do case insensitive comparison
-            String s = (String)columnContents;
-            if ( s.equalsIgnoreCase(columnValueString)) {
-                return rec;
+        int matchCount = 0; // How many columns match
+        for ( Object columnValue: columnValues ) {
+            columnContents = rec.getFieldValue(columnNumbers[iColumn]);
+            if ( columnContents == null ) {
+                // Do not compare
+            }
+            else if ( getFieldDataType(columnNumbers[iColumn]) == TableField.DATA_TYPE_STRING ) {
+                // Do case insensitive comparison
+                if ( ((String)columnValue).equalsIgnoreCase("" + columnContents)) {
+                    ++matchCount;
+                }
+            }
+            else {
+                // Not a string so just use the equals() method to compare.
+                if ( columnValue.equals(columnContents)) {
+                    ++matchCount;
+                }
             }
         }
-        // TODO SAM 2009-07-26 Evaluate if more elegant approach is OK
-        // Although could use generic "equals" do the following to ensure that expected types are used, and
-        // throw exception if casts are wrong
-        else if ( columnValueDouble != null ) {
-            Double d = (Double)columnContents;
-            if ( d.equals(columnValueDouble)) {
-                return rec;
-            }
-        }
-        else if ( columnValueFloat != null ) {
-            Float f = (Float)columnContents;
-            if ( f.equals(columnValueFloat)) {
-                return rec;
-            }
-        }
-        else if ( columnValueInteger != null ) {
-            Integer ii = (Integer)columnContents;
-            if ( ii.equals(columnValueInteger)) {
-                return rec;
-            }
-        }
-        else if ( columnValueShort != null ) {
-            Short s = (Short)columnContents;
-            if ( s.equals(columnValueShort)) {
-                return rec;
-            }
-        }
-        else if ( columnValueDate != null ) {
-            Date d = (Date)columnContents;
-            if ( d.equals(columnValueDate)) {
-                return rec;
-            }
+        if ( matchCount == columnValues.size() ) {
+            recList.add(rec);
         }
     }
-    // Not found
-    return null;
+    return recList;
 }
 
 /**
@@ -1975,109 +1983,6 @@ throws Exception
 }
 
 /**
-Formats a table to an HTML string.  This currently is used only by writeHtmlFile().
-@param writeHeader If true, the field names will be read from the fields 
-and written as a one-line header of field names.
-If all headers are missing, then the header line will not be written.
-@param comments a list of Strings to put at the top of the file as comments.
-@throws Exception if an error occurs.
-*/
-private String toHtml( boolean writeHeader, List<String> comments )
-throws Exception
-{
-    String routine = "DataTable.toHtml";
-    // Create an HTML writer
-    String htmlTitle = "";
-    HTMLWriter html = new HTMLWriter( null, htmlTitle, false );
-    // Start the file and write the head section
-    html.htmlStart();
-    if ( htmlTitle == null ) {
-        htmlTitle = "Time Series Summary";
-    }
-    writeHtmlHead(html,htmlTitle);
-    // Start the body section
-    html.bodyStart();
-    // Put the standard header at the top of the file
-    //IOUtil.printCreatorHeader ( out, "#", 80, 0 );
-    // If any comments have been passed in, print them at the top of the file
-    /* TODO SAM 2010-12-07 Add comments later - they are messing with formatting
-    if ( comments != null ) {
-        html.commentStart();
-        html.write( "Comments:\n" );
-        for ( String comment: comments ) {
-            html.write( html.encodeHTML(comment) + "\n" );
-        }
-        html.commentEnd();
-    }
-    */
-
-    int nCols = getNumberOfFields();
-    if (nCols == 0) {
-        Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
-    }
-    else {
-        StringBuffer line = new StringBuffer();
-    
-        int nonBlank = 0; // Number of nonblank table headings
-        html.tableStart();
-        if (writeHeader) {
-            // First determine if any headers are non blank
-            /*
-            for (int col = 0; col < cols; col++) {
-                if ( getFieldName(col).length() > 0 ) {
-                    ++nonBlank;
-                }
-            }
-            if ( nonBlank > 0 ) {
-                out.println ( "# Column headings are first line below, followed by data lines.");
-                line.setLength(0);
-                for (int col = 0; col < (cols - 1); col++) {
-                    line.append( "\"" + getFieldName(col) + "\"" + delimiter);
-                }
-                line.append( "\"" + getFieldName((cols - 1)) + "\"");
-                out.println(line);
-            }
-            */
-            html.tableRowStart();
-            String [] tableHeaders = new String[nCols];
-            for ( int i = 0; i < nCols; i++ ) {
-                tableHeaders[i] = getFieldName(i);
-            }
-            html.tableHeaders( tableHeaders );
-            html.tableRowEnd();
-        }
-        
-        int rows = getNumberOfRecords();
-        String cell;
-        int tableFieldType;
-        int precision;
-        for (int row = 0; row < rows; row++) {
-            html.tableRowStart();
-            for (int col = 0; col < nCols; col++) {
-                tableFieldType = getTableFieldType(col);
-                precision = getFieldPrecision(col);
-                if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
-                    (tableFieldType == TableField.DATA_TYPE_DOUBLE)) && (precision > 0) ) {
-                    // Format according to the precision if floating point
-                    cell = StringUtil.formatString(getFieldValue(row,col),"%." + precision + "f");
-                }
-                else {
-                    // Use default formatting.
-                    cell = "" + getFieldValue(row,col);
-                }
-                html.tableCell(cell);
-            }
-            html.tableRowEnd();
-        }
-        html.tableEnd();
-    }
-    html.bodyEnd();
-    html.htmlEnd();
-    html.closeFile();
-    return html.getHTML();
-}
-
-/**
 Set whether strings should be trimmed at read.
 @param trim_strings If true, strings will be trimmed at read.
 @return Boolean value indicating whether strings should be trimmed, after reset.
@@ -2199,99 +2104,6 @@ throws Exception {
     	out.flush();
     	out.close();
 	}
-}
-
-// TODO SAM 2010-12-07 Evaluate passing in styles - for now just pick some defaults
-/**
-Writes a table to an HTML file.
-@param filename the file to write to.
-@param writeHeader If true, the field names will be read from the fields 
-and written as a one-line header of field names.
-If all headers are missing, then the header line will not be written.
-@param comments a list of Strings to put at the top of the file as comments.
-@throws Exception if an error occurs.
-*/
-public void writeHtmlFile(String filename, boolean writeHeader, List<String> comments )
-throws IOException, Exception
-{
-    String routine = "DataTable.writeHtmlFile";
-    
-    if ( filename == null ) {
-        Message.printWarning ( 2, routine, "Cannot write to null file.");
-        throw new InvalidParameterException("Cannot write to null file.");
-    }
-        
-    PrintWriter out = null;
-    try {
-        out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
-        out.print( toHtml(writeHeader, comments) );
-    }
-    finally {
-        if ( out != null ) {
-            out.close();
-        }
-    }
-}
-
-/**
-Writes the start tags for the HTML check file.
-@param html HTMLWriter object.
-@param title title for the document.
-@throws Exception
-*/
-private void writeHtmlHead( HTMLWriter html, String title ) throws Exception
-{
-    if ( html != null ) {
-        html.headStart();
-        html.title(title);
-        writeHtmlStyles(html);
-        html.headEnd();
-    }
-}
-
-/**
-Inserts the style attributes for a time series summary.
-This was copied from the TSHtmlFormatter since tables are used with time series also.
-@throws Exception
- */
-private void writeHtmlStyles(HTMLWriter html)
-throws Exception
-{
-    html.write("<style>\n"
-        + "@media screen {\n"
-        + "#titles { font-weight:bold; color:#303044 }\n"
-        + "table { background-color:black; text-align:left; border:1; bordercolor:black; cellspacing:1; cellpadding:1 }\n"  
-        + "th { background-color:#333366; text-align:center; vertical-align:bottom; color:white }\n"
-        + "tr { valign:bottom; halign:right }\n"
-        + "td { background-color:white; text-align:right; vertical-align:bottom; font-style:normal; " +
-                "font-family:courier; font-size:.75em }\n" 
-        + "body { text-align:left; font-size:12pt; }\n"
-        + "pre { font-size:12pt; margin: 0px }\n"
-        + "p { font-size:12pt; }\n"
-        + "/* The following controls formatting of data values in tables */\n"
-        + ".flagcell { background-color:lightgray; }\n"
-        + ".missing { background-color:yellow; }\n"
-        + ".flag { vertical-align: super; }\n"
-        + ".flagnote { font-style:normal; font-family:courier; font-size:.75em; }\n"
-        + "}\n"
-        + "@media print {\n"
-        + "#titles { font-weight:bold; color:#303044 }\n"
-        + "table { border-collapse: collapse; background-color:white; text-align:left; border:1pt solid #000000; cellspacing:2pt; cellpadding:2pt }\n"  
-        + "th { background-color:white; text-align:center; vertical-align:bottom; color:black }\n"
-        + "tr { valign:bottom; halign:right;  }\n"
-        + "td { background-color:white; border: 1pt solid #000000; text-align:right; vertical-align:bottom; font-style:normal; " +
-                "font-family:courier; font-size:11pt; padding: 2pt; }\n" 
-        + "body { text-align:left; font-size:11pt; }\n"
-        + "pre { font-size:11pt; margin: 0px }\n"
-        + "p { font-size:11pt; }\n"
-        + "/* The following controls formatting of data values in tables */\n"
-        + ".flagcell { background-color:lightgray; }\n"
-        + ".missing { background-color:yellow; }\n"
-        + ".flag { vertical-align: super; }\n"
-        + ".flagnote { font-style:normal; font-family:courier; font-size:11pt; }\n"
-        + "}\n"
-        + "}\n"
-        + "</style>\n");
 }
 
 }
