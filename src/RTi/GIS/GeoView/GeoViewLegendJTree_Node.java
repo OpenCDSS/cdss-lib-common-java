@@ -40,11 +40,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
+//import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
@@ -98,10 +95,10 @@ private JPopupMenu __popup = null;
 Label that appears in this component.  Originally used a JTextField to automatically handle some of
 the selection rendering.  However, JTextField did not cleanly handle HTML labels so switch to a JLabel.
 */
-private JEditorPane __field = null;
+//private JEditorPane __field = null;
 //private JButton __field = null;
 //private JLabel __field = null;
-//private JTextField __field = null;
+private JTextField __field = null;
 
 /**
 The listeners that are registered to listen for this objects item state changed events.
@@ -252,8 +249,8 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 	panel.setLayout(new GridBagLayout());
 	__check = new JCheckBox();
 	__check.setBackground(UIManager.getColor("Tree.textBackground"));
-	//__field = new JTextField();
-	__field = new JEditorPane();
+	__field = new JTextField();
+	//__field = new JEditorPane();
 	__tree = tree;
 
 	// Because of the way these two components (the checkbox and the
@@ -264,7 +261,8 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 	if ( text.startsWith("<") ) {
 		// Assume HTML so just set it
 		__field.setText(text);
-		__field.setContentType("mime/html");
+		// TODO SAM 2010-12-15 Uncomment this if using a JEditPane with HTML
+		//__field.setContentType("mime/html");
 	}
 	else {
 		// Add extra space

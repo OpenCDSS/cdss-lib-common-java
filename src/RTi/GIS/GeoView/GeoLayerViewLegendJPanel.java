@@ -87,8 +87,7 @@ select button are included by default.
 @param parent GeoViewLegendJTree parent or null.
 @param layer_view GeoLayerView for legend panel.
 */
-public GeoLayerViewLegendJPanel (	GeoViewLegendJTree parent,
-					GeoLayerView layer_view )
+public GeoLayerViewLegendJPanel ( GeoViewLegendJTree parent, GeoLayerView layer_view )
 {	this ( parent, layer_view, true );
 }
 
@@ -101,8 +100,7 @@ the canvas and related labels are needed.
 @param include_controls If true, then the JCheckBox and select Button are added.
 If false, a Label is used in place of the JCheckBox and Button.
 */
-public GeoLayerViewLegendJPanel (	GeoLayerView layer_view,
-					boolean include_controls )
+public GeoLayerViewLegendJPanel ( GeoLayerView layer_view, boolean include_controls )
 {	this (null, layer_view, include_controls );
 }
 
@@ -113,8 +111,7 @@ Construct a legend panel instance for a given GeoLayerView.
 @param include_controls If true, then the Checkbox and select Button are added.
 If false, a Label is added is used instead of the Checkbox and Button.
 */
-public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent,
-GeoLayerView layer_view, boolean include_controls ) {
+public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_view, boolean include_controls ) {
 	_layer_view = layer_view;
 	_parent = parent;
 	setLayout ( new GridBagLayout() );
@@ -139,7 +136,8 @@ GeoLayerView layer_view, boolean include_controls ) {
 				insets_none, GridBagConstraints.HORIZONTAL,
 				GridBagConstraints.NORTH );
 	}
-	else {	_layer_JLabel = new JLabel (layer_view.getLegend().getText());
+	else {
+		_layer_JLabel = new JLabel (layer_view.getLegend().getText());
 		JGUIUtil.addComponent ( this, _layer_JLabel,
 				0, y, 3, 1, 1, 0,
 				insets_none, GridBagConstraints.HORIZONTAL,
@@ -156,17 +154,13 @@ GeoLayerView layer_view, boolean include_controls ) {
 	GRSymbol symbol = null;
 	for ( int isym = 0; isym < nsymbol; isym++ ) {
 		symbol = layer_view.getLegend().getSymbol(isym);
-		if (	symbol.getClassificationType() ==
-			GRSymbol.CLASSIFICATION_SINGLE ) {
+		if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE ) {
 			if ( isym == 0 ) {
-				// For now assume that symbol types will not
-				// be mixed for a layer...
-				_layer_Canvas =
-				new GeoLayerViewLegendJComponent[nsymbol];
+				// For now assume that symbol types will not be mixed for a layer...
+				_layer_Canvas = new GeoLayerViewLegendJComponent[nsymbol];
 				_layer_class_JLabel = new JLabel[nsymbol];
 			}
-			_layer_Canvas[isym] = new GeoLayerViewLegendJComponent(
-				_layer_view, isym, 0);
+			_layer_Canvas[isym] = new GeoLayerViewLegendJComponent( _layer_view, isym, 0);
 			JGUIUtil.addComponent ( this, _layer_Canvas[isym],
 				1, ++y, 1, 1, 0, 0,
 				insets_none, GridBagConstraints.NONE,
@@ -179,8 +173,7 @@ GeoLayerView layer_view, boolean include_controls ) {
 				insets_none, GridBagConstraints.HORIZONTAL,
 				GridBagConstraints.SOUTH );
 		}
-		else if ( symbol.getClassificationType() ==
-			GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
+		else if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
 			// This is currently enabled only for vertical signed
 			// bars where the bar is centered vertically on the
 			// point, positive values are drawn with the main
@@ -189,12 +182,10 @@ GeoLayerView layer_view, boolean include_controls ) {
 			if ( isym == 0 ) {
 				// For now assume that symbol types will not
 				// be mixed for a layer...
-				_layer_Canvas = new
-					GeoLayerViewLegendJComponent[nsymbol];
+				_layer_Canvas = new GeoLayerViewLegendJComponent[nsymbol];
 				_layer_class_JLabel = new JLabel[nsymbol];
 			}
-			_layer_Canvas[isym] = new GeoLayerViewLegendJComponent(
-				_layer_view, isym, 0);
+			_layer_Canvas[isym] = new GeoLayerViewLegendJComponent( _layer_view, isym, 0);
 			JGUIUtil.addComponent ( this, _layer_Canvas[isym],
 				1, ++y, 1, 1, 0, 0,
 				insets_none, GridBagConstraints.NONE,
@@ -204,14 +195,12 @@ GeoLayerView layer_view, boolean include_controls ) {
 				// is used to scale the symbol...
 				// SAMX - need to streamline this - store with
 				// symbol at creation?
-				DataTable attribute_table =
-				_layer_view.getLayer().getAttributeTable();
+				DataTable attribute_table = _layer_view.getLayer().getAttributeTable();
 				int classification_field = -1;
 				String cf = symbol.getClassificationField();
 				if ( attribute_table != null ) {
-					try {	classification_field =
-						attribute_table.getFieldIndex(
-						cf );
+					try {
+						classification_field = attribute_table.getFieldIndex( cf );
 					}
 					catch ( Exception e ) {
 						// Just won't label below.
@@ -223,30 +212,25 @@ GeoLayerView layer_view, boolean include_controls ) {
 				//classification_field + " \"" + cf + "\"" );
 				// Message.printStatus ( 1, "",
 				// "SAMX geoview panel = " + geoview_Panel );
-				if (	(classification_field >= 0)) {
-					double symbol_max =
-					((GRScaledClassificationSymbol)
-					symbol).getClassificationDataDisplayMax(
-					);
-					// Do this to keep legend a reasonable
-					// width...
+				if ( (classification_field >= 0)) {
+					double symbol_max = ((GRScaledClassificationSymbol)
+					symbol).getClassificationDataDisplayMax();
+					// Do this to keep legend a reasonable width...
 					if ( cf.length() > 20 ) {
 						cf = cf.substring(0,20) + "...";
 					}
 					_layer_class_JLabel[isym] = new JLabel(
-					cf +
-					", Max = " + StringUtil.formatString(
-					symbol_max,"%.3f") );
+						cf + ", Max = " + StringUtil.formatString(symbol_max,"%.3f") );
 				}
-				else {	if ( cf.length() > 20 ) {
+				else {
+					if ( cf.length() > 20 ) {
 						cf = cf.substring(0,20) + "...";
 					}
-					_layer_class_JLabel[isym] = new JLabel(
-					cf );
+					_layer_class_JLabel[isym] = new JLabel( cf );
 				}
 			}
-			else {	// Add a label with the field and maximum
-				// value...
+			else {
+				// Add a label with the field and maximum value...
 				_layer_class_JLabel[isym] = new JLabel("");
 			}
 			JGUIUtil.addComponent ( this,
@@ -255,27 +239,21 @@ GeoLayerView layer_view, boolean include_controls ) {
 				insets_none, GridBagConstraints.HORIZONTAL,
 				GridBagConstraints.NORTH );
 		}
-		else {	// Multiple legend items need to be drawn...
+		else {
+			// Multiple legend items need to be drawn...
 			int numclass = symbol.getNumberOfClassifications();
-			_layer_Canvas = 
-			new GeoLayerViewLegendJComponent[numclass];
+			_layer_Canvas = new GeoLayerViewLegendJComponent[numclass];
 			_layer_class_JLabel = new JLabel[numclass];
 			for ( int i = 0; i < numclass; i++ ) {
-				_layer_Canvas[i] = 
-					new GeoLayerViewLegendJComponent(
-						_layer_view, isym, i );
+				_layer_Canvas[i] = new GeoLayerViewLegendJComponent( _layer_view, isym, i );
 				JGUIUtil.addComponent ( this, _layer_Canvas[i],
 					1, ++y, 1, 1, 0, 0,
 					insets_none, GridBagConstraints.NONE,
 					GridBagConstraints.SOUTH );
 				// Add a label for the classification...
-				_layer_class_JLabel[i] =
-					new 
-					JLabel(symbol.getClassificationLabel(
-					i));
+				_layer_class_JLabel[i] = new JLabel(symbol.getClassificationLabel(i));
 				if (_parent != null) {
-					_layer_class_JLabel[i].setBackground(
-						_parent.getBackground());
+					_layer_class_JLabel[i].setBackground(_parent.getBackground());
 				}
 				JGUIUtil.addComponent ( this,
 					_layer_class_JLabel[i],
@@ -292,45 +270,41 @@ GeoLayerView layer_view, boolean include_controls ) {
 		if ( !symbol.getClassificationField().equals("") ) {
 			if ( include_controls ) {
 				// Reset the button to display the field
-				if (	(layer_view.getLegend().size() == 1) &&
-					(symbol.getClassificationType() !=
-					GRSymbol.CLASSIFICATION_SCALED_SYMBOL)){
+				if ( (layer_view.getLegend().size() == 1) &&
+					(symbol.getClassificationType() != GRSymbol.CLASSIFICATION_SCALED_SYMBOL)){
 					// Put the field on the button...
 					_layer_JButton.setText(
 					layer_view.getLegend().getText() + " ("+
 					symbol.getClassificationField() + ")" );
 				}
-				else {	_layer_JButton.setText(
-					layer_view.getLegend().getText() );
+				else {
+					_layer_JButton.setText( layer_view.getLegend().getText() );
 				}
 			}
-			else {	// No controls so the label needs to display
-				// the classification field...
+			else {
+				// No controls so the label needs to display the classification field...
 				if ( layer_view.getLegend().size() == 1 ) {
 					_layer_JLabel.setText (
-					layer_view.getLegend().getText() + " ("+
-					symbol.getClassificationField() + ")" );
+					layer_view.getLegend().getText() + " ("+ symbol.getClassificationField() + ")" );
 				}
-				else {	// The label is next to the symbol...
+				else {
+					// The label is next to the symbol...
 					// This will take some more work.
 				}
 			}
 		}
-		else {	// Set the label to the legend text...
-			//_layer_JButton.setLabel (
-			//layer_view.getLegend().getText() );
+		else {
+			// Set the label to the legend text...
+			//_layer_JButton.setLabel (layer_view.getLegend().getText() );
 			// Does not seem to work.
 		}
-	}	
-	symbol = null;
-	insets_none = null;
+	}
 }
 
 /**
 Process action events.  If the button is selected, this toggles the layer view
 from selected to deselected, highlighting when selected.
-If a parent GeoViewJPanel is specified during construction, its checkState()
-method is called.
+If a parent GeoViewJPanel is specified during construction, its checkState() method is called.
 @param e ActionEvent to process.
 */
 public void actionPerformed ( ActionEvent e )
@@ -348,7 +322,8 @@ public void actionPerformed ( ActionEvent e )
 		}
 		_layer_view.isSelected ( false );
 	}
-	else {	// Not already selected so select...
+	else {
+		// Not already selected so select...
 		setBackground ( Color.darkGray );
 		_enabled_JCheckBox.setBackground ( Color.darkGray );
 		_layer_JButton.setBackground ( Color.darkGray );
@@ -365,8 +340,7 @@ public void actionPerformed ( ActionEvent e )
 
 /**
 Reset the state of the check box based on the visibility of the layer view.
-The state of the checkbox is set consistent with the GeoLayerView "isSelected()"
-value.
+The state of the checkbox is set consistent with the GeoLayerView "isSelected()" value.
 */
 public void checkState ()
 {	if ( _enabled_JCheckBox != null ) {
@@ -461,11 +435,10 @@ public void mouseMoved ( MouseEvent event )
 }
 
 /**
-Handle mouse pressed event.  Just save a flag indicating what keys were
-active.
+Handle mouse pressed event.  Just save a flag indicating what keys were active.
 */
 public void mousePressed ( MouseEvent e )
-{	if (	((e.getModifiers()&MouseEvent.SHIFT_MASK) != 0) ||
+{	if ( ((e.getModifiers()&MouseEvent.SHIFT_MASK) != 0) ||
 		((e.getModifiers()&MouseEvent.CTRL_MASK) != 0) ) {
 		_ctrl_pressed = true;
 	}
@@ -477,18 +450,17 @@ Handle mouse released event.
 public void mouseReleased ( MouseEvent e )
 {	// The _ctrl_pressed data member indicates whether a CTRL or SHIFT key
 	// was pressed when the mouse was pressed.  Use that because it is
-	// possible to release/press the key betwen releasing/pressing the
-	// mouse.
+	// possible to release/press the key between releasing/pressing the mouse.
 	if ( !_ctrl_pressed ) {
-		// Unselect all other layer views except the current layer
-		// view...
+		// Unselect all other layer views except the current layer view...
 		// _parent.deselectExcept ( this );
 	}
 	if ( _layer_view.isSelected() ) {
 		// Already selected so de-select...
 		deselect ();
 	}
-	else {	// Not already selected so select...
+	else {
+		// Not already selected so select...
 		select ();
 	}
 }
@@ -520,8 +492,7 @@ public void select ()
 
 /**
 Set the panel's canvas components visibility.
-This method is called from the properties interface to hide heavyweight canvas
-components.
+This method is called from the properties interface to hide heavyweight canvas components.
 @param visible true if the components should be visible.
 */
 public void setVisible ( boolean visible )

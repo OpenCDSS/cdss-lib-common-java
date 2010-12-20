@@ -268,22 +268,37 @@ Home of graphics.
 */
 private final String __resource_home = "/RTi/GIS/GeoView";
 
-private GeoViewJComponent __mainGeoView = null;	// For drawing.
-private GeoViewJComponent	__refGeoView = null;	// Reference GeoView
-private GeoViewProject __gvp = null;		// GeoView project
-private JPanel	__allControlsJPanel = null;// All controls at bottom
-private JFrame	__parentJFrame = null;	// Parent Frame object
+/**
+Main map canvas area for drawing.
+*/
+private GeoViewJComponent __mainGeoView = null;
+/**
+Reference (overview) map canvas area for drawing.
+*/
+private GeoViewJComponent __refGeoView = null;
+/**
+GeoView project (map configuration file).
+*/
+private GeoViewProject __gvp = null;
+/**
+Map controls and tracker information area.
+*/
+private JPanel __allControlsJPanel = null;
+/**
+Parent Frame object, for window positioning, etc.
+*/
+private JFrame __parentJFrame = null;
 
-private SimpleJButton	__printJButton = null;
-private SimpleJButton	__saveAsImageJButton = null;
+private SimpleJButton __printJButton = null;
+private SimpleJButton __saveAsImageJButton = null;
 
-private SimpleJButton	__refreshJButton = null;
-private SimpleJButton	__zoomOutJButton = null;
+private SimpleJButton __refreshJButton = null;
+private SimpleJButton __zoomOutJButton = null;
 private JToggleButton __selectJButton = null;
 private JToggleButton __zoomJButton = null;
 private JToggleButton __infoJButton = null;
 
-private JComboBox	__modeJComboBox = null;
+private JComboBox __modeJComboBox = null;
 
 private JTextField __statusJTextField = null;
 private JTextField __trackerJTextField = null;
@@ -336,7 +351,7 @@ public final String SET_ATTRIBUTE_KEY = "Set Attribute Key...";
 
 private String __gvpFile = "";
 
-private List __enabledAppLayerTypes = new Vector (5);
+private List<String> __enabledAppLayerTypes = new Vector (5);
 
 private PropList __displayProps = null;
 
@@ -577,6 +592,19 @@ public void actionPerformed( ActionEvent evt )
 		// Prompt for a simple response...
 		// Old - may be phased out.
 	}
+}
+
+/**
+Add an annotation renderer.  Just chain to the map component.
+@param renderer the renderer that will be called when it is time to draw the object
+@param objectToRender the object to render (will be passed back to the renderer)
+@param label label for the object, to list in the GeoViewJPanel
+@param scrollToAnnotation if true, scroll to the annotation (without changing scale)
+*/
+public void addAnnotationRenderer ( GeoViewAnnotationRenderer renderer,
+	Object objectToRender, String label, boolean scrollToAnnotation )
+{	// Ad the annotation to the list and redraw if necessary, zooming to new annotation.
+	__mainGeoView.addAnnotationRenderer ( renderer, objectToRender, label, scrollToAnnotation );
 }
 
 /**
@@ -2257,14 +2285,6 @@ public void removeAllLayerViews ()
 	__mainGeoView.deleteLayerViews();
 	if ( __refGeoView != null ) {
 		__refGeoView.deleteLayerViews();
-	}
-
-	// Strongly encourage the VM to garbage collection.  
-	// This isn't efficient, speed-wise (garbage collection could
-	// conceivably run 20 times), but it almost totally guarantees
-	// that the memory will be reclaimed.	
-	for (int i = 0; i < 10; i++) {
-		System.gc();
 	}
 
 	// Now redraw the main interface so it is clear (it may actually not

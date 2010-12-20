@@ -369,7 +369,9 @@ public void addLayerView(GeoLayerView layerView, int count) {
 	String layerLabel = " " + layerName; // Space helps with presentation
 	if ( !layerView.getLayer().isSourceAvailable() ) {
 		// The data for the layer is not available so add a red ! to the front of the label.
-		layerLabel = "<html><p style=\"color:red\">! " + layerName + "</p></html>";
+		// TODO SAM 2010-12-15 HTML and JEditPane does weird things when the strings need to wrap
+		//layerLabel = "<html><p style=\"color:red\">! " + layerName + "</p></html>";
+		layerLabel = "** NO DATA ** " + layerName;
 	}
 	if (layerView.isAnimated()) {
 		node = new GeoViewLegendJTree_Node( layerLabel, layerName, this, __animatedPopup);
