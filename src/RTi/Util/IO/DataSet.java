@@ -48,7 +48,7 @@ private String __basename = "";
 /**
 List of data components.
 */
-private List __components = null;
+private List<DataSetComponent> __components = null;
 
 /**
 Array of component names, used in lookups.
@@ -289,11 +289,13 @@ public DataSetComponent getComponentForComponentType ( int type )
 	int size2;
 	//Message.printStatus ( 2, "", "looking up component " + type );
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.get(i);
+		comp = __components.get(i);
 		//Message.printStatus ( 2, "", "Checking " + comp.getComponentType() );
 		if ( comp.getComponentType() == type ) {
 			return comp;
 		}
+		// FIXME SAM 2010-12-1 The following does not look right - why is it getting the component
+		// data instead of dealing with group/type?
 		// If the component is a group and did not match the type, check
 		// the sub-types in the component...
 		if ( comp.isGroup() ) {
