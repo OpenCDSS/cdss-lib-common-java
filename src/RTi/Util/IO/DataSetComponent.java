@@ -33,6 +33,7 @@ import RTi.Util.Message.Message;
 This DataSetComponent class stores information for a single data component in a data set.
 Typically, each component corresponds to a file, a table in a database or a
 section within a single monolithic data file.  A list of components is maintained in the DataSet class.
+Components may be initialized during automated data processing or may be read and then edited in a UI.
 */
 public class DataSetComponent
 {
@@ -63,7 +64,7 @@ private String __data_file_name = "";
 /**
 Name of the command file used to create the component, if _created_from is DATA_FROM_COMMANDS.
 */
-private String __commands_file_name = "";
+private String __commandFileName = "";
 
 /**
 Name of the list file corresponding to the data component (e.g., used by StateDMI).
@@ -86,6 +87,13 @@ private Object __data = null;
 Indicates whether the component is dirty.
 */
 private boolean __is_dirty = false;
+
+/**
+Indicates whether there was an error when reading the data from an input file.
+If true, care should be taken with further processing because code may further corrupt the data and
+file if re-written
+*/
+private boolean __errorReadingInputFile = false;
 
 /**
 Is the data component actually a group of components.  In this case the _data is a
@@ -168,7 +176,7 @@ throws Exception
 	__type = comp.__type;
 	__name = comp.__name;
 	__data_file_name = comp.__data_file_name;
-	__commands_file_name = comp.__commands_file_name;
+	__commandFileName = comp.__commandFileName;
 	__list_file_name = comp.__list_file_name;
 	__list_source = comp.__list_source;
 	__data = null;	// TODO - support deep copy later
@@ -218,7 +226,7 @@ Finalize before garbage collection.
 */
 protected void finalize()
 throws Throwable
-{	__commands_file_name = null;
+{	__commandFileName = null;
 	__data_file_name = null;
 	__list_file_name = null;
 	__name = null;
@@ -234,7 +242,7 @@ Return the file name for the commands used to create the object.
 @return the file name for the commands used to create the object.
 */
 public String getCommandsFileName ()
-{	return __commands_file_name;
+{	return __commandFileName;
 }
 
 /**
@@ -254,7 +262,7 @@ public int getComponentType ()
 }
 
 /**
-Return the data for the component.
+Return the data for the component.  For example, this may be a list of stations or time series.
 @return the data for the component.
 */
 public Object getData ()
@@ -275,6 +283,14 @@ Return the file name where data are written.
 */
 public String getDataFileName ()
 {	return __data_file_name;
+}
+
+/**
+Indicate whether the component data had an error reading the input file.
+@return true if the component data had an error reading the input file.
+*/
+public boolean getErrorReadingInputFile ()
+{	return __errorReadingInputFile;
 }
 
 /**
@@ -350,7 +366,7 @@ Set the commands file name for the component's data.
 @param commands_file_name Commands file name for the component's data.
 */
 public void setCommandsFileName ( String commands_file_name )
-{	__commands_file_name = commands_file_name;
+{	__commandFileName = commands_file_name;
 }
 
 /**
@@ -391,6 +407,19 @@ Set whether the component is dirty (has been edited).
 */
 public void setDirty ( boolean is_dirty )
 {	__is_dirty = is_dirty;
+}
+
+/**
+Set whether there was an error reading an input file.  This is useful in cases where the file
+may be hand-edited or created outside of software, or perhaps the specification has changed and the
+Java code has not caught up.  If the error flag is set to true, then software like a UI has a clue to
+NOT try to edit or save because data corruption might occur.
+@param errorReadingInputFile if true, then an error occurred reading the component data from the
+input file.
+*/
+public void setErrorReadingInputFile ( boolean errorReadingInputFile )
+{
+	__errorReadingInputFile = errorReadingInputFile;
 }
 
 /**
