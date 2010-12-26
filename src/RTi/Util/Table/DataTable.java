@@ -87,12 +87,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.security.InvalidParameterException;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
-import RTi.Util.IO.HTMLWriter;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
@@ -1221,10 +1219,9 @@ Properties and their effects:<br>
 
 <tr>
 <td><b>ColumnDataTypes</b></td>
-<td>The data types for the column, either "Auto" (determine from column contents,
-"AllStrings" (all are strings, the default from historical behavior), or a list of
-data types (to be implemented in the future).
-Lines starting with this character are skipped (TrimInput is applied after checking for comments).</td>
+<td>The data types for the column, either "Auto" (determine from column contents),
+"AllStrings" (all are strings, fastest processing and the default from historical behavior),
+or a list of data types (to be implemented in the future).</td>
 <td>AllStrings.</td>
 </tr>
 
@@ -1294,6 +1291,9 @@ be trimmed before being placed in the data table (after parsing).</td>
 public static DataTable parseFile(String filename, PropList props) 
 throws Exception
 {   String routine = "DataTable.parseFile";
+	if ( props == null ) {
+		props = new PropList(""); // To simplify code below
+	}
 	// TODO SAM 2005-11-16 why is FixedFormat included?  Future feature?
 	/*String propVal = props.getValue("FixedFormat");
 	if (propVal != null) {
@@ -1607,12 +1607,14 @@ throws Exception
 	int [] count_int = new int[maxColumns];
     int [] count_double = new int[maxColumns];
     int [] count_string = new int[maxColumns];
+    int [] count_blank = new int[maxColumns];
     int [] lenmax_string = new int[maxColumns];
     int [] precision = new int[maxColumns];
     for ( int icol = 0; icol < maxColumns; icol++ ) {
         count_int[icol] = 0;
         count_double[icol] = 0;
         count_string[icol] = 0;
+        count_blank[icol] = 0;
         lenmax_string[icol] = 0;
         precision[icol] = 0;
     }
@@ -1621,6 +1623,7 @@ throws Exception
     String cell;
     String cell_trimmed; // Must have when checking for types.
     int periodPos; // Position of period in floating point numbers
+    boolean isTypeFound = false;
 	for ( int irow = 0; irow < size; irow++ ) {
 	    v = data_record_tokens.get(irow);
 	    vsize = v.size();
@@ -1628,13 +1631,21 @@ throws Exception
 	    for ( int icol = 0; icol < vsize; icol++ ) {
 	        cell = v.get(icol);
 	        cell_trimmed = cell.trim();
+	        isTypeFound = false;
+	        if ( cell_trimmed.length() == 0 ) {
+	        	// Blank cell - can be any type and should not impact result
+	        	++count_blank[icol];
+	        	isTypeFound = true;
+	        }
 	        if ( StringUtil.isInteger(cell_trimmed)) {
 	            ++count_int[icol];
 	            // Length needed in case handled as string data
 	            lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
+	            isTypeFound = true;
 	        }
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
+                isTypeFound = true;
                 // Length needed in case handled as string data
                 lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
                 // Precision to help with visualization
@@ -1642,11 +1653,10 @@ throws Exception
                 if ( periodPos >= 0 ) {
                     precision[icol] = Math.max(precision[icol], (cell_trimmed.length() - periodPos - 1) );
                 }
-                
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
-            else {
-                // String
+            if ( !isTypeFound ) {
+                // Assume string
                 ++count_string[icol];
                 if ( TrimStrings_boolean ) {
                     lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
@@ -1674,7 +1684,8 @@ throws Exception
     	        tableField.setWidth (lenmax_string[icol] );
     	        Message.printStatus ( 2, routine, "Column [" + icol +
     	            "] type is integer as determined from examining data (" + count_int[icol] +
-    	            " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings).");
+    	            " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + " blanks).");
     	    }
     	    else if ( (count_double[icol] > 0) && (count_string[icol] == 0) ) {
     	        // All data are double (integers will also count as double) so assume column type is double
@@ -1684,8 +1695,8 @@ throws Exception
                 tableField.setPrecision ( precision[icol] );
                 Message.printStatus ( 2, routine, "Column [" + icol +
                     "] type is double as determined from examining data (" + count_int[icol] +
-                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
-                    " width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + "blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
     	    else {
     	        // Based on what is known, can only treat column as containing strings.
@@ -1694,7 +1705,8 @@ throws Exception
     	        tableField.setWidth (lenmax_string[icol] );
     	        Message.printStatus ( 2, routine, "Column [" + icol +
                     "] type is string as determined from examining data (" + count_int[icol] +
-                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings).");
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
+                    count_blank[icol] + "blanks.");
     	        Message.printStatus ( 2, routine, "length max =" + lenmax_string[icol] );
     	    }
     	}
@@ -1737,10 +1749,22 @@ throws Exception
 			if ( ColumnDataTypes_Auto_boolean ) {
 			    // Set the data as an object of the column type.
 			    if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
-			        tablerec.addFieldValue( Integer.valueOf(cell.trim()) );
+			    	cell = cell.trim();
+			    	if ( cell.length() != 0 ) {
+			    		tablerec.addFieldValue( Integer.valueOf(cell.trim()) );
+			    	}
+			    	else {
+			    		tablerec.addFieldValue ( null );
+			    	}
 			    }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
-	                tablerec.addFieldValue( Double.valueOf(cell.trim()) );
+			    	cell = cell.trim();
+			    	if ( cell.length() != 0 ) {
+			    		tablerec.addFieldValue( Double.valueOf(cell.trim()) );
+			    	}
+			    	else {
+			    		tablerec.addFieldValue ( null );
+			    	}
 	            }
 			    else {
 			        // Add as string
