@@ -27,6 +27,7 @@ public class GRPoint extends GRShape
 
 public double x, y;	// Just one coordinate pair.
 
+// TODO SAM 2010-12-23 Maybe should initialize to NaN.
 /**
 Construct and initialize to (0,0).
 */
@@ -167,4 +168,4 @@ public String toString ()
 {	return "(" + x + "," + y + ")";
 }
 
-} // End GRPoint class
+}

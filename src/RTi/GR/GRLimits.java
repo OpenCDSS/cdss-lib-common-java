@@ -1,43 +1,3 @@
-// -----------------------------------------------------------------------------
-// GRLimits - GR bounding box type class
-// -----------------------------------------------------------------------------
-// Notes:	(1)	This class stores bounding-box data but in a common
-//			right-hand system for all data values (not just screen
-//			pixels.
-// -----------------------------------------------------------------------------
-// History:
-//
-// 21 Jun 1999	Steven A. Malers, RTi	Add finalize, equals, max methods.
-//					Change data to protected.  Add more
-//					documentation.  Allow two GRPoints in
-//					constructor.
-// 28 Jun 1999	SAM, RTi		Add contains().
-// 09 Oct 2000	SAM, RTi		Fix bug where getMinX() was returning
-//					min Y!
-// 23 May 2001	SAM, RTi		Fix bug where setLimits(doublex4) was
-//					not setting _left_x properly.
-// 03 Oct 2001	SAM, RTi		Overload max() to take a flag to reuse
-//					the limits.  This saves memory in cases
-//					where the limits may be reset many
-//					times.  Add increase() to make it easy
-//					to increase limits.
-// 2001-12-10	SAM, RTi		Extend GRLimits from GRShape so that it
-//					can be passed as a shape.  It is
-//					expected that a GRRectangle will be
-//					added that will have a different
-//					purpose than GRLimits and GRLimits may
-//					be phased out of search region code
-//					in favor of GRRectangle (perhaps extend
-//					GRLimits from GRRectangle?).  There is
-//					now a generic base class contains()
-//					method.  For now, some of the limits
-//					data are redundant with the base class.
-// -----------------------------------------------------------------------------
-// 2003-05-27	J. Thomas Sapienza, RTi	Changed increase so that the test for
-//					location is now <=, instead of just <
-// 2004-10-27	JTS, RTi		Implements Cloneable.
-// -----------------------------------------------------------------------------
-
 package RTi.GR;
 
 import java.awt.Rectangle;
@@ -231,7 +191,7 @@ Indicate whether the limits contain the point in question.
 The orientation of the GRLimits axes can be in either direction.
 */
 public boolean contains ( GRPoint pt )
-{	if (	(((pt.x >= _left_x) && (pt.x <= _right_x)) ||
+{	if ( (((pt.x >= _left_x) && (pt.x <= _right_x)) ||
 		((pt.x <= _left_x) && (pt.x >= _right_x))) &&
 		(((pt.y >= _bottom_y) && (pt.y <= _top_y)) ||
 		((pt.y <= _bottom_y) && (pt.y >= _top_y))) ) {
@@ -248,7 +208,7 @@ The orientation of the GRLimits axes can be in either direction.
 @return true if the GRLimits region contains the specified point.
 */
 public boolean contains ( double x, double y )
-{	if (	(((x >= _left_x) && (x <= _right_x)) ||
+{	if ( (((x >= _left_x) && (x <= _right_x)) ||
 		((x <= _left_x) && (x >= _right_x))) &&
 		(((y >= _bottom_y) && (y <= _top_y)) ||
 		((y <= _bottom_y) && (y >= _top_y))) ) {
@@ -259,8 +219,7 @@ public boolean contains ( double x, double y )
 
 /**
 Indicate whether the limits contain the region in question.
-Currently the orientation of both regions needs to be min x on the left and min
-y on the bottom.
+Currently the orientation of both regions needs to be min x on the left and min y on the bottom.
 @param xmin the lowest x value of the region
 @param ymin the lowest y value of the region
 @param xmax the highest x value of the region
@@ -269,10 +228,8 @@ y on the bottom.
 false, the region must only intersect.  This parameter is not currently checked.
 @return true if the GRLimits region contains the specified region.
 */
-public boolean contains ( double xmin, double ymin, double xmax, double ymax,
-			boolean contains_completely )
-{	if (	(xmax < _left_x) || (xmin > _right_x) ||
-		(ymax < _bottom_y) || (ymin > _top_y) ) {
+public boolean contains ( double xmin, double ymin, double xmax, double ymax, boolean contains_completely )
+{	if ( (xmax < _left_x) || (xmin > _right_x) || (ymax < _bottom_y) || (ymin > _top_y) ) {
 		return false;
 	}
 	return true;
@@ -415,14 +372,16 @@ public void increase ( double increase_x, double increase_y )
 		_left_x -= increase_x/2.0;
 		_right_x += increase_x/2.0;
 	}
-	else {	_right_x -= increase_x/2.0;
+	else {
+		_right_x -= increase_x/2.0;
 		_left_x += increase_x/2.0;
 	}
 	if ( _bottom_y <= _top_y ) {
 		_bottom_y -= increase_x/2.0;
 		_top_y += increase_x/2.0;
 	}
-	else {	_top_y -= increase_x/2.0;
+	else {
+		_top_y -= increase_x/2.0;
 		_bottom_y += increase_x/2.0;
 	}
 	reset();
@@ -442,10 +401,8 @@ private void initialize ()
 /**
 Return the maximum combined extents of the current limits and another GRLimits.
 All coordinates are compared and the maximum bounds are used.
-Therefore, orientation of the limits is ignored.  A new GRLimits instance is
-returned.
-@return the maximum combined extents of the current limits and another GRLimits
-instance.  
+Therefore, orientation of the limits is ignored.  A new GRLimits instance is returned.
+@return the maximum combined extents of the current limits and another GRLimits instance.  
 @param other Other GRLimits instance.
 */
 public GRLimits max ( GRLimits other )
@@ -455,8 +412,7 @@ public GRLimits max ( GRLimits other )
 /**
 Return the maximum of two GRLimits. All coordinates are compared and the 
 maximum bounds are used.  Therefore, orientation of the limits is ignored.
-@return the maximum combined extents of the current limits and another GRLimits
-instance.  
+@return the maximum combined extents of the current limits and another GRLimits instance.  
 @param other Other GRLimits instance.
 @param reuse_limits If true, the limits will be reused; if false, a new
 instance will be created.
@@ -466,11 +422,11 @@ public GRLimits max ( GRLimits other, boolean reuse_limits )
 		if ( reuse_limits ) {
 			return ( this );
 		}
-		else {	return new GRLimits ( this );
+		else {
+			return new GRLimits ( this );
 		}
 	}
-	return max ( other._min_x, other._min_y, other._max_x, other._max_y,
-			reuse_limits );
+	return max ( other._min_x, other._min_y, other._max_x, other._max_y, reuse_limits );
 }
 
 /**
@@ -482,11 +438,9 @@ Therefore, orientation of the limits is ignored.
 @param ymin Minimum Y value to check.
 @param xmax Maximum X value to check.
 @param ymax Maximum Y value to check.
-@param reuse_limits If true, the limits will be reused; if false, a new
-instance will be created.
+@param reuse_limits If true, the limits will be reused; if false, a new instance will be created.
 */
-public GRLimits max ( double xmin, double ymin, double xmax, double ymax,
-			boolean reuse_limits )
+public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolean reuse_limits )
 {	if ( _min_x < xmin ) {
 		xmin = _min_x;
 	}
@@ -507,7 +461,8 @@ public GRLimits max ( double xmin, double ymin, double xmax, double ymax,
 		reset();
 		return this;
 	}
-	else {	return new GRLimits ( xmin, ymin, xmax, ymax );
+	else {
+		return new GRLimits ( xmin, ymin, xmax, ymax );
 	}
 }
 
@@ -521,14 +476,16 @@ private void reset ()
 		_min_x = _left_x;
 		_max_x = _right_x;
 	}
-	else {	_min_x = _right_x;
+	else {
+		_min_x = _right_x;
 		_max_x = _left_x;
 	}
 	if ( _bottom_y <= _top_y ) {
 		_min_y = _bottom_y;
 		_max_y = _top_y;
 	}
-	else {	_min_y = _top_y;
+	else {
+		_min_y = _top_y;
 		_max_y = _bottom_y;
 	}
 	_width = _max_x - _min_x;
@@ -583,8 +540,7 @@ Set the limits using the corner points
 @param right_x Right X-coordinate.
 @param top_y Top Y-coordinate.
 */
-public void setLimits (	double left_x, double bottom_y, double right_x,
-			double top_y )
+public void setLimits (	double left_x, double bottom_y, double right_x, double top_y )
 {	_left_x = left_x;
 	_bottom_y = bottom_y;
 	_right_x = right_x;
@@ -601,4 +557,4 @@ public String toString ()
 	_width + "x" + _height );
 }
 
-} // End of GRLimits class
+}
