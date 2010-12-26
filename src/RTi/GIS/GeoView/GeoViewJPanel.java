@@ -182,6 +182,8 @@ import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 
 import RTi.GR.GRColor;
+import RTi.GR.GRDrawingArea;
+import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDevice;
 import RTi.GR.GRLegend;
 import RTi.GR.GRLimits;
@@ -209,6 +211,7 @@ import RTi.Util.String.StringUtil;
 
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableField;
+import RTi.Util.Table.TableRecord;
 
 import RTi.Util.Time.StopWatch;
 
@@ -302,6 +305,7 @@ private JComboBox __modeJComboBox = null;
 
 private JTextField __statusJTextField = null;
 private JTextField __trackerJTextField = null;
+private String __trackerProjectionString = ""; // Projection for the tracker so user has a clue
 
 // Buttons...
 
@@ -1852,7 +1856,7 @@ public void geoViewMouseMotion(GRPoint devpt, GRPoint datapt) {
 
 	// Set the displayed output String
 	String text = "X, Y:  " + StringUtil.formatString(datapt.x,precisionString) + "," +
-			StringUtil.formatString(datapt.y,precisionString);
+			StringUtil.formatString(datapt.y,precisionString) + " " + __trackerProjectionString;
 	__trackerJTextField.setText ( text );
 	text = null;
 }
@@ -1862,7 +1866,7 @@ Handle select event; does nothing.
 Handle GeoView select event.  Do nothing.
 @param devpt Device coordinates.
 @param datapt Data coordinates.
-@param selected Vector of GeoRecord selected from GeoView.
+@param selected list of GeoRecord selected from GeoView.
 */
 public void geoViewSelect(GRShape devpt, GRShape datapt, List selected, boolean append) {}
 
@@ -1910,34 +1914,20 @@ public GeoViewJComponent getGeoView ()
 
 /**
 Returns a list of the app layer types of the app layers that are currently enabled.
-@return a list of the app layer types of the app layers that are currently enabled.
+@return a list of the app layer types of the app layers that are currently enabled, guaranteed to
+be non-null.
 */
-public List getEnabledAppLayerTypes() {
-	List layerViews = getGeoView().getLayerViews();			
-	GeoLayerView glv = null;
-	GeoLayer gl = null;
+public List<String> getEnabledAppLayerTypes() {
+	List<GeoLayerView> layerViews = getGeoView().getLayerViews();			
 	
-	if (layerViews == null) {
-		return null;
-	}
-	
-	int size = layerViews.size();
-
-	List v = new Vector();
-
-	for (int i = 0; i < size; i++) {
-		glv = (GeoLayerView)layerViews.get(i);
-		if (glv.isVisible()) {
-			gl = glv.getLayer();
-			v.add(gl.getAppLayerType());
+	List<String> enabledAppLayerTypeList = new Vector();
+	for ( GeoLayerView layerView: layerViews ) {
+		if (layerView.isVisible()) {
+			GeoLayer layer = layerView.getLayer();
+			enabledAppLayerTypeList.add(layer.getAppLayerType());
 		}
 	}
-
-	if (size > 0) {
-		return v;
-	}
-	
-	return null;
+	return enabledAppLayerTypeList;
 }
 
 /**
@@ -1949,38 +1939,32 @@ public String getGVPFile()
 }
 
 /**
-Return a Vector of GeoLayerView that is being managed in the main canvas for the GeoViewPanel.
-@return a Vector of GeoLayerView that is being managed in the main canvas
-for the GeoViewPanel, or null if no layer views match the requested criteria.
-@param app_layer_types A Vector of application layer types.  If null, all
+Return a list of GeoLayerView that is being managed in the main canvas for the GeoViewPanel.
+@return a list of GeoLayerView that is being managed in the main canvas
+for the GeoViewPanel, or an empty list if no layer views match the requested criteria.
+@param appLayerTypesReq A list of application layer types.  If null, all
 layer views are returned.  Otherwise, only layer views matching the requested type are returned.
 */
-public List getLayerViews ( List app_layer_types )
-{	List layer_views = __mainGeoView.getLayerViews();
-	if ( app_layer_types == null ) {
-		return layer_views;
+public List<GeoLayerView> getLayerViews ( List<String> appLayerTypesReq )
+{	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
+	if ( (appLayerTypesReq == null) || (appLayerTypesReq.size() == 0) ) {
+		return layerViewList;
 	}
-	GeoLayerView layer_view = null;
-	String app_layer_type = null;
-	int numlayerviews = layer_views.size();
-	List matching_layer_views = null;
-	int n_app_layer_types = app_layer_types.size(), j;
-	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.get(i);
-		app_layer_type= layer_view.getPropList().getValue ( "AppLayerType");
-		if ( app_layer_type == null ) {
+	String appLayerType = null;
+	List<GeoLayerView> matchingLayerViews = new Vector();
+	for ( GeoLayerView layerView: layerViewList) {
+		appLayerType = layerView.getPropList().getValue ( "AppLayerType");
+		if ( appLayerType == null ) {
+			// Property not defined so no chance to match requested type.
 			continue;
 		}
-		for ( j = 0; j < n_app_layer_types; j++ ) {
-			if (app_layer_type.equalsIgnoreCase( (String)app_layer_types.get(j)) ) {
-				if ( matching_layer_views == null ) {
-					matching_layer_views = new Vector();
-				}
-				matching_layer_views.add ( layer_view );
+		for ( String appLayerTypeReq: appLayerTypesReq ) {
+			if (appLayerType.equalsIgnoreCase( appLayerTypeReq) ) {
+				matchingLayerViews.add ( layerView );
 			}
 		}
 	}
-	return matching_layer_views;
+	return matchingLayerViews;
 }
 
 /**
@@ -2014,30 +1998,21 @@ This can be used, for example, to turn on map features when supporting data are 
 @param app_layer_types Vector of AppLayerType String to check.
 @return true if any of the specified AppLayerType match the AppLayerType for visible layer views.
 */
-public boolean hasAppLayerType ( List app_layer_types )
-{	List layer_views = __mainGeoView.getLayerViews();
-	GeoLayerView layer_view = null;
+public boolean hasAppLayerType ( List<String> app_layer_types )
+{	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
 	int size = 0;
 	if ( app_layer_types != null ) {
 		size = app_layer_types.size();
 	}
-	int isize = 0;
-	if ( layer_views != null ) {
-		isize = layer_views.size();
-	}
 	String prop_value = null;
-	for ( int i = 0; i < isize; i++ ) {
-		layer_view = (GeoLayerView)layer_views.get(i);
-		if ( layer_view.isVisible() ) {
-			prop_value = layer_view.getPropList().getValue("AppLayerType");
+	for ( GeoLayerView layerView : layerViewList ) {
+		if ( layerView.isVisible() ) {
+			prop_value = layerView.getPropList().getValue("AppLayerType");
 			if ( prop_value == null ) {
 				continue;
 			}
 			for ( int j = 0; j < size; j++ ) {
 				if (prop_value.equalsIgnoreCase((String)app_layer_types.get(j)) ){
-					layer_view = null;
-					layer_views = null;
-					prop_value = null;
 					return true;
 				}
 			}
@@ -2134,16 +2109,6 @@ throws Exception
 		// Remove the existing layer views from the display...
 		removeAllLayerViews();
 	//}
-
-	// Strongly encourage the VM to garbage collection.  
-	// This isn't efficient, speed-wise (garbage collection could
-	// conceivably run 20 times), but it almost totally guarantees
-	// that the memory will be reclaimed.
-	/* Remove for now and see if it performs better
-	for (int i = 0; i < 20; i++) {
-		System.gc();
-	}
-	*/
 	
 	JGUIUtil.setWaitCursor(__parentJFrame, true);
 	try {
@@ -2213,6 +2178,10 @@ throws Exception
 			__projHRAP = new JMenuItem(CHANGE_TO_HRAP);
 			__projHRAP.addActionListener(this);
 			__propertiesPopup.add(__projHRAP);
+		}
+		// Set the tracker projection string
+		if ( (X != null) && !X.equals("") ) {
+			setTrackerProjectionString(X);
 		}
 		
 		__mainGeoView.setProject ( __gvp );
@@ -2488,110 +2457,98 @@ public List selectAppFeatures ( List app_layer_types, List feature_ids, boolean 
 Select features on the map based on a check of an attribute value (e.g., a
 string identifier).  The AppLayerType data in the GeoView project is used to
 identify suitable layers for the check.
-@param app_layer_types If specified, this contains a list of AppLayerType
+@param appLayerTypes If specified, this contains a list of AppLayerType
 string properties for layers that should be searched.  Specifying this
 information increases the speed of searches.
 @param feature_ids The data attributes corresponding to the AppJoinField
 property saved with a GeoLayerView.  One or more field values can be given, separated by commas.
-@param zoom_to_selected Indicates whether the GeoView should zoom to the selected shapes.
-@param zoom_buffer The percent (1.0 is 100%) to expand the visible area in
+@param zoomToSelected Indicates whether the GeoView should zoom to the selected shapes.
+@param zoomBuffer The percent (1.0 is 100%) to expand the visible area in
 both directions for the selected shapes.  For example, specifying a value of
 1.0 would result in a viewable area that is 50% bigger than selecte shapes on each edge.
-@param zoom_buffer2 If the selected shapes result in a region that is a single
+@param zoomBuffer2 If the selected shapes result in a region that is a single
 point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
 @return list of GeoRecord for the selected features, or null if nothing is selected.
 */
-public List selectAppFeatures (	List app_layer_types, List feature_ids, boolean zoom_to_selected,
-					double zoom_buffer, double zoom_buffer2, boolean append )
+public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<String> feature_ids,
+	boolean zoomToSelected, double zoomBuffer, double zoomBuffer2, boolean append )
 {	String routine = "GeoViewPanel.selectAppFeatures";
 
 	// First loop through all non-baseline layers and set shapes to not selected.
 
-	if ( feature_ids == null ) {
-		return null;
+	if ( (feature_ids == null) || (feature_ids.size() == 0) ) {
+		return new Vector();
 	}
 	int nfeature = feature_ids.size();
-	if ( nfeature == 0 ) {
-		return null;
-	}
 	int napp_layer_types = 0;
-	if ( app_layer_types != null ) {
-		napp_layer_types = app_layer_types.size();
+	if ( appLayerTypes != null ) {
+		napp_layer_types = appLayerTypes.size();
 	}
 	// Break the features_ids into a 2-D array of strings for examination
 	// below.  It is assumed that the first feature_id has the correct number of fields...
-	List georecords = null;
-	List v = StringUtil.breakStringList ( (String)feature_ids.get(0), ",", 0 );
+	List<GeoRecord> selectedGeoRecordList = new Vector();
+	List<String> v = StringUtil.breakStringList ( feature_ids.get(0), ",", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
-		return null;
+		return new Vector();
 	}
 	int nfeature_parts = v.size();
 	String[][] feature_array = new String[nfeature][nfeature_parts];
 	for ( int i = 0; i < nfeature; i++ ) {
-		v = StringUtil.breakStringList ( (String)feature_ids.get(i), ",", 0 );
+		v = StringUtil.breakStringList ( feature_ids.get(i), ",", 0 );
 		for ( int j = 0; j < nfeature_parts; j++ ) {
-			feature_array[i][j] = (String)v.get(j);
+			feature_array[i][j] = v.get(j);
 		}
 	}
 	v = null;
 	
-	List layer_views = __mainGeoView.getLayerViews();
-	int numlayerviews = 0;
-	if ( layer_views != null ) {
-		numlayerviews = layer_views.size();
-	}
-	GeoLayerView layer_view = null;
-	GeoLayer layer = null;
+	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
 	String prop_value = null;
-	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.get(i);
+	for ( GeoLayerView layerView: layerViewList ) {
 		//prop_value = layer_view.getPropList().getValue ( "AppLayerType");
 		//if ( prop_value.equalsIgnoreCase("BaseLayer") ) {
 			//continue;
 		//}
-		layer = (GeoLayer)layer_view.getLayer();
+		GeoLayer layer = layerView.getLayer();
 		layer.deselectAllShapes();
 	}
 
 	// Now loop through all non-baseline layers and search for the features...
 
-	List lv_records = null;	// Records selected in a layer view.
+	List<GeoRecord> lv_records = null;	// Records selected in a layer view.
 	String join_field; // Fields to join the application data to the spatial data
-	List join_fields_Vector; // join_field parsed with ","
-
-	for ( int i = 0; i < numlayerviews; i++ ) {	
-		layer_view = (GeoLayerView)layer_views.get(i);
-		layer = (GeoLayer)layer_view.getLayer();
+	List<String> join_fields_Vector; // join_field parsed with ","
+	for ( GeoLayerView layerView: layerViewList ) {
+		GeoLayer layer = layerView.getLayer();
 
 		// See if the app layer type matches the types that should be searched...
 		if ( napp_layer_types > 0 ) {
-			boolean layer_type_matches = false;
+			boolean layerTypeMatches = false;
 			for ( int j = 0; j < napp_layer_types; j++ ) {
-				if (layer.getAppLayerType().equalsIgnoreCase((String)app_layer_types.get(j)) ){
-					layer_type_matches = true;
+				if (layer.getAppLayerType().equalsIgnoreCase(appLayerTypes.get(j)) ){
+					layerTypeMatches = true;
 					break;
 				}
 			}
-			if ( !layer_type_matches ) {
+			if ( !layerTypeMatches ) {
 				continue;
 			}
 		}
 		// Layers that are not visible don't need to be searched...
-		if ( !layer_view.isVisible() ) {
+		if ( !layerView.isVisible() ) {
 //			System.out.println("   (not visible)");
 			continue;
 		}
 		// Base layers cannot be searched...
-		prop_value = layer_view.getPropList().getValue ("AppLayerType");
+		prop_value = layerView.getPropList().getValue ("AppLayerType");
 		if ((prop_value != null) && prop_value.equalsIgnoreCase("BaseLayer") ) {
 //			System.out.println("   (base layer)");
 			continue;
 		}
 		// Get the join field...
-		join_field = layer_view.getPropList().getValue ("AppJoinField");
+		join_field = layerView.getPropList().getValue ("AppJoinField");
 		if ( join_field == null ) {
 			// The layer is not attached to any application data so return...
 //			System.out.println("   (not attached to app data)");
@@ -2605,42 +2562,39 @@ public List selectAppFeatures (	List app_layer_types, List feature_ids, boolean 
 		}
 
 		// Select shapes in the layer view...
-		lv_records = layer_view.selectFeatures ( feature_array, join_field, append);
+		lv_records = layerView.selectFeatures ( feature_array, join_field, append);
 		// if not null, add to the main list...
 		if ( lv_records != null ) {
-			if ( georecords == null ) {
-				georecords = lv_records;
+			if ( selectedGeoRecordList == null ) {
+				selectedGeoRecordList = lv_records;
 			}
 			else {
 				// Transfer...
 				int lv_size = lv_records.size();
 				for ( int ilv = 0; ilv < lv_size; ilv++ ) {
-					georecords.add ( lv_records.get(ilv) );
+					selectedGeoRecordList.add ( lv_records.get(ilv) );
 				}
 			}
 		}
 	}
 
-	int match_count = 0;
-	if ( georecords != null ) {
-		match_count = georecords.size();
-	}
-	Message.printStatus ( 1, routine, "Found " + match_count + " matches for " + nfeature + " features." );
+	int matchCount = selectedGeoRecordList.size();
+	Message.printStatus ( 2, routine, "Found " + matchCount + " matches for " + nfeature + " features." );
 
 	GRShape shape = null;
-	if ( match_count > 0 ) {
+	if ( matchCount > 0 ) {
 		// Something matched so we need to update the view...
-		if ( zoom_to_selected ) {
+		if ( zoomToSelected ) {
 			// First determine the limits of the data that are returned...
-			int size = georecords.size();
+			int size = selectedGeoRecordList.size();
 			GRLimits datalimits = null; 
 			GeoRecord georecord;
 			for ( int i = 0; i < size; i++ ) {
 				// Have to check for zero because some shapes
 				// don't have coordinates...  For now check only the max...
-				georecord = (GeoRecord)georecords.get(i);
+				georecord = selectedGeoRecordList.get(i);
 				shape = georecord.getShape();
-				if ( zoom_to_selected && (shape.xmin != 0.0) ) {
+				if ( zoomToSelected && (shape.xmin != 0.0) ) {
 					if ( datalimits == null) {
 						datalimits = new GRLimits( shape.xmin, shape.ymin, shape.xmax, shape.ymax );
 					}
@@ -2652,19 +2606,19 @@ public List selectAppFeatures (	List app_layer_types, List feature_ids, boolean 
 			// Increase the limits...
 			double xincrease = 0.0, yincrease = 0.0;
 			if (datalimits.getMinX() == datalimits.getMaxX()) {
-				xincrease = __mainGeoView.getDataLimits().getWidth() * zoom_buffer2;
+				xincrease = __mainGeoView.getDataLimits().getWidth() * zoomBuffer2;
 			}
 			else {	
-				xincrease = datalimits.getWidth() * zoom_buffer;
+				xincrease = datalimits.getWidth() * zoomBuffer;
 			}
 			if (datalimits.getMinY() == datalimits.getMaxY()) {
-				yincrease = __mainGeoView.getDataLimits().getHeight() * zoom_buffer2;
+				yincrease = __mainGeoView.getDataLimits().getHeight() * zoomBuffer2;
 			}
 			else {	
-				yincrease = datalimits.getHeight() *zoom_buffer;
+				yincrease = datalimits.getHeight() *zoomBuffer;
 			}
 			datalimits.increase(xincrease, yincrease);
-			Message.printStatus(1, routine, "2ooming to " + datalimits.toString());
+			Message.printStatus(2, routine, "zooming to " + datalimits.toString());
 			__mainGeoView.geoViewZoom(null, datalimits);
 			__refGeoView.geoViewZoom(null, datalimits);
 		}
@@ -2673,8 +2627,7 @@ public List selectAppFeatures (	List app_layer_types, List feature_ids, boolean 
 			__mainGeoView.redraw();
 		}
 	}
-
-	return georecords;
+	return selectedGeoRecordList;
 }
 
 /**
@@ -3064,6 +3017,105 @@ public List selectAppFeatures (	List app_layer_types, GRShape shape, boolean zoo
 }
 
 /**
+Set the visibility of features based on a check of an attribute value (e.g., a
+string identifier).  The AppLayerType data in the GeoView project is used to
+identify suitable layers for the check.
+@param appLayerTypes If specified, this contains a list of AppLayerType
+string properties for layers that should be searched.  Specifying this
+information increases the speed of searches because it limits the layers that are searched.
+@param featureIDList The data attributes corresponding to the AppJoinField
+property saved with a GeoLayerView.  One or more field values can be given, separated by commas.
+@return list of GeoRecord for the selected features, or null if nothing is selected.
+*/
+public void setAppFeatureVisibilityUsingAttributeList ( List<String> appLayerTypes,
+	List<String> featureIDList, boolean showFeaturesInFeatureIDList,
+	boolean showFeaturesNotInFeatureIDList )
+{	String routine = "GeoViewPanel.setAppFeatureVisibility";
+
+	List<GeoLayerView> layerViewList = getLayerViews(appLayerTypes);
+
+	// Special cases...
+	if ( (showFeaturesInFeatureIDList && showFeaturesNotInFeatureIDList) ||
+		(!showFeaturesInFeatureIDList && !showFeaturesNotInFeatureIDList) ) {
+		// Show all the features or none.
+		for ( GeoLayerView layerView: layerViewList ) {
+			GeoLayer layer = layerView.getLayer();
+			layer.setShapesVisible(showFeaturesInFeatureIDList, true, true);
+		}
+		return;
+	}
+
+	String layerAppJoinField; // Fields to join the application data to the spatial data
+	String joinFieldValue;
+	TableRecord rec;
+	GRShape shape;
+	for ( GeoLayerView layerView: layerViewList ) {
+		// Get the layer and join field...
+		layerAppJoinField = layerView.getPropList().getValue ("AppJoinField");
+		if ( layerAppJoinField == null ) {
+			// The layer is not attached to any application data so no need to process...
+			continue;
+		}
+		GeoLayer layer = layerView.getLayer();
+		int layerAppJoinFieldIndex = -1;
+		try {
+			layerAppJoinFieldIndex = layer.getAttributeTable().getFieldIndex(layerAppJoinField);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, "Error getting layer \"" + layerView.getName() +
+				"\" column number for attribute \"" + layerAppJoinField +
+				"\" cannot set feature visibility (" + e + ").");
+			continue;
+		}
+		if ( layerAppJoinFieldIndex < 0 ) {
+			// The attribute table does not have the requested field
+			Message.printWarning(3, routine, "Layer \"" + layerView.getName() +
+				"\" does not have attribute \"" + layerAppJoinField + "\" cannot set feature visibility." );
+			continue;
+		}
+		// Loop through the features and try to match the join field
+		int nFeatures = layer.getShapes().size();
+		for ( int iFeature = 0; iFeature < nFeatures; iFeature++ ) {
+			rec = layer.getTableRecord(iFeature);
+			shape = layer.getShape(iFeature);
+			// TODO SAM 2010-12-21 Allow other than strings to be joined
+			try {
+				joinFieldValue = "" + rec.getFieldValue(layerAppJoinFieldIndex);
+			}
+			catch ( Exception e ) {
+				// Should not happen
+				Message.printWarning(3, routine, "Error getting attribute \"" + layerAppJoinField +
+					"\" from layer \"" + layerView.getName() +
+					"\" - cannot set feature visibility (" + e + ")." );
+				continue;
+			}
+			for ( String featureID: featureIDList ) {
+				Message.printStatus(2, routine, "Comparing feature ID \"" + featureID +
+					"\" with attribute table value \"" + joinFieldValue + "\"" );
+				if ( joinFieldValue.equalsIgnoreCase(featureID) ) {
+					// Have a match
+					if ( showFeaturesInFeatureIDList ) {
+						shape.is_visible = true;
+					}
+					else {
+						shape.is_visible = false;
+					}
+				}
+				else {
+					// Feature is not in the list
+					if ( showFeaturesNotInFeatureIDList ) {
+						shape.is_visible = true;
+					}
+					else {
+						shape.is_visible = false;
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
 Turns on or off the buttons in the toolbar based on whether anything is 
 selected.  This is called by the legend JTree as layers are turned on and off.
 @param selected if true then the buttons are enabled.  If they are not enabled.
@@ -3113,6 +3165,14 @@ Sets text in the status field.
 */
 public void setStatus(String text) {
 	__statusJTextField.setText(text);
+}
+
+/**
+Set the tracker projection string so the user understands the coordinate system.
+*/
+private void setTrackerProjectionString ( String trackerProjectionString )
+{
+	__trackerProjectionString = trackerProjectionString;
 }
 
 /**
@@ -3194,8 +3254,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	__refGeoView.setPreferredSize ( new Dimension(75,100) );
 	__refGeoView.setBackground ( Color.white );
 	//JGUIUtil.addComponent ( this, __refGeoView, 0, y, 2, 1, 0, 0,
-	JGUIUtil.addComponent ( leftPane, 
-		__refGeoView
+	JGUIUtil.addComponent ( leftPane, __refGeoView
 //		new JScrollPane(__refGeoView)
 		, 0, 1, 1, 1, 0, 0,
 		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
@@ -3535,7 +3594,7 @@ private void showFeatureInformation ( List<? extends GeoRecord> selected )
 	List<String> strings = new Vector();
 	int nfields = 0;
 	String string = null;
-	String name = null;		// Name of layer.
+	String name = null; // Name of layer.
 	Object o = null;
 	strings.add ( "" );
 	strings.add ( "Selected " + size + " features." );

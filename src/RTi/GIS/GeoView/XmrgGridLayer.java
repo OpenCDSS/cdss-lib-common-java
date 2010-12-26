@@ -91,6 +91,7 @@ import java.util.Vector;
 
 //import RTi.GIS.GeoView.HRAPProjection;
 import RTi.GR.GRLimits;
+import RTi.GR.GRShape;
 import RTi.Util.IO.EndianRandomAccessFile;
 					// Use this because Xmgr files are
 					// written on UNIX workstatations that
@@ -226,27 +227,28 @@ typically the same as the save date.
 @param maxx The number of HRAP grid columns.
 @param maxy The number of HRAP grid rows.
 */
-public XmrgGridLayer (	String filename, String user_id, DateTime saved_date,
-			String proc_flag, DateTime valid_date,
-			int xor, int yor, int maxx, int maxy )
+public XmrgGridLayer ( String filename, String user_id, DateTime saved_date,
+	String proc_flag, DateTime valid_date, int xor, int yor, int maxx, int maxy )
 {	super ( filename );
-	_data_format = "XMRG";
+	setDataFormat ( "XMRG" );
 	setShapeType ( GRID );
 	// Create a grid of the requested dimensions...
-	_grid = new GeoGrid ();
-	_grid.setUnits ( "MM" );
+	GeoGrid grid = new GeoGrid();
+	setGrid ( grid );
+	grid.setUnits ( "MM" );
 	// Set the information for the grid layer (floating point limits)...
-	_grid.xmin = (double)xor;
-	_grid.ymin = (double)yor;
-	_grid.xmax = (double)(xor + maxx);
-	_grid.ymax = (double)(yor + maxy);
-	setLimits ( _grid.xmin, _grid.ymin, _grid.xmax, _grid.ymax );
-	_shapes.add ( _grid );
+	grid.xmin = (double)xor;
+	grid.ymin = (double)yor;
+	grid.xmax = (double)(xor + maxx);
+	grid.ymax = (double)(yor + maxy);
+	setLimits ( grid.xmin, grid.ymin, grid.xmax, grid.ymax );
+	List<GRShape> shapes = getShapes();
+	shapes.add ( grid );
 	// Set the grid size using the grid integer row/column positions...
-	_grid.setSize ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
-	_grid.setSizeFull ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
-	_grid.setMissing ( -999.0 );
-	_grid.allocateDataSpace ();
+	grid.setSize ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
+	grid.setSizeFull ( xor, yor, (xor + maxx - 1), (yor + maxy - 1) );
+	grid.setMissing ( -999.0 );
+	grid.allocateDataSpace ();
 	// Assign data maintained by this class...
 	__userID = user_id;
 	__savedDate = saved_date;
@@ -262,18 +264,20 @@ Constructor for class Xmrg.
 @param read_data  A value of false indicates that only the header should be
 read in (the data can be read on-the-fly later).  A value of true
 indicates the header and all data will be read.
-@param remain_open Indicates whether file should remain open (for additional
-reads).
+@param remain_open Indicates whether file should remain open (for additional reads).
 @exception IOException if there is a read error.
 */
-public XmrgGridLayer (	String filename, boolean read_data,
-			boolean remain_open ) throws IOException {
+public XmrgGridLayer ( String filename, boolean read_data, boolean remain_open )
+throws IOException
+{
 	super ( filename );
-	_data_format = "XMRG";
+	setDataFormat ( "XMRG" );
 	setShapeType ( GRID );
 	// The entire grid will be read.
-	_grid = new GeoGrid ();
-	_shapes.add ( _grid );
+	GeoGrid grid = new GeoGrid ();
+	setGrid ( grid );
+	List<GRShape> shapes = getShapes();
+	shapes.add ( grid );
 	read ( read_data, remain_open );
 }
 
@@ -284,26 +288,26 @@ region is of interest, then only the region of interest will be processed,
 although any cell in the grid can be read if necessary.
 @param filename	 Name of xmrg file to read.
 @param read_data  A value of false indicates that only the header should be
-	read in.  A value of true indicates the header and all data will be
-	read.
+	read in.  A value of true indicates the header and all data will be read.
 @param mincol Minimum HRAP column to consider.
 @param minrow Minimum HRAP row to consider.
 @param maxcol Maximum HRAP column to consider.
 @param maxrow Maximum HRAP row to consider.
-@param remain_open Indicates whether file should remain open (for additional
-reads).
+@param remain_open Indicates whether file should remain open (for additional reads).
 @exception IOException if there is a read error.
 */
 public XmrgGridLayer (	String filename, boolean read_data, boolean remain_open,
 			int mincol, int minrow, int maxcol, int maxrow )
 throws IOException {
 	super ( filename );
-	_data_format = "XMRG";
+	setDataFormat ( "XMRG" );
 	setShapeType ( GRID );
 	// The entire grid will be read.
-	_grid = new GeoGrid ();
-	_shapes.add ( _grid );
-	_grid.setSize ( mincol, minrow, maxcol, maxrow );
+	GeoGrid grid = new GeoGrid ();
+	setGrid ( grid );
+	List<GRShape> shapes = getShapes();
+	shapes.add ( grid );
+	grid.setSize ( mincol, minrow, maxcol, maxrow );
 	read ( read_data, remain_open );
 }
 
@@ -476,35 +480,27 @@ the range of the grid, the value used for missing data will be returned
 @exception IOException if problem when reading.
 */
 public double getDataValue ( int col, int row ) throws IOException
-{	if (	(row < _grid.getMinRowFull()) ||
-		(row > _grid.getMaxRowFull()) ||
-		(col < _grid.getMinColumnFull()) ||
-		(col > _grid.getMaxColumnFull()) ) {
+{	GeoGrid grid = getGrid();
+	if ( (row < grid.getMinRowFull()) || (row > grid.getMaxRowFull()) ||
+		(col < grid.getMinColumnFull()) || (col > grid.getMaxColumnFull()) ) {
 		Message.printWarning(2, "getDataValue", "column: " + col +
 		" row: " + row + " is out of range. " +
-		"Grid column range is: " + _grid.getMinColumnFull() +
-		"-" + _grid.getMaxColumnFull() +
-		" and row range is: " + _grid.getMinRowFull() + "-" +
-		_grid.getMaxRowFull() );
-		return _grid._missing;
+		"Grid column range is: " + grid.getMinColumnFull() +
+		"-" + grid.getMaxColumnFull() +
+		" and row range is: " + grid.getMinRowFull() + "-" +
+		grid.getMaxRowFull() );
+		return grid._missing;
 	}
-	if ( (_grid._double_data != null) && _grid.contains(col,row) ) {
+	if ( (grid._double_data != null) && grid.contains(col,row) ) {
 		// Get the value from the in-memory data.
-		return _grid.getDataValue ( col, row );
+		return grid.getDataValue ( col, row );
 	}
-	else {	// Either the data were never stored in memory or the request is
+	else {
+		// Either the data were never stored in memory or the request is
 		// for a cell outside the active grid space.  Read the data
 		// value from the file...
 		return readDataValue ( col, row );
 	}
-}
-
-/**
-Returns the grid containing the xmrg data.
-@return the grid containing the xmrg data.
-*/
-public GeoGrid getGrid() {
-	return _grid;
 }
 
 /**
@@ -687,8 +683,7 @@ header read, and data will be accessed later.
 private void read ( boolean read_data, boolean remain_open )
 throws IOException
 {	int dl = 3;
-	// Open a RandomAccessFile to read in the binary xmrg file and
-	// store its info.
+	// Open a RandomAccessFile to read in the binary xmrg file and store its info.
 
 	__raf = new EndianRandomAccessFile(getFileName(), "r");
 
@@ -720,7 +715,8 @@ throws IOException
 	if ( __big_endian ) {
 		__raf.readInt();
 	}
-	else {	__raf.readLittleEndianInt();
+	else {
+		__raf.readLittleEndianInt();
 	}
 
 	// Coordinate for the SouthWest corner...
@@ -731,7 +727,8 @@ throws IOException
 		minX = __raf.readInt();
 		minY = __raf.readInt();
 	}
-	else {	minX = __raf.readLittleEndianInt();
+	else {
+		minX = __raf.readLittleEndianInt();
 		minY = __raf.readLittleEndianInt();
 	}
 
@@ -742,18 +739,19 @@ throws IOException
 		colCount = __raf.readInt();
 		rowCount = __raf.readInt();
 	}
-	else {	colCount = __raf.readLittleEndianInt();
+	else {
+		colCount = __raf.readLittleEndianInt();
 		rowCount = __raf.readLittleEndianInt();
 	}
 
-	// Now set information in the grid shape and also the GeoLayer base
-	// class...
+	// Now set information in the grid shape and also the GeoLayer base class...
 
-	_grid.xmin = (double)minX;
-	_grid.ymin = (double)minY;
-	_grid.xmax = (double)(minX + colCount);
-	_grid.ymax = (double)(minY + rowCount);
-	setLimits ( _grid.xmin, _grid.ymin, _grid.xmax, _grid.ymax );
+	GeoGrid grid = getGrid();
+	grid.xmin = (double)minX;
+	grid.ymin = (double)minY;
+	grid.xmax = (double)(minX + colCount);
+	grid.ymax = (double)(minY + rowCount);
+	setLimits ( grid.xmin, grid.ymin, grid.xmax, grid.ymax );
 	//if ( Message.isDebugOn ) {
 		//Message.printDebug ( dl, "XmrgGridLayer.read",
 		Message.printStatus ( 5, "XmrgGridLayer.read",
@@ -769,22 +767,22 @@ throws IOException
 	// set (e.g., in the constructor), then only set the full size here and
 	// leave the active size as is.
 
-	if (	(_grid.getMinColumn() == 0) && (_grid.getMinRow() == 0) &&
-		(_grid.getMaxColumn() == 0) && (_grid.getMaxRow() == 0) ) {
-		_grid.setSize ( minX, minY, (minX + colCount - 1),
+	if (	(grid.getMinColumn() == 0) && (grid.getMinRow() == 0) &&
+		(grid.getMaxColumn() == 0) && (grid.getMaxRow() == 0) ) {
+		grid.setSize ( minX, minY, (minX + colCount - 1),
 				(minY + rowCount - 1) );
 		// The data space for the grid will be allocated in the
 		// readGridData() method.
 	}
-	_grid.setSizeFull ( minX, minY, (minX + colCount - 1),
-		(minY + rowCount - 1) );
+	grid.setSizeFull ( minX, minY, (minX + colCount - 1), (minY + rowCount - 1) );
 
 	// Read an integer at the end of the first header record (from
 	// FORTRAN).  Currently don't check the value.
 	if ( __big_endian ) {
 		__raf.readInt();
 	}	
-	else {	__raf.readLittleEndianInt();
+	else {
+		__raf.readLittleEndianInt();
 	}
 
 	// Start the second header record...
@@ -794,28 +792,25 @@ throws IOException
 	if ( __big_endian ) {
 		__raf.readInt();
 	}	
-	else {	__raf.readLittleEndianInt();
+	else {
+		__raf.readLittleEndianInt();
 	}
 
-	// Operating system and user id (handle the same whether big or little
-	// endian)...
+	// Operating system and user id (handle the same whether big or little endian)...
 
 	byte [] bytebuffer = new byte[10];
 	__raf.readFully(bytebuffer);
 	__userID = new String(bytebuffer);
 
-	// AWIPS 5.2.2 uses a 2-char operating system and 8-char user ID so
-	// check and adjust...
+	// AWIPS 5.2.2 uses a 2-char operating system and 8-char user ID so check and adjust...
 
-	if (	__userID.regionMatches(false,0,"LX",0,2) ||
-		__userID.regionMatches(false,0,"HP",0,2) ) {
+	if ( __userID.regionMatches(false,0,"LX",0,2) ||__userID.regionMatches(false,0,"HP",0,2) ) {
 		// Assume a newer file with the operating system...
 		__oper_sys = __userID.substring(0,2);
 		__userID = __userID.substring(2,__userID.length());
 	}
 	else {	// Assume an old file.  In order to force migration to the new
-		// format, assign the operating system based on the
-		// endian-ness...
+		// format, assign the operating system based on the endian-ness...
 		if ( __big_endian ) {
 			__oper_sys = "HP";
 		}
@@ -916,8 +911,7 @@ throws IOException
 /**
 Read a data value from the grid.  Using this method rather than reading the
 data all at once can be slower.  However, it will be faster overall if only a
-few cells are needed.  This method does not set any values into the GeoGrid
-data space.
+few cells are needed.  This method does not set any values into the GeoGrid data space.
 @param c Column to read.
 @param r Row to read.
 @exception IOException if there is an error reading the value.
@@ -931,11 +925,12 @@ throws IOException
 	// 2 bytes for each column in row for previous full rows + 2 4-byte ints
 	// 4 byte record start + 2 bytes for each column before current column
 	int dl = 50;
+	GeoGrid grid = getGrid();
 	long pos = 98 // Header size,
-		+ (r - _grid.getMinRowFull())*
-			(_grid.getNumberOfColumnsFull()*2 + 8)
+		+ (r - grid.getMinRowFull())*
+			(grid.getNumberOfColumnsFull()*2 + 8)
 		+ 4
-		+ (c - _grid.getMinColumnFull())*2;
+		+ (c - grid.getMinColumnFull())*2;
 	// Now read the short and convert to 
 	__raf.seek ( pos );
 	double value = 0.0;
@@ -953,7 +948,7 @@ throws IOException
 	if ( value < 0.0 ) {
 		// If the value is less than 0, then there is no data for the
 		// cell so assign the missing value (-999)
-		mm = _grid.getMissing();
+		mm = grid.getMissing();
 	}
 	else {	// Divide by 100 to get mm (values in the file are mm*100).
 		mm = value/100.0;
@@ -974,15 +969,15 @@ throws IOException
 
 	// Allocate the active data space for the grid.  This initializes all
 	// data values to missing.
-	_grid.setMissing ( -999.0 );
-	_grid.allocateDataSpace();
+	GeoGrid grid = getGrid();
+	grid.setMissing ( -999.0 );
+	grid.allocateDataSpace();
 
 	int r = 0;	// Row
 	int c = 0;	// Column
 
 	// Each row record is preceeded and followed by a 4-byte integer.  Read
-	// these values and compare to make sure there is not an error reading
-	// the data.
+	// these values and compare to make sure there is not an error reading the data.
 	int endint = 0;
 	int startint = 0;
 
@@ -998,17 +993,17 @@ throws IOException
 
 	// For now assume the data are MM.  May need a method to set if flash
 	// flood guidance or other data are processed.
-	_grid.setUnits ( "MM" );
+	grid.setUnits ( "MM" );
 
 	short short_value = (short)0;
 	short max_mm = (short)-1;	// Maximum value in file (MM)
-	int rmax = _grid.getMaxRowFull();
-	int cmax = _grid.getMaxColumnFull();
-	double missing = _grid.getMissing();
+	int rmax = grid.getMaxRowFull();
+	int cmax = grid.getMaxColumnFull();
+	double missing = grid.getMissing();
 	short mm = (short)0;	// Millimeters
 	int num_positive_values = 0;
-	int cmin = _grid.getMinColumnFull();
-	for ( r = _grid.getMinRowFull(); r <= rmax; r++ ) {
+	int cmin = grid.getMinColumnFull();
+	for ( r = grid.getMinRowFull(); r <= rmax; r++ ) {
 		// Integer at the start of the record...
 		if ( __big_endian ) {
 			startint = __raf.readInt();
@@ -1032,12 +1027,12 @@ throws IOException
 				// If the value is less than 0, then there is
 				// no data for the cell so assign the missing
 				// value (-999)
-				_grid.setDataValue ( c, r, missing );
+				grid.setDataValue ( c, r, missing );
 			}
 			else {	// Divide by 100 to get mm (values in the file
 				// are mm*100).
 				mm = (short)(short_value/100);
-				_grid.setDataValue ( c, r, (double)mm );
+				grid.setDataValue ( c, r, (double)mm );
 
 				//count the number of valid data points
 				if ( mm > 0 ) {
@@ -1072,7 +1067,7 @@ throws IOException
 
 	__max_value_header = (int)max_mm;
 
-	_grid.setNumberOfPositiveValues ( num_positive_values );
+	grid.setNumberOfPositiveValues ( num_positive_values );
 
 	if (Message.isDebugOn){
 		Message.printDebug(dl, "XmrgGridLayer.readGridData",
@@ -1099,7 +1094,8 @@ throws Exception {
 		__raf = null;
 	}
 
-	_grid.resize(leftX, bottomY, numColumns, numRows);
+	GeoGrid grid = getGrid ();
+	grid.resize(leftX, bottomY, numColumns, numRows);
 
 	int rightX = leftX + numColumns;
 	int topY = bottomY + numRows;
@@ -1217,16 +1213,17 @@ public void writeTextFile(String filename) throws IOException
 	PrintWriter pw_out = new PrintWriter(new FileWriter( filename), true);
 
 	// Maximum column in the active grid...
-	int maxcol = _grid.getMaxColumn();
-	int mincol = _grid.getMinColumn();
-	int maxrow = _grid.getMaxRow();
-	int minrow = _grid.getMinRow();
+	GeoGrid grid = getGrid();
+	int maxcol = grid.getMaxColumn();
+	int mincol = grid.getMinColumn();
+	int maxrow = grid.getMaxRow();
+	int minrow = grid.getMinRow();
 
 	// Write the header information...
 
 	pw_out.println("HRAP X-Y coordinates: " + mincol + "," + minrow );
-	pw_out.println("Number of columns(MAXX): " +_grid.getNumberOfColumns());
-	pw_out.println("Number of rows(MAXY): " + _grid.getNumberOfRows());
+	pw_out.println("Number of columns(MAXX): " +grid.getNumberOfColumns());
+	pw_out.println("Number of rows(MAXY): " + grid.getNumberOfRows());
 	pw_out.println("Oper Sys: " + __oper_sys );
 	pw_out.println("User ID: " +getUserID());
 	pw_out.println("Saved date/time: " +getSavedDate());
@@ -1235,7 +1232,7 @@ public void writeTextFile(String filename) throws IOException
 	pw_out.println("Maximum value: " +getMaxValueHeader());
 	pw_out.println("Version number: " +getVersion());
 	pw_out.println("Number of values > 0.0: " +
-		_grid.getNumberOfPositiveValues());
+		grid.getNumberOfPositiveValues());
 	pw_out.println();
 
 	// Loop indices
@@ -1307,10 +1304,11 @@ Write the entire layer to an Xmrg file as a big-endian file.
 */
 public void writeXmrgFile ( String filename )
 throws IOException
-{	writeXmrgFile ( filename,
-			_grid.getMinColumnFull(), _grid.getMinRowFull(),
-			(_grid.getMaxColumnFull() - _grid.getMinColumnFull()+1),
-			(_grid.getMaxRowFull() - _grid.getMinRowFull() + 1),
+{	GeoGrid grid = getGrid();
+	writeXmrgFile ( filename,
+			grid.getMinColumnFull(), grid.getMinRowFull(),
+			(grid.getMaxColumnFull() - grid.getMinColumnFull()+1),
+			(grid.getMaxRowFull() - grid.getMinRowFull() + 1),
 			true );
 }
 
@@ -1324,10 +1322,11 @@ little-endian system (e.g., Linux).
 */
 public void writeXmrgFile ( String filename, boolean big_endian )
 throws IOException
-{	writeXmrgFile ( filename,
-			_grid.getMinColumnFull(), _grid.getMinRowFull(),
-			(_grid.getMaxColumnFull() - _grid.getMinColumnFull()+1),
-			(_grid.getMaxRowFull() - _grid.getMinRowFull() + 1),
+{	GeoGrid grid = getGrid();
+	writeXmrgFile ( filename,
+			grid.getMinColumnFull(), grid.getMinRowFull(),
+			(grid.getMaxColumnFull() - grid.getMinColumnFull()+1),
+			(grid.getMaxRowFull() - grid.getMinRowFull() + 1),
 			big_endian );
 }
 
@@ -1363,14 +1362,12 @@ system (e.g., HP UNIX).  If false, the file will be written for use on a
 little-endian system (e.g., Linux).
 @exception IOException if there is an error writing the file.
 */
-public void writeXmrgFile ( String filename, int xor, int yor,
-			int maxx, int maxy, boolean big_endian )
+public void writeXmrgFile ( String filename, int xor, int yor, int maxx, int maxy, boolean big_endian )
 throws IOException
 {	int dl = 3;
 	// Open a RandomAccessFile to write the binary xmrg file.  Make sure the
 	// file does not already exist.  If a file does exist, delete it first.
-	// Otherwise, the binary write will just update the existing binary
-	// file.
+	// Otherwise, the binary write will just update the existing binary file.
 	if (IOUtil.fileExists(filename)) {
 		File fileToDelete = new File(filename);
 		fileToDelete.delete();
@@ -1381,8 +1378,7 @@ throws IOException
 
 	// Write the header data...
 
-	// Write an integer at the front of the first header record (from
-	// FORTRAN)...
+	// Write an integer at the front of the first header record (from FORTRAN)...
 	if ( big_endian ) {
 		raf.writeInt ( 16 );
 	}
@@ -1527,11 +1523,12 @@ throws IOException
 	int c = 0;	// Column
 
 	double value = 0.0;	// Data value
-	int rmax = _grid.getMaxRowFull();
-	int cmax = _grid.getMaxColumnFull();
-	int rmin = _grid.getMinRowFull();
-	int cmin = _grid.getMinColumnFull();
-	double missing = _grid.getMissing();
+	GeoGrid grid = getGrid();
+	int rmax = grid.getMaxRowFull();
+	int cmax = grid.getMaxColumnFull();
+	int rmin = grid.getMinRowFull();
+	int cmin = grid.getMinColumnFull();
+	double missing = grid.getMissing();
 	int rmax_req = yor + maxy - 1;
 	int cmax_req = xor + maxx - 1;
 	int recsize = maxx*2;	// Bytes for data record -
@@ -1553,7 +1550,8 @@ throws IOException
 				// Not in the grid so need to write missing...
 				value = missing;
 			}
-			else {	value = _grid.getDataValue ( c, r );
+			else {
+				value = grid.getDataValue ( c, r );
 			}
 			if ( value < 0.0 ) {
 				// If the value is less than 0, then there is
@@ -1587,7 +1585,6 @@ throws IOException
 
 	// Close the file...
 	raf.close();
-	raf = null;
 }
 
-} // End XmrgGridLayer
+}

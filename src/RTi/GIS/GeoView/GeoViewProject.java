@@ -89,20 +89,19 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 	boolean displayMissingLayers = true;
 
 	// See if there is a global data directory defined...
-	String global_data_home = _proplist.getValue ( "GeoView.GeoDataHome" );
-	if ( (global_data_home == null) || global_data_home.equals(".") || global_data_home.equals("") ) {
+	String globalDataHome = _proplist.getValue ( "GeoView.GeoDataHome" );
+	if ( (globalDataHome == null) || globalDataHome.equals(".") || globalDataHome.equals("") ) {
 		// No home is specified so get the directory from the proplist persistent name.
 		// Note this will only work if the GeoViewProject was read from a file in the first place.
 		// If not, then layers are probably being added through a GUI and the paths will be absolute
 		// (until the issue of converting absolute paths to relative is attacked)...
-		global_data_home = ".";
+		globalDataHome = ".";
 		try {
 			File f = new File ( _proplist.getPersistentName() );
-			global_data_home = f.getParent();
-			if ( !IOUtil.fileExists(global_data_home) ) {
-				global_data_home = ".";
+			globalDataHome = f.getParent();
+			if ( !IOUtil.fileExists(globalDataHome) ) {
+				globalDataHome = ".";
 			}
-			f = null;
 		}
 		catch ( Exception e ) {
 			// Ignore for now until we figure out how often it occurs.
@@ -111,35 +110,35 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 	else {
 		// Need to see if the global data home is a relative path.  If so then it needs to be appended
 		// to the project file directory.
-		File f2 = new File ( global_data_home );
-		if ( !global_data_home.regionMatches(true,0,"http:",0,5) && !f2.isAbsolute() ) {
+		File f2 = new File ( globalDataHome );
+		if ( !globalDataHome.regionMatches(true,0,"http:",0,5) && !f2.isAbsolute() ) {
 			// Relative path that needs to append on the home of the GVP file...
 			File f = new File ( _proplist.getPersistentName() );
 			// Reset the data home...
-			global_data_home = f.getParent() + File.separator + global_data_home;
+			globalDataHome = f.getParent() + File.separator + globalDataHome;
 		}
 	}
-	Message.printStatus ( 2, routine, "Global data home is \"" + global_data_home + "\"" );
+	Message.printStatus ( 2, routine, "Global data home is \"" + globalDataHome + "\"" );
 	// Loop requesting GeoLayer information
-	String geo_layer_file;
-	PropList layer_view_props = null;
-	GeoLayerView layer_view = null;
-	String prop_value = null;
+	String geoLayerFile;
+	PropList layerViewProps = null;
+	GeoLayerView layerView = null;
+	String propValue = null;
 	// Global GeoView properties...
-	prop_value = _proplist.getValue ( "GeoView.Color" );
-	if ( prop_value != null ) {
-		GRColor grc = GRColor.parseColor(prop_value);
+	propValue = _proplist.getValue ( "GeoView.Color" );
+	if ( propValue != null ) {
+		GRColor grc = GRColor.parseColor(propValue);
 		geoview.setBackground ( (Color)grc );
 		if ( ref_geoview != null ) {
 			ref_geoview.setBackground ( (Color)grc );
 		}
 	}
-	prop_value = _proplist.getValue ( "GeoView.Projection" );
-	if ( prop_value != null ) {
+	propValue = _proplist.getValue ( "GeoView.Projection" );
+	if ( propValue != null ) {
 		try {
-			geoview.setProjection (GeoProjection.parseProjection(prop_value));
+			geoview.setProjection (GeoProjection.parseProjection(propValue));
 			if ( ref_geoview != null ) {
-				ref_geoview.setProjection (	GeoProjection.parseProjection(prop_value));
+				ref_geoview.setProjection (	GeoProjection.parseProjection(propValue));
 			}
 		}
 		catch ( Exception e ) {
@@ -152,41 +151,41 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 	legend.setProjectNodeText(_proplist.getPersistentName());
 	for ( int i = 1; ; i++ ) {
 		// Get the layer source...
-		geo_layer_file = _proplist.getValue ( "GeoLayerView " + i + ".GeoLayer" );
-		if ( geo_layer_file == null ) {
+		geoLayerFile = _proplist.getValue ( "GeoLayerView " + i + ".GeoLayer" );
+		if ( geoLayerFile == null ) {
 			// This is used to break out of the read.  Once a break
 			// in the layer view numbers occurs, assume the end of the list is encountered.
 			break;
 		}
 		// Make sure the layer view is supposed to be included...
-		prop_value = _proplist.getValue ( "GeoLayerView " + i + ".SkipLayerView" );
-		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
-			Message.printStatus ( 2, routine, "Skipping GeoLayerView \"" + geo_layer_file +
+		propValue = _proplist.getValue ( "GeoLayerView " + i + ".SkipLayerView" );
+		if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+			Message.printStatus ( 2, routine, "Skipping GeoLayerView \"" + geoLayerFile +
 			"\" because of SkipLayerView=true in project file" );
 			continue;
 		}
 		// Prepend the global directory if necessary...
-		if ( !IOUtil.fileReadable(geo_layer_file) &&
-			IOUtil.fileReadable(global_data_home + File.separator + geo_layer_file)) {
-			geo_layer_file = global_data_home + File.separator + geo_layer_file;
+		if ( !IOUtil.fileReadable(geoLayerFile) &&
+			IOUtil.fileReadable(globalDataHome + File.separator + geoLayerFile)) {
+			geoLayerFile = globalDataHome + File.separator + geoLayerFile;
 		}
-		Message.printStatus ( 2, routine, "Path to layer file is \"" + geo_layer_file + "\"" );
+		Message.printStatus ( 2, routine, "Path to layer file is \"" + geoLayerFile + "\"" );
 		// Add the layer...
 		timer = new StopWatch();
 		timer.start();
 		//_status_TextField.setText ( "Adding layer..." );
 		// Set properties for the layer view...
-		layer_view_props = new PropList ( "forGeoLayerView" );
+		layerViewProps = new PropList ( "forGeoLayerView" );
 		// Save the position so we can get to other properties later
-		layer_view_props.set ( "Number", "" + i );
-		layer_view_props.set ( "Label", "UsingGeoViewListener" );
-		prop_value = _proplist.getValue ( "GeoLayerView " + i + ".ReadAttributes" );
-		if ( prop_value != null ) {
-			layer_view_props.set ( "ReadAttributes=" + prop_value );
+		layerViewProps.set ( "Number", "" + i );
+		layerViewProps.set ( "Label", "UsingGeoViewListener" );
+		propValue = _proplist.getValue ( "GeoLayerView " + i + ".ReadAttributes" );
+		if ( propValue != null ) {
+			layerViewProps.set ( "ReadAttributes=" + propValue );
 		}
-		prop_value = _proplist.getValue ( "GeoLayerView " + i + ".ReadAttributes" );
-		if ( prop_value != null ) {
-			layer_view_props.set ( "Name=" + prop_value );
+		propValue = _proplist.getValue ( "GeoLayerView " + i + ".ReadAttributes" );
+		if ( propValue != null ) {
+			layerViewProps.set ( "Name=" + propValue );
 		}
 		try {
 			// Increment the count (will therefore be 1 for the first layer)...
@@ -194,35 +193,38 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 			// Read the layer and create a layer view.  The legend is initialized to default values
 			// without checking the project and will be further initialized in setLayerViewProperties().
 			try {
-				layer_view = new GeoLayerView ( geo_layer_file, layer_view_props, ivisible );
+				layerView = new GeoLayerView ( geoLayerFile, layerViewProps, ivisible );
 			}
 			catch ( Exception e1 ) {
+				Message.printWarning(3, routine, "Error reading layer (" + e1 + ")." );
+				Message.printWarning(3, routine, e1 );
 				if ( displayMissingLayers ) {
 					// Create an empty layer view
-					layer_view = GeoViewUtil.newLayerView(geo_layer_file, layer_view_props, ivisible);
+					Message.printStatus(2, routine, "Creating an empty layer as a placeholder." );
+					layerView = GeoViewUtil.newLayerView(geoLayerFile, layerViewProps, ivisible);
 				}
 				else {
 					// Re-throw the original exception and handle below
-					Message.printStatus ( 2, routine, "Layer file \"" + geo_layer_file + "\" could not be read." +
+					Message.printStatus ( 2, routine, "Layer file \"" + geoLayerFile + "\" could not be read." +
 						"  Initializing blank layer as placeholder." );
-					layer_view = GeoViewUtil.newLayerView ( geo_layer_file, layer_view_props, ivisible );
+					layerView = GeoViewUtil.newLayerView ( geoLayerFile, layerViewProps, ivisible );
 					throw e1;
 				}
 			}
 			// If we get to here, the layer was read so it is OK to leave "ivisible" as it was set above.
 			// Set the view properties after reading the layer data (the index is used to look in the GVP file
 			// so don't use "ivisible")...
-			setLayerViewProperties ( layer_view, i );
+			setLayerViewProperties ( layerView, i );
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, "Unexpected error adding layer for \"" + geo_layer_file +
+			Message.printWarning ( 2, routine, "Unexpected error adding layer for \"" + geoLayerFile +
 				"\" (" + e + ")" );
 			Message.printWarning ( 3, routine, e );
 			if ( displayMissingLayers ) {
 				// Create an empty layer view
-				Message.printStatus ( 2, routine, "Layer file \"" + geo_layer_file + "\" could not be read." +
+				Message.printStatus ( 2, routine, "Layer file \"" + geoLayerFile + "\" could not be read." +
 				"  Initializing blank layer as placeholder." );
-				layer_view = GeoViewUtil.newLayerView(geo_layer_file, layer_view_props, ivisible);
+				layerView = GeoViewUtil.newLayerView(geoLayerFile, layerViewProps, ivisible);
 			}
 			else {
 				// The layer load was unsuccessful so decrement the count...
@@ -233,14 +235,14 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 		}
 	
 		// Now add the layer view to the view...
-		geoview.addLayerView ( layer_view );
+		geoview.addLayerView ( layerView );
 		// If a reference geoview, only add if layer has been tagged as a reference layer...
-		prop_value = _proplist.getValue ( "GeoLayerView " + i + ".ReferenceLayer" );
-		if ( (ref_geoview != null) && (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
-			ref_geoview.addLayerView ( layer_view );
+		propValue = _proplist.getValue ( "GeoLayerView " + i + ".ReferenceLayer" );
+		if ( (ref_geoview != null) && (propValue != null) && propValue.equalsIgnoreCase("true") ) {
+			ref_geoview.addLayerView ( layerView );
 		}
 		timer.stop();
-		Message.printStatus ( 1, routine,"Reading \"" + geo_layer_file +
+		Message.printStatus ( 1, routine,"Reading \"" + geoLayerFile +
 		"\" took " + StringUtil.formatString(timer.getSeconds(),"%.2f")+ " seconds." );
 		Runtime runtime = Runtime.getRuntime();
 		Message.printStatus ( 1, routine, "JVM Total memory = " + runtime.totalMemory() + " used memory = " +
@@ -248,7 +250,7 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 		runtime = null;
 		//_status_TextField.setText ( "Finished adding layer.  Ready.");
 		// If we got to here the layer could be added so add to the legend...
-		legend.addLayerView ( layer_view, ivisible );
+		legend.addLayerView ( layerView, ivisible );
 	}
 
 	// refresh the geoview to ensure that the legend draws correctly

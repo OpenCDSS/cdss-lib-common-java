@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.GR.GRShape;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
@@ -30,8 +31,7 @@ The GeoGridLayer class extends GeoLayer and stores GeoGrid data using a Vector
 of GRGrid.  Although it is possible that a Vector of GRGrid could be saved,
 currently only a single GRGrid shape is typically stored in the shape list (e.g.,
 for use by XmrgGridLayer).  This class implements methods that can be used for
-any grid-based layer, such as saving the cells with > 0 data values as a
-shapefile.
+any grid-based layer, such as saving the cells with > 0 data values as a shapefile.
 */
 public class GeoGridLayer extends GeoLayer
 {
@@ -39,7 +39,7 @@ public class GeoGridLayer extends GeoLayer
 /**
 Grid to hold the data.
 */
-protected GeoGrid _grid = null;
+private GeoGrid __grid = null;
 
 /**
 Constructor.
@@ -54,7 +54,7 @@ Clean up for garbage collection.
 */
 protected void finalize ()
 throws Throwable
-{	_grid = null;
+{	__grid = null;
 	super.finalize();
 }
 
@@ -68,7 +68,15 @@ accessed in a derived class, the GeoGrid.getDataValue() method is called.
 */
 public double getDataValue ( int column, int row )
 throws IOException
-{	return _grid.getDataValue ( column, row );
+{	return __grid.getDataValue ( column, row );
+}
+
+/**
+Returns the grid containing the data.
+@return the grid containing the data.
+*/
+public GeoGrid getGrid() {
+	return __grid;
 }
 
 /**
@@ -82,15 +90,23 @@ accessed in a derived class, the GeoGrid.setDataValue() method is called.
 */
 public void setDataValue ( int column, int row, double value )
 throws IOException
-{	_grid.setDataValue ( column, row, value );
+{	__grid.setDataValue ( column, row, value );
+}
+
+/**
+Set the grid containing the data.
+@return the grid containing the data.
+*/
+public void setGrid ( GeoGrid grid )
+{
+	__grid = grid;
 }
 
 /**
 Write an ESRIShapefile.  This method exists in this class to allow a shapefile
 to be created for any GeoGridLayer.  The actual writing of the files occurs in
 ESRIShapefile but the packaging of the necessary data occurs in this class.
-Minimum and maximum data values can be specified to allow a range of cells to be
-written.
+Minimum and maximum data values can be specified to allow a range of cells to be written.
 @param filename Name of shapefile to write (with or without .shp).
 @param to_projection Projection that data should be written.
 @param use_data_limits If true, then the min_data_value and max_data_value
@@ -99,10 +115,8 @@ values are checked.  Only cells with data in the limits are output.
 @param max_data_value Maximum cell data value to consider when writing.
 @exception IOException if there is an error writing the shapefile.
 */
-public void writeShapefile (	String filename,
-				GeoProjection to_projection,
-				boolean use_data_limits,
-				double min_data_value, double max_data_value )
+public void writeShapefile ( String filename, GeoProjection to_projection,
+	boolean use_data_limits, double min_data_value, double max_data_value )
 throws IOException
 {	// Create the DataTable from the grid.  Note that GeoLayer (the base
 	// class) has an _attribute_table object.  However, at this time it
@@ -110,7 +124,7 @@ throws IOException
 	// carry around.  This may change if we allow the attribute table to
 	// be viewed in a GUI, etc.
 
-	List fields = new Vector ( 3 );
+	List<TableField> fields = new Vector ( 3 );
 	fields.add ( new TableField(TableField.DATA_TYPE_INT, "COLUMN", 10, 0 ) );
 	fields.add ( new TableField(TableField.DATA_TYPE_INT, "ROW", 10, 0 ) );
 	fields.add ( new TableField(TableField.DATA_TYPE_DOUBLE, "VALUE", 10, 4 ) );
@@ -122,33 +136,34 @@ throws IOException
 	// the GRID shape but for now create a Vector of GRPolygon that can
 	// be written in ESRIShapefile.
 
-	List shapes = new Vector ( 100, 100 );	// could optimize more
+	List<GRShape> shapes = new Vector ( 100, 100 );	// could optimize more
 	int c = 0;
 	double value = 0.0;
 	TableRecord record = null;
-	int min_row = _grid.getMinRow();
-	int min_column = _grid.getMinColumn();
-	int max_row = _grid.getMaxRow();
-	int max_column = _grid.getMaxColumn();
+	int min_row = __grid.getMinRow();
+	int min_column = __grid.getMinColumn();
+	int max_row = __grid.getMaxRow();
+	int max_column = __grid.getMaxColumn();
 	for ( int r = min_row; r <= max_row; r++ ) {
 		for ( c = min_column; c <= max_column; c++ ) {
-			try {	value = getDataValue ( c, r );
+			try {
+				value = getDataValue ( c, r );
 			}
 			catch ( Exception e ) {
 				continue;
 			}
-			if (	use_data_limits && ((value < min_data_value) ||
-				(value > max_data_value)) ) {
+			if ( use_data_limits && ((value < min_data_value) || (value > max_data_value)) ) {
 				continue;
 			}
 			// Create the shape...
-			shapes.add ( _grid.getCellPolygon ( c, r ) );
+			shapes.add ( __grid.getCellPolygon ( c, r ) );
 			// Create the attribute record...
 			record = new TableRecord(3);
 			record.addFieldValue ( new Integer(c) );
 			record.addFieldValue ( new Integer(r) );
 			record.addFieldValue ( new Double(value) );
-			try {	table.addRecord ( record );
+			try {
+				table.addRecord ( record );
 			}
 			catch ( Exception e ) {
 				// Should never happen.
@@ -156,14 +171,9 @@ throws IOException
 		}
 	}
 
-	// Write the shapefile.  The "from" projection is just this layer's
-	// projection...
+	// Write the shapefile.  The "from" projection is just this layer's projection...
 
-	ESRIShapefile.write (	filename, table, shapes, _projection,
-				to_projection );
-	table = null;
-	record = null;
-	shapes = null;
+	ESRIShapefile.write ( filename, table, shapes, getProjection(), to_projection );
 }
 
-} // End GeoGridLayer
+}

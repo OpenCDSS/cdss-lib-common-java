@@ -37,8 +37,8 @@ symbols can be more generally applied.
 */
 public class BigPictureLayer extends GeoLayer {
 
-private List _parent_geolayers;
-private List _parent_join_fields;
+private List<GeoLayer> _parent_geolayers;
+private List<String> _parent_join_fields;
 private DataTable _big_picture_table;
 private GRLimits _big_picture_limits;
 
@@ -52,8 +52,8 @@ identifier field to join to.
 @param bigPictureTable DataTable containing delimited data.  The first field
 is the identifier, the second the name, and 3+ contain data attributes that can be plotted.
 */
-public BigPictureLayer( String filename, List parent_geolayers,
-			List parent_join_fields, DataTable bigPictureTable )
+public BigPictureLayer( String filename, List<GeoLayer> parent_geolayers,
+			List<String> parent_join_fields, DataTable bigPictureTable )
 {	super ( filename );
 	initialize( parent_geolayers, parent_join_fields, bigPictureTable );
 }
@@ -72,12 +72,13 @@ throws Exception
 
 	for ( int i=0; i<num_records; i++ ) {
 		for ( int j=2; j<num_fields; j++ ) {
-			ytmp = ((Double)bigPictureTable.
-				getFieldValue( i, j )).doubleValue();
-			if ( ytmp > ymax )
+			ytmp = ((Double)bigPictureTable.getFieldValue( i, j )).doubleValue();
+			if ( ytmp > ymax ) {
 				ymax = ytmp;
-			if ( ytmp < ymin )
+			}
+			if ( ytmp < ymin ) {
 				ymin = ytmp;
+			}
 		}
 	}
 
@@ -101,23 +102,26 @@ public DataTable getBigPictureTable () {
 	return _big_picture_table;
 }
 
-private void initialize ( List parent_geolayers, List parent_join_fields, DataTable bigPictureTable ) {
+private void initialize ( List<GeoLayer> parent_geolayers, List<String> parent_join_fields, DataTable bigPictureTable ) {
 	_parent_geolayers = parent_geolayers;
 	_parent_join_fields = parent_join_fields;
 	_big_picture_table = bigPictureTable;
-	_shape_type = BIG_PICTURE;
-	try {
-		_limits = ((GeoLayer)parent_geolayers.get(0)).getLimits();
-	for ( int i=1; i<parent_geolayers.size(); i++ ) {
-		_limits = _limits.max ( ((GeoLayer)parent_geolayers.get(i)).getLimits());
+	setShapeType ( BIG_PICTURE );
+	try {	
+		GRLimits limits = parent_geolayers.get(0).getLimits();
+		for ( int i=1; i < parent_geolayers.size(); i++ ) {
+			limits = limits.max ( parent_geolayers.get(i).getLimits());
+		}
+		setLimits ( limits );
 	}
-	} catch ( Exception e2 ) {
+	catch ( Exception e2 ) {
 		Message.printWarning ( 1, "BigPictureLayer",
 		"Error computing drawing limits of big picture data." );
 	}
 	try {
-	_big_picture_limits = computeBigPictureLimits ( bigPictureTable );
-	} catch ( Exception e )  {
+		_big_picture_limits = computeBigPictureLimits ( bigPictureTable );
+	}
+	catch ( Exception e )  {
 		Message.printWarning ( 1, "BigPictureLayer", "Problems computing limits of big picture data." );
 	}
 }
@@ -143,4 +147,4 @@ public List getShapes(int index) {
 	return ((GeoLayer)_parent_geolayers.get(index)).getShapes();
 }
 
-} // End BigPictureLayer
+}

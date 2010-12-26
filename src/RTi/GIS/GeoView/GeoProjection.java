@@ -764,7 +764,7 @@ Return the sign of an argument.
 */
 protected static int sign ( double x )
 {	if ( x < 0.0 ) {
-    		return -1;
+    	return -1;
 	}
 	else {
 		return 1;

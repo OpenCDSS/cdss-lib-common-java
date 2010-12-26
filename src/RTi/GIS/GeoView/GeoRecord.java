@@ -1,40 +1,12 @@
-// ----------------------------------------------------------------------------
-// GeoRecord - class to hold a join of tabular and shape data
-// ============================================================================
-// Copyright:	See the COPYRIGHT file.
-// ============================================================================
-// Notes:	(1)	This is somewhat similar to the Avenue FTab except that
-//			we also keep track of the layer for the data so that
-//			we can pass vectors of GeoRecords from mixed layers.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 14 Jul 1999	Steven A. Malers	Initial version.
-//		Riverside Technology,
-//		inc.
-// 2001-10-04	SAM, RTi		Add GeoLayerView as data member.
-//					Although this is not strictly needed,
-//					it is useful for some GUI tasks (such
-//					as displaying a GeoLayerView name with
-//					GeoRecord information).
-// 2001-10-17	SAM, RTi		Update javadoc.  Make sure unused data
-//					is set to null.  Remove initialize()
-//					method since everything is initialized
-//					to null at construction.
-// ----------------------------------------------------------------------------
-// 2003-05-06	J. Thomas Sapienza, RTi	Ensure class matched the non-swing
-//					version of the class.
-// ----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import RTi.GR.GRShape;
 import RTi.Util.Table.TableRecord;
 
 /**
-This class provides a record for geographic (shape) and tabular data.  GeoLayer
+This class provides a record for geographic (shape) and associated tabular data.  GeoLayer
 and GeoLayerView references are also maintained in case mixed layers are used
-in a list.  In the future, data members may be made public to increase performance.
+in a list.  Projection information must be retrieved from the layer view.
 */
 public class GeoRecord
 {

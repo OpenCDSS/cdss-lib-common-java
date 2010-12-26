@@ -27,15 +27,14 @@ grid shape information (number of rows, origin, etc.) is stored in the GRGrid
 base class.  This base class defines the conventions for identifying cells,
 rows, and columns.  Methods typically use column and then row as parameters to
 correspond to X and Y directions.  Data are stored in this class.  The reading
-and writing of specific grid formats should be implemented in classes extenced
+and writing of specific grid formats should be implemented in classes extended
 from GeoGridLayer.
 */
 public class GeoGrid extends GRGrid
 {
 
 /**
-Data array for grid data.  The first dimension is grid row, the second is
-grid column.
+Data array for grid data.  The first dimension is grid row, the second is grid column.
 */
 protected double _double_data[][] = null;
 
@@ -51,8 +50,7 @@ protected double _max_value = -999.0;
 
 /**
 Number of positive values in the grid (useful for precipitation, etc.).
-Currently this data member can be set and retrieved but is not calculated in
-this class.
+Currently this data member can be set and retrieved but is not calculated in this class.
 */
 protected int _num_positive_values = 0;
 
@@ -77,9 +75,7 @@ called if data are to be held in memory.  In many cases, the grid data values
 will be processed on the fly and will never by held in memory.
 */
 public void allocateDataSpace ()
-{	_double_data = new double
-			[_max_row - _min_row + 1]
-			[_max_column - _min_column + 1];
+{	_double_data = new double[_max_row - _min_row + 1][_max_column - _min_column + 1];
 
 	// Initialize with missing data...
 
@@ -104,8 +100,7 @@ throws Throwable {
 
 /**
 Get a data value for a cell.  This method should be defined in a derived class
-if on-the-fly data reading is enabled.  Otherwise, the data must always be read
-into memory.
+if on-the-fly data reading is enabled.  Otherwise, the data must always be read into memory.
 @param column Column of cell to get value for.
 @param row Row of cell to get value for.
 @return Data value for cell.
@@ -147,8 +142,7 @@ public String getUnits()
 
 /**
 Resizes the grid.  If the new grid goes outside the boundary of the original 
-grid, the cells which were not in the original grid will be filled with 
-missing values.
+grid, the cells which were not in the original grid will be filled with missing values.
 @param leftX the X value that will be the new origin X.
 @param bottomY the Y value that will be the new origin Y.
 @param numColumns the number of columns in the new grid. 
@@ -181,15 +175,13 @@ throws Exception {
 		for (j = 0; j < numRows; j++) {
 			d[j][i] = _missing;
 
-			if ((leftX + i) < _min_column 
-			    || (leftX + i) > _max_column) {
-			    	// out of bounds!  Let it be missing.
+			if ((leftX + i) < _min_column || (leftX + i) > _max_column) {
+		    	// out of bounds!  Let it be missing.
 				continue;
 			}
 
-			if ((bottomY + j) < _min_row
-			    || (bottomY + j) > _max_row) {
-			    	// out of bounds!  Let it be missing.
+			if ((bottomY + j) < _min_row || (bottomY + j) > _max_row) {
+		    	// out of bounds!  Let it be missing.
 				continue;
 			}			
 
@@ -242,4 +234,4 @@ public void setUnits ( String units )
 {	_units = units;
 }
 
-} // End GeoGrid
+}

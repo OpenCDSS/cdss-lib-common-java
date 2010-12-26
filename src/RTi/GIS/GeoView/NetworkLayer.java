@@ -64,7 +64,7 @@ public NetworkLayer ( Network network )
 throws Exception
 {	super ( "" );
 	initialize ();
-	_data_format = "Network";
+	setDataFormat ( "Network" );
 	_network = network;
 }
 

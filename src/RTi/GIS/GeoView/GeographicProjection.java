@@ -43,8 +43,7 @@ throws Throwable {
 Get the number of kilometers for a unit of the projection grid.  The
 point that is used can be reused if necessary to increase performance.
 <b>This is currently a rough estimate!</b>
-@param p As input, specifies the location (in HRAP units) at which to
-determine the scale.
+@param p As input, specifies the location (in HRAP units) at which to determine the scale.
 @param reuse_point Indicates whether the point that is passed in should be
 re-used for the output (doing so saves memory).
 */
@@ -53,14 +52,14 @@ public GRPoint getKilometersForUnit ( GRPoint p, boolean reuse_point )
 	// Earth radius = 6378 KM
 	// Circumferance = 2PiR = 40,074 KM
 	// KM/degree = 40,074/360 = 111.3 KM
-	// Need to find the correct equation accounting for the starting
-	// coordinate.
+	// Need to find the correct equation accounting for the starting coordinate.
 	double xscale = 111.3*Math.cos(p.y*1.745329251994328e-2);
 	if ( reuse_point ) {
 		p.x = p.y = xscale;
 		return p;
 	}
-	else {	return new GRPoint ( xscale, xscale );
+	else {
+		return new GRPoint ( xscale, xscale );
 	}
 }
 
@@ -68,37 +67,34 @@ public GRPoint getKilometersForUnit ( GRPoint p, boolean reuse_point )
 Project latitude and longitude to the geographic coordinate system.  This just
 returns the original coordinates.
 @return the projected (to longitude and latitude) points.
-@param p Point to project from latitude and longitude. Assumes
-	point comes in format (lon, lat)
-@param reuse_point Indicates whether the point that 
-	is passed in should be re-used for the output 
-	(doing so saves memory).
+@param p Point to project from latitude and longitude. Assumes point comes in format (lon, lat)
+@param reuse_point Indicates whether the point that is passed in should be re-used for the output 
+(doing so saves memory).
 */
 public GRPoint project ( GRPoint p, boolean reuse_point)
 {	if ( reuse_point ) {
 		return p;
 	}
 	// create a new point to return
-	else { return new GRPoint ( p );
+	else {
+		return new GRPoint ( p );
 	}
 }
 
 /**
-Un-project coordinates back to latitude and longitude.  This returns the same
-coordinates.
-@return the un-projected points.  Assumes point comes in as (longitude,
-	latitude)
+Un-project coordinates back to latitude and longitude.  This returns the same coordinates.
+@return the un-projected points.  Assumes point comes in as (longitude, latitude)
 @param p Point to un-project to latitude and longitude.
-@param reuse_point Indicates whether the point that 
-	is passed in should be
-	re-used for the output (doing so saves memory).
+@param reuse_point Indicates whether the point that is passed in should be
+re-used for the output (doing so saves memory).
 */
 public GRPoint unProject(GRPoint p, boolean reuse_point)
 {	if ( reuse_point ) {
 		return p;
 	}	
-	else {	return new GRPoint ( p );
+	else {
+		return new GRPoint ( p );
 	}
 }
 	
-} // End GeographicProjection
+}

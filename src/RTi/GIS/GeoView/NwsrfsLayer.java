@@ -95,8 +95,9 @@ public NwsrfsLayer ( String path, boolean read_attributes )
 throws IOException
 {	super ( path );
 	initialize ();
-	_data_format = "NWSRFS geo_data";
-	try {	read ( path, read_attributes );
+	setDataFormat ( "NWSRFS geo_data" );
+	try {
+		read ( path, read_attributes );
 	}
 	catch ( IOException e ) {
 		Message.printWarning ( 2, "NwsrfsLayer", e );
@@ -122,7 +123,7 @@ Use the DataTable methods to get field formats for output.
 public Object getShapeAttributeValue ( long index, int field )
 throws Exception
 {	// Get the data from the attribute table in the base class...
-	return _attribute_table.getFieldValue( index, field );
+	return getAttributeTable().getFieldValue( index, field );
 }
 
 /**
@@ -237,8 +238,6 @@ throws IOException
 	else if ( filename.equals("swe_stations.dat") ) {
 		filetype = SWE_STATIONS;
 	}
-	filename = null;
-	file = null;
 
 	// For now, do this brute force, sharing formats as much as possible.
 
@@ -252,12 +251,11 @@ throws IOException
 	double ymax_layer = -1.0e10;
 	String string = null;
 	double x, y = 0.0;
-	List tokens = null;
-	if (	((filetype == COUNTY) || (filetype == FG_BASIN) ||
-		(filetype == MAP_BASIN) ||
-		(filetype == RFC_BOUNDARY) ||
-		(filetype == RIVER) ||
-		(filetype == STATE)) && !binary ) {
+	List<String> tokens = null;
+	DataTable attributeTable = getAttributeTable();
+	List<GRShape> shapes = getShapes();
+	if ( ((filetype == COUNTY) || (filetype == FG_BASIN) || (filetype == MAP_BASIN) ||
+		(filetype == RFC_BOUNDARY) || (filetype == RIVER) || (filetype == STATE)) && !binary ) {
 		// ASCII file containing lat/long coordinates
 		// Format is ID Name Order Npts
 		// Lat +Long
@@ -271,185 +269,138 @@ throws IOException
 		// include the main MAP area or segment?  For now, read all the
 		// areas in as separate GRPolygon.
 		if ( (filetype == RIVER) || (filetype == STATE) ) {
-			_shape_type = LINE;
+			setShapeType ( LINE );
 		}
-		else {	_shape_type = POLYGON;
+		else {
+			setShapeType ( POLYGON );
 		}
 		BufferedReader in = null;
-		in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( geodata_file )) );
+		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( geodata_file )) );
 		if ( read_attributes ) {
-			List table_fields = new Vector (1);
+			List<TableField> table_fields = new Vector (1);
 			if ( filetype == COUNTY ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"ID",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"COUNTY",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"ID",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"COUNTY",24) );
 			}
 			else if ( filetype == FG_BASIN ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"FG",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"FG",24) );
 			}
 			else if ( filetype == MAP_BASIN ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"MAP Area",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"MAP Name",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"MAP Area",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"MAP Name",24) );
 			}
 			if ( filetype == RFC_BOUNDARY ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"RFC",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"RFC",24) );
 			}
 			else if ( filetype == RIVER ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"REACH",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"NAME",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_DOUBLE,
-				"ORDER",4,0) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"REACH",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"NAME",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_DOUBLE,"ORDER",4,0) );
 			}
 			else if ( filetype == STATE ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"Abbreviation",3) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"Name",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Abbreviation",3) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Name",24) );
 			}
-			_attribute_table = new DataTable(table_fields);
-			table_fields = null;
+			setAttributeTable ( attributeTable = new DataTable(table_fields) );
 		}
 		// Header line...
 		int polycount = 0;
 		while ( true ) {
-		xmin = 1.0e10;
-		xmax = -1.0e10;
-		ymin = 1.0e10;
-		ymax = -1.0e10;
-		string = in.readLine();
-		if ( string == null ) {
-			break;
-		}
-		tokens = StringUtil.breakStringList ( string.trim(), " ", 0 );
-		int size = 0;
-		if ( (tokens != null) && (tokens.size() > 3) ) {
-			if ( read_attributes ) {
-				// Only attribute is the name of the basin
-				// boundary...
-				TableRecord record = new TableRecord ( 1 );
-				record.addFieldValue (
-					(String)tokens.get(0) );
-				if ( filetype == RIVER ) {
-					record.addFieldValue (
-					(String)tokens.get(1) );
-					record.addFieldValue (
-					new Double((String)
-					tokens.get(2)));
-				}
-				else if ( (filetype == STATE) ||
-					(filetype == COUNTY) ||
-					(filetype == FG_BASIN) ||
-					(filetype == MAP_BASIN) ) {
-					record.addFieldValue (
-					(String)tokens.get(1) );
-				}
-				try {	_attribute_table.addRecord ( record );
-				}
-				catch ( Exception e ) {
-					Message.printWarning ( 2, routine, e );
-				}
-				record = null;
+			xmin = 1.0e10;
+			xmax = -1.0e10;
+			ymin = 1.0e10;
+			ymax = -1.0e10;
+			string = in.readLine();
+			if ( string == null ) {
+				break;
 			}
-			size = StringUtil.atoi((String)tokens.get(3));
-			GRPolygon polygon = null;
-			GRPolyline polyline = null;
-			if (	(filetype == RIVER) ||
-				(filetype == STATE) ||
-				(filetype == COUNTY) ) {
-				polyline = new GRPolyline(size);
-			}
-			else {	polygon = new GRPolygon(size);
-			}
-			int ptcount = 0;
-			for ( int i = 0; i < size; i++ ) {
-				string = in.readLine();
-				if ( string == null ) {
-					break;
-				}
-				tokens = StringUtil.breakStringList (
-					string.trim(), " ", 0 );
-				if (	(tokens != null) &&
-					(tokens.size() == 2) ) {
-					if ( filetype == COUNTY ) {
-						x = StringUtil.atod(
-						(String)tokens.get(0));
-						y = StringUtil.atod(
-						(String)tokens.get(1));
+			tokens = StringUtil.breakStringList ( string.trim(), " ", 0 );
+			int size = 0;
+			if ( (tokens != null) && (tokens.size() > 3) ) {
+				if ( read_attributes ) {
+					// Only attribute is the name of the basin boundary...
+					TableRecord record = new TableRecord ( 1 );
+					record.addFieldValue ( tokens.get(0) );
+					if ( filetype == RIVER ) {
+						record.addFieldValue ( tokens.get(1) );
+						record.addFieldValue ( new Double(tokens.get(2)));
 					}
-					else {	y = StringUtil.atod(
-						(String)tokens.get(0));
-						x = -(StringUtil.atod(
-						(String)tokens.get(1)));
+					else if ( (filetype == STATE) || (filetype == COUNTY) ||
+						(filetype == FG_BASIN) || (filetype == MAP_BASIN) ) {
+						record.addFieldValue (
+						tokens.get(1) );
 					}
-					if (	(filetype == RIVER) ||
-						(filetype == STATE) ||
-						(filetype == COUNTY) ) {
-						polyline.setPoint ( ptcount++,
-						new GRPoint(x,y) );
+					try {
+						attributeTable.addRecord ( record );
 					}
-					else {	polygon.setPoint ( ptcount++,
-						new GRPoint(x,y) );
+					catch ( Exception e ) {
+						Message.printWarning ( 2, routine, e );
 					}
-					xmin = MathUtil.min ( x, xmin );
-					xmax = MathUtil.max ( x, xmax );
-					ymin = MathUtil.min ( y, ymin );
-					ymax = MathUtil.max ( y, ymax );
 				}
+				size = StringUtil.atoi((String)tokens.get(3));
+				GRPolygon polygon = null;
+				GRPolyline polyline = null;
+				if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
+					polyline = new GRPolyline(size);
+				}
+				else {
+					polygon = new GRPolygon(size);
+				}
+				int ptcount = 0;
+				for ( int i = 0; i < size; i++ ) {
+					string = in.readLine();
+					if ( string == null ) {
+						break;
+					}
+					tokens = StringUtil.breakStringList ( string.trim(), " ", 0 );
+					if ( (tokens != null) && (tokens.size() == 2) ) {
+						if ( filetype == COUNTY ) {
+							x = StringUtil.atod(tokens.get(0));
+							y = StringUtil.atod(tokens.get(1));
+						}
+						else {
+							y = StringUtil.atod(tokens.get(0));
+							x = -(StringUtil.atod(tokens.get(1)));
+						}
+						if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
+							polyline.setPoint ( ptcount++,
+							new GRPoint(x,y) );
+						}
+						else {
+							polygon.setPoint ( ptcount++,
+							new GRPoint(x,y) );
+						}
+						xmin = MathUtil.min ( x, xmin );
+						xmax = MathUtil.max ( x, xmax );
+						ymin = MathUtil.min ( y, ymin );
+						ymax = MathUtil.max ( y, ymax );
+					}
+				}
+				if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
+					polyline.xmin = xmin;
+					polyline.ymin = ymin;
+					polyline.xmax = xmax;
+					polyline.ymax = ymax;
+					polyline.limits_found = true;
+					polyline.index = polycount++;
+					shapes.add ( polyline );
+				}
+				else {
+					polygon.xmin = xmin;
+					polygon.ymin = ymin;
+					polygon.xmax = xmax;
+					polygon.ymax = ymax;
+					polygon.limits_found = true;
+					polygon.index = polycount++;
+					shapes.add ( polygon );
+				}
+				xmin_layer = MathUtil.min ( xmin, xmin_layer );
+				xmax_layer = MathUtil.max ( xmax, xmax_layer );
+				ymin_layer = MathUtil.min ( ymin, ymin_layer );
+				ymax_layer = MathUtil.max ( ymax, ymax_layer );
 			}
-			if (	(filetype == RIVER) ||
-				(filetype == STATE) ||
-				(filetype == COUNTY) ) {
-				polyline.xmin = xmin;
-				polyline.ymin = ymin;
-				polyline.xmax = xmax;
-				polyline.ymax = ymax;
-				polyline.limits_found = true;
-				polyline.index = polycount++;
-				_shapes.add ( polyline );
-			}
-			else {	polygon.xmin = xmin;
-				polygon.ymin = ymin;
-				polygon.xmax = xmax;
-				polygon.ymax = ymax;
-				polygon.limits_found = true;
-				polygon.index = polycount++;
-				_shapes.add ( polygon );
-			}
-			xmin_layer = MathUtil.min ( xmin, xmin_layer );
-			xmax_layer = MathUtil.max ( xmax, xmax_layer );
-			ymin_layer = MathUtil.min ( ymin, ymin_layer );
-			ymax_layer = MathUtil.max ( ymax, ymax_layer );
-		}
 		}
 		in.close();
-		in = null;
 		setProjection ( new GeographicProjection() );
 	}
 	else if (((filetype == COUNTY) || (filetype == FG_BASIN) ||
@@ -465,72 +416,40 @@ throws IOException
 		// multiple polygons under one shape.  Or, add an attribute to
 		// include the main MAP area or segment?  For now, read all the
 		// areas in as separate GRPolygon.
-		if (	(filetype == RIVER) || (filetype == STATE) ||
-			(filetype == COUNTY) ) {
-			_shape_type = LINE;
+		if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
+			setShapeType ( LINE );
 		}
-		else {	_shape_type = POLYGON;
+		else {
+			setShapeType ( POLYGON );
 		}
-		EndianDataInputStream in = new EndianDataInputStream(
-			IOUtil.getInputStream( geodata_file ) );
+		EndianDataInputStream in = new EndianDataInputStream(IOUtil.getInputStream( geodata_file ) );
 		boolean is_big_endian = IOUtil.isBigEndianMachine();
 		if ( read_attributes ) {
-			List table_fields = new Vector (1);
+			List<TableField> table_fields = new Vector (1);
 			if ( filetype == COUNTY ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"ID",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"COUNTY",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"ID",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"COUNTY",24) );
 			}
 			else if ( filetype == FG_BASIN ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"FG",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"FG",24) );
 			}
 			else if ( filetype == MAP_BASIN ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"MAP Area",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"MAP Name",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"MAP Area",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"MAP Name",24) );
 			}
 			else if ( filetype == RFC_BOUNDARY ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,"RFC",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"RFC",24) );
 			}
 			else if ( filetype == RIVER ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"REACH",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"NAME",24) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_DOUBLE,
-				"ORDER",4,0) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"REACH",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"NAME",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_DOUBLE,"ORDER",4,0) );
 			}
 			else if ( filetype == STATE ) {
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"Abbreviation",3) );
-				table_fields.add (
-				new TableField(
-				TableField.DATA_TYPE_STRING,
-				"Name",24) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Abbreviation",3) );
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Name",24) );
 			}
-			_attribute_table = new DataTable(table_fields);
-			table_fields = null;
+			setAttributeTable ( attributeTable = new DataTable(table_fields) );
 		}
 		// Header line...
 		int polycount = 0;
@@ -541,15 +460,16 @@ throws IOException
 			xmax = -1.0e10;
 			ymin = 1.0e10;
 			ymax = -1.0e10;
-			try {	// Read the same whether big or little endian
-				// because assume to be 1-byte chars...
+			try {
+				// Read the same whether big or little endian because assume to be 1-byte chars...
 				id = in.readString1( 9).trim();
 				name = in.readString1 ( 21 ).trim();
 				if ( is_big_endian ) {
 					order = in.readInt();
 					npts = in.readInt();
 				}
-				else {	order = in.readLittleEndianInt();
+				else {
+					order = in.readLittleEndianInt();
 					npts = in.readLittleEndianInt();
 				}
 			}
@@ -558,60 +478,57 @@ throws IOException
 				break;
 			}
 			if ( read_attributes ) {
-				// Only attribute is the name of the basin
-				// boundary...
+				// Only attribute is the name of the basin boundary...
 				TableRecord record = new TableRecord ( 1 );
 				record.addFieldValue ( id );
 				if ( filetype == RIVER ) {
 					record.addFieldValue ( name );
 					record.addFieldValue(new Double(order));
 				}
-				else if ( (filetype == STATE) ||
-					(filetype == COUNTY) ||
-					(filetype == FG_BASIN) ||
-					(filetype == MAP_BASIN) ) {
+				else if ( (filetype == STATE) || (filetype == COUNTY) ||
+					(filetype == FG_BASIN) || (filetype == MAP_BASIN) ) {
 					record.addFieldValue ( name );
 				}
-				try {	_attribute_table.addRecord ( record );
+				try {
+					attributeTable.addRecord ( record );
 				}
 				catch ( Exception e ) {
 					// Ignore for now..
 				}
-				record = null;
 			}
 			size = npts;
 			GRPolygon polygon = null;
 			GRPolyline polyline = null;
-			if (	(filetype == RIVER) || (filetype == STATE) ||
-				(filetype == COUNTY) ) {
+			if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
 				polyline = new GRPolyline(size);
 			}
-			else {	polygon = new GRPolygon(size);
+			else {
+				polygon = new GRPolygon(size);
 			}
 			int ptcount = 0;
 			for ( int i = 0; i < size; i++ ) {
-				try {	if ( is_big_endian ) {
+				try {
+					if ( is_big_endian ) {
 						x = in.readFloat();
 						y = in.readFloat();
 					}
-					else {	x = in.readLittleEndianFloat();
+					else {
+						x = in.readLittleEndianFloat();
 						y = in.readLittleEndianFloat();
 					}
 	//if ( filetype == RIVER )
 //Message.printStatus ( 1, "", "x = " + x + " y = " + y );
 				}
 				catch ( Exception e ) {
-					Message.printWarning ( 1, "",
-					"Error reading x, y" );
+					Message.printWarning ( 3, "", "Error reading x, y" );
 					break;
 				}
-				if (	(filetype == RIVER) ||
-					(filetype == STATE) ||
-					(filetype == COUNTY) ){
+				if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ){
 					polyline.setPoint ( ptcount++,
 					new GRPoint(x,y) );
 				}
-				else {	polygon.setPoint ( ptcount++,
+				else {
+					polygon.setPoint ( ptcount++,
 					new GRPoint(x,y) );
 				}
 				xmin = MathUtil.min ( x, xmin );
@@ -619,23 +536,23 @@ throws IOException
 				ymin = MathUtil.min ( y, ymin );
 				ymax = MathUtil.max ( y, ymax );
 			}
-			if (	(filetype == RIVER) || (filetype == STATE) ||
-				(filetype == COUNTY) ) {
+			if ( (filetype == RIVER) || (filetype == STATE) || (filetype == COUNTY) ) {
 				polyline.xmin = xmin;
 				polyline.ymin = ymin;
 				polyline.xmax = xmax;
 				polyline.ymax = ymax;
 				polyline.limits_found = true;
 				polyline.index = polycount++;
-				_shapes.add ( polyline );
+				shapes.add ( polyline );
 			}
-			else {	polygon.xmin = xmin;
+			else {
+				polygon.xmin = xmin;
 				polygon.ymin = ymin;
 				polygon.xmax = xmax;
 				polygon.ymax = ymax;
 				polygon.limits_found = true;
 				polygon.index = polycount++;
-				_shapes.add ( polygon );
+				shapes.add ( polygon );
 			}
 			xmin_layer = MathUtil.min ( xmin, xmin_layer );
 			xmax_layer = MathUtil.max ( xmax, xmax_layer );
@@ -643,28 +560,21 @@ throws IOException
 			ymax_layer = MathUtil.max ( ymax, ymax_layer );
 		}
 		in.close();
-		in = null;
 		setProjection ( new HRAPProjection() );
 	}
 	else if ( filetype == FORECASTPT ) {
 		// Format is Name State ID Lat Long
 		// ...
-		_shape_type = POINT;
+		setShapeType ( POINT );
 		BufferedReader in = null;
-		in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( geodata_file )) );
+		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( geodata_file )) );
 		if ( read_attributes ) {
-			// Only attribute is the name of the basin
-			// boundary...
-			List table_fields = new Vector (3);
-			table_fields.add ( new TableField(
-				TableField.DATA_TYPE_STRING,"Name",30) );
-			table_fields.add ( new TableField(
-				TableField.DATA_TYPE_STRING,"State",3) );
-			table_fields.add ( new TableField(
-				TableField.DATA_TYPE_STRING,"FP",12) );
-			_attribute_table = new DataTable(table_fields);
-				table_fields = null;
+			// Only attribute is the name of the basin boundary...
+			List<TableField> table_fields = new Vector (3);
+			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Name",30) );
+			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"State",3) );
+			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"FP",12) );
+			setAttributeTable ( attributeTable = new DataTable(table_fields) );
 		}
 		GRShape point = null;
 		int count = 0;
@@ -673,12 +583,10 @@ throws IOException
 			if ( string == null ) {
 				break;
 			}
-			// Get the coordinates from the end of the string (after
-			// column 47).
+			// Get the coordinates from the end of the string (after column 47).
 			tokens = StringUtil.breakStringList (
-				string.substring(47).trim()," ",
-				StringUtil.DELIM_SKIP_BLANKS);
-			if (	(tokens == null) || (tokens.size() != 2) ) {
+				string.substring(47).trim()," ", StringUtil.DELIM_SKIP_BLANKS);
+			if ( (tokens == null) || (tokens.size() != 2) ) {
 				continue;
 			}
 			y = StringUtil.atod( (String)tokens.get(0));
@@ -689,34 +597,29 @@ throws IOException
 			ymin = MathUtil.min ( y, ymin );
 			ymax = MathUtil.max ( y, ymax );
 			if ( read_attributes ) {
-				// Get the attributes from the first part of
-				// the line...
-				tokens = StringUtil.fixedRead (
-					string.trim(),"s20s7s20");
+				// Get the attributes from the first part of the line...
+				tokens = StringUtil.fixedRead (string.trim(),"s20s7s20");
 				TableRecord record = new TableRecord(3);
-				if (	(tokens == null) ||
-					(tokens.size() != 3) ) {
+				if ( (tokens == null) || (tokens.size() != 3) ) {
 					record.addFieldValue ( "" );
 					record.addFieldValue ( "" );
 					record.addFieldValue ( "" );
 				}
-				else {	record.addFieldValue ( ((String)
-					tokens.get(0)).trim() );
-					record.addFieldValue ( ((String)
-					tokens.get(1)).trim() );
-					record.addFieldValue ( ((String)
-					tokens.get(2)).trim() );
+				else {
+					record.addFieldValue ( tokens.get(0).trim() );
+					record.addFieldValue ( tokens.get(1).trim() );
+					record.addFieldValue ( tokens.get(2).trim() );
 				}
-				try {	_attribute_table.addRecord ( record );
+				try {
+					attributeTable.addRecord ( record );
 				}
 				catch ( Exception e ) {
 					// Ignore for now..
 				}
-				record = null;
 			}
 			point.index = count++;
 			point.limits_found = true;
-			_shapes.add ( point );
+			shapes.add ( point );
 		}
 		xmin_layer = xmin;
 		xmax_layer = xmax;
@@ -727,10 +630,9 @@ throws IOException
 	else if ( filetype == SWE_STATIONS ) {
 		// Format is ID,Lat,-Long,ElevU,Base station,Name
 		// ...
-		_shape_type = POINT;
+		setShapeType ( POINT );
 		BufferedReader in = null;
-		in = new BufferedReader ( new InputStreamReader(
-				IOUtil.getInputStream ( geodata_file )) );
+		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( geodata_file )) );
 		GRShape point = null;
 		int count = 0;
 		String elev = null;
@@ -748,12 +650,11 @@ throws IOException
 			if ( string.charAt(0) == '#' ) {
 				continue;
 			}
-			tokens = StringUtil.breakStringList (
-				string,",",0);
-			if (	(tokens == null) || (tokens.size() != 6) ) {
+			tokens = StringUtil.breakStringList (string,",",0);
+			if ( (tokens == null) || (tokens.size() != 6) ) {
 				continue;
 			}
-			elev = ((String)tokens.get(3)).trim();
+			elev = tokens.get(3).trim();
 			// Remove the characters from the elevation...
 			len = elev.length();
 			units = "";
@@ -765,35 +666,22 @@ throws IOException
 				}
 			}
 			if ( (count == 0) && read_attributes ) {
-				// Need to know the units to be able to set
-				// the attribute correctly...
-				List table_fields = new Vector (4);
-				table_fields.add ( new TableField(
-					TableField.DATA_TYPE_STRING, "ID",10) );
+				// Need to know the units to be able to set the attribute correctly...
+				List<TableField> table_fields = new Vector (4);
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING, "ID",10) );
 				if ( units.length() > 0 ) {
 					table_fields.add (
-					new TableField(
-					TableField.DATA_TYPE_DOUBLE,"ELEV_" +
-					units.toUpperCase(),
-					6,1));
+						new TableField( TableField.DATA_TYPE_DOUBLE,"ELEV_" + units.toUpperCase(),6,1));
 				}
-				else {	table_fields.add (
-					new TableField(
-					TableField.DATA_TYPE_DOUBLE,"ELEV",
-					6,1));
+				else {
+					table_fields.add (new TableField(TableField.DATA_TYPE_DOUBLE,"ELEV",6,1));
 				}
-				table_fields.add ( new TableField(
-					TableField.DATA_TYPE_STRING,"BASESTA",
-					18));
-				table_fields.add ( new TableField(
-					TableField.DATA_TYPE_STRING,"NAME",30));
-				_attribute_table = new DataTable( table_fields);
-				table_fields = null;
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"BASESTA",18));
+				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"NAME",30));
+				setAttributeTable ( attributeTable = new DataTable( table_fields) );
 			}
-			y = StringUtil.atod(
-				(String)tokens.get(1));
-			x = StringUtil.atod(
-				(String)tokens.get(2));
+			y = StringUtil.atod(tokens.get(1));
+			x = StringUtil.atod(tokens.get(2));
 			point = new GRPoint ( x, y );
 			xmin = MathUtil.min ( x, xmin );
 			xmax = MathUtil.max ( x, xmax );
@@ -801,28 +689,20 @@ throws IOException
 			ymax = MathUtil.max ( y, ymax );
 			if ( read_attributes ) {
 				TableRecord record = new TableRecord(3);
-				record.addFieldValue (
-					((String)
-					tokens.get(0)).trim() );
-				record.addFieldValue (
-					new Double( StringUtil.atod(elev)) );
-				record.addFieldValue (
-					((String)
-					tokens.get(4)).trim() );
-				record.addFieldValue (
-					((String)
-					tokens.get(5)).trim() );
-				try {	_attribute_table.addRecord (
-					record );
+				record.addFieldValue (tokens.get(0).trim() );
+				record.addFieldValue (new Double( StringUtil.atod(elev)) );
+				record.addFieldValue (tokens.get(4).trim() );
+				record.addFieldValue (tokens.get(5).trim() );
+				try {
+					attributeTable.addRecord ( record );
 				}
 				catch ( Exception e ) {
 					// Ignore for now..
 				}
-				record = null;
 			}
 			point.index = count++;
 			point.limits_found = true;
-			_shapes.add ( point );
+			shapes.add ( point );
 		}
 		xmin_layer = xmin;
 		xmax_layer = xmax;
@@ -835,15 +715,10 @@ throws IOException
 
 	setLimits ( xmin_layer, ymin_layer, xmax_layer, ymax_layer );
 
-	Message.printStatus ( 1, routine,
-	"Read " + _shapes.size() + " shapes from \"" + geodata_file + "\"." );
-	Message.printStatus ( 1, routine,
-	"Defined " + _attribute_table.getNumberOfRecords() +
-		" attribute table records." );
-
-	// Clean up...
-
-	routine = null;
+	Message.printStatus ( 2, routine,
+	"Read " + shapes.size() + " shapes from \"" + geodata_file + "\"." );
+	Message.printStatus ( 2, routine,
+	"Defined " + attributeTable.getNumberOfRecords() + " attribute table records." );
 }
 
-} // End of NwsrfsLayer
+}

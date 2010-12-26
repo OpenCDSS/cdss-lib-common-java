@@ -107,6 +107,8 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableRecord;
 
+// TODO SAM 2010-12-23 Need to convert GeoLayer to an interface and have implementations of the interface
+
 /**
 This class holds a layer of geographically-referenced data, which can be point,
 polygon, image, etc.  GeoLayers are associated with visible attributes using
@@ -210,26 +212,26 @@ public static final int GRID = 51;
 /**
 Type of shapes in layer (e.g., POINT).
 */
-protected int _shape_type = UNKNOWN;
+private int __shapeType = UNKNOWN;
 
 /**
 List of shape data.  Note that the index in the shape is used to
 cross-reference to the attribute table.  The index starts at 0, unlike the ESRI
 shapefiles, where the record numbers start at 1.
 */
-protected List _shapes;
+private List<GRShape> __shapes = new Vector();
 
 /**
 Overall limits of the layer (this can be reset using computeLimits() or may be
 set in the I/O code for a specific layer file type).
 */
-protected GRLimits _limits;
+private GRLimits __limits;
 
 /**
 Name of file for layer (currently layers are not constructed from database
 query - if so, the meaning of this data value may need to be modified).
 */
-protected String _file_name;
+private String __fileName;
 
 /**
 Count of the number of selected shapes.  This should be updated whenever a
@@ -237,7 +239,7 @@ shapes _is_selected data member is modified.  The selected shapes may or may
 not be visible.  This data member must be updated if the shape data is edited
 (e.g., if shapes are selected are removed, update the selected count).
 */
-protected int _selected_count;
+private int __selectedCount;
 
 /**
 Application layer type for layer.  This is used to allow an application to
@@ -246,29 +248,29 @@ AppLayerType property in the GeoViewProject file may be set to "Streamflow".  An
 application can then know that when a user is interacting with streamflow data
 that the Streamflow data layer should be highlighted in the view.
 */
-protected String _app_layer_type;
+private String __appLayerType;
 
 /**
-Data format (e.g., "ESRI Shapefile").
+Data format (e.g., "ESRI Shapefile") - this is a descriptive label but is not compared for any logic.
 */
-protected String _data_format = "";
+private String __dataFormat = "";
 
 /**
 Property list for layer properties.  This is not used much at this time (need
 to document each recognized property).
 */
-protected PropList _props;
+private PropList __props;
 
 /**
 Projection for the layer (see classes extended from GeoProjection).
 */
-protected GeoProjection _projection = null;
+private GeoProjection __projection = null;
 
 /**
 Table to store attribute information (id, location, etc.).  This may be a
 derived class like DbaseDataTable due to the special requirements of a layer file format.
 */
-protected DataTable _attribute_table;
+private DataTable __attributeTable;
 
 /**
 Construct a layer and initialize to defaults.
@@ -309,30 +311,30 @@ public Object clone() {
 		return null;
 	}
 
-	if (_shapes != null) {
-		int size = _shapes.size();
+	if (__shapes != null) {
+		int size = __shapes.size();
 		GRShape shape = null;
-		l._shapes = new Vector(size);
+		l.__shapes = new Vector(size);
 		for (int i = 0; i < size; i++) {
-			shape = (GRShape)_shapes.get(i);
-			l._shapes.add((GRShape)shape.clone());
+			shape = __shapes.get(i);
+			l.__shapes.add((GRShape)shape.clone());
 		}
 	}
 
-	if (_limits != null) {
-		l._limits = (GRLimits)_limits.clone();
+	if (__limits != null) {
+		l.__limits = (GRLimits)__limits.clone();
 	}
 
-	if (_props != null) {
-		l._props = new PropList(_props);
+	if (__props != null) {
+		l.__props = new PropList(__props);
 	}
 
-	if (_projection != null) {
-		l._projection = (GeoProjection)_projection.clone();
+	if (__projection != null) {
+		l.__projection = (GeoProjection)__projection.clone();
 	}
 
-	if (_attribute_table != null) {
-		l._attribute_table = DataTable.duplicateDataTable(_attribute_table, true);
+	if (__attributeTable != null) {
+		l.__attributeTable = DataTable.duplicateDataTable(__attributeTable, true);
 	}
 
 	return l;
@@ -347,11 +349,11 @@ public void computeLimits ( boolean include_invisible )
 throws Exception
 {	// Loop through the shapes and get the overall limits...
 	boolean limits_found = false;
-	int size = _shapes.size();
+	int size = __shapes.size();
 	GRShape shape = null;
 	double xmin = 0.0, xmax = 0.0, ymin = 0.0, ymax = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.get(i);
+		shape = __shapes.get(i);
 		if ( shape == null ) {
 			continue;
 		}
@@ -387,12 +389,11 @@ throws Exception
 			}
 		}
 	}
-	shape = null;
 	// Now return...
 	if ( !limits_found ) {
 		throw new Exception ( "Cannot find GeoLayer limits" );
 	}
-	_limits = new GRLimits ( xmin, ymin, xmax, ymax );
+	__limits = new GRLimits ( xmin, ymin, xmax, ymax );
 }
 
 /**
@@ -401,15 +402,14 @@ shapes need to be deselected before a pending select operation.
 */
 public void deselectAllShapes ()
 {	GRShape shape = null;
-	int size = _shapes.size();
+	int size = __shapes.size();
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.get(i);
+		shape = __shapes.get(i);
 		if ( shape.is_selected ) {
-			--_selected_count;
+			--__selectedCount;
 		}
 		shape.is_selected = false;
 	}
-	shape = null;
 }
 
 /**
@@ -418,14 +418,14 @@ Finalize before garbage collection.
 */
 protected void finalize ()
 throws Throwable
-{	_file_name = null;
-	_shapes = null;
-	_limits = null;
-	_app_layer_type = null;
-	_data_format = null;
-	_attribute_table = null;
-	_props = null;
-	_projection = null;
+{	__fileName = null;
+	__shapes = null;
+	__limits = null;
+	__appLayerType = null;
+	__dataFormat = null;
+	__attributeTable = null;
+	__props = null;
+	__projection = null;
 	super.finalize();
 }
 
@@ -438,18 +438,18 @@ visible shapes will be considered.
 */
 public double getAttributeMax (	int field, boolean include_invisible )
 {	int size = 0;
-	if ( _shapes != null ) {
-		size = _shapes.size();
+	if ( __shapes != null ) {
+		size = __shapes.size();
 	}
 	if ( size == 0 ) {
 		return 0.0;
 	}
-	GRShape shape = (GRShape)_shapes.get(0);
+	GRShape shape = __shapes.get(0);
 	double max = 0.0;
 	try {
 		max = StringUtil.atod (getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
-			shape = (GRShape)_shapes.get(i);
+			shape = __shapes.get(i);
 			if ( shape == null ) {
 				continue;
 			}
@@ -475,18 +475,18 @@ visible shapes will be considered.
 */
 public double getAttributeMin (	int field, boolean include_invisible ) 
 {	int size = 0;
-	if ( _shapes != null ) {
-		size = _shapes.size();
+	if ( __shapes != null ) {
+		size = __shapes.size();
 	}
 	if ( size == 0 ) {
 		return 0.0;
 	}
-	GRShape shape = (GRShape)_shapes.get(0);
+	GRShape shape = __shapes.get(0);
 	double min = 0.0;
 	try {
 		min = StringUtil.atod (getShapeAttributeValue ( shape.index, field).toString() );
 		for ( int i = 1; i < size; i++ ) {
-			shape = (GRShape)_shapes.get(i);
+			shape = __shapes.get(i);
 			if ( shape == null ) {
 				continue;
 			}
@@ -508,7 +508,7 @@ Return the application type set with setAppLayerType().
 @return the application type for the layer.
 */
 public String getAppLayerType ()
-{	return _app_layer_type;
+{	return __appLayerType;
 }
 
 /**
@@ -517,7 +517,7 @@ the layer read/creation, this table may contain a header only or header and data
 @return Layer attribute table.
 */
 public DataTable getAttributeTable()
-{	return _attribute_table;
+{	return __attributeTable;
 }
 
 /**
@@ -525,10 +525,10 @@ Returns the number of fields in the attribute table.  If there is no attribute t
 @return the number of fields in the attribute table.
 */
 public int getAttributeTableFieldCount() {
-	if (_attribute_table == null) {
+	if (__attributeTable == null) {
 		return 0;
 	}
-	return _attribute_table.getNumberOfFields();
+	return __attributeTable.getNumberOfFields();
 }
 
 /**
@@ -536,10 +536,10 @@ Returns the number of rows in the attribute table.  If there is no attribute tab
 @return the number of rows in the attribute table.
 */
 public int getAttributeTableRowCount() {
-	if (_attribute_table == null) {
+	if (__attributeTable == null) {
 		return 0;
 	}
-	return _attribute_table.getNumberOfRecords();
+	return __attributeTable.getNumberOfRecords();
 }
 
 /**
@@ -547,7 +547,7 @@ Return the layer data format.
 @return the layer data format.
 */
 public String getDataFormat()
-{	return _data_format;
+{	return __dataFormat;
 }
 
 /**
@@ -555,7 +555,7 @@ Return the source file name for the layer.
 @return the source file for the layer.
 */
 public String getFileName()
-{	return _file_name;
+{	return __fileName;
 }
 
 /**
@@ -563,7 +563,7 @@ Return the limits of the layer (in the original data units).
 @return the limits of the layer.
 */
 public GRLimits getLimits()
-{	return _limits;
+{	return __limits;
 }
 
 /**
@@ -571,7 +571,7 @@ Return the number of selected shapes.
 @return the number of selected shapes.
 */
 public int getNumSelected()
-{	return _selected_count;
+{	return __selectedCount;
 }
 
 /**
@@ -580,7 +580,7 @@ GeoView's projection to determine whether a conversion is necessary.
 @return Projection used for the layer.
 */
 public GeoProjection getProjection()
-{	return _projection;
+{	return __projection;
 }
 
 /**
@@ -588,7 +588,7 @@ Return a property for the layer.
 @return the String value of a property for the layer.  This calls PropList.getValue().
 */
 public String getPropValue ( String key )
-{	return _props.getValue ( key );
+{	return __props.getValue ( key );
 }
 
 /**
@@ -597,10 +597,10 @@ Return the shape at a specific index.
 Return null if the index is out of bounds.
 */
 public GRShape getShape ( int index )
-{	if ( (index < 0) || (index > (_shapes.size() - 1)) ) {
+{	if ( (index < 0) || (index > (__shapes.size() - 1)) ) {
 		return null;
 	}
-	return (GRShape)_shapes.get((int)index);
+	return __shapes.get((int)index);
 }
 
 /**
@@ -617,8 +617,8 @@ the attribute table's field data types to know how to cast the returned value.
 */
 public Object getShapeAttributeValue ( long index, int field )
 throws Exception
-{	if ( _attribute_table != null ) {
-		return _attribute_table.getFieldValue( index, field );
+{	if ( __attributeTable != null ) {
+		return __attributeTable.getFieldValue( index, field );
 	}
 	else {
 		return null;
@@ -633,8 +633,8 @@ Returns the precision for the given attribute table field.
 */
 public int getShapePrecisionValue ( long index, int field )
 throws Exception {
-	if ( _attribute_table != null ) {
-		return _attribute_table.getFieldPrecision(field);
+	if ( __attributeTable != null ) {
+		return __attributeTable.getFieldPrecision(field);
 	}
 	else {	
 		return 0;
@@ -649,8 +649,8 @@ Returns the width for the given attribute table field.
 */
 public int getShapeWidthValue ( long index, int field )
 throws Exception {
-	if ( _attribute_table != null ) {
-		return _attribute_table.getFieldWidth(field);
+	if ( __attributeTable != null ) {
+		return __attributeTable.getFieldWidth(field);
 	}
 	else {	
 		return 0;
@@ -662,8 +662,8 @@ Return the list of shapes used in the layer.  This list can be added to
 externally when reading the shapes from a file.
 @return the list of shapes used by this layer.
 */
-public List getShapes ()
-{	return _shapes;
+public List<GRShape> getShapes ()
+{	return __shapes;
 }
 
 /**
@@ -671,7 +671,7 @@ Return the shape type defined in this class (e.g., POINT).
 @return the shape type.
 */
 public int getShapeType ()
-{	return _shape_type;
+{	return __shapeType;
 }
 
 /**
@@ -682,14 +682,14 @@ derived classes, especially if on-the-fly data reads will occur.
 Return null if the index is out of bounds.
 */
 public TableRecord getTableRecord ( int index )
-{	if ( _attribute_table == null ) {
+{	if ( __attributeTable == null ) {
 		return null;
 	}
-	if ( (index < 0) || (index > (_attribute_table.getNumberOfRecords()- 1)) ) {
+	if ( (index < 0) || (index > (__attributeTable.getNumberOfRecords()- 1)) ) {
 		return null;
 	}
 	try {
-		return (TableRecord)_attribute_table.getRecord(index);
+		return __attributeTable.getRecord(index);
 	}
 	catch ( Exception e ) {
 		// Not sure why this would happen...
@@ -705,20 +705,19 @@ Initialize data.
 */
 private void initialize ( String filename, PropList props )
 {	setFileName ( filename );
-	_limits = null;
-	// Always assign some shapes so we don't have to check for null all
-	// the time...
-	_shapes = new Vector ( 100, 100 );
-	_shape_type = UNKNOWN;
-	_attribute_table = null;
-	_app_layer_type = "";
+	__limits = null;
+	// Always assign some shapes so we don't have to check for null all the time...
+	__shapes = new Vector ( 100, 100 );
+	__shapeType = UNKNOWN;
+	__attributeTable = null;
+	__appLayerType = "";
 	if ( props == null ) {
 		// Construct a PropList using the filename as the name...
-		_props = new PropList ( filename );
+		__props = new PropList ( filename );
 	}
 	else {
 		// Use the properties that were passed in...
-		_props = props;
+		__props = props;
 	}
 }
 
@@ -746,17 +745,16 @@ GeoProjection.projectShape() for each shape in the layer.  The overall limits ar
 @param projection to change to.
 */
 public void project ( GeoProjection projection )
-{	if ( !GeoProjection.needToProject(_projection, projection) ) {
+{	if ( !GeoProjection.needToProject(__projection, projection) ) {
 		// No need to do anything...
 		//Message.printStatus ( 1, "", "No need to project " +
-		//_projection.getProjectionName() + " to " +
-		//projection.getProjectionName() );
+		//_projection.getProjectionName() + " to " + projection.getProjectionName() );
 		return;
 	}
 	// Loop through all the shapes and project them...
-	int size = _shapes.size();
+	int size = __shapes.size();
 	for ( int i = 0; i < size; i++ ) {
-		GeoProjection.projectShape ( _projection, projection, (GRShape)_shapes.get(i), true );
+		GeoProjection.projectShape ( __projection, projection, __shapes.get(i), true );
 	}
 	// Now reset the limits...
 	try {
@@ -784,32 +782,39 @@ are passed directly to the layer type's read method (e.g., its constructor).
 */
 public static GeoLayer readLayer ( String filename, PropList props )
 throws IOException
-{	if ( ESRIShapefile.isESRIShapefile(filename) ) {
+{	String routine = "GeoLayer.readLayer";
+	if ( ESRIShapefile.isESRIShapefile(filename) ) {
+		Message.printStatus(2, routine, "Reading ESRI shapefile \"" + filename + "\"..." );
 		// Do this first because the filename for xmrg, etc. may match
 		// the other criteria but still be a shapefile.
 		PropList props2 = new PropList ( "ESRIShapefile" );
 		props2.set ( "InputName", filename );
-		String prop_value = props.getValue("ReadAttributes");
-		if ( prop_value != null ) {
-			props2.set ( "ReadAttributes", prop_value );
+		String propValue = props.getValue("ReadAttributes");
+		if ( propValue != null ) {
+			props2.set ( "ReadAttributes", propValue );
 		}
 		GeoLayer layer = new ESRIShapefile ( props2 );
-		prop_value = null;
-		props2 = null;
 		return layer;
 	}
+	else if ( CsvPointLayer.isCsvPointFile(filename) ) {
+		Message.printStatus(2, routine, "Reading CSV \"" + filename + "\"..." );
+		// Read the entire layer with attributes...
+		return new CsvPointLayer ( filename, "X", "Y" );
+	}
 	else if ( XmrgGridLayer.isXmrg(filename) ) {
+		Message.printStatus(2, routine, "Reading XMRG grid \"" + filename + "\"..." );
 		// For now read the entire grid and then close the file...
 		return new XmrgGridLayer ( filename, true, false );
 		// Test reading on the fly (this worked)...
 		//return new XmrgGridLayer ( filename, false, false );
 	}
 	else if ( NwsrfsLayer.isNwsrfsFile(filename) ) {
+		Message.printStatus(2, routine, "Reading NWSRFS file \"" + filename + "\"..." );
 		// Read the entire layer with attributes...
 		return new NwsrfsLayer ( filename, true );
 	}
 	if ( IOUtil.fileReadable( filename) ) {
-		throw new IOException ( "Unrecognized layer format for \"" + filename + "\"" );
+		throw new IOException ( "Unrecognized layer format for file \"" + filename + "\"" );
 	}
 	else {
 		throw new IOException ( "File is not readable: \"" + filename + "\"" );
@@ -820,19 +825,19 @@ throws IOException
 Refresh the layer.  This should normally be done periodically when editing
 data layers. The following actions occur:
 <ol>
-<li>	The select count is reset to match the total of selecte shapes in the shape list.</li>
+<li>	The select count is reset to match the total of selected shapes in the shape list.</li>
 <li>	The limits are recomputed.</li>
 </ol>
 This method may be updated in the future to help synchronize in-memory data with files (e.g., when editing).
 */
 public void refresh ()
-{	int size = _shapes.size();
+{	int size = __shapes.size();
 	GRShape shape;
-	_selected_count = 0;
+	__selectedCount = 0;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape )_shapes.get(i);
+		shape = __shapes.get(i);
 		if ( shape.is_selected ) {
-			++_selected_count;
+			++__selectedCount;
 		}
 	}
 	shape = null;
@@ -846,19 +851,18 @@ public void refresh ()
 /**
 Re-index the data for the layer.  This is useful if the initial data has been
 updated (shapes inserted or removed).  It is assumed that in such case, the
-shape and table information have been modified consistently.  The reindexing
+shape and table information have been modified consistently.  The re-indexing
 operation loops through all shapes and resets the index in the shapes to be
 sequential (they are not resorted, the indexes are reset).
 */
 public void reindex ()
-{	int size = _shapes.size();
+{	int size = __shapes.size();
 	GRShape shape = null;
 	for ( int i = 0; i < size; i++ ) {
 		// Just set the index to the loop index...
-		shape = (GRShape)_shapes.get(i);
+		shape = __shapes.get(i);
 		shape.index = i;
 	}
-	shape = null;
 }
 
 /**
@@ -868,15 +872,14 @@ in the DataTable (e.g., a model data object).
 */
 public void removeAllAssociations()
 {	int size = 0;
-	if ( _shapes != null ) {
-		size = _shapes.size();
+	if ( __shapes != null ) {
+		size = __shapes.size();
 	}
 	GRShape shape = null;
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.get(i);
+		shape = __shapes.get(i);
 		shape.associated_object = null;
 	}
-	shape = null;
 }
 
 /**
@@ -891,14 +894,14 @@ if needed (e.g., for searches to add a feature and turn visible).  This also
 will allow attribute data to be read on the fly.
 */
 public void removeUnassociatedShapes ( boolean hide_only )
-{	int size = _shapes.size();
+{	int size = __shapes.size();
 	GRShape shape = null;
-	List records = null;
-	if ( _attribute_table != null ) {
-		records = _attribute_table.getTableRecords();
+	List<TableRecord> records = null;
+	if ( __attributeTable != null ) {
+		records = __attributeTable.getTableRecords();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.get(i);
+		shape = __shapes.get(i);
 		if ( shape.associated_object == null ) {
 			if ( hide_only ) {
 				// Just set to not visible...
@@ -906,7 +909,7 @@ public void removeUnassociatedShapes ( boolean hide_only )
 			}
 			else {
 				// Actually remove the shape...
-				_shapes.remove(i);
+				__shapes.remove(i);
 				try {
 					if ( records != null ) {
 						records.remove(i);
@@ -921,8 +924,6 @@ public void removeUnassociatedShapes ( boolean hide_only )
 			}
 		}
 	}
-	shape = null;
-	records = null;
 	if ( !hide_only ) {
 		reindex();
 	}
@@ -933,11 +934,11 @@ Set the application layer type.  This information can then be used by an
 application to turn on/off layers or skip layers during processing.  The type
 can be set using the AppLayerType property in the GeoView project file.
 An example is "Streamflow".
-@param app_layer_type Application layer type.
+@param appLayerType Application layer type.
 */
-public void setAppLayerType ( String app_layer_type )
-{	if ( app_layer_type != null ) {
-		_app_layer_type = app_layer_type;
+public void setAppLayerType ( String appLayerType )
+{	if ( appLayerType != null ) {
+		__appLayerType = appLayerType;
 	}
 }
 
@@ -947,7 +948,7 @@ when the attribute table is read first and then shapes are associated with the t
 @param attribute_table Attribute table for the layer.
 */
 public void setAttributeTable ( DataTable attribute_table )
-{	_attribute_table = attribute_table;
+{	__attributeTable = attribute_table;
 }
 
 /**
@@ -956,7 +957,7 @@ when bulk manipulation of layers is occurring.
 @param shapes Shape list for the layer.
 */
 public void setShapes ( List shapes )
-{	_shapes = shapes;
+{	__shapes = shapes;
 }
 
 /**
@@ -967,20 +968,36 @@ Sets a value in the attribute table.
 */
 public void setAttributeTableValue(int row, int column, Object value) 
 throws Exception {
-	if (_attribute_table == null) {
+	if (__attributeTable == null) {
 		return;
 	}
-	_attribute_table.setFieldValue(row, column, value);
+	__attributeTable.setFieldValue(row, column, value);
+}
+
+/**
+Set the data format label.
+*/
+public void setDataFormat ( String dataFormat )
+{
+	__dataFormat = dataFormat;
 }
 
 /**
 Set the file name for the layer.
-@param file_name Name of layer input file.
+@param fileName Name of layer input file.
 */
-public void setFileName ( String file_name )
-{	if ( file_name != null ) {
-		_file_name = file_name;
+public void setFileName ( String fileName )
+{	if ( fileName != null ) {
+		__fileName = fileName;
 	}
+}
+
+/**
+Set the data limits for the layer.
+@param limits data limits for layer
+*/
+public void setLimits ( GRLimits limits )
+{	__limits = limits;
 }
 
 /**
@@ -991,7 +1008,7 @@ Set the data limits for the layer.
 @param y2 Top Y value (usually the maximum Y value).
 */
 public void setLimits ( double x1, double y1, double x2, double y2 )
-{	_limits = new GRLimits ( x1, y1, x2, y2 );
+{	__limits = new GRLimits ( x1, y1, x2, y2 );
 }
 
 /**
@@ -1002,7 +1019,7 @@ If necessary, the refresh() method can be called.
 @param selected_count The number of selected shapes.
 */
 public void setNumSelected ( int selected_count )
-{	_selected_count = selected_count;
+{	__selectedCount = selected_count;
 }
 
 /**
@@ -1013,7 +1030,7 @@ projection and the projection must be specified in a project file.
 @param projection Projection for the layer.
 */
 public void setProjection ( GeoProjection projection )
-{	_projection = projection;
+{	__projection = projection;
 }
 
 /**
@@ -1022,7 +1039,7 @@ Set the String value of a property for the layer.  This calls PropList.setValue(
 @param value Value for the property.
 */
 public void setPropValue ( String key, String value )
-{	_props.setValue ( key, value );
+{	__props.setValue ( key, value );
 }
 
 /**
@@ -1032,14 +1049,11 @@ Set all shapes visible or invisible.  This is useful, for example, when
 false, all shapes will be set to invisible.
 @param do_selected If true, apply the change to selected shapes.
 If false, do not change the visibility of selected shapes.
-@param do_unselected If true, apply the change to selected shapes.
+@param do_unselected If true, apply the change to unselected shapes.
 If false, do not change the visibility of unselected shapes.
 */
 public void setShapesVisible ( boolean is_visible, boolean do_selected, boolean do_unselected )
-{	GRShape shape = null;
-	int size = _shapes.size();
-	for ( int i = 0; i < size; i++ ) {
-		shape = (GRShape)_shapes.get(i);
+{	for ( GRShape shape: __shapes ) {
 		if ( shape.is_selected && do_selected ) {
 			shape.is_visible = is_visible;
 		}
@@ -1047,14 +1061,13 @@ public void setShapesVisible ( boolean is_visible, boolean do_selected, boolean 
 			shape.is_visible = is_visible;
 		}
 	}
-	shape = null;
 }
 
 /**
 Set the shape type (e.g., POINT).  The type is not currently checked for validity.
 */
 public void setShapeType ( int shape_type )
-{	_shape_type = shape_type;
+{	__shapeType = shape_type;
 }
 
 /**
@@ -1069,7 +1082,7 @@ All visible, selected shapes are written in the specified projection.
 */
 public void writeShapefile ( String filename, GeoProjection projection )
 throws IOException
-{	ESRIShapefile.write (  filename, _attribute_table, _shapes, true, true, _projection, projection );
+{	ESRIShapefile.write (  filename, __attributeTable, __shapes, true, true, __projection, projection );
 }
 
 /**
@@ -1087,7 +1100,7 @@ shapes are written (contingent on the other flag).
 public void writeShapefile ( String filename, boolean visible_only, boolean selected_only,
 	GeoProjection projection )
 throws IOException
-{	ESRIShapefile.write (  filename, _attribute_table, _shapes, visible_only, selected_only, _projection, projection );
+{	ESRIShapefile.write (  filename, __attributeTable, __shapes, visible_only, selected_only, __projection, projection );
 }
 
 /**
