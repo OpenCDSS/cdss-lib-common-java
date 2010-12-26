@@ -3115,6 +3115,23 @@ public static List<String> toList ( String [] array )
 }
 
 /**
+Convert an enumeration of strings to a list of strings.
+@return A list containing the strings.
+@param e Enumeration of strings to convert.
+*/
+public static List toList ( Enumeration e )
+{
+	if ( e == null ) {
+		return null;
+	}
+	List v = new Vector ( 50 );
+	while ( e.hasMoreElements() ) {
+		v.add ( e.nextElement() );
+	}
+	return v;
+}
+
+/**
 Convert a list of strings into one long string that is delimited by the
 given string (usually the system line separator).  Null strings are treated
 as empty strings.  This is useful for converting lists to something that a TextArea can display.
@@ -3135,23 +3152,6 @@ public static String toString ( List<String> strings, String delimiter )
 		buffer.append ( strings.get(i) );
 	}
 	return buffer.toString();
-}
-
-/**
-Convert an enumeration of strings to a list of strings.
-@return A list containing the strings.
-@param e Enumeration of strings to convert.
-*/
-public static List toList ( Enumeration e )
-{
-	if ( e == null ) {
-		return null;
-	}
-	List v = new Vector ( 50 );
-	while ( e.hasMoreElements() ) {
-		v.add ( e.nextElement() );
-	}
-	return v;
 }
 
 /**
