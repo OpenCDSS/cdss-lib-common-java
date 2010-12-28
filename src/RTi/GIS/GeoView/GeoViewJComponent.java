@@ -258,7 +258,7 @@ Data limits of displayed data.
 private GRLimits __dataLimits = null;
 
 /**
-Data limits of all GeoViewLayers (for zoom out).
+Data limits of all GeoViewLayers (for zoom out) and auto-zooming to portion of map.
 */
 private GRLimits __maxDataLimits = null;
 
@@ -278,14 +278,12 @@ Project for the GeoView.
 private GeoViewProject __project = null;
 
 /**
-Bounds of the JComponent (not the same as __drawLimits, which are in right-hand
-coordinate system).
+Bounds of the JComponent (not the same as __drawLimits, which are in right-hand coordinate system).
 */
 private Rectangle __bounds = null;		// Set with update.
 
 /**
-Frame that is including the GeoView as a component.  This is set to null if
-used in an applet.
+Frame that is including the GeoView as a component.  This is set to null if used in an applet.
 */
 private JFrame __parent = null;
 
@@ -320,9 +318,9 @@ Interaction mode for the GeoView (see INTERACTION_*).
 private int __interactionMode = INTERACTION_NONE;
 
 /**
-Vector to process labels.  This is re-used throughout drawing.
+List to process labels.  This is re-used throughout drawing.
 */
-private List __labelFieldVector = new Vector ( 5 );
+private List<Object> __labelFieldVector = new Vector ( 5 );
 
 /**
 Indicates if drawing should wait.  Use this if multiple layers are being
@@ -386,8 +384,7 @@ private JPopupMenu __popup = null;
 
 /**
 Used to keep track of when the left button has been pressed (true) versus any
-other mouse button.  This is so that only the left mouse button may draw
-rubber-banding lines.
+other mouse button.  This is so that only the left mouse button may draw rubber-banding lines.
 */
 private boolean __leftMouseButton = false;
 
@@ -485,21 +482,28 @@ back to the renderer to allow full access to layer information, symbols, etc.
 @param renderer the renderer that will be called when it is time to draw the object
 @param objectToRender the object to render (will be passed back to the renderer)
 @param objectLabel label for the object, to list in the GeoViewJPanel
-@param scrollToAnnotation if true, scroll to the annotation (without changing scale)
+@param limits the limits of the rendered feature, in data coordinates, used to scroll to annotations
+@param the projection for the data
+@return the annotation data that was added, or null if not added (usually due to duplicate).
 */
-public void addAnnotationRenderer ( GeoViewAnnotationRenderer renderer,
-	Object objectToRender, String objectLabel, boolean scrollToAnnotation )
+public GeoViewAnnotationData addAnnotationRenderer ( GeoViewAnnotationRenderer renderer,
+	Object objectToRender, String objectLabel, GRLimits limits, GeoProjection projection )
 {
 	// Only add if the annotation is not already in the list
-	for ( GeoViewAnnotationData annotationData: __annotationDataList ) {
+	List<GeoViewAnnotationData> annotationDataList = getAnnotationData();
+	for ( GeoViewAnnotationData annotationData: annotationDataList ) {
 		if ( (annotationData.getObject() == objectToRender) &&
 			annotationData.getLabel().equalsIgnoreCase(objectLabel) ) {
 			// Don't add again.
-			return;
+			return null;
 		}
 	}
-	__annotationDataList.add ( new GeoViewAnnotationData(renderer,objectToRender,objectLabel) );
+	GeoViewAnnotationData annotationData =
+		new GeoViewAnnotationData(renderer,objectToRender,objectLabel,limits,projection);
+	annotationDataList.add ( annotationData );
+	// Redraw the map with annotations
 	repaint ();
+	return annotationData;
 }
 
 /**
@@ -554,8 +558,7 @@ public void addLayerView ( GeoLayerView layer_view )
 }
 
 /**
-Add a GeoLayerView to the GeoView.  This includes a GeoLayer and specific
-view features (legend, etc.).
+Add a GeoLayerView to the GeoView.  This includes a GeoLayer and specific view features (legend, etc.).
 @param layerView GeoLayerView to add.
 @param reset_limits true if the overall limits should be reset and used for
 the redraw (use false if adding a layer and zoom has already been made).
@@ -574,8 +577,7 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits )
 
 	// Need to update the limits.  For now use the last one set...
 	GeoLayer layer = layerView.getLayer();
-	// Seems like this does not get done in paint in the right
-	// order?
+	// Seems like this does not get done in paint in the right order?
 	GRLimits new_drawLimits = getLimits(true); // Gets the JComponent size.
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, __prefix +"Drawing limits from JComponent are: " +
@@ -625,8 +627,7 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits )
 				__maxDataLimits = new GRLimits (getProjectedLayerLimits(layer) );
 			}
 			else {
-				__maxDataLimits = new GRLimits (
-					__maxDataLimits.max(getProjectedLayerLimits(layer) ) );
+				__maxDataLimits = new GRLimits (__maxDataLimits.max(getProjectedLayerLimits(layer) ) );
 			}
 		}
 		if ( (__dataLimits == null) || reset_limits ) {
@@ -694,6 +695,21 @@ Adds a reminded repainted -- an object that will be informed every time this obj
 public void addRemindedRepainter(GeoViewJComponent c) {
 	__remindedRepainters.add(c);
 	__remindedRepaintersCount++;
+}
+
+/**
+Clear annotations.
+*/
+public void clearAnnotations ()
+{
+	List<GeoViewAnnotationData> annotationDataList = getAnnotationData();
+	int size = annotationDataList.size();
+	annotationDataList.clear();
+	// Also redraw
+	if ( size > 0 ) {
+		// Previously had some annotations and now do not so redraw
+		redraw();
+	}
 }
 
 /**
@@ -1138,6 +1154,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 	if ( layer == null ) {
 		return;
 	}
+	// TODO SAM 2010-12-27 Can this be removed?
 	boolean drawingWaterDistricts = false;
 	if (layerView.getLegend().getText().equals("Water Districts")) {
 		drawingWaterDistricts = true;
@@ -1169,7 +1186,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 	PropList layerViewProps = null;
 	String labelField;
 	String labelFormat;
-	String prop_value;
+	String propValue;
 	String label = null; // Label for symbols.
 	String appType = layer.getAppLayerType();
 	DataTable attributeTable = layer.getAttributeTable();
@@ -1291,13 +1308,13 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 	
 		if ( layerViewProps != null ) {
 			// Determine which attribute fields are used for labels and symbol classification...
-			prop_value = layerViewProps.getValue ("Label");
-			if ( prop_value != null ) {
+			propValue = layerViewProps.getValue ("Label");
+			if ( propValue != null ) {
 				// There is a label property so figure out how labels are to be determined.
-				if ( prop_value.equalsIgnoreCase("UsingGeoViewListener") ) {
+				if ( propValue.equalsIgnoreCase("UsingGeoViewListener") ) {
 					labelSource = __LABEL_USING_GEOVIEW_LISTENER;
 				}
-				else if ( prop_value.equalsIgnoreCase("UsingAttributeTable") ) {
+				else if ( propValue.equalsIgnoreCase("UsingAttributeTable") ) {
 					labelSource = __LABEL_USING_ATTRIBUTE_TABLE;
 					attributeTable = layer.getAttributeTable();
 					if ( attributeTable != null ) {
@@ -1321,12 +1338,12 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 	
 		labelField = symbol.getLabelField();
 		labelFormat = null;
-		prop_value = null;
+		propValue = null;
 		if ( (labelField != null) && !labelField.equals("") ) {
 			// Have a label field.  Parse by comma and determine each of the field indices...
 			labelSource = __LABEL_USING_ATTRIBUTE_TABLE;
 			labelFormat = symbol.getLabelFormat();
-			prop_value = labelFormat;	// Use this to check for null
+			propValue = labelFormat;	// Use this to check for null
 							// below because the original
 							// label_format will be getting added to
 			// Get the individual label fields...
@@ -1338,7 +1355,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 			if ( vsize != 0 ) {
 				fieldNumbers = new int[vsize];
 				attributeTable = layer.getAttributeTable();
-				if ( (prop_value == null) || prop_value.equals("") ) {
+				if ( (propValue == null) || propValue.equals("") ) {
 					labelFormat = "";
 				}
 				// The following loop figures out the field indices in
@@ -1360,7 +1377,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selected_only )
 					}
 					//Message.printStatus(2, routine, "Label field for \"" + v.get(iv) + "\" is " +
 					//		fieldNumbers[iv] );
-					if ( (prop_value == null) || prop_value.equals("") ) {
+					if ( (propValue == null) || propValue.equals("") ) {
 						// Need to append to the default format
 						if ( iv != 0 ) {
 							labelFormat += ",";
@@ -1888,6 +1905,14 @@ public GRLimits getDataLimits ( )
 }
 
 /**
+Return the current data limits that map to the edges of the device.
+@return the current data limits that map to the edges of the device.
+*/
+public GRLimits getDataLimitsMax ( )
+{	return __maxDataLimits;
+}
+
+/**
 Return the GRDrawingArea used for drawing.  This allows external code to draw on the drawing area.
 @return the GRDrawingArea used for drawing.
 */
@@ -1994,8 +2019,7 @@ private String getShapeLabel ( GRShape shape, int labelSource, int labelFieldNum
 
 /**
 Handle the label redraw event from another GeoView (likely a ReferenceGeoView).
-Do not do anything here because we assume that application code is setting
-the labels.
+Do not do anything here because we assume that application code is setting the labels.
 @param record Feature being draw.
 */
 public String geoViewGetLabel ( GeoRecord record )
@@ -2007,9 +2031,9 @@ Handle the info event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devpt Coordinates of mouse in device coordinates (pixels).
 @param datapt Coordinates of mouse in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo ( GRPoint devpt, GRPoint datapt, List selected )
+public void geoViewInfo ( GRPoint devpt, GRPoint datapt, List<GeoRecord> selected )
 {
 }
 
@@ -2018,9 +2042,9 @@ Handle the info event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devlimits Limits of select in device coordinates (pixels).
 @param datalimits Limits of select in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo ( GRLimits devlimits, GRLimits datalimits, List selected )
+public void geoViewInfo ( GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected )
 {
 }
 
@@ -2029,9 +2053,9 @@ Handle the info event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devshape shape of select in device coordinates (pixels).
 @param datashape shape of select in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 */
-public void geoViewInfo(GRShape devshape, GRShape datashape, List selected) {
+public void geoViewInfo(GRShape devshape, GRShape datashape, List<GeoRecord> selected) {
 }
 
 /**
@@ -2049,10 +2073,10 @@ Handle the select event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devpt Coordinates of mouse in device coordinates (pixels).
 @param datapt Coordinates of mouse in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect (	GRPoint devpt, GRPoint datapt, List selected, boolean append )
+public void geoViewSelect (	GRPoint devpt, GRPoint datapt, List<GeoRecord> selected, boolean append )
 {
 }
 
@@ -2061,10 +2085,10 @@ Handle the select event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devlimits Limits of select in device coordinates (pixels).
 @param datalimits Limits of select in data coordinates.
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect (	GRLimits devlimits, GRLimits datalimits, List selected, boolean append )
+public void geoViewSelect (	GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected, boolean append )
 {
 }
 
@@ -2073,17 +2097,16 @@ Handle the select event from another GeoView (likely a ReferenceGeoView).
 Currently this does nothing.
 @param devshape shape of select in device coordinates (pixels).
 @param datashape shape of select in data coordinates
-@param selected Vector of selected GeoRecord.  Currently ignored.
+@param selected list of selected GeoRecord.  Currently ignored.
 @param append Indicates whether selections should be appended.
 */
-public void geoViewSelect(GRShape devshape, GRShape datashape, List selected, boolean append) {}
+public void geoViewSelect(GRShape devshape, GRShape datashape, List<GeoRecord> selected, boolean append) {}
 
 /**
 Handle the zoom event from another GeoView (likely a reference GeoView).
 This resets the data limits for this GeoView to those specified (if not
 null) and redraws the GeoView.
-@param devlimits Limits of zoom in device coordinates (pixels).  Currently not
-used.
+@param devlimits Limits of zoom in device coordinates (pixels).  Currently not used.
 @param datalimits Limits of zoom in data coordinates.
 */
 public void geoViewZoom ( GRLimits devlimits, GRLimits datalimits )
@@ -2094,8 +2117,7 @@ public void geoViewZoom ( GRLimits devlimits, GRLimits datalimits )
 Handle the zoom event from another GeoView (likely a reference GeoView).
 This resets the data limits for this GeoView to those specified (if not 
 null) and redraws the GeoView.
-@param devshape limits of zoom in device coordinates (pixels).  Currently not
-used.
+@param devshape limits of zoom in device coordinates (pixels).  Currently not used.
 @param datashape limits of zoom in data coordinates.
 */
 public void geoViewZoom(GRShape devshape, GRShape datashape) {}
@@ -2222,7 +2244,8 @@ private void initialize ( PropList props )
 		// Make a default...
 		__props = new PropList ( "GeoView.defaults" );
 	}
-	else {	__props = props;
+	else {
+		__props = props;
 	}
 
 	// Interpret properties and set flags...
@@ -2241,8 +2264,8 @@ private void initialize ( PropList props )
 	}
 	prop_value = __props.getValue ( "Projection" );
 	if ( prop_value != null ) {
-		try {	__projection = GeoProjection.parseProjection (
-					prop_value );
+		try {
+			__projection = GeoProjection.parseProjection ( prop_value );
 		}
 		catch ( Exception e ) {
 			__projection = new UnknownProjection ();
@@ -2253,7 +2276,6 @@ private void initialize ( PropList props )
 
 	addMouseListener ( this );
 	addMouseMotionListener ( this );
-	prop_value = null;
 }
 
 /**
@@ -2274,7 +2296,8 @@ public boolean isReference ( boolean is_reference )
 	if ( __isReferenceGeoview ) {
 		__prefix = "Ref: ";
 	}
-	else {	__prefix = "Main: ";
+	else {
+		__prefix = "Main: ";
 	}
 	return __isReferenceGeoview;
 }
@@ -2286,8 +2309,7 @@ public void mouseClicked ( MouseEvent event ) {}
 
 /**
 Handle mouse drag event.  If in zoom mode, redraw the rubber-band line.
-This method also calls the geoViewMouseMoved() methods for registered
-GeoViewListeners.
+This method also calls the geoViewMouseMoved() methods for registered GeoViewListeners.
 @param event Mouse drag event.
 */
 public void mouseDragged ( MouseEvent event )
@@ -2309,7 +2331,8 @@ public void mouseDragged ( MouseEvent event )
 			return;
 		}
 	}
-	else {	if ( !__dataLimits.contains(datapt) ) {
+	else {
+		if ( !__dataLimits.contains(datapt) ) {
 			// Mouse not within drawing area so don't track...
 			return;
 		}
@@ -2324,12 +2347,8 @@ public void mouseDragged ( MouseEvent event )
 		__listeners[i].geoViewMouseMotion ( devpt, datapt );
 	}
 
-	datapt = null;
-	devpt = null;
-
-	if (	(__interactionMode == INTERACTION_SELECT) ||
-		(__interactionMode == INTERACTION_INFO) ||
-		(__interactionMode == INTERACTION_ZOOM) ) {
+	if ( (__interactionMode == INTERACTION_SELECT) ||
+		(__interactionMode == INTERACTION_INFO) || (__interactionMode == INTERACTION_ZOOM) ) {
 		// Get the coordinates used
 		__mouseX2 = event.getX();
 		__mouseY2 = event.getY();
@@ -2356,8 +2375,7 @@ public void mouseExited ( MouseEvent event )
 
 /**
 Handle mouse motion event.
-This method calls the geoViewMouseMoved() methods for registered
-GeoViewListeners.
+This method calls the geoViewMouseMoved() methods for registered GeoViewListeners.
 */
 public void mouseMoved ( MouseEvent event )
 {	if ( (__grda == null) || (__dataLimits == null) ) {
@@ -2385,7 +2403,8 @@ public void mouseMoved ( MouseEvent event )
 			return;
 		}
 	}
-	else {	if ( !__dataLimits.contains(datapt) ) {
+	else {
+		if ( !__dataLimits.contains(datapt) ) {
 			// Mouse not within drawing area so don't track...
 			return;
 		}
@@ -2399,9 +2418,6 @@ public void mouseMoved ( MouseEvent event )
 	for ( int i = 0; i < size; i++ ) {
 		__listeners[i].geoViewMouseMotion ( devpt, datapt );
 	}
-
-	datapt = null;
-	devpt = null;
 }
 
 /**
@@ -2418,11 +2434,9 @@ public void mousePressed ( MouseEvent event )
 	
 	__leftMouseButton = true;
 	__mouseX1 = __mouseY1 = __mouseX2 = __mouseY2 = -1;
-	if (	(__interactionMode == INTERACTION_SELECT) ||
-		(__interactionMode == INTERACTION_INFO) ||
-		(__interactionMode == INTERACTION_ZOOM) ) {
-		// Save the point that was selected so that the drag and
-		// released events will work...
+	if ( (__interactionMode == INTERACTION_SELECT) ||
+		(__interactionMode == INTERACTION_INFO) || (__interactionMode == INTERACTION_ZOOM) ) {
+		// Save the point that was selected so that the drag and released events will work...
 		__mouseX1 = event.getX();
 		__mouseY1 = event.getY();
 	}
@@ -2455,8 +2469,7 @@ public void mouseReleased ( MouseEvent event )
 		return;
 	}
 	if ( __interactionMode == INTERACTION_SELECT ) {
-		// Select all the shapes so that the select will reflect the
-		// current select ation...
+		// Select all the shapes so that the select will reflect the current select action...
 		int numlayerviews = 0;
 		if ( __layerViews != null ) {
 			numlayerviews = __layerViews.size();
@@ -2471,8 +2484,6 @@ public void mouseReleased ( MouseEvent event )
 				layer.deselectAllShapes();
 			}
 		}
-		layer_view = null;
-		layer = null;
 	}
 	if (	(__interactionMode == INTERACTION_SELECT) ||
 		(__interactionMode == INTERACTION_INFO) ||
@@ -2509,8 +2520,6 @@ public void mouseReleased ( MouseEvent event )
 						}
 					}
 				}
-				devpt = null;
-				datapt = null;
 				__rubberBanding = false;
 				// Reset zoom coordinates...
 				__mouseX2 = -1;
@@ -2521,13 +2530,10 @@ public void mouseReleased ( MouseEvent event )
 				if ( records != null ) {
 					rsize = records.size();
 				}
-				if (	(__interactionMode==INTERACTION_SELECT)
-					&& (rsize > 0) ) {
-					// Force a redraw so that selected
-					// shapes are highlighted...
+				if ( (__interactionMode==INTERACTION_SELECT) && (rsize > 0) ) {
+					// Force a redraw so that selected shapes are highlighted...
 					redraw();
 				}
-				records = null;
 				if (!__wasWaiting) {				
 					JGUIUtil.setWaitCursor(__parent, false);
 				}	
@@ -2574,34 +2580,27 @@ public void mouseReleased ( MouseEvent event )
 		if ( y > ymax ) {
 			ymax = y;
 		}
-		GRLimits mouse_limits =
-				new GRLimits ( xmin, ymin, xmax, ymax );
+		GRLimits mouse_limits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR...
-		GRPoint pt1 = __grda.getDataXY ( xmin, ymax,
-				GRDrawingArea.COORD_DEVICE );
-		GRPoint pt2 = __grda.getDataXY ( xmax, ymin,
-				GRDrawingArea.COORD_DEVICE );
+		GRPoint pt1 = __grda.getDataXY ( xmin, ymax, GRDrawingArea.COORD_DEVICE );
+		GRPoint pt2 = __grda.getDataXY ( xmax, ymin, GRDrawingArea.COORD_DEVICE );
 		GRLimits newdata_limits = new GRLimits ( pt1, pt2 );
 		pt1 = null;
 		pt2 = null;
 		// Call the listener (or should this happen after the paint?)...
-		if (	(__interactionMode == INTERACTION_SELECT) ||
-			(__interactionMode == INTERACTION_INFO) ) {
+		if ( (__interactionMode == INTERACTION_SELECT) || (__interactionMode == INTERACTION_INFO) ) {
 			// Just return the select information..
 			List records = null;
 			if ( __listeners != null ) {
-				try {	if ( __selectGeoRecords ) {
+				try {
+					if ( __selectGeoRecords ) {
 						records = selectGeoRecords (
-							newdata_limits, null,
-							__interactionMode,
-							event.isControlDown() );
+							newdata_limits, null, __interactionMode, event.isControlDown() );
 					}
 				}
 				catch ( Exception e ) {
 					// Ignore for now...
-					Message.printWarning ( 2,
-					"GeoView.mouseReleased",
-					"Error searching for select." );
+					Message.printWarning ( 3, "GeoView.mouseReleased", "Error searching for select." );
 				}
 				int size = __listeners.length;
 				for ( int i = 0; i < size; i++ ) {
@@ -2618,10 +2617,8 @@ public void mouseReleased ( MouseEvent event )
 			if ( records != null ) {
 				rsize = records.size();
 			}
-			if (	(__interactionMode == INTERACTION_SELECT) &&
-				(rsize > 0) ) {
-				// Force a redraw so that selected shapes are
-				// highlighted...
+			if ( (__interactionMode == INTERACTION_SELECT) && (rsize > 0) ) {
+				// Force a redraw so that selected shapes are highlighted...
 				__forceRedraw = true;
 				__checkWaitStatus = true;
 			}
@@ -2632,8 +2629,7 @@ public void mouseReleased ( MouseEvent event )
 			// though the drawing limits are recomputed below...
 			if ( __listeners != null ) {
 				for ( int i = 0; i < __listeners.length; i++ ) {
-					__listeners[i].geoViewZoom (
-					mouse_limits, newdata_limits );
+					__listeners[i].geoViewZoom ( mouse_limits, newdata_limits );
 				}
 			}
 			// Repaint...
@@ -2644,16 +2640,13 @@ public void mouseReleased ( MouseEvent event )
 			// plotting limits that result in the full device being
 			// used.  Otherwise, mouse tracking, etc. may not
 			// allow selects from outside the actual data limits...
-			// First set so the plotting limits will be
-			// recomputed...
+			// First set so the plotting limits will be recomputed...
 			if ( !__isReferenceGeoview ) {
 				__grda.setDataLimits ( newdata_limits );
 			}
 
-			// Now get the data limits that correspond to the
-			// plot limits...
-			GRPoint plot1 = __grda.getDataXY ( 0, 0,
-				GRDrawingArea.COORD_PLOT );
+			// Now get the data limits that correspond to the plot limits...
+			GRPoint plot1 = __grda.getDataXY ( 0, 0, GRDrawingArea.COORD_PLOT );
 			GRPoint plot2 = __grda.getDataXY ( __bounds.width,
 				__bounds.height, GRDrawingArea.COORD_PLOT );
 			// Now reset the data limits for the full device...
@@ -2661,23 +2654,19 @@ public void mouseReleased ( MouseEvent event )
 				__dataLimits = new GRLimits ( plot1, plot2 );
 				__grda.setDataLimits ( __dataLimits );
 			}
-			else {	// Since the reference map is not resizing, need
+			else {
+				// Since the reference map is not resizing, need
 				// to use the new limits from above.  At some
 				// point, perhaps have a link to the main
-				// GeoView to get an exact box, based on aspect
-				// for the window.
+				// GeoView to get an exact box, based on aspect for the window.
 				__dataLimits = new GRLimits ( newdata_limits );
 			}
 			__forceRedraw = true;
-			plot1 = null;
-			plot2 = null;
 			__checkWaitStatus = true;
 		}
 		__rubberBanding = false;
 		// Reset zoom coordinates...
 		__mouseX2 = -1;
-		mouse_limits = null;
-		newdata_limits = null;
 		repaint();
 	}
 	if (!__wasWaiting && !__checkWaitStatus) {
@@ -2921,6 +2910,7 @@ public void paint(Graphics g) {
 		if ( !__isReferenceGeoview ) {
 			// Draw annotations on the top
 			try {
+				Message.printStatus(2,routine,"Drawing " + getAnnotationData().size() + " annotations.");
 				for ( GeoViewAnnotationData annotationData: getAnnotationData() ) {
 					GeoViewAnnotationRenderer annotationRenderer = annotationData.getGeoViewAnnotationRenderer();
 					annotationRenderer.renderGeoViewAnnotation(this, annotationData.getObject(),
@@ -3102,11 +3092,11 @@ public void redraw () {
 
 /**
 Redraws the GeoView.
-@param reference whether to redraw the reference view.  If false, 
-the reference graph will not be drawn.
+@param redrawReference whether to redraw the reference view.  If false, 
+the reference graph will not be redrawn.
 */
-public void redraw(boolean reference) {
-	__redrawReference = reference;
+public void redraw(boolean redrawReference) {
+	__redrawReference = redrawReference;
 	__forceRedraw = true;
 	repaint();
 }

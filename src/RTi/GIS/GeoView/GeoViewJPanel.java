@@ -182,8 +182,6 @@ import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 
 import RTi.GR.GRColor;
-import RTi.GR.GRDrawingArea;
-import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDevice;
 import RTi.GR.GRLegend;
 import RTi.GR.GRLimits;
@@ -219,8 +217,7 @@ import RTi.Util.Time.StopWatch;
 The GeoViewJPanel is a JPanel that manages other components.
 It has the the following layout:
 <pre>
-// REVISIT
-// may not be right anymore
+// TODO may not be right anymore
 +--------+ +----------------------------------------------------------------+
 | Legend | |                                                                |
 |(GeoViewLegendJPanel)                                                      |
@@ -284,7 +281,7 @@ GeoView project (map configuration file).
 */
 private GeoViewProject __gvp = null;
 /**
-Map controls and tracker information area.
+Map controls and tracker information area (below the map canvas).
 */
 private JPanel __allControlsJPanel = null;
 /**
@@ -360,6 +357,11 @@ private List<String> __enabledAppLayerTypes = new Vector (5);
 private PropList __displayProps = null;
 
 private GeoViewLegendJTree __legendJTree = null;
+
+/**
+The panel that includes the list of GeoViewAnnotationData.
+*/
+private GeoViewAnnotationDataListJPanel __annotationListJPanel = null;
 
 private JToolBar __toolBar = null;
 
@@ -605,10 +607,20 @@ Add an annotation renderer.  Just chain to the map component.
 @param label label for the object, to list in the GeoViewJPanel
 @param scrollToAnnotation if true, scroll to the annotation (without changing scale)
 */
-public void addAnnotationRenderer ( GeoViewAnnotationRenderer renderer,
-	Object objectToRender, String label, boolean scrollToAnnotation )
-{	// Ad the annotation to the list and redraw if necessary, zooming to new annotation.
-	__mainGeoView.addAnnotationRenderer ( renderer, objectToRender, label, scrollToAnnotation );
+public void addAnnotationRenderer ( GeoViewAnnotationRenderer renderer, Object objectToRender,
+	String label, GRLimits limits, GeoProjection projection, boolean scrollToAnnotation )
+{	// Add the annotation to the list and redraw if necessary, zooming to new annotation.
+	GeoViewAnnotationData annotationData = __mainGeoView.addAnnotationRenderer (
+		renderer, objectToRender, label, limits, projection );
+	// Also add to the annotation list for managing the list from the UI
+	if ( annotationData != null ) {
+		__annotationListJPanel.addAnnotation ( annotationData );
+	}
+	if ( scrollToAnnotation ) {
+		// Scroll and zoom so the object is visible (do this even if no new data were added because
+		// the user may have asked to reposition the display to see the annotation)...
+		zoomToAnnotations ( .5, .1 );
+	}
 }
 
 /**
@@ -1589,6 +1601,7 @@ Does nothing.
 */
 public void componentShown(ComponentEvent event) {}
 
+//TODO SAM 2010-12-27 How is this method used?
 /**
 Disable the application layer types that are specified.  For example,
 AppLayerTypes of "Streamflow" may be specified.  The layer types
@@ -1599,54 +1612,47 @@ Currently, layers and layer views are a one to one relationship.
 @param disabled_types Vector of strings containing application layer types that should be disabled.
 Currently only false is supported.
 */
-public void disableAppLayerTypes ( List enabled_types, List disabled_types )
+public void disableAppLayerTypes ( List<String> enabled_types, List<String> disabled_types )
 {	int tsize = 0;
 	if ( disabled_types != null ) {
 		tsize = disabled_types.size();
 	}
-	Message.printStatus ( 1, "", "Number of types to disable is " + tsize );
+	Message.printStatus ( 2, "", "Number of types to disable is " + tsize );
 	if ( tsize == 0 ) {
 		return;
 	}
-	int size = __mainGeoView.getNumLayerViews();
-	List layer_views = __mainGeoView.getLayerViews();
-	GeoLayerView layer_view = null;
+	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
 	GeoLayer layer = null;
-	String layer_type = null;
+	String layerType = null;
 	boolean did_something = false;
-	for ( int i = 0; i < size; i++ ) {
-		layer_view = (GeoLayerView)layer_views.get(i);
-		if ( layer_view == null ) {
+	for ( GeoLayerView layerView: layerViewList ) {
+		if ( layerView == null ) {
 			continue;
 		}
-		layer = layer_view.getLayer();
+		layer = layerView.getLayer();
 		if ( layer == null ) {
 			continue;
 		}
-		layer_type = layer.getAppLayerType();
+		layerType = layer.getAppLayerType();
 		// Check the layer type against the types that are to be
 		// enabled.  Disable if the layer matches the app type...
 		Message.printStatus ( 1, "", "App layer type for " +
-		layer.getFileName() + " is \"" + layer_type + "\"" );
+		layer.getFileName() + " is \"" + layerType + "\"" );
 		for ( int j = 0; j < tsize; j++ ) {
-			Message.printStatus ( 1, "", "Checking disabled type \"" + (String)disabled_types.get(j) + "\"" );
-			if (layer_type.equalsIgnoreCase((String)disabled_types.get(j)) ) {
-				layer_view.isVisible ( false );
+			Message.printStatus ( 1, "", "Checking disabled type \"" + disabled_types.get(j) + "\"" );
+			if (layerType.equalsIgnoreCase(disabled_types.get(j)) ) {
+				layerView.isVisible ( false );
 				did_something = true;
 				break;
 			}
 		}
-		if ( layer_view.isVisible() ) {
+		if ( layerView.isVisible() ) {
 			Message.printStatus ( 1, "", "Layer view for \"" + layer.getFileName() + "\" is visible.");
 		}
 		else {
 			Message.printStatus ( 1, "", "Layer view for \"" + layer.getFileName() + "\" is not visible.");
 		}
 	}
-	layer_views = null;
-	layer_view = null;
-	layer = null;
-	layer_type = null;
 	if ( did_something ) {
 		// Update the legend checkboxes...
 		//__legendJTree.repaint();
@@ -1659,6 +1665,7 @@ public void disableAppLayerTypes ( List enabled_types, List disabled_types )
 	}
 }
 
+// TODO SAM 2010-12-27 How is this method used?
 /**
 Enable the application layer types that are specified.  For example,
 AppLayerTypes of "Streamflow" and "Baseline" may be specified.  The layer types
@@ -1674,12 +1681,12 @@ actually be reflected in the graphical interface.
 existing enabled list.  If false, only the listed types are enabled.
 Currently only false is supported.
 */
-public void enableAppLayerTypes ( List enabled_types, boolean append_types )
+public void enableAppLayerTypes ( List<String> enabled_types, boolean append_types )
 {	int tsize = 0;
 	if ( enabled_types != null ) {
 		tsize = enabled_types.size();
 	}
-	Message.printStatus ( 1, "", "Number of types to enable is " + tsize );
+	Message.printStatus ( 2, "", "Number of types to enable is " + tsize );
 	if ( tsize == 0 ) {
 		return;
 	}
@@ -1740,9 +1747,6 @@ public void enableAppLayerTypes ( List enabled_types, boolean append_types )
 			Message.printStatus ( 1, "", "Layer view for \"" + layer.getFileName() + "\" is not visible.");
 		}
 	}
-	layer_view = null;
-	layer = null;
-	layer_type = null;
 	if ( did_something ) {
 		// Update the legend checkboxes...
 		//__legendJTree.repaint();
@@ -1965,15 +1969,6 @@ public List<GeoLayerView> getLayerViews ( List<String> appLayerTypesReq )
 		}
 	}
 	return matchingLayerViews;
-}
-
-/**
-Return the reference to the GeoViewLegendPanel.
-@return the GeoViewLegendPanel.
-@deprecated use getLegendJTree
-*/
-public GeoViewLegendJTree getLegendJPanel ()
-{	return __legendJTree;
 }
 
 /**
@@ -2243,6 +2238,16 @@ public void refreshAfterSelection() {
 }
 
 /**
+Remove all the annotations - this typically occurs when the map is cleared, such as prior to opening
+a new map.  This synchronizes the list of annotations through the GeoView.
+*/
+public void removeAllAnnotations ()
+{
+	__mainGeoView.clearAnnotations();
+	__annotationListJPanel.setAnnotationData(__mainGeoView.getAnnotationData()); // Now empty
+}
+
+/**
 Remove all GeoLayerView from the active display.  This can be used when
 disabling or refreshing a GeoViewJPanel with a new GeoView project.
 */
@@ -2262,50 +2267,41 @@ public void removeAllLayerViews ()
 	__mainGeoView.redraw();
 }
 
+// TODO SAM 2010-12-27 How is this method used?
 /**
 Remove layer views that match an App Layer Type.
-@param app_layer_types list of app layer types to remove.
+@param appLayerTypes list of app layer types to remove.
 */
-public void removeAppLayerViews ( List app_layer_types )
+public void removeAppLayerViews ( List<String> appLayerTypes )
 {	// First get a Vector of matching layer views...
 	int size = 0;
-	List app_layer_views = new Vector();
-	if ( app_layer_types != null ) {
-		size = app_layer_types.size();
+	List<GeoLayerView> appLayerViews = new Vector();
+	if ( appLayerTypes != null ) {
+		size = appLayerTypes.size();
 	}
-	List layer_views = __mainGeoView.getLayerViews();
-	int vsize = 0;
-	if ( layer_views != null ) {
-		vsize = layer_views.size();
-	}
-	String app_layer_type = null;
-	GeoLayerView layer_view = null;
+	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
+	String appLayerType = null;
 	// Find layer views that have app layer types that match the requested type.
 	for ( int i = 0; i < size; i++ ) {
-		app_layer_type = (String)app_layer_types.get(i);
-		for ( int j = 0; j < vsize; j++ ) {
-			layer_view = (GeoLayerView)layer_views.get(j);
-			if (app_layer_type.equalsIgnoreCase( layer_view.getLayer().getAppLayerType()) ) {
-				app_layer_views.add ( layer_view );
+		appLayerType = appLayerTypes.get(i);
+		for ( GeoLayerView layerView: layerViewList ) {
+			if (appLayerType.equalsIgnoreCase( layerView.getLayer().getAppLayerType()) ) {
+				appLayerViews.add ( layerView );
 			}
 		}
 	}
 	// Now remove them...
-	size = app_layer_views.size();
+	size = appLayerViews.size();
 	for ( int i = 0; i < size; i++ ) {
 		if ( i == (size - 1) ) {
 			// Remove and redraw the view...
-			removeLayerView ( (GeoLayerView)app_layer_views.get(i), true );
+			removeLayerView ( appLayerViews.get(i), true );
 		}
 		else {
 			// Remove but do not redraw the view...
-			removeLayerView ( (GeoLayerView)app_layer_views.get(i), false );
+			removeLayerView ( appLayerViews.get(i), false );
 		}
 	}
-	app_layer_views = null;
-	layer_views = null;
-	app_layer_type = null;
-	layer_view = null;
 }
 
 /**
@@ -2434,23 +2430,23 @@ private void saveAs ()
 
 /**
 Select features on the map.  The selections are NOT appended to previous selections.
-@param app_layer_types If specified, this contains a list of AppLayerType
+@param appLayerTypes If specified, this contains a list of AppLayerType
 string properties for layers that should be searched.  Specifying this
 information increases the speed of searches.
-@param feature_ids The data attributes corresponding to the AppJoinField
+@param featureIDs The data attributes corresponding to the AppJoinField
 property saved with a GeoLayerView.  One or more field values can be given, separated by commas.
-@param zoom_to_selected Indicates whether the GeoView should zoom to the selected shapes.
-@param zoom_buffer The percent (1.0 is 100%) to expand the visible area in
+@param zoomToSelected Indicates whether the GeoView should zoom to the selected shapes.
+@param zoomBuffer The percent (1.0 is 100%) to expand the visible area in
 both directions for the selected shapes.  For example, specifying a value of
-1.0 would result in a viewable area that is 50% bigger than selecte shapes on each edge.
-@param zoom_buffer2 If the selected shapes result in a region that is a single
-point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
+1.0 would result in a viewable area that is 50% bigger than selected shapes on each edge.
+@param zoomBuffer2 If the selected shapes result in a region that is a single
+point, then zoomBbuffer2 can be applied similar to zoomBuffer but using the
 dimension of the main view as the reference region.
-@return Vector of GeoRecord for the selected features, or null if nothing is selected.
+@return list of GeoRecord for the selected features, or null if nothing is selected.
 */
-public List selectAppFeatures ( List app_layer_types, List feature_ids, boolean zoom_to_selected,
-	double zoom_buffer, double zoom_buffer2)
-{	return selectAppFeatures ( app_layer_types, feature_ids, zoom_to_selected, zoom_buffer, zoom_buffer2, false );
+public List<GeoRecord> selectAppFeatures ( List<String> appLayerTypes, List<String> featureIDs,
+	boolean zoomToSelected, double zoomBuffer, double zoomBuffer2)
+{	return selectAppFeatures ( appLayerTypes, featureIDs, zoomToSelected, zoomBuffer, zoomBuffer2, false );
 }
 
 /**
@@ -2465,7 +2461,7 @@ property saved with a GeoLayerView.  One or more field values can be given, sepa
 @param zoomToSelected Indicates whether the GeoView should zoom to the selected shapes.
 @param zoomBuffer The percent (1.0 is 100%) to expand the visible area in
 both directions for the selected shapes.  For example, specifying a value of
-1.0 would result in a viewable area that is 50% bigger than selecte shapes on each edge.
+1.0 would result in a viewable area that is 50% bigger than selected shapes on each edge.
 @param zoomBuffer2 If the selected shapes result in a region that is a single
 point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
@@ -2495,17 +2491,16 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 		return new Vector();
 	}
 	int nfeature_parts = v.size();
-	String[][] feature_array = new String[nfeature][nfeature_parts];
+	String[][] featureArray = new String[nfeature][nfeature_parts];
 	for ( int i = 0; i < nfeature; i++ ) {
 		v = StringUtil.breakStringList ( feature_ids.get(i), ",", 0 );
 		for ( int j = 0; j < nfeature_parts; j++ ) {
-			feature_array[i][j] = v.get(j);
+			featureArray[i][j] = v.get(j);
 		}
 	}
-	v = null;
 	
 	List<GeoLayerView> layerViewList = __mainGeoView.getLayerViews();
-	String prop_value = null;
+	String propValue = null;
 	for ( GeoLayerView layerView: layerViewList ) {
 		//prop_value = layer_view.getPropList().getValue ( "AppLayerType");
 		//if ( prop_value.equalsIgnoreCase("BaseLayer") ) {
@@ -2518,8 +2513,8 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 	// Now loop through all non-baseline layers and search for the features...
 
 	List<GeoRecord> lv_records = null;	// Records selected in a layer view.
-	String join_field; // Fields to join the application data to the spatial data
-	List<String> join_fields_Vector; // join_field parsed with ","
+	String joinField; // Fields to join the application data to the spatial data
+	List<String> joinFieldList; // join_field parsed with ","
 	for ( GeoLayerView layerView: layerViewList ) {
 		GeoLayer layer = layerView.getLayer();
 
@@ -2542,27 +2537,27 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 			continue;
 		}
 		// Base layers cannot be searched...
-		prop_value = layerView.getPropList().getValue ("AppLayerType");
-		if ((prop_value != null) && prop_value.equalsIgnoreCase("BaseLayer") ) {
+		propValue = layerView.getPropList().getValue ("AppLayerType");
+		if ((propValue != null) && propValue.equalsIgnoreCase("BaseLayer") ) {
 //			System.out.println("   (base layer)");
 			continue;
 		}
 		// Get the join field...
-		join_field = layerView.getPropList().getValue ("AppJoinField");
-		if ( join_field == null ) {
+		joinField = layerView.getPropList().getValue ("AppJoinField");
+		if ( joinField == null ) {
 			// The layer is not attached to any application data so return...
 //			System.out.println("   (not attached to app data)");
 			continue;
 		}
-		join_fields_Vector = StringUtil.breakStringList ( join_field, ",", 0 );
-		if ( join_fields_Vector == null ) {
+		joinFieldList = StringUtil.breakStringList ( joinField, ",", 0 );
+		if ( joinFieldList == null ) {
 			// No need to process layer...
 //			System.out.println("   (null join fields)");
 			continue;
 		}
 
 		// Select shapes in the layer view...
-		lv_records = layerView.selectFeatures ( feature_array, join_field, append);
+		lv_records = layerView.selectFeatures ( featureArray, joinField, append);
 		// if not null, add to the main list...
 		if ( lv_records != null ) {
 			if ( selectedGeoRecordList == null ) {
@@ -2618,7 +2613,7 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 				yincrease = datalimits.getHeight() *zoomBuffer;
 			}
 			datalimits.increase(xincrease, yincrease);
-			Message.printStatus(2, routine, "zooming to " + datalimits.toString());
+			Message.printStatus(2, routine, "zooming to " + datalimits );
 			__mainGeoView.geoViewZoom(null, datalimits);
 			__refGeoView.geoViewZoom(null, datalimits);
 		}
@@ -3241,8 +3236,19 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	//JGUIUtil.addComponent ( this, __legendJTree, 0, y, 2, 1, 0, 1,
 	
 	JGUIUtil.addComponent ( leftPane, 
-		new JScrollPane(__legendJTree), 0, 0, 1, 1, 1, 1,
+		new JScrollPane(__legendJTree), 0, y, 1, 1, 1, 1,
 		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.NORTH );
+	
+	++y;
+	// Initialize with null annotation list since GeoView is not constructed yet - provide below
+	__annotationListJPanel = new GeoViewAnnotationDataListJPanel(null,null,true);
+	//__refGeoView.setSize ( 100, 100 );
+	//__refGeoView.setSize ( 200, 75);
+	__annotationListJPanel.setMinimumSize(new Dimension(75, 100));
+	__annotationListJPanel.setPreferredSize ( new Dimension(75,100) );
+	JGUIUtil.addComponent ( leftPane, __annotationListJPanel,
+		0, y, 1, 1, 0, 0,
+		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 
 	++y;
 	__refGeoView = new GeoViewJComponent ( __parentJFrame, display_props );
@@ -3254,9 +3260,9 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	__refGeoView.setPreferredSize ( new Dimension(75,100) );
 	__refGeoView.setBackground ( Color.white );
 	//JGUIUtil.addComponent ( this, __refGeoView, 0, y, 2, 1, 0, 0,
-	JGUIUtil.addComponent ( leftPane, __refGeoView
-//		new JScrollPane(__refGeoView)
-		, 0, 1, 1, 1, 0, 0,
+	JGUIUtil.addComponent ( leftPane, __refGeoView,
+		// Scrollpane not needed
+		0, y, 1, 1, 0, 0,
 		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 			//insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 			//insetsTLBR, gbc.NONE, GridBagConstraints.SOUTH );
@@ -3273,6 +3279,12 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	__mainGeoView.setPreferredSize ( new Dimension(300, 400) );
 	__mainGeoView.setMinimumSize ( new Dimension(100, 100) );
 	__mainGeoView.setLegendJTree(__legendJTree);
+	
+	// TODO SAM 2010-12-27 Evaluate whether the GeoView map can be created before the legend so
+	// the annotation list can be passed during the construction of the list panel
+	// Set the annotation list
+	__annotationListJPanel.setAnnotationData(__mainGeoView.getAnnotationData());
+	__annotationListJPanel.setGeoView(__mainGeoView);
 
 	//JGUIUtil.addComponent ( rightPane, __mainGeoView, 2, y, 8, 1, 1, 1,
 	JGUIUtil.addComponent ( rightPane, 
@@ -3356,7 +3368,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	if ( url == null ) {
 		// Add a button with only strings...
 		Message.printWarning( 3, routine,
-				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+			"Unable to load graphic \"" + url_string + "\" - report to software support.");
 		__saveAsImageJButton = new SimpleJButton(
 			"Save", SAVE_AS_IMAGE, "Save Map as Image", none, false, this);
 	}	
@@ -3414,7 +3426,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	if ( url == null ) {
 		// Add a button with only strings...
 		Message.printWarning( 3, routine,
-				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+			"Unable to load graphic \"" + url_string + "\" - report to software support.");
 		__refreshJButton = new SimpleJButton( "Refresh", REFRESH, "Refresh Map", none, false, this);
 	}		
 	__refreshJButton.setActionCommand(REFRESH);
@@ -3424,8 +3436,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	try {
 		url = this.getClass().getResource( url_string );
 		__zoomOutJButton = new SimpleJButton( new ImageIcon(url),
-			GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", none, 
-			false, 	this);
+			GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", none, false, this);
 	}
 	catch ( Exception e ) {
 		url = null;
@@ -3433,7 +3444,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	if ( url == null ) {
 		// Add a button with only strings...
 		Message.printWarning( 3, routine,
-				"Unable to load graphic \"" + url_string + "\" - report to software support.");
+			"Unable to load graphic \"" + url_string + "\" - report to software support.");
 		__zoomOutJButton = new SimpleJButton(
 			"Zoom to Full Extent", GEOVIEW_ZOOM_OUT, "Zoom to full extent of Map", none, false, this);
 	}
@@ -3463,7 +3474,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	try {
 		url = this.getClass().getResource( url_string );
 		__infoJButton = new SimpleJToggleButton(
-			new ImageIcon(url), MODE_INFO, "Enter Info Mode", none, false, this, false);
+			new ImageIcon(url), MODE_INFO, "Enter Info Mode (must select layer)", none, false, this, false);
 	}
 	catch ( Exception e ) {
 		url = null;
@@ -3483,7 +3494,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 	try {
 		url = this.getClass().getResource( url_string );
 		__selectJButton = new SimpleJToggleButton(
-			new ImageIcon(url), MODE_SELECT, "Enter Select Mode", none, false, this, false);
+			new ImageIcon(url), MODE_SELECT, "Enter Select Mode (must select layer)", none, false, this, false);
 	}
 	catch ( Exception e ) {
 		url = null;
@@ -3527,8 +3538,7 @@ private void setupGUI(JToolBar toolBar, PropList display_props,JTextField field1
 		0, 1, 1, 1, 1, 0,
    		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 
-	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-		leftPane, rightPane);
+	JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPane, rightPane);
 
 	JPanel bigPanel = new JPanel();
 	bigPanel.setLayout(new BorderLayout());
@@ -3653,7 +3663,6 @@ private void showFeatureInformation ( List<? extends GeoRecord> selected )
 			strings.add ( "    XMAX: " + StringUtil.formatString(shape.xmax,"%13.6f"));
 			strings.add ( "    YMAX: " + StringUtil.formatString(shape.ymax,"%13.6f"));
 		}
-		field_formats = null;
 		layer_prev = layer;
 	}
 	// Do a custom GUI later.  For now, just use text...
@@ -3704,6 +3713,60 @@ public void zoomOut(double percent) {
 	__mainGeoView.setDataLimits(dataLimits);
 	__refGeoView.setDataLimits(dataLimits);
 	refresh();
+}
+
+/**
+Zoom to the annotations and redraw.  This is generally called after adding a new annotation,
+so the user will see what was highlighted on the map.
+@param zoomBuffer The percent (1.0 is 100%) to expand the visible area in
+both directions for the selected shapes.  For example, specifying a value of
+1.0 would result in a viewable area that is 50% bigger than selected shapes on each edge.
+@param zoomBuffer2 If the selected shapes result in a region that is a single
+point, then zoomBuffer2 can be applied similar to zoomBuffer but using the
+dimension of the main view as the reference region.
+*/
+public void zoomToAnnotations ( double zoomBuffer, double zoomBuffer2 )
+{
+	GeoViewJComponent geoView = getGeoView();
+	List<GeoViewAnnotationData> annotationDataList = geoView.getAnnotationData();
+	GRLimits dataLimits = null; 
+	for ( GeoViewAnnotationData annotationData: annotationDataList ) {
+		// Have to check for zero because some shapes
+		// don't have coordinates...  For now check only the max...
+		GRLimits annotationDataLimits = annotationData.getLimits();
+		// May need to project the annotation limits...
+		GeoProjection annotationProjection = annotationData.getProjection();
+		GeoProjection geoviewProjection = getGeoView().getProjection();
+		boolean doProject = GeoProjection.needToProject ( annotationProjection, geoviewProjection );
+		if ( doProject ) {
+			annotationDataLimits = (GRLimits)GeoProjection.projectShape(
+				annotationProjection, geoviewProjection, annotationDataLimits, false );
+		}
+		if ( dataLimits == null) {
+			dataLimits = new GRLimits( annotationDataLimits );
+		}
+		else {	
+			dataLimits = dataLimits.max( annotationDataLimits );
+		}
+	}
+	// Increase the limits...
+	double xincrease = 0.0, yincrease = 0.0;
+	if (dataLimits.getMinX() == dataLimits.getMaxX()) {
+		xincrease = geoView.getDataLimitsMax().getWidth()*zoomBuffer2;
+	}
+	else {	
+		xincrease = dataLimits.getWidth()*zoomBuffer;
+	}
+	if (dataLimits.getMinY() == dataLimits.getMaxY()) {
+		yincrease = geoView.getDataLimitsMax().getHeight()*zoomBuffer2;
+	}
+	else {	
+		yincrease = dataLimits.getHeight()*zoomBuffer;
+	}
+	dataLimits.increase(xincrease, yincrease);
+	//Message.printStatus(2, routine, "zooming to " + dataLimits );
+	geoView.geoViewZoom(null, dataLimits);
+	__refGeoView.geoViewZoom(null, dataLimits);
 }
 
 }

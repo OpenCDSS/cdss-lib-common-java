@@ -125,8 +125,7 @@ public static void drawAnnotation(GRDrawingArea da, PropList p) {
 		((GRJComponentDrawingArea)da).drawAnnotation(p);
 	}
 	else {
-		Message.printStatus(1, "", "Annotations not supported on the "
-			+ "specified drawing area.");
+		Message.printStatus(1, "", "Annotations not supported on the specified drawing area.");
 	}
 }
 
@@ -204,8 +203,6 @@ public static void drawLine ( GRDrawingArea da, double x0, double y0, double x1,
 	x[1] = x1;
 	y[1] = y1;
 	drawLine ( da, x, y );
-	x = null;
-	y = null;
 }
 
 /**
@@ -235,7 +232,6 @@ public static void drawPolygon ( GRDrawingArea da, GRPolygon polygon )
 	}
 	double [] ys = new double[polygon.npts];
 	if ( ys == null) {
-		xs = null;
 		return;
 	}
 	for ( int i = 0; i < polygon.npts; i++ ) {
@@ -246,8 +242,6 @@ public static void drawPolygon ( GRDrawingArea da, GRPolygon polygon )
 	//GRReducePoints ( xs, ys, &npts, 0 );
 	da.drawPolygon ( polygon.npts, xs, ys );
 	da.setLastXY( polygon.pts[polygon.npts - 1].x, polygon.pts[polygon.npts - 1].y );
-	xs = null;
-	ys = null;
 }
 
 /**
@@ -267,7 +261,6 @@ public static void drawPolygon ( GRDrawingArea da, int npts, double x[], double 
 	}
 	double [] ys = new double[npts];
 	if ( ys == null) {
-		xs = null;
 		return;
 	}
 	for ( int i = 0; i < npts; i++ ) {
@@ -298,7 +291,6 @@ public static void drawPolyline ( GRDrawingArea da, GRPolyline polyline )
 	}
 	ys = new double[polyline.npts];
 	if ( ys == null ) {
-		xs = null;
 		return;
 	}
 	for ( i = 0; i < polyline.npts; i++ ) {
@@ -450,7 +442,6 @@ public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, in
 		else {
 		    drawArc ( da, arc );
 		}
-		arc = null;
 	}
 	else if ( type == GRShape.POLYGON ) {
 		GRPolygon polygon = (GRPolygon)shape;
@@ -465,7 +456,6 @@ public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, in
 		else {
 		    drawPolygon ( da, polygon );
 		}
-		polygon = null;
 	}
 	else if ( type == GRShape.POLYGON_LIST ) {
 		GRPolygonList polygonlist = (GRPolygonList)shape;
@@ -512,8 +502,7 @@ Draw a symbol at a point.  See the overloaded version for more information.
 @param y Y-coordinate of the point in data units.
 @param size Size of the symbol (see "flag").
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
-@param orient Orientation for symbol (see flas in GRSymbol, e.g. 
-GRSymbol.SYM_LEFT).
+@param orient Orientation for symbol (see flag in GRSymbol, e.g., GRSymbol.SYM_LEFT).
 */
 public static void drawSymbol (	GRDrawingArea da, int symbol,
 				double x, double y, double size, int flag, int orient )
@@ -623,8 +612,7 @@ used to plot multiple symbols at a point.
 @param offset_y Y offset of the symbol from the given location.  This can be
 used to plot multiple symbols at a point.
 @param data Array of secondary data.  For example, for scaled symbols like the
-teacup this indicates some dynamic data used to draw the symbol.  This is only
-used for some symbols.
+teacup this indicates some dynamic data used to draw the symbol.  This is only used for some symbols.
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
 @param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.  If
@@ -634,24 +622,24 @@ color to draw the outline of the symbol in.
 */
 public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
 	double offset_x, double offset_y, double [] data, int flag, int orient, PropList props, GRColor outlineColor)	
-{	double	msizex,		// Symbol x direction size, device units
-		msizex2,	// 1/2 of msizex
-		msizey,		// Symbol y direction size, device units
-		msizey2,	// 1/2 of msizey
-		xs,		// X coordinate scaled to device units
-		ys;		// Y coordinate scaled to device units
+{	double msizex, // Symbol x direction size, device units
+		msizex2, // 1/2 of msizex
+		msizey, // Symbol y direction size, device units
+		msizey2, // 1/2 of msizey
+		xs, // X coordinate scaled to device units
+		ys; // Y coordinate scaled to device units
 
 	if ( flag == GRUnits.DEVICE ) {
-		// Symbol size is already computed and can be added to the
-		// scaled values...
-		msizex	= size_x;
-		msizey	= size_y;
+		// Symbol size is already computed and can be added to the scaled values...
+		msizex = size_x;
+		msizey = size_y;
 		msizex2	= msizex/2.0;
 		msizey2	= msizex2;
-		xs	= da.scaleXData(x) + offset_x;
-		ys	= da.scaleYData(y) + offset_y;
+		xs = da.scaleXData(x) + offset_x;
+		ys = da.scaleYData(y) + offset_y;
 	}
-	else {	// if ( flag == GRUnits.DATA )
+	else {
+		// if ( flag == GRUnits.DATA )
 		// Symbol size needs to be computed from data units.  To do
 		// so, use a unit in data units and then scale (this will
 		// generally be close but may be a problem for some projections
@@ -662,11 +650,11 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//msizey	= msizex*da.scaleXData(1.0)/da.scaleYData(1.0);
 		// New...
 		// Get X size in device units...
-		msizex	= da.scaleXData(size_x) - da.scaleXData(0);
+		msizex = da.scaleXData(size_x) - da.scaleXData(0);
 		// Now scale the Y size...
-		msizey	= da.scaleYData(size_y) - da.scaleYData(0);
+		msizey = da.scaleYData(size_y) - da.scaleYData(0);
 		// Is this still needed?...
-		msizey= msizey*(da.scaleXData(1.0) - da.scaleXData(0.0))/
+		msizey = msizey*(da.scaleXData(1.0) - da.scaleXData(0.0))/
 			(da.scaleYData(1.0) - da.scaleYData(0.0));
 		msizex2	= msizex/2.0;
 		msizey2	= msizey/2.0;
@@ -674,8 +662,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		// scaled.  It was just the symbol that was in data size!
 		//xs		= x;
 		//ys		= y;
-		xs	= da.scaleXData(x + offset_x);
-		ys	= da.scaleYData(y + offset_y);
+		xs = da.scaleXData(x + offset_x);
+		ys = da.scaleYData(y + offset_y);
 	}
 	// Now position the symbol if requested.  Do so by offsetting the
 	// previously calculated position by 1/2 the symbol size.  The default
@@ -690,18 +678,19 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			ys += msizey2;
 		}
-		else {	ys -= msizey2;
+		else {
+			ys -= msizey2;
 		}
 	}
 	else if ( (orient & GRSymbol.SYM_BOTTOM) != 0 ) {
 		if ( da._reverse_y ) {
 			ys -= msizey2;
 		}
-		else {	ys += msizey2;
+		else {
+			ys += msizey2;
 		}
 	}
-	// Now draw the symbol.  A large "if" statement is used to check the
-	// symbol style...
+	// Now draw the symbol.  A large "if" statement is used to check the symbol style...
 	if ( symbol == GRSymbol.SYM_AST ) {
 		drawSymbol(da,GRSymbol.SYM_PLUS, x, y, size_x, size_y, offset_x,
 				offset_y, data, flag, orient );
@@ -797,8 +786,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 	else if ( symbol == GRSymbol.SYM_CIR ) {
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
-			((GRJComponentDrawingArea)da).drawOval(
-				xs, ys, msizex2, msizey2);
+			((GRJComponentDrawingArea)da).drawOval(xs, ys, msizex2, msizey2);
 		}
 		else {
 			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
@@ -1897,10 +1885,49 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = __sym[1] = ys - msizey2;
 		}
 		da.drawLine(__sxm, __sym);		
-	}	
+	}
+	else if ( symbol == GRSymbol.SYM_PUSHPIN_VERTICAL ) {
+		double [] sxm = new double[12];
+		double [] sym = new double[12];
+		double ySign = 1.0;
+		if ( da._reverse_y ) {
+			ySign = -1.0;
+		}
+		double pinWidth = msizex*.08;
+		double outsideWidth = msizex*.5;
+		double insideWidth = msizex*.3;
+		double bottomRimHeight = .1*msizey;
+		double topRimHeight = .1*msizey;
+		double pinLength = .4*msizey;
+		double handleLength = .3*msizey; // Does not include rim
+		// Pushpin always has point on the symbol point
+		// Point...
+		sxm[0] = xs;	sym[0] = ys;
+		// Left base of point...
+		sxm[1] = xs - pinWidth/2.0;	sym[1] = ys + ySign*pinLength;
+		// Left edge of bottom...
+		sxm[2] = sxm[0] - outsideWidth/2.0;	sym[2] = sym[1];
+		// Top left of bottom rim...
+		sxm[3] = sxm[0] - insideWidth/2.0;	sym[3] = sym[2] + ySign*bottomRimHeight;
+		// Bottom left of top rim...
+		sxm[4] = sxm[3];	sym[4] = sym[3] + ySign*handleLength;
+		// Top left of top rim...
+		sxm[5] = sxm[2];	sym[5] = sym[4] + ySign*topRimHeight;
+		// Right edge is symmetrical with left...
+		sxm[6] = sxm[5] + outsideWidth;	sym[6] = sym[5];
+		sxm[7] = sxm[4] + insideWidth;	sym[7] = sym[4];
+		sxm[8] = sxm[7];	sym[8] = sym[3];
+		sxm[9] = sxm[6];	sym[9] = sym[2];
+		sxm[10] = xs + pinWidth;	sym[10] = sym[1];
+		sxm[11] = sxm[0];	sym[11] = sym[0];
+		da.fillPolygon ( 12, sxm, sym );
+		if (outlineColor != null) {
+			da.setColor(outlineColor);
+		}
+		da.drawPolyline( 12, sxm, sym);		
+	}
 	else {	
-		Message.printWarning ( 2, "drawSymbol",
-			"Symbol " + symbol + " is not implemented." );
+		Message.printWarning ( 3, "drawSymbol", "Symbol " + symbol + " is not implemented." );
 	}
 }
 
@@ -1914,9 +1941,8 @@ Draw multiple symbols.
 @param flag the symbol flag
 @param orient the symbol orientation
 */
-public static void drawSymbols (GRDrawingArea da, int symbol,
-				int nsymbols, double[] x, double[] y,
-				double size, int flag, int orient )
+public static void drawSymbols (GRDrawingArea da, int symbol, int nsymbols, double[] x, double[] y,
+	double size, int flag, int orient )
 {	if ( (x == null) || (y == null) ) {
 		return;
 	}
@@ -1927,8 +1953,7 @@ public static void drawSymbols (GRDrawingArea da, int symbol,
 
 /**
 Draw symbol and text, adjusting the text position for the symbol.  The
-adjustment is done in the low-level driver code.  The text color is the same
-as the symbol color.
+adjustment is done in the low-level driver code.  The text color is the same as the symbol color.
 @param da Drawing area to draw to.
 @param symbol Symbol to draw (see GRSymbol.SYM*).
 @param x Data coordinate for symbol.
@@ -1941,13 +1966,9 @@ as the symbol color.
 will be scaled appropriately.
 @param orient Symbol orientation (see GRGRSymbol.SYM.*);
 */
-public static void drawSymbolText (	GRDrawingArea da, int symbol, double x,
-					double y, double size, String text,
-					double a, int tflag, int flag,
-					int orient )
-{	drawSymbolText (	da, symbol, x, y, size, text, null, a, tflag,
-				flag,
-				orient );
+public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, double y,
+	double size, String text, double a, int tflag, int flag, int orient )
+{	drawSymbolText ( da, symbol, x, y, size, text, null, a, tflag, flag, orient );
 }
 
 /**
@@ -1960,18 +1981,15 @@ symbol will be drawn (though the text still will be).
 @param y Data coordiante for symbol.
 @param size Size of symbol.
 @param text Text to draw at symbol.  Can be null (no text will be drawn).
-@param text_color Color to use for text.  The drawing area color change is not
-persistent.
+@param text_color Color to use for text.  The drawing area color change is not persistent.
 @param a Angle of text.
 @param tflag Text orientation flags (see GRText).
 @param flag Units of symbol (GRUnits.DEVICE or GRUnits.DATA).  The symbol size
 will be scaled appropriately.
 @param orient Symbol orientation (see GRGRSymbol.SYM.*);
 */
-public static void drawSymbolText (	GRDrawingArea da, int symbol, double x,
-					double y, double size, String text,
-					GRColor text_color, double a, int tflag,
-					int flag, int orient )
+public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, double y,
+	double size, String text, GRColor text_color, double a, int tflag, int flag, int orient )
 {	double xt = x, yt = y;
 	// Always draw the symbol as specified...
 
@@ -1989,7 +2007,8 @@ public static void drawSymbolText (	GRDrawingArea da, int symbol, double x,
 		xsize_data = size;
 		ysize_data = size;
 	}
-	else {	// Symbol size is specified in device units.  Use a unit
+	else {
+		// Symbol size is specified in device units.  Use a unit
 		// size to interpolate the size.
 		pt1 = da.getDataXY(0.0,0.0,GRDrawingArea.COORD_DEVICE);
 		pt2 = da.getDataXY(size,size,GRDrawingArea.COORD_DEVICE);
@@ -2040,10 +2059,7 @@ public static void drawSymbolText (	GRDrawingArea da, int symbol, double x,
 	if ( text_color != null ) {
 		// Reset the drawing area color to the saved color...
 		da.setColor ( color_save );
-		color_save = null;
 	}
-	pt1 = null;
-	pt2 = null;
 }
 				
 /**
@@ -2055,8 +2071,7 @@ Draw text.
 @param a the angle of rotation, counter-clockwise
 @param flag the text orientation flags (see GRText.*)
 */
-public static void drawText (	GRDrawingArea da, String text, double x,
-				double y, double a, int flag) {
+public static void drawText ( GRDrawingArea da, String text, double x, double y, double a, int flag) {
 	drawText(da, text, x, y, a, flag, 0);
 }
 
@@ -2073,8 +2088,8 @@ or text, each below the last line drawn.
 @param degrees the degrees of rotation (this parameter is actually used
 in the Swing code, and the rotation is clockwise)
 */
-public static void drawText (	GRDrawingArea da, String text, double x,
-				double y, double a, int flag, double degrees)
+public static void drawText ( GRDrawingArea da, String text, double x,
+	double y, double a, int flag, double degrees)
 {	double	xs, ys;
 
 	// Scale the data...
@@ -2098,7 +2113,7 @@ public static void drawText (	GRDrawingArea da, String text, double x,
 	}
 
 	// separate out each line
-	List v = new Vector();
+	List<String> v = new Vector();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();
@@ -2117,12 +2132,11 @@ public static void drawText (	GRDrawingArea da, String text, double x,
 	int size = v.size();
 	String[] lines = new String[size];
 	for (int i = 0; i < size; i++) {
-		lines[i] = (String)v.get(i);
+		lines[i] = v.get(i);
 	}
 
 	// calculate the limits of each individual lines and put it in an
-	// array.  Also keep track of the widest text.  Heights should all
-	// be the same.
+	// array.  Also keep track of the widest text.  Heights should all be the same.
 	GRLimits[] limits = new GRLimits[size];
 	double widest = 0;
 	for (int i = 0; i < size; i++) {
@@ -2774,8 +2788,7 @@ Set the font and its height and style to be used in drawing area.
 @param style Font style ("Plain", "Bold", "Italic").
 @param fontht Font height, in points (1 inch=72 points).
 */
-public static void setFont (	GRDrawingArea da, String font, String style,
-				double fontht )
+public static void setFont ( GRDrawingArea da, String font, String style, double fontht )
 {	da.setFont ( font, style, fontht );
 }
 

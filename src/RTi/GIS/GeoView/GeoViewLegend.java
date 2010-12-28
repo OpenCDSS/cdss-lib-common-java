@@ -1,26 +1,3 @@
-//-----------------------------------------------------------------------------
-// GeoViewLegend - manages the legend drawing area
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 08 Sep 1999	Catherine E. Nutting-Lane	
-//				Created class.
-// 21 Jun 2000	CEN, RTi	Modified legend size to use text extents
-// 
-// 21 Sep 2001	SAM, RTi	Change GR.SYM* to GRSymbol.SYM*.
-// 2001-10-17	SAM, RTi	Review javadoc.  Set unused data to null to
-//				improve garbage collection.  Comment out unused
-//				classes from import.  Add finalize().
-// 2001-12-04	SAM, RTi	Update to Swing.
-// 2002-01-08	SAM, RTi	Change GeoViewCanvas to GeoViewJComponent.
-// 2002-07-23	SAM, RTi	Change GRSymbol "pointSymbol" methods to
-//				"style".
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.GIS.GeoView;
 
 import java.awt.Graphics;
@@ -40,13 +17,11 @@ import RTi.Util.Message.Message;
 /**
 This class is used to manage and draw a legend on the main GeoViewJComponent.
 This has been used in the StateMod GUI interface.  However, with the
-introduction of the GeoViewJPanel, which has a more standard legend interface,
-this GeoViewLegend
+introduction of the GeoViewJPanel, which has a more standard legend interface, this GeoViewLegend
 needs to be updated to work in some type of layout mode for printing.  Leave as
 is for now for use with the StateMod GUI until it can be updated.
 The data limits are pixels.  The drawing limits are also pixels.
-REVISIT (JTS - 2006-05-23)
-How to get this legend to display on the GeoViewJPanel?
+TODO (JTS - 2006-05-23) How to get this legend to display on the GeoViewJPanel?
 */
 public class GeoViewLegend 
 {
@@ -54,23 +29,23 @@ public class GeoViewLegend
 /**
 Don't draw a legend.
 */
-public static final int NONE		= -1;	
+public static final int NONE = -1;	
 /**
 Draw the legend in the northwest corner.
 */
-public static final int NWCORNER	= 0;	
+public static final int NWCORNER = 0;	
 /**
 Draw the legend in the northeast corner.
 */
-public static final int NECORNER	= 1;	
+public static final int NECORNER = 1;	
 /**
 Draw the legend in the southwest corner.
 */
-public static final int SWCORNER	= 2;	
+public static final int SWCORNER = 2;	
 /**
 Draw the legend in the southeast corner.
 */
-public static final int SECORNER	= 3;	
+public static final int SECORNER = 3;	
 
 protected int _location;
 
@@ -121,27 +96,22 @@ private void drawSymbols ( List layerViews )
 	_legendDA = new GRJComponentDrawingArea ( _view, "GeoViewLegend",
 		GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_draw_limits = getDrawingLimits();
-	_legendDA.setDrawingLimits ( _draw_limits, 
-		GRUnits.DEVICE, GRLimits.DEVICE );
+	_legendDA.setDrawingLimits ( _draw_limits, GRUnits.DEVICE, GRLimits.DEVICE );
 	_legendDA.setDataLimits ( _data_limits );
 
 	// set height of big picture rectangle to 50 device units
 	GRLimits devlimh = new GRLimits ( 50.0, 50.0 );
-	GRLimits datalimh = GRDrawingAreaUtil.getDataExtents ( _legendDA, 
-		devlimh, 0 );
+	GRLimits datalimh = GRDrawingAreaUtil.getDataExtents ( _legendDA, devlimh, 0 );
 	_barheight = datalimh.getHeight();
 
 	// set width of big picture rectangle to 4 device units
 	GRLimits devlimw = new GRLimits ( 4.0, 4.0 );
-	GRLimits datalimw = GRDrawingAreaUtil.getDataExtents ( _legendDA, 
-		devlimw, 0 );
+	GRLimits datalimw = GRDrawingAreaUtil.getDataExtents ( _legendDA, devlimw, 0 );
 	_barwidth = datalimw.getHeight();
 	_halfbarwidth = _barwidth / 2.0;
 
-	_legendDA.setDrawingLimits ( _draw_limits, GRUnits.DEVICE, 
-		GRLimits.DEVICE );
-	Message.printStatus ( 1, rtn, "Legend limits: " +
-		_draw_limits.toString());
+	_legendDA.setDrawingLimits ( _draw_limits, GRUnits.DEVICE, GRLimits.DEVICE );
+	Message.printStatus ( 1, rtn, "Legend limits: " + _draw_limits );
 
 	GeoLayerView layerView;
 	GRSymbol symbol;
@@ -161,23 +131,18 @@ private void drawSymbols ( List layerViews )
 	// draw "Legend" with underline
 	//
 	GRDrawingAreaUtil.setColor ( _legendDA, GRColor.black );
-	GRDrawingAreaUtil.drawText ( _legendDA, "Legend", 50, y, 0.0, 
-		GRText.CENTER_X|GRText.CENTER_Y );
-	GRDrawingAreaUtil.drawText ( _legendDA, "______", 50, y-3, 0.0, 
-		GRText.CENTER_X|GRText.BOTTOM );
-	GRLimits text_size = GRDrawingAreaUtil.getTextExtents ( _legendDA, 
-		"astring", GRUnits.DATA );
+	GRDrawingAreaUtil.drawText ( _legendDA, "Legend", 50, y, 0.0, GRText.CENTER_X|GRText.CENTER_Y );
+	GRDrawingAreaUtil.drawText ( _legendDA, "______", 50, y-3, 0.0, GRText.CENTER_X|GRText.BOTTOM );
+	GRLimits text_size = GRDrawingAreaUtil.getTextExtents ( _legendDA, "astring", GRUnits.DATA );
 	double text_height = text_size.getHeight() + 3;
-	Message.printStatus ( 1, rtn, "text height after font set: " +
-		text_height );
+	Message.printStatus ( 1, rtn, "text height after font set: " + text_height );
 
 	//
 	// draw symbols
 	//
 	int num_layers = layerViews.size();
 	for ( int i=0; i<num_layers; i++ ) {
-		if ( 	(_draw_layer_indicator == null) ||
-			!_draw_layer_indicator[i] ) {
+		if ( (_draw_layer_indicator == null) || !_draw_layer_indicator[i] ) {
 			continue;
 		}
 
@@ -193,15 +158,13 @@ private void drawSymbols ( List layerViews )
 
 		// check if user type is bigpicture ... this forces the 
 		// developer to use "bigpicture" as the layer user type
-		if ( layerView.getLayer().getAppLayerType().equalsIgnoreCase ( 
-			"BigPicture")) {
+		if ( layerView.getLayer().getAppLayerType().equalsIgnoreCase ( "BigPicture")) {
 			continue;
 		}
 
 		y -= text_height;
 		Message.printStatus ( 1, rtn, 
-			"Drawing symbol ("+ x + ", " + y + ") for " + 
-			layerView.getLayer().getAppLayerType());
+			"Drawing symbol ("+ x + ", " + y + ") for " + layerView.getLayer().getAppLayerType());
 
 		GRDrawingAreaUtil.setColor (_legendDA,  symbol.getColor());
 		GRDrawingAreaUtil.drawSymbolText ( 
@@ -228,16 +191,13 @@ private void drawSymbols ( List layerViews )
 		GRDrawingAreaUtil.drawLine ( _legendDA, xp, yp );
 
 		GRDrawingAreaUtil.setColor ( _legendDA, GRColor.blue );
-		GRDrawingAreaUtil.fillRectangle ( _legendDA, x, y, _barwidth, 
-			_barheight );
+		GRDrawingAreaUtil.fillRectangle ( _legendDA, x, y, _barwidth, _barheight );
 
 		GRDrawingAreaUtil.setColor ( _legendDA, GRColor.red );
-		GRDrawingAreaUtil.fillRectangle ( _legendDA, x, y-_barheight, 
-			_barwidth, _barheight );
+		GRDrawingAreaUtil.fillRectangle ( _legendDA, x, y-_barheight, _barwidth, _barheight );
 
 		GRDrawingAreaUtil.setColor ( _legendDA, GRColor.black );
-		GRDrawingAreaUtil.drawText ( _legendDA, "0", x+(2*_barwidth), 
-			y, 0.0, GRText.LEFT|GRText.CENTER_Y );
+		GRDrawingAreaUtil.drawText ( _legendDA, "0", x+(2*_barwidth), y, 0.0, GRText.LEFT|GRText.CENTER_Y );
 		String ztopString = Double.toString(_view.getBigPictureZMax());
 		GRDrawingAreaUtil.drawText ( _legendDA, ztopString, 
 			x+(2*_barwidth), y+_barheight, 0.0, 
@@ -252,22 +212,8 @@ private void drawSymbols ( List layerViews )
 		yp = null;
 	}
 	_draw_limits = getDrawingLimits();
-	_legendDA.setDrawingLimits ( _draw_limits, 
-		GRUnits.DEVICE, GRLimits.DEVICE );
-	Message.printStatus ( 1, rtn, "Legend drawing limits: " +
-		_draw_limits.toString());
-
-	// Clean up...
-
-	rtn = null;
-	devlimh = null;
-	datalimh = null;
-	devlimw = null;
-	datalimw = null;
-	layerView = null;
-	symbol = null;
-	legend = null;
-	text_size = null;
+	_legendDA.setDrawingLimits ( _draw_limits, GRUnits.DEVICE, GRLimits.DEVICE );
+	Message.printStatus ( 1, rtn, "Legend drawing limits: " + _draw_limits.toString());
 }
 
 /**
@@ -317,8 +263,7 @@ private boolean[] establishDrawLayerIndicator ( List layerViews )
 		int symbolType = symbol.getType();
 		layer_indicator[i] = true;
 		for ( int j=0; j<i; j++ ) {
-			if (	(layer_symbol[j].getType() == symbolType) &&
-				layer_desc[j].equals(description)) {
+			if ( (layer_symbol[j].getType() == symbolType) && layer_desc[j].equals(description)) {
 				layer_indicator[i] = false;
 				continue;
 			}
@@ -327,12 +272,6 @@ private boolean[] establishDrawLayerIndicator ( List layerViews )
 			_num_unique_layers++;
 		}
 	}
-	// Clean up...
-	legend = null;
-	layerView = null;
-	symbol = null;
-	description = null;
-	layer_desc = null;
 	return layer_indicator;
 }
 
@@ -356,8 +295,7 @@ of the main GeoViewJComponent drawing area is used.
 @return the drawing limits to use for the legend.
 */
 private GRLimits getDrawingLimits ( )
-{	GRLimits new_draw_limits = new GRLimits ( 
-		_view.getDrawingArea().getDrawingLimits ( ));
+{	GRLimits new_draw_limits = new GRLimits ( _view.getDrawingArea().getDrawingLimits ( ));
 
 	// Use %-age of the drawing area for the legend
 
@@ -366,7 +304,8 @@ private GRLimits getDrawingLimits ( )
 	if ( _view.getBigPictureActive()) {
 		new_width = new_draw_limits.getWidth() * .35;
 	}
-	else {	new_width = new_draw_limits.getWidth() * .20;
+	else {
+		new_width = new_draw_limits.getWidth() * .20;
 	}
 
 	// Verify that new_height and new_width are not outside range
@@ -385,32 +324,23 @@ private GRLimits getDrawingLimits ( )
 	}
 
 	if ( _location == NWCORNER ) {
-		new_draw_limits.setRightX ( 
-			new_draw_limits.getLeftX() + new_width );
-		new_draw_limits.setBottomY ( 
-			new_draw_limits.getTopY() - new_height );
+		new_draw_limits.setRightX ( new_draw_limits.getLeftX() + new_width );
+		new_draw_limits.setBottomY ( new_draw_limits.getTopY() - new_height );
 	}
 	else if ( _location == NECORNER ) {
-		new_draw_limits.setLeftX ( 
-			new_draw_limits.getRightX() - new_width );
-		new_draw_limits.setBottomY ( 
-			new_draw_limits.getTopY() - new_height );
+		new_draw_limits.setLeftX ( new_draw_limits.getRightX() - new_width );
+		new_draw_limits.setBottomY ( new_draw_limits.getTopY() - new_height );
 	}
 	else if ( _location == SWCORNER ) {
-		new_draw_limits.setRightX ( 
-			new_draw_limits.getLeftX() + new_width );
-		new_draw_limits.setTopY ( 
-			new_draw_limits.getBottomY() + new_height );
+		new_draw_limits.setRightX ( new_draw_limits.getLeftX() + new_width );
+		new_draw_limits.setTopY ( new_draw_limits.getBottomY() + new_height );
 	}
 	else if ( _location == SECORNER ) {
-		new_draw_limits.setLeftX (
-			new_draw_limits.getRightX() - new_width );
-		new_draw_limits.setTopY (
-			new_draw_limits.getBottomY() + new_height );
+		new_draw_limits.setLeftX ( new_draw_limits.getRightX() - new_width );
+		new_draw_limits.setTopY ( new_draw_limits.getBottomY() + new_height );
 	}
 
 	return new_draw_limits;
-
 }
 
 /**
@@ -430,8 +360,7 @@ GeoViewJComponent contents are drawn.
 @param g Graphics to use for drawing.
 */
 public void paint ( Graphics g )
-{	_draw_layer_indicator = establishDrawLayerIndicator ( 
-		_view.getLayerViews());
+{	_draw_layer_indicator = establishDrawLayerIndicator ( _view.getLayerViews());
 	drawSymbols ( _view.getLayerViews());
 }
 
@@ -475,4 +404,4 @@ public void setMinWidth ( double min_width )
 {	_min_width = min_width;
 }
 
-} // End GeoViewLegend
+}

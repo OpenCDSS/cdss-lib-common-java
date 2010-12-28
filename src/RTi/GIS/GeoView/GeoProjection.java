@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRArc;
+import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRPolygon;
 import RTi.GR.GRPolygonList;
@@ -554,13 +555,13 @@ Project a shape from one projection to another.  Note that GRArc radii are not c
 @param from Projection to convert from.
 @param to Projection to convert to.
 @param shape Shape to convert.
-@param reuse_shape Indicates whether shape should be reused (doing so saves
-memory resources).  Currently only true can be specified.
+@param reuseShape Indicates whether shape should be reused (doing so saves
+memory resources).
 */
-public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRShape shape, boolean reuse_shape )
+public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRShape shape, boolean reuseShape )
 {	if ( shape.type == GRShape.ARC ) {
 		GRArc arc = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			arc = (GRArc)shape;
 			// Need to do this so there will be clean start on getting limits...
 			arc.limits_found = false;
@@ -574,7 +575,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 		// This is necessary to recalculate the max/min values, which
 		// ultimately get used when deciding if the shape should be drawn...
 		arc.setPoint ( arc.pt );
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			arc = null;
 			return shape;
 		}
@@ -584,7 +585,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POLYGON ) {
 		GRPolygon polygon = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polygon = (GRPolygon)shape;
 			// Need to do this so there will be clean start on getting limits...
 			polygon.limits_found = false;
@@ -599,7 +600,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			// deciding if the shape should be drawn...
 			polygon.setPoint ( i, polygon.pts[i] );
 		}
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polygon = null;
 			return shape;
 		}
@@ -609,7 +610,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POLYGON_LIST ) {
 		GRPolygonList polygonlist = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polygonlist = (GRPolygonList)shape;
 			// Need to do this so there will be clean start on getting limits...
 			polygonlist.limits_found = false;
@@ -624,7 +625,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			// values, which ultimately get used when deciding if the shape should be drawn...
 			polygonlist.setPolygon ( i, polygonlist.polygons[i] );
 		}
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polygonlist = null;
 			return shape;
 		}
@@ -634,7 +635,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POLYLINE ) {
 		GRPolyline polyline = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polyline = (GRPolyline)shape;
 			// Need to do this so there will be clean start on getting limits...
 			polyline.limits_found = false;
@@ -649,7 +650,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			// deciding if the shape should be drawn...
 			polyline.setPoint ( i, polyline.pts[i] );
 		}
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polyline = null;
 			return shape;
 		}
@@ -659,7 +660,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POLYLINE_LIST ) {
 		GRPolylineList polylinelist = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polylinelist = (GRPolylineList)shape;
 			// Need to do this so there will be clean start on getting limits...
 			polylinelist.limits_found = false;
@@ -674,7 +675,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			// values, which ultimately get used when deciding if the shape should be drawn...
 			polylinelist.setPolyline(i, polylinelist.polylines[i] );
 		}
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polylinelist = null;
 			return shape;
 		}
@@ -684,7 +685,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POINT ) {
 		GRPoint point = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			point = (GRPoint)shape;
 		}
 		else {
@@ -692,7 +693,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 		}
 		from.unProject(point,true);
 		to.project(point,true);
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			point = null;
 			return shape;
 		}
@@ -702,7 +703,7 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 	}
 	else if ( shape.type == GRShape.POLYPOINT ) {
 		GRPolypoint polypoint = null;
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polypoint = (GRPolypoint)shape;
 			// Need to do this so there will be clean start on getting limits...
 			polypoint.limits_found = false;
@@ -717,12 +718,38 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			// deciding if the shape should be drawn...
 			polypoint.setPoint ( i, polypoint.pts[i] );
 		}
-		if ( reuse_shape ) {
+		if ( reuseShape ) {
 			polypoint = null;
 			return shape;
 		}
 		else {
 			return polypoint;
+		}
+	}
+	else if ( shape instanceof GRLimits ) {
+		GRLimits limits = (GRLimits)shape;
+		GRPoint pointMin = new GRPoint(limits.getMinX(),limits.getMinY());
+		GRPoint pointMax = new GRPoint(limits.getMaxX(),limits.getMaxY());
+		if ( reuseShape ) {
+			limits = (GRLimits)shape;
+		}
+		else {
+			limits = new GRLimits ( (GRLimits)shape );
+		}
+		from.unProject(pointMin,true);
+		to.project(pointMin,true);
+		from.unProject(pointMax,true);
+		to.project(pointMax,true);
+		if ( reuseShape ) {
+			limits.setLeftX(pointMin.getX());
+			limits.setBottomY(pointMin.getY());
+			limits.setRightX(pointMax.getX());
+			limits.setTopY(pointMax.getY());
+			return limits;
+		}
+		else {
+			limits = new GRLimits(pointMin.getX(),pointMin.getY(),pointMax.getX(),pointMax.getY());
+			return limits;
 		}
 	}
 	// For now just return

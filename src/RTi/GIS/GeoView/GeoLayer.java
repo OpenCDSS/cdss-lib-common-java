@@ -799,7 +799,17 @@ throws IOException
 	else if ( CsvPointLayer.isCsvPointFile(filename) ) {
 		Message.printStatus(2, routine, "Reading CSV \"" + filename + "\"..." );
 		// Read the entire layer with attributes...
-		return new CsvPointLayer ( filename, "X", "Y" );
+		String propValue = props.getValue("Projection");
+		GeoProjection projection = null;
+		if ( propValue != null ) {
+			try {
+				projection = GeoProjection.parseProjection(propValue);
+			}
+			catch ( Exception e ) {
+				throw new IOException ( "Error parsing projection \"" + propValue + "\" (" + e + ")." );
+			}
+		}
+		return new CsvPointLayer ( filename, "X", "Y", projection );
 	}
 	else if ( XmrgGridLayer.isXmrg(filename) ) {
 		Message.printStatus(2, routine, "Reading XMRG grid \"" + filename + "\"..." );

@@ -22,8 +22,7 @@ import RTi.Util.GUI.SimpleJTree_Node;
 A layout manager for the GeoViewLegend that controls how the legend is drawn
 on the map.  This class also links the legend to the properties JFrame for
 the GeoView so it can be changed there.
-REVISIT (JTS - 2006-05-23)
-How is this class used?
+TODO (JTS - 2006-05-23) How is this class used?
 */
 public class GeoViewLegendLayout {
 

@@ -27,8 +27,7 @@ public class GRText
 {
 
 /**
-Flags that indicate position of text.  These flags are used as a mask with
-text drawing methods.
+Flags that indicate position of text.  These flags are used as a mask with text drawing methods.
 The left edge of the text will be at the point used in drawing routines.
 */
 public static final int LEFT = 0x1;
@@ -49,13 +48,12 @@ The top edge of the text will be at the point used in drawing routines.
 */
 public static final int TOP = 0x10;
 /**
-The vertical middle center of the text will be at the point used in drawing
-routines.
+The vertical middle center of the text will be at the point used in drawing routines.
 */
 public static final int CENTER_Y = 0x20;
 
 /**
-For axis labels - sheft ends so that they are not centered.
+For axis labels - shift ends so that they are not centered.
 */
 public static final int SHIFT_ENDS = 0x40;
 /**
@@ -182,4 +180,4 @@ public static String toString ( int position )
 	else return "Center";
 }
 
-} // End GRText class
+}

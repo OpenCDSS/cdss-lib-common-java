@@ -718,6 +718,14 @@ throws Throwable
 }
 
 /**
+Get the color at an index.
+*/
+public GRColor get(int index)
+{
+	return (GRColor)get(index);
+}
+
+/**
 Return the color table name.
 @return the color table name.
 */

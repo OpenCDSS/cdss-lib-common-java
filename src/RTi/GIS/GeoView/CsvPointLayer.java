@@ -22,12 +22,16 @@ public class CsvPointLayer extends GeoLayer
 /**
 Construct the layer and read the file.
 @param filename	Name of the csv file.
+@param xColumnName the name of the column containing the x-coordinate
+@param yColumnName the name of the column containing the y-coordinate
+@param projection the projection for the CSV file
 */
-public CsvPointLayer ( String filename, String xColumnName, String yColumnName )
+public CsvPointLayer ( String filename, String xColumnName, String yColumnName, GeoProjection projection )
 throws IOException
 {	super ( filename );
 	setDataFormat ( "CSV" );
 	setShapeType ( POINT );
+	setProjection ( projection );
 	try {
 		read(filename, xColumnName, yColumnName);
 	}
@@ -91,18 +95,31 @@ throws IOException, Exception
 	double xmin = 1.0e10;
 	double ymin = 1.0e10;
 	GRPoint point;
+	int validShapeCount = 0; // Must have coordinates to be valid
 	for ( int i = 0; i < table.getNumberOfRecords(); i++ ) {
 		x = null;
 		y = null;
 		xObject = table.getFieldValue(i, xColumnNumber);
 		yObject = table.getFieldValue(i, yColumnNumber);
-		if ( (xObject != null) && (xObject instanceof Double) ) {
-			x = (Double)xObject;
+		// Check for Integer below because table parser may determine a column is an Integer
+		// if no decimals are included in data.
+		if ( xObject != null ) {
+			if ( xObject instanceof Double ) {
+				x = (Double)xObject;
+			}
+			else if ( xObject instanceof Integer ) {
+				x = new Double( (Integer)xObject );
+			}
 			xmin = MathUtil.min(xmin,x);
 			xmax = MathUtil.max(xmax,x);
 		}
-		if ( (yObject != null) && (yObject instanceof Double) ) {
-			y = (Double)yObject;
+		if ( yObject != null ) {
+			if ( yObject instanceof Double ) {
+				y = (Double)yObject;
+			}
+			else if ( yObject instanceof Integer ) {
+				y = new Double( (Integer)yObject );
+			}
 			ymin = MathUtil.min(ymin,y);
 			ymax = MathUtil.max(ymax,y);
 		}
@@ -115,13 +132,15 @@ throws IOException, Exception
 			point = new GRPoint(x,y);
 			point.index = i;
 			shapeList.add ( point );
+			++validShapeCount;
 		}
 	}
 	// Set the layer limits...
-	if ( shapeList.size() > 0 ) {
+	if ( validShapeCount > 0 ) {
 		setLimits ( new GRLimits(xmin,ymin,xmax,ymax) );
 	}
-	Message.printStatus(2, routine, "Read " + shapeList.size() + " shapes from \"" + filename + "\"." );
+	Message.printStatus(2, routine, "Read " + shapeList.size() + " shapes from \"" + filename +
+		"\", of which " + validShapeCount + " had valid X, Y." );
 }
 
 }

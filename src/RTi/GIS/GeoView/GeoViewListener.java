@@ -1,22 +1,3 @@
-// ----------------------------------------------------------------------------
-// GeoViewListener - listener for important GeoView events
-// ----------------------------------------------------------------------------
-// History:
-//
-// 24 Jun 1999	Steven A. Malers, RTi	Implemented code.
-// 14 Jul 1999	SAM, RTi		Add Vector to select methods to return
-//					data that is selected.
-// 30 Aug 1999	SAM, RTi		Add geoViewGetLabel method to interface.
-// 2001-10-04	SAM, RTi		Add geoViewInfo() method, similar to
-//					geoViewSelect().
-// 2001-12-07	SAM, RTi		Add append flags to the methods that
-//					are used for selection.  This allows
-//					Ctrl-select to occur.
-// ----------------------------------------------------------------------------
-// 2003-05-06	J. Thomas Sapienza, RTi Brought code in line with the non-Swing
-//					version.
-//-----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import java.util.List;
@@ -29,7 +10,7 @@ import RTi.GR.GRShape;
 This interface should be used to capture events from a GeoView. 
 GeoView itself will handle any needed state changes (like zooming, etc.).
 This interface works in conjunction with the GeoView.setInteractionMode()
-settings.  For select methods, GeoView returns a Vector of GeoRecord, even if
+settings.  For select methods, GeoView returns a list of GeoRecord, even if
 the select is a point.  This will allow selections based on proximity, etc.
 */
 public abstract interface GeoViewListener
@@ -41,7 +22,7 @@ according to the settings in the application.  The label string will then be
 used to label symbols, etc.  The first listener that returns a non-null string
 is assumed to be returning a valid label.
 @param record GeoRecord containing shape and layer of shape that is being
-labelled.  This object is reused; therefore, make a copy of data to guarantee persistence.
+labeled.  This object is reused; therefore, make a copy of data to guarantee persistence.
 */
 public abstract String geoViewGetLabel ( GeoRecord record );
 
@@ -51,10 +32,10 @@ and the mouse is released (the press point is returned if the mouse movement
 is less than the select tolerance).
 @param devpt Mouse position in device coordinates (in the native device coordinates).
 @param datapt Mouse position in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 */
 // TODO (JTS - 2003-05-06) this one might need to be removed (from the old code)
-public abstract void geoViewInfo ( GRPoint devpt, GRPoint datapt, List selected );
+public abstract void geoViewInfo ( GRPoint devpt, GRPoint datapt, List<GeoRecord> selected );
 
 /**
 GeoView will call this method if the GeoView is in INTERACTION_INFO mode
@@ -63,9 +44,9 @@ is less than the select tolerance; otherwise the extent of the select region is 
 @param dev_shape Mouse position (GRPoint, GRLimits, etc) in device coordinates
 (in the native device coordinates).
 @param data_shape Mouse position in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 */
-public abstract void geoViewInfo (	GRShape dev_shape, GRShape data_shape, List selected );
+public abstract void geoViewInfo ( GRShape dev_shape, GRShape data_shape, List<GeoRecord> selected );
 
 /**
 GeoView will call this method if the GeoView is in INTERACTION_INFO mode
@@ -73,9 +54,9 @@ and the mouse is released (the limits are returned if the mouse movement
 is greater than the select tolerance).
 @param devlimits Mouse limits in device coordinates (in the native device coordinates).
 @param datalimits Mouse limits in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 */
-public abstract void geoViewInfo (	GRLimits devlimits, GRLimits datalimits, List selected );
+public abstract void geoViewInfo ( GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected );
 
 /**
 GeoView will call this method if the GeoView mouse tracker is enabled.
@@ -90,11 +71,11 @@ and the mouse is released (the press point is returned if the mouse movement
 is less than the select tolerance).
 @param devpt Mouse position in device coordinates (in the native device coordinates).
 @param datapt Mouse position in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 @param append Indicates whether the results should be appended to a previous select.
 */
 // TODO (JTS - 2003-05-06) this one is from the old code, it might be able to be removed
-public abstract void geoViewSelect ( GRPoint devpt, GRPoint datapt, List selected, boolean append );
+public abstract void geoViewSelect ( GRPoint devpt, GRPoint datapt, List<GeoRecord> selected, boolean append );
 
 /**
 GeoView will call this method if the GeoView is in INTERACTION_SELECT mode
@@ -102,11 +83,11 @@ and the mouse is released (the limits are returned if the mouse movement
 is greater than the select tolerance).
 @param devlimits Mouse limits in device coordinates (in the native device coordinates).
 @param datalimits Mouse limits in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 @param append Indicates whether the results should be appended to a previous select.
 */
 // TODO (JTS - 2003-05-06) this one is from the old code, it might be able to be removed
-public abstract void geoViewSelect ( GRLimits devlimits, GRLimits datalimits, List selected, boolean append );
+public abstract void geoViewSelect ( GRLimits devlimits, GRLimits datalimits, List<GeoRecord> selected, boolean append );
 
 /**
 GeoView will call this method if the GeoView is in INTERACTION_SELECT mode
@@ -115,10 +96,10 @@ tolerance, a GRPoint may be returned.  Otherwise, a GRLimits or GRArc can be ret
 @param dev_shape Mouse position (GRPoint, GRLimits, etc.) in device coordinates
 (in the native device coordinates).
 @param data_shape Mouse position in data coordinates.
-@param selected Vector of selected data (GeoView uses Vector of GeoRecord).
+@param selected list of selected data (GeoView uses Vector of GeoRecord).
 @param append Indicates whether the results should be appended to a previous select.
 */
-public abstract void geoViewSelect ( GRShape dev_shape, GRShape data_shape, List selected, boolean append );
+public abstract void geoViewSelect ( GRShape dev_shape, GRShape data_shape, List<GeoRecord> selected, boolean append );
 
 /**
 GeoView will call this method if the GeoView is in INTERACTION_ZOOM mode

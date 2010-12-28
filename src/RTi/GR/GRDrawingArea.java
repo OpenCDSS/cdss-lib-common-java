@@ -122,7 +122,7 @@ Indicates whether drawing limits have been set.
 */
 protected boolean _drawset;
 /**
-use to shift y-axis to normal coordinates.
+Use to reverse y-axis to normal coordinates (it will be true for devices where Y is zero at the top).
 */
 protected boolean _reverse_y;
 

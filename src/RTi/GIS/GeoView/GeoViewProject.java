@@ -27,7 +27,6 @@
 
 package RTi.GIS.GeoView;
 
-import java.awt.Color;
 import java.io.File;
 import java.lang.Runtime;
 import java.util.List;
@@ -128,9 +127,9 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 	propValue = _proplist.getValue ( "GeoView.Color" );
 	if ( propValue != null ) {
 		GRColor grc = GRColor.parseColor(propValue);
-		geoview.setBackground ( (Color)grc );
+		geoview.setBackground ( grc );
 		if ( ref_geoview != null ) {
-			ref_geoview.setBackground ( (Color)grc );
+			ref_geoview.setBackground ( grc );
 		}
 	}
 	propValue = _proplist.getValue ( "GeoView.Projection" );

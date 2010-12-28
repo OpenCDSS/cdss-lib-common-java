@@ -1,17 +1,8 @@
-// ----------------------------------------------------------------------------
-// GRConvertUnits - convert a value from one set of units to another
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 12 Sep 1996  Steven A. Malers, RTi   Split code out of GRUtil.c file.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
 
 import RTi.Util.Message.Message;
+
+// TODO SAM 2010-12-25 Need to evaluate converting to enumeration, at least the Data and Device values.
 
 /**
 This class defines units for devices and drawing areas.
@@ -105,12 +96,10 @@ public static double convert ( double x, int from, int to )
 	if ( _GRUnits_conversion_data == null ) {
 		// Assign the data...
 		_GRUnits_conversion_data = new GRUnitsData[UNIT_MAX + 1];
-		_GRUnits_conversion_data[0] = new GRUnitsData (DEVICE,0.0,
-					"device default");
+		_GRUnits_conversion_data[0] = new GRUnitsData (DEVICE,0.0,"device default");
 		_GRUnits_conversion_data[1] = new GRUnitsData (CM,10.0,"cm");
 		_GRUnits_conversion_data[2] = new GRUnitsData (FOOT,304.8,"foot");
-		_GRUnits_conversion_data[3] = new GRUnitsData (HPGL,.02488,
-					"HPGL 7475A");
+		_GRUnits_conversion_data[3] = new GRUnitsData (HPGL,.02488,"HPGL 7475A");
 		_GRUnits_conversion_data[4] = new GRUnitsData (INCH,25.4,"in");
 		_GRUnits_conversion_data[5] = new GRUnitsData (KM,1000000.0,"km");
 		_GRUnits_conversion_data[6] = new GRUnitsData (M,1000.0,"m");
@@ -120,7 +109,7 @@ public static double convert ( double x, int from, int to )
 		_GRUnits_conversion_data[10] = new GRUnitsData (YARD,914.4,"yard");
 	}
 
-	String	routine = "GRUnits.convert";
+	String routine = "GRUnits.convert";
 
 	if ( (from < UNIT_MIN) || (from > UNIT_MAX) ) {
 		Message.printWarning ( 2, routine,
@@ -140,4 +129,4 @@ public static double convert ( double x, int from, int to )
 			_GRUnits_conversion_data[to].conversionFactor);
 }
 
-} // End class GRUnits
+}
