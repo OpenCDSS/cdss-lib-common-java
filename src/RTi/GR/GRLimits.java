@@ -438,9 +438,9 @@ Therefore, orientation of the limits is ignored.
 @param ymin Minimum Y value to check.
 @param xmax Maximum X value to check.
 @param ymax Maximum Y value to check.
-@param reuse_limits If true, the limits will be reused; if false, a new instance will be created.
+@param reuseLimits If true, the limits will be reused; if false, a new instance will be created.
 */
-public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolean reuse_limits )
+public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolean reuseLimits )
 {	if ( _min_x < xmin ) {
 		xmin = _min_x;
 	}
@@ -453,7 +453,7 @@ public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolea
 	if ( _max_y > ymax ) {
 		ymax = _max_y;
 	}
-	if ( reuse_limits ) {
+	if ( reuseLimits ) {
 		_left_x = xmin;
 		_bottom_y = ymin;
 		_right_x = xmax;

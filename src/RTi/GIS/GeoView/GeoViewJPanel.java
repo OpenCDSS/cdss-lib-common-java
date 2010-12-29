@@ -619,7 +619,8 @@ public void addAnnotationRenderer ( GeoViewAnnotationRenderer renderer, Object o
 	if ( scrollToAnnotation ) {
 		// Scroll and zoom so the object is visible (do this even if no new data were added because
 		// the user may have asked to reposition the display to see the annotation)...
-		zoomToAnnotations ( .5, .1 );
+		// Make the buffer relatively large due to wide text labels.
+		zoomToAnnotations ( .75, .1 );
 	}
 }
 
