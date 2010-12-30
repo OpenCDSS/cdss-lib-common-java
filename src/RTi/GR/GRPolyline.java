@@ -1,19 +1,3 @@
-// ----------------------------------------------------------------------------
-// GRPolyline - GR polyline class
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 09 Jul 1996	Steven A. Malers	Initial version.
-// 21 Jun 1999	SAM, RTi		Update to make data public to increase
-//					performance.  Update to set bounds on
-//					data.  Add finalize, equals.
-// 2001-12-07	SAM, RTI		Add to copy is_selected and
-//					associated_object.
-// 2005-04-26	J. Thomas Sapienza, RTi	finalize() uses IOUtil.nullArray().
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
 
 import RTi.Util.IO.IOUtil;
@@ -63,8 +47,7 @@ public GRPolyline ( long att_index )
 
 /**
 Construct with the specified number of points.  The array space for the points
-is created but not initialized.  setPoint should then be called to set the
-points.
+is created but not initialized.  setPoint should then be called to set the points.
 @param npts_set Number of points.
 */
 public GRPolyline ( int npts_set )
@@ -131,8 +114,7 @@ public int getNumPoints ( )
 
 /**
 Returns a point from the array or null if outside the bounds of the array.
-A reference to the point is returned.  Reference the public data directly to
-speed performance.
+A reference to the point is returned.  Reference the public data directly to speed performance.
 @param i index position in point array (starting at zero).
 @return a point from the array or null if outside the bounds of the array.
 */
@@ -140,7 +122,8 @@ public GRPoint getPoint ( int i )
 {	if ( (i < 0) || (i > (npts - 1)) ) {
 		return null;
 	}
-	else {	return pts[i];
+	else {
+		return pts[i];
 	}
 }
 
@@ -153,7 +136,8 @@ public double getX ( int i )
 {	if ( (i < 0) || (i > (npts - 1)) ) {
 		return 0.0;
 	}
-	else {	return pts[i].x;
+	else {
+		return pts[i].x;
 	}
 }
 
@@ -166,17 +150,18 @@ public double getY ( int i )
 {	if ( (i < 0) || (i > (npts - 1)) ) {
 		return 0.0;
 	}
-	else {	return pts[i].y;
+	else {
+		return pts[i].y;
 	}
 }
 
 /**
-Reinitialize the points array to the specified size.  You must reset the point
-data.
+Reinitialize the points array to the specified size.  You must reset the point data.
 @param npts_set Number of points to size the points array.
 */
 public void setNumPoints ( int npts_set )
-{	try {	pts = new GRPoint[npts_set];
+{	try {
+		pts = new GRPoint[npts_set];
 		npts = npts_set;
 		xmin = xmax = ymin = ymax = 0.0;
 		limits_found = false;
@@ -205,7 +190,8 @@ public void setPoint ( int i, GRPoint pt )
 		ymin = ymax = pt.y;
 		limits_found = true;
 	}
-	else {	if ( pt.x > xmax ) {
+	else {
+		if ( pt.x > xmax ) {
 			xmax = pt.x;
 		}
 		if ( pt.x < xmin ) {
@@ -232,7 +218,8 @@ public void setPoint ( int i, double x, double y )
 {	if ( (i < 0) || (i > (npts - 1)) ) {
 		return;
 	}
-	else {	pts[i].setXY ( x, y );
+	else {
+		pts[i].setXY ( x, y );
 	}
 	if ( !limits_found ) {
 		// Set the limits...
@@ -240,7 +227,8 @@ public void setPoint ( int i, double x, double y )
 		ymin = ymax = y;
 		limits_found = true;
 	}
-	else {	if ( x > xmax ) {
+	else {
+		if ( x > xmax ) {
 			xmax = x;
 		}
 		if ( x < xmin ) {
@@ -255,4 +243,4 @@ public void setPoint ( int i, double x, double y )
 	}
 }
 
-} // End of GRPolyline class
+}

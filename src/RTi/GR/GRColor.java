@@ -38,21 +38,22 @@ implements Cloneable
 /**
 Names of colors.
 */
-public static final String[] COLOR_NAMES = {	"None",	// Transparent
-						"Black",
-						"Blue",
-						"Cyan",
-						"DarkGray",
-						"Gray",
-						"Green",
-						"LightGray",
-						"Magenta",
-						"Orange",
-						"Pink",
-						"Red",
-						"White",
-						"Yellow"
-					};
+public static final String[] COLOR_NAMES = {
+	"None",	// Transparent
+	"Black",
+	"Blue",
+	"Cyan",
+	"DarkGray",
+	"Gray",
+	"Green",
+	"LightGray",
+	"Magenta",
+	"Orange",
+	"Pink",
+	"Red",
+	"White",
+	"Yellow"
+};
 
 // The following works.  Casting does not because it is forward referencing.
 /**
@@ -109,9 +110,11 @@ public GRColor ( double r, double g, double b )
 }
 
 /**
-Constructor.  Builds a GRColor with the given color.  <p>
-From the Color.java javadocs: <p>Creates an opaque 
-sRGB color with the specified combined RGB value consisting of the red 
+Constructor.  Builds a GRColor with the given color.
+<p>
+From the Color.java javadocs:
+<p>
+Creates an opaque sRGB color with the specified combined RGB value consisting of the red 
 component in bits 16-23, the green component in bits 8-15, and the blue 
 component in bits 0-7. The actual color used in rendering depends on 
 finding the best match given the color space available for a particular 
@@ -149,28 +152,14 @@ public GRColor ( float r, float g, float b )
 // Each parameter of the call to super (float, float, float) is a decision
 // tree that first checks:
 // is the color (r, g, or b) less than 0.0?
-//     if so --> pass in 0.0 as the parameter
-//     otherwise ...
+//     if so --> pass in 0.0 as the parameter otherwise ...
 //     is the color greater than 1.0?
-//         if so --> pass in 1.0 as the parameter
-//         otherwise ...
+//         if so --> pass in 1.0 as the parameter otherwise ...
 //         pass in the color itself.  
 	super (
-		((r < 0) ? 
-			(float)0.0 :
-			(r > 1.0) ?
-				(float)1.0 :
-				r),
-		((g < 0) ? 
-			(float)0.0 :
-			(g > 1.0) ?
-				(float)1.0 :
-				g),
-		((b < 0) ? 
-			(float)0.0 :
-			(b > 1.0) ?
-				(float)1.0 :
-				b));	
+		((r < 0) ? (float)0.0 : (r > 1.0) ?	(float)1.0 : r),
+		((g < 0) ? (float)0.0 : (g > 1.0) ?	(float)1.0 : g),
+		((b < 0) ? (float)0.0 :	(b > 1.0) ?	(float)1.0 : b));	
 }
 
 /**
@@ -218,47 +207,39 @@ because the base class already has a getColor() method.  Constructing from a
 String is not supported because the Color base class cannot be easily
 initialized.  Valid color strings include the following:
 <ul>
-<li>	Color name (e.g., "Black", or any other recognized color name included
-	in COLOR_NAMES).</li>
+<li>	Color name (e.g., "Black", or any other recognized color name included in COLOR_NAMES).</li>
 <li>	Floating point RGB in the range 0 to 1 (e.g., "0.0,1.0,1.0").  The
 	numbers must be floating point numbers (a period in the string will
 	indicate that all are floating point numbers).</li>
 <li>	Integer RGB in the range 0 to 255 (e.g., 0,255,255).</li>
-<li>	Integer color where leftmost bits are ignored and others are in order
-	RGB (e.g., 255 is blue).</li>
+<li>	Integer color where leftmost bits are ignored and others are in order RGB (e.g., 255 is blue).</li>
 <li>	Hexadecimal similar to previous version (e.g., 0x000000ff).</li>
 </ul>
 @param color Name of color (see COLOR_NAMES).
-@return a new Color instance, or black if the name cannot be matched or an
-error occurs.
+@return a new Color instance, or black if the name cannot be matched or an error occurs.
 */
 public static GRColor parseColor ( String color )
 {	if ( color.indexOf('.') >= 0 ) {
 		// Assume 0.0-1.0 RGB values separated by commas
-		List v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
+		List<String> v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
 		if ( (v == null) || (v.size() != 3) ) {
 			v = null;
 			return new GRColor(0);
 		}
-		GRColor grc = new GRColor (
-			StringUtil.atof((String)v.get(0)),
-			StringUtil.atof((String)v.get(1)),
-			StringUtil.atof((String)v.get(2)) );
-		v = null;
+		GRColor grc = new GRColor ( StringUtil.atof(v.get(0)), StringUtil.atof(v.get(1)),
+			StringUtil.atof(v.get(2)) );
 		return grc;
 	}
 	else if ( color.indexOf(',') >= 0 ) {
 		// Assume 0-255 RGB values separated by commas
-		List v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
+		List<String> v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
 		if ( (v == null) || (v.size() != 3) ) {
-			v = null;
 			return new GRColor(0);
 		}
 		GRColor grc = new GRColor (
-			StringUtil.atoi((String)v.get(0)),
-			StringUtil.atoi((String)v.get(1)),
-			StringUtil.atoi((String)v.get(2)) );
-		v = null;
+			StringUtil.atoi(v.get(0)),
+			StringUtil.atoi(v.get(1)),
+			StringUtil.atoi(v.get(2)) );
 		return grc;
 	}
 	else if ( color.equalsIgnoreCase("black") ) {
@@ -308,11 +289,11 @@ public static GRColor parseColor ( String color )
 	else if ( color.equalsIgnoreCase("yellow") ) {
 		return new GRColor ( 255, 255, 0 );
 	}
-	try {	// Try base class method to decode hex into an integer...
+	try {
+		// Try base class method to decode hex into an integer...
 		Color c = decode ( color );
 		GRColor grc = new GRColor (
 		c.getRed(), c.getGreen(), c.getBlue() );
-		c = null;
 		return grc;
 	}
 	catch ( Exception e ) {
@@ -328,8 +309,7 @@ cannot be matched, the integer version of the color is returned (e.g., if the
 String is "0x000000ff", then 255 will be returned.  If no conversion can be
 made, then zero (black) is returned.
 @param color Name of color (see COLOR_NAMES).
-@return integer value corresponding to the color or -1 if not found as a
-named color.
+@return integer value corresponding to the color or -1 if not found as a named color.
 */
 public static int toInteger ( String color )
 {	if ( color.equalsIgnoreCase("black") ) {
@@ -384,8 +364,7 @@ public static int toInteger ( String color )
 Return the named String value matching an integer RGB color.  If a named color
 cannot be determined, then the integer value is returned as a string.
 @param color Color as integer.
-@return String value corresponding to the color or null if not found as a
-named color.
+@return String value corresponding to the color or null if not found as a named color.
 */
 public static String toString ( int color )
 {	if ( color == 0x00000000 ) {
@@ -441,4 +420,4 @@ public String toString ()
 {	return toString ( getRGB() );
 }
 
-} // End of GRColor class
+}
