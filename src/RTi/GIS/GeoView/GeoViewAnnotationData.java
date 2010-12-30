@@ -26,7 +26,7 @@ Label for the object (displayed in the GeoView).
 private String __label = null;
 
 /**
-Data limits for the rendered object (data units).
+Data limits for the rendered object (original data units, unprojected).
 */
 private GRLimits __limits = null;
 
