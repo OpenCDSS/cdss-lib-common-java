@@ -301,17 +301,17 @@ public PropList getPropList ()
 /**
 Set a layer view's properties by evaluating properties in the project file.
 It is assumed that default legend information has been set at construction of the legend.
-@param layer_view GeoLayerView to set properties for.
+@param layerView GeoLayerView to set properties for.
 @param index GeoLayerView index in GVP file (starting with 1).
 */
-private void setLayerViewProperties ( GeoLayerView layer_view, int index )
+private void setLayerViewProperties ( GeoLayerView layerView, int index )
 {	String routine = "GeoViewProject.setLayerViewProperties";
 	// Get the layer shape type...
-	int layer_type = layer_view.getLayer().getShapeType();
+	int layerType = layerView.getLayer().getShapeType();
 	// Get the layer...
-	GeoLayer layer = layer_view.getLayer();
+	GeoLayer layer = layerView.getLayer();
 	// Get the legend for the layer view...
-	GRLegend legend = layer_view.getLegend ();
+	GRLegend legend = layerView.getLegend ();
 	// Get the default symbol, used to initialize each symbol below...
 	GRSymbol default_symbol = legend.getSymbol();
 	// Determine how many symbols will be used...
@@ -319,57 +319,57 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 	legend.setNumberOfSymbols ( nsymbols );	
 	// Properties that apply to the entire layer...	
 	// Get the projection for the layer...
-	String prop_value = _proplist.getValue ( "GeoLayerView " + index + ".Projection" );
-	if ( prop_value != null ) {
+	String propValue = _proplist.getValue ( "GeoLayerView " + index + ".Projection" );
+	if ( propValue != null ) {
 		try {
-			layer.setProjection (GeoProjection.parseProjection(prop_value));
+			layer.setProjection (GeoProjection.parseProjection(propValue));
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine,
-			"Unrecognized projection \"" + prop_value + "\" for GeoLayerView " + index );
+			"Unrecognized projection \"" + propValue + "\" for GeoLayerView " + index );
 			// Unknown projection...
 			layer.setProjection ( new UnknownProjection() );
 			Message.printWarning ( 2, routine, e );
 		}
 	}
 	// Also set the application layer data if available...
-	prop_value = _proplist.getValue ( "GeoLayerView " + index + ".AppLayerType" );
-	if ( prop_value != null ) {
+	propValue = _proplist.getValue ( "GeoLayerView " + index + ".AppLayerType" );
+	if ( propValue != null ) {
 		if ( layer != null ) {
-			layer.setAppLayerType ( prop_value );
+			layer.setAppLayerType ( propValue );
 			// Also set in the layer property (debating whether this
 			// is a layer or layer view data item).
-			layer_view.getPropList().set("AppLayerType="+prop_value);
+			layerView.getPropList().set("AppLayerType="+propValue);
 		}
 	}
-	prop_value = _proplist.getValue ( "GeoLayerView " + index + ".AppJoinField" );
-	if ( prop_value != null ) {
+	propValue = _proplist.getValue ( "GeoLayerView " + index + ".AppJoinField" );
+	if ( propValue != null ) {
 		if ( layer != null ) {
-			layer_view.getPropList().set("AppJoinField="+prop_value);
+			layerView.getPropList().set("AppJoinField="+propValue);
 		}
 	}
 	// Project the layer view's data if requested...
-	prop_value = _proplist.getValue ( "GeoLayerView " + index + ".ProjectAtRead" );
-	if ( prop_value == null ) {
+	propValue = _proplist.getValue ( "GeoLayerView " + index + ".ProjectAtRead" );
+	if ( propValue == null ) {
 		// Try the global property...
-		prop_value = _proplist.getValue ( "GeoView.ProjectAtRead" );
+		propValue = _proplist.getValue ( "GeoView.ProjectAtRead" );
 	}
-	if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+	if ( (propValue != null) && propValue.equalsIgnoreCase("true") ) {
 		try {
-			prop_value = _proplist.getValue ( "GeoView.Projection");
-			if ( prop_value != null ) {
+			propValue = _proplist.getValue ( "GeoView.Projection");
+			if ( propValue != null ) {
 				Message.printStatus ( 1, routine, "Projecting to common projection..." );
-				layer.project( GeoProjection.parseProjection(prop_value) );
+				layer.project( GeoProjection.parseProjection(propValue) );
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, routine, "Unable to parse projection \"" + prop_value + "\"" );
+			Message.printWarning ( 2, routine, "Unable to parse projection \"" + propValue + "\"" );
 		}
 	}
 	// Set the name in the legend...
-	prop_value = _proplist.getValue ( "GeoLayerView " + index + ".Name" );
-	if ( prop_value != null ) {
-		legend.setText ( prop_value );
+	propValue = _proplist.getValue ( "GeoLayerView " + index + ".Name" );
+	if ( propValue != null ) {
+		legend.setText ( propValue );
 	}
 	// Now loop through the symbols for the layer...
 	GRSymbol symbol = null;
@@ -384,32 +384,32 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 		// Transfer default symbol information...
 		// Get the label information...
 		// New style...
-		prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelField" );
+		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelField" );
 		// Old style...
-		if ( prop_value == null ) {
-			prop_value = _proplist.getValue ( "GeoLayerView " + index + ".LabelField" );
+		if ( propValue == null ) {
+			propValue = _proplist.getValue ( "GeoLayerView " + index + ".LabelField" );
 		}
-		if ( prop_value != null ) {
-			symbol.setLabelField ( prop_value );
+		if ( propValue != null ) {
+			symbol.setLabelField ( propValue );
 		}
 		// New style...
-		prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelFormat" );
+		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelFormat" );
 		// Old style...
-		if ( prop_value == null ) {
-			prop_value = _proplist.getValue ( "GeoLayerView " + index + ".LabelFormat" );
+		if ( propValue == null ) {
+			propValue = _proplist.getValue ( "GeoLayerView " + index + ".LabelFormat" );
 		}
-		if ( prop_value != null ) {
-			symbol.setLabelFormat ( prop_value );
+		if ( propValue != null ) {
+			symbol.setLabelFormat ( propValue );
 		}
 		// New style...
-		prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelPosition" );
+		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelPosition" );
 		// Old style...
-		if ( prop_value == null ) {
-			prop_value = _proplist.getValue ( "GeoLayerView " + index + ".LabelPosition" );
+		if ( propValue == null ) {
+			propValue = _proplist.getValue ( "GeoLayerView " + index + ".LabelPosition" );
 		}
-		if ( prop_value != null ) {
+		if ( propValue != null ) {
 			try {
-				symbol.setLabelPosition ( GRText.parseTextPosition(prop_value) );
+				symbol.setLabelPosition ( GRText.parseTextPosition(propValue) );
 			}
 			catch ( Exception e ) {
 				// Unknown position...
@@ -420,53 +420,53 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 		// classification, more than one color may be specified...
 		// Determine the classification type for symbols...
 		// New style...
-		prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassification" );
+		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassification" );
 		// Old style...
-		if ( prop_value == null ) {
-			prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassification" );
+		if ( propValue == null ) {
+			propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassification" );
 		}
-		if ( prop_value != null ) {
-			symbol.setClassificationType ( prop_value );
+		if ( propValue != null ) {
+			symbol.setClassificationType ( propValue );
 			//Message.printStatus ( 1, "",
 			//"SAMX symbol classification " + index + " is " + symbol.getClassificationType() );
 		}
 		if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE ) {
 			// Simple color for symbol (this is also the default)...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".Color" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".Color" );
 			}
-			if ( prop_value != null ) {
-				symbol.setColor(GRColor.parseColor(prop_value));
+			if ( propValue != null ) {
+				symbol.setColor(GRColor.parseColor(propValue));
 			}
 			// Size for symbol...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolSize" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolSize" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index+".SymbolSize" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index+".SymbolSize" );
 			}
-			if ( prop_value != null ) {
-				symbol.setSize(StringUtil.atod(prop_value));
+			if ( propValue != null ) {
+				symbol.setSize(StringUtil.atod(propValue));
 			}
 		}
 		else if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
 			// Color for symbol may have more than one value...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".Color" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".Color" );
 			}
-			if ( prop_value != null ) {
+			if ( propValue != null ) {
 				// The color property can contain more than one color, separated by ";"...
-				List v = StringUtil.breakStringList ( prop_value, ";", 0 );
+				List v = StringUtil.breakStringList ( propValue, ";", 0 );
 				int vsize = v.size();
 				if ( vsize == 1 ) {
-					symbol.setColor(GRColor.parseColor(prop_value));
-					symbol.setColor2(GRColor.parseColor(prop_value));
+					symbol.setColor(GRColor.parseColor(propValue));
+					symbol.setColor2(GRColor.parseColor(propValue));
 				}
 				else if ( vsize == 2 ) {
 					symbol.setColor(GRColor.parseColor((String)v.get(0) ));
@@ -475,15 +475,15 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			}
 			// Size for symbol...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolSize" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolSize" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ("GeoLayerView " + index+".SymbolSize" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ("GeoLayerView " + index+".SymbolSize" );
 			}
-			if ( prop_value != null ) {
+			if ( propValue != null ) {
 				// The size can be specified as a single value
 				// or an x and y value, separated by a comma...
-				List v = StringUtil.breakStringList(prop_value,",",0);
+				List v = StringUtil.breakStringList(propValue,",",0);
 				int size = 0;
 				if ( v != null ) {
 					size = v.size();
@@ -498,13 +498,13 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			}
 			// Symbol class field...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
 			}
-			if ( prop_value != null ) {
-				symbol.setClassificationField ( prop_value );
+			if ( propValue != null ) {
+				symbol.setClassificationField ( propValue );
 			}
 		}
 		else if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_CLASS_BREAKS ) {
@@ -512,25 +512,25 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			// The number of colors in the color table should match
 			// the number of values in the class break.
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
 			}
-			if ( prop_value != null ) {
+			if ( propValue != null ) {
 				// Can only specify class breaks if we know which field will be examined from the data...
-				symbol.setClassificationField ( prop_value );
+				symbol.setClassificationField ( propValue );
 				// Get the color table.  The number of colors for this governs the maximum number of breaks
 				// (so they are consistent).  The number of colors and breaks should normally be the same.
 				// New style...
-				prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".ColorTable" );
+				propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".ColorTable" );
 				// Old style...
-				if ( prop_value == null ) {
-					prop_value = _proplist.getValue ( "GeoLayerView " + index + ".ColorTable" );
+				if ( propValue == null ) {
+					propValue = _proplist.getValue ( "GeoLayerView " + index + ".ColorTable" );
 				}
 				int num_classes = 0;
-				if ( prop_value != null ) {
-					List c = StringUtil.breakStringList ( prop_value, ";", StringUtil.DELIM_SKIP_BLANKS );
+				if ( propValue != null ) {
+					List c = StringUtil.breakStringList ( propValue, ";", StringUtil.DELIM_SKIP_BLANKS );
 					num_classes = StringUtil.atoi( ((String)c.get(1)).trim());
 					symbol.setColorTable ( ((String)c.get(0)).trim(),num_classes );
 					c = null;
@@ -540,13 +540,13 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 				double d[] = new double[num_classes];
 				// Values are initialized to 0.0 by default...
 				// New style...
-				prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassBreaks" );
+				propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassBreaks" );
 				// Old style...
-				if ( prop_value == null ) {
-					prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassBreaks" );
+				if ( propValue == null ) {
+					propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassBreaks" );
 				}
-				if ( prop_value != null ) {
-					List c = StringUtil.breakStringList ( prop_value,",", StringUtil.DELIM_SKIP_BLANKS );
+				if ( propValue != null ) {
+					List c = StringUtil.breakStringList ( propValue,",", StringUtil.DELIM_SKIP_BLANKS );
 					// For now always use double...
 					for ( int i = 0; i < num_classes; i++ ){
 						d[i] = StringUtil.atod(((String)c.get(i)).trim());
@@ -561,14 +561,15 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			// GRSymbol.CLASSIFICATION_UNIQUE
 			// Need to do some work to search the data for unique values...
 		}
-		if ( (layer_type == GeoLayer.POINT) || (layer_type == GeoLayer.MULTIPOINT) ) {
+		if ( (layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ||
+			(layerType == GeoLayer.MULTIPOINT) ) {
 			// Symbol type...
 			// Old convention...
-			prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolType" );
-			if ( prop_value != null ) {
+			propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolType" );
+			if ( propValue != null ) {
 				Message.printWarning ( 2, routine, "The SymbolType GeoView project property is obsolete.  Use SymbolStyle." );
 				try {	symbol.setStyle (
-					GRSymbol.toInteger(prop_value) );
+					GRSymbol.toInteger(propValue) );
 				}
 				catch ( Exception e ) {
 					symbol.setStyle ( GRSymbol.SYM_PLUS );
@@ -576,40 +577,40 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			}
 			// Newer convention (need to also support for other shape types)...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
 			}
-			if ( prop_value != null ) {
+			if ( propValue != null ) {
 				try {
-					symbol.setStyle ( GRSymbol.toInteger(prop_value) );
+					symbol.setStyle ( GRSymbol.toInteger(propValue) );
 				}
 				catch ( Exception e ) {
 					symbol.setStyle ( GRSymbol.SYM_PLUS );
 				}
 			}
 		}
-		else if ( layer_type == GeoLayer.LINE ) {
+		else if ( (layerType == GeoLayer.LINE) || (layerType == GeoLayer.POLYLINE_ZM) ) {
 		}
-		else if ( (layer_type == GeoLayer.POLYGON) || (layer_type == GeoLayer.GRID) ) {
+		else if ( (layerType == GeoLayer.POLYGON) || (layerType == GeoLayer.GRID) ) {
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".OutlineColor" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".OutlineColor" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".OutlineColor" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".OutlineColor" );
 			}
-			if ( prop_value != null ) {
-				symbol.setOutlineColor(GRColor.parseColor(prop_value));
+			if ( propValue != null ) {
+				symbol.setOutlineColor(GRColor.parseColor(propValue));
 			}
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".IgnoreDataOutside" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".IgnoreDataOutside" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".IgnoreDataOutside" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".IgnoreDataOutside" );
 			}
-			if ( prop_value != null ) {
-				layer_view.getPropList().set("IgnoreDataOutside="+prop_value);
+			if ( propValue != null ) {
+				layerView.getPropList().set("IgnoreDataOutside="+propValue);
 			}
 			// Get the symbol style.  If "Transparent", then the style should be specified:
 			//
@@ -617,15 +618,15 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 			//
 			// Newer convention (need to also support for other shape types)...
 			// New style...
-			prop_value = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
+			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
 			// Old style...
-			if ( prop_value == null ) {
-				prop_value = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
+			if ( propValue == null ) {
+				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
 			}
 			// Default fill is FILL_SOLID but need to see if transparent...
-			if ( (prop_value != null) && prop_value.regionMatches(true,0,"Transparent",0,11) ) {
+			if ( (propValue != null) && propValue.regionMatches(true,0,"Transparent",0,11) ) {
 				// Parse out...
-				tokens = StringUtil.breakStringList (prop_value, ",", StringUtil.DELIM_SKIP_BLANKS );
+				tokens = StringUtil.breakStringList (propValue, ",", StringUtil.DELIM_SKIP_BLANKS );
 				if ( tokens.size() > 1 ) {
 					int transparency = StringUtil.atoi((String)tokens.get(1) );
 					symbol.setTransparency ( transparency );
@@ -636,13 +637,7 @@ private void setLayerViewProperties ( GeoLayerView layer_view, int index )
 		legend.setSymbol ( isym, symbol );
 	}
 	// Save the legend...
-	layer_view.setLegend ( legend );
-	// Clean up...
-	symbol = null;
-	layer = null;
-	legend = null;
-	prop_value = null;
-	routine = null;
+	layerView.setLegend ( legend );
 }
 
 }

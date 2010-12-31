@@ -1,18 +1,3 @@
-// ---------------------------------------------------------------------------
-// GRLegend - store legend information for a single layer of data (e.g., line
-//		on graph, map layer).
-// ---------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-// ---------------------------------------------------------------------------
-// History:
-//
-// 2001-06-27	Steven A. Malers, RTi	Add text.  Add setSymbol().
-// 2001-12-08	SAM, RTi		Get rid of initialize() method - inline
-//					the code instead.
-// 2002-07-23	SAM, RTi		Update to store an array of GRSymbol.
-// 2004-10-27	J. Thomas Sapienza, RTi	Implements Cloneable.
-// ---------------------------------------------------------------------------
-
 package RTi.GR;
 
 import java.lang.StringBuffer;
@@ -116,7 +101,8 @@ public GRSymbol getSymbol ()
 {	if ( __symbol == null ) {
 		return null;
 	}
-	else {	return __symbol[0];
+	else {
+		return __symbol[0];
 	}
 }
 
@@ -129,7 +115,8 @@ public GRSymbol getSymbol ( int pos )
 {	if ( __symbol == null ) {
 		return null;
 	}
-	else {	return __symbol[pos];
+	else {
+		return __symbol[pos];
 	}
 }
 
@@ -165,14 +152,12 @@ public void setSymbol ( GRSymbol symbol )
 }
 
 /**
-Set the symbol to use.  The number of symbols must have been set in the
-constructor.
+Set the symbol to use.  The number of symbols must have been set in the constructor.
 @param pos Position for the symbol (zero index).
 @param symbol GRSymbol to set at the position.
 */
 public void setSymbol ( int pos, GRSymbol symbol )
-{	// Later need to make sure copy constructor will work for symbol and
-	// can redefine symbol array.
+{	// Later need to make sure copy constructor will work for symbol and can redefine symbol array.
 	__symbol[pos] = symbol;
 }
 
@@ -194,7 +179,8 @@ public int size ()
 {	if ( __symbol == null ) {
 		return 0;
 	}
-	else {	return __symbol.length;
+	else {
+		return __symbol.length;
 	}
 }
 
@@ -212,4 +198,4 @@ public String toString ()
 	return b.toString();
 }
 
-} // End of GRLegend class
+}

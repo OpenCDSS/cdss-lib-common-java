@@ -108,8 +108,7 @@ Fill a polygon.  Color, outline color, and pattern can be specified.
 public static final int TYPE_POLYGON = 4;
 
 /**
-Fill a polygon and draw a symbol.  Symbol, color, outline color,
-and pattern can be specified.
+Fill a polygon and draw a symbol.  Symbol, color, outline color, and pattern can be specified.
 */
 public static final int TYPE_POLYGON_AND_POINT = 5;
 
@@ -1292,6 +1291,15 @@ public int getStyle ()
 }
 
 /**
+Return the style as a string name.
+@return the style as a string name (e.g., "Circle-Filled").
+*/
+public String getStyleName()
+{
+	return SYMBOL_NAMES[_style];
+}
+
+/**
 Return the transparency (255 = completely transparent, 0 = opaque).
 @return the transparency.
 */
@@ -1571,18 +1579,18 @@ stored in a persistent way (avoid using numbers in config files because symbol n
 @return the symbol number given the symbol name.
 @exception Exception if a symbol cannot be matched.
 */
-public static int toInteger ( String symbol_name )
+public static int toInteger ( String symbolName )
 throws Exception
-{	if ( symbol_name == null ) {
+{	if ( symbolName == null ) {
 		return SYM_NONE;
 	}
 	int length = SYMBOL_NAMES.length;
 	for ( int i = 0; i < length; i++ ) {
-		if ( symbol_name.equalsIgnoreCase(SYMBOL_NAMES[i]) ) {
+		if ( symbolName.equalsIgnoreCase(SYMBOL_NAMES[i]) ) {
 			return SYMBOL_NUMBERS[i];
 		}
 	}
-	throw new Exception ( "Cannot convert symbol \"" + symbol_name + "\" to integer value." );
+	throw new Exception ( "Cannot convert symbol \"" + symbolName + "\" to integer value." );
 }
 
 /**
@@ -1596,19 +1604,19 @@ public String toString ()
 
 /**
 Look up a symbol name given a number.  This is useful when the symbol names are
-stored in a persistent way (avoid using numbers in config files because
+stored in a persistent way (avoid using numbers in configuration files because
 symbol numbers may change).
-@param symbol_number the number of the symbol to look up.
+@param symbolNumber the number of the symbol to look up.
 @return the symbol name given the symbol number, or "None" if a matching symbol cannot be found.
 */
-public static String toString ( int symbol_number )
+public static String toString ( int symbolNumber )
 {	int length = SYMBOL_NUMBERS.length;
 	for ( int i = 0; i < length; i++ ) {
-		if ( symbol_number == SYMBOL_NUMBERS[i] ) {
+		if ( symbolNumber == SYMBOL_NUMBERS[i] ) {
 			return SYMBOL_NAMES[i];
 		}
 	}
-	return SYMBOL_NAMES[0];		// "None"
+	return SYMBOL_NAMES[0]; // "None"
 }
 
 }

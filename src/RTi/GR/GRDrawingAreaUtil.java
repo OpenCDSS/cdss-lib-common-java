@@ -298,7 +298,7 @@ public static void drawPolyline ( GRDrawingArea da, GRPolyline polyline )
 		ys[i] = da.scaleYData ( polyline.pts[i].y );
 	}
 	da.drawPolyline ( polyline.npts, xs, ys );
-	da.setLastXY (	polyline.pts[polyline.npts - 1].x, polyline.pts[polyline.npts - 1].y);
+	da.setLastXY ( polyline.pts[polyline.npts - 1].x, polyline.pts[polyline.npts - 1].y);
 }
 
 /**
@@ -333,6 +333,34 @@ public static void drawPolyline ( GRDrawingArea da, int npts, double x[], double
 	//npts = reducePoints ( xs, ys, npts, 0 );
 	da.drawPolyline ( npts, xs, ys );
 	da.setLastXY (x[npts - 1], y[npts - 1]);
+}
+
+/**
+Draw a segmented line
+@param da the drawing area to draw on
+@param polyline the polyline to draw.
+*/
+public static void drawPolylineZM ( GRDrawingArea da, GRPolylineZM polyline )
+{	double [] xs, ys;
+	int i;
+
+	if ( polyline.npts == 0 ) {
+		return;
+	}
+	xs = new double[polyline.npts];
+	if ( xs == null ) {
+		return;
+	}
+	ys = new double[polyline.npts];
+	if ( ys == null ) {
+		return;
+	}
+	for ( i = 0; i < polyline.npts; i++ ) {
+		xs[i] = da.scaleXData ( polyline.pts[i].x );
+		ys[i] = da.scaleYData ( polyline.pts[i].y );
+	}
+	da.drawPolyline ( polyline.npts, xs, ys );
+	da.setLastXY ( polyline.pts[polyline.npts - 1].x, polyline.pts[polyline.npts - 1].y);
 }
 
 /**
@@ -481,6 +509,10 @@ public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, in
 		GRPolyline polyline = (GRPolyline)shape;
 		drawPolyline ( da, polyline );
 	}
+	else if ( type == GRShape.POLYLINE_ZM ) {
+		GRPolylineZM polyline = (GRPolylineZM)shape;
+		drawPolylineZM ( da, polyline );
+	}
 	else if ( type == GRShape.POLYLINE_LIST ) {
 		GRPolylineList polylinelist = (GRPolylineList)shape;
 		int n = polylinelist.npolylines;
@@ -491,7 +523,20 @@ public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, in
 			drawShape ( da, polylinelist.polylines[i] );
 		}
 	}
-	// Else, don't know what to do so ignore...
+	else if ( type == GRShape.POLYLINE_ZM_LIST ) {
+		GRPolylineZMList polylinelist = (GRPolylineZMList)shape;
+		int n = polylinelist.npolylines;
+		for ( int i = 0; i < n; i++ ) {
+			if ( polylinelist.polylines[i] == null ) {
+				continue;
+			}
+			drawShape ( da, polylinelist.polylines[i] );
+		}
+	}
+	else {
+		// Else, don't know what to do so ignore...
+		Message.printStatus(2, "", "Don't know how to draw GRShape " + type );
+	}
 }
 
 /**
@@ -1467,8 +1512,6 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			offset_x, offset_y, data, flag, orient );
 		drawSymbol ( da, GRSymbol.SYM_BAR, x, y, size_x, size_y, 
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FTOPDIA4, x, y, size_x, size_y, 
-			offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbol.SYM_LARR ) {
 		drawSymbol ( da, GRSymbol.SYM_LCAR, x, y, size_x, size_y, 
@@ -1481,7 +1524,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[0] = xs;
@@ -1500,10 +1544,11 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[1] = ys - msizey2;
 		}
-			__sxm[0] = xs;
+		__sxm[0] = xs;
 		__sxm[1] = __sxm[0];
 		__sxm[2] = xs - msizex2;	__sym[2] = __sym[1];
 		__sxm[3] = __sxm[2];		__sym[3] = __sym[0];
@@ -1529,7 +1574,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[1] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[2] = __sxm[1];
@@ -1549,7 +1595,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//}
 	}
 	else if ( symbol == GRSymbol.SYM_NONE ) {
-		;
+		// Draw nothing
 	}
 	else if ( symbol == GRSymbol.SYM_PLUS ) {
 		drawSymbol ( da, GRSymbol.SYM_MIN, x, y, size_x, size_y, 
@@ -1738,7 +1784,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;

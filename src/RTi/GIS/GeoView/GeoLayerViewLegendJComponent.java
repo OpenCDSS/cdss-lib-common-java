@@ -179,8 +179,7 @@ public GeoLayerViewLegendJComponent(GeoLayerView layer_view, int isym, int class
 	GRLimits data_limits = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	// May need to change aspect to FILL to get position right...
 	_layer_grda = new GRJComponentDrawingArea ( this, "", GRAspect.TRUE,
-			draw_limits, GRUnits.DEVICE, GRLimits.DEVICE,
-			data_limits );
+			draw_limits, GRUnits.DEVICE, GRLimits.DEVICE, data_limits );
 	__drawLimits = draw_limits;
 	draw_limits = null;
 	data_limits = null;
@@ -209,7 +208,7 @@ private void drawSymbol ()
 	GRColor color = null;
 	boolean dodraw = true;
 	try {	// Draw the symbol, depending on the layer data shape type...
-		int layer_type = _layer_view.getLayer().getShapeType();
+		int layerType = _layer_view.getLayer().getShapeType();
 		sym = _layer_view.getLegend().getSymbol(_isym);
 		if ( sym == null ) {
 			return;
@@ -233,7 +232,8 @@ private void drawSymbol ()
 		else {
 			GRDrawingAreaUtil.setColor ( _layer_grda, color );
 		}
-		if ( dodraw && ((layer_type == GeoLayer.POINT) || (layer_type == GeoLayer.MULTIPOINT)) ) {
+		if ( dodraw && ((layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ||
+			(layerType == GeoLayer.MULTIPOINT)) ) {
 			if ( sym.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
 				if ( sym.getStyle() == GRSymbol.SYM_VBARSIGNED ) {
 					// Draw the symbol twice, once with a positive value in the first color
@@ -326,9 +326,8 @@ private void drawSymbol ()
 			}
 			}
 		}
-		else if ( dodraw && (layer_type == GeoLayer.LINE) ) {
-			// Later need to add a standard GRSymbol for this shape
-			// but draw manually for now.
+		else if ( dodraw && ((layerType == GeoLayer.LINE) || (layerType == GeoLayer.POLYLINE_ZM)) ) {
+			// Later need to add a standard GRSymbol for this shape but draw manually for now.
 			double x[] = new double[4];
 			double y[] = new double[4];
 			x[0] = limits.getLeftX();
@@ -340,16 +339,12 @@ private void drawSymbol ()
 			y[2] = limits.getHeight()*.4;
 			y[3] = limits.getTopY();
 			GRDrawingAreaUtil.drawPolyline ( _layer_grda, 4, x, y );
-			x = null;
-			y = null;
 		}
-		else if ( (layer_type == GeoLayer.POLYGON) ||
-			(layer_type == GeoLayer.GRID) ) {
+		else if ( (layerType == GeoLayer.POLYGON) || (layerType == GeoLayer.GRID) ) {
 			// First fill in the box...
 			if ( dodraw ) {
 				GRDrawingAreaUtil.fillRectangle ( _layer_grda,
-				limits.getLeftX(), limits.getBottomY(),
-				limits.getHeight(), limits.getHeight() ); 
+				limits.getLeftX(), limits.getBottomY(), limits.getHeight(), limits.getHeight() ); 
 			}
 			// Now draw the outline...
 			GRColor outline_color = sym.getOutlineColor();

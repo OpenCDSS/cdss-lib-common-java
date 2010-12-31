@@ -76,15 +76,29 @@ Corresponds to GRPoint (single point).
 public final static byte POINT = 1;
 
 /**
+Corresponds to GRPointZM (single point with Z and measure).
+*/
+public final static byte POINT_ZM = 11;
+
+/**
 Corresponds to GRPolyline (line segment).
 */
 public final static byte POLYLINE = 20;
 
 /**
-Corresponds to GRPolylineList (list of line segments,
-suitable for storing to ESRI Arc).
+Corresponds to GRPolylineZM (line segment with Z and measure).
+*/
+public final static byte POLYLINE_ZM = 99;
+
+/**
+Corresponds to GRPolylineList (list of line segments, suitable for storing to ESRI Arc).
 */
 public final static byte POLYLINE_LIST = 3;
+
+/**
+Corresponds to GRPolylineZMList (list of line segments, suitable for storing to ESRI Arc), with Z and measure.
+*/
+public final static byte POLYLINE_ZM_LIST = 13;
 
 /**
 Corresponds to GRPolygon.
@@ -92,14 +106,12 @@ Corresponds to GRPolygon.
 public final static byte POLYGON = 21;
 
 /**
-Corresponds to GRPolygonList (list of polygons,
-suitable for storing to ESRI Polygon).
+Corresponds to GRPolygonList (list of polygons, suitable for storing to ESRI Polygon).
 */
 public final static byte POLYGON_LIST = 5;
 
 /**
-Corresponds to GRPolypoint (multiple points,
-suitable for storing to ESRI MultPoint).
+Corresponds to GRPolypoint (multiple points, suitable for storing to ESRI MultPoint).
 */
 public final static byte POLYPOINT = 8;
 
@@ -157,7 +169,7 @@ public boolean is_visible = true;
 
 /**
 The following should only need to be used by derived classes and indicates
-if the limits have been found.  The deault limits are 0.0, 0.0.
+if the limits have been found.  The default limits are 0.0, 0.0.
 */
 public boolean limits_found = false;
 
@@ -202,7 +214,7 @@ public Object clone() {
 
 /**
 Determine whether a shape contains another shape.  The minimum and maximum
-coodinates of the shape are used to make selections.  This should work in a
+coordinates of the shape are used to make selections.  This should work in a
 course fashion for all shapes; however, if a shape is non-rectangular, then
 a more complex method must be implemented to indicate if an intersection occurs.
 To do so, override this method in derived classes.
@@ -213,20 +225,19 @@ this shape to return true.
 */
 public boolean contains ( GRShape shape, boolean contains_completely )
 {	// Check the overall limits...
-	if (	(shape.xmax < xmin) || (shape.xmin > xmax) ||
-		(shape.ymax < ymin) || (shape.ymin > ymax) ) {
+	if ( (shape.xmax < xmin) || (shape.xmin > xmax) || (shape.ymax < ymin) || (shape.ymin > ymax) ) {
 		// Definitely not in...
 		return false;
 	}
-	if (	(shape.xmin >= xmin) && (shape.xmax <= xmax) &&
-		(shape.ymin >= ymin) && (shape.ymax <= ymax) ) {
+	if ( (shape.xmin >= xmin) && (shape.xmax <= xmax) && (shape.ymin >= ymin) && (shape.ymax <= ymax) ) {
 		// Totally in...
 		return true;
 	}
 	if ( contains_completely ) {
 		return false;
 	}
-	else {	return true;
+	else {
+		return true;
 	}
 }
 
@@ -243,11 +254,10 @@ throws Throwable
 /**
 Return the attribute lookup index.
 @deprecated Use the public data directly to increase performance.
-@return The attribute lookup index.  Use the public data directly to increase
-performance.
+@return The attribute lookup index.  Use the public data directly to increase performance.
 */
 public long getIndex ()
 {	return index;
 }
 
-} // End GRShape class
+}

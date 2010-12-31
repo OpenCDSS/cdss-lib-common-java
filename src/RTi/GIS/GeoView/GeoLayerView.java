@@ -88,12 +88,12 @@ private boolean[] __animationFieldVisible = null;
 /**
 Indicates whether the layer is visible or not.
 */
-protected boolean _is_visible = true;
+private boolean _is_visible = true;
 
 /**
 Indicates whether the layer is selected or not.  Normally this is used only for GUI interaction.
 */
-protected boolean _is_selected = false;
+private boolean _is_selected = false;
 
 /**
 Whether this is an animated layer, where the shape symbols will change.
@@ -115,17 +115,17 @@ private double __missingDoubleReplacement = -999.0;
 /**
 GeoLayer used by the GeoView.
 */
-protected GeoLayer _layer = null;
+private GeoLayer _layer = null;
 
 /**
 GeoViewJComponent that uses the GeoLayer.
 */
-protected GeoViewJComponent	_view = null;
+private GeoViewJComponent	_view = null;
 
 /**
 Color to use for layer, including symbols.
 */
-protected GRLegend _legend = null;
+private GRLegend _legend = null;
 
 /**
 An array that points to the fields within the attribute table that are
@@ -147,9 +147,9 @@ The gui that controls the animation for this layer.  Null if the layer is not an
 private JFrame __controlJFrame = null;
 
 /**
-Properties for the GeoViewLayer, including labelling information.
+Properties for the GeoViewLayer, including labeling information.
 */
-protected PropList _props = null;
+private PropList _props = null;
 
 // TODO (JTS - 2004-08-09) put into a proplist
 
@@ -988,7 +988,7 @@ public void setDefaultLegend ( int count )
 	// For now cycle through...
 	// Size after add...
 	double symsize = 6.0;
-	int layer_type = 0, sym_type = 0;
+	int layerType = 0, symType = 0;
 	GRSymbol symbol = null;
 	GRColor color = null;
 	GRColor outline_color = null;
@@ -1011,25 +1011,25 @@ public void setDefaultLegend ( int count )
 	//layer_view.setSymbol ( GR.SYM_FCIR + count - 1 );
 	// Set the symbol size...
 	//layer_view.setSymbolSize ( 6.0 );
-	layer_type = _layer.getShapeType();
-	if ( layer_type == GeoLayer.POINT ) {
-		sym_type = GRSymbol.TYPE_POINT;
+	layerType = _layer.getShapeType();
+	if ( (layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ) {
+		symType = GRSymbol.TYPE_POINT;
 	}
-	else if ( layer_type == GeoLayer.LINE ) {
-		sym_type = GRSymbol.TYPE_LINE;
+	else if ( (layerType == GeoLayer.LINE) || (layerType == GeoLayer.POLYLINE_ZM) ) {
+		symType = GRSymbol.TYPE_LINE;
 	}
-	else if ( layer_type == GeoLayer.POLYGON ) {
-		sym_type = GRSymbol.TYPE_POLYGON;
+	else if ( layerType == GeoLayer.POLYGON ) {
+		symType = GRSymbol.TYPE_POLYGON;
 		outline_color = GRColor.white;
 	}
-	else if ( layer_type == GeoLayer.GRID ) {
+	else if ( layerType == GeoLayer.GRID ) {
 		// Try for now...
 		//outline_color = GRColor.black;
 	}	
-	// Create a symbol.  The subtype currently only affects
-	// the point symbols...
-	symbol = new GRSymbol ( sym_type, (GRSymbol.SYM_FCIR + count - 1), color, outline_color, symsize );
-	if ( layer_type == GeoLayer.GRID ) {
+	// Create a symbol.  The subtype currently only affects the point symbols...
+	// Initial value...
+	symbol = new GRSymbol ( symType, (GRSymbol.SYM_FCIR + count - 1), color, outline_color, symsize );
+	if ( layerType == GeoLayer.GRID ) {
 		// Set a default color table assuming 10 colors...
 		symbol.setColorTable ( "YellowToRed", 10 );
 		symbol.setClassificationType ( "ClassBreaks" );

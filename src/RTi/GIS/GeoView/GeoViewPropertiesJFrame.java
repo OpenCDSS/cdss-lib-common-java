@@ -638,7 +638,7 @@ private void setupGUI() {
 	Insets TNBR = new Insets(b,0,b,b);
     GridBagLayout gbl = new GridBagLayout();
 
-	String prop_value = null;
+	String propValue = null;
 	int y = 0;
 	int x = 0;
 	JLabel label = null;
@@ -663,12 +663,12 @@ private void setupGUI() {
         label = new JLabel ( "Data Home:" );
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.GeoDataHome");
-		if ( prop_value == null ) {
+		propValue = __gvp.getPropList().getValue("GeoView.GeoDataHome");
+		if ( propValue == null ) {
 			__dataHomeJTextField = new JTextField ( 30 );
 		}
 		else {	
-			__dataHomeJTextField = new JTextField ( prop_value, 30 );
+			__dataHomeJTextField = new JTextField ( propValue, 30 );
 		}
 		__dataHomeJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __dataHomeJTextField,
@@ -677,26 +677,24 @@ private void setupGUI() {
         label = new JLabel ( "Projection:");
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.Projection");
-		if ( prop_value == null ) {
-			__projectionJTextField = new JTextField ( 30 );
+		propValue = __gvp.getPropList().getValue("GeoView.Projection");
+		if ( (propValue == null) || propValue.equals("") ) {
+			propValue = "Unknown";
 		}
-		else {	
-			__projectionJTextField = new JTextField ( prop_value, 30 );
-		}
+		__projectionJTextField = new JTextField ( propValue, 30 );
 		__projectionJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __projectionJTextField,
-		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         label = new JLabel ( "Background Color:");
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.Color");
-		if ( prop_value == null ) {
+		propValue = __gvp.getPropList().getValue("GeoView.Color");
+		if ( propValue == null ) {
 			__backgroundColorJTextField = new JTextField ( 30 );
 		}
 		else {
-			__backgroundColorJTextField = new JTextField( prop_value, 30 );
+			__backgroundColorJTextField = new JTextField( propValue, 30 );
 		}
 		__backgroundColorJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __backgroundColorJTextField,
@@ -705,12 +703,12 @@ private void setupGUI() {
         label = new JLabel ( "Select Color:");
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.SelectColor");
-		if ( prop_value == null ) {
+		propValue = __gvp.getPropList().getValue("GeoView.SelectColor");
+		if ( propValue == null ) {
 			__selectColorJTextField = new JTextField ( 30 );
 		}
 		else {
-			__selectColorJTextField = new JTextField ( prop_value, 30 );
+			__selectColorJTextField = new JTextField ( propValue, 30 );
 		}
 		__selectColorJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __selectColorJTextField,
@@ -719,12 +717,12 @@ private void setupGUI() {
         label = new JLabel ( "Initial Extent:");
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.InitialExtent");
-		if ( prop_value == null ) {
+		propValue = __gvp.getPropList().getValue("GeoView.InitialExtent");
+		if ( propValue == null ) {
 			__initialExtentJTextField = new JTextField ( 30 );
 		}
 		else {
-			__initialExtentJTextField = new JTextField ( prop_value, 30 );
+			__initialExtentJTextField = new JTextField ( propValue, 30 );
 		}
 		__initialExtentJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __initialExtentJTextField,
@@ -733,12 +731,12 @@ private void setupGUI() {
         label = new JLabel ( "Maximum Extent:");
         JGUIUtil.addComponent( geoviewJPanel, label,
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __gvp.getPropList().getValue("GeoView.MaximumExtent");
-		if ( prop_value == null ) {
+		propValue = __gvp.getPropList().getValue("GeoView.MaximumExtent");
+		if ( propValue == null ) {
 			__maximumExtentJTextField = new JTextField ( 30 );
 		}
 		else {
-			__maximumExtentJTextField = new JTextField ( prop_value, 30 );
+			__maximumExtentJTextField = new JTextField ( propValue, 30 );
 		}
 		__maximumExtentJTextField.setEditable(false);
         JGUIUtil.addComponent( geoviewJPanel, __maximumExtentJTextField,
@@ -755,7 +753,7 @@ private void setupGUI() {
 	GeoLayer layer = null;
 	GRSymbol symbol = null;
 	GRLegend legend = null;
-	int shape_type = -1;
+	int shapeType = -1;
 	
 	JPanel layoutJPanel = null;
 	
@@ -776,12 +774,12 @@ private void setupGUI() {
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Name:" ),
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JTextField __layerView_nameJTextField = null;
-		prop_value = legend.getText();
-		if ( prop_value == null ) {
+		propValue = legend.getText();
+		if ( propValue == null ) {
 			__layerView_nameJTextField = new JTextField ( 30 );
 		}
 		else {	
-			__layerView_nameJTextField = new JTextField ( prop_value );
+			__layerView_nameJTextField = new JTextField ( propValue );
 		}
 		__layerView_nameJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __layerView_nameJTextField,
@@ -797,25 +795,23 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( layerJPanel, new JLabel ( "Data file:" ),
 			0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		}
-		prop_value = __layerView.getLayer().getFileName();
-		if ( prop_value == null ) {
-			__layerFileJTextField = new JTextField ( 45 );
+		propValue = __layerView.getLayer().getFileName();
+		if ( propValue == null ) {
+			propValue = "";
 		}
-		else {
-			__layerFileJTextField = new JTextField ( prop_value, 30 );
-		}
+		__layerFileJTextField = new JTextField ( propValue, 30 );
 		__layerFileJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __layerFileJTextField,
 		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Data format:" ),
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = layer.getDataFormat();
-		if ( prop_value == null ) {
+		propValue = layer.getDataFormat();
+		if ( propValue == null ) {
 			__layerFormatJTextField = new JTextField ( 30 );
 		}
 		else {	
-			__layerFormatJTextField = new JTextField ( prop_value, 30 );
+			__layerFormatJTextField = new JTextField ( propValue, 30 );
 		}
 		__layerFormatJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __layerFormatJTextField,
@@ -823,54 +819,64 @@ private void setupGUI() {
 
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Shape type:" ),
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		shape_type = layer.getShapeType();
-		if ( shape_type == GeoLayer.UNKNOWN ) {
-			prop_value = "Unknown";
+		shapeType = layer.getShapeType();
+		if ( shapeType == GeoLayer.UNKNOWN ) {
+			propValue = "Unknown";
 		}
-		else if ( shape_type == GeoLayer.POINT ) {
-			prop_value = "Point";
+		else if ( shapeType == GeoLayer.POINT ) {
+			propValue = "Point";
 		}
-		else if ( shape_type == GeoLayer.LINE ) {
-			prop_value = "Line";
+		else if ( shapeType == GeoLayer.POINT_ZM ) {
+			propValue = "PointZ";
 		}
-		else if ( shape_type == GeoLayer.POLYGON ) {
-			prop_value = "Polygon";
+		else if ( shapeType == GeoLayer.LINE ) {
+			propValue = "Polyline";
 		}
-		else if ( shape_type == GeoLayer.GRID ) {
-			prop_value = "Grid";
+		else if ( shapeType == GeoLayer.POLYGON ) {
+			propValue = "Polygon";
+		}
+		else if ( shapeType == GeoLayer.POLYLINE_ZM ) {
+			propValue = "PolylineZ";
+		}
+		else if ( shapeType == GeoLayer.GRID ) {
+			propValue = "Grid";
 		}
 		else {	
-			prop_value = "Undefined";
+			propValue = "Undefined";
 		}
-		__shapeTypeJTextField = new JTextField ( prop_value );
+		__shapeTypeJTextField = new JTextField ( propValue );
 		__shapeTypeJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __shapeTypeJTextField,
 		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Number of features:"),
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = "" + layer.getShapes().size();
-		__numShapesJTextField = new JTextField ( prop_value, 7 );
+		propValue = "" + layer.getShapes().size();
+		__numShapesJTextField = new JTextField ( propValue, 7 );
 		__numShapesJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __numShapesJTextField,
 		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Projection:"), 
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = "";
+		propValue = "";
 		GeoProjection projection = layer.getProjection();
 		if ( projection != null ) {
-			prop_value = projection.getProjectionName();
+			propValue = projection.getProjectionName();
 		}
-		if ( prop_value == null ) {
-			__layerProjectionJTextField = new JTextField ( 30 );
+		if ( (propValue == null) || propValue.equals("") ) {
+			propValue = __gvp.getPropList().getValue("GeoView.Projection");
+			if ( propValue == null ) {
+				propValue = "Unknown (main map projection also unknown)";
+			}
+			else {
+				propValue += " (from main map projection)";
+			}
 		}
-		else {	
-			__layerProjectionJTextField = new JTextField ( prop_value, 30);
-		}
+		__layerProjectionJTextField = new JTextField ( propValue, 40);
 		__layerProjectionJTextField.setEditable(false);
         JGUIUtil.addComponent( layerJPanel, __layerProjectionJTextField,
-		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
         //---------------------------------------------------------------------
         // symbolJPanel
@@ -966,8 +972,7 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( symbolJPanel, symbol_textJPanel,
 			3, 0, 7, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	
-		// Now add a panel for each classification type (only set visible the
-		// panel that applies).
+		// Now add a panel for each classification type (only set visible the panel that applies).
 	
 		// ----------------------------------
 		// Panel for single symbol...
@@ -981,34 +986,33 @@ private void setupGUI() {
 		JComboBox _symbol_styleJComboBox = new JComboBox();
 		_symbol_styleJComboBox.setEnabled ( false );
 	
-		if (	(shape_type == GeoLayer.POINT) ||
-			(shape_type == GeoLayer.MULTIPOINT) ) {
+		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
+			(shapeType == GeoLayer.MULTIPOINT) ) {
 			// Add list of recognized GRSymbol types...
-			JGUIUtil.addToJComboBox ( _symbol_styleJComboBox,
-				GRSymbol.SYMBOL_NAMES );
+			JGUIUtil.addToJComboBox ( _symbol_styleJComboBox, GRSymbol.SYMBOL_NAMES );
 			// Select the one that is in use...
-			_symbol_styleJComboBox.setSelectedItem (
-				GRSymbol.toString(symbol.getStyle()) );
+			Message.printStatus(2,"","Symbol is " + symbol.getStyle() + " " +
+					GRSymbol.toString(symbol.getStyle()) );
+			_symbol_styleJComboBox.setSelectedItem ( GRSymbol.toString(symbol.getStyle()) );
 		}
-		else if ( shape_type == GeoLayer.LINE ) {
+		else if ( (shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
 			// Currently only offer "Solid"...
 			_symbol_styleJComboBox.addItem ( "Solid" );
 		}
-		else if ( shape_type == GeoLayer.POLYGON ) {
-			// Currently only offer "FillSolid".  If transparent, use the
-			// color to indicate.
+		else if ( shapeType == GeoLayer.POLYGON ) {
+			// Currently only offer "FillSolid".  If transparent, use the color to indicate.
 			_symbol_styleJComboBox.addItem ( "FillSolid" );
 		}
 		else {	
 			_symbol_styleJComboBox = null;
 		}
 		if ( _symbol_styleJComboBox != null ) {
-	        	JGUIUtil.addComponent( __singleSymbolJPanel,
+	        JGUIUtil.addComponent( __singleSymbolJPanel,
 			_symbol_styleJComboBox,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		}
 	
-	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Color:"),
+	    JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Color:"),
 			0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JTextField _single_colorJTextField = new JTextField (4);
 		_single_colorJTextField.setEditable ( false );
@@ -1020,15 +1024,16 @@ private void setupGUI() {
 		}
 	        JGUIUtil.addComponent( __singleSymbolJPanel, _single_colorJTextField,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		if ( shape_type == GeoLayer.POLYGON ) {
-	        	JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel (
+		if ( shapeType == GeoLayer.POLYGON ) {
+	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel (
 				"Outline color:"),
 				0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			JTextField _single_outline_colorJTextField = new JTextField(4);
 			if ( symbol.getOutlineColor().isTransparent() ) {
 				_single_outline_colorJTextField.setText( "None");
 			}
-			else {	_single_outline_colorJTextField.setBackground (
+			else {
+				_single_outline_colorJTextField.setBackground (
 				symbol.getOutlineColor() );
 			}
 	        	JGUIUtil.addComponent( __singleSymbolJPanel,
@@ -1036,10 +1041,9 @@ private void setupGUI() {
 				1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			_single_outline_colorJTextField = null;
 		}
-		if (	(shape_type == GeoLayer.POINT) ||
-			(shape_type == GeoLayer.LINE) ) {
-	        	JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel (
-			"Size:"),
+		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
+			(shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
+	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Size:"),
 			0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 			JTextField _symbol_sizeJTextField = new JTextField ( 5 );
 			_symbol_sizeJTextField.setEditable ( false );
@@ -1195,7 +1199,7 @@ private void setupGUI() {
 	
 		JPanel sizeJPanel = new JPanel();
 		sizeJPanel.setLayout ( gbl );
-		if ( shape_type == GeoLayer.POINT ) {
+		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ) {
 			// Later add line.
 			int ys = 0;
 	    	JGUIUtil.addComponent( sizeJPanel, new JLabel("Symbol size:"),
@@ -1257,7 +1261,8 @@ private void setupGUI() {
 			0, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JComboBox __scaledSymbol_styleJComboBox = new JComboBox();
 		__scaledSymbol_styleJComboBox.setEnabled ( false );
-		if ( (shape_type == GeoLayer.POINT) || (shape_type == GeoLayer.MULTIPOINT) ) {
+		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
+			(shapeType == GeoLayer.MULTIPOINT) ) {
 			// Add list of recognized GRSymbol types...
 			__scaledSymbol_styleJComboBox.addItem ( "VerticalBar-Signed" );
 			// Select the one that is in use...
@@ -1463,22 +1468,22 @@ private void setupGUI() {
 		JGUIUtil.addToJComboBox ( __labelFieldJComboBox, attributeTableFieldNames );
 		//__labelFieldJComboBox.addItemListener ( this );
 		__labelFieldJComboBox.addActionListener(this);
-		prop_value = symbol.getLabelField();
-		if ( prop_value != null ) {
+		propValue = symbol.getLabelField();
+		if ( propValue != null ) {
 			try {
-				__labelFieldJComboBox.setSelectedItem( prop_value );
+				__labelFieldJComboBox.setSelectedItem( propValue );
 			}
 			catch ( Exception e ) {
 			}
 		}
 	    JGUIUtil.addComponent( labelJPanel, __labelFieldJComboBox,
 			2, y, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		prop_value = symbol.getLabelField ();
-		if ( prop_value == null ) {
+		propValue = symbol.getLabelField ();
+		if ( propValue == null ) {
 			__labelFieldJTextField = new JTextField ( 30 );
 		}
 		else {	
-			__labelFieldJTextField = new JTextField ( prop_value, 30 );
+			__labelFieldJTextField = new JTextField ( propValue, 30 );
 		}
 		__labelFieldJTextField.setEditable(false);
 		__labelFieldJTextField.setBackground(Color.lightGray);
@@ -1490,12 +1495,12 @@ private void setupGUI() {
 	
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Label format:" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = symbol.getLabelFormat();
-		if ( prop_value == null ) {
+		propValue = symbol.getLabelFormat();
+		if ( propValue == null ) {
 			__labelFormatJTextField = new JTextField ( 30 );
 		}
 		else {
-			__labelFormatJTextField = new JTextField ( prop_value, 30 );
+			__labelFormatJTextField = new JTextField ( propValue, 30 );
 		}
 	    JGUIUtil.addComponent( labelJPanel, __labelFormatJTextField,
 			2, y, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -1510,13 +1515,13 @@ private void setupGUI() {
 	
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Font size (points):" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = StringUtil.formatString(symbol.getLabelFontHeight(),"%.1f");
+		propValue = StringUtil.formatString(symbol.getLabelFontHeight(),"%.1f");
 		JTextField __labelFont_heightJTextField = null;
-		if ( prop_value == null ) {
+		if ( propValue == null ) {
 			__labelFont_heightJTextField = new JTextField ( 4 );
 		}
 		else {
-			__labelFont_heightJTextField = new JTextField ( prop_value, 4);
+			__labelFont_heightJTextField = new JTextField ( propValue, 4);
 		}
 		__labelFont_heightJTextField.setEditable(false);
 		__labelFont_heightJTextField.setBackground(Color.lightGray);
@@ -1549,12 +1554,12 @@ private void setupGUI() {
 	    label = new JLabel("Application layer type:");
 	        JGUIUtil.addComponent( appJPanel, label,
 			0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = layer.getAppLayerType();
-		if ( prop_value == null ) {
+		propValue = layer.getAppLayerType();
+		if ( propValue == null ) {
 			__appLayerTypeJTextField = new JTextField ( 30 );
 		}
 		else {
-			__appLayerTypeJTextField = new JTextField ( prop_value, 30 );
+			__appLayerTypeJTextField = new JTextField ( propValue, 30 );
 		}
 		__appLayerTypeJTextField.setEditable(false);
 		__appLayerTypeJTextField.setBackground(Color.lightGray);
@@ -1564,12 +1569,12 @@ private void setupGUI() {
 	    label = new JLabel ( "Application join field(s):" );
 	        JGUIUtil.addComponent( appJPanel, label,
 			0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		prop_value = __layerView.getPropList().getValue("AppJoinField");
-		if ( prop_value == null ) {
+		propValue = __layerView.getPropList().getValue("AppJoinField");
+		if ( propValue == null ) {
 			__appJoinFieldJTextField = new JTextField ( 30 );
 		}
 		else {
-			__appJoinFieldJTextField = new JTextField ( prop_value, 30 );
+			__appJoinFieldJTextField = new JTextField ( propValue, 30 );
 		}
 		__appJoinFieldJTextField.setEditable(false);
 		__appJoinFieldJTextField.setBackground(Color.lightGray);
@@ -1773,7 +1778,7 @@ private void setupGUI() {
 		tab.addTab( "Layer", layerJPanel );
 		tab.addTab( "Symbol", symbolJPanel );
 		tab.addTab( "Label" , labelJPanel );
-		if ( shape_type != GeoLayer.POINT ) {
+		if ( (shapeType != GeoLayer.POINT) && (shapeType != GeoLayer.POINT_ZM) ) {
 			labelJPanel.setEnabled ( false );
 		}
 		tab.addTab( "Application", appJPanel );

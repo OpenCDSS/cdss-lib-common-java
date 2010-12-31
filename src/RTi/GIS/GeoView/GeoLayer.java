@@ -166,6 +166,7 @@ public class GeoLayer
 implements Cloneable 
 {
 
+// TODO SAM 2010-12-29 implement open standard types and map ESRI to them
 /**
 Define layer types.  Use ESRI shapefile types where there is overlap.
 */
@@ -195,6 +196,16 @@ public static final int POLYGON = 5;
 Multipoint layer, stored as GRPolypoint (can occur in ESRI shapefile).
 */
 public static final int MULTIPOINT = 8;  // Or just use 1?
+
+/**
+Point with Z and M, as per shapefile type 11.
+*/
+public static final int POINT_ZM = 11;
+
+/**
+PolylineZM list.
+*/
+public static final int POLYLINE_ZM = 13;
 
 /**
 Big picture layer consisting of a layer with shape data and an additional

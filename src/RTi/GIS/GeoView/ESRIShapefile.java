@@ -66,16 +66,20 @@
 package RTi.GIS.GeoView;
 
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import RTi.GIS.GeoView.GeoLayer;
 import RTi.GR.GRPoint;
+import RTi.GR.GRPointZM;
 import RTi.GR.GRPolygon;
 import RTi.GR.GRPolygonList;
 import RTi.GR.GRPolyline;
 import RTi.GR.GRPolylineList;
+import RTi.GR.GRPolylineZM;
+import RTi.GR.GRPolylineZMList;
 import RTi.GR.GRPolypoint;
 import RTi.GR.GRShape;
 import RTi.Util.IO.EndianDataInputStream;
@@ -116,15 +120,21 @@ Shape names corresponding to shape numbers from shapefiles.  The indexes
 correspond to the shape numbers in the shapefile specification.  Some values are
 empty strings.
 */
-public final static String [] SHAPE_NAMES = {	"Null Shape",
-						"Point",
-						"",
-						"Arc",
-						"",
-						"Polygon",
-						"",
-						"",
-						"MultiPoint" };
+public final static String [] SHAPE_NAMES = {
+	"Null Shape", // 0
+	"Point", // 1
+	"",
+	"Arc", // 3
+	"",
+	"Polygon", // 5
+	"",
+	"",
+	"MultiPoint", // 8,
+	"",
+	"",
+	"PointZM", // 11
+	"",
+	"PolylineZM" }; // 13
 
 /**
 Name of .shp file, with extension.
@@ -132,8 +142,7 @@ Name of .shp file, with extension.
 private String _shp_file = "";
 
 /**
-Input stream to read .shp file (note -only DBF read code has been converted to use
-EndianRandomAccessFile
+Input stream to read .shp file (note -only DBF read code has been converted to use EndianRandomAccessFile
 */
 private EndianDataInputStream _shp_stream = null;
 
@@ -229,8 +238,7 @@ following options are recognized:
 <tr>
 <td><b>ReadAttributes</b></td>
 <td>Indicates whether attributes should be read.</td>
-<td>false (true will result in slower performance but complete access to
-attribute data).</td>
+<td>false (true will result in slower performance but complete access to attribute data).</td>
 </tr>
 </table>
 */
@@ -299,13 +307,13 @@ private void initialize ()
 			_shx_file = path + ".shx";
 			_dbf_file = path + ".dbf";
 		}
-		else {	// Path already includes the full shapefile name...
+		else {
+			// Path already includes the full shapefile name...
 			_shp_file = path;
 			_shx_file = path.substring(0,path.length()-4) + ".shx";
 			_dbf_file = path.substring(0,path.length()-4) + ".dbf";
 		}
 	}
-	path = null;
 
 	// To read ... or not to read attributes
 	String prop_value = _props.getValue ( "ReadAttributes" );
@@ -313,7 +321,8 @@ private void initialize ()
 		if ( prop_value.equalsIgnoreCase("true") ) {
 			_read_attributes = true;
 		}
-		else {	_read_attributes = false;
+		else {
+			_read_attributes = false;
 		}
 	}
 }
@@ -412,8 +421,8 @@ throws IOException
 	}
 	catch ( Exception e ) {
 		message = "Unable to read dbf file \"" + _dbf_file + "\"";
-		Message.printWarning ( 2, routine, message );
-		Message.printWarning ( 2, routine, e );
+		Message.printWarning ( 3, routine, message );
+		Message.printWarning ( 3, routine, e );
 		throw new IOException ( message );
 	}
 }
@@ -439,12 +448,12 @@ throws IOException
 //	}
 	catch ( Exception e ) {
 		message = "Unable to open shape file \"" + _shp_file + "\"";
-		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 3, routine, message );
 		throw new IOException ( message );
 	}
 	if ( _shp_stream == null ) {
 		message = "Null file pointer for \"" + _shp_file + "\"";
-		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 3, routine, message );
 		throw new IOException ( message );
 	}
 
@@ -483,16 +492,19 @@ throws IOException
 
 	int shapeType = _shp_stream.readLittleEndianInt ();
 	setShapeType ( shapeType );
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Shape type for file is " + shapeType + " (" + SHAPE_NAMES[shapeType] + ")." );
-	}
 	if ( (shapeType != ARC) && (shapeType != MULTIPOINT) &&
-		(shapeType != POINT ) && (shapeType != POLYGON) ) {
+		(shapeType != POINT ) && (shapeType != POINT_ZM) && (shapeType != POLYGON) &&
+		(shapeType != POLYLINE_ZM)) {
 		message = "Unknown shape type " + shapeType;
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( dl, routine,
+			"Shape type for file is " + shapeType + " (" + SHAPE_NAMES[shapeType] + ")." );
+	}
+	//Message.printStatus ( 2, routine,
+	//	"Shape type for file is " + shapeType + " (" + SHAPE_NAMES[shapeType] + ")." );
 
 	// Limits are little endian...
 
@@ -512,12 +524,40 @@ throws IOException
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Ymax is " + ymax );
 	}
-	// Set in base class..
+	// Extra information for certain shape types...
+	// Initialize to zero and read only if shape type uses (otherwise old files may
+	// have garbage if read)
+	double zmin = 0.0, zmax = 0.0, mmin = 0.0, mmax = 0.0;
+	int bytesExtraRead = 0;
+	if ( (shapeType == POINT_ZM) || (shapeType == POLYLINE_ZM) ) {
+		zmin = _shp_stream.readLittleEndianDouble ();
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Zmin is " + zmin );
+		}
+		zmax = _shp_stream.readLittleEndianDouble ();
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Zmax is " + zmax );
+		}
+		bytesExtraRead += 16;
+	}
+	if ( (shapeType == POINT_ZM) || (shapeType == POLYLINE_ZM) ) {
+		mmin = _shp_stream.readLittleEndianDouble ();
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Mmin is " + mmin );
+		}
+		mmax = _shp_stream.readLittleEndianDouble ();
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Mmax is " + mmax );
+		}
+		bytesExtraRead += 16;
+	}
+	// TODO SAM 2010-12-29 Evaluate support for Z, M
+	// Set in base class (for now only do X and Y)...
 	setLimits ( xmin, ymin, xmax, ymax );
 
 	// Read the remaining 32 bytes in the header...
-
-	buffer = new byte[32];
+	
+	buffer = new byte[32 - bytesExtraRead];
 	_shp_stream.read(buffer);
 
 	// Read the data...
@@ -525,41 +565,48 @@ throws IOException
 	int content_length = 0, i = 0, iend = 0, j = 0,
 		npolygons = 0, npolylines = 0, npts = 0,
 		num_points = 0, pos_array[] = null,
-		record_number = 0, shape_type, total_npts = 0;
-	double x = 0.0, y = 0.0;
+		recordNumber = 0, esriShapeType, total_npts = 0;
+	double x = 0.0, y = 0.0, z = 0.0, m = 0.0;
 	GRPoint point = null;
+	GRPointZM pointzm = null;
 	GRPolypoint polypoint = null;
 	GRPolygon polygon = null;
 	GRPolygonList polygonlist = null;
 	GRPolyline polyline = null;
+	GRPolylineZM polylinezm = null;
 	GRPolylineList polylinelist = null;
+	GRPolylineZMList polylinezmlist = null;
 	List<GRShape> shapes = getShapes(); // From base class
 	while ( true ) {
 		try {
 			// Record number is big-endian..
-			record_number =	_shp_stream.readInt();
+			recordNumber = _shp_stream.readInt();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "ESRI record number " + record_number );
+				Message.printDebug ( dl, routine, "ESRI record number " + recordNumber );
 			}
+			//Message.printStatus( 2, routine, "ESRI record number " + recordNumber );
 			// Content length is big-endian..
 			content_length = _shp_stream.readInt();
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Content length " + content_length );
 			}
+			//Message.printStatus ( 2, routine, "Content length " + content_length );
 			// Shape type is little endian...
-			shape_type = _shp_stream.readLittleEndianInt();
+			esriShapeType = _shp_stream.readLittleEndianInt();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Shape type is " + shape_type );
+				Message.printDebug ( dl, routine, "Shape type is " + esriShapeType );
 			}
+			//Message.printStatus ( 2, routine, "Shape type is " + esriShapeType );
 			// Documentation says that shape types can't be
 			// mixed but we don't really care at this point so
 			// don't check against the file shape type.
-			if ( shape_type == UNKNOWN ) {
+			if ( esriShapeType == UNKNOWN ) {
 				// No geometry data...  Instantiate a shape of unknown type...
-				shapes.add ( new GRShape(record_number - 1 ) );
+				shapes.add ( new GRShape(recordNumber - 1 ) );
+				//Message.printStatus(2, routine, "Adding null shape " + shapes.size() );
 				continue;
 			}
-			else if ( shape_type == ARC ) {
+			else if ( esriShapeType == ARC ) {
 				// Read the box.
 				xmin = _shp_stream.readLittleEndianDouble();
 				ymin = _shp_stream.readLittleEndianDouble();
@@ -569,7 +616,7 @@ throws IOException
 				npolylines = _shp_stream.readLittleEndianInt();
 				// Allocate memory and set the limits...
 				polylinelist = new GRPolylineList (	npolylines );
-				polylinelist.index = record_number - 1;
+				polylinelist.index = recordNumber - 1;
 				polylinelist.xmin = xmin;
 				polylinelist.ymin = ymin;
 				polylinelist.xmax = xmax;
@@ -605,7 +652,7 @@ throws IOException
 					}
 					// Allocate the polyline and fill...
 					polyline = new GRPolyline ( npts );
-					polyline.index = record_number - 1;
+					polyline.index = recordNumber - 1;
 					for ( j = 0; j < npts; j++ ) {
 						x = _shp_stream.readLittleEndianDouble();
 						y = _shp_stream.readLittleEndianDouble();
@@ -615,7 +662,7 @@ throws IOException
 				}
 				shapes.add ( polylinelist);
 			}
-			else if ( shape_type == MULTIPOINT ) {
+			else if ( esriShapeType == MULTIPOINT ) {
 				// Read the box.
 				xmin = _shp_stream.readLittleEndianDouble();
 				ymin = _shp_stream.readLittleEndianDouble();
@@ -623,9 +670,8 @@ throws IOException
 				ymax = _shp_stream.readLittleEndianDouble();
 				// Read the number of points...
 				num_points = _shp_stream.readLittleEndianInt();
-				// Save a GRPolypoint, using the record number
-				// as the attribute table index...
-				polypoint = new GRPolypoint ( (record_number - 1), num_points );
+				// Save a GRPolypoint, using the record number as the attribute table index...
+				polypoint = new GRPolypoint ( (recordNumber - 1), num_points );
 				shapes.add ( polypoint);
 				for ( i = 0; i < num_points; i++ ) {
 					x =_shp_stream.readLittleEndianDouble();
@@ -633,12 +679,20 @@ throws IOException
 					polypoint.setPoint ( i, x, y );
 				}
 			}
-			else if ( shape_type == POINT ) {
+			else if ( (esriShapeType == POINT) || (esriShapeType == POINT_ZM) ) {
 				x = _shp_stream.readLittleEndianDouble ();
 				y = _shp_stream.readLittleEndianDouble ();
-				// Save a point, using the record number as the
-				// attribute table index...
-				point = new GRPoint((record_number - 1),x,y);
+				if ( esriShapeType == POINT_ZM ) {
+					z = _shp_stream.readLittleEndianDouble ();
+					m = _shp_stream.readLittleEndianDouble ();
+				}
+				// Save a point, using the record number as the attribute table index...
+				if ( esriShapeType == POINT ) {
+					point = new GRPoint((recordNumber - 1),x,y);
+				}
+				else {
+					point = new GRPointZM((recordNumber - 1),x,y,z,m);
+				}
 				point.xmin = x;
 				point.ymin = y;
 				point.xmax = x;
@@ -650,8 +704,7 @@ throws IOException
 				}
 				// TODO SAM 2006-01-23 Some CDSS point data are having very large
 				// negative values assigned, which results in
-				// erroneous displays.  Change to UNKNOWN shape
-				// type here in these cases.
+				// erroneous displays.  Change to UNKNOWN shape type here in these cases.
 				if ( x < -1.0e50 ) {
 					// Will reset in base class...
 					point.type = UNKNOWN;
@@ -660,7 +713,7 @@ throws IOException
 					}
 				}
 			}
-			else if ( shape_type == POLYGON ) {
+			else if ( esriShapeType == POLYGON ) {
 				// Read the box.
 				xmin = _shp_stream.readLittleEndianDouble();
 				ymin = _shp_stream.readLittleEndianDouble();
@@ -677,7 +730,7 @@ throws IOException
 				}
 				// Allocate memory and set the limits...
 				polygonlist = new GRPolygonList ( npolygons );
-				polygonlist.index = record_number - 1;
+				polygonlist.index = recordNumber - 1;
 				polygonlist.xmin = xmin;
 				polygonlist.ymin = ymin;
 				polygonlist.xmax = xmax;
@@ -731,14 +784,104 @@ throws IOException
 				}
 				shapes.add ( polygonlist);
 			}
+			else if ( esriShapeType == POLYLINE_ZM ) {
+				// Read the bounding box.
+				xmin = _shp_stream.readLittleEndianDouble();
+				ymin = _shp_stream.readLittleEndianDouble();
+				xmax = _shp_stream.readLittleEndianDouble();
+				ymax = _shp_stream.readLittleEndianDouble();
+				// Read the number of polylines...
+				npolylines = _shp_stream.readLittleEndianInt();
+				// Allocate memory and set the limits...
+				polylinezmlist = new GRPolylineZMList (	npolylines );
+				polylinezmlist.index = recordNumber - 1;
+				polylinezmlist.xmin = xmin;
+				polylinezmlist.ymin = ymin;
+				polylinezmlist.xmax = xmax;
+				polylinezmlist.ymax = ymax;
+				polylinezmlist.limits_found = true;
+				// Read the total number of points...
+				total_npts = _shp_stream.readLittleEndianInt();
+				polylinezmlist.total_npts = total_npts;
+				// Read the position index.  Reuse this array to optimize performance...
+				if ( pos_array == null ) {
+					// Create it...
+					pos_array = new int[npolylines];
+				}
+				else if ( pos_array.length < npolylines ) {
+					// Resize bigger...
+					pos_array = new int[npolylines];
+				}
+				for ( i = 0; i < npolylines; i++ ) {
+					pos_array[i] = _shp_stream.readLittleEndianInt();
+				}
+				// Loop through the polylines...
+				iend = npolylines - 1;
+				for ( i = 0; i < npolylines; i++ ) {
+					// Figure out how many points in the polyline...
+					if ( i == iend ) {
+						// Last polyline
+						npts = total_npts - pos_array[i];
+					}
+					else {
+						// Not last...
+						npts = pos_array[i + 1] - pos_array[i];
+					}
+					// Allocate the polyline and fill...
+					polylinezm = new GRPolylineZM ( npts );
+					polylinezm.index = recordNumber - 1;
+					for ( j = 0; j < npts; j++ ) {
+						x = _shp_stream.readLittleEndianDouble();
+						y = _shp_stream.readLittleEndianDouble();
+						polylinezm.setPoint ( j, new GRPointZM(x,y,z,m) );
+					}
+					// Set the polyline int the list (Z and M are modified below)
+					polylinezmlist.setPolyline ( i, polylinezm);
+				}
+				// Read the Z limits.
+				zmin = _shp_stream.readLittleEndianDouble();
+				zmax = _shp_stream.readLittleEndianDouble();
+				// Read the z coordinates for all points...
+				for ( i = 0; i < npolylines; i++ ) {
+					polylinezm = polylinezmlist.getPolyline(i);
+					npts = polylinezm.npts;
+					for ( j = 0; j < npts; j++ ) {
+						z = _shp_stream.readLittleEndianDouble();
+						pointzm = polylinezm.getPoint(j);
+						pointzm.z = z;
+					}
+				}
+				// Read the measure limits.
+				mmin = _shp_stream.readLittleEndianDouble();
+				mmax = _shp_stream.readLittleEndianDouble();
+				// Read the measure value for all points...
+				for ( i = 0; i < npolylines; i++ ) {
+					polylinezm = polylinezmlist.getPolyline(i);
+					npts = polylinezm.npts;
+					for ( j = 0; j < npts; j++ ) {
+						m = _shp_stream.readLittleEndianDouble();
+						pointzm = polylinezm.getPoint(j);
+						pointzm.m = m;
+					}
+				}
+				// Add the shape...
+				shapes.add ( polylinezmlist);
+				//Message.printStatus ( 2, routine, "Shape " + shapes.size() + " limits are " + xmin +","+ymin + " " +
+				//	xmax + "," + ymax );
+			}
+		}
+		catch ( EOFException e ) {
+			// Done reading shapes
+			break;
 		}
 		catch ( Exception e ) {
+			// Unexpected exception
+			Message.printWarning ( 3, routine, e );
 			break;
 		}
 	}
 
-	Message.printStatus ( 2, routine,
-	"Read " + shapes.size() + " shapes from \"" + _shp_file + "\"." );
+	Message.printStatus ( 2, routine, "Read " + shapes.size() + " shapes from \"" + _shp_file + "\"." );
 }
 
 /**
@@ -781,8 +924,7 @@ throws IOException
 	_shx_stream.read ( buffer100 );
 
 	// Now read the number of shapes.  First allocate an array of
-	// integers corresponding to the records that will hold the content
-	// length for the record.
+	// integers corresponding to the records that will hold the content length for the record.
 
 	List<GRShape> shapes = getShapes();
 	int num_shapes = shapes.size();
@@ -801,15 +943,18 @@ throws IOException
 			shx_content_length = _shx_stream.readInt();
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "SHX:  record number: " + record_number +
-				" offset: " + shx_offset + " content length: " + shx_content_length );
+					" offset: " + shx_offset + " content length: " + shx_content_length );
 			}
+			//Message.printStatus( 2, routine, "SHX:  record number: " + record_number +
+			//	" offset: " + shx_offset + " content length: " + shx_content_length );
 			_shx_offset[i_shx_content_length] = shx_offset;
 			_shx_content_length[i_shx_content_length++] = shx_content_length;
 			++record_number;
 		}
 	}
 	catch ( IOException e ) {
-		Message.printWarning ( 2, routine, "Error reading SHX record [" + i_shx_content_length + "]");
+		Message.printWarning ( 3, routine, "Error reading SHX record [" + i_shx_content_length + "]");
+		Message.printWarning ( 3, routine, e );
 	}
 }
 
@@ -943,16 +1088,16 @@ throws IOException
 /**
 Write both the SHP and the SHX files.  All shapes are written.
 Currently, only the polygon shape type is supported.
-@param shp_file name of SHP file, with or without extension.
-@param shx_file name of SHX file, with or without extension.
+@param shpFile name of SHP file, with or without extension.
+@param shxFile name of SHX file, with or without extension.
 @param allShapes list of GRShape to save.  <b>Warning - if a projection is
 required, the shape data will be modified as it is converted to the requested projection.</b>.
-@param from_projection Projection of raw data.
-@param to_projection Desired projection of output.
+@param fromProjection Projection of raw data.
+@param toProjection Desired projection of output.
 */
-public static void writeSHPAndSHX (	String shp_file, String shx_file, List<GRShape> allShapes,
-	boolean visible_only, boolean selected_only, GeoProjection from_projection,
-	GeoProjection to_projection )
+public static void writeSHPAndSHX (	String shpFile, String shxFile, List<GRShape> allShapes,
+	boolean visibleOnly, boolean selectedOnly, GeoProjection fromProjection,
+	GeoProjection toProjection )
 throws IOException
 {	// Number of GRShapes in vector
 	int numberRecords = 0;
@@ -978,36 +1123,33 @@ throws IOException
 	//	+ 4 bytes for num parts (3rd field)
 	//	+ 4 bytes for num pts (4rd field)
 	//	+ 4 bytes for index of 1st part (5rd field)
-	// these add up to 56.  In addition, add add 16 bytes for each point
-	// (6th+ field for polygons)
+	// these add up to 56.  In addition, add add 16 bytes for each point (6th+ field for polygons)
 
 	// If a subset of shapes is being written, shapes that are not written
 	// will have the contLenArray value set to zero.  This value can be
 	// checked later when writing the actual shape data rather than doing
 	// the boolean checks again.  Note that even null shapes have a shape
-	// type and position in the file, which will result in a non-zero
-	// content length.
+	// type and position in the file, which will result in a non-zero content length.
 	int[] contLenArray = null;
 	if ( numberRecords > 0 ) {
 		contLenArray = new int[numberRecords];
 	}
 
-	// All shapes written to a shp file must be of the same type.  Get the
-	// type from the first shape.
+	// All shapes written to a shp file must be of the same type.  Get the type from the first shape.
 
 	GRShape shape = null;
-	int grshape_type = 0;
+	int grShapeType = 0;
 	if ( numberRecords > 0 ) {
 		shape =	allShapes.get(0);
-		grshape_type = shape.type;
+		grShapeType = shape.type;
 	}
 	shape = null;
-	int shp_type = UNKNOWN;
+	int esriShpType = UNKNOWN;
 
 	int sumOfContLengths = 0;
-	double minX = 0.0, minY = 0.0, maxX = 0.0, maxY = 0.0;
-	boolean do_project = GeoProjection.needToProject ( from_projection, to_projection );
-	int shape_count = 0;	// Counter for shapes (some may not be written).
+	double minX = 0.0, minY = 0.0, maxX = 0.0, maxY = 0.0, minZ = 0.0, maxZ = 0.0, minM = 0.0, maxM = 0.0;
+	boolean doProject = GeoProjection.needToProject ( fromProjection, toProjection );
+	int shapeCount = 0;	// Counter for shapes (some may not be written).
 				// This is used when writing the index file
 				// length record.  It is also used when
 				// determining the shape max/min coordinates.
@@ -1015,36 +1157,36 @@ throws IOException
 	if ( numberRecords == 0 ) {
 		// No data.
 		sumOfContLengths = 0;
-		shape_count = 0;
+		shapeCount = 0;
 	}
-	else if ( grshape_type == GRShape.POINT ) {
-		shp_type = POINT;
+	else if ( grShapeType == GRShape.POINT ) {
+		esriShpType = POINT;
 		// Content length for points is constant =
 		// 4 bytes for record number
 		// 4 bytes for content length
 		// 4 bytes for shape type
 		// 2*8 bytes for x and y
-		reclen = 14;	// 28/2;
+		reclen = 14; // 28/2;
 		// Content length will be same for every record...
 		GRPoint point = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
-			shape = (GRShape)allShapes.get(i);
+			shape = allShapes.get(i);
 			if ( shape.type == UNKNOWN ) {
-				// Unknown (null?) shape type in the data.
-				// Skip it rather than keeping.
+				// Unknown (null?) shape type in the data.  Skip it rather than keeping.
 				contLenArray[i] = 0;
 				continue;
 			}
 			point = (GRPoint)shape;
-			if ( (visible_only && selected_only && (!point.is_visible || !point.is_selected)) ||
-				(visible_only && !point.is_visible)  || (selected_only && !point.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!point.is_visible || !point.is_selected)) ||
+				(visibleOnly && !point.is_visible)  || (selectedOnly && !point.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,point, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,point, true );
 			}
-			if ( shape_count == 0 ) {
+			if ( shapeCount == 0 ) {
+				// Initialize
 				minX = point.x;
 				minY = point.y;
 				maxX = point.x;
@@ -1067,11 +1209,81 @@ throws IOException
 			}
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			++shape_count;
+			++shapeCount;
 		}
 	}
-	else if ( grshape_type == GRShape.POLYPOINT ) {
-		shp_type = MULTIPOINT;
+	else if ( grShapeType == GRShape.POINT_ZM ) {
+		esriShpType = POINT_ZM;
+		// Content length for points is constant =
+		// 4 bytes for record number
+		// 4 bytes for content length
+		// 4 bytes for shape type
+		// 2*8 bytes for x and y
+		// 2*8 bytes for z and m
+		reclen = 22; // 44/2;
+		// Content length will be same for every record...
+		GRPointZM point = null;
+		for ( int i = 0; i < numberRecords; i++ ) {
+			shape = allShapes.get(i);
+			if ( shape.type == UNKNOWN ) {
+				// Unknown (null?) shape type in the data.  Skip it rather than keeping.
+				contLenArray[i] = 0;
+				continue;
+			}
+			point = (GRPointZM)shape;
+			if ( (visibleOnly && selectedOnly && (!point.is_visible || !point.is_selected)) ||
+				(visibleOnly && !point.is_visible)  || (selectedOnly && !point.is_selected) ) {
+				contLenArray[i] = 0;
+				continue;
+			}
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,point, true );
+			}
+			if ( shapeCount == 0 ) {
+				// Initialize
+				minX = point.x;
+				minY = point.y;
+				maxX = point.x;
+				maxY = point.y;
+				minZ = point.z;
+				maxZ = point.z;
+				minM = point.m;
+				maxM = point.m;
+			}
+			else {
+				// Inline all this code...
+				if ( point.x < minX ) {
+					minX = point.x;
+				}
+				if ( point.x > maxX ) {
+					maxX = point.x;
+				}
+				if ( point.y < minY ) {
+					minY = point.y;
+				}
+				if ( point.y > maxY ) {
+					maxY = point.y;
+				}
+				if ( point.z < minZ ) {
+					minZ = point.z;
+				}
+				if ( point.z > maxZ ) {
+					maxZ = point.z;
+				}
+				if ( point.m < minM ) {
+					minM = point.m;
+				}
+				if ( point.m > maxM ) {
+					maxM = point.m;
+				}
+			}
+			contLenArray[i] = reclen;
+			sumOfContLengths += reclen;
+			++shapeCount;
+		}
+	}
+	else if ( grShapeType == GRShape.POLYPOINT ) {
+		esriShpType = MULTIPOINT;
 		GRPolypoint polypoint = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
 			shape = allShapes.get(i);
@@ -1082,13 +1294,13 @@ throws IOException
 				continue;
 			}
 			polypoint = (GRPolypoint)shape;
-			if ( (visible_only && selected_only && (!polypoint.is_visible || !polypoint.is_selected)) ||
-				(visible_only && !polypoint.is_visible) || (selected_only && !polypoint.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!polypoint.is_visible || !polypoint.is_selected)) ||
+				(visibleOnly && !polypoint.is_visible) || (selectedOnly && !polypoint.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,polypoint, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,polypoint, true );
 			}
 			// Polypoint record:
 			// 4 bytes record number
@@ -1102,7 +1314,7 @@ throws IOException
 			reclen = 24 + polypoint.npts*8;
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			if ( shape_count == 0 ) {
+			if ( shapeCount == 0 ) {
 				minX = polypoint.xmin;
 				minY = polypoint.ymin;
 				maxX = polypoint.xmax;
@@ -1123,11 +1335,11 @@ throws IOException
 					maxY = polypoint.ymax;
 				}
 			}
-			++shape_count;
+			++shapeCount;
 		}
 	}
-	else if ( grshape_type == GRShape.POLYLINE ) {
-		shp_type = ARC;
+	else if ( grShapeType == GRShape.POLYLINE ) {
+		esriShpType = ARC;
 		GRPolyline polyline = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
 			shape = allShapes.get(i);
@@ -1138,14 +1350,14 @@ throws IOException
 				continue;
 			}
 			polyline = (GRPolyline)shape;
-			if ( (visible_only && selected_only && (!polyline.is_visible ||
-				!polyline.is_selected)) || (visible_only && !polyline.is_visible)  ||
-				(selected_only && !polyline.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!polyline.is_visible ||
+				!polyline.is_selected)) || (visibleOnly && !polyline.is_visible)  ||
+				(selectedOnly && !polyline.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,polyline, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,polyline, true );
 			}
 			// There is 1 polyline, written as a polyline list...
 			// 4 bytes record number
@@ -1161,7 +1373,7 @@ throws IOException
 			reclen = 28 + polyline.npts*8;
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			if ( shape_count == 0 ) {
+			if ( shapeCount == 0 ) {
 				minX = polyline.xmin;
 				minY = polyline.ymin;
 				maxX = polyline.xmax;
@@ -1182,11 +1394,11 @@ throws IOException
 					maxY = polyline.ymax;
 				}
 			}
-			++shape_count;
+			++shapeCount;
 		}
 	}
-	else if ( grshape_type == GRShape.POLYLINE_LIST ) {
-		shp_type = ARC;
+	else if ( grShapeType == GRShape.POLYLINE_LIST ) {
+		esriShpType = ARC;
 		GRPolylineList polylinelist = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
 			shape = (GRShape)allShapes.get(i);
@@ -1197,14 +1409,14 @@ throws IOException
 				continue;
 			}
 			polylinelist = (GRPolylineList)shape;
-			if ( (visible_only && selected_only && (!polylinelist.is_visible ||
-				!polylinelist.is_selected)) || (visible_only && !polylinelist.is_visible)  ||
-				(selected_only && !polylinelist.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!polylinelist.is_visible ||
+				!polylinelist.is_selected)) || (visibleOnly && !polylinelist.is_visible)  ||
+				(selectedOnly && !polylinelist.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,polylinelist, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,polylinelist, true );
 			}
 			// Header + array indicating position within polyline list...
 			// There is 1 polyline, written as a polyline list...
@@ -1223,7 +1435,7 @@ throws IOException
 			for ( int j = 0; j < polylinelist.npolylines; j++ ) {
 				//reclen+=(polylinelist.polylines[j].npts*16)/2;
 				reclen += (polylinelist.polylines[j].npts*8);
-				if ( shape_count == 0 ) {
+				if ( shapeCount == 0 ) {
 					minX = polylinelist.xmin;
 					minY = polylinelist.ymin;
 					maxX = polylinelist.xmax;
@@ -1247,13 +1459,13 @@ throws IOException
 			}
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			++shape_count;
+			++shapeCount;
 		}
 	}
-	else if ( grshape_type == GRShape.POLYGON ) {
+	else if ( grShapeType == GRShape.POLYGON ) {
 		// Although the GR shape is a polygon, shape files always store
 		// polygons as polygon lists.  Therefore, treat as a single-polygon list.
-		shp_type = POLYGON;
+		esriShpType = POLYGON;
 		GRPolygon polygon = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
 			shape = allShapes.get(i);
@@ -1264,13 +1476,13 @@ throws IOException
 				continue;
 			}
 			polygon = (GRPolygon)shape;
-			if ( (visible_only && selected_only && (!polygon.is_visible || !polygon.is_selected)) ||
-				(visible_only && !polygon.is_visible) || (selected_only && !polygon.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!polygon.is_visible || !polygon.is_selected)) ||
+				(visibleOnly && !polygon.is_visible) || (selectedOnly && !polygon.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,polygon, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,polygon, true );
 			}
 			// There is 1 polygon, written as a polygon list...
 			// 4 bytes record number
@@ -1286,7 +1498,7 @@ throws IOException
 			reclen = 28 + polygon.npts*8;
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			if ( shape_count == 0 ) {
+			if ( shapeCount == 0 ) {
 				minX = polygon.xmin;
 				minY = polygon.ymin;
 				maxX = polygon.xmax;
@@ -1307,11 +1519,11 @@ throws IOException
 					maxY = polygon.ymax;
 				}
 			}
-			++shape_count;
+			++shapeCount;
 		}
 	}
-	else if ( grshape_type == GRShape.POLYGON_LIST ) {
-		shp_type = POLYGON;
+	else if ( grShapeType == GRShape.POLYGON_LIST ) {
+		esriShpType = POLYGON;
 		GRPolygonList polygonlist = null;
 		for ( int i = 0; i < numberRecords; i++ ) {
 			shape = allShapes.get(i);
@@ -1322,14 +1534,14 @@ throws IOException
 				continue;
 			}
 			polygonlist = (GRPolygonList)shape;
-			if ( (visible_only && selected_only && (!polygonlist.is_visible ||
-				!polygonlist.is_selected)) || (visible_only && !polygonlist.is_visible)  ||
-				(selected_only && !polygonlist.is_selected) ) {
+			if ( (visibleOnly && selectedOnly && (!polygonlist.is_visible ||
+				!polygonlist.is_selected)) || (visibleOnly && !polygonlist.is_visible)  ||
+				(selectedOnly && !polygonlist.is_selected) ) {
 				contLenArray[i] = 0;
 				continue;
 			}
-			if ( do_project ) {
-				GeoProjection.projectShape(from_projection, to_projection,polygonlist, true );
+			if ( doProject ) {
+				GeoProjection.projectShape(fromProjection, toProjection,polygonlist, true );
 			}
 			// Header + array indicating position within polygon list...
 			// There is 1 polygon, written as a polygon list...
@@ -1348,7 +1560,7 @@ throws IOException
 			for ( int j = 0; j < polygonlist.npolygons; j++ ) {
 				//reclen += (polygonlist.polygons[j].npts*16)/2;
 				reclen += (polygonlist.polygons[j].npts*8);
-				if ( shape_count == 0 ) {
+				if ( shapeCount == 0 ) {
 					minX = polygonlist.xmin;
 					minY = polygonlist.ymin;
 					maxX = polygonlist.xmax;
@@ -1372,30 +1584,30 @@ throws IOException
 			}
 			contLenArray[i] = reclen;
 			sumOfContLengths += reclen;
-			++shape_count;
+			++shapeCount;
 		}
 	}
 	else {
-		throw new IOException ( "Unsupported shape type " + grshape_type );
+		throw new IOException ( "Unsupported shape type " + grShapeType );
 	}
 
 	// Open the files...
 	EndianRandomAccessFile raf_SHP_stream = null;
-	if ( (shp_file.length() > 4) && shp_file.regionMatches(true,
-		(shp_file.length() - 4),".shp",0,4) ) {
-		raf_SHP_stream = new EndianRandomAccessFile(shp_file, "rw");
+	if ( (shpFile.length() > 4) && shpFile.regionMatches(true,
+		(shpFile.length() - 4),".shp",0,4) ) {
+		raf_SHP_stream = new EndianRandomAccessFile(shpFile, "rw");
 	}
 	else {
-		raf_SHP_stream = new EndianRandomAccessFile(shp_file + ".shp", "rw");
+		raf_SHP_stream = new EndianRandomAccessFile(shpFile + ".shp", "rw");
 	}
 
 	EndianRandomAccessFile raf_SHX_stream = null;
-	if ( (shx_file.length() > 4) && shx_file.regionMatches(true,
-		(shx_file.length() - 4),".shx",0,4) ) {
-		raf_SHX_stream = new EndianRandomAccessFile(shx_file, "rw");
+	if ( (shxFile.length() > 4) && shxFile.regionMatches(true,
+		(shxFile.length() - 4),".shx",0,4) ) {
+		raf_SHX_stream = new EndianRandomAccessFile(shxFile, "rw");
 	}
 	else {
-		raf_SHX_stream = new EndianRandomAccessFile(shx_file + ".shx", "rw");
+		raf_SHX_stream = new EndianRandomAccessFile(shxFile + ".shx", "rw");
 	}
 
 	// Write the header information...
@@ -1417,7 +1629,7 @@ throws IOException
 	// SHX file length is 50 + (#records *4)
 	// file header contributes 50 and each record
 	// in the SHX has size of 4 16bit word 
-	int SHXFileLength = (shape_count*4) + 50;
+	int SHXFileLength = (shapeCount*4) + 50;
 	raf_SHX_stream.writeInt(SHXFileLength);
 
 	if (Message.isDebugOn) {
@@ -1430,8 +1642,8 @@ throws IOException
 	raf_SHX_stream.writeLittleEndianInt(1000);
 
 	// 32-35 shape type
-	raf_SHP_stream.writeLittleEndianInt(shp_type);
-	raf_SHX_stream.writeLittleEndianInt(shp_type);
+	raf_SHP_stream.writeLittleEndianInt(esriShpType);
+	raf_SHX_stream.writeLittleEndianInt(esriShpType);
 
 	// 36-43 min X value for entire coverage area
 	raf_SHP_stream.writeLittleEndianDouble(minX);
@@ -1445,21 +1657,37 @@ throws IOException
 	// 60-67 max Y value
 	raf_SHP_stream.writeLittleEndianDouble(maxY);
 	raf_SHX_stream.writeLittleEndianDouble(maxY);
+	if ( esriShpType == POINT_ZM ) {
+		// min Z value
+		raf_SHP_stream.writeLittleEndianDouble(minZ);
+		raf_SHX_stream.writeLittleEndianDouble(minZ);
+		// max Z value
+		raf_SHP_stream.writeLittleEndianDouble(maxZ);
+		raf_SHX_stream.writeLittleEndianDouble(maxZ);
+	}
+	if ( esriShpType == POINT_ZM ) {
+		// min M value
+		raf_SHP_stream.writeLittleEndianDouble(minM);
+		raf_SHX_stream.writeLittleEndianDouble(minM);
+		// max M value
+		raf_SHP_stream.writeLittleEndianDouble(maxM);
+		raf_SHX_stream.writeLittleEndianDouble(maxM);
+	}
 
-	// 68-99 are unused, so move to byte 100
+	// through 99 are unused, so move to byte 100
 	raf_SHP_stream.seek(100);
 	raf_SHX_stream.seek(100);
 
 	// Write the records for the shapes.  Write the SHP in one loop and the
 	// SHX in another loop.  Hopefully this will increase performance some
-	// by keeping the data together on the disk.  Might want to consider
-	// this when writing the header.
+	// by keeping the data together on the disk.  Might want to consider this when writing the header.
 	//
 	// NOTE - do not need to project again because it was done above when
 	// the content length was determined.
 
 	int j = 0, ntotalpts = 0, p = 0, pos = 0;
 	GRPoint point = null;
+	GRPointZM pointzm = null;
 	GRPolypoint polypoint = null;
 	GRPolygon polygon = null;
 	GRPolygonList polygonlist = null;
@@ -1481,17 +1709,24 @@ throws IOException
 
 		// SHP file Record Body
 		// write shape type
-		raf_SHP_stream.writeLittleEndianInt(shp_type);
+		raf_SHP_stream.writeLittleEndianInt(esriShpType);
 
 		// We don't use this below, so OK to increment here...
 		++shape_count2;
 
-		if ( grshape_type == GRShape.POINT ) { 
+		if ( grShapeType == GRShape.POINT ) { 
 			point = (GRPoint)allShapes.get(i);   
 			raf_SHP_stream.writeLittleEndianDouble(point.x);
 			raf_SHP_stream.writeLittleEndianDouble(point.y);
 		}
-		else if ( grshape_type == GRShape.POLYPOINT ) { 
+		else if ( grShapeType == GRShape.POINT_ZM ) { 
+			pointzm = (GRPointZM)allShapes.get(i);   
+			raf_SHP_stream.writeLittleEndianDouble(pointzm.x);
+			raf_SHP_stream.writeLittleEndianDouble(pointzm.y);
+			raf_SHP_stream.writeLittleEndianDouble(pointzm.z);
+			raf_SHP_stream.writeLittleEndianDouble(pointzm.m);
+		}
+		else if ( grShapeType == GRShape.POLYPOINT ) { 
 			polypoint = (GRPolypoint)allShapes.get(i);   
 			// Write out the values for the bounding box 
 			raf_SHP_stream.writeLittleEndianDouble(polypoint.xmin);
@@ -1509,7 +1744,7 @@ throws IOException
 				raf_SHP_stream.writeLittleEndianDouble(polypoint.pts[p].y);
 			}
 		}
-		else if ( grshape_type == GRShape.POLYLINE ) { 
+		else if ( grShapeType == GRShape.POLYLINE ) { 
 			// Write as a single-polyline list...
 			polyline = (GRPolyline)allShapes.get(i);   
 			// Write out the values for the bounding box 
@@ -1533,7 +1768,7 @@ throws IOException
 				raf_SHP_stream.writeLittleEndianDouble(polyline.pts[p].y);
 			}
 		}
-		else if ( grshape_type == GRShape.POLYLINE_LIST ) { 
+		else if ( grShapeType == GRShape.POLYLINE_LIST ) { 
 			// Write as a polyline list...
 			polylinelist = (GRPolylineList)allShapes.get(i);
 			// Write out the values for the bounding box 
@@ -1567,7 +1802,7 @@ throws IOException
 				}
 			}
 		}
-		else if ( grshape_type == GRShape.POLYGON ) { 
+		else if ( grShapeType == GRShape.POLYGON ) { 
 			// Write as a single-polygon list...
 			polygon = (GRPolygon)allShapes.get(i);   
 			// Write out the values for the bounding box 
@@ -1592,7 +1827,7 @@ throws IOException
 				raf_SHP_stream.writeLittleEndianDouble(polygon.pts[p].y);
 			}
 		}
-		else if ( grshape_type == GRShape.POLYGON_LIST ) {
+		else if ( grShapeType == GRShape.POLYGON_LIST ) {
 			// Write as a polygon list...
 			polygonlist = (GRPolygonList)allShapes.get(i);   
 			// Write out the values for the bounding box 
@@ -1627,7 +1862,7 @@ throws IOException
 		}
 		else {
 			Message.printWarning(2, 
-			"ESRIShapefile.writeSHPAndSHX", "Error recognizing GR shape type " + grshape_type );
+			"ESRIShapefile.writeSHPAndSHX", "Error recognizing GR shape type " + grShapeType );
 			continue;
 		}
 	}

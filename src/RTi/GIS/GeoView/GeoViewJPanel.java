@@ -3736,7 +3736,7 @@ public void zoomToAnnotations ( double zoomBuffer, double zoomBuffer2 )
 		// don't have coordinates...  For now check only the max...
 		GRLimits annotationDataLimits = annotationData.getLimits();
 		// May need to project the annotation limits...
-		GeoProjection annotationProjection = annotationData.getProjection();
+		GeoProjection annotationProjection = annotationData.getLimitsProjection();
 		GeoProjection geoviewProjection = getGeoView().getProjection();
 		boolean doProject = GeoProjection.needToProject ( annotationProjection, geoviewProjection );
 		if ( doProject ) {

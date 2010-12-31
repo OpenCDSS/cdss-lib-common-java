@@ -31,9 +31,9 @@ Data limits for the rendered object (original data units, unprojected).
 private GRLimits __limits = null;
 
 /**
-Projection the rendered object (data units).
+Projection for the rendered object (data units).
 */
-private GeoProjection __projection = null;
+private GeoProjection __limitsProjection = null;
 
 /**
 Construct an instance from primitive data.
@@ -42,15 +42,16 @@ may be complex due to domain data)
 @param object the data object to be rendered (domain object)
 @param label the label to be shown on the map and in the annotation legend
 @param limits the limits of the rendered data, to aid in zooming to the annotations (data units)
-@param projection the projection for the data (and limits), needed to project on the fly
+@param limitsProjection the projection for the data limits, needed to handle zooming (projection on the
+fly for specific objects in the data are handled through GeoRecord information with each object)
 */
 public GeoViewAnnotationData ( GeoViewAnnotationRenderer annotationRenderer, Object object,
-	String label, GRLimits limits, GeoProjection projection )
+	String label, GRLimits limits, GeoProjection limitsProjection )
 {	__annotationRenderer = annotationRenderer;
 	__object = object;
 	__label = label;
 	__limits = limits;
-	__projection = projection;
+	__limitsProjection = limitsProjection;
 }
 
 /**
@@ -87,19 +88,19 @@ public GRLimits getLimits ()
 }
 
 /**
+Return the projection of the data limits.
+@return the projection of the data limits
+*/
+public GeoProjection getLimitsProjection ()
+{	return __limitsProjection;
+}
+
+/**
 Return the object to be rendered.
 @return the object to be rendered
 */
 public Object getObject ()
 {	return __object;
-}
-
-/**
-Return the projection of the data.
-@return the projection of the data
-*/
-public GeoProjection getProjection ()
-{	return __projection;
 }
 
 /**

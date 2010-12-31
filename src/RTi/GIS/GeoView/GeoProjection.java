@@ -47,10 +47,13 @@ import java.util.Vector;
 import RTi.GR.GRArc;
 import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
+import RTi.GR.GRPointZM;
 import RTi.GR.GRPolygon;
 import RTi.GR.GRPolygonList;
 import RTi.GR.GRPolyline;
 import RTi.GR.GRPolylineList;
+import RTi.GR.GRPolylineZM;
+import RTi.GR.GRPolylineZMList;
 import RTi.GR.GRPolypoint;
 import RTi.GR.GRShape;
 import RTi.Util.Message.Message;
@@ -555,8 +558,7 @@ Project a shape from one projection to another.  Note that GRArc radii are not c
 @param from Projection to convert from.
 @param to Projection to convert to.
 @param shape Shape to convert.
-@param reuseShape Indicates whether shape should be reused (doing so saves
-memory resources).
+@param reuseShape Indicates whether shape should be reused (doing so saves memory resources).
 */
 public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRShape shape, boolean reuseShape )
 {	if ( shape.type == GRShape.ARC ) {
@@ -658,6 +660,31 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			return polyline;
 		}
 	}
+	else if ( shape.type == GRShape.POLYLINE_ZM ) {
+		GRPolylineZM polyline = null;
+		if ( reuseShape ) {
+			polyline = (GRPolylineZM)shape;
+			// Need to do this so there will be clean start on getting limits...
+			polyline.limits_found = false;
+		}
+		else {
+			polyline = new GRPolylineZM ( (GRPolylineZM)shape );
+		}
+		for ( int i = 0; i < polyline.npts; i++ ) {
+			from.unProject(polyline.pts[i],true);
+			to.project(polyline.pts[i],true);
+			// This is necessary to recalculate the max/min values, which ultimately get used when
+			// deciding if the shape should be drawn...
+			polyline.setPoint ( i, polyline.pts[i] );
+		}
+		if ( reuseShape ) {
+			polyline = null;
+			return shape;
+		}
+		else {
+			return polyline;
+		}
+	}
 	else if ( shape.type == GRShape.POLYLINE_LIST ) {
 		GRPolylineList polylinelist = null;
 		if ( reuseShape ) {
@@ -683,6 +710,31 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 			return polylinelist;
 		}
 	}
+	else if ( shape.type == GRShape.POLYLINE_ZM_LIST ) {
+		GRPolylineZMList polylinelist = null;
+		if ( reuseShape ) {
+			polylinelist = (GRPolylineZMList)shape;
+			// Need to do this so there will be clean start on getting limits...
+			polylinelist.limits_found = false;
+		}
+		else {
+			polylinelist = new GRPolylineZMList((GRPolylineZMList)shape);
+		}
+		// Loop through the polylines in the list and project each...
+		for ( int i = 0; i < polylinelist.npolylines; i++ ) {
+			projectShape (from, to, polylinelist.polylines[i],true);
+			// This is necessary to recalculate the max/min
+			// values, which ultimately get used when deciding if the shape should be drawn...
+			polylinelist.setPolyline(i, polylinelist.polylines[i] );
+		}
+		if ( reuseShape ) {
+			polylinelist = null;
+			return shape;
+		}
+		else {
+			return polylinelist;
+		}
+	}
 	else if ( shape.type == GRShape.POINT ) {
 		GRPoint point = null;
 		if ( reuseShape ) {
@@ -690,6 +742,24 @@ public static GRShape projectShape ( GeoProjection from, GeoProjection to, GRSha
 		}
 		else {
 			point = new GRPoint ( (GRPoint)shape );
+		}
+		from.unProject(point,true);
+		to.project(point,true);
+		if ( reuseShape ) {
+			point = null;
+			return shape;
+		}
+		else {
+			return point;
+		}
+	}
+	else if ( shape.type == GRShape.POINT_ZM ) {
+		GRPointZM point = null;
+		if ( reuseShape ) {
+			point = (GRPointZM)shape;
+		}
+		else {
+			point = new GRPointZM ( (GRPointZM)shape );
 		}
 		from.unProject(point,true);
 		to.project(point,true);
@@ -810,10 +880,10 @@ public String toString ()
 Un-project coordinates back to latitude and longitude.
 @return the un-projected points.
 @param p Point to un-project to latitude and longitude.
-@param reuse_point Indicates whether the point that is passed in should be
+@param reusePoint Indicates whether the point that is passed in should be
 re-used for the output (doing so saves memory).
 */
-public GRPoint unProject ( GRPoint p, boolean reuse_point )
+public GRPoint unProject ( GRPoint p, boolean reusePoint )
 {	Message.printStatus ( 2, "GeoProjection.unProject",
 	"This method should be defined in the derived class.  Returning the original point." );
 	return p;
