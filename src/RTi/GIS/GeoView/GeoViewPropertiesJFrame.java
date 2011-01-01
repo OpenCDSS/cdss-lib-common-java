@@ -355,7 +355,7 @@ properties in the layer view's symbol, etc. but does not resave the GeoViewProje
 */
 private void applyProperties()
 {	boolean dirty = false; // Indicates if anything has changed.
-	String prop_value = null; // Use as a generic string.
+	String propValue = null; // Use as a generic string.
 
 	if (__layerView == null) {
 		// the properties were opened for the geoview as a whole.
@@ -377,14 +377,14 @@ private void applyProperties()
 
 	// Check the Label panel...
 
-	prop_value = __labelFieldJTextField.getText();
-	if ( !prop_value.equals(symbol.getLabelField()) ) {
-		symbol.setLabelField ( prop_value );
+	propValue = __labelFieldJTextField.getText();
+	if ( !propValue.equals(symbol.getLabelField()) ) {
+		symbol.setLabelField ( propValue );
 		dirty = true;
 	}
-	prop_value = __labelFormatJTextField.getText();
-	if ( !prop_value.equals(symbol.getLabelFormat()) ) {
-		symbol.setLabelFormat ( prop_value );
+	propValue = __labelFormatJTextField.getText();
+	if ( !propValue.equals(symbol.getLabelFormat()) ) {
+		symbol.setLabelFormat ( propValue );
 		dirty = true;
 	}
 	boolean b = __labelSelectedJCheckBox.isSelected();
@@ -410,7 +410,7 @@ private void applyProperties()
 	// Clean up...
 
 	symbol = null;
-	prop_value = null;
+	propValue = null;
 }
 
 /**

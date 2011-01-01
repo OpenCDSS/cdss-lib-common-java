@@ -799,6 +799,35 @@ public void deselectAllShapes ()
 	}
 }
 
+// TODO SAM 2010-12-31 Consider moving to GR package
+/**
+Determine the label position for shapes, but looking at the centroid, etc.
+*/
+private double [] determineLabelXY ( GRShape shape, double[] labelXY )
+{
+	if ( shape.type == GRShape.POLYGON ) {
+		//if ( shape.limits_found ) {
+			labelXY[0] = (shape.xmax + shape.xmin)/2.0;
+			labelXY[1] = (shape.ymax + shape.ymin)/2.0;
+			return labelXY;
+		//}
+		//else {
+		//	return null;
+		//}
+	}
+	else {
+		// Default is middle of limits...
+		//if ( shape.limits_found ) {
+			labelXY[0] = (shape.xmax + shape.xmin)/2.0;
+			labelXY[1] = (shape.ymax + shape.ymin)/2.0;
+			return labelXY;
+		//}
+		//else {
+		//	return null;
+		//}
+	}
+}
+
 /**
 Turns off double-buffering for the specified component.  Used in printing.
 @param c the Component to turn off double-buffering for.
@@ -1118,8 +1147,6 @@ private void drawGridLayerView ( GeoLayerView layerView )
 /**
 Draw the shapes in the GeoLayer associated with the GeoLayerView.
 @param layerView GeoLayerView to draw in current GeoView.
-@param boolean draw_selected_only Indicates that only shapes that are selected
-should be drawn.  This method recursively calls itself with
 */
 private void drawLayerView ( GeoLayerView layerView )
 {	drawLayerView ( layerView, false );
@@ -1128,7 +1155,7 @@ private void drawLayerView ( GeoLayerView layerView )
 /**
 Draw the shapes in the GeoLayer associated with the GeoLayerView.
 @param layerView GeoLayerView to draw in current GeoView.
-@param boolean selected_only Indicates that only shapes that are selected
+@param selectedOnly Indicates that only shapes that are selected
 should be drawn.  Normally this method should be called only by itself, when
 a layer with selected shapes is detected.
 */
@@ -1196,6 +1223,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 	double symbolSizeX = 0.0;
 	double symbolSizeXPrev = 0.0;
 	double symbolSizeY = 0.0;
+	double [] labelXY = new double[2]; // For calculated label position 
 
 	double missing = layerView.getMissingDoubleValue();
 	double replace = layerView.getMissingDoubleReplacementValue();
@@ -1393,14 +1421,6 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 			// For now return and don't do selection, etc...
 			return;
 		}
-	/*
-	REVISIT
-		else if ( shape_type == GeoLayer.NETWORK ) {
-			drawNetworkLayerView ( layer_view );
-			// Fow now return and don't do selection, etc...
-			return;
-		}
-	*/	
 		//JGUIUtil.setWaitCursor(__parent, true);
 		if ( shapeType == GeoLayer.POLYGON ) {
 			fill = true;
@@ -1416,7 +1436,8 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 			ymax = __dataLimits.getMaxY();
 		label = null;
 		Message.printStatus ( 2, routine, __prefix + "Drawing layer \"" + layer.getFileName() + "\" type \""+
-			appType + "\" with layer limits " + layer.getLimits() );
+			appType + "\" with layer limits " + layer.getLimits() + " labelField=\"" + labelField +
+			"\" labelFormat=\"" + labelFormat + "\"");
 		boolean drawLayer = true;
 					// Indicates if a layer should be drawn.  The
 					// only time it should not is if it does not
@@ -1435,7 +1456,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 			propVal = layerView.getPropList().getValue("Number");
 			if ( propVal != null ) {
 				propVal = __project.getPropList().getValue (
-						"GeoLayerView " + StringUtil.atoi(propVal) + ".SelectColor" );
+					"GeoLayerView " + StringUtil.atoi(propVal) + ".SelectColor" );
 			}
 			if ( propVal == null ) {
 				// Try getting the color from the global select color.
@@ -1627,14 +1648,13 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 					symbolSizeX *= pct;
 					symbolSizeY *= pct;
 	
-	/*
-	Message.printStatus(1, "", "Max: " + symbol_data[0] 
-		+ "  Symbol_max: " + symbol_max);
-	Message.printStatus(1, "", "Size: " + symbol_size_x);
-	Message.printStatus(1, "", "Size: " + symbol_size_x);
-	*/
+					/*
+					Message.printStatus(1, "", "Max: " + symbol_data[0] + "  Symbol_max: " + symbol_max);
+					Message.printStatus(1, "", "Size: " + symbol_size_x);
+					Message.printStatus(1, "", "Size: " + symbol_size_x);
+					*/
 	
-					// there shouldn't be negative data (teacups measure capacity, after all),
+					// There shouldn't be negative data (teacups measure capacity, after all),
 					// so mark in the alternate color if it happens.
 	
 					if (symbolData[2] >= 0) {
@@ -1689,6 +1709,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 				if ( Message.isDebugOn && (label != null) ) {
 					Message.printDebug ( 10, routine, "Retrieved " + appType + " label \"" + label + "\"");
 				}
+				//Message.printStatus ( 2, routine, "Retrieved " + appType + " label \"" + label + "\"");
 				if (label != null) {
 					label = label.trim();
 				}
@@ -1698,10 +1719,10 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 				pt = (GRPoint)shape;
 				// Need to handle the symbol here since a point does not transparently know...
 				if ( label == null ) {
-	//Message.printStatus(1, "", "Style: " + symbol_style + "  x: " + pt.x
-	//+ " y: " + pt.y + "  sizex: " + symbol_size_x + "  sizey: " + symbol_size_y
-	//+ " offx: " + symbol_offset_x + " offy: " + symbol_offset_y + " data: "
-	//+ symbol_data + "  Pos: " + positioning);
+					//Message.printStatus(1, "", "Style: " + symbol_style + "  x: " + pt.x
+					//+ " y: " + pt.y + "  sizex: " + symbol_size_x + "  sizey: " + symbol_size_y
+					//+ " offx: " + symbol_offset_x + " offy: " + symbol_offset_y + " data: "
+					//+ symbol_data + "  Pos: " + positioning);
 					// Just the symbol...
 					setAntiAlias(__antiAliased);
 					GRDrawingAreaUtil.drawSymbol (__grda, 
@@ -1765,11 +1786,24 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 				// graphics context (line width, color, etc.)...
 				if ( drawLayer ) {
 					//Message.printStatus(2, routine, "Drawing shape with drawShape()...");
+					if ( (label != null) && (label.length() > 0) ) {
+						__grda.setColor ( color );
+					}
 					if ( isTransparent ) {
 						GRDrawingAreaUtil.drawShape( __grda, shape, fill, transparency);
 					}
 					else {	
 						GRDrawingAreaUtil.drawShape ( __grda, shape, fill);
+					}
+					if ( !__isReferenceGeoview && (label != null) && (label.length() > 0) ) {
+						double [] labelXY2 = determineLabelXY ( shape, labelXY );
+						//Message.printStatus(2, routine, "label coordinates=" + labelXY2[0] + " " + labelXY2[1] +
+						//	" label=\"" + label + "\" position=" + positioning );
+						if ( labelXY2 != null ) {
+							__grda.setColor(GRColor.black);
+							GRDrawingAreaUtil.drawText(__grda, label, labelXY2[0], labelXY2[1], 0,
+								positioning );
+						}
 					}
 				}
 			}
@@ -1825,18 +1859,18 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly )
 	}
 	// Clean up...
 
-	String prop_val = layerView.getPropList().getValue("SelectColor");
-	if ( (prop_val == null) && (__project != null) && (__project.getPropList() != null) ) {
+	String propVal = layerView.getPropList().getValue("SelectColor");
+	if ( (propVal == null) && (__project != null) && (__project.getPropList() != null) ) {
 		// Get the select color from the project property.  This is
 		// normally set in the GeoView project.
-		prop_val = layerView.getPropList().getValue("Number");
-		if ( prop_val != null ) {
-			prop_val = __project.getPropList().getValue (
-				"GeoLayerView " + StringUtil.atoi(prop_val) + ".SelectColor" );
+		propVal = layerView.getPropList().getValue("Number");
+		if ( propVal != null ) {
+			propVal = __project.getPropList().getValue (
+				"GeoLayerView " + StringUtil.atoi(propVal) + ".SelectColor" );
 		}
-		if ( prop_val == null ) {
+		if ( propVal == null ) {
 			// Try getting the color from the global select color.
-			prop_val = __project.getPropList().getValue ( "GeoView.SelectColor" );
+			propVal = __project.getPropList().getValue ( "GeoView.SelectColor" );
 		}
 	}
 }
@@ -1948,10 +1982,13 @@ Get a string to use to label a feature.
 private String getShapeLabel ( GRShape shape, int labelSource, int labelFieldNumbers[], String fieldFormat,
 	GeoLayer layer, DataTable attributeTable )
 {	String label = null;
-	if ( (shape.type != GRShape.POINT) || (shape.type == GRShape.POINT_ZM) ) {
+	//Message.printStatus(2, "", "Getting shape label for labelSource=" + labelSource +
+	//	" labelFieldNumbers=" + labelFieldNumbers + " fieldformat=\"" + fieldFormat + "\"" );
+	/*
+	if ( (shape.type != GRShape.POINT) && (shape.type == GRShape.POINT_ZM) ) {
 		// Not labeling anything other than points right now.  Fill this out later...
 		return null;
-	}
+	}*/
 	// Else, use the label_source to decide how to get label (should check
 	// for this case in calling code to increase performance some)...
 	if ( labelSource == __LABEL_NODE ) {
