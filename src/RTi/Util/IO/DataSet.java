@@ -317,10 +317,10 @@ public DataSetComponent getComponentForComponentType ( int type )
 }
 
 /**
-Return the data components Vector.
-@return the data components Vector.
+Return the list of data components.
+@return the list of data components.
 */
-public List getComponents ()
+public List<DataSetComponent> getComponents ()
 {	return __components;
 }
 
@@ -328,12 +328,12 @@ public List getComponents ()
 Return the data components Vector for component that are groups.
 @return the data components Vector for component that are groups.
 */
-public List getComponentGroups ()
+public List<DataSetComponent> getComponentGroups ()
 {	int size = __components.size();
-	List v = new Vector();
+	List<DataSetComponent> v = new Vector();
 	DataSetComponent comp = null;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.get(i);
+		comp = __components.get(i);
 		if ( comp.isGroup() ) {
 			v.add ( comp );
 		}
