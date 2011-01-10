@@ -49,6 +49,14 @@ import javax.swing.JTextField;
 
 import RTi.Util.String.StringUtil;
 
+// TODO SAM 2011-01-09 Need to add validator to each filter, via an interface.
+// * Can color code entry field
+// * When does validation occur so as to not be irritating
+// * Is it passive with tooltip or active with popup?
+
+// TODO SAM 2011-01-09 Need a way to limit the criteria where all choices do not work, for example, if
+// "Matches" is the only string choice.
+
 /**
 This class provides a way to define an input filter, for example for use in a
 GUI as a "[field] [constraint] [input] choice.  [field] is the data field 
@@ -253,7 +261,7 @@ the choices will also be editable (an editable JTextField part of the JComboBox 
 public InputFilter ( String whereLabel, String whereInternal,
 	int inputType, List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {
-	this(whereLabel, whereInternal, "", inputType, choiceLabels, choicesInternal, areChoicesEditable);
+	this(whereLabel, whereInternal, "", inputType, choiceLabels, choicesInternal, areChoicesEditable, null);
 }
 
 /**
@@ -275,7 +283,34 @@ displayed to the user.  If null, the user will not be shown a list of choices.
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
 public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
-	List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
+    List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
+{   
+    this(whereLabel, whereInternal, whereInternal2, inputType, choiceLabels, choicesInternal,
+        areChoicesEditable, null);
+}
+
+/**
+Construct an input filter.
+@param whereLabel A string to be listed in a choice to tell the user what input parameter is being filtered.
+A blank string can be specified to indicate that the filter can be disabled.
+@param whereInternal The internal value that can be used to perform a query.
+For example, set to a database table and column ("table.column").  This can be
+set to null or empty if not used by other software.
+@param whereInternal2 the internal value that can be used if in certain 
+cases a different field must be used for performing a query.  For instance, if
+a database can be used to query with SQL or to query against a database view.
+It can be set to null or an empty string if it won't be used by software.
+@param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
+@param choiceLabels A list of String containing choice values to be
+displayed to the user.  If null, the user will not be shown a list of choices.
+@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param areChoicesEditable If true, and a non-null list of choices is provided,
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
+@param inputComponentToolTipText tool tip text for the input component.
+*/
+public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
+	List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable,
+	String inputComponentToolTipText )
 {	__whereLabel = whereLabel;
 	__whereInternal = whereInternal;
 	__whereInternal2 = whereInternal2;
@@ -283,6 +318,8 @@ public InputFilter ( String whereLabel, String whereInternal, String whereIntern
 	__choiceLabelList = choiceLabels;
 	__choiceInternalList = choicesInternal;
 	__areChoicesEditable = areChoicesEditable;
+	//__toolTipText = toolTipText;
+	setInputComponentToolTipText(inputComponentToolTipText);
 }
 
 /**
