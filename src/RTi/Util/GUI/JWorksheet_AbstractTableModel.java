@@ -38,8 +38,7 @@ import javax.swing.table.AbstractTableModel;
 /**
 This is the class from which all the classes that will be used as 
 TableModels in a JWorksheet should be used.  It implements a few core 
-data members that all those classes should have, including some 
-sorting support. 
+data members that all those classes should have, including some sorting support. 
 <p>
 TODO (JTS - 2006-05-25) If I could do this over, I would combine this table model with 
 AbstractRowTableModel, in order to simplify things.  I don't see a very 
@@ -123,8 +122,7 @@ public void clear() {
 }
 
 /**
-Removes a row's editability override and lets the normal cell editing rules
-take effect.
+Removes a row's editability override and lets the normal cell editing rules take effect.
 @param row the row for which to remove the cell editability.
 */
 public void clearOverrideCellEdit(int row) {
@@ -191,10 +189,8 @@ one row depend on the values of the rows before them (e.g., Time Series dates
 or running averages).  When a consecutive read is made, the table model is 
 guaranteed that the previous row that was operated on was either the current
 row (the column could be different) or the previous row.<p>
-The default implementation of this method simply pipes through the call to
-getValueAt(row, column).<p>
-<b>Note:</b> if a class overrides this method, it should also override
-startNewConsecutiveRead().
+The default implementation of this method simply pipes through the call to getValueAt(row, column).<p>
+<b>Note:</b> if a class overrides this method, it should also override startNewConsecutiveRead().
 @param row the row from which to read data
 @param column the column from which to read data
 @return the data read from the given row and column.
@@ -232,6 +228,15 @@ public void insertRowAt(Object o, int pos) {
 		_data.add(pos, o);
 	}
 	_rows++;
+}
+
+/**
+Return the sort order array.  If the data in the table have been sorted, this array
+is needed to access to original data in the proper order.
+*/
+public int [] getSortOrder ()
+{
+    return _sortOrder;
 }
 
 /**
@@ -314,8 +319,7 @@ Sets the sorted order for the records to be displayed in.  This method is in
 this base class for all the table models used in a JWorksheet so that the 
 base JWorksheet can be sure that all of its models will have this method.
 @param sortOrder the sorted order in which records should be displayed.  
-The record that would normally go at position X will now be placed at 
-position 'sortOrder[x]'
+The record that would normally go at position X will now be placed at position 'sortOrder[x]'
 */
 public void setSortedOrder(int[] sortOrder) {
 	_sortOrder = sortOrder;
