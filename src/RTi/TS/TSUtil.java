@@ -8764,7 +8764,7 @@ Find a time series in a list.  The indicated field is searched and a case-insens
 @param direction If >= 0, search forward.  If < 0, search backward.
 @return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	List<TS> tslist, String id, String field, int sequence_number, int direction )
+public static int indexOf (	List<? extends TS> tslist, String id, String field, int sequence_number, int direction )
 {	if ( tslist == null ) {
 		return -1;
 	}
