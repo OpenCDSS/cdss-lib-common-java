@@ -46,7 +46,9 @@ Base name for data set, used to provide default file names when creating new fil
 private String __basename = "";
 
 /**
-List of data components.
+List of data components in the data set.  Each component is a type that is described in the
+lookup arrays for the data set, and has data for the component.  Components are hierarchical and
+therefore the top level components will contain groups.
 */
 private List<DataSetComponent> __components = null;
 
@@ -325,8 +327,30 @@ public List<DataSetComponent> getComponents ()
 }
 
 /**
-Return the data components Vector for component that are groups.
-@return the data components Vector for component that are groups.
+Return the data components list for components in the specified group.
+@return the data components list for components in the specified group.
+*/
+public List<DataSetComponent> getComponentsForGroup ( DataSetComponent groupComp )
+{	List<DataSetComponent> componentsInGroup = new Vector();
+	if ( (groupComp == null) || !groupComp.isGroup() ) {
+		return componentsInGroup;
+	}
+	for ( int i = 0; i < _component_names.length; i++ ) {
+		if ( i == groupComp.getComponentType() ) {
+			// Don't compare to self
+			continue;
+		}
+		int groupNum = _component_group_assignments[i];
+		if ( (groupNum >= 0) && (groupNum == groupComp.getComponentType()) ) {
+			componentsInGroup.add ( getComponentForComponentType(i) );
+		}
+	}
+	return componentsInGroup;
+}
+
+/**
+Return the data components list for component that are groups.
+@return the data components list for component that are groups.
 */
 public List<DataSetComponent> getComponentGroups ()
 {	int size = __components.size();
@@ -403,8 +427,7 @@ to determine the group to add input components to when reading an input file.
 @return the component group type for the component or -1 if a component group cannot be determined.
 */
 public int lookupComponentGroupTypeForComponent ( int component_type )
-{	if (	(component_type < 0) ||
-		(component_type >= _component_group_assignments.length) ) {
+{	if ( (component_type < 0) || (component_type >= _component_group_assignments.length) ) {
 		return -1;
 	}
 	else {
@@ -802,13 +825,11 @@ Return a string representation of the data set (e.g., for debugging).
 @return a string representation of the data set.
 */
 public String toString ()
-{ 	int size = __components.size();
-	DataSetComponent comp = null;
+{ 	List<DataSetComponent> componentList = getComponents();
 	List v;
 	int size2;
 	StringBuffer buffer = new StringBuffer ();
-	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.get(i);
+	for ( DataSetComponent comp: componentList ) {
 		buffer.append ( "\nDataSetComponent:  " );
 		if ( comp == null ) {
 			buffer.append ( "null\n" );
@@ -820,6 +841,7 @@ public String toString ()
 			buffer.append ( "    Is dirty:   "+comp.isDirty()+"\n");
 			buffer.append ( "    Is visible: "+comp.isDirty()+"\n");
 		}
+		// TODO SAM 2011-01-17 This does not seem right - mixing data (sub) components and data lists.
 		if ( comp.isGroup() ) {
 			v = (List)comp.getData();
 			size2 = 0;
@@ -863,20 +885,25 @@ throws IOException
 {	String [] comment_str = { "#" };
 	String [] ignore_comment_str = { "#>" };
 	PrintWriter out = null;
-	String full_filename_prev = IOUtil.getPathUsingWorkingDir ( filename_prev );
-	if ( !StringUtil.endsWithIgnoreCase(filename,".xml") ) {
-		filename = filename + ".xml";
+	try {
+		String full_filename_prev = IOUtil.getPathUsingWorkingDir ( filename_prev );
+		if ( !StringUtil.endsWithIgnoreCase(filename,".xml") ) {
+			filename = filename + ".xml";
+		}
+		String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
+		out = IOUtil.processFileHeaders ( full_filename_prev, full_filename, 
+			new_comments, comment_str, ignore_comment_str, 0 );
+		if ( out == null ) {
+			throw new IOException ( "Error writing to \"" + full_filename + "\"" );
+		}
+		writeDataSetToXMLFile ( dataset, out );
 	}
-	String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
-	out = IOUtil.processFileHeaders ( full_filename_prev, full_filename, 
-		new_comments, comment_str, ignore_comment_str, 0 );
-	if ( out == null ) {
-		throw new IOException ( "Error writing to \"" + full_filename + "\"" );
+	finally {
+		if ( out != null ) {
+			out.flush();
+			out.close();
+		}
 	}
-	writeDataSetToXMLFile ( dataset, out );
-	out.flush();
-	out.close();
-	out = null;
 }
 
 /**
