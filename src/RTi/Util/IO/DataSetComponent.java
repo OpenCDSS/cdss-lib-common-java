@@ -41,7 +41,7 @@ public class DataSetComponent
 /**
 Indicate how the list for a component group is created.
 */
-// TODO - need to figure out generic this can be.
+// TODO - need to figure out generic this can be, also need enumeration and "NA"
 public final static String LIST_SOURCE_PRIMARY_COMPONENT = "PrimaryComponent";
 public final static String LIST_SOURCE_NETWORK = "Network";
 public final static String LIST_SOURCE_LISTFILE = "ListFile";
@@ -129,7 +129,7 @@ private DataSet __dataset = null;
 A list of String used to store data check results, suitable for printing to an output
 file header, etc.  See the __is_output flag to help indicate when check results should be created.
 */
-private List __data_check_results = null;
+private List<String> __data_check_results = null;
 
 /**
 Construct the data set component and set values to empty strings and null.
