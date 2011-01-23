@@ -538,27 +538,27 @@ Add a list of time series to another.  The receiving time series description and
 genesis information are updated to reflect the addition.
 @return The sum of the time series.
 @param ts Time series to be added to.
-@param ts_to_add List of time series to add to "ts".
+@param tsToAddList List of time series to add to "ts".
 @param missing_flag See overloaded version for description.
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, List ts_to_add, int missing_flag )
+public static TS add ( TS ts, List<? extends TS> tsToAddList, int missing_flag )
 throws Exception
 {	String message, routine = "TSUtil.add";
 
 	// Call the main overload routine...
-	if ( ts_to_add == null ) {
+	if ( tsToAddList == null ) {
 		message = "Null time series to add.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
-	int size = ts_to_add.size();
+	int size = tsToAddList.size();
 	double [] factor = new double[size];
 	for ( int i = 0; i < size; i++ ) {
 		factor[i] = 1.0;
 	}
 	try {
-		return add ( ts, ts_to_add, factor, missing_flag );
+		return add ( ts, tsToAddList, factor, missing_flag );
 	}
 	catch ( TSException e ) {
 		// Just rethrow...
@@ -571,7 +571,7 @@ Add a list of time series to another.  The receiving time series description and
 genesis information are updated to reflect the addition.
 @return The sum of the time series.
 @param ts Time series to be added to.
-@param ts_to_add List of time series to add to "ts".
+@param tsToAddList List of time series to add to "ts".
 @param factor Used by subtract() or directly.  Specifies the factors to multiply
 each time series by before adding.  The factors are applied after units conversion.
 @param missing_flag Handle missing data as follows:
@@ -586,18 +586,18 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 </pre>
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static TS add ( TS ts, List ts_to_add, double factor[], int missing_flag )
+public static TS add ( TS ts, List<? extends TS> tsToAddList, double factor[], int missing_flag )
 throws TSException, Exception
-{	String	message, routine = "TSUtil.add(TS,Vector,double[])";
+{	String message, routine = "TSUtil.add(TS,Vector,double[])";
 	int	dl = 20, nmissing = 0;
-	double	add = 0.0, mult = 1.0;
+	double add = 0.0, mult = 1.0;
 	TS	tspt = null;
 
 	boolean missing_indicators[] = null;
 
 	// Make sure that the pointers are OK...
 
-	if ( ts_to_add == null ) {
+	if ( tsToAddList == null ) {
 		message = "NULL time series pointer for TS list";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
@@ -613,7 +613,7 @@ throws TSException, Exception
 	// may want to overload to allow a period to be added.
 
 	try {
-	if ( !intervalsMatch(ts_to_add, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
+	if ( !intervalsMatch(tsToAddList, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
 		message = "All time series in the list are not of interval " +
 		TimeInterval.getName(ts.getDataIntervalBase()) + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
@@ -651,7 +651,7 @@ throws TSException, Exception
 
 	// Set starting and ending time for time loop based on period of "tsadd"...
 
-	int ntslist = ts_to_add.size();
+	int ntslist = tsToAddList.size();
 	String req_units = ts.getDataUnits ();
 	DataUnitsConversion conversion = null;
 	int interval_base = ts.getDataIntervalBase();
@@ -674,7 +674,7 @@ throws TSException, Exception
 	int timestep_index = 0;	 // Used with set_to_missing
 	for ( int i = 0; i < ntslist; i++ ) {
 		nmissing = 0;
-		tspt = (TS)ts_to_add.get(i);
+		tspt = (TS)tsToAddList.get(i);
 		if ( tspt == null ) {
 			message = "Trouble getting [" + i + "]-th time series in list";
 			Message.printWarning ( 3, routine, message );
@@ -796,7 +796,8 @@ throws TSException, Exception
 					    tspt.getIdentifierString() + "\" to this time series (#missing=" + nmissing + ")." );
 				}
 			}
-			else {	if ( factor[i] != -1.0 ) {
+			else {
+			    if ( factor[i] != -1.0 ) {
 					    ts.setDescription ( ts.getDescription() + " minus " + StringUtil.formatString(
 					        -factor[i],"%.3f") + "*" + tspt.getDescription () );
 					ts.addToGenesis ( "Subtracted \"" + StringUtil.formatString(factor[i], "%.3f") + "*" +
@@ -8939,8 +8940,8 @@ public static boolean intervalsMatch ( List<TS> ts )
 @param interval_base Data interval base (e.g., TimeInterval.HOUR).
 @param interval_mult Data interval multiplier.
 */
-public static boolean intervalsMatch ( List<TS> ts, int interval_base, int interval_mult )
-{	TS	tspt = null;
+public static boolean intervalsMatch ( List<? extends TS> ts, int interval_base, int interval_mult )
+{	TS tspt = null;
 
 	if ( ts == null ) {
 		return false;
@@ -11002,8 +11003,7 @@ dates of the time series are used.  This is a utility routine mainly used by oth
 @param ts Time series to convert data to array format.
 @param startDate Date corresponding to the first date of the returned array.
 @param endDate Date corresponding to the last date of the returned array.
-@param monthIndices Months of interest (1=Jan, 12=Dec).  If null or an empty
-array, process all months.
+@param monthIndices Months of interest (1=Jan, 12=Dec).  If null or an empty array, process all months.
 */
 public static double[] toArray ( TS ts, DateTime startDate, DateTime endDate, int [] monthIndices )
 {
