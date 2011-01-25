@@ -505,10 +505,10 @@ Indicate whether any components in the data set are dirty (data have been modifi
 public boolean isDirty ()
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	List v;
+	List<DataSetComponent> v;
 	int size2;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.get(i);
+		comp = __components.get(i);
 		if ( comp.isDirty() ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1, "", "Component [" + i + "] " + comp.getComponentName()+ " is dirty." );
@@ -517,16 +517,16 @@ public boolean isDirty ()
 		}
 		// If the component is a group and it was not dirty (above), check the sub-components...
 		if ( comp.isGroup() ) {
-			v = (List)comp.getData();
+			v = (List<DataSetComponent>)comp.getData(); // Group data is the list of components in the group
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.get(j);
+				comp = v.get(j);
 				if ( comp.isDirty() ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, "", "Croup sub-component " +
+						Message.printDebug ( 1, "", "Group sub-component " +
 						comp.getComponentName() + " is dirty." );
 					}
 					return true;
