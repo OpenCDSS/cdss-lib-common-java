@@ -264,13 +264,13 @@ Enable a list of components.  This method can be called, for example,
 when a data object is selected from a list of objects (e.g., in a JList or JWorksheet).
 @param comp an array of all the JComponents on the form that can be
 enabled when something is selected.
-@param comp_never_enabled an array of the components in comp[] that should 
+@param compNeverEnabled an array of the components in comp[] that should 
 never be editable.  These components are disabled after ther others are
 enabled.  Specify as -1 to ignore.
 @param editable Indicates whether the form is editable or not.  If the form is
 not editable, then some components may be disabled to prevent input.
 */
-public static void enableComponents ( JComponent[] comp, int[] comp_never_enabled, boolean editable )
+public static void enableComponents ( JComponent[] comp, int[] compNeverEnabled, boolean editable )
 {	for (int i = 0; i < comp.length; i++) {
 		if (comp[i] instanceof JTextComponent) {
 			if (editable) {
@@ -295,16 +295,16 @@ public static void enableComponents ( JComponent[] comp, int[] comp_never_enable
 		    setEnabled ( comp[i], true );
 		}
 	}
-	if ( comp_never_enabled != null ) {
-		for (int i = 0; i < comp_never_enabled.length; i++) {
-			if ( comp_never_enabled[i] >= 0 ) {
-				if ( comp[comp_never_enabled[i]] instanceof JTextComponent ) {
+	if ( compNeverEnabled != null ) {
+		for (int i = 0; i < compNeverEnabled.length; i++) {
+			if ( compNeverEnabled[i] >= 0 ) {
+				if ( comp[compNeverEnabled[i]] instanceof JTextComponent ) {
 					// Text is hard to read when disabled so just set not editable...
-					((JTextComponent)comp[comp_never_enabled[i]]).setEditable(false);
+					((JTextComponent)comp[compNeverEnabled[i]]).setEditable(false);
 				}
 				else {
 				    // All other components...
-					setEnabled (comp[comp_never_enabled[i]], false );
+					setEnabled (comp[compNeverEnabled[i]], false );
 				}
 			}
 		}
