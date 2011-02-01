@@ -8521,7 +8521,7 @@ do not overlap, return the maximum.
 @param por_flag Use a *_POR flag.
 @exception RTi.TS.TSException If the period cannot be determined from the time series.
 */
-public static TSLimits getPeriodFromTS ( List<TS> ts, int por_flag )
+public static TSLimits getPeriodFromTS ( List<? extends TS> ts, int por_flag )
 throws TSException
 {	String 	message, routine="TSUtil.getPeriodFromTS";
 	TS tsPtr = null;
@@ -8752,7 +8752,7 @@ case-insensitive query is made.  The sequence number is not used in the search.
 @param direction If >= 0, search forward.  If < 0, search backward.
 @return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	List<TS> tslist, String id, String field, int direction )
+public static int indexOf (	List<? extends TS> tslist, String id, String field, int direction )
 {	return indexOf ( tslist, id, field, -1, direction );
 }
 
