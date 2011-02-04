@@ -370,33 +370,6 @@ resulting time series have the maximum (combined period),
 minimum (overlapping period), or original period (of the first time series).
 */
 public final static int AVAILABLE_POR = 2;
-
-/**
-Used with createRunningAverageTS.
-Create a running average by averaging values from both sides of the time step, inclusive.
-*/
-public final static int RUNNING_AVERAGE_CENTER = 1;
-/**
-Create a running average by averaging values from the same time step for each of
-the previous N -1 years and the current year.
-*/
-public final static int RUNNING_AVERAGE_NYEAR = 2;
-/**
-Create a running average by averaging values prior to the current time step, not inclusive of the current point.
-*/
-public final static int RUNNING_AVERAGE_PREVIOUS = 3;
-/**
-Create a running average by averaging values prior to the current time step, inclusive of the current point.
-*/
-public final static int RUNNING_AVERAGE_PREVIOUS_INCLUSIVE = 4;
-/**
-Create a running average by averaging values after to the current time step, not inclusive of the current point.
-*/
-public final static int RUNNING_AVERAGE_FUTURE = 5;
-/**
-Create a running average by averaging values after to the current time step, inclusive of the current point.
-*/
-public final static int RUNNING_AVERAGE_FUTURE_INCLUSIVE = 6;
 						
 /**
 Ignore missing data when adding, subtracting, etc.
@@ -2813,175 +2786,6 @@ throws TSException
 	// Add to the genesis...
 
 	newts.addToGenesis ( "Created POR TS from original data." );
-	return newts;
-}
-
-/**
-Create a running average time series where the time series value is the
-average of 1 or more values from the original time series.  The description is
-appended with ", centered [N] running average" or ", N-year running average".
-@param ts Time series for which to create the period of record time series.
-@param n N for N-year and bracket on each side for centered running average. 
-@param type Type of running average.  RUNNING_AVERAGE_CENTER will average n*2+1
-values, centered on each point.  RUNNING_AVERAGE_NYEAR will average n years of
-data, including the current point (one value per year).
-@return The new running average time series, which is a copy of the original metadata
-but with data being the running average.
-@exception RTi.TS.TSException if there is a problem creating and filling the new time series.
-*/
-public static TS createRunningAverageTS ( TS ts, int n, int type )
-throws TSException, IrregularTimeSeriesNotSupportedException
-{	String	genesis = "", message, routine = "TSUtil.createRunningAverageTS";
-	TS	newts = null;
-
-	if ( ts == null ) {
-		message = "Input time series is null.";
-		Message.printWarning ( 2, routine, message );
-		throw new TSException ( message );
-	}
-
-	if ( (type == RUNNING_AVERAGE_NYEAR) ) {
-		if ( n <= 1 ) {
-			// Just return the original time series...
-			return ts;
-		}
-	}
-    else if ( n == 0 ) {
-        // Just return the original time series...
-        return ts;
-    }
-
-	// Get a new time series of the proper type...
-    
-    if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
-        message = "Converting irregular time series to running average is not supported.";
-        Message.printWarning ( 2, routine, message );
-        throw new IrregularTimeSeriesNotSupportedException ( message );
-    }
-
-	int interval_base = ts.getDataIntervalBase();
-	int interval_mult = ts.getDataIntervalMult();
-    String newinterval = "" + interval_mult + TimeInterval.getName(interval_base);
-    try {
-        newts = newTimeSeries ( newinterval, false );
-    }
-    catch ( Exception e ) {
-        message = "Unable to create new time series of interval \"" + newinterval + "\"";
-        Message.printWarning ( 3, routine, message );
-        throw new TSException ( message );
-    }
-	newts.copyHeader ( ts );
-	newts.setDate1 ( ts.getDate1() );
-	newts.setDate2 ( ts.getDate2() );
-	newts.allocateDataSpace();
-
-	// Now loop and fill the time series...
-
-	DateTime date = new DateTime ( ts.getDate1() );
-	DateTime end = new DateTime ( ts.getDate2() );
-
-	int needed_count = 0, offset1 = 0, offset2 = 0;
-	if ( type == RUNNING_AVERAGE_CENTER ) {
-        genesis = "bracket=" + n + " centered";
-		// Offset brackets the date...
-		offset1 = -1*n;
-		offset2 = n;
-		needed_count = n*2 + 1;
-	}
-    else if ( type == RUNNING_AVERAGE_FUTURE ) {
-        genesis = "bracket=" + n + " future (not inclusive)";
-        // Offset brackets the date...
-        offset1 = 1;
-        offset2 = n;
-        needed_count = n;
-    }
-    else if ( type == RUNNING_AVERAGE_FUTURE_INCLUSIVE ) {
-        genesis = "bracket=" + n + " future (inclusive)";
-        // Offset brackets the date...
-        offset1 = 0;
-        offset2 = n;
-        needed_count = n + 1;
-    }
-	else if ( type == RUNNING_AVERAGE_NYEAR ) {
-        genesis = n + "-year";
-		// Offset is to the left but remember to include the time step itself...
-		offset1 = -1*(n - 1);
-		offset2 = 0;
-		needed_count = n;
-	}
-    else if ( type == RUNNING_AVERAGE_PREVIOUS ) {
-        genesis = "bracket=" + n + " previous (not inclusive)";
-        // Offset brackets the date...
-        offset1 = -n;
-        offset2 = -1;
-        needed_count = n;
-    }
-    else if ( type == RUNNING_AVERAGE_PREVIOUS_INCLUSIVE ) {
-        genesis = "bracket=" + n + " previous (inclusive)";
-        // Offset brackets the date...
-        offset1 = -n;
-        offset2 = 0;
-        needed_count = n + 1;
-    }
-
-	double sum;
-	DateTime value_date = new DateTime(newts.getDate1());  // DateTime with precision of data
-	int	count, i;
-	double value = 0.0;
-	double missing = ts.getMissing();
-	for ( ;	date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
-		if ( !ts.isDataMissing(ts.getDataValue(date) ) ) {
-			// Initialize the date for looking up values to the initial offset from the loop date...
-			value_date.setDate ( date );
-            // Offset from the current date/time to the start of the bracket
-			if ( type == RUNNING_AVERAGE_NYEAR ) {
-                value_date.addInterval ( TimeInterval.YEAR, offset1 );
-            }
-			else {
-                value_date.addInterval ( interval_base, offset1*interval_mult );
-			}
-			// Now loop through the intervals in the bracket and get the right values to average...
-			count = 0;
-			sum = 0.0;
-			for ( i = offset1; i <= offset2; i++ ) {
-			    if ( (value_date.getMonth() == 2) && (value_date.getDay() == 29) &&
-			        !TimeUtil.isLeapYear(value_date.getYear()) ) {
-			        // The Feb 29 that we are requesting in another year does not exist.  Set to missing
-			        // This will result in the final output also being missing.
-			        value = missing;
-			    }
-			    else {
-			        // Normal data access.
-		            value = ts.getDataValue ( value_date );
-			    }
-				if ( ts.isDataMissing(value) ) {
-					// Break.  Below we detect whether we have the right count to do the average...
-					break;
-				}
-				else {
-                    // Add the value to the sum (which has been initialized to zero above...
-					sum += value;
-					++count;
-				}
-				// Reset the dates for the next loop...
-				if ( type == RUNNING_AVERAGE_NYEAR ) {
-                    value_date.addInterval ( TimeInterval.YEAR, 1 );
-                }
-				else {
-                    value_date.addInterval ( interval_base, interval_mult );
-				}
-			}
-			// Now set the data value to the computed average...
-			if ( count == needed_count ) {
-				newts.setDataValue(date,sum/count);
-			}
-		}
-	}
-
-	// Add to the genesis...
-
-	newts.addToGenesis ( "Created " + genesis + " running average time series from original data" );
-	newts.setDescription ( newts.getDescription() + ", " + genesis + " run ave" );
 	return newts;
 }
 
@@ -8728,13 +8532,13 @@ are created to protect against changing the original dates.
 */
 public static TSLimits getValidPeriod (	TS ts, DateTime suggested_start, DateTime suggested_end )
 {	TSLimits dates = new TSLimits();
-	if ( suggested_start == null ) {
-		dates.setDate1( new DateTime(ts.getDate1()) );	
+	if ( (suggested_start == null) && (ts != null) ) {
+        dates.setDate1( new DateTime(ts.getDate1()) );
 	}
 	else {
 	    dates.setDate1 ( new DateTime(suggested_start) );
 	}
-	if ( suggested_end == null ) {
+	if ( (suggested_end == null) && (ts != null) ) {
 		dates.setDate2( new DateTime(ts.getDate2()) );
 	}
 	else {
@@ -10825,14 +10629,15 @@ throws Exception
 	}
 }
 
+// TODO SAM 2011-01-23 Need to evaluate how alias fits in
 /**
 Sort a list of time series alphabetically by the time series identifier string.
 This method may be expanded in the future to include additional sort options.
 Null identifiers are treated as blank strings.
-@param tslist Vector of TS to sort, each having a valid TSIdent.
-@return the sorted Vector of time series.  If the Vector is null or zero size,
-the original Vector is returned.  Otherwise, a new Vector instance is returned.
-The original TS data are included in the Vector (not copies of the original data).
+@param tslist list of TS to sort, each having a valid TSIdent.
+@return the sorted list of time series.  If the list is null or zero size,
+the original list is returned.  Otherwise, a new list instance is returned.
+The original TS data are included in the list (not copies of the original data).
 */
 public static List<TS> sort ( List<TS> tslist )
 {	if ( (tslist == null) || (tslist.size() == 0) ) {
