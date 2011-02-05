@@ -1696,7 +1696,7 @@ throws Exception
                 Message.printStatus ( 2, routine, "Column [" + icol +
                     "] type is double as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
-                    count_blank[icol] + "blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
+                    count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
     	    else {
     	        // Based on what is known, can only treat column as containing strings.
@@ -1706,8 +1706,8 @@ throws Exception
     	        Message.printStatus ( 2, routine, "Column [" + icol +
                     "] type is string as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
-                    count_blank[icol] + "blanks.");
-    	        Message.printStatus ( 2, routine, "length max =" + lenmax_string[icol] );
+                    count_blank[icol] + " blanks.");
+    	        Message.printStatus ( 2, routine, "length max=" + lenmax_string[icol] );
     	    }
     	}
 	}
