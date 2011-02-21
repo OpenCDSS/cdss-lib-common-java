@@ -51,7 +51,7 @@ public TSUtil_RunningAverage ( TS ts, int n, RunningAverageType runningAverageTy
     }
 
     boolean found = false;
-    for ( RunningAverageType t : RunningAverageType.values() ) {
+    for ( RunningAverageType t : getRunningAverageTypeChoices() ) {
         if ( t == runningAverageType ) {
             found = true;
             break;
