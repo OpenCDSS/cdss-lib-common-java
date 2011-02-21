@@ -1668,9 +1668,11 @@ public static boolean isRunningApplet() {
 }
 
 /**
-Determine if a UNIX machine.  The following seem to be standard:
+Determine if a UNIX machine.  The following seem to be standard, although there are variations depending
+on hardware and OS version:
 <pre>
 Operating System      os.arch    os.name          os.version
+Mac OS X              x86_64     "Mac OS X"       10.6.4
 Windows 95            x86        "Windows 95"     4.0
 Windows 98            x86        "Windows 95"     4.1
 NT                    x86        "Windows NT"     4.0
@@ -1681,11 +1683,10 @@ HP-UX                 PA-RISC
 @return true if a UNIX platform, including os.name of Linux, false if not (presumably Windows).
 */
 public static boolean isUNIXMachine ()
-{	String arch = System.getProperty ( "os.arch" );
-	String name = System.getProperty ( "os.name" );
-	if (	arch.equalsIgnoreCase("UNIX") ||
-		arch.equalsIgnoreCase("PA-RISC") ||
-		name.equalsIgnoreCase("Linux") ) {
+{	String arch = System.getProperty ( "os.arch" ).toUpperCase();
+	String name = System.getProperty ( "os.name" ).toUpperCase();
+	if ( arch.equals("UNIX") || arch.equals("PA-RISC") ||
+		name.equals("LINUX") || name.startsWith("MAC OS X") ) {
 		return true;
 	}
 	else {
