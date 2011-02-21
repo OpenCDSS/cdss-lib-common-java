@@ -805,11 +805,16 @@ throws Exception
     TableRecord rec = null;
     Object columnContents;
     iColumn = -1; // reset for iteration
-    for ( int i = 0; i < size; i++ ) {
-        ++iColumn;
+    for ( int i = 0; i < size; i++ ) { // Loop through all table records
         rec = _table_records.get(i);
         int matchCount = 0; // How many columns match
+        iColumn = -1;
         for ( Object columnValue: columnValues ) {
+            ++iColumn;
+            if ( columnNumbers[iColumn] < 0 ) {
+                // Invalid column name was passed in.
+                continue;
+            }
             columnContents = rec.getFieldValue(columnNumbers[iColumn]);
             if ( columnContents == null ) {
                 // Do not compare
@@ -2093,6 +2098,7 @@ throws Exception {
     	String cell;
     	int tableFieldType;
     	int precision;
+    	Object fieldValue;
     	for (int row = 0; row < rows; row++) {
     		line.setLength(0);
     		for (int col = 0; col < cols; col++) {
@@ -2101,14 +2107,18 @@ throws Exception {
     		    }
     		    tableFieldType = getTableFieldType(col);
     		    precision = getFieldPrecision(col);
-                if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
+    		    fieldValue = getFieldValue(row,col);
+    		    if ( fieldValue == null ) {
+    		        cell = "";
+    		    }
+    		    else if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
                     (tableFieldType == TableField.DATA_TYPE_DOUBLE)) && (precision > 0) ) {
                     // Format according to the precision if floating point
-                    cell = StringUtil.formatString(getFieldValue(row,col),"%." + precision + "f");
+                    cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
                 }
                 else {
                     // Use default formatting.
-                    cell = "" + getFieldValue(row,col);
+                    cell = "" + fieldValue;
                 }
     			// If the field contains the delimiter, surround with double quotes...
     			if ( cell.indexOf(delimiter) > -1 ) {
