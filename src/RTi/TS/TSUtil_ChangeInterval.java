@@ -173,9 +173,10 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     if ( oldTS == null ) {
         throw new IllegalArgumentException ( "Input time series is null.  Cannot change interval." );
     }
-    if ( !oldTS.hasData() ) {
-        throw new IllegalArgumentException(  "Input time series has no data.  Cannot change interval." );
-    }
+    // TODO SAM 2011-02-19 Evaluate if this is OK to pass - need to allow for discovery mode creation of TS
+    //if ( !oldTS.hasData() ) {
+    //    throw new IllegalArgumentException(  "Input time series has no data.  Cannot change interval." );
+    //}
     setOldTimeSeries ( oldTS );
     int oldIntervalBase = oldTS.getDataIntervalBase();
     
@@ -455,9 +456,11 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
      * intervals that are involved.
      * @return A new time series of the requested data interval. All of the original time series header
      * information will be essentially the same, except for the interval and possibly the data type.
+     * @param createData if true, calculate values for the data array; if false, only assign metadata
      * @exception Exception if an error occurs (e.g., bad new interval string).
      */
-    public TS changeInterval() throws Exception {
+    public TS changeInterval ( boolean createData )
+    throws Exception {
         String routine = "changeInterval", status, warning;
         
         TS oldTS = getOldTimeSeries();
@@ -494,9 +497,6 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             throw new RuntimeException("Could not create the new time series - cannot change interval.");
         }
 
-        // Get the bounding dates for the new time series based on the old time series.
-        DateTime newts_date[] = getBoundingDatesForChangeInterval(oldTS, newtsBase, newtsMultiplier);
-
         // Update the new time series properties with all required information.
         // Notice: CopyHeader() overwrites, among several other things,
         // the Identifier, the DataInterval (Base and Multiplier).
@@ -506,10 +506,14 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         newTS.setDataType(newDataType);
         newTS.setIdentifier(newtsIdent);
         newTS.setDataInterval(newtsBase, newtsMultiplier);
-        newTS.setDate1(newts_date[0]);
-        newTS.setDate2(newts_date[1]);
-        newTS.setDate1Original(oldTS.getDate1());
-        newTS.setDate2Original(oldTS.getDate2());
+        // Get the bounding dates for the new time series based on the old time series.
+        if ( createData ) {
+            DateTime newts_date[] = getBoundingDatesForChangeInterval(oldTS, newtsBase, newtsMultiplier);
+            newTS.setDate1(newts_date[0]);
+            newTS.setDate2(newts_date[1]);
+            newTS.setDate1Original(oldTS.getDate1());
+            newTS.setDate2Original(oldTS.getDate2());
+        }
         
         // If the output is a different year type, adjust the output time series to fully
         // encompass the original time series period.
@@ -539,6 +543,10 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         // Set the units if specified...
         if ( (newUnits != null) && !newUnits.equals("") ) {
             newTS.setDataUnits( newUnits );
+        }
+        
+        if ( !createData ) {
+            return newTS;
         }
 
         // Finally allocate data space.
@@ -2673,9 +2681,10 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
      * @param oldts Daily time series to convert.
      * @param newmult Interval multiplier for monthly time series.
      * @param bracket number of days to search the daily time series from the end of the month, to find
+     * @param createData if true, do full processing; if false, only create time series metadata
      * the monthly value (required).
      */
-    public MonthTS OLDchangeToMonthTS(DayTS oldts, int newmult, Integer bracket ) {
+    public MonthTS OLDchangeToMonthTS(DayTS oldts, int newmult, Integer bracket, boolean createData ) {
         String routine = "TSUtil.changeToMonthTS";
         if (bracket == null) {
             throw new IllegalArgumentException ( "The bracket must be specified." );
@@ -2701,18 +2710,20 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         TSIdent tsident = newts.getIdentifier();
         tsident.setInterval(TimeInterval.MONTH, newmult);
 
-        // Set the dates after setting the interval so that the precision is
-        // correct...
+        // Set the dates after setting the interval so that the precision is correct...
 
-        Message.printStatus(1, routine, "Dates before set...: " + newts_date[0] + " to " + newts_date[1]);
+        Message.printStatus(2, routine, "Dates before set...: " + newts_date[0] + " to " + newts_date[1]);
         newts.setDate1(newts_date[0]);
         newts.setDate2(newts_date[1]);
-        Message.printStatus(1, routine, "Dates after set...: " + newts.getDate1() + " to " + newts.getDate2());
+        Message.printStatus(2, routine, "Dates after set...: " + newts.getDate1() + " to " + newts.getDate2());
         // Retain the original dates also...
         newts.setDate1Original(oldts.getDate1Original());
         newts.setDate2Original(oldts.getDate2Original());
         // Message.printStatus ( 2, routine,
         // "Using regular TS period " + newts.getDate1() + " to " + newts.getDate2 () );
+        if ( !createData ) {
+            return newts;
+        }
 
         // Allocate space based on the dates in the header...
 

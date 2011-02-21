@@ -7,7 +7,6 @@ import java.util.Vector;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
-import RTi.Util.Time.TimeInterval;
 
 /**
 Compute a time series that has a statistic for each interval in the period.  For example, all Jan 1 are used
@@ -120,12 +119,12 @@ of all the non-missing Jan 1 values.
 @param AnalysisEnd_DateTime Ending date for analysis, in precision of the original data.
 @param OutputStart_DateTime Output start date/time.
 If null, the period of the original time series will be output.
-@param OutputEnd_DateTime Output end date/time.
-If null, the entire period will be analyzed.
+@param OutputEnd_DateTime Output end date/time.  If null, the entire period will be analyzed.
+@param createData if true fill out the time series data array; if false only assign metadata
 */
-public TS newStatisticTimeSeries ()
+public TS newStatisticTimeSeries ( boolean createData )
 throws Exception
-{   String message, routine = "TSAnalyst.createStatisticTimeSeries";
+{   String message, routine = getClass().getName() + ".newStatisticTimeSeries";
     int dl = 10;
     
     TS ts = getTimeSeries();
@@ -191,6 +190,10 @@ throws Exception
     // Automatically sets the precision...
     output_ts.setDate1 ( outputStart );
     output_ts.setDate2 ( outputEnd );
+    
+    if ( !createData ) {
+        return output_ts;
+    }
 
     // This will fill with missing data...
     output_ts.allocateDataSpace();

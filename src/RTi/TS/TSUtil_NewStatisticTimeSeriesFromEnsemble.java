@@ -117,17 +117,21 @@ statistic computed from a sample taken from the interval value for each ensemble
 @param AnalysisEnd_DateTime Ending date for analysis, in precision of the original data.
 @param OutputStart_DateTime Output start date/time.
 If null, the period of the original time series will be output.
-@param OutputEnd_DateTime Output end date/time.
-If null, the entire period will be analyzed.
+@param OutputEnd_DateTime Output end date/time.  If null, the entire period will be analyzed.
+@param createData if true, actually process the data; if false, just create the empty results time series (this
+is appropriate when calling software is running in discovery mode to configure the workflow)
 */
-public TS newStatisticTimeSeriesFromEnsemble ()
+public TS newStatisticTimeSeriesFromEnsemble ( boolean createData )
 throws Exception
 {   String message, routine = "TSAnalyst.createStatisticTimeSeries";
     int dl = 10;
     
     // Use the first time series in the ensemble for properties to generate the output time series.
     TSEnsemble ensemble = getTimeSeriesEnsemble();
-    TS ts = ensemble.get(0);
+    TS ts = null;
+    if ( ensemble.size() > 0 ) {
+        ts = ensemble.get(0);
+    }
     DateTime analysisStart0 = getAnalysisStart();
     DateTime analysisEnd0 = getAnalysisEnd();
     DateTime outputStart0 = getOutputStart();
@@ -157,16 +161,26 @@ throws Exception
     // Create an output time series to be filled...
 
     TS output_ts = null;
+    String outputTSID = null;
     try {
-        output_ts = TSUtil.newTimeSeries(ts.getIdentifierString(), true);
+        if ( ts != null ) {
+            outputTSID = ts.getIdentifierString();
+            output_ts = TSUtil.newTimeSeries( outputTSID, true);
+        }
+        else if ( (newTSID != null) && (newTSID.length() > 0) ){
+            outputTSID = newTSID;
+            output_ts = TSUtil.newTimeSeries(newTSID,true);
+        }
     }
     catch ( Exception e ) {
-        message = "Unable to create initial new time series using identifier \""+ ts.getIdentifierString() + "\".";
+        message = "Unable to create initial new time series using identifier \"" + outputTSID + "\".";
         Message.printWarning ( 3, routine,message );
         throw new InvalidParameterException(message);
     }
-    output_ts.copyHeader ( ts );
-    output_ts.addToGenesis ( "Initialized statistic time series as copy of \"" + ts.getIdentifierString() + "\"" );
+    if ( ts != null ) {
+        output_ts.copyHeader ( ts );
+        output_ts.addToGenesis ( "Initialized statistic time series as copy of \"" + ts.getIdentifierString() + "\"" );
+    }
 
     // Reset the identifier if the user has specified it...
 
@@ -192,6 +206,11 @@ throws Exception
         outputEnd );
     output_ts.setDate1 ( outputStart );
     output_ts.setDate2 ( outputEnd );
+    
+    if ( !createData ) {
+        // Done processing (have an empty output time series)
+        return output_ts;
+    }
 
     // This will fill with missing data...
     output_ts.allocateDataSpace();

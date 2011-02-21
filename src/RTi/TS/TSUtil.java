@@ -2804,10 +2804,12 @@ time series.  Otherwise, use the new data type in the disaggregated time series 
 time series.  Otherwise, use the new units in the disaggregated time series.
 @param req_interval_base Interval base to disaggregate to (as per TimeInterval class).
 @param req_interval_mult Interval multiplier to disaggregate to (as per TimeInterval class).
+@param createData if true, then the data space will be allocated and computed; if false, only the main time
+series metadata will be created (useful for building workflows without full run)
 @exception Exception if an error occurs (e.g., improper disaggregation parameters).
 */
 public static TS disaggregate (	TS ts, String method, String new_datatype,
-				String new_units, int req_interval_base, int req_interval_mult )
+				String new_units, int req_interval_base, int req_interval_mult, boolean createData )
 throws Exception
 {	String routine = "TSUtil.disaggregate";
 	int interval_base = ts.getDataIntervalBase();
@@ -2850,6 +2852,10 @@ throws Exception
 		newdate2.setHour ( 18 ); // Do so DateTime cascades as necessary
 		newdate2.addHour ( 6 );
 		newts.setDate2 ( newdate2 );
+		if ( !createData ) {
+		    // Return the time series without doing the data work
+		    return newts;
+		}
 		newts.allocateDataSpace ();
 
 		// Now transfer the values...

@@ -57,10 +57,10 @@ private DateTime computeDateWithOffset ( String info, TS ts, DateTime ReferenceD
 }
 
 /**
-Break a time series into a vector of annual traces.  The description is
+Break a time series into a list of annual traces.  The description is
 altered to indicate the year of the trace (e.g., "1995 trace: ...") and the
 time series sequence number is set to the year for the start of the trace.
-@return A Vector of the trace time series or null if an error.
+@return A list of the trace time series or null if an error.
 @param ts Time series to break.  The time series is not changed.
 @param TraceLength The length of each trace.  Specify as an interval string
 like "1Year".  The interval can be longer than one year.  If blank, "1Year" is
@@ -79,12 +79,14 @@ series traces will overlay.
 time series are processed).
 @param InputEnd_DateTime Last allowed date (use to constrain how many years of the time
 series are processed).
+@param createData if true fill the data values; if false, only set the metadata
 @exception Exception if there is an error processing the time series
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an
 irregular time series.
 */
-public List getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
-                    String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime )
+public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
+    String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
+    boolean createData )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getName() + ".getTracesFromTS";
     if ( ts == null ) {
@@ -142,7 +144,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     // Allocate the Vector for traces...
 
-    List tslist = new Vector ();
+    List<TS> tslist = new Vector ();
     
     // Allocate start dates for the input and output time series by copying the reference date.
     // The precision and position within the year will therefore be correct.  Set the year below
@@ -194,19 +196,21 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             "Created new trace for year " + date1_in + " allocated for input: " + date1_in + " to " + date2_in +
             ", output:" + date1_out + " to " + date2_out );
         //}
-        // Allocate the data space...
-        tracets.allocateDataSpace();
-        // Transfer the data using iterators so that the data sequence is continuous over leap years, etc.
-        TSIterator tsi_in = ts.iterator ( date1_in, date2_in );
-        TSIterator tsi_out = tracets.iterator ( date1_out, date2_out );
-        TSData data_out = null;
-        while ( tsi_in.next() != null ) {
-            // Get the corresponding point in the output.
-            data_out = tsi_out.next();
-            // Only transfer if output is not null because null indicates the end of the
-            // output time series iterator period has been reached.
-            if ( data_out != null ) {
-                tracets.setDataValue( tsi_out.getDate(), ts.getDataValue(tsi_in.getDate()));
+        if ( createData ) {
+            // Allocate the data space...
+            tracets.allocateDataSpace();
+            // Transfer the data using iterators so that the data sequence is continuous over leap years, etc.
+            TSIterator tsi_in = ts.iterator ( date1_in, date2_in );
+            TSIterator tsi_out = tracets.iterator ( date1_out, date2_out );
+            TSData data_out = null;
+            while ( tsi_in.next() != null ) {
+                // Get the corresponding point in the output.
+                data_out = tsi_out.next();
+                // Only transfer if output is not null because null indicates the end of the
+                // output time series iterator period has been reached.
+                if ( data_out != null ) {
+                    tracets.setDataValue( tsi_out.getDate(), ts.getDataValue(tsi_in.getDate()));
+                }
             }
         }
         // Add the trace to the list of time series...

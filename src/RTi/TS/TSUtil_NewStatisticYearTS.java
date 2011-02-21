@@ -1155,9 +1155,10 @@ public static boolean isTestValueNeeded ( TSStatisticType statisticType )
 /**
 Create a year time series that contains statistics in each data value (e.g.,
 percent missing, percent not missing).
+@param createData if true, calculate the data value array; if false, only assign metadata
 @return The statistics time series.
 */
-public YearTS newStatisticYearTS ( )
+public YearTS newStatisticYearTS ( boolean createData )
 {   String message, routine = "TSAnalyst.createStatisticYearTS";
     int dl = 10;
 
@@ -1247,6 +1248,10 @@ public YearTS newStatisticYearTS ( )
             Message.printStatus(2, routine, "Adjusting output time series start to " + date2 +
                 " to align with " + outputYearType + " year type." );
         }
+    }
+    
+    if ( !createData ) {
+        return yearts;
     }
 
     // This will fill with missing data...
