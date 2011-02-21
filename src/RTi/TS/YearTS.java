@@ -444,20 +444,30 @@ public Object clone ()
 {	YearTS ts = (YearTS)super.clone();
 	// Does not appear to work...
 	//ts._data = (double [])_data.clone();
-	ts._data = new double[_data.length];
-	System.arraycopy ( _data, 0, ts._data, 0, _data.length);
+    if ( _data == null ) {
+        ts._data = null;
+    }
+    else {
+    	ts._data = new double[_data.length];
+    	System.arraycopy ( _data, 0, ts._data, 0, _data.length);
+    }
 	boolean internDataFlagStrings = getInternDataFlagStrings();
 	if ( _has_data_flags ) {
-		// Allocate months...
-		ts._dataFlags = new String[_dataFlags.length];
-		for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
-		    if ( internDataFlagStrings ) {
-		        ts._dataFlags[iYear] = _dataFlags[iYear].intern();
-		    }
-		    else {
-		        ts._dataFlags[iYear] = _dataFlags[iYear];
-		    }
-		}
+	    if ( _dataFlags == null ) {
+	        ts._dataFlags = null;
+	    }
+    	else {
+    		// Allocate months...
+    		ts._dataFlags = new String[_dataFlags.length];
+    		for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
+    		    if ( internDataFlagStrings ) {
+    		        ts._dataFlags[iYear] = _dataFlags[iYear].intern();
+    		    }
+    		    else {
+    		        ts._dataFlags[iYear] = _dataFlags[iYear];
+    		    }
+    		}
+    	}
 	}
 	ts._year1 = _year1;
 	ts._year2 = _year2;

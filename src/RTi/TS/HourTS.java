@@ -523,29 +523,39 @@ public Object clone ()
 	// Does not appear to work...
 	//ts._data = (double [][])_data.clone();
 	//ts._pos = (int [])_data.clone();
-	ts._data = new double[_data.length][];
-	for ( int i = 0; i < _data.length; i++ ) {
-		ts._data[i] = new double[_data[i].length];
-		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
-	}
+    if ( _data == null ) {
+        ts._data = null;
+    }
+    else {
+    	ts._data = new double[_data.length][];
+    	for ( int i = 0; i < _data.length; i++ ) {
+    		ts._data[i] = new double[_data[i].length];
+    		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
+    	}
+    }
 	int ival = 0;
 	boolean internDataFlagStrings = getInternDataFlagStrings();
 	if ( _has_data_flags ) {
-		// Allocate months...
-		ts._dataFlags = new String[_dataFlags.length][];
-		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
-			// Allocate flag arrays for values in month one flag array for each value in month...
-			ts._dataFlags[imon] = new String[_dataFlags[imon].length];
-			for(ival = 0; ival < _dataFlags[imon].length; ival++){
-			    // Allocate data flags array for hour values...
-			    if ( internDataFlagStrings ) {
-			        ts._dataFlags[imon][ival] = _dataFlags[imon][ival].intern();
-			    }
-			    else {
-			        ts._dataFlags[imon][ival] = _dataFlags[imon][ival];
-			    }
-			}
-		}
+	    if ( _dataFlags == null ) {
+	        ts._dataFlags = null;
+	    }
+	    else {
+    		// Allocate months...
+    		ts._dataFlags = new String[_dataFlags.length][];
+    		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
+    			// Allocate flag arrays for values in month one flag array for each value in month...
+    			ts._dataFlags[imon] = new String[_dataFlags[imon].length];
+    			for(ival = 0; ival < _dataFlags[imon].length; ival++){
+    			    // Allocate data flags array for hour values...
+    			    if ( internDataFlagStrings ) {
+    			        ts._dataFlags[imon][ival] = _dataFlags[imon][ival].intern();
+    			    }
+    			    else {
+    			        ts._dataFlags[imon][ival] = _dataFlags[imon][ival];
+    			    }
+    			}
+    		}
+	    }
 	}
 	ts._pos = new int[2];
 	ts._pos[0] = _pos[0];

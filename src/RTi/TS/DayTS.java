@@ -560,7 +560,10 @@ public Object clone ()
 	// Does not seem to work...
 	//ts._data = (double[][])_data.clone();
 	//ts._pos = (int[])_pos.clone();
-    if ( _data != null ) {
+    if ( _data == null ) {
+        ts._data = null;
+    }
+    else {
        ts._data = new double[_data.length][];
 	   for ( int imon = 0; imon < _data.length; imon++ ) {
 	       ts._data[imon] = new double[_data[imon].length];
@@ -568,16 +571,21 @@ public Object clone ()
 	   }
     }
 	int iday = 0;
-	if ( _has_data_flags && (_dataFlags != null) ) {
-		// Allocate months...
-		ts._dataFlags = new String[_dataFlags.length][];
-		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
-			// Allocate days in month...
-			ts._dataFlags[imon] = new String[_dataFlags[imon].length];
-			for ( iday = 0; iday < _dataFlags[imon].length; iday++ ) {
-			    ts._dataFlags[imon][iday] = _dataFlags[imon][iday];
-			}
-		}
+	if ( _has_data_flags ) {
+	    if ( _dataFlags == null ) {
+	        ts._dataFlags = null;
+	    }
+	    else {
+    		// Allocate months...
+    		ts._dataFlags = new String[_dataFlags.length][];
+    		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
+    			// Allocate days in month...
+    			ts._dataFlags[imon] = new String[_dataFlags[imon].length];
+    			for ( iday = 0; iday < _dataFlags[imon].length; iday++ ) {
+    			    ts._dataFlags[imon][iday] = _dataFlags[imon][iday];
+    			}
+    		}
+	    }
 	}
 	ts._pos = new int[2];
 	ts._pos[0] = _pos[0];

@@ -492,23 +492,33 @@ public Object clone ()
 						// are primitives).
 	//ts._pos = (int [])_pos.clone();
 	// Do it the "hard" way...
-	ts._data = new double[_data.length][];
-	for ( int i = 0; i < _data.length; i++ ) {
-		ts._data[i] = new double[_data[i].length];
-		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
-	}
+    if ( _data == null ) {
+        ts._data = null;
+    }
+    else {
+    	ts._data = new double[_data.length][];
+    	for ( int i = 0; i < _data.length; i++ ) {
+    		ts._data[i] = new double[_data[i].length];
+    		System.arraycopy ( _data[i], 0, ts._data[i], 0,_data[i].length);
+    	}
+    }
 	boolean internDataFlagStrings = getInternDataFlagStrings();
-    if ( _has_data_flags && (_dataFlags != null) ) {
-        // Allocate months...
-        ts._dataFlags = new String[_dataFlags.length][];
-        for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
-            ts._dataFlags[iYear] = new String[_dataFlags[iYear].length];
-            for ( int iMonth = 0; iMonth < _dataFlags[iYear].length; iMonth++ ) {
-                if ( internDataFlagStrings ) {
-                    ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth].intern();
-                }
-                else {
-                    ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth];
+    if ( _has_data_flags ) {
+        if ( _dataFlags == null ) {
+            ts._dataFlags = null;
+        }
+        else {
+            // Allocate months...
+            ts._dataFlags = new String[_dataFlags.length][];
+            for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
+                ts._dataFlags[iYear] = new String[_dataFlags[iYear].length];
+                for ( int iMonth = 0; iMonth < _dataFlags[iYear].length; iMonth++ ) {
+                    if ( internDataFlagStrings ) {
+                        ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth].intern();
+                    }
+                    else {
+                        ts._dataFlags[iYear][iMonth] = _dataFlags[iYear][iMonth];
+                    }
                 }
             }
         }

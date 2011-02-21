@@ -555,41 +555,51 @@ public Object clone ()
 	// Does not appear to work...
 	//ts._data = (double[][][])_data.clone();
 	//ts._pos = (int[])_pos.clone();
-	ts._data = new double[_data.length][][];
-	for ( int i = 0; i < _data.length; i++ ) {	// Months
-		ts._data[i] = new double[_data[i].length][];
-		for ( int j = 0; j < _data[i].length; j++ ) {	// Days in month
-			if ( _data[i][j] == null ) {
-				// Memory is not allocated at the beginning and
-				// ends of months (outside the period), in order
-				// to save memory and increase performance.
-				continue;
-			}
-			ts._data[i][j] = new double[_data[i][j].length];
-			System.arraycopy ( _data[i][j], 0, ts._data[i][j], 0,_data[i][j].length);
-		}
-	}
+    if ( _data == null ) {
+        ts._data = null;
+    }
+    else {
+    	ts._data = new double[_data.length][][];
+    	for ( int i = 0; i < _data.length; i++ ) { // Months
+    		ts._data[i] = new double[_data[i].length][];
+    		for ( int j = 0; j < _data[i].length; j++ ) { // Days in month
+    			if ( _data[i][j] == null ) {
+    				// Memory is not allocated at the beginning and
+    				// ends of months (outside the period), in order
+    				// to save memory and increase performance.
+    				continue;
+    			}
+    			ts._data[i][j] = new double[_data[i][j].length];
+    			System.arraycopy ( _data[i][j], 0, ts._data[i][j], 0,_data[i][j].length);
+    		}
+    	}
+    }
 	boolean internDataFlagStrings = getInternDataFlagStrings();
 	if ( _has_data_flags ) {
-		// Allocate months...
-		ts._dataFlags = new String[_dataFlags.length][][];
-		int iday, ival;
-		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
-			// Allocate days in month...
-			ts._dataFlags[imon] = new String[_dataFlags[imon].length][];
-			for(iday = 0; iday < _dataFlags[imon].length; iday++){
-				// Allocate data values in day...
-				ts._dataFlags[imon][iday] = new String[_dataFlags[imon][iday].length];
-				for ( ival = 0; ival < _dataFlags[imon][iday].length; ival++ ) {
-				    if ( internDataFlagStrings ) {
-				        ts._dataFlags[imon][iday][ival] = _dataFlags[imon][iday][ival].intern();
-				    }
-				    else {
-				        ts._dataFlags[imon][iday][ival] = _dataFlags[imon][iday][ival];
-				    }
-				}
-			}
-		}
+	    if ( _dataFlags == null ) {
+	        ts._dataFlags = null;
+	    }
+	    else {
+    		// Allocate months...
+    		ts._dataFlags = new String[_dataFlags.length][][];
+    		int iday, ival;
+    		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
+    			// Allocate days in month...
+    			ts._dataFlags[imon] = new String[_dataFlags[imon].length][];
+    			for(iday = 0; iday < _dataFlags[imon].length; iday++){
+    				// Allocate data values in day...
+    				ts._dataFlags[imon][iday] = new String[_dataFlags[imon][iday].length];
+    				for ( ival = 0; ival < _dataFlags[imon][iday].length; ival++ ) {
+    				    if ( internDataFlagStrings ) {
+    				        ts._dataFlags[imon][iday][ival] = _dataFlags[imon][iday][ival].intern();
+    				    }
+    				    else {
+    				        ts._dataFlags[imon][iday][ival] = _dataFlags[imon][iday][ival];
+    				    }
+    				}
+    			}
+    		}
+	    }
 	}
 	ts._pos = new int[3];
 	ts._pos[0] = _pos[0];
