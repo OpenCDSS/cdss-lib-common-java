@@ -149,9 +149,9 @@ throws Exception
                     // Use default formatting.
                     cellString = "" + table.getFieldValue(row,col);
                 }
-                Message.printStatus(2, routine, "string=\"" + cellString + "\" mask=" + styleMaskArray[row][col] +
-                        " style=\"" + styles[styleMaskArray[row][col]] );
                 if ( (styleMaskArray != null) && (styleMaskArray[row][col] > 0) ) {
+                    //Message.printStatus(2, routine, "string=\"" + cellString + "\" mask=" + styleMaskArray[row][col] +
+                   //     " style=\"" + styles[styleMaskArray[row][col]] );
                     maskProps.set("class",styles[styleMaskArray[row][col]]);
                     // Cell matches a mask so use the property
                     String [] cellAsArray = { cellString };
