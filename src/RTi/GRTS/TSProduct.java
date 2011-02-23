@@ -990,6 +990,12 @@ LowerLeft, Left, UpperLeft, Above, Center.
 </tr>
 
 <tr>
+<td><b>FlaggedDataSymbolStyle</b></td>
+<td>Symbol style for flagged data (see SymbolStyle for valid values).</td>
+<td>None</td>
+</tr>
+
+<tr>
 <td><b>GraphType</b></td>
 <td>Indicates the graph type for the data in a graph product.  Available
 options are: "Bar", "Duration", "Line", "PeriodOfRecord", "XY-Scatter", "Point".
@@ -1362,58 +1368,33 @@ public void checkAnnotationProperties(int isub, int iann) {
 		}
 	}
 	else if (shapeType.equalsIgnoreCase("Line")) {
-		if (getLayeredPropValue("LineStyle", 
-			isub, iann, false, true) == null) {
-			setPropValue("LineStyle",
-				getDefaultPropValue(
-				"LineStyle",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("LineStyle", isub, iann, false, true) == null) {
+			setPropValue("LineStyle",getDefaultPropValue("LineStyle",isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("LineWidth", 
-			isub, iann, false, true) == null) {
-			setPropValue("LineWidth",
-				getDefaultPropValue(
-				"LineWidth",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("LineWidth", isub, iann, false, true) == null) {
+			setPropValue("LineWidth", getDefaultPropValue( "LineWidth", isub, iann, true), isub, iann, true);
 		}
-		if (getLayeredPropValue("Points", 
-			isub, iann, false, true) == null) {
-			setPropValue("Points",
-				getDefaultPropValue(
-				"Points",
-				isub, iann, true), isub, iann, true);
+		if (getLayeredPropValue("Points", isub, iann, false, true) == null) {
+			setPropValue("Points", getDefaultPropValue("Points",isub, iann, true), isub, iann, true);
 		}
 	}
 	else if (shapeType.equalsIgnoreCase("Symbol")) {
-		if (getLayeredPropValue("Point", isub, iann, false, true) 
-		    == null) {
-		    	setPropValue("Point", 
-				getDefaultPropValue("Point", isub, iann, true), 
+		if (getLayeredPropValue("Point", isub, iann, false, true) == null) {
+		    setPropValue("Point", getDefaultPropValue("Point", isub, iann, true), isub, iann, true);
+		}
+
+		if (getLayeredPropValue("SymbolPosition", isub, iann, false, true) == null) {
+		    setPropValue("SymbolPosition", getDefaultPropValue("SymbolPosition", isub, iann, true), 
 				isub, iann, true);
 		}
 
-		if (getLayeredPropValue("SymbolPosition", isub, iann, false, 
-			true) 
-		    == null) {
-		    	setPropValue("SymbolPosition", 
-				getDefaultPropValue("SymbolPosition", isub, 
-				iann, true), 
-				isub, iann, true);
+		if (getLayeredPropValue("SymbolStyle", isub, iann, false, true) == null) {
+	    	setPropValue("SymbolStyle", getDefaultPropValue("SymbolStyle", isub, iann, true), 
+			isub, iann, true);
 		}
 
-		if (getLayeredPropValue("SymbolStyle", isub, iann, false, true)
-		    == null) {
-		    	setPropValue("SymbolStyle", 
-				getDefaultPropValue("SymbolStyle", isub, iann, 
-				true), 
-				isub, iann, true);
-		}
-
-		if (getLayeredPropValue("SymbolSize", isub, iann, false, true) 
-		    == null) {
-		    	setPropValue("SymbolSize", 
-				getDefaultPropValue("SymbolSize", isub, iann, 
-				true), isub, iann, true);
+		if (getLayeredPropValue("SymbolSize", isub, iann, false, true) == null) {
+		    setPropValue("SymbolSize", getDefaultPropValue("SymbolSize", isub, iann, true), isub, iann, true);
 		}
 	}
 }
@@ -1447,6 +1428,7 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if (graphType == TSGraphType.POINT) {
+	    // Point graphs are required to have a symbol
 		if (getLayeredPropValue("SymbolStyle",isub,its,false) == null) {
 			setPropValue("SymbolStyle",	TSGraphJComponent.lookupTSSymbol(its),isub, its);
 		}
@@ -1469,6 +1451,18 @@ public void checkDataProperties(int isub, int its) {
 	if ( getLayeredPropValue ("Enabled", isub, its, false ) == null ) {
 		setPropValue ( "Enabled", getDefaultPropValue("Enabled",isub,its), isub, its);
 	}
+	
+    if (getLayeredPropValue("FlaggedDataSymbolStyle", isub, its, false) == null) {
+        // Use the SymbolStyle value if specified
+        String symbolStyle = getLayeredPropValue("SymbolStyle", isub, its, false);
+        if ( symbolStyle == null ) {
+            setPropValue("FlaggedDataSymbolStyle",
+                getDefaultPropValue("FlaggedDataSymbolStyle", isub,its,false,graphType),isub, its);
+        }
+        else {
+            setPropValue("FlaggedDataSymbolStyle",symbolStyle,isub,its);
+        }
+    }
 
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
 		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
@@ -2339,11 +2333,9 @@ If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
 (subproduct) and Y is (its).  If negative, the data item property will
-not be checked.  This is also used for annotations -- see the isAnnotation 
-property.
+not be checked.  This is also used for annotations -- see the isAnnotation property.
 @param isAnnotation is true, then its will be treated as the number of an 
-annotation under the given subproduct, rather than a time series under the
-given subproduct.
+annotation under the given subproduct, rather than a time series under the given subproduct.
 @param graphType the kind of graph for which the default prop is being 
 returned.  Certain properties have different default values for certain kinds
 of graphs.  If null, then the value will be ignored.
@@ -2450,10 +2442,11 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("OutputFile") ) {
 			if ( IOUtil.isUNIXMachine() ) {
-				// REVISIT SAM
+				// TODO SAM
 				return "/tmp/tmp.jpg";
 			}
-			else {	return "C:\\temp\\tmp.jpg";
+			else {
+			    return "C:\\temp\\tmp.jpg";
 			}
 		}
 		// "PeriodEnd" set at run-time
@@ -2685,8 +2678,7 @@ boolean isAnnotation, TSGraphType graphType) {
 			"XYScatterDependentAnalysisPeriodEnd")){
 			return "";
 		}
-		else if ( param.equalsIgnoreCase(
-			"XYScatterDependentAnalysisPeriodStart")){
+		else if ( param.equalsIgnoreCase("XYScatterDependentAnalysisPeriodStart")){
 			return "";
 		}
 		else if ( param.equalsIgnoreCase("XYScatterFillPeriodEnd")){
@@ -2695,12 +2687,10 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("XYScatterFillPeriodStart")){
 			return "";
 		}
-		else if ( param.equalsIgnoreCase(
-			"XYScatterIndependentAnalysisPeriodEnd")){
+		else if ( param.equalsIgnoreCase("XYScatterIndependentAnalysisPeriodEnd")){
 			return "";
 		}
-		else if ( param.equalsIgnoreCase(
-			"XYScatterIndependentAnalysisPeriodStart")){
+		else if ( param.equalsIgnoreCase("XYScatterIndependentAnalysisPeriodStart")){
 			return "";
 		}
 		else if ( param.equalsIgnoreCase("XYScatterIntercept") ) {
@@ -2744,6 +2734,10 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("Enabled") ){
 			return "True";
 		}
+        else if ( param.equalsIgnoreCase("FlaggedDataSymbolStyle") ){
+            // Same as "SymbolStyle"
+            return getDefaultPropValue ( "SymbolStyle", subproduct, its, isAnnotation, graphType );
+        }
 		else if ( param.equalsIgnoreCase("GraphType") ){
 			return "Line";
 		}
@@ -2823,18 +2817,16 @@ Return the property value for a requested property.  This first searches the
 override properties and then the main properties.  The main properties are
 searched in layered fashion, starting with the product, then the sub-product,
 and then the time series.  The last value specified will be used (but will
-always be overridde if an override property is specified.
+always be override if an override property is specified.
 @param property Property to get value for.
 @param subproduct Sub-product number (starting at zero).  A prefix of
 "SubProduct X." will be used for the property, where X is (subproduct.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked.
+(subproduct) and Y is (its).  If negative, the data item property will not be checked.
 @return value of property or null if not found.
-REVISIT SAM
-Make sure that override properties can contain annotations.  Problem: how to
+TODO SAM make sure that override properties can contain annotations.  Problem: how to
 dynamically add annotations without conflict.
 */
 public String getLayeredPropValue ( String property, int subproduct, int its )
@@ -2931,9 +2923,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 					// annotation.
 				}
 				else {
-					value2 = __proplist.getValue(
-						"SubProduct " + (subproduct + 1)
-						+ "." + property);
+					value2 = __proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
 				}
 				
 				if ( value2 != null ) {
@@ -2944,17 +2934,12 @@ public String getLayeredPropValue (	String property, int subproduct,
 			if ( its >= 0 ) {
 			// TODO SAM Math.abs() doesn't make sense, but it's been like that for years now.
 				if (isAnnotation) {
-					value2 = __proplist.getValue(
-						"Annotation "
-						+ (Math.abs(subproduct) + 1)
-						+ "." + (its + 1) + "."
-						+ property);
+					value2 = __proplist.getValue( "Annotation " + (Math.abs(subproduct) + 1)
+						+ "." + (its + 1) + "." + property);
 				}
 				else {
 					value2 = __proplist.getValue("Data " 
-						+ (Math.abs(subproduct) + 1)
-						+ "." + (its + 1) + "." 
-						+ property);
+						+ (Math.abs(subproduct) + 1) + "." + (its + 1) + "." + property);
 				}
 				if ( value2 != null ) {
 					value = value2;
@@ -3073,8 +3058,7 @@ public int getNumData ( int subproduct )
 }
 
 /**
-Return the total number of subproducts (enabled and disabled) that are defined
-for the product.
+Return the total number of subproducts (enabled and disabled) that are defined for the product.
 @return the number of subproducts or zero if none are defined.
 */
 public int getNumSubProducts ()
@@ -3095,8 +3079,7 @@ public int getNumSubProducts ( boolean enabled_only )
 
     // TODO (JTS - 2005-05-06)
     // enabled_only isn't working properly -- it's checking for whether any 
-    // TIME SERIES are enabled or not, and if not, marking the entire subproduct
-    // as not enabled.  
+    // TIME SERIES are enabled or not, and if not, marking the entire subproduct as not enabled.  
 	
 	int count = 0;
 	// the following makes sure that data exists in the product.  If not,
@@ -3247,8 +3230,7 @@ public int getPropsHowSet() {
 /**
 Return the property value for a requested property.  This first searches the
 override properties and then the main properties.  The fully-expanded property
-name is used.  Use getLayeredPropValue() to request a property using product,
-subproduct, etc.
+name is used.  Use getLayeredPropValue() to request a property using product, subproduct, etc.
 @param property Property to get value for.
 @return value of property or null if not found.
 */
@@ -3271,15 +3253,13 @@ public String getPropValue ( String property )
 Return the list of time series associated with the TSProduct.
 @return the list of time series associated with the TSProduct.
 */
-public List getTSList ()
+public List<TS> getTSList ()
 {	return __tslist;
 }
 
 /**
-Returns true if the product has any time series in the internal ts list, false
-otherwise.
-@return true if the product has any time series in the internal ts list, false
-otherwise.
+Returns true if the product has any time series in the internal ts list, false otherwise.
+@return true if the product has any time series in the internal ts list, false otherwise.
 */
 public boolean hasTimeSeries() {
 	if (__tslist == null || __tslist.size() == 0) {
@@ -4273,7 +4253,7 @@ throws Exception
 			
 			for ( int j = 0; j < dsize; j++ ) {
 				save = false;
-				prop = (Prop)vdata.get(j);
+				prop = vdata.get(j);
 				how_set = prop.getHowSet();
 				key = prop.getKey().substring(data_prefix_length - 1);
 
@@ -4295,7 +4275,7 @@ throws Exception
 					}
 					
 					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
-					     	continue;
+					     continue;
 					}
 
 					save = true;
@@ -4323,84 +4303,80 @@ throws Exception
 				dsize = vdata.size();
 			}
 			for (int j = 0; j < dsize; j++) {
-
-////////////////////////////////////////////
-// 2 LEVELS OF INDENTION REMOVED
-		save = false;
-		prop = (Prop)vdata.get(j);
-		how_set = prop.getHowSet();
-	
-		if (how_set == Prop.SET_HIDDEN) {
-			continue;
-		}
-		else if (save_all) {
-			save = true;
-		}
-		else if (!save_all) {
-			if (how_set == Prop.SET_FROM_PERSISTENT
-			    	|| how_set == Prop.SET_AT_RUNTIME_BY_USER
-			    	|| how_set ==Prop.SET_AT_RUNTIME_FOR_USER) {
-				// ok
-			}
-			else {
-				// not ok
-				continue;
-			}
-
-			key = prop.getKey().substring(data_prefix_length - 1);
-
-			if (type.equalsIgnoreCase("Text")) {
-				if (key.equalsIgnoreCase("Points")
-					|| key.equalsIgnoreCase("LineStyle")
-					|| key.equalsIgnoreCase("LineWidth")
-					|| key.equalsIgnoreCase("SymbolStyle")
-					|| key.equalsIgnoreCase("SymbolSize")
-					|| key.equalsIgnoreCase(
-					    "SymbolPosition")) {
-						continue;
-				}
-				else {
-					save = true;
-				}
-			}
-			else if (type.equalsIgnoreCase("Line")) {
-				if (key.equalsIgnoreCase("FontSize")
-					|| key.equalsIgnoreCase("FontStyle")
-					|| key.equalsIgnoreCase("FontName")
-					|| key.equalsIgnoreCase("Point")
-					|| key.equalsIgnoreCase("Text")
-					|| key.equalsIgnoreCase("TextPosition")
-					|| key.equalsIgnoreCase("SymbolStyle")
-					|| key.equalsIgnoreCase("SymbolSize")
-					|| key.equalsIgnoreCase("SymbolPosition")) {
-					continue;
-				}
-				else {
-					save = true;
-				}
-			}
-			else if (type.equalsIgnoreCase("Symbol")) {
-				if (key.equalsIgnoreCase("FontSize")
-					|| key.equalsIgnoreCase("FontStyle")
-					|| key.equalsIgnoreCase("FontName")
-					|| key.equalsIgnoreCase("Text")
-					|| key.equalsIgnoreCase("TextPosition")
-					|| key.equalsIgnoreCase("Points")
-					|| key.equalsIgnoreCase("LineStyle")
-					|| key.equalsIgnoreCase("LineWidth")) {
-					continue;
-				}
-				else {
-					save = true;
-				}
-			}
-		}
-
-		if (save) {		
-			out.println(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
-		}
-// 2 LEVELS OF INDENTION REMOVED				
-////////////////////////////////////////////
+        		save = false;
+        		prop = vdata.get(j);
+        		how_set = prop.getHowSet();
+        	
+        		if (how_set == Prop.SET_HIDDEN) {
+        			continue;
+        		}
+        		else if (save_all) {
+        			save = true;
+        		}
+        		else if (!save_all) {
+        			if (how_set == Prop.SET_FROM_PERSISTENT
+    			    	|| how_set == Prop.SET_AT_RUNTIME_BY_USER
+    			    	|| how_set ==Prop.SET_AT_RUNTIME_FOR_USER) {
+        				// ok
+        			}
+        			else {
+        				// not ok
+        				continue;
+        			}
+        
+        			key = prop.getKey().substring(data_prefix_length - 1);
+        
+        			if (type.equalsIgnoreCase("Text")) {
+        				if (key.equalsIgnoreCase("Points")
+        				    || key.equalsIgnoreCase("FlaggedDataSymbolStyle")
+        					|| key.equalsIgnoreCase("LineStyle")
+        					|| key.equalsIgnoreCase("LineWidth")
+        					|| key.equalsIgnoreCase("SymbolStyle")
+        					|| key.equalsIgnoreCase("SymbolSize")
+        					|| key.equalsIgnoreCase("SymbolPosition")) {
+        					continue;
+        				}
+        				else {
+        					save = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Line")) {
+        				if ( key.equalsIgnoreCase("FlaggedDataSymbolStyle")
+        				    || key.equalsIgnoreCase("FontSize")
+        					|| key.equalsIgnoreCase("FontStyle")
+        					|| key.equalsIgnoreCase("FontName")
+        					|| key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("Text")
+        					|| key.equalsIgnoreCase("TextPosition")
+        					|| key.equalsIgnoreCase("SymbolStyle")
+        					|| key.equalsIgnoreCase("SymbolSize")
+        					|| key.equalsIgnoreCase("SymbolPosition")) {
+        					continue;
+        				}
+        				else {
+        					save = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Symbol")) {
+        				if (key.equalsIgnoreCase("FontSize")
+        					|| key.equalsIgnoreCase("FontStyle")
+        					|| key.equalsIgnoreCase("FontName")
+        					|| key.equalsIgnoreCase("Text")
+        					|| key.equalsIgnoreCase("TextPosition")
+        					|| key.equalsIgnoreCase("Points")
+        					|| key.equalsIgnoreCase("LineStyle")
+        					|| key.equalsIgnoreCase("LineWidth")) {
+        					continue;
+        				}
+        				else {
+        					save = true;
+        				}
+        			}
+        		}
+        
+        		if (save) {		
+        			out.println(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
+        		}
 			}
 		}
 	}

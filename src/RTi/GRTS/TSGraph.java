@@ -3765,12 +3765,15 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 
 	String prop_value;
 
-	int symbol = drawTSHelperGetSymbolStyle ( its, overrideProps );
+	int symbolNoFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, false );
+	int symbolWithFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, true );
+	int symbol = symbolNoFlag; // Default symbol to use for a specific data point, checked below
+	// Message.printStatus ( 2, routine, "symbolNoFlag=" + symbolNoFlag + " symbolWithFlag=" + symbolWithFlag );
 	double symbol_size = drawTSHelpterGetSymbolSize ( its, overrideProps );
 
-	// Data label.
+	// Data text label.
 
-	boolean label_symbol = false;
+	boolean labelPointWithFlag = false;
 	int label_position = 0;
 	String label_format = "";
 	String label_position_string;
@@ -3786,12 +3789,12 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		label_format = getLayeredPropValue("DataLabelFormat", _subproduct, -1, false, overrideProps);
 		if (!label_format.equals("")) {
 			// Label the format
-			label_symbol = true;
+			labelPointWithFlag = true;
 			graphLabelFormatSet = true;
 		}
 	}
 	else {	
-		label_symbol = true;
+		labelPointWithFlag = true;
 	}
 
 	// TODO (JTS - 2006-04-26) Evaluate label format
@@ -3806,7 +3809,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	// level properties.  As discussed with SAM, this may not be the
 	// desired behavior, but for now it will be the graph's behavior.  
 
-	if (label_symbol) {
+	if (labelPointWithFlag) {
 		// Are drawing point labels so get the position, set the font, and get the format.
 		label_position_string = getLayeredPropValue("DataLabelPosition", _subproduct, its, false, overrideProps);
 		// Determine the label position automatically, if necessary.
@@ -3984,13 +3987,14 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	boolean always_draw_bar = true;
 	double leftx = 0.0;	// Left edge of a bar.
 	double centerx = 0.0;	// Center of a bar.
+    String dataFlag = null;
 
 	if (interval_base == TimeInterval.IRREGULAR) {
 		// Get the data and loop through the vector.  Currently do not
 		// use TSIterator because head-to-head performance tests have
 		// not been performed.  Need to do so before deciding which approach is faster.
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -4000,7 +4004,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		DateTime date = null;
 
 		for ( int i = 0; i < nalltsdata; i++ ) {
-        	tsdata = (TSData)alltsdata.get(i);
+        	tsdata = alltsdata.get(i);
         	date = tsdata.getDate();
         	if (date.greaterThan(end)) {
         		// Past the end of where want to go so quit.
@@ -4015,11 +4019,18 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         			lasty = y;
         			continue;
         		}
+                dataFlag = tsdata.getDataFlag();
+                if ( dataFlag.length() == 0 ) {
+                    symbol = symbolNoFlag;
+                }
+                else {
+                    symbol = symbolWithFlag;
+                }
         
         		// Else, see if need to moveto or lineto the point.
         		x = date.toDouble();
-        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR
-            	&& __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
+        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR &&
+        		    __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
         			// Always draw the symbol
                     //if (tsdata != null) 
                     //Message.printStatus(1, "", "JTS0" + date + ": '" + tsdata.getDataFlag() 
@@ -4027,14 +4038,14 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         			if (_is_reference_graph) {
         				// Don't draw symbols
         			}
-        			else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        			else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
         				// Text only
         				GRDrawingAreaUtil.drawText(_da_graph,
         				    TSData.toString(label_format,label_value_format, date, y, 0.0,
         					tsdata.getDataFlag().trim(),label_units), 
         					x, y, 0.0, label_position);
         			}
-        			else if (label_symbol) {
+        			else if (labelPointWithFlag) {
         				if (niceSymbols) {
         					GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
         				}
@@ -4096,13 +4107,13 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         				if (_is_reference_graph) {
         					// No symbol or label to draw
         				}
-        				else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        				else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
         					// Just text
         					GRDrawingAreaUtil.drawText(_da_graph,
         						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
         						label_units), x, y, 0.0, label_position);
         				}
-        				else if (label_symbol) {
+        				else if (labelPointWithFlag) {
         					if (niceSymbols) {
         						GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
         					}
@@ -4224,15 +4235,29 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		date.setTimeZone("");
 
 		TSData tsdata = new TSData();
+		// Define a boolean to increase performance below
+		boolean doDataPoint = false; // Symbol will be determined from "symbolNoFlag" value
+		if ( labelPointWithFlag || (symbolNoFlag != symbolWithFlag) ) {
+		    // Symbol will be determined by checking the flag, which is in the data point
+		    doDataPoint = true;
+		}
 		for (; date.lessThanOrEqualTo(end); date.addInterval(interval_base, interval_mult)) {
 			// Use the actual data value
-			if (label_symbol) {
-				// TODO - need to optimize
+			if ( doDataPoint ) {
 				tsdata = ts.getDataPoint(date, tsdata);
 				y = tsdata.getData();
+				dataFlag = tsdata.getDataFlag();
+				if ( dataFlag.length() == 0 ) {
+				    symbol = symbolNoFlag;
+				}
+				else {
+				    symbol = symbolWithFlag;
+				}
 			}
-			else {	
+			else {
+			    // No text and no need to check flags for symbol
 				y = ts.getDataValue(date);
+				dataFlag = null;
 			}
 			
 			if (ts.isDataMissing(y)) {
@@ -4251,40 +4276,42 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 			// Else, see if we need to moveto or lineto the point
 			x = date.toDouble();
 
-			// Uncomment this for hard-core debugging
+			// Uncomment this for debugging
 			//Message.printStatus(1, routine, "its=" + its + " date = " + date + " x = " + x + " y=" + y);
 
 			if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR
 			    && __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
-				// Previous point was missing so all need to do is draw the symbol (if not a referencegraph)				
+				// Previous point was missing so all need to do is draw the symbol (if not a reference graph)				
 				if (_is_reference_graph) {
 					// Don't label or draw symbol.
 				}
-				else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
-					// Just text
-					GRDrawingAreaUtil.drawText(_da_graph,
-						TSData.toString(label_format,
-						label_value_format, date, y, 0.0, 
-						tsdata.getDataFlag().trim(), label_units), x, y, 0.0, label_position);
-				}
-				else if (label_symbol) {
-					// Symbol and label
-					if (niceSymbols) {
-						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
-					}
-					GRDrawingAreaUtil.drawSymbolText( _da_graph, symbol, x, y, symbol_size,
-						TSData.toString ( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
-						label_units ), 0.0, label_position,
-						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
-					if (niceSymbols) {
-						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
-						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
-					}
+				else if ( labelPointWithFlag ) {
+				    if ( (symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0) ) {
+    					// Just text
+    					GRDrawingAreaUtil.drawText(_da_graph,
+    						TSData.toString(label_format,
+    						label_value_format, date, y, 0.0, 
+    						tsdata.getDataFlag().trim(), label_units), x, y, 0.0, label_position);
+    				}
+    				else {
+    					// Symbol and label
+    					if (niceSymbols) {
+    						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
+    					}
+    					GRDrawingAreaUtil.drawSymbolText( _da_graph, symbol, x, y, symbol_size,
+    						TSData.toString ( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
+    						label_units ), 0.0, label_position,
+    						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+    					if (niceSymbols) {
+    						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be
+    						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, false);
+    					}
+    				}
 				}
 				else {	
 					// Just symbol
 					if (niceSymbols) {
-						GRDrawingAreaUtil.setDeviceAntiAlias(	_da_graph, true);
+						GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
 					}
 					GRDrawingAreaUtil.drawSymbol(_da_graph, symbol, x, y, symbol_size,
 						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
@@ -4294,7 +4321,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 					}
 				}
 
-				// Do after symbol
+				// Draw the line segment after the symbol
 				GRDrawingAreaUtil.moveTo(_da_graph, x, y);
 				lasty = y;
 				++drawcount;
@@ -4321,14 +4348,15 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 					GRDrawingAreaUtil.moveTo(_da_graph, x, y);
 				}
 
-				if (_is_reference_graph) {}
-				else if (label_symbol && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+				if (_is_reference_graph) {
+				}
+				else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
 					// Text only
 					GRDrawingAreaUtil.drawText(_da_graph,
 						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(), 
 						label_units), x, y, 0.0, label_position);
 				}
-				else if (label_symbol) {
+				else if (labelPointWithFlag) {
 					// Symbol and label
 					if (niceSymbols) {
 						GRDrawingAreaUtil.setDeviceAntiAlias( _da_graph, true);
@@ -4556,16 +4584,28 @@ private double drawTSHelpterGetSymbolSize ( int its, PropList overrideProps )
 Determine the symbol style used for drawing a time series.
 @param its the time series list position (0+, for retrieving properties and messaging)
 @param overrideProps run-time override properties to consider when getting graph properties
-@param return the symbol style from product properties
+@param flaggedData if true then the symbol is determined from the "FlaggedDataSymbolStyle" property (if not set
+then "SymbolStyle" is used); if false the symbol is determined from the "SymbolStyle" property
+@return the symbol style from product properties
 */
-private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps )
+private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolean flaggedData )
 {
     int symbolStyle = GRSymbol.SYM_NONE;
     if (_is_reference_graph) {
         symbolStyle = GRSymbol.SYM_NONE;
     }
-    else {  
-        String propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
+    else {
+        String propValue = null;
+        if ( flaggedData ) {
+            propValue = getLayeredPropValue("FlaggedDataSymbolStyle", _subproduct, its, false, overrideProps);
+            if ( propValue == null ) {
+                // Use the main symbol style
+                propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
+            }
+        }
+        else {
+            propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
+        }
         try {   
             symbolStyle = GRSymbol.toInteger(propValue);
         }
