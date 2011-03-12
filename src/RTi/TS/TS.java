@@ -646,7 +646,7 @@ TS objects are cloned.  The result is a complete deep copy.
 */
 public Object clone ()
 {	try {
-    // Clone the base class...
+        // Clone the base class...
 		TS ts = (TS)super.clone();
 		// Now clone mutable objects..
 		if ( _date1 != null ) {
@@ -670,16 +670,17 @@ public Object clone ()
 			ts._comments = new Vector(_comments.size());
 			size = _comments.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._comments.add( new String((String)_comments.get(i)));
+				ts._comments.add( new String(_comments.get(i)));
 			}
 		}
 		if ( _genesis != null ) {
 			ts._genesis = new Vector(_genesis.size());
 			size = _genesis.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._genesis.add(new String((String)_genesis.get(i)));
+				ts._genesis.add(new String(_genesis.get(i)));
 			}
-			ts.addToGenesis ("Made a copy of time series (previous history information is for original)" );
+			ts.addToGenesis ("Made a copy of TSID=\"" + getIdentifier() +
+			    "\" Alias=\"" + getAlias() + "\" (previous history information is for original)" );
 		}
 		if ( _data_limits != null ) {
 			ts._data_limits = (TSLimits)_data_limits.clone();
