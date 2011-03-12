@@ -1,11 +1,18 @@
 package RTi.Util.Math;
 
 /**
-Data transformations that may be applied, for example before performing a regression analysis.
+Data transformations that may be applied to data before analysis,
+for example before performing a regression analysis.
 */
 public enum DataTransformationType
 {
+    /**
+    Data values are transformed by log10() prior to analysis.
+    */
     LOG("Log"),
+    /**
+    Data values are not transformed prior to analysis.
+    */
     NONE("None");
     
     private final String displayName;
