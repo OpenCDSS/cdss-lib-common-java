@@ -5016,7 +5016,7 @@ throws Exception
 
     String maxString = "maximum of " + intervals_can_fill + " intervals in gap allowed.";
     if ( intervals_can_fill == 0 ) {
-        maxString = " no limit to number of intervals in a gap to fill.";
+        maxString = "no limit to number of intervals in a gap to fill.";
     }
 	ts.addToGenesis ( "Filled " + fillCount + " missing values " + start + " to " +
 	    end + " using linear interpolation from known values, " + maxString );
