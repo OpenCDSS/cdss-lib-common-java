@@ -120,8 +120,7 @@ Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~InputType~InputNa
 <p>
 TSID's as TSIdent objects or strings can be used to pass unique time series
 identifiers and are used throughout the time series package.  Some TS object
-data, including data type, are stored only in the TSIdent, to avoid
-redundant data.
+data, including data type, are stored only in the TSIdent, to avoid redundant data.
 */
 public class TSIdent
 implements Cloneable, Serializable, Transferable
@@ -189,62 +188,62 @@ public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent"
 /**
 The whole identifier, including the input type.
 */
-private String	__identifier;
+private String __identifier;
 
 /**
 A short alias for the time series identifier.
 */
-private String	__alias;
+private String __alias;
 
 /**
 The location (combining the main location and the sub-location).
 */
-private String	__full_location;
+private String __full_location;
 
 /**
 The main location.
 */
-private String	__main_location;
+private String __main_location;
 
 /**
 The sub-location (2nd+ parts of the location, using the LOCATION_SEPARATOR.
 */
-private String	__sub_location;
+private String __sub_location;
 
 /**
 The time series data source (combining the main source and the sub-source).
 */
-private String	__full_source;
+private String __full_source;
 
 /**
 The main source.
 */
-private String	__main_source;
+private String __main_source;
 
 /**
 The sub-source.
 */
-private String	__sub_source;
+private String __sub_source;
 
 /**
 The time series data type (combining the main and sub types).
 */
-private String	__full_type;
+private String __full_type;
 
 /**
 The main data type.
 */
-private String	__main_type;
+private String __main_type;
 
 /**
 The sub data type.
 */
-private String	__sub_type;
+private String __sub_type;
 
 /**
 The time series interval as a string.
 */
-private String	__interval_string;
+private String __interval_string;
 
 /**
 The base data interval.
@@ -259,7 +258,7 @@ private int	__interval_mult;
 /**
 The time series scenario.
 */
-private String	__scenario;
+private String __scenario;
 
 /**
 Number used when more than one time series has the same identifier (e.g., if a Vector of time series is
@@ -270,12 +269,12 @@ private int	__sequence_number;
 /**
 Type of input (e.g., "DateValue", "RiversideDB")
 */
-private String	__input_type;
+private String __input_type;
 
 /**
 Name of input (e.g., a file name or database connection name).
 */
-private String	__input_name;
+private String __input_name;
 
 /**
 Mask that controls behavior (e.g., how sub-fields are handled).
@@ -301,22 +300,19 @@ public TSIdent ( int mask )
 /**
 Construct using a full string identifier, which will be parsed and the
 individual parts of the identifier set.
-@param identifier Full stirng identifier (optionally, with right-most fields
-omitted).
+@param identifier Full string identifier (optionally, with right-most fields omitted).
 @exception if the identifier is invalid (usually the interval is incorrect).
 */
 public TSIdent ( String identifier )
 throws Exception
 {	init();
 	setIdentifier ( identifier );
-
 }
 
 /**
 Construct using a full string identifier, which will be parsed and the
 individual parts of the identifier set.
-@param identifier Full stirng identifier (optionally, with right-most fields
-omitted).
+@param identifier Full string identifier (optionally, with right-most fields omitted).
 @param mask Modifier to control behavior of TSIdent.
 @exception if the identifier is invalid (usually the interval is incorrect).
 */
@@ -336,13 +332,11 @@ Construct using each identifier part.
 @param scenario Scenario string.
 @exception if the identifier is invalid (usually the interval is incorrect).
 */
-public TSIdent (	String full_location, String full_source,
-			String full_type, String interval_string,
-			String scenario )
+public TSIdent ( String full_location, String full_source, String full_type, String interval_string,
+	String scenario )
 throws Exception
 {	init();
-	setIdentifier ( full_location, full_source, full_type, interval_string,
-			scenario, "", "" );
+	setIdentifier ( full_location, full_source, full_type, interval_string, scenario, "", "" );
 }
 
 /**
@@ -355,15 +349,12 @@ Construct using each identifier part.
 @param mask Modifier to control behavior of TSIdent.
 @exception if the identifier is invalid (usually the interval is incorrect).
 */
-public TSIdent (	String full_location, String full_source,
-			String full_type, String interval_string,
-			String scenario,
-			int mask )
+public TSIdent ( String full_location, String full_source, String full_type, String interval_string,
+	String scenario, int mask )
 throws Exception
 {	init();
 	setBehaviorMask ( mask );
-	setIdentifier ( full_location, full_source, full_type, interval_string,
-			scenario, "", "" );
+	setIdentifier ( full_location, full_source, full_type, interval_string, scenario, "", "" );
 }
 
 /**
@@ -377,9 +368,8 @@ Construct using each identifier part.
 @param input_name Input name.
 @exception if the identifier is invalid (usually the interval is incorrect).
 */
-public TSIdent (	String full_location, String full_source,
-			String full_type, String interval_string,
-			String scenario, String input_type, String input_name )
+public TSIdent ( String full_location, String full_source, String full_type, String interval_string,
+	String scenario, String input_type, String input_name )
 throws Exception
 {	init();
 	setIdentifier ( full_location, full_source, full_type, interval_string,	scenario, input_type, input_name );
@@ -411,7 +401,8 @@ Clone the object.  The Object base class clone() method is called, which clones
 all the TSIdent primitive data.  The result is a complete deep copy.
 */
 public Object clone ()
-{	try {	TSIdent tsident = (TSIdent)super.clone();
+{	try {
+    TSIdent tsident = (TSIdent)super.clone();
 		return tsident;
 	}
 	catch ( CloneNotSupportedException e ) {
@@ -425,8 +416,7 @@ Compare identifiers, using a string comparison of the major parts (so that the
 number of "." does not cause a problem).  This version <b>does not</b> compare
 the input type and name (use the overloaded version to do so).
 @return true if the identifier string equals the instance (if the string does
-not match, the individual five main parts are also compared and if they match
-true is returned).
+not match, the individual five main parts are also compared and if they match true is returned).
 @param id String identifier to compare.
 */
 public boolean equals ( String id )
@@ -437,8 +427,7 @@ public boolean equals ( String id )
 Compare identifiers, using a string comparison of the major parts (so that the
 number of "." does not cause a problem).
 @return true if the identifier string equals the instance (if the string does
-not match, the individual five main parts are also compared and if they match
-true is returned).
+not match, the individual five main parts are also compared and if they match true is returned).
 @param id String identifier to compare.
 @param include_input If true, the input type and name are included in the
 comparison.  If false, only the 5-part TSID are checked.
@@ -451,24 +440,18 @@ public boolean equals ( String id, boolean include_input )
 			// Simple compare...
 			is_equal = true;
 		}
-		else {	// Compare parts to be sure...
-			try {	TSIdent ident = new TSIdent ( id );
-				if (	ident.getLocation().equalsIgnoreCase(
-					__full_location) &&
-					ident.getSource().equalsIgnoreCase(
-					__full_source) &&
-					ident.getType().equalsIgnoreCase(
-					__full_type) &&
-					ident.getInterval().equalsIgnoreCase(
-					__interval_string)&&
-					ident.getScenario().equalsIgnoreCase(
-					__scenario) &&
-					(ident.getSequenceNumber() ==
-					__sequence_number) &&
-					ident.getInputType().equalsIgnoreCase(
-					__input_type) &&
-					ident.getInputName().equalsIgnoreCase(
-					__input_name)){
+		else {
+		    // Compare parts to be sure...
+			try {
+			    TSIdent ident = new TSIdent ( id );
+				if ( ident.getLocation().equalsIgnoreCase(__full_location) &&
+					ident.getSource().equalsIgnoreCase(__full_source) &&
+					ident.getType().equalsIgnoreCase(__full_type) &&
+					ident.getInterval().equalsIgnoreCase(__interval_string)&&
+					ident.getScenario().equalsIgnoreCase(__scenario) &&
+					(ident.getSequenceNumber() == __sequence_number) &&
+					ident.getInputType().equalsIgnoreCase(__input_type) &&
+					ident.getInputName().equalsIgnoreCase(__input_name)){
 					is_equal = true;
 				}
 			}
@@ -478,32 +461,28 @@ public boolean equals ( String id, boolean include_input )
 			}
 		}
 	}
-	else {	// Only compare the 5-part identifier...
+	else {
+	    // Only compare the 5-part identifier...
 		// Get the part of the identifier before the first ~
 		int pos = id.indexOf('~');
 		if ( pos >= 0 ) {
-			// Has a ~ so get the leading part for the remainder
-			// of the comparison...
+			// Has a ~ so get the leading part for the remainder of the comparison...
 			id = id.substring(0,pos);
 		}
 		if ( __identifier.equalsIgnoreCase(id) ) {
 			// Simple compare...
 			is_equal = true;
 		}
-		else {	// Compare parts to be sure...
-			try {	TSIdent ident = new TSIdent ( id );
-				if (	ident.getLocation().equalsIgnoreCase(
-					__full_location) &&
-					ident.getSource().equalsIgnoreCase(
-					__full_source) &&
-					ident.getType().equalsIgnoreCase(
-					__full_type) &&
-					ident.getInterval().equalsIgnoreCase(
-					__interval_string)&&
-					ident.getScenario().equalsIgnoreCase(
-					__scenario) &&
-					(ident.getSequenceNumber() ==
-					__sequence_number) ) {
+		else {
+		    // Compare parts to be sure...
+			try {
+			    TSIdent ident = new TSIdent ( id );
+				if ( ident.getLocation().equalsIgnoreCase(__full_location) &&
+					ident.getSource().equalsIgnoreCase(__full_source) &&
+					ident.getType().equalsIgnoreCase(__full_type) &&
+					ident.getInterval().equalsIgnoreCase(__interval_string)&&
+					ident.getScenario().equalsIgnoreCase(__scenario) &&
+					(ident.getSequenceNumber() == __sequence_number) ) {
 					is_equal = true;
 				}
 			}
@@ -604,11 +583,10 @@ internally.  Null fields are treated as empty strings.
 @param interval_string Data interval string.
 @param scenario Scenario string.
 */
-public String getIdentifierFromParts (	String full_location,String full_source,
-					String full_type,
-					String interval_string, String scenario)
+public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
+	String interval_string, String scenario)
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-					interval_string, scenario, -1, "", "" );
+		interval_string, scenario, -1, "", "" );
 }
 
 /**
@@ -622,13 +600,10 @@ internally.  Null fields are treated as empty strings.
 @param scenario Scenario string.
 @param sequence_number Sequence number for the time series (in an ensemble).
 */
-public String getIdentifierFromParts (	String full_location,String full_source,
-					String full_type,
-					String interval_string, String scenario,
-					int sequence_number )
+public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
+	String interval_string, String scenario, int sequence_number )
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-					interval_string, scenario,
-					sequence_number, "", "" );
+		interval_string, scenario, sequence_number, "", "" );
 }
 
 /**
@@ -643,13 +618,10 @@ internally.  Null fields are treated as empty strings.
 @param input_type Input type.
 @param input_name Input name.
 */
-public String getIdentifierFromParts (	String full_location,String full_source,
-					String full_type,
-					String interval_string, String scenario,
-					String input_type, String input_name )
+public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
+	String interval_string, String scenario, String input_type, String input_name )
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-					interval_string, scenario,
-					-1, "", "" );
+		interval_string, scenario, -1, "", "" );
 }
 
 /**
@@ -665,12 +637,10 @@ internally.  Null fields are treated as empty strings.
 @param input_type Input type.  If blank, the input type will not be added.
 @param input_name Input name.  If blank, the input name will not be added.
 */
-public String getIdentifierFromParts (	String full_location,String full_source,
-					String full_type,
-					String interval_string, String scenario,
-					int sequence_number,
-					String input_type, String input_name )
-{	StringBuffer	full_identifier = new StringBuffer();
+public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
+	String interval_string, String scenario, int sequence_number,
+	String input_type, String input_name )
+{	StringBuffer full_identifier = new StringBuffer();
 
 	if ( full_location != null ) {
 		full_identifier.append ( full_location );
@@ -692,8 +662,7 @@ public String getIdentifierFromParts (	String full_location,String full_source,
 		full_identifier.append ( scenario );
 	}
 	if ( sequence_number > 0 ) {
-		full_identifier.append ( __SEQUENCE_NUMBER_LEFT +
-			sequence_number + __SEQUENCE_NUMBER_RIGHT );
+		full_identifier.append ( __SEQUENCE_NUMBER_LEFT + sequence_number + __SEQUENCE_NUMBER_RIGHT );
 	}
 	if ( (input_type != null) && (input_type.length() != 0) ) {
 		full_identifier.append ( "~" + input_type );
@@ -866,11 +835,9 @@ public String getType( )
 Initialize data members.
 */
 private void init ()
-{	__behavior_mask = 0;	// Default is to process sub-location and
-				// sub-source
+{	__behavior_mask = 0; // Default is to process sub-location and sub-source
 
-	// Initialize to null strings so that we do not have problems with the
-	// recursive stuff...
+	// Initialize to null strings so that we do not have problems with the recursive stuff...
 
 	__identifier = null;
 	__full_location = null;
@@ -916,7 +883,8 @@ private void init ()
 	__interval_base = TimeInterval.UNKNOWN;
 	__interval_mult = 0;
 
-	try {	setInterval("");
+	try {
+	    setInterval("");
 	}
 	catch ( Exception e ) {
 		// Can ignore here.
@@ -944,7 +912,8 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 	if (flavor.equals(tsIdentFlavor)) {
 		return true;
 	}
-	else {	return false;
+	else {
+	    return false;
 	}
 }
 
@@ -1021,8 +990,7 @@ See the overloaded version for more information.
 @return true if the identifier string matches the instance (if the string does
 not match, the individual five main parts are also compared and if they match
 true is returned).  Wild-cards are allowed in the identifier.
-@param id_regexp String identifier to compare, with identifier fields containing
-regular expressions.
+@param id_regexp String identifier to compare, with identifier fields containing regular expressions.
 @param include_input If true, the input type and name are included in the
 comparison.  If false, only the 5-part TSID are checked.
 @deprecated Use the overloaded method that takes an option for the alias.
@@ -1048,12 +1016,10 @@ to the specified regular expressions.  The instance fields can also contain
 regular expressions with "*" to indicate to match everything.  This allows some
 fields to be ignored (always matched).  The regular expressions can be either
 "*" (match all), a literal string (blank is a literal string) or a combination
-using "*".  Each "*" is converted internally to ".*" and the String.matches()
-method is called.
+using "*".  Each "*" is converted internally to ".*" and the String.matches() method is called.
 Comparisons are done case-independent by converting all strings to uppercase.
 @return true if the identifier string equals the instance (if the string does
-not match, the individual five main parts are also compared and if they match
-true is returned).
+not match, the individual five main parts are also compared and if they match true is returned).
 @param location_regexp Location regular expression to compare.
 @param source_regexp Data source regular expression to compare.
 @param data_type_regexp Data type regular expression to compare.
@@ -1064,18 +1030,11 @@ true is returned).
 @param include_input If true, the input type and name are included in the
 comparison.  If false, only the 5-part TSID are checked.
 */
-public boolean matches (	String location_regexp, String source_regexp,
-				String data_type_regexp, String interval_regexp,
-				String scenario_regexp,
-				String input_type_regexp,
-				String input_name_regexp,
-				boolean include_input )
-{	return matches (	location_regexp, source_regexp,
-				data_type_regexp, interval_regexp,
-				scenario_regexp, -1,
-				input_type_regexp,
-				input_name_regexp,
-				include_input );
+public boolean matches ( String location_regexp, String source_regexp, String data_type_regexp,
+    String interval_regexp, String scenario_regexp, String input_type_regexp,
+	String input_name_regexp, boolean include_input )
+{	return matches ( location_regexp, source_regexp, data_type_regexp, interval_regexp,
+		scenario_regexp, -1, input_type_regexp, input_name_regexp, include_input );
 }
 
 /**
@@ -1094,8 +1053,7 @@ check to see whether the input information is part of the time series identifier
 and pass true only if such information is actually available in both the
 instance and the values being checked.
 @return true if the identifier string equals the instance (if the string does
-not match, the individual five main parts are also compared and if they match
-true is returned).
+not match, the individual five main parts are also compared and if they match true is returned).
 @param location_regexp Location regular expression to compare.
 @param source_regexp Data source regular expression to compare.
 @param data_type_regexp Data type regular expression to compare.
@@ -1107,24 +1065,18 @@ true is returned).
 @param include_input If true, the input type and name are included in the
 comparison.  If false, only the 5-part TSID are checked.
 */
-public boolean matches (	String location_regexp, String source_regexp,
-				String data_type_regexp, String interval_regexp,
-				String scenario_regexp,
-				int sequence_number,
-				String input_type_regexp,
-				String input_name_regexp,
-				boolean include_input )
+public boolean matches ( String location_regexp, String source_regexp, String data_type_regexp,
+    String interval_regexp, String scenario_regexp, int sequence_number, String input_type_regexp,
+	String input_name_regexp, boolean include_input )
 {	// Do the comparison by comparing each part.  Check for mismatches and
 	// if any occur return false.  Then if at the end, the TSIdent must match.
 	String routine = "TSIdent.matches";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 5, routine,
-		"Checking match of \"" + toString(true) + " with loc=\"" +
+		Message.printDebug ( 5, routine, "Checking match of \"" + toString(true) + " with loc=\"" +
 		location_regexp + "\" source=\"" + source_regexp +
 		"\" type=\"" + data_type_regexp + "\" interval=\"" +
 		interval_regexp + "\" scenario=\"" + scenario_regexp +
-		"\" sequence_number=" + sequence_number +
-		" input_type=\"" +
+		"\" sequence_number=" + sequence_number + " input_type=\"" +
 		input_type_regexp + "\" inputname=\"" + input_name_regexp +
 		"\" include_input=" +include_input );
 	}
@@ -1210,17 +1162,17 @@ throws Exception
 	// First parse the input information...
 
 	String identifier0 = identifier;
-	List list = StringUtil.breakStringList ( identifier, "~", 0 );
+	List<String> list = StringUtil.breakStringList ( identifier, "~", 0 );
 	int	i, nlist1;
 	if ( list != null ) {
 		nlist1 = list.size();
 		// Reset to first part for checks below...
-		identifier = (String)list.get(0);
+		identifier = list.get(0);
 		if ( nlist1 == 2 ) {
-			tsident.setInputType ( (String)list.get(1) );
+			tsident.setInputType ( list.get(1) );
 		}
 		else if ( nlist1 >= 3 ) {
-			tsident.setInputType ( (String)list.get(1) );
+			tsident.setInputType ( list.get(1) );
 			// File name may have a ~ so find the second instance
 			// of ~ and use the remaining string...
 			int pos = identifier0.indexOf ( "~" );
@@ -1238,8 +1190,7 @@ throws Exception
 
 	// Now parse the 5-part identifier...
 
-	String	full_location = "", full_source = "", interval_string = "",
-		scenario = "", full_type = "";
+	String full_location = "", full_source = "", interval_string = "", scenario = "", full_type = "";
 
 	// Figure out whether we are using the new or old conventions.  First
 	// check to see if the number of fields is small.  Then check to see if
@@ -1275,21 +1226,21 @@ throws Exception
         list =	StringUtil.breakStringList ( identifier, ".", 0 );
 		nlist1 = list.size();
 		if ( nlist1 >= 1 ) {
-			full_location = (String)list.get(0);
+			full_location = list.get(0);
 		}
 	}
 	// Data source...
 	if ( nlist1 >= 2 ) {
-		full_source = (String)list.get(1);
+		full_source = list.get(1);
 	}
 	// Data type...
 	if ( nlist1 >= 3 ) {
-		full_type = (String)list.get(2);
+		full_type = list.get(2);
 	}
 	// Data interval...
 	int sequence_number = -1;
 	if ( nlist1 >= 4 ) {
-		interval_string = (String)list.get(3);
+		interval_string = list.get(3);
 		// If no scenario is used, the interval string may have the
 		// sequence number on the end, so search for the [ and split the
 		// sequence number out of the interval string...
@@ -1312,7 +1263,7 @@ throws Exception
 			}
 		}
 	}
-	// Scenario...  It is possible that the scenario has delimeters
+	// Scenario...  It is possible that the scenario has delimiters
 	// in it.  Therefore, we need to concatenate all the remaining
 	// fields to compose the complete scenario...
 	if ( nlist1 >= 5 ) {
@@ -1323,7 +1274,6 @@ throws Exception
 			buffer.append ( list.get(i) );
 		}
 		scenario = buffer.toString ();
-		buffer = null;
 	}
 	// The scenario may now have the sequence number on the end, search for
 	// the [ and split out of the scenario...
@@ -1368,13 +1318,6 @@ throws Exception
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Returning local TSIdent..." );
 	}
-	full_location = null;
-	full_source = null;
-	full_type = null;
-	interval_string = null;
-	scenario = null;
-	list = null;
-	routine = null;
 	return tsident;
 }
 
@@ -1390,8 +1333,7 @@ public void setAlias ( String alias )
 
 /**
 Set the behavior mask.  The behavior mask controls how identifier sub-parts are
-joined into the full identifier.   Currently this routine does a full reset (not
-bit-wise).
+joined into the full identifier.   Currently this routine does a full reset (not bit-wise).
 @param behavior_mask Behavior mask that controls how sub-fields are handled.
 */
 public void setBehaviorMask( int behavior_mask )
@@ -1470,15 +1412,12 @@ public void setIdentifier ( )
 
 	String	full_identifier;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Calling getIdentifierFromParts..." );
+		Message.printDebug ( dl, routine, "Calling getIdentifierFromParts..." );
 	}
 	full_identifier = getIdentifierFromParts(__full_location, __full_source,
-			__full_type, __interval_string, __scenario,
-			__sequence_number, __input_type, __input_name );
+		__full_type, __interval_string, __scenario, __sequence_number, __input_type, __input_name );
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"...successfully called getIdentifierFromParts..." );
+		Message.printDebug ( dl, routine, "...successfully called getIdentifierFromParts..." );
 	}
 
 	setFullIdentifier ( full_identifier );
@@ -1487,8 +1426,6 @@ public void setIdentifier ( )
 		Message.printDebug ( dl, routine, "ID..." );
 		Message.printDebug ( dl, routine, "\"" + __identifier + "\"" );
 	}
-	full_identifier = null;
-	routine = null;
 }
 
 /**
@@ -1548,9 +1485,6 @@ throws Exception
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "... done setting the individual parts" );
 	}
-
-	tsident = null;
-	routine = null;
 }
 
 /**
@@ -1563,8 +1497,7 @@ Set the identifier given the parts.
 @exception if the identifier cannot be set (usually the interval is incorrect).
 */
 public void setIdentifier (	String full_location, String full_source,
-				String full_type, String interval_string,
-				String scenario )
+	String full_type, String interval_string, String scenario )
 throws Exception
 {	setLocation ( full_location );
 	setSource ( full_source );
@@ -1585,9 +1518,7 @@ Set the identifier given the parts.
 @exception if the identifier cannot be set (usually the interval is incorrect).
 */
 public void setIdentifier (	String full_location, String full_source,
-				String type, String interval_string,
-				String scenario, String input_type,
-				String input_name )
+	String type, String interval_string, String scenario, String input_type, String input_name )
 throws Exception
 {	setLocation ( full_location );
 	setSource ( full_source );
@@ -1610,11 +1541,8 @@ Set the identifier given the parts.
 @param input_name Input name.
 @exception if the identifier cannot be set (usually the interval is incorrect).
 */
-public void setIdentifier (	String full_location, String full_source,
-				String type, String interval_string,
-				String scenario, int sequence_number,
-				String input_type,
-				String input_name )
+public void setIdentifier (	String full_location, String full_source, String type, String interval_string,
+	String scenario, int sequence_number, String input_type, String input_name )
 throws Exception
 {	setLocation ( full_location );
 	setSource ( full_source );
@@ -1698,8 +1626,6 @@ throws Exception
 
 	setIntervalString ( interval_string );
 	setIdentifier();
-	routine = null;
-	tsinterval = null;
 }
 
 /**
@@ -1712,7 +1638,7 @@ public void setInterval ( int interval_base, int interval_mult )
 		Message.printWarning ( 2, "TSIdent.setInterval", "Interval multiplier (" + interval_mult +
                 " must be greater than zero" );
 	}
-	if (	(interval_base != TimeInterval.SECOND) &&
+	if ( (interval_base != TimeInterval.SECOND) &&
 		(interval_base != TimeInterval.MINUTE) &&
 		(interval_base != TimeInterval.HOUR) &&
 		(interval_base != TimeInterval.DAY) &&
@@ -1759,7 +1685,6 @@ public void setInterval ( int interval_base, int interval_mult )
 	}
 
 	setIntervalString ( interval_string.toString() );
-	interval_string = null;
 	setIdentifier ();
 }
 
@@ -1782,8 +1707,7 @@ public void setLocation ()
 	int	dl = 100;
 	
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Resetting full location from parts..." );
+		Message.printDebug ( dl, routine, "Resetting full location from parts..." );
 	}
 	if ( (__behavior_mask & NO_SUB_LOCATION) != 0 ) {
 		// Just use the main location as the full location...
@@ -1797,8 +1721,7 @@ public void setLocation ()
 		StringBuffer full_location = new StringBuffer ();
 		// We may want to check for __main_location[] also...
 		if ( __main_location != null ) {
-			// This should always be the case after the object is
-			// initialized...
+			// This should always be the case after the object is initialized...
 			full_location.append ( __main_location );
 			if ( __sub_location != null ) {
 				// We only want to add the sublocation if it is
@@ -1812,11 +1735,9 @@ public void setLocation ()
 			}
 			setFullLocation ( full_location.toString() );
 		}
-		full_location = null;
 	}
 	// Now reset the full identifier...
 	setIdentifier ();
-	routine = null;
 }
 
 /**
@@ -1835,7 +1756,7 @@ Set the full location from its full string.
 @param full_location The full location string.
 */
 public void setLocation( String full_location )
-{	String	routine = "TSIdent.setLocation(String)";
+{	String routine = "TSIdent.setLocation(String)";
 	int	dl = 100;
 
 	if ( full_location == null ) {
@@ -1843,8 +1764,7 @@ public void setLocation( String full_location )
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to set location to \"" + full_location + "\"" );
+		Message.printDebug ( dl, routine, "Trying to set location to \"" + full_location + "\"" );
 	}
 
 	if ( (__behavior_mask & NO_SUB_LOCATION) != 0 ) {
@@ -1853,14 +1773,14 @@ public void setLocation( String full_location )
 	}
 	else {
 	    // Need to split the location into main and sub-location...
-		List list;
+		List<String> list;
 		StringBuffer sub_location = new StringBuffer ();
 		int nlist;
 		list = StringUtil.breakStringList ( full_location, LOCATION_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
 			// Set the main location...
-			setMainLocation ( (String)list.get(0) );
+			setMainLocation ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-location.  This allows for multiple
@@ -1870,7 +1790,7 @@ public void setLocation( String full_location )
 				if ( i != 1 ) {
 					sub_location.append ( LOCATION_SEPARATOR );
 				}
-				sub_location.append ((String)list.get(i));
+				sub_location.append (list.get(i));
 			}
 			setSubLocation ( sub_location.toString() );
 		}
@@ -1878,10 +1798,7 @@ public void setLocation( String full_location )
 		    // Since only setting the main location need to set the sub-location to an empty string...
 			setSubLocation ( "" );
 		}
-		list = null;
-		sub_location = null;
 	}
-	routine = null;
 }
 
 /**
@@ -1948,13 +1865,12 @@ public void setSource ( )
 {	if ( (__behavior_mask & NO_SUB_SOURCE) != 0 ) {
 		// Just use the main source as the full source...
 		if ( __main_source != null ) {
-			// There should always be a main source after the
-			// object is initialized...
+			// There should always be a main source after the object is initialized...
 			setFullSource ( __main_source );
 		}
 	}
-	else {	// Concatenate the main and sub-sources to get the full
-		// source.
+	else {
+	    // Concatenate the main and sub-sources to get the full source.
 		StringBuffer full_source = new StringBuffer ();
 		if ( __main_source != null ) {
 			// We only want to add the subsource if it is not an
@@ -1962,10 +1878,8 @@ public void setSource ( )
 			// object is initialized).
 			full_source.append ( __main_source );
 			if ( __sub_source != null ) {
-				// We have sub_source so append it to the main
-				// source...
-				// We have a sub_source so append it to the
-				// main source...
+				// We have sub_source so append it to the main source...
+				// We have a sub_source so append it to the main source...
 				if ( __sub_source.length() > 0 ) {
 					full_source.append ( SOURCE_SEPARATOR );
 					full_source.append ( __sub_source );
@@ -1973,7 +1887,6 @@ public void setSource ( )
 			}
 			setFullSource ( full_source.toString() );
 		}
-		full_source = null;
 	}
 	// Now reset the full identifier...
 	setIdentifier ();
@@ -2007,34 +1920,34 @@ public void setSource( String source )
 		// The entire string passed in is used for the main source...
 		setMainSource ( source );
 	}
-	else {	// Need to split the source into main and sub-source...
-		List list;
-		StringBuffer	sub_source = new StringBuffer ();
-		int		nlist;
+	else {
+	    // Need to split the source into main and sub-source...
+		List<String> list;
+		StringBuffer sub_source = new StringBuffer ();
+		int nlist;
 		list =	StringUtil.breakStringList ( source,
 			SOURCE_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 )  {
 			// Set the main source...
-			setMainSource ( (String)list.get(0) );
+			setMainSource ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-source...
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
-				sub_source.append ((String)list.get(i) );
+				sub_source.append ( list.get(i) );
 				if ( i != iend ) {
 					sub_source.append ( SOURCE_SEPARATOR );
 				}
 			}
 			setSubSource ( sub_source.toString() );
 		}
-		else {	// Since we are only setting the main location we
+		else {
+		    // Since we are only setting the main location we
 			// need to set the sub-location to an empty string...
 			setSubSource ( "" );
 		}
-		list = null;
-		sub_source = null;
 	}
 }
 
@@ -2083,41 +1996,36 @@ public void setType ()
 	int	dl = 100;
 	
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Resetting full type from parts..." );
+		Message.printDebug ( dl, routine, "Resetting full type from parts..." );
 	}
 	if ( (__behavior_mask & NO_SUB_TYPE) != 0 ) {
 		// Just use the main type as the full type...
 		if ( __main_type != null ) {
-			// There should always be a main type after the
-			// object is initialized...
+			// There should always be a main type after the object is initialized...
 			setFullType ( __main_type );
 		}
 	}
-	else {	// Concatenate the main and sub-types to get the full type.
+	else {
+	    // Concatenate the main and sub-types to get the full type.
 		StringBuffer full_type = new StringBuffer ();
 		if ( __main_type != null ) {
-			// This should always be the case after the object is
-			// initialized...
+			// This should always be the case after the object is initialized...
 			full_type.append ( __main_type );
 			if ( __sub_type != null ) {
 				// We only want to add the subtype if it is
 				// not an empty string (it will be an empty
 				// string after the object is initialized).
 				if ( __sub_type.length() > 0 ) {
-					// We have a sub type so append it
-					// to the main type...
+					// We have a sub type so append it to the main type...
 					full_type.append ( TYPE_SEPARATOR );
 					full_type.append ( __sub_type );
 				}
 			}
 			setFullType ( full_type.toString() );
 		}
-		full_type = null;
 	}
 	// Now reset the full identifier...
 	setIdentifier ();
-	routine = null;
 }
 
 /**
@@ -2133,8 +2041,7 @@ public void setType ( String type )
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to set data type to \"" + type + "\"" );
+		Message.printDebug ( dl, routine, "Trying to set data type to \"" + type + "\"" );
 	}
 
 	if ( (__behavior_mask & NO_SUB_TYPE) != 0 ) {
@@ -2143,35 +2050,32 @@ public void setType ( String type )
 	}
 	else {
 		// Need to split the data type into main and sub-location...
-		List list;
-		StringBuffer	sub_type = new StringBuffer ();
-		int		nlist;
-		list =	StringUtil.breakStringList ( type,
-			TYPE_SEPARATOR, 0 );
+		List<String> list;
+		StringBuffer sub_type = new StringBuffer ();
+		int nlist;
+		list =	StringUtil.breakStringList ( type, TYPE_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
 			// Set the main type...
-			setMainType ( (String)list.get(0) );
+			setMainType ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
 			// Now set the sub-type...
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
-				sub_type.append ((String)list.get(i));
+				sub_type.append (list.get(i));
 				if ( i != iend ) {
 					sub_type.append ( TYPE_SEPARATOR );
 				}
 			}
 			setSubType ( sub_type.toString() );
 		}
-		else {	// Since we are only setting the main type we
+		else {
+		    // Since we are only setting the main type we
 			// need to set the sub-type to an empty string...
 			setSubType ( "" );
 		}
-		list = null;
-		sub_type = null;
 	}
-	routine = null;
 }
 
 /**
@@ -2200,8 +2104,7 @@ public String toString ( boolean include_input )
 	}
 	if ( __sequence_number != -1 ) {
 		// Add the sequence number if it is not the initial value...
-		sequence_number = __SEQUENCE_NUMBER_LEFT +
-			__sequence_number + __SEQUENCE_NUMBER_RIGHT;
+		sequence_number = __SEQUENCE_NUMBER_LEFT + __sequence_number + __SEQUENCE_NUMBER_RIGHT;
 	}
 	if ( include_input ) {
 		if ( (__input_type != null) && (__input_type.length() > 0) ) {
@@ -2212,17 +2115,14 @@ public String toString ( boolean include_input )
 		}
 	}
 	return ( __full_location + "." + __full_source + "." +
-		__full_type + "." + __interval_string + scenario +
-		sequence_number + input_type + input_name );
+		__full_type + "." + __interval_string + scenario + sequence_number + input_type + input_name );
 }
 
 /**
 Returns a String representation of the TSIdent, with each individual piece of
-the TSIdent explicity printed on a single line and labelled as to the part of
-the TSIdent it is.
+the TSIdent explicitly printed on a single line and labeled as to the part of the TSIdent it is.
 @return a String representation of the TSIdent, with each individual piece of
-the TSIdent explicity printed on a single line and labelled as to the part of
-the TSIdent it is.
+the TSIdent explicitly printed on a single line and labeled as to the part of the TSIdent it is.
 */
 public String toStringVerbose() {
 	return 
@@ -2247,4 +2147,4 @@ public String toStringVerbose() {
 		"Behavior Mask:    " + __behavior_mask + "\n";
 }
 
-} // End of TSIdent
+}
