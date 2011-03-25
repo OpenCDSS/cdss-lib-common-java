@@ -455,7 +455,7 @@ public int getHowSet ()
 Returns the list of Props.
 @return the list of Props.
 */
-public List getList() {
+public List<Prop> getList() {
 	return __list;
 }
 
