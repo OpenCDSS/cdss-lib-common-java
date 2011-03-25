@@ -176,9 +176,9 @@ throws Exception
             output_ts.setIdentifier ( tsident );
         }
         else {
-            // Default is to reset the scenario to the statistic...
+            // Default is to append the statistic to the scenario...
             // FIXME SAM 2009-10-20 probably should not allow a default
-            output_ts.getIdentifier().setScenario ( "" + statisticType );
+            output_ts.getIdentifier().setScenario ( output_ts.getIdentifier().getScenario() + statisticType );
         }
     }
     catch ( Exception e ) {
