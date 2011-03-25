@@ -55,6 +55,8 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         else {
             __inputJTextField = new JTextField ();
         }
+        __inputJTextField.setToolTipText(
+            "Enter a combination of literal strings and/or format specifiers from the list on the right.");
         int y = 0;
         int x = 0;
         JGUIUtil.addComponent(this, __inputJTextField,
@@ -63,6 +65,8 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         JGUIUtil.addComponent(this, new JLabel(" Insert:"),
             x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         __formatJComboBox = new SimpleJComboBox ( false );
+        __formatJComboBox.setToolTipText(
+            "Selecting a specifier will insert at the cursor position for the alias." );
         List<String> choicesList = StringUtil.toList(TSUtil.getTSFormatSpecifiers(true));
         choicesList.add(0,__hint);
         __formatJComboBox.setData(choicesList);
