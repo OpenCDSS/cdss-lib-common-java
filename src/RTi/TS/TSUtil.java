@@ -8459,7 +8459,7 @@ for building graphical interfaces.
 True, the description is also returned.
 */
 public static String[] getTSFormatSpecifiers(boolean include_description )
-{	String [] formats = new String[20];
+{	String [] formats = new String[21];
 	if ( include_description ) {
 		formats[0] = "%A - Alias";
 		formats[1] = "%b - Interval, base";
@@ -8481,6 +8481,7 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[17] = "%x - Source, sub";
 		formats[18] = "%Z - Scenario";
 		formats[19] = "%z - Sequence #";
+		formats[20] = "%% - Literal %";
 	}
 	else {
 	    formats[0] = "%A";
@@ -8503,6 +8504,7 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[17] = "%x";
 		formats[18] = "%Z";
 		formats[19] = "%z";
+		formats[20] = "%%";
 	}
 	return formats;
 }
@@ -9307,6 +9309,8 @@ throws Exception
         // Set the multiplier...
 		ts.setDataInterval(intervalBase,intervalMult);
 		ts.setDataIntervalOriginal(intervalBase,intervalMult);
+		// Set the genesis information
+		ts.addToGenesis( "Created new time series with interval determined from TSID \"" + id + "\"" );
 	}
 
 	// Return whatever was created...
