@@ -484,12 +484,8 @@ public String toString ( PropList parameters )
 		return __command_name + "()";
 	}
 	StringBuffer b = new StringBuffer ();
-	List v = parameters.getList();
-	int size = v.size();
 	String value;
-	Prop prop;
-	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.get(i);
+	for ( Prop prop: parameters.getList() ) {
 		value = prop.getValue();
 		if ( (value != null) && (value.length() > 0) ) {
 			if ( b.length() > 0 ) {
@@ -498,7 +494,7 @@ public String toString ( PropList parameters )
 			b.append ( prop.getKey() + "=\"" + value + "\"" );
 		}
 	}
-	return (__command_name + "(" + b.toString() + ")" );
+	return (__command_name + "(" + b + ")" );
 }
 
 }
