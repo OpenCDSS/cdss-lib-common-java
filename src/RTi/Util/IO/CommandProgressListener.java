@@ -22,7 +22,7 @@ being processed.
 provided to allow future interaction with the command.
 @param percentComplete If >= 0, the value can be used to indicate progress
 running a single command (not the single command).  If less than zero, then
-no estimate is given for the percent complete and calling code can make its
+no estimate is given for the percent complete and the called code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
