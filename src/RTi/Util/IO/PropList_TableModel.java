@@ -26,9 +26,7 @@ import RTi.Util.Message.Message;
 /**
 This table model displays proplist data.  Currently it only handles proplists
 that have String key/value pairs.  <p>
-REVISIT (JTS - 2003-10-27)<br>
-Add support for Object-storing props, or simply exclude them from being 
-displayed.
+TODO (JTS - 2003-10-27) Add support for Object-storing props, or simply exclude them from being displayed.
 */
 public class PropList_TableModel
 extends JWorksheet_AbstractRowTableModel {
@@ -59,8 +57,7 @@ private PropList __props;
 
 /**
 The column names.  They can be overridden by calling setKeyColumnName() and
-setValueColumnName(), but this must be done before the worksheet displaying
-the prop list is shown.
+setValueColumnName(), but this must be done before the worksheet displaying the prop list is shown.
 */
 private String 
 	__keyColName = "KEY",
@@ -75,12 +72,10 @@ by the user before being committed to the proplist read in from a file.
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
 */
-public PropList_TableModel(PropList props, boolean keyEditable,
-boolean valEditable)
+public PropList_TableModel(PropList props, boolean keyEditable, boolean valEditable)
 throws Exception {
 	if (props == null) {
-		throw new Exception ("Invalid proplist data passed to " 
-			+ "PropList_TableModel constructor.");
+		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
 	}
 	__props = new PropList(props);
 	_rows = __props.size();
@@ -100,17 +95,16 @@ displayed in the table model.  Cannot be null.
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
 */
-public PropList_TableModel(PropList props, List ignores, boolean keyEditable, boolean valEditable)
+public PropList_TableModel(PropList props, List<String> ignores, boolean keyEditable, boolean valEditable)
 throws Exception {
 	if (props == null) {
-		throw new Exception ("Invalid proplist data passed to " 
-			+ "PropList_TableModel constructor.");
+		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
 	}
 	__props = new PropList(props);
 
 	int size = ignores.size();
 	for (int i = 0; i < size; i++) {
-		__props.unSet((String)ignores.get(i));
+		__props.unSet(ignores.get(i));
 	}
 	
 	_rows = __props.size();
@@ -128,17 +122,15 @@ JWorksheet.addRow() or JWorksheet.insertRowAt().
 public void addRow(Object o) {
 	if (!(o instanceof Prop)) {
 		Message.printWarning(2, "PropList_TableModel.addRow()",	
-			"Only RTi.Util.IO.Prop objects can be added to "
-			+ "a PropList table model.");
+			"Only RTi.Util.IO.Prop objects can be added to a PropList table model.");
 		return;
 	}
 	_rows++;
-	__props.getList().add(o);
+	__props.getList().add((Prop)o);
 }
 
 /**
-Deletes a row from the table; called by the worksheet when a call is made
-to JWorksheet.deleteRow().
+Deletes a row from the table; called by the worksheet when a call is made to JWorksheet.deleteRow().
 @param row the number of the row to delete.
 */
 public void deleteRow(int row) {
@@ -162,8 +154,7 @@ throws Throwable {
 }
 
 /**
-Returns the class of the data stored in a given
-column.
+Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class getColumnClass (int columnIndex) {
@@ -203,8 +194,7 @@ public String[] getColumnToolTips() {
 	String[] tips = new String[__COLUMNS];
 
 	tips[COL_KEY] = "This is the value of the key in the proplist.";
-	tips[COL_VAL] = "This is the value associated with the key in the "
-		+ "proplist.";
+	tips[COL_VAL] = "This is the value associated with the key in the proplist.";
 	return tips;
 }
 
@@ -212,13 +202,12 @@ public String[] getColumnToolTips() {
 Returns the format that the specified column should be displayed in when
 the table is being displayed in the given table format. 
 @param column column for which to return the format.
-@return the format (as used by StringUtil.formatString() in which to display the
-column.
+@return the format (as used by StringUtil.formatString() in which to display the column.
 */
 public String getFormat(int column) {
 	switch (column) {
-		case  1:	return "%-256s";
-		case  2:	return "%-256s";
+		case 1: return "%-256s";
+		case 2: return "%-256s";
 	}
 	return "%8s";
 }
@@ -240,8 +229,7 @@ public int getRowCount() {
 }
 
 /**
-Returns the data that should be placed in the JTable
-at the given row and column.
+Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
@@ -253,8 +241,8 @@ public Object getValueAt(int row, int col) {
 
 	Prop p = (Prop)__props.elementAt(row);
 	switch (col) {
-		case COL_KEY:		return p.getKey();
-		case COL_VAL:		return p.getValue();
+		case COL_KEY: return p.getKey();
+		case COL_VAL: return p.getValue();
 	}
 	return " ";
 }
@@ -276,8 +264,7 @@ public int[] getColumnWidths() {
 }
 
 /**
-Inserts a new row in the table; called by the worksheet when a call is made 
-to JWorksheet.insertRowAt().
+Inserts a new row in the table; called by the worksheet when a call is made to JWorksheet.insertRowAt().
 @param o the object (in this case, should only be a Prop) to insert.
 @param row the row to insert the object at.
 */
@@ -288,12 +275,11 @@ public void insertRowAt(Object o, int row) {
 
 	if (!(o instanceof Prop)) {
 		Message.printWarning(2, "PropList_TableModel.insertRowAt()",	
-			"Only RTi.Util.IO.Prop objects can be inserted to "
-			+ "a PropList table model.");
+			"Only RTi.Util.IO.Prop objects can be inserted to a PropList table model.");
 		return;
 	}
 	_rows++;
-	__props.getList().add(row, o);
+	__props.getList().add(row, (Prop)o);
 }
 
 /**
