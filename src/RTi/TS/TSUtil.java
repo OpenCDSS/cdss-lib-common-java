@@ -2809,7 +2809,7 @@ series metadata will be created (useful for building workflows without full run)
 @exception Exception if an error occurs (e.g., improper disaggregation parameters).
 */
 public static TS disaggregate (	TS ts, String method, String new_datatype,
-				String new_units, int req_interval_base, int req_interval_mult, boolean createData )
+	String new_units, int req_interval_base, int req_interval_mult, boolean createData )
 throws Exception
 {	String routine = "TSUtil.disaggregate";
 	int interval_base = ts.getDataIntervalBase();
@@ -2998,6 +2998,10 @@ throws Exception
 			newdate2.setPrecision ( DateTime.PRECISION_MONTH );
 			newdate2.setMonth ( 12 );
 			newts.setDate2 ( newdate2 );
+	        if ( !createData ) {
+	            // Return the time series without doing the data work
+	            return newts;
+	        }
 			newts.allocateDataSpace ();
 
 			// Now transfer the values...
@@ -3041,6 +3045,10 @@ throws Exception
 			newdate2.setPrecision ( DateTime.PRECISION_DAY );
 			newdate2.setDay ( TimeUtil.numDaysInMonth( newdate2.getMonth(), newdate2.getYear()) );
 			newts.setDate2 ( newdate2 );
+            if ( !createData ) {
+                // Return the time series without doing the data work
+                return newts;
+            }
 			newts.allocateDataSpace ();
 
 			// Now transfer the values...
@@ -3095,6 +3103,10 @@ throws Exception
 			newdate2.setHour ( 23 );
 			newdate2.addHour ( 1 );
 			newts.setDate2 ( newdate2 );
+            if ( !createData ) {
+                // Return the time series without doing the data work
+                return newts;
+            }
 			newts.allocateDataSpace ();
 
 			// Now transfer the values...
@@ -3161,6 +3173,10 @@ throws Exception
 			newdate2.setMinute ( 59 );
 			newdate2.addMinute ( 1 );
 			newts.setDate2 ( newdate2 );
+            if ( !createData ) {
+                // Return the time series without doing the data work
+                return newts;
+            }
 			newts.allocateDataSpace ();
 
 			// Now transfer the values...
