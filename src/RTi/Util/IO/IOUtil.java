@@ -152,6 +152,7 @@ package RTi.Util.IO;
 import java.applet.Applet;
 import java.applet.AppletContext;
 
+import java.awt.Desktop;
 import java.awt.Toolkit;
 
 import java.awt.datatransfer.Clipboard;
@@ -174,10 +175,9 @@ import java.lang.String;
 import java.lang.StringBuffer;
 import java.lang.System;
 
-import java.lang.reflect.Method;
-
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.net.URL;
 
 import java.util.Collections;
@@ -193,9 +193,6 @@ import java.util.jar.Manifest;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeUtil;
-
-
-// Declare as abstract to prevent from declaring...
 
 /**
 This class provides static functions for file input/output and also provides
@@ -1647,7 +1644,7 @@ public static boolean isAbsolute ( String path )
 Checks to see if the given port is open.  Open ports can be used.  Ports that
 are not open are already in use by some other process.
 @param port the port number to check.
-@return whether the port is open or not.  
+@return whether the port is open or not.
 */
 public static boolean isPortOpen(int port) {
 	try {
@@ -1716,53 +1713,17 @@ Open the resource identified by the URL using the appropriate application for th
 environment.  On Windows, determine the default application using the file extension (e.g., "html" will result in
 a web browser).  On UNIX/Linux, a web browser is always used.
 @param url URL to open.
- */
+@deprecatec use the java.awt.Desktop class
+*/
 public static void openURL(String url) 
 {
-    String osName = System.getProperty("os.name");
-    if ( url == null ) {
-    	return;
-    }
-    // Find the default browser for the OS
     try {
-        if (osName.startsWith("Mac OS")) {
-            Class fileMgr = Class.forName("com.apple.eio.FileManager");
-            Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] {String.class});
-            openURL.invoke(null, new Object[] {url});
-        }
-        else if (osName.startsWith("Windows")) {
-            // See: http://support.microsoft.com/kb/164787
-            // rundll <dllname>,<entrypoint> <optional arguments>
-            // Works by:
-            // 1. parses command line (what is that?)
-            // 2. loads the dll via LoadLibrary()
-            // 3. obtains the address of the <entrypoint> via GetProcAddress()
-            // 4. it calls the <entrypoint> function, passing the command line tail which is the <optional arguments>
-            // 5. when the <entrypoint> function returns, Rundll.exe unloads the DLL and exits.
-            Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
-        }
-        else {
-            // Assume Unix or Linux
-            // TODO SAM 2009-04-24 Is there a "FileProtocolHandler" to bring up the correct application for file
-            // extension?  For now always attempt to open the file with a web browser given that the address is a URL.
-            String[] browsers = { "firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape" };
-            String browser = null;
-            for (int count = 0; count < browsers.length && browser == null; count++) {
-                if (Runtime.getRuntime().exec( new String[] { "which", browsers[count] }).waitFor() == 0) {
-                    browser = browsers[count];
-                }
-            }
-            // If browser is not found then print warning and throw exception
-            if (browser == null) {
-                Message.printWarning(2, "IOUtil.openURL", "Could not find web browser" );
-            }
-            else {
-                Runtime.getRuntime().exec( new String[] { browser, url } );
-            }
-        }
+        Desktop desktop = Desktop.getDesktop();
+        desktop.browse ( new URI(url) );
     }
     catch ( Exception e ) {
-    	Message.printWarning(2, "IOUtil.openURL", "Could not open application to view to URL: " + url );
+    	Message.printWarning(2, "IOUtil.openURL", "Could not open application to view to URL \"" + url +
+    	    "\" (" + e + ").");
     }
 }
 
