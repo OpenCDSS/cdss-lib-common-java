@@ -38,7 +38,7 @@ public TSEnsemble ()
 }
 
 /**
-Create a new ensemble, given a Vector of time series.
+Create a new ensemble, given a list of time series.
 @param tslist List of time series.
 */
 public TSEnsemble ( String id, String name, List<TS> tslist )
@@ -150,7 +150,10 @@ Set the ensemble identifier.
 @param id The ensemble identifier.
 */
 public void setEnsembleID ( String id )
-{   __id = id;
+{   if ( id == null ) {
+        id = "";
+    }
+    __id = id;
 }
 
 /**
@@ -158,7 +161,10 @@ Set the ensemble name.
 @param name The ensemble name.
 */
 public void setEnsembleName ( String name )
-{   __name = name;
+{   if ( name == null ) {
+        name = "";
+    }
+    __name = name;
 }
 
 /**
