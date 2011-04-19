@@ -46,6 +46,12 @@ This is ultimately used to perform checks, with the percent optionally being use
 private int __allowMissingCount = 0;
 
 /**
+Number of consecutive missing values allowed in the input data and still compute the result.
+This is ultimately used to perform checks, with the percent optionally being used to compute this value.
+*/
+private int __allowMissingConsecutive = 0;
+
+/**
 Percent (0 - 100) of missing values allowed in the input data and still compute the result.
 This value is optionally specified at construction but is converted to __allowMissingCount
 once the time series interval ratio is known.
@@ -147,6 +153,8 @@ different months. This argument is not used for conversion from irregular time s
 from larger intervals to smaller ones.  If specified as null, the default value is 0,
 meaning that any missing data in the input data will result in missing data in the result.  However, if the
 allowMissingCount is specified, it will override this default.
+@param allowMissingConsecutive the number of consecutive missing values allowed and still compute the result,
+considered at the same time as allowMissingCount
 @param outputFillMethod This property is used only by conversions from INST to MEAN when the conversion
 is from larger to smaller time intervals.  The options are:
 INTERPOLATE - The new time series values are interpolated between the old time series data points.
@@ -166,7 +174,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow,
     TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
     TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow,
-    Integer allowMissingCount, Double allowMissingPercent )
+    Integer allowMissingCount, Double allowMissingPercent, Integer allowMissingConsecutive )
 {
     // Check controlling information
     // OldTS - Make sure it is not null and has a not zero length period of record.
@@ -325,6 +333,23 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         }
         setAllowMissingPercent ( allowMissingPercent.doubleValue() );
     }
+    
+    // AllowMissingConsecutive
+    if ( allowMissingConsecutive == null ) {
+        if ( allowMissingCount > 0 ) {
+            // Missing allowed, so allow all to be in sequence
+            allowMissingConsecutive = new Integer(allowMissingCount);
+        }
+        else {
+            allowMissingConsecutive = new Integer(0); // Default is don't allow missing
+        }
+    }
+    // If the given value is less than 0, throw exception.
+    if ( allowMissingConsecutive.intValue() < 0 ) {
+        throw new IllegalArgumentException("AllowMissingConsecutive (" + allowMissingConsecutive +
+            ") is negative - must be >= 0.  Cannot change interval.");
+    }
+    setAllowMissingConsecutive ( allowMissingConsecutive );
 }
 
     /**
@@ -355,8 +380,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
 
         // provide for the corresponding dates of the new TS
         DateTime startDateNew;
-        DateTime lastDateNew;      // last date of the current interval we are analyzing
-        DateTime currentDateNew;  // this date will move from startDateNew to lastDateNew
+        DateTime lastDateNew; // last date of the current interval we are analyzing
+        DateTime currentDateNew; // this date will move from startDateNew to lastDateNew
 
         int nintervals = TimeUtil.getNumIntervals(startDateOld, nextDateOld, newIntervalBase, newIntervalMult);
 
@@ -478,6 +503,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow = getHandleEndpointsHow();
         TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow = getHandleMissingInputHow();
         int allowMissingCount = getAllowMissingCount();
+        int allowMissingConsecutive = getAllowMissingConsecutive();
         double allowMissingPercent = getAllowMissingPercent();
 
         // ??????????????????????????????????????????????????????????????????????
@@ -605,6 +631,10 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
              // we need to use the abs(intervalRelation) to properly get
              // a positive number of allowed missing values.
              allowMissingCount = (int)(Math.abs(intervalRelation) * allowMissingPercent/100.0);
+             if ( (allowMissingCount > 0) && (allowMissingConsecutive == 0) ) {
+                 // Default to number of missing
+                 allowMissingConsecutive = allowMissingCount;
+             }
              setAllowMissingCount ( allowMissingCount );
          }
          
@@ -667,7 +697,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                 TimeScaleType.MEAN + ".";
                 throw new IllegalArgumentException(warning);
             }
-            changeIntervalToDifferentYearType ( oldTS, newTS, newTimeScale, outputYearType, allowMissingCount );
+            changeIntervalToDifferentYearType ( oldTS, newTS, newTimeScale, outputYearType, allowMissingCount,
+                allowMissingConsecutive );
             returnTS = true;
         }
         else if (oldTS.getDataIntervalBase() == TimeInterval.IRREGULAR) {
@@ -715,7 +746,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                 // -----------------------------------------------------
                 if ( (newTimeScale == TimeScaleType.MEAN) || (newTimeScale == TimeScaleType.ACCM) ) {
                     if (changeInterval_toMEANorACCM(oldTSi, newTSi, intervalRelation, oldTimeScale, newTimeScale,
-                        handleMissingInputHow, allowMissingCount, outputFillMethod, handleEndpointsHow )) {
+                        handleMissingInputHow, allowMissingCount, allowMissingConsecutive,
+                        outputFillMethod, handleEndpointsHow )) {
                         returnTS = true;
                     }
                 }
@@ -736,7 +768,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     // From REGULAR INST to INST use routine changeInterval_fromINST
                     // ---------------------------------------------
                     if (changeInterval_fromINST(oldTSi, newTSi, intervalRelation, oldTimeScale, newTimeScale,
-                        statistic, handleMissingInputHow, allowMissingCount) ) {
+                        statistic, handleMissingInputHow, allowMissingCount, allowMissingConsecutive) ) {
                         returnTS = true;
                     }
                 }
@@ -746,7 +778,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     // ---------------------------------------------
                     if (changeInterval_toMEANorACCM(oldTSi, newTSi, intervalRelation,
                         oldTimeScale, newTimeScale, handleMissingInputHow, allowMissingCount,
-                        outputFillMethod, handleEndpointsHow )) {
+                        allowMissingConsecutive, outputFillMethod, handleEndpointsHow )) {
                         returnTS = true;
                     }
                 }
@@ -781,11 +813,14 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
      * @param newTimeScale time scale of the new time series.
      * @param handleMissingInputHow Indicates how to treat missing values in the input time series
      * @param allowMissingCount the number of missing values allowed (only used with statistic).
+     * @param allowMissingConsecutive only compute the new data value if the number of consecutive missing in the
+     * input interval is <= the specified count.
      * @return true if successful or false if an error.
      */
     private boolean changeInterval_fromINST(TSIterator oldTSi, TSIterator newTSi, int intervalRelation,
         TimeScaleType oldTimeScale, TimeScaleType newTimeScale, TSStatisticType statistic,
-        TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, int allowMissingCount )
+        TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, int allowMissingCount,
+        int allowMissingConsecutive )
         throws Exception {
         String routine = "TSUtil.changeInterval_fromINST", warning;
 
@@ -814,11 +849,19 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             double [] statisticSample = new double[500]; // Sample when computing statistic (guess at size)
             int statisticSampleSize = 0; // For statistic - sample size from input (non-missing)
             int statisticSampleMissingCount = 0; // For statistic - count of missing excluded from sample size
+            int nMissingConsecutive = 0; // Number of consecutive missing values in input interval
+            int nMissingConsecutiveMax = 0; // Maximum number of consecutive missing values in input interval
+            boolean previousIsMissing = false; // Whether previous value in input interval was missing
+            boolean okToCompute = true; // Whether an output interval value can be computed
             for (; newTSi.next() != null;) {
 
                 currentValue = newMissing;
                 statisticSampleSize = 0;
                 statisticSampleMissingCount = 0;
+                nMissingConsecutive = 0;
+                nMissingConsecutiveMax = 0;
+                previousIsMissing = false;
+                
                 // Just use the last recorded instantaneous old currentValue within the new interval
                 while (oldData != null && oldTSi.getDate().lessThanOrEqualTo(newTSi.getDate())) {
 
@@ -857,6 +900,20 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                         if ( oldTS.isDataMissing(currentValue) ) {
                             // Keep track of missing count and don't add to sample
                             ++statisticSampleMissingCount;
+                            // Also check for consecutive missing...
+                            if ( previousIsMissing ) {
+                                // Increment the consecutive missing count
+                                ++nMissingConsecutive;
+                            }
+                            else {
+                                // Restart the consecutive count
+                                nMissingConsecutive = 1;
+                            }
+                            // Keep track of the longest consecutive missing streak in the input interval
+                            nMissingConsecutiveMax = Math.max(nMissingConsecutive, nMissingConsecutiveMax);
+                            // Set for the next loop
+                            previousIsMissing = true;
+                            // ... end check for consecutive missing
                         }
                         else {
                             // Not missing so add to sample
@@ -893,7 +950,20 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     //Message.printStatus (2,routine,"Calculating max with sample size=" + statisticSampleSize +
                     //        " statisticSampleMissingCount=" + statisticSampleMissingCount +
                      //       " allowMissingCount=" + allowMissingCount);
-                    if ( (statisticSampleSize > 0) && (statisticSampleMissingCount <= allowMissingCount) ) {
+                    okToCompute = true;
+                    if ( statisticSampleSize == 0 ) {
+                        // No data...
+                        okToCompute = false;
+                    }
+                    else if ( statisticSampleMissingCount > allowMissingCount ) {
+                        // Too much missing data...
+                        okToCompute = false;
+                    }
+                    else if ( nMissingConsecutiveMax > allowMissingConsecutive ) {
+                        // Too many consecutive missing data...
+                        okToCompute = false;
+                    }
+                    if ( okToCompute ) {
                         // Have enough values to compute the sample.
                         if ( statistic == TSStatisticType.MAX ) {
                             statisticValue = MathUtil.max(statisticSampleSize, statisticSample);
@@ -1906,9 +1976,11 @@ on daily and monthly interval input; consequently, all input interval data fall 
 without edge effects and zero time issues.
 The output year type controls the operation and can only be ACCM (in which case all input values are
 accumulated) and MEAN (in which case the input values are averaged).
+@param allowMissingConsecutive only compute the new data value if the number of consecutive missing in the
+input interval is <= the specified count.
 */
 private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
-    TimeScaleType newTimeScale, YearType outputYearType, int allowMissingCount )
+    TimeScaleType newTimeScale, YearType outputYearType, int allowMissingCount, int allowMissingConsecutive )
 {   String routine = getClass().getName() + ".changeIntervalToDifferentYearType";
     // Create dates that have the correct precision (matching the old time series)
     // and initialize for the first year.  These are used to step through the time series.
@@ -1934,6 +2006,9 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         // Initialize for the new year
         double sum = 0.0;
         int nMissing = 0;
+        int nMissingConsecutive = 0; // Number of consecutive missing values in input interval
+        int nMissingConsecutiveMax = 0; // Maximum number of consecutive missing values in input interval
+        boolean previousIsMissing = false; // Whether previous value in input interval was missing
         int nNotMissing = 0;
         // Extract data from the old time series for the new year
         // This loops over the full year so that missing values on the end will impact results
@@ -1945,22 +2020,47 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             value = oldTS.getDataValue ( idate );
             if ( oldTS.isDataMissing(value) ) {
                 ++nMissing;
+                // Also check for consecutive missing...
+                if ( previousIsMissing ) {
+                    // Increment the consecutive missing count
+                    ++nMissingConsecutive;
+                }
+                else {
+                    // Restart the consecutive count
+                    nMissingConsecutive = 1;
+                }
+                // Keep track of the longest consecutive missing streak in the input interval
+                nMissingConsecutiveMax = Math.max(nMissingConsecutive, nMissingConsecutiveMax);
+                // Set for the next loop
+                previousIsMissing = true;
+                // ... end check for consecutive missing
             }
             else {
                 ++nNotMissing;
                 sum += value;
             }
         }
-        // Save the results
+        // Save the results - only compute if the allowed number of missing is adhered to
         Message.printStatus(2, routine, "For output year " + newYear + ", sum=" + sum + ", nMissing=" +
-            nMissing + ", nNotMissing=" + nNotMissing );
-        if ( newTimeScale == TimeScaleType.ACCM ) {
-            if ( (nNotMissing > 0) && (nMissing <= allowMissingCount) ) {
+            nMissing + ", nNotMissing=" + nNotMissing + ", nMissingConsecutiveMax=" + nMissingConsecutiveMax );
+        boolean okToCompute = true;
+        if ( nNotMissing == 0 ) {
+            // No data in input...
+            okToCompute = false;
+        }
+        else if ( nMissing > allowMissingCount ) {
+            // Too many missing in input...
+            okToCompute = false;
+        }
+        else if ( nMissingConsecutiveMax > allowMissingConsecutive ) {
+            // Too many consecutive missing...
+            okToCompute = false;
+        }
+        if ( okToCompute ) {
+            if ( newTimeScale == TimeScaleType.ACCM ) {
                 newTS.setDataValue(newYear, sum );
             }
-        }
-        else if ( newTimeScale == TimeScaleType.MEAN ) {
-            if ( (nNotMissing > 0) && (nMissing <= allowMissingCount) ) {
+            else if ( newTimeScale == TimeScaleType.MEAN ) {
                 newTS.setDataValue(newYear, sum/nNotMissing );
             }
         }
@@ -2124,6 +2224,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
      * @param maxMissingPerInterval the maximum number of missing value in the old time series allowed per
      * new time series interval. New value will be considered missing if this max value is exceeded.
      * This is only applicable when going from larger intervals to shorter ones.
+     * @param allowMissingConsecutive if >= 0, only compute the new data value if the number of
+     * consecutive missing in the input interval is <= the specified count.
      * @param outputFillMethod this argument is only used when going from larger intervals to smaller.
      * It allow for the new values to be interpolated (INTERPOLATE) between the old data point,
      * carried forward (CARRYFORWARD) from the 1st data point of the oldTS interval or
@@ -2135,7 +2237,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
    private boolean changeInterval_toMEANorACCM(TSIterator oldTSi, TSIterator newTSi, int intervalRelation,
        TimeScaleType oldTimeScale, TimeScaleType newTimeScale,
        TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, int maxMissingPerInterval,
-       TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
+       int allowMissingConsecutive, TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
        TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow )
    throws Exception {
         String routine = "TSUtil.changeInterval_toMEANorACCM", warning;
@@ -2210,6 +2312,10 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         DateTime newDate;
         double lastValue = -999.99, value = oldTS.getMissing(), sum, lastEndpointValue, firstEndpointValue;
         int missingCount, dataCount;
+        int nMissingConsecutive; // Number of missing consecutive values in input interval
+        int nMissingConsecutiveMax; // Maximum number of missing consecutive values in input interval
+        boolean previousIsMissing = false; // Is previous value in input interval missing?
+        boolean okToCompute = true; // is it OK to compute the output interval value?
         boolean missingFlag, first_time;
 
         // Change Interval
@@ -2259,6 +2365,9 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 sum = 0.0;
                 missingCount = 0;
                 dataCount = 0;
+                nMissingConsecutive = 0;
+                nMissingConsecutiveMax = 0;
+                previousIsMissing = false;
                 // TODO SAM 2007-03-01 Evaluate use.
                 // qualityFlag = "S";
 
@@ -2304,6 +2413,20 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                         if (oldTS.isDataMissing(value)) {
                             missingCount++;
                             missingFlag = true;
+                            // Also check the consecutive missing...
+                            if ( previousIsMissing ) {
+                                // Increment the consecutive missing count
+                                ++nMissingConsecutive;
+                            }
+                            else {
+                                // Restart the consecutive count
+                                nMissingConsecutive = 1;
+                            }
+                            // Keep track of the longest consecutive missing streak in the input interval
+                            nMissingConsecutiveMax = Math.max(nMissingConsecutive, nMissingConsecutiveMax);
+                            // Set for the next loop
+                            previousIsMissing = true;
+                            // ... end check for consecutive missing
                         }
 
                         // Set quality flag to missing to indicate that data was missing.
@@ -2368,6 +2491,20 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 if (oldTSiPreviousDate != null && !oldTSiPreviousDate.equals(newTS_endDate)) {
                     for (DateTime dt = new DateTime(oldTSiPreviousDate); dt.lessThanOrEqualTo(newTS_endDate); dt.addInterval(oldTSBase, oldTSMult)) {
                         missingCount++;
+                        // Also check the consecutive missing...
+                        if ( previousIsMissing ) {
+                            // Increment the consecutive missing count
+                            ++nMissingConsecutive;
+                        }
+                        else {
+                            // Restart the consecutive count
+                            nMissingConsecutive = 1;
+                        }
+                        // Keep track of the longest consecutive missing streak in the input interval
+                        nMissingConsecutiveMax = Math.max(nMissingConsecutive, nMissingConsecutiveMax);
+                        // Set for the next loop
+                        previousIsMissing = true;
+                        // ... end check for consecutive missing
                     }
                 }
 
@@ -2375,11 +2512,25 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 // missing, if the number of missing values is greater
                 // than the max allowed or if no non-missing values
                 // were found. Otherwise compute the new value either as mean or accumulation.
-                if ( (missingCount > maxMissingPerInterval) || (dataCount == 0) ) {
+                okToCompute = true;
+                if ( dataCount == 0 ) {
+                    // No input interval data
+                    okToCompute = false;
+                }
+                else if ( missingCount > maxMissingPerInterval ) {
+                    // Too many missing values in the input interval
+                    okToCompute = false;
+                }
+                else if ( nMissingConsecutiveMax > allowMissingConsecutive ) {
+                    // Too many consecutive missing values in the input interval
+                    okToCompute = false;
+                }
+                if ( !okToCompute ) {
                     newTS.setDataValue(newDate, newMissing);
                     if ( Message.isDebugOn ) {
                         Message.printDebug ( dl, routine, "Set new TS " + newDate + " -> " + newMissing +
-                            " missingCount=" + missingCount + " dataCount=" + dataCount);
+                            " missingCount=" + missingCount + " dataCount=" + dataCount +
+                            ", nMissingConsecutiveMax=" + nMissingConsecutiveMax );
                     }
                     /* newDate, newMissing, qualityFlag, 0 ); */
                     // TODO [LT] 2005-03-01 Quality flag is currently not used.
@@ -2913,6 +3064,15 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         return newts;
     }
     */
+ 
+/**
+Return the allowMissingConsecutive value.
+@return the allowMissingConsecutive value.
+*/
+private int getAllowMissingConsecutive ()
+{
+    return __allowMissingConsecutive;
+}
     
 /**
 Return the allowMissingCount value.
@@ -3324,6 +3484,15 @@ private double getTolerance ()
             return defaultReplacementValue;
         }
     }
+
+/**
+Set the number of input values allowed to be missing and still compute the result.
+@param allowMissingCount number of input values allowed to be missing and still compute the result.
+*/
+private void setAllowMissingConsecutive ( int allowMissingConsecutive )
+{
+    __allowMissingConsecutive = allowMissingConsecutive;
+}
     
 /**
 Set the number of input values allowed to be missing and still compute the result.

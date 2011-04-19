@@ -22,7 +22,11 @@ NOV_TO_OCT ( "NovToOct", -1, 11, 0, 10 ),
 /**
 Water year (October to September).
 */
-WATER ( "Water", -1, 10, 0, 9 );
+WATER ( "Water", -1, 10, 0, 9 ),
+/**
+May to April, with year agreeing with start.
+*/
+YEAR_MAY_TO_APR ( "YearMayToApr", 0, 5, 1, 4 );
 
 /**
 The name that is used for choices and other technical code (terse).
@@ -56,8 +60,8 @@ Construct an enumeration value.
 @param displayName name that should be displayed in choices, etc.
 @param startYearOffset the offset to the calendar year for the start of the year.
 @param startMonth the first calendar month (1-12) for the year type.
-@param endYearOffset the offset to the calendar year for the start of the year.
-@param endMonth the first calendar month (1-12) for the year type.
+@param endYearOffset the offset to the calendar year for the end of the year.
+@param endMonth the last calendar month (1-12) for the year type.
 */
 private YearType(String displayName, int startYearOffset, int startMonth, int endYearOffset, int endMonth ) {
     this.__displayName = displayName;
