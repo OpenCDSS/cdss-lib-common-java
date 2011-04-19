@@ -101,7 +101,7 @@ public int getN ()
 }
 
 /**
-Return the running average type.
+Return the sample window type.
 */
 public RunningAverageType getSampleType ()
 {
@@ -109,7 +109,7 @@ public RunningAverageType getSampleType ()
 }
 
 /**
-Return the running average type.
+Return the running statistic type.
 */
 public TSStatisticType getStatisticType ()
 {
@@ -117,7 +117,7 @@ public TSStatisticType getStatisticType ()
 }
 
 /**
-Return the running average types that are supported by the class.
+Return the running statistic sample types that are supported by the class.
 */
 public static RunningAverageType[] getRunningAverageTypeChoices ()
 {
@@ -147,6 +147,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.MIN );
     choices.add ( TSStatisticType.SKEW );
     choices.add ( TSStatisticType.STD_DEV );
+    choices.add ( TSStatisticType.TOTAL );
     choices.add ( TSStatisticType.VARIANCE );
     return choices;
 }
@@ -394,6 +395,9 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                     }
                     else if ( statisticType == TSStatisticType.STD_DEV ) {
                         newts.setDataValue(date,MathUtil.standardDeviation(count, sampleArray));
+                    }
+                    else if ( statisticType == TSStatisticType.TOTAL ) {
+                        newts.setDataValue(date,MathUtil.sum(count, sampleArray));
                     }
                     else if ( statisticType == TSStatisticType.VARIANCE ) {
                         newts.setDataValue(date,MathUtil.variance(count, sampleArray));
