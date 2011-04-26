@@ -180,8 +180,10 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URL;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Set;
 import java.util.List;
 import java.util.Vector;
@@ -1385,14 +1387,14 @@ public static String getPropValue ( String key )
 /**
 Returns a list of Strings containing information about the system on which
 the Java application is currently running.
-@return a Vector of Strings.
+@return a list of Strings.
 */
-public static List getSystemProperties() {
+public static List<String> getSystemProperties() {
 	String tab = "    ";
 	
-	List v = new Vector();
+	List<String> v = new Vector();
 
-	v.add("System Properties Generated for: ");
+	v.add("System Properties Defined for Application: ");
 	v.add(tab + " Program Name: " + _progname + " " + _progver);
 	v.add(tab + " User Name: " + _user);
 	String now = TimeUtil.getSystemTimeString("");
@@ -1429,6 +1431,17 @@ public static List getSystemProperties() {
 	v.add(tab + "Version: " + System.getProperty("os.version"));
 	v.add(tab + "System Architecture: " + System.getProperty("os.arch"));
 	v.add("");
+	
+    v.add("Java Virtual Machine Properties (System.getProperties()): ");
+    Properties properties = System.getProperties();
+    Set<String> names = properties.stringPropertyNames();
+    ArrayList<String> nameList = new ArrayList<String>(names);
+    Collections.sort ( nameList );
+    for ( String name : nameList ) {
+        v.add(tab + " " + name + " = \"" + System.getProperty(name) + "\"");
+    }
+    v.add("");
+	
 	v.add("Java Information");
 	v.add(tab + "Vendor: " + System.getProperty("java.vendor"));
 	v.add(tab + "Version: " + System.getProperty("java.version"));
@@ -1460,6 +1473,7 @@ public static List getSystemProperties() {
 	v.add(cp);
 		
 	v.add("");
+	
 	return v;
 }
 
@@ -2470,18 +2484,29 @@ public static String tempFileName( String prefix, String extension )
 	    // Should hopefully never happen
 	    throw new RuntimeException ( "Cannot determine temporary file location." );
 	}
-	Date d = null;
 	// Use the date as a seed and make sure the file does not exist...
 	String filename = null;
 	while ( true ) {
-		d = new Date();
-		filename = dir + File.separator + prefix + d.getTime() + extension;
+		Date d = new Date();
+		if ( dir.endsWith(File.separator) ) {
+		    filename = dir + prefix + d.getTime() + extension;
+		}
+		else {
+		    filename = dir + File.separator + prefix + d.getTime() + extension;
+		}
 		if ( !fileExists(filename) ) {
-			d = null;
 			break;
 		}
 	}
-	return filename;
+	File finalName = new File(filename);
+	try {
+	    // Do this to unmangle Windows paths
+	    return finalName.getCanonicalPath();
+	}
+	catch ( IOException e ) {
+	    // Just go with mangled name.
+	    return filename;
+	}
 }
 
 /**
