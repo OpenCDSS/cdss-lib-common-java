@@ -2119,6 +2119,22 @@ public String toString ( boolean include_input )
 }
 
 /**
+Return a string representation of the identifier in the form:  Alias="xxxx" TSID="xxxx"
+where the alias is omitted if not set.  This string is useful for messages.
+*/
+public String toStringAliasAndTSID()
+{
+    StringBuffer b = new StringBuffer();
+    if ( !getAlias().equals("") ) {
+        b.append ( "Alias=\"" + getAlias() + "\", " );
+    }
+    b.append ( " TSID=\"" );
+    b.append ( toString() );
+    b.append ( "\"" );
+    return b.toString();
+}
+
+/**
 Returns a String representation of the TSIdent, with each individual piece of
 the TSIdent explicitly printed on a single line and labeled as to the part of the TSIdent it is.
 @return a String representation of the TSIdent, with each individual piece of
