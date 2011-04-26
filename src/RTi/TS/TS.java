@@ -427,7 +427,7 @@ TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be 
 Properties for the time series beyond the built-in properties.  For example, location
 information like county and state can be set as a property.
 */
-private Hashtable<String,Object> __property_Hashtable = null; // Set to null to save memory
+private Hashtable<String,Object> __property_Hashtable = null; // To save memory if not used
 
 // TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
@@ -1623,7 +1623,9 @@ Get the hashtable of properties, for example to allow display.
 @return the hashtable of properties, for example to allow display, may be null.
 */
 public Hashtable<String,Object> getProperties()
-{
+{   if ( __property_Hashtable == null ) {
+        __property_Hashtable = new Hashtable(); // Initialize to non-null for further use
+    }
     return __property_Hashtable;
 }
 
