@@ -126,16 +126,28 @@ Create a data table that contains time series properties.
 */
 private DataTable createPropertyTable ( TS ts )
 {
-    List<TableField> tableFields = new Vector();
-    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name") );
-    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value") );
-    DataTable table = new DataTable ( tableFields );
     Hashtable<String,Object> properties = ts.getProperties();
+    List<String> keyList = Collections.list(properties.keys());
+    Collections.sort(keyList);
+    // Get the length of the name and values to set the table width.
+    // TODO SAM 2011-04-25 Sure would be nice to not have to do this
+    int nameLength = 25;
+    int valueLength = 25;
+    for ( String key : keyList ) {
+        nameLength = Math.max(nameLength, key.length());
+        Object value = properties.get(key);
+        if ( value == null ) {
+            value = "";
+        }
+        valueLength = Math.max(valueLength, ("" + value).length());
+    }
+    List<TableField> tableFields = new Vector();
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
+    DataTable table = new DataTable ( tableFields );
     if ( properties == null ) {
         properties = new Hashtable();
     }
-    List<String> keyList = Collections.list(properties.keys());
-    Collections.sort(keyList);
     TableRecord rec;
     for ( String key : keyList ) {
         rec = new TableRecord();
