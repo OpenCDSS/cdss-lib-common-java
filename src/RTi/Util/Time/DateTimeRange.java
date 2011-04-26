@@ -4,6 +4,7 @@ package RTi.Util.Time;
 This class stores a range defined by two DateTime end-points.
 It is useful for specifying a processing period.
 Currently the instance is immutable and copies of the DateTime data are copied at construction.
+Null date/times are allowed.
 Currently there is no validation done.
 */
 public class DateTimeRange
@@ -20,13 +21,23 @@ public class DateTimeRange
     
     /**
      * Constructor.
-     * @param start starting value in the range.  Can be null to indicate open-ended range (from available start).
-     * @param end ending value in the range.  Can be null to indicate open-ended range (to available end).
+     * @param start starting date/time in the range.  Can be null to indicate open-ended range (from available start).
+     * @param end ending date/time in the range.  Can be null to indicate open-ended range (to available end).
      */
     public DateTimeRange ( DateTime start, DateTime end )
     {
-        __start = new DateTime ( start );
-        __end = new DateTime ( end );
+        if ( start == null ) {
+            __start = null;
+        }
+        else {
+            __start = new DateTime ( start );
+        }
+        if ( end == null ) {
+            __end = null;
+        }
+        else {
+            __end = new DateTime ( end );
+        }
     }
     
     /**

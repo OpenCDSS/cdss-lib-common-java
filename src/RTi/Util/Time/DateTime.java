@@ -809,7 +809,7 @@ public DateTime ( Date d, int behavior_flag )
 }
 
 /**
-Copy constructor.
+Copy constructor.  If the incoming date is null, the date will be initialized to zero information.
 @param t DateTime to copy.
 */
 public DateTime ( DateTime t )
