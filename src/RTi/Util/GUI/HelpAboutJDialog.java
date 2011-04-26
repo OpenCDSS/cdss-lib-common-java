@@ -97,7 +97,7 @@ line breaks.  Additional formatting options may be added.
 At this time, it is best to handle the menus from the parent GUI, but the
 attachMainMenu approach is being studied.  Future updates of this JDialog may
 support a graphic image and other buttons used in other applications.<br>
-REVISIT (SAM)<br>
+TODO SAM Support graphic<br>
 See last paragraph
 @see ResponseDialog
 */
@@ -124,17 +124,18 @@ Constructor.
 @param parent The parent JFrame.
 @param title Title for the JDialog.
 @param text Text for the JDialog.  Use newline characters to break lines.
+@param showSystemDetails if true, show a button that allows the user to display system details, useful
+for troubleshooting; if false, the button is only available when debug logging is turned on
 */
-public HelpAboutJDialog (JFrame parent, String title, String text) {
-	super(parent, true);
-	initialize(title, text);
+public HelpAboutJDialog (JFrame parent, String title, String text, boolean showSystemDetails) {
+	super(parent, false); // Not modal because may need to remain visible during troubleshooting in other windows
+	initialize(title, text, showSystemDetails);
 }
 
 /**
 Attach this GUI's menu to the calling code.  This approach is being studied.
 Not sure yet whether this sophistication is needed for this simple JDialog!
-REVISIT (SAM)<br>
-See above javadocs.
+TODO (SAM)
 */
 public void attachMainMenu (JMenu menu) {
 	attachMainMenu(menu, "About...");
@@ -159,10 +160,10 @@ public void actionPerformed(ActionEvent event) {
 		dispose();	
 	}
 	else if (s.equals(__BUTTON_JAR)) {
-		List v1 = IOUtil.getSystemProperties();
-		List v2 = IOUtil.getJarFilesManifests();
+		List<String> v1 = IOUtil.getSystemProperties();
+		List<String> v2 = IOUtil.getJarFilesManifests();
 
-		List v3 = new Vector();
+		List<String> v3 = new Vector();
 		for (int i = 0; i < v1.size(); i++) {
 			v3.add(v1.get(i));
 		}
@@ -190,22 +191,24 @@ Instantiate the dialog components
 @param parent JFrame class instantiating this class.
 @param title Dialog title
 @param label Label to display in the GUI.
+@param showSystemDetails if true, show a button that allows the user to display system details, useful
+for troubleshooting; if false, the button is only available when debug logging is turned on
 */
-private void initialize(String title, String label) {
+private void initialize(String title, String label, boolean showSystemDetails) {
 	addWindowListener(this);
 
 	// Split the text based on the new-line delimiter (we use \n, not the platform's separator!
-	List vec = StringUtil.breakStringList(label, "\n", 0);
+	List<String> vec = StringUtil.breakStringList(label, "\n", 0);
 	int size = vec.size();
 	
-        // North Panel
+    // North Panel
 	JPanel north_JPanel = new JPanel();
 	
 	if (vec != null) {
 		Insets insets = new Insets( 1, 5, 1, 5);
 		// New approach where alignment can be CENTER (because
 		// used by the HelpAboutDialog)...
-       		north_JPanel.setLayout(new GridBagLayout());
+       	north_JPanel.setLayout(new GridBagLayout());
 		if (size > 20) {
 			//add message String to a JListthat is within a JScrollPane
 			JList list = null;
@@ -223,44 +226,39 @@ private void initialize(String title, String label) {
 			pane.setMaximumSize(d);
 
 			//add JScrollPane to JPanel
-       			JGUIUtil.addComponent(north_JPanel,
-				pane, 0,0,1,1,0,0,insets,
-				GridBagConstraints.NONE, 
-				GridBagConstraints.CENTER);
+       		JGUIUtil.addComponent(north_JPanel,
+				pane, 0,0,1,1,0,0,insets, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 		}
 		else {
 			// Add each string as a JLabel...
 			for (int i = 0; i < size; i++) {
-       				JGUIUtil.addComponent(north_JPanel,
-					new JLabel((String)vec.get(i)),
-					0, i, 1, 1, 0, 0, insets,
-					GridBagConstraints.NONE, 
-					GridBagConstraints.CENTER);
+       			JGUIUtil.addComponent(north_JPanel, new JLabel((String)vec.get(i)),
+					0, i, 1, 1, 0, 0, insets, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 			}
 		}
 	}
 
-        getContentPane().add("North", north_JPanel);
+    getContentPane().add("North", north_JPanel);
 
 	// Now add the buttons...
 
-        // South Panel
+    // South Panel
 	JPanel south_JPanel = new JPanel();
-        south_JPanel.setLayout(new BorderLayout());
-        getContentPane().add("South", south_JPanel);
-        
-        // South Panel: North
-        JPanel southNorth_JPanel = new JPanel();
-        southNorth_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        south_JPanel.add("North", southNorth_JPanel);
+    south_JPanel.setLayout(new BorderLayout());
+    getContentPane().add("South", south_JPanel);
+    
+    // South Panel: North
+    JPanel southNorth_JPanel = new JPanel();
+    southNorth_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+    south_JPanel.add("North", southNorth_JPanel);
 
-       	__okJButton = new SimpleJButton(__BUTTON_OK, this);
+   	__okJButton = new SimpleJButton(__BUTTON_OK, this);
 	__okJButton.addKeyListener(this);
-        southNorth_JPanel.add(__okJButton);
+    southNorth_JPanel.add(__okJButton);
 
-	if (Message.isDebugOn || IOUtil.testing()) {
+	if ( showSystemDetails || Message.isDebugOn ) {
 		__jarJButton = new SimpleJButton(__BUTTON_JAR, this);
-        	southNorth_JPanel.add(__jarJButton);
+        southNorth_JPanel.add(__jarJButton);
 	}
 
 	if (title != null) {
@@ -269,15 +267,14 @@ private void initialize(String title, String label) {
 
 	// Dialogs do not need to be resizable...
 	setResizable(false);
-        pack();
-        JGUIUtil.center(this);
-        super.setVisible(true);
+    pack();
+    JGUIUtil.center(this);
+    super.setVisible(true);
 	addKeyListener(this);
 }
 
 /**
-Responds to key pressed events.  Pressing 'Enter' will activate the OK 
-button.
+Responds to key pressed events.  Pressing 'Enter' will activate the OK button.
 @param e the KeyEvent that happened.
 */
 public void keyPressed(KeyEvent e) {
