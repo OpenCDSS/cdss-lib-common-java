@@ -74,6 +74,7 @@ Field name (also used for a column heading).
 */
 private String _name;
 
+// TODO SAM 2011-04-27 Why is this needed - is it related to dBase constraint?
 /**
 Field width (e.g., maximum characters for strings or number width in characters).
 */
