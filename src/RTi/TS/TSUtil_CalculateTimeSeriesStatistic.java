@@ -275,6 +275,77 @@ throws Exception
 }
 
 /**
+Calculate the missing value sequence statistics (where statistics are based on a sequence of missing values).
+@param statisticType one of the MISSING_SEQ_LENGTH* statistics
+@param ts time series to analyze
+@param start starting date/time for analysis period
+@param end ending date/time for analysis period
+@return the computed statistic value
+*/
+private void calculateMissingSeqStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
+throws Exception
+{   String routine = getClass().getName() + ".calculateMissingSeqStatistic";
+    
+    // Loop through the period and analyze
+    int tsBase = ts.getDataIntervalBase();
+    int tsMult = ts.getDataIntervalMult();
+    double value; // time series value
+    boolean isMissing; // Whether "value" is missing
+    boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus
+    int inConditionCount = 0; // Number of time-steps in required condition
+    int inConditionInstanceCount = 0; // Number of times in condition
+    boolean inConditionPrev = false; // Whether previous time-step was in condition
+    double statistic = 0.0; // Value of statistic being computed, zero is ok
+    DateTime statisticDate = null; // Time-step at start of condition, null if never have condition
+    for ( DateTime date = start; date.lessThanOrEqualTo(end); date.addInterval(tsBase,tsMult) ) {
+        // Get the data value and check for missing
+        value = ts.getDataValue ( date );
+        if ( ts.isDataMissing(value) ) {
+            isMissing = true;
+        }
+        else {
+            isMissing = false;
+        }
+        // Check the current value for missing
+        // Checking for surplus
+        if ( !isMissing ) {
+            // Not in missing sequence
+            inCondition = false;
+        }
+        else {
+            // In missing sequence
+            inCondition = true;
+            ++inConditionCount;
+        }
+        //Message.printStatus ( 2, routine, "Value="+ value + " inCondition=" + inCondition);
+        // If not in the condition, check the previous condition and to see if at the end of
+        // processing for in condition sequence - in these cases, update the statistic if necessary
+        // (means are computed after the loop).
+        if ( (!inCondition && inConditionPrev) || (inCondition && date.equals(end) ) ) {
+            // Need to complete processing the condition instance
+            if ( statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX ) {
+                if ( inConditionCount > statistic ) {
+                    statistic = inConditionCount;
+                    statisticDate = new DateTime(date);
+                }
+            }
+            Message.printStatus ( 2, routine, "Statistic="+ statistic + " at=" + statisticDate);
+            // Add to the totals
+            ++inConditionInstanceCount;
+            // Reset for next condition
+            inConditionCount = 0;
+        }
+        // Now save the condition for the next loop iteration
+        inConditionPrev = inCondition;
+    }
+    // Statistic should always be >= 0
+    if ( statistic >= 0 ) {
+        setStatisticResult ( new Integer((int)(statistic + .001)) );
+        setStatisticResultDateTime ( statisticDate );
+    }
+}
+
+/**
 Check the time series.
 */
 public void calculateTimeSeriesStatistic ()
@@ -357,7 +428,6 @@ throws Exception
         (statisticType == TSStatisticType.SURPLUS_MIN) ) {
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
-        // Compute the sample mean because it is needed to evaluate the statistic at each time step
         calculateDeficitSurplusStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
@@ -375,8 +445,13 @@ throws Exception
         (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
-        // Compute the sample mean because it is needed to evaluate the statistic at each time step
         calculateDeficitSurplusSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
+        return;
+    }
+    else if ( statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX ) {
+        // Get period for the specific time series
+        TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
+        calculateMissingSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
     
@@ -504,6 +579,7 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.MIN) ||
         (statisticType == TSStatisticType.MISSING_COUNT) ||
         (statisticType == TSStatisticType.MISSING_PERCENT) ||
+        (statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
         (statisticType == TSStatisticType.NONMISSING_COUNT) ||
         (statisticType == TSStatisticType.NONMISSING_PERCENT) ||
         (statisticType == TSStatisticType.SKEW) ||
@@ -584,6 +660,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.MIN );
     choices.add ( TSStatisticType.MISSING_COUNT );
     choices.add ( TSStatisticType.MISSING_PERCENT );
+    choices.add ( TSStatisticType.MISSING_SEQ_LENGTH_MAX );
     choices.add ( TSStatisticType.NONMISSING_COUNT );
     choices.add ( TSStatisticType.NONMISSING_PERCENT );
     choices.add ( TSStatisticType.NQYY );

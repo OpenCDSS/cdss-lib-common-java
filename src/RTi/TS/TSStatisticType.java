@@ -169,6 +169,10 @@ public enum TSStatisticType
      */
     MISSING_PERCENT ( "MissingPercent" ),
     /**
+     * Maximum sequence length of missing values.
+     */
+    MISSING_SEQ_LENGTH_MAX ( "MissingSeqLengthMax" ),
+    /**
      * Month of first value >= test value.
      */
     MONTH_OF_FIRST_GE ( "MonthOfFirstGE" ),
