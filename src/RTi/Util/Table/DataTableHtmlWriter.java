@@ -134,20 +134,25 @@ throws Exception
         int tableFieldType;
         int precision;
         PropList maskProps = new PropList(""); // Reused below to stylize cells
+        Object cellObject;
         for (int row = 0; row < rows; row++) {
             html.tableRowStart();
             for (int col = 0; col < nCols; col++) {
                 tableFieldType = table.getTableFieldType(col);
                 precision = table.getFieldPrecision(col);
+                cellObject = table.getFieldValue(row,col);
                 // TODO SAM 2010-12-18 Why not get the format from the table?
-                if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
+                if ( cellObject == null ) {
+                    cellString = "";
+                }
+                else if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
                     (tableFieldType == TableField.DATA_TYPE_DOUBLE)) && (precision > 0) ) {
                     // Format according to the precision if floating point
-                    cellString = StringUtil.formatString(table.getFieldValue(row,col),"%." + precision + "f");
+                    cellString = StringUtil.formatString(cellObject,"%." + precision + "f");
                 }
                 else {
                     // Use default formatting.
-                    cellString = "" + table.getFieldValue(row,col);
+                    cellString = "" + cellObject;
                 }
                 if ( (styleMaskArray != null) && (styleMaskArray[row][col] > 0) ) {
                     //Message.printStatus(2, routine, "string=\"" + cellString + "\" mask=" + styleMaskArray[row][col] +
