@@ -9562,9 +9562,14 @@ The data range is checked regardless of whether the missing data value is in the
 @param newValue Replacement data value (optional - do not need if action is specified).
 @param action Action to perform: "Remove" to remove the point (only for irregular interval, treated as SetMissing
 for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
+@param analysisWindowStart the starting date/time within a year to start the replacement,
+consistent with the time series interval
+@param analysisWindowEnd the endin date/time within a year to start the replacement,
+consistent with the time series interval
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
-	Double maxValue, Double newValue, String action, DateTime analysisWindowStart, DateTime analysisWindowEnd )
+	Double maxValue, Double newValue, String action, DateTime analysisWindowStart, DateTime analysisWindowEnd,
+	String setFlag )
 {	
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
@@ -9590,6 +9595,10 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	    else if ( action.equals("SetMissing") ) {
             doSetMissing = true;
         }
+	}
+	boolean doFlag = false;
+	if ( (setFlag != null) && !setFlag.equals("") ) {
+	    doFlag = true;
 	}
 
 	int interval_base = ts.getDataIntervalBase();
@@ -9658,6 +9667,10 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			        tsdata.setData(newvalue);
 			        ++replaceCount;
 			    }
+			    // Set the data flag
+			    if ( doFlag ) {
+			        tsdata.setDataFlag(setFlag);
+			    }
 				// Have to do this manually since TSData are being modified directly to improve performance...
 				ts.setDirty ( true );
 			}
@@ -9679,10 +9692,20 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	                }
 	            }
 			    if ( doRemove || doSetMissing ) {
-			        ts.setDataValue ( date, missing );
+			        if ( doFlag ) {
+			            ts.setDataValue ( date, missing, setFlag, 1 );
+			        }
+			        else {
+			            ts.setDataValue ( date, missing );
+			        }
 			    }
 			    else {
-			        ts.setDataValue ( date, newvalue );
+			        if ( doFlag ) {
+			            ts.setDataValue ( date, newvalue, setFlag, 1 );
+			        }
+			        else {
+			            ts.setDataValue ( date, newvalue );
+			        }
 			    }
 			    ++replaceCount;
 			}
@@ -10141,7 +10164,7 @@ throws Exception
 
 	// Else, use the overall start and end dates for filling...
 
-	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null );
+	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null, true );
 }
 
 /**
@@ -10161,7 +10184,8 @@ The data intervals do not need to be the same (truncation of dates will result i
 <td><b>HandleMissingHow</b></td>
 <td><b>Indicates how missing data should be handled when encountered in the independent
 time series.  If "SetMissing" then even the missing values will be transferred.  If
-"IgnoreMissing", then missing values will be transferred.</b>
+"IgnoreMissing", then missing values will be transferred.  If SetOnlyMissingValues, then only transfer the
+missing values (and optionally corresponding data flags).</b>
 <td>SetMissing</td>
 </tr>
 
@@ -10176,12 +10200,15 @@ the data but perhaps not the date/time</b>
 <td>ByDateTime</td>
 </tr>
 </table>
+@param setDataFlags if true, copy the data flags from the independent time series; if false leave the original
+data flags
 @exception Exception if an error occurs (usually null input).
 */
-public static void setFromTS ( TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date, PropList props )
+public static void setFromTS ( TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date,
+    PropList props, boolean setDataFlags )
 throws Exception
-{	String  routine = "TSUtil.setFromTS";
-	String	message;
+{	String routine = "TSUtil.setFromTS";
+	String message;
 
 	if ( (dependentTS == null) || (independentTS == null) ) {
 		return;
@@ -10190,24 +10217,37 @@ throws Exception
 	// Check the properties that influence this method...
 
 	boolean transfer_bydate = true;	// Default - make dates match in both time series.
-	boolean setMissing = true;  // Default - either this or IgnoreMissing, which is setMissing=false
+	boolean setMissing = true; // Default - either this or IgnoreMissing, which is setMissing=false
+	boolean setOnlyMissingValues = false; // Only processing missing values
 	if ( props != null ) {
-		String prop_val = props.getValue("TransferData");
-		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
+		String propVal = props.getValue("TransferData");
+		if ( (propVal != null) && propVal.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
-        prop_val = props.getValue("HandleMissingHow");
-        if ( (prop_val != null) && prop_val.equalsIgnoreCase("IgnoreMissing") ) {
+        propVal = props.getValue("HandleMissingHow");
+        if ( propVal.equalsIgnoreCase("SetMissing") || (propVal == null) ) {
+            setMissing = true; // Default
+        }
+        else if ( propVal.equalsIgnoreCase("IgnoreMissing") ) {
             // Ignore missing data (don't transfer)...
             setMissing = false;
+        }
+        else if ( propVal.equalsIgnoreCase("SetOnlyMissingValues") ) {
+            // Only process missing values...
+            setOnlyMissingValues = true;
+            setMissing = true; // To simplify code below
+        }
+        else {
+            // Unrecognized value
+            throw new InvalidParameterException ( "HandleMissingHow=" + propVal + " is invalid." );
         }
 	}
 
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod (dependentTS,start_date,end_date);
-	DateTime start	= valid_dates.getDate1();
+	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
 
 	int interval_base = dependentTS.getDataIntervalBase();
@@ -10221,7 +10261,7 @@ throws Exception
 	}
 
 	DateTime date = new DateTime ( start );
-	double data_value = 0.0;
+	double dataValue = 0.0;
 
 	TSIterator tsi = null;
 	if ( !transfer_bydate ) {
@@ -10231,19 +10271,41 @@ throws Exception
 		tsi = dependentTS.iterator(start,null);
 	}
 
+	boolean isMissing; // Whether a data value is missing
+	TSData tsdata = new TSData();
+	String dataFlag = null; // Data flag to transfer
 	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( transfer_bydate ) {
-			data_value = independentTS.getDataValue ( date );
+			dataValue = independentTS.getDataValue ( date );
+			if ( setDataFlags ) {
+			    // Reuse the data point during data transfer
+			    independentTS.getDataPoint( date, tsdata );
+			    dataFlag = tsdata.getDataFlag();
+			}
 		}
 		else {
             // Use the iterator...
 			tsi.next();
-			data_value = tsi.getDataValue ();
+			dataValue = tsi.getDataValue ();
+			if ( setDataFlags ) {
+			    dataFlag = tsi.getDataFlag();
+			}
 		}
-		if ( independentTS.isDataMissing(data_value) && !setMissing ) {
+		isMissing = independentTS.isDataMissing(dataValue);
+		if ( !isMissing && setOnlyMissingValues ) {
+		    // Only want to process missing values
 		    continue;
 		}
-		dependentTS.setDataValue ( date, data_value );
+	    // Handle "IgnoreMissing" case (note setMissing=true was set above if setOnlyMissingValues=true)
+		if ( isMissing && !setMissing ) {
+		    continue;
+		}
+		if ( setDataFlags ) {
+		    dependentTS.setDataValue ( date, dataValue, dataFlag, 0 );
+		}
+		else {
+		    dependentTS.setDataValue ( date, dataValue );
+		}
 	}
 	
 	// Fill in the genesis information...
@@ -10255,6 +10317,9 @@ throws Exception
 	if ( !setMissing ) {
 	    handleMissingHowString = ", HandleMissingHow=IgnoreMissing";
 	}
+    if ( setOnlyMissingValues ) {
+        handleMissingHowString = ", HandleMissingHow=SetOnlyMissingValues";
+    }
 	if ( !transfer_bydate ) {
 		dependentTS.addToGenesis ( "Data values were transferred by date/time" + handleMissingHowString + "." );
 	}
