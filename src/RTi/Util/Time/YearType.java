@@ -8,6 +8,10 @@ Year types, which indicate the span of months that define a year.  For example "
 used in the USA to indicate annual water volumes, based on seasons.  This enumeration should be used to
 indicate common full-year definitions.  Year types that include only a season or part of the year could
 specify this enumeration for full years and would otherwise need to define the year in some other way.
+By convention, non-calendar year types that do not contain "Year" in the name start in the previous
+calendar year and end in the current calendar year.  As new year types are added they should conform to the
+standard of starting with "Year" if the start matches the calendar year, and ending with "Year" if the end
+matches the calendar year.
 */
 public enum YearType
 {
@@ -58,9 +62,11 @@ private final int __endMonth;
 /**
 Construct an enumeration value.
 @param displayName name that should be displayed in choices, etc.
-@param startYearOffset the offset to the calendar year for the start of the year.
+@param startYearOffset the offset to the calendar year for the start of the year.  For example, does the
+output year start in the same year as the calendar year (0), previous calendar year (-1), or next calendar year (1)?
 @param startMonth the first calendar month (1-12) for the year type.
-@param endYearOffset the offset to the calendar year for the end of the year.
+@param endYearOffset the offset to the calendar year for the end of the year.    For example, does the
+output year end in the same year as the calendar year (0), previous calendar year (-1), or next calendar year (1)?
 @param endMonth the last calendar month (1-12) for the year type.
 */
 private YearType(String displayName, int startYearOffset, int startMonth, int endYearOffset, int endMonth ) {

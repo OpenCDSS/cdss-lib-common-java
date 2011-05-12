@@ -445,6 +445,71 @@ public static int dayOfYear ( DateTime d, YearType yearType )
 }
 
 /**
+Determine the inclusive output years given a time range in calendar years.  This is used to ensure that
+the output year fully includes any data from the calendar dates, even if partial output years.
+*/
+public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateTime end, YearType outputYearType )
+{   DateTime outputStart = new DateTime(start);
+    outputStart.setPrecision(DateTime.PRECISION_YEAR);
+    DateTime outputEnd = new DateTime(end);
+    outputEnd.setPrecision(DateTime.PRECISION_YEAR);
+    if ( (outputYearType == YearType.CALENDAR) ) {
+        // Just return the original dates...
+        return new DateTimeRange ( outputStart, outputEnd );
+    }
+    // Otherwise, deal with offsets
+    
+    // Start offset will be either 0 or -1
+    if ( outputYearType.getStartYearOffset() < 0 ) {
+        // Year types where the year starts in the previous calendar year and ends in the current calendar year.
+        if (start.getMonth() >= outputYearType.getStartMonth() ) {
+            // The old time series starts >= after the beginning of the output year and therefore the first
+            // output year actually starts a year later.
+            //
+            //              ++++++++++++  Calendar +++++++++++++++++++++
+            //              Jan                            start     Dec
+            // Oct                                   Sep   start
+            // Water
+            outputStart.addYear ( 1 );
+        }
+        // Else the start is within the output year so no need to adjust the output year
+        if ( end.getMonth() >= outputYearType.getStartMonth() ) {
+            // The old time series ends after the beginning of the next output year so increment the year
+            //
+            //               ++++++++++++  Calendar +++++++++++++++++++++
+            //               Jan                             end      Dec
+            // Oct                                    Sep    end  
+            // Water
+            outputEnd.addYear ( 1 );
+        }
+    }
+    else {
+        // Year types where the year starts in the current calendar year and ends in the next calendar year
+        if ( start.getMonth() < outputYearType.getStartMonth() ) {
+            // The old time series starts before the beginning of the output year and would result
+            // in a missed year at the start so decrement the first year, as shown in the following example:
+            //
+            //           ++++++++++++  Calendar +++++++++++++++++++++
+            //           Jan   start                              Dec
+            //                 start    May                                   Apr
+            // YearMayToApr
+            outputStart.addYear ( -1 );
+        }
+        if ( end.getMonth() < outputYearType.getStartMonth() ) {
+            // The old time series ends in the previous output year so decrement the last year,
+            // as shown in the following example:
+            //
+            //           ++++++++++++  Calendar +++++++++++++++++++++
+            //           Jan   end                                Dec
+            //                 end      May                                   Apr
+            // YearMayToApr
+            outputEnd.addYear ( -1 );
+        }
+    }
+    return new DateTimeRange(outputStart,outputEnd);
+}
+
+/**
 Compute the difference between dates.  See overloaded routine for more information.
 @return The offset from the date instance to the given date.  For example, if
 "date" is before the instance date, then the offset will be positive.
@@ -503,9 +568,6 @@ throws Exception
 
 		offset.setMonth ( 0 );
 		offset.setDay ( 0 );
-
-		// We are done...
-		datecopy = null;
 		return offset;
 	}
 
@@ -527,8 +589,6 @@ throws Exception
 		double offset_double = this_double - date_copy_double;
 		offset = new DateTime ( offset_double, use_month );
 	}
-
-	datecopy = null;
 	return offset;
 }
 
@@ -817,12 +877,7 @@ public static String formatDateTime ( DateTime d0, String format0 )
 		}
 	}
 
-	d = null;
-	format = null;
-	default_format = null;
-	String s = formatted_string.toString();
-	formatted_string = null;
-	return s;
+	return formatted_string.toString();
 }
 
 /**
@@ -1207,14 +1262,7 @@ public static String formatTimeString ( Date d0, String format0 )
 				formatted_string.append ( c );
 			}
 		}
-
-		d = null;
-		routine = null;
-		format = null;
-		default_format = null;
-		String s = formatted_string.toString();
-		formatted_string = null;
-		return s;
+		return formatted_string.toString();
 	}
 }
 
@@ -1316,7 +1364,6 @@ public int getCurrentDayOfWeek ()
 			return i;
 		}
 	}
-	day = null;
 	return -1;
 }
 
@@ -2311,8 +2358,6 @@ public static void sleep ( long milliseconds )
 			break;
 		} 
 	}
-	now = null;
-	newnow = null;
 }
 
 /**
