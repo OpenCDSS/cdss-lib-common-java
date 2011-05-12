@@ -1807,12 +1807,14 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
             }
         }
     }
-	if ( _internDataFlagStrings ) {
-	    _dataFlags[row][column] = data_flag.intern();
-	}
-	else {
-	    _dataFlags[row][column] = data_flag;
-	}
+    if ( _has_data_flags && (data_flag != null) ) {
+    	if ( _internDataFlagStrings ) {
+    	    _dataFlags[row][column] = data_flag.intern();
+    	}
+    	else {
+    	    _dataFlags[row][column] = data_flag;
+    	}
+    }
 }
 
 public double getMaxValue() {
