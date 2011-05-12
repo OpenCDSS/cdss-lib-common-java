@@ -7,6 +7,7 @@ import java.util.Vector;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.DateTimeRange;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeScaleType;
 import RTi.Util.Time.TimeUtil;
@@ -264,7 +265,7 @@ private void calculateStatistic (
     DateTime yearStartForAnalysisWindow = null;
     DateTime yearEndForAnalysisWindow = null;
     // Loop until all the new years are processed
-    // The new time series period should have been defined to align with the year type
+    // The new time series period should have been defined to align with the output year type
     // Checking the year start will allow any period - with missing values filling in if necessary
     while ( yearStart.lessThanOrEqualTo(analysisEnd) ) {
         // Initialize for the new year
@@ -584,6 +585,16 @@ private void calculateStatistic (
                         yearts.setDataValue ( outputYear, 100.0*(double)nMissing/(double)(nMissing + nNotMissing) );
                     }
                 }
+                else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
+                    // Always assign
+                    yearts.setDataValue ( outputYear, (double)nNotMissing );
+                }
+                else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
+                    // Always assign
+                    if ( (nMissing + nNotMissing) > 0 ) {
+                        yearts.setDataValue ( outputYear, 100.0*(double)nNotMissing/(double)(nMissing + nNotMissing) );
+                    }
+                }
                 else if ( statisticType == TSStatisticType.TOTAL ) {
                     if ( (nNotMissing > 0) &&
                         okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
@@ -760,6 +771,8 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
         statistics.add ( TSStatisticType.MONTH_OF_MAX );
         statistics.add ( TSStatisticType.MONTH_OF_MIN );
     }
+    statistics.add ( TSStatisticType.NONMISSING_COUNT );
+    statistics.add ( TSStatisticType.NONMISSING_PERCENT );
     statistics.add ( TSStatisticType.TOTAL );
     return statistics;
 }
@@ -843,7 +856,8 @@ private String getStatisticTimeSeriesDataUnits ( TSStatisticType statisticType,
             (statisticType == TSStatisticType.GT_PERCENT) ||
             (statisticType == TSStatisticType.LE_PERCENT) ||
             (statisticType == TSStatisticType.LT_PERCENT) ||
-            (statisticType == TSStatisticType.MISSING_PERCENT) ) {
+            (statisticType == TSStatisticType.MISSING_PERCENT) ||
+            (statisticType == TSStatisticType.NONMISSING_PERCENT)) {
             return "Percent";
         }
         else {
@@ -893,8 +907,8 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
         if ( statisticType == TSStatisticType.MISSING_COUNT ) {
             desc = "Count of missing values";
         }
-        else if ( statisticType == TSStatisticType.MISSING_COUNT ) {
-            desc = "Count of non-missing values";
+        else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
+            desc = "Count of nonmissing values";
         }
         else {
             desc = "Count of values " + testString + " " + testValueString;
@@ -1222,33 +1236,11 @@ public YearTS newStatisticYearTS ( boolean createData )
     yearts.setDataInterval ( TimeInterval.YEAR, 1 );
 
     // Automatically sets the precision to Year for these dates...
-    yearts.setDate1 ( analysisStart );
-    yearts.setDate2 ( analysisEnd );
-    
-    // If the output is a different year type, adjust the output time series to fully
-    // encompass the original time series period.
-    if ( (outputYearType != YearType.CALENDAR) ) {
-        if ( (outputYearType.getStartYearOffset() < 0) &&
-            (analysisStart.getMonth() >= outputYearType.getStartMonth()) ) {
-            // The old time series starts >= after the beginning of the output year and would result
-            // in an extra year at the start so increment the first year. For example, if the water year
-            // and the start is Oct, 2000, need to increment the output year to 2001.
-            DateTime date1 = yearts.getDate1();
-            date1.addYear ( 1 );
-            yearts.setDate1 ( date1 );
-            Message.printStatus(2, routine, "Adjusting output time series start to " + date1 +
-                " to align with " + outputYearType + " year type." );
-        }
-        // Similarly shift the end of the year...
-        if ( (outputYearType.getStartYearOffset() < 0) &&
-            (analysisEnd.getMonth() >= outputYearType.getStartMonth()) ) {
-            DateTime date2 = yearts.getDate2();
-            date2.addYear ( 1 );
-            yearts.setDate2 ( date2 );
-            Message.printStatus(2, routine, "Adjusting output time series start to " + date2 +
-                " to align with " + outputYearType + " year type." );
-        }
-    }
+    DateTimeRange yeartsDateRange = TimeUtil.determineOutputYearTypeRange(analysisStart, analysisEnd, outputYearType);
+    yearts.setDate1 ( yeartsDateRange.getStart() );
+    yearts.setDate2 ( yeartsDateRange.getEnd() );
+    Message.printStatus(2, routine, "Output year type " + outputYearType + " period is " + yearts.getDate1() +
+        " to " + yearts.getDate2() );
     
     if ( !createData ) {
         return yearts;
