@@ -4020,7 +4020,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         			continue;
         		}
                 dataFlag = tsdata.getDataFlag();
-                if ( dataFlag.length() == 0 ) {
+                if ( (dataFlag == null) || dataFlag.length() == 0 ) {
                     symbol = symbolNoFlag;
                 }
                 else {
