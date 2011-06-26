@@ -2411,9 +2411,11 @@ Single values result in a range where the start and end value are the same.
 @param seq string to parse
 @param delim delimiter characters
 @param parseFlag see breakStringList() flag
+@param offset number to add to each value, useful when converting from user-specified values to
+internal zero-index values - specify zero if no offset is required
 @return an array of integers parsed from the string.
 */
-public static int [][] parseIntegerRangeSequence ( String seq, String delim, int parseFlag )
+public static int [][] parseIntegerRangeSequence ( String seq, String delim, int parseFlag, int offset )
 {
     if ( seq == null ) {
         return new int[0][0];
@@ -2433,12 +2435,12 @@ public static int [][] parseIntegerRangeSequence ( String seq, String delim, int
             if ( token.indexOf("-") > 0 ) {
                 // Range.  Split out the start and end of the range
                 List<String> tokens2 = breakStringList ( token, "-", 0 );
-                ranges[i][0] = Integer.parseInt(tokens2.get(0).trim());
-                ranges[i][1] = Integer.parseInt(tokens2.get(1).trim());
+                ranges[i][0] = Integer.parseInt(tokens2.get(0).trim()) + offset;
+                ranges[i][1] = Integer.parseInt(tokens2.get(1).trim()) + offset;
             }
             else {
                 // Single number
-                ranges[i][0] = Integer.parseInt(token.trim());
+                ranges[i][0] = Integer.parseInt(token.trim()) + offset;
                 ranges[i][1] = ranges[i][0];
             }
         }
