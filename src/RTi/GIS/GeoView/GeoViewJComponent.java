@@ -3048,7 +3048,7 @@ Prints the map.
 public void print() {
 	try {
 		PageFormat pageFormat = PrintUtil.getPageFormat("letter");
-		PrintUtil.setPageFormatOrientation(pageFormat,PrintUtil.LANDSCAPE);
+		PrintUtil.setPageFormatOrientation(pageFormat,PageFormat.LANDSCAPE);
 		PrintUtil.setPageFormatMargins(pageFormat, .5, .5, .5, .5);
 		PrintUtil.print(this, pageFormat);
 	}
