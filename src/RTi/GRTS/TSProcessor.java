@@ -201,7 +201,7 @@ private void processGraphProduct ( TSProduct tsproduct )
 throws Exception
 {	
 	String routine = "TSProcessor.processGraphProduct";
-	List tslist = new Vector(10);
+	List<TS> tslist = new Vector(10);
 	TS ts = null;
 	// Loop through the sub-products (graphs on page) and get the time series to
 	// support the graph.
@@ -414,16 +414,6 @@ throws Exception
 		// Throw a new error...
 		throw new Exception ( "Unable to create graph.", e );
 	}
-
-	// Clean up...
-	date1 = null;
-	date2 = null;
-	ts = null;
-	f = null;
-	prop_value = null;
-	ts = null;
-	tsviewprops = null;
-	tslist = null;
 }
 
 /**
@@ -435,11 +425,9 @@ Process a time series product file.
 be created due to a lack of data).
 */
 public void processProduct ( String filename, PropList override_props ) throws Exception
-{	Message.printStatus ( 2, "", "Processing time series product \"" +
-		filename + "\"" );
+{	Message.printStatus ( 2, "", "Processing time series product \"" + filename + "\"" );
 	TSProduct tsproduct = new TSProduct (filename, override_props);	
 	processProduct ( tsproduct );
-	tsproduct = null;
 }
 
 /**
@@ -469,7 +457,6 @@ throws Exception
 			processGraphProduct ( tsproduct );
 		}
 	}
-	prop_value = null;
 }
 
 /**
