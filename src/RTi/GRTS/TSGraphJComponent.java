@@ -278,8 +278,7 @@ public static final int INTERACTION_SELECT = 1;
 
 /**
 Zoom mode.  This enables a rubber-band line (if the extents are bigger than
-5 pixels in both direction.  The zoom() method of registered TSViewListeners
-are called.
+5 pixels in both direction.  The zoom() method of registered TSViewListeners are called.
 */
 public static final int INTERACTION_ZOOM = 2;
 
@@ -354,77 +353,122 @@ most of the drawing occurs in the TSGraph objects.  List in the order of the
 layout top to bottom.
 */
 
-private GRJComponentDrawingArea _da_page = null;// Drawing area for full canvas
+/**
+Drawing area for full canvas.
+*/
+private GRJComponentDrawingArea _da_page = null;
+/**
+Drawing area for main title.
+*/
 private GRJComponentDrawingArea _da_maintitle =null;
-						// Drawing area for main title
+/**
+Drawing area for subtitle.
+*/
 private GRJComponentDrawingArea _da_subtitle = null;
-						// Drawing area for subtitle
+/**
+Drawing area for graphs (actual drawing is done in TSGraph) but this
+drawing area may draw borders or background color).
+*/
 private GRJComponentDrawingArea _da_graphs = null;
-						// Drawing area for graphs
-						// (actual drawing is done in
-						// TSGraph) but this
-						// drawing area may draw borders
-						// or background color).
+/**
+Drawing area for left footer.
+*/
 private GRJComponentDrawingArea _da_leftfoot = null;
-						// Drawing area for left footer
+/**
+Drawing area for center footer.
+*/
 private GRJComponentDrawingArea _da_centerfoot=null;
-						//Drawing area for center footer
+/**
+Drawing area for right footer.
+*/
 private GRJComponentDrawingArea _da_rightfoot =null;
-						// Drawing area for right footer
 
 /**
 Data and drawing limits for the above drawing areas.
 */
-private GRLimits _datalim_page = null;		// Full page drawing area limits
+/**
+Full page drawing area limits.
+*/
+private GRLimits _datalim_page = null;
 private GRLimits _drawlim_page = null;
-private GRLimits _datalim_maintitle = null;	// Limits for main title drawing
-private GRLimits _drawlim_maintitle = null;	// area
-private GRLimits _datalim_subtitle = null;	// Limits for subtitle drawing
-private GRLimits _drawlim_subtitle = null;	// area
-private GRLimits _datalim_graphs = null;	// Limits for graphs drawing
-private GRLimits _drawlim_graphs = null;	// area
-private GRLimits _datalim_leftfoot = null;	// Limits for left footer
+/**
+Limits for main title drawing area.
+*/
+private GRLimits _datalim_maintitle = null;
+private GRLimits _drawlim_maintitle = null;
+/**
+Limits for subtitle drawing area.
+*/
+private GRLimits _datalim_subtitle = null;
+private GRLimits _drawlim_subtitle = null;
+/**
+Limits for graphs drawing area.
+*/
+private GRLimits _datalim_graphs = null;
+private GRLimits _drawlim_graphs = null;
+/**
+Limits for left footer drawing area.
+*/
+private GRLimits _datalim_leftfoot = null;
 // TODO SAM 2007-05-09 Enable handling of the following
-//private GRLimits _drawlim_leftfoot = null;	// drawing area
-private GRLimits _datalim_centerfoot = null;	// Limits for center footer
-//private GRLimits _drawlim_centerfoot = null;	// drawing area
-private GRLimits _datalim_rightfoot = null;	// Limits for right footer
-//private GRLimits _drawlim_rightfoot = null;	// drawing area
-
-private Rectangle _bounds = null;		// Set with update.  Useful for
-						// clearing the component.
-private GRLimits _printBounds = null;		// Set with update.  Useful for
-						// clearing the component.
-
-private JFrame _parent = null;			// Parent JFrame
-
-private List<TSGraph> _tsgraphs = new Vector();	// Vector of TSGraph.
-						// Allocate so don't have to
-						// checked for null repeatedly.
+//private GRLimits _drawlim_leftfoot = null;
+/**
+Limits for center footer drawing area.
+*/
+private GRLimits _datalim_centerfoot = null;
+//private GRLimits _drawlim_centerfoot = null;
+/**
+Limits for right footer drawing area.
+*/
+private GRLimits _datalim_rightfoot = null;
+//private GRLimits _drawlim_rightfoot = null;
+/**
+Set with update.  Useful for clearing the component.
+*/
+private Rectangle _bounds = null;
+/**
+Set with update.  Useful for clearing the component.
+*/
+private GRLimits _printBounds = null;
+/**
+Parent JFrame.
+*/
+private JFrame _parent = null;
+/**
+List of TSGraph being drawn.
+*/
+private List<TSGraph> _tsgraphs = new Vector(); // Allocate so don't have to checked for null repeatedly.
 
 // Dimensions for drawing areas...
-
-private String _gtype = "Main:";		// Used for messages so we can
-						// tell whether in a main or
-						// reference graph.
-
-private boolean _force_redraw = true;		// Force a redraw.
-
+/**
+Used for messages so we can tell whether in a main or reference graph.
+*/
+private String _gtype = "Main:";
+/**
+Force a redraw in paint even if size, etc. has not changed.
+*/
+private boolean _force_redraw = true;
+/**
+Listeners that want to know when the TSView changes.
+*/
 private TSViewListener [] _listeners = null;
-						// Listeners that want to know
-						// when the TSView changes.
+/**
+Interaction mode.
+*/
 private int _interaction_mode = INTERACTION_NONE;
-						// Interaction mode.
-
-private int _mouse_x1 = -1;			// Coordinates for events.
-private int _mouse_y1 = -1;			// 1 = First location
-private int _mouse_x2 = -1;			// 2 = Current location 
-private int _mouse_y2 = -1;			//
-private int _mouse_xprev = -1;			// Previous location
+/**
+Coordinates for events.
+*/
+private int _mouse_x1 = -1; // first location
+private int _mouse_y1 = -1;
+private int _mouse_x2 = -1; // current location
+private int _mouse_y2 = -1;
+private int _mouse_xprev = -1; // previous location
 private int _mouse_yprev = -1;
-private TSGraph _mouse_tsgraph1 = null;		// TSGraph where initial mouse
-						// press occurs when drawing a
-						// box
+/**
+TSGraph where initial mouse press occurs when drawing a box.
+*/
+private TSGraph _mouse_tsgraph1 = null;
 
 /**
 Indicates if drawing should wait.  Use this if multiple layers are being
@@ -438,8 +482,7 @@ Indicate whether to display cross-hairs on the graph to the edges
 private boolean _displayCrossHairCursor = false;
 
 /**
-Indicate whether the paint is to an SVG file.
-See the saveAsSVG() method.
+Indicate whether the paint is to an SVG file.  See the saveAsSVG() method.
 */
 private boolean __paintForSVG = false;
 
@@ -447,12 +490,11 @@ private TSGraphEditor _tsGraphEditor;
 
 /**
 Indicate whether SVG functionality is present. 
- */
+*/
 public static final boolean svgEnabled;
 
 static {
-        // by default, its not enabled - if the classes are present,
-        // then its enabled.
+        // by default, its not enabled - if the classes are present, then its enabled.
         boolean enabled = false;
         try {
             Class.forName("org.apache.batik.svggen.SVGGeneratorContext");
@@ -609,8 +651,7 @@ public void addTSViewListener ( TSViewListener listener )
 			_listeners = new TSViewListener[1];
 			_listeners[0] = listener;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10,
-				_gtype + "TSGraphJComponent.addTSViewListener", "Added TSViewListener" );
+				Message.printDebug ( 10, _gtype + "TSGraphJComponent.addTSViewListener", "Added TSViewListener" );
 			}
 		}
 		else {
@@ -639,8 +680,7 @@ public boolean canUseReferenceGraph()
 
 /**
 Indicate whether enabling zoom should occur.  This will be the case if any of
-the graphs can zoom.  Later, may allow completely if we figure out how
-to zoom scatter, duration, etc.
+the graphs can zoom.  Later, may allow completely if we figure out how to zoom scatter, duration, etc.
 This is called by TSViewGraphJFrame to let it decide whether to enable the zoom button.
 @return true if at least one graph allows zooming.
 */
@@ -694,9 +734,9 @@ upper property levels (e.g., for Product or SubProduct).
 <b>This method should be called AFTER createTSGraphsFromTSProduct() because the
 time series data are checked to determine some properties.</b>
 @param tsproduct TSProduct to check.
-@praam tsgraphs Vector of TSGraph describing the graphs.
+@param tsgraphs list of TSGraph describing the graphs.
 */
-private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
+private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs )
 {	// Put here any checks that cannot be performed in the initial call
 	// to checkTSProduct() - primarily checks that depend on the time
 	// series (units for axis labels, etc.).
@@ -704,15 +744,14 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 	_tsproduct.getPropList().setHowSet (Prop.SET_AS_RUNTIME_DEFAULT);
 
 	int nsubs = tsproduct.getNumSubProducts();
-	//Message.printStatus ( 1, "",
-	//_gtype + "Checking " + nsubs + " graphs after graphs were created." );
+	//Message.printStatus ( 1, "", _gtype + "Checking " + nsubs + " graphs after graphs were created." );
 	TSGraphType graphType = TSGraphType.LINE;
 	List<TS> tslist = null;
 	TSGraph tsgraph = null;
 	int nts = 0;
 	String prop_val;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
-		tsgraph = (TSGraph)tsgraphs.get(isub);
+		tsgraph = tsgraphs.get(isub);
 		// Get the graph type to simplify later checks...
 		prop_val = tsproduct.getLayeredPropValue ( "GraphType", isub, -1, false );
 		if ( prop_val == null ) {
@@ -729,10 +768,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 		if ( tslist != null ) {
 			nts = tslist.size();
 		}
-		/*
-		Message.printStatus ( 2, "", _gtype +
-		"Checking " + nts + " time series for graph [" + isub + "]" );
-		*/
+		//Message.printStatus ( 2, "", _gtype + "Checking " + nts + " time series for graph [" + isub + "]" );
 
 		// "LeftYAxisIgnoreUnits"
 		//
@@ -753,8 +789,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 
 		// "LeftYAxisTitleString" - depends on graph type and units...
 
-		// TODO SAM 2006-09-28
-		// Why was the following always evaluated as true in previous
+		// TODO SAM 2006-09-28 Why was the following always evaluated as true in previous
 		// code with 1 == 1?  Was this a work-around for some other
 		// problem.  Need to evaluate further when regression tests are in place.
 		if ( tsproduct.getLayeredPropValue("LeftYAxisTitleString", isub, -1, false ) == null ) {
@@ -763,9 +798,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 				// Units will be 1st (dependent) time series -
 				// need to do something else if more than one time series...
 				if ( nts >= 1 ) {
-					TS ts0 = (TS)tslist.get(0);
+					TS ts0 = tslist.get(0);
 					tsproduct.setPropValue ( "LeftYAxisTitleString", ts0.getDataUnits(), isub, -1 );
-					ts0 = null;
 				}
 				else {
 				    tsproduct.setPropValue ( "LeftYAxisTitleString", "", isub, -1 );
@@ -804,9 +838,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 				// Units will be 1st (dependent) time series -
 				// need to do something else if more than one time series...
 				if ( nts >= 1 ) {
-					TS ts0 = (TS)tslist.get(0);
+					TS ts0 = tslist.get(0);
 					tsproduct.setPropValue ( "LeftYAxisUnits", ts0.getDataUnits(), isub, -1 );
-					ts0 = null;
 				}
 				else {
 				    tsproduct.setPropValue ( "LeftYAxisUnits", "", isub, -1 );
@@ -862,7 +895,6 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 				    try {
 				        DataUnits u = DataUnits.lookupUnits ( lefty_units );
 						int precision = u.getOutputPrecision();
-						u = null;
 						tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "" + precision, isub, -1 );
 					}
 					catch ( Exception e ) {
@@ -876,7 +908,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 		// BottomXAxisTitleString may have units...
 
 		if ( tsproduct.getLayeredPropValue("BottomXAxisTitleString", isub, -1, false ) == null ) {
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			tsgraph = _tsgraphs.get(isub);
 			if ( tsgraph == null ) {
 				continue;
 			}
@@ -886,19 +918,17 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List tsgraphs )
 			else if (graphType == TSGraphType.XY_SCATTER){
 				// Bottom axis is the units of the first independent time series...
 				if ( nts >= 2 ) {
-					TS ts1 = (TS)tslist.get(1);
+					TS ts1 = tslist.get(1);
 					String units = ts1.getDataUnits();
 					tsproduct.setPropValue ( "BottomXAxisTitleString", units, isub, -1 );
 					try {
 					    DataUnits u = DataUnits.lookupUnits ( units );
 						// Also set the precision...
 						tsproduct.setPropValue ( "BottomXAxisPrecision", "" + u.getOutputPrecision(), isub, -1 );
-						u = null;
 					}
 					catch ( Exception e ) {
 						tsproduct.setPropValue ( "BottomXAxisPrecision", "1", isub, -1 );
 					}
-					ts1 = null;
 				}
 				else {
 				    tsproduct.setPropValue ( "BottomXAxisTitleString", "", isub, -1);
@@ -925,8 +955,8 @@ area is divided among the individual graphs.
 @return List of TSGraph to use when drawing.  The Vector is
 guaranteed to be non-null but may contain zero graphs.
 */
-private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display_props,
-	List tsproduct_tslist, GRLimits drawlim_graphs )
+private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display_props,
+	List<TS> tsproduct_tslist, GRLimits drawlim_graphs )
 {	String routine = "TSGraphJComponent.createTSGraphsFromTSProduct";
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "Creating graphs from TSProduct" );
@@ -936,7 +966,7 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 		// Return an empty list (should not happen)
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			_gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)" );
+			    _gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)" );
 		}
 		return new Vector ( 1 );
 	}
@@ -946,7 +976,7 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 	// Loop through the number of graphs and create a TSGraph for each one.
 	// For each TSID, locate the time series in the supplied time series
 	// list, or set to null if not available.  That way all of the data
-	// properties in the TSProduct will exactly agree with the Vector of TS
+	// properties in the TSProduct will exactly agree with the list of TS
 
 	TSGraph tsgraph = null;
 	// Initialize with the number of enabled sub-products...
@@ -968,16 +998,14 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 	}
 	TS ts, tsfound;
 	String prop_val;
-	List tsgraphs = new Vector ( nsubs );
+	List<TSGraph> tsgraphs = new Vector ( nsubs );
 	int reference_ts_index = -1;	// This is the value for the tslist
-					// that is used by the graph, NOT the
-					// value in the entire list.
+					// that is used by the graph, NOT the value in the entire list.
 	
 	int display_props_reference_ts_index = -1;
 	String prop_value = display_props.getValue("ReferenceTSIndex");
 	if ( prop_value != null ) {
-		display_props_reference_ts_index =
-		StringUtil.atoi ( prop_value );
+		display_props_reference_ts_index = StringUtil.atoi ( prop_value );
 	}
 	
 	// Indicate the subproduct that will be used to get reference graph information...
@@ -1051,7 +1079,7 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 			// to null so the properties line up.
 			tsfound = null;
 			for ( int kts = 0; kts < nts; kts++ ) {
-				ts = (TS)tsproduct_tslist.get(kts);
+				ts = tsproduct_tslist.get(kts);
 				if ( ts == null ) {
 					continue;
 				}
@@ -1108,8 +1136,7 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 			// Do this after the above loop so that the reference
 			// graph can be set up (note that there is a possibility
 			// of the reference graph using the wrong TS because of
-			// duplicate IDs but that usually won't be that much of
-			// a problem).
+			// duplicate IDs but that usually won't be that much of a problem).
 			//
 			// This approach might be extended to true TSProduct
 			// processing if we can assume that a TSID is always
@@ -1118,7 +1145,7 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 			// the order of the time series passed in.
 			prop_val = tsproduct.getLayeredPropValue ( "TSIndex", isub, jtsid, false );
 			if ( (nsubs == 1) && (prop_val != null) && StringUtil.isInteger(prop_val) ) {
-				tsfound = (TS)tsproduct_tslist.get( StringUtil.atoi(prop_val) );
+				tsfound = tsproduct_tslist.get( StringUtil.atoi(prop_val) );
 			}
 			// Now add the time series or null reference...
             if ( tsfound == null ) {
@@ -1141,14 +1168,8 @@ private List createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display
 			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
 		}
 	}
-	ts = null;
-	tsfound = null;
-	tsgraph = null;
-	tslist = null;
-	/*
-	Message.printStatus(2,"TSGraphJComponent.createTSGraphsFromTSProduct",
-	_gtype + "Created " + tsgraphs.size() + " graphs from TSProduct" );
-	*/
+	//Message.printStatus(2,"TSGraphJComponent.createTSGraphsFromTSProduct",
+	//_gtype + "Created " + tsgraphs.size() + " graphs from TSProduct" );
 	return tsgraphs;
 }
 
@@ -1164,7 +1185,7 @@ an empty TSProduct is created.  The checkTSProduct() method assigns appropriate
 default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
-private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
+private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tslist )
 {	//String routine = "TSGraphJComponent.createTSProductFromPropList";
 
     try {
@@ -1257,10 +1278,10 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 
 	prop_val = proplist.getValue ( "XAxis.Format" );
 	if ( prop_val != null ) {
-		tsproduct.setPropValue ( "BottomXAxisLabelFormat",
-			prop_val, 0, -1 );
+		tsproduct.setPropValue ( "BottomXAxisLabelFormat", prop_val, 0, -1 );
 	}
-	else {	// Older version...
+	else {
+	    // Older version...
 		prop_val = proplist.getValue ( "XAxisFormat" );
 		if ( prop_val != null ) {
 			tsproduct.setPropValue ( "BottomXAxisLabelFormat", prop_val, 0, -1 );
@@ -1304,7 +1325,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 		size = v.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.get(i);
+		prop = v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
@@ -1317,7 +1338,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 	TS ts;
 	int how_set_prev2 = tsproduct.getPropList().getHowSet();
 	for ( int i = 0; i < nts; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			tsproduct.setPropValue ( "TSID", "", 0, i );
 		}
@@ -1336,7 +1357,6 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 			//Message.printStatus ( 2, "", "Graph has TSID \"" + ts.getIdentifier().toString(true) + "\"" );
 		}
 	}
-	ts = null;
 
 	// Transfer "Data" properties in case these are being set manually in
 	// the calling code...
@@ -1347,7 +1367,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List tslist )
 		size = v.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-		prop = (Prop)v.get(i);
+		prop = v.get(i);
 		tsproduct_props.set ( prop.getKey(), prop.getValue() );
 	}
 
@@ -1422,50 +1442,35 @@ private void clearView ()
 }
 
 /**
-Creates a Vector of vectors of data that store the number of time series 
-associated with each graph, the ids of the time series associated with each
-graph, and the data limits of each graph.  This is done so that the graphs
+Creates a list TSGraphDataLimis for each graph, where each object stores information for corresponding
+graphs:  the number of time series associated with the graph, the ids of the time series associated with the
+graph, and the data limits of the graph.  This is done so that the graphs
 can be rebuilt properly during a call to reinitializeGraphs().  The data is used
-in resetGraphDataLimits().  The Vector is messy, but since RTi doesn't use
-private internal classes, this will have to do.
-@return a Vector, each element of which is:<br>
-A Vector with data for the graph numbered the same as this element, 
-each element of which is:<br>
-0 - an integer (the number of time series in the graph)<br>
-1 - a Vector of Strings (each of which is an id of a time series in the graph)
-<br>
-2 - data limits for the graphs<br>
+in resetGraphDataLimits().
 */
-private List determineDataLimits() {
-	TS tempTS = null;
-	List limitsData = new Vector();
-	List ids = null;
-	List ts = null;
-	List v = null;
+private List<TSGraphDataLimits> determineDataLimits()
+{
+	List<TSGraphDataLimits> dataLimits = new Vector();
+	List<String> ids = null;
+	List<TS> tslist = null;
 
 	for (int i = 0; i < _tsgraphs.size(); i++) {
-		ts = ((TSGraph)(_tsgraphs.get(i))).getTSList();
+		tslist = _tsgraphs.get(i).getTSList();
 
-		v = new Vector();
-		v.add(new Integer(ts.size()));
-		
 		ids = new Vector();
-		for (int j = 0; j < ts.size(); j++) {
-			tempTS = (TS)(ts.get(j));
-			if (tempTS == null) {
+		for ( TS ts : tslist ) {
+			if (ts == null) {
 				ids.add("null");
 			}
 			else {
-				ids.add(tempTS.getIdentifierString());
+				ids.add(ts.getIdentifierString());
 			}
 		}
 		ids = StringUtil.sortStringList(ids);
-		v.add(ids);
-		v.add(((TSGraph)(_tsgraphs.get(i))).getDataLimits());
-		limitsData.add(v);
+		dataLimits.add(new TSGraphDataLimits(tslist.size(),ids,_tsgraphs.get(i).getDataLimits()));
 	}
 
-	return limitsData;
+	return dataLimits;
 }
 
 /**
@@ -1579,23 +1584,20 @@ throws Throwable {
 }
 
 /**
-Determine the TSGraph that an event occurred in, checking only the graph
-drawing areas in the TSGraph.
-@return the TSGraph that an event occurred in or null if not within the
-bounds of a TSGraph.
+Determine the TSGraph that an event occurred in, checking only the graph drawing areas in the TSGraph.
+@return the TSGraph that an event occurred in or null if not within the bounds of a TSGraph.
 @param pt point for the raw device units where the event occurred.
 */
 private TSGraph getEventTSGraph ( GRPoint pt )
 {	int size = _tsgraphs.size();
 	TSGraph tsgraph = null;
 	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph = (TSGraph)_tsgraphs.get(isub);
+		tsgraph = _tsgraphs.get(isub);
 		if ( _is_reference_graph && (isub != _reference_sub) ) {
 			// Don't check the graph
 			continue;
 		}
-		if ( tsgraph.getGraphDrawingArea().getPlotLimits(
-			GRDrawingArea.COORD_DEVICE).contains(pt) ) {
+		if ( tsgraph.getGraphDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
 			return tsgraph;
 		}
 	}
@@ -1738,8 +1740,7 @@ public static String lookupTSColor(int index) {
 }
 
 /**
-Look up the symbol to use for a time series.  This is only used for point 
-graphs.
+Look up the symbol to use for a time series.  This is only used for point graphs.
 @param index Zero-referenced index in time series vector.
 @return the symbol for a time series, as a string symbol name.
 */
@@ -1799,11 +1800,10 @@ public void mouseClicked ( MouseEvent event )
   else
     {
       TSGraph tsgraph = getEventTSGraph ( new GRPoint(event.getX(), event.getY()));
-      if ( tsgraph == null ) 
-        {
+      if ( tsgraph == null ) {
           // Not in a graph
           return;
-        }
+      }
       editPoint(event, tsgraph);
       refresh(false);
     }
@@ -1818,8 +1818,7 @@ public void mouseClicked ( MouseEvent event )
 private void editPoint(MouseEvent event,TSGraph tsgraph)
 {
   GRLimits daLimits = tsgraph.getGraphDrawingArea().getPlotLimits( GRDrawingArea.COORD_DEVICE); 
-  if (isInside(event, daLimits))
-    {
+  if (isInside(event, daLimits)) {
       GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY(
           event.getX(), event.getY(), GRDrawingArea.COORD_DEVICE );
       _tsGraphEditor.editPoint(datapt);
@@ -1905,9 +1904,7 @@ public void mouseDragged ( MouseEvent event )
 		for ( int i = 0; i < size; i++ ) {
 			_listeners[i].tsViewMouseMotion(tsgraph, devpt, datapt);
 		}
-		devpt = null;
 	}
-	datapt = null;
 	// Force a redraw...  The _rubber_banding flag will be checked so a full redraw is not done.
 	repaint ();
 }
@@ -1959,16 +1956,14 @@ public void mouseMoved ( MouseEvent event )
 
 	// Get coordinates in data units...
 
-	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY(
-		x, y, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY( x, y, GRDrawingArea.COORD_DEVICE );
 
 	GRPoint devpt = new GRPoint ( x, y );
 
 	// Call the listeners...
 
 	for ( int ilist = 0; ilist< _listeners.length; ilist++ ) {
-		_listeners[ilist].tsViewMouseMotion (
-			tsgraph, devpt, datapt );
+		_listeners[ilist].tsViewMouseMotion ( tsgraph, devpt, datapt );
 	}
 	tsgraph = null;
 }
@@ -1982,8 +1977,7 @@ public void mousePressed ( MouseEvent event )
 {	//event.consume();
 	requestFocus();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, _gtype +
-		"TSGraphJComponent.mousePressed", "Mouse pressed." );
+		Message.printDebug ( 1, _gtype + "TSGraphJComponent.mousePressed", "Mouse pressed." );
 	}
 	// Initialize the coordinates.  If the click is outside any graph, these
 	// values will signal to mouseDragged() that a valid starting point for
@@ -1991,8 +1985,7 @@ public void mousePressed ( MouseEvent event )
 	_mouse_tsgraph1 = null;
 	_mouse_x1 = _mouse_y1 =_mouse_x2=_mouse_y2=_mouse_xprev=_mouse_yprev=-1;
 	// Figure out which drawing area the event occurred in...
-	TSGraph tsgraph = getEventTSGraph (
-		new GRPoint ( event.getX(), event.getY() ) );
+	TSGraph tsgraph = getEventTSGraph ( new GRPoint ( event.getX(), event.getY() ) );
 	if ( tsgraph == null ) {
 		// Did not click on a valid graph and currently don't allow
 		// graph legends, etc. to be selected for properties...
@@ -2005,16 +1998,13 @@ public void mousePressed ( MouseEvent event )
 		// view analysis details...
 		JPopupMenu popup_menu = tsgraph.getJPopupMenu();
 		if ( popup_menu != null ) {
-			// Add to the component.  It will be removed
-			// when the menu event is processed...
+			// Add to the component.  It will be removed when the menu event is processed...
 			add ( popup_menu );
 			// Show the popup menu.  It is modal.
-			popup_menu.show ( event.getComponent(),
-				event.getX(), event.getY() );
+			popup_menu.show ( event.getComponent(), event.getX(), event.getY() );
 			// Now try removing from the component...
 			// Doing this seems to disable the menu action.
-			// See notes in TSGraph related to the the popup
-			// menu.
+			// See notes in TSGraph related to the the popup menu.
 			//remove ( popup_menu );
 		}
 	}
@@ -2022,8 +2012,7 @@ public void mousePressed ( MouseEvent event )
 		(_interaction_mode == INTERACTION_ZOOM) ) {
 		// Save the point that was selected so that the drag and
 		// released events will work.  Also save the initial graph
-		// so that we can make sure not to drag outside a valid
-		// graph.
+		// so that we can make sure not to drag outside a valid graph.
 		_mouse_x1 = event.getX();
 		_mouse_y1 = event.getY();
 	}
@@ -2040,14 +2029,12 @@ public void mouseReleased ( MouseEvent event )
 
 	// Figure out which graph the event occurred in...
 
-	TSGraph tsgraph = getEventTSGraph(
-		new GRPoint ( event.getX(), event.getY() ) );
+	TSGraph tsgraph = getEventTSGraph( new GRPoint ( event.getX(), event.getY() ) );
 	int x = 0;
 	int y = 0;
 	if ( tsgraph == null ) {
 		// The mouse was released outside a graph valid area.  If a
-		// valid previous point is available, use that to close the
-		// box...
+		// valid previous point is available, use that to close the box...
 		if ( _mouse_tsgraph1 == null ) {
 			// Zoom box never was initialized...
 			return;
@@ -2056,7 +2043,8 @@ public void mouseReleased ( MouseEvent event )
 		x = _mouse_xprev;
 		y = _mouse_yprev;
 	}
-	else {	// use the valid point within the graph...
+	else {
+	    // use the valid point within the graph...
 		x = event.getX();
 		y = event.getY();
 	}
@@ -2141,10 +2129,8 @@ public void mouseReleased ( MouseEvent event )
 		
 		GRLimits mouse_limits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR...
-		GRPoint pt1 = tsgraph.getGraphDrawingArea().getDataXY (
-				xmin, ymax, GRDrawingArea.COORD_DEVICE );
-		GRPoint pt2 = tsgraph.getGraphDrawingArea().getDataXY (
-				xmax, ymin, GRDrawingArea.COORD_DEVICE );
+		GRPoint pt1 = tsgraph.getGraphDrawingArea().getDataXY ( xmin, ymax, GRDrawingArea.COORD_DEVICE );
+		GRPoint pt2 = tsgraph.getGraphDrawingArea().getDataXY ( xmax, ymin, GRDrawingArea.COORD_DEVICE );
 
 		GRLimits newdata_limits = new GRLimits ( pt1, pt2 );
 
@@ -2193,9 +2179,7 @@ public void mouseReleased ( MouseEvent event )
 			if ( _listeners != null ) {
 				int size = _listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewZoom (
-						tsgraph,
-						mouse_limits, newdata_limits );
+					_listeners[i].tsViewZoom ( tsgraph, mouse_limits, newdata_limits );
 				}
 			}
 			// Apply the zoom to other graphs that need to be zoomed...
@@ -2222,8 +2206,7 @@ public void mouseReleased ( MouseEvent event )
 Indicate whether during initialization the user has indicated that the graph
 should not continue and should be closed.  This should be called immediately
 after construction in higher-level code.
-@return true if the TSGraphJComponent (and the graph) should be closed due to a
-user confirmation.
+@return true if the TSGraphJComponent (and the graph) should be closed due to a user confirmation.
 */
 public boolean needToClose()
 {	return _need_to_close;
@@ -2232,8 +2215,7 @@ public boolean needToClose()
 /**
 Set whether during initialization the user has indicated that the graph
 should not continue and should be closed.  This should be called immediately
-when a problem occurs in TSGraph constructors and should be checked when
-constructing this class.
+when a problem occurs in TSGraph constructors and should be checked when constructing this class.
 @param need_to_close True if the TSGraphJComponent should be closed because of
 user verification not to go on.
 @return true if the TSGraphJComponent (and the graph) should be closed due to a
@@ -2251,8 +2233,7 @@ private void openDrawingAreas ()
 {	// Full page...
 
 	_da_page = new GRJComponentDrawingArea ( this, "TSGraphJComponent.Page",
-			GRAspect.FILL, null, GRUnits.DEVICE,
-			GRLimits.DEVICE, null );
+			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_page = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_page.setDataLimits ( _datalim_page );
 
@@ -2355,8 +2336,7 @@ public void paint ( Graphics g )
 		//
 		// The graphics will be for the screen (it may actually be
 		// set for an image below but setting it here should be ok
-		// for initialization).  Once the graphics is set, font sizes
-		// can be determined.
+		// for initialization).  Once the graphics is set, font sizes can be determined.
 		_graphics = (Graphics2D)g;
 		// Now set the drawing limits these are necessary to compute
 		// the labels and are for the most part independent of data limits...
@@ -2429,11 +2409,11 @@ public void paint ( Graphics g )
 		    Message.printDebug(1, "", "PB: " + _printBounds);
 		}
 
-		// get the drawing limits from the bounds set by the
+		// Get the drawing limits from the bounds set by the
 		// print job.  These limits are the valid extents on the
 		// paper to which the print job can print.  These take
 		// into account the margins the user set up around
-		// the page.  Thers is no need to worry at this point
+		// the page.  There is no need to worry at this point
 		// about landscape versus portrait.  When the Print Job
 		// is told that the paper will be Landscape, it automatically
 		// knows formats the output for a landscape paper.  All 
@@ -2448,9 +2428,8 @@ public void paint ( Graphics g )
 		    Message.printDebug(1, "", "NL: " + new_draw_limits);
 		}
 
-		// set the limits for drawing to the printed page --
-		// the old limits will be reset after the print() call
-		// is done
+		// Set the limits for drawing to the printed page --
+		// the old limits will be reset after the print() call is done
 		setLimits(new_draw_limits);
 
 		if ( Message.isDebugOn ) {
@@ -2498,8 +2477,7 @@ public void paint ( Graphics g )
 		resizing = true;
 		// If double buffering, create a new image...
 		if ( ((_buffer == null) || _double_buffering) && !_printing && !__paintForSVG) {
-			// This needs to be the size of the full component, NOT
-			// the drawing limits!
+			// This needs to be the size of the full component, NOT the drawing limits!
 			// Clean up since images can take a lot of memory...
 			_buffer = null;
 			System.gc();
@@ -2690,8 +2668,7 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 	}
 	else {
 		// The following is a debug utility that prints information
-		// about the pageformat (its imageable area, etc) on 
-		// status level 1
+		// about the pageformat (its imageable area, etc) on status level 1
 //		PrintUtil.dumpPageFormat(pageFormat);
 
 		// get the printing bounds of the image.
@@ -2911,15 +2888,13 @@ Print the graph.  The user is prompted to select a printer, etc..
 */
 public void printGraph() {
 	try {
-		// For all the below, additionally check the docs for
-		// PrintUtil.java.
+		// For all the below, additionally check the docs for PrintUtil.java.
 		
 		// create a page format object for printing to letter paper
 		PageFormat pageFormat = PrintUtil.getPageFormat("letter");
 
 		// sets the orientation for a page format
-		PrintUtil.setPageFormatOrientation(pageFormat,
-			PrintUtil.LANDSCAPE);
+		PrintUtil.setPageFormatOrientation(pageFormat, PageFormat.LANDSCAPE);
 		
 		// set the margins for the page format and pop up a dialog 
 		// box in which the user can change the margins
@@ -2945,8 +2920,7 @@ public void refresh ()
 
 /**
 Refresh the plot based on changes in properties.  This is typically called
-from outside code, e.g., when time series have been enabled/disabled in the
-TSViewPropertiesGUI.
+from outside code, e.g., when time series have been enabled/disabled in the TSViewPropertiesGUI.
 @param recompute_drawing_limits If true, the drawing areas will be recomputed.
 This is only necessary when the component size changes or axes are turned
 on/off.  If zooming, the drawing
@@ -2955,8 +2929,7 @@ maximum data value has been used to set the y-axis label widths).
 */
 public void refresh ( boolean recompute_drawing_limits )
 {	clearView ();
-	// This will recompute drawing limits for the main component and the
-	// TSGraphs.
+	// This will recompute drawing limits for the main component and the TSGraphs.
 	if ( recompute_drawing_limits ) {
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
@@ -2966,12 +2939,11 @@ public void refresh ( boolean recompute_drawing_limits )
 }
 
 /**
-Sets up the Vector of TSGraph objects again based on the provided TSProduct.
+Sets up the list of TSGraph objects again based on the provided TSProduct.
 This ensures that the graphs match exactly the properties in the TSProduct that
 is being manipulated in the JFrame.  Since these properties can be changed in
 the JFrame, in the layout component, and possibly in other places, it's safest
-to simply re-read the properties and rebuild all the graphs completely when 
-major changes occur.
+to simply re-read the properties and rebuild all the graphs completely when major changes occur.
 @param product the TSProduct from which to read TSGraph information.  This will
 most likely be the product that's already resident in memory, but not necessarily. 
 */
@@ -3007,30 +2979,26 @@ public void reinitializeGraphs(TSProduct product) {
 	_tsproduct = product;
 	_tslist = _tsproduct.getTSList();
 
-	// Find the latest end date and the earliest start date from the
-	// time series
+	// Find the latest end date and the earliest start date from the time series
 
 	TS ts = null;
 	int size = _tslist.size();
 	for (int i = 0; i < size; i++) {
-		ts = (TS)_tslist.get(i);
+		ts = _tslist.get(i);
 		temp = ts.getDate1();
-		if (maxStart == null 
-		    || (temp != null && temp.lessThan(maxStart))) {
+		if (maxStart == null || (temp != null && temp.lessThan(maxStart))) {
 			maxStart = temp;
 		}
 
 		temp = ts.getDate2();
-		if (maxEnd == null 
-		    || (temp != null && maxEnd.lessThan(temp))) {
+		if (maxEnd == null || (temp != null && maxEnd.lessThan(temp))) {
 			maxEnd = temp;
 		}
 	}
 	
-	List v = determineDataLimits();
+	List<TSGraphDataLimits> v = determineDataLimits();
 	
-	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct,
-		_display_props, _tslist, 
+	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct, _display_props, _tslist, 
 		new GRLimits(0.0,0.0, getWidth(), getHeight()));
 	checkTSProductGraphs(_tsproduct, _tsgraphs);
 	
@@ -3068,27 +3036,17 @@ public void reinitializeGraphs(TSProduct product) {
 
 /**
 Resets the data limits for each graph during a call to reinitializeGraphs().
-@param v a Vector, each element of which is:<br>
-A Vector with data for the graph numbered the same as this element, 
-each element of which is:<br>
-0 - an integer (the number of time series in the graph)<br>
-1 - a Vector of Strings (each of which is an id of a time series in the graph)
-<br>
-2 - data limits for the graphs<br>
+@param graphDataLimitList a list of TSGraphDataLimits to control the graph limits
 */
-private void resetGraphDataLimits(List v) {
+private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) {
 	int tsCount = 0;
 	int vCount = 0;
-	TS ts = null;
-	TSGraph graph = null;
-	List ids = null;
-	List tslist = null;
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		graph = (TSGraph)_tsgraphs.get(i);
+	List<String> ids = null;
+	List<TS> tslist = null;
+	for ( TSGraph graph: _tsgraphs ) {
 		tslist = graph.getTSList();		
 		ids = new Vector();
-		for (int j = 0; j < tslist.size(); j++) {
-			ts = (TS)(tslist.get(j));
+		for ( TS ts: tslist ) {
 			if (ts == null) {
 				ids.add("null");
 			}
@@ -3098,15 +3056,12 @@ private void resetGraphDataLimits(List v) {
 		}
 		ids = StringUtil.sortStringList(ids);		
 		tsCount = tslist.size();
-		for (int j = 0; j < v.size(); j++) {		
-			List dataVector = (List)v.get(j);
-			Integer I = (Integer)dataVector.get(0);
-			vCount = I.intValue();
-			if (vCount == tsCount) {
-				List vids = (List)dataVector.get(1);
+		for ( TSGraphDataLimits graphDataLimits : graphDataLimitsList ) {		
+			vCount = graphDataLimits.getNumTimeSeries();
+			if ( vCount == tsCount) {
+				List<String> vids = graphDataLimits.getTimeSeriesIds();
 				if (stringVectorsAreEqual(ids, vids)) {
-					GRLimits dataLimits = (GRLimits)
-						dataVector.get(2);
+					GRLimits dataLimits = graphDataLimits.getDataLimits();
 					graph.setDataLimits(dataLimits);
 				}
 			}
@@ -3136,10 +3091,8 @@ throws FileNotFoundException, IOException
 
 /**
 Scroll the current zoom group a multiple of the visible page.
-@param pages Number of pages to scroll (-1.0 is one page left, 1.0 is one page
-right).
-@param notify_listeners If true, the tsViewZoom() method is called for the
-new data limits.
+@param pages Number of pages to scroll (-1.0 is one page left, 1.0 is one page right).
+@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
 */
 public void scroll ( double pages, boolean notify_listeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
@@ -3163,41 +3116,32 @@ public void scroll ( double pages, boolean notify_listeners )
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = (TSGraph)_tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(
-					tsgraph.getMaxDataLimits() );
+				max_data_limits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
-			else {	max_data_limits =
-				max_data_limits.max(tsgraph.getMaxDataLimits());
+			else {
+			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
-		//"Maximum limits for zoom group [" + iz + "] are " +
-			//max_data_limits );
-		// Now loop through again and set the data limits for
-		// graph in the zoom group...
+		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
+		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = (TSGraph)_tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue (
-				"ZoomEnabled", isub, -1, false );
+			prop_value = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
 				continue;
 			}
-			// If the maximum limits and the current limits are the
-			// same, don't do anything...
+			// If the maximum limits and the current limits are the same, don't do anything...
 			current_data_limits = tsgraph.getDataLimits();
 			if ( max_data_limits.equals( current_data_limits) ) {
 				continue;
@@ -3208,48 +3152,31 @@ public void scroll ( double pages, boolean notify_listeners )
 			new_data_limits = new GRLimits ( current_data_limits );
 			if ( pages > 0.0 ) {
 				// First reset the right X value...
-				new_data_limits.setRightX (
-					current_data_limits.getRightX() +
-					pages*current_data_limits.getWidth() );
+				new_data_limits.setRightX ( current_data_limits.getRightX() + pages*current_data_limits.getWidth() );
 				// If the right X is past the end, set it to the
 				// end...
-				if (	new_data_limits.getRightX() >
-					max_data_limits.getRightX() ) {
-					new_data_limits.setRightX (
-					max_data_limits.getRightX() );
+				if ( new_data_limits.getRightX() > max_data_limits.getRightX() ) {
+					new_data_limits.setRightX ( max_data_limits.getRightX() );
 				}
 				// Now set the left edge relative to the right..
-				new_data_limits.setLeftX (
-					new_data_limits.getRightX() -
-					current_data_limits.getWidth() );
+				new_data_limits.setLeftX ( new_data_limits.getRightX() - current_data_limits.getWidth() );
 				// Do a final check against the overall limits..
-				if (	new_data_limits.getLeftX() <
-					max_data_limits.getLeftX() ) {
-					new_data_limits.setLeftX (
-					max_data_limits.getLeftX() );
+				if ( new_data_limits.getLeftX() < max_data_limits.getLeftX() ) {
+					new_data_limits.setLeftX ( max_data_limits.getLeftX() );
 				}
 			}
-			else {	// First reset the left X value (pages is
-				// negative so add the second term)...
-				new_data_limits.setLeftX (
-					current_data_limits.getLeftX() +
-					pages*current_data_limits.getWidth() );
-				// If the left X is past the end, set it to the
-				// end...
-				if (	new_data_limits.getLeftX() <
-					max_data_limits.getLeftX() ) {
-					new_data_limits.setLeftX (
-					max_data_limits.getLeftX() );
+			else {
+			    // First reset the left X value (pages is negative so add the second term)...
+				new_data_limits.setLeftX ( current_data_limits.getLeftX() + pages*current_data_limits.getWidth() );
+				// If the left X is past the end, set it to the end...
+				if ( new_data_limits.getLeftX() < max_data_limits.getLeftX() ) {
+					new_data_limits.setLeftX ( max_data_limits.getLeftX() );
 				}
 				// Now set the right edge relative to the left..
-				new_data_limits.setRightX (
-					new_data_limits.getLeftX() +
-					current_data_limits.getWidth() );
+				new_data_limits.setRightX ( new_data_limits.getLeftX() + current_data_limits.getWidth() );
 				// Do a final check against the overall limits..
-				if (	new_data_limits.getRightX() >
-					max_data_limits.getRightX() ) {
-					new_data_limits.setRightX (
-					max_data_limits.getRightX() );
+				if ( new_data_limits.getRightX() > max_data_limits.getRightX() ) {
+					new_data_limits.setRightX ( max_data_limits.getRightX() );
 				}
 			}
 			tsgraph.setDataLimits ( new_data_limits );
@@ -3280,12 +3207,8 @@ public void scroll ( double pages, boolean notify_listeners )
 					nl = _listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
-					// The device limits are not used but
-					// a cast is done later so don't pass
-					// null...
-					_listeners[il].tsViewZoom (
-					tsgraph, new GRLimits(),
-					new_data_limits );
+					// The device limits are not used but a cast is done later so don't pass null...
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
 				}
 			}
 		}
@@ -3295,15 +3218,12 @@ public void scroll ( double pages, boolean notify_listeners )
 }
 
 /**
-Scroll the current zoom group to the end of the available data.  If zoomed out,
-no action is taken.
-@param notify_listeners If true, the tsViewZoom() method is called for the
-new data limits.
+Scroll the current zoom group to the end of the available data.  If zoomed out, no action is taken.
+@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
 */
 public void scrollToEnd ( boolean notify_listeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
-	// maximum data extent within the zoom group.  Need a concept of an
-	// active zoom group...
+	// maximum data extent within the zoom group.  Need a concept of an active zoom group...
 
 	TSGraph tsgraph;
 	GRLimits max_data_limits = null;
@@ -3317,41 +3237,32 @@ public void scrollToEnd ( boolean notify_listeners )
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			tsgraph = _tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(
-					tsgraph.getMaxDataLimits() );
+				max_data_limits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
-			else {	max_data_limits =
-				max_data_limits.max(tsgraph.getMaxDataLimits());
+			else {
+			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
-		//"Maximum limits for zoom group [" + iz + "] are " +
-			//max_data_limits );
-		// Now loop through again and set the data limits for
-		// graph in the zoom group...
+		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
+		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue (
-				"ZoomEnabled", isub, -1, false );
+			tsgraph = _tsgraphs.get(isub);
+			prop_value = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
 				continue;
 			}
-			// If the maximum limits and the current limits are the
-			// same, don't do anything...
+			// If the maximum limits and the current limits are the same, don't do anything...
 			current_data_limits = tsgraph.getDataLimits();
 			if ( max_data_limits.equals( current_data_limits) ) {
 				continue;
@@ -3361,9 +3272,7 @@ public void scrollToEnd ( boolean notify_listeners )
 			// limits.  Start by copying the maximum limits...
 			new_data_limits = new GRLimits ( max_data_limits );
 			// Now reset the end X value...
-			new_data_limits.setLeftX (
-				max_data_limits.getRightX() -
-				current_data_limits.getWidth() );
+			new_data_limits.setLeftX ( max_data_limits.getRightX() - current_data_limits.getWidth() );
 			tsgraph.setDataLimits ( new_data_limits );
 			if ( notify_listeners ) {
 				//if (	!_is_reference_graph ||
@@ -3392,12 +3301,8 @@ public void scrollToEnd ( boolean notify_listeners )
 					nl = _listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
-					// The device limits are not used but
-					// a cast is done later so don't pass
-					// null...
-					_listeners[il].tsViewZoom (
-					tsgraph, new GRLimits(),
-					new_data_limits );
+					// The device limits are not used but a cast is done later so don't pass null...
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
 				}
 			}
 		}
@@ -3407,15 +3312,12 @@ public void scrollToEnd ( boolean notify_listeners )
 }
 
 /**
-Scroll the current zoom group to the start of the available data.  If zoomed
-out, no action is taken.
-@param notify_listeners If true, the tsViewZoom() method is called for the
-new data limits.
+Scroll the current zoom group to the start of the available data.  If zoomed out, no action is taken.
+@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
 */
 public void scrollToStart ( boolean notify_listeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
-	// maximum data extent within the zoom group.  Need a concept of an
-	// active zoom group...
+	// maximum data extent within the zoom group.  Need a concept of an active zoom group...
 
 	TSGraph tsgraph;
 	GRLimits max_data_limits = null;
@@ -3429,53 +3331,41 @@ public void scrollToStart ( boolean notify_listeners )
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			tsgraph = _tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(
-					tsgraph.getMaxDataLimits() );
+				max_data_limits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
-			else {	max_data_limits =
-				max_data_limits.max(tsgraph.getMaxDataLimits());
+			else {
+			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
-		//"Maximum limits for zoom group [" + iz + "] are " +
-			//max_data_limits );
-		// Now loop through again and set the data limits for
-		// graph in the zoom group...
+		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
+		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue (
-				"ZoomEnabled", isub, -1, false );
+			tsgraph = _tsgraphs.get(isub);
+			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( !prop_value.equalsIgnoreCase("true") ) {
 				continue;
 			}
-			// If the maximum limits and the current limits are the
-			// same, don't do anything...
+			// If the maximum limits and the current limits are the same, don't do anything...
 			current_data_limits = tsgraph.getDataLimits();
 			if ( max_data_limits.equals( current_data_limits) ) {
 				continue;
 			}
 			// Else, reset the visible window to the start of the
-			// period with a data width equal to the current
-			// limits.  Start by copying the maximum limits...
+			// period with a data width equal to the current limits.  Start by copying the maximum limits...
 			new_data_limits = new GRLimits ( max_data_limits );
 			// Now reset the end X value...
-			new_data_limits.setRightX (
-				max_data_limits.getLeftX() +
-				current_data_limits.getWidth() );
+			new_data_limits.setRightX ( max_data_limits.getLeftX() + current_data_limits.getWidth() );
 			tsgraph.setDataLimits ( new_data_limits );
 			if ( notify_listeners ) {
 				//if (	!_is_reference_graph ||
@@ -3504,12 +3394,8 @@ public void scrollToStart ( boolean notify_listeners )
 					nl = _listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
-					// The device limits are not used but
-					// a cast is done later so don't pass
-					// null...
-					_listeners[il].tsViewZoom (
-					tsgraph, new GRLimits(),
-					new_data_limits );
+					// The device limits are not used but a cast is done later so don't pass null...
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
 				}
 			}
 		}
@@ -3523,9 +3409,8 @@ Set the drawing limits for all drawing areas based on properties and window
 size.  The font sizes are considered when sizing the drawing areas.
 */
 void setDrawingLimits()
-{	double buffer = 2.0;	// Buffer around drawing areas (helps separate
-				// things and also makes it easier to see
-				// drawing areas when in debug mode)
+{	double buffer = 2.0; // Buffer around drawing areas (helps separate
+				// things and also makes it easier to see drawing areas when in debug mode)
 	// Figure out dimensions up front...
 
 	// Main and sub-titles and footers will have zero size unless the titles are specified...
@@ -3564,8 +3449,7 @@ void setDrawingLimits()
 
 	GRLimits window_limits = null;
 	if ( _printing ) {
-		window_limits = new GRLimits();
-						// Gets the page size...
+		window_limits = new GRLimits(); // ...gets the page size
 		window_limits.setLeftX(_printBounds.getLeftX());
 		window_limits.setBottomY(_printBounds.getBottomY());
 		window_limits.setRightX(_printBounds.getRightX());
@@ -3573,7 +3457,8 @@ void setDrawingLimits()
 		Message.printDebug(1, "", "PB: " + _printBounds);
 		Message.printDebug(1, "", "WL: " + window_limits);
 	}
-	else {	window_limits = getLimits ( true );
+	else {
+	    window_limits = getLimits ( true );
 	}
 
 	_drawlim_page = new GRLimits ( window_limits );
@@ -3583,8 +3468,7 @@ void setDrawingLimits()
 	}
 	window_limits = null;
 
-	// Set the drawing limits for the graph based on the dimensions of the
-	// other drawing areas...
+	// Set the drawing limits for the graph based on the dimensions of the other drawing areas...
 
 	if ( _bounds == null ) {
 		_bounds = getBounds();
@@ -3598,10 +3482,8 @@ void setDrawingLimits()
 	if ( maintitle_height == 0.0 ) {
 		// Zero height drawing area place holder...
 		_drawlim_maintitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer),
-			_drawlim_page.getTopY(),
-			(_drawlim_page.getRightX() - buffer),
-			_drawlim_page.getTopY() );
+			(_drawlim_page.getLeftX() + buffer), _drawlim_page.getTopY(),
+			(_drawlim_page.getRightX() - buffer), _drawlim_page.getTopY() );
 	}
 	else {	
 		_drawlim_maintitle = new GRLimits (
@@ -3612,50 +3494,42 @@ void setDrawingLimits()
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Main title drawing limits are: " +
-		_drawlim_maintitle.toString() );
+		_gtype + "Main title drawing limits are: " + _drawlim_maintitle );
 	}
 
 	if ( subtitle_height == 0.0 ) {
 		// Zero height drawing area place holder...
 		_drawlim_subtitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer),
-			_drawlim_maintitle.getBottomY(),
-			(_drawlim_page.getRightX() - buffer),
-			_drawlim_maintitle.getBottomY() );
+			(_drawlim_page.getLeftX() + buffer), _drawlim_maintitle.getBottomY(),
+			(_drawlim_page.getRightX() - buffer), _drawlim_maintitle.getBottomY() );
 	}
-	else {	_drawlim_subtitle = new GRLimits (
+	else {
+	    _drawlim_subtitle = new GRLimits (
 			(_drawlim_page.getLeftX() + buffer),
-			(_drawlim_maintitle.getBottomY() - buffer -
-			subtitle_height),
+			(_drawlim_maintitle.getBottomY() - buffer - subtitle_height),
 			(_drawlim_page.getRightX() - buffer),
 			(_drawlim_maintitle.getBottomY() - buffer) );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Sub title drawing limits are: " +
-		_drawlim_subtitle.toString() );
+		_gtype + "Sub title drawing limits are: " + _drawlim_subtitle );
 	}
 
 	// Graph drawing area (always what is left)...
 
 	if ( _is_reference_graph ) {
 		_drawlim_graphs = new GRLimits (
-			_drawlim_page.getLeftX(),
-			_drawlim_page.getBottomY(),
-			_drawlim_page.getRightX(),
-			_drawlim_page.getTopY() );
+			_drawlim_page.getLeftX(), _drawlim_page.getBottomY(),
+			_drawlim_page.getRightX(), _drawlim_page.getTopY() );
 	}
-	else {	_drawlim_graphs = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer),
-			(_drawlim_page.getBottomY() + buffer),
-			(_drawlim_page.getRightX() - buffer),
-			(_drawlim_subtitle.getBottomY() - buffer) );
+	else {
+	    _drawlim_graphs = new GRLimits (
+			(_drawlim_page.getLeftX() + buffer), (_drawlim_page.getBottomY() + buffer),
+			(_drawlim_page.getRightX() - buffer), (_drawlim_subtitle.getBottomY() - buffer) );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Graph drawing limits are: " +
-		_drawlim_graphs.toString() );
+		_gtype + "Graph drawing limits are: " + _drawlim_graphs.toString() );
 	}
 
 	// Now set in the drawing areas...
@@ -3675,8 +3549,7 @@ void setDrawingLimits()
 Set the drawing limits for the graphs on the full component.  This is typically
 called at initialization and when the component size changes (or a property
 changes that controls the positioning and size of graphs.  The logic in this
-method needs to be consistent with that in the createTSGraphsFromTSProduct()
-code.
+method needs to be consistent with that in the createTSGraphsFromTSProduct() code.
 */
 public void setGraphDrawingLimits ()
 {	int nsubs = _tsgraphs.size();
@@ -3704,8 +3577,7 @@ public void setGraphDrawingLimits ()
 	
 	String prop_val = null;
 	for (int isub = 0; isub < nsubs; isub++) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"LayoutYPercent", isub, -1, false);
+		prop_val = _tsproduct.getLayeredPropValue("LayoutYPercent", isub, -1, false);
 		if (prop_val != null) {
 			if (StringUtil.isInteger(prop_val)) {
 				i = StringUtil.atoi(prop_val);
@@ -3752,45 +3624,35 @@ public void setGraphDrawingLimits ()
 //	System.out.println("");
 		
 	for ( i = 0; i < nsubs; i++ ) {
-		tsgraph = (TSGraph)_tsgraphs.get(i);
+		tsgraph = _tsgraphs.get(i);
 		if ( tsgraph == null ) {
 			continue;
 		}
-		if (	(prop_value != null) &&
-			prop_value.equalsIgnoreCase("true") ) {
-			// A reference graph so the dimension will be all of the
-			// component...
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+			// A reference graph so the dimension will be all of the component...
 			drawlim = new GRLimits ( _drawlim_graphs );
 		}
-		else {	// Determine the drawing limits from the number of
-			// graphs and their layout...
+		else {
+		    // Determine the drawing limits from the number of graphs and their layout...
 			// Set the drawing limits for the graph on the page as
 			// an even fraction of the whole page in the vertical
 			// direction (taking up the full horizontal dimension).
 			// Later we can allow more options to place graphs on
-			// the page.  The drawing limits will be reset whenever
-			// the component size changes.
+			// the page.  The drawing limits will be reset whenever the component size changes.
 
 			runningTotal += heights[i];
 			drawlim = new GRLimits(
-				_drawlim_graphs.getLeftX(),
-				_drawlim_graphs.getTopY() - runningTotal,
-				_drawlim_graphs.getRightX(),
-				_drawlim_graphs.getTopY() - runningTotal 
-					+ heights[i]);
+				_drawlim_graphs.getLeftX(), _drawlim_graphs.getTopY() - runningTotal,
+				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - runningTotal + heights[i]);
 //System.out.println("" + drawlim);					
 			/*	
 			drawlim = new GRLimits (
-				_drawlim_graphs.getLeftX(),
-				_drawlim_graphs.getTopY() - (i + 1)*height,
-				_drawlim_graphs.getRightX(),
-				_drawlim_graphs.getTopY() - i*height );
+				_drawlim_graphs.getLeftX(), _drawlim_graphs.getTopY() - (i + 1)*height,
+				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - i*height );
 			*/
 		}
 		tsgraph.setDrawingLimits ( drawlim );
 	}
-	tsgraph = null;
-	drawlim = null;
 }
 
 /**
@@ -3799,14 +3661,11 @@ INTERACTION_ZOOM, or INTERACTION_NONE.
 @param mode Interaction mode.
 */
 public void setInteractionMode ( int mode )
-{	if (	(mode == INTERACTION_NONE) ||
-		(mode == INTERACTION_SELECT) ||
-		(mode == INTERACTION_ZOOM) ||
-		(mode == INTERACTION_EDIT)) 
+{	if ( (mode == INTERACTION_NONE) || (mode == INTERACTION_SELECT) ||
+		(mode == INTERACTION_ZOOM) || (mode == INTERACTION_EDIT)) 
  {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, _gtype +
-			"TSGraphJComponent.setInteractionMode",
+			Message.printDebug ( 1, _gtype + "TSGraphJComponent.setInteractionMode",
 			"Set interaction mode to " + mode );
 		}
 		_interaction_mode = mode;
@@ -3821,8 +3680,7 @@ Show an information dialog indicating the closest time series and value to the c
 @param y Y-coordinate of mouse click, from event handler.
 */
 public void showInfoDialog ( TSGraph tsgraph, int x, int y )
-{	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY (
-			x, y, GRDrawingArea.COORD_DEVICE );
+{	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY ( x, y, GRDrawingArea.COORD_DEVICE );
 	if ( datapt == null ) {
 		return;
 	}
@@ -3831,7 +3689,7 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 	DateTime d = new DateTime ( datapt.x, true );
 	// Find the time series with a y-value closest to the data point...
 	int size = 0;
-	List tslist = tsgraph.getTSList();
+	List<TS> tslist = tsgraph.getTSList();
 	if ( tslist != null ) {
 		size = tslist.size();
 	}
@@ -3840,7 +3698,7 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 	double mindiff = 1.0e10;
 	double diff = 0.0;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			continue;
 		}
@@ -3865,9 +3723,9 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 		new ResponseJDialog ( _parent, "Time Series Information",
 		"Unable to find nearest time series.", ResponseJDialog.OK );
 	}
-	else {	d.setPrecision ( mints.getDataIntervalBase() );
-		new ResponseJDialog ( _parent,
-		"Time Series Information",
+	else {
+	    d.setPrecision ( mints.getDataIntervalBase() );
+		new ResponseJDialog ( _parent, "Time Series Information",
 		"Nearest time series is:\n" +
 		"Time Series Identifier:  " + mints.getIdentifier() + "\n" +
 		"Time Series Description:  " + mints.getDescription() + "\n"+
@@ -3877,23 +3735,19 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y )
 		DataUnits.getOutputFormatString(mints.getDataUnits(),0,2)) +
 			" " + mints.getDataUnits(), ResponseJDialog.OK );
 	}
-	datapt = null;
-	d = null;
-	mints = null;
-	ts = null;
 }
 
 /**
-Tests to see whether two sorted Vectors, each of which contain Strings, contain
+Tests to see whether two sorted lists, each of which contain Strings, contain
 the same strings in the same order.
-@param v1 the first Vector to check.
-@param v2 the second Vector to check.
-@return true if the Vectors contain the same strings (compared by 
+@param v1 the first list to check.
+@param v2 the second list to check.
+@return true if the lists contain the same strings (compared by 
 equalsIgnoreCase()) in the same order, or are both null.  Returns false if only
 one is null or the sizes of the Vectors are different or they don't contain 
 the same strings, element-by-element.
 */
-private boolean stringVectorsAreEqual(List v1, List v2) {
+private boolean stringVectorsAreEqual(List<String> v1, List<String> v2) {
 	if (v1 == null && v2 == null) {
 		return true;
 	}
@@ -3908,8 +3762,8 @@ private boolean stringVectorsAreEqual(List v1, List v2) {
 		String s1 = null;
 		String s2 = null;
 		for (int i = 0; i < size; i++) {
-			s1 = (String)v1.get(i);
-			s2 = (String)v2.get(i);
+			s1 = v1.get(i);
+			s2 = v2.get(i);
 			if (!s1.equalsIgnoreCase(s2)) {
 				return false;
 			}
@@ -3930,8 +3784,7 @@ public void tsViewMouseMotion (TSGraph g, GRPoint devpt, GRPoint datapt )
 }
 
 /**
-Handle the select event from another TSGraphJComponent (likely a Reference
-TSGraphJComponent).
+Handle the select event from another TSGraphJComponent (likely a Reference TSGraphJComponent).
 Currently this does nothing.
 @param g TSGraph that select occurred in.
 @param dev_shape Coordinates of mouse in device coordinates (pixels).
@@ -3959,8 +3812,7 @@ public void tsViewZoom (TSGraph g, GRShape dev_shape, GRShape data_shape)
 	//Message.printStatus ( 1, "", _gtype + "Received a zoom event from " +
 	//	_tsproduct.getLayeredPropValue("MainTitleString",
 	//		g.getSubProductNumber(), -1, false) + ":" +
-	//		" isref:" + g.isReferenceGraph() + " :" +
-	//		(GRLimits)data_shape );
+	//		" isref:" + g.isReferenceGraph() + " :" + (GRLimits)data_shape );
 	zoom ( g, (GRLimits)dev_shape, (GRLimits)data_shape );
 }
 
@@ -3977,26 +3829,21 @@ public void update(Graphics g)
 Apply a zoom that has occurred in one graph to other graphs.  This is done by
 setting the data limits in the related graphs.  Only graphs in the same
 zoom group are updated and it assumed that each graph will interpret the
-limits appropriately (e.g., use the new X axis date limits but handle its own
-Y axis limits).
+limits appropriately (e.g., use the new X axis date limits but handle its own Y axis limits).
 @param tsgraph TSGraph that generated the zoom event.
 @param mouse_limits Component limits for zoom extent.
 @param newdata_limits Data limits for zoom extent in the original graph.
 */
-public void zoom (	TSGraph tsgraph,
-			GRLimits mouse_limits, GRLimits newdata_limits )
+public void zoom ( TSGraph tsgraph, GRLimits mouse_limits, GRLimits newdata_limits )
 {	String zoom_group = _tsproduct.getLayeredPropValue ( "ZoomGroup",
 			tsgraph.getSubProductNumber(), -1, false );
-	//Message.printStatus ( 1, "", _gtype + "zoom() data limits are" +
-	//	newdata_limits.toString() );
+	//Message.printStatus ( 1, "", _gtype + "zoom() data limits are" + newdata_limits.toString() );
 	int size = _tsgraphs.size();
 	TSGraph tsgraph2;
 	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph2 = (TSGraph)_tsgraphs.get(isub);
-		if (	tsgraph2.canZoom() &&
-			zoom_group.equalsIgnoreCase(
-			_tsproduct.getLayeredPropValue ( "ZoomGroup",
-			isub, -1, false ) ) ) {
+		tsgraph2 = _tsgraphs.get(isub);
+		if ( tsgraph2.canZoom() && zoom_group.equalsIgnoreCase(
+			_tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false ) ) ) {
 			//if ( tsgraph2.isReferenceGraph() ) {
 				tsgraph2.setDataLimits ( newdata_limits );
 			//}
@@ -4015,8 +3862,7 @@ public void zoomOut() {
 
 /**
 Zoom out for all the graphs and optionally redraw.  This method is also called
-one time in the first paint to force the different graphs to synchronize their
-zoom levels.
+one time in the first paint to force the different graphs to synchronize their zoom levels.
 @param re_draw If true, redraw the component after zooming.  If false, just set
 the data limits in the graphs but do not redraw (a redraw may occur elsewhere
 after this method is called).
@@ -4035,13 +3881,11 @@ public void zoomOut ( boolean re_draw )
 		// Loop through and determine the maximum limits for the zoom
 		// group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			tsgraph = _tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
 				max_data_limits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
@@ -4050,18 +3894,14 @@ public void zoomOut ( boolean re_draw )
 			}
 		}
 		//Message.printStatus ( 1, "",
-		//"Maximum limits for zoom group [" + iz + "] are " +
-			//max_data_limits );
-		// Now loop through again and set the data limits for
-		// graph in the zoom group...
+		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
+		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(
-				_tsproduct.getLayeredPropValue (
-				"ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
+			tsgraph = _tsgraphs.get(isub);
 			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( prop_value.equalsIgnoreCase("true") ) {
 				if (tsgraph.getNumTS() > 0) {
@@ -4091,4 +3931,4 @@ _tsGraphEditor = tsGraphEditor;
   
 }
 
-} // End TSGraphJComponent class
+}
