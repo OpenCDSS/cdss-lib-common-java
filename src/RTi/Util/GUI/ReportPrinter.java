@@ -687,7 +687,7 @@ job information like page range and number of copies.
 @param pf the PageFormat to use for this print job.
 @return the PageFormat set up or used for this print job.
 */
-public static PageFormat printText(List v, int linesPerPageP, 
+public static PageFormat printText(List<String> v, int linesPerPageP, 
 int linesPerPageL, String header, boolean batch, PageFormat pf) {
 	ReportPrinter r = new ReportPrinter(v, linesPerPageP, linesPerPageL,
 		header, false, batch);
