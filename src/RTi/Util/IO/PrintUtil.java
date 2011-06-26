@@ -1,19 +1,15 @@
-// ----------------------------------------------------------------------------
-// PrintUtil - Printing Utilities class.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-08-11	J. Thomas Sapienza, RTi	Initial version.
-// 2003-08-14	JTS, RTi		Revised, added code to set margins
-// 2004-03-31	JTS, RTi		Added A, B, C, D and E -size papers.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.IO;
 
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
+import java.util.Collections;
+import java.util.List;
+import java.util.Vector;
+
+import javax.print.PrintService;
+import javax.print.attribute.standard.Media;
 
 import RTi.Util.Message.Message;
 
@@ -33,17 +29,8 @@ This is a utility class for setting up paper for printing.  An example of use:
 	}
 </pre>	
 */
-public class PrintUtil {
-
-/**
-Reference to landscape-style printing.
-*/
-public static final int LANDSCAPE = PageFormat.LANDSCAPE;
-
-/**
-Reference to portrait-style printing.
-*/
-public static final int PORTRAIT = PageFormat.PORTRAIT;
+public class PrintUtil
+{
 
 /**
 Debugging routine.  Prints information about the PageFormat object at status level 2.
@@ -52,13 +39,13 @@ public static void dumpPageFormat(PageFormat pageFormat) {
 	String routine = "PrintUtil.dumpPageFormat";
 
 	Message.printStatus(2, routine, "" + pageFormatToString(pageFormat));
-	Message.printStatus(2, routine, "  Height : " + pageFormat.getHeight());
-	Message.printStatus(2, routine, "  Width  : " + pageFormat.getWidth());
-	Message.printStatus(2, routine, "  IHeight: " + pageFormat.getImageableHeight());
-	Message.printStatus(2, routine, "  IWidth : " + pageFormat.getImageableWidth());
-	Message.printStatus(2, routine, "  IX     : " + pageFormat.getImageableX());
-	Message.printStatus(2, routine, "  IY     : " + pageFormat.getImageableY());
-	Message.printStatus(1, routine, "  Orient : " + pageFormat.getOrientation());
+	Message.printStatus(2, routine, "  Height         : " + pageFormat.getHeight());
+	Message.printStatus(2, routine, "  Width          : " + pageFormat.getWidth());
+	Message.printStatus(2, routine, "  ImageableHeight: " + pageFormat.getImageableHeight());
+	Message.printStatus(2, routine, "  ImageableWidth : " + pageFormat.getImageableWidth());
+	Message.printStatus(2, routine, "  ImageableX     : " + pageFormat.getImageableX());
+	Message.printStatus(2, routine, "  ImageableY     : " + pageFormat.getImageableY());
+	Message.printStatus(1, routine, "  Orient         : " + pageFormat.getOrientation());
 }
 
 /**
@@ -66,19 +53,33 @@ Returns the orientation in the PageFormat as a string (e.g., "Portrait").
 @return the orientation in the PageFormat as a string (e.g., "Portrait").
 */
 public static String getOrientationAsString(PageFormat pageFormat) {
-	int i = pageFormat.getOrientation();
-	if (i == LANDSCAPE) {
+	int orientation = pageFormat.getOrientation();
+	return getOrientationAsString ( orientation );
+}
+
+/**
+Returns the orientation in the PageFormat as a string (e.g., "Portrait").
+@return the orientation in the PageFormat as a string (e.g., "Portrait").
+*/
+public static String getOrientationAsString(int orientation)
+{
+	if ( orientation == PageFormat.LANDSCAPE ) {
 		return "Landscape";
 	}
-	else if (i == PORTRAIT) {
+	else if ( orientation == PageFormat.PORTRAIT ) {
 		return "Portrait";
 	}
+	else if ( orientation == PageFormat.REVERSE_LANDSCAPE ) {
+        return "ReverseLandscape";
+    }
 	else {
 		// Mac-only orientation -- unsupported
 		return "Unsupported";
 	}
 }
 
+// TODO SAM 2011-06-25 When dealing with the StateMod network, need to ensure that the Media.toString() values
+// are also checked, to have flexibility
 /**
 Returns a PageFormat object corresponding to the specified format type.
 The margins of the PageFormat object are 0 on all sides.  This is used for getting the sizes of page types.
@@ -176,6 +177,48 @@ public static PageFormat getPageFormat(String format) {
 	pageFormat.setPaper(paper);
 
 	return pageFormat;
+}
+
+/**
+Return the list of supported media for the print service.  If includeNote=false, strings are Media.toString()
+(e.g., "na-letter").  If includeNote=True, additional readable equivalents are added
+(e.g., "na-letter - North American Letter").
+@param printService the print service (printer) for which media sizes are being requested
+@param includeSize if false, only the media size name is returned, if true the size is appended after " - "
+(e.g., "na-letter - North American Letter - 8.5 x 11 in").  The size information is for information.
+THIS IS NOT YET IMPLEMENTED.
+*/
+public static List<String> getSupportedMediaSizeNames ( PrintService printService,
+    boolean includeNote, boolean includeSize )
+{
+    Media [] supportedMediaArray =
+        (Media [])printService.getSupportedAttributeValues(Media.class, null, null);
+    List<String> mediaList = new Vector();
+    // The list has page sizes (e.g., "na-letter"), trays, and named sizes (e.g., "letterhead")
+    // To find only sizes, look up the string in PaperSizeLookup and return matches
+    PaperSizeLookup psl = new PaperSizeLookup();
+    if ( supportedMediaArray != null ) {
+        for ( int i = 0; i < supportedMediaArray.length; i++ ) {
+            Media media = supportedMediaArray[i];
+            String displayName = psl.lookupDisplayName(media.toString());
+            if ( displayName != null ) {
+                // Media name matched a paper size (otherwise was tray name, etc.)
+                if ( !includeNote || (displayName == null) ) {
+                    mediaList.add ( media.toString() );
+                }
+                else {
+                    // TODO SAM 2011-06-25 if displayName is false, remove the trailing " - xxxx" size information
+                    mediaList.add(media.toString() + " - " + displayName);
+                }
+                if ( includeSize ) {
+                    // Additionally append the size information
+                    // TODO SAM 2011-06-25 Need to enable this
+                }
+            }
+        }
+        Collections.sort(mediaList);
+    }
+    return mediaList;
 }
 
 /**
@@ -309,7 +352,7 @@ throws Exception {
 			+ rightInches + ") combined are greater than the overall width of the page (" + width + ")");
 	}
 
-	if (pageFormat.getOrientation() == PORTRAIT) {
+	if (pageFormat.getOrientation() == PageFormat.PORTRAIT) {
 		paper.setImageableArea((leftInches * 72), (topInches * 72),
 			(width - (leftInches * 72) - (rightInches * 72)),
 			(height - (topInches * 72) - (bottomInches * 72)));
@@ -367,18 +410,21 @@ public static void setPageFormatOrientation(PageFormat pageFormat, int orientati
 /**
 Sets the page orientation for the PageFormat object.  This must be done before
 any call is made to setPageFormatMargins().
-@param pageFormat the pageformat for which to set the orientation.
+@param pageFormat the page format for which to set the orientation.
 @param orientation the orientation of the page (either "Portrait" or "Landscape").
 @throws Exception if an invalid orientation is passed in.
 */
 public static void setPageFormatOrientation(PageFormat pageFormat, String orientation) 
 throws Exception {
 	if (orientation.equalsIgnoreCase("Landscape")) {		
-		pageFormat.setOrientation(LANDSCAPE);
+		pageFormat.setOrientation(PageFormat.LANDSCAPE);
 	}
 	else if (orientation.equalsIgnoreCase("Portrait")) {
-		pageFormat.setOrientation(PORTRAIT);
+		pageFormat.setOrientation(PageFormat.PORTRAIT);
 	}
+    else if (orientation.equalsIgnoreCase("ReverseLandscape")) {
+        pageFormat.setOrientation(PageFormat.REVERSE_LANDSCAPE);
+    }
 	else {
 		throw new Exception ("Invalid orientation: '" + orientation + "'");
 	}
