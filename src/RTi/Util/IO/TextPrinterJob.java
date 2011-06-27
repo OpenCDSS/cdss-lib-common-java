@@ -24,6 +24,9 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.JobName;
 import javax.print.attribute.standard.Media;
+import javax.print.attribute.standard.MediaPrintableArea;
+import javax.print.attribute.standard.MediaSize;
+import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PageRanges;
 import javax.print.attribute.standard.Sides;
@@ -90,6 +93,31 @@ Page orientation.
 private String __requestedOrientation = null;
 
 /**
+Margin, left.
+*/
+private double __requestedMarginLeft = .75;
+
+/**
+Margin, right.
+*/
+private double __requestedMarginRight = .75;
+
+/**
+Margin, top.
+*/
+private double __requestedMarginTop = .75;
+
+/**
+Margin, bottom.
+*/
+private double __requestedMarginBottom = .75;
+
+/**
+Margin, units.
+*/
+private int __requestedMarginUnits = MediaPrintableArea.INCH;
+
+/**
 Requested lines per page.
 */
 private int __requestedLinesPerPage = 100;
@@ -124,30 +152,45 @@ Requested whether to print double-sided.
 */
 private boolean __requestedDoubleSided = false;
 
-// TODO SAM 2011-06-23 add parameters to allow printing to occur in batch mode
 /**
 Printing a list of strings by constructing the printer job.  Default properties are provided but
 can be changed in the printer dialog (if not in batch mode).
 @param textList list of strings to print
-@param reqPrintJobName the name of the print job (default is to use application and user names)
-@param isBatch if true, then no dialog will be shown to change default printer properties (default printer
-will be used)
+@param reqPrintJobName the name of the print job (default is to use the system default job name)
+@param reqPrinterName the name of the requested printer (e.g., \\MyComputer\MyPrinter)
+@param reqPaperSize the requested paper size (Media.toString(), MediaSizeName.toString(), e.g., "na-letter")
+@param reqPaperSource the requested paper source - not currently supported
+@param reqOrientation the requested orientation (e.g., "Portrait", "Landscape"), default is printer default
+@param reqMarginLeft the requested left margin in inches, for the orientation
+@param reqMarginRight the requested right margin in inches, for the orientation
+@param reqMarginTop the requested top margin in inches, for the orientation
+@param reqMarginBottom the requested bottom margin in inches, for the orientation
+@param reqLinesPerPage the requested lines per page - default is determined from imageable page height
+@param reqHeader header to add at top of every page
+@param reqFooter footer to add at bottom of every page
+@param reqShowLineCount whether to show the line count to the left of lines in output
+@param reqShowPageCount whether to show the page count in the footer
+@param reqPages requested page ranges, where each integer pair is a start-stop page (pages 0+)
+@param reqDoubleSided whether double-sided printing should be used - currently not supported
+@param showDialog if true, then the printer dialog will be shown to change default printer properties
 */
 public TextPrinterJob ( List<String> textList, String reqPrintJobName, String reqPrinterName,
     String reqPaperSize, String reqPaperSource, String reqOrientation, double reqMarginLeft,
     double reqMarginRight, double reqMarginTop, double reqMarginBottom, int reqLinesPerPage,
     String reqHeader, String reqFooter,
-    boolean reqShowLineCount, boolean reqShowPageCount, int [][] reqPages, boolean reqDoubleSided, boolean isBatch )
+    boolean reqShowLineCount, boolean reqShowPageCount, int [][] reqPages, boolean reqDoubleSided, boolean showDialog )
 throws PrinterException, PrintException
 {
     setTextList ( textList );
     setRequestedPrintJobName ( reqPrintJobName );
     setRequestedPrinterName ( reqPrinterName );
-    // page size
     setRequestedPaperSize ( reqPaperSize );
     // paper source
     setRequestedOrientation ( reqOrientation );
-    // margins
+    setRequestedMarginLeft ( reqMarginLeft );
+    setRequestedMarginRight ( reqMarginRight );
+    setRequestedMarginTop ( reqMarginTop );
+    setRequestedMarginBottom ( reqMarginBottom );
     setRequestedLinesPerPage ( reqLinesPerPage );
     setRequestedHeader ( reqHeader );
     setRequestedFooter ( reqFooter );
@@ -155,7 +198,7 @@ throws PrinterException, PrintException
     setRequestedShowPageCount ( reqShowPageCount );
     setRequestedPages ( reqPages );
     setRequestedDoubleSided ( reqDoubleSided );
-    setIsBatch ( isBatch );
+    setIsBatch ( showDialog );
     startPrinting ();
 }
 
@@ -304,6 +347,38 @@ Return the requested lines per page.
 private int getRequestedLinesPerPage ()
 {
     return __requestedLinesPerPage;
+}
+
+/**
+Return the requested margin, bottom.
+*/
+private double getRequestedMarginBottom ()
+{
+    return __requestedMarginBottom;
+}
+
+/**
+Return the requested margin, left.
+*/
+private double getRequestedMarginLeft ()
+{
+    return __requestedMarginLeft;
+}
+
+/**
+Return the requested margin, right.
+*/
+private double getRequestedMarginRight ()
+{
+    return __requestedMarginRight;
+}
+
+/**
+Return the requested margin, top.
+*/
+private double getRequestedMarginTop ()
+{
+    return __requestedMarginTop;
 }
 
 /**
@@ -555,6 +630,38 @@ private void setRequestedLinesPerPage ( int requestedLinesPerPage )
 }
 
 /**
+Set the requested margin, bottom.
+*/
+private void setRequestedMarginBottom ( double requestedMarginBottom )
+{
+    __requestedMarginBottom = requestedMarginBottom;
+}
+
+/**
+Set the requested margin, left.
+*/
+private void setRequestedMarginLeft ( double requestedMarginLeft )
+{
+    __requestedMarginLeft = requestedMarginLeft;
+}
+
+/**
+Set the requested margin, bottom.
+*/
+private void setRequestedMarginRight ( double requestedMarginRight )
+{
+    __requestedMarginRight = requestedMarginRight;
+}
+
+/**
+Set the requested margin, top.
+*/
+private void setRequestedMarginTop ( double requestedMarginTop )
+{
+    __requestedMarginTop = requestedMarginTop;
+}
+
+/**
 Set the requested orientation.
 */
 private void setRequestedOrientation ( String requestedOrientation )
@@ -710,8 +817,9 @@ throws PrintException, PrinterException
         }
         // Page size - Media.toString()
         String paperSize = getRequestedPaperSize();
+        PaperSizeLookup psl = null; // Can also be reused below for margins
         if ( (paperSize != null) && (paperSize.length() > 0) ) {
-            PaperSizeLookup psl = new PaperSizeLookup();
+            psl = new PaperSizeLookup();
             // Look up the media value from the string
             Media media = psl.lookupMediaFromName ( printService, paperSize );
             if ( media == null ) {
@@ -730,10 +838,50 @@ throws PrintException, PrinterException
                 printRequestAttributes.add(OrientationRequested.PORTRAIT);
             }
         }
-        // Left margin
-        // Right margin
-        // Top margin
-        // Bottom margin
+        // Margins - can't set margins because API wants context based on page size, so specify as imageable area
+        // compared to paper size
+        // From MediaPrintableArea doc:  "The rectangular printable area is defined thus: The (x,y) origin is 
+        // positioned at the top-left of the paper in portrait mode regardless of the orientation specified in
+        // the requesting context. For example a printable area for A4 paper in portrait or landscape
+        // orientation will have height > width. 
+        float marginLeft = (float)getRequestedMarginLeft();
+        float marginRight = (float)getRequestedMarginRight();
+        float marginTop = (float)getRequestedMarginTop();
+        float marginBottom = (float)getRequestedMarginBottom();
+        //Message.printStatus ( 2, routine, "Requested margins left=" + marginLeft + " right=" + marginRight +
+        //    " top="+ marginTop + " bottom=" + marginBottom );
+        if ( (marginLeft >= 0.0) && (marginRight >= 0.0) && (marginTop >= 0.0) && (marginBottom >= 0.0) &&
+            (psl != null)) { // psl being instantiated means the paper size was specified - required to set margins
+            // Check the orientation.  If landscape, the paper is rotated 90 degrees clockwise,
+            // and the user-specified margins need to be converted to the portrait representations
+            // for the following code
+            if ( (orientation != null) && (orientation.length() > 0) && orientation.equalsIgnoreCase("Landscape")) {
+                // Convert the requested margins (landscape) to portrait
+                float marginLeftOrig = marginLeft;
+                float marginRightOrig = marginRight;
+                float marginTopOrig = marginTop;
+                float marginBottomOrig = marginBottom;
+                marginLeft = marginTopOrig;
+                marginRight = marginBottomOrig;
+                marginBottom = marginLeftOrig;
+                marginTop = marginRightOrig;
+            }
+            // The media size always comes back in portrait mode
+            // TODO SAM 2011-06-26 Need to figure out portrait and landscape for the large paper sizes
+            MediaSizeName mediaSizeName = psl.lookupMediaSizeNameFromString(paperSize);
+            MediaSize mediaSize = MediaSize.getMediaSizeForName(mediaSizeName);
+            //Message.printStatus(2, routine, "paper size for \"" + paperSize + "\" is " + mediaSize );
+            float pageWidth = mediaSize.getX(MediaSize.INCH);
+            float pageHeight = mediaSize.getY(MediaSize.INCH);
+            //Message.printStatus ( 2, routine, "Media size width = " + pageWidth + " height=" + pageHeight );
+            // Imageable area is the total page minus the margins, with the origin at the top left
+            MediaPrintableArea area = new MediaPrintableArea( marginLeft, marginTop,
+                (pageWidth - marginLeft - marginRight),(pageHeight - marginTop - marginBottom),MediaSize.INCH);
+            printRequestAttributes.add(area);
+            //Message.printStatus(2,routine,"MediaPrintableArea x=" + area.getX(MediaSize.INCH) +
+            //    " y=" + area.getY(MediaSize.INCH) + " width=" + area.getWidth(MediaSize.INCH) +
+            //    " height=" + area.getHeight(MediaSize.INCH) );
+        }
         // Pages
         int [][] reqPages = getRequestedPages();
         if ( reqPages != null ) {

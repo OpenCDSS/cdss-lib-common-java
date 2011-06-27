@@ -5,6 +5,10 @@ import java.util.Map;
 
 import javax.print.PrintService;
 import javax.print.attribute.standard.Media;
+import javax.print.attribute.standard.MediaSize;
+import javax.print.attribute.standard.MediaSizeName;
+
+import RTi.Util.String.StringUtil;
 
 // TODO SAM 2011-06-24 Evaluate using a singleton, etc., but don't want a bunch of static code if it can be avoided.
 
@@ -14,12 +18,12 @@ Borrowed from:  http://www.jpedal.org/gplSrc/org/jpedal/examples/simpleviewer/pa
 */
 public class PaperSizeLookup
 {
-    
+
 /**
 Map to convert between MediaSizeName and more readable names.
 */
-Map<String,String> paperNames = new HashMap();
-    
+private Map<String,String> paperNames = new HashMap();
+
 /**
 Constructor.
 */
@@ -55,6 +59,107 @@ public Media lookupMediaFromName ( PrintService printService, String mediaName )
     }
     return null;
 }
+
+/**
+Populate the list of paper sizes corresponding to the paperNames list.
+These are protected (?why?) in the MediaSize so need to have this list.
+*/
+public MediaSizeName lookupMediaSizeNameFromString ( String mediaSizeName )
+{
+    MediaSizeName [] mediaSizeNameArray = {
+        MediaSizeName.ISO_A4,
+        MediaSizeName.NA_LETTER,
+        MediaSizeName.ISO_A0,
+        MediaSizeName.ISO_A1,
+        MediaSizeName.ISO_A2,
+        MediaSizeName.ISO_A3,
+        MediaSizeName.ISO_A5,
+        MediaSizeName.ISO_A6,
+        MediaSizeName.ISO_A7,
+        MediaSizeName.ISO_A8,
+        MediaSizeName.ISO_A9,
+        MediaSizeName.ISO_A10,
+        MediaSizeName.ISO_B0,
+        MediaSizeName.ISO_B1,
+        MediaSizeName.ISO_B2,
+        MediaSizeName.ISO_B3,
+        MediaSizeName.ISO_B4,
+        MediaSizeName.ISO_B5,
+        MediaSizeName.ISO_B6,
+        MediaSizeName.ISO_B7,
+        MediaSizeName.ISO_B8,
+        MediaSizeName.ISO_B9,
+        MediaSizeName.ISO_B10,
+        MediaSizeName.JIS_B0,
+        MediaSizeName.JIS_B1,
+        MediaSizeName.JIS_B2,
+        MediaSizeName.JIS_B3,
+        MediaSizeName.JIS_B4,
+        MediaSizeName.JIS_B5,
+        MediaSizeName.JIS_B6,
+        MediaSizeName.JIS_B7,
+        MediaSizeName.JIS_B8,
+        MediaSizeName.JIS_B9,
+        MediaSizeName.JIS_B10,
+        MediaSizeName.ISO_C0,
+        MediaSizeName.ISO_C1,
+        MediaSizeName.ISO_C2,
+        MediaSizeName.ISO_C3,
+        MediaSizeName.ISO_C4,
+        MediaSizeName.ISO_C5,
+        MediaSizeName.ISO_C6,
+        MediaSizeName.NA_LEGAL,
+        MediaSizeName.EXECUTIVE,
+        MediaSizeName.LEDGER,
+        MediaSizeName.TABLOID,
+        MediaSizeName.INVOICE,
+        MediaSizeName.FOLIO,
+        MediaSizeName.QUARTO,
+        MediaSizeName.JAPANESE_POSTCARD,
+        MediaSizeName.JAPANESE_DOUBLE_POSTCARD,
+        MediaSizeName.A,
+        MediaSizeName.B,
+        MediaSizeName.C,
+        MediaSizeName.D,
+        MediaSizeName.E,
+        MediaSizeName.ISO_DESIGNATED_LONG,
+        MediaSizeName.ITALY_ENVELOPE,
+        MediaSizeName.MONARCH_ENVELOPE,
+        MediaSizeName.PERSONAL_ENVELOPE,
+        MediaSizeName.NA_NUMBER_9_ENVELOPE,
+        MediaSizeName.NA_NUMBER_10_ENVELOPE,
+        MediaSizeName.NA_NUMBER_11_ENVELOPE,
+        MediaSizeName.NA_NUMBER_12_ENVELOPE,
+        MediaSizeName.NA_NUMBER_14_ENVELOPE,
+        MediaSizeName.NA_6X9_ENVELOPE,
+        MediaSizeName.NA_7X9_ENVELOPE,
+        MediaSizeName.NA_9X11_ENVELOPE,
+        MediaSizeName.NA_9X12_ENVELOPE,
+        MediaSizeName.NA_10X13_ENVELOPE,
+        MediaSizeName.NA_10X14_ENVELOPE,
+        MediaSizeName.NA_10X15_ENVELOPE,
+        MediaSizeName.NA_5X7,
+        MediaSizeName.NA_8X10};
+    
+    for ( int i = 0; i < mediaSizeNameArray.length; i++ ) {
+        if (mediaSizeNameArray[i].toString().equalsIgnoreCase(mediaSizeName)) {
+            return mediaSizeNameArray[i];
+        }
+    }
+    return null;
+}
+
+// FIXME SAM 2011-06-26 Need to enable this somehow
+/**
+Lookup a MediaSizeName instance from the media size name (Media.toString(), when Media is a MediaSizeName).
+@param mediaSizeName name of the media size (e.g., "na-letter").
+@return the MediaSizeName that corresponds to the name, or null if not matched.
+public MediaSizeName lookupMediaSizeNameFromName ( String mediaSizeName )
+{   // Why are the string table and EnumSyntax array protected?  How can a lookup be done?
+    //String [] stringTable = MediaSizeName.getStringTable();
+    return null;
+}
+*/
 
 /**
 Fill the name map from standardized (Media.toString() to more usable names.
@@ -143,11 +248,24 @@ private void populateDisplayNameMap() {
     // For example this would result in a display name "North American Letter - 8.5x11 in"
     // TODO SAM 2011-06-25 Need to finish this - don't have time to figure out all the lookups!
     
+    MediaSizeName mediaSizeName;
+    float pageWidth;
+    float pageHeight;
     for ( Map.Entry<String,String> entry: paperNames.entrySet() ) {
         String key = entry.getKey();
         String value = entry.getValue();
         // Determine the MediaSizeName instance for the string name
-        // Update the value with the dimension (even if already included in the name)
+        mediaSizeName = lookupMediaSizeNameFromString(key);
+        MediaSize mediaSize = MediaSize.getMediaSizeForName(mediaSizeName);
+        //Message.printStatus(2, routine, "paper size for \"" + paperSize + "\" is " + mediaSize );
+        if ( mediaSize != null ) {
+            pageWidth = mediaSize.getX(MediaSize.INCH);
+            pageHeight = mediaSize.getY(MediaSize.INCH);
+            // Update the value with the dimension (even if already included in the name)
+            value = value + " (" + StringUtil.formatString(pageWidth,"%.2f") + "x" +
+                StringUtil.formatString(pageHeight,"%.2f") + " in)";
+            paperNames.put(key, value);
+        }
     }
 }
 
