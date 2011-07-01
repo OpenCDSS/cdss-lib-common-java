@@ -10,18 +10,17 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.List;
 
-import javax.print.Doc;
-import javax.print.DocFlavor;
-import javax.print.DocPrintJob;
 import javax.print.PrintException;
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import javax.print.ServiceUI;
-import javax.print.SimpleDoc;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.Destination;
 import javax.print.attribute.standard.JobName;
 import javax.print.attribute.standard.Media;
 import javax.print.attribute.standard.MediaPrintableArea;
@@ -30,12 +29,10 @@ import javax.print.attribute.standard.MediaSizeName;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PageRanges;
 import javax.print.attribute.standard.Sides;
-import javax.swing.JDialog;
 
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
-import RTi.Util.Time.StopWatch;
 
 /**
 This class provides a way to print a list of strings, with minimal formatting.
@@ -56,9 +53,9 @@ Font used for printing, initialized on first page.
 private Font __font = null;
 
 /**
-Whether printing is occurring in batch mode.
+Whether printing should show the print dialog to adjust printer job properties.
 */
-private boolean __isBatch = false;
+private boolean __showDialog = false;
 
 /**
 The PrinterJob used for printing, initialized in startPrinting().
@@ -112,10 +109,11 @@ Margin, bottom.
 */
 private double __requestedMarginBottom = .75;
 
+// TODO SAM 2011-06-30 possible allow user to specify units
 /**
 Margin, units.
 */
-private int __requestedMarginUnits = MediaPrintableArea.INCH;
+//private int __requestedMarginUnits = MediaPrintableArea.INCH;
 
 /**
 Requested lines per page.
@@ -148,6 +146,11 @@ Requested pages to print.
 private int [][] __requestedPages = null;
 
 /**
+Requested print file to write.
+*/
+private String __requestedPrintFile = null;
+
+/**
 Requested whether to print double-sided.
 */
 private boolean __requestedDoubleSided = false;
@@ -172,14 +175,17 @@ can be changed in the printer dialog (if not in batch mode).
 @param reqShowPageCount whether to show the page count in the footer
 @param reqPages requested page ranges, where each integer pair is a start-stop page (pages 0+)
 @param reqDoubleSided whether double-sided printing should be used - currently not supported
+@param reqPrintFile name of a file to print to (for PDF, etc.), or null if not used.  If specified, a full
+path should be given.
 @param showDialog if true, then the printer dialog will be shown to change default printer properties
 */
 public TextPrinterJob ( List<String> textList, String reqPrintJobName, String reqPrinterName,
     String reqPaperSize, String reqPaperSource, String reqOrientation, double reqMarginLeft,
     double reqMarginRight, double reqMarginTop, double reqMarginBottom, int reqLinesPerPage,
     String reqHeader, String reqFooter,
-    boolean reqShowLineCount, boolean reqShowPageCount, int [][] reqPages, boolean reqDoubleSided, boolean showDialog )
-throws PrinterException, PrintException
+    boolean reqShowLineCount, boolean reqShowPageCount, int [][] reqPages, boolean reqDoubleSided,
+    String reqPrintFile, boolean showDialog )
+throws PrinterException, PrintException, URISyntaxException
 {
     setTextList ( textList );
     setRequestedPrintJobName ( reqPrintJobName );
@@ -198,7 +204,8 @@ throws PrinterException, PrintException
     setRequestedShowPageCount ( reqShowPageCount );
     setRequestedPages ( reqPages );
     setRequestedDoubleSided ( reqDoubleSided );
-    setIsBatch ( showDialog );
+    setRequestedPrintFile ( reqPrintFile );
+    setShowDialog ( showDialog );
     startPrinting ();
 }
 
@@ -258,14 +265,6 @@ Return the font.
 public Font getFont ()
 {
     return __font;
-}
-
-/**
-Return the whether printing is in batch mode.
-*/
-private boolean getIsBatch ()
-{
-    return __isBatch;
 }
 
 /**
@@ -414,6 +413,14 @@ private String getRequestedPrinterName ()
 }
 
 /**
+Return the requested print file.
+*/
+private String getRequestedPrintFile ()
+{
+    return __requestedPrintFile;
+}
+
+/**
 Return the requested print job name.
 */
 private String getRequestedPrintJobName ()
@@ -435,6 +442,14 @@ Return the requested page count.
 private boolean getRequestedShowPageCount ()
 {
     return __requestedShowPageCount;
+}
+
+/**
+Return the whether printing is in batch mode.
+*/
+private boolean getShowDialog ()
+{
+    return __showDialog;
 }
 
 /**
@@ -574,14 +589,6 @@ private void setFont ( Font font )
 }
 
 /**
-Set whether printing is occurring in batch mode.
-*/
-private void setIsBatch ( boolean isBatch )
-{
-    __isBatch = isBatch;
-}
-
-/**
 Set the printer job.
 */
 private void setPrinterJob ( PrinterJob printerJob )
@@ -694,6 +701,14 @@ private void setRequestedPrinterName ( String requestedPrinterName )
 }
 
 /**
+Set the requested print file to write.
+*/
+private void setRequestedPrintFile ( String requestedPrintFile )
+{
+    __requestedPrintFile = requestedPrintFile;
+}
+
+/**
 Set the name of the print job.
 */
 private void setRequestedPrintJobName ( String requestedPrintJobName )
@@ -718,6 +733,14 @@ private void setRequestedShowPageCount ( boolean reqShowPageCount )
 }
 
 /**
+Set whether the print dialog should be shown.
+*/
+private void setShowDialog ( boolean showDialog )
+{
+    __showDialog = showDialog;
+}
+
+/**
 Set the list of strings to print.
 */
 private void setTextList ( List<String> textList )
@@ -730,7 +753,7 @@ Start the printing by setting up the printer job and calling its print() method
 (which calls the print() method in this class.
 */
 private void startPrinting ()
-throws PrintException, PrinterException
+throws PrintException, PrinterException, URISyntaxException
 {   String routine = getClass().getName() + ".startPrinting";
     
     /*
@@ -792,12 +815,15 @@ throws PrintException, PrinterException
         PrintService printService = null;
         // Make sure that the requested printer name is matched
         String reqPrinterName = getRequestedPrinterName();
+        Message.printStatus(2,routine,"Requested printer name is \"" + reqPrinterName + "\"" );
         if ( (reqPrinterName == null) || (reqPrinterName.length() == 0) ) {
             // Specific printer was not requested so use default
             printService = defaultPrintService;
         }
         else {
+            // Find the matching printer
             for ( int i = 0; i < printServices.length; i++ ) {
+                Message.printStatus(2,routine,"Comparing requested printer name to \"" + printServices[i].getName() + "\"" );
                 if ( printServices[i].getName().equalsIgnoreCase(reqPrinterName) ) {
                     printService = printServices[i];
                     break;
@@ -887,24 +913,35 @@ throws PrintException, PrinterException
         if ( reqPages != null ) {
             printRequestAttributes.add(new PageRanges(reqPages));
         }
+        // Print file (e.g., used with PDF)
+        // TODO SAM 2011-07-01 Going through this sequence seems to generate a warning about
+        // fonts needing to be included, but there is no way to edit native printer properties to do this - ARG!!!
+        // Microsoft XPS and image files seem to work OK.
+        String reqPrintFile = getRequestedPrintFile();
+        if ( reqPrintFile != null ) {
+            File f = new File(reqPrintFile);
+            printRequestAttributes.add(new Destination(f.toURI()));
+            Message.printStatus(2, routine, "Printing to file \"" + f.toURI() + "\"" );
+        }
         // Double-sided TODO SAM 2011-06-25 This is actually more complicated with short-edge, long-edge, etc.
         boolean reqDoubleSided = getRequestedDoubleSided();
         if ( reqDoubleSided ) {
             printRequestAttributes.add(Sides.DUPLEX);
         }
-        if ( true ) {//!getIsBatch() ) {
+        if ( getShowDialog() ) {
             // User may want to modify the print job properties
             // Now let the user interactively review and edit...
+            Message.printStatus(2,routine,"Opening print dialog for printer \"" + printService.getName() + "\"" );
             printService = ServiceUI.printDialog(
                 null, // To select screen (parent frame?) - null is use default screen
                 100, // x location of dialog on screen
                 100, // y location of dialog on screen
                 printServices, // Printer services to browse
-                defaultPrintService, // default (initial) service to display
+                printService, // initial service to display
                 null, // the document flavor to print (null for all)
                 printRequestAttributes ); // Number of copies, orientation, etc. - will be updated
         }
-        if ( printService != null ) {
+        if ( printService != null ) { // If null the print job was canceled
             // Save the PrinterJob and attributes for use elsewhere in this class
             setPrinterJob ( printerJob );
             setPrintRequestAttributes ( printRequestAttributes );
