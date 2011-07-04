@@ -514,7 +514,9 @@ throws PrintException, PrinterException, URISyntaxException
     setPrinterJob ( printerJob );
     // Tell the printer job what is printing
     printerJob.setPrintable(printable);
-    printerJob.setPageable(pageable);
+    if ( pageable != null ) {
+        printerJob.setPageable(pageable);
+    }
     // Get the list of all print services available for the print job...
     PrintService [] printServices = PrinterJob.lookupPrintServices();
     if ( printServices.length > 0 ) {
@@ -635,6 +637,9 @@ throws PrintException, PrinterException, URISyntaxException
         if ( reqDoubleSided ) {
             printRequestAttributes.add(Sides.DUPLEX);
         }
+        // FIXME SAM 2011-07-01 The dialog may be slow (up to 30 seconds) as per:
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6539061
+        // Hopefully this will be fixed in an upcoming release
         if ( getShowDialog() ) {
             // User may want to modify the print job properties
             // Now let the user interactively review and edit...
