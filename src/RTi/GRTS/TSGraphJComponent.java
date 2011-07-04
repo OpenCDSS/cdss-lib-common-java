@@ -203,6 +203,7 @@ import RTi.TS.TS;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.IO.DataUnits;
+import RTi.Util.IO.GraphicsPrinterJob;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PrintUtil;
 import RTi.Util.IO.Prop;
@@ -335,8 +336,7 @@ private TSProduct _tsproduct = null;
 
 /**
 Indicate whether Y-limits should be kept when zooming.  
-If false, that means that users can change the min and max values
-in the properties JFrame.
+If false, that means that users can change the min and max values in the properties JFrame.
 */
 private boolean _zoom_keep_y_limits = false;
 
@@ -349,8 +349,7 @@ private PropList _display_props = null;
 
 /**
 Drawing areas used for the main component.  Only a few are necessary because
-most of the drawing occurs in the TSGraph objects.  List in the order of the
-layout top to bottom.
+most of the drawing occurs in the TSGraph objects.  List in the order of the layout top to bottom.
 */
 
 /**
@@ -2886,27 +2885,47 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 /**
 Print the graph.  The user is prompted to select a printer, etc..
 */
-public void printGraph() {
+public void printGraph()
+{   String routine = getClass().getName() + ".printGraph";
 	try {
-		// For all the below, additionally check the docs for PrintUtil.java.
-		
-		// create a page format object for printing to letter paper
-		PageFormat pageFormat = PrintUtil.getPageFormat("letter");
-
-		// sets the orientation for a page format
-		PrintUtil.setPageFormatOrientation(pageFormat, PageFormat.LANDSCAPE);
-		
-		// set the margins for the page format and pop up a dialog 
-		// box in which the user can change the margins
-		PrintUtil.setPageFormatMargins(pageFormat, .5, .5, .5, .5);
-
-		// print the job by popping up a dialog from which users can
-		// select the printer on which to print and other information
-		PrintUtil.print(this, pageFormat);
-	}
-	catch (Exception e) {
-		e.printStackTrace();
-	}
+	    // Keep around the old code for a bit but the new dialog is much more straightforward
+	    boolean useOldCode = false;
+	    if ( useOldCode ) {
+    		// For all the below, additionally check the docs for PrintUtil.java.
+    		
+    		// create a page format object for printing to letter paper
+    		PageFormat pageFormat = PrintUtil.getPageFormat("letter");
+    
+    		// sets the orientation for a page format
+    		PrintUtil.setPageFormatOrientation(pageFormat, PageFormat.LANDSCAPE);
+    		
+    		// set the margins for the page format and pop up a dialog 
+    		// box in which the user can change the margins
+    		PrintUtil.setPageFormatMargins(pageFormat, .5, .5, .5, .5);
+    
+    		// print the job by popping up a dialog from which users can
+    		// select the printer on which to print and other information
+    		PrintUtil.print(this, pageFormat);
+	    }
+	    else {
+            new GraphicsPrinterJob ( this,
+                "Graph",
+                null, // printer name
+                "na-letter", // paper size
+                null, // paper source
+                "Landscape", // page orientation
+                .5, // left margin
+                .5, // right
+                .5, // top
+                .5, // bottom
+                null, // print file
+                true ); // show print configuration dialog
+        }
+   	}
+    catch ( Exception e ) {
+        Message.printWarning ( 1, routine, "Error printing graph (" + e + ").");
+        Message.printWarning ( 3, routine, e );
+    }
 }
 
 /**
