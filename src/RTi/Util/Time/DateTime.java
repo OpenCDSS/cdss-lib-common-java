@@ -3797,8 +3797,8 @@ If the instance is only storing time, then the whole number part of the value wi
 @return Date/time representation as a double.
 */
 public double toDouble ( )
-{	double	dt = 0.0, d = 0;
-	double	ydays = (double)TimeUtil.numDaysInYear(__year);
+{	double dt = 0.0, d = 0;
+	double ydays = (double)TimeUtil.numDaysInYear(__year);
 
 	if ( !__time_only ) {
 		dt = (double)__year;
@@ -3823,15 +3823,15 @@ public double toDouble ( )
 	if ( __precision == PRECISION_HOUR ) {
 		return (dt + d/ydays);
 	}
-	d += ((double)(__minute))/1440.0;		// 60*24
+	d += ((double)(__minute))/1440.0; // 60*24
 	if ( __precision == PRECISION_MINUTE ) {
 		return (dt + d/ydays);
 	}
-	d += ((double)(__second))/86400.0;		// 60*60*24
+	d += ((double)(__second))/86400.0; // 60*60*24
 	if ( __precision == PRECISION_SECOND ) {
 		return (dt + d/ydays);
 	}
-	d += ((double)(__hsecond))/8640000;	// 100*60*60*24
+	d += ((double)(__hsecond))/8640000; // 100*60*60*24
 	return (dt + d/ydays);
 }
 
