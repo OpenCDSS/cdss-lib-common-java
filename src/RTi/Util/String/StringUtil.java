@@ -2082,7 +2082,7 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 Convert a string containing literal representations of characters (e.g., "\t") to
 the internal equivalent (e.g., tab character).  This should be used with care, for example
 to convert a visual delimiter string into the internal equivalent.  The string combinations
-that are recognized are: "\t".
+that are recognized are: "\t" (tab) and "\s" (space).
 @param s string to convert
 @return the converted string, or null if the input string is null
 */
@@ -2092,7 +2092,9 @@ public static String literalToInternal ( String s )
         return null;
     }
     else {
-        return s.replace("\\t", "\t");
+        s = s.replace("\\t", "\t");
+        s = s.replace("\\s", " ");
+        return s;
     }
 }
 
