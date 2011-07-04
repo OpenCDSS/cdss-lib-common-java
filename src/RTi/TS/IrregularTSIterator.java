@@ -154,7 +154,7 @@ get* methods in TSIterator to retrieve data directly.
 */
 public TSData next ( )
 {	int dl = 30;
-	TSData theData = null;	// Use this for returns.
+	TSData theData = null; // Use this for returns.
 
 	if ( (_ts == null) || (_ts.getDataSize() == 0) ) {
 		return null;
@@ -163,28 +163,25 @@ public TSData next ( )
 		return null;
 	}
 
-	// We only want to advance the date if we have not already
-	// gone past the end...
+	// Only want to advance the date if we have not already gone past the end...
 
 	if ( _firstDateProcessed ) {
 		theData = _tsdata.getNext();                         	
 	}
 	else {
-		List v = ((IrregularTS)_ts).getData();
+		List<TSData> v = ((IrregularTS)_ts).getData();
 		if ( (v == null) || (v.size() == 0) ) {
 			return null;
 		}
 		int size = v.size();
 		TSData ptr = null;
 		for ( int i = 0; i < size; i++ ) {
-			ptr = (TSData)v.get(i);
+			ptr = v.get(i);
 			if ( ptr.getDate().equals(_currentDate) ) {
 				theData = ptr;
 				break;
 			}
 		}
-		v = null;
-		ptr = null;
 		_firstDateProcessed = true;
 	}
 
