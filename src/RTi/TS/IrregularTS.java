@@ -111,7 +111,7 @@ public static DataFlavor irregularTSFlavor = new DataFlavor(RTi.TS.IrregularTS.c
 /**
 List of data points, initially null and will be initialized on first data point set.
 */
-private	List<TSData> __ts_data_head = null;
+private	List<TSData> __tsDataList = null;
 
 /**
 Previous setData() call pointer.  This is used to optimize set calls.
@@ -219,7 +219,7 @@ Calculate the number of data points between two dates.
 public int calculateDataSize (	DateTime start_date, DateTime end_date )
 {	int	datasize = 0;
 
-	if ( __ts_data_head == null ) {
+	if ( __tsDataList == null ) {
 		return 0;
 	}
 
@@ -227,9 +227,9 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 
 	DateTime date = new DateTime (DateTime.DATE_STRICT);
 	TSData ptr = null;
-	int	size = __ts_data_head.size();
+	int	size = __tsDataList.size();
 	for ( int i = 0; i < size; i++ ) {
-		ptr = __ts_data_head.get(i);
+		ptr = __tsDataList.get(i);
 		date = ptr.getDate();
 
 		if ( date.lessThan(start_date) ) {
@@ -390,7 +390,7 @@ Finalize before garbage collection.
 */
 protected void finalize()
 throws Throwable
-{	__ts_data_head = null;
+{	__tsDataList = null;
 	super.finalize();
 }
 
@@ -712,7 +712,7 @@ throws TSException
 
 		strings.add ( "" );
 		
-		if ( __ts_data_head == null ) {
+		if ( __tsDataList == null ) {
 			// No data for the time series...
 			strings.add ( "No data available." );
 			return strings;
@@ -723,11 +723,11 @@ throws TSException
 
 		// Now loop through the time series and transfer to the proper location in the matrix...
 		double data_value;
-		int nalltsdata = __ts_data_head.size();
+		int nalltsdata = __tsDataList.size();
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = __ts_data_head.get(i);
+			tsdata = __tsDataList.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end_date) ) {
 				// Past the end of where we want to go so quit...
@@ -854,7 +854,7 @@ Return the data array list.
 @return The reference to the data array.  Use caution when manipulating.
 */
 public List<TSData> getData()
-{	return __ts_data_head;
+{	return __tsDataList;
 }
 
 /**
@@ -876,7 +876,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 
 	//Check the date coming in 
 
-	if ( __ts_data_head == null ) {
+	if ( __tsDataList == null ) {
 		// No data!
 		// Leave __data_index as is.
 		data_point.setData( _missing );
@@ -919,11 +919,11 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	double date1_double = _date1.toDouble();
 	double date2_double = _date2.toDouble();
 
-	int size = __ts_data_head.size();
+	int size = __tsDataList.size();
 	int found_index = -1;
 	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
 		for ( i=0; i < size; i++ ) {
-			ptr = __ts_data_head.get(i); 
+			ptr = __tsDataList.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -932,7 +932,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	}
 	else {
 	    for ( i=(size-1); i >= 0; i-- ) {
-			ptr = __ts_data_head.get(i); 
+			ptr = __tsDataList.get(i); 
 			if( ptr.getDate().equals( date ) ) {
 				found_index = i;
 				break;
@@ -991,7 +991,7 @@ public double getDataValue( DateTime date )
 
 	//Check the date coming in 
 
-	if ( __ts_data_head == null ) {
+	if ( __tsDataList == null ) {
 		// No data!  Leave __data_index as is.
 		return _missing;
 	}
@@ -1030,10 +1030,10 @@ public double getDataValue( DateTime date )
 	double date1_double = _date1.toDouble();
 	double date2_double = _date2.toDouble();
 
-	int size = __ts_data_head.size();
+	int size = __tsDataList.size();
 	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
 		for ( i=0; i < size; i++ ) {
-			ptr = __ts_data_head.get(i); 
+			ptr = __tsDataList.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1042,7 +1042,7 @@ public double getDataValue( DateTime date )
 	}
 	else {
 	    for ( i=(size-1); i >= 0; i-- ){
-			ptr = __ts_data_head.get(i); 
+			ptr = __tsDataList.get(i); 
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1077,11 +1077,11 @@ if data are available, or the base class method, if data are not available
 (e.g., in cases when the time series header is defined without data).
 */
 public DateTime getDate1()
-{	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
+{	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
 		return super.getDate1();
 	}
 	else {
-	    return __ts_data_head.get(0).getDate();
+	    return __tsDataList.get(0).getDate();
 	}
 }
 
@@ -1091,11 +1091,11 @@ if data are available, or the base class method, if data are not available
 (e.g., in cases when the time series header is defined without data).
 */
 public DateTime getDate2()
-{	if ( (__ts_data_head == null) || (__ts_data_head.size() == 0) ) {
+{	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
 		return super.getDate2();
 	}
 	else {
-	    return __ts_data_head.get(__ts_data_head.size() - 1).getDate();
+	    return __tsDataList.get(__tsDataList.size() - 1).getDate();
 	}
 }
 
@@ -1110,11 +1110,11 @@ public TSData getNextElement()
 {	// Do not define routine here to increase performance.
 	TSData tsdata=null;
 
-	if ( __ts_data_head == null ) {
+	if ( __tsDataList == null ) {
 		return null;
 	}
 
-	int	size = __ts_data_head.size();
+	int	size = __tsDataList.size();
 
 	// We are going to get the element after "__data_index" so do the
 	// appropriate checks.  First make sure that we will not exceed the
@@ -1130,7 +1130,7 @@ public TSData getNextElement()
 
 	// Now return the next data value as a copy...
 
-	tsdata = __ts_data_head.get( __data_index + 1 );
+	tsdata = __tsDataList.get( __data_index + 1 );
 
 	return (TSData)tsdata.clone();
 }
@@ -1190,7 +1190,7 @@ hasData() to check to see if the data space has been assigned.
 Note that true will be returned even if all the data values are set to the missing data value.
 */
 public boolean hasData ()
-{	if ( (__ts_data_head != null) && (__ts_data_head.size() > 0) ) {
+{	if ( (__tsDataList != null) && (__tsDataList.size() > 0) ) {
 		return true;
 	}
 	else {
@@ -1206,7 +1206,7 @@ private void init(  )
 	_data_interval_mult = 1;
 	_data_interval_base_original = TimeInterval.IRREGULAR;
 	_data_interval_mult_original = 1;
-	__ts_data_head = null;
+	__tsDataList = null;
 	__data_index = -1;
 }
 
@@ -1304,7 +1304,7 @@ public boolean removeDataPoint ( DateTime date )
     }
     else if ( size == 1 ) {
         // Remove the head
-        __ts_data_head = null;
+        __tsDataList = null;
         __prevSetDataPointer = null;
         setDataSize(0);
         _dirty  = true;
@@ -1327,7 +1327,7 @@ public boolean removeDataPoint ( DateTime date )
     if ( !pointFound ) {
         // Do a more exhaustive loop.
         // FIXME SAM 2010-08-17 Need to optimize search for the date, relinking list, etc.
-        for ( TSData ptr2 : __ts_data_head ) {
+        for ( TSData ptr2 : __tsDataList ) {
         
             //if ( Message.isDebugOn ) {
             //  Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
@@ -1353,7 +1353,7 @@ public boolean removeDataPoint ( DateTime date )
         if ( ptrNext != null ) {
             ptrNext.setPrevious(ptrPrev);
         }
-        __ts_data_head.remove(ptr);
+        __tsDataList.remove(ptr);
         // Mark dirty so that we recompute the data limits...
         _dirty  = true;
         // Decrement the data size...
@@ -1391,25 +1391,27 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	TSData ptr=null, tsdata=null;
 	DateTime dateLocal = new DateTime(date);
 
-	if ( __ts_data_head == null ) {
+	if ( __tsDataList == null ) {
 		// Need to set the head of the list.
 
 		tsdata = new TSData();
 		
 		tsdata.setValues( dateLocal, value, _data_units, data_flag, duration );
 
-		__ts_data_head = new Vector();
+		__tsDataList = new Vector();
 
-		__ts_data_head.add( tsdata );
+		__tsDataList.add( tsdata );
 
 		_date1 = new DateTime( tsdata.getDate() );
 		_date2 = new DateTime( tsdata.getDate() );
 	
+		//Message.printStatus( 2, "IrregularTS.setDataValue", "Initialized the linked list with: \"" + tsdata + "\"." );
 		if ( Message.isDebugOn ) {
-			Message.printDebug( 30, "IrregularTS.setDataValue", "Initiated the linked list with: \"" + tsdata + "\"." );
+			Message.printDebug( 30, "IrregularTS.setDataValue", "Initialized the linked list with: \"" + tsdata + "\"." );
 		}
 
 		setDataSize ( 1 );
+		__prevSetDataPointer = tsdata;
 		return;
 	}
 	
@@ -1421,6 +1423,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	    if ( ptr != null ) {
     	    if ( ptr.getDate().equals(date) ) {
     	        // Have found the point
+    	        //Message.printStatus(2,"","Setting data value next to the previous value at " + dateLocal );
     	        ptr.setData ( value );
                 ptr.setDataFlag ( data_flag );
                 ptr.setDuration ( duration );
@@ -1433,28 +1436,42 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	} // the previous pointer is set below for other cases
 
     // Determine if the date is closer to the tail of the list, or the head, using a simple bisection approach.
+	// It is possible (likely?) that the first and last dates have been set but the check needs to use the first and
+	// last dates in the data
 
     double date_double = dateLocal.toDouble();
-    double date1_double = _date1.toDouble();
-    double date2_double = _date2.toDouble();
+    double date1_double = 0.0;
+    double date2_double = 0.0;
+    if ( (__tsDataList != null) && (__tsDataList.size() > 0) ) {
+        date1_double = __tsDataList.get(0).getDate().toDouble();
+        date2_double = __tsDataList.get(__tsDataList.size() - 1).getDate().toDouble();
+    }
+    //Message.printStatus(2, "", "date_double=" + date_double + ", date1Double=" + date1_double +
+    //    ", date2Double=" + date2_double );
 
 	found = false;
 	int insert_position = -1;
-	int size = __ts_data_head.size();
+	int size = __tsDataList.size();
 	if ( size == 0 ) {
 		// Need to insert at position 0...
+	    //Message.printStatus(2,"","Size = 0, Setting 1st data value at the head of the list for " + dateLocal );
 		insert_position = 0;
 	}
 	else if ( date_double < date1_double ) {
 		// Need to insert at the front...
+	    //Message.printStatus(2,"","" + date_double + " < " + date1_double +
+	    //    ", Setting data value at the start of the list for " + dateLocal );
 		insert_position = 0;
 	}
 	else if ( date_double > date2_double ) {
 		// Need to insert at the end...
+	    //Message.printStatus(2,"","" + date_double + " > " + date2_double +
+	    //    ", setting data value at the end of the list for " + dateLocal );
 		insert_position = size;
 	}
 	// Else we need to insert somewhere in the list...
 	else if(Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
+	    //Message.printStatus(2,"","Closer to front of list for " + dateLocal );
 		// Try to find the position starting from the front of the list...
 	
 		//if ( Message.isDebugOn ) {
@@ -1462,7 +1479,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		//}
 	
 		for( i=0; i< size; i++ ){
-			ptr = __ts_data_head.get(i); 
+			ptr = __tsDataList.get(i); 
 			
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
@@ -1477,7 +1494,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 				// Set the dirty flag so that we know to recompute the limits if desired...
 
 				_dirty = true;
-				found  = true;
+				found = true;
 
 				ptr.setData ( value );
 				ptr.setDataFlag ( data_flag );
@@ -1494,12 +1511,13 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		}
 	}
 	else {
+	    //Message.printStatus(2,"","Closer to the end of the list for " + dateLocal );
 	    //if ( Message.isDebugOn ) {
 		//	Message.printDebug( 20, "IrregularTS.setDataValue", "Searching vector from end for " + dateLocal );
 		//}
 
 		for ( i=(size-1); i >= 0; i-- ){
-			ptr = __ts_data_head.get(i);
+			ptr = __tsDataList.get(i);
 
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
@@ -1514,7 +1532,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 				// Set the dirty flag so that we know to recompute the limits if desired...
 
 				_dirty = true;
-				found  = true;
+				found = true; // Indicates below that existing data point was found
 
 				ptr.setData( value );
 				ptr.setDataFlag( data_flag );
@@ -1551,23 +1569,27 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	// If have determined the insert position from above, then do it!...
 
 	if ( insert_position >= 0 ) {
-		__ts_data_head.add ( insert_position, tsdata );
+	    // Add the data in the given position.
+		__tsDataList.add ( insert_position, tsdata );
 		// Set the next/previous pointers (note this is done after the insert so compute positions accordingly...
 		if ( insert_position == 0 ) {
-			ptr = __ts_data_head.get(1);
-			tsdata.setNext ( ptr );
+		    // Added at beginning
+			ptr = __tsDataList.get(1);
+			tsdata.setNext ( ptr ); // Previous will be the default of null
 			ptr.setPrevious ( tsdata );
 		}
-		else if ( insert_position == (__ts_data_head.size() - 1) ) {
-			ptr = __ts_data_head.get(insert_position - 1);
-			tsdata.setPrevious ( ptr );
+		else if ( insert_position == (__tsDataList.size() - 1) ) {
+		    // Added at end
+			ptr = __tsDataList.get(insert_position - 1);
+			tsdata.setPrevious ( ptr ); // Next will be the default of null
 			ptr.setNext ( tsdata );
 		}
 		else {
-		    ptr = __ts_data_head.get(insert_position-1);
+		    // Added somewhere in the middle
+		    ptr = __tsDataList.get(insert_position-1);
 			tsdata.setPrevious ( ptr );
 			ptr.setNext ( tsdata );
-			ptr = __ts_data_head.get(insert_position + 1);
+			ptr = __tsDataList.get(insert_position + 1);
 			tsdata.setNext ( ptr );
 			ptr.setPrevious ( tsdata );
 		}
@@ -1578,10 +1600,6 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		//	"Inserted data value at: " + dateLocal + " value: " + tsdata + "." );
 		//}
 	
-		//
-		// Why the hell was this line here?
-		// _date2 	= tsdata.getDate();
-	
 		// Reset the limits of the data...
 		if ( dateLocal.lessThan(_date1) ) {
 			_date1 = new DateTime( dateLocal );
@@ -1590,16 +1608,16 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 			_date2 = new DateTime( dateLocal );
 		}
 
-		// Mark dirty so that we recompute the data limits...
-		_dirty	= true;
+		// Mark dirty so that the data limits will be recomputed...
+		_dirty = true;
 
 		// Increment the data size...
 		setDataSize ( getDataSize() + 1 );
 		return;
 	}
 
-	// If we get to here, we must have a logic problem!
-	Message.printWarning ( 1, "IrregularTS.setDataValue", "Logic problem in routine.  Need to fix!" );
+	// If we here, must have a logic problem!
+	Message.printWarning ( 3, "IrregularTS.setDataValue", "Logic problem in routine.  Need to fix!" );
 }
 
 }
