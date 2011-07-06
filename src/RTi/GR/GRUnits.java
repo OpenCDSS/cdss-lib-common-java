@@ -112,14 +112,14 @@ public static double convert ( double x, int from, int to )
 	String routine = "GRUnits.convert";
 
 	if ( (from < UNIT_MIN) || (from > UNIT_MAX) ) {
-		Message.printWarning ( 2, routine,
+		Message.printWarning ( 3, routine,
 		"\"from\" unit " + from + " is outside acceptable range (" +
 		UNIT_MIN + "=" +_GRUnits_conversion_data[UNIT_MIN].abbreviation + ", " +
 		UNIT_MAX + "=" +_GRUnits_conversion_data[UNIT_MAX].abbreviation+ ")" );
 		return x;
 	}
 	if ( (to < UNIT_MIN) || (to > UNIT_MAX) ) {
-		Message.printWarning ( 2, routine,
+		Message.printWarning ( 3, routine,
 		"\"to\" unit " + to + " is outside acceptable range (" +
 		UNIT_MIN + "=" +_GRUnits_conversion_data[UNIT_MIN].abbreviation+ ", " +
 		UNIT_MAX + "=" +_GRUnits_conversion_data[UNIT_MAX].abbreviation+ ")" );

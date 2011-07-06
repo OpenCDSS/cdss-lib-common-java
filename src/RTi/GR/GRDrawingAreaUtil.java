@@ -109,14 +109,12 @@ public static void comment ( GRDrawingArea da, String comment_string )
 }
 
 /**
-Draws the annotation described in the proplist.  Currently only supported for
-GRJComponentDrawingAreas.
+Draws the annotation described in the proplist.  Currently only supported for GRJComponentDrawingAreas.
 @param da the drawing area on which to draw the annotation.
 @param p the PropList describing the annotation.
 */
 public static void drawAnnotation(GRDrawingArea da, PropList p) {
-	// REVISIT (JTS - 2006-05-23)
-	// I would change this instead to be something like the following:
+	// TODO (JTS - 2006-05-23) I would change this instead to be something like the following:
 	// GRDrawingArea would have an abstract method:
 	//	public boolean canDrawAnnotations();
 	// that returns true for GRJComponentDrawingAreas but is extended
@@ -317,12 +315,12 @@ public static void drawPolyline ( GRDrawingArea da, int npts, double x[], double
 	}
 	xs = new double[npts];
 	if ( xs == null ) {
-		Message.printWarning ( 2, "drawPolyline", "Unable to malloc " + npts + " x-coordinates" );
+		Message.printWarning ( 3, "drawPolyline", "Unable to malloc " + npts + " x-coordinates" );
 		return;
 	}
 	ys = new double[npts];
 	if ( ys == null ) {
-		Message.printWarning ( 2, "drawPolyline", "Unable to malloc " + npts + " y-coordinates" );
+		Message.printWarning ( 3, "drawPolyline", "Unable to malloc " + npts + " y-coordinates" );
 		return;
 	}
 	for ( i = 0; i < npts; i++ ) {
