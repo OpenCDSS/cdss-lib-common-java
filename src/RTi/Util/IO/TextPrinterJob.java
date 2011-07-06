@@ -1,5 +1,6 @@
 package RTi.Util.IO;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -302,6 +303,7 @@ public int print ( Graphics g, PageFormat pageFormat, int pageIndex )
     }
 
     g2d.setFont (font);
+    g2d.setColor(Color.black);
     FontMetrics fm = g2d.getFontMetrics(font);
     //int fontHeight = fm.getHeight();
     int fontDescent = fm.getDescent();
