@@ -222,6 +222,49 @@ public static List<String> getSupportedMediaSizeNames ( PrintService printServic
 }
 
 /**
+Lookup the standard media size (e.g., "na-letter" for letter) from the legacy PrintUtil sizes.
+@param paperSize the paper size in common notation traditionally used by some graphics code (e.g., "letter").
+@return the internal MediaSizeName name for the media (e.g., "na-letter"), which is used by the newer
+GraphicsPrintJob code.
+*/
+public static String lookupStandardMediaSize ( String paperSize )
+{
+	if ( paperSize.equalsIgnoreCase("letter") ) {
+		return "na-letter";
+	}
+	else if ( paperSize.equalsIgnoreCase("legal") ) {
+		return "na-legal";
+	}
+	else if ( paperSize.equalsIgnoreCase("11x17") || paperSize.equalsIgnoreCase("B") ) {
+		return "B";
+	}	
+	else if ( paperSize.equalsIgnoreCase("A3") ) {
+		return "iso-a3";
+	}
+	else if ( paperSize.equalsIgnoreCase("A4") ) {
+		return "iso-a4";
+	}
+	else if ( paperSize.equalsIgnoreCase("A5") ) {
+		return "iso-a5";
+	}
+	else if ( paperSize.equalsIgnoreCase("C") ) {
+		return "C";
+	}
+	else if ( paperSize.equalsIgnoreCase("D") ) {
+		return "D";
+	}
+	else if ( paperSize.equalsIgnoreCase("E") ) {
+		return "E";
+	}
+	else if ( paperSize.equalsIgnoreCase("executive") ) {
+		return "executive";
+	}
+	else {
+		return null;
+	}
+}
+
+/**
 Returns a string representation of the specified pageFormat (e.g., "A3").
 @param pageFormat the pageFormat to return a String representation of.
 @return a String representation of the specified page format (e.g., "A3").
