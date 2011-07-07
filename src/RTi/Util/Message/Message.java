@@ -135,18 +135,12 @@ public abstract class Message
 The following are used when setting message output locations.  Output to the
 terminal (UNIX or DOS shell).  This prints to System.out.
 */
-public final static int TERM_OUTPUT 		= 0;
+public final static int TERM_OUTPUT = 0;
 
 /**
 Output to the log file.
 */
 public final static int LOG_OUTPUT = 1;
-
-/**
-Output to the GUI.
-@deprecated Use STATUS_HISTORY_OUTPUT.
-*/
-public final static int GUI_OUTPUT = 2;
 
 /**
 Output messages to the DiagnosticsJFrame as a scrolling history.
@@ -192,7 +186,7 @@ if ( Message.isDebugOn ) {
 The default to no debugging being done.  Set to true in command-line parsing
 code if setDebug is called.
 */
-public static boolean 	isDebugOn = false;
+public static boolean isDebugOn = false;
 
 /**
 The following are flags for printing messages, set by various methods in this
@@ -329,7 +323,6 @@ public static int getWarningLevel ( int i )
     return impl.getWarningLevel(i);
 }
 
-
 /**
 Open the log file.
 Because no log file is specified, the name of the log file will default to
@@ -424,10 +417,14 @@ when you are printing a warning of level 1 and want to specify which window
 that WarningDialog should be associated with, without changing the top
 level window that should be typically used.
 */
-public static void printWarning ( int level, String routine, String message,
-	JFrame top_level )
-{	
-    impl.printWarning(level,routine,message,top_level);
+public static void printWarning ( int level, String routine, String message, JFrame top_level )
+{
+	if ( top_level == null ) {
+		impl.printWarning(level,routine,message);
+	}
+	else {
+		impl.printWarning(level,routine,message,top_level);
+	}
 }
 
 /**
@@ -576,7 +573,7 @@ public static void setPrefix ( String prefix )
 }
 
 /**
-Set a property used to control message behavior.  These properies are currently
+Set a property used to control message behavior.  These properties currently are
 used mainly to control the warning dialog behavior.
 The properties should be set by high-level code
 to control how the application behaves.  For example, if there is potential for
@@ -652,8 +649,7 @@ via the dialog that no more warnings should be shown (see the
 
 <tr>
 <td>WarningDialogViewLogButton</td>
-<td>Indicate with true or false whether a button should be enabled to view the
-log file.
+<td>Indicate with true or false whether a button should be enabled to view the log file.
 </td>
 <td>false</td>
 </tr>
