@@ -84,8 +84,7 @@ public GRCanvasDrawingArea ()
 	String routine = "GRCanvasDrawingArea()";
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using no arguments" );
+		Message.printDebug ( 10, routine, "Constructing using no arguments" );
 	}
 	Message.printWarning ( 2, routine, "Should not use void constructor" );
 	initialize ( null );
@@ -122,8 +121,7 @@ Constructor.  Creates a drawing area with default settings.
 @param props proplist of settings (UNUSED)
 */
 public GRCanvasDrawingArea (GRCanvasDevice dev, PropList props) {
-	// REVISIT (JTS - 2003-05-08)
-	// called by GRDeviceUtil.getNewDrawingArea()
+	// TODO JTS - 2003-05-08 called by GRDeviceUtil.getNewDrawingArea()
 }
 
 /**

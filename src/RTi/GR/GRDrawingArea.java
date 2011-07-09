@@ -306,7 +306,7 @@ assumed to be percentages of the device (0.0 to 1.0) and the units are not used.
 @param data_limits Data limits associated with the lower-left and upper-right corners of the drawing area.
 @see GRAspect
 */
-public GRDrawingArea (	GRDevice dev, String name, int aspect,
+public GRDrawingArea ( GRDevice dev, String name, int aspect,
 	GRLimits draw_limits, int units, int flag, GRLimits data_limits )
 {	String routine = "GRDrawingArea(...)";
 
