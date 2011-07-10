@@ -86,7 +86,7 @@ JComboBoxResponseJDialog constructor
 process different types of yes responses from the calling form.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-List choices, int mode) {	
+List<String> choices, int mode) {	
 	this(parent, title, label, choices, mode, false);
 }
 
@@ -101,7 +101,7 @@ process different types of yes reponses from the calling form.
 @param editable whether the combo box is editable or not.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-List choices, int mode, boolean editable) {	
+List<String> choices, int mode, boolean editable) {	
 	this(parent, title, label, choices, mode, editable, -1);
 }
 
@@ -119,7 +119,7 @@ when the user clicks the combo box to select something.  If less than or
 equal to 0, will not be considered and the default will be used.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-List choices, int mode, boolean editable, int numRowsVisible) {	
+List<String> choices, int mode, boolean editable, int numRowsVisible) {	
 	super(parent, true);
 	__editable = editable;
 	initialize(parent, title, label, choices, mode, numRowsVisible);
@@ -164,7 +164,7 @@ when the user clicks the combo box to select something.  If less than or
 equal to 0, will not be considered and the default will be used.
 */
 private void initialize(JFrame parent, String title, String label, 
-List choices, int mode, int numRowsVisible) {
+List<String> choices, int mode, int numRowsVisible) {
 	__mode = mode;
 
 	addWindowListener(this);
@@ -175,7 +175,7 @@ List choices, int mode, int numRowsVisible) {
 	// Split the text based on the new-line delimiter(we use \n, not the
 	// platform's separator!
 
-	List vec = StringUtil.breakStringList(label, "\n", 0);
+	List<String> vec = StringUtil.breakStringList(label, "\n", 0);
 
 	if (vec != null) {
 		// Add each string...
