@@ -699,7 +699,7 @@ throws IOException
 
 	// Defaults...
 
-	int image_quality = 90;		// Go for quality versus compression.
+	int image_quality = 90; // Go for quality versus compression.
 
 	// Make sure there is a property list...
 
@@ -722,7 +722,8 @@ throws IOException
 		newfilename = filename;
 		jpeg = false;
 	}
-	else {	// Add a standard extension...
+	else {
+		// Add a standard extension...
 		newfilename = filename + ".jpg";
 	}
 
@@ -742,6 +743,8 @@ throws IOException
 		}
 	}
 	else {
+		// TODO SAM 2011-07-09 why not use ImageIO for all image types so we can do away with
+		// the custom JPEG encoder?
 		try {
 			File file = new File(newfilename);
 			ImageIO.write(_buffer, "png", file);
