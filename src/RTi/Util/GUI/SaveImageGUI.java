@@ -44,13 +44,11 @@ program is running for all the file formats that the current Java VM natively
 supports writing, and then displays a file chooser with all the supported 
 file extensions.  The user chooses a file name and file extension of the file
 to save, and depending on what they select (for instance, for JPEGs) a 
-file quality dialog may be displayed.  At the end, the image is written to the
-file.<p>
+file quality dialog may be displayed.  At the end, the image is written to the file.<p>
 <b>Using this class:</b><p>
 Using this class is simple.  Declare an instance of this class with the 
 image to be saved and it takes care of the rest.  At the end, retrieve the
-return status (to see why execution did not complete or what the status was)
-if necessary.<p>
+return status (to see why execution did not complete or what the status was) if necessary.<p>
 <blockquote>
 <tt>
 BufferedImage image = ...<br>
@@ -96,8 +94,7 @@ public SaveImageGUI(BufferedImage image) {
 Constructor.
 @param image the BufferedImage to save to a file.  Must not be null.
 @param parent the parent JFrame on which this class's GUIs will be displayed,
-and which will be used for setting the mouse cursor hourglass.  Must not be 
-null.
+and which will be used for setting the mouse cursor hourglass.  Must not be null.
 */
 public SaveImageGUI(BufferedImage image, JFrame parent) {
 	this(image, parent, null);
@@ -107,8 +104,7 @@ public SaveImageGUI(BufferedImage image, JFrame parent) {
 Constructor.
 @param image the BufferedImage to save to a file.  Must not be null.
 @param parent the parent JFrame on which this class's GUIs will be displayed, 
-and which will be used for setting the mouse cursor hourglass.  Must not be
-null.
+and which will be used for setting the mouse cursor hourglass.  Must not be null.
 @param title the title to use for the file chooser dialog.  If null, the
 title will default to "Select Image to Save".
 */
@@ -121,8 +117,7 @@ public SaveImageGUI(BufferedImage image, JFrame parent, String title) {
 
 /**
 Takes a String array of the image types that can be saved with the current 
-JVM and returns a Vector of SimpleFileFilters, suitable for use in a 
-JFileChooser.
+JVM and returns a Vector of SimpleFileFilters, suitable for use in a  JFileChooser.
 @param imageTypes a String array of the image types that the JVM supports
 saving of.  Must not be null.
 @return a Vector of SimpleFileFilters.  Mostly, the file filters are made
@@ -131,9 +126,9 @@ JPEG images, however, if there are any "jpg" or "jpeg" elements in the array,
 they are both places in the same SimpleFileFilter.  The returned Vector will
 never be null, but it may be empty.
 */
-private List createFileFilters(String[] imageTypes) {
-	List v = new Vector();
-	List jpeg = new Vector();
+private List<SimpleFileFilter> createFileFilters(String[] imageTypes) {
+	List<SimpleFileFilter> v = new Vector();
+	List<String> jpeg = new Vector();
 	String s = null;
 	SimpleFileFilter sff = null;
 	
@@ -141,22 +136,18 @@ private List createFileFilters(String[] imageTypes) {
 		s = imageTypes[i];
 
 		if (s.equalsIgnoreCase("png")) {
-			sff = new SimpleFileFilter("png",
-				"Portable Network Graphics files");
+			sff = new SimpleFileFilter("png", "Portable Network Graphics files");
 			v.add(sff);
 		}
-		else if (s.equalsIgnoreCase("jpg") 
-			|| s.equalsIgnoreCase("jpeg")) {
+		else if (s.equalsIgnoreCase("jpg") || s.equalsIgnoreCase("jpeg")) {
 			jpeg.add(s);
 		}
 		else if (s.equalsIgnoreCase("gif")) {
-			sff = new SimpleFileFilter("gif",
-				"Graphics Interchange Format files");
+			sff = new SimpleFileFilter("gif", "Graphics Interchange Format files");
 			v.add(sff);
 		}
 		else {
-			sff = new SimpleFileFilter(s,
-				s + " files");
+			sff = new SimpleFileFilter(s, s + " files");
 			v.add(sff);
 		}
 	}
@@ -179,11 +170,10 @@ to "Select Image to Save".
 private void displayFileChooser(String title) {
 	JGUIUtil.setWaitCursor(__parent, true);
 
-	// the file chooser initially set to the directory as specified
+	// The file chooser initially set to the directory as specified
 	// in JGUIUtil.setLastFileDialogDirectory.  If no directory has
 	// been set, the dialog will open in the default directory. On 
-	// Windows, this will probably be the user's "My Documents" 
-	// directory.
+	// Windows, this will probably be the user's "My Documents" directory.
 	String directory = JGUIUtil.getLastFileDialogDirectory();
 
 	JFileChooser fc = null;
@@ -194,14 +184,14 @@ private void displayFileChooser(String title) {
 		fc = new JFileChooser();
 	}
 	
-	// create the list of possible filters.  It is conceivable, though
+	// Create the list of possible filters.  It is conceivable, though
 	// HIGHLY unlikely, that there will be no writable file types, in 
 	// which case the user will get a mostly unusable file chooser.
 	String[] imageTypes = getListOfWritableImageTypes();
-	List filters = createFileFilters(imageTypes);
+	List<SimpleFileFilter> filters = createFileFilters(imageTypes);
 	
-	for (int i = 0; i < filters.size(); i++) {
-		fc.addChoosableFileFilter((SimpleFileFilter)filters.get(i));
+	for ( SimpleFileFilter filter: filters) {
+		fc.addChoosableFileFilter(filter);
 	}
 
 	// do not let the user choose a file type of "*.* All Files"
@@ -223,8 +213,7 @@ private void displayFileChooser(String title) {
 	JGUIUtil.setWaitCursor(__parent, false);
 	int retVal = fc.showSaveDialog(__parent);
 	if (retVal != JFileChooser.APPROVE_OPTION) {
-		setReturnStatus("(ERROR) User clicked 'cancel' in the "
-			+ "file chooser dialog.");
+		setReturnStatus("(ERROR) User clicked 'cancel' in the file chooser dialog.");
 		return;
 	}
 
@@ -274,8 +263,7 @@ Creates a dialog that asks the user if they wish to overwrite the existing
 file.  If they choose to overwrite the file, the method returns <tt>true</tt>,
 otherwise it will return <tt>false</tt>.
 @param file the file to check if the user wants to overwrite.  Must not be null.
-@return true if the user choose to overwrite the file, false if they choose not
-to.
+@return true if the user choose to overwrite the file, false if they choose not to.
 */
 private boolean overwriteExistingFile(File file) {
 	String label = null;
@@ -284,13 +272,12 @@ private boolean overwriteExistingFile(File file) {
 		name = file.getCanonicalPath();
 	}
 	catch (Exception e) {}
-	// we can ignore the exception above ... the file obviously has a name
+	// Ignore the exception above ... the file obviously has a name
 	// and a path (otherwise the File object could not be made), but for
 	// some reason getCanonicalPath throws an exception.
 	
 	if (name != null) {
-		label = "The file:\n   " + name + "\nalready exists.  "
-			+ "Overwrite?";
+		label = "The file:\n   " + name + "\nalready exists.  Overwrite?";
 	}
 	else {
 		label = "The selected file already exists.  Overwrite?";
@@ -306,18 +293,15 @@ private boolean overwriteExistingFile(File file) {
 }
 
 /**
-This routine determines the kind of file that needs to be saved and 
-does so accordingly.
+This routine determines the kind of file that needs to be saved and does so accordingly.
 @param file the File to be saved.  If the file already exists, the user
 will be prompted for whether they want to overwrite it or not.  If they choose
 'yes', the file will first be deleted before being written.  If they choose
-'no', the saving will end and control will return to the calling program. 
-Must not be null.
-@param filter the filter that was selected from the JFileChooser.  Must not be
-null.
+'no', the saving will end and control will return to the calling program.  Must not be null.
+@param filter the filter that was selected from the JFileChooser.  Must not be null.
 */
 private void saveImage(File file, SimpleFileFilter filter) {
-	List filters = filter.getFilters();
+	List<String> filters = filter.getFilters();
 
 	if (filters.size() == 0) {
 		setReturnStatus("(ERROR) There was no selected file extension.");
@@ -331,22 +315,21 @@ private void saveImage(File file, SimpleFileFilter filter) {
 		name = file.getCanonicalPath();
 	}
 	catch (Exception ex) {}
-	// we can ignore the exception above ... the file obviously has a name
+	// Ignore the exception above ... the file obviously has a name
 	// and a path (otherwise the File object could not be made), but for
 	// some reason getCanonicalPath throws an exception.	
 
 	if (s.equalsIgnoreCase("jpg") || s.equalsIgnoreCase("jpeg")) {
 		if (name != null) {
 			if (!(StringUtil.endsWithIgnoreCase(name, "jpg") ||
-			     StringUtil.endsWithIgnoreCase(name, "jpeg"))) {
-			     	name = name + ".jpg";
+			    StringUtil.endsWithIgnoreCase(name, "jpeg"))) {
+			    name = name + ".jpg";
 				file = new File(name);
 			}
 		}
 		if (file.exists()) {
 			if (!overwriteExistingFile(file)) {
-				setReturnStatus("(SUCCESS) User chose not to "
-					+ "overwrite existing file.");
+				setReturnStatus("(SUCCESS) User chose not to overwrite existing file.");
 				return;
 			}
 			file.delete();
@@ -362,8 +345,7 @@ private void saveImage(File file, SimpleFileFilter filter) {
 		}
 		if (file.exists()) {
 			if (!overwriteExistingFile(file)) {
-				setReturnStatus("(SUCCESS) User chose not to "
-					+ "overwrite existing file.");
+				setReturnStatus("(SUCCESS) User chose not to overwrite existing file.");
 				return;
 			}
 			file.delete();
@@ -396,8 +378,7 @@ private void setReturnStatus(String status) {
 String array and then removing all the ones that have duplicates.  
 @param strings the String array to 'unique-ify'.  Must not be null.
 @return a new String array where all elements are lower-case and there are no
-duplicate elements.  The returned array will never be null, but it may be 
-empty.
+duplicate elements.  The returned array will never be null, but it may be empty.
 */
 private String[] uniquify(String[] strings) {
 	Set set = new HashSet();
@@ -418,16 +399,14 @@ private void writeJPEG(File file) {
 	JGUIUtil.setWaitCursor(__parent, true);
 	// pop up the ImageQualityJDialog to find out what kind of quality
 	// the user wants for the JPEG compression.
-	ImageQualityJDialog qualityDialog = 
-		new ImageQualityJDialog(__parent);
+	ImageQualityJDialog qualityDialog = new ImageQualityJDialog(__parent);
 	float quality = (float)(qualityDialog.getQuality());
 	quality = quality / 100;
 	
 	// Most of the time, RTi's BufferedImages will be stored with Alpha
 	// information -- but this causes problems when writing a JPEG.  This
 	// will copy the ARGB BufferedImage into a plain RGB BufferedImage with
-	// no transparency.  If it is not done, the JPEG will have errors and
-	// be unreadable.
+	// no transparency.  If it is not done, the JPEG will have errors and be unreadable.
 	BufferedImage bimg = null;
 	int w = __image.getWidth(null);
 	int h = __image.getHeight(null);
@@ -438,8 +417,7 @@ private void writeJPEG(File file) {
 	} 
 	catch (Exception ie) { 
 		ie.printStackTrace();
-		setReturnStatus("(ERROR) Error getting pixels for writing "
-			+ "JPEG file.");
+		setReturnStatus("(ERROR) Error getting pixels for writing JPEG file.");
 		JGUIUtil.setWaitCursor(__parent, false);
 		return;
 	}
@@ -462,8 +440,7 @@ private void writeJPEG(File file) {
 	}
 	catch (Exception e) {
 		e.printStackTrace();
-		setReturnStatus("(ERROR) Exception thrown when writing "
-			+ "JPEG.");
+		setReturnStatus("(ERROR) Exception thrown when writing JPEG.");
 		JGUIUtil.setWaitCursor(__parent, false);
 		return;
 	}
@@ -473,8 +450,7 @@ private void writeJPEG(File file) {
 }
 
 /**
-This writes images (other than jpegs) out to the file, using the natively
-supported writing.
+This writes images (other than jpegs) out to the file, using the natively supported writing.
 @param file the file to write.  Must not be null.
 @param extension the extension of the file to write (for determining the 
 kind of file that will be written).  Must not be null.
@@ -486,8 +462,7 @@ private void writeImage(File file, String extension) {
 	}
 	catch (Exception e) {
 		e.printStackTrace();
-		setReturnStatus("(ERROR) Exception thrown when writing "
-			+ extension + " file.");
+		setReturnStatus("(ERROR) Exception thrown when writing " + extension + " file.");
 		JGUIUtil.setWaitCursor(__parent, false);
 		return;
 	}
