@@ -1234,7 +1234,7 @@ Draw an arc using the current color, line, etc.
 @param rx X-radius.
 @param y Y-coordinate of center.
 @param ry Y-radius.
-@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
+@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counter-clockwise).
 @param a2 Ending angle.
 */
 public void drawArc(double x, double y, double rx, double ry, double a1, double a2) {
@@ -1246,12 +1246,12 @@ public void drawArc(double x, double y, double rx, double ry, double a1, double 
 /**
 Not implemented.
 */
-public void drawCompoundText (List text, GRColor color, double x, double y, double angle, int flag) {}
+public void drawCompoundText (List<String> text, GRColor color, double x, double y, double angle, int flag) {}
 	
 /**
 Not implemented.
 */
-public void drawCompoundText(List text, Color color, double x, double y, double angle, int flag) {}
+public void drawCompoundText(List<String> text, Color color, double x, double y, double angle, int flag) {}
 
 /**
 Draw a line.
@@ -2083,6 +2083,8 @@ public void setFloatLineDash(float[] dash, float offset) {
 	}
 	_jdev._graphics.setStroke(newStroke);
 }
+
+
 
 /**
 Sets how lines are joined together.  

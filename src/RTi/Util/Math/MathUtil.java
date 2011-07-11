@@ -103,6 +103,66 @@ Method to integrate a function:  Gaussian quadrature integration.
 public static final int INTEGRATE_GAUSSIAN_QUADRATURE = 1;
 
 /**
+Compute the angle on a standard circle (0=3 o'clock and from there counterclockwise), essentially
+the bearing from one point to another
+@param x0 x-coordinate of first point (center of circle)
+@param y0 y-coordinate of first point (center of circle)
+@param x1 x-coordinate of second point
+@param y1 y-coordinate of second point
+@return the angle in radians or NaN if the points are the same
+*/
+public static double angleFromPoints ( double x0, double y0, double x1, double y1 )
+{
+	// Find the angle at which the line leaves the center
+	double xDiff = x1 - x0;
+	double yDiff = y1 - y0;
+	double angle = Double.NaN;
+	// Do the computations going counter-clockwise from zero angle
+	// Special cases first in each condition.  Note that the "opposite" and "adjacent" change depending
+	// on the quadrant
+	if ( (xDiff == 0.0) && (yDiff == 0.0) ) {
+		angle = Double.NaN;
+	}
+	else if ( (yDiff == 0.0) && (xDiff > 0.0) ) {
+		angle = 0.0;
+	}
+	else if ( yDiff > 0.0 ) {
+		if ( xDiff > 0.0 ){
+			// First quadrant
+			angle = Math.atan(yDiff/xDiff);
+		}
+		else if ( xDiff == 0.0 ) {
+			angle = Math.PI/2.0;
+		}
+		else {
+			// Second quadrant - atan will be negative with angle measured counter-clockwise from vertical
+			// so subtract result
+			angle = Math.PI/2.0 - Math.atan(xDiff/yDiff);
+		}
+	}
+	else if ( (yDiff == 0.0) && (xDiff < 0.0) ) {
+		angle = Math.PI;
+	}
+	else if ( yDiff < 0.0 ) {
+		if ( xDiff < 0.0 ){
+			// Third quadrant - atan will be positive when measured counter-clockwise from horizontal left
+			// so add result
+			angle = Math.PI + Math.atan(yDiff/xDiff);
+		}
+		else if ( xDiff == 0.0 ) {
+			angle = Math.PI*1.5;
+		}
+		else {
+			// Fourth quadrant - atan will be negative when measured counter-clockwise from vertical down
+			// so subtract result
+			angle = Math.PI*1.5 - Math.atan(xDiff/yDiff);
+		}
+	}
+	//Message.printStatus ( 2, "", "xdiff=" + xDiff + " ydiff=" + yDiff + " angle=" + Math.toDegrees(angle) );
+	return angle;
+}
+
+/**
 Determine the common denominators for a list of integers.
 @param values Integer values to check.
 @param return_num If -1, return the smallest common denominator (other than 1).

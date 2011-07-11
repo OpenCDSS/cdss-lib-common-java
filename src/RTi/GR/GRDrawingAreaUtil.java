@@ -45,6 +45,7 @@ import java.awt.Shape;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 
 import RTi.Util.IO.PropList;
@@ -137,8 +138,7 @@ Draw a circular/elliptical arc around a point.
 @param a1 Angle at which drawing is to begin (degrees), counter-clockwise from due east.
 @param a2 Angle at which drawing is to end (degrees), counter-clockwise from due east.
 */
-public static void drawArc ( GRDrawingArea da, double x, double y, double rx,
-				double ry, double a1, double a2 )
+public static void drawArc ( GRDrawingArea da, double x, double y, double rx, double ry, double a1, double a2 )
 {	double xs = da.scaleXData ( x );
 	double ys = da.scaleYData ( y );
 	double rxs = da.scaleXData(rx) - da.scaleXData(0.0);
@@ -183,6 +183,154 @@ public static void drawArc ( GRDrawingArea da, GRArc arc )
 			arc.pt.x, (arc.pt.y + locator_shape.ycross_height) );
 	}
 	da.setLastXY ( arc.pt.x, arc.pt.y );
+}
+
+/**
+Draw an arrow from one point to another.  This consists of drawing a line between the points and then
+optionally adding the arrowheads.
+@param da Drawing area.
+@param x0 X coordinates of the first point.
+@param y0 Y coordinates of the first point.
+@param x1 X coordinates of the second point.
+@param y1 Y coordinates of the second point.
+*/
+public static void drawArrow ( GRDrawingArea da, double x0, double y0, double x1, double y1,
+	GRLineStyleType lineStyle, double[] dashPattern, double dashOffset,
+	GRArrowStyleType fromArrowStyle, GRArrowStyleType toArrowStyle, double arrowWidth, double arrowLength )
+{	// Set the dash pattern for the line
+	if ( lineStyle == GRLineStyleType.SOLID ) {
+		da.setLineDash( null, (double)0.0);
+	}
+	else {
+		da.setLineDash( dashPattern, dashOffset );
+	}
+	// Draw the line connecting the points
+	drawLine ( da, x0, y0, x1, y1 );
+	// Draw the from arrowhead
+	if ( fromArrowStyle == GRArrowStyleType.SOLID ) {
+		// Fill a polygon
+		double [] x = new double[3];
+		double [] y = new double[3];
+		x[0] = x0;
+		y[0] = y0;
+		// Treating the node as the center of a circle, find the angle at which the line leaves the node
+		double angleLine = MathUtil.angleFromPoints(x0, y0, x1, y1);
+		// Angle that is 1/2 the arrowhead
+		double angleArrowHalf = Math.atan((arrowWidth/2)/arrowLength);
+		// Angle to each point is the original angle plus/minus the arrowhead angle
+		double angle1 = angleLine - angleArrowHalf;
+		double angle2 = angleLine + angleArrowHalf;
+		//Message.printStatus(2, "", "From line angle=" + Math.toDegrees(angleLine) + " angle1="+
+		//	Math.toDegrees(angle1) + " angle2=" + Math.toDegrees(angle2) );
+		// Now compute the coordinates, first edge of arrow
+		x[1] = x[0] + Math.cos(angle1)*arrowLength;
+		y[1] = y[0] + Math.sin(angle1)*arrowLength;
+		// Second edge of arrow
+		x[2] = x[0] + Math.cos(angle2)*arrowLength;
+		y[2] = y[0] + Math.sin(angle2)*arrowLength;
+		//Message.printStatus(2, "", "" + x[0] +"," + y[0] + " " + x[1] + "," + y[1] + " " + x[2] + "," + y[2] );
+		// Fill the polygon
+		fillPolygon ( da, 3, x, y );
+	}
+	if ( toArrowStyle == GRArrowStyleType.SOLID ) {
+		// Fill a polygon - same logic as above but reverse the order of computation on the xDiff, yDiff calc
+		double [] x = new double[3];
+		double [] y = new double[3];
+		x[0] = x1;
+		y[0] = y1;
+		// Treating the node as the center of a circle, find the angle at which the line leaves the node
+		double angleLine = MathUtil.angleFromPoints( x1, y1, x0, y0);
+		// Angle that is 1/2 the arrowhead
+		double angleArrowHalf = Math.atan((arrowWidth/2)/arrowLength);
+		// Angle to each point is the original angle plus/minus the arrowhead angle
+		double angle1 = angleLine - angleArrowHalf;
+		double angle2 = angleLine + angleArrowHalf;
+		//Message.printStatus(2, "", "To line angle=" + Math.toDegrees(angleLine) + " angle1="+
+		//	Math.toDegrees(angle1) + " angle2=" + Math.toDegrees(angle2) );
+		// Now compute the coordinates, first edge of arrow
+		x[1] = x[0] + Math.cos(angle1)*arrowLength;
+		y[1] = y[0] + Math.sin(angle1)*arrowLength;
+		// Second edge of arrow
+		x[2] = x[0] + Math.cos(angle2)*arrowLength;
+		y[2] = y[0] + Math.sin(angle2)*arrowLength;
+		//Message.printStatus(2, "", "" + x[0] +"," + y[0] + " " + x[1] + "," + y[1] + " " + x[2] + "," + y[2] );
+		// Fill the polygon
+		fillPolygon ( da, 3, x, y );
+	}
+}
+
+/**
+Draw an arrow from one point to another.  This consists of drawing a line between the points and then
+optionally adding the arrowheads.
+@param da Drawing area.
+@param x0 X coordinates of the first point.
+@param y0 Y coordinates of the first point.
+@param x1 X coordinates of the second point.
+@param y1 Y coordinates of the second point.
+*/
+public static void drawArrowSave ( GRDrawingArea da, double x0, double y0, double x1, double y1,
+	GRLineStyleType lineStyle, double[] dashPattern, double dashOffset,
+	GRArrowStyleType fromArrowStyle, GRArrowStyleType toArrowStyle, double arrowWidth, double arrowLength )
+{	// Set the dash pattern for the line
+	if ( lineStyle == GRLineStyleType.SOLID ) {
+		da.setLineDash( null, (double)0.0);
+	}
+	else {
+		da.setLineDash( dashPattern, dashOffset );
+	}
+	// Draw the line connecting the points
+	drawLine ( da, x0, y0, x1, y1 );
+	// Draw the from arrowhead
+	if ( fromArrowStyle == GRArrowStyleType.SOLID ) {
+		// Fill a polygon
+		double [] x = new double[3];
+		double [] y = new double[3];
+		x[0] = x0;
+		y[0] = y0;
+		// Treating the node as the center of a circle, find the angle at which the line leaves the node
+		double angleLine = MathUtil.angleFromPoints(x0, y0, x1, y1);
+		// Angle that is 1/2 the arrowhead
+		double angleArrowHalf = Math.atan((arrowWidth/2)/arrowLength);
+		// Angle to each point is the original angle plus/minus the arrowhead angle
+		double angle1 = angleLine - angleArrowHalf;
+		double angle2 = angleLine + angleArrowHalf;
+		Message.printStatus(2, "", "From line angle=" + Math.toDegrees(angleLine) + " angle1="+
+			Math.toDegrees(angle1) + " angle2=" + Math.toDegrees(angle2) );
+		// Now compute the coordinates, first edge of arrow
+		x[1] = x[0] + Math.cos(angle1)*arrowLength;
+		y[1] = y[0] + Math.sin(angle1)*arrowLength;
+		// Second edge of arrow
+		x[2] = x[0] + Math.cos(angle2)*arrowLength;
+		y[2] = y[0] + Math.sin(angle2)*arrowLength;
+		Message.printStatus(2, "", "" + x[0] +"," + y[0] + " " + x[1] + "," + y[1] + " " + x[2] + "," + y[2] );
+		// Fill the polygon
+		fillPolygon ( da, 3, x, y );
+	}
+	if ( toArrowStyle == GRArrowStyleType.SOLID ) {
+		// Fill a polygon - same logic as above but reverse the order of computation on the xDiff, yDiff calc
+		double [] x = new double[3];
+		double [] y = new double[3];
+		x[0] = x1;
+		y[0] = y1;
+		// Treating the node as the center of a circle, find the angle at which the line leaves the node
+		double angleLine = MathUtil.angleFromPoints( x1, y1, x0, y0);
+		// Angle that is 1/2 the arrowhead
+		double angleArrowHalf = Math.atan((arrowWidth/2)/arrowLength);
+		// Angle to each point is the original angle plus/minus the arrowhead angle
+		double angle1 = angleLine - angleArrowHalf;
+		double angle2 = angleLine + angleArrowHalf;
+		Message.printStatus(2, "", "To line angle=" + Math.toDegrees(angleLine) + " angle1="+
+			Math.toDegrees(angle1) + " angle2=" + Math.toDegrees(angle2) );
+		// Now compute the coordinates, first edge of arrow
+		x[1] = x[0] + Math.cos(angle1)*arrowLength;
+		y[1] = y[0] + Math.sin(angle1)*arrowLength;
+		// Second edge of arrow
+		x[2] = x[0] + Math.cos(angle2)*arrowLength;
+		y[2] = y[0] + Math.sin(angle2)*arrowLength;
+		Message.printStatus(2, "", "" + x[0] +"," + y[0] + " " + x[1] + "," + y[1] + " " + x[2] + "," + y[2] );
+		// Fill the polygon
+		fillPolygon ( da, 3, x, y );
+	}
 }
 
 /**
@@ -615,12 +763,9 @@ used to plot multiple symbols at a point.
 @param offset_y Y offset of the symbol from the given location.  This can be
 used to plot multiple symbols at a point.
 @param data Array of secondary data.  For example, for scaled symbols like the
-teacup this indicates some dynamic data used to draw the symbol.  This is only
-used for some symbols.
-@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units
-are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. 
-GRSymbol.SYM_LEFT).
+teacup this indicates some dynamic data used to draw the symbol.  This is only used for some symbols.
+@param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.  If
 not null, the teacup will be filled to a level specified by the data parameter.
 */
@@ -689,8 +834,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		// if not a true aspect)...
 		// This is seldom used.
 		// Old
-		//msizex	= size;
-		//msizey	= msizex*da.scaleXData(1.0)/da.scaleYData(1.0);
+		//msizex = size;
+		//msizey = msizex*da.scaleXData(1.0)/da.scaleYData(1.0);
 		// New...
 		// Get X size in device units...
 		msizex = da.scaleXData(size_x) - da.scaleXData(0);
@@ -703,8 +848,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		msizey2	= msizey/2.0;
 		// Why was this ever done.??? the coordinates need to be
 		// scaled.  It was just the symbol that was in data size!
-		//xs		= x;
-		//ys		= y;
+		//xs = x;
+		//ys = y;
 		xs = da.scaleXData(x + offset_x);
 		ys = da.scaleYData(y + offset_y);
 	}
@@ -735,8 +880,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 	}
 	// Now draw the symbol.  A large "if" statement is used to check the symbol style...
 	if ( symbol == GRSymbol.SYM_AST ) {
-		drawSymbol(da,GRSymbol.SYM_PLUS, x, y, size_x, size_y, offset_x,
-				offset_y, data, flag, orient );
+		drawSymbol(da,GRSymbol.SYM_PLUS, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs - msizex2*.707;	__sym[0] = ys-msizey2*.707;
 		__sxm[1] = xs + msizex2*.707;	__sym[1] = ys+msizey2*.707;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -770,7 +914,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 		}
 		__sxm[2] = xs - msizex2;	__sym[2] = __sym[1];
 		__sxm[3] = __sxm[2];		__sym[3] = ys;
@@ -853,7 +998,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 		}
 		__sxm[2] = xs + msizex2;	__sym[2] = ys;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -878,7 +1024,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1100,7 +1247,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 		}
 		__sxm[2] = xs - msizex2;	__sym[2] = ys;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1116,7 +1264,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys + msizey2/2.0;
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[0] = ys - msizey2/2.0;
+		else {
+			__sym[0] = ys - msizey2/2.0;
 			__sym[1] = ys - msizey2;
 		}
 		__sxm[2] = xs - msizex2/2.0;	__sym[2] = __sym[0];
@@ -1129,10 +1278,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 	else if ( symbol == GRSymbol.SYM_FCIR ) {
 		//if ( flag == GRUnits.DEVICE ) {
 		if (da instanceof GRJComponentDrawingArea) {
-//			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0,
-//				FILL_CHORD );
-			((GRJComponentDrawingArea)da).fillOval(
-				xs, ys, msizex2, msizey2);
+//			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0, FILL_CHORD );
+			((GRJComponentDrawingArea)da).fillOval(xs, ys, msizex2, msizey2);
 		}
 		else {
 			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0,
@@ -1140,8 +1287,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}	
 		//}
 		//else {	
-//			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0,
-		//	FILL_CHORD );
+//			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0, FILL_CHORD );
 		//}
 	}
 	else if ( symbol == GRSymbol.SYM_FDIA ) {
@@ -1153,7 +1299,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[1] = ys - msizey2;
 			__sym[3] = ys + msizey2;
 		}
-		else {	__sym[1] = ys + msizey2;
+		else {
+			__sym[1] = ys + msizey2;
 			__sym[3] = ys - msizey2;
 		}
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1169,7 +1316,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[1] = ys - msizey2/2.0;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[1] = ys + msizey2/2.0;
 		}
 		__sxm[2] = xs;			__sym[2] = ys;
@@ -1186,7 +1334,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2/2.0;
 			__sym[2] = ys + msizey2/2.0;
 		}
-		else {	__sym[0] = ys + msizey2/2.0;
+		else {
+			__sym[0] = ys + msizey2/2.0;
 			__sym[2] = ys - msizey2/2.0;
 		}
 		__sxm[1] = xs + msizex2;		__sym[1] = ys;
@@ -1205,7 +1354,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[1] = ys + msizey2/2.0;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[1] = ys - msizey2/2.0;
+		else {
+			__sym[1] = ys - msizey2/2.0;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[2] = xs;
@@ -1222,7 +1372,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2/2.0;
 			__sym[2] = ys + msizey2/2.0;
 		}
-		else {	__sym[0] = ys + msizey2/2.0;
+		else {
+			__sym[0] = ys + msizey2/2.0;
 			__sym[2] = ys - msizey2/2.0;
 		}
 		__sxm[1] = xs;			__sym[1] = ys;
@@ -1239,7 +1390,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1261,7 +1413,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[1] = xs - msizex2;	__sym[1] = ys;
@@ -1278,7 +1431,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2/2.0;
 			__sym[1] = ys + msizey2/2.0;
 		}
-		else {	__sym[0] = ys + msizey2/2.0;
+		else {
+			__sym[0] = ys + msizey2/2.0;
 			__sym[1] = ys - msizey2/2.0;
 		}
 		__sxm[1] = __sxm[0];
@@ -1296,7 +1450,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[1] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[2] = __sxm[1];
@@ -1315,7 +1470,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[0] = xs;
@@ -1334,7 +1490,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[1] = ys + msizey2/2.0;
 			__sym[2] = ys - msizey2/2.0;
 		}
-		else {	__sym[1] = ys - msizey2/2.0;
+		else {
+			__sym[1] = ys - msizey2/2.0;
 			__sym[2] = ys + msizey2/2.0;
 		}
 		__sxm[2] = __sxm[1];
@@ -1350,7 +1507,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[1] = xs + msizex2;	__sym[1] = ys;
@@ -1372,7 +1530,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[1] = ys - msizey2;
 		}
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1396,7 +1555,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 		}
 		__sxm[0] = xs + msizex2;
 		__sxm[1] = __sxm[0];		__sym[1] = ys;
@@ -1411,7 +1571,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[1] = ys + msizey2;
 		}
-		else {	__sym[1] = ys - msizey2;
+		else {
+			__sym[1] = ys - msizey2;
 		}
 		__sxm[0] = xs + msizex2;	__sym[0] = ys;
 		__sxm[1] = __sxm[0];
@@ -1426,7 +1587,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 		}
 		__sxm[0] = xs;
 		__sxm[1] = xs - msizex2;	__sym[1] = __sym[0];
@@ -1441,7 +1603,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 		}
 		__sxm[0] = xs;
 		__sxm[1] = xs - msizex2;	__sym[1] = ys;
@@ -1459,7 +1622,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[2] = ys + msizey2;
+		else {
+			__sym[2] = ys + msizey2;
 		}
 		//if ( flag == GRUnits.DEVICE ) {
 			da.fillPolygon ( 3, __sxm, __sym );
@@ -1472,7 +1636,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2/2.0;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[0] = ys + msizey2/2.0;
+		else {
+			__sym[0] = ys + msizey2/2.0;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs + msizex2/2.0;
@@ -1489,7 +1654,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1624,7 +1790,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[0] = xs;
@@ -1637,8 +1804,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//}
 	}
 	else if ( symbol == GRSymbol.SYM_RFSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, 
-			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs;		__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
@@ -1725,12 +1891,12 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 	}
 	else if ( symbol == GRSymbol.SYM_TOPFSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, 
-			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 		}
 		__sxm[0] = xs + msizex2;
 		__sxm[1] = __sxm[0];		__sym[1] = ys;
@@ -1746,7 +1912,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
@@ -1766,7 +1933,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[1] = ys - msizey2;
 		}
-		else {	__sym[1] = ys + msizey2;
+		else {
+			__sym[1] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;
@@ -1806,7 +1974,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[2] = ys - height;
 		}
-		else {	__sym[2] = ys + height;
+		else {
+			__sym[2] = ys + height;
 		}
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
@@ -1825,7 +1994,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		if ( da._reverse_y ) {
 			__sym[2] = ys - height;
 		}
-		else {	__sym[2] = ys + height;
+		else {
+			__sym[2] = ys + height;
 		}
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
@@ -1838,7 +2008,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1863,7 +2034,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1887,7 +2059,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys + msizey2;
+		else {
+			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -1912,7 +2085,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
-		else {	__sym[0] = ys - msizey2;
+		else {
+			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
 		}
 		__sxm[0] = xs - msizex2;
@@ -2091,8 +2265,7 @@ public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, doub
 		// Shift up...
 		yt = y + ysize_data2;
 	}
-	//Message.printStatus ( 1, "drawSymboText",
-	//"x,y = " + x + "," + y + " xt,yt=" + xt + "," + yt );
+	//Message.printStatus ( 1, "drawSymboText", "x,y = " + x + "," + y + " xt,yt=" + xt + "," + yt );
 	GRColor color_save = null;
 	if ( text_color != null ) {
 		// Save the old color and reset for the text color...
@@ -2225,18 +2398,18 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 	// the top Y point from which drawing the lines begins
 	double startingY = 0;
 
-	// in the following, remember that by this point the X and Y values
+	// In the following, remember that by this point the X and Y values
 	// have been scaled and converted into Java point coordinates, so that
 	// the Y values at the top of the screen are smaller and get bigger
 	// as they go down the screen.
 
 	if (yPos == GRText.TOP) {
-		// if the text is drawn relative to its top, then the 
+		// If the text is drawn relative to its top, then the 
 		// startying Y is the y value passed in.
 		startingY = ys;
 	}
 	else if (yPos == GRText.BOTTOM) {
-		// otherwise, need to calculate relative to the last line
+		// Otherwise, need to calculate relative to the last line
 		// that will be drawn for bottom-aligned text.  the starting
 		// y is the bottom of the first line of text.  Need to calculate
 		// the total height of all the other lines and subtract it 
@@ -2248,11 +2421,11 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 		startingY = ys - total;
 	}
 	else {
-		// for centered text, the Y value depends on whether there
+		// For centered text, the Y value depends on whether there
 		// are an even or odd number of lines of text to be drawn.
 		int start = size / 2;	
 		if (size % 2 == 0) {
-			// if there are an even number of lines of text,
+			// If there are an even number of lines of text,
 			// then the center of all the text lies between the
 			// middle two lines -- the center is at the BOTTOM
 			// of the line that is in the array at position
@@ -2270,7 +2443,7 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 			startingY = ys - total;
 		}
 		else {
-			// if there are an odd number of lines of text, then
+			// If there are an odd number of lines of text, then
 			// need to calculate the center of the 0th line of
 			// text -- that's the starting Y.  Each additional line
 			// is at a Y value equal to half the current line's 
@@ -2284,17 +2457,15 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 		}
 	}
 
-	// go through and draw each line
+	// Go through and draw each line
 
 	double currY = startingY;
 	for (int i = 0; i < size; i++) {
-		// the original drawing code can still be used (so no
-		// recursion).
+		// The original drawing code can still be used (so no recursion).
 		da.drawText(lines[i], xs, currY, 0, flag, 0);
 
-		// the next section calculates the Y value for the next line
-		// of text, given the y positioning type specified in the
-		// flag.
+		// The next section calculates the Y value for the next line
+		// of text, given the y positioning type specified in the flag.
 
 		if (yPos == GRText.TOP) {
 			currY += limits[i].getHeight();
@@ -2333,8 +2504,7 @@ public static void fill ( GRDrawingArea da, GRColor color )
 	GRLimits limits = da.getPlotLimits ( GRDrawingArea.COORD_DATA );
 	// Set the color...
 	da.setColor ( color );
-	// Can call the drawing area method directly since the units are already
-	// for the device...
+	// Can call the drawing area method directly since the units are already for the device...
 	da.fillRectangle ( limits );
 	limits = null;
 }
@@ -2346,21 +2516,21 @@ Draw a filled circular/ellpiptical arc around a point.
 @param y Y-coordinate of center.
 @param rx Radius in x direction.
 @param ry Radius in y direction.
-@param a1 Angle at which drawing is to begin (degrees), counter-clockwise from
-due East.  Thus:<br><pre>
-     270
+@param a1 Angle at which drawing is to begin (degrees), counter-clockwise from 3 o'clock.  Thus:<br>
+<pre>
+     90
 180 	  0
-      90
+     270
 </pre>
-@param a2 Angle at which drawing is to end (degrees), counter-clockwise from
-due East.Thus:<br><pre>
-     270
+@param a2 Angle at which drawing is to end (degrees), clockwise from 3 o'clock.  Thus:<br>
+<pre>
+     90
 180 	  0
-      90
+     270
 </pre>
 @param fillmode Indicates how arc is to be filled.
 */
-public static void fillArc (	GRDrawingArea da, double x, double y, double rx,
+public static void fillArc ( GRDrawingArea da, double x, double y, double rx,
 				double ry, double a1, double a2, int fillmode )
 {	double xs = da.scaleXData ( x );
 	double ys = da.scaleYData ( y );
@@ -2434,8 +2604,7 @@ Fill a polygon with the current color and a degree of transparency.
 @param polygon GRPolygon to fill.
 @param transparency Indicates transparency (255=transparent, 0=opaque).
 */
-public static void fillPolygon ( GRDrawingArea da, GRPolygon polygon,
-				int transparency )
+public static void fillPolygon ( GRDrawingArea da, GRPolygon polygon, int transparency )
 {	
 	if ( polygon.npts == 0 ) {
 		return;
@@ -2457,10 +2626,7 @@ public static void fillPolygon ( GRDrawingArea da, GRPolygon polygon,
 	// Reduce the number of points...
 	//GRReducePoints ( xs, ys, &npts, 0 );
 	da.fillPolygon ( polygon.npts, xs, ys, transparency );
-	da.setLastXY ( polygon.pts[polygon.npts - 1].x,
-			polygon.pts[polygon.npts - 1].y );
-	xs = null;
-	ys = null;
+	da.setLastXY ( polygon.pts[polygon.npts - 1].x, polygon.pts[polygon.npts - 1].y );
 }
 
 /**
@@ -2479,15 +2645,12 @@ public static void fillPolygon ( GRDrawingArea da, int npts, double x[], double 
 	}
 	xs = new double[npts];
 	if ( xs == null ) {
-		Message.printWarning ( 2, "fillPolygon",
-		"Unable to allocate " + npts + " points (x-coord) for polygon");
+		Message.printWarning ( 2, "fillPolygon", "Unable to allocate " + npts + " points (x-coord) for polygon");
 		return;
 	}
 	ys = new double[npts];
 	if ( ys == null ) {
-		Message.printWarning ( 2, "fillPolygon",
-		"Unable to allocate " + npts + " points (y-coord) for polygon");
-		xs = null;
+		Message.printWarning ( 2, "fillPolygon", "Unable to allocate " + npts + " points (y-coord) for polygon");
 		return;
 	}
 	for ( i = 0; i < npts; i++ ) {
@@ -2509,19 +2672,16 @@ Fill a rectangle given a drawing area and rectangle information in data units.
 @param height Height of rectangle (can be negative, in which case yll will be recomputed).
 */
 public static void fillRectangle ( GRDrawingArea da, double xll, double yll, double width, double height )
-{	double []	xs, ys;
+{	double [] xs, ys;
 
 	xs = new double[4];
 	if ( xs == null ) {
-		Message.printWarning ( 2, "fillRectangle",
-		"Unable to allocate points (x-coord) for rectangle.");
+		Message.printWarning ( 2, "fillRectangle", "Unable to allocate points (x-coord) for rectangle.");
 		return;
 	}
 	ys = new double[4];
 	if ( ys == null ) {
-		Message.printWarning ( 2, "fillRectangle",
-		"Unable to allocate points (y-coord) for rectangle.");
-		xs = null;
+		Message.printWarning ( 2, "fillRectangle", "Unable to allocate points (y-coord) for rectangle.");
 		return;
 	}
 	// Scale the data.  Allow the width and height to be negaive and adjust
@@ -2559,8 +2719,6 @@ public static void fillRectangle ( GRDrawingArea da, double xll, double yll, dou
 */
 	da.fillPolygon ( 4, xs, ys );
 	da.setLastXY ( xll, yll );
-	xs = null;
-	ys = null;
 }
 
 /**
@@ -2576,28 +2734,16 @@ Returns the data extents given a delta in DA units.
 This routine takes as input delta-x and delta-y values and calculates the
 corresponding data extents.  This is useful when it is known (guessed?) that
 output needs to be, say, 15 points high but it is not known what the
-corresponding data values are.  This can be used, for example, to draw a box
-around text (better to allow PostScript o figure out the box size but that
-is a project for another day).
-REVISIT (JTS - 2003-05-05)
-Should that be implemented?
-SAM:
-Yes, in the future
+corresponding data values are.  This can be used, for example, to draw a box around text.
 The flags need to be implemented to allow the extents to be determined 
-exactly at the limits given, ast the centroid of the drawing area, etc.  
-For now, calculate at the centroid so that projection issues do not cause
-problems.
+exactly at the limits given, as the centroid of the drawing area, etc.  
+For now, calculate at the centroid so that projection issues do not cause problems.
 @param limits the limits for the drawing area.
-@param flag indicates whether units should be returned in device or data 
-units.
-REVISIT (JTS - 2003-05-05)
-This parameter isn't even used.
-SAM:
-in the future
+@param flag indicates whether units should be returned in device or data units.
+TODO (JTS - 2003-05-05) This parameter isn't even used.  SAM: in the future
 @return the data extents given a delta in DA units.
 */
-public static GRLimits getDataExtents (	GRDrawingArea da, GRLimits limits,
-					int flag )
+public static GRLimits getDataExtents (	GRDrawingArea da, GRLimits limits, int flag )
 {	return da.getDataExtents ( limits, flag );
 }
 
@@ -2612,8 +2758,8 @@ all the lines of text.
 @param flag GRUnits.DATA or GRUnits.DEVICE, indicating the units that should
 be returned for the text size.
 */
-public static GRLimits getTextExtents(GRDrawingArea da, String text,
-int flag) {
+public static GRLimits getTextExtents(GRDrawingArea da, String text, int flag)
+{
 	// check to see if there are any newline markers
 	String separator = "\n";
 	int index = text.indexOf(separator);
@@ -2622,8 +2768,7 @@ int flag) {
 		oneLine = true;
 	}
 
-	// if one line then there are no new line markers and the old code
-	// will work.
+	// If one line then there are no new line markers and the old code will work.
 	if (oneLine) {
 		// The following always returns device units...
 		GRLimits limits = da.getTextExtents ( text, flag );
@@ -2633,17 +2778,15 @@ int flag) {
 		if ( flag == GRUnits.DEVICE ) {
 			return limits;
 		}
-		else {	// Data...
-			GRPoint pt1 = da.getDataXY(0.0,0.0,
-				GRDrawingArea.COORD_DEVICE);
-			GRPoint pt2 = da.getDataXY(0.0,limits.getHeight(),
-						GRDrawingArea.COORD_DEVICE);
+		else {
+			// Data...
+			GRPoint pt1 = da.getDataXY(0.0,0.0, GRDrawingArea.COORD_DEVICE);
+			GRPoint pt2 = da.getDataXY(0.0,limits.getHeight(), GRDrawingArea.COORD_DEVICE);
 			double height = pt1.y - pt2.y;
 			if ( height < 0 ) {
 				height *= -1.0;
 			}
-			pt2 = da.getDataXY(limits.getWidth(), 0.0,
-						GRDrawingArea.COORD_DEVICE);
+			pt2 = da.getDataXY(limits.getWidth(), 0.0, GRDrawingArea.COORD_DEVICE);
 			double width = pt1.x - pt2.x;
 			if ( width < 0 ) {
 				width *= -1.0;
@@ -2654,7 +2797,7 @@ int flag) {
 
 	// Now calculate the extents for multiple lines of text.
 
-	List v = new Vector();
+	List<String> v = new Vector();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();
@@ -2672,7 +2815,7 @@ int flag) {
 	int size = v.size();
 	String[] lines = new String[size];
 	for (int i = 0; i < size; i++) {
-		lines[i] = (String)v.get(i);
+		lines[i] = v.get(i);
 	}
 
 	double widest = 0;
@@ -2685,13 +2828,6 @@ int flag) {
 		}
 		height += limits.getHeight();
 	}
-	for (int i = 0; i < size; i++) {
-		lines[i] = null;
-	}	
-	lines = null;
-	limits = null;
-	s = null;
-	v = null;
 
 	return new GRLimits(widest, height);
 }
@@ -2707,8 +2843,7 @@ Returns the extents for text drawn in a specific font.
 @return GRLimits describing the extent of the font.
 */
 public static GRLimits getTextExtents ( GRDrawingArea da, String text,
-					int flag, String fontname,
-					String style, int size)
+	int flag, String fontname, String style, int size)
 {	// The following always returns device units...
 	setFont(da, fontname, style, (double)size);
 	return getTextExtents(da, text, flag);
@@ -2742,8 +2877,7 @@ public static void moveTo ( GRDrawingArea da, double x, double y )
 
 /**
 End of page (flush page).
-REVISIT (SAM - 2003-05-07)
-Seems like we might want to have to Device code but leave here for now
+TODO (SAM - 2003-05-07) Seems like we might want to have to Device code but leave here for now
 @param da Drawing area.
 */
 public static void pageEnd ( GRDrawingArea da )
@@ -2753,8 +2887,7 @@ public static void pageEnd ( GRDrawingArea da )
 
 /**
 Start of page (setup page).
-REVISIT (SAM - 2003-05-07)
-Seems like we might want to have to Device code but leave here for now
+TODO (SAM - 2003-05-07) Seems like we might want to have to Device code but leave here for now
 @param da Drawing area.
 */
 public static void pageStart ( GRDrawingArea da )
@@ -2809,15 +2942,13 @@ Set color for all drawing.
 public static void setColor ( GRDrawingArea da, GRColor c )
 {	int	dl = 30;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, "setColor",
-		"Request RGB: " + c.getRed()+","+ c.getGreen()+","+c.getBlue());
+		Message.printDebug ( dl, "setColor", "Request RGB: " + c.getRed()+","+ c.getGreen()+","+c.getBlue());
 	}
 	da.setColor ( c );
 }
 
 /**
-Set the font and its height to be used in drawing area.  A plain style font
-is used.
+Set the font and its height to be used in drawing area.  A plain style font is used.
 @param da Drawing area.
 @param font Font name (e.g., "Helvetica").
 @param fontht Font height, in points (1 inch=72 points).
@@ -2839,24 +2970,20 @@ public static void setFont ( GRDrawingArea da, String font, String style, double
 
 /**
 Set the line dash for line-drawing commands.
-REVISIT (SAM - 2003-05-07)
-Need to see what Graphics2D has to offer.
+TODO (SAM - 2003-05-07) Need to see what Graphics2D has to offer.
 This version maintained for historic reasons.
 */
-public static void setLineDash ( GRDrawingArea da, int ndash, double [] dash,
-				double offset )
+public static void setLineDash ( GRDrawingArea da, int ndash, double [] dash, double offset )
 {	setLineDash ( da, dash, offset );
 }
 
 /**
 Set the line dash for line-drawing commands.  
 @param da the drawing area on which to set the line dash
-@param dash a double array specifying the dash pattern.  If null, line dashes
-will be turned off.
+@param dash a double array specifying the dash pattern.  If null, line dashes will be turned off.
 @param offset the initial dash offset.
 */
-public static void setLineDash ( GRDrawingArea da, double [] dash,
-				double offset )
+public static void setLineDash ( GRDrawingArea da, double [] dash, double offset )
 {	da.setLineDash ( dash, offset );
 }
 

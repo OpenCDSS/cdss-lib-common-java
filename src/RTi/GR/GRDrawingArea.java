@@ -358,7 +358,7 @@ Draw an arc using the current color, line, etc.
 @param y Y-coordinate of center.
 @param rx X-radius.
 @param ry Y-radius.
-@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
+@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counter-clockwise).
 @param a2 Ending angle.
 */
 public abstract void drawArc(double x, double y, double rx, double ry,double a1, double a2 );
@@ -372,7 +372,7 @@ Draw compound text.
 @param angle the angle at which to draw the text
 @param flag GRText.* value denoting where to draw the text
 */
-public abstract void drawCompoundText (	List text, GRColor color, double x, double y, double angle, int flag );
+public abstract void drawCompoundText (	List<String> text, GRColor color, double x, double y, double angle, int flag );
 
 /**
 Draw a line.
