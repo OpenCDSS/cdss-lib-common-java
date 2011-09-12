@@ -1,29 +1,13 @@
-//------------------------------------------------------------------------------
-// SkeletonCommand - a command base class skeleton, to hold typical data
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 2005-04-29	Steven A. Malers, RTi	Initial version.
-// 2005-05-19	SAM, RTi		Move from TSTool package.
-// 2006-01-09	J. Thomas Sapienza, RTi	Added getCommandString().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.IO;
 
-import java.util.List;
 import javax.swing.JFrame;	// For the editor
 
 import RTi.Util.Message.Message;
-import RTi.Util.String.StringUtil;
 
 /**
-This class can be used as a base class for other commands.  It contains data
+This class can be used as a parent class for other commands.  It contains data
 members and access methods that will commonly be used.
-Note that the derived class should implement the Command interface methods.  Its
+Note that the derived class should implement the Command interface methods - its
 implementation here will be insufficient for most needs (e.g., editing).
 */
 public abstract
@@ -34,13 +18,13 @@ class AbstractCommand extends Object implements Command, CommandStatusProvider, 
 The full command string for the command, as specified during initialization.
 This is initialized to blank.
 */
-private String __command_string = "";
+private String __commandString = "";
 
 /**
 The command name only, as taken from the command string.
 This is initialized to blank;
 */
-private String __command_name = "";
+private String __commandName = "";
 
 /**
 The command processor, which will run the command and be associated with the command GUI.
@@ -210,7 +194,7 @@ public Object clone ()
 /**
 Edit a command instance.  The instance may be a newly created command or one
 that has been created previously and is now being re-edited.
-@return the Command instance that is created and edited, or null if the edit was cancelled.
+@return the Command instance that is created and edited, or null if the edit was canceled.
 @param parent Parent JFrame on which the model command editor dialog will be shown.
 */
 public boolean editCommand ( JFrame parent )
@@ -220,7 +204,7 @@ public boolean editCommand ( JFrame parent )
 
 /**
 Edit a new command.
-@return the Command instance that is created and edited, or null if the edit was cancelled.
+@return the Command instance that is created and edited, or null if the edit was canceled.
 @param parent Parent JFrame on which the model command editor dialog will be shown.
 */
 /* TODO SAM 2005-04-29 need to figure out a graceful way to do this...
@@ -240,7 +224,7 @@ Return the command name, from the command string.
 @return the command name, from the command string.
 */
 public String getCommandName ()
-{	return __command_name;
+{	return __commandName;
 }
 
 /**
@@ -279,7 +263,7 @@ Returns the original command string.
 @return the original command string.
 */
 public String getCommandString() {
-	return __command_string;
+	return __commandString;
 }
 
 /**
@@ -308,7 +292,7 @@ public void initializeCommand ( String command, CommandProcessor processor,	bool
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
 {	// Save the processor...
 	__processor = processor;
-	__command_string = command;
+	__commandString = command;
 	if ( full_initialization ) {
 		// Parse the command...
 		parseCommand ( command );
@@ -355,11 +339,12 @@ public void notifyCommandProgressListeners ( int istep, int nstep, float percent
 }
 
 /**
-Parse the command string into a PropList of parameters.  This method will
-parse a standard syntax command:
+Parse the command string into a PropList of parameters.  This method will parse a standard syntax command:
 <pre>
-commandName(param=value,param="value",...)
+commandName(param=value,param="value",param="value(xxx)",...)
 </pre>
+Custom parsers MUST be implemented for special commands, such as comments and legacy syntax.
+Parameter values can contain special characters such as parenthesis but should generally be quoted in these cases.
 @param command A string command to parse.
 @exception InvalidCommandSyntaxException if during parsing the command is
 determined to have invalid syntax.
@@ -369,17 +354,23 @@ parameters are determined to be invalid.
 public void parseCommand ( String command )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
 {	String routine = "SkeletonCommand.parseCommand", message;
-	List tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
-	if ( (tokens == null) ) {
-		message = "Invalid syntax for \"" + command + "\".  Not enough tokens.";
+    // The following causes problems with commands that have quoted parameters that include ()
+    // Therefore, parse more brute force to get the command name and parameter list string
+	// List<String> tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
+    String commandTrimmed = command.trim();
+    int parenStart = command.indexOf("(");
+    int parenEnd = command.lastIndexOf(")");
+	if ( (parenStart <= 0) || (parenEnd != (commandTrimmed.length() - 1)) ) {
+		message = "Invalid syntax for \"" + command + "\".  Expecting CommandName(parameter=value,...)";
 		Message.printWarning ( 2, routine, message);
 		throw new InvalidCommandSyntaxException ( message );
 	}
-	// Get the input needed to process the command...
-	if ( tokens.size() > 1 ) {
+	// Get the parameter list...
+	String parameterString = commandTrimmed.substring((parenStart + 1), parenEnd);
+	if ( parameterString.length() > 0 ) {
 		// Parameters are available to parse...
 		try {
-		    __parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, (String)tokens.get(1), routine,"," );
+		    __parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, parameterString, routine,"," );
 		}
 		catch ( Exception e ) {
 			message = "Syntax error in \"" + command + "\".  Not enough tokens.";
@@ -408,7 +399,7 @@ Set the command name, as taken from the command string.
 @param command_name The command name.
 */
 public void setCommandName ( String command_name )
-{	__command_name = command_name;
+{	__commandName = command_name;
 }
 
 /**
@@ -422,7 +413,7 @@ parameter value, requiring handling).
 public void setCommandParameter ( String parameter, String value )
 {	__parameters.set ( parameter, value );
 	// Refresh the command string...
-	__command_string = toString();
+	__commandString = toString();
 }
 
 /**
@@ -433,7 +424,7 @@ been parsed.
 public void setCommandParameters ( PropList parameters )
 {	__parameters = parameters;
 	//Refresh the command string...
-	__command_string = toString();
+	__commandString = toString();
 }
 
 /**
@@ -450,7 +441,7 @@ editor and should only be implemented in this SkeletonCommand base class.
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string )
-{	__command_string = command_string;
+{	__commandString = command_string;
 }
 
 /**
@@ -481,7 +472,7 @@ determine the property type and all values will have surrounding double quotes.
 */
 public String toString ( PropList parameters )
 {	if ( parameters == null ) {
-		return __command_name + "()";
+		return __commandName + "()";
 	}
 	StringBuffer b = new StringBuffer ();
 	String value;
@@ -494,7 +485,7 @@ public String toString ( PropList parameters )
 			b.append ( prop.getKey() + "=\"" + value + "\"" );
 		}
 	}
-	return (__command_name + "(" + b + ")" );
+	return (__commandName + "(" + b + ")" );
 }
 
 }
