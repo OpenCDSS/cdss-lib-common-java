@@ -428,6 +428,17 @@ public static int indexOf (	JList list, String item, boolean selected_only, bool
 
 /**
 Determine if the specified compare String exists within a SimpleJComboBox - CASE SENSITIVE.
+See the overloaded method for a full description.  This version matches any substring (when flag=CHECK_SUBSTRINGS)
+and is case-sensitive.
+*/
+public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
+        String compare, int flag, String delimiter, int[] index )
+{
+    return isSimpleJComboBoxItem ( comboBox, compare, flag, delimiter, -1, index, false );
+}
+
+/**
+Determine if the specified compare String exists within a SimpleJComboBox - CASE SENSITIVE.
 <ul>
 <li>	Can compare the compare String against substrings for each item
 	in the comboBox object if FLAG is set to CHECK_SUBSTRINGS.</li>
@@ -435,20 +446,21 @@ Determine if the specified compare String exists within a SimpleJComboBox - CASE
 </ul>
 @param comboBox SimpleJComboBox object.
 @param compare String to compare comboBox items against.  If null, false is returned.
-@param FLAG compare criteria (i.e, CHECK_SUBSTRINGS, NONE).
-@param delimiter String containing delimiter to parse for CHECK_SUBSTRINGS,
-may be null if using FLAG == NONE.
-@param index Index location where the compare String was located at index[0]
-@return returns true if compare exist in the comboBox items list,
-false otherwise.  This is filled in unless it is passed as null.
+@param flag compare criteria (CHECK_SUBSTRINGS or NONE); currently any substring that matches will return true
+@param delimiter String containing delimiter to parse for flag=CHECK_SUBSTRINGS;
+@param compareIndex if >= 0, the substring part to compare (e.g., 
+may be null if using flag=NONE; specify -1 to compare all parts
+@param index Index location where the compare String was located
+(index[0] is set to the first ComboBox item that matches).
+@param ignoreCase true to ignore case in comparisons; false to require that case matches
+This is filled in unless it is passed as null.  For example use this when checking substrings so that an item
+can be selected (rather than setting a full string that may not totally match).
+@return returns true if compare exist in the comboBox items list, false otherwise.
 */
 public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
-	String compare, int FLAG, String delimiter, int[] index )
+	String compare, int flag, String delimiter, int compareIndex, int[] index, boolean ignoreCase )
 {	int size; // number of items in the choices
-    int curIndex; // current character position
-    int length; // length of curItem
     String curItem; // current Choice item
-    String curChar; // current character
  
 	if ( compare == null ) {
 		return false;
@@ -456,33 +468,34 @@ public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
     // Initialize variables
     compare = compare.trim();
     size = comboBox.getItemCount();
+    List<String> choiceParts;
 
+    int tokenPos = 0;
     for( int i=0; i<size; i++ ) {
-        curItem = comboBox.getItem( i ).trim(); 
-        String sub = curItem;
-
-        // check substring where substrings are delineated by spaces
-        if ( FLAG == CHECK_SUBSTRINGS ) {
-            // Jump over all characters until the delimiter is reached.  Break the remaining
-            // String into a SubString and compare to the compare String.
-            length = sub.length();
-            for ( curIndex = 0; curIndex < length; curIndex++ ) {
-                curChar = String.valueOf(curItem.charAt( curIndex ) ).trim();
-                if ( curChar.equals(delimiter) ) {
-                    sub = sub.substring( curIndex+1).trim();
+        curItem = comboBox.getItem( i ).trim();
+        tokenPos = -1;
+        if ( flag == CHECK_SUBSTRINGS ) {
+            // Split the combo box item using the delimiter and check the parts
+            choiceParts = StringUtil.breakStringList(curItem, delimiter, 0);
+            if ( choiceParts != null ) {
+                for ( String sub : choiceParts ) {
+                    ++tokenPos;
+                    // If a match occurs, return true and the index in the list in which the match was found.
+                    // If a requested compare string index was specified, only compare that part
+                    if ( (compareIndex < 0) || (compareIndex == tokenPos) ) {
+                        if ( (ignoreCase && sub.equalsIgnoreCase(compare)) ||
+                            (!ignoreCase && sub.equals(compare)) ) {
+                            index[0] = i;
+                            return true;
+                        }
+                    }
                 }
             }
-            // Compare the remaining String, sub, to the compare
-			// String.  If a match occurs, return true and the index
-			// in the list in which the match was found.
-            if ( compare.equals( sub ) ) {
-                index[0] = i;
-                return true;
-            }
         }
-		else if ( FLAG == NONE ) {
+		else if ( flag == NONE ) {
 			// Compare to the curItem String directly
-            if ( curItem.equals(compare) ) {
+            if ( (ignoreCase && curItem.equalsIgnoreCase(compare)) ||
+                (!ignoreCase && curItem.equals(compare)) ) {
         		if ( index != null ) {
                 	index[0] = i;
         		}
@@ -510,7 +523,7 @@ throws Exception {
 		if (!f.exists()) {
 			throw new Exception("No icon could be found at location '" + location + "'");
 		}
-		iconURL = f.toURL();
+		iconURL = f.toURI().toURL();
 		if (iconURL == null) {
 			throw new Exception("No icon could be found at location '" + location + "'");
 		}
@@ -552,7 +565,7 @@ the items if is at the front of the items.  After the changes, the
 originally selected items are still selected.  This is useful, for example,
 when a popup menu toggles the contents of a list back and forth.
 The list model must be the DefaultListModel or an extended class.
-REVISIT JAVADOC: see addStringToSelected
+TODO JAVADOC: see addStringToSelected
 @param list JList to modify.
 @param prefix String to add.
 */
@@ -1037,14 +1050,14 @@ that is displayed in a JTextArea.
 */
 public static void writeFile ( JTextArea ta, String filename )
 throws Exception
-{	List v = toList ( ta );
+{	List<String> v = toList ( ta );
 	PrintWriter out = new PrintWriter( new FileWriter( filename ) );
 	//
 	// Write each element of the _export Vector to a file.
 	//
 	int size = v.size();
 	for ( int i = 0; i < size; i++ ) {
-		out.println ( (String)v.get(i) );
+		out.println ( v.get(i) );
 	}
 	//
 	// close the PrintStream Object
