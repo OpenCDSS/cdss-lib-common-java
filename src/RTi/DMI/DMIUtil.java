@@ -3007,7 +3007,7 @@ public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter
 }
 
 /**
-Create a list of where clauses give an InputFilter_JPanel.  The InputFilter
+Create a single where clause given an InputFilter.  The InputFilter
 instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
 @return a list of where clauses, each of which can be added to a DMI statement.
@@ -3016,6 +3016,23 @@ the database table and field names in the internal (non-label) data.
 @param panel The InputFilter_JPanel instance to be converted.
 */
 public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator) {
+    return getWhereClauseFromInputFilter( dmi, filter, operator, false);
+}
+
+/**
+Create a single where clause given an InputFilter.  The InputFilter
+instances that are managed by the InputFilter_JPanel must have been defined with
+the database table and field names in the internal (non-label) data.
+@return a list of where clauses, each of which can be added to a DMI statement.
+@param dmi The DMI instance being used, which may be checked for specific formatting
+@param panel The InputFilter_JPanel instance to be converted
+@param operator the operator to use in creating the where clause
+@param upperCase if true, then the where clause for strings will be converted to upper case using
+the SQL upper() function - this is necessary for databases where a global case-insensitive
+option is not available
+*/
+public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator,
+    boolean upperCase ) {
 	String routine = "getWhereClauseFromInputFilter";
 	// Get the selected filter for the filter group...
 	if ( filter.getWhereLabel().trim().equals("") ) {
@@ -3031,6 +3048,9 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	}
 	// Get the user input...
 	String input = filter.getInputInternal().trim();
+    if ( upperCase ) {
+        input = input.toUpperCase();
+    }
 	Message.printStatus(2,routine,"Internal input is \"" + input + "\"");
 	// Now format the where clause...
 	
@@ -3041,15 +3061,30 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_CONTAINS) ) {
 		// Only applies to strings...
-		where_clause = whereSubject + " like '%" + input + "%'";
+	    if ( upperCase ) {
+	        where_clause = "upper(" + whereSubject + ") like '%" + input + "%'";
+	    }
+	    else {
+	        where_clause = whereSubject + " like '%" + input + "%'";
+	    }
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_ENDS_WITH) ) {
 		// Only applies to strings...
-		where_clause = whereSubject + " like '%" + input + "'";
+        if ( upperCase ) {
+            where_clause = "upper(" + whereSubject + ") like '%" + input + "'";
+        }
+        else {
+            where_clause = whereSubject + " like '%" + input + "'";
+        }
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS) ){
 		if ( input_type == StringUtil.TYPE_STRING ) {
-			where_clause = whereSubject + "='" + input + "'";
+	        if ( upperCase ) {
+	            where_clause = "upper(" + whereSubject + ")='" + input + "'";
+	        }
+	        else {
+	            where_clause = whereSubject + "='" + input + "'";
+	        }
 		}
 		else {
 			// Number...
@@ -3076,14 +3111,25 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 		where_clause = whereSubject + "<=" + input;
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_MATCHES)){
-		where_clause = whereSubject + "='" + input + "'";
+	    // Only applies to strings
+	    if ( upperCase ) {
+	        where_clause = "upper(" + whereSubject + ")='" + input + "'";
+	    }
+	    else {
+	        where_clause = whereSubject + "='" + input + "'";
+	    }
 	}
 	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_ONE_OF) ){
 		// TODO - need to enable in InputFilter_JPanel
 	}
 	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_STARTS_WITH) ) {
 		// Only applies to strings...
-		where_clause = whereSubject + " like '" + input + "%'";
+	    if ( upperCase ) {
+	        where_clause = "upper(" + whereSubject + ") like '" + input + "%'";
+	    }
+	    else {
+	        where_clause = whereSubject + " like '" + input + "%'";
+	    }
 	}
 	else {
 		// Unrecognized where...
