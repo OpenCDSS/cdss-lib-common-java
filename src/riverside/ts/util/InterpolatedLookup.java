@@ -63,6 +63,7 @@ public class InterpolatedLookup {
             _table.populate(i, Table.GETCOLUMN_2, value);
             i++;
         }
+        _table.sort(Table.GETCOLUMN_1);
     }
     
     /**
