@@ -1369,58 +1369,107 @@ public int getCurrentDayOfWeek ()
 
 /**
 Return an array of valid format specifiers for the formatDateTime() method, in
-the format %X - Description where X is the format specifier.  This is useful for
-building graphical interfaces.
+the format "%X - Description" where X is the format specifier.  The specifiers correspond to the strftime
+formatting routine.
 @return an array of format specifiers.
-@param include_description If false, only the %X specifiers are returned.  if
+@param includeDescription If false, only the %X specifiers are returned.  if
 True, the description is also returned.
 */
-public static String[] getDateTimeFormatSpecifiers(boolean include_description )
+public static String[] getDateTimeFormatSpecifiers(boolean includeDescription )
 {	String [] formats = new String[15];
-	if ( include_description ) {
-		formats[0] = "%a - Weekday, abbr";
-		formats[1] = "%A - Weekday, full";
-		formats[2] = "%b - Month, abbr";
-		formats[3] = "%B - Month, full";
-		//formats[3] = "%c - Not supported";
-		formats[4] = "%d - Day, num";
-		formats[5] = "%H - Hour (0-23)";
-		formats[6] = "%I - Hour (1-12)";
-		formats[7] = "%j - Day of year";
-		formats[8] = "%m - Month, num";
-		formats[9] = "%M - Minute";
-		formats[10] = "%p - AM, PM";
-		formats[11] = "%S - Second";
-		//formats[12] = "%U, %W - not supported";
-		//formats[12] = "%x - not supported";
-		//formats[12] = "%X - not supported";
-		formats[12] = "%y - Year, yy";
-		formats[13] = "%Y - Year, yyyy";
-		formats[14] = "%Z - Time zone";
-	}
-	else {
-		formats[0] = "%a";
-		formats[1] = "%A";
-		formats[2] = "%b";
-		formats[3] = "%B";
-		//formats[3] = "%c";
-		formats[4] = "%d";
-		formats[5] = "%H";
-		formats[6] = "%I";
-		formats[7] = "%j";
-		formats[8] = "%m";
-		formats[9] = "%M";
-		formats[10] = "%p";
-		formats[11] = "%S";
-		//formats[12] = "%U, %W - not supported";
-		//formats[12] = "%x - not supported";
-		//formats[12] = "%X - not supported";
-		formats[12] = "%y";
-		formats[13] = "%Y";
-		formats[14] = "%Z";
+	formats[0] = "%a - Weekday, abbreviation";
+	formats[1] = "%A - Weekday, full";
+	formats[2] = "%b - Month, abbreviation";
+	formats[3] = "%B - Month, full";
+	//formats[3] = "%c - Not supported";
+	formats[4] = "%d - Day (01-31)";
+	formats[5] = "%H - Hour (00-23)";
+	formats[6] = "%I - Hour (01-12)";
+	formats[7] = "%j - Day of year (001-366)";
+	formats[8] = "%m - Month (01-12)";
+	formats[9] = "%M - Minute (00-59)";
+	formats[10] = "%p - AM, PM";
+	formats[11] = "%S - Second (00-59)";
+	//formats[12] = "%U, %W - not supported";
+	//formats[12] = "%x - not supported";
+	//formats[12] = "%X - not supported";
+	formats[12] = "%y - Year (00-99)";
+	formats[13] = "%Y - Year (0000-9999)";
+	formats[14] = "%Z - Time zone";
+	if ( !includeDescription ) {
+        // Remove the text including and after the dash
+        for ( int j = 0; j < formats.length; j++ ) {
+            formats[j] = formats[j].substring(0,formats[j].indexOf("-")).trim();
+        }
 	}
 	return formats;
 }
+
+/**
+Return an array of valid format specifiers for the strftime formatter in
+the format "%X - Description" where X is the format specifier.  This is useful
+for building graphical interfaces.
+@return an array of format specifiers.
+@param includeDescription If false, only the %X specifiers are returned.  if
+True, the description is also returned.
+*/
+/* TODO SAM 2011-11-14 Merge with the above method
+public static String[] getStrftimeFormatSpecifiers(boolean includeDescription )
+{   String [] formats = new String[23];
+    int i = 0;
+    // These are from Linux strftime
+    formats[i++] = "%a - abbreviated weekday name"; // Should depend on locale
+    formats[i++] = "%A - full weekday name"; // Should depend on locale
+    formats[i++] = "%b - abbreviated month name"; // Should depend on locale
+    formats[i++] = "%B - full month name"; // Should depend on locale
+    //formats[i++] = "%c - preferred date and time representation"; // Not supported here
+    formats[i++] = "%C - century number (year/100)r";
+    formats[i++] = "%d - day of month (01-31)";
+    formats[i++] = "%D - %m/%d/%y";
+    formats[i++] = "%e - like %d but pad with space";
+    //formats[i++] = "%E - modifier"; // Not supported here
+    formats[i++] = "%F - %Y-%m-%d";
+    //formats[i++] = "%G - week-based year"; // Not supported here
+    //formats[i++] = "%g - like %G but without century"; // Not supported here
+    //formats[i++] = "%h - equivalent to %b"; // Redundant, not used
+    formats[i++] = "%H - hour (00-23)";
+    //formats[i++] = "%I - hour (01-12)"; // TODO SAM 2011-11-14 add later
+    formats[i++] = "%j - day of year (001-366)";
+    //formats[i++] = "%l - hour (1-12)"; // TODO SAM 2011-11-14 add later
+    formats[i++] = "%m - month (01-12)";
+    formats[i++] = "%M - minute (00-59)";
+    formats[i++] = "%n - newline";
+    //formats[i++] = "%O - modifier"; // Not supported here
+    formats[i++] = "%p - AM or PM (noon=PM, midnight=AM)";
+    formats[i++] = "%P - am or pm (noon=pm, midnight=am)";
+    //formats[i++] = "%r - time as %I:%M:%S %p";
+    formats[i++] = "%R - time as %H:%M";
+    //formats[i++] = "%s - seconds since 1970-01-01 00:00:00"; // Not supported here
+    formats[i++] = "%S - seconds (00-59)";
+    formats[i++] = "%t - tab";
+    formats[i++] = "%T - time as %H:%M:%S";
+    //formats[i++] = "%u - day of week (1-7, Monday=1)";
+    //formats[i++] = "%U - week number (00-53, 1st Sunday=week 01)";
+    //formats[i++] = "%V - week number (01-53, 1st week has > 4 days)";
+    //formats[i++] = "%w - day of week (0-6, Sunday=0)";
+    //formats[i++] = "%W - week number (00-53, 1st Monday=week 01)";
+    //formats[i++] = "%x - preferred local date";
+    //formats[i++] = "%X - preferred local time";
+    formats[i++] = "%y - year (00-99)";
+    formats[i++] = "%Y - year (YYYY)";
+    //formats[i++] = "%z - +hhmm or -hhmm offset from UTC";
+    //formats[i++] = "%Z - time zone";
+    //formats[i++] = "%+ - date(1) format";
+    formats[i++] = "%% - literal %";
+    if ( !includeDescription ) {
+        // Remove the text including and after the dash
+        for ( int j = 0; j < formats.length; j++ ) {
+            formats[j] = formats[j].substring(0,formats[j].indexOf("-")).trim();
+        }
+    }
+    return formats;
+}
+*/
 
 /**
 Return the local time zone abbreviation.
