@@ -358,13 +358,18 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException
     // Therefore, parse more brute force to get the command name and parameter list string
 	// List<String> tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
     String commandTrimmed = command.trim();
-    int parenStart = command.indexOf("(");
-    int parenEnd = command.lastIndexOf(")");
+    int parenStart = commandTrimmed.indexOf("(");
+    int parenEnd = commandTrimmed.lastIndexOf(")");
 	if ( (parenStart <= 0) || (parenEnd != (commandTrimmed.length() - 1)) ) {
 		message = "Invalid syntax for \"" + command + "\".  Expecting CommandName(parameter=value,...)";
 		Message.printWarning ( 2, routine, message);
 		throw new InvalidCommandSyntaxException ( message );
 	}
+    if ( parenEnd != (commandTrimmed.length() - 1) ) {
+        message = "Invalid syntax for \"" + commandTrimmed + "\".  Expecting CommandName(parameter=value,...)";
+        Message.printWarning ( 2, routine, message);
+        throw new InvalidCommandSyntaxException ( message );
+    }
 	// Get the parameter list...
 	String parameterString = commandTrimmed.substring((parenStart + 1), parenEnd);
 	if ( parameterString.length() > 0 ) {
@@ -373,7 +378,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException
 		    __parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, parameterString, routine,"," );
 		}
 		catch ( Exception e ) {
-			message = "Syntax error in \"" + command + "\".  Not enough tokens.";
+			message = "Syntax error in \"" + commandTrimmed + "\".  Not enough tokens.";
 			Message.printWarning ( 2, routine, message);
 			throw new InvalidCommandSyntaxException ( message );
 		}
