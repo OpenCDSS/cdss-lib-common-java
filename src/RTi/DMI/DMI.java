@@ -511,6 +511,7 @@ private boolean __inTransaction = false;
 /**
 Whether for the open() methods to print information to debug as normal (false)
 or to force the output to go to status level 1 (true).
+This is used with troubleshooting.  Usually this should be false.
 */
 private boolean __printStatus = false;
 
@@ -2255,7 +2256,7 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
         else if (_database_engine == DBENGINE_ORACLE ) {
-            __secure = true;
+            //__secure = true;
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
 			Class.forName( "oracle.jdbc.OracleDriver");
             // jdbc:oracle:thin:@//{__database_server}:{port}/{service}
@@ -2289,7 +2290,6 @@ throws SQLException, Exception {
 		connUrl = "jdbc:odbc:" + __odbc_name;
 		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
-		
     if ( __secure ) {
 		printStatusOrDebug(dl, routine, "Calling getConnection(" 
 		+ connUrl + ", " + system_login + ", " + system_password + ") via the Java DriverManager.");
