@@ -3342,7 +3342,8 @@ private void drawGraphAreaStacked ()
 
 /**
 Draw the legend.  The drawing is the same regardless of the legend position (the
-legend items are draft from top to bottom).  This should work well for left,
+legend items are draft from top to bottom and first time series to last, except for special cases like
+stacked area plot where the order is reversed).  This should work well for left,
 right, and bottom legends.  Additional logic may need to be implemented when the top legend is supported.
 */
 private void drawLegend ()
@@ -3430,7 +3431,26 @@ private void drawLegend ()
 	int tsNum = 0;
 	TSRegression regressionData = null;
 
-	for (int i = 0; i < size; i++) {
+	int iStart = 0;
+	int iEnd = size; // One more than last index will break loop
+	int iIncrement = 1;
+	// Determine if any time series are being drawn as stacked area
+	boolean reverseLegendOrder = false;
+	for ( int i = 0; i < size; i++ ) {
+	    TSGraphType tsGraphType = getTimeSeriesGraphType(graphType, i);
+    	if ( tsGraphType == TSGraphType.AREA_STACKED ) {
+    	    reverseLegendOrder = true;
+    	    break;
+    	}
+	}
+	if ( reverseLegendOrder ) {
+	    // Reverse the order of drawing the time series so the legend order matches the area
+	    iStart = size - 1;
+	    iEnd = -1; // One less than first index will break loop
+	    iIncrement = -1;
+	}
+	// The following loop works when plotting the time series list forward or backward
+	for ( int i = iStart; i != iEnd; i = i + iIncrement ) {
 	    TSGraphType tsGraphType = getTimeSeriesGraphType(graphType, i);
 		predicted = false;
 
