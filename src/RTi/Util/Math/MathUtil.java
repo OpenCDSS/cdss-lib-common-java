@@ -1065,7 +1065,7 @@ throws Exception
 	rd.setA ( a );
 	rd.setB ( b );
 	if ( data_transformed ) {
-		rd.setTransformedRMSE ( rmse );
+		rd.setRMSETransformed ( rmse );
 	}
 	else {
 	    rd.setRMSE ( rmse );

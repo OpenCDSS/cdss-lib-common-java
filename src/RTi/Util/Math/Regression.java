@@ -77,17 +77,25 @@ Number of non-missing points in X that are not in _n1.
 */
 protected int _n2 = 0;
 /**
-RMS Error - for untransformed data.
+Standard error of estimate for untransformed data.
+*/
+protected double _see = 0.0;
+/**
+Standard error of estimate for transformed data.
+*/
+protected double _seeTransformed = 0.0;
+/**
+Correlation coefficient.
+*/
+protected double _r = 0.0;
+/**
+RMS Error for untransformed data.
 */
 protected double _rmse = 0.0;
 /**
 RMS Error for transformed data.
 */
-protected double _transformed_rmse = 0.0;
-/**
-Correlation coefficient.
-*/
-protected double _r = 0.0;
+protected double _rmseTransformed = 0.0;
 /**
 Indicates whether the analysis has been completed.
 */
@@ -335,6 +343,14 @@ public double getRMSE ()
 }
 
 /**
+Return the RMS error for transformed data.
+@return The RMS error for transformed data.
+*/
+public double getRMSETransformed ()
+{   return _rmseTransformed;
+}
+
+/**
 Return the standard deviation for the independent array in the N1 + N2 space.
 @return the standard deviation for the independent array in the N1 + N2 space.
 */
@@ -383,11 +399,19 @@ public double getStandardDeviationY1Estimated ()
 }
 
 /**
-Return the RMS error for transformed data.
-@return The RMS error for transformed data.
+Return the standard error of estimate.
+@return the standard error of estimate
 */
-public double getTransformedRMSE ()
-{	return _transformed_rmse;
+public double getStandardErrorOfEstimate ()
+{   return _see;
+}
+
+/**
+Return the standard error of estimate for transformed data.
+@return the standard error of estimate for transformed data.
+*/
+public double getStandardErrorOfEstimateTransformed ()
+{   return _seeTransformed;
 }
 
 /**
@@ -571,6 +595,30 @@ public void setRMSE ( double rmse )
 }
 
 /**
+Set the transformed RMS error.
+@param rmseTransformed transformed RMS error.
+*/
+public void setRMSETransformed ( double rmseTransformed )
+{   _rmseTransformed = rmseTransformed;
+}
+
+/**
+Set the standard error of estimate.
+@param see the standard error of estimate
+*/
+public void setStandardErrorOfEstimate ( double see )
+{   _see = see;
+}
+
+/**
+Set the standard error of estimate.
+@param seeTransformed transformed standard error of estimate
+*/
+public void setStandardErrorOfEstimateTransformed ( double seeTransformed )
+{   _seeTransformed = seeTransformed;
+}
+
+/**
 Set the standard deviation for the independent data in the N1 + N2 space.
 @param stddev_x Standard deviation for the independent data in the N1 + N2 space.
 */
@@ -616,14 +664,6 @@ Set the standard deviation for the estimated dependent data in the N1 space.
 */
 public void setStandardDeviationY1Estimated ( double stddev_y1_estimated )
 {	_stddev_y1_estimated = stddev_y1_estimated;
-}
-
-/**
-Set the transformed RMS error.
-@param transformed_rmse transformed RMS error.
-*/
-public void setTransformedRMSE ( double transformed_rmse )
-{	_transformed_rmse = transformed_rmse;
 }
 
 /**
