@@ -238,9 +238,10 @@ Add a field to the table and each entry in TableRecord.  The field is added
 at the end of the other fields.  The added fields are initialized with blank
 strings or NaN, as appropriate.
 @param tableField information about field to add.
-@param initValue the initial value to set (can be null).
+@param initValue the initial value to set for all the existing rows in the table (can be null).
+@return the field index (0+).
 */
-public void addField ( TableField tableField, Object initValue )
+public int addField ( TableField tableField, Object initValue )
 {	_table_fields.add ( tableField );
 
 	int num = _table_records.size();
@@ -267,7 +268,7 @@ public void addField ( TableField tableField, Object initValue )
 			tableRecord.addFieldValue( initValue );
 		}
 	}
-	tableRecord = null;
+	return getNumberOfFields() - 1; // Zero offset
 }
 
 /**
@@ -790,34 +791,32 @@ throws Exception
         // because the limitation is likely handled elsewhere.
         return null;
     }
-    // Get the column values to check for in the appropriate type.
-    // To simplify memory management, allocate arrays for each type but only some positions will be used.
+    // First figure out the column numbers that will be checked
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
+    List<TableRecord> recList = new Vector();
     for ( String columnName: columnNames ) {
         ++iColumn;
-        // Figure out which column to search
+        // If -1 is returned then a column name does not exist and no matches are possible
         columnNumbers[iColumn] = getFieldIndex ( columnName );
+        if ( columnNumbers[iColumn] < 0 ) {
+            return recList;
+        }
     }
     // Now search the the records and then the columns in the record
-    List<TableRecord> recList = new Vector();
-    int size = _table_records.size();
-    TableRecord rec = null;
     Object columnContents;
     iColumn = -1; // reset for iteration
-    for ( int i = 0; i < size; i++ ) { // Loop through all table records
-        rec = _table_records.get(i);
-        int matchCount = 0; // How many columns match
+    for ( TableRecord rec : _table_records ) { // Loop through all table records
+        int matchCount = 0; // How many column values match
         iColumn = -1;
         for ( Object columnValue: columnValues ) {
             ++iColumn;
-            if ( columnNumbers[iColumn] < 0 ) {
-                // Invalid column name was passed in.
-                continue;
-            }
             columnContents = rec.getFieldValue(columnNumbers[iColumn]);
             if ( columnContents == null ) {
-                // Do not compare
+                // Only match if both are match
+                if ( columnValue == null ) {
+                    ++matchCount;
+                }
             }
             else if ( getFieldDataType(columnNumbers[iColumn]) == TableField.DATA_TYPE_STRING ) {
                 // Do case insensitive comparison
@@ -833,6 +832,7 @@ throws Exception
             }
         }
         if ( matchCount == columnValues.size() ) {
+            // Have matched the requested number of column values so add record to the match list
             recList.add(rec);
         }
     }
