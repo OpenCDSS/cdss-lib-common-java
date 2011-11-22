@@ -117,6 +117,7 @@ private String __s;
 /**
 Private constructor so this class can never be instantiated with no parameters.
 */
+@SuppressWarnings("unused")
 private DragAndDropTransferPrimitive() {}
 
 /**

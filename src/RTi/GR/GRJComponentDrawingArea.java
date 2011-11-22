@@ -158,6 +158,7 @@ private final int
 /**
 Private so it can't be used.
 */
+@SuppressWarnings("unused")
 private GRJComponentDrawingArea() {
 	super();
 	initialize(null);

@@ -490,10 +490,10 @@ public static Test suite(String packageName) {
 
 				// Try to get the suite() method from the class.  If there is no suite()
 				// method, a NoSuchMethodException will be thrown.
-				m = c.getMethod("suite", null);
+				m = c.getMethod("suite", (Class[])null);
 
 				// Execute the suite() method on the instantiated class.
-				suite.addTest((Test)(m.invoke(o, null)));
+				suite.addTest((Test)(m.invoke(o, (Object[])null)));
 			}
 			catch (NoSuchMethodException e) {
 				// The given class did not have a suite() method.  The class will simply be skipped.
@@ -552,10 +552,10 @@ public static Test suite(String packageName) {
 
 					// Try to get the suite() method from the class.  If there is no suite()
 					// method, a NoSuchMethodException will be thrown.
-					m = c.getMethod("suite", null);
+					m = c.getMethod("suite", (Class[])null);
 
 					// Execute the suite() method on the instantiated class.
-					suite.addTest( (Test)(m.invoke(o, null)));
+					suite.addTest( (Test)(m.invoke(o, (Object[])null)));
 				}
 				catch (NoSuchMethodException e) {
 					// The given class did not have a suite() method.  The class will simply be skipped.

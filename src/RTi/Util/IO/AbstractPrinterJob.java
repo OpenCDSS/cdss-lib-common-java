@@ -125,6 +125,7 @@ private boolean __requestedDoubleSided = false;
 /**
 Private constructor to protect abstract status.
 */
+@SuppressWarnings("unused")
 private AbstractPrinterJob ()
 {
 }

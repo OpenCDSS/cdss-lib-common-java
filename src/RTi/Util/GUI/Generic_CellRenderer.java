@@ -28,6 +28,7 @@ private Generic_TableModel __tableModel;
 /**
 Private constructor.  Can't use this.
 */
+@SuppressWarnings("unused")
 private Generic_CellRenderer() {}
 
 /**

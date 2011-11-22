@@ -270,11 +270,43 @@ private double [] _b_monthly;
 /**
 RMSE on a monthly basis.
 */
-private double [] _rmse_monthly;
+private double [] _rmseMonthly;
 /**
-Transformed RMS error on a monthly basis.
+Transformed RMS error on a monthly basis, for transformed values.
 */
-private double [] _transformed_rmse_monthly;
+private double [] _rmseTransformedMonthly;
+/**
+Standard error of estimate (SEE) on a monthly basis.
+*/
+private double [] __seeMonthly;
+/**
+Standard error of estimate (SEE) on a monthly basis, for transformed values.
+*/
+private double [] __seeTransformedMonthly;
+/**
+Standard error of prediction (SEP) on a monthly basis.
+*/
+private double [] __sepMonthly;
+/**
+Standard error of prediction (SEP) on a monthly basis, for transformed values.
+*/
+private double [] __sepTransformedMonthly;
+/**
+Standard error (SE) of slope on a monthly basis.
+*/
+private double [] __seSlopeMonthly;
+/**
+Standard error (SE) of slope on a monthly basis, for transformed values.
+*/
+private double [] __seSlopeTransformedMonthly;
+/**
+T-test score b/SE on a monthly basis.
+*/
+private double [] __testSlopeMonthly;
+/**
+Standard error (SE) of slope on a monthly basis, for transformed values.
+*/
+private double [] __testSlopeTransformedMonthly;
 /**
 Indicates whether analysis results are available for monthly analysis.
 */
@@ -512,8 +544,8 @@ private void analyzeMOVE2 ()
 	int ind_interval_mult = _xTS.getDataIntervalMult();
 	DateTime date = null;	// For iteration
 	double data_value = 0.0;
-	double rmse_total = 0.0, transformed_rmse_total = 0.0;
-	double n1_total = 0;
+	double rmseTotal = 0.0, rmseTransformedTotal = 0.0;
+	int n1_total = 0;
 	for ( int ieq = 1; ieq <= num_equations; ieq++ ) {
 		try {
 		// Get the data array for the dependent analysis period (N1).
@@ -800,7 +832,7 @@ private void analyzeMOVE2 ()
 		b = Math.sqrt(Sy_sq)/X_stddev;
 		double a = Ybar - b*X_mean;
 
-		double rmse = 0.0, transformed_rmse = 0.0;
+		double rmse = 0.0, rmseTransformed = 0.0;
 		double [] Y1_estimated = null;	// Estimated Y1 if filling data.
 		if ( _filling ) {
 			// Now if filling, estimate Y1 using A and B and compute
@@ -813,20 +845,20 @@ private void analyzeMOVE2 ()
 				if ( __transformation == DataTransformationType.LOG ) {
 					// Estimate Y in log10 space.  X1 was transformed to log above...
 					Y1_estimated[i] = a + X1_data[i]*b;					
-					transformed_rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));						
-					transformed_rmse_total += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
+					rmseTransformed += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));						
+					rmseTransformedTotal += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 					// Always do untransformed data.  To do so, un-transform the estimated
 					// log10 Y value and compare to the original untransformed Y value...
 					ytemp1=Math.pow(10.0, Y1_estimated[i]);					
 					ytemp2=orig_Y1_data[i];
 					rmse +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));
-					rmse_total +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));			
+					rmseTotal +=((ytemp1 - ytemp2)*(ytemp1 - ytemp2));			
 				}
 				else {
 				    Y1_estimated[i] = a + X1_data[i]*b;
 					rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 						
-					rmse_total += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));		
+					rmseTotal += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));		
 				}
 			}
 		}
@@ -835,22 +867,22 @@ private void analyzeMOVE2 ()
 			double ytemp, xtemp;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( __transformation == DataTransformationType.LOG ) {
-					transformed_rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
-					transformed_rmse_total += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					rmseTransformed += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					rmseTransformedTotal += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 					// Always do untransformed data...
 					ytemp = Math.pow(10.0, Y1_data[i]);
 					xtemp = Math.pow(10.0, X1_data[i]);
 					rmse += ((ytemp - xtemp)*(ytemp - xtemp));
-					rmse_total += ((ytemp - xtemp)*(ytemp - xtemp));
+					rmseTotal += ((ytemp - xtemp)*(ytemp - xtemp));
 				}
 				else {
 				    rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
-					rmse_total += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					rmseTotal += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 				}
 			}
 		}
 		if ( __transformation == DataTransformationType.LOG ) {
-			transformed_rmse=Math.sqrt(transformed_rmse/(double)n1);
+			rmseTransformed=Math.sqrt(rmseTransformed/(double)n1);
 		}
 		// Always do untransformed data...
 		rmse = Math.sqrt ( rmse/(double)n1 );
@@ -866,9 +898,11 @@ private void analyzeMOVE2 ()
 			setN1 ( n1 );
 			setN2 ( n2 );
 			if ( __transformation == DataTransformationType.LOG  ) {
-				setTransformedRMSE ( transformed_rmse );
+				setRMSETransformed ( rmseTransformed );
+				setStandardErrorOfEstimateTransformed (calculateStandardErrorOfEstimateFromRMSE(rmseTransformed,n1) );
 			}
 			setRMSE ( rmse );
+            setStandardErrorOfEstimate( calculateStandardErrorOfEstimateFromRMSE(rmse,n1) );
 			setMaxX1 ( rd.getMaxX1() );
 			setMinX1 ( rd.getMinX1() );
 			setMaxY1 ( rd.getMaxY1() );
@@ -899,16 +933,21 @@ private void analyzeMOVE2 ()
 			setN1 ( ieq, n1 );
 			setN2 ( ieq, n2 );
 			if ( __transformation == DataTransformationType.LOG  ) {
-				setTransformedRMSE ( ieq, transformed_rmse );
+				setRMSETransformed ( ieq, rmseTransformed );
+                setStandardErrorOfEstimateTransformed(ieq,calculateStandardErrorOfEstimateFromRMSE(rmseTransformed,n1));
 			}
 			setRMSE ( ieq, rmse );
+            setStandardErrorOfEstimate ( ieq, calculateStandardErrorOfEstimateFromRMSE(rmse,n1) );
 			if ( ieq == 12 ) {
 				// Save the total in the non-monthly data values...
-				rmse_total = Math.sqrt ( rmse_total/(double)n1_total );
-				transformed_rmse_total = Math.sqrt ( transformed_rmse_total/(double)n1_total);
-				setRMSE( rmse_total );
+				rmseTotal = Math.sqrt ( rmseTotal/(double)n1_total );
+				rmseTransformedTotal = Math.sqrt ( rmseTransformedTotal/(double)n1_total);
+				setRMSE( rmseTotal );
+                setStandardErrorOfEstimate ( calculateStandardErrorOfEstimateFromRMSE(rmseTotal,n1_total) );
 				if ( __transformation == DataTransformationType.LOG  ) {
-					setTransformedRMSE ( transformed_rmse_total );
+					setRMSETransformed ( rmseTransformedTotal );
+	                setStandardErrorOfEstimateTransformed (
+                        calculateStandardErrorOfEstimateFromRMSE(rmseTransformedTotal,n1_total) );
 				}
 			}
 			setMaxX1 ( ieq, rd.getMaxX1() );
@@ -1300,7 +1339,7 @@ private void analyzeOLSRegression ()
 
 		double a = rd.getA();
 		double b = rd.getB();
-		double rmse = 0.0, transformed_rmse = 0.0;
+		double rmse = 0.0, rmseTransformed = 0.0;
 		double [] Y1_estimated = null;	// Estimated Y1 if filling data.
 		if ( _filling ) {
 			// Now if filling, estimate Y1 using A and B and compute the RMSE from Y1 - Y.
@@ -1311,7 +1350,7 @@ private void analyzeOLSRegression ()
 			for ( int i = 0; i < n1; i++ ) {
 				if ( __transformation == DataTransformationType.LOG ) {
 					Y1_estimated[i] = a + X1_data[i]*b;
-					transformed_rmse += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
+					rmseTransformed += ((Y1_estimated[i] - Y1_data[i])*(Y1_estimated[i] - Y1_data[i]));
 					// Always do untransformed data...
 					ytemp1=Math.pow(10.0, Y1_estimated[i]);
 					ytemp2=orig_Y1_data[i];
@@ -1343,7 +1382,7 @@ private void analyzeOLSRegression ()
 			double ytemp, xtemp;
 			for ( int i = 0; i < n1; i++ ) {
 				if ( __transformation == DataTransformationType.LOG ) {
-					transformed_rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
+					rmseTransformed += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
 					// Always do untransformed data...
 					ytemp = Math.pow(10.0, Y1_data[i]);
 					xtemp = Math.pow(10.0, X1_data[i]);
@@ -1355,7 +1394,7 @@ private void analyzeOLSRegression ()
 			}
 		}
 		if ( __transformation == DataTransformationType.LOG ) {
-			transformed_rmse=Math.sqrt(transformed_rmse/(double)n1);
+			rmseTransformed=Math.sqrt(rmseTransformed/(double)n1);
 		}
 		// Always do untransformed data...
 		rmse = Math.sqrt ( rmse/(double)n1 );
@@ -1371,9 +1410,12 @@ private void analyzeOLSRegression ()
 			setN1 ( rd.getN1() );
 			setN2 ( n2 );
 			if ( __transformation == DataTransformationType.LOG ) {
-				setTransformedRMSE ( transformed_rmse );
+				setRMSETransformed ( rmseTransformed );
+                setStandardErrorOfEstimateTransformed (
+                        calculateStandardErrorOfEstimateFromRMSE(rmseTransformed,n1) );
 			}
 			setRMSE ( rmse );
+            setStandardErrorOfEstimate ( calculateStandardErrorOfEstimateFromRMSE(rmse,n1) );
 			setMaxX1 ( rd.getMaxX1() );
 			setMinX1 ( rd.getMinX1() );
 			setMaxY1 ( rd.getMaxY1() );
@@ -1403,9 +1445,12 @@ private void analyzeOLSRegression ()
 			setN2 ( ieq, n2 );
 			// There is no N2...
 			if ( __transformation == DataTransformationType.LOG ) {
-				setTransformedRMSE ( ieq, transformed_rmse );
+				setRMSETransformed ( ieq, rmseTransformed );
+                setStandardErrorOfEstimateTransformed ( ieq,
+                        calculateStandardErrorOfEstimateFromRMSE(rmseTransformed,n1) );
 			}
 			setRMSE ( ieq, rmse );
+            setStandardErrorOfEstimate ( ieq, calculateStandardErrorOfEstimateFromRMSE(rmse,n1) );
 			setMaxX1 ( ieq, rd.getMaxX1() );
 			setMinX1 ( ieq, rd.getMinX1() );
 			setMaxY1 ( ieq, rd.getMaxY1() );
@@ -1424,6 +1469,8 @@ private void analyzeOLSRegression ()
 				setStandardDeviationY1Estimated ( ieq, MathUtil.standardDeviation(Y1_estimated) );
 			}
 			setLagIntervals ( rd.getLagIntervals() );
+			
+			// TODO SAM 2010-12-18 Why does MOVE2 also set the total at when ieq = 12?
 		}
 	}
 	catch ( Exception e ) {
@@ -1440,6 +1487,15 @@ private void analyzeOLSRegression ()
 	routine = null;
 	x1Array = null;
 	y1Array = null;
+}
+
+/**
+Calculate the standard error of estimate from RMSE.  The only difference is that RMSE divides by sqrt(n) and
+SEE divides by sqrt(n - 2) so can calculate directly.
+*/
+private double calculateStandardErrorOfEstimateFromRMSE(double rmse, int n )
+{
+    return rmse*(Math.sqrt((double)n))/Math.sqrt((double)(n - 2));
 }
 
 /**
@@ -1619,7 +1675,7 @@ throws Throwable
 	_b_monthly = null;
 	_a_monthly = null;
 	_n1_monthly = null;
-	_rmse_monthly = null;
+	_rmseMonthly = null;
 	_r_monthly = null;
 	_is_analyzed_monthly = null;
 	super.finalize();
@@ -2093,7 +2149,7 @@ The number is by month.  The base class has a getN1 when only one relationship i
 @return the number of data points N1 used in an analysis.
 @param monthIndex The integer representation for the month of interest (1 is January).
 @exception TSException if the month index is out of range.
-@see RTi.Util.Math.Regression#getRMSE
+@see RTi.Util.Math.Regression#getN1
 */
 public int getN1 ( int monthIndex )
 throws TSException
@@ -2177,7 +2233,26 @@ throws TSException
 	if ( (monthIndex < 1) || (monthIndex > 12) ) {
 		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
 	}
-	return _rmse_monthly[monthIndex-1];
+	return _rmseMonthly[monthIndex-1];
+}
+
+/**
+Return the RMS error for the transformed data for a month.
+The base class has a getTransformedRMSE() when only one relationship is used.
+@return the RMS error for the transformed data.
+@param monthIndex The integer representation for the month of interest (1 is January).
+@exception TSException if there is no data available for the month.
+@see RTi.Util.Math.Regression#getRMSE
+*/
+public double getRMSETransformed ( int monthIndex )
+throws TSException
+{   if ( !isAnalyzed(monthIndex) ) {
+        throw new TSException ( "No analysis results available for month " + monthIndex );
+    }
+    if ( (monthIndex < 1) || (monthIndex > 12) ) {
+        throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
+    }
+    return _rmseTransformedMonthly[monthIndex-1];
 }
 
 /**
@@ -2283,30 +2358,48 @@ throws TSException
 }
 
 /**
+Return the standard error of estimate for the correlation between the two time series that have
+been analyzed.  This is a value which has been calculated for each month.
+The base class has a getStandardErrorOfEstimate() when only one relationship is used.
+@return the SEE for the month
+@param monthIndex The integer representation for the month of interest (1 is January).
+@exception TSException if there is no regression data available for the month.
+*/
+public double getStandardErrorOfEstimate ( int monthIndex )
+throws TSException
+{   if ( !isAnalyzed(monthIndex) ) {
+        throw new TSException ( "No analysis results available for month " + monthIndex );
+    }
+    if ( (monthIndex < 1) || (monthIndex > 12) ) {
+        throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
+    }
+    return __seeMonthly[monthIndex-1];
+}
+
+/**
+Return the standard error of estimate for the transformed data for a month.
+The base class has a getStandardErrorOfEstimateTransformed() when only one relationship is used.
+@return the SEE for the transformed data for the month of interest
+@param monthIndex The integer representation for the month of interest (1 is January).
+@exception TSException if there is no data available for the month.
+*/
+public double getStandardErrorOfEstimateTransformed ( int monthIndex )
+throws TSException
+{   if ( !isAnalyzed(monthIndex) ) {
+        throw new TSException ( "No analysis results available for month " + monthIndex );
+    }
+    if ( (monthIndex < 1) || (monthIndex > 12) ) {
+        throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
+    }
+    return __seeTransformedMonthly[monthIndex-1];
+}
+
+/**
 Get the transformation that has been applied to the data prior to the analysis.
 @return the transformation that has been applied to the data prior to the analysis.
 */
 public DataTransformationType getTransformation ( )
 {   return __transformation;
-}
-
-/**
-Return the RMS error for the transformed data for a month.
-The base class has a getTransformedRMSE() when only one relationship is used.
-@return the RMS error for the transformed data.
-@param monthIndex The integer representation for the month of interest (1 is January).
-@exception TSException if there is no data available for the month.
-@see RTi.Util.Math.Regression#getRMSE
-*/
-public double getTransformedRMSE ( int monthIndex )
-throws TSException
-{	if ( !isAnalyzed(monthIndex) ) {
-		throw new TSException ( "No analysis results available for month " + monthIndex );
-	}
-	if ( (monthIndex < 1) || (monthIndex > 12) ) {
-		throw new TSException ( "Month index " + monthIndex + " out of range 1-12." );
-	}
-	return _transformed_rmse_monthly[monthIndex-1];
 }
 
 /**
@@ -2423,8 +2516,10 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling,
     _X2_stddev_monthly = new double[12];
     _Y1_stddev_monthly = new double[12];
     _Y1_estimated_stddev_monthly = new double[12];
-    _rmse_monthly = new double[12];
-    _transformed_rmse_monthly = new double[12];
+    _rmseMonthly = new double[12];
+    _rmseTransformedMonthly = new double[12];
+    __seeMonthly = new double[12];
+    __seeTransformedMonthly = new double[12];
     _r_monthly = new double[12];
     _is_analyzed = false;
     _is_analyzed_monthly = new boolean[12];
@@ -2456,8 +2551,8 @@ private void initialize ( TS xTS, TS yTS, boolean analyzeForFilling,
         _X2_stddev_monthly[i] = 0.0;
         _Y1_stddev_monthly[i] = 0.0;
         _Y1_estimated_stddev_monthly[i] = 0.0;
-        _rmse_monthly[i] = 0;
-        _transformed_rmse_monthly[i] = 0;
+        _rmseMonthly[i] = 0;
+        _rmseTransformedMonthly[i] = 0;
         _is_analyzed_monthly[i] = false;
         _r_monthly[i] = 0;
         _analyze_month[i] = true; // Default is to analyze all months.
@@ -2764,8 +2859,19 @@ Set the RMS error for a particular month.
 */
 public void setRMSE ( int monthIndex, double rmse )
 {	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
-		_rmse_monthly[monthIndex-1] = rmse;
+		_rmseMonthly[monthIndex-1] = rmse;
 	}
+}
+
+/**
+Set the RMS error for the transformed data for a particular month.
+@param monthIndex The numerical value for the intended month (1 is January).
+@param rmseTransformed RMS error for the transformed data for the indicated month.
+*/
+public void setRMSETransformed ( int monthIndex, double rmseTransformed )
+{   if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
+        _rmseTransformedMonthly[monthIndex-1] = rmseTransformed;
+    }
 }
 
 /**
@@ -2835,14 +2941,25 @@ public void setStandardDeviationY1Estimated ( int monthIndex, double stddev )
 }
 
 /**
-Set the RMS error for the transformed data for a particular month.
+Set the standard error of estimate for a particular month.
 @param monthIndex The numerical value for the intended month (1 is January).
-@param transformed_rmse RMS error for the transformed data for the indicated month.
+@param see SEE for the indicated month.
 */
-public void setTransformedRMSE ( int monthIndex, double transformed_rmse )
-{	if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
-		_transformed_rmse_monthly[monthIndex-1] = transformed_rmse;
-	}
+public void setStandardErrorOfEstimate ( int monthIndex, double see )
+{   if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
+        __seeMonthly[monthIndex-1] = see;
+    }
+}
+
+/**
+Set the standard error of estimate for the transformed data for a particular month.
+@param monthIndex The numerical value for the intended month (1 is January).
+@param seeTransformed SEE for the transformed data for the indicated month.
+*/
+public void setStandardErrorOfEstimateTransformed ( int monthIndex, double seeTransformed )
+{   if ( (monthIndex >= 1) && (monthIndex <= 12) ) {
+        __seeTransformedMonthly[monthIndex-1] = seeTransformed;
+    }
 }
 
 /**
@@ -3042,7 +3159,7 @@ public String toString ()
 				StringUtil.formatString(getCorrelationCoefficient(i),"%7.4f")+ "|" +
 				StringUtil.formatString(getCorrelationCoefficient(i)*getCorrelationCoefficient(i),"%7.4f")+ "|" );
 				if ( __transformation != DataTransformationType.NONE ) {
-					stats.append (StringUtil.formatString(getTransformedRMSE(i),"%12.4f")+ "|" );
+					stats.append (StringUtil.formatString(getRMSETransformed(i),"%12.4f")+ "|" );
 				}
 				stats.append (
 				StringUtil.formatString(getRMSE(i),"%12.2f")+ "|" );
@@ -3071,7 +3188,7 @@ public String toString ()
 			StringUtil.formatString(getCorrelationCoefficient(),"%7.4f")+ "|" +
 			StringUtil.formatString(getCorrelationCoefficient()*getCorrelationCoefficient(),"%7.4f")+ "|" );
 			if ( __transformation != DataTransformationType.NONE ) {
-				stats.append ( StringUtil.formatString(getTransformedRMSE(),"%12.4f")+ "|" );
+				stats.append ( StringUtil.formatString(getRMSETransformed(),"%12.4f")+ "|" );
 			}
 			stats.append ( StringUtil.formatString(getRMSE(),"%12.2f")+ "|" );
 			if ( _filling ) {
@@ -3097,7 +3214,7 @@ public String toString ()
 		// Include a total RMSE row...
 		stats.append ( "|All|                                                                                     |" );
 		if ( __transformation != DataTransformationType.NONE ) {
-			stats.append ( StringUtil.formatString(getTransformedRMSE(),"%12.4f")+ "|" );
+			stats.append ( StringUtil.formatString(getRMSETransformed(),"%12.4f")+ "|" );
 		}
 		stats.append (
 		StringUtil.formatString( getRMSE(),"%12.2f")+ "|" );
