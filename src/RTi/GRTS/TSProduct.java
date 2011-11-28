@@ -373,6 +373,15 @@ pixels.
 </tr>
 
 <tr>
+<td><b>BarOverlap</b></td>
+<td>For use with bar graphs.  This property controls how bars are positioned
+relative to each other and can have the value of False (bars will be separated horizontally)
+or True (bars will overlap, with the first time series drawn first and the last time series on top).
+This property is useful for creating exceedance probability plots.</td>
+<td>CenteredOnDate</td>
+</tr>
+
+<tr>
 <td><b>BarPosition</b></td>
 <td>For use with bar graphs.  This property controls how bars are positioned
 relative to the date for the data and can have the values CenteredOnDate,
@@ -1672,6 +1681,10 @@ public void checkGraphProperties ( int nsubs )
 
 		// Now alphabetize the properties...
 
+        if ( (graphType == TSGraphType.BAR) && getLayeredPropValue("BarOverlap",isub, -1, false ) == null ) {
+            setPropValue ( "BarOverlap", getDefaultPropValue("BarOverlap",isub,-1), isub, -1 );
+        }
+
 		if ( (graphType == TSGraphType.BAR) && getLayeredPropValue("BarPosition",isub, -1, false ) == null ) {
 			setPropValue ( "BarPosition", getDefaultPropValue("BarPosition",isub,-1), isub, -1 );
 		}
@@ -2293,8 +2306,7 @@ may be added to get the defaults from a database, etc.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked.
+(subproduct) and Y is (its).  If negative, the data item property will not be checked.
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its ) {
@@ -2312,8 +2324,7 @@ If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
 (subproduct) and Y is (its).  If negative, the data item property will
-not be checked.  This is also used for annotations -- see the isAnnotation 
-property.
+not be checked.  This is also used for annotations -- see the isAnnotation property.
 @param isAnnotation is true, then its will be treated as the number of an 
 annotation under the given subproduct, rather than a time series under the given subproduct.
 @return value of property or null if not found.
@@ -2489,7 +2500,10 @@ boolean isAnnotation, TSGraphType graphType) {
 
 	else if ( (subproduct >= 0) && (its < 0) ) {
 		// Subproduct property...
-		if ( param.equalsIgnoreCase("BarPosition") ) {
+        if ( param.equalsIgnoreCase("BarOverlap") ) {
+            return "False";
+        }
+        else if ( param.equalsIgnoreCase("BarPosition") ) {
 			return "CenteredOnDate";
 		}
 		else if (param.equalsIgnoreCase("AnnotationProvider")) {

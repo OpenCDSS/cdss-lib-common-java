@@ -261,16 +261,6 @@ Graph View Properties</td>
 </tr>
 
 <tr>
-<td><b>BarPosition</b></td>
-<td>Used for bar graphs.  Indicates the position of the bar relative to the
-date.  Can be "BarsLeftOfDate" (e.g., for 15-minute precipitation),
-"BarsCenteredOnDate" (e.g., for instantaneous data plotted as bars),
-"BarsRightOfDate" (e.g., for monthly precipitation).
-</td>
-<td>BarsCenteredOnDate</td>
-</tr>
-
-<tr>
 <td><b>DoubleBuffer</b></td>
 <td>Indicates whether double-buffering should be used.  Doing so increases
 performance for refreshes but uses more memory.

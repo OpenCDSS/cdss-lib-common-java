@@ -351,7 +351,7 @@ private String
 /**
 If the graph type is Duration, this holds the results of the duration data for each time series.
 */
-private List _duration_data = null;
+private List<TSDurationAnalysis> _duration_data = null;
 
 /**
 The following reference is used internally so that the _graphics does not need
@@ -3129,7 +3129,7 @@ private void drawDurationPlot ()
 			return;
 		}
 		
-		da = (TSDurationAnalysis)_duration_data.get(i);
+		da = _duration_data.get(i);
 
 		if (da == null) {
 			Message.printWarning(2, routine, "Null TSDurationAnalysis to graph [" + i + "]");
@@ -3864,14 +3864,14 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	}
 
 	// Bar graph parameters
-	double bar_width = 0.0;		// Width actually drawn
-	double bar_width_d2 = 0.0;	// bar_width/2
-	double full_bar_width = 0.0;	// Width used for positioning
-	double full_bar_width_d2 = 0.0;	// full_bar_width/2
+	double bar_width = 0.0; // Width actually drawn (single bar)
+	double bar_width_d2 = 0.0; // bar_width/2
+	double full_bar_width = 0.0; // Width used for positioning (may be multiple bars if no overlap)
+	double full_bar_width_d2 = 0.0; // full_bar_width/2
 	double maxy = 0.0;
 	double miny = 0.0;
 
-	int bar_position = 0;		// position 0 means centered on the date
+	int bar_position = 0; // position 0 means centered on the date, -1 to left, 1 to right
 	prop_value = getLayeredPropValue("BarPosition", _subproduct, -1, false, overrideProps);
 	if (prop_value != null) {
 		if (prop_value.equalsIgnoreCase("LeftOfDate")) {
@@ -3881,14 +3881,20 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 			bar_position = 1;
 		}
 	}
+	
+    boolean barOverlap = false; // whether bars are overlapped
+    prop_value = getLayeredPropValue("BarOverlap", _subproduct, -1, false, overrideProps);
+    if ( (prop_value != null) && prop_value.equalsIgnoreCase("True")) {
+        barOverlap = true;
+    }
 
 	// Generate the clipping area that will be set so that no data are drawn outside of the graph
 	Shape clip = GRDrawingAreaUtil.getClip(_da_graph);
 	GRDrawingAreaUtil.setClip(_da_graph, _da_graph.getDataLimits());
 
-	// If a bar graph, the bar width is the data interval/nts.  Rather than
-	// compute a bar width that may vary some with the plot zoom, always
-	// draw filled in and draw a border.  The position of the bar is
+	// If a bar graph, the bar width is the data interval/nts (if barOverlap=false) or
+	// interval (if barOverlap=true).  Rather than compute a bar width that may vary some
+	// with the plot zoom, always draw filled in and draw a border.  The position of the bar is
 	// determined by the "BarPosition" property.
 
 	int nts = getEnabledTSList().size();
@@ -3977,7 +3983,9 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		maxy = _data_limits.getMaxY();
 
 		// Account for the number of time series...
-		full_bar_width /= nts;
+		if ( barOverlap == false ) {
+		    full_bar_width /= nts;
+		}
 
 		// If bar width is <= 5 pixels in device units, do not
 		// draw bounding rectangle because it will hide the data...
@@ -3991,6 +3999,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	if (ts.getDataIntervalBase() == TimeInterval.MONTH) {
 		// No need for separator since rectangle is smaller.
 		draw_bounding_rectangle = false;
+		// This gives a little space between the bars
 		bar_width = full_bar_width*.85;
 	}
 	else {	
@@ -4168,18 +4177,33 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         			}
         
         			// If get to here need to draw the line or bar.
-        			// Shift the bars according to the BarPosition property.
+        			// Shift the bars according to the BarPosition and BarOverlap properties.
         			if (bar_position == -1) {
         				// All bars left of date
-        				centerx = x - full_bar_width_d2 - (nts - 1) * full_bar_width + its * full_bar_width;
+        			    if ( barOverlap ) {
+        			        centerx = x - full_bar_width_d2;
+        			    }
+        			    else {
+        			        centerx = x - full_bar_width_d2 - (nts - 1) * full_bar_width + its * full_bar_width;
+        			    }
         			}
         			else if (bar_position == 1) {
         				// Bar right of date.
-        				centerx = x + full_bar_width_d2 + its * full_bar_width;
+                        if ( barOverlap ) {
+                            centerx = x + full_bar_width_d2;
+                        }
+                        else {
+                            centerx = x + full_bar_width_d2 + its * full_bar_width;
+                        }
         			}
         			else {	
         				// Center on date.
-        				centerx = x - (nts - 1)* full_bar_width_d2 + its * full_bar_width;
+                        if ( barOverlap ) {
+                            centerx = x;
+                        }
+                        else {
+                            centerx = x - (nts - 1)* full_bar_width_d2 + its * full_bar_width;
+                        }
         			}
         			
         			leftx = centerx - bar_width_d2;
@@ -4414,15 +4438,30 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 				// Drawing bars
 				if (bar_position == -1) {
 					// All bars left of date
-					centerx = x - full_bar_width_d2 - (nts - 1) * full_bar_width + its * full_bar_width;
+                    if ( barOverlap ) {
+                        centerx = x - full_bar_width_d2;
+                    }
+                    else {
+                        centerx = x - full_bar_width_d2 - (nts - 1) * full_bar_width + its * full_bar_width;
+                    }
 				}
 				else if (bar_position == 1) {
 					// Bar right of date
-					centerx = x + full_bar_width_d2 + its * full_bar_width;
+                    if ( barOverlap ) {
+                        centerx = x + full_bar_width_d2;
+                    }
+                    else {
+                        centerx = x + full_bar_width_d2 + its * full_bar_width;
+                    }
 				}
 				else {	
 					// Center on date
-					centerx = x - (nts - 1) * full_bar_width_d2 + its * full_bar_width;
+                    if ( barOverlap ) {
+                        centerx = x;
+                    }
+                    else {
+                        centerx = x - (nts - 1) * full_bar_width_d2 + its * full_bar_width;
+                    }
 				}
 
 				leftx = centerx - bar_width_d2;
@@ -4618,7 +4657,7 @@ private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolea
         String propValue = null;
         if ( flaggedData ) {
             propValue = getLayeredPropValue("FlaggedDataSymbolStyle", _subproduct, its, false, overrideProps);
-            if ( propValue == null ) {
+            if ( (propValue == null) || propValue.equals("") ) {
                 // Use the main symbol style
                 propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
             }

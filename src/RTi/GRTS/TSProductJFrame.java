@@ -362,6 +362,8 @@ private JCheckBox _graph_isref_JCheckBox = null;
 private SimpleJComboBox _graph_graphtype_JComboBox = null;
 private JLabel _graph_barposition_JLabel = null;
 private SimpleJComboBox _graph_barposition_JComboBox = null;
+private JLabel _graph_barOverlap_JLabel = null;
+private SimpleJComboBox _graph_barOverlap_JComboBox = null;
 
 private JTextField _graph_maintitle_JTextField = null;
 private SimpleJComboBox _graph_maintitle_fontname_JComboBox = null;
@@ -504,6 +506,7 @@ private SimpleJComboBox _ts_linestyle_JComboBox = null;
 private SimpleJComboBox _ts_linewidth_JComboBox = null;
 private SimpleJComboBox _ts_symbolstyle_JComboBox = null;
 private SimpleJComboBox _ts_symbolsize_JComboBox = null;
+private SimpleJComboBox _ts_flaggedDataSymbolStyle_JComboBox = null;
 private JTextField _ts_color_JTextField = null;
 private SimpleJComboBox _ts_color_JComboBox = null;
 private SimpleJButton _ts_color_JButton = null;
@@ -1090,6 +1093,15 @@ private void clearDataProperties() {
 		_ts_symbolstyle_JComboBox.setEnabled(true);
 	}
 	
+    _ts_flaggedDataSymbolStyle_JComboBox.select(_tsproduct.getDefaultPropValue("FlaggedDataSymbolStyle", 1, 1));
+   
+    if (graphType.equals("Bar")) {
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(false);
+    }
+    else {
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(true);
+    }
+	
 	_ts_xaxis_JComboBox.select(_tsproduct.getDefaultPropValue("XAxis", 1, 1));
 		
 	_ts_confidenceinterval_JComboBox.select(_tsproduct.getDefaultPropValue("YAxis", 1, 1));
@@ -1129,12 +1141,14 @@ private void clearGraphProperties(int subproduct, int ts, TSGraphType graphType)
 	String prefix = "SubProduct " + (subproduct + 1) + ".";
 	if (graphType != TSGraphType.BAR && graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		_tsproduct.unSet(prefix + "BarPosition");
+		_tsproduct.unSet(prefix + "BarOverlap");
 	}
 	else {
 		_tsproduct.unSet(prefix + "LineStyle");
 		_tsproduct.unSet(prefix + "LineWidth");
 		_tsproduct.unSet(prefix + "SymbolSize");
 		_tsproduct.unSet(prefix + "SymbolStyle");
+		_tsproduct.unSet(prefix + "FlaggedDataSymbolStyle");
 	}
 
 	if (graphType == TSGraphType.POINT) {
@@ -1195,10 +1209,14 @@ private void clearSubProductProperties() {
 		_graph_barposition_JComboBox.select( _tsproduct.getDefaultPropValue("BarPosition", 1, -1));
 		_graph_barposition_JLabel.setVisible(true);
 		_graph_barposition_JComboBox.setVisible(true);
+		_graph_barOverlap_JLabel.setVisible(true);
+        _graph_barOverlap_JComboBox.setVisible(true);
 	}
 	else {
 		_graph_barposition_JLabel.setVisible(false);
 		_graph_barposition_JComboBox.setVisible(false);
+		_graph_barOverlap_JLabel.setVisible(false);
+        _graph_barOverlap_JComboBox.setVisible(false);
 	}
 
 	String colorString = _tsproduct.getDefaultPropValue( "BottomXAxisMajorGridColor", 1, -1);
@@ -1900,6 +1918,7 @@ private JPanel createDataJPanel ()
 			0, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linestyle_JComboBox = new SimpleJComboBox ( false );
+	_ts_linestyle_JComboBox.setToolTipText("Line style for line graphs.");
 	_ts_linestyle_JComboBox.addItem("Dashed");
 	_ts_linestyle_JComboBox.addItem("None");
 	_ts_linestyle_JComboBox.addItem("Solid");
@@ -1911,6 +1930,7 @@ private JPanel createDataJPanel ()
 			2, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linewidth_JComboBox = new SimpleJComboBox ( true );
+	_ts_linewidth_JComboBox.setToolTipText("Line width in pixels on screen.");
 	_ts_linewidth_JComboBox.addItem("1");
 	_ts_linewidth_JComboBox.addItem("2");
 	_ts_linewidth_JComboBox.addItem("3");
@@ -1925,10 +1945,12 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_color_JTextField = new JTextField (10);
 	_ts_color_JTextField.setEditable(false);
+	_ts_color_JTextField.setToolTipText ( "Color for graph visualization of time series - pick from choices on right." );
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JTextField,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_color_JComboBox = new SimpleJComboBox( false );
+	_ts_color_JComboBox.setToolTipText ( "Color choices." );
 	_ts_color_JComboBox.addItemListener(this);
 	int size = GRColor.COLOR_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
@@ -1940,6 +1962,7 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
 	_ts_color_JButton.setEnabled(false);
+	_ts_color_JButton.setToolTipText ( "Custom color choices are not implemented." );
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JButton,
 			3, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -1948,6 +1971,7 @@ private JPanel createDataJPanel ()
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolstyle_JComboBox = new SimpleJComboBox ( false );
+	_ts_symbolstyle_JComboBox.setToolTipText ( "Symbol for line and point graphs - see also symbol size.");
 	size = GRSymbol.SYMBOL_NAMES.length;
 	for ( int i = 0; i < size; i++ ) {
 		_ts_symbolstyle_JComboBox.addItem ( GRSymbol.SYMBOL_NAMES[i] );
@@ -1960,6 +1984,7 @@ private JPanel createDataJPanel ()
 			2, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolsize_JComboBox = new SimpleJComboBox ( false );
+	_ts_symbolsize_JComboBox.setToolTipText ( "Symbol size for line and point graphs - see also symbol style.");
 	for ( int i = 0; i <= 20; i++ ) {
 		_ts_symbolsize_JComboBox.addItem ( "" + i );
 	}
@@ -1967,6 +1992,20 @@ private JPanel createDataJPanel ()
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolsize_JComboBox,
 			3, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
+   JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Flagged data symbol style:"),
+        0, ++y, 1, 1, 0, 0, _insetsTLBR,
+        GridBagConstraints.NONE, GridBagConstraints.EAST );
+    _ts_flaggedDataSymbolStyle_JComboBox = new SimpleJComboBox ( false );
+    _ts_flaggedDataSymbolStyle_JComboBox.setToolTipText ( "Flagged data symbol for line and point graphs - see also symbol size.");
+    _ts_flaggedDataSymbolStyle_JComboBox.addItem ( "" );
+    size = GRSymbol.SYMBOL_NAMES.length;
+    for ( int i = 0; i < size; i++ ) {
+        _ts_flaggedDataSymbolStyle_JComboBox.addItem ( GRSymbol.SYMBOL_NAMES[i] );
+    }
+    JGUIUtil.addComponent ( symbol_JPanel, _ts_flaggedDataSymbolStyle_JComboBox,
+        1, y, 1, 1, 0, 0, _insetsTLBR,
+        GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Label...
 
@@ -2360,7 +2399,7 @@ private JPanel createSubproductJPanel ()
 			1, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	// Add bar position choice regardless of type.  The displaySubProduct()
+	// Add bar position and overlap choice regardless of type.  The displaySubProduct()
 	// method sets to visible only if a bar graph...
 
 	_graph_barposition_JLabel = new JLabel("Bar position:");
@@ -2374,6 +2413,19 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent ( graphtype_JPanel, _graph_barposition_JComboBox,
 			1, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
+    _graph_barOverlap_JLabel = new JLabel("Bar overlap:");
+    JGUIUtil.addComponent ( graphtype_JPanel, _graph_barOverlap_JLabel,
+        0, ++y, 1, 1, 0, 0,
+        _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+    _graph_barOverlap_JComboBox = new SimpleJComboBox( false );
+    _graph_barOverlap_JComboBox.addItem ( "False" );
+    _graph_barOverlap_JComboBox.addItem ( "True" );
+    _graph_barOverlap_JComboBox.setToolTipText ( "False will display bars next to each other, " +
+    	"True will display bars with first time series in back and last in front." );
+    JGUIUtil.addComponent ( graphtype_JPanel, _graph_barOverlap_JComboBox,
+        1, y, 1, 1, 0, 0,
+        _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Titles tab...
 
@@ -3294,6 +3346,25 @@ private void displayDataProperties ( int isub, int its )
 	else {	
 		_ts_enabled_JCheckBox.setSelected(false);
 	}
+	
+	// "FlaggedDataSymbolStyle"
+
+    prop_val = _tsproduct.getLayeredPropValue ( "FlaggedDataSymbolStyle", isub, its, false );
+    if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+        (graphType == TSGraphType.BAR) || (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
+        _ts_flaggedDataSymbolStyle_JComboBox.select("");
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(false);
+    }
+    else {  
+        try {   
+            JGUIUtil.selectIgnoreCase(_ts_flaggedDataSymbolStyle_JComboBox, prop_val);
+        }
+        catch (Exception e) {
+            _ts_flaggedDataSymbolStyle_JComboBox.select(
+                _tsproduct.getDefaultPropValue("FlaggedDataSymbolStyle",isub,its));
+        }
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(true);
+    }
 
 	// "LegendFormat"
 
@@ -3627,6 +3698,25 @@ private void displaySubproductProperties ( int isub )
 		_graph_graphtype_JComboBox.select( "" + TSGraphType.LINE );
 	}
 	graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+	
+	// "BarOverlap" - maybe move this to TS Symbol when/if GraphType is allowed to be set for each TS
+
+    prop_val = _tsproduct.getLayeredPropValue ( "BarOverlap", isub, -1, false );
+    if ( graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+        try {   
+            JGUIUtil.selectIgnoreCase(_graph_barOverlap_JComboBox, prop_val);
+        }
+        catch (Exception e) {
+            Message.printWarning (2, routine,"BarOverlap \"" + prop_val + "\" is not recognized");
+            _graph_barOverlap_JComboBox.select(_tsproduct.getDefaultPropValue("BarOverlap", isub,-1));
+        }
+        _graph_barOverlap_JLabel.setVisible(true);
+        _graph_barOverlap_JComboBox.setVisible(true);
+    }
+    else {  
+        _graph_barOverlap_JLabel.setVisible(false);
+        _graph_barOverlap_JComboBox.setVisible(false);
+    }
 
 	// "BarPosition" - maybe move this to TS Symbol when/if GraphType is allowed to be set for each TS
 
@@ -4495,17 +4585,37 @@ graph type.
 @param isub the subproduct currently selected.
 @param its the time series currently selected.
 */
-void enableComponentsBasedOnGraphType(int isub, int its, 
-boolean setValue) {
+void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 	if (!isVisible()) {
-		// if the GUI is not visible (ie, in setup), this method
+		// If the GUI is not visible (ie, in setup), this method
 		// will cause major problems if called as is.  
 		return;
 	}
+	
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+	
+	// "FlaggedDataSymbolStyle"
+
+    if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+        if (setValue) {
+            _ts_flaggedDataSymbolStyle_JComboBox.select("");
+        }
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(false);
+    }
+    else if (graphType == TSGraphType.POINT) {
+        if (setValue) {
+            _ts_symbolstyle_JComboBox.select("");
+        }
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(true);
+    }
+    else {  
+        if (setValue) {
+            _ts_symbolstyle_JComboBox.select("");
+        }
+        _ts_flaggedDataSymbolStyle_JComboBox.setEnabled(true);
+    }
 
 	// "LineStyle"
-
-	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
 
 	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		if (setValue) {
@@ -5204,10 +5314,14 @@ public void itemStateChanged ( ItemEvent evt ) {
 			if (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
+				_graph_barOverlap_JComboBox.setVisible(true);
+                _graph_barOverlap_JLabel.setVisible(true);
 			}
 			else {
 				_graph_barposition_JComboBox.setVisible(false);
 				_graph_barposition_JLabel.setVisible(false);
+			    _graph_barOverlap_JComboBox.setVisible(false);
+                _graph_barOverlap_JLabel.setVisible(false);
 			}
 		}
 		else {	
@@ -5221,10 +5335,14 @@ public void itemStateChanged ( ItemEvent evt ) {
 			if (graphType == TSGraphType.BAR) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
+				_graph_barOverlap_JComboBox.setVisible(true);
+                _graph_barOverlap_JLabel.setVisible(true);
 			}
 			else {
 				_graph_barposition_JComboBox.setVisible(false);
 				_graph_barposition_JLabel.setVisible(false);
+				_graph_barOverlap_JComboBox.setVisible(false);
+                _graph_barOverlap_JLabel.setVisible(false);
 			}
 		}
 		clearGraphProperties(_selected_subproduct, -1, graphType);
@@ -5643,6 +5761,8 @@ private void setGraphFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_graph_graphtype_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_barposition_JLabel, enabled);
 	JGUIUtil.setEnabled(_graph_barposition_JComboBox, enabled);
+	JGUIUtil.setEnabled(_graph_barOverlap_JLabel, enabled);
+	JGUIUtil.setEnabled(_graph_barOverlap_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_maintitle_JTextField, enabled);
 	JGUIUtil.setEnabled(_graph_maintitle_fontname_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_maintitle_fontstyle_JComboBox, enabled);
@@ -5957,6 +6077,7 @@ private void setTimeSeriesFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_ts_linewidth_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolstyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolsize_JComboBox, enabled);
+	JGUIUtil.setEnabled(_ts_flaggedDataSymbolStyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_color_JTextField, enabled);
 	JGUIUtil.setEnabled(_ts_color_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_datalabelposition_JComboBox, enabled);
@@ -6191,6 +6312,18 @@ protected int updateTSProduct (int howSet) {
 			++ndirty;
 		}
 	}
+	
+	// "BarOverlap" - only set if it is a bar graph, otherwise it will
+    // get saved in the TSProduct file...
+
+    if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+        prop_val = _tsproduct.getLayeredPropValue( "BarOverlap", _selected_subproduct, -1, false);
+        gui_val = _graph_barOverlap_JComboBox.getSelected();
+        if (!gui_val.equalsIgnoreCase(prop_val)) {
+            _tsproduct.setPropValue("BarOverlap", gui_val, _selected_subproduct, -1);
+            ++ndirty;
+        }
+    }
 
 	prop_val = _tsproduct.getLayeredPropValue( "AnnotationProvider", _selected_subproduct,-1, false);
 	if ( __graphAnnotationProvider != null ) {
@@ -6816,6 +6949,15 @@ protected int updateTSProduct (int howSet) {
 		_tsproduct.setPropValue ( "DataLabelPosition", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
+	
+	// "FlaggedDataSymbolStyle"
+
+    prop_val = _tsproduct.getLayeredPropValue ( "FlaggedDataSymbolStyle", _selected_subproduct, _selected_data, false );
+    gui_val = _ts_flaggedDataSymbolStyle_JComboBox.getSelected().trim();
+    if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+        _tsproduct.setPropValue ( "FlaggedDataSymbolStyle", gui_val, _selected_subproduct, _selected_data );
+        ++ndirty;
+    }
 
 	// "LegendFormat"
 
