@@ -270,6 +270,66 @@ private static String decimalToHexHelper(int num) {
 }
 
 /**
+@return The sample value corresponding to the given exceedance probability.
+@param n the number of values in the sample array to process
+@param x sample values
+@param probability the exceedance probability to consider (0.0 to 1.0)
+@exception java.lang.Exception If the number of points is <= 0
+*/
+public static double exceedanceProbabilityValue ( int n, double x[], double probability )
+throws Exception
+{   String routine = "MathUtil.exceedanceProbabilityValue";
+    double value = 0;
+
+    if ( n <= 0 ) {
+        String message = "Number of points <= 0";
+        Message.printWarning ( 10, routine, message );
+        throw new Exception ( message );
+    }
+    // First sort the numbers into ascending order...
+    double [] x2 = new double[x.length];
+    System.arraycopy(x, 0, x2, 0, n);
+    sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
+    
+    // Calculate the distribution information
+    double [] eProb = new double[n];
+    int n1 = n + 1;
+    for ( int i = 0; i < n; i++ ) {
+        if ( n == 1 ) {
+            eProb[i] = 1.0;
+        }
+        else {
+            eProb[i] = (n - i)/(double)n1;
+        }
+    }
+    
+    // Calculate the value for the requested probability.  Do so by going
+    // past the value and then interpolating back to the value using
+    // bracketing points.  If the requested probability is outside the
+    // range of the data use the appropriate endpoint (this is conservative).
+    // The data values are in ascending order, so the exceedance probabilities
+    // will be in descending order.
+    // Do not extrapolate past the ends of the data (will be conservative
+    // on the high data end and inaccurate on the low data end).
+    int n0  = n - 1;
+    for ( int i = 0; i < n; i++ ) {
+        if ( eProb[i] < probability ) {
+            if ( i == 0 ) {
+                value = x2[0];
+            }
+            else {
+                value = interpolate(probability, eProb[i - 1], eProb[i], x2[i - 1], x2[i] );
+            }
+            break;
+        }
+    }
+    if ( probability < eProb[n0] ) {
+        value = x2[n0];
+    }
+    return value;
+}
+
+/**
 Perform integration for a function.
 @param method Method used to integrate.  See INTEGRATE_*.
 @param func Function to integrate (using Function interface).
@@ -1465,7 +1525,8 @@ Sort an array of doubles.
 @param method Method to use for sorting (see SORT_*).
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
 @param sort_order Original locations of data after sort (array needs to be
-allocated before calling routine).  For example, first sort double-data and then
+allocated to the same size as the data array before calling routine).
+For example, first sort double-data and then
 sort associated data by using new_other_data[i] = old_other_data[sort_order[i]];
 Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.

@@ -73,7 +73,7 @@ throws TSException
 
 	if ( _ts == null ) {
 		message = "Null time series for analysis";
-		Message.printWarning ( 2, "TSDurationAnalysis.analyze",message);
+		Message.printWarning ( 3, "TSDurationAnalysis.analyze",message);
 		throw new TSException ( message );
 	}
 
@@ -87,14 +87,14 @@ throws TSException
 		message = "Error converting time series " + _ts.getIdentifier() + " to array.";
 		_values = null;
 		values0 = null;
-		Message.printWarning ( 2, "TSDurationAnalysis.analyze",message);
+		Message.printWarning ( 3, "TSDurationAnalysis.analyze",message);
 		throw new TSException ( message );
 	}
 
 	if ( values0 == null ) {
 		message = "Error converting time series " + _ts.getIdentifier() + " to array.";
 		_values = null;
-		Message.printWarning ( 2, "TSDurationAnalysis.analyze",message);
+		Message.printWarning ( 3, "TSDurationAnalysis.analyze",message);
 		throw new TSException ( message );
 	}
 
@@ -135,7 +135,7 @@ throws TSException
 		_values = null;
 		message = "Error sorting time series data " + _ts.getIdentifier();
 		_values = null;
-		Message.printWarning ( 2, "TSDurationAnalysis.analyze",message);
+		Message.printWarning ( 3, "TSDurationAnalysis.analyze",message);
 		throw new TSException ( message );
 	}
 
@@ -222,7 +222,7 @@ throws TSException
             }
         }
     }
-    Message.printStatus(2, "", "Filtered duration reduced from " + percents.length +
+    Message.printStatus(3, "", "Filtered duration reduced from " + percents.length +
         " points to " + filteredCount );
     // Always add the last point
     filteredPercents[filteredCount] = percents[percents.length - 1];

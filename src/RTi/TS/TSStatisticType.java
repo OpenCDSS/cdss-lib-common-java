@@ -93,17 +93,25 @@ public enum TSStatisticType
      */
     DEFICIT_SEQ_MIN ( "DeficitSeqMin" ),
 	/**
-	 * Probability of exceeding value is >= 10%.
+	 * Probability of exceeding value is 10% (0 to 10% chance).
 	 */
-    EXCEEDANCE_PROBABILITY_GE10 ( "ExceedanceProbabilityGE10" ),
+    EXCEEDANCE_PROBABILITY_10 ( "ExceedanceProbability10" ),
     /**
-     * Probability of exceeding value is >= 50%.
+     * Probability of exceeding value is 30% (0 to 30% chance).
      */
-    EXCEEDANCE_PROBABILITY_GE50 ( "ExceedanceProbabilityGE50" ),
+    EXCEEDANCE_PROBABILITY_30 ( "ExceedanceProbability30" ),
     /**
-     * Probability of exceeding value is >= 90%.
+     * Probability of exceeding value is 50% (0 to 50% chance).
      */
-    EXCEEDANCE_PROBABILITY_GE90 ( "ExceedanceProbabilityGE90" ),
+    EXCEEDANCE_PROBABILITY_50 ( "ExceedanceProbability50" ),
+    /**
+     * Probability of exceeding value is 70% (0 to 70% chance).
+     */
+    EXCEEDANCE_PROBABILITY_70 ( "ExceedanceProbability70" ),
+    /**
+     * Probability of exceeding value is 90% (0 to 90% chance).
+     */
+    EXCEEDANCE_PROBABILITY_90 ( "ExceedanceProbability90" ),
     /**
      * Count of values >= test value.
      */

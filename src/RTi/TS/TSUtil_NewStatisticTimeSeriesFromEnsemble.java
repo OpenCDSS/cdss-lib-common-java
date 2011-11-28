@@ -328,7 +328,32 @@ throws Exception
         // TODO SAM 2009-10-26 Trying to set the result in a time series that has a shorter period could
         // generate low-level warnings, but for now allow this to occur rather than incurring the overhead
         // of checking the output period.
-        if ( statisticType == TSStatisticType.MAX ) {
+        if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.1) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.3) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.5) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.7) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_90 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.9) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.MAX ) {
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, MathUtil.max(countNonMissing,sampleData) );
             }
@@ -425,6 +450,11 @@ public static List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
     List<TSStatisticType> choices = new Vector();
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_10 );
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_30 );
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_50 );
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_70 );
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_90 );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );
