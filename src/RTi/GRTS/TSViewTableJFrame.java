@@ -413,16 +413,16 @@ public void actionPerformed(ActionEvent event) {
 	String command = event.getActionCommand();
 
 	if (command.equals(__BUTTON_CLOSE)) {
-		__tsviewJFrame.closeGUI(TSViewJFrame.TABLE);
+		__tsviewJFrame.closeGUI(TSViewType.TABLE);
 	}
 	else if (command.equals(__BUTTON_GRAPH)) {
-		__tsviewJFrame.openGUI(TSViewJFrame.GRAPH);
+		__tsviewJFrame.openGUI(TSViewType.GRAPH);
 	}
 	else if (command.equals(__BUTTON_HELP)) {
 		URLHelp.showHelpForKey("TSView.Table");
 	}
 	else if (command.equals(__BUTTON_SUMMARY)) {
-		__tsviewJFrame.openGUI(TSViewJFrame.SUMMARY);
+		__tsviewJFrame.openGUI(TSViewType.SUMMARY);
 	}
 	else if (command.equals(__BUTTON_SAVE)) {
 		saveClicked();
@@ -1714,7 +1714,7 @@ Responds to window closing events; does nothing.
 @param evt the WindowEvent that happened.
 */
 public void windowClosing(WindowEvent evt) {
-	__tsviewJFrame.closeGUI(TSViewJFrame.TABLE);
+	__tsviewJFrame.closeGUI(TSViewType.TABLE);
 }
 
 /**

@@ -98,6 +98,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import RTi.TS.DateValueTS;
+import RTi.TS.TS;
 import RTi.TS.TSUtil;
 
 import RTi.Util.GUI.JGUIUtil;
@@ -128,34 +129,12 @@ public class TSViewJFrame extends JFrame
 implements ActionListener
 {
 
-/**
-Graph view.
-*/
-public static final int GRAPH = 1;
-/**
-Summary view.
-*/
-public static final int SUMMARY = 2;
-/**
-Table view.
-*/
-public static final int TABLE = 3;
-/**
-Time series properties
-*/
-public static final int PROPERTIES = 4;
-/**
-Used to open the properties window if it is not currently open and have it not be visible.
-This is used in order to do quick changes of properties.
-*/
-public static final int PROPERTIES_HIDDEN = -4;
-
 // Private data related to TSView...
 
 /**
 List of time series to display.
 */
-private List _tslist = null;
+private List<TS> _tslist = null;
 /**
 Property list used for displays.
 */
@@ -169,6 +148,10 @@ Currently this is only used by the graph and indicates when a property has been 
 TSProductJFrame (so that title, etc. can be updated in the graph).
 */
 private boolean _is_dirty = true;
+/**
+Static window manager shared among all instances.
+*/
+private static TSViewWindowManager __tsViewWM = new TSViewWindowManager();
 
 // Private data related to Frame...
 
@@ -194,12 +177,12 @@ protected TSProductJFrame _tsproduct_gui = null;
 List of TSProductAnnotationProvider objects available for use with any of 
 the sub guis.  Used in TSProductJFrame properties display.
 */
-private List __tsProductAnnotationProviders = null;
+private List<TSProductAnnotationProvider> __tsProductAnnotationProviders = null;
 
 /**
 List of TSProductDMI objects available for use with any of the sub guis.
 */
-private List __tsProductDMIs = null;
+private List<TSProductDMI> __tsProductDMIs = null;
 
 /**
 Construct a stand-alone frame that manages a time series graph, summary and table.
@@ -444,8 +427,7 @@ public void actionPerformed ( ActionEvent event )
 /**
 @deprecated use the other method that takes a proplist
 */
-public void addTSProductAnnotationProvider(
-TSProductAnnotationProvider provider) {	
+public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider) {	
 	__tsProductAnnotationProviders.add(provider);
 	if (_tsproduct != null) {
 		try {
@@ -492,59 +474,71 @@ public void addTSProductDMI(TSProductDMI productDMI) {
 Close a subordinate Frame.  This is done here to coordinate open/closing the
 Frames.  If all subordinate Frames are closed, this Frame is disposed.
 @param type Type of TSView Frame go close (e.g., GRAPH), as defined in this class.
+@return 0 if the window was not closed, 1 if the window was closed, and -1 if the controlling
+TSViewJFrame was closed.
 */
-protected void closeGUI ( int type )
-{	if ( type == GRAPH ) {
+protected int closeGUI ( TSViewType type )
+{	int closeCount = 0; // Will be set to 1 if the window actually closed
+    if ( type == TSViewType.GRAPH ) {
 		if ( _graph_gui != null ) {
 			if (_graph_gui.shouldClose()) {
 				_graph_gui.setVisible ( false );
 				_graph_gui.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 				_graph_gui.dispose();
 				_graph_gui = null;
-				// Also close the properties Frame (currently this is only associated with the graph 
-				// Frame)...
-				closeGUI ( PROPERTIES );
+				// Also close the properties window (currently this is only associated with the graph Frame)...
+				closeGUI ( TSViewType.PROPERTIES );
+				++closeCount;
 			}
 			else {
 				_graph_gui.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 			}
 		}
 	}
-	else if (type == PROPERTIES || type == PROPERTIES_HIDDEN) {
+	else if (type == TSViewType.PROPERTIES || type == TSViewType.PROPERTIES_HIDDEN) {
 		if ( _tsproduct_gui != null ) {
 			if (_tsproduct_gui.checkUserInput()) {
 				_tsproduct_gui.setVisible ( false );
 				_tsproduct_gui.setDefaultCloseOperation (DISPOSE_ON_CLOSE);
 				_tsproduct_gui.dispose();
 				_tsproduct_gui = null;
+				++closeCount;
 			}
 			else {
 				_tsproduct_gui.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 			}
 		}
 	}
-	else if ( type == SUMMARY ) {
+	else if ( type == TSViewType.SUMMARY ) {
 		if ( _summary_gui != null ) {
 			_summary_gui.setVisible ( false );
 			_summary_gui.setDefaultCloseOperation (DISPOSE_ON_CLOSE);
 			_summary_gui.dispose();
 			_summary_gui = null;
+			++closeCount;
 		}
 	}
-	else if ( type == TABLE ) {
+	else if ( type == TSViewType.TABLE ) {
 		if ( _table_gui != null ) {
 			_table_gui.setVisible ( false );
 			_table_gui.setDefaultCloseOperation ( DISPOSE_ON_CLOSE);
 			_table_gui.dispose();
 			_table_gui = null;
+			++closeCount;
 		}
 	}
 	// Close this Frame if there are no other Frames open (otherwise there
 	// is no way to garbage collect)...
 	if ( (_graph_gui == null) && (_tsproduct_gui == null) && (_summary_gui == null) &&
 		(_table_gui == null) ) {
+	    // Remove from the manager before disposing...
+	    getTSViewWindowManager().remove ( this );
 		setDefaultCloseOperation ( DISPOSE_ON_CLOSE);
 		dispose ();
+		return -1;
+	}
+	else {
+	    return closeCount;
 	}
 }
 
@@ -552,14 +546,14 @@ protected void closeGUI ( int type )
 Closes an open Graph GUI.
 */
 public void closeGraphGUI() {
-	closeGUI(GRAPH);
+	closeGUI(TSViewType.GRAPH);
 }
 
 /**
 Closes an open properties GUI.
 */
 public void closePropertiesGUI() {
-	closeGUI(PROPERTIES);
+	closeGUI(TSViewType.PROPERTIES);
 }
 
 /**
@@ -596,10 +590,10 @@ public List getTSProductAnnotationProviders() {
 }
 
 /**
-Returns the Vector of TSProductDMIs that were added to this class.
-@return the Vector of TSProductDMIs that were added to this class.
+Returns the list of TSProductDMIs that were added to this class.
+@return the list of TSProductDMIs that were added to this class.
 */
-public List getTSProductDMIs() {
+public List<TSProductDMI> getTSProductDMIs() {
 	return __tsProductDMIs;
 }
 
@@ -626,6 +620,15 @@ public TSViewGraphJFrame getViewGraphJFrame() {
 public TSViewTableJFrame getTSViewTableJFrame()
 {
   return _table_gui;
+}
+
+/**
+Return the shared window manager for all window instances.
+@return the shared window manager for all window instances.
+*/
+public static TSViewWindowManager getTSViewWindowManager()
+{
+  return __tsViewWM;
 }
 
 /**
@@ -673,17 +676,17 @@ throws Exception
     	}
     	if ( prop_value == null ) {
     		// Default to summary...
-    		openGUI ( SUMMARY );
+    		openGUI ( TSViewType.SUMMARY );
     	}
     	else if ( prop_value.equalsIgnoreCase("Graph") ) {
-    		openGUI ( GRAPH );
+    		openGUI ( TSViewType.GRAPH );
     	}
     	else if ( prop_value.equalsIgnoreCase("Table") ) {
-    		openGUI ( TABLE );
+    		openGUI ( TSViewType.TABLE );
     	}
     	else {
     		// Default to summary...
-    		openGUI ( SUMMARY );
+    		openGUI ( TSViewType.SUMMARY );
     	}
 	}
 	catch ( Exception e ) {
@@ -754,118 +757,120 @@ Open a subordinate GUI.  This is done here to coordinate open/closing the
 JFrames within the package classes.
 @param type Type of GUI to open (e.g., GRAPH).
 */
-protected void openGUI ( int type )
+protected void openGUI ( TSViewType type )
 {	String routine = "TSViewJFrame.openGUI";
-
+    TSViewWindowManager wm = getTSViewWindowManager();
 	try {
-	if ( type == GRAPH ) {
-		if ( _graph_gui == null ) {
-			// OK to open new GUI...
-			setWaitCursor ( true );
-
-			if ( _tsproduct == null ) {
-				// Old-style...
-				_graph_gui = new TSViewGraphJFrame ( this, _tslist, _props );
-			}
-			else {
-				// New-style...
-				_tsproduct.setTSList ( _tslist );
-				_graph_gui = new TSViewGraphJFrame ( this, _tsproduct );
-			}
-			setWaitCursor ( false );
-			// The following gracefully handles shut-down of a graph.  An attempt to close the graph
-			// GUI from itself will fail because _graph_gui will still be null.
-			if ( _graph_gui.needToClose() ) {
-				Message.printStatus ( 2, routine,
-				"Automatically closing the graph because of nitialization problems." );
-				closeGUI ( GRAPH );
-			}
-		}
-		else {
-			// The GUI is already open, pop to the front (any way to do this?)...
-			_graph_gui.setVisible ( true );
-			_graph_gui.toFront();
-		}
-	}
-	else if ( type == PROPERTIES ) {
-		if ( _tsproduct_gui == null ) {
-			// Need to pass in the main canvas, which is
-			// currently where the TSProduct properties are fully checked.
-			if ( _graph_gui != null ) {
-				_tsproduct_gui = new TSProductJFrame ( this, _graph_gui.getMainJComponent() );
-			}
-		}
-		else {
-			// The GUI is already open, pop to the front (any way to do this?)...
-			_tsproduct_gui.setVisible ( true );
-		}
-	}
-	else if (type == PROPERTIES_HIDDEN) {
-		if (_tsproduct_gui == null) {
-			// Need to pass in the main canvas, which is currently where the TSProduct properties
-			// are fully checked.
-			if (_graph_gui != null) {
-				_tsproduct_gui = new TSProductJFrame(this, _graph_gui.getMainJComponent(),false);
-			}
-		}
-		else {	
-			// The GUI is already open, in a visible or invisible
-			// mode.  Either way, it's fine how it is.  
-		}
-	}	
-	else if ( type == SUMMARY ) {
-		if ( _summary_gui == null ) {
-			// OK to open new GUI...
-			setWaitCursor ( true );
-			_summary_gui = new TSViewSummaryJFrame ( this, _tslist, _props );
-			setWaitCursor ( false );
-		}
-		else {
-			// The GUI is already open, pop to the front (any way to do this?)...
-			_summary_gui.setVisible ( true );
-		}
-	}
-	else if ( type == TABLE ) {
-		if ( _table_gui == null ) {
-			// OK to open new GUI...
-			setWaitCursor ( true );
-			_table_gui = new TSViewTableJFrame ( this, _tslist,	_props );
-			// The following gracefully handles shut-down of a
-			// graph.  An attempt to close the graph GUI from 
-			// itself will fail because _graph_gui will still be null.
-			/*
-			TODO (JTS - 2003-07-21) this method was removed from TSViewTableJFrame.
-			if ( _table_gui.needToClose() ) {
-				closeGUI ( TABLE );
-			}
-			*/
-			setWaitCursor ( false );
-		}
-		else {
-			// The GUI is already open, pop to the front (any way to do this?)...
-			_table_gui.setVisible ( true );
-		}
-	}
+    	if ( type == TSViewType.GRAPH ) {
+    		if ( _graph_gui == null ) {
+    			// OK to open new GUI...
+    			setWaitCursor ( true );
+    
+    			if ( _tsproduct == null ) {
+    				// Old-style...
+    				_graph_gui = new TSViewGraphJFrame ( this, _tslist, _props );
+    			}
+    			else {
+    				// New-style...
+    				_tsproduct.setTSList ( _tslist );
+    				_graph_gui = new TSViewGraphJFrame ( this, _tsproduct );
+    			}
+    			wm.add ( this, _graph_gui );
+    			setWaitCursor ( false );
+    			// The following gracefully handles shut-down of a graph.  An attempt to close the graph
+    			// GUI from itself will fail because _graph_gui will still be null.
+    			if ( _graph_gui.needToClose() ) {
+    				Message.printStatus ( 2, routine,
+    				"Automatically closing the graph because of initialization problems." );
+    				closeGUI ( TSViewType.GRAPH );
+    			}
+    		}
+    		else {
+    			// The GUI is already open, pop to the front (any way to do this?)...
+    			_graph_gui.setVisible ( true );
+    			_graph_gui.toFront();
+    		}
+    	}
+    	else if ( type == TSViewType.PROPERTIES ) {
+    		if ( _tsproduct_gui == null ) {
+    			// Need to pass in the main canvas, which is
+    			// currently where the TSProduct properties are fully checked.
+    			if ( _graph_gui != null ) {
+    				_tsproduct_gui = new TSProductJFrame ( this, _graph_gui.getMainJComponent() );
+    				wm.add ( this, _tsproduct_gui );
+    			}
+    		}
+    		else {
+    			// The GUI is already open, pop to the front (any way to do this?)...
+    			_tsproduct_gui.setVisible ( true );
+    		}
+    	}
+    	else if (type == TSViewType.PROPERTIES_HIDDEN) {
+    		if (_tsproduct_gui == null) {
+    			// Need to pass in the main canvas, which is currently where the TSProduct properties
+    			// are fully checked.
+    			if (_graph_gui != null) {
+    				_tsproduct_gui = new TSProductJFrame(this, _graph_gui.getMainJComponent(),false);
+    				wm.add ( this, _tsproduct_gui );
+    			}
+    		}
+    		else {	
+    			// The GUI is already open, in a visible or invisible
+    			// mode.  Either way, it's fine how it is.  
+    		}
+    	}	
+    	else if ( type == TSViewType.SUMMARY ) {
+    		if ( _summary_gui == null ) {
+    			// OK to open new GUI...
+    			setWaitCursor ( true );
+    			_summary_gui = new TSViewSummaryJFrame ( this, _tslist, _props );
+    			wm.add ( this, _summary_gui );
+    		}
+    		else {
+    			// The GUI is already open, pop to the front (any way to do this?)...
+    			_summary_gui.setVisible ( true );
+    		}
+    	}
+    	else if ( type == TSViewType.TABLE ) {
+    		if ( _table_gui == null ) {
+    			// OK to open new GUI...
+    			setWaitCursor ( true );
+    			_table_gui = new TSViewTableJFrame ( this, _tslist,	_props );
+    			wm.add ( this, _table_gui );
+    			// The following gracefully handles shut-down of a
+    			// graph.  An attempt to close the graph GUI from 
+    			// itself will fail because _graph_gui will still be null.
+    			/*
+    			TODO (JTS - 2003-07-21) this method was removed from TSViewTableJFrame.
+    			if ( _table_gui.needToClose() ) {
+    				closeGUI ( TABLE );
+    			}
+    			*/
+    		}
+    		else {
+    			// The GUI is already open, pop to the front (any way to do this?)...
+    			_table_gui.setVisible ( true );
+    		}
+    	}
 	}
 	catch ( OutOfMemoryError e ) {
-		setWaitCursor ( false );
 		Message.printWarning ( 1, routine, "Unable to display view (out of memory).  Try displaying less data." );
 		System.gc();
 	}
 	catch ( Exception e ) {
-		setWaitCursor ( false );
-		Message.printWarning ( 1, routine, "Unable to open view.  "
-			+ "This may be due to data being unavailable.");
+		Message.printWarning ( 1, routine, "Unable to open view.  This may be due to data being unavailable.");
 		Message.printWarning ( 2, routine, e );
 	}
-	routine = null;
+	finally {
+	    setWaitCursor ( false );
+	}
 }
 
 /**
 Opens the Graph properties display.
 */
 public void openPropertiesGUI() {
-	openGUI(PROPERTIES);
+	openGUI(TSViewType.PROPERTIES);
 }
 
 /**
@@ -904,7 +909,7 @@ public void removeTSProductDMI(TSProductDMI productDMI) {
 
 	TSProductDMI tsProductDMI = null;
 	for (int i = (size - 1); i <= 0; i--) {
-		tsProductDMI = (TSProductDMI)__tsProductDMIs.get(i);
+		tsProductDMI = __tsProductDMIs.get(i);
 		if (tsProductDMI == productDMI) {
 			__tsProductDMIs.remove(i);
 		}

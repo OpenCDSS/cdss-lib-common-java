@@ -894,7 +894,7 @@ public void actionPerformed(ActionEvent event)
 	if ( command.equals(__MENU_PROPERTIES) ) {
 		// Only one properties window is shown per graph so let the TSViewFrame handle showing the properties
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
-		frame.getTSViewJFrame().openGUI(TSViewJFrame.PROPERTIES);
+		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES);
 		
 		// Display the properties for the graph of choice
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();
@@ -953,7 +953,7 @@ public void actionPerformed(ActionEvent event)
 	}
 	else if (command.equals(__MENU_Y_MAXIMUM_VISIBLE)) {
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
-		frame.getTSViewJFrame().openGUI(TSViewJFrame.PROPERTIES_HIDDEN);
+		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
 		// Display the properties for the graph of choice
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();
@@ -1026,7 +1026,7 @@ public void actionPerformed(ActionEvent event)
 	else if (command.equals(__MENU_Y_MINIMUM_VISIBLE)) {
 		// currently only supported for residual graphs
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
-		frame.getTSViewJFrame().openGUI(TSViewJFrame.PROPERTIES_HIDDEN);
+		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
 		// Display the properties for the graph of choice
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();
@@ -1069,7 +1069,7 @@ public void actionPerformed(ActionEvent event)
 	}	
 	else if (command.equals(__MENU_Y_MAXIMUM_AUTO)) {
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
-		frame.getTSViewJFrame().openGUI(TSViewJFrame.PROPERTIES_HIDDEN);
+		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
 		// Display the properties for the graph of choice
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();
@@ -1078,7 +1078,7 @@ public void actionPerformed(ActionEvent event)
 	}
 	else if (command.equals(__MENU_Y_MINIMUM_AUTO)) {
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
-		frame.getTSViewJFrame().openGUI(TSViewJFrame.PROPERTIES_HIDDEN);
+		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
 		// Display the properties for the graph of choice
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();

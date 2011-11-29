@@ -620,7 +620,7 @@ public void actionPerformed ( ActionEvent e )
 	}
 	else if ( command.equals("TSProductJFrame.Cancel") ) {
 		// Close the GUI via the parent...
-		_tsview_gui.closeGUI(TSViewJFrame.PROPERTIES);
+		_tsview_gui.closeGUI(TSViewType.PROPERTIES);
 	}
 	else if ( command.equals("TSProductJFrame.Close") ) {
 		if (!checkUserInput()) {	
@@ -631,7 +631,7 @@ public void actionPerformed ( ActionEvent e )
 			_tsview_gui.refresh ();
 		}
 		// Close the GUI via the parent...
-		_tsview_gui.closeGUI(TSViewJFrame.PROPERTIES);
+		_tsview_gui.closeGUI(TSViewType.PROPERTIES);
 	}
 	else if (command.equals(__BUTTON_ADD_ANNOTATION)) {
 		if (_selected_subproduct == -1) {
@@ -5624,7 +5624,7 @@ Handle window closing event.
 public void processWindowEvent ( WindowEvent e) 
 {	if (e.getID() == WindowEvent.WINDOW_CLOSING ) {
 		super.processWindowEvent(e);
-		_tsview_gui.closeGUI(TSViewJFrame.PROPERTIES);
+		_tsview_gui.closeGUI(TSViewType.PROPERTIES);
 	}
 	else {
 	    super.processWindowEvent(e);

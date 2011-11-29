@@ -174,8 +174,7 @@ import RTi.Util.String.StringUtil;
 
 /**
 The TSViewGraphJFrame displays a graph of one or more time series, and is
-managed by the parent TSViewJFrame.  See the constructor documentation for more
-information.
+managed by the parent TSViewJFrame.  See the constructor documentation for more information.
 */
 public class TSViewGraphJFrame extends JFrame
 implements ActionListener, WindowListener, TSViewListener
@@ -331,7 +330,7 @@ public void actionPerformed ( ActionEvent event )
 		// Close the detail...
 		closeDetail ();
 		// Close the GUI via the parent...
-		__tsview_JFrame.closeGUI(TSViewJFrame.GRAPH);
+		__tsview_JFrame.closeGUI(TSViewType.GRAPH);
 	}
 	else if ( o == __help_JButton ) {
 		// Show help...
@@ -384,11 +383,11 @@ public void actionPerformed ( ActionEvent event )
 	}
 	else if ( o == __summary_JButton ) {
 		// Display a summary...
-		__tsview_JFrame.openGUI ( TSViewJFrame.SUMMARY );
+		__tsview_JFrame.openGUI ( TSViewType.SUMMARY );
 	}
 	else if ( o == __table_JButton ) {
 		// Display a table...
-		__tsview_JFrame.openGUI ( TSViewJFrame.TABLE );
+		__tsview_JFrame.openGUI ( TSViewType.TABLE );
 		TSViewTableJFrame tsViewTableJFrame = __tsview_JFrame.getTSViewTableJFrame();
 		_tsGraphEditor.addPropertyChangeListener(tsViewTableJFrame);
 	}
@@ -1215,7 +1214,7 @@ public void windowClosing(WindowEvent event) {
 	// Close the detail window...
 	closeDetail ();
 	// Now let the main manager close GUIs as appropriate...
-	__tsview_JFrame.closeGUI(TSViewJFrame.GRAPH);
+	__tsview_JFrame.closeGUI(TSViewType.GRAPH);
 }
 
 public void windowDeactivated( WindowEvent evt ){;}

@@ -142,7 +142,7 @@ public void actionPerformed ( ActionEvent e )
 {	Object o = e.getSource();
 	if ( o == __close_JButton ) {
 		// Close the GUI via the parent...
-		__tsview_JFrame.closeGUI(TSViewJFrame.SUMMARY);
+		__tsview_JFrame.closeGUI(TSViewType.SUMMARY);
 	}
 	else if ( o == __help_JButton ) {
 		// Show help...
@@ -150,7 +150,7 @@ public void actionPerformed ( ActionEvent e )
 	}
 	else if ( o == __graph_JButton ) {
 		// Display a graph...
-		__tsview_JFrame.openGUI ( TSViewJFrame.GRAPH );
+		__tsview_JFrame.openGUI ( TSViewType.GRAPH );
 	}
 	else if ( o == __print_JButton ) {
 		// Print the summary...
@@ -166,7 +166,7 @@ public void actionPerformed ( ActionEvent e )
 	}
 	else if ( o == __table_JButton ) {
 		// Display a table...
-		__tsview_JFrame.openGUI ( TSViewJFrame.TABLE );
+		__tsview_JFrame.openGUI ( TSViewType.TABLE );
 	}
 }
 
@@ -416,14 +416,14 @@ Respond to window closing event.
 @param event WindowEvent object.
 */
 public void windowClosing( WindowEvent event ){
-	__tsview_JFrame.closeGUI(TSViewJFrame.SUMMARY);
+	__tsview_JFrame.closeGUI(TSViewType.SUMMARY);
 	return;
 }
 
 public void processWindowEvent ( WindowEvent e) 
 {	if (e.getID() == WindowEvent.WINDOW_CLOSING ) {
 		super.processWindowEvent(e);
-		__tsview_JFrame.closeGUI(TSViewJFrame.SUMMARY);
+		__tsview_JFrame.closeGUI(TSViewType.SUMMARY);
 	}
 	else {
 		super.processWindowEvent(e);
