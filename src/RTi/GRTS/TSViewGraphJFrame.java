@@ -510,11 +510,18 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	String prop_value = null;
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 	
+	// TODO SAM 2011-11-29 Need to figure out how to let TSProduct file properties set the window title
 	if (__tsproduct == null) {
 		prop_value = __props.getValue("TSViewTitleString");
+        if (__tsproduct == null) {
+            prop_value = __props.getValue("Product.TSViewTitleString");
+        }
 	}
-	else {	
+	else {
 		prop_value = __tsproduct.getPropValue("TSViewTitleString");
+		if (__tsproduct == null) {
+		    prop_value = __tsproduct.getPropValue("Product.TSViewTitleString");
+		}
 	}
 
 	if ( prop_value == null ) {
