@@ -530,15 +530,11 @@ public void addToComments( List<String> comments )
 {	if ( comments == null ) {
 		return;
 	}
-	String comment = null;
-	int size = comments.size();
-	for ( int i = 0; i < size; i++ ) {
-		comment = comments.get(i);
+	for ( String comment : comments ) {
 		if ( comment != null ) {
 			_comments.add ( comment );
 		}
 	}
-	comment = null;
 }
 
 /**
@@ -1891,10 +1887,10 @@ public void setAlias ( String alias )
 }
 
 /**
-Set the comments string vector.
+Set the comments string list.
 @param comments Comments to set.
 */
-public void setComments ( List comments )
+public void setComments ( List<String> comments )
 {	if ( comments != null ) {
 		_comments = comments;
 	}

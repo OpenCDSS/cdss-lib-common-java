@@ -160,6 +160,13 @@ List of TableRecord, that contains the table data.
 protected List<TableRecord> _table_records;
 
 /**
+List of comments for the table.  For example, an analysis that creates a table of results may
+need explanatory comments corresponding to column headings.  The comments can be output when the
+table is written to a file.
+*/
+private List<String> __comments = new Vector();
+
+/**
 Number of records in the table (kept for case where records are not in memory).
 */
 protected int _num_records = 0;
@@ -210,6 +217,31 @@ can be used to optimize performance.
 */
 public DataTable ( List<TableField> tableFieldsVector, int Vector_size, int Vector_increment )
 {	initialize ( tableFieldsVector, Vector_size, Vector_increment );
+}
+
+/**
+Add a String to the comments associated with the time series (e.g., station remarks).
+@param comment Comment string to add.
+*/
+public void addToComments( String comment )
+{   if ( comment != null ) {
+        __comments.add ( comment );
+    }
+}
+
+/**
+Add a list of String to the comments associated with the time series (e.g., station remarks).
+@param comments Comments strings to add.
+*/
+public void addToComments( List<String> comments )
+{   if ( comments == null ) {
+        return;
+    }
+    for ( String comment : comments ) {
+        if ( comment != null ) {
+            __comments.add ( comment );
+        }
+    }
 }
 
 /**
@@ -509,6 +541,14 @@ private static boolean findPreviousFieldNameOccurances(List<TableField> tableFie
 		}
 	}
 	return false;
+}
+
+/**
+Return the time series comments.
+@return The comments list.
+*/
+public List<String> getComments ()
+{   return __comments;
 }
 
 /**
@@ -1890,6 +1930,16 @@ private static List<TableField> parseFile_ParseHeaderLine (
 }
 
 /**
+Set the comments string list.
+@param comments Comments to set.
+*/
+public void setComments ( List<String> comments )
+{   if ( comments != null ) {
+        __comments = comments;
+    }
+}
+
+/**
 Sets the value of a specific field. 
 @param row the row (0+) in which to set the value.
 @param col the column (0+) in which to set the value.
@@ -1968,7 +2018,6 @@ throws Exception
 	TableField tableField = _table_fields.get(index);
 	tableField.setDataType ( data_type );
 	tableField.setName ( name );
-	tableField = null;
 }
 
 /**
@@ -1992,7 +2041,6 @@ throws Exception
 	}
 	TableField tableField = _table_fields.get(index);
 	tableField.setName ( name );
-	tableField = null;
 }
 
 /**
@@ -2008,7 +2056,6 @@ throws Exception
 	}
 	TableField tableField = _table_fields.get(index);
 	tableField.setDataType ( data_type );
-	tableField = null;
 }
 
 /**

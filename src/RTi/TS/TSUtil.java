@@ -6033,6 +6033,8 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analysis periods).
 @param fillFlag a string to mark filled values with
 @param descriptionString a string to append to the existing time series description.
+@param doFill if true, then fill the depending time series; if false, compute the relationships and
+statistics, but do not actually fill the time series
 @exception RTi.TS.TSException if there is a problem performing regression.
 */
 public static TSRegression fillRegress ( TS tsToFill, TS tsIndependent,
@@ -6043,7 +6045,7 @@ public static TSRegression fillRegress ( TS tsToFill, TS tsIndependent,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
-    String fillFlag, String descriptionString )
+    String fillFlag, String descriptionString, boolean doFill )
 throws TSException, Exception
 {	String routine = "TSUtil.fillRegress";
 	String message;
@@ -6078,7 +6080,7 @@ throws TSException, Exception
 	        leZeroLogValue, minimumDataCount, minimumR, confidenceInterval,
 	        dependentAnalysisStart, dependentAnalysisEnd,
 	        independentAnalysisStart, independentAnalysisEnd,
-	        fillStart, fillEnd, fillFlag, descriptionString );
+	        fillStart, fillEnd, fillFlag, descriptionString, doFill );
 	}
 	else {
 	    return fillRegressTotal ( tsToFill, tsIndependent, tsRegression,
@@ -6086,7 +6088,7 @@ throws TSException, Exception
             leZeroLogValue, minimumDataCount, minimumR, confidenceInterval,
             dependentAnalysisStart, dependentAnalysisEnd,
             independentAnalysisStart, independentAnalysisEnd,
-            fillStart, fillEnd, fillFlag, descriptionString );
+            fillStart, fillEnd, fillFlag, descriptionString, doFill );
 	}
 }
 
@@ -6122,6 +6124,8 @@ is not examined.
 @param fillEnd date/time to end filling
 @param fillFlag the flag to use for filled data values
 @param descriptionString the string to append to the time series description, if any values are filled
+@param doFill if true, then fill the depending time series; if false, compute the relationships and
+statistics, but do not actually fill the time series
 @exception Exception if there is an error performing the regression.
 */
 private static TSRegression fillRegressMonthly ( TS tsToFill, TS tsIndependent, TSRegression tsRegression,
@@ -6131,7 +6135,7 @@ private static TSRegression fillRegressMonthly ( TS tsToFill, TS tsIndependent, 
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
-	String fillFlag, String descriptionString )
+	String fillFlag, String descriptionString, boolean doFill )
 throws TSException, Exception
 {	String routine = "TSUtil.fillRegressMonthly";
 	String message;
@@ -6191,6 +6195,11 @@ throws TSException, Exception
     		Message.printWarning ( 3, routine, e );
     		throw new TSException ( message );
     	}
+	}
+	
+	if ( !doFill ) {
+	    // Return without filling the time series
+	    return rd;
 	}
 		
 	double newval = 0.0, x = 0.0;
@@ -6349,6 +6358,8 @@ analysis period for MOVE1 and OLS - MOVE2 uses TSRegression properties for analy
 @param prop_list Properties to control filling.  See the TSRegression properties.
 @param descriptionString will be appended to the description (if not set, "fill regress using TSID" or
 "fill log regress using TSID" will be used).
+@param doFill if true, then fill the depending time series; if false, compute the relationships and
+statistics, but do not actually fill the time series
 @exception Exception if there is a problem doing regression.
 */
 private static TSRegression fillRegressTotal ( TS tsToFill, TS tsIndependent, TSRegression tsRegression,
@@ -6358,7 +6369,7 @@ private static TSRegression fillRegressTotal ( TS tsToFill, TS tsIndependent, TS
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     DateTime fillStart, DateTime fillEnd,
-    String fillFlag, String descriptionString )
+    String fillFlag, String descriptionString, boolean doFill )
 throws TSException, Exception
 {	String message, routine = "TSUtil.fillRegressTotal";
 	boolean regressLog = false;
@@ -6416,6 +6427,11 @@ throws TSException, Exception
     		Message.printWarning ( 3, routine, e );
     		throw new TSException ( message );
     	}
+    }
+    
+    if ( !doFill ) {
+        // Return without filling the time series
+        return rd;
     }
 		
 	double newval = 0.0, x = 0.0;
