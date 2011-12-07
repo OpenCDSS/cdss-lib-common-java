@@ -11,6 +11,8 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
@@ -81,6 +83,22 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
     public void addKeyListener ( KeyListener listener )
     {
         __inputJTextField.addKeyListener ( listener );
+    }
+    
+    /**
+     * Add a DocumentListener for the text field.
+     */
+    public void addDocumentListener ( DocumentListener listener )
+    {
+        __inputJTextField.getDocument().addDocumentListener ( listener );
+    }
+    
+    /**
+    Return the Document associated with the text field.
+    */
+    public Document getDocument()
+    {
+        return __inputJTextField.getDocument();
     }
     
     /**
