@@ -13,6 +13,7 @@ import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.text.Document;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
@@ -26,96 +27,105 @@ import RTi.Util.String.StringUtil;
  */
 public class StrftimeDateTimeFormatterSpecifiersJPanel extends JPanel implements ItemListener
 {
-    /**
-     * Hint to aid user.
-     */
-    String __hint = "-- Select Specifier --";
-    
-    /**
-     * Text field containing the edited format specifier.
-     */
-    JTextField __inputJTextField = null;
-    
-    /**
-     * Choices for the list of format specifiers.
-     */
-    SimpleJComboBox __formatJComboBox = null;
-    
-    /**
-     * Control constructor.
-     * @param width width of the JTextField to be included in the control (or -1) to not specify.
-     */
-    public StrftimeDateTimeFormatterSpecifiersJPanel ( int width )
-    {
-        setLayout ( new GridBagLayout() );
-        Insets insetsTLBR = new Insets(0,0,0,0);
-        if ( width > 0 ) {
-            __inputJTextField = new JTextField ( width );
+/**
+Hint to aid user.
+*/
+String __hint = "-- Select Specifier --";
+
+/**
+Text field containing the edited format specifier.
+*/
+JTextField __inputJTextField = null;
+
+/**
+Choices for the list of format specifiers.
+*/
+SimpleJComboBox __formatJComboBox = null;
+
+/**
+Control constructor.
+ @param width width of the JTextField to be included in the control (or -1) to not specify.
+*/
+public StrftimeDateTimeFormatterSpecifiersJPanel ( int width )
+{
+    setLayout ( new GridBagLayout() );
+    Insets insetsTLBR = new Insets(0,0,0,0);
+    if ( width > 0 ) {
+        __inputJTextField = new JTextField ( width );
+    }
+    else {
+        __inputJTextField = new JTextField ();
+    }
+    __inputJTextField.setToolTipText(
+        "Enter a combination of literal strings and/or format specifiers from the list on the right.");
+    int y = 0;
+    int x = 0;
+    JGUIUtil.addComponent(this, __inputJTextField,
+        x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    x += 2;
+    JGUIUtil.addComponent(this, new JLabel(" Insert:"),
+        x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    __formatJComboBox = new SimpleJComboBox ( false );
+    __formatJComboBox.setToolTipText(
+        "Selecting a specifier will insert at the cursor position for the alias." );
+    List<String> choicesList = new Vector(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true)));
+    choicesList.add(0,__hint);
+    __formatJComboBox.setData(choicesList);
+    __formatJComboBox.addItemListener ( this );
+    JGUIUtil.addComponent(this, __formatJComboBox,
+        x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+}
+
+/**
+Add a KeyListener for the text field.
+*/
+public void addKeyListener ( KeyListener listener )
+{
+    __inputJTextField.addKeyListener ( listener );
+}
+
+/**
+Return the Document associated with the text field.
+*/
+public Document getDocument()
+{
+    return __inputJTextField.getDocument();
+}
+
+/**
+Return the text in the text field.
+*/
+public String getText()
+{
+    return __inputJTextField.getText();
+}
+
+/**
+Respond to ItemEvents - user has selected from the list so insert into the cursor position in the
+text field.
+@param evt Item event due to list change, etc.
+*/
+public void itemStateChanged ( ItemEvent evt )
+{
+    // Only insert on select..
+    if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+        String selection = StringUtil.getToken ( __formatJComboBox.getSelected(), "-", 0, 0 ).trim();
+        if ( !selection.equals(__hint)) {
+            int pos = __inputJTextField.getCaretPosition();
+            String text = __inputJTextField.getText();
+            String newText = text.substring(0,pos) + selection + text.substring(pos);
+            __inputJTextField.setText ( newText );
         }
-        else {
-            __inputJTextField = new JTextField ();
-        }
-        __inputJTextField.setToolTipText(
-            "Enter a combination of literal strings and/or format specifiers from the list on the right.");
-        int y = 0;
-        int x = 0;
-        JGUIUtil.addComponent(this, __inputJTextField,
-            x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        x += 2;
-        JGUIUtil.addComponent(this, new JLabel(" Insert:"),
-            x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        __formatJComboBox = new SimpleJComboBox ( false );
-        __formatJComboBox.setToolTipText(
-            "Selecting a specifier will insert at the cursor position for the alias." );
-        List<String> choicesList = new Vector(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true)));
-        choicesList.add(0,__hint);
-        __formatJComboBox.setData(choicesList);
-        __formatJComboBox.addItemListener ( this );
-        JGUIUtil.addComponent(this, __formatJComboBox,
-            x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
-    
-    /**
-     * Add a KeyListener for the text field.
-     */
-    public void addKeyListener ( KeyListener listener )
-    {
-        __inputJTextField.addKeyListener ( listener );
-    }
-    
-    /**
-     * Return the text in the text field.
-     */
-    public String getText()
-    {
-        return __inputJTextField.getText();
-    }
-    
-    /**
-    Respond to ItemEvents - user has selected from the list so insert into the cursor position in the
-    text field.
-    @param evt Item event due to list change, etc.
-    */
-    public void itemStateChanged ( ItemEvent evt )
-    {
-        // Only insert on select..
-        if ( evt.getStateChange() == ItemEvent.SELECTED ) {
-            String selection = StringUtil.getToken ( __formatJComboBox.getSelected(), "-", 0, 0 ).trim();
-            if ( !selection.equals(__hint)) {
-                int pos = __inputJTextField.getCaretPosition();
-                String text = __inputJTextField.getText();
-                String newText = text.substring(0,pos) + selection + text.substring(pos);
-                __inputJTextField.setText ( newText );
-            }
-        }
-    }
-    
-    /**
-     * Set the text in the text field.
-     * @param text text to set in the textfield
-     */
-    public void setText( String text )
-    {
-        __inputJTextField.setText ( text );
-    }
+}
+
+/**
+Set the text in the text field.
+@param text text to set in the textfield
+*/
+public void setText( String text )
+{
+    __inputJTextField.setText ( text );
+}
+
 }
