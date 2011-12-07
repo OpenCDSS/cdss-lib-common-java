@@ -281,7 +281,7 @@ and interval multiplier must have been set.
 */
 public int allocateDataSpace( )
 {	String	routine="MinuteTS.allocateDataSpace";
-	int	dl = 10, i, ndays_in_month, nmonths=0, nvals;
+	int	dl = 10, imon, ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
 		Message.printWarning ( 3, routine, "No dates set for memory allocation" );
@@ -313,15 +313,15 @@ public int allocateDataSpace( )
 	date.setMonth( _date1.getMonth() );
 	date.setYear( _date1.getYear() );
 
-	int day, j, k;
-	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
+	int day, iday, k;
+	for ( imon = 0; imon < nmonths; imon++, date.addMonth(1) ) {
 		ndays_in_month = TimeUtil.numDaysInMonth ( date );
 
 		// Allocate the memory for the number of days in the month...
 
-		_data[i] = new double [ndays_in_month][];
+		_data[imon] = new double [ndays_in_month][];
 		if ( _has_data_flags ) {
-			_dataFlags[i] = new String[ndays_in_month][];
+			_dataFlags[imon] = new String[ndays_in_month][];
 		}
 
 		// Now allocate the memory for the number of intervals in the
@@ -329,20 +329,20 @@ public int allocateDataSpace( )
 		// our period, skip this step but do allocate the full day for
 		// any day that does occur in the period.
 
-		for ( j = 0; j < ndays_in_month; j++ ) {
-			if ( i == 0 ) {
+		for ( iday = 0; iday < ndays_in_month; iday++ ) {
+			if ( imon == 0 ) {
 				// In the first month.  If the day is less than
 				// the first day in the period, do not use up
 				// memory.  The position will never be accessed.
-				day = j + 1;
+				day = iday + 1;
 				if ( day < _date1.getDay() ) {
 					continue;
 				}
 			}
-			else if ( (i + 1) == nmonths ) {
+			else if ( (imon + 1) == nmonths ) {
 				// In the last month.  If the day is greater than the last day in the period, do not use
 				// up memory.  The position will never be accessed.
-				day = j + 1;
+				day = iday + 1;
 				if ( day > _date2.getDay() ) {
 					continue;
 				}
@@ -351,17 +351,17 @@ public int allocateDataSpace( )
 			// Easy to handle 1-60 minute data...
 			// 24 = number of hours in the day...
 			nvals = 24*(60/_data_interval_mult);
-			_data[i][j] = new double[nvals];
+			_data[imon][iday] = new double[nvals];
 			if ( _has_data_flags ) {
-				_dataFlags[i][j] = new String[nvals];
+				_dataFlags[imon][iday] = new String[nvals];
 			}
 
 			// Now fill the entire month with the missing data value...
 
 			for ( k = 0; k < nvals; k++ ) {
-				_data[i][j][k] = _missing;
+				_data[imon][iday][k] = _missing;
 				if ( _has_data_flags ) {
-					_dataFlags[i][j][k] = "";
+					_dataFlags[imon][iday][k] = "";
 				}
 			}
 		}
@@ -560,36 +560,44 @@ public Object clone ()
     }
     else {
     	ts._data = new double[_data.length][][];
-    	for ( int i = 0; i < _data.length; i++ ) { // Months
-    		ts._data[i] = new double[_data[i].length][];
-    		for ( int j = 0; j < _data[i].length; j++ ) { // Days in month
-    			if ( _data[i][j] == null ) {
-    				// Memory is not allocated at the beginning and
+    	for ( int imon = 0; imon < _data.length; imon++ ) { // Months
+    		ts._data[imon] = new double[_data[imon].length][];
+    		for ( int iday = 0; iday < _data[imon].length; iday++ ) { // Days in month
+    			if ( _data[imon][iday] == null ) {
+    				// Memory is not allocated for days at the beginning and
     				// ends of months (outside the period), in order
     				// to save memory and increase performance.
     				continue;
     			}
-    			ts._data[i][j] = new double[_data[i][j].length];
-    			System.arraycopy ( _data[i][j], 0, ts._data[i][j], 0,_data[i][j].length);
+    			ts._data[imon][iday] = new double[_data[imon][iday].length];
+    			System.arraycopy ( _data[imon][iday], 0, ts._data[imon][iday], 0,_data[imon][iday].length);
     		}
     	}
     }
 	boolean internDataFlagStrings = getInternDataFlagStrings();
 	if ( _has_data_flags ) {
 	    if ( _dataFlags == null ) {
+	        // Original time series did not have flags so can't copy
+	        // TODO SAM 2011-12-07 Should this be an error?
 	        ts._dataFlags = null;
 	    }
 	    else {
     		// Allocate months...
     		ts._dataFlags = new String[_dataFlags.length][][];
-    		int iday, ival;
     		for ( int imon = 0; imon < _dataFlags.length; imon++ ) {
     			// Allocate days in month...
     			ts._dataFlags[imon] = new String[_dataFlags[imon].length][];
-    			for(iday = 0; iday < _dataFlags[imon].length; iday++){
+    			for( int iday = 0; iday < _dataFlags[imon].length; iday++){
+	                if ( _dataFlags[imon][iday] == null ) {
+	                    // Memory is not allocated for days at the beginning and
+	                    // ends of months (outside the period), in order
+	                    // to save memory and increase performance.
+	                    continue;
+	                }
     				// Allocate data values in day...
     				ts._dataFlags[imon][iday] = new String[_dataFlags[imon][iday].length];
-    				for ( ival = 0; ival < _dataFlags[imon][iday].length; ival++ ) {
+    				for ( int ival = 0; ival < _dataFlags[imon][iday].length; ival++ ) {
+    				    // Allocate values for minute intervals in day...
     				    if ( internDataFlagStrings ) {
     				        ts._dataFlags[imon][iday][ival] = _dataFlags[imon][iday][ival].intern();
     				    }
