@@ -63,26 +63,20 @@ time series sequence number is set to the year for the start of the trace.
 @return A list of the trace time series or null if an error.
 @param ts Time series to break.  The time series is not changed.
 @param TraceLength The length of each trace.  Specify as an interval string
-like "1Year".  The interval can be longer than one year.  If blank, "1Year" is
-used as the default.
+like "1Year".  The interval can be longer than one year.  If blank, "1Year" is used as the default.
 @param ReferenceDate_DateTime Date on which each time series trace is to start.
 If the reference_date is null, the default is Jan 1 for daily data, Jan for
 monthly data.  If specified, the precision of the reference date should match
 that of the time series being examined.
 @param ShiftDataHow If "NoShift", then the traces are not shifted.  If annual
-traces are requested.  The total list of time series when plotted should match
-the original time series.
+traces are requested.  The total list of time series when plotted should match the original time series.
 If "ShiftToReference", then the start of each time
-series is shifted to the reference date.  Consequently, when plotted, the time
-series traces will overlay.
-@param InputStart_DateTime First allowed date (use to constrain how many years of the
-time series are processed).
-@param InputEnd_DateTime Last allowed date (use to constrain how many years of the time
-series are processed).
+series is shifted to the reference date.  Consequently, when plotted, the time series traces will overlay.
+@param InputStart_DateTime First allowed date (use to constrain how many years of the time series are processed).
+@param InputEnd_DateTime Last allowed date (use to constrain how many years of the time series are processed).
 @param createData if true fill the data values; if false, only set the metadata
 @exception Exception if there is an error processing the time series
-@exception IrregularTimeSeriesNotSupportedException if the method is called with an
-irregular time series.
+@exception IrregularTimeSeriesNotSupportedException if the method is called with an irregular time series.
 */
 public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
     String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
@@ -98,7 +92,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
         String message = "Can't handle irregular TS \"" + ts.getIdentifier() + "\".";
-        Message.printWarning ( 2, "TSUtil.getTracesFromTS", message );
+        Message.printWarning ( 2, routine, message );
         throw new IrregularTimeSeriesNotSupportedException ( message );
     }
     boolean ShiftToReference_boolean = false;
@@ -172,12 +166,20 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             date1_out = new DateTime ( date1_in );
         }
         DateTime date2_out = computeDateWithOffset (
-                "output", ts, ReferenceDate_DateTime2, date1_out, TraceLength_TimeInterval );;
-        // Break out if the start and end dates in the source data are outside the requested range:
-        if ( InputEnd_DateTime.lessThan(date1_in) || InputStart_DateTime.greaterThan(date2_in) ) {
-            // Trace does not overlap data so done processing.
-            Message.printStatus(2, routine, "Breaking out of processing InputStart=" + InputStart_DateTime +
-                    " InputEnd=" + InputEnd_DateTime + " date1_in=" + date1_in + " date2_in=" + date2_in );
+                "output", ts, ReferenceDate_DateTime2, date1_out, TraceLength_TimeInterval );
+        // Skip the year if the start and end dates in the source data are outside the requested period,
+        // and break out of processing when the trace year is after the period to be processed.
+        // The requested period is set to the full time series period if not specified.
+        if ( date2_in.lessThan(InputStart_DateTime) ) {
+            // Trace period is before the requested period so skip the trace.
+            Message.printStatus(2, routine, "Requested InputStart=" + InputStart_DateTime +
+                " InputEnd=" + InputEnd_DateTime + ", skipping trace date1_in=" + date1_in + " date2_in=" + date2_in );
+            continue;
+        }
+        if ( date1_in.greaterThan(InputEnd_DateTime) ) {
+            // Trace period is past the requested period so no more traces need to be generated.
+            Message.printStatus(2, routine, "Requested InputStart=" + InputStart_DateTime +
+                " InputEnd=" + InputEnd_DateTime + ", quit processing trace date1_in=" + date1_in + " date2_in=" + date2_in );
             break;
         }
         // Create a new time series using the old header as input...
