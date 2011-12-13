@@ -265,6 +265,9 @@ throws Exception
     TS ts; // Time series in the ensemble
     // To improve performance, initialize an array of time series...
     TS [] ts_array = ensemble.toArray();
+    if ( ts_array.length == 0 ) {
+        throw new RuntimeException ( "Ensemble has 0 traces - cannot analyze statistic.");
+    }
     // Now iterate through all of the traces and get data for each date/time...
     DateTime date;
     int i;  // Index for time series in loop.
