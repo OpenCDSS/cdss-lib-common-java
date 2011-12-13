@@ -19,22 +19,31 @@ import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.String.StringUtil;
 
 /**
-A JPanel to edit a DateTime.
+<p>
+A JPanel to edit a DateTime and retrieve a date/time as the corresponding DateTime object or string.
+The constructor indicates the range of date/time fields to display, which should normally correspond
+to the detail needed for input.  However, because of variability in data (such as time series intervals
+only being known at run-time), the editor may show extra precision.  Also, in order to facilitate parsing
+the date/time string after editing, it is necessary to include blank indicators (such as 99) in the string.
+</p>
+<p>
+Currently the minimum precision allowed is TimeInterval.MINUTE.
+</p>
 */
 public class DateTime_JPanel extends JPanel implements ActionListener
 {
 
 /**
-Maximum interval shown in the panel.  For example, specifying TimeInterval.MONTH
-will omit display of year.
+Maximum interval shown in the panel, where YEAR is the big and MINUTE is small.
+For example, specifying TimeInterval.MONTH will omit display of year.
 */
-private int __interval_max = TimeInterval.YEAR;
+private int __intervalMax = TimeInterval.YEAR;
 
 /**
-Minimum interval shown in the panel.  For example, specifying TimeInterval.DAY
-will omit display of hour, minute, etc.
+Minimum interval shown in the panel, where YEAR is the big and MINUTE is small.
+For example, specifying TimeInterval.DAY will omit display of hour, minute, etc.
 */
-private int __interval_min = TimeInterval.SECOND;
+private int __intervalMin = TimeInterval.MINUTE;
 
 /**
 Day choices.
@@ -96,15 +105,15 @@ JLabel __year_JLabel = null;
 /**
 Constructor.
 @param title Title for the panel, shown in a border title.
-@param interval_max The maximum interval shown in choices (use TimeInterva.YEAR, etc.).
-@param interval_min The minimum interval shown in choices (use TimeInterva.HOUR, etc.).
+@param intervalMax The maximum interval shown in choices (use TimeInterval.MONTH, etc.).
+@param intervalMin The minimum interval shown in choices (use TimeInterval.HOUR, etc.).
 @param initial Initial DateTime to be displayed.  The precision will override interval_min.
 */
-public DateTime_JPanel ( String title, int interval_max, int interval_min, DateTime initial )
+public DateTime_JPanel ( String title, int intervalMax, int intervalMin, DateTime initial )
 {   super ();
     setTitle ( title );
-    setIntervalMax ( interval_max );
-    setIntervalMin ( interval_min );
+    setIntervalMax ( intervalMax );
+    setIntervalMin ( intervalMin );
     setupUI ();
     // Set the date time after setting the interval_min because the DateTime may override.
     if ( initial != null ) {
@@ -156,10 +165,13 @@ Any values that are 99, etc. are assumed to not be displayed
 public void setDateTime ( DateTime dt )
 {
     //Message.printStatus ( 2, "", "Setting panel DateTime to " + dt );
+    // TODO SAM 2011-12-12 Should the following be done?  The user may want to change and the
+    // command handles blank date/time properly.  The problem is that the command parameter will not have
+    // 99 saved (may have zeros) - setting the precision here prevents the zeros from propagating to output.
     setIntervalMin ( dt.getPrecision() );
     // Update the visibility of components.
     setVisibility();
-    if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.YEAR <= __intervalMax) && (TimeInterval.YEAR >= __intervalMin) ) {
         int year = dt.getYear();
         if ( TimeUtil.isValidYear(year) ) {
             __year_JComboBox.select ( "" + year );
@@ -169,27 +181,27 @@ public void setDateTime ( DateTime dt )
             __year_JComboBox.select ( "" );
         }
     }
-    if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
+    if ( (TimeInterval.MONTH <= __intervalMax) && (TimeInterval.MONTH >= __intervalMin) ) {
         int month = dt.getMonth();
         if ( TimeUtil.isValidMonth(month) ) {
             __month_JComboBox.select ( "" + month );
         }
-         else {
-             // Select blank
-               __month_JComboBox.select ( "" );
-         }
+        else {
+            // Select blank
+            __month_JComboBox.select ( "" );
+        }
     }
-    if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
+    if ( (TimeInterval.DAY <= __intervalMax) && (TimeInterval.DAY >= __intervalMin) ) {
         int day = dt.getDay();
         if ( TimeUtil.isValidDay(day) ) {
             __day_JComboBox.select ( "" + day );
         }
         else {
-              // Select blank
+            // Select blank
             __day_JComboBox.select ( "" );
         }
     }
-    if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
+    if ( (TimeInterval.HOUR <= __intervalMax) && (TimeInterval.HOUR >= __intervalMin) ) {
         int hour = dt.getHour();
         if ( TimeUtil.isValidHour(hour) ) {
             __hour_JComboBox.select ( StringUtil.formatString(hour,"%02d") );
@@ -199,7 +211,7 @@ public void setDateTime ( DateTime dt )
             __hour_JComboBox.select ( "" );
         }       
     }
-    if ( (TimeInterval.MINUTE <= __interval_max) && (TimeInterval.MINUTE >= __interval_min) ) {
+    if ( (TimeInterval.MINUTE <= __intervalMax) && (TimeInterval.MINUTE >= __intervalMin) ) {
         int minute = dt.getMinute();
         if ( TimeUtil.isValidMinute(minute) ) {
             __minute_JComboBox.select ( StringUtil.formatString(minute,"%02d") );
@@ -218,8 +230,8 @@ include 29 days.
 private void setDayChoices ( SimpleJComboBox year_JComboBox, SimpleJComboBox month_JComboBox,
     SimpleJComboBox day_JComboBox )
 {
-    List<String> day_Vector = new Vector();
-    day_Vector.add ( "" );    // Select to ignore this information
+    List<String> dayList = new Vector();
+    dayList.add ( "" ); // Select to ignore this information
     int maxDay = 31;
     int year = -9999;
     int month = -9999;
@@ -246,9 +258,9 @@ private void setDayChoices ( SimpleJComboBox year_JComboBox, SimpleJComboBox mon
         }
     }
     for ( int i = 1; i <= maxDay; i++ ) {
-        day_Vector.add( "" + i );
+        dayList.add( "" + i );
     }
-    day_JComboBox.setData(day_Vector);
+    day_JComboBox.setData(dayList);
 }
 
 /**
@@ -280,7 +292,7 @@ Set the maximum interval displayed in the panel.
 */
 private void setIntervalMax ( int interval_max )
 {
-    __interval_max = interval_max;
+    __intervalMax = interval_max;
 }
 
 /**
@@ -289,7 +301,7 @@ Set the minimum interval displayed in the panel.
 */
 public void setIntervalMin ( int interval_min )
 {
-    __interval_min = interval_min;
+    __intervalMin = interval_min;
 }
 
 /**
@@ -317,17 +329,17 @@ private void setupUI ()
     Insets insetsTLBR = new Insets(2,2,2,2);
     setLayout ( new GridBagLayout() );
     
-    int x = 0;  // X position in grid bag layout
-    int y_label = 0;    // Positions of labels and entry fields.
+    int x = 0; // X position in grid bag layout
+    int y_label = 0; // Positions of labels and entry fields.
     int y_entry = 1;
     // Add the year...
-    List<String> year_Vector = new Vector();
-    year_Vector.add( "" );
+    List<String> yearList = new Vector();
+    yearList.add( "" );
     for ( int i = 1900; i <= 2100; i++ ) {
-        year_Vector.add( "" + i );
+        yearList.add( "" + i );
     }
     // Allow edits because may not have all years of interest in the list
-    __year_JComboBox = new SimpleJComboBox ( year_Vector, true );
+    __year_JComboBox = new SimpleJComboBox ( yearList, true );
     __year_JLabel = new JLabel("Year:");
     JGUIUtil.addComponent(this, __year_JLabel,
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -335,12 +347,12 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the month...
-    List<String> month_Vector = new Vector();
-    month_Vector.add( "" );    // Select to ignore this information
+    List<String> monthList = new Vector();
+    monthList.add( "" );    // Select to ignore this information
     for ( int i = 1; i <= 12; i++ ) {
-        month_Vector.add( "" + i );
+        monthList.add( "" + i );
     }
-    __month_JComboBox = new SimpleJComboBox ( month_Vector, false );
+    __month_JComboBox = new SimpleJComboBox ( monthList, false );
     __month_JComboBox.addActionListener ( this );
     __month_JLabel = new JLabel("Month:");
     JGUIUtil.addComponent(this, __month_JLabel,
@@ -358,12 +370,12 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the hour...
-    List<String> hour_Vector = new Vector();
-    hour_Vector.add ( "" );    // Select to ignore this information
+    List<String> hourList = new Vector();
+    hourList.add ( "" );    // Select to ignore this information
     for ( int i = 0; i <= 23; i++ ) {
-        hour_Vector.add ( "" + StringUtil.formatString(i,"%02d") );
+        hourList.add ( "" + StringUtil.formatString(i,"%02d") );
     }
-    __hour_JComboBox = new SimpleJComboBox ( hour_Vector, false ); // Not editable
+    __hour_JComboBox = new SimpleJComboBox ( hourList, false ); // Not editable
     __hour_JLabel = new JLabel("Hour:");
     JGUIUtil.addComponent(this, __hour_JLabel,
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -371,12 +383,12 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the minute...
-    List<String> minute_Vector = new Vector();
-    minute_Vector.add ( "" );    // Select to ignore this information
+    List<String> minuteList = new Vector();
+    minuteList.add ( "" );    // Select to ignore this information
     for ( int i = 0; i <= 59; i++ ) {
-        minute_Vector.add ( "" + StringUtil.formatString(i,"%02d") );
+        minuteList.add ( "" + StringUtil.formatString(i,"%02d") );
     }
-    __minute_JComboBox = new SimpleJComboBox ( minute_Vector, true );
+    __minute_JComboBox = new SimpleJComboBox ( minuteList, true );
     __minute_JLabel = new JLabel("Minute:");
     JGUIUtil.addComponent(this, __minute_JLabel,
         x, y_label, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -389,10 +401,10 @@ private void setupUI ()
 /**
 Set the visibility on the choices consistent with the min/max interval to display.
 For example, don't show the year if year interval is not within the min and max intervals.
- */
+*/
 private void setVisibility()
 {
-    if ( (TimeInterval.YEAR <= __interval_max) && (TimeInterval.YEAR >= __interval_min) ) {
+    if ( (TimeInterval.YEAR <= __intervalMax) && (TimeInterval.YEAR >= __intervalMin) ) {
         __year_JComboBox.setVisible ( true );
         __year_JLabel.setVisible ( true );
     }
@@ -400,7 +412,7 @@ private void setVisibility()
         __year_JComboBox.setVisible ( false );
         __year_JLabel.setVisible ( false );
     }
-    if ( (TimeInterval.MONTH <= __interval_max) && (TimeInterval.MONTH >= __interval_min) ) {
+    if ( (TimeInterval.MONTH <= __intervalMax) && (TimeInterval.MONTH >= __intervalMin) ) {
         __month_JComboBox.setVisible(true);
         __month_JLabel.setVisible(true);
     }
@@ -408,7 +420,7 @@ private void setVisibility()
         __month_JComboBox.setVisible(false);
         __month_JLabel.setVisible(false);
     }
-    if ( (TimeInterval.DAY <= __interval_max) && (TimeInterval.DAY >= __interval_min) ) {
+    if ( (TimeInterval.DAY <= __intervalMax) && (TimeInterval.DAY >= __intervalMin) ) {
         __day_JComboBox.setVisible(true);
         __day_JLabel.setVisible(true);
     }
@@ -416,7 +428,7 @@ private void setVisibility()
         __day_JComboBox.setVisible(false);
         __day_JLabel.setVisible(false);
     }
-    if ( (TimeInterval.HOUR <= __interval_max) && (TimeInterval.HOUR >= __interval_min) ) {
+    if ( (TimeInterval.HOUR <= __intervalMax) && (TimeInterval.HOUR >= __intervalMin) ) {
         __hour_JComboBox.setVisible ( true );
         __hour_JLabel.setVisible ( true );
     }
@@ -424,7 +436,7 @@ private void setVisibility()
         __hour_JComboBox.setVisible ( false );
         __hour_JLabel.setVisible ( false );
     }
-    if ( (TimeInterval.MINUTE <= __interval_max) && (TimeInterval.MINUTE >= __interval_min) ) {
+    if ( (TimeInterval.MINUTE <= __intervalMax) && (TimeInterval.MINUTE >= __intervalMin) ) {
         __minute_JComboBox.setVisible ( true );
         __minute_JLabel.setVisible ( true );
     }
@@ -505,87 +517,137 @@ public String toString ()
 // for now to keep integrity of the date/time string
 /**
 Return a string representation of the data in the panel, using ISO format.
-Enabled fields are included, with default (99) values to indicate blanks.
-The year is optionally included - only parts on the small end are left off.
-@param includeYear indicate whether the year should be included on front of the string.
+Enabled fields are included.  Left-most fields are always included to ensure a parse-able representation of
+the string, with default (99) values to indicate blanks.  Right-most fields are only included if non-blank.
+@param includeYear indicate whether the year should be included on front of the string.  If the year is not
+included, it can be added later if necessary, for example using DateTimeWindow.WINDOW_YEAR.
 @param stripBlanksFromEnd if true, strip blanks from the end of the string.
 */
 public String toString ( boolean includeYear, boolean stripBlanksFromEnd )
 {
-    StringBuffer b = new StringBuffer();
-    boolean doDateDelim = false; // Indicates that the delimiter between date parts needs added
-    boolean doTimeDelim = false; // Indicates that the delimiter between time parts needs added
+    // The following indicate if the delimiter between date and time parts need to be added (because a
+    // left-side data value has been encountered).  The intent is to avoid a left-most hanging leading delimiter.
+    boolean doDateDelim = false;
+    boolean doTimeDelim = false;
     
     String hour = __hour_JComboBox.getSelected().trim();
     String minute = __minute_JComboBox.getSelected().trim();
-    
+    StringBuffer yearString = new StringBuffer();
+    StringBuffer monthString = new StringBuffer();
+    StringBuffer dayString = new StringBuffer();
+    StringBuffer hourString = new StringBuffer();
+    StringBuffer minuteString = new StringBuffer();
+    boolean monthSpecified = false;
+    boolean daySpecified = false;
+    boolean hourSpecified = false;
+    boolean minuteSpecified = false;
+    // First form the string parts going from left (year) to right (minute)
+    // Year
     if ( includeYear ) {
         if ( __year_JComboBox.isVisible() ) {
             String year = __year_JComboBox.getSelected().trim();
             doDateDelim = true;
             if ( StringUtil.isInteger(year) ) {
-                b.append ( StringUtil.formatString(Integer.parseInt(year),"%04d"));
+                yearString.append ( StringUtil.formatString(Integer.parseInt(year),"%04d"));
             }
             else {
-                b.append ( StringUtil.formatString(TimeUtil.BLANK_YEAR,"%04d"));
+                yearString.append ( StringUtil.formatString(TimeUtil.BLANK_YEAR,"%04d"));
             }
         }
+    }
+    // Month...
+    if ( doDateDelim ) {
+        monthString.append ( "-" );
+    }
+    else {
+        // Since month has now been included, need to add the date delimiter to following strings
+        doDateDelim = true;
     }
     if ( __month_JComboBox.isVisible() ) {
         String month = __month_JComboBox.getSelected().trim();
-        if ( doDateDelim ) {
-            b.append ( "-" );
-        }
-        else {
-            doDateDelim = true;
-        }
         if ( StringUtil.isInteger(month) ) {
-            b.append ( StringUtil.formatString(Integer.parseInt(month),"%02d"));
+            monthString.append ( StringUtil.formatString(Integer.parseInt(month),"%02d"));
+            monthSpecified = true;
         }
         else {
-            b.append ( StringUtil.formatString(TimeUtil.BLANK_MONTH,"%02d"));
+            monthString.append ( StringUtil.formatString(TimeUtil.BLANK_MONTH,"%02d"));
         }
+    }
+    else {
+        // Always need to include month
+        monthString.append ( StringUtil.formatString(TimeUtil.BLANK_MONTH,"%02d"));
+    }
+    // Day...
+    if ( doDateDelim ) {
+        dayString.append ( "-" );
     }
     if ( __day_JComboBox.isVisible() ) {
         String day = __day_JComboBox.getSelected().trim();
-        if ( doDateDelim ) {
-            b.append ( "-" );
-        }
         if ( StringUtil.isInteger(day) ) {
-            b.append ( StringUtil.formatString(Integer.parseInt(day),"%02d"));
+            dayString.append ( StringUtil.formatString(Integer.parseInt(day),"%02d"));
+            daySpecified = true;
         }
         else {
-            b.append ( StringUtil.formatString(TimeUtil.BLANK_DAY,"%02d"));
+            dayString.append ( StringUtil.formatString(TimeUtil.BLANK_DAY,"%02d"));
         }
     }
+    else {
+        // Always need to include day
+        dayString.append ( StringUtil.formatString(TimeUtil.BLANK_MONTH,"%02d"));
+    }
+    // Hour...
+    if ( doDateDelim ) {
+        hourString.append ( " " );
+    }
+    doTimeDelim = true;
     if ( __hour_JComboBox.isVisible() ) {
-        if ( doDateDelim ) {
-            b.append ( " " );
-        }
-        doTimeDelim = true;
         if ( StringUtil.isInteger(hour) ) {
-            b.append ( StringUtil.formatString(Integer.parseInt(hour),"%02d"));
+            hourString.append ( StringUtil.formatString(Integer.parseInt(hour),"%02d"));
+            hourSpecified = true;
         }
         else {
-            if ( !StringUtil.isInteger(minute) && !stripBlanksFromEnd ) {
-                // Need to include the blanks.
-                b.append ( StringUtil.formatString(TimeUtil.BLANK_HOUR,"%02d"));
-            }
+            hourString.append ( StringUtil.formatString(TimeUtil.BLANK_HOUR,"%02d"));
         }
+    }
+    else {
+        hourString.append ( StringUtil.formatString(TimeUtil.BLANK_HOUR,"%02d"));
+    }
+    // Minute...
+    if ( doTimeDelim ) {
+        minuteString.append ( ":" );
     }
     if ( __minute_JComboBox.isVisible() ) {
-        if ( doTimeDelim ) {
-            b.append ( ":" );
-        }
         if ( StringUtil.isInteger(minute) ) {
-            b.append ( StringUtil.formatString(Integer.parseInt(minute),"%02d"));
+            minuteString.append ( StringUtil.formatString(Integer.parseInt(minute),"%02d"));
+            minuteSpecified = true;
         }
         else {
-            // Include if the hour is not blank and blanks are to be included.
-            if ( !stripBlanksFromEnd ) {
-                b.append ( StringUtil.formatString(TimeUtil.BLANK_MINUTE,"%02d"));
-            }
+            minuteString.append ( StringUtil.formatString(TimeUtil.BLANK_MINUTE,"%02d"));
         }
+    }
+    else {
+        minuteString.append ( StringUtil.formatString(TimeUtil.BLANK_MINUTE,"%02d"));
+    }
+    // Now concatenate the strings for the final result - delimiters will have been included
+    StringBuffer b = new StringBuffer();
+    if ( includeYear ) {
+        b.append ( yearString );
+    }
+    // Include the month only if month and something to the right of month is specified
+    if ( monthSpecified || daySpecified || hourSpecified || minuteSpecified ) {
+        b.append ( monthString );
+    }
+    // Include the day only if day and something to the right of day is specified
+    if ( daySpecified || hourSpecified || minuteSpecified ) {
+        b.append ( dayString );
+    }
+    // Include the hour only if hour and something to the right of hour is specified
+    if ( hourSpecified || minuteSpecified ) {
+        b.append ( hourString );
+    }
+    // Include the minute only if specified
+    if ( minuteSpecified ) {
+        b.append ( minuteString );
     }
     return b.toString();
 }
