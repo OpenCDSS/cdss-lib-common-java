@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import RTi.Util.Table.DataTable;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.DateTimeWindow;
 
 /**
 Check time series values.
@@ -53,6 +54,11 @@ End of analysis (null to analyze all).
 private DateTime __outputEnd = null;
 
 /**
+Window within the year to transfer data values.
+*/
+private DateTimeWindow __outputWindow = null;
+
+/**
 Indicate whether missing values in time series should be transferred as null (true) or the
 missing values transferred (false).
 */
@@ -66,13 +72,15 @@ table is expected to be empty (no rows).
 @param dateTimeColumn date/time column (0+).
 @param dataColumns data columns (0+) corresponding to the correct column names for the time series.
 @param dataRow data row (0+) corresponding to first date/time to be transferred.
-@param outputStart first date/time to be transferred.
-@param outputEnd last date/time to be transferred.
+@param outputStart first date/time to be transferred (if null, output all)
+@param outputEnd last date/time to be transferred (if null, output all)
+@param outputWindow the window within a year to output (if null, output all)
 @param useNullForMissing if true, use null in the table for missing values.  If false, transfer the
 time series missing value indicator (e.g., -999 or NaN).  These values are not universally handled.
 */
 public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTimeColumn,
-    int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd, boolean useNullForMissing )
+    int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
+    DateTimeWindow outputWindow, boolean useNullForMissing )
 {   //String message;
     //String routine = getClass().getName() + ".constructor";
 	// Save data members.
@@ -83,6 +91,7 @@ public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTime
     __dataRow = dataRow;
     __outputStart = outputStart;
     __outputEnd = outputEnd;
+    __outputWindow = outputWindow; // Allow null to speed performance checks
     __useNullForMissing = useNullForMissing;
     // Make sure that the time series are regular and of the same interval
     if ( !TSUtil.intervalsMatch(tslist) ) {
@@ -133,7 +142,11 @@ public void timeSeriesToTable ()
     double value; // Data value from time series
     DateTime date = null;
     for (date = new DateTime(__outputStart); date.lessThanOrEqualTo(__outputEnd);
-        date.addInterval(intervalBase,intervalMult), ++rowCount ) {
+        date.addInterval(intervalBase,intervalMult) ) {
+        if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
+            // Don't add the row...
+            continue;
+        }
         // Set the date/time
         setRow = __dataRow + rowCount;
         try {
@@ -160,6 +173,8 @@ public void timeSeriesToTable ()
                     " at " + date + " [" + setRow + "][" + setColumn + "] (" + e + ").");
             }
         }
+        // If here the row was added so increment for the next add
+        ++rowCount;
     }
 }
 
@@ -179,6 +194,15 @@ Return the output start date/time.
 public DateTime getOutputStart ()
 {
     return __outputStart;
+}
+
+/**
+Return the output window.
+@return the output window.
+*/
+public DateTimeWindow getOutputWindow ()
+{
+    return __outputWindow;
 }
 
 /**
