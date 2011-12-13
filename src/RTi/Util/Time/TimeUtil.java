@@ -126,7 +126,9 @@ public final static int ABSOLUTE_DAY_DATUM = 657071;
 /**
 Blank values for DateTime parts, used to "mask out" unused information.
 If these are used as data values, then DateTime.DATE_FAST should be used to
-prevent exceptions for invalid values.
+prevent exceptions for invalid values.  For example, it may be necessary to show a DateTime
+as a string parameter to represent a window in a year ("MM-DD").  In this case the other
+date/time components are not used, but are needed in the string to allow for proper parsing.
 */
 public final static int BLANK_YEAR = 9999;
 public final static int BLANK_MONTH = 99;
@@ -158,14 +160,6 @@ Local Time Zone String (e.g, "MST", "MDT", "GMT"), based on the last call to get
 use the protected _local_time_zone_string if in this package.
 */
 public static String localTimeZone = "";
-
-/**
-Time zone Strings.
-@deprecated Use TZ class.
-*/
-public final static String	MST	= "MST",
-				MDT	= "MDT",
-				GMT	= "GMT";
 
 /**
 Abbreviations for months.
