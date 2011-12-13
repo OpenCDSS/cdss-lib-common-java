@@ -42,10 +42,10 @@ public void commandCompleted ( int icommand, int ncommand, Command command,
 		float percent_complete, String message );
 
 /**
-Indicate that a command has been cancelled.
+Indicate that a command has been canceled.
 @param icommand The command index (0+).
 @param ncommand The total number of commands to process
-@param command The reference to the command that has been cancelled.  If the cancel
+@param command The reference to the command that has been canceled.  If the cancel
 occurred in a processor, the command may be the previous or next command.
 @param percent_complete If >= 0, the value can be used to indicate progress
 running a list of commands (not the single command).  If less than zero, then
@@ -53,7 +53,7 @@ no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((icommand + 1)/ncommand)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandCancelled ( int icommand, int ncommand, Command command,
+public void commandCanceled ( int icommand, int ncommand, Command command,
 		float percent_complete, String message );
 
 /**
