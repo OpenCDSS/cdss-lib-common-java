@@ -4513,7 +4513,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return 0;
@@ -4769,7 +4769,7 @@ throws TSException
 
 	// Else, use the overall start and end dates for filling...
 
-	fillFromTS ( dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2() );
+	fillFromTS ( dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null, null );
 }
 
 /**
@@ -4780,9 +4780,12 @@ The data intervals do not need to be the same.
 @exception RTi.TS.TSException if an error occurs (usually null input).
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
+@param fillFlag a string to use as the data flag when a value is filled (null or empty string result in no flag).
+@param fillFlagDesc the description of the fill flag.  If specified, append to the month abbreviation.
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillFromTS (	TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date )
+public static void fillFromTS (	TS dependentTS, TS independentTS, DateTime fillStart, DateTime fillEnd,
+    String fillFlag, String fillFlagDescription )
 throws TSException
 {	String routine = "TSUtil.fillFromTS";
 	String message;
@@ -4793,28 +4796,41 @@ throws TSException
 
 	// Get valid dates because the ones passed in may have been null...
 
-	TSLimits valid_dates = getValidPeriod (dependentTS,start_date,end_date);
+	TSLimits valid_dates = getValidPeriod (dependentTS,fillStart,fillEnd);
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
+	
+	boolean fillFlagSpecified = false;  // Indicate whether to use flag
+    if ( (fillFlag != null) && (fillFlag.length() > 0) ) {
+        fillFlagSpecified = true;
+    }
 
 	int interval_base = dependentTS.getDataIntervalBase();
 	int interval_mult = dependentTS.getDataIntervalMult();
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		message = "Filling IrregularTS by using another time series is not supported";
 		Message.printWarning ( 2, routine, message );
-		throw new TSException ( message );
+		throw new IrregularTimeSeriesNotSupportedException(message);
 	}
 	// Loop using addInterval...
-	DateTime date = new DateTime ( start );
-	double data_value = 0.0;
-		
-	double data_value2 = 0.0;
-	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
-		data_value = dependentTS.getDataValue ( date );
-		if ( dependentTS.isDataMissing ( data_value ) ) {
-			data_value2 = independentTS.getDataValue ( date );
-			if ( !independentTS.isDataMissing ( data_value2 ) ) {
-				dependentTS.setDataValue ( date, data_value2 );
+	double dependentValue = 0.0;
+	double independentValue = 0.0;
+	TSData dependentData = new TSData();
+	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
+	    date.addInterval(interval_base, interval_mult) ) {
+		dependentData = dependentTS.getDataPoint ( date, dependentData );
+		dependentValue = dependentData.getData();
+		if ( dependentTS.isDataMissing ( dependentValue ) ) {
+			independentValue = independentTS.getDataValue ( date );
+			if ( !independentTS.isDataMissing ( independentValue ) ) {
+	             if ( fillFlagSpecified ) {
+                    // Set the data flag, appending to the old value...
+	                 dependentTS.setDataValue ( date, independentValue, fillFlag, 1 );
+                }
+                else {
+                    // No flag so just set the data value
+                    dependentTS.setDataValue ( date, independentValue );
+                }
 			}
 		}
 	}
@@ -4824,6 +4840,9 @@ throws TSException
 	dependentTS.setDescription ( dependentTS.getDescription() + ", fillFromTS" );
 	dependentTS.addToGenesis ( "Filled missing data " + start.toString() +
 		" to " + end.toString() + " by using known values from " + independentTS.getIdentifierString() );
+    if ( fillFlagSpecified && (fillFlagDescription != null) && (fillFlagDescription.length() > 0) ) {
+        dependentTS.addDataFlagMetadata(new TSDataFlagMetadata(fillFlag, fillFlagDescription));
+    }
 }
 
 /**
