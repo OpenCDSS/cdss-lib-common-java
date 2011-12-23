@@ -478,7 +478,7 @@ throws Exception
     while ( (data = tsi.next()) != null ) {
         // Analyze the value
         date = tsi.getDate();
-        tsvalue = data.getData();
+        tsvalue = data.getDataValue();
         isMissing = ts.isDataMissing(tsvalue);
         if ( isMissing ) {
             ++countMissing;
