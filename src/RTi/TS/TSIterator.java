@@ -322,7 +322,7 @@ Return the data value for the current date.
 @return the data value for the current date.
 */
 public double getDataValue ()
-{ 	return _tsdata.getData ();
+{ 	return _tsdata.getDataValue ();
 }
 
 // TODO SAM 2005-09-14 Make this private for now since we call only when data should be available.

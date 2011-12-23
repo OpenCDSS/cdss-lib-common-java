@@ -308,7 +308,7 @@ throws Exception
                     date.setMonth(month);
                     date.setDay(day);
                     data = ts.getDataPoint ( date, data );
-                    value = data.getData();
+                    value = data.getDataValue();
                     flag = data.getDataFlag();
                     if ( flag != null ) {
                         flag = flag.trim();
@@ -411,7 +411,7 @@ throws Exception
         html.tableCells(td);
         // Process data value for year...
         data = ts.getDataPoint ( date, data );
-        value = data.getData();
+        value = data.getDataValue();
         flag = data.getDataFlag();
         if ( flag != null ) {
             flag = flag.trim();
@@ -499,7 +499,7 @@ throws Exception
         td[0] = "" + date; // Format using ISO default
         html.tableCells(td);
         // Process data value for year...
-        value = data.getData();
+        value = data.getDataValue();
         flag = data.getDataFlag();;
         if ( flag != null ) {
             flag = flag.trim();
@@ -588,7 +588,7 @@ throws Exception
         html.tableCells(td);
         // Process data value for year...
         data = ts.getDataPoint ( date, data );
-        value = data.getData();
+        value = data.getDataValue();
         flag = data.getDataFlag();
         if ( flag != null ) {
             flag = flag.trim();
@@ -728,7 +728,7 @@ throws Exception
             html.tableCell( "" + year );
         }
         data = ts.getDataPoint ( date, data );
-        value = data.getData();
+        value = data.getDataValue();
         flag = data.getDataFlag();
         if ( flag != null ) {
             flag = flag.trim();
@@ -843,7 +843,7 @@ throws Exception
         html.tableCells(td);
         // Process data value for year...
         data = ts.getDataPoint ( date, data );
-        value = data.getData();
+        value = data.getDataValue();
         flag = data.getDataFlag();
         if ( flag != null ) {
             flag = flag.trim();

@@ -174,7 +174,7 @@ throws Exception
         // Make sure that the loop completes (no "continue" so that previous iteration values are set)
         while ( (tsdata = tsi.next()) != null ) { // tsdata is reused - don't use below when setting the flag
             dt = tsdata.getDate();
-            value = tsdata.getData();
+            value = tsdata.getDataValue();
             diffComputed = false;
             flag = null;
             // Can only compute the difference if the previous value was not missing

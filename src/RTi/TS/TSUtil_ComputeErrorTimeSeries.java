@@ -128,8 +128,8 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         }
         // Only transfer if output is not null because null indicates the end of the
         // output time series iterator period has been reached.
-        value_simulated = data_simulated.getData();
-        value_observed = data_observed.getData();
+        value_simulated = data_simulated.getDataValue();
+        value_observed = data_observed.getDataValue();
         if ( observed_ts.isDataMissing(value_observed) || value_observed == 0.0 ) {
             // Unable to compute error so leave missing in the result.
             continue;

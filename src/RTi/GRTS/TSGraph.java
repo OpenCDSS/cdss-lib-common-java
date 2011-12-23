@@ -4043,7 +4043,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
             // TODO (JTS - 2006-04-26) All data flags (returned from getDataFlag()) are being trimmed below.
             // In the future, if the spacing of data flags becomes critical, this may need revisited.
         	if (date.greaterThanOrEqualTo(start)) {
-        		y = tsdata.getData();
+        		y = tsdata.getDataValue();
         		if (ts.isDataMissing(y)) {
         			lasty = y;
         			continue;
@@ -4289,7 +4289,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 			// Use the actual data value
 			if ( doDataPoint ) {
 				tsdata = ts.getDataPoint(date, tsdata);
-				y = tsdata.getData();
+				y = tsdata.getDataValue();
 				dataFlag = tsdata.getDataFlag();
 				if ( dataFlag.length() == 0 ) {
 				    symbol = symbolNoFlag;
@@ -4770,7 +4770,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
             yPrev = y;
             date = tsdata.getDate();
             x = date.toDouble();
-            y = tsdata.getData();
+            y = tsdata.getDataValue();
             if (ts.isDataMissing(y)) {
                 yIsMissing = true;
             }

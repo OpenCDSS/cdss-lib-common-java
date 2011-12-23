@@ -127,15 +127,30 @@ throws Exception
         return;
     }
     
-    // Iterate through the time series
-
-    TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
-    TSData data = null;
     double value1 = (getCheckValue1() == null) ? -999.0 : getCheckValue1().doubleValue();
     double value2 = (getCheckValue2() == null) ? -999.0 : getCheckValue2().doubleValue();
     if ( (ts.getAlias() != null) && !ts.getAlias().equals("") ) {
         tsid = ts.getAlias();
     }
+    
+    // Some statistics require "look forward processing" beyond checking the previous value.
+    // Detect those here and process in a separate method
+    
+    if ( checkCriteria == CheckType.REPEAT ) {
+        int value1Int = (int)(value1 + .01); // Ensure integer value given float parameter
+        if ( value1Int >= 2 ) {
+            checkTimeSeriesLookForward ( value1Int );
+        }
+        else if ( value1Int < 2 ) {
+            __problems.add ( "For check criteria " + CheckType.REPEAT + ", Value1 must be >= 2." );
+        }
+        return;
+    } 
+    
+    // Iterate through the time series
+
+    TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
+    TSData data = null;
     double tsvalue; // time series data value
     double tsvaluePrev = 0; // time series data value (previous)
     int tsvalueCount = 0; // Number of values processed
@@ -152,7 +167,7 @@ throws Exception
         message = null; // A non-null message indicates that the check criteria was met for the value
         date = tsi.getDate();
         matchDetected = false;
-        tsvalue = data.getData();
+        tsvalue = data.getDataValue();
         isMissing = ts.isDataMissing(tsvalue);
         if ( checkCriteria == CheckType.ABS_CHANGE_GREATER_THAN ) {
             if ( (tsvalueCount > 0) && !ts.isDataMissing(tsvaluePrev) && !isMissing ) {
@@ -290,7 +305,7 @@ throws Exception
                 // Update the flag value
                 dataPoint = ts.getDataPoint(date, dataPoint );
                 dataPoint.setDataFlag ( __flag );
-                ts.setDataValue(date, dataPoint.getData(), dataPoint.getDataFlag(), dataPoint.getDuration() );
+                ts.setDataValue(date, dataPoint.getDataValue(), dataPoint.getDataFlag(), dataPoint.getDuration() );
             }
         }
         // If an action is required, do it
@@ -327,7 +342,146 @@ throws Exception
             ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
         }
         // Add a message to the genesis since flags have been set...
-        ts.addToGenesis ( message + "  Set flag to " + flag + "." );
+        ts.addToGenesis ( message + "  Set flag to " + __flag + "." );
+    }
+}
+
+/**
+Check the time series.  It is expected that primary checks are done in the checkTimeSeries() method.
+*/
+private void checkTimeSeriesLookForward ( int value1 )
+throws Exception
+{
+    TS ts = getTimeSeries();
+    CheckType checkCriteria = getCheckCriteria();
+    String tsid = ts.getIdentifier().toString();
+    
+    if ( (ts.getAlias() != null) && !ts.getAlias().equals("") ) {
+        tsid = ts.getAlias();
+    }
+    
+    if ( checkCriteria != CheckType.REPEAT ) {
+        __problems.add ( "CheckTimeSeriesForward is only implemented for " + CheckType.REPEAT + ", logic problem." );
+        return;
+    }
+    
+    // Iterate through the time series
+
+    TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Overall period
+    TSIterator tsi2 = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Search forward window
+    TSIterator tsi3 = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Action window
+    TSData data = null; // Initial data point
+    TSData data2 = null; // Data point looking forward
+    double tsvalue; // time series data value
+    double tsvalue2; // time series data value looking forward
+    String message = null;
+    DateTime date2; // Date corresponding to search forward
+    DateTime startToAdjust; // Date corresponding to first offending value requiring adjustment
+    DateTime endToAdjust; // Date corresponding to last offending value requiring adjustment
+    TSData dataPoint = new TSData();
+    // TODO SAM 2010 evaluate whether to check units for precision
+    String tsValueFormat = "%.6f"; // Format for values for messages
+    int countConditionMet = 0; // Number of times that forward values match condition
+    int value1m1 = value1 - 1; // To simplify code
+    while ( (data = tsi.next()) != null ) {
+        // Time series value at the current interval
+        tsvalue = data.getDataValue();
+        //Message.printStatus(2, "", "Checking value " + tsvalue + " at " + data.getDate() + " for repeat." );
+        // Skip over missing
+        if ( ts.isDataMissing(tsvalue) ) {
+            continue;
+        }
+        // Look forward while values are the same.  Afterwards, deal with the sequence.
+        date2 = data.getDate();
+        tsi2.setBeginTime( date2 );
+        // Advance one so as to start comparison with value after...
+        tsi2.next();
+        countConditionMet = 0;
+        startToAdjust = null;
+        endToAdjust = null;
+        while ( (data2 = tsi2.next()) != null ) {
+            tsvalue2 = data2.getDataValue();
+            if ( tsvalue == tsvalue2 ) {
+                ++countConditionMet;
+                if ( countConditionMet >= value1m1 ) {
+                    // Save the first "offending" date/time that will need adjusting
+                    if ( startToAdjust == null ) {
+                        startToAdjust = new DateTime(data2.getDate());
+                    }
+                    // Also save the last "offending" date/time that will need adjusting
+                    endToAdjust = new DateTime(data2.getDate());
+                }
+            }
+            else {
+                // No more matching values - break and take necessary action below
+                break;
+            }
+        }
+        // Now evaluate the number of matching values...
+        // A parameter of Value1=2 means that 2 repeating values triggers the response to the check,
+        // for the 2nd+ values
+        if ( countConditionMet >= value1m1 ) {
+            // Take action on the offending values and reset the main iterator to start after the adjusted
+            // sequence
+            // If an action is required, do it
+            tsi3.setBeginTime(startToAdjust);
+            tsi3.setEndTime(endToAdjust);
+            int count = value1m1;
+            while ( (data2 = tsi3.next()) != null ) {
+                date2 = data2.getDate();
+                tsvalue2 = data2.getDataValue();
+                ++count;
+                message = "Time series " + tsid + " value " + StringUtil.formatString(tsvalue2,tsValueFormat)
+                + " at " + date2 + " repeated (occurrence: " + count + ").";
+                // Add to the problems list
+                __problems.add ( message );
+                if ( __flag != null ) {
+                    // Update the flag value
+                    dataPoint = ts.getDataPoint(date2, dataPoint );
+                    dataPoint.setDataFlag ( __flag );
+                    ts.setDataValue(date2, dataPoint.getDataValue(), dataPoint.getDataFlag(), dataPoint.getDuration() );
+                }
+                if ( __action != null )  {
+                    if ( __action.equalsIgnoreCase("Remove") ) {
+                        if ( ts instanceof IrregularTS ) {
+                            // Remove the data point from memory
+                            ((IrregularTS)ts).removeDataPoint(date2);
+                        }
+                        else {
+                            // Set to missing
+                            ts.setDataValue(date2, ts.getMissing() );
+                        }
+                    }
+                    else if ( __action.equalsIgnoreCase("SetMissing") ) {
+                        ts.setDataValue(date2, ts.getMissing() );
+                    }
+                }
+            }
+            // Advance the main iterator to start checking the next value after the sequence
+            tsi.setBeginTime(endToAdjust);
+            tsi.next(); // Will return the new begin time
+        }
+        else {
+            // No conditions met.  No action taken.
+            // Just advance the iterator and check the next sequence.
+        }
+    }
+    // Final data annotations based on full count of matches.
+    if ( (__flag != null) && !__flag.equals("") && (__problems.size() > 0) ) {
+        // Remove leading + on flag, used to indicate concatenation
+        String flag = StringUtil.remove(__flag,"+");
+        if ( (__flagDesc == null) || __flagDesc.equals("") ) {
+            // Default description...
+            message = "Detected " + __problems.size() + " values where " + formatCriteriaForFlagDesc() + ".";
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
+        }
+        else {
+            // Use supplied description...
+            message = "Detected " + __problems.size() + " values where " + __flagDesc + ".";
+            ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
+        }
+        // Add a message to the genesis since flags have been set...
+        ts.addToGenesis ( message + "  Set flag to " + __flag + "." );
     }
 }
 
@@ -491,7 +645,7 @@ public static int getRequiredNumberOfValuesForCheckCriteria ( CheckType checkCri
         return 2;
     }
     else if ( checkCriteria == CheckType.REPEAT ) {
-        return 0;
+        return 1;
     }
     else {
         String message = "Requested criteria is not recognized: " + checkCriteria;

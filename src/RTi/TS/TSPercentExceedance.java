@@ -163,7 +163,7 @@ throws TSException
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				value = tsdata.getData();
+				value = tsdata.getDataValue();
 				if ( !_ts.isDataMissing(value) ) {
 					_values[count] = value;
 					++count;

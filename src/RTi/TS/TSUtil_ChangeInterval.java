@@ -2335,7 +2335,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             oldData = oldTSi.next();
 
             // save data at end point
-            value = oldData.getData();
+            value = oldData.getDataValue();
             firstEndpointValue = value;
 
             // If the old ts is < Day (stamped in the end) we need to advance one old interval.
@@ -2438,7 +2438,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                     }
 
                     if ( first_time ) {
-                        firstEndpointValue = oldData.getData();
+                        firstEndpointValue = oldData.getDataValue();
                         first_time = false;
                     }
 

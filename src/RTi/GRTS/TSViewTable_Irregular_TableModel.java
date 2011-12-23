@@ -78,7 +78,7 @@ public class TSViewTable_Irregular_TableModel extends
       }
     else
       {
-        return new Double(d.getData());
+        return new Double(d.getDataValue());
       }
   }
   

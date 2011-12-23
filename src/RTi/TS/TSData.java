@@ -42,7 +42,6 @@ package RTi.TS;
 
 import java.io.Serializable;
 
-import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
@@ -59,7 +58,7 @@ implements Cloneable, Serializable {
 /**
 Data value.
 */
-private	double _data;
+private	double _dataValue;
 /**
 Data flag (often used for quality, etc.).
 */
@@ -102,7 +101,7 @@ public TSData ( DateTime date, double value )
 {   super();
     initialize();
     setDate( date );
-    setData( value );
+    setDataValue( value );
 }
 
 /**
@@ -116,7 +115,7 @@ public TSData ( DateTime date, double value, String units )
 {   super();
     initialize();
     setDate( date );
-    setData( value );
+    setDataValue( value );
     setUnits( units );
 }
 
@@ -132,7 +131,7 @@ public TSData ( DateTime date, double value, String units, String flag )
 {   super();
     initialize();
     setDate( date );
-    setData( value );
+    setDataValue( value );
     setUnits( units );
     setDataFlag( flag );
 }
@@ -148,7 +147,7 @@ public TSData ( TSData tsdata )
 {	_data_flag = tsdata._data_flag;
 	_duration = tsdata._duration;
 	_units = tsdata._units;
-	_data = tsdata._data;
+	_dataValue = tsdata._dataValue;
 	_date = new DateTime ( tsdata._date );
 	_next = tsdata._next;
 	_previous = tsdata._previous;
@@ -229,8 +228,8 @@ throws Throwable
 Return the data value.
 @return The data value.
 */
-public double getData()
-{	return _data;
+public double getDataValue()
+{	return _dataValue;
 }
 
 /**
@@ -292,7 +291,7 @@ private void initialize ( )
 	_date = null;
 	_duration = 0;
 	_units = "";
-	_data = 0.0;
+	_dataValue = 0.0;
 	_next = null;
 	_previous = null;
 }
@@ -301,8 +300,8 @@ private void initialize ( )
 Set the data value.
 @param d Data value.
 */
-public void setData( double d )
-{	_data = d;
+public void setDataValue( double d )
+{	_dataValue = d;
 }
 
 /**
@@ -378,7 +377,7 @@ Set the data values.
 */
 public void setValues( DateTime date, double d, String units, String flag )
 {	setDate( date );
-	setData( d );
+	setDataValue( d );
 	setUnits( units );
 	setDataFlag( flag );
 }
@@ -394,7 +393,7 @@ Set the data values.
 */
 public void setValues ( DateTime date, double d, String units, String flag, int duration )
 {	setDate( date );
-	_data = d;
+	_dataValue = d;
 	setUnits( units );
 	setDataFlag( flag );
 	_duration = duration;
@@ -407,7 +406,7 @@ Return a string representation of the instance.
 public String toString()
 {	return "TSData: " +
 	" Date: \"" + _date +
-	"\" Value: " + _data +
+	"\" Value: " + _dataValue +
 	" Units: \"" + _units +
 	"\" Flag: \"" + _data_flag + "\" Duration: " + _duration;
 }

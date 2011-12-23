@@ -373,7 +373,7 @@ throws TSException
 					break;
 				}
 	
-				value = ptr.getData();
+				value = ptr.getDataValue();
 			
 				if ( ts.isDataMissing( value ) || (ignore_lezero && (value <= 0.0)) ) {
 					//The value is missing
@@ -424,7 +424,7 @@ throws TSException
 				for ( int i = (size - 1); i >= 0; i-- ){
 					ptr = data_array.get(i);
 					date = ptr.getDate();
-					value = ptr.getData();
+					value = ptr.getDataValue();
 					if ( date.greaterThan(end) ) {
 						// Have not found data...
 						continue;

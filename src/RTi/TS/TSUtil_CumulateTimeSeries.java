@@ -108,7 +108,7 @@ throws Exception
                 break;
             }
             if ( date.greaterThanOrEqualTo(start) ) {
-                oldvalue = tsdata.getData();
+                oldvalue = tsdata.getDataValue();
                 is_missing = ts.isDataMissing(oldvalue);
                 if ( !is_missing ) {
                     // Not missing.  Add to total and set value...
@@ -118,13 +118,13 @@ throws Exception
                     else {
                         total += oldvalue;
                     }
-                    tsdata.setData(total);
+                    tsdata.setDataValue(total);
                     // Have to do this manually since TSData are being modified directly to improve performance...
                     ts.setDirty ( true );
                 }
                 else if ( HandleMissingHow_CarryForward_boolean ) {
                     // Missing but want to carry forward previous total...
-                    tsdata.setData(total);
+                    tsdata.setDataValue(total);
                     // Have to do this manually since TSData are being modified directly to improve performance...
                     ts.setDirty ( true );
                 }

@@ -156,9 +156,9 @@ public class LagK {
             TSData data = null;
             for ( int i = 0; i < numIntervals; i++ ) {
                 data = tsi.next();
-                _co_inflow[_sizeInflowCO - numIntervals + i] = data.getData();
+                _co_inflow[_sizeInflowCO - numIntervals + i] = data.getDataValue();
                 Message.printStatus(2, routine,
-                    "Assigning initial carryover at " + data.getDate() + " to " + data.getData());
+                    "Assigning initial carryover at " + data.getDate() + " to " + data.getDataValue());
             }
         }
     }

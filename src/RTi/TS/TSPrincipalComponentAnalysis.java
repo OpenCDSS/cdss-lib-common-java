@@ -169,7 +169,7 @@ public TS fill ( int regressionEqIndex, DateTime fillStart, DateTime fillEnd ) t
     int timeIndex=0;        // index to time; used to step through xMatrix
 
     while ( (ydata=tsi.next()) != null ) {
-        if ( ydata.getData() == missing ) {
+        if ( ydata.getDataValue() == missing ) {
             // regressionEquation[0] is the intercept.  Start with that.
             value = regressionEquation[0];
             regressionIndex=0;

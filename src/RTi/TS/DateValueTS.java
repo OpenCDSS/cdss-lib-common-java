@@ -2196,7 +2196,7 @@ throws Exception
 				break;
 			}
 			// Else print the record...
-			value = tsdata.getData();
+			value = tsdata.getDataValue();
 			if ( ts.isDataMissing(value) ) {
 		         if ( missingValue_String != null ) {
 	                // Property has specified the missing value to use
@@ -2208,13 +2208,13 @@ throws Exception
     					string_value = "NaN";
     				}
     				else {
-    				    string_value = StringUtil.formatString( tsdata.getData(), outputFormat );
+    				    string_value = StringUtil.formatString( tsdata.getDataValue(), outputFormat );
     				}
 		        }
 			}
 			else {
 			    // Convert the units...
-				string_value = StringUtil.formatString( (tsdata.getData()*mult[0] + add[0]), outputFormat );
+				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
 			}
 			// Don't think @ is needed given new DateValueTS capabilities...
 			//out.println ( date.toString( DateTime.FORMAT_YYYY_MM_DD_HH_mm).replace(' ','@') + " " + string_value );

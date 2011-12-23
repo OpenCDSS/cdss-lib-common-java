@@ -777,7 +777,7 @@ throws IOException
 		date.addInterval(data_interval_base,data_interval_mult) ) {
 		tsdata = ts.getDataPoint ( date, tsdata );
 		fp.println ( source + "\t" + id + "\t" + date.toString(DateTime.FORMAT_YYYY_MM_DD) + "\t" +
-		StringUtil.formatString(tsdata.getData(), "%.0f") + "\t" + tsdata.getDataFlag() );
+		StringUtil.formatString(tsdata.getDataValue(), "%.0f") + "\t" + tsdata.getDataFlag() );
 	}
 }
 

@@ -162,7 +162,7 @@ public IrregularTS ( IrregularTS ts )
 		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
-			setDataValue ( tsdata.getDate(), tsdata.getData() );
+			setDataValue ( tsdata.getDate(), tsdata.getDataValue() );
 		}
 	}
 	__data_index = ts.__data_index;
@@ -267,7 +267,7 @@ public Object clone() {
 		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
-			ts.setDataValue ( tsdata.getDate(), tsdata.getData() );
+			ts.setDataValue ( tsdata.getDate(), tsdata.getDataValue() );
 		}
 	}
 	ts.__data_index = __data_index;
@@ -734,7 +734,7 @@ throws TSException
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start_date) ) {
-				data_value = tsdata.getData();
+				data_value = tsdata.getDataValue();
 				// Format the date according to the active
 				// date precision but allow room for full date, to line up with headers...
 				strings.add ( StringUtil.formatString(date.toString(),
@@ -879,7 +879,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	if ( __tsDataList == null ) {
 		// No data!
 		// Leave __data_index as is.
-		data_point.setData( _missing );
+		data_point.setDataValue( _missing );
 		return data_point;
 	}
 
@@ -888,7 +888,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 			Message.printDebug ( 30, "IrregularTS.getDataPoint",
 			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 			// Leave __data_index as is.
-			data_point.setData( _missing );
+			data_point.setDataValue( _missing );
 			return data_point;
 		}
 	}
@@ -943,12 +943,12 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	if( ptr == null ){
 		Message.printWarning( 2, "IrregularTS.getDataPoint", "Cannot find data value in inernal time series." );
 		// Leave __data_index as is.
-		data_point.setData( _missing );
+		data_point.setDataValue( _missing );
 		return data_point;
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug( 30, "IrregularTS.getDataPoint",
-		ptr.getData() + " for " + date + " from _data[" + i + "]." );
+		ptr.getDataValue() + " for " + date + " from _data[" + i + "]." );
 	}
 
 	// Set the data index to the found point and then return the data value...
@@ -957,13 +957,13 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 		__data_index = found_index;
 	}
 	else {
-	    data_point.setData ( _missing );
+	    data_point.setDataValue ( _missing );
 		return data_point;
 	}
 
 	// Return the data point...
 
-	data_point.setData ( ptr.getData() );
+	data_point.setDataValue ( ptr.getDataValue() );
 	data_point.setDataFlag ( ptr.getDataFlag() );
 	data_point.setDuration( ptr.getDuration() );
 
@@ -1019,7 +1019,7 @@ public double getDataValue( DateTime date )
 			// We have a match!  Increment the date index so that
 			// we can use it next time and return the matching TSData...
 			++__data_index;
-			return next_data.getData();
+			return next_data.getDataValue();
 		}
 	}
 
@@ -1057,7 +1057,7 @@ public double getDataValue( DateTime date )
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug( dl, "IrregularTS.getDataValue",
-		ptr.getData() + " for " + date + " from _data[" + i + "]." );
+		ptr.getDataValue() + " for " + date + " from _data[" + i + "]." );
 	}
 
 	if ( found_index < 0 ) {
@@ -1068,7 +1068,7 @@ public double getDataValue( DateTime date )
 
 	// Set the data index to the found point and then return the data value...
 	__data_index = found_index;
-	return ptr.getData();
+	return ptr.getDataValue();
 }
 
 /**
@@ -1424,7 +1424,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
     	    if ( ptr.getDate().equals(date) ) {
     	        // Have found the point
     	        //Message.printStatus(2,"","Setting data value next to the previous value at " + dateLocal );
-    	        ptr.setData ( value );
+    	        ptr.setDataValue ( value );
                 ptr.setDataFlag ( data_flag );
                 ptr.setDuration ( duration );
                 _dirty = true;
@@ -1496,7 +1496,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 				_dirty = true;
 				found = true;
 
-				ptr.setData ( value );
+				ptr.setDataValue ( value );
 				ptr.setDataFlag ( data_flag );
 				ptr.setDuration ( duration );
 				__prevSetDataPointer = ptr;
@@ -1534,7 +1534,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 				_dirty = true;
 				found = true; // Indicates below that existing data point was found
 
-				ptr.setData( value );
+				ptr.setDataValue( value );
 				ptr.setDataFlag( data_flag );
 				ptr.setDuration( duration );
 				__prevSetDataPointer = ptr;

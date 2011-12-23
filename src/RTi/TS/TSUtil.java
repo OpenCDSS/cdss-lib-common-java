@@ -889,14 +889,14 @@ public static void addConstant(	TS ts, DateTime start_date,
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
+				oldvalue = tsdata.getDataValue();
 				if ( !ts.isDataMissing(oldvalue) ) {
-						tsdata.setData(oldvalue + add_value);
+						tsdata.setDataValue(oldvalue + add_value);
 						// Have to do this manually since TSData are being modified directly to improve performance...
 						ts.setDirty ( true );
 				}
 				else if ( missing_flag == IGNORE_MISSING ) {
-					tsdata.setData ( add_value );
+					tsdata.setDataValue ( add_value );
 					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
@@ -1963,12 +1963,12 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
 			tsdata = (TSData)alltsdata.get(i);
-			data_value = tsdata.getData();
+			data_value = tsdata.getDataValue();
 			if ( !ts.isDataMissing(data_value) ) {
 				// Not missing, so do the conversion...
 				data_value = add + data_value*mult;
 			}
-			tsdata.setData(data_value);
+			tsdata.setDataValue(data_value);
 			// Have to do this manually since TSData are being modified directly to improve performance...
 			ts.setDirty ( true );
 		}
@@ -3558,7 +3558,7 @@ throws TSException, Exception
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl, routine, "Resetting " + value + " to limit value " + limit_value + " at " + date );
 					}
-					tsdata.setData ( limit_value );
+					tsdata.setDataValue ( limit_value );
 					if ( SetFlag_boolean ) {
 						// Also set the data flag, // appending to the old value...
 						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + SetFlag );
@@ -4414,10 +4414,10 @@ throws Exception
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
+				oldvalue = tsdata.getDataValue();
 				if ( irrts.isDataMissing(oldvalue) ) {
 					// Do in any case...
-					tsdata.setData(value);
+					tsdata.setDataValue(value);
 					if ( FillFlag_boolean ) {
 						// Also set the data flag, appending to the old value...
 						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + FillFlag );
@@ -4528,9 +4528,9 @@ throws Exception
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
+				oldvalue = tsdata.getDataValue();
 				if ( irrts.isDataMissing(oldvalue) ) {
-					tsdata.setData(values[date.getMonth() - 1]);
+					tsdata.setDataValue(values[date.getMonth() - 1]);
 					if ( FillFlag_boolean ) {
 						// Set the flag, appending to the old value...
 						tsdata.setDataFlag ( tsdata.getDataFlag().trim() + fillFlagByMonth[date.getMonth() - 1] );
@@ -4819,7 +4819,7 @@ throws TSException
 	for ( DateTime date = new DateTime ( start ); date.lessThanOrEqualTo( end );
 	    date.addInterval(interval_base, interval_mult) ) {
 		dependentData = dependentTS.getDataPoint ( date, dependentData );
-		dependentValue = dependentData.getData();
+		dependentValue = dependentData.getDataValue();
 		if ( dependentTS.isDataMissing ( dependentValue ) ) {
 			independentValue = independentTS.getDataValue ( date );
 			if ( !independentTS.isDataMissing ( independentValue ) ) {
@@ -5118,7 +5118,7 @@ public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, d
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
 				if ( ts.isDataMissing ( ts.getDataValue ( date ))) {
-				    tsdata.setData(values[date.getMonth() - 1]);
+				    tsdata.setDataValue(values[date.getMonth() - 1]);
 				    // Have to do this manually since TSData are being modified directly to improve performance...
 				    ts.setDirty ( true );
 				}
@@ -5380,7 +5380,7 @@ throws Exception
 					try {
 					    fill_value = stats.getAverage ( indicator, date.getMonth() );
 						if ( !ts.isDataMissing(fill_value) ) {
-							tsdata.setData ( fill_value );
+							tsdata.setDataValue ( fill_value );
 							if ( FillFlag_boolean ){
 								// Set the flag, appending to the old value...
 								if ( FillFlagAuto_boolean ) {
@@ -7246,7 +7246,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 				break;
 			}
 
-			value 	= ptr.getData();
+			value 	= ptr.getDataValue();
 			if ( ts.isDataMissing( value ) ) {
 				//The value is missing
 				++missing_count;
@@ -7295,7 +7295,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 			for ( int i = (size - 1); i >= 0; i-- ){
 				ptr = (TSData)data_array.get(i);
 				date = ptr.getDate();
-				value = ptr.getData();
+				value = ptr.getDataValue();
 				if ( date.greaterThan(end) ) {
 					// Have not found data...
 					continue;
@@ -8054,7 +8054,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts, 
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
 			tsdata = (TSData)alltsdata.get(i);
-			data_value = tsdata.getData();
+			data_value = tsdata.getDataValue();
 			date = tsdata.getDate();
 			if ( (!ignore_lezero && !ts.isDataMissing(data_value)) ||
 				(ignore_lezero && ((data_value > 0.0) && !ts.isDataMissing(data_value))) ) {
@@ -9185,7 +9185,7 @@ throws Exception
 	            continue;
 	        }
 	    }
-		if ( ts.isDataMissing(data.getData())) {
+		if ( ts.isDataMissing(data.getDataValue())) {
 			++nMissing;
 		}
 	}
@@ -9416,9 +9416,9 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
+				oldvalue = tsdata.getDataValue();
 				if ( !ts.isDataMissing(oldvalue) ) {
-					tsdata.setData(	MathUtil.interpolate(oldvalue,min,max,newmin,newmax) );
+					tsdata.setDataValue(	MathUtil.interpolate(oldvalue,min,max,newmin,newmax) );
 					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
@@ -9672,7 +9672,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 				// Past the end of where we want to go so quit...
 				break;
 			}
-			value = tsdata.getData();
+			value = tsdata.getDataValue();
 			if ( date.greaterThanOrEqualTo(start) && (value >= minvalue) && (value <= maxvalue) ) {
 	             if ( doAnalysisWindow ) {
                     // Do check after checking values to increase performance
@@ -9695,11 +9695,11 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			        }
 			    }
 			    else if ( doSetMissing ) {
-			        tsdata.setData(missing);
+			        tsdata.setDataValue(missing);
 			        ++replaceCount;
 			    }
 			    else {
-			        tsdata.setData(newvalue);
+			        tsdata.setDataValue(newvalue);
 			        ++replaceCount;
 			    }
 			    // Set the data flag
@@ -9891,7 +9891,7 @@ throws Exception
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				oldvalue = tsdata.getData();
+				oldvalue = tsdata.getDataValue();
 				if ( !ts.isDataMissing(oldvalue) ) {
 					if ( DaysInMonth_boolean ) {
 						ScaleValue_double = TimeUtil.numDaysInMonth(tsdata.getDate());
@@ -9899,7 +9899,7 @@ throws Exception
 					else if ( DaysInMonthInverse_boolean ) {
 						ScaleValue_double = 1.0/TimeUtil.numDaysInMonth(tsdata.getDate());
 					}
-					tsdata.setData(oldvalue*
+					tsdata.setDataValue(oldvalue*
 						ScaleValue_double);
 					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
@@ -10084,7 +10084,7 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				tsdata.setData(value);
+				tsdata.setDataValue(value);
 				// Have to do this manually since TSData are being modified directly to improve performance...
 				irrts.setDirty ( true );
 			}
@@ -10160,7 +10160,7 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				tsdata.setData(values[date.getMonth() - 1]);
+				tsdata.setDataValue(values[date.getMonth() - 1]);
 				// Have to do this manually since TSData are being modified directly to improve performance...
 				irrts.setDirty ( true );
 			}
@@ -11009,7 +11009,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 			if ( date.greaterThanOrEqualTo(start) ) {
 				if ( month_indices_size == 0 ) {
 					// Transfer any value...
-	                value = tsdata.getData ();
+	                value = tsdata.getDataValue ();
 	                if ( includeMissing || !ts.isDataMissing(value) ) {
 	                    dataArray[count++] = value;
 	                }
@@ -11019,7 +11019,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 					month = date.getMonth();
 					for ( im = 0; im < month_indices_size; im++ ) {
 						if (month == month_indices[im]) {
-		                    value = tsdata.getData ();
+		                    value = tsdata.getDataValue ();
 		                    if ( includeMissing || !ts.isDataMissing(value) ) {
 		                        dataArray[count++] = value;
 		                    }
