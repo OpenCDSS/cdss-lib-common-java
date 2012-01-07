@@ -611,7 +611,7 @@ public String getFieldFormat ( int index )
 /**
 Get C-style format specifiers that can be used to format field values for
 output.  These formats can be used with StringUtil.formatString().
-@return a String array with the format specifiers.
+@return a new String array with the format specifiers.
 */
 public String[] getFieldFormats()
 {	int nfields = getNumberOfFields();
@@ -1645,7 +1645,8 @@ throws Exception
 	}
 	
 	// Loop through the data and determine what type of data are in each column.
-	// Do this in any case because the length of the string columns needs to be determined.
+	// Do this in any case because the length of the string columns and precision for floating point
+	// columns need to be determined.
 	
 	numFields = tableFields.size();
 	size = data_record_tokens.size();
@@ -1693,7 +1694,7 @@ throws Exception
                 isTypeFound = true;
                 // Length needed in case handled as string data
                 lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
-                // Precision to help with visualization
+                // Precision to help with visualization, such as table views
                 periodPos = cell_trimmed.indexOf(".");
                 if ( periodPos >= 0 ) {
                     precision[icol] = Math.max(precision[icol], (cell_trimmed.length() - periodPos - 1) );
