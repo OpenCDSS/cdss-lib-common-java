@@ -112,9 +112,10 @@ public TableField ( TableField field )
     initialize ( field.getDataType(), field.getName(), field.getWidth(), field.getPrecision() );
 }
 
+// TODO SAM 2011-12-25 Evaluate defaulting width to -1 for strings.
 /**
 Construct a new table field for the specified type and name.
-The precision defaults to 10 characters, precision 0.
+The width defaults to 10 characters, precision 0.
 @param type Type of data associated with a particular column within
 a DataTable.  Use TableField.DATA_TYPE_*
 @param name Field name.
