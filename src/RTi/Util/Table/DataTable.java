@@ -1247,6 +1247,9 @@ throws Exception
 	return tableFields;
 }
 
+// TODO SAM 2012-01-09 Need to handle doubled and tripled quotes as per:
+// http://en.wikipedia.org/wiki/Comma-separated_values
+// For now assume no embedded quotes in quoted strings
 /**
 Parses a file and returns the DataTable for the file.  Currently only does
 delimited files, and the data type for a column must be consistent.

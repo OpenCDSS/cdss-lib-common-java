@@ -126,6 +126,7 @@ public void timeSeriesToTable ()
             }
         }
         catch ( Exception e ) {
+            // Worst case use the period from the first time series
             __outputStart = __tsList.get(0).getDate1();
             __outputEnd = __tsList.get(0).getDate2();
         }
@@ -165,6 +166,7 @@ public void timeSeriesToTable ()
                     __table.setFieldValue(setRow, setColumn, null, true );
                 }
                 else {
+                    // Set as a double because non-missing or missing and the missing value should be used
                     __table.setFieldValue(setRow, setColumn, new Double(value), true );
                 }
             }
