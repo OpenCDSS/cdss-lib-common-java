@@ -13,6 +13,10 @@ public enum DataTableMathOperatorType
  */
 ADD("+"),
 /**
+ * Assign values.
+ */
+ASSIGN("="),
+/**
  * Divide values.
  */
 DIVIDE ( "/" ),
