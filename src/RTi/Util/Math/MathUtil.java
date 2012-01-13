@@ -1,67 +1,3 @@
-//------------------------------------------------------------------------------
-// MathUtil class - math utility class.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 16 Sep 1997	Matthew J. Rutherford	Created initial version.
-//		RTi
-// 26 May 1998	Steven A. Malers, RTi	Add log10 because JDK does not currently
-//					have.
-// 01 Jun 1998	Catherine E. Nutting,	Add regress.
-//		RTi
-// 02 Jun 1998  CEN, RTi		Add regressLog.
-// 24 Aug 1998	SAM, RTi		Overload sort to take array of ints.
-// 16 Nov 1998	SAM, RTi		Change RegressionData to Regression.
-// 09 Jan 1999	SAM, RTi		Add number of points to regression data
-//					since this is useful to be printed out
-//					later.
-// 26 Oct 2000	SAM, RTi		Add int overload for max, min.
-//					Set arrays to null after use in these
-//					methods to help garbage collection.  Add
-//					interpolate().
-// 30 Oct 2000	SAM, RTi		Fix bug in sort() where sort_order was
-//					being checked for null even if sflag is
-//					false.  Set the max and min values used
-//					when performing regression.  Add
-//					double versions of max/min that take
-//					a missing data value, since that is
-//					used so often.
-// 2002-02-25	SAM, RTi		Overload mean(), standardDeviation(),
-//					and variance() to take missing data
-//					value.  Change the variable names in the
-//					regression code to be clearer.
-// 2002-03-18	SAM, RTi		Fix problem with handling missing data
-//					in regression (reverse logic was
-//					confusing).  Fix bug in regression
-//					introduced when variable names were
-//					changed.  Add more comments to
-//					regression code to make it easier to
-//					follow statistics books.
-// 2002-03-24	SAM, RTi		Update for new Regression class.
-// 2002-03-25	SAM, RTi		More changes to compute N1, N2 values
-//					so that general output can be supported.
-//					To do this the code does more data
-//					manipulation but is more flexible and
-//					allows more reporting.
-// 2002-04-03	SAM, RTi		Save transformed RMSE in addition to the
-//					untransformed RMSE when doing
-//					regression.
-// 2002-04-08	SAM, RTi		Update to handle Y mean and standard
-//					deviation in regression.
-// 2002-04-29	SAM, RTi		Add commonDenominator() method.
-// 2003-05-14	SAM, RTi		Add an intercept option to the
-//					regression.
-// 2003-12-03	J. Thomas Sapienza, RTi	Added code to convert from decimal to
-//					hex values.
-// 2004-03-15	SAM, RTi		Overload sum to take a missing value.
-// 2004-06-02	SAm, RTi		Add methods from old GR C++ code to
-//					support standard log normal plot axes:
-//						integrate()
-//------------------------------------------------------------------------------
-//EndHeader
-
 package RTi.Util.Math;
 import	RTi.Util.Message.Message;
 
@@ -71,7 +7,7 @@ import java.util.List;
 import java.util.Vector;
 
 /**
-Static methods for processing statistics.
+Static methods for calculating statistics.
 */
 public class MathUtil
 {
@@ -408,15 +344,13 @@ Do a linear interpolation/extrapolation.
 @param ymax "Right" value on "Y" axis.
 */
 public static double interpolate ( double x, double xmin, double xmax, double ymin, double ymax )
-{	double	y;
-
+{
 	if ( (xmax - xmin) == 0.0 ) {
-		y = ymin;
+		return ymin;
 	}
 	else {
-	    y = ymin + (ymax - ymin)*(x - xmin)/(xmax - xmin);
+	    return ( ymin + (ymax - ymin)*(x - xmin)/(xmax - xmin) );
 	}
-	return y;
 }
 
 /**
@@ -455,7 +389,7 @@ Find the maximum of two values.
 @param y Second value to check.
 */
 public static double max ( double x, double y )
-{	// Don't call array overload (try to optimize performance)!
+{
 	if ( x >= y ) {
 		return x;
 	}
@@ -472,7 +406,7 @@ Find the maximum of two values but ignore missing.
 @param missing Value to consider missing.
 */
 public static double max ( double x, double y, double missing )
-{	// Don't call array overload (try to optimize performance)!
+{
 	if ( (x == missing) && (y == missing) ) {
 		// Both are missing so return missing.
 		return missing;
@@ -497,18 +431,13 @@ Find the maximum in an array.
 public static double max ( double x[] )
 throws Exception
 {
-	try {
-	    return max ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+    return max ( x.length, x );
 }
 
 /**
 @return The maximum value in an array.
-@param n Number of values in array.
-@param x Array of values.
+@param n number of values in array to process
+@param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double max ( int n, double x[] )
@@ -532,39 +461,36 @@ throws Exception
 }
 
 /**
-Find the maximum value in an integer list.
+Find the maximum of two integer values
+@return the maximum value
+@param x one integer value
+@param y another integer value
 */
 public static int max ( int x, int y )
-throws Exception
 {
-	int [] a = new int[2];
-	a[0] = x;
-	a[1] = y;
-	try {
-	    int m = max ( a );
-		a = null;
-		return m;
+	if ( x > y ) {
+	    return x;
 	}
-	catch ( Exception e ) {
-		a = null;
-		throw e;
-	}
-}
-
-public static int max ( int x[] )
-throws Exception
-{
-	try {
-	    return max ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
+	else {
+	    return y;
 	}
 }
 
 /**
 @return The maximum value in an array.
 @param x Array of values.
+@exception java.lang.Exception If the number of points is <= 0.
+*/
+public static int max ( int x[] )
+throws Exception
+{
+    return max ( x.length, x );
+}
+
+/**
+@return The maximum value in an array.
+@param n number of values in array to compare
+@param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static int max ( int n, int x[] )
@@ -587,80 +513,54 @@ throws Exception
 	return m;
 }
 
-/*------------------------------------------------------------------------------
-** mean - calculate the mean for a list of numbers
-**------------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-**------------------------------------------------------------------------------
-** History:
-**
-** 05-25-95	Steven A. Malers, RTi	Make function return a status and pass
-**					mean in parameter list.
-** 06 Sep 1996  Steven A. Malers, RTi   Split out of the HMStat.c file.
-** 04 Apr 1998	SAM, RTi		Port to Java.
-**------------------------------------------------------------------------------
-** Variables	I/O	Description
-**
-** mean		O	Mean of the values.
-** message	L	String for messages.
-** n		I	Number of data values.
-** routine	L	Name of this routine.
-** sum		L	Sum of data values.
-** x		I	Data values.
-**------------------------------------------------------------------------------
-*/
+/**
+Compute the mean of an array of values.
+@return The mean of the array of values
+@param x array of values
+@exception java.lang.Exception If the number of points is <= 0.
+ */
 public static double mean ( double x[] )
 throws Exception
-{	try {
-        return mean ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+{
+    return mean ( x.length, x );
 }
 
 /**
 Compute the mean of an array of values.
-@return The mean value in an array.
-@param x Array of values.
+@return The mean of the array of values
+@param n the number of values from the array to process
+@param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double mean ( int n, double x[] )
 throws Exception
-{	String	message, routine = "MathUtil.mean";
-	double	thesum;
-	double	mean = 0.0;
+{	String message, routine = "MathUtil.mean";
+	double thesum;
 
 	if ( n <= 0 ) {
-		message = "Number of points <= 0";
+		message = "Number of values <= 0";
 		Message.printWarning ( 10, routine, message );
 		throw new Exception ( message );
 	}
-	try {
-	    thesum = sum ( n, x );
-	}
-	catch (	Exception e ) {
-		throw e;
-	}
-	mean = thesum/(double)(n);
-	return mean;
+    thesum = sum ( n, x );
+	return ( thesum/(double)(n) );
 }
 
 /**
 Compute the mean of an array of values.
 @return The mean value in an array.
-@param x Array of values.
-@param missing Missing data value (to ignore).
+@param n the number of values from the array to process
+@param x array of values
+@param missing Missing data value (to ignore)
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double mean ( int n, double x[], double missing )
 throws Exception
-{	String	message, routine = "MathUtil.mean";
-	double	thesum = 0.0;
-	double	mean = 0.0;
+{	String message, routine = "MathUtil.mean";
+	double thesum = 0.0;
 
 	if ( n <= 0 ) {
-		message = "Number of points <= 0";
+		message = "Error computing mean - the number of points <= 0.";
 		Message.printWarning ( 10, routine, message );
 		throw new Exception ( message );
 	}
@@ -677,12 +577,34 @@ throws Exception
 		throw e;
 	}
 	if ( n2 <= 0 ) {
-		message = "Number of non-missing points <= 0";
+		message = "Error computing mean - the number of non-missing points <= 0.";
 		Message.printWarning ( 10, routine, message );
 		throw new Exception ( message );
 	}
-	mean = thesum/(double)(n2);
-	return mean;
+	return ( thesum/(double)(n2) );
+}
+
+/**
+Find the median value in an array.  If the number of values is even, the average of the middle two values is returned.
+@param n Number of values from x to evaluate.
+@param x The array to evaluate.
+@return the median value from x
+*/
+public static double median(int n, double x[])
+{
+    double[] b = new double[n];
+    System.arraycopy(x, 0, b, 0, n);
+    Arrays.sort(b);
+
+    if ( (n % 2) == 0) {
+        // Even number in the sample so return the average of the middle two values.
+        return (b[(b.length / 2) - 1] + b[b.length / 2]) / 2.0;
+    }
+    else {
+        // Return the value in the middle of the array.  Since integer math is used for the index,
+        // the roundoff will result in the correct position.
+        return b[b.length/2];
+    }
 }
 
 /**
@@ -710,37 +632,14 @@ public static double min ( double x, double y, double missing )
 }
 
 /**
-Find the median value in an array.  If the number of values is even, the average of the middle two values is returned.
-@param n Number of values from x to evaluate.
-@param x The array to evaluate.
-@return the median value from x
-*/
-public static double median(int n, double x[])
-{
-    double[] b = new double[n];
-    System.arraycopy(x, 0, b, 0, n);
-    Arrays.sort(b);
-
-    if ( (n % 2) == 0) {
-        // Even number in the sample so return the average of the middle two values.
-        return (b[(b.length / 2) - 1] + b[b.length / 2]) / 2.0;
-    }
-    else {
-        // Return the value in the middle of the array.  Since integer math is used for the index,
-        // the roundoff will result in the correct position.
-        return b[b.length/2];
-    }
-}
-
-/**
 Find the minimum of two values.
 @return minimum of two values.
 @param x First value to check.
 @param y Second value to check.
 */
 public static double min ( double x, double y )
-{	// Do not call the array version to optimize performance!
-	if ( x <= y ) {
+{
+	if ( x < y ) {
 		return x;
 	}
 	else {
@@ -756,17 +655,13 @@ Find the minimum value in an array.
 public static double min ( double x[] )
 throws Exception
 {
-	try {
-	    return min ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+    return min ( x.length, x );
 }
 
 /**
 @return The minimum value in an array.
-@param x Array of values.
+@param n the number of values in the array to compare
+@param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double min ( int n, double x[] )
@@ -790,49 +685,46 @@ throws Exception
 }
 
 /**
-Find the minimum value in a list.
+Find the minimum of two integer values
+@return the minimum value
+@param x one integer value
+@param y another integer value
 */
 public static int min ( int x, int y )
-throws Exception
 {
-	int [] a = new int[2];
-	a[0] = x;
-	a[1] = y;
-	try {
-	    int m = min ( a );
-		a = null;
-		return m;
-	}
-	catch ( Exception e ) {
-		a = null;
-		throw e;
-	}
+    if ( x < y ) {
+        return x;
+    }
+    else {
+        return y;
+    }
 }
 
+/**
+Find the minimum value in an array
+@return the minimum value
+@param x array of integer values to check
+*/
 public static int min ( int x[] )
 throws Exception
 {
-	try {
-	    return min ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+    return min ( x.length, x );
 }
 
 /**
 @return The minimum value in an array.
-@param x Array of values.
+@param n number of values in array to check
+@param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static int min ( int n, int x[] )
 throws Exception
 {	int	i;
-	String	routine = "MathUtil.min";
+	String routine = "MathUtil.min";
 	int	m = 0;
 
 	if ( n <= 0 ) {
-		String message = "Number of points <= 0.0";
+		String message = "Number of points <= 0";
 		Message.printWarning ( 10, routine, message );
 		throw new Exception ( message );
 	}
@@ -881,7 +773,7 @@ all missing), or data array lengths are unequal.
 all missing), or data array lengths are unequal.
 */
 public static Regression regress ( double [] xArray, double [] yArray, boolean useMissing, double missingx,
-					double missingy, Double intercept )
+	double missingy, Double intercept )
 throws Exception
 {	return regress (xArray, yArray, useMissing, missingx, missingy, false, intercept );
 }
@@ -910,7 +802,7 @@ transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE dat
 all missing), or data array lengths are unequal.
 */
 private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
-					double missingy, boolean data_transformed, Double intercept )
+	double missingy, boolean data_transformed, Double intercept )
 throws Exception
 {	String rtn = "MathUtil.regress";
 	if ( xArray.length != yArray.length ) {
@@ -1198,7 +1090,7 @@ calculations (if false the values are not checked against "missingx" and "missin
 @exception java.lang.Exception If the length of the two arrays differ.
 */
 public static Regression regressLog ( double [] xArray, double [] yArray, 
-					boolean useMissing, double missingx, double missingy )
+	boolean useMissing, double missingx, double missingy )
 throws Exception
 {	String rtn = "MathUtil.regressLog";
 	if ( xArray.length != yArray.length ) {
@@ -1264,34 +1156,6 @@ throws Exception
 	}
 	return rd;
 }
-
-/*------------------------------------------------------------------------------
-** reverseArray - reverse an array of double numbers
-**------------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-**------------------------------------------------------------------------------
-** Notes:
-**		(1)	Since we need to swap the top half of the array with
-**			the bottom we only need to go from 0 to (ndata / 2).
-**		(2)	The original array is overwritten by the new array.
-**		(3)	Returns 0 for success and 1 for failure.
-**------------------------------------------------------------------------------
-** History:
-**
-** 16 Sep 1997	MJR, RTi	Ported to Java.
-**------------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** data		I/O	Incoming array of numbers
-** half		L	Half of ndata
-** i		L	Loop index
-** j		L	Array index
-** message	L	Global message string.
-** ndata	I	Number of values in data
-** routine	L	Routine name
-** tempf	L	Temporary variable
-**------------------------------------------------------------------------------
-*/
 
 /**
 Reverse an array of doubles.
@@ -1380,7 +1244,7 @@ ignore data.  If true, then having missing data in either array causes both arra
 @exception Exception if there is an error computing the RMS error.
 */
 public static double RMSError ( int n, double x[], double y[],
-				boolean use_missing, double xmissing, double ymissing )
+	boolean use_missing, double xmissing, double ymissing )
 throws Exception
 {	int n2 = 0;
 	double sume2 = 0.0;
@@ -1399,44 +1263,25 @@ throws Exception
 	return Math.sqrt ( sume2/(double)n2 );
 }
 
-/* ----------------------------------------------------------------------------
-** roundToPercent - round a number to a nice percent
-** ----------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-**------------------------------------------------------------------------------
-** Notes:	(1)	This routine takes a number and finds the nearest
-**			value, rounded within the given interval.
-** ----------------------------------------------------------------------------
-** History:
-**
-** 05-30-95	Steven A. Malers, RTi	Original routine.
-** 06 Sep 1996  Steven A. Malers, RTi   Split out of the HMStat.c file.
-** 05 Jun 1998	SAM, RTi		Port to Java.
-** ----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** fact		L	Factor to convert all data to 100.0 maximum scale.
-** interval	I	Allowable interval for output.
-** interval100	L	Interval with 100.0 as the maximum value.
-** message	L	String for messages.
-** mflag	I	Flag indicating whether maximum value is 1.0 (0) or
-**			100.0 (1).
-** rflag	L	Flag indicating whether value should be rounded up (1),
-**			down (-1) or to nearest (0).
-** x		I	Raw data value.
-** xhigh	L	High even interval value.
-** xhighdif	L	Difference between "xhigh" and "xs".
-** xlow		L	Low even interval value.
-** xlowdif	L	Difference between "xlow" and "xs".
-** xr		O	Rounded value.
-** xs		L	Data in units of "interval100".
-** ----------------------------------------------------------------------------
+// TODO SAM 2012-01-11 The description for the method is not clear.
+/**
+Round a floating point value to percent.
+@param x raw data value
+@param interval allowable interval for output (e.g., 1.0 for 1%).
+@param mflag fag indicating whether maximum value is 1.0 (0) or 100.0 (1).
+@param rflag flag indicating whether value should be rounded up (1), down (-1) or to nearest (0).
 */
-
 public static double roundToPercent ( double x, double interval, int mflag, int rflag )
 throws Exception
 {	String message, routine = "MathUtil.roundToPercent";
-	double fact, interval100, xhigh, xhighdif, xlow, xlowdif, xr, xs;
+	double fact;
+	double interval100; // Interval with 100.0 as the maximum value.
+	double xhigh; // High even interval value.
+	double xhighdif; // Difference between "xhigh" and "xs".
+	double xlow; // Low even interval value.
+	double xlowdif; // Difference between "xlow" and "xs".
+	double xr; // Rounded value, returned.
+	double xs; // Data in units of "interval100".
 
 	xr = 0.0;
 	// Figure out factors, etc. to convert everything to 100.0 scale...
@@ -1446,7 +1291,7 @@ throws Exception
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
 		}
-		fact = 1.0;
+		fact = 1.0; // Factor to convert all data to 100.0 maximum scale.
 		interval100	= interval;
 		xs = x;
 		
@@ -1532,7 +1377,7 @@ Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 */
 public static int sort(double[] data, int method, int order, int[] sort_order, boolean sflag )
-{	String	routine="MathUtil.sort(double[]...)";
+{	String routine="MathUtil.sort(double[]...)";
 	int	i=0, ndata=data.length;
 
 	if ( data == null ) {
@@ -1603,7 +1448,7 @@ Sort an array of integers.
 @param sflag Indicates whether "sort_order" is to be filled.
 */
 public static int sort (int[] data, int method, int order, int[] sort_order, boolean sflag )
-{	String	routine="MathUtil.sort(int[]...)";
+{	String routine="MathUtil.sort(int[]...)";
 	int	i=0, ndata=data.length;
 
 	if ( data == null ) {
@@ -1664,27 +1509,6 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 
 	return 0;
 }
-
-/* ----------------------------------------------------------------------------
-** sortDQuick - quick sort on a list of double
-** ----------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-** ----------------------------------------------------------------------------
-** Notes:	(1)	Default order is ascending (SORT_ASCENDING).
-** ----------------------------------------------------------------------------
-** History:
-**
-** 16 Sep 1997	MJR, RTi		Ported to Java.
-** ----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** data		I	Data values to sort.
-** ndata	I	Number of data values.
-** sflag	I	Indicates whether the sort_order array should be
-**			filled.
-** sort_order	O	Original order of data after sort.
-** ----------------------------------------------------------------------------
-*/
 
 /**
 Sort an array of doubles into ascending order using the quick sort method.
@@ -1800,7 +1624,7 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 				sort_order[l] = sort_order[j];
 				sort_order[j] = ia;
 			}
-			jstack	+= 2;
+			jstack += 2;
 			if ( jstack > (NSTACK - 1) ) {
 				Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
 				return 1;
@@ -1819,27 +1643,6 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 	}
 	return 0;
 }
-
-/* ----------------------------------------------------------------------------
-** sortIQuick - quick sort on a list of integer
-** ----------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-** ----------------------------------------------------------------------------
-** Notes:	(1)	Default order is ascending (SORT_ASCENDING).
-** ----------------------------------------------------------------------------
-** History:
-**
-** 15 Apr 1998	CEN, RTi		Copied and modified sortDQuick
-** ----------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** data		I	Data values to sort.
-** ndata	I	Number of data values.
-** sflag	I	Indicates whether the sort_order array should be
-**			filled.
-** sort_order	O	Original order of data after sort.
-** ----------------------------------------------------------------------------
-*/
 
 /**
 Sort an array of integers into ascending order using the quick sort method.
@@ -1861,9 +1664,9 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 	while ( true ) {
 		if ( (ir - l) < insertmax ) {
 			for ( j = (l + 1); j <= ir; j++ ) {
-				a	= data[j];
+				a = data[j];
 				if ( sflag ) {
-					ia	= sort_order[j];
+					ia = sort_order[j];
 				}
 				for ( i = (j - 1); i >= 0; i-- ) {
 					if ( data[i] <= a ) {
@@ -1882,54 +1685,54 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 			if ( jstack == 0 ) {
 				break;
 			}
-			ir	= istack[jstack--];
-			l	= istack[jstack--];
+			ir = istack[jstack--];
+			l = istack[jstack--];
 		}
 		else {
 		    k = (l + ir)/2;
-			temp		= data[k];
-			data[k]		= data[l + 1];
+			temp = data[k];
+			data[k] = data[l + 1];
 			data[l + 1]	= temp;
 			if ( sflag ) {
-				itemp		= sort_order[k];
-				sort_order[k]	= sort_order[l + 1];
-				sort_order[l+1]	= itemp;
+				itemp = sort_order[k];
+				sort_order[k] = sort_order[l + 1];
+				sort_order[l+1] = itemp;
 			}
 			if ( data[l + 1] > data[ir] ) {
-				temp		= data[l + 1];
-				data[l + 1]	= data[ir];
-				data[ir]	= temp;
+				temp = data[l + 1];
+				data[l + 1] = data[ir];
+				data[ir] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l + 1];
-					sort_order[l+1]	= sort_order[ir];
-					sort_order[ir]	= itemp;
+					itemp = sort_order[l + 1];
+					sort_order[l+1] = sort_order[ir];
+					sort_order[ir] = itemp;
 				}
 			}
 			if ( data[l] > data[ir] ) {
-				temp		= data[l];
-				data[l]		= data[ir];
-				data[ir]	= temp;
+				temp = data[l];
+				data[l] = data[ir];
+				data[ir] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l];
-					sort_order[l]	= sort_order[ir];
-					sort_order[ir]	= itemp;
+					itemp = sort_order[l];
+					sort_order[l] = sort_order[ir];
+					sort_order[ir] = itemp;
 				}
 			}
 			if ( data[l + 1] > data[l] ) {
-				temp		= data[l + 1];
-				data[l + 1]	= data[l];
-				data[l]		= temp;
+				temp = data[l + 1];
+				data[l + 1] = data[l];
+				data[l] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[l + 1];
-					sort_order[l+1]	= sort_order[l];
-					sort_order[l]	= itemp;
+					itemp = sort_order[l + 1];
+					sort_order[l+1] = sort_order[l];
+					sort_order[l] = itemp;
 				}
 			}
-			i	= l + 1;
-			j	= ir;
-			a	= data[l];
+			i = l + 1;
+			j = ir;
+			a = data[l];
 			if ( sflag ) {
-				ia	= sort_order[l];
+				ia = sort_order[l];
 			}
 			while ( true ) {
 				do {
@@ -1941,13 +1744,13 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 				if ( j < i ) {
 					break;
 				}
-				temp		= data[i];
-				data[i]		= data[j];
-				data[j]		= temp;
+				temp = data[i];
+				data[i] = data[j];
+				data[j] = temp;
 				if ( sflag ) {
-					itemp		= sort_order[i];
-					sort_order[i]	= sort_order[j];
-					sort_order[j]	= itemp;
+					itemp = sort_order[i];
+					sort_order[i] = sort_order[j];
+					sort_order[j] = itemp;
 				}
 			}
 			data[l]	= data[j];
@@ -1956,89 +1759,80 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 				sort_order[l] = sort_order[j];
 				sort_order[j] = ia;
 			}
-			jstack	+= 2;
+			jstack += 2;
 			if ( jstack > (NSTACK - 1) ) {
 				Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
 				istack = null;
 				return 1;
 			}
 			if ( (ir - i + 1) >= (j - l) ) {
-				istack[jstack]		= ir;
-				istack[jstack - 1]	= i;
-				ir			= j - 1;
+				istack[jstack] = ir;
+				istack[jstack - 1] = i;
+				ir = j - 1;
 			}
 			else {
-			    istack[jstack]		= j - 1;
-				istack[jstack - 1]	= l;
-				l			= i;
+			    istack[jstack] = j - 1;
+				istack[jstack - 1] = l;
+				l = i;
 			}
 		}
 	}
 	return 0;
 }
 
-/*------------------------------------------------------------------------------
-** standardDeviation - calculate the standard deviation for a list of numbers
-**------------------------------------------------------------------------------
-** Copyright:   See the COPYRIGHT file.
-**------------------------------------------------------------------------------
-** History:
-**
-** 05-25-95	Steven A. Malers, RTi	Changed return status to an integer -
-**					return stddev via the parameter list.
-** 06 Sep 1996  Steven A. Malers, RTi   Split out of the HMStat.c file.
-** 04 Jun 1998	SAM, RTi		Port to Java.
-**------------------------------------------------------------------------------
-** Variable	I/O	Description
-**
-** n		I	Number of data values.
-** routine	L	Name of this routine.
-** s		O	Standard deviation.
-** var		L	Variance of the values.
-** x		I	Data values.
-**------------------------------------------------------------------------------
+/**
+Compute the sample standard deviation (square root of the sample variance).
+@param x array of values to process
+@return the sample standard deviation
+@throws Exception if the array size is < 2 or variance is 0
 */
-
 public static double standardDeviation ( double x[] )
 throws Exception
 {
-	try {
-	    return standardDeviation ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+    return standardDeviation ( x.length, x );
 }
 
+/**
+Compute the sample standard deviation (square root of the sample variance).
+@param n number of values in array to process
+@param x array of values to process
+@return the sample standard deviation
+@throws Exception if the number of values is < 2 or variance is zero
+*/
 public static double standardDeviation ( int n, double x[] )
 throws Exception
-{	String	message, routine = "MathUtil.standardDeviation";
-	double	s, var;
+{	String message, routine = "MathUtil.standardDeviation";
+	double var;
 
-	s = 0.0;
 	try {
 	    var = variance ( n, x );
 	}
 	catch ( Exception e ) {
-		message = "Trouble calculating variance";
+		message = "Error calculating variance - canot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
 	if ( var <= 0.0 ) {
-		message = "Variance (" + var + ") <= 0.  Cannot compute standard deviation.";
+		message = "Variance (" + var + ") <= 0.  Cannot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
-	s = Math.sqrt ( var );
-	return s;
+	return Math.sqrt ( var );
 }
 
+/**
+Compute the sample standard deviation (square root of the sample variance).
+@param n number of values in array to process
+@param x array of values to process
+@param missing the value to use for missing data (they will be ignored)
+@return the sample standard deviation
+@throws Exception if the number of values is < 2 or variance is zero
+*/
 public static double standardDeviation ( int n, double x[], double missing )
 throws Exception
-{	String	message, routine = "MathUtil.standardDeviation";
-	double	s, var;
+{	String message, routine = "MathUtil.standardDeviation";
+	double var;
 
-	s = 0.0;
 	try {
 	    var = variance ( n, x, missing );
 	}
@@ -2052,8 +1846,7 @@ throws Exception
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
-	s = Math.sqrt ( var );
-	return s;
+	return Math.sqrt ( var );
 }
 
 /**
@@ -2068,7 +1861,8 @@ public static double sum ( double x[] )
 /**
 Calculate the sum of a list of numbers.
 @return the sum of the array, or zero if no values.
-@param x Array of numbers.
+@param n number of values to use from array
+@param x array of numbers
 */
 public static double sum ( int n, double x[] )
 {	double thesum = 0.0;
@@ -2082,8 +1876,9 @@ public static double sum ( int n, double x[] )
 /**
 Calculate the sum of a list of numbers.
 @return the sum of the array, or zero if no values.
-@param x Array of numbers.
-@param missing Value to consider as missing - matching values will be ignored.
+@param n number of values to use from array
+@param x array of numbers
+@param missing value to consider as missing - matching values will be ignored
 */
 public static double sum ( int n, double x[], double missing )
 {	double thesum = 0.0;
@@ -2096,49 +1891,33 @@ public static double sum ( int n, double x[], double missing )
 	return thesum;
 }
 
-/*------------------------------------------------------------------------------
-** variance - calculate the sample variance for a list of numbers
-**------------------------------------------------------------------------------
-** History:
-**
-** 05-25-95	Steven A. Malers, RTi	Change so that the routine
-**					returns an error code and the
-**					mean is returned in the
-**					parameter list.
-** 04 Jun 1998	SAM, RTi		Port to Java.
-**------------------------------------------------------------------------------
-** Variables	I/O	Description
-**
-** dif		L	Difference between a data value and the mean for the
-**			set.
-** mean		L	Mean of the sample set (zero of there is trouble).
-** message	L	String for messages.
-** n		I	Number of data values.
-** routine	L	Name of this routine.
-** var		O	Variance of the values.
-** x		I	Data values.
-**------------------------------------------------------------------------------
+/**
+Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
+@return the sample variance
+@param x the sample array
+@exception Exception if the array length is < 2, which would result in division by zero.
 */
-
 public static double variance ( double x[] )
 throws Exception
-{	try {
-        return variance ( x.length, x );
-	}
-	catch ( Exception e ) {
-		throw e;
-	}
+{	return variance ( x.length, x );
 }
 
+/**
+Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
+@return the sample variance
+@param n the number of values to use from the array
+@param x the sample array
+@exception Exception if n is < 2, which would result in division by zero.
+*/
 public static double variance ( int n, double x[] )
 throws Exception
 {	int	i;
 	double dif, meanx;
-	String message, routine = "MathUtil.variance";
+	String routine = "MathUtil.variance";
 
 	double var = 0.0;
 	if ( n <= 1 ) {
-		message = "Number of data values = " + n + " <= 1 (must be >= 2).";
+		String message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
@@ -2146,7 +1925,7 @@ throws Exception
 	    meanx = mean(n, x);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 50, routine, "Error calculating mean - cannot compute variance." );
+		Message.printWarning ( 50, routine, "Error calculating mean - cannot calculate sample variance." );
 		throw e;
 	}
 	for ( i = 0; i < n; i++ ) {
@@ -2158,12 +1937,13 @@ throws Exception
 }
 
 /**
-Compute the sample variance (denominator is non-missing sample size minus 1).
-@param n number of values in array to process (can be less than the data array size).
+Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
+@param n number of values to use from the array
 @param x array of values to process.
-@param missing the value to use for missing values
-@return the variance
-@throws Exception
+@param missing the value to use for missing values (will be ignored)
+@return the sample variance
+@throws Exception if the sample size after considering missing values is < 2,
+which would result in division by zero
 */
 public static double variance ( int n, double x[], double missing )
 throws Exception
@@ -2173,7 +1953,7 @@ throws Exception
 
 	double var = 0.0;
 	if ( n <= 1 ) {
-		message = "Number of data values = " + n + " <= 1";
+		message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
@@ -2181,7 +1961,7 @@ throws Exception
 	    meanx = mean(n, x, missing);
 	}
 	catch ( Exception e ) {
-		Message.printWarning ( 50, routine, "Error calculating mean" );
+		Message.printWarning ( 50, routine, "Error calculating mean - canot calculate variance." );
 		throw e;
 	}
 	int n2 = 0;
@@ -2193,7 +1973,7 @@ throws Exception
 		}
 	}
 	if ( n2 <= 1 ) {
-		message = "Number of non-missing data values = " + n2 + " <= 1";
+		message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
 		throw new Exception ( message );
 	}
