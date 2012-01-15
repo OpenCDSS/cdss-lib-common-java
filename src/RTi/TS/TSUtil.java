@@ -10957,7 +10957,41 @@ other versions of this routine.
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
     boolean includeMissing )
-{	// Get valid dates because the ones passed in may have been null...
+{
+    return toArray ( ts, start_date, end_date, month_indices, includeMissing, true, null );
+}
+
+/**
+Return an array containing the data values of the time series for the specified
+period.  If the start date or end date are outside the period of
+record for the time series, use the missing data value from the time series
+for those values.  If the start date or end date are null, the start and end
+dates of the time series are used.  This is a utility routine mainly used by
+other versions of this routine.
+@return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+@param month_indices Months of interest (1=Jan, 12=Dec).  If null or an empty array, process all months.
+@param includeMissing if true, include missing values; if false, do not include missing values
+@param matchOtherNonmissing only used if "pairedTS" -s not null;
+if true, then specify "pairedTS" and only return non-missing values that also are non-missing in "pairedTS";
+if false, then specify "pairedTS" and only return non-missing values that are missing in "pairedTS"
+other time series (this functionality is used to extract data for regression analysis)
+@param pairedTS a second time series used to extract paired (or non-paired) data samples; if null then
+the time series will not be checked as a constraint regardless of the "matchOtherNonmissing" value;
+this capability is NOT availble for irregular time series
+*/
+public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
+    boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS )
+{
+    if ( pairedTS != null ) {
+        if ( TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
+            throw new IrregularTimeSeriesNotSupportedException(
+                "Irregular interval time series cannot have data array extracted aligned with another time series." );
+        }
+    }
+    // Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
 	DateTime start = valid_dates.getDate1();
@@ -10991,7 +11025,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return null;
@@ -11000,7 +11034,7 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -11034,26 +11068,56 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 	    // Regular, increment the data by interval...
 		DateTime date = new DateTime ( start );
 		count = 0;
+		boolean doTransfer = false;
+		boolean includeMonth = false;
+		boolean isMissing = false;
+		double value2;
+		boolean isMissing2;
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
-			if ( month_indices_size == 0 ) {
-				// Transfer all the data...
-		        value = ts.getDataValue ( date );
-			    if ( includeMissing || !ts.isDataMissing(value) ) {
-			        dataArray[count++] = value;
-			    }
-			}
-			else {
-			    // Transfer only if the month agrees with the requested month...
-				month = date.getMonth();
-				for ( im = 0; im < month_indices_size; im++ ) {
-					if ( month == month_indices[im] ) {
-					    value = ts.getDataValue ( date );
-		                if ( includeMissing || !ts.isDataMissing(value) ) {
-		                    dataArray[count++] = value;
-		                }
-						break; // Found a matching month
-					}
-				}
+		    // First figure out if the data should be skipped because not in a requested month
+		    if ( month_indices_size != 0 ) {
+		        includeMonth = false;
+		        for ( im = 0; im < month_indices_size; im++ ) {
+                    if ( month == month_indices[im] ) {
+                        includeMonth = true;
+                    }
+                }
+		        if ( !includeMonth ) {
+		            continue;
+		        }
+		    }
+		    // Now transfer the value while checking the paired time series
+		    doTransfer = false; // Do not transfer unless criteria are met below
+            value = ts.getDataValue ( date );
+            isMissing = ts.isDataMissing(value);
+		    if ( pairedTS != null ) {
+		        // Value in "ts" time series MUST be non-missing
+		        if ( !isMissing ) {
+    	            value2 = pairedTS.getDataValue ( date );
+    	            isMissing2 = pairedTS.isDataMissing(value2);
+    	            if ( matchOtherNonmissing ) {
+    	                // Want non-missing in both "ts" and "pairedTS"
+    	                if ( !isMissing2 ) {
+    	                    doTransfer = true;
+    	                }
+    	            }
+    	            else {
+    	                // Want non-missing in "ts" and missing in "pairedTS"
+    	                if ( isMissing2 ) {
+    	                    doTransfer = true;
+    	                }
+    	            }
+		        }
+		    }
+		    else {
+    		    if ( includeMissing || !isMissing ) {
+    		        // Value is not missing.
+    		        doTransfer = true; 
+    		    }
+		    }
+		    // OK to transfer the value...
+			if ( doTransfer ) {
+                dataArray[count++] = value;
 			}
 		}
 	}
@@ -11061,11 +11125,11 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 	if ( count != size ) {
 		// The original array is too big and needs to be cut down to the exact size due to limited
 	    // months or missing data being excluded)...
-		double [] new_dataArray = new double[count];
+		double [] newDataArray = new double[count];
 		for ( int j = 0; j < count; j++ ) {
-			new_dataArray[j] = dataArray[j];
+			newDataArray[j] = dataArray[j];
 		}
-		return new_dataArray;
+		return newDataArray;
 	}
 	// Return the full array...
 	return dataArray;
