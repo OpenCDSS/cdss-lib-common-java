@@ -1,44 +1,10 @@
-//------------------------------------------------------------------------------
-// Regression - math regression class.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 27 May 1998	Catherine E.		Created initial version.
-//		Nutting-Lane, RTi
-// 04 Nov 1998	Steven A. Malers, RTi	Add javadoc.  Still need to add
-//					constructors, etc. that actually do the
-//					regression.
-// 09 Jan 1999	SAM, RTi		Add number of points.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 28 Oct 2000	SAM, RTi		Add "lag_intervals" and set/get methods
-//					for use by code that analyzes lagged
-//					time series.  Add code to store and
-//					access the minimum and maximum values
-//					used in the analysis.  This is useful
-//					when setting axis labels in graphs.
-// 2002-03-18	SAM, RTi		Clarify documentation to use X and Y
-//					rather than Q and S.
-// 2002-03-24	SAM, RTi		Change methods around to be compatible
-//					with general X versus Y regression.  For
-//					example, change *Max1() to *MaxX().  Add
-//					data and methods to support more complex
-//					derived classes (e.g., add n1, n2).
-// 2002-04-03	SAM, RTi		Add transformed RMSE so that both
-//					transformed and untransformed error can
-//					be reported.
-// 2002-04-08	SAM, RTi		Update to have storage for Y mean and
-//					standard deviation.
-// 2002-05-14	SAM, RTi		Add parameter for forced intercept.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added all data members to finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.Math;
 
 import java.security.InvalidParameterException;
+
+// TODO SAM 2012-01-09 This is interim work.  The idea is to more clearly separate the regression results
+// from the class that does the analysis.  However, the ongoing effort to make FillRegression(),
+// FillMOVE2(), and FillMixedStation() need to get done so refactoring the previous code may need to wait.
 
 /**
 <p>
@@ -62,6 +28,7 @@ some statistics traditionally refer to the untransformed data (such as RMSE).  I
 getRmse() refers to the original data space and getRmseTransformed() refers to the transformed data.
 Where no data transform is used, the raw and transformed values will be the same.  Consequently, refer to the
 documentation to understand the meaning.
+TODO SAM 2012-02-09 The above is confusing!!! Need to fix.
 </p>
 */
 public class RegressionResults

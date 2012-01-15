@@ -147,13 +147,14 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
 
 /**
-<P>
-The TSRegression class performs regression, MOVE1, and MOVE2 analysis on time
-series.  The RTi.Util.Math.Regression base class stores some data, as
+<p>
+The TSRegression class performs ordinary least squares (OLS) regression,
+MOVE1, and MOVE2 analysis on time series and saves the results.
+The RTi.Util.Math.Regression base class stores some data, as
 appropriate (e.g., total-period, non-monthly, parameters and results).
 The results can then be used for filling (e.g., by the TSUtil.fillRegress() method.
-</P>
-<P>
+</p>
+<p>
 TSRegression allows provides a relatively simple interface to programmers,
 minimizing the need to understand time series.  However, this can lead to
 performance problems if many combinations of time series are analyzed.  To allow
@@ -161,7 +162,7 @@ for performance optimization, a constructor is provided that accepts the
 data arrays.  The calling code must track when a time series is reused and
 should request the arrays from a previous TSRegression in order to pass to a
 new TSRegression.  This form of the constructor will likely be used only by advanced tools.
-</P>
+</p>
 */
 public class TSRegression extends Regression
 {
