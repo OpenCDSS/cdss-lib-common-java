@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.RegressionData;
 
 /**
@@ -44,6 +45,22 @@ public TSRegressionData ( TS independentTS, TS dependentTS,
 }
 
 /**
+Return the dependent (Y) time series.
+@return the dependent (Y) time series.
+*/
+public TS getDependentTS()
+{   return __dependentTS;
+}
+
+/**
+Return the independent (X) time series.
+@return the independent (X) time series.
+*/
+public TS getIndependentTS()
+{   return __independentTS;
+}
+
+/**
 Return a monthly equation regression data.
 @return a monthly equation regression data.
 @param month the month of interest (1-12).
@@ -60,6 +77,31 @@ Return the single equation regression data.
 public RegressionData getSingleEquationRegressionData ()
 {
     return __singleEquationData;
+}
+
+/**
+Return a new copy of this instance where all of the data arrays have been transformed by log10.
+@param leZeroLog10 the value to assign when the input data are <= 0 (e.g., .001 or Double.NaN).
+*/
+public TSRegressionData transformLog10 ( double leZeroLog10 )
+{
+    double [] x1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX1(), leZeroLog10 );
+    double [] y1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY1(), leZeroLog10 );
+    double [] x2Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX2(), leZeroLog10 );
+    double [] y3Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY3(), leZeroLog10 );
+    RegressionData singleEquationDataTransformed =
+        new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
+    RegressionData [] monthlyEquationDataTransformed = new RegressionData[12];
+    for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
+        x1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX1(), leZeroLog10 );
+        y1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY1(), leZeroLog10 );
+        x2Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX2(), leZeroLog10 );
+        y3Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY3(), leZeroLog10 );
+        monthlyEquationDataTransformed[iMonth - 1] =
+            new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
+    }
+    return new TSRegressionData ( getIndependentTS(), getDependentTS(), singleEquationDataTransformed,
+        monthlyEquationDataTransformed );
 }
 
 }

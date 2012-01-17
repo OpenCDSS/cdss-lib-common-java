@@ -20,10 +20,13 @@ RegressionResults [] __monthlyEquationResults = null;
 
 /**
 Constructor
+@param singleEquationResults regression results for a single equation (may contain a subset of months)
+@param monthlyEquationResults regression results for each month (may only be complete for a subset of months).
 */
-public TSRegressionResults ( )
+public TSRegressionResults ( RegressionResults singleEquationData, RegressionResults [] monthlyEquationData )
 {
-    
+    __singleEquationResults = singleEquationData;
+    __monthlyEquationResults = monthlyEquationData;
 }
 
 /**

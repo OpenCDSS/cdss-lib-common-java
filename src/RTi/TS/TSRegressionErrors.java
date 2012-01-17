@@ -1,5 +1,4 @@
 package RTi.TS;
-
 import RTi.Util.Math.RegressionErrors;
 
 /**
@@ -20,10 +19,13 @@ RegressionErrors [] __monthlyEquationErrors = null;
 
 /**
 Constructor
+@param singleEquationErrors regression errors for a single equation (may contain a subset of months)
+@param monthlyEquationErrors regression errors for each month (may only be complete for a subset of months).
 */
-public TSRegressionErrors ( )
+public TSRegressionErrors ( RegressionErrors singleEquationErrors, RegressionErrors [] monthlyEquationErrors )
 {
-    
+    __singleEquationErrors = singleEquationErrors;
+    __monthlyEquationErrors = monthlyEquationErrors;
 }
 
 /**

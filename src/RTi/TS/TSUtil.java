@@ -8751,73 +8751,64 @@ public static boolean isSmallerInterval ( TS ts, TS comparets )
 	return result;
 }
 
-// ----------------------------------------------------------------------------
-// TSUtil.intervalsMatch -	check all the time series in the ts array to
-//				verify that their data intervals match
-// ----------------------------------------------------------------------------
-// History:
-//
-// 22 Dec 95	Steven A. Malers, RTi	Initial version of routine.
-// 06 Mar 1998	SAM, RTi		Port to Java and C++.
-// ----------------------------------------------------------------------------
-// Variable	I/O	Description
-//
-// i		L	Loop counter for time series.
-// interval	I	Data interval to match.
-// nseries	I	Number of time series.
-// status	L	Return status from routin.
-// ts		I	List of time series.
-// tspt		L	Pointer to a time series.
-// ----------------------------------------------------------------------------
-
 /**
-@return true if all the time series in the vector have the same interval as
-the first time series in the list, false if not.
-@param ts List of time series to check.
+Determine whether two time series have matching data intervals.  The intervals must exactly match and not
+just be equivalent (i.e., 1Day != 24Hour).
+@return true if the time series have the same data interval, false if not.
+@param ts1 first time series to check
+@param ts2 second time series to check
 */
-public static boolean intervalsMatch ( List<TS> ts )
-{	if ( ts == null ) {
-		return false;
-	}
-	if ( ts.size() == 0 ) {
-		return true;
-	}
-	// Find first non-null time series to compare...
-	int size = ts.size();
-	TS tspt = null;
-	for ( int i = 0; i < size; i++ ) {
-		tspt = ts.get(i);
-		if ( tspt != null ) {
-			break;
-		}
-	}
-	if ( tspt == null ) {
-		return false;
-	}
-	return intervalsMatch ( ts, tspt.getDataIntervalBase(), tspt.getDataIntervalMult() );
+public static boolean intervalsMatch ( TS ts1, TS ts2 )
+{
+    List<TS> tslist = new Vector(2);
+    tslist.add ( ts1 );
+    tslist.add ( ts2 );
+    return intervalsMatch ( tslist );
 }
 
 /**
-@return true if all the time series in the vector have the same interval as specified, false if not.
-@param ts List of time series to check.
-@param interval_base Data interval base (e.g., TimeInterval.HOUR).
-@param interval_mult Data interval multiplier.
+Determine whether a list of time series have matching data intervals.  The intervals must exactly match and not
+just be equivalent (i.e., 1Day != 24Hour).
+@return true if all the time series in the list have the same interval as
+the first time series in the list, false if not
+@param tsList List of time series to check
 */
-public static boolean intervalsMatch ( List<? extends TS> ts, int interval_base, int interval_mult )
-{	TS tspt = null;
-
-	if ( ts == null ) {
+public static boolean intervalsMatch ( List<TS> tsList )
+{	if ( tsList == null ) {
 		return false;
 	}
-	int nseries = ts.size();
-	for ( int i = 0; i < nseries; i++ ) {
-		tspt = ts.get ( i );
-		if ( tspt == null ) {
-			Message.printWarning ( 3, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
+	if ( tsList.size() == 0 ) {
+		return true;
+	}
+	// Find first non-null time series to compare...
+	for ( TS ts : tsList ) {
+		if ( ts != null ) {
+		    return intervalsMatch ( tsList, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
+		}
+	}
+	// Could not find non-null time series to check
+	return false;
+}
+
+/**
+Determine whether a list of time series have data intervals that match the specified data interval.
+The intervals must exactly match and not just be equivalent (i.e., 1Day != 24Hour).
+@return true if all the time series in the list have the same interval as specified, false if not.
+@param tsList List of time series to check
+@param intervalBase Data interval base (e.g., TimeInterval.HOUR)
+@param intervalMult Data interval multiplier
+*/
+public static boolean intervalsMatch ( List<? extends TS> tsList, int intervalBase, int intervalMult )
+{
+	if ( tsList == null ) {
+		return false;
+	}
+	for ( TS ts : tsList ) {
+		if ( ts == null ) {
+			//Message.printWarning ( 3, "TSUtil.intervalsMatch", "TS [" + i + "] is null" );
 			return false;
 		}
-		if ( (tspt.getDataIntervalBase() != interval_base) ||
-			(tspt.getDataIntervalMult() != interval_mult) ) {
+		if ( (ts.getDataIntervalBase() != intervalBase) || (ts.getDataIntervalMult() != intervalMult) ) {
 			return false;
 		}
 	}
@@ -10986,9 +10977,13 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
     boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS )
 {
     if ( pairedTS != null ) {
-        if ( TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
+        if ( !TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
             throw new IrregularTimeSeriesNotSupportedException(
-                "Irregular interval time series cannot have data array extracted aligned with another time series." );
+                "Irregular interval time series cannot have data array extracted using paired time series." );
+        }
+        if ( !TSUtil.intervalsMatch(ts, pairedTS) ) {
+            throw new UnequalTimeIntervalException(
+                "Time series from which to extract data has a different interval than paired time series." );
         }
     }
     // Get valid dates because the ones passed in may have been null...

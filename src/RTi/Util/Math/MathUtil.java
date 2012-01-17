@@ -2,6 +2,7 @@ package RTi.Util.Math;
 import	RTi.Util.Message.Message;
 
 import java.lang.Math;
+import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -383,6 +384,26 @@ throws Exception
 }
 
 /**
+Calculate the log10 of each value in the array, returning a new array with the log10 values.
+@return an array of log10 values, calculated from the original array
+@param x array of values to transform
+@param leZeroLog10 the value to assign when the input data are <= 0 (e.g., .001 or Double.NaN).
+*/
+public static double[] log10 ( double [] x, double leZeroLog10 )
+{
+    double [] xt = new double[x.length];
+    for ( int i = 0; i < x.length; i++ ) {
+        if ( x[i] <= 0.0 ) {
+            x[i] = leZeroLog10;
+        }
+        else {
+            x[i] = Math.log10(x[i]);
+        }
+    }
+    return xt;
+}
+
+/**
 Find the maximum of two values.
 @return the maximum value.
 @param x First value to check.
@@ -429,7 +450,6 @@ Find the maximum in an array.
 @exception If there is an error.
 */
 public static double max ( double x[] )
-throws Exception
 {
     return max ( x.length, x );
 }
@@ -441,7 +461,6 @@ throws Exception
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double max ( int n, double x[] )
-throws Exception
 {	int	i;
 	String routine = "MathUtil.max";
 	double m = 0.0;
@@ -449,7 +468,7 @@ throws Exception
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new RuntimeException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -518,9 +537,8 @@ Compute the mean of an array of values.
 @return The mean of the array of values
 @param x array of values
 @exception java.lang.Exception If the number of points is <= 0.
- */
+*/
 public static double mean ( double x[] )
-throws Exception
 {
     return mean ( x.length, x );
 }
@@ -533,14 +551,13 @@ Compute the mean of an array of values.
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double mean ( int n, double x[] )
-throws Exception
 {	String message, routine = "MathUtil.mean";
 	double thesum;
 
 	if ( n <= 0 ) {
 		message = "Number of values <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new RuntimeException ( message );
 	}
     thesum = sum ( n, x );
 	return ( thesum/(double)(n) );
@@ -653,7 +670,6 @@ Find the minimum value in an array.
 @param x Array of values to compare.
 */
 public static double min ( double x[] )
-throws Exception
 {
     return min ( x.length, x );
 }
@@ -665,7 +681,6 @@ throws Exception
 @exception java.lang.Exception If the number of points is <= 0.
 */
 public static double min ( int n, double x[] )
-throws Exception
 {	int	i;
 	String routine = "MathUtil.min";
 	double m = 0.0;
@@ -673,7 +688,7 @@ throws Exception
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0.0";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new RuntimeException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -735,6 +750,159 @@ throws Exception
 		}
 	}
 	return m;
+}
+
+/**
+Perform an ordinary least squares regression on data that has already been transformed and processed for
+missing data.  A minimal number of analysis statistics and results are saved and
+can be retrieved using RegressionResults methods, in particular:
+<ol>
+</ol>
+@return a RegressionResults object for the analysis.
+@param data regression data, from which the following are extracted for the analysis:<br>
+x1 Array of non-missing independent (X) values that overlap y1.<br>
+y1 Array of non-missing dependent (Y) values that overlap x1.
+@param forcedIntercept the intercept to force (currently the intercept must be zero if specified) or null to not force intercept.
+@exception java.lang.Exception If no data are available to be regressed (e.g.,
+all missing), or data array lengths are unequal.
+*/
+public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData data, Double forcedIntercept )
+{   String rtn = "ordinaryLeastSquaresRegression";
+    double [] x1 = data.getX1();
+    double [] y1 = data.getY1();
+    if ( x1.length != y1.length ) {
+        String message = "Lengths of arrays are unequal.";
+        Message.printWarning ( 3, rtn, message );
+        throw new InvalidParameterException( message );
+    }
+
+    int n1 = x1.length;
+    if ( n1 == 0 ) {
+        String message = "No data to create regression analysis.";
+        Message.printWarning ( 3, rtn, message );
+        throw new InvalidParameterException ( message );
+    }
+
+    double totalX1minusY1_sq = 0.0;
+    double totalX1Y1 = 0.0;
+    double totalX1 = 0.0;
+    double totalX1_sq = 0.0;
+    double totalY1 = 0.0;
+    double totalY1_sq = 0.0;
+    Double a = null;
+    Double b = null;
+    Double r = null;
+    for ( int i = 0; i < n1; i++ ) {
+        totalX1minusY1_sq += ((x1[i] - y1[i] )*(x1[i] - y1[i]));
+        totalX1Y1 += (x1[i] * y1[i]);
+        totalX1 += x1[i];
+        totalX1_sq += (x1[i]*x1[i]);
+        totalY1 += y1[i];
+        totalY1_sq += (y1[i] * y1[i]);
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 50, rtn, "X1: " + x1[i] + ", Y1: " + y1[i] );
+        }
+    }
+    
+    // TODO SAM 2012-12-15 Logic was kept migrating legacy code and consequently
+    // the math does not simply use standard deviation, etc.  This adds a little
+    // inefficiency computing statistics below.  For now leave as is.
+
+    // correlationCoeff, R ...
+    //
+    // The following is computed by...
+    //
+    // R = sum(xy) - [sum(x)*sum(y)]/n
+    //     ---------------------------------------------------------
+    //  sqrt(sum(x^2) - [sum(x)^2]/n) * sqrt(sum(y^2) - [sum(y)^2]/n)
+    //
+    // or
+    //
+    // R = N*sum(xy) - [sum(x)*sum(y)]
+    //     ---------------------------------------------------------
+    //  sqrt(N*sum(x^2) - sum(x)^2) * sqrt(N*sum(y^2) - sum(y)^2)
+    //
+    // or
+    //
+    // R = N*sum(xy) - [sum(x)*sum(y)]
+    //     ---------------------------------------------------------
+    //  sqrt([N*sum(x^2) - sum(x)^2] * [N*sum(y^2) - sum(y)^2])
+
+    double denom = Math.sqrt ((((double)n1 * totalX1_sq) -
+        (totalX1*totalX1)) * (((double)n1 * totalY1_sq) - (totalY1*totalY1)));
+        
+    if ( denom > 0 ) {
+        r = (((double)n1 * totalX1Y1) - (totalX1 * totalY1))/denom;
+    }
+    else {
+        r = null;
+    }
+
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( 10, rtn, "Data leading to regression analysis: ");
+        Message.printDebug ( 10, rtn, "n1: " + n1 );
+        Message.printDebug ( 10, rtn, "totalX1_sq: " + totalX1_sq );
+        Message.printDebug ( 10, rtn, "totalX1: " + totalX1 );
+        Message.printDebug ( 10, rtn, "totalY1: " + totalY1 );
+        Message.printDebug ( 10, rtn, "totalX1Y1: " + totalX1Y1 );
+    }
+
+    // If the intercept is not specified:
+    //
+    // b = sum(xy) - sum(x)*sum(y)/n    n*sum(xy) - sum(x)*sum(y)
+    //     ------------------------- =  -------------------------
+    //     sum(x^2) - sum(x)^2/n        n*sum(x^2) - sum(x)^2
+    //
+    // If the intercept is specified as zero:
+    //
+    // b = sum(xy)/sum(x^2)
+
+    if ( forcedIntercept != null ) {
+        if ( totalX1_sq == 0.0 ) {
+            b = null;
+        }
+        else {
+            b = totalX1Y1/totalX1_sq;
+        }
+    }
+    else {
+        denom = ((double)n1*totalX1_sq) - (totalX1*totalX1);
+        if ( denom > 0 ) {
+            b = (((double)n1*totalX1Y1) - (totalX1*totalY1))/denom;
+        }
+        else {
+            // TODO - should this throw an exception?
+            b = null;
+        }
+    }
+
+    // If the intercept is not specified:
+    //
+    // a = sum(y)/n - b*sum(x)/n
+    //
+    // If the intercept is specified as zero:
+    //
+    // a = 0.0
+
+    if ( forcedIntercept != null) {
+        if ( forcedIntercept != 0.0 ) {
+            throw new InvalidParameterException ( "Only zero intercept is supported (specified as " + forcedIntercept + ")." );
+        }
+        a = forcedIntercept;
+    }
+    else {
+        // Compute...
+        a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
+    }
+
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( 10, rtn, "Regression analysis results: " +
+        "a: " + a + ", " + "b: " + b + ", " + "R: " + r );
+    }
+
+    // Save in Regression object...
+
+    return ( new RegressionResults ( data, forcedIntercept, a, b, r ) );
 }
 
 public static PrincipalComponentAnalysis performPrincipalComponentAnalysis (
@@ -1787,7 +1955,6 @@ Compute the sample standard deviation (square root of the sample variance).
 @throws Exception if the array size is < 2 or variance is 0
 */
 public static double standardDeviation ( double x[] )
-throws Exception
 {
     return standardDeviation ( x.length, x );
 }
@@ -1800,7 +1967,6 @@ Compute the sample standard deviation (square root of the sample variance).
 @throws Exception if the number of values is < 2 or variance is zero
 */
 public static double standardDeviation ( int n, double x[] )
-throws Exception
 {	String message, routine = "MathUtil.standardDeviation";
 	double var;
 
@@ -1810,12 +1976,12 @@ throws Exception
 	catch ( Exception e ) {
 		message = "Error calculating variance - canot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new RuntimeException ( message );
 	}
 	if ( var <= 0.0 ) {
 		message = "Variance (" + var + ") <= 0.  Cannot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new RuntimeException ( message );
 	}
 	return Math.sqrt ( var );
 }

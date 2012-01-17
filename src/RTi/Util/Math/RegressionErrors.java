@@ -1,7 +1,5 @@
 package RTi.Util.Math;
 
-import java.security.InvalidParameterException;
-
 /**
 This class provides storage for regression analysis errors, generally determined by using the
 results of the regression analysis to estimate values that were previously known and then measuring the
@@ -9,6 +7,16 @@ error between the original value and the estimated value.
 */
 public class RegressionErrors
 {
+    
+/**
+Mean of estimated Y in N1.
+*/
+private Double __meanY1Estimated = null;
+
+/**
+Standard deviation of estimated Y in N1.
+*/
+private Double __stddevY1Estimated = null;
     
 /**
 RMS Error for untransformed data.
@@ -74,6 +82,14 @@ throws Throwable {
 }
 
 /**
+Return the mean for the estimated dependent array in the N1 sample, or null if not analyzed.
+@return the mean for the estimated dependent array in the N1 sample, or null if not analyzed.
+*/
+public Double getMeanY1Estimated ()
+{   return __meanY1Estimated;
+}
+
+/**
 Return the RMS error (in original data units), or null if not analyzed.
 @return The RMS error (in original data units), or null if not analyzed.
 */
@@ -90,6 +106,14 @@ public Double getRMSETransformed ()
 {   return __rmseTransformed;
 }
 */
+
+/**
+Return the standard deviation for the estimated dependent array in the N1 sample, or null if not analyzed.
+@return the standard deviation for the estimated dependent array in the N1 sample, or null if not analyzed.
+*/
+public Double getStandardDeviationY1Estimated ()
+{   return __stddevY1Estimated;
+}
 
 /**
 Return the standard error of estimate, or null if not analyzed.
@@ -146,6 +170,14 @@ public Double getStandardErrorOfSlopeTransformed ()
 */
 
 /**
+Set the mean for the estimated dependent data in the N1 sample.
+@param meanY1Estimated Mean for the estimated dependent data in the N1 sample.
+*/
+public void setMeanY1Estimated ( Double meanY1Estimated )
+{   __meanY1Estimated = meanY1Estimated;
+}
+
+/**
 Set the RMS error, in original data units.
 @param rmse RMS error, in original data units.
 */
@@ -162,6 +194,14 @@ public void setRMSETransformed ( Double rmseTransformed )
 {   __rmseTransformed = rmseTransformed;
 }
 */
+
+/**
+Set the standard deviation for the estimated dependent data in the N1 sample.
+@param stddevY1Estimated Standard deviation for the dependent data in the N1 sample.
+*/
+public void setStandardDeviationY1Estimated ( Double stddevY1Estimated )
+{   __stddevY1Estimated = stddevY1Estimated;
+}
 
 /**
 Set the standard error of estimate, in original data units.
