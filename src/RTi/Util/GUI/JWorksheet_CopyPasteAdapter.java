@@ -83,11 +83,10 @@ three columns):<pre>
 	value<b>[tab]</b>value<b>[tab]</b>value<b>[newline]</b>
 	value<b>[tab]</b>value<b>[tab]</b>value<b>[newline]</b>
 </pre>
-It also has code for pasting values
-from Excel back into the JWorksheet, though that has been commented out and
-will need further review.
+It also has code for pasting values from Excel back into the JWorksheet;
+however that has been commented out and will need further review.
 
-The copy and paset code right now only responds to control-C and
+The copy and paste code right now only responds to control-C and
 control-insert (Copy) and control-V and shift-insert (paste) actions.
 */
 public class JWorksheet_CopyPasteAdapter 
@@ -127,11 +126,11 @@ private JWorksheet __worksheet;
 Strings to refer to copy and paste operations.
 */
 private final String 
-	__COPY = 		"Copy",
-	__COPY_HEADER = 	"Copy Header",
-	__COPY_ALL = 		"Copy All",
-	__COPY_ALL_HEADER = 	"Copy All Header",
-	__PASTE = 		"Paste";
+	__COPY = "Copy",
+	__COPY_HEADER = "Copy Header",
+	__COPY_ALL = "Copy All",
+	__COPY_ALL_HEADER = "Copy All Header",
+	__PASTE = "Paste";
 
 /**
 Constructor.
@@ -139,32 +138,23 @@ Constructor.
 */
 public JWorksheet_CopyPasteAdapter (JWorksheet worksheet) {
 	__worksheet = worksheet;
-	KeyStroke copyC = KeyStroke.getKeyStroke(KeyEvent.VK_C, 
-		ActionEvent.CTRL_MASK, false);
-	__worksheet.registerKeyboardAction(this, __COPY, copyC, 
-		JComponent.WHEN_FOCUSED);
+	KeyStroke copyC = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
+	__worksheet.registerKeyboardAction(this, __COPY, copyC, JComponent.WHEN_FOCUSED);
 
-	KeyStroke copyIns = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT,
-		ActionEvent.CTRL_MASK, false);
-	__worksheet.registerKeyboardAction(this, __COPY, copyIns,
-		JComponent.WHEN_FOCUSED);
+	KeyStroke copyIns = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, ActionEvent.CTRL_MASK, false);
+	__worksheet.registerKeyboardAction(this, __COPY, copyIns, JComponent.WHEN_FOCUSED);
 
-	KeyStroke pasteV = KeyStroke.getKeyStroke(KeyEvent.VK_V,
-		ActionEvent.CTRL_MASK, false);
-	__worksheet.registerKeyboardAction(this, __PASTE, pasteV,
-		JComponent.WHEN_FOCUSED);
+	KeyStroke pasteV = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
+	__worksheet.registerKeyboardAction(this, __PASTE, pasteV, JComponent.WHEN_FOCUSED);
 	
-	KeyStroke pasteIns = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT,
-		ActionEvent.SHIFT_MASK, false);
-	__worksheet.registerKeyboardAction(this, __PASTE, pasteIns,
-		JComponent.WHEN_FOCUSED);
+	KeyStroke pasteIns = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, ActionEvent.SHIFT_MASK, false);
+	__worksheet.registerKeyboardAction(this, __PASTE, pasteIns, JComponent.WHEN_FOCUSED);
 	
 	__system = Toolkit.getDefaultToolkit().getSystemClipboard();
 }
 
 /**
-Copies or pastes worksheet data, depending on the action that is to be 
-performed.
+Copies or pastes worksheet data, depending on the action that is to be performed.
 @param e the event that happened.
 */
 public void actionPerformed(ActionEvent e) {
@@ -197,18 +187,15 @@ public void actionPerformed(ActionEvent e) {
 
 		__classes = new Class[numCols];
 		for (int i = 0; i < numCols; i++) {
-			__classes[i] = __worksheet.getColumnClass(
-				__worksheet.getAbsoluteColumn(i));
+			__classes[i] = __worksheet.getColumnClass(__worksheet.getAbsoluteColumn(i));
 		}
 
-		if (__worksheet.getCellRenderer() instanceof
-			JWorksheet_AbstractExcelCellRenderer) {
+		if (__worksheet.getCellRenderer() instanceof JWorksheet_AbstractExcelCellRenderer) {
 			__canFormat = true;
 		}
 	
 		ProgressJDialog progressDialog = new ProgressJDialog(
-			__worksheet.getHourglassJFrame(), "Copy progress",
-			0, (numRows * numCols));
+			__worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
 
 		int count = 1;
 
@@ -227,34 +214,31 @@ public void actionPerformed(ActionEvent e) {
 		}
 
 		try {
-
-		int[] absCols = new int[numCols];
-		for (int i = 0; i < numCols; i++) {
-			absCols[i] = __worksheet.getAbsoluteColumn(i);
-		}
-
-		for (int i = 0; i < numRows; i++) {
-			for (int j = 0; j < numCols; j++) {
-				progressDialog.setProgressBarValue(count++);
-				sbf.append(getValue(i, absCols[j]));
-				if (j < numCols - 1) {
-					sbf.append("\t");
-				}
-			}
-			sbf.append("\n");
-		}		
-
-		progressDialog.dispose();
-		
-		StringSelection stsel = new StringSelection(sbf.toString());
-		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
-		__system.setContents(stsel, stsel);
+    		int[] absCols = new int[numCols];
+    		for (int i = 0; i < numCols; i++) {
+    			absCols[i] = __worksheet.getAbsoluteColumn(i);
+    		}
+    
+    		for (int i = 0; i < numRows; i++) {
+    			for (int j = 0; j < numCols; j++) {
+    				progressDialog.setProgressBarValue(count++);
+    				sbf.append(getValue(i, absCols[j]));
+    				if (j < numCols - 1) {
+    					sbf.append("\t");
+    				}
+    			}
+    			sbf.append("\n");
+    		}		
+    
+    		progressDialog.dispose();
+    		
+    		StringSelection stsel = new StringSelection(sbf.toString());
+    		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
+    		__system.setContents(stsel, stsel);
 		}
 		catch (Exception ex) {
 			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Copy Error",
-				"Copy Error",
-				ResponseJDialog.OK).response();
+				"Copy Error", "Copy Error", ResponseJDialog.OK).response();
 			Message.printWarning(2, "", ex);
 		}			
 	}
@@ -266,48 +250,36 @@ public void actionPerformed(ActionEvent e) {
 		int[] selectedCols = __worksheet.getSelectedColumns();
 		int[] visibleCols = new int[selectedCols.length];
 		for (int i = 0; i < selectedCols.length; i++) {
-			visibleCols[i] = __worksheet.getVisibleColumn(
-				selectedCols[i]);
+			visibleCols[i] = __worksheet.getVisibleColumn(selectedCols[i]);
 		}
 
 		if (numCols == 0 || numRows == 0) {
-			JGUIUtil.setWaitCursor(__worksheet.getHourglassJFrame(),
-				false);
+			JGUIUtil.setWaitCursor(__worksheet.getHourglassJFrame(), false);
 			return;
 		}
 
 		if (numRows == 1 && numCols == 1) {
-			// trivial case -- this will always be a successful
-			// copy.  This case is just a placeholder.
+			// Trivial case -- this will always be a successful copy.  This case is just a placeholder.
 		}
 		else if (numRows == 1) {
-			// the rows are valid; the only thing left to check
-			// is whether the columns are contiguous.
+			// The rows are valid; the only thing left to check is whether the columns are contiguous.
 			if (!areCellsContiguous(numRows, selectedRows,
 				numCols, visibleCols)) {
-				showCopyErrorDialog("You must select a "
-					+ "contiguous block of columns.");
+				showCopyErrorDialog("You must select a contiguous block of columns.");
 				return;
 			}
 		}
 		else if (numCols == 1) {
-			// the cols are valid; the only thing left to check
-			// is whether the rows are contiguous.
-			if (!areCellsContiguous(numRows, selectedRows,
-				numCols, visibleCols)) {
-				showCopyErrorDialog("You must select a "
-					+ "contiguous block of rows.");
+			// The cols are valid; the only thing left to check is whether the rows are contiguous.
+			if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block of rows.");
 				return;
 			}
 		}
 		else {
-			// there are multiple rows selected and multiple
-			// columns selected.  Make sure both are contiguous.
-			if (!areCellsContiguous(numRows, selectedRows,
-				numCols, visibleCols)) {
-				showCopyErrorDialog("You must select a "
-					+ "contiguous block\nof rows and "
-					+ "columns.");
+			// There are multiple rows selected and multiple columns selected.  Make sure both are contiguous.
+			if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block\nof rows and columns.");
 				return;
 			}			
 		}
@@ -315,18 +287,15 @@ public void actionPerformed(ActionEvent e) {
 		int numColumns = __worksheet.getColumnCount();
 		__classes = new Class[numColumns];
 		for (int i = 0; i < numColumns; i++) {
-			__classes[i] = __worksheet.getColumnClass(
-				__worksheet.getAbsoluteColumn(i));
+			__classes[i] = __worksheet.getColumnClass(__worksheet.getAbsoluteColumn(i));
 		}
 
-		if (__worksheet.getCellRenderer() instanceof
-			JWorksheet_AbstractExcelCellRenderer) {
+		if (__worksheet.getCellRenderer() instanceof JWorksheet_AbstractExcelCellRenderer) {
 			__canFormat = true;
 		}
 	
 		ProgressJDialog progressDialog = new ProgressJDialog(
-			__worksheet.getHourglassJFrame(), "Copy progress",
-			0, (numRows * numCols));
+			__worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
 
 		int count = 1;
 
@@ -336,8 +305,7 @@ public void actionPerformed(ActionEvent e) {
 		
 		if (copyHeader) {
 			for (int j = 0; j < numCols; j++) {
-				sbf.append(__worksheet.getColumnName(
-					visibleCols[j], true));
+				sbf.append(__worksheet.getColumnName(visibleCols[j], true));
 				if (j < numCols - 1) {
 					sbf.append("\t");
 				}
@@ -346,38 +314,34 @@ public void actionPerformed(ActionEvent e) {
 		}
 
 		try {
-
-		for (int i = 0; i < numRows; i++) {
-			for (int j = 0; j < numCols; j++) {
-			/*
-				if (test) {
-					Message.printStatus(1, "", ""
-						+ "Copying row, col: "
-						+ selectedRows[i] + ", " 
-						+ selectedCols[j]);
-				}
-			*/
-				progressDialog.setProgressBarValue(count++);
-				sbf.append(getValue(selectedRows[i],
-					selectedCols[j]));
-				if (j < numCols - 1) {
-					sbf.append("\t");
-				}
-			}
-			sbf.append("\n");
-		}		
-
-		progressDialog.dispose();
-		
-		StringSelection stsel = new StringSelection(sbf.toString());
-		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
-		__system.setContents(stsel, stsel);
+    		for (int i = 0; i < numRows; i++) {
+    			for (int j = 0; j < numCols; j++) {
+    			/*
+    				if (test) {
+    					Message.printStatus(1, "", ""
+    						+ "Copying row, col: "
+    						+ selectedRows[i] + ", " 
+    						+ selectedCols[j]);
+    				}
+    			*/
+    				progressDialog.setProgressBarValue(count++);
+    				sbf.append(getValue(selectedRows[i],selectedCols[j]));
+    				if (j < numCols - 1) {
+    					sbf.append("\t");
+    				}
+    			}
+    			sbf.append("\n");
+    		}		
+    
+    		progressDialog.dispose();
+    		
+    		StringSelection stsel = new StringSelection(sbf.toString());
+    		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
+    		__system.setContents(stsel, stsel);
 		}
 		catch (Exception ex) {
 			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Copy Error",
-				"Copy Error",
-				ResponseJDialog.OK).response();
+				"Copy Error", "Copy Error", ResponseJDialog.OK).response();
 			Message.printWarning(2, "", ex);
 		}		
 	}
@@ -390,25 +354,20 @@ public void actionPerformed(ActionEvent e) {
 		int[] selectedCols = __worksheet.getSelectedColumns();
 		int[] visibleCols = new int[selectedCols.length];
 		for (int i = 0; i < selectedCols.length; i++) {
-			visibleCols[i] = __worksheet.getVisibleColumn(
-				selectedCols[i]);
+			visibleCols[i] = __worksheet.getVisibleColumn(selectedCols[i]);
 		}
 		
-		if (!areCellsContiguous(numRows, selectedRows,
-			numCols, visibleCols)) {
+		if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
 			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Paste Error",
-				"Must select a contiguous range of cells.",
-				ResponseJDialog.OK);
-				JGUIUtil.setWaitCursor(
-					__worksheet.getHourglassJFrame(),false);
+				"Paste Error", "Must select a contiguous range of cells.", ResponseJDialog.OK);
+				JGUIUtil.setWaitCursor(__worksheet.getHourglassJFrame(),false);
 			return;
 		}
 		int totalCells = numCols * numRows;
 		int relCol = 0;
 		try {
 			String trstring = (String)(__system.getContents(this).getTransferData(DataFlavor.stringFlavor));
-			List v1 = StringUtil.breakStringList(trstring,"\n",0);
+			List<String> v1 = StringUtil.breakStringList(trstring,"\n",0);
 			
 			int size1 = v1.size();
 			int size2 = -1;
@@ -419,32 +378,22 @@ public void actionPerformed(ActionEvent e) {
 			String rowString = "";
 			String value = "";
 			for (int i = 0; i < size1; i++) {
-				rowString = ((String)v1.get(i));
+				rowString = v1.get(i);
 				if (rowString.equals("")) {
 					rowString = " ";
 				}
-				List v2 = StringUtil.breakStringList( rowString, "\t", 0);
+				List<String> v2 = StringUtil.breakStringList( rowString, "\t", 0);
 				size2 = v2.size();
-				if (columnPasteCheck 
-					&& size2 == 1
-					&& totalCells > 1) {
-					fillCells((String)v2.get(0), selectedRows, selectedCols);
+				if (columnPasteCheck && (size2 == 1) && (totalCells > 1) ) {
+					fillCells(v2.get(0), selectedRows, selectedCols);
 				}
 				columnPasteCheck = false;
 				for (int j = 0; j < size2; j++) {
-					value = (String)v2.get(j);
+					value = v2.get(j);
 					relCol = __worksheet.getVisibleColumn( startCol + j);
-					if (startRow + i < 
-						__worksheet.getRowCount()
-						&& relCol <
-						__worksheet.getColumnCount()) {
-						if (__worksheet.isCellEditable(
-							startRow + i,
-							relCol)) {
-							__worksheet.setValueAt(
-								value, 
-								startRow + i,
-								relCol);
+					if ( (startRow + i < __worksheet.getRowCount()) && (relCol < __worksheet.getColumnCount()) ) {
+						if (__worksheet.isCellEditable(	startRow + i, relCol)) {
+							__worksheet.setValueAt(value, startRow + i, relCol);
 						}
 					}
 				}
@@ -452,9 +401,7 @@ public void actionPerformed(ActionEvent e) {
 		}
 		catch (Exception ex) {
 			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Paste Error",
-				"Paste Error",
-				ResponseJDialog.OK).response();
+				"Paste Error", "Paste Error", ResponseJDialog.OK).response();
 			Message.printWarning(2, "", ex);
 		}
 		JGUIUtil.forceRepaint(__worksheet);
@@ -463,83 +410,63 @@ public void actionPerformed(ActionEvent e) {
 }
 
 /**
-Checks whether a selection of rows and columnsis contiguous. 
+Checks whether a selection of rows and columns is contiguous. 
 @param numRows the number of rows that are selected
-@param selectedRows an integer array containing the numbers of the rows that
-are selected.
-@param numCols the number of cols that are selected.
-@param selectedCols an integer array containing the numbers of the cols that 
-are selected.
+@param selectedRows an integer array containing the numbers of the rows that are selected.
+@param numCols the number of columns that are selected.
+@param selectedCols an integer array containing the numbers of the columns that are selected.
 */
-private boolean areCellsContiguous(int numRows, int[] selectedRows,
-int numCols, int[] selectedCols) {
+private boolean areCellsContiguous(int numRows, int[] selectedRows, int numCols, int[] selectedCols) {
 	// There are two assumptions made about the data passed in:
-	//    1) numCols/numRows is > 1.  It should have been checked already 
-	//       in the calling code.
-	//    2) the values in selectedCols/selectedRows are sorted from 
-	//       lowest (at pos 0) to highest.
+	//    1) numCols/numRows is > 1.  It should have been checked already in the calling code.
+	//    2) the values in selectedCols/selectedRows are sorted from lowest (at pos 0) to highest.
 
-	// trivial case is to make sure that the number of selected rows/cols
-	// is equal to the difference between the number of the highest-
-	// and lowest-selected rows/cols
+	// trivial case is to make sure that the number of selected rows/columns
+	// is equal to the difference between the number of the highest and lowest-selected rows/columns
 	
-
 	if (Message.isDebugOn) {
 		for (int i = 0; i < selectedRows.length; i++) {
-			Message.printDebug(2, "", "selectedRows[" + i + "]: " 
-				+ selectedRows[i]);
+			Message.printDebug(2, "", "selectedRows[" + i + "]: " + selectedRows[i]);
 		}
 		for (int i = 0; i < selectedCols.length; i++) {
-			Message.printDebug(2, "", "selectedCols[" + i + "]: " 
-				+ selectedCols[i]);
+			Message.printDebug(2, "", "selectedCols[" + i + "]: " + selectedCols[i]);
 		}
 	}
 	
-	if ((selectedCols[selectedCols.length - 1] - selectedCols[0]) + 1 
-		!= numCols) {
+	if ((selectedCols[selectedCols.length - 1] - selectedCols[0]) + 1 != numCols) {
 
 		if (Message.isDebugOn) {
-			Message.printDebug(2, "", 
-				"Number of columns doesn't match column span (("
-				+ selectedCols[selectedCols.length - 1] + " - " 
-				+ selectedCols[0] + ") + 1 != " + numCols +")");
+			Message.printDebug(2, "", "Number of columns doesn't match column span (("
+				+ selectedCols[selectedCols.length - 1] + " - " + selectedCols[0] + ") + 1 != " + numCols +")");
 		}
 
 		return false;
 	}
 
-	if ((selectedRows[selectedRows.length - 1] - selectedRows[0]) + 1 
-		!= numRows) {
+	if ( ((selectedRows[selectedRows.length - 1] - selectedRows[0]) + 1) != numRows) {
 
 		if (Message.isDebugOn) {
-			Message.printDebug(2, "", 
-				"Number of rows doesn't match row span ((" 
-				+ selectedRows[selectedRows.length - 1] + " - "
-				+ selectedRows[0] + ") + 1 != " + numRows +")");
+			Message.printDebug(2, "", "Number of rows doesn't match row span ((" 
+				+ selectedRows[selectedRows.length - 1] + " - " + selectedRows[0] + ") + 1 != " + numRows +")");
 		}
 
 		return false;
 	}
 
-	// otherwise, need to scan through the block made by the 
-	// top-left-most (lowest row and col) cell and the bottom-right-most
-	// (biggest row and col) cell.
+	// Otherwise, need to scan through the block made by the 
+	// top-left-most (lowest row and col) cell and the bottom-right-most (biggest row and col) cell.
 	for (int i = selectedRows[0]; i <= selectedRows[numRows-1]; i++) {
 
 		if (Message.isDebugOn) {
-			Message.printDebug(2, "", "Checking row " + i + " for "
-				+ "unselected cells ...");
+			Message.printDebug(2, "", "Checking row " + i + " for unselected cells ...");
 		}
 
 		for (int j = selectedCols[0]; j <=selectedCols[numCols-1]; j++){
 			if (!__worksheet.isCellSelected(i, j)) {
 
 				if (Message.isDebugOn) {
-					Message.printDebug(2, "", 
-						"Cell at row: " + i + ", "
-						+ "col: " + j
-						+ " is not selected, "
-						+ "cells are non-contiguous.");
+					Message.printDebug(2, "", "Cell at row: " + i + ", " + "col: " + j
+						+ " is not selected, cells are non-contiguous.");
 				}
 
 				return false;
@@ -598,10 +525,8 @@ public void copy(boolean includeHeader) {
 /**
 Fills a contiguous range of cells with a single value.
 @param value the value to fill the cells with.
-@param selectedRows the array of the selected rows (already checked that it is
-contiguous).
-@param selectedCols the array of the selected cols (already checked that is is
-contiguous).
+@param selectedRows the array of the selected rows (already checked that it is contiguous).
+@param selectedCols the array of the selected cols (already checked that is is contiguous).
 */
 private void fillCells(String value, int selectedRows[], int selectedCols[]) 
 throws Exception {
@@ -610,10 +535,8 @@ throws Exception {
 	}
 	for (int i = 0; i < selectedRows.length; i++) {
 		for (int j = 0; j < selectedCols.length; j++) {
-			if (__worksheet.isCellEditable(selectedRows[i],
-				selectedCols[j])) {
-				__worksheet.setValueAt(value, selectedRows[i],
-					selectedCols[j]);
+			if (__worksheet.isCellEditable(selectedRows[i], selectedCols[j])) {
+				__worksheet.setValueAt(value, selectedRows[i], selectedCols[j]);
 			}
 		}
 	}
@@ -651,75 +574,71 @@ private String getValue(int row, int absoluteCol) {
 	Object o = __worksheet.getConsecutiveValueAt(row, absoluteCol);
 
 	if (!__canFormat) {
-		return o.toString();
+	    if ( o == null ) {
+	        return "";
+	    }
+	    else {
+	        return o.toString();
+	    }
 	}
 
 	String format = __worksheet.getColumnFormat(absoluteCol);
 
 /*
-	Message.printStatus(1, "", "Class[" + visibleCol + "]: " 
-		+ __classes[visibleCol]);
+	Message.printStatus(1, "", "Class[" + visibleCol + "]: " + __classes[visibleCol]);
 	Message.printStatus(1, "", "    o: " + o.getClass() + "  (" + o + ")");
-	System.out.println("Class[" + visibleCol + "]: " 
-		+ __classes[visibleCol]);
+	System.out.println("Class[" + visibleCol + "]: " + __classes[visibleCol]);
 	System.out.println("    o: " + o.getClass() + "  (" + o + ")");
 */
 
 	try {
-	if (__classes[visibleCol] == Double.class) {
-		Double DD = (Double)o;
-		if (DMIUtil.isMissing(DD.doubleValue())) {
-			return "";
-		}
-		else {
-			return StringUtil.formatString((Double)o,
-				format);
-		}
-	}
-	else if (__classes[visibleCol] == Float.class) {
-		Float F = (Float)o;
-		if (DMIUtil.isMissing(F.floatValue())) {
-			return "";
-		}
-		else {
-			return StringUtil.formatString((Float)o,
-				format);
-		}
-	}
-	else if (__classes[visibleCol] == Long.class) {
-		Long L = (Long)o;
-		if (DMIUtil.isMissing(L.longValue())) {
-			return "";
-		}
-		else {
-			return StringUtil.formatString((Long)o,
-				format);
-		}
-	}
-	else if (__classes[visibleCol] == Integer.class) {
-		Integer I = (Integer)o;
-		if (DMIUtil.isMissing(I.intValue())) {
-			return "";
-		}
-		else {
-			return StringUtil.formatString((Integer)o,
-				format);
-		}
-	}	
-	else {
-		return "" + o;		
-	}
+    	if (__classes[visibleCol] == Double.class) {
+    		Double DD = (Double)o;
+    		if (DMIUtil.isMissing(DD.doubleValue())) {
+    			return "";
+    		}
+    		else {
+    			return StringUtil.formatString(DD,format);
+    		}
+    	}
+    	else if (__classes[visibleCol] == Float.class) {
+    		Float F = (Float)o;
+    		if (DMIUtil.isMissing(F.floatValue())) {
+    			return "";
+    		}
+    		else {
+    			return StringUtil.formatString(F,format);
+    		}
+    	}
+    	else if (__classes[visibleCol] == Long.class) {
+    		Long L = (Long)o;
+    		if (DMIUtil.isMissing(L.longValue())) {
+    			return "";
+    		}
+    		else {
+    			return StringUtil.formatString(L,format);
+    		}
+    	}
+    	else if (__classes[visibleCol] == Integer.class) {
+    		Integer I = (Integer)o;
+    		if (DMIUtil.isMissing(I.intValue())) {
+    			return "";
+    		}
+    		else {
+    			return StringUtil.formatString(I,format);
+    		}
+    	}	
+    	else {
+    		return "" + o;		
+    	}
 	}
 	catch (Exception e) {
+		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", "Error while copying value.");
 		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
-			"Error while copying value.");
-		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
-			"   Class[" + visibleCol + "]: " 
-			+ __classes[visibleCol]);
+			"   Class[" + visibleCol + "]: " + __classes[visibleCol]);
 		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
 			"    o: " + o.getClass() + "  (" + o + ")");
-		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
-			e);
+		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", e);
 		return "" + o;
 	}
 }
@@ -750,8 +669,7 @@ public void setPasteEnabled(boolean setting) {
 
 /**
 Sets the JWorksheet to use with this adapter.
-@param worksheet the JWorksheet to use with this adapter.  If null, disables
-the adapter.
+@param worksheet the JWorksheet to use with this adapter.  If null, disables the adapter.
 */
 public void setJWorksheet(JWorksheet worksheet) {
 	__worksheet = worksheet;
@@ -759,16 +677,14 @@ public void setJWorksheet(JWorksheet worksheet) {
 
 /**
 Shows an error dialog indicating that the selected cells cannot be copied.
-@param addendum extra text to add on a newline after the line:
-"Invalid copy selection."
+@param addendum extra text to add on a newline after the line: "Invalid copy selection."
 */
 private void showCopyErrorDialog(String addendum) {
 	String message = "Invalid copy selection.";
 	if (addendum != null) {
 		message += "\n" + addendum;
 	}
-	new ResponseJDialog(new JFrame(), "Invalid Copy Selection",
-		message, ResponseJDialog.OK);
+	new ResponseJDialog(new JFrame(), "Invalid Copy Selection", message, ResponseJDialog.OK);
 	JGUIUtil.setWaitCursor(__worksheet.getHourglassJFrame(), false);
 }
 
