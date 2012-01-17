@@ -692,21 +692,18 @@ public DateTime ( Date d )
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		List v = StringUtil.breakStringList ( time_date, " ", StringUtil.DELIM_SKIP_BLANKS );
-		setYear ( Integer.parseInt((String)v.get(0)) );
-		setMonth ( Integer.parseInt((String)v.get(1)) );
-		setDay ( Integer.parseInt((String)v.get(2)) );
-		setHour ( Integer.parseInt((String)v.get(3)) );
-		setMinute ( Integer.parseInt((String)v.get(4)) );
-		setSecond ( Integer.parseInt((String)v.get(5)) );
+		List<String> v = StringUtil.breakStringList ( time_date, " ", StringUtil.DELIM_SKIP_BLANKS );
+		setYear ( Integer.parseInt(v.get(0)) );
+		setMonth ( Integer.parseInt(v.get(1)) );
+		setDay ( Integer.parseInt(v.get(2)) );
+		setHour ( Integer.parseInt(v.get(3)) );
+		setMinute ( Integer.parseInt(v.get(4)) );
+		setSecond ( Integer.parseInt(v.get(5)) );
 		// milliseconds not supported in formatTimeString...
 		// Convert from milliseconds to 100ths of a second...
-		// setHSecond ( Integer.parseInt((String)v.elementAt(6))/10 );
-		// setTimeZone ( (String)v.elementAt(7) );
-		format = null;
-		time_date = null;
+		// setHSecond ( Integer.parseInt(v.elementAt(6))/10 );
+		// setTimeZone ( v.elementAt(7) );
 		__tz = "";
-		v = null;
 	}
 
 	reset();
@@ -714,8 +711,7 @@ public DateTime ( Date d )
 }
 
 /**
-Construct from a Java Date.  The time zone is not set unless the behavior
-flag includes PRECISION_TIME_ZONE.
+Construct from a Java Date.  The time zone is not set unless the behavior flag includes PRECISION_TIME_ZONE.
 @param d Java Date.
 @param behavior_flag Flag indicating the behavior of the instance - see the
 defined bit mask values.
@@ -767,21 +763,18 @@ public DateTime ( Date d, int behavior_flag )
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		List v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
-		setYear ( Integer.parseInt((String)v.get(0)) );
-		setMonth ( Integer.parseInt((String)v.get(1)) );
-		setDay ( Integer.parseInt((String)v.get(2)) );
-		setHour ( Integer.parseInt((String)v.get(3)) );
-		setMinute ( Integer.parseInt((String)v.get(4)) );
-		setSecond ( Integer.parseInt((String)v.get(5)) );
+		List<String> v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
+		setYear ( Integer.parseInt(v.get(0)) );
+		setMonth ( Integer.parseInt(v.get(1)) );
+		setDay ( Integer.parseInt(v.get(2)) );
+		setHour ( Integer.parseInt(v.get(3)) );
+		setMinute ( Integer.parseInt(v.get(4)) );
+		setSecond ( Integer.parseInt(v.get(5)) );
 		// milliseconds not supported in formatTimeString...
 		// Convert from milliseconds to 100ths of a second...
 		// setHSecond ( Integer.parseInt((String)v.elementAt(6))/10 );
 		// setTimeZone ( (String)v.elementAt(7) );
-		format = null;
-		time_date = null;
 		__tz = "";
-		v = null;
 	}
 
 	// Set the time zone.  Use TimeUtil directly to increase performance...
@@ -935,8 +928,7 @@ Construct from a double precision number containing the date (the inverse of
 the toDouble method.  The number consists of YYYY.DDHHMMSS, etc., where the
 remainder is the fractional part of the year, based on days.  Because the
 relationship between months and days is dynamic, using this routine on the
-difference between two dates is not generally correct, and the "use_month"
-option is provided.
+difference between two dates is not generally correct, and the "use_month" option is provided.
 @param double_date Date as a double.
 @param use_month If true, the resulting DateTime will treat the month and day
 as normal.  If false, the month will be set to 0 and the days will be the
@@ -951,8 +943,7 @@ public DateTime ( double double_date, boolean use_month )
 
 	// First get the year as the whole part of the number.  Because we
 	// don't want to have a date like xxx 59:59:59:99 result from
-	// round-off, add .1 100th of a second to the number so that the
-	// number truncates correctly.
+	// round-off, add .1 100th of a second to the number so that the number truncates correctly.
 	// .001 100th of a second as a percentage of the day is...
 	// 1/86400000;	// 1000*100*60*60*24
 
@@ -973,8 +964,7 @@ public DateTime ( double double_date, boolean use_month )
 		int [] v = TimeUtil.getMonthAndDayFromDayOfYear ( __year, (int)temp );
 		if ( v != null ) {
 			__month	= v[0];
-			__day	= v[1] + 1;	// Because the day is always at
-						// least one (always in a day
+			__day = v[1] + 1; // Because the day is always at least one (always in a day
 						// even if it is a fractional day).
 			if ( (__month == 2) && isleap ) {
 				monthdays = TimeUtil.MONTH_DAYS[__month - 1] + 1;
@@ -987,7 +977,6 @@ public DateTime ( double double_date, boolean use_month )
 				++__month;
 				__day = 1;
 			}
-			v = null;
 		}
 	}
 	else {
@@ -2328,22 +2317,22 @@ called InputStart, which is referenced in the string.  If parsing only for
 syntax (where the value of the parsed result is not important), specify any instance of DateTime.<p>
 The String value for the named DateTime is parsed, even though contents may be available. <p>
 The named <u>cannot</u> contain "+" or "-" characters.
-@exception Exception If the string is not understood due to a bad date/time,
+@exception IllegalArgumentException If the string is not understood due to a bad date/time,
 interval string or a missing named date/time.
 @see #toString
 */
 public static DateTime parse ( String date_string, PropList datetime_props )
-throws Exception {
+{
 	if (date_string == null) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from null string.");
-		throw new Exception("Null DateTime string to parse");
+		throw new IllegalArgumentException("Null DateTime string to parse");
 	} 
 
 	String str = date_string.trim();
 
 	if (str.length() == 0) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from empty string.");
-		throw new Exception("Empty DateTime string to parse");
+		throw new IllegalArgumentException("Empty DateTime string to parse");
 	}		
 
 	if (Character.isDigit(date_string.charAt(0))) {
@@ -2408,7 +2397,7 @@ throws Exception {
 		if (value == null) {
 			Message.printWarning(3, "DateTime.parse",
                     "Named date/time '" + tokens[0] + "' to be parsed, but its value is null.");
-			throw new Exception("Null value for named date/time property '" + tokens[0] + "'");
+			throw new IllegalArgumentException("Null value for named date/time property '" + tokens[0] + "'");
 		}
 		else {
 			// Parse the named date/time string. Allow an exception to be thrown.
@@ -2437,7 +2426,7 @@ throws Exception {
 		}
 		else {	
 			Message.printWarning(3, "DateTime.parse","Could not find the named date/time'" + tokens[0] + "'");
-			throw new Exception("Named date/time'" + tokens[0] + "' not found.  Cannot parse.");
+			throw new IllegalArgumentException("Named date/time'" + tokens[0] + "' not found.  Cannot parse.");
 		}
 	}
 
@@ -2447,7 +2436,13 @@ throws Exception {
 	}
 
 	// Allow an exception to be thrown.
-	TimeInterval ti = TimeInterval.parseInterval(tokens[2]);
+	TimeInterval ti = null;
+	try {
+	    ti = TimeInterval.parseInterval(tokens[2]);
+	}
+	catch ( Exception e ) {
+	    throw new IllegalArgumentException ( "Invalid interval (" + tokens[2] + ") in date/time string." );
+	}
 
 	if (tokens[1].equals("-")) {
 		// Subtract an interval
@@ -2469,23 +2464,22 @@ is detected, then the TIME_ONLY flag will be set in the returned instance.
 This routine is the inverse of toString().
 @return A DateTime corresponding to the date.
 @param date_string Any of the formats supported by parse(String,int).
-@exception Exception If the string is not understood.
+@exception IllegalArgumentException If the string is not understood.
 @see #toString
 */
 public static DateTime parse ( String date_string )
-throws Exception
 {	int	length = 0;
 	char c;	// Use to optimize code below
 
 	// First check to make sure we have something...
 	if( date_string == null ) {
 		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from null string." );
-		throw new Exception ( "Null DateTime string to parse" );
+		throw new IllegalArgumentException ( "Null DateTime string to parse" );
 	} 
 	length = date_string.length();
 	if( length == 0 ) {
 		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from zero-length string." );
-		throw new Exception ( "Empty DateTime string to parse" );
+		throw new IllegalArgumentException ( "Empty DateTime string to parse" );
 	}
 
 	// This if-elseif structure is used to determine the format of the date represented by date_string.
@@ -2510,7 +2504,7 @@ throws Exception
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + date_string + "\"" );
 		}
 	}
 	else if( length == 6 ){
@@ -2521,7 +2515,7 @@ throws Exception
 			return(parse(" "+ date_string, FORMAT_MM_SLASH_YYYY,0));
 		}
 		else {	Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + date_string + "\"" );
 		}
 	}
 	else if( length == 7 ){
@@ -2550,7 +2544,7 @@ throws Exception
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + date_string + "\"" );
 		}
 	}
 	else if ( length == 9 ) {
@@ -2568,7 +2562,7 @@ throws Exception
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + date_string + "\"" );
-			throw new Exception ( "Invalid DateTime string \"" + date_string + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + date_string + "\"" );
 		}
 	}
 	else if( length == 10 ){
@@ -2664,7 +2658,7 @@ throws Exception
     }
 	else {
 	    // Unknown length so throw an exception...
-		throw new Exception ( "Date/time string \"" + date_string +	"\" format is not recognized." );
+		throw new IllegalArgumentException ( "Date/time string \"" + date_string +	"\" format is not recognized." );
 	}
 }
 
@@ -2695,14 +2689,13 @@ This routine is the inverse of toString(int format).
 @return A DateTime corresponding to the date.
 @param date_string A string representation of a date/time.
 @param format Date format (see FORMAT_*).
-@exception Exception If there is an error parsing the date string.
+@exception IllegalArgumentException If there is an error parsing the date string.
 @param flag A flag to use internally.  If > 0, this is used by some
 internal code to indicate variations in formats.  For example, MM/DD/YYYY,
 MM/D/YYYY, M/DD/YYYY, M/D/YYYY are all variations on the same format.
 @see #toString
 */
 private static DateTime parse ( String date_string, int format, int flag )
-throws Exception
 {	int dl = 50;
 	boolean is_year = false,	// Use to improve performance
 			is_month = false,	// of checks at end of the
@@ -2797,8 +2790,7 @@ throws Exception
 		date.__day = ((Integer)v.get(1)).intValue();
 		date.__year = ((Integer)v.get(2)).intValue();
 	}
-	else if ( (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH) ||
-		(format == FORMAT_MM_DD_YYYY_HH) ) {
+	else if ( (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH) || (format == FORMAT_MM_DD_YYYY_HH) ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
 		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2" );
@@ -3001,7 +2993,7 @@ throws Exception
 	else {
         v = null;
 		routine = null;
-		throw new Exception ( "Date format " + format +	" is not recognized." );
+		throw new IllegalArgumentException ( "Date format " + format +	" is not recognized." );
 	}
 	// Cleanup...
 	v = null;
@@ -3016,14 +3008,14 @@ throws Exception
 	// exception.  This degrades performance some but not much since all checks are integer based.
 	// Limit year to a reasonable value...
 	if ( (date.__year < -1000) || (date.__year > 10000) ) {
-		throw new Exception ( "Invalid year " + date.__year + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid year " + date.__year + " in \"" + date_string + "\"" );
 	}
 	if ( is_year ) {
 		date.reset();
 		return date;
 	}
 	if ( (date.__month < 1) || (date.__month > 12) ) {
-		throw new Exception ( "Invalid month " + date.__month + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid month " + date.__month + " in \"" + date_string + "\"" );
 	}
 	if ( is_month ) {
 		date.reset();
@@ -3033,18 +3025,19 @@ throws Exception
 	if ( date.__month == 2 ) {
 		if ( TimeUtil.isLeapYear ( date.__year ) ) {
 			if ( (date.__day < 1) || (date.__day > 29) ) {
-				throw new Exception ( "Invalid day " + date.__day +	" in \"" + date_string + "\"" );
+				throw new IllegalArgumentException ( "Invalid day " + date.__day +	" in \"" + date_string + "\"" );
 			}
 		}
-		else {	if ( (date.__day < 1) || (date.__day > 28) ) {
-				throw new Exception ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+		else {
+		    if ( (date.__day < 1) || (date.__day > 28) ) {
+				throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
 			}
 		}
 	}
 	else {
 	    // Not a leap year...
-		if (	(date.__day < 1) || (date.__day > TimeUtil.MONTH_DAYS[date.__month - 1]) ) {
-			throw new Exception ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+		if ( (date.__day < 1) || (date.__day > TimeUtil.MONTH_DAYS[date.__month - 1]) ) {
+			throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
 		}
 	}
 	if ( is_day ) {
@@ -3052,14 +3045,14 @@ throws Exception
 		return date;
 	}
 	if ( (date.__hour < 0) || (date.__hour > 23) ) {
-		throw new Exception ( "Invalid hour " + date.__hour + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid hour " + date.__hour + " in \"" + date_string + "\"" );
 	}
 	if ( is_hour ) {
 		date.reset();
 		return date;
 	}
 	if ( (date.__minute < 0) || (date.__minute > 59) ) {
-		throw new Exception ( "Invalid minute " + date.__minute + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid minute " + date.__minute + " in \"" + date_string + "\"" );
 	}
 	if ( is_minute ) {
 		date.reset();

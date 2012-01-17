@@ -496,12 +496,14 @@ public boolean greaterThan ( TimeInterval interval )
 
 /**
 Determine whether an interval is regular.
+@param intervalBase the time interval base to check
 @return true if the interval is regular, false if not (unknown or irregular).
 */
-public static boolean isRegularInterval ( int interval_base )
-{	if ( (interval_base >= HOUR) && (interval_base <= YEAR) ) {
+public static boolean isRegularInterval ( int intervalBase )
+{	if ( (intervalBase >= HSECOND) && (intervalBase <= YEAR) ) {
 		return true;
 	}
+    // Irregular and unknown are what are left.
 	return false;
 }
 
