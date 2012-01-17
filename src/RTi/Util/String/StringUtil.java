@@ -434,7 +434,7 @@ the end.  If multiple delimiters are at the front and skip blanks is specified,
 all the delimiters will be skipped.  Escaped single characters are passed through
 as is.  Therefore \" (two characters) will be two characters in the output.  Other
 code needs to interpret the two characters as the actual special character.
-@return A list of Strings.
+@return A list of Strings, guaranteed to be non-null
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.  Each
 character in the string is checked (the complete string is not used as a
