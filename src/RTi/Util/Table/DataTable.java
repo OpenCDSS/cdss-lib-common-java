@@ -2191,4 +2191,8 @@ throws Exception {
 	}
 }
 
+    public void addField(TableField tableField) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
 }

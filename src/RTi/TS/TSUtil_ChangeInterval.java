@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import RTi.Util.IO.PropList;
 import java.util.List;
 import java.util.Vector;
 
@@ -3619,5 +3620,9 @@ private void setTolerance ( double tolerance )
 {
     __tolerance = tolerance;
 }
+
+    public TS changeInterval(TS ts, String intervalString, PropList props) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
 
 }

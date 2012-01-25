@@ -490,4 +490,8 @@ public static String toString (	String full_format, String value_format,
 	return formatted_string.toString();
 }
 
+    public double getData() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
 }

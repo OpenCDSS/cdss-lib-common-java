@@ -1,3 +1,13 @@
+// ----------------------------------------------------------------------------
+// GRTest_JFrame - JFrame for running GR tests.
+// ----------------------------------------------------------------------------
+// Copyright:   See the COPYRIGHT file
+// ----------------------------------------------------------------------------
+// History:
+//
+// 2004-06-03	J. Thomas Sapienza, RTi	Initial version.
+// ----------------------------------------------------------------------------
+
 package RTi.GR;
 
 import java.awt.Dimension;
@@ -14,17 +24,22 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import RTi.GR.GRAxis;
 import RTi.GR.GRLimits;
 
 import RTi.Util.GUI.JGUIUtil;
 
 import RTi.Util.IO.PrintUtil;
 
+import RTi.Util.Message.Message;
+
 /**
-This class is a JFrame to run GR tests.
+This class is a JFrame inside of which is displayed the ER Diagram for a 
+database.
 */
-public class GRTest_JFrame extends JFrame implements WindowListener
-{
+public class GRTest_JFrame 
+extends JFrame 
+implements WindowListener {
 
 /**
 The device on which the drawing will take place.
@@ -69,7 +84,8 @@ Returns the page format for which the drawing is being formatted.
 */
 public PageFormat getPageFormat() {
 	PageFormat pageFormat = PrintUtil.getPageFormat("letter");
-	PrintUtil.setPageFormatOrientation(pageFormat, PageFormat.LANDSCAPE);
+	PrintUtil.setPageFormatOrientation(pageFormat, 
+		PageFormat.LANDSCAPE);
 	try {
 		PrintUtil.setPageFormatMargins(pageFormat, .5, .5, .5, .5);
 	}
@@ -95,6 +111,7 @@ public void setMessage(String text) {
 		}
 		JGUIUtil.forceRepaint(__messageField);
 	}
+		
 }
 
 /**
@@ -145,7 +162,8 @@ private void setupGUI() {
 	__device.setPreferredSize(new Dimension(hPixels, vPixels));
 	GRLimits drawingLimits = new GRLimits(0.0, 0.0, hPixels, vPixels);
 	GRLimits dataLimits = new GRLimits(0, 0, 100, 100);
-	__drawingArea = new GRTest_DrawingArea(__device, drawingLimits, dataLimits);
+	__drawingArea = new GRTest_DrawingArea(__device, drawingLimits,
+		dataLimits);
 	__drawingArea.setDataLimits(dataLimits);
 	__device.setDrawingArea(__drawingArea);
 	__device.setDrawingLimits(drawingLimits);
@@ -221,8 +239,7 @@ Does nothing.
 public void windowOpened(WindowEvent event) {}
 
 public static void main(String[] args) {
-	//GRTest_JFrame g =
-    new GRTest_JFrame();
+	GRTest_JFrame g = new GRTest_JFrame();
 }
 
 }
