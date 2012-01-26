@@ -3621,8 +3621,4 @@ private void setTolerance ( double tolerance )
     __tolerance = tolerance;
 }
 
-    public TS changeInterval(TS ts, String intervalString, PropList props) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
 }

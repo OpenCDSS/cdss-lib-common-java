@@ -2190,9 +2190,4 @@ throws Exception {
     	out.close();
 	}
 }
-
-    public void addField(TableField tableField) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
 }

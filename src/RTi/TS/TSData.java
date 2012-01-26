@@ -233,6 +233,15 @@ public double getDataValue()
 }
 
 /**
+ * Return the data value.
+ * @return The data value.
+ */
+@Deprecated
+public double getData() {
+    return getDataValue();
+}
+
+/**
 Return the data flag.
 @return The data flag.
 */
@@ -489,9 +498,5 @@ public static String toString (	String full_format, String value_format,
 
 	return formatted_string.toString();
 }
-
-    public double getData() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
 
 }
