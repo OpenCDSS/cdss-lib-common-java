@@ -2576,6 +2576,9 @@ public static DateTime parse ( String date_string )
             return( parse( date_string, FORMAT_YYYY_MM_DD, 0 ) );
 		}
 	}
+        //
+        // Length 11 would presumably by YYYYMMDDHmm, but this is not currently allowed.
+        //
 	else if( length == 12 ){
 		//
 		// the date is YYYYMMDDHHmm
