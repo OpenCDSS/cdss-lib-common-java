@@ -371,11 +371,11 @@ Creates a list of ERDiagram_Relationship objects to be used in an ER Diagram.
 @param dmi an open and connected dmi object.  Must not be null.
 @param notIncluded a list of the names of the tables for which to not make
 relationships.  May be null.
-@return a Vector of ERDiagram_Relationship objects for use in an ER Diagram.  
+@return a list of ERDiagram_Relationship objects for use in an ER Diagram.  
 null is returned if there was an error creating the objects or reading from the database.
 */
-public static List createERDiagramRelationships(DMI dmi, List notIncluded) {
-	List tableNames = getDatabaseTableNames(dmi, notIncluded);
+public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi, List<String> notIncluded) {
+	List<String> tableNames = getDatabaseTableNames(dmi, true, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -428,11 +428,11 @@ X positions of the ERDiagram Tables.  Must not be null.
 @param erdYField the name of the column in the tables table that contains the
 Y positions of the ERDIagram Tables.  Must not be null.
 @param notIncluded a Vector of the names of the tables to not include in the ERDiagram.  May be null.
-@return a Vector of ERDiagram_Table objects that can be used to build an 
+@return a list of ERDiagram_Table objects that can be used to build an 
 ER Diagram.  null is returned if there was an error creating the tables or
 reading from the database.
 */
-public static List createERDiagramTables(DMI dmi, String tablesTableName,
+public static List<ERDiagram_Table> createERDiagramTables(DMI dmi, String tablesTableName,
 String tableField, String erdXField, String erdYField, List notIncluded) {
 	String routine = "DMIUtil.createERDiagramTables";
 	String temp;
@@ -440,7 +440,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 	ResultSet rs = null;
 	boolean more;
 
-	List tableNames = getDatabaseTableNames(dmi, notIncluded);
+	List<String> tableNames = getDatabaseTableNames(dmi, true, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -450,7 +450,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 	String tableName = null;
 	Message.printStatus(2, routine, "Writing table details for tables");
 	
-	List tables = new Vector();
+	List<ERDiagram_Table> tables = new Vector();
 	ERDiagram_Table table = null;
 
 	try {
@@ -462,13 +462,13 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 	}
 	
 	for (int i = 0; i < size; i++) {
-		tableName = (String)tableNames.get(i);
+		tableName = tableNames.get(i);
 		table = new ERDiagram_Table(tableName);
 	
 		try {	
 			// First get a list of all the table columns that are in the Primary key.
 			ResultSet primaryKeysRS = null;
-			List primaryKeysV = null;
+			List<String> primaryKeysV = null;
 			int primaryKeysSize = 0;
 			try {
 				primaryKeysRS = metadata.getPrimaryKeys( null, null, tableName);
@@ -522,7 +522,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 				// Get whether this is a primary key or not and store either "TRUE" (for it being a 
 				// primary key) or "FALSE" in list position 1
 				for (int j = 0; j < primaryKeysSize; j++) {
-					if (columnName.equals(((String)primaryKeysV.get(j)).trim())) {
+					if (columnName.equals(primaryKeysV.get(j).trim())) {
 						key = true;		
 					}
 				}				
@@ -2669,14 +2669,82 @@ public static List getAllDatabaseTypes() {
 }
 
 /**
-Returns the names of all the tables in the database in a Vector.
+Return the list of columns for a table.
+@return the list of columns for a table.
+@param dmi DMI for connection.
+@param tableName Name of table.
+@exception if there is an error getting database information.
+*/
+public static List<String> getTableColumns ( DMI dmi, String tableName )
+throws Exception, SQLException
+{
+    return getTableColumns ( dmi.getDatabaseMetaData(), tableName );
+}
+
+/**
+Return the list of columns for a table.
+@return the list of columns for a table.
+@param metadata DatabaseMetaData for connection.
+@param tableName Name of table.
+@exception if there is an error getting database information.
+*/
+public static List<String> getTableColumns ( DatabaseMetaData metadata, String tableName )
+throws Exception, SQLException {    
+    String message, routine = "DMI.getTableColumns";
+    ResultSet rs = null;
+    int dl = 5;
+
+    // The following can be used to get a full list of columns...
+    try {
+        rs = metadata.getColumns ( null, null, tableName, null );
+        if ( rs == null ) {
+            message = "Error getting columns for \"" + tableName+"\" table.";
+            Message.printWarning ( 2, routine, message );
+            throw new Exception ( message );
+        } 
+    } 
+    catch ( Exception e ) {
+        message = "Error getting database information for table \"" + tableName + "\".";
+        Message.printWarning ( 2, routine, message );
+        throw new Exception ( message );
+    }
+    
+    String columnName;
+    List<String> columnNames = new Vector();
+    while ( rs.next() ) {
+        try {   
+            // Column name...
+            columnName = rs.getString(4);
+            if (!rs.wasNull()) {
+                columnNames.add(columnName.trim());
+            }
+        }
+        catch (Exception e) {
+            // continue getting the list of table names, but report the error.
+            Message.printWarning(3, routine, e);
+        }
+    } 
+    try {   
+        DMI.closeResultSet(rs);
+    }
+    catch (Exception e) {
+        Message.printWarning(2, routine, e);
+    }
+    return columnNames;
+}
+
+/**
+Returns the list of table names in the database, excluding known system tables.
 @param dmi an open, connected and not-null DMI connection to a database.
+@param removeSystemTables if true, remove the known system tables (this may take some work to keep up to
+date).
 @param notIncluded a list of all the table names that should not be included
 in the final list of table names.
-@return the names of all the tables in the dmi's database in a Vector.  null
+@return the list of table names in the dmi's database.  null
 is returned if there was an error reading from the database.
 */
-public static List getDatabaseTableNames(DMI dmi, List notIncluded) {
+public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTables, List<String> notIncluded)
+{
 	String routine = "getDatabaseTableNames";
 	// Get the name of the data.  If the name is null, it's most likely
 	// because the connection is going through ODBC, in which case the 
@@ -2703,34 +2771,48 @@ public static List getDatabaseTableNames(DMI dmi, List notIncluded) {
 		return null;
 	} 
 
-
 	// Loop through the result set and pull out the list of
 	// all the table names and the table remarks.  
 	Message.printStatus(2, routine, "Building table name list");	
-	boolean more = false;
-	try {	
-		more = rs.next();
+	String tableName;
+	String tableType;
+	List<String> tableNames = new Vector();
+	try {
+    	while ( rs.next() ) {
+    		try {	
+    			// Table name...
+    		    tableName = rs.getString(3);
+    			if (rs.wasNull()) {
+    				tableName = null;
+    			}
+    	        // Table type...
+                tableType = rs.getString(4);
+                if (rs.wasNull()) {
+                    tableType = null;
+                }
+                if ( Message.isDebugOn ) {
+                    Message.printDebug(10, routine, "Table \"" + tableName + "\" type is \"" + tableType + "\"" );
+                }
+                if ( removeSystemTables ) {
+                    // TODO SAM 2012-01-31 Should perhaps be able to check for system tables here but SQL
+                    // Server seems to call everything "TABLE" or "VIEW"
+                    if ( !tableType.equalsIgnoreCase("TABLE") && !tableType.equalsIgnoreCase("VIEW") ) {
+                        tableName = null;
+                    }
+                }
+                if ( tableName != null ) {
+                    tableNames.add(tableName.trim());
+                }
+    		}
+    		catch (Exception e) {
+    			// continue getting the list of table names, but report the error.
+    			Message.printWarning(2, routine, e);
+    		}
+    	}
 	}
-	catch (Exception e) {
-		more = false;
+	catch ( Exception e ) {
+	    // TODO SAM 2012-01-31 probably should not catch this but has been done historically
 	}
-	String temp;
-	List tableNames = new Vector();
-	while (more) {
-		try {	
-			// Table name...
-			temp = rs.getString(3);
-			if (!rs.wasNull()) {
-				tableNames.add(temp.trim());
-			}
-			// Get the next item in the list...
-			more = rs.next();
-		}
-		catch (Exception e) {
-			// continue getting the list of table names, but report the error.
-			Message.printWarning(2, routine, e);
-		}
-	} 
 	try {	
 		DMI.closeResultSet(rs);
 	}
@@ -2741,51 +2823,171 @@ public static List getDatabaseTableNames(DMI dmi, List notIncluded) {
 	// Sort the list of table names in ascending order, ignoring case.
 	tableNames = StringUtil.sortStringList(tableNames, StringUtil.SORT_ASCENDING, null, false, true);
 
-	// remove the list of system tables for each kind of database 
+	// Remove the list of system tables for each kind of database 
 	// (all database types have certain system tables)
+	// TODO SAM 2012-01-31 Should be able to do from metadata but SQL Server does not indicate system tables.
 	int databaseEngineType = dmi.getDatabaseEngineType();
-	Message.printStatus(2, routine, "Removing tables that should be skipped");	
+	String [] systemTablePatternsToRemove = new String[0];
 	if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
-		tableNames.remove("MSysAccessObjects");
-		tableNames.remove("MSysACEs");
-		tableNames.remove("MSysObjects");
-		tableNames.remove("MSysQueries");
-		tableNames.remove("MSysRelationships");
-		tableNames.remove("Paste Errors");
+		String [] systemTablePatternsToRemove0 = {
+		    "MSysAccessObjects",
+    		"MSysACEs",
+    		"MSysObjects",
+    		"MSysQueries",
+    		"MSysRelationships",
+    		"Paste Errors"
+		};
+		systemTablePatternsToRemove = systemTablePatternsToRemove0;
 	}
 	else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
-		tableNames.remove("syscolumns");
-		tableNames.remove("syscomments");
-		tableNames.remove("sysdepends");
-		tableNames.remove("sysfilegroups");
-		tableNames.remove("sysfiles");
-		tableNames.remove("sysfiles1");
-		tableNames.remove("sysforeignkeys");
-		tableNames.remove("sysfulltextcatalogs");
-		tableNames.remove("sysfulltextnotify");
-		tableNames.remove("sysindexes");
-		tableNames.remove("sysindexkeys");
-		tableNames.remove("sysmembers");
-		tableNames.remove("sysobjects");
-		tableNames.remove("syspermissions");
-		tableNames.remove("sysproperties");
-		tableNames.remove("sysprotects");
-		tableNames.remove("sysreferences");
-		tableNames.remove("systypes");
-		tableNames.remove("sysusers");
-		tableNames.remove("sysconstraints");
-		tableNames.remove("syssegments");
-		tableNames.remove("dtproperties");
+		String [] systemTablePatternsToRemove0 = {
+        // Older SQL Server (pre 2005 ?)...
+        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        "syscolumns",
+        "syscomments",
+        "sysdepends",
+        "sysfilegroups",
+        "sysfiles",
+        "sysfiles1",
+        "sysforeignkeys",
+        "sysfulltextcatalogs",
+        "sysfulltextnotify",
+        "sysindexes",
+        "sysindexkeys",
+        "sysmembers",
+        "sysobjects",
+        "syspermissions",
+        "sysproperties",
+        "sysprotects",
+        "sysreferences",
+        "systypes",
+        "sysusers",
+        "sysconstraints",
+        "syssegments",
+        "dtproperties",
+        // Newer SQL Server (2005+ ?)...
+        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        "all_columns",
+        "all_objects",
+        "all_parameters",
+        "all_sql_modules",
+        "all_views",
+        "allocation_keys",
+        "allocation_units",
+        "assemblies",
+        "assembly_.*",
+        "asymmetric_keys",
+        "backup_devices",
+        "certificates",
+        "check_constraints",
+        "column_.*",
+        "columns",
+        "computed_columns",
+        "configurations",
+        "constraint_.*",
+        "conversation_.*",
+        "credentials",
+        "crypt_properties",
+        "cryptographic_.*",
+        "databases",
+        "database_.*",
+        "data_spaces",
+        "default_constraints",
+        "destination_data.*",
+        "dm_.*",
+        "domains",
+        "domain_constraints",
+        "change_tracking.*",
+        "endpoints",
+        "endpoint_webmethods",
+        "event_notification.*",
+        "events",
+        "extended_.*",
+        "filegroups",
+        "foreign_key.*",
+        "fulltext_.*",
+        "function_.*",
+        "http_endpoints",
+        "identity_columns",
+        "index_columns",
+        "indexes",
+        "internal_tables",
+        "key_.*",
+        "linked_logins",
+        "login_token",
+        "master_.*",
+        "messages",
+        "message_.*",
+        "module_.*",
+        "numbered_.*",
+        "objects",
+        "openkeys",
+        "parameter_.*",
+        "parameters",
+        "partition_.*",
+        "partitions",
+        "plan_guides",
+        "procedures*",
+        "referential_.*",
+        "remote_.*",
+        "resource_.*",
+        "routes",
+        "routine_columns",
+        "routines",
+        "schemas",
+        "schemata",
+        "securable_classes",
+        "server_.*",
+        "servers",
+        "service_.*",
+        "services",
+        "soap_.*",
+        "spatial_.*",
+        "sql_.*",
+        "stats",
+        "stats_columns",
+        "symmetric_keys",
+        "synonyms",
+        "system_.*",
+        "sys.*",
+        "table_constraints",
+        "table_privileges",
+        "table_types",
+        "tcp_endpoints",
+        "trace_.*",
+        "traces",
+        "transmission_queue",
+        "triggers",
+        "trigger_.*",
+        "types",
+        "type_assembly_usages",
+        "user_token",
+        "version",
+        "via_endpoints",
+        "views",
+        "view_column_usage",
+        "view_table_usage",
+        "xml_indexes",
+        "xml_schema.*",
+		};
+		systemTablePatternsToRemove = systemTablePatternsToRemove0;
 	}
 	else {	
-		// Unsure what tables are specific to other database types, this needs to be checked.
+		// TODO SAM 2012-01-31 Unsure what tables are specific to other database types, this needs to be checked.
 	}
 	
-	// Remove all the tables that were in the notIncluded parameter passed in to this method.
+	if ( removeSystemTables ) {
+	    Message.printStatus(2, routine, "Removing system tables from table list");
+        for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {
+            StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
+        }
+	}
+	
+	// Additionally remove all the tables that were in the notIncluded parameter passed in to this method.
 	if (notIncluded != null) {
-		int notSize = notIncluded.size();
-		for (int i = 0; i < notSize; i++) {
-			tableNames.remove(notIncluded.get(i));
+	    Message.printStatus(2, routine, "Removing requested tables from table list");
+		for ( String s : notIncluded ) {
+			StringUtil.removeMatching(tableNames,s,true);
 		}
 	}
 	return tableNames;

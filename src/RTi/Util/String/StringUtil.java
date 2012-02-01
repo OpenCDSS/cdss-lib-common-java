@@ -2639,10 +2639,49 @@ public static String remove ( String s, String r )
 			// Skip next few characters...
 			i += (r_length - 1);
 		}
-		else {	buffer.append ( s.charAt(i) );
+		else {
+		    buffer.append ( s.charAt(i) );
 		}
 	}
 	return buffer.toString();	
+}
+
+/**
+Remove matching strings from a list.
+@param strings list of strings to process
+@param regex Java regular expression as per String.match() - if null then null strings will be matched
+@param ignoreCase if true then the strings and regular expression will be compared as uppercase
+*/
+public static void removeMatching ( List<String> strings, String regex, boolean ignoreCase )
+{
+    if ( strings == null ) {
+        return;
+    }
+    String s;
+    String regexUpper = regex.toUpperCase();
+    boolean matches = false;
+    for ( int i = 0; i < strings.size(); i++ ) {
+        matches = false;
+        s = strings.get(i);
+        if ( s == null ) {
+            // Special case for removing nulls
+            if ( regex == null ) {
+                matches = true;
+            }
+        }
+        else {
+            if ( ignoreCase ) {
+                matches = s.toUpperCase().matches(regexUpper);
+            }
+            else {
+                matches = s.matches(regex);
+            }
+            if ( matches ) {
+                strings.remove(i);
+                --i;
+            }
+        }
+    }
 }
 
 /**
@@ -2654,7 +2693,7 @@ make a copy before calling this method if necessary.
 increases processing speed.  TRUE IS CURRENTLY THE ONLY VALUE THAT IS SUPPORTED.
 @return the list with duplicate values rememoved.
 */
-public static List removeDuplicates ( List<String> strings, boolean ignore_case, boolean sorted )
+public static List<String> removeDuplicates ( List<String> strings, boolean ignore_case, boolean sorted )
 {	if ( sorted ) {
 		// Loop through and compare each string with the previous string
 		// in the list, removing the current string if a duplicate.
