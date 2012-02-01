@@ -1,14 +1,3 @@
-//------------------------------------------------------------------------------
-// Function - interface to define a function
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 2004-06-02	Steven A. Malers, RTi	Initial version.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-
 package RTi.Util.Math;
 
 /**
@@ -18,6 +7,6 @@ in generic code that needs to evaluate the function.
 public abstract interface Function
 {
 
-public abstract double evaluate ( double [] parameters ) throws Exception;
+public abstract double evaluate ( double [] parameters );
 
-} // End Function
+}
