@@ -8,7 +8,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeWindow;
 
 /**
-Check time series values.
+Fill a table with time series values.
 */
 public class TSUtil_TimeSeriesToTable
 {
