@@ -10963,7 +10963,7 @@ other versions of this routine.
 @param ts Time series to convert data to array format.
 @param start_date Date corresponding to the first date of the returned array.
 @param end_date Date corresponding to the last date of the returned array.
-@param month_indices Months of interest (1=Jan, 12=Dec).  If null or an empty array, process all months.
+@param includeMonths Months of interest (1=Jan, 12=Dec) to include.  If null or an empty array, process all months.
 @param includeMissing if true, include missing values; if false, do not include missing values
 @param matchOtherNonmissing only used if "pairedTS" -s not null;
 if true, then specify "pairedTS" and only return non-missing values that also are non-missing in "pairedTS";
@@ -10973,7 +10973,7 @@ other time series (this functionality is used to extract data for regression ana
 the time series will not be checked as a constraint regardless of the "matchOtherNonmissing" value;
 this capability is NOT availble for irregular time series
 */
-public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
+public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] includeMonths,
     boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS )
 {
     if ( pairedTS != null ) {
@@ -11002,10 +11002,20 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 	    size = calculateDataSize ( start, end, interval_base, interval_mult );
 	}
 
-	int month_indices_size = 0;
-	if ( month_indices != null ) {
-		month_indices_size = month_indices.length;
-	}
+    boolean [] includeMonthsMask = new boolean[12];
+    if ( (includeMonths == null) || (includeMonths.length == 0) ) {
+        for ( int i = 0; i < 12; i++ ) {
+            includeMonthsMask[i] = true;
+        }
+    }
+    else {
+        for ( int i = 0; i < 12; i++ ) {
+            includeMonthsMask[i] = false;
+        }
+        for ( int i = 0; i < includeMonths.length; i++ ) {
+            includeMonthsMask[includeMonths[i] - 1] = true;
+        }
+    }
 
 	if ( size == 0 ) {
 		return new double[0];
@@ -11013,7 +11023,6 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 
 	double [] dataArray = new double[size]; // Initial size including missing
 	int count = 0; // Number of values in array.
-	int im = 0; // Index for month_indices
 	int month = 0; // Month for date.
 	double value; // Data value in time series
 
@@ -11036,25 +11045,12 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				if ( month_indices_size == 0 ) {
-					// Transfer any value...
+                month = date.getMonth();
+				if ( includeMonthsMask[month -1] ) {
 	                value = tsdata.getDataValue ();
 	                if ( includeMissing || !ts.isDataMissing(value) ) {
 	                    dataArray[count++] = value;
 	                }
-				}
-				else {
-				    // Transfer only if the month agrees with that requested...
-					month = date.getMonth();
-					for ( im = 0; im < month_indices_size; im++ ) {
-						if (month == month_indices[im]) {
-		                    value = tsdata.getDataValue ();
-		                    if ( includeMissing || !ts.isDataMissing(value) ) {
-		                        dataArray[count++] = value;
-		                    }
-							break;
-						}
-					}
 				}
 			}
 		}
@@ -11064,22 +11060,14 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 		DateTime date = new DateTime ( start );
 		count = 0;
 		boolean doTransfer = false;
-		boolean includeMonth = false;
 		boolean isMissing = false;
 		double value2;
 		boolean isMissing2;
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		    // First figure out if the data should be skipped because not in a requested month
-		    if ( month_indices_size != 0 ) {
-		        includeMonth = false;
-		        for ( im = 0; im < month_indices_size; im++ ) {
-                    if ( month == month_indices[im] ) {
-                        includeMonth = true;
-                    }
-                }
-		        if ( !includeMonth ) {
-		            continue;
-		        }
+            month = date.getMonth();
+            if ( !includeMonthsMask[month -1] ) {
+		        continue;
 		    }
 		    // Now transfer the value while checking the paired time series
 		    doTransfer = false; // Do not transfer unless criteria are met below
