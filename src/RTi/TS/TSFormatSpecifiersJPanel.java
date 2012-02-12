@@ -129,6 +129,16 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
     }
     
     /**
+    Set the components enabled state.
+    @param enabled whether or not the components should be enabled
+    */
+    public void setEnabled ( boolean enabled )
+    {
+        __inputJTextField.setEnabled ( enabled );
+        __formatJComboBox.setEnabled ( enabled );
+    }
+    
+    /**
      * Set the text in the text field.
      * @param text text to set in the textfield
      */
