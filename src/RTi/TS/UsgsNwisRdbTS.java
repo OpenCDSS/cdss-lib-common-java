@@ -1,34 +1,3 @@
-// ----------------------------------------------------------------------------
-// UsgsNwisTS - class for reading/writing USGS NWIS time series file formats
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2002-01-31	Steven A. Malers, RTi	Copy NWSCardTS and update as
-//					appropriate.
-// 2002-02-11	SAM, RTi		Update to set the input type and name
-//					in TSIdent, consistent with new
-//					conventions.
-// 2002-03-24	SAM, RTi		Add information to the genesis
-//					describing where the time series is
-//					read and for what period.  Also add
-//					ability to handle case when no data
-//					value is found for a date.
-// 2002-09-05	SAM, RTi		Change so the data flags are not saved
-//					after the initial read.  They are used
-//					to set missing data.  They are not
-//					saved because work needs to be done to
-//					figure out how to handle in TSTool -
-//					original data flags likely will not
-//					apply when data are filled.  It is
-//					better to not use the flags than to
-//					misrepresent other data.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.io.BufferedReader;
@@ -46,12 +15,13 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
+// TODO SAM 2012-02-27 Need to enable other than daily format
 /**
-The UsgsNwisTS class reads and writes Unites States Geological Survey National
-Water Information System time series.  A number of different file formats are
-available.  The current code focuses on the daily surface water format.
+The UsgsNwisRdbTS class reads and writes Unites States Geological Survey National
+Water Information System (NWIS) Rdb format time series files.
+The current code focuses on the daily surface water format.
 */
-public class UsgsNwisTS
+public class UsgsNwisRdbTS
 {
 
 /**
@@ -62,17 +32,11 @@ Private method to create a time series given the proper heading information
 @param datatype Data type for the data.
 @exception if an error occurs.
 */
-private static TS createTimeSeries (	TS req_ts,
-					int data_interval_base,
-					int data_interval_mult,
-					String agency_cd, String site_no,
-					String datatype, String description,
-					String units,
-					DateTime date1, DateTime date2,
-					DateTime date1_file,
-					DateTime date2_file )
+private static TS createTimeSeries ( TS req_ts, int data_interval_base, int data_interval_mult,
+	String agency_cd, String site_no, String datatype, String description, String units,
+	DateTime date1, DateTime date2, DateTime date1_file, DateTime date2_file )
 throws Exception
-{	String routine = "UsgsNwisTS.createTimeSeries";
+{	String routine = "UsgsNwisRdbTS.createTimeSeries";
 
 	// Declare the time series of the proper type based on the interval.
 	// Use a TSIdent to parse out the interval information...
@@ -136,8 +100,8 @@ now, the samples are compiled into the code to make absolutely sure that the
 programmer knows what sample is supported.
 @return Sample file contents.
 */
-public static List getSample ()
-{	List s = new Vector ( 50 );
+public static List<String> getSample ()
+{	List<String> s = new Vector ( 50 );
 	s.add ( "#" );
 	s.add ( "# U.S. Geological Survey" );
 	s.add ( "# National Water Information System" );
@@ -166,8 +130,9 @@ public static List getSample ()
 	return s;
 }
 
+// TODO SAM 2012-02-27 Need to make this more robust
 /**
-Determine whether a file is a USGS NWIS file.  This can be used rather than
+Determine whether a file is a USGS NWIS Rdb file.  This can be used rather than
 checking the source in a time series identifier.  If the file passes any of the
 following conditions, it is assumed to be a USGS NWIS file:
 <ol>
@@ -175,7 +140,7 @@ following conditions, it is assumed to be a USGS NWIS file:
 </ol>
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 */
-public static boolean isUsgsNwisFile ( String filename )
+public static boolean isUsgsNwisRdbFile ( String filename )
 {	BufferedReader in = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	try {
@@ -224,7 +189,7 @@ IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
 public static TS readTimeSeries ( String filename, DateTime date1, DateTime date2, String units, boolean read_data )
-{	TS	ts = null;
+{	TS ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	BufferedReader in = null;
@@ -233,14 +198,14 @@ public static TS readTimeSeries ( String filename, DateTime date1, DateTime date
 		// Don't have a requested time series...
 		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2, units, read_data );
 		ts.setInputName ( full_fname );
-		ts.getIdentifier().setInputType("USGSNWIS");
+		ts.getIdentifier().setInputType("UsgsNwisRdb");
 		ts.getIdentifier().setInputName(full_fname);
 		ts.addToGenesis ( "Read data from \"" + full_fname +
 			"\" for period " + ts.getDate1() + " to " +	ts.getDate2() );
 	}
 	catch ( Exception e ) {
 		Message.printWarning( 2,
-		"UsgsNwisTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
+		"UsgsNwisRdbTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
 	}
 	finally {
 	    if ( in != null ) {
@@ -275,11 +240,11 @@ read (where the scenario is NOT the file name).
 public static TS readTimeSeries ( String tsident_string, String filename,
 					DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
+{	TS ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
-		Message.printWarning( 2, "UsgsNwisTS.readTimeSeries", "File is not readable: \"" + filename + "\"" );
+		Message.printWarning( 2, "UsgsNwisRdbTS.readTimeSeries", "File is not readable: \"" + filename + "\"" );
 		return ts;
 	}
 	BufferedReader in = null;
@@ -290,7 +255,7 @@ throws Exception
        if ( in != null ) {
            in.close();
         }
-		Message.printWarning( 2, "UsgsNwisTS.readTimeSeries", "Unable to open file \"" + full_fname + "\"" );
+		Message.printWarning( 2, "UsgsNwisRdbTS.readTimeSeries", "Unable to open file \"" + full_fname + "\"" );
 		return ts;
 	}
 	// Call the fully-loaded method...
@@ -298,7 +263,7 @@ throws Exception
 	// will be used to locate the time series in the file.
 	ts = TSUtil.newTimeSeries ( tsident_string, true );
 	if ( ts == null ) {
-		Message.printWarning( 2, "UsgsNwisTS.readTimeSeries",
+		Message.printWarning( 2, "UsgsNwisRdbTS.readTimeSeries",
 		"Unable to create time series for \"" + tsident_string + "\"" );
 		if ( in != null ) {
 		    in.close();
@@ -308,7 +273,7 @@ throws Exception
 	ts.setIdentifier ( tsident_string );
 	readTimeSeries ( ts, in, full_fname, date1, date2, units, read_data );
 	ts.setInputName ( full_fname );
-	ts.getIdentifier().setInputType ( "USGSNWIS" );
+	ts.getIdentifier().setInputType ( "UsgsNwisRdb" );
 	ts.getIdentifier().setInputName ( filename );
 	ts.addToGenesis ( "Read data from \"" + full_fname + "\" for period " + ts.getDate1() + " to " + ts.getDate2() );
 	if ( in != null ) {
@@ -337,7 +302,7 @@ public static TS readTimeSeries ( TS req_ts, BufferedReader in,	String filename,
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	String routine = "UsgsNwisTS.readTimeSeries";
+{	String routine = "UsgsNwisRdbTS.readTimeSeries";
 	String string = null;
 	int	dl = 10;
 	DateTime date1_file = null, date2_file = null;
@@ -585,18 +550,6 @@ throws Exception
 		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		ts = null;
 	}
-	
-	routine = null;
-	string = null;
-	date1_file = null;
-	date2_file = null;
-	datatype = null;
-	description = null;
-	units = null;
-	tokens = null;
-	date1 = null;
-	date2 = null;
-	idate = null;
 	return ts;
 }
 
@@ -627,7 +580,7 @@ throws IOException
 	}
 	catch ( Exception e ) {
 		String message = "Error opening \"" + fname + "\" for writing.";
-		Message.printWarning ( 2, "UsgsNwisTS.writePersistent(TS,String)", message );
+		Message.printWarning ( 2, "UsgsNwisRdbTS.writePersistent(TS,String)", message );
 		out = null;
 		throw new IOException ( message );
 	}
@@ -640,7 +593,6 @@ throws IOException
     }
     finally {
         out.close();
-        out = null;
     }
 }
 
@@ -665,7 +617,7 @@ throws IOException
 	}
 	catch ( Exception e ) {
 		String message = "Error opening \"" + fname + "\" for writing.";
-		Message.printWarning ( 2, "UsgsNwisTS.writeTimeSeries",message);
+		Message.printWarning ( 2, "UsgsNwisRdbTS.writeTimeSeries",message);
 		out = null;
 		throw new IOException ( message );
 	}
@@ -678,7 +630,6 @@ throws IOException
 	}
 	finally {
 	    out.close();
-	    out = null;
 	}
 }
 
@@ -696,7 +647,7 @@ will be converted on output.
 public static void writeTimeSeries ( TS ts, PrintWriter fp, DateTime req_date1, DateTime req_date2,
 					String req_units, boolean write_data )
 throws IOException
-{	String	message, routine="UsgsNwisTS.writePersistent";
+{	String	message, routine="UsgsNwisRdbTS.writePersistent";
 
 	if ( ts == null ) {
 		message = "Time series is NULL, cannot continue.";
