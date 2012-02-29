@@ -62,7 +62,7 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         int y = 0;
         int x = 0;
         JGUIUtil.addComponent(this, __inputJTextField,
-            x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+            x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         x += 2;
         JGUIUtil.addComponent(this, new JLabel(" Insert:"),
             x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
