@@ -1561,6 +1561,9 @@ public double getDataValue( DateTime date )
 
 	// Check the date coming in 
 
+    if ( (date == null) || !hasData() ) {
+        return _missing;
+    }
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "DayTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
