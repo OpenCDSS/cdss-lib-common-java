@@ -151,7 +151,7 @@ public TSUtil_LookupTimeSeriesFromTable ( TS inputTS, TS outputTS, DataTable loo
     if ( effectiveDateColumn >= 0 ) {
         throw new InvalidParameterException ( "Effective date column is not yet supported - future enhancement." );
     }
-    if ( !lookupTableSorted(lookupTable, value1Column) ) {
+    if ( !lookupTableSortedAndNonNull(lookupTable, value1Column) ) {
         throw new InvalidParameterException ( "Lookup table is not sorted into ascending order by lookup column." );
     }
     __effectiveDateColumn = effectiveDateColumn;
@@ -230,6 +230,42 @@ public List<String> getProblemsWarning ()
 }
 
 /**
+Return the value of a lookup table cell as a double.
+This is needed because sometimes the lookup table column contains integers.
+@return the value of a lookup table cell as a double, or NaN if not a number.
+@param lookupTable the lookup table being processed
+@param iRow the row being accessed
+@param iColumn the column being accessed
+*/
+private double getTableCellDouble(DataTable lookupTable, int iRow, int iColumn )
+{   Object o;
+    try {
+        o = lookupTable.getFieldValue(iRow, iColumn);
+    }
+    catch ( Exception e ) {
+        return Double.NaN;
+    }
+    if ( o == null ) {
+        return Double.NaN;
+    }
+    else if ( o instanceof Double ) {
+        return (Double)o;
+    }
+    else if ( o instanceof Float ) {
+        return (Float)o;
+    }
+    else if ( o instanceof Integer ) {
+        return (double)(Integer)o;
+    }
+    else if ( o instanceof Short ) {
+        return (double)(Short)o;
+    }
+    else {
+        return Double.NaN;
+    }
+}
+
+/**
 Lookup the last row for the input value that is less than or equal to the value being looked up.  This provides
 the lower bound.  The lookup value column is assumed to be sorted in ascending order with lowest value in the
 first row.
@@ -238,11 +274,14 @@ first row.
 @param inputValue the value being looked up
 */
 private int lookupFloorRow ( DataTable lookupTable, int value1Column, double inputValue )
-{   Double value;
+{   double value;
     for ( int iRow = lookupTable.getNumberOfRecords() - 1; iRow >= 0; iRow-- ) {
         try {
-            value = (Double)lookupTable.getFieldValue(iRow, value1Column);
-            if ( value <=  inputValue ){
+            value = getTableCellDouble(lookupTable, iRow, value1Column);
+            if ( Double.isNaN(value) ) {
+                return -1;
+            }
+            if ( value <= inputValue ) {
                 return iRow;
             }
         }
@@ -255,17 +294,21 @@ private int lookupFloorRow ( DataTable lookupTable, int value1Column, double inp
 
 /**
 Determine whether the lookup table is sorted ascending by the lookup value.
+Any nulls in data will result in a false.
 @param lookupTable the lookup table
 @param value1Column the column number for the lookup values (0+)
 */
-private boolean lookupTableSorted ( DataTable lookupTable, int value1Column )
+private boolean lookupTableSortedAndNonNull ( DataTable lookupTable, int value1Column )
 {
     double value, valuePrev;
     try {
-        valuePrev = (Double)lookupTable.getFieldValue(0, value1Column);
+        valuePrev = getTableCellDouble(lookupTable, 0, value1Column);
         for ( int iRow = 1; iRow < lookupTable.getNumberOfRecords(); iRow++ ) {
-            value = (Double)lookupTable.getFieldValue(iRow, value1Column);
-            if ( value < valuePrev ){
+            value = getTableCellDouble(lookupTable,iRow, value1Column);
+            if ( Double.isNaN(value) ) {
+                return false;
+            }
+            if ( value < valuePrev ) {
                 return false;
             }
             valuePrev = value;
@@ -354,10 +397,10 @@ public void lookupTimeSeriesFromTable ()
             // Need to get some information about the table for further calculations
             nRows = lookupTable.getNumberOfRecords();
             try {
-                inputValueMin = (Double)lookupTable.getFieldValue(0, value1Column);
-                inputValueMax = (Double)lookupTable.getFieldValue((lookupTable.getNumberOfRecords() - 1), value1Column);
-                outputValueMin = (Double)lookupTable.getFieldValue(0, value2Column);
-                outputValueMax = (Double)lookupTable.getFieldValue((lookupTable.getNumberOfRecords() - 1), value2Column);
+                inputValueMin = getTableCellDouble(lookupTable, 0, value1Column);
+                inputValueMax = getTableCellDouble(lookupTable, (lookupTable.getNumberOfRecords() - 1), value1Column);
+                outputValueMin = getTableCellDouble(lookupTable, 0, value2Column);
+                outputValueMax = getTableCellDouble(lookupTable, (lookupTable.getNumberOfRecords() - 1), value2Column);
             }
             catch ( Exception e ) {
                 throw new RuntimeException ( "Error looking up extreme values in lookup table." );
@@ -384,10 +427,10 @@ public void lookupTimeSeriesFromTable ()
                 }
                 else if ( outOfRangelookupMethodType == OutOfRangeLookupMethodType.EXTRAPOLATE ) {
                     try {
-                        inputValue1 = (Double)lookupTable.getFieldValue(1, value1Column);
-                        inputValue2 = (Double)lookupTable.getFieldValue(0, value1Column);
-                        outputValue1 = (Double)lookupTable.getFieldValue(1, value2Column);
-                        outputValue2 = (Double)lookupTable.getFieldValue(0, value2Column);
+                        inputValue1 = getTableCellDouble(lookupTable, 1, value1Column);
+                        inputValue2 = getTableCellDouble(lookupTable, 0, value1Column);
+                        outputValue1 = getTableCellDouble(lookupTable, 1, value2Column);
+                        outputValue2 = getTableCellDouble(lookupTable, 0, value2Column);
                     }
                     catch ( Exception e ) {
                         // Should not happen
@@ -451,10 +494,10 @@ public void lookupTimeSeriesFromTable ()
                 }
                 else if ( outOfRangelookupMethodType == OutOfRangeLookupMethodType.EXTRAPOLATE ) {
                     try {
-                        inputValue1 = (Double)lookupTable.getFieldValue(nRows - 2, value1Column);
-                        inputValue2 = (Double)lookupTable.getFieldValue(nRows - 1, value1Column);
-                        outputValue1 = (Double)lookupTable.getFieldValue(nRows - 2, value2Column);
-                        outputValue2 = (Double)lookupTable.getFieldValue(nRows - 1, value2Column);
+                        inputValue1 = getTableCellDouble(lookupTable, nRows - 2, value1Column);
+                        inputValue2 = getTableCellDouble(lookupTable, nRows - 1, value1Column);
+                        outputValue1 = getTableCellDouble(lookupTable, nRows - 2, value2Column);
+                        outputValue2 = getTableCellDouble(lookupTable, nRows - 1, value2Column);
                     }
                     catch ( Exception e ) {
                         // Should not happen
@@ -514,10 +557,10 @@ public void lookupTimeSeriesFromTable ()
                 lowRow = lookupFloorRow ( lookupTable, value1Column, inputValue );
                 highRow = lowRow + 1;
                 try {
-                    inputValue1 = (Double)lookupTable.getFieldValue(lowRow, value1Column);
-                    inputValue2 = (Double)lookupTable.getFieldValue(highRow, value1Column);
-                    outputValue1 = (Double)lookupTable.getFieldValue(lowRow, value2Column);
-                    outputValue2 = (Double)lookupTable.getFieldValue(highRow, value2Column);
+                    inputValue1 = getTableCellDouble(lookupTable, lowRow, value1Column);
+                    inputValue2 = getTableCellDouble(lookupTable, highRow, value1Column);
+                    outputValue1 = getTableCellDouble(lookupTable, lowRow, value2Column);
+                    outputValue2 = getTableCellDouble(lookupTable, highRow, value2Column);
                 }
                 catch ( Exception e ) {
                     // Should not happen
