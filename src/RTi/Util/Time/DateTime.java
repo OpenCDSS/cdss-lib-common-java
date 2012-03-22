@@ -2316,7 +2316,7 @@ parsing the string.  For example, an application may internally have a parameter
 called InputStart, which is referenced in the string.  If parsing only for
 syntax (where the value of the parsed result is not important), specify any instance of DateTime.<p>
 The String value for the named DateTime is parsed, even though contents may be available. <p>
-The named <u>cannot</u> contain "+" or "-" characters.
+The named date/time instances <u>cannot</u> contain "+" or "-" characters.
 @exception IllegalArgumentException If the string is not understood due to a bad date/time,
 interval string or a missing named date/time.
 @see #toString
