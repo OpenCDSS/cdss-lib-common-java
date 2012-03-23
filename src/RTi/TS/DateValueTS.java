@@ -1732,15 +1732,15 @@ Write a Vector of time series to a DateValue format file.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@param writeData Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if an error occurs.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1,
-					DateTime date2, String units, boolean write_data )
+					DateTime date2, String units, boolean writeData )
 throws Exception
-{	List v = new Vector ( 1 );
+{	List<TS> v = new Vector ( 1 );
 	v.add ( ts );
-	writeTimeSeriesList ( v, out, date1, date2, units, write_data );
+	writeTimeSeriesList ( v, out, date1, date2, units, writeData );
 }
 
 /**
@@ -1798,14 +1798,14 @@ Currently there is no way to indicate that the count or total time should be pri
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@param writeData Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if there is an error writing the file (I/O error or invalid data).
 */
 public static void writeTimeSeriesList ( List<TS> tslist, PrintWriter out,
-                    DateTime date1, DateTime date2, String units, boolean write_data )
+    DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
 {
-    writeTimeSeriesList ( tslist, out, date1, date2, units, write_data, null );
+    writeTimeSeriesList ( tslist, out, date1, date2, units, writeData, null );
 }
 
 /**
@@ -1816,15 +1816,15 @@ Currently there is no way to indicate that the count or total time should be pri
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@param writeData Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output (see overloaded method for description).
 @exception Exception if there is an error writing the file (I/O error or invalid data).
 */
 public static void writeTimeSeriesList (List<TS> tslist, PrintWriter out, DateTime date1,
-					DateTime date2, String units, boolean write_data, PropList props )
+	DateTime date2, String units, boolean writeData, PropList props )
 throws Exception
 {	String message, routine = "DateValueTS.writeTimeSeriesList";
-	DateTime ts_start = null, ts_end = null, t = new DateTime( DateTime.DATE_FAST );
+	DateTime outputStart = null, outputEnd = null, t = new DateTime( DateTime.DATE_FAST );
 	int	i = 0;
 
 	// Check for a null time series list...
@@ -1861,27 +1861,27 @@ throws Exception
     	}
     	if ( date1 == null ) {
     		// Use the maximum period in the time series list...
-    		ts_start = new DateTime ( limits.getDate1() );
+    		outputStart = new DateTime ( limits.getDate1() );
     	}
     	else {
-    	    ts_start = new DateTime ( date1 );
+    	    outputStart = new DateTime ( date1 );
     	}
     
     	if ( date2 == null ) {
     		// Use the time series value...
-    		ts_end = new DateTime ( limits.getDate2() );
+    		outputEnd = new DateTime ( limits.getDate2() );
     	}
     	else {
-    	    ts_end = new DateTime ( date2 );
+    	    outputEnd = new DateTime ( date2 );
     	}
 	}
 
 	// Loop through the time series and make sure they have the same interval...
 
- 	int data_interval_base = 0;
-	int data_interval_mult = 0;
-	int data_interval_base_i = 0;
-	int data_interval_mult_i = 0;
+ 	int dataIntervalBase = 0;
+	int dataIntervalMult = 0;
+	int iDataIntervalBase = 0;
+	int iDataIntervalMult = 0;
 
 	TS ts = null;
 	// Set up conversion factors for units (apparently some compilers don't
@@ -1894,14 +1894,14 @@ throws Exception
 		add[i] = 0.0;
 		ts = tslist.get(i);
 		if ( ts != null ) {
-			data_interval_base_i = ts.getDataIntervalBase();
-			data_interval_mult_i = ts.getDataIntervalMult();
+			iDataIntervalBase = ts.getDataIntervalBase();
+			iDataIntervalMult = ts.getDataIntervalMult();
 		}
 		if ( i == 0 ) {
-			data_interval_base = data_interval_base_i;
-			data_interval_mult = data_interval_mult_i;
+			dataIntervalBase = iDataIntervalBase;
+			dataIntervalMult = iDataIntervalMult;
 		}
-		else if ( (data_interval_base != data_interval_base_i) || (data_interval_mult != data_interval_mult_i) ) {
+		else if ( (dataIntervalBase != iDataIntervalBase) || (dataIntervalMult != iDataIntervalMult) ) {
 			message = "Time series do not have the same interval.  Can't write";
 			Message.printWarning ( 2, routine, message );
 			throw new UnequalTimeIntervalException ( message );
@@ -1923,7 +1923,7 @@ throws Exception
 	}
 
 	if ( size > 0 ) {
-    	if ( (data_interval_base == TimeInterval.IRREGULAR) && (size > 1) ) {
+    	if ( (dataIntervalBase == TimeInterval.IRREGULAR) && (size > 1) ) {
     		message = "Currently, only one irregular TS can be written to a file.";
     		Message.printWarning ( 2, routine, message );
     		throw new Exception ( message );
@@ -1943,120 +1943,137 @@ throws Exception
         precision = Integer.parseInt(propval);
     }
     // Override of missing value in the time series
-    String missingValue_String = props.getValue ( "MissingValue" );
-    if ( (missingValue_String != null) && !StringUtil.isDouble(missingValue_String) ) {
+    String missingValueString = props.getValue ( "MissingValue" );
+    if ( (missingValueString != null) && !StringUtil.isDouble(missingValueString) ) {
         Message.printWarning ( 3, routine,
-            "Specified missing value \"" + missingValue_String + "\" is not a number - ignoring." );
-        missingValue_String = null;
+            "Specified missing value \"" + missingValueString + "\" is not a number - ignoring." );
+        missingValueString = null;
     }
     String outputFormat = "%." + precision + "f";
-	String nodata_string = "?";
-	StringBuffer alias_buffer = new StringBuffer();
-	boolean has_seqnum = false;
-	StringBuffer seqnum_buffer = new StringBuffer();
-	StringBuffer dataflag_buffer = new StringBuffer();
-	StringBuffer columns_buffer = new StringBuffer();
-	StringBuffer datatype_buffer = new StringBuffer();
-	StringBuffer description_buffer = new StringBuffer();
-	StringBuffer missingval_buffer = new StringBuffer();
-	StringBuffer tsid_buffer = new StringBuffer();
-	StringBuffer units_buffer = new StringBuffer();
+	String nodataString = "?";
+	StringBuffer aliasBuffer = new StringBuffer();
+	boolean hasSeqnum = false;
+	StringBuffer seqnumBuffer = new StringBuffer();
+	StringBuffer dataflagBuffer = new StringBuffer();
+	StringBuffer columnsBuffer = new StringBuffer();
+	StringBuffer datatypeBuffer = new StringBuffer();
+	StringBuffer descriptionBuffer = new StringBuffer();
+	StringBuffer missingvalBuffer = new StringBuffer();
+	StringBuffer tsidBuffer = new StringBuffer();
+	StringBuffer unitsBuffer = new StringBuffer();
 
-	if ( (data_interval_base == TimeInterval.IRREGULAR) ||
-		(data_interval_base == TimeInterval.MINUTE) ||
-		(data_interval_base == TimeInterval.HOUR) ) {
-		columns_buffer.append ( "Date" + delim + "Time" + delim );
+	if ( dataIntervalBase == TimeInterval.IRREGULAR ) {
+	    // Check the start date/time to see if the data precision includes time.  If no start is
+	    // defined, assume no time - will not matter since no data
+	    String header = "Date" + delim;
+	    if ( size == 1 ) {
+	        ts = tslist.get(0);
+	        if ( ts != null ) {
+	            DateTime start = ts.getDate1();
+	            if ( start != null ) {
+	                int p = start.getPrecision();
+	                if ( (p == DateTime.PRECISION_HOUR) || (p == DateTime.PRECISION_MINUTE) |
+	                    (p == DateTime.PRECISION_SECOND) ) {
+	                    header += "Time" + delim;
+	                }
+	            }
+	        }
+	    }
+	    columnsBuffer.append ( header );
+	}
+	else if ( (dataIntervalBase == TimeInterval.MINUTE) || (dataIntervalBase == TimeInterval.HOUR) ) {
+		columnsBuffer.append ( "Date" + delim + "Time" + delim );
 	}
 	else {
-	    columns_buffer.append ( "Date" + delim );
+	    columnsBuffer.append ( "Date" + delim );
 	}
-	boolean has_data_flags = false;	// Only include data flags in output if
+	boolean hasDataFlags = false; // Only include data flags in output if
 					// at least one time series actually has the flag.
 	for ( i = 0; i < size; i++ ) {
 		ts = tslist.get(i);
 		if ( i != 0 ) {
 			// Append the delimiter...
-			alias_buffer.append ( delim );
-			seqnum_buffer.append ( delim );
-			columns_buffer.append ( delim );
-			dataflag_buffer.append ( delim );
-			datatype_buffer.append ( delim );
-			description_buffer.append ( delim );
-			missingval_buffer.append ( delim );
-			tsid_buffer.append ( delim );
-			units_buffer.append ( delim );
+			aliasBuffer.append ( delim );
+			seqnumBuffer.append ( delim );
+			columnsBuffer.append ( delim );
+			dataflagBuffer.append ( delim );
+			datatypeBuffer.append ( delim );
+			descriptionBuffer.append ( delim );
+			missingvalBuffer.append ( delim );
+			tsidBuffer.append ( delim );
+			unitsBuffer.append ( delim );
 		}
 		// Now add the data...
 		if ( ts == null ) {
-			alias_buffer.append ( "\"" + nodata_string + "\"" );
-			seqnum_buffer.append ( "\"" + nodata_string + "\"" );
-			columns_buffer.append ( nodata_string );
-			dataflag_buffer.append ( "\"" + nodata_string + "\"" );
-			datatype_buffer.append ( nodata_string );
-			description_buffer.append (	"\"" + nodata_string + "\"" );
-			missingval_buffer.append ( nodata_string );
-			tsid_buffer.append ( "\"" + nodata_string + "\"" );
-			units_buffer.append ( nodata_string );
+			aliasBuffer.append ( "\"" + nodataString + "\"" );
+			seqnumBuffer.append ( "\"" + nodataString + "\"" );
+			columnsBuffer.append ( nodataString );
+			dataflagBuffer.append ( "\"" + nodataString + "\"" );
+			datatypeBuffer.append ( nodataString );
+			descriptionBuffer.append (	"\"" + nodataString + "\"" );
+			missingvalBuffer.append ( nodataString );
+			tsidBuffer.append ( "\"" + nodataString + "\"" );
+			unitsBuffer.append ( nodataString );
 		}
 		else {
 		    String alias = ts.getAlias();
-		    alias_buffer.append ( "\"" + alias + "\"" );
+		    aliasBuffer.append ( "\"" + alias + "\"" );
 			if ( ts.getSequenceNumber() >= 0 ) {
 				// At least one time series has the sequence number so it will be output below.
-				has_seqnum = true;
+				hasSeqnum = true;
 			}
-			seqnum_buffer.append ( ts.getSequenceNumber() );
+			seqnumBuffer.append ( ts.getSequenceNumber() );
 			if ( !ts.getDataUnits().trim().equals("") ) {
 				// Has units so display in column heading...
 			    if ( alias.length() > 0 ) {
 			        // Use the alias.
-    				columns_buffer.append ( "\"" + alias + ", " + ts.getDataUnits() + "\"" );
+    				columnsBuffer.append ( "\"" + alias + ", " + ts.getDataUnits() + "\"" );
 			    }
 			    else {
-	                 columns_buffer.append ( "\"" + ts.getIdentifier().toString() + ", " + ts.getDataUnits() + "\"" );
+	                 columnsBuffer.append ( "\"" + ts.getIdentifier().toString() + ", " + ts.getDataUnits() + "\"" );
 			    }
 			}
 			else {
 			    if ( alias.length() > 0 ) {
-			        columns_buffer.append ( "\"" + alias + "\"" );
+			        columnsBuffer.append ( "\"" + alias + "\"" );
 			    }
 			    else {
-			        columns_buffer.append ( "\"" + ts.getIdentifier().toString() + "\"" );
+			        columnsBuffer.append ( "\"" + ts.getIdentifier().toString() + "\"" );
 			    }
 			}
 			if ( ts.hasDataFlags() ) {
-				has_data_flags = true;
-				dataflag_buffer.append ( "true" );
-				columns_buffer.append ( delim );
-				columns_buffer.append ( "DataFlag" );
+				hasDataFlags = true;
+				dataflagBuffer.append ( "true" );
+				columnsBuffer.append ( delim );
+				columnsBuffer.append ( "DataFlag" );
 			}
 			else {
-			    dataflag_buffer.append ( "false" );
+			    dataflagBuffer.append ( "false" );
 			}
 			if ( ts.getDataType().trim().equals("") ) {
-				datatype_buffer.append("\"" + ts.getIdentifier().getType() + "\"" );
+				datatypeBuffer.append("\"" + ts.getIdentifier().getType() + "\"" );
 			}
 			else {
-			    datatype_buffer.append("\"" + ts.getDataType() + "\"" );
+			    datatypeBuffer.append("\"" + ts.getDataType() + "\"" );
 			}
-			description_buffer.append (	"\"" + ts.getDescription() + "\"" );
+			descriptionBuffer.append (	"\"" + ts.getDescription() + "\"" );
 			// If the missing value is NaN, just print NaN.  Otherwise the %.Nf results in NaN.000...
 			// The following is a trick to check for NaN...
-			if ( missingValue_String != null ) {
+			if ( missingValueString != null ) {
 			    // Property has specified the missing value to use
-			    missingval_buffer.append ( missingValue_String );
+			    missingvalBuffer.append ( missingValueString );
 			}
 			else {
     			if ( ts.getMissing() != ts.getMissing() ) {
-    				missingval_buffer.append ("NaN" );
+    				missingvalBuffer.append ("NaN" );
     			}
     			else {
     			    // Assume that missing is indicated by a number...
-    				missingval_buffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
+    				missingvalBuffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
     			}
 			}
-			tsid_buffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
-			units_buffer.append ( "\"" + ts.getDataUnits() + "\"" );
+			tsidBuffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
+			unitsBuffer.append ( "\"" + ts.getDataUnits() + "\"" );
 		}
 	}
 
@@ -2067,37 +2084,37 @@ throws Exception
 	Object o = props.getContents("OutputComments");
 	if ( o != null ) {
 	    // Write additional comments that were passed in
-	    List comments = (List)o;
+	    List<String> comments = (List<String>)o;
 	    int commentSize = comments.size();
 	    if ( commentSize > 0 ) {
     	    for ( int iComment = 0; iComment < commentSize; iComment++ ) {
-    	        out.println ( "# " + (String)comments.get(iComment) );
+    	        out.println ( "# " + comments.get(iComment) );
     	    }
 	    }
 	}
 	out.println ( "#" );
 	out.println ( "Delimiter   = \"" + delim + "\"" );
 	out.println ( "NumTS       = " + size );
-	out.println ( "TSID        = " + tsid_buffer.toString() );
-	out.println ( "Alias       = " + alias_buffer.toString() );
-	if ( has_seqnum ) {
-		out.println ( "SequenceNum = " + seqnum_buffer.toString() );
+	out.println ( "TSID        = " + tsidBuffer.toString() );
+	out.println ( "Alias       = " + aliasBuffer.toString() );
+	if ( hasSeqnum ) {
+		out.println ( "SequenceNum = " + seqnumBuffer.toString() );
 	}
-	out.println ( "Description = " + description_buffer.toString() );
-	out.println ( "DataType    = " + datatype_buffer.toString() );
-	out.println ( "Units       = " + units_buffer.toString() );
-	out.println ( "MissingVal  = " + missingval_buffer.toString() );
-	if ( has_data_flags ) {
+	out.println ( "Description = " + descriptionBuffer.toString() );
+	out.println ( "DataType    = " + datatypeBuffer.toString() );
+	out.println ( "Units       = " + unitsBuffer.toString() );
+	out.println ( "MissingVal  = " + missingvalBuffer.toString() );
+	if ( hasDataFlags ) {
 		// At least one of the time series in the list has data flags
 		// so output the data flags information for all the time series...
-		out.println ( "DataFlags   = " + dataflag_buffer.toString() );
+		out.println ( "DataFlags   = " + dataflagBuffer.toString() );
 	}
 	if ( size == 0 ) {
 	    out.println ( "# Unable to determine data start and end - no time series." );
 	}
 	else {
-        out.println ( "Start       = " + ts_start.toString() );
-        out.println ( "End         = " + ts_end.toString() );
+        out.println ( "Start       = " + outputStart.toString() );
+        out.println ( "End         = " + outputEnd.toString() );
 	}
 
 	// Print the comments/genesis information...
@@ -2106,12 +2123,12 @@ throws Exception
 	out.println ( "# Time series comments/histories:" );
 	out.println ( "#" );
 
-	String print_genesis = "true";
-	List genesis = null;
-	List comments = null;
+	String printGenesis = "true";
+	List<String> genesis = null;
+	List<String> comments = null;
 	int j = 0, jsize = 0;
 	for ( i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			out.println ( "#" );
 			out.println ( "# Time series " + (i + 1) + " is null");
@@ -2135,31 +2152,31 @@ throws Exception
 			out.println ( "#" );
 			jsize = comments.size();
 			for ( j = 0; j < jsize; j++ ) {
-				out.println ( "#   " + (String)comments.get(j) );
+				out.println ( "#   " + comments.get(j) );
 			}
 		}
-		if ( (genesis != null) && (genesis.size() > 0) && print_genesis.equalsIgnoreCase("true") ) {
+		if ( (genesis != null) && (genesis.size() > 0) && printGenesis.equalsIgnoreCase("true") ) {
 			out.println ( "#" );
 			out.println ( "# Creation history for time series " +
 			(i + 1) + " (TSID=" + ts.getIdentifier().toString() + " Alias=" + ts.getAlias() + "):" );
 			out.println ( "#" );
 			jsize = genesis.size();
 			for ( j = 0; j < jsize; j++ ) {
-				out.println ( "#   " + (String)genesis.get(j) );
+				out.println ( "#   " + genesis.get(j) );
 			}
 		}
 	}
 	out.println ( "#" );
 	out.println ( "#EndHeader" );
 
-	if ( !write_data ) {
+	if ( !writeData ) {
 		// Don't want to write the data...
 		return;
 	}
 
 	// Header line indicating data columns....
 
-	out.println ( columns_buffer.toString() );
+	out.println ( columnsBuffer.toString() );
 	
 	double value = 0.0;
 	String string_value;
@@ -2168,7 +2185,7 @@ throws Exception
 	StringBuffer buffer = new StringBuffer();
 	TSData datapoint = new TSData(); // Data point associated with a date - used to get flags.
 	String dataflag; // Data flag associated with a data point.
-	if ( data_interval_base == TimeInterval.IRREGULAR ) {
+	if ( dataIntervalBase == TimeInterval.IRREGULAR ) {
 		// Irregular interval... loop through all of the values...
 		// This assumes that _date1 and _date2 have been set.
 		IrregularTS its = null;
@@ -2183,24 +2200,26 @@ throws Exception
 		size = alldata.size();
 		TSData tsdata = null;
 		DateTime date;
+		buffer = new StringBuffer();
 		for ( i = 0; i < size; i++ ) {
+		    buffer.setLength(0);
 			tsdata = alldata.get(i);
 			if ( tsdata == null ) {
 				break;
 			}
 			date = tsdata.getDate();
-			if ( date.lessThan(ts_start) ) {
+			if ( date.lessThan(outputStart) ) {
 				continue;
 			}
-			else if ( date.greaterThan(ts_end) ) {
+			else if ( date.greaterThan(outputEnd) ) {
 				break;
 			}
 			// Else print the record...
 			value = tsdata.getDataValue();
 			if ( ts.isDataMissing(value) ) {
-		         if ( missingValue_String != null ) {
+		         if ( missingValueString != null ) {
 	                // Property has specified the missing value to use
-	                string_value = missingValue_String;
+	                string_value = missingValueString;
 		         }
 		         else {
     				if ( Double.isNaN(value) ) {
@@ -2216,18 +2235,28 @@ throws Exception
 			    // Convert the units...
 				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
 			}
-			// Don't think @ is needed given new DateValueTS capabilities...
-			//out.println ( date.toString( DateTime.FORMAT_YYYY_MM_DD_HH_mm).replace(' ','@') + " " + string_value );
 			// Use the precision of the dates in the data - ISO formats will be used by default...
-			out.println ( date.toString() + " " + string_value );
+			buffer.append ( date.toString() );
+			buffer.append ( delim );
+			buffer.append ( string_value );
+            // Now print the data flag...
+            if ( ts.hasDataFlags() ) {
+                dataflag = tsdata.getDataFlag();
+                // Always enclose the data flag in quotes because it may contain white space...
+                buffer.append ( delim );
+                buffer.append ( "\"" );
+                buffer.append ( dataflag );
+                buffer.append ( "\"" );
+            }
+            out.println ( buffer.toString() );
 		}
 	}
 	else {
 	    // Regular interval...
-		t = new DateTime ( ts_start);
+		t = new DateTime ( outputStart);
 		// Make sure no time zone is set to minimize output...
 		t.setTimeZone ("");
-		for ( ;	t.lessThanOrEqualTo(ts_end); t.addInterval(data_interval_base, data_interval_mult)) {
+		for ( ;	t.lessThanOrEqualTo(outputEnd); t.addInterval(dataIntervalBase, dataIntervalMult)) {
 			buffer.setLength(0);
 			//buffer.append( t.toString().replace(' ','@') + delim);
 			buffer.append( t.toString() + delim );
@@ -2239,9 +2268,9 @@ throws Exception
 					value = ts.getDataValue(t);
 				}
 				if ( (ts == null) || ts.isDataMissing(value) ) {
-		            if ( missingValue_String != null ) {
+		            if ( missingValueString != null ) {
 		                // Property has specified the missing value to use
-		                string_value = missingValue_String;
+		                string_value = missingValueString;
 		            }
 		            else {
     					if ( Double.isNaN(value) ) {
