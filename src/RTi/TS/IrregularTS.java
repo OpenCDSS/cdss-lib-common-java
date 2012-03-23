@@ -1,80 +1,3 @@
-//------------------------------------------------------------------------------
-// IrregularTS - class for encapsulating sparse/irregular/infrequent TS.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// History:
-// 
-// 24 Sep 1997	Matthew J. Rutherford,	Ported to Java.
-//		RTi
-// 30 Oct 1997	Steven A. Malers, RTi	Knowing that the records are sorted in
-//					ascending order by date, optimized some
-//					of the loops to break out at the
-//					appropriate times rather than looping
-//					through all of the data.
-// 26 Nov 1997  Daniel Weiler, SAM, RTi Added enforceDataGaps
-// 02 Jan 1998	SAM, RTi		Update so that _data_index is
-//					used by setDataValue and getDataValue.
-//					This greatly speeds the access speed
-//					when retrieving data from a time series
-//					(it does not really help when initially
-//					filling the time series).  This change
-//					involved changing the previous
-//					_loop_index to _data_index and using
-//					_data_index inside of appropriate loops.
-//					Also update so that -999 is not assumed
-//					to be the missing data value (use
-//					value returned by getMissing() instead).
-//					Move calcMaxMinValues to TSUtil and add
-//					refresh.
-// 13 Mar 1998	SAM, RTi		Add calculateDataSize.
-// 25 Mar 1998	SAM, RTi		Add javadoc.
-// 13 Jul 1998	SAM, RTi		Fix bug in getDataValue where if data
-//					is not found, the index was still being
-//					used to return a data value.
-// 22 Aug 1998	SAM, RTi		Change getDataPosition return type to
-//					int [] to match base class.
-// 12 Apr 1999	SAM, RTi		Add finalize.
-// 11 Oct 2000	SAM, RTi		Add iterator() meethods.
-// 21 Feb 2001	SAM, RTi		Add clone() and copy constructor.
-// 30 Aug 2001	SAM, RTi		Fix clone() to be correct.  Clean up
-//					Javadoc and set variables to null.
-//					Get rid of redundant new String() calls.
-//					Fix so in setDataValue() the next and
-//					previous pointers are set (why wasn't
-//					this ever done before?).
-// 2001-11-06	SAM, RTi		Again...review javadoc.  Verify that
-//					variables are set to null when no longer
-//					used.  Remove construct from file since
-//					it should never be called.  Change some
-//					methods to have void return type to
-//					agree with base class.
-// 2002-06-16	SAM, RTi		Fix clone() yet again.
-// 2002-09-10	SAM, RTi		Overload setDataValue() to take a flag
-//					and duration.
-// 2003-01-08	SAM, RTi		Add hasData().
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TSUnits to DataUnits.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2003-07-24	SAM, RTi		* Remove getDataDate().  It is not used
-//					  by any current iteration code so
-//					  remove.
-//					* TSIterator now throws an Exception so
-//					  declare the throw in iterator().
-// 2003-12-01	SAM, RTi		* Override the base class getDate1() and
-//					  getDate2() - return from the data
-//					  array.
-//					* Change private data to use __ as per
-//					  other RTi code.
-// 2004-03-04	J. Thomas Sapienza, RTi	* Class now implements Serializable.
-//					* Class now implements Transferable.
-//					* Class supports being dragged or 
-//					  copied to clipboard.
-// 					* Data members are no longer transient.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.awt.datatransfer.DataFlavor;
@@ -95,9 +18,10 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 This class stores irregular time step data.  Because the time step is irregular,
-a date must be stored with each recording.  The time interval base is
+a date must be stored with each recording and the precision of date/times are taken from the
+start date/time.  The time interval base is
 TimeInterval.IRREGULAR.  Use the IrregularTSIterator class to get data or
-retrieve the data array and process as a Vector.
+retrieve the data array and process as a list.
 @see #getData
 */
 public class IrregularTS extends TS
@@ -126,9 +50,10 @@ private TSData __prevRemoveDataPointerNext = null;
 
 /**
 Index used when traversing the data array.
-This is the element in _ts_data_head (0+) that was last accessed.
+This is the element in _ts_data_head (0+) that was last accessed.  This is used internally between
+method calls and should not be assumed to have state between data get calls.
 */
-protected int __data_index;
+private int __data_index;
 
 /**
 Default constructor.  The data array is initialized to null.
@@ -146,7 +71,7 @@ public IrregularTS ( IrregularTS ts )
 		return;
 	}
 	copyHeader ( ts );
-	// Get the data and loop through the vector...
+	// Get the data and loop through the list...
 	List<TSData> all_tsdata = ts.getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
@@ -162,11 +87,10 @@ public IrregularTS ( IrregularTS ts )
 		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
 			// This is what actually causes the copy...
-			setDataValue ( tsdata.getDate(), tsdata.getDataValue() );
+			setDataValue ( tsdata.getDate(), tsdata.getDataValue(), tsdata.getDataFlag(), tsdata.getDuration() );
 		}
 	}
 	__data_index = ts.__data_index;
-	tsdata = null;
 	addToGenesis ( "Copied from \"" + ts.getIdentifierString() + "\"" );
 }
 
@@ -254,7 +178,7 @@ public Object clone() {
 	IrregularTS ts = (IrregularTS)super.clone();	// Clone base class data
 
 	ts.copyHeader ( this );
-	// Get the data and loop through the vector...
+	// Get the data and loop through the list...
 	List<TSData> all_tsdata = getData();
 	if ( all_tsdata == null ) {
 		// No data for the time series...
@@ -263,42 +187,24 @@ public Object clone() {
 	}
 	int nalltsdata = all_tsdata.size();
 	TSData tsdata = null;
+	// Initialize a new data array so that the clone is a deep copy
+	ts.__tsDataList = null; // Will trigger initialization on first setDataValue call
+	ts.setDataSize ( 0 );
+	ts.__prevSetDataPointer = null;
+	ts.__prevRemoveDataPointerNext = null;
+	ts.__data_index = -1;
+	
 	for ( int i = 0; i < nalltsdata; i++ ) {
 		tsdata = all_tsdata.get(i);
 		if ( tsdata != null ) {
-			// This is what actually causes the copy...
-			ts.setDataValue ( tsdata.getDate(), tsdata.getDataValue() );
+			// Set the data value in the copy...
+			ts.setDataValue ( tsdata.getDate(), tsdata.getDataValue(), tsdata.getDataFlag(), tsdata.getDuration() );
 		}
 	}
-	ts.__data_index = __data_index;
-	tsdata = null;
+	// TODO SAM 2012-03-23 Need to evaluate use of the index
+	//ts.__data_index = __data_index;
 	addToGenesis ( "Cloned from \"" + ts.getIdentifierString() + "\"" );
 	return ts;
-/*
-	// Make sure it is cleared out...
-	ts.__ts_data_head = null;
-	// Get the data and loop through the vector...
-	if ( __ts_data_head != null ) {
-		int nalltsdata = __ts_data_head.size();
-		// Save copy...
-		TSData tsdata = null;
-		for ( int i = 0; i < nalltsdata; i++ ) {
-			// Would be nice to do this but the next/prev seem to
-			// get fouled up.
-			//__ts_data_head.addElement (
-			//	new TSData((TSData)tsdata.elementAt(i)) );
-			tsdata = (TSData)__ts_data_head.elementAt(i);
-			if ( tsdata != null ) {
-				// This is what actually causes the copy...
-				ts.setDataValue ( tsdata.getDate(),
-				tsdata.getData() );
-			}
-		}
-		tsdata = null;
-	}
-	ts.__data_index = __data_index;
-	return ts;
-*/
 }
 
 /**
@@ -1100,7 +1006,7 @@ public DateTime getDate2()
 }
 
 /**
-Get the next element in the data vector.
+Get the next element in the data list.
 This method can be used to return the element after the previously accessed
 element.  For example, when searching the data array, this routine can be used
 to get the next data value.  The routine returns null if at the end of the data array.
@@ -1118,7 +1024,7 @@ public TSData getNextElement()
 
 	// We are going to get the element after "__data_index" so do the
 	// appropriate checks.  First make sure that we will not exceed the
-	// bounds of the data vector...
+	// bounds of the data list...
 
 	if ( ((__data_index + 1) >= size) || ((__data_index + 1) < 0) ) {
 		if ( Message.isDebugOn ) {
@@ -1196,6 +1102,23 @@ public boolean hasData ()
 	else {
 	    return false;
 	}
+}
+
+/**
+Indicate whether the irregular time series has data flags.  Because some code may edit the list of TSData
+directly, it is difficult to intercept calls to setDataValue(...flag...) so assume all irregular data has
+data flags.  This should not be a major issue because blank flags will be ignored in most code and interned
+strings are memory-efficient.
+@return true if data flags are used, false if not.
+*/
+public boolean hasDataFlags ()
+{
+    if ( !hasData() ) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 /**
@@ -1475,7 +1398,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		// Try to find the position starting from the front of the list...
 	
 		//if ( Message.isDebugOn ) {
-		//	Message.printDebug( 30, "IrregularTS.setDataValue", "Searching vector from start for " + dateLocal);
+		//	Message.printDebug( 30, "IrregularTS.setDataValue", "Searching list from start for " + dateLocal);
 		//}
 	
 		for( i=0; i< size; i++ ){
@@ -1513,7 +1436,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	else {
 	    //Message.printStatus(2,"","Closer to the end of the list for " + dateLocal );
 	    //if ( Message.isDebugOn ) {
-		//	Message.printDebug( 20, "IrregularTS.setDataValue", "Searching vector from end for " + dateLocal );
+		//	Message.printDebug( 20, "IrregularTS.setDataValue", "Searching list from end for " + dateLocal );
 		//}
 
 		for ( i=(size-1); i >= 0; i-- ){
