@@ -261,7 +261,7 @@ The time series scenario.
 private String __scenario;
 
 /**
-Number used when more than one time series has the same identifier (e.g., if a Vector of time series is
+Number used when more than one time series has the same identifier (e.g., if a list of time series is
 grouped as a set of traces in an ensemble, the sequence number can be the year that the trace starts).
 */
 private int	__sequence_number;
