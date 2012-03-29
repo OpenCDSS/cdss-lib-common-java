@@ -9585,6 +9585,8 @@ The data range is checked regardless of whether the missing data value is in the
 @param end_date Date to stop assignment.
 @param minValue Minimum data value to replace.
 @param maxValue Maximum data value to replace.
+@param matchFlag flag to match, in addition to matching the numerical value (ok if no numerical value) - currently
+a simple case-dependent string match is performed
 @param newValue Replacement data value (optional - do not need if action is specified).
 @param action Action to perform: "Remove" to remove the point (only for irregular interval, treated as SetMissing
 for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
@@ -9594,15 +9596,25 @@ consistent with the time series interval
 consistent with the time series interval
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
-	Double maxValue, Double newValue, String action, DateTime analysisWindowStart, DateTime analysisWindowEnd,
-	String setFlag )
+	Double maxValue, Double newValue, String matchFlag, String action,
+	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag )
 {	
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
             "Neither new value or action have been specified.  Cannot replace value in time series." );
     }
-    double minvalue = minValue; // Does this increase peformacne?
-    double maxvalue = maxValue;
+    if ( (minValue == null) && ((matchFlag == null) || matchFlag.equals("")) ) {
+        throw new InvalidParameterException(
+            "Neither minimum value or match flag have been specified.  Cannot replace value in time series." );
+    }
+    double minvalue = Double.NaN;
+    if ( minValue != null ) {
+        minvalue = minValue; // Does this increase peformance?
+    }
+    double maxvalue = Double.NaN;
+    if ( maxValue != null ) {
+        maxvalue = maxValue;
+    }
     double newvalue = Double.NaN;
     if ( newValue != null ) {
         newvalue = newValue;
@@ -9622,9 +9634,17 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
             doSetMissing = true;
         }
 	}
-	boolean doFlag = false;
+	boolean doMatchValue = false; // Checking numerical value for match
+	if ( minValue != null ) {
+	    doMatchValue = true;
+	}
+    boolean doMatchFlag = false; // Checking flg for match
+    if ( (matchFlag != null) && !matchFlag.equals("") ) {
+        doMatchFlag = true;
+    }
+	boolean doSetFlag = false;
 	if ( (setFlag != null) && !setFlag.equals("") ) {
-	    doFlag = true;
+	    doSetFlag = true;
 	}
 
 	int interval_base = ts.getDataIntervalBase();
@@ -9644,6 +9664,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
         doAnalysisWindow = true;
     }
     int replaceCount = 0; // Number of values modified
+    boolean matchedForReplace = false;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
@@ -9657,15 +9678,43 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 		DateTime date = null;
 		boolean pointRemoved; // To know if remove was success
 		for ( int i = 0; i < nalltsdata; i++ ) {
+		    matchedForReplace = false;
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
+			if ( date.lessThan(start) ) {
+			    // TODO SAM 2012-03-22 Why not specify period in iterator?
+			    continue;
+			}
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
 				break;
 			}
 			value = tsdata.getDataValue();
-			if ( date.greaterThanOrEqualTo(start) && (value >= minvalue) && (value <= maxvalue) ) {
-	             if ( doAnalysisWindow ) {
+			if ( doMatchValue ) {
+    			if ( (value >= minvalue) && (value <= maxvalue) ) {
+    			    // Found a value to process
+    			    matchedForReplace = true;
+    			}
+			}
+            // Also check the flag
+    	    if ( doMatchFlag ) {
+    	        if ( matchFlag.equals(tsdata.getDataFlag()) ) {
+    	            if ( !doMatchValue || (doMatchValue && matchedForReplace) ) {
+    	                // Criteria are met
+    	                matchedForReplace = true;
+    	            }
+    	            else {
+    	                // Set to false because value was not matched
+    	                matchedForReplace = false;
+    	            }
+    	        }
+    	        else {
+    	            matchedForReplace = false;
+    	        }
+    	    }
+			if ( matchedForReplace ) {
+			    // Also check whether in the analysis window
+	            if ( doAnalysisWindow ) {
                     // Do check after checking values to increase performance
                     windowStart.setYear(date.getYear());
                     windowEnd.setYear(date.getYear());
@@ -9675,7 +9724,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
                     }
                 }
 			    if ( doRemove ) {
-			        // This will remove the point at the date (there should only be one matching date...
+			        // This will remove the point at the date (there should only be one matching date)...
 			        pointRemoved = irrts.removeDataPoint(date);
 			        if ( pointRemoved ) {
 			            // TODO SAM 2010-08-18 Evaluate changing to iterator and remove following code
@@ -9694,7 +9743,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			        ++replaceCount;
 			    }
 			    // Set the data flag
-			    if ( doFlag ) {
+			    if ( doSetFlag ) {
 			        tsdata.setDataFlag(setFlag);
 			    }
 				// Have to do this manually since TSData are being modified directly to improve performance...
@@ -9705,9 +9754,33 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	else {
 	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
+		TSData tsdata = new TSData();
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
-			if ( (value >= minvalue) && (value <= maxvalue) ) {
+			matchedForReplace = false;
+			if ( doMatchValue && (value >= minvalue) && (value <= maxvalue) ) {
+			    // The numerical value matched the check condition
+			    matchedForReplace = true;
+			}
+            // Also check the flag
+            if ( doMatchFlag ) {
+                tsdata = ts.getDataPoint(date, tsdata);
+                if ( matchFlag.equals(tsdata.getDataFlag()) ) {
+                    if ( !doMatchValue || (doMatchValue && matchedForReplace) ) {
+                        // Criteria are met
+                        matchedForReplace = true;
+                    }
+                    else {
+                        // Set to false because value was not matched
+                        matchedForReplace = false;
+                    }
+                }
+                else {
+                    matchedForReplace = false;
+                }
+            }
+			if ( matchedForReplace ) {
+                // Also check whether in the analysis window.
 		        if ( doAnalysisWindow ) {
 		            // Do check after checking values to increase performance
 	                windowStart.setYear(date.getYear());
@@ -9718,7 +9791,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	                }
 	            }
 			    if ( doRemove || doSetMissing ) {
-			        if ( doFlag ) {
+			        if ( doSetFlag ) {
 			            ts.setDataValue ( date, missing, setFlag, 1 );
 			        }
 			        else {
@@ -9726,7 +9799,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			        }
 			    }
 			    else {
-			        if ( doFlag ) {
+			        if ( doSetFlag ) {
 			            ts.setDataValue ( date, newvalue, setFlag, 1 );
 			        }
 			        else {
