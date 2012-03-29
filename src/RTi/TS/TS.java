@@ -429,9 +429,8 @@ information like county and state can be set as a property.
 */
 private Hashtable<String,Object> __property_Hashtable = null; // To save memory if not used
 
-// TODO SAM 2007-12-13 Evaluate moving to NaN as a default.
 /**
-The missing data value.  Default is -999.0.
+The missing data value.  Default for some legacy formats is -999.0 but increasingly Double.NaN is used.
 */
 protected double _missing;
 
@@ -2016,7 +2015,10 @@ The date precision is set to the precision appropriate for the time series.
 public void setDate1 ( DateTime t )
 {	if ( t != null ) {
 		_date1 = new DateTime ( t );
-		_date1.setPrecision ( _data_interval_base );
+		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+		    // For irregular, rely on the DateTime precision
+		    _date1.setPrecision ( _data_interval_base );
+		}
 	}
 }
 
@@ -2029,7 +2031,10 @@ The date precision is set to the precision appropriate for the time series.
 public void setDate1Original( DateTime t )
 {	if ( t != null ) {
 		_date1_original = new DateTime ( t );
-		_date1_original.setPrecision ( _data_interval_base );
+		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+            // For irregular, rely on the DateTime precision
+		    _date1_original.setPrecision ( _data_interval_base );
+		}
 	}
 }
 
@@ -2042,7 +2047,10 @@ The date precision is set to the precision appropriate for the time series.
 public void setDate2 ( DateTime t )
 {	if ( t != null ) {
 		_date2 = new DateTime ( t );
-		_date2.setPrecision ( _data_interval_base );
+		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+            // For irregular, rely on the DateTime precision
+		    _date2.setPrecision ( _data_interval_base );
+		}
 	}
 }
 
@@ -2055,7 +2063,10 @@ The date precision is set to the precision appropriate for the time series.
 public void setDate2Original( DateTime t )
 {	if ( t != null ) {
 		_date2_original = new DateTime ( t );
-		_date2_original.setPrecision ( _data_interval_base );
+		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+            // For irregular, rely on the DateTime precision
+		    _date2_original.setPrecision ( _data_interval_base );
+		}
 	}
 }
 
