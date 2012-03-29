@@ -742,13 +742,12 @@ throws Exception {
 
 /**
 Sets a value in the specified parameter position.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 private void setNullValue(int parameterNum) 
 throws Exception {
-	__storedProcedureCallableStatement.setNull(parameterNum, 
-		_spData.getParameterType(parameterNum));
+	__storedProcedureCallableStatement.setNull(parameterNum, _spData.getParameterType(parameterNum));
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "NULL";
 	}
@@ -760,7 +759,7 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(boolean param, int parameterNum) 
@@ -777,17 +776,19 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(Date param, int parameterNum) 
 throws Exception {
+    if ( param == null ) {
+        setNullValue(parameterNum);
+    }
 	// Note:
 	// the Date object is cast because the Date passed into this 
 	// method is a java.util.Date, whereas the callable statement 
 	// expects a javal.sql.Date, which is a subclass of java.util.Date.
-	__storedProcedureCallableStatement.setDate(parameterNum, 
-		(new java.sql.Date(param.getTime())));
+	__storedProcedureCallableStatement.setDate(parameterNum, (new java.sql.Date(param.getTime())));
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
 	}
@@ -799,17 +800,19 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(DateTime param, int parameterNum) 
 throws Exception {
+    if ( param == null ) {
+        setNullValue(parameterNum);
+    }
 	// Note:
 	// the Date object is cast because the Date returned from getDate()
 	// is a java.util.Date, whereas the callable statement expects a 
 	// javal.sql.Date, which is a subclass of java.util.Date.
-	__storedProcedureCallableStatement.setDate(parameterNum, 
-		(new java.sql.Date(param.getDate().getTime())));
+	__storedProcedureCallableStatement.setDate(parameterNum,(new java.sql.Date(param.getDate().getTime())));
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
 	}
@@ -821,7 +824,7 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(double param, int parameterNum) 
@@ -838,7 +841,7 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position to (1+) set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(float param, int parameterNum) 
@@ -855,7 +858,7 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(int param, int parameterNum) 
@@ -872,7 +875,7 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(long param, int parameterNum) 
@@ -889,11 +892,14 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(String param, int parameterNum) 
 throws Exception {
+    if ( param == null ) {
+        setNullValue(parameterNum);
+    }
 	__storedProcedureCallableStatement.setString(parameterNum, param);
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
@@ -906,11 +912,14 @@ throws Exception {
 /**
 Sets a value in the specified parameter position.
 @param param the parameter to pass in.
-@param parameterNum the number of the parameter position to set.
+@param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
 public void setValue(Timestamp param, int parameterNum) 
 throws Exception {
+    if ( param == null ) {
+        setNullValue(parameterNum);
+    }
 	__storedProcedureCallableStatement.setTimestamp(parameterNum, 
 		(new Timestamp(param.getTime())));
 	if (_spData.hasReturnValue()) {
@@ -953,25 +962,22 @@ throws Exception {
 				// if none of the above worked, then the 
 				// column = value combination could not
 				// be determined. 
-				throw new Exception ("Cannot determine "
-					+ "columns or value from where "
-					+ "clause: '" + where + "'");
+				throw new Exception ("Cannot determine columns or value from where clause: '" + where + "'");
 			}
 			// " IS NULL" was found, so denote in the boolean
 			// that a NULL value will need to be set
 			isNull = true;
 		}
-		// the length of the token separating column name and value 
+		// The length of the token separating column name and value 
 		// is 1 character if it's just an equal sign, but because 
 		// " LIKE " was found, the parsing will need to take into
-		// acount the larger width of the separator.
+		// account the larger width of the separator.
 		spaceLen = 5;
 	}
 	
 	String origParam = where.substring(0, space).trim();
 	// see if the column was specified in the where clause as a 
-	// table_name.column_name combination.  Remove the table name, if
-	// present.
+	// table_name.column_name combination.  Remove the table name, if present.
 	int index = origParam.indexOf(".");
 	if (index > -1) {
 		origParam = origParam.substring(index + 1);
@@ -1000,8 +1006,7 @@ throws Exception {
 	}
 
 	if (pos == -1) {
-		// no match was found in the stored procedure parameter names
-		// for the column
+		// No match was found in the stored procedure parameter names for the column
 		throw new Exception ("Couldn't find parameter '" 
 			+ origParam + "', specified in where clause: '"
 			+ where + "'.\nKnown parameters are: '"
@@ -1044,10 +1049,8 @@ throws Exception {
 			break;
 		case java.sql.Types.BIT:
 			// Boolean
-			// REVISIT (JTS - 2004-06-15)
-			// Bits might be stored in the database as 0 or 1,
-			// not sure right now as we're not dealing with 
-			// boolean paremeters now. 
+			// TODO (JTS - 2004-06-15) Bits might be stored in the database as 0 or 1,
+			// not sure right now as we're not dealing with boolean paremeters now. 
 			break;
 		case java.sql.Types.SMALLINT:
 		case java.sql.Types.INTEGER:
@@ -1073,8 +1076,7 @@ throws Exception {
 				value = value.substring(1, len - 1);
 			}
 			DateTime DT = DateTime.parse(value);
-			setValue(new java.sql.Date(DT.getDate().getTime()),
-			      	pos);
+			setValue(new java.sql.Date(DT.getDate().getTime()), pos);
 			break;		
 		case java.sql.Types.TIMESTAMP:
 			value = value.trim();
@@ -1082,14 +1084,11 @@ throws Exception {
 				value = value.substring(1, len - 1);
 			}
 			DateTime DT2 = DateTime.parse(value);
-			setValue(new Timestamp(DT2.getDate().getTime()),
-			      	pos);
+			setValue(new Timestamp(DT2.getDate().getTime()), pos);
 			break;
 		default:
-			throw new Exception ("Unsupported type: " 
-				+ type);
+			throw new Exception ("Unsupported type: " + type);
 	}
-
 }
 
 }
