@@ -23,23 +23,19 @@ import java.util.List;
 
 /**
 A class that stores information on how in particular a stored procedure will
-execute.  The following is an example of how to create and use this object,
-from HydroBaseDMI:<p>
+execute.  The following is an example of how to create and use this object, from HydroBaseDMI:<p>
 <code>
 	// Look up the definition of the stored procedure (stored in a
 	// DMIStoredProcedureData object) in the hashtable.  This allows
 	// repeated calls to the same stored procedure to re-used stored
 	// procedure meta data without requerying the database.
 
-	DMIStoredProcedureData data = 
-		(DMIStoredProcedureData)__storedProcedureHashtable.get(name);
+	DMIStoredProcedureData data = (DMIStoredProcedureData)__storedProcedureHashtable.get(name);
 	
 	if (data != null) {
-		// If a data object was found, set up the data in the statement
-		// below and return true
+		// If a data object was found, set up the data in the statement below and return true
 	}
-	else if (data == null 
-		&& DMIUtil.databaseHasStoredProcedure(this, name)) {
+	else if (data == null && DMIUtil.databaseHasStoredProcedure(this, name)) {
 		// If no data object was found, but the stored procedure is
 		// defined in the database then build the data object for the
 		// stored procedure and then store it in the hashtable.
@@ -51,26 +47,20 @@ from HydroBaseDMI:<p>
 		// defined in the database, then use the original DMI code.
 		// Return false to buildSQL() so it knows to continue executing.
 		if (IOUtil.testing()) {
-			Message.printStatus(2, 
-				"HydroBaseDMI.canSetUpStoredProcedure",
-				"No stored procedure defined in database "
-				+ "for SQL#: " + sqlNumber);
+			Message.printStatus(2, "HydroBaseDMI.canSetUpStoredProcedure",
+				"No stored procedure defined in database for SQL#: " + sqlNumber);
 		}
 
 		if (Message.isDebugOn) {
-			Message.printDebug(30, 
-				"HydroBaseDMI.canSetUpStoredProcedure",
-				"No stored procedure defined in database "
-				+ "for SQL#: " + sqlNumber);
+			Message.printDebug(30, "HydroBaseDMI.canSetUpStoredProcedure",
+				"No stored procedure defined in database for SQL#: " + sqlNumber);
 		}		
 		return false;
 	}
 
 	if (Message.isDebugOn) {
-		Message.printDebug(30, 
-			"HydroBaseDMI.canSetUpStoredProcedure",
-			"Stored procedure '" + name + "' found and will "
-			+ "be used.");
+		Message.printDebug(30, "HydroBaseDMI.canSetUpStoredProcedure",
+			"Stored procedure '" + name + "' found and will be used.");
 	}	
 
 	if (IOUtil.testing() && debug) {
@@ -96,8 +86,7 @@ Whether there is a return type.
 private boolean __hasReturnValue = false;
 
 /**
-The object that will actually execute the stored procedure in the low level
-java code.
+The object that will actually execute the stored procedure in the low level java code.
 */
 private CallableStatement __callableStatement = null;
 
@@ -107,7 +96,7 @@ The dmi used that this stored procedure will connect to the DB with.
 private DMI __dmi = null;
 
 /**
-The types of all the paratmers in int type.
+The types of all the parameters in int type.
 */
 private int[] __parameterTypes = null;
 
@@ -165,7 +154,7 @@ throws Exception {
 		dmi.getDatabaseName(), null, procedureName, null);
 	__dmi = dmi;
 	List v = DMIUtil.processResultSet(rs);
-//	DMIUtil.printResults(v);
+	//DMIUtil.printResults(v);
 	rs.close();
 
 	fillProcedureData(v);
@@ -174,13 +163,11 @@ throws Exception {
 }
 
 /**
-Creates the callable statement that will be executed whenever this stored
-procedure is run.
+Creates the callable statement that will be executed whenever this stored procedure is run.
 */
 private void buildCallableStatement() 
 throws Exception {
-	__callableStatement = __dmi.getConnection()
-		.prepareCall(createStoredProcedureCallString());
+	__callableStatement = __dmi.getConnection().prepareCall(createStoredProcedureCallString());
 		
 	if (hasReturnValue()) {
 		__callableStatement.registerOutParameter(1, getReturnType());
@@ -188,8 +175,7 @@ throws Exception {
 }
 
 /**
-Creates the string that will be passed to the DMI's connection in order
-to build the stored procedure.
+Creates the string that will be passed to the DMI's connection in order to build the stored procedure.
 @return the "{call .... }" string.
 */
 private String createStoredProcedureCallString() {
@@ -390,8 +376,7 @@ Returns a String description of the stored procedure.
 @return a String description of the stored procedure.
 */
 public String toString() {
-	String 
-	 desc = "Stored Procedure:   '" + __procedureName + "'\n";
+	String desc = "Stored Procedure:   '" + __procedureName + "'\n";
 	desc += "  Has return value?  " + __hasReturnValue + "\n";
 	if (__hasReturnValue) {
 		desc += "  Return parameter: '" + __returnName + "'\n";
@@ -399,10 +384,8 @@ public String toString() {
 	}
 	desc += "  Num parameters:    " + __numParameters + "\n";
 	for (int i = 0; i < __numParameters; i++) {
-		desc += "  [" + i + "] Name:         '" 
-			+ __parameterNames[i] + "'\n";
-		desc += "      Type:          " + __parameterTypeStrings[i] 
-			+ " (" + __parameterTypes[i] + ")\n";
+		desc += "  [" + i + "] Name:         '" + __parameterNames[i] + "'\n";
+		desc += "      Type:          " + __parameterTypeStrings[i] + " (" + __parameterTypes[i] + ")\n";
 		desc += "      Nullable?      " + __parameterNullable[i] + "\n";
 	}
 	return desc;

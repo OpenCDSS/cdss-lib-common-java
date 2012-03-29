@@ -2212,6 +2212,8 @@ throws Exception {
 		}
 		return formatted.toString();
 	}
+	//else if ( databaseEngineType == DMI.DBENGINE_ORACLE ) {
+	//}
 	else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
 		if (escapeChar) {
 			formatted.append ( "'" );

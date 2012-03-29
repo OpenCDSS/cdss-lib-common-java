@@ -1406,6 +1406,8 @@ The code in dmiWrite is surrounded by a check of the private boolean member
 variable __editable (set isEditable() and setEditable(boolean).  If
 __editable is set to true, none of the code is executed and an exception is thrown.  
 @param s a DMIWriteStatement object to be executed
+@param writeFlag not used with stored procedures; for SQL can be INSERT_UPDATE, UPDATE_INSERT, UPDATE,
+INSERT, DELETE_INSERT to indicate order of operations (can impact performance).
 @return an integer of the rowcount from the insert or update
 @throws SQLException thrown if there are problems with a 
 Connection.createStatement or Statement.executeQuery().  Also thrown if the
