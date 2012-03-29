@@ -3427,9 +3427,10 @@ overloaded version is called with a "cumulative" value of true.
 @param behavior_flag Full behavior mask containing precision bit (see
 PRECISION_*).  The precision is set when the first valid precision bit
 is found (starting with PRECISION_YEAR).
+@return this DateTime instance, which allows chained calls.
 */
-public void setPrecision ( int behavior_flag )
-{	setPrecision ( behavior_flag, true );
+public DateTime setPrecision ( int behavior_flag )
+{	return setPrecision ( behavior_flag, true );
 }
 
 /**
@@ -3443,8 +3444,9 @@ PRECISION_*).  The precision is set when the first valid precision bit
 is found (starting with PRECISION_YEAR).
 @param cumulative If true, the bit-mask values will be set cumulatively.  If
 false, the values will be reset to defaults and only new values will be set.
+@return this DateTime instance, which allows chained calls.
 */
-public void setPrecision ( int behavior_flag, boolean cumulative )
+public DateTime setPrecision ( int behavior_flag, boolean cumulative )
 {	// The behavior flag contains the precision (small bits) and higher
 	// bit masks.  The lower precision values are not unique bit masks.
 	// Therefore, get the actual precision value by cutting off the higher
@@ -3536,6 +3538,7 @@ public void setPrecision ( int behavior_flag, boolean cumulative )
 	else if ( !cumulative ) {
 		__time_only = false;
 	}
+	return this;
 }
 
 /**
@@ -3563,8 +3566,9 @@ Set the string time zone.  No check is made to verify that it is a valid time zo
 @param zone Time zone abbreviation.  If non-null and non-blank, the
 DateTime precision is automatically set so that PRECISION_TIME_ZONE is on.
 If null or blank, PRECISION_TIME_ZONE is off.
+@return the same DateTime instance, which allows chained calls
 */
-public void setTimeZone( String zone ) 
+public DateTime setTimeZone( String zone ) 
 {	if ( (zone == null) || (zone.length() == 0) ) {
 		__tz = "";
 		__use_time_zone = false;
@@ -3573,6 +3577,7 @@ public void setTimeZone( String zone )
         __use_time_zone = true;
 		__tz = zone;
 	}
+    return this;
 }
 
 /**
