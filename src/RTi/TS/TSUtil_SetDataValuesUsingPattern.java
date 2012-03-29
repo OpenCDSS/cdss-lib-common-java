@@ -51,7 +51,10 @@ throws Exception
 	int ipattern = 0;
 	int iflag = 0;
 	DateTime date;
-	boolean usingDataFlags = ts.hasDataFlags();
+	boolean usingDataFlags = false;
+	if ( (patternFlags != null) && (patternFlags.length > 0) ) {
+	    usingDataFlags = true;
+	}
 	while ( tsi.next() != null ) {
 		// The first call will set the pointer to the first data value in the period.
 	    // next() will return null when the last date in the processing period has been passed.
