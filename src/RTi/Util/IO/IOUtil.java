@@ -509,42 +509,41 @@ public static String enforceFileExtension ( String filename, String extension )
 	}
 }
 
-// TODO SAM 2010-10-19 This is kind of specific - how to make more generic?
 /**
-Expand a configuration string property using environment and Java runtime environment variables.
+Expand a configuration string property value using environment and Java runtime environment variables.
 If the string is prefixed with "Env:" then the string will be replaced with the environment variable
 of the matching name.  If the string is prefixed with "SysProp:" then the string will be replaced with
 the JRE runtime system property of the same name.  Comparisons are case-sensitive and if a match
 is not found the original string will be returned.
-@param prop the string property to expand
-@return expanded property
+@param propValue the string property value to expand
+@return expanded property value
 */
-public static String expandPropertyForEnvironment ( String prop )
-{   if ( prop == null ) {
+public static String expandPropertyForEnvironment ( String propValue )
+{   if ( propValue == null ) {
         return null;
     }
-    int pos = StringUtil.indexOfIgnoreCase(prop,"Env:",0);
-    if ( pos == 0 ) {
-        String env = System.getenv(prop.substring(4));
+    int pos = StringUtil.indexOfIgnoreCase(propValue,"Env:",0);
+    if ( (pos == 0) && (propValue.length() > 4) ) {
+        String env = System.getenv(propValue.substring(4));
         if ( env != null ) {
             return env;
         }
         else {
-            return prop;
+            return propValue;
         }
     }
-    pos = StringUtil.indexOfIgnoreCase(prop,"SysProp:",0);
-    if ( pos == 0 ) {
-        String sys = System.getProperty(prop.substring(8));
+    pos = StringUtil.indexOfIgnoreCase(propValue,"SysProp:",0);
+    if ( (pos == 0) && (propValue.length() > 8) ) {
+        String sys = System.getProperty(propValue.substring(8));
         if ( sys != null ) {
             return sys;
         }
         else {
-            return prop;
+            return propValue;
         }
     }
     // No special case so return the original value
-    return prop;
+    return propValue;
 }
 
 /**
