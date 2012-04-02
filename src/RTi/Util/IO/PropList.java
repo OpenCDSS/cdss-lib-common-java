@@ -117,7 +117,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class manages a list of Prop instances, effectively creating a properties
 list that can be used to store properties for an object, etc.  This class
-contains a vector of Prop instances and methods to interface with the data (set
+contains a list of Prop instances and methods to interface with the data (set
 properties, look up properties, etc.).  Property lists are typically used to
 store and pass variable length, variable content data, as opposed to fixed
 parameters.  Often, only a PropList needs to be used (and Prop, PropListManager)
@@ -499,7 +499,7 @@ public int getPropCount ( String key )
 Return a list of Prop that have a key that matches a regular expression.
 This is useful when writing a PropList to a file in a well-defined order.
 @param regExp Regular expression recognized by StringUtil.matchesRegExp().
-@return a Vector of Prop, or null if no matching properties are found.
+@return a list of Prop, or null if no matching properties are found.
 */
 public List<Prop> getPropsMatchingRegExp ( String regExp )
 {	if ( (__list == null) || (regExp == null) ) {
@@ -826,7 +826,7 @@ updating its values, and then writing out again, trying to retain the original c
 */
 public void readPersistent ( boolean append, boolean includeLiterals )
 throws IOException
-{	String	routine = "PropList.readPersistent";
+{	String routine = "PropList.readPersistent";
 
 	String line; 
 	String prefix = "";
@@ -834,7 +834,7 @@ throws IOException
 	boolean continuation = false;
 	String lineSave = null;
 	String name, value;
-	List v = null;
+	List<String> v = null;
 	boolean inComment = false;
 	int literalCount = 0;
 
@@ -948,8 +948,8 @@ throws IOException
         	v.add ( line.substring(pos + 1) );
         
         	if ( v.size() == 2 ) {
-        		name = prefix + ((String)v.get(0)).trim();
-        		value = ((String)v.get(1)).trim();
+        		name = prefix + (v.get(0)).trim();
+        		value = (v.get(1)).trim();
         		length = value.length();
         		if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
         			(value.charAt(0) == value.charAt(length-1))) ) {
@@ -979,14 +979,6 @@ throws IOException
         }
     }
 	// Clean up...
-	in = null;
-	routine = null;
-	line = null; 
-	prefix = null;
-	lineSave = null;
-	name = null;
-	value = null;
-	v = null;
 	__howSet = howSetPrev;
 }
 
@@ -1307,7 +1299,7 @@ public void unSetAll ( String key )
 
 /*
 Checks all the property names in the PropList to make sure only valid and 
-deprecated ones are in the list, and returns a Vector with warning messages
+deprecated ones are in the list, and returns a list with warning messages
 about deprecated and invalid properties.  Invalid properties ARE NOT removed.
 See the overloaded method for more information.
 */
@@ -1320,13 +1312,13 @@ throws Exception
 
 /**
 Checks all the property names in the PropList to make sure only valid and 
-deprecated ones are in the list, and returns a Vector with warning messages
+deprecated ones are in the list, and returns a list with warning messages
 about deprecated and invalid properties.
 @param validProps a list of property names that are possible valid values.
 Not all the values in this list need to be present in the PropList, but all
 the property names in the PropList must be in this list to be considered valid.
 <p>If any properties are found in the PropList that are not valid and not 
-deprecated, the returned Vector will include a line in the format:<p>
+deprecated, the returned list will include a line in the format:<p>
 <pre>	[name] is not a valid [target].</pre><p>
 Where [name] is the name of the property and [target] is the target (see the
 <b>target</b> parameter for more information on this).<p>
@@ -1334,7 +1326,7 @@ If this parameter is null it will be considered the same as a zero-size
 list.  In both cases, all properties in the PropList will be flagged as invalid properties.
 @param deprecatedProps an optional list of the names of properties that are
 deprecated (i.e., in a transitional state between property names).  If any 
-property names in this Vector are found in the PropList, the returned list
+property names in this list are found in the PropList, the returned list
 will contain a line in the format: <p>
 <pre>	[name] is no longer recognized as a valid [target].  [note]</pre><p>
 Where [name] is the name of the property, [target] is the target (see the 
@@ -1344,12 +1336,12 @@ This list can be null if there are no deprecated properties.<p>
 <b>Note:</b> The property names in this list must not include any of the
 values in the deprecatedProps list, or else the property names will be 
 considered valid -- and <b>not</b> checked for whether they are deprecated or not.
-@param deprecatedNotes an optional Vector that accompanies the deprecatedProps
+@param deprecatedNotes an optional list that accompanies the deprecatedProps
 list and offers further information about the deprecation.<p>
 If deprecatedProps is included, this list is optional.  However, if
 this list is non-null, the deprecatedProps list must be non-null as well.<p>
 The elements in this list are related to the elements in the deprecatedProps
-list on a 1:1 basis.  That is, the data at element N in each Vector are 
+list on a 1:1 basis.  That is, the data at element N in each list are 
 the name of a deprecated property and a note explaining the deprecation.<p>
 The note will be added to the deprecation warning lines as shown above in the
 documentation for deprecatedProps.  For best formatting, the first character
@@ -1367,13 +1359,13 @@ an invalid or deprecated property in the PropList.  The order of the returned
 list is that invalid properties are returned first, and deprecated properties
 returned second.  If null is returned, no invalid or deprecated properties were found in the PropList.
 @throws Exception if an error occurs.  Specifically, if deprecatedProps and
-deprecatedNotes are non-null and the size of the Vectors is different, an 
+deprecatedNotes are non-null and the size of the lists is different, an 
 Exception will be thrown warning of the error.
 */
 public List<String> validatePropNames(List<String> validProps, List<String> deprecatedProps,
 List<String> deprecatedNotes, String target, boolean removeInvalid ) 
 throws Exception {
-	// Get the sizes of the Vectors that will be iterated through, handling null Vectors gracefully.
+	// Get the sizes of the lists that will be iterated through, handling null lists gracefully.
 
 	int validPropsSize = 0;
 	if (validProps != null) {
@@ -1385,7 +1377,7 @@ throws Exception {
 		deprecatedPropsSize = deprecatedProps.size();
 	}
 
-	// The size of the deprecatedNotes Vector is computed in order to check
+	// The size of the deprecatedNotes list is computed in order to check
 	// that its size is the same as the deprecatedProps size.
 
 	boolean hasNotes = false;
