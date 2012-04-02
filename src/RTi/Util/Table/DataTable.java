@@ -1756,7 +1756,7 @@ throws Exception
                     "] type is string as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
                     count_blank[icol] + " blanks.");
-    	        Message.printStatus ( 2, routine, "length max=" + lenmax_string[icol] );
+    	       // Message.printStatus ( 2, routine, "length max=" + lenmax_string[icol] );
     	    }
     	}
 	}
