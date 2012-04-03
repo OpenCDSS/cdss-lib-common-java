@@ -459,15 +459,14 @@ can be selected (rather than setting a full string that may not totally match).
 */
 public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
 	String compare, int flag, String delimiter, int compareIndex, int[] index, boolean ignoreCase )
-{	int size; // number of items in the choices
-    String curItem; // current Choice item
+{	String curItem; // current Choice item
  
 	if ( compare == null ) {
 		return false;
 	}
     // Initialize variables
     compare = compare.trim();
-    size = comboBox.getItemCount();
+    int size = comboBox.getItemCount(); // number of items in the choices
     List<String> choiceParts;
 
     int tokenPos = 0;
