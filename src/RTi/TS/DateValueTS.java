@@ -1751,14 +1751,12 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@param writeData Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if there is an error writing the file.
 */
-public static void writeTimeSeries (    TS ts, String fname, DateTime date1,
-                    DateTime date2, String units,
-                    boolean write_data )
+public static void writeTimeSeries ( TS ts, String fname, DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
-{   String  routine = "DateValueTS.writeTimeSeries";
+{   String routine = "DateValueTS.writeTimeSeries";
 
     String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
     try {
@@ -1766,7 +1764,7 @@ throws Exception
         PrintWriter fout = new PrintWriter ( fos );
 
         try {
-            writeTimeSeries ( ts, fout, date1, date2, units, write_data );
+            writeTimeSeries ( ts, fout, date1, date2, units, writeData );
         }
         finally {
             fout.close();
@@ -1825,7 +1823,6 @@ public static void writeTimeSeriesList (List<TS> tslist, PrintWriter out, DateTi
 throws Exception
 {	String message, routine = "DateValueTS.writeTimeSeriesList";
 	DateTime outputStart = null, outputEnd = null, t = new DateTime( DateTime.DATE_FAST );
-	int	i = 0;
 
 	// Check for a null time series list...
 
@@ -1846,6 +1843,18 @@ throws Exception
 	// Make sure that a non-null properties list is available
 	if ( props == null ) {
 	    props = new PropList ( "DateValueTS" );
+	}
+
+	// TODO SAM 2012-04-04 Eventually need to support intervals like IrregularMinute
+	// Interval used with irregular time series.
+	// This is needed because depending on how the irregular time series was initialized, its dates may
+	// not properly indicate the precision.  For example, a DateTime precision (and interval) of IRREGULAR
+	// may be used in cases where the data were read from a data format where the precision could not be
+	// determined.
+	TimeInterval irregularInterval = null;
+	Object obj = props.getContents( "IrregularInterval" );
+	if ( obj != null ) {
+	    irregularInterval = (TimeInterval)obj;
 	}
 
 	// Set the parameters for output..
@@ -1889,7 +1898,7 @@ throws Exception
 	double mult[] = new double[size + 1];
 	double add[] = new double[size + 1];
 	DataUnitsConversion conversion;
-	for ( i = 0; i < size; i++ ) {
+	for ( int i = 0; i < size; i++ ) {
 		mult[i] = 1.0;
 		add[i] = 0.0;
 		ts = tslist.get(i);
@@ -1920,14 +1929,6 @@ throws Exception
 				"Unable to convert units to \"" + units + "\" leaving units as \"" + ts.getDataUnits() + "\"" );
 			}
 		}
-	}
-
-	if ( size > 0 ) {
-    	if ( (dataIntervalBase == TimeInterval.IRREGULAR) && (size > 1) ) {
-    		message = "Currently, only one irregular TS can be written to a file.";
-    		Message.printWarning ( 2, routine, message );
-    		throw new Exception ( message );
-    	}
 	}
 
     // Write header.  See the printSample() method for an example string...
@@ -1989,7 +1990,7 @@ throws Exception
 	}
 	boolean hasDataFlags = false; // Only include data flags in output if
 					// at least one time series actually has the flag.
-	for ( i = 0; i < size; i++ ) {
+	for ( int i = 0; i < size; i++ ) {
 		ts = tslist.get(i);
 		if ( i != 0 ) {
 			// Append the delimiter...
@@ -2127,7 +2128,7 @@ throws Exception
 	List<String> genesis = null;
 	List<String> comments = null;
 	int j = 0, jsize = 0;
-	for ( i = 0; i < size; i++ ) {
+	for ( int i = 0; i < size; i++ ) {
 		ts = tslist.get(i);
 		if ( ts == null ) {
 			out.println ( "#" );
@@ -2188,80 +2189,258 @@ throws Exception
 	if ( dataIntervalBase == TimeInterval.IRREGULAR ) {
 		// Irregular interval... loop through all of the values...
 		// This assumes that _date1 and _date2 have been set.
-		IrregularTS its = null;
-		List<TSData> alldata = null;
-		if ( ts != null ) {
-			its = (IrregularTS)ts;
-			alldata = its.getData();
-		}
-		if ( alldata == null ) {
-			return;
-		}
-		size = alldata.size();
-		TSData tsdata = null;
-		DateTime date;
-		buffer = new StringBuffer();
-		for ( i = 0; i < size; i++ ) {
-		    buffer.setLength(0);
-			tsdata = alldata.get(i);
-			if ( tsdata == null ) {
-				break;
-			}
-			date = tsdata.getDate();
-			if ( date.lessThan(outputStart) ) {
-				continue;
-			}
-			else if ( date.greaterThan(outputEnd) ) {
-				break;
-			}
-			// Else print the record...
-			value = tsdata.getDataValue();
-			if ( ts.isDataMissing(value) ) {
-		         if ( missingValueString != null ) {
-	                // Property has specified the missing value to use
-	                string_value = missingValueString;
-		         }
-		         else {
-    				if ( Double.isNaN(value) ) {
-    					// This trick is used to figure out if missing data are indicated by NaN...
-    					string_value = "NaN";
-    				}
-    				else {
-    				    string_value = StringUtil.formatString( tsdata.getDataValue(), outputFormat );
-    				}
-		        }
-			}
-			else {
-			    // Convert the units...
-				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
-			}
-			// Use the precision of the dates in the data - ISO formats will be used by default...
-			buffer.append ( date.toString() );
-			buffer.append ( delim );
-			buffer.append ( string_value );
-            // Now print the data flag...
-            if ( ts.hasDataFlags() ) {
-                dataflag = tsdata.getDataFlag();
-                // Always enclose the data flag in quotes because it may contain white space...
-                buffer.append ( delim );
-                buffer.append ( "\"" );
-                buffer.append ( dataflag );
-                buffer.append ( "\"" );
+	    if ( size == 1 ) {
+	        // Legacy logic that works with one irregular time series (should be fast)
+    		IrregularTS its = null;
+    		List<TSData> alldata = null;
+    		if ( ts != null ) {
+    			its = (IrregularTS)ts;
+    			alldata = its.getData();
+    		}
+    		if ( alldata == null ) {
+    			return;
+    		}
+    		int dataSize = alldata.size();
+    		TSData tsdata = null;
+    		DateTime date;
+    		buffer = new StringBuffer();
+    		for ( int i = 0; i < dataSize; i++ ) {
+    		    buffer.setLength(0);
+    			tsdata = alldata.get(i);
+    			if ( tsdata == null ) {
+    				break;
+    			}
+    			date = tsdata.getDate();
+    			if ( date.lessThan(outputStart) ) {
+    				continue;
+    			}
+    			else if ( date.greaterThan(outputEnd) ) {
+    				break;
+    			}
+    			// Else print the record...
+    			value = tsdata.getDataValue();
+    			if ( ts.isDataMissing(value) ) {
+    		         if ( missingValueString != null ) {
+    	                // Property has specified the missing value to use
+    	                string_value = missingValueString;
+    		         }
+    		         else {
+        				if ( Double.isNaN(value) ) {
+        					string_value = "NaN";
+        				}
+        				else {
+        				    string_value = StringUtil.formatString( tsdata.getDataValue(), outputFormat );
+        				}
+    		        }
+    			}
+    			else {
+    			    // Convert the units...
+    				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
+    			}
+    			// Use the precision of the dates in the data - ISO formats will be used by default...
+    			buffer.append ( date.toString() );
+    			buffer.append ( delim );
+    			buffer.append ( string_value );
+                // Now print the data flag...
+                if ( ts.hasDataFlags() ) {
+                    dataflag = tsdata.getDataFlag();
+                    // Always enclose the data flag in quotes because it may contain white space...
+                    buffer.append ( delim );
+                    buffer.append ( "\"" );
+                    buffer.append ( dataflag );
+                    buffer.append ( "\"" );
+                }
+                out.println ( buffer.toString() );
+    		}
+	    }
+	    else {
+	        // More than one irregular time series.  They at least have to have the same date/time precision
+	        // for the period.  Otherwise it will be difficult to navigate the data.  For now develop this code
+	        // separately but if the logic works out, it should be able to replace the above block of code.
+	        int irrPrecision = -1;
+	        int tsPrecision;
+	        if ( irregularInterval != null ) {
+	            // Use the precision that was specified
+	            irrPrecision = irregularInterval.getBase();
+	        }
+	        else {
+    	        for ( int its = 0; its < size; its++ ) {
+                    if ( tslist.get(its) == null ) {
+                        continue;
+                    }
+                    ts = (IrregularTS)tslist.get(its);
+                    if ( ts.getDate1() == null ) {
+                        continue;
+                    }
+                    tsPrecision = ts.getDate1().getPrecision();
+                    if ( tsPrecision == TimeInterval.IRREGULAR ) {
+                        // Treat as minute
+                        tsPrecision = DateTime.PRECISION_MINUTE;
+                    }
+                    if ( irrPrecision == -1 ) {
+                        // Just assign
+                        irrPrecision = tsPrecision;
+                    }
+                    else if ( irrPrecision != tsPrecision ) {
+                        // This will be a problem in processing the data
+                        message = "Irregular time series do not have the same date/time precision.  Can't write";
+                        Message.printWarning ( 2, routine, message );
+                        throw new UnequalTimeIntervalException ( message );
+                    }
+    	        }
+	        }
+	        if ( irrPrecision == -1 ) {
+	            // Apparently no non-null time series with data
+                message = "Irregular time series do not have data to determine date/time precision (all empty?).  Can't write";
+                Message.printWarning ( 2, routine, message );
+                throw new IllegalArgumentException ( message );
+	        }
+            // Was able to determine the precision of data so can continue
+	        // The logic works as follows:
+	        // 0) Advance the iterator for each time series to initialize
+	        // 1) Find the earliest date/time in the iterator current position
+	        // 2) Output the values at the earliest date/time order
+	        //    - actual value if time series has a value at the date/time
+	        //    - values not at the same date/time result in blanks for the other time series
+	        // 3) For any values printed, advance that time series' iterator
+	        // 4) Go to step 1
+	        // Create iterators for each time series
+	        List<TSIterator> tsIteratorList = new Vector();
+	        for ( int its = 0; its < size; its++ ) {
+	            if ( tslist.get(its) == null ) {
+	                tsIteratorList.add(null); // Keep same order as time series
+	            }
+	            ts = (IrregularTS)tslist.get(its);
+	            try {
+	                tsIteratorList.add(ts.iterator(outputStart,outputEnd));
+	            }
+	            catch ( Exception e ) {
+	                tsIteratorList.add(null); // Keep same order as time series
+	            }
             }
-            out.println ( buffer.toString() );
-		}
+	        int its;
+	        TSIterator itsIterator;
+	        DateTime dtEarliest;
+	        // Use the following to extract data from each time series
+	        // A call to the iterator next() method will return null when no more data, which is
+	        // the safest way to process the data
+	        TSData [] tsdata = new TSData[size];
+	        DateTime dt;
+	        int loopCount = 0;
+	        DateTime dtEarliestOutput = new DateTime(irrPrecision); // Use for output to ensure precision
+	        while ( true ) {
+	            // Using the current date/time, output the earliest value for all time series that have the value and
+	            // increment the iterator for each value that is output.
+                dtEarliest = null;
+                ++loopCount;
+                if ( loopCount == 1 ) {
+                    // Need to call next() one time on all time series to initialize all iterators to the first
+                    // data point in the time series.  Otherwise, next() is only called below
+                    // when an actual time series value is output.
+                    for ( its = 0; its < size; its++ ) {
+                        itsIterator = tsIteratorList.get(its);
+                        if ( itsIterator != null ) {
+                            tsdata[its] = itsIterator.next();
+                        }
+                    }
+                }
+                // Figure out the earliest date/time to output from the current iterator data
+                for ( its = 0; its < size; its++ ) {
+                    if ( tsdata[its] == null ) {
+                        continue;
+                    }
+                    dt = tsdata[its].getDate();
+                    if ( dt != null ) {
+                        if ( dtEarliest == null ) {
+                            dtEarliest = dt;
+                        }
+                        else if ( dt.lessThan(dtEarliest) ) {
+                            dtEarliest = dt;
+                        }
+                    }
+                }
+                if ( dtEarliest == null ) {
+                    // Done printing data records
+                    break;
+                }
+                // Make sure the date/time for output is set the proper precision for equals() calls and formatting
+                dtEarliestOutput.setDate(dtEarliest);
+                dtEarliestOutput.setPrecision(irrPrecision);
+	            // First print the date/time
+	            buffer.setLength(0);
+	            buffer.append ( "" + dtEarliestOutput );
+	            for ( its = 0; its < size; its++ ) {
+	                dt = null;
+	                if ( tsdata[its] != null ) {
+	                    dt = tsdata[its].getDate();
+	                }
+	                if ( (dt != null) && dtEarliestOutput.equals(dt) ) {
+	                    // Output the value and if requested the flag (this copied from below for regular time series)
+	                    if ( ts != null ) {
+	                        value = tsdata[its].getDataValue();
+	                    }
+	                    if ( (ts == null) || ts.isDataMissing(value) ) {
+	                        if ( missingValueString != null ) {
+	                            // Property has specified the missing value to use
+	                            string_value = missingValueString;
+	                        }
+	                        else {
+	                            if ( Double.isNaN(value) ) {
+	                                string_value = "NaN";
+	                            }
+	                            else {
+	                                // Format the missing value number
+	                                string_value = StringUtil.formatString( value, outputFormat);
+	                            }
+	                        }
+	                    }
+	                    else {
+	                        // Format the data value
+	                        string_value = StringUtil.formatString( (value*mult[its] + add[its]),outputFormat );
+	                    }
+	                    if ( its == 0 ) {
+	                        buffer.append ( string_value );
+	                    }
+	                    else {
+	                        buffer.append ( delim + string_value );
+	                    }
+	                    // Now print the data flag...
+	                    if ( ts.hasDataFlags() ) {
+	                        dataflag = tsdata[its].getDataFlag();
+	                        // Always enclose the data flag in quotes because it may contain white space...
+	                        buffer.append ( delim + "\""+ dataflag + "\"");
+	                    }
+	                    // Get the next value since this time series was able to output
+	                    // Advancing past data will result in null for calls to request the date, etc.
+	                    itsIterator = tsIteratorList.get(its);
+	                    tsdata[its] = itsIterator.next();
+	                }
+	                else {
+	                    // Output blanks (quoted blanks for illustration)
+	                    buffer.append ( delim + "" );
+	                    if ( ts.hasDataFlags() ) {
+	                        buffer.append ( delim + "\"" + "" + "\"" );
+	                    }
+	                    // Keep the iterator at the same spot so that the value will be tested for order
+	                }
+	            }
+	            // Output the line
+	            out.println ( buffer.toString () );
+	        }
+        }
 	}
 	else {
 	    // Regular interval...
 		t = new DateTime ( outputStart);
 		// Make sure no time zone is set to minimize output...
 		t.setTimeZone ("");
+		int its;
 		for ( ;	t.lessThanOrEqualTo(outputEnd); t.addInterval(dataIntervalBase, dataIntervalMult)) {
 			buffer.setLength(0);
 			//buffer.append( t.toString().replace(' ','@') + delim);
 			buffer.append( t.toString() + delim );
-			for ( i = 0; i < size; i++ ) {
-				ts = tslist.get(i);
+			for ( its = 0; its < size; its++ ) {
+				ts = tslist.get(its);
 				// Need to work on formatting number to a better precision.  For now just get to
 				// output without major loss in precision...
 				if ( ts != null ) {
@@ -2284,9 +2463,9 @@ throws Exception
 				}
 				else {
 				    // Format the data value
-				    string_value = StringUtil.formatString(	(value*mult[i] + add[i]),outputFormat );
+				    string_value = StringUtil.formatString(	(value*mult[its] + add[its]),outputFormat );
 				}
-				if ( i == 0 ) {
+				if ( its == 0 ) {
 					buffer.append ( string_value );
 				}
 				else {
@@ -2351,7 +2530,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param date1 First date to write (if NULL write the entire time series).
 @param date2 Last date to write (if NULL write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
-@param write_data Indicates whether data should be written (as opposed to only writing the header).
+@param writeData Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output, as follows:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -2365,16 +2544,22 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 </tr>
 
 <tr>
-<td><b>OutputComments</b></td>
-<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
-lines are not added to in any way.</b>
-<td>No additional comments.</td>
+<td><b>IrregularInterval</b></td>
+<td><b>The TimeInterval that indicates the interval for date/times when outputting more than one irregular time series</b>
+<td>Determine from time series list (precision of starting date/time).</td>
 </tr>
 
 <tr>
 <td><b>MissingValue</b></td>
 <td><b>The missing value to be output for numerical values.</b>
 <td>4</td>
+</tr>
+
+<tr>
+<td><b>OutputComments</b></td>
+<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
+lines are not added to in any way.</b>
+<td>No additional comments.</td>
 </tr>
 
 <tr>
@@ -2386,7 +2571,7 @@ lines are not added to in any way.</b>
 @exception Exception if there is an error writing the file.
 */
 public static void writeTimeSeriesList (List<TS> tslist, String fname,
-					DateTime date1, DateTime date2, String units, boolean write_data, PropList props )
+	DateTime date1, DateTime date2, String units, boolean writeData, PropList props )
 throws Exception
 {	String	routine = "DateValueTS.writeTimeSeriesList";
 
@@ -2396,7 +2581,7 @@ throws Exception
 		PrintWriter fout = new PrintWriter ( fos );
 
 		try {
-		    writeTimeSeriesList ( tslist, fout, date1, date2, units, write_data, props );
+		    writeTimeSeriesList ( tslist, fout, date1, date2, units, writeData, props );
 		}
 		finally {
 		    fout.close();
@@ -2407,7 +2592,7 @@ throws Exception
 	    throw e;
 	}
 	catch ( Exception e ) {
-		String message = "Error writing \"" + full_fname + "\".";
+		String message = "Error writing \"" + full_fname + "\" (" + e + ").";
 		Message.printWarning( 2, routine, message );
 		Message.printWarning( 3, routine, e );
 		throw new Exception (message);
