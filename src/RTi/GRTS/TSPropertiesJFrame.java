@@ -358,7 +358,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( period_JPanel, new JLabel("Current (reflects manipulation):"),
 			0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField period_JTextField = new JTextField( __ts.getDate1() + " to "+
+	JTextField period_JTextField = new JTextField( " " + __ts.getDate1() + " to "+
 		__ts.getDate2(), 30);
 	period_JTextField.setEditable(false);
 	JGUIUtil.addComponent ( period_JPanel, period_JTextField,
@@ -369,7 +369,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( period_JPanel, new JLabel(
 		"Original (from input):"), 0, ++y, 1, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField origperiod_JTextField = new JTextField( __ts.getDate1Original() +
+	JTextField origperiod_JTextField = new JTextField( " " + __ts.getDate1Original() +
 		" to " + __ts.getDate2Original(), 30  );
 	origperiod_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, origperiod_JTextField,
@@ -380,7 +380,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( period_JPanel, new JLabel("Total Points:"),
 			0, ++y, 1, 1, 0, 0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField points_JTextField = new JTextField( "" + __ts.getDataSize());
+	JTextField points_JTextField = new JTextField( " " + __ts.getDataSize());
 	points_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, points_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
