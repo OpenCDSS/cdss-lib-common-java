@@ -1,21 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSIdent_JDialog - a dialog for editing a TSIdent.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History: 
-//
-// 2005-08-25	J. Thomas Sapienza, RTi	Initial version.
-// 2005-08-26	Steven A. Malers, RTi	Do some cleanup as the dialog is phased
-//					into use.  It is expected that
-//					properties will be added as the dialog
-//					is used more.
-// 2005-09-21	SAM, RTi		Add a few more notes at the top so that
-//					newTimeSeries_JDialog does not have
-//					redundant information.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 // TODO SAM 2005-08-26
 // * Need to add optional verification of fields (based on a "source" time
 //	series)?  However, need to also support/allow wildcard entry from some
@@ -31,6 +13,7 @@ import java.util.List;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -52,6 +35,7 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeInterval;
 
 /**
@@ -67,7 +51,7 @@ returned via a response() call.  The following is sample code for using it:
 	TSIdent temp = (new TSIdent_JDialog(parentJFrame, true, tsident, null)).response();
 
 	if (temp == null) {
-		// user cancelled the dialog
+		// user canceled the dialog
 	}
 	else {
 		// user made changes -- accept them.
@@ -82,8 +66,8 @@ public class TSIdent_JDialog extends JDialog implements ActionListener, KeyListe
 Button labels.
 */
 private final String
-	__BUTTON_CANCEL = 	"Cancel",
-	__BUTTON_OK = 		"OK";
+	__BUTTON_CANCEL = "Cancel",
+	__BUTTON_OK = "OK";
 
 /**
 Components to hold values from the TSIdent.
@@ -93,6 +77,7 @@ private JTextField
 	__dataSourceTextField = null,
 	__dataTypeTextField = null,
 	__scenarioTextField = null,
+	__sequenceNumberTextField = null,
 	__inputTypeTextField = null,
 	__inputNameTextField = null;
 
@@ -108,12 +93,12 @@ private SimpleJButton
 	__okButton = null;
 
 private TSIdent 
-	__response = null,	// TSIdent that is returned via response().
-	__tsident = null;	// TSIdent that is passed in.
+	__response = null, // TSIdent that is returned via response().
+	__tsident = null; // TSIdent that is passed in.
 
-private boolean __first_time = true;	// Indicates if refresh() is being called the first time.
-private boolean __error_wait = false;	// Indicates if there is an error in input (true) from checkInput().
-private String __warning = "";		// Warnings generated in refresh() and displayed in checkInput().
+private boolean __first_time = true; // Indicates if refresh() is being called the first time.
+private boolean __error_wait = false; // Indicates if there is an error in input (true) from checkInput().
+private String __warning = ""; // Warnings generated in refresh() and displayed in checkInput().
 
 /**
 Indicators for which parts of the identifier should be enabled and verified (default is true for all).
@@ -123,6 +108,7 @@ private boolean __EnableSource_boolean = true;
 private boolean __EnableType_boolean = true;
 private boolean __EnableInterval_boolean = true;
 private boolean __EnableScenario_boolean = true;
+private boolean __EnableSequenceNumber_boolean = true;
 private boolean __EnableInputType_boolean = true;
 private boolean __EnableInputName_boolean = true;
 
@@ -136,8 +122,7 @@ be null.  If necessary, pass in an empty JFrame via:<p>
 @param modal whether the dialog is modal.
 @param tsident the TSIdent to edit.  Can be null, in which case <code>response()
 </code> will return a new TSIdent filled with the values entered on the form.
-The original instance will not modified so use the returned value to access the
-updated version.
+The original instance will not modified so use the returned value to access the updated version.
 @param props Properties to control the display and validation of the identifier, for example
 to allow editing of partial identifier information, as follows:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -175,6 +160,12 @@ to allow editing of partial identifier information, as follows:
 <td>True</td>
 </tr>
 
+<tr>
+<td><b>EnableSequenceNumber</b></td>
+<td><b>Indicates (True/False) whether the sequence number should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
 </table>
 */
 public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList props)
@@ -192,6 +183,7 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
         __EnableType_boolean = false;
         __EnableInterval_boolean = false;
         __EnableScenario_boolean = false;
+        __EnableSequenceNumber_boolean = false;
         __EnableInputType_boolean = false;
         __EnableInputName_boolean = false;
     }
@@ -229,6 +221,13 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
     }
     else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
         __EnableScenario_boolean = true;
+    }
+    enabled = props.getValue("EnableSequenceNumber");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableSequenceNumber_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableSequenceNumber_boolean = true;
     }
     enabled = props.getValue("EnableInputType");
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
@@ -325,8 +324,7 @@ Does nothing.
 public void keyTyped(KeyEvent e) {}
 
 /**
-Refresh the full TSIdent data member and displayed value, based on the
-individual values displayed in dialog.
+Refresh the full TSIdent data member and displayed value, based on the individual values displayed in dialog.
 */
 private void refresh ()
 {	__warning = "";
@@ -336,6 +334,7 @@ private void refresh ()
 	String datatype = "";
 	String interval = "";
 	String scenario = "";
+	String sequenceNumber = "";
 	String inputtype = "";
 	String inputname = "";
 	if ( __first_time ) {
@@ -347,6 +346,7 @@ private void refresh ()
 			datatype = __tsident.getType();
 			interval = __tsident.getInterval();
 			scenario = __tsident.getScenario();
+			sequenceNumber = __tsident.getScenario();
 			inputtype = __tsident.getInputType();
 			inputname = __tsident.getInputName();
 		}
@@ -371,6 +371,7 @@ private void refresh ()
 		}
 		*/
 		__scenarioTextField.setText ( scenario );
+		__sequenceNumberTextField.setText ( sequenceNumber );
 		__inputTypeTextField.setText ( inputtype );
 		__inputNameTextField.setText ( inputname );
 	}
@@ -382,6 +383,7 @@ private void refresh ()
 	datatype = __dataTypeTextField.getText().trim();
 	interval = __dataInterval_JComboBox.getSelected();
 	scenario = __scenarioTextField.getText().trim();
+	sequenceNumber = __sequenceNumberTextField.getText().trim();
 	inputtype = __inputTypeTextField.getText().trim();
 	inputname = __inputNameTextField.getText().trim();
 
@@ -416,6 +418,12 @@ private void refresh ()
     	}
     }
 	__response.setScenario(scenario);
+	if ( StringUtil.isInteger(sequenceNumber) ) {
+	    __response.setSequenceNumber(Integer.parseInt(sequenceNumber));
+	}
+	else {
+	    __response.setSequenceNumber(-1);
+	}
 	__response.setInputType(inputtype);
 	__response.setInputName(inputname);
 
@@ -461,8 +469,8 @@ private void setupGUI()
 	JPanel panel = new JPanel();
 	panel.setLayout(new GridBagLayout());
 	getContentPane().add("Center", panel);
-
-	int y = 0;
+	
+	Insets insetsTLBR = new Insets(2,2,2,2);
 
 	__locationTextField = new JTextField(10);
 	__locationTextField.addKeyListener ( this );
@@ -472,50 +480,73 @@ private void setupGUI()
 	__dataTypeTextField.addKeyListener ( this );
 	__scenarioTextField = new JTextField(10);
 	__scenarioTextField.addKeyListener ( this );
+    __sequenceNumberTextField = new JTextField(10);
+    __sequenceNumberTextField.addKeyListener ( this );
 	__inputTypeTextField = new JTextField(10);
 	__inputTypeTextField.addKeyListener ( this );
 	__inputNameTextField = new JTextField(10);
 	__inputNameTextField.addKeyListener ( this );
 
+	int y = -1;
 	JGUIUtil.addComponent(panel, 
-		new JLabel(" The time series identifier (TSID) uniquely identifies a time series, and conforms to the standard:"),
-		0, y, 3, 1, 0, 0, 
+		new JLabel(" The time series identifier (TSID) uniquely identifies a time series, " +
+		    "and provides key information about the time series."),
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" The TSID conforms to the following convention, " +
+			"where Scenario and SequenceNumber are optional:"),
+       0, ++y, 3, 1, 0, 0, insetsTLBR,
+       GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-		"     Location.DataSource.DataType.Interval.Scenario"),
-		0, ++y, 3, 1, 0, 0, 
+		"     Location.DataSource.DataType.Interval.Scenario[SequenceNumber]"),
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" For example:"),
-		0, ++y, 3, 1, 0, 0, 
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-		"     XYZ.USGS.Streamflow.24Hour"),
-		0, ++y, 3, 1, 0, 0, 
+       "     123.NOAA.MeanTemp.Month  (example of interval with no multiplier)"),
+       0, ++y, 3, 1, 0, 0, insetsTLBR,
+       GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(
+		"     XYZ.USGS.Streamflow.24Hour  (example of interval with multipler)"),
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-		"     123.NOAA.MeanTemp.Month"),
-		0, ++y, 3, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+       "     123.USGS.Streamflow.15Minute.Raw  (example using a scenario)"),
+       0, ++y, 3, 1, 0, 0, insetsTLBR,
+       GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(
+       "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence number for a trace in an ensemble)"),
+       0, ++y, 3, 1, 0, 0, 
+       GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(panel,
+        new JLabel(" Location and DataType parts can internally use a dash (-) to " +
+        	"indicate a sub-location and sub-type, and underscores are also useful as separators within a part."),
+        0, ++y, 3, 1, 0, 0, insetsTLBR,
+        GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( __EnableInputName_boolean && __EnableInputType_boolean ) {
+    	JGUIUtil.addComponent(panel,
+    		new JLabel(" The input type and name indicate the format and storage location of data."),
+    		0, ++y, 3, 1, 0, 0, insetsTLBR,
+    		GridBagConstraints.NONE, GridBagConstraints.WEST);
+    }
 	JGUIUtil.addComponent(panel,
-		new JLabel(" The input type and name indicate the format and storage location of data."),
-		0, ++y, 3, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel,
-		new JLabel(" Specify TSID parts below and the full TSID will automatically be created."),
-		0, ++y, 3, 1, 0, 0, 
+		new JLabel(" Specify TSID parts below and the full TSID will automatically be created from the parts."),
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" "),
-		0, ++y, 3, 1, 0, 0, 
+		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     JLabel location_JLabel = new JLabel("Location: ");
 	JGUIUtil.addComponent(panel, location_JLabel,
-		0, ++y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __locationTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel,
-		new JLabel(" For example, a station or sensor identifier."),
-		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+		new JLabel(" Required - for example, a station, sensor, area, or process identifier."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableLocation_boolean) {
         location_JLabel.setEnabled(false);
         __locationTextField.setEnabled(false);
@@ -523,11 +554,11 @@ private void setupGUI()
 
     JLabel source_JLabel = new JLabel("Data source: ");
 	JGUIUtil.addComponent(panel, source_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __dataSourceTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional.  The source of the data (e.g., agency abbreviation)."),
-		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional - the source of the data (e.g., agency abbreviation)."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableSource_boolean) {
         source_JLabel.setEnabled(false);
         __dataSourceTextField.setEnabled(false);
@@ -535,11 +566,11 @@ private void setupGUI()
 
     JLabel type_JLabel = new JLabel("Data type: ");
 	JGUIUtil.addComponent(panel, type_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __dataTypeTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional.  A data type abbreviation."),
-		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional (recommended) - a data type abbreviation."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableType_boolean) {
         type_JLabel.setEnabled(false);
         __dataTypeTextField.setEnabled(false);
@@ -547,20 +578,20 @@ private void setupGUI()
 
     JLabel interval_JLabel = new JLabel("Data interval: ");
 	JGUIUtil.addComponent(panel, interval_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__dataInterval_JComboBox = new SimpleJComboBox(false);
-	List interval_Vector = TimeInterval.getTimeIntervalChoices(
+	List<String> intervalChoices = TimeInterval.getTimeIntervalChoices(
 		TimeInterval.MINUTE, TimeInterval.YEAR, false, 1, true);
 	if ( (__tsident == null) || (__tsident.getInterval().length() == 0) ) {
 		// Add a blank at the beginning since nothing has been selected...
-		interval_Vector.add ( 0, "" );
+		intervalChoices.add ( 0, "" );
 	}
-	__dataInterval_JComboBox.setData ( interval_Vector );
+	__dataInterval_JComboBox.setData ( intervalChoices );
 	__dataInterval_JComboBox.addActionListener ( this );
 	JGUIUtil.addComponent(panel, __dataInterval_JComboBox,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Data interval."),
-		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Required - data interval."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableInterval_boolean) {
         interval_JLabel.setEnabled(false);
         __dataInterval_JComboBox.setEnabled(false);
@@ -568,23 +599,35 @@ private void setupGUI()
 
     JLabel scenario_JLabel = new JLabel("Scenario: ");
 	JGUIUtil.addComponent(panel, scenario_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __scenarioTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional string (e.g., \"Hist\", \"Test1\")."),
-		2, y++, 1, 1, 0, 0,	GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional - scenerio string (e.g., \"Hist\", \"Raw\", \"Filled\")."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableScenario_boolean) {
         scenario_JLabel.setEnabled(false);
         __scenarioTextField.setEnabled(false);
     }
+    
+    JLabel sequenceNumber_JLabel = new JLabel("Sequence number: ");
+    JGUIUtil.addComponent(panel, sequenceNumber_JLabel,
+        0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JGUIUtil.addComponent(panel, __sequenceNumberTextField,
+        1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(panel, new JLabel(" Optional - sequence number for ensemble trace."),
+        2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableSequenceNumber_boolean) {
+        sequenceNumber_JLabel.setEnabled(false);
+        __sequenceNumberTextField.setEnabled(false);
+    }
 
     JLabel inputtype_JLabel = new JLabel("Input type: ");
 	JGUIUtil.addComponent(panel, inputtype_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __inputTypeTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional input type (e.g., database, file format)."),
-		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional - input type (e.g., database, file format)."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableInputType_boolean) {
         inputtype_JLabel.setEnabled(false);
         __inputTypeTextField.setEnabled(false);
@@ -592,41 +635,39 @@ private void setupGUI()
 
     JLabel inputname_JLabel = new JLabel("Input name: ");
 	JGUIUtil.addComponent(panel, inputname_JLabel,
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __inputNameTextField,
-		1, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional file or database name, for input type."),
-		2, y++, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(" Optional - file name, for input type."),
+		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableInputName_boolean) {
         inputname_JLabel.setEnabled(false);
         __inputNameTextField.setEnabled(false);
     }
 
-	JGUIUtil.addComponent(panel, new JLabel(" Time series identified (TSID): "),
-		0, y, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	JGUIUtil.addComponent(panel, new JLabel(" Time series identifier (TSID): "),
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__TSID_JTextArea = new JTextArea ( 4, 55 );
 	__TSID_JTextArea.setLineWrap ( true );
 	__TSID_JTextArea.setWrapStyleWord ( true );
 	__TSID_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent(panel, new JScrollPane(__TSID_JTextArea),
-		1, y, 2, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
+		1, y, 2, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	JPanel south = new JPanel();
 	south.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
 	__okButton = new SimpleJButton(__BUTTON_OK, this);
-	__okButton.setToolTipText("Press this button to accept any changes "
-		+ "made to the time series identifier.");
+	__okButton.setToolTipText("Press this button to accept any changes made to the time series identifier.");
 	__cancelButton = new SimpleJButton(__BUTTON_CANCEL, this);
-	__cancelButton.setToolTipText("Press this button to reject any changes "
-		+ "made to the time series identifier.");
+	__cancelButton.setToolTipText("Press this button to reject any changes made to the time series identifier.");
 
 	south.add(__okButton);
 	south.add(__cancelButton);
 
 	getContentPane().add("South", south);
 
-	refresh();	// Refresh the TSID from the parts.
+	refresh(); // Refresh the TSID from the parts.
 	pack();
 	JGUIUtil.center(this);
 	setVisible(true);
