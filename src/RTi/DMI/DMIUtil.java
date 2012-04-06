@@ -2123,7 +2123,7 @@ form for use with the specified database engine.
 */
 public static String formatDateTime ( DMI dmi, DateTime datetime )
 throws Exception {
-	return formatDateTime(dmi, datetime, true);
+	return formatDateTime(dmi, datetime, true, -1);
 }
 
 /**
@@ -2136,7 +2136,25 @@ appropriate for the database engine.
 @return a String representation of the DateTime, in the proper
 form for use with the specified database engine.
 */
-public static String formatDateTime ( DMI dmi, DateTime datetime, boolean escapeChar)
+public static String formatDateTime ( DMI dmi, DateTime datetime, boolean escapeChar )
+throws Exception
+{
+    return formatDateTime ( dmi, datetime, escapeChar, -1 );
+}
+
+/**
+Format a date/time string based on the database engine so that it can be used in an SQL statement.
+@param dmi DMI instance form which to format date.
+@param datetime a DateTime object containing a date.  The precision of this
+DateTime object controls the formatting of the string.
+@param escapeChar if true, the date will be wrapped with an escape character
+appropriate for the database engine
+@param DateTime.PRECISION_* indicating the format of the output - if specified as -1, use the precision
+from the date/time
+@return a String representation of the DateTime, in the proper
+form for use with the specified database engine.
+*/
+public static String formatDateTime ( DMI dmi, DateTime datetime, boolean escapeChar, int precision )
 throws Exception {
 	String month = StringUtil.formatString(datetime.getMonth(),"%02d");
 	String day = StringUtil.formatString(datetime.getDay(),"%02d");
@@ -2148,14 +2166,17 @@ throws Exception {
 	int databaseEngineType = dmi.getDatabaseEngineType();
 	StringBuffer formatted = new StringBuffer();
 
-	int precision = datetime.getPrecision();
+	if ( precision == -1 ) {
+	    // Default is to use precision from date/time
+	    precision = datetime.getPrecision();
+	}
 	if ( precision <= DateTime.PRECISION_HOUR ) {
 		hour = StringUtil.formatString( datetime.getHour(),"%02d");
 	}
-	if ( datetime.getPrecision() <= DateTime.PRECISION_MINUTE ) {
+	if ( precision <= DateTime.PRECISION_MINUTE ) {
 		minute = StringUtil.formatString( datetime.getMinute(),"%02d");
 	}
-	if ( datetime.getPrecision() <= DateTime.PRECISION_SECOND ) {
+	if ( precision <= DateTime.PRECISION_SECOND ) {
 		second = StringUtil.formatString( datetime.getSecond(),"%02d");
 	}
 
