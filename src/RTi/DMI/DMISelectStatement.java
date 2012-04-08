@@ -1,30 +1,11 @@
-//-----------------------------------------------------------------------------
-// DMISelectStatement - class for an SQL select statement
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2002-06-25	Steven A. Malers, RTi	Initial version.
-// 2003-02-20	J. Thomas Sapienza, RTi	Added support for GROUP BY clauses.
-// 2003-03-05	JTS, RTi		WHERE clauses are now automatically
-//					surrounded by parentheses.
-// 2004-06-15	JTS, RTi		Joins are now supported.
-// 2004-06-16	JTS, RTi		Statement can now execute as a stored
-//					procedure.
-// 2005-05-31	JTS, RTi		Added toAccessString() for properly
-//					formatting JOIN information in Access
-//					queries.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.DMI;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
-The DMISelectStatement class stores basic information about SQL select
-statements.  Currently all functionality is included in the base class but at
-some point data and behavior may be moved to derived classes.<p>
+The DMISelectStatement class stores basic information about SQL select statements, allowing select statements to
+be formed and executed.
 See HydroBaseDMI for many good examples of using DMISelectStatement;
 TODO (JTS - 2006-05-23) Add some examples.
 */
@@ -111,18 +92,18 @@ private String toAccessString() {
 	
 	int size = _field_Vector.size();
 	if (size > 0) {
-		statement.append ( (String)_field_Vector.get(0) );
+		statement.append ( _field_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_field_Vector.get(i) );
+			statement.append ( ", " + _field_Vector.get(i) );
 		}
 	}
 	
 	size = _table_Vector.size();
 	if (size > 0 && _join_Vector.size() == 0) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.get(0) );
+		statement.append ( _table_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_table_Vector.get(i) );
+			statement.append ( ", " + _table_Vector.get(i) );
 		}
 	}
 	
@@ -136,7 +117,7 @@ private String toAccessString() {
 			statement.append("(");
 		}
 		
-		statement.append((String)_table_Vector.get(0));
+		statement.append(_table_Vector.get(0));
 
 		for (int i = 0; i < size; i++) {
 			type = ((Integer)_join_type_Vector.get(i)).intValue();
@@ -149,9 +130,9 @@ private String toAccessString() {
 			else if (type == _JOIN_RIGHT) {
 				statement.append(" RIGHT JOIN ");
 			}
-			s = (String)_join_Vector.get(i);
+			s = _join_Vector.get(i);
 			statement.append(s + " ON ");
-			s = (String)_on_Vector.get(i);
+			s = _on_Vector.get(i);
 			statement.append(s);
 			
 			if (size > 1 && i < (size - 1)) {
@@ -166,9 +147,9 @@ private String toAccessString() {
 	size = _where_Vector.size();
 	if (size > 0) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.get(0) );
+		statement.append ( _where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( " AND (" + (String)_where_Vector.get(i) + ")");
+			statement.append ( " AND (" + _where_Vector.get(i) + ")");
 		}
 	}
 	
@@ -179,9 +160,9 @@ private String toAccessString() {
 		} else {
 			statement.append ( " ORDER BY " );
 		}
-		statement.append ( (String)_order_by_Vector.get(0) );
+		statement.append ( _order_by_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_order_by_Vector.get(i));
+			statement.append ( ", " + _order_by_Vector.get(i));
 		}
 	}
 	return statement.toString();
@@ -204,18 +185,18 @@ public String toString() {
 	
 	int size = _field_Vector.size();
 	if (size > 0) {
-		statement.append ( (String)_field_Vector.get(0) );
+		statement.append ( _field_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_field_Vector.get(i) );
+	        statement.append ( ", " + DMIUtil.escapeField(_dmi,_field_Vector.get(i)) );
 		}
 	}
 	
 	size = _table_Vector.size();
 	if (size > 0) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.get(0) );
+		statement.append ( _table_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_table_Vector.get(i) );
+			statement.append ( ", " + _table_Vector.get(i) );
 		}
 	}
 	
@@ -224,7 +205,7 @@ public String toString() {
 		int type = -1;
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			type = ((Integer)_join_type_Vector.get(i)).intValue();
+			type = (_join_type_Vector.get(i)).intValue();
 			if (type == _JOIN_INNER) {
 				statement.append(" INNER JOIN ");
 			}
@@ -234,9 +215,9 @@ public String toString() {
 			else if (type == _JOIN_RIGHT) {
 				statement.append(" RIGHT JOIN ");
 			}
-			s = (String)_join_Vector.get(i);
+			s = _join_Vector.get(i);
 			statement.append(s + " ON ");
-			s = (String)_on_Vector.get(i);
+			s = _on_Vector.get(i);
 			statement.append(s);
 		}
 	}
@@ -244,9 +225,9 @@ public String toString() {
 	size = _where_Vector.size();
 	if (size > 0) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.get(0) );
+		statement.append ( _where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( " AND (" + (String)_where_Vector.get(i) + ")");
+			statement.append ( " AND (" + _where_Vector.get(i) + ")");
 		}
 	}
 	
@@ -257,12 +238,12 @@ public String toString() {
 		} else {
 			statement.append ( " ORDER BY " );
 		}
-		statement.append ( (String)_order_by_Vector.get(0) );
+		statement.append ( _order_by_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( ", " + (String)_order_by_Vector.get(i));
+			statement.append ( ", " + _order_by_Vector.get(i));
 		}
 	}
 	return statement.toString();
 }
 
-} // end DMISelectStatement
+}

@@ -1,15 +1,3 @@
-//-----------------------------------------------------------------------------
-// DMIDeleteStatement - class for an SQL delete statement
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2002-07-11	J. Thomas Sapienza, RTi	Initial version
-// 2002-08-12	JTS			toString was finally fleshed out to
-//					work.
-// 2004-06-16	JTS, RTi		Statement can now execute as a stored
-//					procedure.
-//-----------------------------------------------------------------------------
-
 package RTi.DMI;
 
 import java.sql.SQLException;
@@ -37,8 +25,7 @@ public void executeStoredProcedure()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
-			+ "execute a DMIDeleteStatement that is not a "
-			+ "stored procedure.");
+			+ "execute a DMIDeleteStatement that is not a stored procedure.");
 	}
 	__storedProcedureCallableStatement.executeUpdate();
 }
@@ -53,19 +40,18 @@ public String toString() {
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
 		statement.append ( " FROM " );
-		statement.append ( (String)_table_Vector.get(0) );
+		statement.append ( _table_Vector.get(0) );
 	}
 
 	size = _where_Vector.size();
 	if ( size > 0 ) {
 		statement.append ( " WHERE " );
-		statement.append ( (String)_where_Vector.get(0) );
+		statement.append ( _where_Vector.get(0) );
 		for ( int i = 1; i < size; i++ ) {
-			statement.append ( " AND " +
-				(String)_where_Vector.get(i) );
+			statement.append ( " AND " + _where_Vector.get(i) );
 		}
 	}
 	return statement.toString();
 }
 
-} // end DMIDeleteStatement
+}

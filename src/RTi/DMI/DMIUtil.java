@@ -1454,8 +1454,8 @@ String [] referenceTables, List notIncluded) {
 		}
 	}
 
-	String ldelim = dmi.getLeftIdDelim();
-	String rdelim = dmi.getRightIdDelim();
+	String ldelim = dmi.getFieldLeftEscape();
+	String rdelim = dmi.getFieldRightEscape();
 
 	// Loop through each of the tables that was passed in to the method
 	// in the referenceTables array and get a list of its column names
@@ -2111,6 +2111,43 @@ throws Exception, SQLException {
 
 	DMI.closeResultSet(rs);
 	return false;
+}
+
+// TODO SAM 2012-04-06 Need to evaluate whether table names are escaped separately
+// TODO SAM 2012-05-06 Need to evaluate whether functions should be processed more but complex SQL should
+// probably just be constructed without the helper methods
+/**
+Escape a field.  This is necessary to ensure that fields that are reserved names do not get interpreted as such.
+For example, in SQL Server, brackets can be used around fields.
+If the input string contains a "(", then it is assumed that the field is specified using a function
+and no action is taken.
+If the input string contains a ".", then it is assumed that the table name precedes the field name and the string
+is split so that only the field name is escaped.
+@param dmi the DMI being used
+@param field the field being escaped
+@return the escaped field
+*/
+public static String escapeField ( DMI dmi, String field )
+{
+    if ( (field.indexOf('(') >= 0) ||
+        (dmi.getFieldLeftEscape() != "") && (field.indexOf(dmi.getFieldLeftEscape()) >= 0) ) {
+        // Function or already escaped so probably too complicated to figure out here
+        return field;
+    }
+    else {
+        // Escape the fields
+        int dotPos = field.indexOf(".");
+        String table = null;
+        if ( dotPos > 0 ) {
+            // Field has table and field but only want to escape the field
+            table = field.substring(0,dotPos);
+            field = field.substring(dotPos + 1);
+            return table + "." + dmi.getFieldLeftEscape() + field + dmi.getFieldRightEscape();
+        }
+        else {
+            return dmi.getFieldLeftEscape() + field + dmi.getFieldRightEscape();
+        }
+    }
 }
 
 /**

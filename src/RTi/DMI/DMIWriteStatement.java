@@ -1,17 +1,3 @@
-//-----------------------------------------------------------------------------
-// DMIWriteStatement - class for an SQL write statement
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2002-07-10	J. Thomas Sapienza, RTi Initial version
-// 2002-07-11	JTS, RTi		Added Message class
-// 2003-04-23	JTS, RTi		Added catch in toUpdateString
-//					to try to create a WHERE clause if one
-//					is needed.
-// 2004-06-16	JTS, RTi		Statement can now execute as a stored
-//					procedure.
-//-----------------------------------------------------------------------------
-
 package RTi.DMI;
 
 import java.sql.SQLException;
@@ -19,9 +5,8 @@ import java.sql.SQLException;
 import RTi.Util.Message.Message;
 
 /**
-The DMIWriteStatement class stores basic information about SQL write
-statements.  Currently all functionality is included in the base class but at
-some point data and behavior may be moved to derived classes.<p>
+The DMIWriteStatement class stores basic information about SQL write statements, allowing write statements
+to be constructed for execution.
 See HydroBaseDMI for many good examples of using this class.
 */
 public class DMIWriteStatement 
@@ -42,17 +27,14 @@ public void executeStoredProcedure()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
-			+ "execute a DMIWriteStatement that is not a "
-			+ "stored procedure.");
+			+ "execute a DMIWriteStatement that is not a stored procedure.");
 	}
 	__storedProcedureCallableStatement.executeUpdate();
 }
 
 /**
-Removes the name of the table from fields stored in the SQL, if the fields 
-have the table name.  
-@param fieldName the field name to check for a table name and remove, if 
-present.
+Removes the name of the table from fields stored in the SQL, if the fields have the table name.  
+@param fieldName the field name to check for a table name and remove, if present.
 @return the field name without the table name.
 */
 private String removeTableName(String fieldName) {
@@ -69,7 +51,7 @@ public String toInsertString() {
 
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
-		statement.append ( (String)_table_Vector.get(0) );
+		statement.append ( _table_Vector.get(0) );
 		statement.append (" (");
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toInsertString", 	
@@ -79,12 +61,10 @@ public String toInsertString() {
 
 	size = _field_Vector.size();
 	if (size > 0) {
-		statement.append (
-			removeTableName((String)_field_Vector.get(0)));
+		statement.append ( DMIUtil.escapeField(_dmi,removeTableName(_field_Vector.get(0))));
 
 		for (int i = 1; i < size; i++) {
-			statement.append(", " + 
-			removeTableName((String)_field_Vector.get(i)));
+			statement.append(", " + DMIUtil.escapeField(_dmi,removeTableName(_field_Vector.get(i))));
 		}
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toInsertString", 	
@@ -133,7 +113,7 @@ public String toUpdateString(boolean tryBuildWhere) {
 
 	int size = _table_Vector.size();
 	if ( size > 0 ) {
-		statement.append ( (String)_table_Vector.get(0) );
+		statement.append ( _table_Vector.get(0) );
 		statement.append (" ");
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toUpdateString", 	
@@ -153,13 +133,13 @@ public String toUpdateString(boolean tryBuildWhere) {
 		return "";
 	}
 	else {
-		statement.append ((String)_field_Vector.get(0));
+		statement.append (DMIUtil.escapeField(_dmi,_field_Vector.get(0)));
 		statement.append (" = ");
 		statement.append (_values_Vector.get(0));
 
 		for (int i = 1; i < size; i++) {
 			statement.append (", ");
-			statement.append ((String)_field_Vector.get(i));
+			statement.append (DMIUtil.escapeField(_dmi,_field_Vector.get(i)));
 			statement.append (" = ");
 			statement.append (_values_Vector.get(i));
 		}
@@ -169,21 +149,21 @@ public String toUpdateString(boolean tryBuildWhere) {
 
 	size = _where_Vector.size();
 	if (size > 0) {
-		statement.append ((String)_where_Vector.get(0));
+		statement.append (_where_Vector.get(0));
 		
 		for (int i = 1; i < size; i++) {
 			statement.append(" AND ");
-			statement.append((String)_where_Vector.get(i));
+			statement.append(_where_Vector.get(i));
 		}
 	} else if (tryBuildWhere) {
-		statement.append((String)_field_Vector.get(0));
+		statement.append(DMIUtil.escapeField(_dmi,_field_Vector.get(0)));
 		statement.append(" = ");
 		statement.append(_values_Vector.get(0));
 
 		size = _field_Vector.size();
 		for (int i = 1; i < size; i++) {
 			statement.append (" AND ");
-			statement.append ((String)_field_Vector.get(i));
+			statement.append (DMIUtil.escapeField(_dmi, _field_Vector.get(i)));
 			statement.append (" = ");
 			statement.append (_values_Vector.get(i));
 		}
@@ -219,4 +199,4 @@ public String toString() {
 */
 }
 
-} // end DMIWriteStatement
+}

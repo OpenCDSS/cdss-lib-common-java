@@ -1,70 +1,3 @@
-//-----------------------------------------------------------------------------
-// DMIStatement - general class for an SQL statement
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2002-06-25	Steven A. Malers, RTi	Initial version.
-// 2002-07-10	J. Thomas Sapienza, RTi	Added _values_Vector (for use with
-//					INSERTs and UPDATEs).  Also added 	
-//					_autonumber_Vector (because they're a
-//					special case in INSERTing and 
-//					UPDATEing).
-// 2002-07-23	JTS, RTi		Added date formatting ability (through
-//					SimpleDateFormat), and also added the
-//					testAddValue() methods.  Added 
-//					the RTi...Message class use.
-// 2002-12-09	JTS, RTi		Removed "addAutonumberField" method.
-//					Unused in code and the reason for adding
-//					it in July was a development path RTi	
-//					went down.
-// 2003-01-03	SAM, RTi		* The database engine in DMI is now
-//					  available as a protected integer - use
-//					  it to improve performance.
-//					* The missing values are now defined in
-//					  DMIUtil (not DMI).  Also, call the
-//					  DMIUtil.isMissing() method for data
-//					  types that may require more extensive
-//					  checks than a simple comparison.
-// 2003-05-13	JTS, RTi		Added code so that if a String value
-//					with a single quote is added to a 
-//					statement for SQL Server, the quote
-//					is replaced by double single quotes.
-// 2003-05-21	JTS, RTi		Added addValue and testAddValue methods
-//					for long datatypes
-// 2003-06-12	JTS, RTi		Corrected error in addValue(String)
-//					where: 
-//					* If the string was checked for "'" and
-//					  one was found, the string was not then
-//					  being added with quotes around it.
-//					* SQLServer2000 was not being checked
-//					  as a server type.
-// 2003-06-20	JTS, RTi		Added removeField()
-// 2003-11-12	JTS, RTi		Updated the addValue(Date) methods to
-//					use DMIUtil.formatDateTime().
-// 2004-06-15	JTS, RTi		* Added support for joins.
-//					* Expanded to allow support for 
-//					  stored procedures using all the
-//					  currently-existing methods.
-// 2005-02-03	JTS, RTi		setValue() parameters were made 
-//					public.
-// 2005-03-08	JTS, RTi		Added createStoredProcedureString().
-// 2005-04-05	JTS, RTi		addOrderByClause() now checks to see
-//					whether the order by clause is already
-//					in the order by Vector, because having
-//					two of the same column names in an 
-//					ORDER BY clause will cause an SQL error.
-// 2005-06-02	JTS, RTi		Moved the code that creates the 
-//					stored procedure callable statement
-//					out to DMIStoredProcedureData so that
-//					they can be reused.
-// 2006-05-03	JTS, RTi		* Deprecated all testAddValue() methods.
-//					  They should be removed ASAP and 
-//					  instead addValueOrNull() should be 
-//       				  used instead.
-//					* Added addValueOrNull().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.DMI;
 
 import java.sql.CallableStatement;
@@ -131,49 +64,49 @@ stored procedure out in executable format when a query is run.
 private String[] __spParameters = null;
 
 /**
-List for fields that are autonumbers
+List for fields that are auto-numbers
 */
-protected List _autonumber_Vector;
+protected List<String> _autonumber_Vector;
 
 /**
 List for fields used in the statement (e.g., SELECT XXXX, XXXX).
 */
-protected List _field_Vector;
+protected List<String> _field_Vector;
 
 /**
 List to specify the tables for joins.
 */
-protected List _join_Vector;
+protected List<String> _join_Vector;
 
 /**
 List to specify the join types for joins.
 */
-protected List _join_type_Vector;
+protected List<Integer> _join_type_Vector;
 
 /**
 List for specifying the ON clauses for joins.
 */
-protected List _on_Vector;
+protected List<String> _on_Vector;
 
 /**
 List for ORDER BY clauses used in the statement (e.g., ORDER BY XXXX, XXXX).
 */
-protected List _order_by_Vector;
+protected List<String> _order_by_Vector;
 
 /**
-List for tables used in the statement (e.g., FROM XXXX, XXXX).
+List for table names used in the statement (e.g., FROM XXXX, XXXX).
 */
-protected List _table_Vector;
+protected List<String> _table_Vector;
 
 /**
 List for values to be inserted or updated with the statement
 */
-protected List _values_Vector;
+protected List<Object> _values_Vector;
 
 /**
 List for where clauses used in the statement (e.g., WHERE XXXX, XXXX).
 */
-protected List _where_Vector;
+protected List<String> _where_Vector;
 
 /**
 Construct an SQL statement.  Typically a derived class instance (e.g., DMISelectStatement) is declared.
@@ -270,9 +203,9 @@ public void addOrderByClause(String order_by_clause) {
 	int size = _order_by_Vector.size();
 	String s = null;
 	for (int i = 0; i < size; i++) {
-		s = (String)_order_by_Vector.get(i);
+		s = _order_by_Vector.get(i);
 		if (s.equalsIgnoreCase(order_by_clause)) {
-			// already present in the order by Vector, do not add again.
+			// already present in the order by list, do not add again.
 			return;
 		}
 	}
@@ -281,11 +214,11 @@ public void addOrderByClause(String order_by_clause) {
 
 /**
 Adds a series of order by clauses to the statement at once.
-@param order_by_clauses Vector of String order by clauses to add.
+@param order_by_clauses list of String order by clauses to add.
 */
-public void addOrderByClauses(List order_by_clauses) {
+public void addOrderByClauses(List<String> order_by_clauses) {
 	for (int i = 0; i < order_by_clauses.size(); i++) {
-		addOrderByClause((String)order_by_clauses.get(i));
+		addOrderByClause(order_by_clauses.get(i));
 	}
 }
 
@@ -643,10 +576,8 @@ public java.sql.Statement getCallableStatement() {
 }
 
 /**
-Returns the DMI's stored procedure data (that specifies how the stored 
-procedure is set up and run.
-@return the DMI's stored procedure data (that specifies how the stored 
-procedure is set up and run.
+Returns the DMI's stored procedure data (that specifies how the stored procedure is set up and run.
+@return the DMI's stored procedure data (that specifies how the stored procedure is set up and run.
 */
 public DMIStoredProcedureData getDMIStoredProcedureData() {
 	return _spData;
@@ -687,8 +618,7 @@ private void initialize() {
 
 /**
 Returns whether this statement is using a stored procedure or not.
-@return true if the statement is going to execute via stored procedure, false
-if not.
+@return true if the statement is going to execute via stored procedure, false if not.
 */
 public boolean isStoredProcedure() {
 	return _isSP;
@@ -717,8 +647,7 @@ throws Exception {
 	}
 	else {
 		_isSP = true;
-		__storedProcedureCallableStatement 
-			= _spData.getCallableStatement();
+		__storedProcedureCallableStatement = _spData.getCallableStatement();
 	
 		// Note re: __paramNum:
 		// Parameter numbering in JDBC/Database interface classes
@@ -920,8 +849,7 @@ throws Exception {
     if ( param == null ) {
         setNullValue(parameterNum);
     }
-	__storedProcedureCallableStatement.setTimestamp(parameterNum, 
-		(new Timestamp(param.getTime())));
+	__storedProcedureCallableStatement.setTimestamp(parameterNum, (new Timestamp(param.getTime())));
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
 	}
@@ -946,26 +874,21 @@ throws Exception {
 	String upper = where.toUpperCase().trim();
 	where = where.trim();
 	
-	// find the position of the first equals sign. 
+	// Find the position of the first equals sign. 
 	
 	int space = where.indexOf("=");
 	int spaceLen = 1;
 	if (space == -1) {
-		// if none can be found, then check to find the first instance
-		// of " LIKE "
+		// If none can be found, then check to find the first instance of " LIKE "
 		space = upper.indexOf(" LIKE ");
 		if (space == -1) {	
-			// if none can be found, check to see if the where
-			// clause is comparing against NULL.
+			// If none can be found, check to see if the where clause is comparing against NULL.
 			space = upper.indexOf(" IS NULL");
 			if (space == -1) {
-				// if none of the above worked, then the 
-				// column = value combination could not
-				// be determined. 
+				// If none of the above worked, then the column = value combination could not be determined. 
 				throw new Exception ("Cannot determine columns or value from where clause: '" + where + "'");
 			}
-			// " IS NULL" was found, so denote in the boolean
-			// that a NULL value will need to be set
+			// " IS NULL" was found, so denote in the boolean that a NULL value will need to be set
 			isNull = true;
 		}
 		// The length of the token separating column name and value 
@@ -976,7 +899,7 @@ throws Exception {
 	}
 	
 	String origParam = where.substring(0, space).trim();
-	// see if the column was specified in the where clause as a 
+	// See if the column was specified in the where clause as a 
 	// table_name.column_name combination.  Remove the table name, if present.
 	int index = origParam.indexOf(".");
 	if (index > -1) {
@@ -987,7 +910,7 @@ throws Exception {
 	// the stored procedure are preceded by an '@' sign.
 	String param = "@" + origParam;
 
-	// iterate through the parameter names stored in the stored procedure
+	// Iterate through the parameter names stored in the stored procedure
 	// data and see if a match can be found for the column name.
 	int num = _spData.getNumParameters();
 	int pos = -1;
@@ -1007,10 +930,8 @@ throws Exception {
 
 	if (pos == -1) {
 		// No match was found in the stored procedure parameter names for the column
-		throw new Exception ("Couldn't find parameter '" 
-			+ origParam + "', specified in where clause: '"
-			+ where + "'.\nKnown parameters are: '"
-			+ paramList + "'");
+		throw new Exception ("Couldn't find parameter '" + origParam + "', specified in where clause: '"
+			+ where + "'.\nKnown parameters are: '" + paramList + "'");
 	}
 
 	// Note that right now, pos is base-0, which is how the stored 
@@ -1050,7 +971,7 @@ throws Exception {
 		case java.sql.Types.BIT:
 			// Boolean
 			// TODO (JTS - 2004-06-15) Bits might be stored in the database as 0 or 1,
-			// not sure right now as we're not dealing with boolean paremeters now. 
+			// not sure right now as we're not dealing with boolean parameters now. 
 			break;
 		case java.sql.Types.SMALLINT:
 		case java.sql.Types.INTEGER:

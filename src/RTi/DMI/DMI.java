@@ -546,17 +546,19 @@ Valid types are:<br>
 private String __database_engine_String;
 
 /**
-The left-side delimiter for reserved words.
+The left-side escape string to wrap fields so that they are not mistaken for reserved words.
+This leads to more verbose SQL but is conservative.  For example, for SQL Server, "[" is used.
 */
-protected String _left_id_delim = "";
+private String __fieldLeftEscape = "";
 /**
-The right-side delimiter for reserved words.
+The right-side escape string to wrap fields so that they are not mistaken for reserved words.
+This leads to more verbose SQL but is conservative.  For example, for SQL Server, "]" is used.
 */
-protected String _right_id_delim = "";
+private String __fieldRightEscape = "";
 /**
 The delimiter for strings.
 */
-protected String _string_delim = "";
+private String __stringDelim = "";
 
 /**
 Database engine as integer, to improve performance.  The protected value is
@@ -770,40 +772,40 @@ throws Exception {
 
 	// Check the database engine type and set appropriate defaults...
 	if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Access")) {
-		_left_id_delim = "[";
-		_right_id_delim = "]";	
-		_string_delim = "'";
+		__fieldLeftEscape = "[";
+		__fieldRightEscape = "]";	
+		__stringDelim = "'";
 		__database_server = "Local";
 		_database_engine = DBENGINE_ACCESS;
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Informix")) {
-		_left_id_delim = "\"";
-		_right_id_delim = "\"";	
-		_string_delim = "'";
+		__fieldLeftEscape = "\"";
+		__fieldRightEscape = "\"";	
+		__stringDelim = "'";
 		_database_engine = DBENGINE_INFORMIX;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("MySQL")) {
-		_left_id_delim = "\"";
-		_right_id_delim = "\"";	
-		_string_delim = "'";
+		__fieldLeftEscape = "\"";
+		__fieldRightEscape = "\"";	
+		__stringDelim = "'";
 		_database_engine = DBENGINE_MYSQL;
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Oracle")) {
-		_left_id_delim = "\"";
-		_right_id_delim = "\"";	
-		_string_delim = "'";
+		__fieldLeftEscape = "\"";
+		__fieldRightEscape = "\"";	
+		__stringDelim = "'";
 		_database_engine = DBENGINE_ORACLE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
-		_left_id_delim = "\"";
-		_right_id_delim = "\"";	
-		_string_delim = "'";
+		__fieldLeftEscape = "\"";
+		__fieldRightEscape = "\"";	
+		__stringDelim = "'";
 		_database_engine = DBENGINE_POSTGRESQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -812,9 +814,9 @@ throws Exception {
 	else if ((__database_engine_String != null) &&
 		(StringUtil.startsWithIgnoreCase(__database_engine_String,"SQL_Server") || // Older
 		StringUtil.startsWithIgnoreCase(__database_engine_String,"SQLServer")) ) { // Current config file
-		_left_id_delim = "[";
-		_right_id_delim = "]";		
-		_string_delim = "'";
+		__fieldLeftEscape = "[";
+		__fieldRightEscape = "]";		
+		__stringDelim = "'";
 		_database_engine = DBENGINE_SQLSERVER;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -828,9 +830,9 @@ throws Exception {
         }
 	}
     else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("H2")) {
-        _left_id_delim = "";
-		_right_id_delim = "";	
-		_string_delim = "'";
+        __fieldLeftEscape = "";
+		__fieldRightEscape = "";	
+		__stringDelim = "'";
 		_database_engine = DBENGINE_H2;
     }
 	else {
@@ -1911,11 +1913,19 @@ public int getLastSQLType() {
 }
 
 /**
-Returns the left id delimiter
-@return the left id delimiter
+Returns the field left escape string
+@return the field left escape string
 */
-public String getLeftIdDelim() {
-	return _left_id_delim;
+public String getFieldLeftEscape() {
+	return __fieldLeftEscape;
+}
+
+/**
+Returns the field right escape string
+@return the field right escape string
+*/
+public String getFieldRightEscape() {
+    return __fieldRightEscape;
 }
 
 /**
@@ -1943,14 +1953,6 @@ Returns the port of the database connection.
 */
 public int getPort() {
 	return __port;
-}
-
-/**
-Returns the right id delimiter
-@return the right id delimiter
-*/
-public String getRightIdDelim() {
-	return _right_id_delim;
 }
 
 /**
@@ -1983,7 +1985,7 @@ Returns the string delimiter
 @return the string delimiter
 */
 public String getStringIdDelim() {
-	return _string_delim;
+	return __stringDelim;
 }
 
 /**
