@@ -212,21 +212,23 @@ throws Exception
 {	DMISelectStatement select;
 	//DMIWriteStatement write;	// Probably don't need
 	//DMIDeleteStatement del;
+    String leftIdDelim = getFieldLeftEscape();
+    String rightIdDelim = getFieldRightEscape();
 	switch ( sqlNumber ) {
 		case _S_DATACHRON:
 			select = (DMISelectStatement)statement;
-			select.addField ( "DataChron." + _left_id_delim +
-				"Date/Time" + _right_id_delim );
-			select.addField ( "DataChron." + _left_id_delim +
-				"Sensor ID" + _right_id_delim );
+			select.addField ( "DataChron." + leftIdDelim +
+				"Date/Time" + rightIdDelim );
+			select.addField ( "DataChron." + leftIdDelim +
+				"Sensor ID" + rightIdDelim );
 			select.addField ( "DataChron.Count" );
-			select.addField ( "DataChron." + _left_id_delim +
-				"Data Type" + _right_id_delim );
+			select.addField ( "DataChron." + leftIdDelim +
+				"Data Type" + rightIdDelim );
 			select.addField ( "DataChron.Source" );
-			select.addField ( "DataChron." + _left_id_delim +
-				"Data Value" + _right_id_delim );
-			select.addField ( "DataChron." + _left_id_delim +
-				"Data Value 2" + _right_id_delim );
+			select.addField ( "DataChron." + leftIdDelim +
+				"Data Value" + rightIdDelim );
+			select.addField ( "DataChron." + leftIdDelim +
+				"Data Value 2" + rightIdDelim );
 			select.addField ( "DataChron.SeqNum" );
 			select.addField ( "DataChron.Comment" );
 			select.addTable ( "DataChron" );
@@ -243,121 +245,121 @@ throws Exception
 		case _S_SENSOR_DEF:
 			select = (DMISelectStatement)statement;
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Sensor ID" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Site ID" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef.Type" );
 			select.addField ( "SensorDef.Group" );
 			select.addField ( "SensorDef.Description" );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Max Count" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Min Count" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Pos Delta" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Neg Delta" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Rating Type" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Rating Interpolation" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Rating Shift" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Calibration Offset" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Calibration Date" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef.Slope" );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Reference Level" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Display Units" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef.Decimal" );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Display Units 2" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Decimal 2" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"In Service" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef.Suspect" );
 			select.addField ( "SensorDef.Alarms" );
 			select.addField ( "SensorDef.Notify" );
 			select.addField ( "SensorDef.Timeout" );
 			select.addField ( "SensorDef.Children" );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Most Recent Time" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Most Recent Data" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Last Valid Time" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Last Valid Data" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Last Count" +
-					_right_id_delim);
+					rightIdDelim);
 			select.addField ( "SensorDef.Equation" );
 			select.addField ( "SensorDef." +
-					_left_id_delim +
+					leftIdDelim +
 					"Equation 2" +
-					_right_id_delim );
+					rightIdDelim );
 			select.addTable ( "SensorDef" );
 			break;
 		case _S_SITE_DEF:
 			select = (DMISelectStatement)statement;
 			select.addField ( "SiteDef.SiteName" );
-			select.addField ( "SiteDef." + _left_id_delim +
-				"Site ID" + _right_id_delim );
+			select.addField ( "SiteDef." + leftIdDelim +
+				"Site ID" + rightIdDelim );
 			select.addField ( "SiteDef.Latitude" );
 			select.addField ( "SiteDef.Longitude" );
 			select.addField ( "SiteDef.XCoord" );
 			select.addField ( "SiteDef.YCoord" );
 			select.addField ( "SiteDef.PKey" );
-			select.addField ( "SiteDef." + _left_id_delim +
-				"Repeater Group" + _right_id_delim );
+			select.addField ( "SiteDef." + leftIdDelim +
+				"Repeater Group" + rightIdDelim );
 			select.addField ( "SiteDef.Elevation" );
-			select.addField ( "SiteDef." + _left_id_delim +
-				"Site Picture" + _right_id_delim );
+			select.addField ( "SiteDef." + leftIdDelim +
+				"Site Picture" + rightIdDelim );
 			select.addField ( "SiteDef.Zone" );
 			select.addField ( "SiteDef.FIPS" );
 			select.addField ( "SiteDef.LastUpdate" );
@@ -414,19 +416,16 @@ throws Exception
 	q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_DATACHRON );
 	// Primary key is the sensor ID...
-	q.addWhereClause ( "DataChron." + _left_id_delim +
-				"Sensor ID" + _right_id_delim + "=" + sensorid);
+	q.addWhereClause ( "DataChron." + getFieldLeftEscape() + "Sensor ID" + getFieldRightEscape() + "=" + sensorid);
 	// If req_date1 is specified, use it...
 	if ( req_date1 != null ) {
 		q.addWhereClause (
-			"DataChron.StartTime >= " +DMIUtil.formatDateTime( this,
-			req_date1));
+			"DataChron.StartTime >= " +DMIUtil.formatDateTime( this, req_date1));
 	}
 	// If req_date2 is specified, use it...
 	if ( req_date2 != null ) {
 		q.addWhereClause (
-			"DataChron.StartTime <= " +
-			DMIUtil.formatDateTime( this, req_date2));
+			"DataChron.StartTime <= " + DMIUtil.formatDateTime( this, req_date2));
 	}
 	// Also add wheres for the start and end dates if they are specified...
 	ResultSet rs = dmiSelect(q);
@@ -479,13 +478,11 @@ throws Exception
 	q = new DMISelectStatement ( this );
 	q.addTable ( ts_table );
 	q.addField ( ts_table + ".StartTime" );
-	q.addField ( ts_table + "." + _left_id_delim + "Sensor ID" +
-			_right_id_delim );
+	q.addField ( ts_table + "." + getFieldLeftEscape() + "Sensor ID" + getFieldRightEscape() );
 	q.addField ( ts_table + ".Value" );
 	q.addField ( ts_table + ".Count" );
 	// Primary key is the sensor ID...
-	q.addWhereClause ( ts_table + "." + _left_id_delim +
-				"Sensor ID" + _right_id_delim + "=" + sensorid);
+	q.addWhereClause ( ts_table + "." + getFieldLeftEscape() + "Sensor ID" + getFieldRightEscape() + "=" + sensorid);
 	// If req_date1 is specified, use it...
 	if ( req_date1 != null ) {
 		q.addWhereClause (
@@ -545,15 +542,15 @@ public DIADvisor_SensorDef readSensorDefForSensorID ( int SensorId )
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SENSOR_DEF );
-	q.addWhereClause ( "SensorDef." + _left_id_delim + "Sensor ID" +
-		_right_id_delim + "=" + SensorId ); 
+	q.addWhereClause ( "SensorDef." + getFieldLeftEscape() + "Sensor ID" + getFieldRightEscape() + "=" + SensorId ); 
 	ResultSet rs = dmiSelect(q);
 	List v = toSensorDefList (rs);
 	rs.close();
 	if ( (v == null) || (v.size() < 1) ) {
 		return null;
 	}
-	else {	return (DIADvisor_SensorDef)v.get(0);
+	else {
+	    return (DIADvisor_SensorDef)v.get(0);
 	}
 }
 
