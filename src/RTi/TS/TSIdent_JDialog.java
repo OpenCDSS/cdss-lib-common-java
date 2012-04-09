@@ -346,7 +346,12 @@ private void refresh ()
 			datatype = __tsident.getType();
 			interval = __tsident.getInterval();
 			scenario = __tsident.getScenario();
-			sequenceNumber = __tsident.getScenario();
+			if ( __tsident.getSequenceNumber() == -1 ) {
+			    sequenceNumber = "";
+			}
+			else {
+			    sequenceNumber = "" + __tsident.getSequenceNumber();
+			}
 			inputtype = __tsident.getInputType();
 			inputname = __tsident.getInputName();
 		}
