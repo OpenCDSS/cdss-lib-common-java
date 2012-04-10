@@ -1,18 +1,3 @@
-// ----------------------------------------------------------------------------
-// DateTimeFormat - A class for parsing and formatting DateTimes according to
-//	String formats.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2005-10-16	J. Thomas Sapienza, RTi	Initial version.
-// 2005-10-24	JTS, RTi		Cleanup, javadoc.
-// 2005-10-25	JTS, RTI		Fixed the code that iterates through
-//					relative date times.
-// 2006-04-12	JTS, RTi		Added copy constructor.
-// 2006-04-20	JTS, RTi		Added getFormat().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.Time;
 
 import java.util.List;
@@ -28,15 +13,20 @@ import RTi.Util.Math.MathUtil;
 import RTi.Util.String.StringUtil;
 
 /**
+<p>
 This class aids in the parsing and formatting of DateTimes according to 
 String formats.  A major factor in the design of its interface methods was that
 it should be easy for developers to work with, as the following examples show.
+</p>
 <p>
-<b>Usage</b><p>
+<b>Usage</b>
+</p>
+<p>
 To use this class, it should be instantiated with a DateTime format String.  
-This String will control how the class parses dates on input and formats dates
-for output.<p>
-<b>DateTimeFormat Format Specifiers</b><p>
+This String will control how the class parses dates on input and formats dates for output.
+</p>
+<p>
+<b>DateTimeFormat Format Specifiers</b></p>
 <table>
 <tr>
 <td><b>Format Specifier</b></td>
@@ -45,14 +35,12 @@ for output.<p>
 
 <tr>
 <td>yyyy</td>
-<td>Represents a 4-digit year.  No fewer than and no more than 4 
-digits will be accepted.</td>
+<td>Represents a 4-digit year.  No fewer than and no more than 4 digits will be accepted.</td>
 </tr>
 
 <tr>
 <td>yy</td>
-<td>Represents a 2-digit year.  No fewer than and no more than 4 digits will
-be accepted.<p>
+<td>Represents a 2-digit year.  No fewer than and no more than 4 digits will be accepted.<p>
 2-digit years are transformed into 4-digit years while parsing as follows:<p>
 <ul>
 <li>if the year is less than 30, 2000 will be added to it.   E.g., "17" would
@@ -72,8 +60,7 @@ be padded with a single zero (e.g., "03").</td>
 <tr>
 <td>m</td>
 <td>Represents a 1- or 2-digit month.  If the month is greater than 9, it will
-be represented by 2 digits.  If the month is in the range 1-9, it will be a 
-single digit.</td>
+be represented by 2 digits.  If the month is in the range 1-9, it will be a single digit.</td>
 </tr>
 
 <tr>
@@ -85,8 +72,7 @@ be padded with a single zero (e.g., "03").</td>
 <tr>
 <td>d</td>
 <td>Represents a 1- or 2-digit day.  If the day is greater than 9, it will
-be represented by 2 digits.  If the day is in the range 1-9, it will be a 
-single digit.</td>
+be represented by 2 digits.  If the day is in the range 1-9, it will be a single digit.</td>
 </tr>
 
 <tr>
@@ -98,8 +84,7 @@ be padded with a single zero (e.g., "03").</td>
 <tr>
 <td>h</td>
 <td>Represents a 1- or 2-digit hour.  If the hour is greater than 9, it will
-be represented by 2 digits.  If the hour is in the range 0-9, it will be a 
-single digit.</td>
+be represented by 2 digits.  If the hour is in the range 0-9, it will be a single digit.</td>
 </tr>
 
 <tr>
@@ -111,8 +96,7 @@ be padded with a single zero (e.g., "03").</td>
 <tr>
 <td>M</td>
 <td>Represents a 1- or 2-digit minute.  If the minute is greater than 9, it will
-be represented by 2 digits.  If the minute is in the range 0-9, it will be a 
-single digit.</td>
+be represented by 2 digits.  If the minute is in the range 0-9, it will be a single digit.</td>
 </tr>
 
 <tr>
@@ -124,8 +108,7 @@ be padded with a single zero (e.g., "03").</td>
 <tr>
 <td>s</td>
 <td>Represents a 1- or 2-digit second.  If the second is greater than 9, it will
-be represented by 2 digits.  If the second is in the range 0-9, it will be a 
-single digit.</td>
+be represented by 2 digits.  If the second is in the range 0-9, it will be a single digit.</td>
 </tr>
 
 <tr>
@@ -146,8 +129,7 @@ shown.  If the hundredth of second is in the range 0-9, it will be shown as 0.
 <td>tz</td>
 <td>Represents a string time zone.  Currently on a single time zone type 
 (all characters and numbers, no whitespace) is supported.<p>
-<b>REVISIT (JTS - 2005-11-01)</b><p>
-Need to add more time zone support.
+<b>TODO (JTS - 2005-11-01)</b><p>Need to add more time zone support.
 </tr>
 </table>
 <p>
@@ -181,8 +163,7 @@ Need to add more time zone support.
 
 <b>Iteration Example</b><p>
 The following piece of code creates a DateTime and DateTimeFormat and then 
-iterates through all the relative DateTimes in the same format, starting from
-the DateTime.
+iterates through all the relative DateTimes in the same format, starting from the DateTime.
 <code><pre>
 	DateTimeFormat format = new DateTime("mm/dd");
 	DateTime dateTime = format.parse("01/03");
@@ -199,8 +180,7 @@ the DateTime.
 public class DateTimeFormat {
 
 /**
-The number of date/time pieces that can be parsed and formatted by this 
-class.<p>
+The number of date/time pieces that can be parsed and formatted by this class.<p>
 <b>Note:</b> "date/time piece" is a term used throughout this documentation, and
 it refers to a discrete part of a Date Time, such as a year, month, day, etc.
 This value is used internally in sizing internal arrays.
@@ -216,24 +196,22 @@ as internal array element specifiers and the TimeInterval and DateTime values
 have different values.
 <p>
 For now, these are private.  In future, if a user needs access to them --
-for instance, if hasFormatSpecifier() should be opened to public access -- 
-deprivatize them.  
+for instance, if hasFormatSpecifier() should be opened to public access.  
 */
 private static final int 
-	__YEAR = 	0,
-	__MONTH = 	1,
-	__DAY = 	2,
-	__HOUR = 	3,
-	__MINUTE = 	4,
-	__SECOND = 	5,
-	__HSECOND = 	6,
-	__TZ = 		7;
+	__YEAR = 0,
+	__MONTH = 1,
+	__DAY = 2,
+	__HOUR = 3,
+	__MINUTE = 4,
+	__SECOND = 5,
+	__HSECOND = 6,
+	__TZ = 7;
 
 /**
-String arrays storing the various format specifierss recognized for date/time 
+String arrays storing the various format specifiers recognized for date/time 
 pieces.  This is a two-dimensional array because a single date/time piece can 
-be represented by several different format specifierss.  For example: Years can 
-be "yyyy" or "yy".<p>
+be represented by several different format specifiers.  For example: Years can be "yyyy" or "yy".<p>
 The first dimension is __NUM_PIECES long, and the second-dimension array at
 each element of the first-dimension corresponds to one of __YEAR, __MONTH,
 __DAY, etc.  For more information, see the static initialization block below.
@@ -243,7 +221,7 @@ private static String[][] __formatSpecifiers = null;
 /**
 String arrays storing the various regular expressions to use for recognizing 
 date/time pieces.  This is a two-dimensional array because a single date/time 
-piece can be represented by several different format specifierss.  
+piece can be represented by several different format specifiers.  
 For example: Years can be "(\d\d\d\d)" (for "yyyy") or "(\d\d)" (for "yy").<p>
 The first dimension is __NUM_PIECES long, and the second-dimension array at
 each element of the first-dimension corresponds to one of __YEAR, __MONTH,
@@ -257,14 +235,14 @@ within the DateTimeFormat string this DateTimeFormat was instantiated with.<p>
 For instance, if the object was instantiated with the following format: 
 "yyyy dd hh __TZ", the values in __datePieces would be as follows:<p>
 <code><pre>
-	__datePieces[__YEAR] =    true;
-	__datePieces[__MONTH] =   false;
-	__datePieces[__DAY] =     true;
-	__datePieces[__HOUR] =    true;
-	__datePieces[__MINUTE] =  false;
-	__datePieces[__SECOND] =  false;
+	__datePieces[__YEAR] = true;
+	__datePieces[__MONTH] = false;
+	__datePieces[__DAY] = true;
+	__datePieces[__HOUR] = true;
+	__datePieces[__MINUTE] = false;
+	__datePieces[__SECOND] = false;
 	__datePieces[__HSECOND] = false;
-	__datePieces[__TZ] =      true;
+	__datePieces[__TZ] = true;
 </pre></code>
 */
 private boolean[] __datePieces = null;
@@ -282,14 +260,12 @@ private boolean __isAbsolute = false;
 
 /**
 A copy of the format String, in character-array format.  This is used internally
-to track which format specifiers in the format String have been processed and 
-which have not.<p>
+to track which format specifiers in the format String have been processed and which have not.<p>
 For instance, if a DateTimeFormat string is "yyyy-mm", then
 when this array is first instantiated it will contain "yyyy-mm".  Once 
 the "yyyy" format specifier has been handled internally, this array will 
 then contain "....-mm", where "." is actually the character specified by __used.
-This is so that it is known which format specifiers have been processed and 
-which have not.
+This is so that it is known which format specifiers have been processed and which have not.
 */
 private char[] __formatCharacters = null;
 
@@ -310,8 +286,7 @@ Integer arrays that mark the location of each format specifier in the format
 String.  The first two dimensions of this array correspond to the two 
 dimensions of the __formatSpecifiers and __formatSpecifierRegEx arrays (ie, 
 the first dimension corresponds to the date/time piece (e.g., __YEAR), and 
-the second dimension corresponds to particular format specifiers [e.g., 
-"yyyy", "yy"]).<p>
+the second dimension corresponds to particular format specifiers [e.g., "yyyy", "yy"]).<p>
 The third dimension corresponds to the location of the given date/time piece's 
 format specifiers' locations within the string.  <p>
 Thus, the following array values:<p>
@@ -322,8 +297,7 @@ DateTimeFormat string at character positions 3 and 7.<p>
 <b>NOTE:</b> This is a very complicated set of arrays, but it is only used
 to accumulate information about the format specifiers during initial set up.  
 Its information is soon moved into the __sortedFormatSpecifier* arrays to be 
-easier to work with, and its information is discarded prior to any parsing or 
-formatting.
+easier to work with, and its information is discarded prior to any parsing or formatting.
 */
 private int[][][] __formatSpecifierLocations = null;
 
@@ -333,27 +307,23 @@ string sorted in the same order as
 <code>__sortedFormatSpecifierLocations</code>.  
 Thus traversal through the array will result in the length of each format 
 specifier in the DateTimeFormat string from left to right.<p>
-The location in the DateTimeFormat string of the format specifier with the 
-length of 
+The location in the DateTimeFormat string of the format specifier with the length of 
 <code>__sortedFormatSpecifierLengths[X]</code> is available from 
 <code>__sortedFormatSpecifierLocations[X];</code>  See also 
 <code>int[] __sortedFormatSpecifierTypes</code> and 
 <code>String[] __sortedFormatSpecifierRegExs</code>.
-<p>For more information on why these arrays are sorted, see 
-createSortedArrays().
+<p>For more information on why these arrays are sorted, see createSortedArrays().
 */
 private int[] __sortedFormatSpecifierLengths = null;
 
 /**
 An array of the location of all format specifiers found in the DateTimeFormat 
 string, sorted into ascending order.  Thus, traversal through the array will 
-reveal the indices of each format specifier in the String in left-to-right 
-order.  See also
+reveal the indices of each format specifier in the String in left-to-right order.  See also
 <code>int[] __sortedFormatSpecifierLengths</code>,
 <code>int[] __sortedFormatSpecifierTypes</code> and
 <code>String[] __sortedFormatSpecifierRegExs</code>.
-<p>For more information on why these arrays are sorted, see 
-createSortedArrays().
+<p>For more information on why these arrays are sorted, see createSortedArrays().
 */
 private int[] __sortedFormatSpecifierLocations = null;
 
@@ -367,8 +337,7 @@ The location in the DateTimeFormat string of the format specifier type at
 element X is available from <code>__sortedFormatSpecifierLocations[X]</code>;  
 See also <code>int[] __sortedFormatSpecifierLengths</code> and
 <code>String[] __sortedFormatSpecifierRegExs</code>.
-<p>For more information on why these arrays are sorted, see 
-createSortedArrays().
+<p>For more information on why these arrays are sorted, see createSortedArrays().
 */
 private int[] __sortedFormatSpecifierTypes = null;
 
@@ -384,8 +353,7 @@ private int __parseDateConstructorFlag = DateTime.DATE_STRICT;
 
 /**
 The regular expression pattern that has been compiled from the DateTimeFormat 
-string.  This pattern can be used to match date/time strings that are in the
-same format.
+string.  This pattern can be used to match date/time strings that are in the same format.
 */
 private Pattern __pattern = null;
 
@@ -493,8 +461,7 @@ No format is considered a bad format.  If no format specifiers are contained
 within the format, it will simply output only literal values when a date is
 formatted for output, and will recognize only strings that match the exact value
 of the format string for input.  
-@param format the String to use for formatting input and output dates.  Can be
-null.
+@param format the String to use for formatting input and output dates.  Can be null.
 */
 public DateTimeFormat(String format) {
 	if (format == null) {
@@ -535,69 +502,47 @@ public DateTimeFormat(DateTimeFormat format) {
 	__isAbsolute = format.__isAbsolute;
 	
 	if (format.__formatCharacters != null) {
-		__formatCharacters = new char[
-			format.__formatCharacters.length];
+		__formatCharacters = new char[format.__formatCharacters.length];
 		for (int i = 0; i < format.__formatCharacters.length; i++) {
 			__formatCharacters[i] = format.__formatCharacters[i];
 		}
 	}
 
 	if (format.__sortedFormatSpecifierLengths != null) {
-		__sortedFormatSpecifierLengths 
-			= new int[format.__sortedFormatSpecifierLengths.length];
+		__sortedFormatSpecifierLengths = new int[format.__sortedFormatSpecifierLengths.length];
 		for (int i = 0; 
 			i < format.__sortedFormatSpecifierLengths.length;i++) {
-			__sortedFormatSpecifierLengths[i]
-				= format.__sortedFormatSpecifierLengths[i];
+			__sortedFormatSpecifierLengths[i] = format.__sortedFormatSpecifierLengths[i];
 		}
 	}
 
 	if (format.__sortedFormatSpecifierLocations != null) {
-		__sortedFormatSpecifierLocations 
-			= new int[
-				format.__sortedFormatSpecifierLocations.length];
-		for (int i = 0; 
-			i < format.__sortedFormatSpecifierLocations.length;
-			i++) {
-			__sortedFormatSpecifierLocations[i]
-				= format.__sortedFormatSpecifierLocations[i];
+		__sortedFormatSpecifierLocations = new int[format.__sortedFormatSpecifierLocations.length];
+		for (int i = 0; i < format.__sortedFormatSpecifierLocations.length; i++) {
+			__sortedFormatSpecifierLocations[i] = format.__sortedFormatSpecifierLocations[i];
 		}
 	}
 
 	if (format.__sortedFormatSpecifierTypes != null) {
-		__sortedFormatSpecifierTypes 
-			= new int[format.__sortedFormatSpecifierTypes.length];
-		for (int i = 0; i < format.__sortedFormatSpecifierTypes.length;
-			i++){
-			__sortedFormatSpecifierTypes[i]
-				= format.__sortedFormatSpecifierTypes[i];
+		__sortedFormatSpecifierTypes = new int[format.__sortedFormatSpecifierTypes.length];
+		for (int i = 0; i < format.__sortedFormatSpecifierTypes.length; i++){
+			__sortedFormatSpecifierTypes[i] = format.__sortedFormatSpecifierTypes[i];
 		}
 	}
 
 	__parseDateConstructorFlag = format.__parseDateConstructorFlag;
 
 	if (format.__sortedFormatSpecifierRegExs != null) {
-		__sortedFormatSpecifierRegExs 
-			= new String[
-			format.__sortedFormatSpecifierRegExs.length];
-		for (int i = 0; 
-			i < format.__sortedFormatSpecifierRegExs.length; i++) {
-			__sortedFormatSpecifierRegExs[i]
-				= format.__sortedFormatSpecifierRegExs[i];
+		__sortedFormatSpecifierRegExs = new String[format.__sortedFormatSpecifierRegExs.length];
+		for (int i = 0; i < format.__sortedFormatSpecifierRegExs.length; i++) {
+			__sortedFormatSpecifierRegExs[i] = format.__sortedFormatSpecifierRegExs[i];
 		}
 	}
 
 	if (format.__formatSpecifierLiteralSurroundingValues != null) {
-		__formatSpecifierLiteralSurroundingValues 
-			= new String[
-			format.__formatSpecifierLiteralSurroundingValues
-			.length];
-		for (int i = 0; 
-			i < format.__formatSpecifierLiteralSurroundingValues
-			.length; i++) {
-			__formatSpecifierLiteralSurroundingValues[i] 
-				= format
-				.__formatSpecifierLiteralSurroundingValues[i];
+		__formatSpecifierLiteralSurroundingValues = new String[format.__formatSpecifierLiteralSurroundingValues.length];
+		for (int i = 0; i < format.__formatSpecifierLiteralSurroundingValues.length; i++) {
+			__formatSpecifierLiteralSurroundingValues[i] = format.__formatSpecifierLiteralSurroundingValues[i];
 		}
 	}
 
@@ -608,8 +553,7 @@ public DateTimeFormat(DateTimeFormat format) {
 }
 
 /**
-An internal cleanup method to free memory used when constructing the 
-parsing and formatting data.
+An internal cleanup method to free memory used when constructing the parsing and formatting data.
 */
 private void cleanup() {
 	for (int i = 0; i < __formatSpecifierLocations.length; i++) {
@@ -623,10 +567,9 @@ private void cleanup() {
 
 /**
 Creates the internal __datePieces array.  This array contains booleans that are 
-accessed internally to tell whether the format has a given date/time piece 
-within it.  <p>
-eg, if <code>__datePieces[__YEAR] == true</code> then the format contains
-a year formatting code.  If false, it does not.
+accessed internally to tell whether the format has a given date/time piece within it
+(e.g., if <code>__datePieces[__YEAR] == true</code> then the format contains
+a year formatting code; if false, it does not).
 */
 private void createDatePieces() {
 	__datePieces = new boolean[__NUM_PIECES];
@@ -653,37 +596,29 @@ private void createFormatter() {
 	// format specifier).  The final element's values do not precede a 
 	// format specifier, but are the final literal characters in the
 	// string, hence the +1 size.
-	__formatSpecifierLiteralSurroundingValues = new String[
-		__sortedFormatSpecifierLocations.length + 1];
+	__formatSpecifierLiteralSurroundingValues = new String[__sortedFormatSpecifierLocations.length + 1];
 
 	if (__sortedFormatSpecifierLocations.length == 0) {
 		__formatSpecifierLiteralSurroundingValues[0] = "";
 		return;
 	}
 
-	// the first format specifier's preceding characters are an execptional 
+	// the first format specifier's preceding characters are an exceptional 
 	// case, since there is no prior format specifier.
-	__formatSpecifierLiteralSurroundingValues[0] = __format.substring(0, 
-		__sortedFormatSpecifierLocations[0]);
+	__formatSpecifierLiteralSurroundingValues[0] = __format.substring(0, __sortedFormatSpecifierLocations[0]);
 
 	for (int i = 0; i < __sortedFormatSpecifierLocations.length; i++) {
 		// the last format specifier's following characters are an 
-		// exceptional case, since there is no following format 
-		// specifier.
+		// exceptional case, since there is no following format specifier.
 		if (i == (__sortedFormatSpecifierLocations.length - 1)) {
 			// This is also the loop branch that will be entered
-			// if there is only a single format specifier in the
-			// DateTimeFormat string.
-			__formatSpecifierLiteralSurroundingValues[i + 1] 
-			    = __format.substring(
-				__sortedFormatSpecifierLocations[i] 
-				+ __sortedFormatSpecifierLengths[i]);
+			// if there is only a single format specifier in the DateTimeFormat string.
+			__formatSpecifierLiteralSurroundingValues[i + 1] = __format.substring(
+				__sortedFormatSpecifierLocations[i] + __sortedFormatSpecifierLengths[i]);
 		}
 		else {
-			__formatSpecifierLiteralSurroundingValues[i + 1] 
-			    = __format.substring(
-				__sortedFormatSpecifierLocations[i] 
-				+ __sortedFormatSpecifierLengths[i],
+			__formatSpecifierLiteralSurroundingValues[i + 1] = __format.substring(
+				__sortedFormatSpecifierLocations[i] + __sortedFormatSpecifierLengths[i],
 				__sortedFormatSpecifierLocations[i + 1]);
 		}
 	}
@@ -694,17 +629,16 @@ Creates arrays with the location, type, and length of the DateTimeFormat string
 format specifiers, and of the regular expressions needed to parse those format 
 specifiers, in the order that the format specifiers appear in the 
 DateTimeFormat string, from left to right.<p>
-For example, for the format String "yyyy-mm", the following arrays would be
-created:<p>
+For example, for the format String "yyyy-mm", the following arrays would be created:<p>
 __sortedFormatSpecifierLocations[0] = 0;
-__sortedFormatSpecifierTypes[0]     = __YEAR;	
-__sortedFormatSpecifierLengths[0]   = 4;		
-__sortedFormatSpecifierRegExs[0]    = "\d\d\d\d"	
+__sortedFormatSpecifierTypes[0] = __YEAR;	
+__sortedFormatSpecifierLengths[0] = 4;		
+__sortedFormatSpecifierRegExs[0] = "\d\d\d\d"	
 <p>
 __sortedFormatSpecifierLocations[1] = 5;
-__sortedFormatSpecifierTypes[1]     = __MONTH;
-__sortedFormatSpecifierLengths[1]   = 2;
-__sortedFormatSpecifierRegExs[1]    = "\d\d";
+__sortedFormatSpecifierTypes[1] = __MONTH;
+__sortedFormatSpecifierLengths[1] = 2;
+__sortedFormatSpecifierRegExs[1] = "\d\d";
 <p>
 The reason these arrays need to be ordered is because both the regular 
 expression necessary for matching a date when parsing and the format information
@@ -719,33 +653,29 @@ date in order to determine whether a format specifier could be found at a
 given character position.  This is much more efficient.
 */
 private void createSortedArrays() {
-	// these Vector are temporary, and are used to move information from
+	// These lists are temporary, and are used to move information from
 	// the __formatSpecifierLocations arrays into the separate ordered arrays.
 	List lengths = new Vector();
 	List locs = new Vector();
 	List regExs = new Vector();
 	List types = new Vector();
 
-	// Move the data from the __formatSpecifierLocations arrays into the 
-	// above Vectors.  
+	// Move the data from the __formatSpecifierLocations arrays into the above lists.  
 
 	int size = 0;
 	for (int i = 0; i < __NUM_PIECES; i++) {
 		size = __formatSpecifiers[i].length;
 		for (int j = 0; j < size; j++) {
-			for (int k = 0; k < __formatSpecifierLocations[i][j]
-			    .length; k++){
-				locs.add(new Integer(
-					__formatSpecifierLocations[i][j][k]));
+			for (int k = 0; k < __formatSpecifierLocations[i][j].length; k++){
+				locs.add(new Integer(__formatSpecifierLocations[i][j][k]));
 				types.add(new Integer(i));
-				lengths.add(new Integer(
-					__formatSpecifiers[i][j].length()));
+				lengths.add(new Integer(__formatSpecifiers[i][j].length()));
 				regExs.add(__formatSpecifierRegEx[i][j]);
 			}
 		}
 	}
 
-	// first, move the values from "locs" into an array, so that the
+	// First, move the values from "locs" into an array, so that the
 	// array can be sorted.  These values are the starting positions of
 	// each format specifier within the DateTimeFormat string, and once 
 	// formatted will be in left-to-right order moving through the string.
@@ -757,10 +687,9 @@ private void createSortedArrays() {
 		__sortedFormatSpecifierLocations[i] = ((Integer)locs.get(i)).intValue();
 	}
 
-	// sort the array, but maintain a link to the prior sort order.
+	// Sort the array, but maintain a link to the prior sort order.
 
-	MathUtil.sort(__sortedFormatSpecifierLocations, MathUtil.SORT_QUICK, 
-		MathUtil.SORT_ASCENDING, order, true);
+	MathUtil.sort(__sortedFormatSpecifierLocations, MathUtil.SORT_QUICK, MathUtil.SORT_ASCENDING, order, true);
 
 	__sortedFormatSpecifierTypes = new int[size];
 	__sortedFormatSpecifierLengths = new int[size];
@@ -788,8 +717,7 @@ a date/time based on the specific DateTimeFormat string.
 private void createParser() {
 	__formatSpecifierLocations = new int[__NUM_PIECES][][];
 	for (int i = 0; i < __NUM_PIECES; i++) {
-		__formatSpecifierLocations[i] = new int[
-			__formatSpecifiers[i].length][];
+		__formatSpecifierLocations[i] = new int[__formatSpecifiers[i].length][];
 	}
 
 	findFormatSpecifiers();
@@ -814,24 +742,20 @@ private void createRegularExpression() {
 	for (int i = 0; i < length; i++) {
 		// First, see if the given position (i) is one at which a
 		// format specifier starts.  This method returns the index 
-		// within the sorted arrays of the format specifier that starts 
-		// at the given position.
+		// within the sorted arrays of the format specifier that starts at the given position.
 
 		marked = isMarkedPosition(i);
 
-		// if -1 was returned, no format specifier starts at the 
-		// current position and the literal character can be moved into 
-		// the regular expression.
+		// If -1 was returned, no format specifier starts at the 
+		// current position and the literal character can be moved into the regular expression.
 
 		if (marked == -1) {
-			// Java will handle any Unicode issues as long as
-			// the regular 'char' data type is used.
+			// Java will handle any Unicode issues as long as the regular 'char' data type is used.
 			ch = __format.charAt(i);
 
-			// if the character is a backslash, then this is an 
+			// If the character is a backslash, then this is an 
 			// escaped literal character (such as \m).  Characters 
-			// that are used in format specifier strings must be 
-			// escaped.
+			// that are used in format specifier strings must be escaped.
 			
 			if (ch == '\\') {
 				// move to the next character position
@@ -842,7 +766,7 @@ private void createRegularExpression() {
 				ch = __format.charAt(i);
 			}
 
-			// any character that is not a normal number or
+			// Any character that is not a normal number or
 			// letter should be escaped, because many of them have
 			// secondary meaning in regular expressions.
 			if (needsEscaped(ch)) {
@@ -851,17 +775,17 @@ private void createRegularExpression() {
 			sb.append("" + ch);
 		}
 		else {
-			// copy the regular expression that corresponds to 
+			// Copy the regular expression that corresponds to 
 			// format specifier at the given position to the buffer
 			sb.append(__sortedFormatSpecifierRegExs[marked]);	
 
-			// move ahead enough characters to move off the current
+			// Move ahead enough characters to move off the current
 			// format specifier
 			i += __sortedFormatSpecifierLengths[marked]- 1;
 		}
 	}
 
-	// build the regular expression ...
+	// Build the regular expression ...
 	__pattern = Pattern.compile(sb.toString());
 	__regularExpressionString = sb.toString();
 }
@@ -877,8 +801,7 @@ be called in a loop for many parses().  At its worst case, performance-wise
 it is equivalent to calling parse() a number of times equal to the number of
 characters in all the format specifiers in the DateTimeFormat string.  At its 
 best, it is equivalent to calling parse() twice.  <p>
-As such, care should be used when calling this method.  It should be used 
-rarely.
+As such, care should be used when calling this method.  It should be used rarely.
 @param inputString the DateTime string to try to parse.
 @return a String array containing the following information:<p>
 [0] = Parsing of "INPUT" failed. <br>
@@ -898,8 +821,7 @@ An example of one of these return arrays is:<p>
 [5] = "The regular expression that caused parsing failure was: "(\d\d\-).*".<p>
 While not all this info is necessary for users, in the event of a failure 
 it can be printed to the log file for developers to debug.<p>
-<b>NOTE:</b> If inputString can be parsed properly by the parsing, the return
-value will be null.
+<b>NOTE:</b> If inputString can be parsed properly by the parsing, the return value will be null.
 */
 public String[] explainParseFailureOld(String inputString) {
 	boolean done = false;
@@ -918,8 +840,7 @@ public String[] explainParseFailureOld(String inputString) {
 	// time until it finds where the validation fails.  It can then tell
 	// which character in the input string caused the failure.  
 	
-	// Given a format String "mm-dd", the following is its regular
-	// expression for parsing:
+	// Given a format String "mm-dd", the following is its regular expression for parsing:
 	//	(\d\d)-(\d\d)
 	
 	// When this method is called, it will try to generate and run all the
@@ -950,8 +871,7 @@ public String[] explainParseFailureOld(String inputString) {
 		}
 
 		if (pos >= length) {
-			// at the very end of the String, so try to run the
-			// String as is.
+			// at the very end of the String, so try to run the String as is.
 			done = true;
 			runParse = false;
 		}
@@ -972,10 +892,8 @@ public String[] explainParseFailureOld(String inputString) {
 
 			if (pos < (length - 1)) {
 				// check for repeat characters ("*","+","?")
-				if (chars[pos + 1] == '*' 
-				    || chars[pos + 1] == '+' 
-				    || chars[pos + 1] == '?') {
-				    	s += chars[pos + 1];
+				if (chars[pos + 1] == '*' || chars[pos + 1] == '+' || chars[pos + 1] == '?') {
+				    s += chars[pos + 1];
 					pos++;
 					runParse = true;
 				}
@@ -1000,16 +918,12 @@ public String[] explainParseFailureOld(String inputString) {
 				errorLocation += "^";
 			
 				String[] errors = new String[5];
-				errors[0] = "Parsing of \"" + inputString 
-					+ "\" failed.";
+				errors[0] = "Parsing of \"" + inputString + "\" failed.";
 				errors[1] = inputString;
 				errors[2] = errorLocation;
-				errors[3] = "The original regular expression "
-					+ "used to try parsing was: \""
+				errors[3] = "The original regular expression used to try parsing was: \""
 					+ __regularExpressionString + "\".";
-				errors[4] = "The regular expression that "
-					+ "caused parsing failure was: \""
-					+ etc + "\".";
+				errors[4] = "The regular expression that caused parsing failure was: \"" + etc + "\".";
 				return errors;
 			}
 			else {
@@ -1034,16 +948,14 @@ be parsed.  An example of the return array is:<p>
 [4] = "The regular expression that caused parsing failure was: "
       "(\d\d\d\d)-(\d\d)-."<br>
 @param inputString the inputString to attempt parsing.
-@return a 5-element String array explaining why the input string could not be 
-parsed.
+@return a 5-element String array explaining why the input string could not be parsed.
 */
 public String[] explainParseFailure(String inputString) {
 	// This essentially tries to validate the string one character at a 
 	// time until it finds where the validation fails.  It can then tell
 	// which character in the input string caused the failure.  
 	
-	// Given a format String "mm-dd", the following is its regular
-	// expression for parsing:
+	// Given a format String "mm-dd", the following is its regular expression for parsing:
 	//	(\d\d)-(\d\d)
 	
 	// When this method is called the first time, it will generate and 
@@ -1066,44 +978,38 @@ public String[] explainParseFailure(String inputString) {
 
 	if (__failurePatterns == null) {
 		boolean buildPattern = false;
-			// whether to build a Pattern from the current reg ex
-			// String
+			// Whether to build a Pattern from the current reg ex string
 		boolean done = false;
-			// whether the entire regex string has been converted
-			// to patterns or not.
+			// Whether the entire regex string has been converted to patterns or not.
 		boolean escape = false;
-			// whether the character needs escaped or not.
-		char[] chars = __regularExpressionString.toString()
-			.toCharArray();
-			// the character array to run through in generating
-			// the regular expressions
+			// Whether the character needs escaped or not.
+		char[] chars = __regularExpressionString.toString().toCharArray();
+			// The character array to run through in generating the regular expressions
 		int length = __regularExpressionString.length();
 		int pos = 0;
 		Pattern pattern = null;
 		String etc = "";
 		String s = "";
 		List patterns = new Vector();
-			// holds the Pattern objects that are created
+			// Holds the Pattern objects that are created
 		List patternStrings = new Vector();
-			// holds the regular expressions used to create the
-			// Patterns in the patterns Vector.
+			// Holds the regular expressions used to create the
+			// Patterns in the patterns list.
 
 		while (!done) {
 			buildPattern = false;
 			escape = false;
 	
-			// Java will handle any Unicode issues as long as
-			// the regular 'char' data type is used.
+			// Java will handle any Unicode issues as long as the regular 'char' data type is used.
 			if (chars[pos] == '\\') {
-				// an escaped character, add the next char
+				// An escaped character, add the next char
 				s += "\\";
 				escape = true;
 				pos++;
 			}
 	
 			if (pos >= length) {
-				// at the very end of the String, so build the
-				// Pattern.
+				// At the very end of the String, so build the Pattern.
 				done = true;
 				buildPattern = false;
 			}
@@ -1123,12 +1029,9 @@ public String[] explainParseFailure(String inputString) {
 				}
 	
 				if (pos < (length - 1)) {
-					// check for repeat characters 
-					// ("*","+","?")
-					if (chars[pos + 1] == '*' 
-					    || chars[pos + 1] == '+' 
-					    || chars[pos + 1] == '?') {
-					    	s += chars[pos + 1];
+					// Check for repeat characters ("*","+","?")
+					if (chars[pos + 1] == '*' || chars[pos + 1] == '+' || chars[pos + 1] == '?') {
+					    s += chars[pos + 1];
 						pos++;
 						buildPattern = true;
 					}
@@ -1136,8 +1039,7 @@ public String[] explainParseFailure(String inputString) {
 			}
 	
 			if (pos >= (length - 1)) {	
-				// at the end of the String, so build the 
-				// Pattern
+				// At the end of the String, so build the pattern
 				done = true;
 				buildPattern = true;
 			}
@@ -1172,10 +1074,8 @@ public String[] explainParseFailure(String inputString) {
 
 	for (int i = 0; i < size; i++) {
 		if (__last > 0) {
-			Matcher pass = __failurePatterns[__last - 1]
-				.matcher(inputString);
-			Matcher fail = __failurePatterns[__last]
-				.matcher(inputString);
+			Matcher pass = __failurePatterns[__last - 1].matcher(inputString);
+			Matcher fail = __failurePatterns[__last].matcher(inputString);
 			if (pass.matches() && !fail.matches()) {
 				lastGroup = pass.group(1);
 				dieFast = true;	
@@ -1199,15 +1099,12 @@ public String[] explainParseFailure(String inputString) {
 			errorLocation += "^";
 		
 			String[] errors = new String[5];
-			errors[0] = "Parsing of \"" + inputString 
-				+ "\" failed.";
+			errors[0] = "Parsing of \"" + inputString + "\" failed.";
 			errors[1] = inputString;
 			errors[2] = errorLocation;
-			errors[3] = "The original regular expression "
-				+ "used to try parsing was: \""
+			errors[3] = "The original regular expression used to try parsing was: \""
 				+ __regularExpressionString + "\".";
-			errors[4] = "The regular expression that "
-				+ "caused parsing failure was: \""
+			errors[4] = "The regular expression that caused parsing failure was: \""
 				+ __failurePatternStrings[i]+ "\".";
 			__last = i;
 			return errors;
@@ -1225,19 +1122,16 @@ private String[] __failurePatternStrings;
 
 /**
 Once a Regular Expression Matcher has successfully matched a DateTime string 
-to a regular expression, move the values that were found with the Matcher into 
-a DateTime object.<p>
+to a regular expression, move the values that were found with the Matcher into a DateTime object.<p>
 This method is called by "parse()" once parse() has determined that a string
 being parsed fits the pattern of the Regular Expression Matcher.
-@param matcher the Matcher that was used to match a String to a regular 
-expression.
+@param matcher the Matcher that was used to match a String to a regular expression.
 @param dt the DateTime object to fill with the matched values.  If null, 
 a new DateTime object will be instantiated.
 */
 private DateTime fillDateTime(Matcher matcher, DateTime dt) {	
 	// NOTE (JTS - 2005-10-24)
-	// For future reference, should another developer try to improve
-	// performance here:
+	// For future reference, should another developer try to improve performance here:
 	// - tried using a DateTime instantiated here and returned with the 
 	//   values in it.  Each time, the same DateTime would be used rather
 	//   than creating one every time.  This offers a decent speed 
@@ -1248,29 +1142,26 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 	//      In order to do this again, add a static DateTime object to
 	//   this class and instantiate it once in the static{} block.  
 	//   Call setToZero() on it in this method each time and set its values
-	//   here and then return it instead of the one that is instantiated 
-	//   in this method.
+	//   here and then return it instead of the one that is instantiated in this method.
 	// - turning off STRICT processing, but not turning on FAST (eg, 
 	//   passing in a flag value of 0).  Processing actually slowed down 
-	//   slightly (~2%) due to how the flags are handled internally in the
-	//   DateTime class.
+	//   slightly (~2%) due to how the flags are handled internally in the DateTime class.
 	// This is not a REVISIT because there is nothing to REVISIT.  This is
 	// a note to future developers who may think there are optimizations
 	// that can be done here.
 
 	boolean hasTimeZone = false;	
-		// whether the date being filled will need to have a time zone
-		// set or not
+		// Whether the date being filled will need to have a time zone set or not
 	int highestPrecision = -1;
-		// the "highest" precision found while filling the DateTime.  
+		// The "highest" precision found while filling the DateTime.  
 		// Finer-grained units of time have higher precision, so a 
 		// Day has higher precision than Month or Year, but lower
 		// precision than Hour, Minutes, etc.
 	int val = -1;
-		// the integer value of the value matched by the regular
+		// The integer value of the value matched by the regular
 		// expression Matcher.
 	String matchedString = null;
-		// the String matched by the regular expression Matcher.
+		// The String matched by the regular expression Matcher.
 
 	// The following is primarily used to pass in the DATE_FAST flag, which
 	// results in a slight (10-15%) performance gain.
@@ -1285,14 +1176,12 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 	}
 
 	for (int i = 0; i < __sortedFormatSpecifierTypes.length; i++) {
-		if (__sortedFormatSpecifierTypes[i] > highestPrecision
-		    && __sortedFormatSpecifierTypes[i] != __TZ) {
+		if (__sortedFormatSpecifierTypes[i] > highestPrecision && __sortedFormatSpecifierTypes[i] != __TZ) {
 			highestPrecision = __sortedFormatSpecifierTypes[i];
 		}
 	
-		// matcher.group(0) is equivalent to matcher.group(), which
-		// returns the entire string that was matched against (ie, the
-		// date string being parsed).
+		// Matcher.group(0) is equivalent to matcher.group(), which
+		// returns the entire string that was matched against (i.e., the date string being parsed).
 	
 		matchedString = matcher.group(i + 1);
 	
@@ -1303,8 +1192,7 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 				// translate any years less than 30 to mean
 				// the 21st century, and any greater than or
 				// equal to 30 be in the 20th century.  This is
-				// consistent with the standard Microsoft Y2K
-				// default handling. 
+				// consistent with the standard Microsoft Y2K default handling. 
 				if (matchedString.length() == 2) {
 					val = StringUtil.atoi(matchedString);
 					if (val < 30) {
@@ -1344,8 +1232,7 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 				// hundredth-of-second values.  Because the
 				// first value is the tenths of digits, if it
 				// is the only part showing it must be
-				// multiplied by 10 to have the proper 
-				// magnitude.
+				// multiplied by 10 to have the proper magnitude.
 				if (matchedString.length() == 2) {
 					val = StringUtil.atoi(matchedString);
 				}
@@ -1364,8 +1251,7 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 		}
 	}
 
-	// Determine what the precision of the parsed DateTime should be
-	// set to.
+	// Determine what the precision of the parsed DateTime should be set to.
 
 	int precision = -1;
 
@@ -1397,8 +1283,7 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 
 	if (precision != -1) {
 		if (hasTimeZone) {
-			dt.setPrecision(precision 
-			    	| DateTime.PRECISION_TIME_ZONE);
+			dt.setPrecision(precision | DateTime.PRECISION_TIME_ZONE);
 		}
 		else {
 			dt.setPrecision(precision);
@@ -1413,15 +1298,13 @@ private DateTime fillDateTime(Matcher matcher, DateTime dt) {
 
 /**
 Given a relative date/time and an absolute date/time, this fills the missing 
-values in the relative date/timewith the values from the absolute date/time.<p>
+values in the relative date/time with the values from the absolute date/time.<p>
 For example, if the relative date/time was "14:55" and the absolute date/time
 was "2006-05-23 12:30:44", the relative date/time would be filled with the
 year, month, day and seconds from the absolute date/time, resulting in
 a new relative date/time of "2006-05-23 14:55:44".
-@param relDate the relative date/time to fill.  This date/time will be changed
-in this method.
-@param absDate the absolute date/time to use for filling the relative 
-date/time with.
+@param relDate the relative date/time to fill.  This date/time will be changed in this method.
+@param absDate the absolute date/time to use for filling the relative date/time with.
 */
 public void fillRelativeDateTime(DateTime relDate, DateTime absDate) {
 	for (int i = 0; i < __datePieces.length; i++) {
@@ -1458,8 +1341,7 @@ Cleans up member variables.
 public void finalize()
 throws Throwable {
 	// NOTE: 
-	// Some data members are cleaned up in cleanup(), so it is unnecessary
-	// to finalize them here.
+	// Some data members are cleaned up in cleanup(), so it is unnecessary to finalize them here.
 
 	__datePieces = null;
 	__sortedFormatSpecifierLengths = null;
@@ -1500,51 +1382,45 @@ for.  This corresponds to the different types of format specifiers available
 for each format specifier type (e.g, for __YEAR, format specifier #0 is "yyyy" 
 and format specifier #1 is "yy").  See <code>String[] __formatSpecifiers</code>.
 */
-private void findFormatSpecifierOccurrences(int formatSpecifierType, 
-int formatSpecifierNum) {
-	String formatSpecifier 
-		= __formatSpecifiers[formatSpecifierType][formatSpecifierNum];
-		// the format specifier denoted by the parameters to this 
+private void findFormatSpecifierOccurrences(int formatSpecifierType, int formatSpecifierNum) {
+	String formatSpecifier = __formatSpecifiers[formatSpecifierType][formatSpecifierNum];
+		// The format specifier denoted by the parameters to this 
 		// method, and which is being sought within the format string
 	
 	boolean done = false;
-		// whether the method is done searching through the string
+		// Whether the method is done searching through the string
 	int start = 0;
-		// the starting point from which to search through the string
-		// for the formatSpecifier.
+		// The starting point from which to search through the string for the formatSpecifier.
 	int index = __format.indexOf(formatSpecifier, start);
-		// the index of where the formatSpecifier was found within 
-		// the string
+		// The index of where the formatSpecifier was found within the string
 	int length = formatSpecifier.length();
-		// the length of the formatSpecifier
+		// The length of the formatSpecifier
 	List locs = new Vector();
-		// holds the locations (in Integer format) of the points within
+		// Holds the locations (in Integer format) of the points within
 		// the date/time format String where the formatSpecifier can be found
 
 	// Loop through the format String ...
 
 	while (index != -1 && !done) {
 		if (__formatCharacters[index] == __used) {
-			// skip it -- found by a higher-priority format 
+			// Skip it -- found by a higher-priority format 
 			// specifier and marked as used.  "Higher-priority" 
-			// means that the format specifier is searched for 
-			// before others.  
+			// means that the format specifier is searched for before others.  
 			// For example, if a format is "Year: yyyy", then 
 			// "yyyy" will first be matched by the higher-priority
 			// format specifier of "yyyy" and processed.  If it
 			// were processed by the lower-priority format specifier
 			// ("yy"), it would be translated into two two-digit
-			// year values, rather than a single four-digit year
-			// value.
+			// year values, rather than a single four-digit year value.
 			start++;
 		}
 		else if (isEscaped(formatSpecifier, index)) {
-			// skip -- this is an escaped literal character, not 
+			// Skip -- this is an escaped literal character, not 
 			// one that should be in a format specifier.
 			start++;
 		}
 		else {
-			// found a format specifier.  First, mark this format 
+			// Found a format specifier.  First, mark this format 
 			// specifier as used so that later format specifier 
 			// collections will not attempt to reuse it.
 			for (int i = index; i < (index + length); i++) {
@@ -1552,17 +1428,14 @@ int formatSpecifierNum) {
 			}
 
 			// The above is done so that "yyyy" will only be parsed
-			// as a four-digit year, rather than as two two-digit
-			// years.
+			// as a four-digit year, rather than as two two-digit years.
 
 			// If the characters were not marked as __used, they
-			// would be matched and re-matched by lower-priority 
-			// format specifiers.  
+			// would be matched and re-matched by lower-priority format specifiers.  
 
 			// For instance, in this format string: "yyyy-mm"
 			// once "yyyy" is matched, this format becomes 
-			// "xxxx-mm" (though instead of "x" it is an EOT 
-			// character).  
+			// "xxxx-mm" (though instead of "x" it is an EOT character).  
 
 			// If it weren't, then when the next kind of year 
 			// format specifier was sought, it would find match
@@ -1570,17 +1443,14 @@ int formatSpecifierNum) {
 			// That would be an error.
 
 			// At the same time, it is legal to re-use a format
-			// specifier more than once within a format, so that
-			// must be accounted for.
+			// specifier more than once within a format, so that must be accounted for.
 
-			// add the current location as one where this format 
-			// specifier can be found.
+			// Add the current location as one where this format specifier can be found.
 			locs.add(new Integer(index));
 
-			// increment start so that next time a format specifier 
+			// Increment start so that next time a format specifier 
 			// is searched for within the string it will not look 
-			// at any of the characters occupied by the format 
-			// specifier.
+			// at any of the characters occupied by the format specifier.
 			start = index + length;
 		}
 
@@ -1592,15 +1462,13 @@ int formatSpecifierNum) {
 		}
 	}
 
-	// Translate the locs Vector into an array and put its values into
+	// Translate the locs list into an array and put its values into
 	// __formatSpecifierLocations.
 
-	__formatSpecifierLocations[formatSpecifierType][formatSpecifierNum] 
-		= new int[locs.size()];
+	__formatSpecifierLocations[formatSpecifierType][formatSpecifierNum] = new int[locs.size()];
 	int size = locs.size();
 	for (int i = 0; i < size; i++) {
-		__formatSpecifierLocations[formatSpecifierType]
-			[formatSpecifierNum][i] = ((Integer)locs.get(i)).intValue();
+		__formatSpecifierLocations[formatSpecifierType][formatSpecifierNum][i] = ((Integer)locs.get(i)).intValue();
 	}
 }
 
@@ -1665,29 +1533,20 @@ public String format(DateTime dt) {
 	
 		if (__sortedFormatSpecifierTypes[i] != __TZ) {
 			if (__sortedFormatSpecifierTypes[i] == __YEAR) {
-				// Years need to be handled specially.  4-digit
-				// years can be output as they are, but 
-				// otherwise, just take the final two digits 
-				// from the year and output it.
+				// Years need to be handled specially.  4-digit years can be output as they are, but 
+				// otherwise, just take the final two digits from the year and output it.
 				if (__sortedFormatSpecifierLengths[i] != 4) {
-					// formats the output as a two-digit
-					// year.  First, the year has to be
-					// modded to get only the tends and 
-					// ones values from it.  
+					// Formats the output as a two-digit year.  First, the year has to be
+					// modded to get only the tends and ones values from it.  
 					val = val % 100;
-					temp = StringUtil.formatString(val, 
-						"%02d");
+					temp = StringUtil.formatString(val, "%02d");
 					sb.append(temp);
 				}
 				else {
-					// Formats the date as a string at 
-					// least 4 characters long (errors will
+					// Formats the date as a string at least 4 characters long (errors will
 					// occur with years greater than 9999)
-					format = "%0" 
-					     + __sortedFormatSpecifierLengths[i]
-					     + "d";
-					sb.append(StringUtil.formatString(
-						val, format));
+					format = "%0" + __sortedFormatSpecifierLengths[i] + "d";
+					sb.append(StringUtil.formatString(val, format));
 				}
 			}
 			else if (__sortedFormatSpecifierTypes[i] == __HSECOND) {
@@ -1704,9 +1563,7 @@ public String format(DateTime dt) {
 			}
 			else {
 				// All other types are simple formatting.
-				format = "%0" 
-					+ __sortedFormatSpecifierLengths[i] 
-					+ "d";
+				format = "%0" + __sortedFormatSpecifierLengths[i] + "d";
 				sb.append(StringUtil.formatString(val, format));
 			}
 		}
@@ -1717,11 +1574,9 @@ public String format(DateTime dt) {
 		}
 	}
 	
-	// Finally, append the literal characters that appear at 
-	// the end of the format String.
+	// Finally, append the literal characters that appear at the end of the format String.
 	
-	sb.append(__formatSpecifierLiteralSurroundingValues[
-		__formatSpecifierLiteralSurroundingValues.length - 1]);
+	sb.append(__formatSpecifierLiteralSurroundingValues[__formatSpecifierLiteralSurroundingValues.length - 1]);
 
 	return sb.toString();
 }
@@ -1736,8 +1591,7 @@ public String getFormat() {
 
 /**
 Given a range of precisions, returns formats that can be displayed as choices 
-for formatting.  The precisions passed to this method filter the choices to 
-be shown.  <p>
+for formatting.  The precisions passed to this method filter the choices to be shown.  <p>
 No formats containing values
 less precise than the first precision will be shown, and no formats containing
 values more precise than the second precision will be shown.  For instance,
@@ -1748,20 +1602,18 @@ contains year formatting information, and that is less precise than Month.
 @param maxInterval the highest (least precise) interval for which to list 
 formats. This value should be less precise or equal to than the minInterval 
 value.  For instance, if this value is DateTime.PRECISION_MONTH, the other 
-parameter should not be DateTime.PRECISION_YEAR, but could be 
-DateTime.PRECISION_DAY.
+parameter should not be DateTime.PRECISION_YEAR, but could be DateTime.PRECISION_DAY.
 @param minInterval the lowest (most precise) interval for which to list 
 formats. This value should be more precise or equal to than the maxInterval 
 value.  For instance, if this value is DateTime.PRECISION_MONTH, the other 
-parameter should not be DateTime.PRECISION_MINUTE, but could be 
-DateTime.PRECISION_YEAR.
+parameter should not be DateTime.PRECISION_MINUTE, but could be DateTime.PRECISION_YEAR.
 @param showExample if true, then the formats shown in the choices will be
 followed by an example date formatted with the given format.
-@return a Vector of choices suitable for use in a JComboBox.
+@return a list of choices suitable for use in a JComboBox.
 */
-public static List getFormatChoices(int maxInterval, int minInterval,
-boolean includeTZ, boolean showExample) {
-	List choices = new Vector();
+public static List<String> getFormatChoices(int maxInterval, int minInterval, boolean includeTZ, boolean showExample)
+{
+	List<String> choices = new Vector();
 	if (maxInterval == DateTime.PRECISION_YEAR) {	
 		if (minInterval == DateTime.PRECISION_YEAR) {
 			choices.add("yyyy");
@@ -1911,11 +1763,11 @@ boolean includeTZ, boolean showExample) {
 	}
 
 	if (includeTZ) {
-		List v = new Vector();
+		List<String> v = new Vector();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			s = (String)choices.get(i);
+			s = choices.get(i);
 			s += " tz";
 			v.add(s);
 		}
@@ -1925,11 +1777,11 @@ boolean includeTZ, boolean showExample) {
 	if (showExample) {
 		DateTime dt = new DateTime(DateTime.DATE_CURRENT);
 		DateTimeFormat dtf = null;
-		List v = new Vector();
+		List<String> v = new Vector();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {
-			s = (String)choices.get(i);
+			s = choices.get(i);
 			dtf = new DateTimeFormat(s);
 			v.add(s + " (" + dtf.format(dt) + ")");
 		}
@@ -1940,23 +1792,19 @@ boolean includeTZ, boolean showExample) {
 }
 
 /**
-Returns the current date/time formatted in the specified format, 
-suitable for display in a GUI.  
+Returns the current date/time formatted in the specified format, suitable for display in a GUI.  
 @param format the format for which to return a sample DateTime.
-@return a date string formatted with the given format, or null if an error
-occurred formatting the date.
+@return a date string formatted with the given format, or null if an error occurred formatting the date.
 */
 public static String getSampleDateString(String format) {
 	return getSampleDateString(null, format);
 }
 
 /**
-Returns the specified date formatted in the given format, suitable for display 
-in a GUI.  
+Returns the specified date formatted in the given format, suitable for display in a GUI.  
 @param dt the DateTime to format in the given format.
 @param format the format for which to return a sample DateTime.
-@return a date string formatted with the given format, or null if an error
-occurred formatting the date.
+@return a date string formatted with the given format, or null if an error occurred formatting the date.
 */
 public static String getSampleDateString(DateTime dt, String format) {
 	if (dt == null) {
@@ -1981,8 +1829,7 @@ private int[] getSortedFormatSpecifierTypes() {
 
 /**
 Returns whether the format includes the given date/time piece.  This can be 
-used to determine easily whether a format will display years, for instance, 
-by:<p>
+used to determine easily whether a format will display years, for instance, by:<p>
 <code><pre>
 	DateTimeFormat dtf = ...
 	...
@@ -2003,8 +1850,7 @@ private boolean hasFormatSpecifier(int datePiece) {
 */
 
 /**
-Returns whether the format in this Object is absolute or not.  See
-isAbsolute(String format).
+Returns whether the format in this Object is absolute or not.  See isAbsolute(String format).
 @return if the date format is absolute, false if not.
 */
 public boolean isAbsolute() {
@@ -2015,14 +1861,12 @@ public boolean isAbsolute() {
 Checks to see if a DateTimeFormat string represents an absolute date or not.
 A date is considered absolute if it contains Year, or Year and Month, or Year
 and Month and Day, etc., on through Year to Hundredth-of-second.  If the
-format refers to a specific point in time, then it is absolute.  If not, it
-is relative.<p>
+format refers to a specific point in time, then it is absolute.  If not, it is relative.<p>
 For example:<p>
 "yyyy-mm" specifies to a specific year and month.  Though it is not any more 
 precise than that, it is still a specific point in time and is absolute.<p>
 "yyyy-dd" specifies a specific year and specific day, but the month is not 
-specified and thus this format could refer to any month within the given year.
-It is not absolute.<p>
+specified and thus this format could refer to any month within the given year. It is not absolute.<p>
 "mm-dd" specifies a specific month and day, but not a specific year and thus
 could apply to any year.  It is not absolute.
 @param format the DateTime format String to check.
@@ -2087,13 +1931,12 @@ character was not escaped and thus this is an actual date format specifier.
 */
 private boolean isEscaped(String formatSpecifier, int index) {
 	if (index == 0) {	
-		// impossible to have a "\" in the -1st position, so this 
-		// is a valid formatSpecifier.
+		// Impossible to have a "\" in the -1st position, so this is a valid formatSpecifier.
 		return false;
 	}
 
 	if (index == 1) {
-		// only have to check back one character (not possible
+		// Only have to check back one character (not possible
 		// to have another "\" at the -1st position)
 		if (__format.indexOf("\\" + formatSpecifier) == 0) {
 			return true;
@@ -2105,12 +1948,10 @@ private boolean isEscaped(String formatSpecifier, int index) {
 		// format specifier is escaped, that its escape value isn't 
 		// actually escaped itself.  That is, this:
 		// 	\\mm  
-		//	(an escaped "\" followed by a two-digit month format 
-		//	specifier)
+		//	(an escaped "\" followed by a two-digit month format specifier)
 		// is NOT the same as:
 		// 	\mm
-		//	(an escaped "m" followed by a one-digit month format 
-		//	specifier)
+		//	(an escaped "m" followed by a one-digit month format specifier)
 		int count = 0;
 		int back = index - 1;
 		while (back >= 0 && __format.charAt(back) == '\\') {
@@ -2125,8 +1966,7 @@ private boolean isEscaped(String formatSpecifier, int index) {
 }
 
 /**
-Checks to see if any format specifier was marked as occurring at the given index
-in the format String.
+Checks to see if any format specifier was marked as occurring at the given index in the format String.
 @param index the index at which to see if any format specifier is found.
 @return the index of the format specifier (within the __sortedFormatSpecifier* 
 arrays) found at the specified index, or -1 if none occur at the given position.
@@ -2179,8 +2019,7 @@ year, when the time is 11:30 AM.<p>
 - 2006-10-03 11:30<p>
 <b>Example 2</b><p>
 "mm-dd MM"  (2005-03-18 20:00)<p>
-This example will iterate through the start of all the hours in March 18, for
-every year.<p>
+This example will iterate through the start of all the hours in March 18, for every year.<p>
 - 2005-03-18 21:00<br>
 - 2005-03-18 22:00<br>
 - 2005-03-18 23:00<br>
@@ -2198,11 +2037,9 @@ This example will iterate through every day of every year, at 12:45:15.<p>
 so if its original values should be maintained, a copy should be made prior to
 calling this method.
 @param dt the DateTime to iterate.  This DateTime object is changed within the
-method and returned, so if its original values should be retained a copy should
-be made.
+method and returned, so if its original values should be retained a copy should be made.
 @return the next relative DateTime forward in time from the given date.
-REVISIT (JTS - 2005-11-01)
-Perhaps transition this into nextRelativeDateTime / previousRelativeDateTime
+TODO (JTS - 2005-11-01) Perhaps transition this into nextRelativeDateTime / previousRelativeDateTime
 in the future when iteration in both directions is necessary.
 */
 public DateTime iterateRelativeDateTime(DateTime dt) {
@@ -2353,8 +2190,7 @@ private boolean needsEscaped(char ch) {
 /**
 Parses the given input date and returns a DateTime containing its values.  If
 the input string could not be parsed, null will be returned.  See 
-<code>explainParseFailure()</code> if further information is necessary as to why
-a parse failed.
+<code>explainParseFailure()</code> if further information is necessary as to why a parse failed.
 @param inputString the input string containing a date to parse.
 @return a DateTime with the given input String's values.
 @throws Exception if the inputString could not be parsed.
@@ -2367,13 +2203,11 @@ throws Exception {
 /**
 Parses the given input date and returns a DateTime containing its values.  If
 the input string could not be parsed, null will be returned.  See 
-<code>explainParseFailure()</code> if further information is necessary as to why
-a parse failed.
+<code>explainParseFailure()</code> if further information is necessary as to why a parse failed.
 @param inputString the input string containing a date to parse.
 @param dt the DateTime object to fill with the values in the given 
 inputString.
-@return a DateTime with the given input String's values.  If null, a new one
-will be created.
+@return a DateTime with the given input String's values.  If null, a new one will be created.
 @throws Exception if the inputString could not be parsed.
 */
 public DateTime parse(String inputString, DateTime dt) 
@@ -2381,8 +2215,7 @@ throws Exception {
 	Matcher matcher = __pattern.matcher(inputString);
 
 	if (!matcher.matches()) {
-		throw new Exception("Could not parse the input string \""
-			+ inputString + "\".");
+		throw new Exception("Could not parse the input string \"" + inputString + "\".");
 	}
 	else {
 		return fillDateTime(matcher, dt);
@@ -2429,44 +2262,33 @@ public String toString(boolean verbose) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("DateTimeFormat \n"
 			+ "  Format: '" + __format + "'\n"
-			+ "  Regular Expression: '" 
-				+ __regularExpressionString + "'\n"
-			+ "DateTime Constructor Flag: "
-				+ __parseDateConstructorFlag + "\n\n"
+			+ "  Regular Expression: '" + __regularExpressionString + "'\n"
+			+ "DateTime Constructor Flag: " + __parseDateConstructorFlag + "\n\n"
 			+ "Sorted FormatSpecifier Data:\n");
 
 		if (__sortedFormatSpecifierLengths.length == 1) {
 			sb.append("   (1 FormatSpecifier)");
 		}
 		else {
-			sb.append("   (" 
-				+ __sortedFormatSpecifierLengths.length 
-				+ " FormatSpecifiers)\n");
+			sb.append("   (" + __sortedFormatSpecifierLengths.length + " FormatSpecifiers)\n");
 		}
 
 		for (int i = 0; i < __sortedFormatSpecifierLengths.length; i++){
-			sb.append("   [" + i + "] Loc: "
-				+ __sortedFormatSpecifierLocations[i] 
-				+ "   Len: "
-				+ __sortedFormatSpecifierLengths[i] 
-				+ "   Type: "
-				+ toString(__sortedFormatSpecifierTypes[i]) 
-				+ "  RegEx: '"
-				+ __sortedFormatSpecifierRegExs[i] + "'\n");
+			sb.append("   [" + i + "] Loc: " + __sortedFormatSpecifierLocations[i] 
+				+ "   Len: " + __sortedFormatSpecifierLengths[i] 
+				+ "   Type: " + toString(__sortedFormatSpecifierTypes[i]) 
+				+ "  RegEx: '" + __sortedFormatSpecifierRegExs[i] + "'\n");
 		}
 
 		sb.append("\nLiteral Surrounding Values:\n");
 		for (int i = 0; 
 		    i < __formatSpecifierLiteralSurroundingValues.length; i++) {
-			sb.append("   [" + i + "]: '" 
-				+ __formatSpecifierLiteralSurroundingValues[i] 
-				+ "'\n");
+			sb.append("   [" + i + "]: '" + __formatSpecifierLiteralSurroundingValues[i] + "'\n");
 		}
 
 		sb.append("\nDate Pieces:\n");
 		for (int i = 0; i < __datePieces.length; i++) {
-			sb.append("   [" + toString(i) + "]: " 
-				+ __datePieces[i] + "\n");
+			sb.append("   [" + toString(i) + "]: " + __datePieces[i] + "\n");
 		}
 
 		return sb.toString();
@@ -2474,21 +2296,20 @@ public String toString(boolean verbose) {
 }
 
 /**
-Converts an integer representation of a date/time piece (__YEAR, __MONTH, 
-__DAY, etc) into a String.
+Converts an integer representation of a date/time piece (__YEAR, __MONTH, __DAY, etc) into a String.
 @return a String representation of a date/time piece.
 */
 public String toString(int datePiece) {
 	switch (datePiece) {
-		case __YEAR:	return "Year";
-		case __MONTH:	return "Month";
+		case __YEAR: return "Year";
+		case __MONTH: return "Month";
 		case __DAY:	return "Day";
-		case __HOUR:	return "Hour";
-		case __MINUTE:	return "Minute";
-		case __SECOND:	return "Second";
+		case __HOUR: return "Hour";
+		case __MINUTE: return "Minute";
+		case __SECOND: return "Second";
 		case __HSECOND:	return "HSecond";
-		case __TZ:	return "TZ";
-		default:	return "Invalid value: " + datePiece;
+		case __TZ: return "TZ";
+		default: return "Invalid value: " + datePiece;
 	}
 }
 
