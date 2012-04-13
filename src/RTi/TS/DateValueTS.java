@@ -1887,7 +1887,7 @@ throws Exception
 
 	// Loop through the time series and make sure they have the same interval...
 
- 	int dataIntervalBase = 0;
+ 	int dataIntervalBase = TimeInterval.UNKNOWN;
 	int dataIntervalMult = 0;
 	int iDataIntervalBase = 0;
 	int iDataIntervalMult = 0;
@@ -1898,22 +1898,25 @@ throws Exception
 	double mult[] = new double[size + 1];
 	double add[] = new double[size + 1];
 	DataUnitsConversion conversion;
+	int nonNullCount = 0;
 	for ( int i = 0; i < size; i++ ) {
 		mult[i] = 1.0;
 		add[i] = 0.0;
 		ts = tslist.get(i);
 		if ( ts != null ) {
+		    ++nonNullCount;
 			iDataIntervalBase = ts.getDataIntervalBase();
 			iDataIntervalMult = ts.getDataIntervalMult();
-		}
-		if ( i == 0 ) {
-			dataIntervalBase = iDataIntervalBase;
-			dataIntervalMult = iDataIntervalMult;
-		}
-		else if ( (dataIntervalBase != iDataIntervalBase) || (dataIntervalMult != iDataIntervalMult) ) {
-			message = "Time series do not have the same interval.  Can't write";
-			Message.printWarning ( 2, routine, message );
-			throw new UnequalTimeIntervalException ( message );
+    		if ( nonNullCount == 1 ) {
+    		    // First non-null time series so initialize interval
+    			dataIntervalBase = iDataIntervalBase;
+    			dataIntervalMult = iDataIntervalMult;
+    		}
+    		else if ( (dataIntervalBase != iDataIntervalBase) || (dataIntervalMult != iDataIntervalMult) ) {
+    			message = "Time series do not have the same interval.  Can't write";
+    			Message.printWarning ( 2, routine, message );
+    			throw new UnequalTimeIntervalException ( message );
+    		}
 		}
 		// Get the conversion factors to use for output.  Don't call
 		// TSUtil.convertUnits because we don't want to alter the time series itself...
@@ -2429,8 +2432,8 @@ throws Exception
 	        }
         }
 	}
-	else {
-	    // Regular interval...
+	else if ( (dataIntervalBase != TimeInterval.IRREGULAR) && (outputStart != null) && (outputEnd != null) ) {
+	    // Regular interval and have period to output...
 		t = new DateTime ( outputStart);
 		// Make sure no time zone is set to minimize output...
 		t.setTimeZone ("");
