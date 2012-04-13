@@ -2041,7 +2041,7 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_ts_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_ts_datalabelformat_JComboBox.addItemListener ( this );
-	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true );
+	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true, true );
 	for ( int i = 0; i < formats.length; i++ ) {
 		_ts_datalabelformat_JComboBox.addItem ( formats[i] );
 	}
@@ -2779,7 +2779,7 @@ private JPanel createSubproductJPanel ()
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	_graph_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_graph_datalabelformat_JComboBox.addItemListener ( this );
-	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true );
+	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true, true );
 	for ( int i = 0; i < formats.length; i++ ) {
 		_graph_datalabelformat_JComboBox.addItem ( formats[i] );
 	}

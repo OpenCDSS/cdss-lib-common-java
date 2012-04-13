@@ -51,21 +51,9 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
     {
         setLayout ( new GridBagLayout() );
         Insets insetsTLBR = new Insets(0,0,0,0);
-        if ( width > 0 ) {
-            __inputJTextField = new JTextField ( width );
-        }
-        else {
-            __inputJTextField = new JTextField ();
-        }
-        __inputJTextField.setToolTipText(
-            "Enter a combination of literal strings and/or format specifiers from the list on the right.");
+
         int y = 0;
         int x = 0;
-        JGUIUtil.addComponent(this, __inputJTextField,
-            x, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-        x += 2;
-        JGUIUtil.addComponent(this, new JLabel(" Insert:"),
-            x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
         __formatJComboBox = new SimpleJComboBox ( false );
         __formatJComboBox.setToolTipText(
             "Selecting a specifier will insert at the cursor position for the alias." );
@@ -74,7 +62,21 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         __formatJComboBox.setData(choicesList);
         __formatJComboBox.addItemListener ( this );
         JGUIUtil.addComponent(this, __formatJComboBox,
-            x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+            x++, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+        JGUIUtil.addComponent(this, new JLabel(" => "),
+            x++, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        
+        if ( width > 0 ) {
+            __inputJTextField = new JTextField ( width );
+        }
+        else {
+            __inputJTextField = new JTextField ();
+        }
+        __inputJTextField.setToolTipText(
+            "Enter a combination of literal strings and/or format specifiers from the list on the left.");
+        JGUIUtil.addComponent(this, __inputJTextField,
+            x++, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
     
     /**

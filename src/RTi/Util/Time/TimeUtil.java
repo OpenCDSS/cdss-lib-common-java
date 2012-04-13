@@ -1368,8 +1368,9 @@ formatting routine.
 @return an array of format specifiers.
 @param includeDescription If false, only the %X specifiers are returned.  if
 True, the description is also returned.
+@param forOutput if true, return specifiers for formatting; if false only include formatters for parsing
 */
-public static String[] getDateTimeFormatSpecifiers(boolean includeDescription )
+public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, boolean forOutput )
 {	String [] formats = new String[15];
 	formats[0] = "%a - Weekday, abbreviation";
 	formats[1] = "%A - Weekday, full";
@@ -1390,6 +1391,17 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription )
 	formats[12] = "%y - Year (00-99)";
 	formats[13] = "%Y - Year (0000-9999)";
 	formats[14] = "%Z - Time zone";
+	if ( !forOutput ) {
+	    // Only include formats suitable for parsing
+	    String [] formats2 = {
+            formats[4], // day
+            formats[5], // hour
+            formats[8], // month
+            formats[12], // year (2-digit)
+            formats[13] // year (4-digit)
+        };
+	    formats = formats2;
+	}
 	if ( !includeDescription ) {
         // Remove the text including and after the dash
         for ( int j = 0; j < formats.length; j++ ) {
