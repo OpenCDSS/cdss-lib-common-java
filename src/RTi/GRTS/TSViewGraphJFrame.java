@@ -406,12 +406,12 @@ TSViewJFrame.closeGUI() to close this graph GUI.
 */
 private void closeDetail ()
 {	// If the detail GUI is not null, close it.  It is possible that the
-	// GUI will have been closed within the ReportGUI, but the try/catch
-	// should handle if so.
+	// GUI will have been closed within the ReportGUI, but the try/catch should handle if so.
 	if ( __detail_JFrame == null ) {
 		return;
 	}
-	try {	__detail_JFrame.setVisible ( false );
+	try {
+	    __detail_JFrame.setVisible ( false );
 		__detail_JFrame.dispose();
 		__detail_JFrame = null;
 	}
@@ -561,7 +561,7 @@ Open the GUI and display the time series.
 @param mode Indicates whether the GUI should be visible at creation.
 */
 private void openGUI ( boolean mode )
-{	String	routine = "TSViewGraphJFrame.openGUI";
+{	String routine = "TSViewGraphJFrame.openGUI";
 	int	y = 0;
 
 	// Start a big try block to set up the GUI...
@@ -577,8 +577,7 @@ private void openGUI ( boolean mode )
 
 	GridBagLayout gbl = new GridBagLayout();
 
-	//Insets insetsTLBR = new Insets ( 3, 3, 3, 3 );// space around
-							//components
+	//Insets insetsTLBR = new Insets ( 3, 3, 3, 3 );// space around components
 	Insets insetsTLBR = new Insets ( 1, 3, 1, 3 ); // space around component
 	
 	// Add a panel to hold everything...
@@ -780,26 +779,33 @@ private void openGUI ( boolean mode )
 	// Buttons to allow paging left and right...
 
 	__left_tostart_JButton = new SimpleJButton("|<", "TSViewGraphJFrame.Left3", this);
+	__left_tostart_JButton.setToolTipText("Scroll to start of period");
 	button_top_JPanel.add ( __left_tostart_JButton );
 
 	__left_page_JButton = new SimpleJButton("<<", "TSViewGraphJFrame.Left2", this);
+	__left_page_JButton.setToolTipText("Scroll left one \"page\"");
 	button_top_JPanel.add ( __left_page_JButton );
 
 	__left_halfpage_JButton = new SimpleJButton("<", "TSViewGraphJFrame.Left1", this);
+	__left_halfpage_JButton.setToolTipText("Scroll left one-half \"page\"");
 	button_top_JPanel.add ( __left_halfpage_JButton );
 
 	__right_halfpage_JButton = new SimpleJButton(">", "TSViewGraphJFrame.Right1", this);
+	__right_halfpage_JButton.setToolTipText("Scroll right one-half \"page\"");
 	button_top_JPanel.add ( __right_halfpage_JButton );
 
 	__right_page_JButton = new SimpleJButton(">>", "TSViewGraphJFrame.Right2", this);
+	__right_page_JButton.setToolTipText("Scroll right one \"page\"");
 	button_top_JPanel.add ( __right_page_JButton );
 
 	__right_toend_JButton = new SimpleJButton(">|", "TSViewGraphJFrame.Right3", this);
+	__right_toend_JButton.setToolTipText("Scroll to end of period");
 	button_top_JPanel.add ( __right_toend_JButton );
 
 	// Zoom out button to restore original zoom...
 
-	__zoom_out_JButton = new SimpleJButton("ZoomOut", "TSViewGraphJFrame.ZoomOut", this);
+	__zoom_out_JButton = new SimpleJButton("Zoom Out", "TSViewGraphJFrame.ZoomOut", this);
+	__zoom_out_JButton.setToolTipText("Zoom to full period");
 	button_top_JPanel.add ( __zoom_out_JButton );
 	__zoom_out_JButton.setEnabled ( true );
 
