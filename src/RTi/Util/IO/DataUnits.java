@@ -1,79 +1,3 @@
-// ----------------------------------------------------------------------------
-// DataUnits - data units class
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 30 Sep 1997	Steven A. Malers, RTi	Start developing the class based on
-//					lots of previous work.
-// 19 Mar 1998	SAM, RTi		Add javadoc.
-// 25 Mar 1998	SAM, RTi		Add areUnitsStringsCompatible.
-// 23 Sep 1998	SAM, RTi		In getConversion, allow zero-length
-//					units strings if they are equal.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 21 Apr 1999	SAM, RTi		Enable methods to read units file.
-//					Clean the code and add more exception
-//					handling.
-// 04 Apr 2001	SAM, RTi		Overload areUnitsStringsCompatible to
-//					take two strings.  Change IO to IOUtil.
-// 10 May 2001	SAM, RTi		Allow both units strings to be empty
-//					or null in getConversion().
-// 18 May 2001	SAM, RTi		Add getOutputFormatString() similar to
-//					C++.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2001-12-09	SAM, RTi		Copy TSUnits* to Data* to allow for
-//					general use.
-// 2002-02-20	SAM, RTi		Fix bug where require_same flag was not
-//					being considered properly when checking
-//					for compatible units.
-// 2002-08-13	J. Thomas Sapienza, RTi	Added a new readUnitsFile method that
-//					reads a vector of DataUnits objects
-//					as read from a database by a DMI
-// 2002-08-14	JTS, RTi		Added the getUnitsForDimension method.
-// 2002-08-20	SAM, RTi		Remove readUnitsFile for RTi DMI -
-//					don't want this package to have a
-//					dependency on the DMI package.  The
-//					DataUnits can be filled by an
-//					application.  Clean up the Javadoc some
-//					where "TSUnits" was used instead of
-//					"DataUnits".
-// 2003-05-19	SAM, RTi		* Fix getUnitsForDimension() so that a
-//					  requested units system of will return
-//					  values when the units work for both
-//					  ENGL and SI.
-//					* Adjust code based on changes to the
-//					  DataDimension class.
-//					* Change _head to __units_Vector to be
-//					  consistent with DataDimension code.
-//					* Change data to use __ to be consistent
-//					  with other RTi code.
-//					* Deprecate getUnits() in favor of
-//					  lookupUnits().
-//					* Deprecate getUnitsForDimension() in
-//					  favor of lookupUnitsForDimension().
-// 2003-07-22	SAM, RTi		* For readNWSUnitsFile(),
-//					  overload with a parameter to indicate
-//					  a call to DataDimension.addDimension()
-//					  because other code may not be
-//					  available to initialize it.
-//					* Similar to above for readUnitsFile().
-// 2003-10-31	SAM, RTi		* Add SYSTEM_ALL to indicate that units
-//					  work with ENGLISH and SI.
-//					* When reading the NWS units file,
-//					  hard-code the units system since this
-//					  information is not found elsewhere.
-// 2004-09-15	SAM, RTi		* Fix bug where add factor conversion
-//					  for temperature was not working
-//					  correctly.
-// 2005-09-28	SAM, RTi		Update warning messages to print at
-//					level 3 instead of 2 to faciliate use
-//					with the log file viewer.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.IO;
 
 import java.io.BufferedReader;
@@ -96,19 +20,19 @@ public class DataUnits
 /**
 Indicates that the units system is unknown.
 */
-public static final int SYSTEM_UNKNOWN	= 0;
+public static final int SYSTEM_UNKNOWN = 0;
 /**
 Indicates that the units are for the English System.
 */
-public static final int SYSTEM_ENGLISH	= 1;
+public static final int SYSTEM_ENGLISH = 1;
 /**
 Indicates that the units are for the International System.
 */
-public static final int SYSTEM_SI	= 2;
+public static final int SYSTEM_SI = 2;
 /**
 Indicates that the units are for both English and International System.
 */
-public static final int SYSTEM_ALL	= 3;
+public static final int SYSTEM_ALL = 3;
 
 // Data members...
 
@@ -154,7 +78,7 @@ Note indicating source of the data units.
 private String __source;
 
 /**
-List of internally-maintained available units.
+List of internally-maintained available units, make sure to be non-null.
 */
 private static List<DataUnits> __units_Vector = new Vector(20);
 
@@ -253,7 +177,7 @@ public static void addUnits ( DataUnits units )
 	DataUnits pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the units for the loop index...
-		pt = (DataUnits)__units_Vector.get(i);
+		pt = __units_Vector.get(i);
 		// Now compare...
 		if ( units.getAbbreviation().equalsIgnoreCase(pt.getAbbreviation() ) ) {
 			// The requested units match something that is already in the list.  Reset the list...
@@ -263,7 +187,6 @@ public static void addUnits ( DataUnits units )
 	}
 	// Need to add the units to the list...
 	__units_Vector.add ( units );
-	pt = null;
 }
 
 /**
@@ -272,7 +195,7 @@ The units are allowed to be different as long as they are within the same
 dimension (e.g., each is a length).
 If it is necessary to guarantee that the units are exactly the same, call the
 version of this method that takes the boolean flag.
-@param units_strings Vector of units strings.
+@param units_strings list of units strings.
 */
 public static boolean areUnitsStringsCompatible ( List<String> units_strings )
 {	return areUnitsStringsCompatible ( units_strings, false );
@@ -292,13 +215,12 @@ public static boolean areUnitsStringsCompatible ( String units_string1, String u
 	units_strings.add ( units_string1 );
 	units_strings.add ( units_string2 );
 	boolean result = areUnitsStringsCompatible ( units_strings, require_same);
-	units_strings = null;
 	return result;
 }
 
 /**
 Determine whether a list of units strings are compatible.
-@param units_strings Vector of units strings.
+@param units_strings list of units strings.
 @param require_same Flag indicating whether the units must exactly match (no
 conversion necessary).  If true, the units must be the same, either in
 spelling or have the a conversion factor of unity.  If false, the
@@ -338,15 +260,9 @@ public static boolean areUnitsStringsCompatible ( List<String> units_strings, bo
 			}
 		}
 		catch ( Exception e ) {
-			units1 = null;
-			units2 = null;
-			conversion = null;
 			return false;
 		}
 	}
-	units1 = null;
-	units2 = null;
-	conversion = null;
 	return true;
 }
 
@@ -437,7 +353,7 @@ Get the conversion from units string to another.
 public static DataUnitsConversion getConversion ( String u1_string, String u2_string, double aux, String aunits )
 throws Exception
 {	int	dl = 20;
-	String	routine = "DataUnits.getConversion", u1_dim, u2_dim;
+	String routine = "DataUnits.getConversion", u1_dim, u2_dim;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
@@ -646,7 +562,7 @@ Determine the format for output based on the units and precision.
 from the units.  If not specified, 2 will be used.
 */
 public static DataFormat getOutputFormat ( String units_string, int width, int default_precision )
-{	String	routine = "DataUnits.getOutputFormat";
+{	String routine = "DataUnits.getOutputFormat";
 
 	// Initialize the DataFormat for return...
 
@@ -667,14 +583,11 @@ public static DataFormat getOutputFormat ( String units_string, int width, int d
 	try {
 	    DataUnits units = lookupUnits ( units_string );
 		format.setPrecision ( units.getOutputPrecision() );
-		units = null;
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, "DataUnits.getOutputFormat",
 		"Unable to find data for units \"" + units_string + "\".  Using format \"" + format.toString() + "\"" );
 	}
-
-	routine = null;
 	return format;
 }
 
@@ -768,16 +681,16 @@ Return a DataUnits instance, given the units abbreviation.  A copy is NOT made.
 */
 public static DataUnits lookupUnits ( String units_string )
 throws Exception
-{	String	routine = "DataUnits.lookupUnits";
+{	String routine = "DataUnits.lookupUnits";
 
 	// First see if the units are already in the list...
 
 	int size = __units_Vector.size();
 	DataUnits pt = null;
-	for (	int i = 0; i < size; i++ ) {
-		pt = (DataUnits)__units_Vector.get(i);
+	for ( int i = 0; i < size; i++ ) {
+		pt = __units_Vector.get(i);
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 20, routine, "Comparing " + units_string + " and " + pt.getAbbreviation());
+			Message.printDebug ( 20, routine, "Comparing \"" + units_string + "\" and \"" + pt.getAbbreviation() + "\"");
 		}
 		if ( units_string.equalsIgnoreCase(pt.getAbbreviation() ) ) {
 			// The requested units match something that is in the list.  Return the matching DataUnits...
@@ -1012,13 +925,6 @@ throws IOException
 	    }
 	    checkUnitsData();
 	}
-	abbreviation = null;
-	base_string = null;
-	dimension = null;
-	long_name = null;
-	routine = null;
-	string = null;
-	fp = null;
 }
 
 /**
@@ -1056,7 +962,7 @@ instance checks the dimension against defined dimensions.
 */
 public static void readUnitsFile ( String dfile, boolean define_dimensions )
 throws IOException
-{	String	message, routine = "DataUnits.readUnitsFile";
+{	String message, routine = "DataUnits.readUnitsFile";
 	List<String> units_file = null;
 
 	try {
@@ -1164,9 +1070,6 @@ throws IOException
 		// Global catch...
 		throw new IOException ( "Error reading units file \"" + dfile + "\" (" + e + ")." );
 	}
-	message = null;
-	routine = null;
-	units_file = null;
 }
 
 /**
@@ -1212,7 +1115,7 @@ Set the dimension for the units.
 */
 public void setDimension ( String dimension_string )
 throws Exception
-{	String	routine = "DataUnits.setDimension(String)";
+{	String routine = "DataUnits.setDimension(String)";
 
 	// Return if null...
 
@@ -1237,8 +1140,6 @@ throws Exception
 	// Now set the dimension...
 
 	__dimension = dim;
-	dim = null;
-	routine = null;
 }
 
 /**
