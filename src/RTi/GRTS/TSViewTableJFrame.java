@@ -1,121 +1,3 @@
-//------------------------------------------------------------------------------
-// TSViewTableJFrame - tabular View of one or more time series
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 05 Dec 1998	Steven A. Malers,	Initial version.  Copy OpTableDislayGUI
-//		Riverside Technology,	and modify as necessary.
-//		inc.
-// 30 Oct 2000	Catherine E.		Implemented MultiLists, checkboxes,
-//		Nutting-Lane		and export button.
-// 19 Feb 2001	SAM, RTi		Change GUI to GUIUtil.
-// 28 Mar 2001	SAM, RTi		Fix so headers use location, data type,
-//					and units if the legend is not set.
-// 27 Apr 2001	SAM, RTi		Fix so hourly data does not print
-//					minutes in output.  Add finalize().
-// 04 May 2001	SAM, RTi		Add TSViewTitleString property to set
-//					view title bar.  Add OutputPrecision
-//					property to control precision of output.
-//					Streamline handling of precision.
-//					Use TSIterator()instead of
-//					TSDateIterator()- improve performance.
-// 18 May 2001	SAM, RTi		Change Save As button to a choice.
-// 23 May 2001	SAM, RTi		Add the ability to use the extended
-//					legend to label the column headings
-//					using the Table.UseExtendedLegend
-//					property.
-// 17 Jul 2001	SAM, RTi		Add a warning at startup if the number
-//					of points is large.  Use 10 years of
-//					daily data(3650 points)as an initial
-//					value to see how this performs.
-// 06 Sep 2001	SAM, RTi		Fix bug where first data value was not
-//					being displayed.  The TSIterator next()
-//					method was being called once when it
-//					did not need to be.  Remove debugs that
-//					are no longer needed.  Verify that hour
-//					and minute data are fully supported.
-//					Clean up the code some to be more
-//					readable and help with garbage
-//					collection.  Change so 24-hour data use
-//					a date that has hours(CDSS daily time
-//					series were switched from 24 hour to
-//					true daily time series awhile back).
-//					Add YearTS support.
-// 2001-11-05	SAM, RTi		Update javadoc.  Make sure variables are
-//					set to null when no longer used.
-// 2001-12-11	SAM, RTi		Change help key to "TSView.Table".
-// 2002-01-17	SAM, RTi		Change name from TSViewTableGUI to
-//					TSViewTableFrame to allow support for
-//					Swing.
-// 2002-04-21	SAM, RTi		Reorganize the buttons to be Graph and
-//					then Summary.
-// ====================================
-// 2002-11-11	SAM, RTi		Copy AWT version and convert to Swing.
-// 2003-06-03	SAM, RTi		* Update based on current TS package.
-//					* Synchronize with AWT by implementing:
-//					2003-03-21	SAM, RTi
-//					* If the time series has an alias,
-//					  display that in the column heading
-//					  rather than the location.
-// 2003-07-10	J. Thomas Sapienza, RTi	Began implementing JWorksheets.
-// 2003-07-16	JTS, RTi		Continued work.  Multiple time series
-//					for a single time series type can be
-//					displayed, and tables can be turned
-//					on and off.
-// 2003-07-24	JTS, RTi		* Added support for copying data from
-//					  tables.
-//					* Added support for writing text
-//					  files.
-//					* Selected worksheets are now
-//					  highlighted on the GUI.
-// 2003-07-30	JTS, RTi		* Added code to selectively turn on and
-//					  off the title border for the interval
-//					  panels based on how many panels are
-//					  showing.
-//					* Added code to only display the blue
-//					  outline for selected worksheets if
-//					  more than one worksheet is visible.
-// 2003-08-14	JTS, RTi		* Change so that when all the 
-//					  JCheckBoxes are deselected, the panel
-//					  gets placed in the North position,
-//					  instead of being centered in the
-//					  Center position.
-// 2003-09-30	SAM, RTi		* Add icon/title code to be consistent
-//					  with the application look.
-// 2003-11-04	JTS, RTi		* When moving between worksheets,
-//					  code now attempts to save any data
-//					  that was entered (if the cell editor
-//					  was not closed).  If that fails,
-//					  the cell editing is cancelled.
-// 2004-01-04	SAM, RTi		* Comment out the help button for now.
-// 2004-01-05	JTS, RTi		When only one worksheet is displayed,
-//					it is now automatically selected once
-//					the GUI is visible.
-// 2004-01-22	JTS, RTi		Change to use the new row header model
-//					for the worksheets.
-// 2004-05-18	JTS, RTi		Added comment stating that viewing of
-//					irregular data in the table is not
-//					enabled yet.
-// 2005-04-27	JTS, RTi		Added all data members to finalize().
-// 2005-06-07	JTS, RTi		* Updated properties that are being 
-//					  phased out of JWorksheet.
-//					* Corrected an error where time series
-//					  with the same interval, but different
-//					  multipliers, were using the multiplier
-//					  of the first-displayed set of time
-//					  series.  They will now use the correct
-//					  multiplier.
-// 2005-07-07	JTS, RTi		Changed the status message at the bottom
-//					when a time series table is selected.
-// 2006-01-31	JTS, RTi		Worksheets now are listeners for scroll
-//					events to solve a display glitch on 
-//					UNIX.  For more information, see
-//					JWorksheet.adjustmentValueChanged().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-
 package RTi.GRTS;
 
 import java.awt.Color;
@@ -163,6 +45,7 @@ import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_Header;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.GUI.SimpleJComboBox;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -206,13 +89,13 @@ private final int __OUTPUT_WIDTH = 10;
 JButton and JPopupMenu Strings.
 */
 private final String 
-	__BUTTON_CLOSE = 	"Close",	
-	__BUTTON_GRAPH = 	"Graph",
-	__BUTTON_HELP = 	"Help",
-	__BUTTON_SAVE = 	"Save",
-	__BUTTON_SUMMARY = 	"Summary",
-	__MENU_COPY = 		"Copy",
-	__MENU_PASTE = 		"Paste";
+	__BUTTON_CLOSE = "Close",	
+	__BUTTON_GRAPH = "Graph",
+	__BUTTON_HELP = "Help",
+	__BUTTON_SAVE = "Save",
+	__BUTTON_SUMMARY = "Summary",
+	__MENU_COPY = "Copy",
+	__MENU_PASTE = "Paste";
 
 /**
 Boolean to keep track of whether the main JPanel has been removed from the 
@@ -247,8 +130,7 @@ main panel, so that the Y placement in the grid bag can be done correctly.
 private int __panelCount = 0;
 
 /**
-Checkboxes corresponding to each TS data interval for turning on and off the 
-table displays.
+Checkboxes corresponding to each TS data interval for turning on and off the table displays.
 */
 private JCheckBox 
 	__dayJCheckBox,
@@ -324,6 +206,8 @@ private SimpleJButton
 	__closeJButton,
 	__saveJButton;
 
+private SimpleJComboBox __flagJComboBox = null;
+
 /**
 TSViewJFrame parent that displays this gui.
 */
@@ -333,18 +217,18 @@ private TSViewJFrame __tsviewJFrame;
 Table models for each of the different worksheets (one for each interval type) for each different TS.
 */
 private TSViewTable_TableModel[]
-	__dayModels,
-	__hourModels,
-	__minuteModels,
-	__monthModels,
-	__yearModels;
+	__dayModels = new TSViewTable_TableModel[0],
+	__hourModels = new TSViewTable_TableModel[0],
+	__minuteModels = new TSViewTable_TableModel[0],
+	__monthModels = new TSViewTable_TableModel[0],
+	__yearModels = new TSViewTable_TableModel[0];
 
 /**
 Lists of the mouse listeners that have been set up for all of the different
 kinds of worksheets.  These are used in order to find which worksheet was 
 clicked on after a mouse press on the JScrollPane associated with a worksheet.
 */
-private List[]
+private List<MouseListener>[]
 	__dayMouseListeners,
 	__hourMouseListeners,
 	__minuteMouseListeners,
@@ -460,8 +344,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners) {
 	
 	int numWorksheets = worksheets.length;
 
-	// Create the panel into which these worksheets will be placed, and
-	// give it a GridBagLayout.
+	// Create the panel into which these worksheets will be placed, and give it a GridBagLayout.
 	GridBagLayout gbl = new GridBagLayout();
 	subPanel.setLayout(gbl);
 
@@ -504,7 +387,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners) {
 			i, 0, 1, 1, 1, 1, 
 			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 
 
-		// this next line looks weird, but is done because somewhere
+		// The next line looks weird, but is done because somewhere
 		// the pointer to the worksheet that the models have is getting
 		// mis-pointed.  This makes sure the models know their worksheet.
 		((TSViewTable_TableModel)worksheets[i].getModel()).setWorksheet(worksheets[i]);
@@ -693,11 +576,9 @@ specific to its data interval (e.g., Day time series go into __day,
 minute time series go into __minute, etc).  Different multipliers are all 
 lumped together, as long as they have the same data interval.
 */
-private void createSeparateTimeSeries() {
-	TS ts;
-	int size;
+private void createSeparateTimeSeries()
+{
 	int interval;
-
 	__minute = new Vector();
 	__hour = new Vector();
 	__day = new Vector();
@@ -705,13 +586,7 @@ private void createSeparateTimeSeries() {
 	__year = new Vector();
 	__irregular = new Vector();
 
-	if (__tslist.isEmpty()) {
-		return;
-	}
-
-	size = __tslist.size();
-	for (int i = 0; i < size; i++) {
-		ts = __tslist.get(i);
+	for ( TS ts : __tslist ) {
 		if (ts == null) {
 			continue;
 		}
@@ -743,19 +618,19 @@ Create the table models with the same interval base for all of the worksheets
 for the given list of time series.
 @param tslist list of time series for which to create table models.
 @return an array of TSViewTable_TableModel object, one for each worksheet
-that needs to be created, or null if no worksheets need be created for the ts type.
+that needs to be created, or a zero-element array if no worksheets need be created for the ts type.
 */
 private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	String routine = "createTableModels";
 
-	// if there is no data in the ts vector, there is no need to create the table models
+	// If there is no data in the ts vector, there is no need to create the table models
 	if ((tslist == null)|| tslist.size() == 0) {
-		return null;
+		return new TSViewTable_TableModel[0];
 	}
 
 	int numts = tslist.size();
 
-	// the following arrays are used to match up time series with 
+	// The following arrays are used to match up time series with 
 	// the same interval multipliers.  The arrays are sized to the 
 	// maximum size necessary and won't necessarily be filled completely.
 	int[] mults = new int[numts];
@@ -765,13 +640,13 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	int count = 0;
 	boolean hit = false;
 	
-	// get the first TS in the list and get the interval base.  All other
-	// TS in the Vector must have the same interval base
+	// Get the first TS in the list and get the interval base.  All other
+	// TS in the list must have the same interval base
 	TS ts = tslist.get(0);	
 	int interval = ts.getDataIntervalBase();
 
 	int dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	// get the proper date format
+	// Get the proper date format
 	if (interval == TimeInterval.HOUR) {
 		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
 	}
@@ -803,21 +678,22 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	for (int i = 0; i < numts; i++) {
 		ts = tslist.get(i);
 
-		// get the interval multiplier for the current TS
+		// Get the interval multiplier for the current TS
 		multi = ts.getDataIntervalMult();
 		hit = false;
 
-		// look through the array of previously-found interval
+		// Look through the array of previously-found interval
 		// multipliers (mults[]) and see if the multiplier has already been encountered.
 		for (int j = 0; j < count; j++) {
 			if (mults[j] == multi) {
-				// if it has, list this TS element #j as a match for interval multiplier #i
-				hit = true;
+				// If true;
 				matches[i] = j;
+				hit = true;
+				break;
 			}
 		}
 
-		// if the interval multiplier was not found, add it to the
+		// If the interval multiplier was not found, add it to the
 		// list of found multipliers and increment the count of
 		// different interval multipliers that have been found
 		if (!hit) {
@@ -826,7 +702,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 			count++;
 		}
 
-		// calculate the output precision of the current TS's data
+		// Calculate the output precision of the current TS's data
 		tsPrecision = 2;
 		if (propValue != null) {
 			tsPrecision = StringUtil.atoi(propValue);
@@ -845,7 +721,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 
 	}
 
-	// create an array of table models big enough to hold one table
+	// Create an array of table models big enough to hold one table
 	// model for every different interval multiplier
 	TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
 
@@ -857,18 +733,18 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 
 	TS tempTS = null;
 
-	// loop through all of the different interval multipliers
+	// Loop through all of the different interval multipliers
 	for (int i = 0; i < count; i++) {
-		List data = new Vector();
+		List<TS> data = new Vector();
 
-		// add all the time series with the same interval multiplier to the list
+		// Add all the time series with the same interval multiplier to the list
 		for (int j = 0; j < numts; j++) {
 			if (matches[j] == i) {
 				data.add(tslist.get(j));
 			}
 		}
 
-		// get all the format precision strings for the TS that were found in the previous loop 
+		// Get all the format precision strings for the TS that were found in the previous loop 
 		String[] formats = new String[data.size()];		
 		int formatCount = 0;
 		for (int j = 0; j < numts; j++) {
@@ -877,18 +753,18 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 			}
 		}		
 
-		// now get the starting date of data ...
+		// Now get the starting date of data ...
 		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
 		DateTime start = limits.getDate1();	
 
 		// ... and the interval multiplier ...
 		if (data == null || data.size() == 0) {
 			// (in this case, use a representative TS)
-			tempTS = (TS)tslist.get(i);
+			tempTS = tslist.get(i);
 			multi = tempTS.getDataIntervalMult();		
 		}
 		else {
-			tempTS = (TS)data.get(0);
+			tempTS = data.get(0);
 			multi = tempTS.getDataIntervalMult();
 		}
 
@@ -900,7 +776,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	return models;
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error generating worksheets");
+		Message.printWarning(2, routine, "Error generating worksheets (" + e + ").");
 		Message.printWarning(2, routine, e);
 		return null;
 	}
@@ -910,12 +786,12 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 Creates worksheets for all of the table models that were previously-generated.
 @param models table models for each of the worksheets that need to be made.
 @param p PropList defining JWorksheet characteristics.  See the JWorksheet constructors.
-@return an array of JWorksheets, one for each model.
+@return an array of JWorksheets, one for each model, or an empty array if no models.
 */
-private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models,
-PropList p) {
-	if (models == null) {
-		return null;
+private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList p)
+{
+	if ( (models == null) || (models.length == 0)) {
+		return new JWorksheet[0];
 	}
 	int numWorksheets = models.length;
 
@@ -1142,6 +1018,35 @@ public void itemStateChanged(ItemEvent evt) {
 	Object source = evt.getSource();
 	int state = evt.getStateChange();
 	
+    if (source == __flagJComboBox) {
+        // Change the data flag visualization for all the table models
+        TSDataFlagVisualizationType vizType =
+            TSDataFlagVisualizationType.valueOfIgnoreCase(__flagJComboBox.getSelected());
+        if ( vizType != null ) {
+            for ( int i = 0; i < __minuteModels.length; i++ ) {
+                __minuteModels[i].setDataFlagVisualizationType(vizType);
+                __minuteModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __hourModels.length; i++ ) {
+                __hourModels[i].setDataFlagVisualizationType(vizType);
+                __hourModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __dayModels.length; i++ ) {
+                __dayModels[i].setDataFlagVisualizationType(vizType);
+                __dayModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __monthModels.length; i++ ) {
+                __monthModels[i].setDataFlagVisualizationType(vizType);
+                __monthModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __yearModels.length; i++ ) {
+                __yearModels[i].setDataFlagVisualizationType(vizType);
+                __yearModels[i].fireTableDataChanged();
+            }
+        }
+        return;
+    }
+	
 	boolean visible = false;
 	if (state == ItemEvent.SELECTED) {
 		visible = true;
@@ -1303,7 +1208,7 @@ private void saveClicked() {
 	}
 	String filename = directory + File.separator + fc.getName(fc.getSelectedFile());
 
-	List tslist = ((TSViewTable_TableModel)__lastSelectedWorksheet.getModel()).getTSList();
+	List<TS> tslist = ((TSViewTable_TableModel)__lastSelectedWorksheet.getModel()).getTSList();
 
 	if (fc.getFileFilter() == dff) {
 		try {	
@@ -1332,7 +1237,7 @@ scrollbars used to scroll around the worksheets in the above array
 @param source the object on which a MouseEvent was triggered.
 @return the JWorksheet that was clicked on, or null if it could not be found
 */
-private JWorksheet searchListeners(JWorksheet[] worksheets, List[] listeners, Object source)
+private JWorksheet searchListeners(JWorksheet[] worksheets, List<MouseListener>[] listeners, Object source)
 {
 	if (listeners == null || source == null) {
 		return null;
@@ -1341,7 +1246,7 @@ private JWorksheet searchListeners(JWorksheet[] worksheets, List[] listeners, Ob
 	int size = listeners.length;
 
 	for (int i = 0; i < size; i++) {
-		List v = listeners[i];
+		List<MouseListener> v = listeners[i];
 
 		for (int j = 0; j < v.size(); j++) {
 			if (v.get(j) == source) {
@@ -1381,12 +1286,24 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 	TSViewTable_TableModel model = (TSViewTable_TableModel)selectWorksheet.getModel();
 	String base = null;
 	switch (model.getIntervalBase()) {
-		case TimeInterval.MINUTE:	base = "Minute";break;
-		case TimeInterval.HOUR:		base = "Hour";	break;
-		case TimeInterval.DAY:		base = "Day";	break;
-		case TimeInterval.MONTH:	base = "Month";	break;
-		case TimeInterval.YEAR:		base = "Year";	break;
-		default:			base = "???";	break;
+		case TimeInterval.MINUTE:
+		    base = "Minute";
+		    break;
+		case TimeInterval.HOUR:
+		    base = "Hour";
+		    break;
+		case TimeInterval.DAY:
+		    base = "Day";
+		    break;
+		case TimeInterval.MONTH:
+		    base = "Month";
+		    break;
+		case TimeInterval.YEAR:
+		    base = "Year";
+		    break;
+		default:
+		    base = "???";
+		    break;
 	}
 
 	String s = "";
@@ -1414,7 +1331,7 @@ private void setColumnWidths(JWorksheet[] worksheets, int precision) {
 
 	int dateWidth = 16;
 
-	// get the proper date format
+	// Get the proper date format
 	if (precision == DateTime.PRECISION_HOUR) {
 		dateWidth = 13;
 	}
@@ -1500,7 +1417,7 @@ private void setupGUI(boolean mode) {
 	__yearJCheckBox = new JCheckBox("Year Time Series", true);
 	__yearJCheckBox.addItemListener(this);
 
-	// create the proplist for the JWorksheets
+	// Create the proplist for the JWorksheets
 	PropList p = new PropList("TSViewTableJFrame.JWorksheet");
 	p.add("JWorksheet.OneClickColumnSelection=true");
 	p.add("JWorksheet.RowColumnPresent=true");
@@ -1515,10 +1432,10 @@ private void setupGUI(boolean mode) {
 	p2.add("JWorksheet.ShowPopupMenu=true");
 	p2.add("JWorksheet.SelectionMode=ExcelSelection");
 
-	// separate the __tslist Vector into Vectors of like time series
+	// Separate the __tslist Vector into Vectors of like time series
 	createSeparateTimeSeries();
 
-	// create all the table models and worksheets
+	// Create all the table models and worksheets
 	__dayModels = createTableModels(__day);
 	__dayWorksheets = createWorksheets(__dayModels, p);
 	JWorksheet[] dayHeaders = createWorksheets(__dayModels, p2);
@@ -1539,7 +1456,7 @@ private void setupGUI(boolean mode) {
 	__yearWorksheets = createWorksheets(__yearModels, p);
 	JWorksheet[] yearHeaders = createWorksheets(__yearModels, p2);
 	
-	// create the panels for the interval bases
+	// Create the panels for the interval bases
 	__minuteJPanel = new JPanel();
 	__hourJPanel = new JPanel();
 	__dayJPanel = new JPanel();
@@ -1547,24 +1464,24 @@ private void setupGUI(boolean mode) {
 	__monthJPanel = new JPanel();
 	__yearJPanel = new JPanel();
 
-	// create the arrays of scroll panes
-	if (__dayWorksheets != null) {
+	// Create the arrays of scroll panes
+	if (__dayWorksheets.length > 0) {
 		__dayScrollPanes = new JScrollPane[__dayWorksheets.length];
 	}
-	if (__minuteWorksheets != null) {
-		__minuteScrollPanes =new JScrollPane[__minuteWorksheets.length];
+	if (__minuteWorksheets.length > 0) {
+		__minuteScrollPanes = new JScrollPane[__minuteWorksheets.length];
 	}
-	if (__hourWorksheets != null) {
+	if (__hourWorksheets.length > 0) {
 		__hourScrollPanes = new JScrollPane[__hourWorksheets.length];
 	}
-	if (__monthWorksheets != null) {
+	if (__monthWorksheets.length > 0) {
 		__monthScrollPanes = new JScrollPane[__monthWorksheets.length];
 	}
-	if (__yearWorksheets != null) {
+	if (__yearWorksheets.length > 0) {
 		__yearScrollPanes = new JScrollPane[__yearWorksheets.length];
 	}
 
-	// add the worksheets to the panels and add the panels to the main panel
+	// Add the worksheets to the panels and add the panels to the main panel
 
 	if (__reverseNormalOrder) {
 		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
@@ -1588,14 +1505,14 @@ private void setupGUI(boolean mode) {
 			yearHeaders, __yearScrollPanes, __yearMouseListeners);
 
 		if (__irregular != null && __irregular.size() > 0) {
-		__irregularJPanel.setLayout(new GridBagLayout());
-		JGUIUtil.addComponent(__irregularJPanel,
-			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
-			0, 0, 1, 1, 1, 1, 
-			GridBagConstraints.NONE, GridBagConstraints.WEST);
+		    __irregularJPanel.setLayout(new GridBagLayout());
+		    JGUIUtil.addComponent(__irregularJPanel,
+    			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
+    			0, 0, 1, 1, 1, 1, 
+    			GridBagConstraints.NONE, GridBagConstraints.WEST);
 	      	JGUIUtil.addComponent(__mainJPanel, __irregularJPanel,
-			0, __panelCount++, 1, 1, 1, 1, 
-			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
+    			0, __panelCount++, 1, 1, 1, 1, 
+    			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
 		}
 	}
 	else {
@@ -1643,6 +1560,15 @@ private void setupGUI(boolean mode) {
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
+	__flagJComboBox = new SimpleJComboBox(false);
+	List<String> flagChoices = new Vector();
+	flagChoices.add("" + TSDataFlagVisualizationType.NOT_SHOWN);
+	flagChoices.add("" + TSDataFlagVisualizationType.SUPERSCRIPT);
+	//flagChoices.add("" + TSDataFlagVisualizationType.SEPARATE_COLUMN);
+	__flagJComboBox.setData(flagChoices);
+	__flagJComboBox.addItemListener(this);
+	__flagJComboBox.setToolTipText("Indicate how data flags should be visualized.");
+	
 	__graphJButton = new SimpleJButton(__BUTTON_GRAPH, this);
 	String propValue=__props.getValue("EnableGraph");
 	if ((propValue != null) && propValue.equalsIgnoreCase("false")) {
@@ -1660,6 +1586,19 @@ private void setupGUI(boolean mode) {
 	__saveJButton = new SimpleJButton(__BUTTON_SAVE, this);
 	__saveJButton.setEnabled(false);
 
+	JLabel flagJLabel = new JLabel("Flags:");
+	button_JPanel.add(flagJLabel);
+	button_JPanel.add(__flagJComboBox);
+	// Only enable flags display if at least one displayed time series has flags
+	if ( timeSeriesHaveFlags() ) {
+	    flagJLabel.setEnabled(true);
+	    __flagJComboBox.setEnabled(true);
+	    __flagJComboBox.select(""+TSDataFlagVisualizationType.NOT_SHOWN);
+	}
+	else {
+	    flagJLabel.setEnabled(false);
+	    __flagJComboBox.setEnabled(false);
+	}
 	button_JPanel.add(__graphJButton);
 	button_JPanel.add(__summaryJButton);
 	button_JPanel.add(__saveJButton);
@@ -1677,6 +1616,7 @@ private void setupGUI(boolean mode) {
 	__messageJTextField.setText("Currently-selected worksheet: (none)");	
 
 	pack();
+	// TODO SAM 2012-04-16 Need to default size based on number of time series
 	setSize(555,500);
 	JGUIUtil.center(this);
 	setVisible(mode);
@@ -1695,6 +1635,19 @@ private void setupGUI(boolean mode) {
 	setColumnWidths(__yearWorksheets, DateTime.PRECISION_YEAR);
 
 	checkForSingleWorksheet();
+}
+
+/**
+Determine if any of the time series has flags.
+*/
+private boolean timeSeriesHaveFlags ()
+{
+    for ( TS ts : __tslist ) {
+        if ( ts.hasDataFlags() ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1754,8 +1707,7 @@ by the given delimiter and separating rows with newlines.
 @param delimited the character to separate fields with.
 @param filename the text file to write to.
 */
-private void writeTextFile(JWorksheet worksheet, char delimiter, 
-String filename) {
+private void writeTextFile(JWorksheet worksheet, char delimiter, String filename) {
 	String routine = "writeTextFile";
 	try {
 		StopWatch sw = new StopWatch();
@@ -1773,7 +1725,7 @@ String filename) {
 		int pct = 0;
 		int lastPct = 0;
 		for (int i = 0; i < rows; i++) {
-			// calculate the percentage complete, and if different
+			// Calculate the percentage complete, and if different
 			// from the last percentage complete, update the status bar text field.
 			pct = ((int)(((double)i / (double)rows) * 100));
 			if (pct != lastPct) {
@@ -1798,7 +1750,7 @@ String filename) {
 		double seconds = sw.getSeconds();
 		String plural = "s";
 
-		// unlikely to happen, but it's just good GUI design to
+		// Unlikely to happen, but it's just good GUI design to
 		// not have something like "1 seconds" or "2 second(s)".
 		if (seconds == 1.000) {
 			plural = "";
@@ -1875,7 +1827,7 @@ private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
       for( int iModel = 0; iModel < nModels; iModel++)
         {
           TSViewTable_TableModel m = ((TSViewTable_TableModel)models[iModel]);
-          List tsVector = m.getTSList();
+          List<TS> tsVector = m.getTSList();
           int nVec = tsVector.size();
           for (int iVec = 0; iVec < nVec; iVec++)
             {

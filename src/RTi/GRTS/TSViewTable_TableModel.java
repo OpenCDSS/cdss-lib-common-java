@@ -1,39 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSViewTable_TableModel - Table model for displaying regular TS data
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-07-10	J. Thomas Sapienza, RTi	Initial version.
-// 2003-07-11	JTS, RTi		Worked on caching model to speed
-//					up large table performance.
-// 2003-07-16	JTS, RTi		Expanded table model to work with more
-//					data than Day alone.
-// 2003-07-21	JTS, RTi		* Javadoc'd, cleaned up.
-//					* Revised following SAM's review.
-// 2003-08-14	JTS, RTi		Corrected a bug that was resulting in
-//					the cached dates being incorrectly
-//					calculated if the time series interval
-//					was greater than 1.
-// 2003-11-04	JTS, RTi		* Added valid setValueAt() code.
-//					* Added isCellEditable() code.
-// 2003-12-16	JTS, RTi		Corrected bug that caused the number of
-//					rows in the table model to only be
-//					calculated from the first TS's size.
-// 2004-02-18	JTS, RTi		Greatly increased performance in the
-//					getValueAt() method.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2005-10-20	JTS, RTi		Corrected the getConsecutiveValueAt()
-//					code, which was not working properly.
-// 2006-01-10	JTS, RTi		Corrected a bug that was resulting in
-//					a scrambled-looking worksheet when the
-//					worksheet was scrolled downward before
-//					any cells were selected.  Caused by 
-//					not setting the __lastRowRead variable 
-//					in getValueAt().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.GRTS;
 
 import java.awt.Point;
@@ -43,6 +7,7 @@ import RTi.Util.GUI.JWorksheet;
 import java.util.List;
 
 import RTi.TS.TS;
+import RTi.TS.TSData;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
 
@@ -50,6 +15,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 import RTi.Util.IO.IOUtil;
 
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
@@ -181,6 +147,11 @@ This depends on the time series data units.
 private String[] __dataFormats;
 
 /**
+Indicate how data flags should be visualized.
+*/
+private TSDataFlagVisualizationType __dataFlagVisualizationType = TSDataFlagVisualizationType.NOT_SHOWN;
+
+/**
 Constructor.  This builds the Model for displaying the given TS data and
 pre-calculates and caches every 50th row's date.
 @param data Vector of TS to graph in the table.  The TS must have the same
@@ -230,7 +201,7 @@ the cacheInterval be no less than X*2.
 */
 public TSViewTable_TableModel(List data, DateTime start, 
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
-boolean useExtendedLegend, int cacheInterval)
+boolean useExtendedLegend, int cacheInterval )
 throws Exception {
 	if (data == null) {
 		throw new Exception ("Null data Vector passed to TSViewTable_TableModel constructor.");
@@ -301,8 +272,15 @@ Returns the class of the data stored in a given column.
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case  0: return String.class;	// Date/Time
-		default: return Double.class;	// TS data
+		case 0: return String.class; // Date/Time
+		default: // TS data
+		    // If data flags are superscripted, return a String
+		    if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
+		        return String.class;
+		    }
+		    else {
+		        return Double.class;
+		    }
 	}
 }
 
@@ -490,8 +468,17 @@ the table is being displayed in the given table format.
 */
 public String getFormat(int column) {
 	switch (column) {
-		case  0:	return "%" + getDateFormatLength() + "s";
-		default:	return __dataFormats[column-1];
+		case 0:
+		    return "%" + getDateFormatLength() + "s";
+		default:
+		    if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
+		        // Data value is represented as string with flag as superscript
+		        return "%s";
+		    }
+		    else {
+		        // Not displaying data flags so format number
+		        return __dataFormats[column-1];
+		    }
 	}
 }
 
@@ -532,7 +519,7 @@ public TS getTS ( int i )
 Returns the time series.
 @return the Vector of time series.
 */
-public List getTSList() {	
+public List<TS> getTSList() {	
 	return _data;
 }
 
@@ -544,13 +531,13 @@ Returns the data that should be placed in the JTable at the given row and column
 */
 public Object getValueAt(int row, int col) {
 	if (shouldDoGetConsecutiveValueAt()) {
-		// do a consecutive get value at rather than this sequential one.
+		// Do a consecutive get value at rather than this sequential one.
 		return getConsecutiveValueAt(row, col);
 	}
 
 	double y = __worksheet.getVisibleRect().getY();	
 	
-	// if it's a new Y point from the last time getValueAt was called,
+	// If it's a new Y point from the last time getValueAt was called,
 	// then that means some scrolling has occurred and the top-most row
 	// is new.  Need to recalculate the date of the top most row
 
@@ -558,7 +545,7 @@ public Object getValueAt(int row, int col) {
 		__previousTopmostVisibleY = y;
 		__firstVisibleRow = __worksheet.rowAtPoint(new Point(0,(int)y));
 
-		// calculate its date time by looking up the nearest 
+		// Calculate its date time by looking up the nearest 
 		// cached one and adding the remainder of intervals to it
 		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
 		int precision = 0;
@@ -585,8 +572,8 @@ public Object getValueAt(int row, int col) {
 
 		__workingDate = new DateTime(__firstVisibleRowDate, DateTime.DATE_FAST | precision);
 
-		// reset this so that on a scroll event none of the rows are
-		// drawn incorrectly.  Removing this line will result in a "scrambled"-looking JTable.
+		// Reset this so that on a scroll event none of the rows are drawn incorrectly.
+		// Removing this line will result in a "scrambled"-looking JTable.
 		__lastRowRead = -1;
 	}
 
@@ -600,7 +587,7 @@ public Object getValueAt(int row, int col) {
 	if (row != __lastRowRead) {
 		__lastRowRead = row;
 
-		// quicker than doing a 'new DateTime'
+		// Quicker than doing a 'new DateTime'
 		__workingDate.setHSecond ( __firstVisibleRowDate.getHSecond() );
 		__workingDate.setSecond ( __firstVisibleRowDate.getSecond() );
 		__workingDate.setMinute ( __firstVisibleRowDate.getMinute() );
@@ -609,7 +596,7 @@ public Object getValueAt(int row, int col) {
 		__workingDate.setMonth ( __firstVisibleRowDate.getMonth() );
 		__workingDate.setYear ( __firstVisibleRowDate.getYear() );
 
-		// calculate the date for the current row read
+		// Calculate the date for the current row read
 		if (__intervalBase == TimeInterval.MINUTE) {
 			__workingDate.addMinute(((row - __firstVisibleRow)* __intervalMult));
 		}	
@@ -639,8 +626,39 @@ public Object getValueAt(int row, int col) {
 	//	- ts = array[i];
 	// the array statement is about 4 times faster.
 	TS ts = (TS)_data.get(col - 1);
-	
-	return new Double(ts.getDataValue(__workingDate));
+
+	if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
+	    TSData tsdata = ts.getDataPoint(__workingDate, null);
+	    double value = tsdata.getDataValue();
+	    String flag = tsdata.getDataFlag();
+	    if ( flag == null ) {
+	        flag = "";
+	    }
+	    if ( ts.isDataMissing(value) ) {
+	        if ( flag.equals("") ) {
+	            // No value, no flag
+	            return "";
+	        }
+	        else {
+	            // No value but have flag
+	            return "^" + flag;
+	        }
+	    }
+	    else {
+	        // TODO SAM 2012-04-16 Figure out formatting for value
+            if ( flag.equals("") ) {
+                // Value but no flag
+                return "" + StringUtil.formatString(value,__dataFormats[col-1]);
+            }
+            else {
+                // Value and flag
+                return "" + StringUtil.formatString(value,__dataFormats[col-1]) + "^" + flag;
+            }
+	    }
+	}
+	else {
+	    return new Double(ts.getDataValue(__workingDate));
+	}
 }
 
 /**
@@ -682,11 +700,25 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 			// TODO (JTS - 2004-01-22) no editing supported yet
 			return false;
 		}
-		// FIXME SAM (2010-07-15) Figure this out - we added some editing.
-		TS ts = (TS)_data.get(columnIndex - 1);
-		return ts.isEditable();
+		if ( __dataFlagVisualizationType != TSDataFlagVisualizationType.NOT_SHOWN) {
+    		// FIXME SAM (2010-07-15) Figure this out - we added some editing.
+    		TS ts = (TS)_data.get(columnIndex - 1);
+    		return ts.isEditable();
+		}
+		else {
+		    // TODO SAM 2012-04-16 Editing when flags are shown is not yet implemented
+		    return false;
+		}
 	}
 	return false;
+}
+
+/**
+Set how data flags should be visualized.
+*/
+public void setDataFlagVisualizationType ( TSDataFlagVisualizationType dataFlagVisualizationType )
+{
+    __dataFlagVisualizationType = dataFlagVisualizationType;
 }
 
 /**
