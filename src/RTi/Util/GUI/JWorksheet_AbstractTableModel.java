@@ -364,8 +364,7 @@ of the change.  Will not be called automatically by the table model.
 */
 protected void valueChanged(int row, int col, Object value) {
 	for (int i = 0; i < _listeners.size(); i++) {
-		((JWorksheet_TableModelListener)_listeners.elementAt(i))
-			.tableModelValueChanged(row, col, value);
+		((JWorksheet_TableModelListener)_listeners.elementAt(i)).tableModelValueChanged(row, col, value);
 	}
 }
 
