@@ -1396,6 +1396,7 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	    String [] formats2 = {
             formats[4], // day
             formats[5], // hour
+            //formats[7], // day of year - TODO SAM 2012-04-18 should be able to do
             formats[8], // month
             formats[12], // year (2-digit)
             formats[13] // year (4-digit)

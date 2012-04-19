@@ -1,7 +1,5 @@
 package RTi.Util.Time;
 
-import RTi.Util.Message.Message;
-
 // TODO SAM 2012-04-11 This code heeds to be reviewed in conjunction with DateTimeFormat.  Ideally, the
 // DateTimeFormat class should just contain instances of DateTimeFormatterType (an enumeration) and the
 // format string.  Then a DateTimeFormatter class could use DateTimeFormat to do formatting and this
@@ -175,7 +173,7 @@ private void parseC ( DateTime dt, String dtString )
                 // Not supported since need the AM/PM also
             }
             else if ( c == 'j' ) {
-                // Day of year...
+                // Day of year (assumes that year is already set)...
                 // Not supported
             }
             else if ( c == 'm' ) {
