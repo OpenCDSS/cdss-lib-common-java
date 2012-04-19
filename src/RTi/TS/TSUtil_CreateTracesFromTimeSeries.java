@@ -107,7 +107,8 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         TraceLength_TimeInterval = TimeInterval.parseInterval ( TraceLength );
     }
 
-    // First determine the overall period in the original time series that is to be processed...
+    // First determine the overall period in the original time series that is to be processed
+    // This will limit the data to be processed from the original
 
     TSLimits valid_dates = TSUtil.getValidPeriod ( ts, InputStart_DateTime, InputEnd_DateTime );
     // Reset the reference to the input period...
@@ -118,7 +119,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     DateTime ReferenceDate_DateTime2 = null;
     if ( ReferenceDate_DateTime == null ) {
-        // Create a reference date that is of the correct precision...
+        // Create a reference date for Jan 1 that is of the correct precision...
         ReferenceDate_DateTime2 = TSUtil.newPrecisionDateTime ( ts, null );
         // The year will be set to each year in the source time series, or that of the reference date.
         // Now reset to Jan 1...
@@ -153,9 +154,9 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     for ( int itrace = 0; ; itrace++ ) {
         // Determine the start and end date/times for the source data and the resulting data.
         // The input time series should loop through the years 
-        date1_in.setYear ( ts.getDate1().getYear() + itrace );
+        date1_in.setYear ( InputStart_DateTime.getYear() + itrace );
         DateTime date2_in = computeDateWithOffset (
-                "input", ts, ReferenceDate_DateTime2, date1_in, TraceLength_TimeInterval );
+            "input", ts, ReferenceDate_DateTime2, date1_in, TraceLength_TimeInterval );
         // The output trace start depends on the ShiftDataHow parameter...
         if ( ShiftToReference_boolean ) {
             // Output should be shifted to the reference date...
