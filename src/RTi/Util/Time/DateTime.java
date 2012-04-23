@@ -237,6 +237,7 @@
 //					length is not recognized in parsing.
 // 2006-04-20	JTS, RTi		Added subtractInterval().
 // 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
+// 2012-04-20   HSK, RTi        Added equals(Object) and hashCode overrides.
 // ----------------------------------------------------------------------------
 // EndHeader
 
@@ -1414,6 +1415,35 @@ public int compareTo ( Object t )
 	else {
 		return -1;
 	}
+}
+
+@Override
+public boolean equals(Object o) 
+{
+    if (o instanceof DateTime) {
+        return equals((DateTime) o);
+    } else {
+        return false;
+    }
+}
+
+@Override
+public int hashCode() {
+    int hash = 3;
+    hash = 67 * hash + this.__hsecond;
+    hash = 67 * hash + this.__second;
+    hash = 67 * hash + this.__minute;
+    hash = 67 * hash + this.__hour;
+    hash = 67 * hash + this.__day;
+    hash = 67 * hash + this.__month;
+    hash = 67 * hash + this.__year;
+    hash = 67 * hash + (this.__tz != null ? this.__tz.hashCode() : 0);
+    hash = 67 * hash + (this.__isleap ? 1 : 0);
+    hash = 67 * hash + (this.__iszero ? 1 : 0);
+    hash = 67 * hash + this.__precision;
+    hash = 67 * hash + this.__behavior_flag;
+    hash = 67 * hash + (this.__use_time_zone ? 1 : 0);
+    return hash;
 }
 
 /**
