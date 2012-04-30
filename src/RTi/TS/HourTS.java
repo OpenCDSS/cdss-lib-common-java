@@ -143,6 +143,12 @@ Data flags for each hourly value.  The dimensions are [month][value_in_month]
 */
 private String [][] _dataFlags;
 /**
+Durations for each hourly value. The dimensions are [month][value_in_month].
+ */
+private int[][] _durations;
+
+private boolean _has_durations = false;
+/**
 Data position, used internally by get/set methods.
 */
 private int[] _pos;
@@ -181,6 +187,84 @@ public HourTS ( HourTS ts )
 	}
 	date2 = null;
 	date = null;
+}
+
+/**
+Allocate the data duration space for the time series.  This requires that the data
+interval base and multiplier are set correctly and that _date1 and _date2 have
+been set.  The allocateDataSpace() method will not allocate duration space. Use this 
+method when the data durations need to be allocated upon seeing the data after the initial allocation.
+@param initialValue Initial value (null is allowed and will result in the durations being initialized to 0).
+@param retainPreviousValues If true, the array size will be increased if necessary, but
+previous data values will be retained.  If false, the array will be reallocated and initialized to 0s.
+@exception Exception if there is an error allocating the memory.
+*/
+public void allocateDataDurationSpace ( Integer initialValue, boolean retainPreviousValues ) throws Exception
+{
+    String	routine="HourTS.allocateDataDurationSpace", message;
+	int	i;
+
+	if ( (_date1 == null) || (_date2 == null) ) {
+		message ="Dates have not been set.  Cannot allocate data space";
+		Message.printWarning ( 2, routine, message );
+		throw new Exception ( message );
+	}
+	if ( (_data_interval_mult < 1) || (_data_interval_mult > 24) ) {
+		message = "Only know how to handle 1-24 hour data, not " + _data_interval_mult + "-hour";
+		Message.printWarning ( 3, routine, message );
+		throw new Exception ( message );
+	}
+	
+	if ( initialValue == null ) {
+	    initialValue = 0;
+	}
+	
+	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
+
+	if ( nmonths == 0 ) {
+		message="TS has 0 months POR, maybe Dates haven't been set yet";
+		Message.printWarning( 2, routine, message );
+		throw new Exception ( message );
+	}
+    
+    int[][] prevDurations = null;
+    if (_has_durations && retainPreviousValues) {
+        prevDurations = _durations;
+    }
+    else {
+        _has_durations = true;
+    }
+    
+    // Top-level allocation...
+	_durations = new int[nmonths][];
+
+	// Set the counter date to match the starting month.  This date is used
+	// to determine the number of days in each month.
+
+	DateTime date = new DateTime(DateTime.DATE_FAST);
+	date.setMonth( _date1.getMonth() );
+	date.setYear( _date1.getYear() );
+
+	// Allocate memory...
+
+	int j = 0;
+	int nvals = 0;
+	int ndaysInMonth = 0;
+	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
+		// If a non-valid interval, an exception was thrown above...
+		ndaysInMonth = TimeUtil.numDaysInMonth ( date );
+		nvals = ndaysInMonth*(24/_data_interval_mult);
+
+		_durations[i] = new int[nvals];
+		for ( j = 0; j < nvals; j++ ) {
+			if(retainPreviousValues && (prevDurations != null)){
+			    _durations[i][j] = prevDurations[i][j];
+			}
+            else {
+                _durations[i][j] = initialValue.intValue();
+            }
+		}
+	}
 }
 
 /**
@@ -1550,14 +1634,17 @@ public TSData getDataPoint ( DateTime date, TSData tsdata )
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
 	    if ( _internDataFlagStrings ) {
-	        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column].intern(), 0 );
+	        tsdata.setValues ( date, getDataValue(date), _data_units, 
+                    _dataFlags[_row][_column].intern(), _has_durations ? _durations[_row][_column] : 0 );
 	    }
 	    else {
-	        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column], 0 );
+	        tsdata.setValues ( date, getDataValue(date), _data_units, 
+                    _dataFlags[_row][_column], _has_durations ? _durations[_row][_column] : 0 );
 	    }
 	}
 	else {
-	    tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
+	    tsdata.setValues ( date, getDataValue(date), _data_units, "", 
+                _has_durations ? _durations[_row][_column] : 0 );
 	}
 
 	return tsdata;
@@ -1844,7 +1931,7 @@ Set the data value and associated information for the date.
 @param date Date of interest.
 @param value Data value corresponding to date.
 @param data_flag data_flag Data flag for value.
-@param duration Duration for value (ignored - assumed to be 1-day or instantaneous depending on data type).
+@param duration Duration for value (if null, ignored - assumed to be 1-day or instantaneous depending on data type).
 */
 public void setDataValue (	DateTime date, double value, String data_flag, int duration )
 {	if( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
@@ -1892,6 +1979,25 @@ public void setDataValue (	DateTime date, double value, String data_flag, int du
 	        _dataFlags[_row][_column] = data_flag;
 	    }
 	}
+    
+    if ( (duration != 0) && Integer.valueOf(duration) != null) {
+        if (!_has_durations) {
+            // Space has not been allocated for durations, so allocate it.
+            try {
+                allocateDataDurationSpace(null, false);
+            }
+            catch (Exception e) {
+                if (Message.isDebugOn) {
+                    Message.printDebug(30, "HourTS.setDataValue", "Error allocating data duration space (" + e
+                            + ") - will not use durations.");
+                }
+                _has_durations = false;
+            }
+        }
+    }
+    if (_has_durations && Integer.valueOf(duration) != null) {
+        _durations[_row][_column] = duration;
+    }
 }
 
 }
