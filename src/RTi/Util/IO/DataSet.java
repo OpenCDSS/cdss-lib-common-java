@@ -1,22 +1,3 @@
-//-----------------------------------------------------------------------------
-// DataSet - base class to manage a set of DataSetComponent
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2003-07-12	Steven A. Malers, RTi	Created class.  Copy the
-//					StateCU_DataSetComponent class and make
-//					it generic.  This allows the
-//					StateCU_DataSet and StateMod_DataSet
-//					classes to be derived from one class
-//					with common functionality.
-// 2003-10-13	SAM, RTi		Add getComponentForComponentName().
-// 2005-04-26	J. Thomas Sapienza, RTi	Added all data members to finalize().
-// 2004-05-21	SAM, RTi		Comment some of the finalize() on the
-//					command names - apparently this can
-//					set static strings to null!
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.Util.IO;
 
 import java.io.File;
@@ -210,7 +191,7 @@ for iteration through the components.
 @param pos Index position in the component vector.
 */
 public DataSetComponent getComponentAt ( int pos )
-{	return (DataSetComponent)__components.get(pos);
+{	return __components.get(pos);
 }
 
 /**
@@ -252,10 +233,10 @@ component is not in the data set.
 public DataSetComponent getComponentForComponentName ( String name )
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	List v;
+	List<DataSetComponent> v;
 	int size2;
 	for ( int i = 0; i < size; i++ ) {
-		comp = (DataSetComponent)__components.get(i);
+		comp = __components.get(i);
 		if ( comp.getComponentName().equalsIgnoreCase(name) ) {
 			return comp;
 		}
@@ -268,7 +249,7 @@ public DataSetComponent getComponentForComponentName ( String name )
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.get(j);
+				comp = v.get(j);
 				if ( comp.getComponentName().equalsIgnoreCase( name) ) {
 					return comp;
 				}
@@ -287,7 +268,7 @@ component is not in the data set.
 public DataSetComponent getComponentForComponentType ( int type )
 {	int size = __components.size();
 	DataSetComponent comp = null;
-	List v;
+	List<DataSetComponent> v;
 	int size2;
 	//Message.printStatus ( 2, "", "looking up component " + type );
 	for ( int i = 0; i < size; i++ ) {
@@ -308,7 +289,7 @@ public DataSetComponent getComponentForComponentType ( int type )
 			}
 			for ( int j = 0; j < size2; j++ ) {
 				//Message.printStatus ( 2, "", "Checking " + comp.getComponentType() );
-				comp = (DataSetComponent)v.get(j);
+				comp = v.get(j);
 				if ( comp.getComponentType() == type ) {
 					return comp;
 				}
@@ -389,8 +370,8 @@ public String getDataFilePath ( String file )
 }
 
 /**
-Return the name of the data set file name (XML file).
-@return the name of the data set file name (XML file).
+Return the name of the data set file name, which is the entry point into the data set.
+@return the name of the data set file name, which is the entry point into the data set.
 */
 public String getDataSetFileName ()
 {	return __dataset_filename;
@@ -826,7 +807,7 @@ Return a string representation of the data set (e.g., for debugging).
 */
 public String toString ()
 { 	List<DataSetComponent> componentList = getComponents();
-	List v;
+	List<DataSetComponent> v;
 	int size2;
 	StringBuffer buffer = new StringBuffer ();
 	for ( DataSetComponent comp: componentList ) {
@@ -849,7 +830,7 @@ public String toString ()
 				size2 = v.size();
 			}
 			for ( int j = 0; j < size2; j++ ) {
-				comp = (DataSetComponent)v.get(j);
+				comp = v.get(j);
 				buffer.append ( "    SubComponent:  " );
 				if ( comp == null ) {
 					buffer.append ( "null\n" );
