@@ -323,6 +323,8 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     newTable.setTableID ( newTableID );
     // Get the column information from the original table
     int errorCount = 0;
+    boolean [] columnCopied = new boolean[columnNames.length]; // Will initialize to false
+    StringBuffer errorMessage = new StringBuffer();
     for ( int iField = 0; iField < table.getNumberOfFields(); iField++ ) {
         for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
             if ( table.getFieldName(iField).equalsIgnoreCase(columnNames[iReqField])) {
@@ -335,17 +337,30 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                     }
                     catch ( Exception e ) {
                         // Should not happen
+                        errorMessage.append("Error setting new table data.");
                         Message.printWarning(3, routine, "Error setting new table data (" + e + ")." );
                         ++errorCount;
                     }
                 }
+                // Indicate that the column was copied
+                columnCopied[iReqField] = true;
                 // No need to keep looking for a matching column
                 break;
             }
         }
     }
+    for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
+        if ( !columnCopied[iReqField] ) {
+            ++errorCount;
+            if ( errorMessage.length() > 0 ) {
+                errorMessage.append(" ");
+            }
+            errorMessage.append ( "Requested column \"" + columnNames[iReqField] + "\" not found in existing table.");
+        }
+    }
     if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table." );
+        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table: " +
+            errorMessage );
     }
     return newTable;
 }
@@ -1116,6 +1131,8 @@ throws Exception
 			continue;
 		}
 
+		// TODO SAM if a column contains only quoted strings, but each string is a number, then there is no
+		// way to treat the column as strings.  This may be problematic if the string is zero-padded.
 		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_ALLOW_STRINGS);
 
 		// line is part of header ... 
@@ -1440,10 +1457,14 @@ throws Exception
     // Use to speed up code below.
     int HeaderLines_Vector_size = HeaderLines_Vector.size();
 
+	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
+	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
+    // This is important when numbers are zero padded, such as for station identifiers.
+	int parseFlag = StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES;
 	propVal = props.getValue("MergeDelimiters");
-	int parse_flag = StringUtil.DELIM_ALLOW_STRINGS;
 	if (propVal != null) {		
-		parse_flag |= StringUtil.DELIM_SKIP_BLANKS;
+		parseFlag |= StringUtil.DELIM_SKIP_BLANKS;
+		parseFlagHeader |= StringUtil.DELIM_SKIP_BLANKS;
 	}
 
     String CommentLineIndicator = null;
@@ -1530,11 +1551,11 @@ throws Exception
 	// Read until the end of the file...
 	
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
-	int linecount0;    // linecount0 = linecount - 1 (zero index), for code perspective.
+	int linecount0; // linecount0 = linecount - 1 (zero index), for code perspective.
 	boolean headers_found = false; // Indicates whether the headers have been found
 	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
-	int numFields = -1;    // Number of table fields.
-	TableField tableField = null;  // Table field added below
+	int numFields = -1; // Number of table fields.
+	TableField tableField = null; // Table field added below
 	while ( true ) {
 		line = in.readLine();
 		if ( line == null ) {
@@ -1571,7 +1592,7 @@ throws Exception
 		    if ( HeaderLines_Auto_boolean ) {
 		        // If a quote is detected, then this line is assumed to contain the name of the fields.
         	    if (line.startsWith("\"")) {
-        	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
+        	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
         	        numFields = tableFields.size();
         	        // Read another line of data to be used below
         	        headers_found = true;
@@ -1582,7 +1603,7 @@ throws Exception
 		        // Calling code has specified the header rows.  Check to see if this is a row.
 		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLines_Vector, HeaderLines_Vector_size)) {
 		            // This row has been specified as a header row so process it.
-		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parse_flag );
+		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
 		            numFields = tableFields.size();
 		                
                     //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings
@@ -1608,10 +1629,10 @@ throws Exception
     	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of columns below.
     	
         if ( TrimInput_Boolean ) {
-			v = StringUtil.breakStringList(line.trim(), Delimiter, parse_flag );
+			v = StringUtil.breakStringList(line.trim(), Delimiter, parseFlag );
 		}
 		else {
-            v = StringUtil.breakStringList(line, Delimiter, parse_flag );
+            v = StringUtil.breakStringList(line, Delimiter, parseFlag );
 		}
 		size = v.size();
 		if (size > maxColumns) {
@@ -1705,7 +1726,7 @@ throws Exception
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
             if ( !isTypeFound ) {
-                // Assume string
+                // Assume string, but strip off the quotes if necessary
                 ++count_string[icol];
                 if ( TrimStrings_boolean ) {
                     lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
@@ -1817,12 +1838,12 @@ throws Exception
 	            }
 			    else {
 			        // Add as string
-	                tablerec.addFieldValue( cell );
+	                tablerec.addFieldValue( parseFile_ProcessString(cell) );
 	            }
 			}
 			else {
 			    // Set as the string value.
-			    tablerec.addFieldValue( cell );
+			    tablerec.addFieldValue( parseFile_ProcessString(cell) );
 	        }
 		}
 		
@@ -1931,6 +1952,33 @@ private static List<TableField> parseFile_ParseHeaderLine (
         tableFields.add(tableField);
     }
     return tableFields;
+}
+
+/**
+Process a string table field value before setting as data in the table.
+*/
+private static String parseFile_ProcessString ( String cell )
+{
+    if ( (cell == null) || (cell.length() == 0) ) {
+        return cell;
+    }
+    char c1 = cell.charAt(0);
+    int len = cell.length();
+    char c2 = cell.charAt(len - 1);
+    if ( (c1 == '"') || (c1 == '\'') ) {
+        // Have a quoted string.  Remove the quotes from each end (but not the middle)
+        if ( (c2 == c1) && (len > 1) ) {
+            return cell.substring(1,len - 1);
+        }
+        else {
+            // Truncated field or error in input?  Unlikely case
+            return cell.substring(1);
+        }
+        // TODO SAM 2012-05-01 How to deal with embedded quotes?
+    }
+    else {
+        return cell;
+    }
 }
 
 /**

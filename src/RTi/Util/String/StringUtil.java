@@ -182,9 +182,14 @@ For use with breakStringList.  Skip blank fields (adjoining delimiters are merge
 */
 public static final int DELIM_SKIP_BLANKS = 0x1;
 /**
-For use with breakStringList.  Allow tokens that are surrounded by quotes.
+For use with breakStringList.  Allow tokens that are surrounded by quotes.  For example, this is
+used when a data field might contain the delimiting character.
 */
 public static final int DELIM_ALLOW_STRINGS = 0x2;
+/**
+For use with breakStringList.  When DELIM_ALLOW_STRINGS is set, include the quotes in the returned string.
+*/
+public static final int DELIM_ALLOW_STRINGS_RETAIN_QUOTES = 0x4;
 
 /**
 For use with padding routines.  Pad/unpad back of string.
@@ -441,8 +446,10 @@ character in the string is checked (the complete string is not used as a
 multi-character delimiter).  Cannot be null.
 @param flag Bitmask indicating how to break the string.  Specify
 DELIM_SKIP_BLANKS to skip blank fields (delimiters that are next to each other
-are treated as one delimiter - delimiters at the front are ignored) and
+are treated as one delimiter - delimiters at the front are ignored).  Specify
 DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
+Specify DELIM_ALLOW_STRINGS_RETAIN_QUOTES to retain the quotes in the return strings when
+DELIM_ALLOW_QUOTES is used.
 Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.  Note that when allowing
 quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
@@ -464,6 +471,7 @@ public static List<String> breakStringList( String string, String delim, int fla
 	//}
 	int	length_string = string.length();
 	boolean	instring = false;
+	boolean retainQuotes = false;
 	int	istring = 0;
 	char cstring;
 	char quote = '\"';
@@ -475,6 +483,9 @@ public static List<String> breakStringList( String string, String delim, int fla
 	if ( (flag & DELIM_SKIP_BLANKS) != 0 ) {
 		skip_blanks = true;
 	}
+    if ( allow_strings && ((flag & DELIM_ALLOW_STRINGS_RETAIN_QUOTES) != 0) ) {
+        retainQuotes = true;
+    }
 	// Loop through the characters in the string.  If in the main loop or
 	// the inner "while" the end of the string is reached, the last
 	// characters will be added to the last string that is broken out...
@@ -509,6 +520,9 @@ public static List<String> breakStringList( String string, String delim, int fla
 					instring = true;
 					at_start = false;
 					quote = cstring;
+					if ( retainQuotes ) {
+					    tempstr.append(cstring);
+					}
 					// Skip over the quote since we don't want to /store or process again...
 					++istring;
 					// cstring set at top of while...
@@ -519,13 +533,19 @@ public static List<String> breakStringList( String string, String delim, int fla
 				else if ( instring && (cstring == quote) ) {
 					// In a quoted string and have found the closing quote.  Need to skip over it.
 					instring = false;
+                    if ( retainQuotes ) {
+                        tempstr.append(cstring);
+                    }
 					//Message.printStatus ( 1, routine, "SAMX end of quoted string" + cstring );
 					++istring;
 					if ( istring < length_string ) {
 						cstring =string.charAt(istring);
 						// If the current string is now another quote, just continue so it can be processed
-						// again as the start of another string (but don't add the quote character)...
+						// again as the start of another string (but don't by default add the quote character)...
 						if ( (cstring == '\'') || (cstring == '"') ) {
+	                        if ( retainQuotes ) {
+	                            tempstr.append(cstring);
+	                        }
 							continue;
 						}
 					}
@@ -571,8 +591,7 @@ public static List<String> breakStringList( String string, String delim, int fla
 		}
 		// Check for and skip any additional delimiters that may be present in a sequence...
 		else if ( skip_blanks ) {
-			while ( (istring < length_string) &&
-				(delim.indexOf(cstring) != -1) ) {
+			while ( (istring < length_string) && (delim.indexOf(cstring) != -1) ) {
 				//Message.printStatus ( 1, routine, "SAMX skipping delimiter" + cstring );
 				++istring;
 				if ( istring < length_string ) {
@@ -602,8 +621,6 @@ public static List<String> breakStringList( String string, String delim, int fla
 			//"SAMX Broke out list[" + (list.size() - 1) + "]=\"" + tempstr + "\"" );
 		//}
 	}
-	tempstr = null;
-	routine = null;
 	return list;
 }
 
