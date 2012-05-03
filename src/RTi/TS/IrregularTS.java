@@ -1305,7 +1305,7 @@ If not, utilize a bisection approach to find the point to set.
 @param date Date of interest.
 @param value Data value corresponding to date.
 @param data_flag Data flag for value.
-@param duration Duration for value (ignored - assumed to be 1-day or instantaneous depending on data type).
+@param duration Duration for value
 */
 public void setDataValue ( DateTime date, double value, String data_flag, int duration )
 {	// Do not define routine here to increase performance.
