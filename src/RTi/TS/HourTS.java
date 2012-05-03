@@ -142,12 +142,20 @@ private	double[][] _data;
 Data flags for each hourly value.  The dimensions are [month][value_in_month]
 */
 private String [][] _dataFlags;
+
+// TODO SAM 2012-05-03 After initial addition, this feature is not currently needed.
+// Enable later if needed but don't have time to test impacts on performance and memory now
+// Also, duration may only be needed for minute and irregular intervals
 /**
 Durations for each hourly value. The dimensions are [month][value_in_month].
- */
-private int[][] _durations;
+*/
+//private int[][] _durations;
 
-private boolean _has_durations = false;
+/**
+Indicate whether the duration is used.
+*/
+//private boolean _has_durations = false;
+
 /**
 Data position, used internally by get/set methods.
 */
@@ -199,9 +207,10 @@ method when the data durations need to be allocated upon seeing the data after t
 previous data values will be retained.  If false, the array will be reallocated and initialized to 0s.
 @exception Exception if there is an error allocating the memory.
 */
+/** TODO SAM 2012-05-03 Enable later.
 public void allocateDataDurationSpace ( Integer initialValue, boolean retainPreviousValues ) throws Exception
 {
-    String	routine="HourTS.allocateDataDurationSpace", message;
+    String routine="HourTS.allocateDataDurationSpace", message;
 	int	i;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
@@ -226,7 +235,7 @@ public void allocateDataDurationSpace ( Integer initialValue, boolean retainPrev
 		Message.printWarning( 2, routine, message );
 		throw new Exception ( message );
 	}
-    
+
     int[][] prevDurations = null;
     if (_has_durations && retainPreviousValues) {
         prevDurations = _durations;
@@ -266,6 +275,7 @@ public void allocateDataDurationSpace ( Integer initialValue, boolean retainPrev
 		}
 	}
 }
+*/
 
 /**
 Allocate the data flag space for the time series.  This requires that the data
@@ -1631,20 +1641,21 @@ public TSData getDataPoint ( DateTime date, TSData tsdata )
 		return tsdata;
 	}
 	// This computes the _row and _column...
+	// TODO SAM 2012-05-03 Enable duration later.
 	getDataPosition ( date );
 	if ( _has_data_flags ) {
 	    if ( _internDataFlagStrings ) {
 	        tsdata.setValues ( date, getDataValue(date), _data_units, 
-                    _dataFlags[_row][_column].intern(), _has_durations ? _durations[_row][_column] : 0 );
+                    _dataFlags[_row][_column].intern(), 0 ); //_has_durations ? _durations[_row][_column] : 0 );
 	    }
 	    else {
 	        tsdata.setValues ( date, getDataValue(date), _data_units, 
-                    _dataFlags[_row][_column], _has_durations ? _durations[_row][_column] : 0 );
+                    _dataFlags[_row][_column], 0 ); //_has_durations ? _durations[_row][_column] : 0 );
 	    }
 	}
 	else {
-	    tsdata.setValues ( date, getDataValue(date), _data_units, "", 
-                _has_durations ? _durations[_row][_column] : 0 );
+	    tsdata.setValues ( date, getDataValue(date), _data_units, "", 0 );
+               // _has_durations ? _durations[_row][_column] : 0 );
 	}
 
 	return tsdata;
@@ -1979,7 +1990,8 @@ public void setDataValue (	DateTime date, double value, String data_flag, int du
 	        _dataFlags[_row][_column] = data_flag;
 	    }
 	}
-    
+
+	/** TODO SAM 2012-05-03 Enable later.
     if ( (duration != 0) && Integer.valueOf(duration) != null) {
         if (!_has_durations) {
             // Space has not been allocated for durations, so allocate it.
@@ -1998,6 +2010,7 @@ public void setDataValue (	DateTime date, double value, String data_flag, int du
     if (_has_durations && Integer.valueOf(duration) != null) {
         _durations[_row][_column] = duration;
     }
+    */
 }
 
 }
