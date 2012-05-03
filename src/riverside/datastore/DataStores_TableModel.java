@@ -6,7 +6,9 @@ import RTi.DMI.DatabaseDataStore;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 /**
-Table model for displaying data table data in a JWorksheet.
+Table model for displaying data store data in a JWorksheet.
+This one table model is used for database and web service data stores because currently
+it is easier to show all than split out and make the user pick different categories for viewing.
 */
 public class DataStores_TableModel extends JWorksheet_AbstractRowTableModel
 {
@@ -19,7 +21,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 5;
+private int __COLUMNS = 6;
 
 /**
 Absolute column indices, for column lookups.
@@ -27,8 +29,11 @@ Absolute column indices, for column lookups.
 public final int COL_TYPE = 0;
 public final int COL_NAME = 1;
 public final int COL_DESCRIPTION = 2;
+// Database data store...
 public final int COL_DATABASE_SERVER = 3;
 public final int COL_DATABASE_NAME = 4;
+// Web service data store...
+public final int COL_SERVICE_ROOT_URI = 5;
 
 /**
 Constructor.
@@ -53,11 +58,7 @@ column.  All values are treated as strings.
 */
 public Class getColumnClass (int columnIndex) {
     switch (columnIndex) {
-        case COL_TYPE: return String.class;
-        case COL_NAME: return String.class;
-        case COL_DESCRIPTION: return String.class;
-        case COL_DATABASE_SERVER: return String.class;
-        case COL_DATABASE_NAME: return String.class;
+        // All handled as strings
         default: return String.class;
     }
 }
@@ -81,6 +82,7 @@ public String getColumnName(int columnIndex) {
         case COL_DESCRIPTION: return "\nDescription";
         case COL_DATABASE_SERVER: return "Database\nServer";
         case COL_DATABASE_NAME: return "Database\nName";
+        case COL_SERVICE_ROOT_URI: return "Web Service\nRoot URI";
         default: return "";
     }
 }
@@ -93,8 +95,9 @@ public String[] getColumnToolTips() {
     tooltips[COL_TYPE] = "Data store type.";
     tooltips[COL_NAME] = "Data store name.";
     tooltips[COL_DESCRIPTION] = "Data store description.";
-    tooltips[COL_DATABASE_SERVER] = "Database server for data store.";
-    tooltips[COL_DATABASE_NAME] = "Database name for data store.";
+    tooltips[COL_DATABASE_SERVER] = "Database server for database data store.";
+    tooltips[COL_DATABASE_NAME] = "Database name for database data store.";
+    tooltips[COL_SERVICE_ROOT_URI] = "Root URI for web service data store.";
     return tooltips;
 }
 
@@ -137,6 +140,10 @@ public Object getValueAt(int row, int col)
     if ( dataStore instanceof DatabaseDataStore ) {
         databaseDataStore = (DatabaseDataStore)dataStore;
     }
+    WebServiceDataStore webServiceDataStore = null;
+    if ( dataStore instanceof WebServiceDataStore ) {
+        webServiceDataStore = (WebServiceDataStore)dataStore;
+    }
     switch (col) {
         case COL_TYPE:
             // Use the class name but don't include the package
@@ -159,6 +166,13 @@ public Object getValueAt(int row, int col)
             else {
                 return "";
             }
+        case COL_SERVICE_ROOT_URI:
+            if ( webServiceDataStore != null ) {
+                return webServiceDataStore.getServiceRootURI();
+            }
+            else {
+                return "";
+            }
         default: return "";
     }
 }
@@ -169,11 +183,12 @@ Returns an array containing the column widths (in number of characters).
 */
 public int[] getColumnWidths() {
     int[] widths = new int[__COLUMNS];
-    widths[COL_TYPE] = 12;
-    widths[COL_NAME] = 12;
-    widths[COL_DESCRIPTION] = 20;
+    widths[COL_TYPE] = 15;
+    widths[COL_NAME] = 20;
+    widths[COL_DESCRIPTION] = 45;
     widths[COL_DATABASE_SERVER] = 12;
     widths[COL_DATABASE_NAME] = 12;
+    widths[COL_SERVICE_ROOT_URI] = 45;
     return widths;
 }
 
