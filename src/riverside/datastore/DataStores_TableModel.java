@@ -183,12 +183,12 @@ Returns an array containing the column widths (in number of characters).
 */
 public int[] getColumnWidths() {
     int[] widths = new int[__COLUMNS];
-    widths[COL_TYPE] = 15;
+    widths[COL_TYPE] = 20;
     widths[COL_NAME] = 20;
     widths[COL_DESCRIPTION] = 45;
     widths[COL_DATABASE_SERVER] = 12;
     widths[COL_DATABASE_NAME] = 12;
-    widths[COL_SERVICE_ROOT_URI] = 45;
+    widths[COL_SERVICE_ROOT_URI] = 50;
     return widths;
 }
 
