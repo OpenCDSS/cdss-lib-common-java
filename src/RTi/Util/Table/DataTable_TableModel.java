@@ -1,23 +1,3 @@
-// ----------------------------------------------------------------------------
-// DataTable_TableModel - table model for displaying DataTable values in 
-//	a JWorksheet.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-08-21	J. Thomas Sapienza, RTi	Initial version.
-// 2004-01-22	JTS, RTi		Removed 0th column to account for new
-//					style of doing row headers.
-// 2004-05-24	JTS, RTi		Corrected bug in determineClasses()
-//					in which Doubles were being cast as
-//					Integers.
-// 2004-08-06	JTS, RTi		getColumnName() now checks to see
-//					if a column prefix has been set.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.Table;
 
 import java.util.Date;
@@ -151,6 +131,33 @@ public String getColumnName(int columnIndex) {
 	return prefix + __fieldNames[columnIndex];
 }
 
+/**
+Returns an array containing the column tool tips.
+@return a String array containing the tool tips for each field (the field descriptions are used).
+*/
+public String[] getColumnToolTips() {
+    String[] tips = new String[__columns];
+    for (int i = 0; i < __columns; i++) {
+        tips[i] = __dataTable.getTableField(i).getDescription();
+    }
+    return tips;
+}
+
+/**
+Returns an array containing the widths (in number of characters) that the 
+fields in the table should be sized to.
+@return an integer array containing the widths for each field.
+*/
+public int[] getColumnWidths() {
+    int[] widths = new int[__columns];
+    for (int i = 0; i < __columns; i++) {
+        widths[i] = __dataTable.getFieldWidth(i);
+        if ( widths[i] < 0 ) {
+            widths[i] = 15; // Default
+        }
+    }
+    return widths;
+}
 
 /**
 Returns the format that the specified column should be displayed in when
@@ -188,22 +195,6 @@ public Object getValueAt(int row, int col) {
 		e.printStackTrace();
 		return "";
 	}
-}
-
-/**
-Returns an array containing the widths (in number of characters) that the 
-fields in the table should be sized to.
-@return an integer array containing the widths for each field.
-*/
-public int[] getColumnWidths() {
-	int[] widths = new int[__columns];
-	for (int i = 0; i < __columns; i++) {
-		widths[i] = __dataTable.getFieldWidth(i);
-		if ( widths[i] < 0 ) {
-		    widths[i] = 15; // Default
-		}
-	}
-	return widths;
 }
 
 /**

@@ -74,6 +74,11 @@ Field name (also used for a column heading).
 */
 private String _name;
 
+/**
+Field description, can be used for column tool tip when displaying table.
+*/
+private String __description = "";
+
 // TODO SAM 2011-04-27 Why is this needed - is it related to dBase constraint?
 /**
 Field width (e.g., maximum characters for strings or number width in characters).
@@ -237,6 +242,14 @@ public static List<String> getDataTypeChoices ( boolean includeNote )
 }
 
 /**
+Get field description.
+@return field description
+*/
+public String getDescription ()
+{   return __description;
+}
+
+/**
 Get field name.
 @return field name.
 */
@@ -295,6 +308,16 @@ Set the data type.
 */
 public void setDataType ( int data_type )
 {	_data_type = data_type;
+}
+
+/**
+Set the field description.
+@param description field description
+*/
+public void setDescription ( String description )
+{   if ( description != null ) {
+        __description = description;
+    }
 }
 
 /**
