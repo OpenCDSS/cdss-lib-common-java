@@ -92,24 +92,28 @@ public enum TSStatisticType
      * Minimum of (mean - value) sum when sequential values are above the mean.
      */
     DEFICIT_SEQ_MIN ( "DeficitSeqMin" ),
+    /**
+     * Exceedance probability, percent.
+     */
+    EXCEEDANCE_PROBABILITY ( "ExceedanceProbability" ),
 	/**
-	 * Probability of exceeding value is 10% (0 to 10% chance).
+	 * Value for which there is a 10% probability of exceeding the value (0 to 10% chance).
 	 */
     EXCEEDANCE_PROBABILITY_10 ( "ExceedanceProbability10" ),
     /**
-     * Probability of exceeding value is 30% (0 to 30% chance).
+     * Value for which there is a 30% probability of exceeding the value (0 to 30% chance).
      */
     EXCEEDANCE_PROBABILITY_30 ( "ExceedanceProbability30" ),
     /**
-     * Probability of exceeding value is 50% (0 to 50% chance).
+     * Value for which there is a 50% probability of exceeding the value (0 to 50% chance).
      */
     EXCEEDANCE_PROBABILITY_50 ( "ExceedanceProbability50" ),
     /**
-     * Probability of exceeding value is 70% (0 to 70% chance).
+     * Value for which there is a 70% probability of exceeding the value (0 to 70% chance).
      */
     EXCEEDANCE_PROBABILITY_70 ( "ExceedanceProbability70" ),
     /**
-     * Probability of exceeding value is 90% (0 to 90% chance).
+     * Value for which there is a 90% probability of exceeding the value (0 to 90% chance).
      */
     EXCEEDANCE_PROBABILITY_90 ( "ExceedanceProbability90" ),
     /**
@@ -221,6 +225,10 @@ public enum TSStatisticType
      */
     MONTH_OF_MIN ( "MonthOfMin" ),
     /**
+     * Nonexceedance probability, percent.
+     */
+    NONEXCEEDANCE_PROBABILITY ( "NonexceedanceProbability" ),
+    /**
      * Count of non-missing values in the sample.
      */
     NONMISSING_COUNT ( "NonmissingCount" ),
@@ -232,6 +240,22 @@ public enum TSStatisticType
      * For daily data: 10-year recurrence interval for lowest 7-day average flow (each year) is 7q10
      */
     NQYY ( "NqYY" ),
+    /**
+     * Percent of max.
+     */
+    PERCENT_OF_MAX ( "PercentOfMax" ),
+    /**
+     * Percent of min.
+     */
+    PERCENT_OF_MIN ( "PercentOfMin" ),
+    /**
+     * Percent of mean.
+     */
+    PERCENT_OF_MEAN ( "PercentOfMean" ),
+    /**
+     * Percent of median.
+     */
+    PERCENT_OF_MEDIAN ( "PercentOfMedian" ),
     /**
      * Coefficient of skew.
      */
