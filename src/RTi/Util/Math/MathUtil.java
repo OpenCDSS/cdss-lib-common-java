@@ -2,7 +2,6 @@ package RTi.Util.Math;
 import	RTi.Util.Message.Message;
 
 import java.lang.Math;
-import java.security.InvalidParameterException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -207,21 +206,68 @@ private static String decimalToHexHelper(int num) {
 }
 
 /**
+@return The exceedance probability given the sample and one of the values in the sample.
+@param n the number of values in the sample array to process
+@param x sample values
+@param xi specific value for which to compute the exceedance probability (must match one of the values in x array)
+@exception IllegalArgumentException If the number of points is <= 0
+*/
+public static double exceedanceProbability ( int n, double x[], double xi )
+{   String routine = "MathUtil.exceedanceProbability";
+
+    if ( n <= 0 ) {
+        String message = "Number of points <= 0";
+        Message.printWarning ( 10, routine, message );
+        throw new IllegalArgumentException ( message );
+    }
+    // First sort the numbers into ascending order...
+    double [] x2 = new double[x.length];
+    System.arraycopy(x, 0, x2, 0, n);
+    sort(x2, SORT_QUICK, SORT_DESCENDING, null, false);
+    
+    // Find the first matching value and return the exceedance probability using the plotting position
+    // = rank/(n + 1), where rank is high to low 1+
+    for ( int i = 0; i < n; i++ ) {
+        if ( x2[i] == xi ) {
+            // Value is in sample so return the plotting position
+            return (i + 1)/(double)(n + 1);
+        }
+        else if ( (xi > x2[0]) || (xi < x2[n - 1]) ) {
+            // Don't want to guess about exceedance probability and doing a linear interpolation may give
+            // probability < 0 or > 1 so just don't handle this case
+            String message =
+                "Value (" + xi + ") is outside sample range (" + x2[n - 1] + " to " + x2[0] +
+                ") - not extrapolating exceedance probability";
+            Message.printWarning ( 10, routine, message );
+            throw new IllegalArgumentException ( message );
+        }
+        else if ( xi > x2[i] ) {
+            // Value is between sample values so interpolate the plotting position of the bounding values.
+            double epHigh = i/(double)(n + 1); // For previous value (i + 1 - 1 = i)
+            double epLow = (i + 1)/(double)(n + 1); // For current value
+            return interpolate(xi, x2[i - 1], x2[i], epHigh, epLow);
+        }
+    }
+    String message = "Requested value " + xi + " does not match a value in the array";
+    Message.printWarning ( 10, routine, message );
+    throw new IllegalArgumentException ( message );
+}
+
+/**
 @return The sample value corresponding to the given exceedance probability.
 @param n the number of values in the sample array to process
 @param x sample values
 @param probability the exceedance probability to consider (0.0 to 1.0)
-@exception java.lang.Exception If the number of points is <= 0
+@exception IllegalArgumentException If the number of points is <= 0
 */
 public static double exceedanceProbabilityValue ( int n, double x[], double probability )
-throws Exception
 {   String routine = "MathUtil.exceedanceProbabilityValue";
     double value = 0;
 
     if ( n <= 0 ) {
         String message = "Number of points <= 0";
         Message.printWarning ( 10, routine, message );
-        throw new Exception ( message );
+        throw new IllegalArgumentException ( message );
     }
     // First sort the numbers into ascending order...
     double [] x2 = new double[x.length];
@@ -267,16 +313,28 @@ throws Exception
 }
 
 /**
+Calculate the exp() of each value in the array, returning a new array with the exp() values.
+@return an array of exp() values, calculated from the original array
+@param x array of values to transform
+*/
+public static double[] exp ( double [] x )
+{
+    double [] xt = new double[x.length];
+    for ( int i = 0; i < x.length; i++ ) {
+        x[i] = Math.exp(x[i]);
+    }
+    return xt;
+}
+
+/**
 Perform integration for a function.
 @param method Method used to integrate.  See INTEGRATE_*.
 @param func Function to integrate (using Function interface).
 @param a0 Left end point for entire interval.
 @param b0 Right end point for entire interval.
 @param nseg Number of segments to divide interval (use higher number for functions that are not smooth).
-@exception Exception if the function cannot be integrated.
 */
 public static double integrate ( int method, Function func, double a0, double b0, int nseg )
-throws Exception
 {	double a, b; // End-points used for integration
 	double dx; // increment to map "gx" values to real values
 	double s; // integration value
@@ -315,9 +373,9 @@ throws Exception
 	double [] func_input1 = new double[1];
 	double [] func_input2 = new double[1];
 	for ( j = 0; j < nseg; j++ ) {
-		xm	= 0.5*(b + a);
-		xr	= 0.5*(b - a);
-		s	= 0.0;
+		xm = 0.5*(b + a);
+		xr = 0.5*(b - a);
+		s = 0.0;
 
 		for ( i = 0; i < ng; i++ ) {
 			dx = xr*gx[i];
@@ -363,10 +421,8 @@ Calculate the lag-k auto correlation, defined as:
 @param y sample set
 @param k lag (a lag of zero should return a autocorrelation of 1
 @return lag-k auto correlation value
-@throws Exception
 */
 public static double lagAutoCorrelation ( int n, double y[], int k )
-throws Exception
 {   //String message, routine = "MathUtil.lagAutoCorrelation";
 
     double mean = mean ( n, y );
@@ -447,7 +503,6 @@ public static double max ( double x, double y, double missing )
 Find the maximum in an array.
 @return the maximum value.
 @param x Array of values to compare.
-@exception If there is an error.
 */
 public static double max ( double x[] )
 {
@@ -458,7 +513,7 @@ public static double max ( double x[] )
 @return The maximum value in an array.
 @param n number of values in array to process
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException If the number of points is <= 0.
 */
 public static double max ( int n, double x[] )
 {	int	i;
@@ -468,7 +523,7 @@ public static double max ( int n, double x[] )
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new RuntimeException ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -498,10 +553,8 @@ public static int max ( int x, int y )
 /**
 @return The maximum value in an array.
 @param x Array of values.
-@exception java.lang.Exception If the number of points is <= 0.
 */
 public static int max ( int x[] )
-throws Exception
 {
     return max ( x.length, x );
 }
@@ -510,10 +563,9 @@ throws Exception
 @return The maximum value in an array.
 @param n number of values in array to compare
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException if the number of points is <= 0.
 */
 public static int max ( int n, int x[] )
-throws Exception
 {	int	i;
 	String routine = "MathUtil.max";
 	int	m = 0;
@@ -521,7 +573,7 @@ throws Exception
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -536,7 +588,6 @@ throws Exception
 Compute the mean of an array of values.
 @return The mean of the array of values
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
 */
 public static double mean ( double x[] )
 {
@@ -548,7 +599,7 @@ Compute the mean of an array of values.
 @return The mean of the array of values
 @param n the number of values from the array to process
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException if the number of points is <= 0.
 */
 public static double mean ( int n, double x[] )
 {	String message, routine = "MathUtil.mean";
@@ -557,7 +608,7 @@ public static double mean ( int n, double x[] )
 	if ( n <= 0 ) {
 		message = "Number of values <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new RuntimeException ( message );
+		throw new IllegalArgumentException ( message );
 	}
     thesum = sum ( n, x );
 	return ( thesum/(double)(n) );
@@ -569,34 +620,28 @@ Compute the mean of an array of values.
 @param n the number of values from the array to process
 @param x array of values
 @param missing Missing data value (to ignore)
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException if the number of points is <= 0.
 */
 public static double mean ( int n, double x[], double missing )
-throws Exception
 {	String message, routine = "MathUtil.mean";
 	double thesum = 0.0;
 
 	if ( n <= 0 ) {
 		message = "Error computing mean - the number of points <= 0.";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	int n2 = 0;
-	try {
-	    for ( int i = 0; i < n; i++ ) {
-			if ( x[i] != missing ) { 
-				thesum += x[i];
-				++n2;
-			}
+    for ( int i = 0; i < n; i++ ) {
+		if ( x[i] != missing ) { 
+			thesum += x[i];
+			++n2;
 		}
-	}
-	catch (	Exception e ) {
-		throw e;
 	}
 	if ( n2 <= 0 ) {
 		message = "Error computing mean - the number of non-missing points <= 0.";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	return ( thesum/(double)(n2) );
 }
@@ -678,7 +723,7 @@ public static double min ( double x[] )
 @return The minimum value in an array.
 @param n the number of values in the array to compare
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException if the number of points is <= 0.
 */
 public static double min ( int n, double x[] )
 {	int	i;
@@ -688,7 +733,7 @@ public static double min ( int n, double x[] )
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0.0";
 		Message.printWarning ( 10, routine, message );
-		throw new RuntimeException ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -721,7 +766,6 @@ Find the minimum value in an array
 @param x array of integer values to check
 */
 public static int min ( int x[] )
-throws Exception
 {
     return min ( x.length, x );
 }
@@ -730,10 +774,9 @@ throws Exception
 @return The minimum value in an array.
 @param n number of values in array to check
 @param x array of values
-@exception java.lang.Exception If the number of points is <= 0.
+@exception IllegalArgumentException if the number of points is <= 0.
 */
 public static int min ( int n, int x[] )
-throws Exception
 {	int	i;
 	String routine = "MathUtil.min";
 	int	m = 0;
@@ -741,7 +784,7 @@ throws Exception
 	if ( n <= 0 ) {
 		String message = "Number of points <= 0";
 		Message.printWarning ( 10, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
@@ -750,6 +793,18 @@ throws Exception
 		}
 	}
 	return m;
+}
+
+/**
+@return The nonexceedance probability given the sample and one of the values in the sample.
+@param n the number of values in the sample array to process
+@param x sample values
+@param xi specific value for which to compute the nonexceedance probability (must match one of the values in x array)
+@exception IllegalArgumentException If the number of points is <= 0
+*/
+public static double nonexceedanceProbability ( int n, double x[], double xi )
+{   
+    return 1.0 - exceedanceProbability(n, x, xi);
 }
 
 /**
@@ -763,7 +818,7 @@ can be retrieved using RegressionResults methods, in particular:
 x1 Array of non-missing independent (X) values that overlap y1.<br>
 y1 Array of non-missing dependent (Y) values that overlap x1.
 @param forcedIntercept the intercept to force (currently the intercept must be zero if specified) or null to not force intercept.
-@exception java.lang.Exception If no data are available to be regressed (e.g.,
+@exception IllegalArgumentException if no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
 public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData data, Double forcedIntercept )
@@ -773,14 +828,14 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     if ( x1.length != y1.length ) {
         String message = "Lengths of arrays are unequal.";
         Message.printWarning ( 3, rtn, message );
-        throw new InvalidParameterException( message );
+        throw new IllegalArgumentException( message );
     }
 
     int n1 = x1.length;
     if ( n1 == 0 ) {
         String message = "No data to create regression analysis.";
         Message.printWarning ( 3, rtn, message );
-        throw new InvalidParameterException ( message );
+        throw new IllegalArgumentException ( message );
     }
 
     double totalX1minusY1_sq = 0.0;
@@ -886,7 +941,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
 
     if ( forcedIntercept != null) {
         if ( forcedIntercept != 0.0 ) {
-            throw new InvalidParameterException ( "Only zero intercept is supported (specified as " + forcedIntercept + ")." );
+            throw new IllegalArgumentException ( "Only zero intercept is supported (specified as " + forcedIntercept + ")." );
         }
         a = forcedIntercept;
     }
@@ -895,10 +950,12 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
         a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
     }
 
-    if ( Message.isDebugOn ) {
-        Message.printDebug ( 10, rtn, "Regression analysis results: " +
-        "a: " + a + ", " + "b: " + b + ", " + "R: " + r );
-    }
+    //if ( Message.isDebugOn ) {
+        //Message.printDebug ( 10, rtn, "Regression analysis results: " +
+        //    "a: " + a + ", " + "b: " + b + ", " + "R: " + r );
+        Message.printStatus ( 2, rtn,
+            "Regression analysis results: n=" + n1 + ", a=" + a + ", b=" + b + ", R=" + r );
+    //}
 
     // Save in Regression object...
 
@@ -906,14 +963,12 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
 }
 
 public static PrincipalComponentAnalysis performPrincipalComponentAnalysis (
-        double[] dependentArray, double[][] independentMatrix,
-        double missingDependentValue, double missingIndependentValue,
-        int maximumCombinations )
+    double[] dependentArray, double[][] independentMatrix,
+    double missingDependentValue, double missingIndependentValue, int maximumCombinations )
 throws Exception
 {
     PrincipalComponentAnalysis pca = new PrincipalComponentAnalysis(
-            dependentArray, independentMatrix, missingDependentValue, missingIndependentValue,
-            maximumCombinations );
+        dependentArray, independentMatrix, missingDependentValue, missingIndependentValue, maximumCombinations );
     return pca;
 }
 
@@ -937,12 +992,9 @@ strip out missing data values.
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 @param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
-@exception java.lang.Exception If no data are available to be regressed (e.g.,
-all missing), or data array lengths are unequal.
 */
 public static Regression regress ( double [] xArray, double [] yArray, boolean useMissing, double missingx,
 	double missingy, Double intercept )
-throws Exception
 {	return regress (xArray, yArray, useMissing, missingx, missingy, false, intercept );
 }
 
@@ -966,17 +1018,16 @@ strip out missing data values.
 @param data_transformed Indicates whether the data being passed in have been
 transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE data member.
 @param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
-@exception java.lang.Exception If no data are available to be regressed (e.g.,
+@exception IllegalArgumentException If no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
 private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
 	double missingy, boolean data_transformed, Double intercept )
-throws Exception
 {	String rtn = "MathUtil.regress";
 	if ( xArray.length != yArray.length ) {
 		String message = "Lengths of arrays are unequal.";
 		Message.printWarning ( 2, rtn, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 
 	double N = xArray.length;
@@ -1052,7 +1103,7 @@ throws Exception
 	if ( n1 == 0 ) {
 		String message = "No data to create regression analysis.";
 		Message.printWarning ( 2, rtn, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 
 	// For now use the original logic (SAMX need to optimize some)...
@@ -1165,7 +1216,7 @@ throws Exception
 
 	if ( intercept != null) {
 		if ( intercept.doubleValue() != 0.0 ) {
-			throw new Exception ( "Only zero intercept is supported (specified as " + intercept + ")." );
+			throw new IllegalArgumentException ( "Only zero intercept is supported (specified as " + intercept + ")." );
 		}
 		a = intercept;
 	}
@@ -1255,7 +1306,7 @@ performed, the limits are set to the missing data value indicator.
 @param missingy Missing data value indicator for "yArray".
 @param useMissing true indicates to use "missingx" and "missingy" in
 calculations (if false the values are not checked against "missingx" and "missingy").
-@exception java.lang.Exception If the length of the two arrays differ.
+@exception IllegalArgumentException if the length of the two arrays differ.
 */
 public static Regression regressLog ( double [] xArray, double [] yArray, 
 	boolean useMissing, double missingx, double missingy )
@@ -1264,7 +1315,7 @@ throws Exception
 	if ( xArray.length != yArray.length ) {
 		String message = "Lengths of arrays are unequal.";
 		Message.printWarning ( 2, rtn, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 
 	// move all the information in each array into a new array which
@@ -1409,11 +1460,9 @@ ignore data.  If true, then having missing data in either array causes both arra
 @param xmissing Missing data value for x.
 @param ymissing Missing data value for y.
 @return the RMS error for the data set.  Return 0 if the number of points considered is 0.
-@exception Exception if there is an error computing the RMS error.
 */
 public static double RMSError ( int n, double x[], double y[],
 	boolean use_missing, double xmissing, double ymissing )
-throws Exception
 {	int n2 = 0;
 	double sume2 = 0.0;
 	for ( int i = 0; i < n; i++ ) {
@@ -1440,7 +1489,6 @@ Round a floating point value to percent.
 @param rflag flag indicating whether value should be rounded up (1), down (-1) or to nearest (0).
 */
 public static double roundToPercent ( double x, double interval, int mflag, int rflag )
-throws Exception
 {	String message, routine = "MathUtil.roundToPercent";
 	double fact;
 	double interval100; // Interval with 100.0 as the maximum value.
@@ -1457,7 +1505,7 @@ throws Exception
 		if ( (x < 0.0) || (x > 1.0) ) {
 			message = "" + x + " cannot be rounded because it is not > 0.0, < 1.0";
 			Message.printWarning ( 3, routine, message );
-			throw new Exception ( message );
+			throw new IllegalArgumentException ( message );
 		}
 		fact = 1.0; // Factor to convert all data to 100.0 maximum scale.
 		interval100	= interval;
@@ -1468,7 +1516,7 @@ throws Exception
 	    if ( (x < 0.0) || (x > 100.0) ) {
 			message = "" + x + " cannot be rounded because it is not > 0.0, < 100.0";
 			Message.printWarning ( 3, routine, message );
-			throw new Exception ( message );
+			throw new IllegalArgumentException ( message );
 		}
 		fact = 100.0;
 		interval100	= interval*fact;
@@ -1505,22 +1553,20 @@ See Applied Hydrology, Chow, et. al.
 @param n number of values at start of array to use for sample size
 @param x sample set
 @return skew coefficient
-@throws Exception
 */
 public static double skew ( int n, double x[] )
-throws Exception
 {   String message, routine = "MathUtil.skew";
 
     if ( n < 3 ) {
         message = "Number in sample (" + n + ") must be >= 3.  Cannot compute skew.";
         Message.printWarning ( 3, routine, message );
-        throw new RuntimeException ( message );
+        throw new IllegalArgumentException ( message );
     }
     double stddev = standardDeviation ( n, x );
     if ( stddev == 0.0 ) {
         message = "Standard dev = 0.  Cannot compute skew.";
         Message.printWarning ( 3, routine, message );
-        throw new RuntimeException ( message );
+        throw new IllegalArgumentException ( message );
     }
     double mean = mean ( n, x );
     double numeratorSum = 0.0;
@@ -1548,6 +1594,7 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 {	String routine="MathUtil.sort(double[]...)";
 	int	i=0, ndata=data.length;
 
+	// TODO SAM 2012-01-017 Evaluate throwing exceptions here
 	if ( data == null ) {
 		Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
 		return 1;
@@ -1952,7 +1999,6 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 Compute the sample standard deviation (square root of the sample variance).
 @param x array of values to process
 @return the sample standard deviation
-@throws Exception if the array size is < 2 or variance is 0
 */
 public static double standardDeviation ( double x[] )
 {
@@ -1964,7 +2010,7 @@ Compute the sample standard deviation (square root of the sample variance).
 @param n number of values in array to process
 @param x array of values to process
 @return the sample standard deviation
-@throws Exception if the number of values is < 2 or variance is zero
+@throws IllegalArgumentException if the number of values is < 2 or variance is zero
 */
 public static double standardDeviation ( int n, double x[] )
 {	String message, routine = "MathUtil.standardDeviation";
@@ -1976,12 +2022,12 @@ public static double standardDeviation ( int n, double x[] )
 	catch ( Exception e ) {
 		message = "Error calculating variance - canot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
-		throw new RuntimeException ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	if ( var <= 0.0 ) {
 		message = "Variance (" + var + ") <= 0.  Cannot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
-		throw new RuntimeException ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	return Math.sqrt ( var );
 }
@@ -1992,10 +2038,9 @@ Compute the sample standard deviation (square root of the sample variance).
 @param x array of values to process
 @param missing the value to use for missing data (they will be ignored)
 @return the sample standard deviation
-@throws Exception if the number of values is < 2 or variance is zero
+@throws IllegalArgumentException if the number of values is < 2 or variance is zero
 */
 public static double standardDeviation ( int n, double x[], double missing )
-throws Exception
 {	String message, routine = "MathUtil.standardDeviation";
 	double var;
 
@@ -2005,12 +2050,12 @@ throws Exception
 	catch ( Exception e ) {
 		message = "Trouble calculating variance";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	if ( var <= 0.0 ) {
 		message = "Variance <= 0.  Cannot compute standard deviation.";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	return Math.sqrt ( var );
 }
@@ -2061,7 +2106,6 @@ public static double sum ( int n, double x[], double missing )
 Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @return the sample variance
 @param x the sample array
-@exception Exception if the array length is < 2, which would result in division by zero.
 */
 public static double variance ( double x[] )
 throws Exception
@@ -2073,7 +2117,7 @@ Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @return the sample variance
 @param n the number of values to use from the array
 @param x the sample array
-@exception Exception if n is < 2, which would result in division by zero.
+@exception IllegalArgumentException if n is < 2, which would result in division by zero.
 */
 public static double variance ( int n, double x[] )
 throws Exception
@@ -2085,7 +2129,7 @@ throws Exception
 	if ( n <= 1 ) {
 		String message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	try {
 	    meanx = mean(n, x);
@@ -2108,11 +2152,10 @@ Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @param x array of values to process.
 @param missing the value to use for missing values (will be ignored)
 @return the sample variance
-@throws Exception if the sample size after considering missing values is < 2,
+@throws IllegalArgumentException if the sample size after considering missing values is < 2,
 which would result in division by zero
 */
 public static double variance ( int n, double x[], double missing )
-throws Exception
 {	int	i;
 	double dif, meanx;
 	String message, routine = "MathUtil.variance";
@@ -2121,15 +2164,9 @@ throws Exception
 	if ( n <= 1 ) {
 		message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
-	try {
-	    meanx = mean(n, x, missing);
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 50, routine, "Error calculating mean - canot calculate variance." );
-		throw e;
-	}
+	meanx = mean(n, x, missing);
 	int n2 = 0;
 	for ( i = 0; i < n; i++ ) {
 		if ( x[i] != missing ) {
@@ -2141,7 +2178,7 @@ throws Exception
 	if ( n2 <= 1 ) {
 		message = "Error calculating sample variance - the number of data values (" + n + ") must be >= 2).";
 		Message.printWarning ( 50, routine, message );
-		throw new Exception ( message );
+		throw new IllegalArgumentException ( message );
 	}
 	var /= (double)(n2 - 1);
 	return var;
