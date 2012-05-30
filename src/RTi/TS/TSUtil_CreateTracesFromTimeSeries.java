@@ -74,12 +74,13 @@ If "ShiftToReference", then the start of each time
 series is shifted to the reference date.  Consequently, when plotted, the time series traces will overlay.
 @param InputStart_DateTime First allowed date (use to constrain how many years of the time series are processed).
 @param InputEnd_DateTime Last allowed date (use to constrain how many years of the time series are processed).
+@param alias alias format string
 @param createData if true fill the data values; if false, only set the metadata
 @exception Exception if there is an error processing the time series
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an irregular time series.
 */
 public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
-    String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
+    String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime, String alias,
     boolean createData )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getName() + ".getTracesFromTS";
@@ -99,6 +100,12 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     if ( (ShiftDataHow != null) && (ShiftDataHow.equalsIgnoreCase("ShiftToReference")) ) {
         ShiftToReference_boolean = true;
     }
+
+    // Alias for each trace...
+    String aliasDefault = "%L_%z";
+    if ( (alias == null) || alias.equals("") ) {
+        alias = aliasDefault;
+    }
     
     // Get the trace length as an interval...
     
@@ -114,6 +121,8 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     // Reset the reference to the input period...
     InputStart_DateTime = new DateTime(valid_dates.getDate1());
     InputEnd_DateTime = new DateTime(valid_dates.getDate2());
+    Message.printStatus(2, routine, "Period for input time series is InputStart=" + InputStart_DateTime +
+        " InputEnd=" + InputEnd_DateTime );
 
     // Make sure there is a valid reference date for the start date/time...
 
@@ -150,7 +159,6 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     // Loop to go through the traces, stopping when both the start
     // and end dates for the trace are outside the requested limits...
-    
     for ( int itrace = 0; ; itrace++ ) {
         // Determine the start and end date/times for the source data and the resulting data.
         // The input time series should loop through the years 
@@ -187,8 +195,9 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         TS tracets = TSUtil.newTimeSeries ( ts.getIdentifierString(), true);
         tracets.copyHeader ( ts );
         tracets.setSequenceNumber ( date1_in.getYear() );
-        tracets.setAlias( ts.getLocation() + "_" + tracets.getSequenceNumber() );
         tracets.setDescription ( date1_in.getYear() + " trace: " + tracets.getDescription() );
+        // Set alias after other information is set
+        tracets.setAlias( tracets.formatLegend(alias) );
         tracets.addToGenesis ( "Split trace out of time series for input: " + date1_in + " to " + date2_in +
                 ", output: " + date1_out + " to " + date2_out );
         tracets.setDate1 ( date1_out );
