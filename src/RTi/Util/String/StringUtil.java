@@ -2702,6 +2702,54 @@ public static void removeMatching ( List<String> strings, String regex, boolean 
 }
 
 /**
+Remove matching strings from a list.
+@return the number of strings removed
+@param strings main list of strings to process
+@param strings2 list of strings to remove from main list
+@param ignoreCase if true then the strings will be compared as uppercase
+*/
+public static int removeMatching ( List<String> strings, List<String> strings2, boolean ignoreCase )
+{
+    if ( (strings == null) || (strings2 == null) ) {
+        return 0;
+    }
+    int size = strings.size();
+    String s;
+    boolean match;
+    int matchCount = 0;
+    for ( int i = 0; i < size; i++ ) {
+        s = strings.get(i);
+        if ( s == null ) {
+            continue;
+        }
+        match = false;
+        for ( String s2 : strings2 ) {
+            if ( s2 == null ) {
+                continue;
+            }
+            if ( ignoreCase ) {
+                if ( s.equalsIgnoreCase(s2) ) {
+                    match = true;
+                    break;
+                }
+            }
+            else {
+                if ( s.equals(s2) ) {
+                    match = true;
+                    break;
+                }
+            }
+        }
+        if ( match ) {
+            // Remove from list
+            strings.remove(i);
+            --i;
+        }
+    }
+    return matchCount;
+}
+
+/**
 Remove the duplicates from a list of String.  The input list is modified so
 make a copy before calling this method if necessary.
 @param strings list of String to evaluate.
