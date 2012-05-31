@@ -380,8 +380,8 @@ private void calculateEquationErrorsWhenFilling ( DataTransformationType transfo
             // Transformed same as original since no transformation
             Y1transformedEstimated[i] = Y1estimated[i];
             // SESlope bottom term...
-            seSlopeBottomSingleSum += ((X1transformed[i] - X1mean)*((X1transformed[i] - X1mean)));
-            seeSlopeBottomSingleTransformedSum = seSlopeBottomSingleSum;
+            seSlopeBottomSingleSum += ((X1[i] - X1mean)*((X1[i] - X1mean)));
+            seeSlopeBottomSingleTransformedSum = seSlopeBottomSingleSum; // Same as non-transformed
         }
         // Untransformed is always computed...
         rmseSingleSum += ((Y1estimated[i] - Y1[i])*(Y1estimated[i] - Y1[i]));
@@ -393,8 +393,8 @@ private void calculateEquationErrorsWhenFilling ( DataTransformationType transfo
         rmseSingleTransformed = Math.sqrt(rmseSingleTransformedSum/n1);
     }
     if ( ((n1 - 2) > 0) && (rmseSingleSum > 0.0) ) {
-        seeSingle = Math.sqrt(rmseSingleSum/n1 - 2);
-        seeSingleTransformed = Math.sqrt(rmseSingleTransformedSum/n1 - 2);
+        seeSingle = Math.sqrt(rmseSingleSum/(n1 - 2));
+        seeSingleTransformed = Math.sqrt(rmseSingleTransformedSum/(n1 - 2));
         seSlopeSingle = seeSingle/Math.sqrt(seSlopeBottomSingleSum);
         seSlopeSingleTransformed = seeSingleTransformed/Math.sqrt(seeSlopeBottomSingleTransformedSum);
     }
