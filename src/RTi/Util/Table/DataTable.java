@@ -1713,6 +1713,13 @@ throws Exception
 	            lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
 	            isTypeFound = true;
 	        }
+	        // TODO SAM 2012-05-31 Evaluate whether this needs a more robust solution
+	        // Sometimes long integers won't parse in the above but do get parsed as doubles below.  This can
+	        // lead to treatment as a floating point number.  Instead, the column likely should be treated as
+	        // strings.  An example is very long identifiers like "394359105411900".  For now the work-around
+	        // is to add quotes in the original data to make sure the column is treated like a string.
+	        // Could add a long but this cascades through a lot of code since the long type is not yet supported
+	        // in DataTable
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
                 isTypeFound = true;
