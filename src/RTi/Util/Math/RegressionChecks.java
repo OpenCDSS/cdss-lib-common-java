@@ -1,16 +1,29 @@
 package RTi.Util.Math;
 
+import java.security.InvalidParameterException;
+
 /**
 This class provides storage for check on the regression data and results, including ensuring that the
-sample size, correlation coefficient, and T-test (confidence interval) are OK.
+sample size, correlation coefficient, and T-test (confidence interval) meet required constraints.  The class
+is immutable.
 */
 public class RegressionChecks
 {
+
+/**
+Whether the analysis could be performed OK.
+*/
+boolean __isAnalysisPerformedOK = false;    
     
 /**
 Minimum sample size required to demonstrate relationship.
 */
 Integer __minimumSampleSize = null;
+
+/**
+Actual sample size.
+*/
+Integer __sampleSize = null;
     
 /**
 Is sample size OK?
@@ -21,6 +34,11 @@ boolean __isSampleSizeOK = false;
 Minimum R required to demonstrate relationship.
 */
 Double __minimumR = null;
+
+/**
+Actual R for relationship.
+*/
+Double __R = null;
 
 /**
 Is R OK?
@@ -38,21 +56,96 @@ Is the confidence interval OK?
 boolean __isConfidenceIntervalOK = false;
 
 /**
-Constructor.  The values to check are provided for transparency in case values need to be retrieved
-for reporting, etc.
-@param transformation the transformation that is applied to data before analysis
-@param forcedIntercept the forced intercept (must be zero), or null to not force the intercept - can only
-be specified when no transform
+Create check object indicating check criteria and actual values.
+@param analysisPerformedOK if true, then the regression analysis was performed OK; if false there was an
+error such as divide by zero
+@param minimumSampleSize the minimum sample size that is required
+@param sampleSize the actual sample size
+@param minimumR the minimum R that is required
+@param R the actual R
 */
-public RegressionChecks ( Integer minimumSampleSize, boolean isSampleSizeOK,
-    Double minimumR, boolean isMinimumROK,
-    Double confidenceInterval, boolean isConfidenceIntervalOK )
+public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize, Integer sampleSize,
+    Double minimumR, Double R//,
+    //Double confidenceInterval, boolean isConfidenceIntervalOK
+    )
 {
+    __isAnalysisPerformedOK = analysisPerformedOK;
+    
     __minimumSampleSize = minimumSampleSize;
-    __isSampleSizeOK = isSampleSizeOK;
+    __sampleSize = sampleSize;
+    __isSampleSizeOK = true;
+    if ( __minimumSampleSize != null ) {
+        if ( __minimumSampleSize <= 0 ) {
+            throw new InvalidParameterException("Minimum sample size (" +
+                __minimumSampleSize + ") is invalid - must be >= 0");
+        }
+        if ( (__sampleSize == null) || (__sampleSize < __minimumSampleSize) ) {
+            __isSampleSizeOK = false;
+        }
+    }
+
     __minimumR = minimumR;
-    __confidenceInterval = confidenceInterval;
-    __isConfidenceIntervalOK = isConfidenceIntervalOK;
+    __R = R;
+    __isROK = true;
+    if ( __minimumR != null ) {
+        if ( __minimumR < 0 ) {
+            throw new InvalidParameterException("Minimum R (" + __R + ") is invalid - must be > 0");
+        }
+        if ( (R == null) || (R < minimumR) ) {
+            __isROK = false;
+        }
+    }
+    
+    // FIXME SAM 2012-01-17 Handle confidence interval and T-test
+    //__confidenceInterval = confidenceInterval;
+    //__isConfidenceIntervalOK = isConfidenceIntervalOK;
+    __isConfidenceIntervalOK = true;
+}
+
+/**
+Format a string explaining why a relationship was invalid.  This is useful for logging.
+*/
+public String formatInvalidRelationshipReason()
+{
+    StringBuffer b = new StringBuffer();
+    if ( !getIsAnalysisPerformedOK() ) {
+        b.append("analysis error" );
+    }
+    if ( !getIsSampleSizeOK() ) {
+        if ( b.length() > 0 ) {
+            b.append( ", ");
+        }
+        b.append("sample size (" + getSampleSize() + ")<" + getMinimumSampleSize() );
+    }
+    if ( !getIsROK() ) {
+        if ( b.length() > 0 ) {
+            b.append( ", ");
+        }
+        b.append("R (" + getR() + ")<" + getMinimumR() );
+    }
+    if ( !getIsConfidenceIntervalOK() ) {
+        if ( b.length() > 0 ) {
+            b.append( ", ");
+        }
+        b.append("CI not met" );
+    }
+    return b.toString();
+}
+
+/**
+Return the confidence interval that must be met - if null then confidence interval is not checked.
+@return the confidence interval that must be met.
+*/
+public Double getConfidenceInterval ()
+{   return __confidenceInterval;
+}
+
+/**
+Indicate whether the analysis was performed OK.
+@return true if the analysis was performed OK, false if not.
+*/
+public boolean getIsAnalysisPerformedOK ()
+{   return __isAnalysisPerformedOK;
 }
 
 /**
@@ -96,11 +189,20 @@ public Integer getMinimumSampleSize ()
 }
 
 /**
-Return the confidence interval that must be met - if null then confidence interval is not checked.
-@return the confidence interval that must be met.
+Return the actual R.
+@return the actual R.
 */
-public Double getConfidenceInterval ()
-{   return __confidenceInterval;
+public Double getR ()
+{   return __R;
+}
+
+/**
+Return the actual sample size.
+@return the actual sample size, may be null.
+*/
+public Integer getSampleSize ()
+{
+    return __sampleSize;
 }
 
 }

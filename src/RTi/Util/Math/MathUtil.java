@@ -1546,7 +1546,7 @@ Calculate the coefficient of skew, defined as:
 <pre>
 Cs = (n*Sum_n(xi - x_mean)^3)/(n - 1)(n - 2)s^3
 
-where s = standard deviation
+where s = sample standard deviation
 
 See Applied Hydrology, Chow, et. al.
 </pre>
@@ -1562,6 +1562,7 @@ public static double skew ( int n, double x[] )
         Message.printWarning ( 3, routine, message );
         throw new IllegalArgumentException ( message );
     }
+    // Sample standard deviation
     double stddev = standardDeviation ( n, x );
     if ( stddev == 0.0 ) {
         message = "Standard dev = 0.  Cannot compute skew.";

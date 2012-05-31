@@ -271,8 +271,8 @@ of zero and a standard deviation of one.
 @param params Parameters for the function.  The value of params[0] should be
 the z value (the normalized value where 0 = mean and 1 = one standard deviation).
 */
-public double evaluate ( double [] params ){
-    double z = params[0];
+public double evaluate ( double [] params )
+{	double z = params[0];
 	return (1.0/Math.sqrt(2.0*Math.PI))*Math.pow(Math.E,-1.0*z*z/2.0);
 }
 

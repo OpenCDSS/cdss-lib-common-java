@@ -122,6 +122,11 @@ Standard deviation of Y.
 private Double __stddevY = null;
 
 /**
+Skew of Y.
+*/
+private Double __skewY = null;
+
+/**
 Constructor.  Set the independent and dependent data arrays, which should exactly overlap and not contain
 missing values.  The data arrays are used to compute basic statistics such as mean and standard deviation for
 each array, but only when the get methods are called.  Null arrays will be set to empty arrays.
@@ -329,6 +334,33 @@ public int getN3 ()
 }
 
 /**
+Return the size of the original Y data array (Y).
+*/
+public int getNY ()
+{
+    double [] y = getY();
+    if ( y == null ) {
+        return 0;
+    }
+    else {
+        return y.length;
+    }
+}
+
+/**
+Return the skew for the dependent array in the N1 + N2 sample, or null if not analyzed.
+@return the skew for the dependent array in the N1 + N2 sample, or null if not analyzed.
+*/
+public Double getSkewY ()
+{   Double skewY = __skewY;
+    if ( skewY == null ) {
+        skewY = MathUtil.skew(getY().length,getY());
+        setSkewY ( skewY );
+    }
+    return skewY;
+}
+
+/**
 Return the standard deviation for the independent array in the N1 + N2 sample, or null if not analyzed.
 @return the standard deviation for the independent array in the N1 + N2 sample, or null if not analyzed.
 */
@@ -371,9 +403,14 @@ public Double getStandardDeviationX2 ()
 Return the standard deviation for the dependent array in the N1 + N2 sample, or null if not analyzed.
 @return the standard deviation for the dependent array in the N1 + N2 sample, or null if not analyzed.
 */
-//public Double getStandardDeviationY ()
-//{   return __stddevY;
-//}
+public Double getStandardDeviationY ()
+{   Double stddevY = __stddevY;
+    if ( stddevY == null ) {
+        stddevY = MathUtil.standardDeviation(getY());
+        setStandardDeviationY( stddevY );
+    }
+    return stddevY;
+}
 
 /**
 Return the standard deviation for the dependent array in the N1 sample, or null if not analyzed.
@@ -430,7 +467,7 @@ public double [] getY ()
         // Allocate an array that is the size of Y1 and Y3
         y = new double[getN1() + getN3()];
         System.arraycopy(getY1(), 0, y, 0, getN1());
-        System.arraycopy(getY3(), 0, y, getN3(), getN3());
+        System.arraycopy(getY3(), 0, y, getN1(), getN3());
         setY ( y );
     }
     return y;
@@ -525,6 +562,14 @@ private void setMinY1 ( Double minY1 )
 }
 
 /**
+Set the skew for the dependent data in the N1 + N3 sample.
+@param skewY skew for the dependent data in the N1 + N3 sample.
+*/
+private void setSkewY ( Double skewY )
+{   __skewY = skewY;
+}
+
+/**
 Set the standard deviation for the independent data in the N1 + N2 sample.
 @param stddevX Standard deviation for the independent data in the N1 + N2 sample.
 */
@@ -552,9 +597,9 @@ private void setStandardDeviationX2 ( Double stddevX2 )
 Set the standard deviation for the dependent data in the N1 + N2 sample.
 @param stddevY Standard deviation for the dependent data in the N1 + N2 sample.
 */
-//private void setStandardDeviationY ( Double stddevY )
-//{   __stddevY = stddevY;
-//}
+private void setStandardDeviationY ( Double stddevY )
+{   __stddevY = stddevY;
+}
 
 /**
 Set the standard deviation for the dependent data in the N1 sample.

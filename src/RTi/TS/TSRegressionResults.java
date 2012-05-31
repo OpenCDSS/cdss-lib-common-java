@@ -23,10 +23,13 @@ Constructor
 @param singleEquationResults regression results for a single equation (may contain a subset of months)
 @param monthlyEquationResults regression results for each month (may only be complete for a subset of months).
 */
-public TSRegressionResults ( RegressionResults singleEquationData, RegressionResults [] monthlyEquationData )
+public TSRegressionResults ( RegressionResults singleEquationResults, RegressionResults [] monthlyEquationResults )
 {
-    __singleEquationResults = singleEquationData;
-    __monthlyEquationResults = monthlyEquationData;
+    __singleEquationResults = singleEquationResults;
+    __monthlyEquationResults = monthlyEquationResults;
+    if ( singleEquationResults == null ) {
+        throw new IllegalArgumentException("Null single equation results");
+    }
 }
 
 /**

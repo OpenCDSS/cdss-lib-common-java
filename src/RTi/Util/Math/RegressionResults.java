@@ -29,6 +29,11 @@ public class RegressionResults
 {
     
 /**
+Regression data used to perform the analysis.
+*/
+private RegressionData __data = null;
+    
+/**
 Forced intercept A in the computation code.
 */
 private Double __forcedIntercept = null;
@@ -49,7 +54,13 @@ Correlation coefficient.
 private Double __r = null;
 
 /**
-Default constructor.  Typically the values in this class are set by the MathUtil.regress*() or similar methods.
+Indicates whether the analysis was performed OK.
+*/
+private boolean __isAnalysisPerformedOK;
+
+// TODO SAM 2012-01-17 Evaluate whether data is required - may lead to memory bloat (allow null?)
+/**
+Constructor.  Typically the values in this class are set by the MathUtil.regress*() or similar methods.
 The default values are all null, indicating that an analysis was not completed.
 @param transformation the transformation that is applied to data before analysis
 @param forcedIntercept the forced intercept (must be zero), or null to not force the intercept - can only
@@ -68,28 +79,29 @@ public RegressionResults ( RegressionData data, Double forcedIntercept, Double a
                 forcedIntercept + " was provided)." );
         }
     }
+    __data = data;
+    __forcedIntercept = forcedIntercept;
+    setA ( a );
+    setB ( b );
+    setCorrelationCoefficient( r );
+    // If any of the values are not valid, set the boolean indicating that the results are not OK.
+    __isAnalysisPerformedOK = true;
+    if ( (a == null) || a.isNaN() || (b == null) || b.isNaN() || (r == null) || r.isNaN() ) {
+        __isAnalysisPerformedOK = false;
+    }
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable {
-	super.finalize();
-}
-
-/**
-Return A in correlation equation, or null if not calculated.
-@return A in correlation equation, or null if not calculated.
+Return A (intercept) in regression equation, or null if not calculated.
+@return A (intercept) in regression equation, or null if not calculated.
 */
 public Double getA ()
 {	return __a;
 }
 
 /**
-Return B in correlation equation, or null if not calculated.
-@return B in correlation equation, or null if not calculated.
+Return B (slope) in regression equation, or null if not calculated.
+@return B (slope) in regression equation, or null if not calculated.
 */
 public Double getB ()
 {	return __b;
@@ -103,6 +115,9 @@ public Double getCoefficientOfDetermination ()
 {   Double r = getCorrelationCoefficient();
     if ( r == null ) {
         return null;
+    }
+    else if ( r.isNaN() ) {
+        return Double.NaN;
     }
     else {
         return new Double(r*r);
@@ -125,13 +140,19 @@ public Double getForcedIntercept ()
 {   return __forcedIntercept;
 }
 
-
+/**
+Indicate whether the analysis was performed OK.
+@return true if the analysis was performed OK, false if not.
+*/
+public boolean getIsAnalysisPerformedOK ()
+{   return __isAnalysisPerformedOK;
+}
 
 /**
 Set the A value (Y intercept).
 @param a value to save as A.
 */
-public void setA (Double a)
+private void setA (Double a)
 {	__a = a;
 }
 
@@ -139,7 +160,7 @@ public void setA (Double a)
 Set the B value (slope).
 @param b Value to save as B.
 */
-public void setB (Double b)
+private void setB (Double b)
 {	__b = b;
 }
 
@@ -147,7 +168,7 @@ public void setB (Double b)
 Set the correlation coefficient.
 @param r Correlation coefficient.
 */
-public void setCorrelationCoefficient ( Double r )
+private void setCorrelationCoefficient ( Double r )
 {	__r = r;
 }
 

@@ -4,7 +4,7 @@ import RTi.Util.Math.DataTransformationType;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.RegressionChecks;
 import RTi.Util.Math.RegressionData;
-import RTi.Util.Math.RegressionErrors;
+import RTi.Util.Math.RegressionEstimateErrors;
 import RTi.Util.Math.RegressionResults;
 import RTi.Util.Math.RegressionType;
 import RTi.Util.Math.TDistribution;
@@ -111,8 +111,8 @@ private TSRegressionResults __tsRegressionResultsTransformed = null;
 /**
 Errors of the regression analysis - will be populated by the estimateEquationErrors() method.
 */
-private TSRegressionErrors __tsRegressionErrors = null;
-private TSRegressionErrors __tsRegressionErrorsTransformed = null;
+private TSRegressionEstimateErrors __tsRegressionEstimateErrors = null;
+private TSRegressionEstimateErrors __tsRegressionEstimateErrorsTransformed = null;
 
 /**
 Checks of the regression analysis, indicating if relationships are acceptable -
@@ -331,9 +331,73 @@ private void calculateEquationErrorsWhenComparing ()
 /**
 Estimate error statistics from the relationship equations.  This is done by estimating each value in the
 dependent time series that originally had a value and comparing the estimate to the original.
+This analysis is redundant in that if time are actually filled, the steps will be repeated.  However, separating
+the analysis and the filling allows the analysis results to be evaluated to determine if the relationship
+is valid.  This analysis is performed on all the data; however, a later filling step such as in the TSTool
+FillRegression() command may fill on a smaller subset.
+@param transformation transformation to be used for the data prior to the analysis
 */
 private void calculateEquationErrorsWhenFilling ( DataTransformationType transformation )
 {
+    TSRegressionData regressionData = getTSRegressionData();
+    TSRegressionData regressionDataTransformed = getTSRegressionDataTransformed();
+    TSRegressionResults regressionResults = getTSRegressionResults();
+    double a = regressionResults.getSingleEquationRegressionResults().getA();
+    double b = regressionResults.getSingleEquationRegressionResults().getB();
+    int n1 = regressionData.getSingleEquationRegressionData().getN1();
+    double [] X1 = regressionData.getSingleEquationRegressionData().getX1();
+    double X1mean = regressionData.getSingleEquationRegressionData().getMeanX1();
+    double X1transformedMean = regressionDataTransformed.getSingleEquationRegressionData().getMeanX1();
+    double [] X1transformed = regressionData.getSingleEquationRegressionData().getX1();
+    double [] Y1 = regressionData.getSingleEquationRegressionData().getY1();
+    double [] Y1transformed = regressionData.getSingleEquationRegressionData().getY1();
+    double rmseSingleSum = 0.0, rmseSingleTransformedSum = 0.0;
+    double seSlopeBottomSingleSum = 0.0, seeSlopeBottomSingleTransformedSum = 0.0;
+    double [] rmseMonthly = new double[12], seeMonthly = new double[12], seSlopeMonthly = new double[12];
+    // Process the single equation...
+    double [] Y1transformedEstimated = new double[n1];
+    double [] Y1estimated = new double[n1];
+    // Final objects, null=no analysis
+    Double rmseSingle = null, rmseSingleTransformed = null;
+    Double seeSingle = null, seeSingleTransformed = null;
+    Double seSlopeSingle = null, seSlopeSingleTransformed = null;
+    for ( int i = 0; i < n1; i++ ) {
+        if ( transformation == DataTransformationType.LOG ) {
+            // RMSE calculated on transformed data...
+            Y1transformedEstimated[i] = a + X1transformed[i]*b;
+            rmseSingleTransformedSum +=
+                ((Y1transformedEstimated[i] - Y1transformed[i])*(Y1transformedEstimated[i] - Y1transformed[i]));
+            // Also un-transform estimate...
+            Y1estimated[i]=Math.pow(10.0, Y1transformedEstimated[i]);
+            // SESlope bottom term...
+            seeSlopeBottomSingleTransformedSum +=
+                ((X1transformed[i] - X1transformedMean)*((X1transformed[i] - X1transformedMean)));
+            seSlopeBottomSingleSum += ((X1transformed[i] - X1mean)*((X1transformed[i] - X1mean)));
+        }
+        else {
+            // RMSE calculate on raw data...
+            Y1estimated[i] = a + X1[i]*b;
+            // Transformed same as original since no transformation
+            Y1transformedEstimated[i] = Y1estimated[i];
+            // SESlope bottom term...
+            seSlopeBottomSingleSum += ((X1transformed[i] - X1mean)*((X1transformed[i] - X1mean)));
+            seeSlopeBottomSingleTransformedSum = seSlopeBottomSingleSum;
+        }
+        // Untransformed is always computed...
+        rmseSingleSum += ((Y1estimated[i] - Y1[i])*(Y1estimated[i] - Y1[i]));
+    }
+    // Final step computing statistics, taking sample size into account
+    // Transformed and untransformed are calculated (may be the same if no transformation)
+    if ( (n1 > 0) && (rmseSingleSum > 0.0) ) {
+        rmseSingle = Math.sqrt(rmseSingleSum/n1);
+        rmseSingleTransformed = Math.sqrt(rmseSingleTransformedSum/n1);
+    }
+    if ( ((n1 - 2) > 0) && (rmseSingleSum > 0.0) ) {
+        seeSingle = Math.sqrt(rmseSingleSum/n1 - 2);
+        seeSingleTransformed = Math.sqrt(rmseSingleTransformedSum/n1 - 2);
+        seSlopeSingle = seeSingle/Math.sqrt(seSlopeBottomSingleSum);
+        seSlopeSingleTransformed = seeSingleTransformed/Math.sqrt(seeSlopeBottomSingleTransformedSum);
+    }
     /*
     double rmse = 0.0, rmseTransformed = 0.0;
     double [] Y1_estimated = null;  // Estimated Y1 if filling data.
@@ -374,14 +438,19 @@ private void calculateEquationErrorsWhenFilling ( DataTransformationType transfo
         }
     }
     */
-    // FIXME SAM 2012-01-16 Enable calculating the statistics
-    double rmse = 1.0, see = 2.0, seSlope = 3.0;
-    RegressionErrors singleEquationErrors = new RegressionErrors(rmse, see, seSlope);
-    RegressionErrors [] monthlyEquationErrors = new RegressionErrors[12];
+    RegressionEstimateErrors singleEquationErrors = new RegressionEstimateErrors(Y1estimated, rmseSingle, seeSingle, seSlopeSingle);
+    RegressionEstimateErrors [] monthlyEquationErrors = new RegressionEstimateErrors[12];
+    RegressionEstimateErrors singleEquationErrorsTransformed =
+        new RegressionEstimateErrors(Y1transformedEstimated, rmseSingleTransformed, seeSingleTransformed, seSlopeSingleTransformed);
+    RegressionEstimateErrors [] monthlyEquationErrorsTransformed = new RegressionEstimateErrors[12];
     for ( int i = 0; i < 12; i++ ) {
-        monthlyEquationErrors[i] = new RegressionErrors(rmse, see, seSlope);
+        monthlyEquationErrors[i] = new RegressionEstimateErrors(new double[0], rmseMonthly[i], seeMonthly[i], seSlopeMonthly[i]);
+        //monthlyEquationErrorsTransformed[i] =
+        //    new RegressionErrors(rmseMonthlyTransformed[i], seeMonthlyTransformed[i], seSlopeMonthlyTransformed[i]);
     }
-    setTSRegressionErrors(new TSRegressionErrors(singleEquationErrors, monthlyEquationErrors));
+    setTSRegressionEstimateErrors(new TSRegressionEstimateErrors(singleEquationErrors, monthlyEquationErrors));
+    setTSRegressionEstimateErrorsTransformed(
+        new TSRegressionEstimateErrors(singleEquationErrorsTransformed, monthlyEquationErrorsTransformed));
 }
 
 /**
@@ -396,19 +465,36 @@ allowed for log10 transform
 */
 private void calculateRegressionRelationships ( RegressionType analysisMethod,
     DataTransformationType transformation, Double forcedIntercept )
-{
+{   String routine = getClass().getName() + ".calculateRegressionRelationships";
     if ( transformation == DataTransformationType.LOG ) {
         forcedIntercept = null;
     }
     // Always compute the regression relationships on the transformed data (raw and transformed will be
     // the same if no transformation is used)
-    RegressionResults singleRegressionResults = MathUtil.ordinaryLeastSquaresRegression(
-        getTSRegressionDataTransformed().getSingleEquationRegressionData(), forcedIntercept);
+    RegressionResults singleRegressionResults = null;
+    TSRegressionData tsRegressionDataTransformed = getTSRegressionDataTransformed();
+    try {
+        singleRegressionResults = MathUtil.ordinaryLeastSquaresRegression(
+            tsRegressionDataTransformed.getSingleEquationRegressionData(), forcedIntercept);
+    }
+    catch ( Exception e ) {
+        Message.printWarning(3, routine, "Error computing single regression relationship (" + e + ")." );
+        singleRegressionResults = new RegressionResults(tsRegressionDataTransformed.getSingleEquationRegressionData(),
+            forcedIntercept, Double.NaN, Double.NaN, Double.NaN );
+    }
     RegressionResults [] monthlyRegressionResults = new RegressionResults[12];
     for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
-        monthlyRegressionResults[iMonth - 1] =
-            MathUtil.ordinaryLeastSquaresRegression(
-                getTSRegressionDataTransformed().getMonthlyEquationRegressionData(iMonth), forcedIntercept);
+        try {
+            monthlyRegressionResults[iMonth - 1] =
+                MathUtil.ordinaryLeastSquaresRegression(
+                    getTSRegressionDataTransformed().getMonthlyEquationRegressionData(iMonth), forcedIntercept);
+        }
+        catch ( Exception e ) {
+            Message.printWarning(3, routine, "Error computing month " + iMonth + " regression relationship (" + e + ")." );
+            monthlyRegressionResults[iMonth - 1] = new RegressionResults(
+                tsRegressionDataTransformed.getMonthlyEquationRegressionData(iMonth),
+                forcedIntercept, Double.NaN, Double.NaN, Double.NaN );
+        }
     }
     setTSRegressionResultsTransformed ( new TSRegressionResults(singleRegressionResults, monthlyRegressionResults));
     if ( transformation == DataTransformationType.NONE ) {
@@ -443,64 +529,23 @@ private void checkRegressionRelationships (
     if ( minimumSampleSize == null ) {
         minimumSampleSize = 2; // Less than this and will have division by zero
     }
-    // Initialize check values
-    boolean okSingleSampleSize = false;
-    boolean [] okMonthlySampleSize = new boolean[12];
-    boolean okSingleR = false;
-    boolean [] okMonthlyR = new boolean[12];
-    boolean okSingleTtest = false;
-    boolean [] okMonthlyTtest = new boolean[12];
-    // Check the data and relationship information and assign check results
     // Check the minimum sample size...
     TSRegressionData data = getTSRegressionData ();
     TSRegressionResults results = getTSRegressionResults ();
-    if ( data.getSingleEquationRegressionData().getN1() >= minimumSampleSize ) {
-        okSingleSampleSize = true;
-    }
-    for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
-        if ( data.getMonthlyEquationRegressionData(iMonth).getN1() >= minimumSampleSize ) {
-            okMonthlySampleSize[iMonth - 1] = true;
-        }
-    }
-    // Check the minimum R...
-    if ( minimumR == null ) {
-        // Always passes
-        okSingleR = true;
-        for ( int i = 0; i < 12; i++ ) {
-            okMonthlyR[i] = true;
-        }
-    }
-    else {
-        if ( results.getSingleEquationRegressionResults().getCorrelationCoefficient() >= minimumR ) {
-            okSingleSampleSize = true;
-        }
-        for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
-            if ( results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient() >= minimumR ) {
-                okMonthlySampleSize[iMonth - 1] = true;
-            }
-        }
-    }
-    // Check the T test...
-    // Check the minimum R...
-    if ( confidenceInterval == null ) {
-        // Always passes
-        okSingleTtest = true;
-        for ( int i = 0; i < 12; i++ ) {
-            okMonthlyTtest[i] = true;
-        }
-    }
-    else {
-        // Have to check the T test...
-    }
     // Finally, set the check results to indicate whether the relationships are within acceptable parameters
     RegressionChecks regressionChecksSingle = new RegressionChecks(
-        minimumSampleSize, okSingleSampleSize, minimumR, okSingleR, confidenceInterval, okSingleTtest );
+        results.getSingleEquationRegressionResults().getIsAnalysisPerformedOK(),
+        minimumSampleSize, data.getSingleEquationRegressionData().getN1(),
+        minimumR, results.getSingleEquationRegressionResults().getCorrelationCoefficient()
+        );//,
+        //confidenceInterval, okSingleTtest );
     RegressionChecks [] regressionChecksMonthly = new RegressionChecks[12];
     for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
         regressionChecksMonthly[iMonth - 1] = new RegressionChecks(
-            minimumSampleSize, okMonthlySampleSize[iMonth - 1],
-            minimumR, okMonthlyR[iMonth - 1] ,
-            confidenceInterval, okMonthlyTtest[iMonth - 1] );
+            results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK(),
+            minimumSampleSize, data.getMonthlyEquationRegressionData(iMonth).getN1(),
+            minimumR, results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient() );//,
+            //confidenceInterval, okMonthlyTtest[iMonth - 1] );
     }
     setTSRegressionChecksTransformed ( new TSRegressionChecks ( regressionChecksSingle, regressionChecksMonthly) );
 }
@@ -520,6 +565,7 @@ private void extractDataArraysFromTimeSeries ()
     DateTime independentAnalysisStart = getIndependentAnalysisStart();
     DateTime independentAnalysisEnd = getIndependentAnalysisEnd();
     int [] analysisMonths = getAnalysisMonths();
+    boolean [] analysisMonthsMask = getAnalysisMonthsMask();
     // Extract data from time series for single equation (may only contain specific months)...
     double [] x1Single = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
@@ -544,32 +590,40 @@ private void extractDataArraysFromTimeSeries ()
     double [][] x2Monthly = new double[12][];
     double [][] y3Monthly = new double[12][];
     RegressionData [] dataMonthly = new RegressionData[12];
-    boolean [] analysisMonthsMask = getAnalysisMonthsMask();
     for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
         // Only include requested months...
         if ( analysisMonthsMask[iMonth - 1] ) {
+            int [] analysisMonths2 = new int[1];
+            analysisMonths2[0] = iMonth;
             x1Monthly[iMonth - 1] = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths, false, // Do not include missing
+                analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
                 yTS );
             y1Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths, false, // Do not include missing
+                analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
                 xTS );
             x2Monthly[iMonth - 1] = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
-                analysisMonths, false, // Do not include missing
+                analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
                 yTS );
             y3Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths, false, // Do not include missing
+                analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
                 xTS );
         }
         else {
+            // Define empty arrays but no data are included
             x1Monthly[iMonth - 1] = new double[0];
             y1Monthly[iMonth - 1] = new double[0];
             x2Monthly[iMonth - 1] = new double[0];
+            y3Monthly[iMonth - 1] = new double[0];
         }
+        Message.printStatus(2, "", "Size of data arrays for month " + iMonth +
+            ": " + x1Monthly[iMonth - 1].length + "," +
+            y1Monthly[iMonth - 1].length + "," +
+            x2Monthly[iMonth - 1].length + "," +
+            y3Monthly[iMonth - 1].length );
         dataMonthly[iMonth - 1] = new RegressionData (x1Monthly[iMonth - 1], y1Monthly[iMonth - 1],
             x2Monthly[iMonth - 1], y3Monthly[iMonth - 1]);
     }
@@ -583,27 +637,9 @@ private void extractDataArraysFromTimeSeries ()
         setTSRegressionDataTransformed(getTSRegressionData());
     }
     else {
-        // Go through each array and transform
-        getTSRegressionData().transformLog10(getLEZeroLogValue());
+        // Transform the original data
+        setTSRegressionDataTransformed(getTSRegressionData().transformLog10(getLEZeroLogValue()));
     }
-}
-
-
-
-/**
-Return a string summarizing a regression check failure, useful for logging.
-@return a string summarizing a regression check failure, useful for logging
-@param regressionData regression data
-@param regressionChecks regression check criteria and results of check
-@param regressionResults regression results
-*/
-public String formatInvalidRelationshipReason ( RegressionData regressionData,
-    RegressionChecks regressionChecks, RegressionResults regressionResults )
-{
-    StringBuffer b = new StringBuffer();
-    //if ( (getMinimumSampleSize() != null) &&  ) {
-    //if ( getMinimumSampleSize() >= )
-    return b.toString();
 }
 
 /**
@@ -735,16 +771,16 @@ public TSRegressionData getTSRegressionData ()
 Return the error estimate statistics for the regression analysis.
 @return the error estimate statistics for the regression analysis.
 */
-public TSRegressionErrors getTSRegressionErrors ()
-{   return __tsRegressionErrors;
+public TSRegressionEstimateErrors getTSRegressionEstimateErrors ()
+{   return __tsRegressionEstimateErrors;
 }
 
 /**
 Return the error estimate statistics for the regression analysis, for transformed data.
 @return the error estimate statistics for the regression analysis, for transformed data.
 */
-public TSRegressionErrors getTSRegressionErrorsTransformed ()
-{   return __tsRegressionErrorsTransformed;
+public TSRegressionEstimateErrors getTSRegressionErrorsTransformed ()
+{   return __tsRegressionEstimateErrorsTransformed;
 }
 
 /**
@@ -806,9 +842,9 @@ public boolean [] getTSRegressionChecksMaskSingle ()
             if ( analysisMonthsMask[i] ) {
                 Message.printStatus(2,"","Month [" + i + "] is in analysis.");
                 // Now check each of the check criteria
-                Message.printStatus(2,"","Sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
-                Message.printStatus(2,"","Minimum R [" + i + "] is " + checks.getIsROK() );
-                Message.printStatus(2,"","ConfidenceInterval [" + i + "] is " + checks.getIsConfidenceIntervalOK() );
+                Message.printStatus(2,"","OK sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
+                Message.printStatus(2,"","OK minimum R [" + i + "] is " + checks.getIsROK() );
+                Message.printStatus(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsConfidenceIntervalOK() );
                 if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsConfidenceIntervalOK() ) {
                     __tsRegressionChecksMaskSingle[i] = true;
                 }
@@ -865,11 +901,21 @@ private void setTSRegressionChecksTransformed ( TSRegressionChecks tsRegressionC
 
 /**
 Set the TSRegressionErrors from the analysis.
-@param tsRegressionErrors the regression errors estimated using the regression relationships.
+@param tsRegressionEstimateErrors the regression errors estimated using the regression relationships.
 */
-private void setTSRegressionErrors ( TSRegressionErrors tsRegressionErrors )
+private void setTSRegressionEstimateErrors ( TSRegressionEstimateErrors tsRegressionEstimateErrors )
 {
-    __tsRegressionErrors = tsRegressionErrors;
+    __tsRegressionEstimateErrors = tsRegressionEstimateErrors;
+}
+
+/**
+Set the TSRegressionErrors from the analysis, for the transformed data.
+@param tsRegressionEstimateErrorsTransformed the regression errors estimated using the regression relationships, for
+transformed data.
+*/
+private void setTSRegressionEstimateErrorsTransformed ( TSRegressionEstimateErrors tsRegressionEstimateErrorsTransformed )
+{
+    __tsRegressionEstimateErrorsTransformed = tsRegressionEstimateErrorsTransformed;
 }
 
 /**
