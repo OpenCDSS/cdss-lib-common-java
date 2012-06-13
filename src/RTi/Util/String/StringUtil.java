@@ -1114,6 +1114,54 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 }
 
 /**
+Format two arrays of number parallel to each other.
+This is a convenience method useful for logging.
+@param label1 label for the first array
+*/
+public static String formatArrays ( String label1, double [] array1, String label2, double [] array2,
+    String delim, String lineDelim )
+{
+    StringBuffer b = new StringBuffer();
+    int len = array1.length;
+    if ( array2.length > array1.length ) {
+        len = array2.length;
+    }
+    if ( (label1 != null) && !label1.equals("") ) {
+        b.append ( label1 );
+    }
+    if ( delim != null ) {
+        b.append ( delim );
+    }
+    if ( (label2 != null) && !label2.equals("") ) {
+        b.append ( label2 );
+    }
+    if ( (b.length() > 0) && (lineDelim != null) ) {
+        b.append(lineDelim);
+    }
+    int lineCount = 0;
+    int im1;
+    for ( int i = 0; i < len; i++ ) {
+        im1 = i - 1;
+        if ( lineCount > 0 ) {
+            if ( lineDelim != null ) {
+                b.append(lineDelim);
+            }
+        }
+        if ( im1 <= array1.length ) {
+            b.append ( "" + array1[i] );
+        }
+        if ( delim != null ) {
+            b.append ( delim );
+        }
+        if ( im1 <= array2.length ) {
+            b.append ( "" + array2[i] );
+        }
+        ++lineCount;
+    }
+    return b.toString();
+}
+
+/**
 Format an array as a sequence of numbers separated by a delimiter.  A blank string is returned if
 the array is null or empty.
 @return a string containing the formatted sequence of integers.
