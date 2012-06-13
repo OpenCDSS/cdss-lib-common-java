@@ -515,10 +515,11 @@ If the string is prefixed with "Env:" then the string will be replaced with the 
 of the matching name.  If the string is prefixed with "SysProp:" then the string will be replaced with
 the JRE runtime system property of the same name.  Comparisons are case-sensitive and if a match
 is not found the original string will be returned.
+@param propName name of the property, used for messaging
 @param propValue the string property value to expand
 @return expanded property value
 */
-public static String expandPropertyForEnvironment ( String propValue )
+public static String expandPropertyForEnvironment ( String propName, String propValue )
 {   if ( propValue == null ) {
         return null;
     }
@@ -540,6 +541,17 @@ public static String expandPropertyForEnvironment ( String propValue )
         }
         else {
             return propValue;
+        }
+    }
+    if ( propValue.equalsIgnoreCase("Prompt") ) {
+        // Prompt for the value
+        System.out.print("Enter value for \"" + propName + "\": " );
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            propValue = in.readLine().trim();
+        }
+        catch ( IOException e ) {
+            propValue = "";
         }
     }
     // No special case so return the original value
