@@ -498,7 +498,13 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                             (statisticType2 == TSStatisticType.PERCENT_OF_MEDIAN) ||
                             (statisticType2 == TSStatisticType.PERCENT_OF_MAX) ||
                             (statisticType2 == TSStatisticType.PERCENT_OF_MIN) ) {
-                            newts.setDataValue(date,(value/newts.getDataValue(date))*100.0);
+                            if ( newts.getDataValue(date) == 0.0 ) {
+                                // Division by zero so set to missing
+                                newts.setDataValue(date,missing);
+                            }
+                            else {
+                                newts.setDataValue(date,(value/newts.getDataValue(date))*100.0);
+                            }
                         }
                     }
                 }
