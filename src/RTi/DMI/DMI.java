@@ -348,7 +348,7 @@ catch ( Exception e ) {
 }
 </pre>
 */
-public abstract class DMI{
+public abstract class DMI {
 
 public final static String CLASS = "DMI";
 
