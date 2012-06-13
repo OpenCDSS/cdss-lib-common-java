@@ -1649,7 +1649,7 @@ throws Exception
 	if (tableFields == null) {
 		tableFields = new Vector();
 		for (int i = 0; i < maxColumns; i++) {
-			// default field definition builds String fields
+			// Default field definition builds String fields
 			tableFields.add(new TableField());
 		}
 	}
@@ -1748,7 +1748,7 @@ throws Exception
 	// Loop through the table fields and based on the examination of data above,
 	// set the table field type and if a string, max width.
 	
-	int [] tableFieldType = new int[maxColumns];
+	int [] tableFieldType = new int[tableFields.size()];
 	if ( ColumnDataTypes_Auto_boolean ) {
     	for ( int icol = 0; icol < maxColumns; icol++ ) {
     	    tableField = (TableField)tableFields.get(icol);
@@ -1779,7 +1779,14 @@ throws Exception
     	        // Based on what is known, can only treat column as containing strings.
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
     	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
-    	        tableField.setWidth (lenmax_string[icol] );
+    	        if ( lenmax_string[icol] <= 0 ) {
+    	            // Likely that the entire column of numbers is empty so set the width to the field name
+    	            // width if available)
+    	            tableField.setWidth (tableFields.get(icol).getName().length() );
+    	        }
+    	        else {
+    	            tableField.setWidth (lenmax_string[icol] );
+    	        }
     	        Message.printStatus ( 2, routine, "Column [" + icol +
                     "] type is string as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
@@ -1799,6 +1806,11 @@ throws Exception
 	            tableField.getDataType() + " all strings assumed, width =" + tableField.getWidth() );
 	    }
 	}
+	// The data fields may have less columns than the headers and if so set the field type of the
+	// unknown columns to string
+	for ( int icol = maxColumns; icol < tableFields.size(); icol++) {
+	    tableFieldType[icol] = TableField.DATA_TYPE_STRING;
+	}
 	
 	// Create the table from the field information.
 
@@ -1809,14 +1821,13 @@ throws Exception
 	// Now transfer the data records to table records.
 	
 	int cols = 0;
-	int icol = 0;
 	int errorCount = 0;
 	for (int irow = 0; irow < size; irow++) {
 		v = data_record_tokens.get(irow);
 
 		tablerec = new TableRecord(maxColumns);
 		cols = v.size();
-		for (icol = 0; icol < cols; icol++) {
+		for (int icol = 0; icol < cols; icol++) {
 			if (TrimStrings_boolean) {
 			    cell = v.get(icol).trim();
 			}
@@ -1855,28 +1866,24 @@ throws Exception
 		}
 		
 		// If the specific record does not have enough columns, pad the columns at the end with blanks,
-		// using blank strings or NaN for number fields.
+		// using blank strings or NaN for number fields.  This depends on whether headings were read.
+		// Sometimes the header row has more columns than data rows, in particular because breakStringList()
+		// will drop an empty field at the end.
 		
-		if (icol < maxColumns) {
-			for (; icol < maxColumns; icol++) {
-			    if ( ColumnDataTypes_Auto_boolean ) {
-			        // Add values based on the column type.
-			        if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
-	                    tablerec.addFieldValue( null );
-	                }
-	                else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
-	                    tablerec.addFieldValue( null );
-	                }
-	                else {
-	                    // Add as string
-	                    tablerec.addFieldValue( "" );
-	                }
-			    }
-			    else {
-			        // Add a blank string.
-			        tablerec.addFieldValue("");
-			    }
-			}
+		for ( int icol = cols; icol < table.getNumberOfFields(); icol++) {
+		    if ( ColumnDataTypes_Auto_boolean ) {
+		        // Add values based on the column type.
+		        if ( tableFieldType[icol] == TableField.DATA_TYPE_STRING ) {
+		            tablerec.addFieldValue( "" );
+		        }
+		        else {
+                    tablerec.addFieldValue( null );
+                }
+		    }
+		    else {
+		        // Add a blank string.
+		        tablerec.addFieldValue("");
+		    }
 		}
 		
 		try {
