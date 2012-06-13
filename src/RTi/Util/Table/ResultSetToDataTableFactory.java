@@ -45,6 +45,19 @@ throws SQLException
         columnTypes[i - 1] = columnType;
         precision = meta.getPrecision(i); // More like width
         scale = meta.getScale(i); // Precision for floating point
+        //Message.printStatus(2,routine,"Column name=\"" + columnName + "\", sqlColumnType=" + meta.getColumnType(i) +
+        //    ", tableColumnType=" + columnType +
+        //    ", SQL precision (table width)=" + precision + ", SQL scale (table precision)=" + scale +
+        //    ", displayWidth=" + meta.getColumnDisplaySize(i));
+        // TODO SAM 2012-06-12
+        // SQL Server behaves oddly in that the "scale" can be set to 0 (zero) but SQL Server Management Studio
+        // still shows digits after the decimal point.  None of the properties on a column appear to be usable
+        // to determine the number of digits to display.  To compensate, for now set the scale to 6 if
+        // floating point and not specified
+        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
+            (scale == 0) ) {
+            scale = 6;
+        }
         table.addField( new TableField(columnType,columnName,precision,scale), null);
     }
     // Transfer each record in the ResultSet to the table
@@ -145,6 +158,7 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.BOOLEAN: return TableField.DATA_TYPE_INT;
         case Types.CHAR: return TableField.DATA_TYPE_STRING;
         case Types.DATE: return TableField.DATA_TYPE_DATE;
+        case Types.DECIMAL: return TableField.DATA_TYPE_DOUBLE;
         case Types.DOUBLE: return TableField.DATA_TYPE_DOUBLE;
         case Types.FLOAT: return TableField.DATA_TYPE_FLOAT;
         case Types.INTEGER: return TableField.DATA_TYPE_INT;
@@ -153,7 +167,10 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.TIMESTAMP: return TableField.DATA_TYPE_DATE;
         case Types.TINYINT: return TableField.DATA_TYPE_INT;
         case Types.VARCHAR: return TableField.DATA_TYPE_STRING;
-        default: return TableField.DATA_TYPE_STRING;
+        default:
+            Message.printWarning(2,"","Unknown SQL type for conversion to table: " + sqlColumnType +
+                 ", using string.");
+            return TableField.DATA_TYPE_STRING;
     }
 }
 
