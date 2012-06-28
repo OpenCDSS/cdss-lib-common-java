@@ -175,7 +175,9 @@ import java.lang.String;
 import java.lang.StringBuffer;
 import java.lang.System;
 
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URL;
@@ -2138,6 +2140,40 @@ public static PrintWriter processFileHeaders ( String oldFile, String newFile, L
 		ofp.println ( "-->" );
 	}
 	return ofp;
+}
+
+// TODO SAM 2012-06-28 Perhaps return an object that has the response code and output strings - refactor later if needed.
+/**
+Read a response given a URL string.  If the response code is >= 400 the result is read from the error stream.
+Otherwise, the response is read from the input stream.
+@return the string read from a URL.
+@param urlString the URL to read from.
+@param errorCheck if specified, the 
+*/
+public static String readFromURL ( String urlString )
+throws MalformedURLException, IOException
+{
+    URL url = new URL ( urlString );
+    // Open the input stream...
+    HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+    InputStream in = null;
+    if ( urlConnection.getResponseCode() >= 400 ) {
+        in = urlConnection.getErrorStream();
+    }
+    else {
+        in = urlConnection.getInputStream();
+    }
+    InputStreamReader inp = new InputStreamReader(in);
+    BufferedReader reader = new BufferedReader(inp);
+    char[] buffer = new char[8192];
+    int len1 = 0;
+    StringBuffer b = new StringBuffer();
+    while ( (len1 = reader.read(buffer)) != -1 ) {
+        b.append(buffer,0,len1);
+    }
+    in.close();
+    urlConnection.disconnect();
+    return b.toString();
 }
 
 /**
