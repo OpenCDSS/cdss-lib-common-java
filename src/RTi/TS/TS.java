@@ -1998,12 +1998,12 @@ should be defined in derived classes.
 @param date Date of interest.
 @param val Data value for date.
 @param data_flag Data flag associated with the data value.
-@param duration Duration (seconds) for the data value.
+@param duration Duration (seconds) for the data value (specify as 0 if not relevant).
 @see DateTime
 */
 public void setDataValue ( DateTime date, double val, String data_flag,	int duration )
 {	Message.printWarning ( 3, "TS.setDataValue", "TS.setDataValue is " +
-	"virtual and should be redefined in derived classes" );
+	"virtual and should be implemented in derived classes" );
 }
 
 /**
