@@ -356,6 +356,11 @@ throws Exception
                 stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.9) );
             }
         }
+        else if ( statisticType == TSStatisticType.GEOMETRIC_MEAN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.geometricMean(countNonMissing,sampleData) );
+            }
+        }
         else if ( statisticType == TSStatisticType.MAX ) {
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, MathUtil.max(countNonMissing,sampleData) );
@@ -458,6 +463,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_50 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_70 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_90 );
+    choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );

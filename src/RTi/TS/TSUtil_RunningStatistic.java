@@ -171,6 +171,7 @@ public static List<TSStatisticType> getStatisticChoices()
     // Enable statistics that illustrate how things change over time
     List<TSStatisticType> choices = new Vector();
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY );
+    choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
@@ -455,6 +456,9 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                         if ( !ts.isDataMissing(value) ) {
                             newts.setDataValue(date,MathUtil.exceedanceProbability(count, sampleArray, value));
                         }
+                    }
+                    else if ( statisticType == TSStatisticType.GEOMETRIC_MEAN ) {
+                        newts.setDataValue(date,MathUtil.geometricMean(count, sampleArray));
                     }
                     else if ( statisticType == TSStatisticType.MAX ) {
                         newts.setDataValue(date,MathUtil.max(count, sampleArray));

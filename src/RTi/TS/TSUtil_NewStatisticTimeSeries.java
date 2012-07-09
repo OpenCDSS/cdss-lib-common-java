@@ -449,7 +449,12 @@ throws Exception
         // TODO SAM 2009-10-20 Will need to redo if the date/time of the critical value is needed, for example
         // for Max.  For now, just use the utility methods for the statistics to keep the code simple.
         // Now compute the statistic
-        if ( statisticType == TSStatisticType.MAX ) {
+        if ( statisticType == TSStatisticType.GEOMETRIC_MEAN ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.geometricMean(nonMissingDataArray.length,nonMissingDataArray));
+            }
+        }
+        else if ( statisticType == TSStatisticType.MAX ) {
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, MathUtil.max(nonMissingDataArray.length,nonMissingDataArray));
             }
@@ -615,6 +620,7 @@ public static List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
     List<TSStatisticType> choices = new Vector();
+    choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );

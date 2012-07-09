@@ -327,6 +327,35 @@ public static double[] exp ( double [] x )
 }
 
 /**
+Compute the geometric mean of an array of values.
+@return the geometric mean of the array of values
+@param n the number of values from the array to process
+@param x array of values
+@exception IllegalArgumentException if the number of points is <= 0.
+*/
+public static double geometricMean ( int n, double x[] )
+{   String message, routine = "MathUtil.geometricMean";
+
+    if ( n <= 0 ) {
+        message = "Number of values <= 0";
+        Message.printWarning ( 10, routine, message );
+        throw new IllegalArgumentException ( message );
+    }
+    double sum = 1.0;
+    for ( int i = 0; i < n; i++ ) {
+        if ( x[i] <= 0.0 ) {
+            message = "x["+i+"]=" + x[i] + " is <= 0";
+            Message.printWarning ( 10, routine, message );
+            throw new IllegalArgumentException ( message );
+        }
+        else {
+            sum = sum*x[i];
+        }
+    }
+    return ( Math.pow(sum, 1.0/(double)n) );
+}
+
+/**
 Perform integration for a function.
 @param method Method used to integrate.  See INTEGRATE_*.
 @param func Function to integrate (using Function interface).
