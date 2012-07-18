@@ -78,8 +78,8 @@ public TSUtil_NewEnsemble ( String ensembleID, String ensembleName,
             "Time series don't have the same interval - cannot create an ensemble.");
     }
     if ( (tslist != null) && TSUtil.areAnyTimeSeriesIrregular(tslist) ) {
-        throw new UnequalDataUnitsException (
-            "Time series don't have the data units - cannot create an ensemble.");
+        throw new IrregularTimeSeriesNotSupportedException (
+            "One or more time series are irregular - cannot create an ensemble.");
     }
     if ( (tslist != null) && !TSUtil.areUnitsCompatible(tslist, true) ) {
         throw new UnequalTimeIntervalException (
