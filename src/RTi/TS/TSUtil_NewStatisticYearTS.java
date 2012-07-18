@@ -378,6 +378,8 @@ private void calculateStatistic (
         // Initialize the value of the statistic in the year to missing.  Do this each time an input
         // year is processed.
         double yearValue = yearts.getMissing(); // Data value for output time series
+        double dayMoment = 0.0; // Day of year * value, for DayOfCentroid statistic
+        double monthMoment = 0.0; // Month of year * value, for MonthOfCentroid statistic
         double extremeValue = yearts.getMissing(); // Used for DayOfMin, etc., where check and day are tracked.
         boolean doneAnalyzing = false; // If true, there is no more data or a statistic is complete
         // Loop through the data in the analysis window
@@ -507,6 +509,12 @@ private void calculateStatistic (
                             doneAnalyzing = true; // Found value for the year.
                         }
                     }
+                    else if ( (statisticType == TSStatisticType.DAY_OF_CENTROID) ) {
+                        dayMoment += TimeUtil.dayOfYear(date,outputYearType)*value;
+                    }
+                    else if ( (statisticType == TSStatisticType.MONTH_OF_CENTROID) ) {
+                        monthMoment += TimeUtil.monthOfYear(date,outputYearType)*value;
+                    }
                     else if ( (statisticType == TSStatisticType.DAY_OF_MAX) ||
                         (statisticType == TSStatisticType.MONTH_OF_MAX) ||
                         (statisticType == TSStatisticType.MAX) ) {
@@ -569,7 +577,13 @@ private void calculateStatistic (
                 // Save the results
                 Message.printStatus(2, routine, "For output year " + outputYear + ", sum=" + sum + ", nMissing=" +
                     nMissing + ", nNotMissing=" + nNotMissing );
-                if ( statisticType == TSStatisticType.MEAN ) {
+                if ( statisticType == TSStatisticType.DAY_OF_CENTROID ) {
+                    if ( (nNotMissing > 0) &&
+                        okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
+                        yearts.setDataValue ( outputYear, dayMoment/sum );
+                    }
+                }
+                else if ( statisticType == TSStatisticType.MEAN ) {
                     if ( (nNotMissing > 0) &&
                         okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
                         yearts.setDataValue ( outputYear, sum/nNotMissing );
@@ -585,6 +599,12 @@ private void calculateStatistic (
                         yearts.setDataValue ( outputYear, 100.0*(double)nMissing/(double)(nMissing + nNotMissing) );
                     }
                 }
+                else if ( statisticType == TSStatisticType.MONTH_OF_CENTROID ) {
+                    if ( (nNotMissing > 0) &&
+                        okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
+                        yearts.setDataValue ( outputYear, monthMoment/sum );
+                    }
+                }         
                 else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
                     // Always assign
                     yearts.setDataValue ( outputYear, (double)nNotMissing );
@@ -731,6 +751,7 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
     // Add in alphabetical order, splitting up by interval as appropriate.
     // Daily or finer...
     if ( (interval <= TimeInterval.DAY) || (interval == TimeInterval.UNKNOWN) ) {
+        statistics.add ( TSStatisticType.DAY_OF_CENTROID );
         statistics.add ( TSStatisticType.DAY_OF_FIRST_GE );
         statistics.add ( TSStatisticType.DAY_OF_FIRST_GT );
         statistics.add ( TSStatisticType.DAY_OF_FIRST_LE );
@@ -760,6 +781,7 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
     statistics.add ( TSStatisticType.MISSING_PERCENT );
     // Monthly or finer...
     if ( (interval <= TimeInterval.MONTH) || (interval == TimeInterval.UNKNOWN) ) {
+        statistics.add ( TSStatisticType.MONTH_OF_CENTROID );
         statistics.add ( TSStatisticType.MONTH_OF_FIRST_GE );
         statistics.add ( TSStatisticType.MONTH_OF_FIRST_GT );
         statistics.add ( TSStatisticType.MONTH_OF_FIRST_LE );
@@ -921,6 +943,9 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
         else if ( statisticIsLast ) {
             desc = "Day of year for last value " + testString + " " + testValueString;
         }
+        else if ( statisticType == TSStatisticType.DAY_OF_CENTROID ) {
+            desc = "Day of year for centroid";
+        }
         else if ( statisticType == TSStatisticType.DAY_OF_MAX ) {
             desc = "Day of year for maximum value";
         }
@@ -934,6 +959,9 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
         }
         else if ( statisticIsLast ) {
             desc = "Month of year for last value " + testString + " " + testValueString;
+        }
+        else if ( statisticType == TSStatisticType.MONTH_OF_CENTROID ) {
+            desc = "Month of year for centroid";
         }
         else if ( statisticType == TSStatisticType.MONTH_OF_MAX ) {
             desc = "Month of year for maximum value";
@@ -1007,7 +1035,8 @@ Indicate whether the statistic is a "DayOf" statistic.
 */
 private boolean isStatisticDayOf ( TSStatisticType statisticType )
 {
-    if ( (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
+    if ( (statisticType == TSStatisticType.DAY_OF_CENTROID) ||
+        (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_LT) ||
@@ -1072,7 +1101,8 @@ Indicate whether the statistic is a "MonthOf" statistic.
 */
 private boolean isStatisticMonthOf ( TSStatisticType statisticType )
 {
-    if ( (statisticType == TSStatisticType.MONTH_OF_FIRST_GE) ||
+    if ( (statisticType == TSStatisticType.MONTH_OF_CENTROID) ||
+        (statisticType == TSStatisticType.MONTH_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.MONTH_OF_FIRST_GT) ||
         (statisticType == TSStatisticType.MONTH_OF_FIRST_LE) ||
         (statisticType == TSStatisticType.MONTH_OF_FIRST_LT) ||
