@@ -16,6 +16,10 @@ public enum TSStatisticType
      * Count of missing and non-missing values (total count).
      */
     COUNT("Count"),
+    /**
+     * Day of centroid (equal sum(Day x Value) on each side).
+     */
+    DAY_OF_CENTROID ( "DayOfCentroid" ),
 	/**
 	 * Day of first value >= test value.
 	 */
@@ -133,6 +137,10 @@ public enum TSStatisticType
      */
     GT_PERCENT ( "GTPercent" ),
     /**
+     * Mean value in the sample.
+     */
+    GEOMETRIC_MEAN ( "GeometricMean" ),
+    /**
      * Auto-correlation with previous interval.
      */
     LAG1_AUTO_CORRELATION ( "Lag-1AutoCorrelation" ),
@@ -184,6 +192,10 @@ public enum TSStatisticType
      * Maximum sequence length of missing values.
      */
     MISSING_SEQ_LENGTH_MAX ( "MissingSeqLengthMax" ),
+    /**
+     * Month of centroid (equal sum(Month x Value) on each side).
+     */
+    MONTH_OF_CENTROID ( "MonthOfCentroid" ),
     /**
      * Month of first value >= test value.
      */
