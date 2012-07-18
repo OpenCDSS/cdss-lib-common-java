@@ -117,6 +117,9 @@ TSID string. The TSID string consists of the following parts:
 <pre>
 Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~InputType~InputName
 </pre>
+<pre>
+Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~DataStoreName
+</pre>
 <p>
 TSID's as TSIdent objects or strings can be used to pass unique time series
 identifiers and are used throughout the time series package.  Some TS object
@@ -127,23 +130,22 @@ implements Cloneable, Serializable, Transferable
 {
 
 /**
-Flag indicating that no sub-location should be allowed (treat as part of the main location).
+Mask indicating that no sub-location should be allowed (treat as part of the main location), used by setLocation().
 */
-public static final int NO_SUB_LOCATION	= 0x1;	// Mask for setLocation()
+public static final int NO_SUB_LOCATION	= 0x1;
 
 /**
-Flag indicating that no sub-source should be allowed (treat as
-part of the main source).
+Mask indicating that no sub-source should be allowed (treat as part of the main source), used by setSource().
 */
-public static final int NO_SUB_SOURCE = 0x2;	// Mask for setSource()
+public static final int NO_SUB_SOURCE = 0x2;
 
 /**
-Flag indicating that no sub-type should be allowed (treat as part of the main type).
+Mask indicating that no sub-type should be allowed (treat as part of the main type), used by setType().
 */
-public static final int NO_SUB_TYPE = 0x4;	// Mask for setType()
+public static final int NO_SUB_TYPE = 0x4;
 
 /**
-Flag indicating that no validation of data should occur.  This is useful for storing
+Mask indicating that no validation of data should occur.  This is useful for storing
 identifier parts during manipulation (e.g., use wildcards, or specify parts of identifiers).
 */
 public static final int NO_VALIDATION = 0x8;
@@ -272,7 +274,7 @@ Type of input (e.g., "DateValue", "RiversideDB")
 private String __input_type;
 
 /**
-Name of input (e.g., a file name or database connection name).
+Name of input (e.g., a file, data store, or database connection name).
 */
 private String __input_name;
 
@@ -2100,7 +2102,7 @@ public String toString ( boolean include_input )
 	String input_name = "";
 	if ( (__scenario != null) && (__scenario.length() > 0) ) {
 		// Add the scenario if it is not blank...
-		scenario = "." + __scenario;
+	    scenario = "." + __scenario;
 	}
 	if ( __sequence_number != -1 ) {
 		// Add the sequence number if it is not the initial value...
@@ -2114,8 +2116,8 @@ public String toString ( boolean include_input )
 			input_name = "~" + __input_name;
 		}
 	}
-	return ( __full_location + "." + __full_source + "." +
-		__full_type + "." + __interval_string + scenario + sequence_number + input_type + input_name );
+	return ( __full_location + "." + __full_source + "." + __full_type + 
+	    "." + __interval_string + scenario + sequence_number + input_type + input_name );
 }
 
 /**
