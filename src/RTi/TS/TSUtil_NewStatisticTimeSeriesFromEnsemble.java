@@ -158,18 +158,20 @@ throws Exception
     DateTime outputStart = new DateTime ( validDates.getDate1() );
     DateTime outputEnd = new DateTime ( validDates.getDate2() );
 
-    // Create an output time series to be filled...
+    // Create an output time series to be filled, using the input time series for the interval...
 
     TS output_ts = null;
     String outputTSID = null;
     try {
-        if ( ts != null ) {
-            outputTSID = ts.getIdentifierString();
-            output_ts = TSUtil.newTimeSeries( outputTSID, true);
-        }
-        else if ( (newTSID != null) && (newTSID.length() > 0) ){
+        if ( (newTSID != null) && (newTSID.length() > 0) ){
+            // New TSID should be required by commands.
             outputTSID = newTSID;
             output_ts = TSUtil.newTimeSeries(newTSID,true);
+        }
+        else if ( ts != null ) {
+            // TODO SAM 2012-07-17 Evaluate - unlikely code?
+            outputTSID = ts.getIdentifierString();
+            output_ts = TSUtil.newTimeSeries( outputTSID, true);
         }
     }
     catch ( Exception e ) {
@@ -177,10 +179,13 @@ throws Exception
         Message.printWarning ( 3, routine,message );
         throw new InvalidParameterException(message);
     }
-    if ( ts != null ) {
-        output_ts.copyHeader ( ts );
-        output_ts.addToGenesis ( "Initialized statistic time series as copy of \"" + ts.getIdentifierString() + "\"" );
-    }
+            
+    output_ts.addToGenesis ( "Initialized statistic time series for period " + outputStart + " to " + outputEnd );
+    
+    // Copying the header across from the first station is bad because the ensemble may not
+    // have data from a single station.  Therefore take a little more care.
+    output_ts.setDataUnits(getTimeSeriesDataUnits(ts,statisticType));
+    output_ts.setDescription ( getTimeSeriesDescription(ensemble,statisticType) );
 
     // Reset the identifier if the user has specified it...
 
@@ -251,6 +256,7 @@ throws Exception
     if ( minimumSampleSize0 != null ) {
         minimumSampleSize = minimumSampleSize0.intValue();
     }
+    boolean isCountStatistic = getIsCountStatistic( statisticType );
 
     // Initialize the iterators using the analysis period...
     TSIterator tsi_stat = null;
@@ -311,19 +317,22 @@ throws Exception
             }
         }
         // Now compute the statistic from the sample if missing values are not a problem.
-        if ( (allowMissingCount >= 0) && (countMissing > allowMissingCount) ) {
-            // Too many missing values to compute statistic
-            Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
-                " because number of missing values " + countMissing + " is > allowed (" + allowMissingCount + ").");
-            stat_ts.setDataValue ( date, stat_ts.getMissing() );
-            continue;
-        }
-        if ( (minimumSampleSize >= 0) && (countNonMissing < minimumSampleSize) ) {
-            // Sample size too small to compute statistic
-            Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
-                " because sample size " + countNonMissing + " is < minimum required (" + minimumSampleSize + ").");
-            stat_ts.setDataValue ( date, stat_ts.getMissing() );
-            continue;
+        if ( !isCountStatistic ) {
+            // Have to check to see if enough data points are available
+            if ( (allowMissingCount >= 0) && (countMissing > allowMissingCount) ) {
+                // Too many missing values to compute statistic
+                Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
+                    " because number of missing values " + countMissing + " is > allowed (" + allowMissingCount + ").");
+                stat_ts.setDataValue ( date, stat_ts.getMissing() );
+                continue;
+            }
+            if ( (minimumSampleSize >= 0) && (countNonMissing < minimumSampleSize) ) {
+                // Sample size too small to compute statistic
+                Message.printStatus ( 2, routine, "Not computing time series statistic at " + date +
+                    " because sample size " + countNonMissing + " is < minimum required (" + minimumSampleSize + ").");
+                stat_ts.setDataValue ( date, stat_ts.getMissing() );
+                continue;
+            }
         }
         // Else have enough data so compute the statistic.
         // TODO SAM 2009-10-26 Will need to rework if the time series that results in the statistic is needed
@@ -382,6 +391,18 @@ throws Exception
                 stat_ts.setDataValue ( date, MathUtil.min(countNonMissing,sampleData) );
             }
         }
+        else if ( statisticType == TSStatisticType.MISSING_COUNT ) {
+            stat_ts.setDataValue ( date, countMissing );
+        }
+        else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
+            stat_ts.setDataValue ( date, 100.0*countMissing/(double)(countMissing + countNonMissing) );
+        }
+        else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
+            stat_ts.setDataValue ( date, countNonMissing );
+        }
+        else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
+            stat_ts.setDataValue ( date, 100.0*countNonMissing/(double)(countMissing + countNonMissing) );
+        }
     }
 
     // Return the result.
@@ -413,6 +434,22 @@ Return the analysis start date/time.
 public DateTime getAnalysisStart ()
 {
     return __analysisStart;
+}
+
+/**
+Indicate whether the statistic is a count of missing or non-missing.
+*/
+private boolean getIsCountStatistic ( TSStatisticType statisticType )
+{
+    if ( (statisticType == TSStatisticType.MISSING_COUNT) ||
+        (statisticType == TSStatisticType.NONMISSING_COUNT) ||
+        (statisticType == TSStatisticType.MISSING_PERCENT) ||
+        (statisticType == TSStatisticType.NONMISSING_PERCENT) ) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 /**
@@ -468,6 +505,10 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );
     choices.add ( TSStatisticType.MIN );
+    choices.add ( TSStatisticType.MISSING_COUNT );
+    choices.add ( TSStatisticType.MISSING_PERCENT );
+    choices.add ( TSStatisticType.NONMISSING_COUNT );
+    choices.add ( TSStatisticType.NONMISSING_PERCENT );
     //choices.add ( TSStatisticType.SKEW );
     //choices.add ( TSStatisticType.STD_DEV );
     //choices.add ( TSStatisticType.VARIANCE );
@@ -495,6 +536,65 @@ Return the name of the statistic being calculated.
 public TSStatisticType getStatisticType ()
 {
     return __statisticType;
+}
+
+/**
+Determine the data units for the new time series.
+*/
+private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticType )
+{    if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) || 
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_90) ||
+        (statisticType == TSStatisticType.GEOMETRIC_MEAN) ||
+        (statisticType == TSStatisticType.MAX) ||
+        (statisticType == TSStatisticType.MEAN) ||
+        (statisticType == TSStatisticType.MEDIAN) ||
+        (statisticType == TSStatisticType.MIN) ) {
+        // Use the units from the original time series
+        return inputts.getDataUnits();
+    }
+    else if ( (statisticType == TSStatisticType.MISSING_COUNT) ||
+        (statisticType == TSStatisticType.NONMISSING_COUNT) ) {
+        return "Count";
+    }
+    else if ( (statisticType == TSStatisticType.MISSING_PERCENT) ||
+        (statisticType == TSStatisticType.NONMISSING_PERCENT) ) {
+        return "Percent";
+    }
+    return "";
+}
+
+/**
+Determine the description for the new time series.
+*/
+private String getTimeSeriesDescription ( TSEnsemble ensemble, TSStatisticType statisticType )
+{
+    // If all the ensemble time series have the same description, then it is a true ensemble so
+    // use the same description with the statistic
+    boolean same = true;
+    String descPrev = "xxx";
+    String desc = "";
+    for ( TS ts: ensemble.getTimeSeriesList(false) ) {
+        desc = ts.getDescription();
+        if ( !descPrev.equals("xxx") && !descPrev.equals(desc)) {
+            same = false;
+            break;
+        }
+        descPrev = desc;
+    }
+    if ( same ) {
+        return desc + ",statisticType";
+    }
+    // Otherwise, use the ensemble name with the statistic
+    String ensembleName = ensemble.getEnsembleName();
+    if ( ensembleName.equals("") ) {
+        return "" + statisticType;
+    }
+    else {
+        return ensembleName + "," + statisticType;
+    }
 }
 
 /**
