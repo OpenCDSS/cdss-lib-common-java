@@ -183,6 +183,7 @@ import java.net.URI;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Properties;
@@ -194,6 +195,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeUtil;
@@ -1032,6 +1034,33 @@ public static List getFilesFromPathList ( List paths, String file )
 		newlist.add ( fullfile );
 	}
 	return newlist;
+}
+
+/**
+Return a list of files matching a pattern.
+Currently the folder must exist (no wildcard) and the file part of the path can contain wildcards using
+globbing notation (e.g., *.txt).
+@param folder folder to search for files
+TODO SAM 2012-07-22 This method should be replaced with java.nio.file.PathMatcher when updated to Java 1.7.
+*/
+public static List<File> getFilesMatchingPattern(String folder, String extension)
+{
+    File f = new File(folder);
+    // Get the list of files in the folder...
+    SimpleFileFilter filter = new SimpleFileFilter(extension, "");
+    File[] files = f.listFiles(filter);
+    List<File> matchedFiles = new Vector();
+    if ( (files == null) || (files.length == 0) ) {
+        return new Vector<File>();
+    }
+    else {
+        for ( int i = 0; i < files.length; i++ ) {
+            if ( IOUtil.getFileExtension(files[i].getName()).equalsIgnoreCase(extension) ) {
+                matchedFiles.add(files[i]);
+            }
+        }
+        return matchedFiles;
+    }
 }
 
 /**
