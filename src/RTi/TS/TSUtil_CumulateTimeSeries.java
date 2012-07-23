@@ -62,8 +62,8 @@ throws Exception
     // Get valid dates because the ones passed in may have been null...
 
     TSLimits valid_dates = TSUtil.getValidPeriod ( ts, start_date, end_date );
-    DateTime start  = valid_dates.getDate1();
-    DateTime end    = valid_dates.getDate2();
+    DateTime start = valid_dates.getDate1();
+    DateTime end = valid_dates.getDate2();
 
     int interval_base = ts.getDataIntervalBase();
     int interval_mult = ts.getDataIntervalMult();
@@ -77,8 +77,9 @@ throws Exception
         HandleMissingHow_CarryForward_boolean = true;
     }
     String Reset = props.getValue ( "Reset" );
-    DateTime Reset_DateTime = null;     // Reset date/time - will be modified during processing below
-    DateTime Reset_DateTime0 = null;    // Copy of original reset
+    DateTime Reset_DateTime = null; // Reset date/time - will be modified during processing below
+    DateTime Reset_DateTime0 = null; // Copy of original reset
+    DateTime Reset_DateTime_Prev = null; // Used to make sure full years of missing don't have 0 at start
     if ( (Reset != null) && !Reset.equals("") ) {
         Reset_DateTime = DateTime.parse( Reset );
         Reset_DateTime0 = new DateTime ( Reset_DateTime );
@@ -88,11 +89,12 @@ throws Exception
         }
     }
     double total = ts.getMissing();
+    double countNonmissing = 0; // Count of values added - used with reset
     boolean is_missing = false;
     if ( interval_base == TimeInterval.IRREGULAR ) {
         // Get the data and loop through the vector...
         IrregularTS irrts = (IrregularTS)ts;
-        List alltsdata = irrts.getData();
+        List<TSData> alltsdata = irrts.getData();
         if ( alltsdata == null ) {
             // No data for the time series...
             return;
@@ -101,7 +103,7 @@ throws Exception
         TSData tsdata = null;
         DateTime date = null;
         for ( int i = 0; i < nalltsdata; i++ ) {
-            tsdata = (TSData)alltsdata.get(i);
+            tsdata = alltsdata.get(i);
             date = tsdata.getDate();
             if ( date.greaterThan(end) ) {
                 // Past the end of where we want to go so quit...
@@ -117,6 +119,7 @@ throws Exception
                     }
                     else {
                         total += oldvalue;
+                        ++countNonmissing;
                     }
                     tsdata.setDataValue(total);
                     // Have to do this manually since TSData are being modified directly to improve performance...
@@ -145,6 +148,7 @@ throws Exception
                 }
                 else {
                     total += oldvalue;
+                    ++countNonmissing;
                 }
                 ts.setDataValue(date,total);
             }
@@ -161,10 +165,27 @@ throws Exception
                     Reset_DateTime.setYear(date.getYear());
                 }
                 if ( Reset_DateTime.equals(date) ) {
+                    // If the count of values added in the previous year was zero, then set the
+                    // reset value in the previous year to missing.  Otherwise, it is possible
+                    // to get an output time series that has zero on the first interval of the year
+                    // and missing otherwise - this artificially creates data points.
+                    if ( (Reset_DateTime_Prev != null) && (countNonmissing == 0) ) {
+                        ts.setDataValue(Reset_DateTime_Prev,ts.getMissing());
+                    }
                     total = 0.0;
+                    countNonmissing = 0;
                     ts.setDataValue(date,total);
+                    // Save as the previous resent
+                    Reset_DateTime_Prev = new DateTime(Reset_DateTime);
                 }
             }
+        }
+    }
+    if ( interval_base != TimeInterval.IRREGULAR ) {
+        // Need to check whether the last year, which may be a partial year, needs its first
+        // value set to missing if no data were processed, similar to logic above
+        if ( (Reset_DateTime != null) && (countNonmissing == 0) ) {
+            ts.setDataValue(Reset_DateTime,ts.getMissing());
         }
     }
 
