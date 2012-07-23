@@ -321,8 +321,6 @@ Notify registered CommandProgressListeners of a CommandProgressEvent.
 objects being processed.
 @param nstep The total number of steps to process within a command, for example total number of objects
 being processed.
-@param command The reference to the command that is starting to run,
-provided to allow future interaction with the command.
 @param percentComplete If >= 0, the value can be used to indicate progress
 running a single command (not the single command).  If less than zero, then
 no estimate is given for the percent complete and calling code can make its
