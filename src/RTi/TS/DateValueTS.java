@@ -682,8 +682,7 @@ throws Exception
     if ( !IOUtil.fileReadable(full_fname) ) {
         Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + fname + "\"" );
     }
-	BufferedReader in = null;
-    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+	BufferedReader in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
     try {
     	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
     	ts.setInputName ( full_fname );
@@ -810,19 +809,19 @@ throws Exception
 		Message.printDebug ( dl, routine, "Processing header..." );
 	}
 	String delimiter_default = " ";
-	String	alias = "", dataflag = "", datatype = "", delimiter = delimiter_default,
+	String alias = "", dataflag = "", datatype = "", delimiter = delimiter_default,
 		description = "", identifier = "", missing = "", seqnum = "",
 		units = "";
-	List	alias_v = null;
-	List	dataflag_v = null;
+	List<String> alias_v = null;
+	List<String> dataflag_v = null;
 	boolean	[] ts_has_data_flag = null;
 	int	[] ts_data_flag_length = null;
-	List	datatype_v = null;
-	List	description_v = null;
-	List	identifier_v = null;
-	List	missing_v = null;
-	List	seqnum_v = null;
-	List	units_v = null;
+	List<String> datatype_v = null;
+	List<String> description_v = null;
+	List<String> identifier_v = null;
+	List<String> missing_v = null;
+	List<String> seqnum_v = null;
+	List<String> units_v = null;
 	boolean	include_count = false;
 	boolean	include_total_time = false;
 	int	size = 0;
