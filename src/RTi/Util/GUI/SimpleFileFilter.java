@@ -50,30 +50,30 @@ import RTi.Util.IO.IOUtil;
 //import javax.swing.filechooser.FileFilter;
 
 /**
+<p>
 SimpleFileFilter is an easy way to implement File Filters in JFileChoosers.
 A SimpleFileFilter contains a _single_ filter for use in a dialog, and
 file extensions that should be matched against should NOT be added to 
 the filter with a period before the characters (ie, add "gif", not ".gif").<p>
 
-For 
-example, if building a graphics application, the designer would still need 
+For example, if building a graphics application, the designer would still need 
 to create a separate filter object for .gifs, .jpegs, .bmps, etc.  When 
 extensions are passed in to the Filter constructors, they can be in the form
-(using JPegs as the example): .jpeg or jpeg -- the period will be 
-automatically added. <p>
-
+(using JPegs as the example): .jpeg or jpeg -- the period automatically will be added.
+</p>
+<p>
 The description used in the various constructors should be fairly concise.  
-For .jpegs, the description "jpeg image files" would suffice.<p>
-
-The following is an example in which a JFileChooser is set up with two
-SimpleFileFilters:<p>
+For .jpegs, the description "jpeg image files" would suffice.
+</p>
+<p>
+The following is an example in which a JFileChooser is set up with two SimpleFileFilters:<p>
 <blockquote><pre>
 JFileChooser fc = new JFileChooser();
 fc.setDialogTitle("Choose data file to open");
 
 SimpleFileFilter cff = new SimpleFileFilter("txt", "Comma-delimited Files");
 
-Vector v = new Vector(2);
+List<String> v = new Vector(2);
 v.addElement("dat");
 v.addElement("data");
 SimpleFileFilter dff = new SimpleFileFilter(v, "Application Data Files");
@@ -81,14 +81,15 @@ SimpleFileFilter dff = new SimpleFileFilter(v, "Application Data Files");
 fc.addChoosableFileFilter(cff);
 fc.addChoosableFileFilter(dff);
 fc.setFileFilter(dff);
-</pre></blockquote><p>
-
+</pre></blockquote>
+<p>
 The code above will create a JFileChooser for opening data files of two 
 specified kinds.  In the file dialog, the user can choose between opening:
 "Comma-delimited Files (.txt)" or
 "Application Data Files (.dat, .data)"
 The default file filter that will be selected when the JFileChooser appears
 on-screen will be dff, or "Application Data Files (.dat, .data)"
+</p>
 */
 public class SimpleFileFilter 
 extends javax.swing.filechooser.FileFilter 
@@ -122,7 +123,7 @@ filtered and the description of the list.
 /**
 A list of all the filtered extensions in the filter.
 */
-private List __filters = null;
+private List<String> __filters = null;
 
 /**
 Creates a SimpleFileFilter that will filter for the given extension with 
@@ -155,23 +156,22 @@ public SimpleFileFilter(String extension, String description) {
 
 /**
 Creates a SimpleFileFilter that will filter for each extension in the 
-Vector of Strings, using the given description.
-@param filters a Vector of Strings, each of which will be an extension to
+list of Strings, using the given description.
+@param filters a list of Strings, each of which will be an extension to
 be filtered for.  For example, "jpg, jpeg" or "htm, html".
 @param description a couple words describing the filter.
 */
-public SimpleFileFilter(List filters, String description) {
+public SimpleFileFilter(List<String> filters, String description) {
 	initialize();
-	for (int i = 0; i < filters.size(); i++) {
-		__filters.add((String)filters.get(i));
+	for (String filter: filters ) {
+		__filters.add(filter);
 	}
 	__description = description;
 	//__fullDescription = getDescription();
 }
 
 /**
-Checks a File to see if it its extension matches one of the extensions 
-in the filter.
+Checks a File to see if it its extension matches one of the extensions in the filter.
 @param f the File to check the extension of.
 @return true if the File has a matching extension, false if not.
 */
@@ -180,8 +180,7 @@ public boolean accept(File f) {
 		// the next line makes it so that directories always match
 		// the file filter.  If directories were not set to match,
 		// then a file dialog would not have the capability to browse
-		// into other directories, as they would not show up in the
-		// dialog.
+		// into other directories, as they would not show up in the dialog.
 		if (f.isDirectory()) {
 			return true;
 		}
@@ -195,12 +194,12 @@ public boolean accept(File f) {
 			int size = __filters.size();
 			for (int i = 0; i < size; i++) {
 				if (IOUtil.isUNIXMachine()) {
-					if (extension.equals( (String)__filters.get(i))) {
+					if (extension.equals( __filters.get(i))) {
 					      return true;
 					}
 				}
 				else {
-					if (extension.equalsIgnoreCase( (String)__filters.get(i))) {
+					if (extension.equalsIgnoreCase( __filters.get(i)) ) {
 					      return true;
 					}
 				}
@@ -234,8 +233,7 @@ public String getDescription() {
 		if (__description==null) {
 		 	fullDescription = "(";
 		} else {
-			fullDescription = 
-				__description + " (";
+			fullDescription = __description + " (";
 		}
 
 		int size = __filters.size();
@@ -262,8 +260,7 @@ public String getDescription() {
 /**
 Pulls off the extension from the given file and returns it.
 @param f the File off of which to get the extension.
-@return the String extension if the file exists, or null if the file
-doesn't exist.
+@return the String extension if the file exists, or null if the file doesn't exist.
 */
 public String getExtension(File f) {
 	if (f != null) {
@@ -274,18 +271,16 @@ public String getExtension(File f) {
 }
 
 /**
-Returns the Vector of extensions for which this file filter filters.
-@return the Vector of extensions for which this file filter filters.
+Returns the list of extensions for which this file filter filters.
+@return the list of extensions for which this file filter filters.
 */
-public List getFilters() {
+public List<String> getFilters() {
 	return __filters;
 }
 
 /**
-Returns the short description, always without any data about the
-filtered extensions.
-@return the short description, always without any data about the
-filtered extensions.
+Returns the short description, always without any data about the filtered extensions.
+@return the short description, always without any data about the filtered extensions.
 */
 public String getShortDescription() {
 	return __description;
@@ -301,8 +296,7 @@ private void initialize() {
 /**
 Sets whether to display the list of extensions in the filter description
 shown in the dialog.  If true, the dialog will display a phrase similar to
-"Example Files (.ex, .exf)".  Otherwise, only "Example Files" would be 
-shown.
+"Example Files (.ex, .exf)".  Otherwise, only "Example Files" would be shown.
 The default behavior is to show all the extensions.
 @param describeExtensions if true, the extensions will be shown in the 
 list of filters in the dialog, otherwise, they won't be.
