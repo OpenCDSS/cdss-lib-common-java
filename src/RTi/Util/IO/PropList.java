@@ -715,7 +715,7 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 		return props;
 	}
 	// Allowing quoted strings is necessary because a comma or = could be in a string
-	List tokens = StringUtil.breakStringList ( string, delim,	StringUtil.DELIM_ALLOW_STRINGS );
+	List<String> tokens = StringUtil.breakStringList ( string, delim, StringUtil.DELIM_ALLOW_STRINGS );
 						
 	int size = 0;
 	if ( tokens != null ) {
@@ -1555,10 +1555,6 @@ throws IOException
 		}
 	}
 	out.close();
-	out = null;
-	p = null;
-	key = null;
-	value = null;
 }
 
 }
