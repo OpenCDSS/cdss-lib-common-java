@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -75,6 +76,10 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         }
         __inputJTextField.setToolTipText(
             "Enter a combination of literal strings and/or format specifiers from the list on the left.");
+        // Make sure caret stays visible even when not in focus
+        __inputJTextField.setCaretColor( Color.lightGray );
+        __inputJTextField.getCaret().setVisible ( true );
+        __inputJTextField.getCaret().setSelectionVisible ( true );
         JGUIUtil.addComponent(this, __inputJTextField,
             x++, y, 2, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     }
@@ -126,6 +131,9 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
                 String text = __inputJTextField.getText();
                 String newText = text.substring(0,pos) + selection + text.substring(pos);
                 __inputJTextField.setText ( newText );
+                // Make sure caret stays visible even when not in focus
+                __inputJTextField.getCaret().setVisible ( true );
+                __inputJTextField.getCaret().setSelectionVisible ( true );
             }
         }
     }
