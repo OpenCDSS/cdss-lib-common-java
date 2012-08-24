@@ -129,21 +129,27 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     DateTime ReferenceDate_DateTime2 = null;
     if ( ReferenceDate_DateTime == null ) {
         // Create a reference date for Jan 1 that is of the correct precision...
-        ReferenceDate_DateTime2 = TSUtil.newPrecisionDateTime ( ts, null );
-        // The year will be set to each year in the source time series, or that of the reference date.
-        // Now reset to Jan 1...
-        ReferenceDate_DateTime2.setMonth(1);
-        ReferenceDate_DateTime2.setDay(1);
-        // TODO SAM 2007-12-13 Evaluate how the following works for INST, MEAN, ACCM data.
-        ReferenceDate_DateTime2.setHour(0);
-        ReferenceDate_DateTime2.setMinute(0);
+        // If in discovery mode the dates may not be set in the time series so use a default to pass remaining logic
+        if ( (ts == null) || (ts.getDate1() == null) ) {
+            ReferenceDate_DateTime2 = new DateTime();
+        }
+        else {
+            ReferenceDate_DateTime2 = TSUtil.newPrecisionDateTime ( ts, null );
+            // The year will be set to each year in the source time series, or that of the reference date.
+            // Now reset to Jan 1...
+            ReferenceDate_DateTime2.setMonth(1);
+            ReferenceDate_DateTime2.setDay(1);
+            // TODO SAM 2007-12-13 Evaluate how the following works for INST, MEAN, ACCM data.
+            ReferenceDate_DateTime2.setHour(0);
+            ReferenceDate_DateTime2.setMinute(0);
+        }
     }
     else {
         // Make sure the reference date is of the right precision...
         ReferenceDate_DateTime2 = TSUtil.newPrecisionDateTime ( ts, ReferenceDate_DateTime);
     }
     //if ( Message.isDebugOn ) {
-        Message.printStatus ( 2, routine, "Reference date is " + ReferenceDate_DateTime2.toString() );
+        Message.printStatus ( 2, routine, "Reference date is " + ReferenceDate_DateTime2 );
     //}
 
     // Allocate the Vector for traces...
