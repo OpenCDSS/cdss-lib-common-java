@@ -9162,6 +9162,7 @@ throws Exception
     ts.addToGenesis ( "Multiplied " + startDate + " to " + endDate + " by " + tsm.getDescription() + "." );
 }
 
+// TODO SAM 2012-08-21 Consider a default precision if the time series date is null
 /**
 Create a new DateTime of a precision that matches the given time series.  Converting
 from a low precision to high precision DateTime is typically handled by using first of
@@ -9789,7 +9790,7 @@ Scale the time series by a constant value.
 @param ts Time series to scale.
 @param start_date Date to start scaling.
 @param end_date Date to stop scaling.
-@param month Month to scale.  If negative, scale every month.
+@param month Month to scale (1-12).  If negative, scale every month.
 @param scale Data value to scale time series.
 @exception Exception if the scale value is bad or another error occurs.
 */
@@ -9803,7 +9804,7 @@ Scale the time series by a constant value.
 @param ts Time series to scale.
 @param start_date Date to start scaling.
 @param end_date Date to stop scaling.
-@param month Month to scale.  If negative, scale every month.
+@param month Month to scale (1-12).  If negative, scale every month.
 @param ScaleValue Data value to scale time series, as a number, DaysInMonth, or
 DaysInMonthInverse.  For the latter two, the number of days in the month, as a
 floating number, will be used as the scale value.  This is useful for
@@ -9812,18 +9813,19 @@ converting between a monthly interval and an interval shorter than monthly.
 */
 public static void scale ( TS ts, DateTime start_date, DateTime end_date, int month, String ScaleValue )
 throws Exception
-{	String  routine = "TSUtil.scale";
-	double	oldvalue;
-	double	ScaleValue_double = 1.0;	// Scale value as a double.
-	boolean DaysInMonth_boolean = false;	// If true, then ScaleValue is
-	boolean DaysInMonthInverse_boolean = false;	// DaysInMonth
+{	String routine = "TSUtil.scale";
+	double oldvalue;
+	double ScaleValue_double = 1.0;	// Scale value as a double.
+	boolean DaysInMonth_boolean = false; // If true, then ScaleValue is DaysInMonth
+	boolean DaysInMonthInverse_boolean = false;
 	if ( ScaleValue.equalsIgnoreCase("DaysInMonth") ) {
 		DaysInMonth_boolean = true;
 	}
 	else if ( ScaleValue.equalsIgnoreCase("DaysInMonthInverse") ) {
 		DaysInMonthInverse_boolean = true;
 	}
-	else {	if ( !StringUtil.isDouble(ScaleValue) ) {
+	else {
+	    if ( !StringUtil.isDouble(ScaleValue) ) {
 			String message = "Scale value \"" + ScaleValue + "\" is not a number, DaysInMonth, or DaysInMonthInverse.";
 			Message.printWarning ( 3, routine, message );
 			throw new Exception ( message );
@@ -9842,7 +9844,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -9851,7 +9853,7 @@ throws Exception
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( (month >= 0) && (date.getMonth() != month) ) {
 				continue;
@@ -9869,8 +9871,7 @@ throws Exception
 					else if ( DaysInMonthInverse_boolean ) {
 						ScaleValue_double = 1.0/TimeUtil.numDaysInMonth(tsdata.getDate());
 					}
-					tsdata.setDataValue(oldvalue*
-						ScaleValue_double);
+					tsdata.setDataValue(oldvalue*ScaleValue_double);
 					// Have to do this manually since TSData are being modified directly to improve performance...
 					ts.setDirty ( true );
 				}
