@@ -1,5 +1,7 @@
 package RTi.Util.Time;
 
+import RTi.Util.Message.Message;
+
 // TODO SAM 2012-04-11 This code heeds to be reviewed in conjunction with DateTimeFormat.  Ideally, the
 // DateTimeFormat class should just contain instances of DateTimeFormatterType (an enumeration) and the
 // format string.  Then a DateTimeFormatter class could use DateTimeFormat to do formatting and this
@@ -144,8 +146,11 @@ private void parseC ( DateTime dt, String dtString )
                 // Not handled
             }
             else if ( c == 'b' ) {
-                // Abbreviated month name.
-                // Not handled
+                // Abbreviated month name - 3 characters
+                s = dtString.substring(icharString,icharString+3);
+                dt.setMonth(TimeUtil.monthFromAbbrev(s));
+                icharString += 3;
+                smallestPrecision = Math.min(smallestPrecision, DateTime.PRECISION_MONTH);
             }
             else if ( c == 'B' ) {
                 // Long month name.
@@ -237,8 +242,9 @@ private void parseC ( DateTime dt, String dtString )
             }
         }
         else {
-            // Other characters treated as placeholders
+            // Other characters in format are treated as placeholders - skip the character in format and string
             ++icharFormat;
+            ++icharString;
         }
     }
     // Reset to strict so that further use of the date/time will enforce valid date/times
