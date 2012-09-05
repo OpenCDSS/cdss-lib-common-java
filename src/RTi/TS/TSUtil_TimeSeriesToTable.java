@@ -3,6 +3,7 @@ package RTi.TS;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Message.Message;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeWindow;
@@ -29,9 +30,19 @@ Time series to process.
 private List<TS> __tsList = null;
 
 /**
-Date/time column for time series, 0+.
+Date/time column, 0+.
 */
 private int __dateTimeColumn = -1;
+
+/**
+TSID column, 0+, for single-column output.
+*/
+private int __tableTSIDColumn = -1;
+
+/**
+TSID format, using time series %L, etc. specifiers.
+*/
+private String __tableTSIDFormat = null;
 
 /**
 Data columns for time series, 0+.
@@ -70,37 +81,41 @@ Constructor.
 table is expected to be empty (no rows).
 @param tslist list of time series being transferred to table.
 @param dateTimeColumn date/time column (0+).
-@param dataColumns data columns (0+) corresponding to the correct column names for the time series.
-@param dataRow data row (0+) corresponding to first date/time to be transferred.
+@param tableTSIDColumn name of column to contain TSID, for one-column output
+@param tableTSIDFormat format of TSID corresponding to tableTSIDColumn
+@param dataColumns data columns (0+) corresponding to the correct column names for the time series; if a single column
+is output, then the first array position will be used for each time series
+@param dataRow table data row (0+) corresponding to first date/time to be transferred.
 @param outputStart first date/time to be transferred (if null, output all)
 @param outputEnd last date/time to be transferred (if null, output all)
 @param outputWindow the window within a year to output (if null, output all)
 @param useNullForMissing if true, use null in the table for missing values.  If false, transfer the
 time series missing value indicator (e.g., -999 or NaN).  These values are not universally handled.
 */
-public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTimeColumn,
-    int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
+public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTimeColumn, int tableTSIDColumn,
+    String tableTSIDFormat, int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
     DateTimeWindow outputWindow, boolean useNullForMissing )
-{   //String message;
-    //String routine = getClass().getName() + ".constructor";
-	// Save data members.
-    __table = table;
+{   __table = table;
     __tsList = tslist;
     __dateTimeColumn = dateTimeColumn;
+    __tableTSIDColumn = tableTSIDColumn;
+    __tableTSIDFormat = tableTSIDFormat;
     __dataColumns = dataColumns;
     __dataRow = dataRow;
     __outputStart = outputStart;
     __outputEnd = outputEnd;
     __outputWindow = outputWindow; // Allow null to speed performance checks
     __useNullForMissing = useNullForMissing;
-    // Make sure that the time series are regular and of the same interval
-    if ( !TSUtil.intervalsMatch(tslist) ) {
-        throw new UnequalTimeIntervalException (
-            "Time series don't have the same interval - cannot convert to table.");
-    }
-    if ( TSUtil.areAnyTimeSeriesIrregular(tslist) ) {
-        throw new IrregularTimeSeriesNotSupportedException (
-            "Irregular time series cannot be converted to a table.");
+    // Make sure that the time series are regular and of the same interval if multi-column
+    if ( (tslist.size() > 0) && (tableTSIDColumn < 0) ) {
+        if ( !TSUtil.intervalsMatch(tslist) ) {
+            throw new UnequalTimeIntervalException (
+                "Time series don't have the same interval - cannot convert to multi-column table.");
+        }
+        if ( TSUtil.areAnyTimeSeriesIrregular(tslist) ) {
+            throw new IrregularTimeSeriesNotSupportedException (
+                "Irregular time series cannot be converted to a multi-column table.");
+        }
     }
 }
 
@@ -108,75 +123,157 @@ public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTime
 Copy the time series into the table.
 */
 public void timeSeriesToTable ()
-{
+{   String routine = getClass().getName() + ".timeSeriesToTable";
     // Create a new list of problems
     __problems = new Vector();
     
-    // If the output start and end are not specified, use the maximum period
-    if ( (__outputStart == null) || (__outputEnd == null) ) {
-        // One or more of the requested dates is null so find the full period of the data
-        TSLimits limits = null;
-        try {
-            limits = TSUtil.getPeriodFromTS(__tsList, TSUtil.MAX_POR );
-            if ( __outputStart == null ) {
-                __outputStart = new DateTime(limits.getDate1());
+
+    if ( __tableTSIDColumn >= 0 ) {
+        // Outputting single column table
+        // Iterate through each time series and dump the values within the requested range
+        TSIterator tsi = null;
+        int dataColumn = __dataColumns[0];
+        int setRow;
+        int rowCount = -1; // Will align properly when incremented below
+        for ( TS ts : __tsList ) {
+            if ( ts == null ) {
+                continue;
             }
-            if ( __outputEnd == null ) {
-                __outputEnd = new DateTime(limits.getDate2());
-            }
-        }
-        catch ( Exception e ) {
-            // Worst case use the period from the first time series
-            __outputStart = __tsList.get(0).getDate1();
-            __outputEnd = __tsList.get(0).getDate2();
-        }
-    }
-    
-    // Iterate through the dates
-    int its; // iterator for time series
-    TS ts; // time series being processed
-    int tsListSize = __tsList.size();
-    int intervalBase = __tsList.get(0).getDataIntervalBase();
-    int intervalMult = __tsList.get(0).getDataIntervalMult();
-    int rowCount = 0;
-    int setRow, setColumn; // Row and column for data set
-    double value; // Data value from time series
-    DateTime date = null;
-    for (date = new DateTime(__outputStart); date.lessThanOrEqualTo(__outputEnd);
-        date.addInterval(intervalBase,intervalMult) ) {
-        if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
-            // Don't add the row...
-            continue;
-        }
-        // Set the date/time
-        setRow = __dataRow + rowCount;
-        try {
-            __table.setFieldValue(setRow, __dateTimeColumn, new DateTime(date), true );
-        }
-        catch ( Exception e ) {
-            __problems.add ( "Error setting date " + date + " for row [" + setRow + "] (" + e + ").");
-        }
-        // Iterate through the time series
-        for ( its = 0; its < tsListSize; its++ ) {
-            ts = __tsList.get(its);
-            value = ts.getDataValue(date);
-            setColumn = __dataColumns[its];
             try {
-                if ( ts.isDataMissing(value) && __useNullForMissing ) {
-                    __table.setFieldValue(setRow, setColumn, null, true );
+                tsi = ts.iterator(__outputStart,__outputEnd);
+            }
+            catch ( Exception e ) {
+                Message.printWarning(3,routine,"Error initializing iterator for " +
+                     ts.getIdentifier().toStringAliasAndTSID() + " (" + e + ")" );
+                continue;
+            }
+            TSData tsdata;
+            DateTime date;
+            double value;
+            String tsid;
+            while ( (tsdata = tsi.next()) != null ) {
+                // Set the date
+                date = tsdata.getDate();
+                if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
+                    // Don't add the row...
+                    continue;
+                }
+                // Row is incremented for each value, but only after above checks
+                ++rowCount;
+                setRow = __dataRow + rowCount;
+                try {
+                    __table.setFieldValue(setRow, __dateTimeColumn, new DateTime(date), true );
+                }
+                catch ( Exception e ) {
+                    __problems.add ( "Error setting date " + date + " for row [" + setRow + "] (" + e + ").");
+                }
+                // Set the TSID
+                if ( __tableTSIDFormat == null ) {
+                    // Use the alias if available, otherwise the TSID
+                    String alias = ts.getAlias();
+                    if ( (alias != null) && !alias.equals("") ) {
+                        tsid = alias;
+                    }
+                    else {
+                        tsid = ts.getIdentifier().toString();
+                    }
                 }
                 else {
-                    // Set as a double because non-missing or missing and the missing value should be used
-                    __table.setFieldValue(setRow, setColumn, new Double(value), true );
+                    tsid = ts.formatExtendedLegend(__tableTSIDFormat);
+                }
+                try {
+                    __table.setFieldValue(setRow, __tableTSIDColumn, tsid, true );
+                }
+                catch ( Exception e ) {
+                    __problems.add ( "Error setting TSID " + tsid + " for row [" + setRow + "] (" + e + ").");
+                }
+                // Set the data value
+                dataColumn = __dataColumns[0];
+                value = tsdata.getDataValue();
+                try {
+                    if ( ts.isDataMissing(value) && __useNullForMissing ) {
+                        __table.setFieldValue(setRow, dataColumn, null, true );
+                    }
+                    else {
+                        // Set as a double because non-missing or missing and the missing value should be used
+                        __table.setFieldValue(setRow, dataColumn, new Double(value), true );
+                    }
+                }
+                catch ( Exception e ) {
+                    __problems.add ( "Error setting data value " + value +
+                        " at " + date + " [" + setRow + "][" + dataColumn + "] (" + e + ").");
+                }
+            }
+        }
+    }
+    else {
+        // Outputting a multi-column tables where the date/time column is used for all the time series
+        // If the output start and end are not specified, use the maximum period
+        if ( (__outputStart == null) || (__outputEnd == null) ) {
+            // One or more of the requested dates is null so find the full period of the data
+            TSLimits limits = null;
+            try {
+                limits = TSUtil.getPeriodFromTS(__tsList, TSUtil.MAX_POR );
+                if ( __outputStart == null ) {
+                    __outputStart = new DateTime(limits.getDate1());
+                }
+                if ( __outputEnd == null ) {
+                    __outputEnd = new DateTime(limits.getDate2());
                 }
             }
             catch ( Exception e ) {
-                __problems.add ( "Error setting data value " + value +
-                    " at " + date + " [" + setRow + "][" + setColumn + "] (" + e + ").");
+                // Worst case use the period from the first time series
+                __outputStart = __tsList.get(0).getDate1();
+                __outputEnd = __tsList.get(0).getDate2();
             }
         }
-        // If here the row was added so increment for the next add
-        ++rowCount;
+        // Iterate through the dates
+        int its; // iterator for time series
+        TS ts; // time series being processed
+        int tsListSize = __tsList.size();
+        int intervalBase = __tsList.get(0).getDataIntervalBase();
+        int intervalMult = __tsList.get(0).getDataIntervalMult();
+        int rowCount = 0;
+        int setRow, setColumn; // Row and column for data set
+        double value; // Data value from time series
+        DateTime date = null;
+        for (date = new DateTime(__outputStart); date.lessThanOrEqualTo(__outputEnd);
+            date.addInterval(intervalBase,intervalMult) ) {
+            if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
+                // Don't add the row...
+                continue;
+            }
+            // Set the date/time
+            setRow = __dataRow + rowCount;
+            try {
+                __table.setFieldValue(setRow, __dateTimeColumn, new DateTime(date), true );
+            }
+            catch ( Exception e ) {
+                __problems.add ( "Error setting date " + date + " for row [" + setRow + "] (" + e + ").");
+            }
+            // Iterate through the time series
+            for ( its = 0; its < tsListSize; its++ ) {
+                ts = __tsList.get(its);
+                value = ts.getDataValue(date);
+                // Each time series is in a separate column
+                setColumn = __dataColumns[its];
+                try {
+                    if ( ts.isDataMissing(value) && __useNullForMissing ) {
+                        __table.setFieldValue(setRow, setColumn, null, true );
+                    }
+                    else {
+                        // Set as a double because non-missing or missing and the missing value should be used
+                        __table.setFieldValue(setRow, setColumn, new Double(value), true );
+                    }
+                }
+                catch ( Exception e ) {
+                    __problems.add ( "Error setting data value " + value +
+                        " at " + date + " [" + setRow + "][" + setColumn + "] (" + e + ").");
+                }
+            }
+            // If here the row was added so increment for the next add
+            ++rowCount;
+        }
     }
 }
 
