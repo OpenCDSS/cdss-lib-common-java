@@ -580,7 +580,7 @@ private double [] getNonMissingData ( TS ts, TSData[] dataArray )
         value = dataArray[i].getDataValue();
         if ( !ts.isDataMissing(value) ) {
             nonMissingDataArray[nonMissingCount++] = value;
-            Message.printStatus( 2, "", "Data value [" + i + "] = " + value + " at " + dataArray[i].getDate() );
+            //Message.printStatus( 2, "", "Data value [" + i + "] = " + value + " at " + dataArray[i].getDate() );
         }
     }
     // Resize the array if necessary
