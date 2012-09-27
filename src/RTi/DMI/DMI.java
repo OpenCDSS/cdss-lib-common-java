@@ -1273,6 +1273,7 @@ public ResultSet dmiRunSelect() throws SQLException {
 	return dmiSelect((DMISelectStatement)__lastQuery);
 }
 
+// TODO SAM 2012-09-07 Need to set the last query string
 /**
 Runs an SQL string that contains a <b><code>SELECT</b></code> statement 
 and returns a resultSet of the records returned.
@@ -1968,8 +1969,8 @@ Returns the database types a DMI can connect to that are done via direct server 
 ODBC connection is needed).
 @return a list of the database types a DMI can connect to that are done via direct server connection.
 */
-protected static List getServerDatabaseTypes() {
-	List v = new Vector();
+protected static List<String> getServerDatabaseTypes() {
+	List<String> v = new Vector();
 	// Do not include Access since this requires that an ODBC connection be defined.
 	v.add("H2");
 	v.add("Informix");
@@ -2200,7 +2201,9 @@ throws SQLException, Exception {
             // NOTE : it is generally recommended to use the port for speed
             // -IWS
             if (__database_server.indexOf('\\') < 0) {
-                // For example "localhost\\CDSS" (and database name would be "HydroBase_CO_YYYYMMDD")
+                // Database instance is NOT specified, for example the server name would be something like:
+                //     "localhost\CDSS" (and database name would be "HydroBase_CO_YYYYMMDD")
+                // Consequently, use the port number.
                 connUrl += ":" + __port;
             }
             connUrl += ";databaseName=" + __database_name;
