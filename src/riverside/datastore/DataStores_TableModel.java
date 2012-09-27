@@ -82,7 +82,7 @@ public String getColumnName(int columnIndex) {
         case COL_DESCRIPTION: return "\nDescription";
         case COL_DATABASE_SERVER: return "Database\nServer";
         case COL_DATABASE_NAME: return "Database\nName";
-        case COL_SERVICE_ROOT_URI: return "Web Service\nRoot URI";
+        case COL_SERVICE_ROOT_URI: return "\nWeb Service Root URI";
         default: return "";
     }
 }
