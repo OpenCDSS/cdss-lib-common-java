@@ -530,17 +530,23 @@ from this call is different from the createStoredProcedureCallString() call.
 public String createStoredProcedureString() {
 	String callString = "";
 	
-	callString += "exec " + _spData.getProcedureName() + " ";
-
-	int numParameters = _spData.getNumParameters();
-
-	for (int i = 0; i < numParameters; i++) {
-		if (i > 0) {
-			callString += ", ";
-		}
-		callString += __spParameters[i];
+	if ( _spData != null ) {
+	    // There may be a case where stored procedures are being used for the database but the current
+	    // statement is doing a direct query (such as on a published view).
+    	callString += "exec " + _spData.getProcedureName() + " ";
+    
+    	int numParameters = _spData.getNumParameters();
+    
+    	for (int i = 0; i < numParameters; i++) {
+    		if (i > 0) {
+    			callString += ", ";
+    		}
+    		callString += __spParameters[i];
+    	}
 	}
-
+	else {
+	    // TODO SAM 2012-09-07 Evaluate how to better handle case when stored procedure is not used
+	}
 
 	return callString;
 }
