@@ -108,7 +108,7 @@ public class InputFilter_JPanel extends JPanel implements ItemListener
 {
 
 /**
-Number of filter groups to display.  Each filter group will list all filters. 
+Number of filter groups to display.  Each filter group will list all filters.
 */
 private int __numFilterGroups = 1;
 
@@ -167,11 +167,16 @@ public InputFilter_JPanel ( String text )
     JGUIUtil.addComponent(this, __textArea,
         0, 0, 1, 1, 0.0, 0.0, insetsNNNN,
         GridBagConstraints.BOTH, GridBagConstraints.CENTER);
+    // Set the number of filter groups to zero since components are not initialized
+    __numFilterGroups = 0;
 }
 
 /**
-Construct an input filter panel.
+Construct an input filter panel from data choices.
 @param inputFilters A list of InputFilter, to be displayed.
+@param numInputFilters the number of input filter rows to be displayed
+@param numWhereChoicesToDisplay the number of where choices to display in lists (-1 to default to list size or
+an intelligent default)
 */
 public InputFilter_JPanel ( List<InputFilter> inputFilters, int numInputFilters, int numWhereChoicesToDisplay )
 {	GridBagLayout gbl = new GridBagLayout();
@@ -629,11 +634,12 @@ private void removeInputFilters()
 /**
 Set the contents of an input filter.
 @param ifg The Filter group to be set (0+).
-@param input_filter_string The where clause as a string, using visible information in the input filters:
+@param inputFilterString The where clause as a string, using visible information in the input filters:
 <pre>
-   WhereValue; Operator; InputValue
+   WhereValue;Operator;InputValue
 </pre>
 the operator is a string like "=".  Legacy "Equals" is updated to new conventions at construction.
+The input string is trimmed before attempting to set.
 @param delim The delimiter used for the above information, or a semi-colon if null.
 @exception Exception if there is an error setting the filter data.
 */
@@ -667,9 +673,9 @@ throws Exception
 	// Set the where...
 
 	JComponent component = __whereComponentList.get ( ifg );
-	SimpleJComboBox cb;
-	JTextField tf;
-	JLabel label;
+	SimpleJComboBox cb = null;
+	JTextField tf = null;
+	JLabel label = null;
 	if ( component instanceof SimpleJComboBox ) {
 		cb = (SimpleJComboBox)component;
 		JGUIUtil.selectIgnoreCase ( cb, where );
