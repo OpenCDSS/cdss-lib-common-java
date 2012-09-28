@@ -9,8 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -126,8 +127,8 @@ Create a data table that contains time series properties.
 */
 private DataTable createPropertyTable ( TS ts )
 {
-    Hashtable<String,Object> properties = ts.getProperties();
-    List<String> keyList = Collections.list(properties.keys());
+    HashMap<String,Object> properties = ts.getProperties();
+    ArrayList<String> keyList = new ArrayList<String>(properties.keySet());
     Collections.sort(keyList);
     // Get the length of the name and values to set the table width.
     // TODO SAM 2011-04-25 Sure would be nice to not have to do this
@@ -146,7 +147,7 @@ private DataTable createPropertyTable ( TS ts )
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
     DataTable table = new DataTable ( tableFields );
     if ( properties == null ) {
-        properties = new Hashtable();
+        properties = new HashMap();
     }
     TableRecord rec;
     for ( String key : keyList ) {
@@ -155,6 +156,18 @@ private DataTable createPropertyTable ( TS ts )
         Object value = properties.get(key);
         if ( value == null ) {
             value = "";
+        }
+        else if ( value instanceof Double ) {
+            Double d = (Double)value;
+            if ( d.isNaN() ) {
+                value = "";
+            }
+        }
+        else if ( value instanceof Float ) {
+            Float f = (Float)value;
+            if ( f.isNaN() ) {
+                value = "";
+            }
         }
         // TODO SAM 2010-10-08 Should objects be used?
         rec.addFieldValue( "" + value ); // To force string, no matter the value
