@@ -253,7 +253,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -427,7 +427,7 @@ TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be 
 Properties for the time series beyond the built-in properties.  For example, location
 information like county and state can be set as a property.
 */
-private Hashtable<String,Object> __property_Hashtable = null; // To save memory if not used
+private HashMap<String,Object> __property_HashMap = null; // To save memory if not used, use HashMap to allow null values
 
 /**
 The missing data value.  Default for some legacy formats is -999.0 but increasingly Double.NaN is used.
@@ -1617,11 +1617,11 @@ public DateTime getNonMissingDataDate2( )
 Get the hashtable of properties, for example to allow display.
 @return the hashtable of properties, for example to allow display, may be null.
 */
-public Hashtable<String,Object> getProperties()
-{   if ( __property_Hashtable == null ) {
-        __property_Hashtable = new Hashtable(); // Initialize to non-null for further use
+public HashMap<String,Object> getProperties()
+{   if ( __property_HashMap == null ) {
+        __property_HashMap = new HashMap<String,Object>(); // Initialize to non-null for further use
     }
-    return __property_Hashtable;
+    return __property_HashMap;
 }
 
 /**
@@ -1631,10 +1631,10 @@ Get a time series property's contents (case-specific).
 */
 public Object getProperty ( String propertyName )
 {
-    if ( __property_Hashtable == null ) {
+    if ( __property_HashMap == null ) {
         return null;
     }
-    return __property_Hashtable.get ( propertyName );
+    return __property_HashMap.get ( propertyName );
 }
 
 /**
@@ -2297,10 +2297,10 @@ Set a time series property's contents (case-specific).
 */
 public void setProperty ( String propertyName, Object property )
 {
-    if ( __property_Hashtable == null ) {
-        __property_Hashtable = new Hashtable<String, Object>();
+    if ( __property_HashMap == null ) {
+        __property_HashMap = new HashMap<String, Object>();
     }
-    __property_Hashtable.put ( propertyName, property );
+    __property_HashMap.put ( propertyName, property );
 }
 
 /**
