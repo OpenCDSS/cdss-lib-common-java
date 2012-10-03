@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
@@ -129,7 +128,8 @@ private DataTable createPropertyTable ( TS ts )
 {
     HashMap<String,Object> properties = ts.getProperties();
     ArrayList<String> keyList = new ArrayList<String>(properties.keySet());
-    Collections.sort(keyList);
+    // Don't sort because order of properties often has some meaning.  Users can sort displayed table.
+    //Collections.sort(keyList);
     // Get the length of the name and values to set the table width.
     // TODO SAM 2011-04-25 Sure would be nice to not have to do this
     int nameLength = 25;
