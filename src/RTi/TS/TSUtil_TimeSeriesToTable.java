@@ -45,6 +45,11 @@ TSID format, using time series %L, etc. specifiers.
 private String __tableTSIDFormat = null;
 
 /**
+When creating single column output, indicate whether missing values in time series should be transferred.
+*/
+private boolean __includeMissingValues = true;
+
+/**
 Data columns for time series, 0+.
 */
 private int [] __dataColumns = null;
@@ -83,6 +88,8 @@ table is expected to be empty (no rows).
 @param dateTimeColumn date/time column (0+).
 @param tableTSIDColumn name of column to contain TSID, for one-column output
 @param tableTSIDFormat format of TSID corresponding to tableTSIDColumn
+@param includeMissingValues indicates whether missing values should be output in single-column output (setting to
+false can be advantageous when processing sparse time series)
 @param dataColumns data columns (0+) corresponding to the correct column names for the time series; if a single column
 is output, then the first array position will be used for each time series
 @param dataRow table data row (0+) corresponding to first date/time to be transferred.
@@ -93,13 +100,14 @@ is output, then the first array position will be used for each time series
 time series missing value indicator (e.g., -999 or NaN).  These values are not universally handled.
 */
 public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTimeColumn, int tableTSIDColumn,
-    String tableTSIDFormat, int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
+    String tableTSIDFormat, boolean includeMissingValues, int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
     DateTimeWindow outputWindow, boolean useNullForMissing )
 {   __table = table;
     __tsList = tslist;
     __dateTimeColumn = dateTimeColumn;
     __tableTSIDColumn = tableTSIDColumn;
     __tableTSIDFormat = tableTSIDFormat;
+    __includeMissingValues = includeMissingValues;
     __dataColumns = dataColumns;
     __dataRow = dataRow;
     __outputStart = outputStart;
@@ -151,11 +159,22 @@ public void timeSeriesToTable ()
             DateTime date;
             double value;
             String tsid;
+            boolean isMissing;
             while ( (tsdata = tsi.next()) != null ) {
                 // Set the date
                 date = tsdata.getDate();
                 if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
                     // Don't add the row...
+                    continue;
+                }
+                // Check for missing
+                value = tsdata.getDataValue();
+                isMissing = false;
+                if ( ts.isDataMissing(value) ) {
+                    isMissing = true;
+                }
+                if ( isMissing && !__includeMissingValues ) {
+                    // Don't want to include missing values
                     continue;
                 }
                 // Row is incremented for each value, but only after above checks
@@ -189,9 +208,8 @@ public void timeSeriesToTable ()
                 }
                 // Set the data value
                 dataColumn = __dataColumns[0];
-                value = tsdata.getDataValue();
                 try {
-                    if ( ts.isDataMissing(value) && __useNullForMissing ) {
+                    if ( isMissing && __useNullForMissing ) {
                         __table.setFieldValue(setRow, dataColumn, null, true );
                     }
                     else {
