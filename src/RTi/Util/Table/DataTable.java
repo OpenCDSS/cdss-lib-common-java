@@ -2148,15 +2148,17 @@ public boolean trimStrings ( )
 /**
 Writes a table to a delimited file.  If the data items contain the delimiter,
 they will be written surrounded by double quotes.
-@param filename the file to write to.
-@param delimiter the delimiter to use.
-@param writeHeader If true, the field names will be read from the fields 
+@param filename the file to write
+@param delimiter the delimiter between columns
+@param writeColumnNames If true, the field names will be read from the fields 
 and written as a one-line header of field names.  The headers are double-quoted.
 If all headers are missing, then the header line will not be written.
-@param comments a list of Strings to put at the top of the file as comments.
-@throws Exception if an error occurs.
+@param comments a list of Strings to put at the top of the file as comments, 
+@param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been
+prefixed.
 */
-public void writeDelimitedFile(String filename, String delimiter, boolean writeHeader, List<String> comments) 
+public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
+    String commentLinePrefix ) 
 throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
@@ -2164,16 +2166,21 @@ throws Exception {
 		Message.printWarning(1, routine, "Cannot write to file '" + filename + "'");
 		throw new Exception("Cannot write to file '" + filename + "'");
 	}
+	if ( comments == null ) {
+	    comments = new Vector(); // To simplify logic below
+	}
+	String commentLinePrefix2 = commentLinePrefix;
+	if ( !commentLinePrefix.equals("") ) {
+	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability
+	}
 		
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
 	try {
-	    // Put the standard header at the top of the file
-	    IOUtil.printCreatorHeader ( out, "#", 80, 0 );
     	// If any comments have been passed in, print them at the top of the file
     	if (comments != null && comments.size() > 0) {
     		int size = comments.size();
     		for (int i = 0; i < size; i++) {
-    			out.println("# " + comments.get(i) );
+    			out.println(commentLinePrefix2 + comments.get(i) );
     		}
     	}
     
@@ -2185,8 +2192,8 @@ throws Exception {
     
     	StringBuffer line = new StringBuffer();
     
-        int nonBlank = 0; // Number of nonblank table headings
-    	if (writeHeader) {
+        int nonBlank = 0; // Number of non-blank table headings
+    	if (writeColumnNames) {
     	    // First determine if any headers are non blank
             for (int col = 0; col < cols; col++) {
                 if ( getFieldName(col).length() > 0 ) {
@@ -2194,7 +2201,6 @@ throws Exception {
                 }
             }
             if ( nonBlank > 0 ) {
-                out.println ( "# Column headings are first line below, followed by data lines.");
         		line.setLength(0);
         		for (int col = 0; col < (cols - 1); col++) {
         			line.append( "\"" + getFieldName(col) + "\"" + delimiter);
@@ -2202,9 +2208,6 @@ throws Exception {
         		line.append( "\"" + getFieldName((cols - 1)) + "\"");
         		out.println(line);
             }
-    	}
-    	if ( !writeHeader || (nonBlank == 0) ) {
-    	    out.println ( "# No column headings are defined - data lines follow below.");
     	}
     	
     	int rows = getNumberOfRecords();
