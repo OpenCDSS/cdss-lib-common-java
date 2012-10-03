@@ -254,6 +254,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -427,7 +428,7 @@ TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be 
 Properties for the time series beyond the built-in properties.  For example, location
 information like county and state can be set as a property.
 */
-private HashMap<String,Object> __property_HashMap = null; // To save memory if not used, use HashMap to allow null values
+private LinkedHashMap<String,Object> __property_HashMap = null; // To save memory if not used, use HashMap to allow null values
 
 /**
 The missing data value.  Default for some legacy formats is -999.0 but increasingly Double.NaN is used.
@@ -1619,7 +1620,7 @@ Get the hashtable of properties, for example to allow display.
 */
 public HashMap<String,Object> getProperties()
 {   if ( __property_HashMap == null ) {
-        __property_HashMap = new HashMap<String,Object>(); // Initialize to non-null for further use
+        __property_HashMap = new LinkedHashMap<String,Object>(); // Initialize to non-null for further use
     }
     return __property_HashMap;
 }
@@ -2298,7 +2299,7 @@ Set a time series property's contents (case-specific).
 public void setProperty ( String propertyName, Object property )
 {
     if ( __property_HashMap == null ) {
-        __property_HashMap = new HashMap<String, Object>();
+        __property_HashMap = new LinkedHashMap<String, Object>();
     }
     __property_HashMap.put ( propertyName, property );
 }
