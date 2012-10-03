@@ -770,8 +770,8 @@ public int getNumberOfFields ()
 // TODO SAM 2010-09-22 Evaluate whether the records list size should be returned if records in memory?
 /**
 Return the number of records in the table.  <b>This value should be set by
-code that manipulates the data table.  If the table records Vector has been
-manipulated with a call to addRecord(), the size of the Vector will be returned.
+code that manipulates the data table.  If the table records list has been
+manipulated with a call to addRecord(), the size of the list will be returned.
 Otherwise, the setNumberOfRecords() methods should be called appropriately and
 its the value that is set will be returned.  This latter case
 will be in effect if tables are being read on-the-fly.</b>
@@ -2212,6 +2212,8 @@ throws Exception {
     	int tableFieldType;
     	int precision;
     	Object fieldValue;
+    	Double fieldValueDouble;
+    	Float fieldValueFloat;
     	for (int row = 0; row < rows; row++) {
     		line.setLength(0);
     		for (int col = 0; col < cols; col++) {
@@ -2224,10 +2226,33 @@ throws Exception {
     		    if ( fieldValue == null ) {
     		        cell = "";
     		    }
-    		    else if ( ((tableFieldType == TableField.DATA_TYPE_FLOAT) ||
-                    (tableFieldType == TableField.DATA_TYPE_DOUBLE)) && (precision > 0) ) {
-                    // Format according to the precision if floating point
-                    cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
+    		    else if ( tableFieldType == TableField.DATA_TYPE_FLOAT ) {
+                    fieldValueFloat = (Float)fieldValue;
+                    if ( fieldValueFloat.isNaN() ) {
+                        cell = "";
+                    }
+                    else if ( precision > 0 ) {
+                        // Format according to the precision if floating point
+                        cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
+                    }
+                    else {
+                        // Use default formatting.
+                        cell = "" + fieldValue;
+                    }
+    		    }
+    		    else if ( tableFieldType == TableField.DATA_TYPE_DOUBLE ) {
+    		        fieldValueDouble = (Double)fieldValue;
+    		        if ( fieldValueDouble.isNaN() ) {
+    		            cell = "";
+    		        }
+    		        else if ( precision > 0 ) {
+                        // Format according to the precision if floating point
+                        cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
+    		        }
+    		        else {
+    		            // Use default formatting.
+                        cell = "" + fieldValue;
+    		        }
                 }
                 else {
                     // Use default formatting.
