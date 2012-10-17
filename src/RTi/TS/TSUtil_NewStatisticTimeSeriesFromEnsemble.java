@@ -542,7 +542,11 @@ public TSStatisticType getStatisticType ()
 Determine the data units for the new time series.
 */
 private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticType )
-{    if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) || 
+{   if ( inputts == null ) {
+        // Possible, especially when in discovery mode in TSTool
+        return "";
+    }
+    else if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70) ||
@@ -585,7 +589,7 @@ private String getTimeSeriesDescription ( TSEnsemble ensemble, TSStatisticType s
         descPrev = desc;
     }
     if ( same ) {
-        return desc + ",statisticType";
+        return desc + "," + statisticType;
     }
     // Otherwise, use the ensemble name with the statistic
     String ensembleName = ensemble.getEnsembleName();
