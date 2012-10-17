@@ -216,7 +216,13 @@ throws Exception
     }
     // A valid statistic should always be >= 0
     if ( statistic >= 0.0 ) {
-        setStatisticResult ( new Double(statistic) );
+        Class c = getStatisticDataClass();
+        if ( c == Double.class ) {
+            setStatisticResult ( new Double(statistic) );
+        }
+        else if ( c == Integer.class ) {
+            setStatisticResult ( new Integer((int)(statistic + .01)) );
+        }
         setStatisticResultDateTime ( statisticDate );
     }
 }
@@ -329,7 +335,7 @@ throws Exception
                     statisticDate = new DateTime(date);
                 }
             }
-            Message.printStatus ( 2, routine, "Statistic="+ statistic + " at=" + statisticDate);
+            Message.printStatus ( 2, routine, "Statistic=" + statistic + " at=" + statisticDate);
             // Add to the totals
             ++inConditionInstanceCount;
             // Reset for next condition
@@ -606,6 +612,31 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         String routine = "TSUtil_CalculateTimeSeriesStatistic.getRequiredNumberOfValuesForStatistic";
         Message.printWarning(3, routine, message);
         throw new InvalidParameterException ( message );
+    }
+}
+
+/**
+Return the statistic data class.  This is useful for data management and ensures that
+the class is known even if the statistic is null or NaN.
+*/
+public Class getStatisticDataClass ()
+{
+    TSStatisticType t = getStatisticType();
+    // Most are Double so check for integers and DateTime
+    // Note that some of the MEAN statistics are computed from integers but the final statistic is a double
+    // and therefore not included in the following integer list
+    if ( (t == TSStatisticType.COUNT) ||
+        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (t == TSStatisticType.MISSING_COUNT) ||
+        (t == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.NONMISSING_COUNT) ||
+        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
+        return Integer.class;
+    }
+    else {
+        return Double.class;
     }
 }
 
