@@ -742,7 +742,8 @@ throws Exception {
 
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "DMI created for database engine: " + database_engine);
-	} 
+	}
+	Message.printStatus(2, routine, "Initializing DMI for database engine: " + database_engine);
 
 	// initialize member variables
 	__database_engine_String= database_engine;
