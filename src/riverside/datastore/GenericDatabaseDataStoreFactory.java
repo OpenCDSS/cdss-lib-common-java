@@ -18,7 +18,7 @@ public class GenericDatabaseDataStoreFactory implements DataStoreFactory
 Create an ODBCDataStore instance and open the encapsulated DMI using the specified properties.
 */
 public DataStore create ( PropList props )
-{
+{   String routine = getClass().getName() + ".create";
     String name = props.getValue ( "Name" );
     String description = props.getValue ( "Description" );
     if ( description == null ) {
@@ -50,6 +50,7 @@ public DataStore create ( PropList props )
     }
     catch ( Exception e ) {
         // TODO SAM 2010-09-02 Wrap the exception because need to move from default Exception
+        Message.printWarning(3,routine,e);
         throw new RuntimeException ( e );
     }
 }
