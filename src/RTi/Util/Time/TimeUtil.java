@@ -284,7 +284,8 @@ public static DateTime addIntervals ( DateTime t1, int base, int mult, int ninte
 /**
 Indicate whether a DateTime's precision matches the specified TimeInterval string.
 This is useful, for example, in confirming that DateTime's for a time series are
-consistent with the time series data interval.
+consistent with the time series data interval.  This only checks the precision of the base
+but does not check the multiplier.
 @param dt DateTime to check.
 @param interval TimeInterval string to check.
 @return 0 if the precision of the DateTime is the same as the interval,
@@ -300,30 +301,119 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Stri
     catch ( Exception e ) {
         return null;
     }
-    return compareDateTimePrecisionToTimeInterval(dt,ti.getBase());
+    return compareDateTimePrecisionToTimeInterval(dt,ti);
 }
 
 /**
 Indicate whether a DateTime's precision matches the specified TimeInterval string.
 This is useful, for example, in confirming that DateTime's for a time series are
-consistent with the time series data interval.
+consistent with the time series data interval.  This only checks the precision of the base
+but does not check the multiplier.
 @param dt DateTime to check.
-@param interval TimeInterval integer to check.
+@param interval interval to check.
 @return 0 if the precision of the DateTime is the same as the interval,
 -1 if the precision of the DateTime is less than the interval, and
 1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
 */
-public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, int interval )
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval )
 {
     int precision = dt.getPrecision();
-    if ( precision < interval ) {
+    int intervalBase = interval.getBase();
+    if ( precision < intervalBase ) {
         return new Integer(-1);
     }
-    else if ( precision > interval ) {
+    else if ( precision > intervalBase ) {
         return new Integer(1);
     }
     else {
         return new Integer(0);
+    }
+}
+
+/**
+Indicate whether a DateTime's precision matches the specified TimeInterval,
+including base and multiplier.
+This is useful, for example, in confirming that DateTime's for a time series are
+consistent with the time series data interval.  Optionally, allow the precisions to
+be different when the DateTime is more precise but "remainder" date/time parts are
+zero.  This may be the case when a date/time is read from a source that always provides
+more precision in the data (e.g., databases).
+@param dt DateTime to check.
+@param interval TimeInterval to check.
+@param checkParts if true, then a date/time that is more precise than the interval is
+allowed as long as the higher precision values are zeros.
+@return 0 if the precision of the DateTime is the same as the interval,
+-1 if the precision of the DateTime is less than the interval, and
+1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
+*/
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval, boolean checkParts )
+{
+    int intervalBase = interval.getBase();
+    int intervalMult = interval.getMultiplier();
+    int compare = compareDateTimePrecisionToTimeInterval(dt, interval);
+    if ( !checkParts || (compare < 1)) {
+        // Simple comparison is enough
+        return compare;
+    }
+    else {
+        // Precision of date/time is greater than specified interval but may be OK if:
+        //   1) the remaining parts are DateTime initial values (0 or 1, depending on part)
+        //   2) the date/time part at the same precision must evenly divide into the interval
+        //      (e.g., 15Min data will allow minute values only 0, 15, 30, 45)
+        // If the extra information is OK, return 0
+        if ( intervalBase >= TimeInterval.MINUTE ) {
+            if ( dt.getSecond() != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase >= TimeInterval.HOUR ) {
+            if ( dt.getMinute() != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase >= TimeInterval.DAY ) {
+            if ( dt.getHour() != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase >= TimeInterval.MONTH ) {
+            if ( dt.getDay() >= 1 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase >= TimeInterval.YEAR ) {
+            if ( dt.getMonth() >= 1 ) {
+                return 1;
+            }
+        }
+        // Now check the multiplier...
+        if ( intervalBase == TimeInterval.MINUTE ) {
+            if ( (dt.getMinute() % intervalMult) != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase == TimeInterval.HOUR ) {
+            if ( (dt.getHour() % intervalMult) != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase == TimeInterval.DAY ) {
+            if ( (dt.getDay() % intervalMult) != 0 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase == TimeInterval.MONTH ) {
+            if ( dt.getMonth() != 1 ) {
+                return 1;
+            }
+        }
+        if ( intervalBase == TimeInterval.YEAR ) {
+            if ( dt.getYear() != 1 ) {
+                return 1;
+            }
+        }
+        // More detailed parts do not introduce any additional data
+        return 0;
     }
 }
 
