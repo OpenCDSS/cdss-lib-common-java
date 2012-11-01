@@ -287,16 +287,17 @@ This is useful, for example, in confirming that DateTime's for a time series are
 consistent with the time series data interval.  This only checks the precision of the base
 but does not check the multiplier.
 @param dt DateTime to check.
-@param interval TimeInterval string to check.
-@return 0 if the precision of the DateTime is the same as the interval,
--1 if the precision of the DateTime is less than the interval,
-1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
+@param intervalString TimeInterval string to check.
+@return 0 if the precision value of the DateTime is the same as the interval (or interval is irregular),
+-1 if the precision value of the DateTime is less than the interval (date/time is more precise),
+1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
+and null if the input is invalid.
 */
-public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String interval_string )
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String intervalString )
 {
     TimeInterval ti = null;
     try {
-        ti = TimeInterval.parseInterval(interval_string);
+        ti = TimeInterval.parseInterval(intervalString);
     }
     catch ( Exception e ) {
         return null;
@@ -311,22 +312,26 @@ consistent with the time series data interval.  This only checks the precision o
 but does not check the multiplier.
 @param dt DateTime to check.
 @param interval interval to check.
-@return 0 if the precision of the DateTime is the same as the interval,
--1 if the precision of the DateTime is less than the interval, and
-1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
+@return 0 if the precision value of the DateTime is the same as the interval (or interval is irregular),
+-1 if the precision value of the DateTime is less than the interval (date/time is more precise),
+1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
+and null if the input is invalid.
 */
 public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval )
 {
     int precision = dt.getPrecision();
     int intervalBase = interval.getBase();
-    if ( precision < intervalBase ) {
-        return new Integer(-1);
+    if ( intervalBase == TimeInterval.IRREGULAR ) {
+        return 0;
+    }
+    else if ( precision < intervalBase ) {
+        return -1;
     }
     else if ( precision > intervalBase ) {
-        return new Integer(1);
+        return 1;
     }
     else {
-        return new Integer(0);
+        return 0;
     }
 }
 
@@ -342,74 +347,85 @@ more precision in the data (e.g., databases).
 @param interval TimeInterval to check.
 @param checkParts if true, then a date/time that is more precise than the interval is
 allowed as long as the higher precision values are zeros.
-@return 0 if the precision of the DateTime is the same as the interval,
--1 if the precision of the DateTime is less than the interval, and
-1 if the precision of the DateTime is greater than the interval, and null if the input is invalid.
+@return 0 if the precision value of the DateTime is the same as the interval (or interval is irregular),
+-1 if the precision value of the DateTime is less than the interval (date/time is more precise),
+1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
+and null if the input is invalid.
 */
 public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval, boolean checkParts )
 {
     int intervalBase = interval.getBase();
     int intervalMult = interval.getMultiplier();
-    int compare = compareDateTimePrecisionToTimeInterval(dt, interval);
-    if ( !checkParts || (compare < 1)) {
-        // Simple comparison is enough
+    Integer compare = compareDateTimePrecisionToTimeInterval(dt, interval);
+    if ( (compare == null) || (compare == 1) || (intervalBase == TimeInterval.IRREGULAR) ) {
+        // Cases that are independent of checkParts value
+        return compare;
+    }
+    if ( !checkParts ) {
+        // No need to check parts
         return compare;
     }
     else {
-        // Precision of date/time is greater than specified interval but may be OK if:
+        // Precision of date/time is >= than specified interval but may be OK if:
         //   1) the remaining parts are DateTime initial values (0 or 1, depending on part)
         //   2) the date/time part at the same precision must evenly divide into the interval
         //      (e.g., 15Min data will allow minute values only 0, 15, 30, 45)
         // If the extra information is OK, return 0
-        if ( intervalBase >= TimeInterval.MINUTE ) {
-            if ( dt.getSecond() != 0 ) {
-                return 1;
+        // First check to see if any date/time information in the remainder is not the initial values
+        // Numerical value of the interval is bigger for larger intervals (e.g., YEAR > MONTH)
+        int dtMorePrecise = -1;
+        if ( compare == dtMorePrecise ) {
+            // Date/time precision is greater than the interval so need to check if the end parts 
+            if ( intervalBase >= TimeInterval.MINUTE ) {
+                if ( dt.getSecond() != 0 ) {
+                    return dtMorePrecise;
+                }
+            }
+            if ( intervalBase >= TimeInterval.HOUR ) {
+                if ( dt.getMinute() != 0 ) {
+                    return dtMorePrecise;
+                }
+            }
+            if ( intervalBase >= TimeInterval.DAY ) {
+                if ( dt.getHour() != 0 ) {
+                    return dtMorePrecise;
+                }
+            }
+            if ( intervalBase >= TimeInterval.MONTH ) {
+                if ( dt.getDay() > 1 ) {
+                    return dtMorePrecise;
+                }
+            }
+            if ( intervalBase >= TimeInterval.YEAR ) {
+                if ( dt.getMonth() > 1 ) {
+                    return dtMorePrecise;
+                }
             }
         }
-        if ( intervalBase >= TimeInterval.HOUR ) {
-            if ( dt.getMinute() != 0 ) {
-                return 1;
-            }
-        }
-        if ( intervalBase >= TimeInterval.DAY ) {
-            if ( dt.getHour() != 0 ) {
-                return 1;
-            }
-        }
-        if ( intervalBase >= TimeInterval.MONTH ) {
-            if ( dt.getDay() >= 1 ) {
-                return 1;
-            }
-        }
-        if ( intervalBase >= TimeInterval.YEAR ) {
-            if ( dt.getMonth() >= 1 ) {
-                return 1;
-            }
-        }
-        // Now check the multiplier...
+        // Now check the multiplier on the date/time part of the interval base...
         if ( intervalBase == TimeInterval.MINUTE ) {
             if ( (dt.getMinute() % intervalMult) != 0 ) {
-                return 1;
+                return dtMorePrecise;
             }
         }
-        if ( intervalBase == TimeInterval.HOUR ) {
+        else if ( intervalBase == TimeInterval.HOUR ) {
             if ( (dt.getHour() % intervalMult) != 0 ) {
-                return 1;
+                return dtMorePrecise;
             }
         }
-        if ( intervalBase == TimeInterval.DAY ) {
+        else if ( intervalBase == TimeInterval.DAY ) {
             if ( (dt.getDay() % intervalMult) != 0 ) {
-                return 1;
+                return dtMorePrecise;
             }
         }
-        if ( intervalBase == TimeInterval.MONTH ) {
+        else if ( intervalBase == TimeInterval.MONTH ) {
             if ( dt.getMonth() != 1 ) {
-                return 1;
+                return dtMorePrecise;
             }
         }
-        if ( intervalBase == TimeInterval.YEAR ) {
+        else if ( intervalBase == TimeInterval.YEAR ) {
             if ( dt.getYear() != 1 ) {
-                return 1;
+                return dtMorePrecise;
             }
         }
         // More detailed parts do not introduce any additional data
