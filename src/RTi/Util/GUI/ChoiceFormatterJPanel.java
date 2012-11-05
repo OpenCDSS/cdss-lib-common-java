@@ -30,27 +30,33 @@ public class ChoiceFormatterJPanel extends JPanel implements ItemListener
 /**
 Hint to aid user.
 */
-String __hint = "-- Select Specifier --";
+private String __hint = "-- Select Specifier --";
 
 /**
 Delimiter that separates choice from description (e.g., "Choice - Description...").
 */
-String __choiceDelim = null;
+private String __choiceDelim = null;
 
 /**
 Delimiter that separates selected choices (e.g., comma in "choice1,choice2").
 */
-String __insertDelim = null;
+private String __insertDelim = null;
+
+/**
+Whether append is allowed.  If true, then append choices using the delimiter.  If false, overwrite the
+text field contents with choice.
+*/
+private boolean __append = true;
 
 /**
 Text field containing the edited format specifier.
 */
-JTextField __inputJTextField = null;
+private JTextField __inputJTextField = null;
 
 /**
 Choices for the list of format specifiers.
 */
-SimpleJComboBox __formatJComboBox = null;
+private SimpleJComboBox __formatJComboBox = null;
 
 /**
 Control constructor.
@@ -65,12 +71,15 @@ be ignored as a valid choice
 @param insertDelim delimiter to be inserted when transferring choices (e.g, if a comma is specified then
 a comma is automatically inserted when choices are selected; specify as null or blank if not used
 @param width width of the JTextField to be included in the control (or -1) to not specify.
+@param append if true, then choices are appended to the text field, separated by the delimited; if false,
+choices replace the contents of the text field
 */
 public ChoiceFormatterJPanel ( List<String> choices, String choiceDelim, String tooltip, String hint,
-    String insertDelim, int width )
+    String insertDelim, int width, boolean append )
 {   __hint = hint;
     __choiceDelim = choiceDelim;
     __insertDelim = insertDelim;
+    __append = append;
     setLayout ( new GridBagLayout() );
     Insets insetsTLBR = new Insets(0,0,0,0);
 
@@ -154,37 +163,43 @@ public void itemStateChanged ( ItemEvent evt )
                 // Further split out the selection
                 selection = StringUtil.getToken ( __formatJComboBox.getSelected(), __choiceDelim, 0, 0 ).trim();
             }
-            int pos = __inputJTextField.getCaretPosition();
-            String text = __inputJTextField.getText();
-            String delim1 = "", delim2 = "";
-            if ( (__insertDelim != null) && !__insertDelim.equals("") ) {
-                if ( pos == 0 ) {
-                    // Inserting at the start
-                    if ( (text.length() > 0) && (text.charAt(0) != ',') ) {
-                        delim2 = ",";
+            if ( __append ) {
+                int pos = __inputJTextField.getCaretPosition();
+                String text = __inputJTextField.getText();
+                String delim1 = "", delim2 = "";
+                if ( (__insertDelim != null) && !__insertDelim.equals("") ) {
+                    if ( pos == 0 ) {
+                        // Inserting at the start
+                        if ( (text.length() > 0) && (text.charAt(0) != ',') ) {
+                            delim2 = ",";
+                        }
+                    }
+                    else if ( pos == text.length() ) {
+                        // Inserting at the end
+                        if ( (text.charAt(pos - 1) != ',') ) {
+                            delim1 = ",";
+                        }
+                    }
+                    else {
+                        // Inserting in the middle
+                        if ( (text.charAt(pos - 1) != ',') ) {
+                            delim1 = ",";
+                        }
+                        if ( (text.charAt(pos) != ',') ) {
+                            delim2 = ",";
+                        }
                     }
                 }
-                else if ( pos == text.length() ) {
-                    // Inserting at the end
-                    if ( (text.charAt(pos - 1) != ',') ) {
-                        delim1 = ",";
-                    }
-                }
-                else {
-                    // Inserting in the middle
-                    if ( (text.charAt(pos - 1) != ',') ) {
-                        delim1 = ",";
-                    }
-                    if ( (text.charAt(pos) != ',') ) {
-                        delim2 = ",";
-                    }
-                }
+                String newText = text.substring(0,pos) + delim1 + selection + delim2 + text.substring(pos);
+                __inputJTextField.setText ( newText );
+                // Make sure caret stays visible even when not in focus
+                __inputJTextField.getCaret().setVisible ( true );
+                __inputJTextField.getCaret().setSelectionVisible ( true );
             }
-            String newText = text.substring(0,pos) + delim1 + selection + delim2 + text.substring(pos);
-            __inputJTextField.setText ( newText );
-            // Make sure caret stays visible even when not in focus
-            __inputJTextField.getCaret().setVisible ( true );
-            __inputJTextField.getCaret().setSelectionVisible ( true );
+            else {
+                // Just transfer the value to the text field.
+                __inputJTextField.setText ( selection );
+            }
         }
     }
 }
