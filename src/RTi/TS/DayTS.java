@@ -165,8 +165,6 @@ public DayTS ( DayTS ts )
 	for ( ;	date.lessThanOrEqualTo(date2); date.addInterval(_data_interval_base,_data_interval_mult) ) {
 		setDataValue ( date, ts.getDataValue(date) );
 	}
-	date2 = null;
-	date = null;
 }
 
 /**
