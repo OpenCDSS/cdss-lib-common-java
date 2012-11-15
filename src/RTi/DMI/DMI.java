@@ -397,6 +397,17 @@ Database engine corresponding to "H2" database engine
  */
 public static final int DBENGINE_H2 = 80;
 
+/**
+Database engine corresponding to "Excel" database engine (no distinction about version?).
+*/
+public static final int DBENGINE_EXCEL = 90;
+
+/**
+Database engine corresponding to ODBC DSN database connection but engine type is not
+specifically known to this code.  Useful for generic connections.
+*/
+public static final int DBENGINE_ODBC = 100;
+
 ///////////////////////////////////////////////////////////
 //  Commit / Rollback constants
 ///////////////////////////////////////////////////////////
@@ -536,6 +547,7 @@ Database engine to connect to, as a string, useful for debugging.
 Valid types are:<br>
 <ul>
 <li>Access</ul>
+<li>Excel</ul>
 <li>Informix</ul>
 <li>MySQL</ul>
 <li>Oracle</ul>
@@ -779,6 +791,14 @@ throws Exception {
 		__database_server = "Local";
 		_database_engine = DBENGINE_ACCESS;
 	}
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Excel")) {
+	    // TODO SAM 2012-11-09 Need to confirm how Excel queries behave, for now use Access settings
+        __fieldLeftEscape = "[";
+        __fieldRightEscape = "]";   
+        __stringDelim = "'";
+        __database_server = "Local";
+        _database_engine = DBENGINE_EXCEL;
+    }
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Informix")) {
 		__fieldLeftEscape = "\"";
 		__fieldRightEscape = "\"";	
@@ -837,7 +857,17 @@ throws Exception {
 		_database_engine = DBENGINE_H2;
     }
 	else {
-	    throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
+	    if ( (__odbc_name != null) && !__odbc_name.equals("") ) {
+	        // Using a generic ODBC DSN connection so assume some basic defaults
+	        __fieldLeftEscape = "";
+	        __fieldRightEscape = "";    
+	        __stringDelim = "'";
+	        _database_engine = DBENGINE_ODBC;
+	    }
+	    else {
+	        // Using a specific driver but don't know which one, which is problematic for internals
+	        throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
+	    }
 	}
 
 	__statementsVector = new Vector();
@@ -1685,9 +1715,10 @@ throws Throwable {
 Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
-protected static List getAllDatabaseTypes() {
-	List v = new Vector();
+protected static List<String> getAllDatabaseTypes() {
+	List<String> v = new Vector<String>();
 	v.add("Access");
+	v.add("Excel");
 	v.add("H2");
 	v.add("Informix");
 	v.add("MySQL");
