@@ -484,7 +484,7 @@ Clone the object.  The TS base class clone() method is called and then the
 the data array is cloned.  The result is a complete deep copy.
 */
 public Object clone ()
-{	MonthTS ts = (MonthTS)super.clone(); // Clone data stored in the base class.
+{	MonthTS ts = (MonthTS)super.clone(); // Clone data stored in the base class, including properties, limits, etc.
 	// This does not seem to do a copy of the primitive data, in the array, as hoped
 	//ts._data = (double[][])_data.clone();	// Clone the data (the
 						// actual values will
@@ -526,9 +526,9 @@ public Object clone ()
 	ts._pos = new int[2];
 	ts._pos[0] = _pos[0];
 	ts._pos[1] = _pos[1];
-	// Now the rest of the data...
-	ts._min_amon = _min_amon;		// Just copy primitive
-	ts._max_amon = _max_amon;		// data types
+	// Now the rest of the data (just set the primitive data types)
+	ts._min_amon = _min_amon;
+	ts._max_amon = _max_amon;
 	return ts;
 }
 
