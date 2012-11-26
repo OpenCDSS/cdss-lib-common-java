@@ -50,9 +50,14 @@ When creating single column output, indicate whether missing values in time seri
 private boolean __includeMissingValues = true;
 
 /**
-Data columns for time series, 0+.
+Data value columns for time series, 0+.
 */
-private int [] __dataColumns = null;
+private int [] __valueColumns = null;
+
+/**
+Data flag columns for time series, 0+.
+*/
+private int [] __flagColumns = null;
 
 /**
 First data row for time series, 0+.
@@ -90,7 +95,7 @@ table is expected to be empty (no rows).
 @param tableTSIDFormat format of TSID corresponding to tableTSIDColumn
 @param includeMissingValues indicates whether missing values should be output in single-column output (setting to
 false can be advantageous when processing sparse time series)
-@param dataColumns data columns (0+) corresponding to the correct column names for the time series; if a single column
+@param valueColumns data columns (0+) corresponding to the correct column names for the time series; if a single column
 is output, then the first array position will be used for each time series
 @param dataRow table data row (0+) corresponding to first date/time to be transferred.
 @param outputStart first date/time to be transferred (if null, output all)
@@ -100,7 +105,8 @@ is output, then the first array position will be used for each time series
 time series missing value indicator (e.g., -999 or NaN).  These values are not universally handled.
 */
 public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTimeColumn, int tableTSIDColumn,
-    String tableTSIDFormat, boolean includeMissingValues, int [] dataColumns, int dataRow, DateTime outputStart, DateTime outputEnd,
+    String tableTSIDFormat, boolean includeMissingValues, int [] valueColumns, int [] flagColumns,
+    int dataRow, DateTime outputStart, DateTime outputEnd,
     DateTimeWindow outputWindow, boolean useNullForMissing )
 {   __table = table;
     __tsList = tslist;
@@ -108,7 +114,8 @@ public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTime
     __tableTSIDColumn = tableTSIDColumn;
     __tableTSIDFormat = tableTSIDFormat;
     __includeMissingValues = includeMissingValues;
-    __dataColumns = dataColumns;
+    __valueColumns = valueColumns;
+    __flagColumns = flagColumns;
     __dataRow = dataRow;
     __outputStart = outputStart;
     __outputEnd = outputEnd;
@@ -140,7 +147,11 @@ public void timeSeriesToTable ()
         // Outputting single column table
         // Iterate through each time series and dump the values within the requested range
         TSIterator tsi = null;
-        int dataColumn = __dataColumns[0];
+        int valueColumn = __valueColumns[0];
+        int flagColumn = -1;
+        if ( (__flagColumns != null) && (__flagColumns.length == 1) ) {
+            flagColumn = __flagColumns[0];
+        }
         int setRow;
         int rowCount = -1; // Will align properly when incremented below
         for ( TS ts : __tsList ) {
@@ -158,6 +169,7 @@ public void timeSeriesToTable ()
             TSData tsdata;
             DateTime date;
             double value;
+            String flag;
             String tsid;
             boolean isMissing;
             while ( (tsdata = tsi.next()) != null ) {
@@ -180,6 +192,7 @@ public void timeSeriesToTable ()
                 // Row is incremented for each value, but only after above checks
                 ++rowCount;
                 setRow = __dataRow + rowCount;
+                // Set the date/time
                 try {
                     __table.setFieldValue(setRow, __dateTimeColumn, new DateTime(date), true );
                 }
@@ -206,20 +219,33 @@ public void timeSeriesToTable ()
                 catch ( Exception e ) {
                     __problems.add ( "Error setting TSID " + tsid + " for row [" + setRow + "] (" + e + ").");
                 }
-                // Set the data value
-                dataColumn = __dataColumns[0];
+                // Set the data value and optionally the flag
                 try {
                     if ( isMissing && __useNullForMissing ) {
-                        __table.setFieldValue(setRow, dataColumn, null, true );
+                        __table.setFieldValue(setRow, valueColumn, null, true );
                     }
                     else {
                         // Set as a double because non-missing or missing and the missing value should be used
-                        __table.setFieldValue(setRow, dataColumn, new Double(value), true );
+                        __table.setFieldValue(setRow, valueColumn, new Double(value), true );
                     }
                 }
                 catch ( Exception e ) {
                     __problems.add ( "Error setting data value " + value +
-                        " at " + date + " [" + setRow + "][" + dataColumn + "] (" + e + ").");
+                        " at " + date + " [" + setRow + "][" + valueColumn + "] (" + e + ").");
+                }
+                if ( flagColumn >= 0 ) {
+                    // Column has been specified for flag so output
+                    flag = tsdata.getDataFlag();
+                    if ( flag == null ) {
+                        flag = "";
+                    }
+                    try {
+                        __table.setFieldValue(setRow, flagColumn, flag, true );
+                    }
+                    catch ( Exception e ) {
+                        __problems.add ( "Error setting data flag " + flag +
+                            " at " + date + " [" + setRow + "][" + flagColumn + "] (" + e + ").");
+                    }
                 }
             }
         }
@@ -274,7 +300,7 @@ public void timeSeriesToTable ()
                 ts = __tsList.get(its);
                 value = ts.getDataValue(date);
                 // Each time series is in a separate column
-                setColumn = __dataColumns[its];
+                setColumn = __valueColumns[its];
                 try {
                     if ( ts.isDataMissing(value) && __useNullForMissing ) {
                         __table.setFieldValue(setRow, setColumn, null, true );
