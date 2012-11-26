@@ -2156,9 +2156,11 @@ If all headers are missing, then the header line will not be written.
 @param comments a list of Strings to put at the top of the file as comments, 
 @param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been
 prefixed.
+@param alwaysQuoteStrings if true, then always surround strings with double quotes; if false strings will only
+be quoted when they include the delimiter
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix ) 
+    String commentLinePrefix, boolean alwaysQuoteStrings ) 
 throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
@@ -2261,8 +2263,11 @@ throws Exception {
                     // Use default formatting.
                     cell = "" + fieldValue;
                 }
-    			// If the field contains the delimiter, surround with double quotes...
-    			if ( cell.indexOf(delimiter) > -1 ) {
+    			// Surround the values with double quotes if:
+    		    // 1) the field contains the delimiter
+    		    // 2) alwaysQuoteStrings=true
+    			if ( (cell.indexOf(delimiter) > -1) ||
+    			    ((tableFieldType == TableField.DATA_TYPE_STRING) && alwaysQuoteStrings) ) {
     				cell = "\"" + cell + "\"";
     			}
     			line.append ( cell );
