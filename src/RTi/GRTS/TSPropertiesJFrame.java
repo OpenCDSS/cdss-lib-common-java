@@ -143,6 +143,8 @@ private DataTable createPropertyTable ( TS ts )
         valueLength = Math.max(valueLength, ("" + value).length());
     }
     List<TableField> tableFields = new Vector();
+    nameLength = -1;
+    valueLength = -1;
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
     DataTable table = new DataTable ( tableFields );
