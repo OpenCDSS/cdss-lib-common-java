@@ -135,7 +135,7 @@ public TSUtil_TimeSeriesToTable ( DataTable table, List<TS> tslist, int dateTime
 }
 
 /**
-Copy the time series into the table.
+Do the work of copying the time series into a table.
 */
 public void timeSeriesToTable ()
 {   String routine = getClass().getName() + ".timeSeriesToTable";
@@ -150,6 +150,7 @@ public void timeSeriesToTable ()
         int valueColumn = __valueColumns[0];
         int flagColumn = -1;
         if ( (__flagColumns != null) && (__flagColumns.length == 1) ) {
+            // Have a valid flag column
             flagColumn = __flagColumns[0];
         }
         int setRow;
@@ -280,7 +281,10 @@ public void timeSeriesToTable ()
         int rowCount = 0;
         int setRow, setColumn; // Row and column for data set
         double value; // Data value from time series
+        String flag; // Data flag from time series
         DateTime date = null;
+        int flagColumn;
+        TSData tsdata = new TSData();
         for (date = new DateTime(__outputStart); date.lessThanOrEqualTo(__outputEnd);
             date.addInterval(intervalBase,intervalMult) ) {
             if ( (__outputWindow != null) && !__outputWindow.isDateTimeInWindow(date) ) {
@@ -298,8 +302,11 @@ public void timeSeriesToTable ()
             // Iterate through the time series
             for ( its = 0; its < tsListSize; its++ ) {
                 ts = __tsList.get(its);
-                value = ts.getDataValue(date);
+                flagColumn = __flagColumns[its];
+                ts.getDataPoint(date,tsdata);
+                value = tsdata.getDataValue();
                 // Each time series is in a separate column
+                // Set the data value...
                 setColumn = __valueColumns[its];
                 try {
                     if ( ts.isDataMissing(value) && __useNullForMissing ) {
@@ -313,6 +320,21 @@ public void timeSeriesToTable ()
                 catch ( Exception e ) {
                     __problems.add ( "Error setting data value " + value +
                         " at " + date + " [" + setRow + "][" + setColumn + "] (" + e + ").");
+                }
+                // Set the data flag...
+                if ( flagColumn >= 0 ) {
+                    // Column has been specified for flag so output
+                    flag = tsdata.getDataFlag();
+                    if ( flag == null ) {
+                        flag = "";
+                    }
+                    try {
+                        __table.setFieldValue(setRow, flagColumn, flag, true );
+                    }
+                    catch ( Exception e ) {
+                        __problems.add ( "Error setting data flag " + flag +
+                            " at " + date + " [" + setRow + "][" + flagColumn + "] (" + e + ").");
+                    }
                 }
             }
             // If here the row was added so increment for the next add
