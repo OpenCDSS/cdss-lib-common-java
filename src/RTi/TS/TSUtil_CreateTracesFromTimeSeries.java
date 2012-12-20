@@ -6,6 +6,7 @@ import java.util.Vector;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
+import RTi.Util.Time.YearType;
 
 /**
 Create traces from a time series.
@@ -68,6 +69,7 @@ like "1Year".  The interval can be longer than one year.  If blank, "1Year" is u
 If the reference_date is null, the default is Jan 1 for daily data, Jan for
 monthly data.  If specified, the precision of the reference date should match
 that of the time series being examined.
+@param outputYearType the output year type, used to set the sequence number
 @param ShiftDataHow If "NoShift", then the traces are not shifted.  If annual
 traces are requested.  The total list of time series when plotted should match the original time series.
 If "ShiftToReference", then the start of each time
@@ -80,8 +82,8 @@ series is shifted to the reference date.  Consequently, when plotted, the time s
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an irregular time series.
 */
 public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
-    String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime, String alias,
-    boolean createData )
+    YearType outputYearType, String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
+    String alias, boolean createData )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getName() + ".getTracesFromTS";
     if ( ts == null ) {
@@ -200,7 +202,13 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         // Create a new time series using the old header as input...
         TS tracets = TSUtil.newTimeSeries ( ts.getIdentifierString(), true);
         tracets.copyHeader ( ts );
-        tracets.setSequenceNumber ( date1_in.getYear() );
+        int seqNum = date1_in.getYear();
+        if ( outputYearType != null ) {
+            // Adjust the sequence number by the first year offset
+            // Use negative because the adjustment is from the year type to calendar year
+            seqNum -= outputYearType.getStartYearOffset();
+        }
+        tracets.setSequenceNumber ( seqNum );
         tracets.setDescription ( date1_in.getYear() + " trace: " + tracets.getDescription() );
         // Set alias after other information is set
         tracets.setAlias( tracets.formatLegend(alias) );
