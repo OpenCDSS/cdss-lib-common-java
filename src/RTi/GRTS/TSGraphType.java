@@ -45,6 +45,9 @@ public enum TSGraphType
      */
     public static TSGraphType valueOfIgnoreCase(String name)
     {
+        if ( name == null ) {
+            return null;
+        }
         TSGraphType [] values = values();
         for ( TSGraphType t : values ) {
             if ( name.equalsIgnoreCase(t.toString()) ) {
