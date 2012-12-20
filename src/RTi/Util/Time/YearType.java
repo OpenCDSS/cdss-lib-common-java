@@ -38,14 +38,14 @@ The name that is used for choices and other technical code (terse).
 private final String __displayName;
 
 /**
-The calendar year offset in which the year starts.  For example, -1 indicates that the year starts
-in the previous calendar year.
+The calendar year offset in which the year starts.
+For example, -1 indicates that the year starts in the previous calendar year.
 */
 private final int __startYearOffset;
 
 /**
-The calendar year offset in which the year ends.  For example, 0 indicates that the year ends
-in the previous calendar year.
+The calendar year offset in which the year ends.
+For example, 0 indicates that the year ends in the previous calendar year.
 */
 private final int __endYearOffset;
 
@@ -106,6 +106,7 @@ public int getStartMonth ()
 
 /**
 Return the start year offset.
+For example, -1 indicates that the year starts in the previous calendar year.
 @return the start year offset.
 */
 public int getStartYearOffset ()
