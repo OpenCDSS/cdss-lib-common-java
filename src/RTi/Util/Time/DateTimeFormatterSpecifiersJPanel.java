@@ -50,15 +50,26 @@ Choices for the list of format specifiers.
 SimpleJComboBox __specifierJComboBox = null;
 
 /**
+Default formatter type for use with blank formatter type choice.
+*/
+DateTimeFormatterType __defaultFormatter = DateTimeFormatterType.C;
+
+/**
 Control constructor.
 @param width width of the JTextField to be included in the control (or -1) to not specify.
 @param includeFormatterType if true, include a choice of the supported formatter types with "C", "ISO", etc.; if
 false the default is C
 @param includeBlankFormatterType if true, include a blank choice in the formatter type; this is useful when
 the panel is being used for a command parameter and the formatter is optional
+@param defaultFormatter if specified, this is the default formatter that is used when the choice is blank (default is
+DateTimeFormatterType.C)
 */
-public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterType, boolean includeBlankFormatterType )
+public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterType, boolean includeBlankFormatterType,
+    DateTimeFormatterType defaultFormatter )
 {
+    if ( defaultFormatter == null ) {
+        defaultFormatter = DateTimeFormatterType.C;
+    }
     setLayout ( new GridBagLayout() );
     Insets insetsTLBR = new Insets(0,0,0,0);
 
@@ -89,9 +100,13 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
     __specifierJComboBox.addItemListener ( this );
     JGUIUtil.addComponent(this, __specifierJComboBox,
         x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    __formatterTypeJComboBox.select(null);
-    __formatterTypeJComboBox.select(0); // Do this here to trigger population of the format specifier choices
-    __specifierJComboBox.select(0); // Now select the specifier
+    if ( includeFormatterType ) {
+        __formatterTypeJComboBox.select(null);
+        __formatterTypeJComboBox.select(0); // Do this here to trigger population of the format specifier choices
+    }
+    if ( __specifierJComboBox.getItemCount() > 0 ) {
+        __specifierJComboBox.select(0); // Now select the specifier corresponding to the formatter
+    }
     
     JGUIUtil.addComponent(this, new JLabel(" => "),
         x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -176,6 +191,19 @@ public Document getDocument()
 }
 
 /**
+Return the selected formatter type (e.g., "C").
+*/
+public String getSelectedFormatterType()
+{
+    if ( __formatterTypeJComboBox == null ) {
+        return "";
+    }
+    else {
+        return __formatterTypeJComboBox.getSelected();
+    }
+}
+
+/**
 Return the text in the text field and do not prepend the formatter type.
 */
 public String getText()
@@ -252,6 +280,9 @@ private void populateFormatSpecifiers()
     // best to make sure that the hint takes up enough space that the choice width does not change when
     // repopulated
     choicesList = new Vector();
+    if ( (formatterType == null) && (__defaultFormatter != null) ) {
+        formatterType = __defaultFormatter;
+    }
     if ( formatterType == null ) {
         choicesList.add(__hint);
     }
@@ -264,10 +295,13 @@ private void populateFormatSpecifiers()
 }
 
 /**
-Select the formatter type.
+Select the formatter type.  Select the empty string if formatterType=null.
 */
 public void selectFormatterType ( DateTimeFormatterType formatterType )
 {
+    if ( formatterType == null ) {
+        __formatterTypeJComboBox.selectIgnoreCase("");
+    }
     __formatterTypeJComboBox.selectIgnoreCase("" + formatterType);
 }
 
