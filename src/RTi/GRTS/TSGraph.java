@@ -227,6 +227,7 @@ import javax.swing.JPopupMenu;
 
 import RTi.GR.GRAspect;
 import RTi.GR.GRAxis;
+import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
@@ -415,6 +416,11 @@ Precision for left y-axis labels.
 private int _lefty_precision = 2;
 
 /**
+Left y-axis direction.
+*/
+private GRAxisDirectionType __leftyDirection = GRAxisDirectionType.NORMAL;
+
+/**
 TSProduct containing information about the graph product to be displayed.
 */
 private TSProduct _tsproduct = null;
@@ -442,6 +448,7 @@ private JPopupMenu _graph_JPopupMenu = null;
 /**
 Data limits kept separate from the _grda.  These are the data being drawn and
 reflect zoom etc.  This is true whether a reference or main graph and reflects the computation of labels.
+These limits always are Y-axis increasing.
 */
 private GRLimits _data_limits = null;
 
@@ -761,7 +768,7 @@ determined in the managing TSGraphJComponent (the limits will change as the comp
 series.  Most of these properties are documented in TSViewFrame, with the following additions:
 @param display_props Additional properties used for displays.
 ReferenceGraph can be set to "true" or "false" to indicate whether the graph is
-a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
+a reference graph.  ReferenceTSIndex can be set to a list index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).  This value must be set for the local
 tslist list that is passed in.
@@ -774,7 +781,7 @@ This may be different from the "ReferenceTSIndex" property in display_props,
 which was for the original time series list (not the subset used just for this graph).
 */
 public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsproduct, PropList display_props,
-			int subproduct, List<TS> tslist, int reference_ts_index )
+	int subproduct, List<TS> tslist, int reference_ts_index )
 {
 	String routine = "TSGraph";
 
@@ -852,10 +859,22 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// Initialize the data limits...
 
 	if ( _is_reference_graph ) {
-		_da_graph.setDataLimits ( _max_data_limits );
+	    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+	        GRLimits limits = new GRLimits(_max_data_limits);
+	        _da_graph.setDataLimits ( limits.reverseY() );
+	    }
+	    else {
+	        _da_graph.setDataLimits ( _max_data_limits );
+	    }
 	}
 	else {
-        _da_graph.setDataLimits ( _data_limits );
+	    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+            GRLimits limits = new GRLimits(_data_limits);
+            _da_graph.setDataLimits ( limits.reverseY() );
+        }
+        else {
+            _da_graph.setDataLimits ( _data_limits );
+        }
 	}
 
 	// Get the units to use for the left y-axis...
@@ -1183,6 +1202,17 @@ private void checkInternalProperties ()
 			_bottomx_date_format = DateTime.FORMAT_MM_DD;
 		}
 	}
+	
+	// "LeftYAxisDirection"
+
+    __leftyDirection = GRAxisDirectionType.NORMAL;
+    prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisDirection", _subproduct, -1, false );
+    if ( prop_val != null ) {
+        __leftyDirection = GRAxisDirectionType.valueOfIgnoreCase(prop_val);
+        if ( __leftyDirection == null ) {
+            __leftyDirection = GRAxisDirectionType.NORMAL;
+        }
+    }
 
 	// "LeftYAxisLabelPrecision" = _lefty_precision;
 
@@ -1200,10 +1230,10 @@ only called from doAnalysis(), which is called at construction.  The maximum
 values and the current data limits are set to the limits, which serve as the
 initial data limits until zooming occurs.
 @param graphType the type of graph being produced.
-@param max whether to compute data limits from the max dates or not.  Really
-only applies currently to empty graphs.  For other graphs, see setComputeWithSetDates().
+@param max whether to compute data limits from the max dates or not.  Currently, this really
+only applies to empty graphs.  For other graphs, see setComputeWithSetDates().
 */
-protected void computeDataLimits ( boolean max)
+protected void computeDataLimits ( boolean max )
 {	String routine = "TSGraph.computeDataLimits";
     TSGraphType graphType = getGraphType();
 	// Exceptions are thrown when trying to draw empty graph (no data)
@@ -1866,7 +1896,13 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 	if ( !_is_reference_graph ) {
-		_da_graph.setDataLimits ( _data_limits );
+	    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+	        GRLimits dataLimits = new GRLimits(_data_limits);
+	        _da_graph.setDataLimits ( dataLimits.reverseY() );
+	    }
+	    else {
+	        _da_graph.setDataLimits ( _data_limits );
+	    }
 	}
 	int size = _ylabels.length;
 	int i = 0;
@@ -1919,7 +1955,13 @@ private void computeLabels ( TSLimits limits )
 		_data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
 			_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
 		if ( !_is_reference_graph ) {
-			_da_graph.setDataLimits ( _data_limits );
+		    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+		        GRLimits dataLimits = new GRLimits(_data_limits);
+		        _da_graph.setDataLimits ( dataLimits.reverseY() );
+		    }
+		    else {
+		        _da_graph.setDataLimits ( _data_limits );
+		    }
 		}
 		return;
 	}
@@ -1981,7 +2023,13 @@ private void computeLabels ( TSLimits limits )
 		_data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
 					_xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
 		if ( !_is_reference_graph ) {
-			_da_graph.setDataLimits ( _data_limits );
+		    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+                GRLimits dataLimits = new GRLimits(_data_limits);
+                _da_graph.setDataLimits ( dataLimits.reverseY() );
+            }
+            else {
+                _da_graph.setDataLimits ( _data_limits );
+            }
 		}
 		return;
 	}
@@ -2776,8 +2824,12 @@ private void drawAxesBack ()
 	// drawing areas.  To make sure the drawing limits are OK, set to the _data_limits values here...
 
 	_datalim_lefty_label = new GRLimits ( _da_lefty_label.getDataLimits() );
-	_datalim_lefty_label.setBottomY ( _data_limits.getBottomY() );
-	_datalim_lefty_label.setTopY ( _data_limits.getTopY() );
+	// TODO SAM 2013-01-22 Remove the following if code tests out
+	//_datalim_lefty_label.setBottomY ( _data_limits.getBottomY() );
+	//_datalim_lefty_label.setTopY ( _data_limits.getTopY() );
+	// This handles if the axis is reversed
+	_datalim_lefty_label.setBottomY ( _da_graph.getDataLimits().getBottomY() );
+    _datalim_lefty_label.setTopY ( _da_graph.getDataLimits().getTopY() );
 	_da_lefty_label.setDataLimits ( _datalim_lefty_label );
 
 	_datalim_righty_label = new GRLimits(_da_righty_label.getDataLimits());
@@ -2785,7 +2837,7 @@ private void drawAxesBack ()
 	_datalim_righty_label.setTopY ( _data_limits.getTopY() );
 	_da_righty_label.setDataLimits ( _datalim_righty_label );
 
-	_datalim_bottomx_label =new GRLimits(_da_bottomx_label.getDataLimits());
+	_datalim_bottomx_label = new GRLimits(_da_bottomx_label.getDataLimits());
 	_datalim_bottomx_label.setLeftX ( _data_limits.getLeftX() );
 	_datalim_bottomx_label.setRightX ( _data_limits.getRightX() );
 	_da_bottomx_label.setDataLimits ( _datalim_bottomx_label );
@@ -6539,6 +6591,9 @@ private void openDrawingAreas ()
 			"TSGraph.Graphs", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	// Initial values that will be reset pretty quickly...
 	GRLimits datalim_graph = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+	    datalim_graph.reverseY();
+	}
 	_da_graph.setDataLimits ( datalim_graph );
 
 	if (log_y) {
@@ -6774,15 +6829,21 @@ public void setDataLimits ( GRLimits datalim_graph )
 			_gtype + "Setting [" +_subproduct + "] _data_limits to " + datalim_graph.toString());
 	}
 
+	GRLimits dataLimitsInDrawingArea = null;
 	if ( _is_reference_graph ) {
 		// Save the new data limits for drawing but do not reset the
 		// actual GRDrawingArea.  Also make sure the Y limits are the maximum...
 		_data_limits = new GRLimits ( datalim_graph );
 		_data_limits.setTopY ( _max_data_limits.getTopY() );
 		_data_limits.setBottomY ( _max_data_limits.getBottomY() );
+		dataLimitsInDrawingArea = new GRLimits(_data_limits);
+		if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+		    // Reverse the data limits used for the reference graph - will be set in drawing area below
+		    dataLimitsInDrawingArea.reverseY();
+		}
 	}
 	else {
-	    // Do the full recalculation and zoom...
+	    // Do the full recalculation of the data limits and zoom...
 		// Need to recompute new start and end dates...
 		// Make sure to keep the same date precision.
 
@@ -6804,7 +6865,6 @@ public void setDataLimits ( GRLimits datalim_graph )
 			else {
 				//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
 			    _tslimits = TSUtil.getDataLimits( getTSListToRender(true), _start_date, _end_date, "", false, _ignore_units);
-
 				if (__graphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
 					// the number of time series.  Reverse the limits to number the same as the legend...
@@ -6823,11 +6883,18 @@ public void setDataLimits ( GRLimits datalim_graph )
 			Message.printWarning ( 2, _gtype + "TSGraph", e );
 			return;
 		}
+		// Set the graph data limits based on the labels, for example to increase the buffer
+		// beyond the data range.
 		// This will set _datalim_graph.  The Y limits are computed from
 		// the max data limits.  The X limits are computed from _start_date and _end_date...
 		if ( getTSListToRender(true).size() > 0) {
 			computeLabels ( _tslimits );
-			_da_graph.setDataLimits ( _data_limits );
+		    dataLimitsInDrawingArea = new GRLimits(_data_limits);
+		    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
+		        // Reverse the data limits used for the reference graph
+		        dataLimitsInDrawingArea.reverseY();
+		    }
+			_da_graph.setDataLimits ( dataLimitsInDrawingArea );
 		}
 	}
 	if ( Message.isDebugOn ) {
