@@ -498,6 +498,19 @@ private void reset ()
 }
 
 /**
+Reverse the y-axis values (flip).  For example, this might be used to
+cause a graph to plot with Y increasing downward.
+@return the updated GRLimits instance
+*/
+public GRLimits reverseY ()
+{   double temp = _top_y;
+    _top_y = _bottom_y;
+    _bottom_y = temp;
+    reset ();
+    return this;
+}
+
+/**
 Set the left X-coordinate.
 @param left_x The left X-coordinate.
 */
