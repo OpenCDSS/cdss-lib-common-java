@@ -335,8 +335,9 @@ throws Exception
 	// TSProduct.  The use of a frame seems to be necessary to get this to
 	// work (tried lots of other things including just declaring a TSGraph),
 	// but could not get the combination of Graphics, Image, etc. to work.
-
+	// The following is essentially a serialized TSP file using dot-notation
 	PropList tsviewprops = tsproduct.getPropList();
+	//Message.printStatus(2, routine, "Graph properties=" + tsviewprops);
 
 	JFrame f = new JFrame();
 	f.addNotify();
