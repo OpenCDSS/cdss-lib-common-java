@@ -1,19 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSProductLayoutJComponent - JComponent for drawing the layout preview for
-//	graphs in the TSProductJFrame.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-// 2004-02-18	J. Thomas Sapienza, RTi	Initial version.
-// 2004-02-23	JTS, RTi		Javadoc'd.
-// 2004-03-03	JTS, RTi		Added time series drop functionality.
-// 2004-04-23	Steven A. Malers, RTi	Changed TSViewPropertiesJFrame to
-//					TSProductJFrame.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.GRTS;
 
 import java.awt.Color;
@@ -97,25 +81,21 @@ private final String __CLASS = "TSProductLayoutJComponent";
 Constant values for the drawing area.
 */
 private final int
-	__HEIGHT = 111,		// total height
-				// (includes 10 for the lower bar and 1 for
+	__HEIGHT = 111, // total height (includes 10 for the lower bar and 1 for
 				// the divider line between the two areas)
-	__MAX_FONT_SIZE = 70,	// fonts will never be larger than this
-	__MIN_FONT_SIZE = 6,	// fonts will never be smaller than this
-	__WIDTH = 100;		// total width
+	__MAX_FONT_SIZE = 70, // fonts will never be larger than this
+	__MIN_FONT_SIZE = 6, // fonts will never be smaller than this
+	__WIDTH = 100; // total width
 
 /**
 More constant values.
 */
 private final int
-	__BOTTOM_Y = 21,	// the bottom Y value
-	__X_OFFSET = 10,	// the amount that previews should be offset
-				// from the left and right of the drawing
-				// area edges.
-	__GRAPHS_HEIGHT = __WIDTH - (__X_OFFSET * 2),
-		// the height graph previews should be
-	__GRAPHS_WIDTH = __GRAPHS_HEIGHT;
-		// because it's always a square
+	__BOTTOM_Y = 21, // the bottom Y value
+	__X_OFFSET = 10, // the amount that previews should be offset
+				// from the left and right of the drawing area edges.
+	__GRAPHS_HEIGHT = __WIDTH - (__X_OFFSET * 2), // the height graph previews should be
+	__GRAPHS_WIDTH = __GRAPHS_HEIGHT; // because it's always a square
 
 /**
 The font in which text should be drawn on the preview.
@@ -126,19 +106,18 @@ private final String __FONT = "Arial";
 GUI labels.
 */
 private final String
-	__MENU_SHOW_ALL_PROPERTIES = 	"Show all properties",
+	__MENU_SHOW_ALL_PROPERTIES = "Show all properties",
 	__MENU_SHOW_ANNOTATION_PROPERTIES = "Show all annotation properties",
-	__MENU_SHOW_DATA_PROPERTIES = 	"Show all data properties",
-	__POPUP_ADD_GRAPH_ABOVE = 	"Add Graph Above Selected",
-	__POPUP_ADD_GRAPH_BELOW = 	"Add Graph Below Selected",
-	__POPUP_ADD_GRAPH_END = 	"Add Graph at Bottom",
-	__POPUP_REMOVE_GRAPH = 		"Remove Graph",
-	__POPUP_MOVE_GRAPH_UP = 	"Move Graph Up",
-	__POPUP_MOVE_GRAPH_DOWN = 	"Move Graph Down";
+	__MENU_SHOW_DATA_PROPERTIES = "Show all data properties",
+	__POPUP_ADD_GRAPH_ABOVE = "Add Graph Above Selected",
+	__POPUP_ADD_GRAPH_BELOW = "Add Graph Below Selected",
+	__POPUP_ADD_GRAPH_END = "Add Graph at Bottom",
+	__POPUP_REMOVE_GRAPH = "Remove Graph",
+	__POPUP_MOVE_GRAPH_UP = "Move Graph Up",
+	__POPUP_MOVE_GRAPH_DOWN = "Move Graph Down";
 
 /**
-Whether the current paint() call is the first time ever.  Used for setting up
-some initial settings.
+Whether the current paint() call is the first time ever.  Used for setting up some initial settings.
 */
 private boolean __firstPaint = true;
 
@@ -196,8 +175,7 @@ public TSProductLayoutJComponent(TSProductJFrame parent, TSProduct product) {
 	// drop will behave in this component.  In this case, the data object
 	// is being set up to not allow dragging (ACTION_NONE) and to accept
 	// copy or move drops (ACTION_COPY_OR_MOVE).
-	__dndData = new DragAndDropControl(DragAndDropUtil.ACTION_NONE, 
-		DragAndDropUtil.ACTION_COPY_OR_MOVE);
+	__dndData = new DragAndDropControl(DragAndDropUtil.ACTION_NONE, DragAndDropUtil.ACTION_COPY_OR_MOVE);
 
 	// this should always be true, but in the future it may be that 
 	// dropping data is disabled for some instances of the component
@@ -229,7 +207,7 @@ Responds to action events.
 public void actionPerformed(ActionEvent event) {
 	String command = event.getActionCommand();
 
-	// commit any changes to the product prior to doing anything
+	// Commit any changes to the product prior to doing anything
 	__parent.updateTSProduct();
 
 	if (command.equals(__POPUP_ADD_GRAPH_ABOVE) 
@@ -237,11 +215,13 @@ public void actionPerformed(ActionEvent event) {
 	    || command.equals(__POPUP_ADD_GRAPH_END)) {
 		int selectedGraph = __parent.getSelectedGraph();		
 
-		if (command.equals(__POPUP_ADD_GRAPH_ABOVE)) {}
+		if (command.equals(__POPUP_ADD_GRAPH_ABOVE)) {
+		}
 		else if (command.equals(__POPUP_ADD_GRAPH_BELOW)) {
 			selectedGraph++;
 		}
-		else {	// __POPUP_ADD_GRAPH_END
+		else {
+		    // __POPUP_ADD_GRAPH_END
 			selectedGraph = __parent.getGraphList().size();
 		}
 		if (!__parent.areGraphsDefined()) {
@@ -271,13 +251,10 @@ public void actionPerformed(ActionEvent event) {
 		return;
 	}
 	
-	// do this anytime graphs are changed ...
-	__parent.getTSViewJFrame().getViewGraphJFrame().getMainJComponent()
-		.reinitializeGraphs(__product);
-	if (__parent.getTSViewJFrame().getViewGraphJFrame().getReferenceGraph()
-	    != null) {
-		__parent.getTSViewJFrame().getViewGraphJFrame()
-		.getReferenceGraph().reinitializeGraphs(__product);		
+	// Do this any time graphs are changed ...
+	__parent.getTSViewJFrame().getViewGraphJFrame().getMainJComponent().reinitializeGraphs(__product);
+	if (__parent.getTSViewJFrame().getViewGraphJFrame().getReferenceGraph() != null) {
+		__parent.getTSViewJFrame().getViewGraphJFrame().getReferenceGraph().reinitializeGraphs(__product);		
 	}
 	
 	repaint();
@@ -285,10 +262,9 @@ public void actionPerformed(ActionEvent event) {
 }
 
 /**
-Builds the list of graphs that are 'down' from the selected graph, for use 
-in the 'move graph' dialog box.
+Builds the list of graphs that are 'down' from the selected graph, for use in the 'move graph' dialog box.
 @param selectedGraph the graph to be moved down.
-@return a Vector of the graphs that are 'down' from the selected graph.
+@return a list of the graphs that are 'down' from the selected graph.
 */
 private List buildDownList(int selectedGraph) {
 	List v = new Vector();
@@ -299,8 +275,7 @@ private List buildDownList(int selectedGraph) {
 	for (int i = selectedGraph + 1; i < graphs.size(); i++) {
 		s = StringUtil.getToken((String)graphs.get(i), "-", 0, 0);
 		s = s.trim();
-		v.add("" + count + " step" + plural + ", below graph #"
-			+ (i + 1) + " (\"" + s + "\")");		
+		v.add("" + count + " step" + plural + ", below graph #" + (i + 1) + " (\"" + s + "\")");		
 		if (count == 1) {
 			plural = "s";
 		}
@@ -762,13 +737,9 @@ public boolean handleDropData(Object o, Point p) {
 		v = __product.getTSList();
 		v.add(ts);
 		__product.setTSList(v);
-		__parent.getTSViewJFrame().getViewGraphJFrame()
-			.getMainJComponent().reinitializeGraphs(__product);
-		if (__parent.getTSViewJFrame().getViewGraphJFrame()
-		    .getReferenceGraph() != null) {
-			__parent.getTSViewJFrame().getViewGraphJFrame()
-				.getReferenceGraph()
-				.reinitializeGraphs(__product);
+		__parent.getTSViewJFrame().getViewGraphJFrame().getMainJComponent().reinitializeGraphs(__product);
+		if (__parent.getTSViewJFrame().getViewGraphJFrame().getReferenceGraph() != null) {
+			__parent.getTSViewJFrame().getViewGraphJFrame().getReferenceGraph().reinitializeGraphs(__product);
 		}
 		return true;
 	}		
