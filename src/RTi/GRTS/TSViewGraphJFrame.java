@@ -542,8 +542,6 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	}
 
 	openGUI ( true );
-
-	prop_value = null;
 }
 
 /**
