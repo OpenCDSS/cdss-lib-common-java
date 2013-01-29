@@ -522,6 +522,14 @@ graphs vertically so width will be the same for all graphs.
 </tr>
 
 <tr>
+<td><b>LeftYAxisDirection</b></td>
+<td>The direction of values, where "Normal" is the normal orientation (generally positive values increase up except
+for graph types where it goes the other way) and
+"Reverse" indicates that values should be in the reverse orientation of normal.</td>
+<td>Normal.</td>
+</tr>
+
+<tr>
 <td><b>LeftYAxisIgnoreUnits</b></td>
 <td>Indicates whether to ignore units for the lefty Y axis.  Normally, units
 are checked to make sure that data can be plotted consistently.  If this
@@ -1145,10 +1153,13 @@ public class TSProduct
 Main property list describing the product.
 */
 private PropList __proplist = null;
+
 /**
-Run-time properties that will override the file properties.
+Run-time properties that will override the file properties.  These are specified as simple strings
+with no layering information (e.g., "InitialView").
 */
 private PropList __override_proplist = null;
+
 /**
 Time series associated with the product.
 */
@@ -1206,16 +1217,16 @@ throws Exception
 /**
 Construct a TSProduct from a product file (.tsp).  The product file is read into a PropList.
 @param filename Name of gvp file to process.
-@param override_proplist Properties that override the properties in the file.
+@param overridePropList Properties that override the properties in the file.
 @exception Exception if there is an error processing the file.
 */
-public TSProduct ( String filename, PropList override_proplist )
+public TSProduct ( String filename, PropList overridePropList )
 throws Exception
 {	// Just read in as a simple PropList...
 	__proplist = new PropList ( "TSProduct" );
 	__proplist.setPersistentName ( filename );
 	__proplist.readPersistent ();
-	__override_proplist = override_proplist;
+	__override_proplist = overridePropList;
 	transferPropList();
 }
 
@@ -1792,23 +1803,24 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		// GraphHeight, GraphWidth calculated
+		
+        if ( getLayeredPropValue("LeftYAxisDirection", isub, -1, false ) == null ) {
+            setPropValue ( "LeftYAxisDirection", getDefaultPropValue("LeftYAxisDirection",isub,-1), isub, -1 );
+        }
 
 		// LeftYAxisIgnoreUnits calculated
 
-		if (	getLayeredPropValue("LeftYAxisLabelFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisLabelFontName",
 			getDefaultPropValue("LeftYAxisLabelFontName",isub,-1),
 			isub, -1 );
 		}
-		if (	getLayeredPropValue("LeftYAxisLabelFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisLabelFontStyle",
 			getDefaultPropValue("LeftYAxisLabelFontStyle",isub,-1),
 			isub, -1 );
 		}
-		if (	getLayeredPropValue("LeftYAxisLabelFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("LeftYAxisLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisLabelFontSize",
 			getDefaultPropValue("LeftYAxisLabelFontSize",isub,-1),
 			isub, -1 );
@@ -2562,6 +2574,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if (param.equalsIgnoreCase("LayoutYPercent")) {
 			return "";
 		}
+        else if ( param.equalsIgnoreCase("LeftYAxisDirection") ) {
+            return "Normal";
+        }
 		else if ( param.equalsIgnoreCase("LeftYAxisIgnoreUnits") ) {
 			return "False";
 		}
@@ -2860,14 +2875,14 @@ If negative, the sub-product property will not be checked.
 prefix of "Data X.Y." will be used for the property, where X is
 (subproduct) and Y is (its).  If negative, the data item property will not be checked.  
 @param property Property to get value for.
-@param allow_layered_props If true, properties are allowed to be layered, with
+@param allowLayeredProps If true, properties are allowed to be layered, with
 determination of the property starting with the most general scope, through the most specific scope.
 If false, only properties at the requested level of the finest detail are used (no
 layering).  An example of a property that may occur in several layers is "Enabled".
 @return value of property or null if not found.
 */
-public String getLayeredPropValue (	String property, int subproduct, int its, boolean allow_layered_props ) {
-	return getLayeredPropValue(property, subproduct, its, allow_layered_props, false);
+public String getLayeredPropValue (	String property, int subproduct, int its, boolean allowLayeredProps ) {
+	return getLayeredPropValue(property, subproduct, its, allowLayeredProps, false);
 }
 
 /**
@@ -2885,7 +2900,7 @@ prefix of "Data X.Y." will be used for the property, where X is
 not be checked.  This is also used for specifying annotations.  See the
 isAnnotation parameter for more info.
 @param property Property to get value for.
-@param allow_layered_props If true, properties are allowed to be layered, with
+@param allowLayeredProps If true, properties are allowed to be layered, with
 the most general scope property applying to the most specific if not overridden.
 If false, only properties at the level of the finest detail are used (no
 layering).  An example of a property that may occur in several layers is "Enabled".
@@ -2895,7 +2910,7 @@ under the given subproduct.
 @return value of property or null if not found.
 */
 public String getLayeredPropValue (	String property, int subproduct,
-	int its, boolean allow_layered_props, boolean isAnnotation )	
+	int its, boolean allowLayeredProps, boolean isAnnotation )	
 {	String value = null;
 	String value2 = null;
 	//Message.printStatus ( 2, "", "Looking up \"" + property + "\" " + subproduct + " " + its );
@@ -2909,7 +2924,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 
 	// Next search the main proplist...
 
-	if ( allow_layered_props ) {
+	if ( allowLayeredProps ) {
 		// Search to find the most specific property...
 		if ( __proplist != null ) {
 			// First search the generic property (not a strict
