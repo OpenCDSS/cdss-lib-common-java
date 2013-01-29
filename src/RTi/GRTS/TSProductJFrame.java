@@ -194,6 +194,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRText;
@@ -396,6 +397,7 @@ private SimpleJComboBox _graph_lefty_min_JComboBox = null;
 private SimpleJComboBox _graph_lefty_max_JComboBox = null;
 private JCheckBox _graph_lefty_ignoreunits_JCheckBox = null;
 private JTextField _graph_lefty_units_JTextField = null;
+private SimpleJComboBox _graph_lefty_direction_JComboBox = null;
 
 private JTextField _graph_lefty_title_JTextField = null;
 private SimpleJComboBox _graph_lefty_title_fontname_JComboBox = null;
@@ -1300,6 +1302,8 @@ private void clearSubProductProperties() {
 	_graph_lefty_type_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisType", 1, -1));
 
 	_graph_lefty_units_JTextField.setText( _tsproduct.getDefaultPropValue("LeftYAxisUnits", 1, -1));
+	
+	_graph_lefty_direction_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisDirection", 1, -1));
 
 	_graph_legendfontname_JComboBox.select( _tsproduct.getDefaultPropValue("LegendFontName", 1, -1));
 
@@ -2745,7 +2749,21 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent (yaxes_JPanel, _graph_lefty_majorgrid_color_JButton,
 			3, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-
+	
+    values = getPropertyChoices("LeftYAxisDirection");
+    value = getPropertyChoiceDefault("LeftYAxisDirection");
+    JGUIUtil.addComponent ( yaxes_JPanel, new JLabel ("Axis direction:"),
+        0, ++y, 1, 1, 0, 0,
+        _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );   
+    _graph_lefty_direction_JComboBox = new SimpleJComboBox( values, true);
+    _graph_lefty_direction_JComboBox.select(value);
+    //_graph_lefty_direction_JComboBox.setEnabled ( false );
+    _graph_lefty_direction_JComboBox.setToolTipText(
+        "Direction of y-axis values (default=Normal)");
+    JGUIUtil.addComponent (yaxes_JPanel,_graph_lefty_direction_JComboBox,
+        1, y, 2, 1, 0, 0,
+        _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+    
 	// Label tab..
 
 	JPanel label_JPanel = new JPanel();
@@ -4071,6 +4089,11 @@ private void displaySubproductProperties ( int isub )
 	if ( __graphAnnotationProvider != null ) {
 	    __graphAnnotationProvider.select(prop_val);
 	}
+	
+	// "LeftYAxisDirection"
+
+    prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisDirection", isub, -1, false );
+    _graph_lefty_direction_JComboBox.select(prop_val);
 
 	// "LeftYAxisTitleFontName"
 
@@ -4103,14 +4126,12 @@ private void displaySubproductProperties ( int isub )
 
 	// "LeftYAxisMax"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LeftYAxisMax", isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMax", isub, -1, false );
 	_graph_lefty_max_JComboBox.select(prop_val);
 
 	// "LeftYAxisMin"
 
-	prop_val = _tsproduct.getLayeredPropValue (
-			"LeftYAxisMin", isub, -1, false );
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMin", isub, -1, false );
 	_graph_lefty_min_JComboBox.select(prop_val);
 
 	// "LeftYAxisType"
@@ -4931,22 +4952,27 @@ private String getPropertyChoiceDefault(String property) {
 }
 
 /**
-Returns a Vector of choices to fill a combo box with for properties that have
-combo box selection interfaces.  Currently only supports LeftYAxisMax and
-LeftYAxisMin.
+Returns a list of choices to fill a combo box with for properties that have
+combo box selection interfaces.  Currently only supports LeftYAxisMax and LeftYAxisMin.
 @param property the property for which to return a Vector of combo box choices.
-@return a Vector of combo box choices, or null if the property is unrecognized.
+@return a list of combo box choices, or null if the property is unrecognized.
 */
-private List getPropertyChoices(String property) {
-	if (property.equalsIgnoreCase("LeftYAxisMax")) {
-		List v = new Vector();
+private List<String> getPropertyChoices(String property) {
+    if (property.equalsIgnoreCase("LeftYAxisDirection")) {
+        List<String> v = new Vector<String>();
+        v.add("" + GRAxisDirectionType.NORMAL);
+        v.add("" + GRAxisDirectionType.REVERSE);
+        return v;
+    }
+    else if (property.equalsIgnoreCase("LeftYAxisMax")) {
+		List<String> v = new Vector<String>();
 		v.add("Auto");
 //	Reserved for future use		
 //		v.add("AutoCrop");
 		return v;
 	}
 	else if (property.equalsIgnoreCase("LeftYAxisMin")) {
-		List v = new Vector();
+		List<String> v = new Vector<String>();
 		v.add("Auto");
 //	Reserved for future use		
 //		v.add("AutoCrop");
@@ -4957,10 +4983,8 @@ private List getPropertyChoices(String property) {
 }
 
 /**
-Returns the index of the graph that is selected from the subproduct (graph)
-combo box.
-@return the index of the graph that is selected from the subproduct (graph)
-combo box.
+Returns the index of the graph that is selected from the subproduct (graph) combo box.
+@return the index of the graph that is selected from the subproduct (graph) combo box.
 */
 protected int getSelectedGraph() {
 	return _graph_JComboBox.getSelectedIndex();
@@ -5082,8 +5106,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 		updateTSProduct();
 		// Now update the time series tabs to agree with the selected
 		// time series.  The number at the front of the items allows the
-		// time series to be looked up (the rest of the string is
-		// ignored.
+		// time series to be looked up (the rest of the string is ignored.
 		__selectedAnnotation=__annotation_JComboBox.getSelectedIndex();
 		if (__selectedAnnotation < 0) {
 			return;
@@ -5112,48 +5135,34 @@ public void itemStateChanged ( ItemEvent evt ) {
 	else if (o == __annotation_line_color_JComboBox) {
 		try {	
 			__annotation_line_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_line_color_JComboBox
-				.getSelected()));
-			__annotation_line_color_JTextField.setText(
-				__annotation_line_color_JComboBox
-				.getSelected());
+				(Color)GRColor.parseColor(__annotation_line_color_JComboBox.getSelected()));
+			__annotation_line_color_JTextField.setText(__annotation_line_color_JComboBox.getSelected());
 		}
 		catch (Exception e2) {
-			__annotation_line_color_JTextField.setBackground(
-				Color.white);
+			__annotation_line_color_JTextField.setBackground(Color.white);
 			__annotation_line_color_JTextField.setText("White");
 		}
 	}
 	else if (o == __annotation_text_color_JComboBox) {
 		try {	
-			__annotation_text_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_text_color_JComboBox
-				.getSelected()));
-			__annotation_text_color_JTextField.setText(
-				__annotation_text_color_JComboBox
-				.getSelected());
+			__annotation_text_color_JTextField.setBackground((Color)GRColor.parseColor(
+				__annotation_text_color_JComboBox.getSelected()));
+			__annotation_text_color_JTextField.setText(__annotation_text_color_JComboBox.getSelected());
 		}
 		catch (Exception e2) {
-			__annotation_text_color_JTextField.setBackground(
-				Color.white);
+			__annotation_text_color_JTextField.setBackground(Color.white);
 			__annotation_text_color_JTextField.setText("White");
 		}
 	}	
 	else if (o == __annotation_symbol_color_JComboBox) {
 		try {	
 			__annotation_symbol_color_JTextField.setBackground(
-				(Color)GRColor.parseColor(
-				__annotation_symbol_color_JComboBox
-				.getSelected()));
+				(Color)GRColor.parseColor(__annotation_symbol_color_JComboBox.getSelected()));
 			__annotation_symbol_color_JTextField.setText(
-				__annotation_symbol_color_JComboBox
-				.getSelected());
+				__annotation_symbol_color_JComboBox.getSelected());
 		}
 		catch (Exception e2) {
-			__annotation_symbol_color_JTextField.setBackground(
-				Color.white);
+			__annotation_symbol_color_JTextField.setBackground(Color.white);
 			__annotation_symbol_color_JTextField.setText("White");
 		}
 	}		
@@ -5209,20 +5218,17 @@ public void itemStateChanged ( ItemEvent evt ) {
 		// Set the choice in the color textfield...
 		_graph_lefty_majorgrid_color_JTextField.setText(
 		_graph_lefty_majorgrid_color_JComboBox.getSelected());
-		try {	if ( _graph_lefty_majorgrid_color_JTextField.getText(
-			).equalsIgnoreCase("None") ) {
-			_graph_lefty_majorgrid_color_JTextField.setBackground (
-				Color.white );
+		try {
+		    if ( _graph_lefty_majorgrid_color_JTextField.getText().equalsIgnoreCase("None") ) {
+		        _graph_lefty_majorgrid_color_JTextField.setBackground ( Color.white );
 			}
 			else {	
-			_graph_lefty_majorgrid_color_JTextField.setBackground (
-			(Color)GRColor.parseColor(
-			_graph_lefty_majorgrid_color_JTextField.getText()) );
+    			_graph_lefty_majorgrid_color_JTextField.setBackground (
+    			    (Color)GRColor.parseColor(_graph_lefty_majorgrid_color_JTextField.getText()) );
 			}
 		}
 		catch ( Exception e ) {
-			_graph_lefty_majorgrid_color_JTextField.setBackground (
-			Color.white );
+			_graph_lefty_majorgrid_color_JTextField.setBackground ( Color.white );
 		}
 	}
 	else if ( o == __ts_JComboBox ) {
@@ -5231,14 +5237,13 @@ public void itemStateChanged ( ItemEvent evt ) {
 		updateTSProduct();
 		// Now update the time series tabs to agree with the selected
 		// time series.  The number at the front of the items allows the
-		// time series to be looked up (the rest of the string is
-		// ignored.
+		// time series to be looked up (the rest of the string is ignored.
 		selected = __ts_JComboBox.getSelected ();
-		List list = StringUtil.breakStringList ( selected, " ", 0 );
+		List<String> list = StringUtil.breakStringList ( selected, " ", 0 );
 		if ( list == null ) {
 			return;
 		}
-		selected = (String)list.get(0);
+		selected = list.get(0);
 		if ( !StringUtil.isInteger(selected) ) {
 			return;
 		}
@@ -5246,29 +5251,24 @@ public void itemStateChanged ( ItemEvent evt ) {
 		displayDataProperties ( _selected_subproduct, _selected_data );
 	}
 	else if ( o == _ts_datalabelformat_JComboBox ) {
-		_ts_datalabelformat_JTextField.setText(
-			_ts_datalabelformat_JTextField.getText() +
-			StringUtil.getToken(
-			_ts_datalabelformat_JComboBox.getSelected()," ",0,0));
+		_ts_datalabelformat_JTextField.setText(_ts_datalabelformat_JTextField.getText() +
+			StringUtil.getToken(_ts_datalabelformat_JComboBox.getSelected()," ",0,0));
 	}
 	else if ( o == _ts_legendformat_JComboBox ) {
-		String token = StringUtil.getToken(
-			_ts_legendformat_JComboBox.getSelected(), " ",0,0 );
+		String token = StringUtil.getToken(_ts_legendformat_JComboBox.getSelected(), " ",0,0 );
 		if ( token.equalsIgnoreCase("Auto") ) {
 			// Auto must stand on its own...
 			_ts_legendformat_JTextField.setText( "Auto" );
 		}
-		else {	_ts_legendformat_JTextField.setText(
-			_ts_legendformat_JTextField.getText() + token );
+		else {
+		    _ts_legendformat_JTextField.setText( _ts_legendformat_JTextField.getText() + token );
 		}
 	}
 	else if ( o == _ts_color_JComboBox ) {
 		// Set the choice in the color textfield...
-		_ts_color_JTextField.setText(
-			_ts_color_JComboBox.getSelected());
-		try {	_ts_color_JTextField.setBackground (
-			(Color)GRColor.parseColor(
-			_ts_color_JTextField.getText()) );
+		_ts_color_JTextField.setText(_ts_color_JComboBox.getSelected());
+		try {
+		    _ts_color_JTextField.setBackground ( (Color)GRColor.parseColor(_ts_color_JTextField.getText()) );
 		}
 		catch ( Exception e ) {
 			_ts_color_JTextField.setBackground ( Color.white );
@@ -5278,24 +5278,20 @@ public void itemStateChanged ( ItemEvent evt ) {
 		if ( _ts_regressionline_JCheckBox.isSelected() ) {
 			_ts_confidenceinterval_JComboBox.setEnabled(true);
 		}
-		else {	_ts_confidenceinterval_JComboBox.setEnabled(false);
+		else {
+		    _ts_confidenceinterval_JComboBox.setEnabled(false);
 		}
 	}
 	else if ( o == _xyscatter_analysis_fill_JCheckBox ) {
 		if ( _xyscatter_analysis_fill_JCheckBox.isSelected() ) {
-			_xyscatter_analysis_intercept_JTextField.setEnabled(
-				true);
-			_xyscatter_analysis_fill_period_start_JTextField
-				.setEnabled(true);
-			_xyscatter_analysis_fill_period_end_JTextField
-				.setEnabled(true);
+			_xyscatter_analysis_intercept_JTextField.setEnabled(true);
+			_xyscatter_analysis_fill_period_start_JTextField.setEnabled(true);
+			_xyscatter_analysis_fill_period_end_JTextField.setEnabled(true);
 		}
-		else {	_xyscatter_analysis_intercept_JTextField.setEnabled(
-				false);
-			_xyscatter_analysis_fill_period_start_JTextField
-				.setEnabled(false );
-			_xyscatter_analysis_fill_period_end_JTextField
-				.setEnabled(false);
+		else {
+		    _xyscatter_analysis_intercept_JTextField.setEnabled(false);
+			_xyscatter_analysis_fill_period_start_JTextField.setEnabled(false );
+			_xyscatter_analysis_fill_period_end_JTextField.setEnabled(false);
 		}
 	}
 	else if (o == _graph_graphtype_JComboBox) {
@@ -5439,8 +5435,7 @@ protected void moveSelectedData(int fromGraph, int toGraph, int fromTS) {
 		"" + (toGraph + 1), "" + (toDataCount + 1));	
 
 	for (int i = moveTS + 2; i <= fromDataCount; i++) {
-		_tsproduct.renameDataProps("" + (fromGraph + 1), "" + i,
-			"" + (fromGraph + 1), "" + (i - 1));
+		_tsproduct.renameDataProps("" + (fromGraph + 1), "" + i, "" + (fromGraph + 1), "" + (i - 1));
 	}
 	
 	_tsproduct.sortProps();	
@@ -5455,26 +5450,22 @@ protected void moveSelectedData(int fromGraph, int toGraph, int fromTS) {
 		_selected_data = -1;
 		clearDataProperties();
 		_tsproduct.getPropList().setHowSet(Prop.SET_AS_RUNTIME_DEFAULT);
-		_tsproduct.setPropValue("LeftYAxisUnits", null,
-			_selected_subproduct, -1);
+		_tsproduct.setPropValue("LeftYAxisUnits", null, _selected_subproduct, -1);
 		_graph_lefty_units_JTextField.setText("");
 	}
 
 	if (_tsproduct.getNumData(toGraph) == 1) {
-		// a ts was just moved into the graph
-		String propVal = _tsproduct.getLayeredPropValue(
-			"GraphType", toGraph, 0, false);
+		// A time series was moved into the graph
+		String propVal = _tsproduct.getLayeredPropValue("GraphType", toGraph, 0, false);
 		_tsproduct.getPropList().setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		_tsproduct.setPropValue("GraphType", propVal, toGraph, -1 );
 	}
 
-	// do this anytime graphs are changed ...
-	getTSViewJFrame().getViewGraphJFrame().getMainJComponent()
-		.reinitializeGraphs(_tsproduct);
+	// Do this any time graphs are changed ...
+	getTSViewJFrame().getViewGraphJFrame().getMainJComponent().reinitializeGraphs(_tsproduct);
 	redisplayProperties();
 	if (getTSViewJFrame().getViewGraphJFrame().getReferenceGraph() != null){
-		getTSViewJFrame().getViewGraphJFrame().getReferenceGraph()
-			.reinitializeGraphs(_tsproduct);		
+		getTSViewJFrame().getViewGraphJFrame().getReferenceGraph().reinitializeGraphs(_tsproduct);		
 	}
 	
 	_tsview_gui.refresh();	
@@ -6474,6 +6465,15 @@ protected int updateTSProduct (int howSet) {
 		_tsproduct.setPropValue ( "GraphType", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
+	
+	// "LeftYAxisDirection"
+
+    prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisDirection", _selected_subproduct, -1, false );
+    gui_val = _graph_lefty_direction_JComboBox.getSelected().trim();
+    if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+        _tsproduct.setPropValue ( "LeftYAxisDirection", gui_val, _selected_subproduct, -1 );
+        ++ndirty;
+    }
 
 	// "LeftYAxisIgnoreUnits"
 
