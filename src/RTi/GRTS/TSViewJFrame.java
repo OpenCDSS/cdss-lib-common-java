@@ -633,11 +633,11 @@ public static TSViewWindowManager getTSViewWindowManager()
 
 /**
 Initialize the TSViewJFrame data.
-@param tslist Vector of TS to display.
+@param tslist list of TS to display.
 @param proplist Properties to control the display.
 @exception Exception if an error occurs.
 */
-private void initialize ( List tslist, PropList proplist )
+private void initialize ( List<TS> tslist, PropList proplist )
 throws Exception
 {	String message, routine = "TSViewJFrame.initialize";
 
