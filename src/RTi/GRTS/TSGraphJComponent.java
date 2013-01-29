@@ -1,165 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSGraphJComponent - JComponent for drawing one or more time series graphs
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 25 Jun 1999	Steven A. Malers	Initial version.
-//		Riverside Technology,	Rely on GeoView and older
-//		inc.			GRTS code.
-// 23 May 2000	SAM, RTi		Fix labelling problems.  Enable zooming.
-//					For mouse events, consume events.
-// 11 Jul 2000	SAM, RTi		Fix so rubber-band line does not leave
-//					residue on screen.  Remove consume to
-//					see if that helps with rubber band
-//					problem not seen in GeoView.
-// 12 Oct 2000	SAM, RTi		Enable the ReferenceDate property, which
-//					causes the graphs to be shifted to the
-//					reference date (e.g., to plot traces).
-//					This did not work well so don't use it!
-//					Needs a lot more work!
-// 26 Oct 2000	SAM, RTi		Add Scatter graph type.  Add check for
-//					GraphType property.  Add getGraphType()
-//					and setGraphType() to allow
-//					communication with the other TSView
-//					components.
-// 30 Oct 2000	SAM, RTi		Add Duration graph type.
-//					Add bar graph.
-// 04 Apr 2001	SAM, RTi		Fix so units don't have to be exactly
-//					the same, only consistent.
-// 13 Apr 2001	SAM, RTi		Make so units don't have to be the same
-//					for scatter plots.  Allow units to be
-//					ignored and handle gracefully if they
-//					are not.  Add precision to units based
-//					on units file.
-// 04 May 2001	SAM, RTi		Fix annoying problem where after resize
-//					the data limits were not getting reset
-//					and drawing overwrote the title and
-//					legend.  Rework the drawing limits to
-//					be more robust.  Fix problem where
-//					resize to small horizontal dimension
-//					threw exceptions determining labels.
-//					Add YAxisPrecision property.
-//					Add right-click on graph to find closest
-//					time series.  Set the maximum legend
-//					height based only on enabled time
-//					series.
-// 28 Aug 2001	SAM, RTi		Handle better when y-axis units are "".
-//					Change GR.SYM* to GRSymbol.SYM*.
-//					Handle irregular time series that have
-//					date precision to hour.  To alleviate
-//					problems with bar position confusion in
-//					bar graphs, recognize the "BarPosition"
-//					property and default to
-//					"BarsCenteredOnDate".
-// 13 Sep 2001	SAM, RTi		Take out the reference date logic.  It
-//					is not being used and makes things a
-//					mess.
-// 23 Sep 2001	SAM, RTi		Another fix to bar charts.  The height
-//					of the bar needs to consider the y-axis
-//					position for the start of the bar.
-// 2001-11-01	SAM, RTi		Enable the PeriodOfRecord graph type.
-// 2001-11-05	SAM, RTi		Clean up javadoc.  Verify that variables
-//					are set to null when no longer being
-//					used.  Make more of the data private
-//					since the reference graph is now handled
-//					within this class (previously was a
-//					derived class).
-// 2001-11-20	SAM, RTi		TSDates for hourly data that have a time
-//					zone specified now show the time zone
-//					when toString() is called.  Therefore,
-//					set the time zone to "" when iterating.
-//					Fix bug where drawing a zoom box under
-//					the box size tolerance causes the graph
-//					to go white on resize, etc.
-// 2002-01-08	SAM, RTi		Update to use new GR classes, which
-//					support Swing and AWT.
-// ===================================
-// 2002-01-17	SAM, RTi		Change the name of the class from
-//					TSGraph to TSGraphCanvas and use the
-//					new GRTS class names that will allow
-//					Swing versions of components to be
-//					written.  Change so when printing if a
-//					null print job comes back the graph is
-//					just not printed (indicates cancel by
-//					user).  Take out the mouse tracker
-//					boolean since it has never been used.
-//					Add _rubber_banding to base class.
-// 2002-02-26	SAM, RTi		Update so that when creating a TSProduct
-//					from a Vector of TS and a PropList the
-//					time series are guaranteed to be
-//					connected correctly, even if there are
-//					redundant identifiers.
-// 2002-04-25	SAM, RTi		Start adding support for "TSAlias"
-//					in addition to TSID.
-// 2002-06-06	SAM, RTi		Fix bug where units labels for XY
-//					Scatter plot were reversed (due to
-//					recent reordering of the axes).
-// 2002-11-05	J. Thomas Sapienza, RTi	Use BufferedImage instead of createImage
-//					when creating a Jpeg.  Wasn't working
-//					with the other way on the Linux box.
-// 2002-11-18	JTS, RTi		Add stub code for compiling in 1.1.8 and
-//					1.4.0
-// 2002-11-27	JTS, RTi		Added checkAndSetBounds() workaround to
-//					get the graph working on Linux. Also
-//					updated to check for the right version
-//					String on HPUX.
-// =====================================
-// 2003-06-03	SAM, RTi		Copy GRGraphCanvas to GRGraphJComponent
-//					and implement a full Swing version.
-// 2003-06-05	JTS, RTi		Implemented swing printing code.
-// 2003-06-18	SAM, RTi		* TotalWidth and TotalHeight properties
-//					  were not getting transferred correctly
-//					  from the PropList constructor.
-//					* Use Swing setPreferredSize() on the
-//					  graph.
-//					* Remove checkAndSetBounds() since this
-//					  code is designed to not be used with
-//					  Java 1.1.8.
-//					* Fix problem in
-//					  createTSGraphsFromTSProduct() where
-//					  the TSID input fields where not being
-//					  handled correctly.
-// 2003-09-07	SAM, RTi		* Product.TotalWidth and
-//					  Product.TotalHeight properties were
-//					  not being recognized.
-// 2004-02-24	JTS, RTi		Added reinitializeGraphs().
-// 2004-03-22	JTS, RTi		Changed reinitializeGraphs() so that
-//					the limits for the drawing area and
-//					graphs are set properly when it is
-//					called.
-// 2005-04-27	JTS, RTi		Corrected bug in lookupTSColor() that
-//					was skipping every Xth color.
-// 2004-05-10	SAM, RTi		Change so that when creating a TSProduct
-//					from a PropList, the how set information
-//					is SET_AT_RUNTIME_FOR_USER so that the
-//					product is not marked as dirty.
-// 2004-06-09	JTS, RTi		Added code to reinitializeGraphs() to
-//					correctly determine and set the maximum
-//					date extents.  As it was, if a time 
-//					series with larger date extents than any
-//					others in any of the graphs was added to
-//					the graph, the max start and max end
-//					dates were not being set right and
-//					the graph could not be zoomed out past
-//					the previous maximum date extents.
-// 2005-04-27	JTS, RTi		Added all data members to finalize().
-// 2005-04-29	JTS, RTi		Added lookupTSSymbol().
-// 2006-09-28	SAM, RTi		A user-specified property for
-//					LeftYAxisTitleString was always being
-//					ignored - value was being determined
-//					from time series.  Change so that a
-//					specified property will be used.  This
-//					was a little odd because a conditional
-//					check for 1 == 1 was introduced in
-//					code in the 2004-08-06 release.  Put a
-//					comment in the code to check later -
-//					perhaps there is a side-effect?
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.GRTS;
 
 import java.awt.Dimension;
@@ -217,7 +55,7 @@ The TSGraphJComponent class provides a component for displaying one or more time
 series graphs, each with one or more time series.  Methods are available for
 initiating printing as well as handling zooming and selects.  Performance
 options include double-buffering.  This class also implements
-TSViewListener, which is typically used to allow a reference TSGraphJComponent
+TSViewListener, which typically is used to allow a reference TSGraphJComponent
 to be enabled that calls the listener methods in a main TSGraphJComponent.
 Therefore, zoom control can occur in both TSGraphJComponent.  The
 TSGraphJComponent controls all redrawing through the
@@ -341,11 +179,12 @@ If false, that means that users can change the min and max values in the propert
 private boolean _zoom_keep_y_limits = false;
 
 /**
+TODO SAM 2013-01-28 Seems like this includes override properties?
 PropList for display properties that are not to be confused with the TSProduct
 properties (or its override properties).  For example, this list of properties
 is used to indicate whether the component is a reference graph.
 */
-private PropList _display_props = null;
+private PropList _displayProps = null;
 
 /**
 Drawing areas used for the main component.  Only a few are necessary because
@@ -436,7 +275,15 @@ private JFrame _parent = null;
 /**
 List of TSGraph being drawn.
 */
-private List<TSGraph> _tsgraphs = new Vector(); // Allocate so don't have to checked for null repeatedly.
+private List<TSGraph> _tsgraphs = new Vector();
+/**
+Starting date/time for visible graph, used for first draw only.
+*/
+private DateTime __visibleStart = null;
+/**
+Ending date/time for visible graph, used for first draw only.
+*/
+private DateTime __visibleEnd = null;
 
 // Dimensions for drawing areas...
 /**
@@ -522,19 +369,19 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 	_tslist = tslist;
 	// Convert the old-style PropList to a TSProduct instance.  This also fills _display_props...
 	_tsproduct = createTSProductFromPropList ( props, tslist );
-	checkDisplayProperties ( _display_props );
+	checkDisplayProperties ( _tsproduct, _displayProps );
 	_tsproduct.checkProperties();
 	// Need to figure out the requested height and width because this
 	// information is used to create the TSGraph instances...
 	double height = 400.0, width = 400.0;
 
-	String prop_val = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
-	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
-		height = StringUtil.atod(prop_val);
+	String propVal = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
+	if ( (propVal != null) && StringUtil.isDouble(propVal) ) {
+		height = StringUtil.atod(propVal);
 	}
-	prop_val = _tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
-	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
-		width = StringUtil.atod(prop_val);
+	propVal = _tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
+	if ( (propVal != null) && StringUtil.isDouble(propVal) ) {
+		width = StringUtil.atod(propVal);
 	}
 
 	if ( !_is_reference_graph ) {
@@ -544,7 +391,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList p
 	}
 	
 	// Now create the TSGraph instances that will manage the individual graphs...
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _display_props,
+	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _displayProps,
 		tslist, new GRLimits(0.0,0.0,width,height) );
 	checkTSProductGraphs ( _tsproduct, _tsgraphs );
 	// Open the drawing areas with initial limits...
@@ -569,27 +416,27 @@ Construct a TSGraphJComponent and display the time series.
 @param parent Parent JFrame object (often a TSViewGraphGUI).
 @param tsproduct TSProduct describing the graph(s).
 The following override properties can be set in the TSProduct to affect this graph component.
-@param display_props Display properties that control the display and which are
+@param displayProps Display properties that control the display and which are
 separate from the TSProduct.  Valid properties include those described below.
 ReferenceGraph can be set to "true" or "false" to indicate whether the graph is
 a reference graph.  ReferenceTSIndex can be set to a Vector index to indicate
 the reference time series for the reference graph (the default is the time
 series with the longest overall period).
 */
-public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct, PropList display_props )
+public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropList displayProps )
 {	super ( "TSGraphJComponent" );
 	String routine = "TSGraphJComponent";
 	_force_redraw = true;
 	_parent = parent;
 	_tslist = tsproduct.getTSList();// Do this for now.  Later remove _tslist
-	_display_props = display_props;
-	if ( _display_props == null ) {
-		_display_props = new PropList ( "display" );
+	_displayProps = displayProps;
+	if ( _displayProps == null ) {
+		_displayProps = new PropList ( "display" );
 	}
 	if ( (_tslist == null) || (_tslist.size() == 0) ) {
 		Message.printWarning ( 2, routine, "Time series list is null.  Product will be empty." );
 	}
-	checkDisplayProperties ( _display_props );
+	checkDisplayProperties ( tsproduct, _displayProps );
 	_tsproduct = tsproduct;
 	_tsproduct.checkProperties();
 	// Set the requested (or if not specified, default) height and width
@@ -613,7 +460,7 @@ public TSGraphJComponent (	TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	// individual graphs.  The limits of the graphs will not be correct
 	// because the titles, etc., have not been considered.  The limits will
 	// be reset in the first paint() method call and every resize after that.
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _display_props, _tslist,
+	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _displayProps, _tslist,
 		new GRLimits( 0.0,0.0,width,height) );
 	checkTSProductGraphs ( _tsproduct, _tsgraphs );
 
@@ -698,28 +545,51 @@ public boolean canUseZoom()
 /**
 Check to make sure that the display properties are set.  This checks the
 display properties and sets internal variables that are commonly used.
-@param 
+@param displayProps display properties to provide additional runtime information above and beyond the
+time series product properties
 */
-private void checkDisplayProperties ( PropList display_props )
-{	// "ReferenceGraph"...
+private void checkDisplayProperties ( TSProduct tsproduct, PropList displayProps )
+{	String routine = getClass().getName() + ".checkDisplayProperties";
 
 	_is_reference_graph = false;
 	_gtype = "Main:";
-	String prop_val = display_props.getValue ( "ReferenceGraph" );
-	if ( (prop_val != null) && prop_val.equalsIgnoreCase("true") ) {
+	String propVal = displayProps.getValue ( "ReferenceGraph" );
+	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
 		_is_reference_graph = true;
 		_gtype = "Ref:";
 		_interaction_mode = INTERACTION_ZOOM;
 	}
+    propVal = tsproduct.getLayeredPropValue("VisibleStart", -1, -1);
+    if ( propVal != null ) {
+        __visibleStart = null;
+        try {
+            __visibleStart = DateTime.parse(propVal);
+        }
+        catch ( Exception e ) {
+            __visibleStart = null;
+        }
+        Message.printStatus(2, routine, "Setting VisibleStart=" + __visibleStart );
+    }
+    propVal = tsproduct.getLayeredPropValue("VisibleEnd", -1, -1);
+    if ( propVal != null ) {
+        __visibleEnd = null;
+        try {
+            __visibleEnd = DateTime.parse(propVal);
+        }
+        catch ( Exception e ) {
+            __visibleEnd = null;
+        }
+        Message.printStatus(2, routine, "Setting VisibleEnd=" + __visibleEnd );
+    }
 
 	if ( _external_Image == null ) {
 		// Don't want to reset if already reset when converted from a
 		// PropList - need to clean this up?
-		_external_Image = (BufferedImage)display_props.getContents("Image");
+		_external_Image = (BufferedImage)displayProps.getContents("Image");
 		if ( _external_Image != null ) {
 			Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
 			// Disable reference time series (don't want labels in legend).
-			display_props.set ( "ReferenceTSIndex=" + -1 );
+			displayProps.set ( "ReferenceTSIndex=" + -1 );
 		}
 	}
 }
@@ -1382,7 +1252,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	// MaximizeGraphSpace - default true
 	// Graph.EnableTracker - default true
 
-	_display_props = new PropList ( "display" );
+	_displayProps = new PropList ( "display" );
 
 	// Double buffering is seldom specified.  The default is true (set in the base class)...
 	_double_buffering = true;
@@ -1394,12 +1264,12 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	// A reference graph is used for zooming and has few other features besides data...
 	prop_val = proplist.getValue ( "ReferenceGraph" );
 	if ( prop_val != null ) {
-		_display_props.set ( "ReferenceGraph=" + prop_val );
+		_displayProps.set ( "ReferenceGraph=" + prop_val );
 	}
 
 	prop_val = proplist.getValue ( "ReferenceTSIndex" );
 	if ( prop_val != null ) {
-		_display_props.set ( "ReferenceTSIndex=" + prop_val );
+		_displayProps.set ( "ReferenceTSIndex=" + prop_val );
 	}
 
 	// Image passed in when processing products in batch mode...
@@ -1408,7 +1278,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	if ( _external_Image != null ) {
 		Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
 		// Disable reference time series (don't want labels in legend).
-		_display_props.set ( "ReferenceTSIndex=" + -1 );
+		_displayProps.set ( "ReferenceTSIndex=" + -1 );
 	}
 
 	tsproduct.getPropList().setHowSet ( how_set_prev );
@@ -1444,7 +1314,7 @@ private void clearView ()
 Creates a list TSGraphDataLimis for each graph, where each object stores information for corresponding
 graphs:  the number of time series associated with the graph, the ids of the time series associated with the
 graph, and the data limits of the graph.  This is done so that the graphs
-can be rebuilt properly during a call to reinitializeGraphs().  The data is used
+can be rebuilt properly during a call to reinitializeGraphs().  The data are used
 in resetGraphDataLimits().
 */
 private List<TSGraphDataLimits> determineDataLimits()
@@ -1550,7 +1420,7 @@ throws Throwable {
 	_external_Image = null;
 	_rubber_band_color = null;
 	_tsproduct = null;
-	_display_props = null;
+	_displayProps = null;
 	_da_page = null;
 	_da_maintitle =null;
 	_da_subtitle = null;
@@ -2479,7 +2349,8 @@ public void paint ( Graphics g )
 			// This needs to be the size of the full component, NOT the drawing limits!
 			// Clean up since images can take a lot of memory...
 			_buffer = null;
-			System.gc();
+			// TODO SAM 2013-01-28 Delete following line after sufficient time has passed
+			//System.gc();
 			if ( _external_Image != null ) {
 				// Image was created external to this class...
 				if ( Message.isDebugOn ) {
@@ -2553,10 +2424,22 @@ public void paint ( Graphics g )
 			// same zoom level (tried this above but seems to work
 			// when called from here)...
 			if ( _first_paint ) {
-				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, "", _gtype + "Zooming out the first time to sync graphs." );
-				}
-				zoomOut ( false );
+                if ( Message.isDebugOn ) {
+                    Message.printDebug ( 1, routine, _gtype + "Zooming out the first time to sync graphs." );
+                }
+                // The following causes a call to paint so then _first_paint is false and the round trip
+                // back to here does not occur?
+                zoomOut ( false );
+                if ( Message.isDebugOn ) {
+                    Message.printDebug ( 1, routine, _gtype + "After call to zoomOut() __visibleStart=" +
+                        __visibleStart + " __visibleEnd=" + __visibleEnd );
+                }
+			    if ( (__visibleStart != null) && (__visibleEnd != null) ) {
+			        if ( Message.isDebugOn ) {
+			            Message.printDebug ( 1, routine, _gtype + "Zooming to initial visible extent." );
+			        }
+			        zoomToVisiblePeriod(__visibleStart, __visibleEnd, false );
+			    }
 			}
 			// Draw the titles, footers, etc.
 			drawTitles ();
@@ -2966,7 +2849,8 @@ to simply re-read the properties and rebuild all the graphs completely when majo
 @param product the TSProduct from which to read TSGraph information.  This will
 most likely be the product that's already resident in memory, but not necessarily. 
 */
-public void reinitializeGraphs(TSProduct product) {
+public void reinitializeGraphs(TSProduct product)
+{   String routine = getClass().getName() + ".reinitializeGraphs";
 	// if any graphs lack start and end dates (i.e., they're brand new
 	// and lack any time series), pull out a start and end date from any
 	// of the other graphs and use it, so that zoom outs work correctly
@@ -3017,7 +2901,7 @@ public void reinitializeGraphs(TSProduct product) {
 	
 	List<TSGraphDataLimits> v = determineDataLimits();
 	
-	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct, _display_props, _tslist, 
+	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct, _displayProps, _tslist, 
 		new GRLimits(0.0,0.0, getWidth(), getHeight()));
 	checkTSProductGraphs(_tsproduct, _tsgraphs);
 	
@@ -3079,7 +2963,7 @@ private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) 
 			vCount = graphDataLimits.getNumTimeSeries();
 			if ( vCount == tsCount) {
 				List<String> vids = graphDataLimits.getTimeSeriesIds();
-				if (stringVectorsAreEqual(ids, vids)) {
+				if (stringListsAreEqual(ids, vids)) {
 					GRLimits dataLimits = graphDataLimits.getDataLimits();
 					graph.setDataLimits(dataLimits);
 				}
@@ -3576,7 +3460,7 @@ public void setGraphDrawingLimits ()
 	GRLimits drawlim;
 	// Loop through the graphs.  If a reference graph, we should only go
 	// through once (but leave in the loop for now)...
-	String prop_value = _display_props.getValue("ReferenceGraph");
+	String prop_value = _displayProps.getValue("ReferenceGraph");
 
 	double totalHeight = _drawlim_graphs.getHeight();
 
@@ -3623,8 +3507,7 @@ public void setGraphDrawingLimits ()
 		}
 	}
 
-	// go back through and set the calculated size for all the ones that
-	// have not had it defined.
+	// Go back through and set the calculated size for all the ones that have not had it defined.
 	for (i = 0; i < nsubs; i++) {
 		if (percents[i] == -1) {
 			percents[i] = percentPerOtherGraphs;
@@ -3681,8 +3564,7 @@ INTERACTION_ZOOM, or INTERACTION_NONE.
 */
 public void setInteractionMode ( int mode )
 {	if ( (mode == INTERACTION_NONE) || (mode == INTERACTION_SELECT) ||
-		(mode == INTERACTION_ZOOM) || (mode == INTERACTION_EDIT)) 
- {
+		(mode == INTERACTION_ZOOM) || (mode == INTERACTION_EDIT)) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, _gtype + "TSGraphJComponent.setInteractionMode",
 			"Set interaction mode to " + mode );
@@ -3766,7 +3648,7 @@ equalsIgnoreCase()) in the same order, or are both null.  Returns false if only
 one is null or the sizes of the Vectors are different or they don't contain 
 the same strings, element-by-element.
 */
-private boolean stringVectorsAreEqual(List<String> v1, List<String> v2) {
+private boolean stringListsAreEqual(List<String> v1, List<String> v2) {
 	if (v1 == null && v2 == null) {
 		return true;
 	}
@@ -3936,18 +3818,56 @@ public void zoomOut ( boolean re_draw )
 }
 
 /**
+Zoom to the specified period for all the graphs and optionally redraw.  It is assumed that zoomOut() has
+already been called to compute the maximum limits.
+@param re_draw If true, redraw the component after zooming.  If false, just set
+the data limits in the graphs but do not redraw (a redraw may occur elsewhere
+after this method is called).
+*/
+public void zoomToVisiblePeriod ( DateTime visibleStart, DateTime visibleEnd, boolean re_draw )
+{   int size = _tsgraphs.size();
+    // Loop through the zoom levels and zoom each group of graphs to the
+    // maximum data extent within the zoom group.
+
+    TSGraph tsgraph;
+    int zoom_group = 0;
+    int num_zoom_groups = _tsproduct.getNumZoomGroups();
+    for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
+        // Loop through and set the data limits for graph in the zoom group to the specified period
+        // (leave the value axis the same)...
+        for ( int isub = 0; isub < size; isub++ ) {
+            zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
+            if ( zoom_group != (iz + 1) ) {
+                continue;
+            }
+            tsgraph = _tsgraphs.get(isub);
+            if (tsgraph.getNumTS() > 0) {
+                GRLimits limits = tsgraph.getDataLimits();
+                // Set the period
+                limits.setLeftX(visibleStart.toDouble());
+                limits.setRightX(visibleEnd.toDouble());
+                tsgraph.setDataLimits(limits);
+            }
+        }
+    }
+    if ( re_draw )  {
+        // Refresh the component...
+        refresh();
+    }
+}
+
+/**
  * Controls display of cross hair cursor on graph.
  * @param display If true displays cross hair
  */
 public void setDisplayCursor(boolean display)
 {
-  _displayCrossHairCursor = display;
+    _displayCrossHairCursor = display;
 }
 
 public void setEditor(TSGraphEditor tsGraphEditor)
 {
-_tsGraphEditor = tsGraphEditor;
-  
+    _tsGraphEditor = tsGraphEditor;
 }
 
 }
