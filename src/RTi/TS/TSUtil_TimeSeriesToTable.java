@@ -95,8 +95,10 @@ table is expected to be empty (no rows).
 @param tableTSIDFormat format of TSID corresponding to tableTSIDColumn
 @param includeMissingValues indicates whether missing values should be output in single-column output (setting to
 false can be advantageous when processing sparse time series)
-@param valueColumns data columns (0+) corresponding to the correct column names for the time series; if a single column
-is output, then the first array position will be used for each time series
+@param valueColumns column numbers (0+) corresponding to the correct column names for the time series data values;
+if a single column is output, then the first array position will be used for each time series
+@param flagColumns column numbers (0+) corresponding to the correct column names for the time series data flags;
+if a single column is output, then the first array position will be used for each time series
 @param dataRow table data row (0+) corresponding to first date/time to be transferred.
 @param outputStart first date/time to be transferred (if null, output all)
 @param outputEnd last date/time to be transferred (if null, output all)
@@ -302,7 +304,10 @@ public void timeSeriesToTable ()
             // Iterate through the time series
             for ( its = 0; its < tsListSize; its++ ) {
                 ts = __tsList.get(its);
-                flagColumn = __flagColumns[its];
+                flagColumn = -1;
+                if ( __flagColumns != null ) {
+                    flagColumn = __flagColumns[its];
+                }
                 ts.getDataPoint(date,tsdata);
                 value = tsdata.getDataValue();
                 // Each time series is in a separate column
