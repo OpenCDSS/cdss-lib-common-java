@@ -10846,6 +10846,7 @@ for those values.  If the start date or end date are null, the start and end dat
 @param end_date Date corresponding to the last date of the returned array.
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date )
+throws InvalidTimeIntervalException
 {	// Call the version that takes the month and pass a zero month
 	// indicating that all months should be processed...
 	return toArray ( ts, start_date, end_date, 0 );
@@ -10864,6 +10865,7 @@ dates of the time series are used.  This is a utility routine mainly used by oth
 @param month_index Month of interest (1=Jan, 12=Dec).  If zero, process all months.
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int month_index )
+throws InvalidTimeIntervalException
 {	int [] month_indices = null;
 	if ( month_index != 0 ) {
 		month_indices = new int[1];
@@ -10887,6 +10889,7 @@ dates of the time series are used.  This is a utility routine mainly used by oth
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int month_index,
     boolean includeMissing )
+throws InvalidTimeIntervalException
 {   int [] month_indices = null;
     if ( month_index != 0 ) {
         month_indices = new int[1];
@@ -10908,6 +10911,7 @@ dates of the time series are used.  This is a utility routine mainly used by oth
 @param monthIndices Months of interest (1=Jan, 12=Dec).  If null or an empty array, process all months.
 */
 public static double[] toArray ( TS ts, DateTime startDate, DateTime endDate, int [] monthIndices )
+throws InvalidTimeIntervalException
 {
     return toArray ( ts, startDate, endDate, monthIndices, true );
 }
@@ -10928,10 +10932,14 @@ other versions of this routine.
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] month_indices,
     boolean includeMissing )
+throws InvalidTimeIntervalException
 {
-    return toArray ( ts, start_date, end_date, month_indices, includeMissing, true, null );
+    return toArray ( ts, start_date, end_date, month_indices, includeMissing, true, null,
+        TSToArrayReturnType.DATA_VALUE );
 }
 
+// TODO SAM 2013-02-04 Might want this to include a window, rather than just included months, in order
+// to get seasonal data.
 /**
 Return an array containing the data values of the time series for the specified
 period.  If the start date or end date are outside the period of
@@ -10952,9 +10960,13 @@ other time series (this functionality is used to extract data for regression ana
 @param pairedTS a second time series used to extract paired (or non-paired) data samples; if null then
 the time series will not be checked as a constraint regardless of the "matchOtherNonmissing" value;
 this capability is NOT availble for irregular time series
+@param returnType indicates which value should be returned in the array; requesting the date/time will return
+DateTime.getYear() for Year interval time series, DateTime.getAbsoluteMonth() for Month interval time series,
+DateTime.getAbsoluteDay() for Day interval time series, and will throw an exception for other intervals.
 */
 public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, int [] includeMonths,
-    boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS )
+    boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS, TSToArrayReturnType returnType )
+throws InvalidTimeIntervalException
 {
     if ( pairedTS != null ) {
         if ( !TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
@@ -10980,6 +10992,17 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 	}
 	else {
 	    size = calculateDataSize ( start, end, interval_base, interval_mult );
+	}
+	if ( returnType == null ) {
+	    returnType = TSToArrayReturnType.DATA_VALUE;
+	}
+	if ( returnType == TSToArrayReturnType.DATE_TIME ) {
+	    // Only 1Year, 1Month, 1Day intervals are supported
+	    if ( (interval_mult != 1) || ((interval_base != TimeInterval.YEAR) &&
+	        (interval_base != TimeInterval.YEAR) && (interval_base != TimeInterval.YEAR)) ) {
+	        throw new InvalidTimeIntervalException(
+	            "Interval must be Year, Month, or Day (no multiplier) to return date/time as array.");
+	    }
 	}
 
     boolean [] includeMonthsMask = new boolean[12];
@@ -11029,7 +11052,20 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 				if ( includeMonthsMask[month -1] ) {
 	                value = tsdata.getDataValue ();
 	                if ( includeMissing || !ts.isDataMissing(value) ) {
-	                    dataArray[count++] = value;
+	                    if ( returnType == TSToArrayReturnType.DATA_VALUE ) {
+	                        dataArray[count++] = value;
+	                    }
+	                    else if ( returnType == TSToArrayReturnType.DATE_TIME ) {
+	                        if ( interval_base == TimeInterval.YEAR ) {
+	                            dataArray[count++] = date.getYear();
+	                        }
+	                        else if ( interval_base == TimeInterval.MONTH ) {
+                                dataArray[count++] = date.getAbsoluteMonth();
+                            }
+                            else if ( interval_base == TimeInterval.DAY ) {
+                                dataArray[count++] = date.getAbsoluteDay();
+                            }
+	                    }
 	                }
 				}
 			}
@@ -11080,7 +11116,20 @@ public static double[] toArray ( TS ts, DateTime start_date, DateTime end_date, 
 		    }
 		    // OK to transfer the value...
 			if ( doTransfer ) {
-                dataArray[count++] = value;
+			    if ( returnType == TSToArrayReturnType.DATA_VALUE ) {
+			        dataArray[count++] = value;
+			    }
+                else if ( returnType == TSToArrayReturnType.DATE_TIME ) {
+                    if ( interval_base == TimeInterval.YEAR ) {
+                        dataArray[count++] = date.getYear();
+                    }
+                    else if ( interval_base == TimeInterval.MONTH ) {
+                        dataArray[count++] = date.getAbsoluteMonth();
+                    }
+                    else if ( interval_base == TimeInterval.DAY ) {
+                        dataArray[count++] = date.getAbsoluteDay();
+                    }
+                }
 			}
 		}
 	}
@@ -11111,6 +11160,7 @@ dates of the time series are used.
 @param monthIndex Month of interest (1=Jan, 12=Dec).  If zero, process all months.
 */
 public static double[] toArrayByMonth ( TS ts, DateTime start_date, DateTime end_date, int monthIndex )
+throws InvalidTimeIntervalException
 {	return toArray ( ts, start_date, end_date, monthIndex );
 }
 
@@ -11129,6 +11179,7 @@ dates of the time series are used.
 */
 public static double[] toArrayByMonth ( TS ts, DateTime start_date, DateTime end_date, int monthIndex,
     boolean includeMissing )
+throws InvalidTimeIntervalException
 {   return toArray ( ts, start_date, end_date, monthIndex, includeMissing );
 }
 
@@ -11156,7 +11207,6 @@ which values should be extracted (the other date/time parts are ignored).
 */
 public static TSData[] toArrayForDateTime ( TS ts, DateTime startDate, DateTime endDate,
     DateTime datetimeRequested, boolean includeMissing )
-throws InvalidTimeIntervalException
 {   // Get month and data for the extraction
     int monthRequested = datetimeRequested.getMonth();
     int dayRequested = datetimeRequested.getDay();
@@ -11324,6 +11374,7 @@ dates of the time series are used.
 @param end_date Date corresponding to the last date of the returned array.
 */
 public static double[] toArrayNoMissing ( TS ts, DateTime start_date, DateTime end_date )
+throws InvalidTimeIntervalException
 {   // Call the version that takes the month indices but pass a null indicating to process all months...
     return toArray ( ts, start_date, end_date, null, false );
 }
