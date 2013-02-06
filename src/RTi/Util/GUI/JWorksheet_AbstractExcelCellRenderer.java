@@ -185,7 +185,7 @@ boolean isSelected, boolean hasFocus, int row, int column)
 			str = StringUtil.formatString(f.floatValue(), format);
 		}
 	}
-    if (value instanceof Long) {
+	else if (value instanceof Long) {
         Long l = (Long)value;
         if ( (value == null) || DMIUtil.isMissing(l.longValue())) {
             str = "";
