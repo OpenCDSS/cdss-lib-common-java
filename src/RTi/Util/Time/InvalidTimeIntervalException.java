@@ -1,22 +1,10 @@
-//------------------------------------------------------------------------------
-// InvalidTimeIntervalException - an Exception to be thrown when a TimeInterval
-//					string is invalid
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 2006-04-25	Steven A. Malers, RTi	Initial version.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.Time;
 
 /**
 An InvalidTimeIntervalException should be thrown when a TimeInterval string
-is invalid (e.g., when it cannot be parsed).
+is invalid (e.g., when it cannot be parsed or is not supported by a method).
 */
-public class InvalidTimeIntervalException extends Exception
+public class InvalidTimeIntervalException extends RuntimeException
 {
 
 public InvalidTimeIntervalException ( String message )
