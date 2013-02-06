@@ -243,8 +243,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Identifier:"),
 			0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField identifier_JTextField = new JTextField(
-			__ts.getIdentifierString(), 30);
+	JTextField identifier_JTextField = new JTextField(__ts.getIdentifierString(), 50);
 	identifier_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, identifier_JTextField,
 			1, y, 6, 1, 0.0, 0.0,
@@ -264,14 +263,14 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Alias:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField alias_JTextField = new JTextField( __ts.getAlias(), 30 );
+	JTextField alias_JTextField = new JTextField( __ts.getAlias(), 50 );
 	alias_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, alias_JTextField,
 			1, y, 2, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	alias_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Sequence Number:"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Sequence (ensemble trace) number:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField seqnum_JTextField = new JTextField(
