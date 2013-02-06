@@ -316,6 +316,12 @@ public enum TSStatisticType
      * Total of values in the sample.
      */
 	TOTAL ( "Total" ),
+    /**
+     * Trend represented as ordinary least squares line of best fit.  Output statistics are
+     * TrendOLS_Intercept, TrendOLS_Slope, and TrendOLS_R2.  If analyzing time series values over time,
+     * the X-coordinate (time) generally is computed as year, absolute month, or absolute day.
+     */
+    TREND_OLS ( "TrendOLS" ),
 	/**
 	 * Sample variance.
 	 */
@@ -386,6 +392,9 @@ public String toString() {
  */
 public static TSStatisticType valueOfIgnoreCase(String name)
 {
+    if ( name == null ) {
+        return null;
+    }
     TSStatisticType [] values = values();
     // Legacy conversions
     if ( name.equalsIgnoreCase("COUNT_GE") ) {
