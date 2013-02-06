@@ -225,16 +225,14 @@ public static int absoluteDay ( int year, int month, int day )
 		leap = 1;
 	}
 	int aday =
-		day					// day of month
-		+ numDaysInMonths (1, year, (month-1))	// days in prev months
-		+ 365*year 				// days in prev years
-		+ year/4 				// 1 if leap year
-		- year/100 				// -3 every 400 years
-		+ year/400 				// 1 every 400 years
-		- ABSOLUTE_DAY_DATUM 			// Jan 1, 1800
-		- leap;					// cancel /4 term - 
-							// will be added by
-							// numDaysInMonths
+		day // day of month
+		+ numDaysInMonths (1, year, (month-1)) // days in previous months
+		+ 365*year // days in previous years
+		+ year/4 // 1 if leap year
+		- year/100 // -3 every 400 years
+		+ year/400 // 1 every 400 years
+		- ABSOLUTE_DAY_DATUM // Jan 1, 1800
+		- leap; // cancel /4 term - will be added by numDaysInMonths
 	return aday;
 }
 
