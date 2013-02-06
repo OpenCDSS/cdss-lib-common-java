@@ -246,17 +246,19 @@ public void addToComments( List<String> comments )
 
 /**
 Adds a record to the list of TableRecords maintained in the DataTable.
-@param new_record new record to be added.
+@param newRecord new record to be added.
 @exception Exception when the number of fields in new_record is not equal to the
 number of fields in the current TableField declaration.
+@return the new record (allows command chaining)
 */
-public void addRecord ( TableRecord new_record )
+public TableRecord addRecord ( TableRecord newRecord )
 throws Exception
 {	int num_table_fields = _table_fields.size();
-	int num_new_record_fields = new_record.getNumberOfFields();
+	int num_new_record_fields = newRecord.getNumberOfFields();
 	_add_record_called = true;
 	if ( num_new_record_fields == num_table_fields ) {
-		_table_records.add ( new_record );
+		_table_records.add ( newRecord );
+		return newRecord;
 	}
 	else {
         throw new Exception ( "Number of fields in the new record (" +
@@ -807,6 +809,7 @@ throws Exception
 	return (_table_records.get(record_index));
 }
 
+// TODO SAM 2013-02-05 Need a version that takes the column number, so column lookups don't need to happen
 /**
 Return the TableRecord for the given column and column value.  If multiple records are matched
 the first record is returned.
