@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Math.MathUtil;
+import RTi.Util.Math.Regression;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
@@ -387,6 +388,23 @@ throws Exception
         setStatisticResult ( new Double(auto) );
         return;
     }
+    else if ( statisticType == TSStatisticType.TREND_OLS ) {
+        // Convert all the values to an array and then call the math method
+        double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
+        double [] dts = TSUtil.toArray ( ts, getAnalysisStart(), getAnalysisEnd(),
+            null, // No month list
+            false, // Don't include missing
+            false, // Don't match paired time series non-missing
+            null, // No paired time series
+            TSToArrayReturnType.DATE_TIME);
+        Regression regress = MathUtil.regress(dts, values,
+            false, // Do not check for missing values (they are already removed)
+            0.0, // Missing X, not used
+            0.0, // Missing Y, not used
+            null ); // No assigned Y intercept
+        setStatisticResult ( regress );
+        return;
+    }
     else if ( statisticType == TSStatisticType.LAST ) {
         // Get the last non-missing value in the time series
         if ( analysisEnd == null ) {
@@ -599,6 +617,7 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
+        (statisticType == TSStatisticType.TREND_OLS) ||
         (statisticType == TSStatisticType.VARIANCE) ) {
         return 0;
     }
@@ -634,6 +653,9 @@ public Class getStatisticDataClass ()
         (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
         (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
         return Integer.class;
+    }
+    else if ( t == TSStatisticType.TREND_OLS ) {
+        return Regression.class;
     }
     else {
         return Double.class;
@@ -706,6 +728,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.SURPLUS_SEQ_MAX );
     choices.add ( TSStatisticType.SURPLUS_SEQ_MEAN );
     choices.add ( TSStatisticType.SURPLUS_SEQ_MIN );
+    choices.add ( TSStatisticType.TREND_OLS );
     choices.add ( TSStatisticType.VARIANCE );
     return choices;
 }
@@ -718,8 +741,8 @@ public static List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
     List<String> stringChoices = new Vector();
-    for ( int i = 0; i < choices.size(); i++ ) {
-        stringChoices.add ( "" + choices.get(i) );
+    for ( TSStatisticType choice : choices ) {
+        stringChoices.add ( "" + choice );
     }
     return stringChoices;
 }
@@ -774,6 +797,14 @@ Set the statistic result, for integer statistics like count.
 private void setStatisticResult ( int statisticResult )
 {
     __statisticResult = new Integer(statisticResult);
+}
+
+/**
+Set the statistic result for regression analysis.
+*/
+private void setStatisticResult ( Regression statisticResult )
+{
+    __statisticResult = statisticResult;
 }
 
 /**
