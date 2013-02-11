@@ -47,6 +47,16 @@ End of analysis (null to analyze all).
 private DateTime __analysisEnd = null;
 
 /**
+Starting date/time for analysis window, within a year.
+*/
+private DateTime __analysisWindowStart = null;
+
+/**
+Ending date/time for analysis window, within a year.
+*/
+private DateTime __analysisWindowEnd = null;
+
+/**
 Value as input to analysis, depending on checkType.
 */
 private Double __value1 = null;
@@ -63,14 +73,28 @@ private Double __value3 = null;
 
 /**
 Constructor.
+@param ts time series to analyze
+@param statistic statistic to calculate
+@param analysisStart Starting date/time for analysis, in precision of the original data.
+@param analysisEnd Ending date for analysis, in precision of the original data.
+@param analysisWindowStart Starting date/time (year is ignored) for analysis within the year,
+in precision of the original data.  If null, the entire year of data will be analyzed.
+@param analysisWindowEnd Ending date (year is ignored) for analysis within the year,
+in precision of the original data.  If null, the entire year of data will be analyzed.
+@param value1 first additional value needed as input to compute the statistic
+@param value2 second additional value needed as input to compute the statistic
+@param value3 third additional value needed as input to compute the statistic
 */
 public TSUtil_CalculateTimeSeriesStatistic ( TS ts, TSStatisticType statistic,
-        DateTime analysisStart, DateTime analysisEnd, Double value1, Double value2, Double value3 )
+    DateTime analysisStart, DateTime analysisEnd, DateTime analysisWindowStart, DateTime analysisWindowEnd,
+    Double value1, Double value2, Double value3 )
 {   // Save data members.
     __ts = ts;
     __statisticType = statistic;
     __analysisStart = analysisStart;
     __analysisEnd = analysisEnd;
+    __analysisWindowStart = analysisWindowStart;
+    __analysisWindowEnd = analysisWindowEnd;
     __value1 = value1;
     __value2 = value2;
     __value3 = value3;
@@ -364,6 +388,13 @@ throws Exception
     double value3 = (getValue3() == null) ? -999.0 : getValue3().doubleValue();
     TS ts = getTimeSeries();
     DateTime analysisEnd = getAnalysisEnd();
+    DateTime analysisWindowStart = getAnalysisWindowStart();
+    DateTime analysisWindowEnd = getAnalysisWindowEnd();
+    boolean haveAnalysisWindow = false;
+    if ( (analysisWindowStart != null) && (analysisWindowEnd != null) ) {
+        haveAnalysisWindow = true;
+        // TODO SAM 2013-02-10 Throw exception below if analysis window is specified but is not supported
+    }
     // If statistic takes more work, call other supporting code and then return
     // Statistics computed (further below) also store the date/time corresponding to a statistic value,
     // whereas the ones immediately below don't utilize this information.
@@ -371,6 +402,9 @@ throws Exception
         if ( !(ts instanceof DayTS) ) {
             throw new InvalidParameterException ( "Attempting to calculate statistic \"" + statisticType +
                 "\" on other than daily time series (TSID=" + ts.getIdentifierString() + ")");
+        }
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
         NqYYFrequencyAnalysis nqyy = new NqYYFrequencyAnalysis ( (DayTS)ts, (int)(value1 + .01), value2,
             getAnalysisStart(), getAnalysisEnd(), (int)(value3 + .01) );
@@ -382,6 +416,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.LAG1_AUTO_CORRELATION ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double auto = MathUtil.lagAutoCorrelation(values.length,values,1);
@@ -389,6 +426,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.TREND_OLS ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double [] dts = TSUtil.toArray ( ts, getAnalysisStart(), getAnalysisEnd(),
@@ -406,6 +446,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.LAST ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Get the last non-missing value in the time series
         if ( analysisEnd == null ) {
             analysisEnd = ts.getDate2();
@@ -417,6 +460,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.MEAN ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double mean = MathUtil.mean(values);
@@ -424,6 +470,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.SKEW ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double skew = MathUtil.skew(values.length, values);
@@ -431,6 +480,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.STD_DEV ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double stdDev = MathUtil.standardDeviation(values);
@@ -438,6 +490,9 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.VARIANCE ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Convert all the values to an array and then call the math method
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double var = MathUtil.variance(values);
@@ -450,6 +505,9 @@ throws Exception
         (statisticType == TSStatisticType.SURPLUS_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_MIN) ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateDeficitSurplusStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
@@ -467,19 +525,26 @@ throws Exception
         (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateDeficitSurplusSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
     else if ( statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
         // Get period for the specific time series
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateMissingSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
     
-    // Else, iterate through the time series and do the work here
+    // Else, iterate through the time series and do the work below - typically "search" or accumulation
+    // type statistics rather than analyzing a sample array in code supported above
     TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
     TSData data = null;
 
@@ -500,9 +565,27 @@ throws Exception
     double statisticResult = ts.getMissing();
     DateTime statisticResultDateTime = null;
     boolean statisticCalculated = false;
+    DateTime analysisWindowStartForIterator = null;
+    DateTime analysisWindowEndForIterator = null;
     while ( (data = tsi.next()) != null ) {
         // Analyze the value
         date = tsi.getDate();
+        if ( haveAnalysisWindow ) {
+            // If the iterator window date/times are null, initialize to get precision, etc.
+            if ( analysisWindowStartForIterator == null ) {
+                analysisWindowStartForIterator = new DateTime(analysisWindowStart);
+                analysisWindowStartForIterator.setPrecision(date.getPrecision());
+                analysisWindowEndForIterator = new DateTime(analysisWindowEnd);
+                analysisWindowEndForIterator.setPrecision(date.getPrecision());
+            }
+            // Always set the year since the other parts will be initialized
+            analysisWindowStartForIterator.setYear(date.getYear());
+            analysisWindowEndForIterator.setYear(date.getYear());
+            // Check to make sure the date/time is in the analysis window
+            if ( date.lessThan(analysisWindowStartForIterator) || date.greaterThan(analysisWindowEndForIterator) ) {
+                continue;
+            }
+        }
         tsvalue = data.getDataValue();
         isMissing = ts.isDataMissing(tsvalue);
         if ( isMissing ) {
@@ -615,6 +698,24 @@ Return the analysis start date/time.
 public DateTime getAnalysisStart ()
 {
     return __analysisStart;
+}
+
+/**
+Return the analysis window end date/time.
+@return the analysis window end date/time.
+*/
+private DateTime getAnalysisWindowEnd ()
+{
+    return __analysisWindowEnd;
+}
+
+/**
+Return the analysis window start date/time.
+@return the analysis window start date/time.
+*/
+private DateTime getAnalysisWindowStart ()
+{
+    return __analysisWindowStart;
 }
 
 /**
