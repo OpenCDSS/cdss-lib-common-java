@@ -2282,6 +2282,7 @@ throws Exception {
 	    // Log and rethrow
 	    Message.printWarning(3, routine, "Unexpected error writing delimited file (" + e + ")." );
 	    Message.printWarning(3, routine, e);
+	    throw ( e );
 	}
 	finally {
     	out.flush();
