@@ -828,6 +828,10 @@ protected void applyClicked() {
 		_tsview_gui.refresh ();
 		_ndirty = 0;
 	}
+	//else {
+	//    String routine = getClass().getName() + ".applyClicked";
+	//    Message.printStatus(2,routine,"Nothing is updated - no need to redraw.");
+	//}
 	_graph_JComboBox.select(selected);
 	getTSViewJFrame().getViewGraphJFrame().getMainJComponent().reinitializeGraphs(_tsproduct);
 	if (getTSViewJFrame().getViewGraphJFrame().getReferenceGraph() != null) {
@@ -5546,12 +5550,10 @@ private void openGUI ( boolean mode )
 	JPanel button_JPanel = new JPanel ();
 	button_JPanel.setLayout ( new FlowLayout(FlowLayout.CENTER) );
 
-	_apply_JButton = new SimpleJButton("Apply",
-		"TSProductJFrame.Apply",this);
+	_apply_JButton = new SimpleJButton("Apply", "TSProductJFrame.Apply",this);
 	button_JPanel.add ( _apply_JButton );
 
-	_close_JButton = new SimpleJButton("Close",
-		"TSProductJFrame.Close",this);
+	_close_JButton = new SimpleJButton("Close", "TSProductJFrame.Close",this);
 	button_JPanel.add ( _close_JButton );
 
 	getContentPane().add ( "South", button_JPanel );
@@ -5559,7 +5561,7 @@ private void openGUI ( boolean mode )
 
 	_graph_graphtype_JComboBox.addItemListener(this);
 
-	// select these other graph types in order that the packing takes into
+	// Select these other graph types in order that the packing takes into
 	// account their components.
 	
 	_graph_graphtype_JComboBox.select("XY-Scatter");

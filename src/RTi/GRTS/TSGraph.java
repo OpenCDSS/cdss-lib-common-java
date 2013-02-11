@@ -840,6 +840,8 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		// Should never happen...
 		__graphType = TSGraphType.LINE;
 	}
+	// TODO SAM 2013-02-06 maybe should put some of the other code in the following call?
+	checkInternalProperties ();
 
 	if (_is_reference_graph) {
 		__graphType = TSGraphType.LINE;
@@ -1213,6 +1215,8 @@ private void checkInternalProperties ()
             __leftyDirection = GRAxisDirectionType.NORMAL;
         }
     }
+    //String routine = getClass().getName() + ".checkInternalProperties";
+    //Message.printStatus(2, routine, "LeftYAxisDirection=" + __leftyDirection );
 
 	// "LeftYAxisLabelPrecision" = _lefty_precision;
 
@@ -1703,18 +1707,18 @@ protected void computeDataLimits ( boolean max )
 			}
 			else {
 				if (__graphType == TSGraphType.XY_SCATTER) {
-				    	_max_data_limits = new GRLimits(_data_limits);
+				    _max_data_limits = new GRLimits(_data_limits);
 				}
 				else {
     				GRLimits tempLimits = new GRLimits( _max_start_date.toDouble(), _tslimits.getMinValue(),
-    				        _max_end_date.toDouble(),_tslimits.getMaxValue() );
+    				    _max_end_date.toDouble(),_tslimits.getMaxValue() );
     				_max_data_limits = new GRLimits(tempLimits);
 				}
 			}
 
 			if (Message.isDebugOn) {
-				Message.printDebug ( 1, routine, _gtype	+ "Initial computed _max_data_limits are " +
-					_max_data_limits );
+				Message.printDebug ( 1, routine, _gtype	+
+				    "Initial computed _max_data_limits (including limit properties) are " + _max_data_limits );
 			}
 		}
 	}
@@ -1896,13 +1900,15 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 	if ( !_is_reference_graph ) {
+	    GRLimits dataLimits = new GRLimits(_data_limits);
 	    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
-	        GRLimits dataLimits = new GRLimits(_data_limits);
-	        _da_graph.setDataLimits ( dataLimits.reverseY() );
+	        dataLimits.reverseY();
 	    }
-	    else {
-	        _da_graph.setDataLimits ( _data_limits );
+	    if ( Message.isDebugOn ) {
+	        Message.printDebug ( 1, routine, _gtype + "Y-axis labels (LeftYAxisDirection=" + __leftyDirection +
+	            ") resulted in data limits " + dataLimits );
 	    }
+	    _da_graph.setDataLimits ( dataLimits );
 	}
 	int size = _ylabels.length;
 	int i = 0;
@@ -2687,9 +2693,9 @@ private void drawAnnotations(boolean overGraph) {
 	String s = null;
 	String type = null;
 	String points = null;
-	List pointsV = null;
+	List<String> pointsV = null;
 	String point = null;
-	List pointV = null;
+	List<String> pointV = null;
 	boolean valid = false;
 	boolean niceSymbols = true;
 	boolean isSymbol = false;
@@ -2809,7 +2815,7 @@ private void drawAnnotations(boolean overGraph) {
 		}		
 	}
 
-	// remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
+	// Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
 	GRDrawingAreaUtil.setClip(_da_graph, (Shape)null);
 	GRDrawingAreaUtil.setClip(_da_graph, clip);	
 }
@@ -2887,6 +2893,11 @@ private void drawAxesFront ()
 	fontname = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontName", _subproduct, -1, false );
 	fontsize = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontSize", _subproduct, -1, false );
 	fontstyle = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontStyle", _subproduct, -1, false );
+	String yaxisDir = _tsproduct.getLayeredPropValue ( "LeftYAxisDirection", _subproduct, -1, false );
+    boolean yaxisDirReverse = false;
+    if ( (yaxisDir != null) && yaxisDir.equalsIgnoreCase("" + GRAxisDirectionType.REVERSE) ) {
+        yaxisDirReverse = true;
+    }
 	GRDrawingAreaUtil.setFont ( _da_lefty_label, fontname, fontstyle, StringUtil.atod(fontsize) );
 	GRDrawingAreaUtil.setColor ( _da_lefty_label, GRColor.black );
 	if ( log_y ) {
@@ -2956,6 +2967,10 @@ private void drawAxesFront ()
 		double tic_height = 0.0;	// Height of major tic marks
 		yt[0] = _ylabels[0];
 		yt2[0] = _ylabels[0];
+	    if ( yaxisDirReverse ) {
+	        yt[0] = _ylabels[_ylabels.length - 1];
+	        yt2[0] = yt[0];
+	    }
 		// Figure out the y-positions and tic height (same regardless of intervals being used for labels)...
 		if ( log_y ) {
 			// Need to make sure the line is nice length!
@@ -2965,8 +2980,16 @@ private void drawAxesFront ()
 		}
 		else {
 		    tic_height = _data_limits.getHeight()*.02;
-			yt[1] = yt[0] + tic_height;
-			yt2[1] = yt2[0] + tic_height/2.0;
+		    if ( yaxisDirReverse ) {
+		        // Reverse Y axis orientation
+                yt[1] = yt[0] - tic_height;
+                yt2[1] = yt2[0] - tic_height/2.0;
+		    }
+		    else {
+		        // Normal Y axis orientation
+    			yt[1] = yt[0] + tic_height;
+    			yt2[1] = yt2[0] + tic_height/2.0;
+		    }
 		}
 		for ( int i = 0; i < _xlabels.length; i++ ) {
 			xt[0] = xt[1] = _xlabels[i];
@@ -3787,8 +3810,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	/* Can uncomment for debug purposes on start and end dates 
 	Message.printStatus(2, "",
 	"----------------------------------------------------------");
-	String tsStatus = "TS:" + (ts.getIdentifier()).getIdentifier() +
-	"    GRAPH_TYPE:" + _gtype;
+	String tsStatus = "TS:" + (ts.getIdentifier()).getIdentifier() + " GRAPH_TYPE:" + _gtype;
 	String tsInfo   = "DIFF:" + diff.toString() + "  Interval:" +
 	ts.getDataIntervalBase() + "   Mult:" + ts.getDataIntervalMult();
 	Message.printStatus(2, "", tsInfo);
@@ -4972,6 +4994,11 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	String fontname = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontName", _subproduct, -1, false );
 	String fontsize = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontSize", _subproduct, -1, false );
 	String fontstyle = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFontStyle", _subproduct, -1, false );
+	String yaxisDir = _tsproduct.getLayeredPropValue ( "LeftYAxisDirection", _subproduct, -1, false );
+	boolean yaxisDirReverse = false;
+	if ( (yaxisDir != null) && yaxisDir.equalsIgnoreCase("" + GRAxisDirectionType.REVERSE) ) {
+	    yaxisDirReverse = true;
+	}
 	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
 
 	// This logic for date labels ignores the _xlabels array that was used
@@ -4980,17 +5007,21 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	// layers of date labels is shown with major (and possibly minor) tic marks.
 
 	DateTime start = null, label_date = null;
-	int buffer = 6;			// 2*Pixels between labels (for readability)
-	int label_width = 0;		// Width of a sample label.
-	int label0_devx, label1_devx;	// X device coordinates for adjacent test labels.
-	double[] xt = new double[2];	// Major ticks
-	double[] xt2 = new double[2];	// Minor ticks
-	double[] yt = new double[2];	// Major ticks
-	double[] yt2 = new double[2];	// Minor ticks
-	int label_spacing = 0;		// Spacing of labels, center to center.
-	double tic_height = 0.0;	// Height of major tic marks
+	int buffer = 6; // 2*Pixels between labels (for readability)
+	int label_width = 0; // Width of a sample label.
+	int label0_devx, label1_devx; // X device coordinates for adjacent test labels.
+	double[] xt = new double[2]; // Major ticks
+	double[] xt2 = new double[2]; // Minor ticks
+	double[] yt = new double[2]; // Major ticks
+	double[] yt2 = new double[2]; // Minor ticks
+	int label_spacing = 0; // Spacing of labels, center to center.
+	double tic_height = 0.0; // Height of major tic marks
 	yt[0] = _ylabels[0];
 	yt2[0] = _ylabels[0];
+	if ( yaxisDirReverse ) {
+	    yt[0] = _ylabels[_ylabels.length - 1];
+	    yt2[0] = yt[0];
+	}
 	// Figure out the y-positions and tic height (same regardless of intervals being used for labels)...
 	if (log_y) {
 		// Need to make sure the line is nice length!
@@ -5005,8 +5036,16 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	}
 	else {
 	    tic_height = _data_limits.getHeight()*.02;
-		yt[1] = yt[0] + tic_height;
-		yt2[1] = yt2[0] + tic_height/2.0;
+	    if ( yaxisDirReverse ) {
+	        // Reverse y axis direction so tics will properly be at bottom where labels are
+            yt[1] = yt[0] - tic_height;
+            yt2[1] = yt2[0] - tic_height/2.0;
+	    }
+	    else {
+	        // Normal y axis direction so tics will be at bottom
+    		yt[1] = yt[0] + tic_height;
+    		yt2[1] = yt2[0] + tic_height/2.0;
+	    }
 	}
 	if ( __graphType == TSGraphType.PERIOD ) {
 		// Reversed axes...
@@ -6701,7 +6740,6 @@ public void paint ( Graphics g )
 	// Now set the drawing limits based on the current size of the device.
 
 	setDrawingLimits ( _drawlim_page );
-
 
 	// If the graph type has changed, redo the data analysis.
 	// Currently the Properties interface does not allow the graph type to
