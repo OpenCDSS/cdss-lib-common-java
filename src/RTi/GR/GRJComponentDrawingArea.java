@@ -390,7 +390,7 @@ public void drawAnnotation(PropList p) {
 			return;
 		}
 
-		List points = StringUtil.breakStringList(propVal, ",", 0);
+		List<String> points = StringUtil.breakStringList(propVal, ",", 0);
 		if (points.size() != 4) {
 			Message.printWarning(2, "drawAnnotation", "Invalid points declaration:"
 				+ " " + propVal + ".  There must be 4 points in the form 'X1,X2,Y1,Y2'.");
@@ -437,14 +437,14 @@ public void drawAnnotation(PropList p) {
 			// The simple case -- this is how annotations have 
 			// always been defined, as a set of Data or Percent pints.
 			try {
-				__xs[0] = new Double(((String)points.get(0))).doubleValue();
+				__xs[0] = new Double((points.get(0))).doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(3, "drawAnnotation", "Invalid X1 value: " + points.get(0));
 				return;
 			}
 			try {
-				__xs[1] = new Double( ((String)points.get(2))).doubleValue();
+				__xs[1] = new Double( (points.get(2))).doubleValue();
 			}
 			catch (Exception e) {
 				Message.printWarning(2, "drawAnnotation", "Invalid X2 value: " + points.get(2));
@@ -1121,6 +1121,20 @@ boolean yAxisPercent, boolean off) {
 	else {
 		tempY = __ys[0];
 	}
+	
+    boolean yInDa = false; // Is text Y in drawing area?
+    if ( _datay2 >= _datay1 ) {
+        // Normal axis orientation
+        if ( (tempY >= _datay1) && (tempY <= _datay2) ) {
+            yInDa = true;
+        }
+    }
+    else {
+        // Reversed axis orientation
+        if ( (tempY >= _datay2) && (tempY <= _datay1) ) {
+            yInDa = true;
+        }
+    }
 
 	if ((tempX >= _datax1 && tempX <= _datax2 && tempY >= _datay1 && tempY <= _datay2) || off)  {
 	    	GRDrawingAreaUtil.drawSymbol(this, symbol, tempX, tempY, size, 
@@ -1186,11 +1200,13 @@ boolean xAxisPercent, boolean yAxisPercent, boolean off) {
 }
 
 /**
-Annotation text drawing helper code.
+Annotation text drawing helper code.  It is possible that the drawing area data y-coordinates
+are reversed, but the position will still be intuitive to the user (upper right is still that way
+on the physical screen).
 @param xs the x points of the text.
 @param ys the y points of the text.
 @param text the text to draw.
-@param pos the position of the text .
+@param pos the position of the text.
 @param xAxisPercent whether the X axis is percent (true) or data (false).
 @param yAxisPercent whether the Y axis is percent (true) or data (false).
 @param off whether the text should still attempt to be drawn even if its 
@@ -1217,14 +1233,29 @@ int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
 	else {
 		tempY = __ys[0];
 	}
+	
+	boolean yInDa = false; // Is text Y in drawing area?
+	if ( _datay2 >= _datay1 ) {
+	    // Normal axis orientation
+	    if ( (tempY >= _datay1) && (tempY <= _datay2) ) {
+	        yInDa = true;
+	    }
+	}
+	else {
+	    // Reversed axis orientation
+	    if ( (tempY >= _datay2) && (tempY <= _datay1) ) {
+            yInDa = true;
+        }
+	}
 		
-	if ((tempX >= _datax1 && tempX <= _datax2 
-	    && tempY >= _datay1 && tempY <= _datay2) || off)  {
+	if ((tempX >= _datax1 && tempX <= _datax2 && yInDa) || off)  {
 		GRDrawingAreaUtil.drawText(this, text, tempX, tempY, 0, pos);
 	}
 	else {
 		if (Message.isDebugOn) {
-			Message.printDebug(2, "drawAnnotation", "Text annotation outside drawing area.");
+			Message.printDebug(2, "drawAnnotation", "Text annotation data coordinate (" + tempX + "," +
+			    tempY + ") outside drawing area data limits (" + _datax1 + "," + _datay1 + ") (" +
+			    _datax2 + "," + _datay2 + ")");
 		}
 	}
 }
