@@ -495,6 +495,7 @@ throws Exception
     boolean isMissing;
     int countNotMissing = 0;
     int countMissing = 0;
+    int countStatistic = 0; // Statistic value for counts
     //double diff;
     double statisticResult = ts.getMissing();
     DateTime statisticResultDateTime = null;
@@ -510,7 +511,39 @@ throws Exception
         else {
             ++countNotMissing;
         }
-        if ( statisticType == TSStatisticType.MAX ) {
+        if ( statisticType == TSStatisticType.GE_COUNT ) {
+            if ( !isMissing ) {
+                if ( tsvalue >= value1 ) {
+                    ++countStatistic;
+                    statisticCalculated = true;
+                }
+            }
+        }
+        else if ( statisticType == TSStatisticType.GT_COUNT ) {
+            if ( !isMissing ) {
+                if ( tsvalue > value1 ) {
+                    ++countStatistic;
+                    statisticCalculated = true;
+                }
+            }
+        }
+        else if ( statisticType == TSStatisticType.LE_COUNT ) {
+            if ( !isMissing ) {
+                if ( tsvalue <= value1 ) {
+                    ++countStatistic;
+                    statisticCalculated = true;
+                }
+            }
+        }
+        else if ( statisticType == TSStatisticType.LT_COUNT ) {
+            if ( !isMissing ) {
+                if ( tsvalue < value1 ) {
+                    ++countStatistic;
+                    statisticCalculated = true;
+                }
+            }
+        }
+        else if ( statisticType == TSStatisticType.MAX ) {
             if ( !isMissing ) {
                 if ( !statisticCalculated || (tsvalue > statisticResult)) {
                     statisticResult = tsvalue;
@@ -533,10 +566,16 @@ throws Exception
     // Set the final statistic value
     // Handle counts differently to improve performance
     if ( statisticType == TSStatisticType.COUNT ) {
-        setStatisticResult ( new Integer(countNotMissing + countMissing) ); 
+        setStatisticResult ( countNotMissing + countMissing ); 
+    }
+    else if ( (statisticType == TSStatisticType.GE_COUNT) ||
+        (statisticType == TSStatisticType.GT_COUNT) ||
+        (statisticType == TSStatisticType.LE_COUNT) ||
+        (statisticType == TSStatisticType.LT_COUNT) ) {
+        setStatisticResult ( countStatistic );
     }
     else if ( statisticType == TSStatisticType.MISSING_COUNT ) {
-        setStatisticResult ( new Integer(countMissing) ); 
+        setStatisticResult ( countMissing ); 
     }
     else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
@@ -545,7 +584,7 @@ throws Exception
         }
     }
     else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
-        setStatisticResult ( new Integer(countNotMissing) ); 
+        setStatisticResult ( countNotMissing ); 
     }
     else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
@@ -621,6 +660,12 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.VARIANCE) ) {
         return 0;
     }
+    else if ( (statisticType == TSStatisticType.GE_COUNT) ||
+        (statisticType == TSStatisticType.GT_COUNT) ||
+        (statisticType == TSStatisticType.LE_COUNT) ||
+        (statisticType == TSStatisticType.LT_COUNT) ) {
+        return 1;
+    }
     // The following statistics need additional input.
     else if ( statisticType == TSStatisticType.NQYY ) {
         // Need days to average (N), return frequency (YY), and allowed missing in average
@@ -647,6 +692,10 @@ public Class getStatisticDataClass ()
     if ( (t == TSStatisticType.COUNT) ||
         (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
         (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (t == TSStatisticType.GE_COUNT) ||
+        (t == TSStatisticType.GT_COUNT) ||
+        (t == TSStatisticType.LE_COUNT) ||
+        (t == TSStatisticType.LT_COUNT) ||
         (t == TSStatisticType.MISSING_COUNT) ||
         (t == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
         (t == TSStatisticType.NONMISSING_COUNT) ||
@@ -706,8 +755,12 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.DEFICIT_SEQ_MAX );
     choices.add ( TSStatisticType.DEFICIT_SEQ_MEAN );
     choices.add ( TSStatisticType.DEFICIT_SEQ_MIN );
+    choices.add ( TSStatisticType.GE_COUNT );
+    choices.add ( TSStatisticType.GT_COUNT );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
     choices.add ( TSStatisticType.LAST );
+    choices.add ( TSStatisticType.LE_COUNT );
+    choices.add ( TSStatisticType.LT_COUNT );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MIN );
