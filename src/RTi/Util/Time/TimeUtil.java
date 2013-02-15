@@ -1965,7 +1965,7 @@ only date/time formats recognized by DateTime are recognized.
 */
 public static boolean isDateTime ( String date_string )
 {	try {
-	DateTime.parse ( date_string );
+	    DateTime.parse ( date_string );
 		return true;
 	} catch ( Exception e ) { 
 		return false;
