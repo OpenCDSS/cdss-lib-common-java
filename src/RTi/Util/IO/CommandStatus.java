@@ -173,7 +173,7 @@ public List<CommandLogRecord> getCommandLog(CommandPhaseType phase)
     }
     else {
         // Return all records
-        List<CommandLogRecord> v = new Vector();
+        List<CommandLogRecord> v = new Vector<CommandLogRecord>();
         v.addAll(__initialization_log_Vector);
         v.addAll(__discovery_log_Vector);
         v.addAll(__run_log_Vector);
