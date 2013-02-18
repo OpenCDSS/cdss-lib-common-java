@@ -1203,7 +1203,7 @@ percent missing, percent not missing).
 @return The statistics time series.
 */
 public YearTS newStatisticYearTS ( boolean createData )
-{   String message, routine = "TSAnalyst.createStatisticYearTS";
+{   String message, routine = getClass().getName() + ".newStatisticYearTS";
     int dl = 10;
 
     // Get the data needed for the analysis - originally provided in the constructor
@@ -1269,8 +1269,10 @@ public YearTS newStatisticYearTS ( boolean createData )
     DateTimeRange yeartsDateRange = TimeUtil.determineOutputYearTypeRange(analysisStart, analysisEnd, outputYearType);
     yearts.setDate1 ( yeartsDateRange.getStart() );
     yearts.setDate2 ( yeartsDateRange.getEnd() );
-    Message.printStatus(2, routine, "Output year type " + outputYearType + " period is " + yearts.getDate1() +
-        " to " + yearts.getDate2() );
+    if ( Message.isDebugOn ) {
+        Message.printDebug(1, routine, "Output year type " + outputYearType + " period is " + yearts.getDate1() +
+            " to " + yearts.getDate2() );
+    }
     
     if ( !createData ) {
         return yearts;
