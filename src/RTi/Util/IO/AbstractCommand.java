@@ -6,7 +6,7 @@ import RTi.Util.Message.Message;
 
 /**
 This class can be used as a parent class for other commands.  It contains data
-members and access methods that will commonly be used.
+members and access methods that commonly are used and do not need to be implemented in specific command classes.
 Note that the derived class should implement the Command interface methods - its
 implementation here will be insufficient for most needs (e.g., editing).
 */
@@ -48,14 +48,15 @@ This is initialized to an empty PropList and should be set when initializing the
 private PropList __parameters = new PropList ( "" );
 
 /**
-The run time for the command, in milliseconds, used to evaluate and optimize performance.
-*/
-private long __runTime = 0;
-
-/**
 The status for the command.
 */
 private CommandStatus __status = new CommandStatus();
+
+/**
+The runtime profile for the command.  Although designed to have a profile for each command phase,
+focus on the run phase for now.
+*/
+private CommandProfile __profile = new CommandProfile();
 
 /**
 Default constructor for a command.
@@ -249,6 +250,19 @@ public CommandProcessor getCommandProcessor ()
 }
 
 /**
+Return the command profile for the requested phase.  Currently a profile is only implemented for
+the run phase.
+@param phase the command phase (currently only CommandPhaseType.RUN is supported)
+@return the command profile (null if other than CommandPhaseType.RUN is requested)
+*/
+public CommandProfile getCommandProfile ( CommandPhaseType phase )
+{   if ( phase == CommandPhaseType.RUN ) {
+        return __profile;
+    }
+    return null;
+}
+
+/**
 Return the status for the command.  The version provided in this abstract
 version returns UNKNOWN for the status.  Commands that extend from this abstract
 class should set the status more explicitly.
@@ -264,14 +278,6 @@ Returns the original command string.
 */
 public String getCommandString() {
 	return __commandString;
-}
-
-/**
-Return the runtime, in milliseconds.
-*/
-public long getRunTime () 
-{
-	return __runTime;
 }
 
 /**
@@ -439,21 +445,24 @@ public void setCommandProcessor ( CommandProcessor processor )
 }
 
 /**
+Set the command profile.  This is used, for example, to track command performance (processing time) and
+memory usage.
+@param phase the command phase (currently only CommandPhaseType.RUN is implemented)
+@param profile the command profile
+*/
+public void setCommandProfile ( CommandPhaseType phase, CommandProfile profile )
+{   if ( phase == CommandPhaseType.RUN ) {
+        __profile = profile;
+    }
+}
+
+/**
 Set the command string.  This is currently used only by the generic command
 editor and should only be implemented in this SkeletonCommand base class.
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string )
 {	__commandString = command_string;
-}
-
-/**
-Set the runtime in milliseconds.  This is used to evaluate and optimize performance.
-@param runTime the runtime in milliseconds.
-*/
-public void setRunTime ( long runTime )
-{
-	__runTime = runTime;
 }
 
 /**

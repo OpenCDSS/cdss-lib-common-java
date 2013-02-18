@@ -1,36 +1,10 @@
-//------------------------------------------------------------------------------
-// Command - an interface to define a command that can be parsed and run
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 2005-04-29	Steven A. Malers, RTi	Initial version.
-// 2005-05-04	SAM, RTi		Change "message_tag" to "command_tag".
-// 2005-05-09	SAM, RTi		* Add toString(PropList).
-//					* Add setCommandParameter ().
-// 2005-05-10	SAM, RTi		* Change "command" to "command_string"
-//					  in parameters, where appropriate, to
-//					  clarify the difference between the
-//					  command name and command string.
-//					* Remove setCommandString() - it was not
-//					  needed in SkeletonCommand.
-// 2005-05-11	SAM, RTi		* Re-add setCommandString() - it is in
-//					  fact used by the
-//					  GenericCommand_JDialog when saving
-//					  the command.
-// 2005-05-19	SAM, RTi		* Move from TSTool to this package.
-// 2005-07-11	SAM, RTi		* Add to Javadoc to support new
-//					  developers.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.IO;
 
 import javax.swing.JFrame;
 
 /**
 This interface is implemented by classes that are commands that can be parsed and run.
+@see AbstractCommand
 */
 public interface Command extends Cloneable
 {
@@ -68,12 +42,6 @@ Return the command name.
 public String getCommandName ();
 
 /**
-Return the processor that is managing the command.
-@return the processor that is managing the command name.
-*/
-public CommandProcessor getCommandProcessor ();
-
-/**
 Return the parameters being used by the command.  The Prop.getHowSet() method
 can be used to determine whether a property was defined in the original command
 string (Prop.SET_FROM_PERSISTENT) or is defaulted internally (Prop.SET_AS_RUNTIME_DEFAULT).
@@ -86,6 +54,18 @@ public PropList getCommandParameters ();
 // TODO SAM 2005-05-05 Evaluate whether something like
 // getDefaultParameterValue is needed.  The problem is that for some low-level
 // code a value of null is the default.  Should null be provided as a default parameter?
+
+/**
+Return the processor that is managing the command.
+@return the processor that is managing the command name.
+*/
+public CommandProcessor getCommandProcessor ();
+
+/**
+Return the command profile.
+@return the command profile.
+*/
+public CommandProfile getCommandProfile ( CommandPhaseType phase );
 
 /**
 Initialize the command by parsing the command and indicating warnings.  This is essentially validation.
@@ -117,20 +97,14 @@ Run the command, processing input and producing output.
 If non-fatal warnings occur (the command could produce some results), a
 CommandWarningException will be thrown after running.  If fatal warnings occur
 (the command could not produce output), a CommandException is thrown.
-@param command_index The number of the command 0+.  When used with a processor,
+@param commandIndex The number of the command 0+.  When used with a processor,
 this can be used to cross-reference the command to a log, etc.  Pass -1 if a
 valid command number cannot be determined.
 @exception InvalidCommandParameterException if during parsing of parameters,
 one or more parameters are determined to be invalid.
 */
-public void runCommand ( int command_index )
+public void runCommand ( int commandIndex )
 throws InvalidCommandParameterException, CommandWarningException, CommandException;
-
-/**
-Get the runtime in milliseconds.  This is used to evaluate and optimize performance.
-@return runTime the runtime in milliseconds.
-*/
-public long getRunTime ();
 
 /**
 Set a command parameter.  This is used, for example, by a command editor dialog,
@@ -143,17 +117,17 @@ parameter value, requiring handling).
 public void setCommandParameter ( String parameter, String value );
 
 /**
+Set the command profile information for a phase.  This is used internally to track command
+resources such as execution time, heap memory before and after command execution, etc.
+*/
+public void setCommandProfile ( CommandPhaseType phase, CommandProfile profile );
+
+/**
 Set the command string.  This is currently used only by the generic command
 editor (GenericCommand_JDialog) and should only be implemented in the AbstractCommand base class.
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string );
-
-/**
-Set the runtime in milliseconds.  This is used to evaluate and optimize performance.
-@param runTime the runtime in milliseconds.
-*/
-public void setRunTime ( long runTime );
 
 /**
 Return the standard string representation of the command, which can be parsed
