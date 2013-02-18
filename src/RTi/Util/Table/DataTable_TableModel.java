@@ -85,6 +85,9 @@ private Class[] determineClasses(int[] dataTypes) {
 			case TableField.DATA_TYPE_DATE:
 				classes[i] = Date.class;
 				break;
+            case TableField.DATA_TYPE_LONG:
+                classes[i] = Long.class;
+                break;
 		}
 	}
 	return classes;

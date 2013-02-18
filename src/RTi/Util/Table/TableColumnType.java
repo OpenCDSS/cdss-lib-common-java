@@ -24,6 +24,10 @@ DOUBLE(2,"Double"),
 */
 FLOAT(3,"Float"),
 /**
+8-byte integer, Java Long.
+*/
+LONG(6,"Long"),
+/**
 Java String.
 */
 STRING(4,"String"),

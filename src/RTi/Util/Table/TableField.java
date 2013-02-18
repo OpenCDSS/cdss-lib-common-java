@@ -65,6 +65,11 @@ Date and time, stored internally as Java Date object.
 public final static int DATA_TYPE_DATE = 5;
 
 /**
+8-byte integer (long).
+*/
+public final static int DATA_TYPE_LONG = 6;
+
+/**
 Data type (DATA_TYPE_*) for the field (column).
 */
 private int _data_type;
@@ -202,6 +207,9 @@ public static String getDataTypeAsString ( int dataType )
     else if ( dataType == DATA_TYPE_INT ) {
         return "integer";
     }
+    else if ( dataType == DATA_TYPE_LONG ) {
+        return "long";
+    }
     else if ( dataType == DATA_TYPE_SHORT ) {
         return "short";
     }
@@ -227,6 +235,7 @@ public static List<String> getDataTypeChoices ( boolean includeNote )
         dataTypeList.add ( "double - double precision number" );
         dataTypeList.add ( "float - single precision number" );
         dataTypeList.add ( "integer - integer" );
+        dataTypeList.add ( "long - long integer" );
         dataTypeList.add ( "short - short integer" );
         dataTypeList.add ( "string" );  
     }
@@ -235,6 +244,7 @@ public static List<String> getDataTypeChoices ( boolean includeNote )
         dataTypeList.add ( "double" );
         dataTypeList.add ( "float" );
         dataTypeList.add ( "integer" );
+        dataTypeList.add ( "long" );
         dataTypeList.add ( "short" );
         dataTypeList.add ( "string" );
     }
@@ -290,6 +300,9 @@ public static int lookupDataType ( String dataType )
     }
     else if ( dataType.equalsIgnoreCase("int") || dataType.equalsIgnoreCase("integer")) {
         return DATA_TYPE_INT;
+    }
+    else if ( dataType.equalsIgnoreCase("long") ) {
+        return DATA_TYPE_LONG;
     }
     else if ( dataType.equalsIgnoreCase("short") ) {
         return DATA_TYPE_SHORT;

@@ -301,6 +301,9 @@ public int addField ( TableField tableField, Object initValue )
 		else if ( data_type == TableField.DATA_TYPE_FLOAT ) {
 			tableRecord.addFieldValue( initValue );
 		}
+        else if ( data_type == TableField.DATA_TYPE_LONG ) {
+            tableRecord.addFieldValue( initValue );
+        }
 	}
 	return getNumberOfFields() - 1; // Zero offset
 }
@@ -502,6 +505,9 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
     			else if (type == TableField.DATA_TYPE_DATE) {
     	        	newRecord.addFieldValue( ((Date)originalTable.getFieldValue(i, j)).clone());
     			}
+    			else if (type == TableField.DATA_TYPE_LONG) {
+                    newRecord.addFieldValue(new Long(((Long)originalTable.getFieldValue(i, j)).longValue()));
+                }
     		}
     		newTable.addRecord(newRecord);
 		}
@@ -540,7 +546,7 @@ throws Throwable
 }
 
 /**
-Used internally to determine whether a field name is already present in a 
+Used internally when parsing a delimited file to determine whether a field name is already present in a 
 table's fields, so as to avoid duplication.
 @param tableFields a list of the tableFields created so far for a table.
 @param name the name of the field to check.
@@ -821,9 +827,9 @@ The type of the object will be checked before doing the comparison.
 public TableRecord getRecord ( String columnName, Object columnValue )
 throws Exception
 {
-    List<String> columnNames = new Vector();
+    List<String> columnNames = new Vector<String>();
     columnNames.add(columnName);
-    List<Object> columnValues = new Vector();
+    List<Object> columnValues = new Vector<Object>();
     columnValues.add(columnValue);
     List<TableRecord> records = getRecords ( columnNames, columnValues );
     if ( records.size() == 0 ) {
@@ -852,7 +858,7 @@ throws Exception
     // First figure out the column numbers that will be checked
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
-    List<TableRecord> recList = new Vector();
+    List<TableRecord> recList = new Vector<TableRecord>();
     for ( String columnName: columnNames ) {
         ++iColumn;
         // If -1 is returned then a column name does not exist and no matches are possible
@@ -1178,6 +1184,9 @@ throws Exception
     				else if ( field_types[i] ==	TableField.DATA_TYPE_FLOAT ) {
     					contents.addFieldValue(	new Float(col));
     				}
+                    else if ( field_types[i] == TableField.DATA_TYPE_LONG ) {
+                        contents.addFieldValue( new Long(col));
+                    }
     			}
     			table.addRecord ( contents );
     			contents = null;
@@ -1759,6 +1768,7 @@ throws Exception
     	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
     	        // All data are integers so assume column type is integer
     	        // Note that integers also meet the criteria of double, hence the extra check above
+    	        // TODO SAM 2013-02-17 Need to handle DATA_TYPE_LONG
     	        tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        tableField.setWidth (lenmax_string[icol] );
