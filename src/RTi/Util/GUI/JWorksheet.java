@@ -6562,6 +6562,20 @@ private void sortColumn(int order) {
 		}
 		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);
 	}
+	else if (getColumnClass(absColumn) == Long.class) {
+        long[] unsorted = new long[size];     
+        Long l = null;
+        for (int i = 0; i < size; i++) {
+            try {
+                l = (Long)getValueAt(i, __popupColumn);
+                unsorted[i] = l.longValue();
+            }
+            catch (Exception e) {
+                unsorted[i] = DMIUtil.MISSING_LONG;
+            }
+        }
+        MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);
+    }
 	// Sort numbers with MathUtil.sort()
 	else if (getColumnClass(absColumn) == Double.class) {	
 		double[] unsorted = new double[size];
