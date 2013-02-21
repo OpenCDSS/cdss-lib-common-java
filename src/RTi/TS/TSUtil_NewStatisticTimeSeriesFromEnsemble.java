@@ -128,6 +128,7 @@ throws Exception
     
     // Use the first time series in the ensemble for properties to generate the output time series.
     TSEnsemble ensemble = getTimeSeriesEnsemble();
+    List<TS> tslist = ensemble.getTimeSeriesList(false);
     TS ts = null;
     if ( ensemble.size() > 0 ) {
         ts = ensemble.get(0);
@@ -149,7 +150,7 @@ throws Exception
     // Get valid dates for the output time series because the ones passed in may have been null...
 
     // The period over which to analyze the time series...
-    TSLimits validDates = TSUtil.getValidPeriod ( ts, analysisStart0, analysisEnd0 );
+    TSLimits validDates = TSUtil.getValidPeriod ( tslist, analysisStart0, analysisEnd0 );
     DateTime analysisStart = new DateTime ( validDates.getDate1() );
     DateTime analysisEnd = new DateTime ( validDates.getDate2() );
     
@@ -403,6 +404,11 @@ throws Exception
         else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
             stat_ts.setDataValue ( date, 100.0*countNonMissing/(double)(countMissing + countNonMissing) );
         }
+        else if ( statisticType == TSStatisticType.TOTAL ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, sum_value );
+            }
+        }
     }
 
     // Return the result.
@@ -494,7 +500,7 @@ Get the list of statistics that can be performed.
 public static List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
-    List<TSStatisticType> choices = new Vector();
+    List<TSStatisticType> choices = new Vector<TSStatisticType>();
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_10 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_30 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_50 );
@@ -512,6 +518,7 @@ public static List<TSStatisticType> getStatisticChoices()
     //choices.add ( TSStatisticType.SKEW );
     //choices.add ( TSStatisticType.STD_DEV );
     //choices.add ( TSStatisticType.VARIANCE );
+    choices.add ( TSStatisticType.TOTAL );
     return choices;
 }
 
@@ -522,7 +529,7 @@ Get the list of statistics that can be performed.
 public static List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new Vector<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -555,7 +562,8 @@ private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticTyp
         (statisticType == TSStatisticType.MAX) ||
         (statisticType == TSStatisticType.MEAN) ||
         (statisticType == TSStatisticType.MEDIAN) ||
-        (statisticType == TSStatisticType.MIN) ) {
+        (statisticType == TSStatisticType.MIN) ||
+        (statisticType == TSStatisticType.TOTAL)) {
         // Use the units from the original time series
         return inputts.getDataUnits();
     }

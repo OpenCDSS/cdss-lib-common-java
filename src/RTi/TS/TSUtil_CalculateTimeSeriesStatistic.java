@@ -489,6 +489,16 @@ throws Exception
         setStatisticResult ( new Double(stdDev) );
         return;
     }
+    else if ( statisticType == TSStatisticType.TOTAL ) {
+        if ( haveAnalysisWindow ) {
+            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
+        }
+        // Convert all the values to an array and then call the math method
+        double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
+        double sum = MathUtil.sum(values);
+        setStatisticResult ( new Double(sum) );
+        return;
+    }
     else if ( statisticType == TSStatisticType.VARIANCE ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
@@ -757,6 +767,7 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
+        (statisticType == TSStatisticType.TOTAL) ||
         (statisticType == TSStatisticType.TREND_OLS) ||
         (statisticType == TSStatisticType.VARIANCE) ) {
         return 0;
@@ -882,6 +893,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.SURPLUS_SEQ_MAX );
     choices.add ( TSStatisticType.SURPLUS_SEQ_MEAN );
     choices.add ( TSStatisticType.SURPLUS_SEQ_MIN );
+    choices.add ( TSStatisticType.TOTAL );
     choices.add ( TSStatisticType.TREND_OLS );
     choices.add ( TSStatisticType.VARIANCE );
     return choices;
