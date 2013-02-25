@@ -24,17 +24,17 @@ DOUBLE(2,"Double"),
 */
 FLOAT(3,"Float"),
 /**
-8-byte integer, Java Long.
-*/
-LONG(6,"Long"),
-/**
 Java String.
 */
 STRING(4,"String"),
 /**
-Java Date.
+Java date and optionally time.
 */
-DATE(5,"Date");
+DATE(5,"Date"),
+/**
+8-byte integer, Java Long.
+*/
+LONG(6,"Long");
 
 /**
 The name that should be displayed when used in UIs and reports.
@@ -70,14 +70,20 @@ public String toString() {
  * @return the enumeration value given a string name (case-independent), or null if not matched.
  */
 public static TableColumnType valueOfIgnoreCase(String name)
-{
+{   if ( name == null ) {
+        return null;
+    }
     TableColumnType [] values = values();
+    // Special case
+    if ( name.equalsIgnoreCase("DateTime") ) {
+        return DATE;
+    }
     // Currently supported values
     for ( TableColumnType t : values ) {
         if ( name.equalsIgnoreCase(t.toString()) ) {
             return t;
         }
-    } 
+    }
     return null;
 }
 
