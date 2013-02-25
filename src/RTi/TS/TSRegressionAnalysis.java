@@ -570,19 +570,23 @@ private void extractDataArraysFromTimeSeries ()
     double [] x1Single = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         true, // Match non-missing for the following time series
-        yTS );
+        yTS,
+        TSToArrayReturnType.DATA_VALUE );
     double [] y1Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         true, // Match non-missing for the following time series
-        xTS );
+        xTS,
+        TSToArrayReturnType.DATA_VALUE );
     double [] x2Single = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         false, // DO NOT match non-missing for the following time series
-        yTS );
+        yTS,
+        TSToArrayReturnType.DATA_VALUE );
     double [] y3Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         false, // DO NOT match non-missing for the following time series
-        xTS );
+        xTS,
+        TSToArrayReturnType.DATA_VALUE );
     RegressionData dataSingle = new RegressionData ( x1Single, y1Single, x2Single, y3Single );
     // Extract data arrays from time series for monthly equations...
     double [][] x1Monthly = new double[12][];
@@ -598,19 +602,23 @@ private void extractDataArraysFromTimeSeries ()
             x1Monthly[iMonth - 1] = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
-                yTS );
+                yTS,
+                TSToArrayReturnType.DATA_VALUE );
             y1Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
-                xTS );
+                xTS,
+                TSToArrayReturnType.DATA_VALUE );
             x2Monthly[iMonth - 1] = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
-                yTS );
+                yTS,
+                TSToArrayReturnType.DATA_VALUE );
             y3Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
-                xTS );
+                xTS,
+                TSToArrayReturnType.DATA_VALUE );
         }
         else {
             // Define empty arrays but no data are included
