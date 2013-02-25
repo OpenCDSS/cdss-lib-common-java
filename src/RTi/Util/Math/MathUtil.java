@@ -1073,7 +1073,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 	double rmse = 0;
 	double r = 1;
 
-	double	maxY1 = missingy, maxX1 = missingx, minY1 = missingy, minX1 = missingx;
+	double maxY1 = missingy, maxX1 = missingx, minY1 = missingy, minX1 = missingx;
 	boolean limits_found = false;
 
 	// To analyze the data, non-missing data are required for both X and
@@ -1480,6 +1480,43 @@ public static int reverseArray(	int[] data )
 }
 
 /**
+Reverse an array of longs.
+@return Zero if successful and 1 if not successful.
+@param data An array of longs to be reversed.
+*/
+public static int reverseArray( long[] data )
+{   int i, j, half, ndata = data.length;
+    long tempi;
+    String routine="MathUtil.reverseArray";
+
+    if ( data == null ) {
+        Message.printWarning ( 2, routine, "No array to reverse!" );
+        return ( 1 );
+    }
+
+    half = ndata / 2;
+    j = ndata - 1;
+
+    for ( i = 0; i < half; i++ ) {
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 50, routine, "Moving data[" + i + "] (" + data[i] + ") to tempi." );
+        }
+        tempi = data[i];
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 50, routine, "Moving data[" +j+ "] (" +data[j]+ ") to data["+i+"].");
+        }
+
+        data[i] = data[j];
+        if ( Message.isDebugOn ) {
+            Message.printDebug ( 50, routine, "Moving tempi (" +tempi+ ") to data[" +j+ "]." );
+        }
+        data[j] = tempi;
+        j--;
+    }
+    return ( 0 );
+}
+
+/**
 Compute the RMS error between two sets as sqrt(sum((y - x)^2)/n).
 @param n Number of points to consider (typically the length of the arrays).
 @param x Independent data.
@@ -1756,6 +1793,78 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 }
 
 /**
+Sort an array of longs.
+@return Zero if successful and 1 if not successful.
+@param data Array of longs to sort.
+@param method Method to use for sorting (see SORT_*).
+@param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
+@param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
+@param sflag Indicates whether "sort_order" is to be filled.
+*/
+public static int sort (long[] data, int method, int order, int[] sort_order, boolean sflag )
+{   String routine="MathUtil.sort(int[]...)";
+    int i=0, ndata=data.length;
+
+    if ( data == null ) {
+        Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
+        return 1;
+    }
+
+    if ( sflag && (sort_order == null) ) {
+        Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
+        return 1;
+    }
+
+    if ( sflag && (sort_order.length < data.length) ){
+        Message.printWarning( 2, routine, "sort_order array length (" + sort_order.length +
+        ") is smaller than data array length (" + data.length + ")." );
+        return 1;
+    }
+
+    // Initialize "sort_order" to sequential numbers...
+    
+    if ( sflag ) {
+        for ( i = 0; i < ndata; i++ ) {
+            sort_order[i] = i;
+        }
+    }
+
+    // Now sort into ascending order...
+
+    if ( method == SORT_QUICK ) {
+        if ( sortLQuick(data, sort_order, sflag) == 1 ) {
+            return 1;
+        }
+    }
+    else if ( method == SORT_BUBBLE ) {
+        Message.printWarning ( 2, routine, "Bubble sort not supported yet" );
+        return 1;
+    }
+    else {
+        // Quick sort is default...
+        Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
+        if ( sortLQuick(data, sort_order, sflag) == 1 ) {
+            return 1;
+        }
+    }
+
+    // Now check to see if the arrays need to be reversed for descending order...
+
+    if ( order == SORT_DESCENDING ) {
+        if ( reverseArray(data ) == 1 ) {
+            return 1;
+        }
+        if ( sflag ) {
+            if ( reverseArray(sort_order ) == 1 ) {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
 Sort an array of doubles into ascending order using the quick sort method.
 @return Zero if successful and 1 if not successful.
 @param data Array of doubles to sort.
@@ -2026,6 +2135,142 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 }
 
 /**
+Sort an array of longs into ascending order using the quick sort method.
+@return Zero if successful and 1 if not successful.
+@param data Array of longs to sort.
+@param sort_order Original locations of data after sort (array needs to be
+allocated before calling routine).
+@param sflag Indicates whether "sort_order" is to be filled.
+*/
+public static int sortLQuick ( long[] data, int[] sort_order, boolean sflag )
+{   int i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
+        itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
+    int[] istack;
+    long a, temp;
+    String routine="MathUtil.sortLQuick";
+
+    istack = new int [ NSTACK ];
+
+    while ( true ) {
+        if ( (ir - l) < insertmax ) {
+            for ( j = (l + 1); j <= ir; j++ ) {
+                a = data[j];
+                if ( sflag ) {
+                    ia = sort_order[j];
+                }
+                for ( i = (j - 1); i >= 0; i-- ) {
+                    if ( data[i] <= a ) {
+                        break;
+                    }
+                    data[i + 1] = data[i];
+                    if ( sflag ) {
+                        sort_order[i+1] = sort_order[i];
+                    }
+                }
+                data[i + 1] = a;
+                if ( sflag ) {
+                    sort_order[i + 1] = ia;
+                }
+            }
+            if ( jstack == 0 ) {
+                break;
+            }
+            ir = istack[jstack--];
+            l = istack[jstack--];
+        }
+        else {
+            k = (l + ir)/2;
+            temp = data[k];
+            data[k] = data[l + 1];
+            data[l + 1] = temp;
+            if ( sflag ) {
+                itemp = sort_order[k];
+                sort_order[k] = sort_order[l + 1];
+                sort_order[l+1] = itemp;
+            }
+            if ( data[l + 1] > data[ir] ) {
+                temp = data[l + 1];
+                data[l + 1] = data[ir];
+                data[ir] = temp;
+                if ( sflag ) {
+                    itemp = sort_order[l + 1];
+                    sort_order[l+1] = sort_order[ir];
+                    sort_order[ir] = itemp;
+                }
+            }
+            if ( data[l] > data[ir] ) {
+                temp = data[l];
+                data[l] = data[ir];
+                data[ir] = temp;
+                if ( sflag ) {
+                    itemp = sort_order[l];
+                    sort_order[l] = sort_order[ir];
+                    sort_order[ir] = itemp;
+                }
+            }
+            if ( data[l + 1] > data[l] ) {
+                temp = data[l + 1];
+                data[l + 1] = data[l];
+                data[l] = temp;
+                if ( sflag ) {
+                    itemp = sort_order[l + 1];
+                    sort_order[l+1] = sort_order[l];
+                    sort_order[l] = itemp;
+                }
+            }
+            i = l + 1;
+            j = ir;
+            a = data[l];
+            if ( sflag ) {
+                ia = sort_order[l];
+            }
+            while ( true ) {
+                do {
+                    i++;
+                } while ( data[i] < a );
+                do {
+                    j--;
+                } while ( data[j] > a );
+                if ( j < i ) {
+                    break;
+                }
+                temp = data[i];
+                data[i] = data[j];
+                data[j] = temp;
+                if ( sflag ) {
+                    itemp = sort_order[i];
+                    sort_order[i] = sort_order[j];
+                    sort_order[j] = itemp;
+                }
+            }
+            data[l] = data[j];
+            data[j] = a;
+            if ( sflag ) {
+                sort_order[l] = sort_order[j];
+                sort_order[j] = ia;
+            }
+            jstack += 2;
+            if ( jstack > (NSTACK - 1) ) {
+                Message.printWarning ( 2, routine, "NSTACK (" + NSTACK + ") too small in sort" );
+                istack = null;
+                return 1;
+            }
+            if ( (ir - i + 1) >= (j - l) ) {
+                istack[jstack] = ir;
+                istack[jstack - 1] = i;
+                ir = j - 1;
+            }
+            else {
+                istack[jstack] = j - 1;
+                istack[jstack - 1] = l;
+                l = i;
+            }
+        }
+    }
+    return 0;
+}
+
+/**
 Compute the sample standard deviation (square root of the sample variance).
 @param x array of values to process
 @return the sample standard deviation
@@ -2050,7 +2295,7 @@ public static double standardDeviation ( int n, double x[] )
 	    var = variance ( n, x );
 	}
 	catch ( Exception e ) {
-		message = "Error calculating variance - canot calculate standard deviation.";
+		message = "Error calculating variance - cannot calculate standard deviation.";
 		Message.printWarning ( 50, routine, message );
 		throw new IllegalArgumentException ( message );
 	}
