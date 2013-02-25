@@ -8466,27 +8466,12 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 	return formats;
 }
 
-//-----------------------------------------------------------------------------
-// getValidPeriod - get a valid period to work on given two suggested dates
-//-----------------------------------------------------------------------------
-// Notes:	(1)	This routine takes two dates which are generally the
-//			start and end dates for an iteration.  If they are
-//			specified, they are used (even if they are outside the
-//			range of the time series).  If a date is not specified,
-//			then the appropriate date from the time series is
-//			used.  This routine may require logic at some point to
-//			handle special cases.  For example, the incoming
-//			arguments may specify a start date but no end date.
-//			If the start date from the time series is later than
-//			the specified end date, then what?
-//-----------------------------------------------------------------------------
-// History:
-//
-// ?		Daniel K. Weiler, RTi	Initial version.
-// 09 Jan 1998	Steven A. Malers, RTi	Enhance to return TSLimits.  Port to
-//					C++.
-//-----------------------------------------------------------------------------
 /**
+This method takes two dates which are generally the start and end dates for an iteration.  If they are
+specified, they are used (even if they are outside the range of the time series).  If a date is not specified,
+then the appropriate date from the time series is used.  This routine may require logic at some point to
+handle special cases.  For example, the incoming arguments may specify a start date but no end date.
+If the start date from the time series is later than the specified end date, then what?
 @return The limits given a suggested start and end date.  The date limits can
 extend beyond the end of the time series dates.  If the suggestions are null,
 the appropriate start/end dates from the time series are used.  New date instances
@@ -8513,7 +8498,42 @@ public static TSLimits getValidPeriod (	TS ts, DateTime suggested_start, DateTim
 }
 
 /**
-Find a time series in a Vector.  The indicated field is searched and a
+Get the valid period from a list of time series.  If the suggested start or end are specified, use them.
+If the suggested start and end are null, determine the start and end from the maximum time series period.
+@param tslist list of time series of interest
+@param suggestedStart Suggested start date/time
+@param suggestedEnd Suggested end date/time
+*/
+public static TSLimits getValidPeriod ( List<TS> tslist, DateTime suggestedStart, DateTime suggestedEnd )
+{   TSLimits dates = new TSLimits();
+    TSLimits datesFromTS = null;
+    try {
+        datesFromTS = getPeriodFromTS ( tslist, MAX_POR );
+    }
+    catch ( Exception e ) {
+        datesFromTS = null;
+    }
+    if ( suggestedStart == null ) {
+        if ( (datesFromTS != null) && (datesFromTS.getDate1() != null) ) {
+            dates.setDate1( new DateTime(datesFromTS.getDate1()) );
+        }
+    }
+    else {
+        dates.setDate1 ( new DateTime(suggestedStart) );
+    }
+    if ( suggestedEnd == null ) {
+        if ( (datesFromTS != null) && (datesFromTS.getDate2() != null) ) {
+            dates.setDate2( new DateTime(datesFromTS.getDate2()) );
+        }
+    }
+    else {
+        dates.setDate2 ( new DateTime(suggestedEnd) );
+    }
+    return dates;
+}
+
+/**
+Find a time series in a list.  The indicated field is searched and a
 case-insensitive query is made.  The sequence number is not used in the search.
 @param tslist List of time series to search.
 @param id String identifier to match.
