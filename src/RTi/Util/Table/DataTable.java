@@ -580,7 +580,10 @@ Return the field data type, given an index.
 @param index field index (0+).
 */
 public int getFieldDataType ( int index )
-{	return (_table_fields.get ( index )).getDataType();
+{	if ( _table_fields.size() <= index ) {
+        throw new ArrayIndexOutOfBoundsException( "Table field index " + index + " is not valid." );
+    }
+    return (_table_fields.get ( index )).getDataType();
 }
 
 /**
@@ -609,9 +612,9 @@ are left-justified and numbers are right justified.
 @param index Field index (zero-based).
 */
 public String getFieldFormat ( int index )
-{	int field_type = getFieldDataType(index);
+{	int fieldType = getFieldDataType(index);
     int fieldWidth = getFieldWidth(index);
-	if ( field_type == TableField.DATA_TYPE_STRING ) {
+	if ( fieldType == TableField.DATA_TYPE_STRING ) {
 		// Output left-justified and padded...
 	    if ( fieldWidth < 0 ) {
 	        // Variable width strings
@@ -622,8 +625,20 @@ public String getFieldFormat ( int index )
 	    }
 	}
 	else {
-        if ( (field_type == TableField.DATA_TYPE_FLOAT) || (field_type == TableField.DATA_TYPE_DOUBLE) ) {
-			return "%" + fieldWidth + "." + getFieldPrecision(index) + "f";
+        if ( (fieldType == TableField.DATA_TYPE_FLOAT) || (fieldType == TableField.DATA_TYPE_DOUBLE) ) {
+            int precision = getFieldPrecision(index);
+            if ( fieldWidth < 0 ) {
+                if ( precision < 0 ) {
+                    // No width precision specified - rely on data object representation
+                    return "%f";
+                }
+                else {
+                    return "%." + precision + "f";
+                }
+            }
+            else {
+                return "%" + fieldWidth + "." + precision + "f";
+            }
 		}
 		else {
 		    return "%" + fieldWidth + "d";
@@ -934,16 +949,13 @@ Get the data type for the field.
 @return the data type for the field (see TableField.DATA_TYPE_*).
 @param index index of field (zero-based).
 @exception If the index is out of range.
+@deprecated use getFieldDataType
 */
 public int getTableFieldType ( int index )
-throws Exception
 {	if ( _table_fields.size() <= index ) {
-		throw new Exception ( "Index " + index + " is not valid." );
+		throw new ArrayIndexOutOfBoundsException( "Index " + index + " is not valid." );
 	}
-	TableField tableField = _table_fields.get(index);
-	int type = tableField.getDataType ();
-	tableField = null;
-	return type;
+	return _table_fields.get(index).getDataType ();
 }
 
 /**
