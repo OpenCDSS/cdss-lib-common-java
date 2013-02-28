@@ -25,7 +25,7 @@ public enum TrendType
     private final String displayName;
     
     /**
-     * Construct a time series statistic enumeration value.
+     * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
     private TrendType(String displayName) {
@@ -33,7 +33,7 @@ public enum TrendType
     }
 
 /**
- * Return the display name for the statistic.  This is usually the same as the
+ * Return the display name for the enumeration.  This is usually the same as the
  * value but using appropriate mixed case.
  * @return the display name.
  */
