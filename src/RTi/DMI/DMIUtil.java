@@ -552,7 +552,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 				temp = rs.getString(9);
 				column.add(temp);
 
-				// Get whether the colum is nullable and store it in list position 5
+				// Get whether the column is nullable and store it in list position 5
 				temp = rs.getString(18);
 				if (temp == null) {
 					temp = "Unknown";
@@ -2765,6 +2765,148 @@ throws Exception, SQLException {
     } 
     catch ( Exception e ) {
         message = "Error getting database information for table \"" + tableName + "\".";
+        Message.printWarning ( 2, routine, message );
+        throw new Exception ( message );
+    }
+    
+    String columnName;
+    List<String> columnNames = new Vector();
+    while ( rs.next() ) {
+        try {   
+            // Column name...
+            columnName = rs.getString(4);
+            if (!rs.wasNull()) {
+                columnNames.add(columnName.trim());
+            }
+        }
+        catch (Exception e) {
+            // continue getting the list of table names, but report the error.
+            Message.printWarning(3, routine, e);
+        }
+    } 
+    try {   
+        DMI.closeResultSet(rs);
+    }
+    catch (Exception e) {
+        Message.printWarning(2, routine, e);
+    }
+    return columnNames;
+}
+
+/**
+Return the foreign table and column name corresponding to table and column that have a foreign key defined.
+@return the foreign table and column name corresponding to table and column that have a foreign key defined.
+@param dmi DMI for connection.
+@param tableName Name of table.
+@exception if there is an error getting database information.
+*/
+public static String [] getTableForeignKeyTableAndColumn ( DMI dmi, String tableName, String columnName )
+throws Exception, SQLException
+{
+    return getTableForeignKeyTableAndColumn ( dmi.getDatabaseMetaData(), tableName, columnName );
+}
+
+/**
+Return the list of columns that are a primary key for a table.
+@return the list of columns that are a primary key for a table.
+@param metadata DatabaseMetaData for connection
+@param tableName name of table that has a foreign key to another table
+@param columnName name of column in tableName that is the foreign key to another table
+@exception if there is an error getting database information.
+*/
+public static String [] getTableForeignKeyTableAndColumn ( DatabaseMetaData metadata,
+    String tableName, String columnName )
+throws Exception, SQLException {    
+    String message, routine = "DMIUtil.getTableForeignKeyTableAndColumn";
+    ResultSet rs = null;
+
+    try {
+        rs = metadata.getImportedKeys( null, null, tableName);
+        //rs = metadata.getExportedKeys( null, null, tableName);
+        if ( rs == null ) {
+            message = "Error getting foreign keys for \"" + tableName + "\" table.";
+            Message.printWarning ( 2, routine, message );
+            throw new Exception ( message );
+        } 
+    } 
+    catch ( Exception e ) {
+        message = "Error getting foreign keys for table \"" + tableName + "\".";
+        Message.printWarning ( 2, routine, message );
+        throw new Exception ( message );
+    }
+    
+    String mainColumn = null;
+    //String mainTable = null;
+    String foreignTable = null;
+    String foreignColumn = null;
+    String [] data = null;
+    while ( rs.next() ) {
+        try {
+            // Foreign table...
+            foreignTable = rs.getString(3);
+            foreignColumn = rs.getString(4);
+            // The table initiating the request (the ones that has keys pointing to the foreign table)...
+            //mainTable = rs.getString(7);
+            mainColumn = rs.getString(8);
+            if ( columnName.equalsIgnoreCase(mainColumn) ) {
+                // Found the matching requested column
+                data = new String[2];
+                data[0] = foreignTable;
+                data[1] = foreignColumn;
+                break;
+            }
+            //Message.printStatus(2, routine, "For requested table \"" + mainTable + "\" requested column \"" + mainColumn +
+            //    "\", foreignTable=\"" + foreignTable + "\" foreignColumn=\"" + foreignColumn + "\"");
+        }
+        catch (Exception e) {
+            // continue getting the list of table names, but report the error.
+            Message.printWarning(3, routine, e);
+        }
+    } 
+    try {   
+        DMI.closeResultSet(rs);
+    }
+    catch (Exception e) {
+        Message.printWarning(2, routine, e);
+    }
+    return data;
+}
+
+/**
+Return the table column names that are for primary keys.
+@return the table column names that are for primary keys.
+@param dmi DMI for connection.
+@param tableName Name of table.
+@exception if there is an error getting database information.
+*/
+public static List<String> getTablePrimaryKeyColumns ( DMI dmi, String tableName )
+throws Exception, SQLException
+{
+    return getTablePrimaryKeyColumns ( dmi.getDatabaseMetaData(), tableName );
+}
+
+/**
+Return the list of columns that are a primary key for a table.
+@return the list of columns that are a primary key for a table.
+@param metadata DatabaseMetaData for connection.
+@param tableName Name of table.
+@exception if there is an error getting database information.
+*/
+public static List<String> getTablePrimaryKeyColumns ( DatabaseMetaData metadata, String tableName )
+throws Exception, SQLException {    
+    String message, routine = "DMI.getTablePrimaryKeyColumns";
+    ResultSet rs = null;
+
+    try {
+        rs = metadata.getPrimaryKeys( null, null, tableName);
+        if ( rs == null ) {
+            message = "Error getting primary keys for \"" + tableName + "\" table.";
+            Message.printWarning ( 2, routine, message );
+            throw new Exception ( message );
+        } 
+    } 
+    catch ( Exception e ) {
+        message = "Error getting primary keys for table \"" + tableName + "\".";
         Message.printWarning ( 2, routine, message );
         throw new Exception ( message );
     }
