@@ -99,7 +99,9 @@ List for table names used in the statement (e.g., FROM XXXX, XXXX).
 protected List<String> _table_Vector;
 
 /**
-List for values to be inserted or updated with the statement
+List for values to be inserted or updated with the statement.  Values may be Java objects
+(String, Integer, etc.) or a DMISelectStatement, which will do a select on the value, for
+example to select foreign key from the human-readable data value.
 */
 protected List<Object> _values_Vector;
 
@@ -411,6 +413,35 @@ throws Exception {
 			_values_Vector.add("'" + value + "'");
 		}
 	}
+}
+
+/**
+Add a DMISelectStatement value to the statement
+@param value DMISelectStatement value to add to the statement - basically a nested select string that
+goes into the statement
+*/
+public void addValue (DMISelectStatement value) 
+throws Exception {
+    if (_isSP) {
+        throw new RuntimeException ( "Stored procedures do not support nested select in write statement." );
+        //setValue(value, __paramNum++);
+    }
+    else {
+        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+            // TODO SAM 2013-02-03 Need to evaluate whether any specific cleanup needs to be done internally
+            // as in the following code so that the embedded select statement is properly formatted
+            //if (value.indexOf('\'') > -1) {
+            //    _values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
+            //}   
+            //else {
+            //    _values_Vector.add("'" + value + "'");
+            //}
+            _values_Vector.add("(" + value + ")");
+        }
+        else {
+            _values_Vector.add("(" + value + ")");
+        }
+    }
 }
 
 /**
