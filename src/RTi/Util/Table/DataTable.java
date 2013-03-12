@@ -88,6 +88,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -310,8 +311,14 @@ public int addField ( TableField tableField, Object initValue )
 
 /**
 Create a copy of the table.
+@param table original table
+@param newTableID identifier for new table
+@param reqIncludeColumns requested columns to include or null to include all
+@param columnMap map to rename original columns to new name
+@return copy of original table
 */
-public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns )
+public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
+    Hashtable columnMap )
 {   String routine = getClass().getName() + ".createCopy";
     // List of columns that will be copied
     String [] columnNames = null;
@@ -330,11 +337,22 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     int errorCount = 0;
     boolean [] columnCopied = new boolean[columnNames.length]; // Will initialize to false
     StringBuffer errorMessage = new StringBuffer();
+    Object newColumnNameO = null; // Used to map column names
+    TableField newTableField; // New table field
     for ( int iField = 0; iField < table.getNumberOfFields(); iField++ ) {
         for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
             if ( table.getFieldName(iField).equalsIgnoreCase(columnNames[iReqField])) {
                 // Copy the data from the original table
-                newTable.addField(new TableField ( table.getTableField(iField)), null );
+                // First make a copy of the existing table field
+                newTableField = new TableField(table.getTableField(iField));
+                if ( columnMap != null ) {
+                    newColumnNameO = columnMap.get(newTableField.getName());
+                }
+                if ( newColumnNameO != null ) {
+                    // Reset the column name with the new name
+                    newTableField.setName((String)newColumnNameO);
+                }
+                newTable.addField(newTableField, null );
                 int icol = newTable.getNumberOfFields() - 1;
                 for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
                     try {
@@ -342,8 +360,9 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                     }
                     catch ( Exception e ) {
                         // Should not happen
-                        errorMessage.append("Error setting new table data.");
-                        Message.printWarning(3, routine, "Error setting new table data (" + e + ")." );
+                        errorMessage.append("Error setting new table data for [" + irow + "][" + icol + ".");
+                        Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
+                            icol + "] (" + e + ")." );
                         ++errorCount;
                     }
                 }
