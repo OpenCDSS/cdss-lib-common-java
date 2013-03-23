@@ -430,6 +430,12 @@ public static int indexOf (	JList list, String item, boolean selected_only, bool
 Determine if the specified compare String exists within a SimpleJComboBox - CASE SENSITIVE.
 See the overloaded method for a full description.  This version matches any substring (when flag=CHECK_SUBSTRINGS)
 and is case-sensitive.
+@param comboBox SimpleJComboBox object.
+@param compare String to compare comboBox items against.  If null, false is returned.
+@param flag compare criteria (CHECK_SUBSTRINGS or NONE); currently any substring that matches will return true
+@param delimiter String containing delimiter to parse for flag=CHECK_SUBSTRINGS;
+@param index Index location where the compare String was located
+(index[0] is set to the first ComboBox item that matches).
 */
 public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
         String compare, int flag, String delimiter, int[] index )
@@ -450,7 +456,7 @@ Determine if the specified compare String exists within a SimpleJComboBox - CASE
 @param delimiter String containing delimiter to parse for flag=CHECK_SUBSTRINGS;
 @param compareIndex if >= 0, the substring part to compare (e.g., 
 may be null if using flag=NONE; specify -1 to compare all parts
-@param index Index location where the compare String was located
+@param index Index location in ComboBox data where the compare String was located
 (index[0] is set to the first ComboBox item that matches).
 @param ignoreCase true to ignore case in comparisons; false to require that case matches
 This is filled in unless it is passed as null.  For example use this when checking substrings so that an item
@@ -484,7 +490,9 @@ public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
                     if ( (compareIndex < 0) || (compareIndex == tokenPos) ) {
                         if ( (ignoreCase && sub.equalsIgnoreCase(compare)) ||
                             (!ignoreCase && sub.equals(compare)) ) {
-                            index[0] = i;
+                            if ( index != null ) {
+                                index[0] = i;
+                            }
                             return true;
                         }
                     }
