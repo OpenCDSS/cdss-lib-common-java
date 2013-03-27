@@ -2153,14 +2153,11 @@ that are recognized are: "\t" (tab) and "\s" (space).
 */
 public static String literalToInternal ( String s )
 {
-    if ( s == null ) {
-        return null;
-    }
-    else {
+    if ( s != null ) {
         s = s.replace("\\t", "\t");
         s = s.replace("\\s", " ");
-        return s;
     }
+    return s;
 }
 
 /**
