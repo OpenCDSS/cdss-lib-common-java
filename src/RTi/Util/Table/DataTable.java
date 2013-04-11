@@ -2202,9 +2202,13 @@ If all headers are missing, then the header line will not be written.
 prefixed.
 @param alwaysQuoteStrings if true, then always surround strings with double quotes; if false strings will only
 be quoted when they include the delimiter
+@param newlineReplacement if not null, replace newlines in string table values with the replacement string
+(which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
+newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.  This can be a
+performance hit and mask data issues so the default is to NOT replace newlines.
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix, boolean alwaysQuoteStrings ) 
+    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement ) 
 throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
@@ -2219,7 +2223,7 @@ throws Exception {
 	if ( !commentLinePrefix.equals("") ) {
 	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability
 	}
-		
+
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
 	try {
     	// If any comments have been passed in, print them at the top of the file
@@ -2269,7 +2273,7 @@ throws Exception {
     		    if ( col > 0 ) {
     		        line.append ( delimiter );
     		    }
-    		    tableFieldType = getTableFieldType(col);
+    		    tableFieldType = getFieldDataType(col);
     		    precision = getFieldPrecision(col);
     		    fieldValue = getFieldValue(row,col);
     		    if ( fieldValue == null ) {
@@ -2313,6 +2317,12 @@ throws Exception {
     			if ( (cell.indexOf(delimiter) > -1) ||
     			    ((tableFieldType == TableField.DATA_TYPE_STRING) && alwaysQuoteStrings) ) {
     				cell = "\"" + cell + "\"";
+    			}
+    			if ( (tableFieldType == TableField.DATA_TYPE_STRING) && (newlineReplacement != null) ) {
+    			    // Replace newline strings with the specified string
+    			    cell = cell.replace("\r\n", newlineReplacement); // Windows/Mac use 2-characters
+    			    cell = cell.replace("\n", newlineReplacement); // *NIX
+    			    cell = cell.replace("\r", newlineReplacement); // to be sure
     			}
     			line.append ( cell );
     		}
