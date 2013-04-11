@@ -23,6 +23,15 @@ Flag indicating whether the ORDER BY clause should be a GROUP BY clause, instead
 protected boolean _groupBy = false;
 
 /**
+Indicating whether a "top" clause should be used by indicating the number of rows to return.
+-1 means no "top" clause.
+@TODO SAM 2013-04-10 This capability appears to vary quite a bit between database vendors
+and is mainly being implemented to support SQL Server, although some other engines are checked
+for in toString().
+*/
+protected int _top = -1;
+
+/**
 Construct a select statement.
 */
 public DMISelectStatement ( DMI dmi ) {	
@@ -39,8 +48,7 @@ public ResultSet executeStoredProcedure()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
-			+ "execute a DMISelectStatement that is not a "
-			+ "stored procedure.");
+			+ "execute a DMISelectStatement that is not a stored procedure.");
 	}
 	return __storedProcedureCallableStatement.executeQuery();
 }
@@ -77,6 +85,14 @@ Sets whether the ORDER BY clause should be a GROUP BY clause, instead.
 */
 public void setGroupBy(boolean groupBy) {
 	_groupBy = groupBy;
+}
+
+/**
+Sets whether a TOP clause should be used (the syntax will vary by database engine).
+@param top number of rows to return
+*/
+public void setTop(int top) {
+    _top = top;
 }
 
 /**
@@ -178,7 +194,13 @@ public String toString() {
 	}
 
 	StringBuffer statement = new StringBuffer("SELECT ");
-	
+
+    if ( _top > 0 ) {
+        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+            statement.append ( "TOP " + _top + " " );
+        }
+    }
+	   
 	if ( _distinct ) {
 		statement.append ( "DISTINCT " );
 	}
@@ -222,14 +244,25 @@ public String toString() {
 		}
 	}
 	
-	size = _where_Vector.size();
-	if (size > 0) {
+	int whereSize = _where_Vector.size();
+	if (whereSize > 0) {
 		statement.append ( " WHERE " );
 		statement.append ( _where_Vector.get(0) );
-		for ( int i = 1; i < size; i++ ) {
+		for ( int i = 1; i < whereSize; i++ ) {
 			statement.append ( " AND (" + _where_Vector.get(i) + ")");
 		}
 	}
+    if ( _top > 0 ) {
+        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_ORACLE ) {
+            if ( whereSize == 0 ) {
+                statement.append ( " WHERE " );
+            }
+            else {
+                statement.append ( " AND " );
+            }
+            statement.append ( " (ROWNUM <= " + _top + ")" );
+        }
+    }
 	
 	size = _order_by_Vector.size();
 	if (size > 0) {
@@ -243,6 +276,13 @@ public String toString() {
 			statement.append ( ", " + _order_by_Vector.get(i));
 		}
 	}
+	
+    if ( _top > 0 ) {
+        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_MYSQL ) {
+            statement.append ( " LIMIT " + _top );
+        }
+    }
+	
 	return statement.toString();
 }
 
