@@ -2936,6 +2936,99 @@ throws Exception, SQLException {
 }
 
 /**
+Returns the list of procedure names in the database, excluding known system procedures.
+@param dmi an open, connected and not-null DMI connection to a database.
+@param removeSystemProcedures if true, remove the known system procedures
+(this may take some work to keep up to date).
+@param notIncluded a list of all the procedure names that should not be included
+in the final list of procedure names.
+@return the list of procedure names in the dmi's database.  null
+is returned if there was an error reading from the database.
+*/
+public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
+    List<String> notIncluded)
+throws SQLException
+{   String routine = "getDatabaseProcedureNames", message;
+    int dl = 25;
+    // Get the name of the data.  If the name is null, it's most likely
+    // because the connection is going through ODBC, in which case the 
+    // name of the ODBC source will be used.
+    String dbName = dmi.getDatabaseName();
+    if (dbName == null) {
+        dbName = dmi.getODBCName();
+    }
+
+    Message.printStatus(2, routine, "Getting list of procedures");
+    ResultSet rs = null;
+    DatabaseMetaData metadata = null;
+    try {   
+        metadata = dmi.getConnection().getMetaData();
+        rs = metadata.getProcedures( dbName, null, null);
+        if (rs == null) {
+            Message.printWarning(2, routine, "Error getting list of procedures.  Aborting");
+            return null;
+        } 
+    } 
+    catch (Exception e) {
+        Message.printWarning(2, routine, "Error getting list of procedures.  Aborting.");
+        Message.printWarning(2, routine, e);
+        return null;
+    }
+    if (rs == null) {
+        message = "Null result set getting procedure names";
+        Message.printWarning(3, routine, message);
+        throw new RuntimeException (message);
+    }
+    
+    List<String> procNames = new Vector<String>();
+    while (rs.next()) {
+        String proc = rs.getString("PROCEDURE_NAME");
+        if ( Message.isDebugOn ) {
+            Message.printDebug(dl, routine, "Procedure name to check = \"" + proc + "\"" );
+        }
+        // The SQL Server driver may return the procedure name with ";" and a number at the end.  If so
+        // strip it off for further processing.
+        int pos = proc.indexOf(";");
+        if ( pos > 0 ) {
+            proc = proc.substring(0,pos);
+        }
+        procNames.add ( proc );
+    }
+    // Strip out system stored procedures that a user should not run.
+    // TODO SAM 2013-04-10 Need to figure out a more elegant way to do this.
+    int databaseEngineType = dmi.getDatabaseEngineType();
+    String [] systemProcPatternsToRemove = new String[0];
+    if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+        String [] systemProcPatternsToRemove0 = {
+            "dm.*",
+            "dt.*",
+            "fn.*",
+            "sp.*",
+            "xp.*"
+        };
+        systemProcPatternsToRemove = systemProcPatternsToRemove0;
+    }
+    if ( removeSystemProcedures ) {
+        Message.printStatus(2, routine, "Removing system procedures from procedure list");
+        for ( int i = 0; i < systemProcPatternsToRemove.length; i++ ) {
+            StringUtil.removeMatching(procNames,systemProcPatternsToRemove[i],true);
+        }
+    }
+    // Additionally remove all the tables that were in the notIncluded parameter passed in to this method.
+    if (notIncluded != null) {
+        Message.printStatus(2, routine, "Removing requested procedures from procedure list");
+        for ( String s : notIncluded ) {
+            StringUtil.removeMatching(procNames,s,true);
+        }
+    }
+    // Using the following will close the related statement, which causes a problem on the 2nd call
+    // to this method.
+    //DMI.closeResultSet(rs);
+    rs.close();
+    return procNames;
+}
+
+/**
 Returns the list of table names in the database, excluding known system tables.
 @param dmi an open, connected and not-null DMI connection to a database.
 @param removeSystemTables if true, remove the known system tables (this may take some work to keep up to
@@ -3312,7 +3405,7 @@ Constructs a concatenated String with OR inserted at the appropriate locations.
 @param or list of Strings in which to construct an OR clause
 @return returns a String with OR inserted at the appropriate locations, null if "or" is null
 */
-public static String getOrClause(List or) {
+public static String getOrClause(List<String> or) {
         if (or == null) {
             return null;
         }
