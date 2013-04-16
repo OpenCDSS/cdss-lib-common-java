@@ -65,7 +65,7 @@ Return the maximum data value for the filled dependent array, or null if not ana
 */
 public Double getMaxYFilled ()
 {   Double maxYfilled = __maxYfilled;
-    if ( maxYfilled == null ) {
+    if ( (maxYfilled == null) && (getYFilled().length > 0) ) {
         maxYfilled = MathUtil.max(getYFilled());
         setMaxYFilled ( maxYfilled );
     }
@@ -78,7 +78,7 @@ Return the mean for the filled dependent array, or null if not analyzed.
 */
 public Double getMeanYFilled ()
 {   Double meanYFilled = __meanYfilled;
-    if ( meanYFilled == null ) {
+    if ( (meanYFilled == null) && (getYFilled().length > 0) ) {
         meanYFilled = MathUtil.mean(getYFilled());
         setMeanYFilled ( meanYFilled );
     }
@@ -91,7 +91,7 @@ Return the minimum data value for the filled dependent array, or null if not ana
 */
 public Double getMinYFilled ()
 {   Double minYFilled = __minYfilled;
-    if ( minYFilled == null ) {
+    if ( (minYFilled == null) && (getYFilled().length > 0) ) {
         minYFilled = MathUtil.min(getYFilled());
         setMinYFilled ( minYFilled );
     }
@@ -117,7 +117,7 @@ Return the skew for the filled dependent array, or null if not analyzed.
 */
 public Double getSkewYFilled ()
 {   Double skewYfilled = __skewYfilled;
-    if ( skewYfilled == null ) {
+    if ( (skewYfilled == null) && (getYFilled().length >= 3) ) {
         skewYfilled = MathUtil.skew(getYFilled().length, getYFilled());
         setSkewYFilled( skewYfilled );
     }
@@ -130,7 +130,7 @@ Return the standard deviation for the filled dependent array, or null if not ana
 */
 public Double getStandardDeviationYFilled ()
 {   Double stddevYfilled = __stddevYfilled;
-    if ( stddevYfilled == null ) {
+    if ( (stddevYfilled == null) && (getYFilled().length >= 2) ) {
         stddevYfilled = MathUtil.standardDeviation(getYFilled());
         setStandardDeviationYFilled( stddevYfilled );
     }

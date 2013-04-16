@@ -1,5 +1,12 @@
 package RTi.Util.Math;
 
+import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
+
+import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.stat.inference.TTest;
+import org.apache.commons.math3.stat.inference.TestUtils;
+
 /**
 This class provides storage for regression analysis errors, determined by using the
 results of the regression analysis to estimate values that were previously known (in N1) and then measuring the
@@ -8,6 +15,16 @@ the estimation - the calculations are performed elsewhere due to complications w
 */
 public class RegressionEstimateErrors
 {
+    
+/**
+Regression data used as input to compute the relationships.
+*/
+private RegressionData __regressionData = null;
+
+/**
+Regression results analyzing the relationships.
+*/
+private RegressionResults __regressionResults = null;
     
 /**
 Array of estimated dependent values in N1.
@@ -46,8 +63,10 @@ Constructor.
 @param see standard error of estimate computed for the estimated values
 @param seSlope standard error of the slope computed for the estimated values
 */
-public RegressionEstimateErrors ( double [] Y1est, Double rmse, Double see, Double seSlope )
+public RegressionEstimateErrors ( RegressionData data, RegressionResults results, double [] Y1est, Double rmse, Double see, Double seSlope )
 {
+    setRegressionData(data);
+    setRegressionResults(results);
     setY1est(Y1est);
     setRMSE(rmse);
     setStandardErrorOfEstimate(see);
@@ -85,6 +104,22 @@ public Double getRMSE ()
 }
 
 /**
+Return the regression data used for the error estimate.
+*/
+public RegressionData getRegressionData ()
+{
+    return __regressionData;
+}
+
+/**
+Return the regression results used for the error estimate.
+*/
+public RegressionResults getRegressionResults ()
+{
+    return __regressionResults;
+}
+
+/**
 Return the standard deviation for the estimated dependent array, or null if not analyzed.
 @return the standard deviation for the estimated dependent array, or null if not analyzed.
 */
@@ -114,6 +149,107 @@ public Double getStandardErrorOfSlope ()
 }
 
 /**
+Return the Student T Test quantile for the confidence interval (to be evaluated against the test score
+for the slope of the regression line), to determine if it is a good relationship
+@param confidenceIntervalPercent the confidence interval as a percent
+@return null if unable to compute the quantile
+*/
+public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
+{
+    if ( confidenceIntervalPercent == null ) {
+        Message.printStatus(2,"","confidenceIntervalPercent is null - not computing quantile");
+        return null;
+    }
+    if ( getRegressionData() == null ) {
+        return null;
+    }
+    // Single tail exceedance probability in range 0 to 1.0
+    // For example, a confidence interval of 95% will have p = .025
+    double tScoreTestStat = getTestScore(getRegressionResults().getB());
+    double alpha = (100.0 - confidenceIntervalPercent)/100.0;
+    double alpha2 = alpha/2.0;
+    double [] Y1 = getRegressionData().getY1();
+    double [] Y1est = getY1est();
+    if ( Y1 == null ) {
+        return null;
+    }
+    if ( Y1est == null ) {
+        return null;
+    }
+    // Length of array will be N1 by definition - subtract 2 for the intercept and slope to get
+    // the degrees of freedom
+    int dof = Y1est.length - 2;
+    Double p = null;
+    Message.printStatus(2,"", "alpha=" + alpha );
+    Message.printStatus(2,"", "n=" + Y1est.length );
+    Message.printStatus(2,"", "dof=" + dof );
+    Message.printStatus(2,"", "T-score test statistic=" + tScoreTestStat );
+    try {
+        boolean useApacheMath = true;
+        if ( useApacheMath ) {
+            // Why is degrees of freedom a double?
+            org.apache.commons.math3.distribution.TDistribution tDist = new TDistribution(dof);
+            //p = tDist.inverseCumulativeProbability(alpha2); // Single tail value of alpha
+            p = tDist.probability(tScoreTestStat); // Single tail value of alpha
+            Message.printStatus(2,"", "Single tail p-value=" + p + " alpha/2=" + alpha2 );
+            //q = tDist.density((100.0 - p)/200.0); // Single tail value of alpha
+            Message.printStatus(2,"", StringUtil.formatArrays("Y1", Y1, "Y1est", Y1est, ",", "\n") );
+            Message.printStatus(2,"", "pairedT=" + TestUtils.pairedT(Y1,Y1est) );
+            Message.printStatus(2,"", "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est) );
+            Message.printStatus(2,"", "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est,alpha) );
+            org.apache.commons.math3.distribution.TDistribution tDist2 = new TDistribution(99);
+            double p2 = tDist.probability(2.29);
+            Message.printStatus(2,"", "Example p-value=" + p2 );
+        }
+        else {
+            StudentTTest t = new StudentTTest();
+            p = t.getStudentTQuantile(alpha2, dof );
+        }
+    }
+    catch ( Exception e ) {
+        // typically dof too small
+        p = null; // Not computed
+    }
+    return p;
+}
+
+/**
+Return the Student T Test score as b/SEslope
+@param b the slope of the regression line
+@return null if unable to compute the test score or Double.POSITIVE_INFINITY if division by zero.
+*/
+public Double getTestScore ( Double b )
+{
+    Double SEslope = getStandardErrorOfSlope();
+    if ( (b == null) || (SEslope == null) ) {
+        return null;
+    }
+    if ( b == 0.0 ) {
+        return Double.POSITIVE_INFINITY;
+    }
+    return new Double(b/SEslope);
+}
+
+/**
+Determine whether the relationship is valid for the confidence interval specified during analysis
+@return true if the result of getTestScore() is >= the result from getStudentTTestQuantile();
+return null if the inputs are not specified
+*/
+public Boolean getTestRelated ( Double testScore, Double testQuantile )
+{   if ( (testScore == null) || (testQuantile == null) ) {
+        return null;
+    }
+    else {
+        if ( testScore >= testQuantile ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+/**
 Return the estimated dependent array.
 */
 public double [] getY1est ()
@@ -127,6 +263,22 @@ Set the mean for the estimated dependent data.
 */
 private void setMean1Yest ( Double meanY1est )
 {   __meanY1est = meanY1est;
+}
+
+/**
+Set the regression data.
+*/
+private void setRegressionData ( RegressionData regressionData )
+{
+    __regressionData = regressionData;
+}
+
+/**
+Set the regression results.
+*/
+private void setRegressionResults ( RegressionResults regressionResults )
+{
+    __regressionResults = regressionResults;
 }
 
 /**

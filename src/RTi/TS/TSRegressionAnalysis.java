@@ -7,7 +7,7 @@ import RTi.Util.Math.RegressionData;
 import RTi.Util.Math.RegressionEstimateErrors;
 import RTi.Util.Math.RegressionResults;
 import RTi.Util.Math.RegressionType;
-import RTi.Util.Math.TDistribution;
+import RTi.Util.Math.StudentTTest;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
@@ -97,6 +97,12 @@ OLS regression.
 private Double __forcedIntercept = null;
 
 /**
+The confidence interval that is required for the relationship, triggers execution of the Student T Test
+for the slope of the line.
+*/
+private Double __confidenceIntervalPercent = null;
+
+/**
 Data used by the regression analysis - will be populated by the extractDataArraysFromTimeSeries() method.
 */
 private TSRegressionData __tsRegressionData = null;
@@ -142,7 +148,8 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
     boolean analyzeSingleEquation, boolean analyzeMonthlyEquations, int [] analysisMonths,
     DataTransformationType transformation, Double leZeroLogValue, Double intercept,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
-    DateTime independentAnalysisStart, DateTime independentAnalysisEnd )
+    DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
+    Double confidenceIntervalPercent )
 {
     if ( independentTS == null ) {
         throw new IllegalArgumentException ( "Independent time series is null.  Cannot perform regression." );
@@ -224,6 +231,7 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
             __independentAnalysisEnd = new DateTime(__xTS.getDate2());
         }
     }
+    __confidenceIntervalPercent = confidenceIntervalPercent;
     // Extract the data from the time series (needs to be done regardless of later steps and better to
     // do here and find problems early)...
     extractDataArraysFromTimeSeries();
@@ -264,8 +272,8 @@ public void analyzeForFilling ( Integer minimumSampleSize, Double minimumR, Doub
     // Single equation...
     calculateRegressionRelationships(getAnalysisMethod(), getTransformation(), getForcedIntercept());
     calculateEquationErrorsWhenFilling(getTransformation());
-    if ( minimumSampleSize == null ) {
-        // At least 2 points are needed to avoid division by zero
+    if ( (minimumSampleSize == null) || (minimumSampleSize < 2) ) {
+        // At least 2 points are needed to avoid division by zero in computations
         minimumSampleSize = 2;
     }
     checkRegressionRelationships(minimumSampleSize, minimumR, confidenceInterval);
@@ -438,13 +446,18 @@ private void calculateEquationErrorsWhenFilling ( DataTransformationType transfo
         }
     }
     */
-    RegressionEstimateErrors singleEquationErrors = new RegressionEstimateErrors(Y1estimated, rmseSingle, seeSingle, seSlopeSingle);
+    RegressionEstimateErrors singleEquationErrors = new RegressionEstimateErrors(
+        regressionData.getSingleEquationRegressionData(),
+        getTSRegressionResults().getSingleEquationRegressionResults(),
+        Y1estimated, rmseSingle, seeSingle, seSlopeSingle);
     RegressionEstimateErrors [] monthlyEquationErrors = new RegressionEstimateErrors[12];
-    RegressionEstimateErrors singleEquationErrorsTransformed =
-        new RegressionEstimateErrors(Y1transformedEstimated, rmseSingleTransformed, seeSingleTransformed, seSlopeSingleTransformed);
+    RegressionEstimateErrors singleEquationErrorsTransformed = new RegressionEstimateErrors(
+        regressionDataTransformed.getSingleEquationRegressionData(),
+        getTSRegressionResultsTransformed().getSingleEquationRegressionResults(),
+        Y1transformedEstimated, rmseSingleTransformed, seeSingleTransformed, seSlopeSingleTransformed);
     RegressionEstimateErrors [] monthlyEquationErrorsTransformed = new RegressionEstimateErrors[12];
     for ( int i = 0; i < 12; i++ ) {
-        monthlyEquationErrors[i] = new RegressionEstimateErrors(new double[0], rmseMonthly[i], seeMonthly[i], seSlopeMonthly[i]);
+        monthlyEquationErrors[i] = new RegressionEstimateErrors(null, null, new double[0], rmseMonthly[i], seeMonthly[i], seSlopeMonthly[i]);
         //monthlyEquationErrorsTransformed[i] =
         //    new RegressionErrors(rmseMonthlyTransformed[i], seeMonthlyTransformed[i], seSlopeMonthlyTransformed[i]);
     }
@@ -509,9 +522,9 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
 <p>
 Check the relationships against criteria, including:
 <ol>
-<li> is the sample size (number of over overlapping points) large enough?</li>
-<li> is the minimum R met?</li>
-<li> is the confidence interval met?</li>
+<li>is the sample size (number of over overlapping points) large enough?</li>
+<li>is the minimum R met?</li>
+<li>is the confidence interval met?</li>
 </ol>
 </p>
 <p>
@@ -532,20 +545,30 @@ private void checkRegressionRelationships (
     // Check the minimum sample size...
     TSRegressionData data = getTSRegressionData ();
     TSRegressionResults results = getTSRegressionResults ();
+    TSRegressionEstimateErrors errors = getTSRegressionEstimateErrors ();
     // Finally, set the check results to indicate whether the relationships are within acceptable parameters
     RegressionChecks regressionChecksSingle = new RegressionChecks(
         results.getSingleEquationRegressionResults().getIsAnalysisPerformedOK(),
         minimumSampleSize, data.getSingleEquationRegressionData().getN1(),
-        minimumR, results.getSingleEquationRegressionResults().getCorrelationCoefficient()
-        );//,
-        //confidenceInterval, okSingleTtest );
+        minimumR, results.getSingleEquationRegressionResults().getCorrelationCoefficient(),
+        getConfidenceIntervalPercent(),
+        errors.getSingleEquationRegressionErrors().getTestRelated(
+            errors.getSingleEquationRegressionErrors().getTestScore(
+                results.getSingleEquationRegressionResults().getB()),
+            errors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
+                getConfidenceIntervalPercent())));
     RegressionChecks [] regressionChecksMonthly = new RegressionChecks[12];
     for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
         regressionChecksMonthly[iMonth - 1] = new RegressionChecks(
             results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK(),
             minimumSampleSize, data.getMonthlyEquationRegressionData(iMonth).getN1(),
-            minimumR, results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient() );//,
-            //confidenceInterval, okMonthlyTtest[iMonth - 1] );
+            minimumR, results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient(),
+            getConfidenceIntervalPercent(),
+            errors.getMonthlyEquationRegressionErrors(iMonth).getTestRelated(
+                errors.getMonthlyEquationRegressionErrors(iMonth).getTestScore(
+                    results.getMonthlyEquationRegressionResults(iMonth).getB()),
+                errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile(
+                    getConfidenceIntervalPercent())));
     }
     setTSRegressionChecksTransformed ( new TSRegressionChecks ( regressionChecksSingle, regressionChecksMonthly) );
 }
@@ -570,23 +593,19 @@ private void extractDataArraysFromTimeSeries ()
     double [] x1Single = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         true, // Match non-missing for the following time series
-        yTS,
-        TSToArrayReturnType.DATA_VALUE );
+        yTS, TSToArrayReturnType.DATA_VALUE );
     double [] y1Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         true, // Match non-missing for the following time series
-        xTS,
-        TSToArrayReturnType.DATA_VALUE );
+        xTS, TSToArrayReturnType.DATA_VALUE );
     double [] x2Single = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         false, // DO NOT match non-missing for the following time series
-        yTS,
-        TSToArrayReturnType.DATA_VALUE );
+        yTS, TSToArrayReturnType.DATA_VALUE );
     double [] y3Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
         analysisMonths, false, // Do not include missing
         false, // DO NOT match non-missing for the following time series
-        xTS,
-        TSToArrayReturnType.DATA_VALUE );
+        xTS, TSToArrayReturnType.DATA_VALUE );
     RegressionData dataSingle = new RegressionData ( x1Single, y1Single, x2Single, y3Single );
     // Extract data arrays from time series for monthly equations...
     double [][] x1Monthly = new double[12][];
@@ -602,23 +621,19 @@ private void extractDataArraysFromTimeSeries ()
             x1Monthly[iMonth - 1] = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
-                yTS,
-                TSToArrayReturnType.DATA_VALUE );
+                yTS, TSToArrayReturnType.DATA_VALUE );
             y1Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 true, // Match non-missing for the following time series
-                xTS,
-                TSToArrayReturnType.DATA_VALUE );
+                xTS, TSToArrayReturnType.DATA_VALUE );
             x2Monthly[iMonth - 1] = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
-                yTS,
-                TSToArrayReturnType.DATA_VALUE );
+                yTS, TSToArrayReturnType.DATA_VALUE );
             y3Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
                 analysisMonths2, false, // Do not include missing
                 false, // DO NOT match non-missing for the following time series
-                xTS,
-                TSToArrayReturnType.DATA_VALUE );
+                xTS, TSToArrayReturnType.DATA_VALUE );
         }
         else {
             // Define empty arrays but no data are included
@@ -675,6 +690,14 @@ corresponds to the AnalysisMonth data but has been filled out for each month to 
 */
 public boolean [] getAnalysisMonthsMask ()
 {   return __analysisMonthsMask;
+}
+
+/**
+Return the confidence interval, percent.
+@return the confidence interval, percent, or null if not specified.
+*/
+public Double getConfidenceIntervalPercent ()
+{   return __confidenceIntervalPercent;
 }
 
 /**
@@ -820,7 +843,7 @@ public boolean [] getTSRegressionChecksMaskMonthly ()
             if ( analysisMonthsMask[i] ) {
                 // Now check each of the check criteria
                 RegressionChecks checks = tsChecks.getMonthlyEquationRegressionChecks(i + 1);
-                if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsConfidenceIntervalOK() ) {
+                if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsTestOK() ) {
                     __tsRegressionChecksMaskMonthly[i] = true;
                 }
             }
@@ -852,8 +875,10 @@ public boolean [] getTSRegressionChecksMaskSingle ()
                 // Now check each of the check criteria
                 Message.printStatus(2,"","OK sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
                 Message.printStatus(2,"","OK minimum R [" + i + "] is " + checks.getIsROK() );
-                Message.printStatus(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsConfidenceIntervalOK() );
-                if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsConfidenceIntervalOK() ) {
+                Message.printStatus(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsTestOK() );
+                if ( checks.getIsSampleSizeOK() && checks.getIsROK() &&
+                    ((checks.getConfidenceIntervalPercent() != null) &&
+                    (checks.getIsTestOK() != null) && checks.getIsTestOK()) ) {
                     __tsRegressionChecksMaskSingle[i] = true;
                 }
             }

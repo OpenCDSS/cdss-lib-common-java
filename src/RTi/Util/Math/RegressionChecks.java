@@ -46,14 +46,14 @@ Is R OK?
 boolean __isROK = false;
 
 /**
-Confidence interval required to demonstrate relationship.
+Confidence interval required to demonstrate relationship, percent.
 */
-Double __confidenceInterval = null;
+Double __confidenceIntervalPercent = null;
 
 /**
-Is the confidence interval OK?
+Is the confidence interval met using T test?
 */
-boolean __isConfidenceIntervalOK = false;
+Boolean __isTestOK = null;
 
 /**
 Create check object indicating check criteria and actual values.
@@ -63,11 +63,13 @@ error such as divide by zero
 @param sampleSize the actual sample size
 @param minimumR the minimum R that is required
 @param R the actual R
+@param confidenceIntervalPercent the confidence interval in percent (e.g., 95.0) - can be null if the
+confidence interval is not being checked - this is set by the calling code due to complexity in checking the
+value based on data in other objects
+@param isTestOK whether the relationship satisfies the confidence interval when T test is checked
 */
 public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize, Integer sampleSize,
-    Double minimumR, Double R//,
-    //Double confidenceInterval, boolean isConfidenceIntervalOK
-    )
+    Double minimumR, Double R, Double confidenceIntervalPercent, Boolean isTestOK )
 {
     __isAnalysisPerformedOK = analysisPerformedOK;
     
@@ -96,10 +98,8 @@ public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize
         }
     }
     
-    // FIXME SAM 2012-01-17 Handle confidence interval and T-test
-    //__confidenceInterval = confidenceInterval;
-    //__isConfidenceIntervalOK = isConfidenceIntervalOK;
-    __isConfidenceIntervalOK = true;
+    __confidenceIntervalPercent = confidenceIntervalPercent;
+    __isTestOK = isTestOK;
 }
 
 /**
@@ -115,19 +115,22 @@ public String formatInvalidRelationshipReason()
         if ( b.length() > 0 ) {
             b.append( ", ");
         }
-        b.append("sample size (" + getSampleSize() + ")<" + getMinimumSampleSize() );
+        b.append("sample size (" + getSampleSize() + ") < " + getMinimumSampleSize() );
     }
     if ( !getIsROK() ) {
         if ( b.length() > 0 ) {
             b.append( ", ");
         }
-        b.append("R (" + getR() + ")<" + getMinimumR() );
+        b.append("R (" + getR() + ") < " + getMinimumR() );
     }
-    if ( !getIsConfidenceIntervalOK() ) {
-        if ( b.length() > 0 ) {
-            b.append( ", ");
+    Double confidenceIntervalPercent = getConfidenceIntervalPercent();
+    if ( confidenceIntervalPercent != null ) {
+        if ( (getIsTestOK() == null) || !getIsTestOK() ) {
+            if ( b.length() > 0 ) {
+                b.append( ", ");
+            }
+            b.append("CI not met" );
         }
-        b.append("CI not met" );
     }
     return b.toString();
 }
@@ -136,8 +139,8 @@ public String formatInvalidRelationshipReason()
 Return the confidence interval that must be met - if null then confidence interval is not checked.
 @return the confidence interval that must be met.
 */
-public Double getConfidenceInterval ()
-{   return __confidenceInterval;
+public Double getConfidenceIntervalPercent ()
+{   return __confidenceIntervalPercent;
 }
 
 /**
@@ -146,14 +149,6 @@ Indicate whether the analysis was performed OK.
 */
 public boolean getIsAnalysisPerformedOK ()
 {   return __isAnalysisPerformedOK;
-}
-
-/**
-Indicate whether the confidence interval has been met.
-@return true if the confidence interval has been met.
-*/
-public boolean getIsConfidenceIntervalOK ()
-{   return __isConfidenceIntervalOK;
 }
 
 /**
@@ -170,6 +165,14 @@ Indicate whether the sample size has met the minimum criteria.
 */
 public boolean getIsSampleSizeOK ()
 {   return __isSampleSizeOK;
+}
+
+/**
+Indicate whether the confidence interval has been met in the T test.
+@return true if the confidence interval has been met in the T test.
+*/
+public Boolean getIsTestOK ()
+{   return __isTestOK;
 }
 
 /**

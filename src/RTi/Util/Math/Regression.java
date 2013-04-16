@@ -60,120 +60,149 @@ public class Regression
 Forced intercept A in the computation code.
 */
 protected Double _intercept = null;
+
 /**
 Y-intercept of best fit line.
 */
 protected double _a = 0.0;
+
 /**
 Slope of best fit line.
 */
 protected double _b = 0.0;
+
 /**
 Number of non-missing points in X and Y
 */
 protected int _n1 = 0;
+
 /**
 Number of non-missing points in X that are not in _n1.
 */
 protected int _n2 = 0;
+
 /**
 Standard error of estimate for untransformed data.
 */
 protected double _see = 0.0;
+
 /**
 Standard error of estimate for transformed data.
 */
 protected double _seeTransformed = 0.0;
+
 /**
 Correlation coefficient.
 */
 protected double _r = 0.0;
+
 /**
 RMS Error for untransformed data.
 */
 protected double _rmse = 0.0;
+
 /**
 RMS Error for transformed data.
 */
 protected double _rmseTransformed = 0.0;
+
 /**
 Indicates whether the analysis has been completed.
 */
 protected boolean _is_analyzed = false;
+
 /**
 Intervals that the second time series is lagged compared to the first when performing the regression
 analysis.
 TODO SAM 2009-03-10 Need to be double?
 */
 protected int _lag_intervals = 0;
+
 /**
 Maximum value of X in N1.
 */
 protected double _max_x1 = 0.0;
+
 /**
 Maximum value of Y in N1.
 */
 protected double _max_y1 = 0.0;
+
 /**
 Minimum value of X in N1.
 */
 protected double _min_x1 = 0.0;
+
 /**
 Minimum value of Y in N1.
 */
 protected double _min_y1 = 0.0;
+
 /**
 Mean of X in N1 + N2.
 */
 protected double _mean_x = 0.0;
+
 /**
 Mean of X in N1.
 */
 protected double _mean_x1 = 0.0;
+
 /**
 Mean of X in N2.
 */
 protected double _mean_x2 = 0.0;
+
 /**
 Mean of Y in N1 + N2.
 */
 protected double _mean_y = 0.0;
+
 /**
 Mean of Y in N1.
 */
 protected double _mean_y1 = 0.0;
+
 /**
 Mean of estimated Y in N1.
 */
 protected double _mean_y1_estimated = 0.0;
+
 /**
 Standard deviation of X in N1 + N2.
 */
 protected double _stddev_x = 0.0;
+
 /**
 Standard deviation of X in N1.
 */
 protected double _stddev_x1 = 0.0;
+
 /**
 Standard deviation of X in N2.
 */
 protected double _stddev_x2 = 0.0;
+
 /**
 Standard deviation of X in N1 + N2.
 */
 protected double _stddev_y = 0.0;
+
 /**
 Standard deviation of Y in N1.
 */
 protected double _stddev_y1 = 0.0;
+
 /**
 Standard deviation of estimated Y in N1.
 */
 protected double _stddev_y1_estimated = 0.0;
+
 /**
 Array of X1 values.
 */
 protected double [] _X1;
+
 /**
 Array of Y1 values.
 */
@@ -204,17 +233,18 @@ Indicate whether the intercept (A) for the relationship is forced.
 public Double getIntercept ()
 {	return _intercept;
 }
+
 /**
-Return A in correlation equation.
-@return A in correlation equation.
+Return A (intercept) in correlation equation.
+@return A (intercept) in correlation equation.
 */
 public double getA ()
 {	return _a;
 }
 
 /**
-Return B in correlation equation.
-@return B in correlation equation.
+Return B (slope) in correlation equation.
+@return B (slope) in correlation equation.
 */
 public double getB ()
 {	return _b;

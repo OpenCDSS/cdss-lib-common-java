@@ -140,7 +140,7 @@ import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.NumberOfEquationsType;
 import RTi.Util.Math.Regression;
 import RTi.Util.Math.RegressionType;
-import RTi.Util.Math.TDistribution;
+import RTi.Util.Math.StudentTTest;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -1327,7 +1327,7 @@ private void analyzeOLSRegression ()
 					continue;
 				}
 				if ( xArray[j] <= 0.0 ) {
-					// Substitue value
+					// Substitute value
 					xArray[j] = leZeroSubstituteDataValueLog;
 				}
 				else {
@@ -1367,7 +1367,8 @@ private void analyzeOLSRegression ()
 			if ( __confidenceInterval != null ) {
 			    // Get the limiting value given the confidence interval
 			    double alpha = (1.0 - __confidenceInterval.doubleValue()/100.0); // double-tailed
-			    double tMet = TDistribution.getTQuantile(alpha/2.0, n1 - 2 ); // Single-tailed so divide by 2
+			    StudentTTest t = new StudentTTest();
+			    double tMet = t.getStudentTQuantile(alpha/2.0, n1 - 2 ); // Single-tailed so divide by 2
 			    Message.printStatus ( 2, routine, "T based on confidence interval = " + tMet );
 			    // Compute the statistic based on standard error of the estimate;
 			    //double ssxy = sxy - sx*my1;

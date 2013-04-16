@@ -106,7 +106,7 @@ private Double __minimumR = null;
 /**
 Confidence interval that must be met for good relationship.
 */
-private Double __confidenceInterval = null;
+private Double __confidenceIntervalPercent = null;
 
 /**
 Start of filling.
@@ -254,7 +254,7 @@ public TSUtil_FillRegression ( TS tsToFill, TS tsIndependent,
     // Minimum R
     __minimumR = minimumR;
     // Confidence interval
-    __confidenceInterval = confidenceInterval;
+    __confidenceIntervalPercent = confidenceInterval;
     // Fill period...
     if ( fillStart == null ) {
         __fillStart = new DateTime(tsToFill.getDate1());
@@ -531,10 +531,10 @@ public void fillRegression ()
         getAnalysisMonths(),
         getTransformation(), getLEZeroLogValue(), getForcedIntercept(),
         getDependentAnalysisStart(), getDependentAnalysisEnd(),
-        getIndependentAnalysisStart(), getIndependentAnalysisEnd() );
+        getIndependentAnalysisStart(), getIndependentAnalysisEnd(), getConfidenceIntervalPercent() );
     setTSRegressionAnalysis ( ra );
     // Analyze for filling
-    ra.analyzeForFilling(getMinimumSampleSize(), getMinimumR(), getConfidenceInterval() );
+    ra.analyzeForFilling(getMinimumSampleSize(), getMinimumR(), getConfidenceIntervalPercent() );
     // Do the filling...
     if ( getDoFill() ) {
         fillDependentTS ();
@@ -686,8 +686,8 @@ public Integer getMinimumSampleSize ()
 Return the confidence interval that must be met - if null then confidence interval is not checked.
 @return the confidence interval that must be met.
 */
-public Double getConfidenceInterval ()
-{   return __confidenceInterval;
+public Double getConfidenceIntervalPercent ()
+{   return __confidenceIntervalPercent;
 }
 
 /**
@@ -793,6 +793,7 @@ throws Exception
     // Add additional generic columns, for informational purposes - put these here to avoid
     // duplication for each month if monthly analysis
     List<String> columnsToAdd = new Vector();
+    columnsToAdd.add ( "AnalysisMethod" );
     columnsToAdd.add ( "DependentAnalysisStart" );
     columnsToAdd.add ( "DependentAnalysisEnd" );
     // TODO SAM 2012-05-24 Evaluate whether the following 2 are confusing for normal OLS regression
@@ -805,6 +806,7 @@ throws Exception
     columnsToAdd.add ( "MinimumR" );
     columnsToAdd.add ( "ConfidenceInterval" );
     List<String> descriptionsToAdd = new Vector();
+    descriptionsToAdd.add ( "Regression analysis method (Ordinary Least Squares or Maintenance of Variation 2)" );
     descriptionsToAdd.add ( "Dependent time series analysis period start, used to determine relationships" );
     descriptionsToAdd.add ( "Dependent time series analysis period end, used to determine relationships" );
     if ( regressionType == RegressionType.OLS_REGRESSION ) {
@@ -936,13 +938,17 @@ throws Exception
         statsToOutput.add ( "SESlope" );
         statsToOutput.add ( "TestScore" );
         statsToOutput.add ( "TestQuantile" );
-        statsToOutput.add ( "TestRelated" );
+        statsToOutput.add ( "TestOK" );
+        statsToOutput.add ( "SampleSizeOK" );
+        statsToOutput.add ( "ROK" );
     }
     else {
         statsToOutput.add ( "SESlope_trans" );
         statsToOutput.add ( "TestScore_trans" );
         statsToOutput.add ( "TestQuantile_trans" );
-        statsToOutput.add ( "TestRelated_trans" );
+        statsToOutput.add ( "TestOK_trans" );
+        statsToOutput.add ( "SampleSizeOK_trans" );
+        statsToOutput.add ( "ROK_trans" );
     }
     // Statistics from the filled data, always in data space
     // (include for comparison with mixed station analysis)...
@@ -975,8 +981,8 @@ throws Exception
     statisticComments.put("MeanY1","Mean of the dependent N1 values");
     statisticComments.put("SY1","Standard deviation of the dependent N1 values");
     statisticComments.put("NY","Count of the non-missing dependent values in the analysis period");
-    statisticComments.put("MeanY","Mean of the NY values");
-    statisticComments.put("SY","Standard deviation of the NY values");
+    statisticComments.put("MeanY","Mean of the NY dependent values in the analysis period");
+    statisticComments.put("SY","Standard deviation of the NY dependent values in the analysis period");
     statisticComments.put("a","The intercept for the relationship equation");
     statisticComments.put("b","The slope of the relationship equation");
     statisticComments.put("R","The correlation coefficient for N1 values");
@@ -991,7 +997,9 @@ throws Exception
     statisticComments.put("SEslope","Standard error (SE) of the slope (b) for N1 values, computed from regression relationship estimated values");
     statisticComments.put("TestScore","b/SE");
     statisticComments.put("TestQuantile","From the Student's T-test, function of confidence interval and degrees of freedom, DF (N1 - 2)");
-    statisticComments.put("TestPass","Yes if TestScore < TestQuantile, false if otherwise");
+    statisticComments.put("TestOK","Yes if TestScore >= TestQuantile, No if otherwise");
+    statisticComments.put("SampleSizeOK","Yes if sample size >= minimum sample size, No if otherwise");
+    statisticComments.put("ROK","Yes if R >= minimum R, No if otherwise");
     // Put these in for comparison with mixed station analysis
     statisticComments.put("NYfilled","Number of dependent values filled in the fill period");
     statisticComments.put("MeanYfilled","Mean of the filled values");
@@ -1015,6 +1023,7 @@ throws Exception
     // values being null; however this is easier than dealing with casts later in the code
     Double [] statisticValueDouble = new Double[countStatisticTotal];
     Integer [] statisticValueInteger = new Integer[countStatisticTotal];
+    String [] statisticValueString = new String[countStatisticTotal];
     //String [] statisticValueString = new String[countStatisticTotal];
     // The count of statistics added (0-index), necessary because when dealing with monthly statistics
     // the 12 months are flattened into a linear array matching column headings
@@ -1267,6 +1276,39 @@ throws Exception
                         tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getRMSE();
                 }
             }
+            else if ( statisticName.equals("ROK") ) {
+                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                // Only have a value if the minium R has been specified
+                if ( getMinimumR() == null ) {
+                    statisticValueString[countStatistic] = "";
+                }
+                else {
+                    boolean rok = tsRegressionChecks.getSingleEquationRegressionChecks().getIsROK();
+                    if ( numEquations == 12 ) {
+                        rok = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsROK();
+                    }
+                    if ( rok ) {
+                        statisticValueString[countStatistic] = "Yes";
+                    }
+                    else {
+                        statisticValueString[countStatistic] = "No";
+                    }
+                }
+            }
+            else if ( statisticName.equals("SampleSizeOK") ) {
+                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                // Minimum sample size will always be specified internally so always show
+                boolean ssOk = tsRegressionChecks.getSingleEquationRegressionChecks().getIsSampleSizeOK();
+                if ( numEquations == 12 ) {
+                    ssOk = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsSampleSizeOK();
+                }
+                if ( ssOk ) {
+                    statisticValueString[countStatistic] = "Yes";
+                }
+                else {
+                    statisticValueString[countStatistic] = "No";
+                }
+            }
             else if ( statisticName.equals("SEE") ) {
                 statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                 if ( numEquations == 1 ) {
@@ -1289,39 +1331,7 @@ throws Exception
                         tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfSlope();
                 }
             }
-            
-            /* FIXME SAM 2011-01-06
-            else if ( statisticName.equals("TestScore") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getTestScore());
-                }
-                else {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getTestScore(iEquation));
-                }
-            }
-            else if ( statisticName.equals("TestQuantile") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getTestQuantile());
-                }
-                else {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getTestQuantile(iEquation));
-                }
-            }
-            else if ( statisticName.equals("TestIsRelated") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
-                boolean related = regressionResults.getTestIsRelated();
-                if ( numEquations == 12 ) {
-                    related = regressionResults.getTestIsRelated(iEquation);
-                }
-                if ( related ) {
-                    statisticValueString[countStatistic] = "Yes";
-                }
-                else {
-                    statisticValueString[countStatistic] = "No";
-                }
-            }
+            /*
             else if ( statisticName.equals("SX") ) {
                 statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                 if ( numEquations == 1 ) {
@@ -1420,9 +1430,58 @@ throws Exception
                         tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getStandardDeviationYFilled();
                 }
             }
-            else {
+            else if ( statisticName.equals("TestScore") ) {
                 statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                    statisticValueDouble[countStatistic] = null;
+                if ( numEquations == 1 ) {
+                    statisticValueDouble[countStatistic] =
+                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getTestScore(
+                            tsRegressionResults.getSingleEquationRegressionResults().getB());
+                }
+                else {
+                    statisticValueDouble[countStatistic] =
+                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getTestScore(
+                             tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getB() );
+                }
+            }
+            else if ( statisticName.equals("TestQuantile") ) {
+                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                if ( numEquations == 1 ) {
+                    statisticValueDouble[countStatistic] =
+                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
+                            tsRegressionChecks.getSingleEquationRegressionChecks().getConfidenceIntervalPercent());
+                }
+                else {
+                    statisticValueDouble[countStatistic] =
+                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStudentTTestQuantile(
+                            tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getConfidenceIntervalPercent() );
+                }
+            }
+            else if ( statisticName.equals("TestOK") ) {
+                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                // Only have a value if the confidence interval has been specified
+                if ( getConfidenceIntervalPercent() == null ) {
+                    statisticValueString[countStatistic] = "";
+                }
+                else {
+                    Boolean related = tsRegressionChecks.getSingleEquationRegressionChecks().getIsTestOK();
+                    if ( numEquations == 12 ) {
+                        related = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsTestOK();
+                    }
+                    if ( related == null ) {
+                        statisticValueString[countStatistic] = "";
+                    }
+                    else if ( related ) {
+                        statisticValueString[countStatistic] = "Yes";
+                    }
+                    else {
+                        statisticValueString[countStatistic] = "No";
+                    }
+                }
+            }
+            else {
+                // Fall through for unrecognized statistics
+                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                statisticValueDouble[countStatistic] = null;
                 Message.printStatus ( 2, routine, "Don't know how to process statistic \"" + statisticName + "\"" );
             }
         }
@@ -1529,6 +1588,7 @@ throws Exception
     // records may have been matched, the normal case will be that one record is matched.
     for ( TableRecord rec : recList ) {
         // Set the static column contents
+        rec.setFieldValue(table.getFieldIndex("AnalysisMethod"), getAnalysisMethod() );
         rec.setFieldValue(table.getFieldIndex("DependentAnalysisStart"), getDependentAnalysisStart() );
         rec.setFieldValue(table.getFieldIndex("DependentAnalysisEnd"), getDependentAnalysisEnd() );
         rec.setFieldValue(table.getFieldIndex("IndependentAnalysisStart"), getIndependentAnalysisStart() );
@@ -1537,20 +1597,25 @@ throws Exception
         rec.setFieldValue(table.getFieldIndex("FillEnd"), getFillEnd() );
         rec.setFieldValue(table.getFieldIndex("MinimumSampleSize"), getMinimumSampleSize() );
         rec.setFieldValue(table.getFieldIndex("MinimumR"), getMinimumR() );
-        rec.setFieldValue(table.getFieldIndex("ConfidenceInterval"), getConfidenceInterval() );
+        rec.setFieldValue(table.getFieldIndex("ConfidenceInterval"), getConfidenceIntervalPercent() );
         countStatistic = -1;
         // Set the statistic columns for values that were actually used.
         for ( int iEquation = 0; iEquation < numEquations; iEquation++ ) {
             for ( int iStatistic = 0; iStatistic < statsToOutput.size(); iStatistic++ ) {
-                // Set the value based on the object type for the statistic...
+                // Set the value based on the object type for the statistic.
+                // There can only be one non-null statistic value
                 ++countStatistic;
                 if ( statisticValueDouble[countStatistic] != null ) {
                     rec.setFieldValue(statisticColumnNumbers[countStatistic],
-                         statisticValueDouble[countStatistic]);
+                        statisticValueDouble[countStatistic]);
                 }
-                if ( statisticValueInteger[countStatistic] != null ) {
+                else if ( statisticValueInteger[countStatistic] != null ) {
                     rec.setFieldValue(statisticColumnNumbers[countStatistic],
-                         statisticValueInteger[countStatistic]);
+                        statisticValueInteger[countStatistic]);
+                }
+                else if ( statisticValueString[countStatistic] != null ) {
+                    rec.setFieldValue(statisticColumnNumbers[countStatistic],
+                        statisticValueString[countStatistic]);
                 }
             }
         }
