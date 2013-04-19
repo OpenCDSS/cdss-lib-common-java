@@ -416,6 +416,9 @@ public void deselectAllShapes ()
 	int size = __shapes.size();
 	for ( int i = 0; i < size; i++ ) {
 		shape = __shapes.get(i);
+		if ( shape == null ) {
+			continue;
+		}
 		if ( shape.is_selected ) {
 			--__selectedCount;
 		}
