@@ -943,6 +943,8 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
 
     if ( forcedIntercept != null ) {
         if ( totalX1_sq == 0.0 ) {
+            String message = "Using forced intercept and totalX1_sq is zero.  Setting b=null";
+            Message.printWarning ( 3, rtn, message );
             b = null;
         }
         else {
@@ -956,6 +958,9 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
         }
         else {
             // TODO - should this throw an exception?
+            String message = "Denominator n1*totalX1_sq - totalX1*totalX1 is zero (n1=" + n1 + ", totalX1_sq=" +
+                totalX1_sq + ", totalX1="+ totalX1 + ") setting b=null.";
+            Message.printWarning ( 3, rtn, message );
             b = null;
         }
     }
@@ -976,7 +981,12 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     }
     else {
         // Compute...
-        a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
+        if ( b == null ) {
+            a = null;
+        }
+        else {
+            a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
+        }
     }
 
     //if ( Message.isDebugOn ) {
@@ -986,7 +996,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
             "Regression analysis results: n=" + n1 + ", a=" + a + ", b=" + b + ", R=" + r );
     //}
 
-    // Save in Regression object...
+    // Save in Regression object (null are OK because they will be checked later)...
 
     return ( new RegressionResults ( data, forcedIntercept, a, b, r ) );
 }

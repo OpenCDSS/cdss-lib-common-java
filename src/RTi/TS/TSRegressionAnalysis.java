@@ -487,6 +487,9 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
     RegressionResults singleRegressionResults = null;
     TSRegressionData tsRegressionDataTransformed = getTSRegressionDataTransformed();
     try {
+        if ( Message.isDebugOn ) {
+            Message.printStatus(2, routine, "Calculating single equation relationship..." );
+        }
         singleRegressionResults = MathUtil.ordinaryLeastSquaresRegression(
             tsRegressionDataTransformed.getSingleEquationRegressionData(), forcedIntercept);
     }
@@ -498,12 +501,16 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
     RegressionResults [] monthlyRegressionResults = new RegressionResults[12];
     for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
         try {
+            if ( Message.isDebugOn ) {
+                Message.printStatus(2, routine, "Calculating month " + iMonth + " equation relationship..." );
+            }
             monthlyRegressionResults[iMonth - 1] =
                 MathUtil.ordinaryLeastSquaresRegression(
                     getTSRegressionDataTransformed().getMonthlyEquationRegressionData(iMonth), forcedIntercept);
         }
         catch ( Exception e ) {
             Message.printWarning(3, routine, "Error computing month " + iMonth + " regression relationship (" + e + ")." );
+            Message.printWarning(3, routine, e);
             monthlyRegressionResults[iMonth - 1] = new RegressionResults(
                 tsRegressionDataTransformed.getMonthlyEquationRegressionData(iMonth),
                 forcedIntercept, Double.NaN, Double.NaN, Double.NaN );
@@ -579,7 +586,7 @@ private void checkRegressionRelationships (
 Extract data arrays needed for the analysis.
 */
 private void extractDataArraysFromTimeSeries ()
-{
+{   String routine = getClass().getName() + ".extractDataArraysFromTimeSeries";
     // Get data used in this method
     TS xTS = getIndependentTS();
     TS yTS = getDependentTS();
@@ -642,7 +649,8 @@ private void extractDataArraysFromTimeSeries ()
             x2Monthly[iMonth - 1] = new double[0];
             y3Monthly[iMonth - 1] = new double[0];
         }
-        Message.printStatus(2, "", "Size of data arrays for month " + iMonth +
+        Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
+        	"x2[indep only],y3[dep only]]) for month " + iMonth +
             ": " + x1Monthly[iMonth - 1].length + "," +
             y1Monthly[iMonth - 1].length + "," +
             x2Monthly[iMonth - 1].length + "," +
@@ -825,11 +833,12 @@ public TSRegressionData getTSRegressionDataTransformed ()
 /**
 Return an array indicating whether or not each month has valid relationships (for example that can
 then be used to fill missing data).  This information is determined when the relationships are checked.
+This array is useful rather than checking several individual bits of information.
 @return the boolean[12] array indicating whether the equations for the months are valid.  If the analysis
 is for a 
 */
 public boolean [] getTSRegressionChecksMaskMonthly ()
-{
+{   String routine = "TSRegressionAnalysis.getTSRegressionChecksMaskMonthly";
     boolean [] analysisMonthsMask = getAnalysisMonthsMask();
     if ( __tsRegressionChecksMaskMonthly == null ) {
         // Have not yet constructed the data array so do it
@@ -843,7 +852,14 @@ public boolean [] getTSRegressionChecksMaskMonthly ()
             if ( analysisMonthsMask[i] ) {
                 // Now check each of the check criteria
                 RegressionChecks checks = tsChecks.getMonthlyEquationRegressionChecks(i + 1);
-                if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsTestOK() ) {
+                Message.printStatus(2, routine, "Monthly regression checks [" + i + "] = " + checks );
+                if ( checks == null ) {
+                    __tsRegressionChecksMaskMonthly[i] = false;
+                    Message.printWarning(3,routine,"Monthly equation regression checks is null for month [" +
+                        i + "]" );
+                }
+                else if ( checks.getIsSampleSizeOK() && checks.getIsROK() && checks.getIsTestOK() &&
+                    checks.getIsAnalysisPerformedOK() ) {
                     __tsRegressionChecksMaskMonthly[i] = true;
                 }
             }

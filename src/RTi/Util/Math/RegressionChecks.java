@@ -99,7 +99,13 @@ public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize
     }
     
     __confidenceIntervalPercent = confidenceIntervalPercent;
-    __isTestOK = isTestOK;
+    if ( __confidenceIntervalPercent == null ) {
+        // No interval specified so OK
+        __isTestOK = true;
+    }
+    else {
+        __isTestOK = isTestOK;
+    }
 }
 
 /**
@@ -109,7 +115,7 @@ public String formatInvalidRelationshipReason()
 {
     StringBuffer b = new StringBuffer();
     if ( !getIsAnalysisPerformedOK() ) {
-        b.append("analysis error" );
+        b.append("analysis not performed" );
     }
     if ( !getIsSampleSizeOK() ) {
         if ( b.length() > 0 ) {
@@ -206,6 +212,15 @@ Return the actual sample size.
 public Integer getSampleSize ()
 {
     return __sampleSize;
+}
+
+/**
+Return a simple string indicating the values in the object, useful for logging.
+*/
+public String toString()
+{
+    return ( "isSampleSizeOK=" + getIsSampleSizeOK() + ", isROK=" + getIsROK() +
+        ", isAnalysisPerformedOK=" + getIsAnalysisPerformedOK() + ", isTestOK=" + getIsTestOK() );
 }
 
 }

@@ -280,7 +280,7 @@ Fill the dependent time series using the relationship(s) that have been computed
 private void fillDependentTS ()
 {
     String routine = getClass().getName() + "TSUtil.fillDependentTS";
-    int dl = 50; // Debug level
+    int dl = 10; // Debug level
 
     List<String> problems = getProblems();
     RegressionType analysisMethod = getAnalysisMethod();
@@ -334,8 +334,8 @@ private void fillDependentTS ()
     int fullDataCount = TSUtil.calculateDataSize(tsToFill, fillStart, fillEnd);
     double [] singleEquationFilledValues = new double[fullDataCount];
     double [][] monthlyEquationFilledValues = new double[12][fullDataCount];
-    Message.printStatus ( 2, routine, "Filling dependent time series \"" +
-        tsToFill.getIdentifier().toStringAliasAndTSID() + "\" from " + fillStart + " to " + fillEnd );
+    Message.printStatus ( 2, routine, "Filling dependent time series " +
+        tsToFill.getIdentifier().toStringAliasAndTSID() + " from " + fillStart + " to " + fillEnd );
     for ( DateTime date = new DateTime ( fillStart ); date.lessThanOrEqualTo( fillEnd );
         date.addInterval(intervalBase, intervalMult) ) {
         month = date.getMonth();
@@ -347,11 +347,12 @@ private void fillDependentTS ()
                 if ( tsIndependent.isDataMissing(x) ) {
                     // No independent value so can't fill
                     Message.printStatus ( 2, routine,
-                        "Missing at " + date + " - can't fill because indep is missing.");
+                        "Missing independent value at " + date + " - can't fill dependent.");
                     continue;
                 }
                 if ( !regressionChecksMask[month - 1] ) {
-                    // Don't have a valid relationship to do filling for month so skip value
+                    // Don't have a valid relationship to do filling for the specific month so skip value
+                    // Get the data below to use for the message
                     if ( numberOfEquations == NumberOfEquationsType.ONE_EQUATION ) {
                         regressionChecks = analysis.getTSRegressionChecksTransformed().getSingleEquationRegressionChecks();
                         regressionData = analysis.getTSRegressionDataTransformed().getSingleEquationRegressionData();
@@ -365,7 +366,7 @@ private void fillDependentTS ()
                         //regressionFilledValues = getTSRegressionFilledValues().getMonthlyEquationRegressionFilledValues(month);
                     }
                     Message.printStatus ( 2, routine,
-                        "Missing at " + date + " - can't fill because relationship is invalid (" +
+                        "Missing dependent at " + date + " can't be filled because relationship is invalid (" +
                         regressionChecks.formatInvalidRelationshipReason() + ").");
                     continue;
                 }
@@ -375,18 +376,19 @@ private void fillDependentTS ()
                     continue;
                 }
                 if ( Message.isDebugOn ) {
-                    Message.printDebug ( dl, routine, "Found nonmissing independant data at " + date + " - value: " + x  );
+                    Message.printDebug ( dl, routine, "Filling dependent, found nonmissing independant data at " + date + " - value: " + x  );
                 }
                 if ( transformation == DataTransformationType.LOG ) {
                     // Need to work on the log of the X value...
                     if ( x <= 0.0 ) {
+                        // Use the specified value for small independent
                         x = leZeroLogValue2;
                     }
                     else {
                         x = Math.log10(x);
                     }
                     if ( Message.isDebugOn ) {
-                        Message.printDebug ( dl, routine, "Using log value: " + x);
+                        Message.printDebug ( dl, routine, "Using log10(independent value): " + x);
                     }
                 }
 
@@ -401,33 +403,27 @@ private void fillDependentTS ()
                 newval = a + b*x;
 
                 if ( Message.isDebugOn ) {
-                    Message.printDebug ( dl, routine, "Calculated dependent value: " + newval );
+                    Message.printDebug ( dl, routine, "Calculated dependent value a + b*x=" +
+                        a + "+" + b + "*" + x + "=" + newval );
                 }
 
                 if ( transformation == DataTransformationType.LOG ) {
                     // Now convert Y back from log10 space...
                     if ( Message.isDebugOn ) {
-                        Message.printDebug ( dl, routine, "Must use inverse log for " + newval );
+                        Message.printDebug ( dl, routine, "Calculated untransformed dependent value pow(10," +
+                            newval + ")=" + Math.pow(10.0,newval) );
                     }
-                    if ( fillFlag_boolean ) {
-                        // Set the flag...
-                        tsToFill.setDataValue ( date, Math.pow ( 10, newval ), fillFlag, 1 );
-                    }
-                    else {
-                        // No flag...
-                        tsToFill.setDataValue ( date, Math.pow ( 10, newval ));
-                    }
+                    newval = Math.pow(10.0,newval);
+                }
+                if ( fillFlag_boolean ) {
+                    // Set the flag...
+                    tsToFill.setDataValue ( date, newval, fillFlag, 1 );
                 }
                 else {
-                    if ( fillFlag_boolean ) {
-                        // Set the flag...
-                        tsToFill.setDataValue(date, newval, fillFlag, 1 );
-                    }
-                    else {
-                        // No flag...
-                        tsToFill.setDataValue(date, newval );
-                    }
+                    // No flag...
+                    tsToFill.setDataValue ( date, newval);
                 }
+
                 // Increment the counter on the number of values filled
                 if ( numberOfEquations == NumberOfEquationsType.ONE_EQUATION ) {
                     singleEquationFilledValues[fillCountSingle] = newval;
@@ -533,7 +529,7 @@ public void fillRegression ()
         getDependentAnalysisStart(), getDependentAnalysisEnd(),
         getIndependentAnalysisStart(), getIndependentAnalysisEnd(), getConfidenceIntervalPercent() );
     setTSRegressionAnalysis ( ra );
-    // Analyze for filling
+    // Analyze for filling - this also fills in the check arrays
     ra.analyzeForFilling(getMinimumSampleSize(), getMinimumR(), getConfidenceIntervalPercent() );
     // Do the filling...
     if ( getDoFill() ) {
@@ -793,22 +789,16 @@ throws Exception
     // Add additional generic columns, for informational purposes - put these here to avoid
     // duplication for each month if monthly analysis
     List<String> columnsToAdd = new Vector();
+    List<String> descriptionsToAdd = new Vector();
     columnsToAdd.add ( "AnalysisMethod" );
+    descriptionsToAdd.add ( "Regression analysis method (Ordinary Least Squares or Maintenance of Variation 2)" );
     columnsToAdd.add ( "DependentAnalysisStart" );
+    descriptionsToAdd.add ( "Dependent time series analysis period start, used to determine relationships" );
     columnsToAdd.add ( "DependentAnalysisEnd" );
+    descriptionsToAdd.add ( "Dependent time series analysis period end, used to determine relationships" );
     // TODO SAM 2012-05-24 Evaluate whether the following 2 are confusing for normal OLS regression
     columnsToAdd.add ( "IndependentAnalysisStart" );
     columnsToAdd.add ( "IndependentAnalysisEnd" );
-    columnsToAdd.add ( "FillStart" );
-    columnsToAdd.add ( "FillEnd" );
-    columnsToAdd.add ( "Transformation" );
-    columnsToAdd.add ( "MinimumSampleSize" );
-    columnsToAdd.add ( "MinimumR" );
-    columnsToAdd.add ( "ConfidenceInterval" );
-    List<String> descriptionsToAdd = new Vector();
-    descriptionsToAdd.add ( "Regression analysis method (Ordinary Least Squares or Maintenance of Variation 2)" );
-    descriptionsToAdd.add ( "Dependent time series analysis period start, used to determine relationships" );
-    descriptionsToAdd.add ( "Dependent time series analysis period end, used to determine relationships" );
     if ( regressionType == RegressionType.OLS_REGRESSION ) {
         descriptionsToAdd.add ( "Independent time series analysis period start (same as DependentAnalysisStart for OLS regression), used to determine relationships" );
         descriptionsToAdd.add ( "Independent time series analysis period end (same as DependentAnalysisStart for OLS regression), used to determine relationships" );
@@ -821,14 +811,21 @@ throws Exception
         descriptionsToAdd.add ( "" );
         descriptionsToAdd.add ( "" );
     }
+    columnsToAdd.add ( "FillStart" );
     descriptionsToAdd.add ( "Fill period start" );
+    columnsToAdd.add ( "FillEnd" );
     descriptionsToAdd.add ( "Fill period end" );
+    columnsToAdd.add ( "Transformation" );
     descriptionsToAdd.add ( "Transformation performed on data prior to determining relationship" );
+    columnsToAdd.add ( "MinimumSampleSize" );
     descriptionsToAdd.add ( "Minimum sample size (N1) to consider the relationship valid" );
+    columnsToAdd.add ( "MinimumR" );
     descriptionsToAdd.add ( "Minimum R to consider the relationship valid" );
+    columnsToAdd.add ( "ConfidenceInterval" );
     descriptionsToAdd.add ( "Confidence interval (%) required for relationship line slope" );
     for ( int i = 0; i < columnsToAdd.size(); i++ ) {
         try {
+            // See if column is already in the table
             table.getFieldIndex(columnsToAdd.get(i));
         }
         catch ( Exception e2 ) {
@@ -847,9 +844,9 @@ throws Exception
             else {
                 // Rest are strings
                 table.addField(new TableField(TableField.DATA_TYPE_STRING,columnsToAdd.get(i),-1,-1), null );
-                // Set the description, which is used as the tool tip in the UI
-                table.getTableField(table.getFieldIndex(columnsToAdd.get(i))).setDescription(descriptionsToAdd.get(i));
             }
+            // Set the description, which is used as the tool tip in the UI
+            table.getTableField(table.getFieldIndex(columnsToAdd.get(i))).setDescription(descriptionsToAdd.get(i));
         }
     }
     // Loop through the statistics, creating table column names if necessary
@@ -1042,447 +1039,457 @@ throws Exception
     for ( int iEquation = 1; iEquation <= numEquations; iEquation++ ) {
         for ( int iStatistic = 0; iStatistic < statsToOutput.size(); iStatistic++ ) {
             statisticName = statsToOutput.get(iStatistic);
-            // Set statistics to null (one will be set below).
-            ++countStatistic;
-            statisticValueDouble[countStatistic] = null;
-            statisticValueInteger[countStatistic] = null;
-            // Column name for the statistic (list alphabetically)...
-            if ( numEquations == 1 ) {
-                statisticColumnNames[countStatistic] = statisticName;
-            }
-            else {
-                statisticColumnNames[countStatistic] = statisticName + "_" + iEquation;
-            }
-            if ( statisticName.equals("a") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+            try {
+                // Set statistics to null (one will be set below).
+                ++countStatistic;
+                statisticValueDouble[countStatistic] = null;
+                statisticValueInteger[countStatistic] = null;
+                // Column name for the statistic (list alphabetically)...
                 if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getSingleEquationRegressionResults().getA();
+                    statisticColumnNames[countStatistic] = statisticName;
                 }
                 else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getA();
+                    statisticColumnNames[countStatistic] = statisticName + "_" + iEquation;
                 }
-            }
-            else if ( statisticName.equals("AnalysisStart") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getSingleEquationRegressionResults().getA();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getA();
-                }
-            }
-            else if ( statisticName.equals("a_trans") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResultsTransformed.getSingleEquationRegressionResults().getA();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getA();
-                }
-            }
-            else if ( statisticName.equals("b") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getSingleEquationRegressionResults().getB();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getB();
-                }
-            }
-            else if ( statisticName.equals("b_trans") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResultsTransformed.getSingleEquationRegressionResults().getB();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getB();
-                }
-            }
-            else if ( statisticName.equals("MeanX") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getMeanX();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX();
-                }
-            }
-            else if ( statisticName.equals("MeanX1") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getMeanX1();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX1();
-                }
-            }
-            else if ( statisticName.equals("MeanX2") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getMeanX2();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX2();
-                }
-            }
-            else if ( statisticName.equals("MeanY") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getMeanY();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY();
-                }
-            }
-            else if ( statisticName.equals("MeanYfilled") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getMeanYFilled();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getMeanYFilled();
-                }
-            }
-            else if ( statisticName.equals("MeanY1") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getMeanY1();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY1();
-                }
-            }
-            else if ( statisticName.equals("MeanY1est") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getMeanY1est();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getMeanY1est();
-                }
-            }
-            else if ( statisticName.equals("NX") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
-                if ( numEquations == 1 ) {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getN();
-                }
-                else {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN();
-                }
-            }
-            else if ( statisticName.equals("N1") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
-                if ( numEquations == 1 ) {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getN1();
-                }
-                else {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN1();
-                }
-            }
-            else if ( statisticName.equals("N2") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
-                if ( numEquations == 1 ) {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getN2();
-                }
-                else {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN2();
-                }
-            }
-            else if ( statisticName.equals("NY") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
-                if ( numEquations == 1 ) {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getNY();
-                }
-                else {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getNY();
-                }
-            }
-            else if ( statisticName.equals("NYfilled") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
-                if ( numEquations == 1 ) {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getNFilled();
-                }
-                else {
-                    statisticValueInteger[countStatistic] =
-                        tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getNFilled();
-                }
-            }
-            else if ( statisticName.equals("R") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getSingleEquationRegressionResults().getCorrelationCoefficient();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
-                }
-            }
-            else if ( statisticName.equals("R2") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                Double r = tsRegressionResults.getSingleEquationRegressionResults().getCorrelationCoefficient();
-                if ( numEquations == 12 ) {
-                    r = tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
-                }
-                if ( r == null ) {
-                    statisticValueDouble[countStatistic] = null;                
-                }
-                else {
-                    Double r2 = new Double(r*r);
-                    statisticValueDouble[countStatistic] = r2;
-                }
-            }
-            else if ( statisticName.equals("RMSE") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getRMSE();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getRMSE();
-                }
-            }
-            else if ( statisticName.equals("ROK") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
-                // Only have a value if the minium R has been specified
-                if ( getMinimumR() == null ) {
-                    statisticValueString[countStatistic] = "";
-                }
-                else {
-                    boolean rok = tsRegressionChecks.getSingleEquationRegressionChecks().getIsROK();
-                    if ( numEquations == 12 ) {
-                        rok = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsROK();
-                    }
-                    if ( rok ) {
-                        statisticValueString[countStatistic] = "Yes";
+                if ( statisticName.equals("a") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getSingleEquationRegressionResults().getA();
                     }
                     else {
-                        statisticValueString[countStatistic] = "No";
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getA();
                     }
                 }
-            }
-            else if ( statisticName.equals("SampleSizeOK") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
-                // Minimum sample size will always be specified internally so always show
-                boolean ssOk = tsRegressionChecks.getSingleEquationRegressionChecks().getIsSampleSizeOK();
-                if ( numEquations == 12 ) {
-                    ssOk = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsSampleSizeOK();
+                else if ( statisticName.equals("AnalysisStart") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getSingleEquationRegressionResults().getA();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getA();
+                    }
                 }
-                if ( ssOk ) {
-                    statisticValueString[countStatistic] = "Yes";
+                else if ( statisticName.equals("a_trans") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResultsTransformed.getSingleEquationRegressionResults().getA();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getA();
+                    }
                 }
-                else {
-                    statisticValueString[countStatistic] = "No";
+                else if ( statisticName.equals("b") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getSingleEquationRegressionResults().getB();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getB();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SEE") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardErrorOfEstimate();
+                else if ( statisticName.equals("b_trans") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResultsTransformed.getSingleEquationRegressionResults().getB();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getB();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfEstimate();
+                else if ( statisticName.equals("MeanX") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getMeanX();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SESlope") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardErrorOfSlope();
+                else if ( statisticName.equals("MeanX1") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getMeanX1();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX1();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfSlope();
+                else if ( statisticName.equals("MeanX2") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getMeanX2();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX2();
+                    }
                 }
-            }
-            /*
-            else if ( statisticName.equals("SX") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX());
+                else if ( statisticName.equals("MeanY") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getMeanY();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX(iEquation));
+                else if ( statisticName.equals("MeanYfilled") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getMeanYFilled();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getMeanYFilled();
+                    }
                 }
-            }*/
-            else if ( statisticName.equals("SkewY") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getSkewY();
+                else if ( statisticName.equals("MeanY1") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getMeanY1();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY1();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getSkewY();
+                else if ( statisticName.equals("MeanY1est") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getMeanY1est();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getMeanY1est();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SkewYfilled") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getSkewYFilled();
+                else if ( statisticName.equals("NX") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
+                    if ( numEquations == 1 ) {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getN();
+                    }
+                    else {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getSkewYFilled();
+                else if ( statisticName.equals("N1") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
+                    if ( numEquations == 1 ) {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getN1();
+                    }
+                    else {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN1();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SX1") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getStandardDeviationX1();
+                else if ( statisticName.equals("N2") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
+                    if ( numEquations == 1 ) {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getN2();
+                    }
+                    else {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getN2();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX1();
+                else if ( statisticName.equals("NY") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
+                    if ( numEquations == 1 ) {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getNY();
+                    }
+                    else {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getNY();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SX2") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getStandardDeviationX2();
+                else if ( statisticName.equals("NYfilled") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
+                    if ( numEquations == 1 ) {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getNFilled();
+                    }
+                    else {
+                        statisticValueInteger[countStatistic] =
+                            tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getNFilled();
+                    }
                 }
-                else {
-                    statisticValueDouble[countStatistic] = 
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX2();
+                else if ( statisticName.equals("R") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getSingleEquationRegressionResults().getCorrelationCoefficient();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
+                    }
                 }
-            }
-            else if ( statisticName.equals("SY") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getStandardDeviationY();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY();
-                }
-            }
-            else if ( statisticName.equals("SY1") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getSingleEquationRegressionData().getStandardDeviationY1();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY1();
-                }
-            }
-            else if ( statisticName.equals("SY1est") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardDeviationY1est();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardDeviationY1est();
-                }
-            }
-            else if ( statisticName.equals("SYfilled") ) {
-                // Actually filled values
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getStandardDeviationYFilled();
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getStandardDeviationYFilled();
-                }
-            }
-            else if ( statisticName.equals("TestScore") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getTestScore(
-                            tsRegressionResults.getSingleEquationRegressionResults().getB());
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getTestScore(
-                             tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getB() );
-                }
-            }
-            else if ( statisticName.equals("TestQuantile") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
-                if ( numEquations == 1 ) {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
-                            tsRegressionChecks.getSingleEquationRegressionChecks().getConfidenceIntervalPercent());
-                }
-                else {
-                    statisticValueDouble[countStatistic] =
-                        tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStudentTTestQuantile(
-                            tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getConfidenceIntervalPercent() );
-                }
-            }
-            else if ( statisticName.equals("TestOK") ) {
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
-                // Only have a value if the confidence interval has been specified
-                if ( getConfidenceIntervalPercent() == null ) {
-                    statisticValueString[countStatistic] = "";
-                }
-                else {
-                    Boolean related = tsRegressionChecks.getSingleEquationRegressionChecks().getIsTestOK();
+                else if ( statisticName.equals("R2") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    Double r = tsRegressionResults.getSingleEquationRegressionResults().getCorrelationCoefficient();
                     if ( numEquations == 12 ) {
-                        related = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsTestOK();
+                        r = tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
                     }
-                    if ( related == null ) {
+                    if ( r == null ) {
+                        statisticValueDouble[countStatistic] = null;                
+                    }
+                    else {
+                        Double r2 = new Double(r*r);
+                        statisticValueDouble[countStatistic] = r2;
+                    }
+                }
+                else if ( statisticName.equals("RMSE") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getRMSE();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getRMSE();
+                    }
+                }
+                else if ( statisticName.equals("ROK") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                    // Only have a value if the minium R has been specified
+                    if ( getMinimumR() == null ) {
                         statisticValueString[countStatistic] = "";
                     }
-                    else if ( related ) {
+                    else {
+                        boolean rok = tsRegressionChecks.getSingleEquationRegressionChecks().getIsROK();
+                        if ( numEquations == 12 ) {
+                            rok = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsROK();
+                        }
+                        if ( rok ) {
+                            statisticValueString[countStatistic] = "Yes";
+                        }
+                        else {
+                            statisticValueString[countStatistic] = "No";
+                        }
+                    }
+                }
+                else if ( statisticName.equals("SampleSizeOK") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                    // Minimum sample size will always be specified internally so always show
+                    boolean ssOk = tsRegressionChecks.getSingleEquationRegressionChecks().getIsSampleSizeOK();
+                    if ( numEquations == 12 ) {
+                        ssOk = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsSampleSizeOK();
+                    }
+                    if ( ssOk ) {
                         statisticValueString[countStatistic] = "Yes";
                     }
                     else {
                         statisticValueString[countStatistic] = "No";
                     }
                 }
+                else if ( statisticName.equals("SEE") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardErrorOfEstimate();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfEstimate();
+                    }
+                }
+                else if ( statisticName.equals("SESlope") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardErrorOfSlope();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfSlope();
+                    }
+                }
+                /*
+                else if ( statisticName.equals("SX") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX());
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX(iEquation));
+                    }
+                }*/
+                else if ( statisticName.equals("SkewY") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getSkewY();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getSkewY();
+                    }
+                }
+                else if ( statisticName.equals("SkewYfilled") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getSkewYFilled();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getSkewYFilled();
+                    }
+                }
+                else if ( statisticName.equals("SX1") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getStandardDeviationX1();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX1();
+                    }
+                }
+                else if ( statisticName.equals("SX2") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getStandardDeviationX2();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] = 
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX2();
+                    }
+                }
+                else if ( statisticName.equals("SY") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getStandardDeviationY();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY();
+                    }
+                }
+                else if ( statisticName.equals("SY1") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getSingleEquationRegressionData().getStandardDeviationY1();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY1();
+                    }
+                }
+                else if ( statisticName.equals("SY1est") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStandardDeviationY1est();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardDeviationY1est();
+                    }
+                }
+                else if ( statisticName.equals("SYfilled") ) {
+                    // Actually filled values
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getSingleEquationRegressionFilledValues().getStandardDeviationYFilled();
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionFilledValues.getMonthlyEquationRegressionFilledValues(iEquation).getStandardDeviationYFilled();
+                    }
+                }
+                else if ( statisticName.equals("TestScore") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getTestScore(
+                                tsRegressionResults.getSingleEquationRegressionResults().getB());
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getTestScore(
+                                 tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getB() );
+                    }
+                }
+                else if ( statisticName.equals("TestQuantile") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
+                                tsRegressionChecks.getSingleEquationRegressionChecks().getConfidenceIntervalPercent());
+                    }
+                    else {
+                        statisticValueDouble[countStatistic] =
+                            tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStudentTTestQuantile(
+                                tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getConfidenceIntervalPercent() );
+                    }
+                }
+                else if ( statisticName.equals("TestOK") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
+                    // Only have a value if the confidence interval has been specified
+                    if ( getConfidenceIntervalPercent() == null ) {
+                        statisticValueString[countStatistic] = "";
+                    }
+                    else {
+                        Boolean related = tsRegressionChecks.getSingleEquationRegressionChecks().getIsTestOK();
+                        if ( numEquations == 12 ) {
+                            related = tsRegressionChecks.getMonthlyEquationRegressionChecks(iEquation).getIsTestOK();
+                        }
+                        if ( related == null ) {
+                            statisticValueString[countStatistic] = "";
+                        }
+                        else if ( related ) {
+                            statisticValueString[countStatistic] = "Yes";
+                        }
+                        else {
+                            statisticValueString[countStatistic] = "No";
+                        }
+                    }
+                }
+                else {
+                    // Fall through for unrecognized statistics
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    statisticValueDouble[countStatistic] = null;
+                    Message.printStatus ( 2, routine, "Don't know how to process statistic \"" + statisticName + "\"" );
+                    
+                }
             }
-            else {
-                // Fall through for unrecognized statistics
-                statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+            catch ( Exception e ) {
+                // TODO SAM 2013-04-21 Need to figure out how to handle invalid sample size as null, NaN, etc.
+                // Could be zero sample size
+                // statisticFieldType[countStatistic] should have been set above so just set value
                 statisticValueDouble[countStatistic] = null;
-                Message.printStatus ( 2, routine, "Don't know how to process statistic \"" + statisticName + "\"" );
+                Message.printWarning ( 3, routine, "Error computing \"" + statisticName + "\" (" + e + ")" );
             }
         }
     }
@@ -1515,7 +1522,7 @@ throws Exception
             tableTSIDIndependent = getIndependentTS().getIdentifierString();
         }
     }
-     // Need to make sure that the table has the statistic columns of the correct type,
+    // Need to make sure that the table has the statistic columns of the correct type,
     // and look up the column numbers from the names in order to do the insert...
     int [] statisticColumnNumbers = new int[countStatisticTotal]; // columns in table
     countStatistic = -1;
@@ -1548,18 +1555,18 @@ throws Exception
                         table.addField(new TableField(
                             TableField.DATA_TYPE_STRING,statisticColumnNames[countStatistic],-1,-1), null );
                 }
-                Message.printStatus(2,routine,"Added column \"" + statisticColumnNames[countStatistic] +"\" at index "
-                     + statisticColumnNumbers[countStatistic] );
-            }
-            // Set the description for the column so that it can be displayed in table tooltips, etc.
-            if ( numEquations == 1 ) {
-                table.getTableField(statisticColumnNumbers[countStatistic]).setDescription(
-                    statisticComments.get(statisticColumnNames[countStatistic]));
-            }
-            else {
-                table.getTableField(statisticColumnNumbers[countStatistic]).setDescription(
-                    statisticComments.get(statisticColumnNames[countStatistic]) +
-                    " (Month " + (iEquation + 1) + "=" + TimeUtil.monthAbbreviation(iEquation + 1));
+                Message.printStatus(2,routine,"Added column \"" + statisticColumnNames[countStatistic] +"\" at index ["
+                     + statisticColumnNumbers[countStatistic] + "]");
+                // Set the description for the column so that it can be displayed in table tooltips, etc.
+                if ( numEquations == 1 ) {
+                    table.getTableField(statisticColumnNumbers[countStatistic]).setDescription(
+                        statisticComments.get(statisticColumnNames[countStatistic]));
+                }
+                else {
+                    table.getTableField(statisticColumnNumbers[countStatistic]).setDescription(
+                        statisticComments.get(statisticColumnNames[countStatistic]) +
+                        " (Month " + (iEquation + 1) + "=" + TimeUtil.monthAbbreviation(iEquation + 1)+")");
+                }
             }
         }
     }

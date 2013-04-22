@@ -155,9 +155,9 @@ for the slope of the regression line), to determine if it is a good relationship
 @return null if unable to compute the quantile
 */
 public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
-{
+{   String routine = getClass().getName() + ".getStudentTTestQuantile";
     if ( confidenceIntervalPercent == null ) {
-        Message.printStatus(2,"","confidenceIntervalPercent is null - not computing quantile");
+        Message.printStatus(2,routine,"confidenceIntervalPercent is null - not computing quantile");
         return null;
     }
     if ( getRegressionData() == null ) {
@@ -180,10 +180,10 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
     // the degrees of freedom
     int dof = Y1est.length - 2;
     Double p = null;
-    Message.printStatus(2,"", "alpha=" + alpha );
-    Message.printStatus(2,"", "n=" + Y1est.length );
-    Message.printStatus(2,"", "dof=" + dof );
-    Message.printStatus(2,"", "T-score test statistic=" + tScoreTestStat );
+    Message.printStatus(2,routine, "alpha=" + alpha );
+    Message.printStatus(2,routine, "n=" + Y1est.length );
+    Message.printStatus(2,routine, "dof=" + dof );
+    Message.printStatus(2,routine, "T-score test statistic=" + tScoreTestStat );
     try {
         boolean useApacheMath = true;
         if ( useApacheMath ) {
@@ -191,15 +191,15 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
             org.apache.commons.math3.distribution.TDistribution tDist = new TDistribution(dof);
             //p = tDist.inverseCumulativeProbability(alpha2); // Single tail value of alpha
             p = tDist.probability(tScoreTestStat); // Single tail value of alpha
-            Message.printStatus(2,"", "Single tail p-value=" + p + " alpha/2=" + alpha2 );
+            Message.printStatus(2,routine, "Single tail p-value=" + p + " alpha/2=" + alpha2 );
             //q = tDist.density((100.0 - p)/200.0); // Single tail value of alpha
-            Message.printStatus(2,"", StringUtil.formatArrays("Y1", Y1, "Y1est", Y1est, ",", "\n") );
-            Message.printStatus(2,"", "pairedT=" + TestUtils.pairedT(Y1,Y1est) );
-            Message.printStatus(2,"", "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est) );
-            Message.printStatus(2,"", "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est,alpha) );
+            Message.printStatus(2,routine, StringUtil.formatArrays("Y1", Y1, "Y1est", Y1est, ",", "\n") );
+            Message.printStatus(2,routine, "pairedT=" + TestUtils.pairedT(Y1,Y1est) );
+            Message.printStatus(2,routine, "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est) );
+            Message.printStatus(2,routine, "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est,alpha) );
             org.apache.commons.math3.distribution.TDistribution tDist2 = new TDistribution(99);
             double p2 = tDist.probability(2.29);
-            Message.printStatus(2,"", "Example p-value=" + p2 );
+            Message.printStatus(2,routine, "Example p-value=" + p2 );
         }
         else {
             StudentTTest t = new StudentTTest();

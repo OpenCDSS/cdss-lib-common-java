@@ -2,7 +2,7 @@ package RTi.Util.Math;
 
 /**
 Data used in a regression analysis.  The data are simple arrays; however, when combined to handle monthly
-regression or other complex analysis, the object help manage data.
+regression or other complex analysis, the object helps manage data.
 */
 public class RegressionData
 {
