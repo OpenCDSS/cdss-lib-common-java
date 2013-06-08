@@ -1,21 +1,35 @@
 package RTi.Util.Table;
 
 /**
- * Enumeration of simple string operators that can be performed on table cells.
- * @author sam
- *
- */
+Enumeration of simple string operators that can be performed on table cells.
+*/
 public enum DataTableStringOperatorType
 {
 
-/**
- * Add values.
- */
+/*
+Append string values.
+*/
 APPEND("Append"),
-/**
- * Divide values.
- */
-PREPEND ( "Prepend" );
+/*
+Prepend string values.
+*/
+PREPEND ( "Prepend" ),
+/*
+Cast a string value to a date.
+*/
+TO_DATE("ToDate"),
+/*
+Cast a string value to a date/time.
+*/
+TO_DATE_TIME("ToDateTime"),
+/*
+Cast a string value to a double.
+*/
+TO_DOUBLE("ToDouble"),
+/*
+Cast a string value to an integer.
+*/
+TO_INTEGER("ToInteger");
 
 /**
  * The name that should be displayed when used in UIs and reports.

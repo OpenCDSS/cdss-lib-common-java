@@ -5,6 +5,8 @@ import java.util.Date;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 import RTi.Util.IO.IOUtil;
+import RTi.Util.Message.Message;
+import RTi.Util.Time.DateTime;
 
 /**
 Table model for displaying data table data in a JWorksheet.
@@ -85,6 +87,9 @@ private Class[] determineClasses(int[] dataTypes) {
 			case TableField.DATA_TYPE_DATE:
 				classes[i] = Date.class;
 				break;
+            case TableField.DATA_TYPE_DATETIME:
+                classes[i] = DateTime.class;
+                break;
             case TableField.DATA_TYPE_LONG:
                 classes[i] = Long.class;
                 break;

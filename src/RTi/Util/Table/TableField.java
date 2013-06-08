@@ -1,31 +1,14 @@
-// ----------------------------------------------------------------------------
-// TableField - define the field in a DataTable
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 23 Jun 1999	Catherine E.
-//		Nutting-Lane, RTi	Initial version
-// 2001-09-17	Steven A. Malers, RTi	Review code.  Add width and precision
-//					to be able to fully store dBase field
-//					properties.  Add finalize() and clean
-//					up Javadoc.  Change "heading" to "name"
-//					to be more consistent with other code.
-// 2001-10-03	SAM, RTi		Add DATA_TYPE_DATE field.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.Table;
 
 import java.util.List;
 import java.util.Vector;
 
 /**
-This class is used to help define the fields (columns) in a table.  A DataTable is created
-by specifying a vector of TableField objects to pass into the DataTable
+This class defines the fields (columns) in a table.  A DataTable is created
+by specifying a list of TableField objects to pass into the DataTable
 constructor.  Note that the field types have been implemented in a generic
-sense; however, most application of this class has been with ESRI shapefiles,
-which use Dbase data tables.  In Dbase files, it is somewhat ambiguous to know
+sense; however, for historical reasons, the table design somewhat mimicse Dbase data tables.
+In Dbase files, it is somewhat ambiguous to know
 when a numeric field is a floating point or integer.  It can be assumed that
 a precision of zero for a numeric field indicates an integer.  However, at this
 time, the DATA_TYPE_DOUBLE and DATA_TYPE_STRING types are used nearly exclusively.
@@ -60,7 +43,8 @@ public final static int DATA_TYPE_FLOAT = 3;
 public final static int DATA_TYPE_STRING = 4;
 
 /**
-Date and time, stored internally as Java Date object.
+Date and time, stored internally as Java Date object (use when simple data are
+being manipulated).
 */
 public final static int DATA_TYPE_DATE = 5;
 
@@ -68,6 +52,12 @@ public final static int DATA_TYPE_DATE = 5;
 8-byte integer (long).
 */
 public final static int DATA_TYPE_LONG = 6;
+
+/**
+Date and time, stored internally as DateTime object (advantage is can use precision and
+other data to control object).
+*/
+public final static int DATA_TYPE_DATETIME = 7;
 
 /**
 Data type (DATA_TYPE_*) for the field (column).
@@ -196,6 +186,11 @@ Get type of data represented in this field, as a String.
 */
 public static String getDataTypeAsString ( int dataType )
 {   if ( dataType == DATA_TYPE_DATE ) {
+        // Internally represented as a Java Date
+        return "date";
+    }
+    else if ( dataType == DATA_TYPE_DATETIME ) {
+        // Internally treated as DateTime object.
         return "datetime";
     }
     else if ( dataType == DATA_TYPE_DOUBLE ) {
@@ -289,8 +284,11 @@ Lookup the type of data represented in this field as an internal integer given t
 @return data type as internal integer representation (e.g., DATA_TYPE_INT = "integer") or -1 if unknown.
 */
 public static int lookupDataType ( String dataType )
-{   if ( dataType.equalsIgnoreCase("datetime") ) {
-        return DATA_TYPE_DATE;
+{   if ( dataType.equalsIgnoreCase("date") ) {
+        return DATA_TYPE_DATETIME;
+    }
+    else if ( dataType.equalsIgnoreCase("datetime") ) {
+        return DATA_TYPE_DATETIME;
     }
     else if ( dataType.equalsIgnoreCase("double") ) {
         return DATA_TYPE_DOUBLE;

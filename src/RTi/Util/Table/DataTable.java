@@ -88,6 +88,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -98,6 +99,7 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
+import RTi.Util.Time.DateTime;
 
 // TODO SAM 2010-12-16 Evaluate using a different package for in-memory tables, such as
 // from H2 or other embedded database.
@@ -305,6 +307,12 @@ public int addField ( TableField tableField, Object initValue )
         else if ( data_type == TableField.DATA_TYPE_LONG ) {
             tableRecord.addFieldValue( initValue );
         }
+        else if ( data_type == TableField.DATA_TYPE_DATE ) {
+            tableRecord.addFieldValue( initValue );
+        }
+        else if ( data_type == TableField.DATA_TYPE_DATETIME ) {
+            tableRecord.addFieldValue( initValue );
+        }
 	}
 	return getNumberOfFields() - 1; // Zero offset
 }
@@ -314,72 +322,211 @@ Create a copy of the table.
 @param table original table
 @param newTableID identifier for new table
 @param reqIncludeColumns requested columns to include or null to include all
+@param distinctColumns requested columns to check for distinct combinations (currently only one column
+is allowed), will override reqIncludeColumns, specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
+@param columnFilters map for columns that will apply a filter
 @return copy of original table
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
-    Hashtable columnMap )
+    String [] distinctColumns, Hashtable columnMap, Hashtable columnFilters )
 {   String routine = getClass().getName() + ".createCopy";
     // List of columns that will be copied
-    String [] columnNames = null;
+    String [] columnNamesToCopy = null;
+    if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
+        // Distinct overrides requested column names
+        reqIncludeColumns = distinctColumns;
+    }
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
         // Copy only the requested names
-        columnNames = reqIncludeColumns;
+        columnNamesToCopy = reqIncludeColumns;
     }
     else {
         // Copy all
-        columnNames = table.getFieldNames();
+        columnNamesToCopy = table.getFieldNames();
     }
-    // Create a new data table
-    DataTable newTable = new DataTable();
-    newTable.setTableID ( newTableID );
-    // Get the column information from the original table
+    // Figure out which columns should be copied.  Initialize an array with -1 and then set to
+    // actual table columns if matching
     int errorCount = 0;
-    boolean [] columnCopied = new boolean[columnNames.length]; // Will initialize to false
     StringBuffer errorMessage = new StringBuffer();
-    Object newColumnNameO = null; // Used to map column names
-    TableField newTableField; // New table field
-    for ( int iField = 0; iField < table.getNumberOfFields(); iField++ ) {
-        for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
-            if ( table.getFieldName(iField).equalsIgnoreCase(columnNames[iReqField])) {
-                // Copy the data from the original table
-                // First make a copy of the existing table field
-                newTableField = new TableField(table.getTableField(iField));
-                if ( columnMap != null ) {
-                    newColumnNameO = columnMap.get(newTableField.getName());
-                }
-                if ( newColumnNameO != null ) {
-                    // Reset the column name with the new name
-                    newTableField.setName((String)newColumnNameO);
-                }
-                newTable.addField(newTableField, null );
-                int icol = newTable.getNumberOfFields() - 1;
-                for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
-                    try {
-                        newTable.setFieldValue(irow, icol, table.getFieldValue(irow, iField), true );
-                    }
-                    catch ( Exception e ) {
-                        // Should not happen
-                        errorMessage.append("Error setting new table data for [" + irow + "][" + icol + ".");
-                        Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
-                            icol + "] (" + e + ")." );
-                        ++errorCount;
-                    }
-                }
-                // Indicate that the column was copied
-                columnCopied[iReqField] = true;
-                // No need to keep looking for a matching column
-                break;
-            }
+    int [] columnNumbersToCopy = new int[columnNamesToCopy.length];
+    for ( int icol = 0; icol < columnNamesToCopy.length; icol++ ) {
+        try {
+            columnNumbersToCopy[icol] = table.getFieldIndex(columnNamesToCopy[icol]);
         }
-    }
-    for ( int iReqField = 0; iReqField < columnNames.length; iReqField++ ) {
-        if ( !columnCopied[iReqField] ) {
+        catch ( Exception e ) {
+            columnNumbersToCopy[icol] = -1; // Requested column not matched
             ++errorCount;
             if ( errorMessage.length() > 0 ) {
                 errorMessage.append(" ");
             }
-            errorMessage.append ( "Requested column \"" + columnNames[iReqField] + "\" not found in existing table.");
+            errorMessage.append ( "Requested column \"" + columnNamesToCopy[icol] + "\" not found in existing table.");
+        }
+    }
+    // Get filter columns and glob-style regular expressions
+    int [] columnNumbersToFilter = new int[columnFilters.size()];
+    String [] columnFilterGlobs = new String[columnFilters.size()];
+    Enumeration keys = columnFilters.keys();
+    int ikey = -1;
+    String key = null;
+    while ( keys.hasMoreElements() ) {
+        ++ikey;
+        columnNumbersToFilter[ikey] = -1;
+        try {
+            key = (String)keys.nextElement();
+            columnNumbersToFilter[ikey] = table.getFieldIndex(key);
+            columnFilterGlobs[ikey] = (String)columnFilters.get(key);
+            // Turn default globbing notation into internal Java regex notation
+            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+        }
+        catch ( Exception e ) {
+            ++errorCount;
+            if ( errorMessage.length() > 0 ) {
+                errorMessage.append(" ");
+            }
+            errorMessage.append ( "Filter column \"" + key + "\" not found in existing table.");
+        }
+    }
+    int distinctColumnNumber = -1;
+    if ( (distinctColumns != null) && (distinctColumns.length == 1) ) {
+        try {
+            distinctColumnNumber = table.getFieldIndex(distinctColumns[0]);
+        }
+        catch ( Exception e ) {
+            distinctColumnNumber = -1; // Distinct column not matched
+            ++errorCount;
+            if ( errorMessage.length() > 0 ) {
+                errorMessage.append(" ");
+            }
+            errorMessage.append ( "Distinct column \"" + distinctColumns[0] + "\" not found in existing table.");
+        }
+    }
+    // Create a new data table with the requested column names
+    DataTable newTable = new DataTable();
+    newTable.setTableID ( newTableID );
+    // Get the column information from the original table
+    Object newColumnNameO = null; // Used to map column names
+    TableField newTableField; // New table field
+    List<Object> distinctList = new Vector<Object>();
+    // Create requested columns in the output table
+    for ( int icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
+        if ( columnNumbersToCopy[icol] == -1 ) {
+            // Did not find the column in the table so add a String column for null values
+            newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToCopy[icol], -1, -1);
+        }
+        else {
+            // Copy the data from the original table
+            // First make a copy of the existing table field
+            newTableField = new TableField(table.getTableField(columnNumbersToCopy[icol]));
+        }
+        if ( columnMap != null ) {
+            newColumnNameO = columnMap.get(newTableField.getName());
+            if ( newColumnNameO != null ) {
+                // Reset the column name with the new name
+                newTableField.setName((String)newColumnNameO);
+            }
+        }
+        newTable.addField(newTableField, null );
+    }
+    // Now loop through all the data records and copy to the output table
+    int icol;
+    int irowCopied = 0;
+    boolean somethingCopied = false;
+    boolean filterMatches;
+    Object o = null;
+    String s;
+    for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
+        somethingCopied = false;
+        filterMatches = true;
+        if ( columnNumbersToFilter.length > 0 ) {
+            // Filters can be done on any columns so loop through to see if row matches before doing copy
+            for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
+                if ( columnNumbersToFilter[icol] < 0 ) {
+                    filterMatches = false;
+                    break;
+                }
+                try {
+                    o = table.getFieldValue(irow, columnNumbersToFilter[icol]);
+                    if ( o == null ) {
+                        filterMatches = false;
+                        break; // Don't include nulls when checking values
+                    }
+                    s = ("" + o).toUpperCase();
+                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                        // A filter did not match so don't copy the record
+                        filterMatches = false;
+                        break;
+                    }
+                }
+                catch ( Exception e ) {
+                    errorMessage.append("Error getting table data copying [" + irow + "][" +
+                        columnNumbersToFilter[icol] + "].");
+                    Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
+                        columnNumbersToFilter[icol] + "] (" + e + ")." );
+                }
+            }
+            if ( !filterMatches ) {
+                // Skip the record.
+                continue;
+            }
+        }
+        for ( icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
+            if ( distinctColumnNumber >= 0 ) {
+                // Want to check for distinct values
+                if ( columnNumbersToCopy[icol] < 0 ) {
+                    continue; // No original table column matched
+                }
+                else {
+                    try {
+                        o = table.getFieldValue(irow, columnNumbersToCopy[icol]);
+                        if ( (o == null) || ((o instanceof String) && ((String)o).trim().length() == 0) ) {
+                            continue; // Don't include nulls and blank strings in distinct values
+                        }
+                        boolean found = false;
+                        for ( Object od : distinctList ) {
+                            if ( od.equals(o) ) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if ( !found ) {
+                            distinctList.add(o);
+                            // Will add to output below
+                        }
+                        else {
+                            // Will already have added the value in the table so don't add again
+                            continue;
+                        }
+                    }
+                    catch ( Exception e ) {
+                        errorMessage.append("Error getting table data copying [" + irow + "][" +
+                            columnNumbersToCopy[icol] + "].");
+                        Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
+                            columnNumbersToCopy[icol] + "] (" + e + ")." );
+                    }
+                }
+            }
+            try {
+                if ( columnNumbersToCopy[icol] < 0 ) {
+                    newTable.setFieldValue(irowCopied, icol, null, true );
+                }
+                else {
+                    newTable.setFieldValue(irowCopied, icol,
+                        table.getFieldValue(irow, columnNumbersToCopy[icol]), true );
+                }
+                somethingCopied = true;
+            }
+            catch ( Exception e ) {
+                // Should not happen
+                errorMessage.append("Error setting new table data copying [" + irow + "][" +
+                    columnNumbersToCopy[icol] + "].");
+                Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
+                    columnNumbersToCopy[icol] + "] (" + e + ")." );
+                ++errorCount;
+            }
+        }
+        if ( somethingCopied ) {
+            ++irowCopied;
         }
     }
     if ( errorCount > 0 ) {
@@ -524,6 +671,9 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
     			else if (type == TableField.DATA_TYPE_DATE) {
     	        	newRecord.addFieldValue( ((Date)originalTable.getFieldValue(i, j)).clone());
     			}
+                else if (type == TableField.DATA_TYPE_DATETIME) {
+                    newRecord.addFieldValue( ((DateTime)originalTable.getFieldValue(i, j)).clone());
+                }
     			else if (type == TableField.DATA_TYPE_LONG) {
                     newRecord.addFieldValue(new Long(((Long)originalTable.getFieldValue(i, j)).longValue()));
                 }

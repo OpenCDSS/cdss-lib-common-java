@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
+import RTi.Util.Time.DateTime;
 
 /**
 Perform simple column-based string operations on a table.
@@ -29,9 +30,13 @@ Get the list of operators that can be used.
 */
 public static List<DataTableStringOperatorType> getOperatorChoices()
 {
-    List<DataTableStringOperatorType> choices = new Vector();
+    List<DataTableStringOperatorType> choices = new Vector<DataTableStringOperatorType>();
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
+    choices.add ( DataTableStringOperatorType.TO_DATE );
+    choices.add ( DataTableStringOperatorType.TO_DATE_TIME );
+    choices.add ( DataTableStringOperatorType.TO_DOUBLE );
+    choices.add ( DataTableStringOperatorType.TO_INTEGER );
     return choices;
 }
 
@@ -42,7 +47,7 @@ Get the list of operators that can be performed.
 public static List<String> getOperatorChoicesAsStrings()
 {
     List<DataTableStringOperatorType> choices = getOperatorChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new Vector<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -53,46 +58,59 @@ public static List<String> getOperatorChoicesAsStrings()
 Perform a string manipulation.
 @param inputColumn1 the name of the first column to use as input
 @param operator the operator to execute for processing data
-@param inputColumn2 the name of the second column to use as input (if input2 is not specified)
-@param input2 the constant input to use as input (if inputColumn2 is not specified)
+@param inputColumn2 the name of the second column to use as input (if input2 is not specified), or null if not used
+@param inputValue2 the constant input to use as input (if inputColumn2 is not specified), or null if not used
 @param outputColumn the name of the output column
 @param problems a list of strings indicating problems during processing
 */
 public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
-    String inputColumn2, String input2, String outputColumn, List<String> problems )
+    String inputColumn2, String inputValue2, String outputColumn, List<String> problems )
 {   String routine = getClass().getName() + ".manipulate" ;
     // Look up the columns for input and output
-    int input1Field = -1;
+    int input1ColumnNum = -1;
     try {
-        input1Field = __table.getFieldIndex(inputColumn1);
+        input1ColumnNum = __table.getFieldIndex(inputColumn1);
     }
     catch ( Exception e ) {
-        problems.add ( "Input field (1) \"" + inputColumn1 + "\" not found in table \"" + __table.getTableID() + "\"" );
+        problems.add ( "Input column (1) \"" + inputColumn1 + "\" not found in table \"" + __table.getTableID() + "\"" );
     }
-    int input2Field = -1;
+    int input2ColumnNum = -1;
     if ( inputColumn2 != null ) {
         try {
-            input2Field = __table.getFieldIndex(inputColumn2);
+            input2ColumnNum = __table.getFieldIndex(inputColumn2);
         }
         catch ( Exception e ) {
-            problems.add ( "Input field (2) \"" + inputColumn2 + "\" not found in table \"" + __table.getTableID() + "\"" );
+            problems.add ( "Input column (2) \"" + inputColumn2 + "\" not found in table \"" + __table.getTableID() + "\"" );
         }
     }
-    int outputField = -1;
+    int outputColumnNum = -1;
     try {
-        outputField = __table.getFieldIndex(outputColumn);
+        outputColumnNum = __table.getFieldIndex(outputColumn);
     }
     catch ( Exception e ) {
-        Message.printStatus(2, routine, "Output field \"" + outputColumn + "\" not found in table \"" +
+        Message.printStatus(2, routine, "Output column \"" + outputColumn + "\" not found in table \"" +
             __table.getTableID() + "\" - automatically adding." );
         // Automatically add to the table, initialize with null
-        __table.addField(new TableField(TableField.DATA_TYPE_STRING,outputColumn,-1,-1), null );
+        if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
+            __table.addField(new TableField(TableField.DATA_TYPE_INT,outputColumn,-1,-1), null );
+        }
+        else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
+            (operator == DataTableStringOperatorType.TO_DATE_TIME) ) {
+            // Precision is handled by precision on individual date/time objects
+            __table.addField(new TableField(TableField.DATA_TYPE_DATETIME,outputColumn,-1,-1), null );
+        }
+        else if ( operator == DataTableStringOperatorType.TO_DOUBLE ) {
+            __table.addField(new TableField(TableField.DATA_TYPE_DOUBLE,outputColumn,-1,6), null );
+        }
+        else {
+            __table.addField(new TableField(TableField.DATA_TYPE_STRING,outputColumn,-1,-1), null );
+        }
         try {
-            outputField = __table.getFieldIndex(outputColumn);
+            outputColumnNum = __table.getFieldIndex(outputColumn);
         }
         catch ( Exception e2 ) {
             // Should not happen.
-            problems.add ( "Output field \"" + outputColumn + "\" not found in table \"" + __table.getTableID() + "\"" );
+            problems.add ( "Output column \"" + outputColumn + "\" not found in table \"" + __table.getTableID() + "\".  Error addung column." );
         }
     }
     
@@ -106,7 +124,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     Object val;
     String input1Val;
     String input2Val;
-    String outputVal = null;
+    Object outputVal = null;
     for ( int irec = 0; irec < nrec; irec++ ) {
         // Initialize the values
         input1Val = null;
@@ -114,39 +132,78 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         outputVal = null;
         // Get the input values
         try {
-            val = __table.getFieldValue(irec, input1Field);
+            val = __table.getFieldValue(irec, input1ColumnNum);
             input1Val = (String)val;
         }
         catch ( Exception e ) {
-            problems.add ( "Error getting value for input field 1 (" + e + ")." );
+            problems.add ( "Error getting value for input column 1 (" + e + ")." );
             continue;
         }
         try {
-            if ( input2 != null ) {
-                input2Val = input2;
+            if ( inputValue2 != null ) {
+                input2Val = inputValue2;
             }
-            else {
-                val = __table.getFieldValue(irec, input2Field);
+            else if ( input2ColumnNum >= 0 ){
+                val = __table.getFieldValue(irec, input2ColumnNum);
                 input2Val = (String)val;
             }
         }
         catch ( Exception e ) {
-            problems.add ( "Error getting value for input field 2 (" + e + ")." );
+            problems.add ( "Error getting value for input column 2 (" + e + ")." );
             continue;
         }
         // Check for missing values and compute the output
-        if ( (input1Val == null) || (input2Val == null) ) {
+        if ( (input1Val == null)  ) {
             outputVal = null;
         }
         else if ( operator == DataTableStringOperatorType.APPEND ) {
-            outputVal = input1Val + input2Val;
+            if ( input2Val == null ) {
+                outputVal = null;
+            }
+            else {
+                outputVal = input1Val + input2Val;
+            }
         }
         else if ( operator == DataTableStringOperatorType.PREPEND ) {
-            outputVal = input2Val + input1Val;
+            if ( input2Val == null ) {
+                outputVal = null;
+            }
+            else {
+                outputVal = input2Val + input1Val;
+            }
+        }
+        else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
+            (operator == DataTableStringOperatorType.TO_DATE_TIME)) {
+            try {
+                outputVal = DateTime.parse(input1Val);
+                // TODO SAM 2013-05-13 Evaluate whether this is needed since string should parse
+                //if ( operator == DataTableStringOperatorType.TO_DATE ) {
+                //    ((DateTime)outputVal).setPrecision(DateTime.PRECISION_DAY);
+                //}
+            }
+            catch ( Exception e ) {
+                outputVal = null;
+            }
+        }
+        else if ( operator == DataTableStringOperatorType.TO_DOUBLE ) {
+            try {
+                outputVal = Double.parseDouble(input1Val);
+            }
+            catch ( NumberFormatException e ) {
+                outputVal = null;
+            }
+        }
+        else if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
+            try {
+                outputVal = Integer.parseInt(input1Val);
+            }
+            catch ( NumberFormatException e ) {
+                outputVal = null;
+            }
         }
         // Set the value...
         try {
-            __table.setFieldValue(irec, outputField, outputVal );
+            __table.setFieldValue(irec, outputColumnNum, outputVal );
         }
         catch ( Exception e ) {
             problems.add ( "Error setting value (" + e + ")." );

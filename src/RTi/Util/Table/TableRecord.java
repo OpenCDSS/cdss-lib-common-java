@@ -17,6 +17,7 @@
 
 package RTi.Util.Table;
 
+import java.util.List;
 import java.util.Vector;
 import RTi.Util.Message.Message;
 
@@ -49,6 +50,7 @@ private boolean __dirty = false;
 List of data values corresponding to the different fields.  Currently no list methods are exposed.
 */
 private Vector __record;
+// TODO SAM 2012-05-12 the setSize() method in this class needs to be reviewed - limits using List<Object> here
 
 /**
 Construct a new record (with no contents).
@@ -117,7 +119,7 @@ throws Exception {
 		Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
 	}
 	if (__record.size() <= index) {
-		throw new Exception ("Index " + index + " of field not valid (" + __record.size() + ")");
+		throw new Exception ("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
 	}
 	return __record.get(index);
 }
@@ -152,7 +154,7 @@ throws Exception {
 		__record.set(index,contents);
 	}
 	else {	
-		throw new Exception("Specified table record column index " + index + " does not exist.");
+		throw new Exception("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
 	}
 	return this;
 }
