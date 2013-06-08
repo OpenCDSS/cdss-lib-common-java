@@ -1198,7 +1198,7 @@ Format a string like the C sprintf function.
 @return The formatted string.
 @param v The list of objects to format.  Floating point numbers must be Double, etc. because
 the toString function is called for each object (actually, a number can be
-passed in as a String since toString work work in that case too).
+passed in as a String since toString will work in that case too).
 @param format The format to use for formatting, containing normal characters
 and the following formatting strings:
 <p>
@@ -1248,7 +1248,7 @@ To force strings to be a certain width use a format like %20.20s.  To force
 floating point numbers to always use a decimal point use the #.
 Additional capabilities may be added later.
 */
-public static final String formatString ( List v, String format )
+public static final String formatString ( List<? extends Object> v, String format )
 {	StringBuffer buffer = new StringBuffer ( "" );
 	int dl = 75;
 
@@ -1803,7 +1803,7 @@ Format a double as a string.
 @param format Format to use.
 */
 public static final String formatString ( double d, String format )
-{	List<Double> v = new Vector ( 1, 1 );
+{	List<Double> v = new Vector<Double>( 1, 1 );
 	v.add ( new Double(d) );
 	return formatString ( v, format );
 }
@@ -1815,7 +1815,7 @@ Format a Double as a string.
 @param format Format to use.
 */
 public static final String formatString ( Double d, String format )
-{	List<Double> v = new Vector ( 1, 1 );
+{	List<Double> v = new Vector<Double>( 1, 1 );
 	v.add ( d );
 	return formatString ( v, format );
 }
@@ -1827,7 +1827,7 @@ Format a float as a string.
 @param format Format to use.
 */
 public static final String formatString ( float f, String format )
-{	List<Float> v = new Vector ( 1, 1 );
+{	List<Float> v = new Vector<Float>( 1, 1 );
 	v.add ( new Float(f) );
 	return formatString ( v, format );
 }
@@ -1839,7 +1839,7 @@ Format an int as a string.
 @param format Format to use.
 */
 public static final String formatString ( int i, String format )
-{	List<Integer> v = new Vector ( 1, 1 );
+{	List<Integer> v = new Vector<Integer>( 1, 1 );
 	v.add ( new Integer(i) );
 	return formatString ( v, format );
 }
@@ -1851,7 +1851,7 @@ Format an Integer as a string.
 @param format Format to use.
 */
 public static final String formatString ( Integer i, String format )
-{	List<Integer> v = new Vector ( 1, 1 );
+{	List<Integer> v = new Vector<Integer>( 1, 1 );
 	v.add ( i );
 	return formatString ( v, format );
 }
@@ -1863,7 +1863,7 @@ Format a long as a string.
 @param format Format to use.
 */
 public static final String formatString ( long l, String format )
-{	List<Long> v = new Vector ( 1, 1 );
+{	List<Long> v = new Vector<Long>( 1, 1 );
 	v.add ( new Long(l) );
 	return formatString ( v, format );
 }
@@ -1875,7 +1875,7 @@ Format an object as a string.
 @param format Format to use.
 */
 public static final String formatString ( Object o, String format )
-{	List<Object> v = new Vector ( 1, 1 );
+{	List<Object> v = new Vector<Object>( 1, 1 );
 	v.add ( o );
 	return formatString ( v, format );
 }
@@ -1913,6 +1913,32 @@ public static String formatStringForCsv ( String s, boolean alwaysQuote )
         b.append ( "\"" );
     }
     return b.toString();
+}
+
+/**
+Return an array of valid format specifiers for the formatString() method, in
+the format "%X - Description" where X is the format specifier.  The specifiers correspond to the C sprintf
+formatting routine.
+@return an array of format specifiers.
+@param includeDescription If false, only the %X specifiers are returned.  if
+True, the description is also returned.
+@param forOutput if true, return specifiers for formatting; if false only include formatters for parsing
+*/
+public static String[] getStringFormatSpecifiers(boolean includeDescription, boolean forOutput )
+{   String [] formats = new String[12];
+    formats[0] = "%% - literal percent";
+    formats[1] = "%c - single character";
+    formats[2] = "%d - integer";
+    formats[3] = "%4d - integer, 4-digit width";
+    formats[4] = "%-d - integer, left justified";
+    formats[5] = "%-4d - integer, 4-digit width, left justified";
+    formats[6] = "%f - floating point";
+    formats[7] = "%8.2f - floating point, 8 digits wide, 2 decimls";
+    formats[8] = "%-8.2f - floating point, 8 digits wide, 2 decimls, left justified";
+    formats[9] = "%-f - floating point, left justified";
+    formats[10] = "%s - string";
+    formats[11] = "%20.20s - string padded to width";
+    return formats;
 }
 
 /**
