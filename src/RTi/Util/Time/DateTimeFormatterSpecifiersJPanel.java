@@ -95,7 +95,7 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
     
     __specifierJComboBox = new SimpleJComboBox ( false );
     __specifierJComboBox.setToolTipText(
-        "Selecting a specifier will insert at the cursor position for the alias." );
+        "Selecting a specifier will insert at the cursor position in the format string." );
     __specifierJComboBox.setPrototypeDisplayValue(__hint); // Biggest formatter name
     __specifierJComboBox.addItemListener ( this );
     JGUIUtil.addComponent(this, __specifierJComboBox,
