@@ -2350,7 +2350,7 @@ throws Exception {
 					s = " ";
 				}
 				else {
-					s= StringUtil.formatString(o.toString(), format);
+					s = StringUtil.formatString(o.toString(), format);
 				}
 			}
 			// double cells will have formatting information and
