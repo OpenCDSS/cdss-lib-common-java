@@ -68,6 +68,7 @@ throws IOException, Exception
     }
     dmi.open();
     GenericDatabaseDataStore ds = new GenericDatabaseDataStore( name, description, dmi );
+    ds.setProperties(props);
     return ds;
 }
 

@@ -46,7 +46,9 @@ public DataStore create ( PropList props )
                 databaseName, -1, systemLogin, systemPassword );
         }
         dmi.open();
-        return new GenericDatabaseDataStore ( name, description, dmi );
+        GenericDatabaseDataStore ds = new GenericDatabaseDataStore ( name, description, dmi );
+        ds.setProperties(props);
+        return ds;
     }
     catch ( Exception e ) {
         // TODO SAM 2010-09-02 Wrap the exception because need to move from default Exception
