@@ -44,7 +44,7 @@ public void format ( String [] inputColumns, String format, String outputColumn,
             inputColumnNum[i] = __table.getFieldIndex(inputColumns[i]);
         }
         catch ( Exception e ) {
-            problems.add ( "Input column (1) \"" + inputColumns + "\" not found in table \"" + __table.getTableID() + "\"" );
+            problems.add ( "Input column (1) \"" + inputColumns[i] + "\" not found in table \"" + __table.getTableID() + "\"" );
         }
     }
     int outputColumnNum = -1;
