@@ -2,7 +2,7 @@ package RTi.TS;
 
 /**
 This enumeration defines time series function types, which are functions that are used to assign data
-to time series.  Consequently, x = f(y) would translate to y being the date/time and x being the time series value.
+to time series.  Consequently, x = f(y) indicates y as the independent date/time and x being the generated time series value.
 */
 public enum TSFunctionType
 {
@@ -27,7 +27,15 @@ public enum TSFunctionType
     Assign the date to the whole number part of the value and the hour and minute as the
     fraction (hour 1, minute 1 = .0101, hour 24, 59 = .2459).
     */
-    DATETIME_YYYYMMDD_HHMM("DateTimeYYYYMMDD_hhmm");
+    DATETIME_YYYYMMDD_HHMM("DateTimeYYYYMMDD_hhmm"),
+    /**
+    Assign a random number in the range 0.0 to 1.0.
+    */
+    RANDOM_0_1("Random_0_1"),
+    /**
+    Assign a random number in the range 0.0 to 1000.0.
+    */
+    RANDOM_0_1000("Random_0_1000");
     
     /**
      * The name that should be displayed when the best fit type is used in UIs and reports.

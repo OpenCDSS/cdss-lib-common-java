@@ -50,6 +50,12 @@ private double getFunctionValue ( TS ts, DateTime dt, TSFunctionType function )
             value = dt.getYear()*10000.0 + dt.getMonth()*100.0 + dt.getDay() +
                 dt.getHour()/100.0 + dt.getMinute()/10000.0;
             break;
+        case RANDOM_0_1:
+            value = Math.random();
+            break;
+        case RANDOM_0_1000:
+            value = Math.random()*1000.0;
+            break;
     }
     return value;
 }
