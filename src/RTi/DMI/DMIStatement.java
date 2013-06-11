@@ -319,7 +319,7 @@ Adds a Double value to the statement.
 */
 public void addValue(Double value) 
 throws Exception {
-	addValue(value.doubleValue());
+	addValueOrNull(value.doubleValue());
 }
 
 /**
@@ -342,7 +342,7 @@ Adds a Float value to the statement.
 */
 public void addValue(Float value) 
 throws Exception {
-	addValue(value.floatValue());
+	addValueOrNull(value.floatValue());
 }
 
 /**
@@ -365,7 +365,7 @@ Adds an Integer value to the statement.
 */
 public void addValue(Integer value) 
 throws Exception {
-	addValue(value.intValue());
+	addValueOrNull(value.intValue());
 }
 
 /**
@@ -388,7 +388,7 @@ Add a long value to the statement
 */
 public void addValue(Long value) 
 throws Exception {
-	addValue(value.longValue());
+	addValueOrNull(value.longValue());
 }
 
 /**
