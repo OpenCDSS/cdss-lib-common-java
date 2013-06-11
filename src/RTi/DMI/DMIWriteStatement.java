@@ -178,8 +178,7 @@ public String toUpdateString(boolean tryBuildWhere) {
 }
 
 public String toString() {
-	return "Insert string version: \n" + toInsertString() + "\nUpdate "
-		+ "string version: \n" + toUpdateString(true);
+	return "Insert string version: \n" + toInsertString() + "\nUpdate string version: \n" + toUpdateString(true);
 /*		
 	String s= "Insert string version: \n" + toInsertString() + "\n\nUpdate "
 		+ "string version: \n" + toUpdateString(true) + "\n";
