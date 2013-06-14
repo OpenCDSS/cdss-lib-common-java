@@ -2130,7 +2130,7 @@ public String toStringAliasAndTSID()
     if ( !getAlias().equals("") ) {
         b.append ( "Alias=\"" + getAlias() + "\", " );
     }
-    b.append ( " TSID=\"" );
+    b.append ( "TSID=\"" );
     b.append ( toString() );
     b.append ( "\"" );
     return b.toString();
