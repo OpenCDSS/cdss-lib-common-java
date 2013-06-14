@@ -1,66 +1,3 @@
-// ----------------------------------------------------------------------------
-// ResponseJDialog - provides a pop-up dialog
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History: 
-//
-// 16 Dec 1997	Darrell L. Gillmeister, Created initial class description.
-//		RTi
-// 23 Jan 1998	Steven A. Malers, RTi	Change so that the flag indicating the
-//					buttons to use is a mask so that it is
-//					easier to add to.  Also use the same
-//					flags for response values (don't need
-//					to treat as a mask.  The input mask
-//					should work with legacy code but the
-//					return will not.
-//					Similar to the MessageDialog class,
-//					accept newlines in the text.
-// 13 Feb 1998	SAM, RTi		Overload to take a title.
-// 09 Apr 1998  DLG, RTi		Overload to default to OK Button.
-// 07 May 1998  DLG, RTi		Added javadoc comments.
-// 07 Jan 2001	SAM, RTi		Change GUI to GUIUtil.  Change import *
-//					to specific imports.
-// 2001-11-01	SAM, RTi		Track down problem where title is not
-//					handled properly with HelpAboutDialog.
-//					The issue is that HBGUIApp gets used
-//					in TSTool and the HBGUIApp constructor
-//					calls the setFrameTitle() method to
-//					use CWRAT.  For now just make sure the
-//					HelpAboutDialog() uses a constructor
-//					that sets the title.  Add finalize(),
-//					cleanup memory management and update
-//					javadoc.
-// 2001-11-21	SAM, RTi		Overload constructor to take alignment
-//					flag.
-// 2002-01-16	SAM, RTi		Remove _parent Frame data member since
-//					it is never used.  If the Frame that is
-//					passed in is null, create a temporary
-//					one.
-// ============================================================================
-// 2002-10-24	SAM, RTi		Copy ResponseDialog to this class and
-//					update to use Swing.
-// 2003-09-03	J. Thomas Sapienza, RTi	Corrected a misspelling that was 
-//					resulting in "Cancel" buttons returning
-//					a response of 0, which doesn't match
-//					Yes, No, Cancel or OK.
-// 2003-09-17	JTS, RTi		* Changed String references like 
-//					  "Yes", "No", etc to be coded in a
-//					  single place up front.
-//					* Added the key listeners so that 
-//					  the dialog behaves more like
-//					  Microsoft-standard dialogs.
-// 2003-10-15	SAM, RTi		* Overload constructors to take JDialog.
-//
-// 2004-01-14	SAM, AML, RTi		* Display the content as a scroll pane
-//					  if the number of lines exceeds a
-//					  limit of 20.
-// 2005-11-16	JTS, RTi		Changed GUIUtil to JGUIUtil.
-// 2006-05-18	JTS, RTi		Added some modeless dialogs for use
-//					in ESRI Java code for AN.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.BorderLayout;
@@ -92,7 +29,7 @@ import java.util.Vector;
 import RTi.Util.String.StringUtil;
 
 /**
-ResponseJDialog provides an area for a message body and expects a user reponse
+ResponseJDialog provides an area for a message body and expects a user response
 given a choice of buttons.  Flags can be passed to the constructor that
 determine what sort of dialog will be visible.  The flags supported are:
 YES_NO_CANCEL, YES_NO, OK.
@@ -101,11 +38,10 @@ A ResponseJDialog should be instantiated as follows:
 int x = new ResponseJDialog( JFrame parent, 
 		String label, int flag ).response()
 </pre>
-where processing is halted until a reponse occures (the dialog is modal).
+where processing is halted until a response occurs (the dialog is modal).
 The user response is returned through the response() method.
 */
-public class ResponseJDialog 
-extends JDialog 
+public class ResponseJDialog extends JDialog 
 implements ActionListener, KeyListener, WindowListener {
 
 private String
@@ -135,8 +71,7 @@ public final static int		YES	= 0x1,
 /**
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 */
 public ResponseJDialog ( JFrame parent, String label )
 {	// Call the full version with no title and ok Button
@@ -147,8 +82,7 @@ public ResponseJDialog ( JFrame parent, String label )
 /**
 ResponseJDialog constructor.
 @param parent JDialog class instantiating this class.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 */
 public ResponseJDialog ( JDialog parent, String label )
 {	// Call the full version with no title and ok Button
@@ -159,8 +93,7 @@ public ResponseJDialog ( JDialog parent, String label )
 /**
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 @param modal whether the dialog is modal or not.
 */
 public ResponseJDialog ( JFrame parent, String label, boolean modal )
@@ -181,10 +114,9 @@ protected ResponseJDialog(JFrame parent, boolean modal) {
 /**
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
-@param label Label to display in the dialog.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the dialog.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String label, int mode )
 {	// Call the full version with no title...
@@ -195,10 +127,9 @@ public ResponseJDialog ( JFrame parent, String label, int mode )
 /**
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
-@param label Label to display in the dialog.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the dialog.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param modal whether the dialog is modal or not.
 */
 public ResponseJDialog ( JFrame parent, String label, int mode, boolean modal )
@@ -210,10 +141,9 @@ public ResponseJDialog ( JFrame parent, String label, int mode, boolean modal )
 /**
 ResponseJDialog constructor.
 @param parent JDialog class instantiating this class.
-@param label Label to display in the dialog.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the dialog.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JDialog parent, String label, int mode )
 {	// Call the full version with no title...
@@ -225,10 +155,9 @@ public ResponseJDialog ( JDialog parent, String label, int mode )
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String title, String label, int mode )
 {	super(parent, true);
@@ -239,14 +168,12 @@ public ResponseJDialog ( JFrame parent, String title, String label, int mode )
 ResponseJDialog constructor.
 @param parent JFrame class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param modal whether the dialog is modal or not.
 */
-public ResponseJDialog ( JFrame parent, String title, String label, int mode,
-boolean modal)
+public ResponseJDialog ( JFrame parent, String title, String label, int mode, boolean modal)
 {	super(parent, modal);
 	initialize ( title, label, mode, GridBagConstraints.WEST );
 }
@@ -257,8 +184,8 @@ ResponseJDialog constructor.
 @param title Dialog title.
 @param label Label to display in the GUI.  Newlines result in line breaks in
 the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JDialog parent, String title, String label, int mode )
 {	super(parent, true);
@@ -269,14 +196,12 @@ public ResponseJDialog ( JDialog parent, String title, String label, int mode )
 ResponseJDialog constructor.
 @param parent Frame class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param alignment Specify GridBagConstraints.CENTER to center the text lines.
 */
-public ResponseJDialog ( JFrame parent, String title, String label, int mode,
-			int alignment )
+public ResponseJDialog ( JFrame parent, String title, String label, int mode, int alignment )
 {	super(parent, true);
 	initialize ( title, label, mode, alignment );
 }
@@ -285,15 +210,13 @@ public ResponseJDialog ( JFrame parent, String title, String label, int mode,
 ResponseJDialog constructor.
 @param parent Frame class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param alignment Specify GridBagConstraints.CENTER to center the text lines.
 @param modal whether the dialog is modal or not.
 */
-public ResponseJDialog ( JFrame parent, String title, String label, int mode,
-			int alignment, boolean modal )
+public ResponseJDialog ( JFrame parent, String title, String label, int mode, int alignment, boolean modal )
 {	super(parent, modal);
 	initialize ( title, label, mode, alignment );
 }
@@ -302,19 +225,15 @@ public ResponseJDialog ( JFrame parent, String title, String label, int mode,
 ResponseJDialog constructor.
 @param parent JDialog class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param alignment Specify GridBagConstraints.CENTER to center the text lines.
 */
-public ResponseJDialog ( JDialog parent, String title, String label, int mode,
-			int alignment )
+public ResponseJDialog ( JDialog parent, String title, String label, int mode, int alignment )
 {	super(parent, true);
 	initialize ( title, label, mode, alignment );
 }
-
-
 
 /**
 Responds to ActionEvents.
@@ -334,7 +253,6 @@ public void actionPerformed( ActionEvent event )
 	else if ( s.equals(__BUTTON_OK) ) {
 		__response = OK;
 	}
-	s = null;
 	response();
 }
 
@@ -356,8 +274,8 @@ Instantiate the dialog components
 @param parent JFrame class instantiating this class.
 @param title Dialog title
 @param label Label to display in the GUI.
-@param mode mode in which this gui is to be used (i.e., YES|NO|CANCEL)
-process different types of yes reponses from the calling form.
+@param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
+process different types of yes responses from the calling form.
 @param alignment Specify GridBagConstraints.CENTER to center the text lines.
 */
 private void initialize ( String title, String label, int mode, int alignment )
@@ -366,122 +284,116 @@ private void initialize ( String title, String label, int mode, int alignment )
 
 	// Split the text based on the new-line delimiter (we use \n, not the
 	// platform's separator!
-	List vec = StringUtil.breakStringList ( label, "\n", 0 );
+	List<String> vec = StringUtil.breakStringList ( label, "\n", 0 );
 	int size = vec.size();
-        // North Panel
+    // North Panel
 	JPanel north_JPanel = new JPanel();
-	if ( vec != null ) {
-		if ( alignment == GridBagConstraints.CENTER ) {
-			Insets insets = new Insets ( 1, 5, 1, 5 );
-			// New approach where alignment can be CENTER (because
-			// used by the HelpAboutDialog)...
-        		north_JPanel.setLayout(new GridBagLayout () );
-			if ( size > 20 ) {
-				//add message String to a JList that is within a JScrollPane
-				JList list = null;
-				if ( vec instanceof Vector ) {
-					list = new JList( (Vector)vec );
-				}
-				else {
-					list = new JList(new Vector(vec) );
-				}
-				list.setBackground(Color.LIGHT_GRAY);
-				JScrollPane pane = new JScrollPane( list );
-				Dimension d = new Dimension ( 400, 200 );
-				pane.setPreferredSize( d );
-				pane.setMinimumSize( d );
-				pane.setMaximumSize( d );
-
-				//add JScrollPane to JPanel
-        			JGUIUtil.addComponent(north_JPanel,
-				pane, 0,0,1,1,0,0,insets,
-				GridBagConstraints.NONE, alignment );
+	if ( alignment == GridBagConstraints.CENTER ) {
+		Insets insets = new Insets ( 1, 5, 1, 5 );
+		// New approach where alignment can be CENTER (because used by the HelpAboutDialog)...
+    	north_JPanel.setLayout(new GridBagLayout () );
+		if ( size > 20 ) {
+			//add message String to a JList that is within a JScrollPane
+			JList list = null;
+			if ( vec instanceof Vector ) {
+				list = new JList( (Vector)vec );
 			}
 			else {
-				// Add each string as a JLabel...
-				for ( int i = 0; i < size; i++ ) {
-        				JGUIUtil.addComponent(north_JPanel,
-					new JLabel( (String)vec.get(i)),
-					0,i,1,1,0,0,insets,
-					GridBagConstraints.NONE, alignment );
-				}
+				list = new JList(new Vector(vec) );
 			}
-			insets = null;
+			list.setBackground(Color.LIGHT_GRAY);
+			JScrollPane pane = new JScrollPane( list );
+			Dimension d = new Dimension ( 400, 200 );
+			pane.setPreferredSize( d );
+			pane.setMinimumSize( d );
+			pane.setMaximumSize( d );
+
+			//add JScrollPane to JPanel
+    		JGUIUtil.addComponent(north_JPanel,
+    			pane, 0,0,1,1,0,0,insets,
+    			GridBagConstraints.NONE, alignment );
 		}
-		else {	// This is the layout that was used previously.  If the
-			// above works out OK with spacing, etc., might use
-			// GridBagLayout always.
-        		//north_JPanel.setLayout(new GridLayout ( vec.size(), 1));
-			if (size > 20 ) {
-        			north_JPanel.setLayout(new GridLayout( 1, 1));
-				//add message String to a JList
-				//that is within a JScrollPane
-				JList list = null;
-				if ( vec instanceof Vector ) {
-					list = new JList( (Vector)vec );
-				}
-				else {
-					list = new JList(new Vector(vec) );
-				}
-				list.setBackground(Color.LIGHT_GRAY);
-				JScrollPane pane = new JScrollPane( list );
-				Dimension d = new Dimension ( 600, 200 );
-				pane.setPreferredSize( d );
-				pane.setMinimumSize( d );
-				pane.setMaximumSize( d );
-
-				//add JScrollPane to JPanel
-        			north_JPanel.add( pane );
+		else {
+			// Add each string as a JLabel...
+			for ( int i = 0; i < size; i++ ) {
+    			JGUIUtil.addComponent(north_JPanel,
+    				new JLabel( (String)vec.get(i)),
+    				0,i,1,1,0,0,insets,
+    				GridBagConstraints.NONE, alignment );
+			}
+		}
+	}
+	else {
+	    // This is the layout that was used previously.  If the
+		// above works out OK with spacing, etc., might use GridBagLayout always.
+    	//north_JPanel.setLayout(new GridLayout ( vec.size(), 1));
+		if (size > 20 ) {
+    		north_JPanel.setLayout(new GridLayout( 1, 1));
+			//add message String to a JList that is within a JScrollPane
+			JList list = null;
+			if ( vec instanceof Vector ) {
+				list = new JList( (Vector)vec );
 			}
 			else {
-        			north_JPanel.setLayout( 
-				new GridLayout ( vec.size(), 1));
-				// Add each string...
-				for ( int i = 0; i < size; i++ ) {
-        				north_JPanel.add( new JLabel( "    " +
-					vec.get(i) + "     " ) );
-				}
+				list = new JList(new Vector(vec) );
+			}
+			list.setBackground(Color.LIGHT_GRAY);
+			JScrollPane pane = new JScrollPane( list );
+			Dimension d = new Dimension ( 600, 200 );
+			pane.setPreferredSize( d );
+			pane.setMinimumSize( d );
+			pane.setMaximumSize( d );
+
+			//add JScrollPane to JPanel
+    		north_JPanel.add( pane );
+		}
+		else {
+    		north_JPanel.setLayout( 
+			new GridLayout ( vec.size(), 1));
+			// Add each string...
+			for ( int i = 0; i < size; i++ ) {
+    			north_JPanel.add( new JLabel( "    " +vec.get(i) + "     " ) );
 			}
 		}
 	}
 
-        getContentPane().add("North", north_JPanel);
+    getContentPane().add("North", north_JPanel);
 
 	// Now add the buttons...
 
-        // South Panel
+    // South Panel
 	JPanel south_JPanel = new JPanel();
-        south_JPanel.setLayout( new BorderLayout() );
-        getContentPane().add( "South", south_JPanel );
-        
-        // South Panel: North
-        JPanel southNorth_JPanel = new JPanel();
-        southNorth_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        south_JPanel.add("North", southNorth_JPanel);
+    south_JPanel.setLayout( new BorderLayout() );
+    getContentPane().add( "South", south_JPanel );
+    
+    // South Panel: North
+    JPanel southNorth_JPanel = new JPanel();
+    southNorth_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+    south_JPanel.add("North", southNorth_JPanel);
 
 	if ( (__mode & YES) != 0 ) {
 		// Add a Yes button...
-        	__yes_JButton = new SimpleJButton(__BUTTON_YES, this);
+       	__yes_JButton = new SimpleJButton(__BUTTON_YES, this);
 		__yes_JButton.addKeyListener(this);
-	        southNorth_JPanel.add(__yes_JButton);
+	    southNorth_JPanel.add(__yes_JButton);
 	}
 
 	if ( (__mode & NO) != 0 ) {
-        	__no_JButton = new SimpleJButton(__BUTTON_NO, this);
+        __no_JButton = new SimpleJButton(__BUTTON_NO, this);
 		__no_JButton.addKeyListener(this);
-        	southNorth_JPanel.add(__no_JButton);   
+        southNorth_JPanel.add(__no_JButton);   
 	}
 
 	if ( (__mode & OK) != 0 ) {
-        	__ok_JButton = new SimpleJButton(__BUTTON_OK, this);
+        __ok_JButton = new SimpleJButton(__BUTTON_OK, this);
 		__ok_JButton.addKeyListener(this);
-	        southNorth_JPanel.add(__ok_JButton);
+	    southNorth_JPanel.add(__ok_JButton);
 	}
 
 	if ( (__mode & CANCEL) != 0 ) {
 		__cancel_JButton = new SimpleJButton(__BUTTON_CANCEL, this);
 		__cancel_JButton.addKeyListener(this);
-	        southNorth_JPanel.add(__cancel_JButton);
+	    southNorth_JPanel.add(__cancel_JButton);
 	}
 
 	if ( title != null ) {
@@ -489,14 +401,9 @@ private void initialize ( String title, String label, int mode, int alignment )
 	}
 	// Dialogs do no need to be resizable...
 	setResizable ( false );
-        pack();
-        JGUIUtil.center( this );
-        super.setVisible( true );
-	// Clean up...
-        north_JPanel = null;
-        south_JPanel = null;
-        southNorth_JPanel = null;
-	vec = null;
+    pack();
+    JGUIUtil.center( this );
+    super.setVisible( true );
 	addKeyListener(this);
 }
 
@@ -505,8 +412,7 @@ Responds to key pressed events.  If the dialog has been initialized to have a
 'No' button, pressing 'N' will activate that button.  If the dialog has been
 initialized to have a 'Yes' button, pressing 'Y' will activate that button.
 If the dialog has a 'Cancel' button, pressing 'Escape' will activate that 
-button.  If the dialog has an 'OK' button, pressing 'Enter' will activate that
-button.
+button.  If the dialog has an 'OK' button, pressing 'Enter' will activate that button.
 @param e the KeyEvent that happened.
 */
 public void keyPressed(KeyEvent e) {
@@ -573,4 +479,4 @@ public void windowDeiconified( WindowEvent evt ){;}
 public void windowIconified( WindowEvent evt ){;}
 public void windowOpened( WindowEvent evt ){;}
 
-} // end ResponseJDialog
+}
