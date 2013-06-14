@@ -13,7 +13,11 @@ APPEND("Append"),
 /*
 Prepend string values.
 */
-PREPEND ( "Prepend" ),
+PREPEND("Prepend"),
+/*
+Replace string substring.
+*/
+REPLACE("Replace"),
 /*
 Cast a string value to a date.
 */
@@ -60,6 +64,9 @@ public String toString() {
  */
 public static DataTableStringOperatorType valueOfIgnoreCase(String name)
 {
+    if ( name == null ) {
+        return null;
+    }
     DataTableStringOperatorType [] values = values();
     // Currently supported values
     for ( DataTableStringOperatorType t : values ) {

@@ -33,6 +33,7 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     List<DataTableStringOperatorType> choices = new Vector<DataTableStringOperatorType>();
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
+    choices.add ( DataTableStringOperatorType.REPLACE );
     choices.add ( DataTableStringOperatorType.TO_DATE );
     choices.add ( DataTableStringOperatorType.TO_DATE_TIME );
     choices.add ( DataTableStringOperatorType.TO_DOUBLE );
@@ -60,11 +61,12 @@ Perform a string manipulation.
 @param operator the operator to execute for processing data
 @param inputColumn2 the name of the second column to use as input (if input2 is not specified), or null if not used
 @param inputValue2 the constant input to use as input (if inputColumn2 is not specified), or null if not used
+@param inputValue3 additional constant input to use as input, or null if not used
 @param outputColumn the name of the output column
 @param problems a list of strings indicating problems during processing
 */
 public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
-    String inputColumn2, String inputValue2, String outputColumn, List<String> problems )
+    String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems )
 {   String routine = getClass().getName() + ".manipulate" ;
     // Look up the columns for input and output
     int input1ColumnNum = -1;
@@ -124,11 +126,13 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     Object val;
     String input1Val;
     String input2Val;
+    String input3Val;
     Object outputVal = null;
     for ( int irec = 0; irec < nrec; irec++ ) {
         // Initialize the values
         input1Val = null;
         input2Val = null;
+        input3Val = null;
         outputVal = null;
         // Get the input values
         try {
@@ -152,6 +156,9 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             problems.add ( "Error getting value for input column 2 (" + e + ")." );
             continue;
         }
+        if ( inputValue3 != null ) {
+            input3Val = inputValue3;
+        }
         // Check for missing values and compute the output
         if ( (input1Val == null)  ) {
             outputVal = null;
@@ -170,6 +177,14 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
             else {
                 outputVal = input2Val + input1Val;
+            }
+        }
+        else if ( operator == DataTableStringOperatorType.REPLACE ) {
+            if ( input1Val == null ) {
+                outputVal = null;
+            }
+            else if ( (input2Val != null) && (input3Val != null) ) {
+                outputVal = input1Val.replace(input2Val, input3Val);
             }
         }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
@@ -208,7 +223,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         catch ( Exception e ) {
             problems.add ( "Error setting value (" + e + ")." );
         }
-    }   
+    }
 }
 
 }
