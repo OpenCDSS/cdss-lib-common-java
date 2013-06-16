@@ -142,7 +142,7 @@ private DataTable createPropertyTable ( TS ts )
         }
         valueLength = Math.max(valueLength, ("" + value).length());
     }
-    List<TableField> tableFields = new Vector();
+    List<TableField> tableFields = new Vector<TableField>();
     nameLength = -1;
     valueLength = -1;
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
@@ -541,7 +541,6 @@ private void openGUI ( boolean mode )
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
 	}
-	routine = null;
 }
 
 /**
