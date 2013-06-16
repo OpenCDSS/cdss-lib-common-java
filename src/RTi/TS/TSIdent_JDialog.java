@@ -39,9 +39,8 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeInterval;
 
 /**
-This class is a dialog for editing the values in a TSIdent.  This dialog 
-operates similarly to ResponseJDialog in RTi.Util.GUI, where the changes are
-returned via a response() call.  The following is sample code for using it:
+This class is a dialog for editing the values in a TSIdent.  The updated TSIdent object is
+returned via a response() method call.  The following is sample code for using it:
 <code><pre>
 	TSIdent tsident = ...;
 	// tsident initialized and filled in
@@ -72,7 +71,8 @@ private final String
 /**
 Components to hold values from the TSIdent.
 */
-private JTextField 
+private JTextField
+    __locationTypeTextField = null,
 	__locationTextField = null,
 	__dataSourceTextField = null,
 	__dataTypeTextField = null,
@@ -103,6 +103,7 @@ private String __warning = ""; // Warnings generated in refresh() and displayed 
 /**
 Indicators for which parts of the identifier should be enabled and verified (default is true for all).
 */
+private boolean __EnableLocationType_boolean = true;
 private boolean __EnableLocation_boolean = true;
 private boolean __EnableSource_boolean = true;
 private boolean __EnableType_boolean = true;
@@ -133,6 +134,12 @@ to allow editing of partial identifier information, as follows:
 <tr>
 <td><b>EnableAll</b></td>
 <td><b>Indicates (True/False) whether all fields should be enabled/verified.</b>
+<td>True</td>
+</tr>
+
+<tr>
+<td><b>EnableLocationType</b></td>
+<td><b>Indicates (True/False) whether the location type data should be enabled/verified.</b>
 <td>True</td>
 </tr>
 
@@ -178,6 +185,7 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
     String enabled = props.getValue("EnableAll");
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
         // All fields are to be disabled...
+        __EnableLocationType_boolean = false;
         __EnableLocation_boolean = false;
         __EnableSource_boolean = false;
         __EnableType_boolean = false;
@@ -186,6 +194,13 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
         __EnableSequenceNumber_boolean = false;
         __EnableInputType_boolean = false;
         __EnableInputName_boolean = false;
+    }
+    enabled = props.getValue("EnableLocationType");
+    if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
+         __EnableLocationType_boolean = false;
+    }
+    else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
+        __EnableLocationType_boolean = true;
     }
     enabled = props.getValue("EnableLocation");
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
@@ -259,7 +274,7 @@ public void actionPerformed(ActionEvent event)
 	}
 	else if (s.equals(__BUTTON_OK)) {
 		refresh ();
-		checkInput ();
+		checkInputAndCommit ();
 		if ( !__error_wait ) {
 			response( true );
 		}
@@ -274,10 +289,112 @@ public void actionPerformed(ActionEvent event)
 Check the input.  If errors exist, warn the user and set the __error_wait flag
 to true.  This should be called before response() is allowed to complete.
 */
-private void checkInput ()
+private void checkInputAndCommit ()
 {	String routine = "TSIdent_JDialog.checkInput";
-	// Checks were done in refresh(), which should have been called before this method...
+    // Previously show all input to user, even if in error, but check before saving
 	__error_wait = false;
+	__warning = "";
+    String locationType = "";
+    String location = "";
+    String datasource = "";
+    String datatype = "";
+    String interval = "";
+    String scenario = "";
+    String sequenceNumber = "";
+    String inputtype = "";
+    String inputname = "";
+
+    // Get from the dialog...
+
+    locationType = __locationTypeTextField.getText().trim();
+    location = __locationTextField.getText().trim();
+    datasource = __dataSourceTextField.getText().trim();
+    datatype = __dataTypeTextField.getText().trim();
+    interval = __dataInterval_JComboBox.getSelected();
+    scenario = __scenarioTextField.getText().trim();
+    sequenceNumber = __sequenceNumberTextField.getText().trim();
+    inputtype = __inputTypeTextField.getText().trim();
+    inputname = __inputNameTextField.getText().trim();
+
+    // Form the TSIdent string...
+
+    __response = new TSIdent();
+
+    // These would normally be in checkInput() but since the TSID is needed
+    // to output the string, also do the checks here...
+
+    if ( (locationType.length() > 0) && StringUtil.containsAny(locationType, ".:", false) ) {
+        __warning += "\nThe location type cannot contain a period (.) or colon (:).";
+    }
+    else {
+        __response.setLocationType( locationType );
+    }
+    // Do not allow missing location...
+    if ( location.length() == 0 ) {
+        __warning += "\nThe location must be specified.";
+    }
+    else {
+        if ( StringUtil.containsAny(location, ".", false) ) {
+            __warning += "\nThe location cannot contain a period (.).";
+        }
+        else {
+            __response.setLocation( location );
+        }
+    }
+    if ( StringUtil.containsAny(datasource, ".", false) ) {
+        __warning += "\nThe data source cannot contain a period (.).";
+    }
+    else {
+        __response.setSource(datasource);
+    }
+    if ( StringUtil.containsAny(datatype, ".", false) ) {
+        __warning += "\nThe data type cannot contain a period (.).";
+    }
+    else {
+        __response.setType(datatype);
+    }
+    // Do not allow missing interval...
+    if ( __EnableInterval_boolean ) {
+        if ( interval.length() == 0 ) {
+            __warning += "\nA valid interval must be specified.";
+        }
+        else {
+            try {
+                __response.setInterval(interval);
+            }
+            catch (Exception e) {
+                __warning += "\nThe interval \"" + interval + "\" is invalid.";
+            }
+        }
+    }
+    if ( StringUtil.containsAny(scenario, ".", false) ) {
+        __warning += "\nThe scenario cannot contain a period (.).";
+    }
+    else {
+        __response.setScenario(scenario);
+    }
+    if ( (sequenceNumber == null) || sequenceNumber.equals("") ) {
+        __response.setSequenceNumber(-1);
+    }
+    else if ( StringUtil.isInteger(sequenceNumber) ) {
+        __response.setSequenceNumber(Integer.parseInt(sequenceNumber));
+    }
+    else {
+        __warning += "\nThe sequence number (ensemble trace number) must be an integer.";
+        __response.setSequenceNumber(-1);
+    }
+    if ( StringUtil.containsAny(inputtype, ".~", false) ) {
+        __warning += "\nThe input type (datastore) cannot contain a period (.) or tilde (~).";
+    }
+    else {
+        __response.setInputType(inputtype);
+    }
+    if ( StringUtil.containsAny(inputname, ".~", false) ) {
+        __warning += "\nThe input name cannot contain a period (.) or tilde (~).";
+    }
+    else {
+        __response.setInputName(inputname);
+    }
 	if ( __warning.length() > 0 ) {
 		__error_wait = true;
 		__warning += "\n\nCorrect or Cancel.";
@@ -324,11 +441,10 @@ Does nothing.
 public void keyTyped(KeyEvent e) {}
 
 /**
-Refresh the full TSIdent data member and displayed value, based on the individual values displayed in dialog.
+Refresh the full TSIdent displayed value, based on the individual values displayed in dialog.
 */
 private void refresh ()
-{	__warning = "";
-
+{	String locationType = "";
 	String location = "";
 	String datasource = "";
 	String datatype = "";
@@ -341,6 +457,7 @@ private void refresh ()
 		// Get the interface contents from the incoming TSIdent.
 		__first_time = false;
 		if ( __tsident != null ) {
+		    locationType = __tsident.getLocationType();
 			location = __tsident.getLocation();
 			datasource = __tsident.getSource();
 			datatype = __tsident.getType();
@@ -355,6 +472,7 @@ private void refresh ()
 			inputtype = __tsident.getInputType();
 			inputname = __tsident.getInputName();
 		}
+		__locationTypeTextField.setText ( locationType );
 		__locationTextField.setText ( location );
 		__dataSourceTextField.setText ( datasource );
 		__dataTypeTextField.setText ( datatype );
@@ -383,6 +501,7 @@ private void refresh ()
 
 	// Get from the dialog...
 
+	locationType = __locationTypeTextField.getText().trim();
 	location = __locationTextField.getText().trim();
 	datasource = __dataSourceTextField.getText().trim();
 	datatype = __dataTypeTextField.getText().trim();
@@ -392,54 +511,25 @@ private void refresh ()
 	inputtype = __inputTypeTextField.getText().trim();
 	inputname = __inputNameTextField.getText().trim();
 
-	// Form the TSIdent string...
-
-	__response = new TSIdent();
-
-	// These would normally be in checkInput() but since the TSID is needed
-	// to output the string, also do the checks here...
-
-	// For now do not allow missing location...
-	if ( location.length() == 0 ) {
-		__warning += "\nThe location must be specified.";
+	// Display whatever is in the UI, even if incorrect.  Errors will be checked if OK is pressed.
+	// This is somewhat redundant with TSIdent.toString() but need to handle as strings.
+	if ( locationType.length() != 0 ) {
+	    locationType = locationType + TSIdent.LOC_TYPE_SEPARATOR;
 	}
-	else {
-        __response.setLocation( location );
+	if ( scenario.length() != 0 ) {
+	    scenario = TSIdent.SEPARATOR + scenario;
 	}
-	__response.setSource(datasource);
-	__response.setType(datatype);
-	// For now do not allow missing interval...
-    if ( __EnableInterval_boolean ) {
-    	if ( interval.length() == 0 ) {
-    		__warning += "\nA valid interval must be specified.";
-    	}
-    	else {
-            try {
-                __response.setInterval(interval);
-    		}
-    		catch (Exception e) {
-    			__warning += "\nThe interval \"" + interval + "\" is invalid.";
-    		}
-    	}
+    if ( sequenceNumber.length() != 0 ) {
+        sequenceNumber = TSIdent.SEQUENCE_NUMBER_LEFT + sequenceNumber + TSIdent.SEQUENCE_NUMBER_RIGHT;
     }
-	__response.setScenario(scenario);
-	if ( StringUtil.isInteger(sequenceNumber) ) {
-	    __response.setSequenceNumber(Integer.parseInt(sequenceNumber));
-	}
-	else {
-	    __response.setSequenceNumber(-1);
-	}
-	__response.setInputType(inputtype);
-	__response.setInputName(inputname);
-
-	if ( __warning.length() > 0 ) {
-		__warning +="\nSome time series identifier parts may be blank.";
-	}
-
-	// Set the string...
-
-	// Long version (if parts are available)...
-	__TSID_JTextArea.setText ( __response.toString(true) );
+    if ( inputtype.length() != 0 ) {
+        inputtype = "~" + inputtype;
+    }
+    if ( inputname.length() != 0 ) {
+        inputname = "~" + inputname;
+    }
+	__TSID_JTextArea.setText ( locationType + location + TSIdent.SEPARATOR + datasource + TSIdent.SEPARATOR +
+	     datatype + TSIdent.SEPARATOR + interval + scenario + sequenceNumber + inputtype + inputname );
 }
 
 /**
@@ -477,6 +567,8 @@ private void setupGUI()
 	
 	Insets insetsTLBR = new Insets(2,2,2,2);
 
+    __locationTypeTextField = new JTextField(10);
+    __locationTypeTextField.addKeyListener ( this );
 	__locationTextField = new JTextField(10);
 	__locationTextField.addKeyListener ( this );
 	__dataSourceTextField = new JTextField(10);
@@ -499,11 +591,11 @@ private void setupGUI()
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" The TSID conforms to the following convention, " +
-			"where Scenario and SequenceNumber are optional:"),
+			"where LocationType, Scenario and SequenceNumber are optional:"),
        0, ++y, 3, 1, 0, 0, insetsTLBR,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-		"     Location.DataSource.DataType.Interval.Scenario[SequenceNumber]"),
+		"     [LocationType:]Location.DataSource.DataType.Interval.Scenario[SequenceNumber]"),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" For example:"),
@@ -522,17 +614,25 @@ private void setupGUI()
        0, ++y, 3, 1, 0, 0, insetsTLBR,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-       "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence number for a trace in an ensemble)"),
+       "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence number for a trace in an ensemble, often start year)"),
        0, ++y, 3, 1, 0, 0, 
+       GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(panel, new JLabel(
+       "     Station:0451.NOAA.MeanTemp.Month  (example of location type)"),
+       0, ++y, 3, 1, 0, 0, insetsTLBR,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(panel,
         new JLabel(" Location and DataType parts can internally use a dash (-) to " +
         	"indicate a sub-location and sub-type, and underscores are also useful as separators within a part."),
         0, ++y, 3, 1, 0, 0, insetsTLBR,
         GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(panel,
+        new JLabel( "<html><b>&nbsp Periods can only be used in input type/name and datastore.  Do not use : in location parts.</b></html>"),
+        0, ++y, 3, 1, 0, 0, insetsTLBR,
+        GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( __EnableInputName_boolean && __EnableInputType_boolean ) {
     	JGUIUtil.addComponent(panel,
-    		new JLabel(" The input type and name indicate the format and storage location of data."),
+    		new JLabel(" The input type and name (or datastore) indicate the format and storage location of data."),
     		0, ++y, 3, 1, 0, 0, insetsTLBR,
     		GridBagConstraints.NONE, GridBagConstraints.WEST);
     }
@@ -543,7 +643,20 @@ private void setupGUI()
 	JGUIUtil.addComponent(panel, new JLabel(" "),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-    
+
+    JLabel locationType_JLabel = new JLabel("Location type: ");
+    JGUIUtil.addComponent(panel, locationType_JLabel,
+        0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    JGUIUtil.addComponent(panel, __locationTypeTextField,
+        1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(panel,
+        new JLabel(" Optional - use when location ID results in ambiguous TSID."),
+        2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    if ( !__EnableLocationType_boolean) {
+        locationType_JLabel.setEnabled(false);
+        __locationTypeTextField.setEnabled(false);
+    }
+	
     JLabel location_JLabel = new JLabel("Location: ");
 	JGUIUtil.addComponent(panel, location_JLabel,
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -626,12 +739,12 @@ private void setupGUI()
         __sequenceNumberTextField.setEnabled(false);
     }
 
-    JLabel inputtype_JLabel = new JLabel("Input type: ");
+    JLabel inputtype_JLabel = new JLabel("Input type (or datastore): ");
 	JGUIUtil.addComponent(panel, inputtype_JLabel,
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(panel, __inputTypeTextField,
 		1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" Optional - input type (e.g., database, file format)."),
+	JGUIUtil.addComponent(panel, new JLabel(" Optional - input type or datastore (indicates database, data format)."),
 		2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( !__EnableInputType_boolean) {
         inputtype_JLabel.setEnabled(false);

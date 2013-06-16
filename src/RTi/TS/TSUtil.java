@@ -8412,12 +8412,13 @@ Return an array of valid format specifiers for the TS.formatHeader() method
 the format "%X - Description" where X is the format specifier.  This is useful
 for building graphical interfaces.
 @return an array of format specifiers.
-@param include_description If false, only the %X specifiers are returned.  if
+@param includeDescription If false, only the %X specifiers are returned.  if
 True, the description is also returned.
 */
-public static String[] getTSFormatSpecifiers(boolean include_description )
-{	String [] formats = new String[21];
-	if ( include_description ) {
+public static String[] getTSFormatSpecifiers(boolean includeDescription )
+{	String [] formats = new String[22];
+    // TODO SAM 2013-06-14 Evaluate other sort order to match TSID order
+	if ( includeDescription ) {
 		formats[0] = "%A - Alias";
 		formats[1] = "%b - Interval, base";
 		formats[2] = "%D - Description";
@@ -8436,9 +8437,10 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[15] = "%k - Data type, sub";
 		formats[16] = "%w - Location, sub";
 		formats[17] = "%x - Source, sub";
-		formats[18] = "%Z - Scenario";
-		formats[19] = "%z - Sequence #";
-		formats[20] = "%% - Literal %";
+		formats[18] = "%y - Location type";
+		formats[19] = "%Z - Scenario";
+		formats[20] = "%z - Sequence #";
+		formats[21] = "%% - Literal %";
 	}
 	else {
 	    formats[0] = "%A";
@@ -8459,9 +8461,10 @@ public static String[] getTSFormatSpecifiers(boolean include_description )
 		formats[15] = "%u";
 		formats[16] = "%w";
 		formats[17] = "%x";
-		formats[18] = "%Z";
-		formats[19] = "%z";
-		formats[20] = "%%";
+		formats[18] = "%x";
+		formats[19] = "%Z";
+		formats[20] = "%z";
+		formats[21] = "%%";
 	}
 	return formats;
 }

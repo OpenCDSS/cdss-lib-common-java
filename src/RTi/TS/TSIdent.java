@@ -115,10 +115,10 @@ The TSIdent class stores and manipulates a time series identifier, or
 TSID string. The TSID string consists of the following parts:
 <p>
 <pre>
-Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~InputType~InputName
+[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~InputType~InputName
 </pre>
 <pre>
-Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~DataStoreName
+[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~DataStoreName
 </pre>
 <p>
 TSID's as TSIdent objects or strings can be used to pass unique time series
@@ -156,6 +156,11 @@ Separator string for TSIdent string parts.
 public static final String SEPARATOR = ".";
 
 /**
+Separator string between the TSIdent location type and start of the location ID.
+*/
+public static final String LOC_TYPE_SEPARATOR = ":";
+
+/**
 Separator string for TSIdent location parts.
 */
 public static final String LOCATION_SEPARATOR = "-";
@@ -173,12 +178,12 @@ public static final String TYPE_SEPARATOR = "-";
 /**
 Start of sequence number.
 */
-private static final String __SEQUENCE_NUMBER_LEFT = "[";
+public static final String SEQUENCE_NUMBER_LEFT = "[";
 
 /**
 End of sequence number.
 */
-private static final String __SEQUENCE_NUMBER_RIGHT = "]";
+public static final String SEQUENCE_NUMBER_RIGHT = "]";
 
 /**
 The DataFlavor for transferring this specific class.
@@ -201,6 +206,11 @@ private String __alias;
 The location (combining the main location and the sub-location).
 */
 private String __full_location;
+
+/**
+Location type (optional).
+*/
+private String __locationType = "";
 
 /**
 The main location.
@@ -639,11 +649,36 @@ internally.  Null fields are treated as empty strings.
 @param input_type Input type.  If blank, the input type will not be added.
 @param input_name Input name.  If blank, the input name will not be added.
 */
-public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
-	String interval_string, String scenario, int sequence_number,
-	String input_type, String input_name )
+public String getIdentifierFromParts ( String full_location, String full_source, String full_type,
+    String interval_string, String scenario, int sequence_number,
+    String input_type, String input_name )
+{ 
+    return getIdentifierFromParts ( "", full_location, full_source, full_type,
+        interval_string, scenario, sequence_number, input_type, input_name );
+}
+
+/**
+Return the full identifier given the parts.  This method may be called
+internally.  Null fields are treated as empty strings.
+@return The full identifier string given the parts.
+@param locationType location type
+@param full_location Full location string.
+@param full_source Full source string.
+@param full_type Full data type.
+@param interval_string Data interval string.
+@param scenario Scenario string.
+@param sequence_number Sequence number for the time series (in an ensemble).
+@param input_type Input type.  If blank, the input type will not be added.
+@param input_name Input name.  If blank, the input name will not be added.
+*/
+public String getIdentifierFromParts ( String locationType, String full_location,
+    String full_source, String full_type, String interval_string, String scenario,
+    int sequence_number, String input_type, String input_name )
 {	StringBuffer full_identifier = new StringBuffer();
 
+    if ( (locationType != null) && (locationType.length() > 0) ) {
+        full_identifier.append ( locationType + LOC_TYPE_SEPARATOR );
+    }
 	if ( full_location != null ) {
 		full_identifier.append ( full_location );
 	}
@@ -664,7 +699,7 @@ public String getIdentifierFromParts ( String full_location,String full_source, 
 		full_identifier.append ( scenario );
 	}
 	if ( sequence_number > 0 ) {
-		full_identifier.append ( __SEQUENCE_NUMBER_LEFT + sequence_number + __SEQUENCE_NUMBER_RIGHT );
+		full_identifier.append ( SEQUENCE_NUMBER_LEFT + sequence_number + SEQUENCE_NUMBER_RIGHT );
 	}
 	if ( (input_type != null) && (input_type.length() != 0) ) {
 		full_identifier.append ( "~" + input_type );
@@ -721,6 +756,14 @@ Return the full location.
 */
 public String getLocation( )
 {	return __full_location;
+}
+
+/**
+Return the location type.
+@return The location type string.
+*/
+public String getLocationType( )
+{   return __locationType;
 }
 
 /**
@@ -1148,7 +1191,7 @@ Parse a TSIdent instance given a String representation of the identifier.
 */
 public static TSIdent parseIdentifier (	String identifier, int behavior_flag )
 throws Exception
-{	String	routine="TSIdent.parseIdentifier";
+{	String routine="TSIdent.parseIdentifier";
 	int	dl = 100;
 	
 	// Declare a TSIdent which we will fill and return...
@@ -1194,6 +1237,7 @@ throws Exception
 
 	String full_location = "", full_source = "", interval_string = "", scenario = "", full_type = "";
 
+	// TODO SAM 2013-06-14 Need to evaluate how to handle parts that include periods - single quotes around?
 	// Figure out whether we are using the new or old conventions.  First
 	// check to see if the number of fields is small.  Then check to see if
 	// the data type and interval are combined.
@@ -1214,10 +1258,23 @@ throws Exception
 	//
 	// FIXME SAM 2008-04-28 Don't think quotes are valid anymore given command parameter
 	// use.  Evaluate removing quote handling.
+	// FIXME SAM 2013-06-16 Actually, may need quotes for more new use cases where periods are in identifier parts
 	// This field is allowed to be surrounded by quotes since some
 	// locations cannot be identified by a simple string.  Allow
 	// either ' or " to be used and bracket it.
 
+	int locationTypeSepPos = -1;
+	if ( (identifier.charAt(0) != '\'') && (identifier.charAt(0) != '\"') ) {
+	    // There is not a quoted location string so there is the possibility of having a location type
+	    locationTypeSepPos = identifier.indexOf(LOC_TYPE_SEPARATOR);
+	}
+	String locationType = "";
+	if ( locationTypeSepPos >= 0 ) {
+	    // Have a location type so split out and set, then treat the rest of the identifier
+	    // as the location identifier for further processing
+	    locationType = identifier.substring(0,locationTypeSepPos);
+	    identifier = identifier.substring(locationTypeSepPos + 1);
+	}
 	if ( (identifier.charAt(0) == '\'') || (identifier.charAt(0) == '\"')) {
 		full_location = StringUtil.readToDelim ( identifier.substring(1), identifier.charAt(0) );
 		// Get the 2nd+ fields...
@@ -1246,10 +1303,10 @@ throws Exception
 		// If no scenario is used, the interval string may have the
 		// sequence number on the end, so search for the [ and split the
 		// sequence number out of the interval string...
-		int index = interval_string.indexOf ( __SEQUENCE_NUMBER_LEFT );
+		int index = interval_string.indexOf ( SEQUENCE_NUMBER_LEFT );
 		// Get the sequence number...
 		if ( index >= 0 ) {
-			if ( interval_string.endsWith(__SEQUENCE_NUMBER_RIGHT)){
+			if ( interval_string.endsWith(SEQUENCE_NUMBER_RIGHT)){
 				// Should be a properly-formed sequence number, but need to remove the brackets...
 				String sequence_number_string =	interval_string.substring( index + 1, interval_string.length() - 1).trim();
 				if ( StringUtil.isInteger( sequence_number_string) ) {
@@ -1279,10 +1336,10 @@ throws Exception
 	}
 	// The scenario may now have the sequence number on the end, search for
 	// the [ and split out of the scenario...
-	int index = scenario.indexOf ( __SEQUENCE_NUMBER_LEFT );
+	int index = scenario.indexOf ( SEQUENCE_NUMBER_LEFT );
 	// Get the sequence number...
 	if ( index >= 0 ) {
-		if ( scenario.endsWith(__SEQUENCE_NUMBER_RIGHT) ) {
+		if ( scenario.endsWith(SEQUENCE_NUMBER_RIGHT) ) {
 			// Should be a properly-formed sequence number...
 			String sequence_number_string =	scenario.substring ( index + 1,	scenario.length() - 1 ).trim();
 			if ( StringUtil.isInteger(sequence_number_string) ) {
@@ -1298,14 +1355,13 @@ throws Exception
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"After split: fullloc=\"" + full_location + "\" fullsrc=\"" +
-		full_source + "\" type=\"" + full_type + "\" int=\"" +
-		interval_string + "\" scen=\"" + scenario + "\"" );
+		Message.printDebug ( dl, routine, "After split: fullloc=\"" + full_location + "\" fullsrc=\"" +
+		full_source + "\" type=\"" + full_type + "\" int=\"" + interval_string + "\" scen=\"" + scenario + "\"" );
 	}
 
 	// Now set the identifier component parts...
 
+	tsident.setLocationType ( locationType );
 	tsident.setLocation ( full_location );
 	tsident.setSource ( full_source );
 	tsident.setType ( full_type );
@@ -1412,11 +1468,11 @@ public void setIdentifier ( )
 		"." + __scenario + "~" + __input_type + "~" + __input_name );
 	}
 
-	String	full_identifier;
+	String full_identifier;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Calling getIdentifierFromParts..." );
 	}
-	full_identifier = getIdentifierFromParts(__full_location, __full_source,
+	full_identifier = getIdentifierFromParts(__locationType, __full_location, __full_source,
 		__full_type, __interval_string, __scenario, __sequence_number, __input_type, __input_name );
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "...successfully called getIdentifierFromParts..." );
@@ -1437,7 +1493,7 @@ Set the identifier by parsing the given string.
 */
 public void setIdentifier ( String identifier )
 throws Exception
-{	String	routine = "TSIdent.setIdentifier";
+{	String routine = "TSIdent.setIdentifier";
 	int	dl = 100;
 
 	if ( identifier == null ) {
@@ -1459,8 +1515,7 @@ throws Exception
 		return;
 	}
 
-	// Parse the identifier using the public static function to create a
-	// temporary identifier object...
+	// Parse the identifier using the public static function to create a temporary identifier object...
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Done declaring temp TSIdent." );
@@ -1476,6 +1531,7 @@ throws Exception
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Setting the individual parts..." );
 	}
+	setLocationType( tsident.getLocationType() );
 	setLocation( tsident.getLocation() );
 	setSource( tsident.getSource() );
 	setType( tsident.getType() );
@@ -1804,6 +1860,18 @@ public void setLocation( String full_location )
 }
 
 /**
+Set the location type.
+@param locationType location type.
+*/
+public void setLocationType( String locationType )
+{   if ( locationType == null ) {
+        return;
+    }
+    __locationType = locationType;
+    setIdentifier ();
+}
+
+/**
 Set the main location string (and reset the full location).
 @param main_location The main location string.
 */
@@ -2096,17 +2164,21 @@ Return a string representation of the TSIdent.
 identifier.  If false, the 5-part TSID is returned.
 */
 public String toString ( boolean include_input )
-{	String scenario = "";
+{	String locationType = "";
+    String scenario = "";
 	String sequence_number = "";
 	String input_type = "";
 	String input_name = "";
+	if ( (__locationType != null) && (__locationType.length() > 0) ) {
+	    locationType = __locationType + LOC_TYPE_SEPARATOR;
+	}
 	if ( (__scenario != null) && (__scenario.length() > 0) ) {
 		// Add the scenario if it is not blank...
 	    scenario = "." + __scenario;
 	}
 	if ( __sequence_number != -1 ) {
 		// Add the sequence number if it is not the initial value...
-		sequence_number = __SEQUENCE_NUMBER_LEFT + __sequence_number + __SEQUENCE_NUMBER_RIGHT;
+		sequence_number = SEQUENCE_NUMBER_LEFT + __sequence_number + SEQUENCE_NUMBER_RIGHT;
 	}
 	if ( include_input ) {
 		if ( (__input_type != null) && (__input_type.length() > 0) ) {
@@ -2116,7 +2188,7 @@ public String toString ( boolean include_input )
 			input_name = "~" + __input_name;
 		}
 	}
-	return ( __full_location + "." + __full_source + "." + __full_type + 
+	return ( locationType + __full_location + "." + __full_source + "." + __full_type + 
 	    "." + __interval_string + scenario + sequence_number + input_type + input_name );
 }
 
@@ -2146,22 +2218,23 @@ public String toStringVerbose() {
 	return 
 		"Identifier:      '" + __identifier + "'\n" +
 		"Alias:           '" + __alias + "'\n" +
-		"Full Location:   '" + __full_location + "'\n" + 
-		"Main Location:   '" + __main_location + "'\n" + 
+	    "Location Type:   '" + __locationType + "'\n" +
+		"Full Location:   '" + __full_location + "'\n" +
+		"Main Location:   '" + __main_location + "'\n" +
 		"Sub Location:    '" + __sub_location + "'\n" +
-		"Full Source:     '" + __full_source + "'\n" + 
+		"Full Source:     '" + __full_source + "'\n" +
 		"Main Source:     '" + __main_source + "'\n" +
 		"Sub Source:      '" + __sub_source + "'\n" +
-		"Full Type:       '" + __full_type + "'\n" + 
-		"Main Type:       '" + __main_type + "'\n" + 
-		"Sub Type:        '" + __sub_type + "'\n" + 
+		"Full Type:       '" + __full_type + "'\n" +
+		"Main Type:       '" + __main_type + "'\n" +
+		"Sub Type:        '" + __sub_type + "'\n" +
 		"Interval String: '" + __interval_string + "'\n" +
 		"Interval Base:    " + __interval_base + "\n" +
-		"Interval Mult:    " + __interval_mult + "\n" + 
-		"Scenario:        '" + __scenario + "'\n" + 
+		"Interval Mult:    " + __interval_mult + "\n" +
+		"Scenario:        '" + __scenario + "'\n" +
 		"Sequence Number:  " + __sequence_number + "\n" +
-		"Input Type:      '" + __input_type + "'\n" + 
-		"Input Name:      '" + __input_name + "'\n" + 
+		"Input Type:      '" + __input_type + "'\n" +
+		"Input Name:      '" + __input_name + "'\n" +
 		"Behavior Mask:    " + __behavior_mask + "\n";
 }
 
