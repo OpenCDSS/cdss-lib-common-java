@@ -15,7 +15,8 @@ Indicate the progress that is occurring within a command.  This may be a chained
 from a CommandProcessor that implements CommandListener to listen to a command.  This
 level of monitoring is useful if more than one progress indicator is present in an application UI.
 @param istep The number of steps being executed in a command (0+), for example loop index of
-objects being processed.
+objects being processed.  A value of 0 resets the progress bar limits and subsequent calls increment
+the progress.
 @param nstep The total number of steps to process within a command, for example total number of objects
 being processed.
 @param command The reference to the command that is starting to run,
@@ -26,7 +27,6 @@ no estimate is given for the percent complete and the called code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
-public void commandProgress ( int istep, int nstep, Command command,
-		float percentComplete, String message );
+public void commandProgress ( int istep, int nstep, Command command, float percentComplete, String message );
 
 }
