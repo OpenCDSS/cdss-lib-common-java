@@ -328,7 +328,7 @@ objects being processed.
 @param nstep The total number of steps to process within a command, for example total number of objects
 being processed.
 @param percentComplete If >= 0, the value can be used to indicate progress
-running a single command (not the single command).  If less than zero, then
+running a single command.  If less than zero, then
 no estimate is given for the percent complete and calling code can make its
 own determination (e.g., ((istep + 1)/nstep)*100).
 @param message A short message describing the status (e.g., "Running command ..." ).
