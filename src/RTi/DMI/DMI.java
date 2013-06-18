@@ -891,19 +891,22 @@ public void close() throws SQLException{
 /**
 Closes a result set and frees the resources associated with it.
 @param rs the ResultSet to close.
-@throws SQLException if there is any error closing the result set.
 */
 public static void closeResultSet(ResultSet rs) 
-throws SQLException {
-	if (rs != null) {
-		Statement s = rs.getStatement();
-		rs.close();
-		if (s != null) {
-			s.close();
-			s = null;
-		}
-		rs = null;
-	}
+{   try {
+        if (rs != null) {
+    		Statement s = rs.getStatement();
+    		rs.close();
+    		if (s != null) {
+    			s.close();
+    			s = null;
+    		}
+    		rs = null;
+    	}
+    }
+    catch ( SQLException e ) {
+        // Swallow the exception since this is a utility method that is called to clean-up.
+    }
 }
 
 
