@@ -722,10 +722,10 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 		size = tokens.size();
 	}
 	for ( int i = 0; i < size; i++ ) {
-	    //Message.printStatus ( 2, "PropList.parse", "Parsing parameter string \"" + (String)tokens.elementAt(i));
+	    //Message.printStatus ( 2, "PropList.parse", "Parsing parameter string \"" + tokens.elementAt(i));
 		// The above call to breakStringList() may have stripped quotes that would protected "=" in the
 	    // properties.  Therefore just find the first "=" and take the left and right sides.
-	    String token = (String)tokens.get(i);
+	    String token = tokens.get(i);
 	    int pos = token.indexOf('=');
 	    if ( pos > 0 ) {
 	        // Don't want property names to have spaces
