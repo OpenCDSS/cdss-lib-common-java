@@ -93,7 +93,8 @@ public void format ( String [] inputColumns, String format, String outputColumn,
                 }
             }
         }
-        if ( values.size() == 0 ) {
+        if ( inputColumnNum.length != values.size() ) {
+            // Don't have the right number of values from the number of specified input columns 
             outputVal = null;
         }
         else {
