@@ -125,6 +125,28 @@ throws Exception {
 }
 
 /**
+Return the contents of a string record field.  The field must be of type string.
+@return contents at the specified zero-based index.
+@exception Exception if an invalid index is requested.
+*/
+public String getFieldValueString(int index)
+throws Exception {
+    if (Message.isDebugOn) {
+        Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
+    }
+    if (__record.size() <= index) {
+        throw new Exception ("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
+    }
+    Object o = __record.get(index);
+    if ( o == null ) {
+        return null;
+    }
+    else {
+        return (String)o;
+    }
+}
+
+/**
 Return the number of fields in the record.
 @return the number of fields in the record.  
 */
