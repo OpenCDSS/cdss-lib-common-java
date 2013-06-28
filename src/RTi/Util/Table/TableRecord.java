@@ -142,7 +142,8 @@ throws Exception {
         return null;
     }
     else {
-        return (String)o;
+        // Do this to handle cast from integer to string, where integer ID is used in column
+        return "" + o;
     }
 }
 
