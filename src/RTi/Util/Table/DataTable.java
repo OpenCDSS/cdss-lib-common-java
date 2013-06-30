@@ -326,6 +326,187 @@ Create a copy of the table.
 is allowed), will override reqIncludeColumns, specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter
+@return the number of rows appended
+*/
+public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
+    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters )
+{   String routine = getClass().getName() + ".createCopy";
+    // List of columns that will be copied
+    String [] columnNamesToAppend = null;
+    String [] columnNames = table.getFieldNames();
+    if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
+        // Append only the requested names
+        columnNamesToAppend = reqIncludeColumns;
+    }
+    else {
+        // Append all
+        columnNamesToAppend = table.getFieldNames();
+    }
+    // Column numbers in the append table to match the original table.  Any values set to -1 will result in null.
+    int [] columnNumbersInAppendTable = new int[table.getNumberOfFields()];
+    String [] appendTableColumnNamesOriginal = appendTable.getFieldNames();
+    String [] appendTableColumnNames = appendTable.getFieldNames();
+    // Replace the append table names using the column map
+    Object o;
+    for ( int icol = 0; icol < appendTableColumnNames.length; icol++ ) {
+        if ( columnMap != null ) {
+            o = columnMap.get(appendTableColumnNames[icol]);
+            if ( o != null ) {
+                // Reset the append column name with the new name, which should match a column name in the first table
+                appendTableColumnNames[icol] = (String)o;
+            }
+        }
+    }
+    // Loop through the columns in the original table and match the column numbers in the append table
+    boolean appendColumnFound = false;
+    for ( int icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
+        columnNumbersInAppendTable[icol] = -1; // No match between first and append table
+        // Check each of the column names in the original table to match whether appending from the append table
+        // The append table column names will have been mapped to the first table above
+        for ( int i = 0; i < appendTableColumnNames.length; i++ ) {
+            // First check to see if the column name should be appended
+            appendColumnFound = false;
+            for ( int j = 0; j < columnNamesToAppend.length; j++ ) {
+                if ( columnNamesToAppend[j].equalsIgnoreCase(appendTableColumnNamesOriginal[i]) ) {
+                    appendColumnFound = true;
+                    break;
+                }
+            }
+            if ( !appendColumnFound ) {
+                // Skip the table column - don't append
+                continue;
+            }
+            if ( columnNames[icol].equalsIgnoreCase(appendTableColumnNames[i]) ) {
+                columnNumbersInAppendTable[icol] = i;
+                break;
+            }
+        }
+    }
+    int [] tableColumnTypes = table.getFieldDataTypes(); // Original table column types
+    int [] appendTableColumnTypes = appendTable.getFieldDataTypes(); // Append column types, lined up with original table
+    int errorCount = 0;
+    StringBuffer errorMessage = new StringBuffer();
+    // Get filter columns and glob-style regular expressions
+    int [] columnNumbersToFilter = new int[columnFilters.size()];
+    String [] columnFilterGlobs = new String[columnFilters.size()];
+    Enumeration keys = columnFilters.keys();
+    int ikey = -1;
+    String key = null;
+    while ( keys.hasMoreElements() ) {
+        ++ikey;
+        columnNumbersToFilter[ikey] = -1;
+        try {
+            key = (String)keys.nextElement();
+            columnNumbersToFilter[ikey] = appendTable.getFieldIndex(key);
+            columnFilterGlobs[ikey] = columnFilters.get(key);
+            // Turn default globbing notation into internal Java regex notation
+            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+        }
+        catch ( Exception e ) {
+            ++errorCount;
+            if ( errorMessage.length() > 0 ) {
+                errorMessage.append(" ");
+            }
+            errorMessage.append ( "Filter column \"" + key + "\" not found in table \"" + appendTable.getTableID() + "\".");
+        }
+    }
+    // Loop through all the data records and append records to the table
+    int icol;
+    int irowAppended = 0;
+    boolean somethingAppended = false;
+    boolean filterMatches;
+    String s;
+    TableRecord rec;
+    for ( int irow = 0; irow < appendTable.getNumberOfRecords(); irow++ ) {
+        somethingAppended = false;
+        filterMatches = true;
+        if ( columnNumbersToFilter.length > 0 ) {
+            // Filters can be done on any columns so loop through to see if row matches before doing append
+            for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
+                if ( columnNumbersToFilter[icol] < 0 ) {
+                    filterMatches = false;
+                    break;
+                }
+                try {
+                    o = appendTable.getFieldValue(irow, columnNumbersToFilter[icol]);
+                    if ( o == null ) {
+                        filterMatches = false;
+                        break; // Don't include nulls when checking values
+                    }
+                    s = ("" + o).toUpperCase();
+                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                        // A filter did not match so don't copy the record
+                        filterMatches = false;
+                        break;
+                    }
+                }
+                catch ( Exception e ) {
+                    errorMessage.append("Error getting append table data [" + irow + "][" +
+                        columnNumbersToFilter[icol] + "].");
+                    Message.printWarning(3, routine, "Error getting append table data for [" + irow + "][" +
+                        columnNumbersToFilter[icol] + "] (" + e + ")." );
+                }
+            }
+            if ( !filterMatches ) {
+                // Skip the record.
+                continue;
+            }
+        }
+        // Loop through columns in the original table and set values from the append table
+        // Create a record and add...
+        rec = new TableRecord();
+        for ( icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
+            try {
+                if ( columnNumbersInAppendTable[icol] < 0 ) {
+                    // Column in first table was not matched in the append table so set to null
+                    rec.addFieldValue(null);
+                }
+                else {
+                    // Set the value in the original table, if the type matches
+                    if ( tableColumnTypes[icol] == appendTableColumnTypes[columnNumbersInAppendTable[icol]] ) {
+                        rec.addFieldValue(appendTable.getFieldValue(irow, columnNumbersInAppendTable[icol]));
+                    }
+                    else {
+                        rec.addFieldValue(null);
+                    }
+                }
+                somethingAppended = true;
+            }
+            catch ( Exception e ) {
+                // Should not happen
+                errorMessage.append("Error appending [" + irow + "][" + columnNumbersInAppendTable[icol] + "].");
+                Message.printWarning(3, routine, "Error setting appending [" + irow + "][" +
+                    columnNumbersInAppendTable[icol] + "] (" + e + ")." );
+                ++errorCount;
+            }
+        }
+        if ( somethingAppended ) {
+            // Set the record in the original table
+            try {
+                table.addRecord(rec);
+                ++irowAppended;
+            }
+            catch ( Exception e ) {
+                errorMessage.append("Error appending row [" + irow + "].");
+            }
+        }
+    }
+    if ( errorCount > 0 ) {
+        throw new RuntimeException ( "There were + " + errorCount + " errors appending data to the table: " +
+            appendTable.getTableID() );
+    }
+    return irowAppended;
+}
+
+/**
+Create a copy of the table.
+@param table original table
+@param newTableID identifier for new table
+@param reqIncludeColumns requested columns to include or null to include all
+@param distinctColumns requested columns to check for distinct combinations (currently only one column
+is allowed), will override reqIncludeColumns, specify null to not check for distinct values
+@param columnMap map to rename original columns to new name
+@param columnFilters map for columns that will apply a filter
 @return copy of original table
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
