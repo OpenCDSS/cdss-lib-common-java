@@ -360,9 +360,9 @@ do not pad (e.g., "6Hour").
 included.  If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval,
-						boolean pad_zeros, int sort_order, boolean include_irregular )
+	boolean pad_zeros, int sort_order, boolean include_irregular )
 {	// Add in ascending order and sort to descending later if requested...
-	List<String> v = new Vector();
+	List<String> v = new Vector<String>();
 	if ( start_interval > end_interval ) {
 		// Swap (only rely on sort_order for ordering)...
 		int temp = end_interval;
@@ -373,6 +373,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		// TODO SAM 2005-02-16 We probably don't need to support this at all.
 	}
 	if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
+	    v.add ( "Second" );
 		if ( pad_zeros ) {
 			v.add ( "01Second" );
 			v.add ( "02Second" );
@@ -396,6 +397,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		v.add ( "60Second" );
 	}
 	if ( (MINUTE >= start_interval) && (MINUTE <= end_interval) ) {
+	    v.add ( "Minute" );
 		if ( pad_zeros ) {
 			v.add ( "01Minute" );
 			v.add ( "02Minute" );
@@ -419,6 +421,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		v.add ( "60Minute" );
 	}
 	if ( (HOUR >= start_interval) && (HOUR <= end_interval) ) {
+        v.add ( "Hour" );
 		if ( pad_zeros ) {
 			v.add ( "01Hour" );
 			v.add ( "02Hour" );
@@ -460,7 +463,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 	else {
 	    // Change to descending order...
 		int size = v.size();
-		List v2 = new Vector ( size );
+		List<String> v2 = new Vector<String>( size );
 		for ( int i = size -1; i >= 0; i-- ) {
 			v2.add ( v.get(i) );
 		}
