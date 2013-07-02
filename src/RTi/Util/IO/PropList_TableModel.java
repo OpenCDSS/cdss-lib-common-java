@@ -193,8 +193,8 @@ Returns the text to be assigned to worksheet tooltips.
 public String[] getColumnToolTips() {
 	String[] tips = new String[__COLUMNS];
 
-	tips[COL_KEY] = "This is the value of the key in the proplist.";
-	tips[COL_VAL] = "This is the value associated with the key in the proplist.";
+	tips[COL_KEY] = "Property name.";
+	tips[COL_VAL] = "Property value.";
 	return tips;
 }
 
