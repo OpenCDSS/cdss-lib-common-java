@@ -1180,7 +1180,29 @@ throws Exception
 	return (_table_records.get(record_index));
 }
 
-// TODO SAM 2013-02-05 Need a version that takes the column number, so column lookups don't need to happen
+/**
+Return the TableRecord for the given column and column value.  If multiple records are matched the first record is returned.
+@param columnNum column number, 0+
+@param columnValue column value to match in the records.  The first matching record is returned.
+The type of the object will be checked before doing the comparison.
+@return TableRecord matching the specified column value or null if no record is matched.
+*/
+public TableRecord getRecord ( int columnNum, Object columnValue )
+throws Exception
+{
+    int [] columnNums = new int[1];
+    columnNums[0] = columnNum;
+    List<Object> columnValues = new Vector<Object>();
+    columnValues.add(columnValue);
+    List<TableRecord> records = getRecords ( columnNums, columnValues );
+    if ( records.size() == 0 ) {
+        return null;
+    }
+    else {
+        return records.get(0);
+    }
+}
+
 /**
 Return the TableRecord for the given column and column value.  If multiple records are matched
 the first record is returned.
@@ -1214,13 +1236,8 @@ The type of the object will be checked before doing the comparison.
 */
 public List<TableRecord> getRecords ( List<String> columnNames, List<? extends Object> columnValues )
 throws Exception
-{   if ( !_haveDataInMemory ) {
-        // Most likely a derived class is not handling on the fly
-        // reading of data and needs more development.  Return null
-        // because the limitation is likely handled elsewhere.
-        return null;
-    }
-    // First figure out the column numbers that will be checked
+{
+    // Figure out the column numbers that will be checked
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
     List<TableRecord> recList = new Vector<TableRecord>();
@@ -1232,9 +1249,35 @@ throws Exception
             return recList;
         }
     }
+    return getRecords ( columnNumbers, columnValues );
+}
+
+/**
+Return a list of TableRecord matching the given columns and column values.
+@param columnNumbers list of column (field) numbers, 0+.  Any values < 0 will result in an empty list being returned.
+@param columnValue list of column values to match in the records.
+The type of the object will be checked before doing the comparison.
+@return TableRecord matching the specified column value, guaranteed to be non-null but may be zero length.
+*/
+public List<TableRecord> getRecords ( int [] columnNumbers, List<? extends Object> columnValues )
+throws Exception
+{   if ( !_haveDataInMemory ) {
+        // Most likely a derived class is not handling on the fly
+        // reading of data and needs more development.  Return null
+        // because the limitation is likely handled elsewhere.
+        // TODO SAM 2013-07-02 Why not return an empty list here?
+        return null;
+    }
+    List<TableRecord> recList = new Vector<TableRecord>();
+    // Make sure column numbers are valid.
+    for ( int iColumn = 0; iColumn < columnNumbers.length; iColumn++ ) {
+        if ( columnNumbers[iColumn] < 0 ) {
+            return recList;
+        }
+    }
     // Now search the the records and then the columns in the record
     Object columnContents;
-    iColumn = -1; // reset for iteration
+    int iColumn = -1;
     for ( TableRecord rec : _table_records ) { // Loop through all table records
         int matchCount = 0; // How many column values match
         iColumn = -1;
