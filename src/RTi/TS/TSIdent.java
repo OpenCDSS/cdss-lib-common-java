@@ -1204,7 +1204,7 @@ throws Exception
 		Message.printDebug ( dl, routine, "...done declaring TSIdent" );
 	}
 
-	// First parse the input information...
+	// First parse the datastore and input type information...
 
 	String identifier0 = identifier;
 	List<String> list = StringUtil.breakStringList ( identifier, "~", 0 );
@@ -1266,7 +1266,12 @@ throws Exception
 	int locationTypeSepPos = -1;
 	if ( (identifier.charAt(0) != '\'') && (identifier.charAt(0) != '\"') ) {
 	    // There is not a quoted location string so there is the possibility of having a location type
+	    // This logic looks at the full string.  If the separator is after a period, then the colon is being
+	    // detected other than at the start in the location
 	    locationTypeSepPos = identifier.indexOf(LOC_TYPE_SEPARATOR);
+	    if ( locationTypeSepPos > identifier.indexOf(SEPARATOR) ) {
+	        locationTypeSepPos = -1;
+	    }
 	}
 	String locationType = "";
 	if ( locationTypeSepPos >= 0 ) {
