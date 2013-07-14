@@ -2230,8 +2230,9 @@ The value is constrained to Double.MAX and Double.Min.
 public void setMissing ( double missing )
 {	_missing = missing;
 	if ( Double.isNaN(missing) ) {
-		// Will return true if NaN and can't do anything else.  The
-		// isDataMissing() method has a similar check.
+		// Set the bounding limits also just to make sure that values like -999 are not treated as missing.
+	    _missingl = Double.NaN;
+	    _missingu = Double.NaN;
 		return;
 	}
 	if ( missing == Double.MAX_VALUE ) {
