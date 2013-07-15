@@ -479,10 +479,10 @@ public static double[] log10 ( double [] x, double leZeroLog10 )
     double [] xt = new double[x.length];
     for ( int i = 0; i < x.length; i++ ) {
         if ( x[i] <= 0.0 ) {
-            x[i] = leZeroLog10;
+            xt[i] = leZeroLog10;
         }
         else {
-            x[i] = Math.log10(x[i]);
+            xt[i] = Math.log10(x[i]);
         }
     }
     return xt;
