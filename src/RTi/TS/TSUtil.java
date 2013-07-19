@@ -300,21 +300,21 @@
 
 package	RTi.TS;
 
-import	RTi.Util.IO.DataUnits;
-import	RTi.Util.IO.DataUnitsConversion;
-import	RTi.Util.IO.IOUtil;
-import	RTi.Util.IO.PropList;
+import RTi.Util.IO.DataUnits;
+import RTi.Util.IO.DataUnitsConversion;
+import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.PropList;
 import RTi.Util.Math.DataTransformationType;
-import	RTi.Util.Math.MathUtil;
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.NumberOfEquationsType;
 import RTi.Util.Math.RegressionType;
-import	RTi.Util.Message.Message;
-import	RTi.Util.String.StringUtil;
-import	RTi.Util.Time.DateTime;
+import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
+import RTi.Util.Time.DateTime;
 import RTi.Util.Time.InvalidTimeIntervalException;
-import	RTi.Util.Time.TimeInterval;
-import	RTi.Util.Time.TimeUtil;
-import	RTi.Util.Time.TZ;
+import RTi.Util.Time.TimeInterval;
+import RTi.Util.Time.TimeUtil;
+import RTi.Util.Time.TZ;
 import RTi.Util.Time.YearType;
 
 import java.io.FileWriter;
