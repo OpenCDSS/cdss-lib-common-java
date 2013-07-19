@@ -541,14 +541,16 @@ throws Exception {
 }
 
 /**
-Adds a series of WHERE clauses to the statement at once.
+Adds a list of WHERE clauses to the statement.
 @param whereClauses list of String WHERE clauses to add.
 */
 public void addWhereClauses( List<String> whereClauses) 
 throws Exception
 {
 	for ( String whereClause : whereClauses ) {
-		addWhereClause(whereClause);
+	    if ( !whereClause.equals("") ) {
+	        addWhereClause(whereClause);
+	    }
 	}
 }
 
