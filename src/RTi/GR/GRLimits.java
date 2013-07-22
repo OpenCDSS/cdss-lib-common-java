@@ -565,9 +565,9 @@ public void setLimits (	double left_x, double bottom_y, double right_x, double t
 Return a string representation of the object.
 */
 public String toString ()
-{	return new String ( "(" + _left_x + "," + _bottom_y + ") (" +
+{	return "(" + _left_x + "," + _bottom_y + ") (" +
 	_right_x + "," + _top_y + ") (" + _center_x + "," + _center_y + ") " +
-	_width + "x" + _height );
+	_width + "x" + _height;
 }
 
 }

@@ -68,15 +68,16 @@ public static final int YELLOW_TO_RED = 8;
 /**
 Color table names.
 */
-public static String[] COLOR_TABLE_NAMES = {	"Gray",
-						"BlueToCyan",
-						"BlueToMagenta",
-						"BlueToRed",
-						"CyanToYellow",
-						"MagentaToCyan",
-						"MagentaToRed",
-						"YellowToMagenta",
-						"YellowToRed" };
+public static String[] COLOR_TABLE_NAMES = {
+    "Gray",
+	"BlueToCyan",
+	"BlueToMagenta",
+	"BlueToRed",
+	"CyanToYellow",
+	"MagentaToCyan",
+	"MagentaToRed",
+	"YellowToMagenta",
+	"YellowToRed" };
 
 /**
 Name for the color table.  Use this, for example if the color table is
@@ -126,7 +127,7 @@ public Object clone() {
 }
 
 /**
-Create a color table using one of the stanard GR named color tables.
+Create a color table using one of the standard GR named color tables.
 Null is returned if the color table name does not match a known name.
 See the overloaded method for more information.
 @param table_name Color table name (see COLOR_TABLE_NAME.*).
@@ -134,11 +135,9 @@ See the overloaded method for more information.
 @param rflag Indicates whether colors should be reversed (true) or left
 in the initial order (0) (this feature makes it so only one versions of each
 standard table is defined).
-@return a new GRColorTable for the table name, or null if unable to match
-the color table name.
+@return a new GRColorTable for the table name, or null if unable to match the color table name.
 */
-public static GRColorTable createColorTable (	String table_name, int ncolors,
-						boolean rflag)
+public static GRColorTable createColorTable ( String table_name, int ncolors, boolean rflag)
 {	for ( int i = 0; i < COLOR_TABLE_NAMES.length; i++ ) {
 		if ( COLOR_TABLE_NAMES[i].equalsIgnoreCase(table_name) ) {
 			return createColorTable ( i, ncolors, rflag );
@@ -153,13 +152,11 @@ This method forms colors using RGB values as floating point numbers in the range
 0.0 to 1.0.  The floating point values are then converted to GRColor instances.
 For single color families (e.g., shades of blue), the table is centered on the
 color and is shaded on each side.  For multi-color families (e.g., several prime
-colors), each section of the table is centered on a prime color, with shades
-on each side.
+colors), each section of the table is centered on a prime color, with shades on each side.
 Colors returned for multi-color families are hard-coded for color requests less
 than the minimum for the table.  This ensures that roundoff error, etc., will
 not return bogus colors.  Do the hard-coding by filling in the end-colors first
-and then filling in the middle.  This ensures that a relatively nice gradation
-is used.
+and then filling in the middle.  This ensures that a relatively nice gradation is used.
 Additionally, in some cases the relationship (iend - ibeg) is zero.  In these
 cases, skip the next blend operation (only assign the main color in the section
 and go on to the next.  This generally occurs when the number of colors
@@ -168,19 +165,15 @@ stretches of the table being ignored.
 @param table_num Color table to be used (e.g., GRColorTable.GRAY).
 @param ncolors	Number of colors to be in color table.
 @param rflag Indicates whether colors should be reversed (true) or left
-in the initial order (0) (this feature makes it so only one versions of each
-standard table is defined).
-@return GRColorTable with number of requested colors or null if not able to
-create the color table.
+in the initial order (0) (this feature makes it so only one versions of each standard table is defined).
+@return GRColorTable with number of requested colors or null if not able to create the color table.
 */
-public static GRColorTable createColorTable (	int table_num, int ncolors,
-						boolean rflag)
-{	double		drgb,		// Color increment to be applied when
-					// varying shades.
-			r[] = null,
-			g[] = null,
-			b[] = null;
-	int		i, ibeg, iend;
+public static GRColorTable createColorTable ( int table_num, int ncolors, boolean rflag)
+{	double drgb; // Color increment to be applied when varying shades.
+	double r[] = null;
+	double g[] = null;
+	double b[] = null;
+	int i, ibeg, iend;
 
 	if ( ncolors == 0 ) {
 		return null;
@@ -702,9 +695,6 @@ public static GRColorTable createColorTable (	int table_num, int ncolors,
 		table.addColor ( new GRColor(r[i], g[i], b[i]) );
 	}
 	table.setName ( COLOR_TABLE_NAMES[table_num] );
-	r = null;
-	g = null;
-	b = null;
 	return table;
 }
 
@@ -755,4 +745,4 @@ public static String toString ( int color_table )
 	return "Unknown";
 }
 
-} // End of GRColorTable
+}
