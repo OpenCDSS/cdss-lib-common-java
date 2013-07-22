@@ -1709,10 +1709,8 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "BottomXAxisLabelFontStyle",
 			getDefaultPropValue("BottomXAxisLabelFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "BottomXAxisLabelFontSize",
-			isub, -1, false ) == null ) {
-			setPropValue ( "BottomXAxisLabelFontSize",
-			getDefaultPropValue("BottomXAxisLabelFontSize",
+		if ( getLayeredPropValue( "BottomXAxisLabelFontSize", isub, -1, false ) == null ) {
+			setPropValue ( "BottomXAxisLabelFontSize", getDefaultPropValue("BottomXAxisLabelFontSize",
 			isub,-1), isub, -1 );
 		}
 
@@ -1721,8 +1719,7 @@ public void checkGraphProperties ( int nsubs )
 
 		// "BottomXAxisMajorGridColor"...
 
-		if (	getLayeredPropValue("BottomXAxisMajorGridColor",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("BottomXAxisMajorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
 				// Don't usually draw the horizontal grid...
 				setPropValue ( "BottomXAxisMajorGridColor", "None",isub,-1);
@@ -1788,11 +1785,8 @@ public void checkGraphProperties ( int nsubs )
 
 		// "DataLabelPosition" property...
 
-		if (	getLayeredPropValue("DataLabelPosition",
-			isub, -1, false ) == null ) {
-			setPropValue ( "DataLabelPosition",
-			getDefaultPropValue("DataLabelPosition",isub,-1),
-			isub,-1);
+		if ( getLayeredPropValue("DataLabelPosition", isub, -1, false ) == null ) {
+			setPropValue ( "DataLabelPosition", getDefaultPropValue("DataLabelPosition",isub,-1), isub,-1);
 		}
 
 		// "Enabled" property...
@@ -1889,47 +1883,29 @@ public void checkGraphProperties ( int nsubs )
 		if ( getLayeredPropValue("LegendFontName", isub, -1, false ) == null ) {
 			setPropValue ( "LegendFontName", getDefaultPropValue("LegendFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("LegendFontStyle",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LegendFontStyle",
-			getDefaultPropValue("LegendFontStyle",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("LegendFontStyle", isub, -1, false ) == null ) {
+			setPropValue ( "LegendFontStyle", getDefaultPropValue("LegendFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("LegendFontSize",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LegendFontSize",
-			getDefaultPropValue("LegendFontSize",isub,-1),isub, -1);
+		if ( getLayeredPropValue("LegendFontSize", isub, -1, false ) == null ) {
+			setPropValue ( "LegendFontSize", getDefaultPropValue("LegendFontSize",isub,-1),isub, -1);
 		}
 
-		if (	getLayeredPropValue("LegendFormat",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LegendFormat",
-			getDefaultPropValue("LegendFormat",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("LegendFormat", isub, -1, false ) == null ) {
+			setPropValue ( "LegendFormat", getDefaultPropValue("LegendFormat",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue("LegendPosition",
-			isub, -1, false ) == null ) {
-			setPropValue ( "LegendPosition",
-			getDefaultPropValue("LegendPosition",isub,-1),isub, -1);
+		if ( getLayeredPropValue("LegendPosition", isub, -1, false ) == null ) {
+			setPropValue ( "LegendPosition", getDefaultPropValue("LegendPosition",isub,-1),isub, -1);
 		}
 
-		if (	getLayeredPropValue("MainTitleFontName",
-			isub, -1, false ) == null ) {
-			setPropValue ( "MainTitleFontName",
-			getDefaultPropValue("MainTitleFontName",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("MainTitleFontName", isub, -1, false ) == null ) {
+			setPropValue ( "MainTitleFontName", getDefaultPropValue("MainTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("MainTitleFontStyle",
-			isub, -1, false ) == null ) {
-			setPropValue ( "MainTitleFontStyle",
-			getDefaultPropValue("MainTitleFontStyle",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("MainTitleFontStyle", isub, -1, false ) == null ) {
+			setPropValue ( "MainTitleFontStyle", getDefaultPropValue("MainTitleFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("MainTitleFontSize",
-			isub, -1, false ) == null ) {
-			setPropValue ( "MainTitleFontSize",
-			getDefaultPropValue("MainTitleFontSize",isub,-1),
-			isub, -1 );
+		if ( getLayeredPropValue("MainTitleFontSize", isub, -1, false ) == null ) {
+			setPropValue ( "MainTitleFontSize", getDefaultPropValue("MainTitleFontSize",isub,-1), isub, -1 );
 		}
 
 		if ( getLayeredPropValue("MainTitleString", isub, -1, false ) == null ) {
@@ -1976,86 +1952,65 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "RightYAxisTitleFontSize",
 			getDefaultPropValue("RightYAxisTitleFontSize",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("RightYAxisTitleString",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisTitleString", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleString", "", isub, -1 );
 		}
 
-		if (	getLayeredPropValue("SubTitleFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("SubTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontName",
-			getDefaultPropValue("SubTitleFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("SubTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("SubTitleFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("SubTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontStyle",
-			getDefaultPropValue("SubTitleFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("SubTitleFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue("SubTitleFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("SubTitleFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontSize",
-			getDefaultPropValue("SubTitleFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("SubTitleFontSize",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue("SubTitleString",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("SubTitleString", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleString",
-			getDefaultPropValue("SubTitleString",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("SubTitleString",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue( "TopXAxisLabelFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisLabelFontStyle",
-			getDefaultPropValue("TopXAxisLabelFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisLabelFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "TopXAxisLabelFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisLabelFontSize",
-			getDefaultPropValue("TopXAxisLabelFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisLabelFontSize",isub,-1), isub, -1 );
 		}
 
-		if (	getLayeredPropValue( "TopXAxisTitleFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisTitleFontName",
-			getDefaultPropValue("TopXAxisTitleFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "TopXAxisTitleFontStyle",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisTitleFontStyle",
-			getDefaultPropValue("TopXAxisTitleFontStyle",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisTitleFontStyle",isub,-1), isub, -1 );
 		}
-		if (	getLayeredPropValue( "TopXAxisTitleFontSize",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisTitleFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisTitleFontSize",
-			getDefaultPropValue("TopXAxisTitleFontSize",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisTitleFontSize",isub,-1), isub, -1 );
 		}
 
 		// TopXAxisTitleString is checked in
 		// TSGraphJComponent.checkTSProductGraphs()
 
-		if (	getLayeredPropValue( "TopXAxisLabelFontName",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue( "TopXAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "TopXAxisLabelFontName",
-			getDefaultPropValue("TopXAxisLabelFontName",isub,-1),
-			isub, -1 );
+			getDefaultPropValue("TopXAxisLabelFontName",isub,-1), isub, -1 );
 		}
 
 		// Zoom features...
-		if (	getLayeredPropValue("ZoomEnabled",
-			isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("ZoomEnabled", isub, -1, false ) == null ) {
 			setPropValue ( "ZoomEnabled",
 			getDefaultPropValue("ZoomEnabled",isub,-1), isub, -1 );
 		}
-		if ( (graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ) {
+		if ( (graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ||
+		    (graphType == TSGraphType.RASTER)) {
 			// For now disable zooming on these graph types...
 			setPropValue ( "ZoomEnabled", "False", isub, -1 );
 		}
@@ -2089,85 +2044,46 @@ public void checkGraphProperties ( int nsubs )
 				setPropValue ( "XYScatterAnalyzeForFilling",
 				     getDefaultPropValue("XYScatterAnalyzeForFilling",isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue(
-				"XYScatterDependentAnalysisPeriodEnd",
-				isub, -1, false ) == null ) {
-				setPropValue (
-				"XYScatterDependentAnalysisPeriodEnd",
-				getDefaultPropValue(
-				"XYScatterDependentAnalysisPeriodEnd",
-				isub,-1), isub, -1 );
+			if ( getLayeredPropValue("XYScatterDependentAnalysisPeriodEnd", isub, -1, false ) == null ) {
+				setPropValue ("XYScatterDependentAnalysisPeriodEnd",
+				    getDefaultPropValue("XYScatterDependentAnalysisPeriodEnd",isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue(
-				"XYScatterDependentAnalysisPeriodStart",
-				isub, -1, false ) == null ) {
-				setPropValue (
-				"XYScatterDependentAnalysisPeriodStart",
-				getDefaultPropValue(
-				"XYScatterDependentAnalysisPeriodStart",
-				isub,-1), isub, -1 );
+			if ( getLayeredPropValue("XYScatterDependentAnalysisPeriodStart", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterDependentAnalysisPeriodStart",
+				    getDefaultPropValue("XYScatterDependentAnalysisPeriodStart", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue( "XYScatterFillPeriodEnd",
-				isub, -1, false ) == null ) {
+			if ( getLayeredPropValue( "XYScatterFillPeriodEnd", isub, -1, false ) == null ) {
 				setPropValue ( "XYScatterFillPeriodEnd",
-				getDefaultPropValue( "XYScatterFillPeriodEnd",
-				isub,-1), isub, -1 );
+				    getDefaultPropValue( "XYScatterFillPeriodEnd", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue( "XYScatterFillPeriodStart",
-				isub, -1, false ) == null ) {
+			if ( getLayeredPropValue( "XYScatterFillPeriodStart", isub, -1, false ) == null ) {
 				setPropValue ( "XYScatterFillPeriodStart",
-				getDefaultPropValue( "XYScatterFillPeriodStart",
-				isub,-1), isub, -1 );
+				    getDefaultPropValue( "XYScatterFillPeriodStart", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue(
-				"XYScatterIndependentAnalysisPeriodEnd",
-				isub, -1, false ) == null ) {
-				setPropValue (
-				"XYScatterIndependentAnalysisPeriodEnd",
-				getDefaultPropValue(
-				"XYScatterIndependentAnalysisPeriodEnd",
-				isub,-1), isub, -1 );
+			if ( getLayeredPropValue( "XYScatterIndependentAnalysisPeriodEnd", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterIndependentAnalysisPeriodEnd",
+				    getDefaultPropValue( "XYScatterIndependentAnalysisPeriodEnd", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue(
-				"XYScatterIndependentAnalysisPeriodStart",
-				isub, -1, false ) == null ) {
-				setPropValue (
-				"XYScatterIndependentAnalysisPeriodStart",
-				getDefaultPropValue(
-				"XYScatterIndependentAnalysisPeriodStart",
-				isub,-1), isub, -1 );
+			if ( getLayeredPropValue( "XYScatterIndependentAnalysisPeriodStart", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterIndependentAnalysisPeriodStart",
+				    getDefaultPropValue( "XYScatterIndependentAnalysisPeriodStart", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue("XYScatterIntercept",
-				isub, -1, false ) == null ) {
-				setPropValue ( "XYScatterIntercept",
-				getDefaultPropValue("XYScatterIntercept",
-				isub,-1), isub, -1 );
+			if ( getLayeredPropValue("XYScatterIntercept", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterIntercept", getDefaultPropValue("XYScatterIntercept", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue("XYScatterMethod",
-				isub, -1, false ) == null ) {
-				setPropValue ( "XYScatterMethod",
-				getDefaultPropValue("XYScatterMethod",isub,-1),
-				isub, -1 );
+			if ( getLayeredPropValue("XYScatterMethod", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterMethod", getDefaultPropValue("XYScatterMethod",isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue("XYScatterMonth",
-				isub, -1, false ) == null ) {
-				setPropValue ( "XYScatterMonth",
-				getDefaultPropValue("XYScatterMonth",isub,-1),
-				isub, -1 );
+			if ( getLayeredPropValue("XYScatterMonth", isub, -1, false ) == null ) {
+				setPropValue ( "XYScatterMonth", getDefaultPropValue("XYScatterMonth",isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue(
-				"XYScatterNumberOfEquations",
-				isub, -1, false ) == null ) {
+			if ( getLayeredPropValue( "XYScatterNumberOfEquations", isub, -1, false ) == null ) {
 				setPropValue ( "XYScatterNumberOfEquations",
-				getDefaultPropValue(
-				"XYScatterNumberOfEquations",
-				isub,-1), isub, -1 );
+				    getDefaultPropValue( "XYScatterNumberOfEquations", isub,-1), isub, -1 );
 			}
-			if (	getLayeredPropValue("XYScatterTransformation",
-				isub, -1, false ) == null ) {
+			if ( getLayeredPropValue("XYScatterTransformation", isub, -1, false ) == null ) {
 				setPropValue ( "XYScatterTransformation",
-				getDefaultPropValue("XYScatterTransformation",
-				isub,-1), isub, -1 );
+				    getDefaultPropValue("XYScatterTransformation", isub,-1), isub, -1 );
 			}
 		}
 
@@ -2177,9 +2093,7 @@ public void checkGraphProperties ( int nsubs )
 
 		nts = getNumData ( isub );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine,
-			"Checking properties for subproduct " + (isub + 1) +
-			" graphs (" + nts + ")" );
+			Message.printDebug ( 1, routine, "Checking properties for subproduct " + (isub + 1) + " graphs (" + nts + ")" );
 		}
 		for ( int its = 0; its < nts; its++ ) {
 			checkDataProperties(isub, its);
@@ -3371,8 +3285,7 @@ protected void propsSaved() {
 Removes an annotation from a subproduct.  If the annotation is not the 
 last one, the other annotation numbers will be renumbered to be 
 consecutive (excluding the one to be deleted).
-@param sp the number of the subproduct (0-based) in which the annotation 
-is found.
+@param sp the number of the subproduct (0-based) in which the annotation is found.
 @param iann the number of the annotation (0-based) to remove.
 */
 protected void removeAnnotation(int sp, int iann) {
@@ -3440,8 +3353,7 @@ protected void removeAnnotation(int sp, int iann) {
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
-				if (num1.equals(delsp) && indexDot2 > -1
-					&& num2.equals(dsp)) {
+				if (num1.equals(delsp) && indexDot2 > -1 && num2.equals(dsp)) {
 					__override_proplist.unSet(key);
 					i--;
 				}
@@ -3521,16 +3433,14 @@ Renames annotation properties from one number to another.  In any property
 named in the style 'Annotation X.Y.VALUE', this method replaces the X.Y 
 section with the new values passed in as parameters newSub and newAnn, 
 respectively.  For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when
-deleting annotations.
+used to maintain proper ordered numbering schemes in the proplist when deleting annotations.
 @param origSub the original subproduct number of the annotation properties
 @param origAnn the original annotation number of the properties
 @param newSub the new subproduct number of the annotation properties
 @param newAnn the new annotation number of the properties
 */
-protected void renameAnnotationProps(String origSub, String origAnn, 
-String newSub, String newAnn) {
-	Prop p = null;
+protected void renameAnnotationProps(String origSub, String origAnn, String newSub, String newAnn)
+{   Prop p = null;
 	String key = "";
 	int indexSpace = -1;
 	int indexDot1 = -1;
@@ -3552,24 +3462,18 @@ String newSub, String newAnn) {
 			indexDot1 = key.indexOf(".");		
 			
 			if (indexSpace > -1 && indexDot1 > -1) {
-				// pull out the subproduct and annotation number
-				// from the property and compare to origSub
+				// Pull out the subproduct and annotation number from the property and compare to origSub
 				// and origAnn
 				num1 = key.substring(indexSpace + 1, indexDot1);
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
-				if (num1.equals(origSub) && indexDot2 > -1
-					&& num2.equals(origAnn)) {
-					// if they match, replace them with
-					// the newSub and newAnn and put the
+				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origAnn)) {
+					// If they match, replace them with the newSub and newAnn and put the
 					// new property in the prop list
 					__proplist.unSet(key);
 					i--;
-					p.setKey(
-						key.substring(0, indexSpace)
-						+ " "
-						+ newSub + "." + newAnn
+					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newAnn
 						+ rest.substring(indexDot2));
 					v.add(p);
 				}
@@ -3602,14 +3506,10 @@ String newSub, String newAnn) {
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
-				if (num1.equals(origSub) && indexDot2 > -1
-					&& num2.equals(origAnn)) {
+				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origAnn)) {
 					__override_proplist.unSet(key);
 					i--;
-					p.setKey(
-						key.substring(0, indexSpace)
-						+ " "
-						+ newSub + "." + newAnn
+					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newAnn
 						+ rest.substring(indexDot2));
 					v.add(p);
 				}				
@@ -3619,8 +3519,7 @@ String newSub, String newAnn) {
 	for (int i = 0; i < v.size(); i++) {
 		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__override_proplist.setHowSet(
-				Prop.SET_AT_RUNTIME_BY_USER);
+			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
 			__override_proplist.setHowSet(p.getHowSet());
@@ -3634,16 +3533,14 @@ Renames data properties from one number to another.  In any property
 named in the style 'Data X.Y.VALUE', this method replaces the X.Y 
 section with the new values passed in as parameters newSub and newData, 
 respectively.  For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when
-deleting data properties.
+used to maintain proper ordered numbering schemes in the proplist when deleting data properties.
 @param origSub the original subproduct number of the data properties
 @param origD the original data number of the properties
 @param newSub the destination subproduct number of the data properties
 @param newData the destination data number of the properties
 */
-protected void renameDataProps(String origSub, String origD, String newSub, 
-String newData) {
-	Prop p = null;
+protected void renameDataProps(String origSub, String origD, String newSub, String newData)
+{	Prop p = null;
 	String key = "";
 	int indexSpace = -1;
 	int indexDot1 = -1;
@@ -3665,23 +3562,17 @@ String newData) {
 			indexDot1 = key.indexOf(".");		
 			if (indexSpace > -1 && indexDot1 > -1) {
 				// pull out the subproduct and data number
-				// from the property and compare to origSub
-				// and origData
+				// from the property and compare to origSub and origData
 				num1 = key.substring(indexSpace + 1, indexDot1);
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
-				if (num1.equals(origSub) && indexDot2 > -1
-					&& num2.equals(origD)) {
-					// if they match, replace them with
-					// the newSub and newAnn and put the
+				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origD)) {
+					// if they match, replace them with the newSub and newAnn and put the
 					// new property in the prop list
 					__proplist.unSet(key);
 					i--;
-					p.setKey(
-						key.substring(0, indexSpace)
-						+ " "
-						+ newSub + "." + newData
+					p.setKey(key.substring(0, indexSpace) + " " + newSub + "." + newData
 						+ rest.substring(indexDot2));
 					v.add(p);
 				}
@@ -3714,14 +3605,10 @@ String newData) {
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
-				if (num1.equals(origSub) && indexDot2 > -1
-					&& num2.equals(origD)) {
+				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origD)) {
 					__override_proplist.unSet(key);
 					i--;
-					p.setKey(
-						key.substring(0, indexSpace)
-						+ " "
-						+ newSub + "." + newData
+					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newData
 						+ rest.substring(indexDot2));
 					v.add(p);
 				}				
@@ -3731,8 +3618,7 @@ String newData) {
 	for (int i = 0; i < v.size(); i++) {
 		p = (Prop)v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__override_proplist.setHowSet(
-				Prop.SET_AT_RUNTIME_BY_USER);
+			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
 			__override_proplist.setHowSet(p.getHowSet());
@@ -3746,8 +3632,7 @@ Renames properties from one number to another.  In any property
 named in the style 'Name X.Y.VALUE', this method replaces the X 
 section with the new value passed in as parameter newSub.
 For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when
-deleting subproduct properties.
+used to maintain proper ordered numbering schemes in the proplist when deleting subproduct properties.
 @param origSub the original number of the properties
 @param destSub the destination number of the properties
 */
@@ -3766,24 +3651,16 @@ private void renameSubProductProps(String origSub, String destSub) {
 		// only be concerned with data properties
 		if (indexSpace > -1 && indexDot > -1) {
 			num = key.substring(indexSpace + 1, indexDot);
-			// pull out the subproduct 
-			// from the property and compare to origSub
+			// pull out the subproduct from the property and compare to origSub
 			if (num.equals(origSub)) {
-				// if they match, replace it with
-				// the newSub and put the
-				// new property in the prop list
+				// if they match, replace it with the newSub and put the new property in the prop list
 				if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-					__proplist.setHowSet(
-						Prop.SET_AT_RUNTIME_BY_USER);
+					__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 				}
 				else {
 					__proplist.setHowSet(p.getHowSet());
 				}			
-				p.setKey(
-					key.substring(0, indexSpace)
-					+ " "
-					+ destSub
-					+ key.substring(indexDot));
+				p.setKey(key.substring(0, indexSpace) + " " + destSub + key.substring(indexDot));
 			}
 		}
 	}
@@ -3799,18 +3676,12 @@ private void renameSubProductProps(String origSub, String destSub) {
 			num = key.substring(indexSpace + 1, indexDot);
 			if (num.equals(origSub)) {
 				if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-					__override_proplist.setHowSet(
-						Prop.SET_AT_RUNTIME_BY_USER);
+					__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 				}
 				else {
-					__override_proplist.setHowSet(
-						p.getHowSet());
+					__override_proplist.setHowSet(p.getHowSet());
 				}			
-				p.setKey(
-					key.substring(0, indexSpace)
-					+ " "
-					+ destSub
-					+ key.substring(indexDot));
+				p.setKey(key.substring(0, indexSpace) + " " + destSub + key.substring(indexDot));
 			}
 		}
 	}
@@ -3832,8 +3703,7 @@ associated with a TSProduct that are supplemental to describing the TSProduct or
 are set dynamically.  For example, a graphing display may show a reference
 graph.  This information is controlled by the GUI and not the TSProduct (which
 may be read from a file).  The TSProduct may indicate which time series to use
-in the reference graph but the TSProduct itself will be used for both the full
-and reference graphs.
+in the reference graph but the TSProduct itself will be used for both the full and reference graphs.
 @param property Override property to set.
 @param value Value of override property.
 */
@@ -3846,11 +3716,9 @@ public void setOverridePropValue ( String property, String value )
 }
 
 /**
-For every property in the TSProduct, changes its setHowSet value to the 
-specified value.
+For every property in the TSProduct, changes its setHowSet value to the specified value.
 @param how the value to set every Prop's setHowSet value to.
-REVISIT (2005-11-01)
-change name to 'changeAllPropsHowSet'
+TODO (2005-11-01) change name to 'changeAllPropsHowSet'
 @deprecated
 */
 public void setPropsHowSet(int how) {
@@ -3889,20 +3757,17 @@ the level that is specified (it does not consider layers of properties).  The
 calling code should specifically set properties at the proper level.  The
 property is set in the main PropList (not the override PropList).
 @param property Property to set.  Use only the property name (e.g., "MyProp").
-The leading property, sub-property, or data prefixes will be added based on the
-other parameter values.
+The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
 @param subproduct Sub-product number (starting at zero).  A prefix of
 "SubProduct X." will be used for the property, where X is (subproduct.
-If negative, the sub-product property will not be checked (indicating a full
-product property).
+If negative, the sub-product property will not be checked (indicating a full product property).
 @param its Time series number within a sub-product (starting at zero).  A
 prefix of "Data X.Y." will be used for the property, where X is
 (subproduct) and Y is (its).  If negative, the data item property will
 not be checked (indicating a sub-product or product property).
 */
-public void setPropValue (	String property, String value, int subproduct,
-				int its ) {
+public void setPropValue (	String property, String value, int subproduct, int its ) {
 	setPropValue(property, value, subproduct, its, false);
 }
 
@@ -3912,8 +3777,7 @@ the level that is specified (it does not consider layers of properties).  The
 calling code should specifically set properties at the proper level.  The
 property is set in the main PropList (not the override PropList).
 @param property Property to set.  Use only the property name (e.g., "MyProp").
-The leading property, sub-property, or data prefixes will be added based on the
-other parameter values.
+The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
 @param subproduct Sub-product number (starting at zero).  A prefix of
 "SubProduct X." will be used for the property, where X is (subproduct.
@@ -4044,8 +3908,7 @@ public void startAddingHiddenProps() {
 This method should be called after hidden properties are done being added to the
 product.  Hidden properties are never shown to a user and are never saved to
 a file.  Any future properties added to the TSProduct will be added with the 
-same HowSet value that the internal PropList was using prior to the call to
-startAddingHiddenProps().
+same HowSet value that the internal PropList was using prior to the call to startAddingHiddenProps().
 */
 public void stopAddingHiddenProps() {
 	__proplist.setHowSet(__howSet);
@@ -4062,8 +3925,7 @@ that were numbered 1.1 will now be numbered 3.2 and vice versa.
 @param newSub the destination subproduct (base 0)
 @param newAnn the destination annotation (base 0)
 */
-protected void swapAnnotations(int origSub, int origAnn, int newSub, 
-int newAnn) {
+protected void swapAnnotations(int origSub, int origAnn, int newSub, int newAnn) {
 	renameAnnotationProps("" + (origSub + 1), "" + (origAnn + 1), "TEMP", "TEMP");
 	renameAnnotationProps("" + (newSub + 1), "" + (newAnn + 1), "" + (origSub + 1), "" + (origAnn + 1));
 	renameAnnotationProps("TEMP", "TEMP", "" + (newSub + 1), "" + (newAnn + 1));

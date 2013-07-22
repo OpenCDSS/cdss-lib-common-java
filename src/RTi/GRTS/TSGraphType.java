@@ -18,6 +18,7 @@ public enum TSGraphType
     POINT("Point"),
     PREDICTED_VALUE("PredictedValue"),
     PREDICTED_VALUE_RESIDUAL("PredictedValueResidual"),
+    RASTER("Raster"),
     XY_SCATTER("XY-Scatter");
     
     private final String displayName;

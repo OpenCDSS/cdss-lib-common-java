@@ -229,6 +229,7 @@ import RTi.GR.GRAspect;
 import RTi.GR.GRAxis;
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
+import RTi.GR.GRColorTable;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
@@ -1180,7 +1181,8 @@ Later it may be tied to a property.
 @return true if the graph can zoom, false otherwise.
 */
 public boolean canZoom() {
-	if ((__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION)) {
+	if ((__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ||
+	    (__graphType == TSGraphType.RASTER)) {
 		return false;
 	}
 	else {	
@@ -1280,7 +1282,6 @@ protected void computeDataLimits ( boolean max )
 				regressionData = _regression_data.get(i);
 				v.add(regressionData.getResidualTS());
 			}
-
 			limits = TSUtil.getPeriodFromTS(v, TSUtil.MAX_POR);
 		}
 		else if ( graphType == TSGraphType.AREA_STACKED ) {
@@ -1696,6 +1697,25 @@ protected void computeDataLimits ( boolean max )
 			}
 			_data_limits = new GRLimits ( _start_date.toDouble(), minValue, _end_date.toDouble(), maxValue);
 		}
+        else if ( __graphType == TSGraphType.RASTER ) {
+            // X limits are 0 to 367 if daily, 1 to 13 if monthly (right side is at edge of next interval.
+            // Y limits are based on the year of the period of the time series.
+            int intervalBase = TimeInterval.UNKNOWN;
+            for ( TS ts : __tslist ) {
+                if ( ts != null ) {
+                    intervalBase = ts.getDataIntervalBase();
+                    break;
+                }
+            }
+            if ( intervalBase == TimeInterval.DAY ) {
+                // TODO SAM 2013-07-20 Need to figure out how to handle leap year, for now always include
+                _data_limits = new GRLimits ( 1.0, _tslimits.getDate1().getYear(), 367.0, _tslimits.getDate2().getYear() + 1 );
+            }
+            else if ( intervalBase == TimeInterval.MONTH ) {
+                _data_limits = new GRLimits ( 1.0, _tslimits.getDate1().getYear(), 13.0, _tslimits.getDate2().getYear() + 1 );
+            }
+            Message.printStatus(2,routine,"Data limits for raster graph: " + _data_limits);
+        }
 		else {	
 			_data_limits = new GRLimits (_start_date.toDouble(), _tslimits.getMinValue(),
 				_end_date.toDouble(),_tslimits.getMaxValue() );
@@ -1730,10 +1750,10 @@ protected void computeDataLimits ( boolean max )
 }
 
 /**
-Compute the labels given the current zoomed data.  Call this after the data
+Compute the X and Y axis labels given the current zoomed data.  Call this after the data
 limits have initially been set.  The label values are computed based on the
 drawing area size and the axis font to make sure that labels do not overlap.
-This sets _datalim_graph.
+This resets _datalim_graph to be nicer end limits.
 @param limits For data that is being used (generally the max or current
 limits - whatever the graph is supposed to display).  <b>This is time series
 data so for scatter plots, etc., it does not contain all that is needed.
@@ -1825,6 +1845,16 @@ private void computeLabels ( TSLimits limits )
 			_ylabels[i] = i + 1;
 		}
 	}
+    else if ( __graphType == TSGraphType.RASTER ) {
+        // Y-labels are whole numbers integer years from data period
+        while ( minlabels >= 3 ) {
+            _ylabels = GRAxis.findNLabels ( _data_limits.getMinY(), _data_limits.getMaxY(), true, minlabels, maxlabels );
+            if ( _ylabels != null ) {
+                break;
+            }
+            --minlabels;
+        }
+    }
 	else {
 	    // Linear.  Minimum and maximum number of labels as computed above...
 		if ( (__graphType == TSGraphType.XY_SCATTER) && (_regression_data != null) ) {
@@ -1923,6 +1953,7 @@ private void computeLabels ( TSLimits limits )
 	// If normal plot, based on the dates for the current zoom.
 	// If a scatter plot, based on data limits.
 	// If a duration plot, based on 0 - 100 percent.
+	// If a raster plot, based on days or months in year
 
 	fontname = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontName", _subproduct, -1, false );
 	fontsize = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontSize", _subproduct, -1, false );
@@ -1971,6 +2002,66 @@ private void computeLabels ( TSLimits limits )
 		}
 		return;
 	}
+    if ( __graphType == TSGraphType.RASTER ) {
+        // Limits are always the month boundaries
+        _xlabels = new double[13];
+        List<TS> tslist = getEnabledTSList();
+        if ( tslist.size() == 0 ) {
+            return;
+        }
+        TS ts = tslist.get(0);
+        int intervalBase = ts.getDataIntervalBase();
+        if ( intervalBase == TimeInterval.DAY ) {
+            DateTime d = new DateTime();
+            d.setYear(2000); // A leap year
+            d.setDay(1);
+            for ( int ix = 1; ix <= 12; ix++ ) {
+                d.setMonth(ix);
+                _xlabels[ix - 1] = TimeUtil.dayOfYear(d);
+            }
+            // Add end value for last day in year
+            d.setDay(TimeUtil.numDaysInMonth(d));
+            _xlabels[_xlabels.length - 1] = TimeUtil.dayOfYear(d);
+        }
+        else if ( intervalBase == TimeInterval.MONTH ) {
+            for ( int ix = 1; ix <= 13; ix++ ) {
+                _xlabels[ix - 1] = ix;
+            }
+        }
+        /* TODO SAM 2013-07-21 Decide if this is needed given special handling of labels
+        String maxstring = "MMM"; // 3-letter month abbreviation
+        label_extents = GRDrawingAreaUtil.getTextExtents( _da_lefty_label, maxstring, GRUnits.DEVICE );
+        width = label_extents.getWidth();
+        minlabels = (int)(_drawlim_graph.getWidth()/(width*3.0));
+        if ( minlabels < 3 ) {
+            minlabels = 3;
+        }
+        maxlabels = (int)(_drawlim_graph.getHeight()/(width*1.5));
+        if ( maxlabels < minlabels ) {
+            maxlabels = minlabels*2;
+        }
+        while ( minlabels >= 3 ) {
+            _xlabels = GRAxis.findNLabels ( 0.0, 100.0, false, minlabels, maxlabels );
+            if ( _xlabels != null ) {
+                break;
+            }
+            --minlabels;
+        }
+        if ( _xlabels == null ) {
+            if ( Message.isDebugOn ) {
+                Message.printDebug ( 1, routine, _gtype + "Unable to find X labels using " +
+                minlabels + " to " + maxlabels + " labels.  Using data values." );
+            }
+            _xlabels = new double [2];
+            _xlabels[0] = _data_limits.getMinX();
+            _xlabels[1] = _data_limits.getMaxX();
+        }
+        */
+        _data_limits = new GRLimits ( _xlabels[0], _ylabels[0],
+            _xlabels[_xlabels.length - 1], _ylabels[_ylabels.length - 1] );
+        _da_graph.setDataLimits ( _data_limits );
+        return;
+    }
 	else if ( __graphType == TSGraphType.XY_SCATTER ) {
 		// Labels are based on the _data_limits...
 		// Need to check precision for units but assume .1 for now...
@@ -2235,7 +2326,7 @@ private void computeLabels ( TSLimits limits )
 		}
 	}
 
-	// Now convert Vector to array of labels...
+	// Now convert list to array of labels...
 
 	size = x_axis_labels_temp.size();
 	_xlabels = new double[size];
@@ -2917,6 +3008,7 @@ private void drawAxesFront ()
 	    if (__drawLabels) {
 			if ( __graphType == TSGraphType.PERIOD ) {
 				// Only want to label with whole numbers that are > 0 and <= __tslist.size()...
+			    // FIXME SAM 2013-07-21 This is no different than below.  Precision is being set elsewhere for PERIOD graph
 				GRAxis.drawLabels ( _da_lefty_label, _ylabels.length,
 				_ylabels, _datalim_lefty_label.getRightX(),
 				GRAxis.Y, "%." + _lefty_precision + "f", GRText.RIGHT|GRText.CENTER_Y);
@@ -2998,7 +3090,7 @@ private void drawAxesFront ()
 	}
 	else {
 	    // Draw the X-axis date/time labels...
-		drawXAxisDateLabels ( false );
+		drawXAxisDateLabels ( __graphType, false );
 	}
 }
 
@@ -3254,7 +3346,7 @@ private void drawDurationPlot ()
 }
 
 /**
-Draw the time series graph.  This is the highest-level draw method and calls the
+Draw the time series graph.  This is the highest-level draw method for drawing the data part of the graph and calls the
 other time series drawing methods.
 @param graphType graph type to draw
 */
@@ -3296,6 +3388,9 @@ private void drawGraph ( TSGraphType graphType ) {
 	if ( graphType == TSGraphType.DURATION ) {
 		drawDurationPlot ();
 	}
+    if ( graphType == TSGraphType.RASTER ) {
+        drawGraphRaster ();
+    }
 	else if ( graphType == TSGraphType.XY_SCATTER ) {
 		drawXYScatterPlot ();
 	}
@@ -3413,6 +3508,28 @@ private void drawGraphAreaStacked ()
             drawTS ( its, tslist.get(its), tsGraphType );
         }
     }
+}
+
+/**
+Draw the time series graph for a "Raster" graph.
+@param run-time overrideProps override properties for the graph
+*/
+private void drawGraphRaster ()
+{
+    // Raster graph can only draw one time series so get the first non-null time series
+    List<TS> tslist = getTSList();
+    TS ts = null;
+    int its;
+    for ( its = 0; its < tslist.size(); its++ ) {
+        ts = tslist.get(its);
+        if ( ts != null ) {
+            break;
+        }
+    }
+    if ( ts == null ) {
+        return;
+    }
+    drawTS ( its, ts, TSGraphType.RASTER );
 }
 
 /**
@@ -3787,14 +3904,18 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	    // No need or unable to draw
 		return;
 	}
-	
+	// First check for graph types that have their own rendering method
+    // Take a new approach for the area graph by having a separate method.  This will duplicate
+    // some code, but the code below is getting too complex with multiple graph types handled
+    // in the same code.  The separate renderers also can be refactored into separate classes if appropriate.
 	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ) {
-	    // Take a new approach for the area graph by having a separate method.  This will duplicate
-	    // some code, but the code below is getting too complex with multiple graph types handled
-	    // in the same code.
 	    drawTSRenderAreaGraph ( its, ts, graphType, overrideProps );
 	    return;
 	}
+	else if ( graphType == TSGraphType.RASTER ) {
+        drawTSRenderRasterGraph ( ts, graphType, overrideProps );
+        return;
+    }
 
 	if ((ts.getDataIntervalBase() == TimeInterval.IRREGULAR) && (__graphType == TSGraphType.PERIOD)) {
 		// Can't draw irregular time series in period of record graph.
@@ -4917,10 +5038,137 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
 }
 
 /**
+Draw a single time series as a raster.  The time series values are used to create rectangles that are color-coded.
+@param ts Single time series to draw.
+@param graphType the graph type to use for the time series (may be needed for other calls).
+@param overrideProps override run-time properties to consider when getting graph properties
+*/
+private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList overrideProps )
+{   //String routine = "TSGraph.drawTSRenderRasterGraph";
+    if ( ts == null ) {
+        // No data for time series
+        return;
+    }
+    // Generate the clipping area that will be set so that no data are drawn outside of the graph
+    Shape clip = GRDrawingAreaUtil.getClip(_da_graph);
+    GRDrawingAreaUtil.setClip(_da_graph, _da_graph.getDataLimits());
+    
+    GRColor tscolor;
+    //DateTime start = drawTSHelperGetStartDateTime(ts);
+    //DateTime end = drawTSHelperGetEndDateTime(ts);
+    // FIXME SAM 2013-07-21 The above gets messed up because the data limits are set to an integer range
+    DateTime start = ts.getDate1();
+    DateTime end = ts.getDate2();
+    
+    // Loop using addInterval
+    DateTime date = new DateTime(start);
+    // Make sure the time zone is not set
+    date.setTimeZone("");
+    
+    // Set up the color table.  For now just base on limits of data
+    double tsMin = ts.getDataLimits().getMinValue();
+    double tsMax = ts.getDataLimits().getMaxValue();
+    int nScaleColors = 10;
+    int nScaleValues = nScaleColors - 1;
+    double delta = (tsMax - tsMin)/nScaleValues;
+    double [] scaleValues = new double[nScaleValues];
+    GRColor [] scaleColors = (GRColor [])GRColorTable.createColorTable(GRColorTable.BLUE_TO_RED, nScaleColors, true).
+        toArray(new GRColor[nScaleColors]);
+    for ( int i = 0; i < nScaleValues; i++ ) {
+        scaleValues[i] = tsMin + i*delta;
+    }
+    for ( int i = 0; i < nScaleColors; i++ ) {
+        String value = "";
+        if ( i < nScaleValues ) {
+            value = "" + scaleValues[i];
+        }
+        Message.printStatus(2, "", "Scale " + value + " color [" + i + "] = " + scaleColors[i].getRed() + "," +
+                scaleColors[i].getGreen() + "," + scaleColors[i].getBlue() );
+    }
+
+    double x0 = 0.0; // X coordinate converted from date/time, left edge of rectangle
+    double y0 = 0.0; // Y coordinate corresponding to year, bottom edge of rectangle
+    // Iterate through data with the iterator
+    TSData tsdata = null;
+    TSIterator tsi = null;
+    try {
+        tsi = ts.iterator ( start, end );
+    }
+    catch ( Exception e ) {
+        // Unable to draw (lack of data)
+        return;
+    }
+    double value;
+    int intervalBase = ts.getDataIntervalBase();
+    int yearDay; // Day of year for daily data
+    GRColor tscolorPrev = null;
+    Message.printStatus(2,"","Drawing raster graph for start=" + start + " end=" + end + " ts.date1=" + ts.getDate1() +
+            " ts.date2=" + ts.getDate2() + " data limits = " + _da_graph.getDataLimits() );
+    while ( (tsdata = tsi.next()) != null ) {
+        date = tsdata.getDate();
+        y0 = date.getYear();
+        if ( intervalBase == TimeInterval.DAY ) {
+            yearDay = date.getYearDay();
+            if ( !TimeUtil.isLeapYear(date.getYear()) && (yearDay >= 60)) {
+                // Increment non-leap years after Feb 28 so the horizontal axis days will align
+                ++yearDay;
+            }
+            x0 = yearDay;
+        }
+        else if ( intervalBase == TimeInterval.MONTH ) {
+            x0 = date.getMonth();
+        }
+        value = tsdata.getDataValue();
+        if (ts.isDataMissing(value)) {
+            // Set color to missing (white);
+            tscolor = GRColor.white;
+        }
+        else {
+            // Color is determined from the value.
+            // < first value break
+            // > last value break
+            // >= all other value breaks
+            tscolor = GRColor.white;
+            for ( int i = 0; i < scaleValues.length; i++ ) {
+                if ( value >= scaleValues[scaleValues.length - 1] ) {
+                    // Value is >= largest in scale so use the max color
+                    tscolor = scaleColors[scaleColors.length - 1];
+                    break;
+                }
+                else if ( value < scaleValues[i] ) {
+                    // Searching from values small to high so this should properly select color
+                    tscolor = scaleColors[i];
+                    break;
+                }
+            }
+        }
+        if ( tscolor != tscolorPrev ) {
+            // Do this to optimize a bit so color does not have be changed frequently
+            _da_graph.setColor(tscolor);
+            tscolorPrev = tscolor;
+        }
+        // Rectangle will be one "cell", either a day or month
+        //if ( tscolor == GRColor.white ) {
+        //    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color=white");
+        //}
+        //else {
+        //    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color="+
+        //            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
+        //}
+        GRDrawingAreaUtil.fillRectangle(_da_graph, x0, y0, 1.0, 1.0);
+    }
+    
+    // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
+    GRDrawingAreaUtil.setClip(_da_graph, (Shape)null);
+    GRDrawingAreaUtil.setClip(_da_graph, clip);
+}
+
+/**
 Draw the X-axis grid.  This calls the drawXAxisDateLabels() if necessary.
 */
 private void drawXAxisGrid ()
-{	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ) {
+{	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ||
+        (__graphType == TSGraphType.RASTER) ) {
 		// Do the grid here because it uses simple numbers and not dates...
 	
 		String color_prop = _tsproduct.getLayeredPropValue ( "BottomXAxisMajorGridColor", _subproduct, -1, false );
@@ -4945,16 +5193,17 @@ private void drawXAxisGrid ()
 	}
 	else {
 	    // Draw the grid in the same code that does the X-axis date/time labels so they are consistent...
-		drawXAxisDateLabels ( true );
+		drawXAxisDateLabels ( __graphType, true );
 	}
 }
 
 /**
 Draw the X-axis date/time labels.  This method can be called with "draw_grid"
 set as true to draw the background grid, or "draw_grid" set to false to draw the labels.
+@param graphType the graph type being drawn
 @param grid_only If true, only draw the x-axis grid lines.  If false, only draw labels and tic marks.
 */
-private void drawXAxisDateLabels ( boolean draw_grid ) {
+private void drawXAxisDateLabels ( TSGraphType graphType, boolean draw_grid ) {
 	if (!__drawLabels) {
 		return;
 	}
@@ -5000,6 +5249,74 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	    yaxisDirReverse = true;
 	}
 	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
+	
+	// Tic mark positions
+    double[] xt = new double[2]; // Major ticks
+    double[] xt2 = new double[2]; // Minor ticks
+    double[] yt = new double[2]; // Major ticks
+    double[] yt2 = new double[2]; // Minor ticks
+    double tic_height = 0.0; // Height of major tic marks
+    yt[0] = _ylabels[0];
+    yt2[0] = _ylabels[0];
+    if ( yaxisDirReverse ) {
+        yt[0] = _ylabels[_ylabels.length - 1];
+        yt2[0] = yt[0];
+    }
+    // Figure out the y-positions and tic height (same regardless of intervals being used for labels)...
+    if (log_y) {
+        // Need to make sure the line is nice length!
+        tic_height = yt[0]*.05;
+        yt[1] = yt[0] + tic_height;
+        yt2[1] = yt2[0] + tic_height/2.0;
+    }
+    else if (log_xy_scatter) {
+        tic_height = yt[0]*.05;
+        yt[1] = yt[0] + tic_height;
+        yt2[1] = yt2[0] + tic_height/2.0;
+    }
+    else {
+        tic_height = _data_limits.getHeight()*.02;
+        if ( yaxisDirReverse ) {
+            // Reverse y axis direction so tics will properly be at bottom where labels are
+            yt[1] = yt[0] - tic_height;
+            yt2[1] = yt2[0] - tic_height/2.0;
+        }
+        else {
+            // Normal y axis direction so tics will be at bottom
+            yt[1] = yt[0] + tic_height;
+            yt2[1] = yt2[0] + tic_height/2.0;
+        }
+    }
+    if ( __graphType == TSGraphType.PERIOD ) {
+        // Reversed axes...
+        yt[0] = getEnabledTSList().size() + 1;
+        yt2[0] = getEnabledTSList().size() + 1;
+        tic_height = _data_limits.getHeight()*.02;
+        yt[1] = yt[0] - tic_height;
+        yt2[1] = yt2[0] - tic_height/2.0;
+    }
+    if ( draw_grid ) {
+        // Reset with the maximum values...
+        yt[0] = _data_limits.getMinY();
+        yt[1] = _data_limits.getMaxY();
+    }
+	
+    if ( graphType == TSGraphType.RASTER ) {
+        // The axis should be labeled with months, with month labels centered between tics
+        double x;
+        for ( int i = 1; i <= 12; i++ ) {
+            x = (_xlabels[i - 1] + _xlabels[i])/2.0;
+            // Draw tick marks at the labels (only internal tics, not edges of graph)...
+            if ( (i != 1) && (i != 12) ) {
+                xt[0] = _xlabels[i - 1];
+                xt[1] = xt[0];
+                GRDrawingAreaUtil.drawLine (_da_graph, xt, yt );
+            }
+            GRDrawingAreaUtil.drawText ( _da_bottomx_label, TimeUtil.monthAbbreviation(i), x,
+                _datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
+        }
+        return;
+    }
 
 	// This logic for date labels ignores the _xlabels array that was used
 	// elsewhere.  Instead, special care is given to check the precision of
@@ -5010,56 +5327,7 @@ private void drawXAxisDateLabels ( boolean draw_grid ) {
 	int buffer = 6; // 2*Pixels between labels (for readability)
 	int label_width = 0; // Width of a sample label.
 	int label0_devx, label1_devx; // X device coordinates for adjacent test labels.
-	double[] xt = new double[2]; // Major ticks
-	double[] xt2 = new double[2]; // Minor ticks
-	double[] yt = new double[2]; // Major ticks
-	double[] yt2 = new double[2]; // Minor ticks
 	int label_spacing = 0; // Spacing of labels, center to center.
-	double tic_height = 0.0; // Height of major tic marks
-	yt[0] = _ylabels[0];
-	yt2[0] = _ylabels[0];
-	if ( yaxisDirReverse ) {
-	    yt[0] = _ylabels[_ylabels.length - 1];
-	    yt2[0] = yt[0];
-	}
-	// Figure out the y-positions and tic height (same regardless of intervals being used for labels)...
-	if (log_y) {
-		// Need to make sure the line is nice length!
-		tic_height = yt[0]*.05;
-		yt[1] = yt[0] + tic_height;
-		yt2[1] = yt2[0] + tic_height/2.0;
-	}
-	else if (log_xy_scatter) {
-		tic_height = yt[0]*.05;
-		yt[1] = yt[0] + tic_height;
-		yt2[1] = yt2[0] + tic_height/2.0;
-	}
-	else {
-	    tic_height = _data_limits.getHeight()*.02;
-	    if ( yaxisDirReverse ) {
-	        // Reverse y axis direction so tics will properly be at bottom where labels are
-            yt[1] = yt[0] - tic_height;
-            yt2[1] = yt2[0] - tic_height/2.0;
-	    }
-	    else {
-	        // Normal y axis direction so tics will be at bottom
-    		yt[1] = yt[0] + tic_height;
-    		yt2[1] = yt2[0] + tic_height/2.0;
-	    }
-	}
-	if ( __graphType == TSGraphType.PERIOD ) {
-		// Reversed axes...
-		yt[0] = getEnabledTSList().size() + 1;
-		yt2[0] = getEnabledTSList().size() + 1;
-		tic_height = _data_limits.getHeight()*.02;
-		yt[1] = yt[0] - tic_height;
-		yt2[1] = yt2[0] - tic_height/2.0;
-	}
-	if ( draw_grid ) {
-		// Reset with the maximum values...
-		yt[0] = _data_limits.getMinY();
-		yt[1] = _data_limits.getMaxY();
-	}
 
 	if ( (_xaxis_date_precision == DateTime.PRECISION_YEAR) ||
 	        ((_end_date.getAbsoluteMonth() - _start_date.getAbsoluteMonth()) > 36) ) {
@@ -6108,10 +6376,76 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
 	}
 	else if ((__graphType == TSGraphType.DOUBLE_MASS) ||
 		(__graphType == TSGraphType.DURATION) ||
-		(__graphType == TSGraphType.XY_SCATTER) ){
+		(__graphType == TSGraphType.XY_SCATTER) ) {
 		return "X:  " + StringUtil.formatString(datapt.x,"%.2f") +
 			",  Y:  " + StringUtil.formatString(datapt.y,"%." + _lefty_precision + "f");
 	}
+    else if ( __graphType == TSGraphType.RASTER ) {
+        // If the maximum value is <= 12, then the x axis is months
+        String x = "";
+        String valueString = "";
+        double value;
+        int year = (int)(datapt.y);
+        TS ts = null;
+        if ( datapt.associated_object != null ) {
+            Message.printStatus(2,"","Associated object is not null");
+            if ( datapt.associated_object instanceof TS ) {
+                Message.printStatus(2,"","Associated object is TS");
+                ts = (TS)datapt.associated_object;
+            }
+            else {
+                Message.printStatus(2,"","Associated object is NOT TS");
+            }
+        }
+        DateTime d = new DateTime(DateTime.DATE_FAST);
+        d.setYear(year);
+        if ( _data_limits.getMaxX() <= 12.0 ) {
+            // Monthly data
+            int month = (int)datapt.x;
+            x = "" + month;
+            d.setMonth(month);
+            if ( ts != null ) {
+                value = ts.getDataValue(d);
+                if ( ts.isDataMissing(value) ) {
+                    valueString = ", TS=missing";
+                }
+                else {
+                    valueString = ", TS=" + StringUtil.formatString(value,"%.6f");
+                }
+            }
+        }
+        else if ( _data_limits.getMaxX() <= 366.0 ) {
+            // Graph was set up to always have leap year
+            int dayInYear = (int)datapt.x;
+            // 2000 Leap year is used for all visualization but needs some care to get back to actual data
+            int [] md = TimeUtil.getMonthAndDayFromDayOfYear(2000, dayInYear);
+            x = "" + (int)datapt.x + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
+            d.setMonth(md[0]);
+            boolean isLeapYear = TimeUtil.isLeapYear(year);
+            if ( (md[0] == 2) && (md[1] == 29) && !isLeapYear ) {
+                // Treat as missing since actual year does not have Feb 29
+                valueString = "";
+            }
+            else {
+                // If not a leap year and past day 59, need to offset the day by one and recompute to get the
+                // actual day to retrieve the correct data value
+                if ( !isLeapYear && (dayInYear > 59) ) {
+                    md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear - 1);
+                }
+                d.setDay(md[1]);
+                if ( ts != null ) {
+                    value = ts.getDataValue(d);
+                    if ( ts.isDataMissing(value) ) {
+                        valueString = ", TS=missing";
+                    }
+                    else {
+                        valueString = ", TS=" + StringUtil.formatString(value,"%.6f");
+                    }
+                }
+            }
+        }
+        return "X:  " + x + ",  Y:  " + year + valueString;
+    }
 	else {
 	    DateTime mouse_date = new DateTime(datapt.x, true);
 		mouse_date.setPrecision ( _xaxis_date_precision );
@@ -6152,12 +6486,12 @@ return null.  If no time series are enabled, an empty list will be returned.
 */
 public List<TS> getEnabledTSList() {
 	if (__tslist == null || __tslist.size() == 0) {
-		return new Vector();
+		return new Vector<TS>();
 	}
 
 	int size = __tslist.size();
 	String propValue = null;
-	List<TS> v = new Vector();
+	List<TS> v = new Vector<TS>();
 	for (int i = 0; i < size; i++) {
 		propValue = _tsproduct.getLayeredPropValue("Enabled", _subproduct, i, false);
 		if (propValue != null && propValue.equalsIgnoreCase("False")) {
@@ -6488,7 +6822,7 @@ private List<TS> getTSListToRender ( boolean enabledOnly )
     }
     if ( graphType == TSGraphType.AREA_STACKED ) {
         // Return the derived time series list and the time series not in this list
-        List<TS> tsToRender = new Vector();
+        List<TS> tsToRender = new Vector<TS>();
         tsToRender.addAll(getDerivedTSList());
         // Now loop through and add the additional time series
         int size = tslist.size();
@@ -6497,6 +6831,14 @@ private List<TS> getTSListToRender ( boolean enabledOnly )
             if ( tsGraphType != graphType ) {
                 tsToRender.add ( tslist.get(its) );
             }
+        }
+        return tsToRender;
+    }
+    else if ( graphType == TSGraphType.RASTER ) {
+        // Return the first time series in the list since only one time series can be displayed
+        List<TS> tsToRender = new Vector<TS>();
+        if ( tslist.size() > 0 ) {
+            tsToRender.add(tslist.get(0));
         }
         return tsToRender;
     }
@@ -6843,18 +7185,19 @@ public void setComputeWithSetDates(boolean b) {
 }
 
 /**
-Reset the data limits and force a redraw.  For example call when a zoom event
+Reset the data limits prior to redrawing.  For example call when a zoom event
 occurs and tsViewZoom() is called.  If a reference graph, the overall limits
 will remain the same but the box for the zoom location will move to the
 specified limits.  For typical time series plots, the x-axis limits are the
-floating point year and the y-axis are data values.  For scatter plots, the
+floating point year and the y-axis are data values.  An exception, for example is a scatter plot, where the
 y-axis limits are the data limits from the first time series and the x-axis
 limits are the data limits from the second time series.
 @param datalim_graph Data limits for the graph.  The data limits are either the
 initial values or the values from a zoom.
 */
-public void setDataLimits ( GRLimits datalim_graph )
-{	if ( datalim_graph == null ) {
+public void setDataLimitsForDrawing ( GRLimits datalim_graph )
+{	String routine = "setDataLimitsForDrawing";
+    if ( datalim_graph == null ) {
 		return;
 	}
 	// FIXME JTS exceptions thrown when trying to zoom
@@ -6863,7 +7206,7 @@ public void setDataLimits ( GRLimits datalim_graph )
 	}
 	// FIXME JTS
 	if ( Message.isDebugOn ) {
-		Message.printDebug(1, "setDataLimits",
+		Message.printDebug(1, routine,
 			_gtype + "Setting [" +_subproduct + "] _data_limits to " + datalim_graph.toString());
 	}
 
@@ -6886,12 +7229,12 @@ public void setDataLimits ( GRLimits datalim_graph )
 		// Make sure to keep the same date precision.
 
 		_start_date = new DateTime ( datalim_graph.getLeftX(), true );
-		_start_date.setPrecision ( _end_date.getPrecision() );
+		_start_date.setPrecision ( _start_date.getPrecision() );
 		_end_date = new DateTime ( datalim_graph.getRightX(), true );
 		_end_date.setPrecision ( _start_date.getPrecision() );
 
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setDataLimits",
+			Message.printDebug ( 1, routine,
 			_gtype + "Set _start_date to " + _start_date + " _end_date to " + _end_date );
 		}
 		try {
@@ -6909,6 +7252,11 @@ public void setDataLimits ( GRLimits datalim_graph )
 					_tslimits.setMaxValue(0.0);
 					_tslimits.setMinValue( getEnabledTSList().size() + 1);
 				}
+				else if (__graphType == TSGraphType.RASTER) {
+				    // Reset the y-axis values to the year - use Max because don't allow zoom
+	                _tslimits.setMinValue(_max_tslimits.getDate1().getYear());
+	                _tslimits.setMaxValue(_max_tslimits.getDate2().getYear() + 1);
+				}
 				if (!_zoom_keep_y_limits) {
 					// Keep the y limits to the maximum...
 					_tslimits.setMinValue (	_max_tslimits.getMinValue() );
@@ -6917,8 +7265,8 @@ public void setDataLimits ( GRLimits datalim_graph )
 			}
 		}
 		catch ( Exception e ) {
-			Message.printWarning ( 2, _gtype + "TSGraph", "Error getting dates for plot." );
-			Message.printWarning ( 2, _gtype + "TSGraph", e );
+			Message.printWarning ( 2, routine, _gtype + " Error getting dates for plot." );
+			Message.printWarning ( 2, routine + "(" + _gtype + ")", e );
 			return;
 		}
 		// Set the graph data limits based on the labels, for example to increase the buffer
@@ -6936,7 +7284,7 @@ public void setDataLimits ( GRLimits datalim_graph )
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug(1, "setDataLimits", _gtype + "After reset, [" +_subproduct 
+		Message.printDebug(1, routine, _gtype + " After reset, [" +_subproduct 
 			+ "] _data_limits are " + datalim_graph );
 	}
 }

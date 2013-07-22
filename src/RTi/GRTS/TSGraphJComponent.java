@@ -601,7 +601,7 @@ assigned throughout the class.  Later, needed properties (like fonts) are always
 assumed to be defined.  In many cases, only defaults need to be defined at the
 upper property levels (e.g., for Product or SubProduct).
 <b>This method should be called AFTER createTSGraphsFromTSProduct() because the
-time series data are checked to determine some properties.</b>
+time series data are checked to determine some properties that impact other properties.</b>
 @param tsproduct TSProduct to check.
 @param tsgraphs list of TSGraph describing the graphs.
 */
@@ -744,7 +744,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 		// "LeftYAxisLabelPrecision" - DO THIS AFTER "LeftYAxisUnits"
 
 		if ( tsproduct.getLayeredPropValue("LeftYAxisLabelPrecision", isub, -1, false ) == null ) {
-			if ( graphType == TSGraphType.PERIOD ) {
+			if ( (graphType == TSGraphType.PERIOD) || (graphType == TSGraphType.RASTER) ) {
 				tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "0", isub, -1 );
 			}
 			else if ( tsgraph.ignoreLeftYAxisUnits() ) {
@@ -1769,6 +1769,13 @@ public void mouseDragged ( MouseEvent event )
 	if ( dotrack ) {
 		// Device units...
 		GRPoint devpt = new GRPoint ( _mouse_x2, _mouse_y2 );
+	    if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	        // Also associate the time series for the graph, so value can be shown
+	        List<TS> tslist = tsgraph.getEnabledTSList();
+	        if ( tslist.size() > 0 ) {
+	            devpt.associated_object = tslist.get(0);
+	        }
+	    }
 		int size = _listeners.length;
 		for ( int i = 0; i < size; i++ ) {
 			_listeners[i].tsViewMouseMotion(tsgraph, devpt, datapt);
@@ -1816,18 +1823,28 @@ public void mouseMoved ( MouseEvent event )
 	}
 	
 	// Update cross-hair cursor
-	if (getInteractionMode()== INTERACTION_EDIT)
-	  {
+	if (getInteractionMode()== INTERACTION_EDIT) {
 	    _cursorDecorator.mouseMoved(event,tsgraph.getGraphDrawingArea().getPlotLimits(
 	        GRDrawingArea.COORD_DEVICE));
-	  //  refresh(false);
-	  }
+	    //  refresh(false);
+	}
 
 	// Get coordinates in data units...
 
 	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY( x, y, GRDrawingArea.COORD_DEVICE );
 
 	GRPoint devpt = new GRPoint ( x, y );
+	if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	    // Also associate the time series for the graph, so value can be shown
+	    List<TS> tslist = tsgraph.getEnabledTSList();
+	    if ( tslist.size() > 0 ) {
+	        Message.printStatus(2,"","Passing 1st time series with mouse motion event");
+	        devpt.associated_object = tslist.get(0);
+	    }
+	    else {
+	        Message.printStatus(2,"","No time series are enabled - not passing to mouse motion event");
+	    }
+	}
 
 	// Call the listeners...
 
@@ -2012,7 +2029,7 @@ public void mouseReleased ( MouseEvent event )
 			}
 		}
 
-		tsgraph.setDataLimits ( newdata_limits );
+		tsgraph.setDataLimitsForDrawing ( newdata_limits );
 /* Do later...
 		// Adjust the limits slightly if monthly or annual data since
 		// the data values are plotted in the middle of the interval...
@@ -2041,7 +2058,7 @@ public void mouseReleased ( MouseEvent event )
 			// Actually reset the data limits...
 			// Only set new drawing area data limits for the main graph...
 			if ( !_is_reference_graph ) {
-				tsgraph.setDataLimits ( newdata_limits );
+				tsgraph.setDataLimitsForDrawing ( newdata_limits );
 				//_grda.setDataLimits ( _data_limits );
 			}
 			// Call external listeners to let them know that a graph has been zoomed...
@@ -2965,7 +2982,7 @@ private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) 
 				List<String> vids = graphDataLimits.getTimeSeriesIds();
 				if (stringListsAreEqual(ids, vids)) {
 					GRLimits dataLimits = graphDataLimits.getDataLimits();
-					graph.setDataLimits(dataLimits);
+					graph.setDataLimitsForDrawing(dataLimits);
 				}
 			}
 		}
@@ -3082,7 +3099,7 @@ public void scroll ( double pages, boolean notify_listeners )
 					new_data_limits.setRightX ( max_data_limits.getRightX() );
 				}
 			}
-			tsgraph.setDataLimits ( new_data_limits );
+			tsgraph.setDataLimitsForDrawing ( new_data_limits );
 			if ( notify_listeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
@@ -3176,7 +3193,7 @@ public void scrollToEnd ( boolean notify_listeners )
 			new_data_limits = new GRLimits ( max_data_limits );
 			// Now reset the end X value...
 			new_data_limits.setLeftX ( max_data_limits.getRightX() - current_data_limits.getWidth() );
-			tsgraph.setDataLimits ( new_data_limits );
+			tsgraph.setDataLimitsForDrawing ( new_data_limits );
 			if ( notify_listeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
@@ -3269,7 +3286,7 @@ public void scrollToStart ( boolean notify_listeners )
 			new_data_limits = new GRLimits ( max_data_limits );
 			// Now reset the end X value...
 			new_data_limits.setRightX ( max_data_limits.getLeftX() + current_data_limits.getWidth() );
-			tsgraph.setDataLimits ( new_data_limits );
+			tsgraph.setDataLimitsForDrawing ( new_data_limits );
 			if ( notify_listeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
@@ -3746,7 +3763,7 @@ public void zoom ( TSGraph tsgraph, GRLimits mouse_limits, GRLimits newdata_limi
 		if ( tsgraph2.canZoom() && zoom_group.equalsIgnoreCase(
 			_tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false ) ) ) {
 			//if ( tsgraph2.isReferenceGraph() ) {
-				tsgraph2.setDataLimits ( newdata_limits );
+				tsgraph2.setDataLimitsForDrawing ( newdata_limits );
 			//}
 		}
 	}
@@ -3806,7 +3823,7 @@ public void zoomOut ( boolean re_draw )
 			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( prop_value.equalsIgnoreCase("true") ) {
 				if (tsgraph.getNumTS() > 0) {
-					tsgraph.setDataLimits(max_data_limits);
+					tsgraph.setDataLimitsForDrawing(max_data_limits);
 				}
 			}
 		}
@@ -3846,7 +3863,7 @@ public void zoomToVisiblePeriod ( DateTime visibleStart, DateTime visibleEnd, bo
                 // Set the period
                 limits.setLeftX(visibleStart.toDouble());
                 limits.setRightX(visibleEnd.toDouble());
-                tsgraph.setDataLimits(limits);
+                tsgraph.setDataLimitsForDrawing(limits);
             }
         }
     }
