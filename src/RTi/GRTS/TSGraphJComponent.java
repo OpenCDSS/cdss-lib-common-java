@@ -1773,7 +1773,7 @@ public void mouseDragged ( MouseEvent event )
 	        // Also associate the time series for the graph, so value can be shown
 	        List<TS> tslist = tsgraph.getEnabledTSList();
 	        if ( tslist.size() > 0 ) {
-	            devpt.associated_object = tslist.get(0);
+	            datapt.associated_object = tslist.get(0);
 	        }
 	    }
 		int size = _listeners.length;
@@ -1838,11 +1838,7 @@ public void mouseMoved ( MouseEvent event )
 	    // Also associate the time series for the graph, so value can be shown
 	    List<TS> tslist = tsgraph.getEnabledTSList();
 	    if ( tslist.size() > 0 ) {
-	        Message.printStatus(2,"","Passing 1st time series with mouse motion event");
-	        devpt.associated_object = tslist.get(0);
-	    }
-	    else {
-	        Message.printStatus(2,"","No time series are enabled - not passing to mouse motion event");
+	        datapt.associated_object = tslist.get(0);
 	    }
 	}
 

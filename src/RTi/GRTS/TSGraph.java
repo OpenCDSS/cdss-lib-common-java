@@ -2002,7 +2002,7 @@ private void computeLabels ( TSLimits limits )
 		}
 		return;
 	}
-    if ( __graphType == TSGraphType.RASTER ) {
+	else if ( __graphType == TSGraphType.RASTER ) {
         // Limits are always the month boundaries
         _xlabels = new double[13];
         List<TS> tslist = getEnabledTSList();
@@ -5307,8 +5307,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean draw_grid ) {
         for ( int i = 1; i <= 12; i++ ) {
             x = (_xlabels[i - 1] + _xlabels[i])/2.0;
             // Draw tick marks at the labels (only internal tics, not edges of graph)...
-            if ( (i != 1) && (i != 12) ) {
-                xt[0] = _xlabels[i - 1];
+            if ( i != 12 ) {
+                xt[0] = _xlabels[i];
                 xt[1] = xt[0];
                 GRDrawingAreaUtil.drawLine (_da_graph, xt, yt );
             }
@@ -6384,17 +6384,14 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
         // If the maximum value is <= 12, then the x axis is months
         String x = "";
         String valueString = "";
+        TSData tsdata;
         double value;
+        String flag = "", flagString = "";
         int year = (int)(datapt.y);
         TS ts = null;
         if ( datapt.associated_object != null ) {
-            Message.printStatus(2,"","Associated object is not null");
             if ( datapt.associated_object instanceof TS ) {
-                Message.printStatus(2,"","Associated object is TS");
                 ts = (TS)datapt.associated_object;
-            }
-            else {
-                Message.printStatus(2,"","Associated object is NOT TS");
             }
         }
         DateTime d = new DateTime(DateTime.DATE_FAST);
@@ -6405,12 +6402,17 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
             x = "" + month;
             d.setMonth(month);
             if ( ts != null ) {
-                value = ts.getDataValue(d);
+                tsdata = ts.getDataPoint(d, null);
+                value = tsdata.getDataValue();
+                flag = tsdata.getDataFlag();
+                if ( (flag != null) && !flag.equals("") ) {
+                    flagString = " (" + flag + ")";
+                }
                 if ( ts.isDataMissing(value) ) {
-                    valueString = ", TS=missing";
+                    valueString = ", TS: missing" + flagString;
                 }
                 else {
-                    valueString = ", TS=" + StringUtil.formatString(value,"%.6f");
+                    valueString = ", TS: " + StringUtil.formatString(value,"%.6f" + ts.getDataUnits() + flagString );
                 }
             }
         }
@@ -6434,12 +6436,18 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
                 }
                 d.setDay(md[1]);
                 if ( ts != null ) {
-                    value = ts.getDataValue(d);
+                    tsdata = ts.getDataPoint(d, null);
+                    value = tsdata.getDataValue();
+                    flag = tsdata.getDataFlag();
+                    if ( (flag != null) && !flag.equals("") ) {
+                        flagString = " (" + flag + ")";
+                    }
                     if ( ts.isDataMissing(value) ) {
-                        valueString = ", TS=missing";
+                        valueString = ", TS: missing" + flagString;
                     }
                     else {
-                        valueString = ", TS=" + StringUtil.formatString(value,"%.6f");
+                        valueString = ", TS: " + StringUtil.formatString(value,"%.6f") + " " +
+                            ts.getDataUnits() + flagString;
                     }
                 }
             }
