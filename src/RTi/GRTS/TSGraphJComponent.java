@@ -1774,6 +1774,7 @@ public void mouseDragged ( MouseEvent event )
 	        List<TS> tslist = tsgraph.getEnabledTSList();
 	        if ( tslist.size() > 0 ) {
 	            datapt.associated_object = tslist.get(0);
+	            devpt.associated_object = tslist.get(0);
 	        }
 	    }
 		int size = _listeners.length;
@@ -1839,6 +1840,7 @@ public void mouseMoved ( MouseEvent event )
 	    List<TS> tslist = tsgraph.getEnabledTSList();
 	    if ( tslist.size() > 0 ) {
 	        datapt.associated_object = tslist.get(0);
+	        devpt.associated_object = tslist.get(0);
 	    }
 	}
 

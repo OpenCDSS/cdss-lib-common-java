@@ -5104,12 +5104,18 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
     GRColor tscolorPrev = null;
     Message.printStatus(2,"","Drawing raster graph for start=" + start + " end=" + end + " ts.date1=" + ts.getDate1() +
             " ts.date2=" + ts.getDate2() + " data limits = " + _da_graph.getDataLimits() );
+    boolean isLeapYear = false;
+    int day = -1;
+    int month = -1;
     while ( (tsdata = tsi.next()) != null ) {
         date = tsdata.getDate();
         y0 = date.getYear();
         if ( intervalBase == TimeInterval.DAY ) {
             yearDay = date.getYearDay();
-            if ( !TimeUtil.isLeapYear(date.getYear()) && (yearDay >= 60)) {
+            isLeapYear = TimeUtil.isLeapYear(date.getYear());
+            month = date.getMonth();
+            day = date.getDay();
+            if ( !isLeapYear && (yearDay >= 60)) {
                 // Increment non-leap years after Feb 28 so the horizontal axis days will align
                 ++yearDay;
             }
@@ -5156,6 +5162,13 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
         //            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
         //}
         GRDrawingAreaUtil.fillRectangle(_da_graph, x0, y0, 1.0, 1.0);
+        // Also fill in the Feb 29 value for non-leap years to the same color as the Feb 28 value.
+        // This ensures that a distracting white line is not shown 
+        if ( (intervalBase == TimeInterval.DAY) && (month == 2) && (day == 28) && !isLeapYear ) {
+            // Also draw the Feb 29, which will not otherwise be encountered becaue the time series is iterating
+            // through the actual dates.  Use the same color as Feb 28.
+            GRDrawingAreaUtil.fillRectangle(_da_graph, (x0 + 1.0), y0, 1.0, 1.0);
+        }
     }
     
     // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
@@ -6409,31 +6422,34 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
                     flagString = " (" + flag + ")";
                 }
                 if ( ts.isDataMissing(value) ) {
-                    valueString = ", TS: missing" + flagString;
+                    valueString = ", TS:  missing" + flagString;
                 }
                 else {
-                    valueString = ", TS: " + StringUtil.formatString(value,"%.6f" + ts.getDataUnits() + flagString );
+                    // TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
+                    // call to this method because a performance hit?
+                    valueString = ", TS:  " + StringUtil.formatString(value,"%.2f" + ts.getDataUnits() + flagString );
                 }
             }
         }
         else if ( _data_limits.getMaxX() <= 366.0 ) {
             // Graph was set up to always have leap year
             int dayInYear = (int)datapt.x;
-            // 2000 Leap year is used for all visualization but needs some care to get back to actual data
-            int [] md = TimeUtil.getMonthAndDayFromDayOfYear(2000, dayInYear);
-            x = "" + (int)datapt.x + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
-            d.setMonth(md[0]);
             boolean isLeapYear = TimeUtil.isLeapYear(year);
-            if ( (md[0] == 2) && (md[1] == 29) && !isLeapYear ) {
+            if ( (dayInYear == 60) && !isLeapYear ) {
                 // Treat as missing since actual year does not have Feb 29
-                valueString = "";
+                return "No value (Feb 29 of non-leap year)";
             }
             else {
-                // If not a leap year and past day 59, need to offset the day by one and recompute to get the
-                // actual day to retrieve the correct data value
+                int [] md;
                 if ( !isLeapYear && (dayInYear > 59) ) {
-                    md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear - 1);
+                    // If not a leap year and past day 59, need to offset the day by one and recompute to get the
+                    // actual day to retrieve the correct data value.  This is because Feb 29 always has a plotting
+                    // position in order to ensure days line up with months.
+                    --dayInYear;
                 }
+                md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear);
+                x = "Day " + dayInYear + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
+                d.setMonth(md[0]);
                 d.setDay(md[1]);
                 if ( ts != null ) {
                     tsdata = ts.getDataPoint(d, null);
@@ -6443,10 +6459,10 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
                         flagString = " (" + flag + ")";
                     }
                     if ( ts.isDataMissing(value) ) {
-                        valueString = ", TS: missing" + flagString;
+                        valueString = ", TS:  missing" + flagString;
                     }
                     else {
-                        valueString = ", TS: " + StringUtil.formatString(value,"%.6f") + " " +
+                        valueString = ", TS:  " + StringUtil.formatString(value,"%26f") + " " +
                             ts.getDataUnits() + flagString;
                     }
                 }
