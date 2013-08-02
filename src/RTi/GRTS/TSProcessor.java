@@ -80,8 +80,6 @@ import java.awt.event.WindowListener;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JFrame;
-
 import RTi.TS.TS;
 import RTi.TS.TSSupplier;
 import RTi.Util.IO.IOUtil;
@@ -169,18 +167,6 @@ public void addTSViewWindowListener ( WindowListener listener )
 }
 
 /**
-Clean up for garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable {
-	IOUtil.nullArray(_suppliers);
-	__lastTSViewJFrame = null;
-	_tsview_window_listener = null;
-	super.finalize();
-}
-
-/**
 Returns the last TSViewJFrame created when displaying a graph.
 @return the last TSViewJFrame created when displaying a graph.
 */
@@ -201,7 +187,7 @@ private void processGraphProduct ( TSProduct tsproduct )
 throws Exception
 {	
 	String routine = "TSProcessor.processGraphProduct";
-	List<TS> tslist = new Vector(10);
+	List<TS> tslist = new Vector<TS>(10);
 	TS ts = null;
 	// Loop through the sub-products (graphs on page) and get the time series to
 	// support the graph.
@@ -339,8 +325,6 @@ throws Exception
 	PropList tsviewprops = tsproduct.getPropList();
 	//Message.printStatus(2, routine, "Graph properties=" + tsviewprops);
 
-	JFrame f = new JFrame();
-	f.addNotify();
 	String graph_file =	tsproduct.getLayeredPropValue ( "OutputFile", -1, -1 );
 	/* TODO SAM 2008-11-19 Don't think this is needed
 	if ( graph_file == null ) {
@@ -376,9 +360,7 @@ throws Exception
 				height = StringUtil.atoi(prop_value);
 			}
 			BufferedImage image = new BufferedImage (width, height,	BufferedImage.TYPE_3BYTE_BGR);
-			if ( image == null ) {
-				Message.printStatus ( 2, routine, "Image is null" );
-			}
+
 			tsviewprops.set(new Prop("Image", image, "") );
 			TSGraphJComponent graph = new TSGraphJComponent ( null, tsproduct, tsviewprops );
 			if ( graph.needToClose() ) {
@@ -483,7 +465,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 		String fname = null;
 		String prop_value = null;
 		String report_type = null;
-		List tslist = new Vector();
+		List<TS> tslist = new Vector<TS>();
 
 		// get file name for subproduct
 		// if there isn't one set then set a temp file name
