@@ -12,7 +12,7 @@ public class TimeSeriesMeta
 /**
 Internal identifier (primary key).
 */
-private long id;
+private long id = -1;
 
 /**
 Location type.
@@ -55,13 +55,13 @@ Construct a metadata object.
 public TimeSeriesMeta ( String locationType, String locationID, String dataSource, String dataType, String interval,
     String scenario, String units, long id )
 {
-    this.locationType = locationType;
-    this.locationID = locationID;
-    this.dataSource = dataSource;
-    this.dataType = dataType;
-    this.interval = interval;
-    this.scenario = scenario;
-    this.units = units;
+    this.locationType = (locationType == null ? "" : locationType);
+    this.locationID = (locationID == null ? "" : locationID);
+    this.dataSource = (dataSource == null ? "" : dataSource);
+    this.dataType = (dataType == null ? "" : dataType);
+    this.interval = (interval == null ? "" : interval);
+    this.scenario = (scenario == null ? "" : scenario);
+    this.units = (units == null ? "" : units);
     this.id = id;
 }
 

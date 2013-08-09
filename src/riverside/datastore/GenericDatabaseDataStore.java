@@ -3,6 +3,8 @@ package riverside.datastore;
 import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -120,15 +122,89 @@ throws IOException, Exception
 }
 
 /**
+Return the SQL column type.
+*/
+private int getColumnType ( DatabaseMetaData metadata, String tableName, String columnName )
+{   String routine = "GenericDatabaseDataStore.getColumnType", message;
+    ResultSet rs;
+    try {
+        rs = metadata.getColumns ( null, null, tableName, columnName);
+        if ( rs == null ) {
+            message = "Error getting columns for \"" + tableName+"\" table.";
+            Message.printWarning ( 2, routine, message );
+            throw new Exception ( message );
+        } 
+    } 
+    catch ( Exception e ) {
+        message = "Error getting database information for table \"" + tableName + "\".";
+        Message.printWarning ( 2, routine, message );
+        throw new RuntimeException ( message );
+    }
+    // Now check for the column by looping through result set...
+
+    String s;
+    int i;
+    int colType = -1;
+    try {
+        while ( rs.next() ) {
+            // The column name is field 4, data type field 5...
+            s = rs.getString(4);
+            if ( !rs.wasNull() ) {
+                s = s.trim();
+                if ( s.equalsIgnoreCase(columnName) ) {
+                    i = rs.getInt(5);
+                    if ( !rs.wasNull() ) {
+                        colType = i;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    catch ( SQLException e ) {      
+    }
+    finally {
+        DMI.closeResultSet(rs);
+    }
+    return colType;
+}
+
+/**
 Return the database metadata associated with the database.  If metadata have not been retrieved, retrieve and save.
 */
 private DatabaseMetaData getDatabaseMetaData ()
-throws Exception
+throws SQLException
 {
     if ( this.databaseMetadata == null ) {
         this.databaseMetadata = getDMI().getConnection().getMetaData();
     }
     return this.databaseMetadata;
+}
+
+/**
+Get a datastore property for a specific table.  This requires that property be coded as:
+<pre>
+PropName = "Table1:PropValue,Table2:PropValue"
+</pre>
+*/
+private String getPropertyForTable ( String propName, String table )
+{
+    // Get the full property
+    String propVal = getProperty ( propName );
+    if ( propVal == null || (propVal.indexOf(":") < 0) ) {
+        // Return as is
+        return propVal;
+    }
+    // Parse, multiple items in list separated by ,
+    String [] parts = propVal.split(",");
+    String [] parts2;
+    for ( int i = 0; i < parts.length; i++ ) {
+        parts2 = parts[i].split(":");
+        if ( parts2[0].trim().equalsIgnoreCase(table) ) {
+            return parts2[1].trim();
+        }
+    }
+    return null;
 }
 
 /**
@@ -180,13 +256,13 @@ private String getWhereClauseStringFromInputFilter ( DMI dmi, InputFilter_JPanel
     List<String> whereClauses = getWhereClausesFromInputFilter ( dmi, panel );
     StringBuffer whereString = new StringBuffer();
     for ( String whereClause : whereClauses ) {
-        Message.printStatus(2,"","Comparing where clause \"" + whereClause + "\" to \"" + tableAndColumnName + "\"");
+        //Message.printStatus(2,"","Comparing where clause \"" + whereClause + "\" to \"" + tableAndColumnName + "\"");
         if ( whereClause.toUpperCase().indexOf(tableAndColumnName.toUpperCase()) < 0 ) {
             // Not for the requested table so don't include the where clause
-            Message.printStatus(2, "", "Did not match");
+            //Message.printStatus(2, "", "Did not match");
             continue;
         }
-        Message.printStatus(2, "", "Matched");
+        //Message.printStatus(2, "", "Matched");
         if ( (whereString.length() > 0)  ) {
             // Need to concatenate
             whereString.append ( " and ");
@@ -315,12 +391,34 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     DMI dmi = getDMI();
     DMISelectStatement ss = new DMISelectStatement(dmi);
     String dataTable = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_PROP );
-    Message.printStatus(2, routine, "Data table = \"" + dataTable + "\"");
+    //Message.printStatus(2, routine, "Data table = \"" + dataTable + "\"");
     if ( dataTable != null ) {
         // Table name may contain formatting like %I, etc.
         dataTable = ts.formatLegend(dataTable);
     }
-    String dtColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_DATETIME_COLUMN_PROP );
+    String dtColumn = getPropertyForTable ( GenericDatabaseDataStore.TS_DATA_TABLE_DATETIME_COLUMN_PROP, dataTable );
+    boolean dateTimeInt = false; // true=integer year, false=timestamp
+    int dtColumnType = -1;
+    try {
+        dtColumnType = getColumnType(getDatabaseMetaData(), dataTable, dtColumn);
+        if ( (dtColumnType == Types.TIMESTAMP) || (dtColumnType == Types.DATE)) {
+            dateTimeInt = false;
+        }
+        else if ( (dtColumnType == Types.BIGINT) || (dtColumnType == Types.INTEGER) || (dtColumnType == Types.SMALLINT) ) {
+            dateTimeInt = true;
+        }
+        else {
+            message = "SQL column type " + dtColumnType + " for \"" + dtColumn +
+                "\" is not supported - don't understand date/time.";
+            Message.printWarning(3, routine, message);
+            throw new RuntimeException ( message );
+        }
+    }
+    catch ( SQLException e ) {
+        message = "Cannot determine column type for \"" + dtColumn + "\" don't understand date/time (" + e + ").";
+        Message.printWarning(3, routine, message);
+        throw new RuntimeException ( message );
+    }
     String valColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_VALUE_COLUMN_PROP );
     String flagColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_FLAG_COLUMN_PROP );
     ss.addTable(dataTable);
@@ -355,7 +453,6 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     int i;
     int index;
     List<TimeSeriesData> tsdataList = new Vector<TimeSeriesData>();
-    boolean dateTimeInt = true; // Indicates year
     try {
         rs = dmi.dmiSelect(ss);
         while (rs.next()) {
@@ -661,6 +758,10 @@ public List<String> readTimeSeriesMetaIntervalList ( String locType, String locI
 
 /**
 Read a list of TimeSeriesMeta for the specified criteria.
+@param dataType data type to use as filter (ignored if blank or null)
+@param interval interval to use as filter (ignored if blank or null)
+@param filterPanel panel that contains input filters where filter criteria for query are specified
+@return list of TimeSeriesMeta matching the query criteria
 */
 public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String interval,
     GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel filterPanel )
@@ -719,8 +820,53 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
             if (!rs.wasNull()) {
                 id = l;
             }
-            s = rs.getString(8);
-            if (!rs.wasNull()) {
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                locType = "";
+            }
+            else {
+                locType = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                locID = "";
+            }
+            else {
+                locID = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                dataSource = "";
+            }
+            else {
+                dataSource = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                dataType = "";
+            }
+            else {
+                dataType = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                interval = "";
+            }
+            else {
+                interval = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                scenario = "";
+            }
+            else {
+                scenario = s;
+            }
+            s = rs.getString(index++);
+            if (rs.wasNull()) {
+                units = "";
+            }
+            else {
                 units = s;
             }
             metaList.add(new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, units, id));

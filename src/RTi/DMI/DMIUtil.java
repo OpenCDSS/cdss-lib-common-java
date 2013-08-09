@@ -375,7 +375,7 @@ relationships.  May be null.
 null is returned if there was an error creating the objects or reading from the database.
 */
 public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi, List<String> notIncluded) {
-	List<String> tableNames = getDatabaseTableNames(dmi, true, notIncluded);
+	List<String> tableNames = getDatabaseTableNames(dmi, null, null, true, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -440,7 +440,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 	ResultSet rs = null;
 	boolean more;
 
-	List<String> tableNames = getDatabaseTableNames(dmi, true, notIncluded);
+	List<String> tableNames = getDatabaseTableNames(dmi, null, null, true, notIncluded);
 
 	if (tableNames == null) {
 		return null;
@@ -2113,18 +2113,19 @@ throws Exception, SQLException {
 	return false;
 }
 
-// TODO SAM 2012-04-06 Need to evaluate whether table names are escaped separately
 // TODO SAM 2012-05-06 Need to evaluate whether functions should be processed more but complex SQL should
 // probably just be constructed without the helper methods
 /**
-Escape a field.  This is necessary to ensure that fields that are reserved names do not get interpreted as such.
-For example, in SQL Server, brackets can be used around fields.
+Escape an SQL field (column, table, or table with database and/or schema).
+This is necessary to ensure that fields that are reserved names do not get interpreted as such.
+For example, in SQL Server, [brackets] can be used around fields.
 If the input string contains a "(", then it is assumed that the field is specified using a function
 and no action is taken.
-If the input string contains a ".", then it is assumed that the table name precedes the field name and the string
-is split so that only the field name is escaped.
+If the input string contains a ".", then it is assumed that the database, schema, and/or table name precedes the
+field name and the string is split so that only the field name is escaped.
 @param dmi the DMI being used
-@param field the field being escaped
+@param field the field being escaped, can be "Column", "Table.Column", "Schema.Table.Column" or "Database.Schema.Table.Column"
+(or omit the column).
 @return the escaped field
 */
 public static String escapeField ( DMI dmi, String field )
@@ -2136,17 +2137,34 @@ public static String escapeField ( DMI dmi, String field )
     }
     else {
         // Escape the fields
-        int dotPos = field.indexOf(".");
-        String table = null;
-        if ( dotPos > 0 ) {
-            // Field has table and field but only want to escape the field
-            table = field.substring(0,dotPos);
-            field = field.substring(dotPos + 1);
-            return table + "." + dmi.getFieldLeftEscape() + field + dmi.getFieldRightEscape();
+        String [] parts = null;
+        if ( field.indexOf(".") > 0 ) {
+            parts = field.split(".");
         }
         else {
-            return dmi.getFieldLeftEscape() + field + dmi.getFieldRightEscape();
+            parts = new String[1];
+            parts[0] = field;
         }
+        StringBuffer b = new StringBuffer();
+        String le, re;
+        for ( int i = 0; i < parts.length; i++ ) {
+            if ( parts[i].startsWith(dmi.getFieldLeftEscape()) ) {
+                // Already escaped so no need to do so again
+                le = "";
+                re = "";
+            }
+            else {
+                le = dmi.getFieldLeftEscape();
+                re = dmi.getFieldRightEscape();
+            }
+            if ( b.length() > 0 ) {
+                b.append(".");
+            }
+            b.append ( le );
+            b.append ( parts[i] );
+            b.append ( re );
+        }
+        return b.toString();
     }
 }
 
@@ -2742,7 +2760,7 @@ throws Exception, SQLException
 }
 
 /**
-Return the list of columns for a table.
+Return the list of column names for a table.
 @return the list of columns for a table.
 @param metadata DatabaseMetaData for connection.
 @param tableName Name of table.
@@ -2936,6 +2954,88 @@ throws Exception, SQLException {
 }
 
 /**
+Returns the catalog of database names in the connection, excluding known system databases.
+For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases
+under that instance.
+@param dmi an open, connected and not-null DMI connection to a database.
+@param removeSystemDatabases if true, remove the known system databases (this may take some work to keep up to date).
+@param notIncluded a list of all the database names that should not be included
+in the final list of database names.
+@return the list of databases names in the dmi's database instance.  null
+is returned if there was an error reading from the database.
+*/
+public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystemDatabases, List<String> notIncluded)
+{
+    String routine = "getDatabaseCatalogNames";
+    // Get the name of the data.  If the name is null, it's most likely
+    // because the connection is going through ODBC, in which case the 
+    // name of the ODBC source will be used.
+    String dbName = dmi.getDatabaseName();
+    if (dbName == null) {
+        dbName = dmi.getODBCName();
+    }
+
+    Message.printStatus(2, routine, "Getting catalog of databases");
+    ResultSet rs = null;
+    DatabaseMetaData metadata = null;
+    try {   
+        metadata = dmi.getConnection().getMetaData();
+        rs = metadata.getCatalogs();
+        if (rs == null) {
+            Message.printWarning(2, routine, "Error getting catalog of databases.");
+            return null;
+        } 
+    } 
+    catch (Exception e) {
+        Message.printWarning(2, routine, "Error getting catalog of databases.");
+        Message.printWarning(2, routine, e);
+        return null;
+    } 
+
+    String catName;
+    List<String> dbNames = new Vector<String>();
+    try {
+        while ( rs.next() ) {
+            try {   
+                // Table name...
+                catName = rs.getString(1);
+                if (rs.wasNull()) {
+                    catName = null;
+                }
+                if ( catName != null ) {
+                    dbNames.add(catName.trim());
+                }
+            }
+            catch (Exception e) {
+                // continue getting the list of table names, but report the error.
+                Message.printWarning(2, routine, e);
+            }
+        }
+    }
+    catch ( Exception e ) {
+        // TODO SAM 2012-01-31 probably should not catch this but has been done historically
+    }
+    try {   
+        DMI.closeResultSet(rs);
+    }
+    catch (Exception e) {
+        Message.printWarning(2, routine, e);
+    }
+
+    // Sort the list of database names in ascending order, ignoring case.
+    dbNames = StringUtil.sortStringList(dbNames, StringUtil.SORT_ASCENDING, null, false, true);
+   
+    // Additionally remove all the databases that were in the notIncluded parameter passed in to this method.
+    if (notIncluded != null) {
+        Message.printStatus(2, routine, "Removing requested databases from database list");
+        for ( String s : notIncluded ) {
+            StringUtil.removeMatching(dbNames,s,true);
+        }
+    }
+    return dbNames;
+}
+
+/**
 Returns the list of procedure names in the database, excluding known system procedures.
 @param dmi an open, connected and not-null DMI connection to a database.
 @param removeSystemProcedures if true, remove the known system procedures
@@ -3029,16 +3129,121 @@ throws SQLException
 }
 
 /**
+Returns the catalog of schema names for the connection, excluding known system schemas.
+For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases
+under that instance.
+@param dmi an open, connected and not-null DMI connection to a database.
+@param catalog the catalog
+@param removeSystemSchemas if true, remove the known system databases (this may take some work to keep up to date).
+@param notIncluded a list of all the database names that should not be included
+in the final list of database names.
+@return the list of databases names in the dmi's database instance.  null
+is returned if there was an error reading from the database.
+*/
+public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boolean removeSystemSchemas, List<String> notIncluded)
+{
+    String routine = "getDatabaseSchemaNames";
+    // Get the name of the data.  If the name is null, it's most likely
+    // because the connection is going through ODBC, in which case the 
+    // name of the ODBC source will be used.
+    String dbName = dmi.getDatabaseName();
+    if (dbName == null) {
+        dbName = dmi.getODBCName();
+    }
+
+    Message.printStatus(2, routine, "Getting schemas");
+    ResultSet rs = null;
+    DatabaseMetaData metadata = null;
+    try {
+        metadata = dmi.getConnection().getMetaData();
+        // TODO SAM 2013-07-22 SQL Server does not implement completely so just brute force below
+        //if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+        //    // Have to make the call without the catalog...
+            rs = metadata.getSchemas();
+        //}
+        //else {
+        //    rs = metadata.getSchemas(catalog,null);
+        //}
+        if (rs == null) {
+            Message.printWarning(3, routine, "Error getting schemas.");
+            return null;
+        } 
+    } 
+    catch (Exception e) {
+        Message.printWarning(3, routine, "Error getting schemas.");
+        Message.printWarning(3, routine, e);
+        return null;
+    } 
+
+    String schema, cat;
+    List<String> schemas = new Vector<String>();
+    try {
+        while ( rs.next() ) {
+            try {   
+                // Schema name...
+                schema = rs.getString(1);
+                if ( !rs.wasNull()) {
+                    if ( (catalog == null) || (dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER) ) {
+                        schemas.add(schema.trim());
+                    }
+                    else {
+                        // Check the catalog before adding
+                        // TODO SAM 2013-07-22 SQL Server does not seem to return catalog
+                        cat = rs.getString(2);
+                        Message.printStatus(2,routine,"schema=" + schema + " cat=" + cat );
+                        if ( !rs.wasNull()) {
+                            // Have catalog
+                            if ( catalog.equalsIgnoreCase(cat) ) {
+                                schemas.add(schema.trim());
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                // continue getting the list of schemas, but report the error.
+                Message.printWarning(3, routine, "Error getting schema information (" + e + ").");
+                Message.printWarning(3, routine, e);
+            }
+        }
+    }
+    catch ( Exception e ) {
+        // TODO SAM 2012-01-31 probably should not catch this but has been done historically
+    }
+    try {   
+        DMI.closeResultSet(rs);
+    }
+    catch (Exception e) {
+        Message.printWarning(2, routine, e);
+    }
+
+    // Sort the list of schemas in ascending order, ignoring case.
+    schemas = StringUtil.sortStringList(schemas, StringUtil.SORT_ASCENDING, null, false, true);
+   
+    // Additionally remove all the schemas that were in the notIncluded parameter passed in to this method.
+    if (notIncluded != null) {
+        Message.printStatus(2, routine, "Removing requested schemas from schema list");
+        for ( String s : notIncluded ) {
+            StringUtil.removeMatching(schemas,s,true);
+        }
+    }
+    return schemas;
+}
+
+/**
 Returns the list of table names in the database, excluding known system tables.
 @param dmi an open, connected and not-null DMI connection to a database.
-@param removeSystemTables if true, remove the known system tables (this may take some work to keep up to
-date).
+@param catalog if not null, a database name under a main database (such as database under SQL Server master
+database that corresponds to the connection).
+@param schema if not null, the schema for a database (such as used by Oracle)
+@param removeSystemTables if true, remove the known system tables (this may take some work to keep up to date).
 @param notIncluded a list of all the table names that should not be included
 in the final list of table names.
 @return the list of table names in the dmi's database.  null
 is returned if there was an error reading from the database.
 */
-public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTables, List<String> notIncluded)
+public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String schema,
+    boolean removeSystemTables, List<String> notIncluded)
 {
 	String routine = "getDatabaseTableNames";
 	// Get the name of the data.  If the name is null, it's most likely
@@ -3054,7 +3259,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTa
 	DatabaseMetaData metadata = null;
 	try {	
 		metadata = dmi.getConnection().getMetaData();
-		rs = metadata.getTables(null, null, null, null);
+		rs = metadata.getTables(catalog, schema, null, null);
 		if (rs == null) {
 			Message.printWarning(2, routine, "Error getting list of tables.  Aborting");
 			return null;
@@ -3172,6 +3377,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTa
         "assemblies",
         "assembly_.*",
         "asymmetric_keys",
+        "availability_.*",
         "backup_devices",
         "certificates",
         "check_constraints",
@@ -3199,6 +3405,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTa
         "events",
         "extended_.*",
         "filegroups",
+        "filetable.*",
         "foreign_key.*",
         "fulltext_.*",
         "function_.*",
@@ -3222,22 +3429,26 @@ public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTa
         "partition_.*",
         "partitions",
         "plan_guides",
-        "procedures*",
+        "procedures.*",
         "referential_.*",
         "remote_.*",
+        "registered_search.*",
         "resource_.*",
         "routes",
         "routine_columns",
         "routines",
+        "sequences",
         "schemas",
         "schemata",
         "securable_classes",
+        "selective_xml.*",
         "server_.*",
         "servers",
         "service_.*",
         "services",
         "soap_.*",
         "spatial_.*",
+        "spt_.*",
         "sql_.*",
         "stats",
         "stats_columns",
@@ -3245,6 +3456,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, boolean removeSystemTa
         "synonyms",
         "system_.*",
         "sys.*",
+        "tables",
         "table_constraints",
         "table_privileges",
         "table_types",
