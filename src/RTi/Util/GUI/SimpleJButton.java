@@ -32,7 +32,6 @@ import java.awt.event.ActionListener;
 This class is used to simplify construction of a button and linkage to
 an action listener.  An example of its is as follows:
 <p>
-
 <pre>
 // "this" is a GUI component, like a JFrame.
 button = new SimpleJButton("My Button", "MyButton" + this );
@@ -64,19 +63,16 @@ public SimpleJButton ( String label, String command, ActionListener al )
 }
 
 /**
-Construct a button by specifying the label, command string, insets, margin,
-and action listener.
+Construct a button by specifying the label, command string, insets, margin, and action listener.
 @param label String label for button.
 @param command Command string for events.
 @param insets the insets inside of the JButton that separate the edge of 
 the button from its contents
-@param margin if true, the button's margin will be displayed.  If false, 
-it will not.
+@param margin if true, the button's margin will be displayed.  If false, it will not.
 @param al Action listener.
 */
-public SimpleJButton (String label, String command, Insets insets, 
-boolean margin, ActionListener al) {
-	super(label);
+public SimpleJButton (String label, String command, Insets insets, boolean margin, ActionListener al)
+{	super(label);
 	initialize(command, null, insets, margin, al);
 }
 
@@ -87,8 +83,8 @@ Construct a button by specifying the label, command string, and action listener.
 @param toolTipText the text to display as the button tool tip
 @param al Action listener.
 */
-public SimpleJButton (String label, String command, String toolTipText,
-ActionListener al) {
+public SimpleJButton (String label, String command, String toolTipText, ActionListener al)
+{
 	super(label);
 	initialize(command, toolTipText, null, true, al);
 }
@@ -98,14 +94,12 @@ Construct a button by specifying the label, command string, and action listener.
 @param label String label for button.
 @param command Command string for events.
 @param toolTipText the text to display as the button tool tip
-@param insets the insets inside of the JButton that separate the edge of 
-the button from its contents
-@param margin if true, the button's margin will be displayed.  If false, 
-it will not.
+@param insets the insets inside of the JButton that separate the edge of the button from its contents
+@param margin if true, the button's margin will be displayed.  If false, it will not.
 @param al Action listener.
 */
-public SimpleJButton (String label, String command, String toolTipText,
-Insets insets, boolean margin, ActionListener al) {
+public SimpleJButton (String label, String command, String toolTipText, Insets insets, boolean margin, ActionListener al)
+{
 	super(label);
 	initialize(command, toolTipText, insets, margin, al);
 }
@@ -122,18 +116,15 @@ public SimpleJButton (ImageIcon icon, String command, ActionListener al )
 }
 
 /**
-Construct a button by specifying the icon, command string, insets, margin,
-and action listener.
+Construct a button by specifying the icon, command string, insets, margin, and action listener.
 @param icon the icon to display in the button
 @param command Command string for events.
-@param insets the insets inside of the JButton that separate the edge of 
-the button from its contents
-@param margin if true, the button's margin will be displayed.  If false, 
-it will not.
+@param insets the insets inside of the JButton that separate the edge of the button from its contents
+@param margin if true, the button's margin will be displayed.  If false, it will not.
 @param al Action listener.
 */
-public SimpleJButton (ImageIcon icon, String command, Insets insets, 
-boolean margin, ActionListener al) {
+public SimpleJButton (ImageIcon icon, String command, Insets insets, boolean margin, ActionListener al)
+{
 	super(icon);
 	initialize(command, null, insets, margin, al);
 }
@@ -145,8 +136,8 @@ Construct a button by specifying the icon, command string, and action listener.
 @param toolTipText the text to display as the button tool tip
 @param al Action listener.
 */
-public SimpleJButton (ImageIcon icon, String command, String toolTipText,
-ActionListener al) {
+public SimpleJButton (ImageIcon icon, String command, String toolTipText, ActionListener al)
+{
 	super(icon);
 	initialize(command, toolTipText, null, true, al);
 }
@@ -156,14 +147,12 @@ Construct a button by specifying the icon, command string, and action listener.
 @param icon the icon to display in the button
 @param command Command string for events.
 @param toolTipText the text to display as the button tool tip
-@param insets the insets inside of the JButton that separate the edge of 
-the button from its contents
-@param margin if true, the button's margin will be displayed.  If false, 
-it will not.
+@param insets the insets inside of the JButton that separate the edge of the button from its contents
+@param margin if true, the button's margin will be displayed.  If false, it will not.
 @param al Action listener.
 */
-public SimpleJButton (ImageIcon icon, String command, String toolTipText,
-Insets insets, boolean margin, ActionListener al) {
+public SimpleJButton (ImageIcon icon, String command, String toolTipText, Insets insets, boolean margin, ActionListener al)
+{
 	super(icon);
 	initialize(command, toolTipText, insets, margin, al);
 }
@@ -174,8 +163,8 @@ Initialize the button data.
 @param command Command string for events.
 @param al Action listener.
 */
-private void initialize (String command, String toolTipText, Insets insets, 
-boolean margin, ActionListener al) {
+private void initialize (String command, String toolTipText, Insets insets, boolean margin, ActionListener al)
+{
 	addActionListener (al);
 	if ( command != null ) {
 		if ( command.length() > 0 ) {

@@ -100,8 +100,7 @@ stored internally, this can never be used to return a user-entered value,
 box field.</li>
 <li><b>getSelectedIndex()</b> - In a non-editable combo box, this will return
 the index of the currently-selected value.  In an editable combox box, it will
-do the same, unless the user has typed in a value.  In that case, it will 
-return -1.</li>
+do the same, unless the user has typed in a value.  In that case, it will return -1.</li>
 </ul>
 */
 public class SimpleJComboBox 
@@ -358,8 +357,8 @@ public int getPosition(String s) {
 }	
 
 /**
-Returns the currently-selected SimpleJComboBox option's text.  
-See getFieldText() for information as to how these methods differ.
+Returns the currently-selected SimpleJComboBox option's text.  If editable, return getFieldText().
+Otherwise, return getSelectedItem().
 @return a String containing the text of the currently-selected SimpleJComboBox value.
 */
 public String getSelected() {
