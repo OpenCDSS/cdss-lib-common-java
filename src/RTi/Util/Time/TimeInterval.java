@@ -166,7 +166,9 @@ and multiplier are equal, false otherwise.
 */
 public boolean equals(Object o) {
     boolean eq = o instanceof TimeInterval;
-    if (eq) eq = equals( (TimeInterval) o);
+    if (eq) {
+        eq = equals((TimeInterval) o);
+    }
     return eq;
 }
 
