@@ -27,9 +27,6 @@ public TSRegressionResults ( RegressionResults singleEquationResults, Regression
 {
     __singleEquationResults = singleEquationResults;
     __monthlyEquationResults = monthlyEquationResults;
-    if ( singleEquationResults == null ) {
-        throw new IllegalArgumentException("Null single equation results");
-    }
 }
 
 /**

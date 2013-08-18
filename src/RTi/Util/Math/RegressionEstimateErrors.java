@@ -1,11 +1,7 @@
 package RTi.Util.Math;
 
 import RTi.Util.Message.Message;
-import RTi.Util.String.StringUtil;
-
 import org.apache.commons.math3.distribution.TDistribution;
-import org.apache.commons.math3.stat.inference.TTest;
-import org.apache.commons.math3.stat.inference.TestUtils;
 
 /**
 This class provides storage for regression analysis errors, determined by using the
@@ -164,9 +160,8 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
         return null;
     }
     // Single tail exceedance probability in range 0 to 1.0
-    // For example, a confidence interval of 95% will have p = .025
-    double tScoreTestStat = getTestScore(getRegressionResults().getB());
-    double alpha = (100.0 - confidenceIntervalPercent)/100.0;
+    // For example, a confidence interval of 95% will have p = .05
+    double alpha = confidenceIntervalPercent/100.0;
     double alpha2 = alpha/2.0;
     double [] Y1 = getRegressionData().getY1();
     double [] Y1est = getY1est();
@@ -179,38 +174,28 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
     // Length of array will be N1 by definition - subtract 2 for the intercept and slope to get
     // the degrees of freedom
     int dof = Y1est.length - 2;
-    Double p = null;
+    Double quantile = null;
     Message.printStatus(2,routine, "alpha=" + alpha );
     Message.printStatus(2,routine, "n=" + Y1est.length );
     Message.printStatus(2,routine, "dof=" + dof );
-    Message.printStatus(2,routine, "T-score test statistic=" + tScoreTestStat );
     try {
         boolean useApacheMath = true;
         if ( useApacheMath ) {
             // Why is degrees of freedom a double?
             org.apache.commons.math3.distribution.TDistribution tDist = new TDistribution(dof);
-            //p = tDist.inverseCumulativeProbability(alpha2); // Single tail value of alpha
-            p = tDist.probability(tScoreTestStat); // Single tail value of alpha
-            Message.printStatus(2,routine, "Single tail p-value=" + p + " alpha/2=" + alpha2 );
-            //q = tDist.density((100.0 - p)/200.0); // Single tail value of alpha
-            Message.printStatus(2,routine, StringUtil.formatArrays("Y1", Y1, "Y1est", Y1est, ",", "\n") );
-            Message.printStatus(2,routine, "pairedT=" + TestUtils.pairedT(Y1,Y1est) );
-            Message.printStatus(2,routine, "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est) );
-            Message.printStatus(2,routine, "pairedTTest=" + TestUtils.pairedTTest(Y1,Y1est,alpha) );
-            org.apache.commons.math3.distribution.TDistribution tDist2 = new TDistribution(99);
-            double p2 = tDist.probability(2.29);
-            Message.printStatus(2,routine, "Example p-value=" + p2 );
+            //Get the value at which this confidence interval is satisfied
+            quantile = tDist.inverseCumulativeProbability(alpha);
         }
         else {
             StudentTTest t = new StudentTTest();
-            p = t.getStudentTQuantile(alpha2, dof );
+            quantile = t.getStudentTQuantile(alpha2, dof );
         }
     }
     catch ( Exception e ) {
         // typically dof too small
-        p = null; // Not computed
+        quantile = null; // Not computed
     }
-    return p;
+    return quantile;
 }
 
 /**
@@ -220,14 +205,14 @@ Return the Student T Test score as b/SEslope
 */
 public Double getTestScore ( Double b )
 {
-    Double SEslope = getStandardErrorOfSlope();
-    if ( (b == null) || (SEslope == null) ) {
+    Double SESlope = getStandardErrorOfSlope();
+    if ( (b == null) || (SESlope == null) ) {
         return null;
     }
-    if ( b == 0.0 ) {
+    if ( SESlope == 0.0 ) {
         return Double.POSITIVE_INFINITY;
     }
-    return new Double(b/SEslope);
+    return new Double(b/SESlope);
 }
 
 /**
@@ -236,11 +221,16 @@ Determine whether the relationship is valid for the confidence interval specifie
 return null if the inputs are not specified
 */
 public Boolean getTestRelated ( Double testScore, Double testQuantile )
-{   if ( (testScore == null) || (testQuantile == null) ) {
-        return null;
+{   
+	//should it really return null in this case? Doesn't false make more sense?
+	if ( (testScore == null) || (testQuantile == null) ) {
+        return false;
     }
     else {
         if ( testScore >= testQuantile ) {
+        	//does this mean related or not?
+        	//Documentation says not
+        	//but that makes no sense at all.
             return true;
         }
         else {

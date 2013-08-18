@@ -319,7 +319,18 @@ throws Exception
             else {
                 // TODO SAM 2010-12-18 Evaluate why trim is needed
                 format1 = fieldFormats1[columnNumbers1[icol]];
-                formattedValue1 = StringUtil.formatString(value1,format1).trim();
+                // Check for integer to format without trailing 0's.
+                // First check for number, then for integer or infinity
+                if (((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                    (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
+                    (value1.getClass().getName() == "Integer" || (Double) value1 == Double.POSITIVE_INFINITY ||
+                    (Double) value1 - Math.round((Double) value1) == 0)) {
+                    formattedValue1 = StringUtil.formatString(value1,"%.0f").trim();
+                }
+                else {
+                    formattedValue1 = StringUtil.formatString(value1,format1).trim();
+                }
+
             }
             // Get the value from the second table and format as a string for comparisons...
             // The rows in the second table must be in the same order
@@ -340,7 +351,17 @@ throws Exception
             }
             else {
                 format2 = fieldFormats2[columnNumbers2[icol]];
-                formattedValue2 = StringUtil.formatString(value2,format2).trim();
+                // Check for integer to format without trailing 0's
+                // First check for number, then for integer
+                if (((table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                    (table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT)) &&
+                    (value2.getClass().getName() == "Integer" || (Double) value2 == Double.POSITIVE_INFINITY ||
+                    (Double) value2 - Math.round((Double) value2) == 0)) {
+                    formattedValue2 = StringUtil.formatString(value2,"%.0f").trim();
+                }
+                else {
+                    formattedValue2 = StringUtil.formatString(value2,format2).trim();
+                }
             }
             // Default behavior is to compare strings so do this check first.
             if ( formattedValue1.equals(formattedValue2) ) {
