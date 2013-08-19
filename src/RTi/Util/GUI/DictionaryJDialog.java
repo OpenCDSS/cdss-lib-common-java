@@ -218,7 +218,14 @@ private void setupUI()
 	String [] valueList = new String[0];
 	if ( (this.dictString != null) && (this.dictString.length() > 0) ) {
 	    // Have an existing dictionary string so parse and use to populate the dialog
-	    String [] dictParts = this.dictString.split(",");
+	    String [] dictParts;
+	    if ( dictString.indexOf(",") < 0 ) {
+	        dictParts = new String[1];
+	        dictParts[0] = dictString;
+	    }
+	    else {
+	        dictParts = this.dictString.split(",");
+	    }
 	    if ( dictParts != null ) {
     	    keyList = new String[dictParts.length];
     	    valueList = new String[dictParts.length];
@@ -231,7 +238,7 @@ private void setupUI()
     	                valueList[i] = parts2[1].trim();
     	            }
     	            else {
-    	                keyList[i] = dictParts[i];
+    	                keyList[i] = parts2[0].trim();
     	                valueList[i] = "";
     	            }
     	        }
