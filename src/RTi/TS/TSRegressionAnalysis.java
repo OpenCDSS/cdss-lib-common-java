@@ -135,7 +135,7 @@ private boolean [] __tsRegressionChecksMaskSingle = null;
 Array indicating whether months have valid relationships (for a single equation).
 */
 private boolean [] __tsRegressionChecksMaskMonthly = null;
-    
+
 /**
 Constructor.  The input parameters are checked and the data are extracted from time series into arrays
 needed for the analysis.  The analyzeForFilling() or analyzeForComparison() methods must be called to
@@ -238,25 +238,11 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
 }
 
 /**
-This method is not yet implemented - it is envisioned to be used to compare time series, for example
-when comparing model simulations against observed data during calibration.  As a work-around,
-use the legacy TSRegression() class to analyze for comparison. 
-*/
-public void analyzeForComparison ()
-{
-    // TODO SAM 2012-01-15 Need to include some of the original logic from TSRegression here if the
-    // comparison capability is enabled
-    //calculateRegressionRelationships();
-    //calculateEquationErrorsWhenComparing();
-    //checkRegressionRelationships(minimumSampleSize, minimumR, confidenceInterval);
-}
-
-/**
 Analyze the data for filling.  In this case the full analysis is performed including the following steps:
 <ol>
 <li>    Analyze the data to determine the regression relationships (parameters from the constructor are
         used to control the analysis).</li>
-<li>    Estimate errors by using the regression relationships to estimate previous know values and
+<li>    Estimate errors by using the regression relationships to estimate previous known values and
         determining the error from the differences (parameters from the constructor are used to control
         the analysis).</li>
 <li>    Performing checks on the output to determine if the relationships are OK (parameters passed to this
@@ -269,7 +255,6 @@ relationship(s)
 */
 public void analyzeForFilling ( Integer minimumSampleSize, Double minimumR, Double confidenceInterval )
 {
-    // Single equation...
     calculateRegressionRelationships(getAnalysisMethod(), getTransformation(), getForcedIntercept());
     calculateEquationErrorsWhenFilling(getTransformation());
     if ( (minimumSampleSize == null) || (minimumSampleSize < 2) ) {
@@ -277,16 +262,16 @@ public void analyzeForFilling ( Integer minimumSampleSize, Double minimumR, Doub
         minimumSampleSize = 2;
     }
     checkRegressionRelationships(minimumSampleSize, minimumR, confidenceInterval);
-    // Monthly equations...
 }
 
 /**
 Set the analysis months mask, which is an array of 12 booleans that indicate whether a month's
 data should be in the analysis.
+Both input and output are 0 indexed.
 @return an array of 12 booleans, where the first is for January, indicating whether the month should
 be included in the analysis.
 @param analysisMonths an array indicating which months are to be included in the analysis - if null
-or empty all months will be included
+or empty all months will be included. January is 1.
 */
 private boolean [] calculateAnalysisMonthsMask ( int [] analysisMonths )
 {
@@ -310,35 +295,6 @@ private boolean [] calculateAnalysisMonthsMask ( int [] analysisMonths )
 /**
 Estimate error statistics from the relationship equations.  This is done by estimating each value in the
 dependent time series that originally had a value and comparing the estimate to the original.
-*/
-//private void calculateEquationErrorsWhenComparing ()
-//{
-    /*
-    double rmse = 0.0, rmseTransformed = 0.0;
-    double [] Y1_estimated = null;  // Estimated Y1 if filling data.
-
-    else {
-        // Just use available data...
-        double ytemp, xtemp;
-        for ( int i = 0; i < n1; i++ ) {
-            if ( __transformation == DataTransformationType.LOG ) {
-                rmseTransformed += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
-                // Always do untransformed data...
-                ytemp = Math.pow(10.0, Y1_data[i]);
-                xtemp = Math.pow(10.0, X1_data[i]);
-                rmse += ((ytemp - xtemp)*(ytemp - xtemp));
-            }
-            else {
-                rmse += ((Y1_data[i] - X1_data[i])*(Y1_data[i] - X1_data[i]));
-            }
-        }
-    }
-    */
-//}
-
-/**
-Estimate error statistics from the relationship equations.  This is done by estimating each value in the
-dependent time series that originally had a value and comparing the estimate to the original.
 This analysis is redundant in that if time are actually filled, the steps will be repeated.  However, separating
 the analysis and the filling allows the analysis results to be evaluated to determine if the relationship
 is valid.  This analysis is performed on all the data; however, a later filling step such as in the TSTool
@@ -350,7 +306,7 @@ private void calculateEquationErrorsWhenFilling ( DataTransformationType transfo
     TSRegressionData regressionDataTransformed = getTSRegressionDataTransformed();
     TSRegressionResults regressionResults = getTSRegressionResults();
     TSRegressionResults regressionResultsTransformed = getTSRegressionResultsTransformed();
-
+    
     //single equation
     RegressionEstimateErrors placeholder = new RegressionEstimateErrors(
             null, null, new double[0], null, null, null);
@@ -418,8 +374,17 @@ private RegressionEstimateErrors[] calcRmseSeeSeSlope(DataTransformationType tra
 		RegressionResults results, RegressionData data, RegressionData transformedData, RegressionResults transformedResults) {
 
 	//get all the data needed for calculations
-	Double a = results.getA();
-	Double b = results.getB();
+	Double a;
+	Double b;
+	if (results == null) {
+		//problem calculating relationship
+		a = null;
+		b = null;
+	}
+	else {
+		a = results.getA();
+		b = results.getB();
+	}
 	
     RegressionEstimateErrors untransformed = null;
     RegressionEstimateErrors transformed = null;
@@ -437,8 +402,8 @@ private RegressionEstimateErrors[] calcRmseSeeSeSlope(DataTransformationType tra
     double [] Y1transformedEstimated = new double[n1];
     double [] Y1estimated = new double[n1];
 	
-	if (!(a == null || b == null || a.equals(Double.NaN) || b.equals(Double.NaN))) {
-		//If any of those were true, we didn't calculate a relationship, so don't bother calculating the errors.
+	if (a != null && b != null && !a.equals(Double.NaN) && !b.equals(Double.NaN) && data != null) {
+		//If any of those were false, we didn't calculate a relationship, so don't bother calculating the errors.
 		double [] X1 = data.getX1();
 		double X1mean = data.getMeanX1();
 		double [] Y1 = data.getY1();
@@ -529,8 +494,15 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
 	        if ( Message.isDebugOn ) {
 	            Message.printStatus(2, routine, "Calculating single equation relationship..." );
 	        }
-	        singleRegressionResults = MathUtil.ordinaryLeastSquaresRegression(
-	            tsRegressionDataTransformed.getSingleEquationRegressionData(), forcedIntercept);
+	        RegressionData data = tsRegressionDataTransformed.getSingleEquationRegressionData();
+	        if (data.getX1().length == 0) {
+	        	Message.printWarning(3, routine, "No overlap between "+__xTS.getLocation()+" and "+__yTS.getLocation()+"." );
+	            singleRegressionResults = new RegressionResults(
+	                data, forcedIntercept, Double.NaN, Double.NaN, Double.NaN );
+	        }
+	        else {
+	        	singleRegressionResults = MathUtil.ordinaryLeastSquaresRegression(data, forcedIntercept);
+	        }
 	    }
 	    catch ( Exception e ) {
 	        Message.printWarning(3, routine, "Error computing single regression relationship (" + e + ")." );
@@ -545,12 +517,23 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
 	            if ( Message.isDebugOn ) {
 	                Message.printStatus(2, routine, "Calculating month " + iMonth + " equation relationship..." );
 	            }
-	            monthlyRegressionResults[iMonth - 1] =
-	                MathUtil.ordinaryLeastSquaresRegression(
-	                    getTSRegressionDataTransformed().getMonthlyEquationRegressionData(iMonth), forcedIntercept);
+	            RegressionData data = getTSRegressionDataTransformed().getMonthlyEquationRegressionData(iMonth);
+	            if (data.getX1().length == 0) {
+	            	//no overlap, don't go into regression and spit out a million errors
+	            	Message.printWarning(3, routine, "No overlap between "+__xTS.getLocation()+" and "+__yTS.getLocation()+
+	            		" at month "+iMonth);
+		            monthlyRegressionResults[iMonth - 1] = new RegressionResults(
+		                data, forcedIntercept, Double.NaN, Double.NaN, Double.NaN );
+	            }
+	            else {
+	            	//we have data, everything's OK
+	            	monthlyRegressionResults[iMonth - 1] =
+	            		MathUtil.ordinaryLeastSquaresRegression(data, forcedIntercept);
+	            }
 	        }
 	        catch ( Exception e ) {
-	            Message.printWarning(3, routine, "Error computing month " + iMonth + " regression relationship (" + e + ")." );
+	            Message.printWarning(3, routine, "Error computing month " + iMonth + " regression relationship (" + e + ") for "+
+	            	__yTS.getLocation()+" and "+__xTS.getLocation()+"." );
 	            Message.printWarning(3, routine, e);
 	            monthlyRegressionResults[iMonth - 1] = new RegressionResults(
 	                tsRegressionDataTransformed.getMonthlyEquationRegressionData(iMonth),
@@ -586,11 +569,11 @@ relationship(s)
 private void checkRegressionRelationships (
     Integer minimumSampleSize, Double minimumR, Double confidenceInterval )
 {
-    // Rest to defaults if necessary
-    if ( minimumSampleSize == null ) {
-        minimumSampleSize = 2; // Less than this and will have division by zero
+    // Reset to defaults if necessary
+    if ( minimumSampleSize == null || minimumSampleSize < 3 ) {
+        minimumSampleSize = 3; // Less than this and will have division by zero
     }
-    // Since this is for the transformed data, which will be the same as untransformed if no transformation, use transformed data
+    //Transformed will be same as untransformed if no transformation 
     TSRegressionData data = getTSRegressionDataTransformed ();
     TSRegressionResults results = getTSRegressionResults ();
     TSRegressionEstimateErrors errors = getTSRegressionErrorsTransformed ();
@@ -615,16 +598,26 @@ private void checkRegressionRelationships (
     RegressionChecks [] regressionChecksMonthly = new RegressionChecks[12];
     if (__analyzeMonthlyEquations) {
     	for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
+    		Double testScore;
+    		try {
+    			//program mixed station analysis was based off took the absolute value of the test score
+    			//so we're doing that here
+    			testScore = Math.abs(errors.getMonthlyEquationRegressionErrors(iMonth).getTestScore(
+						results.getMonthlyEquationRegressionResults(iMonth).getB()));
+    		}
+    		catch (NullPointerException e) {
+    			//test score came out null, so couldn't take the absolute value
+    			//set it to null
+    			testScore = null;
+    		}
     		regressionChecksMonthly[iMonth - 1] = new RegressionChecks(
     			results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK(),
     				minimumSampleSize, data.getMonthlyEquationRegressionData(iMonth).getN1(),
     				minimumR, results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient(),
     				getConfidenceIntervalPercent(),
     				errors.getMonthlyEquationRegressionErrors(iMonth).getTestRelated(
-    						errors.getMonthlyEquationRegressionErrors(iMonth).getTestScore(
-    								results.getMonthlyEquationRegressionResults(iMonth).getB()),
-    								errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile(
-    										getConfidenceIntervalPercent())));
+    					testScore, errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile(
+    						getConfidenceIntervalPercent())));
     	}
     }
     setTSRegressionChecksTransformed ( new TSRegressionChecks ( regressionChecksSingle, regressionChecksMonthly) );
@@ -647,70 +640,80 @@ private void extractDataArraysFromTimeSeries ()
     int [] analysisMonths = getAnalysisMonths();
     boolean [] analysisMonthsMask = getAnalysisMonthsMask();
     // Extract data from time series for single equation (may only contain specific months)...
-    double [] x1Single = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
-        analysisMonths, false, // Do not include missing
-        true, // Match non-missing for the following time series
-        yTS, TSToArrayReturnType.DATA_VALUE );
-    double [] y1Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-        analysisMonths, false, // Do not include missing
-        true, // Match non-missing for the following time series
-        xTS, TSToArrayReturnType.DATA_VALUE );
-    double [] x2Single = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
-        analysisMonths, false, // Do not include missing
-        false, // DO NOT match non-missing for the following time series
-        yTS, TSToArrayReturnType.DATA_VALUE );
-    double [] y3Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-        analysisMonths, false, // Do not include missing
-        false, // DO NOT match non-missing for the following time series
-        xTS, TSToArrayReturnType.DATA_VALUE );
-    RegressionData dataSingle = new RegressionData ( x1Single, y1Single, x2Single, y3Single );
+    RegressionData dataSingle = null;
+    if (__analyzeSingleEquation) {
+    	double [] x1Single = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
+    			analysisMonths, false, // Do not include missing
+    			true, // Match non-missing for the following time series
+    			yTS, TSToArrayReturnType.DATA_VALUE );
+    	double [] y1Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
+    			analysisMonths, false, // Do not include missing
+    			true, // Match non-missing for the following time series
+    			xTS, TSToArrayReturnType.DATA_VALUE );
+    	double [] x2Single = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
+    			analysisMonths, false, // Do not include missing
+    			false, // DO NOT match non-missing for the following time series
+    			yTS, TSToArrayReturnType.DATA_VALUE );
+    	double [] y3Single = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
+    			analysisMonths, false, // Do not include missing
+    			false, // DO NOT match non-missing for the following time series
+    			xTS, TSToArrayReturnType.DATA_VALUE );
+    	
+		Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
+				"x2[indep only],y3[dep only]]): " + x1Single.length + "," +
+				y1Single.length + "," +
+				x2Single.length + "," +
+				y3Single.length );
+    	dataSingle = new RegressionData ( x1Single, y1Single, x2Single, y3Single );
+    }
     // Extract data arrays from time series for monthly equations...
-    double [][] x1Monthly = new double[12][];
-    double [][] y1Monthly = new double[12][];
-    double [][] x2Monthly = new double[12][];
-    double [][] y3Monthly = new double[12][];
     RegressionData [] dataMonthly = new RegressionData[12];
-    for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
-        // Only include requested months...
-        if ( analysisMonthsMask[iMonth - 1] ) {
-            int [] analysisMonths2 = new int[1];
-            analysisMonths2[0] = iMonth;
-            x1Monthly[iMonth - 1] = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths2, false, // Do not include missing
-                true, // Match non-missing for the following time series
-                yTS, TSToArrayReturnType.DATA_VALUE );
-            y1Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths2, false, // Do not include missing
-                true, // Match non-missing for the following time series
-                xTS, TSToArrayReturnType.DATA_VALUE );
-            x2Monthly[iMonth - 1] = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
-                analysisMonths2, false, // Do not include missing
-                false, // DO NOT match non-missing for the following time series
-                yTS, TSToArrayReturnType.DATA_VALUE );
-            y3Monthly[iMonth - 1] = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
-                analysisMonths2, false, // Do not include missing
-                false, // DO NOT match non-missing for the following time series
-                xTS, TSToArrayReturnType.DATA_VALUE );
-        }
-        else {
-            // Define empty arrays but no data are included
-            x1Monthly[iMonth - 1] = new double[0];
-            y1Monthly[iMonth - 1] = new double[0];
-            x2Monthly[iMonth - 1] = new double[0];
-            y3Monthly[iMonth - 1] = new double[0];
-        }
-        Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
-        	"x2[indep only],y3[dep only]]) for month " + iMonth +
-            ": " + x1Monthly[iMonth - 1].length + "," +
-            y1Monthly[iMonth - 1].length + "," +
-            x2Monthly[iMonth - 1].length + "," +
-            y3Monthly[iMonth - 1].length );
-        dataMonthly[iMonth - 1] = new RegressionData (x1Monthly[iMonth - 1], y1Monthly[iMonth - 1],
-            x2Monthly[iMonth - 1], y3Monthly[iMonth - 1]);
+    if (__analyzeMonthlyEquations) {
+
+    	for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
+    		
+    		//initialize arrays as empty, only add if there is data....
+    		double [] x1Monthly = new double[0];
+	    	double [] y1Monthly = new double[0];
+	    	double [] x2Monthly = new double[0];
+	    	double [] y3Monthly = new double[0];
+    		
+    		// Only include requested months...
+    		if ( analysisMonthsMask[iMonth - 1] ) {
+    			int [] analysisMonths2 = new int[1];
+    			
+    			analysisMonths2[0] = iMonth;
+    			x1Monthly = TSUtil.toArray(xTS, dependentAnalysisStart, dependentAnalysisEnd,
+    					analysisMonths2, false, // Do not include missing
+    					true, // Match non-missing for the following time series
+    					yTS, TSToArrayReturnType.DATA_VALUE );
+    			y1Monthly = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
+    					analysisMonths2, false, // Do not include missing
+    					true, // Match non-missing for the following time series
+    					xTS, TSToArrayReturnType.DATA_VALUE );
+    			x2Monthly = TSUtil.toArray(xTS, independentAnalysisStart, independentAnalysisEnd,
+    					analysisMonths2, false, // Do not include missing
+    					false, // DO NOT match non-missing for the following time series
+    					yTS, TSToArrayReturnType.DATA_VALUE );
+    			y3Monthly = TSUtil.toArray(yTS, dependentAnalysisStart, dependentAnalysisEnd,
+    					analysisMonths2, false, // Do not include missing
+    					false, // DO NOT match non-missing for the following time series
+    					xTS, TSToArrayReturnType.DATA_VALUE );
+    		}
+
+    		Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
+    				"x2[indep only],y3[dep only]]) for month " + iMonth +
+    				": " + x1Monthly.length + "," +
+    				y1Monthly.length + "," +
+    				x2Monthly.length + "," +
+    				y3Monthly.length );
+    		dataMonthly[iMonth - 1] = new RegressionData (x1Monthly, y1Monthly,
+    				x2Monthly, y3Monthly);
+    	}
     }
     // Store the input data in the TSRegressionData object
     setTSRegressionData ( new TSRegressionData ( xTS, yTS, dataSingle, dataMonthly ) );
-    
+   
     // If a transformation is requested, transform the data and store in a separate object
     DataTransformationType transformation = getTransformation();
     if ( transformation == DataTransformationType.NONE ) {
@@ -719,8 +722,38 @@ private void extractDataArraysFromTimeSeries ()
     }
     else {
         // Transform the original data
-        setTSRegressionDataTransformed(getTSRegressionData().transformLog10(getLEZeroLogValue()));
+    	setTSRegressionDataTransformed(getTSRegressionData().transformLog10(getLEZeroLogValue(),
+    			__analyzeMonthlyEquations, __analyzeSingleEquation));
     }
+}
+
+/**
+Return whether or not the tests came out OK.
+@return whether or not the tests were OK
+*/
+public boolean isOk() {
+	if (__analyzeSingleEquation) {
+		boolean[] test = getTSRegressionChecksMaskSingle();
+		for (boolean single : test) {
+			if (single) return single;
+		}
+		return false;
+	}
+	if (__analyzeMonthlyEquations) {
+		boolean[] test = getTSRegressionChecksMaskMonthly();
+		for (boolean month : test) {
+			if (month) return month;
+		}
+		return false;
+	}
+	return false;
+}
+
+/**
+Remove the dependent time series (not needed for filling in mixed station) for memory purposes.
+*/
+public void removeDependent() {
+	__yTS = null;
 }
 
 /**
@@ -742,12 +775,38 @@ public int [] getAnalysisMonths ()
 }
 
 /**
+Set the months to be analyzed.
+Exists so that during a monthly fill, the same data set can be used for all months, simply changing which ones to ignore.
+@param months The month numbers to use in the analysis.
+*/
+public void setAnalysisMonths(int[] months) {
+	__analysisMonths = months;
+	__analysisMonthsMask = calculateAnalysisMonthsMask ( __analysisMonths );
+}
+
+/**
 Return an array indicating whether or not each month is to be analyzed.  This information
 corresponds to the AnalysisMonth data but has been filled out for each month to facilitate use.
 @return the boolean[12] array indicating whether the months should be analyzed.
 */
 public boolean [] getAnalysisMonthsMask ()
 {   return __analysisMonthsMask;
+}
+
+/**
+Return whether or not to analyze for a single equation. 
+@return whether or not to analyze for a single equation
+*/
+public boolean getAnalyzeSingleEquation() {
+	return __analyzeSingleEquation;
+}
+
+/**
+Return whether or not to analyze for monthly equations
+@return whether or not to analyze for monthly equations
+*/
+public boolean getAnalyzeMonthlyEquations() {
+	return __analyzeMonthlyEquations;
 }
 
 /**
@@ -884,8 +943,7 @@ public TSRegressionData getTSRegressionDataTransformed ()
 Return an array indicating whether or not each month has valid relationships (for example that can
 then be used to fill missing data).  This information is determined when the relationships are checked.
 This array is useful rather than checking several individual bits of information.
-@return the boolean[12] array indicating whether the equations for the months are valid.  If the analysis
-is for a 
+@return the boolean[12] array indicating whether the equations for the months are valid. It is 0 indexed.
 */
 public boolean [] getTSRegressionChecksMaskMonthly ()
 {   String routine = "TSRegressionAnalysis.getTSRegressionChecksMaskMonthly";
@@ -894,6 +952,7 @@ public boolean [] getTSRegressionChecksMaskMonthly ()
         // Have not yet constructed the data array so do it
         __tsRegressionChecksMaskMonthly = new boolean[12];
         TSRegressionChecks tsChecks = getTSRegressionChecksTransformed();
+        Message.printStatus(2, routine, "Relationship: "+__xTS.getLocation()+" and "+__yTS.getLocation());
         for ( int i = 0; i < 12; i++ ) {
             // Initialize
             __tsRegressionChecksMaskMonthly[i] = false;
@@ -903,6 +962,14 @@ public boolean [] getTSRegressionChecksMaskMonthly ()
                 // Now check each of the check criteria
                 RegressionChecks checks = tsChecks.getMonthlyEquationRegressionChecks(i + 1);
                 Message.printStatus(2, routine, "Monthly regression checks [" + i + "] = " + checks );
+
+                //debug
+                Message.printStatus(2, routine, "Test Score: "+getTSRegressionErrorsTransformed().getMonthlyEquationRegressionErrors(i+1).getTestScore(
+                		getTSRegressionResultsTransformed().getMonthlyEquationRegressionResults(i+1).getB()));
+                Message.printStatus(2, routine, "Test Quantile: "+getTSRegressionErrorsTransformed().getMonthlyEquationRegressionErrors(i+1).getStudentTTestQuantile(
+						getConfidenceIntervalPercent()));
+                //
+                
                 if ( checks == null ) {
                     __tsRegressionChecksMaskMonthly[i] = false;
                     Message.printWarning(3,routine,"Monthly equation regression checks is null for month [" +
@@ -921,8 +988,7 @@ public boolean [] getTSRegressionChecksMaskMonthly ()
 /**
 Return an array indicating whether or not each month has valid relationships (for example that can
 then be used to fill missing data).  This information is determined when the relationships are checked.
-@return the boolean[12] array indicating whether the equations for the months are valid.  If the analysis
-is for a 
+@return the boolean[12] array indicating whether the equations for the months are valid. It is 0 indexed.
 */
 public boolean [] getTSRegressionChecksMaskSingle ()
 {   boolean [] analysisMonthsMask = getAnalysisMonthsMask();
@@ -937,13 +1003,15 @@ public boolean [] getTSRegressionChecksMaskSingle ()
             // checks have passed for the single equation
             RegressionChecks checks = tsChecks.getSingleEquationRegressionChecks();
             if ( analysisMonthsMask[i] ) {
-                Message.printStatus(2,"","Month [" + i + "] is in analysis.");
+                //Message.printStatus(2,"","Month [" + i + "] is in analysis.");
                 // Now check each of the check criteria
+            	Message.printStatus(2,"","Relationship for: "+__xTS.getLocation()+" and "+__yTS.getLocation());
                 Message.printStatus(2,"","OK sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
                 Message.printStatus(2,"","OK minimum R [" + i + "] is " + checks.getIsROK() );
                 Message.printStatus(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsTestOK() );
                 if ( checks.getIsSampleSizeOK() && checks.getIsROK() &&
-                    ((checks.getIsTestOK() != null) && checks.getIsTestOK()) ) {
+                    ((checks.getIsTestOK() != null) && checks.getIsTestOK())
+                    && checks.getIsAnalysisPerformedOK()) {
                     __tsRegressionChecksMaskSingle[i] = true;
                 }
             }
@@ -967,7 +1035,6 @@ Return the regression analysis results, for the transformed data.
 public TSRegressionResults getTSRegressionResultsTransformed ()
 {   return __tsRegressionResultsTransformed;
 }
-
 
 /**
 Set the TSRegressionData used in the analysis.

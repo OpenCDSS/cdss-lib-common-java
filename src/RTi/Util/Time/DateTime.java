@@ -1548,16 +1548,6 @@ public boolean equals ( DateTime t, int precision )
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable
-{	__tz = null;
-	super.finalize();
-}
-
-/**
 Return the absolute day.
 @return The absolute day.  This is a computed value.
 @see RTi.Util.Time.TimeUtil#absoluteDay
@@ -2277,12 +2267,7 @@ considered in the comparison (no time zone shift is made).
 @param d DateTime to compare.
 */
 public boolean lessThanOrEqualTo ( DateTime d )
-{	if ( !greaterThan(d) ) {
-		return true;
-	}
-	else {
-        return false;
-	}
+{	return !greaterThan(d);
 }
 
 /**

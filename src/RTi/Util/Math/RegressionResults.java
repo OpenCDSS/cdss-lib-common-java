@@ -92,6 +92,15 @@ public RegressionResults ( RegressionData data, Double forcedIntercept, Double a
 }
 
 /**
+Return data for regression equation
+Used so that we can clear it after it is no longer needed.
+@return data for regression equation
+*/
+public RegressionData get__data() {
+	return __data;
+}
+
+/**
 Return A (intercept) in regression equation, or null if not calculated.
 @return A (intercept) in regression equation, or null if not calculated.
 */
@@ -177,20 +186,11 @@ Return a string representation of the data.
 @return a string representation of the object, which is a verbose listing
 of A, B, etc.  Typically this method needs to be overloaded in a more specific class.
 */
-/*
 public String toString ()
-{	if ( __isAnalyzed ) {
+{
 		return "Intercept A = " + __a + ", " +
 		"Slope B = " + __b + ", " +
-		"N1 = " + __n1 + ", " +
-		"N2 = " + __n2 + ", " +
-		"RMSE = " + __rmse + ", " +
 		"R = " + __r;
-	}
-	else {
-	    return "Analysis not performed";
-	}
 }
-*/
 
 }

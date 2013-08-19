@@ -413,7 +413,7 @@ protected List<String> _comments;
 List of metadata about data flags.  This provides a description about flags
 encountered in the time series.
 */
-private List<TSDataFlagMetadata> __dataFlagMetadataList = new Vector();
+private List<TSDataFlagMetadata> __dataFlagMetadataList = new Vector<TSDataFlagMetadata>();
 
 /**
 History of time series.  This is not the same as the comments but instead
@@ -663,14 +663,14 @@ public Object clone ()
 		int size = 0;
 		int i = 0;
 		if ( _comments != null ) {
-			ts._comments = new Vector(_comments.size());
+			ts._comments = new Vector<String>(_comments.size());
 			size = _comments.size();
 			for ( i = 0; i < size; i++ ) {
 				ts._comments.add( new String(_comments.get(i)));
 			}
 		}
 		if ( _genesis != null ) {
-			ts._genesis = new Vector(_genesis.size());
+			ts._genesis = new Vector<String>(_genesis.size());
 			size = _genesis.size();
 			for ( i = 0; i < size; i++ ) {
 				ts._genesis.add(new String(_genesis.get(i)));
@@ -884,9 +884,9 @@ public void copyHeader ( TS ts )
 
 	setDescription( ts.getDescription() );
 
-	_comments = new Vector (2,1);
+	_comments = new Vector<String>(2,1);
 	_comments = StringUtil.addListToStringList ( _comments, ts.getComments() );
-	_genesis = new Vector (2,1);
+	_genesis = new Vector<String>(2,1);
 	_genesis = StringUtil.addListToStringList ( _genesis, ts.getGenesis() );
 
 	setDataUnits( ts.getDataUnits() );
@@ -907,32 +907,6 @@ public void copyHeader ( TS ts )
 	// Data flags...
 
 	_has_data_flags = ts._has_data_flags;
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	_comments = null;
-	_data_limits = null;
-	_data_limits_original = null;
-	_data_units = null;
-	_data_units_original = null;
-	_date1 = null;
-	_date1_original = null;
-	_date2 = null;
-	_date2_original = null;
-	_description = null;
-	_extended_legend = null;
-	_genesis = null;
-	_id = null;
-	_input_name = null;
-	_legend = null;
-	_status = null;
-	_version = null;
-	super.finalize();
 }
 
 /**
@@ -971,7 +945,7 @@ Format a standard time series header, for use with formatOutput.
 and end of the header are not included.
 */
 public List<String> formatHeader ()
-{	List<String> header = new Vector ( 10, 5 );
+{	List<String> header = new Vector<String>( 10, 5 );
 
     header.add ( "Time series alias       = " + getAlias() );
     header.add ( "Time series identifier  = " + getIdentifier() );
@@ -1763,8 +1737,8 @@ private void init( )
 	_data_interval_base_original = 1;
 	_data_interval_mult_original = 0;
 	setDescription( "" );
-	_comments = new Vector (2,2);
-	_genesis = new Vector (2,2);
+	_comments = new Vector<String>(2,2);
+	_genesis = new Vector<String>(2,2);
 	setDataUnits( "" );
 	setDataUnitsOriginal( "" );
 	setMissing ( -999.0 );
@@ -2125,7 +2099,7 @@ public void setExtendedLegend ( String extended_legend )
 Set the genesis information.  The original is lost.
 @param genesis Genesis comments.
 */
-public void setGenesis ( List genesis )
+public void setGenesis ( List<String> genesis )
 {	setGenesis ( genesis, false );
 }
 
@@ -2134,11 +2108,11 @@ Set the genesis information.
 @param genesis Genesis comments.
 @param append Indicates whether genesis information should be appended.
 */
-public void setGenesis ( List genesis, boolean append )
+public void setGenesis ( List<String> genesis, boolean append )
 {	if ( !append ) {
 		// Don't call removeAllElements() because the genesis may have
 		// been retrieved and then reset using the same Vector!
-		_genesis = new Vector();
+		_genesis = new Vector<String>();
 	}
 	_genesis = StringUtil.addListToStringList ( _genesis, genesis );
 }

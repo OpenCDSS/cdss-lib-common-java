@@ -90,9 +90,6 @@ public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize
     __R = R;
     __isROK = true;
     if ( __minimumR != null ) {
-        if ( __minimumR < 0 ) {
-            throw new InvalidParameterException("Minimum R (" + __R + ") is invalid - must be > 0");
-        }
         if ( (R == null) || (R < minimumR) ) {
             __isROK = false;
         }

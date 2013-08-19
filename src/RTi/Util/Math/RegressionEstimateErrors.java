@@ -1,6 +1,5 @@
 package RTi.Util.Math;
 
-import RTi.Util.Message.Message;
 import org.apache.commons.math3.distribution.TDistribution;
 
 /**
@@ -72,11 +71,11 @@ public RegressionEstimateErrors ( RegressionData data, RegressionResults results
 /**
 Finalize before garbage collection.
 @exception Throwable if an error occurs.
-*/
+*//*
 protected void finalize()
 throws Throwable {
 	super.finalize();
-}
+}*/
 
 /**
 Return the mean for the estimated dependent array, or null if not analyzed.
@@ -121,10 +120,16 @@ Return the standard deviation for the estimated dependent array, or null if not 
 */
 public Double getStandardDeviationY1est ()
 {   Double stddevY1est = __stddevY1est;
-    if ( stddevY1est == null ) {
-        stddevY1est = MathUtil.standardDeviation(getY1est());
-        setStandardDeviationY1est( stddevY1est );
-    }
+	try {
+		if ( stddevY1est == null && getY1est() != null && getY1est().length > 1) {
+			stddevY1est = MathUtil.standardDeviation(getY1est());
+			setStandardDeviationY1est( stddevY1est );
+		}
+	}
+	catch (IllegalArgumentException e) {
+		//problem calculating it....
+		stddevY1est = Double.NaN;
+	}
     return stddevY1est;
 }
 
@@ -151,9 +156,9 @@ for the slope of the regression line), to determine if it is a good relationship
 @return null if unable to compute the quantile
 */
 public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
-{   String routine = getClass().getName() + ".getStudentTTestQuantile";
+{   
     if ( confidenceIntervalPercent == null ) {
-        Message.printStatus(2,routine,"confidenceIntervalPercent is null - not computing quantile");
+        //Message.printStatus(2,routine,"confidenceIntervalPercent is null - not computing quantile");
         return null;
     }
     if ( getRegressionData() == null ) {
@@ -161,7 +166,7 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
     }
     // Single tail exceedance probability in range 0 to 1.0
     // For example, a confidence interval of 95% will have p = .05
-    double alpha = confidenceIntervalPercent/100.0;
+    double alpha = (100 - confidenceIntervalPercent)/100.0;
     double alpha2 = alpha/2.0;
     double [] Y1 = getRegressionData().getY1();
     double [] Y1est = getY1est();
@@ -175,16 +180,17 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
     // the degrees of freedom
     int dof = Y1est.length - 2;
     Double quantile = null;
-    Message.printStatus(2,routine, "alpha=" + alpha );
-    Message.printStatus(2,routine, "n=" + Y1est.length );
-    Message.printStatus(2,routine, "dof=" + dof );
+    //commented out to make looking through logs easier
+    //Message.printStatus(2,routine, "alpha=" + alpha );
+    //Message.printStatus(2,routine, "n=" + Y1est.length );
+    //Message.printStatus(2,routine, "dof=" + dof );
     try {
         boolean useApacheMath = true;
         if ( useApacheMath ) {
             // Why is degrees of freedom a double?
             org.apache.commons.math3.distribution.TDistribution tDist = new TDistribution(dof);
             //Get the value at which this confidence interval is satisfied
-            quantile = tDist.inverseCumulativeProbability(alpha);
+            quantile = -1*tDist.inverseCumulativeProbability(alpha2);
         }
         else {
             StudentTTest t = new StudentTTest();
@@ -200,6 +206,8 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
 
 /**
 Return the Student T Test score as b/SEslope
+See https://en.wikipedia.org/wiki/Student%27s_t-test#Slope_of_a_regression_line or
+http://stattrek.com/regression/slope-test.aspx for more details on why this works
 @param b the slope of the regression line
 @return null if unable to compute the test score or Double.POSITIVE_INFINITY if division by zero.
 */
@@ -217,25 +225,17 @@ public Double getTestScore ( Double b )
 
 /**
 Determine whether the relationship is valid for the confidence interval specified during analysis
-@return true if the result of getTestScore() is >= the result from getStudentTTestQuantile();
-return null if the inputs are not specified
+@return true if the result of getTestScore() is >= the result from getStudentTTestQuantile()
+null if the inputs are not specified
 */
 public Boolean getTestRelated ( Double testScore, Double testQuantile )
 {   
-	//should it really return null in this case? Doesn't false make more sense?
+	//if either of these was not calculated, the test is bad, so return false
 	if ( (testScore == null) || (testQuantile == null) ) {
         return false;
     }
     else {
-        if ( testScore >= testQuantile ) {
-        	//does this mean related or not?
-        	//Documentation says not
-        	//but that makes no sense at all.
-            return true;
-        }
-        else {
-            return false;
-        }
+    	return ( testScore >= testQuantile);
     }
 }
 
@@ -245,6 +245,13 @@ Return the estimated dependent array.
 public double [] getY1est ()
 {
     return __Y1est;
+}
+
+/**
+Remove the estimated dependent array for memory purposes.
+*/
+public void clearY1est() {
+	__Y1est = null;
 }
 
 /**

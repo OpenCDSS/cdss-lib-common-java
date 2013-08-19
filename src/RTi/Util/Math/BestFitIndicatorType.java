@@ -23,7 +23,11 @@ public enum BestFitIndicatorType
      * The following is used with TSTool's Mixed Station Analysis and indicates that monthly
      * equations are used but the error is the total of all months.
      */
-    SEP_TOTAL("SEPTotal");
+    SEP_TOTAL("SEPTotal"),
+    /**
+     * The following is used for filling non-mixed station, to allow for the same code without requiring sorting
+     */
+    NONE("None");
     
     /**
      * The name that should be displayed when the best fit type is used in UIs and reports.

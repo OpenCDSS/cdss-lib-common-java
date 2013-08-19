@@ -82,23 +82,33 @@ public RegressionData getSingleEquationRegressionData ()
 /**
 Return a new copy of this instance where all of the data arrays have been transformed by log10.
 @param leZeroLog10 the value to assign when the input data are <= 0 (e.g., .001 or Double.NaN).
+@param monthly whether or not monthly equations are being used (so we don't transform data that we aren't using).
+@param single whether or not a single equation is being used (so we don't transform data that we aren't using).
 */
-public TSRegressionData transformLog10 ( double leZeroLog10 )
+public TSRegressionData transformLog10 ( double leZeroLog10, boolean monthly, boolean single )
 {
-    double [] x1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX1(), leZeroLog10 );
-    double [] y1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY1(), leZeroLog10 );
-    double [] x2Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX2(), leZeroLog10 );
-    double [] y3Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY3(), leZeroLog10 );
-    RegressionData singleEquationDataTransformed =
-        new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
+	//initialize as empty and add data if it is needed
+	RegressionData singleEquationDataTransformed = null;
     RegressionData [] monthlyEquationDataTransformed = new RegressionData[12];
-    for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
-        x1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX1(), leZeroLog10 );
-        y1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY1(), leZeroLog10 );
-        x2Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX2(), leZeroLog10 );
-        y3Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY3(), leZeroLog10 );
-        monthlyEquationDataTransformed[iMonth - 1] =
-            new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
+    if (monthly) {
+    	//transform monthly data
+    	for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
+    		double [] x1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX1(), leZeroLog10 );
+    		double [] y1Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY1(), leZeroLog10 );
+    		double [] x2Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getX2(), leZeroLog10 );
+    		double [] y3Transformed = MathUtil.log10 ( getMonthlyEquationRegressionData(iMonth).getY3(), leZeroLog10 );
+    		monthlyEquationDataTransformed[iMonth - 1] =
+    			new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
+    	}
+    }
+    if (single) {
+    	//transform single data
+    	double [] x1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX1(), leZeroLog10 );
+    	double [] y1Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY1(), leZeroLog10 );
+    	double [] x2Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getX2(), leZeroLog10 );
+    	double [] y3Transformed = MathUtil.log10 ( getSingleEquationRegressionData().getY3(), leZeroLog10 );
+    	singleEquationDataTransformed =
+    		new RegressionData(x1Transformed, y1Transformed, x2Transformed, y3Transformed);
     }
     return new TSRegressionData ( getIndependentTS(), getDependentTS(), singleEquationDataTransformed,
         monthlyEquationDataTransformed );

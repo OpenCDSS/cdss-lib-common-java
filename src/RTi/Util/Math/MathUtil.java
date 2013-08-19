@@ -125,7 +125,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 	}
 	int j = 0;
 	boolean divisible;
-	List<Integer> common_denominators = new Vector();
+	List<Integer> common_denominators = new Vector<Integer>();
 	for ( int i = max_value; i > 1; i-- ) {
 		divisible = true;
 		for ( j = 0; j < nvalues; j++ ) {
@@ -867,7 +867,6 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
         throw new IllegalArgumentException ( message );
     }
 
-    double totalX1minusY1_sq = 0.0;
     double totalX1Y1 = 0.0;
     double totalX1 = 0.0;
     double totalX1_sq = 0.0;
@@ -876,8 +875,8 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     Double a = null;
     Double b = null;
     Double r = null;
+    
     for ( int i = 0; i < n1; i++ ) {
-        totalX1minusY1_sq += ((x1[i] - y1[i] )*(x1[i] - y1[i]));
         totalX1Y1 += (x1[i] * y1[i]);
         totalX1 += x1[i];
         totalX1_sq += (x1[i]*x1[i]);
@@ -937,6 +936,8 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     //     ------------------------- =  -------------------------
     //     sum(x^2) - sum(x)^2/n        n*sum(x^2) - sum(x)^2
     //
+    //or, r*StDev(y)/StDev(x)
+    //
     // If the intercept is specified as zero:
     //
     // b = sum(xy)/sum(x^2)
@@ -952,17 +953,16 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
         }
     }
     else {
-        denom = ((double)n1*totalX1_sq) - (totalX1*totalX1);
-        if ( denom > 0 ) {
-            b = (((double)n1*totalX1Y1) - (totalX1*totalY1))/denom;
-        }
-        else {
-            // TODO - should this throw an exception?
-            String message = "Denominator n1*totalX1_sq - totalX1*totalX1 is zero (n1=" + n1 + ", totalX1_sq=" +
-                totalX1_sq + ", totalX1="+ totalX1 + ") setting b=null.";
-            Message.printWarning ( 3, rtn, message );
-            b = null;
-        }
+    	try {
+    		b = r*data.getStandardDeviationY1()/data.getStandardDeviationX1();
+    	}
+    	catch (NullPointerException e) {
+    		//standard deviation could not be calculated, set b to null
+    		String message = "Standard deviation of x ("+data.getStandardDeviationY1()+") or y ("+
+    			data.getStandardDeviationX1()+") could not be calculated, setting b=null";
+    		Message.printWarning ( 3, rtn, message );
+    		b = null;
+    	}
     }
 
     // If the intercept is not specified:
@@ -985,16 +985,16 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
             a = null;
         }
         else {
-            a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
+        	a = data.getMeanY1() - b*data.getMeanX1();
         }
     }
 
-    //if ( Message.isDebugOn ) {
-        //Message.printDebug ( 10, rtn, "Regression analysis results: " +
-        //    "a: " + a + ", " + "b: " + b + ", " + "R: " + r );
+    if ( Message.isDebugOn ) {
+        Message.printDebug ( 10, rtn, "Regression analysis results: " +
+            "a: " + a + ", " + "b: " + b + ", " + "R: " + r );
         Message.printStatus ( 2, rtn,
             "Regression analysis results: n=" + n1 + ", a=" + a + ", b=" + b + ", R=" + r );
-    //}
+    }
 
     // Save in Regression object (null are OK because they will be checked later)...
 

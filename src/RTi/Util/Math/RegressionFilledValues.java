@@ -130,7 +130,7 @@ Return the standard deviation for the filled dependent array, or null if not ana
 */
 public Double getStandardDeviationYFilled ()
 {   Double stddevYfilled = __stddevYfilled;
-    if ( (stddevYfilled == null) && (getYFilled().length >= 2) ) {
+    if ( (stddevYfilled == null) && getYFilled() != null && (getYFilled().length >= 2) ) {
         stddevYfilled = MathUtil.standardDeviation(getYFilled());
         setStandardDeviationYFilled( stddevYfilled );
     }
