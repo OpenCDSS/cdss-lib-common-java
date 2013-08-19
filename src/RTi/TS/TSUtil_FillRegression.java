@@ -206,6 +206,7 @@ public TSUtil_FillRegression ( TS tsToFill, TS tsIndependent,
         __leZeroLogValue = leZeroLogValue;
     }
     // Forced intercept (can only be non-null for no transform and in this case must be zero).
+    __forcedIntercept = forcedIntercept;
     if ( (__forcedIntercept != null) && (__forcedIntercept != 0.0) ) {
         throw new IllegalArgumentException ( "Intercept (" + __forcedIntercept + ") can only be specified as zero." );
     }
@@ -862,45 +863,48 @@ throws Exception
     List<String> statsToOutput = new Vector<String>();
     // Statistics that have _trans are for transformed data and will only be output if a transformation
     // has been specified
+    // _trans means in units of log10(original units), therefore unitless quantities will not have _trans tags
+    // mean, standard deviation, etc. probably aren't needed by end user, but are helpful along the way, so they'll be outputted for now
+    
     // Statistics from the input data...
     statsToOutput.add ( "N1" ); // Same for raw and transformed
     statsToOutput.add ( "MeanX1" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "MeanX1_tran" );
+        statsToOutput.add ( "MeanX1_trans" );
     }
     statsToOutput.add ( "SX1" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "SX1_tran" );
+        statsToOutput.add ( "SX1_trans" );
     }
     statsToOutput.add ( "N2" );
     statsToOutput.add ( "MeanX2" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "MeanX2_tran" );
+        statsToOutput.add ( "MeanX2_trans" );
     }
     statsToOutput.add ( "SX2" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "SX2_tran" );
+        statsToOutput.add ( "SX2_trans" );
     }
     statsToOutput.add ( "MeanY1" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "MeanY1_tran" );
+        statsToOutput.add ( "MeanY1_trans" );
     }
     statsToOutput.add ( "SY1" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "SY1_tran" );
+        statsToOutput.add ( "SY1_trans" );
     }
     statsToOutput.add ( "NY" );
     statsToOutput.add ( "MeanY" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "MeanY_tran" );
+        statsToOutput.add ( "MeanY_trans" );
     }
     statsToOutput.add ( "SY" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "SY_tran" );
+        statsToOutput.add ( "SY_trans" );
     };
     statsToOutput.add ( "SkewY" );
     if ( transformation != DataTransformationType.NONE ) {
-        statsToOutput.add ( "SkewY_tran" );
+        statsToOutput.add ( "SkewY_trans" );
     };
     // Statistics from the analysis results...
     if ( transformation == DataTransformationType.NONE ) {
@@ -910,10 +914,11 @@ throws Exception
         statsToOutput.add ( "R2" );
     }
     else {
-        statsToOutput.add ( "a_tran" );
-        statsToOutput.add ( "b_tran" );
-        statsToOutput.add ( "R_tran" );
-        statsToOutput.add ( "R2_tran" );
+        statsToOutput.add ( "a_trans" );
+        statsToOutput.add ( "b_trans" );
+        //does R really have units?
+        statsToOutput.add ( "R_trans" );
+        statsToOutput.add ( "R2_trans" );
     }
     // Statistics from the error estimates...
     statsToOutput.add ( "MeanY1est" );
@@ -932,28 +937,22 @@ throws Exception
     if ( transformation != DataTransformationType.NONE ) {
         statsToOutput.add ( "SEE_trans" );
     }
-    if ( transformation == DataTransformationType.NONE ) {
-        statsToOutput.add ( "SESlope" );
-        statsToOutput.add ( "TestScore" );
-        statsToOutput.add ( "TestQuantile" );
-        statsToOutput.add ( "TestOK" );
-        statsToOutput.add ( "SampleSizeOK" );
-        statsToOutput.add ( "ROK" );
-    }
-    else {
-        statsToOutput.add ( "SESlope_trans" );
-        statsToOutput.add ( "TestScore_trans" );
-        statsToOutput.add ( "TestQuantile_trans" );
-        statsToOutput.add ( "TestOK_trans" );
-        statsToOutput.add ( "SampleSizeOK_trans" );
-        statsToOutput.add ( "ROK_trans" );
-    }
+
+    //unitless quantities don't have _trans variants
+    statsToOutput.add ( "SESlope" );
+    statsToOutput.add ( "TestScore" );
+    statsToOutput.add ( "TestQuantile" );
+    statsToOutput.add ( "TestOK" );
+    statsToOutput.add ( "SampleSizeOK" );
+    statsToOutput.add ( "ROK" );
+        
     // Statistics from the filled data, always in data space
     // (include for comparison with mixed station analysis)...
     statsToOutput.add ( "NYfilled" );
     statsToOutput.add ( "MeanYfilled" );
     statsToOutput.add ( "SYfilled" );
     statsToOutput.add ( "SkewYfilled" );
+    
     // The following comments parallel the statistics names are used to create comments in the table header
     String [] mainComments = {
         "",
@@ -1029,9 +1028,11 @@ throws Exception
     // Get the main sub-objects associated with the analysis
     TSRegressionAnalysis analysis = getTSRegressionAnalysis();
     TSRegressionData tsRegressionData = analysis.getTSRegressionData();
+    TSRegressionData tsRegressionDataTransformed = analysis.getTSRegressionDataTransformed();
     TSRegressionResults tsRegressionResults = analysis.getTSRegressionResults();
     TSRegressionResults tsRegressionResultsTransformed = analysis.getTSRegressionResultsTransformed();
     TSRegressionEstimateErrors tsRegressionEstimateErrors = analysis.getTSRegressionEstimateErrors();
+    TSRegressionEstimateErrors tsRegressionEstimateErrorsTransformed = analysis.getTSRegressionErrorsTransformed();
     TSRegressionChecks tsRegressionChecks = analysis.getTSRegressionChecksTransformed();
     TSRegressionFilledValues tsRegressionFilledValues = getTSRegressionFilledValues();
     String statisticName; // Statistic to output
@@ -1128,6 +1129,17 @@ throws Exception
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanX1();
                     }
                 }
+                else if ( statisticName.equals("MeanX1_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getMeanX1();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getMeanX1();
+                	}
+                }
                 else if ( statisticName.equals("MeanX2") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1149,6 +1161,27 @@ throws Exception
                     	}
                     }
                 }
+                else if ( statisticName.equals("MeanX2_trans") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                    	if (tsRegressionDataTransformed.getSingleEquationRegressionData().getN2() == 0) {
+                    		statisticValueDouble[countStatistic] = null;
+                    	}
+                    	else {
+                    		statisticValueDouble[countStatistic] =
+                    			tsRegressionDataTransformed.getSingleEquationRegressionData().getMeanX2();
+                    	}
+                    }
+                    else {
+                    	if (tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getN2() == 0) {
+                    		statisticValueDouble[countStatistic] = null;
+                    	}
+                    	else {
+                    		statisticValueDouble[countStatistic] =
+                    			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getMeanX2();
+                    	}
+                    }
+                }
                 else if ( statisticName.equals("MeanY") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1159,6 +1192,17 @@ throws Exception
                         statisticValueDouble[countStatistic] =
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY();
                     }
+                }
+                else if ( statisticName.equals("MeanY_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getMeanY();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getMeanY();
+                	}
                 }
                 else if ( statisticName.equals("MeanYfilled") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
@@ -1182,6 +1226,17 @@ throws Exception
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getMeanY1();
                     }
                 }
+                else if ( statisticName.equals("MeanY1_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getMeanY1();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getMeanY1();
+                	}
+                }
                 else if ( statisticName.equals("MeanY1est") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1192,6 +1247,17 @@ throws Exception
                         statisticValueDouble[countStatistic] =
                             tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getMeanY1est();
                     }
+                }
+                else if ( statisticName.equals("MeanY1est_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getSingleEquationRegressionErrors().getMeanY1est();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getMonthlyEquationRegressionErrors(iEquation).getMeanY1est();
+                	}
                 }
                 else if ( statisticName.equals("NX") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_INT;
@@ -1259,6 +1325,17 @@ throws Exception
                             tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
                     }
                 }
+                else if ( statisticName.equals("R_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionResultsTransformed.getSingleEquationRegressionResults().getCorrelationCoefficient();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] =
+                			tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
+                	}
+                }
                 else if ( statisticName.equals("R2") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     Double r = null;
@@ -1272,10 +1349,26 @@ throws Exception
                         Double r2 = new Double(r*r);
                         statisticValueDouble[countStatistic] = r2;
                     }
-                    else
-                        {
+                    else {
                         	statisticValueDouble[countStatistic] = null;
-                        }
+                    }
+                }
+                else if ( statisticName.equals("R2_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	Double r = null;
+                	if (numEquations == 1) {
+                		r = tsRegressionResultsTransformed.getSingleEquationRegressionResults().getCorrelationCoefficient();
+                	}
+                	else {
+                		r = tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
+                	}
+                	if (r != null) {
+                		Double r2 = new Double(r*r);
+                		statisticValueDouble[countStatistic] = r2;
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = null;
+                	}
                 }
                 else if ( statisticName.equals("RMSE") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
@@ -1287,6 +1380,17 @@ throws Exception
                         statisticValueDouble[countStatistic] =
                             tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getRMSE();
                     }
+                }
+                else if ( statisticName.equals("RMSE_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getSingleEquationRegressionErrors().getRMSE();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getMonthlyEquationRegressionErrors(iEquation).getRMSE();
+                	}
                 }
                 else if ( statisticName.equals("ROK") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_STRING;
@@ -1335,6 +1439,17 @@ throws Exception
                             tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfEstimate();
                     }
                 }
+                else if ( statisticName.equals("SEE_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getSingleEquationRegressionErrors().getStandardErrorOfEstimate();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getMonthlyEquationRegressionErrors(iEquation).getStandardErrorOfEstimate();
+                	}
+                }
                 else if ( statisticName.equals("SESlope") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1367,6 +1482,17 @@ throws Exception
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getSkewY();
                     }
                 }
+                else if ( statisticName.equals("SkewY_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getSkewY();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getSkewY();
+                	}
+                }
                 else if ( statisticName.equals("SkewYfilled") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1389,6 +1515,17 @@ throws Exception
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX1();
                     }
                 }
+                else if ( statisticName.equals("SX1_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getStandardDeviationX1();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX1();
+                	}
+                }
                 else if ( statisticName.equals("SX2") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1410,6 +1547,27 @@ throws Exception
                     	}
                     }
                 }
+                else if ( statisticName.equals("SX2_trans") ) {
+                    statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                    if ( numEquations == 1 ) {
+                    	if (tsRegressionDataTransformed.getSingleEquationRegressionData().getN2() == 0) {
+                    		statisticValueDouble[countStatistic] = null;
+                    	}
+                    	else {
+                    		statisticValueDouble[countStatistic] =
+                    			tsRegressionDataTransformed.getSingleEquationRegressionData().getStandardDeviationX2();
+                    	}
+                    }
+                    else {
+                    	if ((tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getN2() == 0)) {
+                    		statisticValueDouble[countStatistic] = null;
+                    	}
+                    	else {
+                    		statisticValueDouble[countStatistic] = 
+                    			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getStandardDeviationX2();
+                    	}
+                    }
+                }
                 else if ( statisticName.equals("SY") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1420,6 +1578,17 @@ throws Exception
                         statisticValueDouble[countStatistic] =
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY();
                     }
+                }
+                else if ( statisticName.equals("SY_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] =
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getStandardDeviationY();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY();
+                	}
                 }
                 else if ( statisticName.equals("SY1") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
@@ -1432,6 +1601,17 @@ throws Exception
                             tsRegressionData.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY1();
                     }
                 }
+                else if ( statisticName.equals("SY1_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getSingleEquationRegressionData().getStandardDeviationY1();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionDataTransformed.getMonthlyEquationRegressionData(iEquation).getStandardDeviationY1();
+                	}
+                }
                 else if ( statisticName.equals("SY1est") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
@@ -1442,6 +1622,17 @@ throws Exception
                         statisticValueDouble[countStatistic] =
                             tsRegressionEstimateErrors.getMonthlyEquationRegressionErrors(iEquation).getStandardDeviationY1est();
                     }
+                }
+                else if ( statisticName.equals("SY1est_trans") ) {
+                	statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
+                	if ( numEquations == 1 ) {
+                		statisticValueDouble[countStatistic] = 
+                			tsRegressionEstimateErrorsTransformed.getSingleEquationRegressionErrors().getStandardDeviationY1est();
+                	}
+                	else {
+                		statisticValueDouble[countStatistic] =
+                			tsRegressionEstimateErrorsTransformed.getMonthlyEquationRegressionErrors(iEquation).getStandardDeviationY1est();
+                	}
                 }
                 else if ( statisticName.equals("SYfilled") ) {
                     // Actually filled values
@@ -1635,6 +1826,7 @@ throws Exception
         rec.setFieldValue(table.getFieldIndex("MinimumSampleSize"), getMinimumSampleSize() );
         rec.setFieldValue(table.getFieldIndex("MinimumR"), getMinimumR() );
         rec.setFieldValue(table.getFieldIndex("ConfidenceInterval"), getConfidenceIntervalPercent() );
+        rec.setFieldValue(table.getFieldIndex("Transformation"), getTransformation() );
         countStatistic = -1;
         // Set the statistic columns for values that were actually used.
         for ( int iEquation = 0; iEquation < numEquations; iEquation++ ) {

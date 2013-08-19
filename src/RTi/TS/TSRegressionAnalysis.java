@@ -170,6 +170,8 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
     }
     __analyzeSingleEquation = analyzeSingleEquation;
     __analyzeMonthlyEquations = analyzeMonthlyEquations;
+    
+    __analysisMonths = analysisMonths;
     if ( __analysisMonths == null ) {
         __analysisMonths = new int[0];
     }
@@ -180,8 +182,7 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
     }
     __analysisMonthsMask = calculateAnalysisMonthsMask ( __analysisMonths );
     // OK if null...
-    __analysisMonths = analysisMonths;
-    if ( __transformation == null ) {
+    if ( transformation == null ) {
         __transformation = DataTransformationType.NONE; // Default
     }
     else {
@@ -460,7 +461,7 @@ private RegressionEstimateErrors[] calcRmseSeeSeSlope(DataTransformationType tra
 	            // SESlope bottom term...
 	            seeSlopeBottomSingleTransformedSum +=
 	                ((X1transformed[i] - X1transformedMean)*((X1transformed[i] - X1transformedMean)));
-	            seSlopeBottomSingleSum += ((X1transformed[i] - X1mean)*((X1transformed[i] - X1mean)));
+	            seSlopeBottomSingleSum += ((X1[i] - X1mean)*((X1[i] - X1mean)));
 	        }
 	        else {
 	            // RMSE calculate on raw data...
@@ -471,8 +472,11 @@ private RegressionEstimateErrors[] calcRmseSeeSeSlope(DataTransformationType tra
 	            seSlopeBottomSingleSum += ((X1[i] - X1mean)*((X1[i] - X1mean)));
 	            seeSlopeBottomSingleTransformedSum = seSlopeBottomSingleSum; // Same as non-transformed
 	        }
-	        // Untransformed is always computed...
+			// Untransformed RMSE is always computed...
 	        rmseSingleSum += ((Y1estimated[i] - Y1[i])*(Y1estimated[i] - Y1[i]));
+	        if (transformation == DataTransformationType.NONE) {
+	        	rmseSingleTransformedSum = rmseSingleSum; //same as non-transformed
+	        }
 	    }
 	    // Final step computing statistics, taking sample size into account
 	    // Transformed and untransformed are calculated (may be the same if no transformation)
@@ -555,10 +559,10 @@ private void calculateRegressionRelationships ( RegressionType analysisMethod,
 	    }
     }
     setTSRegressionResultsTransformed ( new TSRegressionResults(singleRegressionResults, monthlyRegressionResults));
-    if ( transformation == DataTransformationType.NONE ) {
+    //if ( transformation == DataTransformationType.NONE ) {
         // Also set raw results to same as transformed...
         setTSRegressionResults ( getTSRegressionResultsTransformed() );
-    }
+    //}
 }
 
 // TODO SAM 2012-01-14 Does it make sense to allow absolute value of R to check inverse relationships?
@@ -586,10 +590,10 @@ private void checkRegressionRelationships (
     if ( minimumSampleSize == null ) {
         minimumSampleSize = 2; // Less than this and will have division by zero
     }
-    // Check the minimum sample size...
-    TSRegressionData data = getTSRegressionData ();
+    // Since this is for the transformed data, which will be the same as untransformed if no transformation, use transformed data
+    TSRegressionData data = getTSRegressionDataTransformed ();
     TSRegressionResults results = getTSRegressionResults ();
-    TSRegressionEstimateErrors errors = getTSRegressionEstimateErrors ();
+    TSRegressionEstimateErrors errors = getTSRegressionErrorsTransformed ();
     // Finally, set the check results to indicate whether the relationships are within acceptable parameters
     
     //single
