@@ -106,15 +106,6 @@
 
 package RTi.DMI;
 
-import java.security.InvalidParameterException;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
-
 import RTi.Util.GUI.InputFilter;
 import RTi.Util.GUI.InputFilter_JPanel;
 import RTi.Util.IO.HTMLWriter;
@@ -123,6 +114,14 @@ import RTi.Util.IO.ProcessManager;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+import java.security.InvalidParameterException;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Vector;
 
 /**
 The DMIUtil class provides static methods to facilitate database interaction.
@@ -2131,24 +2130,17 @@ field name and the string is split so that only the field name is escaped.
 public static String escapeField ( DMI dmi, String field )
 {
     if ( (field.indexOf('(') >= 0) ||
-        (dmi.getFieldLeftEscape() != "") && (field.indexOf(dmi.getFieldLeftEscape()) >= 0) ) {
+        (!"".equals(dmi.getFieldLeftEscape())) && (field.indexOf(dmi.getFieldLeftEscape()) >= 0) ) {
         // Function or already escaped so probably too complicated to figure out here
         return field;
     }
     else {
         // Escape the fields
-        String [] parts = null;
-        if ( field.indexOf(".") > 0 ) {
-            parts = field.split(".");
-        }
-        else {
-            parts = new String[1];
-            parts[0] = field;
-        }
-        StringBuffer b = new StringBuffer();
+        String [] parts = field.split("\\."); // This is a regex; have to escape the '.'
+        StringBuilder b = new StringBuilder();
         String le, re;
-        for ( int i = 0; i < parts.length; i++ ) {
-            if ( parts[i].startsWith(dmi.getFieldLeftEscape()) ) {
+        for ( String part : parts ) {
+            if ( part.startsWith(dmi.getFieldLeftEscape()) ) {
                 // Already escaped so no need to do so again
                 le = "";
                 re = "";
@@ -2161,7 +2153,7 @@ public static String escapeField ( DMI dmi, String field )
                 b.append(".");
             }
             b.append ( le );
-            b.append ( parts[i] );
+            b.append ( part );
             b.append ( re );
         }
         return b.toString();
