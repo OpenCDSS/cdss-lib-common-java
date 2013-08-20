@@ -273,7 +273,7 @@ private void setupUI()
             key = keyList[i];
             value = valueList[i];
         }
-        this.keyTextField[i] = new JTextField(key,10);
+        this.keyTextField[i] = new JTextField(key,30);
         JGUIUtil.addComponent(panel, this.keyTextField[i],
             0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         this.valueTextField[i] = new JTextField(value,40);
