@@ -1471,6 +1471,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod )
 {   String routine = getClass().getName() + ".joinTable", message;
     List<String> problems = new Vector<String>();
+    if ( reqIncludeColumns == null ) {
+        reqIncludeColumns = new String[0];
+    }
     // Determine the column numbers in the first and second tables for the join columns
     String [] table1JoinColumnNames = new String[joinColumnsMap.size()];
     int [] table1JoinColumnNumbers = new int[joinColumnsMap.size()];
@@ -1829,7 +1832,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                         // TODO SAM 2013-08-19 Check that the column types match
                         if ( table1JoinColumnTypes[icol] == table2JoinColumnTypes[icol] ) {
                             recToModify.setFieldValue(table1JoinColumnNumbers[icol],
-                                tableToJoin.getFieldValue(irowJoin, table1JoinColumnNumbers[icol]));
+                                tableToJoin.getFieldValue(irowJoin, table2JoinColumnNumbers[icol]));
                             ++nrowsJoined;
                         }
                     }
