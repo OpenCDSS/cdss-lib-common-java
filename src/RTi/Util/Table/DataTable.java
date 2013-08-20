@@ -1459,75 +1459,177 @@ public boolean isDirty() {
 Join one table to another by matching column column values.
 @param table original table
 @param tableToJoin table being joined
+@param joinColumnsMap map indicating which tables need to be matched in the tables, for the join
 @param reqIncludeColumns requested columns to include from the second table or null to include all
+(the join tables will be automatically included because they exist in the first table)
 @param columnMap map to rename original columns to new name
-@param columnFilters map for columns that will apply a filter
+@param columnFilters map for columns that will apply a filter to limit rows that are processed
+@param joinMethod the method used to join the tables
 @return the number of rows appended
 */
-public int joinTable ( DataTable table, DataTable tableToJoin, String [] reqIncludeColumns,
-    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters )
-{   String routine = getClass().getName() + ".joinTable";
-    // List of columns that will be appended
+public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
+    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod )
+{   String routine = getClass().getName() + ".joinTable", message;
+    List<String> problems = new Vector<String>();
+    // Determine the column numbers in the first and second tables for the join columns
+    String [] table1JoinColumnNames = new String[joinColumnsMap.size()];
+    int [] table1JoinColumnNumbers = new int[joinColumnsMap.size()];
+    int [] table1JoinColumnTypes = new int[joinColumnsMap.size()];
+    String [] table2JoinColumnNames = new String[joinColumnsMap.size()];
+    int [] table2JoinColumnNumbers = new int[joinColumnsMap.size()];
+    int [] table2JoinColumnTypes = new int[joinColumnsMap.size()];
+    Enumeration keys = joinColumnsMap.keys();
+    String key;
+    int ikey = -1;
+    while ( keys.hasMoreElements() ) {
+        ++ikey;
+        table1JoinColumnNames[ikey] = "";
+        table1JoinColumnNumbers[ikey] = -1;
+        table2JoinColumnNames[ikey] = "";
+        table2JoinColumnNumbers[ikey] = -1;
+        try {
+            table1JoinColumnNames[ikey] = (String)keys.nextElement();
+            table1JoinColumnNumbers[ikey] = table.getFieldIndex(table1JoinColumnNames[ikey]);
+            table1JoinColumnTypes[ikey] = table.getFieldDataType(table1JoinColumnNumbers[ikey]);
+            Message.printStatus(2,routine,"Table1 join column \"" + table1JoinColumnNames[ikey] + "\" has table1 column number=" +
+                table1JoinColumnNumbers[ikey]);
+            try {
+                table2JoinColumnNames[ikey] = (String)joinColumnsMap.get(table1JoinColumnNames[ikey]);
+                table2JoinColumnNumbers[ikey] = tableToJoin.getFieldIndex(table2JoinColumnNames[ikey]);
+                table2JoinColumnTypes[ikey] = tableToJoin.getFieldDataType(table2JoinColumnNumbers[ikey]);
+                Message.printStatus(2,routine,"Table2 join column \"" + table2JoinColumnNames[ikey] + "\" has table2 column number=" +
+                    table2JoinColumnNumbers[ikey]);
+            }
+            catch ( Exception e ) {
+                message = "Table2 join column \"" + table2JoinColumnNames[ikey] + "\" not found in table \"" +
+                    tableToJoin.getTableID() + "\".";
+                problems.add ( message );
+                Message.printWarning(3,routine,message);
+            }
+        }
+        catch ( Exception e ) {
+            message = "Join column \"" + table1JoinColumnNames[ikey] + "\" not found in first table \"" + table.getTableID() + "\".";
+            problems.add (message);
+            Message.printWarning(3,routine,message);
+        }
+    }
+
+    // List of columns that will be appended to the first table
     String [] columnNamesToAppend = null;
-    String [] columnNames = table.getFieldNames();
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
         // Append only the requested names
         columnNamesToAppend = reqIncludeColumns;
+        for ( int icol = 0; icol < reqIncludeColumns.length; icol++ ) {
+            Message.printStatus(2,routine,"Will include table2 column \"" + reqIncludeColumns[icol] + "\"" );
+        }
     }
     else {
         // Append all
-        columnNamesToAppend = table.getFieldNames();
+        Message.printStatus(2,routine,"Joining all columns in table2 to table1.");
+        columnNamesToAppend = tableToJoin.getFieldNames();
     }
-    // Column numbers in the append table to match the original table.  Any values set to -1 will result in null.
-    int [] columnNumbersInAppendTable = new int[table.getNumberOfFields()];
-    String [] appendTableColumnNamesOriginal = tableToJoin.getFieldNames();
-    String [] appendTableColumnNames = tableToJoin.getFieldNames();
+    // Make sure that the columns to append do not include the join columns, which should already by in the tables.
+    // Just set to blank so they can be ignored in following logic
+    for ( int icol = 0; icol < columnNamesToAppend.length; icol++ ) {
+        keys = joinColumnsMap.keys();
+        while ( keys.hasMoreElements() ) {
+            key = (String)keys.nextElement();
+            if ( columnNamesToAppend[icol].equalsIgnoreCase(key) ) {
+                Message.printStatus(2,routine,"Table 2 column to join is same as join column.  Ignoring.");
+                columnNamesToAppend[icol] = "";
+            }
+        }
+    }
+    // TODO 2013-08-19 if the column name to append matches the original table, need to automatically rename with a number
+    // at the end, but do this after the column mapping below.
+    // Column numbers in the append table to match the original table.  Any values set to -1 will result in null in output.
+    String [] table1AppendColumnNames = new String[reqIncludeColumns.length];
+    int [] table1AppendColumnNumbers = new int[reqIncludeColumns.length];
+    int [] table1AppendColumnTypes = new int[reqIncludeColumns.length];
+    String [] table2AppendColumnNames = new String[reqIncludeColumns.length];
+    int [] table2AppendColumnNumbers = new int[reqIncludeColumns.length];
+    int [] table2AppendColumnTypes = new int[reqIncludeColumns.length];
     // Replace the append table names using the column map
     Object o;
-    for ( int icol = 0; icol < appendTableColumnNames.length; icol++ ) {
+    for ( int icol = 0; icol < reqIncludeColumns.length; icol++ ) {
+        table1AppendColumnNames[icol] = reqIncludeColumns[icol]; // Default to same as requested
+        table2AppendColumnNames[icol] = reqIncludeColumns[icol]; // Default
+        try {
+            table2AppendColumnNumbers[icol] = tableToJoin.getFieldIndex(table2AppendColumnNames[icol]);
+        }
+        catch ( Exception e ) {
+            message = "Cannot determine table2 append column number for \"" + table2AppendColumnNames[icol] + "\".";
+            problems.add ( message );
+            Message.printWarning(3,routine,message);
+        }
+        table2AppendColumnTypes[icol] = tableToJoin.getFieldDataType(table2AppendColumnNumbers[icol]);
         if ( columnMap != null ) {
-            o = columnMap.get(appendTableColumnNames[icol]);
+            // Initialize the table2 column to join from the requested columns, with matching name in both tables.
+            // Rename in output (table1)
+            o = columnMap.get(table2AppendColumnNames[icol]);
             if ( o != null ) {
-                // Reset the append column name with the new name, which should match a column name in the first table
-                appendTableColumnNames[icol] = (String)o;
+                // Reset the append column name with the new name, which will match a column name in the first table
+                // (or will be created in the new table if necessary)
+                // This column may not yet exist in the joined table so get column number and type below after column is added
+                table1AppendColumnNames[icol] = (String)o;
+            }
+        }
+        Message.printStatus(2,routine,"Will copy table2 column \"" + table2AppendColumnNames[icol] + "\" to table1 column \"" +
+            table1AppendColumnNames[icol] + "\"" );
+    }
+    
+    // Create columns in the output table for the "include columns" (including new column names from the column map)
+    // Use column types that match the append table's column types
+    // Figure out the column numbers in both tables for the include
+    for ( int icol = 0; icol < table1AppendColumnNames.length; icol++ ) {
+        table1AppendColumnNumbers[icol] = -1;
+        if ( table1AppendColumnNames[icol].length() == 0 ) {
+            // Name was removed above because it duplicates the join column, so don't add
+            continue;
+        }
+        try {
+            table1AppendColumnNumbers[icol] = table.getFieldIndex(table1AppendColumnNames[icol]);
+        }
+        catch ( Exception e ) {
+             // OK - handle non-existent column below.
+        }
+        if ( table1AppendColumnNumbers[icol] >= 0 ) {
+            // Already exists so skip because don't want table2 values to overwrite table1 values
+            message = "Include column \"" + table1AppendColumnNumbers[icol] +
+                "\" already exists in original table.  Not adding new column.";
+            problems.add ( message );
+            Message.printWarning(3,routine,message);
+            table1AppendColumnNumbers[icol] = -1;
+            table1AppendColumnTypes[icol] = -1;
+        }
+        else {
+            // Does not exist in first table so create column with the same properties as the original
+            // Use the original column name to find the property
+            try {
+                Message.printStatus(2,routine,"Creating table1 column \"" + table1AppendColumnNames[icol] +
+                    "\" type=" + tableToJoin.getFieldDataType(table2AppendColumnNumbers[icol]) +
+                    " width=" + tableToJoin.getFieldWidth(table2AppendColumnNumbers[icol]) +
+                    " precision=" + tableToJoin.getFieldPrecision(table2AppendColumnNumbers[icol]));
+                table1AppendColumnNumbers[icol] = table.addField(
+                    new TableField(tableToJoin.getFieldDataType(table2AppendColumnNumbers[icol]),
+                    table1AppendColumnNames[icol],tableToJoin.getFieldWidth(table2AppendColumnNumbers[icol]),
+                    tableToJoin.getFieldPrecision(table2AppendColumnNumbers[icol])), null);
+                table1AppendColumnTypes[icol] = table.getFieldDataType(table1AppendColumnNumbers[icol]);
+            }
+            catch ( Exception e ) {
+                message = "Error adding new column \"" + table1AppendColumnNames[icol] + "\" to joined table (" + e + ").";
+                problems.add ( message );
+                Message.printWarning(3,routine,message);
             }
         }
     }
-    // Loop through the columns in the original table and match the column numbers in the append table
-    boolean appendColumnFound = false;
-    for ( int icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
-        columnNumbersInAppendTable[icol] = -1; // No match between first and append table
-        // Check each of the column names in the original table to match whether appending from the append table
-        // The append table column names will have been mapped to the first table above
-        for ( int i = 0; i < appendTableColumnNames.length; i++ ) {
-            // First check to see if the column name should be appended
-            appendColumnFound = false;
-            for ( int j = 0; j < columnNamesToAppend.length; j++ ) {
-                if ( columnNamesToAppend[j].equalsIgnoreCase(appendTableColumnNamesOriginal[i]) ) {
-                    appendColumnFound = true;
-                    break;
-                }
-            }
-            if ( !appendColumnFound ) {
-                // Skip the table column - don't append
-                continue;
-            }
-            if ( columnNames[icol].equalsIgnoreCase(appendTableColumnNames[i]) ) {
-                columnNumbersInAppendTable[icol] = i;
-                break;
-            }
-        }
-    }
-    int [] tableColumnTypes = table.getFieldDataTypes(); // Original table column types
-    int [] appendTableColumnTypes = tableToJoin.getFieldDataTypes(); // Append column types, lined up with original table
-    int errorCount = 0;
-    StringBuffer errorMessage = new StringBuffer();
+    
     // Get filter columns and glob-style regular expressions
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
-    Enumeration keys = columnFilters.keys();
-    int ikey = -1;
-    String key = null;
+    keys = columnFilters.keys();
+    ikey = -1;
+    key = null;
     while ( keys.hasMoreElements() ) {
         ++ikey;
         columnNumbersToFilter[ikey] = -1;
@@ -1539,99 +1641,208 @@ public int joinTable ( DataTable table, DataTable tableToJoin, String [] reqIncl
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
-            ++errorCount;
-            if ( errorMessage.length() > 0 ) {
-                errorMessage.append(" ");
-            }
-            errorMessage.append ( "Filter column \"" + key + "\" not found in table \"" + tableToJoin.getTableID() + "\".");
+            message = "Filter column \"" + key + "\" not found in table \"" + tableToJoin.getTableID() + "\".";
+            problems.add ( message );
+            Message.printWarning(3,routine,message);
         }
     }
-    // Loop through all the data records and append records to the table
+    // Loop through all of the records in the table being joined and check the filters.
+    // Do this up front because the records are checked multiple times during the join
+    boolean [] joinTableRecordMatchesFilter = new boolean[tableToJoin.getNumberOfRecords()];
     int icol;
-    int irowAppended = 0;
-    boolean somethingAppended = false;
-    boolean filterMatches;
+    int nrowsJoined = 0;
     String s;
-    TableRecord rec;
     for ( int irow = 0; irow < tableToJoin.getNumberOfRecords(); irow++ ) {
-        somethingAppended = false;
-        filterMatches = true;
+        joinTableRecordMatchesFilter[irow] = true;
         if ( columnNumbersToFilter.length > 0 ) {
             // Filters can be done on any columns so loop through to see if row matches before doing append
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
-                    filterMatches = false;
+                    joinTableRecordMatchesFilter[irow] = false;
                     break;
                 }
                 try {
                     o = tableToJoin.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
-                        filterMatches = false;
+                        joinTableRecordMatchesFilter[irow] = false;
                         break; // Don't include nulls when checking values
                     }
                     s = ("" + o).toUpperCase();
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
                         // A filter did not match so don't copy the record
-                        filterMatches = false;
+                        joinTableRecordMatchesFilter[irow] = false;
                         break;
                     }
                 }
                 catch ( Exception e ) {
-                    errorMessage.append("Error getting append table data [" + irow + "][" +
-                        columnNumbersToFilter[icol] + "].");
-                    Message.printWarning(3, routine, "Error getting append table data for [" + irow + "][" +
-                        columnNumbersToFilter[icol] + "] (" + e + ")." );
+                    message = "Error getting append table data for [" + irow + "][" + columnNumbersToFilter[icol] + "] (" + e + ").";
+                    problems.add(message);
+                    Message.printWarning(3, routine, message );
                 }
             }
-            if ( !filterMatches ) {
-                // Skip the record.
+        }
+    }
+    // Loop through all the data records in the original table (the original records, NOT any that have been appended due
+    // to the join), loop through records in the join table, and join records to the table original as appropriate (this may
+    // result in a modification of the same records, or appending new records at the bottom of the table).
+    int tableNumRows = table.getNumberOfRecords();
+    boolean joinColumnsMatch = false; // Indicates whether two tables' join column values match
+    Object table1Value, table2Value;
+    String stringTable1Value, stringTable2Value;
+    TableRecord recToModify = null;
+    // Loop through all rows in the first table
+    for ( int irow = 0; irow < tableNumRows; irow++ ) {
+        // Loop through all rows in the second table
+        for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
+            if ( !joinTableRecordMatchesFilter[irowJoin] ) {
+                // Join row did not match filter so no need to process it
                 continue;
             }
-        }
-        // Loop through columns in the original table and set values from the append table
-        // Create a record and add...
-        rec = new TableRecord();
-        for ( icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
-            try {
-                if ( columnNumbersInAppendTable[icol] < 0 ) {
-                    // Column in first table was not matched in the append table so set to null
-                    rec.addFieldValue(null);
+            else {
+                // Join table record matched filter so evaluate if the join column values match in the two tables.
+                // If there is a match, the join will be done in-line with an existing record.
+                // If not, the join will only occur if the join method is JOIN_ALWAYS and in this case the join column values
+                // and all append values will be added to the main table in a new row.
+                joinColumnsMatch = true; // Set to false in checks below
+                table1Value = null;
+                table2Value = null;
+                for ( icol = 0; icol < table1JoinColumnNumbers.length; icol++ ) {
+                    if ( (table1JoinColumnNumbers[icol] < 0) || (table2JoinColumnNumbers[icol] < 0) ) {
+                        // Something did not check out above so ignore to avoid more errors.
+                        continue;
+                    }
+                    try {
+                        table1Value = table.getFieldValue(irow, table1JoinColumnNumbers[icol]);
+                    }
+                    catch ( Exception e ) {
+                        message = "Error getting table1 value to check join (" + e + ").";
+                        problems.add ( message );
+                        Message.printWarning(3, routine, message );
+                    }
+                    try {
+                        table2Value = tableToJoin.getFieldValue(irowJoin, table2JoinColumnNumbers[icol]);
+                    }
+                    catch ( Exception e ) {
+                        message = "Error getting table2 value to check join (" + e + ").";
+                        problems.add ( message );
+                        Message.printWarning(3, routine, message );
+                    }
+                    // For now if either is null do not add the record
+                    if ( (table1Value == null) || (table2Value == null) ) {
+                        joinColumnsMatch = false;
+                        break;
+                    }
+                    else if ( table1JoinColumnTypes[icol] == TableField.DATA_TYPE_STRING) {
+                        stringTable1Value = (String)table1Value;
+                        stringTable2Value = (String)table2Value;
+                        if ( !stringTable1Value.equalsIgnoreCase(stringTable2Value) ) {
+                            joinColumnsMatch = false;
+                            break;
+                        }
+                    }
+                    else if ( !table1Value.equals(table2Value) ) {
+                        joinColumnsMatch = false;
+                        break;
+                    }
                 }
-                else {
-                    // Set the value in the original table, if the type matches
-                    if ( tableColumnTypes[icol] == appendTableColumnTypes[columnNumbersInAppendTable[icol]] ) {
-                        rec.addFieldValue(tableToJoin.getFieldValue(irow, columnNumbersInAppendTable[icol]));
+                Message.printStatus(2,routine,"Join value1=\"" + table1Value + "\" value2=\""+ table2Value + "\" match=" + joinColumnsMatch);
+                if ( joinColumnsMatch || (!joinColumnsMatch && (joinMethod == DataTableJoinMethodType.JOIN_ALWAYS)) ) {
+                    if ( joinColumnsMatch ) {
+                        Message.printStatus(2,routine,"Setting in existing row.");
+                        try {
+                            recToModify = table.getRecord(irow); // Modify existing row in table
+                        }
+                        catch ( Exception e ) {
+                            message = "Error getting existing joined record to modify (" + e + ").";
+                            problems.add ( message );
+                            Message.printWarning(3, routine, message );
+                        }
                     }
                     else {
-                        rec.addFieldValue(null);
+                        // Add a row to the table, containing only the join column values from the second table
+                        // and nulls for all the other values
+                        Message.printStatus(2,routine,"Setting in new row.");
+                        try {
+                            recToModify = table.addRecord(table.emptyRecord());
+                        }
+                        catch ( Exception e ) {
+                            message = "Error adding new record to modify (" + e + ").";
+                            problems.add ( message );
+                            Message.printWarning(3, routine, message );
+                        }
+                    }
+                    if ( !joinColumnsMatch && (joinMethod == DataTableJoinMethodType.JOIN_ALWAYS) ) {
+                        // A new record was added.  Also include the join columns using the table1 names
+                        // TODO SAM 2013-08-19 Evaluate whether table2 names should be used (or option to use)
+                        for ( icol = 0; icol < table2AppendColumnNumbers.length; icol++ ) {
+                            try {
+                                if ( (table1AppendColumnNumbers[icol] < 0) || (table2AppendColumnNumbers[icol] < 0) ) {
+                                    // There was an issue with the column to add so skip
+                                    continue;
+                                }
+                                else {
+                                    // Set the value in the original table, if the type matches
+                                    // TODO SAM 2013-08-19 Check that the column types match
+                                    if ( table1AppendColumnTypes[icol] == table2AppendColumnTypes[icol] ) {
+                                        recToModify.setFieldValue(table1AppendColumnNumbers[icol],
+                                            tableToJoin.getFieldValue(irowJoin, table1AppendColumnNumbers[icol]));
+                                        ++nrowsJoined;
+                                    }
+                                }
+                            }
+                            catch ( Exception e ) {
+                                // Should not happen
+                                message = "Error setting [" + irow + "][" + table1AppendColumnNumbers[icol] + "] (" + e + ").";
+                                problems.add(message);
+                                Message.printWarning(3, routine, message );
+                            }
+                        }
+                    }
+                    // Loop through the columns to include and set the values from
+                    // the second table into the first table (which previously had columns added)
+                    for ( icol = 0; icol < table2AppendColumnNumbers.length; icol++ ) {
+                        try {
+                            if ( table1AppendColumnNumbers[icol] < 0 ) {
+                                // There was an issue with the column to add so skip
+                                Message.printStatus(2,routine,"Don't have column number for table1 column \"" +
+                                     table1AppendColumnNames[icol]);
+                                continue;
+                            }
+                            else if ( table2AppendColumnNumbers[icol] < 0 ) {
+                                // There was an issue with the column to add so skip
+                                Message.printStatus(2,routine,"Don't have column number for table2 column \"" +
+                                     table2AppendColumnNames[icol] + "\"");
+                                continue;
+                            }
+                            else {
+                                // Set the value in the original table, if the type matches
+                                // TODO SAM 2013-08-19 Check that the column types match
+                                if ( table1AppendColumnTypes[icol] == table2AppendColumnTypes[icol] ) {
+                                    recToModify.setFieldValue(table1AppendColumnNumbers[icol],
+                                        tableToJoin.getFieldValue(irowJoin, table2AppendColumnNumbers[icol]));
+                                    ++nrowsJoined;
+                                }
+                                else {
+                                    Message.printStatus(2,routine,"Column types are different, cannot set value from table2 to table1.");
+                                }
+                            }
+                        }
+                        catch ( Exception e ) {
+                            // Should not happen
+                            message = "Error setting [" + irow + "][" + table1AppendColumnNumbers[icol] + "] (" + e + ").";
+                            problems.add(message);
+                            Message.printWarning(3, routine, message );
+                        }
                     }
                 }
-                somethingAppended = true;
-            }
-            catch ( Exception e ) {
-                // Should not happen
-                errorMessage.append("Error appending [" + irow + "][" + columnNumbersInAppendTable[icol] + "].");
-                Message.printWarning(3, routine, "Error setting appending [" + irow + "][" +
-                    columnNumbersInAppendTable[icol] + "] (" + e + ")." );
-                ++errorCount;
-            }
-        }
-        if ( somethingAppended ) {
-            // Set the record in the original table
-            try {
-                table.addRecord(rec);
-                ++irowAppended;
-            }
-            catch ( Exception e ) {
-                errorMessage.append("Error appending row [" + irow + "].");
             }
         }
     }
-    if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors appending data to the table: " +
-            tableToJoin.getTableID() );
+    if ( problems.size() > 0 ) {
+        throw new RuntimeException ( "There were + " + problems.size() + " errors joning table \"" + tableToJoin.getTableID() + "\" to \"" +
+            table.getTableID() + "\"" );
     }
-    return irowAppended;
+    return nrowsJoined;
 }
 
 /**
