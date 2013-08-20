@@ -1685,6 +1685,8 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     // Loop through all the data records in the original table (the original records, NOT any that have been appended due
     // to the join), loop through records in the join table, and join records to the table original as appropriate (this may
     // result in a modification of the same records, or appending new records at the bottom of the table).
+    // Keep track of which rows do not match and add at the end.  Otherwise, duplicate rows are added.
+    boolean [] joinTableRecordMatchesTable1 = new boolean[tableToJoin.getNumberOfRecords()];
     int tableNumRows = table.getNumberOfRecords();
     boolean joinColumnsMatch = false; // Indicates whether two tables' join column values match
     Object table1Value, table2Value;
@@ -1745,58 +1747,17 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                         break;
                     }
                 }
-                Message.printStatus(2,routine,"Join value1=\"" + table1Value + "\" value2=\""+ table2Value + "\" match=" + joinColumnsMatch);
-                if ( joinColumnsMatch || (!joinColumnsMatch && (joinMethod == DataTableJoinMethodType.JOIN_ALWAYS)) ) {
-                    if ( joinColumnsMatch ) {
-                        Message.printStatus(2,routine,"Setting in existing row.");
-                        try {
-                            recToModify = table.getRecord(irow); // Modify existing row in table
-                        }
-                        catch ( Exception e ) {
-                            message = "Error getting existing joined record to modify (" + e + ").";
-                            problems.add ( message );
-                            Message.printWarning(3, routine, message );
-                        }
+                //Message.printStatus(2,routine,"Join value1=\"" + table1Value + "\" value2=\""+ table2Value + "\" match=" + joinColumnsMatch);
+                if ( joinColumnsMatch ) {
+                    //Message.printStatus(2,routine,"Setting in existing row.");
+                    joinTableRecordMatchesTable1[irowJoin] = true;
+                    try {
+                        recToModify = table.getRecord(irow); // Modify existing row in table
                     }
-                    else {
-                        // Add a row to the table, containing only the join column values from the second table
-                        // and nulls for all the other values
-                        Message.printStatus(2,routine,"Setting in new row.");
-                        try {
-                            recToModify = table.addRecord(table.emptyRecord());
-                        }
-                        catch ( Exception e ) {
-                            message = "Error adding new record to modify (" + e + ").";
-                            problems.add ( message );
-                            Message.printWarning(3, routine, message );
-                        }
-                    }
-                    if ( !joinColumnsMatch && (joinMethod == DataTableJoinMethodType.JOIN_ALWAYS) ) {
-                        // A new record was added.  Also include the join columns using the table1 names
-                        // TODO SAM 2013-08-19 Evaluate whether table2 names should be used (or option to use)
-                        for ( icol = 0; icol < table2AppendColumnNumbers.length; icol++ ) {
-                            try {
-                                if ( (table1AppendColumnNumbers[icol] < 0) || (table2AppendColumnNumbers[icol] < 0) ) {
-                                    // There was an issue with the column to add so skip
-                                    continue;
-                                }
-                                else {
-                                    // Set the value in the original table, if the type matches
-                                    // TODO SAM 2013-08-19 Check that the column types match
-                                    if ( table1AppendColumnTypes[icol] == table2AppendColumnTypes[icol] ) {
-                                        recToModify.setFieldValue(table1AppendColumnNumbers[icol],
-                                            tableToJoin.getFieldValue(irowJoin, table1AppendColumnNumbers[icol]));
-                                        ++nrowsJoined;
-                                    }
-                                }
-                            }
-                            catch ( Exception e ) {
-                                // Should not happen
-                                message = "Error setting [" + irow + "][" + table1AppendColumnNumbers[icol] + "] (" + e + ").";
-                                problems.add(message);
-                                Message.printWarning(3, routine, message );
-                            }
-                        }
+                    catch ( Exception e ) {
+                        message = "Error getting existing joined record to modify (" + e + ").";
+                        problems.add ( message );
+                        Message.printWarning(3, routine, message );
                     }
                     // Loop through the columns to include and set the values from
                     // the second table into the first table (which previously had columns added)
@@ -1834,6 +1795,87 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                             Message.printWarning(3, routine, message );
                         }
                     }
+                }
+            }
+        }
+    }
+    // Now add any rows that were not matched
+    if ( joinMethod == DataTableJoinMethodType.JOIN_ALWAYS ) {
+        for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
+            if ( joinTableRecordMatchesTable1[irowJoin] ) {
+                // Row was matched above so no need to add again.
+                continue;
+            }
+            // Add a row to the table, containing only the join column values from the second table
+            // and nulls for all the other values
+            try {
+                recToModify = table.addRecord(table.emptyRecord());
+            }
+            catch ( Exception e ) {
+                message = "Error adding new record to modify (" + e + ").";
+                problems.add ( message );
+                Message.printWarning(3, routine, message );
+            }
+            // A new record was added.  Also include the join column values using the table1 names
+            // TODO SAM 2013-08-19 Evaluate whether table2 names should be used (or option to use)
+            for ( icol = 0; icol < table2JoinColumnNumbers.length; icol++ ) {
+                try {
+                    if ( table2JoinColumnNumbers[icol] < 0 ) {
+                        // There was an issue with the column to add so skip
+                        continue;
+                    }
+                    else {
+                        // Set the value in the original table, if the type matches
+                        // TODO SAM 2013-08-19 Check that the column types match
+                        if ( table1JoinColumnTypes[icol] == table2JoinColumnTypes[icol] ) {
+                            recToModify.setFieldValue(table1JoinColumnNumbers[icol],
+                                tableToJoin.getFieldValue(irowJoin, table1JoinColumnNumbers[icol]));
+                            ++nrowsJoined;
+                        }
+                    }
+                }
+                catch ( Exception e ) {
+                    // Should not happen
+                    message = "Error setting row value for column [" + table1JoinColumnNumbers[icol] + "] (" + e + ").";
+                    problems.add(message);
+                    Message.printWarning(3, routine, message );
+                    Message.printWarning(3, routine, e );
+                }
+            }
+            // Loop through the columns to include and set the values from
+            // the second table into the first table (which previously had columns added)
+            for ( icol = 0; icol < table2AppendColumnNumbers.length; icol++ ) {
+                try {
+                    if ( table1AppendColumnNumbers[icol] < 0 ) {
+                        // There was an issue with the column to add so skip
+                        Message.printStatus(2,routine,"Don't have column number for table1 column \"" +
+                             table1AppendColumnNames[icol]);
+                        continue;
+                    }
+                    else if ( table2AppendColumnNumbers[icol] < 0 ) {
+                        // There was an issue with the column to add so skip
+                        Message.printStatus(2,routine,"Don't have column number for table2 column \"" +
+                             table2AppendColumnNames[icol] + "\"");
+                        continue;
+                    }
+                    else {
+                        // Set the value in the original table, if the type matches
+                        // TODO SAM 2013-08-19 Check that the column types match
+                        if ( table1AppendColumnTypes[icol] == table2AppendColumnTypes[icol] ) {
+                            recToModify.setFieldValue(table1AppendColumnNumbers[icol],
+                                tableToJoin.getFieldValue(irowJoin, table2AppendColumnNumbers[icol]));
+                            ++nrowsJoined;
+                        }
+                        else {
+                            Message.printStatus(2,routine,"Column types are different, cannot set value from table2 to table1.");
+                        }
+                    }
+                }
+                catch ( Exception e ) {
+                    // Should not happen
+                    message = "Error adding new row, column [" + table1AppendColumnNumbers[icol] + "] (" + e + ").";
+                    problems.add(message);
+                    Message.printWarning(3, routine, message );
                 }
             }
         }
