@@ -3021,12 +3021,14 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     // Get the column numbers and values to to set
     String [] columnNamesToSet = new String[columnValues.size()];
     int [] columnNumbersToSet = new int[columnValues.size()];
+    int [] columnTypesToSet = new int[columnValues.size()];
     ikey = -1;
     for ( Map.Entry<String,Object> pairs: columnValues.entrySet() ) {
         columnNumbersToSet[++ikey] = -1;
         try {
             columnNamesToSet[ikey] = (String)pairs.getKey();
             columnNumbersToSet[ikey] = getFieldIndex(columnNamesToSet[ikey]);
+            columnTypesToSet[ikey] = getFieldDataType(columnNumbersToSet[ikey]);
             //Message.printStatus(2,routine,"Setting column \"" + columnNamesToSet[ikey] + " " + columnNumbersToSet[ikey] + "\"");
         }
         catch ( Exception e ) {
@@ -3092,7 +3094,13 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
-                    setFieldValue(irow, columnNumbersToSet[icol], columnValues.get(columnNamesToSet[icol]), true );
+                    if ( columnTypesToSet[ikey] == TableField.DATA_TYPE_INT ) {
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt((String)columnValues.get(columnNamesToSet[icol])), true );
+                    }
+                    else {
+                        setFieldValue(irow, columnNumbersToSet[icol], columnValues.get(columnNamesToSet[icol]), true );
+                    }
                 }
             }
             catch ( Exception e ) {
