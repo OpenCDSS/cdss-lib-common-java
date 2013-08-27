@@ -27,7 +27,16 @@ MULTIPLY ( "*" ),
 /**
  * Subtract values.
  */
-SUBTRACT ( "-" );
+SUBTRACT ( "-" ),
+/**
+TODO SAM 2013-08-26 Need to enable
+Convert to double.
+*/
+//TO_DOUBLE ( "ToDouble" ),
+/**
+Convert to integer.
+*/
+TO_INTEGER ( "ToInteger" );
 
 /**
  * The name that should be displayed when used in UIs and reports.
