@@ -132,7 +132,7 @@ public String toUpdateString(boolean tryBuildWhere) {
 			"and " + size2 + " values to put in those columns.");
 		return "";
 	}
-	else {
+	else if ( size > 0 ) {
 		statement.append (DMIUtil.escapeField(_dmi,_field_Vector.get(0)));
 		statement.append (" = ");
 		statement.append (_values_Vector.get(0));
@@ -155,7 +155,8 @@ public String toUpdateString(boolean tryBuildWhere) {
 			statement.append(" AND ");
 			statement.append(_where_Vector.get(i));
 		}
-	} else if (tryBuildWhere) {
+	}
+	else if ( (_field_Vector.size() > 0) && tryBuildWhere) {
 		statement.append(DMIUtil.escapeField(_dmi,_field_Vector.get(0)));
 		statement.append(" = ");
 		statement.append(_values_Vector.get(0));

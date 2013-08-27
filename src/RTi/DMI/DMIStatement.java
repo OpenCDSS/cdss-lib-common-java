@@ -319,7 +319,12 @@ Adds a Double value to the statement.
 */
 public void addValue(Double value) 
 throws Exception {
-	addValueOrNull(value.doubleValue());
+    if ( value == null ) {
+        addNullValue();
+    }
+    else {
+        addValueOrNull(value.doubleValue());
+    }
 }
 
 /**
@@ -365,7 +370,12 @@ Adds an Integer value to the statement.
 */
 public void addValue(Integer value) 
 throws Exception {
-	addValueOrNull(value.intValue());
+    if ( value == null ) {
+        addNullValue();
+    }
+    else {
+        addValueOrNull(value.intValue());
+    }
 }
 
 /**
