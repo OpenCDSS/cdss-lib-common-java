@@ -168,8 +168,7 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.TINYINT: return TableField.DATA_TYPE_INT;
         case Types.VARCHAR: return TableField.DATA_TYPE_STRING;
         default:
-            Message.printWarning(2,"","Unknown SQL type for conversion to table: " + sqlColumnType +
-                 ", using string.");
+            Message.printWarning(2,"","Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");
             return TableField.DATA_TYPE_STRING;
     }
 }
