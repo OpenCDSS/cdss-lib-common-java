@@ -72,6 +72,8 @@ private String
 	keyLabel = null,
 	valueLabel = null;
 
+private String [] notes = null;
+
 int dictSize = 10;
 
 private boolean error_wait = false; // Indicates if there is an error in input (true) from checkInput().
@@ -84,16 +86,22 @@ be null.  If necessary, pass in a new JFrame.
 @param dictString the dictionary string to edit.  Can be null, in which case <code>response()
 </code> will return a new dictionary string filled with the values entered on the form.
 @param title dialog title
+@param notes information to display at the top of the dialog, to help explain the input
 @param keyLabel label above keys
 @param valueLabel label above values
 @param dictSize number of key/value pairs to show
 */
-public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String title, String keyLabel, String valueLabel,
+public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String title, String [] notes,
+    String keyLabel, String valueLabel,
     int dictSize )
 {	super(parent, modal);
 
 	this.dictString = dictString;
 	this.title = title;
+	if ( notes == null ) {
+	    notes = new String[0];
+	}
+	this.notes = notes;
 	this.keyLabel = keyLabel;
 	this.valueLabel = valueLabel;
 	this.dictSize = dictSize;
@@ -213,6 +221,15 @@ private void setupUI()
 	
 	Insets insetsTLBR = new Insets(2,2,2,2);
 	
+	// Display the notes
+    int y = -1;
+	for ( int i = 0; i < this.notes.length; i++ ) {
+	    JGUIUtil.addComponent(panel, 
+	        new JLabel(this.notes[i]),
+	        0, ++y, 2, 1, 0, 0, insetsTLBR,
+	        GridBagConstraints.NONE, GridBagConstraints.WEST);
+	}
+	
 	// Parse out the existing dictionary.
 	String [] keyList = new String[0];
 	String [] valueList = new String[0];
@@ -254,7 +271,6 @@ private void setupUI()
 	    dictSize = keyList.length + 5;
 	}
 
-	int y = -1;
 	JGUIUtil.addComponent(panel, 
 		new JLabel(this.keyLabel),
 		0, ++y, 1, 1, 0, 0, insetsTLBR,
