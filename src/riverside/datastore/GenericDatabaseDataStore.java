@@ -49,6 +49,8 @@ public static final String TS_META_TABLE_DATAINTERVAL_COLUMN_PROP =
     "TimeSeriesMetadataTable_DataIntervalColumn";
 public static final String TS_META_TABLE_SCENARIO_COLUMN_PROP =
     "TimeSeriesMetadataTable_ScenarioColumn";
+public static final String TS_META_TABLE_DESCRIPTION_COLUMN_PROP =
+    "TimeSeriesMetadataTable_DescriptionColumn";
 public static final String TS_META_TABLE_UNITS_COLUMN_PROP =
     "TimeSeriesMetadataTable_DataUnitsColumn";
 public static final String TS_META_TABLE_ID_COLUMN_PROP =
@@ -377,7 +379,7 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
         ts.setIdentifier(tsident);
         ts.setDataUnits ( tsMeta.getUnits() );
         ts.setDataUnitsOriginal ( tsMeta.getUnits() );
-        ts.setDescription(tsident.getLocation()); // TODO SAM evaluate adding to metadata
+        ts.setDescription( tsMeta.getDescription() );
         ts.setMissing(missing);
     }
     catch ( Exception e ) {
@@ -538,16 +540,36 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
     String dtColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DATATYPE_COLUMN_PROP );
     String intervalColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DATAINTERVAL_COLUMN_PROP );
     String scenarioColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_SCENARIO_COLUMN_PROP );
+    String descColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DESCRIPTION_COLUMN_PROP );
     String unitsColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_UNITS_COLUMN_PROP );
     ss.addTable(metaTable);
-    ss.addField(idColumn);
-    ss.addField(ltColumn);
-    ss.addField(locIdColumn);
-    ss.addField(sourceColumn);
-    ss.addField(dtColumn);
-    ss.addField(intervalColumn);
-    ss.addField(scenarioColumn);
-    ss.addField(unitsColumn);
+    if ( idColumn != null ) {
+        ss.addField(idColumn);
+    }
+    if ( ltColumn != null ) {
+        ss.addField(ltColumn);
+    }
+    if ( locIdColumn != null ) {
+        ss.addField(locIdColumn);
+    }
+    if ( sourceColumn != null ) {
+        ss.addField(sourceColumn);
+    }
+    if ( dtColumn != null ) {
+        ss.addField(dtColumn);
+    }
+    if ( intervalColumn != null ) {
+        ss.addField(intervalColumn);
+    }
+    if ( scenarioColumn != null ) {
+        ss.addField(scenarioColumn);
+    }
+    if ( descColumn != null ) {
+        ss.addField(descColumn);
+    }
+    if ( unitsColumn != null ) {
+        ss.addField(unitsColumn);
+    }
     readTimeSeriesMetaAddWhere(ss,metaTable,ltColumn,locType);
     readTimeSeriesMetaAddWhere(ss,metaTable,locIdColumn,locID);
     readTimeSeriesMetaAddWhere(ss,metaTable,sourceColumn,dataSource);
@@ -557,20 +579,51 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
     String sqlString = ss.toString();
     ResultSet rs = null;
     long l, id = -1;
-    String s, units = "";
-    int count = 0;
+    String s, desc = "", units = "";
+    int count = 0, i;
     try {
         rs = dmi.dmiSelect(ss);
         while (rs.next()) {
-            // Since the calling arguments include everything of interest, really only need the ID and units from the query
+            // Since the calling arguments include everything of interest, really only need the ID and units from the query,
+            // but jump through the arguments as of above
+            // TODO maybe should request by column name
             ++count;
-            l = rs.getLong(1);
-            if (!rs.wasNull()) {
-                id = l;
+            i = 0;
+            if ( idColumn != null ) {
+                l = rs.getLong(++i);
+                if (!rs.wasNull()) {
+                    id = l;
+                }
             }
-            s = rs.getString(8);
-            if (!rs.wasNull()) {
-                units = s;
+            if ( ltColumn != null ) {
+                ++i;
+            }
+            if ( locIdColumn != null ) {
+                ++i;
+            }
+            if ( sourceColumn != null ) {
+                ++i;
+            }
+            if ( dtColumn != null ) {
+                ++i;
+            }
+            if ( intervalColumn != null ) {
+                ++i;
+            }
+            if ( scenarioColumn != null ) {
+                ++i;
+            }
+            if ( descColumn != null ) {
+                s = rs.getString(++i);
+                if (!rs.wasNull()) {
+                    desc = s;
+                }
+            }
+            if ( unitsColumn != null ) {
+                s = rs.getString(++i);
+                if (!rs.wasNull()) {
+                    units = s;
+                }
             }
         }
     }
@@ -584,7 +637,7 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
         Message.printWarning(3, routine, "Expecting 1 time series meta object for \"" + sqlString + "\" but have " + count );
         return null;
     }
-    return new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, units, id);
+    return new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, desc, units, id);
 }
 
 /**
@@ -779,16 +832,36 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
     String dtColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DATATYPE_COLUMN_PROP );
     String intervalColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DATAINTERVAL_COLUMN_PROP );
     String scenarioColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_SCENARIO_COLUMN_PROP );
+    String descColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_DESCRIPTION_COLUMN_PROP );
     String unitsColumn = getProperty ( GenericDatabaseDataStore.TS_META_TABLE_UNITS_COLUMN_PROP );
     ss.addTable(metaTable);
-    ss.addField(idColumn);
-    ss.addField(ltColumn);
-    ss.addField(locIdColumn);
-    ss.addField(sourceColumn);
-    ss.addField(dtColumn);
-    ss.addField(intervalColumn);
-    ss.addField(scenarioColumn);
-    ss.addField(unitsColumn);
+    if ( idColumn != null ) {
+        ss.addField(idColumn);
+    }
+    if ( ltColumn != null ) {
+        ss.addField(ltColumn);
+    }
+    if ( locIdColumn != null ) {
+        ss.addField(locIdColumn);
+    }
+    if ( sourceColumn != null ) {
+        ss.addField(sourceColumn);
+    }
+    if ( dtColumn != null ) {
+        ss.addField(dtColumn);
+    }
+    if ( intervalColumn != null ) {
+        ss.addField(intervalColumn);
+    }
+    if ( scenarioColumn != null ) {
+        ss.addField(scenarioColumn);
+    }
+    if ( descColumn != null ) {
+        ss.addField(descColumn);
+    }
+    if ( unitsColumn != null ) {
+        ss.addField(unitsColumn);
+    }
     String locType = null;
     String locID = null;
     String dataSource = null;
@@ -796,10 +869,18 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
     readTimeSeriesMetaAddWhere(ss,metaTable,dtColumn,dataType);
     readTimeSeriesMetaAddWhere(ss,metaTable,intervalColumn,interval);
     List<String> whereClauses = new Vector<String>();
-    whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + ltColumn, true ) );
-    whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + locIdColumn, true ) );
-    whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + sourceColumn, true ) );
-    whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + scenarioColumn, true ) );
+    if ( ltColumn != null ) {
+        whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + ltColumn, true ) );
+    }
+    if ( locIdColumn != null ) {
+        whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + locIdColumn, true ) );
+    }
+    if ( sourceColumn != null ) {
+        whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + sourceColumn, true ) );
+    }
+    if ( scenarioColumn != null ) {
+        whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + scenarioColumn, true ) );
+    }
     try {
         ss.addWhereClauses(whereClauses);
     }
@@ -810,66 +891,91 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
     Message.printStatus(2, routine, "Running:  " + sqlString );
     ResultSet rs = null;
     long l, id = -1;
-    String s, units = "";
+    String s, desc = "", units = "";
     int index;
     try {
         rs = dmi.dmiSelect(ss);
         while (rs.next()) {
             index = 1;
-            l = rs.getLong(index++);
-            if (!rs.wasNull()) {
-                id = l;
+            if ( idColumn != null ) {
+                l = rs.getLong(index++);
+                if (!rs.wasNull()) {
+                    id = l;
+                }
             }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                locType = "";
+            if ( ltColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    locType = "";
+                }
+                else {
+                    locType = s;
+                }
             }
-            else {
-                locType = s;
+            if ( locIdColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    locID = "";
+                }
+                else {
+                    locID = s;
+                }
             }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                locID = "";
+            if ( sourceColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    dataSource = "";
+                }
+                else {
+                    dataSource = s;
+                }
             }
-            else {
-                locID = s;
+            if ( dtColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    dataType = "";
+                }
+                else {
+                    dataType = s;
+                }
             }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                dataSource = "";
+            if ( intervalColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    interval = "";
+                }
+                else {
+                    interval = s;
+                }
             }
-            else {
-                dataSource = s;
+            if ( scenarioColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    scenario = "";
+                }
+                else {
+                    scenario = s;
+                }
             }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                dataType = "";
+            if ( descColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    desc = "";
+                }
+                else {
+                    desc = s;
+                }
             }
-            else {
-                dataType = s;
+            if ( unitsColumn != null ) {
+                s = rs.getString(index++);
+                if (rs.wasNull()) {
+                    units = "";
+                }
+                else {
+                    units = s;
+                }
             }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                interval = "";
-            }
-            else {
-                interval = s;
-            }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                scenario = "";
-            }
-            else {
-                scenario = s;
-            }
-            s = rs.getString(index++);
-            if (rs.wasNull()) {
-                units = "";
-            }
-            else {
-                units = s;
-            }
-            metaList.add(new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, units, id));
+            metaList.add(new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, desc, units, id));
         }
     }
     catch ( Exception e ) {

@@ -1,6 +1,5 @@
 package riverside.datastore;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -78,7 +77,7 @@ public void setFilters ( int numFilterGroups )
         StringUtil.TYPE_STRING, scenarios, scenarios, true,
         "Scenario helps uniquely identify time series"));
     
-    setToolTipText("RCC ACIS queries can be filtered based on location and time series metadata");
+    setToolTipText("Database queries can be filtered based on location and time series metadata");
     setInputFilters(filters, numFilterGroups, 25);
 }
 

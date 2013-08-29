@@ -20,7 +20,7 @@ Location type.
 private String locationType;
 
 /**
-Loction ID.
+Location ID.
 */
 private String locationID;
 
@@ -45,15 +45,29 @@ Scenario.
 private String scenario;
 
 /**
+Descrition for time series (often the location name).
+*/
+private String description;
+
+/**
 Data units.
 */
 private String units;
 
 /**
 Construct a metadata object.
+@param locationType the location type, as per the conventions of the datastore.
+@param locationID the location identifier (e.g., station identifier).
+@param dataSource the data source abbreviation (e.g., agency).
+@param dataType the data type abbreviation (e.g., "Streamflow").
+@param interval the data interval, as per TimeInterval strings.
+@param scenario the scenario for the time series.
+@param description a short description of the time series, often the location name.
+@param units the time series data units
+@param id internal identifier, typically the primary key in a database.
 */
 public TimeSeriesMeta ( String locationType, String locationID, String dataSource, String dataType, String interval,
-    String scenario, String units, long id )
+    String scenario, String description, String units, long id )
 {
     this.locationType = (locationType == null ? "" : locationType);
     this.locationID = (locationID == null ? "" : locationID);
@@ -61,6 +75,7 @@ public TimeSeriesMeta ( String locationType, String locationID, String dataSourc
     this.dataType = (dataType == null ? "" : dataType);
     this.interval = (interval == null ? "" : interval);
     this.scenario = (scenario == null ? "" : scenario);
+    this.description = (description == null ? "" : description);
     this.units = (units == null ? "" : units);
     this.id = id;
 }
@@ -79,6 +94,14 @@ Return the data type.
 public String getDataType ()
 {
     return this.dataType;
+}
+
+/**
+Return the description.
+*/
+public String getDescription ()
+{
+    return this.description;
 }
 
 /**
