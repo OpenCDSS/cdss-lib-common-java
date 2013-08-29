@@ -400,6 +400,7 @@ throws Exception
 	setBehaviorMask ( tsident.getBehaviorMask() );
 	// Do not use the following!  It triggers infinite recursion!
 	//setIdentifier ( tsident.__identifier );
+	setLocationType ( tsident.getLocationType() );
 	setIdentifier ( tsident.getLocation(), tsident.getSource(),
 			tsident.getType(), tsident.getInterval(),
 			tsident.getScenario(), tsident.getSequenceNumber(),
@@ -525,30 +526,6 @@ comparison.  If false, only the 5-part TSID is used in the comparison.
 */
 public boolean equals ( TSIdent id, boolean include_input )
 {	return equals ( id.getIdentifier(), include_input );
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	__identifier = null;
-	__alias = null;
-	__full_location = null;
-	__main_location = null;
-	__sub_location = null;
-	__full_source = null;
-	__main_source = null;
-	__sub_source = null;
-	__full_type = null;
-	__main_type = null;
-	__sub_type = null;
-	__interval_string = null;
-	__scenario = null;
-	__input_name = null;
-	__input_type = null;
-	super.finalize();
 }
 
 /**
@@ -1551,7 +1528,7 @@ throws Exception
 }
 
 /**
-Set the identifier given the parts.
+Set the identifier given the main parts, but no sequence number, input type, or input name.
 @param full_location Full location string.
 @param full_source Full source string.
 @param full_type Full data type.
@@ -1570,7 +1547,7 @@ throws Exception
 }
 
 /**
-Set the identifier given the parts.
+Set the identifier given the parts, but not including the sequence number.
 @param full_location Full location string.
 @param full_source Full source string.
 @param type Data type.
@@ -1593,7 +1570,7 @@ throws Exception
 }
 
 /**
-Set the identifier given the parts.
+Set the identifier given the parts, including sequence number.
 @param full_location Full location string.
 @param full_source Full source string.
 @param type Data type.
