@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -61,6 +62,12 @@ public static final String TS_DATA_TABLE_METAID_COLUMN_PROP = "TimeSeriesDataTab
 public static final String TS_DATA_TABLE_DATETIME_COLUMN_PROP = "TimeSeriesDataTable_DateTimeColumn";
 public static final String TS_DATA_TABLE_VALUE_COLUMN_PROP = "TimeSeriesDataTable_ValueColumn";
 public static final String TS_DATA_TABLE_FLAG_COLUMN_PROP = "TimeSeriesDataTable_FlagColumn";
+
+/**
+Hashtable that stores list of data types for different time series metadata inputs.
+The key is a string consisting of locType, locID, dataSource, interval, scenario as passed to getTimeSeriesMetaDataTypeList.
+*/
+private Hashtable<String,List<String>> timeSeriesMetaHash = new Hashtable<String,List<String>>();
 
 /**
 Database metadata, stored here to speed up database interactions.
@@ -207,6 +214,53 @@ private String getPropertyForTable ( String propName, String table )
         }
     }
     return null;
+}
+
+/**
+Get data type strings for the datastore, if time series support is configured.
+This method checks for a cached result and if found, returns it.  Otherwise, it calls the read method of similar name and caches
+the result.
+@param includeNotes if true, include notes in the data type strings, like "DataType - Note"
+(currently does nothing)
+@param locType location type to use as filter (ignored if blank or null)
+@param locID location ID to use as filter (ignored if blank or null)
+@param dataSource data source to use as filter (ignored if blank or null)
+@param interval interval to use as filter (ignored if blank or null)
+@param scenario scenario to use as filter (ignored if blank or null)
+@return the list of data type strings by making a unique query of the 
+*/
+public List<String> getTimeSeriesMetaDataTypeList ( boolean includeNotes,
+    String locType, String locID, String dataSource, String interval, String scenario )
+{
+    // Only cache certain combinations as there is a trade-off between memory and performance
+    // TODO SAM 2013-08-28 Evaluate what gets cached and what not.
+    // For now only cache all nulls since that is the main choice
+    // TODO SAM 2013-08-28 Remove logging messages if code works OK
+    //Message.printStatus(2, "", "Getting data types for " + locType + "." + locID + "." + dataSource + "." + interval + "." + scenario);
+    List<String> dataTypeList = null;
+    if ( (locType == null) && (locID == null) && (dataSource == null) && (interval == null) && (scenario == null) ) {
+        //Message.printStatus(2, "", "Looking up data from hashtable");
+        // Use the hashtable
+        String key = locType + "." + locID + "." + dataSource + "." + interval + "." + scenario;
+        Object o = this.timeSeriesMetaHash.get(key);
+        if ( o == null ) {
+            // Not in the hashtable so read the data and set in the hastable
+            //Message.printStatus(2, "", "Nothing in hashtable...reading");
+            dataTypeList = readTimeSeriesMetaDataTypeList ( includeNotes, locType, locID, dataSource, interval, scenario );
+            //Message.printStatus(2, "", "Read " + dataTypeList.size() + " data types...saving to hashtable");
+            this.timeSeriesMetaHash.put(key,dataTypeList);
+        }
+        else {
+            dataTypeList = (List<String>)o;
+            //Message.printStatus(2, "", "Got " + dataTypeList.size() + " data types from hashtable");
+        }
+        return dataTypeList;
+    }
+    else {
+        dataTypeList = readTimeSeriesMetaDataTypeList ( includeNotes, locType, locID, dataSource, interval, scenario );
+        //Message.printStatus(2, "", "Got " + dataTypeList.size() + " data types from read (but not saving to hashtable)");
+        return dataTypeList;
+    }
 }
 
 /**
@@ -710,7 +764,7 @@ Not a lot of error checking is done because the data store should have been chec
 */
 public List<String> readTimeSeriesMetaDataTypeList ( boolean includeNotes,
     String locType, String locID, String dataSource, String interval, String scenario )
-{   String routine = "GenericDatabaseDataStore.readDataTypeStrings";
+{   String routine = "GenericDatabaseDataStore.readTimeSeriesMetaDataTypeList";
     DMI dmi = getDMI();
     List<String> dataTypes = new Vector<String>();
     // Create a statement to read distinct data types from the time series metadata table
