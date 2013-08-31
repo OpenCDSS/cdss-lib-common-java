@@ -983,6 +983,12 @@ public TSData getDataPoint ( DateTime date, TSData tsdata )
 		// Allocate it...
 		tsdata = new TSData();
 	}
+    if ( (_data == null) || (date == null) ) {
+        tsdata.setDate(null);
+        tsdata.setDataValue(_missing);
+        tsdata.setDataFlag("");
+        return tsdata;
+    }
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 50, "YearTS.getDataValue",
@@ -1027,7 +1033,7 @@ not found in the period, a missing data value is returned.
 public double getDataValue ( DateTime date )
 {	// Check the date coming in...
 
-	if ( date == null ) {
+	if ( (_data == null) || (date == null) ) {
 		return _missing;
 	}
 
