@@ -15,7 +15,7 @@ public class TimeSeriesData extends DMIDataObject
 /**
 Internal key to link time series record to time series metadata.
 */
-private long metaId = DMIUtil.MISSING_LONG;
+//private long metaId = DMIUtil.MISSING_LONG;
 
 /**
 DateTime corresponding to the data value.

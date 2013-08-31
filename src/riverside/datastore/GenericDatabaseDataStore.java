@@ -24,6 +24,7 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.StopWatch;
 
 /**
 Data store for Generic database, to allow table/view queries.
@@ -185,6 +186,7 @@ private DatabaseMetaData getDatabaseMetaData ()
 throws SQLException
 {
     if ( this.databaseMetadata == null ) {
+        // Metadata have not previously been retrieved so get now
         this.databaseMetadata = getDMI().getConnection().getMetaData();
     }
     return this.databaseMetadata;
@@ -421,8 +423,11 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
         throw new RuntimeException ( message );
     }
     // Get the time series metadata record
+    StopWatch metaTimer = new StopWatch();
+    metaTimer.start();
     TimeSeriesMeta tsMeta = readTimeSeriesMeta ( tsident.getLocationType(), tsident.getLocation(),
         tsident.getSource(), tsident.getType(), tsident.getInterval(), tsident.getScenario() );
+    metaTimer.stop();
     if ( tsMeta == null ) {
         return null;
     }
@@ -445,6 +450,8 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     }
     // Read the time series data
     DMI dmi = getDMI();
+    StopWatch dataTimer = new StopWatch();
+    dataTimer.start();
     DMISelectStatement ss = new DMISelectStatement(dmi);
     String dataTable = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_PROP );
     //Message.printStatus(2, routine, "Data table = \"" + dataTable + "\"");
@@ -477,6 +484,7 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     }
     String valColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_VALUE_COLUMN_PROP );
     String flagColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_FLAG_COLUMN_PROP );
+    String idColumn = getProperty ( GenericDatabaseDataStore.TS_DATA_TABLE_METAID_COLUMN_PROP );
     ss.addTable(dataTable);
     ss.addField(dtColumn);
     ss.addField(valColumn);
@@ -484,9 +492,15 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
         ss.addField(flagColumn);
     }
     ss.addOrderByClause(dtColumn);
+    try {
+        ss.addWhereClause(idColumn + " = " + tsMeta.getId() );
+    }
+    catch ( Exception e ) {
+        Message.printWarning(3, routine, "Error setting TimeSeriesMeta ID for query (" + e + ")." );
+    }
     if ( inputStart != null ) {
         try {
-            ss.addWhereClause(dtColumn + " <= " + DMIUtil.formatDateTime(dmi, inputStart) );
+            ss.addWhereClause(dtColumn + " >= " + DMIUtil.formatDateTime(dmi, inputStart) );
         }
         catch ( Exception e ) {
             Message.printWarning(3, routine, "Error setting input start for query (" + e + ")." );
@@ -494,13 +508,14 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     }
     if ( inputEnd != null ) {
         try {
-            ss.addWhereClause(dtColumn + " >= " + DMIUtil.formatDateTime(dmi, inputEnd) );
+            ss.addWhereClause(dtColumn + " <= " + DMIUtil.formatDateTime(dmi, inputEnd) );
         }
         catch ( Exception e ) {
             Message.printWarning(3, routine, "Error setting input end for query (" + e + ")." );
         }
     }
     String sqlString = ss.toString();
+    Message.printStatus(2,routine,"Select statement = " + sqlString );
     ResultSet rs = null;
     double d, value;
     Date dt;
@@ -509,8 +524,11 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     int i;
     int index;
     List<TimeSeriesData> tsdataList = new Vector<TimeSeriesData>();
+    StopWatch selectTimer = new StopWatch();
     try {
+        selectTimer.start();
         rs = dmi.dmiSelect(ss);
+        selectTimer.stop();
         while (rs.next()) {
             index = 1;
             if ( dateTimeInt ) {
@@ -557,12 +575,23 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
     finally {
         DMI.closeResultSet(rs);
     }
+    dataTimer.stop();
     // Process the data records into the time series
+    StopWatch setTimer = new StopWatch();
+    setTimer.start();
+    if ( inputStart != null ) {
+        ts.setDate1(inputStart);
+        ts.setDate1Original(inputStart);
+    }
+    if ( inputEnd != null ) {
+        ts.setDate2(inputEnd);
+        ts.setDate1Original(inputEnd);
+    }
     if ( tsdataList.size() > 0 ) {
         ts.setDate1(tsdataList.get(0).getDateTime());
-        ts.setDate1Original(ts.getDate1());
+        ts.setDate1Original(tsdataList.get(0).getDateTime());
         ts.setDate2(tsdataList.get(tsdataList.size() - 1).getDateTime());
-        ts.setDate2Original(ts.getDate2());
+        ts.setDate2Original(tsdataList.get(tsdataList.size() - 1).getDateTime());
         ts.allocateDataSpace();
         for ( TimeSeriesData tsdata : tsdataList ) {
             if ( flagColumn == null ) {
@@ -573,6 +602,12 @@ public TS readTimeSeries ( String tsidentString, DateTime inputStart, DateTime i
             }
         }
     }
+    setTimer.stop();
+    Message.printStatus(2,routine,"Read " + tsdataList.size() + " values for \"" + ts.getIdentifierString() +
+        "\" metaID=" + tsMeta.getId() +
+    	" metatime=" + metaTimer.getMilliseconds() +
+        "ms, selecttime=" + selectTimer.getMilliseconds() +
+        "ms, datatime=" + dataTimer.getMilliseconds() + "ms, settime=" + setTimer.getMilliseconds() + "ms");
     return ts;
 }
 
@@ -631,6 +666,7 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
     readTimeSeriesMetaAddWhere(ss,metaTable,intervalColumn,interval);
     readTimeSeriesMetaAddWhere(ss,metaTable,scenarioColumn,scenario);
     String sqlString = ss.toString();
+    //Message.printStatus(2,routine,"Select statement = " + sqlString );
     ResultSet rs = null;
     long l, id = -1;
     String s, desc = "", units = "";
@@ -638,9 +674,9 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
     try {
         rs = dmi.dmiSelect(ss);
         while (rs.next()) {
-            // Since the calling arguments include everything of interest, really only need the ID and units from the query,
+            // Since the calling arguments include everything of interest, really only need the ID, units, and description from the query,
             // but jump through the arguments as of above
-            // TODO maybe should request by column name
+            // TODO SAM 2013-08-29 should request by column name
             ++count;
             i = 0;
             if ( idColumn != null ) {
@@ -691,7 +727,12 @@ public TimeSeriesMeta readTimeSeriesMeta ( String locType, String locID,
         Message.printWarning(3, routine, "Expecting 1 time series meta object for \"" + sqlString + "\" but have " + count );
         return null;
     }
-    return new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, desc, units, id);
+    if ( id < 0 ) {
+        return null;
+    }
+    else {
+        return new TimeSeriesMeta(locType, locID, dataSource, dataType, interval, scenario, desc, units, id);
+    }
 }
 
 /**
