@@ -159,8 +159,7 @@ public SimpleJButton (ImageIcon icon, String command, String toolTipText, Insets
 
 /**
 Initialize the button data.
-@param label String label for button.
-@param command Command string for events.
+@param command Command string (button label)for events.
 @param al Action listener.
 */
 private void initialize (String command, String toolTipText, Insets insets, boolean margin, ActionListener al)

@@ -181,8 +181,7 @@ Insets insets, boolean margin, ActionListener al, boolean selected) {
 
 /**
 Initialize the button data.
-@param label String label for button.
-@param command Command string for events.
+@param command Command string (button label) for events.
 @param toolTipText the text to display as the button tool tip
 @param insets the insets inside of the JButton that separate the edge of 
 the button from its contents
