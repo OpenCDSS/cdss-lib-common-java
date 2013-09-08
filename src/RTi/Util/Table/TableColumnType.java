@@ -34,7 +34,11 @@ DATE(5,"Date"),
 /**
 8-byte integer, Java Long.
 */
-LONG(6,"Long");
+LONG(6,"Long"),
+/**
+DateTime.
+*/
+DateTime(7,"DateTime");
 
 /**
 The name that should be displayed when used in UIs and reports.
