@@ -3846,6 +3846,14 @@ private void drawOutlineBox ()
 }
 
 /**
+Draw time series annotations, which are related to specific time series.
+*/
+private void drawTimeSeriesAnnotations ()
+{
+    
+}
+
+/**
 Draw the main and sub titles for the graph.  The properties are retrieved again
 in case they have been reset by a properties GUI.
 */
@@ -7181,6 +7189,7 @@ public void paint ( Graphics g )
 	drawTitles ();
 	drawAxesBack ();
 	drawAnnotations(false);
+	drawTimeSeriesAnnotations();
 	drawGraph ( getGraphType() );
 	drawAnnotations(true);
 	drawAxesFront ();

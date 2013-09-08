@@ -547,6 +547,9 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         }
     }
     // Get filter columns and glob-style regular expressions
+    if ( columnFilters == null ) {
+        columnFilters = new Hashtable<String,String>();
+    }
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
     Enumeration keys = columnFilters.keys();
