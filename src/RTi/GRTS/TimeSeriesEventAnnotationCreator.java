@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import RTi.TS.TS;
+import RTi.Util.Message.Message;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
@@ -45,9 +46,14 @@ Create a list of annotation events from the table and time series that were used
 @param eventIDColumn event table column name for event ID
 @param eventStartColumn event table column name for event start date/time
 @param eventEndColumn event table column name for event end date/time
-@param labelColumn event table column name for event label
-@param descriptionColumn event table column name for event description
-@param locationColumnMap dictionary of event table column names for location type and location value (e.g., "County", "Adams").
+@param eventLabelColumn event table column name for event label
+@param eventDescriptionColumn event table column name for event description
+@param eventLocationColumnMap dictionary of event table column names for location type and location value.
+If the key and value are the same, then the key indicates the location type as a column name, and the value is in that column.
+If the key and value are different, then the key indicates the column name for location types
+(e.g., "LocationType" column with values "County", "State", etc.),
+and the value is the column name for location type values
+(e.g., "Adams" for location type "County" and "CO" for location type "State".
 @param tsLocationMap dictionary of time series location type and time series properties (e.g., "County", "${TS:County}").
 @param start the starting DateTime for events, used to request a time window of events (null to process all events)
 @param end the ending DateTime for events, used to request a time window of events (null to process all events)
@@ -113,32 +119,22 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
         throw new RuntimeException ( "Event table \"" + table.getTableID() + " description column \"" + eventDescriptionColumn +
             "\" not found in table." );
     }
-    int [] eventLocationTypeColumnNum = new int[eventLocationColumnMap.size()];
-    String [] eventLocationTypeColumns = new String[eventLocationTypeColumnNum.length];
-    int [] eventLocationIDColumnNum = new int[eventLocationColumnMap.size()];
-    String [] eventLocationIDColumns = new String[eventLocationIDColumnNum.length];
-    for ( int i = 0; i < eventLocationTypeColumnNum.length; i++ ) {
-        eventLocationTypeColumnNum[i] = -1;
-        eventLocationIDColumnNum[i] = -1;
+    String [] eventLocationTypes = new String[eventLocationColumnMap.size()];
+    int [] eventLocationColumnNum = new int[eventLocationColumnMap.size()];
+    String [] eventLocationColumns = new String[eventLocationColumnNum.length];
+    for ( int i = 0; i < eventLocationTypes.length; i++ ) {
+        eventLocationColumnNum[i] = -1;
     }
     int ikey = -1;
     for ( Map.Entry<String,String> pairs: eventLocationColumnMap.entrySet() ) {
-        eventLocationTypeColumnNum[++ikey] = -1;
+        eventLocationTypes[++ikey] = pairs.getKey();
         try {
-            eventLocationTypeColumns[ikey] = pairs.getKey();
-            eventLocationTypeColumnNum[ikey] = table.getFieldIndex(eventLocationTypeColumns[ikey]);
+            eventLocationColumns[ikey] = pairs.getValue();
+            eventLocationColumnNum[ikey] = table.getFieldIndex(eventLocationColumns[ikey]);
         }
         catch ( Exception e ) {
-            throw new RuntimeException ( "Event table \"" + table.getTableID() +
-                " location type column \"" + eventLocationTypeColumns[ikey] + "\" not found in table." );
-        }
-        try {
-            eventLocationIDColumns[ikey] = pairs.getValue();
-            eventLocationIDColumnNum[ikey] = table.getFieldIndex(eventLocationIDColumns[ikey]);
-        }
-        catch ( Exception e ) {
-            throw new RuntimeException ( "Event table \"" + table.getTableID() + " location ID column \"" +
-                eventLocationIDColumns[ikey] + "\" not found in table." );
+            throw new RuntimeException ( "Event table \"" + table.getTableID() + "\" location column \"" +
+                eventLocationColumns[ikey] + "\" not found in table." );
         }
     }
     // Determine the location types and ID values from the time series
@@ -146,7 +142,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
     String [] tsLocationTypes = new String[tsLocationMap.size()];
     String [] tsLocationIDs = new String[tsLocationTypes.length];
     for ( Map.Entry<String,String> pairs: tsLocationMap.entrySet() ) {
-        tsLocationTypes[ikey] = pairs.getKey();
+        tsLocationTypes[++ikey] = pairs.getKey();
         // Expand the ID based on the time series properties.
         tsLocationIDs[ikey] = pairs.getValue();
     }
@@ -181,28 +177,41 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
         if ( !includeEvent ) {
             continue;
         }
+        // Reset because need to check for location type match
+        includeEvent = false;
         // Loop through the location data for the record
-        for ( int iloc = 0; iloc < eventLocationTypeColumnNum.length; iloc++ ) {
+        for ( int iloc = 0; iloc < eventLocationColumnNum.length; iloc++ ) {
             try {
-                eventLocationType = rec.getFieldValueString(eventLocationTypeColumnNum[iloc]);
+                eventLocationType = eventLocationTypes[iloc];
             }
             catch ( Exception e ) {
                 // Should not happen since column verified above
             }
             try {
-                eventLocationID = rec.getFieldValueString(eventLocationIDColumnNum[iloc]);
+                eventLocationID = rec.getFieldValueString(eventLocationColumnNum[iloc]);
             }
             catch ( Exception e ) {
                 // Should not happen since column verified above
             }
             // Loop through the location information for the time series and see if the table record matches...
             for ( int itsloc = 0; itsloc < tsLocationTypes.length; itsloc++ ) {
+                //Message.printStatus(2,"","Comparing event record location type \"" + eventLocationType +
+                //    "\" with time series location type \"" + tsLocationTypes[itsloc] +
+                //    "\" and event location ID \"" + eventLocationID + "\" with time series location ID \"" + tsLocationIDs[itsloc] +
+                //    "\"" );
                 if ( (eventLocationType != null) && eventLocationType.equalsIgnoreCase(tsLocationTypes[itsloc]) &&
                     (eventLocationID != null) && eventLocationID.equalsIgnoreCase(tsLocationIDs[itsloc]) ) {
                     // Event location type and location ID match the time series
                     includeEvent = true;
+                    //Message.printStatus(2,"","Found matching event record location type \"" + eventLocationType +
+                    //"\" with time series location type \"" + tsLocationTypes[itsloc] +
+                    //"\" and event location ID \"" + eventLocationID + "\" with time series location ID \"" + tsLocationIDs[itsloc] +
+                    //"\"" );
                     break;
                 }
+            }
+            if ( includeEvent ) {
+                break;
             }
         }
         if ( !includeEvent ) {
