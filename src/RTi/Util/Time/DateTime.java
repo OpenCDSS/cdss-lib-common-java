@@ -866,7 +866,7 @@ public DateTime ( DateTime t, String newtz )
 
 		int offset = 0;
 		try {
-            TZ.calculateOffsetMinutes ( t.__tz, newtz, this );
+            offset = TZ.calculateOffsetMinutes ( t.__tz, newtz, this );
 		}
 		catch ( Exception e ) {
 			// Should not happen if the system is set up correctly.
