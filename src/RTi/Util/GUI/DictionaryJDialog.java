@@ -143,11 +143,17 @@ private void checkInputAndCommit ()
 	    String key = this.keyTextField[i].getText().trim();
 	    String value = this.valueTextField[i].getText().trim();
 	    // Make sure that the key and value do not contain special characters :,"
+	    // TODO SAM 2013-09-08 For now see if can parse out intelligently when ${} surrounds property, as in ${TS:property},
+	    // but this is not a generic behavior and needs to be handled without hard-coding
+	    // Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes 
 	    if ( StringUtil.containsAny(key, chars, false) ) {
-	        message += "\n" + this.keyLabel + " contains special character(s) \"" + chars + "\"";
+	        message += "\n" + this.keyLabel + " contains special character(s) \"" + chars + "\".  Surround with '  ' to protect.";
 	    }
 	    if ( StringUtil.containsAny(value, chars, false) ) {
-            message = "\n" + this.valueLabel + " contains special character(s) \"" + chars + "\"";
+	        //if ( (value.charAt(0) != '\'') && (value.charAt(value.length() - 1) != '\'') ) {
+	        if ( !value.startsWith("${") && !value.endsWith("}") ) {
+	            message = "\n" + this.valueLabel + " contains special character(s) \"" + chars + "\".  Surround with '  ' to protect.";
+	        }
         }
 	    if ( key.length() > 0 ) {
 	        if ( b.length() > 0 ) {
@@ -248,15 +254,17 @@ private void setupUI()
     	    valueList = new String[dictParts.length];
     	    for ( int i = 0; i < dictParts.length; i++ ) {
     	        // Now split the part by :
-    	        if ( dictParts[i].indexOf(":") > 0 ) {
-    	            String [] parts2 = dictParts[i].split(":");
-    	            if ( parts2.length == 2 ) {
-    	                keyList[i] = parts2[0].trim();
-    	                valueList[i] = parts2[1].trim();
-    	            }
-    	            else {
-    	                keyList[i] = parts2[0].trim();
-    	                valueList[i] = "";
+    	        // It is possible that the dictionary entry value contains a protected ':' so have to split manually
+    	        // For example, this is used with Property:${TS:property} to retrieve time series properties
+                int colonPos = dictParts[i].indexOf(":");
+    	        if ( colonPos >= 0 ) {
+  	                keyList[i] = dictParts[i].substring(0,colonPos).trim();
+  	                if ( colonPos == (dictParts[i].length() - 1) ) {
+  	                    // Colon is at the end of the string
+                        valueList[i] = "";
+  	                }
+  	                else {
+    	                valueList[i] = dictParts[i].substring(colonPos + 1).trim();
     	            }
     	        }
     	        else {
