@@ -32,27 +32,32 @@ public class DateTimeFormatterSpecifiersJPanel extends JPanel implements ItemLis
 /**
 Hint to aid user.
 */
-String __hint = "----- Select Specifier -----";
+private String __hint = "----- Select Specifier -----";
 
 /**
 Text field containing the edited format specifier.
 */
-JTextField __inputJTextField = null;
+private JTextField __inputJTextField = null;
 
 /**
 Choices for the list of formatter types.
 */
-SimpleJComboBox __formatterTypeJComboBox = null;
+private SimpleJComboBox __formatterTypeJComboBox = null;
 
 /**
 Choices for the list of format specifiers.
 */
-SimpleJComboBox __specifierJComboBox = null;
+private SimpleJComboBox __specifierJComboBox = null;
 
 /**
 Default formatter type for use with blank formatter type choice.
 */
-DateTimeFormatterType __defaultFormatter = DateTimeFormatterType.C;
+private DateTimeFormatterType __defaultFormatter = DateTimeFormatterType.C;
+
+/**
+Indicate whether format specifier choices should be shown for output (true) or parsing (false).
+*/
+private boolean __forOutput = false;
 
 /**
 Control constructor.
@@ -63,13 +68,16 @@ false the default is C
 the panel is being used for a command parameter and the formatter is optional
 @param defaultFormatter if specified, this is the default formatter that is used when the choice is blank (default is
 DateTimeFormatterType.C)
+@param forOutput if true, then include more specifiers used for formatting output; if false, include only choices that have
+been enabled for parsing
 */
 public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterType, boolean includeBlankFormatterType,
-    DateTimeFormatterType defaultFormatter )
+    DateTimeFormatterType defaultFormatter, boolean forOutput )
 {
     if ( defaultFormatter == null ) {
         defaultFormatter = DateTimeFormatterType.C;
     }
+    __forOutput = forOutput;
     setLayout ( new GridBagLayout() );
     Insets insetsTLBR = new Insets(0,0,0,0);
 
@@ -80,7 +88,7 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
         __formatterTypeJComboBox = new SimpleJComboBox ( false );
         __formatterTypeJComboBox.setToolTipText( "Select the formatter type to use." );
         __formatterTypeJComboBox.setPrototypeDisplayValue(""+DateTimeFormatterType.ISO);
-        List<String> choicesList = new Vector();
+        List<String> choicesList = new Vector<String>();
         if ( includeBlankFormatterType ) {
             choicesList.add("");
         }
@@ -277,9 +285,8 @@ private void populateFormatSpecifiers()
     }
     List<String> choicesList = null;
     // Because the choices get reset there is a chance that this will cause layout problems.  Consequently, it is
-    // best to make sure that the hint takes up enough space that the choice width does not change when
-    // repopulated
-    choicesList = new Vector();
+    // best to make sure that the hint takes up enough space that the choice width does not change when repopulated
+    choicesList = new Vector<String>();
     if ( (formatterType == null) && (__defaultFormatter != null) ) {
         formatterType = __defaultFormatter;
     }
@@ -287,9 +294,8 @@ private void populateFormatSpecifiers()
         choicesList.add(__hint);
     }
     else if ( formatterType == DateTimeFormatterType.C ) {
-        // Only want formats that can be parsed...
         choicesList.add(__hint);
-        choicesList.addAll(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true,false)));
+        choicesList.addAll(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true,__forOutput)));
     }
     __specifierJComboBox.setData(choicesList);
 }
