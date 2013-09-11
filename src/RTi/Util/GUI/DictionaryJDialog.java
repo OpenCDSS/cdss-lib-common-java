@@ -147,7 +147,9 @@ private void checkInputAndCommit ()
 	    // but this is not a generic behavior and needs to be handled without hard-coding
 	    // Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes 
 	    if ( StringUtil.containsAny(key, chars, false) ) {
-	        message += "\n" + this.keyLabel + " contains special character(s) \"" + chars + "\".  Surround with '  ' to protect.";
+	        if ( !key.startsWith("${") && !key.endsWith("}") ) {
+	            message += "\n" + this.keyLabel + " contains special character(s) \"" + chars + "\".  Surround with '  ' to protect.";
+	        }
 	    }
 	    if ( StringUtil.containsAny(value, chars, false) ) {
 	        //if ( (value.charAt(0) != '\'') && (value.charAt(value.length() - 1) != '\'') ) {
@@ -256,7 +258,16 @@ private void setupUI()
     	        // Now split the part by :
     	        // It is possible that the dictionary entry value contains a protected ':' so have to split manually
     	        // For example, this is used with Property:${TS:property} to retrieve time series properties
-                int colonPos = dictParts[i].indexOf(":");
+    	        // or ${TS:property}:Property to set properties
+    	        int colonPos = dictParts[i].indexOf("}:");
+    	        if ( colonPos > 0 ) {
+    	            // Have a ${property} property in the key
+    	            ++colonPos; // Increment one position since }: is 2 characters
+    	        }
+    	        else {
+    	            // No ${property} in the key
+    	            colonPos = dictParts[i].indexOf(":");
+    	        }
     	        if ( colonPos >= 0 ) {
   	                keyList[i] = dictParts[i].substring(0,colonPos).trim();
   	                if ( colonPos == (dictParts[i].length() - 1) ) {
