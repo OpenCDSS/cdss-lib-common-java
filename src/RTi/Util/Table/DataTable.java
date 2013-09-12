@@ -2990,9 +2990,11 @@ Set values in the table by first matching rows using column filters (default is 
 then setting values for specific columns.
 @param table table to modify
 @param columnFilters map to filter rows to set values in
-@param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters
+@param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
+values are strings and need to be converged before setting, based on column type
+@param createColumns indicates whether new columns should be created if necessary
 */
-public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,Object> columnValues, boolean createColumns )
+public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues, boolean createColumns )
 {   String routine = getClass().getName() + ".setTableValues";
     // List of columns that will be set, taken from keys in the column values
     int errorCount = 0;
@@ -3023,13 +3025,15 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     }
     // Get the column numbers and values to to set
     String [] columnNamesToSet = new String[columnValues.size()];
+    String [] columnValuesToSet = new String[columnValues.size()];
     int [] columnNumbersToSet = new int[columnValues.size()];
     int [] columnTypesToSet = new int[columnValues.size()];
     ikey = -1;
-    for ( Map.Entry<String,Object> pairs: columnValues.entrySet() ) {
+    for ( Map.Entry<String,String> pairs: columnValues.entrySet() ) {
         columnNumbersToSet[++ikey] = -1;
         try {
             columnNamesToSet[ikey] = (String)pairs.getKey();
+            columnValuesToSet[ikey] = pairs.getValue();
             columnNumbersToSet[ikey] = getFieldIndex(columnNamesToSet[ikey]);
             columnTypesToSet[ikey] = getFieldDataType(columnNumbersToSet[ikey]);
             //Message.printStatus(2,routine,"Setting column \"" + columnNamesToSet[ikey] + " " + columnNumbersToSet[ikey] + "\"");
@@ -3047,6 +3051,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
             // Did not find the column in the table so add a String column for null values
             newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToSet[icol], -1, -1);
             columnNumbersToSet[icol] = addField(newTableField, null );
+            columnTypesToSet[icol] = getFieldDataType(columnNumbersToSet[icol]);
         }
     }
     // Now loop through all the data records and set values if rows are matched
@@ -3092,26 +3097,33 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
         for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
             try {
                 // OK if setting to null value, but hopefully should not happen
-                // TODO SAM 2013-08-06 Evaluate whether types other than String are gracefully handled - may need
-                // to check column type and set accordingly
+                // TODO SAM 2013-08-06 Handle all column types
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
-                    if ( columnTypesToSet[ikey] == TableField.DATA_TYPE_INT ) {
+                    if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
                         // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
-                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt((String)columnValues.get(columnNamesToSet[icol])), true );
+                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt(columnValuesToSet[icol]), true );
+                    }
+                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        setFieldValue(irow, columnNumbersToSet[icol], Double.parseDouble(columnValuesToSet[icol]), true );
+                    }
+                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
+                        setFieldValue(irow, columnNumbersToSet[icol], columnValuesToSet[icol], true );
                     }
                     else {
-                        setFieldValue(irow, columnNumbersToSet[icol], columnValues.get(columnNamesToSet[icol]), true );
+                        errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
+                            ") for column \"" + columnNamesToSet[icol] + "].");
                     }
                 }
             }
             catch ( Exception e ) {
                 // Should not happen
-                errorMessage.append("Error setting table data [" + irow + "][" +
-                    columnNumbersToSet[icol] + "].");
+                errorMessage.append("Error setting table data [" + irow + "][" + columnNumbersToSet[icol] + "] (" + e + ").");
                 Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
                     columnNumbersToSet[icol] + "] (" + e + ")." );
+                Message.printWarning(3, routine, e);
                 ++errorCount;
             }
         }

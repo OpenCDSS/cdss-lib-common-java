@@ -72,20 +72,23 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         input1Field = __table.getFieldIndex(input1);
     }
     catch ( Exception e ) {
-        problems.add ( "Input field (1) \"" + input1 + "\" not found in table \"" + __table.getTableID() + "\"" );
+        problems.add ( "Input column (1) \"" + input1 + "\" not found in table \"" + __table.getTableID() + "\"" );
     }
     int input2Field = -1;
     Double input2Double = null;
     if ( operator != DataTableMathOperatorType.TO_INTEGER ) {
+        // Need to get the second input
         if ( StringUtil.isDouble(input2) ) {
+            // Second input supplied as a number
             input2Double = Double.parseDouble(input2);
         }
         else {
+            // Second input supplied as a column name
             try {
                 input2Field = __table.getFieldIndex(input2);
             }
             catch ( Exception e ) {
-                problems.add ( "Input field (2) \"" + input2 + "\" not found in table \"" + __table.getTableID() + "\"" );
+                problems.add ( "Input column (2) \"" + input2 + "\" not found in table \"" + __table.getTableID() + "\"" );
             }
         }
     }
@@ -98,17 +101,10 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             __table.getTableID() + "\" - automatically adding." );
         // Automatically add to the table, initialize with null (not nonValue)
         if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
-            __table.addField(new TableField(TableField.DATA_TYPE_INT,output,-1,-1), null );
+            outputField = __table.addField(new TableField(TableField.DATA_TYPE_INT,output,-1,-1), null );
         }
         else {
-            __table.addField(new TableField(TableField.DATA_TYPE_DOUBLE,output,10,4), null );
-        }
-        try {
-            outputField = __table.getFieldIndex(output);
-        }
-        catch ( Exception e2 ) {
-            // Should not happen.
-            problems.add ( "Output field \"" + output + "\" not found in table \"" + __table.getTableID() + "\"" );
+            outputField = __table.addField(new TableField(TableField.DATA_TYPE_DOUBLE,output,10,4), null );
         }
     }
     
@@ -140,18 +136,18 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         }
         if ( input2Field >= 0 ) {
             try {
-                if ( input2Double != null ) {
-                    input2Val = input2Double;
-                }
-                else {
-                    val = __table.getFieldValue(irec, input2Field);
-                    input2Val = (Double)val;
-                }
+                // Second value is determined from table
+                val = __table.getFieldValue(irec, input2Field);
+                input2Val = (Double)val;
             }
             catch ( Exception e ) {
                 problems.add ( "Error getting value for input field 2 (" + e + ")." );
                 continue;
             }
+        }
+        else if ( input2Double != null ) {
+            // Second value was a constant
+            input2Val = input2Double;
         }
         // Check for missing values and compute the output
         if ( operator == DataTableMathOperatorType.ADD ) {
@@ -209,7 +205,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             }
         }
         catch ( Exception e ) {
-            problems.add ( "Error setting value (" + e + ")." );
+            if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
+                problems.add ( "Error setting value in row [" + irec + "] to " + outputValInteger + " (" + e + ")." );
+            }
+            else {
+                problems.add ( "Error setting value in row [" + irec + "] to " + outputVal + " (" + e + ")." );
+            }
         }
     }   
 }

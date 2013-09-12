@@ -10,35 +10,35 @@ public enum TableColumnType
 /**
 4-byte integer, Java Integer.
 */
-INT(0,"Integer"),
+INT(TableField.DATA_TYPE_INT,"Integer"),
 /**
 2-byte integer, Java Short.
 */
-SHORT(1,"Short"),
+SHORT(TableField.DATA_TYPE_SHORT,"Short"),
 /**
 8-byte double, Java Double.
 */
-DOUBLE(2,"Double"),
+DOUBLE(TableField.DATA_TYPE_DOUBLE,"Double"),
 /**
 4-byte float, Java Float.
 */
-FLOAT(3,"Float"),
+FLOAT(TableField.DATA_TYPE_FLOAT,"Float"),
 /**
 Java String.
 */
-STRING(4,"String"),
+STRING(TableField.DATA_TYPE_STRING,"String"),
 /**
 Java date and optionally time.
 */
-DATE(5,"Date"),
+DATE(TableField.DATA_TYPE_DATE,"Date"),
 /**
 8-byte integer, Java Long.
 */
-LONG(6,"Long"),
+LONG(TableField.DATA_TYPE_LONG,"Long"),
 /**
 DateTime.
 */
-DateTime(7,"DateTime");
+DateTime(TableField.DATA_TYPE_DATETIME,"DateTime");
 
 /**
 The name that should be displayed when used in UIs and reports.
