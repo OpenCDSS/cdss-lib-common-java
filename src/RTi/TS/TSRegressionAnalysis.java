@@ -677,12 +677,13 @@ private void extractDataArraysFromTimeSeries ()
     			analysisMonths, false, // Do not include missing
     			false, // DO NOT match non-missing for the following time series
     			xTS, TSToArrayReturnType.DATA_VALUE );
-    	
-		Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
+    	if ( Message.isDebugOn ) {
+    	    Message.printDebug(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
 				"x2[indep only],y3[dep only]]): " + x1Single.length + "," +
 				y1Single.length + "," +
 				x2Single.length + "," +
 				y3Single.length );
+    	}
     	dataSingle = new RegressionData ( x1Single, y1Single, x2Single, y3Single );
     }
     // Extract data arrays from time series for monthly equations...
@@ -719,13 +720,14 @@ private void extractDataArraysFromTimeSeries ()
     					false, // DO NOT match non-missing for the following time series
     					xTS, TSToArrayReturnType.DATA_VALUE );
     		}
-
-    		Message.printStatus(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
+    		if ( Message.isDebugOn ) {
+    		    Message.printDebug(2, routine, "Size of data arrays (x1[overlap],y1[overlap]," +
     				"x2[indep only],y3[dep only]]) for month " + iMonth +
     				": " + x1Monthly.length + "," +
     				y1Monthly.length + "," +
     				x2Monthly.length + "," +
     				y3Monthly.length );
+    		}
     		dataMonthly[iMonth - 1] = new RegressionData (x1Monthly, y1Monthly,
     				x2Monthly, y3Monthly);
     	}
@@ -1024,10 +1026,12 @@ public boolean [] getTSRegressionChecksMaskSingle ()
             if ( analysisMonthsMask[i] ) {
                 //Message.printStatus(2,"","Month [" + i + "] is in analysis.");
                 // Now check each of the check criteria
-            	Message.printStatus(2,"","Relationship for: "+__xTS.getLocation()+" and "+__yTS.getLocation());
-                Message.printStatus(2,"","OK sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
-                Message.printStatus(2,"","OK minimum R [" + i + "] is " + checks.getIsROK() );
-                Message.printStatus(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsTestOK() );
+                if ( Message.isDebugOn ) {
+                	Message.printDebug(2,"","Relationship for: "+__xTS.getLocation()+" and "+__yTS.getLocation());
+                    Message.printDebug(2,"","OK sample size [" + i + "] is " + checks.getIsSampleSizeOK() );
+                    Message.printDebug(2,"","OK minimum R [" + i + "] is " + checks.getIsROK() );
+                    Message.printDebug(2,"","OK confidenceInterval [" + i + "] is " + checks.getIsTestOK() );
+                }
                 if ( checks.getIsSampleSizeOK() && checks.getIsROK() &&
                     ((checks.getIsTestOK() != null) && checks.getIsTestOK())
                     && checks.getIsAnalysisPerformedOK()) {

@@ -263,7 +263,7 @@ private String determineFillFlag ( int numEquations, int iEquation, int rank )
 Fill the dependent time series
 */
 public void fill() {
-	String routine = getClass().getName() + "TSUtil.fillMixedStation";
+	String routine = "TSUtil_FillRegression.fill";
     int dl = 10; // Debug level
 
     List<String> problems = getProblems();
@@ -361,9 +361,10 @@ public void fill() {
             	        analysisData = analysis.getTSRegressionDataTransformed();
             	        errors = analysis.getTSRegressionErrorsTransformed();
             	    }
-            	    
-                    Message.printStatus(2, routine, "Dependent "+tsToFill.getLocation()+" and independent "+tsIndependent.getLocation()
-                    		+!fillSingle+" have a valid relationship at "+date);
+            	    if ( Message.isDebugOn ) {
+            	        Message.printDebug(2, routine, "Dependent "+tsToFill.getLocation()+" and independent "+tsIndependent.getLocation()
+                    		+ " " + !fillSingle+" have a valid relationship at "+date);
+            	    }
                     if ( Message.isDebugOn ) {
                         Message.printDebug ( dl, routine, "Filling dependent, found nonmissing independant data at " + date + " - value: " + x  );
                     }
@@ -439,7 +440,9 @@ public void fill() {
                     	}
                     	else {
                     		//SEP wasn't OK, go around and try again
-                    		Message.printStatus(2, routine, "SEP unacceptably high: "+newSEP);
+                    	    if ( Message.isDebugOn ) {
+                    	        Message.printDebug(2, routine, "SEP unacceptably high: "+newSEP);
+                    	    }
                     		continue;
                     	}
                     }
@@ -1760,7 +1763,10 @@ throws Exception
     				// Could be zero sample size
     				// statisticFieldType[countStatistic] should have been set above so just set value
     				statisticValueDouble[countStatistic] = null;
-    				Message.printWarning ( 3, routine, "Error computing \"" + statisticName + "\" (" + e + ")" );
+    				if ( Message.isDebugOn ) {
+    				    // TODO SAM for now wrap this but need better check to know when to print
+    				    Message.printWarning ( 3, routine, "Error computing \"" + statisticName + "\" (" + e + ")" );
+    				}
     			}
     		}
     	}
@@ -1851,9 +1857,11 @@ throws Exception
     	tableColumnValues.add ( tableTSIDDependent );
     	tableColumnValues.add ( tableTSIDIndependent );
     	List<TableRecord> recList = table.getRecords ( tableColumnNames, tableColumnValues );
-    	Message.printStatus(2,routine,"Searched for records with columns matching \"" +
+    	if ( Message.isDebugOn ) {
+    	    Message.printStatus(2,routine,"Searched for records with columns matching \"" +
     			tableTSIDColumnName + "\"=\"" + tableTSIDDependent + "\" " +
     			tableTSIDColumnNameIndependent + "\"=\"" + tableTSIDIndependent + "\"... found " + recList.size() );
+    	}
     	if ( recList.size() == 0 ) {
     		// No record in the table so add one with TSID column values and blank statistic values...
     		TableRecord rec = null;
