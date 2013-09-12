@@ -404,7 +404,7 @@ List of all the derived time series to plot.  For example, the stacked bar graph
 time series are used for plotting positions.  The contents of the list are determined by the graph type.
 This list is guaranteed to be non-null but may be empty.
 */
-private List<TS> __derivedTSList = new Vector();
+private List<TS> __derivedTSList = new Vector<TS>();
 
 /**
 List of time series to plot using left axis (currently the default).
@@ -795,13 +795,27 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		_display_props = new PropList ( "TSGraph" );
 	}
 	_subproduct = subproduct;
+    __graphType = TSGraphType.valueOfIgnoreCase ( tsproduct.getLayeredPropValue ( "GraphType", subproduct, -1, false ) );
+    if ( __graphType == null ) {
+        // Should never happen...
+        __graphType = TSGraphType.LINE;
+    }
 	if ( tslist == null ) {
 		// Create an empty vector so checks for null don't need to be added everywhere...
         Message.printStatus(2, routine, "Null list of time series for graph.  Using empty list for graph." );
-		__tslist = new Vector();
+		__tslist = new Vector<TS>();
 	}
-	else {
+	else if ( __graphType != TSGraphType.RASTER ) {
+	    // OK to display all time series
         __tslist = tslist;
+	}
+	else if ( __graphType == TSGraphType.RASTER ) {
+	    // Only graph the first time series
+	    // TODO SAM 2013-09-11 Evaluate whether 2+ time series can be displayed somehow (tiles? on top?)
+	    __tslist = new Vector<TS>();
+	    if ( tslist.size() > 0 ) {
+	        __tslist.add(tslist.get(0));
+	    }
 	}
 	__left_tslist = tslist;
 
@@ -836,11 +850,6 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 
 	_reference_ts_index = reference_ts_index;
 
-	__graphType = TSGraphType.valueOfIgnoreCase ( tsproduct.getLayeredPropValue ( "GraphType", subproduct, -1, false ) );
-	if ( __graphType == null ) {
-		// Should never happen...
-		__graphType = TSGraphType.LINE;
-	}
 	// TODO SAM 2013-02-06 maybe should put some of the other code in the following call?
 	checkInternalProperties ();
 

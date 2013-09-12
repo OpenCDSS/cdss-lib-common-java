@@ -395,7 +395,7 @@ throws Exception
 		Message.printWarning ( 3, "TSProcessor.processGraphProduct", "Unable to create graph." );
 		Message.printWarning ( 3, "TSProcessor.processGraphProduct", e);
 		// Throw a new error...
-		throw new Exception ( "Unable to create graph.", e );
+		throw new Exception ( "Unable to create graph (" + e + ")", e );
 	}
 }
 
