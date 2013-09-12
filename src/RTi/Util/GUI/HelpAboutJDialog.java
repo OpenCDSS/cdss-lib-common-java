@@ -109,7 +109,7 @@ implements ActionListener, KeyListener, WindowListener {
 Button labels.
 */
 private String 
-	__BUTTON_JAR = "Show Software/System Details",
+	__BUTTON_SYSTEM_DETAILS = "Show Software/System Details",
 	__BUTTON_OK = "OK";
 
 /**
@@ -159,7 +159,7 @@ public void actionPerformed(ActionEvent event) {
 		setVisible(false);
 		dispose();	
 	}
-	else if (s.equals(__BUTTON_JAR)) {
+	else if (s.equals(__BUTTON_SYSTEM_DETAILS)) {
 		List<String> v1 = IOUtil.getSystemProperties();
 		List<String> v2 = IOUtil.getJarFilesManifests();
 
@@ -257,7 +257,7 @@ private void initialize(String title, String label, boolean showSystemDetails) {
     southNorth_JPanel.add(__okJButton);
 
 	if ( showSystemDetails || Message.isDebugOn ) {
-		__jarJButton = new SimpleJButton(__BUTTON_JAR, this);
+		__jarJButton = new SimpleJButton(__BUTTON_SYSTEM_DETAILS, this);
         southNorth_JPanel.add(__jarJButton);
 	}
 
