@@ -48,7 +48,6 @@ private int [] __analysisMonths = null;
 /**
 Data value to substitute for the original when using a log transform and the original value is <= 0.
 Can be any number > 0.
-TODO SAM 2010-12-17 Allow NaN to throw the number away, but this changes counts, etc.
 */
 private Double __leZeroLogValue = new Double(TSRegressionAnalysis.getLEZeroLogValueDefault()); // Default
 
@@ -140,6 +139,13 @@ How should values be sorted for fill mixed station?
 */
 private BestFitIndicatorType __bestFit;
 
+/**
+Should values of 0 be ignored?
+Default is false
+Set by LEZeroLogValue being "missing"
+*/
+private boolean __ignoreZero = false;
+
 /**Constructor.
  * 
  * @param analysisMethod What kind of analysis to use? Currently only OLS regression is supported.
@@ -164,7 +170,7 @@ private BestFitIndicatorType __bestFit;
  */
 public TSUtil_FillRegression(TS dependent, RegressionType analysisMethod,
 		int[] analysisMonths,
-		Double leZeroLogValue,
+		String leZeroLogValue,
 		Double forcedIntercept, DateTime dependentAnalysisStart,
 		DateTime dependentAnalysisEnd, DateTime independentAnalysisStart,
 		DateTime independentAnalysisEnd, Integer minimumSampleSize,
@@ -177,7 +183,12 @@ public TSUtil_FillRegression(TS dependent, RegressionType analysisMethod,
 	__analysisMethod = analysisMethod;
 	__analysisMonths = analysisMonths;
 	if (leZeroLogValue != null) {
-		__leZeroLogValue = leZeroLogValue;
+		if (leZeroLogValue.equalsIgnoreCase("Missing")) {
+			__ignoreZero = true;
+		}
+		else {
+			__leZeroLogValue = Double.valueOf(leZeroLogValue);
+		}
 	}
 	__forcedIntercept = forcedIntercept;
     // Dependent analysis period
@@ -311,10 +322,13 @@ public void fill() {
             	    }
             		
             	    x = tsIndependent.getDataValue ( date );
-                    if ( tsIndependent.isDataMissing(x) || x == 0 ) {
+                    if ( tsIndependent.isDataMissing(x) ) {
                         // No independent value so can't fill
-                    	// 0's excluded in mixed station, so exclude them here as well...
                         continue;
+                    }
+                    if (__ignoreZero && x == 0) {
+                    	//ignoring 0, so can't fill
+                    	continue;
                     }
                     // Skip the month if not requested
                     if ( !analysisMonthsMask[month - 1] ) {

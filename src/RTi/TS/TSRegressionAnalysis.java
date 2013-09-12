@@ -137,6 +137,11 @@ Array indicating whether months have valid relationships (for a single equation)
 private boolean [] __tsRegressionChecksMaskMonthly = null;
 
 /**
+Should 0 be excluded from calculations?
+*/
+private boolean __ignoreZero = false;
+
+/**
 Constructor.  The input parameters are checked and the data are extracted from time series into arrays
 needed for the analysis.  The analyzeForFilling() or analyzeForComparison() methods must be called to
 perform the analysis.
@@ -145,7 +150,7 @@ If monthly equations are being used, indicate the one month to analyze.  ?? arra
 */
 public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType analysisMethod,
     boolean analyzeSingleEquation, boolean analyzeMonthlyEquations, int [] analysisMonths,
-    DataTransformationType transformation, Double leZeroLogValue, Double intercept,
+    DataTransformationType transformation, String leZeroLogValue, Double intercept,
     DateTime dependentAnalysisStart, DateTime dependentAnalysisEnd,
     DateTime independentAnalysisStart, DateTime independentAnalysisEnd,
     Double confidenceIntervalPercent )
@@ -188,9 +193,23 @@ public TSRegressionAnalysis ( TS independentTS, TS dependentTS, RegressionType a
     else {
          __transformation = transformation;
     }
-    // If null use the default...
-    if ( leZeroLogValue != null ) {
-        __leZeroLogValue = leZeroLogValue;
+    if ( leZeroLogValue != null && leZeroLogValue.length() > 0 ) {
+        if (leZeroLogValue.equalsIgnoreCase("Missing")) {
+        	//treat 0 as a missing value in independent
+    		double[] missing = __xTS.getMissingRange();
+    		//replace the one closer to 0 with 0....
+    		if (Math.abs(missing[0] - 0) < Math.abs(missing[1] - 0)) {
+    			missing[0] = 0;
+    		}
+    		else {
+    			missing[1] = 0;
+    		}
+    		__xTS.setMissingRange(missing);
+        }
+        else {
+        	// If null use the default...
+        	__leZeroLogValue = Double.valueOf(leZeroLogValue);
+        }
     }
     __forcedIntercept = intercept;
     if ( (__forcedIntercept != null) && (__forcedIntercept != 0.0) ) {
