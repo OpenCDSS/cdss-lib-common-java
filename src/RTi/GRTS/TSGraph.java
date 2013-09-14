@@ -6479,7 +6479,7 @@ public String formatMouseTrackerDataPoint ( GRPoint datapt )
                         valueString = ", TS:  missing" + flagString;
                     }
                     else {
-                        valueString = ", TS:  " + StringUtil.formatString(value,"%2f") + " " +
+                        valueString = ", TS:  " + StringUtil.formatString(value,"%.2f") + " " +
                             ts.getDataUnits() + flagString;
                     }
                 }
