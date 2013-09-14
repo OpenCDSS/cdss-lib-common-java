@@ -3171,9 +3171,10 @@ be quoted when they include the delimiter
 (which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
 newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.  This can be a
 performance hit and mask data issues so the default is to NOT replace newlines.
+@param NaNValue value to replace NaN in output (a value of null will result in NaN being written).
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement ) 
+    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
 throws Exception {
 	String routine = "DataTable.writeDelimitedFile";
 	
@@ -3187,6 +3188,9 @@ throws Exception {
 	String commentLinePrefix2 = commentLinePrefix;
 	if ( !commentLinePrefix.equals("") ) {
 	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability
+	}
+	if ( NaNValue == null ) {
+	    NaNValue = "NaN";
 	}
 
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
@@ -3247,7 +3251,7 @@ throws Exception {
     		    else if ( tableFieldType == TableField.DATA_TYPE_FLOAT ) {
                     fieldValueFloat = (Float)fieldValue;
                     if ( fieldValueFloat.isNaN() ) {
-                        cell = "";
+                        cell = NaNValue;
                     }
                     else if ( precision > 0 ) {
                         // Format according to the precision if floating point
@@ -3261,7 +3265,7 @@ throws Exception {
     		    else if ( tableFieldType == TableField.DATA_TYPE_DOUBLE ) {
     		        fieldValueDouble = (Double)fieldValue;
     		        if ( fieldValueDouble.isNaN() ) {
-    		            cell = "";
+    		            cell = NaNValue;
     		        }
     		        else if ( precision > 0 ) {
                         // Format according to the precision if floating point
