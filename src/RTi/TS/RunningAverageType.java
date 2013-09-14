@@ -6,6 +6,10 @@ This enumeration defines running average types.
 public enum RunningAverageType
 {
     /**
+    Average values from all the available years.
+    */
+    ALL_YEARS("AllYears"),
+    /**
     Average values from both sides of the time step, inclusive of the center value.
     */
     CENTERED("Centered"),

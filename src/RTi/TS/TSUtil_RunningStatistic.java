@@ -42,6 +42,11 @@ Number of missing values allowed in the sample.
 private int __allowMissingCount;
 
 /**
+Minimum sample size to do a calculation.
+*/
+private int __minimumSampleSize;
+
+/**
 Units to use for probabilities, "Fraction", "Percent", or "%".
 */
 private String __probabilityUnits = "Fraction"; // default
@@ -60,10 +65,12 @@ previous, and future running statistics
 @param sampleType type of data sampling for statistic
 @param allowMissingCount the number of values allowed to be missing in the sample (for example can set to 5 for
 30-year running average to limit impacts of occasional missing data)
+@param minimumSampleSize for sample methods that don't specify the sample size (like NYear), specify the minimum sample
+size to do the calculation, or -1 if the sample size does not matter
 @param probabilityUnits units to use for probability statistics ("Fraction", "Percent", or "%" - default is "Fraction").
 */
 public TSUtil_RunningStatistic ( TS ts, int n, TSStatisticType statisticType, RunningAverageType sampleType,
-    int allowMissingCount, String probabilityUnits )
+    int allowMissingCount, int minimumSampleSize, String probabilityUnits )
 {   String message;
     String routine = getClass().getName();
 
@@ -110,6 +117,7 @@ public TSUtil_RunningStatistic ( TS ts, int n, TSStatisticType statisticType, Ru
     setStatisticType ( statisticType );
     setSampleType ( sampleType );
     setAllowMissingCount ( allowMissingCount );
+    setMinimumSampleSize ( minimumSampleSize );
     if ( (probabilityUnits == null) || probabilityUnits.equals("") ) {
         probabilityUnits = "Fraction";
     }
@@ -131,6 +139,14 @@ Return the number of allowed missing values in the sample.
 public int getAllowMissingCount ()
 {
     return __allowMissingCount;
+}
+
+/**
+Return the minimum sample size.
+*/
+public int getMinimumSampleSize ()
+{
+    return __minimumSampleSize;
 }
 
 /**
@@ -179,6 +195,7 @@ Return the running statistic sample types that are supported by the class.
 public static RunningAverageType[] getRunningAverageTypeChoices ()
 {
     RunningAverageType[] types = {
+        RunningAverageType.ALL_YEARS,
         RunningAverageType.CENTERED,
         RunningAverageType.FUTURE,
         RunningAverageType.FUTURE_INCLUSIVE,
@@ -196,7 +213,7 @@ Get the list of statistics that can be performed.
 public static List<TSStatisticType> getStatisticChoices()
 {
     // Enable statistics that illustrate how things change over time
-    List<TSStatisticType> choices = new Vector();
+    List<TSStatisticType> choices = new Vector<TSStatisticType>();
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY );
     choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
@@ -256,16 +273,23 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     RunningAverageType sampleType = getSampleType();
     int n = getN();
     int allowMissingCount = getAllowMissingCount();
-  
-    if ( sampleType == RunningAverageType.NYEAR ) {
-        if ( n <= 1 ) {
-            // Just return the original time series...
-            return ts;
-        }
+    int minimumSampleSize = getMinimumSampleSize();
+    if ( minimumSampleSize <= 0 ) {
+        // Not specified so require at least 1 value, mainly to keep the analysis going
+        minimumSampleSize = 1;
     }
-    else if ( (sampleType != RunningAverageType.N_ALL_YEAR) && (n == 0) ) {
-        // Just return the original time series...
-        return ts;
+
+    // Set the data type in the new time series to reflect the running statistic
+    String statString = "" + statisticType;
+    if ( sampleType == RunningAverageType.NYEAR ) {
+        statString = "" + n + statisticType;
+    }
+    if ( (sampleType != RunningAverageType.N_ALL_YEAR) && (n == 0) ) {
+        // Return a copy of the original time series
+        //
+        newts = (TS)ts.clone();
+        newts.setDataType(ts.getDataType() + "-Running-" + statString );
+        return newts;
     }
 
     // Get a new time series of the proper type...
@@ -282,11 +306,6 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         throw new RuntimeException ( message );
     }
     newts.copyHeader ( ts );
-    // Set the data type in the new time series to reflect the running statistic
-    String statString = "" + statisticType;
-    if ( sampleType == RunningAverageType.NYEAR ) {
-        statString = "" + n + statisticType;
-    }
     newts.setDataType(ts.getDataType() + "-Running-" + statString );
     newts.setDate1 ( ts.getDate1() );
     newts.setDate2 ( ts.getDate2() );
@@ -348,8 +367,13 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         int neededCount = 0; // Used initially to size the sample array
         int offset1 = 0;
         int offset2 = 0;
-        if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
+        if ( sampleType == RunningAverageType.ALL_YEARS ) {
+            genesis = "" + sampleType;
+            neededCount = minimumSampleSize;
+        }
+        else if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
             genesis = "NAll-year";
+            // The following sizes the sample array, but is not otherwise used
             neededCount = newts.getDate2().getYear() - newts.getDate1().getYear() + 1;
         }
         else if ( sampleType == RunningAverageType.CENTERED ) {
@@ -405,11 +429,14 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         // Size the sample array (count will be <= the max and control the calculations)
         // The "count" is used to indicate how big the sample is for calculations
         double [] sampleArray = new double[neededCount];
+        // Used for AllYears sample method.  Size for the number of years in the period (will be more than enough).
+        DateTime start = new DateTime ( ts.getDate1() );
+        DateTime end = new DateTime ( ts.getDate2() );
+        TSData [] sampleArrayTSData; // = new TSData[end.getYear() - start.getYear() + 1];
         
         // Iterate through the full period of the output time series
     
         DateTime date = new DateTime ( ts.getDate1() );
-        DateTime end = new DateTime ( ts.getDate2() );
         DateTime valueDateTime = new DateTime(newts.getDate1());  // Used to access data values for statistic
         int count, i;
         double value = 0.0;
@@ -436,39 +463,54 @@ throws TSException, IrregularTimeSeriesNotSupportedException
             else {
                 valueDateTime.addInterval ( intervalBase, offset1*intervalMult );
             }
-            // Now loop through the intervals in the bracket and get the sample set...
+            // Get the sample for the calculation
             count = 0;
-            for ( i = offset1; i <= offset2; i++ ) {
-                // This check should fail harmlessly if dealing with intervals greater than a day
-                if ( (valueDateTime.getMonth() == 2) && (valueDateTime.getDay() == 29) &&
-                    !TimeUtil.isLeapYear(valueDateTime.getYear()) ) {
-                    // The Feb 29 that we are requesting in another year does not exist.  Set to missing
-                    // This will result in the final output also being missing.
-                    value = missing;
+            if ( sampleType == RunningAverageType.ALL_YEARS ) {
+                // Get the values for all years (false at end means exclude missing)
+                sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, false );
+                for ( int is = 0; is < sampleArrayTSData.length; is++ ) {
+                    sampleArray[count++] = sampleArrayTSData[is].getDataValue();
                 }
-                else {
-                    // Normal data access.
-                    value = ts.getDataValue ( valueDateTime );
-                }
-                if ( !ts.isDataMissing(value) ) {
-                    // Add the value to the sample (which has been initialized to zero above...
-                    sampleArray[count++] = value;
-                }
-                // Reset the dates for the input data value...
-                if ( (sampleType == RunningAverageType.NYEAR) || (sampleType == RunningAverageType.N_ALL_YEAR) ) {
-                    // Get the value for the next year (last value will be the current year).
-                    valueDateTime.addInterval ( TimeInterval.YEAR, 1 );
-                }
-                else {
-                    // Just move forward incrementally between end points
-                    valueDateTime.addInterval ( intervalBase, intervalMult );
+                Message.printStatus(2, routine, "Got sample size of " + count );
+            }
+            else {
+                // Loop through the intervals in the bracket and get the sample set...
+                for ( i = offset1; i <= offset2; i++ ) {
+                    // This check should fail harmlessly if dealing with intervals greater than a day
+                    if ( (valueDateTime.getMonth() == 2) && (valueDateTime.getDay() == 29) &&
+                        !TimeUtil.isLeapYear(valueDateTime.getYear()) ) {
+                        // The Feb 29 that we are requesting in another year does not exist.  Set to missing
+                        // This will result in the final output also being missing.
+                        value = missing;
+                    }
+                    else {
+                        // Normal data access.
+                        value = ts.getDataValue ( valueDateTime );
+                    }
+                    if ( !ts.isDataMissing(value) ) {
+                        // Add the value to the sample (which has been initialized to zero above...
+                        sampleArray[count++] = value;
+                    }
+                    // Reset the dates for the input data value...
+                    if ( (sampleType == RunningAverageType.NYEAR) || (sampleType == RunningAverageType.N_ALL_YEAR) ) {
+                        // Get the value for the next year (last value will be the current year).
+                        valueDateTime.addInterval ( TimeInterval.YEAR, 1 );
+                    }
+                    else {
+                        // Just move forward incrementally between end points
+                        valueDateTime.addInterval ( intervalBase, intervalMult );
+                    }
                 }
             }
             // Now set the data value to the computed statistic...
             doCalc = false;
-            if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
-                // Always compute for count > 0
-                if ( count > 0 ) {
+            if ( sampleType == RunningAverageType.ALL_YEARS ) {
+                if ( count >= minimumSampleSize ) {
+                    doCalc = true;
+                }
+            }
+            else if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
+                if ( count >= minimumSampleSize ) {
                     doCalc = true;
                 }
             }
@@ -566,6 +608,14 @@ Set the number of missing values allowed in the sample.
 private void setAllowMissingCount ( int allowMissingCount )
 {
     __allowMissingCount = allowMissingCount;
+}
+
+/**
+Set the minimum sample size in order to calculate the statistic.
+*/
+private void setMinimumSampleSize ( int minimumSampleSize )
+{
+    __minimumSampleSize = minimumSampleSize;
 }
 
 /**

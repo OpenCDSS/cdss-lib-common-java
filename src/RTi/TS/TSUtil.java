@@ -11215,7 +11215,7 @@ date/time is YYYY-MM-01, then all the January 1 values are extracted.
 If the start or end date are outside the period of
 record for the time series, use the missing data value from the time series
 for those values.  If the start date or end date are null, the start and end
-dates of the time series are used.  CURRENTLY ONLY MONTH AND DAY TIME SERIES CAN BE PROCESSED.
+dates of the time series are used.  Year, month, day, hour, and minute regular interval time series can be processed.
 @return The array of data for the time series.  If an error, return null.  A zero size array may be returned.
 An array of TSData is returned to allow the dates corresponding to values to be tracked, for example when
 computing statistics like maximum where the date/time of the maximum is of interest.
