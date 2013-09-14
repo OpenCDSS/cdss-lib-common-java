@@ -1,6 +1,7 @@
 package RTi.TS;
 
 import java.security.InvalidParameterException;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -284,13 +285,15 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     if ( sampleType == RunningAverageType.NYEAR ) {
         statString = "" + n + statisticType;
     }
-    if ( (sampleType != RunningAverageType.N_ALL_YEAR) && (n == 0) ) {
-        // Return a copy of the original time series
+    /* TODO SAM 2013-09-13 Why is this here?  Does not make sense for all the new statistics
+    if ( (sampleType != RunningAverageType.N_ALL_YEAR) && (sampleType != RunningAverageType.ALL_YEARS) && (n == 0) ) {
+        // NoReturn a copy of the original time series
         //
         newts = (TS)ts.clone();
         newts.setDataType(ts.getDataType() + "-Running-" + statString );
         return newts;
     }
+    */
 
     // Get a new time series of the proper type...
 
@@ -373,7 +376,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         }
         else if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
             genesis = "NAll-year";
-            // The following sizes the sample array, but is not otherwise used
+            // Used to size the array and array populated below
             neededCount = newts.getDate2().getYear() - newts.getDate1().getYear() + 1;
         }
         else if ( sampleType == RunningAverageType.CENTERED ) {
@@ -442,8 +445,9 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         double value = 0.0;
         double missing = ts.getMissing();
         boolean doCalc = true;
+        Hashtable<String,double []> valueCache = new Hashtable<String,double[]>();
         for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
-            // Initialize the date for looking up values to the initial offset from the loop date...
+            // Initialize the date for looking up values to the initial offset from the loop date (new lines up with old)
             valueDateTime.setDate ( date );
             // Offset from the current date/time to the start of the bracket
             if ( sampleType == RunningAverageType.NYEAR ) {
@@ -465,13 +469,37 @@ throws TSException, IrregularTimeSeriesNotSupportedException
             }
             // Get the sample for the calculation
             count = 0;
+            String key = null;
             if ( sampleType == RunningAverageType.ALL_YEARS ) {
+                // This will be slow if the values have to be extracted each time.  Because the array will be
+                // the same each request, cache at the appropriate time resolution. For example, if processing annual
+                // data, only one array is needed.  If monthly data, 12 arrays are needed.
                 // Get the values for all years (false at end means exclude missing)
-                sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, false );
-                for ( int is = 0; is < sampleArrayTSData.length; is++ ) {
-                    sampleArray[count++] = sampleArrayTSData[is].getDataValue();
+                if ( intervalBase == TimeInterval.DAY ) {
+                    key = "" + date.getMonth() + "-" + date.getDay();
+                    sampleArray = valueCache.get(key);
                 }
-                Message.printStatus(2, routine, "Got sample size of " + count );
+                else if ( intervalBase == TimeInterval.MONTH ) {
+                    key = "" + date.getMonth();
+                    sampleArray = valueCache.get(key);
+                }
+                else if ( intervalBase == TimeInterval.YEAR ) {
+                    key = "year";
+                    sampleArray = valueCache.get(key);
+                }
+                if ( sampleArray == null ) {
+                    // Generate array and save in cache
+                    sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, false );
+                    if ( sampleArrayTSData == null ) {
+                        sampleArrayTSData = new TSData[0];
+                    }
+                    sampleArray = new double[sampleArrayTSData.length];
+                    for ( int is = 0; is < sampleArrayTSData.length; is++ ) {
+                        sampleArray[count++] = sampleArrayTSData[is].getDataValue();
+                    }
+                    valueCache.put ( key, sampleArray );
+                }
+                count = sampleArray.length;
             }
             else {
                 // Loop through the intervals in the bracket and get the sample set...
