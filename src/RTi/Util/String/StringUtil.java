@@ -3106,7 +3106,7 @@ Sort a list of strings into ascending order, considering case.
 @return The sorted list (a new list is returned).
 @param list The original list of String.
 */
-public static List sortStringList ( List<String> list )
+public static List<String> sortStringList ( List<String> list )
 {	return sortStringList ( list, SORT_ASCENDING, null, false, false );
 }
 
@@ -3122,7 +3122,7 @@ Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 @param ignore_case If true, then case is ignored when comparing the strings.
 */
-public static List sortStringList ( List<String> list, int order, int sort_order[], boolean sflag,
+public static List<String> sortStringList ( List<String> list, int order, int sort_order[], boolean sflag,
 	boolean ignore_case )
 {	int	i, ismallest;
 	int[] itmp=null;
@@ -3131,17 +3131,17 @@ public static List sortStringList ( List<String> list, int order, int sort_order
 	if ( (list == null) || (list.size() == 0) ){
 		Message.printWarning ( 50, routine, "NULL string list" );
 		// Always return a new list
-		return new Vector();
+		return new Vector<String>();
 	}
 	int size = list.size();
 
 	List<String> list_tosort = list;
 	if ( ignore_case ) {
 		// Create a new list that is all upper case...
-		list_tosort = new Vector ( size );
+		list_tosort = new Vector<String>( size );
 		String string = null;
 		for ( int j = 0; j < size; j++ ) {
-			string = (String)list.get(j);
+			string = list.get(j);
 			if ( string == null ) {
 				list_tosort.add ( string );
 			}
@@ -3150,19 +3150,18 @@ public static List sortStringList ( List<String> list, int order, int sort_order
 			}
 		}
 	}
-	List<String> newlist = new Vector(size);
+	List<String> newlist = new Vector<String>(size);
 
 	// Allocate memory for the temporary int array used to keep track of the sort order...
 
 	itmp = new int [size];
 
 	for ( i = 0; i < size; i++ ) {
-		itmp[i] = 0;	// indicates not in new list yet
+		itmp[i] = 0; // indicates not in new list yet
 	}
 
 	// OK, now do the sort.  Just do a buble sort and go through the entire
-	// list twice.  Note that "issmallest" is used even if finding the
-	// largest for descending sort.
+	// list twice.  Note that "issmallest" is used even if finding the largest for descending sort.
 
 	int count = 0;
 	while ( true ) {
@@ -3172,12 +3171,13 @@ public static List sortStringList ( List<String> list, int order, int sort_order
 				// Already in the new list...
 				continue;
 			}
-			// Save the "smallest" string.  If this is the first
+			// Save the "smallest" string (null is considered smallest).  If this is the first
 			// string encountered this iteration, initialize with the first string...
+			// TODO SAM 2013-09-15 How to handle nulls?
 			if( (ismallest == -1) || 
-				((order == SORT_ASCENDING) && (((String)list_tosort.get(i)).compareTo(smallest) < 0) ) ||
-				((order == SORT_DESCENDING) && (((String)list_tosort.get(i)).compareTo(smallest) > 0)) ) {
-				smallest = (String)list_tosort.get(i);
+				((order == SORT_ASCENDING) && (list_tosort.get(i).compareTo(smallest) < 0) ) ||
+				((order == SORT_DESCENDING) && (list_tosort.get(i).compareTo(smallest) > 0)) ) {
+				smallest = list_tosort.get(i);
 				ismallest = i;
 			}
 		}
@@ -3193,10 +3193,6 @@ public static List sortStringList ( List<String> list, int order, int sort_order
 
 		itmp[ismallest] = 1;
 	}
-	// We are done with the sort.  Return the new...
-	list_tosort = null;
-	itmp = null;
-	routine = null;
 	return newlist;
 }
 
@@ -3286,7 +3282,7 @@ public static List<String> toList ( String [] array )
 		return null;
 	}
 	int array_size = array.length;
-	List<String> v = new Vector ( array_size, 50 );
+	List<String> v = new Vector<String>( array_size, 50 );
 	for ( int i = 0; i < array_size; i++ ) {
 		v.add ( array[i] );
 	}
@@ -3298,12 +3294,12 @@ Convert an enumeration of strings to a list of strings.
 @return A list containing the strings.
 @param e Enumeration of strings to convert.
 */
-public static List toList ( Enumeration e )
+public static List<String> toList ( Enumeration<String> e )
 {
 	if ( e == null ) {
 		return null;
 	}
-	List v = new Vector ( 50 );
+	List<String> v = new Vector<String>( 50 );
 	while ( e.hasMoreElements() ) {
 		v.add ( e.nextElement() );
 	}

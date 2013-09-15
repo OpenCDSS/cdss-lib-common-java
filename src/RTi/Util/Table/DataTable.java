@@ -1601,7 +1601,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
         if ( table1AppendColumnNumbers[icol] >= 0 ) {
             // Already exists so skip because don't want table2 values to overwrite table1 values
-            message = "Include column \"" + table1AppendColumnNumbers[icol] +
+            message = "Include column \"" + table1AppendColumnNames[icol] +
                 "\" already exists in original table.  Not adding new column.";
             problems.add ( message );
             Message.printWarning(3,routine,message);
@@ -1613,7 +1613,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             // Use the original column name to find the property
             try {
                 Message.printStatus(2,routine,"Creating table1 column \"" + table1AppendColumnNames[icol] +
-                    "\" type=" + tableToJoin.getFieldDataType(table2AppendColumnNumbers[icol]) +
+                    "\" type=" + TableColumnType.valueOf(tableToJoin.getFieldDataType(table2AppendColumnNumbers[icol])) +
                     " width=" + tableToJoin.getFieldWidth(table2AppendColumnNumbers[icol]) +
                     " precision=" + tableToJoin.getFieldPrecision(table2AppendColumnNumbers[icol]));
                 table1AppendColumnNumbers[icol] = table.addField(
@@ -1772,7 +1772,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                             if ( table1AppendColumnNumbers[icol] < 0 ) {
                                 // There was an issue with the column to add so skip
                                 Message.printStatus(2,routine,"Don't have column number for table1 column \"" +
-                                     table1AppendColumnNames[icol]);
+                                     table1AppendColumnNames[icol] + "\"");
                                 continue;
                             }
                             else if ( table2AppendColumnNumbers[icol] < 0 ) {
@@ -1887,7 +1887,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
     if ( problems.size() > 0 ) {
-        throw new RuntimeException ( "There were + " + problems.size() + " errors joning table \"" + tableToJoin.getTableID() + "\" to \"" +
+        throw new RuntimeException ( "There were " + problems.size() + " errors joning table \"" + tableToJoin.getTableID() + "\" to \"" +
             table.getTableID() + "\"" );
     }
     return nrowsJoined;
@@ -3131,6 +3131,63 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     if ( errorCount > 0 ) {
         throw new RuntimeException ( "There were + " + errorCount + " errors setting table values: " + errorMessage );
     }
+}
+
+/**
+Sort the table rows by sorting a column's values.
+@param sortColumn the name of the column to be sorted
+@return the sort order array (useful if a parallel sort of data needs to occur)
+*/
+public int [] sortTable ( String sortColumn )
+{
+    int sortColumnNum = -1;
+    try {
+        sortColumnNum = getFieldIndex(sortColumn);
+    }
+    catch ( Exception e ) {
+        throw new RuntimeException ( "Column to sort \"" + sortColumn + "\" was not found in table \"" +
+            getTableID() + "\"" );
+    }
+    int nrecords = getNumberOfRecords();
+    int [] sortOrder = new int[nrecords];
+    String value;
+    if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_STRING ) {
+        List<String> values = new Vector<String>(nrecords);
+        int irec = -1;
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            try {
+                value = rec.getFieldValueString(sortColumnNum);
+                if ( value == null ) {
+                    value = "";
+                }
+                else {
+                    values.add(value);
+                }
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        StringUtil.sortStringList(values, StringUtil.SORT_ASCENDING, sortOrder, true, true);
+        // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
+        // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
+        // that to sort into an updated original list.
+        List<TableRecord> backup = new Vector<TableRecord>(nrecords);
+        List<TableRecord> records = getTableRecords();
+        for ( TableRecord rec : records ) {
+            backup.add ( rec );
+        }
+        // Now copy from the backup to the original list
+        for ( irec = 0; irec < nrecords; irec++ ) {
+            records.set(irec, backup.get(sortOrder[irec]) );
+        }
+    }
+    else {
+        throw new RuntimeException ( "Sorting table only implemented for string columns." );
+    }
+    return sortOrder;
 }
 
 /**
