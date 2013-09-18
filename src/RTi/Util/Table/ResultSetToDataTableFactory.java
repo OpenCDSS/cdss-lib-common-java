@@ -162,13 +162,15 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.DOUBLE: return TableField.DATA_TYPE_DOUBLE;
         case Types.FLOAT: return TableField.DATA_TYPE_FLOAT;
         case Types.INTEGER: return TableField.DATA_TYPE_INT;
+        case Types.REAL: return TableField.DATA_TYPE_DOUBLE;
         case Types.SMALLINT: return TableField.DATA_TYPE_INT;
         case Types.TIME: return TableField.DATA_TYPE_DATE;
         case Types.TIMESTAMP: return TableField.DATA_TYPE_DATE;
         case Types.TINYINT: return TableField.DATA_TYPE_INT;
         case Types.VARCHAR: return TableField.DATA_TYPE_STRING;
         default:
-            Message.printWarning(2,"","Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");
+            Message.printWarning(2,"sqlToDMIColumnType",
+                "Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");
             return TableField.DATA_TYPE_STRING;
     }
 }

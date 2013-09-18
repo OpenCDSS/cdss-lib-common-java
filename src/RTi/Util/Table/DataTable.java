@@ -87,13 +87,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -119,8 +119,8 @@ An example of a DataTable instantiation is:
 
 <pre>
 try {
-	/// First, create define the table by assembling a vector of TableField objects...
-	List<TableField> myTableFields = new Vector(3);
+	/// First, create define the table by assembling a list of TableField objects...
+	List<TableField> myTableFields = new ArrayList<TableField>(3);
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "id_label_6", 12 ) );
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_INT, "Basin", 12 ) );
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "aka", 12 ) );
@@ -169,7 +169,7 @@ List of comments for the table.  For example, an analysis that creates a table o
 need explanatory comments corresponding to column headings.  The comments can be output when the
 table is written to a file.
 */
-private List<String> __comments = new Vector();
+private List<String> __comments = new ArrayList<String>();
 
 /**
 Number of records in the table (kept for case where records are not in memory).
@@ -199,29 +199,29 @@ protected boolean _add_record_called = false;
 Construct a new table.  Use setTableFields() at a later time to define the table.
 */
 public DataTable ()
-{	// Estimate that 100 is a good increment for the data vector...
-	initialize ( new Vector(), 10, 100 );
+{	// Estimate that 100 is a good increment for the data list...
+	initialize ( new ArrayList<TableField>(), 10, 100 );
 }
 
 /**
 Construct a new table.  The list of TableRecord will increment in size by 100.
-@param tableFieldsVector a list of TableField objects defining table contents.
+@param tableFieldsList a list of TableField objects defining table contents.
 */
-public DataTable ( List<TableField> tableFieldsVector )
-{	// Guess that 100 is a good increment for the data vector...
-	initialize ( tableFieldsVector, 10, 100 );
+public DataTable ( List<TableField> tableFieldsList )
+{	// Guess that 100 is a good increment for the data list...
+	initialize ( tableFieldsList, 10, 100 );
 }
 
 /**
 Construct a new table.
-@param tableFieldsVector a vector of TableField objects defining table contents.
-@param Vector_size Initial list size for the Vector holding records.  This
+@param tableFieldsList a list of TableField objects defining table contents.
+@param listSize Initial list size for the list holding records.  This
 can be used to optimize performance.
-@param Vector_increment Increment for the list holding records.  This
+@param listIncrement Increment for the list holding records.  This
 can be used to optimize performance.
 */
-public DataTable ( List<TableField> tableFieldsVector, int Vector_size, int Vector_increment )
-{	initialize ( tableFieldsVector, Vector_size, Vector_increment );
+public DataTable ( List<TableField> tableFieldsList, int listSize, int listIncrement )
+{	initialize ( tableFieldsList, listSize, listIncrement );
 }
 
 /**
@@ -593,7 +593,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     // Get the column information from the original table
     Object newColumnNameO = null; // Used to map column names
     TableField newTableField; // New table field
-    List<Object> distinctList = new Vector<Object>();
+    List<Object> distinctList = new ArrayList<Object>();
     // Create requested columns in the output table
     for ( int icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
         if ( columnNumbersToCopy[icol] == -1 ) {
@@ -821,7 +821,7 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
 
 	TableField field = null;
 	TableField newField = null;
-	List<TableField> tableFields = new Vector();
+	List<TableField> tableFields = new ArrayList<TableField>();
 	for (int i = 0; i < numFields; i++) {
 		field = originalTable.getTableField(i);
 		newField = new TableField(field.getDataType(), 
@@ -891,16 +891,6 @@ public TableRecord emptyRecord ()
         newRecord.addFieldValue( null );
     }
     return newRecord;
-}
-
-/**
-Clean up before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_table_fields = null;
-	_table_records = null;
-	super.finalize();
 }
 
 /**
@@ -1200,7 +1190,7 @@ throws Exception
 {
     int [] columnNums = new int[1];
     columnNums[0] = columnNum;
-    List<Object> columnValues = new Vector<Object>();
+    List<Object> columnValues = new ArrayList<Object>();
     columnValues.add(columnValue);
     List<TableRecord> records = getRecords ( columnNums, columnValues );
     if ( records.size() == 0 ) {
@@ -1222,9 +1212,9 @@ The type of the object will be checked before doing the comparison.
 public TableRecord getRecord ( String columnName, Object columnValue )
 throws Exception
 {
-    List<String> columnNames = new Vector<String>();
+    List<String> columnNames = new ArrayList<String>();
     columnNames.add(columnName);
-    List<Object> columnValues = new Vector<Object>();
+    List<Object> columnValues = new ArrayList<Object>();
     columnValues.add(columnValue);
     List<TableRecord> records = getRecords ( columnNames, columnValues );
     if ( records.size() == 0 ) {
@@ -1248,7 +1238,7 @@ throws Exception
     // Figure out the column numbers that will be checked
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
-    List<TableRecord> recList = new Vector<TableRecord>();
+    List<TableRecord> recList = new ArrayList<TableRecord>();
     for ( String columnName: columnNames ) {
         ++iColumn;
         // If -1 is returned then a column name does not exist and no matches are possible
@@ -1276,7 +1266,7 @@ throws Exception
         // TODO SAM 2013-07-02 Why not return an empty list here?
         return null;
     }
-    List<TableRecord> recList = new Vector<TableRecord>();
+    List<TableRecord> recList = new ArrayList<TableRecord>();
     // Make sure column numbers are valid.
     for ( int iColumn = 0; iColumn < columnNumbers.length; iColumn++ ) {
         if ( columnNumbers[iColumn] < 0 ) {
@@ -1330,7 +1320,7 @@ public String getTableID ()
 
 /**
 Return the list of TableRecords.
-@return vector of TableRecord.
+@return list of TableRecord.
 */
 public List<TableRecord> getTableRecords ( )
 {	return _table_records;
@@ -1383,7 +1373,7 @@ throws Exception
 		" are available)." );
 	}
 
-	// Use a temporary vector to get the unique values...
+	// Use a temporary list to get the unique values...
 	Vector u = new Vector ( 100, 100 );
 
 	// Determine the field type...
@@ -1432,13 +1422,13 @@ public boolean haveDataInMemory ()
 
 /**
 Initialize the data.
-@param tableFieldsVector list of TableField used to define the DataTable.
-@param listSize Initial list size for the Vector holding records.
+@param tableFieldsList list of TableField used to define the DataTable.
+@param listSize Initial list size for the list holding records.
 @param sizeIncrement Increment for the list holding records.
 */
-private void initialize ( List<TableField> tableFieldsVector, int listSize, int sizeIncrement )
-{	_table_fields = tableFieldsVector;
-	_table_records = new Vector ( 10, 100 );
+private void initialize ( List<TableField> tableFieldsList, int listSize, int sizeIncrement )
+{	_table_fields = tableFieldsList;
+	_table_records = new ArrayList<TableRecord> ( 10 );
 }
 
 /**
@@ -1473,7 +1463,7 @@ Join one table to another by matching column column values.
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod )
 {   String routine = getClass().getName() + ".joinTable", message;
-    List<String> problems = new Vector<String>();
+    List<String> problems = new ArrayList<String>();
     if ( reqIncludeColumns == null ) {
         reqIncludeColumns = new String[0];
     }
@@ -2066,7 +2056,7 @@ throws Exception
 }
 
 /**
-Reads the header of a comma-delimited file and return Vector of TableField objects.
+Reads the header of a comma-delimited file and return list of TableField objects.
 @return list of TableField objects (only field names will be set).
 @param filename name of file containing delimited data.
 */
@@ -2076,7 +2066,7 @@ throws Exception
 }
 
 /**
-Reads the header of a delimited file and return vector of TableField objects.
+Reads the header of a delimited file and return list of TableField objects.
 The field names will be correctly returned.  The data type, however, will be set
 to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
 @return list of TableField objects (field names will be correctly set but data type will be string).
@@ -2106,7 +2096,7 @@ throws Exception
     //			StringUtil.DELIM_SKIP_BLANKS );
     
     		num_fields = columns.size();
-    		tableFields = new Vector ( num_fields, 1 );
+    		tableFields = new ArrayList<TableField> ( num_fields );
     		for ( int i=0; i<num_fields; i++ ) {
     			newTableField = new TableField ( );
     			newTableField.setName (	columns.get(i).trim());
@@ -2256,8 +2246,8 @@ throws Exception
             Message.printWarning(3, routine, "Need to convert HeaderRows parameter to HeaderLines in software." );
         }
     }
-    List<Integer> HeaderLines_Vector = new Vector();
-    int HeaderLines_Vector_maxval = -1;  // Used to optimize code below
+    List<Integer> HeaderLineList = new ArrayList<Integer>();
+    int HeaderLinesList_maxval = -1;  // Used to optimize code below
     boolean HeaderLines_Auto_boolean = false;    // Are header rows to be determined automatically?
     if ( (propVal == null) || (propVal.length() == 0) ) {
         // Default...
@@ -2287,8 +2277,8 @@ throws Exception
                 if ( StringUtil.isInteger(vi)) {
                     int row = Integer.parseInt(vi);
                     Message.printStatus ( 2, routine, "Header row is [" + row + "]");
-                    HeaderLines_Vector.add(new Integer(row));
-                    HeaderLines_Vector_maxval = Math.max(HeaderLines_Vector_maxval, row);
+                    HeaderLineList.add(new Integer(row));
+                    HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, row);
                 }
                 else {
                     int pos = vi.indexOf("-");
@@ -2306,8 +2296,8 @@ throws Exception
                         }
                         last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
                         for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
-                            HeaderLines_Vector.add(new Integer(is));
-                            HeaderLines_Vector_maxval = Math.max(HeaderLines_Vector_maxval, is);
+                            HeaderLineList.add(new Integer(is));
+                            HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, is);
                         }
                     }
                 }
@@ -2315,7 +2305,7 @@ throws Exception
         }
     }
     // Use to speed up code below.
-    int HeaderLines_Vector_size = HeaderLines_Vector.size();
+    int HeaderLinesList_size = HeaderLineList.size();
 
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
 	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
@@ -2341,8 +2331,8 @@ throws Exception
             Message.printWarning(3, routine, "Need to convert SkipRows parameter to SkipLines in software." );
         }
     }
-    List<Integer> SkipLines_Vector = new Vector();
-    int SkipLines_Vector_maxval = - 1;
+    List<Integer> skipLinesList = new ArrayList<Integer>();
+    int skipLinesList_maxval = - 1;
     if ( (propVal != null) && (propVal.length() > 0) ) {
         // Determine the list of rows to skip.
         List<String> v = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
@@ -2354,8 +2344,8 @@ throws Exception
             String vi = v.get(i);
             if ( StringUtil.isInteger(vi)) {
                 int row = Integer.parseInt(vi);
-                SkipLines_Vector.add(new Integer(row));
-                SkipLines_Vector_maxval = Math.max(SkipLines_Vector_maxval, row);
+                skipLinesList.add(new Integer(row));
+                skipLinesList_maxval = Math.max(skipLinesList_maxval, row);
             }
             else {
                 int pos = vi.indexOf("-");
@@ -2373,15 +2363,15 @@ throws Exception
                     }
                     last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
                     for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
-                        SkipLines_Vector.add(new Integer(is));
-                        SkipLines_Vector_maxval = Math.max(SkipLines_Vector_maxval, is);
+                        skipLinesList.add(new Integer(is));
+                        skipLinesList_maxval = Math.max(skipLinesList_maxval, is);
                     }
                 }
             }
         }
     }
     // Use to speed up code below.
-    int SkipLines_Vector_size = SkipLines_Vector.size();
+    int skipLinesList_size = skipLinesList.size();
 	
 	propVal = props.getValue("TrimInput");
 	boolean TrimInput_Boolean = false;	// Default
@@ -2395,7 +2385,7 @@ throws Exception
 		TrimStrings_boolean = true;
 	}
 
-	List<List<String>> data_record_tokens = new Vector();
+	List<List<String>> data_record_tokens = new ArrayList<List<String>>();
 	List<String> v = null;
 	int maxColumns = 0;
 	int size = 0;
@@ -2436,9 +2426,9 @@ throws Exception
 		
 		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+
 		
-		if ( linecount0 <= SkipLines_Vector_maxval ) {
+		if ( linecount0 <= skipLinesList_maxval ) {
 		    // Need to check it...
-		    if ( parseFile_LineMatchesLineFromList(linecount0,SkipLines_Vector, SkipLines_Vector_size)) {
+		    if ( parseFile_LineMatchesLineFromList(linecount0,skipLinesList, skipLinesList_size)) {
 		        // Skip the line as requested
                 continue;
 		    }
@@ -2448,7 +2438,7 @@ throws Exception
 	    // the line contains the column names.
 	    
 		if ( !headers_found && (HeaderLines_Auto_boolean ||
-		    ((HeaderLines_Vector != null) && linecount0 <= HeaderLines_Vector_maxval)) ) {
+		    ((HeaderLineList != null) && linecount0 <= HeaderLinesList_maxval)) ) {
 		    if ( HeaderLines_Auto_boolean ) {
 		        // If a quote is detected, then this line is assumed to contain the name of the fields.
         	    if (line.startsWith("\"")) {
@@ -2459,9 +2449,9 @@ throws Exception
         	        continue;
         	    }
 		    }
-		    else if ( HeaderLines_Vector != null ) {
+		    else if ( HeaderLineList != null ) {
 		        // Calling code has specified the header rows.  Check to see if this is a row.
-		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLines_Vector, HeaderLines_Vector_size)) {
+		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLineList, HeaderLinesList_size)) {
 		            // This row has been specified as a header row so process it.
 		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
 		            numFields = tableFields.size();
@@ -2478,10 +2468,10 @@ throws Exception
 		    }
 		}
 		
-		if ( linecount0 <= HeaderLines_Vector_maxval ) {
+		if ( linecount0 <= HeaderLinesList_maxval ) {
 		    // Currently only allow one header row so need to ignore other rows that are found
 		    // (don't want them considered as data).
-		    if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLines_Vector, HeaderLines_Vector_size)) {
+		    if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLineList, HeaderLinesList_size)) {
 		        continue;
 		    }
 		}
@@ -2507,7 +2497,7 @@ throws Exception
 	// Make sure that the table fields are in place for the maximum number of columns.
 
 	if (tableFields == null) {
-		tableFields = new Vector();
+		tableFields = new ArrayList<TableField>();
 		for (int i = 0; i < maxColumns; i++) {
 			// Default field definition builds String fields
 			tableFields.add(new TableField());
@@ -2812,7 +2802,7 @@ private static List<TableField> parseFile_ParseHeaderLine (
     }
     
     int numFields = columns.size();
-    List<TableField> tableFields = new Vector();
+    List<TableField> tableFields = new ArrayList<TableField>();
     TableField tableField = null;
     String temp = null;
     for (int i = 0; i < numFields; i++) {
@@ -2949,10 +2939,10 @@ throws Exception
 
 /**
 Set the table fields to define the table.
-@param tableFieldsVector a list of TableField objects defining table contents.
+@param tableFieldsList a list of TableField objects defining table contents.
 */
-public void setTableFields ( List<TableField> tableFieldsVector )
-{	_table_fields = tableFieldsVector;
+public void setTableFields ( List<TableField> tableFieldsList )
+{	_table_fields = tableFieldsList;
 }
 
 /**
@@ -3152,7 +3142,7 @@ public int [] sortTable ( String sortColumn )
     int [] sortOrder = new int[nrecords];
     String value;
     if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_STRING ) {
-        List<String> values = new Vector<String>(nrecords);
+        List<String> values = new ArrayList<String>(nrecords);
         int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
@@ -3174,7 +3164,7 @@ public int [] sortTable ( String sortColumn )
         // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
         // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
         // that to sort into an updated original list.
-        List<TableRecord> backup = new Vector<TableRecord>(nrecords);
+        List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
         List<TableRecord> records = getTableRecords();
         for ( TableRecord rec : records ) {
             backup.add ( rec );
@@ -3240,7 +3230,7 @@ throws Exception {
 		throw new Exception("Cannot write to file '" + filename + "'");
 	}
 	if ( comments == null ) {
-	    comments = new Vector(); // To simplify logic below
+	    comments = new ArrayList<String>(); // To simplify logic below
 	}
 	String commentLinePrefix2 = commentLinePrefix;
 	if ( !commentLinePrefix.equals("") ) {

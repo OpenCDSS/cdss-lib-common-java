@@ -1,39 +1,22 @@
-// ----------------------------------------------------------------------------
-// TableRecord - Store data from one record of a DataTable
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 23 Jun 1999	Catherine E.
-//		Nutting-Lane, RTi	Initial version
-// 2001-09-17	Steven A. Malers, RTi	Review code.  Add finalize() and
-//					improved Javadoc.
-// 2004-03-11	J. Thomas Sapienza, RTi	Added isDirty() and setDirty() to 
-//					keep track of when records have been
-//					edited.
-// 2004-10-26	JTS, RTi		Added deleteField().
-// ----------------------------------------------------------------------------
-
 package RTi.Util.Table;
 
+//import java.util.ArrayList;
 //import java.util.List;
-import java.util.Vector;
 import RTi.Util.Message.Message;
 
 /**
 This class is used to contain all the information associated with one record in
-a DataTable.  The field values are stored as a list of Object.  In the future
-more specialized (and optimized) handling of primitive data types may be
-implemented.  The record field values must be consistent with the definition of
-the DataTable.  An example of defining a TableRecord is:
+a DataTable.  The field values are stored as an array of Object (formerly List of Object).
+The record field values must be consistent with the definition of the DataTable.
+An example of defining a TableRecord is as follows.  Setting the record size initially
+improves performance because less memory adjustment is required:
 <p>
 
 <pre>
 TableRecord contents = new TableRecord (3);
 contents.addFieldValue ( "123456" );
 contents.addFieldValue ( new Integer (6));
-contents.addFieldValue ( "RTi station" );
+contents.addFieldValue ( "Station ID" );
 </pre>
 
 @see RTi.Util.Table.Table
@@ -49,8 +32,19 @@ private boolean __dirty = false;
 /**
 List of data values corresponding to the different fields.  Currently no list methods are exposed.
 */
-private Vector __record;
-// TODO SAM 2012-05-12 the setSize() method in this class needs to be reviewed - limits using List<Object> here
+//private List<Object> __recordList = null;
+//TODO SAM 2012-05-12 the setSize() method in this class needs to be reviewed - limits using List<Object> here
+private Object [] __recordArray = null;
+/**
+Indicate whether record objects should be managed as an array (true) or list (false).
+Arrays take less memory but require more memory manipulation if the array is resized dynamically.
+*/
+private boolean __useArray = true;
+/**
+Indicate how many values have been set in the record, needed because array may be sized but not populated.
+A value of -1 indicates that no columns have been populated.
+*/
+private int __colMax = -1;
 
 /**
 Construct a new record (with no contents).
@@ -70,41 +64,74 @@ public TableRecord(int num) {
 }
 
 /**
-Clean up for garbage collection.
-*/
-protected void finalize()
-throws Throwable {
-	__record = null;
-	super.finalize();
-}
-
-/**
 Initialize the record.
 @param num Number of fields in the record (for memory purposes).
 */
 private void initialize(int num) {
 	__dirty = false;
-	__record = new Vector(num);
+	if ( __useArray ) {
+	    __recordArray = new Object[num];
+	    __colMax = -1;
+	}
+	else {
+	    //__recordList = new ArrayList<Object>(num);
+	}
 }
 
 /**
 Add a field data value to the record.
 @param new_element Data object to add to record.
 */
-public void addFieldValue(Object new_element) {
-	__record.add(new_element);
+public void addFieldValue(Object new_element)
+{   if ( __useArray ) {
+        if ( __colMax == -1 ) {
+            // No array has been assigned
+            __recordArray = new Object[1];
+        }
+        else if ( __colMax == (__recordArray.length - 1) ) {
+            // Have at least one column and need to increment the array size
+            Object [] temp = __recordArray;
+            __recordArray = new Object [__recordArray.length + 1];
+            System.arraycopy(temp, 0, __recordArray, 0, temp.length);
+        }
+        ++__colMax;
+        __recordArray[__colMax] = new_element;
+    }
+    else {
+        //__recordList.add(new_element);
+    }
 }
 
 /**
-Deletes a field's data value from the record.
-@param fieldNum the number of the field to delete.
+Deletes a field's data value from the record, shifting all other values "left".
+@param fieldNum the number of the field to delete (0+).
 */
 public void deleteField(int fieldNum)
-throws Exception {
-	if (fieldNum < 0 || fieldNum > (__record.size() - 1)) {
-		throw new Exception ("Field num " + fieldNum + " out of bounds.");
-	}
-	__record.remove(fieldNum);
+throws Exception
+{
+    if ( __useArray ) {
+        if (fieldNum < 0 || fieldNum > (__colMax) ) {
+            throw new Exception ("Field num " + fieldNum + " out of bounds.");
+        }
+        // Set the internal object to null just to make sure the value does not mistakenly get used
+        __recordArray[fieldNum] = null;
+        if ( fieldNum == (__recordArray.length - 1) ) {
+            // Removing the last value so don't need to do a shift
+        }
+        else {
+            // Copy the right-most objects one to the left
+            System.arraycopy(__recordArray, (fieldNum + 1), __recordArray, fieldNum, (__recordArray.length - 1 - fieldNum) );
+        }
+        --__colMax;
+    }
+    else {
+        /*
+    	if (fieldNum < 0 || fieldNum > (__recordList.size() - 1)) {
+    		throw new Exception ("Field num " + fieldNum + " out of bounds.");
+    	}
+    	__recordList.remove(fieldNum);
+    	*/
+    }
 }
 
 /**
@@ -118,10 +145,19 @@ throws Exception {
 	if (Message.isDebugOn) {
 		Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
 	}
-	if (__record.size() <= index) {
-		throw new Exception ("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
-	}
-	return __record.get(index);
+	//if ( __useArray ) {
+        if (__colMax < index) {
+            throw new Exception ("Column index [" + index + "] invalid (record has " + __colMax + " columns)");
+        }
+        return __recordArray[index];
+	//}
+    /*
+	else {
+    	if (__recordList.size() <= index) {
+    		throw new Exception ("Column index [" + index + "] invalid (record has " + __recordList.size() + " columns)");
+    	}
+    	return __recordList.get(index);
+	}      */
 }
 
 /**
@@ -134,10 +170,20 @@ throws Exception {
     if (Message.isDebugOn) {
         Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
     }
-    if (__record.size() <= index) {
-        throw new Exception ("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
+    Object o = null;
+    if ( __useArray ) {
+        if (__colMax < index) {
+            throw new Exception ("Column index [" + index + "] invalid (record has " + __colMax + " columns)");
+        }
+        o = __recordArray[index];
     }
-    Object o = __record.get(index);
+    /*
+    else {
+        if (__recordList.size() <= index) {
+            throw new Exception ("Column index [" + index + "] invalid (record has " + __recordList.size() + " columns)");
+        }
+        o = __recordList.get(index);
+    }*/
     if ( o == null ) {
         return null;
     }
@@ -151,8 +197,14 @@ throws Exception {
 Return the number of fields in the record.
 @return the number of fields in the record.  
 */
-public int getNumberOfFields() {
-	return __record.size();
+public int getNumberOfFields()
+{
+    //if ( __useArray ) {
+        return (__colMax + 1);
+    //}
+    //else {
+        //return __recordList.size();
+    //}
 }
 
 /**
@@ -172,14 +224,27 @@ The number of available fields should be set in the constructor or use setNumber
 @return the instance of this record, to facilitate chaining set calls.
 */
 public TableRecord setFieldValue(int index, Object contents)
-throws Exception {
-	if (index < __record.size()) {
-		__record.set(index,contents);
-	}
-	else {	
-		throw new Exception("Column index [" + index + "] invalid (record has " + __record.size() + " columns)");
-	}
-	return this;
+throws Exception
+{
+    if ( __useArray ) {
+        if ( index <= __colMax ) {
+            __recordArray[index] = contents;
+        }
+        else {  
+            throw new Exception("Column index [" + index + "] invalid (record has " + (__colMax + 1) + " columns)");
+        }        
+    }
+    else {
+        /*
+    	if (index < __recordList.size()) {
+    		__recordList.set(index,contents);
+    	}
+    	else {	
+    		throw new Exception("Column index [" + index + "] invalid (record has " + __recordList.size() + " columns)");
+    	}
+    	*/
+    }
+    return this;
 }
 
 /**
@@ -191,13 +256,15 @@ public void setDirty(boolean dirty) {
 }
 
 // TODO SAM 2009-07-26 Evaluate what is using this - limits using more generic List for data
+// FIXME SAM 2013-09-18 Comment out and see what complains.  This method is not useful because can't
+// just add row columns without knowing the column metadata (type, etc.)
 /**
 Sets the number of fields within this record.  If the previous number of
 fields is larger than the new number, those fields after the new number of fields will be lost.
 @param num Number of fields to include in the record.
 */
-public void setNumberOfFields(int num)
-{	__record.setSize(num);
-}
+//public void setNumberOfFields(int num)
+//{	__recordList.setSize(num);
+//}
 
 }
