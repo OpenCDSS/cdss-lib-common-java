@@ -1,30 +1,3 @@
-// ----------------------------------------------------------------------------
-// RiverWareTS - class for reading/writing RiverWare time series file formats
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2002-05-29	Steven A. Malers, RTi	Copy UsgsNwisTS and update as
-//					appropriate.
-// 2002-06-06	SAM, RTi		Add set_units and set_scale as arguments
-//					to fully loaded writeTimeSeries().
-// 2002-07-25	SAM, RTi		For the writeTimeSeries() method, change
-//					to get the full path to the file before
-//					writing.  Change so that if the hour in
-//					the header is zero, write out as hour
-//					24 of the previous day.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-// 2005-05-31	SAM, RTi		* Overload writeTimeSeries() to take a
-//					  PropList and make it the default
-//					  method called by the other methods.
-//					* Fix writeTimeSeries() to handle other
-//					  than hourly data.
-//					* Add Precision parameter to
-//					  writeTimeSeries().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.io.BufferedReader;
@@ -33,6 +6,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -45,7 +19,8 @@ import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.TimeInterval;
 
 /**
-The RiverWareTS class reads and writes RiverWare time series files.
+The RiverWareTS class reads and writes RiverWare time series files, including individual time series and RDF
+files that can contain ensembles.
 */
 public class RiverWareTS
 {
@@ -53,8 +28,7 @@ public class RiverWareTS
 /**
 Private method to create a time series given the proper heading information
 @param req_ts If non-null, an existing time series is expected to be passed in.
-@param filename name of file being read.  The location and data type are
-taken from the file name.
+@param filename name of file being read.  The location and data type are taken from the file name.
 @param timestep RiverWare timestep as string (essentially the same as TS except
 there is a space between the multiplier and base).
 @param units Units of the data.
@@ -76,13 +50,13 @@ throws Exception
 	String timestep2 = StringUtil.unpad(timestep, " ", StringUtil.PAD_FRONT_MIDDLE_BACK );
 	String location = "";
 	String datatype = "";
-	List tokens = StringUtil.breakStringList ( filename, ".", 0 );
+	List<String> tokens = StringUtil.breakStringList ( filename, ".", 0 );
 	if ( (tokens != null) && (tokens.size() == 2) ) {
-		location = ((String)tokens.get(0)).trim();
+		location = tokens.get(0).trim();
 		// Only want the relative part...
 		File f = new File ( location );
 		location = f.getName();
-		datatype = ((String)tokens.get(1)).trim();
+		datatype = tokens.get(1).trim();
 	}
 	TSIdent ident = new TSIdent ( location, "", datatype, timestep2, "");
 
@@ -142,8 +116,8 @@ now, the samples are compiled into the code to make absolutely sure that the
 programmer knows what sample is supported.
 @return Sample file contents.
 */
-public static List getSample ()
-{	List	s = new Vector ( 50 );
+public static List<String> getSample ()
+{	List<String> s = new Vector<String>( 50 );
 	s.add ( "#" );
 	s.add ( "# RiverWare time series format" );
 	s.add ( "#" );
@@ -165,35 +139,45 @@ public static List getSample ()
 }
 
 /**
-Determine whether a file is a RiverWare file.  This can be used rather than
-checking the source in a time series identifier.  If the file passes any of the
-following conditions, it is assumed to be a RiverWare file:
+Determine whether a file is a RiverWare time series file.  This can be used rather than
+checking the source in a time series identifier.
+@param filename name of file to check.  IOUtil.getPathUsingWorkingDir() is called to expand the filename.
+@param checkForRdf if true, then if the file passes any of the
+following conditions, it is assumed to be a RiverWare single time series file:
 <ol>
 <li>	A line starts with "START_DATE:".</li>
 </ol>
-IOUtil.getPathUsingWorkingDir() is called to expand the filename.
+If checkForRdf is false, true is returned if END_PACKAGE_PREAMBLE is found in the file.
 */
-public static boolean isRiverWareFile ( String filename )
+public static boolean isRiverWareFile ( String filename, boolean checkForRdf )
 {	BufferedReader in = null;
-	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
+	String filenameFull = IOUtil.getPathUsingWorkingDir ( filename );
 	try {
-	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
-		// Read lines and check for common strings that indicate a DateValue file.
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( filenameFull )) );
+		// Read lines and check for common strings that indicate a RiverWare file.
+	    // Search for a maximum number of non-comment lines
+	    int countNotComment = 0;
 		String string = null;
-		boolean	is_riverware = false;
+		boolean	isRiverWare = false;
 		while( (string = in.readLine()) != null ) {
-			if ( string.regionMatches(true,0, "START_DATE:",0,11) ){
-				is_riverware = true;
+			if ( !checkForRdf && string.regionMatches(true,0, "START_DATE:",0,11) ){
+				isRiverWare = true;
 				break;
 			}
-			else if ( (string.length() > 0) &&
-				(string.charAt(0) != '#') ) {
-				break;
+			else if ( checkForRdf && string.regionMatches(true,0, "END_PACKAGE_PREAMBLE",0,20) ){
+	            isRiverWare = true;
+	            break;
+	        }
+			else if ( (string.length() > 0) && (string.charAt(0) != '#') ) {
+			    // Not a comment
+				++countNotComment;
+				if ( countNotComment > 100 ) {
+				    // Had enough lines to check;
+				    break;
+				}
 			}
 		}
-
-		string = null;
-		return is_riverware;
+		return isRiverWare;
 	}
 	catch ( Exception e ) {
 		return false;
@@ -206,7 +190,6 @@ public static boolean isRiverWareFile ( String filename )
 	        catch ( Exception e ) {
 	            // Absorb - should not happen
 	        }
-	        in = null;
 	    }
 	}
 }
@@ -221,20 +204,18 @@ public static TS readTimeSeries ( String filename )
 }
 
 /**
-Read a time series from a RiverWare format file.  Currently only daily surface
-water files are recognized.  The resulting time series will have an identifier
-like STATIONID.RiverWare.Streamflow.1Day.
+Read a time series from a RiverWare format file.
+The resulting time series will have an identifier like STATIONID.RiverWare.Streamflow.1Day.
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 @return a pointer to a newly-allocated time series if successful, or null if not.
 @param filename Name of file to read.
-@param date1 Starting date to initialize period (NULL to read the entire time series).
-@param date2 Ending date to initialize period (NULL to read the entire time series).
+@param date1 Starting date to initialize period (null to read the entire time series).
+@param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries ( String filename, DateTime date1,
-			DateTime date2, String units, boolean read_data )
-{	TS	ts = null;
+public static TS readTimeSeries ( String filename, DateTime date1, DateTime date2, String units, boolean read_data )
+{	TS ts = null;
 
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	BufferedReader in = null;
@@ -261,7 +242,6 @@ public static TS readTimeSeries ( String filename, DateTime date1,
 	        catch ( Exception e ) {
 	            // Absorb - should not happen
 	        }
-	        in = null;
 	    }
 	}
 	return ts;
@@ -271,7 +251,7 @@ public static TS readTimeSeries ( String filename, DateTime date1,
 Read a time series from a RiverWare format file.  The TSID string is specified
 in addition to the path to the file.  It is expected that a TSID in the file
 matches the TSID (and the path to the file, if included in the TSID would not
-propertly allow the TSID to be specified).  This method can be used with newer
+properly allow the TSID to be specified).  This method can be used with newer
 code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @return a pointer to a newly-allocated time series if successful, or null if not.
@@ -284,11 +264,10 @@ read (where the scenario is NOT the file name).
 @param units Units to convert to.
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries (	String tsident_string, String filename,
-					DateTime date1, DateTime date2,
-					String units, boolean read_data )
+public static TS readTimeSeries (String tsident_string, String filename,
+    DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
+{	TS ts = null;
 	
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	if ( !IOUtil.fileReadable(full_fname) ) {
@@ -352,8 +331,7 @@ is assumed to have been set in the calling code.
 @exception Exception if there is an error reading the time series.
 */
 public static TS readTimeSeries ( TS req_ts, BufferedReader in,
-					String filename, DateTime req_date1, DateTime req_date2,
-					String req_units, boolean read_data )
+    String filename, DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
 {	String	routine = "RiverWareTS.readTimeSeries";
 	String	string = null, timestep_string = "", end_date_string = "",
@@ -553,17 +531,348 @@ throws Exception
 	} catch ( Exception e ) {
 		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
 		Message.printWarning ( 3, routine, e );
-		ts = null;
 	}
-	
-	routine = null;
-	string = null;
-	date1_file = null;
-	date2_file = null;
-	units = null;
-	date1 = null;
-	date2 = null;
 	return ts;
+}
+
+/**
+Read multiple time series from a RiverWare RDF format file.
+@return a pointer to a newly-allocated time series if successful, or null if not.
+@param filename Name of file to read.
+@param readStart Starting date to initialize period (null to read the entire time series).
+@param readEnd Ending date to initialize period (null to read the entire time series).
+@param units Units to convert to.
+@param readData Indicates whether data should be read (false=no, true=yes).
+*/
+public static List<TS> readTimeSeriesListFromRdf ( String filename, DateTime readStart, DateTime readEnd,
+    String units, boolean readData )
+{   String routine = "RiverWareTS.readTimeSeriesFromList", message;
+
+    BufferedReader in = null;
+    List<TS> tslist = new ArrayList<TS>();
+    try {
+        in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( filename )) );
+        tslist = readTimeSeriesListFromRdf ( in, readStart, readEnd, units, readData );
+    }
+    catch ( Exception e ) {
+        message = "Error opening file \"" + filename + "\" ( " + e + ")."; 
+        Message.printWarning( 3, routine, message );
+    }
+    finally {
+        if ( in != null ) {
+            try {
+                in.close();
+            }
+            catch ( Exception e ) {
+                // Absorb - should not happen
+            }
+        }
+    }
+    return tslist;
+}
+
+/**
+Read multiple time series from a RiverWare RDF format file.
+@return a pointer to a newly-allocated time series if successful, or null if not.
+@param filename Name of file to read.
+@param readStart Starting date to initialize period (null to read the entire time series).
+@param readEnd Ending date to initialize period (null to read the entire time series).
+@param units Units to convert to.
+@param readData Indicates whether data should be read (false=no, true=yes).
+*/
+public static List<TS> readTimeSeriesListFromRdf ( BufferedReader in, DateTime readStart, DateTime readEnd,
+    String units, boolean readData )
+throws IOException
+{   String routine = "RiverWareTS.readTimeSeriesListFromRdf";
+    TS ts = null;
+    ArrayList<TS> tslist = new ArrayList<TS>();
+    String s, su, s2 = null;
+    int lineCount = 0; // Line being read (so increment before reading)
+    // Package properties
+    String packageName = "";
+    String packageOwner = "";
+    String packageDescription = "";
+    String packageCreateDate = ""; // Use string because use 24 hour clock
+    DateTime packageCreateDate_DateTime = null;
+    int packageNumberOfRuns = 0;
+    // Run properties
+    String runStart = "";
+    DateTime runStart_DateTime = null;
+    String runEnd = "";
+    DateTime runEnd_DateTime = null;
+    String runTimeStepUnit = "";
+    TimeInterval runTimeStep_TimeInterval = null;
+    int runUnitQuantity = -1;
+    int runTimeSteps = -1;
+    String runSlotSet = "";
+    int runConsecutive = -1;
+    int runIdxSequential = -1;
+    // Slot properties
+    String slotObjectType = "";
+    String slotObjectName = "";
+    String slotSlotName = "";
+    String slotUnits = "";
+    int slotScale = -1;
+    int slotRows = -1;
+    int slotCols = -1;
+    double value = 0.0;
+    boolean slotIsTable = false;
+    // Loop over lines in file and parse - for now do it all linear rather than in separate methods because of data sharing
+    int colonPos;
+    while ( true ) {
+        ++lineCount;
+        s = in.readLine();
+        if ( s == null ) {
+            break;
+        }
+        // Parse package preamble strings
+        s = s.trim();
+        su = s.toUpperCase();
+        colonPos = s.indexOf(":");
+        if ( s.equalsIgnoreCase("END_PACKAGE_PREAMBLE") ) {
+            break;
+        }
+        else if ( su.startsWith("NAME:") ) {
+            packageName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+        }
+        else if ( su.startsWith("OWNER:") ) {
+            packageOwner = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+        }
+        else if ( su.startsWith("DESCRIPTION:") ) {
+            packageDescription = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+        }
+        else if ( su.startsWith("CREATE_DATE:") ) {
+            packageDescription = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+        }
+        else if ( su.startsWith("NUMBER_OF_RUNS:") ) {
+            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1) : "" );
+            try {
+                packageNumberOfRuns = Integer.parseInt(s2);
+            }
+            catch ( NumberFormatException e ) {
+                throw new IOException ( "number_of_runs (" + s2 + ") is not an integer." );
+            }
+        }
+    }
+    // Have read the package preamble, now start on the runs
+    for ( int irun = 0; irun < packageNumberOfRuns; irun++ ) {
+        while ( true ) {
+            ++lineCount;
+            s = in.readLine();
+            if ( s == null ) {
+                break;
+            }
+            // Parse package preamble strings
+            s = s.trim();
+            su = s.toUpperCase();
+            colonPos = s.indexOf(":");
+            // Parse run preamble strings
+            s = s.trim();
+            su = s.toUpperCase();
+            colonPos = s.indexOf(":");
+            if ( s.equalsIgnoreCase("END_RUN_PREAMBLE") ) {
+                // Next read the dates for the run
+                for ( int idate = 0; idate < runTimeSteps; idate++ ) {
+                    ++lineCount;
+                    s = in.readLine();
+                }
+                while ( true ) {
+                    ++lineCount;
+                    s = in.readLine();
+                    if ( s == null ) {
+                        break;
+                    }
+                    // Parse slot preamble strings
+                    s = s.trim();
+                    su = s.toUpperCase();
+                    colonPos = s.indexOf(":");
+                    // Parse run preamble strings
+                    s = s.trim();
+                    su = s.toUpperCase();
+                    colonPos = s.indexOf(":");
+                    if ( s.equalsIgnoreCase("END_SLOT_PREAMBLE") ) {
+                        // Read the data for the slot
+                        if ( slotIsTable ) {
+                            for ( int irow = 0; irow < slotRows; irow++ ) {
+                                ++lineCount;
+                                s = in.readLine();
+                            }
+                            for ( int icol = 0; icol < slotCols; icol++ ) {
+                                ++lineCount;
+                                s = in.readLine();
+                                colonPos = s.indexOf(":");
+                                slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                                ++lineCount;
+                                s = in.readLine();
+                                colonPos = s.indexOf(":");
+                                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                                try {
+                                    s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                                    slotScale = Integer.parseInt(s2);
+                                }
+                                catch ( NumberFormatException e ) {
+                                    throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not an integer." );
+                                }
+                                for ( int irow = 0; irow < slotRows; irow++ ) {
+                                    ++lineCount;
+                                    s = in.readLine();
+                                }
+                            }
+                        }
+                        else {
+                            ++lineCount;
+                            s = in.readLine();
+                            colonPos = s.indexOf(":");
+                            slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                            ++lineCount;
+                            s = in.readLine();
+                            colonPos = s.indexOf(":");
+                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                            try {
+                                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                                slotScale = Integer.parseInt(s2);
+                            }
+                            catch ( NumberFormatException e ) {
+                                throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not an integer." );
+                            }
+                            // Create the time series
+                            String tsid = slotSlotName + ".RiverWare." + slotSlotName + "." + runTimeStep_TimeInterval;
+                            try {
+                                ts = TSUtil.newTimeSeries(tsid, true);
+                            }
+                            catch ( Exception e ) {
+                                throw new IOException ( "Error setting time series interval (" + e + ")." );
+                            }
+                            DateTime date = new DateTime(runStart_DateTime);
+                            DateTime end = new DateTime(runEnd_DateTime);
+                            ts.setDate1(date);
+                            ts.setDate1Original(date);
+                            ts.setDate2(end);
+                            ts.setDate2Original(end);
+                            ts.setDataUnits(slotUnits);
+                            ts.setDataUnitsOriginal(slotUnits);
+                            if ( readData ) {
+                                ts.allocateDataSpace();
+                            }
+                            tslist.add ( ts );
+                            for ( int istep = 0; istep < runTimeSteps; istep++ ) {
+                                ++lineCount;
+                                s = in.readLine().trim();
+                                if ( readData ) {
+                                    if ( s.equalsIgnoreCase("NaN")) {
+                                        // Missing value.  Don't need to set anything
+                                    }
+                                    else {
+                                        // Parse the value
+                                        value = Double.parseDouble(s);
+                                        ts.setDataValue(date, value);
+                                    }
+                                }
+                            }
+                        }
+                        ++lineCount;
+                        s = in.readLine();
+                        if ( !s.toUpperCase().equals("END_COLUMN") ) {
+                            throw new IOException ( "At line " + lineCount + " expecting END_COLUMN, have: " + s );
+                        }
+                        ++lineCount;
+                        s = in.readLine();
+                        if ( !s.toUpperCase().equals("END_SLOT") ) {
+                            throw new IOException ( "At line " + lineCount + " expecting END_SLOT, have: " + s );
+                        }
+                        ++lineCount;
+                        s = in.readLine();
+                        if ( s.toUpperCase().equals("END_RUN") ) {
+                            // Done processing slots for run
+                            break;
+                        }
+                    }
+                    else if ( su.startsWith("OBJECT_TYPE:") ) {
+                        slotObjectType = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    }
+                    else if ( su.startsWith("OBJECT_NAME:") ) {
+                        slotObjectName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    }
+                    else if ( su.startsWith("SLOT_NAME:") ) {
+                        slotSlotName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    }
+                    else if ( su.startsWith("ROWS:") ) {
+                        // Indicates a table rather than time series
+                        slotIsTable = true;
+                        try {
+                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                            slotRows = Integer.parseInt(s2);
+                        }
+                        catch ( NumberFormatException e ) {
+                            throw new IOException ( "At line " + lineCount + " \"rows\" (" + s2 + ") is not an integer." );
+                        }
+                    }
+                    else if ( su.startsWith("COLS:") ) {
+                        try {
+                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                            slotCols = Integer.parseInt(s2);
+                        }
+                        catch ( NumberFormatException e ) {
+                            throw new IOException ( "At line " + lineCount + " \"cols\" (" + s2 + ") is not an integer." );
+                        }
+                    }
+                }
+            }
+            else if ( su.startsWith("START:") ) {
+                runStart = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                runStart_DateTime = DateTime.parse(runStart);
+            }
+            else if ( su.startsWith("END:") ) {
+                runEnd = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                runEnd_DateTime = DateTime.parse(runEnd);
+            }
+            else if ( su.startsWith("TIME_STEP_UNIT:") ) {
+                runTimeStepUnit = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+            }
+            else if ( su.startsWith("UNIT_QUANTITY:") ) {
+                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                try {
+                    runUnitQuantity = Integer.parseInt(s2);
+                }
+                catch ( NumberFormatException e ) {
+                    throw new IOException ( "unit_quantity (" + s2 + ") is not an integer." );
+                }
+                //runTimeStep_TimeInterval = getInterval ( runTimeStepUnit, runUnitQuantity );
+            }
+            else if ( su.startsWith("TIME_STEPS:") ) {
+                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                try {
+                    runTimeSteps = Integer.parseInt(s2);
+                }
+                catch ( NumberFormatException e ) {
+                    throw new IOException ( "time_steps (" + s2 + ") is not an integer." );
+                }
+            }
+            else if ( su.startsWith("SLOT_SET:") ) {
+                runSlotSet = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+            }
+            else if ( su.startsWith("CONSECUTIVE:") ) {
+                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                try {
+                    runConsecutive = Integer.parseInt(s2);
+                }
+                catch ( NumberFormatException e ) {
+                    throw new IOException ( "consecutive (" + s2 + ") is not an integer." );
+                }
+            }
+            else if ( su.startsWith("IDX_SEQUENTIAL:") ) {
+                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                try {
+                    runIdxSequential = Integer.parseInt(s2);
+                }
+                catch ( NumberFormatException e ) {
+                    throw new IOException ( "idx_sequential (" + s2 + ") is not an integer." );
+                }
+            }
+        }
+    }
+    Message.printStatus(2, routine, "Processed " + lineCount + " lines" );
+    return tslist;
 }
 
 /**
@@ -594,7 +903,6 @@ throws IOException
 	catch ( Exception e ) {
 		String message = "Error opening \"" + full_fname + "\" for writing.";
 		Message.printWarning ( 3, "RiverWareTS.writePersistent(TS,String)", message );
-		out = null;
 		throw new IOException ( message );
 	}
 	try {
@@ -606,7 +914,6 @@ throws IOException
 	}
 	finally {
 	    out.close ();
-	    out = null;
 	}
 }
 
@@ -711,12 +1018,10 @@ throws IOException
 	catch ( Exception e ) {
 		String message = "Error opening \"" + full_fname + "\" for writing.";
 		Message.printWarning ( 3,"RiverWareTS.writeTimeSeries",message);
-		out = null;
 		throw new IOException ( message );
 	}
 	writeTimeSeries ( ts, out, req_date1, req_date2, props, write_data);
 	out.close ();
-	out = null;
 }
 
 /**
@@ -801,11 +1106,11 @@ throws IOException
     Object o = props.getContents("OutputComments");
     if ( o != null ) {
         // Write additional comments that were passed in
-        List comments = (List)o;
+        List<String> comments = (List<String>)o;
         int commentSize = comments.size();
         if ( commentSize > 0 ) {
             for ( int iComment = 0; iComment < commentSize; iComment++ ) {
-                fp.println ( "# " + (String)comments.get(iComment) );
+                fp.println ( "# " + comments.get(iComment) );
             }
         }
     }
@@ -925,10 +1230,6 @@ throws IOException
 		    fp.println (StringUtil.formatString( value/Scale_double, format) );
 		}
 	}
-	routine = null;
-	date1 = null;
-	date2 = null;
-	date = null;
 }
 
-} // End RiverWareTS class
+}
