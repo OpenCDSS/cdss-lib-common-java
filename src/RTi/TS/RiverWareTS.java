@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -111,34 +110,6 @@ throws Exception
 }
 
 /**
-Return a sample so that a user/developer knows what a file looks like.  Right
-now, the samples are compiled into the code to make absolutely sure that the
-programmer knows what sample is supported.
-@return Sample file contents.
-*/
-public static List<String> getSample ()
-{	List<String> s = new Vector<String>( 50 );
-	s.add ( "#" );
-	s.add ( "# RiverWare time series format" );
-	s.add ( "#" );
-	s.add ( "# Comments are only allowed at the top of the file." );
-	s.add ( "# UNITS are AFTER the scale is applied." );
-	s.add ( "# SCALE*data = values for specified units." );
-	s.add ( "# SET_UNITS and SET_SCALE are used by RiverWare during read." );
-	s.add ( "START_DATE: 1996-11-14 24:00" );
-	s.add ( "END_DATE: 1996-12-31 24:00" );
-	s.add ( "TIMESTEP: 24 Hour" );
-	s.add ( "UNITS: CFS" );
-	s.add ( "SCALE: 1000" );
-	s.add ( "SET_UNITS: CMS" );
-	s.add ( "SET_SCALE: 10" );
-	s.add ( "0.00" );
-	s.add ( "130.00" );
-	s.add ( "..." );
-	return s;
-}
-
-/**
 Determine whether a file is a RiverWare time series file.  This can be used rather than
 checking the source in a time series identifier.
 @param filename name of file to check.  IOUtil.getPathUsingWorkingDir() is called to expand the filename.
@@ -192,6 +163,65 @@ public static boolean isRiverWareFile ( String filename, boolean checkForRdf )
 	        }
 	    }
 	}
+}
+
+/**
+Parse a RiverWare date/time string of the form YYYY-MM-DD HH:MM, allowing 1 or 2-digit parts.  Year must be 4 digits.
+This is the date format found in RDF files.
+@param dt date/time string
+@param precision if > 0, the DateTime precision to set for the returned DateTime.  For example, if year interval, then issues of
+24-hour RiverWare time can be ignored.  If 
+@return parsed date/time or null
+*/
+private static DateTime parseRiverWareDateTime(String dt, int precision )
+{
+    if ( dt == null ) {
+        return null;
+    }
+    dt = dt.trim();
+    // First split by space
+    String [] dtParts = dt.split(" ");
+    // Split the date
+    String [] dParts = dtParts[0].split("-");
+    // Split the date
+    String [] tParts = dtParts[1].split(":");
+    DateTime d = new DateTime(precision);
+    if ( dParts.length > 0 ) {
+        d.setYear(Integer.parseInt(dParts[0]));
+    }
+    if ( precision == DateTime.PRECISION_YEAR ) {
+        return d;
+    }
+    if ( dParts.length > 1 ) {
+        d.setMonth(Integer.parseInt(dParts[1]));
+    }
+    if ( precision == DateTime.PRECISION_MONTH ) {
+        return d;
+    }
+    if ( dParts.length > 2 ) {
+        d.setDay(Integer.parseInt(dParts[2]));
+    }
+    if ( precision == DateTime.PRECISION_DAY ) {
+        return d;
+    }
+    if ( tParts.length > 0 ) {
+        int hour = Integer.parseInt(tParts[0]);
+        if ( hour == 24 ) {
+            // RiverWare data files have hour 24, which is really hour 0 of the next day
+            d.addDay(1);
+            d.setHour(0);
+        }
+        else {
+            d.setHour(hour);
+        }
+    }
+    if ( precision == DateTime.PRECISION_HOUR ) {
+        return d;
+    }
+    if ( tParts.length > 1 ) {
+        d.setMinute(Integer.parseInt(tParts[1]));
+    }
+    return d;
 }
 
 /**
@@ -333,9 +363,8 @@ is assumed to have been set in the calling code.
 public static TS readTimeSeries ( TS req_ts, BufferedReader in,
     String filename, DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
-{	String	routine = "RiverWareTS.readTimeSeries";
-	String	string = null, timestep_string = "", end_date_string = "",
-		start_date_string = "", scale_string = "";
+{	String routine = "RiverWareTS.readTimeSeries";
+	String string = null, timestep_string = "", end_date_string = "", start_date_string = "", scale_string = "";
 	int	dl = 10;
 	DateTime date1_file = null, date2_file = null;
 
@@ -398,15 +427,13 @@ throws Exception
 	
 	// Process the dates.  RiverWare files always have 24:00 in the dates, even if the interval
 	// is >= daily.  This causes problems with the general DateTime.parse() method in that the
-	// dates may roll over to the following month.  Therefore, strip the 24:00 off the date strings
-	// before parsing.
+	// dates may roll over to the following month.  Therefore, strip the 24:00 off the date strings before parsing.
 	
 	if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Day", 0) >= 0) ||
-	        (StringUtil.indexOfIgnoreCase(timestep_string, "Month", 0) >= 0) ||
-	        (StringUtil.indexOfIgnoreCase(timestep_string, "Year", 0) >= 0) ||
-	        (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
-	    // Remove the trailing 24:00 from start and end because it cases a problem
-	    // parsing (rolls over to next month).
+        (StringUtil.indexOfIgnoreCase(timestep_string, "Month", 0) >= 0) ||
+        (StringUtil.indexOfIgnoreCase(timestep_string, "Year", 0) >= 0) ||
+        (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
+	    // Remove the trailing 24:00 from start and end because it cases a problem parsing (rolls over to next month).
 	    int pos = start_date_string.indexOf("24:00");
 	    if ( pos > 0 ) {
 	        start_date_string = start_date_string.substring(0,pos).trim();
@@ -427,7 +454,7 @@ throws Exception
         datePrecision = DateTime.PRECISION_MONTH;
     }
     else if ( (StringUtil.indexOfIgnoreCase(timestep_string, "Year", 0) >= 0) ||
-            (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
+        (StringUtil.indexOfIgnoreCase(timestep_string, "Annual", 0) >= 0) ) {
         datePrecision = DateTime.PRECISION_YEAR;
     }
     date1_file.setPrecision(datePrecision);
@@ -518,14 +545,12 @@ throws Exception
     		// Else set the data value...
     		if ( !string.equalsIgnoreCase("NaN") ) {
     		    if ( Message.isDebugOn ) {
-    		        Message.printDebug(dl, routine, "Line " + line_count +
-    		                " setting value " + string + "*scale at " + date );
+    		        Message.printDebug(dl, routine, "Line " + line_count + " setting value " + string + "*scale at " + date );
     		    }
     			ts.setDataValue ( date, scale*StringUtil.atod(string) );
     		}
     		else if ( Message.isDebugOn ) {
-    		    Message.printDebug(dl, routine, "Line " + line_count +
-    		            " setting value " + string + " at " + date );
+    		    Message.printDebug(dl, routine, "Line " + line_count + " setting value " + string + " at " + date );
     		}
     	}
 	} catch ( Exception e ) {
@@ -546,17 +571,20 @@ Read multiple time series from a RiverWare RDF format file.
 */
 public static List<TS> readTimeSeriesListFromRdf ( String filename, DateTime readStart, DateTime readEnd,
     String units, boolean readData )
+throws Exception
 {   String routine = "RiverWareTS.readTimeSeriesFromList", message;
 
     BufferedReader in = null;
     List<TS> tslist = new ArrayList<TS>();
     try {
         in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( filename )) );
-        tslist = readTimeSeriesListFromRdf ( in, readStart, readEnd, units, readData );
+        tslist = readTimeSeriesListFromRdf ( filename, in, readStart, readEnd, units, readData );
     }
     catch ( Exception e ) {
-        message = "Error opening file \"" + filename + "\" ( " + e + ")."; 
+        message = "Error reading file \"" + filename + "\" ( " + e + ")."; 
         Message.printWarning( 3, routine, message );
+        Message.printWarning( 3, routine, e );
+        throw ( e );
     }
     finally {
         if ( in != null ) {
@@ -580,7 +608,7 @@ Read multiple time series from a RiverWare RDF format file.
 @param units Units to convert to.
 @param readData Indicates whether data should be read (false=no, true=yes).
 */
-public static List<TS> readTimeSeriesListFromRdf ( BufferedReader in, DateTime readStart, DateTime readEnd,
+public static List<TS> readTimeSeriesListFromRdf ( String filename, BufferedReader in, DateTime readStart, DateTime readEnd,
     String units, boolean readData )
 throws IOException
 {   String routine = "RiverWareTS.readTimeSeriesListFromRdf";
@@ -602,9 +630,12 @@ throws IOException
     DateTime runEnd_DateTime = null;
     String runTimeStepUnit = "";
     TimeInterval runTimeStep_TimeInterval = null;
+    int intervalBase = 0;
+    int intervalMult = 0;
     int runUnitQuantity = -1;
     int runTimeSteps = -1;
     String runSlotSet = "";
+    String runRuleSet = "";
     int runConsecutive = -1;
     int runIdxSequential = -1;
     // Slot properties
@@ -612,7 +643,7 @@ throws IOException
     String slotObjectName = "";
     String slotSlotName = "";
     String slotUnits = "";
-    int slotScale = -1;
+    double slotScale = 1.0;
     int slotRows = -1;
     int slotCols = -1;
     double value = 0.0;
@@ -625,14 +656,11 @@ throws IOException
         if ( s == null ) {
             break;
         }
-        // Parse package preamble strings
+        // Parse package preamble strings, in order of documentation
         s = s.trim();
         su = s.toUpperCase();
         colonPos = s.indexOf(":");
-        if ( s.equalsIgnoreCase("END_PACKAGE_PREAMBLE") ) {
-            break;
-        }
-        else if ( su.startsWith("NAME:") ) {
+        if ( su.startsWith("NAME:") ) {
             packageName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
         }
         else if ( su.startsWith("OWNER:") ) {
@@ -642,7 +670,15 @@ throws IOException
             packageDescription = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
         }
         else if ( su.startsWith("CREATE_DATE:") ) {
-            packageDescription = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+            packageCreateDate = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+            try {
+                // TODO SAM 2013-09-21 Looks like the date string can have single digits rather than zero padded
+                // Need to add format to parse
+                packageCreateDate_DateTime = parseRiverWareDateTime(packageCreateDate,DateTime.PRECISION_MINUTE);
+            }
+            catch ( Exception e ) {
+                packageCreateDate_DateTime = null;
+            }
         }
         else if ( su.startsWith("NUMBER_OF_RUNS:") ) {
             s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1) : "" );
@@ -653,178 +689,30 @@ throws IOException
                 throw new IOException ( "number_of_runs (" + s2 + ") is not an integer." );
             }
         }
+        else if ( s.equalsIgnoreCase("END_PACKAGE_PREAMBLE") ) {
+            // Break and continue reading run data below
+            Message.printStatus(2, routine, "Detected END_PACKAGE_PREAMBLE at line " + lineCount );
+            break;
+        }
     }
-    // Have read the package preamble, now start on the runs
+    // Have read the package preamble ending with END_PACKAGE_PREAMBLE, now start on the runs
     for ( int irun = 0; irun < packageNumberOfRuns; irun++ ) {
+        Message.printStatus(2, routine, "Reading run [" + irun + "]" );
         while ( true ) {
             ++lineCount;
             s = in.readLine();
             if ( s == null ) {
                 break;
             }
-            // Parse package preamble strings
+            // Parse run preamble strings, in order of documentation
             s = s.trim();
             su = s.toUpperCase();
             colonPos = s.indexOf(":");
-            // Parse run preamble strings
-            s = s.trim();
-            su = s.toUpperCase();
-            colonPos = s.indexOf(":");
-            if ( s.equalsIgnoreCase("END_RUN_PREAMBLE") ) {
-                // Next read the dates for the run
-                for ( int idate = 0; idate < runTimeSteps; idate++ ) {
-                    ++lineCount;
-                    s = in.readLine();
-                }
-                while ( true ) {
-                    ++lineCount;
-                    s = in.readLine();
-                    if ( s == null ) {
-                        break;
-                    }
-                    // Parse slot preamble strings
-                    s = s.trim();
-                    su = s.toUpperCase();
-                    colonPos = s.indexOf(":");
-                    // Parse run preamble strings
-                    s = s.trim();
-                    su = s.toUpperCase();
-                    colonPos = s.indexOf(":");
-                    if ( s.equalsIgnoreCase("END_SLOT_PREAMBLE") ) {
-                        // Read the data for the slot
-                        if ( slotIsTable ) {
-                            for ( int irow = 0; irow < slotRows; irow++ ) {
-                                ++lineCount;
-                                s = in.readLine();
-                            }
-                            for ( int icol = 0; icol < slotCols; icol++ ) {
-                                ++lineCount;
-                                s = in.readLine();
-                                colonPos = s.indexOf(":");
-                                slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                                ++lineCount;
-                                s = in.readLine();
-                                colonPos = s.indexOf(":");
-                                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                                try {
-                                    s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                                    slotScale = Integer.parseInt(s2);
-                                }
-                                catch ( NumberFormatException e ) {
-                                    throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not an integer." );
-                                }
-                                for ( int irow = 0; irow < slotRows; irow++ ) {
-                                    ++lineCount;
-                                    s = in.readLine();
-                                }
-                            }
-                        }
-                        else {
-                            ++lineCount;
-                            s = in.readLine();
-                            colonPos = s.indexOf(":");
-                            slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                            ++lineCount;
-                            s = in.readLine();
-                            colonPos = s.indexOf(":");
-                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                            try {
-                                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                                slotScale = Integer.parseInt(s2);
-                            }
-                            catch ( NumberFormatException e ) {
-                                throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not an integer." );
-                            }
-                            // Create the time series
-                            String tsid = slotSlotName + ".RiverWare." + slotSlotName + "." + runTimeStep_TimeInterval;
-                            try {
-                                ts = TSUtil.newTimeSeries(tsid, true);
-                            }
-                            catch ( Exception e ) {
-                                throw new IOException ( "Error setting time series interval (" + e + ")." );
-                            }
-                            DateTime date = new DateTime(runStart_DateTime);
-                            DateTime end = new DateTime(runEnd_DateTime);
-                            ts.setDate1(date);
-                            ts.setDate1Original(date);
-                            ts.setDate2(end);
-                            ts.setDate2Original(end);
-                            ts.setDataUnits(slotUnits);
-                            ts.setDataUnitsOriginal(slotUnits);
-                            if ( readData ) {
-                                ts.allocateDataSpace();
-                            }
-                            tslist.add ( ts );
-                            for ( int istep = 0; istep < runTimeSteps; istep++ ) {
-                                ++lineCount;
-                                s = in.readLine().trim();
-                                if ( readData ) {
-                                    if ( s.equalsIgnoreCase("NaN")) {
-                                        // Missing value.  Don't need to set anything
-                                    }
-                                    else {
-                                        // Parse the value
-                                        value = Double.parseDouble(s);
-                                        ts.setDataValue(date, value);
-                                    }
-                                }
-                            }
-                        }
-                        ++lineCount;
-                        s = in.readLine();
-                        if ( !s.toUpperCase().equals("END_COLUMN") ) {
-                            throw new IOException ( "At line " + lineCount + " expecting END_COLUMN, have: " + s );
-                        }
-                        ++lineCount;
-                        s = in.readLine();
-                        if ( !s.toUpperCase().equals("END_SLOT") ) {
-                            throw new IOException ( "At line " + lineCount + " expecting END_SLOT, have: " + s );
-                        }
-                        ++lineCount;
-                        s = in.readLine();
-                        if ( s.toUpperCase().equals("END_RUN") ) {
-                            // Done processing slots for run
-                            break;
-                        }
-                    }
-                    else if ( su.startsWith("OBJECT_TYPE:") ) {
-                        slotObjectType = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                    }
-                    else if ( su.startsWith("OBJECT_NAME:") ) {
-                        slotObjectName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                    }
-                    else if ( su.startsWith("SLOT_NAME:") ) {
-                        slotSlotName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                    }
-                    else if ( su.startsWith("ROWS:") ) {
-                        // Indicates a table rather than time series
-                        slotIsTable = true;
-                        try {
-                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                            slotRows = Integer.parseInt(s2);
-                        }
-                        catch ( NumberFormatException e ) {
-                            throw new IOException ( "At line " + lineCount + " \"rows\" (" + s2 + ") is not an integer." );
-                        }
-                    }
-                    else if ( su.startsWith("COLS:") ) {
-                        try {
-                            s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                            slotCols = Integer.parseInt(s2);
-                        }
-                        catch ( NumberFormatException e ) {
-                            throw new IOException ( "At line " + lineCount + " \"cols\" (" + s2 + ") is not an integer." );
-                        }
-                    }
-                }
-            }
-            else if ( su.startsWith("START:") ) {
+            if ( su.startsWith("START:") ) {
                 runStart = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                runStart_DateTime = DateTime.parse(runStart);
             }
             else if ( su.startsWith("END:") ) {
                 runEnd = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
-                runEnd_DateTime = DateTime.parse(runEnd);
             }
             else if ( su.startsWith("TIME_STEP_UNIT:") ) {
                 runTimeStepUnit = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
@@ -837,7 +725,29 @@ throws IOException
                 catch ( NumberFormatException e ) {
                     throw new IOException ( "unit_quantity (" + s2 + ") is not an integer." );
                 }
-                //runTimeStep_TimeInterval = getInterval ( runTimeStepUnit, runUnitQuantity );
+                if ( runUnitQuantity == 1 ) {
+                    // Handles OK except for "week"
+                    try {
+                        runTimeStep_TimeInterval = TimeInterval.parseInterval(runTimeStepUnit);
+                        intervalBase = runTimeStep_TimeInterval.getBase();
+                        intervalMult = runTimeStep_TimeInterval.getMultiplier();
+                    }
+                    catch ( Exception e ) {
+                        throw new IOException ( "time_step_unit (" + runTimeStepUnit + ") is not recognized." );
+                    }
+                }
+                else {
+                    try {
+                        runTimeStep_TimeInterval = TimeInterval.parseInterval("" + runUnitQuantity + runTimeStepUnit );
+                    }
+                    catch ( Exception e ) {
+                        throw new IOException ( "time_step_unit (" + runTimeStepUnit + ") and unit_quantity (" + runUnitQuantity +
+                            ") are not recognized." );
+                    }
+                }
+                // Now know the interval so can get the start and end to the proper precision
+                runStart_DateTime = parseRiverWareDateTime(runStart,runTimeStep_TimeInterval.getBase());
+                runEnd_DateTime = parseRiverWareDateTime(runEnd,runTimeStep_TimeInterval.getBase());
             }
             else if ( su.startsWith("TIME_STEPS:") ) {
                 s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
@@ -851,6 +761,9 @@ throws IOException
             else if ( su.startsWith("SLOT_SET:") ) {
                 runSlotSet = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
             }
+            else if ( su.startsWith("RULE_SET:") ) {
+                runRuleSet = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+            }
             else if ( su.startsWith("CONSECUTIVE:") ) {
                 s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
                 try {
@@ -858,6 +771,9 @@ throws IOException
                 }
                 catch ( NumberFormatException e ) {
                     throw new IOException ( "consecutive (" + s2 + ") is not an integer." );
+                }
+                if ( runConsecutive == 1 ) {
+                    throw new IOException ( "Only consecutive=0 is currently supported." );
                 }
             }
             else if ( su.startsWith("IDX_SEQUENTIAL:") ) {
@@ -868,9 +784,253 @@ throws IOException
                 catch ( NumberFormatException e ) {
                     throw new IOException ( "idx_sequential (" + s2 + ") is not an integer." );
                 }
+                if ( runIdxSequential != 1 ) {
+                    throw new IOException ( "Only idx_sequential=1 is currently supported." );
+                }
+            }
+            else if ( s.equalsIgnoreCase("END_RUN_PREAMBLE") ) {
+                Message.printStatus(2, routine, "Detected END_RUN_PREAMBLE at line " + lineCount );
+                break;
             }
         }
-    }
+        // If here the run preamble has been read
+        // Next read the dates for the run if time series or row numbers if a table
+        // TODO SAM 2013-09-21 is there any need to keep these and use later?
+        // If regular data the run start and end should match
+        for ( int idate = 0; idate < runTimeSteps; idate++ ) {
+            ++lineCount;
+            s = in.readLine();
+            if ( (idate == 0) && (s.indexOf("-") > 0) ) {
+                // Assume this is a time series with a date string
+                // Make sure date matches the run start
+                DateTime d1 = parseRiverWareDateTime(s.trim(),runTimeStep_TimeInterval.getBase());
+                if ( !d1.equals(runStart_DateTime)) {
+                    throw new IOException ( "At line " + lineCount + " date/time does not match start date/time." );
+                }
+            }
+            else if ( (idate == (runTimeSteps - 1)) && (s.indexOf("-") > 0) ) {
+                // Assume this is a time series with a date string
+                // Make sure date matches the run end
+                DateTime d2 = parseRiverWareDateTime(s.trim(),runTimeStep_TimeInterval.getBase());
+                if ( !d2.equals(runEnd_DateTime)) {
+                    throw new IOException ( "At line " + lineCount + " date/time does not match end date/time." );
+                }
+            }
+        }
+        Message.printStatus(2, routine, "Read last run date/time (or column row number) at line " + lineCount );
+        // Read the slot data.  There is not property to indicate how many slots so have to loop until END_RUN indicates
+        // that all slots are read for the run.
+        boolean readingSlotsForRun = true;
+        while ( readingSlotsForRun ) {
+            // These two while statements could probably be joined but as shown clearly indicate separate blocks of data
+            Message.printStatus(2, routine, "Start reading slot data at line " + (lineCount + 1));
+            while ( true ) {
+                ++lineCount;
+                s = in.readLine();
+                if ( s == null ) {
+                    // Premature end of file, break out of slot loop and let other code continue error handling
+                    readingSlotsForRun = false;
+                    break;
+                }
+                s = s.trim();
+                su = s.toUpperCase();
+                if ( su.equals("END_RUN") ) {
+                    // Done processing slots for run - break out of while and go back to for loop for run
+                    Message.printStatus(2, routine, "Detected END_RUN at line " + lineCount );
+                    readingSlotsForRun = false;
+                    break;
+                }
+                colonPos = s.indexOf(":");
+                // Parse slot preamble strings, in order of documentation
+                if ( su.startsWith("OBJECT_TYPE:") ) {
+                    slotObjectType = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    Message.printStatus(2, routine, "Detected OBJECT_TYPE at line " + lineCount );
+                    // TODO SAM 2013-09-21 Maybe this indicates whether a time series or table?
+                }
+                else if ( su.startsWith("OBJECT_NAME:") ) {
+                    slotObjectName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    Message.printStatus(2, routine, "Detected OBJECT_NAME at line " + lineCount );
+                }
+                else if ( su.startsWith("SLOT_NAME:") ) {
+                    slotSlotName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    Message.printStatus(2, routine, "Detected SLOT_NAME at line " + lineCount );
+                }
+                else if ( su.startsWith("ROWS:") ) {
+                    // Indicates a table rather than time series
+                    slotIsTable = true;
+                    try {
+                        s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                        slotRows = Integer.parseInt(s2);
+                    }
+                    catch ( NumberFormatException e ) {
+                        throw new IOException ( "At line " + lineCount + " \"rows\" (" + s2 + ") is not an integer." );
+                    }
+                    Message.printStatus(2, routine, "Detected ROWS at line " + lineCount + " data object is table.  Will read but ignore." );
+                }
+                else if ( su.startsWith("COLS:") ) {
+                    // Used with table
+                    try {
+                        s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                        slotCols = Integer.parseInt(s2);
+                    }
+                    catch ( NumberFormatException e ) {
+                        throw new IOException ( "At line " + lineCount + " \"cols\" (" + s2 + ") is not an integer." );
+                    }
+                }
+                else if ( su.equals("END_SLOT_PREAMBLE") ) {
+                    Message.printStatus(2, routine, "Detected END_SLOT_PREAMBLE at line " + lineCount );
+                    break;
+                }
+            }
+            if ( !readingSlotsForRun ) {
+                // Need to break out of this level also because END_RUN was detected
+                break;
+            }
+            // If here the slot preamble has been read
+            // Read the data for the slot
+            if ( slotIsTable ) {
+                // Reading a table
+                // TODO SAM 2013-09-21 Need to actually handle table - for now just handle time series
+                Message.printStatus(2, routine, "Start reading table at line " + lineCount );
+                for ( int irow = 0; irow < slotRows; irow++ ) {
+                    ++lineCount;
+                    s = in.readLine();
+                }
+                for ( int icol = 0; icol < slotCols; icol++ ) {
+                    ++lineCount;
+                    s = in.readLine();
+                    colonPos = s.indexOf(":");
+                    slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    ++lineCount;
+                    s = in.readLine();
+                    colonPos = s.indexOf(":");
+                    s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                    try {
+                        s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                        slotScale = Double.parseDouble(s2);
+                    }
+                    catch ( NumberFormatException e ) {
+                        throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not a number." );
+                    }
+                    for ( int irow = 0; irow < slotRows; irow++ ) {
+                        ++lineCount;
+                        s = in.readLine();
+                    }
+                }
+            }
+            else {
+                // Reading a time series, one value per dates that were read in the run preamble
+                Message.printStatus(2, routine, "Slot is time series.  Starting to read at line " + lineCount );
+                ++lineCount;
+                s = in.readLine();
+                colonPos = s.indexOf(":");
+                slotUnits = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                ++lineCount;
+                s = in.readLine();
+                colonPos = s.indexOf(":");
+                s2 = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
+                try {
+                    slotScale = Double.parseDouble(s2);
+                }
+                catch ( NumberFormatException e ) {
+                    throw new IOException ( "At line " + lineCount + " \"slot_scale\" (" + s2 + ") is not a number." );
+                }
+                // Create the time series
+                String tsid = slotObjectName + ".RiverWare." + slotSlotName + "." + runTimeStep_TimeInterval;
+                DateTime fileStart = new DateTime(runStart_DateTime);
+                DateTime fileEnd = new DateTime(runEnd_DateTime);
+                if ( runIdxSequential == 1 ) {
+                    // The run dates are already overlapping.  Set the sequence number to the year of the date for the run.
+                    // TODO SAM 2013-09-21 Are the index sequential years truly sequential or can they be mixed?
+                    //int sequenceNum = fileStart.getYear() + irun;
+                    // TODO SAM what is the unique identifier for the sequence number?  Year of historical trace, some other
+                    // metadata?
+                    int sequenceNum = irun + 1;
+                    tsid = tsid + TSIdent.SEQUENCE_NUMBER_LEFT + sequenceNum + TSIdent.SEQUENCE_NUMBER_RIGHT;
+                }
+                Message.printStatus(2, routine, "Creating time series \"" + tsid + "\"" );
+                try {
+                    ts = TSUtil.newTimeSeries(tsid, true);
+                }
+                catch ( Exception e ) {
+                    throw new IOException ( "Error creating time series using TSID \"" + tsid + "\" (" + e + ")." );
+                }
+                try {
+                    ts.setIdentifier ( tsid );
+                }
+                catch ( Exception e ) {
+                    throw new IOException ( "Error setting time seriies identifier \"" + tsid + "\" (" + e + ").");
+                }
+                if ( readStart != null ) {
+                    ts.setDate1(readStart);
+                }
+                else {
+                    ts.setDate1(fileStart);
+                }
+                if ( readEnd != null ) {
+                    ts.setDate2(readEnd);
+                }
+                else {
+                    ts.setDate2(fileEnd);
+                }
+                ts.setDate1Original(fileStart);
+                ts.setDate2Original(fileEnd);
+                ts.setDataUnits(slotUnits);
+                ts.setDataUnitsOriginal(slotUnits);
+                // Set all the properties (some of these also will be used for the ensemble if ensembles are read
+                ts.setProperty("PackageName", packageName);
+                ts.setProperty("PackageOwner", packageOwner);
+                ts.setProperty("PackageDescription", packageDescription);
+                ts.setProperty("PackageCreateDate", packageCreateDate_DateTime);
+                ts.setProperty("PackageNumberOfRuns", new Integer(packageNumberOfRuns));
+                ts.setProperty("RunConsecutive", new Integer(runConsecutive));
+                ts.setProperty("RunIdxSequential", new Integer(runIdxSequential));
+                ts.setProperty("RunSlotSet", runSlotSet);
+                ts.setProperty("RunRuleSet", runRuleSet);
+                ts.setProperty("SlotObjectType", slotObjectType);
+                ts.setProperty("SlotObjectName", slotObjectName);
+                ts.setProperty("SlotSlotName", slotSlotName);
+                ts.getIdentifier().setInputType("RiverWare");
+                ts.getIdentifier().setInputName(filename);
+                if ( readData ) {
+                    ts.allocateDataSpace();
+                }
+                tslist.add ( ts );
+                // Use the file date to read through data but time series will only have data within period
+                DateTime date = new DateTime(ts.getDate1Original());
+                for ( int istep = 0; istep < runTimeSteps; istep++ ) {
+                    ++lineCount;
+                    s = in.readLine().trim();
+                    if ( readData ) {
+                        if ( s.equalsIgnoreCase("NaN")) {
+                            // Missing value.  Don't need to set anything
+                        }
+                        else {
+                            // Parse the value
+                            value = Double.parseDouble(s);
+                            ts.setDataValue(date, slotScale*value);
+                        }
+                    }
+                    date.addInterval(intervalBase,intervalMult);
+                }
+                Message.printStatus(2, routine, "Read last slot time series value at line " + lineCount );
+            }
+            // Read and check for expected end of data
+            ++lineCount;
+            s = in.readLine();
+            if ( !s.toUpperCase().equals("END_COLUMN") ) {
+                throw new IOException ( "At line " + lineCount + " expecting END_COLUMN, have: " + s );
+            }
+            Message.printStatus(2, routine, "Detected END_COLUMN at line " + lineCount );
+            ++lineCount;
+            s = in.readLine();
+            if ( !s.toUpperCase().equals("END_SLOT") ) {
+                throw new IOException ( "At line " + lineCount + " expecting END_SLOT, have: " + s );
+            }
+            Message.printStatus(2, routine, "Detected END_SLOT at line " + lineCount );
+            // At top of loop will look for END_RUN and if that is not found, another slot for the run will be read
+        } // Loop on slots in run
+    } // Loop on runs
     Message.printStatus(2, routine, "Processed " + lineCount + " lines" );
     return tslist;
 }
