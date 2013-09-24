@@ -28,7 +28,8 @@ public class RiverWareTS
 /**
 Private method to create a time series given the proper heading information
 @param req_ts If non-null, an existing time series is expected to be passed in.
-@param filename name of file being read.  The location and data type are taken from the file name.
+@param filename name of file being read, assumed to start with ObjectName.SlotName,
+which are used to determine the location ID and data type
 @param timestep RiverWare timestep as string (essentially the same as TS except
 there is a space between the multiplier and base).
 @param units Units of the data.
@@ -50,7 +51,7 @@ throws Exception
 	String location = "";
 	String datatype = "";
 	List<String> tokens = StringUtil.breakStringList ( filename, ".", 0 );
-	if ( (tokens != null) && (tokens.size() == 2) ) {
+	if ( (tokens != null) && (tokens.size() >= 2) ) {
 		location = tokens.get(0).trim();
 		// Only want the relative part...
 		File f = new File ( location );
@@ -238,7 +239,7 @@ Read a time series from a RiverWare format file.
 The resulting time series will have an identifier like STATIONID.RiverWare.Streamflow.1Day.
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 @return a pointer to a newly-allocated time series if successful, or null if not.
-@param filename Name of file to read.
+@param filename Name of file to read, assumed to start with ObjectName.SlotName
 @param date1 Starting date to initialize period (null to read the entire time series).
 @param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
@@ -353,9 +354,10 @@ is responsible for freeing the memory for the time series.
 return a new time series.  All data are reset, except for the identifier, which
 is assumed to have been set in the calling code.
 @param in Reference to open input stream.
-@param filename Name of file that is being read (use to get the location and data type).
-@param req_date1 Requested starting date to initialize period (or NULL to read the entire time series).
-@param req_date2 Requested ending date to initialize period (or NULL to read the entire time series).
+@param filename Name of file that is being read (assumed to start with ObjectName.SlotName,
+which are used for the location and data type).
+@param req_date1 Requested starting date to initialize period (or null to read the entire time series).
+@param req_date2 Requested ending date to initialize period (or null to read the entire time series).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
@@ -733,8 +735,6 @@ throws IOException
                     // Handles OK except for "week"
                     try {
                         runTimeStep_TimeInterval = TimeInterval.parseInterval(runTimeStepUnit);
-                        intervalBase = runTimeStep_TimeInterval.getBase();
-                        intervalMult = runTimeStep_TimeInterval.getMultiplier();
                     }
                     catch ( Exception e ) {
                         throw new IOException ( "time_step_unit (" + runTimeStepUnit + ") is not recognized." );
@@ -749,6 +749,8 @@ throws IOException
                             ") are not recognized." );
                     }
                 }
+                intervalBase = runTimeStep_TimeInterval.getBase();
+                intervalMult = runTimeStep_TimeInterval.getMultiplier();
                 // Now know the interval so can get the start and end to the proper precision
                 runStart_DateTime = parseRiverWareDateTime(runStart,runTimeStep_TimeInterval.getBase());
                 runEnd_DateTime = parseRiverWareDateTime(runEnd,runTimeStep_TimeInterval.getBase());
@@ -921,7 +923,7 @@ throws IOException
             }
             else {
                 // Reading a time series, one value per dates that were read in the run preamble
-                Message.printStatus(2, routine, "Slot is time series.  Starting to read at line " + lineCount );
+                Message.printStatus(2, routine, "Slot is time series.  Starting to read at line " + (lineCount + 1) );
                 ++lineCount;
                 s = in.readLine();
                 colonPos = s.indexOf(":");
@@ -1000,7 +1002,7 @@ throws IOException
                 }
                 tslist.add ( ts );
                 // Use the file date to read through data but time series will only have data within period
-                DateTime date = new DateTime(ts.getDate1Original());
+                DateTime date = new DateTime(fileStart);
                 for ( int istep = 0; istep < runTimeSteps; istep++ ) {
                     ++lineCount;
                     s = in.readLine().trim();
@@ -1011,6 +1013,7 @@ throws IOException
                         else {
                             // Parse the value
                             value = Double.parseDouble(s);
+                            //Message.printStatus(2,routine,"Setting " + date + " " + value );
                             ts.setDataValue(date, slotScale*value);
                         }
                     }
