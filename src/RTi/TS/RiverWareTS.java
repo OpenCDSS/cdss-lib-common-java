@@ -660,7 +660,11 @@ throws IOException
         s = s.trim();
         su = s.toUpperCase();
         colonPos = s.indexOf(":");
-        if ( su.startsWith("NAME:") ) {
+        if ( su.startsWith("#")) {
+            // comment
+            continue;
+        }
+        else if ( su.startsWith("NAME:") ) {
             packageName = ( s.length() >= (colonPos + 1) ? s.substring(colonPos + 1).trim() : "" );
         }
         else if ( su.startsWith("OWNER:") ) {
@@ -783,9 +787,6 @@ throws IOException
                 }
                 catch ( NumberFormatException e ) {
                     throw new IOException ( "idx_sequential (" + s2 + ") is not an integer." );
-                }
-                if ( runIdxSequential != 1 ) {
-                    throw new IOException ( "Only idx_sequential=1 is currently supported." );
                 }
             }
             else if ( s.equalsIgnoreCase("END_RUN_PREAMBLE") ) {
@@ -939,7 +940,9 @@ throws IOException
                 String tsid = slotObjectName + ".RiverWare." + slotSlotName + "." + runTimeStep_TimeInterval;
                 DateTime fileStart = new DateTime(runStart_DateTime);
                 DateTime fileEnd = new DateTime(runEnd_DateTime);
-                if ( runIdxSequential == 1 ) {
+                if ( ((runConsecutive == 0) && (packageNumberOfRuns > 1)) || (runIdxSequential == 1) ) {
+                    // runConsecutive=0 means that a single run was done over the period start to end (?)
+                    // runIdxSequential means that overlapping runs were made, with resequenced historical input
                     // The run dates are already overlapping.  Set the sequence number to the year of the date for the run.
                     // TODO SAM 2013-09-21 Are the index sequential years truly sequential or can they be mixed?
                     //int sequenceNum = fileStart.getYear() + irun;
