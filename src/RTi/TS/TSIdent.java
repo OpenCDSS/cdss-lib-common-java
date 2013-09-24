@@ -684,7 +684,12 @@ when an array of time series traces is maintained, for example in an ensemble.
 @return time series sequence identifier.
 */
 public String getSequenceID ()
-{   return __sequenceID;
+{   if ( __sequenceID == null ) {
+        return "";
+    }
+    else {
+        return __sequenceID;
+    }
 }
 
 /**
