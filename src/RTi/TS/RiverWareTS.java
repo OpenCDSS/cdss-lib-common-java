@@ -17,6 +17,7 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.TimeInterval;
 
+// TODO SAM 2013-09-21 Evaluate whether to refactor so static methods are not used (less memory footprint)
 /**
 The RiverWareTS class reads and writes RiverWare time series files, including individual time series and RDF
 files that can contain ensembles.
@@ -38,8 +39,7 @@ there is a space between the multiplier and base).
 @exception Exception if an error occurs.
 */
 private static TS createTimeSeries ( TS req_ts, String filename, String timestep,
-					String units, DateTime date1, DateTime date2,
-					DateTime date1_file, DateTime date2_file )
+	String units, DateTime date1, DateTime date2, DateTime date1_file, DateTime date2_file )
 throws Exception
 {	String routine = "RiverWareTS.createTimeSeries";
 

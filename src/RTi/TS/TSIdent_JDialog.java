@@ -1,10 +1,8 @@
 // TODO SAM 2005-08-26
 // * Need to add optional verification of fields (based on a "source" time
-//	series)?  However, need to also support/allow wildcard entry from some
-//	uses.
+//	series)?  However, need to also support/allow wildcard entry from some uses.
 // * Need to pass in available choices (e.g., data types).
 // * Need to evaluate whether sub-fields are shown (e.g., for data type).
-// * Need to add sequence number for traces.
 
 package RTi.TS;
 
@@ -77,7 +75,7 @@ private JTextField
 	__dataSourceTextField = null,
 	__dataTypeTextField = null,
 	__scenarioTextField = null,
-	__sequenceNumberTextField = null,
+	__sequenceIDTextField = null,
 	__inputTypeTextField = null,
 	__inputNameTextField = null;
 
@@ -109,7 +107,7 @@ private boolean __EnableSource_boolean = true;
 private boolean __EnableType_boolean = true;
 private boolean __EnableInterval_boolean = true;
 private boolean __EnableScenario_boolean = true;
-private boolean __EnableSequenceNumber_boolean = true;
+private boolean __EnableSequenceID_boolean = true;
 private boolean __EnableInputType_boolean = true;
 private boolean __EnableInputName_boolean = true;
 
@@ -168,8 +166,8 @@ to allow editing of partial identifier information, as follows:
 </tr>
 
 <tr>
-<td><b>EnableSequenceNumber</b></td>
-<td><b>Indicates (True/False) whether the sequence number should be enabled/verified.</b>
+<td><b>EnableSequenceNumber or EnableSequenceID</b></td>
+<td><b>Indicates (True/False) whether the sequence ID should be enabled/verified.</b>
 <td>True</td>
 </tr>
 
@@ -191,7 +189,7 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
         __EnableType_boolean = false;
         __EnableInterval_boolean = false;
         __EnableScenario_boolean = false;
-        __EnableSequenceNumber_boolean = false;
+        __EnableSequenceID_boolean = false;
         __EnableInputType_boolean = false;
         __EnableInputName_boolean = false;
     }
@@ -237,12 +235,16 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
     else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
         __EnableScenario_boolean = true;
     }
-    enabled = props.getValue("EnableSequenceNumber");
+    enabled = props.getValue("EnableSequenceID");
+    if ( enabled == null ) {
+        // Older...
+        enabled = props.getValue("EnableSequenceNumber");
+    }
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
-         __EnableSequenceNumber_boolean = false;
+         __EnableSequenceID_boolean = false;
     }
     else if ( (enabled != null) && enabled.equalsIgnoreCase("True") ) {
-        __EnableSequenceNumber_boolean = true;
+        __EnableSequenceID_boolean = true;
     }
     enabled = props.getValue("EnableInputType");
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
@@ -300,7 +302,7 @@ private void checkInputAndCommit ()
     String datatype = "";
     String interval = "";
     String scenario = "";
-    String sequenceNumber = "";
+    String sequenceID = "";
     String inputtype = "";
     String inputname = "";
 
@@ -312,9 +314,10 @@ private void checkInputAndCommit ()
     datatype = __dataTypeTextField.getText().trim();
     interval = __dataInterval_JComboBox.getSelected();
     scenario = __scenarioTextField.getText().trim();
-    sequenceNumber = __sequenceNumberTextField.getText().trim();
+    sequenceID = __sequenceIDTextField.getText().trim();
     inputtype = __inputTypeTextField.getText().trim();
     inputname = __inputNameTextField.getText().trim();
+    String badChars;
 
     // Form the TSIdent string...
 
@@ -334,21 +337,24 @@ private void checkInputAndCommit ()
         __warning += "\nThe location must be specified.";
     }
     else {
-        if ( StringUtil.containsAny(location, ".", false) ) {
-            __warning += "\nThe location cannot contain a period (.).";
+        badChars = TSIdent.SEPARATOR;
+        if ( StringUtil.containsAny(location, badChars, false) ) {
+            __warning += "\nThe location cannot contain:  " + badChars;
         }
         else {
             __response.setLocation( location );
         }
     }
-    if ( StringUtil.containsAny(datasource, ".", false) ) {
-        __warning += "\nThe data source cannot contain a period (.).";
+    badChars = TSIdent.SEPARATOR;
+    if ( StringUtil.containsAny(datasource, badChars, false) ) {
+        __warning += "\nThe data source cannot contain:  " + badChars;
     }
     else {
         __response.setSource(datasource);
     }
-    if ( StringUtil.containsAny(datatype, ".", false) ) {
-        __warning += "\nThe data type cannot contain a period (.).";
+    badChars = TSIdent.SEPARATOR;
+    if ( StringUtil.containsAny(datatype, badChars, false) ) {
+        __warning += "\nThe data type cannot contain:  " + badChars;
     }
     else {
         __response.setType(datatype);
@@ -367,30 +373,29 @@ private void checkInputAndCommit ()
             }
         }
     }
-    if ( StringUtil.containsAny(scenario, ".", false) ) {
-        __warning += "\nThe scenario cannot contain a period (.).";
+    badChars = TSIdent.SEPARATOR;
+    if ( StringUtil.containsAny(scenario, badChars, false) ) {
+        __warning += "\nThe scenario cannot contain:  " + badChars;
     }
     else {
         __response.setScenario(scenario);
     }
-    if ( (sequenceNumber == null) || sequenceNumber.equals("") ) {
-        __response.setSequenceNumber(-1);
-    }
-    else if ( StringUtil.isInteger(sequenceNumber) ) {
-        __response.setSequenceNumber(Integer.parseInt(sequenceNumber));
+    badChars = TSIdent.SEPARATOR + TSIdent.SEQUENCE_NUMBER_LEFT + TSIdent.SEQUENCE_NUMBER_RIGHT;
+    if ( StringUtil.containsAny(sequenceID, badChars, false) ) {
+        __warning += "\nThe sequence ID cannot contain:  " + badChars;
     }
     else {
-        __warning += "\nThe sequence number (ensemble trace number) must be an integer.";
-        __response.setSequenceNumber(-1);
+        __response.setSequenceID(sequenceID);
     }
-    if ( StringUtil.containsAny(inputtype, ".~", false) ) {
-        __warning += "\nThe input type (datastore) cannot contain a period (.) or tilde (~).";
+    badChars = TSIdent.SEPARATOR + TSIdent.TYPE_SEPARATOR;
+    if ( StringUtil.containsAny(inputtype, badChars, false) ) {
+        __warning += "\nThe input type (datastore) cannot contain:  " + badChars;
     }
     else {
         __response.setInputType(inputtype);
     }
-    if ( StringUtil.containsAny(inputname, ".~", false) ) {
-        __warning += "\nThe input name cannot contain a period (.) or tilde (~).";
+    if ( StringUtil.containsAny(inputname, badChars, false) ) {
+        __warning += "\nThe input name cannot contain:  " + badChars;
     }
     else {
         __response.setInputName(inputname);
@@ -400,25 +405,6 @@ private void checkInputAndCommit ()
 		__warning += "\n\nCorrect or Cancel.";
 		Message.printWarning ( 1, routine, __warning );
 	}
-}
-
-/**
-Clean up for garbage collection.
-@exception Throwable if an error.
-*/
-protected void finalize()
-throws Throwable {
-	__locationTextField = null;
-	__dataSourceTextField = null;
-	__dataTypeTextField = null;
-	__dataInterval_JComboBox = null;
-	__scenarioTextField = null;
-	__inputTypeTextField = null;
-	__inputNameTextField = null;
-	__cancelButton = null;
-	__okButton = null;	
-	__tsident = null;
-	super.finalize();
 }
 
 /**
@@ -450,7 +436,7 @@ private void refresh ()
 	String datatype = "";
 	String interval = "";
 	String scenario = "";
-	String sequenceNumber = "";
+	String sequenceID = "";
 	String inputtype = "";
 	String inputname = "";
 	if ( __first_time ) {
@@ -463,12 +449,7 @@ private void refresh ()
 			datatype = __tsident.getType();
 			interval = __tsident.getInterval();
 			scenario = __tsident.getScenario();
-			if ( __tsident.getSequenceNumber() == -1 ) {
-			    sequenceNumber = "";
-			}
-			else {
-			    sequenceNumber = "" + __tsident.getSequenceNumber();
-			}
+			sequenceID = __tsident.getSequenceID();
 			inputtype = __tsident.getInputType();
 			inputname = __tsident.getInputName();
 		}
@@ -494,7 +475,7 @@ private void refresh ()
 		}
 		*/
 		__scenarioTextField.setText ( scenario );
-		__sequenceNumberTextField.setText ( sequenceNumber );
+		__sequenceIDTextField.setText ( sequenceID );
 		__inputTypeTextField.setText ( inputtype );
 		__inputNameTextField.setText ( inputname );
 	}
@@ -507,7 +488,7 @@ private void refresh ()
 	datatype = __dataTypeTextField.getText().trim();
 	interval = __dataInterval_JComboBox.getSelected();
 	scenario = __scenarioTextField.getText().trim();
-	sequenceNumber = __sequenceNumberTextField.getText().trim();
+	sequenceID = __sequenceIDTextField.getText().trim();
 	inputtype = __inputTypeTextField.getText().trim();
 	inputname = __inputNameTextField.getText().trim();
 
@@ -519,8 +500,8 @@ private void refresh ()
 	if ( scenario.length() != 0 ) {
 	    scenario = TSIdent.SEPARATOR + scenario;
 	}
-    if ( sequenceNumber.length() != 0 ) {
-        sequenceNumber = TSIdent.SEQUENCE_NUMBER_LEFT + sequenceNumber + TSIdent.SEQUENCE_NUMBER_RIGHT;
+    if ( sequenceID.length() != 0 ) {
+        sequenceID = TSIdent.SEQUENCE_NUMBER_LEFT + sequenceID + TSIdent.SEQUENCE_NUMBER_RIGHT;
     }
     if ( inputtype.length() != 0 ) {
         inputtype = "~" + inputtype;
@@ -529,7 +510,7 @@ private void refresh ()
         inputname = "~" + inputname;
     }
 	__TSID_JTextArea.setText ( locationType + location + TSIdent.SEPARATOR + datasource + TSIdent.SEPARATOR +
-	     datatype + TSIdent.SEPARATOR + interval + scenario + sequenceNumber + inputtype + inputname );
+	     datatype + TSIdent.SEPARATOR + interval + scenario + sequenceID + inputtype + inputname );
 }
 
 /**
@@ -577,8 +558,8 @@ private void setupGUI()
 	__dataTypeTextField.addKeyListener ( this );
 	__scenarioTextField = new JTextField(10);
 	__scenarioTextField.addKeyListener ( this );
-    __sequenceNumberTextField = new JTextField(10);
-    __sequenceNumberTextField.addKeyListener ( this );
+    __sequenceIDTextField = new JTextField(10);
+    __sequenceIDTextField.addKeyListener ( this );
 	__inputTypeTextField = new JTextField(10);
 	__inputTypeTextField.addKeyListener ( this );
 	__inputNameTextField = new JTextField(10);
@@ -614,7 +595,7 @@ private void setupGUI()
        0, ++y, 3, 1, 0, 0, insetsTLBR,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-       "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence number for a trace in an ensemble, often start year)"),
+       "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence ID for a trace in an ensemble, often start year)"),
        0, ++y, 3, 1, 0, 0, 
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
@@ -730,13 +711,13 @@ private void setupGUI()
     JLabel sequenceNumber_JLabel = new JLabel("Sequence number: ");
     JGUIUtil.addComponent(panel, sequenceNumber_JLabel,
         0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-    JGUIUtil.addComponent(panel, __sequenceNumberTextField,
+    JGUIUtil.addComponent(panel, __sequenceIDTextField,
         1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    JGUIUtil.addComponent(panel, new JLabel(" Optional - sequence number for ensemble trace."),
+    JGUIUtil.addComponent(panel, new JLabel(" Optional - sequence ID (e.g., for ensemble trace)."),
         2, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-    if ( !__EnableSequenceNumber_boolean) {
+    if ( !__EnableSequenceID_boolean) {
         sequenceNumber_JLabel.setEnabled(false);
-        __sequenceNumberTextField.setEnabled(false);
+        __sequenceIDTextField.setEnabled(false);
     }
 
     JLabel inputtype_JLabel = new JLabel("Input type (or datastore): ");

@@ -254,96 +254,7 @@ public class DateValueTS
 /**
 Latest file version.
 */
-private static String __VERSION_CURRENT = "1.4";
-
-/**
-Return a sample so that a user/developer knows what a file looks like.
-Currently, the samples are compiled into the code to make absolutely sure that
-the programmer knows what sample is supported.  Perhaps they could be stored in
-sample files in the future.  
-@return Sample file contents.
-*/
-public static List getSample ()
-{	List	s = new Vector ( 50 );
-	s.add ("# DateValueTS 1.4 file" );
-	s.add ("#" );
-	s.add ("# Version 1.4 treats consecutive delimiters as blank data fields." );
-	s.add ("# Version 1.3 treats consecutive delimiters as one." );
-	s.add ("#" );
-	s.add ("# This is a sample of a typical DateValue minute time series.  This format");
-	s.add ("# was developed by Riverside Technology, inc. to store time series data.  An");
-	s.add ("# example file is as follows and conforms to the following guidelines:");
-	s.add ("#" );
-	s.add ("# * Comments are lines that start with #." );
-	s.add ("# * Applications often add a comments section at the top indicating how the");
-	s.add ("#   file was created" );
-	s.add ("# * Any line that starts with a number is assumed to be a data line." );
-	s.add ("# * Date hours should be in the range 0 to 23 (an hour of 24 will be" );
-	s.add ("#   converted to hour 0 of the next day)." );
-	s.add ("# * If a time is necessary, the date/time may be separated by a space, T, : or @.");
-	s.add ("#   If a space is used, use a date and time column heading,");
-	s.add ("#   if headings are used.");
-	s.add ("# * The same general format is used for year, month, day, hour, and minute" );
-	s.add ("#   data, except the format of the date is adjusted accordingly." );
-	s.add ("# * If multiple time series are written, header variables are delimited with");
-	s.add ("#   space or tab characters.  Data are delimited by tab or space (or use the");
-	s.add ("#   Delimiter property to set the delimiters used for data lines)" );
-	s.add ("# * Internally, the time series identifier is initially set using the file");
-	s.add ("#   name.  For example, a file name of XXX.USGS.Streamflow.MONTH will result");
-	s.add ("#   in the location being set to \"XXX\", the data source to \"USGS\", the data");
-	s.add ("#   type to \"Streamflow\", and the interval to 1 month.  The identifier");
-	s.add ("#   information is reset if individual properties are specified in the file.");
-	s.add ("# * This format is free-format and additional information may be added in");
-	s.add ("#   future (e.g., data quality strings)." );
-	s.add ("# * For portability, data in a DateValue file should have compatible intervals.");
-	s.add ("# * Header variables and column headers can be enclosed in double quotes if");
-	s.add ("#   the data contain spaces.");
-	s.add ("# * Missing data can either be coded as the missing data value or no value");
-	s.add ("# * Missing records will result in missing data being used when read.");
-	s.add ("#" );
-	s.add ("# The following header variables are recognized.  This information can be");
-	s.add ("# used by software." );
-	s.add ("Version = 1.4                # Optional.  File format version (to handle format changes)");
-	s.add ("Delimiter = \" \"              # Optional.  Delimiter for data lines (default is space and tab)");
-	s.add ("NumTS = 2                    # Optional.  Number of time series in file (default is 1)");
-	s.add ("TSID = XXX.USGS.Streamflow.15MINUTE YYY.USGS.Streamflow.15Minute" );
-	s.add ("                             # Required.");
-	s.add ("                             # List of time series identifiers in file");
-	s.add ("                             # Location.Source.DataType.Interval.Scenario");
-	s.add ("                             # Do not include input type and name in identifier.");
-	s.add ("Alias = X Y" );
-	s.add ("                             # Optional.  Alias used internally instead of TSID.");
-	s.add ("SequenceNum = -1 0           # Optional.  Used with traces when the TSID by" );
-	s.add ("                             # itself does not uniquely identify the TS." );
-	s.add ("Description = \"Flow at XXX\" \"Flow at Y\"");
-	s.add ("                             # Optional.  Description for each time series." );
-	s.add ("DataFlags = true,1 false" );
-	s.add ("                             # Optional.  Indicates whether each value has a");
-	s.add ("                             # a data flag.  If true, specify max flag characters.");
-	s.add ("DataType = \"Streamflow\" \"Streamflow\"" );
-	s.add ("                             # Optional.  Data types for each time series" );
-	s.add ("                             # (consistent with TSID if specified).");
-	s.add ("                             # The default is to use the data type in the TSID");
-	s.add ("                             # Supplied to simplify use by other programs.");
-	s.add ("Units = \"CFS\" \"CFS\"          # Optional.  Units for each time series (default is no units).");
-	s.add ("MissingVal = -999 -999       # Optional.  Missing data value for each time series (default is -999)");
-	s.add ("IncludeCount = true          # Optional.  If true, column after date/time" );
-	s.add ("                             # is record count (1...) (default is false).");
-	s.add ("IncludeTotalTime = true      # Optional.  If true, column after date is cumulative time (0...) (default is false).");
-	s.add ("# Both of above can be true, and both columns will be added after the date");
-	s.add ("Start = 1996-10-18:00:00     # Required.  Start date for time series");
-	s.add ("End = 1997-06-14:00:00       # Required.  End date for time series");
-	s.add ("                             # Period dates should be of a precision consistent" );
-	s.add ("                             # with the dates used in the data section below." );
-	s.add ("# Optional.  The following line can be read into a spreadsheet or database for");
-	s.add ("# headers.  The lines above this line can be ignored in a spreadsheet import.");
-	s.add ("# The number of headings should agree with the number of columns.");
-	s.add ("Date \"Count\" \"TotalTime\" \"Description 1\" \"Description 2\"");
-	s.add ("1996-10-18:00:00 1 0 110.74" );
-	s.add ("1996-10-18:00:15 2 15 110.74" );
-	s.add ("..." );
-	return s;
-}
+private static String __VERSION_CURRENT = "1.5";
 
 /**
 Determine whether a file is a DateValue file.  This can be used rather than
@@ -381,7 +292,6 @@ public static boolean isDateValueFile ( String filename )
 	            in.close();
 	        }
 	    }
-		in = null;
 		return is_datevalue;
 	}
 	catch ( Exception e ) {
@@ -502,7 +412,7 @@ series exists in the file - otherwise use the readTimeSeriesList() method).
 public static TS readTimeSeries ( String tsident_string, DateTime date1,
 			DateTime date2, String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
+{	TS ts = null;
 	boolean	is_file = true;	// Is tsident_string a file?  Assume and check below
 
 	String input_name = tsident_string;
@@ -579,7 +489,7 @@ read.  This string can also be the alias for the time series in the file.
 public static TS readTimeSeries ( String tsident_string, String filename,
 					DateTime date1, DateTime date2, String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
+{	TS ts = null;
 
 	String input_name = filename;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
@@ -620,12 +530,12 @@ throws Exception
     	else {
     	    ts.setAlias ( tsident_string );
     	}
-    	List v = readTimeSeriesList ( ts, in,	date1, date2, units, read_data );
+    	List<TS> v = readTimeSeriesList ( ts, in,	date1, date2, units, read_data );
     	if ( tsident_string.indexOf(".") < 0 ) {
     		// The time series was specified with an alias so it needs
     		// to be replaced with what was read.  The alias will have been
     		// assigned in the readTimeSeriesList() method.
-    		ts = (TS)v.get(0);
+    		ts = v.get(0);
     	}
     	ts.getIdentifier().setInputType("DateValue");
     	ts.setInputName ( full_fname );
@@ -672,7 +582,7 @@ is assumed to have been set in the calling code.
 public static TS readTimeSeries ( TS req_ts, String fname, DateTime date1, DateTime date2,
 					String units, boolean read_data )
 throws Exception
-{	TS	ts = null;
+{	TS ts = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
@@ -712,16 +622,14 @@ the entire time series).
 @exception Exception if there is an error reading the time series.
 */
 public static TS readTimeSeries ( TS req_ts, BufferedReader in,	DateTime req_date1, DateTime req_date2,
-					String req_units, boolean read_data )
+	String req_units, boolean read_data )
 throws Exception
-{	List tslist = readTimeSeriesList ( req_ts, in, req_date1, req_date2, req_units, read_data );
+{	List<TS> tslist = readTimeSeriesList ( req_ts, in, req_date1, req_date2, req_units, read_data );
 	if ( (tslist == null) || (tslist.size() != 1) ) {
-		tslist = null;
 		return null;
 	}
 	else {
-	    TS ts = (TS)tslist.get(0);
-		tslist = null;
+	    TS ts = tslist.get(0);
 		return ts;
 	}
 }
@@ -738,8 +646,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @exception FileNotFoundException if the file is not found.
 @exception IOException if there is an error reading the file.
 */
-public static List<TS> readTimeSeriesList ( String fname, DateTime date1, DateTime date2,
-						String units, boolean read_data)
+public static List<TS> readTimeSeriesList ( String fname, DateTime date1, DateTime date2, String units, boolean read_data)
 throws Exception, IOException, FileNotFoundException
 {	List<TS> tslist = null;
 	String input_name = fname;
@@ -760,7 +667,7 @@ throws Exception, IOException, FileNotFoundException
     		nts = tslist.size();
     	}
     	for ( int i = 0; i < nts; i++ ) {
-    		ts = (TS)tslist.get(i);
+    		ts = tslist.get(i);
     		if ( ts != null ) {
     			ts.setInputName ( full_fname );
     			ts.addToGenesis ( "Read time series from \"" + full_fname + "\"" );
@@ -1054,7 +961,7 @@ throws Exception
 			// Have the number of time series...
 			numts = StringUtil.atoi(value);
 		}
-		else if ( variable.equalsIgnoreCase("SequenceNum") ) {
+		else if ( variable.equalsIgnoreCase("SequenceNum") || variable.equalsIgnoreCase("SequenceID")) {
 			// Have sequence numbers...
 			seqnum = value;
 			seqnum_v = StringUtil.breakStringList (
@@ -1062,13 +969,19 @@ throws Exception
 			size = 0;
 			if ( seqnum_v != null ) {
 				size = seqnum_v.size();
+				for ( int i = 0; i < size; i++ ) {
+				    // Replace old -1 missing with blank string
+				    if ( seqnum_v.get(i).equals("-1") ) {
+				        seqnum_v.set(i, "");
+				    }
+				}
 			}
 			if ( size != numts ) {
-				Message.printWarning ( 2, routine, "Number of SequenceNum values using delimiter \"" + delimiter +
+				Message.printWarning ( 2, routine, "Number of SequenceID (or SequenceNum) values using delimiter \"" + delimiter +
 				        "\" (" + size + ") is != NumTS (" + numts + ").  Assuming -1.  Read errors may occur." );
 				++warning_count;
 				for ( int ia = size; ia < numts; ia++ ) {
-					seqnum_v.add ( "-1" );
+					seqnum_v.add ( "" );
 				}
 			}
 		}
@@ -1163,7 +1076,7 @@ throws Exception
 	int req_ts_column2 = -1;// Which column of data corresponds to the
 				// requested time series, after adjustment for possible additional time column in date.
 	TS ts = null;
-	List tslist = null;
+	List<TS> tslist = null;
 	TS ts_array[] = null;	// Use this to speed processing so we don't have to search through tslist all the time
 	// Set the time series to either the requested time series
 	// or a newly-created time series.  If a requested time series is
@@ -1182,7 +1095,7 @@ throws Exception
 			for ( int i = 0; i < numts; i++ ) {
 				// Check the alias for a match.  This takes precedence over the identifier.
 				if ( alias_v != null ) {
-					alias = ((String)alias_v.get(i)).trim();
+					alias = alias_v.get(i).trim();
 					if ( !alias.equals("") && req_ts.getAlias().equalsIgnoreCase( alias) ) {
 						// Found a matching time series...
 						req_ts_i = i;
@@ -1191,7 +1104,7 @@ throws Exception
 					}
 				}
 				// Now check the identifier...
-				identifier = ((String)identifier_v.get(i)).trim();
+				identifier = identifier_v.get(i).trim();
 				if ( req_ts.getIdentifierString().equalsIgnoreCase( identifier) ) {
 					// Found a matching time series...
 					req_ts_i = i;
@@ -1212,7 +1125,7 @@ throws Exception
 		if ( req_ts.getLocation().equals("") && !req_ts.getAlias().equals("") ) {
 			// The requested time series is only identified by the alias and needs to be recreated for the full
 			// identifier.  This case is configured in the calling public readTimeSeries() method.
-			identifier = ((String)identifier_v.get( req_ts_i)).trim();
+			identifier = identifier_v.get( req_ts_i).trim();
 			//Message.printStatus ( 1, routine,"SAMX creating new req_ts for \"" +
 			//identifier + "\" alias \"" + req_ts.getAlias() +"\"");
 			ts = TSUtil.newTimeSeries ( identifier, true );
@@ -1230,7 +1143,7 @@ throws Exception
 			// Identifier is assumed to have been set previously.
 		}
 		// Remaining logic is the same...
-		tslist = new Vector(1);
+		tslist = new Vector<TS>(1);
 		tslist.add ( ts );
 		ts_array = new TS[1];
 		ts_array[0] = ts;
@@ -1241,7 +1154,7 @@ throws Exception
 		data_interval_base = ident.getIntervalBase();
 		// Offset other information because of extra columns...
 		// Make sure to set the interval for use below...
-		identifier = ((String)identifier_v.get( req_ts_i)).trim();
+		identifier = identifier_v.get( req_ts_i).trim();
 		ident = new TSIdent( identifier );
 		// Set the data type in the TS header using the information in the identifier.
 		// It may be overwritten below if the DataType property is specified...
@@ -1270,17 +1183,17 @@ throws Exception
 	}
 	else {
 	    // Allocate here as many time series as indicated by numts...
-		tslist = new Vector(numts);
+		tslist = new Vector<TS>(numts);
 		ts_array = new TS[numts];
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, "Allocated space for " + numts + " time series in list." );
 		}
 		for ( int i = 0; i < numts; i++ ) {
-			identifier = ((String)identifier_v.get(i)).trim();
+			identifier = identifier_v.get(i).trim();
 			ident = new TSIdent( identifier );
 			// Need this to check whether time may be specified on data line...
 			data_interval_base = ident.getIntervalBase();
-			ts = TSUtil.newTimeSeries ( (String)identifier, true );
+			ts = TSUtil.newTimeSeries ( identifier, true );
 			if ( ts == null ) {
 				Message.printWarning ( 2, routine, "Unable to create new time series for \"" + identifier + "\"" );
 				return null;
@@ -1329,19 +1242,19 @@ throws Exception
 			Message.printDebug ( 1, routine, "Setting properties for \"" + ts.getIdentifierString() + "\"" );
 		}
 		if ( alias_v != null ) {
-			alias = ((String)alias_v.get(i)).trim();
+			alias = alias_v.get(i).trim();
 			if ( !alias.equals("") ) {
 				ts.setAlias ( alias );
 			}
 		}
 		if ( datatype_v != null ) {
-			datatype = ((String)datatype_v.get(i)).trim();
+			datatype = datatype_v.get(i).trim();
 			if ( !datatype.equals("") ) {
 				ts.setDataType ( datatype );
 			}
 		}
 		if ( units_v != null ) {
-			units = ((String)units_v.get(i)).trim();
+			units = units_v.get(i).trim();
 			ts.setDataUnits ( units );
 			ts.setDataUnitsOriginal ( units );
 		}
@@ -1350,11 +1263,11 @@ throws Exception
 		ts.setDate2 ( date2 );
 		ts.setDate2Original ( date2 );
 		if ( description_v != null ) {
-			description=((String)description_v.get(i)).trim();
+			description = description_v.get(i).trim();
 			ts.setDescription ( description );
 		}
 		if ( missing_v != null ) {
-			missing = ((String)missing_v.get(i)).trim();
+			missing = missing_v.get(i).trim();
 			if ( missing.equalsIgnoreCase("NaN") ) {
 				ts.setMissing ( Double.NaN );
 			}
@@ -1363,10 +1276,8 @@ throws Exception
 			}
 		}
 		if ( seqnum_v != null ) {
-			seqnum = ((String)seqnum_v.get(i)).trim();
-			if ( StringUtil.isInteger(seqnum) ) {
-				ts.setSequenceNumber ( StringUtil.atoi(seqnum));
-			}
+			seqnum = seqnum_v.get(i).trim();
+			ts.setSequenceID ( seqnum );
 		}
 		if ( ts_has_data_flag[i] ) {
 			// Data flags are being used.
@@ -1405,8 +1316,6 @@ throws Exception
 	}
 
 	if ( !read_data ) {
-		ts = null;
-		ts_array = null;
 		return tslist;
 	}
 
@@ -1421,7 +1330,8 @@ throws Exception
 			throw new Exception ( message );
 		}
 	}
-	else {	for ( int i = 0; i < numts; i++ ) {
+	else {
+	    for ( int i = 0; i < numts; i++ ) {
 			ts = ts_array[i];
 			if ( ts.allocateDataSpace() != 0 ) {
 			    message = "Error allocating data space for time series.";
@@ -1438,13 +1348,13 @@ throws Exception
 		Message.printDebug ( dl, routine, "Reading data..." );
 	}
 
-	DateTime	date;
-	List		strings;
-	double		dvalue;	// Double data value
-	String		svalue;	// String data value
-	boolean		first = true;
-	int		nstrings = 0;
-	boolean		use_time = false;
+	DateTime date;
+	List<String> strings;
+	double dvalue;	// Double data value
+	String svalue;	// String data value
+	boolean first = true;
+	int nstrings = 0;
+	boolean use_time = false;
 	if ( (data_interval_base == TimeInterval.HOUR) || (data_interval_base == TimeInterval.MINUTE) ||
 		(data_interval_base == TimeInterval.IRREGULAR) ) {
 		if ( Message.isDebugOn ) {
@@ -1706,8 +1616,6 @@ throws Exception
 			ts_array[i].addToGenesis ( "Read DateValue time series from " + ts.getDate1() + " to " + ts.getDate2() );
 		}
 	}
-	ts = null;
-	ts_array = null;
 	return tslist;
 }
 
@@ -1720,24 +1628,23 @@ Write a time series to a DateValue format file.
 public static void writeTimeSeries ( TS ts, PrintWriter out )
 throws Exception
 {	// Call the fully-loaded method...
-	List v = new Vector ( 1 );
+	List<TS> v = new Vector<TS>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList(v, out, (DateTime)null, (DateTime)null, null, true);
 }
 
 /**
-Write a Vector of time series to a DateValue format file.
+Write a list of time series to a DateValue format file.
 @param out PrintWrite to write to.
-@param date1 First date to write (if NULL write the entire time series).
-@param date2 Last date to write (if NULL write the entire time series).
+@param date1 First date to write (if null write the entire time series).
+@param date2 Last date to write (if null write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
 @param writeData Indicates whether data should be written (as opposed to only writing the header).
 @exception Exception if an error occurs.
 */
-public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1,
-					DateTime date2, String units, boolean writeData )
+public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
-{	List<TS> v = new Vector ( 1 );
+{	List<TS> v = new Vector<TS>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList ( v, out, date1, date2, units, writeData );
 }
@@ -1810,8 +1717,8 @@ Write a list of time series to a DateValue format file.
 Currently there is no way to indicate that the count or total time should be printed.
 @param tslist list of time series to write.
 @param out PrintWrite to write to.
-@param date1 First date to write (if NULL write the entire time series).
-@param date2 Last date to write (if NULL write the entire time series).
+@param date1 First date to write (if null write the entire time series).
+@param date2 Last date to write (if null write the entire time series).
 @param units Units to write.  If different than the current units the units will be converted on output.
 @param writeData Indicates whether data should be written (as opposed to only writing the header).
 @param props Properties to control output (see overloaded method for description).
@@ -1855,6 +1762,13 @@ throws Exception
 	if ( obj != null ) {
 	    irregularInterval = (TimeInterval)obj;
 	}
+    String version = props.getValue( "Version" );
+    boolean version14 = false; // Currently the only version that is supported other than current version
+    if ( version != null ) {
+        if ( version.equals("1.4") ) {
+            version14 = true;
+        }
+    }
 
 	// Set the parameters for output..
 
@@ -2021,11 +1935,33 @@ throws Exception
 		else {
 		    String alias = ts.getAlias();
 		    aliasBuffer.append ( "\"" + alias + "\"" );
-			if ( ts.getSequenceNumber() >= 0 ) {
+			if ( (ts.getSequenceID() != null) && !ts.getSequenceID().equals("") ) {
 				// At least one time series has the sequence number so it will be output below.
 				hasSeqnum = true;
 			}
-			seqnumBuffer.append ( ts.getSequenceNumber() );
+			if ( (ts.getSequenceID() == null) || ts.getSequenceID().equals("") ) {
+			    if ( version14 ) {
+			        seqnumBuffer.append ( "-1");
+			    }
+			    else {
+			        seqnumBuffer.append ( "\"\"");
+			    }
+			}
+			else {
+			    if ( version14 ) {
+			        // Used integer sequence numbers, so output -1 if not an integer
+			        try {
+			            Integer.parseInt(ts.getSequenceID());
+			            seqnumBuffer.append ( ts.getSequenceID() );
+			        }
+			        catch ( NumberFormatException e ) {
+			            seqnumBuffer.append ( "-1");
+			        }
+			    }
+			    else {
+			        seqnumBuffer.append ( "\"" + ts.getSequenceID() + "\"");
+			    }
+			}
 			if ( !ts.getDataUnits().trim().equals("") ) {
 				// Has units so display in column heading...
 			    if ( alias.length() > 0 ) {
@@ -2082,7 +2018,12 @@ throws Exception
 
 	// Print the standard header...
 
-	out.println ( "# DateValueTS " + __VERSION_CURRENT + " file" );
+	if ( version14 ) {
+	    out.println ( "# DateValueTS 1.4 file" );
+	}
+	else {
+	    out.println ( "# DateValueTS " + __VERSION_CURRENT + " file" );
+	}
 	IOUtil.printCreatorHeader ( out, "#", 80, 0 );
 	Object o = props.getContents("OutputComments");
 	if ( o != null ) {
@@ -2101,7 +2042,14 @@ throws Exception
 	out.println ( "TSID        = " + tsidBuffer.toString() );
 	out.println ( "Alias       = " + aliasBuffer.toString() );
 	if ( hasSeqnum ) {
-		out.println ( "SequenceNum = " + seqnumBuffer.toString() );
+	    if ( version14 ) {
+	        // Format 1.4, where sequence number is an integer, with -1 indicating no sequence number
+	        out.println ( "SequenceNum = " + seqnumBuffer.toString() );
+	    }
+	    else {
+	        // Format as of 1.5, where sequence ID is a string
+	        out.println ( "SequenceID = " + seqnumBuffer.toString() );
+	    }
 	}
 	out.println ( "Description = " + descriptionBuffer.toString() );
 	out.println ( "DataType    = " + datatypeBuffer.toString() );
@@ -2568,6 +2516,12 @@ lines are not added to in any way.</b>
 <td><b>Precision</b></td>
 <td><b>The precision (number of digits after the decimal) to use for numerical values.</b>
 <td>4</td>
+</tr>
+
+<tr>
+<td><b>Version</b></td>
+<td><b>The DateValue file format version.</b>
+<td>Current version.</td>
 </tr>
 </table>
 @exception Exception if there is an error writing the file.

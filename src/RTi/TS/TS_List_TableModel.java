@@ -1,19 +1,3 @@
-// ----------------------------------------------------------------------------
-// TS_List_TableModel - Table Model for a Vector of TS to be displayed
-//				as time series headers
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2005-03-29	Steven A. Malers, RTi	Initial version.  Copy and modify the
-//					version used with TSTool.
-// 2005-03-29	J. Thomas Sapienza, RTi	Removed Exceptions from constructor
-//					declarations as the constructors never
-//					throw Exceptions.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.TS;
 
 import java.util.List;
@@ -84,20 +68,20 @@ column.  All values are treated as strings.
 */
 public Class getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return String.class;
-		case COL_ALIAS:		return String.class;
-		case COL_NAME:		return String.class;
-		case COL_DATA_SOURCE:	return String.class;
-		case COL_DATA_TYPE:	return String.class;
-		case COL_TIME_STEP:	return String.class;
-		case COL_SCENARIO:	return String.class;
-		case COL_SEQUENCE:	return String.class;
-		case COL_UNITS:		return String.class;
-		case COL_START:		return String.class;
-		case COL_END:		return String.class;
-		case COL_INPUT_TYPE:	return String.class;
-		case COL_INPUT_NAME:	return String.class;
-		default:		return String.class;
+		case COL_ID: return String.class;
+		case COL_ALIAS: return String.class;
+		case COL_NAME: return String.class;
+		case COL_DATA_SOURCE: return String.class;
+		case COL_DATA_TYPE: return String.class;
+		case COL_TIME_STEP: return String.class;
+		case COL_SCENARIO: return String.class;
+		case COL_SEQUENCE: return String.class;
+		case COL_UNITS: return String.class;
+		case COL_START: return String.class;
+		case COL_END: return String.class;
+		case COL_INPUT_TYPE: return String.class;
+		case COL_INPUT_NAME: return String.class;
+		default: return String.class;
 	}
 }
 
@@ -115,20 +99,20 @@ From AbstractTableMode.  Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_ID:		return "\nID";
-		case COL_ALIAS:		return "\nAlias";
-		case COL_NAME:		return "Name/\nDescription";
-		case COL_DATA_SOURCE:	return "Data\nSource";
-		case COL_DATA_TYPE:	return "Data\nType";
-		case COL_TIME_STEP:	return "Time\nStep";
-		case COL_SCENARIO:	return "\nScenario";
-		case COL_SEQUENCE:	return "Sequence\nNumber";
-		case COL_UNITS:		return "\nUnits";
-		case COL_START:		return "\nStart";
-		case COL_END:		return "\nEnd";
-		case COL_INPUT_TYPE:	return "Input\nType";
-		case COL_INPUT_NAME:	return "Input\nName";
-		default:		return "";
+		case COL_ID: return "\nID";
+		case COL_ALIAS: return "\nAlias";
+		case COL_NAME: return "Name/\nDescription";
+		case COL_DATA_SOURCE: return "Data\nSource";
+		case COL_DATA_TYPE: return "Data\nType";
+		case COL_TIME_STEP: return "Time\nStep";
+		case COL_SCENARIO: return "\nScenario";
+		case COL_SEQUENCE: return "Sequence\nID";
+		case COL_UNITS: return "\nUnits";
+		case COL_START: return "\nStart";
+		case COL_END: return "\nEnd";
+		case COL_INPUT_TYPE: return "Input\nType";
+		case COL_INPUT_NAME: return "Input\nName";
+		default: return "";
 	}
 }
 
@@ -139,18 +123,14 @@ Returns the text to be assigned to worksheet tooltips.
 public String[] getColumnToolTips()
 {	String[] tips = new String[__COLUMNS];
 
-	tips[COL_ID] =
-		"<html>The location identifier for the time series" +
-		" (e.g., station ID).</html>";
+	tips[COL_ID] = "<html>The location identifier for the time series (e.g., station ID).</html>";
 	tips[COL_ALIAS] = "The alias the time series (optional).";
 	tips[COL_NAME] = "The descriptive name for the time series.";
 	tips[COL_DATA_SOURCE] = "The data source for the time series.";
 	tips[COL_DATA_TYPE] = "The data type for the time series.";
-	tips[COL_TIME_STEP] =
-		"The data interval (time step) for the time series.";
+	tips[COL_TIME_STEP] = "The data interval (time step) for the time series.";
 	tips[COL_SCENARIO] = "The data scenario (optional).";
-	tips[COL_SEQUENCE] = "For time series traces, typically " +
-		"the historical year for the trace.";
+	tips[COL_SEQUENCE] = "For time series traces, typically the historical year for the trace.";
 	tips[COL_UNITS] = "The data units for the time series.";
 	tips[COL_START] = "The period start for available data.";
 	tips[COL_END] = "The period end for available data.";
@@ -189,7 +169,7 @@ Returns the format to display the specified column.
 */
 public String getFormat ( int column ) {
 	switch (column) {
-		default:	return "%s";
+		default: return "%s";
 	}
 }
 
@@ -201,8 +181,7 @@ public int getRowCount() {
 }
 
 /**
-From AbstractTableMode.  Returns the data that should be placed in the JTable
-at the given row and column.
+From AbstractTableMode.  Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the absolute column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
@@ -216,28 +195,21 @@ public Object getValueAt(int row, int col)
 
 	TS ts = (TS)_data.get(row);
 	switch (col) {
-		case COL_ID:		return ts.getIdentifier().getLocation();
-		case COL_ALIAS:		return ts.getAlias();
-		case COL_NAME: 		return ts.getDescription();
-		case COL_DATA_SOURCE:	return ts.getIdentifier().getSource();
-		case COL_DATA_TYPE: 	return ts.getDataType();
-		case COL_TIME_STEP:	return ts.getIdentifier().getInterval();
-		case COL_SCENARIO:	return ts.getIdentifier().getScenario();
-		case COL_SEQUENCE:	if ( ts.getSequenceNumber() < 0 ) {
-						return "";
-					}
-					else {	return "" +
-						ts.getSequenceNumber();
-					}
-		case COL_UNITS:		return ts.getDataUnits();
-		case COL_START:		return ts.getDate1();
-		case COL_END:		return ts.getDate2();
-		case COL_INPUT_TYPE:	return ts.getIdentifier().
-						getInputType();
-		case COL_INPUT_NAME:	return ts.getIdentifier().
-						getInputName();
-		default:	return "";
+		case COL_ID: return ts.getIdentifier().getLocation();
+		case COL_ALIAS: return ts.getAlias();
+		case COL_NAME: return ts.getDescription();
+		case COL_DATA_SOURCE: return ts.getIdentifier().getSource();
+		case COL_DATA_TYPE: return ts.getDataType();
+		case COL_TIME_STEP: return ts.getIdentifier().getInterval();
+		case COL_SCENARIO: return ts.getIdentifier().getScenario();
+		case COL_SEQUENCE: return ts.getSequenceID();
+		case COL_UNITS: return ts.getDataUnits();
+		case COL_START: return ts.getDate1();
+		case COL_END: return ts.getDate2();
+		case COL_INPUT_TYPE: return ts.getIdentifier().getInputType();
+		case COL_INPUT_NAME: return ts.getIdentifier().getInputName();
+		default: return "";
 	}
 }
 
-} // End TS_List_TableModel
+}

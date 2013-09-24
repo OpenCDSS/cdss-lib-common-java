@@ -270,11 +270,10 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	alias_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Sequence (ensemble trace) number:"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Sequence (ensemble trace) ID:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField seqnum_JTextField = new JTextField(
-			"" + __ts.getSequenceNumber(), 5);
+	JTextField seqnum_JTextField = new JTextField("" + __ts.getSequenceID(), 5);
 	seqnum_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, seqnum_JTextField,
 			1, y, 2, 1, 0.0, 0.0,

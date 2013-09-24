@@ -1,100 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSIdent - time series identifier class
-// ----------------------------------------------------------------------------
-// History:
-//
-// Apr 96	Steven A. Malers, RTi	Start developing the class based on
-//					lots of previous work.
-// 11 Nov 1996	Matthew J. Rutherford,	Changed to dynamic allocation.
-//		RTi
-// 21 May 1997	MJR, RTi		Added getBaseMultInterval.
-// 16 Sep 1997	SAM, RTi		Did a substantial overhaul in order to
-//					get the code ready for a Java port.
-//					This involved adding new functions for
-//					the sub/main location and source and
-//					carrying around integer and string
-//					versions of data, where appropriate.
-// 02 Jan 1998	SAM, RTi		Wrap all the debugs with
-//					Message.isDebugOn to improve
-//					performance.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 30 Oct 2000	SAM, RTi		Change toString() to return a nice
-//					TSIDent rather than the verbose version.
-// 18 Dec 2000	SAM, RTi		Overload equals() to take a string and
-//					change to case-insensite compare.  Also
-//					check the parts if a simple compare
-//					fails, just to be sure.
-// 20 Feb 2001	SAM, RTi		Change so that source is set if zero
-//					length (otherwise old contents may not
-//					be reset).
-// 11 Apr 2001	SAM, RTi		Bump up debug to 100 for everything.
-// 29 Aug 2001	SAM, RTi		Implement clone() consistent with other
-//					TS classes.  Clean up Javadoc (remove
-//					old C documentation).  Set unused
-//					variables to null.  Remove most debug
-//					information to increase performance.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-//					Deprecate notEquals().  Change set
-//					methods to have void return type.
-// 2002-02-06	SAM, RTi		Add _input_type and _input_name to the
-//					TSIdent string.  Overload methods to
-//					handle TSID strings with and without the
-//					input type/name information.  Search for
-//					"include_input" to find methods that
-//					are overloaded.  Remove notEquals().
-// 2002-05-30	SAM, RTi		Add support for a sub data type with a
-//					default "-" delimiter in that field.
-//					In the future may add methods to
-//					change the delimiter but for now make
-//					it the default.  This will better
-//					support RiversideDB.
-// 2003-03-13	SAM, RTi		Add matches(), similar to equals but
-//					allow wildcards.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TS.INTERVAL* to TimeInterval.
-//					* Throw exceptions if the interval is
-//					  invalid
-//					* Overload matches() to indicate whether
-//					  the input type and name should be
-//					  compared.
-// 2003-12-22	SAM, RTi		* Fix bug in equals() - was using
-//					  regionMatches(true,...) rather than
-//					  just equalsIgnoreCase(), possibly
-//					  resulting in error due to different
-//					  string lengths.
-// 2004-03-04	JTS, RTi		Class is now serializable.
-// 2004-03-15	SAM, RTi		* Overload matches() to allow the alias
-//					  to be specifically checked (or not).
-//					* Allow the regular expression for
-//					  matches() to be a time series
-//					  identifier with parts or a full
-//					  string.
-// 2004-07-11	SAM, RTi		* Update matches() to allow a pattern
-//					  other than just * to be specified for
-//					  a part.
-// 2004-09-22	SAM, RTi		* Change the delimiter for sublocation
-//					  from _ to -.  This was planned but
-//					  was not previously implemented.  The
-//					  delimiter for sublocation and subtype
-//					  are now both "-".
-// 2004-11-23	SAM, RTi		* Update to put [SeqNum] at the end of
-//					  the main TSIdent string.
-//					* Move the sequence number from the TS
-//					  class to this class.
-//					* Update private data members to use
-//					  __ notation, as per RTi standard.
-// 2005-11-07	JTS, RTi		Added toStringVerbose() for debugging
-//					purposes.
-// 2005-12-14	SAM, RTi		Initialize the interval to
-//					TimeInterval.UNKNOWN instead of zero,
-//					because the latter corresponds to
-//					IRREGULAR.  UNKNOWN is needed to check
-//					for errors in other code.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.awt.datatransfer.DataFlavor;
@@ -115,10 +18,10 @@ The TSIdent class stores and manipulates a time series identifier, or
 TSID string. The TSID string consists of the following parts:
 <p>
 <pre>
-[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~InputType~InputName
+[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[SeqID]~InputType~InputName
 </pre>
 <pre>
-[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[Seq]~DataStoreName
+[LocationType:]Location[-SubLoc].Source.Type[-Subtype].Interval.Scenario[SeqID]~DataStoreName
 </pre>
 <p>
 TSID's as TSIdent objects or strings can be used to pass unique time series
@@ -176,12 +79,12 @@ Separator string for TSIdent data type parts.
 public static final String TYPE_SEPARATOR = "-";
 
 /**
-Start of sequence number.
+Start of sequence identifier (old sequence number).
 */
 public static final String SEQUENCE_NUMBER_LEFT = "[";
 
 /**
-End of sequence number.
+End of sequence identifier (old sequence number).
 */
 public static final String SEQUENCE_NUMBER_RIGHT = "]";
 
@@ -273,10 +176,10 @@ The time series scenario.
 private String __scenario;
 
 /**
-Number used when more than one time series has the same identifier (e.g., if a list of time series is
-grouped as a set of traces in an ensemble, the sequence number can be the year that the trace starts).
+Identifier used for ensemble trace (e.g., if a list of time series is
+grouped as a set of traces in an ensemble, the trace ID can be the year that the trace starts).
 */
-private int	__sequence_number;
+private String __sequenceID;
 
 /**
 Type of input (e.g., "DateValue", "RiversideDB")
@@ -403,7 +306,7 @@ throws Exception
 	setLocationType ( tsident.getLocationType() );
 	setIdentifier ( tsident.getLocation(), tsident.getSource(),
 			tsident.getType(), tsident.getInterval(),
-			tsident.getScenario(), tsident.getSequenceNumber(),
+			tsident.getScenario(), tsident.getSequenceID(),
 			tsident.getInputType(), tsident.getInputName() );
 	__interval_base = tsident.getIntervalBase ();
 	__interval_mult = tsident.getIntervalMult ();
@@ -462,7 +365,7 @@ public boolean equals ( String id, boolean include_input )
 					ident.getType().equalsIgnoreCase(__full_type) &&
 					ident.getInterval().equalsIgnoreCase(__interval_string)&&
 					ident.getScenario().equalsIgnoreCase(__scenario) &&
-					(ident.getSequenceNumber() == __sequence_number) &&
+					ident.getSequenceID().equalsIgnoreCase(__sequenceID) &&
 					ident.getInputType().equalsIgnoreCase(__input_type) &&
 					ident.getInputName().equalsIgnoreCase(__input_name)){
 					is_equal = true;
@@ -495,7 +398,7 @@ public boolean equals ( String id, boolean include_input )
 					ident.getType().equalsIgnoreCase(__full_type) &&
 					ident.getInterval().equalsIgnoreCase(__interval_string)&&
 					ident.getScenario().equalsIgnoreCase(__scenario) &&
-					(ident.getSequenceNumber() == __sequence_number) ) {
+					ident.getSequenceID().equalsIgnoreCase(__sequenceID) ) {
 					is_equal = true;
 				}
 			}
@@ -575,7 +478,7 @@ internally.  Null fields are treated as empty strings.
 public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
 	String interval_string, String scenario)
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-		interval_string, scenario, -1, "", "" );
+		interval_string, scenario, null, "", "" );
 }
 
 /**
@@ -587,12 +490,12 @@ internally.  Null fields are treated as empty strings.
 @param full_type Full data type.
 @param interval_string Data interval string.
 @param scenario Scenario string.
-@param sequence_number Sequence number for the time series (in an ensemble).
+@param sequenceID sequence identifier for the time series (in an ensemble).
 */
 public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
-	String interval_string, String scenario, int sequence_number )
+	String interval_string, String scenario, String sequenceID )
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-		interval_string, scenario, sequence_number, "", "" );
+		interval_string, scenario, sequenceID, "", "" );
 }
 
 /**
@@ -610,7 +513,7 @@ internally.  Null fields are treated as empty strings.
 public String getIdentifierFromParts ( String full_location,String full_source, String full_type,
 	String interval_string, String scenario, String input_type, String input_name )
 {	return getIdentifierFromParts ( full_location, full_source, full_type,
-		interval_string, scenario, -1, "", "" );
+		interval_string, scenario, null, "", "" );
 }
 
 /**
@@ -622,16 +525,15 @@ internally.  Null fields are treated as empty strings.
 @param full_type Full data type.
 @param interval_string Data interval string.
 @param scenario Scenario string.
-@param sequence_number Sequence number for the time series (in an ensemble).
+@param sequenceID sequence identifier for the time series (in an ensemble).
 @param input_type Input type.  If blank, the input type will not be added.
 @param input_name Input name.  If blank, the input name will not be added.
 */
 public String getIdentifierFromParts ( String full_location, String full_source, String full_type,
-    String interval_string, String scenario, int sequence_number,
-    String input_type, String input_name )
+    String interval_string, String scenario, String sequenceID, String input_type, String input_name )
 { 
     return getIdentifierFromParts ( "", full_location, full_source, full_type,
-        interval_string, scenario, sequence_number, input_type, input_name );
+        interval_string, scenario, sequenceID, input_type, input_name );
 }
 
 /**
@@ -644,13 +546,13 @@ internally.  Null fields are treated as empty strings.
 @param full_type Full data type.
 @param interval_string Data interval string.
 @param scenario Scenario string.
-@param sequence_number Sequence number for the time series (in an ensemble).
+@param sequenceID sequence identifier for the time series (in an ensemble).
 @param input_type Input type.  If blank, the input type will not be added.
 @param input_name Input name.  If blank, the input name will not be added.
 */
 public String getIdentifierFromParts ( String locationType, String full_location,
     String full_source, String full_type, String interval_string, String scenario,
-    int sequence_number, String input_type, String input_name )
+    String sequenceID, String input_type, String input_name )
 {	StringBuffer full_identifier = new StringBuffer();
 
     if ( (locationType != null) && (locationType.length() > 0) ) {
@@ -675,8 +577,8 @@ public String getIdentifierFromParts ( String locationType, String full_location
 		full_identifier.append ( SEPARATOR );
 		full_identifier.append ( scenario );
 	}
-	if ( sequence_number > 0 ) {
-		full_identifier.append ( SEQUENCE_NUMBER_LEFT + sequence_number + SEQUENCE_NUMBER_RIGHT );
+	if ( (sequenceID != null) && (sequenceID.length() != 0) ) {
+		full_identifier.append ( SEQUENCE_NUMBER_LEFT + sequenceID + SEQUENCE_NUMBER_RIGHT );
 	}
 	if ( (input_type != null) && (input_type.length() != 0) ) {
 		full_identifier.append ( "~" + input_type );
@@ -776,13 +678,13 @@ public String getScenario( )
 }
 
 /**
-Return the sequence number for the time series.
-@return The sequence number for the time series.  This is meant to be used
-when an array of time series traces is maintained.
-@return time series sequence number.
+Return the sequence identifier for the time series.
+@return The sequence identifier for the time series.  This is meant to be used
+when an array of time series traces is maintained, for example in an ensemble.
+@return time series sequence identifier.
 */
-public int getSequenceNumber ()
-{	return __sequence_number;
+public String getSequenceID ()
+{   return __sequenceID;
 }
 
 /**
@@ -859,7 +761,7 @@ Initialize data members.
 private void init ()
 {	__behavior_mask = 0; // Default is to process sub-location and sub-source
 
-	// Initialize to null strings so that we do not have problems with the recursive stuff...
+	// Initialize to null strings so that there are not problems with the recursive logic...
 
 	__identifier = null;
 	__full_location = null;
@@ -873,7 +775,7 @@ private void init ()
 	__sub_type = null;
 	__interval_string = null;
 	__scenario = null;
-	__sequence_number = -1;
+	__sequenceID = null;
 	__input_type = null;
 	__input_name = null;
 
@@ -993,7 +895,7 @@ public boolean matches ( String id_regexp, boolean check_alias, boolean include_
 					tsident.getType(),
 					tsident.getInterval(),
 					tsident.getScenario(),
-					tsident.getSequenceNumber(),
+					tsident.getSequenceID(),
 					tsident.getInputType(),
 					tsident.getInputName(),
 					include_input );
@@ -1023,7 +925,7 @@ public boolean matches ( String id_regexp, boolean include_input )
 		return matches ( tsident.getLocation(), tsident.getSource(),
 				tsident.getType(), tsident.getInterval(),
 				tsident.getScenario(),
-				tsident.getSequenceNumber(), null, null,
+				tsident.getSequenceID(), null, null,
 				include_input );
 	}
 	catch ( Exception e ) {
@@ -1056,7 +958,7 @@ public boolean matches ( String location_regexp, String source_regexp, String da
     String interval_regexp, String scenario_regexp, String input_type_regexp,
 	String input_name_regexp, boolean include_input )
 {	return matches ( location_regexp, source_regexp, data_type_regexp, interval_regexp,
-		scenario_regexp, -1, input_type_regexp, input_name_regexp, include_input );
+		scenario_regexp, null, input_type_regexp, input_name_regexp, include_input );
 }
 
 /**
@@ -1081,14 +983,14 @@ not match, the individual five main parts are also compared and if they match tr
 @param data_type_regexp Data type regular expression to compare.
 @param interval_regexp Data interval regular expression to compare.
 @param scenario_regexp Scenario regular expression to compare.
-@param sequence_number Sequence number for time series in an ensemble.
+@param sequenceID_regexp sequence identifier regular expression to compare.
 @param input_type_regexp Input type regular expression to compare.
 @param input_name_regexp Input name regular expression to compare.
 @param include_input If true, the input type and name are included in the
 comparison.  If false, only the 5-part TSID are checked.
 */
 public boolean matches ( String location_regexp, String source_regexp, String data_type_regexp,
-    String interval_regexp, String scenario_regexp, int sequence_number, String input_type_regexp,
+    String interval_regexp, String scenario_regexp, String sequenceID_regexp, String input_type_regexp,
 	String input_name_regexp, boolean include_input )
 {	// Do the comparison by comparing each part.  Check for mismatches and
 	// if any occur return false.  Then if at the end, the TSIdent must match.
@@ -1098,7 +1000,7 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 		location_regexp + "\" source=\"" + source_regexp +
 		"\" type=\"" + data_type_regexp + "\" interval=\"" +
 		interval_regexp + "\" scenario=\"" + scenario_regexp +
-		"\" sequence_number=" + sequence_number + " input_type=\"" +
+		"\" sequenceID=" + sequenceID_regexp + " input_type=\"" +
 		input_type_regexp + "\" inputname=\"" + input_name_regexp +
 		"\" include_input=" +include_input );
 	}
@@ -1109,6 +1011,10 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").toUpperCase();
 	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*").toUpperCase();
 	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*").toUpperCase();
+	String sequenceID_regexp_Java = null;
+	if ( sequenceID_regexp != null ) {
+	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").toUpperCase();
+	}
 	// Compare the 5-part identifier first...
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {
 		return false;
@@ -1122,7 +1028,7 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 	if ( !__interval_string.toUpperCase().matches(interval_regexp_Java) ){
 		return false;
 	}
-	if ( __sequence_number != sequence_number ) {
+	if ( (sequenceID_regexp != null) && !__sequenceID.toUpperCase().matches(sequenceID_regexp_Java) ) {
 		return false;
 	}
 	if ( !__scenario.toUpperCase().matches(scenario_regexp_Java) ) {
@@ -1279,24 +1185,20 @@ throws Exception
 		full_type = list.get(2);
 	}
 	// Data interval...
-	int sequence_number = -1;
+	String sequenceID = null;
 	if ( nlist1 >= 4 ) {
 		interval_string = list.get(3);
-		// If no scenario is used, the interval string may have the
-		// sequence number on the end, so search for the [ and split the
-		// sequence number out of the interval string...
+		// If no scenario is used, the interval string may have the sequence ID on the end, so search for the [ and split the
+		// sequence ID out of the interval string...
 		int index = interval_string.indexOf ( SEQUENCE_NUMBER_LEFT );
-		// Get the sequence number...
+		// Get the sequence ID...
 		if ( index >= 0 ) {
 			if ( interval_string.endsWith(SEQUENCE_NUMBER_RIGHT)){
-				// Should be a properly-formed sequence number, but need to remove the brackets...
-				String sequence_number_string =	interval_string.substring( index + 1, interval_string.length() - 1).trim();
-				if ( StringUtil.isInteger( sequence_number_string) ) {
-					sequence_number = StringUtil.atoi( sequence_number_string );
-				}
+				// Should be a properly-formed sequence ID, but need to remove the brackets...
+				sequenceID = interval_string.substring( index + 1, interval_string.length() - 1).trim();
 			}
 			if ( index == 0 ) {
-				// There is no interval, just the sequence number (should not happen)...
+				// There is no interval, just the sequence ID (should not happen)...
 				interval_string = "";
 			}
 			else {
@@ -1316,20 +1218,16 @@ throws Exception
 		}
 		scenario = buffer.toString ();
 	}
-	// The scenario may now have the sequence number on the end, search for
-	// the [ and split out of the scenario...
+	// The scenario may now have the sequence ID on the end, search for the [ and split out of the scenario...
 	int index = scenario.indexOf ( SEQUENCE_NUMBER_LEFT );
-	// Get the sequence number...
+	// Get the sequence ID...
 	if ( index >= 0 ) {
 		if ( scenario.endsWith(SEQUENCE_NUMBER_RIGHT) ) {
-			// Should be a properly-formed sequence number...
-			String sequence_number_string =	scenario.substring ( index + 1,	scenario.length() - 1 ).trim();
-			if ( StringUtil.isInteger(sequence_number_string) ) {
-				sequence_number = StringUtil.atoi( sequence_number_string );
-			}
+			// Should be a properly-formed sequence ID...
+			sequenceID = scenario.substring ( index + 1, scenario.length() - 1 ).trim();
 		}
 		if ( index == 0 ) {
-			// There is no scenario, just the sequence number...
+			// There is no scenario, just the sequence ID...
 			scenario = "";
 		}
 		else {
@@ -1349,9 +1247,7 @@ throws Exception
 	tsident.setType ( full_type );
 	tsident.setInterval ( interval_string );
 	tsident.setScenario ( scenario );
-	if ( sequence_number >= 0 ) {
-		tsident.setSequenceNumber ( sequence_number );
-	}
+	tsident.setSequenceID ( sequenceID );
 
 	// Return the TSIdent object for use elsewhere...
 
@@ -1455,7 +1351,7 @@ public void setIdentifier ( )
 		Message.printDebug ( dl, routine, "Calling getIdentifierFromParts..." );
 	}
 	full_identifier = getIdentifierFromParts(__locationType, __full_location, __full_source,
-		__full_type, __interval_string, __scenario, __sequence_number, __input_type, __input_name );
+		__full_type, __interval_string, __scenario, __sequenceID, __input_type, __input_name );
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "...successfully called getIdentifierFromParts..." );
 	}
@@ -1519,7 +1415,7 @@ throws Exception
 	setType( tsident.getType() );
 	setInterval( tsident.getInterval() );
 	setScenario( tsident.getScenario() );
-	setSequenceNumber ( tsident.getSequenceNumber() );
+	setSequenceID ( tsident.getSequenceID() );
 	setInputType ( tsident.getInputType() );
 	setInputName ( tsident.getInputName() );
 	if ( Message.isDebugOn ) {
@@ -1528,7 +1424,7 @@ throws Exception
 }
 
 /**
-Set the identifier given the main parts, but no sequence number, input type, or input name.
+Set the identifier given the main parts, but no sequence ID, input type, or input name.
 @param full_location Full location string.
 @param full_source Full source string.
 @param full_type Full data type.
@@ -1547,7 +1443,7 @@ throws Exception
 }
 
 /**
-Set the identifier given the parts, but not including the sequence number.
+Set the identifier given the parts, but not including the sequence ID.
 @param full_location Full location string.
 @param full_source Full source string.
 @param type Data type.
@@ -1570,26 +1466,26 @@ throws Exception
 }
 
 /**
-Set the identifier given the parts, including sequence number.
+Set the identifier given the parts, including sequence ID.
 @param full_location Full location string.
 @param full_source Full source string.
 @param type Data type.
 @param interval_string Data interval string.
 @param scenario Scenario string.
-@param sequence_number Sequence number (for time series in ensemble).
+@param sequenceID sequence identifier (for time series in ensemble).
 @param input_type Input type.
 @param input_name Input name.
 @exception if the identifier cannot be set (usually the interval is incorrect).
 */
 public void setIdentifier (	String full_location, String full_source, String type, String interval_string,
-	String scenario, int sequence_number, String input_type, String input_name )
+	String scenario, String sequenceID, String input_type, String input_name )
 throws Exception
 {	setLocation ( full_location );
 	setSource ( full_source );
 	setType ( type );
 	setInterval ( interval_string );
 	setScenario ( scenario );
-	setSequenceNumber ( sequence_number );
+	setSequenceID ( sequenceID );
 	setInputType ( input_type );
 	setInputName ( input_name );
 }
@@ -1902,11 +1798,11 @@ public void setScenario( String scenario )
 }
 
 /**
-Set the sequence number.  This can be used to indicate a trace number.
-@param sequence_number Sequence number for the time series.
+Set the sequence identifier, for example when the time series is part of an ensemble.
+@param sequenceID sequence identifier for the time series.
 */
-public void setSequenceNumber ( int sequence_number )
-{	__sequence_number = sequence_number;
+public void setSequenceID ( String sequenceID )
+{	__sequenceID = sequenceID;
 	setIdentifier ();
 }
 
@@ -2148,7 +2044,7 @@ identifier.  If false, the 5-part TSID is returned.
 public String toString ( boolean include_input )
 {	String locationType = "";
     String scenario = "";
-	String sequence_number = "";
+	String sequenceID = "";
 	String input_type = "";
 	String input_name = "";
 	if ( (__locationType != null) && (__locationType.length() > 0) ) {
@@ -2158,9 +2054,9 @@ public String toString ( boolean include_input )
 		// Add the scenario if it is not blank...
 	    scenario = "." + __scenario;
 	}
-	if ( __sequence_number != -1 ) {
-		// Add the sequence number if it is not the initial value...
-		sequence_number = SEQUENCE_NUMBER_LEFT + __sequence_number + SEQUENCE_NUMBER_RIGHT;
+	if ( (__sequenceID != null) && (__sequenceID.length() > 0) ) {
+		// Add the sequence ID if it is not blank...
+		sequenceID = SEQUENCE_NUMBER_LEFT + __sequenceID + SEQUENCE_NUMBER_RIGHT;
 	}
 	if ( include_input ) {
 		if ( (__input_type != null) && (__input_type.length() > 0) ) {
@@ -2171,7 +2067,7 @@ public String toString ( boolean include_input )
 		}
 	}
 	return ( locationType + __full_location + "." + __full_source + "." + __full_type + 
-	    "." + __interval_string + scenario + sequence_number + input_type + input_name );
+	    "." + __interval_string + scenario + sequenceID + input_type + input_name );
 }
 
 /**
@@ -2214,7 +2110,7 @@ public String toStringVerbose() {
 		"Interval Base:    " + __interval_base + "\n" +
 		"Interval Mult:    " + __interval_mult + "\n" +
 		"Scenario:        '" + __scenario + "'\n" +
-		"Sequence Number:  " + __sequence_number + "\n" +
+		"SequenceID:      '" + __sequenceID + "'\n" +
 		"Input Type:      '" + __input_type + "'\n" +
 		"Input Name:      '" + __input_name + "'\n" +
 		"Behavior Mask:    " + __behavior_mask + "\n";

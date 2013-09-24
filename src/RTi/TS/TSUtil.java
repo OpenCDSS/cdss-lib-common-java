@@ -8537,7 +8537,7 @@ public static TSLimits getValidPeriod ( List<TS> tslist, DateTime suggestedStart
 
 /**
 Find a time series in a list.  The indicated field is searched and a
-case-insensitive query is made.  The sequence number is not used in the search.
+case-insensitive query is made.  The trace ID is not used in the search.
 @param tslist List of time series to search.
 @param id String identifier to match.
 @param field Field to match (currently can only be "Alias" or "Location").
@@ -8545,7 +8545,7 @@ case-insensitive query is made.  The sequence number is not used in the search.
 @return the Vectorposition of the match or -1 if no match or the field is not recognized.
 */
 public static int indexOf (	List<? extends TS> tslist, String id, String field, int direction )
-{	return indexOf ( tslist, id, field, -1, direction );
+{	return indexOf ( tslist, id, field, null, direction );
 }
 
 /**
@@ -8553,11 +8553,11 @@ Find a time series in a list.  The indicated field is searched and a case-insens
 @param tslist List of time series to search.
 @param id String identifier to match.
 @param field Field to match (currently can only be "Alias" or "Location").
-@param sequence_number If >= 0, the sequence number is also checked to make a match.  This is used for traces.
+@param traceID If non-null and non-blank, the trace identifier is also checked to make a match.  This is used for ensembles.
 @param direction If >= 0, search forward.  If < 0, search backward.
-@return the Vectorposition of the match or -1 if no match or the field is not recognized.
+@return the list position (0+) of the match or -1 if no match or the field is not recognized.
 */
-public static int indexOf (	List<? extends TS> tslist, String id, String field, int sequence_number, int direction )
+public static int indexOf (	List<? extends TS> tslist, String id, String field, String traceID, int direction )
 {	if ( tslist == null ) {
 		return -1;
 	}
@@ -8582,8 +8582,8 @@ public static int indexOf (	List<? extends TS> tslist, String id, String field, 
 			}
 			if ( ifield == 1 ) {
 				if ( id.equalsIgnoreCase(ts.getAlias()) ) {
-					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() == sequence_number ) {
+					if ( (traceID != null) && !traceID.equals("") ) {
+						if ( ts.getSequenceID().equalsIgnoreCase(traceID) ) {
 							return i;
 						}
 					}
@@ -8594,8 +8594,8 @@ public static int indexOf (	List<? extends TS> tslist, String id, String field, 
 			}
 			else if ( ifield == 2 ) {
 				if ( id.equalsIgnoreCase(ts.getLocation()) ) {
-					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() == sequence_number ) {
+					if ( (traceID != null) && !traceID.equals("") ) {
+						if ( ts.getSequenceID().equalsIgnoreCase(traceID) ) {
 							return i;
 						}
 					}
@@ -8615,8 +8615,8 @@ public static int indexOf (	List<? extends TS> tslist, String id, String field, 
 			}
 			if ( ifield == 1 ) {
 				if ( id.equalsIgnoreCase(ts.getAlias()) ) {
-					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() == sequence_number ) {
+					if ( (traceID != null) && !traceID.equals("") ) {
+						if ( ts.getSequenceID().equalsIgnoreCase(traceID) ) {
 							return i;
 						}
 					}
@@ -8627,8 +8627,8 @@ public static int indexOf (	List<? extends TS> tslist, String id, String field, 
 			}
 			else if ( ifield == 2 ) {
 				if ( id.equalsIgnoreCase(ts.getLocation()) ) {
-					if ( sequence_number >= 0 ) {
-						if ( ts.getSequenceNumber() == sequence_number ) {
+					if ( (traceID != null) && !traceID.equals("") ) {
+						if ( ts.getSequenceID().equalsIgnoreCase(traceID) ) {
 							return i;
 						}
 					}

@@ -1087,7 +1087,7 @@ Sub-type part of the identifier.</td>
 
 <tr>
 <td><b>%z</b></td>
-<td>Time series sequence number (e.g., year for traces).</td>
+<td>Time series sequence ID (e.g., year for traces).</td>
 </tr>
 </table>
 <p>
@@ -1202,8 +1202,8 @@ public String formatLegend ( String format, boolean update_ts )
 				buffer.append ( _id.getScenario() );
 			}
 			else if ( c == 'z' ) {
-				// Sequence number...
-				buffer.append ( "" + _id.getSequenceNumber() );
+				// Sequence ID (old sequence number)...
+				buffer.append ( _id.getSequenceID() );
 			}
 			else {
 			    // No match.  Add the % and the character...
@@ -1613,13 +1613,13 @@ public Object getProperty ( String propertyName )
 }
 
 /**
-Return the sequence number for the time series.
-@return The sequence number for the time series.  This is meant to be used
+Return the sequence identifier (old sequence number) for the time series.
+@return The sequence identifier for the time series.  This is meant to be used
 when an array of time series traces is maintained.
-@return time series sequence number.
+@return time series trace ID.
 */
-public int getSequenceNumber ()
-{	return _id.getSequenceNumber();
+public String getSequenceID ()
+{   return _id.getSequenceID();
 }
 
 /**
@@ -1631,6 +1631,7 @@ public String getStatus ( )
 {	return _status;
 }
 
+// TODO SAM 2013-09-21 Need to move this out of this class to separate concerns
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor
 exists.  From the Transferable interface.
@@ -1639,8 +1640,7 @@ Supported dataflavors are:<br>
 <li>TS - TS.class / RTi.TS.TS</li>
 <li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
 @param flavor the flavor in which to return the data.
-@return the data in the specified DataFlavor, or null if no matching flavor
-exists.
+@return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
 public Object getTransferData(DataFlavor flavor) {
 	if (flavor.equals(tsFlavor)) {
@@ -1654,6 +1654,7 @@ public Object getTransferData(DataFlavor flavor) {
 	}
 }
 
+//TODO SAM 2013-09-21 Need to move this out of this class to separate concerns
 /**
 Returns the flavors in which data can be transferred.  From the Transferable
 interface.  The order of the dataflavors that are returned are:<br>
@@ -2288,11 +2289,11 @@ public void setSelected ( boolean selected )
 }
 
 /**
-Set the sequence number.  This can be used to indicate a trace number.
-@param sequence_number Sequence number for the time series.
+Set the sequence identifier (old sequence number), used with ensembles.
+@param sequenceID sequence identifier for the time series.
 */
-public void setSequenceNumber ( int sequence_number )
-{	_id.setSequenceNumber ( sequence_number );
+public void setSequenceID ( String sequenceID )
+{	_id.setSequenceID ( sequenceID );
 }
 
 /**

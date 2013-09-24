@@ -208,7 +208,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             // Use negative because the adjustment is from the year type to calendar year
             seqNum -= outputYearType.getStartYearOffset();
         }
-        tracets.setSequenceNumber ( seqNum );
+        tracets.setSequenceID ( "" + seqNum );
         tracets.setDescription ( date1_in.getYear() + " trace: " + tracets.getDescription() );
         // Set alias after other information is set
         tracets.setAlias( tracets.formatLegend(alias) );

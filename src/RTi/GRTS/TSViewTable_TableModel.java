@@ -332,8 +332,8 @@ public String getColumnName(int columnIndex) {
 		else {
 			datatypeString = ", " + ts.getDataType();
 		}
-		if (ts.getSequenceNumber() >= 0) {
-			sequenceString = " [" + ts.getSequenceNumber() + "]";
+		if (ts.getSequenceID().length() >= 0) {
+			sequenceString = " [" + ts.getSequenceID() + "]";
 		}
 		if (ts.getAlias().equals("")) {
 			return ts.getLocation() + sequenceString + datatypeString + unitsString;
