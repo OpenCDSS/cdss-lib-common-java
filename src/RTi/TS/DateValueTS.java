@@ -2048,7 +2048,7 @@ throws Exception
 	    }
 	    else {
 	        // Format as of 1.5, where sequence ID is a string
-	        out.println ( "SequenceID = " + seqnumBuffer.toString() );
+	        out.println ( "SequenceID  = " + seqnumBuffer.toString() );
 	    }
 	}
 	out.println ( "Description = " + descriptionBuffer.toString() );
