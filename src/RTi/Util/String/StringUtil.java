@@ -144,6 +144,7 @@ import java.lang.Math;
 import java.lang.String;
 import java.lang.StringBuffer;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
@@ -2926,6 +2927,30 @@ The newline pattern for UNIX or PC machines is recognized, as appropriate.
 public static String removeNewline ( StringBuffer string )
 {
 	return removeNewline ( string.toString() );
+}
+
+/**
+Reorder the string list given the order array (for example created by the sortStringList() method).
+@param strings the string list to sort
+@param sortOrder an array indicating the order that the strings should be in (e.g., if sortOrder[0] = 15, then
+string [15] should be used in position 0.
+@param createNewList if true, create and return a new list; if false, reorder the provided list in place
+*/
+public static List<String> reorderStringList ( List<String> strings, int [] sortOrder, boolean createNewList )
+{
+    ArrayList<String> strings2 = new ArrayList<String>(strings.size());
+    for ( int i = 0; i < strings.size(); i++ ) {
+        strings2.add(strings.get(sortOrder[i]));
+    }
+    if ( createNewList ) {
+        return strings2;
+    }
+    else {
+        for ( int i = 0; i < strings.size(); i++ ) {
+            strings.set(i, strings2.get(i));
+        }
+        return strings;
+    }
 }
 
 /**
