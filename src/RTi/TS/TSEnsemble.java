@@ -1,5 +1,6 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -18,7 +19,7 @@ public class TSEnsemble implements Cloneable
 /**
 Ensemble of time series data, guaranteed to exist but may be empty.
 */
-private List<TS> __tslist = new Vector();
+private List<TS> __tslist = new ArrayList<TS>();
 
 /**
 Identifier for the ensemble.
@@ -46,7 +47,7 @@ public TSEnsemble ( String id, String name, List<TS> tslist )
     setEnsembleID ( id );
     setEnsembleName ( name );
     if ( tslist == null ) {
-        tslist = new Vector();
+        tslist = new ArrayList<TS>();
     }
     __tslist = tslist;
 }
@@ -61,8 +62,7 @@ public void add ( TS ts )
 
 /**
 Clone the object.  The Object base class clone() method is called and then the
-TSEnsemble objects are cloned.  The result is a complete deep copy, including a copy
-of all the time series.
+TSEnsemble objects are cloned.  The result is a complete deep copy, including a copy of all the time series.
 */
 public Object clone ()
 {   try {
@@ -70,8 +70,8 @@ public Object clone ()
         TSEnsemble ensemble = (TSEnsemble)super.clone();
         // Now clone mutable objects...
         int size = size();
-        // Need a new vector...
-        ensemble.__tslist = new Vector(size);
+        // Need a new list...
+        ensemble.__tslist = new ArrayList<TS>(size);
         TS ts;
         for ( int i = 0; i < size; i++ ) {
             ts = get(i);
@@ -126,7 +126,7 @@ public List<TS> getTimeSeriesList ( boolean copyList )
         return __tslist;
     }
     else {
-        List<TS> tslist = new Vector();
+        List<TS> tslist = new ArrayList<TS>(__tslist.size());
         int size = __tslist.size();
         for ( int i = 0; i < size; i++ ) {
             tslist.add( __tslist.get(i));
