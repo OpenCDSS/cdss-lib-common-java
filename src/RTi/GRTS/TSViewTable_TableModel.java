@@ -332,7 +332,7 @@ public String getColumnName(int columnIndex) {
 		else {
 			datatypeString = ", " + ts.getDataType();
 		}
-		if (ts.getSequenceID().length() >= 0) {
+		if (ts.getSequenceID().length() > 0) {
 			sequenceString = " [" + ts.getSequenceID() + "]";
 		}
 		if (ts.getAlias().equals("")) {
