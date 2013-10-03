@@ -8439,7 +8439,7 @@ public static String[] getTSFormatSpecifiers(boolean includeDescription )
 		formats[17] = "%x - Source, sub";
 		formats[18] = "%y - Location type";
 		formats[19] = "%Z - Scenario";
-		formats[20] = "%z - Sequence #";
+		formats[20] = "%z - Sequence ID";
 		formats[21] = "%% - Literal %";
 	}
 	else {

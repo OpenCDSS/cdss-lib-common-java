@@ -572,11 +572,11 @@ private void setupGUI()
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" The TSID conforms to the following convention, " +
-			"where LocationType, Scenario and SequenceNumber are optional:"),
+			"where LocationType, Scenario and SequenceID are optional:"),
        0, ++y, 3, 1, 0, 0, insetsTLBR,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
-		"     [LocationType:]Location.DataSource.DataType.Interval.Scenario[SequenceNumber]"),
+		"     [LocationType:]Location.DataSource.DataType.Interval.Scenario[SequenceID]"),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(" For example:"),
@@ -708,7 +708,7 @@ private void setupGUI()
         __scenarioTextField.setEnabled(false);
     }
     
-    JLabel sequenceNumber_JLabel = new JLabel("Sequence number: ");
+    JLabel sequenceNumber_JLabel = new JLabel("Sequence ID: ");
     JGUIUtil.addComponent(panel, sequenceNumber_JLabel,
         0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     JGUIUtil.addComponent(panel, __sequenceIDTextField,
