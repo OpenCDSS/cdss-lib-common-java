@@ -2298,22 +2298,9 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
         else if (_database_engine == DBENGINE_ORACLE ) {
-            //__secure = true;
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
-			Class.forName( "oracle.jdbc.OracleDriver");
-            // jdbc:oracle:thin:@//{__database_server}:{port}/{service}
-            String server[] = __database_server.split(",");
-            String serverName = __database_server;
-            String service = "";
-            if (server.length < 2) {
-                Message.printWarning(dl, routine, "DatabaseServer must contain \"host,service\" (" + __database_server + ")");
-            }
-            else {
-                serverName = server[0];
-                service = server[1];
-            }
-            connUrl = "jdbc:oracle:thin:@//" + serverName + ":" + __port + "/" + service;
-            // setDatabaseName(__database_name);  -- see below after connection has been established
+			Class.forName( "oracle.jdbc.driver.OracleDriver");
+            connUrl = "jdbc:oracle:thin:@" + __database_server + ":" + __port + ":" + __database_name;
 			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
         }
 		else {	
@@ -2342,9 +2329,11 @@ throws SQLException, Exception {
 	}
 	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
     
+	/* TODO SAM 2013-10-07 This seems to be old so commenting out
     if (_database_engine == DBENGINE_ORACLE && __database_name != null ) {
         __connection.createStatement().execute("alter session set current_schema = " + __database_name );
     }
+    */
     printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
 	__connection.setAutoCommit(__autoCommit);
 	

@@ -119,6 +119,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -3249,9 +3250,15 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	Message.printStatus(2, routine, "Getting list of tables");
 	ResultSet rs = null;
 	DatabaseMetaData metadata = null;
+	int databaseEngineType = dmi.getDatabaseEngineType();
 	try {	
 		metadata = dmi.getConnection().getMetaData();
-		rs = metadata.getTables(catalog, schema, null, null);
+		String [] typeArray = { "TABLE", "VIEW" };
+		if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+		    // SQL Server does not seem to recognize the type array so get all and then filter below
+		    typeArray = null;
+		}
+		rs = metadata.getTables(catalog, schema, null, typeArray);
 		if (rs == null) {
 			Message.printWarning(2, routine, "Error getting list of tables.  Aborting");
 			return null;
@@ -3268,7 +3275,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	Message.printStatus(2, routine, "Building table name list");	
 	String tableName;
 	String tableType;
-	List<String> tableNames = new Vector();
+	List<String> tableNames = new ArrayList();
 	try {
     	while ( rs.next() ) {
     		try {	
@@ -3276,6 +3283,14 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
     		    tableName = rs.getString(3);
     			if (rs.wasNull()) {
     				tableName = null;
+    			}
+    			else {
+    			    if ( databaseEngineType == DMI.DBENGINE_ORACLE ) {
+    			        if ( tableName.startsWith("/") ) {
+    			            // See large number of tables with names like "/f1892dbb_LogicalBasicNetwork", type is "SYNONYM"
+    			            continue;
+    			        }
+    			    }
     			}
     	        // Table type...
                 tableType = rs.getString(4);
@@ -3318,7 +3333,6 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	// Remove the list of system tables for each kind of database 
 	// (all database types have certain system tables)
 	// TODO SAM 2012-01-31 Should be able to do from metadata but SQL Server does not indicate system tables.
-	int databaseEngineType = dmi.getDatabaseEngineType();
 	String [] systemTablePatternsToRemove = new String[0];
 	if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
 		String [] systemTablePatternsToRemove0 = {
