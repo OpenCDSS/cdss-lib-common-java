@@ -428,7 +428,7 @@ TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be 
 Properties for the time series beyond the built-in properties.  For example, location
 information like county and state can be set as a property.
 */
-private LinkedHashMap<String,Object> __property_HashMap = null; // To save memory if not used, use HashMap to allow null values
+private LinkedHashMap<String,Object> __property_HashMap = null;
 
 /**
 The missing data value.  Default for some legacy formats is -999.0 but increasingly Double.NaN is used.

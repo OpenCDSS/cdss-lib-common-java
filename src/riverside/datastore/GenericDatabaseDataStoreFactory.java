@@ -26,6 +26,16 @@ public DataStore create ( PropList props )
     }
     String databaseEngine = IOUtil.expandPropertyForEnvironment("DatabaseEngine",props.getValue ( "DatabaseEngine" ));
     String databaseServer = IOUtil.expandPropertyForEnvironment("DatabaseServer",props.getValue ( "DatabaseServer" ));
+    String databasePort = IOUtil.expandPropertyForEnvironment("DatabasePort",props.getValue ( "DatabasePort" ));
+    int port = -1;
+    if ( (databasePort != null) && !databasePort.equals("") ) {
+        try {
+            port = Integer.parseInt(databasePort);
+        }
+        catch ( NumberFormatException e ) {
+            port = -1;
+        }
+    }
     String databaseName = IOUtil.expandPropertyForEnvironment("DatabaseName",props.getValue ( "DatabaseName" ));
     String odbcName = IOUtil.expandPropertyForEnvironment("OdbcName",props.getValue ( "OdbcName" ));
     String systemLogin = IOUtil.expandPropertyForEnvironment("SystemLogin",props.getValue ( "SystemLogin" ));
@@ -42,8 +52,7 @@ public DataStore create ( PropList props )
         }
         else {
             // Use the parts to create the connection
-            dmi = new GenericDMI( databaseEngine, databaseServer,
-                databaseName, -1, systemLogin, systemPassword );
+            dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
         }
         dmi.open();
         GenericDatabaseDataStore ds = new GenericDatabaseDataStore ( name, description, dmi );

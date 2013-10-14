@@ -107,6 +107,16 @@ throws IOException, Exception
     String databaseEngine = IOUtil.expandPropertyForEnvironment("DatabaseEngine",props.getValue("DatabaseEngine"));
     String databaseServer = IOUtil.expandPropertyForEnvironment("DatabaseServer",props.getValue("DatabaseServer"));
     String databaseName = IOUtil.expandPropertyForEnvironment("DatabaseName",props.getValue("DatabaseName"));
+    String databasePort = IOUtil.expandPropertyForEnvironment("DatabasePort",props.getValue("DatabasePort"));
+    int port = -1;
+    if ( (databasePort != null) && !databasePort.equals("") ) {
+        try {
+            port = Integer.parseInt(databasePort);
+        }
+        catch ( NumberFormatException e ) {
+            port = -1;
+        }
+    }
     String odbcName = props.getValue ( "OdbcName" );
     String systemLogin = IOUtil.expandPropertyForEnvironment("SystemLogin",props.getValue("SystemLogin"));
     String systemPassword = IOUtil.expandPropertyForEnvironment("SystemPassword",props.getValue("SystemPassword"));
@@ -123,7 +133,7 @@ throws IOException, Exception
     }
     else {
         // Use the parts and create the connection string on the fly
-        dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, -1, systemLogin, systemPassword );
+        dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
     }
     dmi.open();
     GenericDatabaseDataStore ds = new GenericDatabaseDataStore( name, description, dmi );
