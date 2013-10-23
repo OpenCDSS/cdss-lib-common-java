@@ -60,13 +60,13 @@ exactly the string that is allowed in a parse (due to case being ignored, etc.).
 public class TimeInterval
 {
 /**
-Time intervals base values.  These intervals are guaranteed to have values less
+Time interval base values.  These intervals are guaranteed to have values less
 than 256 (this should allow for addition of other intervals if necessary).  The
 interval values may change in the future.  The values assigned to intervals
-increase with the magnitude of the interval.  Only irregular has no place in
-the order.  Flags above 256 are reserved for DateTime constructor flags.
+increase with the magnitude of the interval (e.g., YEAR > MONTH).  Only irregular has no place in
+the order.  Flags above >= 256 are reserved for DateTime constructor flags.
 */
-public static final int UNKNOWN = -1;	// Unknown, e.g., for initialization
+public static final int UNKNOWN = -1; // Unknown, e.g., for initialization
 public static final int IRREGULAR = 0;
 public static final int HSECOND = 5;
 public static final int SECOND = 10;
