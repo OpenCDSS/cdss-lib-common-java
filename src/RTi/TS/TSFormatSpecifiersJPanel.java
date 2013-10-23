@@ -77,7 +77,8 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
         __inputJTextField.setToolTipText(
             "Enter a combination of literal strings and/or format specifiers from the list on the left.");
         // Make sure caret stays visible even when not in focus
-        __inputJTextField.setCaretColor( Color.lightGray );
+        //__inputJTextField.setCaretColor( Color.lightGray ); // Too hard to see
+        __inputJTextField.setCaretColor( Color.blue ); // Better but changes to gray after initial display?
         __inputJTextField.getCaret().setVisible ( true );
         __inputJTextField.getCaret().setSelectionVisible ( true );
         JGUIUtil.addComponent(this, __inputJTextField,
