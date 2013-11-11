@@ -140,8 +140,16 @@ public Document getDocument()
 }
 
 /**
- * Return the text in the text field.
- */
+Return the SimpleJComboBox used in the panel, useful for setting properties in calling code.
+*/
+public SimpleJComboBox getSimpleJComboBox()
+{
+    return __formatJComboBox;
+}
+
+/**
+Return the text in the text field.
+*/
 public String getText()
 {
     return __inputJTextField.getText();
