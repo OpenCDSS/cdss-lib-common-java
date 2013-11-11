@@ -1700,6 +1700,7 @@ public static int [] getMonthAndDayFromDayOfYear ( int year, int julian_day )
 Return the number of intervals between two dates.  This uses a loop to count
 the intervals and may be slow.  For time series, a faster method may be to call
 the TSUtil.getDataSize method.  Zero is returned if the start date is after the end date.
+Zero is returned if the end date equals the start date since no interval will be traversed.
 @return The number of intervals between two dates.
 @param t1 Start date.
 @param t2 End date.
@@ -1707,21 +1708,18 @@ the TSUtil.getDataSize method.  Zero is returned if the start date is after the 
 @param mult The time series interval multiplier.
 */
 public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult )
-{	int	intervals=0;
-
+{
 	if( t2.lessThan(t1) ) {
 		Message.printWarning( 3, "TimeUtil.getNumIntervals", 
 		"End " + t2 + " is before start " + t1 + ".  Returning 0." );
 		return 0;
 	}
 
-	// We want to remain less than t2, so if the two dates are the same we will return 0.
-
-	DateTime t = new DateTime(t1);
-	for ( ; t.lessThan(t2); t.addInterval( base, mult ) ) {
+	// Want to remain less than t2, so if the two dates are the same return 0.
+	int intervals=0;
+	for ( DateTime t = new DateTime(t1); t.lessThan(t2); t.addInterval( base, mult ) ) {
 		intervals++;	
 	}
-	t = null;
 
 	return intervals;
 }
