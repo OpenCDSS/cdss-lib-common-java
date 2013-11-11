@@ -1376,6 +1376,7 @@ public TSData getDataPoint ( DateTime date, TSData tsdata )
 
 /**
 Return the number of data points that are allocated in memory.
+Zero will be returned if allocateDataSpace() has not been called.
 @return The number of data points included in the period.
 */
 public int getDataSize ( )
