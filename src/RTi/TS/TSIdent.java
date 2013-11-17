@@ -89,6 +89,11 @@ End of sequence identifier (old sequence number).
 public static final String SEQUENCE_NUMBER_RIGHT = "]";
 
 /**
+Separator string for input type and datastore at end of TSID.
+*/
+public static final String INPUT_SEPARATOR = "~";
+
+/**
 The DataFlavor for transferring this specific class.
 */
 public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent");
