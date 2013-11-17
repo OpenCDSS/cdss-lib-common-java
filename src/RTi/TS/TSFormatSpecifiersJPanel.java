@@ -118,6 +118,14 @@ public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
     }
     
     /**
+     * Return the text field, for example to allow setting more specific tool tip text.
+     */
+    public JTextField getTextField()
+    {
+        return __inputJTextField;
+    }
+    
+    /**
     Respond to ItemEvents - user has selected from the list so insert into the cursor position in the
     text field.
     @param evt Item event due to list change, etc.
