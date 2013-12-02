@@ -504,9 +504,11 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
 Create a copy of the table.
 @param table original table
 @param newTableID identifier for new table
-@param reqIncludeColumns requested columns to include or null to include all
-@param distinctColumns requested columns to check for distinct combinations (currently only one column
-is allowed), will override reqIncludeColumns, specify null to not check for distinct values
+@param reqIncludeColumns requested columns to include or null to include all, must specify the distinct column if only
+the distinct column is to be copied (this is a change from behavior prior to TSTool 10.26.00 where distinctColumns would
+override the reqIncludeColumns and default of all columns)
+@param distinctColumns requested columns to check for distinct combinations, multiple columns are allowed,
+specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter
 @return copy of original table
@@ -516,10 +518,11 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
 {   String routine = getClass().getName() + ".createCopy";
     // List of columns that will be copied
     String [] columnNamesToCopy = null;
-    if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
-        // Distinct overrides requested column names
-        reqIncludeColumns = distinctColumns;
-    }
+    // TODO SAM 2013-11-25 Remove code if the functionality works
+    //if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
+    //    // Distinct overrides requested column names
+    //    reqIncludeColumns = distinctColumns;
+    //}
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
         // Copy only the requested names
         columnNamesToCopy = reqIncludeColumns;
@@ -528,7 +531,36 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         // Copy all
         columnNamesToCopy = table.getFieldNames();
     }
-    // Figure out which columns should be copied.  Initialize an array with -1 and then set to
+    /* TODO SAM 2013-11-26 Remove this once tested - distinct columns are NOT required to be in output
+    if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
+        // Add the distinct columns to the requested columns if not already included
+        boolean [] found = new boolean[distinctColumns.length];
+        int foundCount = 0;
+        for ( int id = 0; id < distinctColumns.length; id++ ) {
+            found[id] = false;
+            for ( int ir = 0; ir < reqIncludeColumns.length; ir++ ) {
+                if ( reqIncludeColumns[ir].equalsIgnoreCase(distinctColumns[id]) ) {
+                    ++foundCount;
+                    found[id] = true;
+                    break;
+                }
+            }
+        }
+        if ( foundCount != distinctColumns.length ) { // At least one of the distinct columns was not found
+            String [] tmp = new String[reqIncludeColumns.length + (distinctColumns.length - foundCount)];
+            System.arraycopy(reqIncludeColumns, 0, tmp, 0, reqIncludeColumns.length);
+            int addCount = 0;
+            for ( int id = 0; id < distinctColumns.length; id++ ) {
+                if ( !found[id] ) {
+                    tmp[tmp.length + addCount] = distinctColumns[id];
+                    ++addCount; // Do after assignment above
+                }
+            }
+            reqIncludeColumns = tmp;
+        }
+    }
+    */
+    // Figure out which columns numbers should be copied.  Initialize an array with -1 and then set to
     // actual table columns if matching
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
@@ -573,18 +605,22 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             errorMessage.append ( "Filter column \"" + key + "\" not found in existing table.");
         }
     }
-    int distinctColumnNumber = -1;
-    if ( (distinctColumns != null) && (distinctColumns.length == 1) ) {
-        try {
-            distinctColumnNumber = table.getFieldIndex(distinctColumns[0]);
-        }
-        catch ( Exception e ) {
-            distinctColumnNumber = -1; // Distinct column not matched
-            ++errorCount;
-            if ( errorMessage.length() > 0 ) {
-                errorMessage.append(" ");
+    int [] distinctColumnNumbers = null;
+    if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
+        distinctColumnNumbers = new int[distinctColumns.length];
+        for ( int id = 0; id < distinctColumns.length; id++ ) {
+            distinctColumnNumbers[id] = -1;
+            try {
+                distinctColumnNumbers[id] = table.getFieldIndex(distinctColumns[id]);
             }
-            errorMessage.append ( "Distinct column \"" + distinctColumns[0] + "\" not found in existing table.");
+            catch ( Exception e ) {
+                distinctColumnNumbers[id] = -1; // Distinct column not matched
+                ++errorCount;
+                if ( errorMessage.length() > 0 ) {
+                    errorMessage.append(" ");
+                }
+                errorMessage.append ( "Distinct column \"" + distinctColumns[id] + "\" not found in existing table.");
+            }
         }
     }
     // Create a new data table with the requested column names
@@ -593,7 +629,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     // Get the column information from the original table
     Object newColumnNameO = null; // Used to map column names
     TableField newTableField; // New table field
-    List<Object> distinctList = new ArrayList<Object>();
+    List<Object []> distinctList = new ArrayList<Object []>(); // Unique combinations of requested distinct column values
     // Create requested columns in the output table
     for ( int icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
         if ( columnNumbersToCopy[icol] == -1 ) {
@@ -618,9 +654,14 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     int icol;
     int irowCopied = 0;
     boolean somethingCopied = false;
-    boolean filterMatches;
+    boolean filterMatches, distinctMatches;
     Object o = null;
+    Object [] oDistinctCheck = null;
+    if ( (distinctColumnNumbers != null) && (distinctColumnNumbers.length > 0) ) {
+        oDistinctCheck = new Object[distinctColumnNumbers.length];
+    }
     String s;
+    int distinctMatchesCount = 0; // The number of distinct column value that match the current row
     for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
         somethingCopied = false;
         filterMatches = true;
@@ -645,10 +686,11 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                     }
                 }
                 catch ( Exception e ) {
-                    errorMessage.append("Error getting table data copying [" + irow + "][" +
+                    errorMessage.append("Error getting table data for filter check [" + irow + "][" +
                         columnNumbersToFilter[icol] + "].");
                     Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
                         columnNumbersToFilter[icol] + "] (" + e + ")." );
+                    ++errorCount;
                 }
             }
             if ( !filterMatches ) {
@@ -656,42 +698,60 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
-        for ( icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
-            if ( distinctColumnNumber >= 0 ) {
-                // Want to check for distinct values
-                if ( columnNumbersToCopy[icol] < 0 ) {
-                    continue; // No original table column matched
+        if ( distinctColumnNumbers.length > 0 ) {
+            // Distinct columns can be done on any columns so loop through to see if row matches before doing copy
+            // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked
+            distinctMatches = false;
+            for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
+                if ( distinctColumnNumbers[icol] < 0 ) {
+                    break;
                 }
-                else {
-                    try {
-                        o = table.getFieldValue(irow, columnNumbersToCopy[icol]);
-                        if ( (o == null) || ((o instanceof String) && ((String)o).trim().length() == 0) ) {
-                            continue; // Don't include nulls and blank strings in distinct values
-                        }
-                        boolean found = false;
-                        for ( Object od : distinctList ) {
-                            if ( od.equals(o) ) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if ( !found ) {
-                            distinctList.add(o);
-                            // Will add to output below
-                        }
-                        else {
-                            // Will already have added the value in the table so don't add again
-                            continue;
-                        }
-                    }
-                    catch ( Exception e ) {
-                        errorMessage.append("Error getting table data copying [" + irow + "][" +
-                            columnNumbersToCopy[icol] + "].");
-                        Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
-                            columnNumbersToCopy[icol] + "] (" + e + ")." );
-                    }
+                try {
+                    // This array is reused but will be copied below if needed to save
+                    oDistinctCheck[icol] = table.getFieldValue(irow, distinctColumnNumbers[icol]);
+                }
+                catch ( Exception e ) {
+                    errorMessage.append("Error getting table data checking distinct for [" + irow + "][" +
+                        distinctColumnNumbers[icol] + "].");
+                    Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
+                        distinctColumnNumbers[icol] + "] (" + e + ")." );
+                    ++errorCount;
                 }
             }
+            // Now actually check the values
+            for ( Object [] odArray : distinctList ) {
+                distinctMatchesCount = 0;
+                for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
+                    if ( (oDistinctCheck[icol] == null) ||
+                        ((oDistinctCheck[icol] instanceof String) && ((String)oDistinctCheck[icol]).trim().length() == 0) ) {
+                        // TODO SAM 2013-11-25 Don't include nulls and blank strings in distinct values
+                        // Might need to change this in the future if those values have relevance
+                        continue;
+                    }
+                    if ( odArray[icol].equals(oDistinctCheck[icol]) ) {
+                        ++distinctMatchesCount;
+                    }
+                }
+                if ( distinctMatchesCount == distinctColumnNumbers.length ) {
+                    // The columns of interest matched a distinct combination so skip adding the record.
+                    distinctMatches = true;
+                    break;
+                }
+            }
+            if ( distinctMatches ) {
+                // The columns of interest matched a distinct combination so skip adding the record.
+                continue;
+            }
+            else {
+                // Create a copy of the temporary object to save and use below.
+                Object [] oDistinctCheckCopy = new Object[distinctColumnNumbers.length];
+                System.arraycopy(oDistinctCheck, 0, oDistinctCheckCopy, 0, distinctColumnNumbers.length);
+                distinctList.add(oDistinctCheckCopy); // Have another combination of distinct values to check for other table rows
+                // The row will be added below
+            }
+        }
+        // If here then the row can be added.
+        for ( icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
             try {
                 if ( columnNumbersToCopy[icol] < 0 ) {
                     // Value in new table is null
@@ -700,8 +760,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 else {
                     // Value in new table is copied from original
                     // TODO SAM 2013-08-06 Need to evaluate - following is OK for immutable objects but what about DateTime, etc?
-                    newTable.setFieldValue(irowCopied, icol,
-                        table.getFieldValue(irow, columnNumbersToCopy[icol]), true );
+                    newTable.setFieldValue(irowCopied, icol, table.getFieldValue(irow, columnNumbersToCopy[icol]), true );
                 }
                 somethingCopied = true;
             }
@@ -3076,6 +3135,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                         columnNumbersToFilter[icol] + "].");
                     Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
                         columnNumbersToFilter[icol] + "] (" + e + ")." );
+                    ++errorCount;
                 }
             }
             //Message.printStatus(2,routine,"" + irow + " matches=" + filterMatches );
@@ -3105,6 +3165,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                     else {
                         errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
                             ") for column \"" + columnNamesToSet[icol] + "].");
+                        ++errorCount;
                     }
                 }
             }
@@ -3241,6 +3302,7 @@ throws Exception {
 	}
 
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
+	int row = 0, col = 0;
 	try {
     	// If any comments have been passed in, print them at the top of the file
     	if (comments != null && comments.size() > 0) {
@@ -3261,14 +3323,14 @@ throws Exception {
         int nonBlank = 0; // Number of non-blank table headings
     	if (writeColumnNames) {
     	    // First determine if any headers are non blank
-            for (int col = 0; col < cols; col++) {
+            for ( col = 0; col < cols; col++) {
                 if ( getFieldName(col).length() > 0 ) {
                     ++nonBlank;
                 }
             }
             if ( nonBlank > 0 ) {
         		line.setLength(0);
-        		for (int col = 0; col < (cols - 1); col++) {
+        		for ( col = 0; col < (cols - 1); col++) {
         			line.append( "\"" + getFieldName(col) + "\"" + delimiter);
         		}
         		line.append( "\"" + getFieldName((cols - 1)) + "\"");
@@ -3283,9 +3345,9 @@ throws Exception {
     	Object fieldValue;
     	Double fieldValueDouble;
     	Float fieldValueFloat;
-    	for (int row = 0; row < rows; row++) {
+    	for ( row = 0; row < rows; row++) {
     		line.setLength(0);
-    		for (int col = 0; col < cols; col++) {
+    		for ( col = 0; col < cols; col++) {
     		    if ( col > 0 ) {
     		        line.append ( delimiter );
     		    }
@@ -3347,7 +3409,8 @@ throws Exception {
 	}
 	catch ( Exception e ) {
 	    // Log and rethrow
-	    Message.printWarning(3, routine, "Unexpected error writing delimited file (" + e + ")." );
+	    Message.printWarning(3, routine, "Unexpected error writing delimited file row [" + row + "][" + col +
+	        "] (" + e + ")." );
 	    Message.printWarning(3, routine, e);
 	    throw ( e );
 	}
