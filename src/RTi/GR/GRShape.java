@@ -1,49 +1,22 @@
-//-----------------------------------------------------------------------------
-// GRShape - GR shape abstract class
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 14 Aug 1997	Steven A. Malers, RTi	Port from C++
-// 01 Nov 1998	SAM, RTi		Change "attkey" to index to enfoce use
-//					of integer and avoid possible confusion
-//					with attribute names used as keys
-//					during lookups.
-// 21 Jun 1999	SAM, RTi		Add equals and finalize.  Add shape
-// 					type, max min, and is_visible.
-// 23 Jun 1999	SAM, RTi		Remove shape type from constructor
-//					arguments.  It is too easy to get
-//					mixed up with setting the size of the
-//					shape.
-// 30 Aug 1999	SAM, RTI		Add associated_object to member data
-//					so that a shape can be directly related
-//					to another object.
-// 01 Dec 1999	SAM, RTi		Add is_selected to support editing, etc.
-// 17 Sep 2001	SAM, RTi		Add GRID shape type.
-// 2001-12-08	SAM, RTi		Add ARC shape type.  Clean up javadoc.
-//					Change so GRLimits is a shape.  This
-//					allows GRLimits to be passed generically
-//					to methods that intersect shapes, search
-//					using shape areas, etc.
-//					Add contains() - to be overruled by
-//					derived classes.
-// 2002-05-17	SAM, RTi		Add LOCATOR_ARC shape type.
-// 2004-10-27	J. Thomas Sapienza, RTi	Implements Cloneable.
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
 
 /**
+<p>
 GRShape is the base class for all GR shape classes.  At some point, additional
 information like color may be added to this class but currently shapes only
-store geometry information.  Set/Get methods are not implemented to keep objects
+store geometry information.  Set/get methods are not implemented to keep objects
 small and to optimize performance.  Access the data directly.
+</p>
+<p>
+GRShape represents common shapes for drawing and also can be used as geometry objects with
+geographic information system (GIS) data.  For example, see the RTi.GIS.GeoView.GeoRecord class 
+</p>
 */
 public class GRShape
 implements Cloneable
 {
 
+// TODO SAM 2013-12-01 Need to convert these to an enumeration and cross-reference with Well Known Text geometries
 /**
 Types of shapes.  Where there is compatibility with ESRI shapes, use the
 ESRI shape number.  Values below 100 are reserved for internal GR use.
@@ -239,16 +212,6 @@ public boolean contains ( GRShape shape, boolean contains_completely )
 	else {
 		return true;
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	associated_object = null;
-	super.finalize();
 }
 
 /**

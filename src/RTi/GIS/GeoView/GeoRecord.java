@@ -97,18 +97,6 @@ public TableRecord getTableRecord ()
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_layer = null;
-	_layer_view = null;
-	_record = null;
-	_shape = null;
-	super.finalize();
-}
-
-/**
 Set the layer for the GeoRecord (can be null).
 @param layer GeoLayer for record.
 */

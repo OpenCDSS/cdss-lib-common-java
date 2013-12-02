@@ -16,13 +16,4 @@ public IrregularTimeSeriesNotSupportedException( String s )
 {	super ( s );
 }
 
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	super.finalize();
-}
-
 }
