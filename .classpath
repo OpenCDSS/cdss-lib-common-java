@@ -22,7 +22,7 @@
 	<classpathentry kind="lib" path="lib/Batik/batik-transcoder.jar"/>
 	<classpathentry kind="lib" path="lib/Batik/batik-xml.jar"/>
 	<classpathentry kind="lib" path="lib/Blowfish/Blowfish_142.jar"/>
-	<classpathentry kind="lib" path="/rtibuild/lib/junit-3.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/ApacheMath/commons-math3-3.0.jar"/>
+	<classpathentry kind="lib" path="/cdss-util-buildtools/lib/junit-3.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
