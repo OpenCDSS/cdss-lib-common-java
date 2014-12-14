@@ -79,23 +79,56 @@ private void initialize(int num) {
 }
 
 /**
-Add a field data value to the record.
-@param new_element Data object to add to record.
+Add a field data value to the record, at the end of the record
+@param newElement Data object to add to record.
 */
-public void addFieldValue(Object new_element)
+public void addFieldValue(Object newElement)
+{
+    addFieldValue(-1,newElement);
+}
+
+/**
+Add a field data value to the record.
+@param insertPos insert position (or -1 or >= record field count to insert at end)
+@param newElement Data object to add to record.
+*/
+public void addFieldValue(int insertPos, Object newElement)
 {   if ( __useArray ) {
-        if ( __colMax == -1 ) {
-            // No array has been assigned
-            __recordArray = new Object[1];
+        if ( (insertPos < 0) || (insertPos >= __recordArray.length) ) {
+            // Add at the end
+            if ( __colMax == -1 ) {
+                // No array has been assigned
+                __recordArray = new Object[1];
+            }
+            else if ( __colMax == (__recordArray.length - 1) ) {
+                // Have at least one column and need to increment the array size
+                Object [] temp = __recordArray;
+                __recordArray = new Object[__recordArray.length + 1];
+                System.arraycopy(temp, 0, __recordArray, 0, temp.length);
+            }
+            ++__colMax;
+            __recordArray[__colMax] = newElement;
         }
-        else if ( __colMax == (__recordArray.length - 1) ) {
-            // Have at least one column and need to increment the array size
+        else {
+            // Insert at the desired position, have to do two array copies on either side
             Object [] temp = __recordArray;
-            __recordArray = new Object [__recordArray.length + 1];
-            System.arraycopy(temp, 0, __recordArray, 0, temp.length);
+            __recordArray = new Object[__recordArray.length + 1];
+            if ( insertPos > 0 ) {
+                // Copy the first part
+                System.arraycopy(temp, 0, __recordArray, 0, insertPos );
+            }
+            // Set the new value
+            __recordArray[insertPos] = newElement;
+            // Copy the second part
+            System.arraycopy(temp, insertPos, __recordArray, (insertPos + 1), (temp.length - insertPos) );
+            if ( insertPos > __colMax ) {
+                // Assume inserted column has data
+                __colMax = insertPos;
+            }
+            else {
+                ++__colMax;
+            }
         }
-        ++__colMax;
-        __recordArray[__colMax] = new_element;
     }
     else {
         //__recordList.add(new_element);

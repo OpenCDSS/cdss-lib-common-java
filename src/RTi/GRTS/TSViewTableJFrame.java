@@ -369,7 +369,7 @@ JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets,
 JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
 {
     if ( Message.isDebugOn ) {
-        Message.printDebug(1,"addWordsheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
+        Message.printDebug(1,"TSViewTableJFrame.addWorksheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
             " subPanel=" + subPanel + " checkBox=" + checkBox + " worksheets=" + worksheets + " headers=" + headers +
             " scrollPanes=" + scrollPanes + " mouseListeners=" + mouseListeners );
     }
@@ -709,7 +709,7 @@ lumped together, as long as they have the same data interval.  Irregular time se
 are split out by the interval of the starting date/time.
 */
 private void createSeparateTimeSeries()
-{
+{   String routine = getClass().getSimpleName() + ".createSeparateTimeSeries";
 	int interval;
 	__minute = new ArrayList();
 	__hour = new ArrayList();
@@ -751,7 +751,13 @@ private void createSeparateTimeSeries()
             }
             if ( d != null ) {
                 int precision = d.getPrecision();
-                if ( precision == DateTime.PRECISION_MINUTE ) {
+                if ( precision == DateTime.PRECISION_SECOND ) {
+                    // Include second precision here because most likely it is minute precision with seconds = 0
+                    __irregularMinute.add(ts);
+                    Message.printStatus(2,routine,"Date/time precision is second, but treating as minute for table \"" +
+                        ts.getIdentifierString() + "\"");
+                }
+                else if ( precision == DateTime.PRECISION_MINUTE ) {
                     __irregularMinute.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_HOUR ) {
@@ -765,6 +771,11 @@ private void createSeparateTimeSeries()
                 }
                 else if ( precision == DateTime.PRECISION_YEAR ) {
                     __irregularYear.add(ts);
+                }
+                else {
+                    // Don't handle the precision
+                    Message.printWarning(3,routine,"Don't know how to handle time series interval in table for \"" +
+                        ts.getIdentifierString() + "\"");
                 }
             }
         }

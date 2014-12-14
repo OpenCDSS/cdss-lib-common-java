@@ -92,8 +92,11 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -101,6 +104,7 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 
+import RTi.Util.String.StringDictionary;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
@@ -275,50 +279,117 @@ throws Exception
 }
 
 /**
-Add a field to the table and each entry in TableRecord.  The field is added
-at the end of the other fields.  The added fields are initialized with blank
-strings or NaN, as appropriate.
+Add a field to the right-most end of table and each entry in the existing TableRecords.
+The added fields are initialized with blank strings or NaN, as appropriate.
 @param tableField information about field to add.
 @param initValue the initial value to set for all the existing rows in the table (can be null).
 @return the field index (0+).
 */
 public int addField ( TableField tableField, Object initValue )
-{	_table_fields.add ( tableField );
+{
+    return addField ( -1, tableField, initValue );
+}
 
+/**
+Add a field to the table and each entry in TableRecord.  The field is added at the specified insert position.
+The added fields are initialized with blank strings or NaN, as appropriate.
+@param insertPos the column (0+) at which to add the column (-1 or >= the number of existing columns to insert at the end).
+@param tableField information about field to add.
+@param initValue the initial value to set for all the existing rows in the table (can be null).
+@return the field index (0+).
+*/
+public int addField ( int insertPos, TableField tableField, Object initValue )
+{	boolean addAtEnd = false;
+    if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
+        // Add at the end
+        _table_fields.add ( tableField );
+        addAtEnd = true;
+    }
+    else {
+        // Insert at the specified column location
+        _table_fields.add(insertPos,tableField);
+    }
+    // Add value to each record in the table to be consistent with the field data
 	int num = _table_records.size();
 	TableRecord tableRecord;
 	for ( int i=0; i<num; i++ ) {
 		tableRecord = _table_records.get(i);
 
 		// Add element and set default to 0 or ""
-		// these are ordered in the most likely types to optimize
-		int data_type = tableField.getDataType();
-		if ( data_type == TableField.DATA_TYPE_STRING ) {
-			tableRecord.addFieldValue( initValue );
+		// These are ordered in the most likely types to optimize
+		// TODO SAM 2014-05-04 Why are these broken out separately?
+		int dataType = tableField.getDataType();
+		if ( dataType == TableField.DATA_TYPE_STRING ) {
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+		    else {
+		        tableRecord.addFieldValue( insertPos, initValue );
+		    }
 		}
-		else if ( data_type == TableField.DATA_TYPE_INT ) {
-			tableRecord.addFieldValue( initValue );
+		else if ( dataType == TableField.DATA_TYPE_INT ) {
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
 		}
-		else if ( data_type == TableField.DATA_TYPE_DOUBLE ) {
-			tableRecord.addFieldValue( initValue );
+		else if ( dataType == TableField.DATA_TYPE_DOUBLE ) {
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
 		}
-		else if ( data_type == TableField.DATA_TYPE_SHORT ) {
-			tableRecord.addFieldValue( initValue );
+		else if ( dataType == TableField.DATA_TYPE_SHORT ) {
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
 		}
-		else if ( data_type == TableField.DATA_TYPE_FLOAT ) {
-			tableRecord.addFieldValue( initValue );
+		else if ( dataType == TableField.DATA_TYPE_FLOAT ) {
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
 		}
-        else if ( data_type == TableField.DATA_TYPE_LONG ) {
-            tableRecord.addFieldValue( initValue );
+        else if ( dataType == TableField.DATA_TYPE_LONG ) {
+            if ( addAtEnd ) {
+                tableRecord.addFieldValue( initValue );
+            }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
         }
-        else if ( data_type == TableField.DATA_TYPE_DATE ) {
-            tableRecord.addFieldValue( initValue );
+        else if ( dataType == TableField.DATA_TYPE_DATE ) {
+            if ( addAtEnd ) {
+                tableRecord.addFieldValue( initValue );
+            }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
         }
-        else if ( data_type == TableField.DATA_TYPE_DATETIME ) {
-            tableRecord.addFieldValue( initValue );
+        else if ( dataType == TableField.DATA_TYPE_DATETIME ) {
+            if ( addAtEnd ) {
+                tableRecord.addFieldValue( initValue );
+            }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
         }
 	}
-	return getNumberOfFields() - 1; // Zero offset
+	if ( addAtEnd ) {
+	    return getNumberOfFields() - 1; // Zero offset
+	}
+	else {
+	    return insertPos;
+	}
 }
 
 /**
@@ -512,11 +583,12 @@ override the reqIncludeColumns and default of all columns)
 @param distinctColumns requested columns to check for distinct combinations, multiple columns are allowed,
 specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
-@param columnFilters map for columns that will apply a filter
+@param columnFilters map for columns that will apply a filter to match column values to include
+@param columnExcludeFilters dictionary for columns tht will apply a filter to match column values to exclude
 @return copy of original table
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
-    String [] distinctColumns, Hashtable columnMap, Hashtable columnFilters )
+    String [] distinctColumns, Hashtable columnMap, Hashtable columnFilters, StringDictionary columnExcludeFilters )
 {   String routine = getClass().getName() + ".createCopy";
     // List of columns that will be copied
     String [] columnNamesToCopy = null;
@@ -580,7 +652,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             errorMessage.append ( "Requested column \"" + columnNamesToCopy[icol] + "\" not found in existing table.");
         }
     }
-    // Get filter columns and glob-style regular expressions
+    // Get (include) filter columns and glob-style regular expressions
     if ( columnFilters == null ) {
         columnFilters = new Hashtable<String,String>();
     }
@@ -604,7 +676,34 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             if ( errorMessage.length() > 0 ) {
                 errorMessage.append(" ");
             }
-            errorMessage.append ( "Filter column \"" + key + "\" not found in existing table.");
+            errorMessage.append ( "ColumnFilters \"" + key + "\" not found in existing table.");
+        }
+    }
+    // Get exclude filter columns and glob-style regular expressions
+    int [] columnExcludeFiltersNumbers = new int[0];
+    String [] columnExcludeFiltersGlobs = null;
+    if ( columnExcludeFilters != null ) {
+        LinkedHashMap<String, String> map = columnExcludeFilters.getLinkedHashMap();
+        columnExcludeFiltersNumbers = new int[map.size()];
+        columnExcludeFiltersGlobs = new String[map.size()];
+        ikey = -1;
+        for ( Map.Entry<String,String> entry : map.entrySet() ) {
+            ++ikey;
+            columnExcludeFiltersNumbers[ikey] = -1;
+            try {
+                key = entry.getKey();
+                columnExcludeFiltersNumbers[ikey] = table.getFieldIndex(key);
+                columnExcludeFiltersGlobs[ikey] = map.get(key);
+                // Turn default globbing notation into internal Java regex notation
+                columnExcludeFiltersGlobs[ikey] = columnExcludeFiltersGlobs[ikey].replace("*", ".*").toUpperCase();
+            }
+            catch ( Exception e ) {
+                ++errorCount;
+                if ( errorMessage.length() > 0 ) {
+                    errorMessage.append(" ");
+                }
+                errorMessage.append ( "ColumnExcludeFilters column \"" + key + "\" not found in existing table.");
+            }
         }
     }
     int [] distinctColumnNumbers = null;
@@ -697,6 +796,38 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             }
             if ( !filterMatches ) {
                 // Skip the record.
+                continue;
+            }
+        }
+        if ( columnExcludeFiltersNumbers.length > 0 ) {
+            int matchesCount = 0;
+            // Filters can be done on any columns so loop through to see if row matches before doing copy
+            for ( icol = 0; icol < columnExcludeFiltersNumbers.length; icol++ ) {
+                if ( columnExcludeFiltersNumbers[icol] < 0 ) {
+                    // Can't do filter so don't try
+                    break;
+                }
+                try {
+                    o = table.getFieldValue(irow, columnExcludeFiltersNumbers[icol]);
+                    if ( o == null ) {
+                        break; // Don't include nulls when checking values
+                    }
+                    s = ("" + o).toUpperCase();
+                    if ( s.matches(columnExcludeFiltersGlobs[icol]) ) {
+                        // A filter matched so don't copy the record
+                        ++matchesCount;
+                    }
+                }
+                catch ( Exception e ) {
+                    errorMessage.append("Error getting table data for filter check [" + irow + "][" +
+                        columnExcludeFiltersNumbers[icol] + "].");
+                    Message.printWarning(3, routine, "Error getting table data for [" + irow + "][" +
+                        columnExcludeFiltersNumbers[icol] + "] (" + e + ")." );
+                    ++errorCount;
+                }
+            }
+            if ( matchesCount == columnExcludeFiltersNumbers.length ) {
+                // Skip the record since all filters were matched
                 continue;
             }
         }
@@ -1555,51 +1686,6 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
     List<String> problems )
 {   String routine = getClass().getName() + ".joinTable", message;
-    if ( reqIncludeColumns == null ) {
-        reqIncludeColumns = new String[0];
-    }
-    // Determine the column numbers in the first and second tables for the join columns
-    String [] table1JoinColumnNames = new String[joinColumnsMap.size()];
-    int [] table1JoinColumnNumbers = new int[joinColumnsMap.size()];
-    int [] table1JoinColumnTypes = new int[joinColumnsMap.size()];
-    String [] table2JoinColumnNames = new String[joinColumnsMap.size()];
-    int [] table2JoinColumnNumbers = new int[joinColumnsMap.size()];
-    int [] table2JoinColumnTypes = new int[joinColumnsMap.size()];
-    Enumeration keys = joinColumnsMap.keys();
-    String key;
-    int ikey = -1;
-    while ( keys.hasMoreElements() ) {
-        ++ikey;
-        table1JoinColumnNames[ikey] = "";
-        table1JoinColumnNumbers[ikey] = -1;
-        table2JoinColumnNames[ikey] = "";
-        table2JoinColumnNumbers[ikey] = -1;
-        try {
-            table1JoinColumnNames[ikey] = (String)keys.nextElement();
-            table1JoinColumnNumbers[ikey] = table.getFieldIndex(table1JoinColumnNames[ikey]);
-            table1JoinColumnTypes[ikey] = table.getFieldDataType(table1JoinColumnNumbers[ikey]);
-            Message.printStatus(2,routine,"Table1 join column \"" + table1JoinColumnNames[ikey] + "\" has table1 column number=" +
-                table1JoinColumnNumbers[ikey]);
-            try {
-                table2JoinColumnNames[ikey] = (String)joinColumnsMap.get(table1JoinColumnNames[ikey]);
-                table2JoinColumnNumbers[ikey] = tableToJoin.getFieldIndex(table2JoinColumnNames[ikey]);
-                table2JoinColumnTypes[ikey] = tableToJoin.getFieldDataType(table2JoinColumnNumbers[ikey]);
-                Message.printStatus(2,routine,"Table2 join column \"" + table2JoinColumnNames[ikey] + "\" has table2 column number=" +
-                    table2JoinColumnNumbers[ikey]);
-            }
-            catch ( Exception e ) {
-                message = "Table2 join column \"" + table2JoinColumnNames[ikey] + "\" not found in table \"" +
-                    tableToJoin.getTableID() + "\".";
-                problems.add ( message );
-                Message.printWarning(3,routine,message);
-            }
-        }
-        catch ( Exception e ) {
-            message = "Join column \"" + table1JoinColumnNames[ikey] + "\" not found in first table \"" + table.getTableID() + "\".";
-            problems.add (message);
-            Message.printWarning(3,routine,message);
-        }
-    }
 
     // List of columns that will be appended to the first table
     String [] columnNamesToAppend = null;
@@ -1618,9 +1704,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     // Make sure that the columns to append do not include the join columns, which should already by in the tables.
     // Just set to blank so they can be ignored in following logic
     for ( int icol = 0; icol < columnNamesToAppend.length; icol++ ) {
-        keys = joinColumnsMap.keys();
+        Enumeration keys = joinColumnsMap.keys();
         while ( keys.hasMoreElements() ) {
-            key = (String)keys.nextElement();
+            String key = (String)keys.nextElement();
             if ( columnNamesToAppend[icol].equalsIgnoreCase(key) ) {
                 Message.printStatus(2,routine,"Table 2 column to join is same as join column.  Ignoring.");
                 columnNamesToAppend[icol] = "";
@@ -1708,6 +1794,53 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                 problems.add ( message );
                 Message.printWarning(3,routine,message);
             }
+        }
+    }
+
+    // Determine the column numbers in the first and second tables for the join columns
+    // Do this AFTER the above checks on output columns because columns may be inserted and change the column order
+    if ( reqIncludeColumns == null ) {
+        reqIncludeColumns = new String[0];
+    }
+    String [] table1JoinColumnNames = new String[joinColumnsMap.size()];
+    int [] table1JoinColumnNumbers = new int[joinColumnsMap.size()];
+    int [] table1JoinColumnTypes = new int[joinColumnsMap.size()];
+    String [] table2JoinColumnNames = new String[joinColumnsMap.size()];
+    int [] table2JoinColumnNumbers = new int[joinColumnsMap.size()];
+    int [] table2JoinColumnTypes = new int[joinColumnsMap.size()];
+    Enumeration keys = joinColumnsMap.keys();
+    String key;
+    int ikey = -1;
+    while ( keys.hasMoreElements() ) {
+        ++ikey;
+        table1JoinColumnNames[ikey] = "";
+        table1JoinColumnNumbers[ikey] = -1;
+        table2JoinColumnNames[ikey] = "";
+        table2JoinColumnNumbers[ikey] = -1;
+        try {
+            table1JoinColumnNames[ikey] = (String)keys.nextElement();
+            table1JoinColumnNumbers[ikey] = table.getFieldIndex(table1JoinColumnNames[ikey]);
+            table1JoinColumnTypes[ikey] = table.getFieldDataType(table1JoinColumnNumbers[ikey]);
+            Message.printStatus(2,routine,"Table1 join column \"" + table1JoinColumnNames[ikey] + "\" has table1 column number=" +
+                table1JoinColumnNumbers[ikey]);
+            try {
+                table2JoinColumnNames[ikey] = (String)joinColumnsMap.get(table1JoinColumnNames[ikey]);
+                table2JoinColumnNumbers[ikey] = tableToJoin.getFieldIndex(table2JoinColumnNames[ikey]);
+                table2JoinColumnTypes[ikey] = tableToJoin.getFieldDataType(table2JoinColumnNumbers[ikey]);
+                Message.printStatus(2,routine,"Table2 join column \"" + table2JoinColumnNames[ikey] + "\" has table2 column number=" +
+                    table2JoinColumnNumbers[ikey]);
+            }
+            catch ( Exception e ) {
+                message = "Table2 join column \"" + table2JoinColumnNames[ikey] + "\" not found in table \"" +
+                    tableToJoin.getTableID() + "\".";
+                problems.add ( message );
+                Message.printWarning(3,routine,message);
+            }
+        }
+        catch ( Exception e ) {
+            message = "Join column \"" + table1JoinColumnNames[ikey] + "\" not found in first table \"" + table.getTableID() + "\".";
+            problems.add (message);
+            Message.printWarning(3,routine,message);
         }
     }
     

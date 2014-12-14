@@ -445,7 +445,9 @@ public void timeSeriesToTable ()
                 // This should only happen for the first pass when the table was empty or append to the end of table
                 // (otherwise records would have been added above)
                 try {
-                    Message.printStatus(2,routine,"Adding row for " + date );
+                    if ( Message.isDebugOn ) {
+                        Message.printDebug(1,routine,"Adding row for " + date );
+                    }
                     __table.setFieldValue(setRow, __dateTimeColumn, new DateTime(date), true );
                 }
                 catch ( Exception e ) {
@@ -478,12 +480,16 @@ public void timeSeriesToTable ()
                     try {
                         if ( ts.isDataMissing(value) && __useNullForMissing ) {
                             __table.setFieldValue(setRow, setColumn, null, true );
-                            Message.printStatus(2,routine,"Set [" + setRow + "][" + setColumn + "]=null" );
+                            if ( Message.isDebugOn ) {
+                                Message.printDebug(1,routine,"Set [" + setRow + "][" + setColumn + "]=null" );
+                            }
                         }
                         else {
                             // Set as a double because non-missing or missing and the missing value should be used
                             __table.setFieldValue(setRow, setColumn, new Double(value), true );
-                            Message.printStatus(2,routine,"Set [" + setRow + "][" + setColumn + "]=" + value );
+                            if ( Message.isDebugOn ) {
+                                Message.printDebug(1,routine,"Set [" + setRow + "][" + setColumn + "]=" + value );
+                            }
                         }
                     }
                     catch ( Exception e ) {

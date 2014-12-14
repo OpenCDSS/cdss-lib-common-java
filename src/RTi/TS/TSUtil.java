@@ -10775,50 +10775,6 @@ throws Exception
 	}
 }
 
-// TODO SAM 2011-01-23 Need to evaluate how alias fits in
-/**
-Sort a list of time series alphabetically by the time series identifier string.
-This method may be expanded in the future to include additional sort options.
-Null identifiers are treated as blank strings.
-@param tslist list of TS to sort, each having a valid TSIdent.
-@return the sorted list of time series.  If the list is null or zero size,
-the original list is returned.  Otherwise, a new list instance is returned.
-The original TS data are included in the list (not copies of the original data).
-*/
-public static List<TS> sort ( List<TS> tslist )
-{	if ( (tslist == null) || (tslist.size() == 0) ) {
-		return tslist;
-	}
-	// Since TS does not implement Comparable, sort the TSIdent strings...
-	int size = tslist.size();
-	List<String> strings = new Vector(size);
-	TSIdent tsid;
-	for ( int i = 0; i < size; i++ ) {
-		if ( tslist.get(i) == null ) {
-			strings.add ( "" );
-			continue;
-		}
-		tsid = tslist.get(i).getIdentifier();
-		if ( tsid == null ) {
-			strings.add ( "" );
-			continue;
-		}
-		// Use the full identifier...
-		strings.add ( tsid.toString( true ) );
-	}
-	int [] sort_order = new int[size];
-	// Get the sorted order...
-	StringUtil.sortStringList (	strings, StringUtil.SORT_ASCENDING,
-					sort_order, true,// Use sort array
-					true );		// Ignore case.
-	// Now sort the time series...
-	List<TS> tslist_sorted = new Vector ( size );
-	for ( int i = 0; i < size; i++ ) {
-		tslist_sorted.add( tslist.get ( sort_order[i] ) );
-	}
-	return tslist_sorted;
-}
-
 /**
 Subtract one time series from another.  The receiving time series description
 and genesis information are updated to reflect the subraction.

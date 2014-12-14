@@ -2581,7 +2581,17 @@ system clock during each loop.  The thread will be tied up during the sleep.
 @param milliseconds The number of milliseconds to sleep.
 */
 public static void sleep ( long milliseconds )
-{	// Get the current date...
+{	if ( milliseconds == 0 ) {
+        return;
+    }
+    // TODO SAM 2014-05-12 Figure out how to handle exception
+    try {
+        Thread.sleep(milliseconds);
+    } catch(InterruptedException ex) {
+        //Thread.currentThread().interrupt();
+    }
+    /*
+    // Get the current date...
 	Date now = new Date ();
 
 	// Loop until we have slept long enough...
@@ -2594,6 +2604,7 @@ public static void sleep ( long milliseconds )
 			break;
 		} 
 	}
+	*/
 }
 
 /**

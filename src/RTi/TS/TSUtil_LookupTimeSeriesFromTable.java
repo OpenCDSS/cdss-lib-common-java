@@ -753,7 +753,7 @@ Sort the lookup table by the input column.
 private DataTable sortTable ( DataTable table, int sortCol, int sortOrder )
 {
     // Do not want to sort the original table.  Consequently copy the table and then sort
-    DataTable tableSorted = table.createCopy(table, table.getTableID() + "-sorted", null, null, null, null);
+    DataTable tableSorted = table.createCopy(table, table.getTableID() + "-sorted", null, null, null, null, null);
     // Sort the table
     tableSorted.sortTable(table.getFieldName(sortCol), sortOrder);
     return tableSorted;
