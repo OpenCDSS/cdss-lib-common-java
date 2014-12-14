@@ -479,7 +479,7 @@ public TS runningStatistic ( boolean createData )
 throws TSException, IrregularTimeSeriesNotSupportedException
 {   String  genesis = "", message, routine = getClass().getName() + ".runningStatistic";
     TS newts = null;
-    TS newts2 = null; // Used when normal period is used
+    TS newts2 = null; // Used when normal period is used (newts is statistic for normal period, newts2 is final output)
 
     TS ts = getTS();
     TSStatisticType statisticType = getStatisticType();
@@ -600,6 +600,10 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         newts.setDataUnits ( newUnits );
     }
     if ( statisticTypeForNormal != null ) {
+        // Initial calculation...
+        newts.setDate1(normalStart);
+        newts.setDate2(normalEnd);
+        // Final output...
         newts2.copyHeader(ts); // Includes units
         newts2.setDataType(ts.getDataType() + "-Running-" + statString );
         newts2.setDate1 ( outputStart );

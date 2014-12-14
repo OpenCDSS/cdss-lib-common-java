@@ -14,7 +14,7 @@ import RTi.Util.Time.TimeUtil;
 /**
 Compute a MonthTS that has a statistic for each month in the period.
 */
-public class TSUtil_NewStatisticMonthTS
+public class TSUtil_NewStatisticMonthTimeSeries
 {
     
 /**
@@ -58,6 +58,11 @@ Test value used when analyzing the statistic.
 private Double __testValue = null;
 
 /**
+Monthly test values used when analyzing the statistic.
+*/
+private Double [] __monthTestValues = null;
+
+/**
 Number of missing allowed to compute sample (default is no limit).
 */
 private int __allowMissingCount = -1;
@@ -91,6 +96,7 @@ Execute the newStatisticMonthTS() method to perform the analysis.
 @param newTSID the new time series identifier to be assigned to the time series.
 @param statisticType the statistic type for the output time series.
 @param testValue test value (e.g., threshold value) needed to process some statistics.
+@param monthTestValues monthly test values
 @param allowMissingCount the number of values allowed to be missing in the sample.
 @param minimumSampleSize the minimum sample size to allow to compute the statistic.
 @param analysisWindowStart Starting date/time (year and month are ignored) for analysis within the month,
@@ -101,7 +107,8 @@ in precision of the original data.  If null, the entire year of data will be ana
 in precision of the original data.  If null, the entire month of data will be analyzed.
 This is used when a starting point is needed, such as when first and last values >, < in a month.
 */
-public TSUtil_NewStatisticMonthTS ( TS ts, String newTSID, TSStatisticType statisticType, Double testValue,
+public TSUtil_NewStatisticMonthTimeSeries ( TS ts, String newTSID, TSStatisticType statisticType,
+    Double testValue, Double [] monthTestValues,
     Integer allowMissingCount, Integer minimumSampleSize,
     DateTime analysisStart, DateTime analysisEnd,
     DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
@@ -139,6 +146,7 @@ public TSUtil_NewStatisticMonthTS ( TS ts, String newTSID, TSStatisticType stati
     }
     setStatisticType ( statisticType );
     setTestValue ( testValue );
+    setMonthTestValues ( monthTestValues );
     if ( allowMissingCount == null ) {
         allowMissingCount = new Integer(-1); // default
     }
@@ -166,6 +174,7 @@ Process a time series to create a statistic from getStatisticChoices().
 @param monthts MonthTS to fill with the statistic.
 @param statisticType statistic to calculate.
 @param testValue a number to test against for some statistics (e.g., COUNT_LE).
+@param monthTestValues monthly test values that should be used instead of a single test value
 @param analysisStart Start of the analysis (precision matching ts).
 @param analysisEnd End of the analysis (precision matching ts).
 @param allowMissingCount the number of missing values allowed in input and still compute the statistic.
@@ -179,7 +188,7 @@ Currently only Month... to precision are evaluated (not day... etc.).
 @param searchStart starting date/time in the month to analyze, for example an operational constraint.
 */
 private void calculateStatistic (
-    TS ts, MonthTS monthts, TSStatisticType statisticType, Double testValue,
+    TS ts, MonthTS monthts, TSStatisticType statisticType, Double testValue, Double [] monthTestValues,
     DateTime analysisStart, DateTime analysisEnd, int allowMissingCount, int minimumSampleSize,
     DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
 {   String routine = getClass().getSimpleName() + ".calculateStatistic";
@@ -190,16 +199,18 @@ private void calculateStatistic (
     boolean statisticIsLast = isStatisticLast(statisticType);
     boolean iterateForward = isStatisticIterateForward(statisticType);
     TestType testType = getStatisticTestType(statisticType);
-    monthts.setDescription ( getStatisticTimeSeriesDescription(statisticType, testType, testValue,
+    monthts.setDescription ( getStatisticTimeSeriesDescription(statisticType, testType, testValue, monthTestValues,
         statisticIsCount, statisticIsDayOf, statisticIsFirst, statisticIsLast ) );
     monthts.setDataUnits(getStatisticTimeSeriesDataUnits(statisticType, statisticIsCount, statisticIsDayOf,
         ts.getDataUnits()) );
     
-    Message.printStatus ( 2, routine, "Overall analysis period is " + analysisStart + " to " + analysisEnd );
+    //Message.printStatus ( 2, routine, "Overall analysis period is " + analysisStart + " to " + analysisEnd );
     
     double testValueDouble = Double.NaN; // OK to initialize to this because checks will have verified real value
     if ( isTestValueNeeded( statisticType ) ) {
-        testValueDouble = testValue.doubleValue();
+        if ( testValue != null) {
+            testValueDouble = testValue.doubleValue();
+        }
     }
     // For debugging...
     //Message.printStatus(2,routine,"StatisticType=" + statisticType + " TestType=" + testType +
@@ -254,6 +265,10 @@ private void calculateStatistic (
             if ( data != null ) {
                 // Still analyzing data in the analysis window
                 date = tsi.getDate();
+                if ( monthTestValues != null ) {
+                    // Test value varies by month
+                    testValueDouble = monthTestValues[date.getMonth() - 1];
+                }
                 value = tsi.getDataValue();
                 // For debugging...
                 if ( Message.isDebugOn ) {
@@ -262,8 +277,7 @@ private void calculateStatistic (
                 if ( ts.isDataMissing(value) ) {
                     // Data value is missing so increment the counter and continue to the next value.
                     // "data == null" will be true even for missing values and therefore when data
-                    // run out, statistics that depend on the missing count will be processed correctly
-                    // below.
+                    // run out, statistics that depend on the missing count will be processed correctly below.
                     ++nMissing;
                     continue;
                 }
@@ -315,8 +329,8 @@ private void calculateStatistic (
                         }
                     }
                     else if((testType == TestType.LE) && (value <= testValueDouble) ) {
-                        Message.printStatus(2, routine, "Found value " + value + " <= " +
-                            testValueDouble + " on " + date );
+                        //Message.printStatus(2, routine, "Found value " + value + " <= " +
+                        //    testValueDouble + " on " + date );
                         if ( (statisticType == TSStatisticType.LE_COUNT) ||
                             (statisticType == TSStatisticType.LE_PERCENT) ) {
                             if(monthts.isDataMissing( monthValue) ) {
@@ -369,7 +383,7 @@ private void calculateStatistic (
                     else if ( (statisticType == TSStatisticType.DAY_OF_MIN) ||
                         (statisticType == TSStatisticType.MIN) ) {
                         if(monthts.isDataMissing(extremeValue)||(value < extremeValue) ) {
-                            Message.printStatus(2,routine,"Found new min " + value + " on " + date );
+                            //Message.printStatus(2,routine,"Found new min " + value + " on " + date );
                             // Set the min...
                             if ( statisticType == TSStatisticType.DAY_OF_MIN ) {
                                 extremeValue = value;
@@ -401,8 +415,8 @@ private void calculateStatistic (
             }
             if ( doneAnalyzing ) {
                 // Save the results
-                Message.printStatus(2, routine, "For " + monthDate + ", sum=" + sum + ", nMissing=" +
-                    nMissing + ", nNotMissing=" + nNotMissing );
+                //Message.printStatus(2, routine, "For " + monthDate + ", sum=" + sum + ", nMissing=" +
+                //    nMissing + ", nNotMissing=" + nNotMissing );
                 if ( statisticType == TSStatisticType.DAY_OF_CENTROID ) {
                     if ( (nNotMissing > 0) &&
                         okToSetMonthStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
@@ -442,7 +456,7 @@ private void calculateStatistic (
                     }
                 }
                 else {
-                    Message.printStatus(2,routine,"Year " + monthDate + " value=" + monthValue );
+                    //Message.printStatus(2,routine,"Year " + monthDate + " value=" + monthValue );
                     if ( !monthts.isDataMissing(monthValue) &&
                         okToSetMonthStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
                         // No additional processing is needed.
@@ -520,6 +534,15 @@ Return the minimum sample size allowed to compute the statistic.
 private Integer getMinimumSampleSize ()
 {
     return __minimumSampleSize;
+}
+
+/**
+Return the monthly test values used to calculate some statistics.
+@return the monthly test values used to calculate some statistics.
+*/
+private Double [] getMonthTestValues ()
+{
+    return __monthTestValues;
 }
 
 /**
@@ -669,7 +692,7 @@ private String getStatisticTimeSeriesDataUnits ( TSStatisticType statisticType,
         }
     }
     else if ( statisticIsDayOf ) {
-        return "DayOfYear";
+        return "DayOfMonth";
     }
     else {
         return tsUnits;
@@ -684,12 +707,16 @@ Determine the statistic time series description.
 @return the description for the time series, given the statistic and test types.
 */
 private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType, TestType testType,
-    Double testValue, boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsFirst, boolean statisticIsLast )
+    Double testValue, Double [] monthTestValues,
+    boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsFirst, boolean statisticIsLast )
 {   String testString = "?test?";
     String testValueString = "?testValue?";
     String desc = "?";
     if ( testValue != null ) {
         testValueString = StringUtil.formatString(testValue.doubleValue(),"%.6f");
+    }
+    else if ( monthTestValues != null ) {
+        testValueString = "monthly values";
     }
     if ( testType == TestType.GE ) {
         testString = ">=";
@@ -716,19 +743,19 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
     }
     else if ( statisticIsDayOf ) {
         if ( statisticIsFirst ) {
-            desc = "Day of year for first value " + testString + " " + testValueString;
+            desc = "Day of month for first value " + testString + " " + testValueString;
         }
         else if ( statisticIsLast ) {
-            desc = "Day of year for last value " + testString + " " + testValueString;
+            desc = "Day of month for last value " + testString + " " + testValueString;
         }
         else if ( statisticType == TSStatisticType.DAY_OF_CENTROID ) {
-            desc = "Day of year for centroid";
+            desc = "Day of month for centroid";
         }
         else if ( statisticType == TSStatisticType.DAY_OF_MAX ) {
-            desc = "Day of year for maximum value";
+            desc = "Day of month for maximum value";
         }
         else if ( statisticType == TSStatisticType.DAY_OF_MIN ) {
-            desc = "Day of year for minimum value";
+            desc = "Day of month for minimum value";
         }
     }
     else {
@@ -929,6 +956,7 @@ public MonthTS newStatisticMonthTS ( boolean createData )
     String newTSID = getNewTSID();
     TSStatisticType statisticType = getStatisticType();
     Double testValue = getTestValue();
+    Double [] monthTestValues = getMonthTestValues();
     Integer allowMissingCount = getAllowMissingCount();
     Integer minimumSampleSize = getMinimumSampleSize();
     DateTime analysisStart = getAnalysisStart();
@@ -1005,9 +1033,9 @@ public MonthTS newStatisticMonthTS ( boolean createData )
     // Process the statistic of interest...
 
     calculateStatistic (
-            ts, monthts, statisticType, testValue,
-            analysisStart, analysisEnd, allowMissingCount, minimumSampleSize,
-            analysisWindowStart, analysisWindowEnd, searchStart );
+        ts, monthts, statisticType, testValue, monthTestValues,
+        analysisStart, analysisEnd, allowMissingCount, minimumSampleSize,
+        analysisWindowStart, analysisWindowEnd, searchStart );
 
     // Return the statistic result...
     return monthts;
@@ -1090,6 +1118,15 @@ Set the minimum sample size.
 private void setMinimumSampleSize ( int minimumSampleSize )
 {
     __minimumSampleSize = minimumSampleSize;
+}
+
+/**
+Set the monthly test values used with some statistics.
+@param testValue the monthly test values used with some statistics.
+*/
+private void setMonthTestValues ( Double [] monthTestValues )
+{
+    __monthTestValues = monthTestValues;
 }
 
 /**

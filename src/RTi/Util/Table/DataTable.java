@@ -92,11 +92,9 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -1311,6 +1309,23 @@ throws Exception
 	Object o = tableRecord.getFieldValue(field_index);
 	tableRecord = null;
 	return o;
+}
+
+/**
+Return the field values for all rows in the table for the requested field/column.
+@return the field values for all rows in the table for the requested field/column
+@param fieldName name of field for which to return values for all rows
+*/
+public List<Object> getFieldValues ( String fieldName )
+throws Exception
+{
+    List<Object> values = new ArrayList<Object>();
+    int columnNum = getFieldIndex(fieldName);
+    int size = getNumberOfRecords();
+    for ( int i = 0; i < size; i++ ) {
+        values.add ( getFieldValue(i,columnNum) );
+    }
+    return values;
 }
 
 /**

@@ -150,35 +150,38 @@ throws SQLException
 }
 
 /**
-Convert an SQL column type to the DataTable type.
+Lookup the SQL column type to the DataTable type.
+@param sqlColumnType SQL column type from Types
+@return DataTable column type from TableField
 */
 private int sqlToDMIColumnType(int sqlColumnType)
 {
     switch ( sqlColumnType ) {
-        // ARRAY
+        // ARRAY not handled
         case Types.BIGINT: return TableField.DATA_TYPE_LONG;
-        // BINARY
+        // BINARY not handled
         case Types.BIT: return TableField.DATA_TYPE_INT;
-        // BLOB
+        // BLOB not handled
         case Types.BOOLEAN: return TableField.DATA_TYPE_INT;
         case Types.CHAR: return TableField.DATA_TYPE_STRING;
-        // CLOB
+        // CLOB not handled
         case Types.DATE: return TableField.DATA_TYPE_DATE;
         case Types.DECIMAL: return TableField.DATA_TYPE_DOUBLE;
         case Types.DOUBLE: return TableField.DATA_TYPE_DOUBLE;
         case Types.FLOAT: return TableField.DATA_TYPE_FLOAT;
         case Types.INTEGER: return TableField.DATA_TYPE_INT;
         case Types.LONGVARCHAR: return TableField.DATA_TYPE_STRING;
+        case Types.NVARCHAR: return TableField.DATA_TYPE_STRING;
         case Types.NUMERIC: return TableField.DATA_TYPE_DOUBLE; // internally a BigDecimal
         case Types.REAL: return TableField.DATA_TYPE_DOUBLE;
-        // REF
+        // REF not handled
         case Types.SMALLINT: return TableField.DATA_TYPE_INT;
-        // STRUCT
+        // STRUCT not handled
         case Types.TIME: return TableField.DATA_TYPE_DATE;
         case Types.TIMESTAMP: return TableField.DATA_TYPE_DATE;
         case Types.TINYINT: return TableField.DATA_TYPE_INT;
         case Types.VARCHAR: return TableField.DATA_TYPE_STRING;
-        // VERBINARY
+        // VERBINARY not handled
         default:
             Message.printWarning(2,"sqlToDMIColumnType",
                 "Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");

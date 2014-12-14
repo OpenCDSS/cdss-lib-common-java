@@ -411,17 +411,19 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
-			if (value.indexOf('\'') > -1) {
+	    if (value.indexOf('\'') > -1) {
+    		if ( (_dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER) ||
+    		    (_dmi.getDatabaseEngineType() == DMI.DBENGINE_ACCESS) ) {
+    		    // Handle specifically because the following '' is documented
 				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
 			}	
 			else {
-				_values_Vector.add("'" + value + "'");
+				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "\\'") + "'");
 			}
 		}
-		else {
-			_values_Vector.add("'" + value + "'");
-		}
+        else {
+            _values_Vector.add("'" + value + "'");
+        }
 	}
 }
 
@@ -868,7 +870,7 @@ throws Exception {
 }
 
 /**
-Sets a value in the specified parameter position.
+Sets a value in the specified parameter position for stored procedure.
 @param param the parameter to pass in.
 @param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.

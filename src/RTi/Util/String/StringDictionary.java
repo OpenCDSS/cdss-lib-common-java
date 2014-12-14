@@ -35,10 +35,15 @@ public StringDictionary ( String s, String keyValueSep, String itemSep )
     if ( (s != null) && (s.length() > 0) && (s.indexOf(keyValueSep) > 0) ) {
         // First break map pairs
         List<String>pairs = StringUtil.breakStringList(s, itemSep, 0 );
-        // Now break pairs and put in TreeMap
+        // Now break pairs and put in LinkedHashMap
         for ( String pair : pairs ) {
             String [] parts = pair.split(keyValueSep);
-            this.dict.put(parts[0].trim(), parts[1].trim() );
+            if ( parts.length == 1 ) {
+                this.dict.put(parts[0].trim(), "" );
+            }
+            else if ( parts.length > 1 ){
+                this.dict.put(parts[0].trim(), parts[1].trim() );
+            }
         }
     }
 }

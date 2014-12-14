@@ -10223,9 +10223,9 @@ The data intervals do not need to be the same (truncation of dates will result i
 <tr>
 <td><b>HandleMissingHow</b></td>
 <td><b>Indicates how missing data should be handled when encountered in the independent
-time series.  If "SetMissing" then even the missing values will be transferred.  If
-"IgnoreMissing", then missing values will be transferred.  If SetOnlyMissingValues, then only transfer the
-missing values (and optionally corresponding data flags).</b>
+time series.  If "SetMissing" then even the missing values will be transferred.
+If "IgnoreMissing", then only non-missing values will be transferred.
+If SetOnlyMissingValues, then only transfer the missing values (and optionally corresponding data flags).</b>
 <td>SetMissing</td>
 </tr>
 
@@ -10318,6 +10318,7 @@ throws Exception
 	    setWindowStart = new DateTime(setWindowStart);
 	    setWindowEnd = new DateTime(setWindowEnd);
 	}
+	double outputMissingVal = dependentTS.getMissing();
 	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( transfer_bydate ) {
 			dataValue = independentTS.getDataValue ( date );
@@ -10343,6 +10344,10 @@ throws Exception
 	    // Handle "IgnoreMissing" case (note setMissing=true was set above if setOnlyMissingValues=true)
 		if ( isMissing && !setMissing ) {
 		    continue;
+		}
+		if ( isMissing ) {
+		    // Reset the missing value to that used in the output time series
+		    dataValue = outputMissingVal;
 		}
 		// If the window is specified, check to see if the set date is in the window
 		if ( (setWindowStart != null) && (setWindowEnd != null) ) {

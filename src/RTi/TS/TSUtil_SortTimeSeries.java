@@ -117,7 +117,8 @@ throws Exception
         if ( (doubleCount + nullCount) == size ) {
             // Sorting floating point numbers
             double [] doubles = new double[size];
-            // Sort integers
+            // Sort doubles
+            Object o;
             for ( int i = 0; i < size; i++ ) {
                 ts = tslist.get(i);
                 if ( ts == null ) {
@@ -125,8 +126,14 @@ throws Exception
                     doubles[i] = Double.MIN_VALUE;
                 }
                 else {
-                    // Check on counts should have determined all Doubles or nulls so cast should be safe
-                    doubles[i] = (Double)ts.getProperty(this.property);
+                    o = ts.getProperty(this.property);
+                    if ( o == null ) {
+                        doubles[i] = Double.MIN_VALUE;
+                    }
+                    else {
+                        // Check on counts should have determined all Doubles or nulls so cast should be safe
+                        doubles[i] = (Double)o;
+                    }
                 }
             }
             int [] sortOrder = new int[size];
@@ -150,8 +157,14 @@ throws Exception
                     integers[i] = Integer.MIN_VALUE;
                 }
                 else {
-                    // Check on counts should have determined all Integers or nulls so cast should be safe
-                    integers[i] = (Integer)ts.getProperty(this.property);
+                    Object o = ts.getProperty(this.property);
+                    if ( o == null ) {
+                        integers[i] = Integer.MIN_VALUE;
+                    }
+                    else {
+                        // Check on counts should have determined all Integers or nulls so cast should be safe
+                        integers[i] = (Integer)o;
+                    }
                 }
             }
             int [] sortOrder = new int[size];
@@ -174,8 +187,14 @@ throws Exception
                     strings.add ( "" );
                 }
                 else {
-                    // TODO SAM 2014-05-12 This may have problems with floating point numbers not formatting nicely (e.g., scientific notation)
-                    strings.add ( "" + ts.getProperty(this.property) );
+                    Object o = ts.getProperty(this.property);
+                    if ( o == null ) {
+                        strings.add ( "" );
+                    }
+                    else {
+                        // TODO SAM 2014-05-12 This may have problems with floating point numbers not formatting nicely (e.g., scientific notation)
+                        strings.add ( "" + o );
+                    }
                 }
             }
             int [] sortOrder = new int[size];
