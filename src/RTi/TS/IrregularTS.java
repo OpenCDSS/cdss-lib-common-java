@@ -938,8 +938,9 @@ public double getDataValue( DateTime date )
 
 	int size = __tsDataList.size();
 	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
+	    // Closer to the front of the list
 		for ( i=0; i < size; i++ ) {
-			ptr = __tsDataList.get(i); 
+			ptr = __tsDataList.get(i);
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -947,6 +948,7 @@ public double getDataValue( DateTime date )
 		}
 	}
 	else {
+	    // Closer to the end of the list
 	    for ( i=(size-1); i >= 0; i-- ){
 			ptr = __tsDataList.get(i); 
 			if( ptr.getDate().equals( date ) ){

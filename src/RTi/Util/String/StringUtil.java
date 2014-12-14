@@ -911,8 +911,6 @@ public static final List fixedRead ( String string, String format )
 	// ...END OF INLINED CODE
 	// Now do the read...	
 	List v = fixedRead ( string, field_types, field_widths, null );
-	field_types = null;
-	field_widths = null;
 	return v;
 }
 
@@ -1112,6 +1110,65 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 	}
 	var = null;
 	return tokens;
+}
+
+// TODO SAM 2014-03-30 Refactor the fixedRead methods to call the following method
+/**
+Parse the format string for fixedRead into lists that can be used for other fixedRead commands.
+The field types and widths WILL INCLUDE "x" formats becuase fixedRead() needs that information.
+@param format the fixedRead method format (e.g., "d10f8i3x3s15")
+@param fieldTypes a non-null List<Integer> that will be set to the field types for each format part.
+@param fieldWidths a non-null List<Integer> that will be set to the field widths for each format part.
+*/
+public static void fixedReadParseFormat ( String format, List<Integer> fieldTypes, List<Integer> fieldWidths )
+{
+    // Now set the array sizes for formats...
+    StringBuffer width_string = new StringBuffer();
+    char cformat;
+    for ( int iformat = 0; iformat < format.length(); iformat++ ) {
+        width_string.setLength ( 0 );
+        // Get a format character...
+        cformat = format.charAt ( iformat );
+        //System.out.println ( "Format character is: " + cformat );
+        if ( (cformat == 'c') || (cformat == 'C') ) {
+            fieldTypes.add(TYPE_CHARACTER);
+            fieldWidths.add(1);
+            continue;
+        }
+        else if ( (cformat == 'd') || (cformat == 'D') ) {
+            fieldTypes.add(TYPE_DOUBLE);
+        }
+        else if ( (cformat == 'f') || (cformat == 'F') ) {
+            fieldTypes.add(TYPE_FLOAT);
+        }
+        else if ( (cformat == 'i') || (cformat == 'I') ) {
+            fieldTypes.add(TYPE_INTEGER);
+        }
+        else if ( (cformat == 'a') || (cformat == 'A') ||
+            (cformat == 's') || (cformat == 'S') ) {
+            fieldTypes.add(TYPE_STRING);
+        }
+        else if ( (cformat == 'x') || (cformat == 'X') ) {
+            fieldTypes.add(TYPE_SPACE);
+        }
+        else {
+            // Problem!!!
+            continue;
+        }
+        // Determine the field width...
+        ++iformat;
+        while ( iformat < format.length() ) {
+            cformat = format.charAt ( iformat );
+            if ( !Character.isDigit(cformat) ) {
+                // Went into the next field...
+                --iformat;
+                break;
+            }
+            width_string.append ( cformat );
+            ++iformat;
+        }
+        fieldWidths.add(atoi ( width_string.toString()) );
+    }
 }
 
 /**

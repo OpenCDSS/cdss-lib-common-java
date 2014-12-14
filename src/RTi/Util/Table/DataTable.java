@@ -1548,12 +1548,13 @@ Join one table to another by matching column column values.
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter to limit rows that are processed
 @param joinMethod the method used to join the tables
+@param problems list of problems that will be filled during processing
 @return the number of rows appended
 */
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
-    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod )
+    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
+    List<String> problems )
 {   String routine = getClass().getName() + ".joinTable", message;
-    List<String> problems = new ArrayList<String>();
     if ( reqIncludeColumns == null ) {
         reqIncludeColumns = new String[0];
     }
@@ -1683,10 +1684,10 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             // Already exists so skip because don't want table2 values to overwrite table1 values
             message = "Include column \"" + table1AppendColumnNames[icol] +
                 "\" already exists in original table.  Not adding new column.";
-            problems.add ( message );
-            Message.printWarning(3,routine,message);
-            table1AppendColumnNumbers[icol] = -1;
-            table1AppendColumnTypes[icol] = -1;
+            Message.printStatus(2,routine,message);
+            // TODO SAM 2014-04-15 Actually, do want join to overwrite - allows subset of table to be processed
+            //table1AppendColumnNumbers[icol] = -1;
+            table1AppendColumnTypes[icol] = table.getFieldDataType(table1AppendColumnNumbers[icol]);
         }
         else {
             // Does not exist in first table so create column with the same properties as the original
@@ -1967,7 +1968,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
     if ( problems.size() > 0 ) {
-        throw new RuntimeException ( "There were " + problems.size() + " errors joning table \"" + tableToJoin.getTableID() + "\" to \"" +
+        throw new RuntimeException ( "There were " + problems.size() + " errors joining table \"" + tableToJoin.getTableID() + "\" to \"" +
             table.getTableID() + "\"" );
     }
     return nrowsJoined;

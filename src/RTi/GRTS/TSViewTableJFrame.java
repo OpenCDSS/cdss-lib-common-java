@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -135,7 +136,11 @@ Checkboxes corresponding to each TS data interval for turning on and off the tab
 private JCheckBox 
 	__dayJCheckBox,
 	__hourJCheckBox,
-	__irregularJCheckBox,
+	__irregularMinuteJCheckBox,
+	__irregularHourJCheckBox,
+	__irregularDayJCheckBox,
+	__irregularMonthJCheckBox,
+	__irregularYearJCheckBox,
 	__minuteJCheckBox,
 	__monthJCheckBox,
 	__yearJCheckBox;
@@ -151,7 +156,11 @@ JPanels for holding JCheckBoxes and JWorksheets for each TS data interval.
 private JPanel
 	__dayJPanel,
 	__hourJPanel,
-	__irregularJPanel,
+	__irregularMinuteJPanel,
+	__irregularHourJPanel,
+	__irregularDayJPanel,
+	__irregularMonthJPanel,
+	__irregularYearJPanel,
 	__minuteJPanel,
 	__monthJPanel,
 	__yearJPanel;
@@ -165,7 +174,12 @@ private JScrollPane[]
 	__hourScrollPanes,
 	__minuteScrollPanes,
 	__monthScrollPanes,
-	__yearScrollPanes;
+	__yearScrollPanes,
+	__irregularMinuteScrollPanes,
+	__irregularHourScrollPanes,
+	__irregularDayScrollPanes,
+	__irregularMonthScrollPanes,
+	__irregularYearScrollPanes;
 
 /**
 The scroll pane of the last worksheet that was clicked on and selected.
@@ -185,7 +199,12 @@ private JWorksheet[]
 	__hourWorksheets,
 	__minuteWorksheets,
 	__monthWorksheets,
-	__yearWorksheets;
+	__yearWorksheets,
+	__irregularMinuteWorksheets,
+	__irregularHourWorksheets,
+	__irregularDayWorksheets,
+	__irregularMonthWorksheets,
+	__irregularYearWorksheets;
 
 /**
 The last worksheet that was clicked on and selected.
@@ -221,7 +240,12 @@ private TSViewTable_TableModel[]
 	__hourModels = new TSViewTable_TableModel[0],
 	__minuteModels = new TSViewTable_TableModel[0],
 	__monthModels = new TSViewTable_TableModel[0],
-	__yearModels = new TSViewTable_TableModel[0];
+	__yearModels = new TSViewTable_TableModel[0],
+	__irregularMinuteModels = new TSViewTable_TableModel[0],
+	__irregularHourModels = new TSViewTable_TableModel[0],
+	__irregularDayModels = new TSViewTable_TableModel[0],
+	__irregularMonthModels = new TSViewTable_TableModel[0],
+	__irregularYearModels = new TSViewTable_TableModel[0];
 
 /**
 Lists of the mouse listeners that have been set up for all of the different
@@ -233,7 +257,12 @@ private List<MouseListener>[]
 	__hourMouseListeners,
 	__minuteMouseListeners,
 	__monthMouseListeners,
-	__yearMouseListeners;
+	__yearMouseListeners,
+	__irregularMinuteMouseListeners,
+	__irregularHourMouseListeners,
+	__irregularDayMouseListeners,
+	__irregularMonthMouseListeners,
+	__irregularYearMouseListeners;
 
 /**
 List of Time Series to be displayed in the GUI.  __tslist is set from a 
@@ -244,7 +273,11 @@ private List<TS> __day;
 private List<TS> __hour;
 private List<TS> __minute;
 private List<TS> __month;
-private List<TS> __irregular;
+private List<TS> __irregularMinute;
+private List<TS> __irregularHour;
+private List<TS> __irregularDay;
+private List<TS> __irregularMonth;
+private List<TS> __irregularYear;
 private List<TS> __tslist;
 private List<TS> __year;
 
@@ -321,21 +354,25 @@ public void actionPerformed(ActionEvent event) {
 
 /**
 Adds worksheets of the same interval base to their panel and also adds 
-the appropriate check box, as long as more than one kid of interval base 
-will be displayed on the GUI.
+the appropriate check box, as long as more than one kid of interval base will be displayed on the GUI.
 @param panel the main panel to which to add the panels (__mainJPanel).
 @param subPanel the panel to which to add the checkbox and worksheets.
-@param intervalDescription a text string that concisely names the kind of 
-interval being dealt with
+@param intervalDescription a text string that concisely names the kind of interval being dealt with
 @param checkBox the check box to (possibly) add to the panel.
 @param worksheets the worksheets to add to the panel.
 @param scrollpanes the scrollpanes for each worksheet
-@param mouseListeners a Vector array used to store mouse listeners for the
+@param mouseListeners an array of lists used to store mouse listeners for the
 worksheets' scrollpanes so that the last selected worksheet can be tracked.
 */
 private void addWorksheetsToPanel(JPanel panel, String intervalDescription, 
 JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets, 
-JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners) {
+JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
+{
+    if ( Message.isDebugOn ) {
+        Message.printDebug(1,"addWordsheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
+            " subPanel=" + subPanel + " checkBox=" + checkBox + " worksheets=" + worksheets + " headers=" + headers +
+            " scrollPanes=" + scrollPanes + " mouseListeners=" + mouseListeners );
+    }
 	if (worksheets == null || worksheets.length == 0) {
 		// There are no worksheets for the current interval type.
 		checkBox.setSelected(false);
@@ -373,7 +410,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners) {
 
 		worksheets[i].addHeaderMouseListener(this);
 
-		List v = new Vector();
+		List v = new ArrayList();
 		v.add(scrollPanes[i]);
 
 		scrollPanes[i].addMouseListener(worksheets[i]);
@@ -447,9 +484,21 @@ private int calculateNumberOfPanels() {
 	if (__yearWorksheets != null && __yearWorksheets.length > 0) {
 		size++;
 	}
-	if (__irregular != null && __irregular.size() > 0) {
+	if (__irregularMinute != null && __irregularMinuteWorksheets.length > 0) {
 		size++;
 	}
+    if (__irregularHour != null && __irregularHourWorksheets.length > 0) {
+        size++;
+    }
+    if (__irregularDay != null && __irregularDayWorksheets.length > 0) {
+        size++;
+    }
+    if (__irregularMonth != null && __irregularMonthWorksheets.length > 0) {
+        size++;
+    }
+    if (__irregularYear != null && __irregularYearWorksheets.length > 0) {
+        size++;
+    }
 	return size;
 }
 
@@ -462,12 +511,17 @@ that can tell exactly how many worksheets are in each panel.
 [2] - the number of worksheets in the day panel<br>
 [3] - the number of worksheets in the month panel<br>
 [4] - the number of worksheets in the year panel<br>
-[5] - the total number of worksheets visible<br>
-[6] - the total number of panels with visible worksheets
+[5] - the number of worksheets in the irregular minute panel<br>
+[6] - the number of worksheets in the irregular hour panel<br>
+[7] - the number of worksheets in the irregular day panel<br>
+[8] - the number of worksheets in the irregular month panel<br>
+[9] - the number of worksheets in the irregular year panel<br>
+[10] - the total number of worksheets visible<br>
+[11] - the total number of panels with visible worksheets
 */
 private int[] calculateVisibleWorksheetsByPanel() {
-	int[] array = new int[7];
-
+	int[] array = new int[12];
+	// Regular interval
 	if (__minuteWorksheets == null || !__minuteJCheckBox.isSelected()) {
 		array[0] = 0;
 	}
@@ -498,32 +552,79 @@ private int[] calculateVisibleWorksheetsByPanel() {
 	else {
 		array[4] = __yearWorksheets.length;
 	}
+	// Irregular
+    if (__irregularMinuteWorksheets == null || !__irregularMinuteJCheckBox.isSelected()) {
+        array[5] = 0;
+    }
+    else {
+        array[5] = __irregularMinuteWorksheets.length;
+    }
+    if (__irregularHourWorksheets == null || !__irregularHourJCheckBox.isSelected()) {
+        array[6] = 0;
+    }
+    else {
+        array[6] = __irregularHourWorksheets.length;
+    }
+    if (__irregularDayWorksheets == null || !__irregularDayJCheckBox.isSelected()) {
+        array[7] = 0;
+    }
+    else {
+        array[7] = __irregularDayWorksheets.length;
+    }
+    if (__irregularMonthWorksheets == null || !__irregularMonthJCheckBox.isSelected()) {
+        array[8] = 0;
+    }
+    else {
+        array[8] = __irregularMonthWorksheets.length;
+    }
+    if (__irregularYearWorksheets == null || !__irregularYearJCheckBox.isSelected()) {
+        array[9] = 0;
+    }
+    else {
+        array[9] = __irregularYearWorksheets.length;
+    }
 
-	array[5] = array[4] + array[3] + array[2] + array[1] + array[0];
+	array[10] = array[9] + array[8] + array[7] + array[6] + array[5] +
+	    array[4] + array[3] + array[2] + array[1] + array[0];
 
-	array[6] = 0;
+	array[11] = 0;
 	if (array[0] > 0) {
-		array[6]++;
+		array[11]++;
 	}
 	if (array[1] > 0) {
-		array[6]++;
+		array[11]++;
 	}
 	if (array[2] > 0) {
-		array[6]++;
+		array[11]++;
 	}
 	if (array[3] > 0) {
-		array[6]++;
+		array[11]++;
 	}
 	if (array[4] > 0) {
-		array[6]++;
+		array[11]++;
 	}
+    if (array[5] > 0) {
+        array[11]++;
+    }
+    if (array[6] > 0) {
+        array[11]++;
+    }
+    if (array[7] > 0) {
+        array[11]++;
+    }
+    if (array[8] > 0) {
+        array[11]++;
+    }
+    if (array[9] > 0) {
+        array[11]++;
+    }
 
 	return array;
 }
 
 /**
 Checks to see if only a single worksheet is displayed in the GUI.  If so, it
-is selected the save button is set to always be enabled.
+is selected and the save button is set to always be enabled.
 */
 private void checkForSingleWorksheet() {
 	JWorksheet worksheet = null;
@@ -560,6 +661,36 @@ private void checkForSingleWorksheet() {
 			worksheet = __yearWorksheets[i];
 		}
 	}
+    if (__irregularMinuteWorksheets != null) {
+        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
+            count++;
+            worksheet = __irregularMinuteWorksheets[i];
+        }
+    }
+    if (__irregularHourWorksheets != null) {
+        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
+            count++;
+            worksheet = __irregularHourWorksheets[i];
+        }
+    }
+    if (__irregularDayWorksheets != null) {
+        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
+            count++;
+            worksheet = __irregularDayWorksheets[i];
+        }
+    }
+    if (__irregularMonthWorksheets != null) {
+        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
+            count++;
+            worksheet = __irregularMonthWorksheets[i];
+        }
+    }
+    if (__irregularYearWorksheets != null) {
+        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
+            count++;
+            worksheet = __irregularYearWorksheets[i];
+        }
+    }
 
 	if (count != 1) {
 		return;
@@ -571,20 +702,25 @@ private void checkForSingleWorksheet() {
 }
 
 /**
-Takes the Time Series from the __tslist Vector and puts each one into a Vector
+Takes the Time Series from the __tslist list and puts each one into a list
 specific to its data interval (e.g., Day time series go into __day, 
 minute time series go into __minute, etc).  Different multipliers are all 
-lumped together, as long as they have the same data interval.
+lumped together, as long as they have the same data interval.  Irregular time series
+are split out by the interval of the starting date/time.
 */
 private void createSeparateTimeSeries()
 {
 	int interval;
-	__minute = new Vector();
-	__hour = new Vector();
-	__day = new Vector();
-	__month = new Vector();
-	__year = new Vector();
-	__irregular = new Vector();
+	__minute = new ArrayList();
+	__hour = new ArrayList();
+	__day = new ArrayList();
+	__month = new ArrayList();
+	__year = new ArrayList();
+	__irregularMinute = new ArrayList();
+	__irregularHour = new ArrayList();
+	__irregularDay = new ArrayList();
+	__irregularMonth = new ArrayList();
+	__irregularYear = new ArrayList();
 
 	for ( TS ts : __tslist ) {
 		if (ts == null) {
@@ -601,26 +737,50 @@ private void createSeparateTimeSeries()
 		else if (interval == TimeInterval.DAY) {
 			__day.add(ts);
 		}
-		else if (interval == TimeInterval.IRREGULAR) {
-			__irregular.add(ts);
-		}
 		else if (interval == TimeInterval.MONTH) {
 			__month.add(ts);
 		}
 		else if (interval == TimeInterval.YEAR) {
 			__year.add(ts);
-		}		
+		}
+        else if (interval == TimeInterval.IRREGULAR) {
+            // Put in the appropriate list based on the date/time of the period start
+            DateTime d = ts.getDate1();
+            if ( d == null ) {
+                d = ts.getDate1Original();
+            }
+            if ( d != null ) {
+                int precision = d.getPrecision();
+                if ( precision == DateTime.PRECISION_MINUTE ) {
+                    __irregularMinute.add(ts);
+                }
+                else if ( precision == DateTime.PRECISION_HOUR ) {
+                    __irregularHour.add(ts);
+                }
+                else if ( precision == DateTime.PRECISION_DAY ) {
+                    __irregularDay.add(ts);
+                }
+                else if ( precision == DateTime.PRECISION_MONTH ) {
+                    __irregularMonth.add(ts);
+                }
+                else if ( precision == DateTime.PRECISION_YEAR ) {
+                    __irregularYear.add(ts);
+                }
+            }
+        }
 	}	
 }
 
 /**
-Create the table models with the same interval base for all of the worksheets 
-for the given list of time series.
+Create the table models with the same interval base for all of the worksheets for the given list of time series.
+The time series will have the same base interval but if regular may have different interval multiplers.
+If irregular, the time series will have been grouped by the precision of the period date.
 @param tslist list of time series for which to create table models.
 @return an array of TSViewTable_TableModel object, one for each worksheet
 that needs to be created, or a zero-element array if no worksheets need be created for the ts type.
 */
-private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
+private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
+{
 	String routine = "createTableModels";
 
 	// If there is no data in the ts vector, there is no need to create the table models
@@ -653,9 +813,6 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	else if (interval == TimeInterval.DAY) {
 		dateFormat = DateTime.FORMAT_YYYY_MM_DD;
 	}
-	else if (interval == TimeInterval.IRREGULAR) {
-		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	}
 	else if (interval == TimeInterval.MONTH) {
 		dateFormat = DateTime.FORMAT_YYYY_MM;
 	}
@@ -665,6 +822,30 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	else if (interval == TimeInterval.MINUTE) {
 		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
 	}
+    else if (interval == TimeInterval.IRREGULAR) {
+        DateTime d = ts.getDate1();
+        if ( d == null ) {
+            d = ts.getDate1Original();
+        }
+        if ( d != null ) {
+            int precision = d.getPrecision();
+            if ( precision == DateTime.PRECISION_MINUTE ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
+            }
+            else if ( precision == DateTime.PRECISION_HOUR ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
+            }
+            else if ( precision == DateTime.PRECISION_DAY ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD;
+            }
+            else if ( precision == DateTime.PRECISION_MONTH ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM;
+            }
+            else if ( precision == DateTime.PRECISION_YEAR ) {
+                dateFormat = DateTime.FORMAT_YYYY;
+            }
+        }
+    }
 
 	try {
 	int tsPrecision = 2;	// default.
@@ -672,35 +853,40 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	String propValue = __props.getValue("OutputPrecision");
 	int multi = 0;
 
-	// Go through the time series and see how many of them have different
-	// intervals.  All of the TS with the same intervals need to be
-	// placed in the same worksheet.
+	// Go through the time series and see how many of them have different intervals.
+	// All of the TS with the same intervals need to be placed in the same worksheet.
 	for (int i = 0; i < numts; i++) {
 		ts = tslist.get(i);
 
-		// Get the interval multiplier for the current TS
-		multi = ts.getDataIntervalMult();
-		hit = false;
-
-		// Look through the array of previously-found interval
-		// multipliers (mults[]) and see if the multiplier has already been encountered.
-		for (int j = 0; j < count; j++) {
-			if (mults[j] == multi) {
-				// If true;
-				matches[i] = j;
-				hit = true;
-				break;
-			}
-		}
-
-		// If the interval multiplier was not found, add it to the
-		// list of found multipliers and increment the count of
-		// different interval multipliers that have been found
-		if (!hit) {
-			mults[count] = multi;
-			matches[i] = count;
-			count++;
-		}
+	    if ( interval == TimeInterval.IRREGULAR ) {
+	        count = 1; // Only one table model needed because only interval base (from TS dates for irregular) is of concern
+	    }
+	    else {
+	        // Regular interval time series
+    		// Get the interval multiplier for the current TS
+    		multi = ts.getDataIntervalMult();
+    		hit = false;
+    
+    		// Look through the array of previously-found interval
+    		// multipliers (mults[]) and see if the multiplier has already been encountered.
+    		for (int j = 0; j < count; j++) {
+    			if (mults[j] == multi) {
+    				// If true;
+    				matches[i] = j;
+    				hit = true;
+    				break;
+    			}
+    		}
+    
+    		// If the interval multiplier was not found, add it to the
+    		// list of found multipliers and increment the count of
+    		// different interval multipliers that have been found
+    		if (!hit) {
+    			mults[count] = multi;
+    			matches[i] = count;
+    			count++;
+    		}
+	    }
 
 		// Calculate the output precision of the current TS's data
 		tsPrecision = 2;
@@ -735,42 +921,62 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 
 	// Loop through all of the different interval multipliers
 	for (int i = 0; i < count; i++) {
-		List<TS> data = new Vector();
-
-		// Add all the time series with the same interval multiplier to the list
-		for (int j = 0; j < numts; j++) {
-			if (matches[j] == i) {
-				data.add(tslist.get(j));
-			}
+		List<TS> tslistForIntervalMult = new ArrayList();
+		if ( interval == TimeInterval.IRREGULAR ) {
+		    for (int j = 0; j < numts; j++) {
+		        tslistForIntervalMult.add(tslist.get(j));
+		    }
+		}
+		else {
+    		// Add all the time series with the same interval multiplier to the list
+    		for (int j = 0; j < numts; j++) {
+    			if (matches[j] == i) {
+    				tslistForIntervalMult.add(tslist.get(j));
+    			}
+    		}
 		}
 
 		// Get all the format precision strings for the TS that were found in the previous loop 
-		String[] formats = new String[data.size()];		
+		String[] formats = new String[tslistForIntervalMult.size()];		
 		int formatCount = 0;
 		for (int j = 0; j < numts; j++) {
-			if (matches[j] == i) {
-				formats[formatCount++] = tsFormatString[j];
-			}
+		    if ( interval == TimeInterval.IRREGULAR ) {
+		        formats[formatCount++] = tsFormatString[j];
+		    }
+		    else {
+    			if (matches[j] == i) {
+    				formats[formatCount++] = tsFormatString[j];
+    			}
+		    }
 		}		
 
 		// Now get the starting date of data ...
-		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
+		TSLimits limits = TSUtil.getPeriodFromTS(tslistForIntervalMult, TSUtil.MAX_POR);
 		DateTime start = limits.getDate1();	
 
 		// ... and the interval multiplier ...
-		if (data == null || data.size() == 0) {
-			// (in this case, use a representative TS)
-			tempTS = tslist.get(i);
-			multi = tempTS.getDataIntervalMult();		
-		}
-		else {
-			tempTS = data.get(0);
-			multi = tempTS.getDataIntervalMult();
-		}
-
-		// ... and create the table model to display all the time 
-		// series with the same interval base and interval multiplier
-		models[i] = new TSViewTable_TableModel(data, start, interval, multi, dateFormat, formats, useExtendedLegend);
+        if ( interval == TimeInterval.IRREGULAR ) {
+            // In this case multi is the precision
+            int datePrecision = ts.getDate1().getPrecision();
+            models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat,
+                formats, useExtendedLegend);
+        }
+        else {
+            // Regular interval
+    		if (tslistForIntervalMult == null || tslistForIntervalMult.size() == 0) {
+    			// (in this case, use a representative TS)
+    			tempTS = tslist.get(i);
+    			multi = tempTS.getDataIntervalMult();		
+    		}
+    		else {
+    			tempTS = tslistForIntervalMult.get(0);
+    			multi = tempTS.getDataIntervalMult();
+    		}
+    		// ... and create the table model to display all the time 
+            // series with the same interval base and interval multiplier
+            models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat,
+                formats, useExtendedLegend);
+        }
 	}	
 
 	return models;
@@ -817,14 +1023,12 @@ protected void finalize()
 throws Throwable {
 	__dayJCheckBox = null;
 	__hourJCheckBox = null;
-	__irregularJCheckBox = null;
 	__minuteJCheckBox = null;
 	__monthJCheckBox = null;
 	__yearJCheckBox = null;
 	__mainJPanel = null;
 	__dayJPanel = null;
 	__hourJPanel = null;
-	__irregularJPanel = null;
 	__minuteJPanel = null;
 	__monthJPanel = null;
 	__yearJPanel = null;
@@ -861,7 +1065,6 @@ throws Throwable {
 	__hour = null;
 	__minute = null;
 	__month = null;
-	__irregular = null;
 	__tslist = null;
 	__year = null;
 	super.finalize();
@@ -911,7 +1114,36 @@ private JWorksheet findClickedOnJWorksheet(MouseEvent e) {
 				return worksheet;
 			}
 		}
-
+        if (__irregularMinuteWorksheets != null) {
+            JWorksheet worksheet = searchListeners(__irregularMinuteWorksheets, __irregularMinuteMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
+        if (__irregularHourWorksheets != null) {
+            JWorksheet worksheet = searchListeners(__irregularHourWorksheets, __irregularHourMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
+        if (__irregularDayWorksheets != null) {
+            JWorksheet worksheet = searchListeners(__irregularDayWorksheets, __irregularDayMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
+        if (__irregularMonthWorksheets != null) {
+            JWorksheet worksheet = searchListeners(__irregularMonthWorksheets, __irregularMonthMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
+        if (__irregularYearWorksheets != null) {
+            JWorksheet worksheet = searchListeners(__irregularYearWorksheets, __irregularYearMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
 	}
 	return null;
 }
@@ -960,6 +1192,41 @@ public JPanel findWorksheetsJPanel(JWorksheet worksheet) {
 			}
 		}
 	}
+    if (__irregularMinuteWorksheets != null) {
+        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
+            if (__irregularMinuteWorksheets[i] == worksheet) {
+                return __irregularMinuteJPanel;
+            }
+        }
+    }
+    if (__irregularHourWorksheets != null) {
+        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
+            if (__irregularHourWorksheets[i] == worksheet) {
+                return __irregularHourJPanel;
+            }
+        }
+    }
+    if (__irregularDayWorksheets != null) {
+        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
+            if (__irregularDayWorksheets[i] == worksheet) {
+                return __irregularDayJPanel;
+            }
+        }
+    }
+    if (__irregularMonthWorksheets != null) {
+        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
+            if (__irregularMonthWorksheets[i] == worksheet) {
+                return __irregularMonthJPanel;
+            }
+        }
+    }
+    if (__irregularYearWorksheets != null) {
+        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
+            if (__irregularYearWorksheets[i] == worksheet) {
+                return __irregularYearJPanel;
+            }
+        }
+    }
 	return null;	
 }
 
@@ -1007,6 +1274,41 @@ public JScrollPane findWorksheetsScrollPane(JWorksheet worksheet) {
 			}
 		}
 	}
+    if (__irregularMinuteWorksheets != null) {
+        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
+            if (__irregularMinuteWorksheets[i] == worksheet) {
+                return __irregularMinuteScrollPanes[i];
+            }
+        }
+    }
+    if (__irregularHourWorksheets != null) {
+        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
+            if (__irregularHourWorksheets[i] == worksheet) {
+                return __irregularHourScrollPanes[i];
+            }
+        }
+    }
+    if (__irregularDayWorksheets != null) {
+        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
+            if (__irregularDayWorksheets[i] == worksheet) {
+                return __irregularDayScrollPanes[i];
+            }
+        }
+    }
+    if (__irregularMonthWorksheets != null) {
+        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
+            if (__irregularMonthWorksheets[i] == worksheet) {
+                return __irregularMonthScrollPanes[i];
+            }
+        }
+    }
+    if (__irregularYearWorksheets != null) {
+        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
+            if (__irregularYearWorksheets[i] == worksheet) {
+                return __irregularYearScrollPanes[i];
+            }
+        }
+    }
 	return null;	
 }
 
@@ -1043,6 +1345,26 @@ public void itemStateChanged(ItemEvent evt) {
                 __yearModels[i].setDataFlagVisualizationType(vizType);
                 __yearModels[i].fireTableDataChanged();
             }
+            for ( int i = 0; i < __irregularMinuteModels.length; i++ ) {
+                __irregularMinuteModels[i].setDataFlagVisualizationType(vizType);
+                __irregularMinuteModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __irregularHourModels.length; i++ ) {
+                __irregularHourModels[i].setDataFlagVisualizationType(vizType);
+                __irregularHourModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __irregularDayModels.length; i++ ) {
+                __irregularDayModels[i].setDataFlagVisualizationType(vizType);
+                __irregularDayModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __irregularMonthModels.length; i++ ) {
+                __irregularMonthModels[i].setDataFlagVisualizationType(vizType);
+                __irregularMonthModels[i].fireTableDataChanged();
+            }
+            for ( int i = 0; i < __irregularYearModels.length; i++ ) {
+                __irregularYearModels[i].setDataFlagVisualizationType(vizType);
+                __irregularYearModels[i].fireTableDataChanged();
+            }
         }
         return;
     }
@@ -1064,15 +1386,27 @@ public void itemStateChanged(ItemEvent evt) {
 	else if (source == __dayJCheckBox) {
 		__dayJPanel.setVisible(visible);
 	}
-	else if (source == __irregularJCheckBox) {
-		__irregularJPanel.setVisible(visible);
-	}
 	else if (source == __monthJCheckBox) {
 		__monthJPanel.setVisible(visible);
 	}
 	else if (source == __yearJCheckBox) {
 		__yearJPanel.setVisible(visible);
 	}
+    else if (source == __irregularMinuteJCheckBox) {
+        __irregularMinuteJPanel.setVisible(visible);
+    }
+    else if (source == __irregularHourJCheckBox) {
+        __irregularHourJPanel.setVisible(visible);
+    }
+    else if (source == __irregularDayJCheckBox) {
+        __irregularDayJPanel.setVisible(visible);
+    }
+    else if (source == __irregularMonthJCheckBox) {
+        __irregularMonthJPanel.setVisible(visible);
+    }
+    else if (source == __irregularYearJCheckBox) {
+        __irregularYearJPanel.setVisible(visible);
+    }
 
 	JPanel panel = findWorksheetsJPanel(__lastSelectedWorksheet);
 	if (panel != null && !panel.isVisible()) {
@@ -1096,7 +1430,7 @@ public void itemStateChanged(ItemEvent evt) {
 
 	int[] arr = calculateVisibleWorksheetsByPanel();
 
-	if (arr[6] == 0) {		
+	if (arr[11] == 0) {		
 		__mainJPanelNorth = true;
 		getContentPane().remove(__mainJPanel);
 		getContentPane().add(__mainJPanel, "North");
@@ -1109,7 +1443,7 @@ public void itemStateChanged(ItemEvent evt) {
 		}
 	}
 
-	if (arr[5] == 1) {
+	if (arr[10] == 1) {
 		if (__lastSelectedScrollPane != null) {
 			// reset the border to its original state
 			__lastSelectedScrollPane.setBorder((new JScrollPane()).getBorder());
@@ -1117,11 +1451,11 @@ public void itemStateChanged(ItemEvent evt) {
 
 		setPanelsBorder(false);
 	}	
-	else if (arr[6] > 1 && panel != null && panel.isVisible()) {
+	else if (arr[11] > 1 && panel != null && panel.isVisible()) {
 		__lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 		setPanelsBorder(true);
 	}
-	else if (arr[6] > 1) {
+	else if (arr[11] > 1) {
 		setPanelsBorder(true);
 	}
 }
@@ -1279,7 +1613,7 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 	// Back up the scroll pane's current border ...
 	__originalScrollPaneBorder = __lastSelectedScrollPane.getBorder();
 	// ... and change the scroll pane's border to represent that its worksheet is selected.
-	if (arr[5] > 1) {
+	if (arr[10] > 1) {
 		__lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 	}
 
@@ -1301,17 +1635,28 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 		case TimeInterval.YEAR:
 		    base = "Year";
 		    break;
+        case TimeInterval.IRREGULAR:
+            base = "Irregular";
+            break;
 		default:
 		    base = "???";
 		    break;
 	}
 
-	String s = "";
-	if (model.getIntervalMult() == 1) {
-		s = "" + base;
+    String s = "";
+	if ( model.getIntervalBase() == TimeInterval.IRREGULAR ) {
+	    // Returns all uppercase so change to be consistent with displays
+	    String prec = TimeInterval.getName(model.getIrregularDateTimePrecision());
+	    prec = prec.charAt(0) + prec.substring(1).toLowerCase();
+	    s = base + " (" + prec + ")";
 	}
 	else {
-		s = "" + model.getIntervalMult() + base;
+    	if (model.getIntervalMult() == 1) {
+    		s = base;
+    	}
+    	else {
+    		s = "" + model.getIntervalMult() + base;
+    	}
 	}
 	
 	__messageJTextField.setText("Currently-selected worksheet interval: " + s);
@@ -1366,17 +1711,25 @@ public void setPanelsBorder(boolean on) {
 		__minuteJPanel.setBorder(BorderFactory.createTitledBorder("Minute Interval"));
 		__hourJPanel.setBorder(BorderFactory.createTitledBorder("Hour Interval"));
 		__dayJPanel.setBorder(BorderFactory.createTitledBorder("Day Interval"));
-		__irregularJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval"));
 		__monthJPanel.setBorder(BorderFactory.createTitledBorder("Month Interval"));
 		__yearJPanel.setBorder(BorderFactory.createTitledBorder("Year Interval"));
+		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Minute)"));
+		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Hour)"));
+		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Day)"));
+		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Month)"));
+		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Year)"));
 	}
 	else {
 		__minuteJPanel.setBorder(null);
 		__hourJPanel.setBorder(null);
 		__dayJPanel.setBorder(null);
-		__irregularJPanel.setBorder(null);
 		__monthJPanel.setBorder(null);
 		__yearJPanel.setBorder(null);
+	    __irregularMinuteJPanel.setBorder(null);
+	    __irregularHourJPanel.setBorder(null);
+	    __irregularDayJPanel.setBorder(null);
+	    __irregularMonthJPanel.setBorder(null);
+	    __irregularYearJPanel.setBorder(null);
 	}
 }
 
@@ -1410,12 +1763,20 @@ private void setupGUI(boolean mode) {
 	__hourJCheckBox.addItemListener(this);
 	__dayJCheckBox = new JCheckBox("Day Time Series", true);
 	__dayJCheckBox.addItemListener(this);
-	__irregularJCheckBox = new JCheckBox("Irregular Time Series", true);
-	__irregularJCheckBox.addItemListener(this);
 	__monthJCheckBox = new JCheckBox("Month Time Series", true);
 	__monthJCheckBox.addItemListener(this);
 	__yearJCheckBox = new JCheckBox("Year Time Series", true);
 	__yearJCheckBox.addItemListener(this);
+    __irregularMinuteJCheckBox = new JCheckBox("Irregular Time Series (Minute)", true);
+    __irregularMinuteJCheckBox.addItemListener(this);
+    __irregularHourJCheckBox = new JCheckBox("Irregular Time Series (Hour)", true);
+    __irregularHourJCheckBox.addItemListener(this);
+    __irregularDayJCheckBox = new JCheckBox("Irregular Time Series (Day)", true);
+    __irregularDayJCheckBox.addItemListener(this);
+    __irregularMonthJCheckBox = new JCheckBox("Irregular Time Series (Month)", true);
+    __irregularMonthJCheckBox.addItemListener(this);
+    __irregularYearJCheckBox = new JCheckBox("Irregular Time Series (Year)", true);
+    __irregularYearJCheckBox.addItemListener(this);
 
 	// Create the proplist for the JWorksheets
 	PropList p = new PropList("TSViewTableJFrame.JWorksheet");
@@ -1432,7 +1793,7 @@ private void setupGUI(boolean mode) {
 	p2.add("JWorksheet.ShowPopupMenu=true");
 	p2.add("JWorksheet.SelectionMode=ExcelSelection");
 
-	// Separate the __tslist Vector into Vectors of like time series
+	// Separate the __tslist list into lists of like time series (same base interval and irregular 
 	createSeparateTimeSeries();
 
 	// Create all the table models and worksheets
@@ -1456,13 +1817,37 @@ private void setupGUI(boolean mode) {
 	__yearWorksheets = createWorksheets(__yearModels, p);
 	JWorksheet[] yearHeaders = createWorksheets(__yearModels, p2);
 	
+    __irregularMinuteModels = createTableModels(__irregularMinute);
+    __irregularMinuteWorksheets = createWorksheets(__irregularMinuteModels, p);
+    JWorksheet[] irregularMinuteHeaders = createWorksheets(__irregularMinuteModels, p2);
+    
+    __irregularHourModels = createTableModels(__irregularHour);
+    __irregularHourWorksheets = createWorksheets(__irregularHourModels, p);
+    JWorksheet[] irregularHourHeaders = createWorksheets(__irregularHourModels, p2);
+    
+    __irregularDayModels = createTableModels(__irregularDay);
+    __irregularDayWorksheets = createWorksheets(__irregularDayModels, p);
+    JWorksheet[] irregularDayHeaders = createWorksheets(__irregularDayModels, p2);
+    
+    __irregularMonthModels = createTableModels(__irregularMonth);
+    __irregularMonthWorksheets = createWorksheets(__irregularMonthModels, p);
+    JWorksheet[] irregularMonthHeaders = createWorksheets(__irregularMonthModels, p2);
+    
+    __irregularYearModels = createTableModels(__irregularYear);
+    __irregularYearWorksheets = createWorksheets(__irregularYearModels, p);
+    JWorksheet[] irregularYearHeaders = createWorksheets(__irregularYearModels, p2);
+	
 	// Create the panels for the interval bases
 	__minuteJPanel = new JPanel();
 	__hourJPanel = new JPanel();
 	__dayJPanel = new JPanel();
-	__irregularJPanel = new JPanel();
 	__monthJPanel = new JPanel();
 	__yearJPanel = new JPanel();
+	__irregularMinuteJPanel = new JPanel();
+    __irregularHourJPanel = new JPanel();
+    __irregularDayJPanel = new JPanel();
+    __irregularMonthJPanel = new JPanel();
+    __irregularYearJPanel = new JPanel();
 
 	// Create the arrays of scroll panes
 	if (__dayWorksheets.length > 0) {
@@ -1480,6 +1865,21 @@ private void setupGUI(boolean mode) {
 	if (__yearWorksheets.length > 0) {
 		__yearScrollPanes = new JScrollPane[__yearWorksheets.length];
 	}
+    if (__irregularMinuteWorksheets.length > 0) {
+        __irregularMinuteScrollPanes = new JScrollPane[__irregularMinuteWorksheets.length];
+    }
+    if (__irregularHourWorksheets.length > 0) {
+        __irregularHourScrollPanes = new JScrollPane[__irregularHourWorksheets.length];
+    }
+    if (__irregularDayWorksheets.length > 0) {
+        __irregularDayScrollPanes = new JScrollPane[__irregularDayWorksheets.length];
+    }
+    if (__irregularMonthWorksheets.length > 0) {
+        __irregularMonthScrollPanes = new JScrollPane[__irregularMonthWorksheets.length];
+    }
+    if (__irregularYearWorksheets.length > 0) {
+        __irregularYearScrollPanes = new JScrollPane[__irregularYearWorksheets.length];
+    }
 
 	// Add the worksheets to the panels and add the panels to the main panel
 
@@ -1504,16 +1904,18 @@ private void setupGUI(boolean mode) {
 		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets, 
 			yearHeaders, __yearScrollPanes, __yearMouseListeners);
 
-		if (__irregular != null && __irregular.size() > 0) {
-		    __irregularJPanel.setLayout(new GridBagLayout());
-		    JGUIUtil.addComponent(__irregularJPanel,
+		/*
+		if (__irregularMinute != null && __irregularMinute.size() > 0) {
+		    __irregularMinuteJPanel.setLayout(new GridBagLayout());
+		    JGUIUtil.addComponent(__irregularMinuteJPanel,
     			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
     			0, 0, 1, 1, 1, 1, 
     			GridBagConstraints.NONE, GridBagConstraints.WEST);
-	      	JGUIUtil.addComponent(__mainJPanel, __irregularJPanel,
+	      	JGUIUtil.addComponent(__mainJPanel, __irregularMinuteJPanel,
     			0, __panelCount++, 1, 1, 1, 1, 
     			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
 		}
+		*/
 	}
 	else {
 		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
@@ -1536,6 +1938,7 @@ private void setupGUI(boolean mode) {
 		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets, 
 			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);		
 
+		/*
 		if (__irregular != null && __irregular.size() > 0) {
 		    __irregularJPanel.setLayout(new GridBagLayout());
 		    JGUIUtil.addComponent(__irregularJPanel,
@@ -1546,7 +1949,34 @@ private void setupGUI(boolean mode) {
     			0, __panelCount++, 1, 1, 1, 1, 
     			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 		}
+		*/
 	}
+	
+	// Irregular is always last
+    __irregularMinuteMouseListeners = buildMouseListeners(__irregularMinuteWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular (Minute)", __irregularMinuteJPanel, __irregularMinuteJCheckBox,
+        __irregularMinuteWorksheets, irregularMinuteHeaders, __irregularMinuteScrollPanes,
+        __irregularMinuteMouseListeners);
+
+    __irregularHourMouseListeners = buildMouseListeners(__irregularHourWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular (Hour)", __irregularHourJPanel, __irregularHourJCheckBox,
+        __irregularHourWorksheets, irregularHourHeaders, __irregularHourScrollPanes,
+        __irregularHourMouseListeners);
+
+    __irregularDayMouseListeners = buildMouseListeners(__irregularDayWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular (Day)", __irregularDayJPanel, __irregularDayJCheckBox,
+        __irregularDayWorksheets, irregularDayHeaders, __irregularDayScrollPanes,
+        __irregularDayMouseListeners);
+
+    __irregularMonthMouseListeners = buildMouseListeners(__irregularMonthWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular (Month)", __irregularMonthJPanel, __irregularMonthJCheckBox,
+        __irregularMonthWorksheets, irregularMonthHeaders, __irregularMonthScrollPanes,
+        __irregularMonthMouseListeners);
+
+    __irregularYearMouseListeners = buildMouseListeners(__irregularYearWorksheets);
+    addWorksheetsToPanel(__mainJPanel, "Irregular (Year)", __irregularYearJPanel, __irregularYearJCheckBox,
+        __irregularYearWorksheets, irregularYearHeaders, __irregularYearScrollPanes,
+        __irregularYearMouseListeners);
 
 	JPanel bottomJPanel = new JPanel();
 	bottomJPanel.setLayout (gbl);
@@ -1604,7 +2034,7 @@ private void setupGUI(boolean mode) {
 	button_JPanel.add(__saveJButton);
 //	button_JPanel.add(__printJButton);
 	button_JPanel.add(__closeJButton);
-	// REVISIT - add later
+	// TODO - add later
 	//button_JPanel.add(__helpJButton);
 
 	JGUIUtil.addComponent(bottomJPanel, button_JPanel,
@@ -1633,6 +2063,11 @@ private void setupGUI(boolean mode) {
 	setColumnWidths(__dayWorksheets, DateTime.PRECISION_DAY);
 	setColumnWidths(__monthWorksheets, DateTime.PRECISION_MONTH);
 	setColumnWidths(__yearWorksheets, DateTime.PRECISION_YEAR);
+	setColumnWidths(__irregularMinuteWorksheets, DateTime.PRECISION_MINUTE);
+	setColumnWidths(__irregularHourWorksheets, DateTime.PRECISION_HOUR);
+	setColumnWidths(__irregularDayWorksheets, DateTime.PRECISION_DAY);
+	setColumnWidths(__irregularMonthWorksheets, DateTime.PRECISION_MONTH);
+	setColumnWidths(__irregularYearWorksheets, DateTime.PRECISION_YEAR);
 
 	checkForSingleWorksheet();
 }
@@ -1770,13 +2205,11 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
  */
 public void propertyChange(PropertyChangeEvent e)
 {
-  if (e.getPropertyName().equals("TS_DATA_VALUE_CHANGE"))
-    {
-      // Expecting modified TS object
-      TSViewTable_TableModel model =findModel(((TS)e.getNewValue()));
-      model.fireTableDataChanged();
+    if (e.getPropertyName().equals("TS_DATA_VALUE_CHANGE")) {
+        // Expecting modified TS object
+        TSViewTable_TableModel model = findModel(((TS)e.getNewValue()));
+        model.fireTableDataChanged();
     }
-  
 }
 /**
  * Returns the first model encountered that contains the specified TS.
@@ -1784,33 +2217,43 @@ public void propertyChange(PropertyChangeEvent e)
  * @param ts
  * @return model containing specified TS, or null
  */
-private  TSViewTable_TableModel findModel(TS ts)
+private TSViewTable_TableModel findModel(TS ts)
 {
-  // TODO: Order search so that most likely models are searched first!
-
-  TSViewTable_TableModel target = null;
-  
-  if ((target = findModel(__dayModels,ts)) != null)
-    {
-      return target;
+    // TODO: Order search so that most likely models are searched first!
+    
+    TSViewTable_TableModel target = null;
+      
+    if ((target = findModel(__dayModels,ts)) != null) {
+        return target;
     }
-  else  if ((target = findModel(__hourModels,ts)) != null)
-    {
-      return target;
+    else if ((target = findModel(__hourModels,ts)) != null) {
+        return target;
     }
-  else  if ((target = findModel(__minuteModels,ts)) != null)
-    {
-      return target;
+    else  if ((target = findModel(__minuteModels,ts)) != null) {
+        return target;
     }
-  else  if ((target = findModel(__monthModels,ts)) != null)
-    {
-      return target;
+    else  if ((target = findModel(__monthModels,ts)) != null) {
+        return target;
     }
-  else  if ((target = findModel(__yearModels,ts)) != null)
-    {
-      return target;
+    else if ((target = findModel(__yearModels,ts)) != null) {
+        return target;
     }
-  return target;
+    else if ((target = findModel(__irregularMinuteModels,ts)) != null) {
+        return target;
+    }
+    else if ((target = findModel(__irregularHourModels,ts)) != null) {
+        return target;
+    }
+    else if ((target = findModel(__irregularDayModels,ts)) != null) {
+        return target;
+    }
+    else if ((target = findModel(__irregularMonthModels,ts)) != null) {
+        return target;
+    }
+    else if ((target = findModel(__irregularYearModels,ts)) != null) {
+        return target;
+    }
+    return target;
 }
 
 /**
@@ -1821,24 +2264,20 @@ private  TSViewTable_TableModel findModel(TS ts)
  */
 private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
 {
-  if ( models != null)
-    {
-      int nModels = models.length;
-      for( int iModel = 0; iModel < nModels; iModel++)
-        {
-          TSViewTable_TableModel m = ((TSViewTable_TableModel)models[iModel]);
-          List<TS> tsVector = m.getTSList();
-          int nVec = tsVector.size();
-          for (int iVec = 0; iVec < nVec; iVec++)
-            {
-              if (tsVector.get(iVec) == ts)
-                {
-                  return m;
+    if ( models != null) {
+        int nModels = models.length;
+        for( int iModel = 0; iModel < nModels; iModel++) {
+            TSViewTable_TableModel m = models[iModel];
+            List<TS> tslist = m.getTSList();
+            int nVec = tslist.size();
+            for (int iVec = 0; iVec < nVec; iVec++) {
+                if (tslist.get(iVec) == ts) {
+                    return m;
                 }
             }
         }
     }
-  return null;
+    return null;
 }
 
 }

@@ -335,6 +335,9 @@ public void shouldDoGetConsecutiveValueAt(boolean should) {
 	__shouldDoGetConsecutiveValueAt = should;
 }
 
+/**
+TODO SAM 2014-03-30 What does this do?
+*/
 public boolean __shouldResetGetConsecutiveValueAt = false;
 
 public boolean shouldResetGetConsecutiveValueAt() {

@@ -258,6 +258,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.IO.CommandLogRecord;
+import RTi.Util.IO.CommandProcessorRequestResultsBean;
+import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -996,7 +999,8 @@ public String formatLegend ( String format )
 Return a formatted legend string, optionally changing the legend in memory.
 @return A formatted legend string for the time series but do not update the time series legend data.
 @param format Format string containing normal characters and formatting strings
-which will be replaced with time series header information, as follows (grouped in categories):
+which will be replaced with time series header information.  Format specifiers can reference time series properties
+using ${ts:PropertyName} notation, or use the % specifiers as follows (grouped in categories):
 <p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -1216,10 +1220,56 @@ public String formatLegend ( String format, boolean update_ts )
 			buffer.append ( c );
 		}
 	}
-	if ( update_ts ) {
-		setLegend ( buffer.toString() );
-	}
-	return buffer.toString();
+	//Message.printStatus(2, routine, "After formatLegend(), string is \"" + s2 + "\"" );
+    // Now replace ${ts:Property} strings with properties from the time series
+    // Put the most specific first so it is matched first
+    String startString = "${ts:";
+    int startStringLength = 5;
+    String endString = "}";
+    Object propO;
+    int start = 0; // Start at the beginning of the string
+    int pos2 = 0;
+    String s2 = buffer.toString();
+    while ( pos2 < s2.length() ) {
+        int pos1 = StringUtil.indexOfIgnoreCase(s2, startString, start );
+        if ( pos1 >= 0 ) {
+            // Find the end of the property
+            pos2 = s2.indexOf( endString, pos1 );
+            if ( pos2 > 0 ) {
+                // Get the property...
+                String propname = s2.substring(pos1+startStringLength,pos2);
+                //Message.printStatus(2, routine, "Property=\"" + propname + "\" isTSProp=" + isTsProp + " pos1=" + pos1 + " pos2=" + pos2 );
+                // By convention if the property is not found, keep the original string so can troubleshoot property issues
+                String propvalString = s2.substring(pos1,(pos2 + 1));
+                // Get the property out of the time series
+                propO = getProperty(propname);
+                if ( propO != null ) {
+                    // This handles conversion of integers to strings
+                    propvalString = "" + propO;
+                }
+                // Replace the string and continue to evaluate s2
+                s2 = s2.substring ( 0, pos1 ) + propvalString + s2.substring (pos2 + 1);
+                // Next search will be at the end of the expanded string (end delimiter will be skipped in any case)
+                start = pos1 + propvalString.length();
+            }
+            else {
+                // No closing character so leave the property string as is and march on...
+                start = pos1 + startStringLength;
+                if ( start > s2.length() ) {
+                    break;
+                }
+            }
+        }
+        else {
+            // No more ${} property strings so done processing properties.
+            // If checking time series properties will then check global properties in next loop
+            break;
+        }
+    }
+    if ( update_ts ) {
+        setLegend ( buffer.toString() );
+    }
+	return s2;
 }
 
 /**

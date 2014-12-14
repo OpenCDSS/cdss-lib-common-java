@@ -1421,7 +1421,7 @@ public void checkAnnotationProperties(int isub, int iann) {
 
 /**
 Checks data properties to make sure that the data are fully-defined for a time series in a graph.
-Data that are not fully-defined will have the property set to a default value
+Data that are not fully-defined will have the property set to a default value.
 @param isub the subproduct of the annotation.
 @param iann the annotation number.
 */
@@ -2685,7 +2685,20 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "Line";
 		}
 		else if ( param.equalsIgnoreCase("LegendFormat") ){
-			return "Auto";
+		    // If the time series property tsp:LegendFormat is set, use it
+		    // TODO SAM 2014-04-14 If this works, evaluate making generic for every property
+		    Object o = null;
+		    TS ts = getTS(its);
+		    if ( ts != null ) {
+		        o = ts.getProperty("tsp:LegendFormat");
+		    }
+		    if ( o == null ) {
+		        return "Auto";
+		    }
+		    else {
+		        // TS property specifies the format
+		        return "" + o;
+		    }
 		}
 		else if ( param.equalsIgnoreCase("LineStyle") ){
 			if (graphType == TSGraphType.XY_SCATTER) {
@@ -3190,6 +3203,22 @@ public String getPropValue ( String property )
 		return value;
 	}
 	return null;
+}
+
+/**
+Return the time series at the requested position.
+@param pos index position (0+) within time series list.
+@return the time series at the requested position, or null if not available.
+*/
+public TS getTS(int pos)
+{
+    if ( __tslist == null ) {
+        return null;
+    }
+    if ( pos >= __tslist.size() ) {
+        return null;
+    }
+    return __tslist.get(pos);
 }
 
 /**

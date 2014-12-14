@@ -183,7 +183,8 @@ A list of String choices to choose from.  If not null a JComboBox will be displa
 private List<String> __choiceLabelList = null;
 
 /**
-The internal values (e.g., database table and column) corresponding to the visible choices.
+The internal values (e.g., database column values) corresponding to the visible choices.
+Always provide as strings but should ultimately match the column type.
 */
 private List<String> __choiceInternalList = null;
 
@@ -278,7 +279,8 @@ It can be set to null or an empty string if it won't be used by software.
 @param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
 @param choiceLabels A list of String containing choice values to be
 displayed to the user.  If null, the user will not be shown a list of choices.
-@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param choicesInternal A list of String containing choice values (e.g., database column values).  Always
+provide strings even if the database column is integer, etc.
 @param areChoicesEditable If true, and a non-null list of choices is provided,
 the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
 */
@@ -418,24 +420,6 @@ public static boolean evaluateCriterion ( String s, InputFilterStringCriterionTy
         return StringUtil.startsWithIgnoreCase(s,s2);
     }
     return false;
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__whereInternal = null;
-	__whereInternal2 = null;
-	__whereLabel=null;
-	__choiceLabelList = null;
-	__choiceInternalList = null;
-	__choiceDelimiter = null;
-	__inputComponent = null;
-	__inputComponentToolTipText = null;
-	__inputComponentMouseListeners = null;
-	__removedConstraints = null;
-	super.finalize();
 }
 
 /**

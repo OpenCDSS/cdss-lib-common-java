@@ -285,6 +285,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -359,6 +360,11 @@ public final static String CLASS = "DMI";
 Database engine corresponding to "Access" database engine (Jet).
 */
 public static final int DBENGINE_ACCESS = 10;
+
+/**
+Database engine corresponding to "Derby" database engine (Oracle implementation of Apache Derby).
+*/
+public static final int DBENGINE_DERBY = 15;
 
 /**
 Database engine corresponding to "Informix" database engine (no distinction about version?).
@@ -628,6 +634,11 @@ The type of the last SQL executed
 private int __lastSQLType;
 
 /**
+The login timeout to use when establishing the database connection.
+*/
+private int __loginTimeout = -1;
+
+/**
 Port number of the database to connect, used by client-server databases.
 */
 private int __port;
@@ -791,6 +802,15 @@ throws Exception {
 		__database_server = "Local";
 		_database_engine = DBENGINE_ACCESS;
 	}
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Derby")) {
+        __fieldLeftEscape = "";
+        __fieldRightEscape = "";   
+        __stringDelim = "'";
+        if ( __database_server.equalsIgnoreCase("memory") ) {
+            __database_server = "localhost";
+        }
+        _database_engine = DBENGINE_DERBY;
+    }
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Excel")) {
 	    // TODO SAM 2012-11-09 Need to confirm how Excel queries behave, for now use Access settings
         __fieldLeftEscape = "[";
@@ -1719,8 +1739,9 @@ Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
 protected static List<String> getAllDatabaseTypes() {
-	List<String> v = new Vector<String>();
+	List<String> v = new ArrayList<String>(9);
 	v.add("Access");
+	v.add("Derby");
 	v.add("Excel");
 	v.add("H2");
 	v.add("Informix");
@@ -2191,7 +2212,23 @@ throws SQLException, Exception {
 			connUrl = "jdbc:odbc:" + __database_name;
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
-		} 
+		}
+        if (_database_engine == DBENGINE_DERBY ) {
+            printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_DERBY'");
+            // If the server name is "memory" then the in-memory URL is used
+            // TODO SAM 2014-04-22 Figure out how to handle better
+            // TODO SAM 2014-04-22 Figure out how to open vs create
+            System.setProperty("derby.system.home", "C:\\derby");
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            if ( __database_server.equalsIgnoreCase("memory") ) {
+                connUrl = "jdbc:derby:memory:db;create=true";
+            }
+            else {
+                throw new SQLException ( "For Derby currenty only support in-memory databases." );
+            }
+            Message.printStatus(2, routine,
+                "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
+        } 
 		else if (_database_engine == DBENGINE_INFORMIX ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_INFORMIX'");
 			// Use the free driver that comes from Informix...
@@ -2327,7 +2364,16 @@ throws SQLException, Exception {
 	    printStatusOrDebug(dl, routine, "Calling getConnection(" 
 		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
 	}
+    // Get the login timeout and reset to requested if specified
+    int loginTimeout = DriverManager.getLoginTimeout();
+    if ( __loginTimeout >= 0 ) {
+        DriverManager.setLoginTimeout(__loginTimeout);
+    }
 	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
+    if ( __loginTimeout >= 0 ) {
+        // Now set back to the original timeout
+        DriverManager.setLoginTimeout(loginTimeout);
+    }
     
 	/* TODO SAM 2013-10-07 This seems to be old so commenting out
     if (_database_engine == DBENGINE_ORACLE && __database_name != null ) {
@@ -2446,6 +2492,17 @@ public void setConnection(Connection c) {
 }
 
 /**
+Set the database connection login timeout, which should be set prior to calling open().
+A call to DriverManager.setLoginTimeout() will occur prior to getting the connection and then the timeout will be set back to
+the previous value.  This ensures that the value is not interpreted globally.
+@param loginTimeout connection login timeout in seconds.
+*/
+public void setLoginTimeout ( int loginTimeout )
+{
+    __loginTimeout = loginTimeout;
+}
+
+/**
 Set the type of the database engine to which the DMI will connect.  Valid types are:<br>
 <ul>
 <li> Access</ul>
@@ -2472,6 +2529,10 @@ throws Exception {
 		__database_server = "Local";
 		_database_engine = DBENGINE_ACCESS;
 	}
+	else if (__database_engine_String.equalsIgnoreCase("Derby")) {
+        __database_server = "myhost";
+        _database_engine = DBENGINE_DERBY;
+    }
 	else if (__database_engine_String.equalsIgnoreCase("Informix")) {
 		_database_engine = DBENGINE_INFORMIX;
 	}

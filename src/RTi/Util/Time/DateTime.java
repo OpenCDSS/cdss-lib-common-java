@@ -1466,10 +1466,9 @@ public boolean equals ( DateTime t )
 /**
 Determine if a DateTimes is equal to this instance.
 <b>If the instance is a time only (no date), then only the time data are compared.</b>
+Time zone is checked if it has been set for the instance.
 @return true if the date is equivalent to the given precision.
 @param precision Indicates the precision to use for the comparison.
-Time zone is not currently checked but may be checked in the future if the
-PRECISION_TIME_ZONE flag is set.  Use the PRECISION_* flags.
 */
 public boolean equals ( DateTime t, int precision )
 {	// Maybe can't do this because we are more concerned with precision?

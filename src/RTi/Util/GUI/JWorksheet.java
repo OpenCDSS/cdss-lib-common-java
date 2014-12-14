@@ -2562,7 +2562,7 @@ private String determineName(String name, int minWidth, Graphics g) {
 	// them out to all be "comma-space" ...
 	String temp = StringUtil.replaceString(name, ",", ", ");
 	// ... and then split the string based on newlines and spaces.
-	List v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);	
+	List<String> v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);	
 		
 	int[] sizes = new int[v.size()];
 	String[] strings = new String[sizes.length];		
@@ -2572,7 +2572,7 @@ private String determineName(String name, int minWidth, Graphics g) {
 	// go through all the strings that were broken out and determine 
 	// the size each will take up in pixels when drawn on the screen
 	for (int i = 0; i < sizes.length; i++) {
-		strings[i] = ((String)v.get(i)).trim();
+		strings[i] = v.get(i).trim();
 		sizes[i] = fh.stringWidth(strings[i]);
 	}
 
