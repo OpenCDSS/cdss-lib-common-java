@@ -61,6 +61,26 @@ public DateTime getEnd ()
 }
 
 /**
+Return the first matching date/time for a period that is within the window.  The period is
+iterated through and the first matching date/time in the window is returned.
+@param start starting date/time in a period
+@param end ending date/time in a period
+@param intervalBase base time interval from DateTime
+@param intervalMult interval multiplier
+@return first date/time in window for period, or null if no date/time is found
+*/
+public DateTime getFirstMatchingDateTime(DateTime start, DateTime end, int intervalBase, int intervalMult )
+{
+    for ( DateTime d = new DateTime(start); d.lessThanOrEqualTo(end); d.addInterval(intervalBase,intervalMult) ) {
+        if ( isDateTimeInWindow(d) ) {
+            return d;
+        }
+    }
+    return null;
+}
+
+
+/**
 Return the starting date/time in the window (can be null) if open-ended.
 @return the starting date/time in the window (can be null) if open-ended.
 */
@@ -75,23 +95,24 @@ Determine whether the specified date/time is in the requested window.
 */
 public boolean isDateTimeInWindow ( DateTime dt )
 {   DateTime start = __start;
-    if ( start != null ) {
-        start = new DateTime ( __start );
-        start.setYear ( dt.getYear() );
-        start.setPrecision(dt.getPrecision());
-    }
     DateTime end = __end;
-    if ( end != null ) {
-        end = new DateTime ( __end );
-        end.setYear ( dt.getYear() );
-        end.setPrecision(dt.getPrecision());
-    }
     if ( dt == null ) {
         return false;
     }
     if ( (start == null) && (end == null) ) {
         // No constraint...
         return true;
+    }
+    // Set start and end to original window but year of the date being checked
+    if ( start != null ) {
+        start = new DateTime ( __start );
+        start.setYear ( dt.getYear() );
+        start.setPrecision(dt.getPrecision());
+    }
+    if ( end != null ) {
+        end = new DateTime ( __end );
+        end.setYear ( dt.getYear() );
+        end.setPrecision(dt.getPrecision());
     }
     boolean afterStart = false;
     boolean beforeEnd = false;
@@ -107,6 +128,14 @@ public boolean isDateTimeInWindow ( DateTime dt )
     else {
         return false;
     }
+}
+
+/**
+Return string representation of window.
+*/
+public String toString ()
+{
+    return __start + " " + __end;
 }
 
 }

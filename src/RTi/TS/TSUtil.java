@@ -10101,10 +10101,10 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 /**
 Set the entire time series to monthly values.  For example, values[0] is used for any date in January.
 @param ts Time series to update.
-@param values Data values to set time series data (the
-first value is for January, the last is for December).
+@param values Data values to set time series data (the first value is for January, the last is for December).
+If a value is null then the month value is not modified.  Missing values are expected to be set in the value array.
 */
-public static void setConstantByMonth ( TS ts, double values[] )
+public static void setConstantByMonth ( TS ts, Double values[] )
 {	String routine = "TSUtil.setConstantByMonth";
 
 	if ( ts == null ) {
@@ -10124,9 +10124,11 @@ period with a repetitive monthly pattern.
 @param ts Time series to update.
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
-@param values Data values to set in the time series (the first value is for January, the last is for December).
+@param values Data values to set in the time series (the first value is for January, the last is for December) or
+if null don't set the monthly value.  If setting to missing it is expected that the value has been set to the
+missing value for the time series.
 */
-public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, double values[] )
+public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, Double values[] )
 {	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
@@ -10135,10 +10137,11 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();
+	Double value;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -10147,16 +10150,19 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
 				break;
 			}
-			if ( date.greaterThanOrEqualTo(start) ) {
-				tsdata.setDataValue(values[date.getMonth() - 1]);
-				// Have to do this manually since TSData are being modified directly to improve performance...
-				irrts.setDirty ( true );
+			value = values[date.getMonth() - 1];
+			if ( value != null ) { // If null leave the old value
+    			if ( date.greaterThanOrEqualTo(start) ) {
+    				tsdata.setDataValue(value);
+    				// Have to do this manually since TSData are being modified directly to improve performance...
+    				irrts.setDirty ( true );
+    			}
 			}
 		}
 	}
@@ -10164,7 +10170,10 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 	    // Loop using addInterval...
 		DateTime date = new DateTime ( start );
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
-			ts.setDataValue ( date, values[date.getMonth() - 1] );
+		    value = values[date.getMonth() - 1];
+		    if ( value != null ) {
+		        ts.setDataValue ( date, value );
+		    }
 		}
 	}
 
@@ -10193,7 +10202,7 @@ throws Exception
 
 	// Else, use the overall start and end dates for filling...
 
-	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null, true );
+	setFromTS (	dependentTS, independentTS, dependentTS.getDate1(), dependentTS.getDate2(), null, null, null, true );
 }
 
 /**
@@ -10203,6 +10212,8 @@ The data intervals do not need to be the same (truncation of dates will result i
 @param independentTS Time series to copy from.
 @param start_date Date to start data transfer (relative to the dependent time series).
 @param end_date Date to stop the data transfer (relative to the dependent time series).
+@param setWindowStart ignoring the year, the remainder indicates the start of the window within each year to set data
+@param setWindowEnd ignoring the year, the remainder indicates the end of the window within each year to set data
 @param props Properties to control the transfer.  Recognized properties are:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -10229,12 +10240,11 @@ the data but perhaps not the date/time</b>
 <td>ByDateTime</td>
 </tr>
 </table>
-@param setDataFlags if true, copy the data flags from the independent time series; if false leave the original
-data flags
+@param setDataFlags if true, copy the data flags from the independent time series; if false leave the original data flags
 @exception Exception if an error occurs (usually null input).
 */
 public static void setFromTS ( TS dependentTS, TS independentTS, DateTime start_date, DateTime end_date,
-    PropList props, boolean setDataFlags )
+    DateTime setWindowStart, DateTime setWindowEnd, PropList props, boolean setDataFlags )
 throws Exception
 {	String routine = "TSUtil.setFromTS";
 	String message;
@@ -10303,6 +10313,11 @@ throws Exception
 	boolean isMissing; // Whether a data value is missing
 	TSData tsdata = new TSData();
 	String dataFlag = null; // Data flag to transfer
+	if ( (setWindowStart != null) && (setWindowEnd != null) ) {
+	    // Clone to have local copies
+	    setWindowStart = new DateTime(setWindowStart);
+	    setWindowEnd = new DateTime(setWindowEnd);
+	}
 	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( transfer_bydate ) {
 			dataValue = independentTS.getDataValue ( date );
@@ -10328,6 +10343,17 @@ throws Exception
 	    // Handle "IgnoreMissing" case (note setMissing=true was set above if setOnlyMissingValues=true)
 		if ( isMissing && !setMissing ) {
 		    continue;
+		}
+		// If the window is specified, check to see if the set date is in the window
+		if ( (setWindowStart != null) && (setWindowEnd != null) ) {
+		    // Set the window to the current year
+		    // TODO SAM 2013-12-24 can possibly optimize to check year and previous year before doing reset
+		    setWindowStart.setYear(date.getYear());
+		    setWindowEnd.setYear(date.getYear());
+		    if ( date.lessThan(setWindowStart) || date.greaterThan(setWindowEnd) ) {
+		        // Not in desired window so don't set data
+		        continue;
+		    }
 		}
 		if ( setDataFlags ) {
 		    dependentTS.setDataValue ( date, dataValue, dataFlag, 0 );

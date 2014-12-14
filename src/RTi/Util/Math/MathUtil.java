@@ -3,6 +3,7 @@ import	RTi.Util.Message.Message;
 
 import java.lang.Math;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
@@ -206,11 +207,13 @@ private static String decimalToHexHelper(int num) {
 }
 
 /**
+Calculate the exceedance probability.  Values are sorted in descending order (position 1 is largest value and
+smallest exceedance probability).
 @return The exceedance probability given the sample and one of the values in the sample.
 @param n the number of values in the sample array to process
 @param x sample values
-@param xi specific value for which to compute the exceedance probability (must match one of the values in x array)
-@exception IllegalArgumentException If the number of points is <= 0
+@param xi specific value for which to compute the exceedance probability (must be in the range of values in x array)
+@exception IllegalArgumentException If the number of points is <= 0 or xi is outside the range of the data array
 */
 public static double exceedanceProbability ( int n, double x[], double xi )
 {   String routine = "MathUtil.exceedanceProbability";
@@ -220,13 +223,13 @@ public static double exceedanceProbability ( int n, double x[], double xi )
         Message.printWarning ( 10, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // First sort the numbers into ascending order...
+    // First sort the numbers into descending order (largest value in data array will be first)...
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     sort(x2, SORT_QUICK, SORT_DESCENDING, null, false);
     
     // Find the first matching value and return the exceedance probability using the plotting position
-    // = rank/(n + 1), where rank is high to low 1+
+    // = rank/(n + 1), where largest value = position 1
     for ( int i = 0; i < n; i++ ) {
         if ( x2[i] == xi ) {
             // Value is in sample so return the plotting position
@@ -243,6 +246,8 @@ public static double exceedanceProbability ( int n, double x[], double xi )
         }
         else if ( xi > x2[i] ) {
             // Value is between sample values so interpolate the plotting position of the bounding values.
+            // Often the value passed in will be the same as one of the array values but off by a very
+            // small amount so this interpolation introduces minor error.
             double epHigh = i/(double)(n + 1); // For previous value (i + 1 - 1 = i)
             double epLow = (i + 1)/(double)(n + 1); // For current value
             return interpolate(xi, x2[i - 1], x2[i], epHigh, epLow);
@@ -826,10 +831,12 @@ public static int min ( int n, int x[] )
 
 /**
 @return The nonexceedance probability given the sample and one of the values in the sample.
+Values are sorted in descending order (position 1 is largest value and largest nonexceedance probability)
 @param n the number of values in the sample array to process
 @param x sample values
-@param xi specific value for which to compute the nonexceedance probability (must match one of the values in x array)
-@exception IllegalArgumentException If the number of points is <= 0
+@param xi specific value for which to compute the nonexceedance probability
+(must be within the range of the values in x array)
+@exception IllegalArgumentException If the number of points is <= 0 or xi is outside the range of the data array
 */
 public static double nonexceedanceProbability ( int n, double x[], double xi )
 {   
@@ -1009,6 +1016,113 @@ throws Exception
     PrincipalComponentAnalysis pca = new PrincipalComponentAnalysis(
         dependentArray, independentMatrix, missingDependentValue, missingIndependentValue, maximumCombinations );
     return pca;
+}
+
+/**
+Calculate the plotting position for a distribution.  Values are sorted in the specified order prior to determining the rank.
+Plotting position is then calculated from the rank based on the equation for the distribution.
+If the value is tied with others, the average of the ranks for the tied values is used to compute the plotting position.
+@return The plotting position (0 to 1) given the sample and one of the values in the sample.
+@param n the number of values in the sample array to process
+@param x sample values
+@param xi specific value for which to compute the rank (must match one of the values in x array)
+@exception IllegalArgumentException If the number of points is <= 0 or xi does not exactly match a value in the data array
+*/
+public static double plottingPosition ( int n, double x[], SortOrderType sortOrderType, DistributionType distributionType,
+    Hashtable distributionParameters, double xi )
+{   String routine = "MathUtil.plottingPosition";
+
+    if ( n <= 0 ) {
+        String message = "Number of points <= 0";
+        Message.printWarning ( 10, routine, message );
+        throw new IllegalArgumentException ( message );
+    }
+    // First determine the rank
+    double rank = rank(n, x, sortOrderType, xi);
+    // The plotting position is calculated based on the distribution
+    if ( distributionType == DistributionType.WEIBULL ) {
+        return rank/(n + 1.0);
+    }
+    else if ( distributionType == DistributionType.GRINGORTEN ) {
+        // TODO SAM 2013-12-09 need to extract the parameter and have a distribution object so the
+        // following does not have to be repeated every time this method is called
+        // Expect "a" to be in parameters
+        Object o = distributionParameters.get("a");
+        double a;
+        if ( o == null ) {
+            String message = "Expected distribution parameter \"a\" was not specified.";
+            Message.printWarning ( 10, routine, message );
+            throw new IllegalArgumentException ( message );
+        }
+        else {
+            if ( o instanceof String ) {
+                a = Double.parseDouble((String)o);
+            }
+            else if ( o instanceof Double ) {
+                a = (Double)o;
+            }
+            else {
+                String message = "Unable to determine distribution parameter \"a\" from object " + o + ".";
+                Message.printWarning ( 10, routine, message );
+                throw new IllegalArgumentException ( message );
+            }
+        }
+        return (rank - a)/(n + 1.0 - 2.0*a);
+    }
+    else {
+        String message = "Do not know how to calculate plotting position for distribution " + distributionType;
+        Message.printWarning ( 10, routine, message );
+        throw new IllegalArgumentException ( message );
+    }
+}
+
+/**
+Calculate the rank.  Values are sorted in the specified order prior to determining the rank.
+If the value is tied with others, the average of the ranks for the tied values is returned.
+@return The rank value (1+) given the sample and one of the values in the sample.
+@param n the number of values in the sample array to process
+@param x sample values
+@param sortOrderType the sort order to sort the data array before computing the rank.
+@param xi specific value for which to compute the rank (must match one of the values in x array)
+@exception IllegalArgumentException If the number of points is <= 0 or xi does not exactly match a value in the data array
+*/
+public static double rank ( int n, double x[], SortOrderType sortOrderType, double xi )
+{   String routine = "MathUtil.rank";
+
+    if ( n <= 0 ) {
+        String message = "Number of points <= 0";
+        Message.printWarning ( 10, routine, message );
+        throw new IllegalArgumentException ( message );
+    }
+    // First sort the numbers into descending order (largest value in data array will be first)...
+    double [] x2 = new double[x.length];
+    System.arraycopy(x, 0, x2, 0, n);
+    if ( (sortOrderType == null) || (sortOrderType == SortOrderType.HIGH_TO_LOW) ) {
+        sort(x2, SORT_QUICK, SORT_DESCENDING, null, false);
+    }
+    else {
+        sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
+    }
+    
+    // Find the first matching value and return the position
+    for ( int i = 0; i < n; i++ ) {
+        if ( x2[i] == xi ) {
+            // Value is in sample - search adjoining values to see if there are additional matches and if so
+            // return the average of the ranks
+            int count = 1;
+            double rank = (double)(i + 1);
+            for ( int j = (i + 1); j < n; j++ ) {
+                if ( x2[j] == xi ) {
+                    rank += (double)(j + 1);
+                    ++count;
+                }
+            }
+            return rank/count;
+        }
+    }
+    String message = "Requested value " + xi + " does not match a value in the array";
+    Message.printWarning ( 10, routine, message );
+    throw new IllegalArgumentException ( message );
 }
 
 /**

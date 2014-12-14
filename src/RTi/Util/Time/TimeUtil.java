@@ -691,9 +691,21 @@ throws Exception
 }
 
 /**
+Format a DateTime using the given format.  The year type defaults to CALENDAR.
+@param dt DateTime object to format
+@param format format string (see overloaded version for details)
+*/
+public static String formatDateTime ( DateTime dt, String format )
+{
+    return formatDateTime ( dt, YearType.CALENDAR, format );
+}
+
+/**
 Format a DateTime using the given format.
 @return The date/time as a string for the specified date using the specified format.
 @param d0 The date to format.  If the date is null, the current time is used.
+@param yearType the year type, for example NOV_TO_OCT will result in date/times in Nov-Dec of the first year having a year
+of the following calendar year for ${dt:YearForYearType} property
 @param format0 The date format.  If the format is null,
 the default is as follows:  "Fri Jan 03 16:05:14 MST 1998" (the UNIX date
 command output).  The date can be formatted using the format modifiers of the
@@ -807,9 +819,9 @@ C "strftime" routine, as follows:
 
 </table>
 */
-public static String formatDateTime ( DateTime d0, String format0 )
-{	String	default_format = "%a %b %d %H:%M:%S %Z %Y";
-	String	format;
+public static String formatDateTime ( DateTime d0, YearType yearType, String format0 )
+{	String default_format = "%a %b %d %H:%M:%S %Z %Y";
+	String format;
 
 	if ( format0 == null ) {
 		format = default_format;
@@ -863,6 +875,7 @@ public static String formatDateTime ( DateTime d0, String format0 )
 	// DayOfWeek:	0 to 7 with 0	same
 	//		being Sunday
 	//		in U.S.
+	// First go through the % format specifiers
 	for ( int i = 0; i < len; i++ ) {
 		c = format.charAt(i);
 		if ( c == '%' ) {
@@ -969,11 +982,34 @@ public static String formatDateTime ( DateTime d0, String format0 )
 				formatted_string.append ( c );
 			}
 		}
+		else if ( (c == '$') && (yearType != null) ) {
+		    // TODO SAM 2013-12-23 For now hard-code one check but as more properties are added, make the code more elegant
+		    String prop = "${dt:YearForYearType}";
+		    int iEnd = i + prop.length(); // Last char, zero index
+		    String year = "";
+		    if ( iEnd <= format.length() ) {
+		        //Message.printStatus(2, "", "substring=\"" + format.substring(i,iEnd) + "\" prop=\"" + prop + "\"");
+		        if ( format.substring(i,iEnd).equalsIgnoreCase(prop) ) {
+		            year = "" + TimeUtil.getYearForYearType(d, yearType);
+	                formatted_string.append(year);
+	                i = i + prop.length() - 1; // -1 because the iterator will increment by one
+		        }
+		        else {
+		            // Just add the $ and march on
+	                formatted_string.append ( c );
+		        }
+		    }
+		    else {
+		        // Just add the $ and march on
+		        formatted_string.append ( c );
+		    }
+		}
 		else {
 			// Just add the character to the string...
 			formatted_string.append ( c );
 		}
 	}
+	// Next go through the ${dt:property} specifiers
 
 	return formatted_string.toString();
 }
@@ -1473,38 +1509,47 @@ formatting routine.
 @param includeDescription If false, only the %X specifiers are returned.  if
 True, the description is also returned.
 @param forOutput if true, return specifiers for formatting; if false only include formatters for parsing
+@param includeProps if true, include properties like ${dt:YearForYearType}, currently only used for output
 */
-public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, boolean forOutput )
-{	String [] formats = new String[15];
-	formats[0] = "%a - Weekday, abbreviation";
-	formats[1] = "%A - Weekday, full";
-	formats[2] = "%b - Month, abbreviation";
-	formats[3] = "%B - Month, full";
-	//formats[3] = "%c - Not supported";
-	formats[4] = "%d - Day (01-31)";
-	formats[5] = "%H - Hour (00-23)";
-	formats[6] = "%I - Hour (01-12)";
-	formats[7] = "%j - Day of year (001-366)";
-	formats[8] = "%m - Month (01-12)";
-	formats[9] = "%M - Minute (00-59)";
-	formats[10] = "%p - AM, PM";
-	formats[11] = "%S - Second (00-59)";
-	//formats[12] = "%U, %W - not supported";
-	//formats[12] = "%x - not supported";
-	//formats[12] = "%X - not supported";
-	formats[12] = "%y - Year (00-99)";
-	formats[13] = "%Y - Year (0000-9999)";
-	formats[14] = "%Z - Time zone";
+public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, boolean forOutput, boolean includeProps )
+{	int nProps = 0;
+    if ( forOutput && includeProps ) {
+        nProps = 1;
+    }
+    String [] formats = new String[15 + nProps];
+    int i = -1;
+	formats[++i] = "%a - Weekday, abbreviation";
+	formats[++i] = "%A - Weekday, full";
+	formats[++i] = "%b - Month, abbreviation";
+	formats[++i] = "%B - Month, full";
+	//formats[++i] = "%c - Not supported";
+	formats[++i] = "%d - Day (01-31)";
+	formats[++i] = "%H - Hour (00-23)";
+	formats[++i] = "%I - Hour (01-12)";
+	formats[++i] = "%j - Day of year (001-366)";
+	formats[++i] = "%m - Month (01-12)";
+	formats[++i] = "%M - Minute (00-59)";
+	formats[++i] = "%p - AM, PM";
+	formats[++i] = "%S - Second (00-59)";
+	//formats[++i] = "%U, %W - not supported";
+	//formats[++i] = "%x - not supported";
+	//formats[++i] = "%X - not supported";
+	formats[++i] = "%y - Year (00-99)";
+	formats[++i] = "%Y - Year (0000-9999)";
+	formats[++i] = "%Z - Time zone";
+	if ( forOutput && includeProps ) {
+	    formats[++i] = "${dt:YearForYearType} - year for year type";
+	}
 	if ( !forOutput ) {
 	    // Only include formats suitable for parsing
 	    String [] formats2 = {
-            formats[4], // day
-            formats[5], // hour
-            //formats[7], // day of year - TODO SAM 2012-04-18 should be able to do
-            formats[2], // month abbreviation
-            formats[8], // month number
-            formats[12], // year (2-digit)
-            formats[13] // year (4-digit)
+	        "%d - Day (01-31)",
+	        "%H - Hour (00-23)",
+            //"%j - Day of year (001-366)", // day of year - TODO SAM 2012-04-18 should be able to do
+	        "%b - Month, abbreviation",
+	        "%m - Month (01-12)",
+	        "%y - Year (00-99)",
+	        "%Y - Year (0000-9999)"
         };
 	    formats = formats2;
 	}
@@ -1740,6 +1785,38 @@ Return the current system time using the specified format.
 */
 public static String getSystemTimeString ( String format )
 {	return formatDateTime ( null, format );
+}
+
+/**
+Determine the year type year given a DateTime and the year type.
+For example, return the water or irrigation year.
+@param dt DateTime to examine, should be in normal calendar year
+@param yt year type
+@return the year for the requested year type
+*/
+public static int getYearForYearType ( DateTime dt, YearType yt )
+{
+    int y = dt.getYear();
+    int m = dt.getMonth();
+    if ( (m >= yt.getStartMonth()) && (m <= 12) ) {
+        // Month is in the start of the year
+        if ( yt.yearMatchesStart() ) {
+            return y;
+        }
+        else {
+            return y - yt.getStartYearOffset(); // Subtract because offset is negative
+        }
+    }
+    else {
+        // Month is in the end of the year
+        if ( yt.yearMatchesStart() ) {
+            return y + yt.getStartYearOffset(); // Add because offset is negative
+        }
+        else {
+            // Year matches the end
+            return y;
+        }
+    }
 }
 
 // jan1_1800_days pre-computed by looping from 1-1799 adding numDaysInYear.

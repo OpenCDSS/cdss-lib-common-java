@@ -420,7 +420,8 @@ effectively unset the parameter (null will be returned when retrieving the
 parameter value, requiring handling).
 */
 public void setCommandParameter ( String parameter, String value )
-{	__parameters.set ( parameter, value );
+{	// Handle values with equals with care
+    __parameters.set ( parameter, value );
 	// Refresh the command string...
 	__commandString = toString();
 }

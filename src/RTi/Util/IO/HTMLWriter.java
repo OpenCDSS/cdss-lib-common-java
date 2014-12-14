@@ -47,6 +47,8 @@ package RTi.Util.IO;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
+import RTi.Util.Message.Message;
+
 /**
 Class to format HTML content.  This class is meant to be used
 at the most basic level for HTML formatting.  Therefore, HTML tags are

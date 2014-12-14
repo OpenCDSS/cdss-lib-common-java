@@ -169,4 +169,18 @@ public static YearType valueOfIgnoreCase (String name)
     throw new IllegalArgumentException ( "The following does not match a valid year type: \"" + name + "\"");
 }
 
+/**
+Indicate if the year for the year type matches the calendar year for the start.
+This will be the case if the start offset is zero.
+*/
+public boolean yearMatchesStart()
+{
+    if ( getStartYearOffset() == 0 ) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 }

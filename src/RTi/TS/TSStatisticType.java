@@ -269,6 +269,14 @@ public enum TSStatisticType
      */
     PERCENT_OF_MEDIAN ( "PercentOfMedian" ),
     /**
+     * Plotting position (depends on distribution and sort order imposed by other code).
+     */
+    PLOTTING_POSITION ( "PlottingPosition" ),
+    /**
+     * Rank (depends on sort order imposed by other code).
+     */
+    RANK ( "Rank" ),
+    /**
      * Coefficient of skew.
      */
     SKEW ( "Skew" ),

@@ -716,8 +716,7 @@ String [] referenceTables, List notIncluded) {
 		html = new HTMLWriter(filename, dbName + " Data Dictionary");
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error opening HTMLWriter "
-			+ "file.  Aborting data dictionary creation.");
+		Message.printWarning(2, routine, "Error opening HTMLWriter file - aborting data dictionary creation (" + e + ").");
 		return;
 	}
 
@@ -751,14 +750,17 @@ String [] referenceTables, List notIncluded) {
 		html.paragraph();
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error writing dictionary header.");
+		Message.printWarning(2, routine, "Error writing dictionary header (" + e + ").");
 		Message.printWarning(2, routine, e);
 	}
 
 	Message.printStatus(2, routine, "Getting list of tables");
 	ResultSet rs = null;
-	String[] tableTypes = new String[1];
-	tableTypes[0] = "TABLE";
+    String [] tableTypes = { "TABLE", "VIEW" };
+    if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+        // SQL Server does not seem to recognize the type array so get all and then filter below
+        tableTypes = null;
+    }
 	DatabaseMetaData metadata = null;
 	try {	
 		metadata = dmi.getConnection().getMetaData();
@@ -769,7 +771,7 @@ String [] referenceTables, List notIncluded) {
 		} 
 	} 
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error getting list of tables.  Aborting.");
+		Message.printWarning(2, routine, "Error getting list of tables - aborting (" + e + ").");
 		Message.printWarning(2, routine, e);
 		return;
 	} 
@@ -781,12 +783,13 @@ String [] referenceTables, List notIncluded) {
 		more = rs.next();
 	}
 	catch (Exception e) {
+	    Message.printWarning(3,routine,"Error building table name and remark list (" + e + ").");
 		more = false;
 	}
 	String temp;
 	String temp2;
-	List tableNames = new Vector();
-	List tableRemarks = new Vector();
+	List<String> tableNames = new ArrayList<String>();
+	List<String> tableRemarks = new ArrayList<String>();
 	while (more) {
 		try {	
 			// Table name...
@@ -809,7 +812,8 @@ String [] referenceTables, List notIncluded) {
 		}
 		catch (Exception e) {
 			// continue getting the list of table names, but report the error.
-			Message.printWarning(2, routine, e);
+		    Message.printWarning(3, routine, "Error getting list of table names (" + e + ").");
+			Message.printWarning(3, routine, e);
 		}
 	} 
 	try {	
@@ -821,56 +825,17 @@ String [] referenceTables, List notIncluded) {
 
 	// Sort the list of table names in ascending order, ignoring case.
 	tableNames = StringUtil.sortStringList(tableNames, StringUtil.SORT_ASCENDING, null, false, true);
+	Message.printStatus(2, routine, "Read " + tableNames.size() + " tables from database.");
 
-	// Remove the list of system tables for each kind of database (all database types have certain
-	// system tables)
+	// Remove the list of system tables for each kind of database (all database types have certain system tables)
 	boolean isSQLServer = false;
-	String databaseEngine = dmi.getDatabaseEngine();
+	//String databaseEngine = dmi.getDatabaseEngine();
 	int databaseEngineType = dmi.getDatabaseEngineType();
-	Message.printStatus(2, routine, "Removing tables that should be skipped");	
-	if (databaseEngineType == DMI.DBENGINE_ACCESS ) {
-		tableNames.remove("MSysAccessObjects");
-		tableNames.remove("MSysACEs");
-		tableNames.remove("MSysObjects");
-		tableNames.remove("MSysQueries");
-		tableNames.remove("MSysRelationships");
-		tableNames.remove("Paste Errors");
-	}
-	else if (databaseEngineType == DMI.DBENGINE_SQLSERVER) {
-		isSQLServer = true;
-		tableNames.remove("syscolumns");
-		tableNames.remove("syscomments");
-		tableNames.remove("sysdepends");
-		tableNames.remove("sysfilegroups");
-		tableNames.remove("sysfiles");
-		tableNames.remove("sysfiles1");
-		tableNames.remove("sysforeignkeys");
-		tableNames.remove("sysfulltextcatalogs");
-		tableNames.remove("sysfulltextnotify");
-		tableNames.remove("sysindexes");
-		tableNames.remove("sysindexkeys");
-		tableNames.remove("sysmembers");
-		tableNames.remove("sysobjects");
-		tableNames.remove("syspermissions");
-		tableNames.remove("sysproperties");
-		tableNames.remove("sysprotects");
-		tableNames.remove("sysreferences");
-		tableNames.remove("systypes");
-		tableNames.remove("sysusers");
-		tableNames.remove("sysconstraints");
-		tableNames.remove("syssegments");
-		tableNames.remove("dtproperties");
-		tableNames.remove("Paste Errors");
-	}
-	else {	
-		// unsure what tables are specific to other database types, this needs to be checked.
-		Message.printStatus(2, routine, 	
-			"The database engine being used ('" + databaseEngine
-			+ "') is not yet fully supported by the data "
-			+ "dictionary tool.  System tables may be included "
-			+ "and other small issues may be encountered; the "
-			+ "data dictionary will still build correctly otherwise.");	
-	}
+	Message.printStatus(2, routine, "Removing tables that should be skipped");
+	String [] systemTablePatternsToRemove = getSystemTablePatternsToRemove (databaseEngineType);
+    for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {
+        StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
+    }
 	
 	// Remove all the tables that were in the notIncluded parameter passed in to this method.
 	if (notIncluded != null) {
@@ -891,7 +856,7 @@ String [] referenceTables, List notIncluded) {
 		html.paragraph();
 		html.heading(2, dbName + " Tables");
 
-		html.blockquoteStart();
+		//html.blockquoteStart();
 		html.tableStart("border=2 cellspacing=0");
 		html.tableRowStart("valign=top");
 		html.tableRowStart("valign=top bgcolor=#CCCCCC");	
@@ -900,18 +865,29 @@ String [] referenceTables, List notIncluded) {
 		html.tableRowEnd();
 	
 		for (int i = 0; i < size; i++) {
-			String name = (String)tableNames.get(i);
+			String name = tableNames.get(i);
 			html.tableRowStart("valign=top");
 			html.tableCellStart();
 			html.linkStart("#Table:" + name);
 			html.addLinkText(name);
 			html.linkEnd();
 			html.tableCellEnd();
+			temp = "";
 			if (isSQLServer) {
-				temp = getSQLServerTableComment(dmi, name);
+			    // FIXME SAM 2014-03-08 Need to find out why the following error occurs
+			    // Gives error:  The "variant" data type is not supported
+			    /*
+			    try {
+			        temp = getSQLServerTableComment(dmi, name);
+			    }
+			    catch ( Exception e ) {
+			        Message.printWarning(2,routine,"Error getting table \"" + name + "\" comment (" + e + ")" );
+			        temp = "";
+			    }
+			    */
 			}
 			else {
-				temp = (String)tableRemarks.get(i);
+				temp = tableRemarks.get(i);
 			}
 			if (temp.trim().equals("")) {
 				temp = "    ";
@@ -921,10 +897,10 @@ String [] referenceTables, List notIncluded) {
 		}
 
 		html.tableEnd();
-		html.blockquoteEnd();
+		//html.blockquoteEnd();
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error writing list of tables.");
+		Message.printWarning(2, routine, "Error writing list of tables (" + e + ").");
 		Message.printWarning(2, routine, e);
 	}
 
@@ -933,7 +909,7 @@ String [] referenceTables, List notIncluded) {
 		html.paragraph();
 		html.heading(2, "Table Color Legend");
 		html.paragraph();
-		html.blockquoteStart();
+		//html.blockquoteStart();
 
 		html.tableStart("border=2 cellspacing=0");
 		
@@ -974,10 +950,11 @@ String [] referenceTables, List notIncluded) {
 
 		html.tableEnd();
 
-		html.blockquoteEnd();
+		//html.blockquoteEnd();
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, e);
+	    Message.printWarning(3, routine, "Error creating key for tables (" + e + ").");
+		Message.printWarning(3, routine, e);
 	}
 
 	// start the table detail section of the data dictionary.
@@ -985,28 +962,37 @@ String [] referenceTables, List notIncluded) {
 		html.paragraph();
 		html.heading(2, "Table Detail");
 		html.paragraph();
-		html.blockquoteStart();
+		//html.blockquoteStart();
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, e);		
+	    Message.printWarning(3,routine,"Error creating table detail heading (" + e + ").");
+		Message.printWarning(3, routine, e);
 	}
 	
-	String tableName = null;
 	Message.printStatus(2, routine, "Writing table details for tables");
 
 	int engine = dmi.getDatabaseEngineType();
 
-	String priField = null;
-	String priTable = null;
+	String primaryKeyField = null;
+	String primaryKeyTable = null;
 	
-	for (int i = 0; i < size; i++) {
-		tableName = (String)tableNames.get(i);
+	for ( String tableName : tableNames ) {
 		try {	
 			html.anchor("Table:" + tableName);
-			// TODO (JTS - 2004-02-04) table comments are only available now for SQL Server.
+			// TODO (JTS - 2004-02-04) table comments have only been implemented for SQL Server.
 			html.headingStart(3);
-			if ( engine == DMI.DBENGINE_SQLSERVER ){
-				html.addText(tableName + " -- " + getSQLServerTableComment(dmi, tableName));
+			if ( engine == DMI.DBENGINE_SQLSERVER ) {
+			    String tableComment = "";
+			    /* FIXME SAM 2014-03-08 gives error:  The "variant" is not supported.
+			    try {
+			        tableComment = getSQLServerTableComment(dmi, tableName);
+			    }
+			    catch ( Exception e ) {
+			        Message.printStatus(2, routine, "Error getting table \"" + tableName + "\" comment (" + e + ").");
+			        tableComment = "";
+			    }
+			    */
+			    html.addText(tableName + " -- " + tableComment );
 			}
 			else {
 				html.addText(tableName);
@@ -1021,15 +1007,15 @@ String [] referenceTables, List notIncluded) {
 			}
 			
 			html.headingEnd(3);
-			html.blockquoteStart();
+			//html.blockquoteStart();
 
 			// Get a list of all the table columns that are in the Primary key.
 			ResultSet primaryKeysRS = null;
-			List primaryKeysV = null;
+			List<String> primaryKeysV = null;
 			int primaryKeysSize = 0;
 			try {
 				primaryKeysRS = metadata.getPrimaryKeys(null, null, tableName);
-				primaryKeysV = new Vector();
+				primaryKeysV = new ArrayList<String>();
 				while (primaryKeysRS.next()) {
 					primaryKeysV.add(primaryKeysRS.getString(4));	
 				}
@@ -1040,19 +1026,21 @@ String [] referenceTables, List notIncluded) {
 				// If an exception is thrown here, it is probably because the JDBC driver does not
 				// support the "getPrimaryKeys" method.  
 				// No problem, it will be treated as if there were no primary keys.
+			    Message.printWarning(2,routine,"Error getting primary keys for table \"" + tableName +
+			         "\" - not formatting primary keys (" + e + ").");
 			}
 
 			// Get a list of all the table columns that have foreign key references to other tables
 			ResultSet foreignKeysRS = null;
-			List foreignKeyPriTablesV = null;
-			List foreignKeyPriFieldsV = null;
-			List foreignKeyFieldsV = null;
+			List<String> foreignKeyPriTablesV = null;
+			List<String> foreignKeyPriFieldsV = null;
+			List<String> foreignKeyFieldsV = null;
 			int foreignKeysSize = 0;
 			try {
 				foreignKeysRS = metadata.getImportedKeys(null, null, tableName);
-				foreignKeyPriFieldsV = new Vector();
-				foreignKeyPriTablesV = new Vector();
-				foreignKeyFieldsV = new Vector();
+				foreignKeyPriFieldsV = new ArrayList<String>();
+				foreignKeyPriTablesV = new ArrayList<String>();
+				foreignKeyFieldsV = new ArrayList<String>();
 				while (foreignKeysRS.next()) {
 					foreignKeyPriTablesV.add(foreignKeysRS.getString(3));
 					foreignKeyPriFieldsV.add(foreignKeysRS.getString(4));
@@ -1062,15 +1050,17 @@ String [] referenceTables, List notIncluded) {
 				DMI.closeResultSet(foreignKeysRS);
 			}
 			catch (Exception e) {
+			    Message.printWarning(2,routine,"Error getting primary keys for table \"" + tableName +
+	                 "\" - not formatting foreign keys (" + e + ").");
 			}
 
 			// Get a list of all the fields that are exported so that foreign keys can link to them
 			ResultSet exportedKeysRS = null;
-			List exportedKeysV = null;
+			List<String> exportedKeysV = null;
 			int exportedKeysSize = 0;
 			try {
 				exportedKeysRS = metadata.getExportedKeys(null, null, tableName);
-				exportedKeysV = new Vector();
+				exportedKeysV = new ArrayList<String>();
 				while (exportedKeysRS.next()) {
 					exportedKeysV.add(exportedKeysRS.getString(4));
 				}
@@ -1078,42 +1068,44 @@ String [] referenceTables, List notIncluded) {
 				DMI.closeResultSet(exportedKeysRS);
 			}
 			catch (Exception e) {
+			    Message.printWarning(3, routine, "Error getting exported keys for table \"" + tableName + "\" (" + e + ").");
+			    Message.printWarning(3, routine, e);
 			}
 
 			boolean exportedKey = false;
 			boolean foreignKey = false;
 			boolean primaryKey = false;
 			int foreignKeyPos = -1;
-			List columns = new Vector();
-			List columnNames = new Vector();
+			List<List<String>> tableColumnsMetadataList = new ArrayList<List<String>>();
+			List<String> columnNames = new ArrayList<String>();
 
 			// Next, get the actual column data for the current table.
 			rs = metadata.getColumns(null, null, tableName, null);
 			if (rs == null) {
-				Message.printWarning(2, routine, "Error getting columns for \"" + tableName+"\" table.");
+				Message.printWarning(3, routine, "Error getting columns for \"" + tableName+"\" table.");
 				continue;
 			} 
 
-			more = rs.next();
-
-			// Loop through each column and move all its important
-			// data into a list of lists.  This data will
+			// Loop through each column and move all its important data into a list of lists.  This data will
 			// be run through at least twice, and to do that
 			// with a ResultSet would require several expensive opens and closes.
 
 			String columnName = null;
-			while (more) {
+			while (rs.next()) {
 				exportedKey = false;
 				foreignKey = false;
 				primaryKey = false;
 				foreignKeyPos = -1;
-				List column = new Vector();
-				// Do the followign since using List now instead of Vector
+				List<String> columnMetadataList = new ArrayList<String>();
 				for ( int ic = 0; ic < __POS_NUM; ic++ ) {
-					column.set(ic,"");
+					columnMetadataList.add("");
 				}
-				//column.setSize(__POS_NUM);
-			
+				if ( Message.isDebugOn ) {
+				    // TODO SAM 2014-03-09 The following seems to mess up subsequent requests for data
+				    // Subsequent requests give "no data" errors almost as if the first rs.getString() call
+				    // advances the record
+				    printColumnMetadata ( rs );
+				}
 				// Get the 'column name' and store it in list position __POS_COLUMN_NAME
 				columnName = rs.getString(4);
 				if (columnName == null) {
@@ -1122,23 +1114,22 @@ String [] referenceTables, List notIncluded) {
 				else {
 					columnName= columnName.trim();
 				}
-				column.set(__POS_COLUMN_NAME, columnName);
+				columnMetadataList.set(__POS_COLUMN_NAME, columnName);
 				columnNames.add(columnName);
 
-				// Get whether this is a primary key or not
-				// and store either "TRUE" (for it being a 
+				// Get whether this is a primary key or not and store either "TRUE" (for it being a 
 				// primary key) or "FALSE" in list position __POS_IS_PRIMARY_KEY
 				for (int j = 0; j < primaryKeysSize; j++) {
-					if (columnName.equals(((String)primaryKeysV.get(j)).trim())) {
+					if (columnName.equals(primaryKeysV.get(j).trim())) {
 						primaryKey = true;		
 						j = primaryKeysSize + 1;
 					}
 				}				
 				if (primaryKey) {
-					column.set(__POS_IS_PRIMARY_KEY,"TRUE");
+					columnMetadataList.set(__POS_IS_PRIMARY_KEY,"TRUE");
 				}
 				else {
-					column.set(__POS_IS_PRIMARY_KEY,"FALSE");
+					columnMetadataList.set(__POS_IS_PRIMARY_KEY,"FALSE");
 				}
 
 				// Get the 'column type' and store it in list position __POS_COLUMN_TYPE
@@ -1149,19 +1140,19 @@ String [] referenceTables, List notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.set(__POS_COLUMN_TYPE,temp);
+				columnMetadataList.set(__POS_COLUMN_TYPE,temp);
 
 				// Get the 'column size' and store it in list position __POS_COLUMN_SIZE
 				temp = rs.getString(7);
-				column.set(__POS_COLUMN_SIZE,temp );
+				columnMetadataList.set(__POS_COLUMN_SIZE,temp );
 				
 				// Get the 'column num digits' and store it in list position __POS_NUM_DIGITS
 				temp = rs.getString(9);
 				if (temp == null) {
-					column.set(__POS_NUM_DIGITS,"0");
+					columnMetadataList.set(__POS_NUM_DIGITS,"0");
 				}
 				else {
-					column.set(__POS_NUM_DIGITS,temp);
+					columnMetadataList.set(__POS_NUM_DIGITS,temp);
 				}
 
 				// Get whether the column is nullable and store it in list position __POS_NULLABLE
@@ -1172,36 +1163,37 @@ String [] referenceTables, List notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.set(__POS_NULLABLE, temp );
+				columnMetadataList.set(__POS_NULLABLE, temp );
 				
 				// Get the column remarks and store them in list position __POS_REMARKS
 				if (isSQLServer) {
-					column.set(__POS_REMARKS,getSQLServerColumnComment(dmi, tableName, columnName)	);
+	                temp = rs.getString(12);
+					//columnData.set(__POS_REMARKS,getSQLServerColumnComment(dmi, tableName, columnName));
 				} 
 				else {
 					temp = rs.getString(12);
-					if (temp == null) {
-						temp = "   ";
-					} 
-					else {
-						temp = temp.trim();
-					}
-					column.set(__POS_REMARKS,temp);
 				}
+				if (temp == null) {
+					temp = "   ";
+				} 
+				else {
+					temp = temp.trim();
+				}
+				columnMetadataList.set(__POS_REMARKS,temp);
 				
 				// Get whether the column is exported for foreign keys to connect to and store it
 				// in Vector position __POS_EXPORTED as either "TRUE" or "FALSE"
 				for (int j = 0; j < exportedKeysSize; j++) {
-					if (columnName.equals(((String)exportedKeysV.get(j)).trim())) {
+					if (columnName.equals(exportedKeysV.get(j).trim())) {
 						exportedKey = true;		
 						j = exportedKeysSize + 1;
 					}
 				}				
 				if (exportedKey) {
-					column.set(__POS_EXPORTED,"TRUE");
+					columnMetadataList.set(__POS_EXPORTED,"TRUE");
 				}
 				else {
-					column.set(__POS_EXPORTED,"FALSE");
+					columnMetadataList.set(__POS_EXPORTED,"FALSE");
 				}
 
 				// Get whether the column is a foreign key field and store it in Vector position 
@@ -1215,25 +1207,24 @@ String [] referenceTables, List notIncluded) {
 				// __POS_PRIMARY_FIELD.  If not a foreign key, that position will be null.
 
 				for (int j = 0; j < foreignKeysSize; j++) {
-					if (columnName.equals( ((String)foreignKeyFieldsV.get(j)).trim())) {
+					if (columnName.equals( foreignKeyFieldsV.get(j).trim())) {
 						foreignKey = true;		
 						foreignKeyPos = j; 
 						j = foreignKeysSize + 1;
 					}
 				}				
 				if (foreignKey) {
-					column.set(__POS_FOREIGN,"TRUE");
-					column.set(__POS_PRIMARY_TABLE,(String)foreignKeyPriTablesV.get(foreignKeyPos));
-					column.set(__POS_PRIMARY_FIELD,(String)foreignKeyPriFieldsV.get(foreignKeyPos));
+					columnMetadataList.set(__POS_FOREIGN,"TRUE");
+					columnMetadataList.set(__POS_PRIMARY_TABLE,foreignKeyPriTablesV.get(foreignKeyPos));
+					columnMetadataList.set(__POS_PRIMARY_FIELD,foreignKeyPriFieldsV.get(foreignKeyPos));
 				}
 				else {
-					column.set(__POS_FOREIGN,"FALSE");
-					column.set(__POS_PRIMARY_TABLE,null);
-					column.set(__POS_PRIMARY_FIELD,null);
+					columnMetadataList.set(__POS_FOREIGN,"FALSE");
+					columnMetadataList.set(__POS_PRIMARY_TABLE,null);
+					columnMetadataList.set(__POS_PRIMARY_FIELD,null);
 				}
 				
-				columns.add(column);
-				more = rs.next();			
+				tableColumnsMetadataList.add(columnMetadataList);		
 			}
 
 			try {	
@@ -1255,34 +1246,38 @@ String [] referenceTables, List notIncluded) {
 			}
 			html.tableRowEnd();			
 
-			// Next, an alphabetized list of the column names
-			// in the table will be compiled.  This will be used
+			// Next, an alphabetized list of the column names in the table will be compiled.  This will be used
 			// to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
+			// FIXME SAM 2014-03-08 set the order to the original for now
+			// Some code most have been lost here
+			for ( int j = 0; j < numColumns; j++ ) {
+			    order[j] = j;
+			}
 			List[] sortedVectors = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedVectors[j] = (List)columns.get(order[j]);
+				sortedVectors[j] = (List)tableColumnsMetadataList.get(order[j]);
 			}
 			
-			// Now that the sorted order of the column names (and the Vectors of data) is known,
-			// loop through the data Vectors looking for columns which are in 
+			// Now that the sorted order of the column names (and the lists of data) is known,
+			// loop through the data lists looking for columns which are in 
 			// the Primary key.  They will be displayed in bold face font with a yellow background.
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedVectors[j];
+				List<String> columnData = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.get(__POS_IS_PRIMARY_KEY);
+				temp = columnData.get(__POS_IS_PRIMARY_KEY);
 
 				if (temp.equals("TRUE")) {
 					html.tableRowStart("valign=top bgcolor=yellow");
 					
 					// display the column name
-					temp = (String)column.get(__POS_COLUMN_NAME);
+					temp = columnData.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.boldStart();
 
-					temp2 = (String)column.get(__POS_EXPORTED);
+					temp2 = columnData.get(__POS_EXPORTED);
 					if (temp2.equals("TRUE")) {
 						html.anchor("Table:" + tableName + "." + temp);
 					}
@@ -1292,7 +1287,7 @@ String [] referenceTables, List notIncluded) {
 					html.tableCellEnd();
 
 					// display the remarks
-					temp = (String)column.get(__POS_REMARKS);
+					temp = columnData.get(__POS_REMARKS);
 					html.tableCellStart();
 					html.boldStart();
 					html.addText(temp);
@@ -1300,10 +1295,9 @@ String [] referenceTables, List notIncluded) {
 					html.tableCellEnd();
 
 					// display the column type
-					temp = (String)column.get(__POS_COLUMN_TYPE);
+					temp = columnData.get(__POS_COLUMN_TYPE);
 					if (temp.equalsIgnoreCase("real")) {
-						temp = temp + "(" + (String)column.get(__POS_COLUMN_SIZE)
-						+ ", " + (String)column.get(__POS_NUM_DIGITS) + ")";
+						temp = temp + "(" + columnData.get(__POS_COLUMN_SIZE) + ", " + columnData.get(__POS_NUM_DIGITS) + ")";
 					}
 					else if (temp.equalsIgnoreCase("float")||
 						(temp.equalsIgnoreCase("double"))||
@@ -1314,7 +1308,7 @@ String [] referenceTables, List notIncluded) {
 						(temp.equalsIgnoreCase("datetime"))) {
 					}
 					else {
-						temp = temp + "(" + (String)column.get(__POS_COLUMN_SIZE) + ")";
+						temp = temp + "(" + columnData.get(__POS_COLUMN_SIZE) + ")";
 					}					
 					html.tableCellStart();
 					html.boldStart();
@@ -1323,22 +1317,22 @@ String [] referenceTables, List notIncluded) {
 					html.tableCellEnd();
 
 					// display whether it's nullable
-					temp = (String)column.get(__POS_NULLABLE);
+					temp = columnData.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.boldStart();
 					html.addText(temp);
 					html.boldEnd();
 					html.tableCellEnd();
 
-					temp = (String)column.get(__POS_FOREIGN);
+					temp = columnData.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
 						html.tableCellStart();
-						priTable = (String)column.get(__POS_PRIMARY_TABLE);
-						priField = (String)column.get(__POS_PRIMARY_FIELD);
+						primaryKeyTable = columnData.get(__POS_PRIMARY_TABLE);
+						primaryKeyField = columnData.get(__POS_PRIMARY_FIELD);
 
-						html.link("#Table:" + priTable,	priTable);
+						html.link("#Table:" + primaryKeyTable,	primaryKeyTable);
 						html.addLinkText(".");
-						html.link("#Table:" + priTable + "." + priField, priField);
+						html.link("#Table:" + primaryKeyTable + "." + primaryKeyField, primaryKeyField);
 						html.tableCellEnd();
 					}
 					else if (foreignKeysSize > 0) {
@@ -1351,37 +1345,37 @@ String [] referenceTables, List notIncluded) {
 
 			// Now do the same thing for the other fields, the non-primary key fields.  
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedVectors[j];
+				List<String> column = sortedVectors[j];
 				temp = null;
 
-				temp = (String)column.get(__POS_IS_PRIMARY_KEY);
+				temp = column.get(__POS_IS_PRIMARY_KEY);
 
 				if (temp.equals("FALSE")) {
-					temp = (String)column.get(__POS_FOREIGN);
+					temp = column.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
-						html.tableRowStart( "valign=top " + "bgcolor=orange");
+						html.tableRowStart( "valign=top bgcolor=orange");
 					}
 					else {
 						html.tableRowStart( "valign=top");
 					}
 					
 					// display the column name
-					temp = (String)column.get(__POS_COLUMN_NAME);
+					temp = column.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
 					// display the remarks
-					temp = (String)column.get(__POS_REMARKS);
+					temp = column.get(__POS_REMARKS);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
 					// display the column type
-					temp = (String)column.get(__POS_COLUMN_TYPE);
+					temp = column.get(__POS_COLUMN_TYPE);
 					if (temp.equalsIgnoreCase("real")) {
-						temp = temp + "(" + (String)column.get(__POS_COLUMN_SIZE)
-						+ ", " + (String)column.get(__POS_NUM_DIGITS) + ")";
+						temp = temp + "(" + column.get(__POS_COLUMN_SIZE)
+						+ ", " + column.get(__POS_NUM_DIGITS) + ")";
 					}
 					else if (temp.equalsIgnoreCase("float")||
 						(temp.equalsIgnoreCase("double"))||
@@ -1392,27 +1386,27 @@ String [] referenceTables, List notIncluded) {
 						(temp.equalsIgnoreCase("datetime"))) {
 					}
 					else {
-						temp = temp + "(" + (String)column.get(__POS_COLUMN_SIZE) + ")";
+						temp = temp + "(" + column.get(__POS_COLUMN_SIZE) + ")";
 					}					
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
 					// display whether it's nullable
-					temp = (String)column.get(__POS_NULLABLE);
+					temp = column.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.addText(temp);
 					html.tableCellEnd();
 
-					temp = (String)column.get(__POS_FOREIGN);
+					temp = column.get(__POS_FOREIGN);
 					if (temp.equals("TRUE")) {
 						html.tableCellStart();
-						priTable = (String)column.get(__POS_PRIMARY_TABLE);
-						priField = (String)column.get(__POS_PRIMARY_FIELD);
+						primaryKeyTable = column.get(__POS_PRIMARY_TABLE);
+						primaryKeyField = column.get(__POS_PRIMARY_FIELD);
 
-						html.link("#Table:" + priTable, priTable);
+						html.link("#Table:" + primaryKeyTable, primaryKeyTable);
 						html.addLinkText(".");
-						html.link("#Table:" + priTable + "." + priField, priField);
+						html.link("#Table:" + primaryKeyTable + "." + primaryKeyField, primaryKeyField);
 						html.tableCellEnd();
 					}
 					else if (foreignKeysSize > 0) {
@@ -1425,11 +1419,11 @@ String [] referenceTables, List notIncluded) {
 
 			// Close the table, insert a paragraph break, and get ready to do it again for the next table.
 			html.tableEnd();
-			html.blockquoteEnd();
+			//html.blockquoteEnd();
 			html.paragraph();
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, "Error printing column information for table: " + tableName);
+			Message.printWarning(2, routine, "Error printing column information for table \"" + tableName + "\" (" + e + ").");
 			Message.printWarning(2, routine, e);
 		}
 	}
@@ -1447,10 +1441,11 @@ String [] referenceTables, List notIncluded) {
 			html.paragraph();
 			html.heading(2, "Reference Table Contents");
 			html.paragraph();
-			html.blockquoteStart();
+			//html.blockquoteStart();
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, e);
+		    Message.printWarning(3, routine, "Error printing header for reference table contents (" + e + ").");
+			Message.printWarning(3, routine, e);
 		}
 	}
 
@@ -1461,7 +1456,7 @@ String [] referenceTables, List notIncluded) {
 	// in the referenceTables array and get a list of its column names
 	// and then print out all of its data in one table.
 	for (int i = 0; i < referenceTables.length; i++) {
-		tableName = referenceTables[i];
+		String tableName = referenceTables[i];
 	
 		try {	
 			rs = metadata.getColumns(null, null, tableName, null);
@@ -1474,7 +1469,7 @@ String [] referenceTables, List notIncluded) {
 			html.addText(tableName + "  ");
 			html.link("#Table:" + tableName, "(View Definition)");
 			html.headingEnd(3);
-			html.blockquoteStart();
+			//html.blockquoteStart();
 
 			List columnNames = new Vector();
 			more = rs.next();
@@ -1537,11 +1532,11 @@ String [] referenceTables, List notIncluded) {
 				html.tableEnd();
 				DMI.closeResultSet(rs);
 			}
-			html.blockquoteEnd();
+			//html.blockquoteEnd();
 			html.paragraph();		
 		}
 		catch (Exception e) {
-			Message.printWarning(2, routine, "Error dumping reference table data.");
+			Message.printWarning(2, routine, "Error dumping reference table data (" + e + ").");
 			Message.printWarning(2, routine, e);
 		}
 	}
@@ -1552,7 +1547,7 @@ String [] referenceTables, List notIncluded) {
 		html.closeFile();
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error closing the HTML file");
+		Message.printWarning(2, routine, "Error closing the HTML file (" + e + ").");
 		Message.printWarning(2, routine, e);
 	}		
 	Message.printStatus(2, routine, "Done creating data dictionary");
@@ -3333,161 +3328,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	// Remove the list of system tables for each kind of database 
 	// (all database types have certain system tables)
 	// TODO SAM 2012-01-31 Should be able to do from metadata but SQL Server does not indicate system tables.
-	String [] systemTablePatternsToRemove = new String[0];
-	if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
-		String [] systemTablePatternsToRemove0 = {
-		    "MSysAccessObjects",
-    		"MSysACEs",
-    		"MSysObjects",
-    		"MSysQueries",
-    		"MSysRelationships",
-    		"Paste Errors"
-		};
-		systemTablePatternsToRemove = systemTablePatternsToRemove0;
-	}
-	else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
-		String [] systemTablePatternsToRemove0 = {
-        // Older SQL Server (pre 2005 ?)...
-        // Use .* for regex when glob * is needed - the following deals with ignoring case
-        "syscolumns",
-        "syscomments",
-        "sysdepends",
-        "sysfilegroups",
-        "sysfiles",
-        "sysfiles1",
-        "sysforeignkeys",
-        "sysfulltextcatalogs",
-        "sysfulltextnotify",
-        "sysindexes",
-        "sysindexkeys",
-        "sysmembers",
-        "sysobjects",
-        "syspermissions",
-        "sysproperties",
-        "sysprotects",
-        "sysreferences",
-        "systypes",
-        "sysusers",
-        "sysconstraints",
-        "syssegments",
-        "dtproperties",
-        // Newer SQL Server (2005+ ?)...
-        // Use .* for regex when glob * is needed - the following deals with ignoring case
-        "all_columns",
-        "all_objects",
-        "all_parameters",
-        "all_sql_modules",
-        "all_views",
-        "allocation_keys",
-        "allocation_units",
-        "assemblies",
-        "assembly_.*",
-        "asymmetric_keys",
-        "availability_.*",
-        "backup_devices",
-        "certificates",
-        "check_constraints",
-        "column_.*",
-        "columns",
-        "computed_columns",
-        "configurations",
-        "constraint_.*",
-        "conversation_.*",
-        "credentials",
-        "crypt_properties",
-        "cryptographic_.*",
-        "databases",
-        "database_.*",
-        "data_spaces",
-        "default_constraints",
-        "destination_data.*",
-        "dm_.*",
-        "domains",
-        "domain_constraints",
-        "change_tracking.*",
-        "endpoints",
-        "endpoint_webmethods",
-        "event_notification.*",
-        "events",
-        "extended_.*",
-        "filegroups",
-        "filetable.*",
-        "foreign_key.*",
-        "fulltext_.*",
-        "function_.*",
-        "http_endpoints",
-        "identity_columns",
-        "index_columns",
-        "indexes",
-        "internal_tables",
-        "key_.*",
-        "linked_logins",
-        "login_token",
-        "master_.*",
-        "messages",
-        "message_.*",
-        "module_.*",
-        "numbered_.*",
-        "objects",
-        "openkeys",
-        "parameter_.*",
-        "parameters",
-        "partition_.*",
-        "partitions",
-        "plan_guides",
-        "procedures.*",
-        "referential_.*",
-        "remote_.*",
-        "registered_search.*",
-        "resource_.*",
-        "routes",
-        "routine_columns",
-        "routines",
-        "sequences",
-        "schemas",
-        "schemata",
-        "securable_classes",
-        "selective_xml.*",
-        "server_.*",
-        "servers",
-        "service_.*",
-        "services",
-        "soap_.*",
-        "spatial_.*",
-        "spt_.*",
-        "sql_.*",
-        "stats",
-        "stats_columns",
-        "symmetric_keys",
-        "synonyms",
-        "system_.*",
-        "sys.*",
-        "tables",
-        "table_constraints",
-        "table_privileges",
-        "table_types",
-        "tcp_endpoints",
-        "trace_.*",
-        "traces",
-        "transmission_queue",
-        "triggers",
-        "trigger_.*",
-        "types",
-        "type_assembly_usages",
-        "user_token",
-        "version",
-        "via_endpoints",
-        "views",
-        "view_column_usage",
-        "view_table_usage",
-        "xml_indexes",
-        "xml_schema.*",
-		};
-		systemTablePatternsToRemove = systemTablePatternsToRemove0;
-	}
-	else {	
-		// TODO SAM 2012-01-31 Unsure what tables are specific to other database types, this needs to be checked.
-	}
+	String [] systemTablePatternsToRemove = getSystemTablePatternsToRemove (dmi.getDatabaseEngineType() );
 	
 	if ( removeSystemTables ) {
 	    Message.printStatus(2, routine, "Removing system tables from table list");
@@ -3679,22 +3520,189 @@ Returns the comment for a column in a SQL Server database.
 @param columnName the name of the column for which to return the comment.  Must not be null.
 @return the comment for a column in a SQL Server database.
 */
-public static String getSQLServerColumnComment(DMI dmi, String tableName, 
-String columnName) 
+public static String getSQLServerColumnComment(DMI dmi, String tableName, String columnName) 
 throws Exception {
-	String SQL = "SELECT * FROM ::fn_listextendedproperty('MS_Description'"
-		+ ",'user','dbo', 'table','" + tableName + "','column'"
-		+ ",'" + columnName + "')";
-	ResultSet rs = dmi.dmiSelect(SQL);
-
-	boolean more = rs.next();
-
-	String comment = "   ";
-	if (more) {
-		comment = rs.getString(4);
-	}
-	DMI.closeResultSet(rs);
+    boolean doMeta = false;
+    String comment = "   ";
+    if ( doMeta ) {
+        
+    }
+    else {
+    	String SQL = "SELECT * FROM ::fn_listextendedproperty('MS_Description'"
+    		+ ",'user','dbo', 'table','" + tableName + "','column'"	+ ",'" + columnName + "')";
+    	ResultSet rs = dmi.dmiSelect(SQL);
+    
+    	boolean more = rs.next();
+    
+    	if (more) {
+    		comment = rs.getString(4);
+    	}
+    	DMI.closeResultSet(rs);
+    }
 	return comment;	
+}
+
+/**
+Return a list of system table name patterns to remove.  These are internal tables that should not be visible to users.
+*/
+private static String [] getSystemTablePatternsToRemove ( int databaseEngineType )
+{
+    String [] systemTablePatternsToRemove = new String[0];
+    if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
+        String [] systemTablePatternsToRemove0 = {
+            "MSysAccessObjects",
+            "MSysACEs",
+            "MSysObjects",
+            "MSysQueries",
+            "MSysRelationships",
+            "Paste Errors"
+        };
+        systemTablePatternsToRemove = systemTablePatternsToRemove0;
+    }
+    else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+        String [] systemTablePatternsToRemove0 = {
+        // Older SQL Server (pre 2005 ?)...
+        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        "syscolumns",
+        "syscomments",
+        "sysdepends",
+        "sysfilegroups",
+        "sysfiles",
+        "sysfiles1",
+        "sysforeignkeys",
+        "sysfulltextcatalogs",
+        "sysfulltextnotify",
+        "sysindexes",
+        "sysindexkeys",
+        "sysmembers",
+        "sysobjects",
+        "syspermissions",
+        "sysproperties",
+        "sysprotects",
+        "sysreferences",
+        "systypes",
+        "sysusers",
+        "sysconstraints",
+        "syssegments",
+        "dtproperties",
+        // Newer SQL Server (2005+ ?)...
+        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        "all_columns",
+        "all_objects",
+        "all_parameters",
+        "all_sql_modules",
+        "all_views",
+        "allocation_keys",
+        "allocation_units",
+        "assemblies",
+        "assembly_.*",
+        "asymmetric_keys",
+        "availability_.*",
+        "backup_devices",
+        "certificates",
+        "check_constraints",
+        "column_.*",
+        "columns",
+        "computed_columns",
+        "configurations",
+        "constraint_.*",
+        "conversation_.*",
+        "credentials",
+        "crypt_properties",
+        "cryptographic_.*",
+        "databases",
+        "database_.*",
+        "data_spaces",
+        "default_constraints",
+        "destination_data.*",
+        "dm_.*",
+        "domains",
+        "domain_constraints",
+        "change_tracking.*",
+        "endpoints",
+        "endpoint_webmethods",
+        "event_notification.*",
+        "events",
+        "extended_.*",
+        "filegroups",
+        "filetable.*",
+        "foreign_key.*",
+        "fulltext_.*",
+        "function_.*",
+        "http_endpoints",
+        "identity_columns",
+        "index_columns",
+        "indexes",
+        "internal_tables",
+        "key_.*",
+        "linked_logins",
+        "login_token",
+        "master_.*",
+        "messages",
+        "message_.*",
+        "module_.*",
+        "numbered_.*",
+        "objects",
+        "openkeys",
+        "parameter_.*",
+        "parameters",
+        "partition_.*",
+        "partitions",
+        "plan_guides",
+        "procedures.*",
+        "referential_.*",
+        "remote_.*",
+        "registered_search.*",
+        "resource_.*",
+        "routes",
+        "routine_columns",
+        "routines",
+        "sequences",
+        "schemas",
+        "schemata",
+        "securable_classes",
+        "selective_xml.*",
+        "server_.*",
+        "servers",
+        "service_.*",
+        "services",
+        "soap_.*",
+        "spatial_.*",
+        "spt_.*",
+        "sql_.*",
+        "stats",
+        "stats_columns",
+        "symmetric_keys",
+        "synonyms",
+        "system_.*",
+        "sys.*",
+        "tables",
+        "table_constraints",
+        "table_privileges",
+        "table_types",
+        "tcp_endpoints",
+        "trace_.*",
+        "traces",
+        "transmission_queue",
+        "triggers",
+        "trigger_.*",
+        "types",
+        "type_assembly_usages",
+        "user_token",
+        "version",
+        "via_endpoints",
+        "views",
+        "view_column_usage",
+        "view_table_usage",
+        "xml_indexes",
+        "xml_schema.*",
+        };
+        systemTablePatternsToRemove = systemTablePatternsToRemove0;
+    }
+    else {  
+        // TODO SAM 2012-01-31 Unsure what tables are specific to other database types, this needs to be checked.
+    }
+    return systemTablePatternsToRemove;
 }
 
 /**
@@ -4004,6 +4012,41 @@ private static boolean isMissingLong(long value) {
 }
 
 /**
+Print the column metadata from a result set.
+*/
+private static void printColumnMetadata ( ResultSet rs )
+{
+    try {
+        Message.printStatus(2,"","TABLE_CAT=" + rs.getString(1) );
+        Message.printStatus(2,"","TABLE_SCHEM=" + rs.getString(2) );
+        Message.printStatus(2,"","TABLE_NAME=" + rs.getString(3) );
+        Message.printStatus(2,"","COLUMN_NAME=" + rs.getString(4) );
+        Message.printStatus(2,"","DATA_TYPE=" + rs.getInt(5) );
+        Message.printStatus(2,"","TYPE_NAME=" + rs.getString(6) );
+        Message.printStatus(2,"","COLUMN_SIZE=" + rs.getInt(7) );
+        Message.printStatus(2,"","BUFFER_LENGTH=" + rs.getInt(8) );
+        Message.printStatus(2,"","DECIMAL_DIGITS=" + rs.getInt(9) );
+        Message.printStatus(2,"","NUM_PREC_RADIX=" + rs.getInt(10) );
+        Message.printStatus(2,"","NULLABLE=" + rs.getInt(11) );
+        Message.printStatus(2,"","REMARKS=" + rs.getString(12) );
+        Message.printStatus(2,"","COLUMN_DEF=" + rs.getString(13) );
+        Message.printStatus(2,"","SQL_DATA_TYPE=" + rs.getInt(14) );
+        Message.printStatus(2,"","SQL_DATETIME_SUB=" + rs.getInt(15) );
+        Message.printStatus(2,"","CHAR_OCTET_LENGTH=" + rs.getInt(16) );
+        Message.printStatus(2,"","ORDINAL_POSITION=" + rs.getInt(17) );
+        Message.printStatus(2,"","IS_NULLABLE=" + rs.getString(18) );
+        Message.printStatus(2,"","SCOPE_CATLOG=" + rs.getString(19) );
+        Message.printStatus(2,"","SCOPE_SCHEMA=" + rs.getString(20) );
+        Message.printStatus(2,"","SCOPE_TABLE=" + rs.getString(21) );
+        Message.printStatus(2,"","SOURCE_DATA_TYPE=" + rs.getString(22) );
+        Message.printStatus(2,"","IS_AUTOINCREMENT=" + rs.getString(23) );
+    }
+    catch ( Exception e ) {
+        // Ignore, most likely something like Microsoft Access not supporting indices correctly
+    }
+}
+
+/**
 Uses Message.printDebug(1, ...) to print out the results stored in a 
 list of lists (which has been returned from a call to processResultSet)
 */
@@ -4203,6 +4246,54 @@ throws SQLException {
 	}
 
 	return names;
+}
+
+/**
+Remove comments from an SQL statement.  This is needed because some databases such as Microsoft Access
+do not allow comments.  Currently only C-style slash-dot and dot-slash comments are removed.
+@param sql SQL statement to process.
+*/
+public static String removeCommentsFromSql ( String sql )
+{
+    StringBuilder s = new StringBuilder(sql);
+    // Search for /* */ comments until none are left
+    int pos1 = 0;
+    int pos2 = 0;
+    int lenRemoved;
+    while ( true ) {
+        pos1 = s.indexOf("/*",pos2);
+        pos2 = s.indexOf("*/",pos2);
+        if ( (pos1 < 0) || (pos2 < 0) ) {
+            break;
+        }
+        s.delete(pos1,(pos2 + 2));
+        lenRemoved = pos2 - pos1 + 2;
+        pos2 = pos2 - lenRemoved;
+        if ( pos2 > (s.length() - 1) ) {
+            break;
+        }
+    }
+    // Search for -- to newline until none are left
+    pos1 = 0;
+    while ( true ) {
+        pos1 = s.indexOf("--",pos1);
+        pos2 = s.indexOf("\n",pos2);
+        if ( pos2 < 0 ) {
+            // Go to the end of the string (-1 because incremented below)
+            pos2 = s.length() - 1;
+        }
+        if ( (pos1 < 0) || (pos2 < 0) ) {
+            break;
+        }
+        // The following should work even if \r\n is used for new lines
+        s.delete(pos1,(pos2 + 1));
+        lenRemoved = pos2 - pos1 + 1;
+        pos2 = pos2 - lenRemoved;
+        if ( pos2 > (s.length() - 1) ) {
+            break;
+        }
+    }
+    return s.toString();
 }
 
 /**

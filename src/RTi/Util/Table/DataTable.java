@@ -98,6 +98,7 @@ import java.util.Map;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
@@ -192,7 +193,7 @@ protected boolean _trim_strings = true;
 /**
 Indicates whether addRecord() has been called.  If so, assume that the data records
 are in memory for calls to getNumberOfRecords(). Otherwise, just return the _num_records value.
- */
+*/
 protected boolean _add_record_called = false;
 
 /**
@@ -250,7 +251,8 @@ public void addToComments( List<String> comments )
 }
 
 /**
-Adds a record to the list of TableRecords maintained in the DataTable.
+Adds a record to end of the list of TableRecords maintained in the DataTable.
+Use insertRecord() to insert within the existing records.
 @param newRecord new record to be added.
 @exception Exception when the number of fields in new_record is not equal to the
 number of fields in the current TableField declaration.
@@ -698,7 +700,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
-        if ( distinctColumnNumbers.length > 0 ) {
+        if ( (distinctColumnNumbers != null) && (distinctColumnNumbers.length > 0) ) {
             // Distinct columns can be done on any columns so loop through to see if row matches before doing copy
             // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked
             distinctMatches = false;
@@ -1488,6 +1490,35 @@ Initialize the data.
 private void initialize ( List<TableField> tableFieldsList, int listSize, int sizeIncrement )
 {	_table_fields = tableFieldsList;
 	_table_records = new ArrayList<TableRecord> ( 10 );
+}
+
+/**
+Insert a table record into the table.  If inserting at the start or middle, the provided table record will be inserted and
+all other records will be shifted.  If inserting after the existing records, empty records will be added up to the requested
+insert position.
+@param row row position (0+) to insert the record
+@param record table record to insert
+@param doCheck indicate whether the record should be checked against the table for consistency; false inserts with no check
+(currently this parameter is not enabled).  Use emptyRecord() to create a record that matches the table design.
+@exception Exception if there is an error inserting the record
+*/
+public void insertRecord ( int row, TableRecord record, boolean doCheck )
+throws Exception
+{
+    // TODO SAM 2014-02-01 enable doCheck
+    int nRows = getNumberOfRecords();
+    if ( row < nRows ) {
+        // Inserting in the existing table
+        _table_records.add ( row, record );
+    }
+    else {
+        // Appending - add blank rows up until the last one
+        for ( int i = nRows; i < row; i++ ) {
+            addRecord(emptyRecord());
+        }
+        // Now add the final record
+        addRecord ( record );
+    }
 }
 
 /**
@@ -3184,12 +3215,14 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     }
 }
 
+// TODO SAM 2013-12-16 need to allow support of multiple columns at some point
 /**
 Sort the table rows by sorting a column's values.
-@param sortColumn the name of the column to be sorted
+@param sortColumn the name of the column to be sorted, allowed to be integer, double, string, or DateTime type.
+@param sortOrder order to sort (specify as 0+ to sort ascending and < 0 to sort descending)
 @return the sort order array (useful if a parallel sort of data needs to occur)
 */
-public int [] sortTable ( String sortColumn )
+public int [] sortTable ( String sortColumn, int sortOrder )
 {
     int sortColumnNum = -1;
     try {
@@ -3200,9 +3233,9 @@ public int [] sortTable ( String sortColumn )
             getTableID() + "\"" );
     }
     int nrecords = getNumberOfRecords();
-    int [] sortOrder = new int[nrecords];
-    String value;
+    int [] sortOrderArray = new int[nrecords];
     if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_STRING ) {
+        String value;
         List<String> values = new ArrayList<String>(nrecords);
         int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
@@ -3221,24 +3254,100 @@ public int [] sortTable ( String sortColumn )
                 throw new RuntimeException ( e );
             }
         }
-        StringUtil.sortStringList(values, StringUtil.SORT_ASCENDING, sortOrder, true, true);
-        // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
-        // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
-        // that to sort into an updated original list.
-        List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
-        List<TableRecord> records = getTableRecords();
-        for ( TableRecord rec : records ) {
-            backup.add ( rec );
+        int sortFlag = StringUtil.SORT_ASCENDING;
+        if ( sortOrder < 0 ) {
+            sortFlag = StringUtil.SORT_DESCENDING;
         }
-        // Now copy from the backup to the original list
-        for ( irec = 0; irec < nrecords; irec++ ) {
-            records.set(irec, backup.get(sortOrder[irec]) );
+        StringUtil.sortStringList(values, sortFlag, sortOrderArray, true, true);
+    }
+    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DATETIME ) {
+        Object value;
+        double [] values = new double[nrecords];
+        int irec = -1;
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            try {
+                value = rec.getFieldValue(sortColumnNum);
+                if ( value == null ) {
+                    value = -Double.MAX_VALUE;
+                }
+                values[irec] = ((DateTime)value).toDouble();
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
         }
+        int sortFlag = MathUtil.SORT_ASCENDING;
+        if ( sortOrder < 0 ) {
+            sortFlag = MathUtil.SORT_DESCENDING;
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
+    }
+    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DOUBLE) {
+        Double value;
+        double [] values = new double[nrecords];
+        int irec = -1;
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            try {
+                value = (Double)rec.getFieldValue(sortColumnNum);
+                if ( value == null ) {
+                    value = -Double.MAX_VALUE;
+                }
+                values[irec] = value;
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        int sortFlag = MathUtil.SORT_ASCENDING;
+        if ( sortOrder < 0 ) {
+            sortFlag = MathUtil.SORT_DESCENDING;
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
+    }
+    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_INT) {
+        Integer value;
+        int [] values = new int[nrecords];
+        int irec = -1;
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            try {
+                value = (Integer)rec.getFieldValue(sortColumnNum);
+                if ( value == null ) {
+                    value = -Integer.MAX_VALUE;
+                }
+                values[irec] = value;
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        int sortFlag = MathUtil.SORT_ASCENDING;
+        if ( sortOrder < 0 ) {
+            sortFlag = MathUtil.SORT_DESCENDING;
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
     }
     else {
-        throw new RuntimeException ( "Sorting table only implemented for string columns." );
+        throw new RuntimeException ( "Sorting table only implemented for string, integer, double and DateTime columns." );
     }
-    return sortOrder;
+    // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
+    // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
+    // that to sort into an updated original list.
+    List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
+    List<TableRecord> records = this.getTableRecords();
+    for ( TableRecord rec : records ) {
+        backup.add ( rec );
+    }
+    // Now set from the backup to the original list
+    for ( int irec = 0; irec < nrecords; irec++ ) {
+        records.set(irec, backup.get(sortOrderArray[irec]) );
+    }
+    return sortOrderArray;
 }
 
 /**

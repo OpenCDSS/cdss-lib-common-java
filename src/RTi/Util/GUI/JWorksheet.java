@@ -6592,16 +6592,18 @@ private void sortColumn(int order) {
 		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);		
 	} 
 	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort()
-	else if (getColumnClass(absColumn) == Date.class) {		
+	else if (getColumnClass(absColumn) == Date.class) {
+	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used
 		List v = new Vector(size);
-		Date d = null;
+		Object o = null;
 		for (int i = 0; i < size; i++) {
-			d = (Date)getValueAt(i, __popupColumn);
-			if (d == null) {
+			//d = (Date)
+		    o = getValueAt(i, __popupColumn);
+			if (o == null) {
 				v.add("");
 			}
 			else {
-				v.add(d.toString());
+				v.add("" + o);
 			}
 		}
 		StringUtil.sortStringList(v, order, sortOrder, true, true);

@@ -30,14 +30,14 @@ private static int addCommandHTML(Command command, HTMLStatusAssembler assembler
         cs = ((CommandStatusProvider)command).getCommandStatus();
         if (isProblematic(cs)) {
             problemsFound = 1;
-            // add Command
-            assembler.addCommand(command.toString());
-
-            // add Command Summary Table
-            addCommandSummary(cs, assembler);
-
-            addCommandDetailTable(assembler, cs);
         }
+        // add Command
+        assembler.addCommand(command.toString());
+
+        // add Command Summary Table
+        addCommandSummary(cs, assembler);
+
+        addCommandDetailTable(assembler, cs);
     }
     else {
         addNotACommandStatusProvider(assembler);
@@ -74,8 +74,9 @@ private static void addCommandDetailTable( HTMLStatusAssembler assembler, Comman
             startCount += (nprinted - 1);
         }
     }
-    if (cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.WARNING
-        ||cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.FAILURE) {
+    if (cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.SUCCESS ||
+        cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.WARNING ||
+        cs.getCommandStatus(CommandPhaseType.RUN)== CommandStatusType.FAILURE) {
         addPhaseHTML(cs, assembler, CommandPhaseType.RUN, startCount );
     }
 }
@@ -392,14 +393,15 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
     HTMLStatusAssembler assembler = new HTMLStatusAssembler();
     int count = 0;
     
-    for ( Command command: commands ) 
-      {
+    for ( Command command: commands ) {
         count = count + addCommandHTML(command, assembler);
-       }
+    }
+    /* TODO SAM 2013-12-07 The above will now add output for all successful phases so no need for below
     if (count == 0)
       {
         assembler.addNoProblems();
       }
+      */
     
     return assembler.getHTML();
   }

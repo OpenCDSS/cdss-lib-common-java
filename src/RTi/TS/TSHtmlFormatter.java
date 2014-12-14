@@ -177,7 +177,8 @@ throws Exception
             // See if any meta-data have been stored with the time series
             found = false;
             for ( String foundFlag : foundFlagsList ) {
-                if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
+                // TODO SAM 2014-02-03 Why do some time series that have flags have null flagMetadata.getDataFlag()?
+                if ( (flagMetadata.getDataFlag() != null) && flagMetadata.getDataFlag().equals(foundFlag) ) {
                     // Use the found meta-data...
                     found = true;
                     break;
@@ -185,7 +186,9 @@ throws Exception
             }
             if ( !found ) {
                 // Add to the list
-                foundFlagsList.add ( flagMetadata.getDataFlag() );
+                if ( flagMetadata.getDataFlag() != null ) {
+                    foundFlagsList.add ( flagMetadata.getDataFlag() );
+                }
             }
         }
         // Now sort the flags for final output
@@ -196,7 +199,7 @@ throws Exception
             // See if any meta-data have been stored with the time series
             found = false;
             for ( TSDataFlagMetadata flagMetadata : flagMetadataList ) {
-                if ( flagMetadata.getDataFlag().equals(foundFlag) ) {
+                if ( (flagMetadata.getDataFlag() != null) && flagMetadata.getDataFlag().equals(foundFlag) ) {
                     // Use the found meta-data...
                     html.write( foundFlag + " - " + flagMetadata.getDescription());
                     html.breakLine();

@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -60,6 +61,11 @@ Indicate whether format specifier choices should be shown for output (true) or p
 private boolean __forOutput = false;
 
 /**
+Indicate whether format specifier choices should include properties like ${YearTypeYear}, used only for output.
+*/
+private boolean __includeProps = false;
+
+/**
 Control constructor.
 @param width width of the JTextField to be included in the control (or -1) to not specify.
 @param includeFormatterType if true, include a choice of the supported formatter types with "C", "ISO", etc.; if
@@ -70,14 +76,17 @@ the panel is being used for a command parameter and the formatter is optional
 DateTimeFormatterType.C)
 @param forOutput if true, then include more specifiers used for formatting output; if false, include only choices that have
 been enabled for parsing
+@param includeProps if true, include properties like ${YearTypeYear}, which are a more verbose way of specifying properties
+(only used for output)
 */
 public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterType, boolean includeBlankFormatterType,
-    DateTimeFormatterType defaultFormatter, boolean forOutput )
+    DateTimeFormatterType defaultFormatter, boolean forOutput, boolean includeProps )
 {
     if ( defaultFormatter == null ) {
         defaultFormatter = DateTimeFormatterType.C;
     }
     __forOutput = forOutput;
+    __includeProps = includeProps;
     setLayout ( new GridBagLayout() );
     Insets insetsTLBR = new Insets(0,0,0,0);
 
@@ -104,7 +113,7 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
     __specifierJComboBox = new SimpleJComboBox ( false );
     __specifierJComboBox.setToolTipText(
         "Selecting a specifier will insert at the cursor position in the format string." );
-    __specifierJComboBox.setPrototypeDisplayValue(__hint); // Biggest formatter name
+    __specifierJComboBox.setPrototypeDisplayValue(__hint+"WWWWWWWW"); // Biggest formatter name
     __specifierJComboBox.addItemListener ( this );
     JGUIUtil.addComponent(this, __specifierJComboBox,
         x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -286,7 +295,7 @@ private void populateFormatSpecifiers()
     List<String> choicesList = null;
     // Because the choices get reset there is a chance that this will cause layout problems.  Consequently, it is
     // best to make sure that the hint takes up enough space that the choice width does not change when repopulated
-    choicesList = new Vector<String>();
+    choicesList = new ArrayList<String>();
     if ( (formatterType == null) && (__defaultFormatter != null) ) {
         formatterType = __defaultFormatter;
     }
@@ -295,9 +304,14 @@ private void populateFormatSpecifiers()
     }
     else if ( formatterType == DateTimeFormatterType.C ) {
         choicesList.add(__hint);
-        choicesList.addAll(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true,__forOutput)));
+        choicesList.addAll(Arrays.asList(TimeUtil.getDateTimeFormatSpecifiers(true,__forOutput,__includeProps)));
     }
     __specifierJComboBox.setData(choicesList);
+    int max = 20;
+    if ( choicesList.size() < 20 ) {
+        max = choicesList.size();
+    }
+    __specifierJComboBox.setMaximumRowCount(max);
 }
 
 /**

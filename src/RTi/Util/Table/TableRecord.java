@@ -218,20 +218,20 @@ public boolean isDirty() {
 /**
 Sets the field contents of the record at the specified zero-based index.
 The number of available fields should be set in the constructor or use setNumberOfFields().
-@param index Field position to set.
+@param col Field position to set (0+).
 @param contents Field contents to set.
 @exception if the index exceeds the available number of fields within this record.
 @return the instance of this record, to facilitate chaining set calls.
 */
-public TableRecord setFieldValue(int index, Object contents)
+public TableRecord setFieldValue(int col, Object contents)
 throws Exception
 {
     if ( __useArray ) {
-        if ( index <= __colMax ) {
-            __recordArray[index] = contents;
+        if ( col <= __colMax ) {
+            __recordArray[col] = contents;
         }
         else {  
-            throw new Exception("Column index [" + index + "] invalid (record has " + (__colMax + 1) + " columns)");
+            throw new Exception("Column index [" + col + "] invalid (record has " + (__colMax + 1) + " columns)");
         }        
     }
     else {

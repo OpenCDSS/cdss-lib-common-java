@@ -1,5 +1,6 @@
 package RTi.Util.GUI;
 
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -9,13 +10,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import RTi.Util.GUI.JGUIUtil;
@@ -42,28 +47,45 @@ returned via a response() method call as per the following sample code:
 The dictionary is displayed as scrollable pairs of key and value pairs.
 </p>
 */
-public class DictionaryJDialog extends JDialog implements ActionListener, KeyListener, WindowListener
+public class DictionaryJDialog extends JDialog implements ActionListener, KeyListener, MouseListener, WindowListener
 {
 
 /**
 Button labels.
 */
 private final String
+    BUTTON_INSERT = "Insert",
+    BUTTON_ADD = "Add",
+    BUTTON_REMOVE = "Remove",
 	BUTTON_CANCEL = "Cancel",
 	BUTTON_OK = "OK";
 
 /**
 Components to hold values from the TSIdent.
 */
-private JTextField [] keyTextField = null;
-private JTextField [] valueTextField = null;
+private ArrayList<JTextField> keyTextFieldList = new ArrayList<JTextField>();
+private ArrayList<JTextField> valueTextFieldList = new ArrayList<JTextField>();
+
+/**
+Text field row (0-index) where 0=first (top) row in entry fields.
+This is used to let the Insert functionality know where to insert.
+*/
+private int selectedTextFieldRow = -1;
 
 /**
 Dialog buttons.
 */
-private SimpleJButton	
+private SimpleJButton
+    insertButton = null,
+    addButton = null,
+    removeButton = null,
 	cancelButton = null,
 	okButton = null;
+
+/**
+Scroll panel that manages dictionary entries.
+*/
+private JPanel scrollPanel = null;
 
 private String 
 	response = null, // Dictionary string that is returned via response().
@@ -74,7 +96,16 @@ private String
 
 private String [] notes = null;
 
-int dictSize = 10;
+/**
+Requested dictionary size.
+*/
+private int initDictSize = 10;
+
+/**
+Number of rows in the dictionary (some may be blank).
+The initial number is displayed and then the Add button can add more.
+*/
+private int rowCount = 0;
 
 private boolean error_wait = false; // Indicates if there is an error in input (true) from checkInput().
 
@@ -89,11 +120,11 @@ be null.  If necessary, pass in a new JFrame.
 @param notes information to display at the top of the dialog, to help explain the input
 @param keyLabel label above keys
 @param valueLabel label above values
-@param dictSize number of key/value pairs to show
+@param initDictSize initial number of key/value pairs to show
 */
 public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String title, String [] notes,
     String keyLabel, String valueLabel,
-    int dictSize )
+    int initDictSize )
 {	super(parent, modal);
 
 	this.dictString = dictString;
@@ -104,7 +135,7 @@ public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String
 	this.notes = notes;
 	this.keyLabel = keyLabel;
 	this.valueLabel = valueLabel;
-	this.dictSize = dictSize;
+	this.initDictSize = initDictSize;
  	setupUI();
 }
 
@@ -115,7 +146,61 @@ Responds to ActionEvents.
 public void actionPerformed(ActionEvent event)
 {	String s = event.getActionCommand();
 
-	if (s.equals(this.BUTTON_CANCEL)) {
+    if (s.equals(this.BUTTON_ADD)) {
+        Insets insetsTLBR = new Insets(2,2,2,2);
+        // Add a new row.  Rows are 1+ because the column names are in the first row
+        ++this.rowCount;
+        JTextField ktf = new JTextField("",30);
+        ktf.addMouseListener(this);
+        this.keyTextFieldList.add(ktf);
+        JGUIUtil.addComponent(this.scrollPanel, ktf,
+            0, this.rowCount, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        JTextField vtf = new JTextField("",40);
+        this.valueTextFieldList.add(vtf);
+        JGUIUtil.addComponent(this.scrollPanel, vtf,
+            1, this.rowCount, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        this.scrollPanel.revalidate();
+    }
+    else if (s.equals(this.BUTTON_INSERT)) {
+        Insets insetsTLBR = new Insets(2,2,2,2);
+        // Insert a new row before the row that was last selected.  Rows are 1+ because the column names are in the first row
+        if ( this.keyTextFieldList.size() == 0 ) {
+            // Add at the end
+            ++this.rowCount;
+            JTextField ktf = new JTextField("",30);
+            this.keyTextFieldList.add(ktf);
+            JGUIUtil.addComponent(this.scrollPanel, ktf,
+                0, this.rowCount, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+            JTextField vtf = new JTextField("",40);
+            this.valueTextFieldList.add(vtf);
+            JGUIUtil.addComponent(this.scrollPanel, vtf,
+                1, this.rowCount, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        }
+        else {
+            // Insert before the selected
+            if ( this.selectedTextFieldRow < 0 ) {
+                // Nothing previously selected so reset
+                this.selectedTextFieldRow = 0;
+            }
+            // First loop through all the rows after the new and shift later in the grid bag
+            for ( int i = selectedTextFieldRow; i < this.keyTextFieldList.size(); i++ ) {
+                // FIXME SAM 2014-03-02 TOO MUCH WORK - come back and fix this later - for not disable the Insert
+            }
+            // Now add the new text field
+            JTextField ktf = new JTextField("",30);
+            this.keyTextFieldList.add(this.selectedTextFieldRow,ktf);
+            JGUIUtil.addComponent(this.scrollPanel, ktf,
+                0, (this.selectedTextFieldRow + 1), 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+            JTextField vtf = new JTextField("",40);
+            this.valueTextFieldList.add(this.selectedTextFieldRow,vtf);
+            JGUIUtil.addComponent(this.scrollPanel, vtf,
+                1, (this.selectedTextFieldRow + 1), 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+            ++this.rowCount;
+        }
+
+        this.scrollPanel.revalidate();
+    }
+    else if (s.equals(this.BUTTON_CANCEL)) {
 		response ( false );
 	}
 	else if (s.equals(this.BUTTON_OK)) {
@@ -124,6 +209,31 @@ public void actionPerformed(ActionEvent event)
 			response( true );
 		}
 	}
+}
+
+public void mouseClicked (MouseEvent e )
+{
+    setSelectedTextField(e.getComponent());
+}
+
+public void mouseEntered (MouseEvent e )
+{
+    
+}
+
+public void mouseExited (MouseEvent e )
+{
+    
+}
+
+public void mousePressed (MouseEvent e )
+{
+    setSelectedTextField(e.getComponent());
+}
+
+public void mouseReleased (MouseEvent e )
+{
+    
 }
 
 /**
@@ -139,9 +249,9 @@ private void checkInputAndCommit ()
 	String chars = ":,\"";
 	String message = "";
     // Get from the dialog...
-	for ( int i = 0; i < this.keyTextField.length; i++ ) {
-	    String key = this.keyTextField[i].getText().trim();
-	    String value = this.valueTextField[i].getText().trim();
+	for ( int i = 0; i < this.keyTextFieldList.size(); i++ ) {
+	    String key = this.keyTextFieldList.get(i).getText().trim();
+	    String value = this.valueTextFieldList.get(i).getText().trim();
 	    // Make sure that the key and value do not contain special characters :,"
 	    // TODO SAM 2013-09-08 For now see if can parse out intelligently when ${} surrounds property, as in ${TS:property},
 	    // but this is not a generic behavior and needs to be handled without hard-coding
@@ -212,6 +322,27 @@ Return the user response and dispose the dialog.
 public String response ()
 {
 	return this.response;
+}
+
+// TODO SAM 2014-03-02 This will need more work if controls are added to delete or re-order text fields.
+/**
+Set the selected text field, which indicates which row has been clicked on.
+*/
+private void setSelectedTextField ( Component c )
+{
+    // Figure out which of the text fields were selected and save the index
+    for ( int i = 0; i < keyTextFieldList.size(); i++ ) {
+        if ( c == keyTextFieldList.get(i) ) {
+            this.selectedTextFieldRow = i;
+            return;
+        }
+    }
+    for ( int i = 0; i < valueTextFieldList.size(); i++ ) {
+        if ( c == valueTextFieldList.get(i) ) {
+            this.selectedTextFieldRow = i;
+            return;
+        }
+    }
 }
 
 /**
@@ -285,51 +416,79 @@ private void setupUI()
     	    }
 	    }
 	}
-	if ( keyList.length > this.dictSize ) {
-	    // Increase the size of the dictionary a bit over the initial size
-	    dictSize = keyList.length + 5;
+	if ( keyList.length > initDictSize ) {
+	    // Increase the initial dictionary size
+	    initDictSize = keyList.length;
 	}
 
-	JGUIUtil.addComponent(panel, 
-		new JLabel(this.keyLabel),
-		0, ++y, 1, 1, 0, 0, insetsTLBR,
-		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+	this.scrollPanel = new JPanel();
+	// Don't set preferred size because it seems to mess up the scroll bars (visible but no "thumb")
+	//this.scrollPanel.setPreferredSize(new Dimension(600,300));
+	this.scrollPanel.setLayout(new GridBagLayout());
     JGUIUtil.addComponent(panel, 
+       new JScrollPane(this.scrollPanel,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS),
+       0, ++y, 2, 1, 1.0, 1.0, insetsTLBR,
+       GridBagConstraints.BOTH, GridBagConstraints.WEST);
+
+    int yScroll = -1;
+	JGUIUtil.addComponent(this.scrollPanel, 
+		new JLabel(this.keyLabel),
+		0, ++yScroll, 1, 1, 0, 0, insetsTLBR,
+		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(this.scrollPanel, 
         new JLabel(this.valueLabel),
-        1, y, 1, 1, 0, 0, insetsTLBR,
+        1, yScroll, 1, 1, 0, 0, insetsTLBR,
         GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-    this.keyTextField = new JTextField[dictSize];
-    this.valueTextField = new JTextField[dictSize];
+    this.keyTextFieldList = new ArrayList<JTextField>(initDictSize);
+    this.valueTextFieldList = new ArrayList<JTextField>(initDictSize);
     // Add key value pairs
-    for ( int i = 0; i < this.dictSize; i++ ) {
+    for ( int i = 0; i < this.initDictSize; i++ ) {
         String key = "";
         String value = "";
         if ( i < keyList.length ) {
             key = keyList[i];
             value = valueList[i];
         }
-        this.keyTextField[i] = new JTextField(key,30);
-        JGUIUtil.addComponent(panel, this.keyTextField[i],
-            0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-        this.valueTextField[i] = new JTextField(value,40);
-        JGUIUtil.addComponent(panel, this.valueTextField[i],
-            1, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        JTextField ktf = new JTextField(key,30);
+        this.keyTextFieldList.add( ktf);
+        JGUIUtil.addComponent(this.scrollPanel, ktf,
+            0, ++yScroll, 1, 1, 1.00, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        JTextField vtf = new JTextField(value,40);
+        this.valueTextFieldList.add(vtf);
+        JGUIUtil.addComponent(this.scrollPanel, vtf,
+            1, yScroll, 1, 1, 1.0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        ++this.rowCount;
     }
 	
 	JPanel south = new JPanel();
 	south.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
+    this.insertButton = new SimpleJButton(this.BUTTON_INSERT, this);
+    this.insertButton.setToolTipText("Insert a new row before the row that is currenty selected.");
+    this.insertButton.setEnabled(false);
+    this.addButton = new SimpleJButton(this.BUTTON_ADD, this);
+    this.addButton.setToolTipText("Add a new row at the bottom of the list.");
+    this.removeButton = new SimpleJButton(this.BUTTON_REMOVE, this);
+    this.removeButton.setToolTipText("Remove the row that is currenty selected.");
+    this.removeButton.setEnabled(false);
 	this.okButton = new SimpleJButton(this.BUTTON_OK, this);
-	this.okButton.setToolTipText("Press this button to accept any changes that have been made.");
+	this.okButton.setToolTipText("Accept any changes that have been made.");
 	this.cancelButton = new SimpleJButton(this.BUTTON_CANCEL, this);
-	this.cancelButton.setToolTipText("Press this button to discard changes.");
+	this.cancelButton.setToolTipText("Discard changes.");
 
+	south.add(this.insertButton);
+	south.add(this.addButton);
+	south.add(this.removeButton);
 	south.add(this.okButton);
 	south.add(this.cancelButton);
 
 	getContentPane().add("South", south);
 
 	pack();
+	// Set the window size.  Otherwise large numbers of items in the dictionary will cause the scrolled panel to
+	// be bigger than the screen at startup in some cases
+	setSize(650,400);
+	setResizable ( true );
 	JGUIUtil.center(this);
 	setVisible(true);
 	JGUIUtil.center(this);
