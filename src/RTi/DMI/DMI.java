@@ -548,6 +548,13 @@ ODBC Data Source Name if __jdbc_odbc is false.
 private String __odbc_name;
 
 /**
+Additional connection properties, which will be added at the end of the connection URL with a leading semi-colon.
+These are typically passed in for datastores that require special properties.
+Set with setAdditionalConnectionProperties() before calling open().
+*/
+private String __additionalConnectionProperties = "";
+
+/**
 Database engine to connect to, as a string, useful for debugging.
 <p>
 Valid types are:<br>
@@ -2354,6 +2361,9 @@ throws SQLException, Exception {
 		printStatusOrDebug(dl, routine, "Using default Java connection method.");
 		Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 		connUrl = "jdbc:odbc:" + __odbc_name;
+		if ( (__additionalConnectionProperties != null) && (__additionalConnectionProperties.length() > 0) ) {
+			connUrl = connUrl + ";" + __additionalConnectionProperties;
+		}
 		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
     if ( __secure ) {
@@ -2437,6 +2447,15 @@ public void rollback() throws SQLException {
 	setAutoCommit(true);
 	__dirty = false;
 	closeStatements();
+}
+
+/**
+Set additional connection URL properties.
+@param additionalConnectionProperties a string of form "prop1=value1;prop2=value2"
+*/
+public void setAdditionalConnectionProperties ( String additionalConnectionProperties )
+{
+	this.__additionalConnectionProperties = additionalConnectionProperties;
 }
 
 /**
