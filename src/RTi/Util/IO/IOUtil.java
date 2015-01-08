@@ -1334,6 +1334,28 @@ public static List getJarFilesManifests() {
 }
 
 /**
+Return the architecture bits.  This is only enabled on Windows.
+@return the architecture bits, 32 or 64.
+*/
+public static int getOSArch ()
+{
+	if ( !isUNIXMachine() ) {
+	    String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+	    String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+	
+	    int realArch = 32;
+	    if ( ((arch != null) && arch.endsWith("64")) || ((wow64Arch != null) && wow64Arch.endsWith("64")) ||
+	    	System.getProperty("os.arch").contains("64") && !System.getProperty("os.arch").equals("IA64N") ) {
+	        //IA64N, despite its name, is not actually 64 bit
+	        //see http://h30499.www3.hp.com/t5/System-Administration/Java-SDK-What-are-IA64N-and-IA64W/td-p/4863858
+	    	realArch = 64;
+	    }
+	    return realArch;
+	}
+	return 32;
+}
+
+/**
 Return a path considering the working directory set by
 setProgramWorkingDir().  The following rules are used:
 <ul>
