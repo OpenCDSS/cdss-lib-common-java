@@ -2265,7 +2265,7 @@ throws SQLException, Exception {
 		else if (_database_engine == DBENGINE_POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_POSTGRESQL'");
 			// Use the public domain driver that comes with PostgreSQL...
-			Class.forName("org.postgresql.Driver");
+			//Class.forName("org.postgresql.Driver");
 			connUrl = "jdbc:postgresql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
