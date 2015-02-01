@@ -3433,16 +3433,26 @@ public int [] sortTable ( String sortColumn, int sortOrder )
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
     }
-    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DOUBLE) {
-        Double value;
+    else if ( (getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DOUBLE) ||
+    	(getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_FLOAT) ) {
+    	Object o;
+        double value;
         double [] values = new double[nrecords];
         int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
             try {
-                value = (Double)rec.getFieldValue(sortColumnNum);
-                if ( value == null ) {
+                o = rec.getFieldValue(sortColumnNum);
+                if ( o == null ) {
                     value = -Double.MAX_VALUE;
+                }
+                else {
+                	if ( o instanceof Double ) {
+                		value = (Double)o;
+                	}
+                	else {
+                		value = (Float)o;
+                	}
                 }
                 values[irec] = value;
             }
@@ -3482,7 +3492,7 @@ public int [] sortTable ( String sortColumn, int sortOrder )
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
     }
     else {
-        throw new RuntimeException ( "Sorting table only implemented for string, integer, double and DateTime columns." );
+        throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float and DateTime columns." );
     }
     // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
     // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use

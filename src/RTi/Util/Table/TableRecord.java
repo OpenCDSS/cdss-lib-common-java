@@ -1,8 +1,11 @@
 package RTi.Util.Table;
 
+import java.util.Date;
+
 //import java.util.ArrayList;
 //import java.util.List;
 import RTi.Util.Message.Message;
+import RTi.Util.Time.DateTime;
 
 /**
 This class is used to contain all the information associated with one record in
@@ -22,12 +25,18 @@ contents.addFieldValue ( "Station ID" );
 @see RTi.Util.Table.Table
 @see RTi.Util.Table.TableField
 */
-public class TableRecord {
+public class TableRecord
+{
 
 /**
 Whether the data has been changed or not.
 */
 private boolean __dirty = false;
+
+/**
+Whether the record is selected, for example for further processing by commands.
+*/
+private boolean __isSelected = false;
 
 /**
 List of data values corresponding to the different fields.  Currently no list methods are exposed.
@@ -61,6 +70,46 @@ the correct number at initialization increases performance
 */
 public TableRecord(int num) {
 	initialize(num);
+}
+
+/**
+Create a copy of the object. The result is a complete deep copy.
+@param rec TableRecord instance to copy
+@return a copy of the input
+*/
+public TableRecord ( TableRecord rec )
+{
+	// Copy primitives
+	this.__dirty = rec.__dirty;
+	this.__useArray = rec.__useArray;
+	this.__colMax = rec.__colMax;
+	// Now clone the record array including the objects in the record...
+	if ( rec.__recordArray == null ) {
+		this.__recordArray = null;
+	}
+	else {
+		this.__recordArray = new Object[rec.__recordArray.length];
+		Object o;
+		for ( int i = 0; i < rec.__recordArray.length; i++ ) {
+			// Could serialize but since only certain classes are handled by DataTable, can handle
+			o = rec.__recordArray[i];
+			if ( o == null ) {
+				this.__recordArray[i] = null;
+			}
+			// Primitives objects are immutable so can assign directly.  Only need to deal with non-mutable objects
+			else if ( o instanceof Date ) {
+				this.__recordArray[i] = new Date(((Date)o).getTime());
+			}
+			else if ( o instanceof DateTime ) {
+				this.__recordArray[i] = new DateTime((DateTime)o);
+			}
+			else {
+				// Just set the value
+				// TODO SAM 2014-01-09 Could be an issue since object is shared
+				this.__recordArray[i] = rec.__recordArray[i];
+			}
+		}
+	}
 }
 
 /**
@@ -226,6 +275,15 @@ throws Exception {
     }
 }
 
+
+/**
+Returns whether the record is dirty or not.
+@return whether the record is dirty or not.
+*/
+public boolean getIsSelected() {
+	return __isSelected;
+}
+
 /**
 Return the number of fields in the record.
 @return the number of fields in the record.  
@@ -286,6 +344,15 @@ Sets whether the table record is dirty or not.
 */
 public void setDirty(boolean dirty) {
 	__dirty = dirty;
+}
+
+
+/**
+Sets whether the table record is selected.
+@param isSelected whether the table record is selected.
+*/
+public void setIsSelected(boolean isSelected) {
+	__isSelected = isSelected;
 }
 
 // TODO SAM 2009-07-26 Evaluate what is using this - limits using more generic List for data

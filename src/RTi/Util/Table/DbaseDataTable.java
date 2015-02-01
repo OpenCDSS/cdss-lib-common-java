@@ -49,6 +49,7 @@ currently only returns double precision values for numeric data.  This may
 impact code where integer values are cross-referenced to other data (e.g., for
 identifiers).  If problems arise, an option may be added to treat numeric
 zero-precision values as integer data types.
+See:  http://www.dbase.com/Knowledgebase/INT/db7_file_fmt.htm
 <b>Note - the getTableRecord() and getTableRecords() methods have not been
 implemented for on-the-fly reads.</b>
 @see RTi.Util.Table.DataTable
@@ -128,22 +129,6 @@ public void close() {
 			e.printStackTrace();
 		}
 	}
-}
-
-/**
-Clean up before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_table_fields = null;
-	_table_records = null;
-	_field_buffer = null;
-	_field_type = null;
-	_field_size = null;
-	_field_byte = null;
-	_field_precision = null;
-	_raf = null;
-	super.finalize();
 }
 
 /**
@@ -305,7 +290,7 @@ throws IOException
 		// Get the field precision...
 
 		_field_precision[i] = _raf.readUnsignedByte();
-		if ( _field_type[i] == 'N' ) {
+		if ( _field_type[i] == 'N' || _field_type[i] == 'F' ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Field precision is \"" + _field_precision[i] + "\"");
 			}
@@ -320,6 +305,12 @@ throws IOException
 		_raf.read ( buffer14 );
 		if ( _field_type[i] == 'N' ) {
 			tmp_field_type = TableField.DATA_TYPE_DOUBLE;
+		}
+		else if ( _field_type[i] == 'F' ) {
+			tmp_field_type = TableField.DATA_TYPE_FLOAT;
+		}
+		else if ( _field_type[i] == 'I' ) {
+			tmp_field_type = TableField.DATA_TYPE_INT;
 		}
 		else {
 		    // treat is if _field_type[i] == 'C'
@@ -391,14 +382,13 @@ throws IOException
 					}
 				}
 				else if ( _field_type[i] == 'N' ) {
-                                        // IWS
-//					// Read string and convert to number...
+                    // IWS
+//					// Read string and convert to double...
 //					for ( j = 0; j < _field_size[i]; j++ ){
 //						_field_buffer[i][j] =
 //						_raf.readLittleEndianChar1();
 //					}
-//					data_string = new String (
-//							_field_buffer[i] );
+//					data_string = new String (_field_buffer[i] );
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl,
 						    routine, "Field [" + i + "] Data string for number is \"" + data_string + "\"" );
@@ -414,6 +404,41 @@ throws IOException
 						i_dbf + "] Invalid data string for number: \"" + data_string + "\"" );
 					}
 				}
+				else if ( _field_type[i] == 'F' ) {
+					// Read string and convert to float...
+					if ( Message.isDebugOn ) {
+						Message.printDebug ( dl,
+						    routine, "Field [" + i + "] Data string for float is \"" + data_string + "\"" );
+					}
+					// Sometimes overflow values have
+					// "******" so set to zero if there is a problem.
+					try {
+					    contents.addFieldValue (new Float(data_string.trim()));
+					}
+					catch (Exception e3) {
+						contents.addFieldValue (new Float ( 0.0 ));
+						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
+						i_dbf + "] Invalid data string for float: \"" + data_string + "\"" );
+					}
+				}
+				/*
+				else if ( _field_type[i] == 'I' ) {
+					// Read string and convert to int...
+					if ( Message.isDebugOn ) {
+						Message.printDebug ( dl,
+						    routine, "Field [" + i + "] Data string for int is \"" + data_string + "\"" );
+					}
+					// Sometimes overflow values have
+					// "******" so set to zero if there is a problem.
+					try {
+					    contents.addFieldValue (new Integer(data_string.trim()));
+					}
+					catch (Exception e3) {
+						contents.addFieldValue (new Integer(0));
+						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
+						i_dbf + "] Invalid data string for integer: \"" + data_string + "\"" );
+					}
+				}*/
 				else {
 				    // Not yet implemented.  Problem!
 					throw new IOException ( "Field type \"" + _field_type[i] + "\" is not yet implemented." );
@@ -551,7 +576,7 @@ throws IOException
 
 	// 4-7 # records in file
 	int nrecords = table.getNumberOfRecords();
-	Message.printStatus ( 1, "", "Total of " + nrecords + " dbf rec" );
+	Message.printStatus ( 2, "", "Total of " + nrecords + " dbf rec" );
 	int nrecords_write = 0;
 	if ( write_record != null ) {
 		// Need to recalculate the records...
@@ -562,7 +587,7 @@ throws IOException
 		}
 	}
 	raf_DBF_stream.writeLittleEndianInt(nrecords_write);
-	Message.printStatus ( 1, "", "Writing " + nrecords_write + " dbf rec" );
+	Message.printStatus ( 2, "", "Writing " + nrecords_write + " dbf rec" );
 
 	// 8-9 #bytes in header
 	// There are 32 bytes in first part of header and then an additional 32
@@ -650,8 +675,12 @@ throws IOException
 		if ( field_type == TableField.DATA_TYPE_STRING ) {
 			raf_DBF_stream.writeLittleEndianChar1 ('C');
 		}
-		else {
+		else if ( field_type == TableField.DATA_TYPE_DOUBLE ) {
 		    raf_DBF_stream.writeLittleEndianChar1 ('N');
+		}
+		else {
+			raf_DBF_stream.close();
+			throw new IOException ( "Writing TableField type " + field_type + " is not supported." );
 		}
 
 		// 44-47 reserved
