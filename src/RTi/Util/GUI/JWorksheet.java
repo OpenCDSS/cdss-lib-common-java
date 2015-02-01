@@ -6576,21 +6576,30 @@ private void sortColumn(int order) {
         }
         MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);
     }
-	// Sort numbers with MathUtil.sort()
-	else if (getColumnClass(absColumn) == Double.class) {	
+	else if ( (getColumnClass(absColumn) == Double.class) || (getColumnClass(absColumn) == Float.class) ) {
+		// Sort numbers with MathUtil.sort()
+		// Treat Float as Double since sort method does not handle float[]
 		double[] unsorted = new double[size];
-		Double D = null;
+		Object o = null;
 		for (int i = 0; i < size; i++) {
 			try {
-				D = (Double)getValueAt(i, __popupColumn);
-				unsorted[i] = D.doubleValue();
+				o = getValueAt(i, __popupColumn);
+				if ( o == null ) {
+					unsorted[i] = DMIUtil.MISSING_DOUBLE;
+				}
+				else if ( o instanceof Double ) {
+					unsorted[i] = ((Double)o).doubleValue();
+				}
+				else {
+					unsorted[i] = ((Float)o).doubleValue();
+				}
 			}
 			catch (Exception e) {
 				unsorted[i] = DMIUtil.MISSING_DOUBLE;
 			}
 		}
 		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);		
-	} 
+	}
 	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort()
 	else if (getColumnClass(absColumn) == Date.class) {
 	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used
@@ -6633,14 +6642,19 @@ private void sortColumn(int order) {
 	// Sort Strings with StringUtil.sort()
 	else {
 		List v = new Vector(size);
-		String s = null;		
+		Object o = null;	
 		for (int i = 0; i < size; i++) {
-			s = (String)getValueAt(i, __popupColumn);
-			if (s == null) {
+			o = getValueAt(i, __popupColumn);
+			if (o == null) {
 				v.add("");
 			} 
 			else {
-				v.add(s);
+				if ( o instanceof String ) {
+					v.add(o);
+				}
+				else {
+					v.add("" + o);
+				}
 			}
 		}
 		StringUtil.sortStringList(v, order, sortOrder, true, true);
