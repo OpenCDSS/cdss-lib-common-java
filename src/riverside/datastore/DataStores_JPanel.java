@@ -122,20 +122,6 @@ throws Exception {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable
-{
-	__dataStoreList = null;
-	__parent = null;
-	__widths = null;
-	__worksheet = null;
-	__props = null;
-	super.finalize();
-}
-
-/**
 Returns the number of columns in the worksheet.
 @return the number of columns in the worksheet.
 */

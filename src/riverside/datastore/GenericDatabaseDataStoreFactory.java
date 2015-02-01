@@ -54,9 +54,18 @@ public DataStore create ( PropList props )
             // Use the parts to create the connection
             dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
         }
-        dmi.open();
+        // Always create the datastore, which generally involves simple assignment
         GenericDatabaseDataStore ds = new GenericDatabaseDataStore ( name, description, dmi );
         ds.setProperties(props);
+        // Now try to open the database connection, which may generate an exception
+        ds.setStatus(0);
+        try {
+        	dmi.open();
+        }
+        catch ( Exception e ) {
+        	ds.setStatus(1);
+        	ds.setStatusMessage("" + e);
+        }
         return ds;
     }
     catch ( Exception e ) {
