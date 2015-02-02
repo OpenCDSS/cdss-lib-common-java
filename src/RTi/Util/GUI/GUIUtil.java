@@ -82,11 +82,14 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.List;
+import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.Toolkit;
@@ -453,10 +456,9 @@ public static void addToChoice ( Choice choice, java.util.List items )
 }
 
 /**
-Center a Component in the screen using the current frame and screen dimensions 
-(check rest of javadocs for important note).
-<b>NOTE</b>: Make sure to call this <b>AFTER</b> calling pack(), or else it
-will produce unexpected results.
+Center a Component in the screen using the current frame and screen dimensions.
+<b>NOTE</b>: Make sure to call this <b>AFTER</b> calling pack(), or else it will produce unexpected results.
+This always centers the component on the first screen (screen 0).
 <pre>
 example:
 Frame f;
@@ -466,34 +468,40 @@ GUIUtil.center( f );
 @param c Component object.
 */
 public static void center ( Component c )
-{	Toolkit         kit;            // Toolkit object
-        Dimension       component,      // component dimension object
-                        screen;         // window dimension object
-        int             c_width,        // f width
-                        c_height,       // f height
-                        s_width,        // screen width
-                        s_height,       // screen height
-                        x_coord,        // x coordinate
-                        y_coord;        // y coordinate
- 
-        // get dimensions for frame and screem
-        kit = c.getToolkit();
-        component = c.getSize();
-        screen = kit.getScreenSize();
+{	boolean old = true;
+	Dimension component = c.getSize();
+	int c_width = component.width;
+	int c_height = component.height;
+	Toolkit kit = c.getToolkit();
+	if ( old ) {
+	    Dimension screen; // window dimension object
+	    int s_width;
+	    int s_height;
+	    int x_coord; // x coordinate
+	    int y_coord; // y coordinate
+	 
+	    // get dimensions for frame and screen
+	    screen = kit.getScreenSize();
+	
+	    // determine heights and widths
 
-        // determine heights and widths
-        c_width = component.width;
-        c_height = component.height;
-        s_width = screen.width;
-        s_height = screen.height;
-
-        // determine centered coordinates and set the location
-        x_coord = (int)((s_width-c_width) / 2 );
-        y_coord = (int)((s_height-c_height) / 2 );
-        c.setLocation( x_coord, y_coord );
-	kit = null;
-	component = null;
-	screen = null;
+	    s_width = screen.width;
+	    s_height = screen.height;
+	
+	    // determine centered coordinates and set the location
+	    x_coord = (int)((s_width-c_width) / 2 );
+	    y_coord = (int)((s_height-c_height) / 2 );
+	    c.setLocation( x_coord, y_coord );
+	}
+	else {
+		// Try newer approach
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] gs = ge.getScreenDevices();
+		System.out.println("number of screens = " + gs.length );
+		Point p = ge.getCenterPoint();
+		c.setLocation( p.x - c_width/2, p.y - c_height/2 );
+		// TODO SAM 2015-02-01 Need to figure out how to position relative to the originating screen
+	}
 }
 
 /**
