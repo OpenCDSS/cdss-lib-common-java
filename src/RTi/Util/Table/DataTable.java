@@ -967,17 +967,14 @@ throws Exception
 	if (cols == 1) {
 		colPlural = "";
 	}
-	Message.printStatus(1, "", "Table has " + rows + " row" + rowPlural
-		+ " and " + cols + " column" + colPlural + ".");
+	Message.printStatus(1, "", "Table has " + rows + " row" + rowPlural + " and " + cols + " column" + colPlural + ".");
 		
 	if (cols == 0) {
 		Message.printWarning(2, routine, "Table has 0 columns!  Nothing will be written.");
 		return;
 	}
 
-	String line = null;
-
-	line = "";
+	String line = "";
 	for (int col = 0; col < (cols - 1); col++) {
 		line += getFieldName(col) + delimiter;
 	}
@@ -3364,33 +3361,50 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     }
 }
 
-// TODO SAM 2013-12-16 need to allow support of multiple columns at some point
 /**
 Sort the table rows by sorting a column's values.
-@param sortColumn the name of the column to be sorted, allowed to be integer, double, string, or DateTime type.
+@param sortColumns the name of the columns to be sorted, allowed to be integer, double, string, or DateTime type.
 @param sortOrder order to sort (specify as 0+ to sort ascending and < 0 to sort descending)
-@return the sort order array (useful if a parallel sort of data needs to occur)
+@return the sort order array indicating the position in the original data
+(useful if a parallel sort of data needs to occur)
 */
-public int [] sortTable ( String sortColumn, int sortOrder )
-{
-    int sortColumnNum = -1;
-    try {
-        sortColumnNum = getFieldIndex(sortColumn);
+public int [] sortTable ( String [] sortColumns, int [] sortOrder )
+{	//String routine = getClass().getSimpleName() + ".sortTable";
+    int [] sortColumnsNum = new int[sortColumns.length];
+    List<String> errors = new ArrayList<String>();
+    for ( int i = 0; i < sortColumns.length; i++ ) {
+    	sortColumnsNum[i] = -1;
+	    try {
+	        sortColumnsNum[i] = getFieldIndex(sortColumns[i]);
+	    }
+	    catch ( Exception e ) {
+	        errors.add(sortColumns[i]);
+	    }
     }
-    catch ( Exception e ) {
-        throw new RuntimeException ( "Column to sort \"" + sortColumn + "\" was not found in table \"" +
-            getTableID() + "\"" );
+    if ( errors.size() > 0 ) {
+    	StringBuilder b = new StringBuilder("The following column(s) to sort were not found in table \"" + getTableID() + "\":");
+    	for ( int i = 0; i < errors.size(); i++ ) {
+    		if ( i > 0 ) {
+    			b.append (",");
+    		}
+    		b.append(sortColumns[i]);
+    	}
+    	throw new RuntimeException ( b.toString() );
     }
     int nrecords = getNumberOfRecords();
-    int [] sortOrderArray = new int[nrecords];
-    if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_STRING ) {
+    int sortFlag = StringUtil.SORT_ASCENDING;
+    if ( sortOrder[0] < 0 ) {
+        sortFlag = StringUtil.SORT_DESCENDING;
+    }
+    int [] sortedOrderArray = new int[nrecords]; // Overall sort order different from original
+    // First sort by the first column.
+    int iSort = 0;
+    if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_STRING ) {
         String value;
         List<String> values = new ArrayList<String>(nrecords);
-        int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
-            ++irec;
             try {
-                value = rec.getFieldValueString(sortColumnNum);
+                value = rec.getFieldValueString(sortColumnsNum[iSort]);
                 if ( value == null ) {
                     value = "";
                 }
@@ -3403,20 +3417,16 @@ public int [] sortTable ( String sortColumn, int sortOrder )
                 throw new RuntimeException ( e );
             }
         }
-        int sortFlag = StringUtil.SORT_ASCENDING;
-        if ( sortOrder < 0 ) {
-            sortFlag = StringUtil.SORT_DESCENDING;
-        }
-        StringUtil.sortStringList(values, sortFlag, sortOrderArray, true, true);
+        StringUtil.sortStringList(values, sortFlag, sortedOrderArray, true, true);
     }
-    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DATETIME ) {
+    else if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_DATETIME ) {
         Object value;
         double [] values = new double[nrecords];
         int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
             try {
-                value = rec.getFieldValue(sortColumnNum);
+                value = rec.getFieldValue(sortColumnsNum[iSort]);
                 if ( value == null ) {
                     value = -Double.MAX_VALUE;
                 }
@@ -3427,14 +3437,10 @@ public int [] sortTable ( String sortColumn, int sortOrder )
                 throw new RuntimeException ( e );
             }
         }
-        int sortFlag = MathUtil.SORT_ASCENDING;
-        if ( sortOrder < 0 ) {
-            sortFlag = MathUtil.SORT_DESCENDING;
-        }
-        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortedOrderArray, true);
     }
-    else if ( (getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_DOUBLE) ||
-    	(getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_FLOAT) ) {
+    else if ( (getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_DOUBLE) ||
+    	(getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_FLOAT) ) {
     	Object o;
         double value;
         double [] values = new double[nrecords];
@@ -3442,7 +3448,7 @@ public int [] sortTable ( String sortColumn, int sortOrder )
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
             try {
-                o = rec.getFieldValue(sortColumnNum);
+                o = rec.getFieldValue(sortColumnsNum[iSort]);
                 if ( o == null ) {
                     value = -Double.MAX_VALUE;
                 }
@@ -3461,20 +3467,16 @@ public int [] sortTable ( String sortColumn, int sortOrder )
                 throw new RuntimeException ( e );
             }
         }
-        int sortFlag = MathUtil.SORT_ASCENDING;
-        if ( sortOrder < 0 ) {
-            sortFlag = MathUtil.SORT_DESCENDING;
-        }
-        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortedOrderArray, true);
     }
-    else if ( getFieldDataType(sortColumnNum) == TableField.DATA_TYPE_INT) {
+    else if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_INT) {
         Integer value;
         int [] values = new int[nrecords];
         int irec = -1;
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
             try {
-                value = (Integer)rec.getFieldValue(sortColumnNum);
+                value = (Integer)rec.getFieldValue(sortColumnsNum[iSort]);
                 if ( value == null ) {
                     value = -Integer.MAX_VALUE;
                 }
@@ -3485,11 +3487,7 @@ public int [] sortTable ( String sortColumn, int sortOrder )
                 throw new RuntimeException ( e );
             }
         }
-        int sortFlag = MathUtil.SORT_ASCENDING;
-        if ( sortOrder < 0 ) {
-            sortFlag = MathUtil.SORT_DESCENDING;
-        }
-        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray, true);
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortedOrderArray, true);
     }
     else {
         throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float and DateTime columns." );
@@ -3504,9 +3502,240 @@ public int [] sortTable ( String sortColumn, int sortOrder )
     }
     // Now set from the backup to the original list
     for ( int irec = 0; irec < nrecords; irec++ ) {
-        records.set(irec, backup.get(sortOrderArray[irec]) );
+        records.set(irec, backup.get(sortedOrderArray[irec]) );
     }
-    return sortOrderArray;
+    // Now sort by columns [1]+ (zero index).  Only sort the last column being iterated.
+    // The previous columns are used to find blocks of rows to sort.  In other words, if 3 columns are sorted
+    // then columns [0-1] must match and then that block of rows is sorted based on column [2].
+    int iSort2;
+    int lastRec = getNumberOfRecords() - 1;
+    for ( iSort = 1; iSort < sortColumnsNum.length; iSort++ ) {
+    	Object [] sortValuesPrev = null;
+    	int irec = -1;
+    	boolean needToSort = false;
+    	Object o2;
+    	int blockStartRow = 0, blockEndRow = 0, sortColumnMatchCount = 0;
+    	// Iterate through the table.
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            //Message.printStatus(2,routine,"Processing record " + irec );
+            // Check the current row's sort columns against the previous row
+            if ( sortValuesPrev == null ) {
+            	// Initialize this row with values to be compared with the next row
+            	sortValuesPrev = new Object[iSort];
+            	for ( iSort2 = 0; iSort2 < iSort; iSort2++ ) {
+            		try {
+            			sortValuesPrev[iSort2] = rec.getFieldValue(sortColumnsNum[iSort2]);
+            		}
+            		catch ( Exception e ) {
+            			throw new RuntimeException ( e );
+            		}
+            	}
+            	blockStartRow = irec;
+            	blockEndRow = irec;
+            	//Message.printStatus(2,routine,"Initializing " + irec + " for first comparison." );
+            	continue;
+            }
+            else {
+            	// Compare this row's values with the previous block of similar values
+            	sortColumnMatchCount = 0;
+	            for ( iSort2 = 0; iSort2 < iSort; iSort2++ ) {
+	            	try {
+	            		o2 = rec.getFieldValue(sortColumnsNum[iSort2]);
+	            	}
+	            	catch ( Exception e ) {
+	            		throw new RuntimeException ( e );
+	            	}
+	            	if ( ((o2 == null) && (sortValuesPrev[iSort2] == null)) || (o2 != null) && o2.equals(sortValuesPrev[iSort2]) ) {
+	            		//Message.printStatus(2, routine, "Previous value["+iSort2+"]: " + sortValuesPrev[iSort2] + " current value=" + o2 );
+	            		++sortColumnMatchCount;
+	            	}
+	            	else {
+	            		// The current row did not match so save the current row as the previous and break to indicate that the block needs sorted
+	            		//Message.printStatus(2,routine,"Record " + irec + " compare values did not match previous row." );
+	            		break;
+	            	}
+	            }
+	            // If all the values matched, can process another row before sorting, but check to see if at end of table below
+	            if ( sortColumnMatchCount == iSort ) {
+	            	//Message.printStatus(2,routine,"Record " + irec + " sort columns match previous." );
+	            	needToSort = false;
+	            	blockEndRow = irec; // Advance the end of the block
+	            }
+	            else {
+	            	// Current row's sort column values did not match so need to sort the block
+	            	//Message.printStatus(2,routine,"Record " + irec + " sort columns do not match previous.  Resetting \"previous\" values to this record." );
+	            	needToSort = true;
+	            	// Save the current row to compare with the next row
+            		for ( int iSort3 = 0; iSort3 < iSort; iSort3++ ) {
+                		try {
+                			sortValuesPrev[iSort3] = rec.getFieldValue(sortColumnsNum[iSort3]);
+                		}
+                		catch ( Exception e ) {
+                			throw new RuntimeException ( e );
+                		}
+                	}
+	            }
+	            if ( (irec == lastRec) && (blockStartRow != blockEndRow) ) {
+	            	// Need to sort if in the last row unless the block was only one row
+	            	needToSort = true;
+	            	//Message.printStatus(2, routine, "Need to sort end of table from " + blockStartRow + " to " + blockEndRow );
+	            }
+	            if ( needToSort ) {
+	            	// Need to sort the block of rows using the "rightmost" sort column
+	            	//Message.printStatus(2, routine, "Need to sort block of rows from " + blockStartRow + " to " + blockEndRow );
+	            	try {
+	            		//Message.printStatus(2, routine, "Sorting rows from " + blockStartRow + " to " + blockEndRow + " based on column " + sortColumnNum[iSort] );
+	            		sortTableSubset(blockStartRow,blockEndRow,sortColumnsNum[iSort],sortOrder[iSort],sortedOrderArray);
+	            	}
+	            	catch ( Exception e ) {
+	            		throw new RuntimeException(e);
+	            	}
+	            	// Now that the block has been started, reset for the next block
+	            	// blockStartRow should = irec since rec was different and triggered the sort of the previous block
+	            	blockStartRow = blockEndRow + 1;
+	            	blockEndRow = blockStartRow;
+	            }
+	            //Message.printStatus(2, routine, "At end of loop irec=" + irec + " blockStartRow=" + blockStartRow + " blockEndRow=" + blockEndRow );
+            }
+        }
+    }
+    return sortedOrderArray;
+}
+
+/**
+Sort a subset of a table.  This is called internally by other methods.
+@param blockStartRow starting row (0 index) to sort
+@param blockEndRow ending row (0 index) to sort
+@param iCol column number to sort
+@param sortOrder sort order
+@param sortedOrderArray the sort order array indicating the position in the original data
+(useful if a parallel sort of data needs to occur)
+*/
+private void sortTableSubset ( int blockStartRow, int blockEndRow, int iCol, int sortOrder, int [] sortedOrderArray )
+throws Exception
+{
+	if ( blockStartRow == blockEndRow ) {
+		// Only one row to sort
+		return;
+	}
+    int nrecords = blockEndRow - blockStartRow + 1; // Number of records in the block to sort
+    int [] sortOrderArray2 = new int[nrecords]; // Overall sort order different from original
+    // First sort by the first column.
+    int sortFlag = StringUtil.SORT_ASCENDING;
+    if ( sortOrder < 0 ) {
+        sortFlag = StringUtil.SORT_DESCENDING;
+    }
+    if ( getFieldDataType(iCol) == TableField.DATA_TYPE_STRING ) {
+        String value;
+        List<String> values = new ArrayList<String>(nrecords);
+        TableRecord rec;
+        for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
+        	rec = getRecord(irec);
+            try {
+                value = rec.getFieldValueString(iCol);
+                if ( value == null ) {
+                    value = "";
+                }
+                else {
+                    values.add(value);
+                }
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        StringUtil.sortStringList(values, sortFlag, sortOrderArray2, true, true);
+    }
+    else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DATETIME ) {
+        Object value;
+        double [] values = new double[nrecords];
+        TableRecord rec;
+        for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
+        	rec = getRecord(irec);
+            try {
+                value = rec.getFieldValue(iCol);
+                if ( value == null ) {
+                    value = -Double.MAX_VALUE;
+                }
+                values[pos] = ((DateTime)value).toDouble();
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
+    }
+    else if ( (getFieldDataType(iCol) == TableField.DATA_TYPE_DOUBLE) ||
+    	(getFieldDataType(iCol) == TableField.DATA_TYPE_FLOAT) ) {
+    	Object o;
+        double value;
+        double [] values = new double[nrecords];
+        TableRecord rec;
+        for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
+        	rec = getRecord(irec);
+            try {
+                o = rec.getFieldValue(iCol);
+                if ( o == null ) {
+                    value = -Double.MAX_VALUE;
+                }
+                else {
+                	if ( o instanceof Double ) {
+                		value = (Double)o;
+                	}
+                	else {
+                		value = (Float)o;
+                	}
+                }
+                values[pos] = value;
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
+    }
+    else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_INT) {
+        Integer value;
+        int [] values = new int[nrecords];
+        TableRecord rec;
+        for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
+        	rec = getRecord(irec);
+            try {
+                value = (Integer)rec.getFieldValue(iCol);
+                if ( value == null ) {
+                    value = -Integer.MAX_VALUE;
+                }
+                values[pos] = value;
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad
+                throw new RuntimeException ( e );
+            }
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
+    }
+    else {
+        throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float and DateTime columns." );
+    }
+    // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
+    // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
+    // that to sort into an updated original list.
+    List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
+    List<TableRecord> records = this.getTableRecords();
+    TableRecord rec;
+    for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
+    	rec = getRecord(irec);
+        backup.add ( rec );
+    }
+    // Now set from the backup to the original list
+    for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
+        records.set(irec, backup.get(sortOrderArray2[irec-blockStartRow]) );
+        sortedOrderArray[irec] = sortOrderArray2[irec-blockStartRow];
+    }
 }
 
 /**

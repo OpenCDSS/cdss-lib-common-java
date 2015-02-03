@@ -755,7 +755,11 @@ private DataTable sortTable ( DataTable table, int sortCol, int sortOrder )
     // Do not want to sort the original table.  Consequently copy the table and then sort
     DataTable tableSorted = table.createCopy(table, table.getTableID() + "-sorted", null, null, null, null, null);
     // Sort the table
-    tableSorted.sortTable(table.getFieldName(sortCol), sortOrder);
+    String [] sortCols = new String[1];
+    sortCols[0] = table.getFieldName(sortCol);
+    int [] sortOrderArray = new int[1];
+    sortOrderArray[0] = sortOrder;
+    tableSorted.sortTable(sortCols,sortOrderArray);
     return tableSorted;
 }
 
