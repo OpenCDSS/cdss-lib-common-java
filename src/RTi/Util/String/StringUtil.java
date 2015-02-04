@@ -1603,9 +1603,8 @@ public static final String formatString ( List<? extends Object> v, String forma
 						// Scientific notation.  Get the parts to the number and then
 						// put back together.  According to the documentation, the
 						// format is -X.YYYE-ZZZ where the first sign is optional, the first digit (X)
-						// is manditory (and non-zero), the YYYY are variable length, the sign after the E is
-						// manditory, and the exponent is variable length.  The sign after the E appears to be
-						// optional.
+						// is mandatory (and non-zero), the YYYY are variable length, the sign after the E is
+						// mandatory, and the exponent is variable length.  The sign after the E appears to be optional.
 						if ( Message.isDebugOn ) {
 							Message.printDebug(dl, "StringUtil.formatString",
 							"Detected scientific notation for Double: " + number_as_string );
@@ -1746,8 +1745,7 @@ public static final String formatString ( List<? extends Object> v, String forma
 					}
 					// Now add the whole number.  If it overflows, that is OK.  If it is
 					// less than the width we will deal with it in the next step.
-					temp.insert ( 0,
-					whole_number_string );
+					temp.insert ( 0, whole_number_string );
 					// If the number that we have now is less than the desired width, we need
 					// to add spaces.  Depending on the sign in the format, we add them at the left or right.
 					if ( temp.length() < width ) {
@@ -1762,7 +1760,13 @@ public static final String formatString ( List<? extends Object> v, String forma
 						else {
 							// Add at the end..
 							for ( ishift = 0; ishift < iend; ishift++ ) {
-								temp.insert ( 0, ' ' );
+								if ( zero_format ) {
+									// Format was similar to "%05.1f"
+									temp.insert ( 0, '0' );
+								}
+								else {
+									temp.insert ( 0, ' ' );
+								}
 							}
 						}
 					}
