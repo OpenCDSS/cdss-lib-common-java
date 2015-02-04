@@ -32,19 +32,19 @@ Format a string
 @param inputColumn2 the name of the second column to use as input (if input2 is not specified), or null if not used
 @param inputValue2 the constant input to use as input (if inputColumn2 is not specified), or null if not used
 @param outputColumn the name of the output column
+@param insertBeforeColumn the name of the column before which to insert the new column
 @param problems a list of strings indicating problems during processing
 */
-public void format ( String [] inputColumns, String format, String outputColumn, List<String> problems )
+public void format ( String [] inputColumns, String format, String outputColumn, String insertBeforeColumn, List<String> problems )
 {   String routine = getClass().getName() + ".format" ;
-    // Look up the columns for input and output
-    int [] inputColumnNum = new int[inputColumns.length];
-    for ( int i = 0; i < inputColumns.length; i++ ) {
-        inputColumnNum[i] = -1;
+    // Look up the columns for input and output (do input last since new column may be inserted)
+    int insertBeforeColumnNum = -1;
+    if ( (insertBeforeColumn != null) && !insertBeforeColumn.equals("") ) {
         try {
-            inputColumnNum[i] = __table.getFieldIndex(inputColumns[i]);
+            insertBeforeColumnNum = __table.getFieldIndex(insertBeforeColumn);
         }
         catch ( Exception e ) {
-            problems.add ( "Input column (1) \"" + inputColumns[i] + "\" not found in table \"" + __table.getTableID() + "\"" );
+            problems.add ( "Insert before column \"" + insertBeforeColumn + "\" not found in table \"" + __table.getTableID() + "\"" );
         }
     }
     int outputColumnNum = -1;
@@ -54,13 +54,23 @@ public void format ( String [] inputColumns, String format, String outputColumn,
     catch ( Exception e ) {
         Message.printStatus(2, routine, "Output column \"" + outputColumn + "\" not found in table \"" +
             __table.getTableID() + "\" - automatically adding." );
-            __table.addField(new TableField(TableField.DATA_TYPE_STRING,outputColumn,-1,-1), null );
+        __table.addField(insertBeforeColumnNum, new TableField(TableField.DATA_TYPE_STRING,outputColumn,-1,-1), null );
         try {
             outputColumnNum = __table.getFieldIndex(outputColumn);
         }
         catch ( Exception e2 ) {
             // Should not happen.
-            problems.add ( "Output column \"" + outputColumn + "\" not found in table \"" + __table.getTableID() + "\".  Error addung column." );
+            problems.add ( "Output column \"" + outputColumn + "\" not found in table \"" + __table.getTableID() + "\".  Error adding column." );
+        }
+    }
+    int [] inputColumnNum = new int[inputColumns.length];
+    for ( int i = 0; i < inputColumns.length; i++ ) {
+        inputColumnNum[i] = -1;
+        try {
+            inputColumnNum[i] = __table.getFieldIndex(inputColumns[i]);
+        }
+        catch ( Exception e ) {
+            problems.add ( "Input column (1) \"" + inputColumns[i] + "\" not found in table \"" + __table.getTableID() + "\"" );
         }
     }
     
