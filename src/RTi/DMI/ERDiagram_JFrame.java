@@ -32,7 +32,8 @@ import RTi.Util.GUI.SimpleJComboBox;
 This class is a JFrame inside of which is displayed the ER Diagram for a 
 database.
 */
-public abstract class ERDiagram_JFrame 
+public //abstract
+class ERDiagram_JFrame 
 extends JFrame {
 
 /**
