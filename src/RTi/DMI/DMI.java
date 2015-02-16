@@ -355,6 +355,7 @@ public final static String CLASS = "DMI";
 
 // Integer constants for database engine types, to formalize the engines that
 // are supported and to streamline internal processing.
+// TODO SAM 2015-02-16 Need to convert to an enumeration
 
 /**
 Database engine corresponding to "Access" database engine (Jet).

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 
+import RTi.DMI.DMI;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
@@ -25,10 +26,12 @@ public ResultSetToDataTableFactory ()
 
 /**
 Create a DataTable from a ResultSet.
+@param dbengineType a value from DMI.DBENGINE_*, used for fine-grain handling
+of column data type mapping.  Specify as -1 to ignore.
 @param rs the ResultSet from an SQL query
 @param tableID the identifier to use for the table
 */
-public DataTable createDataTable ( ResultSet rs, String tableID )
+public DataTable createDataTable ( int dbengineType, ResultSet rs, String tableID )
 throws SQLException
 {   String routine = getClass().getName() + ".createDataTable";
     DataTable table = new DataTable();
@@ -54,9 +57,11 @@ throws SQLException
         // still shows digits after the decimal point.  None of the properties on a column appear to be usable
         // to determine the number of digits to display.  To compensate, for now set the scale to 6 if
         // floating point and not specified
-        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
-            (scale == 0) ) {
-            scale = 6;
+        if ( dbengineType == DMI.DBENGINE_SQLSERVER ) {
+	        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
+	            (scale == 0) ) {
+	            scale = 6;
+	        }
         }
         table.addField( new TableField(columnType,columnName,precision,scale), null);
     }
@@ -172,7 +177,7 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.INTEGER: return TableField.DATA_TYPE_INT;
         case Types.LONGVARCHAR: return TableField.DATA_TYPE_STRING;
         case Types.NVARCHAR: return TableField.DATA_TYPE_STRING;
-        case Types.NUMERIC: return TableField.DATA_TYPE_DOUBLE; // internally a BigDecimal
+        case Types.NUMERIC: return TableField.DATA_TYPE_DOUBLE; // internally a BigDecimal - check the decimals to evaluate whether to use an integer
         case Types.REAL: return TableField.DATA_TYPE_DOUBLE;
         // REF not handled
         case Types.SMALLINT: return TableField.DATA_TYPE_INT;
