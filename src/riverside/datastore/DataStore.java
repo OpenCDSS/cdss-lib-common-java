@@ -53,13 +53,14 @@ public interface DataStore {
     
     /**
      * Set the status of datastore.
-     * @param status as 0=OK, 1=Error.  In the future more specific error codes may be implemented.
+     * @param status as 0=OK, 1=Error, 2=Closed.
+     * TODO SAM 2015-02-14 In the future additional error codes may be implemented or convert to enumeration.
      */
     public void setStatus(int status);
     
     /**
      * Set the status message for the datastore.
-     * @param statusMessage message corresponiding to status, for example error message.
+     * @param statusMessage message corresponding to status, for example error message.
      */
     public void setStatusMessage(String statusMessage);
 }
