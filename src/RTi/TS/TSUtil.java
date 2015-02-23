@@ -4268,6 +4268,15 @@ one-character string is specified.
 </td>
 </tr>
 
+<tr>
+<td><b>FillFlagDescription</b></td>
+<td>
+A string to use as the description for the data flag, for example in report legend.
+</td>
+<td>Generic description will be generated.
+</td>
+</tr>
+
 </table>
 @exception if there is an error performing the fill.
 */
@@ -4296,6 +4305,7 @@ throws Exception
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
+	String fillFlagDescription = props.getValue ( "FillFlagDescription" );
 
 	int	interval_base = ts.getDataIntervalBase();
 	int	interval_mult = ts.getDataIntervalMult();
@@ -4358,9 +4368,22 @@ throws Exception
 
 	if ( nfilled > 0 ) {
 		ts.setDescription ( ts.getDescription() + ", fill w/ " + StringUtil.formatString(value,"%.3f") );
+		if ( FillFlag_boolean ) {
+			ts.addToGenesis ( "Filled missing data " + start + " to " +
+				end + " using constant " + value + ", flag \"" + FillFlag + "\" (" + nfilled + " values filled)." );
+			if ( (fillFlagDescription != null) && !fillFlagDescription.isEmpty() ) {
+	            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, fillFlagDescription));
+	        }
+	        else {
+	            ts.addDataFlagMetadata(new TSDataFlagMetadata(
+		        FillFlag, "Filled missing data using constant " + value));
+	        }
+		}
+		else {
+			ts.addToGenesis ( "Filled missing data " + start + " to " +
+				end + " using constant " + value + " (" + nfilled + " values filled)." );
+		}
 	}
-	ts.addToGenesis ( "Filled missing data " + start + " to " +
-		end + " using constant " + value + " (" + nfilled + " values filled)." );
 }
 
 /**
