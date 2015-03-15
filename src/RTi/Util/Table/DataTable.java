@@ -86,7 +86,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -98,10 +97,8 @@ import java.util.Map;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringDictionary;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -582,7 +579,7 @@ override the reqIncludeColumns and default of all columns)
 specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter to match column values to include
-@param columnExcludeFilters dictionary for columns tht will apply a filter to match column values to exclude
+@param columnExcludeFilters dictionary for columns that will apply a filter to match column values to exclude
 @return copy of original table
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
@@ -797,6 +794,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
+        // If here need to check the exclude filters on the row
         if ( columnExcludeFiltersNumbers.length > 0 ) {
             int matchesCount = 0;
             // Filters can be done on any columns so loop through to see if row matches before doing copy
@@ -808,7 +806,13 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 try {
                     o = table.getFieldValue(irow, columnExcludeFiltersNumbers[icol]);
                     if ( o == null ) {
-                        break; // Don't include nulls when checking values
+                    	if ( columnExcludeFiltersGlobs[icol].isEmpty() ) {
+                    		// Trying to match blank cells
+                    		++matchesCount;
+                    	}
+                    	else { // Don't include nulls when checking values
+                    		break;
+                    	}
                     }
                     s = ("" + o).toUpperCase();
                     if ( s.matches(columnExcludeFiltersGlobs[icol]) ) {
@@ -829,6 +833,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
+        // If here then the row is OK to include
         if ( (distinctColumnNumbers != null) && (distinctColumnNumbers.length > 0) ) {
             // Distinct columns can be done on any columns so loop through to see if row matches before doing copy
             // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked
@@ -1665,6 +1670,47 @@ throws Exception
 }
 
 /**
+Indicate whether a table's column is empty (all null or blank strings).
+This is useful when setting column widths narrow for unused data, or deleting unused columns.
+@param columnNum column number 0+ to check
+@return true if the column is empty, false if contains at least one record with a value.
+*/
+public boolean isColumnEmpty ( int columnNum )
+{	TableRecord rec = null;
+	int recCount = getNumberOfRecords();
+	int emptyCount = 0;
+	String s;
+	Object o = null;
+	int columnType = getFieldDataType(columnNum);
+	for (int i = 0; i < recCount; i++) {
+		rec = _table_records.get(i);
+		try {
+			o = rec.getFieldValue(columnNum);
+		}
+		catch ( Exception e ) {
+			// Count as empty
+			++emptyCount;
+			continue;
+		}
+		if ( o == null ) {
+			++emptyCount;
+		}
+		else if ( columnType == TableField.DATA_TYPE_STRING ) {
+			s = (String)o;
+			if ( s.trim().isEmpty() ) {
+				++emptyCount;
+			}
+		}
+	}
+	if ( emptyCount == recCount ) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
 Returns whether any of the table records are dirty or not.
 @return whether any of the table records are dirty or not.
 */
@@ -1691,12 +1737,14 @@ Join one table to another by matching column column values.
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter to limit rows that are processed
 @param joinMethod the method used to join the tables
+@param handleMultipleMatchesHow indicate how multiple join matches should be handled (currently only
+NUMBER_COLUMNS and USE_LAST_MATCH [default] are supported)
 @param problems list of problems that will be filled during processing
 @return the number of rows appended
 */
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
-    List<String> problems )
+    HandleMultipleJoinMatchesHowType handleMultipleMatchesHow, List<String> problems )
 {   String routine = getClass().getName() + ".joinTable", message;
 
     // List of columns that will be copied to the first table
@@ -1726,15 +1774,20 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             }
         }
     }
-    // TODO 2013-08-19 if the column name to copy matches the original table, need to automatically rename with a number
-    // at the end, but do this after the column mapping below.
     // Column numbers in the copy table to match the original table.  Any values set to -1 will result in null in output.
+    // numberDuplicates will add columns on the fly as they are needed, at end of table
     String [] table1CopyColumnNames = new String[columnNamesToCopy.length];
     int [] table1CopyColumnNumbers = new int[columnNamesToCopy.length];
     int [] table1CopyColumnTypes = new int[columnNamesToCopy.length];
     String [] table2CopyColumnNames = new String[columnNamesToCopy.length];
     int [] table2CopyColumnNumbers = new int[columnNamesToCopy.length];
     int [] table2CopyColumnTypes = new int[columnNamesToCopy.length];
+    List<Integer> matchCountList = new ArrayList<Integer>();
+    if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
+    	// Create a list to count how many matches have occurred so that duplicates can add new numbered columns
+    	// Will need to be careful if "InsertBeforeColumn" functionality is added
+    	matchCountList = new ArrayList<Integer>(table.getNumberOfRecords());
+    }
     // Replace the copy table names using the column map
     Object o;
     for ( int icol = 0; icol < columnNamesToCopy.length; icol++ ) {
@@ -1938,6 +1991,10 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     TableRecord recToModify = null;
     // Loop through all rows in the first table
     for ( int irow = 0; irow < tableNumRows; irow++ ) {
+    	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
+    		// Initialize the number of matches for this row
+    		matchCountList.add(new Integer(0));
+    	}
         // Loop through all rows in the second table
         for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
             if ( !joinTableRecordMatchesFilter[irowJoin] ) {
@@ -2023,8 +2080,54 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                                 // Set the value in the original table, if the type matches
                                 // TODO SAM 2013-08-19 Check that the column types match
                                 if ( table1CopyColumnTypes[icol] == table2CopyColumnTypes[icol] ) {
-                                    recToModify.setFieldValue(table1CopyColumnNumbers[icol],
-                                        tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
+                                	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
+                                        // Increment the match counter
+                                		if ( icol == 0 ) {
+                                			matchCountList.set(irow,new Integer(matchCountList.get(irow) + 1));
+                                			Message.printStatus(2, routine, "Incremented match counter [" + irow +
+                                				"] to " + matchCountList.get(irow) + " for column \"" + table2CopyColumnNames[icol] + "\"");
+                                		}
+                                		if ( matchCountList.get(irow) == 1 ) {
+                                			// This is the first match so do simple set on requested output columns
+                                			// Set the column values in the joined table
+    	                                    recToModify.setFieldValue(table1CopyColumnNumbers[icol],
+    	                                        tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
+                                		}
+                                		else {
+                                			// Else, need to add output columns that have number appended
+                                			// For now look up the column
+                                			// TODO SAM 2015-03-04 add column to the existing column number array to increase performance
+                                			int icol1 = -1;
+                                			String duplicateColumn = table1CopyColumnNames[icol] + "_" + matchCountList.get(irow);
+                                			Message.printStatus(2,routine,"Duplicate match.  Will output to column \"" + duplicateColumn + "\"");
+                                			try {
+                                				Message.printStatus(2,routine,"See if column \"" + duplicateColumn + "\" exists.");
+                                				icol1 = table.getFieldIndex(duplicateColumn);
+                                				Message.printStatus(2,routine,"It does, will write to table 1 column [" + icol1 + "].");
+                                			}
+                                			catch ( Exception e ) {
+                                				// Add the column if it has not been added by a previous duplicate.
+                                				// First get the column used for the first match, which will not have a trailing number
+                                				Message.printStatus(2,routine,"It does not, need to add new column to table1.");
+                                				Message.printStatus(2,routine,"Getting table2 column to copy properties [" + table2CopyColumnNumbers[icol] + "]");
+                                				TableField tf = tableToJoin.getTableField(table2CopyColumnNumbers[icol]);
+                                				// Keep everything the same except change the column name
+                                				Message.printStatus(2,routine,"Adding table1 column \"" + duplicateColumn + "\" with properties from \"" + tf.getName() + "\"");
+                                				icol1 = table.addField(
+                                					new TableField(tf.getDataType(), duplicateColumn, tf.getWidth(), tf.getPrecision()), null);
+                                				Message.printStatus(2,routine,"Added table1 column \"" + duplicateColumn + "\" [" + icol1 + "]");
+                                			}
+                                			// Set in new column number, using table2 column number to copy
+                                			Message.printStatus(2,routine,"Setting table1 col \"" + duplicateColumn + "\" [" + icol1 + "] from table1 [" +irowJoin +
+                                				"][" + icol + "] value " + tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
+                                			recToModify.setFieldValue(icol1,tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
+                                		}
+                                	}
+                                	else {
+                                		// Set the column values in the joined table
+	                                    recToModify.setFieldValue(table1CopyColumnNumbers[icol],
+	                                        tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
+                                	}
                                     ++nrowsJoined;
                                 }
                                 else {
@@ -2043,8 +2146,13 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             }
         }
     }
-    // Now add any rows that were not matched
+    // Now add any rows that were not matched - add at the end so as to not upset the original sequence and lists used above
+    // TODO SAM 2015-03-05 Need to enable for NUMBER_COLUMNS
     if ( joinMethod == DataTableJoinMethodType.JOIN_ALWAYS ) {
+    	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
+    		problems.add("Requested NumberColumns for multiple join matches but not suported "
+    			+ "with JoinMethod=JoinAlways - multiple matches will be in extra rows.");
+    	}
         for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
             if ( joinTableRecordMatchesTable1[irowJoin] ) {
                 // Row was matched above so no need to add again.
@@ -2234,6 +2342,7 @@ throws Exception
 		if ( !processed_header ) {
 			num_fields = columns.size();
 			if ( num_fields < tableFields.size() ) {
+				in.close();
 				throw new IOException ( "Table fields specifications do not match data found in file." );
 			}
 			
