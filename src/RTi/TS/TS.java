@@ -1596,7 +1596,7 @@ public String getLegend()
 }
 
 /**
-Return the location part of the time series identifier.
+Return the location part of the time series identifier.  Does not include location type.
 @return The location part of the time series identifier (from TSIdent).
 */
 public String getLocation()
