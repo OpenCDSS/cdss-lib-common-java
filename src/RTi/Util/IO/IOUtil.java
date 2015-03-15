@@ -1334,10 +1334,24 @@ public static List getJarFilesManifests() {
 }
 
 /**
-Return the architecture bits.  This is only enabled on Windows.
+Return the Java Runtime Environment architecture bits.
+@return the JRE bits, 32 or 64
+*/
+public static int getJreArchBits ()
+{
+	String arch = System.getProperty("sun.arch.data.model");
+	if ( arch == null ) {
+		return -1;
+	}
+	int bits = Integer.parseInt(arch);
+	return bits;
+}
+
+/**
+Return the operating system architecture bits.  This is only enabled on Windows.
 @return the architecture bits, 32 or 64.
 */
-public static int getOSArch ()
+public static int getOSArchBits ()
 {
 	if ( !isUNIXMachine() ) {
 	    String arch = System.getenv("PROCESSOR_ARCHITECTURE");
