@@ -15,25 +15,32 @@
 
 package RTi.Util.GUI;
 
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
+// TODO SAM 2015-03-11 Remove if ImageIO package works
+//import com.sun.image.codec.jpeg.JPEGCodec;
+//import com.sun.image.codec.jpeg.JPEGEncodeParam;
+//import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
-
 import java.io.File;
 import java.io.FileOutputStream;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 import java.util.Vector;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+
+import org.w3c.dom.Element;
+
+import com.sun.imageio.plugins.jpeg.JPEGImageWriter;
 
 import RTi.Util.String.StringUtil;
 
@@ -427,6 +434,7 @@ private void writeJPEG(File file) {
 
 	// finally, write out the jpeg
 	try {
+		/* TODO SAM 2015-03-11 Remove if ImageIO works
 		FileOutputStream out = new FileOutputStream(file);
 
 		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
@@ -437,6 +445,24 @@ private void writeJPEG(File file) {
 	
 		out.flush();
 		out.close();
+		*/
+		// See:  See:  https://blog.idrsolutions.com/2012/05/replacing-the-deprecated-java-jpeg-classes-for-java-7/
+		JPEGImageWriter imageWriter = (JPEGImageWriter)ImageIO.getImageWritersBySuffix("jpeg").next();
+		FileOutputStream out = new FileOutputStream(file);
+		ImageOutputStream ios = ImageIO.createImageOutputStream(out);
+		imageWriter.setOutput(ios);
+		int dpi = 96;
+		IIOMetadata imageMetaData = imageWriter.getDefaultImageMetadata(new ImageTypeSpecifier(bimg),null);
+		Element tree = (Element)imageMetaData.getAsTree("javax_imageio_jpeg_image_1.0");
+		Element jfif = (Element)tree.getElementsByTagName("app0JFIF").item(0);
+		jfif.setAttribute("Xdensity", ""+dpi);
+		jfif.setAttribute("Ydensity", ""+dpi);
+		JPEGImageWriteParam jpegParams = (JPEGImageWriteParam)imageWriter.getDefaultWriteParam();
+		jpegParams.setCompressionMode(JPEGImageWriteParam.MODE_EXPLICIT);
+		jpegParams.setCompressionQuality(quality);
+		imageWriter.write(imageMetaData, new IIOImage(bimg,null,null),null);
+		ios.close();
+		imageWriter.dispose();
 	}
 	catch (Exception e) {
 		e.printStackTrace();
