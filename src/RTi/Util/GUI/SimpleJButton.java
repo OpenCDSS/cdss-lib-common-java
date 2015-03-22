@@ -164,7 +164,9 @@ Initialize the button data.
 */
 private void initialize (String command, String toolTipText, Insets insets, boolean margin, ActionListener al)
 {
-	addActionListener (al);
+	if ( al != null ) {
+		addActionListener (al);
+	}
 	if ( command != null ) {
 		if ( command.length() > 0 ) {
 			setActionCommand (command);
