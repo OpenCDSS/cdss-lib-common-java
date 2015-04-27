@@ -2127,6 +2127,21 @@ public static boolean isASCII( String s )
 }
 
 /**
+Determine whether a string can be converted to a boolean.
+@return true if the string can be converted to a boolean ("true" or "false"), false otherwise.
+@param s String to convert.
+*/
+public static boolean isBoolean( String s )
+{	if ( s == null ) {
+        return false;
+    }
+	if ( s.equalsIgnoreCase("true") || s.equalsIgnoreCase("false") ) {
+		return true;
+	}
+	return false;
+}
+
+/**
 Determine whether a string is a double precision value.
 @return true if the string can be converted to a double.
 @param s String to convert.
