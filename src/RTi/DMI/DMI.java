@@ -902,18 +902,16 @@ throws Exception {
 }
 
 /**
-Close the database connection.  If the database is not connected yet, an exception will be thrown.
+Close the database connection.  If the database is not connected yet, don't do anything.
 @throws SQLException thrown if the java.sql code has 
 any problems doing a Connection.close()
 */
-public void close() throws SQLException{
+public void close() throws SQLException {
 	// let the JDBC handle the close
-	if (!__connected) {
-		throw new SQLException ("Database not connected, cannot call DMI.close()");	
-	}	
-	
-	__connection.close();
-	__connected = false;
+	if (__connected) {
+		__connection.close();
+		__connected = false;
+	}
 }
 
 /**
