@@ -197,7 +197,7 @@ for troubleshooting; if false, the button is only available when debug logging i
 private void initialize(String title, String label, boolean showSystemDetails) {
 	addWindowListener(this);
 
-	// Split the text based on the new-line delimiter (we use \n, not the platform's separator!
+	// Split the text based on the new-line delimiter - internally use \n, not the platform's separator!
 	List<String> vec = StringUtil.breakStringList(label, "\n", 0);
 	int size = vec.size();
 	
