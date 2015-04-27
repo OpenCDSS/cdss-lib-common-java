@@ -1664,7 +1664,16 @@ public static List<String> getSystemProperties() {
     ArrayList<String> nameList = new ArrayList<String>(names);
     Collections.sort ( nameList );
     for ( String name : nameList ) {
-        v.add(tab + " " + name + " = \"" + System.getProperty(name) + "\"");
+    	if ( name.equals("line.separator") ) {
+    		// Special case because printing actual character will be invisible
+    		String nl = System.getProperty(name);
+    		nl = nl.replace("\r", "\\r");
+    		nl = nl.replace("\n", "\\n");
+    		v.add(tab + " " + name + " = \"" + nl + "\"");
+    	}
+    	else {
+    		v.add(tab + " " + name + " = \"" + System.getProperty(name) + "\"");
+    	}
     }
     v.add("");
 	
