@@ -21,7 +21,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 10;
+private int __COLUMNS = 12;
 
 /**
 Absolute column indices, for column lookups.
@@ -36,10 +36,12 @@ public final int COL_DATABASE_SERVER = 5;
 public final int COL_DATABASE_NAME = 6;
 // Straight ODBC connection...
 public final int COL_ODBC_NAME = 7;
+public final int COL_SYSTEM_LOGIN = 8;
 // Web service data store...
-public final int COL_SERVICE_ROOT_URI = 8;
+public final int COL_SERVICE_ROOT_URI = 9;
 // General error string
-public final int COL_STATUS_MESSAGE = 9;
+public final int COL_STATUS_MESSAGE = 10;
+public final int COL_CONFIG_FILE = 11;
 
 /**
 Constructor.
@@ -91,8 +93,10 @@ public String getColumnName(int columnIndex) {
         case COL_DATABASE_SERVER: return "Database Server";
         case COL_DATABASE_NAME: return "Database Name";
         case COL_ODBC_NAME: return "ODBC Name";
+        case COL_SYSTEM_LOGIN: return "Database Login";
         case COL_SERVICE_ROOT_URI: return "Web Service Root URI";
         case COL_STATUS_MESSAGE: return "Status Message";
+        case COL_CONFIG_FILE: return "Configuration File";
         default: return "";
     }
 }
@@ -110,8 +114,10 @@ public String[] getColumnToolTips() {
     tooltips[COL_DATABASE_SERVER] = "Database server for database datastore.";
     tooltips[COL_DATABASE_NAME] = "Database name for database datastore.";
     tooltips[COL_ODBC_NAME] = "ODBC name when used with generic database datastore.";
+    tooltips[COL_SYSTEM_LOGIN] = "Database account login.";
     tooltips[COL_SERVICE_ROOT_URI] = "Root URI for web service datastore.";
     tooltips[COL_STATUS_MESSAGE] = "Error message (e.g., when initialization failed).";
+    tooltips[COL_CONFIG_FILE] = "Datastore configuration file.";
     return tooltips;
 }
 
@@ -205,6 +211,8 @@ public Object getValueAt(int row, int col)
             else {
                 return "";
             }
+        case COL_SYSTEM_LOGIN:
+        	return dataStore.getProperty("SystemLogin");
         case COL_SERVICE_ROOT_URI:
             if ( webServiceDataStore != null ) {
                 return webServiceDataStore.getServiceRootURI();
@@ -214,6 +222,8 @@ public Object getValueAt(int row, int col)
             }
         case COL_STATUS_MESSAGE:
         	return dataStore.getStatusMessage();
+        case COL_CONFIG_FILE:
+        	return dataStore.getProperty("DataStoreConfigFile");
         default: return "";
     }
 }
@@ -232,8 +242,10 @@ public int[] getColumnWidths() {
     widths[COL_DATABASE_SERVER] = 15;
     widths[COL_DATABASE_NAME] = 15;
     widths[COL_ODBC_NAME] = 16;
+    widths[COL_SYSTEM_LOGIN] = 10;
     widths[COL_SERVICE_ROOT_URI] = 50;
     widths[COL_STATUS_MESSAGE] = 30;
+    widths[COL_CONFIG_FILE] = 50;
     return widths;
 }
 

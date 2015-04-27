@@ -2,8 +2,9 @@ package riverside.datastore;
 
 import RTi.Util.IO.PropList;
 
+// TODO SAM 2015-03-22 Need to fix issue that name and description are data members and also can be in properties.
 /**
-Abstract implementation of WebServiceDataStore, to handle management of common configuration data.
+Abstract implementation of DataStore, to handle management of common configuration data.
 */
 abstract public class AbstractDataStore implements DataStore
 {
@@ -52,6 +53,26 @@ public String getName()
 }
 
 /**
+Return the string property list for the datastore configuration.
+@return the string property list for the datastore configuration, guaranteed to be non-null.
+@param propertyName name of the property
+*/
+public PropList getProperties ()
+{
+    return __props;
+}
+
+/**
+Return the string value for a datastore configuration property.
+@return the string value for a datastore configuration property, or null if not matched.
+@param propertyName name of the property
+*/
+public String getProperty ( String propertyName )
+{
+    return __props.getValue(propertyName);
+}
+
+/**
 Return the status for the datastore.
 @return the status for the datastore.
 */
@@ -69,15 +90,6 @@ public String getStatusMessage()
     return __statusMessage;
 }
 
-/**
-Return the string value for a datastore configuration property.
-@return the string value for a datastore configuration property, or null if not matched.
-@param propertyName name of the property
-*/
-public String getProperty ( String propertyName )
-{
-    return __props.getValue(propertyName);
-}
 
 /**
 Set the identifier for the datastore.

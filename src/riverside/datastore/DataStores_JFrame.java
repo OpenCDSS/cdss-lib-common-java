@@ -64,17 +64,6 @@ throws Exception
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__dataTablePanel = null;
-	__messageJTextField = null;
-	__statusJTextField = null;
-	super.finalize();
-}
-
-/**
 Sets the status bar's message and status text fields.
 @param message the value to put into the message text field.
 @param status the value to put into the status text field.
@@ -114,7 +103,7 @@ throws Exception
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	getContentPane().add("South", statusBar);
 
-	setSize(600, 400);
+	setSize(800, 400);
 	JGUIUtil.center(this);
 
 	int count = __dataTablePanel.getWorksheetRowCount();

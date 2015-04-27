@@ -23,6 +23,14 @@ public interface DataStore {
      * @return the name of the datastore
      */
     public String getName();
+
+    /**
+     * Get the property list for the datastore.  These are strings stored in the datastore configuration.
+     * Properties allow for custom-configuration of datastores beyond the basic behavior enforced by
+     * the datastore design.  "Name" and "Description" are specific properties that are required.
+     * @return the property list for the datastore
+     */
+    public PropList getProperties();
     
     /**
      * Get a property for the datastore.  These are strings stored in the datastore configuration.
