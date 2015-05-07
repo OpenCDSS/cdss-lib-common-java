@@ -1,5 +1,6 @@
 package RTi.Util.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -34,6 +35,9 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
     choices.add ( DataTableStringOperatorType.REPLACE );
+    choices.add ( DataTableStringOperatorType.SUBSTRING );
+    // TODO SAM 2015-04-29 Need to enable boolean
+    //choices.add ( DataTableStringOperatorType.TO_BOOLEAN );
     choices.add ( DataTableStringOperatorType.TO_DATE );
     choices.add ( DataTableStringOperatorType.TO_DATE_TIME );
     choices.add ( DataTableStringOperatorType.TO_DOUBLE );
@@ -48,7 +52,7 @@ Get the list of operators that can be performed.
 public static List<String> getOperatorChoicesAsStrings()
 {
     List<DataTableStringOperatorType> choices = getOperatorChoices();
-    List<String> stringChoices = new Vector<String>();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -93,6 +97,10 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         Message.printStatus(2, routine, "Output column \"" + outputColumn + "\" not found in table \"" +
             __table.getTableID() + "\" - automatically adding." );
         // Automatically add to the table, initialize with null
+        // TODO SAM 2015-04-29 Need to enable Boolean
+        //if ( operator == DataTableStringOperatorType.TO_BOOLEAN ) {
+        //    __table.addField(new TableField(TableField.DATA_TYPE_BOOLEAN,outputColumn,-1,-1), null );
+        //}
         if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
             __table.addField(new TableField(TableField.DATA_TYPE_INT,outputColumn,-1,-1), null );
         }
@@ -137,7 +145,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         // Get the input values
         try {
             val = __table.getFieldValue(irec, input1ColumnNum);
-            input1Val = (String)val;
+            input1Val = "" + val; // Do this way so that even non-strings can be manipulated
         }
         catch ( Exception e ) {
             problems.add ( "Error getting value for input column 1 (" + e + ")." );
@@ -149,7 +157,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
             else if ( input2ColumnNum >= 0 ){
                 val = __table.getFieldValue(irec, input2ColumnNum);
-                input2Val = (String)val;
+                input2Val = "" + val;
             }
         }
         catch ( Exception e ) {
@@ -185,6 +193,39 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
             else if ( (input2Val != null) && (input3Val != null) ) {
                 outputVal = input1Val.replace(input2Val, input3Val);
+            }
+        }
+        else if ( operator == DataTableStringOperatorType.SUBSTRING ) {
+        	// Note that parameter character positions are 1+ but internal positions are 0+
+        	// Convert input2Val and input3Val to integers
+        	int input2ValInt = -1;
+        	int input3ValInt = -1;
+        	try {
+        		input2ValInt = Integer.parseInt(input2Val);
+        	}
+        	catch ( Exception e ) {
+        		input2ValInt = -1;
+        	}
+        	try {
+        		input3ValInt = Integer.parseInt(input3Val);
+        	}
+        	catch ( Exception e ) {
+        		input3ValInt = -1;
+        	}
+            if ( input1Val == null ) {
+                outputVal = null;
+            }
+            else if ( (input2ValInt >= 0) && (input3ValInt < 0) ) {
+            	// Substring to end of string
+            	if ( input2ValInt > input1Val.length() ) {
+            		outputVal = "";
+            	}
+            	else {
+            		outputVal = input1Val.substring(input2ValInt - 1);
+            	}
+            }
+            else if ( (input2ValInt >= 0) && (input3ValInt >= 0) ) {
+                outputVal = input1Val.substring((input2ValInt - 1), input3ValInt);
             }
         }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||

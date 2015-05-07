@@ -19,6 +19,15 @@ Replace string substring.
 */
 REPLACE("Replace"),
 /*
+Return a substring.
+*/
+SUBSTRING("Substring"),
+/*
+Cast a string value to a boolean.
+*/
+// TODO SAM 2015-04-29 Need to enable Boolean
+//TO_BOOLEAN("ToBoolean"),
+/*
 Cast a string value to a date.
 */
 TO_DATE("ToDate"),
