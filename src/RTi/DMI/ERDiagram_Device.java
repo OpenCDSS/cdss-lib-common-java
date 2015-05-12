@@ -56,8 +56,7 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-This class extends GRJComponentDevice to be the device that manages the ER
-Diagram drawing area.
+This class extends GRJComponentDevice to be the device that manages the ER Diagram drawing area.
 */
 public class ERDiagram_Device extends GRJComponentDevice
 implements ActionListener, MouseListener, MouseMotionListener, Printable, 
@@ -85,8 +84,7 @@ private final String
 	__MENU_TITLE_ONLY = "Show Table Name Only";
 		
 /**
-Whether to color code relationships to be able to tell which drawing routine
-was used for each.
+Whether to color code relationships to be able to tell which drawing routine was used for each.
 */
 protected boolean __colorCodeRelationships = false;
 		
@@ -116,8 +114,7 @@ Whether to draw the table text or not.
 private boolean __drawText = true;
 
 /**
-Whether to erase the currently-selected table when the screen is redrawn, 
-by not drawing it at all.
+Whether to erase the currently-selected table when the screen is redrawn, by not drawing it at all.
 */
 private boolean __eraseTable = false;
 
@@ -132,20 +129,17 @@ Whether the mouse is currently being dragged on the screen.
 private boolean __inDrag = false;
 
 /**
-Whether drawing settings need to be initialized because it is the first
-time paint() has been called.
+Whether drawing settings need to be initialized because it is the first time paint() has been called.
 */
 private boolean __initialize = true;
 
 /**
-Used to specify painting commands that will occur only once ever for the entire
-life of the class.
+Used to specify painting commands that will occur only once ever for the entire life of the class.
 */
 private boolean __onceEver = true;
 
 /**
-Used to specify whether to draw only the table name, or the table name and
-table fields
+Used to specify whether to draw only the table name, or the table name and table fields
 */
 private boolean __titleOnly = false;
 
@@ -154,8 +148,7 @@ The printing scale factor of the drawing.  This is the amount by which the
 72 dpi printable pixels are scaled.  A printing scale value of 1 means that
 the ER diagram will be printed at 72 pixels per inch (ppi), which is the 
 java standard.   A scale factor of .5 means that the ER Diagram will be 
-printed at 144 ppi.  A scale factor of 3 means that the ER Diagram will be 
-printed at 24 ppi.
+printed at 144 ppi.  A scale factor of 3 means that the ER Diagram will be printed at 24 ppi.
 */
 private double __printScale = 1;
 
@@ -247,10 +240,8 @@ scale of the ER Diagram.
 private SimpleJComboBox __scaleComboBox;
 
 /**
-Constructor.  Builds the device for the specified tables and relationships with
-the specified scale.
-@param tables array of ERDiagram_Table objects, each of which is a table in 
-the ER Diagram.
+Constructor.  Builds the device for the specified tables and relationships with the specified scale.
+@param tables array of ERDiagram_Table objects, each of which is a table in the ER Diagram.
 @param rels array of ERDiagram_Relationship objects, each of which is a 
 relationship between tables in the ER Diagram.
 @param parent the panel in which this device is used.
@@ -847,7 +838,10 @@ public void mouseReleased(MouseEvent event) {
 Paints the screen.
 @param g the Graphics context to use for painting.
 */
-public void paint(Graphics g) {
+public void paint(Graphics g)
+{
+	String routine = "paint";
+	Message.printStatus(2,routine,"Rendering ER diagram.");
 	// sets the graphics in the base class appropriately (double-buffered
 	// if doing double-buffered drawing, single-buffered if not)
 	setGraphics(g);
@@ -857,6 +851,7 @@ public void paint(Graphics g) {
 
 	// first time through, do the following ...
 	if (__initialize) {
+		Message.printStatus(2,routine,"Initializing.");
 		// one time ONLY, do the following.
 		if (__onceEver) {
 			__height = getBounds().height;
@@ -869,13 +864,14 @@ public void paint(Graphics g) {
 		for (int i = 0; i < __tables.length; i++) {
 			__tables[i].calculateBounds(__drawingArea);
 		}
-	
+		Message.printStatus(2,routine,"Calling repaint().");
 		repaint();
 		__forceRefresh = true;
 	}
 
 	// only do the following if explicitly instructed to ...
 	if (__forceRefresh) {
+		Message.printStatus(2,routine,"Doing __forceRefresh=true block");
 		JGUIUtil.setWaitCursor(__parent.getParentJFrame(), true);
 		// if the currently specified table is set to be erased, then
 		// a box that is 200 pixels wider and taller (to account for
@@ -891,28 +887,28 @@ public void paint(Graphics g) {
 				(__x - __xAdjust - 100),
 				invertY(__y - __yAdjust - 100),
 				__x - __xAdjust + __tableLimits.getWidth()+ 100,
-				invertY(__y + __tableLimits.getHeight() 
-					- __yAdjust + 100));
+				invertY(__y + __tableLimits.getHeight() - __yAdjust + 100));
 
 			setClip(limits);
 		}
 
 		clear();	
 
-		// first draw all the relationship lines.  Tables are drawn
-		// over the top of these
+		// First draw all the relationship lines.  Tables are drawn over the top of these
 		setAntiAlias(true);
+		Message.printStatus(2,routine,"Drawing " + __rels.length + " relationships");
 		for (int i = 0; i < __rels.length; i++) {
 			__rels[i].draw(__drawingArea, __tables);
 		}
 
-		// draw the tables -- if they are visible
+		// Draw the tables -- if they are visible
 		setAntiAlias(true);
+		Message.printStatus(2,routine,"Drawing " + __tables.length + " tables, limits = " + getLimits());
 		for (int i = 0; i < __tables.length; i++) {
-			if (__tables[i].isVisible() 
-			    && __tables[i].isWithinLimits(getLimits(false), 
-			    __drawingScale)) {
-			    	__tables[i].draw(__drawingArea);
+			Message.printStatus(2,routine,"Table[" + i + "] visible= " + __tables[i].isVisible() + " isWithinLimits=" +
+				__tables[i].isWithinLimits(getLimits(false), __drawingScale));
+			if (__tables[i].isVisible() && __tables[i].isWithinLimits(getLimits(false), __drawingScale)) {
+			    __tables[i].draw(__drawingArea);
 			}
 		}
 	
@@ -921,10 +917,8 @@ public void paint(Graphics g) {
 		if (__drawInchGrid) {
 			GRDrawingAreaUtil.setColor(__drawingArea, GRColor.red);
 			for (int i = 0; i < 100000; i+= ((72/__printScale)/2)) {
-				GRDrawingAreaUtil.drawLine(__drawingArea, i, 0,
-					i, 100000);
-				GRDrawingAreaUtil.drawLine(__drawingArea, 0, i, 
-					100000, i);
+				GRDrawingAreaUtil.drawLine(__drawingArea, i, 0, i, 100000);
+				GRDrawingAreaUtil.drawLine(__drawingArea, 0, i, 100000, i);
 				GRDrawingAreaUtil.drawText(__drawingArea, 
 					("" + ((double)i/(72/__printScale))),i, 
 					0, 0, GRText.CENTER_X | GRText.BOTTOM);
@@ -938,15 +932,11 @@ public void paint(Graphics g) {
 		if (__drawPixelGrid) {
 			GRDrawingAreaUtil.setColor(__drawingArea,GRColor.green);
 			for (int i = 0; i < 100000; i+= 50) {
-				GRDrawingAreaUtil.drawLine(__drawingArea, i, 0,
-					i, 100000);
-				GRDrawingAreaUtil.drawLine(__drawingArea, 0, i, 
-					100000, i);
-				GRDrawingAreaUtil.drawText(__drawingArea, 
-					("" + i) ,i, 0, 0,
+				GRDrawingAreaUtil.drawLine(__drawingArea, i, 0, i, 100000);
+				GRDrawingAreaUtil.drawLine(__drawingArea, 0, i, 100000, i);
+				GRDrawingAreaUtil.drawText(__drawingArea, ("" + i) ,i, 0, 0,
 					GRText.CENTER_X | GRText.BOTTOM);
-				GRDrawingAreaUtil.drawText(__drawingArea, 
-					("" + i),0, i, 0,
+				GRDrawingAreaUtil.drawText(__drawingArea, ("" + i),0, i, 0,
 					GRText.CENTER_Y | GRText.LEFT);
 			}			
 		}

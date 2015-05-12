@@ -20,27 +20,27 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
-
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
 import java.awt.print.PageFormat;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import RTi.GR.GRLimits;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
+import RTi.Util.Message.Message;
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.TableRecord;
 
 /**
-This class is a JPanel that displays an ER Diagram for a database.  It can 
-be added to any JFrame.
+This class is a JPanel that displays an ER Diagram for a database.  It can be added to any JFrame.
 */
 public class ERDiagram_JPanel extends JPanel
 implements WindowListener {
@@ -52,8 +52,7 @@ options are indicated by additional menu items in the popup menu.
 private boolean __debug;
 
 /**
-The DMI connection that will be used to query meta information about the 
-database and its tables.
+The DMI connection that will be used to query meta information about the database and its tables.
 */
 private DMI __dmi;
 
@@ -93,18 +92,17 @@ Array of the tables that will be shown on the ER Diagram.
 private ERDiagram_Table[] __tables;
 
 /**
-The number of elements in the __referenceTable Vector.
+The number of elements in the __referenceTable list.
 */
 private int __referenceTableCount;
 
 /**
-The scrollpane used to scroll around the panel with.
+The scrollpane used to scroll around the panel.
 */
 private JScrollPane __jsp;
 
 /**
-A reference to the text field in the parent JFrame that is on the left side
-of the status bar at the bottom.
+A reference to the text field in the parent JFrame that is on the left side of the status bar at the bottom.
 */
 private JTextField __messageField;
 
@@ -120,33 +118,82 @@ The format for the printed output of the ER diagram generation.
 private PageFormat __pageFormat;
 
 /**
-The name of the field in the table in the database that specifies where the 
-tables' X positions are.
+The name of the field in the table in the database that specifies where the tables' X positions are.
 */
 private String __erdXField;
 
 /**
-The name of the field in the table in the database that specifies where the 
-tables' Y positions are.
+The name of the field in the table in the database that specifies where the tables' Y positions are.
 */
 private String __erdYField;
 
 /**
 The name of the table in the database that contains a list of the tables and
-their positions in the ER Diagram.
+their positions in the ER Diagram (if DataTable not provided).
 */
 private String __tablesTableName;
 
 /**
-The name of the field in the table in the database that specifies the names of
-the tables to put on the ER Diagram.
+The data table containing table layout information (if database table name not provided).
 */
-private String __tableNameField;
+private DataTable __tablesTable = null;
 
 /**
-A Vector of the names of the reference tables in the ER diagram.  Will never be null.
+The name of the field in the table in the database that specifies the names of the tables to put on the ER Diagram.
+*/
+private String __tableNameField = null;
+
+/**
+A list of the names of the reference tables in the ER diagram.  Will never be null.
 */
 private List __referenceTables;
+
+/**
+Constructor.
+@param dmi an open and connected dmi that is hooked into the database for which the ER Diagram will be built.
+@param tablesTableName the name of the table in the database that contains a list of all the tables.
+@param tableNameField the name of the field within the above table that contains the names of the tables.
+@param erdXField the name of the field within the above table that contains the X position of the tables in the ER Diagram.
+@param erdYField the name of the field within the above table that contains the Y position of the tables in the ER Diagram.
+@param pageFormat the pageFormat with which the page will be printed.
+@param debug whether to turn on debugging options in the popup menu.
+*/
+public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi, DataTable tablesTable,
+String tableNameField, String erdXField, 
+String erdYField, List referenceTables, PageFormat pageFormat, 
+boolean debug)
+{
+	__dmi = dmi;
+	__parent = parent;
+	__debug = debug;
+
+	// assumed for now
+	__scale = .5;
+
+	__tablesTable = tablesTable;
+	__tableNameField = tableNameField;
+	__erdXField = erdXField;
+	__erdYField = erdYField;
+	if (referenceTables == null) {
+		__referenceTables = new Vector();
+	}
+	else {
+		__referenceTables = referenceTables;
+	}
+	__referenceTableCount = __referenceTables.size();
+
+	__pageFormat = pageFormat;
+
+	if (__debug) {
+		System.out.println("width: " + pageFormat.getImageableWidth());
+		System.out.println("height:" + pageFormat.getImageableHeight());
+	}
+
+	int widthPixels = (int)(pageFormat.getWidth() / __scale);
+	int heightPixels = (int)(pageFormat.getHeight() / __scale);
+	
+	setupGUI(widthPixels, heightPixels, __scale);
+}
 
 /**
 Constructor.
@@ -163,10 +210,11 @@ Y position of the tables in the ER Diagram.
 @param pageFormat the pageFormat with which the page will be printed.
 @param debug whether to turn on debugging options in the popup menu.
 */
-public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi, 
-String tablesTableName, String tableNameField, String erdXField, 
-String erdYField, List referenceTables, PageFormat pageFormat, 
-boolean debug) {
+public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi,
+	String tablesTableName, String tableNameField, String erdXField, 
+	String erdYField, List referenceTables, PageFormat pageFormat, 
+	boolean debug)
+{
 	__dmi = dmi;
 	__parent = parent;
 	__debug = debug;
@@ -411,10 +459,85 @@ protected ERDiagram_Relationship[] readRelationships() {
 Calls the DMIUtil method to read in the tables from the database and populate
 the array of ERDiagram_Table object.
 */
-protected ERDiagram_Table[] readTables() {
+protected ERDiagram_Table[] readTables()
+{	String routine = getClass().getSimpleName() + ".readTables";
 	setMessageStatus("Creating list of database tables", "WAIT");
-	List tables = DMIUtil.createERDiagramTables(__dmi, __tablesTableName, 
-		__tableNameField, __erdXField, __erdYField, null);
+	List<ERDiagram_Table> tables = new ArrayList<ERDiagram_Table>(0);
+	// First read the table metadata from the database.  If the name of the table with database tables
+	// is not specified, don't pass that to the following - coordinates for drawing won't be initialized.
+	tables = DMIUtil.createERDiagramTables(__dmi, __tablesTableName, __tableNameField, __erdXField, __erdYField, null);
+	// Next if a data table has been provided, get the X and Y coordinates from that table
+	if ( __tablesTable != null ) {
+		int nameCol = -1;
+		try {
+			nameCol = __tablesTable.getFieldIndex(__tableNameField);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, e);
+			nameCol = -1;
+		}
+		int xCol = -1;
+		try {
+			xCol = __tablesTable.getFieldIndex(__erdXField);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, e);
+			xCol = -1;
+		}
+		int yCol = -1;
+		try {
+			yCol = __tablesTable.getFieldIndex(__erdYField);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, e);
+			yCol = -1;
+		}
+		double x, y;
+ 		Object o = null;
+		for ( ERDiagram_Table table : tables ) {
+			// TODO SAM 2015-05-09 Implement robust error handling
+			// Find a matching table name
+			TableRecord rec = null;
+			try {
+				rec = __tablesTable.getRecord(nameCol, table.getName());
+			}
+			catch ( Exception e ) {
+				Message.printWarning(3,routine,e);
+				Message.printStatus(2,routine,"Could not match table name \"" + table.getName() + "\" in table list.");
+				continue;
+			}
+			// Try to get the X and Y coordinates from the table
+			try {
+				o = rec.getFieldValue(xCol);
+			}
+			catch ( Exception e ) {
+				Message.printWarning(3, routine, e);
+				x = 0.0;
+			}
+			if ( o == null) {
+				x = 0.0;
+			}
+			else {
+				x = (Double)o;
+			}
+			try {
+				o = rec.getFieldValue(yCol);
+			}
+			catch ( Exception e ) {
+				Message.printWarning(3, routine, e);
+				y = 0.0;
+			}
+			if ( o == null) {
+				y = 0.0;
+			}
+			else {
+				y = (Double)o;
+			}
+			table.setX(x);
+			table.setY(y);
+		}
+	}
+	Message.printStatus(2,"","Initialized " + tables.size() + " tables for diagram.");
 
 	__tables = new ERDiagram_Table[tables.size()];
 	for (int i = 0; i < tables.size(); i++) {
@@ -522,7 +645,6 @@ private void setupGUI(int hPixels, int vPixels, double scale) {
 	JGUIUtil.addComponent(this, __jsp,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.SOUTHWEST);
-	
 }
 
 /**

@@ -26,6 +26,7 @@ import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRLimits;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
+import RTi.Util.Message.Message;
 
 /**
 This class is the object representing a table in an ER Diagram.  It stores 
@@ -38,14 +39,13 @@ Whether the bounds have been calculated for the current settings.  If false,
 the bounds (the height and width necessary for drawing the table) will be
 recalculated at the next time the table is drawn.
 */
-private boolean __boundsCalculated;
+private boolean __boundsCalculated = false;
 
 /**
 Whether to draw the framework of the table (true), or the actual table.
-Drawing the table as a framework is much faster, because only the outline
-lines are drawn. 
+Drawing the table as a framework is much faster, because only the outline lines are drawn. 
 */
-private boolean __drawFramework;
+private boolean __drawFramework = false;
 
 /**
 Whether the table has been marked or not.
@@ -63,10 +63,9 @@ Whether the table's title is visible or not.
 private boolean __titleVisible = true;
 
 /**
-Whether the table is visible or not.  If it is not visible, it will not be
-drawn.
+Whether the table is visible or not.  If it is not visible, it will not be drawn.
 */
-private boolean __visible;
+private boolean __visible = true;
 
 /**
 The thickness (in pixels) of the border around the table fields.
@@ -75,10 +74,9 @@ private double __borderThickness;
 
 /**
 The radius (in pixels) of the curve at the corner of the table's 
-rectangular-ish shape.  If set to 0, the table will be stored in a true 
-rectangle.
+rectangular-ish shape.  If set to 0, the table will be stored in a true rectangle.
 */
-private double __cornerRadius;
+private double __cornerRadius = 0;
 
 /**
 The space (in pixels) on either side of the line separating key fields from 
@@ -96,13 +94,12 @@ private double __dividerLineThickness;
 The distance (in pixels) that the dropshadow is off-set from the table.  If 
 set to 0, there will be no drop shadow.  With a positive value, the drop shadow
 is displaced the specified number of pixels to the right of and below the table.
-If the number is negative, the drop shadow will appear to the left and above
-the table.
+If the number is negative, the drop shadow will appear to the left and above the table.
 */
 private double __dropShadowOffset;
+
 /**
-The spacing (in pixels) between the sides of the border and the longest
-text string in the table.
+The spacing (in pixels) between the sides of the border and the longest text string in the table.
 */
 private double __fieldNameHorizontalSpacing;
 
@@ -144,14 +141,12 @@ private GRColor __dropShadowColor;
 
 /**
 The old background color in which the table was drawn.  Used when the table
-is highlighted during a search, in order to restore the original table color
-when the table is deselected.
+is highlighted during a search, in order to restore the original table color when the table is deselected.
 */
 private GRColor __oldBackgroundColor;
 
 /**
-The color in which the table borders and line separating key fields from
-non-key fields are drawn.
+The color in which the table borders and line separating key fields from non-key fields are drawn.
 */
 private GRColor __outlineColor;
 
@@ -189,7 +184,8 @@ public ERDiagram_Table(String name) {
 	__height = 0;
 	__x = -10000;
 	__y = -10000;
-	__visible = false;
+	//__visible = false;
+	__visible = true;
 	__textVisible = true;
 	__titleVisible = true;
 	__drawFramework = false;
@@ -236,8 +232,7 @@ public ERDiagram_Table(ERDiagram_Table table) {
 }
 
 /**
-Returns whether the bounds are calculated, or whether calculateBounds() needs
-to be called again.
+Returns whether the bounds are calculated, or whether calculateBounds() needs to be called again.
 @return whether the bounds are calculated.
 */
 public boolean areBoundsCalculated() {
@@ -248,12 +243,11 @@ public boolean areBoundsCalculated() {
 Based on table settings, such as border thickness and the number and length 
 of field names, this method recalculates some internal settings necessary to
 draw the table properly.  If a call is made to most set*() methods, then the
-setBoundsCalculated() flag will be set so that the bounds are reset next time
-draw() is called.
-@param da the DrawingArea used to calculate some GRLimits (such as when 
-getting text extents)
+setBoundsCalculated() flag will be set so that the bounds are reset next time draw() is called.
+@param da the DrawingArea used to calculate some GRLimits (such as when getting text extents)
 */
-public void calculateBounds(ERDiagram_DrawingArea da) {
+public void calculateBounds(ERDiagram_DrawingArea da)
+{	String routine = getClass().getSimpleName() + ".calculateBounds";
 	setBoundsCalculated(true);
 
 	double height = (__borderThickness * 2);
@@ -273,8 +267,7 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 	}
 	for (int i = 0; i < length; i++) {
 		count++;
-		limits = GRDrawingAreaUtil.getTextExtents(da, 
-			__keyFields[i], GRUnits.DEVICE);
+		limits = GRDrawingAreaUtil.getTextExtents(da, __keyFields[i], GRUnits.DEVICE);
 
 		if (limits.getWidth() > maxTextWidth) {	
 			maxTextWidth = limits.getWidth();
@@ -283,8 +276,7 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 		averageTextHeight += limits.getHeight();
 	
 		if (i < (length - 1)) {
-			height += getFieldNameVerticalSpacing()	
-				+ limits.getHeight();
+			height += getFieldNameVerticalSpacing() + limits.getHeight();
 		}
 		else {
 			height += limits.getHeight();
@@ -296,8 +288,7 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 	}
 	for (int i = 0; i < length; i++) {
 		count++;
-		limits = GRDrawingAreaUtil.getTextExtents(da, 
-			__nonKeyFields[i], GRUnits.DEVICE);
+		limits = GRDrawingAreaUtil.getTextExtents(da, __nonKeyFields[i], GRUnits.DEVICE);
 
 		if (limits.getWidth() > maxTextWidth) {	
 			maxTextWidth = limits.getWidth();
@@ -306,8 +297,7 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 		averageTextHeight += limits.getHeight();
 
 		if (i < (length - 1)) {
-			height += getFieldNameVerticalSpacing()	
-				+ limits.getHeight();
+			height += getFieldNameVerticalSpacing()	+ limits.getHeight();
 		}
 		else {
 			height += limits.getHeight();
@@ -327,8 +317,7 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 	
 	__height = height;
 	
-	maxTextWidth += (__fieldNameHorizontalSpacing * 2) 
-		+ (__borderThickness * 2);
+	maxTextWidth += (__fieldNameHorizontalSpacing * 2) + (__borderThickness * 2);
 	
 	__width = maxTextWidth + (2 * __cornerRadius);
 	if (__cornerRadius == 0) {
@@ -342,6 +331,8 @@ public void calculateBounds(ERDiagram_DrawingArea da) {
 	//System.out.println("name: " + __name + " __x: " + __x + "  __y : " 
 	//	+ __y + "  __width: " + __width + "  __height: " + __height);
 	if (((__x + __width) < 0) && ((__y + __height) < 0)) {
+		Message.printStatus(2, routine, "Setting table to visible=false name =" + __name + " __x: " + __x + " __y : " 
+			+ __y + "  __width: " + __width + "  __height: " + __height);
 		__visible = false;
 	}
 }
@@ -367,13 +358,16 @@ public boolean contains(double x, double y) {
 Draws the table to the specified drawing area.
 @param da the drawing are to which to draw the table.
 */
-public void draw(ERDiagram_DrawingArea da) {
+public void draw(ERDiagram_DrawingArea da)
+{	String routine = "draw";
 	if (!areBoundsCalculated()) {
 		calculateBounds(da);
 	}
 
 	double[] xs = new double[2];
 	double[] ys = new double[2];
+	
+	Message.printStatus(2,routine,"Drawing table \"" + getName() + "\" at " + __x + ", " + __y );
 
 	int length = 0;
 	String text = null;	
@@ -1072,8 +1066,7 @@ public void setTitleVisible(boolean visible) {
 
 /**
 Sets whether the table is visible or not.
-If the table's visibility changes, calculateBounds() will be called 
-before the table is next drawn.
+If the table's visibility changes, calculateBounds() will be called before the table is next drawn.
 @param visible whether the table should be visible or not.
 */
 public void setVisible(boolean visible) {
@@ -1084,8 +1077,7 @@ public void setVisible(boolean visible) {
 }
 
 /**
-Sets the X position of the table.  If the value of X changes, calculateBounds()
-wil be called before the table is next drawn.
+Sets the X position of the table.  If the value of X changes, calculateBounds() will be called before the table is next drawn.
 @param x the X position of the table.
 */
 public void setX(double x) {
@@ -1096,8 +1088,7 @@ public void setX(double x) {
 }
 
 /**
-Sets the Y position of the table.  If the value of Y changes, calculateBounds()
-wil be called before the table is next drawn.
+Sets the Y position of the table.  If the value of Y changes, calculateBounds() will be called before the table is next drawn.
 @param y the Y position of the table.
 */
 public void setY(double y) {
@@ -1118,10 +1109,8 @@ public String toString() {
 		+ "  Width:    " + __width + "\n"
 		+ "  Height:   " + __height + "\n"
 		+ "  Visible: " + __visible + "\n"
-		+ "  Horizontal Field Spacing: " + __fieldNameHorizontalSpacing
-			+ "\n"
-		+ "  Vertical Field Spacing:   " + __fieldNameVerticalSpacing
-			+ "\n"
+		+ "  Horizontal Field Spacing: " + __fieldNameHorizontalSpacing + "\n"
+		+ "  Vertical Field Spacing:   " + __fieldNameVerticalSpacing + "\n"
 		+ "  Divider Line Thickness:   " + __dividerLineThickness + "\n"
 		+ "  Divider Field Height:     " + __dividerFieldHeight + "\n"
 		+ "  Border Thickness:         " + __borderThickness + "\n"

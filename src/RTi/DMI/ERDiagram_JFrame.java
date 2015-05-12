@@ -14,9 +14,7 @@ package RTi.DMI;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.awt.print.PageFormat;
-
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -24,13 +22,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import RTi.DMI.DMI;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.Table.DataTable;
 
 /**
-This class is a JFrame inside of which is displayed the ER Diagram for a 
-database.
+This class is a JFrame inside of which is displayed the ER Diagram for a database.
 */
 public //abstract
 class ERDiagram_JFrame 
@@ -144,6 +141,35 @@ PageFormat pageFormat, boolean debug) {
 }
 
 /**
+Constructor.
+@param dmi an open and connected dmi that is hooked into the database for which
+the ER Diagram will be built.
+@param tablesTableName the name of the table in the database that contains 
+a list of all the tables.
+@param tableNameField the name of the field within the above table that contains
+the names of the tables.
+@param erdXField the name of the field within the above table that contains the
+X position of the tables in the ER Diagram.
+@param erdYField the name of the field within the above table that contains the
+Y position of the tables in the ER Diagram.
+@param pageFormat the pageFormat with which the page will be printed.
+@param debug whether to turn on debugging options in the popup menu.  
+*/
+public ERDiagram_JFrame(DMI dmi, DataTable tablesTable, String tableNameField,
+String erdXField, String erdYField, List referenceTables, 
+PageFormat pageFormat, boolean debug)
+{
+	super(dmi.getDatabaseName());
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+
+	__panel = new ERDiagram_JPanel(this, dmi, tablesTable, 
+		tableNameField, erdXField, erdYField, referenceTables, 
+		pageFormat, debug);
+	
+	setupGUI();
+}
+
+/**
 Sets up the GUI.
 */
 private void setupGUI() {
@@ -181,15 +207,19 @@ private void setupGUI() {
 	__statusField.setText("READY");
 
 	setSize(800, 600);
+	setVisible(true);
+	__panel.setInitialViewportPosition();
+	//show();
 }
 
+// TODO SAM 2015-05-10 Calling this cases a StackOverflowException - call directly above
 /**
 Overrides the default JFrame setVisible(true) -- calls setInitialViewportPosition on the 
 ERDiagram_JPanel to position the ER Diagram within its scroll pane.
 */
-public void show() {
-	super.setVisible(true);
-	__panel.setInitialViewportPosition();
-}
+//public void show() {
+//	setVisible(true);
+//	__panel.setInitialViewportPosition();
+//}
 
 }

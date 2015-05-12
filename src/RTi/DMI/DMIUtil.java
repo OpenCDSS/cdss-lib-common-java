@@ -420,25 +420,22 @@ public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi,
 Creates a list of ERDiagram_Tables for use in an ERDiagram.
 @param dmi an open and connected DMI object.  Must not be null.
 @param tablesTableName the name of the table in the database that contains the
-list of table names and ER Diagram information.  Must not be null.
-@param tableField the name of the column in the tables table that contains the
-names of the tables.  Must not be null.
-@param erdXField the name of the column in the tables table that contains the
-X positions of the ERDiagram Tables.  Must not be null.
-@param erdYField the name of the column in the tables table that contains the
-Y positions of the ERDIagram Tables.  Must not be null.
-@param notIncluded a Vector of the names of the tables to not include in the ERDiagram.  May be null.
+list of table names and ER Diagram information.  If null the coordinates for the ER Diagram will not be set.
+@param tableField the name of the column in the tables table that contains the names of the tables.
+@param erdXField the name of the column in the tables table that contains the X positions of the ERDiagram Tables.
+@param erdYField the name of the column in the tables table that contains the Y positions of the ERDIagram Tables.
+@param notIncluded a list of the names of the tables to not include in the ERDiagram.  May be null.
 @return a list of ERDiagram_Table objects that can be used to build an 
-ER Diagram.  null is returned if there was an error creating the tables or
-reading from the database.
+ER Diagram.  null is returned if there was an error creating the tables or reading from the database.
 */
-public static List<ERDiagram_Table> createERDiagramTables(DMI dmi, String tablesTableName,
-String tableField, String erdXField, String erdYField, List notIncluded) {
+public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
+	String tablesTableName, String tableField, String erdXField, String erdYField,
+	List notIncluded)
+{
 	String routine = "DMIUtil.createERDiagramTables";
 	String temp;
 	DatabaseMetaData metadata = null;
 	ResultSet rs = null;
-	boolean more;
 
 	List<String> tableNames = getDatabaseTableNames(dmi, null, null, true, notIncluded);
 
@@ -448,7 +445,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 
 	int size = tableNames.size();
 	String tableName = null;
-	Message.printStatus(2, routine, "Writing table details for tables");
+	Message.printStatus(2, routine, "Determining table details for ER Diagram");
 	
 	List<ERDiagram_Table> tables = new Vector();
 	ERDiagram_Table table = null;
@@ -457,7 +454,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 		metadata = dmi.getConnection().getMetaData();
 	}
 	catch (Exception e) {
-		e.printStackTrace();
+		Message.printWarning(3,routine,e);
 		return null;
 	}
 	
@@ -467,46 +464,43 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 	
 		try {	
 			// First get a list of all the table columns that are in the Primary key.
-			ResultSet primaryKeysRS = null;
-			List<String> primaryKeysV = null;
-			int primaryKeysSize = 0;
+			ResultSet primaryKeyRS = null;
+			List<String> primaryKeyList = null;
+			int primaryKeyListSize = 0;
 			try {
-				primaryKeysRS = metadata.getPrimaryKeys( null, null, tableName);
-				primaryKeysV = new Vector();
-				while (primaryKeysRS.next()) {
-					primaryKeysV.add(primaryKeysRS.getString(4));	
+				primaryKeyRS = metadata.getPrimaryKeys( null, null, tableName);
+				primaryKeyList = new ArrayList();
+				while (primaryKeyRS.next()) {
+					primaryKeyList.add(primaryKeyRS.getString(4));	
 				}
-				primaryKeysSize = primaryKeysV.size();
-				DMI.closeResultSet(primaryKeysRS);
+				primaryKeyListSize = primaryKeyList.size();
+				DMI.closeResultSet(primaryKeyRS);
 			}
 			catch (Exception e) {
-				// if an exception is thrown here, it is probably because the JDBC driver does not
+				// If an exception is thrown here, it is probably because the JDBC driver does not
 				// support the "getPrimaryKeys" method.  
 				// No problem, it will be treated as if there were no primary keys.
 			}
+			Message.printStatus(2,routine,"Table \"" + tableName + "\" has " + primaryKeyListSize + " primary keys");
 			
 			boolean key = false;
-			List columns = new Vector();
-			List columnNames = new Vector();
+			List columns = new ArrayList();
+			List<String> columnNames = new ArrayList<String>();
 
 			// Next, get the actual column data for the current table.
 			rs = metadata.getColumns(null, null, tableName, null);
 			if (rs == null) {
-				Message.printWarning(2, routine, "Error getting columns for \"" + tableName+"\" table.");
+				Message.printWarning(2, routine, "Error getting columns for \"" + tableName + "\" table.");
 				DMI.closeResultSet(rs);
 				continue;
 			} 
 
-			more = rs.next();
-
-			// Loop through each column and move all its important
-			// data into a Vector of Vectors.  This data will
-			// be run through at least twice, and to do that
-			// with a ResultSet would require several expensive opens and closes.
+			// Loop through each column and move all its important data into a list of list.  This data will
+			// be run through at least twice, and to do that with a ResultSet would require several expensive opens and closes.
 			String columnName = null;
-			while (more) {
+			while (rs.next()) {
 				key = false;
-				List column = new Vector();
+				List columnNameList = new ArrayList<String>();
 			
 				// Get the 'column name' and store it in list position 0
 				columnName = rs.getString(4);
@@ -516,22 +510,22 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 				else {
 					columnName= columnName.trim();
 				}
-				column.add(columnName);
+				columnNameList.add(columnName);
 				columnNames.add(columnName);
 
 				// Get whether this is a primary key or not and store either "TRUE" (for it being a 
 				// primary key) or "FALSE" in list position 1
-				for (int j = 0; j < primaryKeysSize; j++) {
-					if (columnName.equals(primaryKeysV.get(j).trim())) {
+				for (int j = 0; j < primaryKeyListSize; j++) {
+					if (columnName.equals(primaryKeyList.get(j).trim())) {
 						key = true;		
 					}
 				}				
 
 				if (key) {
-					column.add("TRUE");
+					columnNameList.add("TRUE");
 				}
 				else {
-					column.add("FALSE");
+					columnNameList.add("FALSE");
 				}
 
 				// Get the 'column type' and store it in list position 2
@@ -542,15 +536,15 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.add(temp);
+				columnNameList.add(temp);
 
 				// Get the 'column size' and store it in list position 3
 				temp = rs.getString(7);
-				column.add(temp);
+				columnNameList.add(temp);
 				
 				// Get the 'column num digits' and store it in list position 4
 				temp = rs.getString(9);
-				column.add(temp);
+				columnNameList.add(temp);
 
 				// Get whether the column is nullable and store it in list position 5
 				temp = rs.getString(18);
@@ -560,32 +554,29 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 				else {
 					temp = temp.trim();
 				}
-				column.add(temp);
+				columnNameList.add(temp);
 				
-				columns.add(column);
-				more = rs.next();			
+				columns.add(columnNameList);			
 			}
 
 			// Next, an alphabetized list of the column names in the table will be compiled.
 			// This will be used to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
-			List[] sortedVectors = new List[numColumns];
+			List[] sortedLists = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedVectors[j] = (List)columns.get(order[j]);
+				sortedLists[j] = (List)columns.get(order[j]);
 			}
 		
-			String[] keyFields = new String[primaryKeysSize];
-			// Now that the sorted order of the column names
-			// (and the Vectors of data) is known, loop through
-			// the data Vectors looking for columns which are in 
-			// the Primary key.  They will be displayed in bold
+			String[] keyFields = new String[primaryKeyListSize];
+			// Now that the sorted order of the column names (and the lists of data) is known, loop through
+			// the data lists looking for columns that are in the Primary key.  They will be displayed in bold
 			// face font with a yellow background.
 			String field;
-			String[] nonKeyFields = new String[(numColumns - primaryKeysSize)];
+			String[] nonKeyFields = new String[(numColumns - primaryKeyListSize)];
 			int count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedVectors[j];
+				List column = sortedLists[j];
 				temp = null;
 
 				temp = (String)column.get(1);
@@ -619,7 +610,7 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 			// Now do the same thing for the other fields, the non-primary key fields.  
 			count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedVectors[j];
+				List column = sortedLists[j];
 				temp = null;
 
 				temp = (String)column.get(1);
@@ -652,12 +643,13 @@ String tableField, String erdXField, String erdYField, List notIncluded) {
 			table.setKeyFields(keyFields);
 			table.setNonKeyFields(nonKeyFields);
 			table.setVisible(true);
-			setTableXY(dmi, table, tablesTableName, tableField, erdXField, erdYField);
+			if ( (tablesTableName != null) && !tablesTableName.isEmpty() ) {
+				setTableXY(dmi, table, tablesTableName, tableField, erdXField, erdYField);
+			}
 			tables.add(table);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			Message.printWarning(2, routine, "Error printing column information for table: " + tableName);
+			Message.printWarning(2, routine, "Error determining column information for table: " + tableName);
 			Message.printWarning(2, routine, e);
 		}
 
