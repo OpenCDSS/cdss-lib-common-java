@@ -1,14 +1,17 @@
 package RTi.Util.Table;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringDictionary;
 import RTi.Util.Time.DateTime;
 
 /**
-Perform simple column-based string operations on a table.
+Perform simple column-based string manipulation on a table.
 */
 public class DataTableStringManipulation
 {
@@ -19,11 +22,26 @@ Data table on which to perform math.
 private DataTable __table = null;
 
 /**
-Construct an instance using the table to operate on.
+Filter to include rows.
 */
-public DataTableStringManipulation ( DataTable table )
+private StringDictionary __columnIncludeFilters = null;
+
+/**
+Filter to exclude rows.
+*/
+private StringDictionary __columnExcludeFilters = null;
+
+/**
+Construct an instance.
+@param table table that is being manipulated
+@param columnIncludeFilters a list of filters that will be checked to include rows
+@param columnIncludeFilters a list of filters that will be checked to exclude rows
+*/
+public DataTableStringManipulation ( DataTable table, StringDictionary columnIncludeFilters, StringDictionary columnExcludeFilters )
 {
     __table = table;
+    __columnIncludeFilters = columnIncludeFilters;
+    __columnExcludeFilters = columnExcludeFilters;
 }
 
 /**
@@ -72,6 +90,15 @@ Perform a string manipulation.
 public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
     String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems )
 {   String routine = getClass().getName() + ".manipulate" ;
+	// Construct the filter
+	DataTableFilter filter = null;
+	try {
+		filter = new DataTableFilter ( __table, __columnIncludeFilters, __columnExcludeFilters );
+	}
+	catch ( Exception e ) {
+		// If any problems are detected then processing will be stopped below
+		problems.add(e.getMessage());
+	}
     // Look up the columns for input and output
     int input1ColumnNum = -1;
     try {
@@ -137,6 +164,15 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     String input3Val;
     Object outputVal = null;
     for ( int irec = 0; irec < nrec; irec++ ) {
+    	// Check whether row should be included/excluded - "true" below indicates to throw exceptions
+    	try {
+	    	if ( !filter.includeRow(irec,true) ) {
+	    		continue;
+	    	}
+    	}
+    	catch ( Exception e ) {
+    		problems.add(e.getMessage());
+    	}
         // Initialize the values
         input1Val = null;
         input2Val = null;
