@@ -1,7 +1,8 @@
 package RTi.TS;
 
 /**
-This enumeration defines running average types.
+This enumeration defines running average types, used to determine the sample for the analysis.
+The enumeration can be used with more than average statistic.
 */
 public enum RunningAverageType
 {
@@ -13,6 +14,10 @@ public enum RunningAverageType
     Average values from both sides of the time step, inclusive of the center value.
     */
     CENTERED("Centered"),
+    /**
+    Custom bracket using custom offsets.  For example, at an interval, the sample may be determined by a future bracket.
+    */
+    CUSTOM("Custom"),
     /**
     Average values from the same time step for each of the previous N -1 years and the current year.
     */

@@ -71,6 +71,12 @@ Bracket or N for N-year running statistic, as per the running average type.
 private int __n;
 
 /**
+Bracket or N for N-year running statistic, as per the running average type, by month.
+This will override the singular value.  If any value is null, skip the month in calculating the statistic.
+*/
+private Integer [] __nByMonth = null;
+
+/**
 Number of missing values allowed in the sample.
 */
 private int __allowMissingCount;
@@ -110,6 +116,7 @@ Construct the object and check for valid input.
 @param ts regular-interval time series for which to create the running average time series
 @param n N for N-year running statistic and otherwise the bracket for centered,
 previous, and future running statistics
+@param nByMonth same as "n" but 12 values, one for each month (Jan,Feb,...,Dec)
 @param statisticType statistic to compute
 @param sampleType type of data sampling for statistic
 @param allowMissingCount the number of values allowed to be missing in the sample (for example can set to 5 for
@@ -125,7 +132,8 @@ size to do the calculation, or -1 if the sample size does not matter
 @param outputStart date/time for start of output time series
 @param outputEnd date/time for end of output time series
 */
-public TSUtil_RunningStatistic ( TS ts, int n, TSStatisticType statisticType, DateTime analysisStart, DateTime analysisEnd,
+public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, TSStatisticType statisticType,
+	DateTime analysisStart, DateTime analysisEnd,
     RunningAverageType sampleType, int allowMissingCount, int minimumSampleSize, DistributionType distributionType,
     Hashtable distributionParameters, String probabilityUnits, SortOrderType sortOrderType,
     DateTime normalStart, DateTime normalEnd, DateTime outputStart, DateTime outputEnd )
@@ -220,6 +228,7 @@ public TSUtil_RunningStatistic ( TS ts, int n, TSStatisticType statisticType, Da
     
     setTS ( ts );
     setN ( n );
+    setNByMonth ( nByMonth );
     setStatisticType ( statisticType );
     setDistributionType ( distributionType );
     setDistributionParameters ( distributionParameters );
@@ -240,6 +249,68 @@ public TSUtil_RunningStatistic ( TS ts, int n, TSStatisticType statisticType, Da
         Message.printWarning ( 2, routine, message );
         throw new InvalidParameterException ( message );
     }
+}
+
+/**
+Return the offset data for a month.
+@return offset data as array { offset1, offset2, neededCount } or null if monthly values and the month n is null.
+*/
+public int [] calculateOffsetData ( RunningAverageType sampleType, int month, int n, Integer [] nByMonth, boolean doNByMonth, TS newts ) 
+{
+	int [] offsetData = new int[3];
+	offsetData[0] = 0; // offset1
+	offsetData[1] = 0; // offset2
+	offsetData[2] = 0; // neededCount
+	int month0 = month - 1; // position in zero index array
+	if ( doNByMonth ) {
+		// Reset N for the monthly value
+		if ( nByMonth[month0] == null ) {
+			return null;
+		}
+		n = nByMonth[month0];
+	}
+    if ( sampleType == RunningAverageType.ALL_YEARS ) {
+    }
+    else if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
+    	offsetData[2] = newts.getDate2().getYear() - newts.getDate1().getYear() + 1;
+    }
+    else if ( sampleType == RunningAverageType.CENTERED ) {
+    	// Offset is on each side
+        offsetData[0] = -1*n;
+        offsetData[1] = n;
+        offsetData[2] = n*2 + 1;
+    }
+    else if ( sampleType == RunningAverageType.FUTURE ) {
+        // Offset brackets the date...
+    	offsetData[0] = 1;
+    	offsetData[1] = n;
+    	offsetData[2] = n;
+    }
+    else if ( sampleType == RunningAverageType.FUTURE_INCLUSIVE ) {
+        // Offset brackets the date...
+    	offsetData[0] = 0;
+    	offsetData[1] = n;
+    	offsetData[2] = n + 1;
+    }
+    else if ( sampleType == RunningAverageType.NYEAR ) {
+        // Offset is to the left but remember to include the time step itself...
+    	offsetData[0] = -1*(n - 1);
+    	offsetData[1] = 0;
+    	offsetData[2] = n;
+    }
+    else if ( sampleType == RunningAverageType.PREVIOUS ) {
+        // Offset brackets the date...
+    	offsetData[0] = -n;
+    	offsetData[1] = -1;
+    	offsetData[2] = n;
+    }
+    else if ( sampleType == RunningAverageType.PREVIOUS_INCLUSIVE ) {
+        // Offset brackets the date...
+    	offsetData[0] = -n;
+    	offsetData[1] = 0;
+    	offsetData[2] = n + 1;
+    }
+    return offsetData;
 }
 
 /**
@@ -325,6 +396,14 @@ public int getN ()
 }
 
 /**
+Return the N-year N or bracket (monthly array).
+*/
+public Integer [] getNByMonth ()
+{
+    return __nByMonth;
+}
+
+/**
 Return the normal end.
 */
 public DateTime getNormalEnd ()
@@ -380,6 +459,7 @@ public static RunningAverageType[] getRunningAverageTypeChoices ()
     RunningAverageType[] types = {
         RunningAverageType.ALL_YEARS,
         RunningAverageType.CENTERED,
+        RunningAverageType.CUSTOM,
         RunningAverageType.FUTURE,
         RunningAverageType.FUTURE_INCLUSIVE,
         RunningAverageType.NYEAR,
@@ -477,7 +557,7 @@ but with data being the running statistic.
 */
 public TS runningStatistic ( boolean createData )
 throws TSException, IrregularTimeSeriesNotSupportedException
-{   String  genesis = "", message, routine = getClass().getName() + ".runningStatistic";
+{   String genesis = "", message, routine = getClass().getName() + ".runningStatistic";
     TS newts = null;
     TS newts2 = null; // Used when normal period is used (newts is statistic for normal period, newts2 is final output)
 
@@ -494,6 +574,11 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     DateTime outputEnd = getOutputEnd();
     RunningAverageType sampleType = getSampleType();
     int n = getN();
+    Integer [] nByMonth = getNByMonth();
+    boolean doNByMonth = false;
+    if ( (nByMonth != null) && (nByMonth.length == 12) ) {
+    	doNByMonth = true;
+    }
     int allowMissingCount = getAllowMissingCount();
     int minimumSampleSize = getMinimumSampleSize();
     if ( minimumSampleSize <= 0 ) {
@@ -633,56 +718,91 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         int neededCount = 0; // Used initially to size the sample array
         int offset1 = 0;
         int offset2 = 0;
+        if ( !doNByMonth ) {
+        	// Calculate offsets for the constant N
+        	int [] offsetData0 = calculateOffsetData ( sampleType, 0, n, nByMonth, doNByMonth, newts );
+        	offset1 = offsetData0[0];
+        	offset2 = offsetData0[1];
+        	neededCount = offsetData0[2];
+        }
+        int neededCountMax = neededCount;
+        StringBuilder genesisMonth = null;
+        if ( doNByMonth ) {
+        	// Calculate the maximum neededCount, to size the sample data array
+        	genesisMonth = new StringBuilder();
+        	boolean initialized = false;
+        	for ( int i = 1; i <= 12; i++ ) {
+        		int [] offsetData0 = calculateOffsetData ( sampleType, i, 0, nByMonth, doNByMonth, newts );
+        		if ( offsetData0 != null ) {
+	        		if ( !initialized ) {
+	        			neededCountMax = offsetData0[2];
+	        			initialized = true;
+	        		}
+	        		else if ( offsetData0[2] > neededCountMax ) {
+	        			neededCountMax = offsetData0[2];
+	        		}
+        		}
+        		// Build the genesis string
+        		if ( i >= 2 ) {
+        			genesisMonth.append(",");
+        		}
+        		if ( nByMonth[i-1] == null ) {
+        			genesisMonth.append("");
+        		}
+        		else {
+        			genesisMonth.append("" + nByMonth[i-1]);
+        		}
+        	}
+        }
+        // Set the string for the time series modification history
         if ( sampleType == RunningAverageType.ALL_YEARS ) {
             genesis = "" + sampleType;
-            neededCount = minimumSampleSize;
         }
         else if ( sampleType == RunningAverageType.N_ALL_YEAR ) {
             genesis = "NAll-year";
-            // Used to size the array and array populated below
-            neededCount = newts.getDate2().getYear() - newts.getDate1().getYear() + 1;
         }
         else if ( sampleType == RunningAverageType.CENTERED ) {
-            genesis = "bracket=" + n + " centered";
-            // Offset brackets the date...
-            offset1 = -1*n;
-            offset2 = n;
-            neededCount = n*2 + 1;
+        	if ( doNByMonth ) {
+        		genesis = "bracket=" + genesisMonth + " centered";
+        	}
+        	else {
+        		genesis = "bracket=" + n + " centered";
+        	}
         }
         else if ( sampleType == RunningAverageType.FUTURE ) {
-            genesis = "bracket=" + n + " future (not inclusive)";
-            // Offset brackets the date...
-            offset1 = 1;
-            offset2 = n;
-            neededCount = n;
+        	if ( doNByMonth ) {
+        		genesis = "bracket=" + genesisMonth + " future (not inclusive)";
+        	}
+        	else {
+        		genesis = "bracket=" + n + " future (not inclusive)";
+        	}
         }
         else if ( sampleType == RunningAverageType.FUTURE_INCLUSIVE ) {
-            genesis = "bracket=" + n + " future (inclusive)";
-            // Offset brackets the date...
-            offset1 = 0;
-            offset2 = n;
-            neededCount = n + 1;
+        	if ( doNByMonth ) {
+        		genesis = "bracket=" + genesisMonth + " future (inclusive)";
+        	}
+        	else {
+        		genesis = "bracket=" + n + " future (inclusive)";
+        	}
         }
         else if ( sampleType == RunningAverageType.NYEAR ) {
-            genesis = n + "-year";
-            // Offset is to the left but remember to include the time step itself...
-            offset1 = -1*(n - 1);
-            offset2 = 0;
-            neededCount = n;
+      		genesis = n + "-year";
         }
         else if ( sampleType == RunningAverageType.PREVIOUS ) {
-            genesis = "bracket=" + n + " previous (not inclusive)";
-            // Offset brackets the date...
-            offset1 = -n;
-            offset2 = -1;
-            neededCount = n;
+        	if ( doNByMonth ) {
+        		genesis = "bracket=" + genesisMonth + " previous (not inclusive)";
+        	}
+        	else {
+        		genesis = "bracket=" + n + " previous (not inclusive)";
+        	}
         }
         else if ( sampleType == RunningAverageType.PREVIOUS_INCLUSIVE ) {
-            genesis = "bracket=" + n + " previous (inclusive)";
-            // Offset brackets the date...
-            offset1 = -n;
-            offset2 = 0;
-            neededCount = n + 1;
+        	if ( doNByMonth ) {
+        		genesis = "bracket=" + genesisMonth + " previous (inclusive)";
+        	}
+        	else {
+        		genesis = "bracket=" + n + " previous (inclusive)";
+        	}
         }
         
         // Adjusted the number of needed values to allow for missing
@@ -694,7 +814,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         
         // Size the sample array (count will be <= the max and control the calculations)
         // The "count" is used to indicate how big the sample is for calculations
-        double [] sampleArray = new double[neededCount];
+        double [] sampleArray = new double[neededCountMax];
         // Used for AllYears sample method.  Size for the number of years in the analysis period (will be more than enough).
         // Use the newts date/times because they will match the analysis period or the full period of the original time series
         DateTime start = new DateTime ( analysisStart );
@@ -720,9 +840,27 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         double missing = ts.getMissing();
         boolean doCalc = true;
         Hashtable<String,double []> valueCache = new Hashtable<String,double[]>();
+        int month;
+        int [] offsetData;
         for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
             // Initialize the date for looking up values to the initial offset from the loop date (new lines up with old)
             valueDateTime.setDate ( date );
+            if ( doNByMonth ) {
+            	// Calculate values needed to compute statistic using monthly N (bracket)
+            	month = valueDateTime.getMonth();
+            	offsetData = calculateOffsetData ( sampleType, month, n, nByMonth, doNByMonth, newts );
+            	if ( offsetData == null ) {
+            		// No offset was specified so don't calculate the output statistic
+            		continue;
+            	}
+            	offset1 = offsetData[0];
+            	offset2 = offsetData[1];
+            	neededCount = offsetData[2];
+                neededCountWithAllowMissing = neededCount;
+                if ( allowMissingCount > 0 ) {
+                    neededCountWithAllowMissing -= allowMissingCount;
+                }
+            }
             // Offset from the current date/time to the start of the bracket
             if ( sampleType == RunningAverageType.NYEAR ) {
                 valueDateTime.addInterval ( TimeInterval.YEAR, offset1 );
@@ -1093,6 +1231,14 @@ Set the N for N-Year or bracket for other running statistic types.
 private void setN ( int n )
 {
     __n = n;
+}
+
+/**
+Set the monthly N for N-Year or bracket for other running statistic types.
+*/
+private void setNByMonth ( Integer [] nByMonth )
+{
+    __nByMonth = nByMonth;
 }
 
 /**
