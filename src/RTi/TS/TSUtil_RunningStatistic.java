@@ -66,15 +66,23 @@ Statistic.
 private TSStatisticType __statistic = null;
 
 /**
-Bracket or N for N-year running statistic, as per the running average type.
+Bracket (N) for N-year running statistic, as per the running average type.
 */
 private int __n;
 
 /**
-Bracket or N for N-year running statistic, as per the running average type, by month.
+Bracket (N) for N-year running statistic, as per the running average type, by month.
 This will override the singular value.  If any value is null, skip the month in calculating the statistic.
 */
 private Integer [] __nByMonth = null;
+
+/**
+Custom bracket (N) for N-year running statistic, as per the running average type, by month.
+This will override the singular value and month values.
+The dimension will be [12][2] where [][0] is the first offset and [][1] is the second offset for the range.
+If any row is null, skip the month in calculating the statistic.
+*/
+private Integer [][] __nCustomByMonth = null;
 
 /**
 Number of missing values allowed in the sample.
@@ -117,6 +125,7 @@ Construct the object and check for valid input.
 @param n N for N-year running statistic and otherwise the bracket for centered,
 previous, and future running statistics
 @param nByMonth same as "n" but 12 values, one for each month (Jan,Feb,...,Dec)
+@param nCustomByMonth same as "n" but 12 ranges with start and start offset
 @param statisticType statistic to compute
 @param sampleType type of data sampling for statistic
 @param allowMissingCount the number of values allowed to be missing in the sample (for example can set to 5 for
@@ -132,7 +141,8 @@ size to do the calculation, or -1 if the sample size does not matter
 @param outputStart date/time for start of output time series
 @param outputEnd date/time for end of output time series
 */
-public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, TSStatisticType statisticType,
+public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, Integer [][] nCustomByMonth,
+	TSStatisticType statisticType,
 	DateTime analysisStart, DateTime analysisEnd,
     RunningAverageType sampleType, int allowMissingCount, int minimumSampleSize, DistributionType distributionType,
     Hashtable distributionParameters, String probabilityUnits, SortOrderType sortOrderType,
@@ -229,6 +239,7 @@ public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, TSStatisticT
     setTS ( ts );
     setN ( n );
     setNByMonth ( nByMonth );
+    setNCustomByMonth ( nCustomByMonth );
     setStatisticType ( statisticType );
     setDistributionType ( distributionType );
     setDistributionParameters ( distributionParameters );
@@ -255,7 +266,8 @@ public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, TSStatisticT
 Return the offset data for a month.
 @return offset data as array { offset1, offset2, neededCount } or null if monthly values and the month n is null.
 */
-public int [] calculateOffsetData ( RunningAverageType sampleType, int month, int n, Integer [] nByMonth, boolean doNByMonth, TS newts ) 
+public int [] calculateOffsetData ( RunningAverageType sampleType, int month, int n,
+	Integer [] nByMonth, boolean doNByMonth, Integer [][] nCustomByMonth, boolean doNCustomByMonth, TS newts ) 
 {
 	int [] offsetData = new int[3];
 	offsetData[0] = 0; // offset1
@@ -268,6 +280,17 @@ public int [] calculateOffsetData ( RunningAverageType sampleType, int month, in
 			return null;
 		}
 		n = nByMonth[month0];
+	}
+	else if ( doNCustomByMonth ) {
+		if ( (nCustomByMonth[month0][0] == null) || (nCustomByMonth[month0][1] == null)) {
+			return null;
+		}
+		else {
+			offsetData[0] = nCustomByMonth[month0][0];
+			offsetData[1] = nCustomByMonth[month0][1];
+			offsetData[2] = offsetData[1] - offsetData[0] + 1;
+			return offsetData;
+		}
 	}
     if ( sampleType == RunningAverageType.ALL_YEARS ) {
     }
@@ -401,6 +424,14 @@ Return the N-year N or bracket (monthly array).
 public Integer [] getNByMonth ()
 {
     return __nByMonth;
+}
+
+/**
+Return the custom N-year N or bracket (monthly array).
+*/
+public Integer [][] getNCustomByMonth ()
+{
+    return __nCustomByMonth;
 }
 
 /**
@@ -575,9 +606,15 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     RunningAverageType sampleType = getSampleType();
     int n = getN();
     Integer [] nByMonth = getNByMonth();
+    Integer [][] nCustomByMonth = getNCustomByMonth();
     boolean doNByMonth = false;
+    boolean doNCustomByMonth = false;
     if ( (nByMonth != null) && (nByMonth.length == 12) ) {
     	doNByMonth = true;
+    }
+    if ( (nCustomByMonth != null) && (nCustomByMonth.length == 12) ) {
+    	doNByMonth = false;
+    	doNCustomByMonth = true;
     }
     int allowMissingCount = getAllowMissingCount();
     int minimumSampleSize = getMinimumSampleSize();
@@ -718,21 +755,21 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         int neededCount = 0; // Used initially to size the sample array
         int offset1 = 0;
         int offset2 = 0;
-        if ( !doNByMonth ) {
+        if ( !doNByMonth && !doNCustomByMonth) {
         	// Calculate offsets for the constant N
-        	int [] offsetData0 = calculateOffsetData ( sampleType, 0, n, nByMonth, doNByMonth, newts );
+        	int [] offsetData0 = calculateOffsetData ( sampleType, 0, n, nByMonth, doNByMonth, nCustomByMonth, doNCustomByMonth, newts );
         	offset1 = offsetData0[0];
         	offset2 = offsetData0[1];
         	neededCount = offsetData0[2];
         }
         int neededCountMax = neededCount;
         StringBuilder genesisMonth = null;
-        if ( doNByMonth ) {
+        if ( doNByMonth || doNCustomByMonth ) {
         	// Calculate the maximum neededCount, to size the sample data array
         	genesisMonth = new StringBuilder();
         	boolean initialized = false;
         	for ( int i = 1; i <= 12; i++ ) {
-        		int [] offsetData0 = calculateOffsetData ( sampleType, i, 0, nByMonth, doNByMonth, newts );
+        		int [] offsetData0 = calculateOffsetData ( sampleType, i, 0, nByMonth, doNByMonth, nCustomByMonth, doNCustomByMonth, newts );
         		if ( offsetData0 != null ) {
 	        		if ( !initialized ) {
 	        			neededCountMax = offsetData0[2];
@@ -746,11 +783,21 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         		if ( i >= 2 ) {
         			genesisMonth.append(",");
         		}
-        		if ( nByMonth[i-1] == null ) {
-        			genesisMonth.append("");
+        		if ( doNByMonth ) {
+	        		if ( nByMonth[i-1] == null ) {
+	        			genesisMonth.append("");
+	        		}
+	        		else {
+	        			genesisMonth.append("" + nByMonth[i-1]);
+	        		}
         		}
-        		else {
-        			genesisMonth.append("" + nByMonth[i-1]);
+        		else if ( doNCustomByMonth ) {
+	        		if ( (nCustomByMonth[i-1][0] == null) || (nCustomByMonth[i-1][1] == null) ) {
+	        			genesisMonth.append("");
+	        		}
+	        		else {
+	        			genesisMonth.append("" + nCustomByMonth[i-1][0] + "-" + nCustomByMonth[i-1][1]);
+	        		}
         		}
         	}
         }
@@ -845,10 +892,10 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
             // Initialize the date for looking up values to the initial offset from the loop date (new lines up with old)
             valueDateTime.setDate ( date );
-            if ( doNByMonth ) {
+            if ( doNByMonth || doNCustomByMonth ) {
             	// Calculate values needed to compute statistic using monthly N (bracket)
             	month = valueDateTime.getMonth();
-            	offsetData = calculateOffsetData ( sampleType, month, n, nByMonth, doNByMonth, newts );
+            	offsetData = calculateOffsetData ( sampleType, month, n, nByMonth, doNByMonth, nCustomByMonth, doNCustomByMonth, newts );
             	if ( offsetData == null ) {
             		// No offset was specified so don't calculate the output statistic
             		continue;
@@ -1239,6 +1286,14 @@ Set the monthly N for N-Year or bracket for other running statistic types.
 private void setNByMonth ( Integer [] nByMonth )
 {
     __nByMonth = nByMonth;
+}
+
+/**
+Set the custom monthly N for N-Year or bracket for other running statistic types.
+*/
+private void setNCustomByMonth ( Integer [][] nCustomByMonth )
+{
+    __nCustomByMonth = nCustomByMonth;
 }
 
 /**
