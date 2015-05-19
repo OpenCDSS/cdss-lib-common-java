@@ -230,12 +230,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -252,9 +254,10 @@ public class DateValueTS
 {
     
 /**
-Latest file version.
+Latest file version.  Use the integer version for internal comparisons.
 */
-private static String __VERSION_CURRENT = "1.5";
+private static String __VERSION_CURRENT = "1.6";
+private static int __VERSION_CURRENT_INT = 16000;
 
 /**
 Determine whether a file is a DateValue file.  This can be used rather than
@@ -299,8 +302,41 @@ public static boolean isDateValueFile ( String filename )
 	}
 }
 
+// TODO SAM 2015-05-18 This is brute force - need to make more elegant
 /**
-Read at time series from a Vector of String.  Currently this is accomplished by
+Parse a properties string of the form "{stringprop:"propval",intprop:123,doubleprop=123.456}"
+*/
+private static PropList parseTimeSeriesProperties(String value)
+{
+	PropList props = new PropList("");
+	value = value.trim().replace("{","").replace("}", "");
+	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
+	for ( String part : parts ) {
+		// Now have Name:value
+		List<String> parts2 = StringUtil.breakStringList(part.trim(), ":", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
+		if ( parts2.size() == 2 ) {
+			String propName = parts2.get(0).trim();
+			String propVal = parts2.get(1).trim();
+			if ( propVal.startsWith("\"") && propVal.endsWith("\"") ) {
+				// Have a quoted string
+				props.setUsingObject(propName,propVal.substring(1,propVal.length() - 1));
+			}
+			else if ( propVal.equalsIgnoreCase("null") ) {
+				props.setUsingObject(propName,null);
+			}
+			else if ( StringUtil.isInteger(propVal) ) {
+				props.setUsingObject(propName, Integer.parseInt(propVal));
+			}
+			else if ( StringUtil.isDouble(propVal) ) {
+				props.setUsingObject(propName, Double.parseDouble(propVal));
+			}
+		}
+	}
+	return props;
+}
+
+/**
+Read at time series from a List of String.  Currently this is accomplished by
 writing the contents to a temporary file and then reading using one of the
 standard methods.  A more efficient method may be added in the future but this
 approach works OK for smaller files.
@@ -351,8 +387,7 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.  The entire file is read using
-the units from the file.
+Read a time series from a DateValue format file.  The entire file is read using the units from the file.
 @return 0 if successful, 1 if not.
 @param in Reference to open BufferedReader.
 @exception TSException if there is an error reading the time series.
@@ -613,10 +648,8 @@ Read a time series from a DateValue format file.
 @param req_ts time series to fill.  If null,return a new time series.
 All data are reset, except for the identifier, which is assumed to have been set in the calling code.
 @param in Reference to open input stream.
-@param req_date1 Requested starting date to initialize period (or null to read
-the entire time series).
-@param req_date2 Requested ending date to initialize period (or null to read
-the entire time series).
+@param req_date1 Requested starting date to initialize period (or null to read the entire time series).
+@param req_date2 Requested ending date to initialize period (or null to read the entire time series).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read.
 @exception Exception if there is an error reading the time series.
@@ -727,6 +760,7 @@ throws Exception
 	List<String> description_v = null;
 	List<String> identifier_v = null;
 	List<String> missing_v = null;
+	List<PropList> propertiesList = null;
 	List<String> seqnum_v = null;
 	List<String> units_v = null;
 	boolean	include_count = false;
@@ -960,6 +994,22 @@ throws Exception
 		else if ( variable.equalsIgnoreCase("NumTS") ) {
 			// Have the number of time series...
 			numts = StringUtil.atoi(value);
+		}
+		else if ( variable.toUpperCase().startsWith("PROPERTIES_") ) {
+			// Found a properties string of the form Properties_NN = { ... }
+			if ( propertiesList == null ) {
+				// Create a PropList for each time series
+				propertiesList = new ArrayList<PropList>(numts);
+				for ( int i = 0; i < numts; i++ ) {
+					propertiesList.add(new PropList(""));
+				}
+			}
+			// Now parse out the properties for this time series and set in the list
+			int pos1 = variable.indexOf("_");
+			if ( pos1 > 0 ) {
+				int iprop = Integer.parseInt(variable.substring(pos1+1).trim());
+				propertiesList.set((iprop - 1), parseTimeSeriesProperties(value));
+			}
 		}
 		else if ( variable.equalsIgnoreCase("SequenceNum") || variable.equalsIgnoreCase("SequenceID")) {
 			// Have sequence numbers...
@@ -1282,6 +1332,13 @@ throws Exception
 		if ( ts_has_data_flag[i] ) {
 			// Data flags are being used.
 			ts.hasDataFlags ( true, true );
+		}
+		if ( propertiesList != null ) {
+			// Transfer the properties
+			PropList props = propertiesList.get(i);
+			for ( Prop prop : props.getList() ) {
+				ts.setProperty(prop.getKey(), prop.getContents());
+			}
 		}
 	}
 	}
@@ -1764,10 +1821,12 @@ throws Exception
 	}
     String version = props.getValue( "Version" );
     boolean version14 = false; // Currently the only version that is supported other than current version
+    int versionInt = __VERSION_CURRENT_INT;
     if ( version != null ) {
         if ( version.equals("1.4") ) {
             version14 = true;
         }
+        versionInt = Integer.parseInt(version.trim().replace(".","")) * 1000;
     }
 
 	// Set the parameters for output..
@@ -1865,6 +1924,15 @@ throws Exception
         Message.printWarning ( 3, routine,
             "Specified missing value \"" + missingValueString + "\" is not a number - ignoring." );
         missingValueString = null;
+    }
+    // Indicate which properties should be written
+    Object includePropertiesProp = props.getContents ( "IncludeProperties" );
+    String [] includeProperties = null;
+    if ( includePropertiesProp != null ) {
+    	includeProperties = (String [])includePropertiesProp;
+    	for ( int i = 0; i < includeProperties.length; i++ ) {
+    		includeProperties[i] = includeProperties[i].replace("*", ".*"); // Change glob notation to Java regular expression
+    	}
     }
     String outputFormat = "%." + precision + "f";
 	String nodataString = "?";
@@ -2059,6 +2127,20 @@ throws Exception
 		// At least one of the time series in the list has data flags
 		// so output the data flags information for all the time series...
 		out.println ( "DataFlags   = " + dataflagBuffer.toString() );
+	}
+	if ( versionInt >= 16000 ) {
+		if ( includeProperties != null ) {
+			for ( int its = 0; its < tslist.size(); its++ ) {
+				ts = tslist.get(its);
+				if ( ts == null ) {
+					continue;
+				}
+				else {
+					// Output the properties
+					writeTimeSeriesProperties(out,ts,its,includeProperties);
+				}
+			}
+		}
 	}
 	if ( size == 0 ) {
 	    out.println ( "# Unable to determine data start and end - no time series." );
@@ -2494,6 +2576,12 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 </tr>
 
 <tr>
+<td><b>IncludeProperties</b></td>
+<td><b>An array of strings indicating properties to write (TODO SAM 2015-05-18 need to enable using * for glob-style wildcarding).</b>
+<td>Do not write any properties.</td>
+</tr>
+
+<tr>
 <td><b>IrregularInterval</b></td>
 <td><b>The TimeInterval that indicates the interval for date/times when outputting more than one irregular time series</b>
 <td>Determine from time series list (precision of starting date/time).</td>
@@ -2553,6 +2641,50 @@ throws Exception
 		Message.printWarning( 3, routine, e );
 		throw new Exception (message);
 	}
+}
+
+/**
+Write the properties for a time series.
+*/
+private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its, String [] includeProperties )
+{
+	// Get the list of matching properties
+	// TODO SAM 2015-05-18 Add support for wildcards - for now must match exactly
+	Object o;
+	StringBuilder b = new StringBuilder ( "Properties_" + (its + 1) + " = {");
+	for ( int iprop = 0; iprop < includeProperties.length; iprop++ ) {
+		o = ts.getProperty(includeProperties[iprop]);
+		if ( iprop > 0 ) {
+			b.append(",");
+		}
+		b.append(includeProperties[iprop]+":");
+		if ( o == null ) {
+			b.append("null");
+		}
+		else if ( o instanceof Double ) {
+			// Don't want default of exponential notation so always format
+			b.append("" + StringUtil.formatString((Double)o,"%.6f"));
+		}
+		else if ( o instanceof Float ) {
+			// Don't want default of exponential notation so always format
+			b.append("" + StringUtil.formatString((Float)o,"%.6f"));
+		}
+		else if ( o instanceof Integer ) {
+			b.append("" + o);
+		}
+		else if ( o instanceof Long ) {
+			b.append("" + o);
+		}
+		else if ( o instanceof String ) {
+			b.append("\""+o+"\"");
+		}
+		else {
+			// TODO SAM 2015-05-18 this may cause problems if it contains newlines
+			b.append("\""+o+"\"");
+		}
+	}
+	b.append("}");
+	out.println(b.toString());
 }
 
 }
