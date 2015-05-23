@@ -302,6 +302,33 @@ public static boolean isDateValueFile ( String filename )
 	}
 }
 
+/**
+Parse a data string of the form "{dataflag1:"description",dataflag2:"description"}"
+@param value the DateValue property value to parse
+*/
+private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value)
+{
+	List<TSDataFlagMetadata> metaList = new ArrayList<TSDataFlagMetadata>();
+	value = value.trim().replace("{","").replace("}", "");
+	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
+	for ( String part : parts ) {
+		// Now have flag:description
+		List<String> parts2 = StringUtil.breakStringList(part.trim(), ":", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
+		if ( parts2.size() == 2 ) {
+			String propName = parts2.get(0).trim();
+			String propVal = parts2.get(1).trim();
+			if ( propVal.startsWith("\"") && propVal.endsWith("\"") ) {
+				// Have a quoted string
+				metaList.add(new TSDataFlagMetadata(propName,propVal.substring(1,propVal.length() - 1)));
+			}
+			else if ( propVal.equalsIgnoreCase("null") ) {
+				metaList.add(new TSDataFlagMetadata(propName,""));
+			}
+		}
+	}
+	return metaList;
+}
+
 // TODO SAM 2015-05-18 This is brute force - need to make more elegant
 /**
 Parse a properties string of the form "{stringprop:"propval",intprop:123,doubleprop=123.456}"
@@ -761,6 +788,7 @@ throws Exception
 	List<String> identifier_v = null;
 	List<String> missing_v = null;
 	List<PropList> propertiesList = null;
+	List<List<TSDataFlagMetadata>> dataFlagMetadataList = null;
 	List<String> seqnum_v = null;
 	List<String> units_v = null;
 	boolean	include_count = false;
@@ -855,6 +883,22 @@ throws Exception
 				for ( int ia = size; ia < numts; ia++ ) {
 					alias_v.add ( "" );
 				}
+			}
+		}
+		else if ( variable.toUpperCase().startsWith("DATAFLAGDESCRIPTIONS_") ) {
+			// Found a properties string of the form DataFlagDescriptions_NN = { ... }
+			if ( dataFlagMetadataList == null ) {
+				// Create a list of data flag metadata for each time series
+				dataFlagMetadataList = new ArrayList<List<TSDataFlagMetadata>>(numts);
+				for ( int i = 0; i < numts; i++ ) {
+					dataFlagMetadataList.add(new ArrayList<TSDataFlagMetadata>());
+				}
+			}
+			// Now parse out the properties for this time series and set in the list
+			int pos1 = variable.indexOf("_");
+			if ( pos1 > 0 ) {
+				int iprop = Integer.parseInt(variable.substring(pos1+1).trim());
+				dataFlagMetadataList.set((iprop - 1), parseDataFlagDescriptions(value));
 			}
 		}
 		else if ( variable.equalsIgnoreCase("DataFlags") ) {
@@ -1274,73 +1318,79 @@ throws Exception
 		++warning_count;
 	}
 	try {
-	for ( int i = 0; i < numts; i++ ) {
-		if ( req_ts != null ) {
-			if ( req_ts_i != i ) {
-				// A time series was requested but does not
-				// match so continue...
-				continue;
+		for ( int i = 0; i < numts; i++ ) {
+			if ( req_ts != null ) {
+				if ( req_ts_i != i ) {
+					// A time series was requested but does not match so continue...
+					continue;
+				}
+				else {	// Found the matching requested time series...
+					ts = ts_array[0];
+				}
 			}
-			else {	// Found the matching requested time series...
-				ts = ts_array[0];
+			else {	// Reading a list...
+				ts = ts_array[i];
+			}
+			if ( Message.isDebugOn ) {
+				Message.printDebug ( 1, routine, "Setting properties for \"" + ts.getIdentifierString() + "\"" );
+			}
+			if ( alias_v != null ) {
+				alias = alias_v.get(i).trim();
+				if ( !alias.equals("") ) {
+					ts.setAlias ( alias );
+				}
+			}
+			if ( datatype_v != null ) {
+				datatype = datatype_v.get(i).trim();
+				if ( !datatype.equals("") ) {
+					ts.setDataType ( datatype );
+				}
+			}
+			if ( units_v != null ) {
+				units = units_v.get(i).trim();
+				ts.setDataUnits ( units );
+				ts.setDataUnitsOriginal ( units );
+			}
+			ts.setDate1 ( date1 );
+			ts.setDate1Original ( date1 );
+			ts.setDate2 ( date2 );
+			ts.setDate2Original ( date2 );
+			if ( description_v != null ) {
+				description = description_v.get(i).trim();
+				ts.setDescription ( description );
+			}
+			if ( missing_v != null ) {
+				missing = missing_v.get(i).trim();
+				if ( missing.equalsIgnoreCase("NaN") ) {
+					ts.setMissing ( Double.NaN );
+				}
+				else if ( StringUtil.isDouble(missing) ) {
+					ts.setMissing ( StringUtil.atod(missing) );
+				}
+			}
+			if ( seqnum_v != null ) {
+				seqnum = seqnum_v.get(i).trim();
+				ts.setSequenceID ( seqnum );
+			}
+			if ( ts_has_data_flag[i] ) {
+				// Data flags are being used.
+				ts.hasDataFlags ( true, true );
+			}
+			if ( propertiesList != null ) {
+				// Transfer the properties
+				PropList props = propertiesList.get(i);
+				for ( Prop prop : props.getList() ) {
+					ts.setProperty(prop.getKey(), prop.getContents());
+				}
+			}
+			if ( dataFlagMetadataList != null ) {
+				// Transfer the data flag descriptions
+				List<TSDataFlagMetadata> metaList = dataFlagMetadataList.get(i);
+				for ( TSDataFlagMetadata meta : metaList ) {
+					ts.addDataFlagMetadata(meta);
+				}
 			}
 		}
-		else {	// Reading a list...
-			ts = ts_array[i];
-		}
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, "Setting properties for \"" + ts.getIdentifierString() + "\"" );
-		}
-		if ( alias_v != null ) {
-			alias = alias_v.get(i).trim();
-			if ( !alias.equals("") ) {
-				ts.setAlias ( alias );
-			}
-		}
-		if ( datatype_v != null ) {
-			datatype = datatype_v.get(i).trim();
-			if ( !datatype.equals("") ) {
-				ts.setDataType ( datatype );
-			}
-		}
-		if ( units_v != null ) {
-			units = units_v.get(i).trim();
-			ts.setDataUnits ( units );
-			ts.setDataUnitsOriginal ( units );
-		}
-		ts.setDate1 ( date1 );
-		ts.setDate1Original ( date1 );
-		ts.setDate2 ( date2 );
-		ts.setDate2Original ( date2 );
-		if ( description_v != null ) {
-			description = description_v.get(i).trim();
-			ts.setDescription ( description );
-		}
-		if ( missing_v != null ) {
-			missing = missing_v.get(i).trim();
-			if ( missing.equalsIgnoreCase("NaN") ) {
-				ts.setMissing ( Double.NaN );
-			}
-			else if ( StringUtil.isDouble(missing) ) {
-				ts.setMissing ( StringUtil.atod(missing) );
-			}
-		}
-		if ( seqnum_v != null ) {
-			seqnum = seqnum_v.get(i).trim();
-			ts.setSequenceID ( seqnum );
-		}
-		if ( ts_has_data_flag[i] ) {
-			// Data flags are being used.
-			ts.hasDataFlags ( true, true );
-		}
-		if ( propertiesList != null ) {
-			// Transfer the properties
-			PropList props = propertiesList.get(i);
-			for ( Prop prop : props.getList() ) {
-				ts.setProperty(prop.getKey(), prop.getContents());
-			}
-		}
-	}
 	}
 	catch ( Exception e ) {
 	    message = "Unexpected error initializing time series.";
@@ -1752,6 +1802,33 @@ throws Exception
 }
 
 /**
+Write the data flag descriptions for a time series.
+@param out PrintWriter to use for writing
+@param ts time series for which to write data flag descriptions
+@param its counter for time series (0+) to number the descriptions
+*/
+private static void writeTimeSeriesDataFlagDescriptions ( PrintWriter out, TS ts, int its )
+{
+	List<TSDataFlagMetadata> metaList = ts.getDataFlagMetadataList();
+	if ( metaList.size() > 0 ) {
+		StringBuilder b = new StringBuilder ( "DataFlagDescriptions_" + (its + 1) + " = {");
+		TSDataFlagMetadata meta;
+		for ( int iMeta = 0; iMeta < metaList.size(); iMeta++ ) {
+			meta = metaList.get(iMeta);
+			if ( iMeta > 0 ) {
+				b.append(",");
+			}
+			// TODO SAM 2015-05-23 What to do if the data flag contains whitespace or characters that cause problems?  Quote?
+			// What to do if the description contains double quotes?  Unlikely but possible.  For now remove.
+			String desc = meta.getDescription().replace("\"","");
+			b.append(meta.getDataFlag() + ":\"" + desc + "\"");
+		}
+		b.append("}");
+		out.println(b.toString());
+	}
+}
+
+/**
 Write a list of time series to a DateValue format file.
 Currently there is no way to indicate that the count or total time should be printed.
 @param tslist list of time series to write.
@@ -1933,6 +2010,12 @@ throws Exception
     	for ( int i = 0; i < includeProperties.length; i++ ) {
     		includeProperties[i] = includeProperties[i].replace("*", ".*"); // Change glob notation to Java regular expression
     	}
+    }
+    // Indicate whether data flag descriptions should be written
+    String writeDataFlagDescriptions0 = props.getValue ( "WriteDataFlagDescriptions" );
+    boolean writeDataFlagDescriptions = false; // default
+    if ( (writeDataFlagDescriptions0 != null) && writeDataFlagDescriptions0.equalsIgnoreCase("true") ) {
+    	writeDataFlagDescriptions = true;
     }
     String outputFormat = "%." + precision + "f";
 	String nodataString = "?";
@@ -2129,6 +2212,7 @@ throws Exception
 		out.println ( "DataFlags   = " + dataflagBuffer.toString() );
 	}
 	if ( versionInt >= 16000 ) {
+		// Writing time series properties and data flag descriptions was added to version 1.6
 		if ( includeProperties != null ) {
 			for ( int its = 0; its < tslist.size(); its++ ) {
 				ts = tslist.get(its);
@@ -2138,6 +2222,17 @@ throws Exception
 				else {
 					// Output the properties
 					writeTimeSeriesProperties(out,ts,its,includeProperties);
+				}
+			}
+		}
+		if ( writeDataFlagDescriptions ) {
+			for ( int its = 0; its < tslist.size(); its++ ) {
+				ts = tslist.get(its);
+				if ( ts == null ) {
+					continue;
+				}
+				else {
+					writeTimeSeriesDataFlagDescriptions(out, ts, its);
 				}
 			}
 		}
@@ -2611,6 +2706,13 @@ lines are not added to in any way.</b>
 <td><b>The DateValue file format version.</b>
 <td>Current version.</td>
 </tr>
+
+<tr>
+<td><b>WriteDataFlagDescriptions</b></td>
+<td><b>A string "true" or "false" indicating whether data flag descriptions should be written.</b>
+<td>false (to adhere to legacy behavior)</td>
+</tr>
+
 </table>
 @exception Exception if there is an error writing the file.
 */

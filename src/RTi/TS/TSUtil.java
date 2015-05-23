@@ -4262,7 +4262,7 @@ A string to append to the description (specify as a null string to append ", fil
 <td><b>FillFlag</b></td>
 <td>
 A string to use as the data flag when a value is filled.  Typically a
-one-character string is specified.
+one-character string is specified but longer flags can be specified.
 </td>
 <td>No flag value will be set.
 </td>
@@ -4375,8 +4375,7 @@ throws Exception
 	            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, fillFlagDescription));
 	        }
 	        else {
-	            ts.addDataFlagMetadata(new TSDataFlagMetadata(
-		        FillFlag, "Filled missing data using constant " + value));
+	            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, "Filled missing data using constant " + value));
 	        }
 		}
 		else {
