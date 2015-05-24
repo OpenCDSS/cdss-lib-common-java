@@ -10252,6 +10252,18 @@ If SetOnlyMissingValues, then only transfer the missing values (and optionally c
 </tr>
 
 <tr>
+<td><b>SetFlag</b></td>
+<td><b>String to use for the data flag when setting the value.</b>
+<td>No flag set (previous flag remains).</td>
+</tr>
+
+<tr>
+<td><b>SetFlagDescription</b></td>
+<td><b>String description for the set flag.</b>
+<td>No description set for the data flag.</td>
+</tr>
+
+<tr>
 <td><b>TransferData</b></td>
 <td><b>Indicates how data should be transferred from one time series to
 another.  Using "ByDateTime" will cause the dates in both time series to match,
@@ -10280,6 +10292,9 @@ throws Exception
 	boolean transfer_bydate = true;	// Default - make dates match in both time series.
 	boolean setMissing = true; // Default - either this or IgnoreMissing, which is setMissing=false
 	boolean setOnlyMissingValues = false; // Only processing missing values
+	boolean doSetFlag = false; // True if the SetFlag property was set - means a new flag is used (not from independent time series)
+	String setFlag = null;
+	String setFlagDescription = null;
 	if ( props != null ) {
 		String propVal = props.getValue("TransferData");
 		if ( (propVal != null) && propVal.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
@@ -10303,6 +10318,12 @@ throws Exception
             // Unrecognized value
             throw new InvalidParameterException ( "HandleMissingHow=" + propVal + " is invalid." );
         }
+        propVal = props.getValue("SetFlag");
+        if ( (propVal != null) && !propVal.isEmpty() ) {
+        	setFlag = propVal;
+        	doSetFlag = true;
+        }
+        setFlagDescription = props.getValue("SetFlagDescription");
 	}
 
 	// Get valid dates because the ones passed in may have been null...
@@ -10313,6 +10334,7 @@ throws Exception
 
 	int interval_base = dependentTS.getDataIntervalBase();
 	int interval_mult = dependentTS.getDataIntervalMult();
+	int setCount = 0; // Number of values set
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		message = "Setting IrregularTS by using another time series is not supported";
 		// Probably can just use the TSIterator between the two dates
@@ -10383,10 +10405,26 @@ throws Exception
 		    }
 		}
 		if ( setDataFlags ) {
-		    dependentTS.setDataValue ( date, dataValue, dataFlag, 0 );
+			// Set using the data flag from the independent
+			++setCount;
+			if ( doSetFlag ) {
+				// Reset with the new flag
+				dependentTS.setDataValue ( date, dataValue, setFlag, 0 );
+			}
+			else {
+				// Set with the flag from the independent time series
+				dependentTS.setDataValue ( date, dataValue, dataFlag, 0 );
+			}
 		}
 		else {
-		    dependentTS.setDataValue ( date, dataValue );
+			++setCount;
+			if ( doSetFlag ) {
+				// Calling code specified the flag to set
+				dependentTS.setDataValue ( date, dataValue, setFlag, 0 );
+			}
+			else {
+				dependentTS.setDataValue ( date, dataValue );
+			}
 		}
 	}
 	
@@ -10408,6 +10446,18 @@ throws Exception
 	else {
         dependentTS.addToGenesis ( "Data values were transferred sequentially from start date/time" +
             handleMissingHowString + "." );
+	}
+	// TODO SAM 2015-05-23 Need to transfer data flags from independent time series, for all encountered flags
+	// Set the data flag metadata if any values were set
+	if ( setCount > 0 ) {
+		if ( (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
+			// Description was provided
+			dependentTS.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
+        }
+        else {
+        	// Auto-generate flag description
+        	dependentTS.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Set data using from " + independentTS.getIdentifierString()));
+        }
 	}
 }
 
