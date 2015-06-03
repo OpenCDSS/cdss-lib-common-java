@@ -253,6 +253,15 @@ public String getText( boolean includeFormatterType, boolean onlyIfVisible )
 }
 
 /**
+Return the text field component, for example to allow tool tips to be set.
+@return the text field component.
+*/
+public JTextField getTextField ()
+{
+	return __inputJTextField;
+}
+
+/**
 Respond to ItemEvents - user has selected from the list so insert into the cursor position in the
 text field.
 @param evt Item event due to list change, etc.
