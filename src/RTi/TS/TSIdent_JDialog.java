@@ -7,12 +7,10 @@
 package RTi.TS;
 
 import java.util.List;
-
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -25,8 +23,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
@@ -621,9 +621,9 @@ private void setupGUI()
 		new JLabel(" Specify TSID parts below and the full TSID will automatically be created from the parts."),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(panel, new JLabel(" "),
+	JGUIUtil.addComponent(panel, new JSeparator(SwingConstants.HORIZONTAL),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);
+		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
     JLabel locationType_JLabel = new JLabel("Location type: ");
     JGUIUtil.addComponent(panel, locationType_JLabel,
