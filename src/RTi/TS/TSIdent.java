@@ -883,12 +883,16 @@ the identifier is checked.  If false, the alias is not checked and only the
 identifier string is checked.
 */
 public boolean matches ( String id_regexp, boolean check_alias, boolean include_input )
-{	
-    // Do a comparison on the whole string.  The user may or may not have defined an alias with periods.
+{	// Do a comparison on the whole string.  The user may or may not have defined an alias with periods.
     // Only allow * wildcards when matching the whole string so replace . with literal
     String java_regexp=StringUtil.replaceString(id_regexp,".","\\.").toUpperCase();
-    // Now replace * with .* so java string comparison works...
+    // Replace * used in calling code with .* so java string comparison works...
     java_regexp=StringUtil.replaceString(java_regexp,"*",".*").toUpperCase();
+    // TODO SAM 2015-06-02 Do all of the following need to be escaped or let some flow through?:  \.[]{}()*+-?^$|
+ 	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path
+ 	//      The following has generally worked for years.
+    // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions
+    java_regexp=java_regexp.replace("${", "\\$\\{").replace("}", "\\}");
     if ( check_alias && (__alias != null) && (__alias.length() > 0) && __alias.toUpperCase().matches(java_regexp) ) {
         return true;
     }
@@ -1016,14 +1020,18 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 	}
 	// Replace "*" in the regular expressions with ".*", which is necessary
 	// to utilize the Java matches() method...
-	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*").toUpperCase();
-	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*").toUpperCase();
-	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").toUpperCase();
-	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*").toUpperCase();
-	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*").toUpperCase();
+    // TODO SAM 2015-06-02 Do all of the following need to be escaped or let some flow through?:  \.[]{}()*+-?^$|
+ 	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path
+ 	//      The following has generally worked for years.
+    // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions
+	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	String sequenceID_regexp_Java = null;
 	if ( sequenceID_regexp != null ) {
-	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").toUpperCase();
+	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	}
 	// Compare the 5-part identifier first...
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {
@@ -1045,8 +1053,8 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 		return false;
 	}
 	if ( include_input ) {
-		String input_type_regexp_Java = StringUtil.replaceString( input_type_regexp,"*",".*").toUpperCase();
-		String input_name_regexp_Java = StringUtil.replaceString( input_name_regexp,"*",".*").toUpperCase();
+		String input_type_regexp_Java = StringUtil.replaceString( input_type_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+		String input_name_regexp_Java = StringUtil.replaceString( input_name_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 		// Sometimes input_type_regexp is blank.  In this case do not use to compare
 		// TODO SAM 2007-06-22 Not sure why regexp would not be OK here and below?
 		if ( (input_type_regexp.length() > 0) && !__input_type.toUpperCase().matches(input_type_regexp_Java) ) {
