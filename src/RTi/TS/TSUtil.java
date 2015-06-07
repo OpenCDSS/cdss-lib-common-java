@@ -11308,7 +11308,7 @@ public static TSData[] toArrayForDateTime ( TS ts, DateTime startDate, DateTime 
         (intervalBase != TimeInterval.DAY) && (intervalBase != TimeInterval.HOUR) &&
         (intervalBase != TimeInterval.MINUTE)) {
         throw new InvalidTimeIntervalException(
-            "Only Year, Month, Day, Hour, and Minute time series can be processed.  Trying to process " +
+            "Only Year, Month, Day, Hour, and Minute time series can be processed.  Cannot process interval " +
             ts.getIdentifier().getInterval() + "." );
     }
     /*
@@ -11413,7 +11413,7 @@ public static TSData[] toArrayForDateTime ( TS ts, DateTime startDate, DateTime 
                 // Month, day, and hour must agree...
                 processValue = true;
             }
-            else if ( (intervalBase == TimeInterval.HOUR) && (month == monthRequested) &&
+            else if ( (intervalBase == TimeInterval.MINUTE) && (month == monthRequested) &&
                 (day == dayRequested) && (hour == hourRequested) && (minute == minuteRequested) ) {
                 // Month, day, hour, and minute must agree...
                 processValue = true;
