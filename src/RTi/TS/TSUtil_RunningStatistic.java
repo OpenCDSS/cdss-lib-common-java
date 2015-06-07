@@ -588,7 +588,7 @@ but with data being the running statistic.
 */
 public TS runningStatistic ( boolean createData )
 throws TSException, IrregularTimeSeriesNotSupportedException
-{   String genesis = "", message, routine = getClass().getName() + ".runningStatistic";
+{   String genesis = "", message, routine = getClass().getSimpleName() + ".runningStatistic";
     TS newts = null;
     TS newts2 = null; // Used when normal period is used (newts is statistic for normal period, newts2 is final output)
 
@@ -641,7 +641,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     // Handling of specific statistics...
 
     // Some statistics are a manipulation of a "normal period" statistic. For example, "PercentOfMean" requires an
-    // initial statistic to be calculated (Mean) and then the input time series value is used to compute
+    // initial statistic (Mean) to be calculated for the normal period and then the input time series value is used to compute
     // the final statistic.  Use statisticTypeForNormal to save the final statistic.  The process is as follows:
     // 1) Compute the statistic for the normal period (may be the same as the analysis period)
     // 2) Use the results from 1 to compute the output for the analysis period
@@ -683,9 +683,18 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         else if ( statisticType == TSStatisticType.PERCENT_OF_MIN ) {
             statisticType = TSStatisticType.MIN;
         }
+        String note1 = "", note2 = "";
+        if ( normalStart == null ) {
+        	normalStart = new DateTime(analysisStart);
+        	note1 = " (set to AnalysisStart)";
+        }
+        if ( normalEnd == null ) {
+        	normalEnd = new DateTime(analysisEnd);
+        	note2 = " (set to AnalysisEnd)";
+        }
         Message.printStatus(2,routine,"Will compute " + statisticType +
             " statistic first as input to final " + statisticTypeForNormal + " statistic using normal period " +
-            normalStart + " to " + normalEnd );
+            normalStart + note1 + " to " + normalEnd + note2 );
     }
     else if ( statisticType == TSStatisticType.VARIANCE ) {
         String units = ts.getDataUnits();
@@ -710,6 +719,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     }
     newts.copyHeader ( ts );
     newts.setDataType(ts.getDataType() + "-Running-" + statString );
+    // If the output period is not specified, use the full time series period
     if ( outputStart == null ) {
         outputStart = new DateTime(ts.getDate1());
     }
@@ -947,17 +957,19 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                     sampleArray = valueCache.get(key);
                 }
                 if ( sampleArray == null ) {
-                    // Generate array and save in cache
+                    // Generate array and save in cache, ignoring missing values
                     sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, false );
                     if ( sampleArrayTSData == null ) {
                         sampleArrayTSData = new TSData[0];
                     }
                     sampleArray = new double[sampleArrayTSData.length];
                     for ( int is = 0; is < sampleArrayTSData.length; is++ ) {
-                        sampleArray[count++] = sampleArrayTSData[is].getDataValue();
+                        sampleArray[is] = sampleArrayTSData[is].getDataValue();
+                        //Message.printStatus(2,routine,"Sample for value date/time " + valueDateTime + " value[" + is + "]=" + sampleArray[is]);
                     }
                     valueCache.put ( key, sampleArray );
                 }
+                // Reset the count based on the sample array size
                 count = sampleArray.length;
             }
             else {
@@ -1083,6 +1095,14 @@ throws TSException, IrregularTimeSeriesNotSupportedException
             // Handle cases where a secondary statistic is being computed
             // Have to process the original value (ts) and the intermediate statistic (newts)
             // to get the final output (newts2)
+        	// Complexity for normal period - the initial analysis is performed on the normal period but the analysis
+        	// period may not exactly align.  Because the normal period can only be specified
+        	// with bracket of ALL_YEARS, can go through the initial statistic time series and find a value
+        	// on the same date to use for the math - this is all handled below
+        	// FIXME SAM - remove this when figured out issues..
+        	//for ( DateTime d = new DateTime(newts.getDate1()); d.lessThanOrEqualTo(newts.getDate2()); d.addInterval(intervalBase,intervalMult) ) {
+        	//	Message.printStatus(2, routine, "After computing normal period statistic, date=" + d + " value=" + newts.getDataValue(d));
+        	//}
             date = new DateTime(analysisStart);
             end = new DateTime(analysisEnd);
             DateTime normalStart2 = null;
