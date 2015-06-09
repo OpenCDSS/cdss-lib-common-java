@@ -9546,10 +9546,12 @@ for regular interval data), "SetMissing" to set values to missing, and otherwise
 consistent with the time series interval
 @param analysisWindowEnd the endin date/time within a year to start the replacement,
 consistent with the time series interval
+@param setFlag flag value to set on data values when resetting a value
+@param setFlagDesc descriptionion for set flag
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
 	Double maxValue, Double newValue, String matchFlag, String action,
-	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag )
+	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag, String setFlagDescription )
 {	
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
@@ -9766,6 +9768,29 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	// Set the genesis information...
 
 	if ( replaceCount > 0 ) {
+		if ( (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
+			// Description was provided
+			ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
+        }
+        else {
+        	// Auto-generate flag description - set doRemove because regular time series will have missing values
+        	if ( doRemove ) {
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Removed values that matched min=" +
+        			StringUtil.formatString(minValue,"%.6f") + " max=" + StringUtil.formatString(maxValue,"%.6f") +
+        			" flag=" + matchFlag) );
+        	}
+        	else if ( doSetMissing ) {
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Replaced values with missing for values that matched min=" +
+        			StringUtil.formatString(minValue,"%.6f") + " max=" + StringUtil.formatString(maxValue,"%.6f") +
+        			" flag=" + matchFlag) );
+        	}
+        	else {
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Replaced values with " +
+        			StringUtil.formatString(newValue,"%.6f") +
+        			"for values that matched min=" + StringUtil.formatString(minValue,"%.6f") +
+        			" max=" + StringUtil.formatString(maxValue,"%.6f") + " flag=" + matchFlag) );
+        	}
+        }
     	if ( doRemove || doSetMissing ) {
     	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
                 StringUtil.formatString(minvalue, "%.3f") + "," +
