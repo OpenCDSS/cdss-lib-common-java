@@ -275,7 +275,7 @@ public static GRColor parseColor ( String color )
 		return grc;
 	}
 	else if ( color.equalsIgnoreCase("orange") ) {
-		return new GRColor ( 204, 50, 50 );
+		return new GRColor ( 255, 165, 0 );
 	}
 	else if ( color.equalsIgnoreCase("pink") ) {
 		return new GRColor ( 188, 143, 143 );
@@ -394,7 +394,7 @@ public static String toString ( int color )
 	else if ( color == -1 ) {
 		return "None";
 	}
-	else if ( color == 0x00ff7f00 ) {
+	else if ( color == 0x00ffa500 ) {
 		return "Orange";
 	}
 	else if ( color == 0x00ff7f7f ) {
