@@ -11,8 +11,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
@@ -230,7 +230,7 @@ include 29 days.
 private void setDayChoices ( SimpleJComboBox year_JComboBox, SimpleJComboBox month_JComboBox,
     SimpleJComboBox day_JComboBox )
 {
-    List<String> dayList = new Vector();
+    List<String> dayList = new ArrayList<String>(31);
     dayList.add ( "" ); // Select to ignore this information
     int maxDay = 31;
     int year = -9999;
@@ -318,7 +318,7 @@ Setup the UI.
 */
 private void setupUI ()
 {
-    if ( (__title != null) && (__title.length() > 0) ) {
+    if ( (__title != null) && !__title.isEmpty() ) {
         setBorder( BorderFactory.createTitledBorder (BorderFactory.createLineBorder(Color.black),__title ));
     }
 
@@ -333,7 +333,7 @@ private void setupUI ()
     int y_label = 0; // Positions of labels and entry fields.
     int y_entry = 1;
     // Add the year...
-    List<String> yearList = new Vector();
+    List<String> yearList = new ArrayList<String>(201);
     yearList.add( "" );
     for ( int i = 1900; i <= 2100; i++ ) {
         yearList.add( "" + i );
@@ -347,8 +347,8 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the month...
-    List<String> monthList = new Vector();
-    monthList.add( "" );    // Select to ignore this information
+    List<String> monthList = new ArrayList<String>(13);
+    monthList.add( "" ); // Select to ignore this information
     for ( int i = 1; i <= 12; i++ ) {
         monthList.add( "" + i );
     }
@@ -370,8 +370,8 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the hour...
-    List<String> hourList = new Vector();
-    hourList.add ( "" );    // Select to ignore this information
+    List<String> hourList = new ArrayList<String>(25);
+    hourList.add ( "" ); // Select to ignore this information
     for ( int i = 0; i <= 23; i++ ) {
         hourList.add ( "" + StringUtil.formatString(i,"%02d") );
     }
@@ -383,8 +383,8 @@ private void setupUI ()
         x++, y_entry, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     // Add the minute...
-    List<String> minuteList = new Vector();
-    minuteList.add ( "" );    // Select to ignore this information
+    List<String> minuteList = new ArrayList<String>(61);
+    minuteList.add ( "" ); // Select to ignore this information
     for ( int i = 0; i <= 59; i++ ) {
         minuteList.add ( "" + StringUtil.formatString(i,"%02d") );
     }
