@@ -8665,7 +8665,7 @@ public static int indexOf (	List<? extends TS> tslist, String id, String field, 
 }
 
 /**
-True if the first TS interval is greate.
+True if the first TS interval is greater.
 @return true if the first TS interval is greater than the second TS interval
 @param ts Time Series.
 @param comparets Time Series to compare to.
@@ -10350,13 +10350,25 @@ throws Exception
         }
         setFlagDescription = props.getValue("SetFlagDescription");
 	}
+	
+	// It is possible that the data intervals are different, which will require some care.
+	// This is really only relevant for the window or if a feature is added to control
+	// which of the 1-to-many values are used to set.
+	// A common use is to extract a single month's values to a year time series
+	int dataIntervalComp = 0;
+	if ( isGreaterInterval(dependentTS,independentTS) ) {
+		dataIntervalComp = 1;
+	}
+	else if ( isSmallerInterval(dependentTS,independentTS) ) {
+		dataIntervalComp = -1;
+	}
 
 	// Get valid dates because the ones passed in may have been null...
 
 	TSLimits valid_dates = getValidPeriod (dependentTS,start_date,end_date);
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
-
+	
 	int interval_base = dependentTS.getDataIntervalBase();
 	int interval_mult = dependentTS.getDataIntervalMult();
 	int setCount = 0; // Number of values set
@@ -10382,15 +10394,30 @@ throws Exception
 	boolean isMissing; // Whether a data value is missing
 	TSData tsdata = new TSData();
 	String dataFlag = null; // Data flag to transfer
+	// Dates in the year corresponding to the window start and end, used when time series intervals are different
+	DateTime dateSetWindowStart = null;
+	boolean doSetWindow = false;
 	if ( (setWindowStart != null) && (setWindowEnd != null) ) {
-	    // Clone to have local copies
+	    // Clone to have local copies - precision of this could be different from dependent
 	    setWindowStart = new DateTime(setWindowStart);
 	    setWindowEnd = new DateTime(setWindowEnd);
+	    // Initialize to have correct precision of the window - should be same precision as independent
+	    dateSetWindowStart = new DateTime(setWindowStart);
+	    doSetWindow = true;
 	}
 	double outputMissingVal = dependentTS.getMissing();
 	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		if ( transfer_bydate ) {
+			// Default is to get the data value as if the intervals are the same - something will come back
+			// This should work if the intervals are the same or the receiving is smaller interval
 			dataValue = independentTS.getDataValue ( date );
+			if ( (dataIntervalComp > 0) && doSetWindow ) {
+				// The receiving time series has a larger interval.
+				// For now loop through the independent for the window and return the first value
+				// For example if the window is Jan-Jan a value will be returned for the Year interval
+			    dateSetWindowStart.setYear(date.getYear());
+			    dataValue = independentTS.getDataValue(dateSetWindowStart);  
+			}
 			if ( setDataFlags ) {
 			    // Reuse the data point during data transfer
 			    independentTS.getDataPoint( date, tsdata );
@@ -10419,7 +10446,7 @@ throws Exception
 		    dataValue = outputMissingVal;
 		}
 		// If the window is specified, check to see if the set date is in the window
-		if ( (setWindowStart != null) && (setWindowEnd != null) ) {
+		if ( doSetWindow ) {
 		    // Set the window to the current year
 		    // TODO SAM 2013-12-24 can possibly optimize to check year and previous year before doing reset
 		    setWindowStart.setYear(date.getYear());
