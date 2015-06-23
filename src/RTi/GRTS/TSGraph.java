@@ -4907,7 +4907,6 @@ private GRColor drawTSHelperGetTimeSeriesColor ( int its, PropList overrideProps
     return tscolor;
 }
 
-//TODO SAM 2010-11-19 not sure if stacked area graph may use this same code
 /**
 Draw a single time series as an area graph.  The time series values are used to create polygons that have as
 a base the zero line.  An array is used to hold the points of the polygon for low-level rendering.  A new polygon
@@ -5009,7 +5008,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
                 else {
                     // Anchor to the bottom of the graph
                     yAnchor = miny;
-                 }
+                }
                 xArray[arrayCount] = xArray[arrayCount - 1];
                 yArray[arrayCount] = yAnchor;
                 ++arrayCount;
