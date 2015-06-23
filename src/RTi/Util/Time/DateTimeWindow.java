@@ -79,6 +79,24 @@ public DateTime getFirstMatchingDateTime(DateTime start, DateTime end, int inter
     return null;
 }
 
+/**
+Return the last matching date/time for a period that is within the window.  The period is
+iterated through and the first matching date/time in the window is returned.
+@param start starting date/time in a period
+@param end ending date/time in a period
+@param intervalBase base time interval from DateTime
+@param intervalMult interval multiplier
+@return last date/time in window for period, or null if no date/time is found
+*/
+public DateTime getLastMatchingDateTime(DateTime start, DateTime end, int intervalBase, int intervalMult )
+{
+    for ( DateTime d = new DateTime(end); d.greaterThanOrEqualTo(start); d.addInterval(intervalBase,-intervalMult) ) {
+        if ( isDateTimeInWindow(d) ) {
+            return d;
+        }
+    }
+    return null;
+}
 
 /**
 Return the starting date/time in the window (can be null) if open-ended.
@@ -89,6 +107,7 @@ public DateTime getStart ()
     return __start;
 }
 
+// TODO SAM 2015-06-21 Modify the following so DateTime instance is re-used and evaluate if it improves performance
 /**
 Determine whether the specified date/time is in the requested window.
 @param dt a DateTime to compare with the window
