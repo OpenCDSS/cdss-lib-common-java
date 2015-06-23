@@ -145,9 +145,13 @@ public enum TSStatisticType
      */
     LAG1_AUTO_CORRELATION ( "Lag-1AutoCorrelation" ),
     /**
-     * Last non-missing value in the sample.
+     * Last value in the sample (typically the last value in an analysis period).
      */
     LAST ( "Last" ),
+    /**
+     * Last non-missing value in the sample.
+     */
+    LAST_NONMISSING ( "LastNonmissing" ),
     /**
      * Count of values <= test value.
      */

@@ -1,13 +1,15 @@
 package RTi.TS;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.Regression;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.DateTimeWindow;
+import RTi.Util.Time.TimeUtil;
 
 /**
 Check time series values.
@@ -388,6 +390,7 @@ throws Exception
     double value3 = (getValue3() == null) ? -999.0 : getValue3().doubleValue();
     TS ts = getTimeSeries();
     DateTime analysisEnd = getAnalysisEnd();
+    DateTime analysisStart = getAnalysisStart();
     DateTime analysisWindowStart = getAnalysisWindowStart();
     DateTime analysisWindowEnd = getAnalysisWindowEnd();
     boolean haveAnalysisWindow = false;
@@ -395,6 +398,9 @@ throws Exception
         haveAnalysisWindow = true;
         // TODO SAM 2013-02-10 Throw exception below if analysis window is specified but is not supported
     }
+    // Initialize the results to null
+    setStatisticResult((Double)null);
+	setStatisticResultDateTime(null);
     // If statistic takes more work, call other supporting code and then return
     // Statistics computed (further below) also store the date/time corresponding to a statistic value,
     // whereas the ones immediately below don't utilize this information.
@@ -446,16 +452,60 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.LAST ) {
-        if ( haveAnalysisWindow ) {
-            throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
-        }
-        // Get the last non-missing value in the time series
+        // Get the last non-missing or missing value in the analysis period, considering the analysis window
         if ( analysisEnd == null ) {
             analysisEnd = ts.getDate2();
         }
-        double last = TSUtil.findNearestDataValue(ts, analysisEnd, 1, 0, 0);
-        if ( !ts.isDataMissing(last) ) {
-            setStatisticResult ( new Double(last) );
+        if ( analysisStart == null ) {
+            analysisStart = ts.getDate1();
+        }
+        DateTimeWindow win = null;
+        if ( haveAnalysisWindow ) {
+        	win = new DateTimeWindow(analysisWindowStart,analysisWindowEnd);
+        	DateTime dt = win.getLastMatchingDateTime(analysisStart, analysisEnd, ts.getDataIntervalBase(), ts.getDataIntervalMult());
+        	if ( dt != null ) {
+        		setStatisticResult(ts.getDataValue(dt));
+        		setStatisticResultDateTime(dt);
+        	}
+        }
+        else {
+        	// Just use the last value in the analysis period
+    		setStatisticResult(ts.getDataValue(analysisEnd));
+    		setStatisticResultDateTime(analysisEnd);
+        }
+        return;
+    }
+    else if ( statisticType == TSStatisticType.LAST_NONMISSING ) {
+        // Get the last non-missing value in the analysis period, considering the analysis window
+        if ( analysisEnd == null ) {
+            analysisEnd = ts.getDate2();
+        }
+        if ( analysisStart == null ) {
+            analysisStart = ts.getDate1();
+        }
+        DateTimeWindow win = null;
+        if ( haveAnalysisWindow ) {
+        	win = new DateTimeWindow(analysisWindowStart,analysisWindowEnd);
+        }
+        // Iterate backwards
+        TSIterator tsi = ts.iterator(analysisStart,analysisEnd);
+        TSData tsdata = null;
+        DateTime dt = null;
+        double last;
+        while ( (tsdata = tsi.previous()) != null ) {
+        	dt = tsdata.getDate();
+            if ( haveAnalysisWindow ) {
+            	// Don't check unless in the analysis window
+            	if ( !win.isDateTimeInWindow(dt) ) {
+            		continue;
+            	}
+            }
+        	last = tsdata.getDataValue();
+        	if ( !ts.isDataMissing(last) ) {
+        		setStatisticResult(new Double(last));
+        		setStatisticResultDateTime(dt);
+        		break;
+        	}
         }
         return;
     }
@@ -748,6 +798,7 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
         (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
         (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
         (statisticType == TSStatisticType.LAST) ||
+        (statisticType == TSStatisticType.LAST_NONMISSING) ||
         (statisticType == TSStatisticType.MAX) ||
         (statisticType == TSStatisticType.MEAN) ||
         (statisticType == TSStatisticType.MIN) ||
@@ -856,7 +907,7 @@ Get the list of statistics that can be performed.
 */
 public static List<TSStatisticType> getStatisticChoices()
 {
-    List<TSStatisticType> choices = new Vector();
+    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
     choices.add ( TSStatisticType.COUNT );
     choices.add ( TSStatisticType.DEFICIT_MAX );
     choices.add ( TSStatisticType.DEFICIT_MEAN );
@@ -871,6 +922,7 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.GT_COUNT );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
     choices.add ( TSStatisticType.LAST );
+    choices.add ( TSStatisticType.LAST_NONMISSING );
     choices.add ( TSStatisticType.LE_COUNT );
     choices.add ( TSStatisticType.LT_COUNT );
     choices.add ( TSStatisticType.MAX );
@@ -906,7 +958,7 @@ Get the list of statistics that can be performed.
 public static List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( TSStatisticType choice : choices ) {
         stringChoices.add ( "" + choice );
     }
@@ -950,6 +1002,14 @@ public Double getValue3 ()
 }
 
 /**
+Set the statistic result.  Use this when setting to null.
+*/
+private void setStatisticResult ( Double statisticResult )
+{
+    __statisticResult = statisticResult;
+}
+
+/**
 Set the statistic result.
 */
 private void setStatisticResult ( double statisticResult )
@@ -974,10 +1034,13 @@ private void setStatisticResult ( Regression statisticResult )
 }
 
 /**
-Set the date/time for statistic result.
+Set the date/time for statistic result.  A copy is made because the instance may be changing during iteration.
 */
 private void setStatisticResultDateTime ( DateTime statisticResultDateTime )
 {
+	if ( statisticResultDateTime != null ) {
+		statisticResultDateTime = new DateTime(statisticResultDateTime);
+	}
     __statisticResultDateTime = statisticResultDateTime;
 }
 
