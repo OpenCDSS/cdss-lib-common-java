@@ -2,16 +2,19 @@ package RTi.TS;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Math.DataTransformationType;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringDictionary;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.LookupMethodType;
 import RTi.Util.Table.OutOfRangeLookupMethodType;
+import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeWindow;
 
@@ -218,7 +221,7 @@ private int checkLookupTableSortedAndNonNull ( DataTable lookupTable, int value1
             value = getTableCellDouble(lookupTable,iRow, value1Column);
             isNaN = Double.isNaN(value);
             if ( isNaN ) {
-                // TODO SAM 2014-01-21 evaluate what to do but for now just skip - won't be able to do lookup later
+                // TODO SAM 2014-01-21 evaluate what to do but for now just skip - won't be able to do lookup later unless endpoints are used
                 ++countDescend;
                 ++countAscend;
                 //return 0;
@@ -233,7 +236,9 @@ private int checkLookupTableSortedAndNonNull ( DataTable lookupTable, int value1
                 valuePrev = value;
             }
         }
-        Message.printStatus(2,"","countAscend=" + countAscend + " countDescend=" + countDescend );
+        if ( Message.isDebugOn ) {
+        	Message.printDebug(1,"","countAscend=" + countAscend + " countDescend=" + countDescend );
+        }
         if ( (countDescend + 1) == nRows ) {
             return -1;
         }
@@ -262,18 +267,74 @@ private DataTable getLookupTable ()
 
 /**
 Return the lookup table considering the effective date.
+The returned table will only have rows where the input and output values are not missing.
 @return the lookup table considering the effective date
 @param fullLookupTable the full lookup table, which may have multiple effective dates
 @param lookupTablePrev previous lookup table, which may still be appropriate
 @param date the date for which the lookup table is being retrieved
 @param effectiveDateColumn the column in the full table that contains the effective date (0+)
 */
-private DataTable getLookupTableForEffectiveDate ( DataTable fullLookupTable,
+private DataTable getLookupTableForEffectiveDate ( DataTable fullLookupTable, int value1Column, int value2Column,
     DataTable lookupTablePrev, DateTime date, int effectiveDateColumn )
 {
     // For now always return the full lookup table since effective date is not supported
     // TODO SAM 2012-02-11 Need to enable effective date
-    return fullLookupTable;
+	if ( lookupTablePrev != null ) {
+		// Do this because for now we only need to do the processing below once.
+		// Doing it each time step would introduce a performance hit.
+		return lookupTablePrev;
+	}
+	// However, limit the lookup table to rows where the input and output columns are non-null
+	String [] reqIncludeColumns = new String[2];
+	reqIncludeColumns[0] = fullLookupTable.getFieldName(value1Column);
+	reqIncludeColumns[1] = fullLookupTable.getFieldName(value2Column);
+	String [] distinctColumns = null;
+	Hashtable columnMap = null;
+	Hashtable columnFilters = null;
+	StringDictionary columnExcludeFilters = null;
+	DataTable lookupTable = fullLookupTable.createCopy(fullLookupTable, "LookupTable", reqIncludeColumns,
+		distinctColumns, columnMap, columnFilters, columnExcludeFilters);
+	// Remove rows where the input or output values are missing.
+	// Iterate from the end so that the index does not need to be adjusted
+	TableRecord row;
+	Object o;
+	for ( int i = lookupTable.getNumberOfRecords() - 1; i >= 0; i-- ) {
+		try {
+			row = lookupTable.getRecord(i);
+		}
+		catch ( Exception e ) {
+			continue;
+		}
+		try {
+			o = row.getFieldValue(0);
+			if ( o == null ) {
+				lookupTable.deleteRecord(i);
+				continue;
+			}
+			if ( o instanceof Double && ((Double)o).isNaN() ) {
+				lookupTable.deleteRecord(i);
+				continue;
+			}
+		}
+		catch ( Exception e ) {
+			continue;
+		}
+		try {
+			o = row.getFieldValue(1);
+			if ( o == null ) {
+				lookupTable.deleteRecord(i);
+				continue;
+			}
+			if ( o instanceof Double && ((Double)o).isNaN() ) {
+				lookupTable.deleteRecord(i);
+				continue;
+			}
+		}
+		catch ( Exception e ) {
+			continue;
+		}
+	}
+    return lookupTable;
 }
 
 /**
@@ -415,8 +476,8 @@ public void lookupTimeSeriesValuesFromTable ()
     double inputValue, outputValue = 0.0;
     TSData tsdata;
     DataTable fullLookupTable = getLookupTable(); // TODO SAM 2012-02-11 Need to handle effectiveDate and return lookupOrder
-    DataTable lookupTable = fullLookupTable; // Look table for the effective date (initialize different from lookupTablePrev)
-    DataTable lookupTablePrev = null; // The lookup table from the previous date
+    DataTable lookupTable = null; // Lookup table for the effective date
+    DataTable lookupTablePrev = null; // The lookup table from the previous date, to optimize
     int lookupOrder = 0; // The order of the table lookup column
     LookupMethodType lookupMethodType = __lookupMethodType;
     OutOfRangeLookupMethodType outOfRangelookupMethodType = __outOfRangeLookupMethodType;
@@ -449,6 +510,8 @@ public void lookupTimeSeriesValuesFromTable ()
     int nRows = 0; // Number of rows in the lookup table
     int nRowsM1 = 0, nRowsM2 = 0;
     int setCount = 0;
+	int lookupTableValue1Column = 0; // input column after extracting the specific lookup table
+	int lookupTableValue2Column = 1; // output column after extracting the specific lookup table
     while ( (tsdata = tsi.next()) != null ) {
         date = tsi.getDate();
         if ( (analysisWindow != null) && !analysisWindow.isDateTimeInWindow(date) ) {
@@ -456,37 +519,41 @@ public void lookupTimeSeriesValuesFromTable ()
             continue;
         }
         // Get the lookup table for the current date (might re-use the previous lookup)
-        lookupTable = getLookupTableForEffectiveDate ( fullLookupTable, lookupTablePrev, date, effectiveDateColumn );
+        // In this table column 0 will be the input and column 1 will be the output
+        lookupTable = getLookupTableForEffectiveDate ( fullLookupTable, value1Column, value2Column,
+        	lookupTablePrev, date, effectiveDateColumn );
         if ( lookupTable != lookupTablePrev ) {
             if ( sortInput ) {
                 lookupOrder = 1;
-                lookupTable = sortTable ( lookupTable, value1Column, lookupOrder );
+                lookupTable = sortTable ( lookupTable, lookupTableValue1Column, lookupOrder );
             }
             else {
-                lookupOrder = checkLookupTableSortedAndNonNull(lookupTable, value1Column);
+                lookupOrder = checkLookupTableSortedAndNonNull(lookupTable, lookupTableValue1Column);
             }
             if ( lookupOrder == 0 ) {
                 throw new RuntimeException ( "Lookup table cannot be sorted." );
             }
             // Need to get some information about the table for further calculations
             nRows = lookupTable.getNumberOfRecords();
-            Message.printStatus(2,routine,"Lookup table is sorted in order " + lookupOrder + " and has " + nRows + " rows");
+            if ( Message.isDebugOn ) {
+            	Message.printDebug(1,routine,"Lookup table is sorted in order " + lookupOrder + " and has " + nRows + " rows (missing data removed).");
+            }
             nRowsM1 = nRows - 1;
             nRowsM2 = nRows - 2;
             try {
                 if ( lookupOrder == 1 ) {
                     // Ascending
-                    inputValueMin = getTableCellDouble(lookupTable, 0, value1Column);
-                    inputValueMax = getTableCellDouble(lookupTable, nRowsM1, value1Column);
-                    outputValueMin = getTableCellDouble(lookupTable, 0, value2Column);
-                    outputValueMax = getTableCellDouble(lookupTable, nRowsM1, value2Column);
+                    inputValueMin = getTableCellDouble(lookupTable, 0, lookupTableValue1Column);
+                    inputValueMax = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue1Column);
+                    outputValueMin = getTableCellDouble(lookupTable, 0, lookupTableValue2Column);
+                    outputValueMax = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue2Column);
                 }
                 else {
                     // Descending
-                    inputValueMin = getTableCellDouble(lookupTable, nRowsM1, value1Column);
-                    inputValueMax = getTableCellDouble(lookupTable, 0, value1Column);
-                    outputValueMin = getTableCellDouble(lookupTable, nRowsM1, value2Column);
-                    outputValueMax = getTableCellDouble(lookupTable, 0, value2Column);
+                    inputValueMin = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue1Column);
+                    inputValueMax = getTableCellDouble(lookupTable, 0, lookupTableValue1Column);
+                    outputValueMin = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue2Column);
+                    outputValueMax = getTableCellDouble(lookupTable, 0, lookupTableValue2Column);
                 }
             }
             catch ( Exception e ) {
@@ -496,7 +563,7 @@ public void lookupTimeSeriesValuesFromTable ()
         // Save here in case there is a jump in logic
         lookupTablePrev = lookupTable;
         inputValue = tsdata.getDataValue();
-        canSetOutput = true; // May not be able to compute
+        canSetOutput = true; // Set to false below if not able to compute output value
         if ( inputTS.isDataMissing(inputValue) ) {
             // Can't process value
             canSetOutput = false;
@@ -506,6 +573,9 @@ public void lookupTimeSeriesValuesFromTable ()
             // Some of this code is inlined - it is easier to understand the logic this way than having
             // complicated "if" statements or calling other methods to perform basic processing
             if ( inputValue < inputValueMin ) {
+            	if ( Message.isDebugOn ) {
+            		Message.printDebug(1,routine,"Input value " + inputValue + " is less than minimum input value " + inputValueMin );
+            	}
                 if ( outOfRangelookupMethodType == OutOfRangeLookupMethodType.SET_MISSING ) {
                     outputValue = missing;
                 }
@@ -516,17 +586,17 @@ public void lookupTimeSeriesValuesFromTable ()
                     try {
                         if ( lookupOrder == 1 ) {
                             // Ascending so smallest values in row 0 - point the extrapolation past the min
-                            inputValue1 = getTableCellDouble(lookupTable, 1, value1Column);
-                            inputValue2 = getTableCellDouble(lookupTable, 0, value1Column);
-                            outputValue1 = getTableCellDouble(lookupTable, 1, value2Column);
-                            outputValue2 = getTableCellDouble(lookupTable, 0, value2Column);
+                            inputValue1 = getTableCellDouble(lookupTable, 1, lookupTableValue1Column);
+                            inputValue2 = getTableCellDouble(lookupTable, 0, lookupTableValue1Column);
+                            outputValue1 = getTableCellDouble(lookupTable, 1, lookupTableValue2Column);
+                            outputValue2 = getTableCellDouble(lookupTable, 0, lookupTableValue2Column);
                         }
                         else {
                             // Descending so smallest values at end of table - point the extrapolation past the max
-                            inputValue1 = getTableCellDouble(lookupTable, nRowsM2, value1Column);
-                            inputValue2 = getTableCellDouble(lookupTable, nRowsM1, value1Column);
-                            outputValue1 = getTableCellDouble(lookupTable, nRowsM2, value2Column);
-                            outputValue2 = getTableCellDouble(lookupTable, nRowsM1, value2Column);
+                            inputValue1 = getTableCellDouble(lookupTable, nRowsM2, lookupTableValue1Column);
+                            inputValue2 = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue1Column);
+                            outputValue1 = getTableCellDouble(lookupTable, nRowsM2, lookupTableValue2Column);
+                            outputValue2 = getTableCellDouble(lookupTable, nRowsM1, lookupTableValue2Column);
                         }
                     }
                     catch ( Exception e ) {
@@ -534,8 +604,8 @@ public void lookupTimeSeriesValuesFromTable ()
                         problemsWarning.add ( "Error looking up values from table for " + date + " value=" + inputValue );
                         canSetOutput = false;
                     }
-                    if ( inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue1) ||
-                        inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue1) ) {
+                    if ( inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue2) ||
+                        outputTS.isDataMissing(outputValue1) || outputTS.isDataMissing(outputValue2) ) {
                         canSetOutput = false;
                     }
                     else {
@@ -583,6 +653,9 @@ public void lookupTimeSeriesValuesFromTable ()
                 }
             }
             else if ( inputValue > inputValueMax ) {
+            	if ( Message.isDebugOn ) {
+            		Message.printDebug(1,routine,"Input value " + inputValue + " is greater than maximum input value " + inputValueMax );
+            	}
                 if ( outOfRangelookupMethodType == OutOfRangeLookupMethodType.SET_MISSING ) {
                     outputValue = missing;
                 }
@@ -593,17 +666,17 @@ public void lookupTimeSeriesValuesFromTable ()
                     try {
                         if ( lookupOrder == 1 ) {
                             // Ascending, max value at end of table, point extrapolation past end
-                            inputValue1 = getTableCellDouble(lookupTable, nRows - 2, value1Column);
-                            inputValue2 = getTableCellDouble(lookupTable, nRows - 1, value1Column);
-                            outputValue1 = getTableCellDouble(lookupTable, nRows - 2, value2Column);
-                            outputValue2 = getTableCellDouble(lookupTable, nRows - 1, value2Column);
+                            inputValue1 = getTableCellDouble(lookupTable, nRows - 2, lookupTableValue1Column);
+                            inputValue2 = getTableCellDouble(lookupTable, nRows - 1, lookupTableValue1Column);
+                            outputValue1 = getTableCellDouble(lookupTable, nRows - 2, lookupTableValue2Column);
+                            outputValue2 = getTableCellDouble(lookupTable, nRows - 1, lookupTableValue2Column);
                         }
                         else {
                             // Descending, max value in row 0, point extrapolation past row 0
-                            inputValue1 = getTableCellDouble(lookupTable, 1, value1Column);
-                            inputValue2 = getTableCellDouble(lookupTable, 0, value1Column);
-                            outputValue1 = getTableCellDouble(lookupTable, 1, value2Column);
-                            outputValue2 = getTableCellDouble(lookupTable, 0, value2Column);
+                            inputValue1 = getTableCellDouble(lookupTable, 1, lookupTableValue1Column);
+                            inputValue2 = getTableCellDouble(lookupTable, 0, lookupTableValue1Column);
+                            outputValue1 = getTableCellDouble(lookupTable, 1, lookupTableValue2Column);
+                            outputValue2 = getTableCellDouble(lookupTable, 0, lookupTableValue2Column);
                         }
                     }
                     catch ( Exception e ) {
@@ -611,8 +684,8 @@ public void lookupTimeSeriesValuesFromTable ()
                         problemsWarning.add ( "Error looking up values from table for " + date + " value=" + inputValue );
                         canSetOutput = false;
                     }
-                    if ( inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue1) ||
-                        inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue1) ) {
+                    if ( inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue2) ||
+                        outputTS.isDataMissing(outputValue1) || outputTS.isDataMissing(outputValue2) ) {
                         canSetOutput = false;
                     }
                     else {
@@ -663,82 +736,112 @@ public void lookupTimeSeriesValuesFromTable ()
             }
             else {
                 // In the range of values so find the value to interpolate
-                lowRow = lookupFloorRow ( lookupTable, lookupOrder, value1Column, inputValue );
-                highRow = lowRow + 1;
+                // Need to interpolate or otherwise look up.
+            	// Get the row where the value is less than or equal to the input value
+                lowRow = lookupFloorRow ( lookupTable, lookupOrder, lookupTableValue1Column, inputValue );
+                if ( lookupOrder == 1 ) {
+                	// Ascending
+                	highRow = lowRow + 1;
+                }
+                else {
+                	// Descending
+                	highRow = lowRow - 1;
+                }
                 try {
-                    inputValue1 = getTableCellDouble(lookupTable, lowRow, value1Column);
-                    inputValue2 = getTableCellDouble(lookupTable, highRow, value1Column);
-                    outputValue1 = getTableCellDouble(lookupTable, lowRow, value2Column);
-                    outputValue2 = getTableCellDouble(lookupTable, highRow, value2Column);
+                    inputValue1 = getTableCellDouble(lookupTable, lowRow, lookupTableValue1Column);
+                    inputValue2 = getTableCellDouble(lookupTable, highRow, lookupTableValue1Column);
+                    outputValue1 = getTableCellDouble(lookupTable, lowRow, lookupTableValue2Column);
+                    outputValue2 = getTableCellDouble(lookupTable, highRow, lookupTableValue2Column);
                 }
                 catch ( Exception e ) {
                     // Should not happen
                     problemsWarning.add ( "Error looking up values from table for " + date + " value=" + inputValue );
                     canSetOutput = false;
                 }
-                if ( ((lookupMethodType == LookupMethodType.PREVIOUS_VALUE) ||
-                    (lookupMethodType == LookupMethodType.INTERPOLATE)) &&
-                    (inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue1)) ) {
-                    canSetOutput = false;
-                }
-                if ( ((lookupMethodType == LookupMethodType.NEXT_VALUE) ||
-                    (lookupMethodType == LookupMethodType.INTERPOLATE)) &&
-                    (outputTS.isDataMissing(outputValue1) || outputTS.isDataMissing(outputValue2)) ) {
-                    canSetOutput = false;
-                }
-                if ( !canSetOutput ) {
-                    // Nothing to do
+                if ( Message.isDebugOn ) {
+	                Message.printDebug(2,routine,"Value is in lookup table range lowRow="+ lowRow + " highRow=" + highRow +
+	                	" inputValue1=" + inputValue1 + " inputValue2=" + inputValue2 +
+	                	" outputValue1=" + outputValue1 + " outputValue2=" + outputValue2 );
                 }
                 if ( inputValue == inputValue1 ) {
-                    // Value is exactly on a lookup table value.  Need to handle special
-                    // Regardless of the lookup method, set to the output value
+                    // Value is exactly on a lookup table value.
                     outputValue = outputValue1;
                 }
-                else if ( lookupMethodType == LookupMethodType.INTERPOLATE ) {
-                    if ( transformation == DataTransformationType.LOG ) {
-                        if ( inputValue <= 0 ) {
-                            inputValue = leZeroLogValue;
-                        }
-                        inputValue = Math.log10(inputValue);
-                        if ( inputValue1 <= 0 ) {
-                            inputValue1 = leZeroLogValue;
-                        }
-                        inputValue1 = Math.log10(inputValue1);
-                        if ( inputValue2 <= 0 ) {
-                            inputValue2 = leZeroLogValue;
-                        }
-                        inputValue2 = Math.log10(inputValue2);
-                        if ( outputValue1 <= 0 ) {
-                            outputValue1 = leZeroLogValue;
-                        }
-                        outputValue1 = Math.log10(outputValue1);
-                        if ( outputValue2 <= 0 ) {
-                            outputValue2 = leZeroLogValue;
-                        }
-                        outputValue2 = Math.log10(outputValue2);
-                    }
-                    outputValue = MathUtil.interpolate(inputValue, inputValue1, inputValue2, outputValue1, outputValue2);
-                    if ( transformation == DataTransformationType.LOG ) {
-                        // Convert back to normal value
-                        outputValue = Math.pow(10.0, outputValue);
-                    }
-                }
-                else if ( lookupMethodType == LookupMethodType.PREVIOUS_VALUE ) {
-                    outputValue = outputValue1;
-                }
-                else if ( lookupMethodType == LookupMethodType.NEXT_VALUE ) {
+                else if ( inputValue == inputValue2 ) {
+                    // Value is exactly on a lookup table value.
                     outputValue = outputValue2;
                 }
+                else {
+                	// Need to do some type of estimate
+	                if ( ((lookupMethodType == LookupMethodType.PREVIOUS_VALUE) ||
+	                    (lookupMethodType == LookupMethodType.INTERPOLATE)) &&
+	                    (inputTS.isDataMissing(inputValue1) || inputTS.isDataMissing(inputValue2)) ) {
+	                    canSetOutput = false;
+	                }
+	                if ( ((lookupMethodType == LookupMethodType.NEXT_VALUE) ||
+	                    (lookupMethodType == LookupMethodType.INTERPOLATE)) &&
+	                    (outputTS.isDataMissing(outputValue1) || outputTS.isDataMissing(outputValue2)) ) {
+	                    canSetOutput = false;
+	                }
+	                if ( !canSetOutput ) {
+	                    // Nothing to do
+	                }
+	                if ( inputValue == inputValue1 ) {
+	                    // Value is exactly on a lookup table value.  Need to handle special
+	                    // Regardless of the lookup method, set to the output value
+	                    outputValue = outputValue1;
+	                }
+	                if ( lookupMethodType == LookupMethodType.INTERPOLATE ) {
+	                    if ( transformation == DataTransformationType.LOG ) {
+	                        if ( inputValue <= 0 ) {
+	                            inputValue = leZeroLogValue;
+	                        }
+	                        inputValue = Math.log10(inputValue);
+	                        if ( inputValue1 <= 0 ) {
+	                            inputValue1 = leZeroLogValue;
+	                        }
+	                        inputValue1 = Math.log10(inputValue1);
+	                        if ( inputValue2 <= 0 ) {
+	                            inputValue2 = leZeroLogValue;
+	                        }
+	                        inputValue2 = Math.log10(inputValue2);
+	                        if ( outputValue1 <= 0 ) {
+	                            outputValue1 = leZeroLogValue;
+	                        }
+	                        outputValue1 = Math.log10(outputValue1);
+	                        if ( outputValue2 <= 0 ) {
+	                            outputValue2 = leZeroLogValue;
+	                        }
+	                        outputValue2 = Math.log10(outputValue2);
+	                    }
+	                    outputValue = MathUtil.interpolate(inputValue, inputValue1, inputValue2, outputValue1, outputValue2);
+	                    if ( transformation == DataTransformationType.LOG ) {
+	                        // Convert back to normal value
+	                        outputValue = Math.pow(10.0, outputValue);
+	                    }
+	                }
+	                else if ( lookupMethodType == LookupMethodType.PREVIOUS_VALUE ) {
+	                    outputValue = outputValue1;
+	                }
+	                else if ( lookupMethodType == LookupMethodType.NEXT_VALUE ) {
+	                    outputValue = outputValue2;
+	                }
+	            }
             }
         }
         if ( canSetOutput ) {
             ++setCount;
-            Message.printStatus(2,routine,"Looked up time series value " + outputValue + " from " + inputValue + " for " + date );
+            if ( Message.isDebugOn ) {
+            	Message.printDebug(1,routine,"Looked up output value " + outputValue + " from input value " + inputValue + " for " + date );
+            }
             outputTS.setDataValue(date, outputValue);
         }
         else {
             // Can't compute output.  However, set the output to missing
             ++setCount;
+            if ( Message.isDebugOn ) {
+            	Message.printDebug(1,routine,"Unable to look up output value from input value " + inputValue + " for " + date + ", setting output to missing");
+            }
             outputTS.setDataValue(date, missing);
         }
     }
