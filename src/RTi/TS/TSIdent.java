@@ -853,8 +853,7 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 
 /**
 Compare the string time series identifier to a regular expression, checking the
-alias first if it is specified and then the identifier but not including the
-input parts of the identifier.
+alias first if it is specified and then the identifier but not including the input parts of the identifier.
 See the overloaded version for more information.
 @return true if the time series identifier matches the regular expression.
 */
@@ -877,7 +876,8 @@ See the overloaded version for more information.
 not match, the individual five main parts are also compared and if they match
 true is returned).  Wild-cards are allowed in the identifier.
 Comparisons are done case-independent by converting strings to upper-case.
-@param id_regexp String identifier to compare, with identifier fields containing regular expressions.
+@param id_regexp String identifier to compare, with identifier fields containing regular expressions using glob syntax
+(* will be replaced with Java-style .*).
 @param check_alias If true, check the alias first for a match.  If not matched,
 the identifier is checked.  If false, the alias is not checked and only the
 identifier string is checked.
