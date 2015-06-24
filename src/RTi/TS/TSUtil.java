@@ -4831,6 +4831,15 @@ A string to use as the data flag when a value is filled.  Typically a one-charac
 </tr>
 
 <tr>
+<td><b>FillFlagDescription</b></td>
+<td>
+A string to use as the description for the data flag, for example in report legend.
+</td>
+<td>Generic description will be generated.
+</td>
+</tr>
+
+<tr>
 <td><b>MaxIntervals</b></td>
 <td>
 The maximum number of missing values in a contiguous gap to fill or zero to fill all.
@@ -4844,7 +4853,7 @@ The maximum number of missing values in a contiguous gap to fill or zero to fill
 */
 public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
-{	String  message, routine = "TSUtil.fillInterpolate";
+{	String message, routine = "TSUtil.fillInterpolate";
 
 	if ( props == null ) {
 		props = new PropList ("");
@@ -4866,7 +4875,7 @@ throws Exception
 	}
 	
 	String FillFlag = props.getValue ( "FillFlag" );
-	boolean FillFlag_boolean = false;	// Indicate whether to use flag
+	boolean FillFlag_boolean = false; // Indicate whether to use flag
 	if ( (FillFlag != null) && (FillFlag.length() > 0) ) {
 		FillFlag_boolean = true;
 		// Make sure that the data flag is allocated.
@@ -4874,6 +4883,8 @@ throws Exception
 			null,	// Initial flag value
 			true );	// Keep old flags if already allocated
 	}
+	
+	String fillFlagDescription = props.getValue ( "FillFlagDescription" );
 
 	// Get valid dates because the ones passed in may have been null...
 
@@ -4985,6 +4996,12 @@ throws Exception
 	    end + " using linear interpolation from known values, " + maxString );
     if ( fillCount > 0 ) {
     	ts.setDescription ( ts.getDescription() + ",fill interpolate" );
+		if ( (fillFlagDescription != null) && !fillFlagDescription.isEmpty() ) {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, fillFlagDescription));
+        }
+        else {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, "Filled missing data using interpolation (max intervals=" + intervals_can_fill + ")"));
+        }
 	}
 }
 
