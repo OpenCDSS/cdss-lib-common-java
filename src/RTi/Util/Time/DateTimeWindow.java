@@ -110,6 +110,7 @@ public DateTime getStart ()
 // TODO SAM 2015-06-21 Modify the following so DateTime instance is re-used and evaluate if it improves performance
 /**
 Determine whether the specified date/time is in the requested window.
+The DateTimeWindow year will be adjusted to the specific date before the comparison.
 @param dt a DateTime to compare with the window
 */
 public boolean isDateTimeInWindow ( DateTime dt )
