@@ -11,6 +11,7 @@ import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
+import RTi.Util.Time.DateTimeWindow;
 
 /**
 Check time series values.
@@ -42,6 +43,16 @@ private DateTime __analysisStart = null;
 End of analysis (null to analyze all).
 */
 private DateTime __analysisEnd = null;
+
+/**
+Starting date/time for analysis window, within a year.
+*/
+private DateTime __analysisWindowStart = null;
+
+/**
+Ending date/time for analysis window, within a year.
+*/
+private DateTime __analysisWindowEnd = null;
 
 /**
 Value as input to analysis, depending on checkType.
@@ -155,6 +166,10 @@ Constructor.
 @param checkType the type of check to perform
 @param analysisStart the start of the data period to check
 @param analysisEnd the end of the data period to check
+@param analysisWindowStart Starting date/time (year is ignored) for analysis within the year,
+in precision of the original data.  If null, the entire year of data will be analyzed.
+@param analysisWindowEnd Ending date (year is ignored) for analysis within the year,
+in precision of the original data.  If null, the entire year of data will be analyzed.
 @param checkValue1 the first value to check against (depends on check type)
 @param checkValue2 the second value to check against (depends on check type)
 @param problemType the string problem type to assign when data values match the check criteria (default is check criteria)
@@ -168,7 +183,8 @@ equivalent to "SetMissing" for regular interval data)
 @param tsidFormat format to format TSID for match in table, containing % specifiers and ${ts:property}
 */
 public TSUtil_CheckTimeSeries ( TS ts, CheckType checkType,
-        DateTime analysisStart, DateTime analysisEnd, Double checkValue1, Double checkValue2, String problemType,
+        DateTime analysisStart, DateTime analysisEnd, DateTime analysisWindowStart, DateTime analysisWindowEnd,
+        Double checkValue1, Double checkValue2, String problemType,
         String flag, String flagDesc, String action, DataTable table, String tableTSIDColumn, String tableTSIDFormat,
         String tableDateTimeColumn, String tableValueColumn, String tableFlagColumn, String tableCheckTypeColumn,
         String tableCheckMessageColumn )
@@ -179,6 +195,8 @@ public TSUtil_CheckTimeSeries ( TS ts, CheckType checkType,
     __checkCriteria = checkType;
     __analysisStart = analysisStart;
     __analysisEnd = analysisEnd;
+    __analysisWindowStart = analysisWindowStart;
+    __analysisWindowEnd = analysisWindowEnd;
     __checkValue1 = checkValue1;
     __checkValue2 = checkValue2;
     if ( (problemType == null) || problemType.isEmpty() ) {
@@ -302,6 +320,12 @@ throws Exception
     TS ts = getTimeSeries();
     CheckType checkCriteria = getCheckCriteria();
     String tsid = ts.getIdentifier().toString();
+    DateTime analysisWindowStart = getAnalysisWindowStart();
+    DateTime analysisWindowEnd = getAnalysisWindowEnd();
+    DateTimeWindow win = null;
+    if ( (analysisWindowStart != null) && (analysisWindowEnd != null) ) {
+    	win = new DateTimeWindow(analysisWindowStart,analysisWindowEnd);
+    }
     
     // If time series has no data and check is for missing, add a message.
     // Otherwise skip
@@ -362,6 +386,10 @@ throws Exception
         // Analyze the value - do this brute force with string comparisons and improve performance once logic is in place
         message = null; // A non-null message indicates that the check criteria was met for the value
         date = tsi.getDate();
+        // Check to see if the date is in the analysis window
+        if ( (win != null) && !win.isDateTimeInWindow(date) ) {
+        	continue;
+        }
         matchDetected = false;
         tsvalue = data.getDataValue();
         tsflag = data.getDataFlag();
@@ -787,6 +815,24 @@ Return the analysis start date/time.
 public DateTime getAnalysisStart ()
 {
     return __analysisStart;
+}
+
+/**
+Return the analysis window end date/time.
+@return the analysis window end date/time.
+*/
+public DateTime getAnalysisWindowEnd ()
+{
+    return __analysisWindowEnd;
+}
+
+/**
+Return the analysis window start date/time.
+@return the analysis window start date/time.
+*/
+public DateTime getAnalysisWindowStart ()
+{
+    return __analysisWindowStart;
 }
 
 /**
