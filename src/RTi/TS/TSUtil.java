@@ -955,13 +955,15 @@ that can be used to computed an adjusted value.  If the value is exceeded
 without reaching a satisfactory adjustment, do not adjust.  Specify zero to allow any number of intervals.
 @param analysisStart Start of the analysis period or null for the full period.
 @param analysisEnd End of the analysis period or null for the full period.
+@param setFlag flag to set for modified values (if null or empty don't set).
+@param setFlagDescription description for setFlag.
 @exception Exception if there is an input error.
 */
 public static void adjustExtremes (	TS ts, String adjustMethod,	String extremeToAdjust,	double extremeValue,
-					int maxIntervals, DateTime analysisStart, DateTime analysisEnd )
+    int maxIntervals, DateTime analysisStart, DateTime analysisEnd, String setFlag, String setFlagDescription )
 throws Exception
-{	String  routine = "TSUtil.adjustExtremes";
-	double	oldvalue;
+{	String routine = "TSUtil.adjustExtremes";
+	double oldvalue;
 
 	// Get valid dates because the ones passed in may have been null...
 
@@ -972,11 +974,16 @@ throws Exception
 	// Booleans to eliminate string compares in the loop below...
 	boolean adjust_low = true; // Whether adjusting the low values
 	if ( extremeToAdjust.equalsIgnoreCase("AdjustMaximum") ) {
-		adjust_low = false;   // Now adjusting the high values
+		adjust_low = false; // Now adjusting the high values
 	}
 	boolean adjust_average = true;
 	if ( adjustMethod.equalsIgnoreCase("WeightedAverage") ) {
 		adjust_average = false;
+	}
+	
+	boolean doSetFlag = false;
+	if ( (setFlag != null) && !setFlag.isEmpty() ) {
+		doSetFlag = true;
 	}
 
 	int interval_base = ts.getDataIntervalBase();
@@ -989,14 +996,15 @@ throws Exception
 	DateTime date = new DateTime ( start );
 	DateTime left_date, right_date;
 	double total = 0.0;	// Total of extreme and surrounding points, relative to the extreme value.
-	double average = 0.0;	// Average of extreme and surrounding points.
-	int count = 0;		// Number of points considered in the average.
-	int nintervals = 0;	// Number of intervals on each side.
-	int iint;		// Iterator for intervals.
-	double left_value;	// Values at left and right points
+	double average = 0.0; // Average of extreme and surrounding points.
+	int count = 0; // Number of points considered in the average.
+	int nintervals = 0; // Number of intervals on each side.
+	int iint; // Iterator for intervals.
+	double left_value; // Values at left and right points
 	double right_value;
-	boolean do_adjust;	// Indicates whether adjustment should be made.
-	double total_values=0.0;// Total of values being adjusted.
+	boolean do_adjust; // Indicates whether adjustment should be made.
+	double total_values = 0.0; // Total of values being adjusted.
+	int adjustCount = 0; // Number of values adjusted overall
 		
 	for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 		oldvalue = ts.getDataValue(date);
@@ -1016,20 +1024,25 @@ throws Exception
 				left_date.addInterval ( interval_base, -interval_mult );
 				++nintervals;
 				if ( (maxIntervals != 0) && (nintervals > maxIntervals) ) {
-					ts.addToGenesis ( "AdjustExtremes:  maximum intervals ("+
-					maxIntervals + ") exceeded trying to adjust value at " + date + " - not adjusting." );
+					if ( Message.isDebugOn ) {
+						Message.printDebug (1,routine, "Maximum intervals ("+
+							maxIntervals + ") exceeded trying to adjust value at " + date + " - not adjusting." );
+					}
 					do_adjust = false;
 					break;
 				}
 				if ( left_date.lessThan(start) ) {
-					ts.addToGenesis ( "AdjustExtremes:  reached period start trying to adjust value at " +
-				        date + " - not adjusting." );
+					if ( Message.isDebugOn ) {
+						Message.printDebug(1, routine, "Reached period start trying to adjust value at " + date + " - not adjusting." );
+					}
 					do_adjust = false;
 					break;
 				}
 				left_value = ts.getDataValue(left_date);
 				if ( ts.isDataMissing(left_value) ) {
-					ts.addToGenesis ( "AdjustExtremes:  found missing data at " + left_date + " - skipping it.");
+					if ( Message.isDebugOn ) {
+						Message.printDebug (1,routine,"Found missing data at " + left_date + " - skipping it.");
+					}
 				}
 				else {
 				    total += (left_value - extremeValue);
@@ -1038,14 +1051,17 @@ throws Exception
 				}
 				right_date.addInterval ( interval_base, interval_mult );
 				if ( right_date.greaterThan(end) ) {
-					ts.addToGenesis (
-					"AdjustExtremes:  reached period end trying to adjust value at " + date + " - not adjusting." );
+					if ( Message.isDebugOn ) {
+						Message.printDebug (1,routine,"Reached period end trying to adjust value at " + date + " - not adjusting." );
+					}
 					do_adjust = false;
 					break;
 				}
 				right_value = ts.getDataValue(right_date);
 				if ( ts.isDataMissing(right_value) ) {
-					ts.addToGenesis ( "AdjustExtremes:  found missing data at " + right_date +" - skipping it.");
+					if ( Message.isDebugOn ) {
+						Message.printDebug (1,routine, "Found missing data at " + right_date +" - skipping it.");
+					}
 				}
 				else {
 				    total += (right_value - extremeValue);
@@ -1077,7 +1093,13 @@ throws Exception
 					ts.addToGenesis ( "AdjustExtremes:  adjusted " +
 					StringUtil.formatString( oldvalue, "%.6f") + " to " +
 					StringUtil.formatString( average, "%.6f") + " at " + left_date );
-					ts.setDataValue(left_date, average);
+					if ( doSetFlag ) {
+						ts.setDataValue(left_date, average, setFlag, -1);
+					}
+					else {
+						ts.setDataValue(left_date, average);
+					}
+					++adjustCount;
 				}
 				else {
 				    // Use the weighted average value for all adjusted points...
@@ -1085,7 +1107,13 @@ throws Exception
 					ts.addToGenesis ( "AdjustExtremes:  adjusted " +
 					StringUtil.formatString( oldvalue, "%.6f") + " to " +
 					StringUtil.formatString( left_value, "%.6f") + " at " + left_date );
-					ts.setDataValue(left_date, left_value);
+					if ( doSetFlag ) {
+						ts.setDataValue(left_date, left_value, setFlag, -1);
+					}
+					else {
+						ts.setDataValue(left_date, left_value);
+					}
+					++adjustCount;
 				}
 			}
 		}
@@ -1097,8 +1125,16 @@ throws Exception
 	        " AdjustMethod=" + adjustMethod + " ExtremeToAdjust=" + extremeToAdjust +
 	        " ExtremeValue=" + StringUtil.formatString(extremeValue,"%.6f") +
 	        " MaxIntervals=" + maxIntervals + "." );
-
 	ts.setDescription ( ts.getDescription() + ", AdjustExtremes" );
+	if ( adjustCount > 0 ) {
+		// Also set the flag description
+		if ( (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
+        }
+        else {
+            ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Adjusted extremes for value " + extremeToAdjust));
+        }
+	}
 }
 
 /**
