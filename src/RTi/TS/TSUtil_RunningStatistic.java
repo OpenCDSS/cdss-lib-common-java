@@ -683,18 +683,6 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         else if ( statisticType == TSStatisticType.PERCENT_OF_MIN ) {
             statisticType = TSStatisticType.MIN;
         }
-        String note1 = "", note2 = "";
-        if ( normalStart == null ) {
-        	normalStart = new DateTime(analysisStart);
-        	note1 = " (set to AnalysisStart)";
-        }
-        if ( normalEnd == null ) {
-        	normalEnd = new DateTime(analysisEnd);
-        	note2 = " (set to AnalysisEnd)";
-        }
-        Message.printStatus(2,routine,"Will compute " + statisticType +
-            " statistic first as input to final " + statisticTypeForNormal + " statistic using normal period " +
-            normalStart + note1 + " to " + normalEnd + note2 );
     }
     else if ( statisticType == TSStatisticType.VARIANCE ) {
         String units = ts.getDataUnits();
@@ -745,13 +733,31 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         }
     }
     // Set the analysis period to the output end if not specified
+    // Have to do here because output start may be determine from the time series
     if ( analysisStart == null ) {
         analysisStart = new DateTime(outputStart);
     }
     if ( analysisEnd == null ) {
         analysisEnd = new DateTime(outputEnd);
     }
-    
+    // Make an additional adjustment to the normal period
+    if ( (statisticType == TSStatisticType.PERCENT_OF_MEAN) ||
+        (statisticType == TSStatisticType.PERCENT_OF_MEDIAN) ||
+        (statisticType == TSStatisticType.PERCENT_OF_MAX) ||
+        (statisticType == TSStatisticType.PERCENT_OF_MIN) ) {
+        String note1 = "", note2 = "";
+        if ( normalStart == null ) {
+        	normalStart = new DateTime(analysisStart);
+        	note1 = " (set to AnalysisStart)";
+        }
+        if ( normalEnd == null ) {
+        	normalEnd = new DateTime(analysisEnd);
+        	note2 = " (set to AnalysisEnd)";
+        }
+        Message.printStatus(2,routine,"Will compute " + statisticType +
+            " statistic first as input to final " + statisticTypeForNormal + " statistic using normal period " +
+            normalStart + note1 + " to " + normalEnd + note2 );	
+    }
     int neededCountWithAllowMissing = 0; // Needed count adjusted for allowed missing
     if ( createData ) {
         // Actually create the data (otherwise only the header information is populated)
