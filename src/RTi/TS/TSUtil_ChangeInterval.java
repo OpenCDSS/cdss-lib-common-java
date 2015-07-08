@@ -1,6 +1,5 @@
 package RTi.TS;
 
-import RTi.Util.IO.PropList;
 import java.util.List;
 import java.util.Vector;
 
@@ -2828,7 +2827,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
     }
  
     /**
-     * Convert a daily time series to monthly.
+     * Convert a daily time series to monthly by searching for values near the end of the month.
+     * This is used to convert daily reservoir observations to end of month value, for example.
      * 
      * @param oldts Daily time series to convert.
      * @param newmult Interval multiplier for monthly time series.
@@ -2836,8 +2836,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
      * @param createData if true, do full processing; if false, only create time series metadata
      * the monthly value (required).
      */
-    public MonthTS OLDchangeToMonthTS(DayTS oldts, int newmult, Integer bracket, boolean createData ) {
-        String routine = "TSUtil.changeToMonthTS";
+    public MonthTS newEndOfMonthTSFromDayTS(DayTS oldts, int newmult, Integer bracket, boolean createData ) {
+        String routine = getClass().getSimpleName() + ".newEndOfMonthTSFromDayTS";
         if (bracket == null) {
             throw new IllegalArgumentException ( "The bracket must be specified." );
         }
@@ -2854,7 +2854,16 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         // Copy the header, but set the date to an even roundoff of the interval...
 
         newts.copyHeader(oldts);
-        DateTime newts_date[] = getBoundingDatesForChangeInterval(oldts, newts.getDataIntervalBase(), newmult);
+        DateTime newts_date[] = null;
+        if ( !createData && (oldts == null) || (oldts.getDate1() == null) || (oldts.getDate2() == null) ) {
+        	// OK to skip the dates since not creating data (likely discovery mode in TSTool)
+        	newts_date = new DateTime[2];
+        	newts_date[0] = null;
+        	newts_date[1] = null;
+        }
+        else {
+        	newts_date = getBoundingDatesForChangeInterval(oldts, newts.getDataIntervalBase(), newmult);
+        }
 
         // Now override with new information...
 
