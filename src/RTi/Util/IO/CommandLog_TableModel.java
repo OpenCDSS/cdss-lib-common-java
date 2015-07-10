@@ -91,6 +91,35 @@ public String getColumnName(int columnIndex) {
 	}	
 }
 
+/**
+Returns an array containing the column widths (in number of characters).
+@return an integer array containing the widths for each field.
+*/
+public String[] getColumnToolTips() {
+    String[] tips = new String[__COLUMNS];
+    tips[COL_SEVERITY] = "Severity of problem, WARNING and FAILURE typically need to be resolved.";
+    tips[COL_TYPE] = "Type of problem.";
+    tips[COL_COMMAND] = "Command associated with problem.";
+    tips[COL_PROBLEM] = "Problem description.";
+    tips[COL_RECOMMENDATION] = "Recommendation for resolving problem.";
+    return tips;
+}
+
+/**
+Returns an array containing the widths (in number of characters) that the 
+fields in the table should be sized to.
+@return an integer array containing the widths for each field.
+*/
+public int[] getColumnWidths()
+{
+	int[] widths = new int[__COLUMNS];
+	widths[COL_SEVERITY] = 6;
+	widths[COL_TYPE] = 15;
+	widths[COL_COMMAND] = 23;
+	widths[COL_PROBLEM] = 23;
+	widths[COL_RECOMMENDATION] = 23;
+	return widths;
+}
 
 /**
 Returns the format that the specified column should be displayed in when
@@ -156,25 +185,6 @@ public Object getValueAt(int row, int col) {
 		default:
 			return "";
 	}
-}
-
-/**
-Returns an array containing the widths (in number of characters) that the 
-fields in the table should be sized to.
-@return an integer array containing the widths for each field.
-*/
-public int[] getColumnWidths() {
-	int[] widths = new int[__COLUMNS];
-	for (int i = 0; i < __COLUMNS; i++) {
-		widths[i] = 0;
-	}
-	widths[COL_SEVERITY] = 6;
-	widths[COL_TYPE] = 15;
-	widths[COL_COMMAND] = 23;
-	widths[COL_PROBLEM] = 23;
-	widths[COL_RECOMMENDATION] = 23;
-
-	return widths;
 }
 
 /**

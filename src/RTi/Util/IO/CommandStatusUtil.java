@@ -7,6 +7,7 @@ import RTi.Util.IO.CommandPhaseType;
 import RTi.Util.IO.CommandStatus;
 import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.CommandStatusType;
+//import RTi.Util.Message.Message;
 
 /**
  * Provides convenience methods for working with CommandStatus.
@@ -166,7 +167,9 @@ Returns the command log records ready for display as HTML.
   
 /**
 Append log records from a list of commands to a status.  For example, this is used
-when running a list of commands with a "runner" command to get a full list of logs.
+when running a list of commands with a "runner" command like RunCommands to get a full list of logs.
+The command associated with the individual logs is set to the original command so that
+the "runner" is not associated with the log.
 @param status a CommandStatus instance to which log records should be appended.
 @param commandList a list of CommandStatusProviders (such as Command instances) that
 have log records to be appended to the first parameter.
@@ -186,18 +189,25 @@ public static void appendLogRecords ( CommandStatus status, List<CommandStatusPr
           // Transfer the command log records to the status...
           csp = commandList.get(i);
           CommandStatus status2 = csp.getCommandStatus();
-          // Get the logs for the initialization...
+          // Append command log records for each run mode...
           List<CommandLogRecord> logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          CommandLogRecord logRecord;
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.INITIALIZATION, logs.get(il) );
+        	  logRecord = logs.get(il);
+        	  logRecord.setCommandStatusProvider(csp);
+              status.addToLog(CommandPhaseType.INITIALIZATION, logRecord );
           }
           logs = status2.getCommandLog(CommandPhaseType.DISCOVERY);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.DISCOVERY, logs.get(il) );
+        	  logRecord = logs.get(il);
+        	  logRecord.setCommandStatusProvider(csp);
+              status.addToLog(CommandPhaseType.DISCOVERY, logRecord );
           }
           logs = status2.getCommandLog(CommandPhaseType.RUN);
           for ( int il = 0; il < logs.size(); il++ ) {
-              status.addToLog(CommandPhaseType.RUN, logs.get(il) );
+        	  logRecord = logs.get(il);
+        	  logRecord.setCommandStatusProvider(csp);
+              status.addToLog(CommandPhaseType.RUN, logRecord );
           }
       }
 }
@@ -437,21 +447,23 @@ public static List<CommandLogRecord> getLogRecordListFromCommands ( List<Command
             commandStatusProviderList.add((CommandStatusProvider)command);
         }
     }
-    return getLogRecordList ( commandStatusProviderList, commandPhase );
+    CommandPhaseType [] phases = new CommandPhaseType[1];
+    phases[0] = commandPhase;
+    return getLogRecordList ( commandStatusProviderList, phases, null );
 }
 
 /**
 Given a list of CommandStatusProvider, return a list of all the log records.  This is useful for
-providing the full list for reporting.
-@param commandStatusProviderList List of CommandStatusProvider (e.g., list of commands from a command
-processor).
-@param commandPhase command phase to return or null to return all (currently null does not return anything).
+providing the full list for display in a UI or output file.
+@param commandStatusProviderList List of CommandStatusProvider (e.g., list of commands from a command processor).
+@param commandPhases array of command phases to return or null to return all.
+@param commandStatuses array of command statuses to return or null to return all.
 @return the list of log records for the given command phase
 */
 public static List<CommandLogRecord> getLogRecordList ( List<CommandStatusProvider> commandStatusProviderList,
-    CommandPhaseType commandPhase )
+    CommandPhaseType [] commandPhases, CommandStatusType [] commandStatuses )
 {	//String routine = "CommandStatusUtil.getLogRecordList";
-	List<CommandLogRecord> logRecordList = new Vector(); // Returned list of log records
+	List<CommandLogRecord> logRecordList = new Vector<CommandLogRecord>(); // Returned list of log records
 	if ( commandStatusProviderList == null ) {
 	    // Return empty list
 		return logRecordList;
@@ -462,14 +474,17 @@ public static List<CommandLogRecord> getLogRecordList ( List<CommandStatusProvid
 		// Get the information from a single command status provider
 		//Message.printStatus(2, routine, "Getting log records for " + csp );
 		status = csp.getCommandStatus();
-		statusLogRecordList = status.getCommandLog(commandPhase);
-		//Message.printStatus(2, routine, "Command " + iCommandStatusProvider + " has " +
-		//    statusLogRecordListSize + " log records." );
+		statusLogRecordList = status.getCommandLog(commandPhases,commandStatuses);
+		//Message.printStatus(2, routine, "Command " + csp + " has " + statusLogRecordList.size() + " log records." );
 		for ( CommandLogRecord logRecord: statusLogRecordList ) {
 			// Append to full list of log records
 			// Also set the command instance in the log record here since it was not
-			// included in the original design
-			logRecord.setCommandStatusProvider(csp);
+			// included in the original design.
+			// Special case is that RunCommands() will set the command status provider when it rolls up status messages
+			// so don't reset the CommandStatusProvider here in that case.
+			if ( logRecord.getCommandStatusProvider() == null ) {
+				logRecord.setCommandStatusProvider(csp);
+			}
 			logRecordList.add(logRecord);
 		}
 	}
