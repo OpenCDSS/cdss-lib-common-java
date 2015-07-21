@@ -9,7 +9,6 @@ import RTi.Util.Math.Regression;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeWindow;
-import RTi.Util.Time.TimeUtil;
 
 /**
 Check time series values.
@@ -37,6 +36,11 @@ private Object __statisticResult = null;
 Date/time for statistic result that was calculated (e.g., date/time for max value).
 */
 private DateTime __statisticResultDateTime = null;
+
+/**
+Whether the statistic result has a date/time, for evaluation of single value statistic.
+*/
+private boolean __statisticResultHasDateTime = false;
 
 /**
 Start of analysis (null to analyze all).
@@ -466,17 +470,20 @@ throws Exception
         	if ( dt != null ) {
         		setStatisticResult(ts.getDataValue(dt));
         		setStatisticResultDateTime(dt);
+        		setStatisticResultHasDateTime(true);
         	}
         }
         else {
         	// Just use the last value in the analysis period
     		setStatisticResult(ts.getDataValue(analysisEnd));
     		setStatisticResultDateTime(analysisEnd);
+    		setStatisticResultHasDateTime(true);
         }
         return;
     }
     else if ( statisticType == TSStatisticType.LAST_NONMISSING ) {
         // Get the last non-missing value in the analysis period, considering the analysis window
+		setStatisticResultHasDateTime(true);
         if ( analysisEnd == null ) {
             analysisEnd = ts.getDate2();
         }
@@ -627,6 +634,10 @@ throws Exception
     boolean statisticCalculated = false;
     DateTime analysisWindowStartForIterator = null;
     DateTime analysisWindowEndForIterator = null;
+    // Set whether a date/time corresponds to the result
+    if ( (statisticType == TSStatisticType.MAX) || (statisticType == TSStatisticType.MIN) ) {
+		setStatisticResultHasDateTime(true);
+    }
     while ( (data = tsi.next()) != null ) {
         // Analyze the value
         date = tsi.getDate();
@@ -737,6 +748,7 @@ throws Exception
     }
     else if ( statisticCalculated ) {
         // All other statistics - numerical values - just set from values computed locally above
+    	// The date may be null and whether a date is used was set above
         setStatisticResult ( statisticResult );
         setStatisticResultDateTime ( statisticResultDateTime );
     }
@@ -843,66 +855,6 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
 }
 
 /**
-Return the statistic data class.  This is useful for data management and ensures that
-the class is known even if the statistic is null or NaN.
-*/
-public Class getStatisticDataClass ()
-{
-    TSStatisticType t = getStatisticType();
-    // Most are Double so check for integers and DateTime
-    // Note that some of the MEAN statistics are computed from integers but the final statistic is a double
-    // and therefore not included in the following integer list
-    if ( (t == TSStatisticType.COUNT) ||
-        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
-        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
-        (t == TSStatisticType.GE_COUNT) ||
-        (t == TSStatisticType.GT_COUNT) ||
-        (t == TSStatisticType.LE_COUNT) ||
-        (t == TSStatisticType.LT_COUNT) ||
-        (t == TSStatisticType.MISSING_COUNT) ||
-        (t == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
-        (t == TSStatisticType.NONMISSING_COUNT) ||
-        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
-        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
-        return Integer.class;
-    }
-    else if ( t == TSStatisticType.TREND_OLS ) {
-        return Regression.class;
-    }
-    else {
-        return Double.class;
-    }
-}
-
-/**
-Return the name of the statistic being calculated.
-@return the name of the statistic being calculated.
-*/
-public TSStatisticType getStatisticType ()
-{
-    return __statisticType;
-}
-
-/**
-Return the value of the statistic that was calculated.
-@return the value of the statistic that was calculated, as a Double for floating point statistics and
-Integer for integer statistics.
-*/
-public Object getStatisticResult()
-{
-    return __statisticResult;
-}
-
-/**
-Return the date/time for the statistic that was calculated.
-@return the date/time for the statistic that was calculated.
-*/
-public DateTime getStatisticResultDateTime()
-{
-    return __statisticResultDateTime;
-}
-
-/**
 Get the list of statistics that can be performed.
 */
 public static List<TSStatisticType> getStatisticChoices()
@@ -963,6 +915,75 @@ public static List<String> getStatisticChoicesAsStrings()
         stringChoices.add ( "" + choice );
     }
     return stringChoices;
+}
+
+/**
+Return the statistic data class.  This is useful for data management and ensures that
+the class is known even if the statistic is null or NaN.
+*/
+public Class getStatisticDataClass ()
+{
+    TSStatisticType t = getStatisticType();
+    // Most are Double so check for integers and DateTime
+    // Note that some of the MEAN statistics are computed from integers but the final statistic is a double
+    // and therefore not included in the following integer list
+    if ( (t == TSStatisticType.COUNT) ||
+        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (t == TSStatisticType.GE_COUNT) ||
+        (t == TSStatisticType.GT_COUNT) ||
+        (t == TSStatisticType.LE_COUNT) ||
+        (t == TSStatisticType.LT_COUNT) ||
+        (t == TSStatisticType.MISSING_COUNT) ||
+        (t == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.NONMISSING_COUNT) ||
+        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (t == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ) {
+        return Integer.class;
+    }
+    else if ( t == TSStatisticType.TREND_OLS ) {
+        return Regression.class;
+    }
+    else {
+        return Double.class;
+    }
+}
+
+/**
+Return the value of the statistic that was calculated.
+@return the value of the statistic that was calculated, as a Double for floating point statistics and
+Integer for integer statistics.
+*/
+public Object getStatisticResult()
+{
+    return __statisticResult;
+}
+
+/**
+Return the date/time for the statistic that was calculated.
+@return the date/time for the statistic that was calculated.
+*/
+public DateTime getStatisticResultDateTime()
+{
+    return __statisticResultDateTime;
+}
+
+/**
+Return whether the statistic has a date/time result in addition to statistic.
+This will be true 
+*/
+public boolean getStatisticResultHasDateTime()
+{
+	return __statisticResultHasDateTime;
+}
+
+/**
+Return the name of the statistic being calculated.
+@return the name of the statistic being calculated.
+*/
+public TSStatisticType getStatisticType ()
+{
+    return __statisticType;
 }
 
 /**
@@ -1042,6 +1063,14 @@ private void setStatisticResultDateTime ( DateTime statisticResultDateTime )
 		statisticResultDateTime = new DateTime(statisticResultDateTime);
 	}
     __statisticResultDateTime = statisticResultDateTime;
+}
+
+/**
+Set whether the statistic has a date/time result in addition to statistic.
+*/
+private void setStatisticResultHasDateTime(boolean statisticResultHasDateTime)
+{
+	__statisticResultHasDateTime = statisticResultHasDateTime;
 }
 
 }
