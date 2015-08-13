@@ -658,12 +658,14 @@ public DateTime ( Date d )
 		setMonth ( d.getMonth() + 1 );
 		// Returned day is 1 to 31
 		setDay ( d.getDate() );
+		setPrecision ( PRECISION_DAY );
 		// Sometimes Dates are instantiated from data where hours, etc.
 		// are not available (e.g. from a database date/time).
 		// Therefore, catch exceptions at each step...
 		try {
             // Returned hours are 0 to 23
 			setHour ( d.getHours() );
+			setPrecision ( PRECISION_HOUR );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
@@ -671,6 +673,7 @@ public DateTime ( Date d )
 		try {
             // Returned hours are 0 to 59 
 			setMinute ( d.getMinutes() );
+			setPrecision ( PRECISION_MINUTE );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
@@ -678,10 +681,12 @@ public DateTime ( Date d )
 		try {
             // Returned seconds are 0 to 59
 			setSecond ( d.getSeconds() );
+			setPrecision ( PRECISION_SECOND );
 		}
 		catch ( Exception e ) {
 			// Don't do anything.  Just leave the DateTime default.
 		}
+		// TODO SAM 2015-08-12 For now do not set the hundredths of a second
 		__tz = "";
 	}
 	else {
