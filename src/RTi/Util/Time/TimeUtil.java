@@ -1543,8 +1543,10 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	if ( !forOutput ) {
 	    // Only include formats suitable for parsing
 	    String [] formats2 = {
-	        "%d - Day (01-31)",
+	    	"%S - Second (00-59)",
+	    	"%M - Minute (00-59)",
 	        "%H - Hour (00-23)",
+	        "%d - Day (01-31)",
             //"%j - Day of year (001-366)", // day of year - TODO SAM 2012-04-18 should be able to do
 	        "%b - Month, abbreviation",
 	        "%m - Month (01-12)",

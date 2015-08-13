@@ -65,6 +65,7 @@ than 256 (this should allow for addition of other intervals if necessary).  The
 interval values may change in the future.  The values assigned to intervals
 increase with the magnitude of the interval (e.g., YEAR > MONTH).  Only irregular has no place in
 the order.  Flags above >= 256 are reserved for DateTime constructor flags.
+These values are set as the DateTime.PRECISION* values to maintain consistency.
 */
 public static final int UNKNOWN = -1; // Unknown, e.g., for initialization
 public static final int IRREGULAR = 0;
@@ -235,39 +236,65 @@ public String getMultiplierString ()
 
 /**
 Look up an interval name as a string (e.g., "MONTH").  Note that the string is
+upper-case.  Call the version with the format if other format is desired.
+@return The interval string, or an empty string if not found.
+@param interval Time series interval to look up).
+@deprecated the versio nthat specifies format should be used.
+*/
+public static String getName ( int interval )
+{
+	return getName ( interval, 1 ); // Historical default
+}
+
+/**
+Look up an interval name as a string (e.g., "MONTH").  Note that the string is
 upper-case.  Convert the 2nd+ characters to lower-case if necessary.
 @return The interval string, or an empty string if not found.
 @param interval Time series interval to look up).
+@param format if -1 return lowercase (e.g., "day"),
+if 0 return mixed/camel case (e.g., "Day", which will be useful if additional irregular data interval strings are supported),
+if 1 return uppercase (e.g., "DAY").
 */
-public static String getName ( int interval )
-{	if ( interval == YEAR ) {
-		return "YEAR";
+public static String getName ( int interval, int format )
+{	String name = "";
+	if ( interval == YEAR ) {
+		name = "Year";
 	}
 	else if ( interval == MONTH ) {
-		return "MONTH";
+		name = "Month";
 	}
 	else if ( interval == WEEK ) {
-		return "WEEK";
+		name = "Week";
 	}
 	else if ( interval == DAY ) {
-		return "DAY";
+		name = "Day";
 	}
 	else if ( interval == HOUR ) {
-		return "HOUR";
+		name = "Hour";
 	}
 	else if ( interval == MINUTE ) {
-		return "MINUTE";
+		name = "Minute";
 	}
 	else if ( interval == SECOND ) {
-		return "SECOND";
+		name = "Second";
 	}
 	else if ( interval == HSECOND ) {
-		return "HSECOND";
+		name = "Hsecond";
 	}
 	else if ( interval == IRREGULAR ) {
-		return "IRREGULAR";
+		name = "Irregular";
 	}
-	return "";
+	if ( format > 0 ) {
+		// Legacy default
+		return name.toUpperCase();
+	}
+	else if ( format == 0 ) {
+		// Trying to move to this as default
+		return name;
+	}
+	else {
+		return name.toLowerCase();
+	}
 }
 
 /**
