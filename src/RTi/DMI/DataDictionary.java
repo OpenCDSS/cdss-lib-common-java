@@ -57,7 +57,7 @@ the filename does not end with ".html", that will be added to the end of the fil
 in a section of the data dictionary to illustrate possible values for lookup fields.  
 @param excludeTables list of tables that should be
 excluded from the data dictionary.  The names of the tables in this list
-must match the actual table names exactly (cases and spaces).  May be null.
+must match the actual table names exactly (cases and spaces).  May be null.  May contain wildcard *.
 */
 public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> referenceTables, List<String> excludeTables)
 {
@@ -247,11 +247,21 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
         StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
     }
 	
-	// Remove all the tables that were in the notIncluded parameter passed in to this method.
+	// Remove all the tables that were in the excludeTables parameter passed in to this method.
 	if (excludeTables != null) {
-		int notSize = excludeTables.size();
-		for (int i = 0; i < notSize; i++) {
-			tableNames.remove(excludeTables.get(i));
+		for ( String excludeTable : excludeTables ) {
+			// Handle glob-style wildcards...
+			String excludeTable2 = excludeTable.replace("*",".*");
+			for ( int i = tableList.size() - 1; i >= 0; i-- ) {
+				String table = tableList.get(i).getName();
+				// Remove table name at end so loop works
+				if ( table.matches(excludeTable2) ) {
+					if ( Message.isDebugOn ) {
+						Message.printDebug(1,routine,"Removing table \"" + table + "\" from dictionary.");
+					}
+					tableList.remove(i);
+				}
+			}
 		}
 	}
 
@@ -383,14 +393,17 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 		Message.printWarning(3, routine, e);
 	}
 	
-	Message.printStatus(2, routine, "Writing table details for tables");
+	Message.printStatus(2, routine, "Writing table details for " + tableList.size() + " tables");
 
 	String primaryKeyField = null;
 	String primaryKeyTable = null;
 	String tableName = null;
+	int tableCount = 0;
 	for ( JdbcTableMetadata table : tableList ) {
+		++tableCount;
 		try {
 			tableName = table.getName();
+			Message.printStatus(1, routine, "Processing table \"" + tableName + "\" (" + tableCount + " of " + tableList.size() + ")" );
 			html.anchor("Table:" + tableName);
 			html.headingStart(3);
 			html.addText(table.getName() + " - " + table.getRemarks() );
