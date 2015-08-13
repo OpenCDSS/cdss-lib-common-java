@@ -837,10 +837,13 @@ throws Exception {
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("MySQL")) {
-		__fieldLeftEscape = "\"";
-		__fieldRightEscape = "\"";	
+		__fieldLeftEscape = "";
+		__fieldRightEscape = "";	
 		__stringDelim = "'";
 		_database_engine = DBENGINE_MYSQL;
+		if ( port <= 0 ) {
+			setDefaultPort ();
+		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Oracle")) {
 		__fieldLeftEscape = "\"";
@@ -1343,15 +1346,15 @@ and returns a resultSet of the records returned.
 Connection.createStatement or Statement.executeQuery(), or if the database is not connected.
 */
 public ResultSet dmiSelect(String sql) throws SQLException {
+	String routine = "DMI.dmiSelect";
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiSelect()");
 	}
 	
 	if (__dumpSQLOnExecution) {
-		Message.printStatus(2, "DMI.dmiSelect", sql);
+		Message.printStatus(2, routine, sql);
 	}
 	
-	String routine = "DMI.dmiSelect";
 	int dl = 25;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
@@ -1371,10 +1374,11 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 	}
 	catch (SQLException ex) {
 		if (__dumpSQLOnError) {
-			Message.printStatus(2, "DMI.dmiSelect", sql);
+			Message.printStatus(2, routine, sql);
 		}
 		throw ex;
 	}
+	// The statement will automatically be closed so don't do here
 		
 	return rs;
 }
@@ -2225,6 +2229,7 @@ throws SQLException, Exception {
             // TODO SAM 2014-04-22 Figure out how to handle better
             // TODO SAM 2014-04-22 Figure out how to open vs create
             System.setProperty("derby.system.home", "C:\\derby");
+            // Load the database driver class into memory...
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
             if ( __database_server.equalsIgnoreCase("memory") ) {
                 connUrl = "jdbc:derby:memory:db;create=true";
@@ -2242,6 +2247,7 @@ throws SQLException, Exception {
 			// property to the configuration which is the "online
 			// server", like "ol_hydrobase".  For now just dummy in...
 			String server = "ol_hydrobase";
+            // Load the database driver class into memory...
 			Class.forName("com.informix.jdbc.IfxDriver");
 			connUrl = "jdbc:informix-sqli://" 
 				+ __database_server + ":" 
@@ -2254,8 +2260,7 @@ throws SQLException, Exception {
 		else if (_database_engine == DBENGINE_MYSQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_MYSQL'");
 			// Use the public domain driver that comes with MySQL...
-			Class.forName("org.gjt.mm.mysql.Driver");
-			connUrl = "jdbc:MySQL://" 
+			connUrl = "jdbc:mysql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
 			Message.printStatus(2, routine,
@@ -2263,8 +2268,6 @@ throws SQLException, Exception {
 		}
 		else if (_database_engine == DBENGINE_POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_POSTGRESQL'");
-			// Use the public domain driver that comes with PostgreSQL...
-			//Class.forName("org.postgresql.Driver");
 			connUrl = "jdbc:postgresql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
@@ -2335,6 +2338,7 @@ throws SQLException, Exception {
 		*/
         else if (_database_engine == DBENGINE_H2 ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_H2'");
+            // Load the database driver class into memory...
 			Class.forName( "org.h2.Driver");
             java.io.File f = new java.io.File(__database_server);
 			connUrl = "jdbc:h2:file:" + f.getAbsolutePath() + ";IFEXISTS=TRUE";
@@ -2342,6 +2346,7 @@ throws SQLException, Exception {
 		}
         else if (_database_engine == DBENGINE_ORACLE ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
+            // Load the database driver class into memory...
 			Class.forName( "oracle.jdbc.driver.OracleDriver");
             connUrl = "jdbc:oracle:thin:@" + __database_server + ":" + __port + ":" + __database_name;
 			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
@@ -2932,6 +2937,7 @@ public void setDefaultPort() {
 		__port = 1526;
 	}
 	else if ( _database_engine == DBENGINE_MYSQL ) {
+		__port = 3306;
 	}
 	else if ( _database_engine == DBENGINE_ORACLE ) {
 		__port = 1521;
