@@ -243,7 +243,8 @@ throws Exception {
 }
 
 /**
-Return the contents of a string record field.  The field must be of type string.
+Return the contents of a string record field.
+If the field is not of type string then the string version of the field is used from "" + field cast.
 @return contents at the specified zero-based index.
 @exception Exception if an invalid index is requested.
 */

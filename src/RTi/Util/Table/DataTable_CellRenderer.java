@@ -66,6 +66,7 @@ public Component getTableCellRendererComponent(JTable table, Object value,
 boolean isSelected, boolean hasFocus, int row, int column) {
 	String str = "";
  	if ( value != null ) {
+ 		// The following will use DateTime.toString(), which will result in ISO formatting for DateTime objects
 		str = value.toString();
 	}
 	

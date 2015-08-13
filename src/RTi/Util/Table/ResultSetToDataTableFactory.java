@@ -33,7 +33,7 @@ of column data type mapping.  Specify as -1 to ignore.
 */
 public DataTable createDataTable ( int dbengineType, ResultSet rs, String tableID )
 throws SQLException
-{   String routine = getClass().getName() + ".createDataTable";
+{   String routine = getClass().getSimpleName() + ".createDataTable";
     DataTable table = new DataTable();
     table.setTableID ( tableID );
     // Define the table columns from the ResultSet metadata
@@ -82,7 +82,8 @@ throws SQLException
                 if ( columnTypes[i0] == TableField.DATA_TYPE_DATE ) {
                     date = rs.getTimestamp(iCol);
                     if (!rs.wasNull()) {
-                        rec.addFieldValue(new DateTime(date));
+                    	DateTime dt = new DateTime(date);
+                        rec.addFieldValue(dt);
                     }
                     else {
                         isNull = true;
