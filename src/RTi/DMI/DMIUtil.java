@@ -114,6 +114,7 @@ import RTi.Util.IO.ProcessManager;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+
 import java.security.InvalidParameterException;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -132,6 +133,7 @@ public abstract class DMIUtil
 
 ///////////////////////////////////////////////////////////
 //  Missing data value fields
+//  - Use special values that are unlikely to occur for real data values
 ///////////////////////////////////////////////////////////
 
 /**
@@ -142,34 +144,36 @@ public static final Date MISSING_DATE = null;
 /** 
 Constant that represents a missing double value.
 */
-public static final double MISSING_DOUBLE = -999.0;
+public static final double MISSING_DOUBLE = Double.NaN;
 
 /**
 Constant that represents the low end of a missing double value, when performing
 comparisons where roundoff may have occurred.
 */
-public static final double MISSING_DOUBLE_FLOOR = -999.1;
+// TODO SAM 2015-08-06 Evaluate whether this can be permanently removed
+//public static final double MISSING_DOUBLE_FLOOR = -999.1;
 
 /**
 Constant that represents the high end of a missing double value, when performing
 comparisons where roundoff may have occurred.
 */
-public static final double MISSING_DOUBLE_CEILING = -998.9;
+//TODO SAM 2015-08-06 Evaluate whether this can be permanently removed
+//public static final double MISSING_DOUBLE_CEILING = -998.9;
 
 /**
 Constant that represents a missing float value.
 */
-public static final float MISSING_FLOAT = (float) -999.0;
+public static final float MISSING_FLOAT = Float.NaN;
 
 /**
 Constant that represents a missing int value.
 */
-public static final int MISSING_INT = -999;
+public static final int MISSING_INT = Integer.MIN_VALUE;
 
 /**
 Constant that represents a missing long value.
 */
-public static final long MISSING_LONG = -999;
+public static final long MISSING_LONG = Long.MIN_VALUE;
 
 /**
 Constant that represents a missing string.
@@ -3074,9 +3078,13 @@ Determines whether a double is missing.
 @return true if the double is missing, false if not
 */
 private static boolean isMissingDouble(double value) {
-	if ((value > MISSING_DOUBLE_FLOOR) && (value < MISSING_DOUBLE_CEILING)) {
+	if ( Double.isNaN(value) ) {
 		return true;
 	}
+	// TODO SAM 2015-08-06 Remove the following if NaN works for missing
+	//if ((value > MISSING_DOUBLE_FLOOR) && (value < MISSING_DOUBLE_CEILING)) {
+	//	return true;
+	//}
 	return false;
 }
 
