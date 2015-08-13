@@ -103,7 +103,7 @@ private String __tableTSIDColumn = null;
 /**
 Column number for __tableTSIDColumn.
 */
-private int __tableTSIDColumnNum = -1;
+private int __tableTSIDColumnNum = 4;
 
 /**
 Name of table column for date/time.
@@ -119,6 +119,11 @@ private int __tableDateTimeColumnNum = -1;
 Name of table column for time series value.
 */
 private String __tableValueColumn = null;
+
+/**
+Precision of value column output.
+*/
+private int __tableValuePrecision = -1;
 
 /**
 Column number for __tableValueColumn.
@@ -179,17 +184,23 @@ in precision of the original data.  If null, the entire year of data will be ana
 be "SetMissing" to set the data value to missing, or "Remove" to remove the point (for irregular time series,
 equivalent to "SetMissing" for regular interval data)
 @param table output DataTable - must have been created
-@param tsidColumn table column for TSID - will be added if not in the table
-@param tsidFormat format to format TSID for match in table, containing % specifiers and ${ts:property}
+@param tableTSIDColumn table column for TSID - will be added if not in the table
+@param tableTSIDFormat format to format TSID for match in table, containing % specifiers and ${ts:property}
+@param tableDateTimeColumn table column for date/time - will be added if not in the table
+@param tableValueColumn table column for check values - will be added if not in the table
+@param tableValuePrecision precision for tableValueColumn, or -1 to default
+@param tableFlagColumn table column for time series flag corresponding to value - will be added if not in the table
+@param tableCheckTypeColumn table column for check type - will be added if not in the table
+@param tableCheckMessageColumn table column for check message - will be added if not in the table
 */
 public TSUtil_CheckTimeSeries ( TS ts, CheckType checkType,
         DateTime analysisStart, DateTime analysisEnd, DateTime analysisWindowStart, DateTime analysisWindowEnd,
         Double checkValue1, Double checkValue2, String problemType,
         String flag, String flagDesc, String action, DataTable table, String tableTSIDColumn, String tableTSIDFormat,
-        String tableDateTimeColumn, String tableValueColumn, String tableFlagColumn, String tableCheckTypeColumn,
-        String tableCheckMessageColumn )
+        String tableDateTimeColumn, String tableValueColumn, int tableValuePrecision,
+        String tableFlagColumn, String tableCheckTypeColumn, String tableCheckMessageColumn )
 {   String message;
-    String routine = getClass().getSimpleName() + ".constructor";
+    String routine = getClass().getSimpleName();
 	// Save data members.
     __ts = ts;
     __checkCriteria = checkType;
@@ -211,6 +222,7 @@ public TSUtil_CheckTimeSeries ( TS ts, CheckType checkType,
     __tableTSIDFormat = tableTSIDFormat;
     __tableDateTimeColumn = tableDateTimeColumn;
     __tableValueColumn = tableValueColumn;
+    __tableValuePrecision = tableValuePrecision;
     __tableFlagColumn = tableFlagColumn;
     __tableCheckTypeColumn = tableCheckTypeColumn;
     __tableCheckMessageColumn = tableCheckMessageColumn;
@@ -239,13 +251,14 @@ Check that the output table is set up.  The following columns are included:
 @param tableTSIDColumn name of column containing TSID
 @param tableDateTimeColumn name of column containing date/time
 @param tableValueColumn name of column containing value
+@param tableValuePrecision precision of column containing value
 @param tableFlagColumn name of column containing flag
 @param tableCheckTypeColumn name of column containing check type
 @param tableCheckMessageColumn name of column containing check message
 @return true if table is being used, false if not.
 */
 private boolean checkTableSetup ( DataTable table, String tableTSIDColumn, String tableDateTimeColumn,
-	String tableValueColumn, String tableFlagColumn, String tableCheckTypeColumn,
+	String tableValueColumn, int tableValuePrecision, String tableFlagColumn, String tableCheckTypeColumn,
 	String tableCheckMessageColumn )
 {	if ( table == null ) {
 		return false;
@@ -274,8 +287,8 @@ private boolean checkTableSetup ( DataTable table, String tableTSIDColumn, Strin
 		}
 	}
 	catch ( Exception e ) {
-		// Not found so create it
-		__tableValueColumnNum = table.addField(2, new TableField(TableField.DATA_TYPE_DOUBLE, tableValueColumn, -1, -1), "");
+		// Not found so create it - use 4 digits of precision for the check output
+		__tableValueColumnNum = table.addField(2, new TableField(TableField.DATA_TYPE_DOUBLE, tableValueColumn, -1, tableValuePrecision), "");
 	}
 	try {
 		if ( (tableFlagColumn != null) && !tableFlagColumn.isEmpty() ) {
@@ -347,7 +360,7 @@ throws Exception
     String tableTSID = ""; // Time series TSID formatted for table
     if ( table != null ) {
     	doTable = checkTableSetup(table,__tableTSIDColumn,__tableDateTimeColumn,
-    		__tableValueColumn,__tableFlagColumn,__tableCheckTypeColumn,
+    		__tableValueColumn,__tableValuePrecision,__tableFlagColumn,__tableCheckTypeColumn,
     		__tableCheckMessageColumn);
     	tableTSID = ts.formatLegend(__tableTSIDFormat);
     }
