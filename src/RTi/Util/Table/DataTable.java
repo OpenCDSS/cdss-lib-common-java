@@ -2493,7 +2493,7 @@ Properties and their effects:<br>
 <td><b>ColumnDataTypes</b></td>
 <td>The data types for the column, either "Auto" (determine from column contents),
 "AllStrings" (all are strings, fastest processing and the default from historical behavior),
-or a list of data types (to be implemented in the future).</td>
+or a list of data types (to be implemented in the future).  SEE ALSO DateTimeColumns.</td>
 <td>AllStrings.</td>
 </tr>
 
@@ -2502,6 +2502,13 @@ or a list of data types (to be implemented in the future).</td>
 <td>The characters with which comment lines begin.
 Lines starting with this character are skipped (TrimInput is applied after checking for comments).</td>
 <td>No default.</td>
+</tr>
+
+<tr>
+<td><b>DateTimeColumns</b></td>
+<td>Specify comma-separated column names that should be treated as DateTime columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
 </tr>
 
 <tr>
@@ -2663,6 +2670,15 @@ throws Exception
     }
     // Use to speed up code below.
     int HeaderLinesList_size = HeaderLineList.size();
+    
+    String [] dateTimeColumns = null;
+    propVal = props.getValue("DateTimeColumns");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+        dateTimeColumns = propVal.split(",");
+        for ( int i = 0; i < dateTimeColumns.length; i++ ) {
+            dateTimeColumns[i] = dateTimeColumns[i].trim();
+        }
+    }
 
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
 	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
@@ -2956,9 +2972,20 @@ throws Exception
 	// set the table field type and if a string, max width.
 	
 	int [] tableFieldType = new int[tableFields.size()];
+	boolean isDateTime = false;
+	boolean isInteger = false; // TODO SAM 2015-08-13 enable function parameter later.
+	boolean isDouble = false; // TODO SAM 2015-08-13 enable function parameter later.
 	if ( ColumnDataTypes_Auto_boolean ) {
     	for ( int icol = 0; icol < maxColumns; icol++ ) {
+    		isDateTime = false;
     	    tableField = (TableField)tableFields.get(icol);
+    		if ( dateTimeColumns != null ) {
+    			for ( int i = 0; i < dateTimeColumns.length; i++ ) {
+    				if ( dateTimeColumns[i].equalsIgnoreCase(tableField.getName()) ) {
+    					isDateTime = true;
+    				}
+    			}
+    		}
     	    if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
     	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
     	        // All data are integers so assume column type is integer
@@ -2983,6 +3010,12 @@ throws Exception
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
+    	    else if ( isDateTime ) {
+    	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is date/time as determined from specified column type." );
+    	    }
     	    else {
     	        // Based on what is known, can only treat column as containing strings.
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
@@ -3047,16 +3080,30 @@ throws Exception
 			    if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
 			    	cell = cell.trim();
 			    	if ( cell.length() != 0 ) {
-			    		tablerec.addFieldValue( Integer.valueOf(cell.trim()) );
+			    		tablerec.addFieldValue( Integer.valueOf(cell) );
 			    	}
 			    	else {
 			    		tablerec.addFieldValue ( null );
 			    	}
 			    }
+			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DATETIME ) {
+			    	cell = cell.trim();
+			    	if ( cell.length() != 0 ) {
+			    		try {
+			    			tablerec.addFieldValue( DateTime.parse(cell) );
+			    		}
+			    		catch ( Exception e ) {
+			    			tablerec.addFieldValue ( null );
+			    		}
+			    	}
+			    	else {
+			    		tablerec.addFieldValue ( null );
+			    	}
+	            }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
 			    	cell = cell.trim();
 			    	if ( cell.length() != 0 ) {
-			    		tablerec.addFieldValue( Double.valueOf(cell.trim()) );
+			    		tablerec.addFieldValue( Double.valueOf(cell) );
 			    	}
 			    	else {
 			    		tablerec.addFieldValue ( null );
