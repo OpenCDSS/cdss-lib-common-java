@@ -841,6 +841,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	else {
         d = d0;
 	}
+	Date date = d.getDate();
 
 	if ( format.equals("datum_seconds") ) {
 		// Want the number of seconds since the standard time datum	
@@ -851,7 +852,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	}
 	// Convert format to string...
 	GregorianCalendar cal = new GregorianCalendar ();
-	cal.setTime ( d.getDate() );
+	cal.setTime ( date );
 	SimpleDateFormat sdf = new SimpleDateFormat();
 	DateFormatSymbols dfs = sdf.getDateFormatSymbols();
 	String[] short_weekdays = dfs.getShortWeekdays();
@@ -864,17 +865,17 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	int ifield;
 	// The values returned are as follows:
 	//
-	//		Java		We use
+	//            Java              This code
 	//
-	// Year:	since 1900	4-digit
-	// Month:	0 to 11		1 to 12
-	// Day:		1 to 31		1 to 31
-	// Hour:	0 to 59		same
-	// Minute:	0 to 59		same
-	// Second:	0 to 59		same
-	// DayOfWeek:	0 to 7 with 0	same
-	//		being Sunday
-	//		in U.S.
+	// Year:      since 1900        4-digit
+	// Month:     0 to 11           1 to 12
+	// Day:       1 to 31           1 to 31
+	// Hour:      0 to 59           same
+	// Minute:    0 to 59           same
+	// Second:    0 to 59           same
+	// DayOfWeek: 0 to 7 with 0     same
+	//            being Sunday
+	//            in U.S.
 	// First go through the % format specifiers
 	for ( int i = 0; i < len; i++ ) {
 		c = format.charAt(i);
@@ -945,6 +946,10 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				else {
                     formatted_string.append("PM");
 				}
+			}
+			else if ( c == 's' ) {
+				// Seconds since 1970-01-01 00:00:00+0000 (UTC)...
+				formatted_string.append(""+date.getTime()/1000);
 			}
 			else if ( c == 'S' ) {
 				// Seconds of minute...
@@ -1516,7 +1521,7 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
     if ( forOutput && includeProps ) {
         nProps = 1;
     }
-    String [] formats = new String[15 + nProps];
+    String [] formats = new String[16 + nProps];
     int i = -1;
 	formats[++i] = "%a - Weekday, abbreviation";
 	formats[++i] = "%A - Weekday, full";
@@ -1530,6 +1535,7 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	formats[++i] = "%m - Month (01-12)";
 	formats[++i] = "%M - Minute (00-59)";
 	formats[++i] = "%p - AM, PM";
+	formats[++i] = "%s - seconds since Jan 1, 1970 UTC";
 	formats[++i] = "%S - Second (00-59)";
 	//formats[++i] = "%U, %W - not supported";
 	//formats[++i] = "%x - not supported";
