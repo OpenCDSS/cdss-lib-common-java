@@ -174,9 +174,9 @@ public InputFilter_JPanel ( String text )
 /**
 Construct an input filter panel from data choices.
 @param inputFilters A list of InputFilter, to be displayed.
-@param numInputFilters the number of input filter rows to be displayed
-@param numWhereChoicesToDisplay the number of where choices to display in lists (-1 to default to list size or
-an intelligent default)
+@param numInputFilters the number of input filter rows to be displayed in the panel
+@param numWhereChoicesToDisplay the number of where choices to display in lists for each filter
+(-1 to default to list size or an intelligent default)
 */
 public InputFilter_JPanel ( List<InputFilter> inputFilters, int numInputFilters, int numWhereChoicesToDisplay )
 {	GridBagLayout gbl = new GridBagLayout();
