@@ -1400,8 +1400,9 @@ throws Exception {
 		}
 		return formatted.toString();
 	}
-	else if (databaseEngineType == DMI.DBENGINE_POSTGRESQL) {
-		// PostgreSQL datetimes have to have at least year-month-day
+	else if ( (databaseEngineType == DMI.DBENGINE_MYSQL) ||
+		(databaseEngineType == DMI.DBENGINE_POSTGRESQL) ) {
+		// PostgreSQL datetimes must have at least year-month-day
 		if (escapeChar) {
 			formatted.append("'");
 		}
