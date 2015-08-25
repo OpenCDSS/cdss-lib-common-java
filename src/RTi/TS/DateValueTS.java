@@ -231,6 +231,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -2672,7 +2673,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 
 <tr>
 <td><b>IncludeProperties</b></td>
-<td><b>An array of strings indicating properties to write (TODO SAM 2015-05-18 need to enable using * for glob-style wildcarding).</b>
+<td><b>An array of strings indicating properties to write, with * to use glob-style pattern matching.</b>
 <td>Do not write any properties.</td>
 </tr>
 
@@ -2754,12 +2755,35 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 	// TODO SAM 2015-05-18 Add support for wildcards - for now must match exactly
 	Object o;
 	StringBuilder b = new StringBuilder ( "Properties_" + (its + 1) + " = {");
+	// Get all the properties.  Then extract the properties that match the IncludeProperties list
+	HashMap<String,Object> props = ts.getProperties();
+	List<String> matchedProps = new ArrayList<String>();
 	for ( int iprop = 0; iprop < includeProperties.length; iprop++ ) {
-		o = ts.getProperty(includeProperties[iprop]);
+		for ( String key: props.keySet() ) {
+			if ( key.matches(includeProperties[iprop]) ) {
+				// Make sure the property is not already in the list to include
+				boolean match = false;
+				for ( String p : matchedProps ) {
+					if ( p.equals(key) ) {
+						match = true;
+						break;
+					}
+				}
+				if ( !match ) {
+					matchedProps.add(key);
+				}
+			}
+		}
+	}
+	// Loop through the full list of properties and get those that match the pattern
+	int iprop = -1;
+	for ( String p : matchedProps ) {
+		++iprop;
+		o = ts.getProperty(p);
 		if ( iprop > 0 ) {
 			b.append(",");
 		}
-		b.append(includeProperties[iprop]+":");
+		b.append(p+":");
 		if ( o == null ) {
 			b.append("null");
 		}
