@@ -233,7 +233,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
@@ -368,7 +367,7 @@ Read at time series from a List of String.  Currently this is accomplished by
 writing the contents to a temporary file and then reading using one of the
 standard methods.  A more efficient method may be added in the future but this
 approach works OK for smaller files.
-@param strings Vector of String containing data in DateValue file format.
+@param strings List of String containing data in DateValue file format.
 @param tsident_string Time series identifier as string (used for initial
 settings - reset by file contents).
 @param req_date1 Requested starting date to initialize period (or null to read the entire period).
@@ -747,9 +746,9 @@ throws Exception, IOException, FileNotFoundException
 // TODO SAM 2008-05-09 Evaluate types of exceptions that are thrown
 /**
 Read a time series from a DateValue format file.
-@return a Vector of time series if successful, null if not.  The calling code
+@return a List of time series if successful, null if not.  The calling code
 is responsible for freeing the memory for the time series.
-@param req_ts time series to fill.  If null, return all new time series in the vector.
+@param req_ts time series to fill.  If null, return all new time series in the list.
 All data are reset, except for the identifier, which is assumed to have been set in the calling code.
 @param in Reference to open input stream.
 @param req_date1 Requested starting date to initialize period (or null to read the entire time series).
@@ -1149,10 +1148,10 @@ throws Exception
 		}
 	}
 
-	// Check required data vectors and assign defaults if necessary...
+	// Check required data lists and assign defaults if necessary...
 
 	if ( identifier_v == null ) {
-		identifier_v = new Vector(numts);
+		identifier_v = new ArrayList<String>(numts);
 		// TODO SAM 2008-04-14 Evaluate tightening this constraint - throw exception?
 		Message.printWarning ( 2, routine, "TSID property in file is missing.  Assigning default TS1, TS2, ..." );
 		for ( int i = 0; i < numts; i++ ) {
@@ -1238,7 +1237,7 @@ throws Exception
 			// Identifier is assumed to have been set previously.
 		}
 		// Remaining logic is the same...
-		tslist = new Vector<TS>(1);
+		tslist = new ArrayList<TS>(1);
 		tslist.add ( ts );
 		ts_array = new TS[1];
 		ts_array[0] = ts;
@@ -1278,7 +1277,7 @@ throws Exception
 	}
 	else {
 	    // Allocate here as many time series as indicated by numts...
-		tslist = new Vector<TS>(numts);
+		tslist = new ArrayList<TS>(numts);
 		ts_array = new TS[numts];
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, "Allocated space for " + numts + " time series in list." );
@@ -1736,7 +1735,7 @@ Write a time series to a DateValue format file.
 public static void writeTimeSeries ( TS ts, PrintWriter out )
 throws Exception
 {	// Call the fully-loaded method...
-	List<TS> v = new Vector<TS>( 1 );
+	List<TS> v = new ArrayList<TS>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList(v, out, (DateTime)null, (DateTime)null, null, true);
 }
@@ -1752,7 +1751,7 @@ Write a list of time series to a DateValue format file.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
-{	List<TS> v = new Vector<TS>( 1 );
+{	List<TS> v = new ArrayList<TS>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList ( v, out, date1, date2, units, writeData );
 }
@@ -2433,7 +2432,7 @@ throws Exception
 	        // 3) For any values printed, advance that time series' iterator
 	        // 4) Go to step 1
 	        // Create iterators for each time series
-	        List<TSIterator> tsIteratorList = new Vector();
+	        List<TSIterator> tsIteratorList = new ArrayList<TSIterator>(size);
 	        for ( int its = 0; its < size; its++ ) {
 	            if ( tslist.get(its) == null ) {
 	                tsIteratorList.add(null); // Keep same order as time series
@@ -2691,7 +2690,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 
 <tr>
 <td><b>OutputComments</b></td>
-<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
+<td><b>Additional comments to be output in the header, as a list of String.  The comment
 lines are not added to in any way.</b>
 <td>No additional comments.</td>
 </tr>
