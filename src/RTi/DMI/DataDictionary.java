@@ -53,13 +53,19 @@ table detail in section 2, below:</li>
 @param dmi DMI instance for an opened database connection.
 @param filename Complete name of the data dictionary HTML file to write.  If
 the filename does not end with ".html", that will be added to the end of the filename.
+@param newline string to replace newlines with (e.g., "<br">).
+@param surroundWithPre if true, output comments/remarks surrounded by <pre></pre>, for example
+to keep newlines as is.
+@param encodeHtmlChars if true, encode HTML characters that have meaning, such as < so as to pass through to HTML.
 @param referenceTables If not null, the contents of these tables will be listed
 in a section of the data dictionary to illustrate possible values for lookup fields.  
 @param excludeTables list of tables that should be
 excluded from the data dictionary.  The names of the tables in this list
 must match the actual table names exactly (cases and spaces).  May be null.  May contain wildcard *.
 */
-public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> referenceTables, List<String> excludeTables)
+public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
+	boolean surroundWithPre, boolean encodeHtmlChars,
+	List<String> referenceTables, List<String> excludeTables)
 {
 	String routine = getClass().getSimpleName() + ".createHTMLDataDictionary";
 
@@ -266,7 +272,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 	}
 
 	Message.printStatus(2, routine, "Printing table names and remarks");
-	// print out a table containing the names of all the tables 
+	// Print out a table containing the names of all the tables 
 	// that will be reported on as well as any table remarks for 
 	// those tables.  Each table name will be a link to its detailed
 	// column information later in the data dictionary.
@@ -328,7 +334,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 		Message.printWarning(2, routine, e);
 	}
 
-	// draw the key for table formats
+	// Format the key for table formats
 	try {
 		html.paragraph();
 		html.heading(2, "Table Color Legend");
@@ -381,7 +387,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 		Message.printWarning(3, routine, e);
 	}
 
-	// start the table detail section of the data dictionary.
+	// Start the table detail section of the data dictionary.
 	try {
 		html.paragraph();
 		html.heading(2, "Table Detail");
@@ -700,7 +706,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 					temp = columnData.get(__POS_REMARKS);
 					html.tableCellStart();
 					html.boldStart();
-					html.addText(temp);
+					writeRemarks(html,temp,newline,surroundWithPre,encodeHtmlChars);
 					html.boldEnd();
 					html.tableCellEnd();
 
@@ -778,7 +784,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, List<String> re
 					// display the remarks
 					temp = column.get(__POS_REMARKS);
 					html.tableCellStart();
-					html.addText(temp);
+					writeRemarks(html,temp,newline,surroundWithPre,encodeHtmlChars);
 					html.tableCellEnd();
 
 					// display the column type
@@ -993,6 +999,31 @@ private static void printColumnMetadata ( ResultSet rs )
     catch ( Exception e ) {
         // Ignore, most likely something like Microsoft Access not supporting indices correctly
     }
+}
+
+private void writeRemarks ( HTMLWriter html, String temp, String newline, boolean surroundWithPre, boolean encodeHtmlChars )
+throws Exception
+{
+	String tempUpper = temp.toUpperCase();
+	if ( tempUpper.startsWith("<HTML>") && tempUpper.endsWith("</HTML>") ) {
+		// Pass the text through without additional formatting, but first remove the HTML tags.
+		html.write(temp.substring(6,temp.length()-12));
+	}
+	else if ( surroundWithPre ) {
+		html.write("<pre>");
+		html.write(temp);
+		html.write("</pre>");
+	}
+	else if ( encodeHtmlChars ) {
+		html.addText(temp);
+	}
+	else {
+		// Just write the text
+		if ( (newline != null) && !newline.isEmpty() ) {
+			temp = temp.replace("\n",newline);							
+		}
+		html.write(temp);
+	}
 }
 
 }
