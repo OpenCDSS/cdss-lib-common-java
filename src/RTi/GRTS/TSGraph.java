@@ -753,6 +753,24 @@ private double [] _xlabels = null;
 Y-axis labels for numerical data.
 */
 private double [] _ylabels = null;
+/**
+Array for drawing shapes, in particular to avoid moveto/lineto.
+*/
+private double [] xCacheArray = null;
+/**
+Array for drawing shapes, in particular to avoid moveto/lineto.
+*/
+private double [] yCacheArray = null;
+/**
+Indicate whether to use cache for drawing arrays.
+TODO SAM 2015-09-04 Need to enable.  Even if set to true only impacts line drawing for irregular time series.
+*/
+private boolean useXYCache = false;
+/**
+Fraction of points to add to cache arrays when more array positions are needed.
+For example, if the array size is 100 and more slots are needed, use .5 to add 50%.
+*/
+private double xyCacheDelta = .5;
 
 /**
 If true, then the dates that were set for start_date and end_date will be
@@ -833,7 +851,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 
 	// Might need to use this when we try to process all null time series...
 	int ssize = __tslist.size();
-    Message.printStatus(2, routine, "Have " + ssize + " time series for graph." );
+    Message.printStatus(2, routine, _gtype + "Have " + ssize + " time series for graph." );
 	TS sts;
 	for (int ii = 0; ii < ssize; ii++) {
 		sts = __tslist.get(ii);
@@ -3991,7 +4009,8 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	double lasty = ts.getMissing();
 	double x;
 	double y;
-	int drawcount = 0;
+	int drawcount = 0; // Overall count of points in time series
+	int pointsInSegment = 0; // Points in current line segment being drawn
 	int interval_base = ts.getDataIntervalBase();
 	int interval_mult = ts.getDataIntervalMult();	
 
@@ -4243,6 +4262,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		DateTime date = null;
+		boolean yIsMissing = false;
 
 		for ( int i = 0; i < nalltsdata; i++ ) {
         	tsdata = alltsdata.get(i);
@@ -4256,8 +4276,19 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
             // In the future, if the spacing of data flags becomes critical, this may need revisited.
         	if (date.greaterThanOrEqualTo(start)) {
         		y = tsdata.getDataValue();
-        		if (ts.isDataMissing(y)) {
-        			lasty = y;
+        		yIsMissing = ts.isDataMissing(y);
+        		if ( yIsMissing ) {
+	        		if ( this.useXYCache ) {
+	        			// Missing point is found. If pointsInSegment > 0, draw the line segment
+	        			if ( pointsInSegment > 0 ) {
+	        				GRDrawingAreaUtil.drawPolyline ( _da_graph, pointsInSegment, this.xCacheArray, this.yCacheArray );
+	        			}
+	        			pointsInSegment = 0;
+	        		}
+	        		else {
+	        			// No need to draw anything
+	        			lasty = y;
+	        		}
         			continue;
         		}
                 dataFlag = tsdata.getDataFlag();
@@ -4270,6 +4301,13 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         
         		// Else, see if need to moveto or lineto the point.
         		x = date.toDouble();
+        		if ( this.useXYCache ) {
+        			if ( this.xCacheArray == null ) {
+        				// Allocate initial cache arrays
+        				this.xCacheArray = new double[100];
+        				this.yCacheArray = new double[100];
+        			}
+        		}
         		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR &&
         		    __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
         			// Always draw the symbol
@@ -4319,7 +4357,15 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         			}
         
         			// First point or skipping data. Put second so symbol coordinates do not set the last point.
-        			GRDrawingAreaUtil.moveTo(_da_graph, x, y );
+        			if ( this.useXYCache ) {
+	        			xCacheArray[0] = x;
+	        			yCacheArray[0] = y;
+	        			pointsInSegment = 1;
+        			}
+        			else {
+        				// Move/draw each point individually
+        				GRDrawingAreaUtil.moveTo(_da_graph, x, y );
+        			}
         		}
         		else {	
         			// Draw the line segment or bar
@@ -4331,7 +4377,25 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         						GRDrawingAreaUtil.setLineDash( _da_graph, lineDash, 0);
         					}
         					
-        					GRDrawingAreaUtil.lineTo(_da_graph, x, y);
+        					if ( this.useXYCache ) {
+        						// Save the point but do not draw yet
+        						if ( pointsInSegment == this.xCacheArray.length ) {
+        							// Increase the size of the cache arrays
+        							double [] xTemp = new double[(int)(this.xCacheArray.length*(1.0+this.xyCacheDelta))];
+        							System.arraycopy(this.xCacheArray, 0, xTemp, 0, this.xCacheArray.length);
+        							this.xCacheArray = xTemp;
+        							double [] yTemp = new double[(int)(this.yCacheArray.length*(1.0+this.xyCacheDelta))];
+        							System.arraycopy(this.yCacheArray, 0, yTemp, 0, this.yCacheArray.length);
+        							this.yCacheArray = yTemp;
+        						}
+        						this.xCacheArray[pointsInSegment] = x;
+        						this.yCacheArray[pointsInSegment] = y;
+        						++pointsInSegment;
+        					}
+        					else {
+        						// Drawing each point with LineTo
+        						GRDrawingAreaUtil.lineTo(_da_graph, x, y);
+        					}
         
         					// Reset the line width to the normal setting for all other drawing
         					GRDrawingAreaUtil.setLineWidth(	_da_graph, 1);
@@ -4382,7 +4446,13 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         				}
         
         				// Need because symbol coordinates have set the last point.
-        				GRDrawingAreaUtil.moveTo(_da_graph, x, y);
+        				if ( !this.useXYCache ) {
+        					GRDrawingAreaUtil.setLineWidth( _da_graph, lineWidth);
+    						if (dashedLine) {
+        						GRDrawingAreaUtil.setLineDash( _da_graph, lineDash, 0);
+        					}
+        					GRDrawingAreaUtil.moveTo(_da_graph, x, y);
+        				}
         				lasty = y;
         				++drawcount;
         				continue;
@@ -4482,6 +4552,14 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         		lasty = y;
         		++drawcount;
         	}
+        	// If here and the last line segment was not drawn, draw it
+        	Message.printStatus(2,routine,"pointsInSegment="+pointsInSegment + " yIsMissing="+yIsMissing);
+    		if ( this.useXYCache && (__graphType != TSGraphType.BAR) && (__graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) &&
+    			(pointsInSegment > 0) && !yIsMissing) {
+				// This point is the last in the data so need to draw the line
+    			// Missing point is found. If the number of points is > 0, draw the line
+    			GRDrawingAreaUtil.drawPolyline ( _da_graph, drawcount, this.xCacheArray, this.yCacheArray );
+    		}
 		}
 	}
 	else {	
@@ -7209,8 +7287,8 @@ public void paint ( Graphics g )
 	//}
 	}
 	catch ( Exception e ) {
+		Message.printWarning ( 2, routine, e ); // Put first because sometimes does not output if after
 		Message.printWarning ( 1, routine, _gtype + "Error drawing graph." );
-		Message.printWarning ( 2, routine, e );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "...done painting TSGraph." );
