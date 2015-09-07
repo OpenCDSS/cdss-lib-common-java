@@ -2,10 +2,10 @@ package RTi.Util.Table;
 
 import java.util.Date;
 
+import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-
 import RTi.Util.IO.IOUtil;
-import RTi.Util.Message.Message;
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
@@ -18,6 +18,11 @@ extends JWorksheet_AbstractRowTableModel {
 The classes of the fields, stored in an array for quicker access.
 */
 private Class[] __fieldClasses;
+
+/**
+The field types as per the table field types.
+*/
+private int [] __fieldTypes;
 
 /**
 The table displayed in the worksheet.
@@ -56,7 +61,8 @@ throws Exception {
 
 	__fieldNames = __dataTable.getFieldNames();
 	__fieldFormats = __dataTable.getFieldFormats();
-	__fieldClasses = determineClasses(__dataTable.getFieldDataTypes());
+	__fieldTypes = __dataTable.getFieldDataTypes();
+	__fieldClasses = determineClasses(__fieldTypes);
 }
 
 /**
@@ -69,6 +75,10 @@ private Class[] determineClasses(int[] dataTypes) {
 
 	for (int i = 0; i < dataTypes.length; i++) {
 		switch (dataTypes[i]) {
+			case TableField.DATA_TYPE_ARRAY:
+				// For the purposes of rendering in the table, treat array as formatted string
+				classes[i] = String.class;
+				break;
 			case TableField.DATA_TYPE_INT:
 				classes[i] = Integer.class;
 				break;
@@ -168,13 +178,19 @@ public int[] getColumnWidths() {
 }
 
 /**
-Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format. 
+Returns the format to be applied to data values in the column, for display in the table.
+If the column contains an array, the format applies to the individual values in the array.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
 public String getFormat(int column) {
-	return __fieldFormats[column];
+	switch (__fieldTypes[column]) {
+		case TableField.DATA_TYPE_ARRAY:
+			// For the purposes of rendering in the table, treat array as formatted string
+			return "%s";
+		default:
+			return __fieldFormats[column];
+	}
 }
 
 /**
@@ -197,7 +213,104 @@ public Object getValueAt(int row, int col) {
 	}
 
 	try {
-		return __dataTable.getFieldValue(row, col);
+		if ( __dataTable.isColumnArray(__fieldTypes[col]) ) {
+			// Get the internal data type
+			int dataType = __fieldTypes[col] - TableField.DATA_TYPE_ARRAY_BASE;
+			// For the purposes of rendering in the table, treat array as formatted string [ val1, val2, ... ]
+			// Where the formatting of the values is for the raw value
+			StringBuilder b = new StringBuilder("[");
+			switch ( dataType ) {
+				case TableField.DATA_TYPE_DATETIME:
+					DateTime [] dta = (DateTime [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < dta.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( dta[i] != null ) {
+							b.append("\"" + dta[i] + "\"");
+						}
+					}
+					break;
+				case TableField.DATA_TYPE_DOUBLE:
+					double [] da = (double [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < da.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( !DMIUtil.isMissing(da[i]) ) {
+							// Need to get the TableField format because the overall column will be string
+							// TODO SAM 2015-09-06
+							//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+							b.append(StringUtil.formatString(da[i],"%.6f"));
+						}
+					}
+					break;
+				case TableField.DATA_TYPE_FLOAT:
+					float [] fa = (float [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < fa.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( !DMIUtil.isMissing(fa[i]) ) {
+							// Need to get the TableField format because the overall column will be string
+							// TODO SAM 2015-09-06
+							//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+							b.append(StringUtil.formatString(fa[i],"%.6f"));
+						}
+					}
+					break;
+				case TableField.DATA_TYPE_INT:
+					int [] ia = (int [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < ia.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( !DMIUtil.isMissing(ia[i]) ) {
+							// Need to get the TableField format because the overall column will be string
+							// TODO SAM 2015-09-06
+							//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+							b.append(ia[i]);
+						}
+					}
+					break;
+				case TableField.DATA_TYPE_LONG:
+					long [] la = (long [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < la.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( !DMIUtil.isMissing(la[i]) ) {
+							// Need to get the TableField format because the overall column will be string
+							// TODO SAM 2015-09-06
+							//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+							b.append(la[i]);
+						}
+					}
+					break;
+				case TableField.DATA_TYPE_STRING:
+					String [] sa = (String [])__dataTable.getFieldValue(row,col);
+					for ( int i = 0; i < sa.length; i++ ) {
+						if ( i == 0 ) {
+							b.append(",");
+						}
+						if ( sa[i] != null ) {
+							// Need to get the TableField format because the overall column will be string
+							// TODO SAM 2015-09-06
+							//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+							b.append(sa[i]);
+						}
+					}
+					break;
+				default:
+					// Don't know the type so don't know how to format the array. Just leave blank
+					break;
+			}
+			b.append("]");
+			return b.toString();
+		}
+		else {
+			return __dataTable.getFieldValue(row, col);
+		}
 	}
 	catch (Exception e) {
 		e.printStackTrace();

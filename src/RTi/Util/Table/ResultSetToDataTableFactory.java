@@ -1,5 +1,6 @@
 package RTi.Util.Table;
 
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -71,6 +72,9 @@ throws SQLException
     float f;
     int i;
     Date date;
+    Array a;
+    int baseType; // Used with Array.getBaseType(), the original SQL type
+    int baseType2 = TableField.DATA_TYPE_STRING; // The internal type, after conversion from SQL type
     TableRecord rec = null;
     boolean isNull;
     while (rs.next()) {
@@ -125,6 +129,57 @@ throws SQLException
                         isNull = true;
                     }
                 }
+                else if ( table.isColumnArray(columnTypes[i0]) ) {
+                	// Column contains an array of other data, generally primitives
+                    a = rs.getArray(iCol);
+                    if (!rs.wasNull()) {
+                    	baseType = a.getBaseType();
+                    	if ( columnTypes[i0] == TableField.DATA_TYPE_ARRAY ) {
+                    		// The column type does not yet have the base type so add...
+                    		baseType2 = sqlToDMIColumnType(baseType);
+                    		columnTypes[i0] = columnTypes[i0] + baseType2;
+                    	}
+                    	// Now need to interpret the base type...
+                        if ( baseType == Types.DATE ) {
+                        	// Know that the array will contain Date
+                        	Date [] da = (Date [])(a.getArray());
+                        	// Convert to DateTime objects
+                        	DateTime [] dta = new DateTime[da.length];
+                        	for ( int ic = 0; ic < da.length; ic++ ) {
+                        		dta[ic] = new DateTime(da[ic]);
+                        	}
+                            rec.addFieldValue(dta);
+                        }
+                        else if ( baseType == Types.DOUBLE ) {
+                        	double [] da = (double [])(a.getArray());
+                            rec.addFieldValue(da);
+                        }
+                        else if ( baseType == Types.FLOAT ) {
+                        	float [] fa = (float [])(a.getArray());
+                            rec.addFieldValue(fa);
+                        }
+                        else if ( baseType == Types.INTEGER ) {
+                        	int [] ia = (int [])(a.getArray());
+                            rec.addFieldValue(ia);
+                        }
+                        else if ( baseType == Types.BIGINT ) {
+                        	long [] la = (long [])(a.getArray());
+                            rec.addFieldValue(la);
+                        }
+                        else if ( (baseType == Types.CHAR) || (baseType == Types.VARCHAR) || (baseType == Types.NVARCHAR) ) {
+                        	String [] sa = (String [])(a.getArray());
+                            rec.addFieldValue(sa);
+                        }
+                        else {
+                        	// Don't know the type
+                        	// TODO SAM 2015-09-06 Need to confirm handling of the above baseType
+                        	isNull = true;
+                        }
+                    }
+                    else {
+                        isNull = true;
+                    }
+                }
                 else {
                     // Default is string
                     s = rs.getString(iCol);
@@ -163,7 +218,7 @@ Lookup the SQL column type to the DataTable type.
 private int sqlToDMIColumnType(int sqlColumnType)
 {
     switch ( sqlColumnType ) {
-        // ARRAY not handled
+    	case Types.ARRAY: return TableField.DATA_TYPE_ARRAY;
         case Types.BIGINT: return TableField.DATA_TYPE_LONG;
         // BINARY not handled
         case Types.BIT: return TableField.DATA_TYPE_INT;

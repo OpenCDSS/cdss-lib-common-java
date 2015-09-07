@@ -1670,6 +1670,21 @@ throws Exception
 }
 
 /**
+Determine whether the column data type is an array.
+@return true if the column data type is an array (data type is DATA_TYPE_ARRAY_BASE plus primitive type).
+*/
+public boolean isColumnArray(int columnType)
+{
+	if ( ((columnType/100)*100) == TableField.DATA_TYPE_ARRAY_BASE ) {
+		// Data type is 10nn so it is an array.
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
 Indicate whether a table's column is empty (all null or blank strings).
 This is useful when setting column widths narrow for unused data, or deleting unused columns.
 @param columnNum column number 0+ to check

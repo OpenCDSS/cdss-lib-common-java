@@ -60,7 +60,21 @@ other data to control object).
 public final static int DATA_TYPE_DATETIME = 7;
 
 /**
+Used to indicate an array type of array.  See DATA_TYPE_ARRAY for more information.
+*/
+public final static int DATA_TYPE_ARRAY_BASE = 1000;
+
+/**
+Array of other types, for compatibility with java.sql.Types.ARRAY.
+Subtract DATA_TYPE_ARRAY_BASE to get the type of objects in the array.
+*/
+public final static int DATA_TYPE_ARRAY = DATA_TYPE_ARRAY_BASE;
+
+/**
 Data type (DATA_TYPE_*) for the field (column).
+If a simple data type the value corresponds to the data type.
+If a complex data type such as ARRAY, the data type within the complex type requires some math,
+which is handled by methods like isColumnArray().
 */
 private int _data_type;
 
@@ -146,29 +160,6 @@ a DataTable.  Use TableField.DATA_TYPE_*
 */
 public TableField ( int type, String name, int width, int precision )
 {	initialize ( type, name, width, precision );
-}
-
-/**
-Clean up for garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_name = null;
-	super.finalize();
-}
-
-/**
-Initialize the instance.
-@param type Data type for field.
-@param name Field name.
-@param width field width for output (-1 is allowed for variable-length strings).
-@param precision digits after decimal for numbers.
-*/
-private void initialize ( int type, String name, int width, int precision )
-{	_width = width;
-	_precision = precision;
-	_data_type = type;
-	_name = name;
 }
 
 /**
@@ -276,6 +267,20 @@ Get the field width.
 */
 public int getWidth ( )
 {	return _width;
+}
+
+/**
+Initialize the instance.
+@param type Data type for field.
+@param name Field name.
+@param width field width for output (-1 is allowed for variable-length strings).
+@param precision digits after decimal for numbers.
+*/
+private void initialize ( int type, String name, int width, int precision )
+{	_width = width;
+	_precision = precision;
+	_data_type = type;
+	_name = name;
 }
 
 /**
