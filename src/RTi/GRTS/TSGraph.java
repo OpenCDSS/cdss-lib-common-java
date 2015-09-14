@@ -4019,7 +4019,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 	int symbolNoFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, false );
 	int symbolWithFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, true );
 	int symbol = symbolNoFlag; // Default symbol to use for a specific data point, checked below
-	// Message.printStatus ( 2, routine, "symbolNoFlag=" + symbolNoFlag + " symbolWithFlag=" + symbolWithFlag );
+	//Message.printStatus ( 2, routine, _gtype + "symbolNoFlag=" + symbolNoFlag + " symbolWithFlag=" + symbolWithFlag );
 	double symbol_size = drawTSHelpterGetSymbolSize ( its, overrideProps );
 
 	// Data text label.
@@ -4264,6 +4264,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 		DateTime date = null;
 		boolean yIsMissing = false;
 
+		//Message.printStatus(2,routine,"Starting to draw time series.");
 		for ( int i = 0; i < nalltsdata; i++ ) {
         	tsdata = alltsdata.get(i);
         	date = tsdata.getDate();
@@ -4277,13 +4278,15 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         	if (date.greaterThanOrEqualTo(start)) {
         		y = tsdata.getDataValue();
         		yIsMissing = ts.isDataMissing(y);
+        		//Message.printStatus(2, routine,"Date=" + date + " yIsMissing=" + yIsMissing);
         		if ( yIsMissing ) {
 	        		if ( this.useXYCache ) {
 	        			// Missing point is found. If pointsInSegment > 0, draw the line segment
 	        			if ( pointsInSegment > 0 ) {
+	        				//Message.printStatus(2, routine, "Found missing value - drawing segment with " + pointsInSegment + " points.");
 	        				GRDrawingAreaUtil.drawPolyline ( _da_graph, pointsInSegment, this.xCacheArray, this.yCacheArray );
+		        			pointsInSegment = 0;
 	        			}
-	        			pointsInSegment = 0;
 	        		}
 	        		else {
 	        			// No need to draw anything
@@ -4310,6 +4313,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         		}
         		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (__graphType != TSGraphType.BAR &&
         		    __graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
+        			// First point in the entire time series or first non-missing point after a missing point.
         			// Always draw the symbol
                     //if (tsdata != null) 
                     //Message.printStatus(1, "", "JTS0" + date + ": '" + tsdata.getDataFlag() 
@@ -4358,6 +4362,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         
         			// First point or skipping data. Put second so symbol coordinates do not set the last point.
         			if ( this.useXYCache ) {
+        				//Message.printStatus(2, routine, "Initializing first point in segment to " + x + "," + y);
 	        			xCacheArray[0] = x;
 	        			yCacheArray[0] = y;
 	        			pointsInSegment = 1;
@@ -4381,15 +4386,18 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         						// Save the point but do not draw yet
         						if ( pointsInSegment == this.xCacheArray.length ) {
         							// Increase the size of the cache arrays
-        							double [] xTemp = new double[(int)(this.xCacheArray.length*(1.0+this.xyCacheDelta))];
+        							int newLength = (int)(this.xCacheArray.length*(1.0+this.xyCacheDelta));
+        							double [] xTemp = new double[newLength];
         							System.arraycopy(this.xCacheArray, 0, xTemp, 0, this.xCacheArray.length);
         							this.xCacheArray = xTemp;
-        							double [] yTemp = new double[(int)(this.yCacheArray.length*(1.0+this.xyCacheDelta))];
+        							double [] yTemp = new double[newLength];
         							System.arraycopy(this.yCacheArray, 0, yTemp, 0, this.yCacheArray.length);
         							this.yCacheArray = yTemp;
+        							//Message.printStatus(2, routine, "Increase the cache array length to " + newLength );
         						}
         						this.xCacheArray[pointsInSegment] = x;
         						this.yCacheArray[pointsInSegment] = y;
+        						//Message.printStatus(2, routine, "Point["+pointsInSegment+"]=" + x + "," + y);
         						++pointsInSegment;
         					}
         					else {
@@ -4552,14 +4560,14 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
         		lasty = y;
         		++drawcount;
         	}
-        	// If here and the last line segment was not drawn, draw it
-        	Message.printStatus(2,routine,"pointsInSegment="+pointsInSegment + " yIsMissing="+yIsMissing);
-    		if ( this.useXYCache && (__graphType != TSGraphType.BAR) && (__graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) &&
-    			(pointsInSegment > 0) && !yIsMissing) {
-				// This point is the last in the data so need to draw the line
-    			// Missing point is found. If the number of points is > 0, draw the line
-    			GRDrawingAreaUtil.drawPolyline ( _da_graph, drawcount, this.xCacheArray, this.yCacheArray );
-    		}
+		}
+    	// If here and the last line segment was not drawn, draw it
+    	//Message.printStatus(2,routine,"pointsInSegment="+pointsInSegment + " yIsMissing="+yIsMissing);
+		if ( this.useXYCache && ((__graphType != TSGraphType.BAR) && (__graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) &&
+			(pointsInSegment > 0) && !yIsMissing) {
+			// This point is the last in the data so need to draw the line
+			// Missing point is found. If the number of points is > 0, draw the line
+			GRDrawingAreaUtil.drawPolyline ( _da_graph, pointsInSegment, this.xCacheArray, this.yCacheArray );
 		}
 	}
 	else {	
@@ -4581,7 +4589,7 @@ private void drawTS(int its, TS ts, TSGraphType graphType, PropList overrideProp
 				tsdata = ts.getDataPoint(date, tsdata);
 				y = tsdata.getDataValue();
 				dataFlag = tsdata.getDataFlag();
-				if ( dataFlag.length() == 0 ) {
+				if ( (dataFlag == null) || (dataFlag.length() == 0) ) {
 				    symbol = symbolNoFlag;
 				}
 				else {
@@ -4946,13 +4954,17 @@ private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolea
     else {
         String propValue = null;
         if ( flaggedData ) {
+        	// Determine symbol for flagged data
             propValue = getLayeredPropValue("FlaggedDataSymbolStyle", _subproduct, its, false, overrideProps);
-            if ( (propValue == null) || propValue.equals("") ) {
-                // Use the main symbol style
+            //Message.printStatus(2,"","Value of FlaggedDataSymbolStyle=" + propValue);
+            if ( (propValue == null) || propValue.equals("") || propValue.equalsIgnoreCase("None") ) {
+                // Symbol for flags was specified so use the main symbol style
                 propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
+                //Message.printStatus(2,"","FlaggedDataSymbolStyle is empty, so use SymbolStyle=" + propValue);
             }
         }
         else {
+        	// Determine symbol for not flagged data
             propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
         }
         try {   
