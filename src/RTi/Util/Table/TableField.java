@@ -7,7 +7,7 @@ import java.util.Vector;
 This class defines the fields (columns) in a table.  A DataTable is created
 by specifying a list of TableField objects to pass into the DataTable
 constructor.  Note that the field types have been implemented in a generic
-sense; however, for historical reasons, the table design somewhat mimicse Dbase data tables.
+sense; however, for historical reasons, the table design somewhat mimics Dbase data tables.
 In Dbase files, it is somewhat ambiguous to know
 when a numeric field is a floating point or integer.  It can be assumed that
 a precision of zero for a numeric field indicates an integer.  However, at this
@@ -87,6 +87,11 @@ private String _name;
 Field description, can be used for column tool tip when displaying table.
 */
 private String __description = "";
+
+/**
+Units for the column, for example "mm".
+*/
+private String _units = "";
 
 // TODO SAM 2011-04-27 Why is this needed - is it related to dBase constraint?
 /**
@@ -262,6 +267,14 @@ public int getPrecision ( )
 }
 
 /**
+Get the units for the column.
+@return column units
+*/
+public String getUnits ()
+{	return _units;
+}
+
+/**
 Get the field width.
 @return field width (overall character width).
 */
@@ -352,6 +365,16 @@ Set the field precision.
 */
 public void setPrecision ( int precision )
 {	_precision = precision;
+}
+
+/**
+Set the units for the column.
+@param units column units.
+*/
+public void setUnits ( String units )
+{	if ( units != null ) {
+		_units = units;
+	}
 }
 
 /**
