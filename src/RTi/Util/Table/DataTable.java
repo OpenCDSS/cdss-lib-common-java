@@ -3565,12 +3565,12 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
 	    }
     }
     if ( errors.size() > 0 ) {
-    	StringBuilder b = new StringBuilder("The following column(s) to sort were not found in table \"" + getTableID() + "\":");
+    	StringBuilder b = new StringBuilder("The following column(s) to sort were not found in table \"" + getTableID() + "\": ");
     	for ( int i = 0; i < errors.size(); i++ ) {
     		if ( i > 0 ) {
     			b.append (",");
     		}
-    		b.append(sortColumns[i]);
+    		b.append("\"" + errors.get(i) + "\"");
     	}
     	throw new RuntimeException ( b.toString() );
     }
