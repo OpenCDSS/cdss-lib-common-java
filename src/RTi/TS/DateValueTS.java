@@ -239,6 +239,7 @@ import RTi.Util.IO.DataUnitsConversion;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
+import RTi.Util.IO.ZipToolkit;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
@@ -274,7 +275,14 @@ public static boolean isDateValueFile ( String filename )
 {	BufferedReader in = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	try {
-	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+		if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
+			// Handle case where DateValue file is compressed (single file in .zip)
+			ZipToolkit zt = new ZipToolkit();
+			in = zt.openBufferedReaderForSingleFile(full_fname,0);
+		}
+		else {
+			in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+		}
 	    boolean is_datevalue = false;
 	    try {
     		// Read lines and check for common strings that indicate a DateValue file.
@@ -497,8 +505,15 @@ throws Exception
         Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + full_fname + "\"" );
     }
 	BufferedReader in = null;
-	// The following will throw an exception that is appropriate (like no file found).
-    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
+		// Handle case where DateValue file is compressed (single file in .zip)
+		ZipToolkit zt = new ZipToolkit();
+		in = zt.openBufferedReaderForSingleFile(full_fname,0);
+	}
+	else {
+		// The following will throw an exception that is appropriate (like no file found).
+	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+	}
     try {
     	// Call the fully-loaded method...
     	if ( is_file ) {
@@ -562,7 +577,14 @@ throws Exception
 		Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + filename + "\"" );
 	}
 	BufferedReader in = null;
-    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
+		// Handle case where DateValue file is compressed (single file in .zip)
+		ZipToolkit zt = new ZipToolkit();
+		in = zt.openBufferedReaderForSingleFile(full_fname,0);
+	}
+	else {
+		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
+	}
 	// Pass the file pointer and an empty time series, which
 	// will be used to locate the time series in the file.
 	// The following is somewhat ugly because if we are using an alias we
@@ -654,7 +676,15 @@ throws Exception
     if ( !IOUtil.fileReadable(full_fname) ) {
         Message.printWarning( 2, "DateValueTS.readTimeSeries", "File is not readable: \"" + fname + "\"" );
     }
-	BufferedReader in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+	BufferedReader in = null;
+	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
+		// Handle case where DateValue file is compressed (single file in .zip)
+		ZipToolkit zt = new ZipToolkit();
+		in = zt.openBufferedReaderForSingleFile(full_fname,0);
+	}
+	else {
+		in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+	}
     try {
     	ts = readTimeSeries ( req_ts, in, date1, date2, units, read_data );
     	ts.setInputName ( full_fname );
@@ -719,7 +749,14 @@ throws Exception, IOException, FileNotFoundException
     }
 	BufferedReader in = null;
 	try {
-        in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+		if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
+			// Handle case where DateValue file is compressed (single file in .zip)
+			ZipToolkit zt = new ZipToolkit();
+			in = zt.openBufferedReaderForSingleFile(full_fname,0);
+		}
+		else {
+			in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+		}
     	tslist = readTimeSeriesList ( null, in, date1, date2, units, read_data);
     	TS ts;
     	int nts = 0;
