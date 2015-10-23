@@ -146,7 +146,34 @@ public TSData goToNearestPrevious ( DateTime dt, boolean reset_if_fail )
 }
 
 /**
-Advance the iterator.  When called the first time, the initial values will be returned.
+Indicate if next() can be called to return data.
+If false is returned, then the iterator is positioned at the last date with data.
+*/
+public boolean hasNext ()
+{
+	// For an irregular time series, get the date/time for the next value and check whether it is past _date2
+	TSData nextData = _tsdata.getNext();
+	if ( nextData == null ) {
+		// There is no next point
+		return false;
+	}
+	else {
+		DateTime dt = nextData.getDate();
+		if ( dt == null ) {
+			// Next point does not have a date
+			return false;
+		}
+		else if ( dt.greaterThan(_date2) ) {
+			// Next point is past the end
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+Advance the iterator.  When called the first time, the initial value will be returned.
 @return null if the data is past the end or a pointer to an internal
 TSData object containing the data for the current time step (WARNING:  the
 contents of this object are volatile and change with each iteration).  Use the
@@ -186,7 +213,7 @@ public TSData next ( )
 	}
 
 	if ( theData == null ) {
-		// We are at the end or have exceeded the limits he data...
+		// We are at the end or have exceeded the limits the data...
 		_lastDateProcessed = true;
 	}
 	else {

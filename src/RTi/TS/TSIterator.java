@@ -294,6 +294,22 @@ throws Throwable
 }
 
 /**
+Indicate if next() can be called to return data.
+If false is returned, then the iterator is positioned at the last date with data.
+*/
+public boolean hasNext ()
+{
+	// For a regular time series, add one interval to the current date and see if
+	// it is past the end of the iterator
+	DateTime dt = new DateTime(_currentDate);
+	dt.addInterval(_intervalBase, _intervalMult);
+	if ( dt.greaterThan(_date2) ) {
+		return false;
+	}
+	return true;
+}
+
+/**
 Return the current state of the isLastDateProcessed flag.
 @return the current state of isLastDateProcessed flag for the iterator.
 */
@@ -699,6 +715,7 @@ public TSData previous ()
 		}
 	}
 	if ( _firstDateProcessed ) {
+		// FIXME SAM 2015-10-17 If next() is called to initialize iteration, then calling previous() always returns null
 		return null;
 	}
 	else {
