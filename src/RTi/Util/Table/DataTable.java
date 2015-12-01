@@ -3178,7 +3178,7 @@ throws Exception
 			    	cell = cell.trim();
 			    	if ( cell.length() != 0 ) {
 			    		try {
-			    			tablerec.addFieldValue( DateTime.parse(cell) );
+			    			tablerec.addFieldValue( DateTime.parse(cell.replace("\"", "")) );
 			    		}
 			    		catch ( Exception e ) {
 			    			tablerec.addFieldValue ( null );
