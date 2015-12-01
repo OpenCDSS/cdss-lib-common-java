@@ -8,6 +8,7 @@ import java.sql.Types;
 import java.util.Date;
 
 import RTi.DMI.DMI;
+import RTi.DMI.DMIUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
@@ -40,12 +41,15 @@ throws SQLException
     // Define the table columns from the ResultSet metadata
     ResultSetMetaData meta = rs.getMetaData();
     int columnCount = meta.getColumnCount();
-    String columnName;
+    String [] columnNames = new String[columnCount];
     int columnType, precision, scale;
     int [] columnTypes = new int[columnCount];
     for ( int i = 1; i <= columnCount; i++ ) {
-        columnName = meta.getColumnName(i);
-        columnType = sqlToDMIColumnType(meta.getColumnType(i));
+        columnNames[i - 1] = meta.getColumnName(i);
+        columnType = sqlToDMIColumnType(dbengineType, meta.getColumnType(i));
+        if ( Message.isDebugOn ) {
+        	Message.printDebug(1, routine, "Column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType);
+        }
         columnTypes[i - 1] = columnType;
         precision = meta.getPrecision(i); // More like width
         scale = meta.getScale(i); // Precision for floating point
@@ -64,20 +68,26 @@ throws SQLException
 	            scale = 6;
 	        }
         }
-        table.addField( new TableField(columnType,columnName,precision,scale), null);
+        table.addField( new TableField(columnType,columnNames[i - 1],precision,scale), null);
     }
     // Transfer each record in the ResultSet to the table
     String s;
     double d;
     float f;
     int i;
+    long l;
+    boolean b;
     Date date;
     Array a;
-    int baseType; // Used with Array.getBaseType(), the original SQL type
-    int baseType2 = TableField.DATA_TYPE_STRING; // The internal type, after conversion from SQL type
+    Object arrayObject;
+    int [] baseType = new int[columnCount]; // Used with Array.getBaseType(), the original SQL type
+    int [] baseType2 = new int [columnCount]; // The internal type, after conversion from SQL type
     TableRecord rec = null;
     boolean isNull;
+    int recordCount = 0; // Expected record count
+    int recordCountAdded = 0; // Records actually added
     while (rs.next()) {
+    	++recordCount;
         rec = new TableRecord(columnCount);
         for ( int iCol = 1; iCol <= columnCount; iCol++ ) {
             int i0 = iCol - 1;
@@ -120,6 +130,24 @@ throws SQLException
                         isNull = true;
                     }
                 }
+                else if ( columnTypes[i0] == TableField.DATA_TYPE_LONG ) {
+                    l = rs.getLong(iCol);
+                    if (!rs.wasNull()) {
+                        rec.addFieldValue(new Long(l));
+                    }
+                    else {
+                        isNull = true;
+                    }
+                }
+                else if ( columnTypes[i0] == TableField.DATA_TYPE_BOOLEAN ) {
+                    b = rs.getBoolean(iCol);
+                    if (!rs.wasNull()) {
+                        rec.addFieldValue(new Boolean(b));
+                    }
+                    else {
+                        isNull = true;
+                    }
+                }
                 else if ( columnTypes[i0] == TableField.DATA_TYPE_STRING ) {
                     s = rs.getString(iCol);
                     if (!rs.wasNull()) {
@@ -131,16 +159,24 @@ throws SQLException
                 }
                 else if ( table.isColumnArray(columnTypes[i0]) ) {
                 	// Column contains an array of other data, generally primitives
+                	// Set the array as the object without additional processing unless some translation is needed
+                	// Although downstream code can handle int[] and Integer[], normalize to primitives here if possible
+                	// Check the array content type for error-handling (letting unknown types through tends to cause problems later)
                     a = rs.getArray(iCol);
                     if (!rs.wasNull()) {
-                    	baseType = a.getBaseType();
+                    	baseType[i0] = a.getBaseType();
                     	if ( columnTypes[i0] == TableField.DATA_TYPE_ARRAY ) {
                     		// The column type does not yet have the base type so add...
-                    		baseType2 = sqlToDMIColumnType(baseType);
-                    		columnTypes[i0] = columnTypes[i0] + baseType2;
+                    		baseType2[i0] = sqlToDMIColumnType(dbengineType,baseType[i0]);
+                    		if ( Message.isDebugOn ) {
+                    			Message.printDebug(1, routine, "Column \"" + columnNames[i0] + "\" is array. SQLType=" + baseType[i0] + " columnType=" + baseType2[i0]);
+                    		}
+                    		columnTypes[i0] = TableField.DATA_TYPE_ARRAY + baseType2[i0];
+                    		// Have to set the column type back in the table because it was not set before
+                    		table.setTableField(i0, columnTypes[i0], columnNames[i0]);
                     	}
                     	// Now need to interpret the base type...
-                        if ( baseType == Types.DATE ) {
+                        if ( baseType[i0] == Types.DATE ) {
                         	// Know that the array will contain Date
                         	Date [] da = (Date [])(a.getArray());
                         	// Convert to DateTime objects
@@ -150,29 +186,70 @@ throws SQLException
                         	}
                             rec.addFieldValue(dta);
                         }
-                        else if ( baseType == Types.DOUBLE ) {
-                        	double [] da = (double [])(a.getArray());
-                            rec.addFieldValue(da);
+                        else if ( baseType[i0] == Types.DOUBLE ) {
+                        	// Translate to double[] for handling elsewhere
+                        	arrayObject = a.getArray();
+                        	if ( arrayObject instanceof double[] ) {
+                        		double [] da = (double [])arrayObject;
+                                rec.addFieldValue(da);
+                        	}
+                        	else if ( arrayObject instanceof Double[] ) {
+                        		Double [] Da = (Double [])arrayObject;
+                        		double [] da = new double[Da.length];
+                        		for ( int i2 = 0; i2 < Da.length; i2++ ) {
+                        			if ( Da[i2] == null ) {
+                        				da[i2] = DMIUtil.MISSING_DOUBLE;
+                        			}
+                        			else {
+                        				da[i2] = Da[i2];
+                        			}
+                        		}
+                                rec.addFieldValue(da);
+                        	}
+                        	else {
+                        		isNull = true;
+                        	}
                         }
-                        else if ( baseType == Types.FLOAT ) {
-                        	float [] fa = (float [])(a.getArray());
-                            rec.addFieldValue(fa);
+                        else if ( baseType[i0] == Types.FLOAT ) {
+                            rec.addFieldValue(a.getArray());
                         }
-                        else if ( baseType == Types.INTEGER ) {
-                        	int [] ia = (int [])(a.getArray());
-                            rec.addFieldValue(ia);
+                        else if ( baseType[i0] == Types.INTEGER ) {
+                        	// Translate to int [] for handling elsewhere
+                        	arrayObject = a.getArray();
+                        	if ( arrayObject instanceof int[] ) {
+                        		int [] ia = (int [])arrayObject;
+                                rec.addFieldValue(ia);
+                        	}
+                        	else if ( arrayObject instanceof Integer[] ) {
+                        		Integer [] Ia = (Integer [])arrayObject;
+                        		int [] ia = new int[Ia.length];
+                        		for ( int i2 = 0; i2 < Ia.length; i2++ ) {
+                        			if ( Ia[i2] == null ) {
+                        				ia[i2] = DMIUtil.MISSING_INT;
+                        			}
+                        			else {
+                        				ia[i2] = Ia[i2];
+                        			}
+                        		}
+                                rec.addFieldValue(ia);
+                        	}
+                        	else {
+                        		isNull = true;
+                        	}
                         }
-                        else if ( baseType == Types.BIGINT ) {
-                        	long [] la = (long [])(a.getArray());
-                            rec.addFieldValue(la);
+                        else if ( baseType[i0] == Types.BIGINT ) {
+                        	// This handles Long/long
+                            rec.addFieldValue(a.getArray());
                         }
-                        else if ( (baseType == Types.CHAR) || (baseType == Types.VARCHAR) || (baseType == Types.NVARCHAR) ) {
+                        else if ( (baseType[i0] == Types.CHAR) || (baseType[i0] == Types.VARCHAR) || (baseType[i0] == Types.NVARCHAR) ) {
                         	String [] sa = (String [])(a.getArray());
                             rec.addFieldValue(sa);
                         }
                         else {
                         	// Don't know the type
                         	// TODO SAM 2015-09-06 Need to confirm handling of the above baseType
+                        	// - evaluate whether to throw an exception
+                        	Message.printWarning(3,routine,"Don't know how to handle Java SQL array type " + baseType + " setting value to null.");
                         	isNull = true;
                         }
                     }
@@ -191,11 +268,13 @@ throws SQLException
                     }
                 }
                 if ( isNull ) {
+                	// Field was not yet added but should be added as null
                     rec.addFieldValue(null);
                 }
             }
             catch ( Exception e ) {
-                // Leave as null
+                // Leave as null but print a message to help figure out issue
+            	Message.printWarning(3,routine,"Error processing column[" + (iCol - 1) + "] \"" + columnNames[iCol - 1] + "\"");
                 Message.printWarning(3,routine,e);
             }
         }
@@ -206,6 +285,11 @@ throws SQLException
             // Should not happen
             Message.printWarning(3,routine,e);
         }
+        ++recordCountAdded;
+    }
+    // If some records were not processed, through an exception so that it does not seem like all is OK
+    if ( recordCountAdded != recordCount ) {
+    	throw new SQLException ( "Number of records in resultset=" + recordCount + " but " + recordCountAdded + " were processed.  Check log." );
     }
     return table;
 }
@@ -215,15 +299,23 @@ Lookup the SQL column type to the DataTable type.
 @param sqlColumnType SQL column type from Types
 @return DataTable column type from TableField
 */
-private int sqlToDMIColumnType(int sqlColumnType)
+private int sqlToDMIColumnType(int dbengineType, int sqlColumnType)
 {
     switch ( sqlColumnType ) {
     	case Types.ARRAY: return TableField.DATA_TYPE_ARRAY;
         case Types.BIGINT: return TableField.DATA_TYPE_LONG;
         // BINARY not handled
-        case Types.BIT: return TableField.DATA_TYPE_INT;
+        case Types.BIT:
+        	if ( dbengineType == DMI.DBENGINE_POSTGRESQL ) {
+        		// Database can have t or f as boolean
+        		return TableField.DATA_TYPE_BOOLEAN;
+        	}
+        	else {
+        		// 0 or 1
+        		return TableField.DATA_TYPE_INT;
+        	}
         // BLOB not handled
-        case Types.BOOLEAN: return TableField.DATA_TYPE_INT;
+        case Types.BOOLEAN: return TableField.DATA_TYPE_BOOLEAN;
         case Types.CHAR: return TableField.DATA_TYPE_STRING;
         // CLOB not handled
         case Types.DATE: return TableField.DATA_TYPE_DATE;
@@ -244,8 +336,7 @@ private int sqlToDMIColumnType(int sqlColumnType)
         case Types.VARCHAR: return TableField.DATA_TYPE_STRING;
         // VERBINARY not handled
         default:
-            Message.printWarning(2,"sqlToDMIColumnType",
-                "Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");
+            Message.printWarning(2,"sqlToDMIColumnType", "Unknown SQL type for conversion to table: " + sqlColumnType + ", using string.");
             return TableField.DATA_TYPE_STRING;
     }
 }
