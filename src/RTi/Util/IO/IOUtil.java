@@ -1,152 +1,3 @@
-// ----------------------------------------------------------------------------
-// IOUtil - input/output functions
-// ----------------------------------------------------------------------------
-// Notes:	(1)	This class contains public static RTi input/output
-//			utility functions.  They are essentially equivalent to
-//			the HMData C library routines, except for overloading
-//			and use of Java classes.
-//		(2)	This class is not meant to be initialized as an intance
-//			of an object.  It manages its own data.  Use this class
-//			to store useful program information.
-// ----------------------------------------------------------------------------
-// History:
-//
-// ? Jan 1998	Steven A. Malers, RTi	Work subsequent to this date has
-//					involved pulling in legacy code from
-//					RTi's libraries.
-// 28 Jan 1998	SAM, RTi		Update to include the getInputStream()
-//					function which is an intelligent way
-//					to get an input stream from a file name
-//					or URL.
-// 14 Mar 1998	SAM, RTi		Add javadoc.
-// 02 Apr 1998  DLG, RTi		Added getFileSeparator().
-// 07 May 1998  DLG, RTi		Added getVendor().
-// 03 Aug 1998	SAM, RTi		Add printStringList to match legacy
-//					code.
-// 16 Nov 1998	SAM, RTi		Add getFilesFromPathList,
-//					fileToStringList.
-// 30 Nov 1998	SAM, RTi		Add writeFile.
-// 02 Feb 1999	SAM, RTi		Update processFileHeaders - previously
-//					checked for comment anywhere in line.
-//					Now checks beginning of line.
-// 11 Mar 1999	SAM, RTi		Change so initialization messages are
-//					not printed to standard output.
-// 24 May 1999	CEN, RTi		Added check to processFileHeaders
-//					to make sure the oldheader returned 
-//					from getFileHeader is not null
-// 27 May 1999	SAM, RTi		Change so fileToStringList can handle
-//					a URL (for applets).  Change to catch
-//					Exception rather than IOException in
-//					many cases.
-// 07 Jan 2001	SAM, RTi		Copy IO to this IOUtil class.  Deprecate
-//					all the IO methods and point to this
-//					class.  The IOUtil name is consistent
-//					with other classes and the C++ versios.
-//					Clean up javadoc and optimize memory
-//					use (set unused to null).  Change some
-//					data and methods to protected, public
-//					to allow IO to call.  Change methods
-//					from int return to void where a return
-//					is not needed.  Other minor code
-//					cleanup.  Minor change to
-//					setProgramWorkingDir() documentation.
-// 28 Mar 2001	SAM, RTi		Add fileExists() and isBatch().  The
-//					latter can be use by programs that can
-//					run in batch and GUI mode.
-// 10 May 2001	SAM, RTi		Fully enable the ProcessManagerList
-//					code so that IOUtil can be used to
-//					broker lookups and serve as a "bulletin
-//					board".
-// 2001-11-08	SAM, RTi		Synchronize with UNIX.
-//					Change isReadable() to handle URLs also.
-// 2001-11-20	SAM, RTi		Fix printCreatorHeader() so that command
-//					line arguments correctly print within
-//					the maximum line width.
-// 2002-01-14	SAM, RTi		Add tempFileName() to get a temporary
-//					file name.
-// 2002-01-20	SAM, RTi		Add testing() methods to support test
-//					code.
-// 2002-03-29	SAM, RTi		Add toAbsolutePath() and
-//					toRelativePath().
-// 2002-04-16	SAM, RTi		Add setProgramCommandList().  This can
-//					be used with GUI-based programs where
-//					the commands are shown on-screen.
-// 2002-05-14	SAM, RTi		Add support for Linux in
-//					isUNIXMachine().
-// 2002-06-07	SAM, RTi		Deprecate getProgramWorkingDirectory()
-//					in favor of getProgramWorkingDir() to be
-//					consistent.
-// 2002-06-13	SAM, RTi		Add getFileExtension().
-// 2002-10-28	SAM, RTi		Add isBigEndianMachine().
-// 2002-11-05	SAM, RTi		Add appendToPath().  Update
-//					toRelativePath() to handle cases where
-//					the leading part of the path can be
-//					discarded and replaced with a series of
-//					"..\..".  Update toAbsolutePath()
-//					similarly.
-// 2003-02-20	SAM, RTi		Fix bug in toRelativePath() that was
-//					causing a wrong number of ".." to be
-//					used.
-// 2003-04-17	J. Thomas Sapienza, RTi	Reworked toRelativePath() entirely.
-// 2003-04-29	SAM, RTi		Deprecate getFileSeparator() - just use
-//					File.separator.
-// 2003-06-05	SAM, RTi		Handle XML support to
-//					processFileHeaders() and clean up the
-//					code some to remove old comments.
-// 2003-08-24	SAM, RTi		Increase warning level from 2 to 10 in
-//					getInputStream().
-// 2003-09-08	SAM, RTi		* Add isAbsolute() because the standard
-//					  File.isAbsolute() is not as handy as
-//					  needed.
-//					* Add getDrive() to return the drive for
-//					  a path.
-// 2003-09-17	JTS, RTi		* Fixed small bugs (very rare that they
-//					  would occur) in getAbsolutePath() and
-//					  getRelativePath().
-// 2003-11-04	SAM, RTi		* Add enforceFileExtension() to make
-//					  sure that a file has the desired
-//					  extension.
-// 2003-11-05	JTS, RTi		toRelativePath() was having issues
-//					with case-sensitivity and paths.  
-//					Corrected the problems that were 
-//					observed.
-// 2003-12-04	JTS, RTi		Added copyToClipboard().
-// 2004-02-03	JTS, RTi		Corrected a bug in toRelativePath().
-// 2004-03-15	SAM, RTi		Fixed bug in processFileHeaders() -
-//					now allow null comment string.
-// 2004-05-05	JTS, RTi		Changed setProgramWorkingDir() to 
-//					put the proper drive letter on DOS 
-//					working directories that do not have 
-//					drive letters.
-// 2004-07-07	SAM, RTi		Rework printCreatorHeader() to handle
-//					XML - previous work by JTS (not in
-//					history) used boolean to indicate XML
-//					but changed to PropList to allow more
-//					flexibility.
-// 2004-07-21	SAM, RTi		Update adjustPath() to return the
-//					original path if no adjustment is made.
-// 2004-08-04	JTS, RTi		Added release().
-// 2004-09-30	JTS, RTi		Added copyFile().
-// 2005-05-23	JTS, RTi		Corrected bug in toRelativePath() that
-//					was causing paths with similar but
-//					different roots to convert to relative 
-//					paths improperly.
-// 2005-06-06	JTS, RTi		For standalone programs (ie, those that
-//					are not applets) the host name is now
-//					properly set to be the name of the 
-//					computer on which the program is 
-//					running.
-// 2005-06-08	JTS, RTi		Added setApplicationHomeDir().
-// 2005-11-16	JTS, RTi		Added getJarFilesManifests().
-// 2005-11-17	JTS, RTi		Added getSystemProperties().
-// 2006-02-16	JTS, RTi		Numerous changes to better support UNC
-//					paths.
-// 2007-01-02   KAT, RTi	Fixed the getPathUsingWorkingDir() method
-//							to handle relative paths correctly.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-//EndHeader
-
 package RTi.Util.IO;
 
 import java.applet.Applet;
@@ -1287,8 +1138,8 @@ public static List getJarFilesManifests() {
 	Object[] o = null;
 	Set set = null;
 	String tab = "    ";
-	List sort = null;
-	List v = new Vector();
+	List<String> sort = null;
+	List<String> v = new ArrayList<String>();
 	
 	for (int i = 0; i < jars.length; i++) {
 		if (!StringUtil.endsWithIgnoreCase(jars[i], ".jar")) {
@@ -1325,6 +1176,14 @@ public static List getJarFilesManifests() {
 				"An error occurred while reading the manifest for: '" + jars[i] + "'.");
 			Message.printWarning(3, routine, e);
 			v.add(tab + "An error occurred while reading the manifest.");
+		}
+		finally {
+			try {
+				jar.close();
+			}
+			catch ( IOException e ) {
+				// Should not happen
+			}
 		}
 
 		v.add("");
@@ -1618,7 +1477,7 @@ the Java application is currently running.
 public static List<String> getSystemProperties() {
 	String tab = "    ";
 	
-	List<String> v = new Vector();
+	List<String> v = new ArrayList<String>();
 
 	v.add("System Properties Defined for Application: ");
 	v.add(tab + " Program Name: " + _progname + " " + _progver);
@@ -1656,6 +1515,15 @@ public static List<String> getSystemProperties() {
 	v.add(tab + "Name: " + System.getProperty("os.name"));
 	v.add(tab + "Version: " + System.getProperty("os.version"));
 	v.add(tab + "System Architecture: " + System.getProperty("os.arch"));
+	v.add("");
+	
+	v.add("Java Virtual Machine Memory Information: ");
+	Runtime r = Runtime.getRuntime();
+	v.add(tab + "Maximum memory (see Java -Xmx): " + r.maxMemory() + " bytes, " + r.maxMemory()/1024 + " kb, " + r.maxMemory()/1048576 + " mb" );
+	v.add(tab + "Total memory (will be increased to maximum as needed): " + r.totalMemory() + " bytes, " + r.totalMemory()/1024 + " kb, " + r.totalMemory()/1048576 + " mb");
+	long used = r.totalMemory() - r.freeMemory();
+	v.add(tab + "Used memory: " + used + " bytes, " + used/1024 + " kb, " + used/1048576 + " mb");
+	v.add(tab + "Free memory: " + r.freeMemory() + " bytes, " + r.freeMemory()/1024 + " kb, " + r.freeMemory()/1048576 + " mb");
 	v.add("");
 	
     v.add("Java Virtual Machine Properties (System.getProperties()): ");
