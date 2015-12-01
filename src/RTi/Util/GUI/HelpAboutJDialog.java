@@ -30,14 +30,13 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -50,9 +49,7 @@ import javax.swing.JScrollPane;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 
 /**
@@ -163,7 +160,7 @@ public void actionPerformed(ActionEvent event) {
 		List<String> v1 = IOUtil.getSystemProperties();
 		List<String> v2 = IOUtil.getJarFilesManifests();
 
-		List<String> v3 = new Vector();
+		List<String> v3 = new ArrayList<String>();
 		for (int i = 0; i < v1.size(); i++) {
 			v3.add(v1.get(i));
 		}
