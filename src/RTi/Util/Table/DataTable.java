@@ -2566,6 +2566,19 @@ the initial read and are not available for further processing.</td>
 </tr>
 
 <tr>
+<td><b>TextColumns</b></td>
+<td>Specify comma-separated column names that should be treated as text columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
+<td><b>Top</b></td>
+<td>Specify an integer that is the top N rows to be processed.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
 <td><b>TrimInput</b></td>
 <td>"True" or "False".  Indicates input strings should be trimmed before parsing.</td>
 <td>False</td>
@@ -2694,6 +2707,28 @@ throws Exception
             dateTimeColumns[i] = dateTimeColumns[i].trim();
         }
     }
+    
+    String [] textColumns = null;
+    propVal = props.getValue("TextColumns");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+        textColumns = propVal.split(",");
+        for ( int i = 0; i < textColumns.length; i++ ) {
+            textColumns[i] = textColumns[i].trim();
+        }
+    }
+    
+    int top = -1;
+    int topm1 = -1; // Used for 0-index comparison
+    propVal = props.getValue("Top");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+    	try {
+    		top = Integer.parseInt(propVal);
+    	    topm1 = top - 1;
+    	}
+    	catch ( NumberFormatException e ) {
+    		// Just process all
+    	}
+    }
 
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
 	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
@@ -2776,7 +2811,7 @@ throws Exception
 	List<List<String>> data_record_tokens = new ArrayList<List<String>>();
 	List<String> v = null;
 	int maxColumns = 0;
-	int size = 0;
+	int numColumnsParsed = 0;
 
 	BufferedReader in = new BufferedReader(new FileReader(filename));
 	String line;
@@ -2789,6 +2824,7 @@ throws Exception
 	// Read until the end of the file...
 	
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
+	int dataLineCount = 0;
 	int linecount0; // linecount0 = linecount - 1 (zero index), for code perspective.
 	boolean headers_found = false; // Indicates whether the headers have been found
 	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
@@ -2866,15 +2902,21 @@ throws Exception
 
     	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of columns below.
     	
+		++dataLineCount;
+		// If "Top" was specified as a parameter, skip lines after top
+		if ( (top >= 0) && (dataLineCount > top) ) {
+			break;
+		}
+		
         if ( TrimInput_Boolean ) {
 			v = StringUtil.breakStringList(line.trim(), Delimiter, parseFlag );
 		}
 		else {
             v = StringUtil.breakStringList(line, Delimiter, parseFlag );
 		}
-		size = v.size();
-		if (size > maxColumns) {
-			maxColumns = size;
+		numColumnsParsed = v.size();
+		if (numColumnsParsed > maxColumns) {
+			maxColumns = numColumnsParsed;
 		}
 		// Save the tokens from the data rows - this will NOT include comments, headers, or lines to be excluded.
 		data_record_tokens.add(v);
@@ -2911,7 +2953,7 @@ throws Exception
 	// columns need to be determined.
 	
 	numFields = tableFields.size();
-	size = data_record_tokens.size();
+	int numRecords = data_record_tokens.size(); // Number of data records
 	int [] count_int = new int[maxColumns];
     int [] count_double = new int[maxColumns];
     int [] count_string = new int[maxColumns];
@@ -2932,7 +2974,11 @@ throws Exception
     String cell_trimmed; // Must have when checking for types.
     int periodPos; // Position of period in floating point numbers
     boolean isTypeFound = false;
-	for ( int irow = 0; irow < size; irow++ ) {
+	for ( int irow = 0; irow < numRecords; irow++ ) {
+		// If "Top" was specified as a parameter, skip lines after top
+		if ( (top >= 0) && (irow > topm1) ) {
+			break;
+		}
 	    v = data_record_tokens.get(irow);
 	    vsize = v.size();
 	    // Loop through all columns in the row.
@@ -2987,6 +3033,7 @@ throws Exception
 	// set the table field type and if a string, max width.
 	
 	int [] tableFieldType = new int[tableFields.size()];
+	boolean isString = false;
 	boolean isDateTime = false;
 	boolean isInteger = false; // TODO SAM 2015-08-13 enable function parameter later.
 	boolean isDouble = false; // TODO SAM 2015-08-13 enable function parameter later.
@@ -3001,7 +3048,35 @@ throws Exception
     				}
     			}
     		}
-    	    if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
+    		if ( textColumns != null ) {
+    			for ( int i = 0; i < textColumns.length; i++ ) {
+    				if ( textColumns[i].equalsIgnoreCase(tableField.getName()) ) {
+    					isString = true;
+    				}
+    			}
+    		}
+    		// Set column type based on calling code specified type and then discovery from data
+    	    if ( isDateTime ) {
+    	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is date/time as determined from specified column type." );
+    	    }
+    	    else if ( isString ) {
+    	    	tableField.setDataType(TableField.DATA_TYPE_STRING);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
+    	        if ( lenmax_string[icol] <= 0 ) {
+    	            // Likely that the entire column of numbers is empty so set the width to the field name
+    	            // width if available)
+    	            tableField.setWidth (tableFields.get(icol).getName().length() );
+    	        }
+    	        else {
+    	            tableField.setWidth (lenmax_string[icol] );
+    	        }
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is string as determined from specified column type." );
+    	    }
+    	    else if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
     	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
     	        // All data are integers so assume column type is integer
     	        // Note that integers also meet the criteria of double, hence the extra check above
@@ -3025,12 +3100,6 @@ throws Exception
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
-    	    else if ( isDateTime ) {
-    	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
-    	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
-    	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is date/time as determined from specified column type." );
-    	    }
     	    else {
     	        // Based on what is known, can only treat column as containing strings.
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
@@ -3078,7 +3147,11 @@ throws Exception
 	
 	int cols = 0;
 	int errorCount = 0;
-	for (int irow = 0; irow < size; irow++) {
+	for (int irow = 0; irow < numRecords; irow++) {
+		// If "Top" was specified as a parameter, skip lines after top
+		if ( (top >= 0) && (irow > topm1) ) {
+			break;
+		}
 		v = data_record_tokens.get(irow);
 
 		tablerec = new TableRecord(maxColumns);
