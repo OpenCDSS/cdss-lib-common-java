@@ -142,6 +142,12 @@ Constant that represents a missing date (DateTime).
 public static final Date MISSING_DATE = null;
 
 /** 
+Constant that represents a missing boolean value.
+Booleans must be handled internally as an object, not primitive, so that a null state can be 
+*/
+public static final Double MISSING_BOOLEAN = null;
+
+/** 
 Constant that represents a missing double value.
 */
 public static final double MISSING_DOUBLE = Double.NaN;
@@ -2966,6 +2972,29 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 		//where_clause = where_clause.toUpperCase();
 	//}
 	return where_clause;
+}
+
+/**
+Determines whether a boolean value is missing.
+@param value the boolean to be checked
+@return true always because the value will be true or false (see overloaded version for Boolean type)
+*/
+public static boolean isMissing(boolean value) {
+	return false;
+}
+
+/**
+Determines whether a Boolean value is missing.
+@param value the Boolean to be checked
+@return true always because the value will be true or false
+*/
+public static boolean isMissing(Boolean value) {
+	if ( value == null ) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /**

@@ -1,7 +1,7 @@
 package RTi.Util.Table;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 This class defines the fields (columns) in a table.  A DataTable is created
@@ -58,6 +58,11 @@ Date and time, stored internally as DateTime object (advantage is can use precis
 other data to control object).
 */
 public final static int DATA_TYPE_DATETIME = 7;
+
+/**
+Boolean.
+*/
+public final static int DATA_TYPE_BOOLEAN = 8;
 
 /**
 Used to indicate an array type of array.  See DATA_TYPE_ARRAY for more information.
@@ -220,8 +225,9 @@ Get the list of available data types, useful for displaying choices to users.
 */
 public static List<String> getDataTypeChoices ( boolean includeNote )
 {
-    List<String> dataTypeList = new Vector();
+    List<String> dataTypeList = new ArrayList<String>();
     if ( includeNote ) {
+    	dataTypeList.add ( "boolean - boolean (true/false)" );
         dataTypeList.add ( "datetime - date and time" );
         dataTypeList.add ( "double - double precision number" );
         dataTypeList.add ( "float - single precision number" );
@@ -231,6 +237,7 @@ public static List<String> getDataTypeChoices ( boolean includeNote )
         dataTypeList.add ( "string" );  
     }
     else {
+    	dataTypeList.add ( "boolean" );
         dataTypeList.add ( "datetime" );
         dataTypeList.add ( "double" );
         dataTypeList.add ( "float" );
