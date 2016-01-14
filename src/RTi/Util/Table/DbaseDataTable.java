@@ -132,6 +132,19 @@ public void close() {
 }
 
 /**
+Determine the table field width based on original table column width and defaults.
+*/
+private static int determineFieldWidth ( DataTable table, int ifield ) {
+	int fieldWidth = table.getFieldWidth(ifield);
+	if ( fieldWidth < 0 ) {
+		// If negative then default is expected
+		// TODO SAM 2016-01-12 intelligent default would be the maximum string width or digits
+		fieldWidth = 32;
+	}
+	return fieldWidth;
+}
+
+/**
 Return the field value for the requested record and field index.
 @param record_index zero-based index of record.
 @param field_index zero_based index of desired field.
@@ -604,7 +617,7 @@ throws IOException
 
 	int size = 0;
 	for ( int i = 0; i < nfields; i++ ) {
-		size += table.getFieldWidth(i);
+		size += determineFieldWidth(table, i);
 	}
 	size += 1;	// leading delete flag
 	raf_DBF_stream.writeLittleEndianShort((short)size);
@@ -654,6 +667,8 @@ throws IOException
 
 	StringBuffer b = new StringBuffer();
 	// Put together the format specifier for each field as the fields are processed...
+	int [] fieldWidth = new int[table.getNumberOfFields()];
+	int [] precision = new int[table.getNumberOfFields()];
 	for ( int ifield = 0; ifield < nfields; ifield++ ) {
 		//32-42 field descriptor name (11 bytes, null-terminated)
 		b.setLength(0);
@@ -675,12 +690,14 @@ throws IOException
 		if ( field_type == TableField.DATA_TYPE_STRING ) {
 			raf_DBF_stream.writeLittleEndianChar1 ('C');
 		}
-		else if ( field_type == TableField.DATA_TYPE_DOUBLE ) {
+		else if ( field_type == TableField.DATA_TYPE_DOUBLE ||
+			(field_type == TableField.DATA_TYPE_INT) ) {
 		    raf_DBF_stream.writeLittleEndianChar1 ('N');
 		}
 		else {
 			raf_DBF_stream.close();
-			throw new IOException ( "Writing TableField type " + field_type + " is not supported." );
+			throw new IOException ( "Writing TableField \"" + table.getFieldName(ifield) + "\" type " +
+				field_type + " (" + TableField.getDataTypeAsString(field_type) + ") is not supported." );
 		}
 
 		// 44-47 reserved
@@ -691,11 +708,23 @@ throws IOException
 
 		// 48 field length
 		//raf_DBF_stream.writeUnsignedByte(table.getFieldWidth(ifield));
-		raf_DBF_stream.writeByte( table.getFieldWidth(ifield));
+		fieldWidth[ifield] = determineFieldWidth(table,ifield);
+
+		//Message.printStatus(2, "", "Writing field \"" + table.getFieldName(ifield) + "\" width=" + fieldWidth[ifield]);
+		raf_DBF_stream.writeByte(fieldWidth[ifield]);
 
 		// 49 field decimal count in binary 
 		//raf_DBF_stream.writeUnsignedByte(table.getFieldPrecision(ifield));
-		raf_DBF_stream.writeByte( table.getFieldPrecision(ifield));
+		precision[ifield] = table.getFieldPrecision(ifield);
+		if ( precision[ifield] < 0 ) {
+			// For integers and strings - set to zero
+			if ( (field_type == TableField.DATA_TYPE_STRING) ||
+				(field_type == TableField.DATA_TYPE_INT) ) {
+				precision[ifield] = 0;
+			}
+		}
+		raf_DBF_stream.writeByte(precision[ifield]);
+		//Message.printStatus(2, "", "Writing field \"" + table.getFieldName(ifield) + "\" precision=" + precision[ifield]);
 
 		// 50-51 reserved
 		raf_DBF_stream.writeByte(0);
@@ -741,18 +770,30 @@ throws IOException
 			// Write the field data value using the format specification assigned above.  The formatString()
 			// method cannot just take an Object so need to cast.
 			try {
-			    outstring = StringUtil.formatString(table.getFieldValue(i,ifield),format_spec[ifield]);
+			    outstring = StringUtil.formatString(table.getFieldValue(i,ifield),format_spec[ifield] );
+			    // Make sure to truncate the string to the field width,
+			    // which may have been defaulted here and different from the original table
+			    if ( outstring.length() > fieldWidth[ifield] ) {
+			    	outstring = outstring.substring(0,fieldWidth[ifield]);
+			    }
+			    else if ( outstring.length() < fieldWidth[ifield] ) {
+			    	// Pad the string with spaces on the left 
+			    	StringBuilder sb = new StringBuilder(outstring);
+			    	int spaces = fieldWidth[ifield] - outstring.length();
+			    	for ( int is = 0; is < spaces; is++ ) {
+			    		sb.insert(0, ' ');
+			    	}
+			    	outstring = sb.toString();
+			    }
 			}
 			catch ( Exception e ) {
 				Message.printWarning ( 2, "", e );
 				raf_DBF_stream.close();
-				raf_DBF_stream = null;
-				outstring = null;
-				throw new IOException (
-				"Error writing record " + i + " field " + ifield + " using " + format_spec[ifield]);
+				throw new IOException ("Error writing record " + i + " field " + ifield + " using " + format_spec[ifield]);
 			}
 			// The string will be the exact length so can just write the whole thing...
 			raf_DBF_stream.writeLittleEndianChar1(outstring);
+			//Message.printStatus(2, "", "Writing output " + outstring.length() + " characters: \"" + outstring + "\"");
 		}
 	}
 
