@@ -37,12 +37,11 @@ track of additional data that comes in very handy, such as:<ul>
 The most useful data is the name, because if names are used then nodes can
 be programatically referred to in the tree by a pre-determined name.  
 Instead of finding a node by manually recursing through a tree or by
-keeping a reference to a specific node, the node can be referred to be name, 
-instead.
+keeping a reference to a specific node, the node can be referred to be name, instead.
 <p>
 <b>Note:</b> This class is ready-to-go for insertion in a SimpleJTree, and 
 applications can just use this class, but at the same time this class
-is easily extensibile for more specialized purposes.  The developer should
+is easily extensible for more specialized purposes.  The developer should
 choose which way to go.  For an example of a specialized version, see
 RTi.GIS.GeoView.GeoViewLegendJTree_Node.
 */
@@ -86,12 +85,11 @@ Optional data of any type that can be held in the node.
 private Object __data = null;
 
 /**
-Constructor.  Creates a node with the given text and a name the same as 
-the text
+Constructor.  Creates a node with the given text and a name the same as the text
 @param text the text to display in the node
 */
 public SimpleJTree_Node(String text) {
-	super();
+	super(text);
 	__containsComponent = false;
 	__text = text;
 	initialize(text);
@@ -114,7 +112,7 @@ Constructor.  Creates a node that holds the given text and has the given name.
 @param name the name of this node.
 */
 public SimpleJTree_Node(String text, String name) {
-	super();
+	super(text);
 	__text = text;
 	__containsComponent = false;
 	initialize(name);
@@ -128,7 +126,7 @@ and has the given name.
 @param name the name of this node.
 */
 public SimpleJTree_Node(String text, Icon icon, String name) {
-	super();
+	super(text);
 	__text = text;
 	__icon = icon;
 	__containsComponent = false;
@@ -140,15 +138,13 @@ Clones this node and returns a copy with the identical settings.  If the
 node being cloned contains a Component, that Component is <b>NOT</b> cloned,
 too.  The cloned node will contain a reference to the same Component held in
 the original node.  The data stored in the cloned object is not a clone
-of the original data: a reference is made to the same data object as in the 
-original.
+of the original data: a reference is made to the same data object as in the original.
 @return a cloned copy of this node.
 */
 public Object clone() {
 	SimpleJTree_Node cloned = null;
 	if (__containsComponent) {
-		cloned = new SimpleJTree_Node((Component)getUserObject(), 
-			__name);
+		cloned = new SimpleJTree_Node((Component)getUserObject(), __name);
 	}
 	else {
 		cloned = new SimpleJTree_Node(__text, __icon, __name);
@@ -176,8 +172,7 @@ If this node (not the passed-in node) contains a component then only the names
 of the nodes are checked to see if they match.
 <p>
 If this node (not the passed-in node) does not contain a component, then the 
-name of the node, the node's icon, and the nodes text are all checked to see if
-they are equal.
+name of the node, the node's icon, and the nodes text are all checked to see if they are equal.
 @param node the node to compare against.
 @return true if the nodes are equal.
 */
@@ -223,18 +218,6 @@ public boolean equals(SimpleJTree_Node node) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__icon = null;
-	__name = null;
-	__text = null;
-	__data = null;
-	super.finalize();
-}
-
-/**
 Returns the data stored in this node.
 @return the data stored in this node.
 */
@@ -260,17 +243,16 @@ public String getName() {
 
 /**
 Returns the value stored in the superclass of this node.  This is used by 
-the SimpleJTree_CellRenderer to determine the value of the node <i>afteR</i>
-editing has finished.
+the SimpleJTree_CellRenderer to determine the value of the node <i>after</i> editing has finished.
 @return the value stored in the superclass of this node.
 */
 public String getSuperString() {
 	return super.toString();
 }
 
+// TODO SAM 2015-12-13 Why is this here?  Doesn't the base class have already for node labels
 /**
-Return the text of this node (which is what is stored in the node if 
-a Component is not stored in it).
+Return the text of this node (which is what is stored in the node if a Component is not stored in it).
 @return the text of this node.
 */
 public String getText() {
@@ -293,7 +275,7 @@ private void initialize(String name) {
 }
 
 /**
-Returns whether this ndoe is visible or not.
+Returns whether this node is visible or not.
 @return whether this node is visible or not.
 */
 public boolean isVisible() {
@@ -302,8 +284,7 @@ public boolean isVisible() {
 
 /**
 Sets whether this node should be deleted in the future or not.
-@param markDelete whether this node should be deleted in the future (true) or 
-not (false).
+@param markDelete whether this node should be deleted in the future (true) or not (false).
 */
 public void markForDeletion(boolean markDelete) {
 	__delete = markDelete;
@@ -311,8 +292,7 @@ public void markForDeletion(boolean markDelete) {
 
 /**
 Sets whether this node should be made visible in the future or not.
-@param visible whether this node shoul dbe made visible in the future (true)
-or not (false).
+@param visible whether this node should be made visible in the future (true) or not (false).
 */
 public void markVisible(boolean visible) {
 	__visible = visible;
@@ -328,8 +308,7 @@ public void setComponent(Component component) {
 
 /**
 Sets whether this node contains a component or not.
-@param containsComponent whether this node contains a component (true) 
-or not (false).
+@param containsComponent whether this node contains a component (true) or not (false).
 */
 public void setComponent(boolean containsComponent) {
 	__containsComponent = containsComponent;
@@ -345,8 +324,7 @@ public void setData(Object data) {
 
 /**
 Sets the Icon used if this displays text.
-@param icon the icon to show if this displays text.  If null, no icon will
-be showed.
+@param icon the icon to show if this displays text.  If null, no icon will be shown.
 */
 public void setIcon(Icon icon) {
 	__icon = icon;
@@ -370,8 +348,7 @@ public void setText(String text) {
 
 /**
 Returns whether this node should be deleted sometime in the future.
-@return whether this node should be deleted sometime in the future (true)
-or not (false).
+@return whether this node should be deleted sometime in the future (true) or not (false).
 */
 public boolean shouldBeDeleted() {
 	return __delete;
@@ -385,7 +362,7 @@ SimpleJTree_Node Name: [Name as returned by getName()]<br>
 @return a String representation of the node.
 */
 public String toString() {
-	return "SimpleJTree_Node Name: " + __name + "\n    " + super.toString();
+	return "SimpleJTree_Node Name: " + __name + " " + super.toString();
 }
 
 }
