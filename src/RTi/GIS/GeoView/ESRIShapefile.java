@@ -971,7 +971,7 @@ included.  The first shape is used to indicate the type of shapefile.
 @param to_projection The projection to use for the output.
 @exception IOException if there is an error writing the file.
 */
-public static void write ( String filename, DataTable table, List shapes,
+public static void write ( String filename, DataTable table, List<GRShape> shapes,
 	GeoProjection from_projection, GeoProjection to_projection )
 throws IOException
 {	write ( filename, table, shapes, true, false, from_projection, to_projection );
@@ -992,7 +992,7 @@ included.  The first shape is used to indicate the type of shapefile.
 @param to_projection The projection to use for the output.
 @exception IOException if there is an error writing the file.
 */
-public static void write ( String filename, DataTable table, List shapes, boolean visible_only,
+public static void write ( String filename, DataTable table, List<GRShape> shapes, boolean visible_only,
 	boolean selected_only, GeoProjection from_projection, GeoProjection to_projection )
 throws IOException
 {	// Get the file names for all 3 files...
