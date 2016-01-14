@@ -3048,6 +3048,7 @@ throws Exception
     				}
     			}
     		}
+    		isString = false;
     		if ( textColumns != null ) {
     			for ( int i = 0; i < textColumns.length; i++ ) {
     				if ( textColumns[i].equalsIgnoreCase(tableField.getName()) ) {
