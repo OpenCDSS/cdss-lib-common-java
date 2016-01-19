@@ -2,7 +2,7 @@ package RTi.Util.Time;
 
 import RTi.Util.Message.Message;
 
-// TODO SAM 2012-04-11 This code heeds to be reviewed in conjunction with DateTimeFormat.  Ideally, the
+// TODO SAM 2012-04-11 This code needs to be reviewed in conjunction with DateTimeFormat.  Ideally, the
 // DateTimeFormat class should just contain instances of DateTimeFormatterType (an enumeration) and the
 // format string.  Then a DateTimeFormatter class could use DateTimeFormat to do formatting and this
 // DateTimeParse class could be used for parsing. For now, include the DateTimeFormatter type as a data member
