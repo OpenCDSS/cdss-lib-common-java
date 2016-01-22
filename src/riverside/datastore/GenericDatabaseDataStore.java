@@ -35,28 +35,18 @@ public class GenericDatabaseDataStore extends AbstractDatabaseDataStore
 {
 
 /**
-Datastore configuration properties that map the database time series metadata table/view
-to the datastore.
+Datastore configuration properties that map the database time series metadata table/view to the datastore.
 */
 public static final String TS_META_TABLE_PROP = "TimeSeriesMetadataTable";
-public static final String TS_META_TABLE_LOCTYPE_COLUMN_PROP =
-    "TimeSeriesMetadataTable_LocationTypeColumn";
-public static final String TS_META_TABLE_LOCATIONID_COLUMN_PROP =
-    "TimeSeriesMetadataTable_LocationIdColumn";
-public static final String TS_META_TABLE_DATASOURCE_COLUMN_PROP =
-    "TimeSeriesMetadataTable_DataSourceColumn";
-public static final String TS_META_TABLE_DATATYPE_COLUMN_PROP =
-    "TimeSeriesMetadataTable_DataTypeColumn";
-public static final String TS_META_TABLE_DATAINTERVAL_COLUMN_PROP =
-    "TimeSeriesMetadataTable_DataIntervalColumn";
-public static final String TS_META_TABLE_SCENARIO_COLUMN_PROP =
-    "TimeSeriesMetadataTable_ScenarioColumn";
-public static final String TS_META_TABLE_DESCRIPTION_COLUMN_PROP =
-    "TimeSeriesMetadataTable_DescriptionColumn";
-public static final String TS_META_TABLE_UNITS_COLUMN_PROP =
-    "TimeSeriesMetadataTable_DataUnitsColumn";
-public static final String TS_META_TABLE_ID_COLUMN_PROP =
-    "TimeSeriesMetadataTable_MetadataIdColumn";
+public static final String TS_META_TABLE_LOCTYPE_COLUMN_PROP = "TimeSeriesMetadataTable_LocationTypeColumn";
+public static final String TS_META_TABLE_LOCATIONID_COLUMN_PROP = "TimeSeriesMetadataTable_LocationIdColumn";
+public static final String TS_META_TABLE_DATASOURCE_COLUMN_PROP = "TimeSeriesMetadataTable_DataSourceColumn";
+public static final String TS_META_TABLE_DATATYPE_COLUMN_PROP = "TimeSeriesMetadataTable_DataTypeColumn";
+public static final String TS_META_TABLE_DATAINTERVAL_COLUMN_PROP = "TimeSeriesMetadataTable_DataIntervalColumn";
+public static final String TS_META_TABLE_SCENARIO_COLUMN_PROP = "TimeSeriesMetadataTable_ScenarioColumn";
+public static final String TS_META_TABLE_DESCRIPTION_COLUMN_PROP = "TimeSeriesMetadataTable_DescriptionColumn";
+public static final String TS_META_TABLE_UNITS_COLUMN_PROP = "TimeSeriesMetadataTable_DataUnitsColumn";
+public static final String TS_META_TABLE_ID_COLUMN_PROP = "TimeSeriesMetadataTable_MetadataIdColumn";
 
 public static final String TS_DATA_TABLE_PROP = "TimeSeriesDataTable";
 public static final String TS_DATA_TABLE_METAID_COLUMN_PROP = "TimeSeriesDataTable_MetadataIdColumn";
@@ -137,6 +127,7 @@ throws IOException, Exception
     }
     dmi.open();
     GenericDatabaseDataStore ds = new GenericDatabaseDataStore( name, description, dmi );
+    // Save all the properties generical for use later.  This defines tables for time series meta and data mapping.
     ds.setProperties(props);
     return ds;
 }
