@@ -10,6 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -26,14 +28,17 @@ public class ZipToolkit {
 	public ZipToolkit () {
 		
 	}
-	
+
+	// See:  http://examples.javacodegeeks.com/core-java/util/zip/zipinputstream/java-unzip-file-example/
 	/**
 	 * Unzip a zip file to a folder.
-	 * See:  http://examples.javacodegeeks.com/core-java/util/zip/zipinputstream/java-unzip-file-example/
+	 * @param zipFile path to file to unzip
+	 * @param destinationFolder 
 	 */
-	public void unzipFileToFolder ( String zipFile, String destinationFolder )
+	public List<String> unzipFileToFolder ( String zipFile, String destinationFolder, boolean returnList )
 	throws IOException, FileNotFoundException
 	{
+		List<String> outputFileList = new ArrayList<String>();
 		String routine = getClass().getSimpleName() + ".unzipFileToFolder";
 		File directory = new File(destinationFolder);
         
@@ -49,43 +54,52 @@ public class ZipToolkit {
         
 		ZipEntry entry = zipInput.getNextEntry();
         
-		while(entry != null){
-			String entryName = entry.getName();
-			File file = new File(destinationFolder + File.separator + entryName);
-            
-			if ( Message.isDebugOn ) {
-				Message.printDebug(1,routine,"Unzip file " + entryName + " to " + file.getAbsolutePath());
-			}
-            
-			// create the directories of the zip directory
-			if(entry.isDirectory()) {
-				File newDir = new File(file.getAbsolutePath());
-				if(!newDir.exists()) {
-					boolean success = newDir.mkdirs();
-					if(success == false) {
-						Message.printWarning(3,routine,"Problem creating folder \"" + file.getAbsolutePath() + "\"");
+		try {
+			while(entry != null){
+				String entryName = entry.getName();
+				String unzippedFile = destinationFolder + File.separator + entryName;
+				File file = new File(unzippedFile);
+	            
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1,routine,"Unzip file " + entryName + " to " + file.getAbsolutePath());
+				}
+	            
+				// create the directories of the zip directory
+				if(entry.isDirectory()) {
+					File newDir = new File(file.getAbsolutePath());
+					if(!newDir.exists()) {
+						boolean success = newDir.mkdirs();
+						if(success == false) {
+							Message.printWarning(3,routine,"Problem creating folder \"" + file.getAbsolutePath() + "\"");
+						}
 					}
+	            }
+				else {
+					FileOutputStream fOutput = new FileOutputStream(file);
+					if ( returnList ) {
+						outputFileList.add(unzippedFile);
+					}
+					int count = 0;
+					while ((count = zipInput.read(buffer)) > 0) {
+						// write 'count' bytes to the file output stream
+						fOutput.write(buffer, 0, count);
+					}
+					fOutput.close();
 				}
-            }
-			else {
-				FileOutputStream fOutput = new FileOutputStream(file);
-				int count = 0;
-				while ((count = zipInput.read(buffer)) > 0) {
-					// write 'count' bytes to the file output stream
-					fOutput.write(buffer, 0, count);
-				}
-				fOutput.close();
+				// close ZipEntry and take the next one
+				zipInput.closeEntry();
+				entry = zipInput.getNextEntry();
 			}
-			// close ZipEntry and take the next one
-			zipInput.closeEntry();
-			entry = zipInput.getNextEntry();
 		}
-        
-		// close the last ZipEntry
-		zipInput.closeEntry();
-        
-		zipInput.close();
-		fInput.close();
+		finally {
+			// close the last ZipEntry
+			zipInput.closeEntry();
+			zipInput.close();
+			if ( fInput != null ) {
+				fInput.close();
+			}
+		}
+		return outputFileList;
 	}
 	
 	/**

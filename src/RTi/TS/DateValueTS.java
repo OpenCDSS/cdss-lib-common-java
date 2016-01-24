@@ -236,6 +236,7 @@ import java.util.List;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.DataUnitsConversion;
+import RTi.Util.IO.GzipToolkit;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
@@ -752,6 +753,11 @@ throws Exception, IOException, FileNotFoundException
 		if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
 			// Handle case where DateValue file is compressed (single file in .zip)
 			ZipToolkit zt = new ZipToolkit();
+			in = zt.openBufferedReaderForSingleFile(full_fname,0);
+		}
+		else if ( full_fname.toUpperCase().endsWith(".GZ") ) {
+			// Handle case where DateValue file is compressed (single file in .gz)
+			GzipToolkit zt = new GzipToolkit();
 			in = zt.openBufferedReaderForSingleFile(full_fname,0);
 		}
 		else {
