@@ -40,7 +40,20 @@ public TSEnsemble ()
 
 /**
 Create a new ensemble, given a list of time series.
-@param tslist List of time series.
+@param id ensemble ID
+@param name ensemble name
+*/
+public TSEnsemble ( String id, String name )
+{
+    setEnsembleID ( id );
+    setEnsembleName ( name );
+}
+
+/**
+Create a new ensemble, given a list of time series.
+@param id ensemble ID
+@param name ensemble name
+@param tslist List of time series
 */
 public TSEnsemble ( String id, String name, List<TS> tslist )
 {
