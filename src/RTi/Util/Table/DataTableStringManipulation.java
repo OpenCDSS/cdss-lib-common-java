@@ -1,9 +1,7 @@
 package RTi.Util.Table;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -89,7 +87,7 @@ Perform a string manipulation.
 */
 public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
     String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems )
-{   String routine = getClass().getName() + ".manipulate" ;
+{   String routine = getClass().getSimpleName() + ".manipulate" ;
 	// Construct the filter
 	DataTableFilter filter = null;
 	try {
@@ -155,14 +153,38 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         // Return if any problems were detected
         return;
     }
+    
+    // Check for special cases on input, for example ^ and $ are used with replace
+    // In these cases, remove the special characters
+    boolean replaceStart = false;
+    boolean replaceEnd = false;
+	if ( operator == DataTableStringOperatorType.REPLACE ) {
+    	if ( inputValue2 != null ) {
+    		if ( inputValue2.startsWith("^") ) {
+	    		replaceStart = true;
+	    		inputValue2 = inputValue2.substring(1,inputValue2.length());
+    		}
+    		else if ( inputValue2.endsWith("$") ) {
+	    		replaceEnd = true;
+	    		inputValue2 = inputValue2.substring(0,inputValue2.length()-1);
+    		}
+    		// Also replace "\s" with single space
+    		inputValue2 = inputValue2.replace("\\s"," ");
+    	}
+    	if ( inputValue3 != null ) {
+    		// Also replace "\ " with single space
+    		inputValue3 = inputValue3.replace("\\s"," ");
+    	}
+	}
 
     // Loop through the records
     int nrec = __table.getNumberOfRecords();
-    Object val;
-    String input1Val;
-    String input2Val;
-    String input3Val;
+    Object val = null;
+    String input1Val = null;
+    String input2Val = null;
+    String input3Val = null;
     Object outputVal = null;
+    int maxChars = -1; // Maximum string length of output
     for ( int irec = 0; irec < nrec; irec++ ) {
     	// Check whether row should be included/excluded - "true" below indicates to throw exceptions
     	try {
@@ -181,7 +203,12 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         // Get the input values
         try {
             val = __table.getFieldValue(irec, input1ColumnNum);
-            input1Val = "" + val; // Do this way so that even non-strings can be manipulated
+            if ( val == null ) {
+            	input1Val = null;
+            }
+            else {
+            	input1Val = "" + val; // Do this way so that even non-strings can be manipulated
+            }
         }
         catch ( Exception e ) {
             problems.add ( "Error getting value for input column 1 (" + e + ")." );
@@ -191,9 +218,15 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             if ( inputValue2 != null ) {
                 input2Val = inputValue2;
             }
-            else if ( input2ColumnNum >= 0 ){
+            else if ( input2ColumnNum >= 0 ) {
+            	// Constant value was not given so get from column
                 val = __table.getFieldValue(irec, input2ColumnNum);
-                input2Val = "" + val;
+                if ( val == null ) {
+                	input2Val = null;
+                }
+                else {
+                	input2Val = "" + val;
+                }
             }
         }
         catch ( Exception e ) {
@@ -201,10 +234,12 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             continue;
         }
         if ( inputValue3 != null ) {
+        	// Only constant value is allowed (not from column)
             input3Val = inputValue3;
         }
         // Check for missing values and compute the output
-        if ( (input1Val == null)  ) {
+        if ( input1Val == null ) {
+        	// Output is null regardless of the operator
             outputVal = null;
         }
         else if ( operator == DataTableStringOperatorType.APPEND ) {
@@ -224,11 +259,67 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
         }
         else if ( operator == DataTableStringOperatorType.REPLACE ) {
-            if ( input1Val == null ) {
-                outputVal = null;
-            }
-            else if ( (input2Val != null) && (input3Val != null) ) {
-                outputVal = input1Val.replace(input2Val, input3Val);
+        	// This is tricky because don't want to change unless there is a match.
+        	// Problems can occur if one call messes with data that another call previously changed.
+        	// Therefore need to handle with care depending on whether output column is the same as input column.
+        	if ( input1ColumnNum == outputColumnNum ) {
+        		// Default is output will be the same as input unless changed below
+        		outputVal = input1Val;
+        	}
+        	else {
+        		// Get the value of the output column before manipulation
+        		try {
+        			Object o = __table.getFieldValue(irec, outputColumnNum);
+        			if ( o == null ) {
+        				outputVal = null;
+        			}
+        			else {
+        				outputVal = "" + o;
+        			}
+        		}
+        		catch ( Exception e ) {
+            		outputVal = null;
+        		}
+        		if ( outputVal == null ) {
+        			// Probably first pass manipulating so set to input
+        			outputVal = input1Val;
+        		}
+        	}
+            if ( (input2Val != null) && (input3Val != null) ) {
+            	// Handle strings at beginning and end specifically
+            	if ( replaceStart ) {
+            		if ( input1Val.startsWith(input2Val) ) {
+            			if ( input1Val.length() > input2Val.length() ) {
+            				// Have longer string so have to replace part
+            				outputVal = input3Val + input1Val.substring(input2Val.length());
+            			}
+	            		else {
+	            			// Replace whole string
+	            			outputVal = input3Val;
+	            		}
+            		}
+            		// Else defaults to default output as determined above
+            	}
+            	else if ( replaceEnd ) {
+            		input2Val = input2Val.substring(0,input2Val.length());
+            		if ( input1Val.endsWith(input2Val) ) {
+	            		if ( input1Val.length() > input2Val.length() ) {
+	            			outputVal = input1Val.substring(0,input1Val.length() - input2Val.length()) + input3Val;
+	            		}
+	            		else {
+	            			outputVal = input3Val;
+	            		}
+            		}
+            		// Else defaults to default output as determined above
+            	}
+            	else {
+            		// Simple replace - may not do anything
+            		String outputValTmp = input1Val.replace(input2Val, input3Val);
+            		if ( !outputValTmp.equals(outputVal) ) {
+            			// Output was changed so change, otherwise leave previous output determined above
+            			outputVal = outputValTmp;
+            		}
+            	}
             }
         }
         else if ( operator == DataTableStringOperatorType.SUBSTRING ) {
@@ -248,10 +339,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         	catch ( Exception e ) {
         		input3ValInt = -1;
         	}
-            if ( input1Val == null ) {
-                outputVal = null;
-            }
-            else if ( (input2ValInt >= 0) && (input3ValInt < 0) ) {
+            if ( (input2ValInt >= 0) && (input3ValInt < 0) ) {
             	// Substring to end of string
             	if ( input2ValInt > input1Val.length() ) {
             		outputVal = "";
@@ -293,12 +381,32 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
                 outputVal = null;
             }
         }
+        // Check the length of the string because may need to reset output column width
+        if ( input1ColumnNum == outputColumnNum ) {
+	        if ( (outputVal != null) && outputVal instanceof String ) {
+	        	String s = (String)outputVal;
+	        	if ( s.length() > maxChars ) {
+	        		maxChars = s.length();
+	        	}
+	        }
+        }
         // Set the value...
         try {
             __table.setFieldValue(irec, outputColumnNum, outputVal );
         }
         catch ( Exception e ) {
             problems.add ( "Error setting value (" + e + ")." );
+        }
+        // Set the column width
+        if ( input1ColumnNum == outputColumnNum ) {
+        	int width = __table.getFieldWidth(outputColumnNum);
+        	if ( maxChars > width ) {
+        		try {
+        			__table.setFieldWidth(outputColumnNum, maxChars);
+        		}
+        		catch ( Exception e ) {
+        		}
+        	}
         }
     }
 }
