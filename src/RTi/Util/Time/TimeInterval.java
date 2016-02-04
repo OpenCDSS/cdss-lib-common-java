@@ -239,7 +239,7 @@ Look up an interval name as a string (e.g., "MONTH").  Note that the string is
 upper-case.  Call the version with the format if other format is desired.
 @return The interval string, or an empty string if not found.
 @param interval Time series interval to look up).
-@deprecated the versio nthat specifies format should be used.
+@deprecated the version that specifies format should be used.
 */
 public static String getName ( int interval )
 {
@@ -305,7 +305,7 @@ day).  This version does NOT include the Irregular time step.
 @param start_interval The starting (smallest) interval base to return.
 @param end_interval The ending (largest) interval base to return.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false do not pad (e.g., "6Hour").
-@param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
+@param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
 */
 public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
 {	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
@@ -317,7 +317,7 @@ including the Irregular time step.  No multipliers are prefixed on the time inte
 @return a list of interval strings.
 @param start_interval The starting (smallest) interval base to return.
 @param end_interval The ending (largest) interval base to return.
-@param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
+@param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
@@ -384,7 +384,7 @@ including the Irregular time step.  Only evenly divisible choices are returned
 @param end_interval The ending (largest) interval base to return.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false
 do not pad (e.g., "6Hour").
-@param sort_order Specify zero or 1 to sort ascending, -1 to sort descending.
+@param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
