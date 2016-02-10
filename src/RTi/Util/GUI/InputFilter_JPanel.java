@@ -60,12 +60,10 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -77,12 +75,10 @@ import javax.swing.JTextField;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
-
 import RTi.Util.IO.IOUtil;
 //import RTi.Util.IO.PropList;
 
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 
 // TODO SAM 2004-05-20 - see limitation below.
@@ -733,7 +729,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	else {
 	    setNumFilterGroups ( numFilterGroups );
 	}
-	__inputFilterListArray = new Vector[__numFilterGroups];
+	__inputFilterListArray = new List[__numFilterGroups];
 	InputFilter filter;
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
 		if ( ifg == 0 ) {
