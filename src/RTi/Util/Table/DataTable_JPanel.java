@@ -300,6 +300,17 @@ public void setWorksheetColumnWidths() {
 		__worksheet.calculateColumnWidths();
 	}
 	if (__worksheet != null && __widths != null) {
+		// There are cases where the column widths are very large
+		// May need to put the check here to guard against because UI may freeze
+		// For now changed ResultSetToDataTableFactory code to handle better at front end
+		/*
+		for ( int i = 0; i < __widths.length; i++ ) {
+			if ( __widths[i] > 5000 ) {
+				Message.printStatus(2, "", "Column width [" + i + "] \"" + __table.getFieldName(i) + "\" = " + __widths[i] + " resetting to 5000");
+				__widths[i] = 5000;
+			}
+		}
+		*/
 		__worksheet.setColumnWidths(__widths);
 	}
 }

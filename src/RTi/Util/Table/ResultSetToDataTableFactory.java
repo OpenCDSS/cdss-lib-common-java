@@ -47,9 +47,6 @@ throws SQLException
     for ( int i = 1; i <= columnCount; i++ ) {
         columnNames[i - 1] = meta.getColumnName(i);
         columnType = sqlToDMIColumnType(dbengineType, meta.getColumnType(i));
-        if ( Message.isDebugOn ) {
-        	Message.printDebug(1, routine, "Column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType);
-        }
         columnTypes[i - 1] = columnType;
         precision = meta.getPrecision(i); // More like width
         scale = meta.getScale(i); // Precision for floating point
@@ -67,6 +64,18 @@ throws SQLException
 	            (scale == 0) ) {
 	            scale = 6;
 	        }
+        }
+        Message.printStatus(2, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
+        	" width (precision)=" + precision + ", precision (scale) = " + scale);
+        if ( Message.isDebugOn ) {
+        	Message.printDebug(1, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
+        		" width (precision)=" + precision + ", precision (scale) = " + scale);
+        }
+        if ( precision > 100000 ) {
+        	// Varchar and others may return large value, which causes problems (have seen with PostgreSQL)
+        	// See:  https://dev.mysql.com/doc/connector-j/en/connector-j-reference-type-conversions.html
+        	// Not sure what the magic number is but use 100000
+        	precision = -1;
         }
         table.addField( new TableField(columnType,columnNames[i - 1],precision,scale), null);
     }
