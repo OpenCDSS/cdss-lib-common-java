@@ -5,6 +5,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -47,6 +48,11 @@ public static final String TS_META_TABLE_SCENARIO_COLUMN_PROP = "TimeSeriesMetad
 public static final String TS_META_TABLE_DESCRIPTION_COLUMN_PROP = "TimeSeriesMetadataTable_DescriptionColumn";
 public static final String TS_META_TABLE_UNITS_COLUMN_PROP = "TimeSeriesMetadataTable_DataUnitsColumn";
 public static final String TS_META_TABLE_ID_COLUMN_PROP = "TimeSeriesMetadataTable_MetadataIdColumn";
+
+/*
+Property that indicates filter, will be followed by ".1", ".2", etc.
+*/
+public static final String TS_META_TABLE_FILTER_PROP = "TimeSeriesMetadataTable_MetadataFilter";
 
 public static final String TS_DATA_TABLE_PROP = "TimeSeriesDataTable";
 public static final String TS_DATA_TABLE_METAID_COLUMN_PROP = "TimeSeriesDataTable_MetadataIdColumn";
@@ -127,7 +133,7 @@ throws IOException, Exception
     }
     dmi.open();
     GenericDatabaseDataStore ds = new GenericDatabaseDataStore( name, description, dmi );
-    // Save all the properties generical for use later.  This defines tables for time series meta and data mapping.
+    // Save all the properties generically for use later.  This defines tables for time series meta and data mapping.
     ds.setProperties(props);
     return ds;
 }
@@ -964,7 +970,7 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
     String scenario = null;
     readTimeSeriesMetaAddWhere(ss,metaTable,dtColumn,dataType);
     readTimeSeriesMetaAddWhere(ss,metaTable,intervalColumn,interval);
-    List<String> whereClauses = new Vector<String>();
+    List<String> whereClauses = new ArrayList<String>();
     if ( ltColumn != null ) {
         whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + ltColumn, true ) );
     }
@@ -976,6 +982,24 @@ public List<TimeSeriesMeta> readTimeSeriesMetaList ( String dataType, String int
     }
     if ( scenarioColumn != null ) {
         whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + scenarioColumn, true ) );
+    }
+    // Add user-specified filters, must be in the provided standard columns
+    int i = 0;
+    while ( true ) {
+    	++i;
+    	String propName = TS_META_TABLE_FILTER_PROP + "." + i;
+    	String propVal = getProperty ( propName );
+    	if ( propVal == null ) {
+    		// Done with filter properties
+    		break;
+    	}
+    	String [] parts = propVal.split(",");
+    	if ( parts.length == 5 ) {
+    		String column = parts[1].trim();
+    		if ( column != null ) {
+    	        whereClauses.add ( getWhereClauseStringFromInputFilter ( dmi, filterPanel, metaTable + "." + column, true ) );
+    	    }
+    	}
     }
     try {
         ss.addWhereClauses(whereClauses);
