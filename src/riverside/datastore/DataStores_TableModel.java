@@ -21,7 +21,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 12;
+private int __COLUMNS = 14;
 
 /**
 Absolute column indices, for column lookups.
@@ -31,17 +31,20 @@ public final int COL_NAME = 1;
 public final int COL_DESCRIPTION = 2;
 public final int COL_ENABLED = 3;
 public final int COL_STATUS = 4;
+// Enabled for all but currently only database has enabled
+public final int COL_TS_INTERFACE_DEFINED = 5;
+public final int COL_TS_INTERFACE_WORKS = 6;
 // Database data store...
-public final int COL_DATABASE_SERVER = 5;
-public final int COL_DATABASE_NAME = 6;
+public final int COL_DATABASE_SERVER = 7;
+public final int COL_DATABASE_NAME = 8;
 // Straight ODBC connection...
-public final int COL_ODBC_NAME = 7;
-public final int COL_SYSTEM_LOGIN = 8;
+public final int COL_ODBC_NAME = 9;
+public final int COL_SYSTEM_LOGIN = 10;
 // Web service data store...
-public final int COL_SERVICE_ROOT_URI = 9;
+public final int COL_SERVICE_ROOT_URI = 11;
 // General error string
-public final int COL_STATUS_MESSAGE = 10;
-public final int COL_CONFIG_FILE = 11;
+public final int COL_STATUS_MESSAGE = 12;
+public final int COL_CONFIG_FILE = 13;
 
 /**
 Constructor.
@@ -90,6 +93,8 @@ public String getColumnName(int columnIndex) {
         case COL_DESCRIPTION: return "Description";
         case COL_ENABLED: return "Enabled";
         case COL_STATUS: return "Status";
+        case COL_TS_INTERFACE_DEFINED: return "Time Series Interface Defined";
+        case COL_TS_INTERFACE_WORKS: return "Time Series Interface Works";
         case COL_DATABASE_SERVER: return "Database Server";
         case COL_DATABASE_NAME: return "Database Name";
         case COL_ODBC_NAME: return "ODBC Name";
@@ -111,6 +116,8 @@ public String[] getColumnToolTips() {
     tooltips[COL_DESCRIPTION] = "Datastore description.";
     tooltips[COL_ENABLED] = "Is datastore enabled?  Currently always true if displayed because disabled datastores won't be initialized.";
     tooltips[COL_STATUS] = "Status (Ok/Error) - see Status Message";
+    tooltips[COL_TS_INTERFACE_DEFINED] = "Is time series interface defined? - see TimeSeries* properties in datstore configuration file.";
+    tooltips[COL_TS_INTERFACE_WORKS] = "Does time series interface work, based on query of tables in TimeSeries* datastore configuration properties?";
     tooltips[COL_DATABASE_SERVER] = "Database server for database datastore.";
     tooltips[COL_DATABASE_NAME] = "Database name for database datastore.";
     tooltips[COL_ODBC_NAME] = "ODBC name when used with generic database datastore.";
@@ -190,6 +197,32 @@ public Object getValueAt(int row, int col)
         	else {
         		return "Error (" + status + ")";
         	}
+        case COL_TS_INTERFACE_DEFINED:
+        	if ( dataStore instanceof GenericDatabaseDataStore ) {
+        		GenericDatabaseDataStore ds = (GenericDatabaseDataStore)dataStore;
+        		if ( ds.hasTimeSeriesInterface(false) ) {
+        			return "Yes";
+        		}
+        		else {
+        			return "No";
+        		}
+        	}
+        	else {
+        		return "No";
+        	}
+        case COL_TS_INTERFACE_WORKS:
+        	if ( dataStore instanceof GenericDatabaseDataStore ) {
+        		GenericDatabaseDataStore ds = (GenericDatabaseDataStore)dataStore;
+        		if ( ds.hasTimeSeriesInterface(true) ) {
+        			return "Yes";
+        		}
+        		else {
+        			return "No";
+        		}
+        	}
+        	else {
+        		return "No";
+        	}
         case COL_DATABASE_SERVER:
             if ( databaseDataStore != null ) {
                 return databaseDataStore.getDMI().getDatabaseServer();
@@ -239,6 +272,8 @@ public int[] getColumnWidths() {
     widths[COL_DESCRIPTION] = 45;
     widths[COL_ENABLED] = 10;
     widths[COL_STATUS] = 10;
+    widths[COL_TS_INTERFACE_DEFINED] = 8;
+    widths[COL_TS_INTERFACE_WORKS] = 8;
     widths[COL_DATABASE_SERVER] = 15;
     widths[COL_DATABASE_NAME] = 15;
     widths[COL_ODBC_NAME] = 16;
