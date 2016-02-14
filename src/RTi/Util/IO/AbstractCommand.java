@@ -399,7 +399,8 @@ command could produce some results).
 */
 public void runCommand ( int command_number )
 throws InvalidCommandParameterException,
-CommandWarningException, CommandException
+CommandWarningException, CommandException,
+InterruptedException
 {	// Does nothing.
 }
 

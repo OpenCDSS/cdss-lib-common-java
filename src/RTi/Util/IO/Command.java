@@ -104,7 +104,7 @@ valid command number cannot be determined.
 one or more parameters are determined to be invalid.
 */
 public void runCommand ( int commandIndex )
-throws InvalidCommandParameterException, CommandWarningException, CommandException;
+throws InvalidCommandParameterException, CommandWarningException, CommandException, InterruptedException;
 
 /**
 Set a command parameter.  This is used, for example, by a command editor dialog,
