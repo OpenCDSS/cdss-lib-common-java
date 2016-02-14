@@ -210,16 +210,6 @@ public boolean accept(File f) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__description = null;
-	__filters = null;
-	super.finalize();
-}
-
-/**
 Returns the full description for the filter.  The description would consist
 of the short description followed by a list of all the extensions.  
 Example:

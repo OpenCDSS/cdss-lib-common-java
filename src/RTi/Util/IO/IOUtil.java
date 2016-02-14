@@ -1040,22 +1040,36 @@ Return a list of files matching a pattern.
 Currently the folder must exist (no wildcard) and the file part of the path can contain wildcards using
 globbing notation (e.g., *.txt).
 @param folder folder to search for files
+@param extension to match or use * to match all files
+@param caseIndependent if true check extension case-independent (default is case-dependent)
 TODO SAM 2012-07-22 This method should be replaced with java.nio.file.PathMatcher when updated to Java 1.7.
 */
-public static List<File> getFilesMatchingPattern(String folder, String extension)
+public static List<File> getFilesMatchingPattern(String folder, String extension, boolean caseIndependent)
 {
     File f = new File(folder);
-    // Get the list of files in the folder...
-    SimpleFileFilter filter = new SimpleFileFilter(extension, "");
+    // Get the list of all files in the folder (do this because want to do case-independent)...
+    SimpleFileFilter filter = new SimpleFileFilter("*", "all");
     File[] files = f.listFiles(filter);
-    List<File> matchedFiles = new Vector();
+    List<File> matchedFiles = new ArrayList<File>();
     if ( (files == null) || (files.length == 0) ) {
-        return new Vector<File>();
+        return matchedFiles;
     }
     else {
-        for ( int i = 0; i < files.length; i++ ) {
-            if ( IOUtil.getFileExtension(files[i].getName()).equalsIgnoreCase(extension) ) {
-                matchedFiles.add(files[i]);
+        for ( File f2 : files ) {
+            if ( (extension == null) || extension.isEmpty() || extension.equals("*") ) {
+            	matchedFiles.add(f2);
+            }
+            else {
+            	if ( caseIndependent ) {
+            		if ( IOUtil.getFileExtension(f2.getName()).equalsIgnoreCase(extension) ) {
+            			matchedFiles.add(f2);
+            		}
+            	}
+            	else {
+            		if ( IOUtil.getFileExtension(f2.getName()).equals(extension) ) {
+            			matchedFiles.add(f2);
+            		}
+            	}
             }
         }
         return matchedFiles;
