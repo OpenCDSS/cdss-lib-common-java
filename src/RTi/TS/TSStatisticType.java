@@ -244,6 +244,26 @@ public enum TSStatisticType
      * Nonexceedance probability, percent.
      */
     NONEXCEEDANCE_PROBABILITY ( "NonexceedanceProbability" ),
+	/**
+	 * Value for which there is a 10% probability of not exceeding the value (0 to 10% chance).
+	 */
+    NONEXCEEDANCE_PROBABILITY_10 ( "NonexceedanceProbability10" ),
+    /**
+     * Value for which there is a 30% probability of not exceeding the value (0 to 30% chance).
+     */
+    NONEXCEEDANCE_PROBABILITY_30 ( "NonexceedanceProbability30" ),
+    /**
+     * Value for which there is a 50% probability of not exceeding the value (0 to 50% chance).
+     */
+    NONEXCEEDANCE_PROBABILITY_50 ( "NonexceedanceProbability50" ),
+    /**
+     * Value for which there is a 70% probability of not exceeding the value (0 to 70% chance).
+     */
+    NONEXCEEDANCE_PROBABILITY_70 ( "NonexceedanceProbability70" ),
+    /**
+     * Value for which there is a 90% probability of not exceeding the value (0 to 90% chance).
+     */
+    NONEXCEEDANCE_PROBABILITY_90 ( "NonexceedanceProbability90" ),
     /**
      * Count of non-missing values in the sample.
      */
@@ -274,12 +294,30 @@ public enum TSStatisticType
     PERCENT_OF_MEDIAN ( "PercentOfMedian" ),
     /**
      * Plotting position (depends on distribution and sort order imposed by other code).
+     * @deprecated confusing because sort order is not tied to statistic
      */
     PLOTTING_POSITION ( "PlottingPosition" ),
     /**
+     * Plotting position based on ascending sort.
+     */
+    PLOTTING_POSITION_ASCENDING ( "PlotPosAscending" ),
+    /**
+     * Plotting position based on descending sort.
+     */
+    PLOTTING_POSITION_DESCENDING ( "PlotPosDescending" ),
+    /**
      * Rank (depends on sort order imposed by other code).
+     * @deprecated confusing because sort order is not tied to statistic
      */
     RANK ( "Rank" ),
+    /**
+     * Rank based on minimum to maximum sort.
+     */
+    RANK_ASCENDING ( "RankAscending" ),
+    /**
+     * Rank based on maximum to minimum sort.
+     */
+    RANK_DESCENDING ( "RankDescending" ),
     /**
      * Coefficient of skew.
      */

@@ -844,6 +844,18 @@ public static double nonexceedanceProbability ( int n, double x[], double xi )
 }
 
 /**
+@return the sample value corresponding to the given nonexceedance probability.
+@param n the number of values in the sample array to process
+@param x sample values
+@param neprobability the nonexceedance probability to consider (0.0 to 1.0)
+@exception IllegalArgumentException If the number of points is <= 0
+*/
+public static double nonexceedanceProbabilityValue ( int n, double x[], double neprobability )
+{
+	return exceedanceProbabilityValue ( n, x, (1.0 - neprobability) );
+}
+
+/**
 Perform an ordinary least squares regression on data that has already been transformed and processed for
 missing data.  A minimal number of analysis statistics and results are saved and
 can be retrieved using RegressionResults methods, in particular:

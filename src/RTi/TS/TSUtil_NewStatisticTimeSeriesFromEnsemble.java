@@ -1,9 +1,10 @@
 package RTi.TS;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
+import RTi.Util.Math.DistributionType;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -31,6 +32,11 @@ Ending date/time for analysis.
 private DateTime __analysisEnd = null;
 
 /**
+Description for new time series.
+*/
+private String __description = null;
+
+/**
 Starting date/time for output.
 */
 private DateTime __outputStart = null;
@@ -51,6 +57,11 @@ Statistic to analyze.
 private TSStatisticType __statisticType = null;
 
 /**
+Value to use as input when evaluating statistic.
+*/
+private Double __value1;
+
+/**
 Number of missing allowed to compute sample.
 */
 private Integer __allowMissingCount = null;
@@ -59,6 +70,13 @@ private Integer __allowMissingCount = null;
 Minimum required sample size.
 */
 private Integer __minimumSampleSize = null;
+
+/**
+Minimal constructor to allow access to some utility methods such as getStatisticChoices().
+*/
+public TSUtil_NewStatisticTimeSeriesFromEnsemble ()
+{
+}
     
 /**
 Create a new time series that contains statistics in each data value.  The period of
@@ -74,13 +92,15 @@ If null, the period of the original time series will be output.  CURRENTLY NOT U
 @param outputEnd Output end date/time.
 If null, the period of the original time series will be output.  CURRENTLY NOT USED.
 @param newTSID the new time series identifier to be assigned to the time series.
+@param description description to use for created time series
 @param statisticType the statistic type for the output time series.
 @param allowMissingCount the number of values allowed to be missing in the sample.
 @param minimumSampleSize the minimum sample size to allow to compute the statistic.
 @exception Exception if there is an error analyzing the time series.
 */
 public TSUtil_NewStatisticTimeSeriesFromEnsemble ( TSEnsemble ensemble, DateTime analysisStart, DateTime analysisEnd,
-    DateTime outputStart, DateTime outputEnd, String newTSID, TSStatisticType statisticType,
+    DateTime outputStart, DateTime outputEnd, String newTSID, String description,
+    TSStatisticType statisticType, Double value1,
     Integer allowMissingCount, Integer minimumSampleSize )
 {   String routine = getClass().getName();
     String message;
@@ -91,7 +111,15 @@ public TSUtil_NewStatisticTimeSeriesFromEnsemble ( TSEnsemble ensemble, DateTime
     __outputStart = outputStart;
     __outputEnd = outputEnd;
     __newTSID = newTSID;
+    __description = description;
     __statisticType = statisticType;
+    __value1 = value1;
+    int n = getRequiredNumberOfValuesForStatistic(__statisticType);
+    if ( n >= 1 ) {
+    	if ( __value1 == null ) {
+    		throw new InvalidParameterException("Statistic " + __statisticType + " requires n additional input values.");
+    	}
+    }
     __allowMissingCount = allowMissingCount;
     __minimumSampleSize = minimumSampleSize;
     
@@ -123,7 +151,7 @@ is appropriate when calling software is running in discovery mode to configure t
 */
 public TS newStatisticTimeSeriesFromEnsemble ( boolean createData )
 throws Exception
-{   String message, routine = "TSAnalyst.createStatisticTimeSeries";
+{   String message, routine = getClass().getSimpleName() + ".newStatisticTimeSeriesFromEnsemble";
     int dl = 10;
     
     // Use the first time series in the ensemble for properties to generate the output time series.
@@ -138,7 +166,12 @@ throws Exception
     DateTime outputStart0 = getOutputStart();
     DateTime outputEnd0 = getOutputEnd();
     String newTSID = getNewTSID();
+    String description = getDescription();
     TSStatisticType statisticType = getStatisticType();
+    double value1 = Double.NaN;
+    if ( getValue1() != null ) {
+    	value1 = getValue1();
+    }
     Integer allowMissingCount = getAllowMissingCount();
     Integer minimumSampleSize = getMinimumSampleSize();
     
@@ -186,7 +219,7 @@ throws Exception
     // Copying the header across from the first station is bad because the ensemble may not
     // have data from a single station.  Therefore take a little more care.
     output_ts.setDataUnits(getTimeSeriesDataUnits(ts,statisticType));
-    output_ts.setDescription ( getTimeSeriesDescription(ensemble,statisticType) );
+    output_ts.setDescription ( getTimeSeriesDescription(ensemble,statisticType,description) );
 
     // Reset the identifier if the user has specified it...
 
@@ -225,7 +258,7 @@ throws Exception
 
     // Analyze the ensemble to get a time series with statistic for each interval...
     return computeStatisticTS ( ensemble, output_ts, analysisStart, analysisEnd, statisticType,
-        allowMissingCount, minimumSampleSize );
+        value1, allowMissingCount, minimumSampleSize );
 }
 
 /**
@@ -245,9 +278,9 @@ flexibility for other statistics.
 @return The statistics in a single-year time series.
 */
 private TS computeStatisticTS ( TSEnsemble ensemble, TS stat_ts, DateTime analysisStart, DateTime analysisEnd,
-    TSStatisticType statisticType, Integer allowMissingCount0, Integer minimumSampleSize0 )
+    TSStatisticType statisticType, Double value1, Integer allowMissingCount0, Integer minimumSampleSize0 )
 throws Exception
-{   String routine = getClass().getName() + ".computeStatisticTS";
+{   String routine = getClass().getSimpleName() + ".computeStatisticTS";
     // Get the controlling parameters as simple integers to simplify code
     int allowMissingCount = -1;
     if ( allowMissingCount0 != null ) {
@@ -277,14 +310,13 @@ throws Exception
     }
     // Now iterate through all of the traces and get data for each date/time...
     DateTime date;
-    int i;  // Index for time series in loop.
-    double value;   // Value from the input time series
-    double sum_value = ts_array[0].getMissing();   // Value in the sum time series
+    int i; // Index for time series in loop.
+    double value; // Value from the input time series
+    double sum_value = ts_array[0].getMissing(); // Value in the sum time series
     double [] sampleData = new double[size]; // One value from each ensemble
     int countNonMissing; // Count of sampleData that are non-missing
     int countMissing; // Count of sampleData that are missing
-    Message.printStatus(2, routine, "Analyzing time series ensemble for period " + analysisStart + " to " +
-        analysisEnd );
+    Message.printStatus(2, routine, "Analyzing time series ensemble for period " + analysisStart + " to " + analysisEnd );
     while ( tsi_stat.next() != null ) {
         date = tsi_stat.getDate();
         // Loop through the time series...
@@ -341,7 +373,12 @@ throws Exception
         // TODO SAM 2009-10-26 Trying to set the result in a time series that has a shorter period could
         // generate low-level warnings, but for now allow this to occur rather than incurring the overhead
         // of checking the output period.
-        if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10 ) {
+        if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY ) {
+        	if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,value1) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10 ) {
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.1) );
             }
@@ -365,6 +402,42 @@ throws Exception
             if ( countNonMissing > 0 ) {
                 stat_ts.setDataValue ( date, MathUtil.exceedanceProbabilityValue(countNonMissing,sampleData,.9) );
             }
+        }
+        else if ( statisticType == TSStatisticType.GE_COUNT ) {
+        	int count = 0;
+        	for ( int isamp = 0; isamp < countNonMissing; isamp++ ) {
+        		if ( sampleData[isamp] >= value1 ) {
+        			++count;
+        		}
+        	}
+        	stat_ts.setDataValue ( date, count );
+        }
+        else if ( statisticType == TSStatisticType.GT_COUNT ) {
+        	int count = 0;
+        	for ( int isamp = 0; isamp < countNonMissing; isamp++ ) {
+        		if ( sampleData[isamp] > value1 ) {
+        			++count;
+        		}
+        	}
+        	stat_ts.setDataValue ( date, count );
+        }
+        else if ( statisticType == TSStatisticType.LT_COUNT ) {
+        	int count = 0;
+        	for ( int isamp = 0; isamp < countNonMissing; isamp++ ) {
+        		if ( sampleData[isamp] < value1 ) {
+        			++count;
+        		}
+        	}
+        	stat_ts.setDataValue ( date, count );
+        }
+        else if ( statisticType == TSStatisticType.LE_COUNT ) {
+        	int count = 0;
+        	for ( int isamp = 0; isamp < countNonMissing; isamp++ ) {
+        		if ( sampleData[isamp] <= value1 ) {
+        			++count;
+        		}
+        	}
+        	stat_ts.setDataValue ( date, count );
         }
         else if ( statisticType == TSStatisticType.GEOMETRIC_MEAN ) {
             if ( countNonMissing > 0 ) {
@@ -398,11 +471,51 @@ throws Exception
         else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
             stat_ts.setDataValue ( date, 100.0*countMissing/(double)(countMissing + countNonMissing) );
         }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY ) {
+        	if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,value1) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_10 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,.1) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_30 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,.3) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_50 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,.5) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_70 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,.7) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_90 ) {
+            if ( countNonMissing > 0 ) {
+                stat_ts.setDataValue ( date, MathUtil.nonexceedanceProbabilityValue(countNonMissing,sampleData,.9) );
+            }
+        }
         else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
             stat_ts.setDataValue ( date, countNonMissing );
         }
         else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
             stat_ts.setDataValue ( date, 100.0*countNonMissing/(double)(countMissing + countNonMissing) );
+        }
+        else if ( statisticType == TSStatisticType.SKEW ) {
+            if ( countNonMissing >= 3 ) { // Need 3 values to do calculation
+                stat_ts.setDataValue ( date, MathUtil.skew(countNonMissing,sampleData) );
+            }
+        }
+        else if ( statisticType == TSStatisticType.STD_DEV ) {
+            if ( countNonMissing >= 2 ) { // Need 2 values to do calculation
+                stat_ts.setDataValue ( date, MathUtil.standardDeviation(countNonMissing,sampleData) );
+            }
         }
         else if ( statisticType == TSStatisticType.TOTAL ) {
             if ( countNonMissing > 0 ) {
@@ -440,6 +553,46 @@ Return the analysis start date/time.
 public DateTime getAnalysisStart ()
 {
     return __analysisStart;
+}
+
+/**
+Return the description for output time series.
+@return the description for output time series.
+*/
+public String getDescription ()
+{
+    return __description;
+}
+
+/**
+Get the list of distributions that can be used in calculations.
+*/
+public List<DistributionType> getDistributionChoices()
+{
+    // Enable statistics that illustrate how things change over time
+    List<DistributionType> choices = new ArrayList<DistributionType>();
+    choices.add ( DistributionType.EMPERICAL );
+    choices.add ( DistributionType.GRINGORTEN );
+    choices.add ( DistributionType.LOG_NORMAL );
+    choices.add ( DistributionType.LOG_PEARSON_TYPE3 );
+    choices.add ( DistributionType.NORMAL );
+    choices.add ( DistributionType.WAKEBY );
+    choices.add ( DistributionType.WEIBULL );
+    return choices;
+}
+
+/**
+Get the list of distributions that can be calculated.
+@return the distribution display names as strings.
+*/
+public List<String> getDistributionChoicesAsStrings()
+{
+    List<DistributionType> choices = getDistributionChoices();
+    List<String> stringChoices = new ArrayList();
+    for ( int i = 0; i < choices.size(); i++ ) {
+        stringChoices.add ( "" + choices.get(i) );
+    }
+    return stringChoices;
 }
 
 /**
@@ -495,28 +648,114 @@ public DateTime getOutputEnd ()
 }
 
 /**
+Return the number of values that are required to evaluate a statistic.
+@return the number of values that are required to evaluate a statistic.
+@param statisticType the statistic type that is being evaluated.
+*/
+public int getRequiredNumberOfValuesForStatistic ( TSStatisticType statisticType )
+{
+    // Many basic statistics do not need additional input...
+    if ( (statisticType == TSStatisticType.COUNT) ||
+        (statisticType == TSStatisticType.DEFICIT_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70) ||
+        (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_90) ||
+        (statisticType == TSStatisticType.GEOMETRIC_MEAN) ||
+        (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
+        (statisticType == TSStatisticType.LAST) ||
+        (statisticType == TSStatisticType.LAST_NONMISSING) ||
+        (statisticType == TSStatisticType.MAX) ||
+        (statisticType == TSStatisticType.MEAN) ||
+        (statisticType == TSStatisticType.MEDIAN) ||
+        (statisticType == TSStatisticType.MIN) ||
+        (statisticType == TSStatisticType.MISSING_COUNT) ||
+        (statisticType == TSStatisticType.MISSING_PERCENT) ||
+        (statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_10) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_30) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_50) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_70) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_90) ||
+        (statisticType == TSStatisticType.NONMISSING_COUNT) ||
+        (statisticType == TSStatisticType.NONMISSING_PERCENT) ||
+        (statisticType == TSStatisticType.SKEW) ||
+        (statisticType == TSStatisticType.STD_DEV) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_LENGTH_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_MIN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ||
+        (statisticType == TSStatisticType.SURPLUS_SEQ_MIN) ||
+        (statisticType == TSStatisticType.TOTAL) ||
+        (statisticType == TSStatisticType.TREND_OLS) ||
+        (statisticType == TSStatisticType.VARIANCE) ) {
+        return 0;
+    }
+    else if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY) ||
+    	(statisticType == TSStatisticType.GE_COUNT) ||
+        (statisticType == TSStatisticType.GT_COUNT) ||
+        (statisticType == TSStatisticType.LE_COUNT) ||
+        (statisticType == TSStatisticType.LT_COUNT) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY) ) {
+        return 1;
+    }
+    else {
+        String message = "Requested statistic is not recognized to get number of required values: " + statisticType;
+        String routine = "TSUtil_NewStatisticTimeSeriesFromEnsemble.getRequiredNumberOfValuesForStatistic";
+        Message.printWarning(3, routine, message);
+        throw new InvalidParameterException ( message );
+    }
+}
+
+/**
 Get the list of statistics that can be performed.
 */
-public static List<TSStatisticType> getStatisticChoices()
+public List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
-    List<TSStatisticType> choices = new Vector<TSStatisticType>();
+    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
+    choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY ); // Requires Value1
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_10 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_30 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_50 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_70 );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY_90 );
+    choices.add ( TSStatisticType.GE_COUNT );
+    choices.add ( TSStatisticType.GT_COUNT );
     choices.add ( TSStatisticType.GEOMETRIC_MEAN );
+    choices.add ( TSStatisticType.LE_COUNT );
+    choices.add ( TSStatisticType.LT_COUNT );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );
     choices.add ( TSStatisticType.MIN );
     choices.add ( TSStatisticType.MISSING_COUNT );
     choices.add ( TSStatisticType.MISSING_PERCENT );
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY ); // Requires Value1
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY_10 );
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY_30 );
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY_50 );
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY_70 );
+    choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY_90 );
     choices.add ( TSStatisticType.NONMISSING_COUNT );
     choices.add ( TSStatisticType.NONMISSING_PERCENT );
-    //choices.add ( TSStatisticType.SKEW );
-    //choices.add ( TSStatisticType.STD_DEV );
+    choices.add ( TSStatisticType.RANK_ASCENDING );
+    choices.add ( TSStatisticType.RANK_DESCENDING );
+    choices.add ( TSStatisticType.SKEW );
+    choices.add ( TSStatisticType.STD_DEV );
     //choices.add ( TSStatisticType.VARIANCE );
     choices.add ( TSStatisticType.TOTAL );
     return choices;
@@ -526,10 +765,10 @@ public static List<TSStatisticType> getStatisticChoices()
 Get the list of statistics that can be performed.
 @return the statistic display names as strings.
 */
-public static List<String> getStatisticChoicesAsStrings()
+public List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector<String>();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -553,7 +792,9 @@ private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticTyp
         // Possible, especially when in discovery mode in TSTool
         return "";
     }
-    else if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) ||
+    else if (
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50) ||
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70) ||
@@ -563,11 +804,23 @@ private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticTyp
         (statisticType == TSStatisticType.MEAN) ||
         (statisticType == TSStatisticType.MEDIAN) ||
         (statisticType == TSStatisticType.MIN) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_10) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_30) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_50) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_70) ||
+        (statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_90) ||
+        (statisticType == TSStatisticType.STD_DEV) ||
         (statisticType == TSStatisticType.TOTAL)) {
         // Use the units from the original time series
         return inputts.getDataUnits();
     }
-    else if ( (statisticType == TSStatisticType.MISSING_COUNT) ||
+    else if (
+    	(statisticType == TSStatisticType.GE_COUNT) ||
+    	(statisticType == TSStatisticType.GT_COUNT) ||
+    	(statisticType == TSStatisticType.LE_COUNT) ||
+    	(statisticType == TSStatisticType.LT_COUNT) ||
+    	(statisticType == TSStatisticType.MISSING_COUNT) ||
         (statisticType == TSStatisticType.NONMISSING_COUNT) ) {
         return "Count";
     }
@@ -580,9 +833,14 @@ private String getTimeSeriesDataUnits ( TS inputts, TSStatisticType statisticTyp
 
 /**
 Determine the description for the new time series.
+@param ensemble ensemble being processed
+@param statisticType statistic type
+@param description description (if specified, use it)
 */
-private String getTimeSeriesDescription ( TSEnsemble ensemble, TSStatisticType statisticType )
-{
+private String getTimeSeriesDescription ( TSEnsemble ensemble, TSStatisticType statisticType, String description )
+{	if ( (description != null) && !description.isEmpty() ) {
+		return description;
+	}
     // If all the ensemble time series have the same description, then it is a true ensemble so
     // use the same description with the statistic
     boolean same = true;
@@ -619,6 +877,15 @@ public TSEnsemble getTimeSeriesEnsemble ()
 }
 
 /**
+Return the value1, used to provide additional data to compute statistic.
+@return value1
+*/
+public Double getValue1 ()
+{
+    return __value1;
+}
+
+/**
 Indicate whether a statistic is supported.
 */
 public boolean isStatisticSupported ( TSStatisticType statisticType )
@@ -628,6 +895,37 @@ public boolean isStatisticSupported ( TSStatisticType statisticType )
         if ( choices.get(i) == statisticType ) {
             return true;
         }
+    }
+    return false;
+}
+
+/**
+Indicate whether a statistic is supported.
+*/
+public boolean isStatisticSupportedForDistribution ( TSStatisticType statisticType, DistributionType distType )
+{
+	if ( distType == null) {
+		return true;
+	}
+	boolean isStatSupported = isStatisticSupported(statisticType);
+	if ( !isStatSupported ) {
+		return false; // Should have been checked elsewhere
+	}
+    if ( (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_10) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_30) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_50) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_70) ||
+    	(statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY_90) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_10) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_30) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_50) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_70) ||
+    	(statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY_90) ||
+    	(statisticType == TSStatisticType.PLOTTING_POSITION_ASCENDING) ||
+    	(statisticType == TSStatisticType.PLOTTING_POSITION_DESCENDING) ) {
+    	return true;
     }
     return false;
 }

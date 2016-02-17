@@ -6,10 +6,30 @@ The list should not be used generically but should be selected from as appropria
 */
 public enum DistributionType
 {
+	/**
+    Emperical.
+    */
+    EMPERICAL("Emperical"),
     /**
     Gringorten.
     */
     GRINGORTEN("Gringorten"),
+    /**
+    Log-Normal.
+    */
+    LOG_NORMAL("LogNormal"),
+    /**
+    Log Pearson Type 3.
+    */
+    LOG_PEARSON_TYPE3("LogPearsonType3"),
+    /**
+    Normal.
+    */
+    NORMAL("Normal"),
+    /**
+    Wakeby.
+    */
+    WAKEBY("Wakeby"),
     /**
     Weibull.
     */
