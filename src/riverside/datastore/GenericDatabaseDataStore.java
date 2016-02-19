@@ -98,6 +98,8 @@ throws IOException, Exception
     PropList props = new PropList ("");
     props.setPersistentName ( filename );
     props.readPersistent ( false );
+    // Set a property for the configuration filename because it is used later
+    props.set("DataStoreConfigFile="+filename);
     String name = IOUtil.expandPropertyForEnvironment("Name",props.getValue("Name"));
     String description = IOUtil.expandPropertyForEnvironment("Description",props.getValue("Description"));
     String databaseEngine = IOUtil.expandPropertyForEnvironment("DatabaseEngine",props.getValue("DatabaseEngine"));
