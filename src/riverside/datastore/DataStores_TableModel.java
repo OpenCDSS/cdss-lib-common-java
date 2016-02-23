@@ -225,21 +225,36 @@ public Object getValueAt(int row, int col)
         	}
         case COL_DATABASE_SERVER:
             if ( databaseDataStore != null ) {
-                return databaseDataStore.getDMI().getDatabaseServer();
+            	if ( databaseDataStore.getDMI() != null ) {
+            		return databaseDataStore.getDMI().getDatabaseServer();
+            	}
+            	else {
+            		return "";
+            	}
             }
             else {
                 return "";
             }
         case COL_DATABASE_NAME:
             if ( databaseDataStore != null ) {
-                return databaseDataStore.getDMI().getDatabaseName();
+            	if ( databaseDataStore.getDMI() != null ) {
+            		return databaseDataStore.getDMI().getDatabaseName();
+            	}
+            	else {
+            		return "";
+            	}
             }
             else {
                 return "";
             }
         case COL_ODBC_NAME:
             if ( databaseDataStore != null ) {
-                return databaseDataStore.getDMI().getODBCName();
+            	if ( databaseDataStore.getDMI() != null ) {
+            		return databaseDataStore.getDMI().getODBCName();
+            	}
+            	else {
+            		return "";
+            	}
             }
             else {
                 return "";

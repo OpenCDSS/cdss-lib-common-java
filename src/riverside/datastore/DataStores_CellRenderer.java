@@ -1,7 +1,7 @@
 package riverside.datastore;
 
+import java.awt.Color;
 import java.awt.Component;
-
 import java.util.Date;
 
 import javax.swing.JTable;
@@ -9,7 +9,7 @@ import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
-
+import RTi.Util.GUI.JWorksheet_CellAttributes;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -32,15 +32,6 @@ public DataStores_CellRenderer(DataStores_TableModel tableModel) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable {
-	__tableModel = null;
-	super.finalize();
-}
-
-/**
 Renders a cell for the worksheet.
 @param table the JWorksheet for which a cell will be renderer.
 @param value the value in the cell.
@@ -56,8 +47,9 @@ boolean isSelected, boolean hasFocus, int row, int column) {
  	if (value != null) {
 		str = value.toString();
 	}
-	
-	int abscolumn = ((JWorksheet)table).getAbsoluteColumn(column);
+
+ 	JWorksheet ws = (JWorksheet)table;
+	int abscolumn = ws.getAbsoluteColumn(column);
 	
 	String format = getFormat(abscolumn);
 	
@@ -91,16 +83,61 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
 	// call DefaultTableCellRenderer's version of this method so that
 	// all the cell highlighting is handled properly.
-	super.getTableCellRendererComponent(table, str, 
-		isSelected, hasFocus, row, column);	
+	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);	
 	
-	int tableAlignment = ((JWorksheet)table).getColumnAlignment(abscolumn);
+	int tableAlignment = ws.getColumnAlignment(abscolumn);
 	if (tableAlignment != JWorksheet.DEFAULT) {
 		justification = tableAlignment;
 	}
 	
 	setHorizontalAlignment(justification);
-	setFont(((JWorksheet)table).getCellFont());
+	setFont(ws.getCellFont());
+	
+	if ( column == __tableModel.COL_NAME ) {
+		// Set the foreground to yellow if the column is the datastore name and is a duplicate
+		// This is brute force but there are not that many datastores so OK
+		// Yellow is easier to read as background.
+		boolean duplicate = false;
+		for ( int irow = 0; irow < __tableModel.getRowCount(); irow++ ) {
+			if ( irow == row ) {
+				continue;
+			}
+			if ( str.equalsIgnoreCase(""+__tableModel.getValueAt(irow, column)) ) {
+				duplicate = true;
+				break;
+			}
+		}
+		if ( duplicate ) {
+			JWorksheet_CellAttributes ca = ws.getCellAttributes(row, column);
+			if ( ca == null ) {
+				ca = new JWorksheet_CellAttributes();
+			}
+			ca.backgroundColor = Color.yellow;
+			ws.setCellAttributes(row, column, ca);
+		}
+	}
+	else if ( column == __tableModel.COL_STATUS ) {
+		if ( str.toUpperCase().indexOf("ERROR") >= 0 ) {
+			// Some type of error so highlight
+			JWorksheet_CellAttributes ca = ws.getCellAttributes(row, column);
+			if ( ca == null ) {
+				ca = new JWorksheet_CellAttributes();
+			}
+			ca.backgroundColor = Color.yellow;
+			ws.setCellAttributes(row, column, ca);
+		}
+	}
+	else if ( column == __tableModel.COL_STATUS_MESSAGE ) {
+		if ( !str.isEmpty() ) {
+			// Some type of error so highlight
+			JWorksheet_CellAttributes ca = ws.getCellAttributes(row, column);
+			if ( ca == null ) {
+				ca = new JWorksheet_CellAttributes();
+			}
+			ca.backgroundColor = Color.yellow;
+			ws.setCellAttributes(row, column, ca);
+		}
+	}
 
 	return this;
 }
