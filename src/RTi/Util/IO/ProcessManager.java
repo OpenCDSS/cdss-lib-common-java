@@ -457,7 +457,7 @@ limit the length of strings for some software.
 */
 public ProcessManager ( String command, int timeoutMilliseconds, String exitStatusIndicator,
     boolean useCommandShell, File workingDir )
-{   String routine = "ProcessManager";
+{   String routine = getClass().getSimpleName();
     if ( Message.isDebugOn ) {
         Message.printDebug ( 1, routine, "ProcessManager constructor: \"" + command + "\"" );
     }
@@ -775,6 +775,7 @@ public String getCommand ()
 {	return __command;
 }
 
+// TODO SAM 2016-02-24 Evaluate whether to define these exit codes as enum or static for external comparison
 /**
 Get the exit status of a process that has been run.  This should be called if
 not threaded and the run() method is done.
@@ -1253,7 +1254,7 @@ UNIX/Linux:  /bin/sh -c
 tokens.  If no interpreter is desired, specify a null array.
 */
 public void setCommandInterpreter ( String [] interpreter )
-{	String routine = "ProcessManager.setCommandInterpreter";
+{	String routine = getClass().getSimpleName() + ".setCommandInterpreter";
     __commandInterpreterArray = interpreter;
 	__isCommandInterpreterUsed = true;	// Default
 	if ( interpreter == null ) {
