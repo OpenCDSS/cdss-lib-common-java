@@ -2,6 +2,7 @@ package RTi.Util.IO;
 
 import java.security.InvalidParameterException;
 
+// TODO SAM 2016-02-24 Need to convert to enumeration
 /**
 This class provides an enumeration of possible command status values.  
 */

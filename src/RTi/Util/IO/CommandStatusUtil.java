@@ -115,15 +115,14 @@ Adds html for a command status phase.
 private static int addPhaseHTML ( CommandStatus cs,
     HTMLStatusAssembler assembler, CommandPhaseType commandPhaseType, int startCount )
 {
-    CommandStatusType status = cs.getCommandStatus(commandPhaseType);
-      
-	List<CommandLogRecord> logRecList = cs.getCommandLog(commandPhaseType);
+    List<CommandLogRecord> logRecList = cs.getCommandLog(commandPhaseType);
 	int count = startCount;
     for ( CommandLogRecord logRec: logRecList ) {
+    	CommandStatusType severity = logRec.getSeverity();
         assembler.addPhase (
                     count++, commandPhaseType.toString(),
-                    status.toString(),
-                    getStatusColor(status),
+                    severity.toString(),
+                    getStatusColor(severity),
                     logRec.getProblem(),
                     logRec.getRecommendation());
     }
