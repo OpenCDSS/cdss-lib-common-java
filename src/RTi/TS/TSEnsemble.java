@@ -1,11 +1,10 @@
 package RTi.TS;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Vector;
 
-// TODO SAM 2007-12-13 Evaluate whether to implement or extend from List
-// For now just use a list internally for data and implement List methods as needed.
 /**
 A collection for time series, to be represented as an ensemble.  At this time, it
 is expected that each time series has been created or read using code that
@@ -30,6 +29,13 @@ private String __id = "";
 Name for the ensemble, a descriptive phrase.
 */
 private String __name = "";
+
+/**
+TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be implemented instead.
+Properties for the time series beyond the built-in properties.  For example, location
+information like county and state can be set as a property.
+*/
+private LinkedHashMap<String,Object> __property_HashMap = null;
 
 /**
 Create a new ensemble.  An empty list of time series will be used.
@@ -129,6 +135,30 @@ public String getEnsembleName ()
 }
 
 /**
+Get the hashtable of properties, for example to allow display.
+@return the hashtable of properties, for example to allow display, may be null.
+*/
+public HashMap<String,Object> getProperties()
+{   if ( __property_HashMap == null ) {
+        __property_HashMap = new LinkedHashMap<String,Object>(); // Initialize to non-null for further use
+    }
+    return __property_HashMap;
+}
+
+/**
+Get a time series ensemble property's contents (case-specific).
+@param propertyName name of property being retrieved.
+@return property object corresponding to the property name.
+*/
+public Object getProperty ( String propertyName )
+{
+    if ( __property_HashMap == null ) {
+        return null;
+    }
+    return __property_HashMap.get ( propertyName );
+}
+
+/**
 Return the time series list.
 @param copyList if true, the list is copied (but the time series contents remain the same).
 Use this when the list object is going to be modified.
@@ -167,6 +197,8 @@ public void setEnsembleID ( String id )
         id = "";
     }
     __id = id;
+    // Also set the property to allow for generic property request
+    setProperty("EnsembleID",id);
 }
 
 /**
@@ -178,6 +210,21 @@ public void setEnsembleName ( String name )
         name = "";
     }
     __name = name;
+    // Also set the property to allow for generic property request
+    setProperty("EnsembleName",name);
+}
+
+/**
+Set a time series ensemble property's contents (case-specific).
+@param propertyName name of property being set.
+@param property property object corresponding to the property name.
+*/
+public void setProperty ( String propertyName, Object property )
+{
+    if ( __property_HashMap == null ) {
+        __property_HashMap = new LinkedHashMap<String, Object>();
+    }
+    __property_HashMap.put ( propertyName, property );
 }
 
 /**
