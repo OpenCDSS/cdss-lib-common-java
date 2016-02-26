@@ -224,6 +224,10 @@ public void setProperty ( String propertyName, Object property )
     if ( __property_HashMap == null ) {
         __property_HashMap = new LinkedHashMap<String, Object>();
     }
+    // Do not allow EnsembleID to be set because it is fundamental to the identification of the ensemble and should be immutable
+    if ( propertyName.equals("EnsembleID") ) {
+    	return;
+    }
     __property_HashMap.put ( propertyName, property );
 }
 
