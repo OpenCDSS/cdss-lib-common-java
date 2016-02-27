@@ -216,10 +216,9 @@ package RTi.GRTS;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -238,7 +237,6 @@ import RTi.GR.GRPoint;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
-
 import RTi.TS.DayTS;
 import RTi.TS.HourTS;
 import RTi.TS.IrregularTS;
@@ -251,26 +249,23 @@ import RTi.TS.TSIterator;
 import RTi.TS.TSLimits;
 import RTi.TS.TSRegression;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJMenuItem;
-
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.DataTransformationType;
 import RTi.Util.Math.FDistribution;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Math.NumberOfEquationsType;
 import RTi.Util.Math.RegressionType;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
-
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTableList_JFrame;
+import RTi.Util.Table.TableField;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeUtil;
@@ -341,7 +336,7 @@ implements ActionListener
 /**
 Popup menu options.
 */
-private String	
+private final String	
 	__MENU_ANALYSIS_DETAILS = "Analysis Details",
 	__MENU_PROPERTIES = "Properties",
 	__MENU_REFRESH = "Refresh",
@@ -958,40 +953,116 @@ public void actionPerformed(ActionEvent event)
 		frame = null;
 	}
 	else if (command.equals(__MENU_ANALYSIS_DETAILS)) {
-		// Display the results of the regression(s)
-		int size = 0;
+		// Display the results of the regression(s), duration plot, etc.
+		if ( (_duration_data != null) && (_duration_data.size() > 0) ) {
+			// Create a DataTable and then use generic table view component
+			DataTable table = new DataTable();
+			List<TSDurationAnalysis> durationList = _duration_data;
+			List<DataTable> tableList = new ArrayList<DataTable>(durationList.size());
+			String [] viewLabels = new String[durationList.size()];
+			int its = -1;
+			for ( TSDurationAnalysis a : durationList ) {
+				// Each analysis has a time series and arrays of values and percents
+				// Create simple tables for each and pass to the display
+				++its;
+				table = new DataTable();
+				tableList.add(table);
+				TS ts = a.getTS();
+				// This is copied from TSViewTable_TableModel.getColumnName()
+				boolean useExtendedLegend = false; // For now disable this to see how following works
+				String valueLabel = ts.getLocation();
+				String percentLabel = "percent of values >= value";
+				viewLabels[its] = ts.getLocation(); // Default
+				if (useExtendedLegend && (ts.getExtendedLegend().length() != 0)) {
+					valueLabel = ts.formatLegend(ts.getExtendedLegend());
+				}
+				else if (ts.getLegend().length() > 0) {
+					valueLabel = ts.formatLegend(ts.getLegend());
+				}
+				else {	
+					String unitsString = "";
+					String datatypeString = "";
+					String sequenceString = "";
+					if (ts.getDataUnits().length() > 0) {
+						unitsString = " (" + ts.getDataUnits() +")";
+					}
+					if (ts.getDataType().length() == 0) {
+						datatypeString = ", " + ts.getIdentifier().getType();
+					}
+					else {
+						datatypeString = ", " + ts.getDataType();
+					}
+					if (ts.getSequenceID().length() > 0) {
+						sequenceString = " [" + ts.getSequenceID() + "]";
+					}
+					if (ts.getAlias().equals("")) {
+						valueLabel = ts.getLocation() + sequenceString + datatypeString + unitsString;
+						viewLabels[its] = ts.getLocation() + sequenceString;
+					}
+					else {
+						valueLabel = ts.getAlias() + sequenceString + datatypeString + unitsString;
+						viewLabels[its] = ts.getAlias() + sequenceString;
+					}
+				}
+				// --end copy
+				table.addField(new TableField(TableField.DATA_TYPE_DOUBLE, valueLabel, -1, 2), null);
+				table.addField(new TableField(TableField.DATA_TYPE_DOUBLE, percentLabel, -1, 2), null);
+				double [] values = a.getValues();
+				double [] percents = a.getPercents();
+				for ( int i = 0; i < values.length; i++ ) {
+					try {
+						table.setFieldValue(i, 0, values[i], true);
+						table.setFieldValue(i, 1, percents[i], true);
+					}
+					catch ( Exception e ) {
+						// Swallow for now
+						Message.printWarning(3,"","Error adding data to duration curve table (" + e + ").");
+					}
+				}
+			}
+			try {
+				new DataTableList_JFrame("Duration Curve Analysis Data", viewLabels, tableList);
+			}
+			catch ( Exception e ) {
+				Message.printWarning(1, "TSGraph.actionPerformed", "Unable to display duration curve analysis data (" + e + ").");
+				Message.printWarning(3, "TSGraph.actionPerformed", e );
+			}
+		}
 		if (_regression_data != null) {
-			size = _regression_data.size();
-		}
-		TSRegression r = null;
-		List<String> v = new Vector();	
-		for (int i = 0; i < size; i++) {
-			r = _regression_data.get(i);
-			if (r == null) {
-				continue;
+			int size = 0;
+			if (_regression_data != null) {
+				size = _regression_data.size();
 			}
-			// Split by newlines so that report has separate lines of information...
-			List<String> lines = StringUtil.breakStringList ( r.toString(), "\n", 0 );
-			int size2 = 0;
-			if ( lines != null ) {
-			    size2 = lines.size();
-			    for ( int i2 = 0; i2 < size2; i2++ ) {
-			        v.add ( lines.get(i2) );
-			    }
+			TSRegression r = null;
+			List<String> v = new Vector();	
+			for (int i = 0; i < size; i++) {
+				r = _regression_data.get(i);
+				if (r == null) {
+					continue;
+				}
+				// Split by newlines so that report has separate lines of information...
+				List<String> lines = StringUtil.breakStringList ( r.toString(), "\n", 0 );
+				int size2 = 0;
+				if ( lines != null ) {
+				    size2 = lines.size();
+				    for ( int i2 = 0; i2 < size2; i2++ ) {
+				        v.add ( lines.get(i2) );
+				    }
+				}
+				v.add(r.toString ());
+				v.add("");
+				v.add("");
 			}
-			v.add(r.toString ());
-			v.add("");
-			v.add("");
+			
+			if (v.size() == 0) {
+				Message.printWarning(1, "TSGraph.actionPerformed", "No regression results available.");
+			}
+			
+			PropList p = new PropList("Regression");
+			p.set("Title", "Analysis Details");
+			p.set("TotalHeight", "400");
+			new ReportJFrame(v, p);
 		}
-		
-		if (v.size() == 0) {
-			Message.printWarning(1, "TSGraph.actionPerformed", "No regression results available.");
-		}
-		
-		PropList p = new PropList("Regression");
-		p.set("Title", "Analysis Details");
-		p.set("TotalHeight", "400");
-		new ReportJFrame(v, p);
 		// Immediately remove from the component container.  See note above.
 		_dev.remove(_graph_JPopupMenu);
 	}
@@ -6850,7 +6921,7 @@ public JPopupMenu getJPopupMenu() {
 	_graph_JPopupMenu = new JPopupMenu("Graph");
 	
 	// Add properties specific to each graph type
-	if (__graphType == TSGraphType.XY_SCATTER) {
+	if ( (__graphType == TSGraphType.XY_SCATTER) || (__graphType == TSGraphType.DURATION) ) {
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_ANALYSIS_DETAILS,__MENU_ANALYSIS_DETAILS,this));
 		_graph_JPopupMenu.addSeparator();
 	}

@@ -239,18 +239,6 @@ throws TSException
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable
-{	_ts = null;
-	_values = null;
-	_percents = null;
-	super.finalize();
-}
-
-/**
 Return the time series that was analyzed.
 @return the time series that was analyzed.
 */
