@@ -27,6 +27,10 @@ public enum DistributionType
     */
     NORMAL("Normal"),
     /**
+    Sample data (for simple statistics, no population distribution).
+    */
+    SAMPLE_DATA("SampleData"),
+    /**
     Wakeby.
     */
     WAKEBY("Wakeby"),
