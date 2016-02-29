@@ -569,13 +569,13 @@ Get the list of distributions that can be used in calculations.
 */
 public List<DistributionType> getDistributionChoices()
 {
-    // Enable statistics that illustrate how things change over time
     List<DistributionType> choices = new ArrayList<DistributionType>();
     choices.add ( DistributionType.EMPERICAL );
     choices.add ( DistributionType.GRINGORTEN );
     choices.add ( DistributionType.LOG_NORMAL );
     choices.add ( DistributionType.LOG_PEARSON_TYPE3 );
     choices.add ( DistributionType.NORMAL );
+    choices.add ( DistributionType.SAMPLE_DATA );
     choices.add ( DistributionType.WAKEBY );
     choices.add ( DistributionType.WEIBULL );
     return choices;
