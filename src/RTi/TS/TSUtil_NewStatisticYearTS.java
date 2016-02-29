@@ -61,9 +61,9 @@ Statistic to analyze.
 private TSStatisticType __statisticType = null;
 
 /**
-Test value used when analyzing the statistic.
+Test value used when analyzing the statistic (may add other values later for other statistics).
 */
-private Double __testValue = null;
+private Double __value1 = null;
 
 /**
 Number of missing allowed to compute sample (default is no limit).
@@ -98,7 +98,7 @@ Execute the newStatisticYearTS() method to perform the analysis.
 @param analysisEnd Ending date for analysis, in precision of the original data.
 @param newTSID the new time series identifier to be assigned to the time series.
 @param statisticType the statistic type for the output time series.
-@param testValue test value (e.g., threshold value) needed to process some statistics.
+@param value1 test value (e.g., threshold value) needed to process some statistics.
 @param allowMissingCount the number of values allowed to be missing in the sample.
 @param minimumSampleSize the minimum sample size to allow to compute the statistic.
 @param outputYearType output year type for annual time series - if null output will be calendar year.
@@ -110,11 +110,11 @@ in precision of the original data.  If null, the entire year of data will be ana
 in precision of the original data.  If null, the entire year of data will be analyzed.
 This is used when a starting point is needed, such as when first and last values >, < in a year.
 */
-public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statisticType, Double testValue,
+public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statisticType, Double value1,
     Integer allowMissingCount, Integer minimumSampleSize,
     YearType outputYearType, DateTime analysisStart, DateTime analysisEnd,
     DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getName();
+{   String routine = getClass().getSimpleName();
     String message;
     
     if ( ts == null ) {
@@ -141,7 +141,7 @@ public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statis
             "New time series identifier \"" + newTSID + "\" is invalid (" + e + ")." );
     }
     setStatisticType ( statisticType );
-    setTestValue ( testValue );
+    setValue1 ( value1 );
     if ( allowMissingCount == null ) {
         allowMissingCount = new Integer(-1); // default
     }
@@ -195,7 +195,7 @@ Process a time series to create the the following annual statistics:
 @param ts Time series to analyze.
 @param yearts YearTS to fill with the statistic.
 @param statisticType statistic to calculate.
-@param testValue a number to test against for some statistics (e.g., COUNT_LE).
+@param value1 a number to test against for some statistics (e.g., COUNT_LE).
 @param analysisStart Start of the analysis (precision matching ts).
 @param analysisEnd End of the analysis (precision matching ts).
 @param allowMissingCount the number of missing values allowed in input and still compute the statistic.
@@ -210,10 +210,11 @@ Currently only Month... to precision are evaluated (not day... etc.).
 seasonal data processing.
 */
 private void calculateStatistic (
-    TS ts, YearTS yearts, TSStatisticType statisticType, Double testValue, YearType outputYearType,
+    TS ts, YearTS yearts, TSStatisticType statisticType,
+    Double value1, YearType outputYearType,
     DateTime analysisStart, DateTime analysisEnd, int allowMissingCount, int minimumSampleSize,
     DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getName() + ".calculateStatistic";
+{   String routine = getClass().getSimpleName() + ".calculateStatistic";
     // Initialize the settings to evaluate the statistic and set appropriate information in the time series
     boolean statisticIsCount = isStatisticCount(statisticType);
     boolean statisticIsDayOf = isStatisticDayOf(statisticType);
@@ -222,7 +223,7 @@ private void calculateStatistic (
     boolean statisticIsLast = isStatisticLast(statisticType);
     boolean iterateForward = isStatisticIterateForward(statisticType);
     TestType testType = getStatisticTestType(statisticType);
-    yearts.setDescription ( getStatisticTimeSeriesDescription(statisticType, testType, testValue,
+    yearts.setDescription ( getStatisticTimeSeriesDescription(statisticType, testType, value1,
         statisticIsCount, statisticIsDayOf, statisticIsMonthOf, statisticIsFirst, statisticIsLast ) );
     yearts.setDataUnits(getStatisticTimeSeriesDataUnits(statisticType, statisticIsCount, statisticIsDayOf,
         statisticIsMonthOf, ts.getDataUnits()) );
@@ -231,7 +232,7 @@ private void calculateStatistic (
     
     double testValueDouble = Double.NaN; // OK to initialize to this because checks will have verified real value
     if ( isTestValueNeeded( statisticType ) ) {
-        testValueDouble = testValue.doubleValue();
+        testValueDouble = value1.doubleValue();
     }
     // For debugging...
     //Message.printStatus(2,routine,"StatisticType=" + statisticType + " TestType=" + testType +
@@ -367,7 +368,7 @@ private void calculateStatistic (
         // Create an iterator for the data...
         TSIterator tsi = null;
         try {
-            tsi = ts.iterator(yearStartForAnalysisWindow,yearEndForAnalysisWindow);
+       		tsi = ts.iterator(yearStartForAnalysisWindow,yearEndForAnalysisWindow);
         }
         catch ( Exception e ) {
             throw new RuntimeException ( "Exception initializing time series iterator for analysis window " +
@@ -991,9 +992,9 @@ public TSStatisticType getStatisticType ()
 Return the test value used to calculate some statistics.
 @return the test value used to calculate some statistics.
 */
-private Double getTestValue ()
+private Double getValue1 ()
 {
-    return __testValue;
+    return __value1;
 }
 
 /**
@@ -1203,7 +1204,7 @@ percent missing, percent not missing).
 @return The statistics time series.
 */
 public YearTS newStatisticYearTS ( boolean createData )
-{   String message, routine = getClass().getName() + ".newStatisticYearTS";
+{   String message, routine = getClass().getSimpleName() + ".newStatisticYearTS";
     int dl = 10;
 
     // Get the data needed for the analysis - originally provided in the constructor
@@ -1211,7 +1212,7 @@ public YearTS newStatisticYearTS ( boolean createData )
     TS ts = getTimeSeries();
     String newTSID = getNewTSID();
     TSStatisticType statisticType = getStatisticType();
-    Double testValue = getTestValue();
+    Double testValue = getValue1();
     Integer allowMissingCount = getAllowMissingCount();
     Integer minimumSampleSize = getMinimumSampleSize();
     DateTime analysisStart = getAnalysisStart();
@@ -1222,28 +1223,29 @@ public YearTS newStatisticYearTS ( boolean createData )
     DateTime searchStart = getSearchStart();
     
     if ( Message.isDebugOn ) {
-        Message.printDebug ( dl, routine, "Trying to create statistic year TS for \"" +
-        ts.getIdentifierString() + "\"" );
+	   Message.printDebug ( dl, routine, "Trying to create statistic year TS for time series \"" + ts.getIdentifierString() + "\"" );
     }
 
     // Get valid dates for the output time series because the ones passed in may have been null...
 
-    TSLimits valid_dates = TSUtil.getValidPeriod ( ts, analysisStart, analysisEnd );
+    TSLimits validDates = TSUtil.getValidPeriod ( ts, analysisStart, analysisEnd );
     // Reset because these are handled generically below whether passed in or defaulted to "ts"
-    analysisStart = new DateTime ( valid_dates.getDate1() );
-    analysisEnd = new DateTime ( valid_dates.getDate2() );
+    analysisStart = new DateTime ( validDates.getDate1() );
+    analysisEnd = new DateTime ( validDates.getDate2() );
 
     // Create a year time series to be filled...
 
     YearTS yearts = new YearTS();
-    yearts.addToGenesis ( "Initialized statistic year time series from \"" + ts.getIdentifierString() + "\"" );
+	yearts.addToGenesis ( "Initialized statistic year time series from \"" + ts.getIdentifierString() + "\"" );
     yearts.copyHeader ( ts );
 
     // Reset the identifier if the user has specified it...
 
     try {
         if ( (newTSID != null) && (newTSID.length() > 0) ) {
-            TSIdent tsident = new TSIdent ( newTSID );
+        	// Expand the new TSID using the input time series
+        	String newTSIDExpanded = ts.formatLegend(newTSID);
+            TSIdent tsident = new TSIdent ( newTSIDExpanded );
             // Make sure that the output interval is Year
             if ( !tsident.getInterval().equalsIgnoreCase("Year") ) {
                 tsident.setInterval("Year");
@@ -1969,9 +1971,9 @@ private void setStatisticType ( TSStatisticType statisticType )
 Set the test value used with some statistics.
 @param testValue the test value used with some statistics.
 */
-private void setTestValue ( Double testValue )
+private void setValue1 ( Double testValue )
 {
-    __testValue = testValue;
+    __value1 = testValue;
 }
 
 /**
