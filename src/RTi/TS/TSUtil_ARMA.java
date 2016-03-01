@@ -27,7 +27,8 @@ public class TSUtil_ARMA {
 	The time series is copied internally and is then updated where the output time series is computed with:
 	O[t] = a1*O[t-1] + a2*O[t-2] + ... + ap*O[t-p] + b0*I[t] + b1*I[t-1] + ... + bq*I[t-q]
 	Startup values that are missing in O are set to I.
-	@param oldts Time series to shift.
+	@param inputts input time series to shift (if outputts is null then this will be updated).
+	@param outputts output time series (if null update the input time series).
 	@param a Array of a coefficients.
 	@param b Array of b coefficients.
 	@param ARMA_interval The interval used to develop ARMA coefficients.  The
@@ -37,14 +38,15 @@ public class TSUtil_ARMA {
 	@return new time series.
 	@exception Exception if there is a problem with input
 	*/
-	public TS ARMA ( TS oldts, String ARMA_interval, double a[], double b[],
-		double [] inputInitialValues, double outputMinimum, DateTime outputStart, DateTime outputEnd, boolean readData )
+	public TS ARMA ( TS inputts, TS outputts, String ARMA_interval, double a[], double b[],
+		double [] inputInitialValues, double outputMinimum, double outputMaximum,
+		DateTime outputStart, DateTime outputEnd, boolean readData )
 	throws Exception
-	{	String message, routine = "TSUtil_ARMA";
+	{	String message, routine = getClass().getSimpleName() + ".ARMA";
 
 		// If ts is null, throw exception.
-		if ( oldts == null ) {
-			message = "Time series is null for ARMA.";
+		if ( inputts == null ) {
+			message = "Input time series for ARMA is null.";
 			Message.printWarning ( 2, routine, message );
 			throw new TSException( message );
 		}
@@ -63,12 +65,10 @@ public class TSUtil_ARMA {
 		// interval.  Use seconds to do the ratio.  Use TimeInterval as much
 		// as possible because it throws exceptions.
 
-		TimeInterval interval_data = new TimeInterval(
-			oldts.getDataIntervalBase(), oldts.getDataIntervalMult() );
+		TimeInterval interval_data = new TimeInterval( inputts.getDataIntervalBase(), inputts.getDataIntervalMult() );
 		TimeInterval interval_ARMA =TimeInterval.parseInterval ( ARMA_interval);
 		int interval_ratio = 1;	// Factor to expand data due to ARMA interval being less than data interval.
-		int ARMA_ratio = 1;	// Factor to skip expanded data due to ARMA
-					// interval being longer than for the expanded data.
+		int ARMA_ratio = 1;	// Factor to skip expanded data due to ARMA interval being longer than for the expanded data.
 		if ( !interval_data.equals(interval_ARMA) ) {
 			// Intervals are different.  For daily and less, can get the
 			// seconds and compare.  For longer, don't currently support.
@@ -108,20 +108,34 @@ public class TSUtil_ARMA {
 			ARMA_ratio = seconds_ARMA/common_denoms[0];
 		}
 
-		DateTime date1 = new DateTime ( oldts.getDate1() );
-		DateTime date2 = new DateTime ( oldts.getDate2() );
+		// By default process all of the input time series - will limit to output period later
+		DateTime date1 = new DateTime ( inputts.getDate1() );
+		DateTime date2 = new DateTime ( inputts.getDate2() );
 
 		// Because there is potential that the ARMA coefficients were calculated
 		// at a different time step than the time series that is being analyzed
 		// here, convert the time series to an array.
+		// Always do the math on the input time series period - restrict to output period later
 
-		double [] oldts_data0 = TSUtil.toArray ( oldts, oldts.getDate1(), oldts.getDate2() );
+		double [] oldts_data0 = TSUtil.toArray ( inputts, inputts.getDate1(), inputts.getDate2() );
+		// If additional input have been provided, prepend those to the array and keep track of the array
+		// position for transfer back to the time series later.
+		if ( inputInitialValues == null ) {
+			inputInitialValues = new double[0];
+		}
+		if ( inputInitialValues.length > 0 ) {
+			double [] oldts_data_tmp = new double[oldts_data0.length + inputInitialValues.length];
+			System.arraycopy(inputInitialValues, 0, oldts_data_tmp, 0, inputInitialValues.length);
+			System.arraycopy(oldts_data0, 0, oldts_data_tmp, inputInitialValues.length, oldts_data0.length);
+			// Reset to the merged array
+			oldts_data0 = oldts_data_tmp;
+		}
 
 		// Now expand the time series because of the interval_ratio.
 
 		double [] oldts_data = null; // Old data in base interval (interval that divides into data and ARMA interval).
-		double [] newts_data = null;	// Routed data in base interval.
-		double missing = oldts.getMissing();
+		double [] newts_data = null; // ARMA output in base interval.
+		double missing = inputts.getMissing();
 		if ( interval_ratio == 1 ) {
 			// Just use the original array (no reason to expand)...
 			oldts_data = oldts_data0;
@@ -151,7 +165,6 @@ public class TSUtil_ARMA {
 
 		double total = 0.0;
 		int jpos = 0;
-		int genesis_length = oldts.getGenesis().size();
 		double data_value;
 		int ia = 0, ib = 0;
 		boolean value_set = false;
@@ -173,12 +186,12 @@ public class TSUtil_ARMA {
 				}
 				// Get previous outflow value...
 				data_value = newts_data[jpos];
-				if ( oldts.isDataMissing(data_value) ) {
+				if ( inputts.isDataMissing(data_value) ) {
 					// Previous outflow value is missing so try using the input time series value...
 					data_value = oldts_data[jpos];
 					//Message.printStatus ( 1, routine,
 					//"O missing I for " + shifted_date + " is " + data_value );
-					if ( oldts.isDataMissing(data_value) ) {
+					if ( inputts.isDataMissing(data_value) ) {
 						newts_data[j] = missing;
 						//Message.printStatus ( 1, routine, "Setting O at " + date + " to " + data_value );
 						//oldts.addToGenesis( "ARMA:  Using missing (" + StringUtil.formatString(
@@ -189,7 +202,7 @@ public class TSUtil_ARMA {
 					}
 				}
 				// If get to here, have data so can increment another term in the total...
-				if ( oldts.isDataMissing(total) ) {
+				if ( inputts.isDataMissing(total) ) {
 					// Assign the value...
 					total = data_value*a[ia];
 				}
@@ -218,13 +231,13 @@ public class TSUtil_ARMA {
 					break;
 				}
 				data_value = oldts_data[jpos];
-				if ( oldts.isDataMissing(data_value) ) {
+				if ( inputts.isDataMissing(data_value) ) {
 					newts_data[j] = missing;
 					value_set = true;
 					break;
 				}
 				// If get to here have non-missing data...
-				if ( oldts.isDataMissing(total) ) {
+				if ( inputts.isDataMissing(total) ) {
 					// Assign the value...
 					total = data_value*b[ib];
 				}
@@ -250,11 +263,11 @@ public class TSUtil_ARMA {
 			oldts_data0[i] = missing;
 			for ( j = 0; j < interval_ratio; j++ ) {
 				data_value = newts_data[i*interval_ratio + j];
-				if ( oldts.isDataMissing(data_value) ) {
+				if ( inputts.isDataMissing(data_value) ) {
 					break;
 				}
 				else {	// Have non-missing data...
-					if ( oldts.isDataMissing(oldts_data0[i]) ) {
+					if ( inputts.isDataMissing(oldts_data0[i]) ) {
 						oldts_data0[i] = newts_data[i*interval_ratio + j];
 					}
 					else {
@@ -262,46 +275,88 @@ public class TSUtil_ARMA {
 					}
 				}
 			}
-			if ( !oldts.isDataMissing(oldts_data0[i]) ) {
+			if ( !inputts.isDataMissing(oldts_data0[i]) ) {
 				oldts_data0[i] /= double_ratio;
 			}
 		}
 
-		// Now transfer the array back to the original time series...
-
-		int i = 0;
-		int interval_base = oldts.getDataIntervalBase();
-		int interval_mult = oldts.getDataIntervalMult();
-		for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
-			date.addInterval(interval_base,interval_mult), i++ ) {
-			oldts.setDataValue ( date, oldts_data0[i] );
+		// Now transfer the array back to the requested output time series.
+		// If minimum and maximum were specified, apply here.
+		
+		if ( outputts == null ) {
+			// Modify the input time series
+			outputts = inputts;
+		}
+		
+		// Override if requested with passed-in value
+		// Do a set so that precision is OK
+		if ( outputStart == null ) {
+			outputStart = new DateTime(date1);
+		}
+		if ( outputEnd == null ) {
+			outputEnd = new DateTime(date2);
 		}
 
-		// Now return the modified original time series...
+		int interval_base = inputts.getDataIntervalBase();
+		int interval_mult = inputts.getDataIntervalMult();
+		double value;
+		boolean doMinCheck = false;
+		boolean doMaxCheck = false;
+		if ( !Double.isNaN(outputMinimum) ) {
+			doMinCheck = true;
+		}
+		if ( !Double.isNaN(outputMaximum) ) {
+			doMaxCheck = true;
+		}
+		// Loop over the output period to do transfer
+		// - date1 and date2 contain the input time series
+		int i = 0;
+		for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
+			date.addInterval(interval_base,interval_mult), i++ ) {
+			// The offset between the output dates and array position depends on the difference between the
+			// input and output start, and also whether there was any additional data provided
+			if ( date.lessThan(outputStart) ) {
+				continue;
+			}
+			else if ( date.greaterThan(outputEnd) ) {
+				// Done transferring
+				break;
+			}
+			// Translate "i" to align with date1
+			value = oldts_data0[i + inputInitialValues.length];
+			if ( !inputts.isDataMissing(value) ) {
+				if ( doMaxCheck && value > outputMaximum ) {
+					value = outputMaximum;
+				}
+				if ( doMinCheck && value < outputMinimum ) {
+					value = outputMinimum;
+				}
+			}
+			outputts.setDataValue ( date, value );
+		}
 
-		List<String> genesis = oldts.getGenesis();
-		oldts.setDescription ( oldts.getDescription() + ",ARMA" );
-		genesis.add(genesis_length, "Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) +
-		 ") using ARMA interval " + ARMA_interval +	" and coefficients:" );
+		// Return the output time series...
+
+		List<String> genesis = outputts.getGenesis();
+		outputts.setDescription ( outputts.getDescription() + ",ARMA" );
+		int genesis_length = outputts.getGenesis().size();
+		genesis.add(genesis_length, "Applied ARMA(p=" + n_a + ",q=" + (n_b - 1) + ") using ARMA interval " + ARMA_interval + " and coefficients:" );
 		for ( i = 0; i < n_a; i++ ) {
-			genesis.add((genesis_length + 1 + i),
-			"    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f") );
+			genesis.add((genesis_length + 1 + i), "    a" + (i + 1) + " = "+StringUtil.formatString(a[i], "%.6f") );
 		}
 		for ( i = 0; i < n_b; i++ ) {
 			genesis.add ( (genesis_length + n_a + 1 + i), "    b" + i + " = " + StringUtil.formatString(b[i], "%.6f") );
 		}
-		genesis.add ((genesis_length + n_a + n_b + 1),
-		"ARMA: The original number of data points were expanded by a factor " );
-		genesis.add ((genesis_length + n_a + n_b + 2),
-		"ARMA: of " + interval_ratio + " before applying ARMA." );
+		genesis.add ((genesis_length + n_a + n_b + 1), "ARMA: The original number of data points were expanded by a factor " );
+		genesis.add ((genesis_length + n_a + n_b + 2), "ARMA: of " + interval_ratio + " before applying ARMA." );
 		if ( ARMA_ratio == 1 ) {
 			genesis.add ((genesis_length + n_a + n_b + 3), "ARMA: All points were then used as the final result." );
 		}
 		else {	genesis.add ((genesis_length + n_a + n_b + 3),
 			"ARMA: 1/" + ARMA_ratio + " points were then used to compute the averaged final result." );
 		}
-		oldts.setGenesis ( genesis );
-		return oldts;
+		outputts.setGenesis ( genesis );
+		return outputts;
 	}
 
 }
