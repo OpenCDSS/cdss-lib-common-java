@@ -37,6 +37,7 @@
 
 package RTi.Util.Message;
 
+import java.awt.Component;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -45,7 +46,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import RTi.Util.GUI.JGUIUtil;
-
 import RTi.Util.IO.PropList;
 
 /**
@@ -105,6 +105,11 @@ The panel that does all the work of displaying the log file.
 private MessageLogJPanel __messageLogJPanel = null;
 
 /**
+ * The parent is used to center this dialog when set to visible.
+ */
+private Component __parent = null;
+
+/**
 Constructor.
 @param parent the parent JDialog on which this dialog should be opened.
 Cannot be null.
@@ -116,6 +121,7 @@ public MessageLogJDialog(JDialog parent, boolean modal, PropList props)
 throws Exception {
 	super(parent, modal);
 	setupGUI(props);
+	__parent = parent;
 }
 
 /**
@@ -130,6 +136,7 @@ public MessageLogJDialog(JFrame parent, boolean modal, PropList props)
 throws Exception {
 	super(parent, modal);
 	setupGUI(props);
+	__parent = parent;
 }
 
 /**
@@ -200,7 +207,7 @@ throws Exception {
 		// pack() packs in everything pretty well, but the overall
 		// size is just a little small for the worksheet to display
 		// nicely.
-	JGUIUtil.center(this);
+	JGUIUtil.center(this,__parent);
 }
 
 /**

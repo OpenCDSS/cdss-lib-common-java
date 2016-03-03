@@ -88,6 +88,7 @@
 
 package RTi.GRTS;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -100,7 +101,6 @@ import javax.swing.JFrame;
 import RTi.TS.DateValueTS;
 import RTi.TS.TS;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.IO.PropList;
@@ -398,7 +398,7 @@ column headings.  Specify as "true" or "false".
 </table>
 @exception Exception if there is an error opening the view.
 */
-public TSViewJFrame ( List tslist, PropList proplist )
+public TSViewJFrame ( List<TS> tslist, PropList proplist )
 throws Exception
 {	super ( "Time Series View" );
 	initialize ( tslist, proplist );
@@ -702,9 +702,6 @@ throws Exception
 	if (__tsProductAnnotationProviders == null) {
 		__tsProductAnnotationProviders = new Vector();
 	}
-	
-	message = null;
-	routine = null;
 }
 
 /**

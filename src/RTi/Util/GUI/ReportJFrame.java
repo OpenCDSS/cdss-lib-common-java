@@ -50,15 +50,14 @@
 package RTi.Util.GUI;
 
 import java.io.IOException;
-
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.event.ActionEvent;
@@ -67,7 +66,6 @@ import java.awt.event.ActionListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.event.HyperlinkListener;
-
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -78,18 +76,14 @@ import javax.swing.JTextField;
 import java.util.List;
 
 import RTi.Util.Help.URLHelp;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SearchJDialog;
-
 import RTi.Util.IO.ExportJGUI;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PrintJGUI;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 
 /**
@@ -161,6 +155,12 @@ ReportJFrame constructor.
 Java1.2.  If a Windows 95/98/ME machine is detected, the page length is set
 to 100 regardless of what the property is.</td>
 <td>-</td>
+</tr>
+
+<tr>
+<td>ParentUIComponent</td>
+<td>Component to use for parent, used to determine screen for centering the dialog.</td>
+<td>Screen 0</td>
 </tr>
 
 <tr>
@@ -616,7 +616,13 @@ private void setGUI()
 	}
 	pack();
 	setSize( width, height );
-	JGUIUtil.center( this );
+	// Get the UI component to determine screen to display on - needed for multiple monitors
+	Object uiComponentO = _prop.getContents( "ParentUIComponent" );
+	Component parentUIComponent = null;
+	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+		parentUIComponent = (Component)uiComponentO;
+	}
+	JGUIUtil.center( this, parentUIComponent );
 
 	displayContents();
         

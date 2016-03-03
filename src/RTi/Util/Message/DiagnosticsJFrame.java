@@ -67,6 +67,7 @@
 
 package RTi.Util.Message;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -95,7 +96,6 @@ import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJMenuItem;
-
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.ProcessManager;
 import RTi.Util.IO.PropList;
@@ -154,6 +154,22 @@ private DefaultListModel __message_JListModel;
 private int __list_max;
 
 /**
+ * Parent component is used to position this component.
+ */
+private Component __parent = null;
+
+/**
+Constructor the GUI but do not make visible.
+@param parent UI parent component, used to center dialog
+*/
+public DiagnosticsJFrame(Component parent)
+{	super ( "Diagnostics" );
+	__list_max = 100;
+	__parent = parent;
+	openGUI ( 0 );
+}
+
+/**
 Constructor the GUI but do not make visible.
 */
 public DiagnosticsJFrame()
@@ -210,7 +226,13 @@ public void actionPerformed ( ActionEvent e )
             p.set("NumberSummaryListLines=10");
             p.set("NumberLogLines=25");
             p.set("ShowSummaryList=true");
-            MessageLogJFrame logJFrame = new MessageLogJFrame(this, p);
+            MessageLogJFrame logJFrame = null;
+            if ( (__parent != null) && (__parent instanceof JFrame) ) {
+            	logJFrame = new MessageLogJFrame((JFrame)__parent, p);
+            }
+            else {
+            	logJFrame = new MessageLogJFrame(this, p);
+            }
             logJFrame.processLogFile(Message.getLogFile());
             logJFrame.setVisible(true);
         }
@@ -355,32 +377,6 @@ public void attachMainMenu ( JMenu menu, boolean use_checkbox )
     else {
         attachMainMenu ( menu );
     }
-}
-
-/**
-Clean up before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable {
-	__consoleDebugLevel_JTextField = null;
-	__consoleWarningLevel_JTextField = null;
-	__consoleStatusLevel_JTextField = null;
-	__guiDebugLevel_JTextField = null;
-	__guiWarningLevel_JTextField = null;
-	__guiStatusLevel_JTextField = null;
-	__logDebugLevel_JTextField = null;
-	__logWarningLevel_JTextField = null;
-	__logStatusLevel_JTextField = null;
-
-	__debug_JCheckBox = null;
-	__message_JCheckBox = null;
-	__message_JList = null;
-
-	__menu_JCheckBoxMenuItem = null;
-	__message_JListModel = null;
-	
-	super.finalize();
 }
 
 /**
@@ -593,7 +589,7 @@ public void openGUI ( int mode )
     addWindowListener ( this );
 
     pack();
-    JGUIUtil.center(this);
+    JGUIUtil.center(this,__parent);
 
     if ( ( mode & JGUIUtil.GUI_VISIBLE) != 0 ) {
         setVisible(true);
@@ -671,6 +667,10 @@ public void setVisible ( boolean isVisible )
     if ( isVisible ) {
         // Refresh the contents
         refreshContents ();
+    }
+    // Always center on the main interface since people will think it is popping up new each time
+    if ( isVisible ) {
+	    JGUIUtil.center(this,__parent);
     }
     super.setVisible(isVisible);
 }

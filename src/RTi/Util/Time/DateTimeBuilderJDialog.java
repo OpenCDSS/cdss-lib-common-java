@@ -132,7 +132,7 @@ PropList props) {
 	}
 	
 	__props = props;
-        setupGUI();
+    setupGUI(parent);
 }
 
 /**
@@ -151,7 +151,7 @@ DateTime fromDateTime, PropList props) {
 	__fromDateTime = fromDateTime;
 	__toDateTime = null;
 	__props = props;
-        setupGUI();
+    setupGUI(parent);
 }
 
 /**
@@ -412,9 +412,10 @@ private boolean setDate(int flag) {
 }
 
 /**
-This function constructs and displays the GUI layout.
+Constructs and displays the GUI layout.
+@param parent parent frame, used to center the date dialog on the correct screen.
 */
-private void setupGUI() {
+private void setupGUI(JFrame parent) {
 	setProperties();
 
 	JLabel f_YM = null;
@@ -643,7 +644,7 @@ private void setupGUI() {
 
         setBackground(Color.lightGray);
         pack();
-        GUIUtil.center(this);
+        GUIUtil.center(this,parent);
         setResizable(false);
         super.setVisible(true);        
 }

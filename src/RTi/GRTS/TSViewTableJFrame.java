@@ -1,10 +1,10 @@
 package RTi.GRTS;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -15,11 +15,9 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -32,14 +30,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-
 import javax.swing.border.Border;
 
 import RTi.TS.DateValueTS;
 import RTi.TS.TS;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JWorksheet;
@@ -47,17 +43,12 @@ import RTi.Util.GUI.JWorksheet_Header;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
-
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Help.URLHelp;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
-
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
@@ -2059,7 +2050,14 @@ private void setupGUI(boolean mode) {
 	pack();
 	// TODO SAM 2012-04-16 Need to default size based on number of time series
 	setSize(555,500);
-	JGUIUtil.center(this);
+	// Get the UI component to determine screen to display on - needed for multiple monitors
+	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Component parentUIComponent = null;
+	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+		parentUIComponent = (Component)uiComponentO;
+	}
+	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
+	JGUIUtil.center(this,parentUIComponent);
 	setVisible(mode);
 
 	} // end of try

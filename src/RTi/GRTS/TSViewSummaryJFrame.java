@@ -49,6 +49,7 @@
 package RTi.GRTS;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -69,7 +70,6 @@ import javax.swing.JTextArea;
 import RTi.TS.DateValueTS;
 import RTi.TS.TS;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
@@ -338,7 +338,14 @@ private void openGUI ( boolean mode )
 	else {
 		setSize ( total_width, total_height );
 	}
-	JGUIUtil.center ( this );
+	// Get the UI component to determine screen to display on - needed for multiple monitors
+	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Component parentUIComponent = null;
+	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+		parentUIComponent = (Component)uiComponentO;
+	}
+	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
+	JGUIUtil.center ( this, parentUIComponent );
 	// Seems to work best here to get the window size right.
 	__summary_JTextArea.setText ( buffer.toString() );
 	// Set the cursor position to the top

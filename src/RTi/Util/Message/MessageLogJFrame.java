@@ -87,7 +87,7 @@ first constructor for valid properties.
 public MessageLogJFrame(JFrame parent, PropList props) 
 throws Exception {
 	super();
-	setupGUI(props);
+	setupGUI(props,parent);
 }
 
 /**
@@ -136,7 +136,7 @@ protected void remove(JPanel summaryJPanel) {
 /**
 Sets up the GUI.
 */
-private void setupGUI(PropList props) 
+private void setupGUI(PropList props,JFrame parent) 
 throws Exception {
 	addWindowListener(this);
 
@@ -157,7 +157,7 @@ throws Exception {
 		// pack() packs in everything pretty well, but the overall
 		// size is just a little small for the worksheet to display
 		// nicely.
-	JGUIUtil.center(this);
+	JGUIUtil.center(this,parent);
 }
 
 /**

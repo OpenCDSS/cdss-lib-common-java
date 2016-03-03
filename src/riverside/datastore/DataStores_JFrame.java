@@ -1,5 +1,6 @@
 package riverside.datastore;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
@@ -39,7 +40,7 @@ Constructor.
 @param dataStoreList the list of data stores to display in the worksheet.
 @throws Exception if table is null.
 */
-public DataStores_JFrame(String title, List<DataStore> dataStoreList) 
+public DataStores_JFrame(String title, Component parent, List<DataStore> dataStoreList) 
 throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
@@ -60,7 +61,7 @@ throws Exception
 	}
 	__dataStoreList = dataStoreList;
 	
-	setupGUI();
+	setupGUI(parent);
 }
 
 /**
@@ -80,7 +81,7 @@ public void setMessageStatus(String message, String status) {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
+private void setupGUI(Component parent) 
 throws Exception
 {
 	__dataTablePanel = new DataStores_JPanel(this, __dataStoreList);
@@ -104,7 +105,7 @@ throws Exception
 	getContentPane().add("South", statusBar);
 
 	setSize(800, 400);
-	JGUIUtil.center(this);
+	JGUIUtil.center(this,parent);
 
 	int count = __dataTablePanel.getWorksheetRowCount();
 	String plural = "s";

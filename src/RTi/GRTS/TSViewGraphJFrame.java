@@ -120,19 +120,17 @@
 package RTi.GRTS;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
 import java.io.File;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -146,15 +144,12 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
 import RTi.DMI.DMI;
-
 import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
-
 import RTi.TS.DateValueTS;
 import RTi.TS.TS;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleFileFilter;
@@ -162,14 +157,10 @@ import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJToggleButton;
-
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Help.URLHelp;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 
 /**
@@ -909,7 +900,14 @@ private void openGUI ( boolean mode )
 	getContentPane().add ( "South", control_JPanel );
 
 	pack ();
-	JGUIUtil.center ( this );
+	// Get the UI component to determine screen to display on - needed for multiple monitors
+	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Component parentUIComponent = null;
+	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+		parentUIComponent = (Component)uiComponentO;
+	}
+	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
+	JGUIUtil.center ( this, parentUIComponent );
 
 	if ( !needToClose() ) {
 		setVisible ( mode );

@@ -82,14 +82,13 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.List;
-import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.Toolkit;
@@ -456,6 +455,25 @@ public static void addToChoice ( Choice choice, java.util.List items )
 }
 
 /**
+Center a Component in the screen.  For example, center on the screen where the main JFrame exists.
+<b>NOTE</b>: Make sure to call this <b>AFTER</b> calling pack(), or else it will produce unexpected results.
+This seems to properly centers the component on the screen that originated the component.
+However, some components (JFrames?) require that the parent component be specified (see the overloaded version).
+<pre>
+example:
+JDialog d;
+d.pack();
+GUIUtil.center( d, parentFrame );
+</pre>
+@param c Component object to center
+*/
+public static void center ( Component c ) {
+	// Call overloaded version and pass component as parent.
+	// This will center on screen where component originated.
+	center ( c, c );
+}
+
+/**
 Center a Component in the screen using the current frame and screen dimensions.
 <b>NOTE</b>: Make sure to call this <b>AFTER</b> calling pack(), or else it will produce unexpected results.
 This always centers the component on the first screen (screen 0).
@@ -466,41 +484,52 @@ f.pack();
 GUIUtil.center( f );
 </pre>
 @param c Component object.
+@param parent parent of c that defines screen on which to center
 */
-public static void center ( Component c )
-{	boolean old = true;
+public static void center ( Component c, Component parent )
+{
 	Dimension component = c.getSize();
-	int c_width = component.width;
-	int c_height = component.height;
+	int componentWidth = component.width;
+	int componentHeight = component.height;
 	Toolkit kit = c.getToolkit();
-	if ( old ) {
-	    Dimension screen; // window dimension object
-	    int s_width;
-	    int s_height;
-	    int x_coord; // x coordinate
-	    int y_coord; // y coordinate
-	 
-	    // get dimensions for frame and screen
-	    screen = kit.getScreenSize();
+	if ( parent == null ) {
+	    // Get dimensions for screen (always primary screen = screen 0)
+	    Dimension screenDimension = kit.getScreenSize();
 	
-	    // determine heights and widths
+	    // Determine heights and widths
 
-	    s_width = screen.width;
-	    s_height = screen.height;
+	    int screenWidth = screenDimension.width;
+	    int screenHeight = screenDimension.height;
 	
-	    // determine centered coordinates and set the location
-	    x_coord = (int)((s_width-c_width) / 2 );
-	    y_coord = (int)((s_height-c_height) / 2 );
-	    c.setLocation( x_coord, y_coord );
+	    // Determine centered coordinates and set the location
+	    int x = (screenWidth-componentWidth) / 2;
+	    int y = (screenHeight-componentHeight) / 2;
+	    
+	    // Adjust if x or y are off the screen to make sure window controls are visible
+	    if ( x < 0 ) {
+	    	x = 0;
+	    }
+	    if ( (y + componentHeight) > screenHeight) {
+	    	y = 0;
+	    }
+	    c.setLocation ( x, y  );
 	}
 	else {
-		// Try newer approach
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] gs = ge.getScreenDevices();
-		System.out.println("number of screens = " + gs.length );
-		Point p = ge.getCenterPoint();
-		c.setLocation( p.x - c_width/2, p.y - c_height/2 );
-		// TODO SAM 2015-02-01 Need to figure out how to position relative to the originating screen
+		// Try newer approach for multiple monitors
+		GraphicsConfiguration gc = parent.getGraphicsConfiguration();
+		Rectangle parentScreenBounds = gc.getBounds();
+		// x and y of the bounds will be zero for the primary screen.
+		// x will be the width of the primary if two devices (monitors) and the second is used by the parent (y will be zero)
+	    // Adjust if x or y are off the screen to make sure window controls are visible
+		int x = parentScreenBounds.x + (parentScreenBounds.width - componentWidth)/2;
+		int y = parentScreenBounds.y + (parentScreenBounds.height - componentHeight)/2;
+	    if ( x < 0 ) {
+	    	x = parentScreenBounds.x;
+	    }
+	    if ( (y + componentHeight) > parentScreenBounds.height) {
+	    	y = parentScreenBounds.y;
+	    }
+		c.setLocation(x,y);
 	}
 }
 

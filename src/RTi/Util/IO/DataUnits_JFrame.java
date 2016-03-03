@@ -1,5 +1,6 @@
 package RTi.Util.IO;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
@@ -39,7 +40,7 @@ Constructor.
 @param dataUnitsList the list of data units to display in the worksheet.
 @throws Exception if table is null.
 */
-public DataUnits_JFrame(String title, List<DataUnits> dataUnitsList) 
+public DataUnits_JFrame(String title, Component parent, List<DataUnits> dataUnitsList) 
 throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
@@ -60,18 +61,7 @@ throws Exception
 	}
 	__dataUnitsList = dataUnitsList;
 	
-	setupGUI();
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__dataTablePanel = null;
-	__messageJTextField = null;
-	__statusJTextField = null;
-	super.finalize();
+	setupGUI(parent);
 }
 
 /**
@@ -91,7 +81,7 @@ public void setMessageStatus(String message, String status) {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
+private void setupGUI(Component parent) 
 throws Exception
 {
 	__dataTablePanel = new DataUnits_JPanel(this, __dataUnitsList);
@@ -115,7 +105,7 @@ throws Exception
 	getContentPane().add("South", statusBar);
 
 	setSize(600, 400);
-	JGUIUtil.center(this);
+	JGUIUtil.center(this,parent);
 
 	int count = __dataTablePanel.getWorksheetRowCount();
 	String plural = "s";

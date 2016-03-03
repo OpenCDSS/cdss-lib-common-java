@@ -1,5 +1,6 @@
 package RTi.GRTS;
 
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -29,10 +30,10 @@ import RTi.TS.MonthTS;
 import RTi.TS.MonthTSLimits;
 import RTi.TS.TS;
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.IO.PrintJGUI;
+import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
@@ -54,6 +55,10 @@ implements ActionListener, ChangeListener, WindowListener
 Time series to display.
 */
 private TS __ts;
+/**
+Properties to control output.
+*/
+private PropList __props;
 /**
 Print button to be enabled only with the History tab.
 */
@@ -85,10 +90,14 @@ Construct a TSPropertiesJFrame.
 @param ts Time series for which to display properties.
 @exception Exception if there is an error displaying properties.
 */
-public TSPropertiesJFrame ( JFrame gui, TS ts )
+public TSPropertiesJFrame ( JFrame gui, TS ts, PropList props )
 throws Exception
 {	super ( "Time Series Properties" );
 	__ts = ts;
+	if ( props == null ) {
+		props = new PropList("");
+	}
+	__props = props;
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	openGUI ( true );
 }
@@ -533,7 +542,13 @@ private void openGUI ( boolean mode )
 	}
 
 	pack ();
-	JGUIUtil.center ( this );
+	// Get the UI component to determine screen to display on - needed for multiple monitors
+	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Component parentUIComponent = null;
+	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+		parentUIComponent = (Component)uiComponentO;
+	}
+	JGUIUtil.center ( this, parentUIComponent );
 	setResizable ( false );
 	setVisible ( mode );
 	} // end of try
