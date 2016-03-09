@@ -1591,8 +1591,7 @@ public Date getDate ()
 /**
 Return the Java Date corresponding to the DateTime.
 @return Java Date corresponding to the DateTime or null if unable to determine conversion.
-@param flag Indicates whether time zone should be shifted from the DateTime to
-the Date time zone (GMT) (true).
+@param flag Indicates whether time zone should be shifted from the DateTime to the Date time zone, currently ignored.
 */
 public Date getDate ( int flag )
 {	GregorianCalendar c = null;

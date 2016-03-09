@@ -248,7 +248,7 @@ public class TSUtil_ARMA {
 				// ARMA_ratio of 2 gives j - ... 2, 4, 6, etc.
 				toffset = -(ia + 1)*ARMA_ratio;
 				tpos = t + toffset;
-				Message.printStatus(2,routine,"ia=" + ia + ", t=" + t + ", jpos=" + tpos);
+				//Message.printStatus(2,routine,"ia=" + ia + ", t=" + t + ", jpos=" + tpos);
 				data_value = inputts.getMissing();
 				if ( t < oldtsDataIndexForT0 ) {
 					// Are processing data before original input time series start so output is always missing
