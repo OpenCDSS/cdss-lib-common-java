@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Vector;
 
 /**
+TODO SAM 2016-03-11 need to use built-in java.util.TimeZone and Java 8 time API.
+@deprecated need to use built-in java.util.TimeZone and Java 8 time API.
 The TZ class stores instances of time zone information and static data used to
 convert between time zones.  Most often, for storage and performance reasons,
 the time zone abbreviations are

@@ -841,7 +841,10 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	else {
         d = d0;
 	}
-	Date date = d.getDate();
+	// Get the date as if GMT if no timezone was specified
+	// This is OK because no converstio to/from UNIX time is being used
+	// Use the date to format and then use DateTime time zone
+	Date date = d.getDate(TimeZoneDefaultType.GMT);
 
 	if ( format.equals("datum_seconds") ) {
 		// Want the number of seconds since the standard time datum	
@@ -1486,6 +1489,84 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 		Message.printWarning ( 3, "TimeUtil.formatYear", "Year ndigits " + len + " not 2 or 4!" );
 		return -1;
 	}
+}
+
+/**
+Create a DateTime object from the specified UNIX time, which is the number of seconds since Jan 1, 1970 00:00:00.
+@param unixTimeMs UNIX time as milliseconds since Jan 1, 1970 00:00:00.
+@param dt DateTime containing date/time to receive results. If null then a new DateTime will be returned.
+Specify to reuse a DateTime instance, such as when iterating.  Only data values computed from the UNIX time are set.
+Time zone, etc. are not modified.
+@return DateTime object resulting from the conversion. A new instance will be created if dt=null.
+A new instance will have the time zone set to GMT.
+@exception RuntimeException if there is an error processing the UNIX time
+*/
+public static DateTime fromUnixTime ( long unixTimeMs, DateTime dt )
+throws RuntimeException
+{
+	// For now do not support negative
+	if ( unixTimeMs < 0 ) {
+		throw new RuntimeException("Negative UNIX time is not supported." );
+	}
+	DateTime dtout = null;
+	if ( dt != null ) {
+		dtout = dt;
+	}
+	else {
+		dt = new DateTime();
+		dt.setTimeZone("GMT");
+	}
+	// Number of seconds
+	long unixTimeSeconds = unixTimeMs/1000;
+	long seconds = 0;
+	int year = 1970;
+	int month = 1, day = 1, hour = 0, minute = 0, second = 0;
+	// For now loop, but could improve performance
+	for ( int i = 1970; ; i++ ) {
+		if ( isLeapYear(i) ) {
+			seconds = seconds + 366*86400;
+		}
+		else {
+			seconds = seconds + 365*86400;
+		}
+		if ( seconds > unixTimeSeconds ) {
+			// Have gone too many years
+			if ( isLeapYear(i) ) {
+				seconds = seconds - 366*86400;
+			}
+			else {
+				seconds = seconds - 365*86400;
+			}
+			--year;
+			break;
+		}
+		else {
+			// Add another year
+			++year;
+		}
+	}
+	// Loop through months of year
+	for ( month = 1; month <= 12; month++ ) {
+		for ( day = 1; day <= numDaysInMonth(month,year); day++ ) {
+			if ( (unixTimeSeconds - seconds) < 86400 ) {
+				// Need to break because time is in previous day
+				break;
+			}
+			seconds = seconds + 86400;
+		}
+	}
+	// Now are in the correct day so may for hours, minutes, and seconds is simple.
+	long secondsLeft = unixTimeSeconds - seconds;
+	hour = (int)secondsLeft/3600;
+	minute = (int)(secondsLeft%3600)/60;
+	second = (int)(secondsLeft - hour*3600 - minute*60);
+	dtout.setYear(year);
+	dtout.setYear(month);
+	dtout.setYear(day);
+	dtout.setYear(hour);
+	dtout.setYear(minute);
+	dtout.setYear(second);
+	return dt;
 }
 
 /**
@@ -2613,6 +2694,46 @@ public static void sleep ( long milliseconds )
 		} 
 	}
 	*/
+}
+
+/**
+Calculate the UNIX time, which is the number of seconds since Jan 1, 1970 00:00:00.
+The calculation is only implemented for 1970 to 2036.
+@param dt DateTime containing date/time to process.  All parts of the date/time are processed, to seconds.
+@return the UNIX time as milliseconds since Jan 1, 1970 00:00:00.
+@exception RuntimeException if there is an error computing the UNIX time
+*/
+public static long toUnixTime ( DateTime dt )
+throws RuntimeException
+{
+	long seconds = 0;
+	int year = dt.getYear();
+	int yearm1 = year - 1;
+	if ( (year > 1970) || (year > 2036) ) {
+		throw new RuntimeException ( "Year (" + year + ") is not between 1970 and 2036");
+	}
+	// For now loop, but could save a static array to improve performance
+	for ( int i = 1970; i < yearm1; i++ ) {
+		if ( isLeapYear(i) ) {
+			seconds = seconds + 366*86400;
+		}
+		else {
+			seconds = seconds + 365*86400;
+		}
+	}
+	// Days of year...
+	int daysPrev = dt.getYearDay() - 1;
+	if ( daysPrev > 0 ) {
+		seconds = seconds + daysPrev*86400;
+	}
+	// Hours in current day
+	seconds = seconds + dt.getHour()*3600;
+	// Minutes in current day
+	seconds = seconds + dt.getMinute()*60;
+	// Seconds in current day
+	seconds = seconds + dt.getSecond();
+	// Now multiply by 1000;
+	return seconds*1000;
 }
 
 /**

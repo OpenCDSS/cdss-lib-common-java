@@ -1,5 +1,6 @@
 package RTi.Util.Time;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -47,7 +48,7 @@ Get the list of date/time formatter types.
 */
 public static List<DateTimeFormatterType> getDateTimeFormatterChoices()
 {
-    List<DateTimeFormatterType> choices = new Vector();
+    List<DateTimeFormatterType> choices = new ArrayList<DateTimeFormatterType>();
     choices.add ( DateTimeFormatterType.C );
     choices.add ( DateTimeFormatterType.ISO );
     choices.add ( DateTimeFormatterType.MS );
@@ -64,7 +65,7 @@ If false, the returned string will be of the form "Excel", using only the short 
 public static List<String> getDateTimeFormatterChoicesAsStrings( boolean includeNote )
 {
     List<DateTimeFormatterType> choices = getDateTimeFormatterChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         DateTimeFormatterType choice = choices.get(i);
         String choiceString = "" + choice;
@@ -97,7 +98,7 @@ public String toStringVerbose() {
 Return the enumeration value given a string name (case-independent).
 @param name the date/time format string to match, as either the short or verbose display name, or the
 concatenated version "displayName - displayNameVerbose".  
-@return the enumeration value given a string name (case-independent), or null if not matched.
+@return the enumeration value given a string name (case-independent).
 @exception IllegalArgumentException if the name does not match a valid date/time formatter type.
 */
 public static DateTimeFormatterType valueOfIgnoreCase (String name)

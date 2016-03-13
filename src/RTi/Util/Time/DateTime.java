@@ -244,24 +244,22 @@
 package RTi.Util.Time;
 
 import java.io.Serializable;
-
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.Time.TimeUtil;
-
 import RTi.Util.String.StringUtil;
 
 /**
 The DateTime class provides date/time storage and manipulation for general use.
 Unlike the Java Date and Calendar classes, this class allows date/time
-data fields to be easily set and manipulated.
+data fields to be easily set and manipulated, for example to allow fast iteration without
+having to recreate DateTime instances.
 Specific features of the DateTime class are:
 <ul>
 <li>	An optional bitmask flag can be used at construction to indicate the
@@ -273,7 +271,8 @@ Specific features of the DateTime class are:
 <li>	By default the time zone is not used in DateTime manipulation or output.
 	However, if the PRECISION_TIME_ZONE flag is set during creation or with
 	a call to setTimeZone(), then the time zone is intended to be used
-	throughout (comparison, output, etc.).</li>
+	throughout (comparison, output, etc.).  See the getDate*() methods for
+	variations that consider time zone.</li>
 <li>	DateTime objects can be used in TimeUtil methods in a generic way.</li>
 <li>	Call isZero() to see whether the DateTime has zero values.  A zero
 	DateTime means that the date is not the current time and values have
@@ -370,8 +369,7 @@ Create a DateTime with a precision to the hundredth-second.
 public static final int PRECISION_HSECOND = TimeInterval.HSECOND;
 
 /**
-Create a DateTime with a precision that includes the time zone (and may include
-another precision flag).
+Create a DateTime with a precision that includes the time zone (and may include another precision flag).
 */
 public static final int PRECISION_TIME_ZONE= 0x20000;
 
@@ -570,9 +568,9 @@ Is the DateTime initialized to zero without further changes?
 private boolean	__iszero;
 
 /**
-Day of week (0=Sunday).
+Day of week (0=Sunday).  Will be calculated in getWeekDay().
 */
-private int __weekday;
+private int __weekday = -1;
 
 /**
 Day of year (0-365).
@@ -1581,11 +1579,81 @@ public long getBehaviorFlag ()
 }
 
 /**
-Return the Java Date corresponding to the DateTime, ignoring the time zone.
+Return the Java Date corresponding to the DateTime, using date/time values as is and time zone GMT (ignores time zone set for DateTime).
+This is appropriate when the DateTime does not have time zone set (for example when precision is day or larger).
+or time zone is not important (for example absolute difference between two date/times in same time zone).
 @return Java Date corresponding to the DateTime, ignoring the time zone.
 */
-public Date getDate ()
-{	return getDate ( 0 );
+public Date getDateForTimeZoneGMT ()
+{	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	java.util.TimeZone tz = java.util.TimeZone.getTimeZone("GMT");
+	c.setTimeZone(tz);
+	return c.getTime();
+}
+
+/**
+Return the Java Date corresponding to the DateTime, using the specified time zone.
+This should be called, for example, when the time zone in the object was not set but should be applied
+when constructing the returned Date.
+An alternative that will modify the DateTime instance is to call setTimeZone() and then getDate().
+@param tzId time zone string recognized by TimeZone.getTimeZone().
+@return Java Date corresponding to the DateTime.
+@exception RuntimeException if there is no time zone set but defaultTimeZone = TimeZoneDefaultType.NONE
+*/
+public Date getDate ( String tzId )
+{	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	java.util.TimeZone tz = java.util.TimeZone.getTimeZone(tzId);
+	c.setTimeZone(tz);
+	return c.getTime();
+}
+
+/**
+Return the Java Date corresponding to the DateTime, using time zone set for the DateTime object.
+This should be called, for example, when the time zone in the object is valid.
+@param defaultTimeZone indicates how to behave if the time zone is not set in the DateTime object.
+TimeZoneDefaultType.LOCAL should match the legacy behavior, which was relying on the Calendar to set the
+time zone to the default.
+TimeZoneDefaultType.GMT can be used to treat the DateTime as GMT, which is appropriate if time zone is not relevant.
+@return Java Date corresponding to the DateTime, ignoring the time zone.
+@exception RuntimeException if there is no time zone set but defaultTimeZone = TimeZoneDefaultType.NONE
+*/
+public Date getDate ( TimeZoneDefaultType defaultTimeZone )
+{	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	java.util.TimeZone tz = null;
+	if ( (__tz != null) && (!__tz.isEmpty()) ) {
+		// Time zone is specified in object so use it
+		// Make sure time zone is recognized in the Java world.
+		// Hopefully the following is fast - otherwise will need to create a static array in TimeUtil.
+		String[] validIDs = java.util.TimeZone.getAvailableIDs();
+		boolean validID = false;
+		for (String str : validIDs) {
+		    if ( str.equals(__tz) ) {
+		       	validID = true;
+		       	break;
+		    }
+		}
+		if ( !validID ) {
+			throw new RuntimeException ( "Time zone (" + __tz + ") in DateTime object is invalid." );
+		}
+		// The following will now work.  Without the above check GMT is returned if the timezone is not found
+		tz = java.util.TimeZone.getTimeZone(__tz);
+		c.setTimeZone(tz);
+	}
+	else {
+		// No time zone in the object so default
+		if ( defaultTimeZone == TimeZoneDefaultType.LOCAL ) {
+			c.setTimeZone(java.util.TimeZone.getDefault());
+		}
+		else if ( defaultTimeZone == TimeZoneDefaultType.GMT ) {
+			tz = java.util.TimeZone.getTimeZone("GMT");
+			c.setTimeZone(tz);
+		}
+		else if ( (defaultTimeZone == null) || (defaultTimeZone == TimeZoneDefaultType.NONE) ) {
+			// No default allowed
+			throw new RuntimeException ( "Time zone in DateTime object is blank but default time zone is not allowed." );
+		}
+	}
+	return c.getTime();
 }
 
 /**
@@ -1593,29 +1661,24 @@ Return the Java Date corresponding to the DateTime.
 @return Java Date corresponding to the DateTime or null if unable to determine conversion.
 @param flag Indicates whether time zone should be shifted from the DateTime to the Date time zone, currently ignored.
 */
+/* Legacy method replaced by other getDate variations - this was always using the local time zone, which is not
+ * what should be done for some time series because they have no time zone
+ * (essentially local standard time or GMT or irrelevant because day, month, year data)
 public Date getDate ( int flag )
 {	GregorianCalendar c = null;
 	if ( (flag & DATE_STRICT) != 0 ) {
 		// Do care what the time zone is.  Make the returned date exactly match the DateTime, but in GMT.
 		// For now, just do the same for both cases...
 		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
-		Date d = c.getTime();
-		c = null;
-		return d;
+		return c.getTime();
 	}
 	else {
         // Don't care about the time zone.  Just use the other data fields...
 		c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
-	}
-	if ( c != null ) {
-		Date d = c.getTime();
-		c = null;
-		return d;
-	}
-	else {
-        return null;
+		return c.getTime();
 	}
 }
+*/
 
 /**
 Return the day.
@@ -1682,12 +1745,14 @@ public String getTimeZoneAbbreviation ( )
 }
 
 /**
-Return the week day by returning getDate().getDay().
+Return the week day by returning getDate(TimeZoneDefaultType.GMT).getDay().
 @return The week day (Sunday is 0).
 */
 public int getWeekDay ( )
-{	//return _weekday;
-    return getDate().getDay();
+{	// Always recompute because don't know if DateTime was copied and modified.
+	// Does not matter what timezone because internal date/time values are used in absolute sense.
+	__weekday = getDate(TimeZoneDefaultType.GMT).getDay();
+    return __weekday;
 }
 
 /**
@@ -3298,8 +3363,9 @@ public void setDate ( DateTime t )
 
 /**
 Set value of the date/time using a Date as input.
-A new instance is not allocated.  This is useful when iterating through
-database records that use Date.  Only fields appropriate for the DateTime precision are set.
+A new instance is not allocated.  This is useful when iterating through database records that use Date.
+Only fields appropriate for the DateTime precision are set (year through second) as appropriate.
+Currently time zone is NOT set.
 @param d A Date to assign from.
 */
 public void setDate ( Date d )
@@ -3581,6 +3647,11 @@ public void setSecond( int s )
 
 /**
 Set the string time zone.  No check is made to verify that it is a valid time zone abbreviation.
+The time zone should normally only be set for DateTime that have a time component.
+For most analytical purposes the time zone should be GMT or a standard zone like MST.
+Time zones that use daylight savings or otherwise change over history or during the year are
+problematic to maintaining continuity.
+The getDate*() methods will consider the time zone if requested.
 @param zone Time zone abbreviation.  If non-null and non-blank, the
 DateTime precision is automatically set so that PRECISION_TIME_ZONE is on.
 If null or blank, PRECISION_TIME_ZONE is off.
@@ -3599,19 +3670,18 @@ public DateTime setTimeZone( String zone )
 }
 
 /**
-Set the date to the current date/time.
-The default precision is PRECISION_SECOND and the time zone is set.  This
-method is usually only called internally to initialize dates.  If called
-externally, the precision should be set separately.
+Set to the current date/time.
+The default precision is PRECISION_SECOND and the time zone is set.
+This method is usually only called internally to initialize dates.
+If called externally, the precision should be set separately.
 */
 public void setToCurrent () 
 {	// First get the current time (construct a new date because this code
 	// is not executed that much).  If we call this a lot, inline the
 	// code rather than constructing...
 
-	Date d = new Date ();
+	Date d = new Date (); // This will use local time zone
 	DateTime now = new DateTime ( d );
-	d = null;
 
 	// Now set...
 
@@ -3633,7 +3703,7 @@ public void setToCurrent ()
 	__time_only = false;
 
 	// Set the time zone.  Use TimeUtil directly to increase performance...
-
+	// TODO SAM 2016-03-12 Need to rework this - legacy timezone was needed at one point but should use java.util.time or Java 8 API
 	if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
 		if ( !TimeUtil._local_time_zone_retrieved ) {
 			// Need to initialize...
@@ -3784,6 +3854,7 @@ public void shiftTimeZone ( String zone )
         int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
 		addMinute ( offset );
 		setTimeZone ( zone );
+		// TODO SAM 2016-03-11 See getDate(String tz) treatment of time zone - could add check here
 	}
 	catch ( Exception e ) {
 		// Nothing for now - should not happen if system is set up correctly

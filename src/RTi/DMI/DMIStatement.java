@@ -3,13 +3,12 @@ package RTi.DMI;
 import java.sql.CallableStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
 import RTi.Util.Time.DateTime;
-
+import RTi.Util.Time.TimeZoneDefaultType;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -792,7 +791,8 @@ throws Exception {
 	// the Date object is cast because the Date returned from getDate()
 	// is a java.util.Date, whereas the callable statement expects a 
 	// javal.sql.Date, which is a subclass of java.util.Date.
-	__storedProcedureCallableStatement.setDate(parameterNum,(new java.sql.Date(param.getDate().getTime())));
+    // TODO SAM 2016-03-11 the following matches legacy behavior but handling of time zone may need additional evaluation
+	__storedProcedureCallableStatement.setDate(parameterNum,(new java.sql.Date(param.getDate(TimeZoneDefaultType.LOCAL).getTime())));
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
 	}
@@ -1048,15 +1048,16 @@ throws Exception {
 				value = value.substring(1, len - 1);
 			}
 			DateTime DT = DateTime.parse(value);
-			setValue(new java.sql.Date(DT.getDate().getTime()), pos);
-			break;		
+		    // TODO SAM 2016-03-11 the following matches legacy behavior but handling of time zone may need additional evaluation
+			setValue(new java.sql.Date(DT.getDate(TimeZoneDefaultType.LOCAL).getTime()), pos);
+			break;
 		case java.sql.Types.TIMESTAMP:
 			value = value.trim();
 			if (value.startsWith("'")) {
 				value = value.substring(1, len - 1);
 			}
 			DateTime DT2 = DateTime.parse(value);
-			setValue(new Timestamp(DT2.getDate().getTime()), pos);
+			setValue(new Timestamp(DT2.getDate(TimeZoneDefaultType.LOCAL).getTime()), pos);
 			break;
 		default:
 			throw new Exception ("Unsupported type: " + type);
