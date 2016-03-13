@@ -168,7 +168,6 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -177,13 +176,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -198,25 +196,18 @@ import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRText;
-
 import RTi.GRTS.TSProductAnnotationProvider;
-
 import RTi.TS.TSUtil;
-
 import RTi.Util.GUI.DragAndDropListener;
 import RTi.Util.GUI.DragAndDropSimpleJComboBox;
 import RTi.Util.GUI.DragAndDropUtil;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
-
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
-
 import RTi.Util.Time.TimeUtil;
 
 /**
@@ -605,7 +596,6 @@ throws Exception {
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 	initialize(tsview_gui, tsgraphcanvas, visible);
-	__graphJFrame = getTSViewJFrame().getViewGraphJFrame();
 }
 
 /**
@@ -4757,184 +4747,15 @@ void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 }
 
 /**
-Clean up before destruction.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable {
-	_tsview_gui = null;
-	_tsproduct = null;
-	__layoutCanvas = null;
-	_apply_JButton = null;
-	_close_JButton = null;
-	__graphJFrame = null;
-	_insetsTLBR = null;
-	_product_JTabbedPane = null;
-	_product_enabled_JCheckBox = null;
-	__product_id_JTextField = null;
-	__product_name_JTextField = null;
-	_product_maintitle_JTextField = null;
-	_product_maintitle_fontname_JComboBox = null;
-	_product_maintitle_fontstyle_JComboBox = null;
-	_product_maintitle_fontsize_JTextField = null;
-	_product_subtitle_JTextField = null;
-	_product_subtitle_fontname_JComboBox = null;
-	_product_subtitle_fontstyle_JComboBox = null;
-	_product_subtitle_fontsize_JTextField = null;
-	_graph_JComboBox = null;
-	_graph_JTabbedPane = null;
-	_graph_enabled_JCheckBox = null;
-	_graph_isref_JCheckBox = null;
-	_graph_graphtype_JComboBox = null;
-	_graph_barposition_JLabel = null;
-	_graph_barposition_JComboBox = null;
-	_graph_maintitle_JTextField = null;
-	_graph_maintitle_fontname_JComboBox = null;
-	_graph_maintitle_fontstyle_JComboBox = null;
-	_graph_maintitle_fontsize_JTextField = null;
-	_graph_subtitle_JTextField = null;
-	_graph_subtitle_fontname_JComboBox = null;
-	_graph_subtitle_fontstyle_JComboBox = null;
-	_graph_subtitle_fontsize_JTextField = null;
-	_graph_bottomx_label_fontname_JComboBox = null;
-	_graph_bottomx_label_fontstyle_JComboBox = null;
-	_graph_bottomx_label_fontsize_JTextField = null;
-	_graph_bottomx_title_JTextField = null;
-	_graph_bottomx_title_fontname_JComboBox = null;
-	_graph_bottomx_title_fontstyle_JComboBox = null;
-	_graph_bottomx_title_fontsize_JTextField = null;
-	_graph_bottomx_majorgrid_color_JTextField = null;
-	_graph_bottomx_majorgrid_color_JComboBox = null;
-	_graph_bottomx_majorgrid_color_JButton = null;
-	_graph_lefty_label_fontname_JComboBox = null;
-	_graph_lefty_label_fontstyle_JComboBox = null;
-	_graph_lefty_label_fontsize_JTextField = null;
-	_graph_lefty_precision_JTextField = null;
-	_graph_lefty_type_JComboBox = null;
-	_graph_lefty_min_JComboBox = null;
-	_graph_lefty_max_JComboBox = null;
-	_graph_lefty_ignoreunits_JCheckBox = null;
-	_graph_lefty_units_JTextField = null;
-	_graph_lefty_title_JTextField = null;
-	_graph_lefty_title_fontname_JComboBox = null;
-	_graph_lefty_title_fontstyle_JComboBox = null;
-	_graph_lefty_title_fontsize_JTextField = null;
-	_graph_righty_label_fontname_JComboBox = null;
-	_graph_righty_label_fontstyle_JComboBox = null;
-	_graph_righty_label_fontsize_JTextField = null;
-	_graph_lefty_majorgrid_color_JTextField = null;
-	_graph_lefty_majorgrid_color_JComboBox = null;
-	_graph_lefty_majorgrid_color_JButton = null;
-	_graph_righty_title_JTextField = null;
-	_graph_righty_title_fontname_JComboBox = null;
-	_graph_righty_title_fontstyle_JComboBox = null;
-	_graph_righty_title_fontsize_JTextField = null;
-	_graph_datalabelformat_JTextField = null;
-	_graph_datalabelformat_JComboBox = null;
-	_graph_datalabelposition_JComboBox = null;
-	_graph_datalabelfontname_JComboBox = null;
-	_graph_datalabelfontstyle_JComboBox = null;
-	_graph_datalabelfontsize_JTextField = null;
-	_graph_legendformat_JTextField = null;
-	_graph_legendformat_JComboBox = null;
-	_graph_legendposition_JComboBox = null;
-	_graph_legendfontname_JComboBox = null;
-	_graph_legendfontstyle_JComboBox = null;
-	_graph_legend_fontsize_JTextField = null;
-	_graph_zoomenabled_JCheckBox = null;
-	_graph_zoomgroup_JTextField = null;
-	_graph_analysis_JPanel = null;
-	_graph_blank_analysis_JPanel = null;
-	_blank_analysis_JPanel = null;
-	_xyscatter_analysis_JPanel = null;
-	_xyscatter_analysis_intercept_JTextField = null;
-	_xyscatter_analysis_method_JComboBox = null;
-	_xyscatter_analysis_transform_JComboBox = null;
-	_xyscatter_analysis_neqn_JComboBox = null;
-	_xyscatter_analysis_month_JTextField = null;
-	_dep_analysis_period_start_JTextField = null;
-	_dep_analysis_period_end_JTextField = null;
-	_ind_analysis_period_start_JTextField = null;
-	_ind_analysis_period_end_JTextField = null;
-	_xyscatter_analysis_fill_JCheckBox = null;
-	_xyscatter_analysis_fill_period_start_JTextField = null;
-	_xyscatter_analysis_fill_period_end_JTextField = null;
-	__annotation_JComboBox = null;
-	__selectedAnnotation = -1;	
-	__annotation_id_JTextField = null;
-	__annotation_ShapeType_JComboBox = null;
-	__annotation_Order_JComboBox = null;
-	__annotation_line_color_JTextField = null;
-	__annotation_text_color_JTextField = null;
-	__annotation_text_color_JComboBox = null;
-	__annotation_line_color_JComboBox = null;
-	__annotation_XAxisSystem_JComboBox = null;
-	__annotation_YAxisSystem_JComboBox = null;
-	__graphAnnotationProvider = null;
-	__annotation_line_JPanel = null;
-	__lineStyleJComboBox = null;
-	__annotation_line_LineWidth_JTextField = null;
-	__annotation_line_PointX1_JTextField = null;
-	__annotation_line_PointY1_JTextField = null;
-	__annotation_line_PointX2_JTextField = null;
-	__annotation_line_PointY2_JTextField = null;
-	__annotation_text_JPanel = null;
-	__annotation_text_Text_JTextField = null;
-	__annotation_text_PointX_JTextField = null;
-	__annotation_text_PointY_JTextField = null;
-	__annotation_text_Position_JComboBox = null;
-	__annotation_text_FontName_JComboBox = null;
-	__annotation_text_FontStyle_JComboBox = null;
-	__annotation_text_FontSize_JTextField = null;
-	__annotation_symbol_JPanel = null;
-	__annotation_symbol_color_JTextField = null;
-	__annotation_symbol_color_JComboBox = null;
-	__annotation_symbol_PointX_JTextField = null;
-	__annotation_symbol_PointY_JTextField = null;
-	__annotation_symbol_SymbolPosition_JComboBox = null;
-	__annotation_symbol_SymbolStyle_JComboBox = null;
-	__annotation_symbol_SymbolSize_JComboBox = null;	
-	__ts_JComboBox = null;
-	_ts_JTabbedPane = null;
-	_ts_enabled_JCheckBox = null;
-	_ts_graphtype_JComboBox = null;	
-	_ts_regressionline_JCheckBox = null;
-	_ts_xaxis_JComboBox = null;
-	_ts_yaxis_JComboBox = null;
-	_ts_linestyle_JComboBox = null;
-	_ts_linewidth_JComboBox = null;
-	_ts_symbolstyle_JComboBox = null;
-	_ts_symbolsize_JComboBox = null;
-	_ts_color_JTextField = null;
-	_ts_color_JComboBox = null;
-	_ts_color_JButton = null;
-	_ts_datalabelposition_JComboBox = null;
-	_ts_datalabelformat_JComboBox = null;
-	_ts_datalabelformat_JTextField = null;
-	_ts_legendformat_JTextField = null;
-	_ts_legendformat_JComboBox = null;
-	_ts_analysis_JPanel = null;
-	_ts_blank_analysis_JPanel = null;
-	_ts_xyscatter_analysis_JPanel = null;
-	_ts_confidenceinterval_JComboBox = null;
-	__addAnnotationJButton = null;
-	__delAnnotationJButton = null;
-	__moveAnnotationUpJButton = null;
-	__moveAnnotationDownJButton = null;
-
-	super.finalize();
-}
-
-/**
 Returns a list of the values in the graph selection combo box.
 @return a list of the values in the graph selection combo box.
 */
-protected List getGraphList() {
-	List v = new Vector();
+protected List<String> getGraphList() {
+	List graphList = new ArrayList<String>();
 	for (int i = 0; i < _graph_JComboBox.getItemCount(); i++) {
-		v.add(_graph_JComboBox.getItemAt(i));
+		graphList.add(_graph_JComboBox.getItemAt(i));
 	}
-	return v;
+	return graphList;
 }
 
 /**
@@ -5013,6 +4834,7 @@ private void initialize (TSViewJFrame tsview_gui, TSGraphJComponent tsgraphcanva
 	_tsproduct = tsgraphcanvas.getTSProduct();
 	_selected_data = 0;	// First one in list
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+	__graphJFrame = getTSViewJFrame().getViewGraphJFrame();
 
 	__annotationProviders = new Vector();
 	/*
@@ -5584,11 +5406,8 @@ private void openGUI ( boolean mode )
 
 	setSubproduct(0);
 
-	JGUIUtil.center ( this );
+	JGUIUtil.center ( this, __graphJFrame );
 	setVisible ( mode );
-	// Clean up...
-	gbl = null;
-	display_JPanel = null;
 	} // end of try
 	catch ( Exception e ) {
 		if (IOUtil.testing()) {
