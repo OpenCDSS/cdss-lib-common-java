@@ -135,10 +135,11 @@ private final String
 Button strings.
 */
 private final String
-	__BUTTON_CLOSE = 		"Close",
-	__BUTTON_OPEN = 		"Open",
-	__BUTTON_PRINT_LOG_FILE = 	"Print Log File",
-	__BUTTON_PRINT_SUMMARY = 	"Print Summary";
+	__BUTTON_CLOSE = "Close",
+	__BUTTON_OPEN = "Open",
+	__BUTTON_PRINT_LOG_FILE = "Print Log File",
+	__BUTTON_PRINT_SUMMARY = "Print Summary",
+	__BUTTON_REFRESH = "Refresh";
 
 /**
 The number of lines in the log file.  Used when moving around in the worksheet.
@@ -365,6 +366,9 @@ public void actionPerformed(ActionEvent event) {
 	else if (command.equals(__BUTTON_PRINT_SUMMARY)) {
 		printSummary();
 	}
+	else if (command.equals(__BUTTON_REFRESH)) {
+		refresh();
+	}
 	else if (command.equals(__MENU_FIND_IN_WORKSHEET)) {
 		findInWorksheet();
 	}
@@ -455,26 +459,6 @@ private void filterSummaryList() {
 	}
 
 	setupSummaryJPanel(__filteredSummaryListData, false);
-}
-
-/**
-Cleans up member variables.
-*/
-protected void finalize()
-throws Throwable {
-	__popup = null;
-	__summaryList = null;
-	__filePath = null;
-	__listeners = null;
-	__messageVector = null;
-	__filteredPosVector = null;
-	__posVector = null;
-	__summaryJPanel = null;
-	__levelNumBox1 = null;
-	__levelNumBox2 = null;
-	__summaryListData = null;
-	__parentJFrame = null;
-	__parentJDialog = null;
 }
 
 /**
@@ -658,8 +642,7 @@ private void openLogFile() {
 		JGUIUtil.setWaitCursor(this, false);
 	}
 	catch (Exception e) {		
-		Message.printWarning(1, routine, "Unable to open file: "
-			+ path);
+		Message.printWarning(1, routine, "Unable to open file: " + path);
 		Message.printWarning(2, routine, e);
 	}
 }
@@ -846,6 +829,27 @@ throws Exception {
 }
 
 /**
+Refresh the log file display by reloading the log file and positioning at the last row.
+*/
+private void refresh ()
+{	String routine = getClass().getSimpleName() + ".refresh";
+	// Reprocess the same file
+	String path = __filePath;
+	try {
+		JGUIUtil.setWaitCursor(this, true);
+		// Reread the log file
+		processLogFile(path);
+		// Position the cursor at the bottom
+		__worksheet.scrollToLastRow();
+		JGUIUtil.setWaitCursor(this, false);
+	}
+	catch (Exception e) {		
+		Message.printWarning(1, routine, "Unable to open file: " + path);
+		Message.printWarning(2, routine, e);
+	}
+}
+
+/**
 Sets up the button JPanel
 */
 private void setupButtonJPanel() {
@@ -856,8 +860,9 @@ private void setupButtonJPanel() {
 	SimpleJButton printSummaryButton = new SimpleJButton(
 		__BUTTON_PRINT_SUMMARY, __BUTTON_PRINT_SUMMARY, this);
 	printSummaryButton.setToolTipText("Print the summary list text.");
-	SimpleJButton openButton = new SimpleJButton(__BUTTON_OPEN,
-		__BUTTON_OPEN, this);
+	SimpleJButton refreshButton = new SimpleJButton(__BUTTON_REFRESH, __BUTTON_REFRESH, this);
+	refreshButton.setToolTipText("Reload the log file and position at the end.");
+	SimpleJButton openButton = new SimpleJButton(__BUTTON_OPEN, __BUTTON_OPEN, this);
 	openButton.setToolTipText("Open and display a new log file.");
 	SimpleJButton closeButton = new SimpleJButton(__BUTTON_CLOSE,
 		__BUTTON_CLOSE, this);
@@ -867,6 +872,7 @@ private void setupButtonJPanel() {
 	if (__style == __STYLE_LOG_AND_SUMMARY) {
 		__buttonJPanel.add(printSummaryButton);
 	}
+	__buttonJPanel.add(refreshButton);
 	__buttonJPanel.add(openButton);
 	__buttonJPanel.add(closeButton);
 }
