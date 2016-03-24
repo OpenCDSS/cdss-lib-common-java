@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -29,6 +30,7 @@ import javax.swing.SwingConstants;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -38,13 +40,15 @@ public class DateTimeToolsJDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
 {
 
+// Date/time <=> UNIX time components
 private JTextField dateToUnixYear_JTextField = null;
 private JTextField dateToUnixMonth_JTextField = null;
 private JTextField dateToUnixDay_JTextField = null;
 private JTextField dateToUnixHour_JTextField = null;
 private JTextField dateToUnixMinute_JTextField = null;
 private JTextField dateToUnixSecond_JTextField = null;
-private SimpleJComboBox dateToUnixTimeZoneIDReq_JComboBox = null; // Requested (default = computer local)
+private SimpleJComboBox dateToUnixTimeZoneIDReq_JComboBox = null; // Requested, with leading GMT offset (default = computer local)
+private JTextField dateToUnixTimeZoneIDReq_JTextField = null; // Requested, without leading GMT offset
 private JTextField dateToUnixTimeZoneIDUsed_JTextField = null; // What was actually used
 private JTextField dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField = null;
 private JTextField dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField = null;
@@ -53,6 +57,15 @@ private JTextField dateToUnixTimeZoneIDUsedIsDST_JTextField = null;
 private JTextField dateToUnixUnixMs_JTextField = null;
 private JTextField dateToUnixUnixSeconds_JTextField = null;
 private JTextField dateToUnixUnixMsComputed_JTextField = null;
+
+// Right side
+
+private JTextField unixToDateUnixMs_JTextField = null;
+private JTextField unixToDateUnixSeconds_JTextField = null;
+private JTextField unixToDateDateTime_JTextField = null;
+private JTextField unixToDateDateTimeComputed_JTextField = null;
+
+//Date/time information components
 
 private SimpleJComboBox timeZones_JComboBox = null;
 
@@ -90,6 +103,63 @@ public void actionPerformed( ActionEvent event )
 }
 
 /**
+Calculate date/time from UNIX time and display.
+*/
+private void calculateDateFromUnixTime () {
+	String unixToDateTime = "";
+	String unixToDateTimeComputed = "";
+	//String timeZoneUsed = "";
+	//String timeZoneUsedDisplayNameLong = "";
+	//String timeZoneUsedDisplayNameShort = "";
+	//String timeZoneUsedIsDST = "";
+	try {
+		long unixTimeSeconds = 0;
+		long unixTimeMs = 0;
+		// Get the text fields, convert to numerical date/time values and calculate output
+		String unixMsString = this.unixToDateUnixMs_JTextField.getText().trim();
+		String unixSecondsString = this.unixToDateUnixSeconds_JTextField.getText().trim();
+		//String timeZone = this.dateToUnixTimeZoneIDReq_JComboBox.getSelected();
+		int inputCount = 0;
+		if ( !unixMsString.isEmpty() ) {
+			unixTimeMs = Long.parseLong(unixMsString.trim());
+			unixTimeSeconds = unixTimeMs/1000;
+			++inputCount;
+		}
+		if ( !unixSecondsString.isEmpty() ) {
+			unixTimeSeconds = Long.parseLong(unixSecondsString.trim());
+			unixTimeMs = unixTimeSeconds*1000;
+			++inputCount;
+		}
+		if ( inputCount == 1 ) {
+			// Can calculate
+			// Compute using Java internals
+			Date d = new Date(unixTimeMs); // Date will use local time zone so for MST the time will show -7 hours (Date.getTimeZoneOffset() = 420)
+			//Message.printStatus(2, "", "New Date:"+ d + ", offset=" + d.getTimezoneOffset());
+			DateTime dt = new DateTime(d); // Will use local time zone from original Date so for a MST time will show 7+ hours more time
+			dt.addMinute(d.getTimezoneOffset()); // Therefore adjust back to GMT
+			dt.setTimeZone("GMT");
+			//Message.printStatus(2, "", "DateTime in GMT:"+ dt);
+			unixToDateTime = dt.toString();
+			// Compute date/time using TSTool library
+			DateTime dtComputed = TimeUtil.fromUnixTime(unixTimeMs, null);
+			unixToDateTimeComputed = dtComputed.toString();
+		}
+		else {
+			// Don't have enough data
+			unixToDateTime = "Enter UNIX time ms or seconds";
+			unixToDateTimeComputed = "Enter UNIX time ms or seconds";
+		}
+	}
+	catch ( Exception e ) {
+		unixToDateTime = "Error (" + e + ")";
+		unixToDateTimeComputed = "Error (" + e + ")";
+		Message.printWarning(3,"",e);
+	}
+	this.unixToDateDateTime_JTextField.setText(unixToDateTime);
+	this.unixToDateDateTimeComputed_JTextField.setText(unixToDateTimeComputed);
+}
+
+/**
 Calculate UNIX time from the date and display.
 */
 private void calculateUnixTimeFromDate () {
@@ -110,7 +180,12 @@ private void calculateUnixTimeFromDate () {
 		String hourString = this.dateToUnixHour_JTextField.getText().trim();
 		String minuteString = this.dateToUnixMinute_JTextField.getText().trim();
 		String secondString = this.dateToUnixSecond_JTextField.getText().trim();
+		// First get the time zone that is requested with leading "(GMT-07:00)", etc.
 		String timeZone = this.dateToUnixTimeZoneIDReq_JComboBox.getSelected();
+		// Strip off to just get the time zone ID
+		int pos = timeZone.indexOf(")");
+		timeZone = timeZone.substring(pos+1).trim();
+		this.dateToUnixTimeZoneIDReq_JTextField.setText(timeZone);
 		int year = 1970, month = 1, day = 1, hour = 0, minute = 0, second = 0;
 		int inputCount = 0;
 		if ( !yearString.isEmpty() ) {
@@ -168,13 +243,13 @@ private void calculateUnixTimeFromDate () {
 					//	StringUtil.formatString(d.getTimezoneOffset()%60,"%02d") + " default local, hhmm offset from GMT";
 					// However, better to actually get the time zone
 					tz = TimeZone.getDefault(); // This is what DateTime.getDate(TimeZoneDefaultType.LOCAL) does
-					timeZoneUsed = tz.getDisplayName();
+					timeZoneUsed = tz.getID();
 				}
 				boolean isDST = tz.inDaylightTime(d);
 				timeZoneUsedDisplayNameLong = tz.getDisplayName(isDST,TimeZone.LONG);
 				timeZoneUsedDisplayNameShort = tz.getDisplayName(isDST,TimeZone.SHORT);
 				timeZoneUsedIsDST = "" + isDST;
-				unixTimeComputedMsString = "" + TimeUtil.toUnixTime(dt);
+				unixTimeComputedMsString = "" + TimeUtil.toUnixTime(dt,true);
 			}
 			unixTimeSeconds = unixTimeMs/1000; 
 			unixTimeSecondsString = "" + unixTimeSeconds;
@@ -192,12 +267,12 @@ private void calculateUnixTimeFromDate () {
 		}
 	}
 	catch ( Exception e ) {
-		timeZoneUsed = "Error";
-		timeZoneUsed = "Error";
-		timeZoneUsedDisplayNameLong = "Error";
-		timeZoneUsedDisplayNameShort = "Error";
-		unixTimeSecondsString = "Error";
-		unixTimeMsString = "Error";
+		timeZoneUsed = "Error (" + e + ")";
+		timeZoneUsed = "Error (" + e + ")";
+		timeZoneUsedDisplayNameLong = "Error (" + e + ")";
+		timeZoneUsedDisplayNameShort = "Error (" + e + ")";
+		unixTimeSecondsString = "Error (" + e + ")";
+		unixTimeMsString = "Error (" + e + ")";
 	}
 	this.dateToUnixTimeZoneIDUsed_JTextField.setText(timeZoneUsed);
 	this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField.setText(timeZoneUsedDisplayNameLong);
@@ -238,19 +313,19 @@ private void initialize ()
 	unix_JPanel.setLayout ( gbl );
 	main_JTabbedPane.addTab ( "Date/time to/from UNIX", unix_JPanel );
 
-    int yUnix = -1;
+    int yUnixToDate = -1;
     JGUIUtil.addComponent(unix_JPanel,
         new JLabel("UNIX time is the number of seconds since midnight, January 1, 1970 (see: https://en.wikipedia.org/wiki/Unix_time)."),
-        0, ++yUnix, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        0, ++yUnixToDate, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(unix_JPanel,
         new JLabel("Each day is 86400 seconds.  Computer programs often use this representation for date/time conversions and time math."),
-        0, ++yUnix, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        0, ++yUnixToDate, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(unix_JPanel,
         new JLabel("UNIX time does not reflect leap seconds - it is calculated based on the number of days and seconds in the day."),
-        0, ++yUnix, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+        0, ++yUnixToDate, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(unix_JPanel,
         new JSeparator(SwingConstants.HORIZONTAL),
-        0, ++yUnix, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+        0, ++yUnixToDate, 11, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
     
     // Add panel on left to go from date to UNIX time
 
@@ -258,37 +333,42 @@ private void initialize ()
     JPanel dateToUnix_JPanel = new JPanel();
     dateToUnix_JPanel.setLayout ( gbl );
     JGUIUtil.addComponent(unix_JPanel, dateToUnix_JPanel,
-        0, ++yUnix, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+        0, ++yUnixToDate, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
     
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Enter a date/time to see UNIX time."),
         0, ++yDateToUnitDate, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Year (YYYY, 1970+):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixYear_JTextField = new JTextField(5);
+    this.dateToUnixYear_JTextField.setToolTipText("4-digit year for date/time to convert to UNIX time.");
     this.dateToUnixYear_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixYear_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Month (1-12):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixMonth_JTextField = new JTextField(5);
+    this.dateToUnixMonth_JTextField.setToolTipText("Month (1-12, 1=January) for date/time to convert to UNIX time.");
     this.dateToUnixMonth_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixMonth_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Day (1-31):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixDay_JTextField = new JTextField(5);
+    this.dateToUnixDay_JTextField.setToolTipText("Day of month (1-31) for date/time to convert to UNIX time.");
     this.dateToUnixDay_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixDay_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Hour (0-23):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixHour_JTextField = new JTextField(5);
+    this.dateToUnixHour_JTextField.setToolTipText("Hour of day (0-23) for date/time to convert to UNIX time.");
     this.dateToUnixHour_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixHour_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Minute (0-59):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixMinute_JTextField = new JTextField(5);
+    this.dateToUnixMinute_JTextField.setToolTipText("Minute of hour (0-59) for date/time to convert to UNIX time.");
     this.dateToUnixMinute_JTextField.setToolTipText("Specify blank to use default time zone from computer.");
     this.dateToUnixMinute_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixMinute_JTextField,
@@ -296,69 +376,104 @@ private void initialize ()
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Second (0-59):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixSecond_JTextField = new JTextField(5);
+    this.dateToUnixSecond_JTextField.setToolTipText("Second of minute (0-59) for date/time to convert to UNIX time.");
     this.dateToUnixSecond_JTextField.addKeyListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixSecond_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (requested):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    // JComboBox has (GMT+HH:MM) in front sorted to make it easier to find time zone
     this.dateToUnixTimeZoneIDReq_JComboBox = new SimpleJComboBox(false);
     String [] ids = TimeZone.getAvailableIDs();
     List<String> timeZoneIDs = new ArrayList<String>();
-    timeZoneIDs.add(""); // Default
+    long hours, minutes;
+    TimeZone tz;
+    // First add the positive time zones (east of GMT or equivalent to GMT)
     for ( int i = 0; i < ids.length; i++ ) {
-    	timeZoneIDs.add(ids[i]);
+    	tz = TimeZone.getTimeZone(ids[i]);
+    	if ( tz.getRawOffset() >= 0 ) {
+    		hours = TimeUnit.MILLISECONDS.toHours(tz.getRawOffset());
+    		// Make minutes positive since negative is prefixed to hour
+    		minutes = Math.abs(TimeUnit.MILLISECONDS.toMinutes(tz.getRawOffset()) - TimeUnit.HOURS.toMinutes(hours));
+    		timeZoneIDs.add(String.format("(GMT%+03d:%02d) %s", hours, minutes, tz.getID()));
+    	}
     }
-    timeZoneIDs = StringUtil.sortStringList(timeZoneIDs);
+    // Sort descending
+    timeZoneIDs = StringUtil.sortStringList(timeZoneIDs,StringUtil.SORT_DESCENDING,null,false,true);
+    // Now do the same for the negative zones but sort ascending
+    List<String> timeZoneIDs2 = new ArrayList<String>();
+    for ( int i = 0; i < ids.length; i++ ) {
+    	tz = TimeZone.getTimeZone(ids[i]);
+    	if ( tz.getRawOffset() < 0 ) {
+    		hours = TimeUnit.MILLISECONDS.toHours(tz.getRawOffset());
+    		// Make minutes positive since negative is prefixed to hour
+    		minutes = Math.abs(TimeUnit.MILLISECONDS.toMinutes(tz.getRawOffset()) - TimeUnit.HOURS.toMinutes(hours));
+    		timeZoneIDs2.add(String.format("(GMT%+03d:%02d) %s", hours, minutes, tz.getID()));
+    	}
+    }
+    timeZoneIDs2 = StringUtil.sortStringList(timeZoneIDs2,StringUtil.SORT_ASCENDING,null,false,true);
+    timeZoneIDs.addAll(timeZoneIDs2);
+    // Add a blank at the front to default to local time
+    timeZoneIDs.add(0,""); // Default
     this.dateToUnixTimeZoneIDReq_JComboBox.setData(timeZoneIDs);
+    this.dateToUnixTimeZoneIDReq_JComboBox.setToolTipText("Recognized time zone ID, prepended with raw offset from GMT (no daylight savings).");
     this.dateToUnixTimeZoneIDReq_JComboBox.addItemListener(this);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDReq_JComboBox,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     JGUIUtil.addComponent(dateToUnix_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
         0, ++yDateToUnitDate, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+    JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (requested) ID:"),
+        0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+    this.dateToUnixTimeZoneIDReq_JTextField = new JTextField(25);
+    this.dateToUnixTimeZoneIDReq_JTextField.setToolTipText("Requested time zone ID.");
+    this.dateToUnixTimeZoneIDReq_JTextField.setEditable(false);
+    JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDReq_JTextField,
+        1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
-    JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (used):"),
+    JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (used) ID:"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixTimeZoneIDUsed_JTextField = new JTextField(25);
-    dateToUnixTimeZoneIDUsed_JTextField.setEnabled(false);
-    this.dateToUnixTimeZoneIDUsed_JTextField.addKeyListener(this);
+    this.dateToUnixTimeZoneIDUsed_JTextField.setToolTipText("Time zone ID that is used (will default to system if requested time zone is not specified).");
+    this.dateToUnixTimeZoneIDUsed_JTextField.setEditable(false);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDUsed_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (used) display name (long):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField = new JTextField(25);
-    dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField.setEnabled(false);
-    this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField.addKeyListener(this);
+    this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField.setToolTipText("Long time zone name that is in effect (may reflect daylight savings time).");
+    this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField.setEditable(false);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDUsedDisplayNameLong_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone (used) display name (short):"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField = new JTextField(25);
-    dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField.setEnabled(false);
-    this.dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField.addKeyListener(this);
+    this.dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField.setToolTipText("Short time zone name that is in effect (may reflect daylight savings time).");
+    this.dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField.setEditable(false);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDUsedDisplayNameShort_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("Time zone is daylight savings time?:"),
         0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
     this.dateToUnixTimeZoneIDUsedIsDST_JTextField = new JTextField(25);
-    dateToUnixTimeZoneIDUsedIsDST_JTextField.setEnabled(false);
-    this.dateToUnixTimeZoneIDUsedIsDST_JTextField.addKeyListener(this);
+    this.dateToUnixTimeZoneIDUsedIsDST_JTextField.setToolTipText("Is time zone in daylight savings for indicated date/time?");
+    this.dateToUnixTimeZoneIDUsedIsDST_JTextField.setEditable(false);
     JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixTimeZoneIDUsedIsDST_JTextField,
         1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("UNIX time, from system (ms):"),
     	0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	this.dateToUnixUnixMs_JTextField = new JTextField(15);
-	this.dateToUnixUnixMs_JTextField.setEnabled(false);
+	this.dateToUnixUnixMs_JTextField.setEditable(false);
 	JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixUnixMs_JTextField,
 	    1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
     JGUIUtil.addComponent(dateToUnix_JPanel, new JLabel("UNIX time, from system (seconds):"),
     	0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	this.dateToUnixUnixSeconds_JTextField = new JTextField(15);
-	this.dateToUnixUnixSeconds_JTextField.setEnabled(false);
+	this.dateToUnixUnixSeconds_JTextField.setEditable(false);
 	JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixUnixSeconds_JTextField,
 	    1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
@@ -366,7 +481,7 @@ private void initialize ()
     	0, ++yDateToUnitDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	this.dateToUnixUnixMsComputed_JTextField = new JTextField(15);
 	this.dateToUnixUnixMsComputed_JTextField.setToolTipText("UNIX time computed as days since Jan 1, 1970 00:00:00 * 86400 + seconds in day, ignoring time zone.");
-	this.dateToUnixUnixMsComputed_JTextField.setEnabled(false);
+	this.dateToUnixUnixMsComputed_JTextField.setEditable(false);
 	JGUIUtil.addComponent(dateToUnix_JPanel, this.dateToUnixUnixMsComputed_JTextField,
 	    1, yDateToUnitDate, 4, 1, 1, 1, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
@@ -376,14 +491,51 @@ private void initialize ()
     // Vertical separator
     
     JGUIUtil.addComponent(unix_JPanel, new JSeparator(SwingConstants.VERTICAL),
-            5, yUnix, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.VERTICAL, GridBagConstraints.WEST);
+            5, yUnixToDate, 1, 1, 1, 1, insetsTLBR, GridBagConstraints.VERTICAL, GridBagConstraints.WEST);
     
     // Add panel on left to go from UNIX time to date
     
     JPanel unixToDate_JPanel = new JPanel();
     unixToDate_JPanel.setLayout ( gbl );
     JGUIUtil.addComponent(unix_JPanel, unixToDate_JPanel,
-        6, yUnix, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+        6, yUnixToDate, 5, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
+    
+    JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("Enter UNIX time as ms or seconds to convert to date/time."),
+            0, ++yUnixToDate, 5, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("UNIX time (ms):"),
+    	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	this.unixToDateUnixMs_JTextField = new JTextField(15);
+	this.unixToDateUnixMs_JTextField.addKeyListener(this);
+	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateUnixMs_JTextField,
+	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+    JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("UNIX time (seconds):"),
+    	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	this.unixToDateUnixSeconds_JTextField = new JTextField(15);
+	this.unixToDateUnixSeconds_JTextField.addKeyListener(this);
+	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateUnixSeconds_JTextField,
+	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	
+	JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("Date/time, GMT, from system:"),
+    	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	this.unixToDateDateTime_JTextField = new JTextField(20);
+	this.unixToDateDateTime_JTextField.setToolTipText("Date/time, from system");
+	this.unixToDateDateTime_JTextField.setEditable(false);
+	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateDateTime_JTextField,
+	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	
+    JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("Date/time, GMT, computed:"),
+    	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	this.unixToDateDateTimeComputed_JTextField = new JTextField(20);
+	this.unixToDateDateTimeComputed_JTextField.setToolTipText("Date/time calculated by TSTool");
+	this.unixToDateDateTimeComputed_JTextField.setEditable(false);
+	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateDateTimeComputed_JTextField,
+	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	
+	// Cause output to update
+	calculateDateFromUnixTime();
+	
+	// Initial date/time information panel
 
     initializeTimeInfoPanel(main_JTabbedPane);
    
@@ -396,7 +548,7 @@ private void initialize ()
 	__close_JButton = new SimpleJButton("Close", this);
 	button_JPanel.add ( __close_JButton );
 
-	setTitle ( JGUIUtil.getAppNameForWindows() + " - Date/time Converter" );
+	setTitle ( JGUIUtil.getAppNameForWindows() + " - Date/time Tools" );
 	setResizable ( true );
     pack();
     JGUIUtil.center( this );
@@ -609,16 +761,19 @@ public void keyPressed ( KeyEvent event )
 {
 	// Update the UNIX time output (handles incomplete input)
 	calculateUnixTimeFromDate();
+	calculateDateFromUnixTime();
 }
 
 public void keyReleased ( KeyEvent event )
 {	// Update the UNIX time output (handles incomplete input)
 	calculateUnixTimeFromDate();
+	calculateDateFromUnixTime();
 }
 
 public void keyTyped ( KeyEvent event )
 {	// Update the UNIX time output (handles incomplete input)
 	calculateUnixTimeFromDate();
+	calculateDateFromUnixTime();
 }
 
 /**

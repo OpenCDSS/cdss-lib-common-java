@@ -247,7 +247,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.TimeZone;
 
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
@@ -1602,8 +1601,12 @@ An alternative that will modify the DateTime instance is to call setTimeZone() a
 */
 public Date getDate ( String tzId )
 {	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	// Above is already in the default time zone
+	//Message.printStatus(2,"","Calendar after initialization with data:  " + c);
 	java.util.TimeZone tz = java.util.TimeZone.getTimeZone(tzId);
+	// But this resets the time zone without changing the data so should be OK
 	c.setTimeZone(tz);
+	//Message.printStatus(2,"","Calendar after setting time zone:  " + c);
 	return c.getTime();
 }
 
@@ -1622,7 +1625,7 @@ public Date getDate ( TimeZoneDefaultType defaultTimeZone )
 	java.util.TimeZone tz = null;
 	if ( (__tz != null) && (!__tz.isEmpty()) ) {
 		// Time zone is specified in object so use it
-		// Make sure time zone is recognized in the Java world.
+		// Make sure time zone is recognized in the Java world because if not recognized GMT is assumed
 		// Hopefully the following is fast - otherwise will need to create a static array in TimeUtil.
 		String[] validIDs = java.util.TimeZone.getAvailableIDs();
 		boolean validID = false;
@@ -1633,6 +1636,8 @@ public Date getDate ( TimeZoneDefaultType defaultTimeZone )
 		    }
 		}
 		if ( !validID ) {
+			// The following will throw an exception in daylight savings time because "MDT" is not a valid time zone
+			// (it is a display name for "MST" when in daylight savings)
 			throw new RuntimeException ( "Time zone (" + __tz + ") in DateTime object is invalid." );
 		}
 		// The following will now work.  Without the above check GMT is returned if the timezone is not found

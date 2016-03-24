@@ -155,13 +155,6 @@ running a real-time application that runs continuously between time zone changes
 public static final int LOOKUP_TIME_ZONE_ALWAYS	= 2;
 
 /**
-Local Time Zone String (e.g, "MST", "MDT", "GMT"), based on the last call to getLocalTimeZone().
-@deprecated Use the getLocalTimeZone() or getLocalTimeZoneAbbr() methods or
-use the protected _local_time_zone_string if in this package.
-*/
-public static String localTimeZone = "";
-
-/**
 Abbreviations for months.
 */
 public static final String MONTH_ABBREVIATIONS[] = { "Jan", "Feb", "Mar", "Apr",
@@ -842,7 +835,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
         d = d0;
 	}
 	// Get the date as if GMT if no timezone was specified
-	// This is OK because no converstio to/from UNIX time is being used
+	// This is OK because no conversion to/from UNIX time is being used
 	// Use the date to format and then use DateTime time zone
 	Date date = d.getDate(TimeZoneDefaultType.GMT);
 
@@ -1513,8 +1506,8 @@ throws RuntimeException
 		dtout = dt;
 	}
 	else {
-		dt = new DateTime();
-		dt.setTimeZone("GMT");
+		dtout = new DateTime();
+		dtout.setTimeZone("GMT");
 	}
 	// Number of seconds
 	long unixTimeSeconds = unixTimeMs/1000;
@@ -1537,22 +1530,27 @@ throws RuntimeException
 			else {
 				seconds = seconds - 365*86400;
 			}
-			--year;
+			// Don't adjust year because time is in this year
 			break;
 		}
 		else {
-			// Add another year
+			// Add another year because time is in next year
 			++year;
 		}
 	}
 	// Loop through months of year
+	boolean foundDay = false;
 	for ( month = 1; month <= 12; month++ ) {
 		for ( day = 1; day <= numDaysInMonth(month,year); day++ ) {
 			if ( (unixTimeSeconds - seconds) < 86400 ) {
 				// Need to break because time is in previous day
+				foundDay = true;
 				break;
 			}
 			seconds = seconds + 86400;
+		}
+		if ( foundDay ) {
+			break;
 		}
 	}
 	// Now are in the correct day so may for hours, minutes, and seconds is simple.
@@ -1561,12 +1559,12 @@ throws RuntimeException
 	minute = (int)(secondsLeft%3600)/60;
 	second = (int)(secondsLeft - hour*3600 - minute*60);
 	dtout.setYear(year);
-	dtout.setYear(month);
-	dtout.setYear(day);
-	dtout.setYear(hour);
-	dtout.setYear(minute);
-	dtout.setYear(second);
-	return dt;
+	dtout.setMonth(month);
+	dtout.setDay(day);
+	dtout.setHour(hour);
+	dtout.setMinute(minute);
+	dtout.setSecond(second);
+	return dtout;
 }
 
 /**
@@ -1728,7 +1726,7 @@ public static String getLocalTimeZoneAbbr ()
 }
 
 /**
-Return the local time zone abbreviation.
+Return the local time zone abbreviation.  This uses java.util.TimeZone.getDefault().getID();
 @param time_zone_lookup_method If LOOKUP_TIME_ZONE_ONCE or
 LOOKUP_TIME_ZONE_ALWAYS, this method will control how time zones are determined
 for future time zone lookups, including those used in DateTime construction.
@@ -1743,18 +1741,15 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 	if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE ) {
 		if ( !_local_time_zone_retrieved ) {
 			_local_time_zone = TimeZone.getDefault();
-			String date_as_string = new Date().toString();
-			_local_time_zone_string =
-				date_as_string.substring(
-				(date_as_string.length() - 8),
-				(date_as_string.length() - 5) );
-/*
-			_local_time_zone_string =
-				_local_time_zone.getDisplayName(
-				_local_time_zone.useDaylightTime(),
-				TimeZone.SHORT);
-*/
-			date_as_string = null;
+			_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code
+			// The following commented out as of TSTool 11.09.02
+			/*
+			//String date_as_string = new Date().toString();
+			//_local_time_zone_string =
+			//	date_as_string.substring(
+			//	(date_as_string.length() - 8),
+			//	(date_as_string.length() - 5) );
+			 */
 			_local_time_zone_retrieved = true;
 		}
 		else {
@@ -1764,18 +1759,15 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 	else if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ALWAYS ) {
 		// Look up each time...
 		_local_time_zone = TimeZone.getDefault();
+		_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code
+		// The following commented out as of TSTool 11.09.02
+		/*
 		String date_as_string = new Date().toString();
 		_local_time_zone_string =
 			date_as_string.substring(
 			(date_as_string.length() - 8),
 			(date_as_string.length() - 5) );
-/*
-		_local_time_zone_string =
-			_local_time_zone.getDisplayName(
-			_local_time_zone.useDaylightTime(),
-			TimeZone.SHORT);
-*/
-		date_as_string = null;
+			*/
 		_local_time_zone_retrieved = true;
 	}
 	return _local_time_zone_string;
@@ -2631,40 +2623,6 @@ public static int [] parseMilitaryTime ( int time )
 }
 
 /**
-Sets the local time zone according to the computer.  Note that in some cases
-the computer time zone may not be recognized (e.g., rather than something like
-"MST", a long time zone will be used).  Care should be taken when using the
-time zone from the computer.
-@exception Exception if the time zone is not recognized by the TimeUtil package.
-*/
-public static void setLocalTimeZone()
-throws Exception
-{	TimeZone zone = TimeZone.getDefault();
-	setLocalTimeZone( zone.getID() );
-	zone = null;
-}
-
-/**
-Sets the local time zone abbreviation according to the String.
-@param s local time zone.
-@exception if the local time zone is not recognized.
-*/
-public static void setLocalTimeZone( String s )
-throws Exception
-{	if ( s == null ) {
-		throw new Exception ( "Cannot set local time zone to null." );
-	}
-	// Try this to see if the zone is recognized.  If not, an exception
-	// will be thrown.
-	TZ.getDefinedTZ(s);
-	// Old convention (deprecated)...
-	localTimeZone = s;
-	// Also set the new time zone...
-	_local_time_zone_string = s;
-	_local_time_zone_retrieved = true;
-}
-
-/**
 Sleep the given number of milliseconds.  This code just loops and checks the
 system clock during each loop.  The thread will be tied up during the sleep.
 @param milliseconds The number of milliseconds to sleep.
@@ -2700,20 +2658,22 @@ public static void sleep ( long milliseconds )
 Calculate the UNIX time, which is the number of seconds since Jan 1, 1970 00:00:00.
 The calculation is only implemented for 1970 to 2036.
 @param dt DateTime containing date/time to process.  All parts of the date/time are processed, to seconds.
+@param ignoreTimeZone currently always assumed to be true.  If true, ignore the time zone in the DateTime
+and use the date/time values directly to compute UNIX time, equivalent to using a time zone of GMT.
 @return the UNIX time as milliseconds since Jan 1, 1970 00:00:00.
 @exception RuntimeException if there is an error computing the UNIX time
 */
-public static long toUnixTime ( DateTime dt )
+public static long toUnixTime ( DateTime dt, boolean ignoreTimeZone )
 throws RuntimeException
 {
 	long seconds = 0;
 	int year = dt.getYear();
-	int yearm1 = year - 1;
-	if ( (year > 1970) || (year > 2036) ) {
+	if ( (year < 1970) || (year > 2036) ) {
 		throw new RuntimeException ( "Year (" + year + ") is not between 1970 and 2036");
 	}
 	// For now loop, but could save a static array to improve performance
-	for ( int i = 1970; i < yearm1; i++ ) {
+	// Consider 1970 through previous year
+	for ( int i = 1970; i < year; i++ ) {
 		if ( isLeapYear(i) ) {
 			seconds = seconds + 366*86400;
 		}
