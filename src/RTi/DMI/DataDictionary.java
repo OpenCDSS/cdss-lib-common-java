@@ -256,8 +256,9 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	// Remove all the tables that were in the excludeTables parameter passed in to this method.
 	if (excludeTables != null) {
 		for ( String excludeTable : excludeTables ) {
-			// Handle glob-style wildcards...
-			String excludeTable2 = excludeTable.replace("*",".*");
+			// Handle glob-style wildcards and protect other than *
+			// Escape special characters that may occur in table names 
+			String excludeTable2 = excludeTable.replace(".", "\\.").replace("*",".*").replace("$", "\\$");
 			for ( int i = tableList.size() - 1; i >= 0; i-- ) {
 				String table = tableList.get(i).getName();
 				// Remove table name at end so loop works
