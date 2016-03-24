@@ -16,5 +16,5 @@ public interface ObjectListProvider
      * the requested type are available.
      * @param c Class to return.
      */
-    public List getObjectList ( Class c );
+    public List<? extends Object> getObjectList ( Class c );
 }
