@@ -52,6 +52,8 @@ The status for the command.
 */
 private CommandStatus __status = new CommandStatus();
 
+// TODO SAM 2016-03-23 Evaluate whether command profile should be null and only instantiated baesd
+// on a processor property, in order to save memory.
 /**
 The runtime profile for the command.  Although designed to have a profile for each command phase,
 focus on the run phase for now.
