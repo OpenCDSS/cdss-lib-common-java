@@ -1844,7 +1844,7 @@ Open the resource identified by the URL using the appropriate application for th
 environment.  On Windows, determine the default application using the file extension (e.g., "html" will result in
 a web browser).  On UNIX/Linux, a web browser is always used.
 @param url URL to open.
-@deprecatec use the java.awt.Desktop class
+@deprecated use the java.awt.Desktop class
 */
 public static void openURL(String url) 
 {
