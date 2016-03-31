@@ -1585,6 +1585,7 @@ or time zone is not important (for example absolute difference between two date/
 */
 public Date getDateForTimeZoneGMT ()
 {	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
+	// The following will work in any case because GMT will be recognized and if not GMT is returned by default
 	java.util.TimeZone tz = java.util.TimeZone.getTimeZone("GMT");
 	c.setTimeZone(tz);
 	return c.getTime();
@@ -1603,6 +1604,12 @@ public Date getDate ( String tzId )
 {	GregorianCalendar c = new GregorianCalendar ( __year, (__month - 1), __day, __hour, __minute, __second );
 	// Above is already in the default time zone
 	//Message.printStatus(2,"","Calendar after initialization with data:  " + c);
+	if ( !TimeUtil.isValidTimeZone(tzId) ) {
+		// The following will throw an exception in daylight savings time because "MDT" is not a valid time zone
+		// (it is a display name for "MST" when in daylight savings)
+		// The check is needed because java.util.TimeZone.getTimeZone() will return GMT if an invalid time zone
+		throw new RuntimeException ( "Time zone (" + __tz + ") in DateTime object is invalid - cannot return Date object." );
+	}
 	java.util.TimeZone tz = java.util.TimeZone.getTimeZone(tzId);
 	// But this resets the time zone without changing the data so should be OK
 	c.setTimeZone(tz);
@@ -1612,7 +1619,7 @@ public Date getDate ( String tzId )
 
 /**
 Return the Java Date corresponding to the DateTime, using time zone set for the DateTime object.
-This should be called, for example, when the time zone in the object is valid.
+This should be called, for example, when the time zone in the object has not been set and it is clear what the default should be.
 @param defaultTimeZone indicates how to behave if the time zone is not set in the DateTime object.
 TimeZoneDefaultType.LOCAL should match the legacy behavior, which was relying on the Calendar to set the
 time zone to the default.
@@ -1627,18 +1634,10 @@ public Date getDate ( TimeZoneDefaultType defaultTimeZone )
 		// Time zone is specified in object so use it
 		// Make sure time zone is recognized in the Java world because if not recognized GMT is assumed
 		// Hopefully the following is fast - otherwise will need to create a static array in TimeUtil.
-		String[] validIDs = java.util.TimeZone.getAvailableIDs();
-		boolean validID = false;
-		for (String str : validIDs) {
-		    if ( str.equals(__tz) ) {
-		       	validID = true;
-		       	break;
-		    }
-		}
-		if ( !validID ) {
+		if ( !TimeUtil.isValidTimeZone(__tz) ) {
 			// The following will throw an exception in daylight savings time because "MDT" is not a valid time zone
 			// (it is a display name for "MST" when in daylight savings)
-			throw new RuntimeException ( "Time zone (" + __tz + ") in DateTime object is invalid." );
+			throw new RuntimeException ( "Time zone (" + __tz + ") in DateTime object is invalid.  Cannot determine Java Date." );
 		}
 		// The following will now work.  Without the above check GMT is returned if the timezone is not found
 		tz = java.util.TimeZone.getTimeZone(__tz);

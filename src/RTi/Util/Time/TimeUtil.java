@@ -88,10 +88,8 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.IO.IOUtil;
 
 import java.lang.Long;
-
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
-
 import java.util.TimeZone;
 import java.util.Calendar;
 import java.util.Date;
@@ -2321,6 +2319,36 @@ public static boolean isValidMonth ( String month )
 	catch ( Exception e ) {
 		return false;
 	}
+}
+
+private static String [] __validTimeZones = new String[0];
+/**
+Determine whether a time zone is valid.
+This is needed because ava.util.TimeZone.getTimeZone(tz) will return GMT if the time zone is invalid.
+@param timeZone time zone ID such as "MST" or "America/Denver".
+*/
+public static boolean isValidTimeZone ( String timeZone ) {
+	// Surely the time zone data are static and there is no need to store another static copy?
+	// However, to improve performance, save a static array of previously validated time zones
+	// First check the valid time zones.
+	for ( int i = 0; i < __validTimeZones.length; i++ ) {
+		if ( __validTimeZones[i].equals(timeZone) ) {
+			return true;
+		}
+	}
+	// Next check the full list
+	String[] validIDs = java.util.TimeZone.getAvailableIDs();
+	for (String str : validIDs) {
+	    if ( str.equals(timeZone) ) {
+	    	// Add to the valid list by resizing the array and adding the new value
+	    	String [] validTimeZones2 = new String[__validTimeZones.length + 1];
+	    	System.arraycopy(__validTimeZones, 0, validTimeZones2, 0, __validTimeZones.length);
+	    	__validTimeZones = validTimeZones2;
+	    	__validTimeZones[__validTimeZones.length -1] = timeZone;
+	       	return true;
+	    }
+	}
+	return false;
 }
 
 /**
