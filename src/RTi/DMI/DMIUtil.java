@@ -2150,29 +2150,38 @@ throws SQLException
         dbName = dmi.getODBCName();
     }
 
+    List<String> procNames = new ArrayList<String>();
     Message.printStatus(2, routine, "Getting list of procedures");
     ResultSet rs = null;
     DatabaseMetaData metadata = null;
-    try {   
-        metadata = dmi.getConnection().getMetaData();
-        rs = metadata.getProcedures( dbName, null, null);
+    int databaseEngineType = dmi.getDatabaseEngineType();
+    try {
+    	metadata = dmi.getConnection().getMetaData();
+        Message.printStatus(2,routine,"Database " + dbName + " supports catalogs in procedure calls:" +
+            metadata.supportsCatalogsInProcedureCalls());
+        if ( !metadata.supportsStoredProcedures() ) {
+        	// Return empty list
+        	Message.printStatus(2, routine, "Database " + dbName + " driver does not support procedures");
+        	return procNames;
+        }
+    	if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+    		// TODO SAM 2016-03-25 Seems like this does not work the same but cannot get it to work
+    		rs = metadata.getProcedures( dbName, null, null);
+    	}
+    	else {
+    		rs = metadata.getProcedures( dbName, null, null);
+    	}
         if (rs == null) {
-            Message.printWarning(2, routine, "Error getting list of procedures.  Aborting");
+            Message.printWarning(2, routine, "Null result set getting procedure names.");
             return null;
         } 
     } 
     catch (Exception e) {
-        Message.printWarning(2, routine, "Error getting list of procedures.  Aborting.");
+        Message.printWarning(2, routine, "Error getting list of procedures.  Aborting. (" + e + ").");
         Message.printWarning(2, routine, e);
         return null;
     }
-    if (rs == null) {
-        message = "Null result set getting procedure names";
-        Message.printWarning(3, routine, message);
-        throw new RuntimeException (message);
-    }
     
-    List<String> procNames = new Vector<String>();
     while (rs.next()) {
         String proc = rs.getString("PROCEDURE_NAME");
         if ( Message.isDebugOn ) {
@@ -2188,7 +2197,6 @@ throws SQLException
     }
     // Strip out system stored procedures that a user should not run.
     // TODO SAM 2013-04-10 Need to figure out a more elegant way to do this.
-    int databaseEngineType = dmi.getDatabaseEngineType();
     String [] systemProcPatternsToRemove = new String[0];
     if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
         String [] systemProcPatternsToRemove0 = {
