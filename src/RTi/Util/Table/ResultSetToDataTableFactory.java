@@ -49,7 +49,7 @@ throws SQLException
         columnType = sqlToDMIColumnType(dbengineType, meta.getColumnType(i));
         columnTypes[i - 1] = columnType;
         precision = meta.getPrecision(i); // More like width
-        scale = meta.getScale(i); // Precision for floating point
+        scale = meta.getScale(i); // Digits after decimal for floating point
         //Message.printStatus(2,routine,"Column name=\"" + columnName + "\", sqlColumnType=" + meta.getColumnType(i) +
         //    ", tableColumnType=" + columnType +
         //    ", SQL precision (table width)=" + precision + ", SQL scale (table precision)=" + scale +
@@ -65,8 +65,16 @@ throws SQLException
 	            scale = 6;
 	        }
         }
+        else if ( dbengineType == DMI.DBENGINE_ORACLE ) {
+        	// If the column type is NUMBER rather than NUMBER(5,0), for example, scale may be -127 and precision 0
+	        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
+	            (scale == -127) ) {
+	            scale = 6;
+	            precision = -1; // Allow any width
+	        }
+        }
         Message.printStatus(2, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
-        	" width (precision)=" + precision + ", precision (scale) = " + scale);
+        	" width (metadata precision)=" + precision + ", precision (metadata scale) = " + scale);
         if ( Message.isDebugOn ) {
         	Message.printDebug(1, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
         		" width (precision)=" + precision + ", precision (scale) = " + scale);
