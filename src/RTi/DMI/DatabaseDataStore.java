@@ -10,6 +10,13 @@ import riverside.datastore.DataStore;
  */
 public interface DatabaseDataStore extends DataStore
 {
+	/**
+	 * Check the database connection and if has timed out, reconnect.
+	 * This method is called by commands that use a datastore.
+	 * @returns true if the connection is established, false if not.
+	 */
+	public boolean checkDatabaseConnection();
+	
     /**
      * Get a DMI instance that corresponds to the database connection.
      */
