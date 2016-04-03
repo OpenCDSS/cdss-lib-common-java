@@ -1307,7 +1307,7 @@ floating point numbers to always use a decimal point use the #.
 Additional capabilities may be added later.
 */
 public static final String formatString ( List<? extends Object> v, String format )
-{	StringBuffer buffer = new StringBuffer ( "" );
+{	StringBuilder buffer = new StringBuilder();
 	int dl = 75;
 
 	if ( v == null ) {
@@ -1428,7 +1428,7 @@ public static final String formatString ( List<? extends Object> v, String forma
 					continue;
 				}
 				if ( (cformat != 'd') && (cformat != 'f') && (cformat != 'F') && (cformat != 's') ) {
-					Message.printWarning ( 3, "StringUtil.formatString", "Invalid format string" );
+					Message.printWarning ( 3, "StringUtil.formatString", "Invalid format string character (" + cformat + ") in format (" + format + ").");
 					break;
 				}
 				// If here, have a valid format string and need to process...
@@ -1469,11 +1469,10 @@ public static final String formatString ( List<? extends Object> v, String forma
 						++vindex;
 						break;
 					}
-					StringBuffer temp = new StringBuffer (v.get(vindex).toString());
+					StringBuilder temp = new StringBuilder (v.get(vindex).toString());
 					if ( temp.length() == 0 ) {
 						if ( Message.isDebugOn ) {
-							Message.printDebug ( dl, "StringUtil.formatString",
-								"Zero length string for integer" );
+							Message.printDebug ( dl, "StringUtil.formatString", "Zero length string for integer" );
 						}
 						// Empty string.  Set it to be spaces for the width requested.
 						for ( i = 0; i < width; i++ ){
@@ -1556,7 +1555,7 @@ public static final String formatString ( List<? extends Object> v, String forma
 						++vindex;
 						break;
 					}
-					StringBuffer temp = new StringBuffer();
+					StringBuilder temp = new StringBuilder();
 					String whole_number_string;
 					String remainder_string;
 					String number_as_string = "";
@@ -1609,7 +1608,7 @@ public static final String formatString ( List<? extends Object> v, String forma
 							Message.printDebug(dl, "StringUtil.formatString",
 							"Detected scientific notation for Double: " + number_as_string );
 						}
-						StringBuffer expanded_string = new StringBuffer ();
+						StringBuilder expanded_string = new StringBuilder ();
 						int sign_offset = 0;
 						if ( number_as_string.charAt(0) == '-' ) {
 							expanded_string.append("-");
@@ -1790,7 +1789,7 @@ public static final String formatString ( List<? extends Object> v, String forma
 						++vindex;
 						break;
 					}
-					StringBuffer temp = new StringBuffer ( v.get(vindex).toString());
+					StringBuilder temp = new StringBuilder ( v.get(vindex).toString());
 					if ( temp.length() == 0 ) {
 						if ( Message.isDebugOn ) {
 							Message.printDebug ( dl, "StringUtil.formatString", "Zero length string" );
@@ -1954,7 +1953,7 @@ Format a string for output to a CSV file.  The following actions are taken:
 */
 public static String formatStringForCsv ( String s, boolean alwaysQuote )
 {
-    StringBuffer b = new StringBuffer();
+	StringBuilder b = new StringBuilder();
     if ( alwaysQuote || (s.indexOf(",") >= 0) ) {
         b.append ( "\"" );
     }
@@ -2224,8 +2223,8 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	if ( v != null ) {
 		size = v.size();
 	}
-	StringBuffer main_buffer = new StringBuffer();
-	StringBuffer sub_buffer = new StringBuffer();
+	StringBuilder main_buffer = new StringBuilder();
+	StringBuilder sub_buffer = new StringBuilder();
 	String token = null;
 	for ( int i = 0; i < size; i++ ) {
 		token = v.get(i);
@@ -2768,7 +2767,7 @@ public static String pluralS ( int count )
 public static String readToDelim ( String string0, char delim )
 {	int i = 0;
 	char c;
-	StringBuffer string = new StringBuffer ();
+	StringBuilder string = new StringBuilder ();
 
 	if ( string0 == null ) {
 		return string.toString();
@@ -2796,7 +2795,7 @@ public static String remove ( String s, String r )
 {	if ( (s == null) || (r == null) ) {
 		return s;
 	}
-	StringBuffer buffer = new StringBuffer();
+	StringBuilder buffer = new StringBuilder();
 	int size = s.length();
 	int r_length = r.length();
 	for ( int i = 0; i < size; i++ ) {
@@ -2976,7 +2975,7 @@ public static String removeNewline ( String string )
 				// Something after the newline(s)...
 			 	//*pt = ' ';
 				Message.printWarning ( 3, "StringUtil.removeNewline", "embedded newlines not handled yet" );
-				// FIXME SAM 2009-01-19 Need to use a StringBuffer or something to better handle
+				// FIXME SAM 2009-01-19 Need to use a StringBuilder or something to better handle
 				// embedded newlines.
 				/*
 				try {
@@ -3109,7 +3108,7 @@ public static String round ( String string, int precision )
 	}
 	// If we get to here, we have more than a zero precision and need to
 	// jump through some hoops.  First, create a new string that has the remainder...
-	StringBuffer remainder_string = new StringBuffer ( string.substring(dot_pos + 1) );
+	StringBuilder remainder_string = new StringBuilder ( string.substring(dot_pos + 1) );
 	// Next insert a decimal point after the precision digits.
 	remainder_string.insert(precision,'.');
 	// Now convert the string to a Double...
@@ -3122,7 +3121,7 @@ public static String round ( String string, int precision )
 	if ( rounded_remainder.length() < precision ) {
 		// The number we were working with had leading zeros and we
 		// lost that during the round.  Insert zeros again...
-		StringBuffer buf = new StringBuffer ( rounded_remainder );
+		StringBuilder buf = new StringBuilder ( rounded_remainder );
 		int number_to_add = precision - rounded_remainder.length();
 		for ( int i = 0; i < number_to_add; i++ ) {
 			buf.insert(0,'0');
@@ -3419,7 +3418,7 @@ public static String toString ( List<String> strings, String delimiter )
 	if ( strings == null ) {
 		return null;
 	}
-	StringBuffer buffer = new StringBuffer ();
+	StringBuilder buffer = new StringBuilder ();
 	int size = strings.size();
 	for ( int i = 0; i < size; i++ ) {
 		if ( (i > 0) && (delimiter != null) ) {
@@ -3441,7 +3440,7 @@ PAD_FRONT, PAD_BACK, PAD_MIDDLE, PAD_FRONT_BACK, or PAD_FRONT_MIDDLE_BACK.
 public static String unpad ( String string, String white0, int flag )
 {	int length_string, length_white;
 	String default_white = " \t\n\r", white;
-	StringBuffer buffer;
+	StringBuilder buffer;
 
 	// Check for NULL prointers...
 
@@ -3478,7 +3477,7 @@ public static String unpad ( String string, String white0, int flag )
 	// Unpad the whole string...
 
 	if ( (flag == StringUtil.PAD_FRONT_MIDDLE_BACK) && (length_string > 0) ) {
-		buffer = new StringBuffer ();
+		buffer = new StringBuilder ();
 		for ( istring = 0; istring < length_string; istring++ ) {
 			cstring = string.charAt ( istring );
 			if ( white.indexOf(cstring) != -1 ) {
@@ -3490,7 +3489,7 @@ public static String unpad ( String string, String white0, int flag )
 		return buffer.toString();
 	}
 
-	buffer = new StringBuffer ( string );
+	buffer = new StringBuilder ( string );
 
 	// Do the back first so that we do not shift the string yet...
 
@@ -3570,7 +3569,7 @@ spaces, tabs, backslashes and forward slashes.
 */
 public static String wrap(String s, int lineLength) {
 	List<String> v = StringUtil.breakStringList(s, "\n", 0);
-	StringBuffer sb = new StringBuffer("");
+	StringBuilder sb = new StringBuilder("");
 	
 	for (int i = 0; i < v.size(); i++) {
 		sb.append(wrapHelper(v.get(i), lineLength));
@@ -3597,7 +3596,7 @@ public static String wrapHelper(String s, int lineLength) {
 	// the previously-located index of a point in the text at which a wrap could occur
 	int last = -1;
 	String trim = null;
-	StringBuffer sb = new StringBuffer("");
+	StringBuilder sb = new StringBuilder();
 
 	// first check for the trivial case -- a String that's shorter than the maximum allowed line length
 	if (s.length() <= lineLength) {
