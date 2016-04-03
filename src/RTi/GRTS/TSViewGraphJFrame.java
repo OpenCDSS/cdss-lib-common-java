@@ -265,7 +265,11 @@ throws Exception
 {	super ( "Time Series - Graph View" );
 	// Set before calling initialize()...
 	__tsproduct = tsproduct;
-	initialize ( tsview_gui, tsproduct.getTSList(), null );
+	// Set a property to make sure the centering works
+	PropList props = new PropList("TSViewJFrame");
+	// TODO SAM 2016-04-01 This needs to use the TSTool frame, not the hidden frame? 
+	props.setUsingObject("TSViewParentUIComponent",tsview_gui);
+	initialize ( tsview_gui, tsproduct.getTSList(), props );
 }
 
 /**
@@ -900,14 +904,20 @@ private void openGUI ( boolean mode )
 	getContentPane().add ( "South", control_JPanel );
 
 	pack ();
+	// TODO SAM 2016-04-01 Need to set property in calling code so center works properly
 	// Get the UI component to determine screen to display on - needed for multiple monitors
-	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
-	Component parentUIComponent = null;
-	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
-		parentUIComponent = (Component)uiComponentO;
+	if ( __props != null ) {
+		Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+		Component parentUIComponent = null;
+		if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
+			parentUIComponent = (Component)uiComponentO;
+		}
+		// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
+		JGUIUtil.center ( this, parentUIComponent );
 	}
-	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
-	JGUIUtil.center ( this, parentUIComponent );
+	else {
+		JGUIUtil.center ( this );
+	}
 
 	if ( !needToClose() ) {
 		setVisible ( mode );

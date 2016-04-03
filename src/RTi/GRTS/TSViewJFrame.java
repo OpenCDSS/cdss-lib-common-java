@@ -413,7 +413,10 @@ throws Exception
 	// Must set this before calling initialize()...
 	_tsproduct = tsproduct;
 	// Later phase out _tslist
-	initialize ( tsproduct.getTSList(), null );
+	// Actually, set a property to make sure the centering works
+	PropList props = new PropList("TSViewJFrame");
+	props.setUsingObject("TSViewParentUIComponent",this);
+	initialize ( tsproduct.getTSList(), props );
 }
 
 /**
