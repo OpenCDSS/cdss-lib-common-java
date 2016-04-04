@@ -68,6 +68,12 @@ Return the command profile.
 public CommandProfile getCommandProfile ( CommandPhaseType phase );
 
 /**
+ * Indicate whether the command is a plugin command.
+ * @return true if the command is a plugin command, false if not.
+ */
+public boolean getIsCommandPlugin();
+
+/**
 Initialize the command by parsing the command and indicating warnings.  This is essentially validation.
 @param command_string A string command to parse.
 @param processor The CommandProcessor that is executing the command, which will
@@ -128,6 +134,12 @@ editor (GenericCommand_JDialog) and should only be implemented in the AbstractCo
 @param command_string Command string for the command.
 */
 public void setCommandString ( String command_string );
+
+/**
+ * Set whether the command is a plugin command.
+ * @param isPlugin true if the command is a plugin command, false if not.
+ */
+public void setIsCommandPlugin( boolean isPlugin );
 
 /**
 Return the standard string representation of the command, which can be parsed

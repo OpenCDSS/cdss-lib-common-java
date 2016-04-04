@@ -52,6 +52,11 @@ The status for the command.
 */
 private CommandStatus __status = new CommandStatus();
 
+/**
+Whether or not the command is a plugin.
+*/
+private boolean __isPlugin = false;
+
 // TODO SAM 2016-03-23 Evaluate whether command profile should be null and only instantiated baesd
 // on a processor property, in order to save memory.
 /**
@@ -283,6 +288,14 @@ public String getCommandString() {
 }
 
 /**
+ * Indicate whether the command is a plugin command.
+ * This will result in different handling of command data.
+ */
+public boolean getIsCommandPlugin () {
+	return this.__isPlugin;
+}
+
+/**
 Initialize the command by parsing the command and indicating warnings.
 @param command A string command to parse.  This is necessary because the
 command factory typically only uses a command string to instantiate the proper
@@ -470,6 +483,14 @@ public void setCommandString ( String command_string )
 }
 
 /**
+ * Set whether the command is a plugin.
+ * This will result in different handling of command data and documentation.
+ */
+public void setIsCommandPlugin ( boolean isPlugin ) {
+	this.__isPlugin = isPlugin;
+}
+
+/**
 Return the command string.  Note that this method is required by the Command
 interface.  This version can be relied on to satisfy that requirement.
 @return the command string.
@@ -481,8 +502,11 @@ public String toString()
 /**
 Return the command string, formed from the properties.  Note that this method
 is required by the Command interface.  This version can be relied on to satisfy
-that requirement but in most cases should be overruled.  No attempt is made to
-determine the property type and all values will have surrounding double quotes.
+that requirement but in most cases should be overruled.  An attempt is made to
+determine the property type and double quote only those that need quoting
+(Java Number and Boolean classes are not quoted).
+The order of the properties is as added to the property list.
+Only properties that are non-null and non-blank are added.
 @param parameters The list of parameters for the command.
 @return the command string.
 */
@@ -492,13 +516,25 @@ public String toString ( PropList parameters )
 	}
 	StringBuffer b = new StringBuffer ();
 	String value;
+	Object contents;
+	boolean doQuote;
 	for ( Prop prop: parameters.getList() ) {
+		doQuote = true; // Default is to quote
 		value = prop.getValue();
+		contents = prop.getContents();
+		if ( (contents != null) && (contents instanceof Number) || (contents instanceof Boolean) ) {
+			doQuote = false;
+		}
 		if ( (value != null) && (value.length() > 0) ) {
 			if ( b.length() > 0 ) {
 				b.append ( "," );
 			}
-			b.append ( prop.getKey() + "=\"" + value + "\"" );
+			if ( doQuote ) {
+				b.append ( prop.getKey() + "=\"" + value + "\"" );
+			}
+			else {
+				b.append ( prop.getKey() + "=" + value );
+			}
 		}
 	}
 	return (__commandName + "(" + b + ")" );
