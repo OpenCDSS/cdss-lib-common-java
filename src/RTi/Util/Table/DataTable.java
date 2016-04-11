@@ -3701,9 +3701,11 @@ then setting values for specific columns.
 @param columnFilters map to filter rows to set values in
 @param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
 values are strings and need to be converged before setting, based on column type
+@param getter a DataTableValueGetter implementation, which is called prior to setting values if not null
 @param createColumns indicates whether new columns should be created if necessary
 */
-public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues, boolean createColumns )
+public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues,
+	DataTableValueStringProvider getter, boolean createColumns )
 {   String routine = getClass().getName() + ".setTableValues";
     // List of columns that will be set, taken from keys in the column values
     int errorCount = 0;
@@ -3804,6 +3806,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 continue;
             }
         }
+        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool
         for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
             try {
                 // OK if setting to null value, but hopefully should not happen
@@ -3811,16 +3814,21 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
+                	columnValueToSet = columnValuesToSet[icol];
+                	if ( getter != null ) {
+                		// columnValueToSet will initial have formatting information like ${Property}
+                		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
+                	}
                     if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
                         // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
-                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt(columnValuesToSet[icol]), true );
+                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt(columnValueToSet), true );
                     }
                     else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
                         // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
-                        setFieldValue(irow, columnNumbersToSet[icol], Double.parseDouble(columnValuesToSet[icol]), true );
+                        setFieldValue(irow, columnNumbersToSet[icol], Double.parseDouble(columnValueToSet), true );
                     }
                     else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
-                        setFieldValue(irow, columnNumbersToSet[icol], columnValuesToSet[icol], true );
+                        setFieldValue(irow, columnNumbersToSet[icol], columnValueToSet, true );
                     }
                     else {
                         errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
