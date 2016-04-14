@@ -8480,6 +8480,26 @@ public static boolean isSmallerInterval ( TS ts, TS comparets )
 
 /**
 Determine whether two time series have matching data intervals.  The intervals must exactly match and not
+just be equivalent (i.e., 1Day != 24Hour).  The interval base and multipler from identifiers
+are compared, which does not require full time series objects.
+@return true if the time series have the same data interval, false if not.
+@param tsident1 first time series identifier to check
+@param tsident2 second time series identifier to check
+*/
+public static boolean intervalsMatch ( TSIdent tsident1, TSIdent tsident2 )
+{
+	if ( (tsident1 == null) || (tsident2 == null) ) {
+		return false;
+	}
+	if ( (tsident1.getIntervalBase() == tsident2.getIntervalBase()) &&
+		(tsident1.getIntervalMult() == tsident2.getIntervalMult()) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+Determine whether two time series have matching data intervals.  The intervals must exactly match and not
 just be equivalent (i.e., 1Day != 24Hour).
 @return true if the time series have the same data interval, false if not.
 @param ts1 first time series to check
