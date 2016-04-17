@@ -1936,7 +1936,7 @@ Format an object as a string.
 @param format Format to use.
 */
 public static final String formatString ( Object o, String format )
-{	List<Object> v = new Vector<Object>( 1, 1 );
+{	List<Object> v = new ArrayList<Object>( 1 );
 	v.add ( o );
 	return formatString ( v, format );
 }

@@ -10024,7 +10024,7 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 
 	ts.addToGenesis ( "Set " + start.toString() + " to " + end.toString() + " to monthly values:" );
 	for ( int i = 0; i < 12; i++ ) {
-		ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " + StringUtil.formatString(values[0],"%12.2f"));
+		ts.addToGenesis ( TimeUtil.MONTH_ABBREVIATIONS[i] + ": " + StringUtil.formatString(values[i],"%12.2f"));
 	}
 }
 
