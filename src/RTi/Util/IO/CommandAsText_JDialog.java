@@ -1,18 +1,3 @@
-// ----------------------------------------------------------------------------
-// GenericCommand_JDialog - simple JTextArea editor for command
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History: 
-//
-// 2005-04-29	Steven A. Malers, RTi	Initial version (copy and modify old
-//					GenericCommand_JDialog).
-// 2005-05-09	SAM, RTi		Rename Command_JDialog class to
-//					GenericCommand_JDialog.
-// 2005-05-19	SAM, RTi		Move from TSTool package.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.IO;
 
 import java.awt.FlowLayout;
@@ -25,36 +10,39 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 
-public class GenericCommand_JDialog extends JDialog
+/**
+ * Command editor for case where the command is being edited using a simple text editor.
+ * This may be appropriate when the user is well-versed in the command syntax.
+ * @author sam
+ */
+public class CommandAsText_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {
-private JTextArea	__command_JTextArea=null;
-						// Command as JTextArea
-private boolean		__error_wait = false;	// Is there an error that we
-						// are waiting to be cleared up
-						// or Cancel?
-private boolean		__first_time = true;
-private Command		__command = null;	// Command to edit.
-private boolean		__ok = false;		// Indicates whether the user
-						// has pressed OK to close the
-						// dialog.
+private JTextArea __command_JTextArea = null;
+private boolean __errorWait = false; // Is there an error waiting to be cleared up?
+private boolean __firstTime = true;
+private Command __command = null; // Command to edit.
+private boolean __ok = false; // Whether the user has pressed OK to close the dialog.
 
 /**
-GenericCommand_JDialog constructor.
+Command editor constructor.
 @param parent JFrame class instantiating this class.
 @param command Command to edit.
 */
-public GenericCommand_JDialog ( JFrame parent, Command command )
+public CommandAsText_JDialog ( JFrame parent, Command command )
 {	super(parent, true);
 	initialize ( parent, command );
 }
@@ -72,31 +60,28 @@ public void actionPerformed( ActionEvent event )
 	else if ( s.equals("OK") ) {
 		checkInput ();
 		refresh ();
-		if ( !__error_wait ) {
+		if ( !__errorWait ) {
 			response ( true );
 		}
 	}
 }
 
 /**
-Check the input.  Since the user can edit the command as they like, no checks
-are currently performed.
+Check the input.  Since the user can edit the command as they like, no checks are currently performed.
 */
 private void checkInput ()
 {
 }
 
 /**
-Commit the edits to the command.  In this case the command should be reparsed
-to check its low-level values.
+Commit the edits to the command.  In this case the command should be reparsed to check its parameters.
 */
 private void commitEdits ()
-{	String command_string = __command_JTextArea.getText();
+{	String commandString = __command_JTextArea.getText();
 	// Edit directly since protected data
-	// REVISIT SAM 2005-05-09 Is an interface method needed?
-	__command.setCommandString ( command_string );
-	// REVISIT SAM 2005-05-09 Need to somehow get parameters using
-	// standard format?
+	// TODO SAM 2005-05-09 Is an interface method needed?
+	__command.setCommandString ( commandString );
+	// TODO SAM 2005-05-09 Need to somehow get parameters using standard format?
 }
 
 /**
@@ -109,31 +94,32 @@ private void initialize ( JFrame parent, Command command )
 
 	addWindowListener( this );
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 
 	// Main panel...
 
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
 	getContentPane().add ( "North", main_JPanel );
-	int y = 0;
+	int y = -1;
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
 		"Edit the command without error checks."),
-		0, y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Use the command editor dialogs to verify " +
-		"command syntax." ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel (
+		"Use the command editor dialogs to verify command syntax." ), 
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Command:" ), 
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
-	__command_JTextArea = new JTextArea ( 8, 60 );
+	__command_JTextArea = new JTextArea ( 10, 80 );
 	__command_JTextArea.setLineWrap ( true );
 	__command_JTextArea.setWrapStyleWord ( true );
 	__command_JTextArea.addKeyListener ( this );
 	JGUIUtil.addComponent(main_JPanel, new JScrollPane(__command_JTextArea),
-		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST);
 
 	// Refresh the contents...
 	refresh ();
@@ -150,13 +136,14 @@ private void initialize ( JFrame parent, Command command )
 	if ( command.getCommandName().length() > 0 ) {
 		setTitle ( "Edit " + command.getCommandName() + " command" );
 	}
-	else {	setTitle ( "Edit command" );
+	else {
+		setTitle ( "Edit command" );
 	}
-	// Dialogs do not need to be resizable...
+	// Allow resize since generic interface...
 	setResizable ( true );
-        pack();
-        JGUIUtil.center( this );
-        super.setVisible( true );
+    pack();
+    JGUIUtil.center( this );
+    super.setVisible( true );
 }
 
 /**
@@ -167,7 +154,7 @@ public void keyPressed ( KeyEvent event )
 
 	if ( code == KeyEvent.VK_ENTER ) {
 		refresh ();
-		if ( !__error_wait ) {
+		if ( !__errorWait ) {
 			response ( true );
 		}
 	}
@@ -190,10 +177,10 @@ public boolean ok ()
 Refresh the command from the other text field contents.
 */
 private void refresh ()
-{	__error_wait = false;
-	if ( __first_time ) {
-		// Populate the component from the intial command...
-		__first_time = false;
+{	__errorWait = false;
+	if ( __firstTime ) {
+		// Populate the component from the initial command...
+		__firstTime = false;
 		// Parse the incoming string and fill the fields...
 		__command_JTextArea.setText ( __command.toString() );
 	}
@@ -209,7 +196,7 @@ public void response ( boolean ok )
 	if ( ok ) {
 		// Commit the changes...
 		commitEdits ();
-		if ( __error_wait ) {
+		if ( __errorWait ) {
 			// Not ready to close out!
 			return;
 		}

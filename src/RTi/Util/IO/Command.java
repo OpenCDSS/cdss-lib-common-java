@@ -13,12 +13,12 @@ public interface Command extends Cloneable
 Check the command parameter for valid values, combination, etc.
 This is normally called by the command editor dialog.
 @param parameters The parameters for the command.
-@param command_tag an indicator to be used when printing messages, to allow a
+@param commandTag an indicator to be used when printing messages, to allow a
 cross-reference to the original commands.
-@param warning_level The warning level to use when printing parse warnings
+@param warningLevel The warning level to use when printing parse warnings
 (recommended is 2 for initialization, and 1 for interactive command editor dialogs).
 */
-public void checkCommandParameters ( PropList parameters, String command_tag, int warning_level )
+public void checkCommandParameters ( PropList parameters, String commandTag, int warningLevel )
 throws InvalidCommandParameterException;
 
 /**
@@ -90,12 +90,12 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException;
 
 /**
 Parse the command string into a PropList of parameters, which are then stored in the command.
-@param command_string A string command to parse.
+@param commandString A string command to parse.
 @exception InvalidCommandSyntaxException if during parsing the command is determined to have invalid syntax.
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
-public void parseCommand ( String command_string )
+public void parseCommand ( String commandString )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException;
 
 /**
@@ -130,10 +130,11 @@ public void setCommandProfile ( CommandPhaseType phase, CommandProfile profile )
 
 /**
 Set the command string.  This is currently used only by the generic command
-editor (GenericCommand_JDialog) and should only be implemented in the AbstractCommand base class.
-@param command_string Command string for the command.
+editor (GenericCommand_JDialog) and CommandAsText_JDialog for editing a command as text
+and should only be implemented in the AbstractCommand base class.
+@param commandString Command string for the command.
 */
-public void setCommandString ( String command_string );
+public void setCommandString ( String commandString );
 
 /**
  * Set whether the command is a plugin command.
