@@ -1594,9 +1594,10 @@ public Date getDateForTimeZoneGMT ()
 /**
 Return the Java Date corresponding to the DateTime, using the specified time zone.
 This should be called, for example, when the time zone in the object was not set but should be applied
-when constructing the returned Date.
+when constructing the returned Date OR, when the time zone in the object should be ignored in favor
+of the specified time zone.
 An alternative that will modify the DateTime instance is to call setTimeZone() and then getDate().
-@param tzId time zone string recognized by TimeZone.getTimeZone().
+@param tzId time zone string recognized by TimeZone.getTimeZone(), for example "America/Denver" or "MST".
 @return Java Date corresponding to the DateTime.
 @exception RuntimeException if there is no time zone set but defaultTimeZone = TimeZoneDefaultType.NONE
 */
@@ -1614,7 +1615,7 @@ public Date getDate ( String tzId )
 	// But this resets the time zone without changing the data so should be OK
 	c.setTimeZone(tz);
 	//Message.printStatus(2,"","Calendar after setting time zone:  " + c);
-	return c.getTime();
+	return c.getTime(); // This returns the UNIX time considering how the date/time was set above
 }
 
 /**

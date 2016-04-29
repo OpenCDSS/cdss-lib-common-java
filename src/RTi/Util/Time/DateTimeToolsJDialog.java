@@ -519,7 +519,7 @@ private void initialize ()
 	JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("Date/time, GMT, from system:"),
     	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	this.unixToDateDateTime_JTextField = new JTextField(20);
-	this.unixToDateDateTime_JTextField.setToolTipText("Date/time, from system");
+	this.unixToDateDateTime_JTextField.setToolTipText("Date/time, from system using Java packages");
 	this.unixToDateDateTime_JTextField.setEditable(false);
 	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateDateTime_JTextField,
 	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -527,7 +527,7 @@ private void initialize ()
     JGUIUtil.addComponent(unixToDate_JPanel, new JLabel("Date/time, GMT, computed:"),
     	0, ++yUnixToDate, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	this.unixToDateDateTimeComputed_JTextField = new JTextField(20);
-	this.unixToDateDateTimeComputed_JTextField.setToolTipText("Date/time calculated by TSTool");
+	this.unixToDateDateTimeComputed_JTextField.setToolTipText("Date/time calculated by TSTool using days since Jan 1, 1970 * 86400 seconds per day");
 	this.unixToDateDateTimeComputed_JTextField.setEditable(false);
 	JGUIUtil.addComponent(unixToDate_JPanel, this.unixToDateDateTimeComputed_JTextField,
 	    1, yUnixToDate, 4, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
