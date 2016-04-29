@@ -2,7 +2,6 @@ package RTi.TS;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -168,6 +167,15 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 		++datasize;
 	}
 	return datasize;
+}
+
+/**
+ * Change the period of record.  Because irregular time series don't need to fill the period
+ * with a data array this method does nothing.
+ */
+public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
+throws TSException {
+	
 }
 
 /**

@@ -390,7 +390,7 @@ throws TSException
         }
         else if ( irrPrecision != tsPrecision ) {
             // This will be a problem in processing the data
-            String message = "Irregular time series do not have the same date/time precision.  Can't display";
+            String message = "Irregular time series do not have the same date/time precision by checking period start and end.  Can't display";
             Message.printWarning ( 2, routine, message );
             throw new UnequalTimeIntervalException ( message );
         }
