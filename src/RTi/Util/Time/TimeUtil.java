@@ -449,6 +449,70 @@ public static int convertCalendarMonthToCustomMonth ( int cal_month, int first_c
 }
 
 /**
+Determine whether the DateTime intervals align.
+For example, for data recorded on 6hour interval but offset at hours 1, 7, 13, and 20 will only
+align with similarly offset DateTime instances.
+@param dt1 first DateTime to compare
+@param dt2 second DateTime to compare
+@param interval TimeInterval indicating precision of 
+*/
+public static boolean dateTimeIntervalsAlign ( DateTime dt1, DateTime dt2, TimeInterval interval ) {
+	int precision = dt1.getPrecision();
+	if ( precision != dt2.getPrecision() ) {
+		return false;
+	}
+	if ( interval.isRegularInterval() ) {
+		// Irregular is not checked by this method
+		return true;
+	}
+	// List in likely order of occurrence, for example 6Hour, 3min are more likely
+	if ( precision == DateTime.PRECISION_HOUR ) {
+		if ( ((dt1.getHour() - dt2.getHour() ) % interval.getMultiplier()) != 0 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	else if ( precision == DateTime.PRECISION_MINUTE ) {
+		if ( ((dt1.getMinute() - dt2.getMinute() ) % interval.getMultiplier()) != 0 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	if ( precision == DateTime.PRECISION_YEAR ) {
+		if ( ((dt1.getYear() - dt2.getYear() ) % interval.getMultiplier()) != 0 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	else if ( precision == DateTime.PRECISION_MONTH ) {
+		if ( ((dt1.getMonth() - dt2.getMonth() ) % interval.getMultiplier()) != 0 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	else if ( precision == DateTime.PRECISION_DAY ) {
+		if ( ((dt1.getDay() - dt2.getDay() ) % interval.getMultiplier()) != 0 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	else {
+		// Interval is not handled
+		throw new InvalidTimeIntervalException("Interval " + interval + " is not handled");
+	}
+}
+
+/**
 Return the day of the year.
 @return The day of the year (where 1 is the first day of the year and 365 or
 366 is the last).  Return -1 if an error.
@@ -824,18 +888,20 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
         format = format0;
 	}
 
-	DateTime d;
+	DateTime dateTime;
 	if ( d0 == null ) {
 		// Get the current time...
-		d = new DateTime(DateTime.DATE_CURRENT);
+		dateTime = new DateTime(DateTime.DATE_CURRENT);
 	}
 	else {
-        d = d0;
+        dateTime = d0;
 	}
-	// Get the date as if GMT if no timezone was specified
-	// This is OK because no conversion to/from UNIX time is being used
 	// Use the date to format and then use DateTime time zone
-	Date date = d.getDate(TimeZoneDefaultType.GMT);
+	Date date = null;
+	// TODO SAM 2016-05-02 really need to handle time zone more explicitly here
+	// Get the date using the DateTime's time zone or if not specified use the local time
+	// This matches legacy behavior
+	date = dateTime.getDate(TimeZoneDefaultType.LOCAL);
 
 	if ( format.equals("datum_seconds") ) {
 		// Want the number of seconds since the standard time datum	
@@ -905,36 +971,36 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 			}
 			else if ( c == 'd' ) {
 				// Day of month
-				formatted_string.append( StringUtil.formatString(d.getDay(),"%02d"));
+				formatted_string.append( StringUtil.formatString(dateTime.getDay(),"%02d"));
 			}
 			else if ( c == 'H' ) {
 				// Hour of day...
-				formatted_string.append( StringUtil.formatString(d.getHour(),"%02d"));
+				formatted_string.append( StringUtil.formatString(dateTime.getHour(),"%02d"));
 			}
 			else if ( c == 'I' ) {
 				// Hour of day 1-12
-				if ( d.getHour() > 12 ) {
-					formatted_string.append(StringUtil.formatString((d.getHour() - 12),"%02d"));
+				if ( dateTime.getHour() > 12 ) {
+					formatted_string.append(StringUtil.formatString((dateTime.getHour() - 12),"%02d"));
 				}
 				else {
-                    formatted_string.append(StringUtil.formatString(d.getHour(),"%02d"));
+                    formatted_string.append(StringUtil.formatString(dateTime.getHour(),"%02d"));
 				}
 			}
 			else if ( c == 'j' ) {
 				// Day of year...
-				formatted_string.append( StringUtil.formatString(d.getYearDay(),"%03d"));
+				formatted_string.append( StringUtil.formatString(dateTime.getYearDay(),"%03d"));
 			}
 			else if ( c == 'm' ) {
 				// Month of year...
-				formatted_string.append( StringUtil.formatString( d.getMonth(),"%02d"));
+				formatted_string.append( StringUtil.formatString( dateTime.getMonth(),"%02d"));
 			}
 			else if ( c == 'M' ) {
 				// Minute of hour...
-				formatted_string.append( StringUtil.formatString( d.getMinute(),"%02d"));
+				formatted_string.append( StringUtil.formatString( dateTime.getMinute(),"%02d"));
 			}
 			else if ( c == 'p' ) {
 				// AM or PM...
-				if ( d.getHour() < 12 ) {
+				if ( dateTime.getHour() < 12 ) {
 					formatted_string.append("AM");
 				}
 				else {
@@ -947,7 +1013,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 			}
 			else if ( c == 'S' ) {
 				// Seconds of minute...
-				formatted_string.append(StringUtil.formatString( d.getSecond(),"%02d"));
+				formatted_string.append(StringUtil.formatString( dateTime.getSecond(),"%02d"));
 			}
 			else if ( (c == 'U') || (c == 'W')) {
 				// Week of year...
@@ -962,13 +1028,13 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 			}
 			else if ( c == 'y' ) {
 				// Two digit year...
-				formatted_string.append(StringUtil.formatString(formatYear(d.getYear(),2,true),"%02d"));
+				formatted_string.append(StringUtil.formatString(formatYear(dateTime.getYear(),2,true),"%02d"));
 			}
 			else if ( c == 'Y' ) {
-				formatted_string.append( StringUtil.formatString(d.getYear(),"%04d"));
+				formatted_string.append( StringUtil.formatString(dateTime.getYear(),"%04d"));
 			}
 			else if ( c == 'Z' ) {
-				formatted_string.append ( d.getTimeZoneAbbreviation() );
+				formatted_string.append ( dateTime.getTimeZoneAbbreviation() );
 			}
 			else if ( c == '%' ) {
 				// Literal percent...
@@ -989,7 +1055,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 		    if ( iEnd <= format.length() ) {
 		        //Message.printStatus(2, "", "substring=\"" + format.substring(i,iEnd) + "\" prop=\"" + prop + "\"");
 		        if ( format.substring(i,iEnd).equalsIgnoreCase(prop) ) {
-		            year = "" + TimeUtil.getYearForYearType(d, yearType);
+		            year = "" + TimeUtil.getYearForYearType(dateTime, yearType);
 	                formatted_string.append(year);
 	                i = i + prop.length() - 1; // -1 because the iterator will increment by one
 		        }
