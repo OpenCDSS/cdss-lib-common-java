@@ -11,7 +11,7 @@ import RTi.Util.Time.DateTime;
 /**
 Perform simple column-based string manipulation on a table.
 */
-public class DataTableStringManipulation
+public class DataTableStringManipulator
 {
     
 /**
@@ -35,7 +35,7 @@ Construct an instance.
 @param columnIncludeFilters a list of filters that will be checked to include rows
 @param columnIncludeFilters a list of filters that will be checked to exclude rows
 */
-public DataTableStringManipulation ( DataTable table, StringDictionary columnIncludeFilters, StringDictionary columnExcludeFilters )
+public DataTableStringManipulator ( DataTable table, StringDictionary columnIncludeFilters, StringDictionary columnExcludeFilters )
 {
     __table = table;
     __columnIncludeFilters = columnIncludeFilters;
@@ -51,6 +51,7 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
     choices.add ( DataTableStringOperatorType.REPLACE );
+    choices.add ( DataTableStringOperatorType.REMOVE );
     choices.add ( DataTableStringOperatorType.SUBSTRING );
     // TODO SAM 2015-04-29 Need to enable boolean
     //choices.add ( DataTableStringOperatorType.TO_BOOLEAN );
@@ -158,7 +159,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     // In these cases, remove the special characters
     boolean replaceStart = false;
     boolean replaceEnd = false;
-	if ( operator == DataTableStringOperatorType.REPLACE ) {
+	if ( (operator == DataTableStringOperatorType.REPLACE) || (operator == DataTableStringOperatorType.REMOVE) ) {
     	if ( inputValue2 != null ) {
     		if ( inputValue2.startsWith("^") ) {
 	    		replaceStart = true;
@@ -171,9 +172,15 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     		// Also replace "\s" with single space
     		inputValue2 = inputValue2.replace("\\s"," ");
     	}
-    	if ( inputValue3 != null ) {
-    		// Also replace "\ " with single space
-    		inputValue3 = inputValue3.replace("\\s"," ");
+    	if ( operator == DataTableStringOperatorType.REMOVE ) {
+    		// Same as substring but second string is a space
+    		inputValue3 = "";
+    	}
+    	else {
+	    	if ( inputValue3 != null ) {
+	    		// Also replace "\ " with single space, anywhere in the output
+	    		inputValue3 = inputValue3.replace("\\s"," ");
+	    	}
     	}
 	}
 
@@ -258,7 +265,11 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
                 outputVal = input2Val + input1Val;
             }
         }
-        else if ( operator == DataTableStringOperatorType.REPLACE ) {
+        else if ( (operator == DataTableStringOperatorType.REPLACE) ||
+        	(operator == DataTableStringOperatorType.REMOVE)) {
+        	if ( operator == DataTableStringOperatorType.REMOVE ) {
+        		input3Val = ""; // Replace found string with empty string
+        	}
         	// This is tricky because don't want to change unless there is a match.
         	// Problems can occur if one call messes with data that another call previously changed.
         	// Therefore need to handle with care depending on whether output column is the same as input column.
@@ -313,10 +324,10 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             		// Else defaults to default output as determined above
             	}
             	else {
-            		// Simple replace - may not do anything
+            		// Simple replace - may not do anything if not matched
             		String outputValTmp = input1Val.replace(input2Val, input3Val);
             		if ( !outputValTmp.equals(outputVal) ) {
-            			// Output was changed so change, otherwise leave previous output determined above
+            			// Output was changed so update the value, otherwise leave previous output determined above
             			outputVal = outputValTmp;
             		}
             	}

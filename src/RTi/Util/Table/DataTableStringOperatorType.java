@@ -19,6 +19,10 @@ Replace string substring.
 */
 REPLACE("Replace"),
 /*
+Remove string substring.
+*/
+REMOVE("Remove"),
+/*
 Return a substring.
 */
 SUBSTRING("Substring"),
