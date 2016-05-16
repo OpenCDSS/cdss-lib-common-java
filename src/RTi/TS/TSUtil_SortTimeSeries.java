@@ -40,18 +40,10 @@ private int sortOrder = 1;
 /**
 Constructor.
 @param tslist Time series to process.
-@param analysisStart Date to start cumulating.
-@param analysisEnd Date to stop cumulating.
-@param handleMissingHow If CarryForwardIfMissing, a missing value will be set to the
-previous cumulative value (carry forward).  If SetMissingIfMissing,
-the result will be set to missing.  Subsequent non-missing data will in any
-case increment the last non-missing total.
-@param resetDateTime Indicate when to reset the cumulative value to zero.  The year is ignored.
-@param resetValue value to reset to, ignored if resetValueToDataValue=true
-@param resetValueToDataValue if true, reset the first value to the data value in the original time series,
-even if missing
-@param allowMissingCount the number of values allowed to be missing in a year when using reset
-@param minimumSampleSize the minimum sample size in a year when using reset
+@param tsidFormat how to get TSID, either TSID or AliasTSID.
+@param property time series property to sort
+@param propertyFormat time series property format for sorting, using C-style %s, etc.
+@param sortOrder sort order, -1 descending or 1 ascending.
 */
 public TSUtil_SortTimeSeries ( List<TS> tslist, String tsidFormat, String property, String propertyFormat, int sortOrder )
 {   this.tslist = tslist;
