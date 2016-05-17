@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -32,9 +33,10 @@ Private method to create a time series given the proper heading information
 @param datatype Data type for the data.
 @exception if an error occurs.
 */
-private static TS createTimeSeries ( TS req_ts, int data_interval_base, int data_interval_mult,
+private static TS createTimeSeries ( TS req_ts, TimeInterval interval,
 	String agency_cd, String site_no, String datatype, String description, String units,
-	DateTime date1, DateTime date2, DateTime date1_file, DateTime date2_file )
+	DateTime date1, DateTime date2, DateTime date1_file, DateTime date2_file,
+	List<String> dataFlagList, List<String> dataFlagDescList )
 throws Exception
 {	String routine = "UsgsNwisRdbTS.createTimeSeries";
 
@@ -43,7 +45,7 @@ throws Exception
 
 	TSIdent ident = null;
 	try {
-	    ident = new TSIdent ( site_no, agency_cd, datatype, "Day","");
+	    ident = new TSIdent ( site_no, agency_cd, datatype, interval.toString(),"");
 	}
 	catch ( Exception e ) {
 		// This should not happen because all fields are OK...
@@ -86,6 +88,13 @@ throws Exception
 	ts.setDate2Original ( date2_file );
 	ts.setDate1 ( new DateTime(date1) );
 	ts.setDate2 ( new DateTime(date2) );
+	
+	// Set the data flags
+	int i = -1;
+	for ( String dataFlag : dataFlagList ) {
+		++i;
+		ts.addDataFlagMetadata(new TSDataFlagMetadata(dataFlag, dataFlagDescList.get(i)));
+	}
 	
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, routine, "Period to read is " + date1 + " to " + date2 );
@@ -173,7 +182,7 @@ Read the time series from a file.
 @return TS for data in the file or null if there is an error reading the time series.
 */
 public static TS readTimeSeries ( String filename )
-{	return readTimeSeries ( filename, null, null, null, true );
+{	return readTimeSeries ( filename, null, null, null, null, "", null, true );
 }
 
 /**
@@ -185,27 +194,31 @@ IOUtil.getPathUsingWorkingDir() is called to expand the filename.
 @param filename Name of file to read.
 @param date1 Starting date to initialize period (NULL to read the entire time series).
 @param date2 Ending date to initialize period (NULL to read the entire time series).
-@param units Units to convert to.
-@param read_data Indicates whether data should be read (false=no, true=yes).
+@param interval data interval for output time series (because not explicitly stated in file)
+@param units units to assign to time series (because not explicitly stated in file)
+@param outputUnits Units to convert to.
+@param readData Indicates whether data should be read (false=no, true=yes).
 */
-public static TS readTimeSeries ( String filename, DateTime date1, DateTime date2, String units, boolean read_data )
+public static TS readTimeSeries ( String filename, DateTime date1, DateTime date2,
+	String dataType, TimeInterval interval, String units, String outputUnits, boolean readData )
 {	TS ts = null;
 
-	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
+	String fullFname = IOUtil.getPathUsingWorkingDir ( filename );
 	BufferedReader in = null;
 	try {
-	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( full_fname )) );
+	    in = new BufferedReader ( new InputStreamReader( IOUtil.getInputStream ( fullFname )) );
 		// Don't have a requested time series...
-		ts = readTimeSeries ( (TS)null, in, full_fname, date1, date2, units, read_data );
-		ts.setInputName ( full_fname );
+		ts = readTimeSeries ( (TS)null, in, fullFname, date1, date2, dataType, interval, units, outputUnits, readData );
+		ts.setInputName ( fullFname );
 		ts.getIdentifier().setInputType("UsgsNwisRdb");
-		ts.getIdentifier().setInputName(full_fname);
-		ts.addToGenesis ( "Read data from \"" + full_fname +
+		ts.getIdentifier().setInputName(fullFname);
+		ts.addToGenesis ( "Read data from \"" + fullFname +
 			"\" for period " + ts.getDate1() + " to " +	ts.getDate2() );
 	}
 	catch ( Exception e ) {
-		Message.printWarning( 2,
-		"UsgsNwisRdbTS.readTimeSeries(String,...)", "Unable to open file \"" + full_fname + "\"" );
+		String routine = "UsgsNwisRdbTS.readTimeSeries";
+		Message.printWarning( 2, routine, "Error reading USGS RDB file \"" + fullFname + "\" (" + e + ")." );
+		Message.printWarning(3, routine, e);
 	}
 	finally {
 	    if ( in != null ) {
@@ -234,11 +247,11 @@ read (where the scenario is NOT the file name).
 (in which case the tsident_string must match one of the TSID strings in the file).
 @param date1 Starting date to initialize period (NULL to read the entire time series).
 @param date2 Ending date to initialize period (NULL to read the entire time series).
-@param units Units to convert to.
+@param outputUnits Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
 */
 public static TS readTimeSeries ( String tsident_string, String filename,
-					DateTime date1, DateTime date2, String units, boolean read_data )
+	DateTime date1, DateTime date2, String outputUnits, boolean read_data )
 throws Exception
 {	TS ts = null;
 
@@ -271,7 +284,8 @@ throws Exception
 		return ts;
 	}
 	ts.setIdentifier ( tsident_string );
-	readTimeSeries ( ts, in, full_fname, date1, date2, units, read_data );
+	TimeInterval interval = TimeInterval.parseInterval(ts.getIdentifier().getInterval());
+	readTimeSeries ( ts, in, full_fname, date1, date2, ts.getIdentifier().getType(), interval, "", outputUnits, read_data );
 	ts.setInputName ( full_fname );
 	ts.getIdentifier().setInputType ( "UsgsNwisRdb" );
 	ts.getIdentifier().setInputName ( filename );
@@ -292,25 +306,28 @@ is assumed to have been set in the calling code.
 @param in Reference to open input stream.
 @param filename Name of file that is being read.  This is needed because the
 file is reopened to get the last dates in the file.
-@param req_date1 Requested starting date to initialize period (or NULL to read the entire time series).
-@param req_date2 Requested ending date to initialize period (or NULL to read the entire time series).
-@param req_units Units to convert to (currently ignored).
-@param read_data Indicates whether data should be read (false=no, true=yes).
+@param reqDate1 Requested starting date to initialize period (or NULL to read the entire time series).
+@param reqDate2 Requested ending date to initialize period (or NULL to read the entire time series).
+@param reqUnits Units to convert to (currently ignored).
+@param readData Indicates whether data should be read (false=no, true=yes).
 @exception Exception if there is an error reading the time series.
 */
 public static TS readTimeSeries ( TS req_ts, BufferedReader in,	String filename,
-					DateTime req_date1, DateTime req_date2,
-					String req_units, boolean read_data )
+	DateTime reqDate1, DateTime reqDate2,
+	String dataType, TimeInterval interval, String units,
+	String reqUnits, boolean readData )
 throws Exception
 {	String routine = "UsgsNwisRdbTS.readTimeSeries";
 	String string = null;
 	int	dl = 10;
-	DateTime date1_file = null, date2_file = null;
+	DateTime date1File = null, date2File = null;
 
 	// USGS files do not have header information with the period for the time series.  Therefore,
 	// grab a reasonable amount of the end of the file using a RandomAccessFile - then process lines
 	// (broken by line breaks) until the last data line is encountered.  Do this first to get the end date
 	// and then read from the top of the file using the BufferedReader that was passed into this method.
+	// The files always contain the first 3 columns:
+	// agency_cd site_no datetime
 
 	if ( Message.isDebugOn ) {
 	    Message.printDebug( dl, routine, "Getting end date from end of file..." );
@@ -328,40 +345,44 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	List v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
+	List<String> v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// Loop through and figure out the last date.  Start at the second
 	// record because it is likely that a complete record was not found in the first record.
 	int size = v.size();
-	String date2_string = null;
-	List tokens = null;
+	String date2String = null;
+	List<String> tokens = null;
 	for ( int i = 1; i < size; i++ ) {
-		string = ((String)v.get(i)).trim();
+		string = v.get(i).trim();
 		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
 		    // Ignore blank lines, comments, and HTML-enclosing tags.
 			continue;
 		}
-		tokens = StringUtil.breakStringList( string, " \t", StringUtil.DELIM_SKIP_BLANKS );
+		//Message.printStatus(2, routine, "Processing \"" + string + "\"");
+		tokens = StringUtil.breakStringList( string, "\t", StringUtil.DELIM_SKIP_BLANKS );
 		// Set the date string - overwrite for each line until all the end lines are processed
-		date2_string = (String)tokens.get(2);
+		date2String = tokens.get(2);
 		if ( Message.isDebugOn ) {
-		    Message.printDebug( 2, routine, "Got end date \"" + date2_string + "\" from line \"" + string + "\"" );
+		    Message.printDebug( 2, routine, "Got end date \"" + date2String + "\" from line \"" + string + "\"" );
 		}
 	}
-	v = null;
-	bs = null;
-	date2_file = DateTime.parse ( date2_string );
+	date2File = DateTime.parse ( date2String );
 
 	// Always read the header.  Optional is whether the data are read...
 
-	int line_count = 0;
+	int lineCount = 0;
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Processing header..." );
 	}
 
-	String datatype = "", description = "", units = "";
-	String token0;
-	boolean	header1_found = false, header2_found = false;
+	String description = "";
+	boolean	header1Found = false, header2Found = false;
 	DateTime date1 = null, date2 = null;
+	List<String> header1Tokens = new ArrayList<String>();
+	List<String> dataFlagList = new ArrayList<String>(); // Flag for values
+	List<String> dataFlagDescList = new ArrayList<String>();
+	List<String> ddList = new ArrayList<String>(); // data provided at site
+	List<String> ddParameterList = new ArrayList<String>();
+	List<String> ddDescList = new ArrayList<String>();
 	try {
     	while ( true ) {
     		string = in.readLine();
@@ -369,7 +390,7 @@ throws Exception
     		    // End of file.
     			break;
     		}
-    		++line_count;
+    		++lineCount;
     		// Although it appears that the file is supposed to be be fixed
     		// format, the column widths also seem to use tabs to make up some of the width...
     		if ( Message.isDebugOn ) {
@@ -378,7 +399,7 @@ throws Exception
     		string = string.trim();
     		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
     			// Skip comments, blank lines, and HTML lines that start with <...
-    			if ( header1_found ) {
+    			if ( header1Found ) {
     				continue;
     			}
     		}
@@ -387,14 +408,89 @@ throws Exception
     		// Try to optimize the code by not processing tokens unless we
     		// need to.  Will probably need to add more error handling later.
     			
-    		if ( !header1_found ) {
-    			token0 = (String)tokens.get(0);
-    			if ( token0.equalsIgnoreCase("agency_cd") ) {
+    		if ( !header1Found ) {
+    			if ( !string.startsWith("#") && (string.indexOf("agency_cd") >= 0) ) {
            			// NWIS Header Format: Line 1
     				//
     				// agency_cd site_no dv_dt dv_va dv_cd
-    				header1_found = true;
+    				// or for real-time:  agency_cd	site_no	datetime	tz_cd	01_00060	01_00060_cd
+    				// or for daily:  agency_cd       site_no datetime        02_00060_00001  02_00060_00001_cd       02_00060_00002  02_00060_00002_cd
+    				header1Found = true;
+    				header1Tokens = tokens;
     			}
+    			else if ( string.startsWith("#") && string.indexOf("DD parameter") > 0 ) {
+    				// List of time series in file, of the following form for real-time:
+    				//# Data provided for site 09512500
+    				//#    DD parameter   Description
+    				//#    01   00060     Discharge, cubic feet per second
+    				//
+    				// And the following for daily:
+    				//# Data provided for site 03451500
+    				//#    DD parameter statistic   Description
+    				//#    02   00060     00001     Discharge, cubic feet per second (Maximum)
+    				//#    02   00060     00002     Discharge, cubic feet per second (Minimum)
+    				//#    02   00060     00003     Discharge, cubic feet per second (Mean)
+    				//#    03   00065     00001     Gage height, feet (Maximum)
+    				//#    03   00065     00002     Gage height, feet (Minimum)
+    				//#    03   00065     00003     Gage height, feet (Mean)
+    				//#    17   00045     00006     Precipitation, total, inches (Sum)
+
+    				while ( true ) {
+    					string = in.readLine();
+    		    		if ( (string == null) || string.trim().equals("#") || !string.startsWith("#") ) {
+    		    		    // End of file or no more data flags (empty line).
+    		    			break;
+    		    		}
+    		    		else {
+    		    			// Have data flag line to process - parse carefully because there will be spaces in description.
+    		    			String dataString = string.substring(1).trim();
+    		    			int iSpace = dataString.indexOf(" ");
+    		    			if ( iSpace < 0 ) {
+    		    				continue;
+    		    			}
+    		    			ddList.add(dataString.substring(0,iSpace).trim());
+    		    			// Now parse out parameter and description
+    		    			dataString = dataString.substring(iSpace).trim();
+    		    			iSpace = dataString.indexOf(" ");
+    		    			if ( iSpace < 0 ) {
+    		    				continue;
+    		    			}
+    		    			ddParameterList.add(dataString.substring(0,iSpace).trim());
+    		    			ddDescList.add(dataString.substring(iSpace).trim());
+    		    		}
+    				}
+    				if ( string == null ) {
+    					break; // End of file
+    				}
+    			}
+    			else if ( string.startsWith("#") && string.indexOf("Data-value qualification code") > 0 ) {
+    				// Flags of form:
+    				//   # Data-value qualification codes included in this output: 
+    				//	 #     A  Approved for publication -- Processing and review completed.  
+    				//	 #     P  Provisional data subject to revision.  
+    				//	 #     e  Value has been estimated.
+    				while ( true ) {
+    					string = in.readLine();
+    		    		if ( (string == null) || string.trim().equals("#") || !string.startsWith("#") ) {
+    		    		    // End of file or no more data flags (empty line).
+    		    			break;
+    		    		}
+    		    		else {
+    		    			// Have data flag line to process - parse carefully because there will be spaces in description.
+    		    			String dataString = string.substring(1).trim();
+    		    			int iSpace = dataString.indexOf(" ");
+    		    			if ( iSpace < 0 ) {
+    		    				continue;
+    		    			}
+    		    			dataFlagList.add(dataString.substring(0,iSpace).trim());
+    		    			dataFlagDescList.add(dataString.substring(iSpace).trim());
+    		    		}
+    				}
+    				if ( string == null ) {
+    					break; // End of file
+    				}
+    			}
+    			// Legacy below this (have seen in old files)
     			else if ( string.regionMatches(true,0,"# Sites in this file include:",0,29) ) {
     				// Get the description from the next line...
     				description = in.readLine().trim();
@@ -402,19 +498,19 @@ throws Exception
     				if ( description.length() > 3 ) {
     					description = description.substring(3);
     				}
-    				++line_count;
+    				++lineCount;
     			}
     		}
-    		else if ( header1_found && !header2_found ) {
+    		else if ( header1Found && !header2Found ) {
     			// Header 2 gives the column widths
-    			// For now read as free format...
-    			header2_found = true;
+    			// For now read as free format so don't need the column format inforamtion.
+    			header2Found = true;
     			// Break out and read data below...
     			break;
     		}	
     	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 3, routine, "Error processing line " + lineCount + ": \"" + string + "\"");
 		Message.printWarning ( 3, routine, e );
 	}
 
@@ -426,19 +522,57 @@ throws Exception
 
 	DateTime idate = null;
 	TS ts = null;
-	int data_interval_base = TimeInterval.DAY;
-	int data_interval_mult = 1;
+	// Only read the first time series.
+	// Figure out the token for data and flag
+	int valueCol = -1;
+	int flagCol = -1;
+	int tzCol = -1;
+	String timeZone = "";
+	String flag = null;
+	String valueString;
+	double value;
+	String dataTypeRdb = null; // dd_parameter_statistic for default datatype
+	for ( int i = 0; i < header1Tokens.size(); i++ ) {
+		String headerCol = header1Tokens.get(i);
+		if ( headerCol.equals("tz_cd") ) {
+			// Time zone
+			tzCol = i;
+		}
+		if ( dataTypeRdb == null ) {
+			if ( headerCol.equals("dv_va")) { // Legacy
+				valueCol = i;
+				dataTypeRdb = headerCol;
+			}
+			else if ( Character.isDigit(headerCol.charAt(0)) && !headerCol.endsWith("_cd") ) { // Current
+				// Something like 02_00060_0003
+				valueCol = i;
+				dataTypeRdb = headerCol;
+			}
+		}
+		else if ( headerCol.equals(dataTypeRdb + "_cd") || // Current
+			headerCol.equals("dv_cd") ) { // Legacy
+			// Flag column
+			flagCol = i;
+		}
+	}
+	
+	if ( (dataType == null) || dataType.isEmpty() ) {
+		// No data type specified as input so default to RDB data
+		dataType = dataTypeRdb;
+	}
 
 	try {
-    	int data_count = 0;
+    	int dataCount = 0;
     	while ( (string = in.readLine()) != null ) {
-    		++line_count;
+    		++lineCount;
     		// Don't trim the line because data are fixed-format.
     		if ( Message.isDebugOn ) {
     			Message.printDebug ( dl, routine, "Processing: \"" + string + "\"" );
     		}
     		string = string.trim();
-    		if ( (string.length() == 0) || (string.charAt(0) == '#') || (string.charAt(0) == '<') ) {
+    		if ( (string.length() == 0)
+    			|| (string.charAt(0) == '#') // comment
+    			|| (string.charAt(0) == '<') ) { // html
     			// Skip comments and blank lines for now...
     			continue;
     		}
@@ -447,42 +581,50 @@ throws Exception
     		}
     
     		// Have to parse every line because free format...
-    
-    		tokens = StringUtil.breakStringList ( string, " \t", StringUtil.DELIM_SKIP_BLANKS );
+    		// Do not skip blanks because missing may be not included
+    		tokens = StringUtil.breakStringList ( string, "\t", 0 );
     		size = 0;
     		if ( tokens != null ) {
     			size = tokens.size();
     		}
     
-    		if ( data_count == 0 ) {
+    		if ( dataCount == 0 ) {
     			// Need to interpret information from the first line to allocate the time series.
     		    // Some things are hard-coded for now until we get a specification...
-    			units = "CFS";
-    			datatype = "Streamflow";
     			// Now set dates to read...
-    			date1_file =DateTime.parse((String)tokens.get(2));
-    			if ( req_date1 != null ) {
-    				date1 = req_date1;
+    			if ( tzCol >= 0 ) {
+    				timeZone = tokens.get(tzCol);
+    			}
+    			date1File = DateTime.parse(tokens.get(2) );
+    			if ( (timeZone != null) && !timeZone.isEmpty() ) {
+    				date1File.setTimeZone(timeZone);
+    			}
+
+    			if ( reqDate1 != null ) {
+    				date1 = reqDate1;
     			}
     			else {
-    			    date1 = date1_file;
+    			    date1 = date1File;
     			}
-    			if ( req_date2 != null ) {		
-    				date2 = req_date2;
+    			if ( reqDate2 != null ) {		
+    				date2 = reqDate2;
     			}
     			else {
-    			    date2 = date2_file;
+    			    date2 = date2File;
+        			if ( (timeZone != null) && !timeZone.isEmpty() ) {
+        				date2.setTimeZone(timeZone);
+        			}
     			}
     
-    			data_interval_base = TimeInterval.DAY;
-    			data_interval_mult = 1;
     			ts = createTimeSeries ( req_ts,
-    				data_interval_base, data_interval_mult,
-    				(String)tokens.get(0), (String)tokens.get(1),
-    				datatype, description, units,
-    				date1, date2, date1_file, date2_file );
+    				interval,
+    				tokens.get(0), // Agency
+    				tokens.get(1), // station ID
+    				dataType, description, units,
+    				date1, date2, date1File, date2File,
+    				dataFlagList, dataFlagDescList );
     
-    			if ( !read_data ) {
+    			if ( !readData ) {
     				// Don't need to allocate the data space...
     				break;
     			}
@@ -494,15 +636,11 @@ throws Exception
     				// Clean up memory...
     				break;
     			}
-    
-    			// Turn on data flags (use one-character flag until more is known about the format)...
-    			// TODO 2002-09-05 Disable for now until we figure out how to handle in TSTool.
-    			//ts.hasDataFlags ( true, 1 );
     		}
     
     		// Increment to prevent above allocation from occurring more than once...
     
-    		++data_count;
+    		++dataCount;
     
     		// The rest of this is for data.
     
@@ -510,34 +648,44 @@ throws Exception
     			// Can't continue because not enough fields.
     			// Allow the agency, ID, and date (but no data).
     			Message.printWarning ( 3, routine,
-    				"Error reading data at line " + line_count + ".  File is corrupt." );
+    				"Error reading data at line " + lineCount + ".  File is corrupt." );
     			ts = null;
     			break;
     		}
     		// Always parse to make absolutely sure the data go into the correct place.
     		// This is slower but safe (there are cases where there are gaps in the USGS files)...
-    		idate = DateTime.parse ( (String)tokens.get(2) );
+    		idate = DateTime.parse ( tokens.get(2) );
+			if ( (timeZone != null) && !timeZone.isEmpty() ) {
+				idate.setTimeZone(timeZone);
+			}
     		//Message.printStatus(2, routine, (String)tokens.elementAt(2) );
-    		if ( (req_date1 == null) ||	idate.greaterThanOrEqualTo(date1)) {
+    		if ( (reqDate1 == null) ||	idate.greaterThanOrEqualTo(date1)) {
     			// In the requested period so set the data...
-    			// TODO SAM 2007-05-09 Need to handle quality quality_flag = "";
-    			if ( size > 4 ) {
-    				//quality_flag = (String)tokens.elementAt(4);
+    			flag = null;
+    			if ( (flagCol > 0) && (flagCol < size) ) {
+    				flag = tokens.get(flagCol);
     			}
-    			if ( size > 3 ) {
+    			if ( (valueCol > 0) && (valueCol < size) ) {
     				// Have a data value (sometimes do not!)...
-    				//ts.setDataValue ( idate, StringUtil.atod((String)tokens.elementAt(3)), quality_flag, 0 );
-    				// TODO 2002-09-05 Disable quality flag until figure out how to handle consistently in TSTool.
-    				ts.setDataValue ( idate, StringUtil.atod((String)tokens.get(3)) );
+    				valueString = tokens.get(valueCol);
+    				if ( !valueString.isEmpty() ) {
+    					value = Double.parseDouble(valueString);
+    				}
+    				else {
+    					value = ts.getMissing();
+    				}
+					if ( (flag == null) || flag.isEmpty() ) {
+						ts.setDataValue ( idate, value );
+					}
+					else {
+						ts.setDataValue ( idate, value, flag, 0 );
+					}
     				if ( Message.isDebugOn ) {
     					Message.printDebug ( dl, routine,
-    					"Value found at " + idate.toString() + ": "+ StringUtil.atod((String)tokens.get(3)));
+    					"Value found at " + idate.toString() + ": "+ StringUtil.atod(tokens.get(3)));
     				}
     			}
-    			if ( (req_date2 == null) || idate.lessThan(date2) ) {
-    				idate.addInterval ( data_interval_base, data_interval_mult);
-    			}
-    			else {
+    			if ( idate.greaterThan(date2) ) {
     			    if ( Message.isDebugOn ) {
     					Message.printDebug ( dl, routine, "Finished reading data at: " + idate.toString() );
     				}
@@ -547,7 +695,7 @@ throws Exception
     		}
     	}
 	} catch ( Exception e ) {
-		Message.printWarning ( 3, routine, "Error processing line " + line_count + ": \"" + string + "\"");
+		Message.printWarning ( 3, routine, "Error processing line " + lineCount + ": \"" + string + "\"");
 		ts = null;
 	}
 	return ts;
