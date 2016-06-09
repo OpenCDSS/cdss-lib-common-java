@@ -1018,7 +1018,7 @@ Blank TYPE_SPACE fields are not returned.
 results.  This allows a single list to be reused in repetitive reads.
 The list is cleared before reading.
 */
-public static final List fixedRead ( String string, int[] field_types, int [] field_widths, List results )
+public static final List<Object> fixedRead ( String string, int[] field_types, int [] field_widths, List results )
 {	int	dtype = 0,	// Indicates type of variable (from "format").
 		isize,		// Number of characters in a data value
 				// (as integer).
@@ -1030,13 +1030,13 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 
 	int size = field_types.length;
 	int string_length = string.length();
-	List tokens = null;
+	List<Object> tokens = null;
 	if ( results != null ) {
 		tokens = results;
 		tokens.clear();
 	}
 	else {
-		tokens = new Vector(size);
+		tokens = new ArrayList<Object>(size);
 	}
 
 	StringBuffer var = new StringBuffer();
@@ -1108,7 +1108,6 @@ public static final List fixedRead ( String string, int[] field_types, int [] fi
 		}
 		++nread;
 	}
-	var = null;
 	return tokens;
 }
 
