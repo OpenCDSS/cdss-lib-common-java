@@ -657,7 +657,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 }
 
 /**
-Given a result set, prints the type of each column to Status level 2.
+Given a result set, prints the name and type of each column to log file status level 2.
 @param rs the ResultSet to dump information for.
 @throws SQLException if there is an error dumping information.
 */
@@ -669,8 +669,10 @@ throws SQLException {
 	int columnCount = rsmd.getColumnCount();
 	int colType = 0;
 	String type = null;
+	String colName = null;
 	for (int i = 0; i < columnCount; i++) {
 		colType = rsmd.getColumnType(i + 1);
+		colName = rsmd.getColumnName(i + 1);
 		switch (colType) {
 			case java.sql.Types.BIGINT:
 				type = "bigint";
@@ -734,7 +736,7 @@ throws SQLException {
 				break;	
 		}		
 
-		Message.printStatus(2, "", "Column " + (i + 1) + ": " + type);
+		Message.printStatus(2, "", "Column " + (i + 1) + " \"" + colName + "\" " + ": " + type);
 	}
 }
 
