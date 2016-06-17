@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringDictionary;
+import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
@@ -52,6 +53,7 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     choices.add ( DataTableStringOperatorType.PREPEND );
     choices.add ( DataTableStringOperatorType.REPLACE );
     choices.add ( DataTableStringOperatorType.REMOVE );
+    choices.add ( DataTableStringOperatorType.SPLIT );
     choices.add ( DataTableStringOperatorType.SUBSTRING );
     // TODO SAM 2015-04-29 Need to enable boolean
     //choices.add ( DataTableStringOperatorType.TO_BOOLEAN );
@@ -333,9 +335,37 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             	}
             }
         }
+        else if ( operator == DataTableStringOperatorType.SPLIT ) {
+        	// That parameter character positions are 1+ but internal positions are 0+
+        	// Split out a token where input2Value is the delimiter and input3Value is the integer position (1++)
+        	// TODO SAM 2016-06-16 Figure out how to error-handle better
+        	int input3ValInt = -1;
+        	try {
+        		input3ValInt = Integer.parseInt(input3Val);
+        	}
+        	catch ( Exception e ) {
+        		input3ValInt = -1;
+        	}
+        	if ( (input1Val == null) || input1Val.isEmpty() ) {
+        		outputVal = "";
+        	}
+        	else {
+	        	if ( input3ValInt >= 0 ) {
+		        	// First break the string list
+		        	List<String> tokens = StringUtil.breakStringList(input1Val,input2Val,0);
+		        	int iCol = input3ValInt - 1;
+		        	if ( iCol < tokens.size() ) {
+		        		outputVal = tokens.get(iCol);
+		        	}
+		        	else {
+		        		outputVal = "";
+		        	}
+	        	}
+        	}
+        }
         else if ( operator == DataTableStringOperatorType.SUBSTRING ) {
         	// Note that parameter character positions are 1+ but internal positions are 0+
-        	// Convert input2Val and input3Val to integers
+        	// Extract a substring from the string based on character positions
         	int input2ValInt = -1;
         	int input3ValInt = -1;
         	try {

@@ -23,6 +23,10 @@ Remove string substring.
 */
 REMOVE("Remove"),
 /*
+Return a token split from the string based on a delimiter.
+*/
+SPLIT("Split"),
+/*
 Return a substring.
 */
 SUBSTRING("Substring"),
