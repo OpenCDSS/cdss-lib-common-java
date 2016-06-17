@@ -2431,11 +2431,14 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 		return DateTime.parse(date_string);
 	}
 	
+	// Else parse special values like CurrentToMinute
+	
 	String[] tokens = new String[3];
 	// tokens[0] = the date represented by the first part of the string to
 	//	be parsed (e.g., CurrentToMinute, "DateProperty", etc)
 	// tokens[1] = the operator ("+" or "-").  Null if no operators.
 	// tokens[2] = the interval to adjust be (e.g., "15Minute").  Null if no operator.
+	// This assumes that no + or - are part of the date/time
 	
 	if (str.indexOf("-") > -1) {
 		int index = str.indexOf("-");
@@ -2497,24 +2500,82 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 		token0DateTime = new DateTime(DateTime.DATE_CURRENT);
 	
 		// Try to parse as one of the hard-coded values ( CurrentToMinute, etc).
-		if (tokens[0].equalsIgnoreCase("CurrentToMinute")) {
+		String token0 = tokens[0];
+		if (token0.toUpperCase().startsWith("CURRENTTOMINUTE")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_MINUTE);
 		}
-		else if (tokens[0].equalsIgnoreCase("CurrentToHour")) {
+		else if (token0.toUpperCase().startsWith("CURRENTTOHOUR")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_HOUR);
 		}
-		else if (tokens[0].equalsIgnoreCase("CurrentToDay")) {
+		else if (token0.toUpperCase().startsWith("CURRENTTODAY")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
 		}
-		else if (tokens[0].equalsIgnoreCase("CurrentToMonth")) {
+		else if (token0.toUpperCase().startsWith("CURRENTTOMONTH")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_MONTH);
 		}
-		else if (tokens[0].equalsIgnoreCase("CurrentToYear")) {
+		else if (token0.toUpperCase().startsWith("CURRENTTOYEAR")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_YEAR);
 		}
-		else {	
-			Message.printWarning(3, "DateTime.parse","Could not find the named date/time'" + tokens[0] + "'");
-			throw new IllegalArgumentException("Named date/time'" + tokens[0] + "' not found.  Cannot parse.");
+		else {
+			String message = "Requested special date/time value \"" + token0 + "\" is not recognized - cannot parse.";
+			Message.printWarning(3, "DateTime.parse",message);
+			throw new IllegalArgumentException(message);
+		}
+		// Evaluate whether the above have modifiers such as CurrentToDay.round(5min).timezone(local)
+		int modifierPos = 0;
+		int modifierStartPos = 0;
+		int modifierEndPos = 0;
+		int roundDirection = -1; // Earlier in time
+		TimeInterval roundInterval = null; // Interval to round to
+		while ( true ) {
+			if ( modifierPos >= token0.length() ) {
+				break;
+			}
+			modifierPos = token0.indexOf(".",modifierPos);
+			if ( modifierPos < 0 ) {
+				// No more modifiers
+				break;
+			}
+			else {
+				// Process the modifier
+				if ( token0.substring(modifierPos).toUpperCase().startsWith(".ROUND(") ) {
+					// Date/time needs to be rounded
+					modifierStartPos = modifierPos + 7; // Skip over .ROUND(
+					modifierEndPos = token0.indexOf(")",modifierPos);
+					String sRoundInterval = token0.substring(modifierStartPos, modifierEndPos);
+					roundInterval = TimeInterval.parseInterval(sRoundInterval);
+					modifierPos = modifierEndPos;
+				}
+				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".ROUNDDIRECTION(") ) {
+					// Direction of rounding
+					modifierStartPos = modifierPos + 16; // Skip over .ROUNDDIRECTION(
+					modifierEndPos = token0.indexOf(")",modifierPos);
+					String sRoundDirection = token0.substring(modifierStartPos, modifierEndPos).trim();
+					if ( sRoundDirection.trim().equals(">") ) { // Don't use + or - here because that is used in may on current time
+						roundDirection = 1;
+					}
+					else if ( sRoundDirection.trim().equals("<") ) { // Don't use + or - here because that is used in may on current time
+						roundDirection = -1; // Also the default set above if nothing matches
+					}
+					modifierPos = modifierEndPos;
+				}
+				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".TIMEZONE(") ) {
+					// Date/time needs timezone set
+					modifierStartPos = modifierPos + 10; // Skip over .TIMEZONE(
+					modifierEndPos = token0.indexOf(")",modifierPos);
+					String tz = token0.substring(modifierStartPos, modifierEndPos).trim();
+					token0DateTime.setTimeZone(tz);
+					modifierPos = modifierEndPos;
+				}
+				else {
+					// At least increment so don't stay in loop if not matched
+					++modifierPos;
+				}
+			}
+		}
+		// Execute modifiers that take more than one input
+		if ( roundInterval != null ) {
+			token0DateTime.round(roundDirection, roundInterval.getBase(), roundInterval.getMultiplier());
 		}
 	}
 
