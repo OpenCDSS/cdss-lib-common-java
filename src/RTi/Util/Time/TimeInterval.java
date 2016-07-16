@@ -44,6 +44,7 @@
 
 package RTi.Util.Time;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -315,48 +316,48 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 Return a list of base time interval strings (e.g., "Year", "Hour"), optionally
 including the Irregular time step.  No multipliers are prefixed on the time intervals.
 @return a list of interval strings.
-@param start_interval The starting (smallest) interval base to return.
-@param end_interval The ending (largest) interval base to return.
-@param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
-@param include_irregular Indicate whether the "Irregular" time step should be
+@param startInterval The starting (smallest) interval base to return.
+@param endInterval The ending (largest) interval base to return.
+@param sortOrder Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
+@param includeIrregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
-public static List getTimeIntervalBaseChoices ( int start_interval, int end_interval,
-                        int sort_order, boolean include_irregular )
+public static List<String> getTimeIntervalBaseChoices ( int startInterval, int endInterval,
+    int sortOrder, boolean includeIrregular )
 {   // Add in ascending order and sort to descending later if requested...
-    List v = new Vector();
-    if ( start_interval > end_interval ) {
+    List<String> v = new ArrayList<String>();
+    if ( startInterval > endInterval ) {
         // Swap (only rely on sort_order for ordering)...
-        int temp = end_interval;
-        end_interval = start_interval;
-        start_interval = temp;
+        int temp = endInterval;
+        endInterval = startInterval;
+        startInterval = temp;
     }
-    if ( (HSECOND >= start_interval) && (HSECOND <= end_interval) ) {
+    if ( (HSECOND >= startInterval) && (HSECOND <= endInterval) ) {
         // TODO SAM 2005-02-16 We probably don't need to support this at all.
     }
-    if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
+    if ( (SECOND >= startInterval) && (SECOND <= endInterval) ) {
         v.add ( "Second" );
     }
-    if ( (MINUTE >= start_interval) && (MINUTE <= end_interval) ) {
+    if ( (MINUTE >= startInterval) && (MINUTE <= endInterval) ) {
         v.add ( "Minute" );
     }
-    if ( (HOUR >= start_interval) && (HOUR <= end_interval) ) {
+    if ( (HOUR >= startInterval) && (HOUR <= endInterval) ) {
         v.add ( "Hour" );
     }
-    if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
+    if ( (DAY >= startInterval) && (DAY <= endInterval) ) {
         v.add ( "Day" );
     }
     // TODO SAM 2005-02-16 Week is not yet supported
     //if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
     //}
-    if ( (MONTH >= start_interval) && (MONTH <= end_interval) ) {
+    if ( (MONTH >= startInterval) && (MONTH <= endInterval) ) {
         v.add ( "Month" );
     }
-    if ( (YEAR >= start_interval) && (YEAR <= end_interval) ) {
+    if ( (YEAR >= startInterval) && (YEAR <= endInterval) ) {
         v.add ( "Year" );
     }
-    if ( sort_order >= 0 ) {
-        if ( include_irregular ) {
+    if ( sortOrder >= 0 ) {
+        if ( includeIrregular ) {
             v.add ( "Irregular" );
         }
         return v;
@@ -364,11 +365,11 @@ public static List getTimeIntervalBaseChoices ( int start_interval, int end_inte
     else {
         // Change to descending order...
         int size = v.size();
-        List v2 = new Vector ( size );
+        List<String> v2 = new ArrayList<String> ( size );
         for ( int i = size -1; i >= 0; i-- ) {
             v2.add ( v.get(i) );
         }
-        if ( include_irregular ) {
+        if ( includeIrregular ) {
             v2.add ( "Irregular" );
         }
         return v2;
