@@ -390,7 +390,11 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             	}
             }
             else if ( (input2ValInt >= 0) && (input3ValInt >= 0) ) {
-                outputVal = input1Val.substring((input2ValInt - 1), input3ValInt);
+            	int input1ValLength = input1Val.length();
+            	outputVal = "";
+            	if ( (input2ValInt <= input1ValLength) && (input3ValInt <= input1ValLength) ) {
+            		outputVal = input1Val.substring((input2ValInt - 1), input3ValInt);
+            	}
             }
         }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
