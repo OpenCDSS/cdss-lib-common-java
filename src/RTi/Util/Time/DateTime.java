@@ -513,7 +513,10 @@ public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ = 26;
 The following formats a date as follows:  "MM/DD/YYYY HH:mm:SS".
 */
 public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS = 28;
-
+/**
+The following formats a date as follows, for debugging:  year=YYYY, month=MM, etc..
+*/
+public static final int FORMAT_VERBOSE = 29;
 
 /**
 Hundredths of a second (0-99).
@@ -2501,7 +2504,10 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 	
 		// Try to parse as one of the hard-coded values ( CurrentToMinute, etc).
 		String token0 = tokens[0];
-		if (token0.toUpperCase().startsWith("CURRENTTOMINUTE")) {
+		if (token0.toUpperCase().startsWith("CURRENTTOSECOND")) {
+			token0DateTime.setPrecision(DateTime.PRECISION_SECOND);
+		}
+		else if (token0.toUpperCase().startsWith("CURRENTTOMINUTE")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_MINUTE);
 		}
 		else if (token0.toUpperCase().startsWith("CURRENTTOHOUR")) {
@@ -2509,19 +2515,26 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 		}
 		else if (token0.toUpperCase().startsWith("CURRENTTODAY")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone
+			token0DateTime.setTimeZone("");
 		}
 		else if (token0.toUpperCase().startsWith("CURRENTTOMONTH")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_MONTH);
+			// Don't use time zone
+			token0DateTime.setTimeZone("");
 		}
 		else if (token0.toUpperCase().startsWith("CURRENTTOYEAR")) {
 			token0DateTime.setPrecision(DateTime.PRECISION_YEAR);
+			// Don't use time zone
+			token0DateTime.setTimeZone("");
 		}
 		else {
 			String message = "Requested special date/time value \"" + token0 + "\" is not recognized - cannot parse.";
 			Message.printWarning(3, "DateTime.parse",message);
 			throw new IllegalArgumentException(message);
 		}
-		// Evaluate whether the above have modifiers such as CurrentToDay.round(5min).timezone(local)
+		// All "Current" versions set the time zone for intervals of hour or smaller.
+		// Evaluate whether the above have modifiers such as CurrentToDay.round(5min).timezone()
 		int modifierPos = 0;
 		int modifierStartPos = 0;
 		int modifierEndPos = 0;
@@ -2561,10 +2574,19 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 				}
 				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".TIMEZONE(") ) {
 					// Date/time needs timezone set
+					// The default from above is to set the timezone to local
 					modifierStartPos = modifierPos + 10; // Skip over .TIMEZONE(
 					modifierEndPos = token0.indexOf(")",modifierPos);
 					String tz = token0.substring(modifierStartPos, modifierEndPos).trim();
-					token0DateTime.setTimeZone(tz);
+					if ( tz.equalsIgnoreCase("local") ) {
+						// Set timezone to local using computer time zone (redundant with default but code is being evaluated)
+						// Look up always in case it has changed during processing (unlikely)
+						TimeUtil.getLocalTimeZoneAbbr(TimeUtil.LOOKUP_TIME_ZONE_ALWAYS);
+					}
+					else {
+						// Set to the specified time zone, and setting to blank is OK
+						token0DateTime.setTimeZone(tz);
+					}
 					modifierPos = modifierEndPos;
 				}
 				else {
@@ -2602,7 +2624,7 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 		// so don't need to check for anything else here.
 		token0DateTime.addInterval(ti.getBase(), ti.getMultiplier());
 	}
-
+	//Message.printStatus(2,"","Date/time after parse:  " + token0DateTime.toString(FORMAT_VERBOSE));
 	return token0DateTime;
 }
 
@@ -2855,6 +2877,8 @@ public static DateTime parse ( String dateString )
 	if ( timeZone == null ) {
 		timeZone = "";
 	}
+	// Set the time zone to what was specified in the string.
+	// If no time zone was specified then blank is used
 	dateTime.setTimeZone(timeZone);
 	return dateTime;
 }
@@ -4292,6 +4316,11 @@ public String toString ( int format )
 		StringUtil.formatString(__minute,"%02d") + ":" +
 		StringUtil.formatString(__second,"%02d") + ":" +
 		StringUtil.formatString(__hsecond,"%02d") + " " + __tz;
+	}
+	else if ( format == FORMAT_VERBOSE ) {
+		return "year=" + __year + ", month=" + __month + ", day=" + __day
+			+ ", hour=" + __hour + ", min=" + __minute + ", second=" + __second + ", hsecond=" + __hsecond
+			+ ", tz=\"" + __tz + ", useTimeZone=" + __use_time_zone + ", isLeap=" + __isleap;
 	}
 	else {
 	    return toString( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
