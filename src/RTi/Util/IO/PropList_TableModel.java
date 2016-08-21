@@ -258,7 +258,7 @@ public int[] getColumnWidths() {
 		widths[i] = 0;
 	}
 	widths[COL_KEY] = 20;
-	widths[COL_VAL] = 20;
+	widths[COL_VAL] = 80; // Make wide to handle long strings
 
 	return widths;
 }
