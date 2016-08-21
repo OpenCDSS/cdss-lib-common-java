@@ -315,7 +315,6 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -324,10 +323,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -347,9 +345,7 @@ import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-
 import javax.swing.border.LineBorder;
-
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -357,19 +353,13 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import RTi.DMI.DMIUtil;
-
 import RTi.GR.GRColor;
-
 import RTi.Util.IO.HTMLWriter;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.MathUtil;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
-
 import RTi.Util.Time.StopWatch;
 
 // TODO (2004-01-20) need to add main javadocs for dealing with the new row headers.
@@ -6548,6 +6538,7 @@ private void sortColumn(int order) {
 	int absColumn = getAbsoluteColumn(__popupColumn);
 
 	// Sort numbers with MathUtil.sort()	
+	int exceptionCount = 0;
 	if (getColumnClass(absColumn) == Integer.class) {
 		int[] unsorted = new int[size];		
 		Integer I = null;
@@ -6557,6 +6548,11 @@ private void sortColumn(int order) {
 				unsorted[i] = I.intValue();
 			}
 			catch (Exception e) {
+				++exceptionCount;
+				if ( exceptionCount < 10 ) {
+					Message.printWarning(3,"","Exception getting data for sort:");
+					Message.printWarning(3,"",e);
+				}
 				unsorted[i] = DMIUtil.MISSING_INT;
 			}
 		}
@@ -6571,6 +6567,11 @@ private void sortColumn(int order) {
                 unsorted[i] = l.longValue();
             }
             catch (Exception e) {
+				++exceptionCount;
+				if ( exceptionCount < 10 ) {
+					Message.printWarning(3,"","Exception getting data for sort:");
+					Message.printWarning(3,"",e);
+				}
                 unsorted[i] = DMIUtil.MISSING_LONG;
             }
         }
@@ -6595,6 +6596,11 @@ private void sortColumn(int order) {
 				}
 			}
 			catch (Exception e) {
+				++exceptionCount;
+				if ( exceptionCount < 10 ) {
+					Message.printWarning(3,"","Exception getting data for sort:");
+					Message.printWarning(3,"",e);
+				}
 				unsorted[i] = DMIUtil.MISSING_DOUBLE;
 			}
 		}
@@ -6634,6 +6640,11 @@ private void sortColumn(int order) {
 				}
 			}
 			catch (Exception e) {
+				++exceptionCount;
+				if ( exceptionCount < 10 ) {
+					Message.printWarning(3,"","Exception getting data for sort:");
+					Message.printWarning(3,"",e);
+				}
 				unsorted[i] = DMIUtil.MISSING_INT;
 			}
 		}
@@ -6641,7 +6652,7 @@ private void sortColumn(int order) {
 	}		
 	// Sort Strings with StringUtil.sort()
 	else {
-		List v = new Vector(size);
+		List v = new ArrayList(size);
 		Object o = null;	
 		for (int i = 0; i < size; i++) {
 			o = getValueAt(i, __popupColumn);
