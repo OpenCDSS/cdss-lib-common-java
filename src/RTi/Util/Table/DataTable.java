@@ -1972,7 +1972,8 @@ public boolean isDirty() {
 Join one table to another by matching column column values.
 @param table original table
 @param tableToJoin table being joined
-@param joinColumnsMap map indicating which tables need to be matched in the tables, for the join
+@param joinColumnsMap map indicating which columns need to be matched in the tables, for the join
+(this must be populated, even if the join column name is the same in both tables)
 @param reqIncludeColumns requested columns to include from the second table or null to include all
 (the join tables will be automatically included because they exist in the first table)
 @param columnMap map to rename original columns to new name
@@ -2205,6 +2206,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                         joinTableRecordMatchesFilter[irow] = false;
                         break; // Don't include nulls when checking values
                     }
+                    // Do filter on strings only using uppercase
                     s = ("" + o).toUpperCase();
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
                         // A filter did not match so don't copy the record
@@ -2284,6 +2286,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                             break;
                         }
                     }
+                    // All other data types use equals
                     else if ( !table1Value.equals(table2Value) ) {
                         joinColumnsMatch = false;
                         break;

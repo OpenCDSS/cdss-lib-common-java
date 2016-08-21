@@ -352,6 +352,8 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         	else {
 	        	if ( input3ValInt >= 0 ) {
 		        	// First break the string list
+	        		inputValue2 = inputValue2.replace("\\s"," ");
+	        		inputValue2 = inputValue2.replace("\\n","\n");
 		        	List<String> tokens = StringUtil.breakStringList(input1Val,input2Val,0);
 		        	int iCol = input3ValInt - 1;
 		        	if ( iCol < tokens.size() ) {

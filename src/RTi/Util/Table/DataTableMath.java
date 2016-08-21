@@ -65,7 +65,7 @@ Perform a math calculation.
 */
 public void math ( String input1, DataTableMathOperatorType operator, String input2, String output,
     Double nonValue, List<String> problems )
-{   String routine = getClass().getName() + ".math" ;
+{   String routine = getClass().getSimpleName() + ".math" ;
     // Look up the columns for input and output
     int input1Field = -1;
     int input1FieldType = -1;
@@ -202,7 +202,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         			input1ValDouble = 0.0 + input1ValInteger;
         		}
         	}
-        	else if ( input2FieldType == TableField.DATA_TYPE_INT ) {
+        	if ( input2FieldType == TableField.DATA_TYPE_INT ) {
         		if ( input2ValInteger == null ) {
         			input2ValDouble = null;
         		}
@@ -210,15 +210,42 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         			input2ValDouble = 0.0 + input2ValInteger;
         		}
         	}
-        }
+        } 
         // Check for missing values and compute the output
-    	if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) || (input2FieldType == TableField.DATA_TYPE_DOUBLE) ) {
-    		outputFieldType = TableField.DATA_TYPE_DOUBLE;
-            if ( (input1ValDouble == null) || input1ValDouble.isNaN() || (input2ValDouble == null) || input2ValDouble.isNaN() ) {
-                outputValDouble = nonValue;
+        if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
+			// Only need the first input
+			// Set integer and double in case output table column is not configured properly
+        	if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
+	            if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
+	                outputValInteger = null;
+	                outputValDouble = nonValue;
+	            }
+	            else {
+	                outputValInteger = input1ValDouble.intValue();
+	                outputValDouble = (double)input1ValDouble.intValue();
+	            }
+        	}
+        	else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
+                if ( input1ValInteger == null ) {
+                    outputValInteger = null;
+                    outputValDouble = nonValue;
+                }
+                else {
+                	outputValInteger = input1ValInteger;
+                	outputValDouble = (double)input1ValInteger;
+                }
             }
-            else {
-                if ( operator == DataTableMathOperatorType.ADD ) {
+		}
+        else {
+        	// The following operators need two input values to compute
+	    	if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) || (input2FieldType == TableField.DATA_TYPE_DOUBLE) ||
+	    		(input1FieldType != input2FieldType) ) {
+	    		// Double input and double output (or mixed in which case double values were set above)
+	    		outputFieldType = TableField.DATA_TYPE_DOUBLE;
+                if ( (input1ValDouble == null) || input1ValDouble.isNaN() || (input2ValDouble == null) || input2ValDouble.isNaN() ) {
+                    outputValDouble = nonValue;
+                }
+                else if ( operator == DataTableMathOperatorType.ADD ) {
                 	outputValDouble = input1ValDouble + input2ValDouble;
                 }
                 else if ( operator == DataTableMathOperatorType.SUBTRACT ) {
@@ -235,23 +262,14 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                         outputValDouble = input1ValDouble / input2ValDouble;
                     }
                 }
-                else if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
-                    if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
-                        outputValInteger = null;
-                    }
-                    else {
-                        outputValInteger = input1ValDouble.intValue();
-                    }
+            }
+	    	else if ( (input1FieldType == TableField.DATA_TYPE_INT) && (input2FieldType == TableField.DATA_TYPE_INT) ) {
+	    		// Integer input and integer output
+	    		outputFieldType = TableField.DATA_TYPE_INT;
+                if ( (input1ValInteger == null) || (input2ValInteger == null) ) {
+                    outputValInteger = null;
                 }
-            }
-    	}
-    	else if ( (input1FieldType == TableField.DATA_TYPE_INT) && (input2FieldType == TableField.DATA_TYPE_INT) ) {
-    		outputFieldType = TableField.DATA_TYPE_INT;
-            if ( (input1ValInteger == null) || (input2ValInteger == null) ) {
-                outputValInteger = null;
-            }
-            else {
-                if ( operator == DataTableMathOperatorType.ADD ) {
+                else if ( operator == DataTableMathOperatorType.ADD ) {
                 	outputValInteger = input1ValInteger + input2ValInteger;
                 }
                 else if ( operator == DataTableMathOperatorType.SUBTRACT ) {
@@ -268,26 +286,29 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                         outputValInteger = input1ValInteger / input2ValInteger;
                     }
                 }
-                else if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
-                    outputValInteger = input1ValInteger;
-                }
             }
-    	}
+        }
         // Set the value...
         try {
             if ( outputFieldType == TableField.DATA_TYPE_INT ) {
                 __table.setFieldValue(irec, outputField, outputValInteger );
             }
-            else {
+            else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 __table.setFieldValue(irec, outputField, outputValDouble );
+            }
+            else {
+            	// TODO SAM 2016-08-02 may need to support other output columns like strings
             }
         }
         catch ( Exception e ) {
             if ( outputFieldType == TableField.DATA_TYPE_INT ) {
                 problems.add ( "Error setting value in row [" + irec + "] to " + outputValInteger + " (" + e + ")." );
             }
-            else {
+            else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 problems.add ( "Error setting value in row [" + irec + "] to " + outputValDouble + " (" + e + ")." );
+            }
+            else {
+            	problems.add ( "Error setting value in row [" + irec + "] (" + e + ")." );
             }
         }
     }   
