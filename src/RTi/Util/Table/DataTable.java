@@ -2795,6 +2795,20 @@ the initial read and are not available for further processing.</td>
 </tr>
 
 <tr>
+<td><b>DoubleColumns</b></td>
+<td>Specify comma-separated column names that should be treated as double precision columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
+<td><b>IntegerColumns</b></td>
+<td>Specify comma-separated column names that should be treated as integer columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
 <td><b>TextColumns</b></td>
 <td>Specify comma-separated column names that should be treated as text columns.
 The column names must agree with those determined from the table headings.</td>
@@ -2934,6 +2948,24 @@ throws Exception
         dateTimeColumns = propVal.split(",");
         for ( int i = 0; i < dateTimeColumns.length; i++ ) {
             dateTimeColumns[i] = dateTimeColumns[i].trim();
+        }
+    }
+    
+    String [] doubleColumns = null;
+    propVal = props.getValue("DoubleColumns");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+    	doubleColumns = propVal.split(",");
+        for ( int i = 0; i < doubleColumns.length; i++ ) {
+        	doubleColumns[i] = doubleColumns[i].trim();
+        }
+    }
+    
+    String [] integerColumns = null;
+    propVal = props.getValue("IntegerColumns");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+    	integerColumns = propVal.split(",");
+        for ( int i = 0; i < integerColumns.length; i++ ) {
+        	integerColumns[i] = integerColumns[i].trim();
         }
     }
     
@@ -3258,14 +3290,16 @@ throws Exception
 	    }
 	}
 	
+	// TODO SAM 2016-08-25 Could optimize so that if all column types are specified, don't need to scan data for type
+	
 	// Loop through the table fields and based on the examination of data above,
 	// set the table field type and if a string, max width.
 	
 	int [] tableFieldType = new int[tableFields.size()];
 	boolean isString = false;
 	boolean isDateTime = false;
-	boolean isInteger = false; // TODO SAM 2015-08-13 enable function parameter later.
-	boolean isDouble = false; // TODO SAM 2015-08-13 enable function parameter later.
+	boolean isInteger = false;
+	boolean isDouble = false;
 	if ( ColumnDataTypes_Auto_boolean ) {
     	for ( int icol = 0; icol < maxColumns; icol++ ) {
     		isDateTime = false;
@@ -3274,6 +3308,22 @@ throws Exception
     			for ( int i = 0; i < dateTimeColumns.length; i++ ) {
     				if ( dateTimeColumns[i].equalsIgnoreCase(tableField.getName()) ) {
     					isDateTime = true;
+    				}
+    			}
+    		}
+    		isDouble = false;
+    		if ( doubleColumns != null ) {
+    			for ( int i = 0; i < doubleColumns.length; i++ ) {
+    				if ( doubleColumns[i].equalsIgnoreCase(tableField.getName()) ) {
+    					isDouble = true;
+    				}
+    			}
+    		}
+    		isInteger = false;
+    		if ( integerColumns != null ) {
+    			for ( int i = 0; i < integerColumns.length; i++ ) {
+    				if ( integerColumns[i].equalsIgnoreCase(tableField.getName()) ) {
+    					isInteger = true;
     				}
     			}
     		}
@@ -3291,6 +3341,23 @@ throws Exception
     	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
     	            "] type is date/time as determined from specified column type." );
+    	    }
+    	    else if ( isDouble ) {
+    	    	tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is double as determined from specified column type." );
+                tableField.setWidth (lenmax_string[icol] );
+                tableField.setPrecision ( precision[icol] );
+    	        // Default the following
+                //tableField.setWidth (-1);
+                //tableField.setPrecision ( 6 );
+    	    }
+    	    else if ( isInteger ) {
+    	    	tableField.setDataType(TableField.DATA_TYPE_INT);
+    	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
+    	        Message.printStatus ( 2, routine, "Column [" + icol +
+    	            "] type is integer as determined from specified column type." );
     	    }
     	    else if ( isString ) {
     	    	tableField.setDataType(TableField.DATA_TYPE_STRING);
