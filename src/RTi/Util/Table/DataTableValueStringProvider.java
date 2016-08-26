@@ -1,7 +1,7 @@
 package RTi.Util.Table;
 
 /**
- * The DataTableValueGetter interface defines behavior for retrieving object from a DataTable.
+ * The DataTableValueStringProvider interface defines behavior for retrieving object from a DataTable.
  * Implementation of this interface is useful when manipulating the data for a cell
  * prior to setting or after retrieval.
  * @author sam

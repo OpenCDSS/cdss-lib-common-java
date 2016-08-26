@@ -3704,12 +3704,13 @@ then setting values for specific columns.
 @param columnFilters map to filter rows to set values in
 @param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
 values are strings and need to be converged before setting, based on column type
-@param getter a DataTableValueGetter implementation, which is called prior to setting values if not null
+@param getter a DataTableValueStringProvider implementation, which is called prior to setting values if not null,
+used to provide ability to dynamically format the values being set in the table
 @param createColumns indicates whether new columns should be created if necessary
 */
 public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues,
 	DataTableValueStringProvider getter, boolean createColumns )
-{   String routine = getClass().getName() + ".setTableValues";
+{   String routine = getClass().getSimpleName() + ".setTableValues";
     // List of columns that will be set, taken from keys in the column values
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
@@ -3819,7 +3820,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 if ( columnNumbersToSet[icol] >= 0 ) {
                 	columnValueToSet = columnValuesToSet[icol];
                 	if ( getter != null ) {
-                		// columnValueToSet will initial have formatting information like ${Property}
+                		// columnValueToSet will initially have formatting information like ${Property}
                 		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
                 	}
                     if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
