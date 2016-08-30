@@ -33,11 +33,21 @@ public class LagKBuilder {
         lagK.forecastDate1 = dt;
     }
     
-    public LagK create() {
+    /**
+     * Create a LagK object that will do the calculations.
+     * @param coLaggedInflow carryover for lagged inflow, or null to default to zero.
+     * @param coOutflow carryover for current outflow, or null to default to zero.
+     * @param coStorage carryover for current storage, or null to default to zero.
+     * @param coInitial initial carryover from a previous run, or null to default to zeros.
+     */
+    public LagK create( Double coLaggedInflow, Double coOutflow, Double coStorage, double [] coInitial ) {
         String routine = "LagK.create";
         
         // Size of carryover array includes lag window divided by the interval, plus 1 to be
         // inclusive of the end-points (?maybe?), plus 2 for K.
+        // _lagMax is from the lag table
+        // _lagMin accounts for negative lag and will be zero in most cases
+        // Therefore the total period of lag is the sum of _lagMax and _lagMin
         lk._sizeInflowCO = (lk._lagMax + lk._lagMin)/lk._t_mult + 3;
 
         if ( Message.isDebugOn ) {
@@ -52,13 +62,44 @@ public class LagKBuilder {
             lk._sizeInflowCO = lk._in_lag_tbl.getNRows();
         }
         if (lk._co_inflow == null) {
+        	// The following will default _co_inflow to zeros.
             lk._co_inflow = new double[lk._sizeInflowCO];
-        } else {
-            //Arrays.fill(lk._co_inflow,0);
+        }
+        else {
+        	// Set the initial states to zero by default - this should generally be the case because the above will occur
+        	for ( int i = 0; i < lk._co_inflow.length; i++ ) {
+        		lk._co_inflow[i] = 0.0;
+        	}
+        }
+        // Set the carryover provided initial values
+        if ( coInitial != null ) {
+        	// Copy the array into the carryover, with last value copied first into latest time
+        	int copyCount = 0;
+        	for ( int i = (lk._co_inflow.length - 1); i >= 0; i-- ) {
+        		if ( copyCount >= coInitial.length ) {
+        			// No more states to use for initialization
+        			break;
+        		}
+        		lk._co_inflow[i] = coInitial[coInitial.length - 1 - copyCount];
+        		++copyCount;
+        	}
+        }
+        if ( coLaggedInflow != null ) {
+        	// Set initial lagged inflow (default is 0.0 if not set)
+        	lk._laggedInflow = coLaggedInflow;
+        }
+        if ( coOutflow != null ) {
+        	// Set initial outflow (default is 0.0 if not set)
+        	lk._outflowCO = coOutflow;
+        }
+        if ( coStorage != null ) {
+        	// Set initial storage (default is 0.0 if not set)
+        	lk._storageCO = coStorage;
         }
         
         if (lk.variableLag) {
             if (lk._co_inflow == null) {
+            	// TODO SAM 2016-08-28 This should never happen given the logic above that creates the array.
                 throw new IllegalArgumentException("Must have carry over values");
             }
         } else {
@@ -130,13 +171,23 @@ public class LagKBuilder {
         return lk;
     }
     
-    public void setCarryOverInfows(double[] d) {
+    /**
+     * Set the initial carryover inflows.
+     * This method is apparently not called because initialization occurs in the create() method.
+     * @param d
+     */
+    public void setCarryOverInflows(double[] d) {
         lk._co_inflow = d;
     }
     
+    /**
+     * Set the transit loss coefficient used with the Fort Worth logic.
+     * TODO SAM 2016-08-29 not currently supported by TSTool VariableLagK.
+     */
     public void setTransLossCoef(double d) {
         lk._transLossCoef = d;
     }
+    
     public void setTransLossLevel(double d) {
         lk._transLossLevel = d;
     }
@@ -154,7 +205,7 @@ public class LagKBuilder {
     }
     
     public void setInitialStorage(double initialStorage) {
-        lk._storageCO = initialStorage;;
+        lk._storageCO = initialStorage;
     }
     
     public void setK(double k) {
@@ -169,7 +220,7 @@ public class LagKBuilder {
     }
     
     public void setLagIn(Table table) {
-        String routine = getClass().getName() + ".setLagIn";
+        String routine = getClass().getSimpleName() + ".setLagIn";
         // Add an extra row if negative lag and only one row - at least two are required
         // Also add if one row for positive to force variable lagK logic
         if ( (table.getNRows() == 1) && (table.get(0, Table.GETCOLUMN_2) <= 0)  ) {

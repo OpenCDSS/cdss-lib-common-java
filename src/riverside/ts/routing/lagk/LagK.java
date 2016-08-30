@@ -1,9 +1,3 @@
-/**
- *
- * Created on April 18, 2007, 8:47 AM
- *
- */
-
 package riverside.ts.routing.lagk;
 
 import RTi.TS.TS;
@@ -16,8 +10,12 @@ import java.util.logging.Logger;
 import riverside.ts.util.Table;
 
 /**
- *
- * @author iws
+ * This class is a port of the National Weather Service River Forecast System (NWSRFS)
+ * RES-J operation of similar name.  The original C++ code was ported to Java and
+ * implemented in the TSTool VariableLagK command, initially assuming states are 0.
+ * Support for saving and loading states was added 2016-08, with attempts to be consistent
+ * with the legacy functionality and also CHPS FEWS used by the NWS, although JSON is used
+ * to save states to a table in TSTool.
  */
 public class LagK {
     
@@ -71,8 +69,7 @@ public class LagK {
     
     double _storageCO;              // Last storage
     
-    // Number of inflow values required for
-    // continuous execution of LagK--
+    // Number of inflow values required for continuous execution of LagK--
     // number of carry over inflow values
     int    _sizeInflowCO;
     
@@ -114,8 +111,11 @@ public class LagK {
     public void doCarryOver(DateTime cur_date) {
         // TODO SAM 2009-04-21 Evaluate whether +1 needed
         //Table coTable = new Table(_sizeInflowCO + 1);
+    	// Create a new carryover table (will contain all missing)
         Table coTable = new Table(_sizeInflowCO);
+        // Fill the table with carryover values for the requested date/time
         getCarryOverValues( cur_date, coTable ) ;
+        // Save carryover values from the 2-column table to the one-column array
         _co_inflow = coTable.getColumn(FLOWCOLUMN);
     }
     
@@ -150,7 +150,7 @@ public class LagK {
      * @return time series iterator that is properly set up to handle the negative lag
      */
     public void initializeCarryoverForNegativeLag ( TSIterator tsi )
-    {   String routine = getClass().getName() + ".initializeCarryoverForNegativeLag";
+    {   String routine = getClass().getSimpleName() + ".initializeCarryoverForNegativeLag";
         if ( _lagMin > 0 ) {
             int numIntervals = _lagMin/_t_mult + 1; // Zero if no negative lag
             TSData data = null;
@@ -526,18 +526,29 @@ public class LagK {
         return result;
     }
     
+    /**
+     * Get the carryover values for the specified DateTime.  The overloaded method is called with offset=0.
+     * @param cur_date requested date/time for carryover values
+     * @param laggedTable lagged inflow table to be filled with carryover values
+     */
     private void getCarryOverValues(DateTime cur_date, Table laggedTable) {
         getCarryOverValues(cur_date,laggedTable,0);
     }
     
+    /**
+     * Get the carryover values for the specified DateTime.
+     * @param cur_date requested date/time for carryover values
+     * @param laggedTable lagged inflow table to be filled with carryover values
+     * @param offset is not used
+     */
     private void getCarryOverValues(DateTime cur_date, Table carryOverTable,int offset) {
-        String routine = getClass().getName() + ".getCarryOverValues";
+        String routine = getClass().getSimpleName() + ".getCarryOverValues";
         
         int requiredCO = _sizeInflowCO ;
 //        char tmp_str3[512];
         int i;
         
-        // clear
+        // Clear the carryover table by filling with zeros
         for(i = 0; i < carryOverTable.getNRows(); i++) {
             carryOverTable.populate( i, FLOWCOLUMN, 0.0 ) ;
             carryOverTable.populate( i, TIMECOLUMN, 0.0 ) ;
@@ -618,7 +629,6 @@ public class LagK {
             Message.printDebug ( 1, routine, "At " + cur_date + " after adding current flow at end of table: \n" + carryOverTable );
         }
     }
-    
     
     double solveAtlantaK( double LagdQin1, double LagdQin2, double carryover ) {
         double dx = 0. ;              // Delta X
@@ -753,7 +763,6 @@ public class LagK {
         return y2;
     }
     
-    
     static class MCP2KState {
         void set(double x1, double x2, double y0, double y1, double y2, double xta) {
             this.x1 = x1; this.x2 = x2; this.y0 = y0; this.y1 = y1; this.y2 = y2; this.xta = xta;
@@ -878,7 +887,6 @@ public class LagK {
         }
     }
     
-    
     void CalculateQuarterDT( MCP2KState state) {
         int i ;
         double x1t = 0 ;
@@ -908,7 +916,6 @@ public class LagK {
         state.qdt = false ;
     }
     
-    
     double CalculateFortWorthLoss( double qli, double qprev, double qk ) {
         double qtl = -999.;
         double q = qk;
@@ -933,8 +940,6 @@ public class LagK {
     public String getStateString() {
         return String.format("laggedInflow %f, storageCO %f, inflowCO %s", _laggedInflow,_storageCO, Arrays.toString(_co_inflow));
     }
-
-
     
     /**
      * Interpolate from table to get value.
@@ -942,7 +947,6 @@ public class LagK {
      * @param value position in the array tsTable to interpolate
      * @param tsTable table of 2 values that contains the value
      */
-    
     static double Interpolate( double value, Table sTable ) {
         double ratio =
             ( sTable.lookup( 1, FLOWCOLUMN ) - sTable.lookup( 0, FLOWCOLUMN ) ) /

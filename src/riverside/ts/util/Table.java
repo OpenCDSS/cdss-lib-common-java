@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * A lookup table implementation taken from ResJ C/C++ code. Modifications include
+ * A 2-column lookup table implementation taken from the National Weater Service Streamflow Forecast System
+ * ResJ operation C/C++ code. Modifications include
  * making it a bit more useful and less hazardous to use.
  * @todo evaluate whether this thing should live...
  * @author iws
@@ -54,6 +55,11 @@ public class Table {
         return ac == null ? null : (double[]) ac.clone();
     }
 
+    /**
+     * Allocate the memory for the 2-column table and initialize to the missing value, -999.0.
+     * The table is marked as modified.
+     * @param size number of rows.
+     */
     public void allocateDataSpace(int size) {
         column1 = new double[size];
         column2 = new double[size];
@@ -263,9 +269,16 @@ public class Table {
         return idx;
     }
 
+    /**
+     * Create an empty 2-column table (zero rows).
+     */
     public Table() {
     }
 
+    /**
+     * Create a new 2-column table with given number of rows and initialized to missing values
+     * @param size number of rows in the table.
+     */
     public Table(int size) {
         allocateDataSpace(size);
     }
