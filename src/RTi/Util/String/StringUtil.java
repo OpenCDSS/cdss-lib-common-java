@@ -499,7 +499,7 @@ public static List<String> breakStringList( String string, String delim, int fla
 		instring = false;
 		tempstr.setLength ( 0 );	// Clear memory.
 		while ( istring < length_string ) {
-			// Process a sub-string...
+			// Process a sub-string between delimiters...
 			cstring = string.charAt ( istring );
 			// Check for escaped special characters...
 			if ( (cstring == '\\') && (istring < (length_string - 1)) &&
@@ -533,10 +533,29 @@ public static List<String> breakStringList( String string, String delim, int fla
 				// Check for the end of the quote...
 				else if ( instring && (cstring == quote) ) {
 					// In a quoted string and have found the closing quote.  Need to skip over it.
-					instring = false;
+					// However, could still be in the string and be escaped, so check for that
+					// by looking for another string. Any internal escaped quotes will be a pair "" or ''
+					// so look ahead one and if a pair, treat as characters to be retained.
+					// This is usually only going to be encountered when reading CSV files, etc.
+                    if ( (istring < (length_string - 1)) && (string.charAt(istring + 1) == quote) ) {
+                    	// Found a pair of the quote character so absorb both and keep looking for ending quote for the token
+                    	tempstr.append(cstring); // First quote retained because it is literal
+                    	//Message.printStatus(2,routine,"found ending quote candidate at istring=" + istring + " adding as first in double quote");
+                    	++istring;
+                    	if ( retainQuotes ) {
+                    		// Want to retain all the quotes
+                    		tempstr.append(cstring); // Second quote
+                        	//Message.printStatus(2,routine,"Retaining 2nd quote of double quote at istring=" + istring );
+                    	}
+                    	++istring;
+                    	// instring still true
+                    	continue;
+                    }
+                    // Else... process as if not an escaped string but an end of quoted string
                     if ( retainQuotes ) {
                         tempstr.append(cstring);
                     }
+					instring = false;
 					//Message.printStatus ( 1, routine, "SAMX end of quoted string" + cstring );
 					++istring;
 					if ( istring < length_string ) {
