@@ -506,7 +506,7 @@ throws Exception
     	DateTime date = new DateTime ( date1_file );
     	double scale = 1.0;
     	if ( StringUtil.isDouble(scale_string) ) {
-    		scale = StringUtil.atod ( scale_string );
+    		scale = Double.valueOf ( scale_string );
     	}
     	for ( ; date.lessThanOrEqualTo(date2_file);
     		date.addInterval (data_interval_base, data_interval_mult ) ) {
@@ -549,7 +549,7 @@ throws Exception
     		    if ( Message.isDebugOn ) {
     		        Message.printDebug(dl, routine, "Line " + line_count + " setting value " + string + "*scale at " + date );
     		    }
-    			ts.setDataValue ( date, scale*StringUtil.atod(string) );
+    			ts.setDataValue ( date, scale*Double.valueOf(string) );
     		}
     		else if ( Message.isDebugOn ) {
     		    Message.printDebug(dl, routine, "Line " + line_count + " setting value " + string + " at " + date );
@@ -1211,9 +1211,15 @@ header is written).
 
 <tr>
 <td><b>OutputComments</b></td>
-<td><b>Additional comments to be output in the header, as a Vector of String.  The comment
+<td><b>Additional comments to be output in the header, as a list of String.  The comment
 lines are not added to in any way.</b>
 <td>No additional comments.</td>
+</tr>
+
+<tr>
+<td><b>WriteHeaderComments</b></td>
+<td><b>Whether to write header comments.</b>
+<td>Write header comments.</td>
 </tr>
 </table>
 @exception IOException if there is an error writing the file.
@@ -1221,7 +1227,7 @@ lines are not added to in any way.</b>
 private static void writeTimeSeries ( TS ts, PrintWriter fp, DateTime req_date1, DateTime req_date2,
 					PropList props, boolean write_data )
 throws IOException
-{	String	message, routine="RiverWareTS.writePersistent";
+{	String message, routine="RiverWareTS.writeTimeSeries";
 
 	if ( ts == null ) {
 		message = "Time series is NULL, cannot continue.";
@@ -1264,25 +1270,32 @@ throws IOException
 	if ( props == null ) {
 		props = new PropList ( "RiverWare" );
 	}
+	boolean writeHeaderComments = true; // Default is to write header comments
+	String propVal = props.getValue("WriteHeaderComments");
+	if ( (propVal != null) && propVal.equalsIgnoreCase("False") ) {
+		writeHeaderComments = false;
+	}
 
 	// Write header...
 
-	fp.println ( "#" );
-	IOUtil.printCreatorHeader ( fp, "#", 80, 0 );
-    Object o = props.getContents("OutputComments");
-    if ( o != null ) {
-        // Write additional comments that were passed in
-        List<String> comments = (List<String>)o;
-        int commentSize = comments.size();
-        if ( commentSize > 0 ) {
-            for ( int iComment = 0; iComment < commentSize; iComment++ ) {
-                fp.println ( "# " + comments.get(iComment) );
-            }
-        }
-    }
-	fp.println ( "#" );
-	fp.println ( "# RiverWare Time Series File" );
-	fp.println ( "#" );
+	if ( writeHeaderComments ) {
+		fp.println ( "#" );
+		IOUtil.printCreatorHeader ( fp, "#", 80, 0 );
+	    Object o = props.getContents("OutputComments");
+	    if ( o != null ) {
+	        // Write additional comments that were passed in
+	        List<String> comments = (List<String>)o;
+	        int commentSize = comments.size();
+	        if ( commentSize > 0 ) {
+	            for ( int iComment = 0; iComment < commentSize; iComment++ ) {
+	                fp.println ( "# " + comments.get(iComment) );
+	            }
+	        }
+	    }
+		fp.println ( "#" );
+		fp.println ( "# RiverWare Time Series File" );
+		fp.println ( "#" );
+	}
 	if ( data_interval_base == TimeInterval.HOUR ) {
 		// Adjust the internal 0-23 clock to the 0-24 RiverWare clock...
 		if ( date1.getHour() == 0 ) {
@@ -1367,7 +1380,7 @@ throws IOException
 		Scale = "1";	// Default
 	}
 	else if ( StringUtil.isDouble(Scale) ) {
-		Scale_double = StringUtil.atod ( Scale );
+		Scale_double = Double.valueOf ( Scale );
 	}
 	fp.println ( "scale: " + Scale );
 	String SetUnits = props.getValue ( "SetUnits" );
