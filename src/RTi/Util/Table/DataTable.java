@@ -2994,6 +2994,7 @@ throws Exception
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
 	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
     // This is important when numbers are zero padded, such as for station identifiers.
+	// The problem is that it will result in embedded escaped quotes "" in the output
 	int parseFlag = StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES;
 	propVal = props.getValue("MergeDelimiters");
 	if (propVal != null) {		
@@ -3494,6 +3495,11 @@ throws Exception
 			    		tablerec.addFieldValue ( null );
 			    	}
 	            }
+			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
+			    	// Know that it is a string.
+			    	// Could contain embedded "" that need to be replaced with single "
+			    	tablerec.addFieldValue( parseFile_ProcessString(cell) );
+			    }
 			    else {
 			        // Add as string
 	                tablerec.addFieldValue( parseFile_ProcessString(cell) );
@@ -3621,14 +3627,15 @@ private static String parseFile_ProcessString ( String cell )
     char c2 = cell.charAt(len - 1);
     if ( (c1 == '"') || (c1 == '\'') ) {
         // Have a quoted string.  Remove the quotes from each end (but not the middle)
+        // Embedded quotes will typically be represented as double quote "" or '' so replace
         if ( (c2 == c1) && (len > 1) ) {
-            return cell.substring(1,len - 1);
+            return cell.substring(1,len - 1).replace("\"\"", "\"");
+            // Add single quotes later if necessary...seem to mainly deal with double quotes
         }
         else {
             // Truncated field or error in input?  Unlikely case
             return cell.substring(1);
-        }
-        // TODO SAM 2012-05-01 How to deal with embedded quotes?
+        } 
     }
     else {
         return cell;
@@ -4343,7 +4350,7 @@ performance hit and mask data issues so the default is to NOT replace newlines.
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
     String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
 throws Exception {
-	String routine = "DataTable.writeDelimitedFile";
+	String routine = getClass().getSimpleName() + ".writeDelimitedFile";
 	
 	if (filename == null) {
 		Message.printWarning(1, routine, "Cannot write to file '" + filename + "'");
@@ -4404,6 +4411,7 @@ throws Exception {
     	Object fieldValue;
     	Double fieldValueDouble;
     	Float fieldValueFloat;
+    	boolean doQuoteCell = false; // Whether a single cell should have surrounding quotes
     	for ( row = 0; row < rows; row++) {
     		line.setLength(0);
     		for ( col = 0; col < cols; col++) {
@@ -4448,11 +4456,29 @@ throws Exception {
                     // Use default formatting.
                     cell = "" + fieldValue;
                 }
+    		    // Figure out if the cell needs to be quoted
     			// Surround the values with double quotes if:
     		    // 1) the field contains the delimiter
     		    // 2) alwaysQuoteStrings=true
-    			if ( (cell.indexOf(delimiter) > -1) ||
-    			    ((tableFieldType == TableField.DATA_TYPE_STRING) && alwaysQuoteStrings) ) {
+    		    // 3) the field contains a double quote (additionally replace " with "")
+    		    doQuoteCell = false;
+    		    if ( tableFieldType == TableField.DATA_TYPE_STRING ) {
+    		    	if ( cell.indexOf("\"") > -1 ) {
+    		    		// Cell includes a double quote so quote the whole thing
+    		    		doQuoteCell = true;
+    		    	}
+    		    	else if ( alwaysQuoteStrings ) {
+    		    		doQuoteCell = true;
+    		    	}
+    		    }
+    			if ( (cell.indexOf(delimiter) > -1) ) {
+    				// Always have to protect delimiter character in the cell string
+    				doQuoteCell = true;
+    			}
+    			if ( doQuoteCell ) {
+    				// First replace all single \" instances with double
+    				cell = cell.replace("\"", "\"\"");
+    				// Then add quotes around the whole thing
     				cell = "\"" + cell + "\"";
     			}
     			if ( (tableFieldType == TableField.DATA_TYPE_STRING) && (newlineReplacement != null) ) {
