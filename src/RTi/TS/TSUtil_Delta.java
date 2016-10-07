@@ -113,7 +113,7 @@ throws Exception
         newts.setDate1 ( __analysisStart );
     }
     if ( __analysisEnd != null ) {
-        newts.setDate1 ( __analysisEnd );
+        newts.setDate2 ( __analysisEnd );
     }
     if ( (__flag != null) && !__flag.equals("") ) {
         newts.hasDataFlags(true,true);
