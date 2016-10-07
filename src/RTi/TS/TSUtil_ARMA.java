@@ -137,9 +137,11 @@ public class TSUtil_ARMA {
 		if ( inputPreviousValues == null ) {
 			inputPreviousValues = new double[0];
 		}
-		int oldtsDataIndexForT0 = 0; // Index in input time series array for first original input value without InputPreviousValues
+		// oldtsDataIndexForT0 is the index of index of the inputPreviousValues corresponding to t0,
+		// basically the length of inputPreviousValues array in base interval, used to evaluate when previous values can be used.
+		int oldtsDataIndexForT0 = 0;
 		if ( inputPreviousValues.length > 0 ) {
-			// Make sure that the size of the intputPreviousValues is the size of b minus 1
+			// Make sure that the size of the inputPreviousValues is the size of b minus 1
 			// Otherwise the values would have no effect
 			if ( (b.length - 1) != inputPreviousValues.length ) {
 				message = "Number of input previous values (" + inputPreviousValues.length +
@@ -155,6 +157,9 @@ public class TSUtil_ARMA {
 			// The index of input time series after the InputPreviousValues
 			// Needed to understand where OutputPreviousValues apply
 			oldtsDataIndexForT0 = inputPreviousValues.length*ARMA_ratio;
+		}
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2,routine,"xx oldtsDataIndexForT0=" + oldtsDataIndexForT0);
 		}
 		
 		// Create previous output values to simplify code below.
@@ -205,10 +210,19 @@ public class TSUtil_ARMA {
 			for ( int i = 0; i < outputPreviousValues.length; i++ ) {
 				for ( j = 0; j < interval_ratio; j++ ) {
 					OutputPreviousValues2[i*interval_ratio + j] = outputPreviousValues[i];
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "OutputPreviousValues2[" + (i*interval_ratio + j) + "]=" + outputPreviousValues[i] );
+					}
 				}
 			}
-			// Reset so original array can be used below
+			// Reset so original array variable can be used below with output previous values at the base interval 
 			outputPreviousValues = OutputPreviousValues2;
+		}
+
+		if ( Message.isDebugOn ) {
+			for ( int i = 0; i < outputPreviousValues.length; i++ ) {
+				Message.printStatus(2, routine, "After interval adjustment, OutputPreviousValues[" + (i) + "]=" + outputPreviousValues[i]);
+			}
 		}
 		
 		// If OutputPreviousValues are specified could have one of the following situations depending on number of a, b:
@@ -221,7 +235,11 @@ public class TSUtil_ARMA {
 		//            oooOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO (OutputPreviousValues within overall input array)
 		//     ooooooooooOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO (OutputPreviousValues beyond input array)
 		//               ^
-		//               oldtsDataIndexForT0
+		//               oldtsDataIndexForT0 (reflects previous input "i" values so would be 0 for all examples, other than 4 for second example)
+		//               t=0 corresponds with the start of the input array + any input previous values
+		//               t=-1 corresponds to the position of the value for a1 and b1
+		//               t=-2 corresponds to the position of the value for a2 and b2
+		//               etc.
 		//
 		// The ARMA processing below loops over the input time series array which may or may not include "i" in addition to "I".
 		// The output array is created consistent with the input array ("i" and "I" extent).
@@ -236,8 +254,8 @@ public class TSUtil_ARMA {
 		int toffset = 0; // Offset from t to get value, can be negative (tpos = t + tpos)
 		double data_value;
 		int ia = 0, ib = 0;
-		boolean value_set = false;
-		// Loop through entire original input array
+		boolean value_set = false; // Indicates if newts_data[t] value has been set (e.g., to missing) and should not be reset by calculations
+		// Loop through entire original input array, with previous input at the start
 		for ( int t = 0; t < oldts_data.length; t++ ) {
 			total = missing;
 			value_set = false;
@@ -248,19 +266,32 @@ public class TSUtil_ARMA {
 				// ARMA_ratio of 2 gives j - ... 2, 4, 6, etc.
 				toffset = -(ia + 1)*ARMA_ratio;
 				tpos = t + toffset;
-				//Message.printStatus(2,routine,"ia=" + ia + ", t=" + t + ", jpos=" + tpos);
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,routine,"ia=" + ia + ", t=" + t + ", tpos=" + tpos);
+				}
 				data_value = inputts.getMissing();
 				if ( t < oldtsDataIndexForT0 ) {
 					// Are processing data before original input time series start so output is always missing
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,routine,"processing before original input time series start so always missing, t (" + t +
+							") < oldtsDataIndexForT0 (" + oldtsDataIndexForT0 + ") - setting newts_data[" + t + "].");
+					}
 					newts_data[t] = missing;
 					value_set = true;
 					break;
 				}
 				else if ( (t >= oldtsDataIndexForT0) && (t <= lastIndexForOutputPreviousValues) ) {
 					// In the time slots where previous output is needed and outputPreviousValues can be used.
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,routine,"outputPreviousValues can be used since t (" + t + ") >= oldtsDataIndexForT0 (" + oldtsDataIndexForT0 +
+							") and <= lastIndexForOutputPreviousValues (" + lastIndexForOutputPreviousValues + ").");
+					}
 					if ( outputPreviousValues.length == 0 ) {
 						// No previous values were supplied
 						// Since this is inside the a-coefficient loop the ARMA output is missing
+						if ( Message.isDebugOn ) {
+							Message.printStatus(2,routine,"xx outputPreviousValues size is 0 so set newts_data[" + t + "] to missing.");
+						}
 						newts_data[t] = missing;
 						value_set = true;
 						break;
@@ -273,17 +304,31 @@ public class TSUtil_ARMA {
 						if ( tpos < oldtsDataIndexForT0 ) {
 							// Need to get data out of previous values
 							data_value = outputPreviousValues[outputPreviousValues.length + toffset];
+							if ( Message.isDebugOn ) {
+								Message.printStatus(2, routine, "Using output (previous value), tpos=" + tpos + " oldtsDataIndexForT0=" + oldtsDataIndexForT0 +
+									" data_value = " + outputPreviousValues[outputPreviousValues.length + toffset]);
+							}
 						}
 						else {
 							// Can get data out of output (not previous values array)
 							data_value = newts_data[tpos];
+							if ( Message.isDebugOn ) {
+								Message.printStatus(2, routine, "Using output (not previous value), tpos=" + tpos + " oldtsDataIndexForT0=" + oldtsDataIndexForT0 +
+									" data_value = " + outputPreviousValues[outputPreviousValues.length + toffset]);
+							}
 						}
 					}
 				}
 				else {
 					// After time slot where previous output values are an option
 					// Get previous outflow value from array
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "After time slot where previous output values are an option so use newts_data[" + tpos + "] =" + data_value );
+					}
 					data_value = newts_data[tpos];
+				}
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "After extraction, data_value=" + data_value );
 				}
 				// If here data_value came from either the output time series or was supplied by outputPreviousValues.
 				// Continue with the logic
@@ -298,7 +343,7 @@ public class TSUtil_ARMA {
 						//oldts.addToGenesis( "ARMA:  Using missing (" + StringUtil.formatString(
 						// data_value,"%.6f") + ") at " + date +
 						//" because input and output for a" + (i + 1) + " are missing.");
-						value_set = true;
+						value_set = true; // Value is set to missing
 						break;
 					}
 				}
@@ -311,9 +356,15 @@ public class TSUtil_ARMA {
 				    // Sum the value...
 					total += data_value*a[ia];
 				}
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "Total = " + total);
+				}
 			}
 			if ( value_set ) {
-				// Set to missing above so no reason to continue processing the time step...
+				// newts_data[t] Set to missing above so no reason to continue processing the time step...
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "newts_data[" + t + "] = " + newts_data[t]);
+				}
 				continue;
 			}
 			// Process b-coefficient values
@@ -324,6 +375,11 @@ public class TSUtil_ARMA {
 				tpos = t - ib*ARMA_ratio;
 				if ( tpos < 0 ) {
 					// Before the initial data.  If inputPreviousValues were specified this is even before that.
+					// Because t=0 corresponds to the start of the inputPreviousValues, once t is the original input (before previous values)
+					// non-missing will result
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "ib=" + ib + " t=" + t + " tpos (" + tpos + ") < 0, before input previous values can be used so set output to missing" );
+					}
 					newts_data[t] = missing;
 					//Message.printStatus ( 1, routine, "Setting O at " + date + " to " + data_value );
 					//oldts.addToGenesis( "ARMA:  Using missing (" +
@@ -334,6 +390,9 @@ public class TSUtil_ARMA {
 				}
 				data_value = oldts_data[tpos];
 				if ( inputts.isDataMissing(data_value) ) {
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "ib=" + ib + "t=" + t + " tpos=" + tpos + " data_value = oldts_data[" + tpos + "]=" + data_value );
+					}
 					newts_data[t] = missing;
 					value_set = true;
 					break;
@@ -350,10 +409,14 @@ public class TSUtil_ARMA {
 			}
 			if ( value_set ) {
 				// Set to missing above...
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "ib=" + ib + " newts_data[" + t + "] = " + newts_data[t] );
+				}
 				continue;
 			}
 			// Check to see if an output previous value has been specified
 			// This is relative to the output start
+			// TODO SAM 2016-09-21 why does this do nothing?  Were there supposed to be checks for maximum and minimum?
 			if ( outputPreviousValues.length > 0 ) {
 				if ( outputStart == null ) {
 					
@@ -367,6 +430,9 @@ public class TSUtil_ARMA {
 				total = outputMinimum;
 			}
 			newts_data[t] = total;
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "newts_data[" + t + "] = " + newts_data[t]);
+			}
 		}
 
 		// Routing of the individual values in the ARMA interval is now
@@ -419,6 +485,9 @@ public class TSUtil_ARMA {
 		// Loop over the output period to do transfer
 		// - date1 and date2 contain the input time series
 		int i = 0;
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2,routine,"Transferring output from date1 " + date1 + " to date2 " + date2 + " outputStart=" + outputStart + " outputEnd=" + outputEnd );
+		}
 		for ( DateTime date = new DateTime(date1); date.lessThanOrEqualTo(date2);
 			date.addInterval(interval_base,interval_mult), i++ ) {
 			// The offset between the output dates and array position depends on the difference between the
@@ -433,6 +502,9 @@ public class TSUtil_ARMA {
 			// Translate "i" to align with date1
 			value = oldts_data0[i + inputPreviousValues.length];
 			outputts.setDataValue ( date, value );
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "Setting " + date + " value=" + value);
+			}
 		}
 
 		// Return the output time series...
