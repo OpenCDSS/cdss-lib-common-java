@@ -110,7 +110,7 @@ public static void comment ( GRDrawingArea da, String comment_string )
 }
 
 /**
-Draws the annotation described in the proplist.  Currently only supported for GRJComponentDrawingAreas.
+Draws the annotation described in the PropList.  Currently only supported for GRJComponentDrawingAreas.
 @param da the drawing area on which to draw the annotation.
 @param p the PropList describing the annotation.
 */

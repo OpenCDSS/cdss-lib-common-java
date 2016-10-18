@@ -2629,12 +2629,14 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 }
 
 /**
-Parse a string and initialize a DateTime.  By default time zone will be set
-but the PRECISION_TIME_ZONE flag will be set to false.  If only a time format
-is detected, then the TIME_ONLY flag will be set in the returned instance.
+Parse a string and initialize a DateTime.  The time zone will be set
+by default but the PRECISION_TIME_ZONE flag will be set to false meaning that the time zone is not used.
+If only a time format is detected, then the TIME_ONLY flag will be set in the returned instance.
 This routine is the inverse of toString().
-@return A DateTime corresponding to the date.
-@param dateString Any of the formats supported by parse(String,int).
+@param dateString A date/time string in any of the formats supported by parse(String,int).
+The format will be automatically detected based on the contents of the string.
+If more specific handling is needed, use the method version that accepts a format specifier.
+@return A DateTime instance corresponding to the specified date/time string.
 @exception IllegalArgumentException If the string is not understood.
 @see #toString
 */

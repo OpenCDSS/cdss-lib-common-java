@@ -138,22 +138,17 @@ package RTi.GRTS;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-
 import java.lang.Math;
-
 import java.util.List;
 import java.util.Vector;
 
+import RTi.GR.GRAxisDirectionType;
 import RTi.TS.TS;
-
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.MathUtil;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
@@ -245,7 +240,7 @@ A vertical line will be drawn on the graph to indicate the current time.</td>
 
 <tr>
 <td><b>MainTitleFontName</b></td>
-<td>Name of font to use for main title (Arial, Courier, Helvetica,
+<td>Name of font to use for main title (e.g., Arial, Courier, Helvetica,
 TimesRoman)</td>
 <td>Arial</td>
 </tr>
@@ -613,6 +608,18 @@ property will be ignored.</td>
 </tr>
 
 <tr>
+<td><b>LeftYAxisTitlePosition</b></td>
+<td>Left y-axis title position.</td>
+<td>AboveAxis</td>
+</tr>
+
+<tr>
+<td><b>LeftYAxisTitleRotation</b></td>
+<td>Left y-axis title rotation, degrees clockwise from due east.</td>
+<td>0</td>
+</tr>
+
+<tr>
 <td><b>LeftYAxisTitleString</b></td>
 <td>Left y axis title string.  <b>Note that due to limitations in Java graphics,
 the left y-axis title is placed at the top of the left y-axis so that it takes
@@ -745,6 +752,26 @@ TSProcessor.processProduct() method as time series are read.
 </tr>
 
 <tr>
+<td><b>RightYAxisDirection</b></td>
+<td>The direction of values, where "Normal" is the normal orientation (generally positive values increase up except
+for graph types where it goes the other way) and
+"Reverse" indicates that values should be in the reverse orientation of normal.</td>
+<td>Normal.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisIgnoreUnits</b></td>
+<td>Indicates whether to ignore units for the righty Y axis.  Normally, units
+are checked to make sure that data can be plotted consistently.  If this
+property is set, then the user will not be prompted at run-time to make a
+decision.</td>
+<td>If not specified, the units will be checked at run-time and, if not
+compatible, the user will be prompted to indicate whether to ignore units in
+the graphs.  The property will not be reset automatically but will be handled
+internally using the interactively supplied value.</td>
+</tr>
+
+<tr>
 <td><b>RightYAxisLabelFontName</b></td>
 <td>Name of font for right y-axis labels (see Product.MainLabelFontName).</td>
 <td>Arial</td>
@@ -760,6 +787,41 @@ TSProcessor.processProduct() method as time series are read.
 <td><b>RightYAxisLabelFontStyle</b></td>
 <td>Right y-axis labels font style (see Product.MainLabelFontStyle).</td>
 <td>Plain</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisLabelPrecision</b></td>
+<td>If numeric data, the number of digits after the decimal point in
+labels.</td>
+<td>Automatically determined from graph type and/or data units.
+</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMajorGridColor</b></td>
+<td>Color to use for the major grid.</td>
+<td>Most graph types automatically set to "lightgray".</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMax</b></td>
+<td>Maximum value for the right Y Axis.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the
+property will be ignored.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMin</b></td>
+<td>Minimum value for the right Y Axis.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the
+property will be ignored.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMinorGridColor</b></td>
+<td>Color to use for the minor grid.
+<b>This property is not implemented</b>.</td>
+<td>"None".</td>
 </tr>
 
 <tr>
@@ -782,11 +844,26 @@ TSProcessor.processProduct() method as time series are read.
 
 <tr>
 <td><b>RightYAxisTitleString</b></td>
-<td>Right y axis title string.  <b>Note that due to limitations in Java
-graphics, the right y-axis title is placed at the top of the right y-axis so
-that it takes up roughly the same width as the y-axis labels.  The top-most
-label is shifted down to make room for the title.</b></td>
+<td>Right y axis title string.  <b>Note that due to limitations in Java graphics,
+the right y-axis title is placed at the top of the right y-axis so that it takes
+up roughly the same space as the y-axis labels.  The top-most label is shifted
+down to make room for the title.</b></td>
 <td>As appropriate for the graph type (often the data units).</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisType</b></td>
+<td>Right y-axis type (Log, or Linear).</td>
+<td>Linear</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisUnits</b></td>
+<td>Right y-axis units.  <b>This property is currently used internally and full
+support is being phased in.</b>  See also "RightYAxisIgnoreUnits".
+</td>
+<td>Units from first valid time series, or as appropriate for the graph
+type.</td>
 </tr>
 
 <tr>
@@ -1871,6 +1948,18 @@ public void checkGraphProperties ( int nsubs )
 
 		// Check LeftYAxisTitleString in in
 		// TSGraphJComponent.checkTSProductGraphs().
+		
+		// Left y axis position...
+		
+		if ( getLayeredPropValue("LeftYAxisPosition", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisPosition", getDefaultPropValue("LeftYAxisPosition",isub,-1), isub, -1 );
+		}
+		
+		// Left y axis rotation...
+		
+		if ( getLayeredPropValue("LeftYAxisRotation", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisRotation", getDefaultPropValue("LeftYAxisRotation",isub,-1), isub, -1 );
+		}
 
 		// Left Y axis type...
 
@@ -1927,24 +2016,69 @@ public void checkGraphProperties ( int nsubs )
 
 		// PeriodEnd, PeriodStart determined at run time.
 
+        if ( getLayeredPropValue("RightYAxisDirection", isub, -1, false ) == null ) {
+            setPropValue ( "RightYAxisDirection", getDefaultPropValue("RightYAxisDirection",isub,-1), isub, -1 );
+        }
+
+		// RightYAxisIgnoreUnits calculated
+
 		if ( getLayeredPropValue("RightYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontName",
-			getDefaultPropValue("RightYAxisLabelFontName",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontName",isub,-1),
+			isub, -1 );
 		}
-		if ( getLayeredPropValue( "RightYAxisLabelFontStyle", isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontStyle",
-			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1),
+			isub, -1 );
 		}
 		if ( getLayeredPropValue("RightYAxisLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontSize",
-			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1),
+			isub, -1 );
+		}
+
+		// "RightYAxisLabelPrecision" determined at run-time
+
+		// "RightYAxisMajorGridColor"...
+
+		if ( getLayeredPropValue("RightYAxisMajorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
+				// Don't usually draw the horizontal grid...
+				setPropValue ( "RightYAxisMajorGridColor", "None",isub,-1);
+			}
+			else {
+			    setPropValue ( "RightYAxisMajorGridColor",
+				getDefaultPropValue("RightYAxisMajorGridColor", isub,-1), isub, -1 );
+			}
+		}
+
+		if ( getLayeredPropValue("RightYAxisMax", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisMax", getDefaultPropValue("RightYAxisMax",isub,-1), isub, -1 );
+		}
+
+		if ( getLayeredPropValue("RightYAxisMin", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisMin", getDefaultPropValue("RightYAxisMin",isub,-1), isub, -1 );
+		}
+
+		// "RightYAxisMinorGridColor"...
+
+		if ( getLayeredPropValue("RightYAxisMinorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
+				// Don't usually draw the horizontal grid...
+				setPropValue ( "RightYAxisMinorGridColor", "None",isub,-1);
+			}
+			else {
+			    setPropValue ( "RightYAxisMinorGridColor",
+				getDefaultPropValue("RightYAxisMinorGridColor", isub,-1), isub, -1 );
+			}
 		}
 
 		if ( getLayeredPropValue("RightYAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontName",
 			getDefaultPropValue("RightYAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if ( getLayeredPropValue( "RightYAxisTitleFontStyle", isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontStyle",
 			getDefaultPropValue("RightYAxisTitleFontStyle",isub,-1), isub, -1 );
 		}
@@ -1952,9 +2086,28 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "RightYAxisTitleFontSize",
 			getDefaultPropValue("RightYAxisTitleFontSize",isub,-1), isub, -1 );
 		}
-		if ( getLayeredPropValue("RightYAxisTitleString", isub, -1, false ) == null ) {
-			setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+
+		// Check RightYAxisTitleString in TSGraphJComponent.checkTSProductGraphs().
+		
+		// Right Y axis position...
+
+		if ( getLayeredPropValue("RightYAxisPosition", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisPosition", getDefaultPropValue("RightYAxisPosition",isub,-1), isub, -1 );
 		}
+		
+		// Right Y axis rotation...
+
+		if ( getLayeredPropValue("RightYAxisRotation", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisRotation", getDefaultPropValue("RightYAxisRotation",isub,-1), isub, -1 );
+		}
+
+		// Right Y axis type...
+
+		if ( getLayeredPropValue("RightYAxisType", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisType", getDefaultPropValue("RightYAxisType",isub,-1), isub, -1 );
+		}
+
+		// RightYAxisUnits determined at run time
 
 		if ( getLayeredPropValue("SubTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontName",
@@ -2200,7 +2353,7 @@ throws Throwable
 
 /**
 Returns all the properties in the TSProduct (from both the regular and the
-override proplist) as a sorted Vector.
+override proplist) as a sorted List.
 @return a sorted Vector of all the properties in the TSProduct.
 */
 public List getAllProps() {
@@ -2489,7 +2642,7 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
         else if ( param.equalsIgnoreCase("LeftYAxisDirection") ) {
-            return "Normal";
+            return "" + GRAxisDirectionType.NORMAL;
         }
 		else if ( param.equalsIgnoreCase("LeftYAxisIgnoreUnits") ) {
 			return "False";
@@ -2524,6 +2677,12 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("LeftYAxisTitleFontSize") ){
 			return "12";
+		}
+		else if ( param.equalsIgnoreCase("LeftYAxisTitlePosition") ){
+			return "AboveAxis";
+		}
+		else if ( param.equalsIgnoreCase("LeftYAxisTitleRotation") ){
+			return "0";
 		}
 		else if ( param.equalsIgnoreCase("LeftYAxisTitleString") ){
 			return "";
@@ -2560,6 +2719,12 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
 		// "PeriodStart", "PeriodEnd" set at runtime
+        else if ( param.equalsIgnoreCase("RightYAxisDirection") ) {
+            return "" + GRAxisDirectionType.NORMAL;
+        }
+		else if ( param.equalsIgnoreCase("RightYAxisIgnoreUnits") ) {
+			return "False";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisLabelFontName") ) {
 			return "Arial";
 		}
@@ -2568,6 +2733,19 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisLabelFontSize") ){
 			return "10";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMajorGridColor") ){
+			return "lightgray";
+		}
+		// "RightYAxisLabelPrecision" determined at run-time
+		else if ( param.equalsIgnoreCase("RightYAxisMax") ) {
+			return "Auto";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMin") ) {
+			return "Auto";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMinorGridColor") ){
+			return "None";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitleFontName") ) {
 			return "Arial";
@@ -2578,8 +2756,17 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("RightYAxisTitleFontSize") ){
 			return "12";
 		}
+		else if ( param.equalsIgnoreCase("RightYAxisTitlePosition") ){
+			return "AboveAxis";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisTitleRotation") ){
+			return "0";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitleString") ){
 			return "";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisType") ){
+			return "Linear";
 		}
 		else if ( param.equalsIgnoreCase("SubTitleFontName") ) {
 			return "Arial";
@@ -4208,7 +4395,7 @@ throws Exception
 			}
 		}
 
-		// now write the annotations
+		// Now write the annotations
 		int nann = getNumAnnotations(isub);
 		for (int iann = 0; iann < nann; iann++) {
 			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
@@ -4246,49 +4433,46 @@ throws Exception
         
         			key = prop.getKey().substring(data_prefix_length - 1);
         
-        			if (type.equalsIgnoreCase("Text")) {
-        				if (key.equalsIgnoreCase("Points")
-        				    || key.equalsIgnoreCase("FlaggedDataSymbolStyle")
-        					|| key.equalsIgnoreCase("LineStyle")
-        					|| key.equalsIgnoreCase("LineWidth")
-        					|| key.equalsIgnoreCase("SymbolStyle")
-        					|| key.equalsIgnoreCase("SymbolSize")
-        					|| key.equalsIgnoreCase("SymbolPosition")) {
-        					continue;
-        				}
-        				else {
+        			// List the annotation shape types alphabetically
+        			// Because annotation properties include some generic properties and some for the specific shape type
+        			// have to check what should be saved for each annotation.
+        			// First check property for generic annotation properties
+        			if ( key.equalsIgnoreCase("AnnotationID") ||
+        				// key.equalsIgnoreCase("AnotationID") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				key.equalsIgnoreCase("Color") ||
+        				key.equalsIgnoreCase("Order") ||
+        				key.equalsIgnoreCase("ShapeType") ||
+        				key.equalsIgnoreCase("XAxisSystem") ||
+        				key.equalsIgnoreCase("YAxisSystem") ) {
+        				save = true;
+        			}
+        			else if (type.equalsIgnoreCase("Line")) {
+        				if ( key.equalsIgnoreCase("LineStyle") ||
+        					key.equalsIgnoreCase("LineWidth") ||
+        					key.equalsIgnoreCase("Points") ) {
         					save = true;
         				}
         			}
-        			else if (type.equalsIgnoreCase("Line")) {
-        				if ( key.equalsIgnoreCase("FlaggedDataSymbolStyle")
-        				    || key.equalsIgnoreCase("FontSize")
-        					|| key.equalsIgnoreCase("FontStyle")
-        					|| key.equalsIgnoreCase("FontName")
-        					|| key.equalsIgnoreCase("Point")
-        					|| key.equalsIgnoreCase("Text")
-        					|| key.equalsIgnoreCase("TextPosition")
-        					|| key.equalsIgnoreCase("SymbolStyle")
-        					|| key.equalsIgnoreCase("SymbolSize")
-        					|| key.equalsIgnoreCase("SymbolPosition")) {
-        					continue;
-        				}
-        				else {
+        			else if (type.equalsIgnoreCase("Rectangle")) {
+        				if ( key.equalsIgnoreCase("Points") ) {
         					save = true;
         				}
         			}
         			else if (type.equalsIgnoreCase("Symbol")) {
+        				if (key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("SymbolPosition")
+        					|| key.equalsIgnoreCase("SymbolSize")
+        					|| key.equalsIgnoreCase("SymbolStyle") ) {
+        					save = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Text")) {
         				if (key.equalsIgnoreCase("FontSize")
         					|| key.equalsIgnoreCase("FontStyle")
         					|| key.equalsIgnoreCase("FontName")
+        					|| key.equalsIgnoreCase("Point")
         					|| key.equalsIgnoreCase("Text")
-        					|| key.equalsIgnoreCase("TextPosition")
-        					|| key.equalsIgnoreCase("Points")
-        					|| key.equalsIgnoreCase("LineStyle")
-        					|| key.equalsIgnoreCase("LineWidth")) {
-        					continue;
-        				}
-        				else {
+        					|| key.equalsIgnoreCase("TextPosition") ) {
         					save = true;
         				}
         			}

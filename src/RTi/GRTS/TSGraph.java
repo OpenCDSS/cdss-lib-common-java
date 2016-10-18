@@ -2867,16 +2867,16 @@ private void doAnalysisAreaStacked ()
 }
 
 /**
-Draws any annotations on the graph.  This method should be called twice, 
+Draws any annotations on the graph.  This method can be called multiple times, 
 once with false before drawing data and then with true after data have been drawn.
 @param overGraph if true, then the annotations that should be drawn over the
 data will be drawn.  If false, then the annotations that should be drawn under the data will be drawn.  
 */
-private void drawAnnotations(boolean overGraph) {
+private void drawAnnotations(TSGraphDrawingStepType drawingStepType) {
 	if (_is_reference_graph) {
 		return;
 	}
-	String routine = "TSGraph.drawAnnotations(" + overGraph + ")";
+	String routine = getClass().getSimpleName() + ".drawAnnotations(" + drawingStepType + ")";
 	int na = _tsproduct.getNumAnnotations(_subproduct);
 	PropList annotation = null;
 	String s = null;
@@ -2905,21 +2905,21 @@ private void drawAnnotations(boolean overGraph) {
 			Message.printWarning(2, routine, "Null shapetype");
 			valid = false;
 		}
-		else if (type.equalsIgnoreCase("Text")) {
-			point = _tsproduct.getLayeredPropValue("Point", _subproduct, iatt, false, true);
-			if (point == null) {
+		else if (type.equalsIgnoreCase("Line")) {
+			points = _tsproduct.getLayeredPropValue("Points", _subproduct, iatt, false, true);
+			if (points == null) {
 				valid = false;
-				Message.printWarning(2, routine, "Null point");
+				Message.printWarning(2, routine, "Null points");
 			}
 			else {
-				pointV = StringUtil.breakStringList(point, ",", 0);
-				if (pointV == null || pointV.size() != 2) {
+				pointsV = StringUtil.breakStringList(points, ",", 0);
+				if (pointsV == null || pointsV.size() != 4) {
 					valid = false;
-					Message.printWarning(2, routine, "Invalid point declaration");
+					Message.printWarning(2, routine, "Invalid points declaration");
 				}
-			}
+			}			
 		}
-		else if (type.equalsIgnoreCase("Line")) {
+		else if (type.equalsIgnoreCase("Rectangle")) {
 			points = _tsproduct.getLayeredPropValue("Points", _subproduct, iatt, false, true);
 			if (points == null) {
 				valid = false;
@@ -2948,6 +2948,20 @@ private void drawAnnotations(boolean overGraph) {
 			}				
 			isSymbol = true;
 		}
+		else if (type.equalsIgnoreCase("Text")) {
+			point = _tsproduct.getLayeredPropValue("Point", _subproduct, iatt, false, true);
+			if (point == null) {
+				valid = false;
+				Message.printWarning(2, routine, "Null point");
+			}
+			else {
+				pointV = StringUtil.breakStringList(point, ",", 0);
+				if (pointV == null || pointV.size() != 2) {
+					valid = false;
+					Message.printWarning(2, routine, "Invalid point declaration");
+				}
+			}
+		}
 		else {
 			valid = false;
 		}
@@ -2965,34 +2979,57 @@ private void drawAnnotations(boolean overGraph) {
 			s = "OnTopOfData";
 		}
 		
-		if (overGraph && s.equalsIgnoreCase("BehindData")) {
+		if ((drawingStepType == TSGraphDrawingStepType.BEFORE_DATA) && !s.equalsIgnoreCase("BehindData")) {
+			// Current drawing step is before data but that does not match the annotation
 			continue;
 		}
-		if (!overGraph && s.equalsIgnoreCase("OnTopOfData")) {
+		if ((drawingStepType == TSGraphDrawingStepType.AFTER_DATA) && !s.equalsIgnoreCase("OnTopOfData")) {
+			// Current drawing step is after data but that does not match the annotation
+			continue;
+		}
+		if ((drawingStepType == TSGraphDrawingStepType.BEFORE_BACK_AXES) && !s.equalsIgnoreCase("BehindAxes")) {
+			// Current drawing step is before drawing back axes but that does not match the annotation
 			continue;
 		}
 
+		// Properties for all annotations
 		annotation.set("Color", _tsproduct.getLayeredPropValue("Color", _subproduct, iatt, false, true));
-		annotation.set("OutlineColor", _tsproduct.getLayeredPropValue("OutlineColor", _subproduct, iatt, false, true));			
-		annotation.set("XFormat", _tsproduct.getLayeredPropValue("XFormat", _subproduct, iatt, false, true));
-		annotation.set("YFormat", _tsproduct.getLayeredPropValue("YFormat", _subproduct, iatt, false, true));
 		annotation.set("Order", _tsproduct.getLayeredPropValue("Order", _subproduct, iatt, false, true));
 		annotation.set("ShapeType", _tsproduct.getLayeredPropValue("ShapeType", _subproduct, iatt, false, true));
 		annotation.set("XAxisSystem", _tsproduct.getLayeredPropValue("XAxisSystem", _subproduct, iatt, false, true));
 		annotation.set("YAxisSystem", _tsproduct.getLayeredPropValue("YAxisSystem", _subproduct, iatt, false, true));
-		annotation.set("LineStyle", _tsproduct.getLayeredPropValue("LineStyle", _subproduct, iatt, false, true));
-		annotation.set("LineWidth", _tsproduct.getLayeredPropValue("LineWidth", _subproduct, iatt, false, true));
-		annotation.set("Points", _tsproduct.getLayeredPropValue("Points", _subproduct, iatt, false, true));
-		annotation.set("FontSize", _tsproduct.getLayeredPropValue("FontSize", _subproduct, iatt, false, true));
-		annotation.set("FontStyle", _tsproduct.getLayeredPropValue("FontStyle", _subproduct, iatt, false, true));
-		annotation.set("FontName", _tsproduct.getLayeredPropValue("FontName", _subproduct, iatt, false, true));
-		annotation.set("Point", _tsproduct.getLayeredPropValue("Point", _subproduct, iatt, false, true));
-		annotation.set("Text", _tsproduct.getLayeredPropValue("Text", _subproduct, iatt, false, true));
-		annotation.set("TextPosition", _tsproduct.getLayeredPropValue("TextPosition", _subproduct, iatt, false, true));
-		annotation.set("SymbolSize", _tsproduct.getLayeredPropValue("SymbolSize", _subproduct, iatt, false, true));
-		annotation.set("SymbolStyle", _tsproduct.getLayeredPropValue("SymbolStyle", _subproduct, iatt, false, true));
-		annotation.set("SymbolPosition", _tsproduct.getLayeredPropValue("SymbolPosition", _subproduct, iatt, false, true));
-
+		annotation.set("XFormat", _tsproduct.getLayeredPropValue("XFormat", _subproduct, iatt, false, true)); // Whether axis is number, DateTime, always defaults?
+		annotation.set("YFormat", _tsproduct.getLayeredPropValue("YFormat", _subproduct, iatt, false, true));
+		// Properties for shape type
+		if (type.equalsIgnoreCase("Line")) {
+			// Properties for Line shape type
+			annotation.set("LineStyle", _tsproduct.getLayeredPropValue("LineStyle", _subproduct, iatt, false, true));
+			annotation.set("LineWidth", _tsproduct.getLayeredPropValue("LineWidth", _subproduct, iatt, false, true));
+			annotation.set("Points", _tsproduct.getLayeredPropValue("Points", _subproduct, iatt, false, true));
+		}
+		else if (type.equalsIgnoreCase("Rectangle")) {
+			// Properties for Rectangle shape type
+			//annotation.set("OutlineColor", _tsproduct.getLayeredPropValue("OutlineColor", _subproduct, iatt, false, true)); // Future enhancement
+			annotation.set("Points", _tsproduct.getLayeredPropValue("Points", _subproduct, iatt, false, true));
+		}
+		else if (type.equalsIgnoreCase("Symbol")) {
+			// Properties for Symbol shape type
+			annotation.set("OutlineColor", _tsproduct.getLayeredPropValue("OutlineColor", _subproduct, iatt, false, true));
+			annotation.set("Point", _tsproduct.getLayeredPropValue("Point", _subproduct, iatt, false, true));
+			annotation.set("SymbolSize", _tsproduct.getLayeredPropValue("SymbolSize", _subproduct, iatt, false, true));
+			annotation.set("SymbolStyle", _tsproduct.getLayeredPropValue("SymbolStyle", _subproduct, iatt, false, true));
+			annotation.set("SymbolPosition", _tsproduct.getLayeredPropValue("SymbolPosition", _subproduct, iatt, false, true));
+		}
+		else if (type.equalsIgnoreCase("Text")) {
+			// Properties for Text shape type
+			annotation.set("FontName", _tsproduct.getLayeredPropValue("FontName", _subproduct, iatt, false, true));
+			annotation.set("FontSize", _tsproduct.getLayeredPropValue("FontSize", _subproduct, iatt, false, true));
+			annotation.set("FontStyle", _tsproduct.getLayeredPropValue("FontStyle", _subproduct, iatt, false, true));
+			annotation.set("Point", _tsproduct.getLayeredPropValue("Point", _subproduct, iatt, false, true));
+			annotation.set("Text", _tsproduct.getLayeredPropValue("Text", _subproduct, iatt, false, true));
+			annotation.set("TextPosition", _tsproduct.getLayeredPropValue("TextPosition", _subproduct, iatt, false, true));
+		}
+		
 		if (isSymbol && niceSymbols) {
 			GRDrawingAreaUtil.setDeviceAntiAlias(_da_graph, true);
 		}
@@ -7356,11 +7393,12 @@ public void paint ( Graphics g )
 	// some experimentation with reference graphs that display some information.
 	checkInternalProperties ();
 	drawTitles ();
+	drawAnnotations(TSGraphDrawingStepType.BEFORE_BACK_AXES);
 	drawAxesBack ();
-	drawAnnotations(false);
+	drawAnnotations(TSGraphDrawingStepType.BEFORE_DATA);
 	drawTimeSeriesAnnotations();
 	drawGraph ( getGraphType() );
-	drawAnnotations(true);
+	drawAnnotations(TSGraphDrawingStepType.AFTER_DATA);
 	drawAxesFront ();
 	drawCurrentDateTime ();
 	drawLegend ();
