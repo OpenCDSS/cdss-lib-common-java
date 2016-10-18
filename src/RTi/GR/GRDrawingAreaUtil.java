@@ -41,13 +41,11 @@
 package RTi.GR;
 
 import java.awt.Shape;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
-
 import RTi.Util.IO.PropList;
 
 /**
@@ -2301,10 +2299,10 @@ or text, each below the last line drawn.
 @param text the text to draw
 @param x the x coordinate
 @param y the y coordinates
-@param a the angle of rotation, counter-clockwise
+@param a the transparency
 @param flag the text orientation flags (see GRText.*)
 @param degrees the degrees of rotation (this parameter is actually used
-in the Swing code, and the rotation is clockwise)
+in the Swing code, and the rotation is clockwise from east)
 */
 public static void drawText ( GRDrawingArea da, String text, double x,
 	double y, double a, int flag, double degrees)
@@ -2331,7 +2329,7 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 	}
 
 	// separate out each line
-	List<String> v = new Vector();
+	List<String> v = new ArrayList<String>();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();
@@ -2482,15 +2480,6 @@ public static void drawText ( GRDrawingArea da, String text, double x,
 			}
 		}
 	}
-
-	v = null;
-	s = null;
-	for (int i = 0; i < size; i++) {
-		lines[i] = null;
-		limits[i] = null;
-	}
-	lines = null;
-	limits = null;
 }
 
 /**
@@ -2748,17 +2737,31 @@ public static GRLimits getDataExtents (	GRDrawingArea da, GRLimits limits, int f
 }
 
 /**
-Returns the extents of a string in either data or device units.  If the text
-has the character '\n', it will be
-treated as line separators and the extents returned will take into account
-all the lines of text.
+Returns the extents of a string in either data or device units.
+If the text has the character '\n', it will be treated as line separators and the extents returned
+will take into account all the lines of text.
+Rotation is assumed to be zero.
 @return the extents of a string in either data or device units.
 @param da Drawing area.
 @param text String to determine size.
-@param flag GRUnits.DATA or GRUnits.DEVICE, indicating the units that should
-be returned for the text size.
+@param flag GRUnits.DATA or GRUnits.DEVICE, indicating the units that should be returned for the text size.
 */
 public static GRLimits getTextExtents(GRDrawingArea da, String text, int flag)
+{
+	return getTextExtents(da, text, 0.0, flag);
+}
+
+/**
+Returns the extents of a string in either data or device units.
+If the text has the character '\n', it will be treated as line separators and the extents returned
+will take into account all the lines of text.
+@return the extents of a string in either data or device units.
+@param da Drawing area.
+@param text String to determine size.
+@praam rotation Rotation of the text, were 0 is due east (horizontal), measured clockwise in degrees.
+@param flag GRUnits.DATA or GRUnits.DEVICE, indicating the units that should be returned for the text size.
+*/
+public static GRLimits getTextExtents(GRDrawingArea da, String text, double rotation, int flag)
 {
 	// check to see if there are any newline markers
 	String separator = "\n";
@@ -2768,7 +2771,7 @@ public static GRLimits getTextExtents(GRDrawingArea da, String text, int flag)
 		oneLine = true;
 	}
 
-	// If one line then there are no new line markers and the old code will work.
+	// If one line then there are no newline characters and the old code will work.
 	if (oneLine) {
 		// The following always returns device units...
 		GRLimits limits = da.getTextExtents ( text, flag );
@@ -2797,7 +2800,7 @@ public static GRLimits getTextExtents(GRDrawingArea da, String text, int flag)
 
 	// Now calculate the extents for multiple lines of text.
 
-	List<String> v = new Vector();
+	List<String> v = new ArrayList<String>();
 	boolean done = false;
 	String s = null;
 	int len = separator.length();

@@ -1528,10 +1528,10 @@ Draw text.
 @param text the text string to draw.
 @param x the x location at which to draw the string.
 @param y the y location at which to draw the string.
-@param a the alpha value of the string.
+@param a the alpha value (transparency) of the string (currently not used).
 @param flag one of the GRText.* values specifying how to draw the string.
 @param rotationDegrees number of degrees to rotates the text clock-wise from 
-due East.  Standard java rotation transforms rotate clock-wise with positive numbers.
+due East.  Standard Java rotation transforms rotate clock-wise with positive numbers.
 */
 public void drawText(String text, double x, double y, double a, int flag, double rotationDegrees) {
 	// Make sure that we have a string...
@@ -1573,10 +1573,12 @@ public void drawText(String text, double x, double y, double a, int flag, double
 	else if ((flag & GRText.TOP) != 0) {
 		iy += height;
 	}
-	if (rotationDegrees == 0) {
+	if ( (rotationDegrees > -.001) && (rotationDegrees < .001) ) {
+		// For close to zero, draw horizontally
 		_jdev._graphics.drawString(text, ix, iy);
 	}
 	else {
+		// Draw rotated text using a small image - otherwise transform might rotate too large an area
 		int larger = 0;
 		if (height > width) {
 			larger = height;
@@ -1584,20 +1586,72 @@ public void drawText(String text, double x, double y, double a, int flag, double
 		else {
 			larger = width;
 		}
-		BufferedImage temp = new BufferedImage(larger * 2, larger * 2, BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D tempG = temp.createGraphics();
-		tempG.setFont(font);
-
-		AffineTransform origXform = tempG.getTransform();
-		AffineTransform newXform = (AffineTransform)(origXform.clone());
-		newXform.rotate(Math.toRadians(rotationDegrees), larger,larger);
-
-		tempG.setTransform(newXform);
-		tempG.setColor(_jdev._graphics.getColor());
-
-		tempG.drawString(text, larger, larger);
-		
-		_jdev._graphics.drawImage(temp, ((int)x) - larger, ((int)y) - larger, null);
+		if ( (rotationDegrees % 90) < .001) {
+			// See:  http://stackoverflow.com/questions/10083913/how-to-rotate-text-with-graphics2d-in-java
+			// The following works when 90-degree multiples but need a generic way to deal with centering, justifying.
+			// The problem is the drawing routine works from the lower-left corner of the text but the
+			// positioning flag requires an offset.
+			Graphics2D g2d = _jdev._graphics;
+			double rotationRad = Math.toRadians(rotationDegrees);
+			// Translate coordinate system to rotated space
+			// (xs,ys) work as is if left-bottom edge is at point
+			double xt = xs; // Translate values
+			double yt = ys;
+			if ( (int)(rotationDegrees + .001) == 90 ) {
+				// Drawing down with bottom of text to left
+				if ((flag & GRText.CENTER_Y) != 0) {
+					xt -= height/2;
+				}
+				else if ((flag & GRText.TOP) != 0) {
+					xt -= height;
+				}
+				if ((flag & GRText.CENTER_X) != 0) {
+					yt -= width/2;
+				}
+				else if ((flag & GRText.RIGHT) != 0) {
+					yt -= width;
+				}
+			}
+			else if ( ((int)(rotationDegrees + .01) == 270) || ((int)(rotationDegrees - .01) == -90) ) {
+				// Drawing up with bottom of text to right
+				if ((flag & GRText.CENTER_Y) != 0) {
+					xt += height/2;
+				}
+				else if ((flag & GRText.TOP) != 0) {
+					xt += height;
+				}
+				if ((flag & GRText.CENTER_X) != 0) {
+					yt += width/2;
+				}
+				else if ((flag & GRText.RIGHT) != 0) {
+					yt += width;
+				}
+			}
+			g2d.translate(xt,yt);
+			g2d.rotate(rotationRad);
+			g2d.drawString(text, 0, 0);
+			// Translate back to original coordinate system
+			g2d.rotate(-rotationRad);
+			g2d.translate(-xt,-yt);	
+		}
+		else {
+			// This works but does not seem to get the positioning quite right
+			BufferedImage temp = new BufferedImage(larger * 2, larger * 2, BufferedImage.TYPE_4BYTE_ABGR);
+			Graphics2D tempG = temp.createGraphics();
+			tempG.setFont(font);
+	
+			AffineTransform origXform = tempG.getTransform();
+			AffineTransform newXform = (AffineTransform)(origXform.clone());
+			newXform.rotate(Math.toRadians(rotationDegrees), larger,larger);
+	
+			tempG.setTransform(newXform);
+			tempG.setColor(_jdev._graphics.getColor());
+			//Message.printStatus(2,"","Drawing text \"" + text + "\" into image of size " + larger );
+			tempG.drawString(text, larger, larger);
+			//Message.printStatus(2,"","Drawing image into device at " + ((int)x - larger) + "," + ((int)y - larger) );
+			_jdev._graphics.drawImage(temp, ((int)x - larger), ((int)y - larger), null);
+			tempG.dispose();
+		}
 	}
 }
 

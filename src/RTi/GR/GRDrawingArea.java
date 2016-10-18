@@ -436,9 +436,9 @@ Draws text.
 @param text the text to draw
 @param x the x location of the text
 @param y the y location of the text
-@param a the alpha value of the text
+@param a the alpha value of the text (transparency)
 @param flag the GRText.* flag to determine how text is drawn
-@param degrees the number of degrees to rotate the text clock-wise.
+@param degrees the number of degrees to rotate the text clock-wise from east.
 */
 public abstract void drawText ( String text, double x, double y, double a, int flag, double degrees);
 
@@ -596,7 +596,7 @@ public GRLimits getPlotLimits ( int flag )
 /**
 Returns the extents of a string.  
 @param text the text to get the extents for
-@param flag
+@param flag GRUnits.DATA or GRUnits.DEV, indicating units for returned size.
 @return the extents of a string.
 */
 public abstract GRLimits getTextExtents ( String text, int flag );

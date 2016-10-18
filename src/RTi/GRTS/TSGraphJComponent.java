@@ -4,20 +4,17 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.awt.image.BufferedImage;
-
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -35,9 +32,7 @@ import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
-
 import RTi.TS.TS;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.IO.DataUnits;
@@ -807,13 +802,134 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			    tsproduct.setPropValue ( "BottomXAxisTitleString", "", isub, -1 );
 			}
 		}
+		
+		// "RightYAxisTitleString" - depends on graph type and units...
+
+		// TODO SAM 2016-10-17 Copy the left axis to enable right axis
+		// TODO SAM 2006-09-28 Why was the following always evaluated as true in previous
+		// code with 1 == 1?  Was this a work-around for some other
+		// problem.  Need to evaluate further when regression tests are in place.
+		if ( tsproduct.getLayeredPropValue("RightYAxisTitleString", isub, -1, false ) == null ) {
+			tsproduct.setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+			// TODO SAM 2016-10-17 not sure if scatter logic even makes sense on right axis
+			if ( graphType == TSGraphType.XY_SCATTER ) {
+				// Units will be 1st (dependent) time series -
+				// need to do something else if more than one time series...
+				if ( nts >= 1 ) {
+					// FIXME SAM 2016-10-17 Need to get right axis time series
+					TS ts0 = tslist.get(0);
+					tsproduct.setPropValue ( "RightYAxisTitleString", ts0.getDataUnits(), isub, -1 );
+				}
+				else {
+				    tsproduct.setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+				}
+			}
+			else if ( graphType == TSGraphType.PERIOD ) {
+				tsproduct.setPropValue ( "RightYAxisTitleString", "Legend Index", isub, -1 );
+			}
+			else {
+			    // Title is the units that are displayed on the axis.
+				if ( tsgraph.ignoreRightYAxisUnits() ) {
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "RightYAxisTitleString", "See units in legend", isub, -1 );
+				}
+				else {
+				    // Get the units from the first non-null time series...
+					String units = "";
+					TS ts = null;
+					for ( int its = 0; its < nts; its++ ) {
+						ts = tslist.get(its);
+						if ( ts == null ) {
+							continue;
+						}
+						units = ts.getDataUnits();
+						break;
+					}
+					tsproduct.setPropValue ( "RightYAxisTitleString", units, isub, -1 );
+				}
+			}
+		}
+
+		// "RightYAxisUnits" - determined from graph type.
+
+		if ( tsproduct.getLayeredPropValue("RightYAxisUnits", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.XY_SCATTER ) {
+				// Units will be 1st (dependent) time series -
+				// need to do something else if more than one time series...
+				if ( nts >= 1 ) {
+					TS ts0 = tslist.get(0);
+					tsproduct.setPropValue ( "RightYAxisUnits", ts0.getDataUnits(), isub, -1 );
+				}
+				else {
+				    tsproduct.setPropValue ( "RightYAxisUnits", "", isub, -1 );
+				}
+			}
+			else if ( graphType == TSGraphType.PERIOD ) {
+				// Count of time series (not really used for anything)...
+				tsproduct.setPropValue ( "RightYAxisUnits", "COUNT", isub, -1 );
+			}
+			else {
+			    // Units are time series data units.
+				if ( tsgraph.ignoreRightYAxisUnits() ) {
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "RightYAxisUnits", "", isub, -1 );
+				}
+				else {
+				    // Get the units from the first non-null time series...
+					String units = "";
+					TS ts = null;
+					for ( int its = 0; its < nts; its++ ) {
+						ts = tslist.get(its);
+						if ( ts == null ) {
+							continue;
+						}
+						units = ts.getDataUnits();
+						break;
+					}
+					tsproduct.setPropValue ( "RightYAxisUnits", units, isub, -1 );
+				}
+			}
+		}
+
+		// "RightYAxisLabelPrecision" - DO THIS AFTER "RightYAxisUnits"
+
+		if ( tsproduct.getLayeredPropValue("RightYAxisLabelPrecision", isub, -1, false ) == null ) {
+			if ( (graphType == TSGraphType.PERIOD) || (graphType == TSGraphType.RASTER) ) {
+				tsproduct.setPropValue ( "RightYAxisLabelPrecision", "0", isub, -1 );
+			}
+			else if ( tsgraph.ignoreRightYAxisUnits() ) {
+				// Set the precision to the maximum precision
+				// for the units of all time series...
+				int yaxis_precision = 2;
+				tsproduct.setPropValue ( "RightYAxisLabelPrecision", "" + yaxis_precision, isub, -1 );
+			} 
+			else {
+			    // Determine the precision from the axis units..
+				String righty_units = _tsproduct.getLayeredPropValue ( "RightYAxisUnits", isub, -1, false );
+				if ( righty_units.equals("") ) {
+					// Default...
+					tsproduct.setPropValue ( "RightYAxisLabelPrecision", "2", isub, -1 );
+				}
+				else {
+				    try {
+				        DataUnits u = DataUnits.lookupUnits ( righty_units );
+						int precision = u.getOutputPrecision();
+						tsproduct.setPropValue ( "RightYAxisLabelPrecision", "" + precision, isub, -1 );
+					}
+					catch ( Exception e ) {
+						// Default...
+						tsproduct.setPropValue ( "RightYAxisLabelPrecision", "2", isub, -1 );
+					}
+				}
+			}
+		}
 	}
 	_tsproduct.getPropList().setHowSet (how_set_prev);
 }
 
 /**
-Create a vector of TSGraph from a TSProduct and a list of time series.
-The vector always contains the graphs but if a graph is disabled its size will
+Create a list of TSGraph from a TSProduct and a list of time series.
+The list always contains the graphs but if a graph is disabled its size will
 not be shown in the graph.
 This typically would be called in the first paint where the component size is known.
 @param tsproduct TSProduct describing what to graph.
@@ -821,7 +937,7 @@ This typically would be called in the first paint where the component size is kn
 @param tsproduct_tslist List of time series to graph for the full TSProduct.
 @param drawlim_graphs Drawing limits of the area set aside for graphs.  This
 area is divided among the individual graphs.
-@return List of TSGraph to use when drawing.  The Vector is
+@return List of TSGraph to use when drawing.  The list is
 guaranteed to be non-null but may contain zero graphs.
 */
 private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display_props,
@@ -837,7 +953,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 			Message.printDebug ( 1, routine,
 			    _gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)" );
 		}
-		return new Vector ( 1 );
+		return new ArrayList<TSGraph> ( 1 );
 	}
 
 	// For now, assume that graphs will be listed vertically with the first one on top.
@@ -867,7 +983,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	}
 	TS ts, tsfound;
 	String prop_val;
-	List<TSGraph> tsgraphs = new Vector ( nsubs );
+	List<TSGraph> tsgraphs = new ArrayList<TSGraph> ( nsubs );
 	int reference_ts_index = -1;	// This is the value for the tslist
 					// that is used by the graph, NOT the value in the entire list.
 	
@@ -875,6 +991,11 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	String prop_value = display_props.getValue("ReferenceTSIndex");
 	if ( prop_value != null ) {
 		display_props_reference_ts_index = StringUtil.atoi ( prop_value );
+	}
+	prop_value = tsproduct.getLayeredPropValue ( "ShowDrawingAreaOutline", -1, -1, false );
+	boolean showDrawingAreaOutline = false;
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+		showDrawingAreaOutline = true;
 	}
 	
 	// Indicate the subproduct that will be used to get reference graph information...
@@ -1036,6 +1157,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
 		}
+		tsgraph.setShowDrawingAreaOutline(showDrawingAreaOutline);
 	}
 	//Message.printStatus(2,"TSGraphJComponent.createTSGraphsFromTSProduct",
 	//_gtype + "Created " + tsgraphs.size() + " graphs from TSProduct" );
@@ -2240,7 +2362,7 @@ public void paint ( Graphics g )
 	}
 
 	// If rubber-banding, can do before anything else and return...
-
+	boolean drawingTracker = true;
 	if ( _rubber_banding ) {
 		if (_double_buffering && _buffer != null) {
 			g.drawImage(_buffer, 0, 0, this);
@@ -2502,6 +2624,14 @@ public void paint ( Graphics g )
 		}
 		_force_redraw = false;
 	}
+	
+	if ( drawingTracker ) {
+		// TODO SAM 2016-10-17 Enable tracking similar to zoom but on top.
+		// Done drawing.  Reset paint mode to normal just in case we
+		// change code later to not return...
+		//g.setPaintMode ();
+		//return;
+	}
 
 	// Finally, if double buffering and not printing, copy the image from
 	// the buffer to the component...
@@ -2512,12 +2642,11 @@ public void paint ( Graphics g )
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Copying internal image to display." );
 		}
-		g.drawImage ( _buffer , 0, 0,  this );
+		g.drawImage ( _buffer , 0, 0, this );
 		// Only do this if double buffering to screen because that is
 		// the only time the graphics is created locally...
 		// ?? _graphics.dispose();
 	}
-	new_draw_limits = null;
 
 	} // Main try wrapped around entire method.
 	catch ( Exception e ) {
@@ -2528,7 +2657,6 @@ public void paint ( Graphics g )
 	}
 	// Should always get to here the first time...
 	_first_paint = false;
-	routine = null;
 	if (_printing) {
 		_printing = false;
 	}

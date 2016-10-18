@@ -526,10 +526,9 @@ for graph types where it goes the other way) and
 
 <tr>
 <td><b>LeftYAxisIgnoreUnits</b></td>
-<td>Indicates whether to ignore units for the lefty Y axis.  Normally, units
+<td>Indicates whether to ignore units for the left Y axis.  Normally, units
 are checked to make sure that data can be plotted consistently.  If this
-property is set, then the user will not be prompted at run-time to make a
-decision.</td>
+property is set, then the user will not be prompted at run-time to make a decision.</td>
 <td>If not specified, the units will be checked at run-time and, if not
 compatible, the user will be prompted to indicate whether to ignore units in
 the graphs.  The property will not be reset automatically but will be handled
@@ -639,8 +638,7 @@ down to make room for the title.</b></td>
 <td>Left y-axis units.  <b>This property is currently used internally and full
 support is being phased in.</b>  See also "LeftYAxisIgnoreUnits".
 </td>
-<td>Units from first valid time series, or as appropriate for the graph
-type.</td>
+<td>Units from first valid time series, or as appropriate for the graph type.</td>
 </tr>
 
 <tr>
@@ -761,10 +759,9 @@ for graph types where it goes the other way) and
 
 <tr>
 <td><b>RightYAxisIgnoreUnits</b></td>
-<td>Indicates whether to ignore units for the righty Y axis.  Normally, units
+<td>Indicates whether to ignore units for the right Y axis.  Normally, units
 are checked to make sure that data can be plotted consistently.  If this
-property is set, then the user will not be prompted at run-time to make a
-decision.</td>
+property is set, then the user will not be prompted at run-time to make a decision.</td>
 <td>If not specified, the units will be checked at run-time and, if not
 compatible, the user will be prompted to indicate whether to ignore units in
 the graphs.  The property will not be reset automatically but will be handled
@@ -862,8 +859,7 @@ down to make room for the title.</b></td>
 <td>Right y-axis units.  <b>This property is currently used internally and full
 support is being phased in.</b>  See also "RightYAxisIgnoreUnits".
 </td>
-<td>Units from first valid time series, or as appropriate for the graph
-type.</td>
+<td>Units from first valid time series, or as appropriate for the graph type.</td>
 </tr>
 
 <tr>
@@ -1731,6 +1727,12 @@ public void checkProperties ()
 	if (getLayeredPropValue("LayoutNumberOfCols", -1, -1, false) == null) {
 		setPropValue("LayoutNumberOfCols",getDefaultPropValue("LayoutNumberOfCols", -1, -1),-1, -1);
 	}
+	
+	// Develop...
+	
+	if (getLayeredPropValue("ShowDrawingAreaOutline", -1, -1, false) == null) {
+		setPropValue("ShowDrawingAreaOutline", getDefaultPropValue("ShowDrawingAreaOutline",-1, -1), -1, -1);
+	}
 
 	//---------------------------------------------------------------------
 	// Subproduct properties.
@@ -1951,14 +1953,14 @@ public void checkGraphProperties ( int nsubs )
 		
 		// Left y axis position...
 		
-		if ( getLayeredPropValue("LeftYAxisPosition", isub, -1, false ) == null ) {
-			setPropValue ( "LeftYAxisPosition", getDefaultPropValue("LeftYAxisPosition",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("LeftYAxisTitlePosition", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisTitlePosition", getDefaultPropValue("LeftYAxisTitlePosition",isub,-1), isub, -1 );
 		}
 		
 		// Left y axis rotation...
 		
-		if ( getLayeredPropValue("LeftYAxisRotation", isub, -1, false ) == null ) {
-			setPropValue ( "LeftYAxisRotation", getDefaultPropValue("LeftYAxisRotation",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("LeftYAxisTitleRotation", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisTitleRotation", getDefaultPropValue("LeftYAxisTitleRotation",isub,-1), isub, -1 );
 		}
 
 		// Left Y axis type...
@@ -2091,14 +2093,14 @@ public void checkGraphProperties ( int nsubs )
 		
 		// Right Y axis position...
 
-		if ( getLayeredPropValue("RightYAxisPosition", isub, -1, false ) == null ) {
-			setPropValue ( "RightYAxisPosition", getDefaultPropValue("RightYAxisPosition",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("RightYAxisTitlePosition", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisTitlePosition", getDefaultPropValue("RightYAxisTitlePosition",isub,-1), isub, -1 );
 		}
 		
 		// Right Y axis rotation...
 
-		if ( getLayeredPropValue("RightYAxisRotation", isub, -1, false ) == null ) {
-			setPropValue ( "RightYAxisRotation", getDefaultPropValue("RightYAxisRotation",isub,-1), isub, -1 );
+		if ( getLayeredPropValue("RightYAxisTitleRotation", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisTitleRotation", getDefaultPropValue("RightYAxisTitleRotation",isub,-1), isub, -1 );
 		}
 
 		// Right Y axis type...
@@ -2552,6 +2554,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("ProductType") ) {
 			return "Graph";
+		}
+		else if (param.equalsIgnoreCase("ShowDrawingAreaOutline")) {
+			return "False";
 		}
 		else if ( param.equalsIgnoreCase("SubTitleFontName") ) {
 			return "Arial";

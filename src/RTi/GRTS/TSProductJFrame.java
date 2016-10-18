@@ -569,7 +569,7 @@ The text field that determines the percentage of Y area that each graph should t
 protected JTextField _yPercentJTextField = null;
 
 /**
-The combo box that defines how the graphs are layed out.
+The combo box that defines how the graphs are laid out.
 */
 protected SimpleJComboBox _layoutTypeJComboBox = null;
 
@@ -583,6 +583,11 @@ protected JTextField _numberColsJTextField = null;
 The text field that determines the number of rows of graphs to show.
 */
 protected JTextField _numberRowsJTextField = null;
+
+/**
+The combo box that defines whether drawing area outlines should be shown, used by developers.
+*/
+protected SimpleJComboBox _showDrawingAreaOutlineJComboBox = null;
 
 /**
 Combo boxes for choosing the annotation providers for the graphs.
@@ -1288,7 +1293,7 @@ private void clearSubProductProperties() {
 	_graph_lefty_label_fontname_JComboBox.select(_tsproduct.getDefaultPropValue("LeftYAxisLabelFontName", 1, -1));
 	_graph_lefty_label_fontstyle_JComboBox.select(_tsproduct.getDefaultPropValue("LeftYAxisLabelFontStyle", 1, -1));
 	_graph_lefty_label_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("LeftYAxisLabelFontSize", 1, -1));
-	if (_tsproduct.getDefaultPropValue("LeftYAxisIgnoreUnits", 1, -1).equals("False")) {
+	if (_tsproduct.getDefaultPropValue("LeftYAxisIgnoreUnits", 1, -1).equalsIgnoreCase("False")) {
 		_graph_lefty_ignoreunits_JCheckBox.setSelected(false);
 	}
 	else {
@@ -1314,12 +1319,14 @@ private void clearSubProductProperties() {
 	_graph_righty_label_fontname_JComboBox.select(_tsproduct.getDefaultPropValue("RightYAxisLabelFontName", 1, -1));
 	_graph_righty_label_fontstyle_JComboBox.select(_tsproduct.getDefaultPropValue("RightYAxisLabelFontStyle", 1, -1));
 	_graph_righty_label_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("RightYAxisLabelFontSize", 1, -1));
-	if (_tsproduct.getDefaultPropValue("RightYAxisIgnoreUnits", 1, -1).equals("False")) {
+	if (_tsproduct.getDefaultPropValue("RightYAxisIgnoreUnits", 1, -1).equalsIgnoreCase("False")) {
 		_graph_righty_ignoreunits_JCheckBox.setSelected(false);
 	}
 	else {
 		_graph_righty_ignoreunits_JCheckBox.setSelected(true);
 	}
+	// TODO SAM 2016-10-17 Figure out why the above selects when default is false
+	_graph_righty_ignoreunits_JCheckBox.setSelected(false);
 	_graph_righty_title_position_JComboBox.select( _tsproduct.getDefaultPropValue("RightYAxisTitlePosition", 1, -1));
 	_graph_righty_title_rotation_JTextField.setText( _tsproduct.getDefaultPropValue("RightYAxisTitleRotation", 1, -1));
 	_graph_righty_max_JComboBox.select( _tsproduct.getDefaultPropValue("RightYAxisMax", 1, -1));
@@ -2424,6 +2431,27 @@ private JPanel createProductJPanel ()
 	_numberColsJTextField.setEditable(false);
 	JGUIUtil.addComponent(layoutJPanel, _numberColsJTextField,
 		1, y, 1, 1, 1, 0, _insetsTLBR, 
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
+	
+	// Developer pane
+	
+	JPanel devJPanel = new JPanel();
+	devJPanel.setLayout(gbl);
+	_product_JTabbedPane.addTab("Developer", null, devJPanel, "Developer Properties" );
+
+	y = -1;
+	JGUIUtil.addComponent ( devJPanel, new JLabel ( "These properties are used by developers.  Remember to press Apply to change the graph."),
+		0, ++y, 6, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	JGUIUtil.addComponent(devJPanel, new JLabel ("Show drawing area outline:"),
+		0, ++y, 1, 1, 0, 0, _insetsTLBR, 
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
+	_showDrawingAreaOutlineJComboBox = new SimpleJComboBox();
+	_showDrawingAreaOutlineJComboBox.setToolTipText("Show drawing area outlines, used by developers");
+	_showDrawingAreaOutlineJComboBox.add("False");
+	_showDrawingAreaOutlineJComboBox.add("True");
+	JGUIUtil.addComponent(devJPanel, _showDrawingAreaOutlineJComboBox,
+		1, y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 /* TODO SAM ...
@@ -4080,7 +4108,19 @@ private void displayProductProperties ()
 	}
 	else {
 		// ignore for now.
-	}	
+	}
+	
+	// Developer properties
+	
+	// "ShowDrawingAreaOutline"
+
+	prop_val = _tsproduct.getLayeredPropValue( "ShowDrawingAreaOutline", -1, -1, false);
+	if (prop_val == null) {
+		_showDrawingAreaOutlineJComboBox.select("False");
+	}
+	else {
+		_showDrawingAreaOutlineJComboBox.select(prop_val);
+	}
 }
 
 /**
@@ -4490,6 +4530,7 @@ private void displaySubproductProperties ( int isub )
   
 	// "LeftYAxisIgnoreUnits"
 
+	// TODO SAM 2016-10-17 Shouldn't the following default to false if null?
 	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisIgnoreUnits", isub, -1, false );
 	if ( (prop_val == null) || prop_val.equalsIgnoreCase("true") ) {
 		_graph_lefty_ignoreunits_JCheckBox.setSelected ( true );
@@ -4659,11 +4700,14 @@ private void displaySubproductProperties ( int isub )
 	// "RightYAxisIgnoreUnits"
 
 	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisIgnoreUnits", isub, -1, false );
-	if ( (prop_val == null) || prop_val.equalsIgnoreCase("true") ) {
+	if ( (prop_val == null) || prop_val.equalsIgnoreCase("false") ) {
+		_graph_righty_ignoreunits_JCheckBox.setSelected ( false ); // Default
+	}
+	else {
 		_graph_righty_ignoreunits_JCheckBox.setSelected ( true );
 	}
-	else {	_graph_righty_ignoreunits_JCheckBox.setSelected ( false );
-	}
+	// TODO SAM 2016-10-17 Figure out why property is defaulted to true
+	_graph_righty_ignoreunits_JCheckBox.setSelected ( false );
 
 	// "RightYAxisLabelPrecision"
 
@@ -6637,6 +6681,17 @@ protected int updateTSProduct (int howSet) {
 			_tsproduct.setPropValue("LayoutNumberOfCols", gui_val, -1, -1);
 			++ndirty;
 		}
+	}
+	
+	// Developer properties
+	
+	// "ShowDrawingAreaOutline"
+
+	prop_val = _tsproduct.getLayeredPropValue("ShowDrawingAreaOutline", -1, -1, false);
+	gui_val = _showDrawingAreaOutlineJComboBox.getSelected().trim();
+	if (!gui_val.equals(prop_val)) {
+		_tsproduct.setPropValue("ShowDrawingAreaOutline", gui_val, -1, -1);
+		++ndirty;
 	}
 
 	// --------------------------------------------------------------------

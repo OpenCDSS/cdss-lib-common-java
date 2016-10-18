@@ -817,6 +817,9 @@ public void setGraphics(Graphics2D g) {
 	else {
 		_graphics = (Graphics2D)_buffer.getGraphics();
 	}
+	// Make fonts look better
+	// See:  https://docs.oracle.com/javase/tutorial/2d/text/renderinghints.html
+	_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 }	
 
 /**
