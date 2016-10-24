@@ -1412,8 +1412,15 @@ public void checkAnnotationProperties(int isub, int iann) {
 	String shapeType = null;
 
 	if (getLayeredPropValue("AnnotationID", isub, iann, false, true) == null) {
-		setPropValue("AnnotationID", getDefaultPropValue("AnnotationID",
-			isub, iann, true), isub, iann, true);
+		setPropValue("AnnotationID", getDefaultPropValue("AnnotationID", isub, iann, true), isub, iann, true);
+	}
+	
+	if (getLayeredPropValue("AnnotationName", isub, iann, false, true) == null) {
+		setPropValue("AnnotationName", getDefaultPropValue("AnnotationName", isub, iann, true), isub, iann, true);
+	}
+	
+	if (getLayeredPropValue("AnnotationTableID", isub, iann, false, true) == null) {
+		setPropValue("AnnotationTableID", getDefaultPropValue("AnnotationTableID", isub, iann, true), isub, iann, true);
 	}
 	
 	if (getLayeredPropValue("Color", isub, iann, false, true) == null) {
@@ -1435,6 +1442,9 @@ public void checkAnnotationProperties(int isub, int iann) {
 
 	if (getLayeredPropValue("XAxisSystem", isub, iann, false, true) == null) {
 		setPropValue("XAxisSystem", getDefaultPropValue("XAxisSystem", isub, iann, true), isub, iann, true);
+	}
+	if (getLayeredPropValue("YAxis", isub, iann, false, true) == null) {
+		setPropValue("YAxis", getDefaultPropValue("YAxis", isub, iann, true), isub, iann, true);
 	}
 	if (getLayeredPropValue("YAxisSystem", isub, iann, false, true) == null) {
 		setPropValue("YAxisSystem", getDefaultPropValue("YAxisSystem", isub, iann, true), isub, iann, true);
@@ -2443,6 +2453,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		if (param.equalsIgnoreCase("AnnotationID")) {
 			return "Annotation " + (its + 1);
 		}
+		else if (param.equalsIgnoreCase("AnnotationTableID")) {
+			return "";
+		}
 		else if (param.equalsIgnoreCase("Color")) {
 			return "Black";
 		}
@@ -2484,6 +2497,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}	
 		else if (param.equalsIgnoreCase("XAxisSystem")) {
 			return "Data";
+		}
+		else if (param.equalsIgnoreCase("YAxis")) {
+			return "Left";
 		}
 		else if (param.equalsIgnoreCase("YAxisSystem")) {
 			return "Data";
@@ -2762,7 +2778,7 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "12";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitlePosition") ){
-			return "AboveAxis";
+			return "None";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitleRotation") ){
 			return "0";
@@ -4324,6 +4340,7 @@ throws Exception
 				save = true;
 			}
 			else if (!save_all) {
+				// Don't write internal properties that typically don't show up in the product file
 				if (how_set == Prop.SET_FROM_PERSISTENT || how_set == Prop.SET_AT_RUNTIME_BY_USER
 				    || how_set == Prop.SET_AT_RUNTIME_FOR_USER){
 				    // ok
@@ -4336,7 +4353,10 @@ throws Exception
 				if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 					continue;
 				}
-				else if (key.toUpperCase().endsWith("ORIGINALGRAPHTYPE")) {
+				else if (key.toUpperCase().endsWith("LEFTYAXISORIGINALGRAPHTYPE")) {
+				    continue;
+				}
+				else if (key.toUpperCase().endsWith("RIGHTYAXISORIGINALGRAPHTYPE")) {
 				    continue;
 				}
 
@@ -4443,11 +4463,13 @@ throws Exception
         			// have to check what should be saved for each annotation.
         			// First check property for generic annotation properties
         			if ( key.equalsIgnoreCase("AnnotationID") ||
-        				// key.equalsIgnoreCase("AnotationID") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				key.equalsIgnoreCase("AnnotationTableID") ||
         				key.equalsIgnoreCase("Color") ||
         				key.equalsIgnoreCase("Order") ||
         				key.equalsIgnoreCase("ShapeType") ||
         				key.equalsIgnoreCase("XAxisSystem") ||
+        				key.equalsIgnoreCase("YAxis") ||
         				key.equalsIgnoreCase("YAxisSystem") ) {
         				save = true;
         			}
