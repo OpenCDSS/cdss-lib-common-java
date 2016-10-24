@@ -8,6 +8,10 @@ Other properties influence the actual appearance (e.g., log/linear axis in conju
 public enum TSGraphType
 {
     UNKNOWN("Unknown"),
+    /**
+     * Used with right-axis graph type to indicate no right-axis graph.
+     */
+    NONE("None"),
     AREA("Area"),
     AREA_STACKED("AreaStacked"),
     BAR("Bar"),
