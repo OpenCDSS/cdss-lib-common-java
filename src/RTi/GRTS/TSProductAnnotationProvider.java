@@ -42,11 +42,11 @@ public void addAnnotations(TSProduct product, PropList controlProps)
 throws Exception;
 
 /**
-Returns a Vector of Strings, each of which is one of the types of annotation
+Returns a list of Strings, each of which is one of the types of annotation
 that is provided by this class.
-@return a Vector of the annotations that this class provides.
+@return a list of the annotations that this class provides.
 */
-public List getAnnotationProviderChoices();
+public List<String> getAnnotationProviderChoices();
 
 /**
 Returns true if this class provides the given annotation type, false if not.
