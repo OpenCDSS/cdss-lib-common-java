@@ -571,11 +571,10 @@ public List<DistributionType> getDistributionChoices()
 {
     List<DistributionType> choices = new ArrayList<DistributionType>();
     choices.add ( DistributionType.EMPERICAL );
-    choices.add ( DistributionType.GRINGORTEN );
     choices.add ( DistributionType.LOG_NORMAL );
     choices.add ( DistributionType.LOG_PEARSON_TYPE3 );
     choices.add ( DistributionType.NORMAL );
-    choices.add ( DistributionType.SAMPLE_DATA );
+    choices.add ( DistributionType.SAMPLE );
     choices.add ( DistributionType.WAKEBY );
     choices.add ( DistributionType.WEIBULL );
     return choices;

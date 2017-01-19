@@ -1873,7 +1873,7 @@ public void mouseDragged ( MouseEvent event )
 
 	// Figure out which drawing area the event occurred in...
 
-	TSGraphType graphType = tsgraph.getGraphType();
+	TSGraphType graphType = tsgraph.getLeftYAxisGraphType();
 	if ((graphType == TSGraphType.DURATION) || (graphType == TSGraphType.XY_SCATTER)) {
 		// Don't allow zoom.
 		_rubber_banding = false;
@@ -1891,9 +1891,12 @@ public void mouseDragged ( MouseEvent event )
 	if ( dotrack ) {
 		// Device units...
 		GRPoint devpt = new GRPoint ( _mouse_x2, _mouse_y2 );
-	    if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	    if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
 	        // Also associate the time series for the graph, so value can be shown
-	        List<TS> tslist = tsgraph.getEnabledTSList();
+	    	// Tracking is initially tied to the left y-axis
+	    	boolean includeLeftYAxis = true;
+	    	boolean includeRightYAxis = false;
+	        List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
 	        if ( tslist.size() > 0 ) {
 	            datapt.associated_object = tslist.get(0);
 	            devpt.associated_object = tslist.get(0);
@@ -1957,9 +1960,12 @@ public void mouseMoved ( MouseEvent event )
 	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY( x, y, GRDrawingArea.COORD_DEVICE );
 
 	GRPoint devpt = new GRPoint ( x, y );
-	if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
 	    // Also associate the time series for the graph, so value can be shown
-	    List<TS> tslist = tsgraph.getEnabledTSList();
+		// Only left y-axis data are uses with raster
+    	boolean includeLeftYAxis = true;
+    	boolean includeRightYAxis = false;
+	    List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
 	    if ( tslist.size() > 0 ) {
 	        datapt.associated_object = tslist.get(0);
 	        devpt.associated_object = tslist.get(0);
@@ -2056,7 +2062,7 @@ public void mouseReleased ( MouseEvent event )
 	}
 	TSGraphType graphType = TSGraphType.UNKNOWN;
 	if ( tsgraph != null ) {
-		graphType = tsgraph.getGraphType();
+		graphType = tsgraph.getLeftYAxisGraphType();
 	}
 	if ((graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ) {
 		// Currently do not allow zoom, etc...
@@ -2989,11 +2995,13 @@ This ensures that the graphs match exactly the properties in the TSProduct that
 is being manipulated in the JFrame.  Since these properties can be changed in
 the JFrame, in the layout component, and possibly in other places, it's safest
 to simply re-read the properties and rebuild all the graphs completely when major changes occur.
+In particular, if time series are moved between graphs or new graphs are added
+the internal numbering changes.
 @param product the TSProduct from which to read TSGraph information.  This will
 most likely be the product that's already resident in memory, but not necessarily. 
 */
 public void reinitializeGraphs(TSProduct product)
-{   String routine = getClass().getName() + ".reinitializeGraphs";
+{   String routine = getClass().getSimpleName() + ".reinitializeGraphs";
 	// if any graphs lack start and end dates (i.e., they're brand new
 	// and lack any time series), pull out a start and end date from any
 	// of the other graphs and use it, so that zoom outs work correctly
@@ -3091,7 +3099,7 @@ private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) 
 	List<TS> tslist = null;
 	for ( TSGraph graph: _tsgraphs ) {
 		tslist = graph.getTSList();		
-		ids = new Vector();
+		ids = new ArrayList<String>();
 		for ( TS ts: tslist ) {
 			if (ts == null) {
 				ids.add("null");
@@ -3594,7 +3602,7 @@ void setDrawingLimits()
 /**
 Set the drawing limits for the graphs on the full component.  This is typically
 called at initialization and when the component size changes (or a property
-changes that controls the positioning and size of graphs.  The logic in this
+changes that controls the positioning and size of graphs).  The logic in this
 method needs to be consistent with that in the createTSGraphsFromTSProduct() code.
 */
 public void setGraphDrawingLimits ()
@@ -3603,7 +3611,11 @@ public void setGraphDrawingLimits ()
 	GRLimits drawlim;
 	// Loop through the graphs.  If a reference graph, we should only go
 	// through once (but leave in the loop for now)...
-	String prop_value = _displayProps.getValue("ReferenceGraph");
+	String propVal = _displayProps.getValue("ReferenceGraph");
+	boolean referenceGraph = false;
+	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
+		referenceGraph = true;
+	}
 
 	double totalHeight = _drawlim_graphs.getHeight();
 
@@ -3673,7 +3685,7 @@ public void setGraphDrawingLimits ()
 		if ( tsgraph == null ) {
 			continue;
 		}
-		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+		if ( referenceGraph ) {
 			// A reference graph so the dimension will be all of the component...
 			drawlim = new GRLimits ( _drawlim_graphs );
 		}
@@ -3696,6 +3708,7 @@ public void setGraphDrawingLimits ()
 				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - i*height );
 			*/
 		}
+		// The following triggers resetting the dimensions of all the drawing limits for the graph
 		tsgraph.setDrawingLimits ( drawlim );
 	}
 }

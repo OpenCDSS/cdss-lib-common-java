@@ -1208,7 +1208,7 @@ Handle mouse motion events and display the mouse coordinates in the status TextF
 @param datapt Mouse point in data coordinates.
 */
 public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt )
-{	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(datapt) );
+{	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(devpt,datapt) );
 }
 
 public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List selected )

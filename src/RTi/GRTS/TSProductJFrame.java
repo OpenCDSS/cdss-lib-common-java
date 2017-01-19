@@ -354,7 +354,7 @@ private JTabbedPane _graph_JTabbedPane = null;
 private JCheckBox _graph_enabled_JCheckBox = null;
 private JCheckBox _graph_isref_JCheckBox = null;
 // Left y-axis (note this uses general name without "lefty" for historical purposes when right y-axis was not supported)
-private SimpleJComboBox _graph_graphtype_JComboBox = null;
+private SimpleJComboBox _graph_lefty_graphtype_JComboBox = null;
 private JLabel _graph_barposition_JLabel = null;
 private SimpleJComboBox _graph_barposition_JComboBox = null;
 private JLabel _graph_barOverlap_JLabel = null;
@@ -958,7 +958,7 @@ public void checkGUIState() {
 	}	
 
 	// Left y-axis graph type
-	String graphTypeString = _graph_graphtype_JComboBox.getSelected();
+	String graphTypeString = _graph_lefty_graphtype_JComboBox.getSelected();
 	if (graphTypeString == null) {
 		return;
 	}
@@ -966,10 +966,10 @@ public void checkGUIState() {
 	if ( graphType == TSGraphType.AREA || graphType == TSGraphType.AREA_STACKED ||
 	    graphType == TSGraphType.BAR || graphType == TSGraphType.LINE ||
 	    graphType == TSGraphType.POINT) {
-	    _graph_graphtype_JComboBox.setEnabled(true);
+	    _graph_lefty_graphtype_JComboBox.setEnabled(true);
 	}
 	else {
-		_graph_graphtype_JComboBox.setEnabled(false);
+		_graph_lefty_graphtype_JComboBox.setEnabled(false);
 	}
 	
 	// Right y-axis graph type
@@ -1206,44 +1206,86 @@ important if the user changes graph types.
 @param subproduct the subproduct (base-zero) for which to clear out the other
 graph properties than for the one that is selected.
 @param ts unused
-@param graphType the kind of graph that the user selected from the graph type combo box.
+@param graphTypeLeft the kind of graph that the user selected from the left y-axis graph type combo box (or null if checking right y-axis).
+@param graphTypeRight the kind of graph that the user selected from the right y-axis graph type combo box (or null if checking left y-axis).
 */
-private void clearGraphProperties(int subproduct, int ts, TSGraphType graphType) {
+private void clearGraphProperties(TSProduct tsproduct, int subproduct, int ts, TSGraphType graphTypeLeft, TSGraphType graphTypeRight) {
 	String prefix = "SubProduct " + (subproduct + 1) + ".";
-	if (graphType != TSGraphType.BAR && graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-		_tsproduct.unSet(prefix + "BarPosition");
-		_tsproduct.unSet(prefix + "BarOverlap");
+	if ( graphTypeLeft != null ) {
+		if (graphTypeLeft != TSGraphType.BAR && graphTypeLeft != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			tsproduct.unSet(prefix + "BarPosition");
+			tsproduct.unSet(prefix + "BarOverlap");
+		}
+		else {
+			tsproduct.unSet(prefix + "LineStyle");
+			tsproduct.unSet(prefix + "LineWidth");
+			tsproduct.unSet(prefix + "SymbolSize");
+			tsproduct.unSet(prefix + "SymbolStyle");
+			tsproduct.unSet(prefix + "FlaggedDataSymbolStyle");
+		}
+	
+		if (graphTypeLeft == TSGraphType.POINT) {
+			tsproduct.unSet(prefix + "LineStyle");
+			tsproduct.unSet(prefix + "LineWidth");
+		}
+	
+		if (graphTypeLeft != TSGraphType.XY_SCATTER
+		    && graphTypeLeft != TSGraphType.PREDICTED_VALUE
+		    && graphTypeLeft != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			tsproduct.unSet(prefix + "XYScatterAnalyzeForFilling");
+			tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterFillPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterFillPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterIndependentAnalysisPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterIndependentAnalsysisPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterIntercept");
+			tsproduct.unSet(prefix + "XYScatterMethod");
+			tsproduct.unSet(prefix + "XYScatterMonth");
+			tsproduct.unSet(prefix + "XYScatterNumberOfEquations");
+			tsproduct.unSet(prefix + "XYScatterTransformation");
+			tsproduct.unSet(prefix + "XYScatterConfidenceInterval");
+			tsproduct.unSet(prefix + "RegressionLineEnabled");
+		}
 	}
-	else {
-		_tsproduct.unSet(prefix + "LineStyle");
-		_tsproduct.unSet(prefix + "LineWidth");
-		_tsproduct.unSet(prefix + "SymbolSize");
-		_tsproduct.unSet(prefix + "SymbolStyle");
-		_tsproduct.unSet(prefix + "FlaggedDataSymbolStyle");
-	}
-
-	if (graphType == TSGraphType.POINT) {
-		_tsproduct.unSet(prefix + "LineStyle");
-		_tsproduct.unSet(prefix + "LineWidth");
-	}
-
-	if (graphType != TSGraphType.XY_SCATTER
-	    && graphType != TSGraphType.PREDICTED_VALUE
-	    && graphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-		_tsproduct.unSet(prefix + "XYScatterAnalyzeForFilling");
-		_tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodEnd");
-		_tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodStart");
-		_tsproduct.unSet(prefix + "XYScatterFillPeriodEnd");
-		_tsproduct.unSet(prefix + "XYScatterFillPeriodStart");
-		_tsproduct.unSet(prefix + "XYScatterIndependentAnalysisPeriodEnd");
-		_tsproduct.unSet(prefix	+ "XYScatterIndependentAnalsysisPeriodStart");
-		_tsproduct.unSet(prefix + "XYScatterIntercept");
-		_tsproduct.unSet(prefix + "XYScatterMethod");
-		_tsproduct.unSet(prefix + "XYScatterMonth");
-		_tsproduct.unSet(prefix + "XYScatterNumberOfEquations");
-		_tsproduct.unSet(prefix + "XYScatterTransformation");
-		_tsproduct.unSet(prefix + "XYScatterConfidenceInterval");
-		_tsproduct.unSet(prefix + "RegressionLineEnabled");
+	if ( graphTypeRight != null ) {
+		if (graphTypeLeft != TSGraphType.BAR && graphTypeLeft != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			tsproduct.unSet(prefix + "RightYAxisBarPosition");
+			tsproduct.unSet(prefix + "RightYAxisBarOverlap");
+		}
+		/* TODO SAM 2016-10-23 Figure out how defaults are dealt with
+		else {
+			tsproduct.unSet(prefix + "LineStyle");
+			tsproduct.unSet(prefix + "LineWidth");
+			tsproduct.unSet(prefix + "SymbolSize");
+			tsproduct.unSet(prefix + "SymbolStyle");
+			tsproduct.unSet(prefix + "FlaggedDataSymbolStyle");
+		}
+	
+		if (graphTypeLeft == TSGraphType.POINT) {
+			tsproduct.unSet(prefix + "LineStyle");
+			tsproduct.unSet(prefix + "LineWidth");
+		}
+	
+		if (graphTypeLeft != TSGraphType.XY_SCATTER
+		    && graphTypeLeft != TSGraphType.PREDICTED_VALUE
+		    && graphTypeLeft != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			tsproduct.unSet(prefix + "XYScatterAnalyzeForFilling");
+			tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterDependentAnalysisPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterFillPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterFillPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterIndependentAnalysisPeriodEnd");
+			tsproduct.unSet(prefix + "XYScatterIndependentAnalsysisPeriodStart");
+			tsproduct.unSet(prefix + "XYScatterIntercept");
+			tsproduct.unSet(prefix + "XYScatterMethod");
+			tsproduct.unSet(prefix + "XYScatterMonth");
+			tsproduct.unSet(prefix + "XYScatterNumberOfEquations");
+			tsproduct.unSet(prefix + "XYScatterTransformation");
+			tsproduct.unSet(prefix + "XYScatterConfidenceInterval");
+			tsproduct.unSet(prefix + "RegressionLineEnabled");
+		}
+		*/
 	}
 }
 
@@ -1275,7 +1317,7 @@ private void clearSubProductProperties() {
 	_yPercentJTextField.setText("");
 	// Left y-axis
 	String graphType = _tsproduct.getDefaultPropValue("GraphType", 1, -1);
-	_graph_graphtype_JComboBox.select(graphType);
+	_graph_lefty_graphtype_JComboBox.select(graphType);
 
 	if (graphType.equals("Bar")) {
 		_graph_barposition_JComboBox.select( _tsproduct.getDefaultPropValue("BarPosition", 1, -1));
@@ -2092,7 +2134,7 @@ private JPanel createDataJPanel ()
 	JGUIUtil.addComponent ( graphtype_JPanel,
 		new JLabel(
 		"The graph type for each time series currently must be the same as the graph itself: " +
-		_graph_graphtype_JComboBox.getSelected()),
+		_graph_lefty_graphtype_JComboBox.getSelected()),
 		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( graphtype_JPanel,
 		new JLabel(
@@ -2690,18 +2732,18 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent ( yAxisLeftGraphType_JPanel, new JLabel("Graph type:"),
 			0, ++yYAxisLeftGraphType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	_graph_graphtype_JComboBox = new SimpleJComboBox( false );
-	_graph_graphtype_JComboBox.setToolTipText("Graph type used for left y-axis if not overriden with time series property.");
+	_graph_lefty_graphtype_JComboBox = new SimpleJComboBox( false );
+	_graph_lefty_graphtype_JComboBox.setToolTipText("Graph type used for left y-axis if not overriden with time series property.");
 //	_graph_graphtype_JComboBox.setEnabled ( false );
 	for ( TSGraphType graphType: TSGraphType.values() ) {
 	    if ( graphType != TSGraphType.UNKNOWN ) {
-	        _graph_graphtype_JComboBox.addItem ( "" + graphType );
+	        _graph_lefty_graphtype_JComboBox.addItem ( "" + graphType );
 	    }
 	}
-	int size = _graph_graphtype_JComboBox.getItemCount();
-	_graph_graphtype_JComboBox.addItemListener(this);
+	int size = _graph_lefty_graphtype_JComboBox.getItemCount();
+	_graph_lefty_graphtype_JComboBox.addItemListener(this);
 //	_graph_graphtype_JComboBox.setEnabled(false);
-	JGUIUtil.addComponent ( yAxisLeftGraphType_JPanel, _graph_graphtype_JComboBox,
+	JGUIUtil.addComponent ( yAxisLeftGraphType_JPanel, _graph_lefty_graphtype_JComboBox,
 			1, yYAxisLeftGraphType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
@@ -3168,7 +3210,7 @@ private JPanel createSubproductJPanel ()
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_righty_title_rotation_JTextField = new JTextField(5);
 	_graph_righty_title_rotation_JTextField.setToolTipText(
-		"Rotation (clockwise degrees) of right y-axis title, 0=horizontal, 270=vertical with top of text on right");	
+		"Rotation (clockwise degrees) of right y-axis title, 0=horizontal, 90=vertical with top of text on right");	
 	JGUIUtil.addComponent (yAxisRightTitle_JPanel,_graph_righty_title_rotation_JTextField,
 		1, yAxisRightTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -3996,7 +4038,7 @@ private void displayDataProperties ( int isub, int its )
 	// Get the graph type, which influences some settings (for now use the
 	// subproduct graph type since we don't allow individual time series to be different)...
 
-	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_lefty_graphtype_JComboBox.getSelected() );
 
 	// "Color"
 
@@ -4406,12 +4448,12 @@ private void displaySubproductProperties ( int isub )
 	// Left y-axis graph type and related properties
 	
 	try {
-	    JGUIUtil.selectIgnoreCase(_graph_graphtype_JComboBox,_tsproduct.getLayeredPropValue ("GraphType", isub, -1, false ));
+	    JGUIUtil.selectIgnoreCase(_graph_lefty_graphtype_JComboBox,_tsproduct.getLayeredPropValue ("GraphType", isub, -1, false ));
 	}
 	catch ( Exception e ) {
-		_graph_graphtype_JComboBox.select( "" + TSGraphType.LINE );
+		_graph_lefty_graphtype_JComboBox.select( "" + TSGraphType.LINE );
 	}
-	graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+	graphType = TSGraphType.valueOfIgnoreCase ( _graph_lefty_graphtype_JComboBox.getSelected() );
 	
 	// AnnotationProvider [Annotations]
 
@@ -5405,7 +5447,7 @@ void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 	TSGraphType graphType = null;
 	if ( tsYAxis.equalsIgnoreCase("Left") ) {
 		// Graph type is from left y-axis
-		graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+		graphType = TSGraphType.valueOfIgnoreCase ( _graph_lefty_graphtype_JComboBox.getSelected() );
 	}
 	else {
 		// Graph type is from right y-axis
@@ -5870,20 +5912,17 @@ public void itemStateChanged ( ItemEvent evt ) {
 		// Set the choice in the color textfield...
 		_graph_bottomx_majorgrid_color_JTextField.setText(
 		_graph_bottomx_majorgrid_color_JComboBox.getSelected());
-		try {	if ( _graph_bottomx_majorgrid_color_JTextField.getText(
-			).equalsIgnoreCase("None")) {
-			_graph_bottomx_majorgrid_color_JTextField.setBackground(
-				Color.white );
+		try {
+			if ( _graph_bottomx_majorgrid_color_JTextField.getText().equalsIgnoreCase("None")) {
+			_graph_bottomx_majorgrid_color_JTextField.setBackground(Color.white );
 			}
 			else {
-			_graph_bottomx_majorgrid_color_JTextField.setBackground(
-			(Color)GRColor.parseColor(
-			_graph_bottomx_majorgrid_color_JTextField.getText()) );
+				_graph_bottomx_majorgrid_color_JTextField.setBackground((Color)GRColor.parseColor(
+				_graph_bottomx_majorgrid_color_JTextField.getText()) );
 			}
 		}
 		catch ( Exception e ) {
-			_graph_bottomx_majorgrid_color_JTextField.setBackground(
-			Color.white );
+			_graph_bottomx_majorgrid_color_JTextField.setBackground(Color.white );
 		}
 	}
 	else if ( o == _graph_lefty_majorgrid_color_JComboBox ) {
@@ -5983,11 +6022,11 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_xyscatter_analysis_fill_period_end_JTextField.setEnabled(false);
 		}
 	}
-	else if (o == _graph_graphtype_JComboBox) {
-		TSGraphType graphType = TSGraphType.valueOfIgnoreCase (_graph_graphtype_JComboBox.getSelected() );
-		if (graphType == TSGraphType.XY_SCATTER 
-		    || graphType == TSGraphType.PREDICTED_VALUE
-		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	else if (o == _graph_lefty_graphtype_JComboBox) {
+		TSGraphType graphTypeLeft = TSGraphType.valueOfIgnoreCase (_graph_lefty_graphtype_JComboBox.getSelected() );
+		if (graphTypeLeft == TSGraphType.XY_SCATTER 
+		    || graphTypeLeft == TSGraphType.PREDICTED_VALUE
+		    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 			// Display the regression analysis panel...
 			_blank_analysis_JPanel.setVisible ( false );
 			_xyscatter_analysis_JPanel.setVisible ( true );
@@ -5996,7 +6035,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_ts_blank_analysis_JPanel.setVisible ( false );
 			_ts_xyscatter_analysis_JPanel.setVisible ( true );
 			_ts_xyscatter_analysis_JPanel.repaint();
-			if (graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			if (graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
 				_graph_barOverlap_JComboBox.setVisible(true);
@@ -6017,7 +6056,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_ts_xyscatter_analysis_JPanel.setVisible ( false );
 			_ts_blank_analysis_JPanel.setVisible ( true );
 			_ts_blank_analysis_JPanel.repaint();
-			if (graphType == TSGraphType.BAR) {
+			if (graphTypeLeft == TSGraphType.BAR) {
 				_graph_barposition_JComboBox.setVisible(true);
 				_graph_barposition_JLabel.setVisible(true);
 				_graph_barOverlap_JComboBox.setVisible(true);
@@ -6030,14 +6069,14 @@ public void itemStateChanged ( ItemEvent evt ) {
                 _graph_barOverlap_JLabel.setVisible(false);
 			}
 		}
-		clearGraphProperties(_selected_subproduct, -1, graphType);
+		clearGraphProperties(_tsproduct, _selected_subproduct, -1, graphTypeLeft, null);
 		graphTypeSetValues = true;
 	}
 	else if (o == _graph_righty_graphtype_JComboBox) {
-		TSGraphType graphType = TSGraphType.valueOfIgnoreCase (_graph_righty_graphtype_JComboBox.getSelected() );
+		TSGraphType graphTypeRight = TSGraphType.valueOfIgnoreCase (_graph_righty_graphtype_JComboBox.getSelected() );
 		// TODO SAM 2016-10-21 Need to evaluate more how right axis is impacted by the more advanced graph types
 		// For now assume the right y-axis just controls basic drawing
-		if (graphType == TSGraphType.BAR) {
+		if (graphTypeRight == TSGraphType.BAR) {
 			_graph_righty_barposition_JComboBox.setVisible(true);
 			_graph_righty_barposition_JLabel.setVisible(true);
 			_graph_righty_barOverlap_JComboBox.setVisible(true);
@@ -6049,7 +6088,7 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_graph_righty_barOverlap_JComboBox.setVisible(false);
             _graph_righty_barOverlap_JLabel.setVisible(false);
 		}
-		clearGraphProperties(_selected_subproduct, -1, graphType);
+		clearGraphProperties(_tsproduct,_selected_subproduct, -1, null, graphTypeRight);
 		graphTypeSetValues = true;
 	}
 	checkGUIState();
@@ -6114,44 +6153,45 @@ private void limitGraphTypes(int subproduct) {
 	    leftYAxisOriginalGraphType.equals("Bar") || leftYAxisOriginalGraphType.equals("Line")
 	    || leftYAxisOriginalGraphType.equals("Point") ) {
 		// Original graph type was basic so limit graph type choices to basic types
-		_graph_graphtype_JComboBox.removeAll();
-		_graph_graphtype_JComboBox.add("Area");
-		_graph_graphtype_JComboBox.add("AreaStacked");
-		_graph_graphtype_JComboBox.add("Bar");
-		_graph_graphtype_JComboBox.add("Line");
-		_graph_graphtype_JComboBox.add("Point");
+		_graph_lefty_graphtype_JComboBox.removeAll();
+		_graph_lefty_graphtype_JComboBox.add("Area");
+		_graph_lefty_graphtype_JComboBox.add("AreaStacked");
+		_graph_lefty_graphtype_JComboBox.add("Bar");
+		_graph_lefty_graphtype_JComboBox.add("Line");
+		_graph_lefty_graphtype_JComboBox.add("Point");
 	}
 	else {
 	    for ( TSGraphType graphType: TSGraphType.values() ) {
 	        if ( graphType != TSGraphType.UNKNOWN ) {
-	            _graph_graphtype_JComboBox.addItem ( "" + graphType );
+	            _graph_lefty_graphtype_JComboBox.addItem ( "" + graphType );
 	        }
 	    }
 	}
 	
-	// Right y-axis
+	// Right y-axis (can only use basic graph types)
 	
 	String originalRightYAxisGraphType = _tsproduct.getLayeredPropValue( "RightYAxisOriginalGraphType", subproduct, -1, false);
 
-	if ( originalRightYAxisGraphType.equals("Area") || originalRightYAxisGraphType.equals("AreaStacked") ||
-		originalRightYAxisGraphType.equals("Bar") || originalRightYAxisGraphType.equals("Line")
-	    || originalRightYAxisGraphType.equals("Point") ) {
+	//if ( originalRightYAxisGraphType.equals("Area") || originalRightYAxisGraphType.equals("AreaStacked") ||
+	//	originalRightYAxisGraphType.equals("Bar") || originalRightYAxisGraphType.equals("Line")
+	//    || originalRightYAxisGraphType.equals("Point") ) {
 		// Original graph type was basic so limit graph type choices to basic types
 		_graph_righty_graphtype_JComboBox.removeAll();
+		_graph_righty_graphtype_JComboBox.add("None");
 		_graph_righty_graphtype_JComboBox.add("Area");
-		_graph_righty_graphtype_JComboBox.add("AreaStacked");
+		//_graph_righty_graphtype_JComboBox.add("AreaStacked"); // TODO SAM 2016-10-24 figure out - need to manage the derived data
 		_graph_righty_graphtype_JComboBox.add("Bar");
 		_graph_righty_graphtype_JComboBox.add("Line");
 		_graph_righty_graphtype_JComboBox.add("Point");
-	}
-	else {
-		_graph_righty_graphtype_JComboBox.removeAll();
-	    for ( TSGraphType graphType: TSGraphType.values() ) {
-	        if ( graphType != TSGraphType.UNKNOWN ) {
-	            _graph_righty_graphtype_JComboBox.addItem ( "" + graphType );
-	        }
-	    }
-	}
+	//}
+	//else {
+	//	_graph_righty_graphtype_JComboBox.removeAll();
+	//    for ( TSGraphType graphType: TSGraphType.values() ) {
+	//        if ( graphType != TSGraphType.UNKNOWN ) {
+	//            _graph_righty_graphtype_JComboBox.addItem ( "" + graphType );
+	//        }
+	//    }
+	//}
 	
 	__ignoreItemStateChange = hold;
 }
@@ -6310,7 +6350,7 @@ private void openGUI ( boolean visible )
 		button_JPanel = null;
 	
 		// Left y-axis
-		_graph_graphtype_JComboBox.addItemListener(this);
+		_graph_lefty_graphtype_JComboBox.addItemListener(this);
 		// Right y-axis
 		_graph_righty_graphtype_JComboBox.addItemListener(this);
 	
@@ -6319,9 +6359,9 @@ private void openGUI ( boolean visible )
 		// Could do that in the code that creates the component.
 		
 		// Left y-axis
-		_graph_graphtype_JComboBox.select("XY-Scatter");
-		_graph_graphtype_JComboBox.select("Bar");
-		_graph_graphtype_JComboBox.setEnabled(true);
+		_graph_lefty_graphtype_JComboBox.select("XY-Scatter");
+		_graph_lefty_graphtype_JComboBox.select("Bar");
+		_graph_lefty_graphtype_JComboBox.setEnabled(true);
 		// Right y-axis
 		_graph_righty_graphtype_JComboBox.select("XY-Scatter");
 		_graph_righty_graphtype_JComboBox.select("Bar");
@@ -6525,7 +6565,7 @@ private void setGraphFieldsEnabled(boolean enabled) {
 //	JGUIUtil.setEnabled(_graph_enabled_JCheckBox, enabled);
 	JGUIUtil.setEnabled(_graph_isref_JCheckBox, enabled);
 	JGUIUtil.setEnabled(_yPercentJTextField, enabled);
-	JGUIUtil.setEnabled(_graph_graphtype_JComboBox, enabled);
+	JGUIUtil.setEnabled(_graph_lefty_graphtype_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_barposition_JLabel, enabled);
 	JGUIUtil.setEnabled(_graph_barposition_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_barOverlap_JLabel, enabled);
@@ -6869,11 +6909,11 @@ Handle tab selection events.
 public void stateChanged ( ChangeEvent e )
 {	// Both the graph and time series tabbed panels have tabs labeled
 	// "Analysis" so need to check the analysis component...
-	if ( _graph_graphtype_JComboBox == null ) {
+	if ( _graph_lefty_graphtype_JComboBox == null ) {
 		// Initializing the interface?
 		return;
 	}
-	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_graphtype_JComboBox.getSelected() );
+	TSGraphType graphType = TSGraphType.valueOfIgnoreCase ( _graph_lefty_graphtype_JComboBox.getSelected() );
 	
 	Object comp = e.getSource();
 	if ( comp == _graph_analysis_JPanel ) {
@@ -6941,7 +6981,8 @@ protected int updateTSProduct (int howSet) {
 	String gui_val;
 	int how_set_prev = _tsproduct.getPropList().getHowSet();
 	_tsproduct.getPropList().setHowSet (howSet);
-	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(_graph_graphtype_JComboBox.getSelected());
+	TSGraphType graphTypeLeft = TSGraphType.valueOfIgnoreCase(_graph_lefty_graphtype_JComboBox.getSelected());
+	TSGraphType graphTypeRight = TSGraphType.valueOfIgnoreCase(_graph_righty_graphtype_JComboBox.getSelected());
 
 	// --------------------------------------------------------------------
 	// Product properties
@@ -7085,7 +7126,7 @@ protected int updateTSProduct (int howSet) {
 	// "BarPosition" - only set if it is a bar graph, otherwise it will
 	// get saved in the TSProduct file...
 
-	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if (graphTypeLeft == TSGraphType.BAR || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		prop_val = _tsproduct.getLayeredPropValue( "BarPosition", _selected_subproduct, -1, false);
 		gui_val = _graph_barposition_JComboBox.getSelected();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
@@ -7097,7 +7138,7 @@ protected int updateTSProduct (int howSet) {
 	// "BarOverlap" - only set if it is a bar graph, otherwise it will
     // get saved in the TSProduct file...
 
-    if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+    if (graphTypeLeft == TSGraphType.BAR || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
         prop_val = _tsproduct.getLayeredPropValue( "BarOverlap", _selected_subproduct, -1, false);
         gui_val = _graph_barOverlap_JComboBox.getSelected();
         if (!gui_val.equalsIgnoreCase(prop_val)) {
@@ -7248,9 +7289,9 @@ protected int updateTSProduct (int howSet) {
 		++ndirty;
 	}
 
-	// "GraphType"
+	// "GraphType" (left y-axis)
 	prop_val = _tsproduct.getLayeredPropValue ( "GraphType", _selected_subproduct, -1, false );
-	gui_val = _graph_graphtype_JComboBox.getSelected();
+	gui_val = _graph_lefty_graphtype_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 		_tsproduct.setPropValue ( "GraphType", gui_val, _selected_subproduct, -1 );
 		++ndirty;
@@ -7502,6 +7543,30 @@ protected int updateTSProduct (int howSet) {
 		_graph_JComboBox.addItemListener(this);
 		++ndirty;
 	}
+	
+	// "RightYAxisBarPosition" - only set if it is a bar graph, otherwise it will
+	// get saved in the TSProduct file...
+
+	if (graphTypeRight == TSGraphType.BAR || graphTypeRight == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+		prop_val = _tsproduct.getLayeredPropValue( "RightYAxisBarPosition", _selected_subproduct, -1, false);
+		gui_val = _graph_righty_barposition_JComboBox.getSelected();
+		if (!gui_val.equalsIgnoreCase(prop_val)) {
+			_tsproduct.setPropValue("RightYAxisBarPosition", gui_val, _selected_subproduct, -1);
+			++ndirty;
+		}
+	}
+	
+	// "BarOverlap" - only set if it is a bar graph, otherwise it will
+    // get saved in the TSProduct file...
+
+    if (graphTypeRight == TSGraphType.BAR || graphTypeRight == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+        prop_val = _tsproduct.getLayeredPropValue( "RightYAxisBarOverlap", _selected_subproduct, -1, false);
+        gui_val = _graph_righty_barOverlap_JComboBox.getSelected();
+        if (!gui_val.equalsIgnoreCase(prop_val)) {
+            _tsproduct.setPropValue("RightYAxisBarOverlap", gui_val, _selected_subproduct, -1);
+            ++ndirty;
+        }
+    }
 
 	// "RightYAxisDirection"
 
@@ -7511,6 +7576,14 @@ protected int updateTSProduct (int howSet) {
         _tsproduct.setPropValue ( "RightYAxisDirection", gui_val, _selected_subproduct, -1 );
         ++ndirty;
     }
+    
+	// "RightYAxisGraphType"
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisGraphType", _selected_subproduct, -1, false );
+	gui_val = _graph_righty_graphtype_JComboBox.getSelected();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "RightYAxisGraphType", gui_val, _selected_subproduct, -1 );
+		++ndirty;
+	}
 
 	// "RightYAxisIgnoreUnits"
 
@@ -7709,9 +7782,9 @@ protected int updateTSProduct (int howSet) {
 		++ndirty;
 	}
 
-	if (graphType == TSGraphType.XY_SCATTER 
-	    || graphType == TSGraphType.PREDICTED_VALUE
-	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if (graphTypeLeft == TSGraphType.XY_SCATTER 
+	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE
+	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 
 		// "XYScatterAnalyzeForFilling"
 
@@ -7901,8 +7974,8 @@ protected int updateTSProduct (int howSet) {
 
 	// "RegressionLineEnabled"
 
-	if (graphType == TSGraphType.XY_SCATTER || graphType == TSGraphType.PREDICTED_VALUE
-	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if (graphTypeLeft == TSGraphType.XY_SCATTER || graphTypeLeft == TSGraphType.PREDICTED_VALUE
+	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		prop_val = _tsproduct.getLayeredPropValue (
 			"RegressionLineEnabled", _selected_subproduct, _selected_data, false );
 		if ( _ts_regressionline_JCheckBox.isSelected() ) {
@@ -7911,9 +7984,9 @@ protected int updateTSProduct (int howSet) {
 		else {	
 			gui_val = "false";
 		}
-		if ((graphType == TSGraphType.XY_SCATTER
-		    || graphType == TSGraphType.PREDICTED_VALUE
-		    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) &&
+		if ((graphTypeLeft == TSGraphType.XY_SCATTER
+		    || graphTypeLeft == TSGraphType.PREDICTED_VALUE
+		    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) &&
 			!gui_val.equalsIgnoreCase(prop_val)) {
 			// Only save the property if a scatter plot...
 			_tsproduct.setPropValue("RegressionLineEnabled", gui_val, _selected_subproduct, _selected_data);
@@ -7950,9 +8023,9 @@ protected int updateTSProduct (int howSet) {
 
 	// "XYScatterConfidenceInterval"
 
-	if (graphType == TSGraphType.XY_SCATTER 
-	    || graphType == TSGraphType.PREDICTED_VALUE
-	    || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+	if (graphTypeLeft == TSGraphType.XY_SCATTER 
+	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE
+	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
 		prop_val = _tsproduct.getLayeredPropValue (
 			"XYScatterConfidenceInterval", _selected_subproduct, _selected_data, false);
 		gui_val= _ts_confidenceinterval_JComboBox.getSelected().trim();
