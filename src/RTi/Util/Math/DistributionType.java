@@ -12,6 +12,7 @@ public enum DistributionType
     EMPERICAL("Emperical"),
     /**
     Gringorten.
+    TODO SAM 2016-06-17 This is actually not a distribution - need to transition RunningStatisticTimeSeries to Emperical with Gringorten plotting position
     */
     GRINGORTEN("Gringorten"),
     /**
@@ -29,7 +30,7 @@ public enum DistributionType
     /**
     Sample data (for simple statistics, no population distribution).
     */
-    SAMPLE_DATA("SampleData"),
+    SAMPLE("Sample"),
     /**
     Wakeby.
     */
