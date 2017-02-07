@@ -563,8 +563,14 @@ labels.</td>
 
 <tr>
 <td><b>LeftYAxisMajorGridColor</b></td>
-<td>Color to use for the major grid.</td>
+<td>Color to use for the left y-axis major grid.</td>
 <td>Most graph types automatically set to "lightgray".</td>
+</tr>
+
+<tr>
+<td><b>LeftYAxisMajorTickColor</b></td>
+<td>Color to use for the left y-axis major ticks.</td>
+<td>Most graph types automatically set to "none".</td>
 </tr>
 
 <tr>
@@ -796,8 +802,14 @@ labels.</td>
 
 <tr>
 <td><b>RightYAxisMajorGridColor</b></td>
-<td>Color to use for the major grid.</td>
-<td>Most graph types automatically set to "lightgray".</td>
+<td>Color to use for the right y-axis major grid.</td>
+<td>Most graph types automatically set to "none" (because it will interfere with the left y-axis grid).</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMajorTickColor</b></td>
+<td>Color to use for the right y-axis major ticks.</td>
+<td>Most graph types automatically set to "none" to be consistent with left y-axis (but may change to black).</td>
 </tr>
 
 <tr>
@@ -1923,6 +1935,11 @@ public void checkGraphProperties ( int nsubs )
 				getDefaultPropValue("LeftYAxisMajorGridColor", isub,-1), isub, -1 );
 			}
 		}
+		
+		if ( getLayeredPropValue("LeftYAxisMajorTickColor", isub, -1, false ) == null ) {
+		    setPropValue ( "LeftYAxisMajorTickColor",
+			getDefaultPropValue("LeftYAxisMajorTickColor", isub,-1), isub, -1 );
+		}
 
 		if ( getLayeredPropValue("LeftYAxisMax", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisMax", getDefaultPropValue("LeftYAxisMax",isub,-1), isub, -1 );
@@ -2063,6 +2080,11 @@ public void checkGraphProperties ( int nsubs )
 			    setPropValue ( "RightYAxisMajorGridColor",
 				getDefaultPropValue("RightYAxisMajorGridColor", isub,-1), isub, -1 );
 			}
+		}
+		
+		if ( getLayeredPropValue("RightYAxisMajorTickColor", isub, -1, false ) == null ) {
+		    setPropValue ( "RightYAxisMajorTickColor",
+			getDefaultPropValue("RightYAxisMajorTickColor", isub,-1), isub, -1 );
 		}
 
 		if ( getLayeredPropValue("RightYAxisMax", isub, -1, false ) == null ) {
@@ -2680,6 +2702,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisMajorGridColor") ){
 			return "lightgray";
 		}
+		else if ( param.equalsIgnoreCase("LeftYAxisMajorTickColor") ){
+			return "None";
+		}
 		// "LeftYAxisLabelPrecision" determined at run-time
 		else if ( param.equalsIgnoreCase("LeftYAxisMax") ) {
 			return "Auto";
@@ -2760,6 +2785,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisMajorGridColor") ){
 			return "lightgray";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMajorTickColor") ){
+			return "None"; // Default for now to be consistent with left, but may change to black
 		}
 		// "RightYAxisLabelPrecision" determined at run-time
 		else if ( param.equalsIgnoreCase("RightYAxisMax") ) {

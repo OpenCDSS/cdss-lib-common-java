@@ -7253,51 +7253,76 @@ private void drawXYScatterPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int
 }
 
 /**
-Draw the Y-axis grid lines.  Currently only the major grid lines are drawn.
+Draw the Y-axis grid lines and tick marks.
 */
 private void drawYAxisGrid()
-{	String prop_value = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorGridColor", _subproduct, -1, false );
-	if ( (prop_value == null) || prop_value.equalsIgnoreCase("None") ) {
-		return;
+{	// Left y-axis grid lines
+	String propValue = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorGridColor", _subproduct, -1, false );
+	if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
+		GRColor color;
+		try {
+		    color = GRColor.parseColor(propValue);
+		}
+		catch ( Exception e ) {
+			color = GRColor.black;
+		}
+		_da_lefty_graph.setColor ( color );
+		double [] x = new double[2];
+		x[0] = _data_lefty_limits.getLeftX();
+		x[1] = _data_lefty_limits.getRightX();
+		// Draw a horizontal grid.
+		GRAxis.drawGrid ( _da_lefty_graph, 2, x, _ylabels_lefty.length, _ylabels_lefty, GRAxis.GRID_SOLID );
 	}
 
-	GRColor color;
-	try {
-	    color = GRColor.parseColor(prop_value);
-	}
-	catch ( Exception e ) {
-		color = GRColor.black;
-	}
-	_da_lefty_graph.setColor ( color );
-	double [] x = new double[2];
-	x[0] = _data_lefty_limits.getLeftX();
-	x[1] = _data_lefty_limits.getRightX();
-	// Draw a horizontal grid.
-	GRAxis.drawGrid ( _da_lefty_graph, 2, x, _ylabels_lefty.length, _ylabels_lefty, GRAxis.GRID_SOLID );
-	
-	// Right y-axis
-	
-	if ( __drawRightyLabels ) {
-		prop_value = _tsproduct.getLayeredPropValue ( "RightYAxisMajorGridColor", _subproduct, -1, false );
-		if ( (prop_value == null) || prop_value.equalsIgnoreCase("None") ) {
-			return;
-		}
-	
+	// Left y-axis tick marks (on top of grid lines)
+	propValue = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorTickColor", _subproduct, -1, false );
+	if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
+		GRColor color;
 		try {
-		    color = GRColor.parseColor(prop_value);
+		    color = GRColor.parseColor(propValue);
+		}
+		catch ( Exception e ) {
+			color = GRColor.black;
+		}
+		_da_lefty_graph.setColor ( color );
+		GRAxis.drawTicks(_da_lefty_graph, GRAxis.Y, GRAxis.LEFT, _ylabels_lefty.length, _ylabels_lefty, .02); // .02 is used for x-axis
+	}
+	
+	// Right y-axis grid lines
+	if ( __drawRightyLabels ) {
+		propValue = _tsproduct.getLayeredPropValue ( "RightYAxisMajorGridColor", _subproduct, -1, false );
+		if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
+			GRColor color;
+			try {
+			    color = GRColor.parseColor(propValue);
+			}
+			catch ( Exception e ) {
+				color = GRColor.black;
+			}
+			_da_righty_graph.setColor ( color );
+			double [] x = new double[2];
+			x[0] = _data_righty_limits.getLeftX();
+			x[1] = _data_righty_limits.getRightX();
+			// Draw a horizontal grid.
+			if ( _ylabels_righty != null ) {
+				// Can be null for new graph, especially when splitting product
+				GRAxis.drawGrid ( _da_righty_graph, 2, x, _ylabels_righty.length, _ylabels_righty, GRAxis.GRID_SOLID );
+			}
+		}
+	}
+
+	// Right y-axis tick marks (on top of grid lines)
+	propValue = _tsproduct.getLayeredPropValue ( "RightYAxisMajorTickColor", _subproduct, -1, false );
+	if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
+		GRColor color;
+		try {
+		    color = GRColor.parseColor(propValue);
 		}
 		catch ( Exception e ) {
 			color = GRColor.black;
 		}
 		_da_righty_graph.setColor ( color );
-		x = new double[2];
-		x[0] = _data_righty_limits.getLeftX();
-		x[1] = _data_righty_limits.getRightX();
-		// Draw a horizontal grid.
-		if ( _ylabels_righty != null ) {
-			// Can be null for new graph, especially when splitting product
-			GRAxis.drawGrid ( _da_righty_graph, 2, x, _ylabels_righty.length, _ylabels_righty, GRAxis.GRID_SOLID );
-		}
+		GRAxis.drawTicks(_da_righty_graph, GRAxis.Y, GRAxis.RIGHT, _ylabels_righty.length, _ylabels_righty, .02); // .02 is used for x-axis
 	}
 }
 

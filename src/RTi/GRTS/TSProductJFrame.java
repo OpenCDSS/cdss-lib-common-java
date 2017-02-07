@@ -423,9 +423,17 @@ private JTextField _graph_lefty_majorgrid_color_JTextField = null;
 private SimpleJComboBox _graph_lefty_majorgrid_color_JComboBox = null;
 private SimpleJButton _graph_lefty_majorgrid_color_JButton = null;
 
+private JTextField _graph_lefty_majortick_color_JTextField = null;
+private SimpleJComboBox _graph_lefty_majortick_color_JComboBox = null;
+private SimpleJButton _graph_lefty_majortick_color_JButton = null;
+
 private JTextField _graph_righty_majorgrid_color_JTextField = null;
 private SimpleJComboBox _graph_righty_majorgrid_color_JComboBox = null;
 private SimpleJButton _graph_righty_majorgrid_color_JButton = null;
+
+private JTextField _graph_righty_majortick_color_JTextField = null;
+private SimpleJComboBox _graph_righty_majortick_color_JComboBox = null;
+private SimpleJButton _graph_righty_majortick_color_JButton = null;
 
 private JTextField _graph_righty_title_JTextField = null;
 private SimpleJComboBox _graph_righty_title_fontname_JComboBox = null;
@@ -1404,6 +1412,11 @@ private void clearSubProductProperties() {
 	_graph_lefty_majorgrid_color_JTextField.setText(colorString);
 	_graph_lefty_majorgrid_color_JComboBox.select(colorString);
 	_graph_lefty_majorgrid_color_JTextField.setBackground(color);
+	colorString = _tsproduct.getDefaultPropValue("LeftYAxisMajorTickColor", 1, -1);
+	color = GRColor.parseColor(colorString);
+	_graph_lefty_majortick_color_JTextField.setText(colorString);
+	_graph_lefty_majortick_color_JComboBox.select(colorString);
+	_graph_lefty_majortick_color_JTextField.setBackground(color);
 	_graph_lefty_title_JTextField.setText( _tsproduct.getDefaultPropValue("LeftYAxisTitleString", 1, -1));
 	_graph_lefty_title_fontname_JComboBox.select(_tsproduct.getDefaultPropValue("LeftYAxisTitleFontName", 1, -1));
 	_graph_lefty_title_fontstyle_JComboBox.select(_tsproduct.getDefaultPropValue("LeftYAxisTitleFontStyle", 1, -1));
@@ -1430,6 +1443,11 @@ private void clearSubProductProperties() {
 	_graph_righty_majorgrid_color_JTextField.setText(colorString);
 	_graph_righty_majorgrid_color_JComboBox.select(colorString);
 	_graph_righty_majorgrid_color_JTextField.setBackground(color);
+	colorString = _tsproduct.getDefaultPropValue("RightYAxisMajorTickColor", 1, -1);
+	color = GRColor.parseColor(colorString);
+	_graph_righty_majortick_color_JTextField.setText(colorString);
+	_graph_righty_majortick_color_JComboBox.select(colorString);
+	_graph_righty_majortick_color_JTextField.setBackground(color);
 	_graph_righty_title_JTextField.setText( _tsproduct.getDefaultPropValue("RightYAxisTitleString", 1, -1));
 	_graph_righty_title_fontname_JComboBox.select(_tsproduct.getDefaultPropValue("RightYAxisTitleFontName", 1, -1));
 	_graph_righty_title_fontstyle_JComboBox.select(_tsproduct.getDefaultPropValue("RightYAxisTitleFontStyle", 1, -1));
@@ -3191,7 +3209,35 @@ private JPanel createSubproductJPanel ()
 			3, yAxisLeftType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-    List<String> leftYAxisDirectionValues = getPropertyChoices("LeftYAxisDirection");
+	JGUIUtil.addComponent ( yAxisLeftType_JPanel, new JLabel ("Major tick color:"),
+		0, ++yAxisLeftType, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graph_lefty_majortick_color_JTextField = new JTextField (10);
+	// Do not set the background color because it will be set to that of the tick color.
+	_graph_lefty_majortick_color_JTextField.setEditable(false);
+	_graph_lefty_majortick_color_JTextField.setToolTipText("Use a named color or specify as Red,Green,Blue (each 0-255)");
+	JGUIUtil.addComponent ( yAxisLeftType_JPanel, _graph_lefty_majortick_color_JTextField,
+		1, yAxisLeftType, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE,
+		GridBagConstraints.WEST );
+	_graph_lefty_majortick_color_JComboBox = new SimpleJComboBox( false );
+	_graph_lefty_majortick_color_JComboBox.addItemListener(this);
+	size = GRColor.COLOR_NAMES.length;
+	for ( int i = 0; i < size; i++ ) {
+		_graph_lefty_majortick_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+	}
+	_graph_lefty_majortick_color_JComboBox.setMaximumRowCount(
+		_graph_lefty_majortick_color_JComboBox.getItemCount());
+	JGUIUtil.addComponent ( yAxisLeftType_JPanel, _graph_lefty_majortick_color_JComboBox,
+			2, yAxisLeftType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_graph_lefty_majortick_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
+	_graph_lefty_majortick_color_JButton.setEnabled(false);
+	JGUIUtil.addComponent (yAxisLeftType_JPanel, _graph_lefty_majortick_color_JButton,
+			3, yAxisLeftType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
+	List<String> leftYAxisDirectionValues = getPropertyChoices("LeftYAxisDirection");
     String leftYAxisDirectionValue = getPropertyChoiceDefault("LeftYAxisDirection");
     JGUIUtil.addComponent ( yAxisLeftType_JPanel, new JLabel ("Axis direction:"),
         0, ++yAxisLeftType, 1, 1, 0, 0,
@@ -3394,6 +3440,34 @@ private JPanel createSubproductJPanel ()
 	_graph_righty_majorgrid_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
 	_graph_righty_majorgrid_color_JButton.setEnabled(false);
 	JGUIUtil.addComponent (yAxisRightType_JPanel, _graph_righty_majorgrid_color_JButton,
+			3, yAxisRightType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
+	JGUIUtil.addComponent ( yAxisRightType_JPanel, new JLabel ("Major tick color:"),
+			0, ++yAxisRightType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graph_righty_majortick_color_JTextField = new JTextField (10);
+	// Do not set the background color because it will be set to that of the tick color.
+	_graph_righty_majortick_color_JTextField.setEditable(false);
+	_graph_righty_majortick_color_JTextField.setToolTipText("Use a named color or specify as Red,Green,Blue (each 0-255)");
+	JGUIUtil.addComponent ( yAxisRightType_JPanel, _graph_righty_majortick_color_JTextField,
+			1, yAxisRightType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE,
+			GridBagConstraints.WEST );
+	_graph_righty_majortick_color_JComboBox = new SimpleJComboBox( false );
+	_graph_righty_majortick_color_JComboBox.addItemListener(this);
+	size = GRColor.COLOR_NAMES.length;
+	for ( int i = 0; i < size; i++ ) {
+		_graph_righty_majortick_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+	}
+	_graph_righty_majortick_color_JComboBox.setMaximumRowCount(
+		_graph_righty_majortick_color_JComboBox.getItemCount());
+	JGUIUtil.addComponent ( yAxisRightType_JPanel, _graph_righty_majortick_color_JComboBox,
+			2, yAxisRightType, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_graph_righty_majortick_color_JButton = new SimpleJButton ( "Custom", "Custom", this );
+	_graph_righty_majortick_color_JButton.setEnabled(false);
+	JGUIUtil.addComponent (yAxisRightType_JPanel, _graph_righty_majortick_color_JButton,
 			3, yAxisRightType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
@@ -4781,6 +4855,32 @@ private void displaySubproductProperties ( int isub )
 		}
 	}
 	
+	// "LeftYAxisMajorTickColor" [Y Axis (Left)]
+
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorTickColor", isub, -1, false );
+	_graph_lefty_majortick_color_JTextField.setText(prop_val);
+	if ( prop_val.equalsIgnoreCase("None") ) {
+		_graph_lefty_majortick_color_JComboBox.select("None");
+		_graph_lefty_majortick_color_JTextField.setBackground (	Color.white );
+	}
+	else {
+		try {
+			JGUIUtil.selectIgnoreCase(_graph_lefty_majortick_color_JComboBox,prop_val);
+			try {
+				_graph_lefty_majortick_color_JTextField.setBackground (	(Color)GRColor.parseColor(
+				_graph_lefty_majortick_color_JTextField.getText()) );
+			}
+			catch ( Exception e2 ) {
+				_graph_lefty_majortick_color_JComboBox.select("None");
+				_graph_lefty_majortick_color_JTextField.setBackground (	Color.white );
+			}
+		}
+		catch ( Exception e ) {
+			_graph_lefty_majortick_color_JComboBox.select("None");
+			_graph_lefty_majortick_color_JTextField.setBackground ( Color.white );
+		}
+	}
+	
 	// "LeftYAxisTitlePosition" [Y Axis (Left)]
 
 	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisTitlePosition", isub, -1, false );
@@ -5100,6 +5200,32 @@ private void displaySubproductProperties ( int isub )
 		catch ( Exception e ) {
 			_graph_righty_majorgrid_color_JComboBox.select("None");
 			_graph_righty_majorgrid_color_JTextField.setBackground ( Color.white );
+		}
+	}
+	
+	// "RightYAxisMajorTickColor" [Y Axis (Right)]
+
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisMajorTickColor", isub, -1, false );
+	_graph_righty_majortick_color_JTextField.setText(prop_val);
+	if ( prop_val.equalsIgnoreCase("None") ) {
+		_graph_righty_majortick_color_JComboBox.select("None");
+		_graph_righty_majortick_color_JTextField.setBackground ( Color.white );
+	}
+	else {
+		try {
+			JGUIUtil.selectIgnoreCase(_graph_righty_majortick_color_JComboBox,prop_val);
+			try {
+				_graph_righty_majortick_color_JTextField.setBackground ( (Color)GRColor.parseColor(
+				_graph_righty_majortick_color_JTextField.getText()) );
+			}
+			catch ( Exception e2 ) {
+				_graph_righty_majortick_color_JComboBox.select("None");
+				_graph_righty_majortick_color_JTextField.setBackground ( Color.white );
+			}
+		}
+		catch ( Exception e ) {
+			_graph_righty_majortick_color_JComboBox.select("None");
+			_graph_righty_majortick_color_JTextField.setBackground ( Color.white );
 		}
 	}
 	
@@ -6011,6 +6137,23 @@ public void itemStateChanged ( ItemEvent evt ) {
 			_graph_lefty_majorgrid_color_JTextField.setBackground ( Color.white );
 		}
 	}
+	else if ( o == _graph_lefty_majortick_color_JComboBox ) {
+		// Set the choice in the color textfield...
+		_graph_lefty_majortick_color_JTextField.setText(
+		_graph_lefty_majortick_color_JComboBox.getSelected());
+		try {
+		    if ( _graph_lefty_majortick_color_JTextField.getText().equalsIgnoreCase("None") ) {
+		        _graph_lefty_majortick_color_JTextField.setBackground ( Color.white );
+			}
+			else {	
+    			_graph_lefty_majortick_color_JTextField.setBackground (
+    			    (Color)GRColor.parseColor(_graph_lefty_majortick_color_JTextField.getText()) );
+			}
+		}
+		catch ( Exception e ) {
+			_graph_lefty_majortick_color_JTextField.setBackground ( Color.white );
+		}
+	}
 	else if ( o == _graph_righty_majorgrid_color_JComboBox ) {
 		// Set the choice in the color textfield...
 		_graph_righty_majorgrid_color_JTextField.setText(
@@ -6026,6 +6169,23 @@ public void itemStateChanged ( ItemEvent evt ) {
 		}
 		catch ( Exception e ) {
 			_graph_righty_majorgrid_color_JTextField.setBackground ( Color.white );
+		}
+	}
+	else if ( o == _graph_righty_majortick_color_JComboBox ) {
+		// Set the choice in the color textfield...
+		_graph_righty_majortick_color_JTextField.setText(
+		_graph_righty_majortick_color_JComboBox.getSelected());
+		try {
+		    if ( _graph_righty_majortick_color_JTextField.getText().equalsIgnoreCase("None") ) {
+		        _graph_righty_majortick_color_JTextField.setBackground ( Color.white );
+			}
+			else {	
+    			_graph_righty_majortick_color_JTextField.setBackground (
+    			    (Color)GRColor.parseColor(_graph_righty_majortick_color_JTextField.getText()) );
+			}
+		}
+		catch ( Exception e ) {
+			_graph_righty_majortick_color_JTextField.setBackground ( Color.white );
 		}
 	}
 	else if ( o == __ts_JComboBox ) {
@@ -6723,14 +6883,19 @@ private void setGraphFieldsEnabled(boolean enabled) {
 	setEditable(_graph_bottomx_title_fontsize_JTextField, enabled);
 	setEditable(_graph_bottomx_majorgrid_color_JTextField, enabled);
 	setEditable(_graph_lefty_label_fontsize_JTextField, enabled);
+	setEditable(_graph_lefty_majorgrid_color_JTextField, enabled);
+	setEditable(_graph_lefty_majortick_color_JTextField, enabled);
 	setEditable(_graph_lefty_precision_JTextField, enabled);
-	setEditable(_graph_lefty_units_JTextField, enabled);
 	setEditable(_graph_lefty_title_JTextField, enabled);
 	setEditable(_graph_lefty_title_fontsize_JTextField, enabled);
+	setEditable(_graph_lefty_units_JTextField, enabled);
 	setEditable(_graph_righty_label_fontsize_JTextField, enabled);
-	setEditable(_graph_lefty_majorgrid_color_JTextField, enabled);
+	setEditable(_graph_righty_majorgrid_color_JTextField, enabled);
+	setEditable(_graph_righty_majortick_color_JTextField, enabled);
+	setEditable(_graph_righty_precision_JTextField, enabled);
 	setEditable(_graph_righty_title_JTextField, enabled);
 	setEditable(_graph_righty_title_fontsize_JTextField, enabled);
+	setEditable(_graph_righty_units_JTextField, enabled);
 	setEditable(_graph_datalabelformat_JTextField, enabled);
 	setEditable(_graph_datalabelfontsize_JTextField, enabled);
 	setEditable(_graph_legendformat_JTextField, enabled);
@@ -7433,6 +7598,15 @@ protected int updateTSProduct (int howSet) {
 		_tsproduct.setPropValue ( "LeftYAxisMajorGridColor", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
+	
+	// "LeftYAxisMajorTickColor"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorTickColor", _selected_subproduct, -1, false );
+	gui_val = _graph_lefty_majortick_color_JTextField.getText().trim();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "LeftYAxisMajorTickColor", gui_val, _selected_subproduct, -1);
+		++ndirty;
+	}
 
 	// "LeftYAxisMax"
 
@@ -7710,6 +7884,15 @@ protected int updateTSProduct (int howSet) {
 	gui_val = _graph_righty_majorgrid_color_JTextField.getText().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 		_tsproduct.setPropValue ( "RightYAxisMajorGridColor", gui_val, _selected_subproduct, -1);
+		++ndirty;
+	}
+	
+	// "RightYAxisMajorTickColor"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisMajorTickColor", _selected_subproduct, -1, false );
+	gui_val = _graph_righty_majortick_color_JTextField.getText().trim();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "RightYAxisMajorTickColor", gui_val, _selected_subproduct, -1);
 		++ndirty;
 	}
 

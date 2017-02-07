@@ -22,6 +22,7 @@ Standard normal probability axis.
 */
 public static final int STANDARD_NORMAL_PROBABILITY = 3;
 
+// TODO sam 2017-02-06 evaluate whether need to convert to enum.
 /**
 X axis.  Used by some utility methods.
 */
@@ -30,6 +31,27 @@ public static final int X = 1;
 Y axis.
 */
 public static final int Y = 2;
+
+//TODO sam 2017-02-06 evaluate whether need to convert to enum.
+/**
+Left axis.
+*/
+public static final int LEFT = 1;
+
+/**
+Right axis.
+*/
+public static final int RIGHT = 2;
+
+/**
+Bottom axis.
+*/
+public static final int BOTTOM = 3;
+
+/**
+Top axis.
+*/
+public static final int TOP = 4;
 
 /**
 Draw a box around a set of axes.
@@ -233,6 +255,60 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 }
 
 /**
+Draw tick marks on one axis.  This does not draw the grid.
+It is assumed that the color has already been set.
+@param da Drawing area.
+@param axis GRAxis.X or GRAxis.Y
+@param edge GRAxis.LEFT or GRAxis.RIGHt
+@param ncoords Number of coordinates.
+@param coords coordinates of ticks, in data units.
+@param daFraction fraction of the drawing area for tick length.
+*/
+public static void drawTicks ( GRDrawingArea da, int axis, int edge, int ncoords, double [] coords, double daFraction )
+{	double [] x = new double[2]; // X-coordinates for drawing.
+	double [] y = new double[2]; // Y-coordinates for drawing.
+
+	if ( axis == X ) {
+		GRLimits datalim = da.getDataLimits();
+		double ticLength = datalim.getHeight()*daFraction;
+		double bottom = 0.0;
+		if ( edge == BOTTOM ) {
+			bottom = datalim.getBottomY();
+		}
+		else if ( edge == TOP ) {
+			bottom = datalim.getTopY() - ticLength;
+		}
+		y[0] = bottom;
+		y[1] = bottom + ticLength;
+		for ( int i = 0; i < ncoords; i++ ) {
+			// Draw horizontal lines...
+			x[0] = coords[i];
+			x[1] = coords[i];
+			GRDrawingAreaUtil.drawLine ( da, x, y );
+		}
+	}
+	else if ( axis == Y ) {
+		GRLimits datalim = da.getDataLimits();
+		double ticLength = datalim.getWidth()*daFraction;
+		double left = 0.0;
+		if ( edge == LEFT ) {
+			left = datalim.getLeftX();
+		}
+		else if ( edge == RIGHT ) {
+			left = datalim.getRightX() - ticLength;
+		}
+		x[0] = left;
+		x[1] = left + ticLength;
+		for ( int i = 0; i < ncoords; i++ ) {
+			// Draw horizontal lines...
+			y[0] = coords[i];
+			y[1] = coords[i];
+			GRDrawingAreaUtil.drawLine ( da, x, y );
+		}
+	}
+}
+
+/**
 Find labels for an axis.
 <ul>
 <li>This method does no graphing or drawing.  It assumes
@@ -264,7 +340,7 @@ public static double [] findLabels ( double xmin0, double xmax0, boolean include
 		"Trying to find labels for " + xmin0 + " " + xmax0 + " (pflag="+ pflag + ")");
 	}
 
-	// Allocate tempory work space...
+	// Allocate temporary work space...
 	double [] xlabel = new double[nlabels0];
 
 	int nlabels	= 0;		// Number of labels calculated
@@ -301,7 +377,7 @@ public static double [] findLabels ( double xmin0, double xmax0, boolean include
 	}
 
 	for ( x = (lxmin + incx); x < xmax; x += incx ) {
-		// tics...
+		// ticks...
 		if ( nlabels == nlabels0 ) {
 			// Need to add more to the work space...
 			double [] temp_xlabel = new double[nlabels0];
@@ -710,7 +786,7 @@ public static double [] findNLabels ( double xmin0, double xmax0,
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, "GRAxis.findNLabels", "range/average is low: " + ratio );
 		}
-		npflag = 14;
+		npflag = 16;
 		pflag = new int[npflag];
 		pflag[0] = 0;
 		pflag[1] = 1;
@@ -718,21 +794,23 @@ public static double [] findNLabels ( double xmin0, double xmax0,
 		pflag[3] = -25;
 		pflag[4] = -20;
 		pflag[5] = -40;
-		pflag[6] = -5;
-		pflag[7] = -2;
-		pflag[8] = -4;
-		pflag[9] = -500;
-		pflag[10] = -250;
-		pflag[11] = -200;
-		pflag[12] = -400;
-		pflag[13] = -100;
+		pflag[6] = -10;
+		pflag[7] = -5;
+		pflag[8] = -2;
+		pflag[9] = -4;
+		pflag[10] = -1;
+		pflag[11] = -500;
+		pflag[12] = -250;
+		pflag[13] = -200;
+		pflag[14] = -400;
+		pflag[15] = -100;
 	}
 	else {
 	    // Range of numbers is generally similar to magnitudes so use larger increments...
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, "GRAxis.findNLabels", "range/average is high: " + ratio );
 		}
-		npflag = 14;
+		npflag = 16;
 		pflag = new int[npflag];
 		pflag[0] = 0;
 		pflag[1] = 1;
@@ -740,14 +818,16 @@ public static double [] findNLabels ( double xmin0, double xmax0,
 		pflag[3] = -25;
 		pflag[4] = -20;
 		pflag[5] = -40;
-		pflag[6] = -5;
-		pflag[7] = -2;
-		pflag[8] = -4;
-		pflag[9] = -500;
-		pflag[10] = -250;
-		pflag[11] = -200;
-		pflag[12] = -400;
-		pflag[13] = -100;
+		pflag[6] = -10;
+		pflag[7] = -5;
+		pflag[8] = -2;
+		pflag[9] = -4;
+		pflag[10] = -1;
+		pflag[11] = -500;
+		pflag[12] = -250;
+		pflag[13] = -200;
+		pflag[14] = -400;
+		pflag[15] = -100;
 	} 
 
 	// Loop from the mid-point out and try to find labels.  Therefore,
