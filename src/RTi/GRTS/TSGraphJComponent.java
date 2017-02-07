@@ -270,7 +270,7 @@ private JFrame _parent = null;
 /**
 List of TSGraph being drawn.
 */
-private List<TSGraph> _tsgraphs = new Vector();
+private List<TSGraph> _tsgraphs = new ArrayList<TSGraph>();
 /**
 Starting date/time for visible graph, used for first draw only.
 */
@@ -611,8 +611,10 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 	//Message.printStatus ( 1, "", _gtype + "Checking " + nsubs + " graphs after graphs were created." );
 	TSGraphType graphType = TSGraphType.LINE;
 	List<TS> tslist = null;
+	List<TS> tslistLeftYAxis = null;
+	List<TS> tslistRightYAxis = null;
 	TSGraph tsgraph = null;
-	int nts = 0;
+	int nts = 0, ntsLeftYAxis = 0, ntsRightYAxis = 0;
 	String prop_val;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		tsgraph = tsgraphs.get(isub);
@@ -628,9 +630,19 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 		// subset of the graphs used for the full product...
 
 		tslist = tsgraph.getTSList();
+		tslistLeftYAxis = tsgraph.getTSListForLeftYAxis();
+		tslistRightYAxis = tsgraph.getTSListForRightYAxis();
 		nts = 0;
 		if ( tslist != null ) {
 			nts = tslist.size();
+		}
+		ntsLeftYAxis = 0;
+		if ( tslistLeftYAxis != null ) {
+			ntsLeftYAxis = tslistLeftYAxis.size();
+		}
+		ntsRightYAxis = 0;
+		if ( tslistRightYAxis != null ) {
+			ntsRightYAxis = tslistRightYAxis.size();
 		}
 		//Message.printStatus ( 2, "", _gtype + "Checking " + nts + " time series for graph [" + isub + "]" );
 
@@ -682,8 +694,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsLeftYAxis; its++ ) {
+						ts = tslistLeftYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -716,15 +728,15 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			else {
 			    // Units are time series data units.
 				if ( tsgraph.ignoreLeftYAxisUnits() ) {
-					// Units are not different in data and are indicated in the legend.
+					// Units are not different in data and are indicated in the legend so set blank.
 					tsproduct.setPropValue ( "LeftYAxisUnits", "", isub, -1 );
 				}
 				else {
-				    // Get the units from the first non-null time series...
+				    // Get the units from the first non-null time series associated with the left axis...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsLeftYAxis; its++ ) {
+						ts = tslistLeftYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -837,8 +849,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsRightYAxis; its++ ) {
+						ts = tslistRightYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -878,8 +890,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsRightYAxis; its++ ) {
+						ts = tslistRightYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -3827,7 +3839,16 @@ private boolean stringListsAreEqual(List<String> v1, List<String> v2) {
 		}
 		return true;
 	}
-}		
+}
+
+/**
+ * Return a property=value list of properties, separated by newline character.
+ * @return property list string for instance.
+ */
+public String toString () {
+	// For now return the parent version, outputting drawing areas
+	return super.toString(true);
+}
 
 /**
 Handle the mouse motion event from another TSView (likely a Reference TSView).

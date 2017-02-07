@@ -2743,6 +2743,9 @@ boolean isAnnotation, TSGraphType graphType) {
         else if ( param.equalsIgnoreCase("RightYAxisDirection") ) {
             return "" + GRAxisDirectionType.NORMAL;
         }
+		else if ( param.equalsIgnoreCase("RightYAxisGraphType") ) {
+			return "None";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisIgnoreUnits") ) {
 			return "False";
 		}
@@ -4182,56 +4185,37 @@ protected void swapSubProducts(int origSub, int newSub) {
 }
 
 /**
-Transfer the properties into objects that can be used by other code more
-efficiently.  For now don't do anything until we explore the concept of just
-getting everything out of the PropList.
+Output the product to a text representation.
+@param outputAll indicates whether to output all the properties (true),
+or only those that are different from defaults (false).
+The latter is generally the legacy behavior used by software to create shorter files.
+@param outputHowSet indicate whether "how set" value should be output in addition to property value.
+@param formatType the format used in output.
+@param sort indicate whether properties should be sorted (true) or left in default order (false).
+@return the product formatted as a string using the specified format type.
 */
-private void transferPropList ()
-{
-}
-
-/**
-Unsets a property in the product with the given key.
-@param key the key of the property to unset.
-*/
-protected void unSet(String key) {
-	__proplist.unSet(key);
-}
-
-/**
-Write the TSProduct as a file.  If the file exists, it will be replaced with
-the new contents and comments will not be transferred.
-@param filename Name of file to save.
-@param save_all If true, all properties will be saved, even those that have been
-assigned internally at run-time.  If false, only the properties read from a
-persistent source and modified by the user during the run will be saved.  The
-former is useful to see the full list of properties, the latter to save the
-minimum amount of information.
-@exception if there is an error writing the file.
-*/
-public void writeFile ( String filename, boolean save_all )
-throws Exception
-{	__proplist.setPersistentName ( filename );
-	// This writes everything in unsorted order...
-	//__proplist.writePersistent ();
-
-	PrintWriter out = new PrintWriter(new FileOutputStream (filename ));
-
+public String toString ( boolean outputAll, boolean outputHowSet, TSProductFormatType formatType, boolean sort ) {
 	// First write the main product properties, then subproduct, and within
 	// each subproduct the data properties.  Use the prefix notation and
 	// shave the prefix off each property as it is written...
 
-	List<Prop> v = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	String nl = System.getProperty("line.separator");
+	StringBuilder out = new StringBuilder();
+	List<Prop> props = __proplist.getPropsMatchingRegExp ( "Product.*" );
 	Prop prop = null;
-	int how_set = 0;
-	out.println ( "[Product]" );
-	out.println ( "" );
+	int howSet = 0;
+	out.append ( "[Product]" + nl );
+	out.append ( nl );
 	int size = 0;
-	if ( v != null ) {
-		size = v.size();
+	if ( props != null ) {
+		size = props.size();
+		if ( sort ) {
+			java.util.Collections.sort(props);
+		}
 	}
 
 	boolean save = false;
+	String howSetString = "";
 	
 	/*
 	NOTE REGARDING THE LOGIC FOR DETERMINING WHEN TO SAVE:
@@ -4246,7 +4230,7 @@ throws Exception
 	logical intentions.  Instead of writing:
 	
 		...
-		else if (save_all) {
+		else if (outputAll) {
 			...
 		}
 		else {
@@ -4256,14 +4240,14 @@ throws Exception
 	The following was done:
 	
 		...
-		else if (save_all) {
+		else if (outputAll) {
 			...
 		}
-		else if (!save_all) {
+		else if (!outputAll) {
 			...
 		}
 	
-	Even though (!save_all) is the logical opposite of (save_all), it might
+	Even though (!outputAll) is the logical opposite of (outputAll), it might
 	be mis-read, and so this "redundant" bit of logic is included.
 
 	Finally, the "save" boolean is another redundancy.  If anything should
@@ -4274,30 +4258,45 @@ throws Exception
 	
 	for (int i = 0; i < size; i++) {
 		save = false;
-		prop = v.get(i);
-		how_set = prop.getHowSet();
+		howSetString = "";
+		prop = props.get(i);
+		howSet = prop.getHowSet();
 		
-		if (how_set == Prop.SET_HIDDEN) {
+		if (howSet == Prop.SET_HIDDEN) {
 			// these are never saved
 			continue;
 		}
-		else if (save_all) {
+		else if (outputAll) {
 			save = true;
 		}
-		else if (!save_all) {
-			if (how_set == Prop.SET_FROM_PERSISTENT) {
+		else if (!outputAll) {
+			if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+				(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+				(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
 				save = true;
 			}
-			else if (how_set == Prop.SET_AT_RUNTIME_BY_USER) {
-				save = true;
+		}
+		howSetString = "";
+		if ( outputHowSet ) {
+			if (howSet == Prop.SET_FROM_PERSISTENT) {
+				howSetString = " [SET_FROM_PERSISTENT]";
 			}
-			else if (how_set == Prop.SET_AT_RUNTIME_FOR_USER) {
-				save = true;
+			else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+				howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+				howSetString = " [SET_AT_RUNTIME_BY_USER]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+				howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+			}
+			else {
+				howSetString = " [UNKNOWN]";
 			}
 		}
 
 		if (save) {
-			out.println(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" );
+			out.append(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 		}
 	}
 
@@ -4315,35 +4314,40 @@ throws Exception
 	String key = null;
 	
 	for (int isub = 0; isub < nsubs; isub++) {
-		v = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
+		props = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
 		sub_prefix = "[SubProduct " + (isub + 1) + "]";
 		sub_prefix_length = sub_prefix.length();
-		out.println ( "" );
-		out.println ( sub_prefix );
-		out.println ( "" );
+		out.append ( nl );
+		out.append ( sub_prefix + nl );
+		out.append ( nl );
 		
 		size = 0;
-		if ( v != null ) {
-			size = v.size();
+		if ( props != null ) {
+			size = props.size();
+			if ( sort ) {
+				java.util.Collections.sort(props);
+			}
 		}
 		
 		for ( int i = 0; i < size; i++ ) {
 			save = false;
-			prop = v.get(i);
+			howSetString = "";
+			prop = props.get(i);
 			key = prop.getKey();
-			how_set = prop.getHowSet();
+			howSet = prop.getHowSet();
 
-			if (how_set == Prop.SET_HIDDEN) {
+			if (howSet == Prop.SET_HIDDEN) {
 				continue;
 			}
-			else if (save_all) {
+			else if (outputAll) {
 				save = true;
 			}
-			else if (!save_all) {
+			else if (!outputAll) {
 				// Don't write internal properties that typically don't show up in the product file
-				if (how_set == Prop.SET_FROM_PERSISTENT || how_set == Prop.SET_AT_RUNTIME_BY_USER
-				    || how_set == Prop.SET_AT_RUNTIME_FOR_USER){
-				    // ok
+				if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+					(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+					(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+					// OK
 				}
 				else {
 					// not ok
@@ -4362,9 +4366,27 @@ throws Exception
 
 				save = true;
 			}
+			howSetString = "";
+			if ( outputHowSet ) {
+				if (howSet == Prop.SET_FROM_PERSISTENT) {
+					howSetString = " [SET_FROM_PERSISTENT]";
+				}
+				else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+					howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+					howSetString = " [SET_AT_RUNTIME_BY_USER]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+					howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+				}
+				else {
+					howSetString = " [UNKNOWN]";
+				}
+			}
 
 			if (save) {
-				out.println(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
+				out.append(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 			}
 		}
 
@@ -4374,32 +4396,35 @@ throws Exception
 			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
 			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
 			data_prefix_length = data_prefix.length();
-			out.println ( "" );
-			out.println ( data_prefix );
-			out.println ( "" );
+			out.append ( nl );
+			out.append ( data_prefix + nl );
+			out.append ( nl );
 			dsize = 0;
 			
 			if ( vdata != null ) {
 				dsize = vdata.size();
+				if ( sort ) {
+					java.util.Collections.sort(vdata);
+				}
 			}
 			
 			for ( int j = 0; j < dsize; j++ ) {
 				save = false;
 				prop = vdata.get(j);
-				how_set = prop.getHowSet();
+				howSet = prop.getHowSet();
 				key = prop.getKey().substring(data_prefix_length - 1);
 
-				if (how_set == Prop.SET_HIDDEN) {
+				if (howSet == Prop.SET_HIDDEN) {
 					continue;
 				}
-				else if (save_all) {
+				else if (outputAll) {
 					save = true;
 				}
-				else if (!save_all) {
-					if (how_set == Prop.SET_FROM_PERSISTENT
-					    || how_set == Prop.SET_AT_RUNTIME_BY_USER
-					    || how_set ==Prop.SET_AT_RUNTIME_FOR_USER){
-						// ok
+				else if (!outputAll) {
+					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+						(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+						(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+						// OK
 					}
 					else {
 						// not ok
@@ -4412,10 +4437,28 @@ throws Exception
 
 					save = true;
 				}
+				howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
 
 				if (save) {
-					out.println(prop.getKey().substring(
-						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
+					out.append(prop.getKey().substring(
+						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
 				}
 			}
 		}
@@ -4427,9 +4470,9 @@ throws Exception
 			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
 			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
 			data_prefix_length = data_prefix.length();
-			out.println("");
-			out.println(data_prefix);
-			out.println("");
+			out.append(nl);
+			out.append(data_prefix + nl);
+			out.append(nl);
 			dsize = 0;
 			if (vdata != null) {
 				dsize = vdata.size();
@@ -4437,18 +4480,18 @@ throws Exception
 			for (int j = 0; j < dsize; j++) {
         		save = false;
         		prop = vdata.get(j);
-        		how_set = prop.getHowSet();
+        		howSet = prop.getHowSet();
         	
-        		if (how_set == Prop.SET_HIDDEN) {
+        		if (howSet == Prop.SET_HIDDEN) {
         			continue;
         		}
-        		else if (save_all) {
+        		else if (outputAll) {
         			save = true;
         		}
-        		else if (!save_all) {
-        			if (how_set == Prop.SET_FROM_PERSISTENT
-    			    	|| how_set == Prop.SET_AT_RUNTIME_BY_USER
-    			    	|| how_set ==Prop.SET_AT_RUNTIME_FOR_USER) {
+        		else if (!outputAll) {
+        			if ( (howSet == Prop.SET_FROM_PERSISTENT)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_BY_USER)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
         				// ok
         			}
         			else {
@@ -4504,14 +4547,74 @@ throws Exception
         				}
         			}
         		}
+        		howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
         
         		if (save) {		
-        			out.println(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
+        			out.append(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
         		}
 			}
 		}
 	}
+	return out.toString();
+}
 
+/**
+Transfer the properties into objects that can be used by other code more
+efficiently.  For now don't do anything until we explore the concept of just
+getting everything out of the PropList.
+*/
+private void transferPropList ()
+{
+}
+
+/**
+Unsets a property in the product with the given key.
+@param key the key of the property to unset.
+*/
+protected void unSet(String key) {
+	__proplist.unSet(key);
+}
+
+/**
+Write the TSProduct as a file.  If the file exists, it will be replaced with
+the new contents and comments will not be transferred.
+@param filename Name of file to save.
+@param outputAll If true, all properties will be saved, even those that have been
+assigned internally at run-time.  If false, only the properties read from a
+persistent source and modified by the user during the run will be saved.  The
+former is useful to see the full list of properties, the latter to save the
+minimum amount of information.
+@exception if there is an error writing the file.
+*/
+public void writeFile ( String filename, boolean outputAll )
+throws Exception
+{	// First convert the product to a string, currently always the legacy properties format
+	boolean outputHowSet = false; // only used for development
+	boolean sort = false; // Keep in-memory order
+	String productString = toString ( outputAll, outputHowSet, TSProductFormatType.PROPERTIES, sort );
+	// Then write to the file
+	//__proplist.setPersistentName ( filename );
+	// This writes everything in unsorted order...
+	//__proplist.writePersistent ();
+	PrintWriter out = new PrintWriter(new FileOutputStream (filename ));
+	out.print(productString);
 	out.close();
 }
 

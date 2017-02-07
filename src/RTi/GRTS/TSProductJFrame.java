@@ -178,7 +178,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -204,10 +203,12 @@ import RTi.Util.GUI.DragAndDropListener;
 import RTi.Util.GUI.DragAndDropSimpleJComboBox;
 import RTi.Util.GUI.DragAndDropUtil;
 import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
+import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeUtil;
@@ -599,7 +600,17 @@ protected JTextField _numberRowsJTextField = null;
 /**
 The combo box that defines whether drawing area outlines should be shown, used by developers.
 */
-protected SimpleJComboBox _showDrawingAreaOutlineJComboBox = null;
+protected SimpleJComboBox _developerShowDrawingAreaOutlineJComboBox = null;
+
+/**
+ * Button that causes full list of product properties to be shown.
+ */
+protected SimpleJButton _developerShowProductProperties_JButton = null;
+
+/**
+ * Button that causes full list of drawing area properties to be shown.
+ */
+protected SimpleJButton _developerShowDrawingAreaProperties_JButton = null;
 
 /**
 The text field for original left y-axis graph type, used by developers.
@@ -607,7 +618,7 @@ The text field for original left y-axis graph type, used by developers.
 protected JTextField _graphLeftYAxisOriginalGraphType_JTextField = null;
 
 /**
-The text field for original right y-axis graph type, used by developers.
+The text field for original right y-axis graph type when graph window is first opened, used by developers.
 */
 protected JTextField _graphRightYAxisOriginalGraphType_JTextField = null;
 
@@ -655,9 +666,10 @@ Handle action events (button press, etc.)
 */
 public void actionPerformed ( ActionEvent e )
 {	checkGUIState();
-	// Check the names of the events.  These are tied to menu names.
+	// Check the names of the events (tied to menu names) or object instances.
 
 	String command = e.getActionCommand();
+	Object source = e.getSource();
 	if ( command.equals("TSProductJFrame.Apply") ) {
 		applyClicked();
 	}
@@ -745,6 +757,12 @@ public void actionPerformed ( ActionEvent e )
 		__selectedAnnotationIndex++;		
 		__ignoreItemStateChange = false;
 		displayAnnotationProperties(_selected_subproduct, __selectedAnnotationIndex);
+	}
+	else if ( source == _developerShowProductProperties_JButton ) {
+		displayProductPropertiesText ();
+	}
+	else if ( source == _developerShowDrawingAreaProperties_JButton ) {
+		displayDrawingAreaProperties ();
 	}
 /* TODO SAM - need to update to new
 	else if ( command.equals("TSProductJFrame.DisableAll") ) {
@@ -2598,13 +2616,23 @@ private JPanel createProductJPanel ()
 	JGUIUtil.addComponent(devJPanel, new JLabel ("Show drawing area outline:"),
 		0, ++y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
-	_showDrawingAreaOutlineJComboBox = new SimpleJComboBox();
-	_showDrawingAreaOutlineJComboBox.setToolTipText("Show drawing area outlines, used by developers");
-	_showDrawingAreaOutlineJComboBox.add("False");
-	_showDrawingAreaOutlineJComboBox.add("True");
-	JGUIUtil.addComponent(devJPanel, _showDrawingAreaOutlineJComboBox,
+	_developerShowDrawingAreaOutlineJComboBox = new SimpleJComboBox();
+	_developerShowDrawingAreaOutlineJComboBox.setToolTipText("Show drawing area outlines, used by developers");
+	_developerShowDrawingAreaOutlineJComboBox.add("False");
+	_developerShowDrawingAreaOutlineJComboBox.add("True");
+	JGUIUtil.addComponent(devJPanel, _developerShowDrawingAreaOutlineJComboBox,
 		1, y, 1, 1, 0, 0, _insetsTLBR, 
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
+	_developerShowProductProperties_JButton = new SimpleJButton ( "Show Product Properties", "Show Product Properties", this );
+	_developerShowProductProperties_JButton.setToolTipText ( "Display all the product properties, useful for troubleshooting." );
+	JGUIUtil.addComponent ( devJPanel, _developerShowProductProperties_JButton,
+		0, ++y, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	_developerShowDrawingAreaProperties_JButton = new SimpleJButton ( "Show Drawing Area Properties", "Show Drawing Area Properties", this );
+	_developerShowDrawingAreaProperties_JButton.setToolTipText ( "Display all the drawing area properties, useful for troubleshooting." );
+	JGUIUtil.addComponent ( devJPanel, _developerShowDrawingAreaProperties_JButton,
+		1, y, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 /* TODO SAM ...
 	// Reference graph...
@@ -2798,6 +2826,8 @@ private JPanel createSubproductJPanel ()
 	        _graph_righty_graphtype_JComboBox.addItem ( "" + graphType );
 	    }
 	}
+	// Make choice wide so the border label does not get cut off (can happen with short names).
+	_graph_righty_graphtype_JComboBox.setPrototypeDisplayValue("AreaStacked");
 	size = _graph_righty_graphtype_JComboBox.getItemCount();
 	_graph_righty_graphtype_JComboBox.addItemListener(this);
 //	_graph_graphtype_JComboBox.setEnabled(false);
@@ -2979,14 +3009,23 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisLeftTitle_JPanel = new JPanel();
 	yAxisLeftTitle_JPanel.setLayout(gbl);
 	yAxisLeftTitle_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Title"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Left) Title"));
 	JGUIUtil.addComponent ( yAxisLeft_JPanel, yAxisLeftTitle_JPanel,
 		0, y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	
-	int yAxisLeftTitle = 0;
+	int yAxisLeftTitle = -1;
+	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, new JLabel ("Title:"),
+			0, ++yAxisLeftTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graph_lefty_title_JTextField = new JTextField ( 30 );
+	_graph_lefty_title_JTextField.setToolTipText("Left y-axis title, time series units by default");
+	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, _graph_lefty_title_JTextField,
+			1, yAxisLeftTitle, 3, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
+	
 	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, new JLabel ("Position:"),
-		0, yAxisLeftTitle, 1, 1, 0, 0,
+		0, ++yAxisLeftTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	List<String> yAxisTitlePositionValues = getPropertyChoices("LeftYAxisTitlePosition");
 	String yAxisTitlePosition = getPropertyChoiceDefault("LeftYAxisTitlePosition");
@@ -3009,15 +3048,6 @@ private JPanel createSubproductJPanel ()
 		1, yAxisLeftTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, new JLabel ("Title:"),
-			0, ++yAxisLeftTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	_graph_lefty_title_JTextField = new JTextField ( 30 );
-	_graph_lefty_title_JTextField.setToolTipText("Left y-axis title, time series units by default");
-	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, _graph_lefty_title_JTextField,
-			1, yAxisLeftTitle, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
-	
 	_graph_lefty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
 	JGUIUtil.addComponent (yAxisLeftTitle_JPanel, _graph_lefty_title_fontname_JComboBox,
 			4, yAxisLeftTitle, 1, 1, 0, 0,
@@ -3036,7 +3066,7 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisLeftLabel_JPanel = new JPanel();
 	yAxisLeftLabel_JPanel.setLayout(gbl);
 	yAxisLeftLabel_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Labels / Limits"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Left) Labels / Limits"));
 	JGUIUtil.addComponent ( yAxisLeft_JPanel, yAxisLeftLabel_JPanel,
 		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
@@ -3114,7 +3144,7 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisLeftType_JPanel = new JPanel();
 	yAxisLeftType_JPanel.setLayout(gbl);
 	yAxisLeftType_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Type"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Left) Type"));
 	JGUIUtil.addComponent ( yAxisLeft_JPanel, yAxisLeftType_JPanel,
 		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -3185,14 +3215,23 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisRightTitle_JPanel = new JPanel();
 	yAxisRightTitle_JPanel.setLayout(gbl);
 	yAxisRightTitle_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Title"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Right) Title"));
 	JGUIUtil.addComponent ( yAxisRight_JPanel, yAxisRightTitle_JPanel,
 		0, y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	
 	int yAxisRightTitle = 0;
+	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, new JLabel ("Title:"),
+			0, ++yAxisRightTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graph_righty_title_JTextField = new JTextField ( 30 );
+	_graph_righty_title_JTextField.setToolTipText("Right y-axis title, time series units by default");
+	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, _graph_righty_title_JTextField,
+			1, yAxisRightTitle, 3, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
+	
 	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, new JLabel ("Position:"),
-		0, yAxisRightTitle, 1, 1, 0, 0,
+		0, ++yAxisRightTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	List<String> yAxisRightTitlePositionValues = getPropertyChoices("RightYAxisTitlePosition");
 	String yAxisRightTitlePosition = getPropertyChoiceDefault("RightYAxisTitlePosition");
@@ -3215,15 +3254,6 @@ private JPanel createSubproductJPanel ()
 		1, yAxisRightTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, new JLabel ("Title:"),
-			0, ++yAxisRightTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	_graph_righty_title_JTextField = new JTextField ( 30 );
-	_graph_righty_title_JTextField.setToolTipText("Right y-axis title, time series units by default");
-	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, _graph_righty_title_JTextField,
-			1, yAxisRightTitle, 3, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
-	
 	_graph_righty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
 	JGUIUtil.addComponent (yAxisRightTitle_JPanel, _graph_righty_title_fontname_JComboBox,
 			4, yAxisRightTitle, 1, 1, 0, 0,
@@ -3242,7 +3272,7 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisRightLabel_JPanel = new JPanel();
 	yAxisRightLabel_JPanel.setLayout(gbl);
 	yAxisRightLabel_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Labels / Limits"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Right) Labels / Limits"));
 	JGUIUtil.addComponent ( yAxisRight_JPanel, yAxisRightLabel_JPanel,
 		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
@@ -3320,7 +3350,7 @@ private JPanel createSubproductJPanel ()
 	JPanel yAxisRightType_JPanel = new JPanel();
 	yAxisRightType_JPanel.setLayout(gbl);
 	yAxisRightType_JPanel.setBorder(BorderFactory.createTitledBorder(
-		BorderFactory.createLineBorder(Color.BLACK,1),"Axis Type"));
+		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Right) Type"));
 	JGUIUtil.addComponent ( yAxisRight_JPanel, yAxisRightType_JPanel,
 		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -4263,6 +4293,21 @@ private void displayDataProperties ( int isub, int its )
 }
 
 /**
+ * Display the drawing area properties.
+ */
+private void displayDrawingAreaProperties () {
+	// Display in window.
+	PropList props = new PropList("ProductJDialog");
+	props.set("Title=Drawing Area Properties");
+	props.set("Search=true");
+	props.set("TotalWidth=700");
+	props.set("TotalHeight=500");
+	// Loop through graphs
+	String text = _tsview_gui.getViewGraphJFrame().getMainJComponent().toString();
+	new ReportJFrame(StringUtil.breakStringList(text, "\n", 0), props);
+}
+
+/**
 Update the product components with settings appropriate for the TSProduct.
 This should be called at initialization.
 */
@@ -4414,11 +4459,31 @@ private void displayProductProperties ()
 
 	prop_val = _tsproduct.getLayeredPropValue( "ShowDrawingAreaOutline", -1, -1, false);
 	if (prop_val == null) {
-		_showDrawingAreaOutlineJComboBox.select("False");
+		_developerShowDrawingAreaOutlineJComboBox.select("False");
 	}
 	else {
-		_showDrawingAreaOutlineJComboBox.select(prop_val);
+		_developerShowDrawingAreaOutlineJComboBox.select(prop_val);
 	}
+}
+
+/**
+ * Display the product properties as text in a separate window.
+ * This is used by developers to review properties.
+ */
+private void displayProductPropertiesText () {
+	// First get the product properties as text.
+	// Output uses native newline so replace \r\n by \n before splitting lines
+	boolean outputAll = true;
+	boolean outputHowSet = true;
+	boolean sort = true;
+	String text = _tsproduct.toString(outputAll,outputHowSet,TSProductFormatType.PROPERTIES,sort).replace("\r\n", "\n");
+	// Display in window.
+	PropList props = new PropList("ProductJDialog");
+	props.set("Title=Time Series Product Properties");
+	props.set("Search=true");
+	props.set("TotalWidth=700");
+	props.set("TotalHeight=500");
+	new ReportJFrame(StringUtil.breakStringList(text, "\n", 0), props);
 }
 
 /**
@@ -5442,6 +5507,10 @@ void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 	}
 	
 	String tsYAxis = _ts_yaxis_JComboBox.getSelected();
+	if ( tsYAxis == null ) {
+		tsYAxis = "Left";
+		_ts_yaxis_JComboBox.select(tsYAxis);
+	}
 	
 	// Default graph type is from the subproduct for the y-axis associated with the time series
 	TSGraphType graphType = null;
@@ -7113,7 +7182,7 @@ protected int updateTSProduct (int howSet) {
 	// "ShowDrawingAreaOutline"
 
 	prop_val = _tsproduct.getLayeredPropValue("ShowDrawingAreaOutline", -1, -1, false);
-	gui_val = _showDrawingAreaOutlineJComboBox.getSelected().trim();
+	gui_val = _developerShowDrawingAreaOutlineJComboBox.getSelected().trim();
 	if (!gui_val.equals(prop_val)) {
 		_tsproduct.setPropValue("ShowDrawingAreaOutline", gui_val, -1, -1);
 		++ndirty;
