@@ -514,9 +514,13 @@ The following formats a date as follows:  "MM/DD/YYYY HH:mm:SS".
 */
 public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS = 28;
 /**
+The following formats a date as follows:  "YYYYMMDD".
+*/
+public static final int FORMAT_YYYYMMDD = 29;
+/**
 The following formats a date as follows, for debugging:  year=YYYY, month=MM, etc..
 */
-public static final int FORMAT_VERBOSE = 29;
+public static final int FORMAT_VERBOSE = 200;
 
 /**
 Hundredths of a second (0-99).
@@ -2748,6 +2752,10 @@ public static DateTime parse ( String dateString )
 			//
 			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 );
 		}
+		else if (StringUtil.isInteger(dateStringNoTimeZone) ) {
+			// Assume YYYYMMDD
+			dateTime = parse(dateStringNoTimeZone, FORMAT_YYYYMMDD, 0 );
+		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
 			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateString + "\"" );
@@ -3096,6 +3104,14 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2" );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+	}
+	else if ( format == FORMAT_YYYYMMDD ) {
+		date = new DateTime ( PRECISION_DAY );
+		is_day = true;
+		v = StringUtil.fixedRead ( date_string, "i4i2i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
