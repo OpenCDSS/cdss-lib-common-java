@@ -36,7 +36,6 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -51,11 +50,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-
 import javax.swing.text.JTextComponent;
 
 import RTi.Util.GUI.SimpleJButton;
-
 import RTi.Util.String.StringUtil;
 
 /**
