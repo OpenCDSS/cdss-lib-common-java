@@ -451,7 +451,8 @@ private JTextField _graph_datalabelfontsize_JTextField = null;
 
 private JTextField _graph_legendformat_JTextField = null;
 private SimpleJComboBox _graph_legendformat_JComboBox = null;
-private SimpleJComboBox _graph_legendposition_JComboBox = null;
+private SimpleJComboBox _graph_lefty_legendposition_JComboBox = null;
+private SimpleJComboBox _graph_righty_legendposition_JComboBox = null;
 private SimpleJComboBox _graph_legendfontname_JComboBox = null;
 private SimpleJComboBox _graph_legendfontstyle_JComboBox = null;
 private JTextField _graph_legend_fontsize_JTextField = null;
@@ -1483,7 +1484,9 @@ private void clearSubProductProperties() {
 
 	_graph_legendformat_JTextField.setText( _tsproduct.getDefaultPropValue("LegendFormat", 1, -1));
 
-	_graph_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LegendPosition", 1, -1));
+	_graph_lefty_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisLegendPosition", 1, -1));
+	// TODO sam 2017-02-07 evaluate whether additional effort is needed to transition from legacy property
+	//_graph_lefty_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LegendPosition", 1, -1));
 
 	_graph_maintitle_JTextField.setText( _tsproduct.getDefaultPropValue("MainTitleString", 1, -1));
 
@@ -1656,6 +1659,7 @@ private JPanel createAnnotationJPanel() {
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_YAxis_JComboBox = new SimpleJComboBox(false);
 	__annotation_YAxis_JComboBox.setToolTipText("Indicate the y-axis for the annotation");
+	//__annotation_YAxis_JComboBox.add("Both"); // TODO SAM 201-02-07 need to enable, to facilitate different units on the y-axes
 	__annotation_YAxis_JComboBox.add("Left");
 	__annotation_YAxis_JComboBox.add("Right");
 	__annotation_YAxis_JComboBox.select(0);
@@ -2174,7 +2178,8 @@ private JPanel createDataJPanel ()
 		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( graphtype_JPanel,
 		new JLabel(
-		"An exception is lines drawn on stacked area graph.  More flexibility is being enabled in this properties interface."),
+		"An exception is lines drawn on stacked area graph (must edit time series product file manually)."
+		+ " More flexibility is being enabled in this properties interface."),
 		0, ++y, 2, 1, 0, 0, _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	// Axes tab...
@@ -2430,10 +2435,10 @@ private JPanel createDataJPanel ()
 	        GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_ts_xyscatter_analysis_JPanel.setVisible ( false );
 
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, new JLabel (
 			"Only the properties for time series 2 and higher cause a visual change." ),
-			0, y, 4, 1, 0, 0, _insetsTLBR,
+			0, ++y, 4, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, new JLabel (
 			"Confidence intervals are useful for a low number of points (e.g., 100)." ),
@@ -3562,24 +3567,50 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent ( legend_JPanel,
 			new JSeparator(SwingConstants.HORIZONTAL),
 			0, ++y, 6, 1, 0, 0, _insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Position:"),
+	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Legend position (left y-axis):"),
 			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	_graph_legendposition_JComboBox = new SimpleJComboBox( false );
-	_graph_legendposition_JComboBox.setToolTipText("Position of graph legend \"box\" relative to the data view");
-	_graph_legendposition_JComboBox.addItem ( "Bottom" );
-	_graph_legendposition_JComboBox.addItem ( "InsideLowerLeft");
-	_graph_legendposition_JComboBox.addItem ( "InsideLowerRight");
-	_graph_legendposition_JComboBox.addItem ( "InsideUpperLeft");
-	_graph_legendposition_JComboBox.addItem ( "InsideUpperRight");
-	_graph_legendposition_JComboBox.addItem ( "Left" );
-	_graph_legendposition_JComboBox.addItem ( "None" );
-	_graph_legendposition_JComboBox.addItem ( "Right" );
+	_graph_lefty_legendposition_JComboBox = new SimpleJComboBox( false );
+	_graph_lefty_legendposition_JComboBox.setToolTipText("Position of graph legend \"box\" for left y-axis data relative to the data view");
+	_graph_lefty_legendposition_JComboBox.addItem ( "Bottom" );
+	_graph_lefty_legendposition_JComboBox.addItem ( "BottomLeft" );
+	_graph_lefty_legendposition_JComboBox.addItem ( "BottomRight" );
+	_graph_lefty_legendposition_JComboBox.addItem ( "InsideLowerLeft");
+	_graph_lefty_legendposition_JComboBox.addItem ( "InsideLowerRight");
+	_graph_lefty_legendposition_JComboBox.addItem ( "InsideUpperLeft");
+	_graph_lefty_legendposition_JComboBox.addItem ( "InsideUpperRight");
+	_graph_lefty_legendposition_JComboBox.addItem ( "Left" );
+	_graph_lefty_legendposition_JComboBox.addItem ( "None" );
+	_graph_lefty_legendposition_JComboBox.addItem ( "Right" );
+	_graph_lefty_legendposition_JComboBox.setMaximumRowCount(_graph_lefty_legendposition_JComboBox.getItemCount());
 	// Disable for now - mainly need the option of vertical or horizontal edge for spacing...
 	//_graph_legendposition_Choice.addItem ( "Top" );
-	JGUIUtil.addComponent ( legend_JPanel, _graph_legendposition_JComboBox,
+	JGUIUtil.addComponent ( legend_JPanel, _graph_lefty_legendposition_JComboBox,
 			1, y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
+	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Legend position (right y-axis):"),
+			0, ++y, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graph_righty_legendposition_JComboBox = new SimpleJComboBox( false );
+	_graph_righty_legendposition_JComboBox.setToolTipText("Position of graph legend \"box\" for right y-axis data relative to the data view");
+	_graph_righty_legendposition_JComboBox.addItem ( "Bottom" );
+	_graph_righty_legendposition_JComboBox.addItem ( "BottomLeft" );
+	_graph_righty_legendposition_JComboBox.addItem ( "BottomRight" );
+	_graph_righty_legendposition_JComboBox.addItem ( "InsideLowerLeft");
+	_graph_righty_legendposition_JComboBox.addItem ( "InsideLowerRight");
+	_graph_righty_legendposition_JComboBox.addItem ( "InsideUpperLeft");
+	_graph_righty_legendposition_JComboBox.addItem ( "InsideUpperRight");
+	_graph_righty_legendposition_JComboBox.addItem ( "Left" );
+	_graph_righty_legendposition_JComboBox.addItem ( "None" );
+	_graph_righty_legendposition_JComboBox.addItem ( "Right" );
+	_graph_righty_legendposition_JComboBox.setMaximumRowCount(_graph_righty_legendposition_JComboBox.getItemCount());
+	// Disable for now - mainly need the option of vertical or horizontal edge for spacing...
+	//_graph_legendposition_Choice.addItem ( "Top" );
+	JGUIUtil.addComponent ( legend_JPanel, _graph_righty_legendposition_JComboBox,
+		1, y, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Format (see choices):"),
 			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -4997,7 +5028,22 @@ private void displaySubproductProperties ( int isub )
 
 	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLabelPrecision", isub, -1, false );
 	_graph_lefty_precision_JTextField.setText(prop_val);
-
+	
+	// "LeftYAxisLegendPosition" [Legend]
+	
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLegendPosition", isub, -1, false );
+	if ( prop_val == null ) {
+		// Get legacy value
+		prop_val = _tsproduct.getLayeredPropValue ( "LegendPosition", isub, -1, false );
+	}
+	try {
+		JGUIUtil.selectIgnoreCase(_graph_lefty_legendposition_JComboBox,prop_val);
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 2, routine, "LeftYAxisLegendPosition \"" + prop_val + "\" is not recognized" );
+		_graph_lefty_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LeftYAxisLegendPosition",isub,-1) );
+	}
+	
 	// "LeftYAxisMax" [Y Axis (Left)]
 
 	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisMax", isub, -1, false );
@@ -5075,17 +5121,8 @@ private void displaySubproductProperties ( int isub )
 	prop_val = _tsproduct.getLayeredPropValue ( "LegendFormat", isub, -1, false );
 	_graph_legendformat_JTextField.setText(prop_val);
 
-	// "LegendPosition" [Legend]
+	// "LegendPosition" [Legend]  (legacy property replaced by "LeftYAxisLegendPosition"
 
-	prop_val = _tsproduct.getLayeredPropValue ( "LegendPosition", isub, -1, false );
-	try {
-		JGUIUtil.selectIgnoreCase(_graph_legendposition_JComboBox,prop_val);
-	}
-	catch ( Exception e ) {
-		Message.printWarning ( 2, routine, "LegendPosition \"" + prop_val + "\" is not recognized" );
-		_graph_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("LegendPosition",isub,-1) );
-	}
-	
 	// "MainTitleString" [Titles]
 
 	prop_val = _tsproduct.getLayeredPropValue ( "MainTitleString", isub, -1, false );
@@ -5176,6 +5213,17 @@ private void displaySubproductProperties ( int isub )
 
     prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisDirection", isub, -1, false );
     _graph_righty_direction_JComboBox.select(prop_val);
+    
+	// "RightYAxisLegendPosition" [Legend]
+	
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisLegendPosition", isub, -1, false );
+	try {
+		JGUIUtil.selectIgnoreCase(_graph_righty_legendposition_JComboBox,prop_val);
+	}
+	catch ( Exception e ) {
+		Message.printWarning ( 2, routine, "RightYAxisLegendPosition \"" + prop_val + "\" is not recognized" );
+		_graph_righty_legendposition_JComboBox.select( _tsproduct.getDefaultPropValue("RightYAxisLegendPosition",isub,-1) );
+	}
     
 	// "RightYAxisMajorGridColor" [Y Axis (Right)]
 
@@ -6833,6 +6881,7 @@ private void setGraphFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_graph_righty_label_fontname_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_righty_label_fontstyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_righty_label_fontsize_JTextField, enabled);
+	JGUIUtil.setEnabled(_graph_righty_legendposition_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_righty_precision_JTextField, enabled);
 //	JGUIUtil.setEnabled(_graph_righty_type_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_righty_min_JComboBox, enabled);
@@ -6851,7 +6900,7 @@ private void setGraphFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_graph_datalabelfontsize_JTextField, enabled);
 	JGUIUtil.setEnabled(_graph_legendformat_JTextField, enabled);
 	JGUIUtil.setEnabled(_graph_legendformat_JComboBox, enabled);
-	JGUIUtil.setEnabled(_graph_legendposition_JComboBox, enabled);
+	JGUIUtil.setEnabled(_graph_lefty_legendposition_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_legendfontname_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_legendfontstyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_graph_legend_fontsize_JTextField, enabled);
@@ -7215,8 +7264,12 @@ protected int updateTSProduct (int howSet) {
 	String gui_val;
 	int how_set_prev = _tsproduct.getPropList().getHowSet();
 	_tsproduct.getPropList().setHowSet (howSet);
+	
+	// Get left and right y-axis graph types, used for some logic below such properties that apply to a graph type
 	TSGraphType graphTypeLeft = TSGraphType.valueOfIgnoreCase(_graph_lefty_graphtype_JComboBox.getSelected());
 	TSGraphType graphTypeRight = TSGraphType.valueOfIgnoreCase(_graph_righty_graphtype_JComboBox.getSelected());
+	
+	// Alphabetize properties within each of product, subproduct, data
 
 	// --------------------------------------------------------------------
 	// Product properties
@@ -7589,6 +7642,19 @@ protected int updateTSProduct (int howSet) {
 		_tsproduct.setPropValue ( "LeftYAxisLabelPrecision", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
+	
+	// "LeftYAxisLegendPosition" - replaces legacy "LegendPosition"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "LeftYAxisLegendPosition", _selected_subproduct, -1, false );
+	if ( prop_val == null ) {
+		// See if legacy property is set, to transition to new property
+		prop_val = _tsproduct.getLayeredPropValue ( "LegendPosition", _selected_subproduct, -1, false );
+	}
+	gui_val = _graph_lefty_legendposition_JComboBox.getSelected().trim();
+	if ( !gui_val.equals(prop_val) ) {
+		_tsproduct.setPropValue ( "LeftYAxisLegendPosition", gui_val, _selected_subproduct, -1 );
+		++ndirty;
+	}
 
 	// "LeftYAxisMajorGridColor"
 
@@ -7737,14 +7803,7 @@ protected int updateTSProduct (int howSet) {
 		++ndirty;
 	}
 
-	// "LegendPosition"
-
-	prop_val = _tsproduct.getLayeredPropValue ( "LegendPosition", _selected_subproduct, -1, false );
-	gui_val = _graph_legendposition_JComboBox.getSelected().trim();
-	if ( !gui_val.equals(prop_val) ) {
-		_tsproduct.setPropValue ( "LegendPosition", gui_val, _selected_subproduct, -1 );
-		++ndirty;
-	}
+	// "LegendPosition" - replaced by newer "LeftYAxisLegendPosition"
 
 	// "MainTitleFontName"
 
@@ -7875,6 +7934,15 @@ protected int updateTSProduct (int howSet) {
 	gui_val = _graph_righty_precision_JTextField.getText().trim();
 	if ( !gui_val.equals(prop_val) ) {
 		_tsproduct.setPropValue ( "RightYAxisLabelPrecision", gui_val, _selected_subproduct, -1 );
+		++ndirty;
+	}
+	
+	// "RightYAxisLegendPosition"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "RightYAxisLegendPosition", _selected_subproduct, -1, false );
+	gui_val = _graph_righty_legendposition_JComboBox.getSelected().trim();
+	if ( !gui_val.equals(prop_val) ) {
+		_tsproduct.setPropValue ( "RightYAxisLegendPosition", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 

@@ -259,18 +259,38 @@ Draw tick marks on one axis.  This does not draw the grid.
 It is assumed that the color has already been set.
 @param da Drawing area.
 @param axis GRAxis.X or GRAxis.Y
-@param edge GRAxis.LEFT or GRAxis.RIGHt
+@param edge GRAxis.LEFT or GRAxis.RIGHT
 @param ncoords Number of coordinates.
 @param coords coordinates of ticks, in data units.
-@param daFraction fraction of the drawing area for tick length.
+@param daFraction fraction of the drawing area for tick length, 0.0 if not used, -1.0 for auto (8 pixels).
+@param lengthDev length of ticks in device units.
 */
-public static void drawTicks ( GRDrawingArea da, int axis, int edge, int ncoords, double [] coords, double daFraction )
+public static void drawTicks ( GRDrawingArea da, int axis, int edge, int ncoords, double [] coords, double daFraction, double lengthDev )
 {	double [] x = new double[2]; // X-coordinates for drawing.
 	double [] y = new double[2]; // Y-coordinates for drawing.
 
 	if ( axis == X ) {
 		GRLimits datalim = da.getDataLimits();
-		double ticLength = datalim.getHeight()*daFraction;
+		double ticLength = 0.0; // Default
+		if ( (daFraction > -.000001) && (daFraction < .000001) ) {
+			// Zero.  Use the device size
+			GRLimits dalim = new GRLimits(lengthDev, 1.0);
+			GRLimits datalim2 = GRDrawingAreaUtil.getDataExtents(da, dalim, 0);
+			ticLength = datalim2.getHeight();
+		}
+		else {
+			// Not zero.  Tick length is specified as fraction.
+			if ( daFraction < 0.0 ) {
+				// Automatic sizing - pick number of pixels of 8
+				GRLimits dalim = new GRLimits(8.0, 8.0);
+				GRLimits datalim2 = GRDrawingAreaUtil.getDataExtents(da, dalim, 0);
+				ticLength = datalim2.getHeight();
+			}
+			else {
+				// Use as is
+				ticLength = datalim.getHeight()*daFraction;
+			}
+		}
 		double bottom = 0.0;
 		if ( edge == BOTTOM ) {
 			bottom = datalim.getBottomY();
@@ -289,7 +309,26 @@ public static void drawTicks ( GRDrawingArea da, int axis, int edge, int ncoords
 	}
 	else if ( axis == Y ) {
 		GRLimits datalim = da.getDataLimits();
-		double ticLength = datalim.getWidth()*daFraction;
+		double ticLength = 0.0; // Default
+		if ( (daFraction > -.000001) && (daFraction < .000001) ) {
+			// Zero.  Use the device size
+			GRLimits dalim = new GRLimits(lengthDev, 1.0);
+			GRLimits datalim2 = GRDrawingAreaUtil.getDataExtents(da, dalim, 0);
+			ticLength = datalim2.getWidth();
+		}
+		else {
+			// Not zero.  Tick length is specified as fraction.
+			if ( daFraction < 0.0 ) {
+				// Automatic sizing - pick number of pixels of 8
+				GRLimits dalim = new GRLimits(8.0, 8.0);
+				GRLimits datalim2 = GRDrawingAreaUtil.getDataExtents(da, dalim, 0);
+				ticLength = datalim2.getWidth();
+			}
+			else {
+				// Use as is
+				ticLength = datalim.getWidth()*daFraction;
+			}
+		}
 		double left = 0.0;
 		if ( edge == LEFT ) {
 			left = datalim.getLeftX();

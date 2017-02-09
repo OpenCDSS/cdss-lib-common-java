@@ -907,13 +907,14 @@ private void openGUI ( boolean mode )
 	// TODO SAM 2016-04-01 Need to set property in calling code so center works properly
 	// Get the UI component to determine screen to display on - needed for multiple monitors
 	if ( __props != null ) {
+		// Get the UI component to determine screen to display on - needed for multiple monitors
 		Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
 		Component parentUIComponent = null;
 		if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
 			parentUIComponent = (Component)uiComponentO;
 		}
 		// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
-		JGUIUtil.center ( this, parentUIComponent );
+		JGUIUtil.center(this,parentUIComponent);
 	}
 	else {
 		JGUIUtil.center ( this );

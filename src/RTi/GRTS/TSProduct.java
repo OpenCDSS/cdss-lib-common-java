@@ -562,6 +562,12 @@ labels.</td>
 </tr>
 
 <tr>
+<td><b>LeftYAxisLegendPosition (replacing LegendPosition)</b></td>
+<td>Position for the legend y-axis legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
+</tr>
+
+<tr>
 <td><b>LeftYAxisMajorGridColor</b></td>
 <td>Color to use for the left y-axis major grid.</td>
 <td>Most graph types automatically set to "lightgray".</td>
@@ -699,9 +705,9 @@ If a blank legend format is specified, no legend will be displayed.
 </tr>
 
 <tr>
-<td><b>LegendPosition</b></td>
-<td>Position for the legend (Left, Right, Top, Bottom, None).</td>
-<td>Bottom</td>
+<td><b>LegendPosition (being replaced by LeftYAxisLegendPosition)</b></td>
+<td>Position for the legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
 </tr>
 
 <tr>
@@ -798,6 +804,12 @@ internally using the interactively supplied value.</td>
 labels.</td>
 <td>Automatically determined from graph type and/or data units.
 </td>
+</tr>
+
+<tr>
+<td><b>RightYAxisLegendPosition</b></td>
+<td>Position for the right y-axis legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
 </tr>
 
 <tr>
@@ -1922,6 +1934,10 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		// "LeftYAxisLabelPrecision" determined at run-time
+		
+		if ( getLayeredPropValue("LeftYAxisLegendPosition", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisLegendPosition", getDefaultPropValue("LeftYAxisLegendPosition",isub,-1),isub, -1);
+		}
 
 		// "LeftYAxisMajorGridColor"...
 
@@ -2068,6 +2084,10 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		// "RightYAxisLabelPrecision" determined at run-time
+		
+		if ( getLayeredPropValue("RightYAxisLegendPosition", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisLegendPosition", getDefaultPropValue("RightYAxisLegendPosition",isub,-1),isub, -1);
+		}
 
 		// "RightYAxisMajorGridColor"...
 
@@ -2699,6 +2719,10 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisLabelFontSize") ){
 			return "10";
 		}
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
+		else if ( param.equalsIgnoreCase("LeftYAxisLegendPosition") ){
+			return "BottomLeft";
+		}
 		else if ( param.equalsIgnoreCase("LeftYAxisMajorGridColor") ){
 			return "lightgray";
 		}
@@ -2749,8 +2773,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LegendFormat") ){
 			return "Auto";
 		}
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
 		else if ( param.equalsIgnoreCase("LegendPosition") ){
-			return "Bottom";
+			return "BottomLeft";
 		}
 		else if ( param.equalsIgnoreCase("MainTitleFontName") ) {
 			return "Arial";
@@ -2783,8 +2808,11 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("RightYAxisLabelFontSize") ){
 			return "10";
 		}
+		else if ( param.equalsIgnoreCase("RightYAxisLegendPosition") ){
+			return "BottomRight";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisMajorGridColor") ){
-			return "lightgray";
+			return "None";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisMajorTickColor") ){
 			return "None"; // Default for now to be consistent with left, but may change to black
@@ -4382,6 +4410,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					continue;
 				}
 
+				// Never output the following internal properties
 				if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 					continue;
 				}

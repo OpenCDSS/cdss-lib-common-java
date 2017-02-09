@@ -3007,8 +3007,8 @@ This ensures that the graphs match exactly the properties in the TSProduct that
 is being manipulated in the JFrame.  Since these properties can be changed in
 the JFrame, in the layout component, and possibly in other places, it's safest
 to simply re-read the properties and rebuild all the graphs completely when major changes occur.
-In particular, if time series are moved between graphs or new graphs are added
-the internal numbering changes.
+In particular, if time series are moved between graphs, new graphs are added
+the internal numbering changes, or axis labels and legend properties are changed.
 @param product the TSProduct from which to read TSGraph information.  This will
 most likely be the product that's already resident in memory, but not necessarily. 
 */
