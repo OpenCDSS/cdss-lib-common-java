@@ -4609,6 +4609,12 @@ private void drawLegend ( int axis )
 		GRDrawingAreaUtil.drawRectangle(da_legend, -4, -4,
 			datalim_legend.getWidth() + 8, datalim_legend.getHeight() + 8);
 	}
+	else {
+		// Includes "None" case
+		// Don't know how to draw legend.
+		Message.printStatus(2,routine,"Don't know how to draw lend in position \"" + legendPosition + "\"" );
+		return;
+	}
 
 	// Get the properties for the legend...
 	// TODO SAM 2017-02-07 Evaluate whether these properties should be split for left and right y-axis
@@ -8463,25 +8469,25 @@ private void openDrawingAreas ()
 	_datalim_lefty_inside_legend = new GRLimits(0.0, 0.0, 1.0, 1.0);
 	_da_lefty_inside_legend.setDataLimits(_datalim_lefty_inside_legend);
 	
-	// Legend for left y-axis (open drawing areas for each legend area, although currently only one will be used)...
+	// Legend for right y-axis (open drawing areas for each legend area, although currently only one will be used)...
 
 	_da_righty_bottom_legend = new GRJComponentDrawingArea ( _dev,
-			"TSGraph.rightyYAxisBottomLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+			"TSGraph.RightYAxisBottomLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_righty_bottom_legend = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_righty_bottom_legend.setDataLimits ( _datalim_righty_bottom_legend );
 
 	_da_righty_left_legend = new GRJComponentDrawingArea ( _dev,
-			"TSGraph.rightyAxisLeftLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+			"TSGraph.RightYAxisLeftLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_righty_left_legend = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_righty_left_legend.setDataLimits ( _datalim_righty_left_legend );
 
 	_da_righty_right_legend = new GRJComponentDrawingArea ( _dev,
-			"TSGraph.rightyAxisRightLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+			"TSGraph.RightYAxisRightLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_righty_right_legend = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_righty_right_legend.setDataLimits ( _datalim_righty_right_legend );
 
 	_da_righty_inside_legend = new GRJComponentDrawingArea(_dev,
-		"TSGraph.rightyAxisInsideLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null);
+		"TSGraph.RightYAxisInsideLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null);
 	_datalim_righty_inside_legend = new GRLimits(0.0, 0.0, 1.0, 1.0);
 	_da_righty_inside_legend.setDataLimits(_datalim_righty_inside_legend);
 }
@@ -9175,12 +9181,12 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	double rightYAxisLegendHeight = 0.0;
 	double rightYAxisLegendWidth = 0.0;
 	// The following gets the right y-axis time series, assuming there will be left and right y-axis legends
-	if ((tslistRightYAxis == null) || (tslistRightYAxis.size() == 0) || (getEnabledTSList(false,true).size() == 0) || rightYAxisLegendPosition.equalsIgnoreCase("None")) {
+	if ((tslistRightYAxis == null) || (tslistRightYAxis.size() == 0) || rightYAxisLegendPosition.equalsIgnoreCase("None")) {
 		// Default to no legend...
 		rightYAxisLegendHeight = 0.0;
 		rightYAxisLegendWidth = 0.0;
 	}
-	else {	
+	else {
 		// The legend height is based on the legend font size = size*(nts + 1), with the buffer, where nts is the
 		// number of enabled, non-null time series. The legend properties are for the subproduct.
 		String legendFontName = tsproduct.getLayeredPropValue ( "LegendFontName", subproduct, -1, false );
@@ -9194,6 +9200,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 
         for ( int i = 0; i < size; i++ ) {
         	ts = tslistRightYAxis.get(i);
+        	// FIXME sam 2017-02-09 need to fix this because "i" should be for the full time series list, not just right
         	if (ts == null || !isTSEnabled(i)) {
         		continue;
         	}
@@ -9279,11 +9286,13 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	// "legend_height" and "legend_width" variables to specific variables.
 
 	if ( leftYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") || leftYAxisLegendPosition.equalsIgnoreCase("Top") ) {
+		// Limit legend to half the full page height
 		if ( leftYAxisLegendHeight > _drawlim_page.getHeight()*.5 ) {
 			leftYAxisLegendHeight = _drawlim_page.getHeight()*.5;
 		}
 	}
 	if ( rightYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") || rightYAxisLegendPosition.equalsIgnoreCase("Top") ) {
+		// Limit legend to half the full page height
 		if ( rightYAxisLegendHeight > _drawlim_page.getHeight()*.5 ) {
 			rightYAxisLegendHeight = _drawlim_page.getHeight()*.5;
 		}
@@ -9326,7 +9335,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		inside_lefty_legend_buffer = buffer * 4;
 	}
 	
-	// Now increase the initial legend layout dimentions based on right y-axis legend
+	// Now increase the initial legend layout dimensions based on right y-axis legend
 	// It is most likely that the legends will share the bottom legend
 	// because if shown on left and right the space will not overlap legends.
 	
@@ -9341,9 +9350,9 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		right_legend_width = Math.max(leftYAxisLegendWidth,rightYAxisLegendWidth);
 		right_legend_buffer = buffer;
 	}
-	else if ( leftYAxisLegendPosition.equalsIgnoreCase("Top") ) {
+	else if ( rightYAxisLegendPosition.equalsIgnoreCase("Top") ) {
 	}
-	else if (StringUtil.startsWithIgnoreCase(leftYAxisLegendPosition, "Inside")) {
+	else if (StringUtil.startsWithIgnoreCase(rightYAxisLegendPosition, "Inside")) {
 		inside_righty_legend_height = rightYAxisLegendHeight;
 		inside_righty_legend_width = rightYAxisLegendWidth;
 		inside_righty_legend_buffer = buffer * 4;
@@ -9705,7 +9714,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	_datalim_lefty_inside_legend = new GRLimits(0.0, 0.0, _drawlim_lefty_inside_legend.getWidth(),
 		_drawlim_lefty_inside_legend.getHeight());
 	
-	// Right y-axis inner legend positions
+	// Right y-axis inner legend positions - same as left y-axis other than the drawing limits name
 
 	if (rightYAxisLegendPosition.equalsIgnoreCase("InsideUpperLeft")) {
 		_drawlim_righty_inside_legend = new GRLimits( _drawlim_righty_graph.getLeftX() + inside_righty_legend_buffer,
@@ -9734,8 +9743,8 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		_drawlim_righty_inside_legend = new GRLimits( _drawlim_page.getLeftX(), _drawlim_page.getBottomY(),
 			_drawlim_page.getRightX(), _drawlim_page.getTopY());
 	}
-	_datalim_lefty_inside_legend = new GRLimits(0.0, 0.0, _drawlim_lefty_inside_legend.getWidth(),
-		_drawlim_lefty_inside_legend.getHeight());
+	_datalim_righty_inside_legend = new GRLimits(0.0, 0.0, _drawlim_righty_inside_legend.getWidth(),
+		_drawlim_righty_inside_legend.getHeight());
 
 	// Now set in the drawing areas...
 
