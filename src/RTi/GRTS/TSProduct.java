@@ -1543,15 +1543,27 @@ public void checkDataProperties(int isub, int its) {
 		setPropValue ( "YAxis",yaxis,isub, its);
 	}
 	
-	// "Color"...
-	int nts = getNumData(isub);
+	// "GraphType" for the graph (not time series)...
+	// - used for some decisions below, such as bar graph position
+	// - this is for the left y-axis
 	String prop_val = getLayeredPropValue("GraphType", isub, -1, false);
 	if ( prop_val == null ) {
 		prop_val = getDefaultPropValue("GraphType", isub, -1);
 	}
-
 	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(prop_val);
+	
+	// "RightYAxisGraphType" for the graph (not time series)...
+	// - used for some decisions below, such as bar graph position
+	// - this is for the right y-axis
+	prop_val = getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
+	if ( prop_val == null ) {
+		prop_val = getDefaultPropValue("RightYAxisGraphType", isub, -1);
+	}
+	TSGraphType rightYAxisGraphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
+	// "Color"...
+
+	int nts = getNumData(isub);
 	if (getLayeredPropValue("Color",isub,its,false) == null) {
 		if ( (graphType == TSGraphType.XY_SCATTER) && (nts <= 2) ) {
 			// Force black to be used...
@@ -1603,21 +1615,36 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
 		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
-	    // Set the default graph type for the line to the same as the graph
-		// To do this need to check which axis is used for the graph
-	    String graphTypeProp = null;
-	    if ( yaxis.equalsIgnoreCase("left") ) {
-	    	getLayeredPropValue("GraphType", isub, -1, false);
-	    }
-	    else {
-	    	getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
-	    }
+		// First see if the graph type is already set and if so use it.
+		// - for example this would be the case when a line is draw on an area graph
+		// If the time series does not have a graph type, set too that of the graph.
+	    // - to do this need to check which axis is used for the graph
+	    String tsGraphType = getLayeredPropValue("GraphType", isub, its, false);
 	    // If not available for the graph, get for the time series
-	    if ( graphTypeProp == null ) {
-	        setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+	    if ( tsGraphType != null ) {
+	    	// The graph type will have been set from reading the original TSProduct file
+	    	// or by defaulting in a previous round of checks.
+	    	// TODO sam 2017-02-08 if the graph type is allowed to be set through the UI,
+	    	// this will get trickier because setting to blank (default)
+	    	// may pick a wrong previous value.
+	    	setPropValue ( "GraphType", tsGraphType, isub, its );
 	    }
 	    else {
-	        setPropValue ( "GraphType", graphTypeProp, isub, its );
+	    	// Time series graph type was null, so get from the graph type.
+	    	String graphType2 = null;
+		    if ( yaxis.equalsIgnoreCase("left") ) {
+		    	graphType2 = getLayeredPropValue("GraphType", isub, -1, false);
+		    }
+		    else {
+		    	graphType2 = getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
+		    }
+		    if ( graphType2 != null ) {
+		    	setPropValue ( "GraphType", tsGraphType, isub, its );
+		    }
+		    else {
+		    	// Final default, generally "Line", but should never get to this point
+		    	setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+		    }
 	    }
 	}
 

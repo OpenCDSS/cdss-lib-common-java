@@ -423,6 +423,11 @@ This list is guaranteed to be non-null but may be empty.
 private List<TS> __derivedTSList = new ArrayList<TS>();
 
 /**
+ * List of serious errors for he graph, to be draw in the upper left
+ */
+private List<String> __errorMessageList = new ArrayList<String>();
+
+/**
 List of time series to plot using left y-axis.
 This list is the same length as the full list but time series that are not associated with left axis will be null.
 This is needed to keep the product property index lined up.
@@ -564,6 +569,10 @@ Drawing area for full "page".
 */
 private GRJComponentDrawingArea _da_page = null;
 /**
+Drawing area for error message shown on graph.
+*/
+private GRJComponentDrawingArea _da_error = null;
+/**
 Drawing area for main title.
 */
 private GRJComponentDrawingArea _da_maintitle = null;
@@ -655,6 +664,14 @@ private GRLimits _datalim_page = null;
 Drawing limits for full "page".
 */
 private GRLimits _drawlim_page = null;
+/**
+Data limits for error message.
+*/
+private GRLimits _datalim_error = null;
+/**
+Drawing limits for error message.
+*/
+private GRLimits _drawlim_error = null;
 /**
 Data limits for the main title.
 */
@@ -4054,7 +4071,7 @@ public void drawDrawingAreas ()
 {	// This method is used by developers so OK to use global object data extensively.
 	//boolean do_names = false;
 	boolean do_names = true; // Display drawing area names
-	_da_page.setColor ( GRColor.magenta );	// actually sets for all
+	_da_page.setColor ( GRColor.magenta ); // Sets color for all
 	GRDrawingAreaUtil.setFont ( _da_page, "Helvetica", "Plain", 8 );
 	// Reference and main...
 	GRDrawingAreaUtil.drawRectangle ( _da_lefty_graph, _data_lefty_limits.getLeftX(), _data_lefty_limits.getBottomY(),
@@ -4258,6 +4275,38 @@ private void drawDurationPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int 
 	}
 	// Clean up...
 	GRDrawingAreaUtil.setLineWidth( daGraph, 1.0 );
+}
+
+/**
+ * Draw the major error message, typically a fatal issue that will help user know why
+ * the graph is not as expected.
+ */
+private void drawErrors ( GRDrawingArea daError ) {
+	if ( this.__errorMessageList.size() > 0 ) {
+		// Use default font for legend
+		String legendFontName = _tsproduct.getLayeredPropValue ( "LegendFontName", _subproduct, -1, false );
+		String legendFontSize = _tsproduct.getLayeredPropValue ( "LegendFontSize", _subproduct, -1, false );
+		String legendFontStyle = _tsproduct.getLayeredPropValue ( "LegendFontStyle", _subproduct, -1, false );
+		GRDrawingAreaUtil.setFont ( daError, legendFontName, legendFontStyle, StringUtil.atod(legendFontSize) );
+		// For now only show the first error
+		String error = this.__errorMessageList.get(0);
+		boolean doFill = false; // For now don't fill
+		if ( doFill ) {
+			// Use black text in filled drawing area
+			GRDrawingAreaUtil.setColor(daError, GRColor.lightGray);
+			GRDrawingAreaUtil.fillRectangle(daError, daError.getDataLimits().getLeftX(),
+				daError.getDataLimits().getBottomY(),
+				daError.getDataLimits().getWidth(), daError.getDataLimits().getHeight() );
+			GRDrawingAreaUtil.setColor(daError, GRColor.black);
+		}
+		else {
+			// Use red text in main drawing area
+			GRDrawingAreaUtil.setColor(daError, GRColor.red);
+		}
+		GRDrawingAreaUtil.drawText ( daError, " " + error, daError.getDataLimits().getLeftX(),
+			daError.getDataLimits().getTopY(), 0.0, GRText.LEFT|GRText.TOP );
+		// TODO sam 2017-02-08 if more errors were drawn, offset by font height and descend vertically
+	}
 }
 
 /**
@@ -4965,10 +5014,11 @@ private void drawTS ( TSProduct tsproduct, int subproduct, int its, TS ts, TSGra
 Draw a single time series.
 @param its the time series list position (0+, for retrieving properties and messaging)
 @param ts Single time series to draw.
-@param graphType the graph type to use for the time series
+@param tsGraphType the graph type to use for the time series, typically the same as the
+graph type, but can be different if overlaying lines on area graph, for example.
 @param overrideProps run-time override properties to consider when getting graph properties
 */
-private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType graphType, PropList overrideProps )
+private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps )
 {   String routine = "TSGraph.drawTS";
 
 	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
@@ -4979,12 +5029,12 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
     // Take a new approach for the area graph by having a separate method.  This will duplicate
     // some code, but the code below is getting too complex with multiple graph types handled
     // in the same code.  The separate renderers also can be refactored into separate classes if appropriate.
-	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ) {
-	    drawTSRenderAreaGraph ( its, ts, graphType, overrideProps );
+	if ( (tsGraphType == TSGraphType.AREA) || (tsGraphType == TSGraphType.AREA_STACKED) ) {
+	    drawTSRenderAreaGraph ( its, ts, tsGraphType, overrideProps );
 	    return;
 	}
-	else if ( graphType == TSGraphType.RASTER ) {
-        drawTSRenderRasterGraph ( ts, graphType, overrideProps );
+	else if ( tsGraphType == TSGraphType.RASTER ) {
+        drawTSRenderRasterGraph ( ts, tsGraphType, overrideProps );
         return;
     }
 
@@ -8087,7 +8137,7 @@ graph type for the graph, based on the left or right y-axis graph type.
 private TSGraphType getTimeSeriesGraphType ( TSGraphType mainGraphType, int its )
 {	String routine = getClass().getSimpleName() + ".getTimeSeriesGraphType";
     // Do not request the layered property here.  Ask for time series property explicitly
-    // and then set to the main graph type if no time series property
+    // and then set to the main graph type if no time series graph type property is defined.
     String graphTypeProp = _tsproduct.getLayeredPropValue ( "GraphType", _subproduct, its, false );
     TSGraphType tsGraphType = TSGraphType.valueOfIgnoreCase(graphTypeProp);
     if ( tsGraphType == null ) {
@@ -8095,8 +8145,8 @@ private TSGraphType getTimeSeriesGraphType ( TSGraphType mainGraphType, int its 
         tsGraphType = mainGraphType;
     }
     Message.printStatus(2, routine,
-    	"Time series graph type [" + its + "] is " + graphTypeProp + " main graph type is " + mainGraphType
-    	+ " returned type is " + tsGraphType);
+    	"Time series graph type [" + its + "] is " + graphTypeProp + ", main graph type is " + mainGraphType
+    	+ ", returned type is " + tsGraphType);
     return tsGraphType;
 }
 
@@ -8264,13 +8314,21 @@ private void openDrawingAreas ()
 	if ((prop_val != null) && prop_val.equalsIgnoreCase("Log")) {
 		log_y_left = false;
 		log_xy_scatter = true;
-	}	
+	}
+
 	// Full page...
 
 	_da_page = new GRJComponentDrawingArea ( _dev, "TSGraph.Page",
 			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_page = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_page.setDataLimits ( _datalim_page );
+	
+	// Error drawing area for major issues that user must correct
+	
+	_da_error = new GRJComponentDrawingArea ( _dev, "TSGraph.Error",
+		GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+	_datalim_error = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	_da_error.setDataLimits ( _datalim_error );
 
 	// Drawing area for main title...
 
@@ -8582,6 +8640,7 @@ public void paint ( Graphics g )
 		if ( _showDrawingAreaOutline ) {
 			drawDrawingAreas ();
 		}
+		drawErrors ( _da_error );
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e ); // Put first because sometimes does not output if after
@@ -9204,6 +9263,8 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 
 	_drawlim_page = new GRLimits ( drawlim_page );
 	
+	_drawlim_error = new GRLimits ( drawlim_page );
+	
 	// Do a check on the graph height and adjust some of the other heights
 	// if necessary (enhance this over time)...
 
@@ -9682,6 +9743,9 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		// _drawlim_page is set in the constructor - we just need to use it as is...
 		_da_page.setDrawingLimits ( _drawlim_page, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
+	if ( (_da_error != null) && (_drawlim_error != null) ) {
+		_da_error.setDrawingLimits ( _drawlim_error, GRUnits.DEVICE, GRLimits.DEVICE );
+	}
 	if ( (_da_maintitle != null) && (_drawlim_maintitle != null) ) {
 		_da_maintitle.setDrawingLimits ( _drawlim_maintitle, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
@@ -9789,6 +9853,14 @@ Sets the end date.
 */
 protected void setEndDate(DateTime endDate) {
 	_end_date = endDate;
+}
+
+/**
+ * Set the fatal error string.
+ */
+private void setErrorMessage ( String error ) {
+	this.__errorMessageList.clear();
+	this.__errorMessageList.add(error);	
 }
 
 /**
