@@ -2252,6 +2252,8 @@ public boolean needToClose ( boolean need_to_close )
 
 /**
 Open the drawing areas and set the data limits (all are unit limits).
+These drawing areas are used for page drawing, such as main component.
+TSGraph drawing areas are overlaid within the overall component.
 */
 private void openDrawingAreas ()
 {	// Full page...
@@ -2307,7 +2309,7 @@ private void openDrawingAreas ()
 	// Drawing area for right footer (data are just unit)...
 
 	_da_rightfoot = new GRJComponentDrawingArea ( this,
-			"TSGraphJComponent.CenterFooter",
+			"TSGraphJComponent.RightFooter",
 			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
 	_datalim_rightfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
@@ -3014,20 +3016,18 @@ most likely be the product that's already resident in memory, but not necessaril
 */
 public void reinitializeGraphs(TSProduct product)
 {   String routine = getClass().getSimpleName() + ".reinitializeGraphs";
-	// if any graphs lack start and end dates (i.e., they're brand new
+	// If any graphs lack start and end dates (i.e., they're brand new
 	// and lack any time series), pull out a start and end date from any
-	// of the other graphs and use it, so that zoom outs work correctly
+	// of the other graphs and use it, so that zoom outs work correctly.
 	DateTime end = null;
 	DateTime maxEnd = null;
 	DateTime start = null;
 	DateTime maxStart = null;
 	DateTime temp = null;
-	TSGraph g = null;
 
 	// Find the latest end date and the earliest start date from the graphs.
 
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = _tsgraphs.get(i);
+	for ( TSGraph g: _tsgraphs ) {
 		if (g.getEndDate() != null) {
 			temp = g.getEndDate();
 			if (end == null || end.lessThanOrEqualTo(temp)) {
@@ -3045,19 +3045,18 @@ public void reinitializeGraphs(TSProduct product)
 	_tsproduct = product;
 	_tslist = _tsproduct.getTSList();
 
-	// Find the latest end date and the earliest start date from the time series
+	// Find the latest end date and the earliest start date from all the time series
 
-	TS ts = null;
-	int size = _tslist.size();
-	for (int i = 0; i < size; i++) {
-		ts = _tslist.get(i);
+	for ( TS ts : _tslist ) {
 		temp = ts.getDate1();
-		if (maxStart == null || (temp != null && temp.lessThan(maxStart))) {
+		if ( (maxStart == null) || (temp != null && temp.lessThan(maxStart))) {
+			// Reset the earliest start if it has not been set or time series has earlier period start
 			maxStart = temp;
 		}
 
 		temp = ts.getDate2();
-		if (maxEnd == null || (temp != null && maxEnd.lessThan(temp))) {
+		if ( (maxEnd == null) || (temp != null && maxEnd.lessThan(temp))) {
+			// Reset the latest start if it has not been set or time series has later period end
 			maxEnd = temp;
 		}
 	}
@@ -3075,7 +3074,7 @@ public void reinitializeGraphs(TSProduct product)
 	clearView();
 	repaint();
 
-	if (end == null && start == null) {
+	if ( (end == null) && (start == null) ) {
 		return;
 	}
 	
@@ -3087,15 +3086,14 @@ public void reinitializeGraphs(TSProduct product)
 	// are set from the time series (above) and the current graph zoom
 	// dates are set from the current graph dates (above).
 	
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = _tsgraphs.get(i);
+	for ( TSGraph g: _tsgraphs ) {
 		if (!g.isReferenceGraph()) {
 			g.setEndDate(end);
 			g.setMaxEndDate(maxEnd);
 			g.setStartDate(start);
 			g.setMaxStartDate(maxStart);
-			g.setComputeWithSetDates(true);
-			g.computeDataLimits(false);
+			g.setComputeWithSetDates(true); // By here the graphs need to be created with the last period that was displayed
+			g.computeDataLimits(false); // This says to use the set dates, not the maximum from initial graph creation
 		}
 	}
 }

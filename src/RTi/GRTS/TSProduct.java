@@ -1527,13 +1527,22 @@ public void checkAnnotationProperties(int isub, int iann) {
 }
 
 /**
-Checks data properties to make sure that the data are fully-defined for a time series in a graph.
+Checks data (time series) properties to make sure that the data are fully-defined for a time series in a graph.
 Data that are not fully-defined will have the property set to a default value.
 @param isub the subproduct of the annotation.
 @param iann the annotation number.
 */
 public void checkDataProperties(int isub, int its) {
 //	Message.printStatus ( 1, "", "Checking TS [" + its+"]");
+	// List alphabetically other than exceptions.
+	
+	// "YAxis" - need to get first
+	String yaxis = getLayeredPropValue ("YAxis", isub, its, false );
+	if ( yaxis == null ) {
+		yaxis = getDefaultPropValue("YAxis",isub,its);
+		setPropValue ( "YAxis",yaxis,isub, its);
+	}
+	
 	// "Color"...
 	int nts = getNumData(isub);
 	String prop_val = getLayeredPropValue("GraphType", isub, -1, false);
@@ -1550,6 +1559,7 @@ public void checkDataProperties(int isub, int its) {
 		}
 		else {	
 			// Use colors for time series...
+			// All time series on the graph are processed so "its" includes left and right y-axis
 			setPropValue("Color", TSGraphJComponent.lookupTSColor(its),	isub, its);
 		}
 	}
@@ -1594,7 +1604,15 @@ public void checkDataProperties(int isub, int its) {
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
 		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
 	    // Set the default graph type for the line to the same as the graph
-	    String graphTypeProp = getLayeredPropValue("GraphType", isub, -1, false);
+		// To do this need to check which axis is used for the graph
+	    String graphTypeProp = null;
+	    if ( yaxis.equalsIgnoreCase("left") ) {
+	    	getLayeredPropValue("GraphType", isub, -1, false);
+	    }
+	    else {
+	    	getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
+	    }
+	    // If not available for the graph, get for the time series
 	    if ( graphTypeProp == null ) {
 	        setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
 	    }
@@ -1648,10 +1666,6 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ("XAxis", isub, its, false ) == null ) {
 		setPropValue ( "XAxis",getDefaultPropValue("XAxis",isub,its),isub, its);
-	}
-
-	if ( getLayeredPropValue ("YAxis", isub, its, false ) == null ) {
-		setPropValue ( "YAxis",getDefaultPropValue("YAxis",isub,its),isub, its);
 	}
 }
 
@@ -4245,7 +4259,8 @@ Output the product to a text representation.
 @param outputAll indicates whether to output all the properties (true),
 or only those that are different from defaults (false).
 The latter is generally the legacy behavior used by software to create shorter files.
-@param outputHowSet indicate whether "how set" value should be output in addition to property value.
+@param outputHowSet indicate whether "how set" value should be output in addition to property value,
+typically only when debugging.
 @param formatType the format used in output.
 @param sort indicate whether properties should be sorted (true) or left in default order (false).
 @return the product formatted as a string using the specified format type.
@@ -4270,7 +4285,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		}
 	}
 
-	boolean save = false;
+	boolean output = false;
 	String howSetString = "";
 	
 	/*
@@ -4313,7 +4328,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 	*/
 	
 	for (int i = 0; i < size; i++) {
-		save = false;
+		output = false;
 		howSetString = "";
 		prop = props.get(i);
 		howSet = prop.getHowSet();
@@ -4323,13 +4338,13 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 			continue;
 		}
 		else if (outputAll) {
-			save = true;
+			output = true;
 		}
 		else if (!outputAll) {
 			if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
 				(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
 				(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-				save = true;
+				output = true;
 			}
 		}
 		howSetString = "";
@@ -4351,7 +4366,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 			}
 		}
 
-		if (save) {
+		if (output) {
 			out.append(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 		}
 	}
@@ -4386,7 +4401,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		}
 		
 		for ( int i = 0; i < size; i++ ) {
-			save = false;
+			output = false;
 			howSetString = "";
 			prop = props.get(i);
 			key = prop.getKey();
@@ -4396,7 +4411,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 				continue;
 			}
 			else if (outputAll) {
-				save = true;
+				output = true;
 			}
 			else if (!outputAll) {
 				// Don't write internal properties that typically don't show up in the product file
@@ -4410,18 +4425,20 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					continue;
 				}
 
-				// Never output the following internal properties
-				if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
-					continue;
-				}
-				else if (key.toUpperCase().endsWith("LEFTYAXISORIGINALGRAPHTYPE")) {
-				    continue;
-				}
-				else if (key.toUpperCase().endsWith("RIGHTYAXISORIGINALGRAPHTYPE")) {
-				    continue;
+				if ( !outputHowSet ) {
+					// Never output the following internal properties
+					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						continue;
+					}
+					else if (key.toUpperCase().endsWith("LEFTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
+					else if (key.toUpperCase().endsWith("RIGHTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
 				}
 
-				save = true;
+				output = true;
 			}
 			howSetString = "";
 			if ( outputHowSet ) {
@@ -4442,7 +4459,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 				}
 			}
 
-			if (save) {
+			if (output) {
 				out.append(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 			}
 		}
@@ -4466,7 +4483,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 			}
 			
 			for ( int j = 0; j < dsize; j++ ) {
-				save = false;
+				output = false;
 				prop = vdata.get(j);
 				howSet = prop.getHowSet();
 				key = prop.getKey().substring(data_prefix_length - 1);
@@ -4475,7 +4492,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					continue;
 				}
 				else if (outputAll) {
-					save = true;
+					output = true;
 				}
 				else if (!outputAll) {
 					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
@@ -4488,11 +4505,13 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 						continue;
 					}
 					
-					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
-					     continue;
+					if ( !outputHowSet ) {
+						if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						     continue;
+						}
 					}
 
-					save = true;
+					output = true;
 				}
 				howSetString = "";
 				if ( outputHowSet ) {
@@ -4513,7 +4532,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					}
 				}
 
-				if (save) {
+				if (output) {
 					out.append(prop.getKey().substring(
 						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
 				}
@@ -4535,7 +4554,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 				dsize = vdata.size();
 			}
 			for (int j = 0; j < dsize; j++) {
-        		save = false;
+        		output = false;
         		prop = vdata.get(j);
         		howSet = prop.getHowSet();
         	
@@ -4543,7 +4562,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
         			continue;
         		}
         		else if (outputAll) {
-        			save = true;
+        			output = true;
         		}
         		else if (!outputAll) {
         			if ( (howSet == Prop.SET_FROM_PERSISTENT)
@@ -4571,18 +4590,18 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
         				key.equalsIgnoreCase("XAxisSystem") ||
         				key.equalsIgnoreCase("YAxis") ||
         				key.equalsIgnoreCase("YAxisSystem") ) {
-        				save = true;
+        				output = true;
         			}
         			else if (type.equalsIgnoreCase("Line")) {
         				if ( key.equalsIgnoreCase("LineStyle") ||
         					key.equalsIgnoreCase("LineWidth") ||
         					key.equalsIgnoreCase("Points") ) {
-        					save = true;
+        					output = true;
         				}
         			}
         			else if (type.equalsIgnoreCase("Rectangle")) {
         				if ( key.equalsIgnoreCase("Points") ) {
-        					save = true;
+        					output = true;
         				}
         			}
         			else if (type.equalsIgnoreCase("Symbol")) {
@@ -4590,7 +4609,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
         					|| key.equalsIgnoreCase("SymbolPosition")
         					|| key.equalsIgnoreCase("SymbolSize")
         					|| key.equalsIgnoreCase("SymbolStyle") ) {
-        					save = true;
+        					output = true;
         				}
         			}
         			else if (type.equalsIgnoreCase("Text")) {
@@ -4600,7 +4619,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
         					|| key.equalsIgnoreCase("Point")
         					|| key.equalsIgnoreCase("Text")
         					|| key.equalsIgnoreCase("TextPosition") ) {
-        					save = true;
+        					output = true;
         				}
         			}
         		}
@@ -4623,7 +4642,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					}
 				}
         
-        		if (save) {		
+        		if (output) {		
         			out.append(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
         		}
 			}
