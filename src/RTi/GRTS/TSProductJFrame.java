@@ -3047,6 +3047,20 @@ private JPanel createSubproductJPanel ()
 			1, yAxisLeftTitle, 3, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
 	
+	_graph_lefty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
+	JGUIUtil.addComponent (yAxisLeftTitle_JPanel, _graph_lefty_title_fontname_JComboBox,
+			4, yAxisLeftTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH ); // HORIZONTAL to resize to Max value choice
+	_graph_lefty_title_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
+	JGUIUtil.addComponent(yAxisLeftTitle_JPanel, _graph_lefty_title_fontstyle_JComboBox,
+			5, yAxisLeftTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	_graph_lefty_title_fontsize_JTextField = new JTextField ( 3 );
+	_graph_lefty_title_fontsize_JTextField.setToolTipText("Font size in points");
+	JGUIUtil.addComponent (yAxisLeftTitle_JPanel, _graph_lefty_title_fontsize_JTextField,
+			6, yAxisLeftTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	
 	JGUIUtil.addComponent ( yAxisLeftTitle_JPanel, new JLabel ("Position:"),
 		0, ++yAxisLeftTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -3070,20 +3084,6 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent (yAxisLeftTitle_JPanel,_graph_lefty_title_rotation_JTextField,
 		1, yAxisLeftTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	
-	_graph_lefty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
-	JGUIUtil.addComponent (yAxisLeftTitle_JPanel, _graph_lefty_title_fontname_JComboBox,
-			4, yAxisLeftTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH ); // HORIZONTAL to resize to Max value choice
-	_graph_lefty_title_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(yAxisLeftTitle_JPanel, _graph_lefty_title_fontstyle_JComboBox,
-			5, yAxisLeftTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
-	_graph_lefty_title_fontsize_JTextField = new JTextField ( 3 );
-	_graph_lefty_title_fontsize_JTextField.setToolTipText("Font size in points");
-	JGUIUtil.addComponent (yAxisLeftTitle_JPanel, _graph_lefty_title_fontsize_JTextField,
-			6, yAxisLeftTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	
 	// Create a sub-panel with a border to hold label properties
 	JPanel yAxisLeftLabel_JPanel = new JPanel();
@@ -3281,6 +3281,20 @@ private JPanel createSubproductJPanel ()
 			1, yAxisRightTitle, 3, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH );
 	
+	_graph_righty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
+	JGUIUtil.addComponent (yAxisRightTitle_JPanel, _graph_righty_title_fontname_JComboBox,
+			4, yAxisRightTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH ); // HORIZONTAL to resize to Max value choice
+	_graph_righty_title_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
+	JGUIUtil.addComponent(yAxisRightTitle_JPanel, _graph_righty_title_fontstyle_JComboBox,
+			5, yAxisRightTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	_graph_righty_title_fontsize_JTextField = new JTextField ( 3 );
+	_graph_righty_title_fontsize_JTextField.setToolTipText("Font size in points");
+	JGUIUtil.addComponent (yAxisRightTitle_JPanel, _graph_righty_title_fontsize_JTextField,
+			6, yAxisRightTitle, 1, 1, 0, 0,
+			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
+	
 	JGUIUtil.addComponent ( yAxisRightTitle_JPanel, new JLabel ("Position:"),
 		0, ++yAxisRightTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -3304,20 +3318,6 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent (yAxisRightTitle_JPanel,_graph_righty_title_rotation_JTextField,
 		1, yAxisRightTitle, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	
-	_graph_righty_title_fontname_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
-	JGUIUtil.addComponent (yAxisRightTitle_JPanel, _graph_righty_title_fontname_JComboBox,
-			4, yAxisRightTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.NORTH ); // HORIZONTAL to resize to Max value choice
-	_graph_righty_title_fontstyle_JComboBox=JGUIUtil.newFontStyleJComboBox();
-	JGUIUtil.addComponent(yAxisRightTitle_JPanel, _graph_righty_title_fontstyle_JComboBox,
-			5, yAxisRightTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
-	_graph_righty_title_fontsize_JTextField = new JTextField ( 3 );
-	_graph_righty_title_fontsize_JTextField.setToolTipText("Font size in points");
-	JGUIUtil.addComponent (yAxisRightTitle_JPanel, _graph_righty_title_fontsize_JTextField,
-			6, yAxisRightTitle, 1, 1, 0, 0,
-			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	
 	// Create a sub-panel with a border to hold label properties
 	JPanel yAxisRightLabel_JPanel = new JPanel();
