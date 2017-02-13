@@ -227,7 +227,7 @@ Open the GUI and display the time series summary.
 @param mode Indicates whether the GUI should be visible at creation.
 */
 private void openGUI ( boolean mode )
-{	String routine = getClass().getName() + ".openGUI";
+{	String routine = getClass().getSimpleName() + ".openGUI";
 	// Start a big try block to set up the GUI...
 	try {
 

@@ -383,7 +383,8 @@ public void drawAnnotation(PropList p) {
 		// this will avoid any null pointer errors.
 		return;
 	}
-	else if (shapeType.equalsIgnoreCase("Line")) {
+	else if (shapeType.equalsIgnoreCase("Line") || shapeType.equalsIgnoreCase("Rectangle")) {
+		// Line and rectangle use a "Points" property in similar way
 		propVal = p.getValue("Points");
 		if (propVal == null || propVal.equals("")) {
 			Message.printWarning(2, "drawAnnotation", "Endpoints for a line annotation must be specified.");
@@ -393,7 +394,7 @@ public void drawAnnotation(PropList p) {
 		List<String> points = StringUtil.breakStringList(propVal, ",", 0);
 		if (points.size() != 4) {
 			Message.printWarning(2, "drawAnnotation", "Invalid points declaration:"
-				+ " " + propVal + ".  There must be 4 points in the form 'X1,X2,Y1,Y2'.");
+				+ " " + propVal + ".  There must be 2 points (4 values) in the form 'X1,Y1,X2,Y2'.");
 			return;
 		}
 
@@ -435,7 +436,7 @@ public void drawAnnotation(PropList p) {
 			}
 			
 			// The simple case -- this is how annotations have 
-			// always been defined, as a set of Data or Percent pints.
+			// always been defined, as a set of Data or Percent points.
 			try {
 				__xs[0] = new Double((points.get(0))).doubleValue();
 			}
@@ -586,7 +587,7 @@ public void drawAnnotation(PropList p) {
 		}		
 	}
 	else if (shapeType.equalsIgnoreCase("Text") || shapeType.equalsIgnoreCase("Symbol")) {
-	    // Both these shapes have the "Points" property and both handle it the same.
+	    // Both these shapes have the "Point" property and both handle it the same.
 
 		// Create a pretty-looking string for use in messages (i.e.,
 		// ensures that capitalization is normalized).
@@ -813,6 +814,77 @@ public void drawAnnotation(PropList p) {
 				xFormat, yFormat, xFormatType, yFormatType, width, lineStyle, xAxisPercent, yAxisPercent);
 		}
 	}
+	else if (shapeType.equalsIgnoreCase("Rectangle")) {
+		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
+			// No input format defined -- simple data/percent drawing.
+			drawAnnotationRectangle(__xs, __ys, xAxisPercent, yAxisPercent);
+		}
+		else {
+			// Date: 
+			drawAnnotationRectangle(__xs, __ys, formatXPts, formatYPts, 
+				xFormat, yFormat, xFormatType, yFormatType, xAxisPercent, yAxisPercent);
+		}
+	}
+	else if (shapeType.equalsIgnoreCase("Symbol")) {
+		propVal = p.getValue("SymbolSize");
+		int size = 0;
+		if (propVal == null) {
+			// default
+		}
+		else { 
+			try {
+				size = Integer.decode(propVal).intValue();
+			}
+			catch (Exception e) {
+				Message.printWarning(3, "drawAnnotation", "Invalid symbol size: '" + propVal + "'");
+				return;
+			}
+		}
+
+		if (size == 0) {
+			// short-circuit, since nothing visible will be drawn
+			return;
+		}
+
+		propVal = p.getValue("SymbolPosition");
+		int symbolPosition = getAnnotationPosition(propVal);
+		if (symbolPosition == -1) {
+			Message.printWarning(2, "drawAnnotation", "Invalid position value: " + propVal);
+			return;
+		}
+
+		propVal = p.getValue("DrawOutOfBounds");
+		boolean off = false;
+		if (propVal != null && propVal.equalsIgnoreCase("true")) {
+			off = true;
+		}
+
+		int symbol = 0;
+		propVal = p.getValue("SymbolStyle");
+		if (propVal == null) {
+			propVal = "None";
+		}		
+		try {
+			symbol = GRSymbol.toInteger(propVal);
+		}
+		catch (Exception e) {
+			Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
+			return;
+		}
+
+		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
+			// no InputFormats on either axis
+			drawAnnotationSymbol(__xs, __ys, symbol, size, 
+				GRUnits.DEVICE, outlineColor, symbolPosition, 
+				xAxisPercent, yAxisPercent, off);
+		}
+		else {
+			drawAnnotationSymbol(__xs, __ys, formatXPts, formatYPts,
+				xFormat, yFormat, xFormatType, yFormatType,
+				symbol, size, GRUnits.DEVICE, outlineColor, 
+				symbolPosition, xAxisPercent, yAxisPercent, off);
+		}
+	}
 	else if (shapeType.equalsIgnoreCase("Text")) {
 		propVal = p.getValue("FontSize");
 		int fontSize = 10;
@@ -874,66 +946,6 @@ public void drawAnnotation(PropList p) {
 				text, textPosition, xAxisPercent, yAxisPercent, off);
 		}
 
-	}
-	else if (shapeType.equalsIgnoreCase("Symbol")) {
-		propVal = p.getValue("SymbolSize");
-		int size = 0;
-		if (propVal == null) {
-			// default
-		}
-		else { 
-			try {
-				size = Integer.decode(propVal).intValue();
-			}
-			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid symbol size: '" + propVal + "'");
-				return;
-			}
-		}
-
-		if (size == 0) {
-			// short-circuit, since nothing visible will be drawn
-			return;
-		}
-
-		propVal = p.getValue("SymbolPosition");
-		int symbolPosition = getAnnotationPosition(propVal);
-		if (symbolPosition == -1) {
-			Message.printWarning(2, "drawAnnotation", "Invalid position value: " + propVal);
-			return;
-		}
-
-		propVal = p.getValue("DrawOutOfBounds");
-		boolean off = false;
-		if (propVal != null && propVal.equalsIgnoreCase("true")) {
-			off = true;
-		}
-
-		int symbol = 0;
-		propVal = p.getValue("SymbolStyle");
-		if (propVal == null) {
-			propVal = "None";
-		}		
-		try {
-			symbol = GRSymbol.toInteger(propVal);
-		}
-		catch (Exception e) {
-			Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
-			return;
-		}
-
-		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
-			// no InputFormats on either axis
-			drawAnnotationSymbol(__xs, __ys, symbol, size, 
-				GRUnits.DEVICE, outlineColor, symbolPosition, 
-				xAxisPercent, yAxisPercent, off);
-		}
-		else {
-			drawAnnotationSymbol(__xs, __ys, formatXPts, formatYPts,
-				xFormat, yFormat, xFormatType, yFormatType,
-				symbol, size, GRUnits.DEVICE, outlineColor, 
-				symbolPosition, xAxisPercent, yAxisPercent, off);
-		}
 	}
 }
 
@@ -1030,6 +1042,106 @@ String lineStyle, boolean xAxisPercent, boolean yAxisPercent) {
 	if (lineWidth != 1) {
 		setLineWidth(1.0);
 	}
+}
+
+/**
+Annotation drawing helper code that handles input formats for rectangle annotations.
+This code will translate the X and/or Y values appropriately and draw the line.
+@param xs the array of x values for this annotation.  If an XFormat is
+defined, this parameter is not used -- it will still be non-null, though.
+@param ys the array of y values for this annotation.  If an YFormat is
+defined, this parameter is not used -- it will still be non-null, though.
+@param formatXs the array of X format input values.  Null if unused.
+@param formatYs the array of Y format input values.  Null if unused.
+@param xFormat the format for the X axis.  Null if unused.
+@param yFormat the format for the Y axis.  Null if unused.
+@param xFormatType the kind of X axis format.  Can be null, in which case 
+there is no XFormat.  Currently only support "DateTime," format.
+@param yFormatType the kind of Y axis format.  Can be null, in which case
+there is no YFormat.  Currently there are no supported YFormats.
+*/
+private void drawAnnotationRectangle(double[] xs, double ys[], String[] formatXs, 
+String[] formatYs, String xFormat, String yFormat, int xFormatType,
+int yFormatType, boolean xAxisPercent, boolean yAxisPercent) {
+	if (xFormat != null) {
+		int index = xFormat.indexOf(",");
+		xFormat = xFormat.substring(index + 1);
+	}
+	if (yFormat != null) {
+		int index = yFormat.indexOf(",");
+		yFormat = yFormat.substring(index + 1);
+	}		
+
+	double x1mod = determineModifier(true, xFormatType, xFormat, formatXs);
+	double y1mod = determineModifier(false, yFormatType, yFormat, formatYs);
+
+	double[] calcX1s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 0, 2, -1);
+	double[] calcX2s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 1, 2, calcX1s.length);
+	double[] calcY1s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 0, 2, -1);
+	double[] calcY2s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 1, 2, calcY1s.length);
+
+	xAxisPercent = determinePercent(xAxisPercent, xFormatType);
+	yAxisPercent = determinePercent(yAxisPercent, yFormatType);
+
+	for (int i = 0; i < calcX1s.length; i++) {
+		for (int j = 0; j < calcY1s.length; j++) {
+			__xs[0] = calcX1s[i] + x1mod;
+			__xs[1] = calcX2s[i];
+			__ys[0] = calcY1s[j] + y1mod;
+			__ys[1] = calcY2s[j];
+			drawAnnotationRectangle(__xs, __ys, xAxisPercent, yAxisPercent);			
+		}
+	}		
+}
+
+/**
+Annotation rectangle drawing helper code.
+@param xs the x points of the line.
+@param ys the y points of the line.
+@param xAxisPercent whether the X axis is percent (true) or data (false).
+@param yAxisPercent whether the Y axis is percent (true) or data (false).
+*/
+private void drawAnnotationRectangle(double[] xs, double[] ys, boolean xAxisPercent, boolean yAxisPercent) {
+	if (xAxisPercent) {
+		__tempXs[0] = ((_datax2 - _datax1) * (xs[0] / 100.0)) + _datax1;
+		__tempXs[1] = ((_datax2 - _datax1) * (xs[1] / 100.0)) + _datax1;
+	}
+	else {
+		__tempXs[0] = xs[0];
+		__tempXs[1] = xs[1];
+	}
+
+	if (yAxisPercent) {
+		__tempYs[0] = ((_datay2 - _datay1) * (ys[0] / 100.0)) + _datay1;
+		__tempYs[1] = ((_datay2 - _datay1) * (ys[1] / 100.0)) + _datay1;
+	}
+	else {
+		__tempYs[0] = ys[0];
+		__tempYs[1] = ys[1];
+	}
+
+	__tempXs[0] = scaleXData(__tempXs[0]);
+	__tempXs[1] = scaleXData(__tempXs[1]);
+	__tempYs[0] = scaleYData(__tempYs[0]);
+	__tempYs[1] = scaleYData(__tempYs[1]);
+	double xll = __tempXs[0];
+	if ( __tempXs[1] < xll ) {
+		xll = __tempXs[1];
+	}
+	double yll = __tempYs[0];
+	if ( __tempYs[1] < yll ) {
+		yll = __tempYs[1];
+	}
+	double w = __tempXs[0] - __tempXs[1];
+	if ( w < 0 ) {
+		w = w* -1.0;
+	}
+	double h = __tempYs[0] - __tempYs[1];
+	if ( h < 0 ) {
+		h = h* -1.0;
+	}
+	// Currently annotations always fill but in the future will implement outline
+	fillRectangle(xll, yll, w, h);
 }
 
 /**
@@ -1416,10 +1528,10 @@ Draw text.
 @param text the text string to draw.
 @param x the x location at which to draw the string.
 @param y the y location at which to draw the string.
-@param a the alpha value of the string.
+@param a the alpha value (transparency) of the string (currently not used).
 @param flag one of the GRText.* values specifying how to draw the string.
 @param rotationDegrees number of degrees to rotates the text clock-wise from 
-due East.  Standard java rotation transforms rotate clock-wise with positive numbers.
+due East.  Standard Java rotation transforms rotate clock-wise with positive numbers.
 */
 public void drawText(String text, double x, double y, double a, int flag, double rotationDegrees) {
 	// Make sure that we have a string...
@@ -1461,10 +1573,12 @@ public void drawText(String text, double x, double y, double a, int flag, double
 	else if ((flag & GRText.TOP) != 0) {
 		iy += height;
 	}
-	if (rotationDegrees == 0) {
+	if ( (rotationDegrees > -.001) && (rotationDegrees < .001) ) {
+		// For close to zero, draw horizontally
 		_jdev._graphics.drawString(text, ix, iy);
 	}
 	else {
+		// Draw rotated text using a small image - otherwise transform might rotate too large an area
 		int larger = 0;
 		if (height > width) {
 			larger = height;
@@ -1472,20 +1586,72 @@ public void drawText(String text, double x, double y, double a, int flag, double
 		else {
 			larger = width;
 		}
-		BufferedImage temp = new BufferedImage(larger * 2, larger * 2, BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D tempG = temp.createGraphics();
-		tempG.setFont(font);
-
-		AffineTransform origXform = tempG.getTransform();
-		AffineTransform newXform = (AffineTransform)(origXform.clone());
-		newXform.rotate(Math.toRadians(rotationDegrees), larger,larger);
-
-		tempG.setTransform(newXform);
-		tempG.setColor(_jdev._graphics.getColor());
-
-		tempG.drawString(text, larger, larger);
-		
-		_jdev._graphics.drawImage(temp, ((int)x) - larger, ((int)y) - larger, null);
+		if ( (rotationDegrees % 90) < .001) {
+			// See:  http://stackoverflow.com/questions/10083913/how-to-rotate-text-with-graphics2d-in-java
+			// The following works when 90-degree multiples but need a generic way to deal with centering, justifying.
+			// The problem is the drawing routine works from the lower-left corner of the text but the
+			// positioning flag requires an offset.
+			Graphics2D g2d = _jdev._graphics;
+			double rotationRad = Math.toRadians(rotationDegrees);
+			// Translate coordinate system to rotated space
+			// (xs,ys) work as is if left-bottom edge is at point
+			double xt = xs; // Translate values
+			double yt = ys;
+			if ( (int)(rotationDegrees + .001) == 90 ) {
+				// Drawing down with bottom of text to left
+				if ((flag & GRText.CENTER_Y) != 0) {
+					xt -= height/2;
+				}
+				else if ((flag & GRText.TOP) != 0) {
+					xt -= height;
+				}
+				if ((flag & GRText.CENTER_X) != 0) {
+					yt -= width/2;
+				}
+				else if ((flag & GRText.RIGHT) != 0) {
+					yt -= width;
+				}
+			}
+			else if ( ((int)(rotationDegrees + .01) == 270) || ((int)(rotationDegrees - .01) == -90) ) {
+				// Drawing up with bottom of text to right
+				if ((flag & GRText.CENTER_Y) != 0) {
+					xt += height/2;
+				}
+				else if ((flag & GRText.TOP) != 0) {
+					xt += height;
+				}
+				if ((flag & GRText.CENTER_X) != 0) {
+					yt += width/2;
+				}
+				else if ((flag & GRText.RIGHT) != 0) {
+					yt += width;
+				}
+			}
+			g2d.translate(xt,yt);
+			g2d.rotate(rotationRad);
+			g2d.drawString(text, 0, 0);
+			// Translate back to original coordinate system
+			g2d.rotate(-rotationRad);
+			g2d.translate(-xt,-yt);	
+		}
+		else {
+			// This works but does not seem to get the positioning quite right
+			BufferedImage temp = new BufferedImage(larger * 2, larger * 2, BufferedImage.TYPE_4BYTE_ABGR);
+			Graphics2D tempG = temp.createGraphics();
+			tempG.setFont(font);
+	
+			AffineTransform origXform = tempG.getTransform();
+			AffineTransform newXform = (AffineTransform)(origXform.clone());
+			newXform.rotate(Math.toRadians(rotationDegrees), larger,larger);
+	
+			tempG.setTransform(newXform);
+			tempG.setColor(_jdev._graphics.getColor());
+			//Message.printStatus(2,"","Drawing text \"" + text + "\" into image of size " + larger );
+			tempG.drawString(text, larger, larger);
+			//Message.printStatus(2,"","Drawing image into device at " + ((int)x - larger) + "," + ((int)y - larger) );
+			_jdev._graphics.drawImage(temp, ((int)x - larger), ((int)y - larger), null);
+			tempG.dispose();
+		}
 	}
 }
 

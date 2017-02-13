@@ -172,7 +172,7 @@ to 100 regardless of what the property is.</td>
 <tr>
 <td>Search</td>
 <td>Indicates whether to enable the search button.</td>
-<td>True.</td>
+<td>True</td>
 </tr>
 
 <tr>
@@ -195,8 +195,8 @@ to 100 regardless of what the property is.</td>
 
 <tr>
 <td>URL</td>
-<td>If specified, display the page using the URL, rather than the Vector of String.</td>
-<td>Use Vector of String.</td>
+<td>If specified, display the page using the URL, rather than the list of String.</td>
+<td>Use list of String.</td>
 </tr>
 
 <tr>
@@ -580,7 +580,7 @@ private void setGUI()
 	bottom_JPanel.add( "Center", bottomC_JPanel );
     
     propValue = _prop.getValue( "Search" );
-    if ( (propValue == null) || !propValue.equalsIgnoreCase("true") ) {
+    if ( (propValue == null) || propValue.equalsIgnoreCase("true") ) {
         _search_JButton = new SimpleJButton( "Search", this );
         bottomC_JPanel.add ( _search_JButton );
     }

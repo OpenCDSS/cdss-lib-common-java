@@ -436,9 +436,9 @@ Draws text.
 @param text the text to draw
 @param x the x location of the text
 @param y the y location of the text
-@param a the alpha value of the text
+@param a the alpha value of the text (transparency)
 @param flag the GRText.* flag to determine how text is drawn
-@param degrees the number of degrees to rotate the text clock-wise.
+@param degrees the number of degrees to rotate the text clock-wise from east.
 */
 public abstract void drawText ( String text, double x, double y, double a, int flag, double degrees);
 
@@ -596,7 +596,7 @@ public GRLimits getPlotLimits ( int flag )
 /**
 Returns the extents of a string.  
 @param text the text to get the extents for
-@param flag
+@param flag GRUnits.DATA or GRUnits.DEV, indicating units for returned size.
 @return the extents of a string.
 */
 public abstract GRLimits getTextExtents ( String text, int flag );
@@ -1437,5 +1437,33 @@ public void setPlotLimits ()
 
 public abstract void pageEnd();
 public abstract void pageStart();
+
+/**
+ * Return string representation of drawing area as property=value list,
+ * delimited by newlines.
+ * @return list of properties
+ */
+public String toString () {
+	StringBuilder s = new StringBuilder();
+	String nl = "\n";
+	s.append("dataset = " + _dataset + nl );
+	s.append("datax1 = " + _datax1 + nl );
+	s.append("datax2 = " + _datax2 + nl );
+	s.append("datay1 = " + _datay1 + nl );
+	s.append("datay2 = " + _datay2 + nl );
+	s.append("devyshift = " + _devyshift + nl );
+	s.append("drawset = " + _drawset + nl );
+	s.append("drawx1 = " + _drawx1 + nl );
+	s.append("drawx2 = " + _drawx2 + nl );
+	s.append("drawy1 = " + _drawy1 + nl );
+	s.append("drawy2 = " + _drawy2 + nl );
+	s.append("name = \"" + _name + "\"" + nl );
+	s.append("plotx1 = " + _plotx1 + nl );
+	s.append("plotx2 = " + _plotx2 + nl );
+	s.append("ploty1 = " + _ploty1 + nl );
+	s.append("ploty2 = " + _ploty2 + nl );
+	s.append("reverse_y = " + _reverse_y );
+	return s.toString();
+}
 
 }

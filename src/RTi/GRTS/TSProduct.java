@@ -138,22 +138,17 @@ package RTi.GRTS;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-
 import java.lang.Math;
-
 import java.util.List;
 import java.util.Vector;
 
+import RTi.GR.GRAxisDirectionType;
 import RTi.TS.TS;
-
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.MathUtil;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
@@ -245,7 +240,7 @@ A vertical line will be drawn on the graph to indicate the current time.</td>
 
 <tr>
 <td><b>MainTitleFontName</b></td>
-<td>Name of font to use for main title (Arial, Courier, Helvetica,
+<td>Name of font to use for main title (e.g., Arial, Courier, Helvetica,
 TimesRoman)</td>
 <td>Arial</td>
 </tr>
@@ -531,10 +526,9 @@ for graph types where it goes the other way) and
 
 <tr>
 <td><b>LeftYAxisIgnoreUnits</b></td>
-<td>Indicates whether to ignore units for the lefty Y axis.  Normally, units
+<td>Indicates whether to ignore units for the left Y axis.  Normally, units
 are checked to make sure that data can be plotted consistently.  If this
-property is set, then the user will not be prompted at run-time to make a
-decision.</td>
+property is set, then the user will not be prompted at run-time to make a decision.</td>
 <td>If not specified, the units will be checked at run-time and, if not
 compatible, the user will be prompted to indicate whether to ignore units in
 the graphs.  The property will not be reset automatically but will be handled
@@ -568,9 +562,21 @@ labels.</td>
 </tr>
 
 <tr>
+<td><b>LeftYAxisLegendPosition (replacing LegendPosition)</b></td>
+<td>Position for the legend y-axis legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
+</tr>
+
+<tr>
 <td><b>LeftYAxisMajorGridColor</b></td>
-<td>Color to use for the major grid.</td>
+<td>Color to use for the left y-axis major grid.</td>
 <td>Most graph types automatically set to "lightgray".</td>
+</tr>
+
+<tr>
+<td><b>LeftYAxisMajorTickColor</b></td>
+<td>Color to use for the left y-axis major ticks.</td>
+<td>Most graph types automatically set to "none".</td>
 </tr>
 
 <tr>
@@ -613,6 +619,18 @@ property will be ignored.</td>
 </tr>
 
 <tr>
+<td><b>LeftYAxisTitlePosition</b></td>
+<td>Left y-axis title position.</td>
+<td>AboveAxis</td>
+</tr>
+
+<tr>
+<td><b>LeftYAxisTitleRotation</b></td>
+<td>Left y-axis title rotation, degrees clockwise from due east.</td>
+<td>0</td>
+</tr>
+
+<tr>
 <td><b>LeftYAxisTitleString</b></td>
 <td>Left y axis title string.  <b>Note that due to limitations in Java graphics,
 the left y-axis title is placed at the top of the left y-axis so that it takes
@@ -632,8 +650,7 @@ down to make room for the title.</b></td>
 <td>Left y-axis units.  <b>This property is currently used internally and full
 support is being phased in.</b>  See also "LeftYAxisIgnoreUnits".
 </td>
-<td>Units from first valid time series, or as appropriate for the graph
-type.</td>
+<td>Units from first valid time series, or as appropriate for the graph type.</td>
 </tr>
 
 <tr>
@@ -688,9 +705,9 @@ If a blank legend format is specified, no legend will be displayed.
 </tr>
 
 <tr>
-<td><b>LegendPosition</b></td>
-<td>Position for the legend (Left, Right, Top, Bottom, None).</td>
-<td>Bottom</td>
+<td><b>LegendPosition (being replaced by LeftYAxisLegendPosition)</b></td>
+<td>Position for the legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
 </tr>
 
 <tr>
@@ -745,6 +762,25 @@ TSProcessor.processProduct() method as time series are read.
 </tr>
 
 <tr>
+<td><b>RightYAxisDirection</b></td>
+<td>The direction of values, where "Normal" is the normal orientation (generally positive values increase up except
+for graph types where it goes the other way) and
+"Reverse" indicates that values should be in the reverse orientation of normal.</td>
+<td>Normal.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisIgnoreUnits</b></td>
+<td>Indicates whether to ignore units for the right Y axis.  Normally, units
+are checked to make sure that data can be plotted consistently.  If this
+property is set, then the user will not be prompted at run-time to make a decision.</td>
+<td>If not specified, the units will be checked at run-time and, if not
+compatible, the user will be prompted to indicate whether to ignore units in
+the graphs.  The property will not be reset automatically but will be handled
+internally using the interactively supplied value.</td>
+</tr>
+
+<tr>
 <td><b>RightYAxisLabelFontName</b></td>
 <td>Name of font for right y-axis labels (see Product.MainLabelFontName).</td>
 <td>Arial</td>
@@ -760,6 +796,53 @@ TSProcessor.processProduct() method as time series are read.
 <td><b>RightYAxisLabelFontStyle</b></td>
 <td>Right y-axis labels font style (see Product.MainLabelFontStyle).</td>
 <td>Plain</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisLabelPrecision</b></td>
+<td>If numeric data, the number of digits after the decimal point in
+labels.</td>
+<td>Automatically determined from graph type and/or data units.
+</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisLegendPosition</b></td>
+<td>Position for the right y-axis legend (Left, Right, Top, Bottom, BottemLeft, BottomRight, None).</td>
+<td>BottomLeft</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMajorGridColor</b></td>
+<td>Color to use for the right y-axis major grid.</td>
+<td>Most graph types automatically set to "none" (because it will interfere with the left y-axis grid).</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMajorTickColor</b></td>
+<td>Color to use for the right y-axis major ticks.</td>
+<td>Most graph types automatically set to "none" to be consistent with left y-axis (but may change to black).</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMax</b></td>
+<td>Maximum value for the right Y Axis.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the
+property will be ignored.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMin</b></td>
+<td>Minimum value for the right Y Axis.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the
+property will be ignored.</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisMinorGridColor</b></td>
+<td>Color to use for the minor grid.
+<b>This property is not implemented</b>.</td>
+<td>"None".</td>
 </tr>
 
 <tr>
@@ -782,11 +865,25 @@ TSProcessor.processProduct() method as time series are read.
 
 <tr>
 <td><b>RightYAxisTitleString</b></td>
-<td>Right y axis title string.  <b>Note that due to limitations in Java
-graphics, the right y-axis title is placed at the top of the right y-axis so
-that it takes up roughly the same width as the y-axis labels.  The top-most
-label is shifted down to make room for the title.</b></td>
+<td>Right y axis title string.  <b>Note that due to limitations in Java graphics,
+the right y-axis title is placed at the top of the right y-axis so that it takes
+up roughly the same space as the y-axis labels.  The top-most label is shifted
+down to make room for the title.</b></td>
 <td>As appropriate for the graph type (often the data units).</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisType</b></td>
+<td>Right y-axis type (Log, or Linear).</td>
+<td>Linear</td>
+</tr>
+
+<tr>
+<td><b>RightYAxisUnits</b></td>
+<td>Right y-axis units.  <b>This property is currently used internally and full
+support is being phased in.</b>  See also "RightYAxisIgnoreUnits".
+</td>
+<td>Units from first valid time series, or as appropriate for the graph type.</td>
 </tr>
 
 <tr>
@@ -1339,8 +1436,15 @@ public void checkAnnotationProperties(int isub, int iann) {
 	String shapeType = null;
 
 	if (getLayeredPropValue("AnnotationID", isub, iann, false, true) == null) {
-		setPropValue("AnnotationID", getDefaultPropValue("AnnotationID",
-			isub, iann, true), isub, iann, true);
+		setPropValue("AnnotationID", getDefaultPropValue("AnnotationID", isub, iann, true), isub, iann, true);
+	}
+	
+	if (getLayeredPropValue("AnnotationName", isub, iann, false, true) == null) {
+		setPropValue("AnnotationName", getDefaultPropValue("AnnotationName", isub, iann, true), isub, iann, true);
+	}
+	
+	if (getLayeredPropValue("AnnotationTableID", isub, iann, false, true) == null) {
+		setPropValue("AnnotationTableID", getDefaultPropValue("AnnotationTableID", isub, iann, true), isub, iann, true);
 	}
 	
 	if (getLayeredPropValue("Color", isub, iann, false, true) == null) {
@@ -1362,6 +1466,9 @@ public void checkAnnotationProperties(int isub, int iann) {
 
 	if (getLayeredPropValue("XAxisSystem", isub, iann, false, true) == null) {
 		setPropValue("XAxisSystem", getDefaultPropValue("XAxisSystem", isub, iann, true), isub, iann, true);
+	}
+	if (getLayeredPropValue("YAxis", isub, iann, false, true) == null) {
+		setPropValue("YAxis", getDefaultPropValue("YAxis", isub, iann, true), isub, iann, true);
 	}
 	if (getLayeredPropValue("YAxisSystem", isub, iann, false, true) == null) {
 		setPropValue("YAxisSystem", getDefaultPropValue("YAxisSystem", isub, iann, true), isub, iann, true);
@@ -1420,22 +1527,43 @@ public void checkAnnotationProperties(int isub, int iann) {
 }
 
 /**
-Checks data properties to make sure that the data are fully-defined for a time series in a graph.
+Checks data (time series) properties to make sure that the data are fully-defined for a time series in a graph.
 Data that are not fully-defined will have the property set to a default value.
 @param isub the subproduct of the annotation.
 @param iann the annotation number.
 */
 public void checkDataProperties(int isub, int its) {
 //	Message.printStatus ( 1, "", "Checking TS [" + its+"]");
-	// "Color"...
-	int nts = getNumData(isub);
+	// List alphabetically other than exceptions.
+	
+	// "YAxis" - need to get first
+	String yaxis = getLayeredPropValue ("YAxis", isub, its, false );
+	if ( yaxis == null ) {
+		yaxis = getDefaultPropValue("YAxis",isub,its);
+		setPropValue ( "YAxis",yaxis,isub, its);
+	}
+	
+	// "GraphType" for the graph (not time series)...
+	// - used for some decisions below, such as bar graph position
+	// - this is for the left y-axis
 	String prop_val = getLayeredPropValue("GraphType", isub, -1, false);
 	if ( prop_val == null ) {
 		prop_val = getDefaultPropValue("GraphType", isub, -1);
 	}
-
 	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(prop_val);
+	
+	// "RightYAxisGraphType" for the graph (not time series)...
+	// - used for some decisions below, such as bar graph position
+	// - this is for the right y-axis
+	prop_val = getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
+	if ( prop_val == null ) {
+		prop_val = getDefaultPropValue("RightYAxisGraphType", isub, -1);
+	}
+	TSGraphType rightYAxisGraphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
+	// "Color"...
+
+	int nts = getNumData(isub);
 	if (getLayeredPropValue("Color",isub,its,false) == null) {
 		if ( (graphType == TSGraphType.XY_SCATTER) && (nts <= 2) ) {
 			// Force black to be used...
@@ -1443,6 +1571,7 @@ public void checkDataProperties(int isub, int its) {
 		}
 		else {	
 			// Use colors for time series...
+			// All time series on the graph are processed so "its" includes left and right y-axis
 			setPropValue("Color", TSGraphJComponent.lookupTSColor(its),	isub, its);
 		}
 	}
@@ -1486,13 +1615,36 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
 		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
-	    // Set the default graph type for the line to the same as the graph
-	    String graphTypeProp = getLayeredPropValue("GraphType", isub, -1, false);
-	    if ( graphTypeProp == null ) {
-	        setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+		// First see if the graph type is already set and if so use it.
+		// - for example this would be the case when a line is draw on an area graph
+		// If the time series does not have a graph type, set too that of the graph.
+	    // - to do this need to check which axis is used for the graph
+	    String tsGraphType = getLayeredPropValue("GraphType", isub, its, false);
+	    // If not available for the graph, get for the time series
+	    if ( tsGraphType != null ) {
+	    	// The graph type will have been set from reading the original TSProduct file
+	    	// or by defaulting in a previous round of checks.
+	    	// TODO sam 2017-02-08 if the graph type is allowed to be set through the UI,
+	    	// this will get trickier because setting to blank (default)
+	    	// may pick a wrong previous value.
+	    	setPropValue ( "GraphType", tsGraphType, isub, its );
 	    }
 	    else {
-	        setPropValue ( "GraphType", graphTypeProp, isub, its );
+	    	// Time series graph type was null, so get from the graph type.
+	    	String graphType2 = null;
+		    if ( yaxis.equalsIgnoreCase("left") ) {
+		    	graphType2 = getLayeredPropValue("GraphType", isub, -1, false);
+		    }
+		    else {
+		    	graphType2 = getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
+		    }
+		    if ( graphType2 != null ) {
+		    	setPropValue ( "GraphType", tsGraphType, isub, its );
+		    }
+		    else {
+		    	// Final default, generally "Line", but should never get to this point
+		    	setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
+		    }
 	    }
 	}
 
@@ -1541,10 +1693,6 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ("XAxis", isub, its, false ) == null ) {
 		setPropValue ( "XAxis",getDefaultPropValue("XAxis",isub,its),isub, its);
-	}
-
-	if ( getLayeredPropValue ("YAxis", isub, its, false ) == null ) {
-		setPropValue ( "YAxis",getDefaultPropValue("YAxis",isub,its),isub, its);
 	}
 }
 
@@ -1653,6 +1801,12 @@ public void checkProperties ()
 	}
 	if (getLayeredPropValue("LayoutNumberOfCols", -1, -1, false) == null) {
 		setPropValue("LayoutNumberOfCols",getDefaultPropValue("LayoutNumberOfCols", -1, -1),-1, -1);
+	}
+	
+	// Develop...
+	
+	if (getLayeredPropValue("ShowDrawingAreaOutline", -1, -1, false) == null) {
+		setPropValue("ShowDrawingAreaOutline", getDefaultPropValue("ShowDrawingAreaOutline",-1, -1), -1, -1);
 	}
 
 	//---------------------------------------------------------------------
@@ -1821,6 +1975,10 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		// "LeftYAxisLabelPrecision" determined at run-time
+		
+		if ( getLayeredPropValue("LeftYAxisLegendPosition", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisLegendPosition", getDefaultPropValue("LeftYAxisLegendPosition",isub,-1),isub, -1);
+		}
 
 		// "LeftYAxisMajorGridColor"...
 
@@ -1833,6 +1991,11 @@ public void checkGraphProperties ( int nsubs )
 			    setPropValue ( "LeftYAxisMajorGridColor",
 				getDefaultPropValue("LeftYAxisMajorGridColor", isub,-1), isub, -1 );
 			}
+		}
+		
+		if ( getLayeredPropValue("LeftYAxisMajorTickColor", isub, -1, false ) == null ) {
+		    setPropValue ( "LeftYAxisMajorTickColor",
+			getDefaultPropValue("LeftYAxisMajorTickColor", isub,-1), isub, -1 );
 		}
 
 		if ( getLayeredPropValue("LeftYAxisMax", isub, -1, false ) == null ) {
@@ -1871,6 +2034,18 @@ public void checkGraphProperties ( int nsubs )
 
 		// Check LeftYAxisTitleString in in
 		// TSGraphJComponent.checkTSProductGraphs().
+		
+		// Left y axis position...
+		
+		if ( getLayeredPropValue("LeftYAxisTitlePosition", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisTitlePosition", getDefaultPropValue("LeftYAxisTitlePosition",isub,-1), isub, -1 );
+		}
+		
+		// Left y axis rotation...
+		
+		if ( getLayeredPropValue("LeftYAxisTitleRotation", isub, -1, false ) == null ) {
+			setPropValue ( "LeftYAxisTitleRotation", getDefaultPropValue("LeftYAxisTitleRotation",isub,-1), isub, -1 );
+		}
 
 		// Left Y axis type...
 
@@ -1927,24 +2102,78 @@ public void checkGraphProperties ( int nsubs )
 
 		// PeriodEnd, PeriodStart determined at run time.
 
+        if ( getLayeredPropValue("RightYAxisDirection", isub, -1, false ) == null ) {
+            setPropValue ( "RightYAxisDirection", getDefaultPropValue("RightYAxisDirection",isub,-1), isub, -1 );
+        }
+
+		// RightYAxisIgnoreUnits calculated
+
 		if ( getLayeredPropValue("RightYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontName",
-			getDefaultPropValue("RightYAxisLabelFontName",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontName",isub,-1),
+			isub, -1 );
 		}
-		if ( getLayeredPropValue( "RightYAxisLabelFontStyle", isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontStyle",
-			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontStyle",isub,-1),
+			isub, -1 );
 		}
 		if ( getLayeredPropValue("RightYAxisLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontSize",
-			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1), isub, -1 );
+			getDefaultPropValue("RightYAxisLabelFontSize",isub,-1),
+			isub, -1 );
+		}
+
+		// "RightYAxisLabelPrecision" determined at run-time
+		
+		if ( getLayeredPropValue("RightYAxisLegendPosition", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisLegendPosition", getDefaultPropValue("RightYAxisLegendPosition",isub,-1),isub, -1);
+		}
+
+		// "RightYAxisMajorGridColor"...
+
+		if ( getLayeredPropValue("RightYAxisMajorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
+				// Don't usually draw the horizontal grid...
+				setPropValue ( "RightYAxisMajorGridColor", "None",isub,-1);
+			}
+			else {
+			    setPropValue ( "RightYAxisMajorGridColor",
+				getDefaultPropValue("RightYAxisMajorGridColor", isub,-1), isub, -1 );
+			}
+		}
+		
+		if ( getLayeredPropValue("RightYAxisMajorTickColor", isub, -1, false ) == null ) {
+		    setPropValue ( "RightYAxisMajorTickColor",
+			getDefaultPropValue("RightYAxisMajorTickColor", isub,-1), isub, -1 );
+		}
+
+		if ( getLayeredPropValue("RightYAxisMax", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisMax", getDefaultPropValue("RightYAxisMax",isub,-1), isub, -1 );
+		}
+
+		if ( getLayeredPropValue("RightYAxisMin", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisMin", getDefaultPropValue("RightYAxisMin",isub,-1), isub, -1 );
+		}
+
+		// "RightYAxisMinorGridColor"...
+
+		if ( getLayeredPropValue("RightYAxisMinorGridColor", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.PERIOD ) {
+				// Don't usually draw the horizontal grid...
+				setPropValue ( "RightYAxisMinorGridColor", "None",isub,-1);
+			}
+			else {
+			    setPropValue ( "RightYAxisMinorGridColor",
+				getDefaultPropValue("RightYAxisMinorGridColor", isub,-1), isub, -1 );
+			}
 		}
 
 		if ( getLayeredPropValue("RightYAxisTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontName",
 			getDefaultPropValue("RightYAxisTitleFontName",isub,-1), isub, -1 );
 		}
-		if ( getLayeredPropValue( "RightYAxisTitleFontStyle", isub, -1, false ) == null ) {
+		if ( getLayeredPropValue("RightYAxisTitleFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleFontStyle",
 			getDefaultPropValue("RightYAxisTitleFontStyle",isub,-1), isub, -1 );
 		}
@@ -1952,9 +2181,28 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "RightYAxisTitleFontSize",
 			getDefaultPropValue("RightYAxisTitleFontSize",isub,-1), isub, -1 );
 		}
-		if ( getLayeredPropValue("RightYAxisTitleString", isub, -1, false ) == null ) {
-			setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+
+		// Check RightYAxisTitleString in TSGraphJComponent.checkTSProductGraphs().
+		
+		// Right Y axis position...
+
+		if ( getLayeredPropValue("RightYAxisTitlePosition", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisTitlePosition", getDefaultPropValue("RightYAxisTitlePosition",isub,-1), isub, -1 );
 		}
+		
+		// Right Y axis rotation...
+
+		if ( getLayeredPropValue("RightYAxisTitleRotation", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisTitleRotation", getDefaultPropValue("RightYAxisTitleRotation",isub,-1), isub, -1 );
+		}
+
+		// Right Y axis type...
+
+		if ( getLayeredPropValue("RightYAxisType", isub, -1, false ) == null ) {
+			setPropValue ( "RightYAxisType", getDefaultPropValue("RightYAxisType",isub,-1), isub, -1 );
+		}
+
+		// RightYAxisUnits determined at run time
 
 		if ( getLayeredPropValue("SubTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontName",
@@ -2200,7 +2448,7 @@ throws Throwable
 
 /**
 Returns all the properties in the TSProduct (from both the regular and the
-override proplist) as a sorted Vector.
+override proplist) as a sorted List.
 @return a sorted Vector of all the properties in the TSProduct.
 */
 public List getAllProps() {
@@ -2288,6 +2536,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		if (param.equalsIgnoreCase("AnnotationID")) {
 			return "Annotation " + (its + 1);
 		}
+		else if (param.equalsIgnoreCase("AnnotationTableID")) {
+			return "";
+		}
 		else if (param.equalsIgnoreCase("Color")) {
 			return "Black";
 		}
@@ -2329,6 +2580,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}	
 		else if (param.equalsIgnoreCase("XAxisSystem")) {
 			return "Data";
+		}
+		else if (param.equalsIgnoreCase("YAxis")) {
+			return "Left";
 		}
 		else if (param.equalsIgnoreCase("YAxisSystem")) {
 			return "Data";
@@ -2399,6 +2653,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("ProductType") ) {
 			return "Graph";
+		}
+		else if (param.equalsIgnoreCase("ShowDrawingAreaOutline")) {
+			return "False";
 		}
 		else if ( param.equalsIgnoreCase("SubTitleFontName") ) {
 			return "Arial";
@@ -2489,7 +2746,7 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
         else if ( param.equalsIgnoreCase("LeftYAxisDirection") ) {
-            return "Normal";
+            return "" + GRAxisDirectionType.NORMAL;
         }
 		else if ( param.equalsIgnoreCase("LeftYAxisIgnoreUnits") ) {
 			return "False";
@@ -2503,8 +2760,15 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisLabelFontSize") ){
 			return "10";
 		}
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
+		else if ( param.equalsIgnoreCase("LeftYAxisLegendPosition") ){
+			return "BottomLeft";
+		}
 		else if ( param.equalsIgnoreCase("LeftYAxisMajorGridColor") ){
 			return "lightgray";
+		}
+		else if ( param.equalsIgnoreCase("LeftYAxisMajorTickColor") ){
+			return "None";
 		}
 		// "LeftYAxisLabelPrecision" determined at run-time
 		else if ( param.equalsIgnoreCase("LeftYAxisMax") ) {
@@ -2525,6 +2789,12 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisTitleFontSize") ){
 			return "12";
 		}
+		else if ( param.equalsIgnoreCase("LeftYAxisTitlePosition") ){
+			return "AboveAxis";
+		}
+		else if ( param.equalsIgnoreCase("LeftYAxisTitleRotation") ){
+			return "0";
+		}
 		else if ( param.equalsIgnoreCase("LeftYAxisTitleString") ){
 			return "";
 		}
@@ -2544,8 +2814,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LegendFormat") ){
 			return "Auto";
 		}
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
 		else if ( param.equalsIgnoreCase("LegendPosition") ){
-			return "Bottom";
+			return "BottomLeft";
 		}
 		else if ( param.equalsIgnoreCase("MainTitleFontName") ) {
 			return "Arial";
@@ -2560,6 +2831,15 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
 		// "PeriodStart", "PeriodEnd" set at runtime
+        else if ( param.equalsIgnoreCase("RightYAxisDirection") ) {
+            return "" + GRAxisDirectionType.NORMAL;
+        }
+		else if ( param.equalsIgnoreCase("RightYAxisGraphType") ) {
+			return "None";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisIgnoreUnits") ) {
+			return "False";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisLabelFontName") ) {
 			return "Arial";
 		}
@@ -2568,6 +2848,25 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisLabelFontSize") ){
 			return "10";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisLegendPosition") ){
+			return "BottomRight";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMajorGridColor") ){
+			return "None";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMajorTickColor") ){
+			return "None"; // Default for now to be consistent with left, but may change to black
+		}
+		// "RightYAxisLabelPrecision" determined at run-time
+		else if ( param.equalsIgnoreCase("RightYAxisMax") ) {
+			return "Auto";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMin") ) {
+			return "Auto";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisMinorGridColor") ){
+			return "None";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitleFontName") ) {
 			return "Arial";
@@ -2578,8 +2877,17 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("RightYAxisTitleFontSize") ){
 			return "12";
 		}
+		else if ( param.equalsIgnoreCase("RightYAxisTitlePosition") ){
+			return "None";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisTitleRotation") ){
+			return "0";
+		}
 		else if ( param.equalsIgnoreCase("RightYAxisTitleString") ){
 			return "";
+		}
+		else if ( param.equalsIgnoreCase("RightYAxisType") ){
+			return "Linear";
 		}
 		else if ( param.equalsIgnoreCase("SubTitleFontName") ) {
 			return "Arial";
@@ -3974,6 +4282,403 @@ protected void swapSubProducts(int origSub, int newSub) {
 }
 
 /**
+Output the product to a text representation.
+@param outputAll indicates whether to output all the properties (true),
+or only those that are different from defaults (false).
+The latter is generally the legacy behavior used by software to create shorter files.
+@param outputHowSet indicate whether "how set" value should be output in addition to property value,
+typically only when debugging.
+@param formatType the format used in output.
+@param sort indicate whether properties should be sorted (true) or left in default order (false).
+@return the product formatted as a string using the specified format type.
+*/
+public String toString ( boolean outputAll, boolean outputHowSet, TSProductFormatType formatType, boolean sort ) {
+	// First write the main product properties, then subproduct, and within
+	// each subproduct the data properties.  Use the prefix notation and
+	// shave the prefix off each property as it is written...
+
+	String nl = System.getProperty("line.separator");
+	StringBuilder out = new StringBuilder();
+	List<Prop> props = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	Prop prop = null;
+	int howSet = 0;
+	out.append ( "[Product]" + nl );
+	out.append ( nl );
+	int size = 0;
+	if ( props != null ) {
+		size = props.size();
+		if ( sort ) {
+			java.util.Collections.sort(props);
+		}
+	}
+
+	boolean output = false;
+	String howSetString = "";
+	
+	/*
+	NOTE REGARDING THE LOGIC FOR DETERMINING WHEN TO SAVE:
+	The code was originally rather densely packed, particularly in 
+	regard to the right-side of the screen, and was becoming confusing
+	as to in which conditions saving of a property actually occurred.
+	The code was expanded to be much more verbose and clearer, at 
+	the expense of some performance.  The result should be acceptable
+	as saving is not a common activity.
+
+	Further, note that it was also expanded to be very clear as to the
+	logical intentions.  Instead of writing:
+	
+		...
+		else if (outputAll) {
+			...
+		}
+		else {
+			...
+		}
+	
+	The following was done:
+	
+		...
+		else if (outputAll) {
+			...
+		}
+		else if (!outputAll) {
+			...
+		}
+	
+	Even though (!outputAll) is the logical opposite of (outputAll), it might
+	be mis-read, and so this "redundant" bit of logic is included.
+
+	Finally, the "save" boolean is another redundancy.  If anything should
+	not be saved, the loop in which it is located is 'continue'ed.  
+	"save = true;" is used as a way of marking the locations where logic
+	dictates that saving a property is finally determined to be legal.
+	*/
+	
+	for (int i = 0; i < size; i++) {
+		output = false;
+		howSetString = "";
+		prop = props.get(i);
+		howSet = prop.getHowSet();
+		
+		if (howSet == Prop.SET_HIDDEN) {
+			// these are never saved
+			continue;
+		}
+		else if (outputAll) {
+			output = true;
+		}
+		else if (!outputAll) {
+			if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+				(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+				(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+				output = true;
+			}
+		}
+		howSetString = "";
+		if ( outputHowSet ) {
+			if (howSet == Prop.SET_FROM_PERSISTENT) {
+				howSetString = " [SET_FROM_PERSISTENT]";
+			}
+			else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+				howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+				howSetString = " [SET_AT_RUNTIME_BY_USER]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+				howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+			}
+			else {
+				howSetString = " [UNKNOWN]";
+			}
+		}
+
+		if (output) {
+			out.append(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
+		}
+	}
+
+	// Loop through the subproducts...
+
+	int nsubs = getNumSubProducts();
+	List<Prop> vdata = null;
+	int dsize = 0;
+	String sub_prefix;
+	int sub_prefix_length = 0;
+	String data_prefix;
+	int data_prefix_length = 0;
+
+	String type = null;
+	String key = null;
+	
+	for (int isub = 0; isub < nsubs; isub++) {
+		props = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
+		sub_prefix = "[SubProduct " + (isub + 1) + "]";
+		sub_prefix_length = sub_prefix.length();
+		out.append ( nl );
+		out.append ( sub_prefix + nl );
+		out.append ( nl );
+		
+		size = 0;
+		if ( props != null ) {
+			size = props.size();
+			if ( sort ) {
+				java.util.Collections.sort(props);
+			}
+		}
+		
+		for ( int i = 0; i < size; i++ ) {
+			output = false;
+			howSetString = "";
+			prop = props.get(i);
+			key = prop.getKey();
+			howSet = prop.getHowSet();
+
+			if (howSet == Prop.SET_HIDDEN) {
+				continue;
+			}
+			else if (outputAll) {
+				output = true;
+			}
+			else if (!outputAll) {
+				// Don't write internal properties that typically don't show up in the product file
+				if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+					(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+					(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+					// OK
+				}
+				else {
+					// not ok
+					continue;
+				}
+
+				if ( !outputHowSet ) {
+					// Never output the following internal properties
+					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						continue;
+					}
+					else if (key.toUpperCase().endsWith("LEFTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
+					else if (key.toUpperCase().endsWith("RIGHTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
+				}
+
+				output = true;
+			}
+			howSetString = "";
+			if ( outputHowSet ) {
+				if (howSet == Prop.SET_FROM_PERSISTENT) {
+					howSetString = " [SET_FROM_PERSISTENT]";
+				}
+				else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+					howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+					howSetString = " [SET_AT_RUNTIME_BY_USER]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+					howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+				}
+				else {
+					howSetString = " [UNKNOWN]";
+				}
+			}
+
+			if (output) {
+				out.append(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
+			}
+		}
+
+		// Now write the data properties...
+		int ndata = getNumData(isub);
+		for ( int idata = 0; idata < ndata; idata++ ) {
+			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
+			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
+			data_prefix_length = data_prefix.length();
+			out.append ( nl );
+			out.append ( data_prefix + nl );
+			out.append ( nl );
+			dsize = 0;
+			
+			if ( vdata != null ) {
+				dsize = vdata.size();
+				if ( sort ) {
+					java.util.Collections.sort(vdata);
+				}
+			}
+			
+			for ( int j = 0; j < dsize; j++ ) {
+				output = false;
+				prop = vdata.get(j);
+				howSet = prop.getHowSet();
+				key = prop.getKey().substring(data_prefix_length - 1);
+
+				if (howSet == Prop.SET_HIDDEN) {
+					continue;
+				}
+				else if (outputAll) {
+					output = true;
+				}
+				else if (!outputAll) {
+					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+						(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+						(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+						// OK
+					}
+					else {
+						// not ok
+						continue;
+					}
+					
+					if ( !outputHowSet ) {
+						if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						     continue;
+						}
+					}
+
+					output = true;
+				}
+				howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
+
+				if (output) {
+					out.append(prop.getKey().substring(
+						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
+				}
+			}
+		}
+
+		// Now write the annotations
+		int nann = getNumAnnotations(isub);
+		for (int iann = 0; iann < nann; iann++) {
+			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
+			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
+			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
+			data_prefix_length = data_prefix.length();
+			out.append(nl);
+			out.append(data_prefix + nl);
+			out.append(nl);
+			dsize = 0;
+			if (vdata != null) {
+				dsize = vdata.size();
+			}
+			for (int j = 0; j < dsize; j++) {
+        		output = false;
+        		prop = vdata.get(j);
+        		howSet = prop.getHowSet();
+        	
+        		if (howSet == Prop.SET_HIDDEN) {
+        			continue;
+        		}
+        		else if (outputAll) {
+        			output = true;
+        		}
+        		else if (!outputAll) {
+        			if ( (howSet == Prop.SET_FROM_PERSISTENT)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_BY_USER)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+        				// ok
+        			}
+        			else {
+        				// not ok
+        				continue;
+        			}
+        
+        			key = prop.getKey().substring(data_prefix_length - 1);
+        
+        			// List the annotation shape types alphabetically
+        			// Because annotation properties include some generic properties and some for the specific shape type
+        			// have to check what should be saved for each annotation.
+        			// First check property for generic annotation properties
+        			if ( key.equalsIgnoreCase("AnnotationID") ||
+        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				key.equalsIgnoreCase("AnnotationTableID") ||
+        				key.equalsIgnoreCase("Color") ||
+        				key.equalsIgnoreCase("Order") ||
+        				key.equalsIgnoreCase("ShapeType") ||
+        				key.equalsIgnoreCase("XAxisSystem") ||
+        				key.equalsIgnoreCase("YAxis") ||
+        				key.equalsIgnoreCase("YAxisSystem") ) {
+        				output = true;
+        			}
+        			else if (type.equalsIgnoreCase("Line")) {
+        				if ( key.equalsIgnoreCase("LineStyle") ||
+        					key.equalsIgnoreCase("LineWidth") ||
+        					key.equalsIgnoreCase("Points") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Rectangle")) {
+        				if ( key.equalsIgnoreCase("Points") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Symbol")) {
+        				if (key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("SymbolPosition")
+        					|| key.equalsIgnoreCase("SymbolSize")
+        					|| key.equalsIgnoreCase("SymbolStyle") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Text")) {
+        				if (key.equalsIgnoreCase("FontSize")
+        					|| key.equalsIgnoreCase("FontStyle")
+        					|| key.equalsIgnoreCase("FontName")
+        					|| key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("Text")
+        					|| key.equalsIgnoreCase("TextPosition") ) {
+        					output = true;
+        				}
+        			}
+        		}
+        		howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
+        
+        		if (output) {		
+        			out.append(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
+        		}
+			}
+		}
+	}
+	return out.toString();
+}
+
+/**
 Transfer the properties into objects that can be used by other code more
 efficiently.  For now don't do anything until we explore the concept of just
 getting everything out of the PropList.
@@ -3994,313 +4699,25 @@ protected void unSet(String key) {
 Write the TSProduct as a file.  If the file exists, it will be replaced with
 the new contents and comments will not be transferred.
 @param filename Name of file to save.
-@param save_all If true, all properties will be saved, even those that have been
+@param outputAll If true, all properties will be saved, even those that have been
 assigned internally at run-time.  If false, only the properties read from a
 persistent source and modified by the user during the run will be saved.  The
 former is useful to see the full list of properties, the latter to save the
 minimum amount of information.
 @exception if there is an error writing the file.
 */
-public void writeFile ( String filename, boolean save_all )
+public void writeFile ( String filename, boolean outputAll )
 throws Exception
-{	__proplist.setPersistentName ( filename );
+{	// First convert the product to a string, currently always the legacy properties format
+	boolean outputHowSet = false; // only used for development
+	boolean sort = false; // Keep in-memory order
+	String productString = toString ( outputAll, outputHowSet, TSProductFormatType.PROPERTIES, sort );
+	// Then write to the file
+	//__proplist.setPersistentName ( filename );
 	// This writes everything in unsorted order...
 	//__proplist.writePersistent ();
-
 	PrintWriter out = new PrintWriter(new FileOutputStream (filename ));
-
-	// First write the main product properties, then subproduct, and within
-	// each subproduct the data properties.  Use the prefix notation and
-	// shave the prefix off each property as it is written...
-
-	List<Prop> v = __proplist.getPropsMatchingRegExp ( "Product.*" );
-	Prop prop = null;
-	int how_set = 0;
-	out.println ( "[Product]" );
-	out.println ( "" );
-	int size = 0;
-	if ( v != null ) {
-		size = v.size();
-	}
-
-	boolean save = false;
-	
-	/*
-	NOTE REGARDING THE LOGIC FOR DETERMINING WHEN TO SAVE:
-	The code was originally rather densely packed, particularly in 
-	regard to the right-side of the screen, and was becoming confusing
-	as to in which conditions saving of a property actually occurred.
-	The code was expanded to be much more verbose and clearer, at 
-	the expense of some performance.  The result should be acceptable
-	as saving is not a common activity.
-
-	Further, note that it was also expanded to be very clear as to the
-	logical intentions.  Instead of writing:
-	
-		...
-		else if (save_all) {
-			...
-		}
-		else {
-			...
-		}
-	
-	The following was done:
-	
-		...
-		else if (save_all) {
-			...
-		}
-		else if (!save_all) {
-			...
-		}
-	
-	Even though (!save_all) is the logical opposite of (save_all), it might
-	be mis-read, and so this "redundant" bit of logic is included.
-
-	Finally, the "save" boolean is another redundancy.  If anything should
-	not be saved, the loop in which it is located is 'continue'ed.  
-	"save = true;" is used as a way of marking the locations where logic
-	dictates that saving a property is finally determined to be legal.
-	*/
-	
-	for (int i = 0; i < size; i++) {
-		save = false;
-		prop = v.get(i);
-		how_set = prop.getHowSet();
-		
-		if (how_set == Prop.SET_HIDDEN) {
-			// these are never saved
-			continue;
-		}
-		else if (save_all) {
-			save = true;
-		}
-		else if (!save_all) {
-			if (how_set == Prop.SET_FROM_PERSISTENT) {
-				save = true;
-			}
-			else if (how_set == Prop.SET_AT_RUNTIME_BY_USER) {
-				save = true;
-			}
-			else if (how_set == Prop.SET_AT_RUNTIME_FOR_USER) {
-				save = true;
-			}
-		}
-
-		if (save) {
-			out.println(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" );
-		}
-	}
-
-	// Loop through the subproducts...
-
-	int nsubs = getNumSubProducts();
-	List<Prop> vdata = null;
-	int dsize = 0;
-	String sub_prefix;
-	int sub_prefix_length = 0;
-	String data_prefix;
-	int data_prefix_length = 0;
-
-	String type = null;
-	String key = null;
-	
-	for (int isub = 0; isub < nsubs; isub++) {
-		v = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
-		sub_prefix = "[SubProduct " + (isub + 1) + "]";
-		sub_prefix_length = sub_prefix.length();
-		out.println ( "" );
-		out.println ( sub_prefix );
-		out.println ( "" );
-		
-		size = 0;
-		if ( v != null ) {
-			size = v.size();
-		}
-		
-		for ( int i = 0; i < size; i++ ) {
-			save = false;
-			prop = v.get(i);
-			key = prop.getKey();
-			how_set = prop.getHowSet();
-
-			if (how_set == Prop.SET_HIDDEN) {
-				continue;
-			}
-			else if (save_all) {
-				save = true;
-			}
-			else if (!save_all) {
-				if (how_set == Prop.SET_FROM_PERSISTENT || how_set == Prop.SET_AT_RUNTIME_BY_USER
-				    || how_set == Prop.SET_AT_RUNTIME_FOR_USER){
-				    // ok
-				}
-				else {
-					// not ok
-					continue;
-				}
-
-				if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
-					continue;
-				}
-				else if (key.toUpperCase().endsWith("ORIGINALGRAPHTYPE")) {
-				    continue;
-				}
-
-				save = true;
-			}
-
-			if (save) {
-				out.println(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
-			}
-		}
-
-		// Now write the data properties...
-		int ndata = getNumData(isub);
-		for ( int idata = 0; idata < ndata; idata++ ) {
-			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
-			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
-			data_prefix_length = data_prefix.length();
-			out.println ( "" );
-			out.println ( data_prefix );
-			out.println ( "" );
-			dsize = 0;
-			
-			if ( vdata != null ) {
-				dsize = vdata.size();
-			}
-			
-			for ( int j = 0; j < dsize; j++ ) {
-				save = false;
-				prop = vdata.get(j);
-				how_set = prop.getHowSet();
-				key = prop.getKey().substring(data_prefix_length - 1);
-
-				if (how_set == Prop.SET_HIDDEN) {
-					continue;
-				}
-				else if (save_all) {
-					save = true;
-				}
-				else if (!save_all) {
-					if (how_set == Prop.SET_FROM_PERSISTENT
-					    || how_set == Prop.SET_AT_RUNTIME_BY_USER
-					    || how_set ==Prop.SET_AT_RUNTIME_FOR_USER){
-						// ok
-					}
-					else {
-						// not ok
-						continue;
-					}
-					
-					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
-					     continue;
-					}
-
-					save = true;
-				}
-
-				if (save) {
-					out.println(prop.getKey().substring(
-						data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
-				}
-			}
-		}
-
-		// now write the annotations
-		int nann = getNumAnnotations(isub);
-		for (int iann = 0; iann < nann; iann++) {
-			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
-			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
-			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
-			data_prefix_length = data_prefix.length();
-			out.println("");
-			out.println(data_prefix);
-			out.println("");
-			dsize = 0;
-			if (vdata != null) {
-				dsize = vdata.size();
-			}
-			for (int j = 0; j < dsize; j++) {
-        		save = false;
-        		prop = vdata.get(j);
-        		how_set = prop.getHowSet();
-        	
-        		if (how_set == Prop.SET_HIDDEN) {
-        			continue;
-        		}
-        		else if (save_all) {
-        			save = true;
-        		}
-        		else if (!save_all) {
-        			if (how_set == Prop.SET_FROM_PERSISTENT
-    			    	|| how_set == Prop.SET_AT_RUNTIME_BY_USER
-    			    	|| how_set ==Prop.SET_AT_RUNTIME_FOR_USER) {
-        				// ok
-        			}
-        			else {
-        				// not ok
-        				continue;
-        			}
-        
-        			key = prop.getKey().substring(data_prefix_length - 1);
-        
-        			if (type.equalsIgnoreCase("Text")) {
-        				if (key.equalsIgnoreCase("Points")
-        				    || key.equalsIgnoreCase("FlaggedDataSymbolStyle")
-        					|| key.equalsIgnoreCase("LineStyle")
-        					|| key.equalsIgnoreCase("LineWidth")
-        					|| key.equalsIgnoreCase("SymbolStyle")
-        					|| key.equalsIgnoreCase("SymbolSize")
-        					|| key.equalsIgnoreCase("SymbolPosition")) {
-        					continue;
-        				}
-        				else {
-        					save = true;
-        				}
-        			}
-        			else if (type.equalsIgnoreCase("Line")) {
-        				if ( key.equalsIgnoreCase("FlaggedDataSymbolStyle")
-        				    || key.equalsIgnoreCase("FontSize")
-        					|| key.equalsIgnoreCase("FontStyle")
-        					|| key.equalsIgnoreCase("FontName")
-        					|| key.equalsIgnoreCase("Point")
-        					|| key.equalsIgnoreCase("Text")
-        					|| key.equalsIgnoreCase("TextPosition")
-        					|| key.equalsIgnoreCase("SymbolStyle")
-        					|| key.equalsIgnoreCase("SymbolSize")
-        					|| key.equalsIgnoreCase("SymbolPosition")) {
-        					continue;
-        				}
-        				else {
-        					save = true;
-        				}
-        			}
-        			else if (type.equalsIgnoreCase("Symbol")) {
-        				if (key.equalsIgnoreCase("FontSize")
-        					|| key.equalsIgnoreCase("FontStyle")
-        					|| key.equalsIgnoreCase("FontName")
-        					|| key.equalsIgnoreCase("Text")
-        					|| key.equalsIgnoreCase("TextPosition")
-        					|| key.equalsIgnoreCase("Points")
-        					|| key.equalsIgnoreCase("LineStyle")
-        					|| key.equalsIgnoreCase("LineWidth")) {
-        					continue;
-        				}
-        				else {
-        					save = true;
-        				}
-        			}
-        		}
-        
-        		if (save) {		
-        			out.println(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"");
-        		}
-			}
-		}
-	}
-
+	out.print(productString);
 	out.close();
 }
 

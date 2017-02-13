@@ -76,23 +76,19 @@ package RTi.Util.GUI;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-
 import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
 import java.net.URL;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -542,14 +538,38 @@ throws Exception {
 
 /**
 Return a new SimpleJComboBox that contains a list of standard fonts.
+Use the overloaded version to also include a longer list of fonts available in the local graphical environment.
 @return a new SimpleJComboBox that contains a list of standard fonts.
 */
-public static SimpleJComboBox newFontNameJComboBox ()
+public static SimpleJComboBox newFontNameJComboBox ( )
+{
+	return newFontNameJComboBox ( true, false );
+}
+
+/**
+Return a new SimpleJComboBox that contains a list of fonts.
+@param includeCommonAtTop if true, include common fonts at the top for ease of selection.
+@param includeLocal if true, include all available font family names from the local graphics environment.
+@return a new SimpleJComboBox that contains a list of standard fonts.
+*/
+public static SimpleJComboBox newFontNameJComboBox ( boolean includeCommonAtTop, boolean includeLocal )
 {	SimpleJComboBox fonts = new SimpleJComboBox(false);
-	// TODO - need to add more choices or make the lookup dynamic
-	fonts.add ( "Arial" );
-	fonts.add ( "Courier" );
-	fonts.add ( "Helvetica" );
+	// Always put common "generic" ones at top, which should be portable to any platform
+	if ( includeCommonAtTop ) {
+		fonts.add ( "Arial" );
+		fonts.add ( "Courier" );
+		fonts.add ( "Courier New" );
+		fonts.add ( "Helvetica" );
+		fonts.add ( "Times Roman New" );
+	}
+	if ( includeLocal ) {
+		// Get more fonts from the local computing environment - some risk these won't be on all machines
+		String [] localFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+		// Add to end
+		for ( int i = 0; i < localFonts.length; i++ ) {
+			fonts.add(localFonts[i]);
+		}
+	}
 	return fonts;
 }
 

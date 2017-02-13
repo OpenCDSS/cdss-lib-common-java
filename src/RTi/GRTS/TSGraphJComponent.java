@@ -4,20 +4,17 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.awt.image.BufferedImage;
-
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -35,9 +32,7 @@ import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
-
 import RTi.TS.TS;
-
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.IO.DataUnits;
@@ -275,7 +270,7 @@ private JFrame _parent = null;
 /**
 List of TSGraph being drawn.
 */
-private List<TSGraph> _tsgraphs = new Vector();
+private List<TSGraph> _tsgraphs = new ArrayList<TSGraph>();
 /**
 Starting date/time for visible graph, used for first draw only.
 */
@@ -616,8 +611,10 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 	//Message.printStatus ( 1, "", _gtype + "Checking " + nsubs + " graphs after graphs were created." );
 	TSGraphType graphType = TSGraphType.LINE;
 	List<TS> tslist = null;
+	List<TS> tslistLeftYAxis = null;
+	List<TS> tslistRightYAxis = null;
 	TSGraph tsgraph = null;
-	int nts = 0;
+	int nts = 0, ntsLeftYAxis = 0, ntsRightYAxis = 0;
 	String prop_val;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		tsgraph = tsgraphs.get(isub);
@@ -633,9 +630,19 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 		// subset of the graphs used for the full product...
 
 		tslist = tsgraph.getTSList();
+		tslistLeftYAxis = tsgraph.getTSListForLeftYAxis();
+		tslistRightYAxis = tsgraph.getTSListForRightYAxis();
 		nts = 0;
 		if ( tslist != null ) {
 			nts = tslist.size();
+		}
+		ntsLeftYAxis = 0;
+		if ( tslistLeftYAxis != null ) {
+			ntsLeftYAxis = tslistLeftYAxis.size();
+		}
+		ntsRightYAxis = 0;
+		if ( tslistRightYAxis != null ) {
+			ntsRightYAxis = tslistRightYAxis.size();
 		}
 		//Message.printStatus ( 2, "", _gtype + "Checking " + nts + " time series for graph [" + isub + "]" );
 
@@ -687,8 +694,8 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 				    // Get the units from the first non-null time series...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsLeftYAxis; its++ ) {
+						ts = tslistLeftYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -721,15 +728,15 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			else {
 			    // Units are time series data units.
 				if ( tsgraph.ignoreLeftYAxisUnits() ) {
-					// Units are not different in data and are indicated in the legend.
+					// Units are not different in data and are indicated in the legend so set blank.
 					tsproduct.setPropValue ( "LeftYAxisUnits", "", isub, -1 );
 				}
 				else {
-				    // Get the units from the first non-null time series...
+				    // Get the units from the first non-null time series associated with the left axis...
 					String units = "";
 					TS ts = null;
-					for ( int its = 0; its < nts; its++ ) {
-						ts = tslist.get(its);
+					for ( int its = 0; its < ntsLeftYAxis; its++ ) {
+						ts = tslistLeftYAxis.get(its);
 						if ( ts == null ) {
 							continue;
 						}
@@ -807,13 +814,134 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			    tsproduct.setPropValue ( "BottomXAxisTitleString", "", isub, -1 );
 			}
 		}
+		
+		// "RightYAxisTitleString" - depends on graph type and units...
+
+		// TODO SAM 2016-10-17 Copy the left axis to enable right axis
+		// TODO SAM 2006-09-28 Why was the following always evaluated as true in previous
+		// code with 1 == 1?  Was this a work-around for some other
+		// problem.  Need to evaluate further when regression tests are in place.
+		if ( tsproduct.getLayeredPropValue("RightYAxisTitleString", isub, -1, false ) == null ) {
+			tsproduct.setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+			// TODO SAM 2016-10-17 not sure if scatter logic even makes sense on right axis
+			if ( graphType == TSGraphType.XY_SCATTER ) {
+				// Units will be 1st (dependent) time series -
+				// need to do something else if more than one time series...
+				if ( nts >= 1 ) {
+					// FIXME SAM 2016-10-17 Need to get right axis time series
+					TS ts0 = tslist.get(0);
+					tsproduct.setPropValue ( "RightYAxisTitleString", ts0.getDataUnits(), isub, -1 );
+				}
+				else {
+				    tsproduct.setPropValue ( "RightYAxisTitleString", "", isub, -1 );
+				}
+			}
+			else if ( graphType == TSGraphType.PERIOD ) {
+				tsproduct.setPropValue ( "RightYAxisTitleString", "Legend Index", isub, -1 );
+			}
+			else {
+			    // Title is the units that are displayed on the axis.
+				if ( tsgraph.ignoreRightYAxisUnits() ) {
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "RightYAxisTitleString", "See units in legend", isub, -1 );
+				}
+				else {
+				    // Get the units from the first non-null time series...
+					String units = "";
+					TS ts = null;
+					for ( int its = 0; its < ntsRightYAxis; its++ ) {
+						ts = tslistRightYAxis.get(its);
+						if ( ts == null ) {
+							continue;
+						}
+						units = ts.getDataUnits();
+						break;
+					}
+					tsproduct.setPropValue ( "RightYAxisTitleString", units, isub, -1 );
+				}
+			}
+		}
+
+		// "RightYAxisUnits" - determined from graph type.
+
+		if ( tsproduct.getLayeredPropValue("RightYAxisUnits", isub, -1, false ) == null ) {
+			if ( graphType == TSGraphType.XY_SCATTER ) {
+				// Units will be 1st (dependent) time series -
+				// need to do something else if more than one time series...
+				if ( nts >= 1 ) {
+					TS ts0 = tslist.get(0);
+					tsproduct.setPropValue ( "RightYAxisUnits", ts0.getDataUnits(), isub, -1 );
+				}
+				else {
+				    tsproduct.setPropValue ( "RightYAxisUnits", "", isub, -1 );
+				}
+			}
+			else if ( graphType == TSGraphType.PERIOD ) {
+				// Count of time series (not really used for anything)...
+				tsproduct.setPropValue ( "RightYAxisUnits", "COUNT", isub, -1 );
+			}
+			else {
+			    // Units are time series data units.
+				if ( tsgraph.ignoreRightYAxisUnits() ) {
+					// Units are not different in data and are indicated in the legend.
+					tsproduct.setPropValue ( "RightYAxisUnits", "", isub, -1 );
+				}
+				else {
+				    // Get the units from the first non-null time series...
+					String units = "";
+					TS ts = null;
+					for ( int its = 0; its < ntsRightYAxis; its++ ) {
+						ts = tslistRightYAxis.get(its);
+						if ( ts == null ) {
+							continue;
+						}
+						units = ts.getDataUnits();
+						break;
+					}
+					tsproduct.setPropValue ( "RightYAxisUnits", units, isub, -1 );
+				}
+			}
+		}
+
+		// "RightYAxisLabelPrecision" - DO THIS AFTER "RightYAxisUnits"
+
+		if ( tsproduct.getLayeredPropValue("RightYAxisLabelPrecision", isub, -1, false ) == null ) {
+			if ( (graphType == TSGraphType.PERIOD) || (graphType == TSGraphType.RASTER) ) {
+				tsproduct.setPropValue ( "RightYAxisLabelPrecision", "0", isub, -1 );
+			}
+			else if ( tsgraph.ignoreRightYAxisUnits() ) {
+				// Set the precision to the maximum precision
+				// for the units of all time series...
+				int yaxis_precision = 2;
+				tsproduct.setPropValue ( "RightYAxisLabelPrecision", "" + yaxis_precision, isub, -1 );
+			} 
+			else {
+			    // Determine the precision from the axis units..
+				String righty_units = _tsproduct.getLayeredPropValue ( "RightYAxisUnits", isub, -1, false );
+				if ( righty_units.equals("") ) {
+					// Default...
+					tsproduct.setPropValue ( "RightYAxisLabelPrecision", "2", isub, -1 );
+				}
+				else {
+				    try {
+				        DataUnits u = DataUnits.lookupUnits ( righty_units );
+						int precision = u.getOutputPrecision();
+						tsproduct.setPropValue ( "RightYAxisLabelPrecision", "" + precision, isub, -1 );
+					}
+					catch ( Exception e ) {
+						// Default...
+						tsproduct.setPropValue ( "RightYAxisLabelPrecision", "2", isub, -1 );
+					}
+				}
+			}
+		}
 	}
 	_tsproduct.getPropList().setHowSet (how_set_prev);
 }
 
 /**
-Create a vector of TSGraph from a TSProduct and a list of time series.
-The vector always contains the graphs but if a graph is disabled its size will
+Create a list of TSGraph from a TSProduct and a list of time series.
+The list always contains the graphs but if a graph is disabled its size will
 not be shown in the graph.
 This typically would be called in the first paint where the component size is known.
 @param tsproduct TSProduct describing what to graph.
@@ -821,7 +949,7 @@ This typically would be called in the first paint where the component size is kn
 @param tsproduct_tslist List of time series to graph for the full TSProduct.
 @param drawlim_graphs Drawing limits of the area set aside for graphs.  This
 area is divided among the individual graphs.
-@return List of TSGraph to use when drawing.  The Vector is
+@return List of TSGraph to use when drawing.  The list is
 guaranteed to be non-null but may contain zero graphs.
 */
 private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropList display_props,
@@ -837,7 +965,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 			Message.printDebug ( 1, routine,
 			    _gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)" );
 		}
-		return new Vector ( 1 );
+		return new ArrayList<TSGraph> ( 1 );
 	}
 
 	// For now, assume that graphs will be listed vertically with the first one on top.
@@ -867,7 +995,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	}
 	TS ts, tsfound;
 	String prop_val;
-	List<TSGraph> tsgraphs = new Vector ( nsubs );
+	List<TSGraph> tsgraphs = new ArrayList<TSGraph> ( nsubs );
 	int reference_ts_index = -1;	// This is the value for the tslist
 					// that is used by the graph, NOT the value in the entire list.
 	
@@ -875,6 +1003,11 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	String prop_value = display_props.getValue("ReferenceTSIndex");
 	if ( prop_value != null ) {
 		display_props_reference_ts_index = StringUtil.atoi ( prop_value );
+	}
+	prop_value = tsproduct.getLayeredPropValue ( "ShowDrawingAreaOutline", -1, -1, false );
+	boolean showDrawingAreaOutline = false;
+	if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+		showDrawingAreaOutline = true;
 	}
 	
 	// Indicate the subproduct that will be used to get reference graph information...
@@ -1036,6 +1169,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
 		}
+		tsgraph.setShowDrawingAreaOutline(showDrawingAreaOutline);
 	}
 	//Message.printStatus(2,"TSGraphJComponent.createTSGraphsFromTSProduct",
 	//_gtype + "Created " + tsgraphs.size() + " graphs from TSProduct" );
@@ -1751,7 +1885,7 @@ public void mouseDragged ( MouseEvent event )
 
 	// Figure out which drawing area the event occurred in...
 
-	TSGraphType graphType = tsgraph.getGraphType();
+	TSGraphType graphType = tsgraph.getLeftYAxisGraphType();
 	if ((graphType == TSGraphType.DURATION) || (graphType == TSGraphType.XY_SCATTER)) {
 		// Don't allow zoom.
 		_rubber_banding = false;
@@ -1769,9 +1903,12 @@ public void mouseDragged ( MouseEvent event )
 	if ( dotrack ) {
 		// Device units...
 		GRPoint devpt = new GRPoint ( _mouse_x2, _mouse_y2 );
-	    if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	    if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
 	        // Also associate the time series for the graph, so value can be shown
-	        List<TS> tslist = tsgraph.getEnabledTSList();
+	    	// Tracking is initially tied to the left y-axis
+	    	boolean includeLeftYAxis = true;
+	    	boolean includeRightYAxis = false;
+	        List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
 	        if ( tslist.size() > 0 ) {
 	            datapt.associated_object = tslist.get(0);
 	            devpt.associated_object = tslist.get(0);
@@ -1835,9 +1972,12 @@ public void mouseMoved ( MouseEvent event )
 	GRPoint datapt = tsgraph.getGraphDrawingArea().getDataXY( x, y, GRDrawingArea.COORD_DEVICE );
 
 	GRPoint devpt = new GRPoint ( x, y );
-	if ( tsgraph.getGraphType() == TSGraphType.RASTER ) {
+	if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
 	    // Also associate the time series for the graph, so value can be shown
-	    List<TS> tslist = tsgraph.getEnabledTSList();
+		// Only left y-axis data are uses with raster
+    	boolean includeLeftYAxis = true;
+    	boolean includeRightYAxis = false;
+	    List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
 	    if ( tslist.size() > 0 ) {
 	        datapt.associated_object = tslist.get(0);
 	        devpt.associated_object = tslist.get(0);
@@ -1934,7 +2074,7 @@ public void mouseReleased ( MouseEvent event )
 	}
 	TSGraphType graphType = TSGraphType.UNKNOWN;
 	if ( tsgraph != null ) {
-		graphType = tsgraph.getGraphType();
+		graphType = tsgraph.getLeftYAxisGraphType();
 	}
 	if ((graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ) {
 		// Currently do not allow zoom, etc...
@@ -2112,6 +2252,8 @@ public boolean needToClose ( boolean need_to_close )
 
 /**
 Open the drawing areas and set the data limits (all are unit limits).
+These drawing areas are used for page drawing, such as main component.
+TSGraph drawing areas are overlaid within the overall component.
 */
 private void openDrawingAreas ()
 {	// Full page...
@@ -2167,7 +2309,7 @@ private void openDrawingAreas ()
 	// Drawing area for right footer (data are just unit)...
 
 	_da_rightfoot = new GRJComponentDrawingArea ( this,
-			"TSGraphJComponent.CenterFooter",
+			"TSGraphJComponent.RightFooter",
 			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
 	_datalim_rightfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
@@ -2240,7 +2382,7 @@ public void paint ( Graphics g )
 	}
 
 	// If rubber-banding, can do before anything else and return...
-
+	boolean drawingTracker = true;
 	if ( _rubber_banding ) {
 		if (_double_buffering && _buffer != null) {
 			g.drawImage(_buffer, 0, 0, this);
@@ -2502,6 +2644,14 @@ public void paint ( Graphics g )
 		}
 		_force_redraw = false;
 	}
+	
+	if ( drawingTracker ) {
+		// TODO SAM 2016-10-17 Enable tracking similar to zoom but on top.
+		// Done drawing.  Reset paint mode to normal just in case we
+		// change code later to not return...
+		//g.setPaintMode ();
+		//return;
+	}
 
 	// Finally, if double buffering and not printing, copy the image from
 	// the buffer to the component...
@@ -2512,12 +2662,11 @@ public void paint ( Graphics g )
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Copying internal image to display." );
 		}
-		g.drawImage ( _buffer , 0, 0,  this );
+		g.drawImage ( _buffer , 0, 0, this );
 		// Only do this if double buffering to screen because that is
 		// the only time the graphics is created locally...
 		// ?? _graphics.dispose();
 	}
-	new_draw_limits = null;
 
 	} // Main try wrapped around entire method.
 	catch ( Exception e ) {
@@ -2528,7 +2677,6 @@ public void paint ( Graphics g )
 	}
 	// Should always get to here the first time...
 	_first_paint = false;
-	routine = null;
 	if (_printing) {
 		_printing = false;
 	}
@@ -2861,25 +3009,25 @@ This ensures that the graphs match exactly the properties in the TSProduct that
 is being manipulated in the JFrame.  Since these properties can be changed in
 the JFrame, in the layout component, and possibly in other places, it's safest
 to simply re-read the properties and rebuild all the graphs completely when major changes occur.
+In particular, if time series are moved between graphs, new graphs are added
+the internal numbering changes, or axis labels and legend properties are changed.
 @param product the TSProduct from which to read TSGraph information.  This will
 most likely be the product that's already resident in memory, but not necessarily. 
 */
 public void reinitializeGraphs(TSProduct product)
-{   String routine = getClass().getName() + ".reinitializeGraphs";
-	// if any graphs lack start and end dates (i.e., they're brand new
+{   String routine = getClass().getSimpleName() + ".reinitializeGraphs";
+	// If any graphs lack start and end dates (i.e., they're brand new
 	// and lack any time series), pull out a start and end date from any
-	// of the other graphs and use it, so that zoom outs work correctly
+	// of the other graphs and use it, so that zoom outs work correctly.
 	DateTime end = null;
 	DateTime maxEnd = null;
 	DateTime start = null;
 	DateTime maxStart = null;
 	DateTime temp = null;
-	TSGraph g = null;
 
 	// Find the latest end date and the earliest start date from the graphs.
 
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = _tsgraphs.get(i);
+	for ( TSGraph g: _tsgraphs ) {
 		if (g.getEndDate() != null) {
 			temp = g.getEndDate();
 			if (end == null || end.lessThanOrEqualTo(temp)) {
@@ -2897,19 +3045,18 @@ public void reinitializeGraphs(TSProduct product)
 	_tsproduct = product;
 	_tslist = _tsproduct.getTSList();
 
-	// Find the latest end date and the earliest start date from the time series
+	// Find the latest end date and the earliest start date from all the time series
 
-	TS ts = null;
-	int size = _tslist.size();
-	for (int i = 0; i < size; i++) {
-		ts = _tslist.get(i);
+	for ( TS ts : _tslist ) {
 		temp = ts.getDate1();
-		if (maxStart == null || (temp != null && temp.lessThan(maxStart))) {
+		if ( (maxStart == null) || (temp != null && temp.lessThan(maxStart))) {
+			// Reset the earliest start if it has not been set or time series has earlier period start
 			maxStart = temp;
 		}
 
 		temp = ts.getDate2();
-		if (maxEnd == null || (temp != null && maxEnd.lessThan(temp))) {
+		if ( (maxEnd == null) || (temp != null && maxEnd.lessThan(temp))) {
+			// Reset the latest start if it has not been set or time series has later period end
 			maxEnd = temp;
 		}
 	}
@@ -2927,7 +3074,7 @@ public void reinitializeGraphs(TSProduct product)
 	clearView();
 	repaint();
 
-	if (end == null && start == null) {
+	if ( (end == null) && (start == null) ) {
 		return;
 	}
 	
@@ -2939,15 +3086,14 @@ public void reinitializeGraphs(TSProduct product)
 	// are set from the time series (above) and the current graph zoom
 	// dates are set from the current graph dates (above).
 	
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		g = _tsgraphs.get(i);
+	for ( TSGraph g: _tsgraphs ) {
 		if (!g.isReferenceGraph()) {
 			g.setEndDate(end);
 			g.setMaxEndDate(maxEnd);
 			g.setStartDate(start);
 			g.setMaxStartDate(maxStart);
-			g.setComputeWithSetDates(true);
-			g.computeDataLimits(false);
+			g.setComputeWithSetDates(true); // By here the graphs need to be created with the last period that was displayed
+			g.computeDataLimits(false); // This says to use the set dates, not the maximum from initial graph creation
 		}
 	}
 }
@@ -2963,7 +3109,7 @@ private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) 
 	List<TS> tslist = null;
 	for ( TSGraph graph: _tsgraphs ) {
 		tslist = graph.getTSList();		
-		ids = new Vector();
+		ids = new ArrayList<String>();
 		for ( TS ts: tslist ) {
 			if (ts == null) {
 				ids.add("null");
@@ -3466,7 +3612,7 @@ void setDrawingLimits()
 /**
 Set the drawing limits for the graphs on the full component.  This is typically
 called at initialization and when the component size changes (or a property
-changes that controls the positioning and size of graphs.  The logic in this
+changes that controls the positioning and size of graphs).  The logic in this
 method needs to be consistent with that in the createTSGraphsFromTSProduct() code.
 */
 public void setGraphDrawingLimits ()
@@ -3475,7 +3621,11 @@ public void setGraphDrawingLimits ()
 	GRLimits drawlim;
 	// Loop through the graphs.  If a reference graph, we should only go
 	// through once (but leave in the loop for now)...
-	String prop_value = _displayProps.getValue("ReferenceGraph");
+	String propVal = _displayProps.getValue("ReferenceGraph");
+	boolean referenceGraph = false;
+	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
+		referenceGraph = true;
+	}
 
 	double totalHeight = _drawlim_graphs.getHeight();
 
@@ -3545,7 +3695,7 @@ public void setGraphDrawingLimits ()
 		if ( tsgraph == null ) {
 			continue;
 		}
-		if ( (prop_value != null) && prop_value.equalsIgnoreCase("true") ) {
+		if ( referenceGraph ) {
 			// A reference graph so the dimension will be all of the component...
 			drawlim = new GRLimits ( _drawlim_graphs );
 		}
@@ -3568,6 +3718,7 @@ public void setGraphDrawingLimits ()
 				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - i*height );
 			*/
 		}
+		// The following triggers resetting the dimensions of all the drawing limits for the graph
 		tsgraph.setDrawingLimits ( drawlim );
 	}
 }
@@ -3686,7 +3837,16 @@ private boolean stringListsAreEqual(List<String> v1, List<String> v2) {
 		}
 		return true;
 	}
-}		
+}
+
+/**
+ * Return a property=value list of properties, separated by newline character.
+ * @return property list string for instance.
+ */
+public String toString () {
+	// For now return the parent version, outputting drawing areas
+	return super.toString(true);
+}
 
 /**
 Handle the mouse motion event from another TSView (likely a Reference TSView).

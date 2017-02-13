@@ -88,7 +88,6 @@
 
 package RTi.GRTS;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -585,10 +584,10 @@ public String getPropValue ( String key )
 }
 
 /**
-Returns the Vector of TSProductAnnotationProviders that were added to this class
-@return the Vector of TSProductAnnotationProviders that were added to this class
+Returns the list of TSProductAnnotationProviders that were added to this class
+@return the list of TSProductAnnotationProviders that were added to this class
 */
-public List getTSProductAnnotationProviders() {
+public List<TSProductAnnotationProvider> getTSProductAnnotationProviders() {
 	return __tsProductAnnotationProviders;
 }
 

@@ -26,13 +26,11 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-
 import java.awt.image.BufferedImage;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -40,9 +38,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Message.Message;
-
 import RTi.Util.String.StringUtil;
 
 /**
@@ -186,7 +182,7 @@ protected String	_note;
 /**
 List of GRDrawingArea objects for this device.
 */
-protected List _drawing_area_list;
+protected List<GRDrawingArea> _drawing_area_list;
 
 /**
 Construct using name.
@@ -756,7 +752,14 @@ throws IOException
 }
 
 /**
-Sets whether the device is drawing in anti-aliased mode or not.
+Sets whether the device is drawing in anti-aliased mode or not, for general drawing.
+Anti-aliasing for text is always set as per the following
+(see: https://docs.oracle.com/javase/tutorial/2d/text/renderinghints.html)
+<pre>
+graphics2D.setRenderingHint(
+        RenderingHints.KEY_TEXT_ANTIALIASING,
+        RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+</pre>
 @param antiAlias whether the device is drawing in anti-aliased mode or not.
 */
 public void setAntiAlias(boolean antiAlias)
@@ -768,6 +771,11 @@ public void setAntiAlias(boolean antiAlias)
 		_graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 	__isAntiAliased = antiAlias;
+	// TODO sam 2017-02-05 need to decide if this is the right place to put the text default
+	// Text is always optimized
+	_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+	// TODO sam 2017-02-05 LCD could use the following if could guarantee LCD on all of multiple screens
+	//_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 }
 
 /**
@@ -817,6 +825,9 @@ public void setGraphics(Graphics2D g) {
 	else {
 		_graphics = (Graphics2D)_buffer.getGraphics();
 	}
+	// Make fonts look better
+	// See:  https://docs.oracle.com/javase/tutorial/2d/text/renderinghints.html
+	_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
 }	
 
 /**
@@ -905,6 +916,37 @@ Stops double buffering drawing calls.
 public void stopDoubleBuffer() {
 	_doubleBuffered = false;
 	_double_buffering = _doubleBuffered;
+}
+
+/**
+ * Create a string representation of the device, useful for troubleshooting,
+ * will include embedded newlines (\n).
+ * @param outputDrawingAreas if true, properties for drawing areas will also be output.
+ * @return a simple property=value list of device (and optionally drawing area) properties.
+ */
+public String toString ( boolean outputDrawingAreas ) {
+	StringBuilder s = new StringBuilder();
+	String nl = "\n";
+	s.append ( "isAntiAliased=" + __isAntiAliased + nl );
+	s.append ( "name=" + _name + nl );
+	s.append ( "reverseY=" + _reverse_y + nl );
+	if ( outputDrawingAreas ) {
+		// Loop through the drawing areas
+		// Make a copy and then sort by name
+		List<GRDrawingArea> das = new ArrayList<GRDrawingArea>();
+		for ( GRDrawingArea da : _drawing_area_list ) {
+			das.add(da);
+		}
+		// Sort by name
+		//java.util.Collections.sort(das);
+		// TODO sam 2017-02-05 decide whether should implement comparable or not
+		for ( int ida = 0; ida < _drawing_area_list.size(); ida++ ) {
+			GRDrawingArea da = _drawing_area_list.get(ida);
+			s.append ( nl + "drawingAreaIndex = " + ida + nl );
+			s.append ( da.toString() + nl );
+		}
+	}
+	return s.toString();
 }
 
 /**

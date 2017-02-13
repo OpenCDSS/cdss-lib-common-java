@@ -514,9 +514,13 @@ The following formats a date as follows:  "MM/DD/YYYY HH:mm:SS".
 */
 public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS = 28;
 /**
+The following formats a date as follows:  "YYYYMMDD".
+*/
+public static final int FORMAT_YYYYMMDD = 29;
+/**
 The following formats a date as follows, for debugging:  year=YYYY, month=MM, etc..
 */
-public static final int FORMAT_VERBOSE = 29;
+public static final int FORMAT_VERBOSE = 200;
 
 /**
 Hundredths of a second (0-99).
@@ -2629,12 +2633,14 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 }
 
 /**
-Parse a string and initialize a DateTime.  By default time zone will be set
-but the PRECISION_TIME_ZONE flag will be set to false.  If only a time format
-is detected, then the TIME_ONLY flag will be set in the returned instance.
+Parse a string and initialize a DateTime.  The time zone will be set
+by default but the PRECISION_TIME_ZONE flag will be set to false meaning that the time zone is not used.
+If only a time format is detected, then the TIME_ONLY flag will be set in the returned instance.
 This routine is the inverse of toString().
-@return A DateTime corresponding to the date.
-@param dateString Any of the formats supported by parse(String,int).
+@param dateString A date/time string in any of the formats supported by parse(String,int).
+The format will be automatically detected based on the contents of the string.
+If more specific handling is needed, use the method version that accepts a format specifier.
+@return A DateTime instance corresponding to the specified date/time string.
 @exception IllegalArgumentException If the string is not understood.
 @see #toString
 */
@@ -2745,6 +2751,10 @@ public static DateTime parse ( String dateString )
 			// the date is M/D/YYYY
 			//
 			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 );
+		}
+		else if (StringUtil.isInteger(dateStringNoTimeZone) ) {
+			// Assume YYYYMMDD
+			dateTime = parse(dateStringNoTimeZone, FORMAT_YYYYMMDD, 0 );
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
@@ -3094,6 +3104,14 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
 		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2" );
+		date.__year = ((Integer)v.get(0)).intValue();
+		date.__month = ((Integer)v.get(1)).intValue();
+		date.__day = ((Integer)v.get(2)).intValue();
+	}
+	else if ( format == FORMAT_YYYYMMDD ) {
+		date = new DateTime ( PRECISION_DAY );
+		is_day = true;
+		v = StringUtil.fixedRead ( date_string, "i4i2i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();

@@ -467,7 +467,7 @@ public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolea
 }
 
 /**
-Reset the secondary data.
+Reset the secondary data, including minimum and maximum, width and height;
 */
 private void reset ()
 {	_center_x = (_left_x + _right_x)/2.0;
