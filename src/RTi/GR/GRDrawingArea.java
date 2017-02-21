@@ -919,8 +919,8 @@ Move the pen position to a point
 public abstract void moveTo ( GRPoint point );
 
 /**
-Scale x data value to device plotting coordinate.
-@param xdata value to scale
+Scale x data value to device plotting coordinates.
+@param xdata value to scale in data coordinates.
 */
 public double scaleXData ( double xdata )
 {	double xdev;
@@ -1004,7 +1004,7 @@ public double scaleXData ( double xdata )
 
 /**
 Scale y data value to device plotting coordinate.
-@param ydata value to scale.
+@param ydata value to scale in data coordinates.
 */
 public double scaleYData ( double ydata )
 {	double ydev;

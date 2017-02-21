@@ -125,7 +125,7 @@ private boolean _first_paint = true;
 /**
 List of time series to plot.  Not sure if this needs to be saved here.
 */
-private List<TS> _tslist = null;	
+private List<TS> _tslist = null;
 
 /**
 Background color.
@@ -289,6 +289,13 @@ private String _gtype = "Main:";
 Force a redraw in paint even if size, etc. has not changed.
 */
 private boolean _force_redraw = true;
+/**
+Force a redraw in paint even if size, etc. has not changed and additionally create clean component.
+This is necessary, for example, when clicking on the legend to highlight a time series and
+then click again to un-higlight.  If the redraw is done, the unselect will probably draw a
+thinner line on the previous thicker line and thicker line will appear to be still present.
+*/
+private boolean _force_redraw_clean = true;
 /**
 Listeners that want to know when the TSView changes.
 */
@@ -1591,17 +1598,43 @@ Determine the TSGraph that an event occurred in, checking only the graph drawing
 @return the TSGraph that an event occurred in or null if not within the bounds of a TSGraph.
 @param pt point for the raw device units where the event occurred.
 */
-private TSGraph getEventTSGraph ( GRPoint pt )
+private TSGraph getEventTSGraph ( GRPoint pt ) {
+	return getEventTSGraph ( pt, true, false );
+}
+
+/**
+Determine the TSGraph that an event occurred in, checking only the graph drawing areas in the TSGraph.
+@return the TSGraph that an event occurred in or null if not within the bounds of a TSGraph.
+@param pt point for the raw device units where the event occurred, such as mouse click.
+@param includeGraphArea if true, evaluate whether the click was in the main graph drawing area.
+@param includePage if true, evaluate whether the click was anywhere on the device (page).
+*/
+private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean includePage )
 {	int size = _tsgraphs.size();
 	TSGraph tsgraph = null;
-	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph = _tsgraphs.get(isub);
-		if ( _is_reference_graph && (isub != _reference_sub) ) {
-			// Don't check the graph
-			continue;
+	if ( includeGraphArea ) {
+		for ( int isub = 0; isub < size; isub++ ) {
+			tsgraph = _tsgraphs.get(isub);
+			if ( _is_reference_graph && (isub != _reference_sub) ) {
+				// Don't check the graph
+				continue;
+			}
+			if ( tsgraph.getGraphDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
+				return tsgraph;
+			}
 		}
-		if ( tsgraph.getGraphDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
-			return tsgraph;
+	}
+	if ( includePage ) {
+		// Did not find the graph area above but also check full page
+		for ( int isub = 0; isub < size; isub++ ) {
+			tsgraph = _tsgraphs.get(isub);
+			if ( _is_reference_graph && (isub != _reference_sub) ) {
+				// Don't check the graph
+				continue;
+			}
+			if ( tsgraph.getPageDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
+				return tsgraph;
+			}
 		}
 	}
 	return null;
@@ -1993,52 +2026,81 @@ public void mouseMoved ( MouseEvent event )
 }
 
 /**
-Handle mouse pressed event.  Start a select or zoom.  The event is completed
-when the mouse is released.
+Handle mouse pressed event.
+First check whether clicked in a legend hotspot and if so, select the time series to highlight and redraw.
+Otherwise, start a select or zoom.  The event is completed when the mouse is released.
 @param event MouseEvent to handle.
 */
 public void mousePressed ( MouseEvent event )
 {	//event.consume();
 	requestFocus();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, _gtype + "TSGraphJComponent.mousePressed", "Mouse pressed." );
+		Message.printDebug ( 1, _gtype + "TSGraphJComponent.mousePressed",
+			"Mouse pressed at device coordinates " + event.getX() + "," + event.getY() );
 	}
 	// Initialize the coordinates.  If the click is outside any graph, these
 	// values will signal to mouseDragged() that a valid starting point for
 	// a box has not been given.
 	_mouse_tsgraph1 = null;
 	_mouse_x1 = _mouse_y1 =_mouse_x2=_mouse_y2=_mouse_xprev=_mouse_yprev=-1;
-	// Figure out which drawing area the event occurred in...
-	TSGraph tsgraph = getEventTSGraph ( new GRPoint ( event.getX(), event.getY() ) );
-	if ( tsgraph == null ) {
-		// Did not click on a valid graph and currently don't allow
-		// graph legends, etc. to be selected for properties...
-		return;
-	}
-	_mouse_tsgraph1 = tsgraph;
-	int mods = event.getModifiers();
-	if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
-		// Each graph provides its own popup menu to edit properties and
-		// view analysis details...
-		JPopupMenu popup_menu = tsgraph.getJPopupMenu();
-		if ( popup_menu != null ) {
-			// Add to the component.  It will be removed when the menu event is processed...
-			add ( popup_menu );
-			// Show the popup menu.  It is modal.
-			popup_menu.show ( event.getComponent(), event.getX(), event.getY() );
-			// Now try removing from the component...
-			// Doing this seems to disable the menu action.
-			// See notes in TSGraph related to the the popup menu.
-			//remove ( popup_menu );
+	// Figure out which TSGraph the event occurred in...
+	GRPoint eventPoint = new GRPoint ( event.getX(), event.getY() );
+	// First get the TSGraph considering whether in the graph area and total page
+	TSGraph tsgraphForGraph = getEventTSGraph ( eventPoint, true, false );
+	TSGraph tsgraphForPage = getEventTSGraph ( eventPoint, true, true );
+	boolean forceRepaint = false; // In cases where need to redraw, for example, when time series is selected in legend
+	if ( tsgraphForPage != null ) {
+		// Click was somewhere in a page.
+		// Check to see if a legend hot-spot was clicked on.
+		TS eventTS = tsgraphForPage.getEventLegendTimeSeries(eventPoint);
+		if ( eventTS != null ) {
+			//Message.printStatus(2,"","Mouse click - found legend time series " + eventTS.getIdentifierString());
+			// Indicate that the time series is selected for the graph, so special treatment occurs during rendering
+			// The TSGraph instance should be the same whether graph or page because it contains both
+			boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
+			//Message.printStatus(2,"","Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
+			// Indicate to force a repaint so (un)selected time series will draw with proper style
+			forceRepaint = true;
+		}
+		else {
+			//Message.printStatus(2,"","Mouse click - did not find legend time series");
 		}
 	}
-	else if ( (_interaction_mode == INTERACTION_SELECT) ||
-		(_interaction_mode == INTERACTION_ZOOM) ) {
-		// Save the point that was selected so that the drag and
-		// released events will work.  Also save the initial graph
-		// so that we can make sure not to drag outside a valid graph.
-		_mouse_x1 = event.getX();
-		_mouse_y1 = event.getY();
+	else {
+		//Message.printStatus(2, "", "Click was not on any page drawing area" );
+	}
+	if ( tsgraphForGraph != null ) {
+		// Click was in a graph drawing area
+		_mouse_tsgraph1 = tsgraphForGraph;
+		int mods = event.getModifiers();
+		if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
+			// Each graph provides its own right-click popup menu to edit properties and
+			// view analysis details...
+			JPopupMenu popup_menu = tsgraphForGraph.getJPopupMenu();
+			if ( popup_menu != null ) {
+				// Add to the component.  It will be removed when the menu event is processed...
+				add ( popup_menu );
+				// Show the popup menu.  It is modal.
+				popup_menu.show ( event.getComponent(), event.getX(), event.getY() );
+				// Now try removing from the component...
+				// Doing this seems to disable the menu action.
+				// See notes in TSGraph related to the the popup menu.
+				//remove ( popup_menu );
+			}
+		}
+		else if ( (_interaction_mode == INTERACTION_SELECT) ||
+			(_interaction_mode == INTERACTION_ZOOM) ) {
+			// Save the point that was selected so that the drag and
+			// released events will work.  Also save the initial graph
+			// so that we can make sure not to drag outside a valid graph.
+			_mouse_x1 = event.getX();
+			_mouse_y1 = event.getY();
+		}
+	}
+	if ( forceRepaint ) {
+		// Cause a redraw, due to time series being (un)selected by legend click
+		setForceRedraw(true,true);
+		repaint();
 	}
 }
 
@@ -2330,7 +2392,7 @@ public void paint ( Graphics g )
 	_double_buffering = true;
 
 	if ( g == null ) {
-		Message.printDebug( 1, "", "Null Graphics in paint()" );
+		Message.printDebug( 1, routine, "Null Graphics in paint()" );
 		return;
 	}
 
@@ -2561,18 +2623,22 @@ public void paint ( Graphics g )
 		// Now clear the view so that drawing occurs on a clean background...
 		clearView ();
 	}
+	if ( _force_redraw_clean ) {
+		// Another case where a clear background is needed.
+		clearView ();
+	}
 
 	// Redraw the graph(s) if any of the following conditions apply:
 	//
 	// * not double buffering (redraw every time)
-	// * a draw is forced (because of changes in the views)
+	// * a draw is forced (because of changes in the views or time series are (un)selected by clicking on legend)
 	// * printing has been requested (and need to redraw given page extents, etc.)
 	// * double-buffering is on and a resize has occurred.
 
-	if ( _force_redraw || _printing || __paintForSVG || !_double_buffering || resizing ) {
+	if ( _force_redraw || _force_redraw_clean || _printing || __paintForSVG || !_double_buffering || resizing ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Drawing graph (_force_redraw=" +
-			_force_redraw + " resizing=" + resizing + ")..." );
+			_force_redraw + " _force_redraw_clean=" + _force_redraw_clean + " resizing=" + resizing + ")..." );
 		}
 		try {
 		    JGUIUtil.setWaitCursor(_parent, true );
@@ -2643,6 +2709,7 @@ public void paint ( Graphics g )
 			Message.printWarning ( 3, routine, e );
 		}
 		_force_redraw = false;
+		_force_redraw_clean = false;
 	}
 	
 	if ( drawingTracker ) {
@@ -2662,7 +2729,9 @@ public void paint ( Graphics g )
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, _gtype + "Copying internal image to display." );
 		}
-		g.drawImage ( _buffer , 0, 0, this );
+		g.drawImage ( _buffer, 0, 0, this );
+		// Use the following to troubleshoot
+		//saveAsFile(System.getProperty("java.io.tmpdir") + File.separator + "junk.png");
 		// Only do this if double buffering to screen because that is
 		// the only time the graphics is created locally...
 		// ?? _graphics.dispose();
@@ -2683,17 +2752,6 @@ public void paint ( Graphics g )
 	if (__paintForSVG) {
 	    __paintForSVG = false;
 	}
-	/*
-	if (IOUtil.testing()) {
-	_da_page.setColor ( GRColor.cyan );
-	// Reference and main...
-	GRDrawingAreaUtil.drawRectangle ( _da_graphs,
-				_datalim_graphs.getLeftX(),
-				_datalim_graphs.getBottomY(),
-				_datalim_graphs.getWidth(),
-				_datalim_graphs.getHeight() );
-	}
-	*/
 }
 
 /**
@@ -3063,9 +3121,25 @@ public void reinitializeGraphs(TSProduct product)
 	
 	List<TSGraphDataLimits> v = determineDataLimits();
 	
+	// Some internal data in the previous list of TSGraph was created through user
+	// action and is not stored as product properties and must be transferred to the new list of TSGraph.
+	// TODO sam 2017-02-2017 need to confirm that the new list of TSGraph always align with the old?
+	// -It should? as long as the interactive add of TSGraph was handled gracefully prior to this point
+	List<List<TS>> selectedTimeSeriesListOld = new ArrayList<List<TS>>();
+	List<TSGraph> tsgraphListOld = _tsgraphs;
+	for ( TSGraph tsgraph : tsgraphListOld ) {
+		selectedTimeSeriesListOld.add(tsgraph.getSelectedTimeSeriesList());
+	}
+	
 	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct, _displayProps, _tslist, 
 		new GRLimits(0.0,0.0, getWidth(), getHeight()));
 	checkTSProductGraphs(_tsproduct, _tsgraphs);
+	// Add the saved information
+	if ( tsgraphListOld.size() == _tsgraphs.size() ) {
+		for ( int igraph = 0; igraph < _tsgraphs.size(); igraph++ ) {
+			_tsgraphs.get(igraph).setSelectedTimeSeriesList(selectedTimeSeriesListOld.get(igraph));
+		}
+	}
 	
 	setDrawingLimits();
 	setGraphDrawingLimits();
@@ -3607,6 +3681,18 @@ void setDrawingLimits()
 	if ( (_da_graphs != null) && (_drawlim_graphs != null) ) {
 		_da_graphs.setDrawingLimits ( _drawlim_graphs, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
+}
+
+/**
+ * Set the flags indicating that redrawing (repaint) should be done no matter what.
+ * This is needed because some logic may just copy the double buffer if the drawing limits have not changed,
+ * rather than repaint.  For example, call from mousePressed() when a legend hotspot is pressed.
+ * @param forceRedraw if true, redraw the graph (but don't clear it first), suitable for mouse zoom box.
+ * @param forceRedrawClean if true, redraw the graph (and force clear), suitable for legend time series selection clicks
+ */
+void setForceRedraw ( boolean forceRedraw, boolean forceRedrawClean ) {
+	this._force_redraw = forceRedraw;
+	this._force_redraw_clean = forceRedrawClean;
 }
 
 /**

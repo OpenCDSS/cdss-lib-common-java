@@ -219,7 +219,10 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.JPopupMenu;
@@ -423,7 +426,21 @@ This list is guaranteed to be non-null but may be empty.
 private List<TS> __derivedTSList = new ArrayList<TS>();
 
 /**
- * List of serious errors for he graph, to be draw in the upper left
+ * List of time series that are selected (by clicking on the legend).
+ * These time series will be displayed using graph "SelectedTimeSeries*"
+ * properties, for example wider line, different color.
+ */
+private List<TS> _selectedTimeSeriesList = new ArrayList<TS>();
+
+/**
+ * Map of the time series in the legend matched against GRLimits() for drawing limits,
+ * so that the legend area is a "hotspot" for selecting the time series.
+ */
+private HashMap<TS,GRLimits> __legendTimeSeriesDrawMap = new HashMap<TS,GRLimits>();
+
+/**
+ * TODO sam 2017-02-19 need to enable this, sort of like when Excel warns about opening files from the internet.
+ * List of serious errors for the graph, to be draw in the upper left.
  */
 private List<String> __errorMessageList = new ArrayList<String>();
 
@@ -3863,9 +3880,9 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 		datalimLeftYAxisTitle.getCenterX(), datalimLeftYAxisTitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y, rotationDeg );
 	
 	// Right Y Axis labels, and ticks...
-	Message.printStatus(2, "drawAxesFront", "Right y-axis da limits:" + _da_righty_label.getDrawingLimits());
-	Message.printStatus(2, "drawAxesFront", "Right y-axis data limits:" + _da_righty_label.getDataLimits());
-	Message.printStatus(2, "drawAxesFront", "Right y-axis _datalim_righty_label:" + _datalim_righty_label);
+	//Message.printStatus(2, "drawAxesFront", "Right y-axis da limits:" + _da_righty_label.getDrawingLimits());
+	//Message.printStatus(2, "drawAxesFront", "Right y-axis data limits:" + _da_righty_label.getDataLimits());
+	//Message.printStatus(2, "drawAxesFront", "Right y-axis _datalim_righty_label:" + _datalim_righty_label);
 	
 	if ( drawRightYAxisLabels ) {
 		boolean rightYAxisLogY = false;
@@ -4612,7 +4629,7 @@ private void drawLegend ( int axis )
 	else {
 		// Includes "None" case
 		// Don't know how to draw legend.
-		Message.printStatus(2,routine,"Don't know how to draw lend in position \"" + legendPosition + "\"" );
+		Message.printStatus(2,routine,"Don't know how to draw legend in position \"" + legendPosition + "\"" );
 		return;
 	}
 
@@ -4888,21 +4905,32 @@ private void drawLegend ( int axis )
 			}
 			if (prop_value != null) {
 				if (StringUtil.isInteger(prop_value)) {
-					GRDrawingAreaUtil.setLineWidth( da_legend, Integer.parseInt(prop_value));
+					// Have line width to set, get the initial value
+					int lineWidth = Integer.parseInt(prop_value);
+					//Message.printStatus(2, routine, "Setting line width for legend, initial width=" + lineWidth );
+					if ( isTimeSeriesSelected(ts) ) {
+						//Message.printStatus(2, routine, "Time series is selected " + ts.getIdentifierString());
+						// Time series is selected in the legend so need to highlight.
+						// Change the line width property based on the selection properties.
+						lineWidth = modifyLineWidthForSelectedTimeSeries(lineWidth);
+						//Message.printStatus(2, routine, "Line width because of selection=" + lineWidth );
+					}
+					// Set the line width to either the original or the value modified for highlight
+					GRDrawingAreaUtil.setLineWidth( da_legend, lineWidth );
 				}
 			}
 
-			if ( (axisGraphType != TSGraphType.POINT) && line_style.equalsIgnoreCase("Solid") ) {
-				GRDrawingAreaUtil.drawLine(da_legend, x, y);
+			if ( axisGraphType != TSGraphType.POINT ) {
+				// Not point graph type so draw a line
+				if ( line_style.equalsIgnoreCase("Solid") ) {
+					GRDrawingAreaUtil.drawLine(da_legend, x, y);
+				}
+				else if ( line_style.equalsIgnoreCase("Dashed") ) {
+					GRDrawingAreaUtil.setLineDash( da_legend, lineDash, 0);
+					GRDrawingAreaUtil.drawLine(da_legend, x, y);
+					GRDrawingAreaUtil.setLineDash( da_legend, null, 0);
+				}
 			}
-			else if ( (axisGraphType != TSGraphType.POINT) && line_style.equalsIgnoreCase("Dashed")) {
-				GRDrawingAreaUtil.setLineDash( da_legend, lineDash, 0);
-				GRDrawingAreaUtil.drawLine(da_legend, x, y);
-				GRDrawingAreaUtil.setLineDash( da_legend, null, 0);
-			}
-
-			// TODO sam 2017-02-07 need to set the legend with wider when implementing highlight or selected time series.
-			GRDrawingAreaUtil.setLineWidth(da_legend, 1);
 
 			// Draw the symbol if any is specified...
 			if ( imatch < 0 ) {
@@ -4938,6 +4966,25 @@ private void drawLegend ( int axis )
 		da_legend.setColor ( GRColor.black );
 		// Put some space so text does not draw right up against symbol
 		GRDrawingAreaUtil.drawText ( da_legend, " " + legend, x[1], ylegend, 0.0, GRText.LEFT|GRText.BOTTOM );
+
+		if ( ts != null ) {
+			// Save the limits of the legend text as a hot spot that can be clicked on to highlight the
+			// time series during rendering.
+			// Get the limits of the text that was actually drawn in drawing units
+			GRLimits textDrawLim = GRDrawingAreaUtil.getTextExtents(da_legend, " " + legend, GRUnits.DEVICE);
+			// Lower left corner of the text
+			double xll = da_legend.scaleXData(x[1]);
+			//Message.printStatus(2,routine,"Legend x[1]=" + x[1] + " xll=" + xll );
+			double yll = da_legend.scaleYData(ylegend);
+			//Message.printStatus(2,routine,"Legend ylegend=" + ylegend + " yll=" + yll );
+			// Legend limits in device units use Y from top so subtract extents
+			GRLimits legendDrawLimits = new GRLimits(xll,yll,
+				(xll + textDrawLim.getWidth()), (yll - textDrawLim.getHeight()) );
+			__legendTimeSeriesDrawMap.put(ts, legendDrawLimits);
+			//Message.printStatus(2,routine,"Legend \"" + legend + "\" drawing limits are " + legendDrawLimits );
+		}
+		
+		// Decrement the legend for the next iteration, drawing from top to bottom
 		ylegend -= ydelta;
 	}
 }
@@ -5280,7 +5327,11 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		niceSymbols = false;
 	}
 
-	if (!_is_reference_graph) {
+	if (_is_reference_graph) {
+		lineWidth = 1;
+		draw_line = true;
+	}
+	else {
 		prop_value = getLayeredPropValue("LineWidth", subproduct, its, false, overrideProps);
 		if (prop_value != null) {
 			if (StringUtil.isInteger(prop_value)) {
@@ -5288,12 +5339,13 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				if (lineWidth < 0) {
 					lineWidth = 1;
 				}
+				if ( isTimeSeriesSelected(ts) ) {
+					// Time series is selected in the legend so need to highlight.
+					// Change the line width property based on the selection properties.
+					lineWidth = modifyLineWidthForSelectedTimeSeries(lineWidth);
+				}
 			}
 		}
-	}
-	else {
-		lineWidth = 1;
-		draw_line = true;
 	}
 
 	// line dashes are currently only supported
@@ -7536,6 +7588,7 @@ private void drawYAxisGrid()
 		x[0] = _data_lefty_limits.getLeftX();
 		x[1] = _data_lefty_limits.getRightX();
 		// Draw a horizontal grid.
+		_da_lefty_graph.setLineWidth ( 1 );
 		GRAxis.drawGrid ( _da_lefty_graph, 2, x, _ylabels_lefty.length, _ylabels_lefty, GRAxis.GRID_SOLID );
 	}
 
@@ -7550,6 +7603,7 @@ private void drawYAxisGrid()
 			color = GRColor.black;
 		}
 		_da_lefty_graph.setColor ( color );
+		_da_lefty_graph.setLineWidth ( 1 );
 		GRAxis.drawTicks(_da_lefty_graph, GRAxis.Y, GRAxis.LEFT, _ylabels_lefty.length, _ylabels_lefty, -1.0, 0.0 );
 	}
 	
@@ -7565,6 +7619,7 @@ private void drawYAxisGrid()
 				color = GRColor.black;
 			}
 			_da_righty_graph.setColor ( color );
+			_da_righty_graph.setLineWidth ( 1 );
 			double [] x = new double[2];
 			x[0] = _data_righty_limits.getLeftX();
 			x[1] = _data_righty_limits.getRightX();
@@ -7587,6 +7642,7 @@ private void drawYAxisGrid()
 			color = GRColor.black;
 		}
 		_da_righty_graph.setColor ( color );
+		_da_righty_graph.setLineWidth ( 1 );
 		GRAxis.drawTicks(_da_righty_graph, GRAxis.Y, GRAxis.RIGHT, _ylabels_righty.length, _ylabels_righty, -1.0, 0.0 );
 	}
 }
@@ -7863,6 +7919,28 @@ protected DateTime getEndDate() {
 }
 
 /**
+ * Return the time series corresponding to a legend select event, or null if
+ * event was not in a legend hotspot.
+ * @param eventPoint location of mouse click in original device units (y is zero at top).
+ * @return the matching time series if clicked on time series legend text, or null if not a hit.
+ */
+protected TS getEventLegendTimeSeries ( GRPoint eventPoint ) {
+	// Loop through the legend hotspots and see if any match the point
+	//Message.printStatus(2,"","Searching legend hotspots for event point (device/drawing units) " + eventPoint );
+	for ( Map.Entry<TS, GRLimits> entry : __legendTimeSeriesDrawMap.entrySet() ) {
+		Object value = entry.getValue();
+		if ( value != null ) {
+			GRLimits drawLimits = (GRLimits)value; // Device units 
+			//Message.printStatus(2,"","Legend hotspot device/drawing limits are " + drawLimits );
+			if ( drawLimits.contains(eventPoint) ) {
+				return entry.getKey();
+			}
+		}
+	}
+	return null;
+}
+
+/**
 Returns the first time series in the time series list that is enabled.
 @return the first time series in the time series list that is enabled.
 */
@@ -7875,8 +7953,9 @@ public TS getFirstEnabledTS(boolean includeLeftYAxis, boolean includeRightYAxis)
 }
 
 /**
-Return the drawing area used for the graph.  The value may be null.
-@return The drawing area used for the graph.
+Return the drawing area used for the left y-axis graph.  The value may be null.
+This is most often used by code that handles mouse events.
+@return The drawing area used for the left y-axis graph.
 */
 public GRJComponentDrawingArea getGraphDrawingArea()
 {	return _da_lefty_graph;
@@ -8118,6 +8197,15 @@ public TSGraphType getRightYAxisGraphType ()
 }
 
 /**
+ * Return the list of time series that are selected via legend interactions.
+ * @return the list of time series that are selected via legend interactions,
+ * guaranteed to be non-null but may be empty.
+ */
+protected List<TS> getSelectedTimeSeriesList () {
+	return _selectedTimeSeriesList;
+}
+
+/**
 Returns the start date.
 @return the start date.
 */
@@ -8285,6 +8373,20 @@ public boolean isReferenceGraph ()
 }
 
 /**
+ * Indicate whether the time series is selected (highlighted in legend).
+ * @param ts time series to evaluate.
+ * @return true if the time series is selected, false if not.
+ */
+private final boolean isTimeSeriesSelected ( TS ts ) {
+	for ( TS ts2 : _selectedTimeSeriesList ) {
+		if ( ts2 == ts ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
 Returns whether the time series of the graph's subproduct is enabled.
 @param its the time series to check.
 @return true if the time series is enabled, false if not.
@@ -8295,6 +8397,31 @@ public boolean isTSEnabled(int its) {
 		return false;
 	}
 	return true;
+}
+
+/**
+ * Modify the line with for the time series because it is selected.
+ * @param lineWidth original line width.
+ * @return modified line width to use for drawing.
+ */
+private int modifyLineWidthForSelectedTimeSeries ( int lineWidth ) {
+	// TODO sam 2017-02-20 Put this in a method once figure it out
+	String propValue = getLayeredPropValue("SelectedTimeSeriesLineWidth", _subproduct, -1, false, null);
+	if ( propValue != null ) {
+		// Adjust the line width
+		if ( StringUtil.isDouble(propValue) ) {
+			lineWidth = (int)Double.parseDouble(propValue);
+		}
+		else if ( propValue.startsWith("x") && (propValue.length() > 1) && StringUtil.isDouble(propValue.substring(1).trim()) ) {
+			// x5 would multiple width by 5
+			lineWidth = (int)(lineWidth*Double.parseDouble(propValue.substring(1).trim()));
+		}
+		else if ( propValue.startsWith("+") && (propValue.length() > 1) && StringUtil.isDouble(propValue.substring(1).trim()) ) {
+			// +5 would add 5 to width
+			lineWidth = lineWidth + (int)Double.parseDouble(propValue.substring(1).trim());
+		}
+	}
+	return lineWidth;
 }
 
 /**
@@ -9889,6 +10016,18 @@ protected void setMaxStartDate(DateTime d) {
 }
 
 /**
+ * Set the list of selected time series, from legend selects.
+ * This is used when the list of TSGraph in the TSGraphJComponent is reinitialized during
+ * interactive edits.  Because the selected time series are dynamic and not stored in
+ * properties, the selects must be transferred manually.
+ * @param selectedTimeSeriesList list of time series that should be considered as selected,
+ * as if they were clicked on in the legend.
+ */
+protected void setSelectedTimeSeriesList ( List<TS> selectedTimeSeriesList ) {
+	_selectedTimeSeriesList = selectedTimeSeriesList;
+}
+
+/**
  * Sets whether drawing area outlines should be drawn, useful for development.
  */
 protected void setShowDrawingAreaOutline ( boolean showDrawingAreaOutline ) {
@@ -9954,6 +10093,34 @@ public static DateTime getNearestDateTimeLessThanOrEqualTo ( DateTime candidate_
 	returnDate.setPrecision(ts.getDate1().getPrecision());	
 	
 	return returnDate;
+}
+
+/**
+ * Toggle whether a time series is selected or not (from a legend selection).
+ * If selected, add to the list.  If not selected, remove from the list.
+ * This keeps the list short for lookups.
+ * @param ts time series to be (un)selected.
+ * @return true if the time series is selected after call, false if it is unselected after call
+ */
+public boolean toggleTimeSeriesSelection ( TS ts ) {
+	boolean found = false;
+	boolean isSelected = false;
+	TS ts2;
+	for ( int i = (_selectedTimeSeriesList.size() - 1); i >= 0; i-- ) {
+		ts2 = _selectedTimeSeriesList.get(i);
+		if ( ts2 == ts ) {
+			// Remove previous instance
+			_selectedTimeSeriesList.remove(ts);
+			isSelected = false;
+			found = true;
+		}
+	}
+	if ( !found ) {
+		// Was not found so toggle on by adding to the list
+		_selectedTimeSeriesList.add(ts);
+		isSelected = true;
+	}
+	return isSelected;
 }
 
 }

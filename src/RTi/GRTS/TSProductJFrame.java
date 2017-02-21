@@ -353,6 +353,7 @@ private JTextField _product_subtitle_fontsize_JTextField = null;
 private SimpleJComboBox _graph_JComboBox = null;
 private JTabbedPane _graph_JTabbedPane = null;
 private JCheckBox _graph_enabled_JCheckBox = null;
+private JTextField _graphSelectedTimeSeriesLineWidth_JTextField = null;
 private JCheckBox _graph_isref_JCheckBox = null;
 // Left y-axis (note this uses general name without "lefty" for historical purposes when right y-axis was not supported)
 private SimpleJComboBox _graph_lefty_graphtype_JComboBox = null;
@@ -2715,6 +2716,7 @@ private JPanel createSubproductJPanel ()
 	// General tab (use flow layout until more items are added)...
 
 	JPanel general_JPanel = new JPanel();
+	int yGeneral = -1;
 	/*
 	general_JPanel.setLayout ( new FlowLayout(FlowLayout.LEFT) );
 	_graph_JTabbedPane.addTab ( "General", null, general_JPanel, "General properties" );
@@ -2734,17 +2736,36 @@ private JPanel createSubproductJPanel ()
 	_graph_isref_JCheckBox = new JCheckBox("", true);
 	_graph_isref_JCheckBox.setEnabled ( false );
 	JGUIUtil.addComponent(general_JPanel, _graph_enabled_JCheckBox,
-		1, 0, 1, 1, 0, 0,
+		1, ++yGeneral, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	_yPercentJTextField = new JTextField(10);
 	_yPercentJTextField.setToolTipText("Percent of vertical product size for this graph, 0-100");
 	JGUIUtil.addComponent(general_JPanel, new JLabel("Y percent size: "),
-		0, 1, 1, 1, 0, 0,
+		0, ++yGeneral, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(general_JPanel, _yPercentJTextField,
 		1, 1, 1, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
+	
+	// Create a sub-panel with a border to hold selected time series highlight properties
+	JPanel selectedTSProps_JPanel = new JPanel();
+	int ySelectedTSProps = -1;
+	selectedTSProps_JPanel.setLayout(gbl);
+	selectedTSProps_JPanel.setBorder(BorderFactory.createTitledBorder(
+		BorderFactory.createLineBorder(Color.BLACK,1),"Selected Time Series Highlighting"));
+	JGUIUtil.addComponent ( general_JPanel, selectedTSProps_JPanel,
+		0, ++yGeneral, 2, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+	
+	JGUIUtil.addComponent ( selectedTSProps_JPanel, new JLabel ("Selected time series line width:"),
+		0, ++ySelectedTSProps, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_graphSelectedTimeSeriesLineWidth_JTextField = new JTextField (10);
+	_graphSelectedTimeSeriesLineWidth_JTextField.setToolTipText("Line width for time series selected in legend, can be: #pixels, +#pixels, xFacter");
+	JGUIUtil.addComponent ( selectedTSProps_JPanel, _graphSelectedTimeSeriesLineWidth_JTextField,
+		1, ySelectedTSProps, 1, 1, 0, 0,
+		_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
 	// Graph Type tab...
 
@@ -5426,6 +5447,11 @@ private void displaySubproductProperties ( int isub )
 
 	prop_val = _tsproduct.getLayeredPropValue (	"RightYAxisUnits", isub, -1, false );
 	_graph_righty_units_JTextField.setText(prop_val);
+	
+	// "SelectedTimeSeriesLineWidth" [General]
+
+	prop_val = _tsproduct.getLayeredPropValue (	"SelectedTimeSeriesLineWidth", isub, -1, false );
+	_graphSelectedTimeSeriesLineWidth_JTextField.setText(prop_val);
 
 	// "SubTitleString" [Titles]
 
@@ -8063,6 +8089,15 @@ protected int updateTSProduct (int howSet) {
 	gui_val = _graph_legendfontname_JComboBox.getSelected();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 		_tsproduct.setPropValue ( "LegendFontName", gui_val, _selected_subproduct, -1 );
+		++ndirty;
+	}
+	
+	// "SelectedTimeSeriesLineWidth"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "SelectedTimeSeriesLineWidth", _selected_subproduct, -1, false );
+	gui_val = _graphSelectedTimeSeriesLineWidth_JTextField.getText().trim();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "SelectedTimeSeriesLineWidth", gui_val, _selected_subproduct, -1 );
 		++ndirty;
 	}
 
