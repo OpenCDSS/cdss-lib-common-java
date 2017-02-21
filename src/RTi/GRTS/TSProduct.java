@@ -2203,6 +2203,10 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		// RightYAxisUnits determined at run time
+		
+		if (getLayeredPropValue("SelectedTimeSeriesLineWidth", isub, -1, false) == null) {
+			setPropValue("SelectedTimeSeriesLineWidth", getDefaultPropValue("SelectedTimeSeriesLineWidth", isub, -1), isub, -1);
+		}
 
 		if ( getLayeredPropValue("SubTitleFontName", isub, -1, false ) == null ) {
 			setPropValue ( "SubTitleFontName",
@@ -2888,6 +2892,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisType") ){
 			return "Linear";
+		}
+		else if ( param.equalsIgnoreCase("SelectedTimeSeriesLineWidth") ) {
+			return "x2";
 		}
 		else if ( param.equalsIgnoreCase("SubTitleFontName") ) {
 			return "Arial";
