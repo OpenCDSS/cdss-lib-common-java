@@ -2022,7 +2022,6 @@ public void mouseMoved ( MouseEvent event )
 	for ( int ilist = 0; ilist< _listeners.length; ilist++ ) {
 		_listeners[ilist].tsViewMouseMotion ( tsgraph, devpt, datapt );
 	}
-	tsgraph = null;
 }
 
 /**
@@ -2700,24 +2699,24 @@ public void paint ( Graphics g )
 					continue;
 				}
 			}
-			JGUIUtil.setWaitCursor(_parent, false );
 		}
 		catch ( Exception e ) {
-			JGUIUtil.setWaitCursor(_parent, false );
 			// FIXME SAM 2010-11-29 Changing to level 1 and drawing the dialog causes a TSTool crash in some cases
 			Message.printWarning ( 2, routine, "Error drawing graph(s) (" + e + ")." );
 			Message.printWarning ( 3, routine, e );
 		}
+		finally {
+			JGUIUtil.setWaitCursor(_parent, false );
+		}
 		_force_redraw = false;
 		_force_redraw_clean = false;
 	}
-	
+
 	if ( drawingTracker ) {
 		// TODO SAM 2016-10-17 Enable tracking similar to zoom but on top.
 		// Done drawing.  Reset paint mode to normal just in case we
 		// change code later to not return...
 		//g.setPaintMode ();
-		//return;
 	}
 
 	// Finally, if double buffering and not printing, copy the image from
