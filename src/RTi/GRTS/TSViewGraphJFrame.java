@@ -121,6 +121,7 @@ package RTi.GRTS;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -131,6 +132,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -139,6 +141,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -201,6 +204,8 @@ private ReportJFrame __detail_JFrame = null;
 protected TSGraphJComponent _ts_graph = null;
 protected TSGraphJComponent _ref_graph = null;
 
+private TSGraphJComponentGlassPane _tsGraphGlassPane = null;
+
 private SimpleJButton __close_JButton = null;
 private SimpleJButton __help_JButton = null;
 private SimpleJButton __save_JButton = null;
@@ -248,7 +253,7 @@ Construct a TSViewGraphJFrame.
 defined in the TSViewJFrame constructor documentation.
 @exception Exception if there is an error displaying the view.
 */
-public TSViewGraphJFrame ( TSViewJFrame tsview_gui, List tslist, PropList props )
+public TSViewGraphJFrame ( TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
 throws Exception
 {	super ( "Time Series - Graph View" );
 	initialize ( tsview_gui, tslist, props );
@@ -267,9 +272,16 @@ throws Exception
 	__tsproduct = tsproduct;
 	// Set a property to make sure the centering works
 	PropList props = new PropList("TSViewJFrame");
-	// TODO SAM 2016-04-01 This needs to use the TSTool frame, not the hidden frame? 
-	props.setUsingObject("TSViewParentUIComponent",tsview_gui);
-	initialize ( tsview_gui, tsproduct.getTSList(), props );
+	// TODO SAM 2016-04-01 This needs to use the TSTool frame, not the hidden frame?
+	if ( tsview_gui != null ) {
+		props.setUsingObject("TSViewParentUIComponent",tsview_gui);
+	}
+	if ( (tsproduct == null) || (tsproduct.getTSList() == null) ) {
+		initialize ( tsview_gui, new ArrayList<TS>(), props );
+	}
+	else {
+		initialize ( tsview_gui, tsproduct.getTSList(), props );
+	}
 }
 
 /**
@@ -396,6 +408,49 @@ public void actionPerformed ( ActionEvent event )
 }
 
 /**
+ * Add a component to the LayeredPane that is used to manage the TSGraphJComponet and
+ * transparent glass pane for the mouse tracker.
+ * @param container
+ * @param component
+ * @param gridx
+ * @param gridy
+ * @param gridwidth
+ * @param gridheight
+ * @param weightx
+ * @param weighty
+ * @param insets
+ * @param fill
+ * @param anchor
+ */
+private void addLayeredPaneComponent ( JLayeredPane container, Component component, Integer z ) {
+	// The following was copied from GUIUtil.addComponent(), but added Z-level here.
+	//LayoutManager lm = container.getLayout();
+	int gridx = 0;
+	int gridy = 0;
+	int gridwidth = 1;
+	int gridheight = 1;
+	double weightx = 1.0;
+	double weighty = 1.0;
+	//Insets insets;
+	int fill = GridBagConstraints.BOTH;
+	int anchor = GridBagConstraints.CENTER;
+	//
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = gridx;
+    gbc.gridy = gridy;
+    gbc.gridwidth = gridwidth;
+    gbc.gridheight = gridheight;
+    gbc.weightx = weightx;
+    gbc.weighty = weighty;
+    gbc.insets = new Insets(0,0,0,0);
+    gbc.fill = fill;
+    gbc.anchor = anchor;
+    //((GridBagLayout)lm).setConstraints(component, gbc);
+    //container.add (component, z);
+    container.add (component, gbc, z);
+}
+
+/**
 Close the detail GUI.  This should be called before calling
 TSViewJFrame.closeGUI() to close this graph GUI.
 */
@@ -502,6 +557,7 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	__props = props;
 	// Used to set the menu bar...
 
+	//if ( includeFullCode ) {
 	String prop_value = null;
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 	
@@ -535,6 +591,7 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 		    setTitle( JGUIUtil.getAppNameForWindows() + " - " +	prop_value + " - Graph" );
 		}
 	}
+	//} // includeFullCode
 
 	openGUI ( true );
 }
@@ -546,12 +603,19 @@ and the user indicates not to continue.  This should be called by the parent
 code after a TSViewGraphFrame is constructed.
 */
 public boolean needToClose () {
-	return _ts_graph.needToClose();
+	if ( _ts_graph == null ) {
+		// Should not normally happen but need for some testing configurations
+		return false;
+	}
+	else {
+		return _ts_graph.needToClose();
+	}
 }
 
 /**
 Open the GUI and display the time series.
-@param mode Indicates whether the GUI should be visible at creation.
+@param mode Indicates whether the GUI should be visible at creation, typically true
+unless processing a graph in batch mode, in which case an image file is usually the output.
 */
 private void openGUI ( boolean mode )
 {	String routine = "TSViewGraphJFrame.openGUI";
@@ -560,28 +624,29 @@ private void openGUI ( boolean mode )
 	// Start a big try block to set up the GUI...
 	try {
 
-	// Add a listener to catch window manager events...
+	// Add a listener to catch window manager events (close window, etc.)...
 
 	addWindowListener ( this );
 
-	// Lay out the main window component by component.  We will start with
-	// the menubar default components.  Then add each requested component
-	// to the menu bar and the interface...
+	// Lay out the main window component by component.
+	// Start with the menubar default components.
+	// Then add each requested component to the menu bar and the interface.
 
 	GridBagLayout gbl = new GridBagLayout();
 
 	//Insets insetsTLBR = new Insets ( 3, 3, 3, 3 );// space around components
 	Insets insetsTLBR = new Insets ( 1, 3, 1, 3 ); // space around component
+	Insets insetsNone = new Insets ( 0, 0, 0, 0 ); // no space around component, for surrounding the drawing JComponent
 	
-	// Add a panel to hold everything...
+	// The drawing component will occupy the CENTER part of the BorderLayout.
+	// Controls at the bottom will occupy the SOUTH part of the BoarderLayout.
 
-	JPanel main_JPanel = new JPanel ();
-	// main_JPanel.setLayout ( gbl );
-	main_JPanel.setLayout ( new BorderLayout() );
-	getContentPane().add ( "Center", main_JPanel );
+	Container contentPane = getContentPane();
+	contentPane.setLayout(new BorderLayout() );
 
+	//if ( includeFullCode ) {
 	_toolbar = new JToolBar();
-	main_JPanel.add ( "North", _toolbar);
+	//main_JPanel.add ( "North", _toolbar);
 	
 	_edit_JToogleButton = new SimpleJToggleButton("Edit Mode", this, false);
 	_edit_JToogleButton.setToolTipText("Edit graph mode");
@@ -661,10 +726,122 @@ private void openGUI ( boolean mode )
 		_ts_graph = new TSGraphJComponent ( this, __tsproduct, additional_props );
 	}
     _ts_graph.setEditor(_tsGraphEditor);
-	main_JPanel.add ( "Center", _ts_graph );
+	//} // includeFullCode
+    //int layoutType = 0; // This works, but is a pain to forward mouse events to underlying components
+    //int layoutType = 2;
+    int layoutType = 3; // Now this works
+    // TODO sam 2017-02-22 Figure out why only layoutType=0 is only one that works
+    boolean doFrameGlassPane = true; // Default is to use glass pane on JFrame, but layout 2 uses JLayeredPane instead
+    JLayeredPane layeredPane = null;
+    JPanel panelForTSGraphJComponent = null;
+    JPanel panelForJLayeredPane = null;
+    if ( layoutType == 0 ) {
+    	// Legacy layout - this works, and will add the glass pane over the frame
+    	contentPane.add ( _ts_graph, BorderLayout.CENTER );
+    	//TestCanvas _testCanvas = new TestCanvas(500,300);
+    	//contentPane.add ( _testCanvas, BorderLayout.CENTER );
+    	doFrameGlassPane = true; // Glass pane is added below
+    }
+    else if ( layoutType == 1 ) {
+    	// Try the approach of:
+    	// - adding the graph to a JPanel/GridBagLaout
+    	// - add the above to JLayeredPane
+    	// - adding the JLayeredPane to a panel that uses GridBagLayout to fill the space
+    	// - adding the above to content pane BorderLayout CENTER
+    	// This does not work - panel is zero size at initialization and does not force graph to resize
+        Message.printStatus(2,routine,"TSGraphJComponent size before laying out in window, width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	layeredPane = new JLayeredPane ();
+    	// Set the preferred size of the JLayeredPane to be the same as the TSGraphJComponent (since it sets its own preferred size)
+    	layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+    	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, _ts_graph);
+    	//layeredPane.add(_tsGraphGlassPane,2);
+        panelForTSGraphJComponent = new JPanel();
+        panelForTSGraphJComponent.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+        panelForTSGraphJComponent.setLayout(gbl);
+    	JGUIUtil.addComponent ( panelForTSGraphJComponent, _ts_graph,
+        	0, 0, 1, 1, 1.0, 1.0, insetsNone, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+    	Message.printStatus(2,routine,"TSGraphJComponent size after adding to panel, width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	layeredPane.add(panelForTSGraphJComponent,1); // TSGraphJComponent calls setPreferredSize()
+        // Fill the whole panel and allow resize in both directions
+    	panelForJLayeredPane = new JPanel();
+    	panelForJLayeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+    	panelForJLayeredPane.setLayout(gbl);
+    	JGUIUtil.addComponent ( panelForJLayeredPane, layeredPane,
+    		0, 0, 1, 1, 1.0, 1.0, insetsNone, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to panel, width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	// This should automatically resize to fill
+    	contentPane.add ( panelForJLayeredPane, BorderLayout.CENTER );
+    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to contentPane, width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	doFrameGlassPane = false;
+    }
+    else if ( layoutType == 2 ) {
+    	// Try the approach of adding the JLayeredPane to the center panel of the content pane
+    	// and then the graph goes in a JPanel that uses GridBagLayout to fill the space.
+    	// TSGraphJComponent (_ts_graph) calls setPreferredSize().
+    	// This does not work - panel is zero size at initialization and does not force graph to resize
+        panelForTSGraphJComponent = new JPanel();
+        panelForTSGraphJComponent.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+        panelForTSGraphJComponent.setLayout(gbl);
+        // Fill the whole panel and allow resize in both directions
+    	JGUIUtil.addComponent ( panelForTSGraphJComponent, _ts_graph,
+    		0, 0, 1, 1, 1.0, 1.0, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
+    	layeredPane = new JLayeredPane ();
+    	layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+    	layeredPane.add(panelForTSGraphJComponent,new Integer(JLayeredPane.DEFAULT_LAYER));
+    	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, _ts_graph);
+    	//layeredPane.add(_tsGraphGlassPane,2);
+    	// This should automatically resize to fill
+    	contentPane.add ( layeredPane, BorderLayout.CENTER );
+    	doFrameGlassPane = false;
+    }
+    else if ( layoutType == 3 ) {
+    	// Try the approach of adding the JLayeredPane to the center panel of the content pane
+    	// and then the graph goes in a JPanel that uses GridBagLayout to fill the space.
+    	// TSGraphJComponent (_ts_graph) calls setPreferredSize().
+    	// This does not work - panel is zero size at initialization and does not force graph to resize
+    	layeredPane = new JLayeredPane ();
+    	layeredPane.setLayout(gbl);
+    	//_ts_graph.setOpaque(false); // Doesn't do anything?
+    	//_ts_graph.setBackground(new Color(0,0,0,0));
+    	addLayeredPaneComponent ( layeredPane, _ts_graph, new Integer(JLayeredPane.DEFAULT_LAYER) );
+    	// The above sets the horizontal layout but the following ensures vertical ordering in layer (1=bottom)
+    	layeredPane.setPosition(_ts_graph, 1);
+    	//JPanel testJPanel = new JPanel();
+    	//testJPanel.setOpaque(false);
+    	//addLayeredPaneComponent ( layeredPane, testJPanel, new Integer(JLayeredPane.DEFAULT_LAYER + 1) );
+    	//layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
+    	//layeredPane.add(panelForTSGraphJComponent,1);
+    	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, layeredPane.getRootPane());
+    	_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, null);
+    	addLayeredPaneComponent ( layeredPane, _tsGraphGlassPane, new Integer(JLayeredPane.DEFAULT_LAYER) );
+    	// The above sets the horizontal layout but the following ensures vertical ordering in layer (0=top)
+    	//layeredPane.setLayer(_tsGraphGlassPane, JLayeredPane.DEFAULT_LAYER, 0);
+    	layeredPane.setPosition(_tsGraphGlassPane, 0);
+    	// This should automatically resize to fill
+    	contentPane.add ( layeredPane, BorderLayout.CENTER );
+    	// Don't do a glass pane on the frame because only doing on the LayeredPane
+    	doFrameGlassPane = false;
+    }
+    
+    // If the following is true, a glass frame component is used over the entire JFrame,
+    // for use in mouse tracking, etc.
+    if ( doFrameGlassPane ) {
+		// Add a glass pane over the entire parent JFrame
+    	_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph,contentPane);
+    	//JRootPane root = SwingUtilities.getRootPane(this);
+    	//root.setGlassPane(_tsGraphGlassPane);
+    	setGlassPane(_tsGraphGlassPane); // This must be done before setting visible
+    	//glassPane.setOpaque(true);
+    	//glassPane.setOpaque(false);
+    	_tsGraphGlassPane.setVisible(true);
+    }
 	
 	// Panel to hold the reference graph and buttons (to maintain spatial ordering)...
-
+    //if ( includeFullCode ) {
 	JPanel bottom_JPanel = new JPanel ();
 	bottom_JPanel.setLayout ( gbl );
 
@@ -691,7 +868,8 @@ private void openGUI ( boolean mode )
 		ref_props.set ( "GraphType", "Line" );
 		ref_props.set ( "MaximizeGraphSpace", "true" );
 		ref_props.set ( "ReferenceGraph", "true" );
-		ref_props.set ( "ReferenceTSIndex=" + max_period_index );
+		// TODO sam 2017-02-23 need to enable this when glass pane is figured out
+		//ref_props.set ( "ReferenceTSIndex=" + max_period_index );
 		if ( __tsproduct == null ) {
 			// Old style...
 			_ref_graph = new TSGraphJComponent ( this, __tslist, ref_props );
@@ -874,17 +1052,12 @@ private void openGUI ( boolean mode )
 	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, button_bottom_JPanel,
 		0, 3, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.SOUTH );
-
-	//add ( "South", bottom_JPanel );
-	//JGUIUtil.addComponent ( main_JPanel, bottom_JPanel, 0, y, 1, 1, 1, 1,
-	//		insetsTLBR, gbc.BOTH, GridBagConstraints.SOUTH );
-	main_JPanel.add ( "South", bottom_JPanel );
-
-	// Add panel for tracker window...
+	
+	// Add panel for status and tracker window...
 
 	++y;
-	JPanel control_JPanel = new JPanel ();
-	control_JPanel.setLayout ( new GridBagLayout() );
+	JPanel status_JPanel = new JPanel ();
+	status_JPanel.setLayout ( gbl );
 	__message_JTextField = new JTextField ();
 	__message_JTextField.setEditable ( false );
 	if ( _ts_graph.canUseZoom() ) {
@@ -893,17 +1066,30 @@ private void openGUI ( boolean mode )
 	else {
 	    __message_JTextField.setText ( "Zoom Mode Disabled");
 	}
-	JGUIUtil.addComponent ( control_JPanel, __message_JTextField,
-			0, 0, 1, 1, 1, 1,
+	JGUIUtil.addComponent ( status_JPanel, __message_JTextField,
+			0, 0, 1, 1, .3, 1.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	__tracker_JTextField = new JTextField (30);
 	__tracker_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( control_JPanel, __tracker_JTextField,
-			1, 0, 1, 1, 1, 1,
+	JGUIUtil.addComponent ( status_JPanel, __tracker_JTextField,
+			1, 0, 1, 1, .7, 1.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	getContentPane().add ( "South", control_JPanel );
+	++y;
+	JGUIUtil.addComponent ( bottom_JPanel, status_JPanel,
+		0, 4, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.SOUTH );
+	
+	contentPane.add ( bottom_JPanel, BorderLayout.SOUTH );
+    //} // includeFullCode
 
+	if ( panelForTSGraphJComponent != null ) {
+		Message.printStatus(2,routine,"Graph panel size before calling pack() is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
+	}
+	Message.printStatus(2,routine,"TSGraphJComponent size before calling pack(), width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
 	pack ();
+	Message.printStatus(2,routine,"TSGraphJComponent size after calling pack(), width="
+            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+	//if ( includeFullCode ) {
 	// TODO SAM 2016-04-01 Need to set property in calling code so center works properly
 	// Get the UI component to determine screen to display on - needed for multiple monitors
 	if ( __props != null ) {
@@ -919,18 +1105,49 @@ private void openGUI ( boolean mode )
 	else {
 		JGUIUtil.center ( this );
 	}
+	//} // includeFullCode
 
+	//if ( includeFullCode) {
 	if ( !needToClose() ) {
 		setVisible ( mode );
 	}
 	if (mode) {
 		toFront();
 	}
+	//} // includeFullCode
+	//if ( !includeFullCode) {
+		setVisible(true);
+	//} // !includeFullCode
+	
 	// Clean up...
+		if ( _tsGraphGlassPane != null ) {
+			Message.printStatus(2,routine,"Glass pane width=" + _tsGraphGlassPane.getWidth() + " height=" + _tsGraphGlassPane.getHeight());
+			if ( _tsGraphGlassPane == getGlassPane() ) {
+				Message.printStatus(2,routine,"Glass pane is set for JFrame");
+			}
+			Message.printStatus(2,routine,"Glass pane visible=" + _tsGraphGlassPane.isVisible());
+			Message.printStatus(2,routine,"Glass pane enabled=" + _tsGraphGlassPane.isEnabled());
+			//_tsGraphGlassPane.setPoint(new Point(_tsGraphGlassPane.getWidth()/2,_tsGraphGlassPane.getHeight()/2));
+			//_tsGraphGlassPane.repaint();
+		}
+		if ( panelForJLayeredPane != null ) {
+			Message.printStatus(2,routine,"Layered pane panel size is width=" + panelForJLayeredPane.getWidth() + ", height=" + panelForJLayeredPane.getHeight() );
+		}
+		if ( layeredPane != null ) {
+			Message.printStatus(2,routine,"Layered pane size is width=" + layeredPane.getWidth() + ", height=" + layeredPane.getHeight() );
+		}
+		if ( panelForTSGraphJComponent != null ) {
+			Message.printStatus(2,routine,"Graph panel size is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
+		}
+		if ( _ts_graph != null ) {
+			Message.printStatus(2,routine,"TSGraphJComponent width=" + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+		}
 
 	if ( __tsproduct == null ) {
 		// Should now have a TSProduct generated in TSGraphJComponent...
-		__tsproduct = _ts_graph.getTSProduct();
+		if ( _ts_graph != null ) {
+			__tsproduct = _ts_graph.getTSProduct();
+		}
 	}
 	} // end of try
 	catch ( Exception e ) {
