@@ -1,11 +1,9 @@
 package RTi.GRTS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JFrame;
-
-import RTi.Util.Message.Message;
 
 // TODO SAM 2011-11-29 Need to add listener ability, for example to let the TSTool UI know when
 // windows have been closed so that the "View - Close All View Windows" state can be updated.
@@ -20,7 +18,7 @@ public class TSViewWindowManager
 /**
 The list of TSViewJFrame being managed.
 */
-List<TSViewJFrame> __tsviewList = new Vector();
+List<TSViewJFrame> __tsviewList = new ArrayList<TSViewJFrame>();
     
 /**
 Construct the window manager.

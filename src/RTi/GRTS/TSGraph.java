@@ -7953,15 +7953,6 @@ public TS getFirstEnabledTS(boolean includeLeftYAxis, boolean includeRightYAxis)
 }
 
 /**
-Return the drawing area used for the left y-axis graph.  The value may be null.
-This is most often used by code that handles mouse events.
-@return The drawing area used for the left y-axis graph.
-*/
-public GRJComponentDrawingArea getGraphDrawingArea()
-{	return _da_lefty_graph;
-}
-
-/**
 Returns a prop value from the product, taking into account any override 
 properties that may be set in the graph.  This method is used when drawing time series.
 @param key the key of the property to return.
@@ -7971,7 +7962,7 @@ properties that may be set in the graph.  This method is used when drawing time 
 @param overrideProps if not null, this is the proplist that will be checked for the property.
 @return the prop value, or null if the property does not exist
 */
-private String getLayeredPropValue(String key, int subproduct, int its,
+protected String getLayeredPropValue(String key, int subproduct, int its,
 boolean annotation, PropList overrideProps) {
 	if (overrideProps == null) {
 		return _tsproduct.getLayeredPropValue( key, subproduct, its, annotation);
@@ -7993,6 +7984,15 @@ Return the graph type for the left y-axis.
 */
 public TSGraphType getLeftYAxisGraphType ()
 {	return __leftYAxisGraphType;
+}
+
+/**
+Return the drawing area used for the left y-axis graph.  The value may be null.
+This is most often used by code that handles mouse events.
+@return The drawing area used for the left y-axis graph.
+*/
+public GRJComponentDrawingArea getLeftYAxisGraphDrawingArea()
+{	return _da_lefty_graph;
 }
 
 /**
@@ -8189,6 +8189,15 @@ public List getRegressionData ()
 }
 
 /**
+Return the drawing area used for the right y-axis graph.  The value may be null.
+This is most often used by code that handles mouse events.
+@return The drawing area used for the right y-axis graph.
+*/
+public GRJComponentDrawingArea getRightYAxisGraphDrawingArea()
+{	return _da_righty_graph;
+}
+
+/**
 Return the graph type for the right y-axis.
 @return the graph type for the right y-axis.
 */
@@ -8336,6 +8345,14 @@ private List<TS> getTSListToRender ( boolean enabledOnly, boolean includeLeftYAx
     	// Simpler graph so render all that were found above
         return tslist;
     }
+}
+
+/**
+ * Get the x-axis date precision.
+ * @return x-axis date precision, useful for formatting mouse-tracker, etc.
+ */
+protected int getXAxisDateTimePrecision () {
+	return this._xaxis_date_precision;
 }
 
 /**

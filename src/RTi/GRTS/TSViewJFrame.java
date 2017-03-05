@@ -127,7 +127,7 @@ properties that can be used to control output.
 public class TSViewJFrame extends JFrame
 implements ActionListener
 {
-
+	
 // Private data related to TSView...
 
 /**
@@ -185,7 +185,7 @@ private List<TSProductDMI> __tsProductDMIs = null;
 
 /**
 Construct a stand-alone frame that manages a time series graph, summary and table.
-@param tslist Vector of TS to display.
+@param tslist list of TS to display.
 @param proplist Properties to control the display.  Properties
 can have the values shown in the following table:
 <p>
@@ -465,7 +465,7 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
 }
 
 /**
-Adds a TSProductDMI to the Vector of TSProductDMIs stored in this class.
+Adds a TSProductDMI to the list of TSProductDMIs stored in this class.
 @param productDMI the TSProductDMI to add.
 */
 public void addTSProductDMI(TSProductDMI productDMI) {	
@@ -774,7 +774,7 @@ protected void openGUI ( TSViewType type )
     				_tsproduct.setTSList ( _tslist );
     				_graph_gui = new TSViewGraphJFrame ( this, _tsproduct );
     			}
-    			wm.add ( this, _graph_gui );
+   				wm.add ( this, _graph_gui );
     			setWaitCursor ( false );
     			// The following gracefully handles shut-down of a graph.  An attempt to close the graph
     			// GUI from itself will fail because _graph_gui will still be null.
@@ -986,7 +986,8 @@ for the views to the hourglass while a view is opening.
 */
 public void setWaitCursor ( boolean status )
 {	if ( _graph_gui != null ) {
-		JGUIUtil.setWaitCursor ( _graph_gui, status );
+		// Don't use the glass pane to intercept events because that is handled by the component
+		JGUIUtil.setWaitCursor ( _graph_gui, status, false );
 	}
 	if ( _table_gui != null ) {
 		JGUIUtil.setWaitCursor ( _table_gui, status );

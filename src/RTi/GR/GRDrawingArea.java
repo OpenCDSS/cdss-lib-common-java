@@ -611,11 +611,25 @@ public int getUnits ()
 }
 
 /**
+ * Returns the x-axis type.
+ */
+public int getXAxisType () {
+	return this._axisx;
+}
+
+/**
 Returns the x data point for the x device point.
 @param xdev the x device point
 @return the x data point for the x device point.
 */
 public abstract double getXData ( double xdev );
+
+/**
+ * Returns the y-axis type.
+ */
+public int getYAxisType () {
+	return this._axisy;
+}
 
 /**
 Returns the y data point for the y device point.
@@ -1451,6 +1465,12 @@ public String toString () {
 	s.append("datax2 = " + _datax2 + nl );
 	s.append("datay1 = " + _datay1 + nl );
 	s.append("datay2 = " + _datay2 + nl );
+	if ( _dev == null ) {
+		s.append("dev = null" );
+	}
+	else if ( _dev.getLimits() != null ) {
+		s.append("dev.height = " + _dev.getLimits().getHeight() + nl );
+	}
 	s.append("devyshift = " + _devyshift + nl );
 	s.append("drawset = " + _drawset + nl );
 	s.append("drawx1 = " + _drawx1 + nl );

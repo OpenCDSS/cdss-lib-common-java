@@ -84,16 +84,18 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyAdapter;
-import java.awt.event.MouseAdapter;
+import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JApplet;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -115,8 +117,11 @@ user interface) components.  This class extends GUIUtil and so inherits the
 ability to work with AWT components, as well.
 */
 public abstract class JGUIUtil extends GUIUtil {
+	
+// TODO sam 2017-02-26 seems to only be used in GeoView - maybe should not be global static here?
 /**
 The current status of the wait cursor, as set by the setWaitCursor method.
+This will therefore be global within an application.
 */
 private static boolean __waitCursor = false;
 
@@ -177,18 +182,17 @@ public static void addToJComboBox ( JComboBox comboBox, String[] items )
 
 /**
 Add a list of strings to a JList.  This is useful when a standard set of
-choices are available.  The toString() method of each object in the Vector is
+choices are available.  The toString() method of each object in the list is
 called, so even non-String items can be added.
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox comboBox, List items )
+public static void addToJComboBox ( JComboBox comboBox, List<Object> items )
 {	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
-	int size = items.size();
-	for ( int i = 0; i < size; i++ ) {
-		comboBox.addItem ( items.get(i).toString() );
+	for ( Object item: items ) {
+		comboBox.addItem ( item.toString() );
 	}
 }
 
@@ -914,78 +918,94 @@ throws Exception {
 	}
 }
 
-public static void setWaitCursor(JDialog dialog, boolean state) {
-/*
-	if (state) {
-		setCursor(dialog, Cursor.WAIT_CURSOR);
-	}
-	else {
-		setCursor(dialog, Cursor.DEFAULT_CURSOR);
-	}
+// The following static data are used by setWaitCursor()
+//Static map of glass pane component and adapters that were added to intercept events.
+//Use these maps to clear adapters when going to normal state.
+//Otherwise a new adapter will get added every time waiting is turned on
+private static HashMap<Component,KeyAdapter> waitKeyListenerMap = new HashMap<Component,KeyAdapter>();
+private static HashMap<Component,MouseMotionAdapter> waitMouseMotionListenerMap = new HashMap<Component,MouseMotionAdapter>();
+
+/**
+Activates the wait cursor for a component and by default use the glass pane
+if a JFrame or JDialog to intercept mouse and key actions while in wait mode (state=true).
+@param component the JFrame or JDialog for which to set the wait cursor
+@param state whether to set the wait cursor to on (true) or off (false)
 */
-	if (dialog == null) {
-		return;
-	}
-
-	Component parent = SwingUtilities.getRoot((Component)dialog);
-	Component glassPane = null;
-
-	if (parent != null && parent.isShowing()) {
-		glassPane = dialog.getGlassPane();
-		if (state) {
-			glassPane.addKeyListener(new KeyAdapter() {});
-			glassPane.addMouseListener(new MouseAdapter() {});
-			glassPane.setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		}
-		else {
-			glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			parent.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-		}
-		glassPane.setVisible(state);
-	}
-	
-	__waitCursor = state;
+public static void setWaitCursor(Component component, boolean state) {
+	// By default use the glass pane to intercept key and mouse events on the component
+	// because this is the historical behavior.
+	setWaitCursor(component, state, true);
 }
 
 /**
-Activates the wait cursor for a JFrame.
-@param frame the JFrame for which to set the wait cursor
+Activates the wait cursor for a top-level Swing container (JFrame, JDialog, JApplet).
+@param component the top-level component for which to set the wait cursor
 @param state whether to set the wait cursor to on (true) or off (false)
+@param useGlassPaneToInterceptEvents whether to use the glass pane on the component
+to intercept key and mouse events. This should only be specified as true
+when the glass pane is not used in any other way, such as an overlaid mouse tracker.
 */
-public static void setWaitCursor(JFrame frame, boolean state) {
-/*
-	System.out.println("[[[[[[[[[[[[[        set wait cursor: " + state);
-	try {
-	throw new Exception ("wait");
-	}
-	catch (Exception e) {
-	e.printStackTrace();
-	}
-*/
+public static void setWaitCursor(Component component, boolean state, boolean useGlassPaneToInterceptEvents ) {
 
-	// still doesn't work as well as it should
-
-	if (frame == null) {
+	if (component == null) {
 		return;
 	}
 
-	Component parent = SwingUtilities.getRoot((Component)frame);
+	Component rootPane = SwingUtilities.getRoot(component);
 	Component glassPane = null;
 
-	if (parent != null && parent.isShowing()) {
-		glassPane = frame.getGlassPane();
+	if (rootPane != null && rootPane.isShowing()) {
+		if ( component instanceof JFrame ) {
+			glassPane = ((JFrame)component).getGlassPane();
+		}
+		else if ( component instanceof JDialog ) {
+			glassPane = ((JDialog)component).getGlassPane();
+		}
+		else if ( component instanceof JApplet ) {
+			glassPane = ((JApplet)component).getGlassPane();
+		}
 		if (state) {
-			glassPane.addKeyListener(new KeyAdapter() {});
-			glassPane.addMouseListener(new MouseAdapter() {});
-			glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			parent.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			// Setting state to wait
+			if ( useGlassPaneToInterceptEvents ) {
+				// The following will intercept events on the component until
+				// the wait is disabled
+				// TODO sam 2017-02-25 problem is that repeated calls will add more and more listeners
+				// that are never removed.  Is this really doing anything?
+				if ( glassPane != null ) {
+					// Temporarily add a key listener so that user's key events don't pass to
+					// the component.  This is removed later using the map to find the listener.
+					WaitCursorKeyListener kl = new WaitCursorKeyListener(glassPane);
+					glassPane.addKeyListener(kl);
+					waitKeyListenerMap.put(glassPane,kl);
+					// Temporarily add a mouse motion listener so that user's mouse events don't pass to
+					// the component.  This is removed later using the map to find the listener.
+					WaitCursorMouseMotionListener mml = new WaitCursorMouseMotionListener(glassPane);
+					glassPane.addMouseMotionListener(mml);
+					waitMouseMotionListenerMap.put(glassPane,mml);
+				}
+			}
+			if ( glassPane != null ) {
+				glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			}
+			rootPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		}
 		else {
-			glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			parent.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			// Setting state to not wait (clear wait)
+			if ( glassPane != null ) {
+				glassPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+				// Remove the listeners that were intercepting events.
+				// Although the same listeners might be appropriate in the next call,
+				// new listeners will get re-added above just to make sure the proper glass pane is used
+				// (other code may manipulate the glass pane).
+				waitKeyListenerMap.remove(glassPane);
+				waitMouseMotionListenerMap.remove(glassPane);
+			}
+			rootPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
-		glassPane.setVisible(state);
+		if ( useGlassPaneToInterceptEvents ) {
+			// If the glass pane is set to not visible, then the adapters won't be active.
+			glassPane.setVisible(state);
+		}
 	}
 	
 	__waitCursor = state;

@@ -371,13 +371,7 @@ public static void drawPolygon ( GRDrawingArea da, GRPolygon polygon )
 		return;
 	}
 	double [] xs = new double[polygon.npts];
-	if ( xs == null ) {
-		return;
-	}
 	double [] ys = new double[polygon.npts];
-	if ( ys == null) {
-		return;
-	}
 	for ( int i = 0; i < polygon.npts; i++ ) {
 		xs[i] = da.scaleXData ( polygon.pts[i].x );
 		ys[i] = da.scaleYData ( polygon.pts[i].y );
@@ -400,13 +394,7 @@ public static void drawPolygon ( GRDrawingArea da, int npts, double x[], double 
 		return;
 	}
 	double [] xs = new double[npts];
-	if ( xs == null ) {
-		return;
-	}
 	double [] ys = new double[npts];
-	if ( ys == null) {
-		return;
-	}
 	for ( int i = 0; i < npts; i++ ) {
 		xs[i] = da.scaleXData ( x[i] );
 		ys[i] = da.scaleYData ( y[i] );
@@ -430,13 +418,7 @@ public static void drawPolyline ( GRDrawingArea da, GRPolyline polyline )
 		return;
 	}
 	xs = new double[polyline.npts];
-	if ( xs == null ) {
-		return;
-	}
 	ys = new double[polyline.npts];
-	if ( ys == null ) {
-		return;
-	}
 	for ( i = 0; i < polyline.npts; i++ ) {
 		xs[i] = da.scaleXData ( polyline.pts[i].x );
 		ys[i] = da.scaleYData ( polyline.pts[i].y );
@@ -460,15 +442,7 @@ public static void drawPolyline ( GRDrawingArea da, int npts, double x[], double
 		return;
 	}
 	xs = new double[npts];
-	if ( xs == null ) {
-		Message.printWarning ( 3, "drawPolyline", "Unable to malloc " + npts + " x-coordinates" );
-		return;
-	}
 	ys = new double[npts];
-	if ( ys == null ) {
-		Message.printWarning ( 3, "drawPolyline", "Unable to malloc " + npts + " y-coordinates" );
-		return;
-	}
 	for ( i = 0; i < npts; i++ ) {
 		xs[i] = da.scaleXData ( x[i] );
 		ys[i] = da.scaleYData ( y[i] );
@@ -492,13 +466,7 @@ public static void drawPolylineZM ( GRDrawingArea da, GRPolylineZM polyline )
 		return;
 	}
 	xs = new double[polyline.npts];
-	if ( xs == null ) {
-		return;
-	}
 	ys = new double[polyline.npts];
-	if ( ys == null ) {
-		return;
-	}
 	for ( i = 0; i < polyline.npts; i++ ) {
 		xs[i] = da.scaleXData ( polyline.pts[i].x );
 		ys[i] = da.scaleYData ( polyline.pts[i].y );
@@ -519,15 +487,7 @@ public static void drawRectangle ( GRDrawingArea da, double xll, double yll, dou
 {	double [] xs, ys;
 
 	xs = new double[4];
-	if ( xs == null ) {
-		Message.printWarning ( 2, "drawRectangle", "Unable to allocate points (x-coord) for rectangle.");
-		return;
-	}
 	ys = new double[4];
-	if ( ys == null ) {
-		Message.printWarning ( 2, "drawRectangle", "Unable to allocate points (y-coord) for rectangle.");
-		return;
-	}
 	// Scale the data.  Allow the width and height to be negative and adjust the dimensions accordingly...
 	xs[0] = da.scaleXData ( xll );
 	xs[1] = da.scaleXData ( xll + width );
@@ -2566,14 +2526,7 @@ public static void fillPolygon ( GRDrawingArea da, GRPolygon polygon )
 		return;
 	}
 	double [] xs = new double[polygon.npts];
-	if ( xs == null ) {
-		return;
-	}
 	double [] ys = new double[polygon.npts];
-	if ( ys == null ) {
-		xs = null;
-		return;
-	}
 	for ( int i = 0; i < polygon.npts; i++ ) {
 		xs[i] = da.scaleXData ( polygon.pts[i].x );
 		ys[i] = da.scaleYData ( polygon.pts[i].y );
@@ -2599,14 +2552,7 @@ public static void fillPolygon ( GRDrawingArea da, GRPolygon polygon, int transp
 		return;
 	}
 	double [] xs = new double[polygon.npts];
-	if ( xs == null ) {
-		return;
-	}
 	double [] ys = new double[polygon.npts];
-	if ( ys == null ) {
-		xs = null;
-		return;
-	}
 	for ( int i = 0; i < polygon.npts; i++ ) {
 		xs[i] = da.scaleXData ( polygon.pts[i].x );
 		ys[i] = da.scaleYData ( polygon.pts[i].y );
@@ -2633,15 +2579,7 @@ public static void fillPolygon ( GRDrawingArea da, int npts, double x[], double 
 		return;
 	}
 	xs = new double[npts];
-	if ( xs == null ) {
-		Message.printWarning ( 2, "fillPolygon", "Unable to allocate " + npts + " points (x-coord) for polygon");
-		return;
-	}
 	ys = new double[npts];
-	if ( ys == null ) {
-		Message.printWarning ( 2, "fillPolygon", "Unable to allocate " + npts + " points (y-coord) for polygon");
-		return;
-	}
 	for ( i = 0; i < npts; i++ ) {
 		xs[i] = da.scaleXData ( x[i] );
 		ys[i] = da.scaleYData ( y[i] );
@@ -2664,15 +2602,7 @@ public static void fillRectangle ( GRDrawingArea da, double xll, double yll, dou
 {	double [] xs, ys;
 
 	xs = new double[4];
-	if ( xs == null ) {
-		Message.printWarning ( 2, "fillRectangle", "Unable to allocate points (x-coord) for rectangle.");
-		return;
-	}
 	ys = new double[4];
-	if ( ys == null ) {
-		Message.printWarning ( 2, "fillRectangle", "Unable to allocate points (y-coord) for rectangle.");
-		return;
-	}
 	// Scale the data.  Allow the width and height to be negaive and adjust
 	// the dimensions accordingly...
 	xs[0] = da.scaleXData ( xll );

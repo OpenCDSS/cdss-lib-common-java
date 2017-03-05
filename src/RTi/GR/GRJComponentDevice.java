@@ -32,7 +32,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
@@ -49,6 +48,7 @@ extends JComponent
 implements GRDevice
 {
 
+//TODO sam 2017-03-03 need to make all of these private and add appropriate methods to encapsulate
 /**
 BufferedImage used in double-buffering.
 */
@@ -58,13 +58,15 @@ protected BufferedImage _buffer = null;
 If true, drawing will be performed to the double-buffer.
 */
 protected boolean _doubleBuffered = false;
+
 /**
-For backwards compatability with older code.  Probably should be removed soon.
+For backwards compatibility with older code.  Probably should be removed soon.
 */
 protected boolean _double_buffering = _doubleBuffered;
 
 /**
-Whether the device is drawing anti aliased or not.
+Whether the device is drawing anti-aliased or not.
+Anti-aliased with smooth curves by filling in transition color pixels.
 */
 private boolean __isAntiAliased = false;
 
@@ -73,11 +75,13 @@ Indicates if the device is being used for printing.  For example, the
 GRCanvasDevice is used for screen and printed output but for printed output
 the Y-Axis does not need to be shifted.
 */
-protected boolean	_printing;
+protected boolean _printing;
+
 /**
 Indicates that the Y axis must be reversed for the GR zero at the bottom.
 */
-protected boolean	_reverse_y;
+protected boolean _reverse_y;
+
 /**
 Indicates whether rubber-banding from a select is in effect, in which case the
 drawing code should implement some type of XOR logic.
@@ -87,41 +91,41 @@ protected boolean _rubber_banding = false;
 /**
 Minimum X coordinate, absolute (relative to screen)
 */
-protected double	_dev0x1;
+protected double _dev0x1;
 /**
 Maximum X coordinate, absolute (relative to screen)
 */
-protected double	_dev0x2;
+protected double _dev0x2;
 /**
 Minimum Y coordinate, absolute (relative to screen)
 */
-protected double	_dev0y1;
+protected double _dev0y1;
 /**
 Maximum Y coordinate, absolute (relative to screen)
 */
-protected double	_dev0y2;
+protected double _dev0y2;
 
 /**
 Minimum X coordinate, relative.
 */
-protected double	_devx1;
+protected double _devx1;
 /**
 Maximum X coordinate, relative.
 */
-protected double	_devx2;
+protected double _devx2;
 /**
 Minimum Y coordinate, relative.
 */
-protected double	_devy1;
+protected double _devy1;
 /**
 Maximum Y coordinate, relative.
 */
-protected double	_devy2;
+protected double _devy2;
 
 /**
 GRLimits containing the relative points of the display device.
 */
-protected GRLimits	_limits;
+protected GRLimits _limits;
 
 /**
 The following should be set by derived classes in the paint() method.
@@ -137,52 +141,52 @@ protected Image _image = null;
 /**
 Display mode (allows recording).
 */
-protected int		_mode;
+protected int _mode;
 /**
 Page orientation -- shouldn't be necessary for any class other than GRPSDevice.
 */
-protected int		_orientation;
+protected int _orientation;
 /**
 Page count -- shouldn't be necessary for any class other than GRPSDevice.
 */
-protected int		_page;
+protected int _page;
 /**
 Size that is used by calling drawing routines.  Used in Postscript/page 
 systems where drawing can be to one page size with a single "scale" command.  
 */
-protected int		_sizedrawn;
+protected int _sizedrawn;
 /**
 Size of output after scaling.  Used in Postscript/page 
 systems where drawing can be to one page size with a single "scale" command.  
 */
-protected int		_sizeout;
+protected int _sizeout;
 /**
 Indicates the status of the drawing area.  See GRUtil.STATUS_*.  Might be an equivalent of a C++ option.
 */
-protected int		_status;
+protected int _status;
 /**
 Graphics driver type.  Offered because different graphics code might make
 different decisions, e.g., Postscript draws thick lines, Canvas does not.
 */
-protected int		_type;
+protected int _type;
 /**
 Device units.
 */
-protected int		_units;
+protected int _units;
 
 /**
 Name of this device (assigned by creating code).  It will be used as a window name if necessary.
 */
-protected String	_name;
+protected String _name;
 /**
 Note for this device.  Used for simple on-line help for the GUI.
 */
-protected String	_note;
+protected String _note;
 
 /**
-List of GRDrawingArea objects for this device.
+List of GRDrawingArea objects for this device, guaranteed to be non-null.
 */
-protected List<GRDrawingArea> _drawing_area_list;
+private List<GRDrawingArea> drawingAreaList = null;
 
 /**
 Construct using name.
@@ -218,9 +222,20 @@ public GRJComponentDevice ( PropList props )
 
 /**
 Add a drawing area to the device.  The device will then manage the drawing areas as much as possible.
+Drawing areas with names the same as previously added drawing areas will still be added.
 @param grda GRJComponentDrawingArea to add.
 */
-public void addDrawingArea ( GRDrawingArea grda )
+public void addDrawingArea ( GRDrawingArea grda ) {
+	addDrawingArea ( grda, false );
+}
+
+/**
+Add a drawing area to the device.  The device will then manage the drawing areas as much as possible.
+@param grda GRJComponentDrawingArea to add.
+@param replaceMatching if true, then a drawing area that matches an existing drawing area (same name)
+will replaced the previous drawing area.
+*/
+public void addDrawingArea ( GRDrawingArea grda, boolean replaceMatching )
 {	String routine = "GRJComponentDevice.addDrawingArea";
 
 	if ( grda == null ) {
@@ -228,11 +243,26 @@ public void addDrawingArea ( GRDrawingArea grda )
 		return;
 	}
 
+	if ( replaceMatching ) {
+		// This currently will cause the drawing area to be added at the end.
+		// This could be an issue if order is a problem.
+		// Could do a replace at the same location but that also has implications and a new "replace" method might be better.
+		for ( int ida = this.drawingAreaList.size() - 1; ida >= 0; --ida ) {
+			GRDrawingArea da = this.drawingAreaList.get(ida);
+			if ( da.getName().equals(grda.getName()) ) {
+				// Remove the match
+				this.drawingAreaList.remove(ida);
+			}
+		}
+	}
+
+	// Add the drawing area at the end.
+	
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, routine,
 		"Adding drawing area \"" + grda.getName() + "\" to device \"" + _name + "\"" );
 	}
-	_drawing_area_list.add ( (GRJComponentDrawingArea)grda );
+	this.drawingAreaList.add ( grda );
 }
 
 /**
@@ -277,7 +307,7 @@ throws Throwable
 	_image = null;
 	_name = null;
 	_note = null;
-	_drawing_area_list = null;
+	this.drawingAreaList = null;
 	super.finalize();
 }
 
@@ -296,6 +326,19 @@ Alternately, REVISIT (JTS - 2006-05-23) in a few months and if it's still here, 
 */
 public void forceGraphics(Graphics g) {
 	_graphics = (Graphics2D)g;
+}
+
+/**
+ * Return a drawing area requested by name.
+ * @return the first matching drawing area (exact string match) or null if not matched.
+ */
+public GRDrawingArea getDrawingArea ( String daName ) {
+	for ( GRDrawingArea da : this.drawingAreaList ) {
+		if ( da.getName().equals(daName) ) {
+			return da;
+		}
+	}
+	return null;
 }
 
 /**
@@ -430,7 +473,7 @@ private void initialize ( PropList props )
 
 	// Set the general information...
 
-	_drawing_area_list = new Vector ( 5, 1 );
+	this.drawingAreaList = new ArrayList<GRDrawingArea>(5);
 	_mode = GRUtil.MODE_DRAW;
 	_name = new String ();
 	_note = new String ();
@@ -569,6 +612,8 @@ public boolean isPrinting()
 {	return _printing;
 }
 
+// TODO sam 2017-03-03 remove this method as it interferes with newer paint() behavior
+// that calls paintComponent() and derived classes should call setPaintGraphics() to save the graphics.
 /**
 This method is called when the JComponent is to be drawn.  It is expected that
 classes extended from this base class will implement a paint() method that
@@ -578,9 +623,9 @@ being called for resize, etc., and the graphics in effect at the time is set as
 the current graphics.   The Graphics can then be used by subsequent calls for
 drawing.  The base class paint() is not called from this method.
 */
-public void paint ( Graphics graphics )
-{	_graphics = (Graphics2D)graphics;
-}
+//public void paint ( Graphics graphics )
+//{	_graphics = (Graphics2D)graphics;
+//}
 
 /**
 Indicates the end of a page of output.  Used in PS and should be defined in derived classes.
@@ -611,10 +656,10 @@ public void resize ( GRLimits limits )
 
 /**
 Resize the device to the given size.
-@param x1 New lower-left X-coordinte of device (usually zero).
-@param y1 New lower-left Y-coordinte of device (usually zero).
-@param x2 New top-right X-coordinte of device.
-@param y2 New top-right Y-coordinte of device.
+@param x1 New lower-left X-coordinate of device (usually zero).
+@param y1 New lower-left Y-coordinate of device (usually zero).
+@param x2 New top-right X-coordinate of device.
+@param y2 New top-right Y-coordinate of device.
 */
 public void resize ( double x1, double y1, double x2, double y2 )
 {	resize2 ( (int)(x2 - x1), (int)(y2 - y1) );
@@ -883,7 +928,7 @@ public void setupDoubleBuffer(int x1, int y1, int x2, int y2) {
 }	
 
 /**
-Shows what has been drawn to the double buffer by blitting it to the screen.
+Shows what has been drawn to the double buffer by drawing it to the screen.
 */
 public void showDoubleBuffer() {
 	if (_doubleBuffered) {
@@ -893,7 +938,7 @@ public void showDoubleBuffer() {
 
 /**
 Shows what has been drawn to the double buffer by drawing it to the provided Graphics object.
-@param g the Graphics objec to which to draw the double buffer.
+@param g the Graphics object to which to draw the double buffer.
 */
 public void showDoubleBuffer(Graphics g) {
 	if (_doubleBuffered) {
@@ -934,14 +979,14 @@ public String toString ( boolean outputDrawingAreas ) {
 		// Loop through the drawing areas
 		// Make a copy and then sort by name
 		List<GRDrawingArea> das = new ArrayList<GRDrawingArea>();
-		for ( GRDrawingArea da : _drawing_area_list ) {
+		for ( GRDrawingArea da : drawingAreaList ) {
 			das.add(da);
 		}
 		// Sort by name
 		//java.util.Collections.sort(das);
 		// TODO sam 2017-02-05 decide whether should implement comparable or not
-		for ( int ida = 0; ida < _drawing_area_list.size(); ida++ ) {
-			GRDrawingArea da = _drawing_area_list.get(ida);
+		for ( int ida = 0; ida < drawingAreaList.size(); ida++ ) {
+			GRDrawingArea da = drawingAreaList.get(ida);
 			s.append ( nl + "drawingAreaIndex = " + ida + nl );
 			s.append ( da.toString() + nl );
 		}
